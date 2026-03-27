@@ -1,0 +1,177 @@
+tags:
+  - name: 使用者 (Users)
+    description: 處理使用者相關操作的 API 端點 (包含註冊、查詢、修改與刪除)
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: 系統自動產生的使用者 ID
+        email:
+          type: string
+          description: 使用者的電子郵件 (必須是唯一的)
+        nickname:
+          type: string
+          description: 使用者顯示的暱稱
+        role:
+          type: string
+          description: 使用者的身分權限 (例如：buyer_seller, admin 等，需符合資料庫列舉值)
+        bio:
+          type: string
+          description: 使用者的個人簡介
+        phone:
+          type: string
+          description: 使用者的聯絡電話
+        created_at:
+          type: string
+          format: date-time
+          description: 帳號建立的時間
+
+paths:
+  /api/users:
+    get:
+      summary: 取得所有使用者
+      tags: [使用者 (Users)]
+      description: 從資料庫中撈取所有使用者的列表資料。
+      responses:
+        '200':
+          description: 成功取得使用者列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '500':
+          description: 伺服器發生錯誤
+          
+    post:
+      summary: 新增使用者 (註冊)
+      tags: [使用者 (Users)]
+      description: 建立一名新的使用者，Email 不可與現有帳號重複，且 role 必須符合資料庫規範。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password_hash
+                - nickname
+              properties:
+                email:
+                  type: string
+                  example: "test@example.com"
+                password_hash:
+                  type: string
+                  example: "hashed_password_string"
+                nickname:
+                  type: string
+                  example: "王小明"
+                role:
+                  type: string
+                  default: buyer_seller
+                  example: "buyer_seller"
+      responses:
+        '201':
+          description: 使用者建立成功
+        '400':
+          description: 請求失敗 (可能原因：缺少必填欄位、Email 已被註冊、或 role 等欄位傳入無效的值)
+        '500':
+          description: 伺服器發生錯誤
+
+  /api/users/{id}:
+    get:
+      summary: 根據 ID 取得特定使用者
+      tags: [使用者 (Users)]
+      description: 傳入 user_id 來取得該名使用者的詳細資料。
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: 使用者的 ID (user_id)
+      responses:
+        '200':
+          description: 成功取得使用者資料
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: 找不到該使用者
+        '500':
+          description: 伺服器發生錯誤
+          
+    put:
+      summary: 更新使用者資料
+      tags: [使用者 (Users)]
+      description: 根據使用者 ID 更新其基本資料 (例如：暱稱、簡介、電話)。
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: 要更新的使用者 ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname:
+                  type: string
+                  example: "新暱稱"
+                bio:
+                  type: string
+                  example: "這是一段新的個人簡介。"
+                phone:
+                  type: string
+                  example: "0912345678"
+      responses:
+        '200':
+          description: 使用者資料更新成功
+        '400':
+          description: 提供的資料格式錯誤或包含無效的值
+        '404':
+          description: 找不到該使用者
+        '500':
+          description: 伺服器發生錯誤
+          
+    delete:
+      summary: 刪除使用者
+      tags: [使用者 (Users)]
+      description: 根據使用者 ID 永久刪除該名使用者。若該使用者有其他關聯資料（例如訂單），可能會因外鍵限制導致刪除失敗。
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: 要刪除的使用者 ID
+      responses:
+        '200':
+          description: 使用者已成功刪除
+        '404':
+          description: 找不到該使用者
+        '500':
+          description: 伺服器發生錯誤 (可能因為外鍵關聯限制，例如還有訂單依賴此使用者)
