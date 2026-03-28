@@ -19,6 +19,16 @@ const swaggerOptions = {
         description: 'Local development server',
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: '請在此輸入您取得的 JWT Token（不需要手動輸入 Bearer 字樣）',
+        },
+      },
+    },
   },
   apis: ['./docs/*.yaml'], 
 };

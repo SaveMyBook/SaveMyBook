@@ -1,0 +1,67 @@
+tags:
+  - name: 認證 (Auth)
+    description: 處理使用者登入與身分驗證的 API 端點
+
+paths:
+  /api/auth/login:
+    post:
+      summary: 使用者登入
+      tags: [認證 (Auth)]
+      description: 輸入 Email 與密碼，驗證成功後回傳 JWT Token。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: "test@example.com"
+                password:
+                  type: string
+                  example: "your_password123"
+      responses:
+        '200':
+          description: 登入成功，回傳 Token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "登入成功"
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR..."
+        '401':
+          description: 帳號或密碼錯誤
+        '500':
+          description: 伺服器發生錯誤
+
+  /api/auth/me:
+    get:
+      summary: 取得當前登入者資訊
+      tags: [認證 (Auth)]
+      description: 必須夾帶 JWT Token 才能呼叫。回傳目前登入使用者的詳細資料。
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功取得資料
+        '401':
+          description: 存取被拒，未提供 Token
+        '403':
+          description: Token 無效或已過期
+        '500':
+          description: 伺服器發生錯誤

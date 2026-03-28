@@ -1,13 +1,15 @@
 const express = require('express');
-const prisma = require('../lib/prisma'); // Import the shared Prisma instance
+const bcrypt = require('bcrypt');
+const prisma = require('../lib/prisma');
+const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 
 // ==========================================
 // GET /api/users
-// Fetch all users from the database
+// Fetch all users from the database (保護：需登入)
 // ==========================================
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const users = await prisma.users.findMany();
     res.status(200).json({ success: true, data: users });
@@ -19,9 +21,9 @@ router.get('/', async (req, res) => {
 
 // ==========================================
 // GET /api/users/:id
-// Fetch a specific user by their ID
+// Fetch a specific user by their ID 
 // ==========================================
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const user = await prisma.users.findUnique({
       where: { user_id: parseInt(req.params.id) }
@@ -43,19 +45,28 @@ router.get('/:id', async (req, res) => {
 // Create a new user
 // ==========================================
 router.post('/', async (req, res) => {
-  const { email, password_hash, nickname, role = 'buyer_seller' } = req.body;
+  const { email, password, nickname, role = 'buyer_seller' } = req.body;
   
   // Basic validation
-  if (!email || !password_hash || !nickname) {
+  if (!email || !password || !nickname) {
     return res.status(400).json({ 
       success: false, 
-      message: '缺少必要欄位：email, password_hash 或 nickname' 
+      message: '缺少必要欄位：email, password或 nickname' 
     });
   }
 
   try {
+    // Hash the password before saving to the database
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     const newUser = await prisma.users.create({
-      data: { email, password_hash, nickname, role }
+      data: { 
+        email, 
+        password_hash: hashedPassword, 
+        nickname, 
+        role 
+      }
     });
     
     res.status(201).json({ 
@@ -66,7 +77,6 @@ router.post('/', async (req, res) => {
   } catch (err) {
     console.error('Error creating user:', err);
     
-    // Handle Prisma Validation Error (e.g., invalid enum value, wrong data type)
     if (err.name === 'PrismaClientValidationError') {
       return res.status(400).json({ 
         success: false, 
@@ -74,7 +84,6 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Handle unique constraint violation (e.g., duplicated email)
     if (err.code === 'P2002') {
       return res.status(400).json({ success: false, message: '該 Email 已經被註冊過了' });
     }
@@ -86,9 +95,13 @@ router.post('/', async (req, res) => {
 // PUT /api/users/:id
 // Update an existing user's information
 // ==========================================
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   const { nickname, bio, phone } = req.body;
   const userId = parseInt(req.params.id);
+
+  if (req.user.userId !== userId && req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: '存取被拒，您無權限修改他人的資料' });
+  }
 
   try {
     const updatedUser = await prisma.users.update({
@@ -100,7 +113,6 @@ router.put('/:id', async (req, res) => {
   } catch (err) {
     console.error(`Error updating user with ID ${userId}:`, err);
     
-    // Handle Prisma Validation Error (e.g., invalid data types)
     if (err.name === 'PrismaClientValidationError') {
       return res.status(400).json({ 
         success: false, 
@@ -108,7 +120,6 @@ router.put('/:id', async (req, res) => {
       });
     }
 
-    // Handle case where user does not exist
     if (err.code === 'P2025') {
       return res.status(404).json({ success: false, message: '找不到該使用者' });
     }
@@ -118,11 +129,15 @@ router.put('/:id', async (req, res) => {
 
 // ==========================================
 // DELETE /api/users/:id
-// Delete a user from the database
+// Delete a user from the database 
 // ==========================================
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   const userId = parseInt(req.params.id);
   
+  if (req.user.userId !== userId && req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: '存取被拒，您無權限刪除他人的資料' });
+  }
+
   try {
     await prisma.users.delete({
       where: { user_id: userId }
@@ -131,7 +146,6 @@ router.delete('/:id', async (req, res) => {
     res.status(200).json({ success: true, message: '使用者已成功刪除' });
   } catch (err) {
     console.error(`Error deleting user with ID ${userId}:`, err);
-    // Handle case where user does not exist
     if (err.code === 'P2025') {
       return res.status(404).json({ success: false, message: '找不到該使用者' });
     }
