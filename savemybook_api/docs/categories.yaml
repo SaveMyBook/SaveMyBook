@@ -1,0 +1,157 @@
+tags:
+  - name: 書籍分類 (Categories)
+    description: 管理書籍分類的 API (支援主分類與子分類階層架構)
+
+components:
+  schemas:
+    Category:
+      type: object
+      properties:
+        category_id:
+          type: integer
+          description: 分類 ID
+        category_name:
+          type: string
+          description: 分類名稱
+        parent_id:
+          type: integer
+          nullable: true
+          description: 父分類 ID (若為 null 表示此為最上層主分類)
+        sort_order:
+          type: integer
+          description: 排序權重 (數字越小越前面)
+        created_at:
+          type: string
+          format: date-time
+          description: 建立時間
+
+paths:
+  /api/categories:
+    get:
+      summary: 取得所有分類列表
+      tags: [書籍分類 (Categories)]
+      description: 預設回傳樹狀結構 (主分類包著子分類)。若加上 `?flat=true` 則回傳扁平的一維陣列。(公開 API)
+      parameters:
+        - in: query
+          name: flat
+          schema:
+            type: boolean
+          description: 是否回傳扁平化陣列 (true/false)
+      responses:
+        '200':
+          description: 成功取得分類列表
+        '500':
+          description: 伺服器發生錯誤
+          
+    post:
+      summary: 新增分類 (僅限管理員)
+      tags: [書籍分類 (Categories)]
+      description: 建立新的書籍分類。需要 JWT Token，且使用者角色必須為 `admin`。
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - category_name
+              properties:
+                category_name:
+                  type: string
+                  example: "程式設計"
+                parent_id:
+                  type: integer
+                  nullable: true
+                  example: null
+                sort_order:
+                  type: integer
+                  example: 10
+      responses:
+        '201':
+          description: 分類建立成功
+        '400':
+          description: 缺少必填欄位
+        '403':
+          description: 權限不足，僅限管理員
+        '500':
+          description: 伺服器發生錯誤
+
+  /api/categories/{id}:
+    get:
+      summary: 取得單一分類詳情
+      tags: [書籍分類 (Categories)]
+      description: 取得分類資訊，並附帶其底下的子分類。(公開 API)
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: 成功取得分類資料
+        '404':
+          description: 找不到該分類
+          
+    put:
+      summary: 更新分類資訊 (僅限管理員)
+      tags: [書籍分類 (Categories)]
+      description: 更新特定分類。需要 JWT Token，且必須為 `admin`。
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category_name:
+                  type: string
+                  example: "前端開發"
+                parent_id:
+                  type: integer
+                  nullable: true
+                  example: 1
+                sort_order:
+                  type: integer
+                  example: 20
+      responses:
+        '200':
+          description: 分類更新成功
+        '400':
+          description: 格式錯誤或邏輯錯誤(如父分類設定為自己)
+        '403':
+          description: 權限不足
+        '404':
+          description: 找不到該分類
+          
+    delete:
+      summary: 刪除分類 (僅限管理員)
+      tags: [書籍分類 (Categories)]
+      description: 刪除指定分類。若該分類下還有子分類或已綁定書籍，則會被外鍵限制阻攔而刪除失敗。
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: 分類刪除成功
+        '400':
+          description: 無法刪除 (因尚有關聯資料)
+        '403':
+          description: 權限不足
+        '404':
+          description: 找不到該分類
