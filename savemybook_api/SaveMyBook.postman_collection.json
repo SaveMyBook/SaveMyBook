@@ -140,7 +140,7 @@
           "bearer": [
             {
               "key": "token",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoia2FpanVuQGthaWp1bi50dyIsImlhdCI6MTc3NDcyNDk2MSwiZXhwIjoxNzc0ODExMzYxfQ.b9rUhbcE8-EaCJ6ej3a51FuINCijeGaWMdd2fBZaZ3I",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoia2FpanVuQGthaWp1bi50dyIsImlhdCI6MTc3NDg1MDczNywiZXhwIjoxNzc0OTM3MTM3fQ.8bosuncxe27W2FQaGJXuRD5Mw_DPSi1tqe0Jn8-kLl8",
               "type": "string"
             }
           ]
@@ -158,6 +158,46 @@
             "api",
             "auth",
             "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Books",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/books",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "books"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Book Categories",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/categories",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "categories"
           ]
         }
       },
