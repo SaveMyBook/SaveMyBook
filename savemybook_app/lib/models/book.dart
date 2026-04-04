@@ -1,0 +1,81 @@
+class Book {
+  final int bookId;
+  final String title;
+  final double price;
+  final String conditionLevel;
+  final String description;
+  final String imageUrl;
+  final String location;
+  final String categoryName;
+  final String author;
+  final String createdAt;
+
+  Book({
+    required this.bookId,
+    required this.title,
+    required this.price,
+    required this.conditionLevel,
+    required this.description,
+    required this.imageUrl,
+    required this.location,
+    required this.categoryName,
+    required this.author,
+    required this.createdAt,
+  });
+
+  factory Book.fromJson(Map<String, dynamic> json) {
+    double parsedPrice = 0.0;
+    if (json['price'] != null) {
+      parsedPrice = double.tryParse(json['price'].toString()) ?? 0.0;
+    }
+
+    String parsedCategory = '一般書籍';
+    if (json['book_categories'] != null && json['book_categories']['category_name'] != null) {
+      parsedCategory = json['book_categories']['category_name'];
+    }
+
+    String parsedImageUrl = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=400&auto=format&fit=crop';
+    if (json['book_images'] != null && (json['book_images'] as List).isNotEmpty) {
+      parsedImageUrl = json['book_images'][0]['image_url'] ?? parsedImageUrl;
+    }
+
+    String parsedLocation = '地點未提供';
+    if (json['users'] != null && json['users']['nickname'] != null) {
+      parsedLocation = '賣家：${json['users']['nickname']}';
+    }
+
+    String parsedDate = '2026/03/30';
+    if (json['created_at'] != null) {
+      DateTime dt = DateTime.tryParse(json['created_at']) ?? DateTime.now();
+      parsedDate = '${dt.year}/${dt.month}/${dt.day}';
+    }
+
+    return Book(
+      bookId: json['book_id'] as int? ?? 0,
+      title: json['title'] as String? ?? '無書名',
+      price: parsedPrice,
+      conditionLevel: json['condition_level'] as String? ?? 'good',
+      description: json['description'] as String? ?? '暫無簡介',
+      imageUrl: parsedImageUrl,
+      location: parsedLocation,
+      categoryName: parsedCategory,
+      author: json['author'] as String? ?? '未知作者',
+      createdAt: parsedDate,
+    );
+  }
+
+  String get conditionText {
+    switch (conditionLevel) {
+      case 'like_new':
+        return '全新';
+      case 'good':
+        return '近全新';
+      case 'fair':
+        return '良好';
+      case 'poor':
+        return '尚可';
+      default:
+        return '未知書況';
+    }
+  }
+}
