@@ -18,12 +18,12 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingMore = false;
   bool _hasMoreData = true;
   int _currentPage = 1;
-  int? _selectedCategoryId;
+  final Set<int> _selectedCategoryIds = {};
+  String _currentSort = '最新上架';
+  final List<String> _sortOptions = ['最新上架', '熱門推薦', '價格由低到高', '價格由高到低'];
   double _categoryScrollProgress = 0.0;
-
   List<Category> _categories = [];
   List<Book> _books = [];
-
   final ApiService _apiService = ApiService();
   final ScrollController _scrollController = ScrollController();
   final ScrollController _categoryScrollController = ScrollController();
@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final results = await Future.wait([
         _apiService.fetchCategories(),
-        _apiService.fetchBooks(page: 1, categoryId: _selectedCategoryId),
+        _apiService.fetchBooks(page: 1, categoryIds: _selectedCategoryIds, sort: _currentSort),
       ]);
       if (!mounted) return;
       setState(() {
@@ -63,16 +63,15 @@ class _HomeScreenState extends State<HomeScreen> {
         _hasMoreData = (_books.length >= 20);
         _isLoadingInitial = false;
       });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoadingInitial = false);
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingInitial = false);
     }
   }
 
   Future<void> _onRefresh() async {
     _currentPage = 1;
     _hasMoreData = true;
-    final newBooks = await _apiService.fetchBooks(page: 1, categoryId: _selectedCategoryId);
+    final newBooks = await _apiService.fetchBooks(page: 1, categoryIds: _selectedCategoryIds, sort: _currentSort);
     setState(() {
       _books = newBooks;
       _hasMoreData = (newBooks.length >= 20);
@@ -83,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _isLoadingMore = true);
     try {
       _currentPage++;
-      final moreBooks = await _apiService.fetchBooks(page: _currentPage, categoryId: _selectedCategoryId);
+      final moreBooks = await _apiService.fetchBooks(page: _currentPage, categoryIds: _selectedCategoryIds, sort: _currentSort);
       if (!mounted) return;
       setState(() {
         if (moreBooks.isEmpty) {
@@ -94,15 +93,28 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         _isLoadingMore = false;
       });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoadingMore = false);
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingMore = false);
     }
   }
 
   void _onCategoryTapped(int categoryId) {
     setState(() {
-      _selectedCategoryId = _selectedCategoryId == categoryId ? null : categoryId;
+      if (_selectedCategoryIds.contains(categoryId)) {
+        _selectedCategoryIds.remove(categoryId);
+      } else {
+        _selectedCategoryIds.add(categoryId);
+      }
+      _isLoadingInitial = true;
+    });
+    _onRefresh().then((_) {
+      if (mounted) setState(() => _isLoadingInitial = false);
+    });
+  }
+
+  void _onSortChanged(String newSort) {
+    setState(() {
+      _currentSort = newSort;
       _isLoadingInitial = true;
     });
     _onRefresh().then((_) {
@@ -128,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDropdownButton(),
+                    _buildSortDropdown(),
                     const SizedBox(height: 16),
                     _buildBookGrid(),
                     if (_isLoadingMore)
@@ -164,15 +176,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: Container(
                     height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const TextField(
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                    child: TextField(
+                      style: const TextStyle(fontSize: 14),
                       decoration: InputDecoration(
+                        hintText: '搜尋書名、作者、出版社...',
+                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        suffixIcon: Icon(Icons.search, color: Colors.grey),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        suffixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
                       ),
                     ),
                   ),
@@ -203,8 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: _categories.length,
                 itemBuilder: (context, index) {
                   final category = _categories[index];
-                  final isSelected = _selectedCategoryId == category.categoryId;
-
+                  final isSelected = _selectedCategoryIds.contains(category.categoryId);
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
                     child: GestureDetector(
@@ -239,20 +250,11 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Container(
               height: 2,
               width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(2),
-              ),
+              decoration: BoxDecoration(color: Colors.black.withOpacity(0.2), borderRadius: BorderRadius.circular(2)),
               alignment: Alignment(-1.0 + (_categoryScrollProgress * 2.0), 0),
               child: FractionallySizedBox(
                 widthFactor: 0.3,
-                child: Container(
-                  height: 2,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF83A982),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+                child: Container(height: 2, decoration: BoxDecoration(color: const Color(0xFF83A982), borderRadius: BorderRadius.circular(2))),
               ),
             ),
           )
@@ -261,43 +263,53 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDropdownButton() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: const Color(0xFF627D8D), borderRadius: BorderRadius.circular(8)),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('熱門推薦', style: TextStyle(color: Colors.white, fontSize: 14)),
-          SizedBox(width: 4),
-          Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
-        ],
+  Widget _buildSortDropdown() {
+    return PopupMenuButton<String>(
+      initialValue: _currentSort,
+      onSelected: _onSortChanged,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      offset: const Offset(0, 36),
+      itemBuilder: (BuildContext context) {
+        return _sortOptions.map((String choice) {
+          return PopupMenuItem<String>(
+            value: choice,
+            child: Text(choice, style: TextStyle(
+                color: _currentSort == choice ? const Color(0xFF627D8D) : Colors.black87,
+                fontWeight: _currentSort == choice ? FontWeight.bold : FontWeight.normal
+            )),
+          );
+        }).toList();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(color: const Color(0xFF627D8D), borderRadius: BorderRadius.circular(8)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_currentSort, style: const TextStyle(color: Colors.white, fontSize: 14)),
+            const SizedBox(width: 4),
+            const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildBookGrid() {
     Widget content;
-
     if (_isLoadingInitial) {
       content = const Center(
         key: ValueKey('loading'),
-        child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: CircularProgressIndicator(color: Color(0xFF627D8D)),
-        ),
+        child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator(color: Color(0xFF627D8D))),
       );
     } else if (_books.isEmpty) {
       content = const Center(
         key: ValueKey('empty'),
-        child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: Text('此分類目前沒有書籍資料', style: TextStyle(color: Colors.grey)),
-        ),
+        child: Padding(padding: EdgeInsets.all(32.0), child: Text('目前沒有符合條件的書籍', style: TextStyle(color: Colors.grey))),
       );
     } else {
       content = GridView.builder(
-        key: ValueKey('grid_${_selectedCategoryId ?? 'all'}'),
+        key: const ValueKey('grid_sorted_or_filtered'),
         padding: EdgeInsets.zero,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -308,11 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, index) => BookCard(book: _books[index]),
       );
     }
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      child: content,
-    );
+    return AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: content);
   }
 
   Widget _buildFloatingActionButton() {

@@ -46,17 +46,17 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildTitleRow(),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         _buildPriceAndConditionRow(),
-                        const SizedBox(height: 16),
-                        _buildInfoRow(Icons.business_outlined, '出版社：', '未知出版社'),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 18),
+                        _buildInfoRow(Icons.business_outlined, '出版社：', widget.book.publisher),
+                        const SizedBox(height: 12),
                         _buildInfoRow(Icons.edit_outlined, '作者：', widget.book.author),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         _buildDescriptionRow(),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         _buildInfoRow(Icons.calendar_today_outlined, '上架日期：', widget.book.createdAt),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 28),
                         _buildSellerInfo(),
                       ],
                     ),
@@ -87,15 +87,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             Expanded(
               child: Container(
                 height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const TextField(
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                child: TextField(
+                  style: const TextStyle(fontSize: 14),
                   decoration: InputDecoration(
+                    hintText: '搜尋書名、作者、出版社...',
+                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    suffixIcon: Icon(Icons.search, color: Colors.grey),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    suffixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
                   ),
                 ),
               ),
@@ -121,41 +121,28 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               setState(() => _currentImageIndex = index);
             },
             itemBuilder: (context, index) {
-              final imageWidget = Image.network(
-                _images[index],
-                fit: BoxFit.cover,
-                width: double.infinity,
-              );
+              final imageWidget = Image.network(_images[index], fit: BoxFit.cover, width: double.infinity);
               if (index == 0) {
-                return Hero(
-                  tag: 'book_image_${widget.book.bookId}',
-                  child: imageWidget,
-                );
+                return Hero(tag: 'book_image_${widget.book.bookId}', child: imageWidget);
               }
               return imageWidget;
             },
           ),
         ),
         Positioned(
-          left: 10,
-          top: 150,
+          left: 10, top: 150,
           child: GestureDetector(
             onTap: () {
-              if (_currentImageIndex > 0) {
-                _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-              }
+              if (_currentImageIndex > 0) _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
             },
             child: const Icon(Icons.arrow_back_ios, color: Color(0xFF627D8D), size: 28),
           ),
         ),
         Positioned(
-          right: 10,
-          top: 150,
+          right: 10, top: 150,
           child: GestureDetector(
             onTap: () {
-              if (_currentImageIndex < _images.length - 1) {
-                _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-              }
+              if (_currentImageIndex < _images.length - 1) _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
             },
             child: const Icon(Icons.arrow_forward_ios, color: Color(0xFF627D8D), size: 28),
           ),
@@ -164,23 +151,17 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           bottom: 12,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-                _images.length,
-                    (index) {
-                  bool isActive = _currentImageIndex == index;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOutCubic,
-                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                    width: isActive ? 16.0 : 6.0,
-                    height: 6.0,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: isActive ? const Color(0xFF83A982) : Colors.grey.shade400,
-                    ),
-                  );
-                }
-            ),
+            children: List.generate(_images.length, (index) {
+              bool isActive = _currentImageIndex == index;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+                margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                width: isActive ? 16.0 : 6.0,
+                height: 6.0,
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: isActive ? const Color(0xFF83A982) : Colors.grey.shade400),
+              );
+            }),
           ),
         ),
       ],
@@ -189,23 +170,25 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Widget _buildTitleRow() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Text(
             widget.book.title,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF333333)),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF333333), height: 1.25),
           ),
         ),
-        Row(
-          children: [
-            const Icon(Icons.bookmark_border, size: 26, color: Color(0xFF555555)),
-            const SizedBox(width: 12),
-            const Icon(Icons.ios_share, size: 24, color: Color(0xFF555555)),
-            const SizedBox(width: 12),
-            Icon(Icons.warning_amber_rounded, size: 26, color: Colors.red.shade400),
-          ],
+        Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Row(
+            children: [
+              const Icon(Icons.bookmark_border, size: 26, color: Color(0xFF555555)),
+              const SizedBox(width: 14),
+              const Icon(Icons.ios_share, size: 24, color: Color(0xFF555555)),
+              const SizedBox(width: 14),
+              Icon(Icons.warning_amber_rounded, size: 26, color: Colors.red.shade400),
+            ],
+          ),
         )
       ],
     );
@@ -219,18 +202,12 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          '\$${widget.book.price.toInt()}',
-          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Color(0xFF333333)),
-        ),
+        Text('\$${widget.book.price.toInt()}', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Color(0xFF333333))),
         const SizedBox(width: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12)),
-          child: Text(
-            widget.book.conditionText,
-            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
-          ),
+          child: Text(widget.book.conditionText, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
         ),
       ],
     );
@@ -238,11 +215,20 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Icon(icon, size: 20, color: const Color(0xFF555555)),
         const SizedBox(width: 8),
         Text(label, style: const TextStyle(fontSize: 15, color: Color(0xFF333333), fontWeight: FontWeight.w500)),
-        Text(value, style: const TextStyle(fontSize: 15, color: Color(0xFF333333))),
+        Expanded(
+          child: Text(
+              value,
+              locale: const Locale('en', 'US'),
+              style: const TextStyle(fontSize: 15, color: Color(0xFF333333), textBaseline: TextBaseline.alphabetic),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis
+          ),
+        ),
       ],
     );
   }
@@ -253,12 +239,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       children: [
         const Icon(Icons.notes, size: 20, color: Color(0xFF555555)),
         const SizedBox(width: 8),
-        const Text('簡介：', style: TextStyle(fontSize: 15, color: Color(0xFF333333), fontWeight: FontWeight.w500)),
+        const Text('簡介：', style: TextStyle(fontSize: 15, color: Color(0xFF333333), fontWeight: FontWeight.w500, height: 1.3)),
         Expanded(
-          child: Text(
-            widget.book.description,
-            style: const TextStyle(fontSize: 15, color: Color(0xFF333333), height: 1.4),
-          ),
+          child: Text(widget.book.description, style: const TextStyle(fontSize: 15, color: Color(0xFF333333), height: 1.3)),
         ),
       ],
     );
@@ -275,26 +258,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           backgroundImage: NetworkImage('https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=200&auto=format&fit=crop'),
         ),
         const SizedBox(width: 12),
-        Text(
-          sellerName,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF333333)),
-        ),
+        Text(sellerName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF333333))),
       ],
     );
   }
 
   Widget _buildBottomActions() {
     return Container(
-      padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 12,
-          bottom: MediaQuery.of(context).padding.bottom + 12
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F5F7),
-        border: Border(top: BorderSide(color: Colors.grey.shade300, width: 1)),
-      ),
+      padding: EdgeInsets.only(left: 20, right: 20, top: 12, bottom: MediaQuery.of(context).padding.bottom + 12),
+      decoration: BoxDecoration(color: const Color(0xFFF3F5F7), border: Border(top: BorderSide(color: Colors.grey.shade300, width: 1))),
       child: Row(
         children: [
           Expanded(

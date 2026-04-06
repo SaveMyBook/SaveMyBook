@@ -8,6 +8,7 @@ class Book {
   final String location;
   final String categoryName;
   final String author;
+  final String publisher;
   final String createdAt;
 
   Book({
@@ -20,6 +21,7 @@ class Book {
     required this.location,
     required this.categoryName,
     required this.author,
+    required this.publisher,
     required this.createdAt,
   });
 
@@ -60,6 +62,7 @@ class Book {
       location: parsedLocation,
       categoryName: parsedCategory,
       author: json['author'] as String? ?? '未知作者',
+      publisher: json['publisher'] as String? ?? '未知出版社',
       createdAt: parsedDate,
     );
   }

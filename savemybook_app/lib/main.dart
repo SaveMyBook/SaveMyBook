@@ -11,11 +11,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '二手書市集',
+      title: 'SaveMyBook 救『舊』我的書',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: const Color(0xFF627D8D),
         scaffoldBackgroundColor: const Color(0xFFF3F5F7),
+        fontFamily: 'PingFang TC',
         fontFamilyFallback: const [
           '.SF Pro Text',
           'PingFang TC',
