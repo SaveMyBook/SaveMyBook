@@ -5,14 +5,15 @@ import '../screens/book_detail_screen.dart';
 
 class BookCard extends StatelessWidget {
   final Book book;
+  final void Function(String keyword)? onSearchFromDetail;
 
-  const BookCard({super.key, required this.book});
+  const BookCard({super.key, required this.book, this.onSearchFromDetail});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final result = await Navigator.push(
           context,
           PageRouteBuilder(
             transitionDuration: const Duration(milliseconds: 350),
@@ -29,6 +30,9 @@ class BookCard extends StatelessWidget {
             },
           ),
         );
+        if (result is String && result.isNotEmpty) {
+          onSearchFromDetail?.call(result);
+        }
       },
       child: SizedBox(
         height: 340,

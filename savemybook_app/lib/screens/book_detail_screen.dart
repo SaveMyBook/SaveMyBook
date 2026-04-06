@@ -12,6 +12,7 @@ class BookDetailScreen extends StatefulWidget {
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
   final PageController _pageController = PageController();
+  final TextEditingController _searchController = TextEditingController();
   int _currentImageIndex = 0;
   late List<String> _images;
 
@@ -24,7 +25,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearch(String keyword) {
+    final trimmed = keyword.trim();
+    if (trimmed.isEmpty) return;
+    Navigator.pop(context, trimmed);
   }
 
   @override
@@ -89,13 +97,19 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 height: 40,
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
                 child: TextField(
+                  controller: _searchController,
                   style: const TextStyle(fontSize: 14),
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: _onSearch,
                   decoration: InputDecoration(
                     hintText: '搜尋書名、作者、出版社...',
                     hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    suffixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
+                    suffixIcon: GestureDetector(
+                      onTap: () => _onSearch(_searchController.text),
+                      child: const Icon(Icons.search, color: Colors.grey, size: 20),
+                    ),
                   ),
                 ),
               ),

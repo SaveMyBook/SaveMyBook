@@ -22,6 +22,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String _currentSort = '最新上架';
   final List<String> _sortOptions = ['最新上架', '熱門推薦', '價格由低到高', '價格由高到低'];
   double _categoryScrollProgress = 0.0;
+  String _currentKeyword = '';
+  final TextEditingController _searchController = TextEditingController();
   List<Category> _categories = [];
   List<Book> _books = [];
   final ApiService _apiService = ApiService();
@@ -45,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _scrollController.dispose();
     _categoryScrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -71,7 +74,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _onRefresh() async {
     _currentPage = 1;
     _hasMoreData = true;
-    final newBooks = await _apiService.fetchBooks(page: 1, categoryIds: _selectedCategoryIds, sort: _currentSort);
+    final newBooks = await _apiService.fetchBooks(
+      page: 1,
+      categoryIds: _selectedCategoryIds,
+      sort: _currentSort,
+      keyword: _currentKeyword.isEmpty ? null : _currentKeyword,
+    );
     setState(() {
       _books = newBooks;
       _hasMoreData = (newBooks.length >= 20);
@@ -82,7 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _isLoadingMore = true);
     try {
       _currentPage++;
-      final moreBooks = await _apiService.fetchBooks(page: _currentPage, categoryIds: _selectedCategoryIds, sort: _currentSort);
+      final moreBooks = await _apiService.fetchBooks(
+        page: _currentPage,
+        categoryIds: _selectedCategoryIds,
+        sort: _currentSort,
+        keyword: _currentKeyword.isEmpty ? null : _currentKeyword,
+      );
       if (!mounted) return;
       setState(() {
         if (moreBooks.isEmpty) {
@@ -105,6 +118,16 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         _selectedCategoryIds.add(categoryId);
       }
+      _isLoadingInitial = true;
+    });
+    _onRefresh().then((_) {
+      if (mounted) setState(() => _isLoadingInitial = false);
+    });
+  }
+
+  void _onSearch(String keyword) {
+    setState(() {
+      _currentKeyword = keyword.trim();
       _isLoadingInitial = true;
     });
     _onRefresh().then((_) {
@@ -178,13 +201,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 40,
                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
                     child: TextField(
+                      controller: _searchController,
                       style: const TextStyle(fontSize: 14),
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: _onSearch,
                       decoration: InputDecoration(
                         hintText: '搜尋書名、作者、出版社...',
                         hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        suffixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
+                        suffixIcon: GestureDetector(
+                          onTap: () => _onSearch(_searchController.text),
+                          child: const Icon(Icons.search, color: Colors.grey, size: 20),
+                        ),
                       ),
                     ),
                   ),
@@ -317,7 +346,13 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.52,
         ),
         itemCount: _books.length,
-        itemBuilder: (context, index) => BookCard(book: _books[index]),
+        itemBuilder: (context, index) => BookCard(
+          book: _books[index],
+          onSearchFromDetail: (keyword) {
+            _searchController.text = keyword;
+            _onSearch(keyword);
+          },
+        ),
       );
     }
     return AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: content);
