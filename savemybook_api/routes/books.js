@@ -4,10 +4,6 @@ const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 
-// ==========================================
-// GET /api/books
-// Fetch all books
-// ==========================================
 router.get('/', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -15,13 +11,18 @@ router.get('/', async (req, res) => {
     const skip = (page - 1) * limit;
     
     const keyword = req.query.keyword || '';
-    const categoryId = req.query.category_id ? parseInt(req.query.category_id) : undefined;
     const status = req.query.status || 'on_sale'; 
+    const sort = req.query.sort || 'newest';
+    
+    let categoryIdsArray = [];
+    if (req.query.category_ids) {
+      categoryIdsArray = req.query.category_ids.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
+    }
 
     const whereCondition = {
       status: status,
       is_approved: true,
-      ...(categoryId && { category_id: categoryId }),
+      ...(categoryIdsArray.length > 0 && { category_id: { in: categoryIdsArray } }),
       ...(keyword && {
         OR: [
           { title: { contains: keyword } },
@@ -31,12 +32,29 @@ router.get('/', async (req, res) => {
       })
     };
 
+    let orderByCondition = { created_at: 'desc' };
+    switch (sort) {
+      case 'price_asc':
+        orderByCondition = { price: 'asc' };
+        break;
+      case 'price_desc':
+        orderByCondition = { price: 'desc' };
+        break;
+      case 'popular':
+        orderByCondition = { view_count: 'desc' };
+        break;
+      case 'newest':
+      default:
+        orderByCondition = { created_at: 'desc' };
+        break;
+    }
+
     const [books, totalCount] = await Promise.all([
       prisma.books.findMany({
         where: whereCondition,
         skip: skip,
         take: limit,
-        orderBy: { created_at: 'desc' }, 
+        orderBy: orderByCondition,
         include: {
           users: { select: { nickname: true, avatar_url: true } },
           book_images: { select: { image_url: true, image_type: true } }, 
@@ -57,15 +75,10 @@ router.get('/', async (req, res) => {
       data: books 
     });
   } catch (err) {
-    console.error('Error fetching books:', err);
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });
 
-// ==========================================
-// GET /api/books/:id
-// Fetch a specific book by ID
-// ==========================================
 router.get('/:id', async (req, res) => {
   const bookId = parseInt(req.params.id);
 
@@ -86,19 +99,14 @@ router.get('/:id', async (req, res) => {
     prisma.books.update({
       where: { book_id: bookId },
       data: { view_count: { increment: 1 } }
-    }).catch(err => console.error(`Failed to increment view count for book ${bookId}:`, err));
+    }).catch(() => {});
     
     res.status(200).json({ success: true, data: book });
   } catch (err) {
-    console.error(`Error fetching book with ID ${req.params.id}:`, err);
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });
 
-// ==========================================
-// POST /api/books
-// Create a new book
-// ==========================================
 router.post('/', authenticateToken, async (req, res) => {
   const { 
     title, author, publisher, publish_date, isbn, 
@@ -113,27 +121,18 @@ router.post('/', authenticateToken, async (req, res) => {
   try {
     const newBook = await prisma.books.create({
       data: {
-        title,
-        author,
-        publisher,
-        publish_date,
-        isbn,
+        title, author, publisher, publish_date, isbn,
         price: parseFloat(price),
         quantity: parseInt(quantity),
-        condition_level, 
-        condition_note,
-        description,
+        condition_level, condition_note, description,
         category_id: category_id ? parseInt(category_id) : null,
         cabinet_id: cabinet_id ? parseInt(cabinet_id) : null,
-        status: 'on_sale',
-        is_approved: true, 
+        status: 'on_sale', is_approved: true, 
         seller_id: req.user.userId 
       }
     });
-    
     res.status(201).json({ success: true, message: '書籍上架成功', data: newBook });
   } catch (err) {
-    console.error('Error creating book:', err);
     if (err.name === 'PrismaClientValidationError') {
       return res.status(400).json({ success: false, message: '提供的資料格式錯誤或包含無效的列舉值' });
     }
@@ -141,10 +140,6 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
-// ==========================================
-// PUT /api/books/:id
-// Update an existing book
-// ==========================================
 router.put('/:id', authenticateToken, async (req, res) => {
   const bookId = parseInt(req.params.id);
   const { 
@@ -154,42 +149,30 @@ router.put('/:id', authenticateToken, async (req, res) => {
   } = req.body;
 
   try {
-    const targetBook = await prisma.books.findUnique({
-      where: { book_id: bookId }
-    });
+    const targetBook = await prisma.books.findUnique({ where: { book_id: bookId } });
 
     if (!targetBook) {
       return res.status(404).json({ success: false, message: '找不到該書籍' });
     }
 
     if (targetBook.seller_id !== req.user.userId && req.user.role !== 'admin') {
-      console.warn(`User ${req.user.userId} attempted to modify book ${bookId} owned by ${targetBook.seller_id}`);
       return res.status(403).json({ success: false, message: '存取被拒，您無權限修改他人的商品' });
     }
 
     const updatedBook = await prisma.books.update({
       where: { book_id: bookId },
       data: { 
-        title, 
-        author, 
-        publisher, 
-        publish_date, 
-        isbn, 
+        title, author, publisher, publish_date, isbn, 
         price: price !== undefined ? parseFloat(price) : undefined, 
         quantity: quantity !== undefined ? parseInt(quantity) : undefined,
-        condition_level, 
-        condition_note,
-        description,
+        condition_level, condition_note, description,
         category_id: category_id !== undefined ? parseInt(category_id) : undefined,
         cabinet_id: cabinet_id !== undefined ? parseInt(cabinet_id) : undefined,
-        status,
-        updated_at: new Date()
+        status, updated_at: new Date()
       }
     });
-    
     res.status(200).json({ success: true, message: '書籍資料更新成功', data: updatedBook });
   } catch (err) {
-    console.error(`Error updating book with ID ${bookId}:`, err);
     if (err.name === 'PrismaClientValidationError') {
       return res.status(400).json({ success: false, message: '提供的資料格式錯誤或包含無效的值' });
     }
@@ -197,38 +180,27 @@ router.put('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// ==========================================
-// DELETE /api/books/:id
-// Delete a book 
-// ==========================================
 router.delete('/:id', authenticateToken, async (req, res) => {
   const bookId = parseInt(req.params.id);
   
   try {
-    const targetBook = await prisma.books.findUnique({
-      where: { book_id: bookId }
-    });
+    const targetBook = await prisma.books.findUnique({ where: { book_id: bookId } });
 
     if (!targetBook) {
       return res.status(404).json({ success: false, message: '找不到該書籍' });
     }
 
     if (targetBook.seller_id !== req.user.userId && req.user.role !== 'admin') {
-      console.warn(`User ${req.user.userId} attempted to delete book ${bookId} owned by ${targetBook.seller_id}`);
       return res.status(403).json({ success: false, message: '存取被拒，您無權限刪除他人的書籍' });
     }
 
     await prisma.books.update({
       where: { book_id: bookId },
-      data: { 
-        status: 'removed',
-        updated_at: new Date()
-      }
+      data: { status: 'removed', updated_at: new Date() }
     });
     
     res.status(200).json({ success: true, message: '書籍已成功下架' });
   } catch (err) {
-    console.error(`Error deleting book with ID ${bookId}:`, err);
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });

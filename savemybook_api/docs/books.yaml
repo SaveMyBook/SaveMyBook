@@ -1,6 +1,6 @@
 tags:
   - name: 商品書籍 (Books)
-    description: 處理二手書商品的 API 端點 (包含瀏覽、上架、修改與下架)
+    description: 處理二手書商品的 API 端點
 
 components:
   schemas:
@@ -9,35 +9,51 @@ components:
       properties:
         book_id:
           type: integer
-          description: 書籍的唯一 ID
         seller_id:
           type: integer
-          description: 賣家 (使用者) ID
         title:
           type: string
-          description: 書名
         author:
           type: string
-          description: 作者
+        publisher:
+          type: string
         isbn:
           type: string
-          description: ISBN 國際標準書號
         price:
           type: number
-          description: 售價
         condition_level:
           type: string
-          description: 書況等級 (如 like_new, good, fair, poor)
         description:
           type: string
-          description: 書籍詳細描述
 
 paths:
   /api/books:
     get:
       summary: 取得所有書籍列表
       tags: [商品書籍 (Books)]
-      description: 瀏覽目前平台上所有的書籍。(公開 API)
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: keyword
+          schema:
+            type: string
+        - in: query
+          name: category_ids
+          schema:
+            type: string
+          description: 支援多選分類，以逗號分隔 (例：1,2,3)
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [newest, popular, price_asc, price_desc]
       responses:
         '200':
           description: 成功取得書籍列表
@@ -47,7 +63,6 @@ paths:
     post:
       summary: 新增/上架書籍
       tags: [商品書籍 (Books)]
-      description: 讓登入的使用者上架一本新書。需要 JWT Token，系統會自動綁定賣家 ID 為當前登入者。
       security:
         - bearerAuth: []
       requestBody:
@@ -62,29 +77,27 @@ paths:
               properties:
                 title:
                   type: string
-                  example: "深入淺出 Node.js"
                 author:
                   type: string
-                  example: "朴靈"
+                publisher:
+                  type: string
                 isbn:
                   type: string
-                  example: "9789862767425"
                 price:
                   type: number
-                  example: 350
+                category_id:
+                  type: integer
                 condition_level:
                   type: string
-                  example: "good"
                 description:
                   type: string
-                  example: "九成新，內頁無劃線筆記。"
       responses:
         '201':
           description: 書籍上架成功
         '400':
-          description: 請求失敗 (缺少必填欄位或格式錯誤)
+          description: 請求失敗
         '401':
-          description: 存取被拒，未提供 Token
+          description: 未提供 Token
         '500':
           description: 伺服器發生錯誤
 
@@ -92,7 +105,6 @@ paths:
     get:
       summary: 取得單一書籍詳細資訊
       tags: [商品書籍 (Books)]
-      description: 傳入書籍 ID 查看該書詳細內容。(公開 API)
       parameters:
         - in: path
           name: id
@@ -108,7 +120,6 @@ paths:
     put:
       summary: 更新書籍資訊
       tags: [商品書籍 (Books)]
-      description: 更新特定書籍的資料。需要 JWT Token，且使用者**必須是該書籍的賣家**。
       security:
         - bearerAuth: []
       parameters:
@@ -126,24 +137,33 @@ paths:
               properties:
                 title:
                   type: string
-                  example: "深入淺出 Node.js (降價售)"
+                author:
+                  type: string
+                publisher:
+                  type: string
+                isbn:
+                  type: string
                 price:
                   type: number
-                  example: 300
+                category_id:
+                  type: integer
+                condition_level:
+                  type: string
+                description:
+                  type: string
       responses:
         '200':
           description: 成功更新
         '401':
-          description: 存取被拒，未提供 Token
+          description: 未提供 Token
         '403':
-          description: 無權修改他人的書籍
+          description: 無權修改
         '404':
           description: 找不到該書籍
           
     delete:
       summary: 刪除/下架書籍
       tags: [商品書籍 (Books)]
-      description: 將書籍從平台上移除。需要 JWT Token，且使用者**必須是該書籍的賣家**。
       security:
         - bearerAuth: []
       parameters:
@@ -156,8 +176,8 @@ paths:
         '200':
           description: 書籍刪除成功
         '401':
-          description: 未登入
+          description: 未提供 Token
         '403':
-          description: 無權刪除他人的書籍
+          description: 無權刪除
         '404':
           description: 找不到該書籍

@@ -49,10 +49,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// ==========================================
-// GET /api/auth/me
-// Get current logged-in user info 
-// ==========================================
 const authenticateToken = require('../middleware/auth');
 
 router.get('/me', authenticateToken, async (req, res) => {

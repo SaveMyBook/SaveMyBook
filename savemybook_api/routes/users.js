@@ -5,10 +5,6 @@ const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 
-// ==========================================
-// GET /api/users
-// Fetch all users from the database (保護：需登入)
-// ==========================================
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const users = await prisma.users.findMany();
@@ -19,10 +15,6 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-// ==========================================
-// GET /api/users/:id
-// Fetch a specific user by their ID 
-// ==========================================
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const user = await prisma.users.findUnique({
@@ -40,10 +32,6 @@ router.get('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// ==========================================
-// POST /api/users
-// Create a new user
-// ==========================================
 router.post('/', async (req, res) => {
   const { email, password, nickname, role = 'buyer_seller' } = req.body;
   
@@ -56,7 +44,6 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    // Hash the password before saving to the database
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -91,10 +78,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ==========================================
-// PUT /api/users/:id
-// Update an existing user's information
-// ==========================================
 router.put('/:id', authenticateToken, async (req, res) => {
   const { nickname, bio, phone } = req.body;
   const userId = parseInt(req.params.id);
@@ -127,10 +110,6 @@ router.put('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// ==========================================
-// DELETE /api/users/:id
-// Delete a user from the database 
-// ==========================================
 router.delete('/:id', authenticateToken, async (req, res) => {
   const userId = parseInt(req.params.id);
   

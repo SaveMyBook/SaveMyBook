@@ -11,10 +11,6 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-// ==========================================
-// GET /api/categories
-// Fetch all categories (公開 API)
-// ==========================================
 router.get('/', async (req, res) => {
   const { flat } = req.query;
 
@@ -43,10 +39,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ==========================================
-// GET /api/categories/:id
-// Fetch a specific category (公開 API)
-// ==========================================
 router.get('/:id', async (req, res) => {
   const categoryId = parseInt(req.params.id);
 
@@ -54,7 +46,7 @@ router.get('/:id', async (req, res) => {
     const category = await prisma.book_categories.findUnique({
       where: { category_id: categoryId },
       include: {
-        other_book_categories: true // 包含底下的子分類
+        other_book_categories: true
       }
     });
     
@@ -69,10 +61,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ==========================================
-// POST /api/categories
-// Create a new category (保護：僅限管理員)
-// ==========================================
 router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   const { category_name, parent_id, sort_order = 0 } = req.body;
   
@@ -96,10 +84,6 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// ==========================================
-// PUT /api/categories/:id
-// Update a category (保護：僅限管理員)
-// ==========================================
 router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   const categoryId = parseInt(req.params.id);
   const { category_name, parent_id, sort_order } = req.body;
@@ -133,10 +117,6 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// ==========================================
-// DELETE /api/categories/:id
-// Delete a category (保護：僅限管理員)
-// ==========================================
 router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   const categoryId = parseInt(req.params.id);
   
