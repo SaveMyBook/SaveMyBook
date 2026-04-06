@@ -4,9 +4,9 @@ import '../models/category.dart';
 import '../models/book.dart';
 
 class ApiService {
-  // Android  'http://10.0.2.2:3000/api'
-  // iOS  'http://localhost:3000/api'
-  static const String baseUrl = 'http://10.0.2.2:3000/api';
+  // static const String baseUrl = 'http://10.0.2.2:3000/api'; // Android Simulator
+  // static const String baseUrl = 'http://localhost:3000/api'; // iOS Simulator
+  static const String baseUrl = 'http://192.168.100.142:3000/api'; // Physical
 
   Future<List<Category>> fetchCategories() async {
     try {
