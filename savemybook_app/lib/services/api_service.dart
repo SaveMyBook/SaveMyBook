@@ -6,7 +6,8 @@ import '../models/book.dart';
 class ApiService {
   // static const String baseUrl = 'http://10.0.2.2:3000/api'; // Android Simulator
   // static const String baseUrl = 'http://localhost:3000/api'; // iOS Simulator
-  static const String baseUrl = 'http://192.168.100.142:3000/api'; // Physical
+  // static const String baseUrl = 'http://192.168.100.142:3000/api'; // KaiJun der Desktop
+  static const String baseUrl = 'https://api.savemybook.today/api'; // NTUB VM
 
   Future<List<Category>> fetchCategories() async {
     try {
