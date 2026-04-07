@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
+const cors = require('cors');
 
 const swaggerSpec = require('./config/swagger');
 const userRoutes = require('./routes/users');
@@ -11,6 +12,9 @@ const categoriesRoutes = require('./routes/categories');
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(cors({
+    origin: ['https://savemybook.today', 'https://www.savemybook.today']
+}));
 app.use(express.json());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

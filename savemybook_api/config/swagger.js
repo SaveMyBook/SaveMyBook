@@ -18,6 +18,10 @@ const swaggerOptions = {
         url: `http://localhost:${port}`,
         description: 'Local development server',
       },
+      {
+        url: 'https://api.savemybook.today',
+        description: 'Production server',
+      }
     ],
     components: {
       securitySchemes: {
