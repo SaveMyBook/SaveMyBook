@@ -1,13 +1,88 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/category.dart';
 import '../models/book.dart';
+import '../models/user.dart';
 
 class ApiService {
-  // static const String baseUrl = 'http://192.168.100.142:3000/api'; // KaiJun der Desktop
-  // static const String baseUrl = 'http://10.0.2.2:3000/api'; // Android Simulator
-  // static const String baseUrl = 'http://localhost:3000/api'; // iOS Simulator
-  static const String baseUrl = 'https://api.savemybook.today/api'; // NTUB VM
+  static const String baseUrl = 'https://api.savemybook.today/api';
+  static String? authToken;
+  static User? currentUser;
+
+  static List<String> searchHistory = [];
+
+  static void addSearchHistory(String keyword) {
+    final trimmed = keyword.trim();
+    if (trimmed.isEmpty) return;
+    searchHistory.remove(trimmed);
+    searchHistory.insert(0, trimmed);
+    if (searchHistory.length > 10) {
+      searchHistory.removeLast();
+    }
+  }
+
+  static void removeSearchHistory(String keyword) {
+    searchHistory.remove(keyword);
+  }
+
+  Future<bool> login(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        authToken = data['data']['token'];
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', authToken!);
+
+        await fetchCurrentUser();
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  Future<bool> register(String email, String password, String nickname) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/users'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password, 'nickname': nickname}),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  Future<void> logout() async {
+    authToken = null;
+    currentUser = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+  }
+
+  Future<void> fetchCurrentUser() async {
+    if (authToken == null) return;
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/auth/me'),
+        headers: {'Authorization': 'Bearer $authToken', 'Accept': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        currentUser = User.fromJson(data['data']);
+      }
+    } catch (_) {}
+  }
 
   Future<List<Category>> fetchCategories() async {
     try {
@@ -52,9 +127,10 @@ class ApiService {
       }
 
       if (sort != null) {
-        String sortParam = 'popular';
+        String sortParam = 'newest';
         switch (sort) {
           case '最新上架': sortParam = 'newest'; break;
+          case '熱門推薦': sortParam = 'popular'; break;
           case '價格由低到高': sortParam = 'price_asc'; break;
           case '價格由高到低': sortParam = 'price_desc'; break;
         }

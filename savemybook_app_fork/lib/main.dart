@@ -1,31 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'services/api_service.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('auth_token');
+
+  if (token != null && token.isNotEmpty) {
+    ApiService.authToken = token;
+    await ApiService().fetchCurrentUser();
+  }
+
+  runApp(MyApp(initialRoute: token != null ? const HomeScreen() : const LoginScreen()));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Widget initialRoute;
+
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
+    const Color darkTextColor = Color(0xFF151E27);
+
     return MaterialApp(
-      title: 'SaveMyBook 救『舊』我的書',
+      title: 'SaveMyBook',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: const Color(0xFF627D8D),
         scaffoldBackgroundColor: const Color(0xFFF3F5F7),
-        fontFamily: 'PingFang TC',
-        fontFamilyFallback: const [
-          '.SF Pro Text',
-          'PingFang TC',
-          'Heiti TC',
-          'Noto Sans TC',
-          'Microsoft JhengHei'
-        ],
+        fontFamily: 'NotoSansTC',
+        fontFamilyFallback: const ['PingFang TC', 'Heiti TC', 'Noto Sans TC'],
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: darkTextColor),
+          bodyMedium: TextStyle(color: darkTextColor),
+          displayLarge: TextStyle(color: darkTextColor),
+          displayMedium: TextStyle(color: darkTextColor),
+          displaySmall: TextStyle(color: darkTextColor),
+          headlineMedium: TextStyle(color: darkTextColor),
+          headlineSmall: TextStyle(color: darkTextColor),
+          titleLarge: TextStyle(color: darkTextColor),
+          titleMedium: TextStyle(color: darkTextColor),
+          titleSmall: TextStyle(color: darkTextColor),
+        ),
       ),
-      home: const HomeScreen(),
+      home: initialRoute,
     );
   }
 }
