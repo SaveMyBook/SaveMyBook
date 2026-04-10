@@ -13,35 +13,41 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
-            blurRadius: 15,
-            offset: const Offset(0, -5),
-          )
+            blurRadius: 16,
+            offset: const Offset(0, -2),
+          ),
         ],
       ),
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-          child: BottomAppBar(
-            elevation: 0,
-            color: Colors.white.withOpacity(0.85),
-            shape: const CircularNotchedRectangle(),
-            notchMargin: 8.0,
-            child: SizedBox(
-              height: 60,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavItem(Icons.home, Icons.home_outlined, 0),
-                  _buildNavItem(Icons.favorite, Icons.favorite_border, 1),
-                  const SizedBox(width: 48),
-                  _buildNavItem(Icons.notifications, Icons.notifications_none, 2),
-                  _buildNavItem(Icons.person, Icons.person_outline, 3),
-                ],
+      child: BottomAppBar(
+        elevation: 0,
+        color: Colors.transparent,
+        padding: EdgeInsets.zero,
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        clipBehavior: Clip.antiAlias,
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+            child: Container(
+              color: Colors.white.withOpacity(0.80),
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                height: kBottomNavigationBarHeight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavItem(Icons.home, Icons.home_outlined, 0),
+                    _buildNavItem(Icons.favorite, Icons.favorite_border, 1),
+                    const SizedBox(width: 48),
+                    _buildNavItem(Icons.notifications, Icons.notifications_none, 2),
+                    _buildNavItem(Icons.person, Icons.person_outline, 3),
+                  ],
+                ),
               ),
             ),
           ),

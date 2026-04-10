@@ -15,12 +15,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
 
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _handleRegister() async {
     final nickname = _nicknameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (nickname.isEmpty || email.isEmpty || password.isEmpty) return;
+    if (nickname.isEmpty || email.isEmpty || password.isEmpty) {
+      _showError('請填寫所有欄位');
+      return;
+    }
+
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    if (!emailRegex.hasMatch(email)) {
+      _showError('請輸入正確的 Email 格式');
+      return;
+    }
+
+    if (password.length < 8) {
+      _showError('密碼長度至少需要 8 個字元');
+      return;
+    }
+
+    final hasLetter = RegExp(r'[A-Za-z]').hasMatch(password);
+    final hasDigit = RegExp(r'[0-9]').hasMatch(password);
+    if (!hasLetter || !hasDigit) {
+      _showError('密碼需包含英文字母與數字');
+      return;
+    }
 
     setState(() => _isLoading = true);
 

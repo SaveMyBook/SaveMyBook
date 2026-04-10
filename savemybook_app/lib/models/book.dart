@@ -84,11 +84,11 @@ class Book {
 
   Color get conditionColor {
     switch (conditionLevel) {
-      case 'like_new': return const Color(0xFF627D8D);
-      case 'good': return const Color(0xFF83A982);
-      case 'fair': return const Color(0xFFD4A373);
-      case 'poor': return const Color(0xFFC65D5D);
-      default: return const Color(0xFF8699A6);
+      case 'like_new': return const Color(0xFF26A69A); // 全新 - 青藍
+      case 'good':     return const Color(0xFF66BB6A); // 近全新 - 綠
+      case 'fair':     return const Color(0xFFFFA726); // 良好 - 橘
+      case 'poor':     return const Color(0xFFEF5350); // 尚可 - 紅
+      default:         return const Color(0xFF90A4AE); // 未知 - 灰
     }
   }
 }

@@ -5,6 +5,15 @@ import '../services/api_service.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  Future<void> _handleLogout(BuildContext context) async {
+    await ApiService().logout();
+    if (!context.mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const primaryColor = Color(0xFF627D8D);
@@ -147,11 +156,28 @@ class ProfileScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 20, right: 20, bottom: 40),
               child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    (route) => false,
+                onTap: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      title: const Text('確認登出', style: TextStyle(fontWeight: FontWeight.bold)),
+                      content: const Text('確定要登出帳號嗎？'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('取消', style: TextStyle(color: Colors.grey)),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('登出', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
                   );
+                  if (confirmed == true && context.mounted) {
+                    _handleLogout(context);
+                  }
                 },
                 child: Container(
                   width: double.infinity,

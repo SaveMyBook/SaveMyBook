@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/book.dart';
+import 'home_screen.dart';
 import 'search_screen.dart';
 
 class BookDetailScreen extends StatefulWidget {
@@ -95,14 +96,21 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               Expanded(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    final keyword = await Navigator.push<String>(
                       context,
                       PageRouteBuilder(
                         pageBuilder: (_, __, ___) => const SearchScreen(initialKeyword: ''),
                         transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
                       ),
                     );
+                    if (keyword != null && keyword.isNotEmpty && context.mounted) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => HomeScreen(initialKeyword: keyword)),
+                        (_) => false,
+                      );
+                    }
                   },
                   child: Container(
                     height: 40,

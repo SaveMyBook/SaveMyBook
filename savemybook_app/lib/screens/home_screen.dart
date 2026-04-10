@@ -8,7 +8,9 @@ import '../widgets/custom_bottom_nav.dart';
 import '../widgets/search_bar_widget.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String initialKeyword;
+
+  const HomeScreen({super.key, this.initialKeyword = ''});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -22,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentPage = 1;
   final Set<int> _selectedCategoryIds = {};
   String _currentSort = '最新上架';
-  String _currentKeyword = '';
+  late String _currentKeyword = widget.initialKeyword;
   final List<String> _sortOptions = ['最新上架', '熱門推薦', '價格由低到高', '價格由高到低'];
 
   List<Category> _categories = [];
@@ -237,7 +239,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: EdgeInsets.symmetric(vertical: 24.0),
                       child: Center(child: CircularProgressIndicator(color: Color(0xFF627D8D))),
                     ),
-                  const SizedBox(height: 100),
+                  if (!_hasMoreData && _books.isNotEmpty && !_isLoadingInitial)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24.0),
+                      child: Center(
+                        child: Text('您已滑到底部', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      ),
+                    ),
+                  // 確保底部提示文字高於 FAB（nav bar ~60 + FAB 凸出 ~36 + 安全距離）
+                  const SizedBox(height: 160),
                 ],
               ),
             ),
