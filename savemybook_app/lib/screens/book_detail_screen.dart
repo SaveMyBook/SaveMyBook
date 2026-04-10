@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/book.dart';
+import 'search_screen.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final Book book;
@@ -12,7 +13,6 @@ class BookDetailScreen extends StatefulWidget {
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
   final PageController _pageController = PageController();
-  final TextEditingController _searchController = TextEditingController();
   int _currentImageIndex = 0;
   late List<String> _images;
 
@@ -25,14 +25,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   @override
   void dispose() {
     _pageController.dispose();
-    _searchController.dispose();
     super.dispose();
-  }
-
-  void _onSearch(String keyword) {
-    final trimmed = keyword.trim();
-    if (trimmed.isEmpty) return;
-    Navigator.pop(context, trimmed);
   }
 
   @override
@@ -61,6 +54,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                         const SizedBox(height: 12),
                         _buildInfoRow(Icons.edit_outlined, '作者：', widget.book.author),
                         const SizedBox(height: 12),
+                        _buildInfoRow(Icons.qr_code, 'ISBN：', widget.book.isbn),
+                        const SizedBox(height: 12),
                         _buildDescriptionRow(),
                         const SizedBox(height: 12),
                         _buildInfoRow(Icons.calendar_today_outlined, '上架日期：', widget.book.createdAt),
@@ -81,42 +76,52 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Widget _buildCustomAppBar() {
     return Container(
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10, bottom: 12),
       decoration: const BoxDecoration(color: Color(0xFF627D8D)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Row(
-          children: [
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Container(
-                height: 40,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                child: TextField(
-                  controller: _searchController,
-                  style: const TextStyle(fontSize: 14),
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: _onSearch,
-                  decoration: InputDecoration(
-                    hintText: '搜尋書名、作者、出版社...',
-                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    suffixIcon: GestureDetector(
-                      onTap: () => _onSearch(_searchController.text),
-                      child: const Icon(Icons.search, color: Colors.grey, size: 20),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 8.0, bottom: 12.0),
+          child: Row(
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.pop(context),
+                child: const Padding(
+                  padding: EdgeInsets.all(4.0),
+                  child: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (_, __, ___) => const SearchScreen(initialKeyword: ''),
+                        transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text('搜尋書名、作者、出版社...', style: TextStyle(color: Colors.grey.shade400, fontSize: 14))),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.search, color: Colors.grey, size: 20),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 16),
-            const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-          ],
+              const SizedBox(width: 16),
+              const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+            ],
+          ),
         ),
       ),
     );
@@ -127,7 +132,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       alignment: Alignment.bottomCenter,
       children: [
         SizedBox(
-          height: 320,
+          height: 360,
           child: PageView.builder(
             controller: _pageController,
             itemCount: _images.length,
@@ -144,7 +149,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           ),
         ),
         Positioned(
-          left: 10, top: 150,
+          left: 10, top: 170,
           child: GestureDetector(
             onTap: () {
               if (_currentImageIndex > 0) _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
@@ -153,7 +158,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           ),
         ),
         Positioned(
-          right: 10, top: 150,
+          right: 10, top: 170,
           child: GestureDetector(
             onTap: () {
               if (_currentImageIndex < _images.length - 1) _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
@@ -162,7 +167,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           ),
         ),
         Positioned(
-          bottom: 12,
+          bottom: 16,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(_images.length, (index) {
@@ -173,9 +178,53 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 4.0),
                 width: isActive ? 16.0 : 6.0,
                 height: 6.0,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: isActive ? const Color(0xFF83A982) : Colors.grey.shade400),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    color: isActive ? Colors.white : Colors.white.withOpacity(0.5)
+                ),
               );
             }),
+          ),
+        ),
+        Positioned(
+          top: 16,
+          right: 16,
+          child: PopupMenuButton<String>(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.more_vert, color: Colors.white, size: 24),
+            ),
+            onSelected: (value) {
+              if (value == 'share') {
+              } else if (value == 'report') {
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'share',
+                child: Row(
+                  children: [
+                    Icon(Icons.ios_share, size: 20),
+                    SizedBox(width: 8),
+                    Text('分享'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'report',
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, size: 20, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('檢舉'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -189,39 +238,28 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         Expanded(
           child: Text(
             widget.book.title,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF333333), height: 1.25),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF151E27), height: 1.25),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.only(top: 4.0),
-          child: Row(
-            children: [
-              const Icon(Icons.bookmark_border, size: 26, color: Color(0xFF555555)),
-              const SizedBox(width: 14),
-              const Icon(Icons.ios_share, size: 24, color: Color(0xFF555555)),
-              const SizedBox(width: 14),
-              Icon(Icons.warning_amber_rounded, size: 26, color: Colors.red.shade400),
-            ],
-          ),
+        const Padding(
+          padding: EdgeInsets.only(top: 4.0),
+          child: Icon(Icons.favorite_border, size: 26, color: Colors.grey),
         )
       ],
     );
   }
 
   Widget _buildPriceAndConditionRow() {
-    Color badgeColor = const Color(0xFF83A982);
-    if (widget.book.conditionLevel == 'poor' || widget.book.conditionLevel == 'fair') {
-      badgeColor = const Color(0xFFC65D5D);
-    }
+    Color badgeColor = widget.book.conditionColor;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text('\$${widget.book.price.toInt()}', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Color(0xFF333333))),
+        Text('\$${widget.book.price.toInt()}', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Color(0xFF627D8D))),
         const SizedBox(width: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12)),
-          child: Text(widget.book.conditionText, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+          decoration: BoxDecoration(color: Colors.transparent, border: Border.all(color: badgeColor), borderRadius: BorderRadius.circular(12)),
+          child: Text(widget.book.conditionText, style: TextStyle(color: badgeColor, fontSize: 12, fontWeight: FontWeight.w600)),
         ),
       ],
     );
@@ -229,19 +267,13 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 20, color: const Color(0xFF555555)),
         const SizedBox(width: 8),
-        Text(label, style: const TextStyle(fontSize: 15, color: Color(0xFF333333), fontWeight: FontWeight.w500)),
+        Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
         Expanded(
-          child: Text(
-              value,
-              locale: const Locale('en', 'US'),
-              style: const TextStyle(fontSize: 15, color: Color(0xFF333333), textBaseline: TextBaseline.alphabetic),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis
-          ),
+          child: Text(value, style: const TextStyle(fontSize: 15)),
         ),
       ],
     );
@@ -251,11 +283,11 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.notes, size: 20, color: Color(0xFF555555)),
+        const Icon(Icons.notes, size: 20, color: const Color(0xFF555555)),
         const SizedBox(width: 8),
-        const Text('簡介：', style: TextStyle(fontSize: 15, color: Color(0xFF333333), fontWeight: FontWeight.w500, height: 1.3)),
+        const Text('簡介：', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, height: 1.3)),
         Expanded(
-          child: Text(widget.book.description, style: const TextStyle(fontSize: 15, color: Color(0xFF333333), height: 1.3)),
+          child: Text(widget.book.description, style: const TextStyle(fontSize: 15, height: 1.3)),
         ),
       ],
     );
@@ -263,7 +295,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Widget _buildSellerInfo() {
     String sellerName = widget.book.location.replaceAll('賣家：', '');
-    if (sellerName == '地點未提供') sellerName = '王大名';
+    if (sellerName == '地點未提供') sellerName = '管理員';
 
     return Row(
       children: [
@@ -272,7 +304,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           backgroundImage: NetworkImage('https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=200&auto=format&fit=crop'),
         ),
         const SizedBox(width: 12),
-        Text(sellerName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF333333))),
+        Text(sellerName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
       ],
     );
   }
@@ -286,14 +318,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.chat_bubble_outline, size: 18),
-              label: const Text('與賣家聊聊', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              icon: const Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFF627D8D)),
+              label: const Text('與賣家聊聊', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF627D8D))),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF627D8D),
-                foregroundColor: Colors.white,
+                backgroundColor: Colors.transparent,
+                side: const BorderSide(color: Color(0xFF627D8D)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 elevation: 0,
+                shadowColor: Colors.transparent,
               ),
             ),
           ),

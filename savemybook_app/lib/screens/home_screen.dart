@@ -1,9 +1,11 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'profile_screen.dart';
 import '../models/category.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
 import '../widgets/book_card.dart';
+import '../widgets/custom_bottom_nav.dart';
+import '../widgets/search_bar_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,15 +22,16 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentPage = 1;
   final Set<int> _selectedCategoryIds = {};
   String _currentSort = '最新上架';
-  final List<String> _sortOptions = ['最新上架', '熱門推薦', '價格由低到高', '價格由高到低'];
-  double _categoryScrollProgress = 0.0;
   String _currentKeyword = '';
-  final TextEditingController _searchController = TextEditingController();
+  final List<String> _sortOptions = ['最新上架', '熱門推薦', '價格由低到高', '價格由高到低'];
+
   List<Category> _categories = [];
   List<Book> _books = [];
+
   final ApiService _apiService = ApiService();
   final ScrollController _scrollController = ScrollController();
   final ScrollController _categoryScrollController = ScrollController();
+  double _categoryScrollProgress = 0.0;
 
   @override
   void initState() {
@@ -41,13 +44,24 @@ class _HomeScreenState extends State<HomeScreen> {
         _loadMoreData();
       }
     });
+    _categoryScrollController.addListener(() {
+      if (_categoryScrollController.hasClients) {
+        setState(() {
+          final maxScroll = _categoryScrollController.position.maxScrollExtent;
+          if (maxScroll > 0) {
+            _categoryScrollProgress = (_categoryScrollController.offset / maxScroll).clamp(0.0, 1.0);
+          } else {
+            _categoryScrollProgress = 0;
+          }
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     _categoryScrollController.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -56,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final results = await Future.wait([
         _apiService.fetchCategories(),
-        _apiService.fetchBooks(page: 1, categoryIds: _selectedCategoryIds, sort: _currentSort),
+        _apiService.fetchBooks(page: 1, categoryIds: _selectedCategoryIds, sort: _currentSort, keyword: _currentKeyword),
       ]);
       if (!mounted) return;
       setState(() {
@@ -74,12 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _onRefresh() async {
     _currentPage = 1;
     _hasMoreData = true;
-    final newBooks = await _apiService.fetchBooks(
-      page: 1,
-      categoryIds: _selectedCategoryIds,
-      sort: _currentSort,
-      keyword: _currentKeyword.isEmpty ? null : _currentKeyword,
-    );
+    final newBooks = await _apiService.fetchBooks(page: 1, categoryIds: _selectedCategoryIds, sort: _currentSort, keyword: _currentKeyword);
     setState(() {
       _books = newBooks;
       _hasMoreData = (newBooks.length >= 20);
@@ -90,12 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _isLoadingMore = true);
     try {
       _currentPage++;
-      final moreBooks = await _apiService.fetchBooks(
-        page: _currentPage,
-        categoryIds: _selectedCategoryIds,
-        sort: _currentSort,
-        keyword: _currentKeyword.isEmpty ? null : _currentKeyword,
-      );
+      final moreBooks = await _apiService.fetchBooks(page: _currentPage, categoryIds: _selectedCategoryIds, sort: _currentSort, keyword: _currentKeyword);
       if (!mounted) return;
       setState(() {
         if (moreBooks.isEmpty) {
@@ -125,9 +129,9 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _onSearch(String keyword) {
+  void _onSortChanged(String newSort) {
     setState(() {
-      _currentKeyword = keyword.trim();
+      _currentSort = newSort;
       _isLoadingInitial = true;
     });
     _onRefresh().then((_) {
@@ -135,9 +139,9 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _onSortChanged(String newSort) {
+  void _onSearchChanged(String keyword) {
     setState(() {
-      _currentSort = newSort;
+      _currentKeyword = keyword;
       _isLoadingInitial = true;
     });
     _onRefresh().then((_) {
@@ -149,145 +153,186 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      body: Column(
+      floatingActionButton: const CustomFab(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: CustomBottomNav(
+        selectedIndex: _selectedIndex,
+        onItemSelected: (index) => setState(() => _selectedIndex = index),
+      ),
+      body: IndexedStack(
+        index: _selectedIndex,
         children: [
-          _buildCustomHeader(),
-          Expanded(
-            child: RefreshIndicator(
-              color: const Color(0xFF627D8D),
-              onRefresh: _onRefresh,
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSortDropdown(),
-                    const SizedBox(height: 16),
-                    _buildBookGrid(),
-                    if (_isLoadingMore)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24.0),
-                        child: Center(child: CircularProgressIndicator(color: Color(0xFF627D8D))),
-                      ),
-                    const SizedBox(height: 100),
-                  ],
-                ),
+          _buildHomeContent(),
+          const Scaffold(body: Center(child: Text('收藏清單'))),
+          const Scaffold(body: Center(child: Text('通知'))),
+          const ProfileScreen(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHomeContent() {
+    return Column(
+      children: [
+        _buildCustomHeader(),
+        Expanded(
+          child: RefreshIndicator(
+            color: const Color(0xFF627D8D),
+            onRefresh: _onRefresh,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  _buildCategories(),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final trackWidth = constraints.maxWidth;
+                        const indicatorWidth = 60.0;
+                        return Container(
+                          height: 2,
+                          width: trackWidth,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF607D8B).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(1),
+                          ),
+                          child: Stack(
+                            children: [
+                              AnimatedPositioned(
+                                duration: const Duration(milliseconds: 100),
+                                left: _categoryScrollProgress * (trackWidth - indicatorWidth),
+                                top: 0,
+                                bottom: 0,
+                                child: Container(
+                                  width: indicatorWidth,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF607D8B).withOpacity(0.4),
+                                    borderRadius: BorderRadius.circular(1),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: _buildSortDropdown(),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: _buildBookGrid(),
+                  ),
+                  if (_isLoadingMore)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24.0),
+                      child: Center(child: CircularProgressIndicator(color: Color(0xFF627D8D))),
+                    ),
+                  const SizedBox(height: 100),
+                ],
               ),
             ),
           ),
-        ],
-      ),
-      floatingActionButton: _buildFloatingActionButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomNavBar(),
+        ),
+      ],
     );
   }
 
   Widget _buildCustomHeader() {
+    final userName = ApiService.currentUser?.nickname ?? '訪客';
     return Container(
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10, bottom: 12),
-      decoration: const BoxDecoration(color: Color(0xFF627D8D)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 40,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                    child: TextField(
-                      controller: _searchController,
-                      style: const TextStyle(fontSize: 14),
-                      textInputAction: TextInputAction.search,
-                      onSubmitted: _onSearch,
-                      decoration: InputDecoration(
-                        hintText: '搜尋書名、作者、出版社...',
-                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        suffixIcon: GestureDetector(
-                          onTap: () => _onSearch(_searchController.text),
-                          child: const Icon(Icons.search, color: Colors.grey, size: 20),
-                        ),
-                      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF627D8D),
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8.0, bottom: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('哈囉, $userName', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const Row(
+                      children: [
+                        Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 26),
+                        SizedBox(width: 16),
+                        Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: SearchBarWidget(
+                  currentKeyword: _currentKeyword,
+                  onSearch: _onSearchChanged,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategories() {
+    return SizedBox(
+      height: 36,
+      child: ListView.builder(
+        controller: _categoryScrollController,
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: _categories.length,
+        itemBuilder: (context, index) {
+          final category = _categories[index];
+          final isSelected = _selectedCategoryIds.contains(category.categoryId);
+          return Padding(
+            padding: const EdgeInsets.only(right: 10.0),
+            child: GestureDetector(
+              onTap: () => _onCategoryTapped(category.categoryId),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8ECEF),
+                  border: Border.all(
+                      color: isSelected ? const Color(0xFF627D8D) : Colors.transparent,
+                      width: 1.5
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Center(
+                  child: Text(
+                    category.categoryName,
+                    style: TextStyle(
+                      color: const Color(0xFF627D8D),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontSize: 14,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-                const SizedBox(width: 16),
-                const Icon(Icons.chat_bubble_outline, color: Colors.white),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 32,
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (ScrollNotification notification) {
-                if (notification.metrics.maxScrollExtent > 0) {
-                  setState(() {
-                    _categoryScrollProgress = (notification.metrics.pixels / notification.metrics.maxScrollExtent).clamp(0.0, 1.0);
-                  });
-                }
-                return false;
-              },
-              child: ListView.builder(
-                controller: _categoryScrollController,
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: _categories.length,
-                itemBuilder: (context, index) {
-                  final category = _categories[index];
-                  final isSelected = _selectedCategoryIds.contains(category.categoryId);
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: GestureDetector(
-                      onTap: () => _onCategoryTapped(category.categoryId),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF83A982) : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Center(
-                          child: Text(
-                            category.categoryName,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : const Color(0xFF333333),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Container(
-              height: 2,
-              width: double.infinity,
-              decoration: BoxDecoration(color: Colors.black.withOpacity(0.2), borderRadius: BorderRadius.circular(2)),
-              alignment: Alignment(-1.0 + (_categoryScrollProgress * 2.0), 0),
-              child: FractionallySizedBox(
-                widthFactor: 0.3,
-                child: Container(height: 2, decoration: BoxDecoration(color: const Color(0xFF83A982), borderRadius: BorderRadius.circular(2))),
-              ),
-            ),
-          )
-        ],
+          );
+        },
       ),
     );
   }
@@ -343,77 +388,12 @@ class _HomeScreenState extends State<HomeScreen> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.52,
+          crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.58,
         ),
         itemCount: _books.length,
-        itemBuilder: (context, index) => BookCard(
-          book: _books[index],
-          onSearchFromDetail: (keyword) {
-            _searchController.text = keyword;
-            _onSearch(keyword);
-          },
-        ),
+        itemBuilder: (context, index) => BookCard(book: _books[index]),
       );
     }
     return AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: content);
-  }
-
-  Widget _buildFloatingActionButton() {
-    return Container(
-      height: 64, width: 64,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: const Color(0xFF627D8D),
-        border: Border.all(color: Colors.white, width: 4),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 4))],
-      ),
-      child: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: const Icon(Icons.add, color: Colors.white, size: 32),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, -3))],
-      ),
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
-          child: BottomAppBar(
-            elevation: 0,
-            color: Colors.white.withOpacity(0.8),
-            shape: const CircularNotchedRectangle(),
-            notchMargin: 8.0,
-            child: SizedBox(
-              height: 60,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavItem(Icons.home_filled, 0),
-                  _buildNavItem(Icons.notifications_none, 1),
-                  const SizedBox(width: 48),
-                  _buildNavItem(Icons.bookmark_border, 2),
-                  _buildNavItem(Icons.person_outline, 3),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, int index) {
-    final isSelected = _selectedIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
-      child: Icon(icon, size: 28, color: isSelected ? const Color(0xFF627D8D) : Colors.grey),
-    );
   }
 }
