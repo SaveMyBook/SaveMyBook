@@ -10,6 +10,8 @@ class ApiService {
   static String? authToken;
   static User? currentUser;
 
+  static void Function()? onUnauthorized;
+
   static List<String> searchHistory = [];
 
   static void addSearchHistory(String keyword) {
@@ -24,6 +26,15 @@ class ApiService {
 
   static void removeSearchHistory(String keyword) {
     searchHistory.remove(keyword);
+  }
+
+  static Future<void> _handleUnauthorized() async {
+    if (authToken == null) return;
+    authToken = null;
+    currentUser = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+    onUnauthorized?.call();
   }
 
   Future<bool> login(String email, String password) async {
@@ -77,6 +88,12 @@ class ApiService {
         Uri.parse('$baseUrl/auth/me'),
         headers: {'Authorization': 'Bearer $authToken', 'Accept': 'application/json'},
       );
+
+      if (response.statusCode == 401) {
+        await _handleUnauthorized();
+        return;
+      }
+
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         currentUser = User.fromJson(data['data']);
@@ -87,7 +104,17 @@ class ApiService {
   Future<List<Category>> fetchCategories() async {
     try {
       final uri = Uri.parse('$baseUrl/categories').replace(queryParameters: {'flat': 'true'});
-      final response = await http.get(uri, headers: {'Accept': 'application/json'}).timeout(const Duration(seconds: 10));
+      final headers = <String, String>{'Accept': 'application/json'};
+      if (authToken != null) {
+        headers['Authorization'] = 'Bearer $authToken';
+      }
+
+      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 401) {
+        await _handleUnauthorized();
+        return [];
+      }
 
       if (response.statusCode == 200) {
         final dynamic decoded = json.decode(utf8.decode(response.bodyBytes));
@@ -138,7 +165,18 @@ class ApiService {
       }
 
       uri = uri.replace(queryParameters: queryParams);
-      final response = await http.get(uri, headers: {'Accept': 'application/json'}).timeout(const Duration(seconds: 10));
+
+      final headers = <String, String>{'Accept': 'application/json'};
+      if (authToken != null) {
+        headers['Authorization'] = 'Bearer $authToken';
+      }
+
+      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 401) {
+        await _handleUnauthorized();
+        return [];
+      }
 
       if (response.statusCode == 200) {
         final dynamic decoded = json.decode(utf8.decode(response.bodyBytes));

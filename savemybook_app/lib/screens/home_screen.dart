@@ -35,6 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _categoryScrollController = ScrollController();
   double _categoryScrollProgress = 0.0;
 
+  bool _isNavVisible = true;
+
   @override
   void initState() {
     super.initState();
@@ -151,24 +153,48 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  bool _handleScrollNotification(ScrollUpdateNotification notification) {
+    final delta = notification.scrollDelta ?? 0;
+    if (delta > 8 && (_scrollController.hasClients && _scrollController.offset > 80)) {
+      if (_isNavVisible) setState(() => _isNavVisible = false);
+    } else if (delta < -4) {
+      if (!_isNavVisible) setState(() => _isNavVisible = true);
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
-      floatingActionButton: const CustomFab(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: CustomBottomNav(
-        selectedIndex: _selectedIndex,
-        onItemSelected: (index) => setState(() => _selectedIndex = index),
-      ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          _buildHomeContent(),
-          const Scaffold(body: Center(child: Text('收藏清單'))),
-          const Scaffold(body: Center(child: Text('通知'))),
-          const ProfileScreen(),
-        ],
+      body: NotificationListener<ScrollUpdateNotification>(
+        onNotification: _handleScrollNotification,
+        child: Stack(
+          children: [
+            IndexedStack(
+              index: _selectedIndex,
+              children: [
+                _buildHomeContent(),
+                const Scaffold(body: Center(child: Text('通知'))),
+                const Scaffold(body: Center(child: Text('我要賣書'))),
+                const Scaffold(body: Center(child: Text('我要取書'))),
+                const ProfileScreen(),
+              ],
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: CustomBottomNav(
+                selectedIndex: _selectedIndex,
+                isVisible: _isNavVisible,
+                onItemSelected: (index) => setState(() {
+                  _selectedIndex = index;
+                  _isNavVisible = true;
+                }),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -246,8 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text('您已滑到底部', style: TextStyle(color: Colors.grey, fontSize: 13)),
                       ),
                     ),
-                  // 確保底部提示文字高於 FAB（nav bar ~60 + FAB 凸出 ~36 + 安全距離）
-                  const SizedBox(height: 160),
+                  SizedBox(height: MediaQuery.of(context).padding.bottom + 100),
                 ],
               ),
             ),

@@ -5,12 +5,21 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/api_service.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
+
+  ApiService.onUnauthorized = () {
+    navigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (_) => false,
+    );
+  };
 
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('auth_token');
@@ -20,7 +29,9 @@ void main() async {
     await ApiService().fetchCurrentUser();
   }
 
-  runApp(MyApp(initialRoute: token != null ? const HomeScreen() : const LoginScreen()));
+  final isLoggedIn = ApiService.authToken != null;
+
+  runApp(MyApp(initialRoute: isLoggedIn ? const HomeScreen() : const LoginScreen()));
 }
 
 class MyApp extends StatelessWidget {
@@ -33,6 +44,7 @@ class MyApp extends StatelessWidget {
     const Color darkTextColor = Color(0xFF151E27);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'SaveMyBook',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
