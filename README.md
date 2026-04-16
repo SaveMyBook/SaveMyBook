@@ -33,3 +33,20 @@ SaveMyBook/
 ├── savemybook_api/           # 後端伺服器 (Node.js / Express 核心程式碼)
 └── savemybook_app/           # 行動端客戶端 (Flutter 核心程式碼)
 ```
+
+## 🏆 團隊貢獻牆 
+
+<table align="center">
+<tr>
+<td align="center"><b>Xu Kai Jun</b>
+<img src="team-contribs/XuKaiJun914-3d.svg" width="200px"></td>
+<td align="center"><b>Gary Chen</b>
+<img src="team-contribs/GaryChen33-3d.svg" width="200px"></td>
+</tr>
+<tr>
+<td align="center"><b>Shelly</b>
+<img src="team-contribs/Shelly9457-3d.svg" width="200px"></td>
+<td align="center"><b>Xuan</b>
+<img src="team-contribs/xuan26-3d.svg" width="200px"></td>
+</tr>
+</table>
