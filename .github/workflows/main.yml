@@ -28,8 +28,15 @@ jobs:
               return;
             }
 
-            const sorted = stats.data.sort((a, b) => b.total - a.total);
-            let table = '\n<div align="center">\n\n| 貢獻者 | Commit | 新增程式碼 | 刪除程式碼 |\n| :--- | :---: | :---: | :---: |\n';
+            const realUsers = stats.data.filter(user => 
+              user.author.type !== 'Bot' && 
+              !user.author.login.toLowerCase().includes('bot')
+            );
+
+            const sorted = realUsers.sort((a, b) => b.total - a.total);
+
+            let table = '\n<div align="center">\n\n<table>\n';
+            table += '  <thead>\n    <tr>\n      <th>🏆 成員 (Contributor)</th>\n      <th>📦 Commits</th>\n      <th>🟩 新增程式碼</th>\n      <th>🟥 刪除程式碼</th>\n    </tr>\n  </thead>\n  <tbody>\n';
 
             for (const user of sorted) {
               let additions = 0;
@@ -40,18 +47,25 @@ jobs:
               });
               
               const login = user.author.login;
-              const avatar = `<img src="${user.author.avatar_url}" width="35" style="border-radius:50%"/>`;
-              table += `| ${avatar} **[${login}](https://github.com/${login})** | ${user.total} | <font color="#2da44e">+${additions.toLocaleString()}</font> | <font color="#cf222e">-${deletions.toLocaleString()}</font> |\n`;
+              const avatar = `<img src="${user.author.avatar_url}" width="35" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;"/>`;
+              const profile = `<a href="https://github.com/${login}" style="font-weight: bold; color: inherit;">${login}</a>`;
+              
+              table += `    <tr>\n`;
+              table += `      <td align="left">${avatar}${profile}</td>\n`;
+              table += `      <td align="center"><strong>${user.total}</strong></td>\n`;
+              table += `      <td align="center">🟢 <code>+${additions.toLocaleString()}</code></td>\n`;
+              table += `      <td align="center">🔴 <code>-${deletions.toLocaleString()}</code></td>\n`;
+              table += `    </tr>\n`;
             }
-            table += '\n</div>\n';
+            table += '  </tbody>\n</table>\n\n</div>\n';
 
             const fs = require('fs');
             let readme = fs.readFileSync('README.md', 'utf8');
             const startTag = '<bla>';
-            const endTag = '<blabla>';
+            const endTag = '</bla>';
             
             const regex = new RegExp(`${startTag}[\\s\\S]*?${endTag}`);
-            const newContent = `${table}`;
+            const newContent = `${startTag}${table}${endTag}`;
             
             if (regex.test(readme)) {
               readme = readme.replace(regex, newContent);
