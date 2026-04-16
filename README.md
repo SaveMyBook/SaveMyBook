@@ -34,5 +34,4 @@ SaveMyBook/
 └── savemybook_app/           # 行動端客戶端 (Flutter 核心程式碼)
 ```
 
-## 📊 專案開發數據統計
-<div align="center"></div>
+### 📊 專案開發數據統計 
