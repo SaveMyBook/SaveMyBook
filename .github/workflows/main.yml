@@ -1,0 +1,65 @@
+name: Generate Team Stats Table
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * *" 
+  workflow_dispatch:
+
+permissions:
+  contents: write #
+
+jobs:
+  update-readme-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Stats and Update README
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            
+            const stats = await github.rest.repos.getContributorsStats({ owner, repo });
+            if (!stats.data || !Array.isArray(stats.data)) {
+              console.log("尚無足夠的數據可供生成");
+              return;
+            }
+
+            const sorted = stats.data.sort((a, b) => b.total - a.total);
+
+            let table = '| 貢獻者 (Contributor) | Commit 次數 | 新增行數 (++) | 刪除行數 (--) |\n';
+            table += '| :--- | :---: | :---: | :---: |\n';
+
+            for (const user of sorted) {
+              let additions = 0;
+              let deletions = 0;
+              for (const week of user.weeks) {
+                additions += week.a;
+                deletions += week.d;
+              }
+              const login = user.author.login;
+              const profileUrl = user.author.html_url;
+              const avatar = `<img src="${user.author.avatar_url}" width="30" style="border-radius:50%; vertical-align:middle; margin-right:5px;"/>`;
+              
+              table += `| ${avatar} [${login}](${profileUrl}) | **${user.total}** | <span style="color:green">+${additions}</span> | <span style="color:red">-${deletions}</span> |\n`;
+            }
+
+            const fs = require('fs');
+            const readme = fs.readFileSync('README.md', 'utf8');
+            const regex = /()[\s\S]*?()/;
+            const newReadme = readme.replace(regex, `$1\n\n${table}\n$2`);
+            fs.writeFileSync('README.md', newReadme);
+
+      - name: Commit and Push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "docs: 自動更新團隊貢獻統計表" || echo "No changes to commit"
+          git pull --rebase
+          git push
