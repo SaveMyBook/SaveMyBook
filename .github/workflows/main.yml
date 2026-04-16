@@ -35,7 +35,7 @@ jobs:
 
             const sorted = realUsers.sort((a, b) => b.total - a.total);
 
-            let table = '\n\n<table>\n';
+            let table = '\n<div align="center">\n\n<table>\n';
             table += '  <thead>\n    <tr>\n      <th>🏆 成員 (Contributor)</th>\n      <th>📦 Commits</th>\n      <th>🟩 新增程式碼</th>\n      <th>🟥 刪除程式碼</th>\n    </tr>\n  </thead>\n  <tbody>\n';
 
             for (const user of sorted) {
@@ -57,12 +57,13 @@ jobs:
               table += `      <td align="center">🔴 <code>-${deletions.toLocaleString()}</code></td>\n`;
               table += `    </tr>\n`;
             }
-            table += '  </tbody>\n</table>\n\n';
+            table += '  </tbody>\n</table>\n\n</div>\n';
 
             const fs = require('fs');
             let readme = fs.readFileSync('README.md', 'utf8');
-            const startTag = '<div align="center">';
-            const endTag = '</div>';
+            
+            const startTag = '';
+            const endTag = '';
             
             const regex = new RegExp(`${startTag}[\\s\\S]*?${endTag}`);
             const newContent = `${startTag}${table}${endTag}`;
@@ -73,12 +74,3 @@ jobs:
             } else {
               console.log("錯誤：在 README.md 中找不到標記點！");
             }
-
-      - name: Commit and Push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md
-          git commit -m "docs: 專業化更新專案貢獻數據表" || echo "No changes"
-          git pull --rebase
-          git push
