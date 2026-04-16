@@ -43,12 +43,5 @@ SaveMyBook/
 └── savemybook_app/           # 行動端客戶端 (Flutter 核心程式碼)
 ```
 
-## 🏆 團隊貢獻牆
-
-| 許凱俊 (Xu Kai Jun) | 陳秉鴻 (Gary Chen) |
-| :---: | :---: |
-| ![Xu Kai Jun](team-contribs/XuKaiJun914-3d.svg) | ![Gary Chen](team-contribs/GaryChen33-3d.svg) |
-
-| 連卉媗 (Shelly) | 江芸萱 (Xuan) |
-| :---: | :---: |
-| ![Shelly Lian](team-contribs/Shelly9457-3d.svg) | ![Xuan Jiang](team-contribs/xuan26-3d.svg) |
+## 📊 專案開發數據統計
+<bla><blabla>
