@@ -1,3 +1,12 @@
+
+
+| 貢獻者 (Contributor) | Commit 次數 | 新增行數 (++) | 刪除行數 (--) |
+| :--- | :---: | :---: | :---: |
+| <img src="https://avatars.githubusercontent.com/u/45906848?v=4" width="30" style="border-radius:50%; vertical-align:middle; margin-right:5px;"/> [XuKaiJun914](https://github.com/XuKaiJun914) | **64** | <span style="color:green">+27507</span> | <span style="color:red">-12045</span> |
+| <img src="https://avatars.githubusercontent.com/u/204811126?v=4" width="30" style="border-radius:50%; vertical-align:middle; margin-right:5px;"/> [GaryChen33](https://github.com/GaryChen33) | **23** | <span style="color:green">+0</span> | <span style="color:red">-0</span> |
+| <img src="https://avatars.githubusercontent.com/u/96901490?v=4" width="30" style="border-radius:50%; vertical-align:middle; margin-right:5px;"/> [Shelly9457](https://github.com/Shelly9457) | **16** | <span style="color:green">+0</span> | <span style="color:red">-0</span> |
+| <img src="https://avatars.githubusercontent.com/u/96901025?v=4" width="30" style="border-radius:50%; vertical-align:middle; margin-right:5px;"/> [xuan26](https://github.com/xuan26) | **13** | <span style="color:green">+28</span> | <span style="color:red">-0</span> |
+
 # 救『舊』我的書 - 智慧二手書交易系統 
 
 ## 📝 專案介紹
