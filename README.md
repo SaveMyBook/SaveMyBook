@@ -44,4 +44,15 @@ SaveMyBook/
 ```
 
 ## 📊 專案開發數據統計
-<bla><blabla>
+
+<div align="center">
+
+| 貢獻者 | Commit | 新增程式碼 | 刪除程式碼 |
+| :--- | :---: | :---: | :---: |
+| <img src="https://avatars.githubusercontent.com/u/45906848?v=4" width="35" style="border-radius:50%"/> **[XuKaiJun914](https://github.com/XuKaiJun914)** | 66 | <font color="#2da44e">+27,538</font> | <font color="#cf222e">-12,078</font> |
+| <img src="https://avatars.githubusercontent.com/u/204811126?v=4" width="35" style="border-radius:50%"/> **[GaryChen33](https://github.com/GaryChen33)** | 23 | <font color="#2da44e">+0</font> | <font color="#cf222e">-0</font> |
+| <img src="https://avatars.githubusercontent.com/u/96901490?v=4" width="35" style="border-radius:50%"/> **[Shelly9457](https://github.com/Shelly9457)** | 16 | <font color="#2da44e">+0</font> | <font color="#cf222e">-0</font> |
+| <img src="https://avatars.githubusercontent.com/u/96901025?v=4" width="35" style="border-radius:50%"/> **[xuan26](https://github.com/xuan26)** | 13 | <font color="#2da44e">+28</font> | <font color="#cf222e">-0</font> |
+| <img src="https://avatars.githubusercontent.com/in/15368?v=4" width="35" style="border-radius:50%"/> **[github-actions[bot]](https://github.com/github-actions[bot])** | 1 | <font color="#2da44e">+9</font> | <font color="#cf222e">-0</font> |
+
+</div>
