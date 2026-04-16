@@ -5,14 +5,20 @@ on:
     - cron: "0 0 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
+      max-parallel: 1
       matrix:
-        username: [XuKaiJun914, GaryChen33, Shelly9457, xuan26] 
+        username: [GaryChen33, Shelly9457, XuKaiJun914, xuan26] 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      
       - uses: yoshi389111/github-profile-3d-contrib@0.7.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -27,7 +33,7 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git pull
           git add team-contribs/
-          git commit -m "update 3d graph for ${{ matrix.username }}" || echo "No changes to commit"
+          git commit -m "Update 3D graph for ${{ matrix.username }}" || echo "No changes to commit"
+          git pull --rebase
           git push
