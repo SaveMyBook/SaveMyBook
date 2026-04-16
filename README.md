@@ -38,15 +38,15 @@ SaveMyBook/
 
 <table align="center">
 <tr>
-<td align="center"><b>Xu Kai Jun</b>
+<td align="center"><b>Xu Kai Jun</b><br>
 <img src="team-contribs/XuKaiJun914-3d.svg" width="200px"></td>
-<td align="center"><b>Gary Chen</b>
+<td align="center"><b>Gary Chen</b><br>
 <img src="team-contribs/GaryChen33-3d.svg" width="200px"></td>
 </tr>
 <tr>
-<td align="center"><b>Shelly</b>
+<td align="center"><b>Shelly</b><br>
 <img src="team-contribs/Shelly9457-3d.svg" width="200px"></td>
-<td align="center"><b>Xuan</b>
+<td align="center"><b>Xuan</b><br>
 <img src="team-contribs/xuan26-3d.svg" width="200px"></td>
 </tr>
 </table>
