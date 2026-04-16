@@ -4,7 +4,7 @@
 「救『舊』我的書」是一個創新的二手書交易系統 。 本專案旨在解決傳統二手書交易中資訊輸入繁瑣、書況評估不易以及交易信任等痛點 。
 
 ## 🏗️ 系統架構
-為維持程式碼整潔與擴充性，請採取多 Server 架構進行功能解耦 ：
+為維持程式碼整潔與擴充性，請採取多 Server 架構進行功能解耦
 
 ## 👥 團隊成員
 * **指導老師：** 林俊杰老師 
@@ -34,19 +34,12 @@ SaveMyBook/
 └── savemybook_app/           # 行動端客戶端 (Flutter 核心程式碼)
 ```
 
-## 🏆 團隊貢獻牆 
+## 🏆 團隊貢獻牆
 
-<table align="center">
-<tr>
-<td align="center"><b>Xu Kai Jun</b><br>
-<img src="team-contribs/XuKaiJun914-3d.svg" width="200px"></td>
-<td align="center"><b>Gary Chen</b><br>
-<img src="team-contribs/GaryChen33-3d.svg" width="200px"></td>
-</tr>
-<tr>
-<td align="center"><b>Shelly</b><br>
-<img src="team-contribs/Shelly9457-3d.svg" width="200px"></td>
-<td align="center"><b>Xuan</b><br>
-<img src="team-contribs/xuan26-3d.svg" width="200px"></td>
-</tr>
-</table>
+| 許凱俊 (Xu Kai Jun) | 陳秉鴻 (Gary Chen) |
+| :---: | :---: |
+| ![Xu Kai Jun](team-contribs/XuKaiJun914-3d.svg) | ![Gary Chen](team-contribs/GaryChen33-3d.svg) |
+
+| 連卉媗 (Shelly) | 江芸萱 (Xuan) |
+| :---: | :---: |
+| ![Shelly Lian](team-contribs/Shelly9457-3d.svg) | ![Xuan Jiang](team-contribs/xuan26-3d.svg) |
