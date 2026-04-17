@@ -39,7 +39,7 @@ SaveMyBook/
 
 <div align="center">
 
-![Contributors](https://img.shields.io/badge/Contributors-4-blue?style=for-the-badge&logo=github) ![Commits](https://img.shields.io/badge/Commits-134-green?style=for-the-badge&logo=git) ![Additions](https://img.shields.io/badge/Additions-27,759-success?style=for-the-badge) ![Deletions](https://img.shields.io/badge/Deletions-12,369-critical?style=for-the-badge)
+![Contributors](https://img.shields.io/badge/Contributors-4-blue?style=for-the-badge&logo=github) ![Commits](https://img.shields.io/badge/Commits-135-green?style=for-the-badge&logo=git) ![Additions](https://img.shields.io/badge/Additions-27,759-success?style=for-the-badge) ![Deletions](https://img.shields.io/badge/Deletions-12,369-critical?style=for-the-badge)
 
 </div>
 
@@ -61,15 +61,15 @@ SaveMyBook/
       <td align="center" valign="middle"><b>81</b></td>
       <td align="center" valign="middle"><code>+27,731</code></td>
       <td align="center" valign="middle"><code>-12,369</code></td>
-      <td align="center" valign="middle"><img src="https://progress-bar.xyz/60/?width=120" alt="60.4%"></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/60/?width=120" alt="60.0%"></td>
     </tr>
     <tr>
       <td align="center" valign="middle"><h3>🥈</h3></td>
       <td align="left" valign="middle"><a href="https://github.com/GaryChen33"><b>GaryChen33</b></a></td>
-      <td align="center" valign="middle"><b>23</b></td>
+      <td align="center" valign="middle"><b>24</b></td>
       <td align="center" valign="middle"><code>+0</code></td>
       <td align="center" valign="middle"><code>-0</code></td>
-      <td align="center" valign="middle"><img src="https://progress-bar.xyz/17/?width=120" alt="17.2%"></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/18/?width=120" alt="17.8%"></td>
     </tr>
     <tr>
       <td align="center" valign="middle"><h3>🥉</h3></td>
@@ -92,7 +92,7 @@ SaveMyBook/
 
 <div align="center">
 
-<sub>📅 最後更新：2026-04-17 12:50:46 (UTC+8)</sub>
+<sub>📅 最後更新：2026-04-17 18:12:58 (UTC+8)</sub>
 
 </div>
 
