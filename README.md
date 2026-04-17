@@ -39,7 +39,7 @@ SaveMyBook/
 
 <div align="center">
 
-![Contributors](https://img.shields.io/badge/Contributors-4-blue?style=for-the-badge&logo=github) ![Commits](https://img.shields.io/badge/Commits-131-green?style=for-the-badge&logo=git) ![Additions](https://img.shields.io/badge/Additions-27,749-success?style=for-the-badge) ![Deletions](https://img.shields.io/badge/Deletions-12,359-critical?style=for-the-badge)
+![Contributors](https://img.shields.io/badge/Contributors-4-blue?style=for-the-badge&logo=github) ![Commits](https://img.shields.io/badge/Commits-132-green?style=for-the-badge&logo=git) ![Additions](https://img.shields.io/badge/Additions-27,758-success?style=for-the-badge) ![Deletions](https://img.shields.io/badge/Deletions-12,368-critical?style=for-the-badge)
 
 </div>
 
@@ -56,43 +56,43 @@ SaveMyBook/
   </thead>
   <tbody>
     <tr>
-      <td align="center"><h3>🥇</h3></td>
-      <td align="left"><img src="https://avatars.githubusercontent.com/u/45906848?v=4" width="40" height="40" style="border-radius:50%;">&nbsp;&nbsp;<a href="https://github.com/XuKaiJun914"><b>XuKaiJun914</b></a></td>
-      <td align="center"><b>79</b></td>
-      <td align="center"><code style="color:#28a745;">+27,721</code></td>
-      <td align="center"><code style="color:#d73a49;">-12,359</code></td>
-      <td align="center"><img src="https://progress-bar.xyz/60/?width=120" alt="60.3%"></td>
+      <td align="center" valign="middle"><h3>🥇</h3></td>
+      <td align="left" valign="middle"><a href="https://github.com/XuKaiJun914"><img src="https://avatars.githubusercontent.com/u/45906848?v=4" width="36" height="36" align="middle" style="border-radius:50%;"></a> &nbsp; <a href="https://github.com/XuKaiJun914"><b>XuKaiJun914</b></a></td>
+      <td align="center" valign="middle"><b>80</b></td>
+      <td align="center" valign="middle"><code>+27,730</code></td>
+      <td align="center" valign="middle"><code>-12,368</code></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/61/?width=120" alt="60.6%"></td>
     </tr>
     <tr>
-      <td align="center"><h3>🥈</h3></td>
-      <td align="left"><img src="https://avatars.githubusercontent.com/u/204811126?v=4" width="40" height="40" style="border-radius:50%;">&nbsp;&nbsp;<a href="https://github.com/GaryChen33"><b>GaryChen33</b></a></td>
-      <td align="center"><b>23</b></td>
-      <td align="center"><code style="color:#28a745;">+0</code></td>
-      <td align="center"><code style="color:#d73a49;">-0</code></td>
-      <td align="center"><img src="https://progress-bar.xyz/18/?width=120" alt="17.6%"></td>
+      <td align="center" valign="middle"><h3>🥈</h3></td>
+      <td align="left" valign="middle"><a href="https://github.com/GaryChen33"><img src="https://avatars.githubusercontent.com/u/204811126?v=4" width="36" height="36" align="middle" style="border-radius:50%;"></a> &nbsp; <a href="https://github.com/GaryChen33"><b>GaryChen33</b></a></td>
+      <td align="center" valign="middle"><b>23</b></td>
+      <td align="center" valign="middle"><code>+0</code></td>
+      <td align="center" valign="middle"><code>-0</code></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/17/?width=120" alt="17.4%"></td>
     </tr>
     <tr>
-      <td align="center"><h3>🥉</h3></td>
-      <td align="left"><img src="https://avatars.githubusercontent.com/u/96901490?v=4" width="40" height="40" style="border-radius:50%;">&nbsp;&nbsp;<a href="https://github.com/Shelly9457"><b>Shelly9457</b></a></td>
-      <td align="center"><b>16</b></td>
-      <td align="center"><code style="color:#28a745;">+0</code></td>
-      <td align="center"><code style="color:#d73a49;">-0</code></td>
-      <td align="center"><img src="https://progress-bar.xyz/12/?width=120" alt="12.2%"></td>
+      <td align="center" valign="middle"><h3>🥉</h3></td>
+      <td align="left" valign="middle"><a href="https://github.com/Shelly9457"><img src="https://avatars.githubusercontent.com/u/96901490?v=4" width="36" height="36" align="middle" style="border-radius:50%;"></a> &nbsp; <a href="https://github.com/Shelly9457"><b>Shelly9457</b></a></td>
+      <td align="center" valign="middle"><b>16</b></td>
+      <td align="center" valign="middle"><code>+0</code></td>
+      <td align="center" valign="middle"><code>-0</code></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/12/?width=120" alt="12.1%"></td>
     </tr>
     <tr>
-      <td align="center"><h3>#4</h3></td>
-      <td align="left"><img src="https://avatars.githubusercontent.com/u/96901025?v=4" width="40" height="40" style="border-radius:50%;">&nbsp;&nbsp;<a href="https://github.com/xuan26"><b>xuan26</b></a></td>
-      <td align="center"><b>13</b></td>
-      <td align="center"><code style="color:#28a745;">+28</code></td>
-      <td align="center"><code style="color:#d73a49;">-0</code></td>
-      <td align="center"><img src="https://progress-bar.xyz/10/?width=120" alt="9.9%"></td>
+      <td align="center" valign="middle"><h3>#4</h3></td>
+      <td align="left" valign="middle"><a href="https://github.com/xuan26"><img src="https://avatars.githubusercontent.com/u/96901025?v=4" width="36" height="36" align="middle" style="border-radius:50%;"></a> &nbsp; <a href="https://github.com/xuan26"><b>xuan26</b></a></td>
+      <td align="center" valign="middle"><b>13</b></td>
+      <td align="center" valign="middle"><code>+28</code></td>
+      <td align="center" valign="middle"><code>-0</code></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/10/?width=120" alt="9.8%"></td>
     </tr>
   </tbody>
 </table>
 
 <div align="center">
 
-<sub>📅 最後更新：2026-04-17 08:14:20 (UTC+8) | 🤖 由 GitHub Actions 自動產生</sub>
+<sub>📅 最後更新：2026-04-17 08:15:30 (UTC+8)</sub>
 
 </div>
 
