@@ -28,49 +28,37 @@ jobs:
             
             for (let i = 0; i < 5; i++) {
               stats = await github.rest.repos.getContributorsStats({ owner, repo });
-              if (stats.status === 200 && Array.isArray(stats.data) && stats.data.length > 0) {
-                console.log("成功取得數據！");
-                break;
-              }
-              console.log(`GitHub 正在計算數據中，等待 3 秒後重試... (第 ${i + 1} 次)`);
+              if (stats.status === 200 && Array.isArray(stats.data) && stats.data.length > 0) break;
+              console.log(`等待 GitHub 計算數據... (第 ${i + 1} 次)`);
               await new Promise(r => setTimeout(r, 3000));
             }
 
-            if (!stats || !stats.data || !Array.isArray(stats.data) || stats.data.length === 0) {
-              console.log("重試失敗：無法取得有效的貢獻者數據。");
-              return;
-            }
+            if (!stats || !stats.data || stats.data.length === 0) return;
 
-            const realUsers = stats.data.filter(user => 
-              user.author.type !== 'Bot' && 
-              !user.author.login.toLowerCase().includes('bot')
+            const realUsers = stats.data.filter(u => 
+              u.author.type !== 'Bot' && 
+              !u.author.login.toLowerCase().includes('bot') &&
+              !u.author.login.toLowerCase().includes('actions')
             );
 
             const sorted = realUsers.sort((a, b) => b.total - a.total);
 
-            let table = '\n<div align="center">\n\n<table>\n';
-            table += '  <thead>\n    <tr>\n      <th>🏆 團隊成員 (Contributor)</th>\n      <th>📦 Commits</th>\n      <th>🟩 新增程式碼</th>\n      <th>🟥 刪除程式碼</th>\n    </tr>\n  </thead>\n  <tbody>\n';
+            let table = '\n\n<table width="100%">\n  <thead>\n    <tr style="background-color: #f6f8fa;">\n      <th align="left">貢獻者</th>\n      <th>Commits</th>\n      <th>新增行數</th>\n      <th>刪除行數</th>\n    </tr>\n  </thead>\n  <tbody>\n';
 
             for (const user of sorted) {
-              let additions = 0;
-              let deletions = 0;
-              user.weeks.forEach(w => {
-                additions += w.a;
-                deletions += w.d;
-              });
-              
-              const login = user.author.login;
-              const avatar = `<img src="${user.author.avatar_url}" width="35" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;"/>`;
-              const profile = `<a href="https://github.com/${login}" style="font-weight: bold; color: inherit;">${login}</a>`;
+              let a = 0, d = 0;
+              user.weeks.forEach(w => { a += w.a; d += w.d; });
+              const name = user.author.login;
+              const avatar = `<img src="${user.author.avatar_url}" width="32" style="border-radius:50%; vertical-align:middle;">`;
               
               table += `    <tr>\n`;
-              table += `      <td align="left">${avatar}${profile}</td>\n`;
-              table += `      <td align="center"><strong>${user.total}</strong></td>\n`;
-              table += `      <td align="center">🟢 <code>+${additions.toLocaleString()}</code></td>\n`;
-              table += `      <td align="center">🔴 <code>-${deletions.toLocaleString()}</code></td>\n`;
+              table += `      <td align="left">${avatar} &nbsp; <b><a href="${user.author.html_url}">${name}</a></b></td>\n`;
+              table += `      <td align="center">${user.total}</td>\n`;
+              table += `      <td align="center" style="color: #28a745;">+${a.toLocaleString()}</td>\n`;
+              table += `      <td align="center" style="color: #d73a49;">-${d.toLocaleString()}</td>\n`;
               table += `    </tr>\n`;
             }
-            table += '  </tbody>\n</table>\n\n</div>\n';
+            table += '  </tbody>\n</table>\n\n';
 
             const fs = require('fs');
             let readme = fs.readFileSync('README.md', 'utf8');
@@ -78,14 +66,12 @@ jobs:
             const endTag = '';
             
             const regex = new RegExp(`${startTag}[\\s\\S]*?${endTag}`);
-            const newContent = `${startTag}${table}${endTag}`;
-            
             if (regex.test(readme)) {
-              readme = readme.replace(regex, newContent);
+              readme = readme.replace(regex, `${startTag}${table}${endTag}`);
               fs.writeFileSync('README.md', readme);
-              console.log("README.md 更新成功！");
+              console.log("成功更新統計表");
             } else {
-              console.log("錯誤：在 README.md 中找不到標記點！");
+              core.setFailed("在 README.md 中找不到對應的 標籤！");
             }
 
       - name: Commit and Push
@@ -93,6 +79,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git commit -m "docs: 專業化更新專案貢獻數據表" || echo "No changes to commit"
+          git commit -m "docs: 更新團隊貢獻數據表 [skip ci]" || echo "No changes"
           git pull --rebase
           git push
