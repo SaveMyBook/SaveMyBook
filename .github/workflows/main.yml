@@ -91,7 +91,7 @@ jobs:
 
               const progressBar = `<img src="https://progress-bar.xyz/${Math.round(percentage)}/?width=120" alt="${percentage}%">`;
 
-              const userCell = `<a href="${user.author.html_url}"><img src="${user.author.avatar_url}" width="36" height="36" align="middle" style="border-radius:50%;"></a> &nbsp; <a href="${user.author.html_url}"><b>${name}</b></a>`;
+              const userCell = `<a href="${user.author.html_url}"><b>${name}</b></a>`;
 
               table += '    <tr>\n';
               table += `      <td align="center" valign="middle"><h3>${rank}</h3></td>\n`;
