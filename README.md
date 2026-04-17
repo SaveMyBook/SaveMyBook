@@ -39,7 +39,7 @@ SaveMyBook/
 
 <div align="center">
 
-![Contributors](https://img.shields.io/badge/Contributors-4-blue?style=for-the-badge&logo=github) ![Commits](https://img.shields.io/badge/Commits-132-green?style=for-the-badge&logo=git) ![Additions](https://img.shields.io/badge/Additions-27,758-success?style=for-the-badge) ![Deletions](https://img.shields.io/badge/Deletions-12,368-critical?style=for-the-badge)
+![Contributors](https://img.shields.io/badge/Contributors-4-blue?style=for-the-badge&logo=github) ![Commits](https://img.shields.io/badge/Commits-133-green?style=for-the-badge&logo=git) ![Additions](https://img.shields.io/badge/Additions-27,759-success?style=for-the-badge) ![Deletions](https://img.shields.io/badge/Deletions-12,369-critical?style=for-the-badge)
 
 </div>
 
@@ -57,31 +57,31 @@ SaveMyBook/
   <tbody>
     <tr>
       <td align="center" valign="middle"><h3>🥇</h3></td>
-      <td align="left" valign="middle"><a href="https://github.com/XuKaiJun914"><img src="https://avatars.githubusercontent.com/u/45906848?v=4" width="36" height="36" align="middle" style="border-radius:50%;"></a> &nbsp; <a href="https://github.com/XuKaiJun914"><b>XuKaiJun914</b></a></td>
-      <td align="center" valign="middle"><b>80</b></td>
-      <td align="center" valign="middle"><code>+27,730</code></td>
-      <td align="center" valign="middle"><code>-12,368</code></td>
-      <td align="center" valign="middle"><img src="https://progress-bar.xyz/61/?width=120" alt="60.6%"></td>
+      <td align="left" valign="middle"><a href="https://github.com/XuKaiJun914"><b>XuKaiJun914</b></a></td>
+      <td align="center" valign="middle"><b>81</b></td>
+      <td align="center" valign="middle"><code>+27,731</code></td>
+      <td align="center" valign="middle"><code>-12,369</code></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/61/?width=120" alt="60.9%"></td>
     </tr>
     <tr>
       <td align="center" valign="middle"><h3>🥈</h3></td>
-      <td align="left" valign="middle"><a href="https://github.com/GaryChen33"><img src="https://avatars.githubusercontent.com/u/204811126?v=4" width="36" height="36" align="middle" style="border-radius:50%;"></a> &nbsp; <a href="https://github.com/GaryChen33"><b>GaryChen33</b></a></td>
+      <td align="left" valign="middle"><a href="https://github.com/GaryChen33"><b>GaryChen33</b></a></td>
       <td align="center" valign="middle"><b>23</b></td>
       <td align="center" valign="middle"><code>+0</code></td>
       <td align="center" valign="middle"><code>-0</code></td>
-      <td align="center" valign="middle"><img src="https://progress-bar.xyz/17/?width=120" alt="17.4%"></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/17/?width=120" alt="17.3%"></td>
     </tr>
     <tr>
       <td align="center" valign="middle"><h3>🥉</h3></td>
-      <td align="left" valign="middle"><a href="https://github.com/Shelly9457"><img src="https://avatars.githubusercontent.com/u/96901490?v=4" width="36" height="36" align="middle" style="border-radius:50%;"></a> &nbsp; <a href="https://github.com/Shelly9457"><b>Shelly9457</b></a></td>
+      <td align="left" valign="middle"><a href="https://github.com/Shelly9457"><b>Shelly9457</b></a></td>
       <td align="center" valign="middle"><b>16</b></td>
       <td align="center" valign="middle"><code>+0</code></td>
       <td align="center" valign="middle"><code>-0</code></td>
-      <td align="center" valign="middle"><img src="https://progress-bar.xyz/12/?width=120" alt="12.1%"></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/12/?width=120" alt="12.0%"></td>
     </tr>
     <tr>
       <td align="center" valign="middle"><h3>#4</h3></td>
-      <td align="left" valign="middle"><a href="https://github.com/xuan26"><img src="https://avatars.githubusercontent.com/u/96901025?v=4" width="36" height="36" align="middle" style="border-radius:50%;"></a> &nbsp; <a href="https://github.com/xuan26"><b>xuan26</b></a></td>
+      <td align="left" valign="middle"><a href="https://github.com/xuan26"><b>xuan26</b></a></td>
       <td align="center" valign="middle"><b>13</b></td>
       <td align="center" valign="middle"><code>+28</code></td>
       <td align="center" valign="middle"><code>-0</code></td>
@@ -92,7 +92,7 @@ SaveMyBook/
 
 <div align="center">
 
-<sub>📅 最後更新：2026-04-17 08:15:30 (UTC+8)</sub>
+<sub>📅 最後更新：2026-04-17 08:16:50 (UTC+8)</sub>
 
 </div>
 
