@@ -13,6 +13,47 @@
   <tbody>
     <tr>
       <td align="left"><img src="https://avatars.githubusercontent.com/u/45906848?v=4" width="35" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;"/><a href="https://github.com/XuKaiJun914" style="font-weight: bold; color: inherit;">XuKaiJun914</a></td>
+      <td align="center"><strong>75</strong></td>
+      <td align="center">🟢 <code>+27,601</code></td>
+      <td align="center">🔴 <code>-12,132</code></td>
+    </tr>
+    <tr>
+      <td align="left"><img src="https://avatars.githubusercontent.com/u/204811126?v=4" width="35" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;"/><a href="https://github.com/GaryChen33" style="font-weight: bold; color: inherit;">GaryChen33</a></td>
+      <td align="center"><strong>23</strong></td>
+      <td align="center">🟢 <code>+0</code></td>
+      <td align="center">🔴 <code>-0</code></td>
+    </tr>
+    <tr>
+      <td align="left"><img src="https://avatars.githubusercontent.com/u/96901490?v=4" width="35" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;"/><a href="https://github.com/Shelly9457" style="font-weight: bold; color: inherit;">Shelly9457</a></td>
+      <td align="center"><strong>16</strong></td>
+      <td align="center">🟢 <code>+0</code></td>
+      <td align="center">🔴 <code>-0</code></td>
+    </tr>
+    <tr>
+      <td align="left"><img src="https://avatars.githubusercontent.com/u/96901025?v=4" width="35" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;"/><a href="https://github.com/xuan26" style="font-weight: bold; color: inherit;">xuan26</a></td>
+      <td align="center"><strong>13</strong></td>
+      <td align="center">🟢 <code>+28</code></td>
+      <td align="center">🔴 <code>-0</code></td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
+
+<div align="center">
+
+<table>
+  <thead>
+    <tr>
+      <th>🏆 團隊成員 (Contributor)</th>
+      <th>📦 Commits</th>
+      <th>🟩 新增程式碼</th>
+      <th>🟥 刪除程式碼</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left"><img src="https://avatars.githubusercontent.com/u/45906848?v=4" width="35" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;"/><a href="https://github.com/XuKaiJun914" style="font-weight: bold; color: inherit;">XuKaiJun914</a></td>
       <td align="center"><strong>73</strong></td>
       <td align="center">🟢 <code>+27,597</code></td>
       <td align="center">🔴 <code>-12,129</code></td>
