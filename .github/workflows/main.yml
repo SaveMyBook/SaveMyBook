@@ -9,6 +9,9 @@ on:
 permissions:
   contents: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   update-stats:
     runs-on: ubuntu-latest
@@ -21,10 +24,20 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
-            const stats = await github.rest.repos.getContributorsStats({ owner, repo });
+            let stats;
             
-            if (!stats.data || !Array.isArray(stats.data)) {
-              console.log("Waiting for GitHub to compute stats...");
+            for (let i = 0; i < 5; i++) {
+              stats = await github.rest.repos.getContributorsStats({ owner, repo });
+              if (stats.status === 200 && Array.isArray(stats.data) && stats.data.length > 0) {
+                console.log("成功取得數據！");
+                break;
+              }
+              console.log(`GitHub 正在計算數據中，等待 3 秒後重試... (第 ${i + 1} 次)`);
+              await new Promise(r => setTimeout(r, 3000));
+            }
+
+            if (!stats || !stats.data || !Array.isArray(stats.data) || stats.data.length === 0) {
+              console.log("重試失敗：無法取得有效的貢獻者數據。");
               return;
             }
 
@@ -36,7 +49,7 @@ jobs:
             const sorted = realUsers.sort((a, b) => b.total - a.total);
 
             let table = '\n<div align="center">\n\n<table>\n';
-            table += '  <thead>\n    <tr>\n      <th>🏆 成員 (Contributor)</th>\n      <th>📦 Commits</th>\n      <th>🟩 新增程式碼</th>\n      <th>🟥 刪除程式碼</th>\n    </tr>\n  </thead>\n  <tbody>\n';
+            table += '  <thead>\n    <tr>\n      <th>🏆 團隊成員 (Contributor)</th>\n      <th>📦 Commits</th>\n      <th>🟩 新增程式碼</th>\n      <th>🟥 刪除程式碼</th>\n    </tr>\n  </thead>\n  <tbody>\n';
 
             for (const user of sorted) {
               let additions = 0;
@@ -61,7 +74,6 @@ jobs:
 
             const fs = require('fs');
             let readme = fs.readFileSync('README.md', 'utf8');
-            
             const startTag = '';
             const endTag = '';
             
@@ -71,6 +83,16 @@ jobs:
             if (regex.test(readme)) {
               readme = readme.replace(regex, newContent);
               fs.writeFileSync('README.md', readme);
+              console.log("README.md 更新成功！");
             } else {
               console.log("錯誤：在 README.md 中找不到標記點！");
             }
+
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "docs: 專業化更新專案貢獻數據表" || echo "No changes to commit"
+          git pull --rebase
+          git push
