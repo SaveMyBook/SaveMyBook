@@ -1,3 +1,42 @@
+
+
+<table width="100%">
+  <thead>
+    <tr style="background-color: #f6f8fa;">
+      <th align="left">貢獻者</th>
+      <th>Commits</th>
+      <th>新增行數</th>
+      <th>刪除行數</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left"><img src="https://avatars.githubusercontent.com/u/45906848?v=4" width="32" style="border-radius:50%; vertical-align:middle;"> &nbsp; <b><a href="https://github.com/XuKaiJun914">XuKaiJun914</a></b></td>
+      <td align="center">77</td>
+      <td align="center" style="color: #28a745;">+27,624</td>
+      <td align="center" style="color: #d73a49;">-12,290</td>
+    </tr>
+    <tr>
+      <td align="left"><img src="https://avatars.githubusercontent.com/u/204811126?v=4" width="32" style="border-radius:50%; vertical-align:middle;"> &nbsp; <b><a href="https://github.com/GaryChen33">GaryChen33</a></b></td>
+      <td align="center">23</td>
+      <td align="center" style="color: #28a745;">+0</td>
+      <td align="center" style="color: #d73a49;">-0</td>
+    </tr>
+    <tr>
+      <td align="left"><img src="https://avatars.githubusercontent.com/u/96901490?v=4" width="32" style="border-radius:50%; vertical-align:middle;"> &nbsp; <b><a href="https://github.com/Shelly9457">Shelly9457</a></b></td>
+      <td align="center">16</td>
+      <td align="center" style="color: #28a745;">+0</td>
+      <td align="center" style="color: #d73a49;">-0</td>
+    </tr>
+    <tr>
+      <td align="left"><img src="https://avatars.githubusercontent.com/u/96901025?v=4" width="32" style="border-radius:50%; vertical-align:middle;"> &nbsp; <b><a href="https://github.com/xuan26">xuan26</a></b></td>
+      <td align="center">13</td>
+      <td align="center" style="color: #28a745;">+28</td>
+      <td align="center" style="color: #d73a49;">-0</td>
+    </tr>
+  </tbody>
+</table>
+
 # 救『舊』我的書 - 智慧二手書交易系統 
 
 ## 📝 專案介紹
