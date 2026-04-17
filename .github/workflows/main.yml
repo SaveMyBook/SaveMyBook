@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: '0 16 * * *'
   workflow_dispatch:
 
 permissions:
@@ -18,6 +20,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Fetch Stats and Update README
         uses: actions/github-script@v7
@@ -25,60 +29,123 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             let stats;
-            
-            for (let i = 0; i < 5; i++) {
+
+            for (let i = 0; i < 10; i++) {
               stats = await github.rest.repos.getContributorsStats({ owner, repo });
               if (stats.status === 200 && Array.isArray(stats.data) && stats.data.length > 0) break;
-              console.log(`等待 GitHub 計算數據... (第 ${i + 1} 次)`);
-              await new Promise(r => setTimeout(r, 3000));
+              console.log(`等待 GitHub 計算數據... (第 ${i + 1} 次，狀態: ${stats.status})`);
+              await new Promise(r => setTimeout(r, 5000));
             }
 
-            if (!stats || !stats.data || stats.data.length === 0) return;
+            if (!stats || !stats.data || stats.data.length === 0) {
+              core.setFailed("無法取得貢獻者統計數據");
+              return;
+            }
 
-            const realUsers = stats.data.filter(u => 
-              u.author.type !== 'Bot' && 
+            const realUsers = stats.data.filter(u =>
+              u.author &&
+              u.author.type !== 'Bot' &&
               !u.author.login.toLowerCase().includes('bot') &&
               !u.author.login.toLowerCase().includes('actions')
             );
 
             const sorted = realUsers.sort((a, b) => b.total - a.total);
 
-            let table = '\n\n<table width="100%">\n  <thead>\n    <tr style="background-color: #f6f8fa;">\n      <th align="left">貢獻者</th>\n      <th>Commits</th>\n      <th>新增行數</th>\n      <th>刪除行數</th>\n    </tr>\n  </thead>\n  <tbody>\n';
+            const totalCommits = sorted.reduce((sum, u) => sum + u.total, 0);
+            const totalAdditions = sorted.reduce((sum, u) =>
+              sum + u.weeks.reduce((s, w) => s + w.a, 0), 0);
+            const totalDeletions = sorted.reduce((sum, u) =>
+              sum + u.weeks.reduce((s, w) => s + w.d, 0), 0);
 
-            for (const user of sorted) {
+            let badges = '\n\n<div align="center">\n\n';
+            badges += `![Contributors](https://img.shields.io/badge/Contributors-${sorted.length}-blue?style=for-the-badge&logo=github)`;
+            badges += ` ![Commits](https://img.shields.io/badge/Commits-${totalCommits}-green?style=for-the-badge&logo=git)`;
+            badges += ` ![Additions](https://img.shields.io/badge/Additions-${totalAdditions.toLocaleString()}-success?style=for-the-badge)`;
+            badges += ` ![Deletions](https://img.shields.io/badge/Deletions-${totalDeletions.toLocaleString()}-critical?style=for-the-badge)`;
+            badges += '\n\n</div>\n\n';
+
+            let table = '<table align="center" width="100%">\n';
+            table += '  <thead>\n';
+            table += '    <tr>\n';
+            table += '      <th>🏆 排名</th>\n';
+            table += '      <th align="left">👤 貢獻者</th>\n';
+            table += '      <th>📝 Commits</th>\n';
+            table += '      <th>➕ 新增行數</th>\n';
+            table += '      <th>➖ 刪除行數</th>\n';
+            table += '      <th>📊 貢獻比例</th>\n';
+            table += '    </tr>\n';
+            table += '  </thead>\n';
+            table += '  <tbody>\n';
+
+            const medals = ['🥇', '🥈', '🥉'];
+
+            sorted.forEach((user, index) => {
               let a = 0, d = 0;
               user.weeks.forEach(w => { a += w.a; d += w.d; });
+
               const name = user.author.login;
-              const avatar = `<img src="${user.author.avatar_url}" width="32" style="border-radius:50%; vertical-align:middle;">`;
-              
-              table += `    <tr>\n`;
-              table += `      <td align="left">${avatar} &nbsp; <b><a href="${user.author.html_url}">${name}</a></b></td>\n`;
-              table += `      <td align="center">${user.total}</td>\n`;
-              table += `      <td align="center" style="color: #28a745;">+${a.toLocaleString()}</td>\n`;
-              table += `      <td align="center" style="color: #d73a49;">-${d.toLocaleString()}</td>\n`;
-              table += `    </tr>\n`;
-            }
+              const rank = medals[index] || `#${index + 1}`;
+              const avatar = `<img src="${user.author.avatar_url}" width="40" height="40" style="border-radius:50%;">`;
+              const percentage = totalCommits > 0
+                ? ((user.total / totalCommits) * 100).toFixed(1)
+                : 0;
+
+              const progressBar = `<img src="https://progress-bar.xyz/${Math.round(percentage)}/?width=120" alt="${percentage}%">`;
+
+              table += '    <tr>\n';
+              table += `      <td align="center"><h3>${rank}</h3></td>\n`;
+              table += `      <td align="left">${avatar}&nbsp;&nbsp;<a href="${user.author.html_url}"><b>${name}</b></a></td>\n`;
+              table += `      <td align="center"><b>${user.total}</b></td>\n`;
+              table += `      <td align="center"><code style="color:#28a745;">+${a.toLocaleString()}</code></td>\n`;
+              table += `      <td align="center"><code style="color:#d73a49;">-${d.toLocaleString()}</code></td>\n`;
+              table += `      <td align="center">${progressBar}</td>\n`;
+              table += '    </tr>\n';
+            });
+
             table += '  </tbody>\n</table>\n\n';
 
+            const now = new Date();
+            const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+            const timestamp = taiwanTime.toISOString().replace('T', ' ').substring(0, 19);
+            const footer = `<div align="center">\n\n<sub>📅 最後更新：${timestamp} (UTC+8) | 🤖 由 GitHub Actions 自動產生</sub>\n\n</div>\n\n`;
+
+            const content = badges + table + footer;
+
             const fs = require('fs');
-            let readme = fs.readFileSync('README.md', 'utf8');
-            const startTag = '';
-            const endTag = '';
-            
-            const regex = new RegExp(`${startTag}[\\s\\S]*?${endTag}`);
-            if (regex.test(readme)) {
-              readme = readme.replace(regex, `${startTag}${table}${endTag}`);
-              fs.writeFileSync('README.md', readme);
-              console.log("成功更新統計表");
-            } else {
-              core.setFailed("在 README.md 中找不到對應的 標籤！");
+            const path = 'README.md';
+
+            if (!fs.existsSync(path)) {
+              fs.writeFileSync(path, '# Project\n\n## 👥 團隊貢獻\n\n<!-- STATS:START -->\n<!-- STATS:END -->\n');
+              console.log('📝 README.md 不存在，已自動建立');
             }
+
+            let readme = fs.readFileSync(path, 'utf8');
+
+            const startTag = '<!-- STATS:START -->';
+            const endTag = '<!-- STATS:END -->';
+
+            const regex = new RegExp(`${startTag}[\\s\\S]*?${endTag}`);
+
+            if (regex.test(readme)) {
+              readme = readme.replace(regex, `${startTag}${content}${endTag}`);
+              console.log('✅ 找到標籤，已更新統計表');
+            } else {
+              const injection = `\n\n## 👥 團隊貢獻\n\n${startTag}${content}${endTag}\n`;
+              readme = readme.trimEnd() + injection;
+              console.log('⚠️ 未找到標籤，已自動注入到 README 底部');
+            }
+
+            fs.writeFileSync(path, readme);
 
       - name: Commit and Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git commit -m "docs: 更新團隊貢獻數據表 [skip ci]" || echo "No changes"
-          git pull --rebase
-          git push
+          if git diff --staged --quiet; then
+            echo "沒有需要提交的變更"
+          else
+            git commit -m "docs: 更新團隊貢獻數據表 [skip ci]"
+            git pull --rebase origin main
+            git push
+          fi
