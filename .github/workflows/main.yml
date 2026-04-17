@@ -85,20 +85,21 @@ jobs:
 
               const name = user.author.login;
               const rank = medals[index] || `#${index + 1}`;
-              const avatar = `<img src="${user.author.avatar_url}" width="40" height="40" style="border-radius:50%;">`;
               const percentage = totalCommits > 0
                 ? ((user.total / totalCommits) * 100).toFixed(1)
                 : 0;
 
               const progressBar = `<img src="https://progress-bar.xyz/${Math.round(percentage)}/?width=120" alt="${percentage}%">`;
 
+              const userCell = `<a href="${user.author.html_url}"><img src="${user.author.avatar_url}" width="36" height="36" align="middle" style="border-radius:50%;"></a> &nbsp; <a href="${user.author.html_url}"><b>${name}</b></a>`;
+
               table += '    <tr>\n';
-              table += `      <td align="center"><h3>${rank}</h3></td>\n`;
-              table += `      <td align="left">${avatar}&nbsp;&nbsp;<a href="${user.author.html_url}"><b>${name}</b></a></td>\n`;
-              table += `      <td align="center"><b>${user.total}</b></td>\n`;
-              table += `      <td align="center"><code style="color:#28a745;">+${a.toLocaleString()}</code></td>\n`;
-              table += `      <td align="center"><code style="color:#d73a49;">-${d.toLocaleString()}</code></td>\n`;
-              table += `      <td align="center">${progressBar}</td>\n`;
+              table += `      <td align="center" valign="middle"><h3>${rank}</h3></td>\n`;
+              table += `      <td align="left" valign="middle">${userCell}</td>\n`;
+              table += `      <td align="center" valign="middle"><b>${user.total}</b></td>\n`;
+              table += `      <td align="center" valign="middle"><code>+${a.toLocaleString()}</code></td>\n`;
+              table += `      <td align="center" valign="middle"><code>-${d.toLocaleString()}</code></td>\n`;
+              table += `      <td align="center" valign="middle">${progressBar}</td>\n`;
               table += '    </tr>\n';
             });
 
@@ -107,13 +108,12 @@ jobs:
             const now = new Date();
             const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
             const timestamp = taiwanTime.toISOString().replace('T', ' ').substring(0, 19);
-            const footer = `<div align="center">\n\n<sub>📅 最後更新：${timestamp} (UTC+8) | 🤖 由 GitHub Actions 自動產生</sub>\n\n</div>\n\n`;
+            const footer = `<div align="center">\n\n<sub>📅 最後更新：${timestamp} (UTC+8)</sub>\n\n</div>\n\n`;
 
             const content = badges + table + footer;
 
             const fs = require('fs');
             const path = 'README.md';
-
             if (!fs.existsSync(path)) {
               fs.writeFileSync(path, '# Project\n\n## 👥 團隊貢獻\n\n<!-- STATS:START -->\n<!-- STATS:END -->\n');
               console.log('📝 README.md 不存在，已自動建立');
