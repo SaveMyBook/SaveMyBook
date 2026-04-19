@@ -35,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _categoryScrollController = ScrollController();
   double _categoryScrollProgress = 0.0;
   bool _isNavVisible = true;
+  bool _isGridView = true;
 
   @override
   void initState() {
@@ -209,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     }),
                   ),
                   const SizedBox(height: 16),
-                  Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: _buildSortDropdown()),
+                  Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: _buildSortAndLayoutRow()),
                   const SizedBox(height: 16),
                   Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: _buildBookGrid()),
                   if (_isLoadingMore)
@@ -292,6 +293,49 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildSortAndLayoutRow() {
+    final c = AppColors.of(context);
+    return Row(
+      children: [
+        _buildSortDropdown(),
+        const Spacer(),
+        Container(
+          decoration: BoxDecoration(
+            color: c.categoryChip,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: () { if (!_isGridView) setState(() => _isGridView = true); },
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: _isGridView ? AppColors.primary : Colors.transparent,
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Icon(Icons.grid_view_rounded, size: 20, color: _isGridView ? Colors.white : c.iconInactive),
+                ),
+              ),
+              GestureDetector(
+                onTap: () { if (_isGridView) setState(() => _isGridView = false); },
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: !_isGridView ? AppColors.primary : Colors.transparent,
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Icon(Icons.view_agenda_rounded, size: 20, color: !_isGridView ? Colors.white : c.iconInactive),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSortDropdown() {
     final c = AppColors.of(context);
     return PopupMenuButton<String>(
@@ -319,12 +363,21 @@ class _HomeScreenState extends State<HomeScreen> {
       content = const Center(key: ValueKey('loading'), child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator(color: AppColors.primary)));
     } else if (_books.isEmpty) {
       content = Center(key: const ValueKey('empty'), child: Padding(padding: const EdgeInsets.all(32.0), child: Text('目前沒有符合條件的書籍', style: TextStyle(color: c.textHint))));
-    } else {
+    } else if (_isGridView) {
       content = GridView.builder(
         key: const ValueKey('grid'), padding: EdgeInsets.zero, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.58),
         itemCount: _books.length,
         itemBuilder: (_, i) => BookCard(book: _books[i]),
+      );
+    } else {
+      content = ListView.builder(
+        key: const ValueKey('list'), padding: EdgeInsets.zero, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+        itemCount: _books.length,
+        itemBuilder: (_, i) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: BookCard(book: _books[i], isListMode: true),
+        ),
       );
     }
     return AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: content);

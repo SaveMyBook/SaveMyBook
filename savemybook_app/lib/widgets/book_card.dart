@@ -7,24 +7,25 @@ import '../utils/app_colors.dart';
 
 class BookCard extends StatelessWidget {
   final Book book;
-  const BookCard({super.key, required this.book});
+  final bool isListMode;
+
+  const BookCard({super.key, required this.book, this.isListMode = false});
 
   static const _titleStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.bold, height: 1.2);
 
   @override
   Widget build(BuildContext context) {
+    return isListMode ? _buildListCard(context) : _buildGridCard(context);
+  }
+
+  Widget _buildGridCard(BuildContext context) {
     final c = AppColors.of(context);
-    String sellerName = book.location.replaceAll('賣家：', '');
-    if (sellerName == '地點未提供') sellerName = '管理員';
+    final sellerName = _sellerName();
 
     return GestureDetector(
-      onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (_) => BookDetailScreen(book: book))),
+      onTap: () => _navigateToDetail(context),
       child: Container(
-        decoration: BoxDecoration(
-          color: c.card,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-        ),
+        decoration: _cardDecoration(c),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Hero(
             tag: 'book_image_${book.bookId}',
@@ -74,6 +75,79 @@ class BookCard extends StatelessWidget {
           })),
         ]),
       ),
+    );
+  }
+
+  Widget _buildListCard(BuildContext context) {
+    final c = AppColors.of(context);
+    final sellerName = _sellerName();
+
+    return GestureDetector(
+      onTap: () => _navigateToDetail(context),
+      child: Container(
+        height: 140,
+        decoration: _cardDecoration(c),
+        child: Row(children: [
+          Hero(
+            tag: 'book_image_${book.bookId}',
+            child: ClipRRect(
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+              child: Image.network(book.imageUrl, width: 110, height: 140, fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(width: 110, height: 140, color: c.inputFill, child: Icon(Icons.image_not_supported, color: c.iconInactive))),
+            ),
+          ),
+
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                  Row(children: [
+                    Expanded(child: Text(book.title, style: _titleStyle.copyWith(color: c.textPrimary), maxLines: 2, overflow: TextOverflow.ellipsis)),
+                    const SizedBox(width: 4),
+                    Icon(Icons.favorite_border, size: 20, color: c.iconInactive),
+                  ]),
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    _buildTag(book.categoryName, c.categoryChip, AppColors.primary),
+                    const SizedBox(width: 6),
+                    _buildTag(book.conditionText, book.conditionColor.withOpacity(0.12), book.conditionColor),
+                  ]),
+                ]),
+
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    const CircleAvatar(radius: 9, backgroundImage: NetworkImage('https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=200&auto=format&fit=crop')),
+                    const SizedBox(width: 5),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 80),
+                      child: Text(sellerName, style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
+                  ]),
+                ]),
+              ]),
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  String _sellerName() {
+    String name = book.location.replaceAll('賣家：', '');
+    return name == '地點未提供' ? '管理員' : name;
+  }
+
+  void _navigateToDetail(BuildContext context) {
+    Navigator.push(context, CupertinoPageRoute(builder: (_) => BookDetailScreen(book: book)));
+  }
+
+  BoxDecoration _cardDecoration(AppColors c) {
+    return BoxDecoration(
+      color: c.card,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
     );
   }
 
