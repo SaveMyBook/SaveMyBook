@@ -37,6 +37,9 @@ dependencies:
   http: ^1.6.0
   marquee: ^2.2.3
   shared_preferences: ^2.5.5
+  mobile_scanner: ^6.0.2
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.4
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +65,7 @@ flutter:
 
   assets:
     - assets/images/logo.png
+    - assets/images/icon.jpg
 
   fonts:
     - family: NotoSansTC

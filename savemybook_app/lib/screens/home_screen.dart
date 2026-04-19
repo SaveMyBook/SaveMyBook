@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'profile_screen.dart';
+import 'sell_book_screen.dart';
+import 'pickup_book_screen.dart';
 import '../models/category.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
@@ -154,8 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 _buildHomeContent(),
                 const Scaffold(body: Center(child: Text('通知'))),
-                const Scaffold(body: Center(child: Text('我要賣書'))),
-                const Scaffold(body: Center(child: Text('我要取書'))),
+                const SellBookScreen(),
+                PickupBookScreen(isActive: _selectedIndex == 3),
                 const ProfileScreen(),
               ],
             ),
