@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../utils/app_colors.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,7 +17,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   Future<void> _handleRegister() async {
@@ -55,14 +63,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (success) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('註冊成功，請登入')),
+        const SnackBar(
+          content: Text('註冊成功，請登入'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('註冊失敗，Email 可能已被使用')),
-      );
+      _showError('註冊失敗，Email 可能已被使用');
     }
   }
 
@@ -76,12 +86,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: c.card,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: c.card,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF627D8D)),
+        iconTheme: const IconThemeData(color: AppColors.primary),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -92,15 +104,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const Text(
                 '建立新帳號',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF627D8D)),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary),
               ),
               const SizedBox(height: 48),
               TextField(
                 controller: _nicknameController,
+                style: TextStyle(color: c.textPrimary),
                 decoration: InputDecoration(
                   hintText: '使用者暱稱',
+                  hintStyle: TextStyle(color: c.textHint),
                   filled: true,
-                  fillColor: const Color(0xFFF3F5F7),
+                  fillColor: c.inputFill,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   prefixIcon: const Icon(Icons.person_outline, color: Colors.grey),
                 ),
@@ -108,10 +122,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _emailController,
+                style: TextStyle(color: c.textPrimary),
                 decoration: InputDecoration(
                   hintText: 'Email',
+                  hintStyle: TextStyle(color: c.textHint),
                   filled: true,
-                  fillColor: const Color(0xFFF3F5F7),
+                  fillColor: c.inputFill,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
                 ),
@@ -121,10 +137,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextField(
                 controller: _passwordController,
                 obscureText: true,
+                style: TextStyle(color: c.textPrimary),
                 decoration: InputDecoration(
                   hintText: '密碼',
+                  hintStyle: TextStyle(color: c.textHint),
                   filled: true,
-                  fillColor: const Color(0xFFF3F5F7),
+                  fillColor: c.inputFill,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
                 ),
@@ -135,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleRegister,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF627D8D),
+                    backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),

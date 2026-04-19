@@ -3,13 +3,13 @@ import 'profile_screen.dart';
 import '../models/category.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
+import '../utils/app_colors.dart';
 import '../widgets/book_card.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../widgets/search_bar_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final String initialKeyword;
-
   const HomeScreen({super.key, this.initialKeyword = ''});
 
   @override
@@ -34,7 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _categoryScrollController = ScrollController();
   double _categoryScrollProgress = 0.0;
-
   bool _isNavVisible = true;
 
   @override
@@ -43,8 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadInitialData();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
-          !_isLoadingMore &&
-          _hasMoreData) {
+          !_isLoadingMore && _hasMoreData) {
         _loadMoreData();
       }
     });
@@ -52,11 +50,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_categoryScrollController.hasClients) {
         setState(() {
           final maxScroll = _categoryScrollController.position.maxScrollExtent;
-          if (maxScroll > 0) {
-            _categoryScrollProgress = (_categoryScrollController.offset / maxScroll).clamp(0.0, 1.0);
-          } else {
-            _categoryScrollProgress = 0;
-          }
+          _categoryScrollProgress = maxScroll > 0
+              ? (_categoryScrollController.offset / maxScroll).clamp(0.0, 1.0)
+              : 0;
         });
       }
     });
@@ -81,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _categories = results[0] as List<Category>;
         _books = results[1] as List<Book>;
         _currentPage = 1;
-        _hasMoreData = (_books.length >= 20);
+        _hasMoreData = _books.length >= 20;
         _isLoadingInitial = false;
       });
     } catch (_) {
@@ -95,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final newBooks = await _apiService.fetchBooks(page: 1, categoryIds: _selectedCategoryIds, sort: _currentSort, keyword: _currentKeyword);
     setState(() {
       _books = newBooks;
-      _hasMoreData = (newBooks.length >= 20);
+      _hasMoreData = newBooks.length >= 20;
     });
   }
 
@@ -106,12 +102,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final moreBooks = await _apiService.fetchBooks(page: _currentPage, categoryIds: _selectedCategoryIds, sort: _currentSort, keyword: _currentKeyword);
       if (!mounted) return;
       setState(() {
-        if (moreBooks.isEmpty) {
-          _hasMoreData = false;
-        } else {
-          _books.addAll(moreBooks);
-          _hasMoreData = (moreBooks.length >= 20);
-        }
+        if (moreBooks.isEmpty) { _hasMoreData = false; }
+        else { _books.addAll(moreBooks); _hasMoreData = moreBooks.length >= 20; }
         _isLoadingMore = false;
       });
     } catch (_) {
@@ -121,41 +113,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onCategoryTapped(int categoryId) {
     setState(() {
-      if (_selectedCategoryIds.contains(categoryId)) {
-        _selectedCategoryIds.remove(categoryId);
-      } else {
-        _selectedCategoryIds.add(categoryId);
-      }
+      _selectedCategoryIds.contains(categoryId)
+          ? _selectedCategoryIds.remove(categoryId)
+          : _selectedCategoryIds.add(categoryId);
       _isLoadingInitial = true;
     });
-    _onRefresh().then((_) {
-      if (mounted) setState(() => _isLoadingInitial = false);
-    });
+    _onRefresh().then((_) { if (mounted) setState(() => _isLoadingInitial = false); });
   }
 
-  void _onSortChanged(String newSort) {
-    setState(() {
-      _currentSort = newSort;
-      _isLoadingInitial = true;
-    });
-    _onRefresh().then((_) {
-      if (mounted) setState(() => _isLoadingInitial = false);
-    });
+  void _onSortChanged(String s) {
+    setState(() { _currentSort = s; _isLoadingInitial = true; });
+    _onRefresh().then((_) { if (mounted) setState(() => _isLoadingInitial = false); });
   }
 
-  void _onSearchChanged(String keyword) {
-    setState(() {
-      _currentKeyword = keyword;
-      _isLoadingInitial = true;
-    });
-    _onRefresh().then((_) {
-      if (mounted) setState(() => _isLoadingInitial = false);
-    });
+  void _onSearchChanged(String k) {
+    setState(() { _currentKeyword = k; _isLoadingInitial = true; });
+    _onRefresh().then((_) { if (mounted) setState(() => _isLoadingInitial = false); });
   }
 
-  bool _handleScrollNotification(ScrollUpdateNotification notification) {
-    final delta = notification.scrollDelta ?? 0;
-    if (delta > 8 && (_scrollController.hasClients && _scrollController.offset > 80)) {
+  bool _handleScrollNotification(ScrollUpdateNotification n) {
+    final delta = n.scrollDelta ?? 0;
+    if (delta > 8 && _scrollController.hasClients && _scrollController.offset > 80) {
       if (_isNavVisible) setState(() => _isNavVisible = false);
     } else if (delta < -4) {
       if (!_isNavVisible) setState(() => _isNavVisible = true);
@@ -181,16 +159,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
+              left: 0, right: 0, bottom: 0,
               child: CustomBottomNav(
                 selectedIndex: _selectedIndex,
                 isVisible: _isNavVisible,
-                onItemSelected: (index) => setState(() {
-                  _selectedIndex = index;
-                  _isNavVisible = true;
-                }),
+                onItemSelected: (i) => setState(() { _selectedIndex = i; _isNavVisible = true; }),
               ),
             ),
           ],
@@ -200,12 +173,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeContent() {
+    final c = AppColors.of(context);
     return Column(
       children: [
         _buildCustomHeader(),
         Expanded(
           child: RefreshIndicator(
-            color: const Color(0xFF627D8D),
+            color: AppColors.primary,
             onRefresh: _onRefresh,
             child: SingleChildScrollView(
               controller: _scrollController,
@@ -218,60 +192,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final trackWidth = constraints.maxWidth;
-                        const indicatorWidth = 60.0;
-                        return Container(
-                          height: 2,
-                          width: trackWidth,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF607D8B).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(1),
+                    child: LayoutBuilder(builder: (context, constraints) {
+                      final tw = constraints.maxWidth;
+                      const iw = 60.0;
+                      return Container(
+                        height: 2, width: tw,
+                        decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(1)),
+                        child: Stack(children: [
+                          AnimatedPositioned(
+                            duration: const Duration(milliseconds: 100),
+                            left: _categoryScrollProgress * (tw - iw), top: 0, bottom: 0,
+                            child: Container(width: iw, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.4), borderRadius: BorderRadius.circular(1))),
                           ),
-                          child: Stack(
-                            children: [
-                              AnimatedPositioned(
-                                duration: const Duration(milliseconds: 100),
-                                left: _categoryScrollProgress * (trackWidth - indicatorWidth),
-                                top: 0,
-                                bottom: 0,
-                                child: Container(
-                                  width: indicatorWidth,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF607D8B).withOpacity(0.4),
-                                    borderRadius: BorderRadius.circular(1),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                        ]),
+                      );
+                    }),
                   ),
                   const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: _buildSortDropdown(),
-                  ),
+                  Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: _buildSortDropdown()),
                   const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: _buildBookGrid(),
-                  ),
+                  Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: _buildBookGrid()),
                   if (_isLoadingMore)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24.0),
-                      child: Center(child: CircularProgressIndicator(color: Color(0xFF627D8D))),
-                    ),
+                    const Padding(padding: EdgeInsets.symmetric(vertical: 24.0), child: Center(child: CircularProgressIndicator(color: AppColors.primary))),
                   if (!_hasMoreData && _books.isNotEmpty && !_isLoadingInitial)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24.0),
-                      child: Center(
-                        child: Text('您已滑到底部', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                      ),
-                    ),
+                    Padding(padding: const EdgeInsets.symmetric(vertical: 24.0), child: Center(child: Text('您已滑到底部', style: TextStyle(color: c.textHint, fontSize: 13)))),
                   SizedBox(height: MediaQuery.of(context).padding.bottom + 100),
                 ],
               ),
@@ -283,51 +227,39 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCustomHeader() {
+    final c = AppColors.of(context);
     final userName = ApiService.currentUser?.nickname ?? '訪客';
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF627D8D),
-        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
-      ),
+      decoration: BoxDecoration(color: c.headerBg, borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24))),
       child: SafeArea(
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.only(top: 8.0, bottom: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('哈囉, $userName', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                    const Row(
-                      children: [
-                        Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 26),
-                        SizedBox(width: 16),
-                        Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: SearchBarWidget(
-                  currentKeyword: _currentKeyword,
-                  onSearch: _onSearchChanged,
-                ),
-              ),
-            ],
-          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text('哈囉, $userName', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                const Row(children: [
+                  Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 26),
+                  SizedBox(width: 16),
+                  Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
+                ])
+              ]),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: SearchBarWidget(currentKeyword: _currentKeyword, onSearch: _onSearchChanged),
+            ),
+          ]),
         ),
       ),
     );
   }
 
   Widget _buildCategories() {
+    final c = AppColors.of(context);
     return SizedBox(
       height: 36,
       child: ListView.builder(
@@ -337,33 +269,21 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: _categories.length,
         itemBuilder: (context, index) {
-          final category = _categories[index];
-          final isSelected = _selectedCategoryIds.contains(category.categoryId);
+          final cat = _categories[index];
+          final sel = _selectedCategoryIds.contains(cat.categoryId);
           return Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: GestureDetector(
-              onTap: () => _onCategoryTapped(category.categoryId),
+              onTap: () => _onCategoryTapped(cat.categoryId),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8ECEF),
-                  border: Border.all(
-                      color: isSelected ? const Color(0xFF627D8D) : Colors.transparent,
-                      width: 1.5
-                  ),
+                  color: c.categoryChip,
+                  border: Border.all(color: sel ? AppColors.primary : Colors.transparent, width: 1.5),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Center(
-                  child: Text(
-                    category.categoryName,
-                    style: TextStyle(
-                      color: const Color(0xFF627D8D),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
+                child: Center(child: Text(cat.categoryName, style: TextStyle(color: AppColors.primary, fontWeight: sel ? FontWeight.bold : FontWeight.w500, fontSize: 14))),
               ),
             ),
           );
@@ -373,60 +293,38 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSortDropdown() {
+    final c = AppColors.of(context);
     return PopupMenuButton<String>(
-      initialValue: _currentSort,
-      onSelected: _onSortChanged,
+      initialValue: _currentSort, onSelected: _onSortChanged,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      offset: const Offset(0, 36),
-      itemBuilder: (BuildContext context) {
-        return _sortOptions.map((String choice) {
-          return PopupMenuItem<String>(
-            value: choice,
-            child: Text(choice, style: TextStyle(
-                color: _currentSort == choice ? const Color(0xFF627D8D) : Colors.black87,
-                fontWeight: _currentSort == choice ? FontWeight.bold : FontWeight.normal
-            )),
-          );
-        }).toList();
-      },
+      color: c.card, offset: const Offset(0, 36),
+      itemBuilder: (_) => _sortOptions.map((ch) => PopupMenuItem(value: ch,
+          child: Text(ch, style: TextStyle(color: _currentSort == ch ? AppColors.primary : c.textPrimary, fontWeight: _currentSort == ch ? FontWeight.bold : FontWeight.normal)))).toList(),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(color: const Color(0xFF627D8D), borderRadius: BorderRadius.circular(8)),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(_currentSort, style: const TextStyle(color: Colors.white, fontSize: 14)),
-            const SizedBox(width: 4),
-            const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
-          ],
-        ),
+        decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(_currentSort, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          const SizedBox(width: 4),
+          const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
+        ]),
       ),
     );
   }
 
   Widget _buildBookGrid() {
+    final c = AppColors.of(context);
     Widget content;
     if (_isLoadingInitial) {
-      content = const Center(
-        key: ValueKey('loading'),
-        child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator(color: Color(0xFF627D8D))),
-      );
+      content = const Center(key: ValueKey('loading'), child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator(color: AppColors.primary)));
     } else if (_books.isEmpty) {
-      content = const Center(
-        key: ValueKey('empty'),
-        child: Padding(padding: EdgeInsets.all(32.0), child: Text('目前沒有符合條件的書籍', style: TextStyle(color: Colors.grey))),
-      );
+      content = Center(key: const ValueKey('empty'), child: Padding(padding: const EdgeInsets.all(32.0), child: Text('目前沒有符合條件的書籍', style: TextStyle(color: c.textHint))));
     } else {
       content = GridView.builder(
-        key: const ValueKey('grid_sorted_or_filtered'),
-        padding: EdgeInsets.zero,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.58,
-        ),
+        key: const ValueKey('grid'), padding: EdgeInsets.zero, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.58),
         itemCount: _books.length,
-        itemBuilder: (context, index) => BookCard(book: _books[index]),
+        itemBuilder: (_, i) => BookCard(book: _books[i]),
       );
     }
     return AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: content);
