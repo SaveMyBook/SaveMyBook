@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import 'settings_screen.dart';
 import '../services/api_service.dart';
-import '../services/theme_provider.dart';
 import '../utils/app_colors.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -74,28 +74,17 @@ class ProfileScreen extends StatelessWidget {
               _ProfileMenuItem(icon: Icons.person_outline, title: '編輯個人檔案', c: c),
               _ProfileMenuItem(icon: Icons.history, title: '購買紀錄', c: c),
               _ProfileMenuItem(icon: Icons.inventory_2_outlined, title: '銷售紀錄', c: c),
-              _ProfileMenuItem(icon: Icons.settings_outlined, title: '設定', c: c, isLast: true),
+              _ProfileMenuItem(
+                  icon: Icons.settings_outlined,
+                  title: '設定',
+                  c: c,
+                  isLast: true,
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+                  }
+              ),
             ]),
           )),
-          const SizedBox(height: 20),
-
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ValueListenableBuilder<ThemeMode>(
-              valueListenable: themeProvider,
-              builder: (context, mode, _) {
-                final isDark = themeProvider.isDark(context);
-                return Container(
-                  decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
-                  child: ListTile(
-                    leading: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: AppColors.primary),
-                    title: Text('夜間模式', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textPrimary)),
-                    trailing: Switch.adaptive(value: isDark, activeColor: AppColors.primary, onChanged: (_) => themeProvider.toggle()),
-                  ),
-                );
-              },
-            ),
-          ),
           const SizedBox(height: 20),
 
           Padding(padding: const EdgeInsets.only(left: 20, right: 20, bottom: 40), child: GestureDetector(
@@ -158,8 +147,16 @@ class _ProfileMenuItem extends StatelessWidget {
   final String? trailingText;
   final bool isLast;
   final AppColors c;
+  final VoidCallback? onTap;
 
-  const _ProfileMenuItem({required this.icon, required this.title, required this.c, this.trailingText, this.isLast = false});
+  const _ProfileMenuItem({
+    required this.icon,
+    required this.title,
+    required this.c,
+    this.trailingText,
+    this.isLast = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +169,7 @@ class _ProfileMenuItem extends StatelessWidget {
           const SizedBox(width: 8),
           Icon(Icons.arrow_forward_ios, size: 16, color: c.iconInactive),
         ]),
-        onTap: () {},
+        onTap: onTap ?? () {},
       ),
       if (!isLast) Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Divider(height: 1, color: c.divider)),
     ]);

@@ -192,4 +192,27 @@ class ApiService {
     } catch (_) {}
     return [];
   }
+
+  Future<Map<String, dynamic>?> fetchBookByIsbn(String isbn) async {
+    if (authToken == null) return null;
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/books/isbn/$isbn'),
+        headers: {'Authorization': 'Bearer $authToken', 'Accept': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 401) {
+        await _handleUnauthorized();
+        return null;
+      }
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        return data['data']; // 回傳 { title, author, publisher, publish_date, description }
+      }
+    } catch (e) {
+      print('Fetch ISBN error: $e');
+    }
+    return null;
+  }
 }

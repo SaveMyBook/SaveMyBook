@@ -40,6 +40,8 @@ dependencies:
   mobile_scanner: ^6.0.2
   flutter_launcher_icons: ^0.14.3
   flutter_native_splash: ^2.4.4
+  image_picker: ^1.1.2
+  geolocator: ^13.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:http/http.dart' as http;
 import '../models/category.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import 'barcode_scanner_screen.dart';
+import 'sell_book_detail_screen.dart';
 
 class SellBookScreen extends StatefulWidget {
   const SellBookScreen({super.key});
@@ -20,6 +23,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
   final _yearController = TextEditingController();
   final _monthController = TextEditingController();
   final _dayController = TextEditingController();
+  final _descriptionController = TextEditingController();
 
   List<Category> _categories = [];
   Category? _selectedCategory;
@@ -49,6 +53,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
     _yearController.dispose();
     _monthController.dispose();
     _dayController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -61,23 +66,124 @@ class _SellBookScreenState extends State<SellBookScreen> {
       _showError('請選擇分類');
       return;
     }
+
+    List<String> dateParts = [];
+    if (_yearController.text.isNotEmpty) dateParts.add(_yearController.text);
+    if (_monthController.text.isNotEmpty) dateParts.add(_monthController.text.padLeft(2, '0'));
+    if (_dayController.text.isNotEmpty) dateParts.add(_dayController.text.padLeft(2, '0'));
+    final formattedDate = dateParts.join('-');
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SellBookDetailScreen(
+          isbn: _isbnController.text.trim(),
+          title: _titleController.text.trim(),
+          author: _authorController.text.trim(),
+          publisher: _publisherController.text.trim(),
+          publishDate: formattedDate,
+          description: _descriptionController.text.trim(),
+          categoryId: _selectedCategory!.categoryId,
+        ),
+      ),
+    );
   }
 
   void _showError(String msg) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
+      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
+    );
+  }
+
+  void _showSuccess(String msg) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.green, behavior: SnackBarBehavior.floating),
     );
   }
 
   Future<void> _onScanISBN() async {
     final result = await Navigator.push<String>(
       context,
-      MaterialPageRoute(builder: (_) => const _BarcodeScannerPage()),
+      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
     );
     if (result != null && mounted) {
       setState(() => _isbnController.text = result);
+      _fetchBookInfoByIsbn(result);
     }
+  }
+
+  Future<void> _fetchBookInfoByIsbn(String isbn) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+    );
+
+    final bookData = await ApiService().fetchBookByIsbn(isbn);
+
+    if (bookData != null) {
+      if (mounted) Navigator.pop(context);
+      _fillBookData(bookData);
+      _showSuccess('已自動帶入書籍資訊！');
+      return;
+    }
+
+    final backupData = await _fetchFromBackupApi(isbn);
+
+    if (!mounted) return;
+    Navigator.pop(context);
+
+    if (backupData != null) {
+      _fillBookData(backupData);
+      _showSuccess('已透過備援系統帶入書籍資訊！');
+    } else {
+      _showError('各系統皆找不到此 ISBN，請嘗試手動輸入');
+    }
+  }
+
+  void _fillBookData(Map<String, dynamic> bookData) {
+    setState(() {
+      _titleController.text = bookData['title'] ?? '';
+      _authorController.text = bookData['author'] ?? '';
+      _publisherController.text = bookData['publisher'] ?? '';
+      _descriptionController.text = bookData['description'] ?? '';
+
+      String publishDate = bookData['publish_date'] ?? '';
+      if (publishDate.isNotEmpty) {
+        publishDate = publishDate.replaceAll(RegExp(r'[年月]'), '-').replaceAll('日', '');
+        final parts = publishDate.split('-');
+        if (parts.isNotEmpty) _yearController.text = parts[0];
+        if (parts.length > 1) _monthController.text = parts[1];
+        if (parts.length > 2) _dayController.text = parts[2];
+      }
+    });
+  }
+
+  Future<Map<String, dynamic>?> _fetchFromBackupApi(String isbn) async {
+    try {
+      final url = Uri.parse('https://openlibrary.org/api/books?bibkeys=ISBN:$isbn&format=json&jscmd=data');
+      final response = await http.get(url).timeout(const Duration(seconds: 8));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final key = 'ISBN:$isbn';
+
+        if (data.containsKey(key)) {
+          final bookInfo = data[key];
+          return {
+            'title': bookInfo['title'] ?? '',
+            'author': (bookInfo['authors'] as List?)?.map((a) => a['name']).join(', ') ?? '',
+            'publisher': (bookInfo['publishers'] as List?)?.map((p) => p['name']).join(', ') ?? '',
+            'publish_date': bookInfo['publish_date'] ?? '',
+          };
+        }
+      }
+    } catch (e) {
+      debugPrint('Backup API Error: $e');
+    }
+    return null;
   }
 
   @override
@@ -91,55 +197,77 @@ class _SellBookScreenState extends State<SellBookScreen> {
           _buildAppBar(c),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Column(
-                children: [
-                  _buildFieldRow(c, label: 'ISBN', child: Row(
-                    children: [
-                      Expanded(child: _buildInput(c, _isbnController, keyboardType: TextInputType.number)),
-                      const SizedBox(width: 10),
-                      GestureDetector(
-                        onTap: _onScanISBN,
-                        child: Icon(Icons.qr_code_scanner_rounded, size: 28, color: c.textPrimary),
-                      ),
-                    ],
-                  )),
-                  _buildFieldRow(c, label: '書名', child: _buildInput(c, _titleController)),
-                  _buildFieldRow(c, label: '作者', child: _buildInput(c, _authorController)),
-                  _buildFieldRow(c, label: '出版社', child: _buildInput(c, _publisherController)),
-                  _buildFieldRow(c, label: '出版日期', child: Row(
-                    children: [
-                      _buildSmallInput(c, _yearController, width: 64),
-                      Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text('年', style: TextStyle(color: c.textSecondary, fontSize: 14))),
-                      _buildSmallInput(c, _monthController, width: 48),
-                      Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text('月', style: TextStyle(color: c.textSecondary, fontSize: 14))),
-                      _buildSmallInput(c, _dayController, width: 48),
-                      Padding(padding: const EdgeInsets.only(left: 6), child: Text('日', style: TextStyle(color: c.textSecondary, fontSize: 14))),
-                    ],
-                  )),
-                  _buildFieldRow(c, label: '選擇分類', child: _buildCategoryDropdown(c)),
-                  const SizedBox(height: 28),
-                  SizedBox(
-                    width: 140, height: 46,
-                    child: ElevatedButton(
-                      onPressed: _onNext,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                        elevation: 0,
-                      ),
-                      child: const Text('下一步', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('詳細資訊都可至會員中心-書籍管理編輯', style: TextStyle(color: AppColors.primary, fontSize: 13)),
-                  const SizedBox(height: 120),
-                ],
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: _buildStep1(c),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStep1(AppColors c) {
+    return Column(
+      children: [
+        _buildFieldRow(c, label: 'ISBN', child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _isbnController,
+                keyboardType: TextInputType.number,
+                style: TextStyle(fontSize: 15, color: c.textPrimary),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: '可點擊右側圖示掃描',
+                  hintStyle: TextStyle(color: c.textHint, fontSize: 14),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  filled: true, fillColor: c.inputFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                ),
+                onSubmitted: (val) {
+                  if (val.isNotEmpty) _fetchBookInfoByIsbn(val);
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            GestureDetector(
+              onTap: _onScanISBN,
+              child: Icon(Icons.qr_code_scanner_rounded, size: 28, color: c.textPrimary),
+            ),
+          ],
+        )),
+        _buildFieldRow(c, label: '書名', child: _buildInput(c, _titleController)),
+        _buildFieldRow(c, label: '作者', child: _buildInput(c, _authorController)),
+        _buildFieldRow(c, label: '出版社', child: _buildInput(c, _publisherController)),
+        _buildFieldRow(c, label: '出版日期', child: Row(
+          children: [
+            _buildSmallInput(c, _yearController, width: 64),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text('年', style: TextStyle(color: c.textSecondary, fontSize: 14))),
+            _buildSmallInput(c, _monthController, width: 48),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text('月', style: TextStyle(color: c.textSecondary, fontSize: 14))),
+            _buildSmallInput(c, _dayController, width: 48),
+            Padding(padding: const EdgeInsets.only(left: 6), child: Text('日', style: TextStyle(color: c.textSecondary, fontSize: 14))),
+          ],
+        )),
+        _buildFieldRow(c, label: '選擇分類', child: _buildCategoryDropdown(c)),
+        _buildFieldRow(c, label: '書籍簡介', child: _buildInput(c, _descriptionController, maxLines: 4)),
+        const SizedBox(height: 28),
+        SizedBox(
+          width: 140, height: 46,
+          child: ElevatedButton(
+            onPressed: _onNext,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
+            child: const Text('下一步', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text('詳細資訊都可至會員中心-書籍管理編輯', style: TextStyle(color: AppColors.primary, fontSize: 13)),
+        const SizedBox(height: 120),
+      ],
     );
   }
 
@@ -152,7 +280,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              const SizedBox(width: 22),
+              const SizedBox(width: 32),
               const Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -163,7 +291,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 22),
+              const SizedBox(width: 32),
             ],
           ),
         ),
@@ -180,9 +308,12 @@ class _SellBookScreenState extends State<SellBookScreen> {
         border: Border(bottom: BorderSide(color: c.divider, width: 1)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 72, child: Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary))),
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: SizedBox(width: 72, child: Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary))),
+          ),
           const SizedBox(width: 8),
           Expanded(child: child),
         ],
@@ -190,10 +321,11 @@ class _SellBookScreenState extends State<SellBookScreen> {
     );
   }
 
-  Widget _buildInput(AppColors c, TextEditingController controller, {TextInputType? keyboardType}) {
+  Widget _buildInput(AppColors c, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1}) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      maxLines: maxLines,
       style: TextStyle(fontSize: 15, color: c.textPrimary),
       decoration: InputDecoration(
         isDense: true,
@@ -244,113 +376,4 @@ class _SellBookScreenState extends State<SellBookScreen> {
       ),
     );
   }
-}
-
-class _BarcodeScannerPage extends StatefulWidget {
-  const _BarcodeScannerPage();
-
-  @override
-  State<_BarcodeScannerPage> createState() => _BarcodeScannerPageState();
-}
-
-class _BarcodeScannerPageState extends State<_BarcodeScannerPage> {
-  final MobileScannerController _controller = MobileScannerController(
-    formats: [BarcodeFormat.ean13, BarcodeFormat.ean8],
-  );
-  bool _hasPopped = false;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onDetect(BarcodeCapture capture) {
-    if (_hasPopped) return;
-    final barcode = capture.barcodes.firstOrNull;
-    if (barcode?.rawValue != null) {
-      _hasPopped = true;
-      Navigator.pop(context, barcode!.rawValue);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          MobileScanner(controller: _controller, onDetect: _onDetect),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                colors: [Colors.black.withOpacity(0.5), Colors.transparent, Colors.transparent, Colors.black.withOpacity(0.5)],
-                stops: const [0.0, 0.3, 0.7, 1.0],
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const Padding(padding: EdgeInsets.all(4.0), child: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22)),
-                      ),
-                      const Expanded(child: Text('掃描 ISBN', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))),
-                      const SizedBox(width: 30),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                const Text('將條碼放入框內自動掃描', style: TextStyle(color: Colors.white70, fontSize: 14)),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: 280, height: 160,
-                  child: CustomPaint(painter: _CornerFramePainter(color: Colors.white, cornerLength: 30, strokeWidth: 4, radius: 12)),
-                ),
-                const Spacer(),
-                const SizedBox(height: 60),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CornerFramePainter extends CustomPainter {
-  final Color color;
-  final double cornerLength;
-  final double strokeWidth;
-  final double radius;
-
-  _CornerFramePainter({required this.color, required this.cornerLength, required this.strokeWidth, required this.radius});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final w = size.width;
-    final h = size.height;
-    final r = radius;
-    final cl = cornerLength;
-
-    canvas.drawPath(Path()..moveTo(0, cl)..lineTo(0, r)..quadraticBezierTo(0, 0, r, 0)..lineTo(cl, 0), paint);
-    canvas.drawPath(Path()..moveTo(w - cl, 0)..lineTo(w - r, 0)..quadraticBezierTo(w, 0, w, r)..lineTo(w, cl), paint);
-    canvas.drawPath(Path()..moveTo(0, h - cl)..lineTo(0, h - r)..quadraticBezierTo(0, h, r, h)..lineTo(cl, h), paint);
-    canvas.drawPath(Path()..moveTo(w - cl, h)..lineTo(w - r, h)..quadraticBezierTo(w, h, w, h - r)..lineTo(w, h - cl), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

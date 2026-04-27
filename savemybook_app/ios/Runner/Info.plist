@@ -47,5 +47,13 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSCameraUsageDescription</key>
+        	<string>SaveMyBook 需要相機權限才能拍攝書本封面與條碼</string>
+        	<key>NSPhotoLibraryUsageDescription</key>
+        	<string>SaveMyBook 需要相簿權限才能讓您選擇書本照片</string>
+        	<key>NSLocationWhenInUseUsageDescription</key>
+        	<string>SaveMyBook 需要定位權限來為您尋找最近的智慧書櫃</string>
+        	<key>NSLocationAlwaysUsageDescription</key>
+        	<string>SaveMyBook 需要定位權限來為您尋找最近的智慧書櫃</string>
 	</dict>
 </plist>

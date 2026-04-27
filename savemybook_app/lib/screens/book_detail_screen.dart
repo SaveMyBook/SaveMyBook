@@ -20,11 +20,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _images = [widget.book.imageUrl, widget.book.imageUrl, widget.book.imageUrl];
+    _images = widget.book.imageUrls.isNotEmpty ? widget.book.imageUrls : [widget.book.imageUrl];
   }
 
   @override
-  void dispose() { _pageController.dispose(); super.dispose(); }
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +122,32 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           onPageChanged: (i) => setState(() => _currentImageIndex = i),
           itemBuilder: (context, index) {
             final imageWidget = Image.network(_images[index], fit: BoxFit.cover, width: double.infinity);
-            return index == 0 ? Hero(tag: 'book_image_${widget.book.bookId}', child: imageWidget) : imageWidget;
+            final heroWidget = index == 0 ? Hero(tag: 'book_image_${widget.book.bookId}', child: imageWidget) : imageWidget;
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => Scaffold(
+                    backgroundColor: Colors.black,
+                    appBar: AppBar(
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      iconTheme: const IconThemeData(color: Colors.white),
+                    ),
+                    extendBodyBehindAppBar: true,
+                    body: Center(
+                      child: InteractiveViewer(
+                        panEnabled: true,
+                        minScale: 0.5,
+                        maxScale: 4.0,
+                        child: Image.network(_images[index]),
+                      ),
+                    ),
+                  ),
+                ));
+              },
+              child: heroWidget,
+            );
           },
         ),
       ),
