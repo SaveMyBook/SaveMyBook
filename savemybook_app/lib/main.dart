@@ -11,9 +11,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
   runApp(const SaveMyBookApp());
 }
 
@@ -50,13 +48,13 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     if (token != null && token.isNotEmpty) {
       ApiService.authToken = token;
       await ApiService().fetchCurrentUser();
+      if (ApiService.currentUser != null) {
+        _initialRoute = const HomeScreen();
+      }
     }
-
-    final isLoggedIn = ApiService.authToken != null;
 
     if (mounted) {
       setState(() {
-        _initialRoute = isLoggedIn ? const HomeScreen() : const LoginScreen();
         _isLoading = false;
       });
     }
@@ -65,20 +63,20 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return MaterialApp(
+      return const MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: const SplashScreen(),
+        home: SplashScreen(),
       );
     }
 
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeProvider,
-      builder: (context, themeMode, _) {
+      builder: (context, mode, child) {
         return MaterialApp(
-          navigatorKey: navigatorKey,
           title: 'SaveMyBook',
           debugShowCheckedModeBanner: false,
-          themeMode: themeMode,
+          navigatorKey: navigatorKey,
+          themeMode: mode,
           theme: _buildTheme(Brightness.light),
           darkTheme: _buildTheme(Brightness.dark),
           home: _initialRoute,
@@ -97,7 +95,9 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
       primaryColor: const Color(0xFF627D8D),
       scaffoldBackgroundColor: scaffoldBg,
       fontFamily: 'NotoSansTC',
-      fontFamilyFallback: const ['PingFang TC', 'Heiti TC', 'Noto Sans TC'],
+      fontFamilyFallback: const ['PingFang TC', 'Heiti TC', 'Noto Sans TC', 'sans-serif'],
+      splashColor: isDark ? Colors.white12 : Colors.black12,
+      highlightColor: isDark ? Colors.white10 : Colors.black12,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: CupertinoPageTransitionsBuilder(),
@@ -115,7 +115,10 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
         titleLarge: TextStyle(color: textColor),
         titleMedium: TextStyle(color: textColor),
         titleSmall: TextStyle(color: textColor),
-      ),
+        labelLarge: TextStyle(color: textColor),
+        labelMedium: TextStyle(color: textColor),
+        labelSmall: TextStyle(color: textColor),
+      ).apply(fontFamily: 'NotoSansTC'),
     );
   }
 }

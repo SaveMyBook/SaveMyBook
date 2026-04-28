@@ -143,7 +143,7 @@ router.post('/', authenticateToken, upload.fields([
   
   const { 
     title, author, publisher, publish_date, isbn, 
-    category_id, price, condition_level, cabinet_id 
+    category_id, price, condition_level, cabinet_id, description 
   } = req.body;
   
   if (!title || price === undefined) {
@@ -168,6 +168,7 @@ router.post('/', authenticateToken, upload.fields([
         publisher: publisher || null, 
         publish_date: cleanDate || null, 
         isbn: isbn || null,
+        description: description || null,
         price: isNaN(cleanPrice) ? 0 : cleanPrice,
         quantity: 1, 
         condition_level: condition_level || 'good',

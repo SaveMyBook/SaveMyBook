@@ -54,63 +54,81 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-              _StatItem(label: '我的代幣', value: '520', c: c), _StatVerticalDivider(c: c),
-              _StatItem(label: '書籍管理', value: '8', c: c), _StatVerticalDivider(c: c),
-              _StatItem(label: '收藏清單', value: '12', c: c),
-            ]),
-          )),
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                decoration: BoxDecoration(
+                    color: c.card,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]
+                ),
+                child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+                  _StatItem(label: '我的代幣', value: '520', c: c), _StatVerticalDivider(c: c),
+                  _StatItem(label: '書籍管理', value: '8', c: c), _StatVerticalDivider(c: c),
+                  _StatItem(label: '收藏清單', value: '12', c: c),
+                ]),
+              )
+          ),
           const SizedBox(height: 20),
 
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Container(
-            decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
-            child: Column(children: [
-              _ProfileMenuItem(icon: Icons.qr_code_scanner, title: '分享個人檔案', c: c),
-              _ProfileMenuItem(icon: Icons.person_outline, title: '編輯個人檔案', c: c),
-              _ProfileMenuItem(icon: Icons.history, title: '購買紀錄', c: c),
-              _ProfileMenuItem(icon: Icons.inventory_2_outlined, title: '銷售紀錄', c: c),
-              _ProfileMenuItem(
-                  icon: Icons.settings_outlined,
-                  title: '設定',
-                  c: c,
-                  isLast: true,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
-                  }
-              ),
-            ]),
-          )),
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                    color: c.card,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]
+                ),
+                child: Column(children: [
+                  _ProfileMenuItem(icon: Icons.qr_code_scanner, title: '分享個人檔案', c: c),
+                  _ProfileMenuItem(icon: Icons.person_outline, title: '編輯個人檔案', c: c),
+                  _ProfileMenuItem(icon: Icons.history, title: '購買紀錄', c: c),
+                  _ProfileMenuItem(icon: Icons.inventory_2_outlined, title: '銷售紀錄', c: c),
+                  _ProfileMenuItem(
+                      icon: Icons.settings_outlined,
+                      title: '設定',
+                      c: c,
+                      isLast: true,
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+                      }
+                  ),
+                ]),
+              )
+          ),
           const SizedBox(height: 20),
 
-          Padding(padding: const EdgeInsets.only(left: 20, right: 20, bottom: 40), child: GestureDetector(
-            onTap: () async {
-              final confirmed = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-                backgroundColor: c.card,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                title: Text('確認登出', style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
-                content: Text('確定要登出帳號嗎？', style: TextStyle(color: c.textSecondary)),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消', style: TextStyle(color: Colors.grey))),
-                  TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('登出', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
-                ],
-              ));
-              if (confirmed == true && context.mounted) _handleLogout(context);
-            },
-            child: Container(
-              width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 20),
-              decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(20),
-                  boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
-              child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.logout, color: Colors.red, size: 20), SizedBox(width: 8),
-                Text('登出', style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w500)),
-              ]),
-            ),
-          )),
+          Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 40),
+              child: GestureDetector(
+                onTap: () async {
+                  final confirmed = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+                    backgroundColor: c.card,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    title: Text('確認登出', style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
+                    content: Text('確定要登出帳號嗎？', style: TextStyle(color: c.textSecondary)),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消', style: TextStyle(color: Colors.grey))),
+                      TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('登出', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
+                    ],
+                  ));
+                  if (confirmed == true && context.mounted) _handleLogout(context);
+                },
+                child: Container(
+                  width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 20),
+                  decoration: BoxDecoration(
+                      color: c.card,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]
+                  ),
+                  child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.logout, color: Colors.red, size: 20), SizedBox(width: 8),
+                    Text('登出', style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w500)),
+                  ]),
+                ),
+              )
+          ),
           const SizedBox(height: 120),
         ]),
       ),

@@ -17,16 +17,21 @@ class CustomBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
+    final actuallyVisible = isVisible && !isKeyboardOpen;
+
     final c = AppColors.of(context);
 
     return AnimatedSlide(
       duration: const Duration(milliseconds: 500),
-      curve: isVisible ? Curves.easeOutCubic : Curves.easeInCubic,
-      offset: isVisible ? Offset.zero : const Offset(0, 1.2),
+      curve: actuallyVisible ? Curves.easeOutCubic : Curves.easeInCubic,
+      offset: actuallyVisible ? Offset.zero : const Offset(0, 1.2),
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOut,
-        opacity: isVisible ? 1.0 : 0.0,
+        opacity: actuallyVisible ? 1.0 : 0.0,
         child: Padding(
           padding: EdgeInsets.only(left: 24, right: 24, bottom: bottomPadding + 12),
           child: Container(
@@ -51,11 +56,11 @@ class CustomBottomNav extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildNavItem(Icons.home_rounded, Icons.home_outlined, 0, c),
-                      _buildNavItem(Icons.notifications_rounded, Icons.notifications_none_rounded, 1, c),
+                      _buildNavItem(Icons.home_rounded, Icons.home_outlined, '首頁', 0, c),
+                      _buildNavItem(Icons.notifications_rounded, Icons.notifications_none_rounded, '通知', 1, c),
                       _buildCenterButton(),
-                      _buildNavItem(Icons.inventory_2_rounded, Icons.inventory_2_outlined, 3, c),
-                      _buildNavItem(Icons.person_rounded, Icons.person_outline_rounded, 4, c),
+                      _buildNavItem(Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, '取書', 3, c),
+                      _buildNavItem(Icons.person_rounded, Icons.person_outline_rounded, '會員', 4, c),
                     ],
                   ),
                 ),
@@ -67,7 +72,7 @@ class CustomBottomNav extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(IconData solidIcon, IconData outlinedIcon, int index, AppColors c) {
+  Widget _buildNavItem(IconData solidIcon, IconData outlinedIcon, String label, int index, AppColors c) {
     final isSelected = selectedIndex == index;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -75,19 +80,24 @@ class CustomBottomNav extends StatelessWidget {
       child: SizedBox(
         width: 52, height: 60,
         child: Center(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOutCubic,
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary.withOpacity(0.12) : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              isSelected ? solidIcon : outlinedIcon,
-              size: 24,
-              color: isSelected ? AppColors.primary : c.iconInactive,
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isSelected ? solidIcon : outlinedIcon,
+                size: 22,
+                color: isSelected ? AppColors.primary : c.iconInactive,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? AppColors.primary : c.iconInactive,
+                ),
+              ),
+            ],
           ),
         ),
       ),

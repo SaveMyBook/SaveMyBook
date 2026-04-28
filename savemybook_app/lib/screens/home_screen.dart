@@ -134,43 +134,36 @@ class _HomeScreenState extends State<HomeScreen> {
     _onRefresh().then((_) { if (mounted) setState(() => _isLoadingInitial = false); });
   }
 
-  bool _handleScrollNotification(ScrollUpdateNotification n) {
-    final delta = n.scrollDelta ?? 0;
-    if (delta > 8 && _scrollController.hasClients && _scrollController.offset > 80) {
-      if (_isNavVisible) setState(() => _isNavVisible = false);
-    } else if (delta < -4) {
-      if (!_isNavVisible) setState(() => _isNavVisible = true);
-    }
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
-      body: NotificationListener<ScrollUpdateNotification>(
-        onNotification: _handleScrollNotification,
-        child: Stack(
-          children: [
-            IndexedStack(
-              index: _selectedIndex,
-              children: [
-                _buildHomeContent(),
-                const Scaffold(body: Center(child: Text('通知'))),
-                const SellBookScreen(),
-                PickupBookScreen(isActive: _selectedIndex == 3),
-                const ProfileScreen(),
-              ],
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _selectedIndex,
+            children: [
+              _buildHomeContent(),
+              const Scaffold(body: Center(child: Text('通知'))),
+              const SellBookScreen(),
+              PickupBookScreen(isActive: _selectedIndex == 3),
+              const ProfileScreen(),
+            ],
+          ),
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            left: 0,
+            right: 0,
+            bottom: isKeyboardOpen ? -120 : 0,
+            child: CustomBottomNav(
+              selectedIndex: _selectedIndex,
+              isVisible: !isKeyboardOpen,
+              onItemSelected: (i) => setState(() { _selectedIndex = i; }),
             ),
-            Positioned(
-              left: 0, right: 0, bottom: 0,
-              child: CustomBottomNav(
-                selectedIndex: _selectedIndex,
-                isVisible: _isNavVisible,
-                onItemSelected: (i) => setState(() { _selectedIndex = i; _isNavVisible = true; }),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
