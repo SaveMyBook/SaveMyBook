@@ -27,6 +27,51 @@ components:
           type: string
 
 paths:
+  /api/books/isbn/{isbn}:
+    get:
+      summary: 透過 ISBN 查詢外部書籍資訊
+      tags: [商品書籍 (Books)]
+      description: 以 ISBN 向 Google Books API 查詢書籍基本資訊，可用於上架時自動帶入書名、作者等欄位。需要 JWT Token。
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: isbn
+          schema:
+            type: string
+          required: true
+          description: 書籍的 ISBN 編號
+      responses:
+        '200':
+          description: 成功取得書籍資訊
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      author:
+                        type: string
+                      publisher:
+                        type: string
+                      publish_date:
+                        type: string
+                      description:
+                        type: string
+        '401':
+          description: 存取被拒，未提供 Token
+        '404':
+          description: 外部書庫找不到此 ISBN 的書籍資訊
+        '500':
+          description: 查詢外部書籍資訊發生錯誤
+
   /api/books:
     get:
       summary: 取得所有書籍列表

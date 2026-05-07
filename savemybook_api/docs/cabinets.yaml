@@ -1,0 +1,44 @@
+tags:
+  - name: 智慧書櫃 (Cabinets)
+    description: 取得智慧書櫃資訊的 API 端點
+
+paths:
+  /api/cabinets:
+    get:
+      summary: 取得所有啟用中的書櫃列表
+      tags: [智慧書櫃 (Cabinets)]
+      description: 回傳所有 `is_active` 為 true 的書櫃資訊，包含地址與剩餘可用格數。需要 JWT Token。
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功取得書櫃列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cabinet_id:
+                          type: integer
+                        cabinet_name:
+                          type: string
+                        address:
+                          type: string
+                        available_slots:
+                          type: integer
+                        latitude:
+                          type: number
+                        longitude:
+                          type: number
+        '401':
+          description: 存取被拒，未提供 Token
+        '500':
+          description: 伺服器發生錯誤，無法取得書櫃列表
