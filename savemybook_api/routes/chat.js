@@ -47,6 +47,23 @@ router.get('/rooms', authenticateToken, async (req, res) => {
   }
 });
 
+router.get('/unread-count', authenticateToken, async (req, res) => {
+  const myId = req.user.userId;
+  try {
+    const count = await prisma.chat_messages.count({
+      where: {
+        is_read: false,
+        sender_id: { not: myId },
+        chat_rooms: { OR: [{ user_a_id: myId }, { user_b_id: myId }] }
+      }
+    });
+    res.status(200).json({ success: true, data: { unread_count: count } });
+  } catch (err) {
+    console.error('[取得聊天未讀數失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
 router.post('/rooms', authenticateToken, async (req, res) => {
   const myId = req.user.userId;
   const partnerId = parseInt(req.body.user_id);

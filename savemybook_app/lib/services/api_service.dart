@@ -54,9 +54,23 @@ class ApiService {
   }
 
   static final ValueNotifier<int> cartCount = ValueNotifier<int>(0);
+  static final ValueNotifier<int> unreadNotificationCount = ValueNotifier<int>(0);
+  static final ValueNotifier<int> unreadChatCount = ValueNotifier<int>(0);
+  static final ValueNotifier<Set<int>> favoriteBookIds = ValueNotifier<Set<int>>(<int>{});
 
   static void _setCartCount(int value) {
     cartCount.value = value < 0 ? 0 : value;
+  }
+
+  static void _setBadge(ValueNotifier<int> notifier, int value) {
+    notifier.value = value < 0 ? 0 : value;
+  }
+
+  static void resetGlobalState() {
+    cartCount.value = 0;
+    unreadNotificationCount.value = 0;
+    unreadChatCount.value = 0;
+    favoriteBookIds.value = <int>{};
   }
 
   static List<String> searchHistory = [];
@@ -203,7 +217,7 @@ class ApiService {
   Future<void> logout() async {
     authToken = null;
     currentUser = null;
-    _setCartCount(0);
+    resetGlobalState();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
   }
@@ -317,23 +331,51 @@ class ApiService {
 
   Future<List<Book>> fetchFavorites() async {
     final res = await _send('GET', '/favorites');
-    return _mapList(res, Book.fromJson);
+    final books = _mapList(res, Book.fromJson);
+    favoriteBookIds.value = books.map((b) => b.bookId).toSet();
+    return books;
   }
 
   Future<Set<int>> fetchFavoriteIds() async {
     final res = await _send('GET', '/favorites/ids');
     if (res == null || res['success'] != true || res['data'] is! List) return {};
-    return (res['data'] as List).map((e) => int.tryParse(e.toString()) ?? 0).toSet();
+    final ids = (res['data'] as List).map((e) => int.tryParse(e.toString()) ?? 0).toSet();
+    favoriteBookIds.value = ids;
+    return ids;
+  }
+
+  static void _setFavorite(int bookId, bool value) {
+    final next = Set<int>.from(favoriteBookIds.value);
+    value ? next.add(bookId) : next.remove(bookId);
+    favoriteBookIds.value = next;
   }
 
   Future<bool> addFavorite(int bookId) async {
     final res = await _send('POST', '/favorites', body: {'book_id': bookId});
-    return res != null && res['success'] == true;
+    final ok = res != null && res['success'] == true;
+    if (ok) _setFavorite(bookId, true);
+    return ok;
   }
 
   Future<bool> removeFavorite(int bookId) async {
     final res = await _send('DELETE', '/favorites/$bookId');
-    return res != null && res['success'] == true;
+    final ok = res != null && res['success'] == true;
+    if (ok) _setFavorite(bookId, false);
+    return ok;
+  }
+
+  /// 先切換本地狀態再打 API，失敗時自動回滾，讓愛心點下去就有反應。
+  Future<String?> toggleFavorite(int bookId) async {
+    if (authToken == null) return '請先登入';
+    final wasFavorite = favoriteBookIds.value.contains(bookId);
+    _setFavorite(bookId, !wasFavorite);
+
+    final ok = wasFavorite ? await removeFavorite(bookId) : await addFavorite(bookId);
+    if (!ok) {
+      _setFavorite(bookId, wasFavorite);
+      return wasFavorite ? '取消收藏失敗' : '收藏失敗';
+    }
+    return null;
   }
 
   Future<List<CartItem>> fetchCart() async {
@@ -405,23 +447,54 @@ class ApiService {
 
   Future<List<AppNotification>> fetchNotifications() async {
     final res = await _send('GET', '/notifications', query: {'limit': '50'});
+    if (res != null && res['unread_count'] != null) {
+      _setBadge(unreadNotificationCount, int.tryParse('${res['unread_count']}') ?? 0);
+    }
     return _mapList(res, AppNotification.fromJson);
   }
 
   Future<int> fetchUnreadNotificationCount() async {
     final res = await _send('GET', '/notifications/unread-count');
     if (res == null || res['success'] != true) return 0;
-    return int.tryParse('${res['data']?['unread_count']}') ?? 0;
+    final count = int.tryParse('${res['data']?['unread_count']}') ?? 0;
+    _setBadge(unreadNotificationCount, count);
+    return count;
+  }
+
+  Future<int> fetchUnreadChatCount() async {
+    final res = await _send('GET', '/chat/unread-count');
+    if (res == null || res['success'] != true) return 0;
+    final count = int.tryParse('${res['data']?['unread_count']}') ?? 0;
+    _setBadge(unreadChatCount, count);
+    return count;
+  }
+
+  /// 一次刷新底部導覽列與 header 上所有的紅點數字。
+  Future<void> refreshBadges() async {
+    if (authToken == null) {
+      resetGlobalState();
+      return;
+    }
+    await Future.wait([
+      refreshCartCount(),
+      fetchUnreadNotificationCount(),
+      fetchUnreadChatCount(),
+      fetchFavoriteIds(),
+    ]);
   }
 
   Future<bool> markNotificationRead(int notificationId) async {
     final res = await _send('PATCH', '/notifications/$notificationId/read');
-    return res != null && res['success'] == true;
+    final ok = res != null && res['success'] == true;
+    if (ok) _setBadge(unreadNotificationCount, unreadNotificationCount.value - 1);
+    return ok;
   }
 
   Future<bool> markAllNotificationsRead() async {
     final res = await _send('PATCH', '/notifications/read-all');
-    return res != null && res['success'] == true;
+    final ok = res != null && res['success'] == true;
+    if (ok) _setBadge(unreadNotificationCount, 0);
+    return ok;
   }
 
   Future<bool> deleteNotification(int notificationId) async {
@@ -431,7 +504,9 @@ class ApiService {
 
   Future<List<ChatRoom>> fetchChatRooms() async {
     final res = await _send('GET', '/chat/rooms');
-    return _mapList(res, ChatRoom.fromJson);
+    final rooms = _mapList(res, ChatRoom.fromJson);
+    _setBadge(unreadChatCount, rooms.fold(0, (sum, r) => sum + r.unreadCount));
+    return rooms;
   }
 
   Future<int?> openChatRoom({required int userId, int? bookId}) async {

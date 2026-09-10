@@ -105,7 +105,7 @@ class _CartScreenState extends State<CartScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          AppHeader(title: '購物車', icon: Icons.shopping_cart_outlined),
+          const AppHeader(title: '購物車', icon: Icons.shopping_cart_outlined),
           if (_items.isNotEmpty) _buildSelectAllRow(c),
           Expanded(
             child: SwitchIn(child: _isLoading
@@ -135,146 +135,175 @@ class _CartScreenState extends State<CartScreen> {
 
   Widget _buildSelectAllRow(AppColors c) {
     return Padding(
-      padding: const EdgeInsets.only(right: 16, top: 8),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Text('全部選取', style: TextStyle(fontSize: 14, color: c.textSecondary)),
-          Checkbox(
+          _buildCheckbox(
             value: _allSelected,
-            activeColor: c.accent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-            onChanged: (value) {
-              setState(() {
-                for (final item in _items) {
-                  item.isSelected = value ?? false;
-                }
-              });
-            },
+            c: c,
+            onChanged: (value) => setState(() {
+              for (final item in _items) {
+                item.isSelected = value;
+              }
+            }),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            '全選',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
+          ),
+          const Spacer(),
+          Text(
+            '共 ${_items.length} 件',
+            style: TextStyle(fontSize: 13, color: c.textSecondary),
           ),
         ],
       ),
     );
   }
 
+  /// 用自畫的圓形勾選框，Material 預設 Checkbox 的 48x48 觸控框會在卡片裡撐出留白。
+  Widget _buildCheckbox({
+    required bool value,
+    required AppColors c,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => onChanged(!value),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: value ? c.accent : Colors.transparent,
+            shape: BoxShape.circle,
+            border: Border.all(color: value ? c.accent : c.iconInactive, width: 1.6),
+          ),
+          child: value
+              ? const Icon(Icons.check_rounded, size: 15, color: Colors.white)
+              : null,
+        ),
+      ),
+    );
+  }
+
   Widget _buildItem(CartItem item, AppColors c) {
     final book = item.book;
+    final isRemoving = _removingCartIds.contains(item.cartId);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Checkbox(
-          value: item.isSelected,
-          activeColor: c.accent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-          onChanged: (value) => setState(() => item.isSelected = value ?? false),
-        ),
-        Expanded(
-          child: AppCard(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(12),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)),
-            ),
-            child: Row(
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildCheckbox(
+            value: item.isSelected,
+            c: c,
+            onChanged: (value) => setState(() => item.isSelected = value),
+          ),
+          const SizedBox(width: 10),
+          BookThumbnail(imageUrl: book.imageUrl, width: 64, height: 86),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                BookThumbnail(imageUrl: book.imageUrl, width: 68, height: 90),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
+                Text(
+                  book.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: c.textPrimary,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: book.conditionColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        book.conditionText,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: book.conditionColor,
+                        ),
+                      ),
+                    ),
+                    if (book.cabinetName.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          book.cabinetName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 11, color: c.textHint),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                if (book.cabinetAddress.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              book.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: c.textPrimary,
-                              ),
-                            ),
-                          ),
-                          _removingCartIds.contains(item.cartId)
-                              ? SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: c.iconInactive),
-                                )
-                              : GestureDetector(
-                                  onTap: () => _removeItem(item),
-                                  child: Icon(
-                                    Icons.delete_outline_rounded,
-                                    size: 20,
-                                    color: c.iconInactive,
-                                  ),
-                                ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: book.conditionColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
+                      Icon(Icons.location_on_outlined, size: 12, color: c.iconInactive),
+                      const SizedBox(width: 3),
+                      Expanded(
                         child: Text(
-                          book.conditionText,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: book.conditionColor,
-                          ),
+                          book.cabinetAddress,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 11, color: c.textSecondary),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (book.cabinetAddress.isNotEmpty)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.location_on_outlined, size: 13, color: c.iconInactive),
-                            const SizedBox(width: 3),
-                            Expanded(
-                              child: Text(
-                                book.cabinetAddress,
-                                maxLines: 2,
-                                style: TextStyle(fontSize: 11, color: c.textSecondary, height: 1.3),
-                              ),
-                            ),
-                          ],
-                        ),
-                      const SizedBox(height: 6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            book.cabinetName.isEmpty ? '' : '書櫃：${book.cabinetName}',
-                            style: TextStyle(fontSize: 11, color: c.textHint),
-                          ),
-                          Text(
-                            '\$${book.price.toStringAsFixed(0)}',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: c.accent,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
+                ],
+                const SizedBox(height: 8),
+                Text(
+                  '\$${book.price.toStringAsFixed(0)}',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.accent),
                 ),
               ],
             ),
           ),
-        ),
-      ],
+          SizedBox(
+            width: 36,
+            child: isRemoving
+                ? Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: c.iconInactive),
+                    ),
+                  )
+                : IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    icon: Icon(Icons.delete_outline_rounded, size: 20, color: c.iconInactive),
+                    onPressed: () => _removeItem(item),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -319,20 +348,24 @@ class _CartScreenState extends State<CartScreen> {
             child: SizedBox(
               height: 48,
               child: ElevatedButton(
-                onPressed: _isCheckingOut ? null : _checkout,
+                onPressed: _isCheckingOut || _selectedItems.isEmpty ? null : _checkout,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: c.accent,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: c.accent.withValues(alpha: 0.5),
+                  disabledBackgroundColor: c.accent.withValues(alpha: 0.35),
+                  disabledForegroundColor: Colors.white70,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                child: _isCheckingOut
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Text('結帳', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: SwitchIn(
+                  duration: const Duration(milliseconds: 200),
+                  child: _isCheckingOut
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text('結帳', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
               ),
             ),
           ),

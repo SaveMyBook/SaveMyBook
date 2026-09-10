@@ -5,6 +5,7 @@ import '../utils/app_colors.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_buttons.dart';
 import '../widgets/app_forms.dart';
+import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import 'privacy_screen.dart';
 import 'terms_screen.dart';
@@ -184,119 +185,120 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return Scaffold(
       backgroundColor: c.card,
-      appBar: AppBar(
-        backgroundColor: c.card,
-        foregroundColor: c.textPrimary,
-        elevation: 0,
-        title: Text('建立帳號', style: TextStyle(color: c.textPrimary, fontSize: 18)),
-      ),
-      body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(32, 16, 32, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              FadeSlideIn(
-                child: Text(
-                  '加入 SaveMyBook',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.accent),
-                ),
-              ),
-              const SizedBox(height: 6),
-              FadeSlideIn(
-                index: 1,
-                child: Text(
-                  '註冊後就能買書、賣書與使用智慧書櫃',
-                  style: TextStyle(fontSize: 13, color: c.textSecondary),
-                ),
-              ),
-              const SizedBox(height: 32),
-              FadeSlideIn(
-                index: 2,
-                child: AppTextField(
-                  controller: _nicknameController,
-                  hint: '暱稱',
-                  errorText: _nicknameError,
-                  maxLength: 50,
-                  textInputAction: TextInputAction.next,
-                  onChanged: (_) {
-                    if (_nicknameError != null) setState(() => _nicknameError = null);
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              FadeSlideIn(
-                index: 3,
-                child: AppTextField(
-                  controller: _emailController,
-                  hint: 'Email',
-                  errorText: _emailError,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  maxLength: 255,
-                  onChanged: (_) {
-                    if (_emailError != null) setState(() => _emailError = null);
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              FadeSlideIn(
-                index: 4,
-                child: AppTextField(
-                  controller: _passwordController,
-                  hint: '密碼（至少 8 碼，含英文與數字）',
-                  errorText: _passwordError,
-                  obscureText: _obscurePassword,
-                  maxLength: 64,
-                  textInputAction: TextInputAction.next,
-                  onChanged: (_) {
-                    if (_passwordError != null) setState(() => _passwordError = null);
-                  },
-                  suffix: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      size: 20,
-                      color: c.iconInactive,
-                    ),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+      body: Column(
+        children: [
+          const AppHeader(title: '建立帳號', icon: Icons.person_add_alt_1_rounded),
+          Expanded(
+            child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => FocusScope.of(context).unfocus(),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(32, 24, 32, 40),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FadeSlideIn(
+                        child: Text(
+                          '加入 SaveMyBook',
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.accent),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      FadeSlideIn(
+                        index: 1,
+                        child: Text(
+                          '註冊後就能買書、賣書與使用智慧書櫃',
+                          style: TextStyle(fontSize: 13, color: c.textSecondary),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      FadeSlideIn(
+                        index: 2,
+                        child: AppTextField(
+                          controller: _nicknameController,
+                          hint: '暱稱',
+                          errorText: _nicknameError,
+                          maxLength: 50,
+                          textInputAction: TextInputAction.next,
+                          onChanged: (_) {
+                            if (_nicknameError != null) setState(() => _nicknameError = null);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FadeSlideIn(
+                        index: 3,
+                        child: AppTextField(
+                          controller: _emailController,
+                          hint: 'Email',
+                          errorText: _emailError,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          maxLength: 255,
+                          onChanged: (_) {
+                            if (_emailError != null) setState(() => _emailError = null);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FadeSlideIn(
+                        index: 4,
+                        child: AppTextField(
+                          controller: _passwordController,
+                          hint: '密碼（至少 8 碼，含英文與數字）',
+                          errorText: _passwordError,
+                          obscureText: _obscurePassword,
+                          maxLength: 64,
+                          textInputAction: TextInputAction.next,
+                          onChanged: (_) {
+                            if (_passwordError != null) setState(() => _passwordError = null);
+                          },
+                          suffix: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              size: 20,
+                              color: c.iconInactive,
+                            ),
+                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FadeSlideIn(
+                        index: 5,
+                        child: AppTextField(
+                          controller: _confirmController,
+                          hint: '再次輸入密碼',
+                          errorText: _confirmError,
+                          obscureText: _obscurePassword,
+                          maxLength: 64,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _handleRegister(),
+                          onChanged: (_) {
+                            if (_confirmError != null) setState(() => _confirmError = null);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      FadeSlideIn(index: 6, child: _buildTermsRow(c)),
+                      const SizedBox(height: 24),
+                      FadeSlideIn(
+                        index: 7,
+                        child: PrimaryButton(
+                          label: '建立帳號',
+                          height: 50,
+                          isLoading: _isLoading,
+                          onPressed: _agreedToTerms ? _handleRegister : null,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              FadeSlideIn(
-                index: 5,
-                child: AppTextField(
-                  controller: _confirmController,
-                  hint: '再次輸入密碼',
-                  errorText: _confirmError,
-                  obscureText: _obscurePassword,
-                  maxLength: 64,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _handleRegister(),
-                  onChanged: (_) {
-                    if (_confirmError != null) setState(() => _confirmError = null);
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              FadeSlideIn(index: 6, child: _buildTermsRow(c)),
-              const SizedBox(height: 24),
-              FadeSlideIn(
-                index: 7,
-                child: PrimaryButton(
-                  label: '建立帳號',
-                  height: 50,
-                  isLoading: _isLoading,
-                  onPressed: _agreedToTerms ? _handleRegister : null,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

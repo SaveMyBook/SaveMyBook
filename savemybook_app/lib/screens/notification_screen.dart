@@ -25,15 +25,33 @@ class _NotificationScreenState extends State<NotificationScreen> {
   List<AppNotification> _notifications = [];
   bool _isLoading = true;
 
+  int _lastSeenUnread = ApiService.unreadNotificationCount.value;
+
   @override
   void initState() {
     super.initState();
+    // 首頁把通知頁包在 IndexedStack 裡，不會重建，所以改成聽未讀數自己補資料。
+    ApiService.unreadNotificationCount.addListener(_onUnreadChanged);
     _load();
+  }
+
+  @override
+  void dispose() {
+    ApiService.unreadNotificationCount.removeListener(_onUnreadChanged);
+    super.dispose();
+  }
+
+  void _onUnreadChanged() {
+    final next = ApiService.unreadNotificationCount.value;
+    final increased = next > _lastSeenUnread;
+    _lastSeenUnread = next;
+    if (increased && mounted) _load();
   }
 
   Future<void> _load() async {
     final list = await _api.fetchNotifications();
     if (!mounted) return;
+    _lastSeenUnread = ApiService.unreadNotificationCount.value;
     setState(() {
       _notifications = list;
       _isLoading = false;

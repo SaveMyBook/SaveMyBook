@@ -201,8 +201,16 @@ class QuickActionButton extends StatelessWidget {
                 width: size,
                 height: size,
                 decoration: BoxDecoration(
-                  color: c.accent.withValues(alpha: 0.12),
+                  color: c.card,
                   shape: BoxShape.circle,
+                  border: Border.all(color: c.accent.withValues(alpha: 0.28), width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: c.shadow.withValues(alpha: 0.5),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Icon(icon, size: size * 0.48, color: c.accent),
               ),

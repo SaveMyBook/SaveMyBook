@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
 import 'app_tiles.dart';
+import 'favorite_button.dart';
 import '../models/book.dart';
 import '../screens/book_detail_screen.dart';
 import '../utils/app_colors.dart';
@@ -66,7 +67,7 @@ class BookCard extends StatelessWidget {
                         startAfter: const Duration(seconds: 1), fadingEdgeStartFraction: 0.0, fadingEdgeEndFraction: 0.15,
                         accelerationDuration: Duration.zero, decelerationDuration: Duration.zero))
                         : Text(book.title, style: _titleStyle.copyWith(color: c.textPrimary), maxLines: 1)),
-                    Padding(padding: const EdgeInsets.only(left: 4.0), child: Icon(Icons.favorite_border, size: 20, color: c.iconInactive)),
+                    FavoriteButton(bookId: book.bookId, size: 20),
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [
@@ -118,8 +119,7 @@ class BookCard extends StatelessWidget {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   Row(children: [
                     Expanded(child: Text(book.title, style: _titleStyle.copyWith(color: c.textPrimary), maxLines: 2, overflow: TextOverflow.ellipsis)),
-                    const SizedBox(width: 4),
-                    Icon(Icons.favorite_border, size: 20, color: c.iconInactive),
+                    FavoriteButton(bookId: book.bookId, size: 20),
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [

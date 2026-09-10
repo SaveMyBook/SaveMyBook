@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/api_service.dart';
@@ -108,40 +109,74 @@ class AppHeader extends StatelessWidget {
   }
 }
 
+class CountBadge extends StatelessWidget {
+  final int count;
+  final Color? color;
+
+  const CountBadge({super.key, required this.count, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    if (count <= 0) return const SizedBox.shrink();
+
+    return PopIn(
+      triggerKey: count,
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+        decoration: BoxDecoration(
+          color: color ?? AppColors.of(context).danger,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.of(context).card, width: 1.4),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          count > 99 ? '99+' : '$count',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            height: 1.2,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class HeaderIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
   final int badgeCount;
+  final ValueListenable<int>? badgeListenable;
+  final double size;
+  final Color color;
 
   const HeaderIconButton({
     super.key,
     required this.icon,
     this.onTap,
     this.badgeCount = 0,
+    this.badgeListenable,
+    this.size = 22,
+    this.color = Colors.white,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget badge(int count) => Positioned(right: 2, top: 4, child: CountBadge(count: count));
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        IconButton(icon: Icon(icon, color: Colors.white, size: 22), onPressed: onTap),
-        if (badgeCount > 0)
-          Positioned(
-            right: 4,
-            top: 4,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-              decoration: BoxDecoration(
-                color: AppColors.of(context).danger,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                badgeCount > 99 ? '99+' : '$badgeCount',
-                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
+        IconButton(icon: Icon(icon, color: color, size: size), onPressed: onTap),
+        if (badgeListenable != null)
+          ValueListenableBuilder<int>(
+            valueListenable: badgeListenable!,
+            builder: (context, count, _) => badge(count),
+          )
+        else
+          badge(badgeCount),
       ],
     );
   }
@@ -161,40 +196,36 @@ class CartIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: ApiService.cartCount,
-      builder: (context, count, _) => Stack(
-        clipBehavior: Clip.none,
-        children: [
-          IconButton(
-            icon: Icon(Icons.shopping_cart_outlined, color: color, size: size),
-            onPressed: onTap,
-          ),
-          if (count > 0)
-            Positioned(
-              right: 2,
-              top: 4,
-              child: PopIn(
-                triggerKey: count,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: AppColors.of(context).danger,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    count > 99 ? '99+' : '$count',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+    return HeaderIconButton(
+      icon: Icons.shopping_cart_outlined,
+      onTap: onTap,
+      size: size,
+      color: color,
+      badgeListenable: ApiService.cartCount,
+    );
+  }
+}
+
+class ChatIconButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final double size;
+  final Color color;
+
+  const ChatIconButton({
+    super.key,
+    required this.onTap,
+    this.size = 22,
+    this.color = Colors.white,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return HeaderIconButton(
+      icon: Icons.chat_bubble_outline,
+      onTap: onTap,
+      size: size,
+      color: color,
+      badgeListenable: ApiService.unreadChatCount,
     );
   }
 }
