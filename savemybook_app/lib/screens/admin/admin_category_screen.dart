@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
@@ -19,6 +20,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
   final ApiService _api = ApiService();
   List<AdminCategory> _categories = [];
   bool _isLoading = true;
+  bool _isReordering = false;
 
   @override
   void initState() {
@@ -35,11 +37,45 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
     });
   }
 
+  Future<void> _onReorder(int oldIndex, int newIndex) async {
+    if (_isReordering) return;
+
+    // ReorderableListView 的 newIndex 是「移除前」的索引，往下拖要扣一。
+    final target = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    if (target == oldIndex) return;
+
+    final previous = List<AdminCategory>.from(_categories);
+    final reordered = List<AdminCategory>.from(_categories);
+    reordered.insert(target, reordered.removeAt(oldIndex));
+
+    HapticFeedback.selectionClick();
+    setState(() {
+      _categories = reordered;
+      _isReordering = true;
+    });
+
+    final error = await _api.reorderCategories(
+      reordered.map((e) => e.categoryId).toList(),
+    );
+    if (!mounted) return;
+
+    if (error != null) {
+      // 失敗就回到拖曳前的順序，不要讓畫面停在一個沒存進去的狀態。
+      setState(() {
+        _categories = previous;
+        _isReordering = false;
+      });
+      showAppSnackBar(context, error, isError: true);
+      return;
+    }
+
+    setState(() => _isReordering = false);
+    _load();
+  }
+
   Future<void> _edit({AdminCategory? category}) async {
     final c = AppColors.of(context);
     final nameController = TextEditingController(text: category?.name ?? '');
-    final orderController =
-        TextEditingController(text: '${category?.sortOrder ?? _categories.length}');
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
@@ -65,11 +101,11 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
             ),
             const SizedBox(height: 16),
             AppTextField(controller: nameController, hint: '分類名稱', maxLength: 50),
-            const SizedBox(height: 12),
-            AppTextField(
-              controller: orderController,
-              hint: '排序（數字越小越前面）',
-              keyboardType: TextInputType.number,
+            const SizedBox(height: 8),
+            Text(
+              // 排序統一交給拖曳，這裡不再放數字欄位，免得兩種輸入互相打架。
+              category == null ? '新增的分類會排在最後，之後可以拖曳調整順序' : '順序請直接在列表上拖曳調整',
+              style: TextStyle(fontSize: 11, color: c.textHint),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -103,7 +139,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
       () => _api.saveCategory(
         categoryId: category?.categoryId,
         name: name,
-        sortOrder: int.tryParse(orderController.text.trim()) ?? 0,
+        sortOrder: category?.sortOrder ?? _categories.length,
       ),
     );
     if (!mounted) return;
@@ -169,12 +205,36 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                                 ),
                               ],
                             )
-                          : ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                          : ReorderableListView.builder(
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                               itemCount: _categories.length,
-                              itemBuilder: (_, i) => FadeSlideIn(
+                              onReorder: _onReorder,
+                              buildDefaultDragHandles: false,
+                              header: Padding(
+                                padding: const EdgeInsets.only(bottom: 10, left: 4),
+                                child: Text(
+                                  '長按右側把手可拖曳調整順序，數字越小越前面',
+                                  style: TextStyle(fontSize: 11, color: c.textHint),
+                                ),
+                              ),
+                              proxyDecorator: (child, index, animation) => AnimatedBuilder(
+                                animation: animation,
+                                builder: (context, _) => Transform.scale(
+                                  scale: 1 + 0.04 * Curves.easeOut.transform(animation.value),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    elevation: 8 * animation.value,
+                                    borderRadius: BorderRadius.circular(16),
+                                    shadowColor: c.shadow,
+                                    child: child,
+                                  ),
+                                ),
+                              ),
+                              itemBuilder: (_, i) => _buildCard(
+                                _categories[i],
+                                c,
                                 index: i,
-                                child: _buildCard(_categories[i], c),
+                                key: ValueKey(_categories[i].categoryId),
                               ),
                             ),
                     ),
@@ -185,9 +245,11 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
     );
   }
 
-  Widget _buildCard(AdminCategory category, AppColors c) {
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
+  Widget _buildCard(AdminCategory category, AppColors c, {required int index, required Key key}) {
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.only(bottom: 12),
+      child: AppCard(
       onTap: () => _edit(category: category),
       child: Row(
         children: [
@@ -200,7 +262,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              '${category.sortOrder}',
+              '${index + 1}',
               style: TextStyle(fontWeight: FontWeight.bold, color: c.accent),
             ),
           ),
@@ -230,7 +292,16 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
             icon: Icon(Icons.delete_outline_rounded, color: c.iconInactive, size: 20),
             onPressed: () => _delete(category),
           ),
+          // 把手獨立出來，卡片本身的點擊才不會被拖曳手勢吃掉。
+          ReorderableDragStartListener(
+            index: index,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 2, right: 2),
+              child: Icon(Icons.drag_handle_rounded, color: c.iconInactive, size: 22),
+            ),
+          ),
         ],
+      ),
       ),
     );
   }

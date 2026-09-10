@@ -940,6 +940,45 @@ router.post('/categories', requireAdmin('content'), async (req, res) => {
   }
 });
 
+router.put('/categories/reorder', requireAdmin('content'), async (req, res) => {
+  const order = req.body.order;
+
+  if (!Array.isArray(order) || order.length === 0) {
+    return res.status(400).json({ success: false, message: '請提供排序後的分類順序' });
+  }
+
+  const ids = order.map((id) => parseInt(id)).filter(Number.isFinite);
+  if (ids.length !== order.length) {
+    return res.status(400).json({ success: false, message: '排序資料格式不正確' });
+  }
+
+  try {
+    const existing = await prisma.book_categories.findMany({
+      where: { category_id: { in: ids } },
+      select: { category_id: true }
+    });
+    if (existing.length !== ids.length) {
+      return res.status(400).json({ success: false, message: '排序資料含有不存在的分類' });
+    }
+
+    // 整批一起寫，避免中途失敗留下一半舊一半新的順序。
+    await prisma.$transaction(
+      ids.map((id, index) =>
+        prisma.book_categories.update({
+          where: { category_id: id },
+          data: { sort_order: index }
+        })
+      )
+    );
+
+    await logAction(req.user.userId, '調整分類排序', 'category', null, ids.join(','));
+    res.status(200).json({ success: true, message: '已更新排序' });
+  } catch (err) {
+    console.error('[調整分類排序失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
 router.put('/categories/:id', requireAdmin('content'), async (req, res) => {
   const categoryId = parseInt(req.params.id);
   const name = (req.body.category_name || '').trim();

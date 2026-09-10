@@ -878,6 +878,12 @@ class ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? '儲存失敗');
   }
 
+  Future<String?> reorderCategories(List<int> orderedIds) async {
+    final res = await _send('PUT', '/admin/categories/reorder', body: {'order': orderedIds});
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '排序失敗');
+  }
+
   Future<String?> deleteCategory(int categoryId) async {
     final res = await _send('DELETE', '/admin/categories/$categoryId');
     if (res == null) return '請先登入';
