@@ -8,6 +8,7 @@ import '../widgets/app_buttons.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../widgets/swipe_action.dart';
 import 'book_manage_screen.dart';
 import 'chat_list_screen.dart';
 import 'purchase_history_screen.dart';
@@ -241,20 +242,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget _buildTile(AppNotification n, AppColors c) {
-    return Dismissible(
-      key: ValueKey(n.notificationId),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: c.danger.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Icon(Icons.delete_outline_rounded, color: c.danger),
+    return SwipeActionTile(
+      itemKey: ValueKey('notification_${n.notificationId}'),
+      endToStart: SwipeAction(
+        icon: Icons.delete_outline_rounded,
+        label: '刪除',
+        color: c.danger,
+        dismisses: true,
+        onTrigger: () async => true,
+        onDismissed: () => _delete(n),
       ),
-      onDismissed: (_) => _delete(n),
       child: AppCard(
         margin: const EdgeInsets.only(bottom: 12),
         onTap: () => _onTapNotification(n),

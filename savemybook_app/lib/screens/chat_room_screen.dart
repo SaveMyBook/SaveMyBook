@@ -9,6 +9,7 @@ import '../widgets/app_tiles.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import 'book_detail_screen.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final int roomId;
@@ -173,6 +174,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   Widget _buildBubble(int index, AppColors c) {
     final message = _messages[index];
+    final card = message.bookCard;
+    if (card != null) return _buildBookCard(card, c);
+
     final isMine = message.senderId == _myId;
 
     // 連續同一人的訊息只在最後一則顯示頭像與時間，中間的收緊間距，
@@ -250,6 +254,73 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         ],
       ),
     );
+  }
+
+  /// 從商品頁點「聯絡賣家」時插進對話的商品卡片，
+  /// 讓同一間聊天室可以聊很多本書而不用開新的房間。
+  Widget _buildBookCard(ChatBookCard card, AppColors c) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+          child: AppCard(
+            padding: const EdgeInsets.all(10),
+            onTap: () => _openBook(card.bookId),
+            child: Row(
+              children: [
+                BookThumbnail(imageUrl: card.imageUrl, width: 52, height: 66, radius: 8),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '想詢問這本書',
+                        style: TextStyle(fontSize: 11, color: c.textHint),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        card.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: c.textPrimary,
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '\$${card.price.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: c.accent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, color: c.iconInactive, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openBook(int bookId) async {
+    final book = await _api.fetchBookDetail(bookId);
+    if (!mounted) return;
+    if (book == null) {
+      showAppSnackBar(context, '這本書已經下架了', isError: true);
+      return;
+    }
+    Navigator.push(context, MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)));
   }
 
   Widget _buildInputBar(AppColors c) {

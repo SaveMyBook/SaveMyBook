@@ -48,12 +48,18 @@ class AppHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
+    // 有頁籤／篩選列接在下面時整塊都不做圓角：圓角會把頁籤的底線指示器
+    // 切掉，而且白色的列被削出圓弧會在下面露出底色。
+    final radius = bottom == null
+        ? const BorderRadius.only(
+            bottomLeft: Radius.circular(24),
+            bottomRight: Radius.circular(24),
+          )
+        : BorderRadius.zero;
+
     return LightStatusBar(
       child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
+        borderRadius: radius,
         child: Container(
           // 必須撐滿寬度：Column 預設的 crossAxisAlignment.center 會讓子項目收縮成
           // 內容寬度，header 會變成畫面中間一小塊，Positioned 的按鈕也會疊到標題上。

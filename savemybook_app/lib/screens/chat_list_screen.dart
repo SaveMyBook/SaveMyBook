@@ -225,15 +225,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     ],
                   ],
                 ),
-                if (room.bookTitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    '關於《${room.bookTitle}》',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11, color: AppColors.primary),
-                  ),
-                ],
                 const SizedBox(height: 4),
                 Text(
                   room.lastMessage,

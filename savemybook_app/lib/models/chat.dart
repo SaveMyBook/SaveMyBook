@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../utils/api_helpers.dart';
 
 class ChatPartner {
@@ -19,8 +21,6 @@ class ChatPartner {
 class ChatRoom {
   final int roomId;
   final ChatPartner partner;
-  final String? bookTitle;
-  final String? bookImageUrl;
   final String lastMessage;
   final int unreadCount;
   final DateTime? updatedAt;
@@ -30,27 +30,62 @@ class ChatRoom {
     required this.partner,
     required this.lastMessage,
     required this.unreadCount,
-    this.bookTitle,
-    this.bookImageUrl,
     this.updatedAt,
   });
 
   factory ChatRoom.fromJson(Map<String, dynamic> json) {
-    final book = json['book'] as Map<String, dynamic>?;
     final last = json['last_message'] as Map<String, dynamic>?;
     final messageType = last?['message_type'] as String?;
+    final content = last?['content'] as String? ?? '';
+
+    String preview() {
+      if (last == null) return '尚無訊息';
+      if (messageType == 'image') return '[圖片]';
+      final card = ChatBookCard.tryParse(content);
+      return card == null ? content : '[商品] ${card.title}';
+    }
 
     return ChatRoom(
       roomId: parseInt(json['room_id']),
       partner: ChatPartner.fromJson(json['partner'] as Map<String, dynamic>?),
-      bookTitle: book?['title'] as String?,
-      bookImageUrl: resolveAssetUrl(book?['image_url']),
-      lastMessage: last == null
-          ? '尚無訊息'
-          : (messageType == 'image' ? '[圖片]' : (last['content'] as String? ?? '')),
+      lastMessage: preview(),
       unreadCount: parseInt(json['unread_count']),
       updatedAt: parseDate(json['updated_at']),
     );
+  }
+}
+
+/// 對話裡的商品卡片。後端用 system 訊息夾帶 JSON 送過來，
+/// 前端解出來才畫成卡片，解不出來就當一般文字顯示。
+class ChatBookCard {
+  static const prefix = '[book]';
+
+  final int bookId;
+  final String title;
+  final double price;
+  final String? imageUrl;
+
+  ChatBookCard({
+    required this.bookId,
+    required this.title,
+    required this.price,
+    this.imageUrl,
+  });
+
+  static ChatBookCard? tryParse(String content) {
+    if (!content.startsWith(prefix)) return null;
+    try {
+      final json = jsonDecode(content.substring(prefix.length));
+      if (json is! Map) return null;
+      return ChatBookCard(
+        bookId: parseInt(json['book_id']),
+        title: json['title'] as String? ?? '',
+        price: parseDouble(json['price']),
+        imageUrl: resolveAssetUrl(json['image_url']),
+      );
+    } catch (_) {
+      return null;
+    }
   }
 }
 
@@ -68,6 +103,8 @@ class ChatMessage {
     required this.messageType,
     this.createdAt,
   });
+
+  ChatBookCard? get bookCard => messageType == 'system' ? ChatBookCard.tryParse(content) : null;
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(

@@ -15,15 +15,24 @@ const shapeRoom = (room, myId) => {
 
   return {
     room_id: room.room_id,
-    book: room.books
-      ? { book_id: room.books.book_id, title: room.books.title, image_url: room.books.book_images[0]?.image_url ?? null }
-      : null,
     partner: other,
     last_message: last ? { content: last.content, message_type: last.message_type, created_at: last.created_at } : null,
     unread_count: room._count?.chat_messages ?? 0,
     updated_at: room.updated_at
   };
 };
+
+
+/// 詢問商品時插進對話裡的商品卡片。用 system 訊息夾帶 JSON，
+/// 這樣不必為了它在 chat_messages 加欄位。
+const BOOK_CARD_PREFIX = '[book]';
+
+const buildBookCard = (book) => BOOK_CARD_PREFIX + JSON.stringify({
+  book_id: book.book_id,
+  title: book.title,
+  price: book.price,
+  image_url: book.book_images[0]?.image_url ?? null
+});
 
 router.get('/rooms', authenticateToken, async (req, res) => {
   const myId = req.user.userId;
@@ -122,14 +131,63 @@ router.post('/rooms', authenticateToken, async (req, res) => {
   try {
     const [userA, userB] = myId < partnerId ? [myId, partnerId] : [partnerId, myId];
 
+    // 一個人只有一間聊天室，不再依 book_id 分開。問不同的書時改成
+    // 在同一段對話裡插一張商品卡片。
     let room = await prisma.chat_rooms.findFirst({
-      where: { user_a_id: userA, user_b_id: userB, book_id: bookId }
+      where: { user_a_id: userA, user_b_id: userB },
+      orderBy: { updated_at: 'desc' }
     });
 
     if (!room) {
       room = await prisma.chat_rooms.create({
         data: { user_a_id: userA, user_b_id: userB, book_id: bookId }
       });
+    }
+
+    if (bookId) {
+      const book = await prisma.books.findUnique({
+        where: { book_id: bookId },
+        select: {
+          book_id: true,
+          title: true,
+          price: true,
+          book_images: { select: { image_url: true }, take: 1 }
+        }
+      });
+
+      if (book) {
+        const card = buildBookCard(book);
+
+        // 同一本書如果剛剛才貼過就不要重複洗版。
+        const recent = await prisma.chat_messages.findFirst({
+          where: { room_id: room.room_id, message_type: 'system', content: card },
+          orderBy: { created_at: 'desc' }
+        });
+
+        const latest = await prisma.chat_messages.findFirst({
+          where: { room_id: room.room_id },
+          orderBy: { created_at: 'desc' },
+          select: { message_id: true }
+        });
+
+        if (!recent || !latest || recent.message_id !== latest.message_id) {
+          await prisma.$transaction([
+            prisma.chat_messages.create({
+              data: {
+                room_id: room.room_id,
+                sender_id: myId,
+                content: card,
+                message_type: 'system',
+                is_read: true
+              }
+            }),
+            prisma.chat_rooms.update({
+              where: { room_id: room.room_id },
+              data: { book_id: bookId, updated_at: new Date() }
+            })
+          ]);
+        }
+      }
     }
 
     res.status(200).json({ success: true, data: { room_id: room.room_id } });
@@ -216,7 +274,9 @@ router.post('/rooms/:roomId/messages', authenticateToken, async (req, res) => {
           user_id: room.user_a_id === myId ? room.user_b_id : room.user_a_id,
           type: 'message',
           title: '您有一則新訊息',
-          content: messageType === 'image' ? '[圖片]' : content.slice(0, 100),
+          content: messageType === 'image'
+            ? '[圖片]'
+            : (content.startsWith(BOOK_CARD_PREFIX) ? '[商品]' : content.slice(0, 100)),
           related_id: roomId,
           related_type: 'chat_room'
         }
