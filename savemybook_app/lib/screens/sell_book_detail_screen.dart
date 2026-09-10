@@ -265,8 +265,8 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         );
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const HomeScreen(),
-            transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+            pageBuilder: (_, _, _) => const HomeScreen(),
+            transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
           ),
               (route) => false,
         );
@@ -314,7 +314,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                     child: ElevatedButton(
                       onPressed: _submitForm,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: c.accent,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
                       ),
@@ -380,15 +380,18 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
               children: [
                 Text.rich(
                   TextSpan(
-                      text: '書籍照片',
-                      children: const [
-                        TextSpan(text: ' *', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                      ]
+                    text: '書籍照片',
+                    children: [
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: c.danger, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
                 const SizedBox(width: 8),
-                Text('($requiredCount/3)', style: TextStyle(fontSize: 14, color: requiredCount < 3 ? Colors.red.shade400 : c.textSecondary, fontWeight: FontWeight.w600)),
+                Text('($requiredCount/3)', style: TextStyle(fontSize: 14, color: requiredCount < 3 ? c.danger : c.textSecondary, fontWeight: FontWeight.w600)),
                 const Spacer(),
                 Text('${_images.length}/10', style: TextStyle(fontSize: 14, color: c.textHint)),
               ],
@@ -452,7 +455,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         const SizedBox(height: 6),
         Text(
             _getImageLabel(index),
-            style: TextStyle(color: index < 3 ? Colors.red.shade400 : c.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)
+            style: TextStyle(color: index < 3 ? c.danger : c.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)
         ),
       ],
     );
@@ -463,7 +466,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       key: key,
       children: [
         Material(
-          color: AppColors.primary.withOpacity(0.05),
+          color: c.accent.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -471,15 +474,15 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
             child: Container(
               width: 90, height: 110,
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.primary.withOpacity(0.5), width: 1.5, style: BorderStyle.solid),
+                border: Border.all(color: c.accent.withValues(alpha: 0.5), width: 1.5, style: BorderStyle.solid),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_photo_alternate_outlined, color: AppColors.primary, size: 28),
-                  SizedBox(height: 4),
-                  Text('加入', style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+                  Icon(Icons.add_photo_alternate_outlined, color: c.accent, size: 28),
+                  const SizedBox(height: 4),
+                  Text('加入', style: TextStyle(color: c.accent, fontSize: 13, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -488,7 +491,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         const SizedBox(height: 6),
         Text(
             _getImageLabel(index),
-            style: TextStyle(color: index < 3 ? Colors.red.shade400 : c.textHint, fontSize: 12, fontWeight: FontWeight.w600)
+            style: TextStyle(color: index < 3 ? c.danger : c.textHint, fontSize: 12, fontWeight: FontWeight.w600)
         ),
       ],
     );
@@ -501,16 +504,22 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       child: Row(
         children: [
           SizedBox(
-              width: 80,
-              child: Text.rich(
-                TextSpan(
-                    text: label,
-                    children: [
-                      if (isRequired) const TextSpan(text: ' *', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                    ]
-                ),
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
-              )
+            width: 96,
+            child: Text.rich(
+              TextSpan(
+                text: label,
+                children: [
+                  if (isRequired)
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(color: c.danger, fontWeight: FontWeight.bold),
+                    ),
+                ],
+              ),
+              softWrap: false,
+              overflow: TextOverflow.visible,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
+            ),
           ),
           Expanded(child: child),
         ],

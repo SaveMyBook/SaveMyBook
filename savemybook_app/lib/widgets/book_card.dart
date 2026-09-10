@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
+import 'app_tiles.dart';
 import '../models/book.dart';
 import '../screens/book_detail_screen.dart';
 import '../utils/app_colors.dart';
@@ -12,6 +13,15 @@ class BookCard extends StatelessWidget {
   const BookCard({super.key, required this.book, this.isListMode = false});
 
   static const _titleStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.bold, height: 1.2);
+
+  static Widget _imagePlaceholder(AppColors c, double width, double height) {
+    return Container(
+      width: width,
+      height: height,
+      color: c.inputFill,
+      child: Icon(Icons.menu_book_rounded, color: c.iconInactive, size: 32),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +41,10 @@ class BookCard extends StatelessWidget {
             tag: 'book_image_${book.bookId}',
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.network(book.imageUrl, height: 140, width: double.infinity, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(height: 140, color: c.inputFill, child: Icon(Icons.image_not_supported, color: c.iconInactive))),
+              child: book.hasImage
+                  ? Image.network(book.imageUrl, height: 140, width: double.infinity, fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _imagePlaceholder(c, double.infinity, 140))
+                  : _imagePlaceholder(c, double.infinity, 140),
             ),
           ),
           Expanded(child: LayoutBuilder(builder: (context, constraints) {
@@ -58,15 +70,15 @@ class BookCard extends StatelessWidget {
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [
-                    _buildTag(book.categoryName, c.categoryChip, AppColors.primary),
+                    _buildTag(book.categoryName, c.categoryChip, c.accent),
                     const SizedBox(width: 6),
-                    _buildTag(book.conditionText, book.conditionColor.withOpacity(0.12), book.conditionColor),
+                    _buildTag(book.conditionText, book.conditionColor.withValues(alpha: 0.12), book.conditionColor),
                   ]),
                   const SizedBox(height: 8),
                   Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
                 ]),
                 Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                  const CircleAvatar(radius: 9, backgroundImage: NetworkImage('https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=200&auto=format&fit=crop')),
+                  _sellerAvatar(c, 9),
                   const SizedBox(width: 6),
                   Expanded(child: Text(sellerName, locale: const Locale('en', 'US'), style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis)),
                 ]),
@@ -92,8 +104,10 @@ class BookCard extends StatelessWidget {
             tag: 'book_image_${book.bookId}',
             child: ClipRRect(
               borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-              child: Image.network(book.imageUrl, width: 110, height: 140, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(width: 110, height: 140, color: c.inputFill, child: Icon(Icons.image_not_supported, color: c.iconInactive))),
+              child: book.hasImage
+                  ? Image.network(book.imageUrl, width: 110, height: 140, fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _imagePlaceholder(c, 110, 140))
+                  : _imagePlaceholder(c, 110, 140),
             ),
           ),
 
@@ -109,16 +123,16 @@ class BookCard extends StatelessWidget {
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [
-                    _buildTag(book.categoryName, c.categoryChip, AppColors.primary),
+                    _buildTag(book.categoryName, c.categoryChip, c.accent),
                     const SizedBox(width: 6),
-                    _buildTag(book.conditionText, book.conditionColor.withOpacity(0.12), book.conditionColor),
+                    _buildTag(book.conditionText, book.conditionColor.withValues(alpha: 0.12), book.conditionColor),
                   ]),
                 ]),
 
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.end, children: [
                   Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
                   Row(mainAxisSize: MainAxisSize.min, children: [
-                    const CircleAvatar(radius: 9, backgroundImage: NetworkImage('https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=200&auto=format&fit=crop')),
+                    _sellerAvatar(c, 9),
                     const SizedBox(width: 5),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 80),
@@ -134,8 +148,13 @@ class BookCard extends StatelessWidget {
     );
   }
 
+  Widget _sellerAvatar(AppColors c, double radius) {
+    return UserAvatar(imageUrl: book.sellerAvatarUrl, radius: radius);
+  }
+
   String _sellerName() {
-    String name = book.location.replaceAll('賣家：', '');
+    if (book.sellerName.isNotEmpty) return book.sellerName;
+    final name = book.location.replaceAll('賣家：', '');
     return name == '地點未提供' ? '管理員' : name;
   }
 
@@ -147,7 +166,7 @@ class BookCard extends StatelessWidget {
     return BoxDecoration(
       color: c.card,
       borderRadius: BorderRadius.circular(16),
-      boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+      boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
     );
   }
 

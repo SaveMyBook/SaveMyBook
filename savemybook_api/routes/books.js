@@ -59,17 +59,20 @@ router.get('/', async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
     const keyword = req.query.keyword || '';
-    const status = req.query.status || 'on_sale'; 
+    const status = req.query.status || 'on_sale';
     const sort = req.query.sort || 'newest';
-    
+    const sellerId = req.query.seller_id ? parseInt(req.query.seller_id) : null;
+
     let categoryIdsArray = [];
     if (req.query.category_ids) {
       categoryIdsArray = req.query.category_ids.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
     }
 
     const whereCondition = {
-      status: status,
-      is_approved: true,
+      // 賣家在「書籍管理」要看得到全部狀態的書，因此 status=all 時不加狀態條件
+      ...(status !== 'all' && { status: status }),
+      // 查詢自己的書籍時不套用審核條件，避免待審核的書籍看不到
+      ...(sellerId ? { seller_id: sellerId } : { is_approved: true }),
       ...(categoryIdsArray.length > 0 && { category_id: { in: categoryIdsArray } }),
       ...(keyword && {
         OR: [
@@ -95,18 +98,19 @@ router.get('/', async (req, res) => {
         take: limit,
         orderBy: orderByCondition,
         include: {
-          users: { select: { nickname: true, avatar_url: true } },
-          book_images: { select: { image_url: true, image_type: true } }, 
-          book_categories: { select: { category_name: true } }
+          users: { select: { user_id: true, nickname: true, avatar_url: true } },
+          book_images: { select: { image_url: true, image_type: true } },
+          book_categories: { select: { category_name: true } },
+          smart_cabinets: { select: { cabinet_id: true, cabinet_name: true, address: true, open_time: true, close_time: true } }
         }
       }),
       prisma.books.count({ where: whereCondition })
     ]);
 
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       pagination: { total: totalCount, page: page, limit: limit, total_pages: Math.ceil(totalCount / limit) },
-      data: books 
+      data: books
     });
   } catch (err) {
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
@@ -119,12 +123,13 @@ router.get('/:id', async (req, res) => {
     const book = await prisma.books.findUnique({
       where: { book_id: bookId },
       include: {
-        users: { select: { nickname: true, avatar_url: true, created_at: true } },
+        users: { select: { user_id: true, nickname: true, avatar_url: true, created_at: true } },
         book_images: true,
-        book_categories: { select: { category_name: true } }
+        book_categories: { select: { category_name: true } },
+        smart_cabinets: { select: { cabinet_id: true, cabinet_name: true, address: true, open_time: true, close_time: true } }
       }
     });
-    
+
     if (!book) return res.status(404).json({ success: false, message: '找不到該書籍' });
 
     prisma.books.update({ where: { book_id: bookId }, data: { view_count: { increment: 1 } } }).catch(() => {});
@@ -140,12 +145,11 @@ router.post('/', authenticateToken, upload.fields([
   { name: 'barcode_image', maxCount: 1 },
   { name: 'optional_images', maxCount: 7 }
 ]), async (req, res) => {
-  
-  const { 
-    title, author, publisher, publish_date, isbn, 
-    category_id, price, condition_level, cabinet_id, description 
+  const {
+    title, author, publisher, publish_date, isbn,
+    category_id, price, condition_level, cabinet_id, description
   } = req.body;
-  
+
   if (!title || price === undefined) {
     return res.status(400).json({ success: false, message: '缺少必要欄位：書名(title) 或 價格(price)' });
   }
@@ -154,7 +158,7 @@ router.post('/', authenticateToken, upload.fields([
     const cleanPrice = parseFloat(price);
     const cleanCategoryId = (category_id && category_id !== 'null') ? parseInt(category_id) : null;
     const cleanCabinetId = (cabinet_id && cabinet_id !== 'null') ? parseInt(cabinet_id) : null;
-    
+
     let cleanDate = publish_date;
     if (cleanDate) {
       cleanDate = cleanDate.replace(/-+$/, '');
@@ -163,20 +167,20 @@ router.post('/', authenticateToken, upload.fields([
 
     const newBook = await prisma.books.create({
       data: {
-        title, 
-        author: author || null, 
-        publisher: publisher || null, 
-        publish_date: cleanDate || null, 
+        title,
+        author: author || null,
+        publisher: publisher || null,
+        publish_date: cleanDate || null,
         isbn: isbn || null,
         description: description || null,
         price: isNaN(cleanPrice) ? 0 : cleanPrice,
-        quantity: 1, 
+        quantity: 1,
         condition_level: condition_level || 'good',
         category_id: cleanCategoryId,
         cabinet_id: cleanCabinetId,
-        status: 'on_sale', 
-        is_approved: true, 
-        seller_id: req.user.userId 
+        status: 'on_sale',
+        is_approved: true,
+        seller_id: req.user.userId
       }
     });
 
@@ -193,7 +197,7 @@ router.post('/', authenticateToken, upload.fields([
           });
         }
       };
-      
+
       processFile(req.files['cover_image'], 'cover');
       processFile(req.files['back_image'], 'back');
       processFile(req.files['barcode_image'], 'other');
@@ -213,10 +217,10 @@ router.post('/', authenticateToken, upload.fields([
 
 router.put('/:id', authenticateToken, async (req, res) => {
   const bookId = parseInt(req.params.id);
-  const { 
-    title, author, publisher, publish_date, isbn, 
-    category_id, price, quantity, condition_level, 
-    condition_note, description, cabinet_id, status 
+  const {
+    title, author, publisher, publish_date, isbn,
+    category_id, price, quantity, condition_level,
+    condition_note, description, cabinet_id, status
   } = req.body;
 
   try {
@@ -228,9 +232,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
     const updatedBook = await prisma.books.update({
       where: { book_id: bookId },
-      data: { 
-        title, author, publisher, publish_date, isbn, 
-        price: price !== undefined ? parseFloat(price) : undefined, 
+      data: {
+        title, author, publisher, publish_date, isbn,
+        price: price !== undefined ? parseFloat(price) : undefined,
         quantity: quantity !== undefined ? parseInt(quantity) : undefined,
         condition_level, condition_note, description,
         category_id: category_id !== undefined ? parseInt(category_id) : undefined,
@@ -258,6 +262,54 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     });
     res.status(200).json({ success: true, message: '書籍已成功下架' });
   } catch (err) {
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.post('/:id/images', authenticateToken, upload.array('images', 8), async (req, res) => {
+  const bookId = parseInt(req.params.id);
+  try {
+    const book = await prisma.books.findUnique({ where: { book_id: bookId } });
+    if (!book) return res.status(404).json({ success: false, message: '找不到該書籍' });
+    if (book.seller_id !== req.user.userId && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: '存取被拒，您無權限修改他人的商品' });
+    }
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, message: '請選擇要上傳的圖片' });
+    }
+
+    await prisma.book_images.createMany({
+      data: req.files.map(f => ({
+        book_id: bookId,
+        image_url: `/uploads/books/${f.filename}`,
+        image_type: 'other'
+      }))
+    });
+
+    const images = await prisma.book_images.findMany({ where: { book_id: bookId } });
+    res.status(201).json({ success: true, message: '圖片已新增', data: images });
+  } catch (err) {
+    console.error('[新增書籍圖片失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.delete('/:id/images/:imageId', authenticateToken, async (req, res) => {
+  const bookId = parseInt(req.params.id);
+  const imageId = parseInt(req.params.imageId);
+  try {
+    const book = await prisma.books.findUnique({ where: { book_id: bookId } });
+    if (!book) return res.status(404).json({ success: false, message: '找不到該書籍' });
+    if (book.seller_id !== req.user.userId && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: '存取被拒，您無權限修改他人的商品' });
+    }
+
+    const result = await prisma.book_images.deleteMany({ where: { image_id: imageId, book_id: bookId } });
+    if (result.count === 0) return res.status(404).json({ success: false, message: '找不到該圖片' });
+
+    res.status(200).json({ success: true, message: '圖片已刪除' });
+  } catch (err) {
+    console.error('[刪除書籍圖片失敗]:', err);
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/theme_provider.dart';
 import '../utils/app_colors.dart';
+import 'change_password_screen.dart';
 import 'terms_screen.dart';
 import 'privacy_screen.dart';
 
@@ -32,11 +33,11 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('外觀設定', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
+            Text('外觀設定', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
             const SizedBox(height: 12),
             _buildDarkModeCard(context, c),
             const SizedBox(height: 32),
-            const Text('關於我們', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
+            Text('關於我們', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
             const SizedBox(height: 12),
             _buildExpandableCard(
               c,
@@ -54,7 +55,12 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.security_rounded,
               title: '設定與隱私',
               children: [
-                _buildSubItem(c, icon: Icons.key_outlined, title: '更改密碼'),
+                _buildSubItem(
+                  c,
+                  icon: Icons.key_outlined,
+                  title: '更改密碼',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())),
+                ),
                 _buildSubItem(
                   c,
                   icon: Icons.privacy_tip_outlined,
@@ -87,7 +93,7 @@ class SettingsScreen extends StatelessWidget {
           decoration: BoxDecoration(
               color: c.card,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]
+              boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
@@ -97,7 +103,7 @@ class SettingsScreen extends StatelessWidget {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 leading: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: c.textPrimary),
                 title: Text('深色模式', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary)),
-                trailing: Switch.adaptive(value: isDark, activeColor: AppColors.primary, onChanged: (_) => themeProvider.toggle()),
+                trailing: Switch.adaptive(value: isDark, activeThumbColor: c.accent, onChanged: (_) => themeProvider.toggle()),
               ),
             ),
           ),
@@ -111,7 +117,7 @@ class SettingsScreen extends StatelessWidget {
       decoration: BoxDecoration(
           color: c.card,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]
+          boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),

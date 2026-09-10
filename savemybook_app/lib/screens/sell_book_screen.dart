@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../models/category.dart';
 import '../services/api_service.dart';
@@ -110,7 +109,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
+      SnackBar(content: Text(msg), backgroundColor: AppColors.of(context).danger, behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -270,7 +269,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
           child: ElevatedButton(
             onPressed: _onNext,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: c.accent,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
@@ -326,14 +325,20 @@ class _SellBookScreenState extends State<SellBookScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: SizedBox(
-              width: 72,
+              width: 90,
               child: Text.rich(
                 TextSpan(
-                    text: label,
-                    children: [
-                      if (isRequired) const TextSpan(text: ' *', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                    ]
+                  text: label,
+                  children: [
+                    if (isRequired)
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: c.danger, fontWeight: FontWeight.bold),
+                      ),
+                  ],
                 ),
+                softWrap: false,
+                overflow: TextOverflow.visible,
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
               ),
             ),

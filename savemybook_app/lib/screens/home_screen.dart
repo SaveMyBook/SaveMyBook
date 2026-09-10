@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'cart_screen.dart';
+import 'chat_list_screen.dart';
+import 'notification_screen.dart';
 import 'profile_screen.dart';
 import 'sell_book_screen.dart';
 import 'pickup_book_screen.dart';
@@ -6,6 +9,8 @@ import '../models/category.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/app_header.dart';
+import '../widgets/animations.dart';
 import '../widgets/book_card.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../widgets/search_bar_widget.dart';
@@ -36,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _categoryScrollController = ScrollController();
   double _categoryScrollProgress = 0.0;
-  bool _isNavVisible = true;
   bool _isGridView = true;
 
   @override
@@ -68,8 +72,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  Future<void> _loadBadges() => _apiService.refreshCartCount();
+
   Future<void> _loadInitialData() async {
     setState(() => _isLoadingInitial = true);
+    _loadBadges();
     try {
       final results = await Future.wait([
         _apiService.fetchCategories(),
@@ -145,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
             index: _selectedIndex,
             children: [
               _buildHomeContent(),
-              const Scaffold(body: Center(child: Text('通知'))),
+              const NotificationScreen(embedded: true),
               const SellBookScreen(),
               PickupBookScreen(isActive: _selectedIndex == 3),
               const ProfileScreen(),
@@ -160,7 +167,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: CustomBottomNav(
               selectedIndex: _selectedIndex,
               isVisible: !isKeyboardOpen,
-              onItemSelected: (i) => setState(() { _selectedIndex = i; }),
+              onItemSelected: (i) {
+                setState(() { _selectedIndex = i; });
+                if (i == 0 || i == 4) _loadBadges();
+              },
             ),
           ),
         ],
@@ -175,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildCustomHeader(),
         Expanded(
           child: RefreshIndicator(
-            color: AppColors.primary,
+            color: c.accent,
             onRefresh: _onRefresh,
             child: SingleChildScrollView(
               controller: _scrollController,
@@ -193,12 +203,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       const iw = 60.0;
                       return Container(
                         height: 2, width: tw,
-                        decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(1)),
+                        decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(1)),
                         child: Stack(children: [
                           AnimatedPositioned(
                             duration: const Duration(milliseconds: 100),
                             left: _categoryScrollProgress * (tw - iw), top: 0, bottom: 0,
-                            child: Container(width: iw, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.4), borderRadius: BorderRadius.circular(1))),
+                            child: Container(width: iw, decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(1))),
                           ),
                         ]),
                       );
@@ -225,7 +235,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCustomHeader() {
     final c = AppColors.of(context);
     final userName = ApiService.currentUser?.nickname ?? '訪客';
-    return Container(
+return LightStatusBar(
+      child: Container(
       decoration: BoxDecoration(color: c.headerBg, borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24))),
       child: SafeArea(
         bottom: false,
@@ -236,10 +247,18 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Text('哈囉, $userName', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                const Row(children: [
-                  Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 26),
-                  SizedBox(width: 16),
-                  Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
+                Row(children: [
+                  CartIconButton(
+                    size: 26,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ChatListScreen()),
+                    ),
+                  ),
                 ])
               ]),
             ),
@@ -250,6 +269,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ]),
         ),
+      ),
       ),
     );
   }
@@ -276,10 +296,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: c.categoryChip,
-                  border: Border.all(color: sel ? AppColors.primary : Colors.transparent, width: 1.5),
+                  border: Border.all(color: sel ? c.accent : Colors.transparent, width: 1.5),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Center(child: Text(cat.categoryName, style: TextStyle(color: AppColors.primary, fontWeight: sel ? FontWeight.bold : FontWeight.w500, fontSize: 14))),
+                child: Center(child: Text(cat.categoryName, style: TextStyle(color: c.accent, fontWeight: sel ? FontWeight.bold : FontWeight.w500, fontSize: 14))),
               ),
             ),
           );
@@ -307,7 +327,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: _isGridView ? AppColors.primary : Colors.transparent,
+                    color: _isGridView ? c.accent : Colors.transparent,
                     borderRadius: BorderRadius.circular(7),
                   ),
                   child: Icon(Icons.grid_view_rounded, size: 20, color: _isGridView ? Colors.white : c.iconInactive),
@@ -318,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: !_isGridView ? AppColors.primary : Colors.transparent,
+                    color: !_isGridView ? c.accent : Colors.transparent,
                     borderRadius: BorderRadius.circular(7),
                   ),
                   child: Icon(Icons.view_agenda_rounded, size: 20, color: !_isGridView ? Colors.white : c.iconInactive),
@@ -338,10 +358,10 @@ class _HomeScreenState extends State<HomeScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       color: c.card, offset: const Offset(0, 36),
       itemBuilder: (_) => _sortOptions.map((ch) => PopupMenuItem(value: ch,
-          child: Text(ch, style: TextStyle(color: _currentSort == ch ? AppColors.primary : c.textPrimary, fontWeight: _currentSort == ch ? FontWeight.bold : FontWeight.normal)))).toList(),
+          child: Text(ch, style: TextStyle(color: _currentSort == ch ? c.accent : c.textPrimary, fontWeight: _currentSort == ch ? FontWeight.bold : FontWeight.normal)))).toList(),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(color: c.accent, borderRadius: BorderRadius.circular(8)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Text(_currentSort, style: const TextStyle(color: Colors.white, fontSize: 14)),
           const SizedBox(width: 4),
@@ -363,15 +383,18 @@ class _HomeScreenState extends State<HomeScreen> {
         key: const ValueKey('grid'), padding: EdgeInsets.zero, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.58),
         itemCount: _books.length,
-        itemBuilder: (_, i) => BookCard(book: _books[i]),
+        itemBuilder: (_, i) => FadeSlideIn(index: i, child: BookCard(book: _books[i])),
       );
     } else {
       content = ListView.builder(
         key: const ValueKey('list'), padding: EdgeInsets.zero, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
         itemCount: _books.length,
-        itemBuilder: (_, i) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: BookCard(book: _books[i], isListMode: true),
+        itemBuilder: (_, i) => FadeSlideIn(
+          index: i,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: BookCard(book: _books[i], isListMode: true),
+          ),
         ),
       );
     }

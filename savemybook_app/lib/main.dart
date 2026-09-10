@@ -6,6 +6,7 @@ import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/api_service.dart';
 import 'services/theme_provider.dart';
+import 'utils/app_theme.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -63,9 +64,11 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const MaterialApp(
+      return MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: SplashScreen(),
+        theme: AppTheme.build(Brightness.light),
+        darkTheme: AppTheme.build(Brightness.dark),
+        home: const SplashScreen(),
       );
     }
 
@@ -77,48 +80,11 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
           debugShowCheckedModeBanner: false,
           navigatorKey: navigatorKey,
           themeMode: mode,
-          theme: _buildTheme(Brightness.light),
-          darkTheme: _buildTheme(Brightness.dark),
+          theme: AppTheme.build(Brightness.light),
+          darkTheme: AppTheme.build(Brightness.dark),
           home: _initialRoute,
         );
       },
-    );
-  }
-
-  static ThemeData _buildTheme(Brightness brightness) {
-    final isDark = brightness == Brightness.dark;
-    final textColor = isDark ? const Color(0xFFE8E8E8) : const Color(0xFF151E27);
-    final scaffoldBg = isDark ? const Color(0xFF121212) : const Color(0xFFF3F5F7);
-
-    return ThemeData(
-      brightness: brightness,
-      primaryColor: const Color(0xFF627D8D),
-      scaffoldBackgroundColor: scaffoldBg,
-      fontFamily: 'NotoSansTC',
-      fontFamilyFallback: const ['PingFang TC', 'Heiti TC', 'Noto Sans TC', 'sans-serif'],
-      splashColor: isDark ? Colors.white12 : Colors.black12,
-      highlightColor: isDark ? Colors.white10 : Colors.black12,
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-        },
-      ),
-      textTheme: TextTheme(
-        bodyLarge: TextStyle(color: textColor),
-        bodyMedium: TextStyle(color: textColor),
-        displayLarge: TextStyle(color: textColor),
-        displayMedium: TextStyle(color: textColor),
-        displaySmall: TextStyle(color: textColor),
-        headlineMedium: TextStyle(color: textColor),
-        headlineSmall: TextStyle(color: textColor),
-        titleLarge: TextStyle(color: textColor),
-        titleMedium: TextStyle(color: textColor),
-        titleSmall: TextStyle(color: textColor),
-        labelLarge: TextStyle(color: textColor),
-        labelMedium: TextStyle(color: textColor),
-        labelSmall: TextStyle(color: textColor),
-      ).apply(fontFamily: 'NotoSansTC'),
     );
   }
 }

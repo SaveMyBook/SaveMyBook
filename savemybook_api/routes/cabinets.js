@@ -20,10 +20,10 @@ router.get('/', authenticateToken, async (req, res) => {
         cabinet_id: 'asc'
       }
     });
-    
-    res.status(200).json({ 
-      success: true, 
-      data: cabinets 
+
+    res.status(200).json({
+      success: true,
+      data: cabinets
     });
   } catch (err) {
     res.status(500).json({ success: false, message: '伺服器發生錯誤，無法取得書櫃列表' });

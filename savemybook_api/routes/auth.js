@@ -18,13 +18,37 @@ router.post('/login', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).json({ success: false, message: '帳號或密碼錯誤' });
+      return res.status(404).json({
+        success: false,
+        code: 'ACCOUNT_NOT_FOUND',
+        message: '此 Email 尚未註冊'
+      });
     }
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
-    
+
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: '帳號或密碼錯誤' });
+      return res.status(401).json({
+        success: false,
+        code: 'INVALID_PASSWORD',
+        message: '密碼錯誤'
+      });
+    }
+
+    if (user.is_blacklisted) {
+      return res.status(403).json({
+        success: false,
+        code: 'ACCOUNT_BLACKLISTED',
+        message: '此帳號已被停用，請聯絡客服'
+      });
+    }
+
+    if (!user.is_active) {
+      return res.status(403).json({
+        success: false,
+        code: 'ACCOUNT_INACTIVE',
+        message: '此帳號已停權，請聯絡客服'
+      });
     }
 
     const payload = {
@@ -36,13 +60,12 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     console.log(`User ${user.email} logged in successfully.`);
-    
+
     res.status(200).json({
       success: true,
       message: '登入成功',
       data: { token }
     });
-
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });

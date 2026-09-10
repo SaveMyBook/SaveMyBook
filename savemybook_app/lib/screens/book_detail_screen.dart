@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import '../models/book.dart';
+import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/app_tiles.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_dialogs.dart';
+import '../widgets/app_header.dart';
+import '../widgets/state_views.dart';
+import 'cart_screen.dart';
+import 'chat_room_screen.dart';
 import 'home_screen.dart';
 import 'search_screen.dart';
 
@@ -14,13 +22,136 @@ class BookDetailScreen extends StatefulWidget {
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
   final PageController _pageController = PageController();
+  final ApiService _api = ApiService();
   int _currentImageIndex = 0;
   late List<String> _images;
+
+  bool _isFavorite = false;
+  bool _isAddingToCart = false;
+
+  bool get _isOwnBook =>
+      widget.book.sellerId != 0 && widget.book.sellerId == ApiService.currentUser?.userId;
 
   @override
   void initState() {
     super.initState();
-    _images = widget.book.imageUrls.isNotEmpty ? widget.book.imageUrls : [widget.book.imageUrl];
+    _images = widget.book.imageUrls;
+    _loadFavoriteState();
+  }
+
+  Future<void> _loadFavoriteState() async {
+    if (ApiService.authToken == null) return;
+    final ids = await _api.fetchFavoriteIds();
+    if (!mounted) return;
+    setState(() => _isFavorite = ids.contains(widget.book.bookId));
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (ApiService.authToken == null) {
+      showAppSnackBar(context, '請先登入才能收藏書籍', isError: true);
+      return;
+    }
+
+    final next = !_isFavorite;
+    setState(() => _isFavorite = next);
+
+    final ok = next
+        ? await _api.addFavorite(widget.book.bookId)
+        : await _api.removeFavorite(widget.book.bookId);
+
+    if (!mounted) return;
+    if (!ok) {
+      setState(() => _isFavorite = !next);
+      showAppSnackBar(context, '操作失敗，請先登入或稍後再試', isError: true);
+    } else {
+      showAppSnackBar(context, next ? '已加入收藏' : '已取消收藏');
+    }
+  }
+
+  Future<void> _addToCart() async {
+    if (_isAddingToCart) return;
+    if (ApiService.authToken == null) {
+      showAppSnackBar(context, '請先登入才能加入購物車', isError: true);
+      return;
+    }
+    if (widget.book.status != 'on_sale') {
+      showAppSnackBar(context, '這本書目前${widget.book.statusText}，無法購買', isError: true);
+      return;
+    }
+    setState(() => _isAddingToCart = true);
+    final error = await _api.addToCart(widget.book.bookId);
+    if (!mounted) return;
+    setState(() => _isAddingToCart = false);
+
+    if (error != null) {
+      showAppSnackBar(context, error, isError: true);
+    } else {
+      showAppSnackBar(context, '已加入購物車');
+    }
+  }
+
+  Future<void> _chatWithSeller() async {
+    if (widget.book.sellerId == 0) {
+      showAppSnackBar(context, '找不到賣家資訊', isError: true);
+      return;
+    }
+    if (ApiService.authToken == null) {
+      showAppSnackBar(context, '請先登入才能聯絡賣家', isError: true);
+      return;
+    }
+
+    final roomId = await runBusy(
+      context,
+      () => _api.openChatRoom(userId: widget.book.sellerId, bookId: widget.book.bookId),
+    );
+    if (!mounted) return;
+    if (roomId == null) {
+      showAppSnackBar(context, '無法建立聊天室，請先登入', isError: true);
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatRoomScreen(roomId: roomId, partnerName: widget.book.sellerName),
+      ),
+    );
+  }
+
+  Future<void> _reportBook() async {
+    if (ApiService.authToken == null) {
+      showAppSnackBar(context, '請先登入才能檢舉', isError: true);
+      return;
+    }
+    if (_isOwnBook) {
+      showAppSnackBar(context, '無法檢舉自己上架的商品', isError: true);
+      return;
+    }
+
+    final reason = await showTextInputDialog(
+      context,
+      title: '檢舉此商品',
+      hint: '請說明違規原因（至少 5 個字）',
+      maxLines: 3,
+      confirmLabel: '送出',
+    );
+
+    if (reason == null || !mounted) return;
+
+    if (reason.length < 5) {
+      showAppSnackBar(context, '請至少填寫 5 個字的檢舉原因', isError: true);
+      return;
+    }
+
+    final error = await runBusy(
+      context,
+      () => _api.submitReport(
+        targetType: 'book',
+        targetId: widget.book.bookId,
+        reason: reason,
+      ),
+    );
+    if (!mounted) return;
+    showAppSnackBar(context, error ?? '檢舉已送出，我們會盡快處理', isError: error != null);
   }
 
   @override
@@ -86,13 +217,17 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () async {
-                  final keyword = await Navigator.push<String>(context, PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const SearchScreen(initialKeyword: ''),
-                    transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+                  final navigator = Navigator.of(context);
+                  final keyword = await navigator.push<String>(PageRouteBuilder(
+                    pageBuilder: (_, _, _) => const SearchScreen(initialKeyword: ''),
+                    transitionsBuilder: (_, animation, _, child) =>
+                        FadeTransition(opacity: animation, child: child),
                   ));
-                  if (keyword != null && keyword.isNotEmpty && context.mounted) {
-                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => HomeScreen(initialKeyword: keyword)), (_) => false);
-                  }
+                  if (keyword == null || keyword.isEmpty || !mounted) return;
+                  navigator.pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => HomeScreen(initialKeyword: keyword)),
+                    (_) => false,
+                  );
                 },
                 child: Container(
                   height: 40, padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -105,8 +240,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 16),
-            const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+            const SizedBox(width: 8),
+            CartIconButton(
+              size: 24,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CartScreen()),
+              ),
+            ),
           ]),
         ),
       ),
@@ -114,6 +255,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   Widget _buildImageCarousel(AppColors c) {
+    if (_images.isEmpty) {
+      return Container(
+        height: 360,
+        width: double.infinity,
+        color: c.inputFill,
+        child: Icon(Icons.menu_book_rounded, size: 72, color: c.iconInactive),
+      );
+    }
+
     return Stack(alignment: Alignment.bottomCenter, children: [
       SizedBox(
         height: 360,
@@ -121,7 +271,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           controller: _pageController, itemCount: _images.length,
           onPageChanged: (i) => setState(() => _currentImageIndex = i),
           itemBuilder: (context, index) {
-            final imageWidget = Image.network(_images[index], fit: BoxFit.cover, width: double.infinity);
+            final imageWidget = Image.network(
+              _images[index],
+              fit: BoxFit.cover,
+              width: double.infinity,
+              errorBuilder: (_, _, _) => Container(
+                color: c.inputFill,
+                child: Icon(Icons.menu_book_rounded, size: 72, color: c.iconInactive),
+              ),
+            );
             final heroWidget = index == 0 ? Hero(tag: 'book_image_${widget.book.bookId}', child: imageWidget) : imageWidget;
 
             return GestureDetector(
@@ -153,20 +311,34 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           return AnimatedContainer(
             duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic,
             margin: const EdgeInsets.symmetric(horizontal: 4.0), width: isActive ? 16.0 : 6.0, height: 6.0,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: isActive ? Colors.white : Colors.white.withOpacity(0.5)),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.5)),
           );
         }),
       )),
       Positioned(top: 16, right: 16, child: PopupMenuButton<String>(
         icon: Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle),
+          decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.3), shape: BoxShape.circle),
           child: const Icon(Icons.more_vert, color: Colors.white, size: 24),
         ),
-        onSelected: (value) {},
+        onSelected: (value) {
+          if (value == 'report') {
+            _reportBook();
+          } else {
+            showAppSnackBar(context, '書籍連結：savemybook://book/${widget.book.bookId}');
+          }
+        },
         itemBuilder: (_) => [
           const PopupMenuItem(value: 'share', child: Row(children: [Icon(Icons.ios_share, size: 20), SizedBox(width: 8), Text('分享')])),
-          const PopupMenuItem(value: 'report', child: Row(children: [Icon(Icons.warning_amber_rounded, size: 20, color: Colors.red), SizedBox(width: 8), Text('檢舉')])),
+          if (!_isOwnBook)
+            PopupMenuItem(
+              value: 'report',
+              child: Row(children: [
+                Icon(Icons.warning_amber_rounded, size: 20, color: c.danger),
+                const SizedBox(width: 8),
+                const Text('檢舉'),
+              ]),
+            ),
         ],
       )),
     ]);
@@ -175,7 +347,21 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   Widget _buildTitleRow(AppColors c) {
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Expanded(child: Text(widget.book.title, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.25))),
-      Padding(padding: const EdgeInsets.only(top: 4.0), child: Icon(Icons.favorite_border, size: 26, color: c.iconInactive)),
+      Padding(
+        padding: const EdgeInsets.only(top: 4.0),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _toggleFavorite,
+          child: PopIn(
+            triggerKey: _isFavorite,
+            child: Icon(
+              _isFavorite ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+              size: 26,
+              color: _isFavorite ? c.accent : c.iconInactive,
+            ),
+          ),
+        ),
+      ),
     ]);
   }
 
@@ -211,12 +397,21 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   Widget _buildSellerInfo(AppColors c) {
-    String sellerName = widget.book.location.replaceAll('賣家：', '');
-    if (sellerName == '地點未提供') sellerName = '管理員';
+    final sellerName = widget.book.sellerName.isEmpty ? '管理員' : widget.book.sellerName;
+    final avatarUrl = widget.book.sellerAvatarUrl;
+
     return Row(children: [
-      const CircleAvatar(radius: 18, backgroundImage: NetworkImage('https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=200&auto=format&fit=crop')),
+      UserAvatar(imageUrl: avatarUrl, radius: 18),
       const SizedBox(width: 12),
-      Text(sellerName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textPrimary)),
+      Expanded(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(sellerName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textPrimary)),
+          if (widget.book.cabinetName.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text('取書地點：${widget.book.cabinetName}', style: TextStyle(fontSize: 12, color: c.textSecondary)),
+          ],
+        ]),
+      ),
     ]);
   }
 
@@ -226,7 +421,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       decoration: BoxDecoration(color: c.card, border: Border(top: BorderSide(color: c.divider, width: 1))),
       child: Row(children: [
         Expanded(child: ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: _isOwnBook ? null : _chatWithSeller,
           icon: const Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.primary),
           label: const Text('與賣家聊聊', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary)),
           style: ElevatedButton.styleFrom(
@@ -236,11 +431,11 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         )),
         const SizedBox(width: 16),
         Expanded(child: ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: _isOwnBook || _isAddingToCart ? null : _addToCart,
           icon: const Icon(Icons.shopping_cart_outlined, size: 18),
-          label: const Text('加入購物車', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+          label: Text(_isOwnBook ? '這是你的書' : '加入購物車', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary, foregroundColor: Colors.white,
+            backgroundColor: c.accent, foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), elevation: 0,
           ),
         )),
@@ -304,7 +499,12 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
             panEnabled: true,
             minScale: 0.5,
             maxScale: 4.0,
-            child: Image.network(widget.images[index], fit: BoxFit.contain),
+            child: Image.network(
+              widget.images[index],
+              fit: BoxFit.contain,
+              errorBuilder: (_, _, _) =>
+                  const Icon(Icons.broken_image_outlined, color: Colors.white54, size: 72),
+            ),
           );
         },
       ),

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import 'animations.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int selectedIndex;
@@ -39,7 +40,7 @@ class CustomBottomNav extends StatelessWidget {
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(color: c.shadow, blurRadius: 32, offset: const Offset(0, 8)),
-                BoxShadow(color: c.shadow.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2)),
+                BoxShadow(color: c.shadow.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2)),
               ],
             ),
             child: ClipRRect(
@@ -74,6 +75,8 @@ class CustomBottomNav extends StatelessWidget {
 
   Widget _buildNavItem(IconData solidIcon, IconData outlinedIcon, String label, int index, AppColors c) {
     final isSelected = selectedIndex == index;
+    final color = isSelected ? c.accent : c.iconInactive;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => onItemSelected(index),
@@ -83,19 +86,31 @@ class CustomBottomNav extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                isSelected ? solidIcon : outlinedIcon,
-                size: 22,
-                color: isSelected ? AppColors.primary : c.iconInactive,
+              AnimatedScale(
+                scale: isSelected ? 1.15 : 1.0,
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOutBack,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, animation) =>
+                      FadeTransition(opacity: animation, child: child),
+                  child: Icon(
+                    isSelected ? solidIcon : outlinedIcon,
+                    key: ValueKey(isSelected),
+                    size: 22,
+                    color: color,
+                  ),
+                ),
               ),
               const SizedBox(height: 2),
-              Text(
-                label,
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? AppColors.primary : c.iconInactive,
+                  color: color,
                 ),
+                child: Text(label),
               ),
             ],
           ),
@@ -105,19 +120,32 @@ class CustomBottomNav extends StatelessWidget {
   }
 
   Widget _buildCenterButton() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    final isSelected = selectedIndex == 2;
+
+    return PressableScale(
+      scale: 0.9,
       onTap: () => onItemSelected(2),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOut,
         width: 44, height: 44,
         decoration: BoxDecoration(
           color: AppColors.primary,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(isSelected ? 22 : 15),
           boxShadow: [
-            BoxShadow(color: AppColors.primary.withOpacity(0.35), blurRadius: 10, offset: const Offset(0, 4)),
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: isSelected ? 0.5 : 0.35),
+              blurRadius: isSelected ? 16 : 10,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
+        child: AnimatedRotation(
+          turns: isSelected ? 0.125 : 0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutBack,
+          child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
+        ),
       ),
     );
   }
