@@ -144,19 +144,10 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          AppHeader(
-            title: '購買紀錄',
-            icon: Icons.shopping_bag_outlined,
-            bottom: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.white,
-              indicatorWeight: 3,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-              labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              unselectedLabelStyle: const TextStyle(fontSize: 14),
-              tabs: _tabs.map((t) => Tab(text: t.label)).toList(),
-            ),
+          const AppHeader(title: '購買紀錄', icon: Icons.shopping_bag_outlined),
+          AppTabBar(
+            controller: _tabController,
+            tabs: _tabs.map((t) => t.label).toList(),
           ),
           Expanded(
             child: _isLoading

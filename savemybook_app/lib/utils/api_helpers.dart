@@ -2,9 +2,6 @@
 /// 統一在這裡補上網域，避免每個 model 各寫一份。
 const String kApiHost = 'https://api.savemybook.today';
 
-const String kPlaceholderBookImage =
-    'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=400&auto=format&fit=crop';
-
 String? resolveAssetUrl(dynamic raw) {
   if (raw == null) return null;
   final url = raw.toString();

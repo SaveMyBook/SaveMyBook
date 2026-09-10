@@ -296,7 +296,18 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
               children: [
                 for (final image in _existingImages)
                   _thumb(
-                    child: Image.network(image.url, fit: BoxFit.cover, width: 64, height: 84),
+                    child: Image.network(
+                      image.url,
+                      fit: BoxFit.cover,
+                      width: 64,
+                      height: 84,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 64,
+                        height: 84,
+                        color: c.inputFill,
+                        child: Icon(Icons.broken_image_outlined, color: c.iconInactive),
+                      ),
+                    ),
                     onRemove: () => _removeExistingImage(image),
                     c: c,
                   ),

@@ -31,7 +31,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _images = widget.book.imageUrls.isNotEmpty ? widget.book.imageUrls : [widget.book.imageUrl];
+    _images = widget.book.imageUrls;
     _loadFavoriteState();
   }
 
@@ -225,6 +225,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   Widget _buildImageCarousel(AppColors c) {
+    if (_images.isEmpty) {
+      return Container(
+        height: 360,
+        width: double.infinity,
+        color: c.inputFill,
+        child: Icon(Icons.menu_book_rounded, size: 72, color: c.iconInactive),
+      );
+    }
+
     return Stack(alignment: Alignment.bottomCenter, children: [
       SizedBox(
         height: 360,
@@ -232,7 +241,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           controller: _pageController, itemCount: _images.length,
           onPageChanged: (i) => setState(() => _currentImageIndex = i),
           itemBuilder: (context, index) {
-            final imageWidget = Image.network(_images[index], fit: BoxFit.cover, width: double.infinity);
+            final imageWidget = Image.network(
+              _images[index],
+              fit: BoxFit.cover,
+              width: double.infinity,
+              errorBuilder: (_, __, ___) => Container(
+                color: c.inputFill,
+                child: Icon(Icons.menu_book_rounded, size: 72, color: c.iconInactive),
+              ),
+            );
             final heroWidget = index == 0 ? Hero(tag: 'book_image_${widget.book.bookId}', child: imageWidget) : imageWidget;
 
             return GestureDetector(
@@ -446,7 +463,12 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
             panEnabled: true,
             minScale: 0.5,
             maxScale: 4.0,
-            child: Image.network(widget.images[index], fit: BoxFit.contain),
+            child: Image.network(
+              widget.images[index],
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.broken_image_outlined, color: Colors.white54, size: 72),
+            ),
           );
         },
       ),

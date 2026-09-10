@@ -173,19 +173,8 @@ class _AdminReportScreenState extends State<AdminReportScreen>
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          AppHeader(
-            title: '商品檢舉處理',
-            icon: Icons.report_gmailerrorred_outlined,
-            bottom: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.white,
-              indicatorWeight: 3,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-              labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              tabs: const [Tab(text: '待處理'), Tab(text: '已處理')],
-            ),
-          ),
+          const AppHeader(title: '商品檢舉處理', icon: Icons.report_gmailerrorred_outlined),
+          AppTabBar(controller: _tabController, tabs: const ['待處理', '已處理']),
           Expanded(
             child: _isLoading
                 ? const LoadingView()

@@ -112,19 +112,10 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          AppHeader(
-            title: '銷售紀錄',
-            icon: Icons.inventory_2_outlined,
-            bottom: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.white,
-              indicatorWeight: 3,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-              labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              unselectedLabelStyle: const TextStyle(fontSize: 14),
-              tabs: _tabs.map((t) => Tab(text: t.label)).toList(),
-            ),
+          const AppHeader(title: '銷售紀錄', icon: Icons.inventory_2_outlined),
+          AppTabBar(
+            controller: _tabController,
+            tabs: _tabs.map((t) => t.label).toList(),
           ),
           Expanded(
             child: _isLoading

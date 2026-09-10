@@ -13,6 +13,16 @@ class BookCard extends StatelessWidget {
 
   static const _titleStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.bold, height: 1.2);
 
+  /// 沒有書封（或載入失敗）時的本地替代圖
+  static Widget _imagePlaceholder(AppColors c, double width, double height) {
+    return Container(
+      width: width,
+      height: height,
+      color: c.inputFill,
+      child: Icon(Icons.menu_book_rounded, color: c.iconInactive, size: 32),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return isListMode ? _buildListCard(context) : _buildGridCard(context);
@@ -31,8 +41,10 @@ class BookCard extends StatelessWidget {
             tag: 'book_image_${book.bookId}',
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.network(book.imageUrl, height: 140, width: double.infinity, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(height: 140, color: c.inputFill, child: Icon(Icons.image_not_supported, color: c.iconInactive))),
+              child: book.hasImage
+                  ? Image.network(book.imageUrl, height: 140, width: double.infinity, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _imagePlaceholder(c, double.infinity, 140))
+                  : _imagePlaceholder(c, double.infinity, 140),
             ),
           ),
           Expanded(child: LayoutBuilder(builder: (context, constraints) {
@@ -92,8 +104,10 @@ class BookCard extends StatelessWidget {
             tag: 'book_image_${book.bookId}',
             child: ClipRRect(
               borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-              child: Image.network(book.imageUrl, width: 110, height: 140, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(width: 110, height: 140, color: c.inputFill, child: Icon(Icons.image_not_supported, color: c.iconInactive))),
+              child: book.hasImage
+                  ? Image.network(book.imageUrl, width: 110, height: 140, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _imagePlaceholder(c, 110, 140))
+                  : _imagePlaceholder(c, 110, 140),
             ),
           ),
 

@@ -130,14 +130,19 @@ class _BookManageScreenState extends State<BookManageScreen> {
             child: SizedBox(
               height: 122,
               width: double.infinity,
-              child: Image.network(
-                book.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: c.inputFill,
-                  child: Icon(Icons.menu_book_rounded, color: c.iconInactive),
-                ),
-              ),
+              child: book.hasImage
+                  ? Image.network(
+                      book.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: c.inputFill,
+                        child: Icon(Icons.menu_book_rounded, color: c.iconInactive, size: 32),
+                      ),
+                    )
+                  : Container(
+                      color: c.inputFill,
+                      child: Icon(Icons.menu_book_rounded, color: c.iconInactive, size: 32),
+                    ),
             ),
           ),
           Padding(

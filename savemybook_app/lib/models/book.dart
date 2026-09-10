@@ -73,7 +73,7 @@ class Book {
       parsedCategory = json['book_categories']['category_name'];
     }
 
-    String parsedImageUrl = kPlaceholderBookImage;
+    String parsedImageUrl = '';
     final List<String> parsedImageUrls = [];
     final List<BookImage> parsedImages = [];
 
@@ -150,6 +150,10 @@ class Book {
       default:         return const Color(0xFF90A4AE);
     }
   }
+
+  /// 是否有實際上傳的書封。沒有時 UI 應該畫本地圖示，
+  /// 而不是連到外部佔位圖——那在網路不穩時會變成破圖。
+  bool get hasImage => imageUrl.isNotEmpty;
 
   String get statusText {
     switch (status) {
