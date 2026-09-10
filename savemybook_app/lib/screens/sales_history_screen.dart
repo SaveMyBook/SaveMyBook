@@ -134,10 +134,13 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '銷售紀錄', icon: Icons.inventory_2_outlined),
-          AppTabBar(
-            controller: _tabController,
-            tabs: _tabs.map((t) => t.label).toList(),
+          AppHeader(
+            title: '銷售紀錄',
+            icon: Icons.inventory_2_outlined,
+            bottom: AppTabBar(
+              controller: _tabController,
+              tabs: _tabs.map((t) => t.label).toList(),
+            ),
           ),
           Expanded(
             child: SwitchIn(child: _isLoading

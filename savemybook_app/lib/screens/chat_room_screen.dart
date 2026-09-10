@@ -44,6 +44,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   void dispose() {
     _pollTimer?.cancel();
+    // 進聊天室等於已讀，離開時把 header 的紅點數字補正。
+    _api.fetchUnreadChatCount();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();

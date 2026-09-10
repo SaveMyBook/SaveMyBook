@@ -45,8 +45,11 @@ const page = ({ title, body, status = 200 }) => ({
   .brand { color: #627d8d; font-weight: 700; letter-spacing: .5px; font-size: 13px; margin-bottom: 20px; }
   a.btn {
     display: block; background: #627d8d; color: #fff; text-decoration: none;
-    padding: 14px; border-radius: 14px; font-weight: 700;
+    padding: 14px; border-radius: 14px; font-weight: 700; border: 0; width: 100%;
+    font-size: 15px; font-family: inherit; cursor: pointer;
   }
+  .hint { color: #90a4ae; font-size: 12px; line-height: 1.6; margin: 14px 0 0; }
+  .hint[hidden] { display: none; }
   @media (prefers-color-scheme: dark) {
     body { background: #121212; color: #e8e8e8; }
     .card { background: #1e1e1e; box-shadow: none; }
@@ -112,7 +115,26 @@ router.get('/u/:id', async (req, res) => {
         <h1>${escapeHtml(user.nickname)}</h1>
         <p class="bio">${escapeHtml(user.bio || '這個人很懶，什麼都沒留下')}</p>
         <p class="meta">上架 ${user._count.books} 本書 ・ ${escapeHtml(joined)} 加入</p>
-        <a class="btn" href="savemybook://user/${user.user_id}">在 App 中開啟</a>`,
+        <button class="btn" id="open-app">在 App 中開啟</button>
+        <p class="hint" id="hint" hidden>
+          沒有反應嗎？請先安裝 SaveMyBook App，<br>或在 App 的「分享檔案」裡直接掃描這個 QR Code。
+        </p>
+        <script>
+          (function () {
+            var scheme = 'savemybook://user/${user.user_id}';
+            document.getElementById('open-app').addEventListener('click', function () {
+              var hint = document.getElementById('hint');
+              var left = false;
+              function onHide() { if (document.hidden) left = true; }
+              document.addEventListener('visibilitychange', onHide);
+              window.location.href = scheme;
+              setTimeout(function () {
+                document.removeEventListener('visibilitychange', onHide);
+                if (!left) hint.hidden = false;
+              }, 1500);
+            });
+          })();
+        </script>`,
     });
 
     res.status(200).type('html').send(result.html);

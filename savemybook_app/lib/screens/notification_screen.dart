@@ -25,15 +25,33 @@ class _NotificationScreenState extends State<NotificationScreen> {
   List<AppNotification> _notifications = [];
   bool _isLoading = true;
 
+  int _lastSeenUnread = ApiService.unreadNotificationCount.value;
+
   @override
   void initState() {
     super.initState();
+    // 首頁把通知頁包在 IndexedStack 裡，不會重建，所以改成聽未讀數自己補資料。
+    ApiService.unreadNotificationCount.addListener(_onUnreadChanged);
     _load();
+  }
+
+  @override
+  void dispose() {
+    ApiService.unreadNotificationCount.removeListener(_onUnreadChanged);
+    super.dispose();
+  }
+
+  void _onUnreadChanged() {
+    final next = ApiService.unreadNotificationCount.value;
+    final increased = next > _lastSeenUnread;
+    _lastSeenUnread = next;
+    if (increased && mounted) _load();
   }
 
   Future<void> _load() async {
     final list = await _api.fetchNotifications();
     if (!mounted) return;
+    _lastSeenUnread = ApiService.unreadNotificationCount.value;
     setState(() {
       _notifications = list;
       _isLoading = false;
@@ -41,10 +59,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _markAllRead() async {
-    if (_notifications.every((n) => n.isRead)) {
+    final unread = _notifications.where((n) => !n.isRead).length;
+    if (unread == 0) {
       showAppSnackBar(context, '沒有未讀的通知');
       return;
     }
+
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '全部標為已讀',
+      message: '要把 $unread 則未讀通知全部標為已讀嗎？此動作無法復原。',
+      confirmLabel: '全部已讀',
+    );
+    if (!confirmed || !mounted) return;
 
     final ok = await runBusy(context, () => _api.markAllNotificationsRead());
     if (!mounted) return;

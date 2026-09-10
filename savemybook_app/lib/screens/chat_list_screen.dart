@@ -5,6 +5,7 @@ import '../models/chat.dart';
 import '../services/api_service.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
+import '../widgets/app_dialogs.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
@@ -47,6 +48,32 @@ class _ChatListScreenState extends State<ChatListScreen> {
     });
   }
 
+  Future<void> _markAllRead() async {
+    final unread = _rooms.fold<int>(0, (sum, r) => sum + r.unreadCount);
+    if (unread == 0) {
+      showAppSnackBar(context, '沒有未讀訊息');
+      return;
+    }
+
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '全部標為已讀',
+      message: '要把 $unread 則未讀訊息全部標為已讀嗎？此動作無法復原。',
+      confirmLabel: '全部已讀',
+    );
+    if (!confirmed || !mounted) return;
+
+    final ok = await runBusy(context, () => _api.markAllChatsRead());
+    if (!mounted) return;
+
+    if (ok == true) {
+      showAppSnackBar(context, '已全部標為已讀');
+      _load();
+    } else {
+      showAppSnackBar(context, '操作失敗，請稍後再試', isError: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
@@ -59,6 +86,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             title: '聊天室',
             icon: Icons.chat_bubble_outline_rounded,
             actions: [
+              HeaderIconButton(icon: Icons.done_all_rounded, onTap: _markAllRead),
               CartIconButton(
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
               ),

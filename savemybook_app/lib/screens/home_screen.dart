@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'cart_screen.dart';
 import 'chat_list_screen.dart';
@@ -14,6 +15,7 @@ import '../widgets/animations.dart';
 import '../widgets/book_card.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../widgets/search_bar_widget.dart';
+import '../widgets/state_views.dart';
 
 class HomeScreen extends StatefulWidget {
   final String initialKeyword;
@@ -23,7 +25,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _selectedIndex = 0;
   bool _isLoadingInitial = true;
   bool _isLoadingMore = false;
@@ -43,9 +45,15 @@ class _HomeScreenState extends State<HomeScreen> {
   double _categoryScrollProgress = 0.0;
   bool _isGridView = true;
 
+  Timer? _badgeTimer;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    kBottomNavVisible = true;
+    // 沒有推播，所以固定輪詢讓通知／聊天的紅點自己跳出來。
+    _badgeTimer = Timer.periodic(const Duration(seconds: 20), (_) => _loadBadges());
     _loadInitialData();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
@@ -67,12 +75,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    kBottomNavVisible = false;
+    _badgeTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     _categoryScrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadBadges() => _apiService.refreshCartCount();
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _loadBadges();
+  }
+
+  Future<void> _loadBadges() => _apiService.refreshBadges();
 
   Future<void> _loadInitialData() async {
     setState(() => _isLoadingInitial = true);
@@ -169,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
               isVisible: !isKeyboardOpen,
               onItemSelected: (i) {
                 setState(() { _selectedIndex = i; });
-                if (i == 0 || i == 4) _loadBadges();
+                _loadBadges();
               },
             ),
           ),
@@ -250,14 +266,15 @@ return LightStatusBar(
                 Row(children: [
                   CartIconButton(
                     size: 26,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()))
+                        .then((_) => _loadBadges()),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
-                    onPressed: () => Navigator.push(
+                  ChatIconButton(
+                    size: 24,
+                    onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const ChatListScreen()),
-                    ),
+                    ).then((_) => _loadBadges()),
                   ),
                 ])
               ]),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/chat_room_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/api_service.dart';
+import 'services/deep_link_service.dart';
 import 'services/theme_provider.dart';
 import 'utils/app_theme.dart';
 
@@ -43,6 +45,10 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
       );
     };
 
+    // 先 init 再掛 handler：冷啟動時 navigatorKey 還沒有 currentState，
+    // 連結會先被存起來，等第一個 frame 之後才 flush 出來。
+    await DeepLinkService.init();
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
@@ -59,6 +65,33 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
         _isLoading = false;
       });
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DeepLinkService.onProfileLink = _openProfileLink;
+      DeepLinkService.flushPending();
+    });
+  }
+
+  /// 外部掃到別人的 QR、從網頁按「在 App 中開啟」之後，直接幫他開聊天室。
+  Future<void> _openProfileLink(int userId) async {
+    final navigator = navigatorKey.currentState;
+    if (navigator == null) return;
+
+    if (ApiService.authToken == null || ApiService.currentUser == null) {
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (_) => false,
+      );
+      return;
+    }
+    if (userId == ApiService.currentUser?.userId) return;
+
+    final roomId = await ApiService().openChatRoom(userId: userId);
+    if (roomId == null) return;
+
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(builder: (_) => ChatRoomScreen(roomId: roomId)),
+    );
   }
 
   @override

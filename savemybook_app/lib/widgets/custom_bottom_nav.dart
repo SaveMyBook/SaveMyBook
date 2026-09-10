@@ -1,7 +1,10 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import 'animations.dart';
+import 'app_header.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int selectedIndex;
@@ -58,7 +61,8 @@ class CustomBottomNav extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildNavItem(Icons.home_rounded, Icons.home_outlined, '首頁', 0, c),
-                      _buildNavItem(Icons.notifications_rounded, Icons.notifications_none_rounded, '通知', 1, c),
+                      _buildNavItem(Icons.notifications_rounded, Icons.notifications_none_rounded, '通知', 1, c,
+                          badge: ApiService.unreadNotificationCount),
                       _buildCenterButton(),
                       _buildNavItem(Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, '取書', 3, c),
                       _buildNavItem(Icons.person_rounded, Icons.person_outline_rounded, '會員', 4, c),
@@ -73,9 +77,44 @@ class CustomBottomNav extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(IconData solidIcon, IconData outlinedIcon, String label, int index, AppColors c) {
+  Widget _buildNavItem(IconData solidIcon, IconData outlinedIcon, String label, int index, AppColors c,
+      {ValueListenable<int>? badge}) {
     final isSelected = selectedIndex == index;
     final color = isSelected ? c.accent : c.iconInactive;
+
+    Widget icon = AnimatedScale(
+      scale: isSelected ? 1.15 : 1.0,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutBack,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        transitionBuilder: (child, animation) =>
+            FadeTransition(opacity: animation, child: child),
+        child: Icon(
+          isSelected ? solidIcon : outlinedIcon,
+          key: ValueKey(isSelected),
+          size: 22,
+          color: color,
+        ),
+      ),
+    );
+
+    if (badge != null) {
+      icon = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          icon,
+          Positioned(
+            right: -8,
+            top: -4,
+            child: ValueListenableBuilder<int>(
+              valueListenable: badge,
+              builder: (context, count, _) => CountBadge(count: count),
+            ),
+          ),
+        ],
+      );
+    }
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -86,22 +125,7 @@ class CustomBottomNav extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AnimatedScale(
-                scale: isSelected ? 1.15 : 1.0,
-                duration: const Duration(milliseconds: 260),
-                curve: Curves.easeOutBack,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  transitionBuilder: (child, animation) =>
-                      FadeTransition(opacity: animation, child: child),
-                  child: Icon(
-                    isSelected ? solidIcon : outlinedIcon,
-                    key: ValueKey(isSelected),
-                    size: 22,
-                    color: color,
-                  ),
-                ),
-              ),
+              icon,
               const SizedBox(height: 2),
               AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 200),

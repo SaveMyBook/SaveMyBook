@@ -51,8 +51,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               CartIconButton(
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
               ),
-              HeaderIconButton(
-                icon: Icons.chat_bubble_outline,
+              ChatIconButton(
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatListScreen())),
               ),
             ],
@@ -68,8 +67,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             children: const [
                               SizedBox(height: 80),
                               EmptyView(
-                                icon: Icons.bookmark_border_rounded,
-                                message: '還沒有收藏任何書籍\n在書籍頁點右上角的書籤就能收藏',
+                                icon: Icons.bookmark_outline_rounded,
+                                message: '還沒有收藏任何書籍\n點書籍卡片上的書籤就能收藏',
                               ),
                             ],
                           )

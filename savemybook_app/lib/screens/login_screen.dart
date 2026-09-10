@@ -123,118 +123,129 @@ class _LoginScreenState extends State<LoginScreen> {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => FocusScope.of(context).unfocus(),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height -
-                    MediaQuery.of(context).padding.top -
-                    MediaQuery.of(context).padding.bottom,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  FadeSlideIn(
-                    child: Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) =>
-                              Icon(Icons.menu_book_rounded, size: 100, color: c.accent),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // 鍵盤打開時 Scaffold 已經把高度縮掉了，這裡要跟著用縮過的高度，
+              // 否則 ConstrainedBox 還撐著整個畫面高，輸入框會被推到看不見的地方。
+              final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                physics: const ClampingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(height: keyboardOpen ? 20 : 0),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOut,
+                        child: FadeSlideIn(
+                          child: Center(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Image.asset(
+                                'assets/images/logo.png',
+                                width: keyboardOpen ? 72 : 120,
+                                height: keyboardOpen ? 72 : 120,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) =>
+                                    Icon(Icons.menu_book_rounded, size: 100, color: c.accent),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  FadeSlideIn(
-                    index: 1,
-                    child: Text(
-                      'SaveMyBook',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: c.accent),
-                    ),
-                  ),
-                  const SizedBox(height: 48),
-                  FadeSlideIn(
-                    index: 2,
-                    child: AppTextField(
-                      controller: _emailController,
-                      hint: 'Email',
-                      errorText: _emailError,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      maxLength: 255,
-                      onChanged: (_) {
-                        if (_emailError != null) setState(() => _emailError = null);
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  FadeSlideIn(
-                    index: 3,
-                    child: AppTextField(
-                      controller: _passwordController,
-                      hint: '密碼',
-                      errorText: _passwordError,
-                      obscureText: _obscurePassword,
-                      maxLength: 64,
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: (_) => _handleLogin(),
-                      onChanged: (_) {
-                        if (_passwordError != null) setState(() => _passwordError = null);
-                      },
-                      suffix: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          size: 20,
-                          color: c.iconInactive,
+                      SizedBox(height: keyboardOpen ? 12 : 24),
+                      FadeSlideIn(
+                        index: 1,
+                        child: Text(
+                          'SaveMyBook',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: c.accent),
                         ),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
-                    ),
+                      SizedBox(height: keyboardOpen ? 24 : 48),
+                      FadeSlideIn(
+                        index: 2,
+                        child: AppTextField(
+                          controller: _emailController,
+                          hint: 'Email',
+                          errorText: _emailError,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          maxLength: 255,
+                          onChanged: (_) {
+                            if (_emailError != null) setState(() => _emailError = null);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FadeSlideIn(
+                        index: 3,
+                        child: AppTextField(
+                          controller: _passwordController,
+                          hint: '密碼',
+                          errorText: _passwordError,
+                          obscureText: _obscurePassword,
+                          maxLength: 64,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _handleLogin(),
+                          onChanged: (_) {
+                            if (_passwordError != null) setState(() => _passwordError = null);
+                          },
+                          suffix: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              size: 20,
+                              color: c.iconInactive,
+                            ),
+                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: keyboardOpen ? 20 : 32),
+                      FadeSlideIn(
+                        index: 4,
+                        child: PrimaryButton(
+                          label: '登入',
+                          height: 50,
+                          isLoading: _isLoading,
+                          onPressed: _handleLogin,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      FadeSlideIn(
+                        index: 5,
+                        child: TextButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () async {
+                                  final registeredEmail = await Navigator.push<String>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => RegisterScreen(
+                                        initialEmail: _emailController.text.trim(),
+                                      ),
+                                    ),
+                                  );
+                                  if (registeredEmail != null && mounted) {
+                                    _emailController.text = registeredEmail;
+                                  }
+                                },
+                          child: Text('還沒有帳號？立即註冊', style: TextStyle(color: c.accent)),
+                        ),
+                      ),
+                      SizedBox(height: keyboardOpen ? 16 : 0),
+                    ],
                   ),
-                  const SizedBox(height: 32),
-                  FadeSlideIn(
-                    index: 4,
-                    child: PrimaryButton(
-                      label: '登入',
-                      height: 50,
-                      isLoading: _isLoading,
-                      onPressed: _handleLogin,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  FadeSlideIn(
-                    index: 5,
-                    child: TextButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () async {
-                              final registeredEmail = await Navigator.push<String>(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => RegisterScreen(
-                                    initialEmail: _emailController.text.trim(),
-                                  ),
-                                ),
-                              );
-                              if (registeredEmail != null && mounted) {
-                                _emailController.text = registeredEmail;
-                              }
-                            },
-                      child: Text('還沒有帳號？立即註冊', style: TextStyle(color: c.accent)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),

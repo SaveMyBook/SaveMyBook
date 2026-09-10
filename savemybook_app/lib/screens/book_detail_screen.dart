@@ -3,7 +3,7 @@ import '../models/book.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_tiles.dart';
-import '../widgets/animations.dart';
+import '../widgets/favorite_button.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
@@ -26,7 +26,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   int _currentImageIndex = 0;
   late List<String> _images;
 
-  bool _isFavorite = false;
   bool _isAddingToCart = false;
 
   bool get _isOwnBook =>
@@ -36,36 +35,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   void initState() {
     super.initState();
     _images = widget.book.imageUrls;
-    _loadFavoriteState();
-  }
-
-  Future<void> _loadFavoriteState() async {
-    if (ApiService.authToken == null) return;
-    final ids = await _api.fetchFavoriteIds();
-    if (!mounted) return;
-    setState(() => _isFavorite = ids.contains(widget.book.bookId));
-  }
-
-  Future<void> _toggleFavorite() async {
-    if (ApiService.authToken == null) {
-      showAppSnackBar(context, '請先登入才能收藏書籍', isError: true);
-      return;
-    }
-
-    final next = !_isFavorite;
-    setState(() => _isFavorite = next);
-
-    final ok = next
-        ? await _api.addFavorite(widget.book.bookId)
-        : await _api.removeFavorite(widget.book.bookId);
-
-    if (!mounted) return;
-    if (!ok) {
-      setState(() => _isFavorite = !next);
-      showAppSnackBar(context, '操作失敗，請先登入或稍後再試', isError: true);
-    } else {
-      showAppSnackBar(context, next ? '已加入收藏' : '已取消收藏');
-    }
+    if (ApiService.authToken != null) _api.fetchFavoriteIds();
   }
 
   Future<void> _addToCart() async {
@@ -348,19 +318,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Expanded(child: Text(widget.book.title, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.25))),
       Padding(
-        padding: const EdgeInsets.only(top: 4.0),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _toggleFavorite,
-          child: PopIn(
-            triggerKey: _isFavorite,
-            child: Icon(
-              _isFavorite ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-              size: 26,
-              color: _isFavorite ? c.accent : c.iconInactive,
-            ),
-          ),
-        ),
+        padding: const EdgeInsets.only(top: 2.0),
+        child: FavoriteButton(bookId: widget.book.bookId, size: 26),
       ),
     ]);
   }

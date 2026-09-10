@@ -151,10 +151,13 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '購買紀錄', icon: Icons.shopping_bag_outlined),
-          AppTabBar(
-            controller: _tabController,
-            tabs: _tabs.map((t) => t.label).toList(),
+          AppHeader(
+            title: '購買紀錄',
+            icon: Icons.shopping_bag_outlined,
+            bottom: AppTabBar(
+              controller: _tabController,
+              tabs: _tabs.map((t) => t.label).toList(),
+            ),
           ),
           Expanded(
             child: SwitchIn(child: _isLoading
