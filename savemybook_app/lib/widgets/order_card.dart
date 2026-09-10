@@ -3,7 +3,6 @@ import '../models/order.dart';
 import '../utils/app_colors.dart';
 import 'state_views.dart';
 
-/// 購買／銷售紀錄共用的訂單卡片（2 欄網格）。
 class OrderCard extends StatelessWidget {
   final Order order;
   final String? actionLabel;
@@ -33,10 +32,10 @@ class OrderCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
+          Expanded(
+            child: ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: SizedBox(
-              height: 118,
               width: double.infinity,
               child: book == null || !book.hasImage
                   ? Container(
@@ -52,11 +51,12 @@ class OrderCard extends StatelessWidget {
                       ),
                     ),
             ),
+            ),
           ),
-          Expanded(
-            child: Padding(
+          Padding(
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                 Text(
@@ -70,10 +70,10 @@ class OrderCard extends StatelessWidget {
                   children: [
                     Text(
                       '\$${order.totalAmount.toStringAsFixed(0)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: c.accent,
                       ),
                     ),
                     const Spacer(),
@@ -133,10 +133,10 @@ class OrderCard extends StatelessWidget {
                           ),
                           child: Text(
                             actionLabel!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
+                              color: c.accent,
                             ),
                           ),
                         ),
@@ -145,7 +145,6 @@ class OrderCard extends StatelessWidget {
                 ),
                 ],
               ),
-            ),
           ),
         ],
       ),

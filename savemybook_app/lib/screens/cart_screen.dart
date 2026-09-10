@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/cart_item.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import 'book_detail_screen.dart';
@@ -17,6 +19,7 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   final ApiService _api = ApiService();
   List<CartItem> _items = [];
+  final Set<int> _removingCartIds = {};
   bool _isLoading = true;
   bool _isCheckingOut = false;
 
@@ -42,13 +45,25 @@ class _CartScreenState extends State<CartScreen> {
   double get _total => _selectedItems.fold(0, (sum, i) => sum + i.subtotal);
 
   Future<void> _removeItem(CartItem item) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '移出購物車',
+      message: '要把《${item.book.title}》從購物車移除嗎？',
+      confirmLabel: '移除',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _removingCartIds.add(item.cartId));
     final ok = await _api.removeCartItem(item.cartId);
     if (!mounted) return;
-    if (ok) {
-      setState(() => _items.removeWhere((i) => i.cartId == item.cartId));
-    } else {
-      showAppSnackBar(context, '移除失敗，請稍後再試', isError: true);
-    }
+
+    setState(() {
+      _removingCartIds.remove(item.cartId);
+      if (ok) _items.removeWhere((i) => i.cartId == item.cartId);
+    });
+
+    if (!ok) showAppSnackBar(context, '移除失敗，請稍後再試', isError: true);
   }
 
   Future<void> _checkout() async {
@@ -57,6 +72,14 @@ class _CartScreenState extends State<CartScreen> {
       showAppSnackBar(context, '請先選擇要結帳的書籍', isError: true);
       return;
     }
+
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '確認結帳',
+      message: '共 ${selected.length} 本書，總金額 \$${_total.toStringAsFixed(0)}。\n結帳後賣家會收到通知並將書放入書櫃。',
+      confirmLabel: '確認結帳',
+    );
+    if (!confirmed || !mounted) return;
 
     setState(() => _isCheckingOut = true);
     final error = await _api.checkout(selected.map((i) => i.cartId).toList());
@@ -85,10 +108,10 @@ class _CartScreenState extends State<CartScreen> {
           AppHeader(title: '購物車', icon: Icons.shopping_cart_outlined),
           if (_items.isNotEmpty) _buildSelectAllRow(c),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: _items.isEmpty
                         ? ListView(
@@ -100,9 +123,9 @@ class _CartScreenState extends State<CartScreen> {
                         : ListView.builder(
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                             itemCount: _items.length,
-                            itemBuilder: (_, i) => _buildItem(_items[i], c),
+                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildItem(_items[i], c)),
                           ),
-                  ),
+                  )),
           ),
           if (_items.isNotEmpty) _buildCheckoutBar(c),
         ],
@@ -119,7 +142,7 @@ class _CartScreenState extends State<CartScreen> {
           Text('全部選取', style: TextStyle(fontSize: 14, color: c.textSecondary)),
           Checkbox(
             value: _allSelected,
-            activeColor: AppColors.primary,
+            activeColor: c.accent,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
             onChanged: (value) {
               setState(() {
@@ -142,7 +165,7 @@ class _CartScreenState extends State<CartScreen> {
       children: [
         Checkbox(
           value: item.isSelected,
-          activeColor: AppColors.primary,
+          activeColor: c.accent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           onChanged: (value) => setState(() => item.isSelected = value ?? false),
         ),
@@ -178,10 +201,20 @@ class _CartScreenState extends State<CartScreen> {
                               ),
                             ),
                           ),
-                          GestureDetector(
-                            onTap: () => _removeItem(item),
-                            child: Icon(Icons.delete_outline_rounded, size: 20, color: c.iconInactive),
-                          ),
+                          _removingCartIds.contains(item.cartId)
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: c.iconInactive),
+                                )
+                              : GestureDetector(
+                                  onTap: () => _removeItem(item),
+                                  child: Icon(
+                                    Icons.delete_outline_rounded,
+                                    size: 20,
+                                    color: c.iconInactive,
+                                  ),
+                                ),
                         ],
                       ),
                       const SizedBox(height: 6),
@@ -226,10 +259,10 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                           Text(
                             '\$${book.price.toStringAsFixed(0)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+                              color: c.accent,
                             ),
                           ),
                         ],
@@ -267,10 +300,16 @@ class _CartScreenState extends State<CartScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('已選 ${_selectedItems.length} 件', style: TextStyle(fontSize: 11, color: c.textHint)),
+              PopIn(
+                triggerKey: _selectedItems.length,
+                child: Text('已選 ${_selectedItems.length} 件',
+                    style: TextStyle(fontSize: 11, color: c.textHint)),
+              ),
               const SizedBox(height: 2),
-              Text(
-                '\$${_total.toStringAsFixed(0)}',
+              AnimatedCount(
+                value: _total,
+                prefix: '\$',
+                duration: const Duration(milliseconds: 320),
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.textPrimary),
               ),
             ],
@@ -282,9 +321,9 @@ class _CartScreenState extends State<CartScreen> {
               child: ElevatedButton(
                 onPressed: _isCheckingOut ? null : _checkout,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: c.accent,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
+                  disabledBackgroundColor: c.accent.withOpacity(0.5),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
                 child: _isCheckingOut

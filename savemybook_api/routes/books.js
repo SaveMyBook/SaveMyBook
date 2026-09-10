@@ -62,7 +62,7 @@ router.get('/', async (req, res) => {
     const status = req.query.status || 'on_sale';
     const sort = req.query.sort || 'newest';
     const sellerId = req.query.seller_id ? parseInt(req.query.seller_id) : null;
-    
+
     let categoryIdsArray = [];
     if (req.query.category_ids) {
       categoryIdsArray = req.query.category_ids.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
@@ -107,10 +107,10 @@ router.get('/', async (req, res) => {
       prisma.books.count({ where: whereCondition })
     ]);
 
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       pagination: { total: totalCount, page: page, limit: limit, total_pages: Math.ceil(totalCount / limit) },
-      data: books 
+      data: books
     });
   } catch (err) {
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
@@ -129,7 +129,7 @@ router.get('/:id', async (req, res) => {
         smart_cabinets: { select: { cabinet_id: true, cabinet_name: true, address: true, open_time: true, close_time: true } }
       }
     });
-    
+
     if (!book) return res.status(404).json({ success: false, message: '找不到該書籍' });
 
     prisma.books.update({ where: { book_id: bookId }, data: { view_count: { increment: 1 } } }).catch(() => {});
@@ -145,12 +145,11 @@ router.post('/', authenticateToken, upload.fields([
   { name: 'barcode_image', maxCount: 1 },
   { name: 'optional_images', maxCount: 7 }
 ]), async (req, res) => {
-  
-  const { 
-    title, author, publisher, publish_date, isbn, 
-    category_id, price, condition_level, cabinet_id, description 
+  const {
+    title, author, publisher, publish_date, isbn,
+    category_id, price, condition_level, cabinet_id, description
   } = req.body;
-  
+
   if (!title || price === undefined) {
     return res.status(400).json({ success: false, message: '缺少必要欄位：書名(title) 或 價格(price)' });
   }
@@ -159,7 +158,7 @@ router.post('/', authenticateToken, upload.fields([
     const cleanPrice = parseFloat(price);
     const cleanCategoryId = (category_id && category_id !== 'null') ? parseInt(category_id) : null;
     const cleanCabinetId = (cabinet_id && cabinet_id !== 'null') ? parseInt(cabinet_id) : null;
-    
+
     let cleanDate = publish_date;
     if (cleanDate) {
       cleanDate = cleanDate.replace(/-+$/, '');
@@ -168,20 +167,20 @@ router.post('/', authenticateToken, upload.fields([
 
     const newBook = await prisma.books.create({
       data: {
-        title, 
-        author: author || null, 
-        publisher: publisher || null, 
-        publish_date: cleanDate || null, 
+        title,
+        author: author || null,
+        publisher: publisher || null,
+        publish_date: cleanDate || null,
         isbn: isbn || null,
         description: description || null,
         price: isNaN(cleanPrice) ? 0 : cleanPrice,
-        quantity: 1, 
+        quantity: 1,
         condition_level: condition_level || 'good',
         category_id: cleanCategoryId,
         cabinet_id: cleanCabinetId,
-        status: 'on_sale', 
-        is_approved: true, 
-        seller_id: req.user.userId 
+        status: 'on_sale',
+        is_approved: true,
+        seller_id: req.user.userId
       }
     });
 
@@ -198,7 +197,7 @@ router.post('/', authenticateToken, upload.fields([
           });
         }
       };
-      
+
       processFile(req.files['cover_image'], 'cover');
       processFile(req.files['back_image'], 'back');
       processFile(req.files['barcode_image'], 'other');
@@ -218,10 +217,10 @@ router.post('/', authenticateToken, upload.fields([
 
 router.put('/:id', authenticateToken, async (req, res) => {
   const bookId = parseInt(req.params.id);
-  const { 
-    title, author, publisher, publish_date, isbn, 
-    category_id, price, quantity, condition_level, 
-    condition_note, description, cabinet_id, status 
+  const {
+    title, author, publisher, publish_date, isbn,
+    category_id, price, quantity, condition_level,
+    condition_note, description, cabinet_id, status
   } = req.body;
 
   try {
@@ -233,9 +232,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
     const updatedBook = await prisma.books.update({
       where: { book_id: bookId },
-      data: { 
-        title, author, publisher, publish_date, isbn, 
-        price: price !== undefined ? parseFloat(price) : undefined, 
+      data: {
+        title, author, publisher, publish_date, isbn,
+        price: price !== undefined ? parseFloat(price) : undefined,
         quantity: quantity !== undefined ? parseInt(quantity) : undefined,
         condition_level, condition_note, description,
         category_id: category_id !== undefined ? parseInt(category_id) : undefined,
@@ -267,7 +266,6 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// 編輯書籍時追加圖片
 router.post('/:id/images', authenticateToken, upload.array('images', 8), async (req, res) => {
   const bookId = parseInt(req.params.id);
   try {
@@ -296,7 +294,6 @@ router.post('/:id/images', authenticateToken, upload.array('images', 8), async (
   }
 });
 
-// 編輯書籍時移除單張圖片
 router.delete('/:id/images/:imageId', authenticateToken, async (req, res) => {
   const bookId = parseInt(req.params.id);
   const imageId = parseInt(req.params.imageId);

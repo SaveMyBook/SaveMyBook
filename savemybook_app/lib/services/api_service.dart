@@ -11,6 +11,22 @@ import '../models/chat.dart';
 import '../models/wallet.dart';
 import '../models/member_level.dart';
 import '../models/admin_models.dart';
+import '../utils/api_helpers.dart';
+
+class LoginOutcome {
+  final bool isSuccess;
+  final String code;
+  final String message;
+
+  const LoginOutcome({required this.code, required this.message}) : isSuccess = false;
+
+  const LoginOutcome.success()
+      : isSuccess = true,
+        code = 'OK',
+        message = '';
+
+  bool get accountNotFound => code == 'ACCOUNT_NOT_FOUND';
+}
 
 class ApiService {
   static const String baseUrl = 'https://api.savemybook.today/api';
@@ -18,6 +34,23 @@ class ApiService {
   static User? currentUser;
 
   static void Function()? onUnauthorized;
+
+  static const String publicWebUrl = 'https://savemybook.today';
+
+  static String profileUrlFor(int userId) => '$publicWebUrl/u/$userId';
+
+  static int? parseProfileUserId(String raw) {
+    final value = raw.trim();
+    final patterns = [
+      RegExp(r'^https?://[^/]+/u/(\d+)$'),
+      RegExp(r'^savemybook://user/(\d+)$'),
+    ];
+    for (final p in patterns) {
+      final match = p.firstMatch(value);
+      if (match != null) return int.tryParse(match.group(1)!);
+    }
+    return null;
+  }
 
   static List<String> searchHistory = [];
 
@@ -44,8 +77,6 @@ class ApiService {
     onUnauthorized?.call();
   }
 
-  /* ------------------------------ 共用請求工具 ------------------------------ */
-
   static Map<String, String> _headers({bool json = false}) {
     return {
       'Accept': 'application/json',
@@ -54,7 +85,6 @@ class ApiService {
     };
   }
 
-  /// 統一送出請求，回傳解析後的 body；失敗時回傳 null。
   Future<Map<String, dynamic>?> _send(
     String method,
     String path, {
@@ -129,26 +159,38 @@ class ApiService {
     return result;
   }
 
-  /* --------------------------------- 認證 --------------------------------- */
-
-  Future<bool> login(String email, String password) async {
+  Future<LoginOutcome> login(String email, String password) async {
     final res = await _send('POST', '/auth/login', body: {'email': email, 'password': password});
-    if (res == null || res['success'] != true) return false;
 
-    authToken = res['data']?['token'];
-    if (authToken == null) return false;
+    if (res == null) {
+      return const LoginOutcome(code: 'NETWORK', message: '無法連線至伺服器，請檢查網路');
+    }
 
+    if (res['success'] != true) {
+      return LoginOutcome(
+        code: res['code'] as String? ?? 'UNKNOWN',
+        message: res['message'] as String? ?? '登入失敗',
+      );
+    }
+
+    final token = res['data']?['token'] as String?;
+    if (token == null) {
+      return const LoginOutcome(code: 'UNKNOWN', message: '登入失敗，請稍後再試');
+    }
+
+    authToken = token;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', authToken!);
+    await prefs.setString('auth_token', token);
 
     await fetchCurrentUser();
-    return true;
+    return const LoginOutcome.success();
   }
 
-  Future<bool> register(String email, String password, String nickname) async {
+  Future<String?> register(String email, String password, String nickname) async {
     final res = await _send('POST', '/users',
         body: {'email': email, 'password': password, 'nickname': nickname});
-    return res != null && res['success'] == true;
+    if (res == null) return '無法連線至伺服器，請檢查網路';
+    return res['success'] == true ? null : (res['message'] as String? ?? '註冊失敗');
   }
 
   Future<void> logout() async {
@@ -165,8 +207,6 @@ class ApiService {
       currentUser = User.fromJson(Map<String, dynamic>.from(res['data']));
     }
   }
-
-  /* ------------------------------- 分類與書籍 ------------------------------- */
 
   Future<List<Category>> fetchCategories() async {
     final res = await _send('GET', '/categories', query: {'flat': 'true'});
@@ -211,14 +251,13 @@ class ApiService {
     return Book.fromJson(Map<String, dynamic>.from(res['data']));
   }
 
-  /// 目前登入者上架中的書籍（書籍管理）
   Future<List<Book>> fetchMyBooks({String status = 'all'}) async {
     final userId = currentUser?.userId;
     if (userId == null) return [];
     final res = await _send('GET', '/books',
         query: {'seller_id': userId.toString(), 'status': status, 'limit': '100'});
     final books = _mapList(res, Book.fromJson);
-    // 後端若尚未支援 seller_id 篩選，這裡再過濾一次確保只顯示自己的書。
+
     return books.where((b) => b.sellerId == userId).toList();
   }
 
@@ -264,7 +303,9 @@ class ApiService {
     return res != null && res['success'] == true;
   }
 
-  /* --------------------------------- 收藏 --------------------------------- */
+  Future<bool> relistBook(int bookId) async {
+    return updateBook(bookId, {'status': 'on_sale'});
+  }
 
   Future<List<Book>> fetchFavorites() async {
     final res = await _send('GET', '/favorites');
@@ -287,8 +328,6 @@ class ApiService {
     return res != null && res['success'] == true;
   }
 
-  /* -------------------------------- 購物車 -------------------------------- */
-
   Future<List<CartItem>> fetchCart() async {
     final res = await _send('GET', '/cart');
     return _mapList(res, CartItem.fromJson);
@@ -310,8 +349,6 @@ class ApiService {
     return res != null && res['success'] == true;
   }
 
-  /* --------------------------------- 訂單 --------------------------------- */
-
   Future<List<Order>> fetchOrders({required String role, required String tab}) async {
     final res = await _send('GET', '/orders', query: {'role': role, 'tab': tab, 'limit': '50'});
     return _mapList(res, Order.fromJson);
@@ -323,7 +360,6 @@ class ApiService {
     return Order.fromJson(Map<String, dynamic>.from(res['data']));
   }
 
-  /// 結帳；回傳 null 代表成功，否則為錯誤訊息。
   Future<String?> checkout(List<int> cartIds) async {
     final res = await _send('POST', '/orders/checkout', body: {'cart_ids': cartIds});
     if (res == null) return '請先登入';
@@ -341,8 +377,6 @@ class ApiService {
     if (res == null) return '請先登入';
     return res['success'] == true ? null : (res['message'] as String? ?? '更新訂單狀態失敗');
   }
-
-  /* --------------------------------- 通知 --------------------------------- */
 
   Future<List<AppNotification>> fetchNotifications() async {
     final res = await _send('GET', '/notifications', query: {'limit': '50'});
@@ -370,8 +404,6 @@ class ApiService {
     return res != null && res['success'] == true;
   }
 
-  /* --------------------------------- 聊天 --------------------------------- */
-
   Future<List<ChatRoom>> fetchChatRooms() async {
     final res = await _send('GET', '/chat/rooms');
     return _mapList(res, ChatRoom.fromJson);
@@ -398,8 +430,6 @@ class ApiService {
     return ChatMessage.fromJson(Map<String, dynamic>.from(res['data']));
   }
 
-  /* --------------------------------- 代幣 --------------------------------- */
-
   Future<Wallet> fetchWallet() async {
     final res = await _send('GET', '/wallet');
     if (res == null || res['success'] != true || res['data'] is! Map) return Wallet.empty;
@@ -418,9 +448,6 @@ class ApiService {
     return (orders: orders, total: total);
   }
 
-  /* -------------------------------- 檔案上傳 ------------------------------- */
-
-  /// 上傳佐證圖片，回傳伺服器路徑（失敗回傳空陣列）
   Future<List<String>> uploadFiles(List<String> filePaths) async {
     if (filePaths.isEmpty) return [];
     try {
@@ -446,8 +473,6 @@ class ApiService {
     }
   }
 
-  /* ------------------------------- 爭議與檢舉 ------------------------------- */
-
   Future<String?> submitDispute({required int orderId, required String reason, List<String>? evidenceUrls}) async {
     final res = await _send('POST', '/disputes', body: {
       'order_id': orderId,
@@ -456,6 +481,25 @@ class ApiService {
     });
     if (res == null) return '請先登入';
     return res['success'] == true ? null : (res['message'] as String? ?? '送出爭議申請失敗');
+  }
+
+  Future<Map<int, String>> fetchReportStatusForMyBooks() async {
+    final res = await _send('GET', '/reports/against-me');
+    if (res == null || res['success'] != true || res['data'] is! List) return {};
+
+    const priority = {'pending': 3, 'reviewing': 3, 'resolved': 2, 'dismissed': 1};
+    final result = <int, String>{};
+
+    for (final item in res['data'] as List) {
+      if (item is! Map) continue;
+      final bookId = parseInt(item['target_id']);
+      final status = item['status'] as String? ?? 'pending';
+      final current = result[bookId];
+      if (current == null || (priority[status] ?? 0) > (priority[current] ?? 0)) {
+        result[bookId] = status;
+      }
+    }
+    return result;
   }
 
   Future<String?> submitReport({
@@ -471,8 +515,6 @@ class ApiService {
     if (res == null) return '請先登入';
     return res['success'] == true ? null : (res['message'] as String? ?? '送出檢舉失敗');
   }
-
-  /* -------------------------------- 個人資料 ------------------------------- */
 
   Future<UserStats> fetchUserStats() async {
     final res = await _send('GET', '/users/me/stats');
@@ -539,8 +581,6 @@ class ApiService {
     return false;
   }
 
-  /* --------------------------------- 公告 --------------------------------- */
-
   Future<List<Announcement>> fetchAnnouncements({bool includeDrafts = false}) async {
     final res = await _send('GET', includeDrafts ? '/announcements/all' : '/announcements');
     return _mapList(res, Announcement.fromJson);
@@ -570,8 +610,6 @@ class ApiService {
     final res = await _send('DELETE', '/announcements/$announcementId');
     return res != null && res['success'] == true;
   }
-
-  /* --------------------------------- 後台 --------------------------------- */
 
   Future<AdminOverview> fetchAdminOverview() async {
     final res = await _send('GET', '/admin/overview');

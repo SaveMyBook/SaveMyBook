@@ -3,6 +3,8 @@ import '../models/chat.dart';
 import '../services/api_service.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
+import '../widgets/app_tiles.dart';
+import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 
@@ -64,6 +66,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty || _isSending) return;
 
+    if (text.length > 500) {
+      showAppSnackBar(context, '訊息長度不可超過 500 字', isError: true);
+      return;
+    }
+
     setState(() => _isSending = true);
     final message = await _api.sendChatMessage(widget.roomId, text);
     if (!mounted) return;
@@ -94,7 +101,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         children: [
           AppHeader(title: title.isEmpty ? '聊天' : title, icon: Icons.person_outline_rounded),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : _messages.isEmpty
                     ? const EmptyView(icon: Icons.chat_outlined, message: '開始你們的第一則訊息吧')
@@ -102,8 +109,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         controller: _scrollController,
                         padding: const EdgeInsets.all(16),
                         itemCount: _messages.length,
-                        itemBuilder: (_, i) => _buildBubble(_messages[i], c),
-                      ),
+                        itemBuilder: (_, i) => FadeSlideIn(
+                          index: i,
+                          offsetY: 10,
+                          stagger: const Duration(milliseconds: 20),
+                          child: _buildBubble(_messages[i], c),
+                        ),
+                      )),
           ),
           _buildInputBar(c),
         ],
@@ -121,12 +133,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMine) ...[
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: c.inputFill,
-              backgroundImage: _partner?.avatarUrl == null ? null : NetworkImage(_partner!.avatarUrl!),
-              child: _partner?.avatarUrl == null ? Icon(Icons.person, size: 16, color: c.iconInactive) : null,
-            ),
+            UserAvatar(imageUrl: _partner?.avatarUrl, radius: 16),
             const SizedBox(width: 8),
           ],
           Flexible(
@@ -136,7 +143,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isMine ? AppColors.primary : c.card,
+                    color: isMine ? c.accent : c.card,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),

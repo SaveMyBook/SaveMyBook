@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/app_tiles.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_dialogs.dart';
 import '../widgets/state_views.dart';
 import 'cart_screen.dart';
 import 'chat_room_screen.dart';
@@ -43,6 +46,11 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   Future<void> _toggleFavorite() async {
+    if (ApiService.authToken == null) {
+      showAppSnackBar(context, '請先登入才能收藏書籍', isError: true);
+      return;
+    }
+
     final next = !_isFavorite;
     setState(() => _isFavorite = next);
 
@@ -61,6 +69,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Future<void> _addToCart() async {
     if (_isAddingToCart) return;
+    if (ApiService.authToken == null) {
+      showAppSnackBar(context, '請先登入才能加入購物車', isError: true);
+      return;
+    }
+    if (widget.book.status != 'on_sale') {
+      showAppSnackBar(context, '這本書目前${widget.book.statusText}，無法購買', isError: true);
+      return;
+    }
     setState(() => _isAddingToCart = true);
     final error = await _api.addToCart(widget.book.bookId);
     if (!mounted) return;
@@ -78,7 +94,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       showAppSnackBar(context, '找不到賣家資訊', isError: true);
       return;
     }
-    final roomId = await _api.openChatRoom(userId: widget.book.sellerId, bookId: widget.book.bookId);
+    if (ApiService.authToken == null) {
+      showAppSnackBar(context, '請先登入才能聯絡賣家', isError: true);
+      return;
+    }
+
+    final roomId = await runBusy(
+      context,
+      () => _api.openChatRoom(userId: widget.book.sellerId, bookId: widget.book.bookId),
+    );
     if (!mounted) return;
     if (roomId == null) {
       showAppSnackBar(context, '無法建立聊天室，請先登入', isError: true);
@@ -93,38 +117,37 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   Future<void> _reportBook() async {
-    final c = AppColors.of(context);
-    final controller = TextEditingController();
+    if (ApiService.authToken == null) {
+      showAppSnackBar(context, '請先登入才能檢舉', isError: true);
+      return;
+    }
+    if (_isOwnBook) {
+      showAppSnackBar(context, '無法檢舉自己上架的商品', isError: true);
+      return;
+    }
 
-    final reason = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: c.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('檢舉此商品', style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
-        content: TextField(
-          controller: controller,
-          maxLines: 3,
-          autofocus: true,
-          style: TextStyle(color: c.textPrimary),
-          decoration: const InputDecoration(hintText: '請說明違規原因'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消', style: TextStyle(color: Colors.grey))),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('送出', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+    final reason = await showTextInputDialog(
+      context,
+      title: '檢舉此商品',
+      hint: '請說明違規原因（至少 5 個字）',
+      maxLines: 3,
+      confirmLabel: '送出',
     );
 
-    if (reason == null || reason.isEmpty) return;
+    if (reason == null || !mounted) return;
 
-    final error = await _api.submitReport(
-      targetType: 'book',
-      targetId: widget.book.bookId,
-      reason: reason,
+    if (reason.length < 5) {
+      showAppSnackBar(context, '請至少填寫 5 個字的檢舉原因', isError: true);
+      return;
+    }
+
+    final error = await runBusy(
+      context,
+      () => _api.submitReport(
+        targetType: 'book',
+        targetId: widget.book.bookId,
+        reason: reason,
+      ),
     );
     if (!mounted) return;
     showAppSnackBar(context, error ?? '檢舉已送出，我們會盡快處理', isError: error != null);
@@ -300,7 +323,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         },
         itemBuilder: (_) => [
           const PopupMenuItem(value: 'share', child: Row(children: [Icon(Icons.ios_share, size: 20), SizedBox(width: 8), Text('分享')])),
-          const PopupMenuItem(value: 'report', child: Row(children: [Icon(Icons.warning_amber_rounded, size: 20, color: Colors.red), SizedBox(width: 8), Text('檢舉')])),
+          if (!_isOwnBook)
+            PopupMenuItem(
+              value: 'report',
+              child: Row(children: [
+                Icon(Icons.warning_amber_rounded, size: 20, color: c.danger),
+                const SizedBox(width: 8),
+                const Text('檢舉'),
+              ]),
+            ),
         ],
       )),
     ]);
@@ -314,10 +345,13 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: _toggleFavorite,
-          child: Icon(
-            _isFavorite ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-            size: 26,
-            color: _isFavorite ? AppColors.primary : c.iconInactive,
+          child: PopIn(
+            triggerKey: _isFavorite,
+            child: Icon(
+              _isFavorite ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+              size: 26,
+              color: _isFavorite ? c.accent : c.iconInactive,
+            ),
           ),
         ),
       ),
@@ -360,12 +394,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final avatarUrl = widget.book.sellerAvatarUrl;
 
     return Row(children: [
-      CircleAvatar(
-        radius: 18,
-        backgroundColor: c.inputFill,
-        backgroundImage: avatarUrl == null ? null : NetworkImage(avatarUrl),
-        child: avatarUrl == null ? Icon(Icons.person, size: 18, color: c.iconInactive) : null,
-      ),
+      UserAvatar(imageUrl: avatarUrl, radius: 18),
       const SizedBox(width: 12),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -399,7 +428,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           icon: const Icon(Icons.shopping_cart_outlined, size: 18),
           label: Text(_isOwnBook ? '這是你的書' : '加入購物車', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary, foregroundColor: Colors.white,
+            backgroundColor: c.accent, foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), elevation: 0,
           ),
         )),

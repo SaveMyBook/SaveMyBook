@@ -110,7 +110,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
+      SnackBar(content: Text(msg), backgroundColor: AppColors.of(context).danger, behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -270,7 +270,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
           child: ElevatedButton(
             onPressed: _onNext,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: c.accent,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),

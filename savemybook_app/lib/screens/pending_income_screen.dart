@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/order_card.dart';
 import '../widgets/state_views.dart';
 
-/// 待定收益：已成交但尚未撥款的訂單
 class PendingIncomeScreen extends StatefulWidget {
   const PendingIncomeScreen({super.key});
 
@@ -37,8 +38,19 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
   }
 
   Future<void> _cancel(Order order) async {
-    final error = await _api.cancelOrder(order.orderId, reason: '賣家取消');
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '取消訂單',
+      message: '取消後這筆待定收益會一併消失，買家也會收到通知。',
+      confirmLabel: '取消訂單',
+      cancelLabel: '返回',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    final error = await runBusy(context, () => _api.cancelOrder(order.orderId, reason: '賣家取消'));
     if (!mounted) return;
+
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
@@ -57,10 +69,10 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
         children: [
           const AppHeader(title: '待定收益', icon: Icons.query_stats_rounded),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: CustomScrollView(
                       slivers: [
@@ -83,10 +95,13 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
                                 childAspectRatio: 0.55,
                               ),
                               delegate: SliverChildBuilderDelegate(
-                                (_, i) => OrderCard(
-                                  order: _orders[i],
-                                  actionLabel: _orders[i].isCancellable ? '取消訂單' : null,
-                                  onAction: () => _cancel(_orders[i]),
+                                (_, i) => FadeSlideIn(
+                                  index: i,
+                                  child: OrderCard(
+                                    order: _orders[i],
+                                    actionLabel: _orders[i].isCancellable ? '取消訂單' : null,
+                                    onAction: () => _cancel(_orders[i]),
+                                  ),
                                 ),
                                 childCount: _orders.length,
                               ),
@@ -94,7 +109,7 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
                           ),
                       ],
                     ),
-                  ),
+                  )),
           ),
         ],
       ),
@@ -115,18 +130,18 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
               height: 64,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary, width: 3),
+                border: Border.all(color: c.accent, width: 3),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
                   '\$',
-                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: AppColors.primary),
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: c.accent),
                 ),
               ),
             ),
             const SizedBox(height: 10),
-            Text(
-              _total.toStringAsFixed(0),
+            AnimatedCount(
+              value: _total,
               style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: c.textPrimary),
             ),
             const SizedBox(height: 6),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/order_card.dart';
 import '../widgets/state_views.dart';
@@ -59,14 +61,19 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
   }
 
   Future<void> _cancelOrder(Order order) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => _confirmDialog(ctx, '取消訂單', '確定要取消這筆訂單嗎？'),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '取消訂單',
+      message: '確定要取消訂單 ${order.orderNo} 嗎？取消後書籍會回到商城重新販售。',
+      confirmLabel: '取消訂單',
+      cancelLabel: '返回',
+      isDestructive: true,
     );
-    if (confirmed != true) return;
+    if (!confirmed || !mounted) return;
 
-    final error = await _api.cancelOrder(order.orderId);
+    final error = await runBusy(context, () => _api.cancelOrder(order.orderId));
     if (!mounted) return;
+
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
@@ -75,7 +82,6 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
     }
   }
 
-  /// 顯示取書代碼，確認後才把訂單標記完成並導到「取書完成」頁
   Future<void> _pickup(Order order) async {
     final c = AppColors.of(context);
     final confirmed = await showDialog<bool>(
@@ -89,10 +95,10 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
           children: [
             Text(
               order.pickupCode ?? '尚未產生',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 34,
                 fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+                color: c.accent,
                 letterSpacing: 4,
               ),
             ),
@@ -109,12 +115,12 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('關閉', style: TextStyle(color: Colors.grey)),
+            child: Text('關閉', style: TextStyle(color: c.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('我已完成取書',
-                style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+            child: Text('我已完成取書',
+                style: TextStyle(color: c.accent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -122,8 +128,9 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
 
     if (confirmed != true) return;
 
-    final error = await _api.updateOrderStatus(order.orderId, 'completed');
+    final error = await runBusy(context, () => _api.updateOrderStatus(order.orderId, 'completed'));
     if (!mounted) return;
+
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
       return;
@@ -150,10 +157,10 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
             tabs: _tabs.map((t) => t.label).toList(),
           ),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: orders.isEmpty
                         ? ListView(
@@ -171,9 +178,9 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
                               childAspectRatio: 0.55,
                             ),
                             itemCount: orders.length,
-                            itemBuilder: (_, i) => _buildCard(orders[i]),
+                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(orders[i])),
                           ),
-                  ),
+                  )),
           ),
         ],
       ),
@@ -202,25 +209,5 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
       default:
         return OrderCard(order: order);
     }
-  }
-
-  Widget _confirmDialog(BuildContext ctx, String title, String message) {
-    final c = AppColors.of(ctx);
-    return AlertDialog(
-      backgroundColor: c.card,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
-      content: Text(message, style: TextStyle(color: c.textSecondary)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('返回', style: TextStyle(color: Colors.grey)),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('確定', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-        ),
-      ],
-    );
   }
 }

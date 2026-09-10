@@ -3,6 +3,8 @@ import '../models/chat.dart';
 import '../services/api_service.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
+import '../widgets/app_tiles.dart';
+import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import 'cart_screen.dart';
@@ -54,10 +56,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
             ],
           ),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: _rooms.isEmpty
                         ? ListView(
@@ -72,9 +74,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),
                             itemCount: _rooms.length,
-                            itemBuilder: (_, i) => _buildRoomTile(_rooms[i], c),
+                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildRoomTile(_rooms[i], c)),
                           ),
-                  ),
+                  )),
           ),
         ],
       ),
@@ -96,15 +98,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       },
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: c.inputFill,
-            backgroundImage:
-                room.partner.avatarUrl == null ? null : NetworkImage(room.partner.avatarUrl!),
-            child: room.partner.avatarUrl == null
-                ? Icon(Icons.person, color: c.iconInactive)
-                : null,
-          ),
+          UserAvatar(imageUrl: room.partner.avatarUrl, radius: 26),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -143,7 +137,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.redAccent,
+                    color: c.danger,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(

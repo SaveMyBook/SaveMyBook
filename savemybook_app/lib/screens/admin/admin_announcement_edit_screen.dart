@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/app_dialogs.dart';
+import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 
-/// 系統公告－新增／編輯推播
 class AdminAnnouncementEditScreen extends StatefulWidget {
   final Announcement? announcement;
   const AdminAnnouncementEditScreen({super.key, this.announcement});
@@ -49,12 +50,32 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
   }
 
   Future<void> _save() async {
+    if (_isSaving) return;
+
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
 
     if (title.isEmpty || content.isEmpty) {
       showAppSnackBar(context, '請填寫標題與內容', isError: true);
       return;
+    }
+    if (title.length > 255) {
+      showAppSnackBar(context, '標題不可超過 255 個字元', isError: true);
+      return;
+    }
+    if (content.length < 5) {
+      showAppSnackBar(context, '內容至少 5 個字元', isError: true);
+      return;
+    }
+
+    if (_isPublished) {
+      final confirmed = await showConfirmDialog(
+        context,
+        title: '發布推播',
+        message: '發布後全體使用者都會看到這則公告，確定發布嗎？',
+        confirmLabel: '發布',
+      );
+      if (!confirmed || !mounted) return;
     }
 
     setState(() => _isSaving = true);
@@ -91,76 +112,31 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppCard(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 60,
-                          child: Text('標題',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
-                        ),
-                        Expanded(
-                          child: TextField(
-                            controller: _titleController,
-                            style: TextStyle(color: c.textPrimary, fontSize: 14),
-                            decoration: _decoration(c),
-                          ),
-                        ),
-                      ],
+                  FormRowCard(
+                    label: '標題',
+                    labelWidth: 60,
+                    child: AppTextField(controller: _titleController, maxLength: 255),
+                  ),
+                  FormRowCard(
+                    label: '類型',
+                    labelWidth: 60,
+                    child: AppDropdownField<String>(
+                      value: _type,
+                      items: _types
+                          .map((t) => DropdownMenuItem(value: t.value, child: Text(t.label)))
+                          .toList(),
+                      onChanged: (value) => setState(() => _type = value ?? _type),
                     ),
                   ),
-                  AppCard(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 60,
-                          child: Text('類型',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
-                        ),
-                        Expanded(
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _type,
-                              isExpanded: true,
-                              dropdownColor: c.card,
-                              style: TextStyle(color: c.textPrimary, fontSize: 14),
-                              items: _types
-                                  .map((t) => DropdownMenuItem(value: t.value, child: Text(t.label)))
-                                  .toList(),
-                              onChanged: (value) => setState(() => _type = value ?? _type),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  AppCard(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 60,
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Text('內容',
-                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
-                          ),
-                        ),
-                        Expanded(
-                          child: TextField(
-                            controller: _contentController,
-                            maxLines: 6,
-                            style: TextStyle(color: c.textPrimary, fontSize: 14),
-                            decoration: _decoration(c, hint: '輸入推播內容'),
-                          ),
-                        ),
-                      ],
+                  FormRowCard(
+                    label: '內容',
+                    labelWidth: 60,
+                    alignTop: true,
+                    child: AppTextField(
+                      controller: _contentController,
+                      maxLines: 6,
+                      maxLength: 2000,
+                      hint: '輸入推播內容',
                     ),
                   ),
                   AppCard(
@@ -168,7 +144,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                     child: SwitchListTile.adaptive(
                       contentPadding: EdgeInsets.zero,
                       value: _isPublished,
-                      activeColor: AppColors.primary,
+                      activeColor: c.accent,
                       title: Text('立即發布',
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary)),
                       subtitle: Text('關閉時只會存成草稿',
@@ -183,9 +159,9 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                     child: ElevatedButton(
                       onPressed: _isSaving ? null : _save,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: c.accent,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
+                        disabledBackgroundColor: c.accent.withOpacity(0.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       child: _isSaving
@@ -204,21 +180,6 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  InputDecoration _decoration(AppColors c, {String? hint}) {
-    return InputDecoration(
-      isDense: true,
-      hintText: hint,
-      hintStyle: TextStyle(color: c.textHint, fontSize: 13),
-      filled: true,
-      fillColor: c.inputFill,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
       ),
     );
   }

@@ -3,10 +3,13 @@ import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/app_tiles.dart';
+import '../../widgets/animations.dart';
+import '../../widgets/app_dialogs.dart';
+import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 
-/// 會員管控－會員列表
 class AdminMemberScreen extends StatefulWidget {
   const AdminMemberScreen({super.key});
 
@@ -48,13 +51,30 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
   }
 
   Future<void> _toggle(AdminMember member, {bool? isActive, bool? isBlacklisted}) async {
-    final ok = await _api.updateMemberStatus(
-      member.userId,
-      isActive: isActive,
-      isBlacklisted: isBlacklisted,
+    final action = isBlacklisted != null
+        ? (isBlacklisted ? '加入黑名單' : '移出黑名單')
+        : (isActive == true ? '恢復帳號' : '停權帳號');
+
+    final confirmed = await showConfirmDialog(
+      context,
+      title: action,
+      message: '確定要對「${member.nickname}」執行「$action」嗎？',
+      confirmLabel: action,
+      isDestructive: isBlacklisted == true || isActive == false,
+    );
+    if (!confirmed || !mounted) return;
+
+    final ok = await runBusy(
+      context,
+      () => _api.updateMemberStatus(
+        member.userId,
+        isActive: isActive,
+        isBlacklisted: isBlacklisted,
+      ),
     );
     if (!mounted) return;
-    if (ok) {
+
+    if (ok == true) {
       showAppSnackBar(context, '已更新 ${member.nickname} 的狀態');
       _load();
     } else {
@@ -84,7 +104,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             ListTile(
               leading: Icon(
                 member.isActive ? Icons.block_rounded : Icons.check_circle_outline_rounded,
-                color: member.isActive ? Colors.redAccent : const Color(0xFF2E9E5B),
+                color: member.isActive ? c.danger : c.success,
               ),
               title: Text(member.isActive ? '停權此帳號' : '恢復帳號', style: TextStyle(color: c.textPrimary)),
               onTap: () {
@@ -95,7 +115,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             ListTile(
               leading: Icon(
                 Icons.gpp_bad_outlined,
-                color: member.isBlacklisted ? const Color(0xFF2E9E5B) : Colors.redAccent,
+                color: member.isBlacklisted ? c.success : c.danger,
               ),
               title: Text(
                 member.isBlacklisted ? '移出黑名單' : '加入黑名單',
@@ -127,24 +147,10 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
+                  child: AppSearchField(
                     controller: _searchController,
-                    textInputAction: TextInputAction.search,
+                    hint: '搜尋暱稱或 Email',
                     onSubmitted: (_) => _load(),
-                    style: TextStyle(color: c.textPrimary, fontSize: 14),
-                    decoration: InputDecoration(
-                      hintText: '搜尋暱稱或 Email',
-                      hintStyle: TextStyle(color: c.textHint, fontSize: 14),
-                      prefixIcon: Icon(Icons.search, color: c.iconInactive, size: 20),
-                      isDense: true,
-                      filled: true,
-                      fillColor: c.card,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -166,10 +172,10 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             ),
           ),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: _members.isEmpty
                         ? ListView(
@@ -181,9 +187,9 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                         : ListView.builder(
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                             itemCount: _members.length,
-                            itemBuilder: (_, i) => _buildMemberCard(_members[i], c),
+                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildMemberCard(_members[i], c)),
                           ),
-                  ),
+                  )),
           ),
         ],
       ),
@@ -192,8 +198,8 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
 
   Widget _buildMemberCard(AdminMember member, AppColors c) {
     final statusColor = member.isBlacklisted
-        ? Colors.redAccent
-        : (!member.isActive ? Colors.orangeAccent : const Color(0xFF2E9E5B));
+        ? c.danger
+        : (!member.isActive ? c.warning : c.success);
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -203,12 +209,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: c.inputFill,
-                backgroundImage: member.avatarUrl == null ? null : NetworkImage(member.avatarUrl!),
-                child: member.avatarUrl == null ? Icon(Icons.person, color: c.iconInactive) : null,
-              ),
+              UserAvatar(imageUrl: member.avatarUrl, radius: 22),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -224,7 +225,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.12),
+                            color: c.accent.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(

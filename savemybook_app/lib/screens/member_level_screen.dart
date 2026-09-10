@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/member_level.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 
@@ -56,12 +57,12 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
         children: [
           const AppHeader(title: '會員等級', icon: Icons.workspace_premium_outlined),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : _info.levels.isEmpty
                     ? const EmptyView(icon: Icons.emoji_events_outlined, message: '尚未設定會員等級制度')
                     : RefreshIndicator(
-                        color: AppColors.primary,
+                        color: c.accent,
                         onRefresh: _load,
                         child: ListView(
                           padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
@@ -75,7 +76,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                             _buildBenefitsCard(c),
                           ],
                         ),
-                      ),
+                      )),
           ),
         ],
       ),
@@ -96,27 +97,31 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
               icon: Icon(Icons.chevron_left_rounded, color: c.iconInactive),
               onPressed: _selectedIndex == 0 ? null : () => setState(() => _selectedIndex -= 1),
             ),
-            Container(
-              width: 110,
-              height: 140,
-              decoration: BoxDecoration(
-                color: unlocked ? AppColors.primary.withOpacity(0.12) : c.inputFill,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 52, color: unlocked ? AppColors.primary : c.iconInactive),
-                  const SizedBox(height: 12),
-                  Text(
-                    level.levelName,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: unlocked ? AppColors.primary : c.textHint,
+            PopIn(
+              triggerKey: _selectedIndex,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: 110,
+                height: 140,
+                decoration: BoxDecoration(
+                  color: unlocked ? c.accent.withOpacity(0.12) : c.inputFill,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, size: 52, color: unlocked ? c.accent : c.iconInactive),
+                    const SizedBox(height: 12),
+                    Text(
+                      level.levelName,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: unlocked ? c.accent : c.textHint,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             IconButton(
@@ -139,7 +144,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
               height: 6,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
-                color: active ? AppColors.primary : c.iconInactive,
+                color: active ? c.accent : c.iconInactive,
               ),
             );
           }),
@@ -164,13 +169,18 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
               height: 4,
               decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
             ),
-            FractionallySizedBox(
-              widthFactor: progress,
-              child: Container(
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: progress.toDouble()),
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeOutCubic,
+              builder: (_, animated, __) => FractionallySizedBox(
+                widthFactor: animated,
+                child: Container(
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: c.accent,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
             ),
@@ -179,13 +189,15 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: levels.map((l) {
                   final reached = _info.points >= l.minPoints;
-                  return Container(
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeOut,
                     width: 14,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: reached ? AppColors.primary : c.card,
+                      color: reached ? c.accent : c.card,
                       shape: BoxShape.circle,
-                      border: Border.all(color: reached ? AppColors.primary : c.divider, width: 2),
+                      border: Border.all(color: reached ? c.accent : c.divider, width: 2),
                     ),
                   );
                 }).toList(),

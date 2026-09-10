@@ -314,7 +314,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                     child: ElevatedButton(
                       onPressed: _submitForm,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: c.accent,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
                       ),
@@ -463,7 +463,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       key: key,
       children: [
         Material(
-          color: AppColors.primary.withOpacity(0.05),
+          color: c.accent.withOpacity(0.05),
           borderRadius: BorderRadius.circular(8),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -471,15 +471,15 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
             child: Container(
               width: 90, height: 110,
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.primary.withOpacity(0.5), width: 1.5, style: BorderStyle.solid),
+                border: Border.all(color: c.accent.withOpacity(0.5), width: 1.5, style: BorderStyle.solid),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_photo_alternate_outlined, color: AppColors.primary, size: 28),
-                  SizedBox(height: 4),
-                  Text('加入', style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+                  Icon(Icons.add_photo_alternate_outlined, color: c.accent, size: 28),
+                  const SizedBox(height: 4),
+                  Text('加入', style: TextStyle(color: c.accent, fontSize: 13, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),

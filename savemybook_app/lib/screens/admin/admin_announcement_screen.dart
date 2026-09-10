@@ -3,11 +3,12 @@ import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/animations.dart';
+import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 import 'admin_announcement_edit_screen.dart';
 
-/// 系統公告－推播管理
 class AdminAnnouncementScreen extends StatefulWidget {
   const AdminAnnouncementScreen({super.key});
 
@@ -36,28 +37,19 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
   }
 
   Future<void> _delete(Announcement announcement) async {
-    final c = AppColors.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: c.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('刪除公告', style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
-        content: Text('確定要刪除「${announcement.title}」嗎？', style: TextStyle(color: c.textSecondary)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消', style: TextStyle(color: Colors.grey))),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('刪除', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '刪除公告',
+      message: '確定要刪除「${announcement.title}」嗎？此操作無法復原。',
+      confirmLabel: '刪除',
+      isDestructive: true,
     );
-    if (confirmed != true) return;
+    if (!confirmed || !mounted) return;
 
-    final ok = await _api.deleteAnnouncement(announcement.announcementId);
+    final ok = await runBusy(context, () => _api.deleteAnnouncement(announcement.announcementId));
     if (!mounted) return;
-    if (ok) {
+
+    if (ok == true) {
       showAppSnackBar(context, '公告已刪除');
       _load();
     } else {
@@ -90,10 +82,10 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
             ],
           ),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: _announcements.isEmpty
                         ? ListView(
@@ -105,9 +97,9 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),
                             itemCount: _announcements.length,
-                            itemBuilder: (_, i) => _buildCard(_announcements[i], c),
+                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(_announcements[i], c)),
                           ),
-                  ),
+                  )),
           ),
         ],
       ),
@@ -115,7 +107,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
   }
 
   Widget _buildCard(Announcement announcement, AppColors c) {
-    final statusColor = announcement.isPublished ? const Color(0xFF2E9E5B) : Colors.orangeAccent;
+    final statusColor = announcement.isPublished ? c.success : c.warning;
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -136,7 +128,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.12),
+                  color: c.accent.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(announcement.typeText,

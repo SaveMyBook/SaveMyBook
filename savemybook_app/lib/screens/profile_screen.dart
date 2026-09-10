@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import '../models/member_level.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/app_header.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/app_dialogs.dart';
+import '../widgets/app_tiles.dart';
 import '../widgets/state_views.dart';
 import 'admin/admin_home_screen.dart';
 import 'book_manage_screen.dart';
@@ -40,7 +45,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleLogout() async {
-    await _api.logout();
+    await runBusy(
+      context,
+      () async {
+        await _api.logout();
+        return true;
+      },
+      message: '登出中…',
+    );
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -61,7 +73,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: c.scaffold,
       body: RefreshIndicator(
-        color: AppColors.primary,
+        color: c.accent,
         onRefresh: _loadStats,
         child: ListView(
           padding: EdgeInsets.zero,
@@ -81,7 +93,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildHeader(AppColors c, String nickname, String bio, String? avatarUrl) {
-    return Container(
+return LightStatusBar(
+      child: Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: c.headerBg,
@@ -112,14 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Container(
                     padding: const EdgeInsets.all(2),
                     decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                    child: CircleAvatar(
-                      radius: 35,
-                      backgroundColor: c.inputFill,
-                      backgroundImage: avatarUrl == null ? null : NetworkImage(avatarUrl),
-                      child: avatarUrl == null
-                          ? Icon(Icons.person, size: 35, color: c.iconInactive)
-                          : null,
-                    ),
+                    child: UserAvatar(imageUrl: avatarUrl, radius: 35),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -176,8 +182,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            _stats.balance.toStringAsFixed(0),
+                          AnimatedCount(
+                            value: _stats.balance,
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -198,6 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -209,18 +216,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _QuickAction(
+            QuickActionButton(
               icon: Icons.monetization_on_outlined,
               label: '我的代幣',
               onTap: () => _openAndRefresh(const WalletScreen()),
             ),
-            _QuickAction(
+            QuickActionButton(
               icon: Icons.library_books_outlined,
               label: '書籍管理',
               badge: _stats.bookCount,
               onTap: () => _openAndRefresh(const BookManageScreen()),
             ),
-            _QuickAction(
+            QuickActionButton(
               icon: Icons.qr_code_2_rounded,
               label: '分享檔案',
               onTap: () => Navigator.push(
@@ -247,39 +254,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: EdgeInsets.zero,
         child: Column(
           children: [
-            _MenuItem(
+            AppMenuItem(
               icon: Icons.edit_outlined,
               title: '編輯個人檔案',
               onTap: () => _openAndRefresh(const EditProfileScreen()),
             ),
-            _MenuItem(
+            AppMenuItem(
               icon: Icons.bookmark_outline_rounded,
               title: '收藏書籍',
               trailingText: _stats.favoriteCount > 0 ? '${_stats.favoriteCount}' : null,
               onTap: () => _openAndRefresh(const FavoritesScreen()),
             ),
-            _MenuItem(
+            AppMenuItem(
               icon: Icons.shopping_bag_outlined,
               title: '購買紀錄',
               onTap: () => _openAndRefresh(const PurchaseHistoryScreen()),
             ),
-            _MenuItem(
+            AppMenuItem(
               icon: Icons.inventory_2_outlined,
               title: '銷售紀錄',
               onTap: () => _openAndRefresh(const SalesHistoryScreen()),
             ),
-            _MenuItem(
+            AppMenuItem(
               icon: Icons.key_outlined,
               title: '更改密碼',
               onTap: () => _openAndRefresh(const ChangePasswordScreen()),
             ),
             if (isAdmin)
-              _MenuItem(
+              AppMenuItem(
                 icon: Icons.admin_panel_settings_outlined,
                 title: '管理後台',
                 onTap: () => _openAndRefresh(const AdminHomeScreen()),
               ),
-            _MenuItem(
+            AppMenuItem(
               icon: Icons.settings_outlined,
               title: '設定',
               isLast: true,
@@ -297,143 +304,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: AppCard(
         padding: const EdgeInsets.symmetric(vertical: 20),
         onTap: () async {
-          final confirmed = await showDialog<bool>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              backgroundColor: c.card,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: Text('確認登出', style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
-              content: Text('確定要登出帳號嗎？', style: TextStyle(color: c.textSecondary)),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('取消', style: TextStyle(color: Colors.grey)),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text('登出', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
+          final confirmed = await showConfirmDialog(
+            context,
+            title: '確認登出',
+            message: '登出後需要重新輸入帳號密碼才能繼續使用。',
+            confirmLabel: '登出',
+            isDestructive: true,
           );
-          if (confirmed == true) _handleLogout();
+          if (confirmed) _handleLogout();
         },
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.logout, color: Colors.red, size: 20),
-            SizedBox(width: 8),
-            Text('登出', style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w500)),
+            Icon(Icons.logout, color: c.danger, size: 20),
+            const SizedBox(width: 8),
+            Text('登出', style: TextStyle(color: c.danger, fontSize: 16, fontWeight: FontWeight.w500)),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _QuickAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final int badge;
-  final VoidCallback onTap;
-
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.badge = 0,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 22, color: AppColors.primary),
-              ),
-              if (badge > 0)
-                Positioned(
-                  right: -2,
-                  top: -2,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '$badge',
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(label, style: TextStyle(fontSize: 12, color: c.textPrimary)),
-        ],
-      ),
-    );
-  }
-}
-
-class _MenuItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? trailingText;
-  final bool isLast;
-  final VoidCallback? onTap;
-
-  const _MenuItem({
-    required this.icon,
-    required this.title,
-    this.trailingText,
-    this.isLast = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    return Column(
-      children: [
-        ListTile(
-          leading: Icon(icon, color: c.iconInactive),
-          title: Text(
-            title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textPrimary),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (trailingText != null)
-                Text(trailingText!, style: TextStyle(color: c.textSecondary, fontSize: 14)),
-              const SizedBox(width: 8),
-              Icon(Icons.arrow_forward_ios, size: 16, color: c.iconInactive),
-            ],
-          ),
-          onTap: onTap,
-        ),
-        if (!isLast)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Divider(height: 1, color: c.divider),
-          ),
-      ],
     );
   }
 }

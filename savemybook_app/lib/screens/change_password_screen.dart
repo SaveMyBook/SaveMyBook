@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 
@@ -18,6 +21,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _confirmController = TextEditingController();
 
   bool _isSaving = false;
+  bool _obscure = true;
+  String? _currentError;
+  String? _newError;
+  String? _confirmError;
 
   @override
   void dispose() {
@@ -27,35 +34,56 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  bool _validate() {
     final current = _currentController.text;
     final next = _newController.text;
     final confirm = _confirmController.text;
 
-    if (current.isEmpty || next.isEmpty) {
-      showAppSnackBar(context, '請填寫目前密碼與新密碼', isError: true);
-      return;
-    }
-    if (next.length < 6) {
-      showAppSnackBar(context, '新密碼長度至少 6 個字元', isError: true);
-      return;
-    }
-    if (next != confirm) {
-      showAppSnackBar(context, '兩次輸入的新密碼不一致', isError: true);
-      return;
+    String? currentError;
+    String? newError;
+    String? confirmError;
+
+    if (current.isEmpty) currentError = '請輸入目前密碼';
+
+    if (next.isEmpty) {
+      newError = '請輸入新密碼';
+    } else {
+      newError = Validators.password(next);
+      if (newError == null && next == current) newError = '新密碼不可與目前密碼相同';
     }
 
+    if (confirm.isEmpty) {
+      confirmError = '請再輸入一次新密碼';
+    } else if (confirm != next) {
+      confirmError = '兩次輸入的新密碼不一致';
+    }
+
+    setState(() {
+      _currentError = currentError;
+      _newError = newError;
+      _confirmError = confirmError;
+    });
+
+    return currentError == null && newError == null && confirmError == null;
+  }
+
+  Future<void> _submit() async {
+    if (_isSaving || !_validate()) return;
+    FocusScope.of(context).unfocus();
+
     setState(() => _isSaving = true);
-    final error = await _api.changePassword(current, next);
+    final error = await _api.changePassword(_currentController.text, _newController.text);
     if (!mounted) return;
     setState(() => _isSaving = false);
 
     if (error != null) {
+      setState(() => _currentError = error);
       showAppSnackBar(context, error, isError: true);
-    } else {
-      showAppSnackBar(context, '密碼已更新');
-      Navigator.of(context).maybePop();
+      return;
     }
+
+    showAppSnackBar(context, '密碼已更新');
+    Navigator.of(context).maybePop();
   }
 
   @override
@@ -68,69 +96,90 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         children: [
           const AppHeader(title: '更改密碼', icon: Icons.key_outlined),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  _buildField('目前密碼', _currentController, c),
-                  _buildField('新密碼', _newController, c),
-                  _buildField('重新輸入新密碼', _confirmController, c),
-                  const SizedBox(height: 28),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _isSaving ? null : _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    FadeSlideIn(
+                      child: FormRowCard(
+                        label: '目前密碼',
+                        labelWidth: 104,
+                        alignTop: _currentError != null,
+                        child: AppTextField(
+                          controller: _currentController,
+                          errorText: _currentError,
+                          obscureText: _obscure,
+                          maxLength: 64,
+                          textInputAction: TextInputAction.next,
+                          onChanged: (_) {
+                            if (_currentError != null) setState(() => _currentError = null);
+                          },
+                        ),
                       ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Text('確認更改', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildField(String label, TextEditingController controller, AppColors c) {
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 104,
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
-            ),
-          ),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              obscureText: true,
-              style: TextStyle(color: c.textPrimary, fontSize: 14),
-              decoration: InputDecoration(
-                isDense: true,
-                filled: true,
-                fillColor: c.inputFill,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
+                    FadeSlideIn(
+                      index: 1,
+                      child: FormRowCard(
+                        label: '新密碼',
+                        labelWidth: 104,
+                        alignTop: _newError != null,
+                        child: AppTextField(
+                          controller: _newController,
+                          hint: '至少 8 碼，含英文與數字',
+                          errorText: _newError,
+                          obscureText: _obscure,
+                          maxLength: 64,
+                          textInputAction: TextInputAction.next,
+                          onChanged: (_) {
+                            if (_newError != null) setState(() => _newError = null);
+                          },
+                        ),
+                      ),
+                    ),
+                    FadeSlideIn(
+                      index: 2,
+                      child: FormRowCard(
+                        label: '重新輸入新密碼',
+                        labelWidth: 104,
+                        alignTop: _confirmError != null,
+                        child: AppTextField(
+                          controller: _confirmController,
+                          errorText: _confirmError,
+                          obscureText: _obscure,
+                          maxLength: 64,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _submit(),
+                          onChanged: (_) {
+                            if (_confirmError != null) setState(() => _confirmError = null);
+                          },
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                        icon: Icon(
+                          _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          size: 18,
+                        ),
+                        label: Text(_obscure ? '顯示密碼' : '隱藏密碼'),
+                        style: TextButton.styleFrom(foregroundColor: c.textSecondary),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    FadeSlideIn(
+                      index: 3,
+                      child: PrimaryButton(
+                        label: '確認更改',
+                        isLoading: _isSaving,
+                        onPressed: _submit,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

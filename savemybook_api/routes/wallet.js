@@ -4,7 +4,6 @@ const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 
-// 尚未撥款的訂單狀態（賣家已成交但買家尚未取書完成）
 const PENDING_INCOME_STATUS = ['pending_payment', 'pending_deposit', 'deposited', 'pending_pickup'];
 
 const ensureWallet = async (userId) => {
@@ -42,7 +41,7 @@ router.get('/transactions', authenticateToken, async (req, res) => {
   const limit = parseInt(req.query.limit) || 20;
 
   try {
-    const where = { user_id: req.user.userId };
+    const where = { wallets: { user_id: req.user.userId } };
 
     const [transactions, totalCount] = await Promise.all([
       prisma.wallet_transactions.findMany({
@@ -77,7 +76,6 @@ router.get('/transactions', authenticateToken, async (req, res) => {
   }
 });
 
-// 待定收益：尚未撥款的訂單清單與總金額
 router.get('/pending', authenticateToken, async (req, res) => {
   try {
     const orders = await prisma.orders.findMany({

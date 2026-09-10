@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/app_tiles.dart';
+import '../widgets/app_dialogs.dart';
+import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 
@@ -53,11 +56,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _changeAvatar() async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
 
-    final ok = await _api.uploadAvatar(picked.path);
+    final ok = await runBusy(context, () => _api.uploadAvatar(picked.path), message: '上傳中…');
     if (!mounted) return;
-    if (ok) {
+    if (ok == true) {
       setState(() {});
       showAppSnackBar(context, '頭像已更新');
     } else {
@@ -82,7 +85,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           decoration: const InputDecoration(hintText: '請輸入暱稱'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消', style: TextStyle(color: Colors.grey))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('取消', style: TextStyle(color: c.textSecondary))),
           TextButton(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
             child: const Text('確定', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
@@ -97,24 +100,47 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _save() async {
-    if (_nicknameController.text.trim().isEmpty) {
+    if (_isSaving) return;
+
+    final nickname = _nicknameController.text.trim();
+    final phone = _phoneController.text.trim();
+    final year = _yearController.text.trim();
+    final month = _monthController.text.trim();
+    final day = _dayController.text.trim();
+
+    if (nickname.isEmpty) {
       showAppSnackBar(context, '暱稱不可空白', isError: true);
+      return;
+    }
+    if (nickname.length < 2 || nickname.length > 50) {
+      showAppSnackBar(context, '暱稱長度需介於 2 ~ 50 個字元', isError: true);
+      return;
+    }
+    if (phone.isNotEmpty && !Validators.isPhone(phone)) {
+      showAppSnackBar(context, '電話格式不正確，例：0912345678', isError: true);
+      return;
+    }
+
+    final dateError = Validators.date(year, month, day);
+    if (dateError != null) {
+      showAppSnackBar(context, dateError, isError: true);
       return;
     }
 
     String? birthday;
-    final year = _yearController.text.trim();
-    final month = _monthController.text.trim();
-    final day = _dayController.text.trim();
     if (year.isNotEmpty && month.isNotEmpty && day.isNotEmpty) {
       birthday = '$year-${month.padLeft(2, '0')}-${day.padLeft(2, '0')}';
+      if (DateTime.parse(birthday).isAfter(DateTime.now())) {
+        showAppSnackBar(context, '生日不可以是未來的日期', isError: true);
+        return;
+      }
     }
 
     setState(() => _isSaving = true);
     final error = await _api.updateProfile(
-      nickname: _nicknameController.text.trim(),
+      nickname: nickname,
       bio: _bioController.text.trim(),
-      phone: _phoneController.text.trim(),
+      phone: phone,
       birthday: birthday,
     );
     if (!mounted) return;
@@ -145,14 +171,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   Stack(
                     children: [
-                      CircleAvatar(
-                        radius: 48,
-                        backgroundColor: c.inputFill,
-                        backgroundImage: avatarUrl == null ? null : NetworkImage(avatarUrl),
-                        child: avatarUrl == null
-                            ? Icon(Icons.person, size: 48, color: c.iconInactive)
-                            : null,
-                      ),
+                      UserAvatar(imageUrl: avatarUrl, radius: 48),
                       Positioned(
                         right: 0,
                         bottom: 0,
@@ -187,31 +206,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _FieldCard(
+                  FormRowCard(
                     label: '個人簡介',
                     alignTop: true,
-                    child: _input(_bioController, c, maxLines: 4, hint: '介紹一下自己吧'),
+                    child: AppTextField(controller: _bioController, maxLines: 4, maxLength: 200, hint: '介紹一下自己吧'),
                   ),
-                  _FieldCard(label: '電話', child: _input(_phoneController, c, keyboardType: TextInputType.phone)),
-                  _FieldCard(
+                  FormRowCard(label: '電話', child: AppTextField(controller: _phoneController, keyboardType: TextInputType.phone, maxLength: 20, hint: '0912345678')),
+                  FormRowCard(
                     label: '信箱',
-                    child: _input(_emailController, c, enabled: false, hint: '信箱無法修改'),
+                    child: AppTextField(controller: _emailController, enabled: false, hint: '信箱無法修改'),
                   ),
-                  _FieldCard(
+                  FormRowCard(
                     label: '生日',
                     child: Row(
                       children: [
-                        Expanded(child: _input(_yearController, c, keyboardType: TextInputType.number)),
+                        Expanded(child: AppTextField(controller: _yearController, keyboardType: TextInputType.number, maxLength: 4)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
                           child: Text('年', style: TextStyle(color: c.textPrimary)),
                         ),
-                        Expanded(child: _input(_monthController, c, keyboardType: TextInputType.number)),
+                        Expanded(child: AppTextField(controller: _monthController, keyboardType: TextInputType.number, maxLength: 2)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
                           child: Text('月', style: TextStyle(color: c.textPrimary)),
                         ),
-                        Expanded(child: _input(_dayController, c, keyboardType: TextInputType.number)),
+                        Expanded(child: AppTextField(controller: _dayController, keyboardType: TextInputType.number, maxLength: 2)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
                           child: Text('日', style: TextStyle(color: c.textPrimary)),
@@ -226,9 +245,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: ElevatedButton(
                       onPressed: _isSaving ? null : _save,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: c.accent,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
+                        disabledBackgroundColor: c.accent.withOpacity(0.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       child: _isSaving
@@ -245,68 +264,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _input(
-    TextEditingController controller,
-    AppColors c, {
-    int maxLines = 1,
-    String? hint,
-    bool enabled = true,
-    TextInputType? keyboardType,
-  }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      enabled: enabled,
-      keyboardType: keyboardType,
-      style: TextStyle(color: enabled ? c.textPrimary : c.textHint, fontSize: 14),
-      decoration: InputDecoration(
-        isDense: true,
-        hintText: hint,
-        hintStyle: TextStyle(color: c.textHint, fontSize: 13),
-        filled: true,
-        fillColor: c.inputFill,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-}
-
-class _FieldCard extends StatelessWidget {
-  final String label;
-  final Widget child;
-  final bool alignTop;
-
-  const _FieldCard({required this.label, required this.child, this.alignTop = false});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: alignTop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 76,
-            child: Padding(
-              padding: EdgeInsets.only(top: alignTop ? 10 : 0),
-              child: Text(
-                label,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
-              ),
-            ),
-          ),
-          Expanded(child: child),
         ],
       ),
     );

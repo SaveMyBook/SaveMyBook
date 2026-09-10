@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/order_card.dart';
 import '../widgets/state_views.dart';
@@ -56,8 +58,17 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
   }
 
   Future<void> _markDeposited(Order order) async {
-    final error = await _api.updateOrderStatus(order.orderId, 'deposited');
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '完成存書',
+      message: '確認已把《${order.firstBook?.title ?? '書籍'}》放入書櫃了嗎？\n買家會收到可取書的通知。',
+      confirmLabel: '已放入書櫃',
+    );
+    if (!confirmed || !mounted) return;
+
+    final error = await runBusy(context, () => _api.updateOrderStatus(order.orderId, 'deposited'));
     if (!mounted) return;
+
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
@@ -67,8 +78,19 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
   }
 
   Future<void> _cancelOrder(Order order) async {
-    final error = await _api.cancelOrder(order.orderId, reason: '賣家取消');
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '取消訂單',
+      message: '取消後買家會收到通知，書籍會回到商城重新販售。',
+      confirmLabel: '取消訂單',
+      cancelLabel: '返回',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    final error = await runBusy(context, () => _api.cancelOrder(order.orderId, reason: '賣家取消'));
     if (!mounted) return;
+
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
@@ -118,10 +140,10 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
             tabs: _tabs.map((t) => t.label).toList(),
           ),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: orders.isEmpty
                         ? ListView(
@@ -139,9 +161,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                               childAspectRatio: 0.55,
                             ),
                             itemCount: orders.length,
-                            itemBuilder: (_, i) => _buildCard(orders[i]),
+                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(orders[i])),
                           ),
-                  ),
+                  )),
           ),
         ],
       ),

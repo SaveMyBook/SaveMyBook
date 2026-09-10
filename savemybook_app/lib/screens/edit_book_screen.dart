@@ -3,12 +3,13 @@ import '../models/book.dart';
 import '../models/category.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import 'barcode_scanner_screen.dart';
 import 'edit_book_detail_screen.dart';
 
-/// 編輯書籍 (1/2)：ISBN、書名、作者、出版社、出版日期、分類
 class EditBookScreen extends StatefulWidget {
   final Book book;
   const EditBookScreen({super.key, required this.book});
@@ -85,14 +86,35 @@ class _EditBookScreenState extends State<EditBookScreen> {
   }
 
   void _next() {
-    if (_titleController.text.trim().isEmpty) {
-      showAppSnackBar(context, '請填寫書名', isError: true);
-      return;
-    }
-
+    final title = _titleController.text.trim();
+    final isbn = _isbnController.text.trim();
     final year = _yearController.text.trim();
     final month = _monthController.text.trim();
     final day = _dayController.text.trim();
+
+    if (title.isEmpty) {
+      showAppSnackBar(context, '請填寫書名', isError: true);
+      return;
+    }
+    if (title.length > 255) {
+      showAppSnackBar(context, '書名不可超過 255 個字元', isError: true);
+      return;
+    }
+    if (isbn.isNotEmpty && isbn.length != 10 && isbn.length != 13) {
+      showAppSnackBar(context, 'ISBN 應為 10 碼或 13 碼', isError: true);
+      return;
+    }
+
+    final dateError = Validators.date(year, month, day);
+    if (dateError != null) {
+      showAppSnackBar(context, dateError, isError: true);
+      return;
+    }
+    if (_categoryId == null) {
+      showAppSnackBar(context, '請選擇書籍分類', isError: true);
+      return;
+    }
+
     final publishDate = [year, month, day].where((e) => e.isNotEmpty).join('-');
 
     Navigator.push(
@@ -100,8 +122,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
       MaterialPageRoute(
         builder: (_) => EditBookDetailScreen(
           book: widget.book,
-          isbn: _isbnController.text.trim(),
-          title: _titleController.text.trim(),
+          isbn: isbn,
+          title: title,
           author: _authorController.text.trim(),
           publisher: _publisherController.text.trim(),
           publishDate: publishDate,
@@ -121,17 +143,17 @@ class _EditBookScreenState extends State<EditBookScreen> {
         children: [
           const AppHeader(title: '編輯書籍', icon: Icons.edit_note_rounded),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        _FormRow(
+                        FormRowCard(
                           label: 'ISBN',
                           child: Row(
                             children: [
-                              Expanded(child: _textField(_isbnController, c, keyboardType: TextInputType.number)),
+                              Expanded(child: AppTextField(controller: _isbnController, keyboardType: TextInputType.number)),
                               const SizedBox(width: 8),
                               GestureDetector(
                                 onTap: _scanIsbn,
@@ -140,24 +162,24 @@ class _EditBookScreenState extends State<EditBookScreen> {
                             ],
                           ),
                         ),
-                        _FormRow(label: '書名', child: _textField(_titleController, c)),
-                        _FormRow(label: '作者', child: _textField(_authorController, c)),
-                        _FormRow(label: '出版社', child: _textField(_publisherController, c)),
-                        _FormRow(
+                        FormRowCard(label: '書名', child: AppTextField(controller: _titleController)),
+                        FormRowCard(label: '作者', child: AppTextField(controller: _authorController)),
+                        FormRowCard(label: '出版社', child: AppTextField(controller: _publisherController)),
+                        FormRowCard(
                           label: '出版日期',
                           child: Row(
                             children: [
-                              Expanded(child: _textField(_yearController, c, keyboardType: TextInputType.number)),
+                              Expanded(child: AppTextField(controller: _yearController, keyboardType: TextInputType.number)),
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 6),
                                 child: Text('年', style: TextStyle(color: c.textPrimary)),
                               ),
-                              Expanded(child: _textField(_monthController, c, keyboardType: TextInputType.number)),
+                              Expanded(child: AppTextField(controller: _monthController, keyboardType: TextInputType.number)),
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 6),
                                 child: Text('月', style: TextStyle(color: c.textPrimary)),
                               ),
-                              Expanded(child: _textField(_dayController, c, keyboardType: TextInputType.number)),
+                              Expanded(child: AppTextField(controller: _dayController, keyboardType: TextInputType.number)),
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 6),
                                 child: Text('日', style: TextStyle(color: c.textPrimary)),
@@ -165,7 +187,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                             ],
                           ),
                         ),
-                        _FormRow(
+                        FormRowCard(
                           label: '選擇分類',
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<int>(
@@ -191,7 +213,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                           child: ElevatedButton(
                             onPressed: _next,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: c.accent,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
@@ -201,54 +223,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
                         const SizedBox(height: 40),
                       ],
                     ),
-                  ),
+                  )),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _textField(TextEditingController controller, AppColors c, {TextInputType? keyboardType}) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      style: TextStyle(color: c.textPrimary, fontSize: 14),
-      decoration: InputDecoration(
-        isDense: true,
-        filled: true,
-        fillColor: c.inputFill,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-}
-
-class _FormRow extends StatelessWidget {
-  final String label;
-  final Widget child;
-
-  const _FormRow({required this.label, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 76,
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
-            ),
-          ),
-          Expanded(child: child),
         ],
       ),
     );

@@ -33,11 +33,11 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('外觀設定', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
+            Text('外觀設定', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
             const SizedBox(height: 12),
             _buildDarkModeCard(context, c),
             const SizedBox(height: 32),
-            const Text('關於我們', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
+            Text('關於我們', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
             const SizedBox(height: 12),
             _buildExpandableCard(
               c,
@@ -103,7 +103,7 @@ class SettingsScreen extends StatelessWidget {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 leading: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: c.textPrimary),
                 title: Text('深色模式', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary)),
-                trailing: Switch.adaptive(value: isDark, activeColor: AppColors.primary, onChanged: (_) => themeProvider.toggle()),
+                trailing: Switch.adaptive(value: isDark, activeColor: c.accent, onChanged: (_) => themeProvider.toggle()),
               ),
             ),
           ),

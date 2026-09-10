@@ -7,7 +7,6 @@ const router = express.Router();
 
 const TYPES = ['general', 'maintenance', 'promotion', 'policy'];
 
-// 一般使用者：只看得到已發布且未過期的公告
 router.get('/', async (req, res) => {
   try {
     const now = new Date();
@@ -26,7 +25,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 管理端：含草稿
 router.get('/all', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const announcements = await prisma.system_announcements.findMany({

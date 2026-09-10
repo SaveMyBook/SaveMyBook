@@ -12,11 +12,9 @@ const logAction = (adminId, action, targetType, targetId, detail) =>
     data: { admin_id: adminId, action, target_type: targetType, target_id: targetId, detail }
   });
 
-/* ---------------------------------- 會員管控 --------------------------------- */
-
 router.get('/members', async (req, res) => {
   const keyword = req.query.keyword || '';
-  const status = req.query.status; // active | blacklisted | inactive
+  const status = req.query.status;
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 20;
 
@@ -95,10 +93,8 @@ router.patch('/members/:id', async (req, res) => {
   }
 });
 
-/* -------------------------------- 商品檢舉處理 -------------------------------- */
-
 router.get('/reports', async (req, res) => {
-  const status = req.query.status; // pending | reviewing | resolved | dismissed
+  const status = req.query.status;
   try {
     const reports = await prisma.reports.findMany({
       where: { ...(status && { status }) },
@@ -109,7 +105,6 @@ router.get('/reports', async (req, res) => {
       }
     });
 
-    // 補上被檢舉對象的摘要資訊
     const bookIds = reports.filter(r => r.target_type === 'book').map(r => r.target_id);
     const userIds = reports.filter(r => r.target_type === 'user').map(r => r.target_id);
 
@@ -180,12 +175,44 @@ router.patch('/reports/:id', async (req, res) => {
         data: {
           user_id: report.reporter_id,
           type: 'system',
-          title: '您的檢舉已處理',
-          content: status === 'dismissed' ? '經審核後未違反社群規範，感謝您的回報。' : '感謝您的回報，我們已完成處理。',
+          title: '你的檢舉已處理',
+          content: status === 'dismissed'
+            ? '經審核後未違反社群規範，感謝你的回報。'
+            : '感謝你的回報，我們已完成處理。',
           related_id: reportId,
           related_type: 'report'
         }
       });
+
+      // 一併通知被檢舉的一方，讓對方知道審核結果
+      let ownerId = null;
+      if (report.target_type === 'book') {
+        const book = await tx.books.findUnique({
+          where: { book_id: report.target_id },
+          select: { seller_id: true, title: true }
+        });
+        ownerId = book?.seller_id ?? null;
+      } else if (report.target_type === 'user') {
+        ownerId = report.target_id;
+      }
+
+      if (ownerId && ownerId !== report.reporter_id) {
+        const resolved = status === 'resolved';
+        await tx.notifications.create({
+          data: {
+            user_id: ownerId,
+            type: 'system',
+            title: resolved ? '檢舉審核結果：違規成立' : '檢舉審核結果：未違規',
+            content: resolved
+              ? (remove_target && report.target_type === 'book'
+                  ? '經審核違規成立，該商品已被下架。如有疑問請聯絡客服。'
+                  : '經審核違規成立，請留意社群規範，重複違規將影響帳號權益。')
+              : '經審核後未違反社群規範，你的商品／帳號不受影響。',
+            related_id: report.target_id,
+            related_type: report.target_type
+          }
+        });
+      }
 
       return r;
     });
@@ -199,10 +226,8 @@ router.patch('/reports/:id', async (req, res) => {
   }
 });
 
-/* --------------------------------- 仲裁交易 --------------------------------- */
-
 router.get('/disputes', async (req, res) => {
-  const status = req.query.status; // pending | processing | resolved
+  const status = req.query.status;
   try {
     const disputes = await prisma.transaction_disputes.findMany({
       where: { ...(status && { status }) },
@@ -305,8 +330,6 @@ router.patch('/disputes/:id', async (req, res) => {
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });
-
-/* ------------------------------ 硬體維護／書櫃監控 ----------------------------- */
 
 router.get('/cabinets', async (req, res) => {
   try {
@@ -421,7 +444,6 @@ router.patch('/cabinets/:cabinetId/slots/:slotId', async (req, res) => {
   }
 });
 
-// 維修紀錄：書櫃／櫃位相關的管理員操作紀錄
 router.get('/maintenance-logs', async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 30;
@@ -449,8 +471,6 @@ router.get('/maintenance-logs', async (req, res) => {
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });
-
-/* ---------------------------------- 總覽 ---------------------------------- */
 
 router.get('/overview', async (req, res) => {
   try {

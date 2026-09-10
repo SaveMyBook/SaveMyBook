@@ -151,8 +151,6 @@ class Book {
     }
   }
 
-  /// 是否有實際上傳的書封。沒有時 UI 應該畫本地圖示，
-  /// 而不是連到外部佔位圖——那在網路不穩時會變成破圖。
   bool get hasImage => imageUrl.isNotEmpty;
 
   String get statusText {

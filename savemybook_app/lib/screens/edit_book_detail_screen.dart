@@ -6,10 +6,12 @@ import 'package:image_picker/image_picker.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_dialogs.dart';
+import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 
-/// 編輯書籍 (2/2)：照片、書況、自訂價格、存放區域
 class EditBookDetailScreen extends StatefulWidget {
   final Book book;
   final String isbn;
@@ -98,15 +100,40 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
   }
 
   Future<void> _pickImages() async {
+    final remaining = 8 - (_existingImages.length + _newImages.length);
+    if (remaining <= 0) {
+      showAppSnackBar(context, '最多只能有 8 張照片', isError: true);
+      return;
+    }
+
     final picked = await _picker.pickMultiImage();
-    if (picked.isEmpty) return;
-    setState(() => _newImages.addAll(picked));
+    if (picked.isEmpty || !mounted) return;
+
+    if (picked.length > remaining) {
+      showAppSnackBar(context, '最多再加入 $remaining 張，已自動截斷', isError: true);
+    }
+    setState(() => _newImages.addAll(picked.take(remaining)));
   }
 
   Future<void> _removeExistingImage(BookImage image) async {
-    final ok = await _api.deleteBookImage(widget.book.bookId, image.imageId);
+    if (_existingImages.length + _newImages.length <= 1) {
+      showAppSnackBar(context, '至少要保留一張照片', isError: true);
+      return;
+    }
+
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '刪除照片',
+      message: '刪除後無法復原，確定嗎？',
+      confirmLabel: '刪除',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    final ok = await runBusy(context, () => _api.deleteBookImage(widget.book.bookId, image.imageId));
     if (!mounted) return;
-    if (ok) {
+
+    if (ok == true) {
       setState(() => _existingImages.removeWhere((e) => e.imageId == image.imageId));
     } else {
       showAppSnackBar(context, '刪除圖片失敗', isError: true);
@@ -114,9 +141,27 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
   }
 
   Future<void> _save() async {
+    if (_isSaving) return;
+
     final price = double.tryParse(_priceController.text.trim());
-    if (price == null || price < 0) {
-      showAppSnackBar(context, '請填寫正確的價格', isError: true);
+    if (price == null) {
+      showAppSnackBar(context, '請填寫價格', isError: true);
+      return;
+    }
+    if (price <= 0) {
+      showAppSnackBar(context, '價格必須大於 0', isError: true);
+      return;
+    }
+    if (price > 999999) {
+      showAppSnackBar(context, '價格不可超過 999,999', isError: true);
+      return;
+    }
+    if (_cabinetId == null) {
+      showAppSnackBar(context, '請選擇存放區域', isError: true);
+      return;
+    }
+    if (_existingImages.isEmpty && _newImages.isEmpty) {
+      showAppSnackBar(context, '請至少保留一張書籍照片', isError: true);
       return;
     }
 
@@ -143,7 +188,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
 
     if (ok) {
       showAppSnackBar(context, '書籍已更新');
-      // 一次收掉編輯流程的兩個步驟，回到書籍管理
+
       final navigator = Navigator.of(context);
       navigator.pop();
       navigator.pop();
@@ -162,7 +207,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
         children: [
           const AppHeader(title: '編輯書籍', icon: Icons.edit_note_rounded),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
@@ -190,22 +235,11 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                         _buildRowCard(
                           c,
                           '自訂價格',
-                          TextField(
+                          AppTextField(
                             controller: _priceController,
                             keyboardType: TextInputType.number,
-                            style: TextStyle(color: c.textPrimary, fontSize: 14),
-                            decoration: InputDecoration(
-                              isDense: true,
-                              prefixText: '\$ ',
-                              prefixStyle: TextStyle(color: c.textPrimary, fontSize: 14),
-                              filled: true,
-                              fillColor: c.inputFill,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
+                            prefixText: '\$ ',
+                            maxLength: 6,
                           ),
                         ),
                         _buildRowCard(
@@ -238,9 +272,9 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                           child: ElevatedButton(
                             onPressed: _isSaving ? null : _save,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: c.accent,
                               foregroundColor: Colors.white,
-                              disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
+                              disabledBackgroundColor: c.accent.withOpacity(0.5),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
                             child: _isSaving
@@ -256,7 +290,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                         const SizedBox(height: 40),
                       ],
                     ),
-                  ),
+                  )),
           ),
         ],
       ),
@@ -348,7 +382,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                   shape: BoxShape.circle,
                   boxShadow: [BoxShadow(color: c.shadow, blurRadius: 4)],
                 ),
-                child: const Icon(Icons.cancel, size: 18, color: Colors.redAccent),
+                child: Icon(Icons.cancel, size: 18, color: c.danger),
               ),
             ),
           ),

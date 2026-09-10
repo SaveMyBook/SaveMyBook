@@ -104,7 +104,6 @@ router.get('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// 結帳：把購物車中指定的項目依賣家拆成多張訂單
 router.post('/checkout', authenticateToken, async (req, res) => {
   const cartIds = Array.isArray(req.body.cart_ids) ? req.body.cart_ids.map(Number).filter(Boolean) : null;
   const paymentMethod = req.body.payment_method === 'bank_transfer' ? 'bank_transfer' : 'wallet';
@@ -242,7 +241,6 @@ router.patch('/:id/cancel', authenticateToken, async (req, res) => {
   }
 });
 
-// 賣家存書完成 -> deposited；買家取書完成 -> completed 並撥款給賣家
 router.patch('/:id/status', authenticateToken, async (req, res) => {
   const orderId = parseInt(req.params.id);
   const status = req.body.status;
@@ -294,7 +292,6 @@ router.patch('/:id/status', authenticateToken, async (req, res) => {
         await tx.wallet_transactions.create({
           data: {
             wallet_id: wallet.wallet_id,
-            user_id: order.seller_id,
             type: 'sale_income',
             amount: order.total_amount,
             balance_after: newBalance,

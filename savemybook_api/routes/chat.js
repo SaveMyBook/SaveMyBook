@@ -47,7 +47,6 @@ router.get('/rooms', authenticateToken, async (req, res) => {
   }
 });
 
-// 建立或取得與某位使用者（可帶書籍）的聊天室
 router.post('/rooms', authenticateToken, async (req, res) => {
   const myId = req.user.userId;
   const partnerId = parseInt(req.body.user_id);

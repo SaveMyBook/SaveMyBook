@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
+import 'app_tiles.dart';
 import '../models/book.dart';
 import '../screens/book_detail_screen.dart';
 import '../utils/app_colors.dart';
@@ -13,7 +14,6 @@ class BookCard extends StatelessWidget {
 
   static const _titleStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.bold, height: 1.2);
 
-  /// 沒有書封（或載入失敗）時的本地替代圖
   static Widget _imagePlaceholder(AppColors c, double width, double height) {
     return Container(
       width: width,
@@ -70,7 +70,7 @@ class BookCard extends StatelessWidget {
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [
-                    _buildTag(book.categoryName, c.categoryChip, AppColors.primary),
+                    _buildTag(book.categoryName, c.categoryChip, c.accent),
                     const SizedBox(width: 6),
                     _buildTag(book.conditionText, book.conditionColor.withOpacity(0.12), book.conditionColor),
                   ]),
@@ -78,7 +78,7 @@ class BookCard extends StatelessWidget {
                   Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
                 ]),
                 Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                  const CircleAvatar(radius: 9, backgroundImage: NetworkImage('https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=200&auto=format&fit=crop')),
+                  _sellerAvatar(c, 9),
                   const SizedBox(width: 6),
                   Expanded(child: Text(sellerName, locale: const Locale('en', 'US'), style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis)),
                 ]),
@@ -123,7 +123,7 @@ class BookCard extends StatelessWidget {
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [
-                    _buildTag(book.categoryName, c.categoryChip, AppColors.primary),
+                    _buildTag(book.categoryName, c.categoryChip, c.accent),
                     const SizedBox(width: 6),
                     _buildTag(book.conditionText, book.conditionColor.withOpacity(0.12), book.conditionColor),
                   ]),
@@ -132,7 +132,7 @@ class BookCard extends StatelessWidget {
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.end, children: [
                   Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
                   Row(mainAxisSize: MainAxisSize.min, children: [
-                    const CircleAvatar(radius: 9, backgroundImage: NetworkImage('https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=200&auto=format&fit=crop')),
+                    _sellerAvatar(c, 9),
                     const SizedBox(width: 5),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 80),
@@ -148,8 +148,13 @@ class BookCard extends StatelessWidget {
     );
   }
 
+  Widget _sellerAvatar(AppColors c, double radius) {
+    return UserAvatar(imageUrl: book.sellerAvatarUrl, radius: radius);
+  }
+
   String _sellerName() {
-    String name = book.location.replaceAll('賣家：', '');
+    if (book.sellerName.isNotEmpty) return book.sellerName;
+    final name = book.location.replaceAll('賣家：', '');
     return name == '地點未提供' ? '管理員' : name;
   }
 

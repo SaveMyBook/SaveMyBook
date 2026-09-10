@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import 'animations.dart';
 
 class LoadingView extends StatelessWidget {
   const LoadingView({super.key});
@@ -9,7 +10,10 @@ class LoadingView extends StatelessWidget {
     return const Center(
       child: Padding(
         padding: EdgeInsets.all(48),
-        child: CircularProgressIndicator(color: AppColors.primary),
+        child: FadeSlideIn(
+          offsetY: 0,
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
       ),
     );
   }
@@ -32,30 +36,44 @@ class EmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 56, color: c.iconInactive),
+            FadeSlideIn(
+              offsetY: 14,
+              child: Icon(icon, size: 56, color: c.iconInactive),
+            ),
             const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: c.textSecondary, fontSize: 15),
+            FadeSlideIn(
+              index: 1,
+              stagger: const Duration(milliseconds: 90),
+              offsetY: 12,
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: c.textSecondary, fontSize: 15),
+              ),
             ),
             if (actionLabel != null) ...[
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: onAction,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              FadeSlideIn(
+                index: 2,
+                stagger: const Duration(milliseconds: 90),
+                offsetY: 12,
+                child: ElevatedButton(
+                  onPressed: onAction,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: c.accent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(actionLabel!),
                 ),
-                child: Text(actionLabel!),
               ),
             ],
           ],
@@ -65,8 +83,7 @@ class EmptyView extends StatelessWidget {
   }
 }
 
-/// 卡片外框：白底、圓角、淡陰影，與會員中心的卡片一致。
-class AppCard extends StatelessWidget {
+class AppCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry margin;
@@ -81,26 +98,48 @@ class AppCard extends StatelessWidget {
   });
 
   @override
+  State<AppCard> createState() => _AppCardState();
+}
+
+class _AppCardState extends State<AppCard> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+
     return Padding(
-      padding: margin,
-      child: Material(
-        color: c.card,
-        borderRadius: BorderRadius.circular(16),
-        elevation: 0,
-        child: InkWell(
+      padding: widget.margin,
+      child: AnimatedScale(
+        scale: _pressed ? 0.975 : 1.0,
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOut,
+        child: Material(
+          color: c.card,
           borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
-              ],
+          elevation: 0,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: widget.onTap,
+            onHighlightChanged: (value) {
+              if (widget.onTap == null || _pressed == value) return;
+              setState(() => _pressed = value);
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: widget.padding,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: c.shadow.withOpacity(_pressed ? 0.02 : 0.05),
+                    blurRadius: _pressed ? 4 : 10,
+                    offset: Offset(0, _pressed ? 1 : 4),
+                  ),
+                ],
+              ),
+              child: widget.child,
             ),
-            child: child,
           ),
         ),
       ),
@@ -108,7 +147,6 @@ class AppCard extends StatelessWidget {
   }
 }
 
-/// 列表／卡片中的書封縮圖，統一失敗時的替代圖示。
 class BookThumbnail extends StatelessWidget {
   final String? imageUrl;
   final double width;
@@ -126,6 +164,8 @@ class BookThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final placeholder = Icon(Icons.menu_book_rounded, color: c.iconInactive, size: width * 0.4);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: Container(
@@ -133,12 +173,20 @@ class BookThumbnail extends StatelessWidget {
         height: height,
         color: c.inputFill,
         child: imageUrl == null || imageUrl!.isEmpty
-            ? Icon(Icons.menu_book_rounded, color: c.iconInactive, size: width * 0.4)
+            ? placeholder
             : Image.network(
                 imageUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    Icon(Icons.menu_book_rounded, color: c.iconInactive, size: width * 0.4),
+                errorBuilder: (_, __, ___) => placeholder,
+                frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
+                  if (wasSynchronouslyLoaded) return child;
+                  return AnimatedOpacity(
+                    opacity: frame == null ? 0 : 1,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                    child: child,
+                  );
+                },
               ),
       ),
     );
@@ -151,7 +199,7 @@ void showAppSnackBar(BuildContext context, String message, {bool isError = false
     ..showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.redAccent : AppColors.primary,
+        backgroundColor: isError ? AppColors.of(context).danger : AppColors.of(context).accent,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

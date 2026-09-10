@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/book_card.dart';
 import '../widgets/state_views.dart';
@@ -58,10 +59,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ],
           ),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: _books.isEmpty
                         ? ListView(
@@ -82,9 +83,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                               childAspectRatio: 0.58,
                             ),
                             itemCount: _books.length,
-                            itemBuilder: (_, i) => BookCard(book: _books[i]),
+                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: BookCard(book: _books[i])),
                           ),
-                  ),
+                  )),
           ),
         ],
       ),

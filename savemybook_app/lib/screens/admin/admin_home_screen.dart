@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/animations.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import 'admin_announcement_screen.dart';
 import 'admin_cabinet_screen.dart';
@@ -11,7 +13,6 @@ import 'admin_maintenance_log_screen.dart';
 import 'admin_member_screen.dart';
 import 'admin_report_screen.dart';
 
-/// 管理後台首頁：總覽數字 + 五大管理功能入口
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
 
@@ -54,10 +55,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         children: [
           const AppHeader(title: '管理後台', icon: Icons.admin_panel_settings_outlined),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
@@ -68,39 +69,39 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           padding: EdgeInsets.zero,
                           child: Column(
                             children: [
-                              _MenuItem(
+                              AppMenuItem(
                                 icon: Icons.people_alt_outlined,
                                 title: '會員管控',
                                 subtitle: '會員列表、停權與黑名單',
                                 onTap: () => _open(const AdminMemberScreen()),
                               ),
-                              _MenuItem(
+                              AppMenuItem(
                                 icon: Icons.report_gmailerrorred_outlined,
                                 title: '內容審核',
                                 subtitle: '商品檢舉處理',
                                 badge: _overview.pendingReportCount,
                                 onTap: () => _open(const AdminReportScreen()),
                               ),
-                              _MenuItem(
+                              AppMenuItem(
                                 icon: Icons.gavel_rounded,
                                 title: '仲裁交易',
                                 subtitle: '申訴列表與裁決',
                                 badge: _overview.pendingDisputeCount,
                                 onTap: () => _open(const AdminDisputeScreen()),
                               ),
-                              _MenuItem(
+                              AppMenuItem(
                                 icon: Icons.storage_rounded,
                                 title: '硬體維護',
                                 subtitle: '書櫃監控與櫃位狀態',
                                 onTap: () => _open(const AdminCabinetScreen()),
                               ),
-                              _MenuItem(
+                              AppMenuItem(
                                 icon: Icons.history_rounded,
                                 title: '維修紀錄',
                                 subtitle: '書櫃相關操作紀錄',
                                 onTap: () => _open(const AdminMaintenanceLogScreen()),
                               ),
-                              _MenuItem(
+                              AppMenuItem(
                                 icon: Icons.campaign_outlined,
                                 title: '系統公告',
                                 subtitle: '推播管理',
@@ -112,9 +113,19 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         ),
                       ],
                     ),
-                  ),
+                  )),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _stat(String label, int value, AppColors c) {
+    return StatTile(
+      label: label,
+      value: AnimatedCount(
+        value: value.toDouble(),
+        style: TextStyle(color: c.accent, fontSize: 20, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -125,105 +136,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _Stat(label: '會員數', value: '${_overview.memberCount}', c: c),
-          _Divider(c: c),
-          _Stat(label: '今日訂單', value: '${_overview.todayOrderCount}', c: c),
-          _Divider(c: c),
-          _Stat(label: '待處理案件', value: '${_overview.pendingReportCount + _overview.pendingDisputeCount}', c: c),
-          _Divider(c: c),
-          _Stat(label: '啟用書櫃', value: '${_overview.activeCabinetCount}', c: c),
+          _stat('會員數', _overview.memberCount, c),
+          const VerticalDivider1(),
+          _stat('今日訂單', _overview.todayOrderCount, c),
+          const VerticalDivider1(),
+          _stat('待處理案件', _overview.pendingReportCount + _overview.pendingDisputeCount, c),
+          const VerticalDivider1(),
+          _stat('啟用書櫃', _overview.activeCabinetCount, c),
         ],
       ),
-    );
-  }
-}
-
-class _Stat extends StatelessWidget {
-  final String label;
-  final String value;
-  final AppColors c;
-
-  const _Stat({required this.label, required this.value, required this.c});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(label, style: TextStyle(color: c.textSecondary, fontSize: 12)),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: const TextStyle(color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  final AppColors c;
-  const _Divider({required this.c});
-
-  @override
-  Widget build(BuildContext context) => Container(height: 30, width: 1, color: c.divider);
-}
-
-class _MenuItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final int badge;
-  final bool isLast;
-  final VoidCallback onTap;
-
-  const _MenuItem({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.badge = 0,
-    this.isLast = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    return Column(
-      children: [
-        ListTile(
-          leading: Icon(icon, color: AppColors.primary),
-          title: Text(
-            title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary),
-          ),
-          subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: c.textSecondary)),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (badge > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '$badge',
-                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              const SizedBox(width: 8),
-              Icon(Icons.arrow_forward_ios, size: 16, color: c.iconInactive),
-            ],
-          ),
-          onTap: onTap,
-        ),
-        if (!isLast)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Divider(height: 1, color: c.divider),
-          ),
-      ],
     );
   }
 }

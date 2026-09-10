@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/animations.dart';
+import '../../widgets/app_dialogs.dart';
+import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 import 'admin_cabinet_edit_screen.dart';
 
-/// 硬體維護－書櫃監控
 class AdminCabinetScreen extends StatefulWidget {
   const AdminCabinetScreen({super.key});
 
@@ -51,13 +53,28 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
   }
 
   Future<void> _toggleActive(Cabinet cabinet) async {
-    final error = await _api.saveCabinet(
-      cabinetId: cabinet.cabinetId,
-      name: cabinet.cabinetName,
-      address: cabinet.address,
-      latitude: cabinet.latitude,
-      longitude: cabinet.longitude,
-      isActive: !cabinet.isActive,
+    final action = cabinet.isActive ? '停用' : '啟用';
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '$action書櫃',
+      message: cabinet.isActive
+          ? '停用後「${cabinet.cabinetName}」不會再出現在賣家的存放區域選單中。'
+          : '啟用後「${cabinet.cabinetName}」會重新開放給賣家選擇。',
+      confirmLabel: action,
+      isDestructive: cabinet.isActive,
+    );
+    if (!confirmed || !mounted) return;
+
+    final error = await runBusy(
+      context,
+      () => _api.saveCabinet(
+        cabinetId: cabinet.cabinetId,
+        name: cabinet.cabinetName,
+        address: cabinet.address,
+        latitude: cabinet.latitude,
+        longitude: cabinet.longitude,
+        isActive: !cabinet.isActive,
+      ),
     );
     if (!mounted) return;
     if (error != null) {
@@ -108,9 +125,13 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
 
     if (picked == null || picked == slot.status) return;
 
-    final ok = await _api.updateSlotStatus(cabinet.cabinetId, slot.slotId, picked);
+    final ok = await runBusy(
+      context,
+      () => _api.updateSlotStatus(cabinet.cabinetId, slot.slotId, picked),
+    );
     if (!mounted) return;
-    if (ok) {
+
+    if (ok == true) {
       showAppSnackBar(context, '櫃位狀態已更新');
       _load();
     } else {
@@ -144,30 +165,17 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: TextField(
+            child: AppSearchField(
               controller: _searchController,
+              hint: '搜尋書櫃名稱或地址',
               onChanged: (_) => setState(() {}),
-              style: TextStyle(color: c.textPrimary, fontSize: 14),
-              decoration: InputDecoration(
-                hintText: '搜尋書櫃名稱或地址',
-                hintStyle: TextStyle(color: c.textHint, fontSize: 14),
-                prefixIcon: Icon(Icons.search, color: c.iconInactive, size: 20),
-                isDense: true,
-                filled: true,
-                fillColor: c.card,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
             ),
           ),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: _filtered.isEmpty
                         ? ListView(
@@ -179,9 +187,9 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                         : ListView.builder(
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                             itemCount: _filtered.length,
-                            itemBuilder: (_, i) => _buildCabinetCard(_filtered[i], c),
+                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCabinetCard(_filtered[i], c)),
                           ),
-                  ),
+                  )),
           ),
         ],
       ),
@@ -221,7 +229,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                 icon: Icon(
                   cabinet.isActive ? Icons.power_settings_new_rounded : Icons.play_arrow_rounded,
                   size: 20,
-                  color: cabinet.isActive ? Colors.redAccent : const Color(0xFF2E9E5B),
+                  color: cabinet.isActive ? c.danger : c.success,
                 ),
                 onPressed: () => _toggleActive(cabinet),
               ),
@@ -244,11 +252,16 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: ratio,
-              minHeight: 6,
-              backgroundColor: c.inputFill,
-              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: ratio),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              builder: (_, animated, __) => LinearProgressIndicator(
+                value: animated,
+                minHeight: 6,
+                backgroundColor: c.inputFill,
+                valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+              ),
             ),
           ),
           const SizedBox(height: 10),
@@ -292,13 +305,13 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
     Color color;
     switch (slot.status) {
       case 'occupied':
-        color = AppColors.primary;
+        color = c.accent;
         break;
       case 'reserved':
-        color = Colors.orangeAccent;
+        color = c.warning;
         break;
       case 'maintenance':
-        color = Colors.redAccent;
+        color = c.danger;
         break;
       case 'empty':
       default:
@@ -307,7 +320,9 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
 
     return GestureDetector(
       onTap: () => _editSlot(cabinet, slot),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: color.withOpacity(0.14),

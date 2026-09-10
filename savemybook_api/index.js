@@ -6,7 +6,7 @@ const path = require('path');
 
 const swaggerSpec = require('./config/swagger');
 const userRoutes = require('./routes/users');
-const authRoutes = require('./routes/auth'); 
+const authRoutes = require('./routes/auth');
 const bookRoutes = require('./routes/books');
 const categoriesRoutes = require('./routes/categories');
 const cabinetRoutes = require('./routes/cabinets');

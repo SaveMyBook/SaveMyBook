@@ -3,12 +3,13 @@ import '../models/app_notification.dart';
 import '../services/api_service.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import 'chat_list_screen.dart';
 import 'purchase_history_screen.dart';
 
-/// 通知中心。可獨立開啟，也可嵌在首頁的底部導覽（embedded = true 時不顯示返回鍵）。
 class NotificationScreen extends StatefulWidget {
   final bool embedded;
   const NotificationScreen({super.key, this.embedded = false});
@@ -38,9 +39,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _markAllRead() async {
-    final ok = await _api.markAllNotificationsRead();
+    if (_notifications.every((n) => n.isRead)) {
+      showAppSnackBar(context, '沒有未讀的通知');
+      return;
+    }
+
+    final ok = await runBusy(context, () => _api.markAllNotificationsRead());
     if (!mounted) return;
-    if (ok) {
+
+    if (ok == true) {
       showAppSnackBar(context, '已全部標為已讀');
       await _load();
     } else {
@@ -80,12 +87,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _delete(AppNotification n) async {
+    setState(() => _notifications.removeWhere((e) => e.notificationId == n.notificationId));
+
     final ok = await _api.deleteNotification(n.notificationId);
     if (!mounted) return;
-    if (ok) {
-      setState(() => _notifications.removeWhere((e) => e.notificationId == n.notificationId));
-    } else {
-      showAppSnackBar(context, '刪除失敗', isError: true);
+
+    if (!ok) {
+      showAppSnackBar(context, '刪除失敗，已還原', isError: true);
+      _load();
     }
   }
 
@@ -106,10 +115,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ],
           ),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: _notifications.isEmpty
                         ? ListView(
@@ -126,9 +135,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               bottom: MediaQuery.of(context).padding.bottom + (widget.embedded ? 100 : 24),
                             ),
                             itemCount: _notifications.length,
-                            itemBuilder: (_, i) => _buildTile(_notifications[i], c),
+                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildTile(_notifications[i], c)),
                           ),
-                  ),
+                  )),
           ),
         ],
       ),
@@ -144,10 +153,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
         padding: const EdgeInsets.only(right: 24),
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.redAccent.withOpacity(0.15),
+          color: c.danger.withOpacity(0.15),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+        child: Icon(Icons.delete_outline_rounded, color: c.danger),
       ),
       onDismissed: (_) => _delete(n),
       child: AppCard(
@@ -160,10 +169,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.12),
+                color: c.accent.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(n.icon, size: 20, color: AppColors.primary),
+              child: Icon(n.icon, size: 20, color: c.accent),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -182,12 +191,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           ),
                         ),
                       ),
-                      if (!n.isRead)
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
-                        ),
+                      PopIn(
+                        triggerKey: n.isRead,
+                        child: n.isRead
+                            ? const SizedBox(width: 8, height: 8)
+                            : Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: c.danger,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),

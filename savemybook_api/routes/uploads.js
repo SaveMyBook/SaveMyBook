@@ -21,7 +21,6 @@ const upload = multer({
   limits: { fileSize: 8 * 1024 * 1024 }
 });
 
-// 爭議申請、檢舉等情境用的通用圖片上傳
 router.post('/', authenticateToken, upload.array('files', 5), (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ success: false, message: '請選擇要上傳的檔案' });

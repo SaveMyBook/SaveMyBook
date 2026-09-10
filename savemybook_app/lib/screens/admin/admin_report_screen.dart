@@ -3,10 +3,12 @@ import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/animations.dart';
+import '../../widgets/app_dialogs.dart';
+import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 
-/// 內容審核－商品檢舉處理
 class AdminReportScreen extends StatefulWidget {
   const AdminReportScreen({super.key});
 
@@ -87,26 +89,17 @@ class _AdminReportScreenState extends State<AdminReportScreen>
               Text('違規原因：${report.reason}',
                   style: TextStyle(fontSize: 13, color: c.textSecondary)),
               const SizedBox(height: 16),
-              TextField(
+              AppTextField(
                 controller: noteController,
                 maxLines: 3,
-                style: TextStyle(color: c.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  hintText: '處理備註（選填）',
-                  hintStyle: TextStyle(color: c.textHint, fontSize: 13),
-                  filled: true,
-                  fillColor: c.inputFill,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
+                maxLength: 500,
+                hint: '處理備註（選填）',
               ),
               if (report.targetType == 'book')
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   value: removeTarget,
-                  activeColor: AppColors.primary,
+                  activeColor: c.accent,
                   controlAffinity: ListTileControlAffinity.leading,
                   title: Text('同時將該商品下架',
                       style: TextStyle(fontSize: 14, color: c.textPrimary)),
@@ -131,7 +124,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                     child: ElevatedButton(
                       onPressed: () => Navigator.pop(ctx, 'resolved'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: c.accent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -149,11 +142,14 @@ class _AdminReportScreenState extends State<AdminReportScreen>
 
     if (result == null) return;
 
-    final error = await _api.resolveReport(
-      report.reportId,
-      status: result,
-      adminNote: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
-      removeTarget: result == 'resolved' && removeTarget,
+    final error = await runBusy(
+      context,
+      () => _api.resolveReport(
+        report.reportId,
+        status: result,
+        adminNote: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
+        removeTarget: result == 'resolved' && removeTarget,
+      ),
     );
     if (!mounted) return;
 
@@ -176,10 +172,10 @@ class _AdminReportScreenState extends State<AdminReportScreen>
           const AppHeader(title: '商品檢舉處理', icon: Icons.report_gmailerrorred_outlined),
           AppTabBar(controller: _tabController, tabs: const ['待處理', '已處理']),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: _reports.isEmpty
                         ? ListView(
@@ -191,9 +187,9 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),
                             itemCount: _reports.length,
-                            itemBuilder: (_, i) => _buildCard(_reports[i], c),
+                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(_reports[i], c)),
                           ),
-                  ),
+                  )),
           ),
         ],
       ),
@@ -245,7 +241,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: c.accent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text('審核',

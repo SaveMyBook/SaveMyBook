@@ -3,6 +3,8 @@ import '../models/wallet.dart';
 import '../services/api_service.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_buttons.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import 'dispute_screen.dart';
@@ -50,10 +52,10 @@ class _WalletScreenState extends State<WalletScreen> {
         children: [
           const AppHeader(title: '代幣中心', icon: Icons.monetization_on_outlined),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
@@ -76,7 +78,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           ..._transactions.map((t) => _buildTransaction(t, c)),
                       ],
                     ),
-                  ),
+                  )),
           ),
         ],
       ),
@@ -95,18 +97,18 @@ class _WalletScreenState extends State<WalletScreen> {
             height: 72,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary, width: 3),
+              border: Border.all(color: c.accent, width: 3),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
                 '\$',
-                style: TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: AppColors.primary),
+                style: TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: c.accent),
               ),
             ),
           ),
           const SizedBox(height: 10),
-          Text(
-            _wallet.balance.toStringAsFixed(0),
+          AnimatedCount(
+            value: _wallet.balance,
             style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: c.textPrimary),
           ),
           if (_wallet.frozenAmount > 0) ...[
@@ -120,7 +122,7 @@ class _WalletScreenState extends State<WalletScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _QuickAction(
+              QuickActionButton(
                 icon: Icons.query_stats_rounded,
                 label: '待定收益',
                 onTap: () async {
@@ -131,7 +133,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   _load();
                 },
               ),
-              _QuickAction(
+              QuickActionButton(
                 icon: Icons.gavel_rounded,
                 label: '爭議處理',
                 onTap: () => Navigator.push(
@@ -181,46 +183,13 @@ class _WalletScreenState extends State<WalletScreen> {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: t.isIncome ? const Color(0xFF2E9E5B) : Colors.redAccent,
+                  color: t.isIncome ? c.success : c.danger,
                 ),
               ),
               const SizedBox(height: 8),
               Text(formatDate(t.createdAt), style: TextStyle(fontSize: 11, color: c.textHint)),
             ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _QuickAction({required this.icon, required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 22, color: AppColors.primary),
-          ),
-          const SizedBox(height: 8),
-          Text(label, style: TextStyle(fontSize: 12, color: c.textPrimary)),
         ],
       ),
     );

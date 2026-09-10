@@ -3,10 +3,12 @@ import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/animations.dart';
+import '../../widgets/app_dialogs.dart';
+import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 
-/// 仲裁交易－申訴列表與裁決
 class AdminDisputeScreen extends StatefulWidget {
   const AdminDisputeScreen({super.key});
 
@@ -98,26 +100,17 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                   dense: true,
                   value: r.value,
                   groupValue: selected,
-                  activeColor: AppColors.primary,
+                  activeColor: c.accent,
                   title: Text(r.label, style: TextStyle(fontSize: 14, color: c.textPrimary)),
                   onChanged: (value) => setSheetState(() => selected = value ?? selected),
                 ),
               ),
               const SizedBox(height: 8),
-              TextField(
+              AppTextField(
                 controller: noteController,
                 maxLines: 3,
-                style: TextStyle(color: c.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  hintText: '裁決說明（選填）',
-                  hintStyle: TextStyle(color: c.textHint, fontSize: 13),
-                  filled: true,
-                  fillColor: c.inputFill,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
+                maxLength: 500,
+                hint: '裁決說明（選填）',
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -126,7 +119,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(ctx, true),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: c.accent,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -141,10 +134,13 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
 
     if (confirmed != true) return;
 
-    final error = await _api.arbitrateDispute(
-      dispute.disputeId,
-      result: selected,
-      adminNote: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
+    final error = await runBusy(
+      context,
+      () => _api.arbitrateDispute(
+        dispute.disputeId,
+        result: selected,
+        adminNote: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
+      ),
     );
     if (!mounted) return;
 
@@ -167,10 +163,10 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
           const AppHeader(title: '仲裁交易', icon: Icons.gavel_rounded),
           AppTabBar(controller: _tabController, tabs: const ['處理中', '已結案']),
           Expanded(
-            child: _isLoading
+            child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : RefreshIndicator(
-                    color: AppColors.primary,
+                    color: c.accent,
                     onRefresh: _load,
                     child: _disputes.isEmpty
                         ? ListView(
@@ -182,9 +178,9 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),
                             itemCount: _disputes.length,
-                            itemBuilder: (_, i) => _buildCard(_disputes[i], c),
+                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(_disputes[i], c)),
                           ),
-                  ),
+                  )),
           ),
         ],
       ),
@@ -246,7 +242,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: c.accent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text('處理',

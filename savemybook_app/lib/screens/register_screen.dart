@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/app_forms.dart';
+import '../widgets/state_views.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final String initialEmail;
+  const RegisterScreen({super.key, this.initialEmail = ''});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -11,77 +16,96 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nicknameController = TextEditingController();
-  final _emailController = TextEditingController();
+  late final _emailController = TextEditingController(text: widget.initialEmail);
   final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
   final ApiService _apiService = ApiService();
+
   bool _isLoading = false;
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  Future<void> _handleRegister() async {
-    final nickname = _nicknameController.text.trim();
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
-    if (nickname.isEmpty || email.isEmpty || password.isEmpty) {
-      _showError('請填寫所有欄位');
-      return;
-    }
-
-    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-    if (!emailRegex.hasMatch(email)) {
-      _showError('請輸入正確的 Email 格式');
-      return;
-    }
-
-    if (password.length < 8) {
-      _showError('密碼長度至少需要 8 個字元');
-      return;
-    }
-
-    final hasLetter = RegExp(r'[A-Za-z]').hasMatch(password);
-    final hasDigit = RegExp(r'[0-9]').hasMatch(password);
-    if (!hasLetter || !hasDigit) {
-      _showError('密碼需包含英文字母與數字');
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    final success = await _apiService.register(email, password, nickname);
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    if (success) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('註冊成功，請登入'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      Navigator.pop(context);
-    } else {
-      _showError('註冊失敗，Email 可能已被使用');
-    }
-  }
+  bool _obscurePassword = true;
+  String? _nicknameError;
+  String? _emailError;
+  String? _passwordError;
+  String? _confirmError;
 
   @override
   void dispose() {
     _nicknameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmController.dispose();
     super.dispose();
+  }
+
+  bool _validate() {
+    final nickname = _nicknameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirm = _confirmController.text;
+
+    String? nicknameError;
+    String? emailError;
+    String? passwordError;
+    String? confirmError;
+
+    if (nickname.isEmpty) {
+      nicknameError = '請輸入暱稱';
+    } else if (nickname.length < 2) {
+      nicknameError = '暱稱至少 2 個字元';
+    } else if (nickname.length > 50) {
+      nicknameError = '暱稱不可超過 50 個字元';
+    }
+
+    if (email.isEmpty) {
+      emailError = '請輸入 Email';
+    } else if (!Validators.isEmail(email)) {
+      emailError = 'Email 格式不正確';
+    }
+
+    passwordError = password.isEmpty ? '請輸入密碼' : Validators.password(password);
+
+    if (confirm.isEmpty) {
+      confirmError = '請再輸入一次密碼';
+    } else if (confirm != password) {
+      confirmError = '兩次輸入的密碼不一致';
+    }
+
+    setState(() {
+      _nicknameError = nicknameError;
+      _emailError = emailError;
+      _passwordError = passwordError;
+      _confirmError = confirmError;
+    });
+
+    return nicknameError == null &&
+        emailError == null &&
+        passwordError == null &&
+        confirmError == null;
+  }
+
+  Future<void> _handleRegister() async {
+    if (_isLoading || !_validate()) return;
+    FocusScope.of(context).unfocus();
+
+    final email = _emailController.text.trim();
+
+    setState(() => _isLoading = true);
+    final error = await _apiService.register(
+      email,
+      _passwordController.text,
+      _nicknameController.text.trim(),
+    );
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (error != null) {
+      if (error.contains('Email')) setState(() => _emailError = error);
+      showAppSnackBar(context, error, isError: true);
+      return;
+    }
+
+    showAppSnackBar(context, '註冊成功，請使用新帳號登入');
+    Navigator.pop(context, email);
   }
 
   @override
@@ -92,74 +116,110 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: c.card,
       appBar: AppBar(
         backgroundColor: c.card,
+        foregroundColor: c.textPrimary,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.primary),
+        title: Text('建立帳號', style: TextStyle(color: c.textPrimary, fontSize: 18)),
       ),
-      body: SafeArea(
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+          padding: const EdgeInsets.fromLTRB(32, 16, 32, 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                '建立新帳號',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary),
-              ),
-              const SizedBox(height: 48),
-              TextField(
-                controller: _nicknameController,
-                style: TextStyle(color: c.textPrimary),
-                decoration: InputDecoration(
-                  hintText: '使用者暱稱',
-                  hintStyle: TextStyle(color: c.textHint),
-                  filled: true,
-                  fillColor: c.inputFill,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  prefixIcon: const Icon(Icons.person_outline, color: Colors.grey),
+              FadeSlideIn(
+                child: Text(
+                  '加入 SaveMyBook',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.accent),
                 ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _emailController,
-                style: TextStyle(color: c.textPrimary),
-                decoration: InputDecoration(
-                  hintText: 'Email',
-                  hintStyle: TextStyle(color: c.textHint),
-                  filled: true,
-                  fillColor: c.inputFill,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                style: TextStyle(color: c.textPrimary),
-                decoration: InputDecoration(
-                  hintText: '密碼',
-                  hintStyle: TextStyle(color: c.textHint),
-                  filled: true,
-                  fillColor: c.inputFill,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
+              const SizedBox(height: 6),
+              FadeSlideIn(
+                index: 1,
+                child: Text(
+                  '註冊後就能買書、賣書與使用智慧書櫃',
+                  style: TextStyle(fontSize: 13, color: c.textSecondary),
                 ),
               ),
               const SizedBox(height: 32),
-              SizedBox(
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleRegister,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
+              FadeSlideIn(
+                index: 2,
+                child: AppTextField(
+                  controller: _nicknameController,
+                  hint: '暱稱',
+                  errorText: _nicknameError,
+                  maxLength: 50,
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) {
+                    if (_nicknameError != null) setState(() => _nicknameError = null);
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              FadeSlideIn(
+                index: 3,
+                child: AppTextField(
+                  controller: _emailController,
+                  hint: 'Email',
+                  errorText: _emailError,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  maxLength: 255,
+                  onChanged: (_) {
+                    if (_emailError != null) setState(() => _emailError = null);
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              FadeSlideIn(
+                index: 4,
+                child: AppTextField(
+                  controller: _passwordController,
+                  hint: '密碼（至少 8 碼，含英文與數字）',
+                  errorText: _passwordError,
+                  obscureText: _obscurePassword,
+                  maxLength: 64,
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) {
+                    if (_passwordError != null) setState(() => _passwordError = null);
+                  },
+                  suffix: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                      color: c.iconInactive,
+                    ),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('註冊', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              FadeSlideIn(
+                index: 5,
+                child: AppTextField(
+                  controller: _confirmController,
+                  hint: '再次輸入密碼',
+                  errorText: _confirmError,
+                  obscureText: _obscurePassword,
+                  maxLength: 64,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _handleRegister(),
+                  onChanged: (_) {
+                    if (_confirmError != null) setState(() => _confirmError = null);
+                  },
+                ),
+              ),
+              const SizedBox(height: 32),
+              FadeSlideIn(
+                index: 6,
+                child: PrimaryButton(
+                  label: '建立帳號',
+                  height: 50,
+                  isLoading: _isLoading,
+                  onPressed: _handleRegister,
                 ),
               ),
             ],

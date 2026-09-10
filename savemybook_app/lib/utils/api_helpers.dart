@@ -1,5 +1,5 @@
-/// 後端回傳的圖片路徑可能是相對路徑（例：/uploads/books/xxx.jpg），
-/// 統一在這裡補上網域，避免每個 model 各寫一份。
+
+
 const String kApiHost = 'https://api.savemybook.today';
 
 String? resolveAssetUrl(dynamic raw) {
@@ -27,19 +27,16 @@ DateTime? parseDate(dynamic value) {
   return DateTime.tryParse(value.toString());
 }
 
-/// 2026/03/30
 String formatDate(DateTime? dt) {
   if (dt == null) return '';
   return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
 }
 
-/// 2026/03/30 14:05
 String formatDateTime(DateTime? dt) {
   if (dt == null) return '';
   return '${formatDate(dt)} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 }
 
-/// 聊天列表用的相對時間
 String formatRelative(DateTime? dt) {
   if (dt == null) return '';
   final diff = DateTime.now().difference(dt);
@@ -50,7 +47,6 @@ String formatRelative(DateTime? dt) {
   return formatDate(dt);
 }
 
-/// 09:00~21:00
 String formatTimeRange(dynamic open, dynamic close) {
   String pick(dynamic v) {
     if (v == null) return '';

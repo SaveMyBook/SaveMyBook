@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/app_dialogs.dart';
+import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 
-/// 爭議處理：申請凍結款項 + 提交爭議申請
 class DisputeScreen extends StatefulWidget {
-  /// 直接帶入要申訴的訂單；若為 null 則由使用者輸入訂單編號。
   final int? orderId;
   const DisputeScreen({super.key, this.orderId});
 
@@ -53,6 +53,18 @@ class _DisputeScreenState extends State<DisputeScreen> {
       showAppSnackBar(context, '請填寫爭議說明', isError: true);
       return;
     }
+    if (reason.length < 10) {
+      showAppSnackBar(context, '爭議說明請至少填寫 10 個字，方便客服判斷', isError: true);
+      return;
+    }
+
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '送出爭議申請',
+      message: '送出後這筆訂單會進入申訴流程，款項會暫停撥給賣家，直到客服裁決。',
+      confirmLabel: '送出',
+    );
+    if (!confirmed || !mounted) return;
 
     setState(() => _isSubmitting = true);
     final evidenceUrls = await _api.uploadFiles(_evidence.map((f) => f.path).toList());
@@ -93,7 +105,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                     child: SwitchListTile.adaptive(
                       contentPadding: EdgeInsets.zero,
                       value: _freezeRequested,
-                      activeColor: AppColors.primary,
+                      activeColor: c.accent,
                       onChanged: (value) => setState(() => _freezeRequested = value),
                       secondary: const Icon(Icons.ac_unit_rounded, color: AppColors.primary),
                       title: Text(
@@ -124,21 +136,11 @@ class _DisputeScreenState extends State<DisputeScreen> {
                               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
                         ),
                         Expanded(
-                          child: TextField(
+                          child: AppTextField(
                             controller: _orderIdController,
                             enabled: widget.orderId == null,
                             keyboardType: TextInputType.number,
-                            style: TextStyle(color: c.textPrimary, fontSize: 14),
-                            decoration: InputDecoration(
-                              isDense: true,
-                              filled: true,
-                              fillColor: c.inputFill,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
+                            maxLength: 12,
                           ),
                         ),
                       ],
@@ -157,21 +159,11 @@ class _DisputeScreenState extends State<DisputeScreen> {
                           ),
                         ),
                         Expanded(
-                          child: TextField(
+                          child: AppTextField(
                             controller: _reasonController,
                             maxLines: 5,
-                            style: TextStyle(color: c.textPrimary, fontSize: 14),
-                            decoration: InputDecoration(
-                              hintText: '請描述發生的問題，例如書況與商品描述不符…',
-                              hintStyle: TextStyle(color: c.textHint, fontSize: 13),
-                              filled: true,
-                              fillColor: c.inputFill,
-                              contentPadding: const EdgeInsets.all(12),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
+                            maxLength: 500,
+                            hint: '請描述發生的問題，例如書況與商品描述不符…',
                           ),
                         ),
                       ],
@@ -186,9 +178,9 @@ class _DisputeScreenState extends State<DisputeScreen> {
                     child: ElevatedButton(
                       onPressed: _isSubmitting ? null : _submit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: c.accent,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
+                        disabledBackgroundColor: c.accent.withOpacity(0.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       child: _isSubmitting
@@ -244,7 +236,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                             top: -6,
                             child: GestureDetector(
                               onTap: () => setState(() => _evidence.remove(file)),
-                              child: const Icon(Icons.cancel, size: 18, color: Colors.redAccent),
+                              child: Icon(Icons.cancel, size: 18, color: c.danger),
                             ),
                           ),
                         ],

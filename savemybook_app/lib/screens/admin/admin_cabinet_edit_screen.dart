@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 
-/// 硬體維護－新增／修改書櫃
 class AdminCabinetEditScreen extends StatefulWidget {
   final Cabinet? cabinet;
   const AdminCabinetEditScreen({super.key, this.cabinet});
@@ -57,6 +57,8 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
   }
 
   Future<void> _save() async {
+    if (_isSaving) return;
+
     final name = _nameController.text.trim();
     final address = _addressController.text.trim();
     final lat = double.tryParse(_latController.text.trim());
@@ -70,6 +72,34 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
       showAppSnackBar(context, '請填寫正確的經緯度', isError: true);
       return;
     }
+    if (lat < -90 || lat > 90) {
+      showAppSnackBar(context, '緯度必須介於 -90 ~ 90', isError: true);
+      return;
+    }
+    if (lng < -180 || lng > 180) {
+      showAppSnackBar(context, '經度必須介於 -180 ~ 180', isError: true);
+      return;
+    }
+
+    final slots = int.tryParse(_slotsController.text.trim()) ?? 20;
+    if (!_isEdit && (slots < 1 || slots > 100)) {
+      showAppSnackBar(context, '櫃位數量必須介於 1 ~ 100', isError: true);
+      return;
+    }
+
+    final openTime = _openController.text.trim();
+    final closeTime = _closeController.text.trim();
+    final timePattern = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$');
+    for (final entry in [(openTime, '開放時間'), (closeTime, '關閉時間')]) {
+      if (entry.$1.isNotEmpty && !timePattern.hasMatch(entry.$1)) {
+        showAppSnackBar(context, '${entry.$2}格式應為 HH:mm，例：09:00', isError: true);
+        return;
+      }
+    }
+    if (openTime.isNotEmpty != closeTime.isNotEmpty) {
+      showAppSnackBar(context, '開放與關閉時間請一起填寫', isError: true);
+      return;
+    }
 
     setState(() => _isSaving = true);
     final error = await _api.saveCabinet(
@@ -78,9 +108,9 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
       address: address,
       latitude: lat,
       longitude: lng,
-      totalSlots: int.tryParse(_slotsController.text.trim()) ?? 20,
-      openTime: _openController.text.trim().isEmpty ? null : '${_openController.text.trim()}:00',
-      closeTime: _closeController.text.trim().isEmpty ? null : '${_closeController.text.trim()}:00',
+      totalSlots: slots,
+      openTime: openTime.isEmpty ? null : '$openTime:00',
+      closeTime: closeTime.isEmpty ? null : '$closeTime:00',
     );
     if (!mounted) return;
     setState(() => _isSaving = false);
@@ -122,9 +152,9 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
                     child: ElevatedButton(
                       onPressed: _isSaving ? null : _save,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: c.accent,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
+                        disabledBackgroundColor: c.accent.withOpacity(0.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       child: _isSaving
@@ -155,41 +185,14 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
     String? hint,
     TextInputType? keyboardType,
   }) {
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 76,
-            child: Padding(
-              padding: EdgeInsets.only(top: maxLines > 1 ? 10 : 0),
-              child: Text(label,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
-            ),
-          ),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              maxLines: maxLines,
-              keyboardType: keyboardType,
-              style: TextStyle(color: c.textPrimary, fontSize: 14),
-              decoration: InputDecoration(
-                isDense: true,
-                hintText: hint,
-                hintStyle: TextStyle(color: c.textHint, fontSize: 13),
-                filled: true,
-                fillColor: c.inputFill,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-        ],
+    return FormRowCard(
+      label: label,
+      alignTop: maxLines > 1,
+      child: AppTextField(
+        controller: controller,
+        maxLines: maxLines,
+        hint: hint,
+        keyboardType: keyboardType,
       ),
     );
   }
