@@ -48,8 +48,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             title: '收藏書籍',
             icon: Icons.bookmark_outline_rounded,
             actions: [
-              HeaderIconButton(
-                icon: Icons.shopping_cart_outlined,
+              CartIconButton(
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
               ),
               HeaderIconButton(

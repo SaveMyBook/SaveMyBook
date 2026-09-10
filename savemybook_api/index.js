@@ -21,6 +21,7 @@ const reportRoutes = require('./routes/reports');
 const announcementRoutes = require('./routes/announcements');
 const adminRoutes = require('./routes/admin');
 const uploadRoutes = require('./routes/uploads');
+const publicRoutes = require('./routes/public');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -50,6 +51,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/', publicRoutes);
 
 app.get('/', (req, res) => {
   res.send('SaveMyBook API is running. Visit /api-docs for API documentation.');
@@ -67,5 +69,6 @@ app.listen(port, () => {
   console.log(`💬 Chat API: http://localhost:${port}/api/chat`);
   console.log(`🪙 Wallet API: http://localhost:${port}/api/wallet`);
   console.log(`🛡️ Admin API: http://localhost:${port}/api/admin`);
+  console.log(`👤 公開個人頁: http://localhost:${port}/u/1`);
   console.log(`📄 Swagger UI: http://localhost:${port}/api-docs`);
 });

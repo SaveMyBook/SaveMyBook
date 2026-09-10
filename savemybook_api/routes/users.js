@@ -163,8 +163,10 @@ router.get('/me/qrcode', authenticateToken, async (req, res) => {
     });
     if (!user) return res.status(404).json({ success: false, message: '找不到該使用者' });
 
-    // 用 https 連結，外部相機／掃描器才掃得動（自訂 scheme 只有本 App 認得）
-    const qrData = `${process.env.PUBLIC_WEB_URL || 'https://savemybook.today'}/u/${user.user_id}`;
+    // 用 https 連結，外部相機／掃描器才掃得動（自訂 scheme 只有本 App 認得）。
+    // 預設指向本 API 自己提供的 /u/:id 公開頁，換官網時再設 PUBLIC_WEB_URL。
+    const base = process.env.PUBLIC_WEB_URL || `${req.protocol}://${req.get('host')}`;
+    const qrData = `${base}/u/${user.user_id}`;
     const existing = await prisma.user_qr_codes.findFirst({
       where: { user_id: user.user_id, qr_type: 'profile' }
     });

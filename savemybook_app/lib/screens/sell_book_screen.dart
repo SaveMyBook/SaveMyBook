@@ -326,14 +326,20 @@ class _SellBookScreenState extends State<SellBookScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: SizedBox(
-              width: 72,
+              width: 90,
               child: Text.rich(
                 TextSpan(
-                    text: label,
-                    children: [
-                      if (isRequired) const TextSpan(text: ' *', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                    ]
+                  text: label,
+                  children: [
+                    if (isRequired)
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: c.danger, fontWeight: FontWeight.bold),
+                      ),
+                  ],
                 ),
+                softWrap: false,
+                overflow: TextOverflow.visible,
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
               ),
             ),

@@ -10,7 +10,6 @@ import '../widgets/app_tiles.dart';
 import '../widgets/state_views.dart';
 import 'admin/admin_home_screen.dart';
 import 'book_manage_screen.dart';
-import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
 import 'favorites_screen.dart';
 import 'login_screen.dart';
@@ -122,11 +121,7 @@ return LightStatusBar(
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                    child: UserAvatar(imageUrl: avatarUrl, radius: 35),
-                  ),
+                  UserAvatar(imageUrl: avatarUrl, radius: 37, background: Colors.white24),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -274,11 +269,6 @@ return LightStatusBar(
               icon: Icons.inventory_2_outlined,
               title: '銷售紀錄',
               onTap: () => _openAndRefresh(const SalesHistoryScreen()),
-            ),
-            AppMenuItem(
-              icon: Icons.key_outlined,
-              title: '更改密碼',
-              onTap: () => _openAndRefresh(const ChangePasswordScreen()),
             ),
             if (isAdmin)
               AppMenuItem(

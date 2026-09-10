@@ -382,13 +382,13 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                   TextSpan(
                       text: '書籍照片',
                       children: const [
-                        TextSpan(text: ' *', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                        TextSpan(text: ' *', style: TextStyle(color: c.danger, fontWeight: FontWeight.bold)),
                       ]
                   ),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
                 const SizedBox(width: 8),
-                Text('($requiredCount/3)', style: TextStyle(fontSize: 14, color: requiredCount < 3 ? Colors.red.shade400 : c.textSecondary, fontWeight: FontWeight.w600)),
+                Text('($requiredCount/3)', style: TextStyle(fontSize: 14, color: requiredCount < 3 ? c.danger : c.textSecondary, fontWeight: FontWeight.w600)),
                 const Spacer(),
                 Text('${_images.length}/10', style: TextStyle(fontSize: 14, color: c.textHint)),
               ],
@@ -452,7 +452,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         const SizedBox(height: 6),
         Text(
             _getImageLabel(index),
-            style: TextStyle(color: index < 3 ? Colors.red.shade400 : c.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)
+            style: TextStyle(color: index < 3 ? c.danger : c.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)
         ),
       ],
     );
@@ -488,7 +488,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         const SizedBox(height: 6),
         Text(
             _getImageLabel(index),
-            style: TextStyle(color: index < 3 ? Colors.red.shade400 : c.textHint, fontSize: 12, fontWeight: FontWeight.w600)
+            style: TextStyle(color: index < 3 ? c.danger : c.textHint, fontSize: 12, fontWeight: FontWeight.w600)
         ),
       ],
     );
@@ -501,16 +501,22 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       child: Row(
         children: [
           SizedBox(
-              width: 80,
-              child: Text.rich(
-                TextSpan(
-                    text: label,
-                    children: [
-                      if (isRequired) const TextSpan(text: ' *', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                    ]
-                ),
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
-              )
+            width: 96,
+            child: Text.rich(
+              TextSpan(
+                text: label,
+                children: [
+                  if (isRequired)
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(color: c.danger, fontWeight: FontWeight.bold),
+                    ),
+                ],
+              ),
+              softWrap: false,
+              overflow: TextOverflow.visible,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
+            ),
           ),
           Expanded(child: child),
         ],

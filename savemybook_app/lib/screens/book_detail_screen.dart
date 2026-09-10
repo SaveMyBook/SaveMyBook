@@ -5,6 +5,7 @@ import '../utils/app_colors.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_dialogs.dart';
+import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import 'cart_screen.dart';
 import 'chat_room_screen.dart';
@@ -235,11 +236,13 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 16),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
-              child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+            const SizedBox(width: 8),
+            CartIconButton(
+              size: 24,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CartScreen()),
+              ),
             ),
           ]),
         ),

@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
@@ -5,6 +6,8 @@ import '../widgets/animations.dart';
 import '../widgets/app_buttons.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/state_views.dart';
+import 'privacy_screen.dart';
+import 'terms_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   final String initialEmail;
@@ -23,6 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _agreedToTerms = false;
   String? _nicknameError;
   String? _emailError;
   String? _passwordError;
@@ -77,10 +81,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _confirmError = confirmError;
     });
 
-    return nicknameError == null &&
+    final passed = nicknameError == null &&
         emailError == null &&
         passwordError == null &&
         confirmError == null;
+
+    if (passed && !_agreedToTerms) {
+      showAppSnackBar(context, '請先閱讀並同意服務條款與隱私權政策', isError: true);
+      return false;
+    }
+
+    return passed;
   }
 
   Future<void> _handleRegister() async {
@@ -106,6 +117,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     showAppSnackBar(context, '註冊成功，請使用新帳號登入');
     Navigator.pop(context, email);
+  }
+
+  Widget _buildTermsRow(AppColors c) {
+    final linkStyle = TextStyle(
+      color: c.accent,
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      decoration: TextDecoration.underline,
+      decorationColor: c.accent,
+    );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 24,
+          height: 24,
+          child: Checkbox(
+            value: _agreedToTerms,
+            activeColor: c.accent,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            onChanged: (value) => setState(() => _agreedToTerms = value ?? false),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text.rich(
+              TextSpan(
+                style: TextStyle(fontSize: 13, height: 1.6, color: c.textSecondary),
+                children: [
+                  const TextSpan(text: '我已閱讀並同意 '),
+                  TextSpan(
+                    text: '服務條款',
+                    style: linkStyle,
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const TermsScreen()),
+                          ),
+                  ),
+                  const TextSpan(text: ' 與 '),
+                  TextSpan(
+                    text: '隱私權政策',
+                    style: linkStyle,
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const PrivacyScreen()),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -212,14 +282,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
+              FadeSlideIn(index: 6, child: _buildTermsRow(c)),
+              const SizedBox(height: 24),
               FadeSlideIn(
-                index: 6,
+                index: 7,
                 child: PrimaryButton(
                   label: '建立帳號',
                   height: 50,
                   isLoading: _isLoading,
-                  onPressed: _handleRegister,
+                  onPressed: _agreedToTerms ? _handleRegister : null,
                 ),
               ),
             ],

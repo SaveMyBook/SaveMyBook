@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../models/chat.dart';
 import '../services/api_service.dart';
@@ -20,12 +22,20 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen> {
   final ApiService _api = ApiService();
   List<ChatRoom> _rooms = [];
+  Timer? _pollTimer;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _pollTimer = Timer.periodic(const Duration(seconds: 8), (_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -49,8 +59,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             title: '聊天室',
             icon: Icons.chat_bubble_outline_rounded,
             actions: [
-              HeaderIconButton(
-                icon: Icons.shopping_cart_outlined,
+              CartIconButton(
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
               ),
             ],

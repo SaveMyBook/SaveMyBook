@@ -43,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
   double _categoryScrollProgress = 0.0;
   bool _isNavVisible = true;
   bool _isGridView = true;
-  int _cartCount = 0;
 
   @override
   void initState() {
@@ -74,11 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  Future<void> _loadBadges() async {
-    final stats = await _apiService.fetchUserStats();
-    if (!mounted) return;
-    setState(() => _cartCount = stats.cartCount);
-  }
+  Future<void> _loadBadges() => _apiService.refreshCartCount();
 
   Future<void> _loadInitialData() async {
     setState(() => _isLoadingInitial = true);
@@ -254,16 +249,16 @@ return LightStatusBar(
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Text('哈囉, $userName', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                 Row(children: [
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
+                  CartIconButton(
+                    size: 26,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
-                    child: _buildHeaderIcon(Icons.shopping_cart_outlined, 26, _cartCount),
                   ),
-                  const SizedBox(width: 16),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatListScreen())),
-                    child: _buildHeaderIcon(Icons.chat_bubble_outline, 24, 0),
+                  IconButton(
+                    icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ChatListScreen()),
+                    ),
                   ),
                 ])
               ]),
@@ -277,31 +272,6 @@ return LightStatusBar(
         ),
       ),
       ),
-    );
-  }
-
-  Widget _buildHeaderIcon(IconData icon, double size, int badge) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Icon(icon, color: Colors.white, size: size),
-        if (badge > 0)
-          Positioned(
-            right: -6,
-            top: -4,
-            child: PopIn(
-              triggerKey: badge,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(color: AppColors.of(context).danger, borderRadius: BorderRadius.circular(10)),
-                child: Text(
-                  badge > 99 ? '99+' : '$badge',
-                  style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 

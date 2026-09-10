@@ -291,6 +291,7 @@ model orders {
   cabinet_slots                 cabinet_slots?         @relation(fields: [slot_id], references: [slot_id], onUpdate: NoAction, map: "fk_order_slot")
   refund_records                refund_records[]
   transaction_disputes          transaction_disputes[]
+  wallet_transactions           wallet_transactions[]
 
   @@index([slot_id], map: "fk_order_slot")
   @@index([buyer_id], map: "idx_buyer")

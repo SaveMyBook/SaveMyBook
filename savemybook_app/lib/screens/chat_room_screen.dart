@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../models/chat.dart';
 import '../services/api_service.dart';
@@ -25,8 +27,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   List<ChatMessage> _messages = [];
   ChatPartner? _partner;
+  Timer? _pollTimer;
   bool _isLoading = true;
   bool _isSending = false;
+  bool _isPolling = false;
 
   int get _myId => ApiService.currentUser?.userId ?? 0;
 
@@ -34,13 +38,41 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   void initState() {
     super.initState();
     _load();
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) => _poll());
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _poll() async {
+    if (_isPolling || _isSending || !mounted) return;
+    _isPolling = true;
+
+    try {
+      final result = await _api.fetchChatMessages(widget.roomId);
+      if (!mounted) return;
+
+      final latestId = _messages.isEmpty ? 0 : _messages.last.messageId;
+      final incomingId = result.messages.isEmpty ? 0 : result.messages.last.messageId;
+      if (incomingId == latestId && result.messages.length == _messages.length) return;
+
+      final wasAtBottom = !_scrollController.hasClients ||
+          _scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 80;
+
+      setState(() {
+        _messages = result.messages;
+        _partner = result.partner;
+      });
+
+      if (wasAtBottom) _scrollToBottom();
+    } finally {
+      _isPolling = false;
+    }
   }
 
   Future<void> _load() async {

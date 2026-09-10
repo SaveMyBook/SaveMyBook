@@ -4,9 +4,11 @@ import '../services/api_service.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
 import '../widgets/animations.dart';
+import '../widgets/app_buttons.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import 'book_manage_screen.dart';
 import 'chat_list_screen.dart';
 import 'purchase_history_screen.dart';
 
@@ -79,10 +81,77 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
 
     if (!mounted) return;
-    if (n.relatedType == 'chat_room') {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatListScreen()));
-    } else if (n.relatedType == 'order') {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const PurchaseHistoryScreen()));
+    await _showDetail(n);
+  }
+
+  Future<void> _showDetail(AppNotification n) async {
+    final c = AppColors.of(context);
+
+    final target = switch (n.relatedType) {
+      'chat_room' => (label: '前往聊天室', screen: const ChatListScreen()),
+      'order' => (label: '查看訂單', screen: const PurchaseHistoryScreen()),
+      'book' => (label: '前往書籍管理', screen: const BookManageScreen()),
+      _ => null,
+    };
+
+    final go = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: c.sheetBg,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: c.accent.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(n.icon, size: 20, color: c.accent),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      n.title,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: c.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                n.content,
+                style: TextStyle(fontSize: 14, height: 1.7, color: c.textSecondary),
+              ),
+              const SizedBox(height: 14),
+              Text(formatDateTime(n.createdAt), style: TextStyle(fontSize: 12, color: c.textHint)),
+              const SizedBox(height: 22),
+              if (target != null)
+                PrimaryButton(label: target.label, onPressed: () => Navigator.pop(ctx, true))
+              else
+                SecondaryButton(label: '關閉', onPressed: () => Navigator.pop(ctx, false)),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (go == true && target != null && mounted) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => target.screen));
     }
   }
 

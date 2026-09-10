@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/category.dart';
@@ -35,14 +36,14 @@ class ApiService {
 
   static void Function()? onUnauthorized;
 
-  static const String publicWebUrl = 'https://savemybook.today';
+  static const String publicWebUrl = 'https://api.savemybook.today';
 
   static String profileUrlFor(int userId) => '$publicWebUrl/u/$userId';
 
   static int? parseProfileUserId(String raw) {
     final value = raw.trim();
     final patterns = [
-      RegExp(r'^https?://[^/]+/u/(\d+)$'),
+      RegExp(r'^https?://[^/]+/u/(\d+)/?$'),
       RegExp(r'^savemybook://user/(\d+)$'),
     ];
     for (final p in patterns) {
@@ -50,6 +51,12 @@ class ApiService {
       if (match != null) return int.tryParse(match.group(1)!);
     }
     return null;
+  }
+
+  static final ValueNotifier<int> cartCount = ValueNotifier<int>(0);
+
+  static void _setCartCount(int value) {
+    cartCount.value = value < 0 ? 0 : value;
   }
 
   static List<String> searchHistory = [];
@@ -196,6 +203,7 @@ class ApiService {
   Future<void> logout() async {
     authToken = null;
     currentUser = null;
+    _setCartCount(0);
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
   }
@@ -330,13 +338,26 @@ class ApiService {
 
   Future<List<CartItem>> fetchCart() async {
     final res = await _send('GET', '/cart');
-    return _mapList(res, CartItem.fromJson);
+    final items = _mapList(res, CartItem.fromJson);
+    _setCartCount(items.length);
+    return items;
+  }
+
+  Future<void> refreshCartCount() async {
+    if (authToken == null) {
+      _setCartCount(0);
+      return;
+    }
+    final stats = await fetchUserStats();
+    _setCartCount(stats.cartCount);
   }
 
   Future<String?> addToCart(int bookId, {int quantity = 1}) async {
     final res = await _send('POST', '/cart', body: {'book_id': bookId, 'quantity': quantity});
     if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '加入購物車失敗');
+    if (res['success'] != true) return res['message'] as String? ?? '加入購物車失敗';
+    _setCartCount(cartCount.value + 1);
+    return null;
   }
 
   Future<bool> updateCartQuantity(int cartId, int quantity) async {
@@ -346,7 +367,9 @@ class ApiService {
 
   Future<bool> removeCartItem(int cartId) async {
     final res = await _send('DELETE', '/cart/$cartId');
-    return res != null && res['success'] == true;
+    final ok = res != null && res['success'] == true;
+    if (ok) _setCartCount(cartCount.value - 1);
+    return ok;
   }
 
   Future<List<Order>> fetchOrders({required String role, required String tab}) async {
@@ -363,7 +386,9 @@ class ApiService {
   Future<String?> checkout(List<int> cartIds) async {
     final res = await _send('POST', '/orders/checkout', body: {'cart_ids': cartIds});
     if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '結帳失敗');
+    if (res['success'] != true) return res['message'] as String? ?? '結帳失敗';
+    _setCartCount(cartCount.value - cartIds.length);
+    return null;
   }
 
   Future<String?> cancelOrder(int orderId, {String? reason}) async {
@@ -519,7 +544,9 @@ class ApiService {
   Future<UserStats> fetchUserStats() async {
     final res = await _send('GET', '/users/me/stats');
     if (res == null || res['success'] != true || res['data'] is! Map) return UserStats.empty;
-    return UserStats.fromJson(Map<String, dynamic>.from(res['data']));
+    final stats = UserStats.fromJson(Map<String, dynamic>.from(res['data']));
+    _setCartCount(stats.cartCount);
+    return stats;
   }
 
   Future<MemberLevelInfo> fetchMemberLevel() async {

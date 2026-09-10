@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import 'animations.dart';
 
 class LightStatusBar extends StatelessWidget {
   final Widget child;
@@ -141,6 +143,58 @@ class HeaderIconButton extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class CartIconButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final double size;
+  final Color color;
+
+  const CartIconButton({
+    super.key,
+    required this.onTap,
+    this.size = 22,
+    this.color = Colors.white,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: ApiService.cartCount,
+      builder: (context, count, _) => Stack(
+        clipBehavior: Clip.none,
+        children: [
+          IconButton(
+            icon: Icon(Icons.shopping_cart_outlined, color: color, size: size),
+            onPressed: onTap,
+          ),
+          if (count > 0)
+            Positioned(
+              right: 2,
+              top: 4,
+              child: PopIn(
+                triggerKey: count,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: AppColors.of(context).danger,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    count > 99 ? '99+' : '$count',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
