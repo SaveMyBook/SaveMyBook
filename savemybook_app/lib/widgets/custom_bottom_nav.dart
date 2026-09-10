@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +5,7 @@ import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import 'animations.dart';
 import 'app_header.dart';
+import 'liquid_glass.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int selectedIndex;
@@ -19,14 +19,15 @@ class CustomBottomNav extends StatelessWidget {
     this.isVisible = true,
   });
 
+  static const double _barHeight = 62;
+  static const double _pillWidth = 52;
+  static const double _pillHeight = 46;
+
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-
     final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
-
     final actuallyVisible = isVisible && !isKeyboardOpen;
-
     final c = AppColors.of(context);
 
     return AnimatedSlide(
@@ -38,38 +39,72 @@ class CustomBottomNav extends StatelessWidget {
         curve: Curves.easeInOut,
         opacity: actuallyVisible ? 1.0 : 0.0,
         child: Padding(
-          padding: EdgeInsets.only(left: 24, right: 24, bottom: bottomPadding + 12),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(color: c.shadow, blurRadius: 32, offset: const Offset(0, 8)),
-                BoxShadow(color: c.shadow.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2)),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 28.0, sigmaY: 28.0),
-                child: Container(
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: c.navBarBg,
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: c.navBarBorder, width: 0.5),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          padding: EdgeInsets.only(left: 20, right: 20, bottom: bottomPadding + 12),
+          child: LiquidGlass(
+            borderRadius: BorderRadius.circular(_barHeight / 2),
+            blur: 34,
+            child: SizedBox(
+              height: _barHeight,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // 五個等寬欄位，膠囊才能算出確定的位置滑過去。
+                  final slot = constraints.maxWidth / 5;
+
+                  return Stack(
                     children: [
-                      _buildNavItem(Icons.home_rounded, Icons.home_outlined, '首頁', 0, c),
-                      _buildNavItem(Icons.notifications_rounded, Icons.notifications_none_rounded, '通知', 1, c,
-                          badge: ApiService.unreadNotificationCount),
-                      _buildCenterButton(),
-                      _buildNavItem(Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, '取書', 3, c),
-                      _buildNavItem(Icons.person_rounded, Icons.person_outline_rounded, '會員', 4, c),
+                      if (selectedIndex != 2)
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 420),
+                          curve: Curves.easeOutBack,
+                          left: slot * selectedIndex + (slot - _pillWidth) / 2,
+                          top: (_barHeight - _pillHeight) / 2,
+                          child: _buildPill(c),
+                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildNavItem(
+                              Icons.home_rounded,
+                              Icons.home_outlined,
+                              '首頁',
+                              0,
+                              c,
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildNavItem(
+                              Icons.notifications_rounded,
+                              Icons.notifications_none_rounded,
+                              '通知',
+                              1,
+                              c,
+                              badge: ApiService.unreadNotificationCount,
+                            ),
+                          ),
+                          Expanded(child: Center(child: _buildCenterButton())),
+                          Expanded(
+                            child: _buildNavItem(
+                              Icons.qr_code_scanner_rounded,
+                              Icons.qr_code_scanner_rounded,
+                              '取書',
+                              3,
+                              c,
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildNavItem(
+                              Icons.person_rounded,
+                              Icons.person_outline_rounded,
+                              '會員',
+                              4,
+                              c,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
@@ -78,14 +113,43 @@ class CustomBottomNav extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(IconData solidIcon, IconData outlinedIcon, String label, int index, AppColors c,
-      {ValueListenable<int>? badge}) {
+  /// 選中的膠囊本身也是一小塊玻璃，會沿著導覽列滑到下一個分頁。
+  Widget _buildPill(AppColors c) {
+    return Container(
+      width: _pillWidth,
+      height: _pillHeight,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(_pillHeight / 2),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            c.accent.withValues(alpha: c.isDark ? 0.30 : 0.20),
+            c.accent.withValues(alpha: c.isDark ? 0.14 : 0.09),
+          ],
+        ),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: c.isDark ? 0.16 : 0.55),
+          width: 0.8,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(
+    IconData solidIcon,
+    IconData outlinedIcon,
+    String label,
+    int index,
+    AppColors c, {
+    ValueListenable<int>? badge,
+  }) {
     final isSelected = selectedIndex == index;
     final color = isSelected ? c.accent : c.iconInactive;
 
     Widget icon = AnimatedScale(
-      scale: isSelected ? 1.15 : 1.0,
-      duration: const Duration(milliseconds: 260),
+      scale: isSelected ? 1.12 : 1.0,
+      duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutBack,
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
@@ -124,36 +188,20 @@ class CustomBottomNav extends StatelessWidget {
         onItemSelected(index);
       },
       child: SizedBox(
-        width: 52, height: 60,
-        child: Stack(
-          alignment: Alignment.center,
+        height: _barHeight,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 選中的膠囊底色，讓切換不是只有圖示變色而已。
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeOutCubic,
-              width: isSelected ? 46 : 0,
-              height: isSelected ? 46 : 0,
-              decoration: BoxDecoration(
-                color: c.accent.withValues(alpha: isSelected ? 0.10 : 0),
-                borderRadius: BorderRadius.circular(16),
+            icon,
+            const SizedBox(height: 2),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: color,
               ),
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-              icon,
-              const SizedBox(height: 2),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 200),
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: color,
-                ),
-                child: Text(label),
-              ),
-              ],
+              child: Text(label),
             ),
           ],
         ),
@@ -171,23 +219,32 @@ class CustomBottomNav extends StatelessWidget {
         onItemSelected(2);
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeOut,
-        width: 44, height: 44,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutBack,
+        width: 46,
+        height: 46,
         decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(isSelected ? 22 : 15),
+          borderRadius: BorderRadius.circular(isSelected ? 23 : 16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.lerp(AppColors.primary, Colors.white, 0.22)!,
+              AppColors.primary,
+            ],
+          ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 0.8),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: isSelected ? 0.5 : 0.35),
-              blurRadius: isSelected ? 16 : 10,
-              offset: const Offset(0, 4),
+              color: AppColors.primary.withValues(alpha: isSelected ? 0.5 : 0.34),
+              blurRadius: isSelected ? 18 : 12,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
         child: AnimatedRotation(
           turns: isSelected ? 0.125 : 0,
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 320),
           curve: Curves.easeOutBack,
           child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
         ),
