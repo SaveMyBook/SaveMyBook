@@ -70,6 +70,9 @@ class SecondaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
+
+  /// 需要自繪圖示（例如 Face ID）時用這個，會拿到目前的前景色。
+  final Widget Function(Color color)? iconBuilder;
   final Color? color;
   final double height;
 
@@ -78,6 +81,7 @@ class SecondaryButton extends StatelessWidget {
     required this.label,
     this.onPressed,
     this.icon,
+    this.iconBuilder,
     this.color,
     this.height = 48,
   });
@@ -99,7 +103,10 @@ class SecondaryButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null) ...[
+            if (iconBuilder != null) ...[
+              iconBuilder!(tint),
+              const SizedBox(width: 8),
+            ] else if (icon != null) ...[
               Icon(icon, size: 18),
               const SizedBox(width: 8),
             ],

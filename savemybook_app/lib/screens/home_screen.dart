@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'cart_screen.dart';
 import 'chat_list_screen.dart';
 import 'notification_screen.dart';
@@ -340,7 +341,11 @@ return LightStatusBar(
             mainAxisSize: MainAxisSize.min,
             children: [
               GestureDetector(
-                onTap: () { if (!_isGridView) setState(() => _isGridView = true); },
+                onTap: () {
+                  if (_isGridView) return;
+                  HapticFeedback.selectionClick();
+                  setState(() => _isGridView = true);
+                },
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
@@ -351,7 +356,11 @@ return LightStatusBar(
                 ),
               ),
               GestureDetector(
-                onTap: () { if (_isGridView) setState(() => _isGridView = false); },
+                onTap: () {
+                  if (!_isGridView) return;
+                  HapticFeedback.selectionClick();
+                  setState(() => _isGridView = false);
+                },
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
@@ -415,6 +424,34 @@ return LightStatusBar(
         ),
       );
     }
-    return AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: content);
+    // 網格與列表的高度差很多，只用 AnimatedSwitcher 會在切換瞬間跳一下。
+    // 外面再包一層 AnimatedSize，讓容器高度跟著一起補間。
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 340),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topCenter,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 260),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween(begin: 0.97, end: 1.0).animate(animation),
+            child: child,
+          ),
+        ),
+        // 預設會把新舊畫面疊在一起，兩份清單同時存在高度會爆掉；
+        // 這裡讓舊的直接淡出、不參與版面計算。
+        layoutBuilder: (current, previous) => Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            for (final child in previous) Positioned.fill(child: IgnorePointer(child: child)),
+            ?current,
+          ],
+        ),
+        child: content,
+      ),
+    );
   }
 }

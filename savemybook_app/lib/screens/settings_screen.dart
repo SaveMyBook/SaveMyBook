@@ -6,6 +6,7 @@ import 'change_password_screen.dart';
 import 'help_center_screen.dart';
 import 'legal_doc_screen.dart';
 import 'support_ticket_screen.dart';
+import '../widgets/biometric_icon.dart';
 import '../widgets/state_views.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -215,10 +216,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: Colors.transparent,
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            leading: Icon(
-              _biometricLabel == 'Face ID' ? Icons.face_rounded : Icons.fingerprint_rounded,
-              color: c.textPrimary,
-            ),
+            leading: _biometricLabel == 'Face ID'
+                ? FaceIdIcon(size: 22, color: c.textPrimary)
+                : Icon(Icons.fingerprint_rounded, color: c.textPrimary),
             title: Text(
               '$_biometricLabel 登入',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary),

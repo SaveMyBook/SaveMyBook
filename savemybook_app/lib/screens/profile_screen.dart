@@ -183,26 +183,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Row(
+                  GestureDetector(
+                    onTap: () => _openAndRefresh(const WalletScreen()),
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(12, 7, 14, 7),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          AnimatedCount(
-                            value: _stats.balance,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                          const Icon(Icons.monetization_on_rounded, color: Colors.amber, size: 20),
+                          const SizedBox(width: 6),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AnimatedCount(
+                                value: _stats.balance,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  height: 1.1,
+                                ),
+                              ),
+                              Text(
+                                '代幣',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: Colors.white.withValues(alpha: 0.75),
+                                  height: 1.2,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.monetization_on_outlined, color: Colors.white, size: 20),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Text('代幣', style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.8))),
-                    ],
+                    ),
                   ),
                 ],
               ),

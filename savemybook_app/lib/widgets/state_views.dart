@@ -281,31 +281,13 @@ class BookThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    final placeholder = Icon(Icons.menu_book_rounded, color: c.iconInactive, size: width * 0.4);
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
-      child: Container(
+      child: AppNetworkImage(
+        url: imageUrl,
         width: width,
         height: height,
-        color: c.inputFill,
-        child: imageUrl == null || imageUrl!.isEmpty
-            ? placeholder
-            : Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => placeholder,
-                frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
-                  if (wasSynchronouslyLoaded) return child;
-                  return AnimatedOpacity(
-                    opacity: frame == null ? 0 : 1,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                    child: child,
-                  );
-                },
-              ),
+        fallbackIconSize: width * 0.4,
       ),
     );
   }
@@ -316,22 +298,133 @@ class BookThumbnail extends StatelessWidget {
 bool kBottomNavVisible = false;
 
 void showAppSnackBar(BuildContext context, String message, {bool isError = false}) {
+  final c = AppColors.of(context);
   final overlapsNav = kBottomNavVisible && (ModalRoute.of(context)?.isFirst ?? false);
   final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-  // 浮動 SnackBar 本身已經會避開下方安全區，這裡只要再補導覽列的高度
-  // （60 高 + 12 下緣留白 + 8 空隙），多加安全區會整個浮太高。
-  final bottomMargin = bottomInset > 0 ? 16.0 : (overlapsNav ? 80.0 : 16.0);
+  // 浮動 SnackBar 本身已經會避開下方安全區，這裡只要再補導覽列的高度。
+  final bottomMargin = bottomInset > 0 ? 16.0 : (overlapsNav ? 74.0 : 16.0);
+  final tint = isError ? c.danger : c.success;
 
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? AppColors.of(context).danger : AppColors.of(context).accent,
+        // 用 App 自己的卡片語彙：白底、圓角 16、左側色塊 icon，
+        // 而不是 Material 預設那顆深色膠囊。
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        padding: EdgeInsets.zero,
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.fromLTRB(16, 0, 16, bottomMargin),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(milliseconds: 2600),
+        content: Container(
+          padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
+          decoration: BoxDecoration(
+            color: c.card,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: tint.withValues(alpha: 0.35)),
+            boxShadow: [
+              BoxShadow(color: c.shadow, blurRadius: 20, offset: const Offset(0, 6)),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: tint.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
+                  size: 18,
+                  color: tint,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    height: 1.4,
+                    fontWeight: FontWeight.w500,
+                    color: c.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
 }
+
+/// 全 App 統一的網路圖片：載入中顯示骨架、失敗顯示替代圖、載入完成淡入。
+///
+/// 直接用 Image.network 的話載入中是一片空白，使用者不知道到底是在載入
+/// 還是根本沒有圖。
+class AppNetworkImage extends StatelessWidget {
+  final String? url;
+  final BoxFit fit;
+  final double? width;
+  final double? height;
+  final IconData fallbackIcon;
+  final double? fallbackIconSize;
+  final Color? background;
+
+  const AppNetworkImage({
+    super.key,
+    required this.url,
+    this.fit = BoxFit.cover,
+    this.width,
+    this.height,
+    this.fallbackIcon = Icons.menu_book_rounded,
+    this.fallbackIconSize,
+    this.background,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+
+    Widget placeholder({bool shimmer = false}) {
+      final box = Container(
+        width: width,
+        height: height,
+        color: background ?? c.inputFill,
+        alignment: Alignment.center,
+        child: Icon(
+          fallbackIcon,
+          color: c.iconInactive.withValues(alpha: shimmer ? 0.45 : 1),
+          size: fallbackIconSize ?? 30,
+        ),
+      );
+      return shimmer ? Shimmer(child: box) : box;
+    }
+
+    if (url == null || url!.isEmpty) return placeholder();
+
+    return Image.network(
+      url!,
+      fit: fit,
+      width: width,
+      height: height,
+      errorBuilder: (_, _, _) => placeholder(),
+      loadingBuilder: (_, child, progress) =>
+          progress == null ? child : placeholder(shimmer: true),
+      frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded) return child;
+        return AnimatedOpacity(
+          opacity: frame == null ? 0 : 1,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOut,
+          child: child,
+        );
+      },
+    );
+  }
+}
+

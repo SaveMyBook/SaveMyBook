@@ -181,16 +181,46 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
       return;
     }
 
+    final unchanged = content == widget.initialContent && title == widget.initialTitle;
+    if (unchanged) {
+      showAppSnackBar(context, '內容沒有變更');
+      return;
+    }
+
+    // 條款會影響全部使用者，所以走兩段確認：先確認要改，再確認要不要通知。
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '確認更新$title？',
+      message: '這份文件對所有使用者都有效力，送出後會立刻取代目前的版本。',
+      confirmLabel: '我確認要更新',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    final notify = await showConfirmDialog(
+      context,
+      title: '要通知所有使用者嗎？',
+      message: '每一位啟用中的會員都會收到一則「$title已更新」的通知。',
+      confirmLabel: '更新並通知',
+      cancelLabel: '只更新不通知',
+    );
+    if (!mounted) return;
+
     setState(() => _isSaving = true);
-    final error = await _api.saveLegalDoc(widget.docKey, title: title, content: content);
+    final result = await _api.saveLegalDoc(
+      widget.docKey,
+      title: title,
+      content: content,
+      notify: notify,
+    );
     if (!mounted) return;
     setState(() => _isSaving = false);
 
-    if (error != null) {
-      showAppSnackBar(context, error, isError: true);
+    if (result.error != null) {
+      showAppSnackBar(context, result.error!, isError: true);
       return;
     }
-    showAppSnackBar(context, '已儲存');
+    showAppSnackBar(context, result.message);
     Navigator.pop(context, true);
   }
 

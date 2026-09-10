@@ -458,13 +458,10 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                       label: '補充照片',
                       isRequired: false,
                       onRemove: () => _removeExtraExisting(image),
-                      image: Image.network(
-                        image.url,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
-                          color: c.inputFill,
-                          child: Icon(Icons.broken_image_outlined, color: c.iconInactive),
-                        ),
+                      image: AppNetworkImage(
+                        url: image.url,
+                        fallbackIcon: Icons.broken_image_outlined,
+                        fallbackIconSize: 24,
                       ),
                     ),
                   ),
@@ -509,13 +506,10 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       onTap: () => _pickSlot(slot),
       image: picked != null
           ? Image.file(File(picked.path), fit: BoxFit.cover)
-          : Image.network(
-              existing!.url,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
-                color: c.inputFill,
-                child: Icon(Icons.broken_image_outlined, color: c.iconInactive),
-              ),
+          : AppNetworkImage(
+              url: existing!.url,
+              fallbackIcon: Icons.broken_image_outlined,
+              fallbackIconSize: 24,
             ),
     );
   }

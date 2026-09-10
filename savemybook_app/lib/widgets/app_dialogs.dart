@@ -8,33 +8,85 @@ Future<bool> showConfirmDialog(
   String confirmLabel = '確定',
   String cancelLabel = '取消',
   bool isDestructive = false,
+  IconData? icon,
 }) async {
   final c = AppColors.of(context);
+  final tint = isDestructive ? c.danger : c.accent;
 
   final result = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
       backgroundColor: c.card,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text(
-        title,
-        style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary, fontSize: 17),
-      ),
-      content: Text(message, style: TextStyle(color: c.textSecondary, height: 1.5)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: Text(cancelLabel, style: TextStyle(color: c.textSecondary)),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: Text(
-            confirmLabel,
-            style: TextStyle(
-              color: isDestructive ? c.danger : c.accent,
-              fontWeight: FontWeight.bold,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+      contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      // actions 用自訂的按鈕列，才能做出實心主按鈕，跟 App 其他地方一致。
+      actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: tint.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              icon ?? (isDestructive ? Icons.warning_amber_rounded : Icons.help_outline_rounded),
+              color: tint,
+              size: 24,
             ),
           ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary, fontSize: 17),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: c.textSecondary, fontSize: 13.5, height: 1.6),
+          ),
+        ],
+      ),
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 46,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  style: TextButton.styleFrom(
+                    backgroundColor: c.inputFill,
+                    foregroundColor: c.textSecondary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+                  ),
+                  child: Text(cancelLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: SizedBox(
+                height: 46,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: tint,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+                  ),
+                  child: Text(confirmLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     ),

@@ -269,19 +269,10 @@ class _BookManageScreenState extends State<BookManageScreen> {
                 child: SizedBox(
                   width: double.infinity,
                   height: double.infinity,
-                  child: book.hasImage
-                      ? Image.network(
-                          book.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Container(
-                            color: c.inputFill,
-                            child: Icon(Icons.menu_book_rounded, color: c.iconInactive, size: 32),
-                          ),
-                        )
-                      : Container(
-                          color: c.inputFill,
-                          child: Icon(Icons.menu_book_rounded, color: c.iconInactive, size: 32),
-                        ),
+                  child: AppNetworkImage(
+                    url: book.hasImage ? book.imageUrl : null,
+                    fallbackIconSize: 32,
+                  ),
                 ),
               ),
               if (badge != null)

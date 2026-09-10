@@ -241,14 +241,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           controller: _pageController, itemCount: _images.length,
           onPageChanged: (i) => setState(() => _currentImageIndex = i),
           itemBuilder: (context, index) {
-            final imageWidget = Image.network(
-              _images[index],
-              fit: BoxFit.cover,
+            final imageWidget = AppNetworkImage(
+              url: _images[index],
               width: double.infinity,
-              errorBuilder: (_, _, _) => Container(
-                color: c.inputFill,
-                child: Icon(Icons.menu_book_rounded, size: 72, color: c.iconInactive),
-              ),
+              fallbackIconSize: 72,
             );
             final heroWidget = index == 0 ? Hero(tag: 'book_image_${widget.book.bookId}', child: imageWidget) : imageWidget;
 
@@ -461,6 +457,9 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
             child: Image.network(
               widget.images[index],
               fit: BoxFit.contain,
+              loadingBuilder: (_, child, progress) => progress == null
+                  ? child
+                  : const Center(child: CircularProgressIndicator(color: Colors.white54)),
               errorBuilder: (_, _, _) =>
                   const Icon(Icons.broken_image_outlined, color: Colors.white54, size: 72),
             ),

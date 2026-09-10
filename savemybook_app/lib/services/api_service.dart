@@ -810,10 +810,23 @@ class ApiService {
     return _mapList(res, LegalDoc.fromJson);
   }
 
-  Future<String?> saveLegalDoc(String key, {required String title, required String content}) async {
-    final res = await _send('PUT', '/admin/legal/$key', body: {'title': title, 'content': content});
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '儲存失敗');
+  /// 回傳 (error, message)：成功時 error 為 null，message 帶通知了幾個人。
+  Future<({String? error, String message})> saveLegalDoc(
+    String key, {
+    required String title,
+    required String content,
+    bool notify = false,
+  }) async {
+    final res = await _send('PUT', '/admin/legal/$key', body: {
+      'title': title,
+      'content': content,
+      'notify': notify,
+    });
+    if (res == null) return (error: '請先登入', message: '');
+    if (res['success'] != true) {
+      return (error: res['message'] as String? ?? '儲存失敗', message: '');
+    }
+    return (error: null, message: res['message'] as String? ?? '已更新文件');
   }
 
   Future<List<FaqItem>> fetchAdminFaqs() async {

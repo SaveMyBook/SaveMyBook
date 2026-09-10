@@ -212,17 +212,51 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 18),
-                                    QrImageView(
-                                      data: _qrData!,
-                                      version: QrVersions.auto,
-                                      size: 210,
-                                      backgroundColor: Colors.white,
-                                      // 中間挖洞放 logo 會蓋掉部分模組，
-                                      // 容錯等級必須拉到 H 才掃得出來。
-                                      errorCorrectionLevel: QrErrorCorrectLevel.H,
-                                      embeddedImage: const AssetImage('assets/images/logo.png'),
-                                      embeddedImageStyle: const QrEmbeddedImageStyle(
-                                        size: Size(44, 44),
+                                    // qr_flutter 的 embeddedImage 是直接畫在模組上，
+                                    // logo 會跟黑點糊在一起。改成自己疊一層，
+                                    // logo 下面墊白底再留一圈留白，邊界才乾淨。
+                                    SizedBox(
+                                      width: 210,
+                                      height: 210,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          QrImageView(
+                                            data: _qrData!,
+                                            version: QrVersions.auto,
+                                            size: 210,
+                                            backgroundColor: Colors.white,
+                                            // 中間會蓋掉部分模組，容錯必須拉到 H。
+                                            errorCorrectionLevel: QrErrorCorrectLevel.H,
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.all(5),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(13),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(9),
+                                              child: Image.asset(
+                                                'assets/images/logo.png',
+                                                width: 40,
+                                                height: 40,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, _, _) => Container(
+                                                  width: 40,
+                                                  height: 40,
+                                                  color: const Color(0xFF627D8D),
+                                                  alignment: Alignment.center,
+                                                  child: const Icon(
+                                                    Icons.menu_book_rounded,
+                                                    color: Colors.white,
+                                                    size: 22,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     const SizedBox(height: 14),

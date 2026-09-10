@@ -5,6 +5,7 @@ import '../services/biometric_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_buttons.dart';
+import '../widgets/biometric_icon.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/state_views.dart';
@@ -308,8 +309,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           index: 5,
                           child: SecondaryButton(
                             label: '使用 $_biometricLabel 登入',
+                            iconBuilder: _biometricLabel == 'Face ID'
+                                ? (color) => FaceIdIcon(size: 19, color: color)
+                                : null,
                             icon: _biometricLabel == 'Face ID'
-                                ? Icons.face_rounded
+                                ? null
                                 : Icons.fingerprint_rounded,
                             height: 50,
                             onPressed: _isLoading ? null : _biometricLogin,

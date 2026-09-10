@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
 import 'app_tiles.dart';
 import 'favorite_button.dart';
+import 'state_views.dart';
 import '../models/book.dart';
 import '../screens/book_detail_screen.dart';
 import '../utils/app_colors.dart';
@@ -14,15 +15,6 @@ class BookCard extends StatelessWidget {
   const BookCard({super.key, required this.book, this.isListMode = false});
 
   static const _titleStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.bold, height: 1.2);
-
-  static Widget _imagePlaceholder(AppColors c, double width, double height) {
-    return Container(
-      width: width,
-      height: height,
-      color: c.inputFill,
-      child: Icon(Icons.menu_book_rounded, color: c.iconInactive, size: 32),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,10 +34,12 @@ class BookCard extends StatelessWidget {
             tag: 'book_image_${book.bookId}',
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: book.hasImage
-                  ? Image.network(book.imageUrl, height: 140, width: double.infinity, fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _imagePlaceholder(c, double.infinity, 140))
-                  : _imagePlaceholder(c, double.infinity, 140),
+              child: AppNetworkImage(
+                url: book.hasImage ? book.imageUrl : null,
+                height: 140,
+                width: double.infinity,
+                fallbackIconSize: 32,
+              ),
             ),
           ),
           Expanded(child: LayoutBuilder(builder: (context, constraints) {
@@ -105,10 +99,12 @@ class BookCard extends StatelessWidget {
             tag: 'book_image_${book.bookId}',
             child: ClipRRect(
               borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-              child: book.hasImage
-                  ? Image.network(book.imageUrl, width: 110, height: 140, fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _imagePlaceholder(c, 110, 140))
-                  : _imagePlaceholder(c, 110, 140),
+              child: AppNetworkImage(
+                url: book.hasImage ? book.imageUrl : null,
+                width: 110,
+                height: 140,
+                fallbackIconSize: 32,
+              ),
             ),
           ),
 

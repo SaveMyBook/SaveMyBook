@@ -1402,18 +1402,57 @@ router.put('/legal/:key', requireAdmin('announcements'), async (req, res) => {
   const key = req.params.key;
   const title = (req.body.title || '').trim();
   const content = (req.body.content || '').trim();
+  const notify = req.body.notify === true;
 
   if (!title) return res.status(400).json({ success: false, message: '請填寫標題' });
   if (!content) return res.status(400).json({ success: false, message: '請填寫內容' });
 
   try {
+    const existing = await prisma.legal_documents.findUnique({ where: { doc_key: key } });
+
     await prisma.legal_documents.upsert({
       where: { doc_key: key },
       update: { title, content, updated_by: req.user.userId, updated_at: new Date() },
       create: { doc_key: key, title, content, updated_by: req.user.userId }
     });
-    await logAction(req.user.userId, '編輯法律文件', 'legal', null, key);
-    res.status(200).json({ success: true, message: '已更新文件' });
+
+    let notified = 0;
+    // 條款變更要讓每個人知道，所以是逐一寫通知而不是只發一則公告。
+    if (notify && existing?.content !== content) {
+      const users = await prisma.users.findMany({
+        where: { is_active: true, is_blacklisted: false },
+        select: { user_id: true }
+      });
+
+      // 一次塞太多列會鎖表太久，切成每批 500 筆。
+      for (let i = 0; i < users.length; i += 500) {
+        const batch = users.slice(i, i + 500);
+        await prisma.notifications.createMany({
+          data: batch.map((u) => ({
+            user_id: u.user_id,
+            type: 'system',
+            title: `${title}已更新`,
+            content: `我們更新了${title}，請於設定中查看最新內容。`,
+            related_type: 'legal'
+          }))
+        });
+      }
+      notified = users.length;
+    }
+
+    await logAction(
+      req.user.userId,
+      '編輯法律文件',
+      'legal',
+      null,
+      notified > 0 ? `${key}｜已通知 ${notified} 人` : key
+    );
+
+    res.status(200).json({
+      success: true,
+      message: notified > 0 ? `已更新並通知 ${notified} 位使用者` : '已更新文件',
+      data: { notified }
+    });
   } catch (err) {
     console.error('[編輯文件失敗]:', err);
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });

@@ -37,19 +37,10 @@ class OrderCard extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: SizedBox(
               width: double.infinity,
-              child: book == null || !book.hasImage
-                  ? Container(
-                      color: c.inputFill,
-                      child: Icon(Icons.menu_book_rounded, color: c.iconInactive, size: 32),
-                    )
-                  : Image.network(
-                      book.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => Container(
-                        color: c.inputFill,
-                        child: Icon(Icons.menu_book_rounded, color: c.iconInactive, size: 32),
-                      ),
-                    ),
+              child: AppNetworkImage(
+                url: book != null && book.hasImage ? book.imageUrl : null,
+                fallbackIconSize: 32,
+              ),
             ),
             ),
           ),
