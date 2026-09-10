@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'cart_screen.dart';
+import 'chat_list_screen.dart';
+import 'notification_screen.dart';
 import 'profile_screen.dart';
 import 'sell_book_screen.dart';
 import 'pickup_book_screen.dart';
@@ -38,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double _categoryScrollProgress = 0.0;
   bool _isNavVisible = true;
   bool _isGridView = true;
+  int _cartCount = 0;
 
   @override
   void initState() {
@@ -68,8 +72,15 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  Future<void> _loadBadges() async {
+    final stats = await _apiService.fetchUserStats();
+    if (!mounted) return;
+    setState(() => _cartCount = stats.cartCount);
+  }
+
   Future<void> _loadInitialData() async {
     setState(() => _isLoadingInitial = true);
+    _loadBadges();
     try {
       final results = await Future.wait([
         _apiService.fetchCategories(),
@@ -145,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
             index: _selectedIndex,
             children: [
               _buildHomeContent(),
-              const Scaffold(body: Center(child: Text('通知'))),
+              const NotificationScreen(embedded: true),
               const SellBookScreen(),
               PickupBookScreen(isActive: _selectedIndex == 3),
               const ProfileScreen(),
@@ -160,7 +171,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: CustomBottomNav(
               selectedIndex: _selectedIndex,
               isVisible: !isKeyboardOpen,
-              onItemSelected: (i) => setState(() { _selectedIndex = i; }),
+              onItemSelected: (i) {
+                setState(() { _selectedIndex = i; });
+                if (i == 0 || i == 4) _loadBadges();
+              },
             ),
           ),
         ],
@@ -236,10 +250,18 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Text('哈囉, $userName', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                const Row(children: [
-                  Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 26),
-                  SizedBox(width: 16),
-                  Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
+                Row(children: [
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
+                    child: _buildHeaderIcon(Icons.shopping_cart_outlined, 26, _cartCount),
+                  ),
+                  const SizedBox(width: 16),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatListScreen())),
+                    child: _buildHeaderIcon(Icons.chat_bubble_outline, 24, 0),
+                  ),
                 ])
               ]),
             ),
@@ -251,6 +273,28 @@ class _HomeScreenState extends State<HomeScreen> {
           ]),
         ),
       ),
+    );
+  }
+
+  Widget _buildHeaderIcon(IconData icon, double size, int badge) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(icon, color: Colors.white, size: size),
+        if (badge > 0)
+          Positioned(
+            right: -6,
+            top: -4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(10)),
+              child: Text(
+                badge > 99 ? '99+' : '$badge',
+                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+      ],
     );
   }
 

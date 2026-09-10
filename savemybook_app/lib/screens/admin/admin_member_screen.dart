@@ -1,0 +1,283 @@
+import 'package:flutter/material.dart';
+import '../../models/admin_models.dart';
+import '../../services/api_service.dart';
+import '../../utils/api_helpers.dart';
+import '../../utils/app_colors.dart';
+import '../../widgets/app_header.dart';
+import '../../widgets/state_views.dart';
+
+/// 會員管控－會員列表
+class AdminMemberScreen extends StatefulWidget {
+  const AdminMemberScreen({super.key});
+
+  @override
+  State<AdminMemberScreen> createState() => _AdminMemberScreenState();
+}
+
+class _AdminMemberScreenState extends State<AdminMemberScreen> {
+  final ApiService _api = ApiService();
+  final TextEditingController _searchController = TextEditingController();
+
+  List<AdminMember> _members = [];
+  bool _isLoading = true;
+  String? _statusFilter;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    setState(() => _isLoading = true);
+    final members = await _api.fetchAdminMembers(
+      keyword: _searchController.text.trim(),
+      status: _statusFilter,
+    );
+    if (!mounted) return;
+    setState(() {
+      _members = members;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _toggle(AdminMember member, {bool? isActive, bool? isBlacklisted}) async {
+    final ok = await _api.updateMemberStatus(
+      member.userId,
+      isActive: isActive,
+      isBlacklisted: isBlacklisted,
+    );
+    if (!mounted) return;
+    if (ok) {
+      showAppSnackBar(context, '已更新 ${member.nickname} 的狀態');
+      _load();
+    } else {
+      showAppSnackBar(context, '更新失敗，請稍後再試', isError: true);
+    }
+  }
+
+  void _showActions(AdminMember member) {
+    final c = AppColors.of(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: c.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Text(
+              member.nickname,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
+            ),
+            Text(member.email, style: TextStyle(fontSize: 12, color: c.textSecondary)),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: Icon(
+                member.isActive ? Icons.block_rounded : Icons.check_circle_outline_rounded,
+                color: member.isActive ? Colors.redAccent : const Color(0xFF2E9E5B),
+              ),
+              title: Text(member.isActive ? '停權此帳號' : '恢復帳號', style: TextStyle(color: c.textPrimary)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _toggle(member, isActive: !member.isActive);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.gpp_bad_outlined,
+                color: member.isBlacklisted ? const Color(0xFF2E9E5B) : Colors.redAccent,
+              ),
+              title: Text(
+                member.isBlacklisted ? '移出黑名單' : '加入黑名單',
+                style: TextStyle(color: c.textPrimary),
+              ),
+              onTap: () {
+                Navigator.pop(ctx);
+                _toggle(member, isBlacklisted: !member.isBlacklisted);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+
+    return Scaffold(
+      backgroundColor: c.scaffold,
+      body: Column(
+        children: [
+          const AppHeader(title: '會員列表', icon: Icons.people_alt_outlined),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (_) => _load(),
+                    style: TextStyle(color: c.textPrimary, fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: '搜尋暱稱或 Email',
+                      hintStyle: TextStyle(color: c.textHint, fontSize: 14),
+                      prefixIcon: Icon(Icons.search, color: c.iconInactive, size: 20),
+                      isDense: true,
+                      filled: true,
+                      fillColor: c.card,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                PopupMenuButton<String?>(
+                  color: c.card,
+                  icon: Icon(Icons.filter_list_rounded, color: c.textPrimary),
+                  onSelected: (value) {
+                    setState(() => _statusFilter = value);
+                    _load();
+                  },
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(value: null, child: Text('全部')),
+                    const PopupMenuItem(value: 'active', child: Text('正常')),
+                    const PopupMenuItem(value: 'inactive', child: Text('已停權')),
+                    const PopupMenuItem(value: 'blacklisted', child: Text('黑名單')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const LoadingView()
+                : RefreshIndicator(
+                    color: AppColors.primary,
+                    onRefresh: _load,
+                    child: _members.isEmpty
+                        ? ListView(
+                            children: const [
+                              SizedBox(height: 80),
+                              EmptyView(icon: Icons.person_off_outlined, message: '找不到符合條件的會員'),
+                            ],
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                            itemCount: _members.length,
+                            itemBuilder: (_, i) => _buildMemberCard(_members[i], c),
+                          ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMemberCard(AdminMember member, AppColors c) {
+    final statusColor = member.isBlacklisted
+        ? Colors.redAccent
+        : (!member.isActive ? Colors.orangeAccent : const Color(0xFF2E9E5B));
+
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      onTap: () => _showActions(member),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: c.inputFill,
+                backgroundImage: member.avatarUrl == null ? null : NetworkImage(member.avatarUrl!),
+                child: member.avatarUrl == null ? Icon(Icons.person, color: c.iconInactive) : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          member.nickname,
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            member.role == 'admin' ? '管理員' : '一般會員',
+                            style: const TextStyle(fontSize: 10, color: AppColors.primary),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(member.email, style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.14),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  member.statusText,
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Divider(height: 1, color: c.divider),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 16,
+            runSpacing: 6,
+            children: [
+              _info('電話', member.phone.isEmpty ? '—' : member.phone, c),
+              _info('上架書籍', '${member.bookCount}', c),
+              _info('購買', '${member.buyOrderCount}', c),
+              _info('銷售', '${member.sellOrderCount}', c),
+              _info('創建日期', formatDate(member.createdAt), c),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _info(String label, String value, AppColors c) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('$label：', style: TextStyle(fontSize: 11, color: c.textHint)),
+        Text(value, style: TextStyle(fontSize: 11, color: c.textSecondary)),
+      ],
+    );
+  }
+}

@@ -4,6 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/category.dart';
 import '../models/book.dart';
 import '../models/user.dart';
+import '../models/cart_item.dart';
+import '../models/order.dart';
+import '../models/app_notification.dart';
+import '../models/chat.dart';
+import '../models/wallet.dart';
+import '../models/member_level.dart';
+import '../models/admin_models.dart';
 
 class ApiService {
   static const String baseUrl = 'https://api.savemybook.today/api';
@@ -37,41 +44,111 @@ class ApiService {
     onUnauthorized?.call();
   }
 
-  Future<bool> login(String email, String password) async {
+  /* ------------------------------ 共用請求工具 ------------------------------ */
+
+  static Map<String, String> _headers({bool json = false}) {
+    return {
+      'Accept': 'application/json',
+      if (json) 'Content-Type': 'application/json',
+      if (authToken != null) 'Authorization': 'Bearer $authToken',
+    };
+  }
+
+  /// 統一送出請求，回傳解析後的 body；失敗時回傳 null。
+  Future<Map<String, dynamic>?> _send(
+    String method,
+    String path, {
+    Map<String, String>? query,
+    Map<String, dynamic>? body,
+  }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
-        authToken = data['data']['token'];
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', authToken!);
-
-        await fetchCurrentUser();
-        return true;
+      var uri = Uri.parse('$baseUrl$path');
+      if (query != null && query.isNotEmpty) {
+        uri = uri.replace(queryParameters: query);
       }
-    } catch (_) {}
-    return false;
+
+      final headers = _headers(json: body != null);
+      final encoded = body == null ? null : jsonEncode(body);
+
+      late http.Response response;
+      switch (method) {
+        case 'POST':
+          response = await http.post(uri, headers: headers, body: encoded);
+          break;
+        case 'PUT':
+          response = await http.put(uri, headers: headers, body: encoded);
+          break;
+        case 'PATCH':
+          response = await http.patch(uri, headers: headers, body: encoded);
+          break;
+        case 'DELETE':
+          response = await http.delete(uri, headers: headers, body: encoded);
+          break;
+        case 'GET':
+        default:
+          response = await http.get(uri, headers: headers);
+          break;
+      }
+
+      if (response.statusCode == 401) {
+        await _handleUnauthorized();
+        return null;
+      }
+
+      final decoded = response.body.isEmpty
+          ? <String, dynamic>{}
+          : jsonDecode(utf8.decode(response.bodyBytes));
+
+      if (decoded is! Map<String, dynamic>) return null;
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return decoded;
+      }
+
+      return {
+        'success': false,
+        'message': decoded['message'] ?? '請求失敗（${response.statusCode}）',
+      };
+    } catch (e) {
+      return {'success': false, 'message': '無法連線至伺服器'};
+    }
+  }
+
+  List<T> _mapList<T>(Map<String, dynamic>? res, T Function(Map<String, dynamic>) build) {
+    if (res == null || res['success'] != true) return [];
+    final raw = res['data'];
+    if (raw is! List) return [];
+    final result = <T>[];
+    for (final item in raw) {
+      if (item is Map) {
+        try {
+          result.add(build(Map<String, dynamic>.from(item)));
+        } catch (_) {}
+      }
+    }
+    return result;
+  }
+
+  /* --------------------------------- 認證 --------------------------------- */
+
+  Future<bool> login(String email, String password) async {
+    final res = await _send('POST', '/auth/login', body: {'email': email, 'password': password});
+    if (res == null || res['success'] != true) return false;
+
+    authToken = res['data']?['token'];
+    if (authToken == null) return false;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', authToken!);
+
+    await fetchCurrentUser();
+    return true;
   }
 
   Future<bool> register(String email, String password, String nickname) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/users'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password, 'nickname': nickname}),
-      );
-
-      if (response.statusCode == 201) {
-        return true;
-      }
-    } catch (_) {}
-    return false;
+    final res = await _send('POST', '/users',
+        body: {'email': email, 'password': password, 'nickname': nickname});
+    return res != null && res['success'] == true;
   }
 
   Future<void> logout() async {
@@ -83,52 +160,17 @@ class ApiService {
 
   Future<void> fetchCurrentUser() async {
     if (authToken == null) return;
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/auth/me'),
-        headers: {'Authorization': 'Bearer $authToken', 'Accept': 'application/json'},
-      );
-
-      if (response.statusCode == 401) {
-        await _handleUnauthorized();
-        return;
-      }
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
-        currentUser = User.fromJson(data['data']);
-      }
-    } catch (_) {}
+    final res = await _send('GET', '/auth/me');
+    if (res != null && res['success'] == true && res['data'] is Map) {
+      currentUser = User.fromJson(Map<String, dynamic>.from(res['data']));
+    }
   }
 
+  /* ------------------------------- 分類與書籍 ------------------------------- */
+
   Future<List<Category>> fetchCategories() async {
-    try {
-      final uri = Uri.parse('$baseUrl/categories').replace(queryParameters: {'flat': 'true'});
-      final headers = <String, String>{'Accept': 'application/json'};
-      if (authToken != null) {
-        headers['Authorization'] = 'Bearer $authToken';
-      }
-
-      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 401) {
-        await _handleUnauthorized();
-        return [];
-      }
-
-      if (response.statusCode == 200) {
-        final dynamic decoded = json.decode(utf8.decode(response.bodyBytes));
-        List<dynamic> data = decoded is List ? decoded : decoded['data'] ?? [];
-        List<Category> categories = [];
-        for (var item in data) {
-          try {
-            categories.add(Category.fromJson(item));
-          } catch (_) {}
-        }
-        return categories;
-      }
-    } catch (_) {}
-    return [];
+    final res = await _send('GET', '/categories', query: {'flat': 'true'});
+    return _mapList(res, Category.fromJson);
   }
 
   Future<List<Book>> fetchBooks({
@@ -136,83 +178,492 @@ class ApiService {
     int limit = 20,
     Set<int>? categoryIds,
     String? keyword,
-    String? sort
+    String? sort,
   }) async {
-    try {
-      Uri uri = Uri.parse('$baseUrl/books');
-      Map<String, String> queryParams = {
-        'page': page.toString(),
-        'limit': limit.toString(),
-      };
+    final query = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
 
-      if (categoryIds != null && categoryIds.isNotEmpty) {
-        queryParams['category_ids'] = categoryIds.join(',');
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      query['category_ids'] = categoryIds.join(',');
+    }
+    if (keyword != null && keyword.isNotEmpty) {
+      query['keyword'] = keyword;
+    }
+    if (sort != null) {
+      switch (sort) {
+        case '熱門推薦': query['sort'] = 'popular'; break;
+        case '價格由低到高': query['sort'] = 'price_asc'; break;
+        case '價格由高到低': query['sort'] = 'price_desc'; break;
+        case '最新上架':
+        default: query['sort'] = 'newest'; break;
       }
+    }
 
-      if (keyword != null && keyword.isNotEmpty) {
-        queryParams['keyword'] = keyword;
-      }
+    final res = await _send('GET', '/books', query: query);
+    return _mapList(res, Book.fromJson);
+  }
 
-      if (sort != null) {
-        String sortParam = 'newest';
-        switch (sort) {
-          case '最新上架': sortParam = 'newest'; break;
-          case '熱門推薦': sortParam = 'popular'; break;
-          case '價格由低到高': sortParam = 'price_asc'; break;
-          case '價格由高到低': sortParam = 'price_desc'; break;
-        }
-        queryParams['sort'] = sortParam;
-      }
+  Future<Book?> fetchBookDetail(int bookId) async {
+    final res = await _send('GET', '/books/$bookId');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return Book.fromJson(Map<String, dynamic>.from(res['data']));
+  }
 
-      uri = uri.replace(queryParameters: queryParams);
-
-      final headers = <String, String>{'Accept': 'application/json'};
-      if (authToken != null) {
-        headers['Authorization'] = 'Bearer $authToken';
-      }
-
-      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 401) {
-        await _handleUnauthorized();
-        return [];
-      }
-
-      if (response.statusCode == 200) {
-        final dynamic decoded = json.decode(utf8.decode(response.bodyBytes));
-        List<dynamic> data = decoded['data'] ?? [];
-        List<Book> books = [];
-        for (var item in data) {
-          try {
-            books.add(Book.fromJson(item));
-          } catch (_) {}
-        }
-        return books;
-      }
-    } catch (_) {}
-    return [];
+  /// 目前登入者上架中的書籍（書籍管理）
+  Future<List<Book>> fetchMyBooks({String status = 'all'}) async {
+    final userId = currentUser?.userId;
+    if (userId == null) return [];
+    final res = await _send('GET', '/books',
+        query: {'seller_id': userId.toString(), 'status': status, 'limit': '100'});
+    final books = _mapList(res, Book.fromJson);
+    // 後端若尚未支援 seller_id 篩選，這裡再過濾一次確保只顯示自己的書。
+    return books.where((b) => b.sellerId == userId).toList();
   }
 
   Future<Map<String, dynamic>?> fetchBookByIsbn(String isbn) async {
     if (authToken == null) return null;
+    final res = await _send('GET', '/books/isbn/$isbn');
+    if (res == null || res['success'] != true) return null;
+    return res['data'] as Map<String, dynamic>?;
+  }
+
+  Future<bool> updateBook(int bookId, Map<String, dynamic> data) async {
+    final res = await _send('PUT', '/books/$bookId', body: data);
+    return res != null && res['success'] == true;
+  }
+
+  Future<bool> uploadBookImages(int bookId, List<String> filePaths) async {
+    if (filePaths.isEmpty) return true;
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/books/isbn/$isbn'),
-        headers: {'Authorization': 'Bearer $authToken', 'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 401) {
+      final uri = Uri.parse('$baseUrl/books/$bookId/images');
+      final request = http.MultipartRequest('POST', uri);
+      request.headers['Authorization'] = 'Bearer $authToken';
+      for (final path in filePaths) {
+        request.files.add(await http.MultipartFile.fromPath('images', path));
+      }
+      final streamed = await request.send();
+      if (streamed.statusCode == 401) {
         await _handleUnauthorized();
-        return null;
+        return false;
       }
-
-      if (response.statusCode == 200) {
-        final data = json.decode(utf8.decode(response.bodyBytes));
-        return data['data']; // 回傳 { title, author, publisher, publish_date, description }
-      }
-    } catch (e) {
-      print('Fetch ISBN error: $e');
+      return streamed.statusCode >= 200 && streamed.statusCode < 300;
+    } catch (_) {
+      return false;
     }
+  }
+
+  Future<bool> deleteBookImage(int bookId, int imageId) async {
+    final res = await _send('DELETE', '/books/$bookId/images/$imageId');
+    return res != null && res['success'] == true;
+  }
+
+  Future<bool> removeBook(int bookId) async {
+    final res = await _send('DELETE', '/books/$bookId');
+    return res != null && res['success'] == true;
+  }
+
+  /* --------------------------------- 收藏 --------------------------------- */
+
+  Future<List<Book>> fetchFavorites() async {
+    final res = await _send('GET', '/favorites');
+    return _mapList(res, Book.fromJson);
+  }
+
+  Future<Set<int>> fetchFavoriteIds() async {
+    final res = await _send('GET', '/favorites/ids');
+    if (res == null || res['success'] != true || res['data'] is! List) return {};
+    return (res['data'] as List).map((e) => int.tryParse(e.toString()) ?? 0).toSet();
+  }
+
+  Future<bool> addFavorite(int bookId) async {
+    final res = await _send('POST', '/favorites', body: {'book_id': bookId});
+    return res != null && res['success'] == true;
+  }
+
+  Future<bool> removeFavorite(int bookId) async {
+    final res = await _send('DELETE', '/favorites/$bookId');
+    return res != null && res['success'] == true;
+  }
+
+  /* -------------------------------- 購物車 -------------------------------- */
+
+  Future<List<CartItem>> fetchCart() async {
+    final res = await _send('GET', '/cart');
+    return _mapList(res, CartItem.fromJson);
+  }
+
+  Future<String?> addToCart(int bookId, {int quantity = 1}) async {
+    final res = await _send('POST', '/cart', body: {'book_id': bookId, 'quantity': quantity});
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '加入購物車失敗');
+  }
+
+  Future<bool> updateCartQuantity(int cartId, int quantity) async {
+    final res = await _send('PATCH', '/cart/$cartId', body: {'quantity': quantity});
+    return res != null && res['success'] == true;
+  }
+
+  Future<bool> removeCartItem(int cartId) async {
+    final res = await _send('DELETE', '/cart/$cartId');
+    return res != null && res['success'] == true;
+  }
+
+  /* --------------------------------- 訂單 --------------------------------- */
+
+  Future<List<Order>> fetchOrders({required String role, required String tab}) async {
+    final res = await _send('GET', '/orders', query: {'role': role, 'tab': tab, 'limit': '50'});
+    return _mapList(res, Order.fromJson);
+  }
+
+  Future<Order?> fetchOrderDetail(int orderId) async {
+    final res = await _send('GET', '/orders/$orderId');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return Order.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  /// 結帳；回傳 null 代表成功，否則為錯誤訊息。
+  Future<String?> checkout(List<int> cartIds) async {
+    final res = await _send('POST', '/orders/checkout', body: {'cart_ids': cartIds});
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '結帳失敗');
+  }
+
+  Future<String?> cancelOrder(int orderId, {String? reason}) async {
+    final res = await _send('PATCH', '/orders/$orderId/cancel', body: {'reason': reason});
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '取消訂單失敗');
+  }
+
+  Future<String?> updateOrderStatus(int orderId, String status) async {
+    final res = await _send('PATCH', '/orders/$orderId/status', body: {'status': status});
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '更新訂單狀態失敗');
+  }
+
+  /* --------------------------------- 通知 --------------------------------- */
+
+  Future<List<AppNotification>> fetchNotifications() async {
+    final res = await _send('GET', '/notifications', query: {'limit': '50'});
+    return _mapList(res, AppNotification.fromJson);
+  }
+
+  Future<int> fetchUnreadNotificationCount() async {
+    final res = await _send('GET', '/notifications/unread-count');
+    if (res == null || res['success'] != true) return 0;
+    return int.tryParse('${res['data']?['unread_count']}') ?? 0;
+  }
+
+  Future<bool> markNotificationRead(int notificationId) async {
+    final res = await _send('PATCH', '/notifications/$notificationId/read');
+    return res != null && res['success'] == true;
+  }
+
+  Future<bool> markAllNotificationsRead() async {
+    final res = await _send('PATCH', '/notifications/read-all');
+    return res != null && res['success'] == true;
+  }
+
+  Future<bool> deleteNotification(int notificationId) async {
+    final res = await _send('DELETE', '/notifications/$notificationId');
+    return res != null && res['success'] == true;
+  }
+
+  /* --------------------------------- 聊天 --------------------------------- */
+
+  Future<List<ChatRoom>> fetchChatRooms() async {
+    final res = await _send('GET', '/chat/rooms');
+    return _mapList(res, ChatRoom.fromJson);
+  }
+
+  Future<int?> openChatRoom({required int userId, int? bookId}) async {
+    final res = await _send('POST', '/chat/rooms', body: {'user_id': userId, 'book_id': bookId});
+    if (res == null || res['success'] != true) return null;
+    return int.tryParse('${res['data']?['room_id']}');
+  }
+
+  Future<({List<ChatMessage> messages, ChatPartner partner})> fetchChatMessages(int roomId) async {
+    final res = await _send('GET', '/chat/rooms/$roomId/messages');
+    final messages = _mapList(res, ChatMessage.fromJson);
+    final partner = ChatPartner.fromJson(
+      res?['partner'] is Map ? Map<String, dynamic>.from(res!['partner']) : null,
+    );
+    return (messages: messages, partner: partner);
+  }
+
+  Future<ChatMessage?> sendChatMessage(int roomId, String content) async {
+    final res = await _send('POST', '/chat/rooms/$roomId/messages', body: {'content': content});
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return ChatMessage.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  /* --------------------------------- 代幣 --------------------------------- */
+
+  Future<Wallet> fetchWallet() async {
+    final res = await _send('GET', '/wallet');
+    if (res == null || res['success'] != true || res['data'] is! Map) return Wallet.empty;
+    return Wallet.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<List<WalletTransaction>> fetchWalletTransactions() async {
+    final res = await _send('GET', '/wallet/transactions', query: {'limit': '50'});
+    return _mapList(res, WalletTransaction.fromJson);
+  }
+
+  Future<({List<Order> orders, double total})> fetchPendingIncome() async {
+    final res = await _send('GET', '/wallet/pending');
+    final orders = _mapList(res, Order.fromJson);
+    final total = double.tryParse('${res?['total_amount'] ?? 0}') ?? 0;
+    return (orders: orders, total: total);
+  }
+
+  /* -------------------------------- 檔案上傳 ------------------------------- */
+
+  /// 上傳佐證圖片，回傳伺服器路徑（失敗回傳空陣列）
+  Future<List<String>> uploadFiles(List<String> filePaths) async {
+    if (filePaths.isEmpty) return [];
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/uploads'));
+      request.headers['Authorization'] = 'Bearer $authToken';
+      for (final path in filePaths) {
+        request.files.add(await http.MultipartFile.fromPath('files', path));
+      }
+      final streamed = await request.send();
+      if (streamed.statusCode == 401) {
+        await _handleUnauthorized();
+        return [];
+      }
+      if (streamed.statusCode < 200 || streamed.statusCode >= 300) return [];
+
+      final body = jsonDecode(utf8.decode(await streamed.stream.toBytes()));
+      final urls = body is Map ? body['data']?['urls'] : null;
+      if (urls is! List) return [];
+      return urls.map((e) => e.toString()).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /* ------------------------------- 爭議與檢舉 ------------------------------- */
+
+  Future<String?> submitDispute({required int orderId, required String reason, List<String>? evidenceUrls}) async {
+    final res = await _send('POST', '/disputes', body: {
+      'order_id': orderId,
+      'reason': reason,
+      'evidence_urls': evidenceUrls,
+    });
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '送出爭議申請失敗');
+  }
+
+  Future<String?> submitReport({
+    required String targetType,
+    required int targetId,
+    required String reason,
+  }) async {
+    final res = await _send('POST', '/reports', body: {
+      'target_type': targetType,
+      'target_id': targetId,
+      'reason': reason,
+    });
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '送出檢舉失敗');
+  }
+
+  /* -------------------------------- 個人資料 ------------------------------- */
+
+  Future<UserStats> fetchUserStats() async {
+    final res = await _send('GET', '/users/me/stats');
+    if (res == null || res['success'] != true || res['data'] is! Map) return UserStats.empty;
+    return UserStats.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<MemberLevelInfo> fetchMemberLevel() async {
+    final res = await _send('GET', '/users/me/level');
+    if (res == null || res['success'] != true || res['data'] is! Map) return MemberLevelInfo.empty;
+    return MemberLevelInfo.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<String?> updateProfile({
+    String? nickname,
+    String? bio,
+    String? phone,
+    String? birthday,
+  }) async {
+    final res = await _send('PUT', '/users/me', body: {
+      if (nickname != null) 'nickname': nickname,
+      if (bio != null) 'bio': bio,
+      if (phone != null) 'phone': phone,
+      if (birthday != null) 'birthday': birthday,
+    });
+    if (res == null) return '請先登入';
+    if (res['success'] != true) return res['message'] as String? ?? '更新失敗';
+    await fetchCurrentUser();
     return null;
+  }
+
+  Future<String?> changePassword(String currentPassword, String newPassword) async {
+    final res = await _send('PUT', '/users/me/password', body: {
+      'current_password': currentPassword,
+      'new_password': newPassword,
+    });
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '更改密碼失敗');
+  }
+
+  Future<String?> fetchProfileQrData() async {
+    final res = await _send('GET', '/users/me/qrcode');
+    if (res == null || res['success'] != true) return null;
+    return res['data']?['qr_data'] as String?;
+  }
+
+  Future<bool> uploadAvatar(String filePath) async {
+    try {
+      final uri = Uri.parse('$baseUrl/users/me/avatar');
+      final request = http.MultipartRequest('POST', uri);
+      request.headers['Authorization'] = 'Bearer $authToken';
+      request.files.add(await http.MultipartFile.fromPath('avatar', filePath));
+
+      final streamed = await request.send();
+      if (streamed.statusCode == 401) {
+        await _handleUnauthorized();
+        return false;
+      }
+      if (streamed.statusCode >= 200 && streamed.statusCode < 300) {
+        await fetchCurrentUser();
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  /* --------------------------------- 公告 --------------------------------- */
+
+  Future<List<Announcement>> fetchAnnouncements({bool includeDrafts = false}) async {
+    final res = await _send('GET', includeDrafts ? '/announcements/all' : '/announcements');
+    return _mapList(res, Announcement.fromJson);
+  }
+
+  Future<String?> saveAnnouncement({
+    int? announcementId,
+    required String title,
+    required String content,
+    required String type,
+    required bool isPublished,
+  }) async {
+    final body = {
+      'title': title,
+      'content': content,
+      'type': type,
+      'is_published': isPublished,
+    };
+    final res = announcementId == null
+        ? await _send('POST', '/announcements', body: body)
+        : await _send('PUT', '/announcements/$announcementId', body: body);
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '儲存公告失敗');
+  }
+
+  Future<bool> deleteAnnouncement(int announcementId) async {
+    final res = await _send('DELETE', '/announcements/$announcementId');
+    return res != null && res['success'] == true;
+  }
+
+  /* --------------------------------- 後台 --------------------------------- */
+
+  Future<AdminOverview> fetchAdminOverview() async {
+    final res = await _send('GET', '/admin/overview');
+    if (res == null || res['success'] != true || res['data'] is! Map) return AdminOverview.empty;
+    return AdminOverview.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<List<AdminMember>> fetchAdminMembers({String keyword = '', String? status}) async {
+    final res = await _send('GET', '/admin/members', query: {
+      if (keyword.isNotEmpty) 'keyword': keyword,
+      if (status != null) 'status': status,
+      'limit': '50',
+    });
+    return _mapList(res, AdminMember.fromJson);
+  }
+
+  Future<bool> updateMemberStatus(int userId, {bool? isActive, bool? isBlacklisted}) async {
+    final res = await _send('PATCH', '/admin/members/$userId', body: {
+      if (isActive != null) 'is_active': isActive,
+      if (isBlacklisted != null) 'is_blacklisted': isBlacklisted,
+    });
+    return res != null && res['success'] == true;
+  }
+
+  Future<List<ReportCase>> fetchAdminReports({String? status}) async {
+    final res = await _send('GET', '/admin/reports', query: {if (status != null) 'status': status});
+    return _mapList(res, ReportCase.fromJson);
+  }
+
+  Future<String?> resolveReport(int reportId, {required String status, String? adminNote, bool removeTarget = false}) async {
+    final res = await _send('PATCH', '/admin/reports/$reportId', body: {
+      'status': status,
+      'admin_note': adminNote,
+      'remove_target': removeTarget,
+    });
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '處理檢舉失敗');
+  }
+
+  Future<List<DisputeCase>> fetchAdminDisputes({String? status}) async {
+    final res = await _send('GET', '/admin/disputes', query: {if (status != null) 'status': status});
+    return _mapList(res, DisputeCase.fromJson);
+  }
+
+  Future<String?> arbitrateDispute(int disputeId, {required String result, String? adminNote}) async {
+    final res = await _send('PATCH', '/admin/disputes/$disputeId', body: {
+      'result': result,
+      'admin_note': adminNote,
+    });
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '裁決失敗');
+  }
+
+  Future<List<Cabinet>> fetchAdminCabinets() async {
+    final res = await _send('GET', '/admin/cabinets');
+    return _mapList(res, Cabinet.fromJson);
+  }
+
+  Future<String?> saveCabinet({
+    int? cabinetId,
+    required String name,
+    required String address,
+    required double latitude,
+    required double longitude,
+    int totalSlots = 20,
+    String? openTime,
+    String? closeTime,
+    bool? isActive,
+  }) async {
+    final body = {
+      'cabinet_name': name,
+      'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
+      if (cabinetId == null) 'total_slots': totalSlots,
+      if (openTime != null) 'open_time': openTime,
+      if (closeTime != null) 'close_time': closeTime,
+      if (isActive != null) 'is_active': isActive,
+    };
+    final res = cabinetId == null
+        ? await _send('POST', '/admin/cabinets', body: body)
+        : await _send('PUT', '/admin/cabinets/$cabinetId', body: body);
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '儲存書櫃失敗');
+  }
+
+  Future<bool> updateSlotStatus(int cabinetId, int slotId, String status) async {
+    final res = await _send('PATCH', '/admin/cabinets/$cabinetId/slots/$slotId', body: {'status': status});
+    return res != null && res['success'] == true;
+  }
+
+  Future<List<MaintenanceLog>> fetchMaintenanceLogs() async {
+    final res = await _send('GET', '/admin/maintenance-logs');
+    return _mapList(res, MaintenanceLog.fromJson);
   }
 }

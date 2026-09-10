@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/theme_provider.dart';
 import '../utils/app_colors.dart';
+import 'change_password_screen.dart';
 import 'terms_screen.dart';
 import 'privacy_screen.dart';
 
@@ -54,7 +55,12 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.security_rounded,
               title: '設定與隱私',
               children: [
-                _buildSubItem(c, icon: Icons.key_outlined, title: '更改密碼'),
+                _buildSubItem(
+                  c,
+                  icon: Icons.key_outlined,
+                  title: '更改密碼',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())),
+                ),
                 _buildSubItem(
                   c,
                   icon: Icons.privacy_tip_outlined,
