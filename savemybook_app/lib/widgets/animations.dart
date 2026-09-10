@@ -53,12 +53,18 @@ class _FadeSlideInState extends State<FadeSlideIn> with SingleTickerProviderStat
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        final t = Curves.easeOutCubic.transform(_controller.value);
+        final raw = _controller.value;
+        // 透明度用較快的曲線先到位，位移慢一點收尾，進場才不會有「啪」的感覺。
+        final fade = Curves.easeOut.transform((raw * 1.35).clamp(0.0, 1.0));
+        final slide = Curves.easeOutCubic.transform(raw);
         return Opacity(
-          opacity: t,
+          opacity: fade,
           child: Transform.translate(
-            offset: Offset(0, widget.offsetY * (1 - t)),
-            child: child,
+            offset: Offset(0, widget.offsetY * (1 - slide)),
+            child: Transform.scale(
+              scale: 0.985 + 0.015 * slide,
+              child: child,
+            ),
           ),
         );
       },
@@ -96,9 +102,13 @@ class _PressableScaleState extends State<PressableScale> {
       onTap: widget.onTap,
       child: AnimatedScale(
         scale: _pressed ? widget.scale : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        child: widget.child,
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOutCubic,
+        child: AnimatedOpacity(
+          opacity: _pressed ? 0.82 : 1,
+          duration: const Duration(milliseconds: 130),
+          child: widget.child,
+        ),
       ),
     );
   }

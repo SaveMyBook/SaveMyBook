@@ -194,8 +194,14 @@ class _SellBookScreenState extends State<SellBookScreen> {
           _buildAppBar(c),
           Expanded(
             child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               physics: const ClampingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
               child: _buildStep1(c),
             ),
           ),

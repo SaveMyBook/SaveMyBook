@@ -9,6 +9,7 @@ import '../models/cart_item.dart';
 import '../models/order.dart';
 import '../models/app_notification.dart';
 import '../models/chat.dart';
+import '../models/support.dart';
 import '../models/wallet.dart';
 import '../models/member_level.dart';
 import '../models/admin_models.dart';
@@ -342,8 +343,11 @@ class ApiService {
     return res != null && res['success'] == true;
   }
 
-  Future<bool> relistBook(int bookId) async {
-    return updateBook(bookId, {'status': 'on_sale'});
+  /// 回傳 null 代表成功；違規下架的書會回錯誤訊息。
+  Future<String?> relistBook(int bookId) async {
+    final res = await _send('PUT', '/books/$bookId', body: {'status': 'on_sale'});
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '重新上架失敗');
   }
 
   Future<List<Book>> fetchFavorites() async {
@@ -521,6 +525,13 @@ class ApiService {
 
   Future<bool> markAllNotificationsRead() async {
     final res = await _send('PATCH', '/notifications/read-all');
+    final ok = res != null && res['success'] == true;
+    if (ok) _setBadge(unreadNotificationCount, 0);
+    return ok;
+  }
+
+  Future<bool> clearAllNotifications() async {
+    final res = await _send('DELETE', '/notifications/all');
     final ok = res != null && res['success'] == true;
     if (ok) _setBadge(unreadNotificationCount, 0);
     return ok;
@@ -740,6 +751,115 @@ class ApiService {
   Future<bool> deleteAnnouncement(int announcementId) async {
     final res = await _send('DELETE', '/announcements/$announcementId');
     return res != null && res['success'] == true;
+  }
+
+  // ---------- 說明中心與客服 ----------
+
+  Future<List<FaqItem>> fetchFaqs() async {
+    final res = await _send('GET', '/support/faqs');
+    return _mapList(res, FaqItem.fromJson);
+  }
+
+  Future<LegalDoc?> fetchLegalDoc(String key) async {
+    final res = await _send('GET', '/support/legal/$key');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return LegalDoc.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<List<SupportTicket>> fetchMyTickets() async {
+    final res = await _send('GET', '/support/tickets');
+    return _mapList(res, SupportTicket.fromJson);
+  }
+
+  Future<SupportTicket?> fetchTicket(int ticketId) async {
+    final res = await _send('GET', '/support/tickets/$ticketId');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return SupportTicket.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<String?> createTicket({
+    required String subject,
+    required String category,
+    required String content,
+  }) async {
+    final res = await _send('POST', '/support/tickets', body: {
+      'subject': subject,
+      'category': category,
+      'content': content,
+    });
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '送出失敗');
+  }
+
+  Future<String?> replyTicket(int ticketId, String content) async {
+    final res = await _send('POST', '/support/tickets/$ticketId/messages', body: {'content': content});
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '送出失敗');
+  }
+
+  Future<String?> closeTicket(int ticketId) async {
+    final res = await _send('PATCH', '/support/tickets/$ticketId/close');
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '操作失敗');
+  }
+
+  // ---------- 管理端 ----------
+
+  Future<List<LegalDoc>> fetchAdminLegalDocs() async {
+    final res = await _send('GET', '/admin/legal');
+    return _mapList(res, LegalDoc.fromJson);
+  }
+
+  Future<String?> saveLegalDoc(String key, {required String title, required String content}) async {
+    final res = await _send('PUT', '/admin/legal/$key', body: {'title': title, 'content': content});
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '儲存失敗');
+  }
+
+  Future<List<FaqItem>> fetchAdminFaqs() async {
+    final res = await _send('GET', '/admin/faqs');
+    return _mapList(res, FaqItem.fromJson);
+  }
+
+  Future<String?> saveFaq({
+    int? faqId,
+    required String category,
+    required String question,
+    required String answer,
+    int sortOrder = 0,
+    bool isVisible = true,
+  }) async {
+    final body = {
+      'category': category,
+      'question': question,
+      'answer': answer,
+      'sort_order': sortOrder,
+      'is_visible': isVisible,
+    };
+    final res = faqId == null
+        ? await _send('POST', '/admin/faqs', body: body)
+        : await _send('PUT', '/admin/faqs/$faqId', body: body);
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '儲存失敗');
+  }
+
+  Future<String?> deleteFaq(int faqId) async {
+    final res = await _send('DELETE', '/admin/faqs/$faqId');
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '刪除失敗');
+  }
+
+  Future<List<SupportTicket>> fetchAdminTickets({String? status}) async {
+    final res = await _send('GET', '/admin/tickets', query: {
+      if (status != null && status != 'all') 'status': status,
+    });
+    return _mapList(res, SupportTicket.fromJson);
+  }
+
+  Future<String?> updateTicketStatus(int ticketId, String status) async {
+    final res = await _send('PATCH', '/admin/tickets/$ticketId/status', body: {'status': status});
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '更新失敗');
   }
 
   Future<AdminOverview> fetchAdminOverview() async {

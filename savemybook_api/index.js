@@ -21,6 +21,7 @@ const reportRoutes = require('./routes/reports');
 const announcementRoutes = require('./routes/announcements');
 const adminRoutes = require('./routes/admin');
 const uploadRoutes = require('./routes/uploads');
+const supportRoutes = require('./routes/support');
 const publicRoutes = require('./routes/public');
 
 const app = express();
@@ -51,6 +52,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/support', supportRoutes);
 app.use('/', publicRoutes);
 
 app.get('/', (req, res) => {

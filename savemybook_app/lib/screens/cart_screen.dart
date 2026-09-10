@@ -169,7 +169,7 @@ class _CartScreenState extends State<CartScreen> {
 
   Widget _buildSelectAllRow(AppColors c) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
       child: Row(
         children: [
           _buildCheckbox(
@@ -182,14 +182,23 @@ class _CartScreenState extends State<CartScreen> {
             }),
           ),
           const SizedBox(width: 10),
-          Text(
-            '全選',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(() {
+              final next = !_allSelected;
+              for (final item in _items) {
+                item.isSelected = next;
+              }
+            }),
+            child: Text(
+              '全選',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
+            ),
           ),
           const Spacer(),
           Text(
-            '共 ${_items.length} 件',
-            style: TextStyle(fontSize: 13, color: c.textSecondary),
+            '${_items.length} 件商品',
+            style: TextStyle(fontSize: 12, color: c.textHint),
           ),
         ],
       ),
@@ -252,8 +261,18 @@ class _CartScreenState extends State<CartScreen> {
     final book = item.book;
     final isRemoving = _removingCartIds.contains(item.cartId);
 
-    return AppCard(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
       margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: item.isSelected ? c.accent : Colors.transparent,
+          width: 1.6,
+        ),
+      ),
+      child: AppCard(
       padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
       onTap: () => Navigator.push(
         context,
@@ -362,84 +381,149 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ],
       ),
+      ),
     );
   }
 
   Widget _buildCheckoutBar(AppColors c) {
+    final shortfall = _total - _balance;
+
     return Container(
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
-        top: 14,
-        bottom: MediaQuery.of(context).padding.bottom + 14,
+        top: 12,
+        bottom: MediaQuery.of(context).padding.bottom + 12,
       ),
       decoration: BoxDecoration(
         color: c.card,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
         ),
-        boxShadow: [BoxShadow(color: c.shadow, blurRadius: 20, offset: const Offset(0, -4))],
+        boxShadow: [BoxShadow(color: c.shadow, blurRadius: 24, offset: const Offset(0, -6))],
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+          // 餘額不足時把差額直接講清楚，不要讓使用者自己算。
+          AnimatedSize(
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.easeOutCubic,
+            child: _canAfford || _selectedItems.isEmpty
+                ? const SizedBox(width: double.infinity)
+                : Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: c.danger.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.account_balance_wallet_outlined, size: 16, color: c.danger),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '還差 ${shortfall.toStringAsFixed(0)} 代幣',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: c.danger,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              PopIn(
-                triggerKey: _selectedItems.length,
-                child: Text('已選 ${_selectedItems.length} 件',
-                    style: TextStyle(fontSize: 11, color: c.textHint)),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '餘額 ${_balance.toStringAsFixed(0)}',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: _canAfford ? c.textSecondary : c.danger,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Text('合計', style: TextStyle(fontSize: 12, color: c.textHint)),
+                        const SizedBox(width: 6),
+                        PopIn(
+                          triggerKey: _selectedItems.length,
+                          child: Text(
+                            '${_selectedItems.length} 件',
+                            style: TextStyle(fontSize: 12, color: c.textHint),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        AnimatedCount(
+                          value: _total,
+                          duration: const Duration(milliseconds: 320),
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: c.textPrimary,
+                            height: 1.1,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text('代幣', style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '餘額 ${_balance.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: _canAfford ? c.textHint : c.danger,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 2),
-              AnimatedCount(
-                value: _total,
-                prefix: '\$',
-                duration: const Duration(milliseconds: 320),
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.textPrimary),
+              const SizedBox(width: 16),
+              SizedBox(
+                width: 132,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isCheckingOut || _selectedItems.isEmpty || !_canAfford
+                      ? null
+                      : _checkout,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: c.accent,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: c.accent.withValues(alpha: 0.3),
+                    disabledForegroundColor: Colors.white70,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: SwitchIn(
+                    duration: const Duration(milliseconds: 200),
+                    child: _isCheckingOut
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : Text(
+                            _selectedItems.isEmpty
+                                ? '請先選書'
+                                : (_canAfford ? '結帳' : '代幣不足'),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                  ),
+                ),
               ),
             ],
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: SizedBox(
-              height: 48,
-              child: ElevatedButton(
-                onPressed: _isCheckingOut || _selectedItems.isEmpty || !_canAfford
-                    ? null
-                    : _checkout,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: c.accent,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: c.accent.withValues(alpha: 0.35),
-                  disabledForegroundColor: Colors.white70,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                child: SwitchIn(
-                  duration: const Duration(milliseconds: 200),
-                  child: _isCheckingOut
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : Text(
-                          _canAfford ? '結帳' : '代幣不足',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                ),
-              ),
-            ),
           ),
         ],
       ),

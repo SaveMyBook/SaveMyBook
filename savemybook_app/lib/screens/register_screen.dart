@@ -7,8 +7,7 @@ import '../widgets/app_buttons.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
-import 'privacy_screen.dart';
-import 'terms_screen.dart';
+import 'legal_doc_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   final String initialEmail;
@@ -159,7 +158,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       recognizer: TapGestureRecognizer()
                         ..onTap = () => Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const TermsScreen()),
+                              MaterialPageRoute(
+                              builder: (_) => const LegalDocScreen(
+                                docKey: 'terms',
+                                fallbackTitle: '服務條款',
+                              ),
+                            ),
                             ),
                     ),
                     const TextSpan(text: ' 與 '),
@@ -169,7 +173,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       recognizer: TapGestureRecognizer()
                         ..onTap = () => Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const PrivacyScreen()),
+                              MaterialPageRoute(
+                              builder: (_) => const LegalDocScreen(
+                                docKey: 'privacy',
+                                fallbackTitle: '隱私權政策',
+                                icon: Icons.privacy_tip_outlined,
+                              ),
+                            ),
                             ),
                     ),
                   ],
@@ -202,7 +212,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       index: index,
       child: AppCard(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+        padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).viewInsets.bottom + 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -249,6 +259,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               behavior: HitTestBehavior.opaque,
               onTap: () => FocusScope.of(context).unfocus(),
               child: ListView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                 children: [
                   FadeSlideIn(

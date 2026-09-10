@@ -144,7 +144,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const AppHeader(title: '編輯個人檔案', icon: Icons.edit_outlined),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
               child: Column(
                 children: [
                   Stack(

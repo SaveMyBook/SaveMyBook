@@ -83,13 +83,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: EdgeInsets.zero,
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   _buildQuickActions(c),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   _buildMenu(c),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   _buildLogoutButton(c),
-                  const SizedBox(height: 120),
+                  // 只留浮動導覽列的高度，不再多墊一大段空白。
+                  SizedBox(height: MediaQuery.of(context).padding.bottom + 84),
                 ],
               ),
             ),
@@ -113,25 +114,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 6, 20, 18),
           child: Column(
             children: [
-              Row(
-                children: [
-                  const Spacer(),
-                  const Text(
-                    '會員中心',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  const Spacer(),
-                ],
+              const Text(
+                '會員中心',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   UserAvatar(
                     imageUrl: avatarUrl,
-                    radius: 37,
+                    radius: 32,
                     background: Colors.white24,
                     enablePreview: true,
                     previewTitle: nickname,
@@ -144,8 +139,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Text(
                           nickname,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 20,
+                            fontSize: 19,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
@@ -153,11 +150,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 4),
                         Text(
                           bio.isEmpty ? '這個人很懶，什麼都沒留下' : bio,
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.8)),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         GestureDetector(
                           onTap: () => _openAndRefresh(const MemberLevelScreen()),
                           child: Container(
@@ -221,7 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: AppCard(
-        padding: const EdgeInsets.symmetric(vertical: 18),
+        padding: const EdgeInsets.symmetric(vertical: 14),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -306,7 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: AppCard(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 15),
         onTap: () async {
           final confirmed = await showConfirmDialog(
             context,

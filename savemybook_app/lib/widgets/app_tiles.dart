@@ -119,10 +119,16 @@ class AppMenuItem extends StatelessWidget {
     return Column(
       children: [
         ListTile(
-          leading: Icon(icon, color: iconColor ?? c.iconInactive),
+          // 沒有副標時把高度收緊，會員中心那種純標題的清單才不會過長。
+          dense: subtitle == null,
+          visualDensity: subtitle == null
+              ? const VisualDensity(vertical: -1)
+              : VisualDensity.standard,
+          minVerticalPadding: subtitle == null ? 8 : 12,
+          leading: Icon(icon, color: iconColor ?? c.iconInactive, size: 22),
           title: Text(
             title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textPrimary),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.textPrimary),
           ),
           subtitle: subtitle == null
               ? null

@@ -97,12 +97,17 @@ router.patch('/members/:id', requireAdmin('members'), async (req, res) => {
 // ---------- 會員細部設定（等級／權限） ----------
 
 const PERMISSION_KEYS = [
-  'can_manage_transactions',
   'can_manage_members',
+  'can_manage_levels',
   'can_manage_content',
   'can_manage_reports',
+  'can_manage_orders',
+  'can_manage_transactions',
+  'can_manage_wallets',
+  'can_manage_cabinets',
   'can_manage_announcements',
-  'can_manage_cabinets'
+  'can_manage_support',
+  'can_view_stats'
 ];
 
 router.get('/members/:id', requireAdmin('members'), async (req, res) => {
@@ -690,7 +695,7 @@ const shapeOrder = (o) => ({
   }))
 });
 
-router.get('/orders', requireAdmin('transactions'), async (req, res) => {
+router.get('/orders', requireAdmin('orders'), async (req, res) => {
   const keyword = (req.query.keyword || '').trim();
   const status = req.query.status;
   const page = parseInt(req.query.page) || 1;
@@ -735,7 +740,7 @@ const ORDER_STATUSES = [
   'completed', 'cancelled', 'refunding', 'refunded'
 ];
 
-router.patch('/orders/:id', requireAdmin('transactions'), async (req, res) => {
+router.patch('/orders/:id', requireAdmin('orders'), async (req, res) => {
   const orderId = parseInt(req.params.id);
   const { status, note } = req.body;
 
@@ -1023,7 +1028,7 @@ router.delete('/categories/:id', requireAdmin('content'), async (req, res) => {
 
 // ---------- 會員等級管理 ----------
 
-router.get('/levels', async (req, res) => {
+router.get('/levels', requireAdmin('levels'), async (req, res) => {
   try {
     const levels = await prisma.member_levels.findMany({ orderBy: { min_points: 'asc' } });
     res.status(200).json({ success: true, data: levels });
@@ -1042,7 +1047,7 @@ const parseLevelBody = (body) => ({
   benefits: (body.benefits || '').trim() || null
 });
 
-router.post('/levels', async (req, res) => {
+router.post('/levels', requireAdmin('levels'), async (req, res) => {
   const data = parseLevelBody(req.body);
   if (!data.level_name) return res.status(400).json({ success: false, message: '請輸入等級名稱' });
 
@@ -1056,7 +1061,7 @@ router.post('/levels', async (req, res) => {
   }
 });
 
-router.put('/levels/:id', async (req, res) => {
+router.put('/levels/:id', requireAdmin('levels'), async (req, res) => {
   const levelId = parseInt(req.params.id);
   const data = parseLevelBody(req.body);
   if (!data.level_name) return res.status(400).json({ success: false, message: '請輸入等級名稱' });
@@ -1071,7 +1076,7 @@ router.put('/levels/:id', async (req, res) => {
   }
 });
 
-router.delete('/levels/:id', async (req, res) => {
+router.delete('/levels/:id', requireAdmin('levels'), async (req, res) => {
   const levelId = parseInt(req.params.id);
   try {
     await prisma.member_levels.delete({ where: { level_id: levelId } });
@@ -1085,7 +1090,7 @@ router.delete('/levels/:id', async (req, res) => {
 
 // ---------- 營運報表 ----------
 
-router.get('/stats', async (req, res) => {
+router.get('/stats', requireAdmin('stats'), async (req, res) => {
   const days = Math.min(Math.max(parseInt(req.query.days) || 7, 1), 90);
 
   try {
@@ -1205,7 +1210,7 @@ router.get('/operation-logs', async (req, res) => {
 
 const walletUserSelect = { user_id: true, nickname: true, avatar_url: true, email: true };
 
-router.get('/wallets', requireAdmin('transactions'), async (req, res) => {
+router.get('/wallets', requireAdmin('wallets'), async (req, res) => {
   const keyword = (req.query.keyword || '').trim();
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 30;
@@ -1252,7 +1257,7 @@ router.get('/wallets', requireAdmin('transactions'), async (req, res) => {
   }
 });
 
-router.get('/wallets/:userId', requireAdmin('transactions'), async (req, res) => {
+router.get('/wallets/:userId', requireAdmin('wallets'), async (req, res) => {
   const userId = parseInt(req.params.userId);
 
   try {
@@ -1290,7 +1295,7 @@ router.get('/wallets/:userId', requireAdmin('transactions'), async (req, res) =>
   }
 });
 
-router.post('/wallets/:userId/adjust', requireAdmin('transactions'), async (req, res) => {
+router.post('/wallets/:userId/adjust', requireAdmin('wallets'), async (req, res) => {
   const userId = parseInt(req.params.userId);
   const amount = parseFloat(req.body.amount);
   const description = (req.body.description || '').trim();
@@ -1380,15 +1385,193 @@ router.post('/wallets/:userId/adjust', requireAdmin('transactions'), async (req,
   }
 });
 
+
+// ---------- 法律文件 / 常見問題 / 客服工單 ----------
+
+router.get('/legal', requireAdmin('announcements'), async (req, res) => {
+  try {
+    const docs = await prisma.legal_documents.findMany({ orderBy: { doc_id: 'asc' } });
+    res.status(200).json({ success: true, data: docs });
+  } catch (err) {
+    console.error('[取得文件失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.put('/legal/:key', requireAdmin('announcements'), async (req, res) => {
+  const key = req.params.key;
+  const title = (req.body.title || '').trim();
+  const content = (req.body.content || '').trim();
+
+  if (!title) return res.status(400).json({ success: false, message: '請填寫標題' });
+  if (!content) return res.status(400).json({ success: false, message: '請填寫內容' });
+
+  try {
+    await prisma.legal_documents.upsert({
+      where: { doc_key: key },
+      update: { title, content, updated_by: req.user.userId, updated_at: new Date() },
+      create: { doc_key: key, title, content, updated_by: req.user.userId }
+    });
+    await logAction(req.user.userId, '編輯法律文件', 'legal', null, key);
+    res.status(200).json({ success: true, message: '已更新文件' });
+  } catch (err) {
+    console.error('[編輯文件失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.get('/faqs', requireAdmin('announcements'), async (req, res) => {
+  try {
+    const faqs = await prisma.faqs.findMany({
+      orderBy: [{ category: 'asc' }, { sort_order: 'asc' }, { faq_id: 'asc' }]
+    });
+    res.status(200).json({ success: true, data: faqs });
+  } catch (err) {
+    console.error('[取得常見問題失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+const parseFaq = (body) => ({
+  category: (body.category || 'general').trim() || 'general',
+  question: (body.question || '').trim(),
+  answer: (body.answer || '').trim(),
+  sort_order: parseInt(body.sort_order) || 0,
+  is_visible: body.is_visible === undefined ? true : !!body.is_visible
+});
+
+router.post('/faqs', requireAdmin('announcements'), async (req, res) => {
+  const data = parseFaq(req.body);
+  if (!data.question || !data.answer) {
+    return res.status(400).json({ success: false, message: '問題與答案都要填寫' });
+  }
+
+  try {
+    const created = await prisma.faqs.create({ data });
+    await logAction(req.user.userId, '新增常見問題', 'faq', created.faq_id, data.question);
+    res.status(201).json({ success: true, data: { faq_id: created.faq_id } });
+  } catch (err) {
+    console.error('[新增常見問題失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.put('/faqs/:id', requireAdmin('announcements'), async (req, res) => {
+  const faqId = parseInt(req.params.id);
+  const data = parseFaq(req.body);
+  if (!data.question || !data.answer) {
+    return res.status(400).json({ success: false, message: '問題與答案都要填寫' });
+  }
+
+  try {
+    await prisma.faqs.update({
+      where: { faq_id: faqId },
+      data: { ...data, updated_at: new Date() }
+    });
+    await logAction(req.user.userId, '編輯常見問題', 'faq', faqId, data.question);
+    res.status(200).json({ success: true, message: '已更新' });
+  } catch (err) {
+    console.error('[編輯常見問題失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.delete('/faqs/:id', requireAdmin('announcements'), async (req, res) => {
+  const faqId = parseInt(req.params.id);
+  try {
+    await prisma.faqs.delete({ where: { faq_id: faqId } });
+    await logAction(req.user.userId, '刪除常見問題', 'faq', faqId, null);
+    res.status(200).json({ success: true, message: '已刪除' });
+  } catch (err) {
+    console.error('[刪除常見問題失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.get('/tickets', requireAdmin('support'), async (req, res) => {
+  const status = req.query.status;
+
+  try {
+    const tickets = await prisma.support_tickets.findMany({
+      where: status && status !== 'all' ? { status } : {},
+      orderBy: { updated_at: 'desc' },
+      take: 100,
+      include: {
+        users: { select: { user_id: true, nickname: true, avatar_url: true } },
+        _count: { select: { messages: true } },
+        messages: { orderBy: { created_at: 'desc' }, take: 1 }
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: tickets.map((t) => ({
+        ticket_id: t.ticket_id,
+        subject: t.subject,
+        category: t.category,
+        status: t.status,
+        created_at: t.created_at,
+        updated_at: t.updated_at,
+        message_count: t._count.messages,
+        last_message: t.messages[0]?.content ?? null,
+        user: t.users
+      }))
+    });
+  } catch (err) {
+    console.error('[取得工單列表失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.patch('/tickets/:id/status', requireAdmin('support'), async (req, res) => {
+  const ticketId = parseInt(req.params.id);
+  const status = req.body.status;
+
+  if (!['open', 'pending', 'resolved', 'closed'].includes(status)) {
+    return res.status(400).json({ success: false, message: '不支援的工單狀態' });
+  }
+
+  try {
+    const ticket = await prisma.support_tickets.update({
+      where: { ticket_id: ticketId },
+      data: {
+        status,
+        updated_at: new Date(),
+        closed_at: status === 'closed' ? new Date() : null
+      }
+    });
+
+    await prisma.notifications.create({
+      data: {
+        user_id: ticket.user_id,
+        type: 'system',
+        title: '工單狀態更新',
+        content: `工單「${ticket.subject}」已更新為「${status}」。`,
+        related_id: ticketId,
+        related_type: 'ticket'
+      }
+    });
+
+    await logAction(req.user.userId, '調整工單狀態', 'ticket', ticketId, status);
+    res.status(200).json({ success: true, message: '已更新' });
+  } catch (err) {
+    if (err.code === 'P2025') return res.status(404).json({ success: false, message: '找不到這張工單' });
+    console.error('[調整工單狀態失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
 router.get('/overview', async (req, res) => {
   try {
-    const [members, pendingReports, pendingDisputes, cabinets, todayOrders] = await Promise.all([
-      prisma.users.count(),
-      prisma.reports.count({ where: { status: 'pending' } }),
-      prisma.transaction_disputes.count({ where: { status: { in: ['pending', 'processing'] } } }),
-      prisma.smart_cabinets.count({ where: { is_active: true } }),
-      prisma.orders.count({ where: { created_at: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } } })
-    ]);
+    const [members, pendingReports, pendingDisputes, cabinets, todayOrders, openTickets] =
+      await Promise.all([
+        prisma.users.count(),
+        prisma.reports.count({ where: { status: 'pending' } }),
+        prisma.transaction_disputes.count({ where: { status: { in: ['pending', 'processing'] } } }),
+        prisma.smart_cabinets.count({ where: { is_active: true } }),
+        prisma.orders.count({ where: { created_at: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } } }),
+        prisma.support_tickets.count({ where: { status: 'open' } })
+      ]);
 
     res.status(200).json({
       success: true,
@@ -1397,7 +1580,8 @@ router.get('/overview', async (req, res) => {
         pending_report_count: pendingReports,
         pending_dispute_count: pendingDisputes,
         active_cabinet_count: cabinets,
-        today_order_count: todayOrders
+        today_order_count: todayOrders,
+        open_ticket_count: openTickets
       }
     });
   } catch (err) {

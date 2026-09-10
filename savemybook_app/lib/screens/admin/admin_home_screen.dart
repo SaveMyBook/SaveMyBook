@@ -9,6 +9,7 @@ import '../../widgets/state_views.dart';
 import 'admin_announcement_screen.dart';
 import 'admin_book_screen.dart';
 import 'admin_cabinet_screen.dart';
+import 'admin_content_screen.dart';
 import 'admin_category_screen.dart';
 import 'admin_dispute_screen.dart';
 import 'admin_level_screen.dart';
@@ -18,6 +19,7 @@ import 'admin_operation_log_screen.dart';
 import 'admin_order_screen.dart';
 import 'admin_report_screen.dart';
 import 'admin_stats_screen.dart';
+import 'admin_ticket_screen.dart';
 import 'admin_wallet_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
@@ -158,6 +160,25 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             title: '系統公告',
                             subtitle: '推播管理',
                             onTap: () => _open(const AdminAnnouncementScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.support_agent_rounded,
+                            title: '客服工單',
+                            subtitle: '回覆使用者提出的問題',
+                            badge: _overview.openTicketCount,
+                            onTap: () => _open(const AdminTicketScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.quiz_outlined,
+                            title: '常見問題',
+                            subtitle: '幫助中心的 QA 內容',
+                            onTap: () => _open(const AdminFaqScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.gavel_outlined,
+                            title: '法律文件',
+                            subtitle: '服務條款、隱私權政策、關於我們',
+                            onTap: () => _open(const AdminLegalScreen()),
                           ),
                           AppMenuItem(
                             icon: Icons.fact_check_outlined,

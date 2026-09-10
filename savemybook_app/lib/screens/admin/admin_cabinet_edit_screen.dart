@@ -134,6 +134,7 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
           AppHeader(title: _isEdit ? '修改書櫃' : '新增書櫃', icon: Icons.storage_rounded),
           Expanded(
             child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [

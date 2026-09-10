@@ -99,15 +99,15 @@ class _BookManageScreenState extends State<BookManageScreen> {
 
   Future<void> _relistBook(Book book) async {
     setState(() => _busyBookId = book.bookId);
-    final ok = await _api.relistBook(book.bookId);
+    final error = await _api.relistBook(book.bookId);
     if (!mounted) return;
     setState(() => _busyBookId = null);
 
-    if (ok) {
+    if (error == null) {
       showAppSnackBar(context, '《${book.title}》已重新上架');
       _load();
     } else {
-      showAppSnackBar(context, '重新上架失敗，請稍後再試', isError: true);
+      showAppSnackBar(context, error, isError: true);
     }
   }
 

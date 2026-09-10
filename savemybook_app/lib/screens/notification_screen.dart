@@ -59,6 +59,32 @@ class _NotificationScreenState extends State<NotificationScreen> {
     });
   }
 
+  Future<void> _clearAll() async {
+    if (_notifications.isEmpty) {
+      showAppSnackBar(context, '沒有通知可以清除');
+      return;
+    }
+
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '清除全部通知',
+      message: '會刪除 ${_notifications.length} 則通知，無法復原。',
+      confirmLabel: '全部清除',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    final ok = await runBusy(context, () => _api.clearAllNotifications());
+    if (!mounted) return;
+
+    if (ok == true) {
+      setState(() => _notifications = []);
+      showAppSnackBar(context, '已清除全部通知');
+    } else {
+      showAppSnackBar(context, '清除失敗，請稍後再試', isError: true);
+    }
+  }
+
   Future<void> _markAllRead() async {
     final unread = _notifications.where((n) => !n.isRead).length;
     if (unread == 0) {
@@ -209,6 +235,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             showBack: !widget.embedded,
             actions: [
               HeaderIconButton(icon: Icons.done_all_rounded, onTap: _markAllRead),
+              HeaderIconButton(icon: Icons.delete_sweep_outlined, onTap: _clearAll),
             ],
           ),
           Expanded(

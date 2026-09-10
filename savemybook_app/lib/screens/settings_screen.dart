@@ -3,8 +3,9 @@ import '../services/biometric_service.dart';
 import '../services/theme_provider.dart';
 import '../utils/app_colors.dart';
 import 'change_password_screen.dart';
-import 'terms_screen.dart';
-import 'privacy_screen.dart';
+import 'help_center_screen.dart';
+import 'legal_doc_screen.dart';
+import 'support_ticket_screen.dart';
 import '../widgets/state_views.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -86,9 +87,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.help_outline_rounded,
               title: '說明與支援',
               children: [
-                _buildSubItem(c, icon: Icons.mail_outline_rounded, title: '支援信箱'),
-                _buildSubItem(c, icon: Icons.phone_in_talk_outlined, title: '聯絡我們'),
-                _buildSubItem(c, icon: Icons.person_outline_rounded, title: '幫助中心'),
+                _buildSubItem(
+                  c,
+                  icon: Icons.quiz_outlined,
+                  title: '幫助中心',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
+                  ),
+                ),
+                _buildSubItem(
+                  c,
+                  icon: Icons.support_agent_rounded,
+                  title: '聯絡我們',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SupportTicketScreen()),
+                  ),
+                ),
+                _buildSubItem(
+                  c,
+                  icon: Icons.info_outline_rounded,
+                  title: '關於 SaveMyBook',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LegalDocScreen(
+                        docKey: 'about',
+                        fallbackTitle: '關於我們',
+                        icon: Icons.info_outline_rounded,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -107,16 +138,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   c,
                   icon: Icons.privacy_tip_outlined,
                   title: '隱私權政策',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LegalDocScreen(
+                        docKey: 'privacy',
+                        fallbackTitle: '隱私權政策',
+                        icon: Icons.privacy_tip_outlined,
+                      ),
+                    ),
+                  ),
                 ),
                 _buildSubItem(
                   c,
                   icon: Icons.description_outlined,
                   title: '服務條款',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LegalDocScreen(
+                        docKey: 'terms',
+                        fallbackTitle: '服務條款',
+                      ),
+                    ),
+                  ),
                 ),
-                _buildSubItem(c, icon: Icons.info_outline_rounded, title: '關於'),
-                _buildSubItem(c, icon: Icons.update_rounded, title: '更新'),
               ],
             ),
             const SizedBox(height: 40),

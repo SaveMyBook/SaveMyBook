@@ -247,6 +247,19 @@ router.put('/:id', authenticateToken, async (req, res) => {
       return res.status(403).json({ success: false, message: '存取被拒，您無權限修改他人的商品' });
     }
 
+    // 檢舉成立會把 is_approved 設成 false，賣家不能自己把它重新上架。
+    if (
+      status === 'on_sale' &&
+      targetBook.is_approved === false &&
+      req.user.role !== 'admin'
+    ) {
+      return res.status(403).json({
+        success: false,
+        code: 'BOOK_NOT_APPROVED',
+        message: '這本書因違規被下架，無法自行重新上架，請聯絡客服'
+      });
+    }
+
     const updatedBook = await prisma.books.update({
       where: { book_id: bookId },
       data: {

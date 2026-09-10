@@ -43,6 +43,11 @@ model admin_permissions {
   can_manage_reports       Boolean  @default(true)
   can_manage_announcements Boolean  @default(true)
   can_manage_cabinets      Boolean  @default(true)
+  can_manage_orders        Boolean  @default(true)
+  can_manage_wallets       Boolean  @default(true)
+  can_manage_levels        Boolean  @default(true)
+  can_view_stats           Boolean  @default(true)
+  can_manage_support       Boolean  @default(true)
   created_at               DateTime @default(now()) @db.DateTime(0)
   users                    users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_admin_user")
 }
@@ -558,6 +563,9 @@ model users {
   reservations_reservations_seller_idTousers                    reservations[]         @relation("reservations_seller_idTousers")
   shopping_cart                                                 shopping_cart[]
   system_announcements                                          system_announcements[]
+  legal_documents                                               legal_documents[]
+  support_tickets                                               support_tickets[]
+  support_ticket_messages                                       support_ticket_messages[]
   transaction_disputes_transaction_disputes_admin_idTousers     transaction_disputes[] @relation("transaction_disputes_admin_idTousers")
   transaction_disputes_transaction_disputes_applicant_idTousers transaction_disputes[] @relation("transaction_disputes_applicant_idTousers")
   user_achievements                                             user_achievements[]
@@ -764,3 +772,70 @@ enum books_status {
   sold
   removed
 }
+
+/// 服務條款、隱私權政策這類可由管理員線上編輯的文件。
+model legal_documents {
+  doc_id     Int      @id @default(autoincrement()) @db.UnsignedInt
+  doc_key    String   @unique(map: "uk_legal_key") @db.VarChar(50)
+  title      String   @db.VarChar(255)
+  content    String   @db.Text
+  updated_by Int?     @db.UnsignedInt
+  updated_at DateTime @default(now()) @db.DateTime(0)
+  created_at DateTime @default(now()) @db.DateTime(0)
+  users      users?   @relation(fields: [updated_by], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_legal_admin")
+
+  @@index([updated_by], map: "fk_legal_admin")
+}
+
+/// 幫助中心的常見問題。
+model faqs {
+  faq_id     Int      @id @default(autoincrement()) @db.UnsignedInt
+  category   String   @default("general") @db.VarChar(50)
+  question   String   @db.VarChar(255)
+  answer     String   @db.Text
+  sort_order Int      @default(0)
+  is_visible Boolean  @default(true)
+  created_at DateTime @default(now()) @db.DateTime(0)
+  updated_at DateTime @default(now()) @db.DateTime(0)
+
+  @@index([category, sort_order], map: "idx_faq_order")
+}
+
+/// App 內客服工單。
+model support_tickets {
+  ticket_id  Int                      @id @default(autoincrement()) @db.UnsignedInt
+  user_id    Int                      @db.UnsignedInt
+  subject    String                   @db.VarChar(255)
+  category   String                   @default("other") @db.VarChar(50)
+  status     support_tickets_status   @default(open)
+  created_at DateTime                 @default(now()) @db.DateTime(0)
+  updated_at DateTime                 @default(now()) @db.DateTime(0)
+  closed_at  DateTime?                @db.DateTime(0)
+  users      users                    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ticket_user")
+  messages   support_ticket_messages[]
+
+  @@index([user_id, updated_at], map: "idx_ticket_user")
+  @@index([status, updated_at], map: "idx_ticket_status")
+}
+
+model support_ticket_messages {
+  message_id Int             @id @default(autoincrement()) @db.UnsignedInt
+  ticket_id  Int             @db.UnsignedInt
+  sender_id  Int             @db.UnsignedInt
+  is_staff   Boolean         @default(false)
+  content    String          @db.Text
+  created_at DateTime        @default(now()) @db.DateTime(0)
+  tickets    support_tickets @relation(fields: [ticket_id], references: [ticket_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tmsg_ticket")
+  users      users           @relation(fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tmsg_sender")
+
+  @@index([ticket_id, created_at], map: "idx_tmsg_ticket")
+  @@index([sender_id], map: "fk_tmsg_sender")
+}
+
+enum support_tickets_status {
+  open
+  pending
+  resolved
+  closed
+}
+

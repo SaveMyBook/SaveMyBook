@@ -133,14 +133,15 @@ class _EditBookScreenState extends State<EditBookScreen> {
             child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
                     child: Column(
                       children: [
                         FormRowCard(
                           label: 'ISBN',
                           child: Row(
                             children: [
-                              Expanded(child: AppTextField(controller: _isbnController, keyboardType: TextInputType.number)),
+                              Expanded(child: AppTextField(controller: _isbnController, hint: '10 或 13 碼', keyboardType: TextInputType.number)),
                               const SizedBox(width: 8),
                               GestureDetector(
                                 onTap: _scanIsbn,
@@ -149,9 +150,9 @@ class _EditBookScreenState extends State<EditBookScreen> {
                             ],
                           ),
                         ),
-                        FormRowCard(label: '書名', child: AppTextField(controller: _titleController)),
-                        FormRowCard(label: '作者', child: AppTextField(controller: _authorController)),
-                        FormRowCard(label: '出版社', child: AppTextField(controller: _publisherController)),
+                        FormRowCard(label: '書名', child: AppTextField(controller: _titleController, hint: '必填')),
+                        FormRowCard(label: '作者', child: AppTextField(controller: _authorController, hint: '選填')),
+                        FormRowCard(label: '出版社', child: AppTextField(controller: _publisherController, hint: '選填')),
                         FormRowCard(
                           label: '出版日期',
                           child: AppDateField(

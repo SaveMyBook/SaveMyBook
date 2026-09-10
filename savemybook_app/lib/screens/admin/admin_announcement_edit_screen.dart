@@ -108,6 +108,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
           AppHeader(title: _isEdit ? '編輯推播' : '新增推播', icon: Icons.campaign_outlined),
           Expanded(
             child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,7 +116,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                   FormRowCard(
                     label: '標題',
                     labelWidth: 60,
-                    child: AppTextField(controller: _titleController, maxLength: 255),
+                    child: AppTextField(controller: _titleController, hint: '公告標題', maxLength: 255),
                   ),
                   FormRowCard(
                     label: '類型',

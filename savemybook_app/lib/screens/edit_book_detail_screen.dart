@@ -315,7 +315,8 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
             child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -342,6 +343,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                           '自訂價格',
                           AppTextField(
                             controller: _priceController,
+                            hint: '請輸入售價',
                             keyboardType: TextInputType.number,
                             prefixText: '\$ ',
                             maxLength: 6,
@@ -440,6 +442,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
           SizedBox(
             height: 140,
             child: ListView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               scrollDirection: Axis.horizontal,
               children: [
                 for (var i = 0; i < _requiredLabels.length; i++)

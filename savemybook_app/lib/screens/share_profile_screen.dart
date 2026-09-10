@@ -217,7 +217,13 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                       version: QrVersions.auto,
                                       size: 210,
                                       backgroundColor: Colors.white,
-                                      errorCorrectionLevel: QrErrorCorrectLevel.M,
+                                      // 中間挖洞放 logo 會蓋掉部分模組，
+                                      // 容錯等級必須拉到 H 才掃得出來。
+                                      errorCorrectionLevel: QrErrorCorrectLevel.H,
+                                      embeddedImage: const AssetImage('assets/images/logo.png'),
+                                      embeddedImageStyle: const QrEmbeddedImageStyle(
+                                        size: Size(44, 44),
+                                      ),
                                     ),
                                     const SizedBox(height: 14),
                                     const Text(

@@ -78,6 +78,22 @@ router.patch('/:id/read', authenticateToken, async (req, res) => {
   }
 });
 
+router.delete('/all', authenticateToken, async (req, res) => {
+  try {
+    const result = await prisma.notifications.deleteMany({
+      where: { user_id: req.user.userId }
+    });
+    res.status(200).json({
+      success: true,
+      message: `已清除 ${result.count} 則通知`,
+      data: { deleted: result.count }
+    });
+  } catch (err) {
+    console.error('[清除通知失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
 router.delete('/:id', authenticateToken, async (req, res) => {
   const notificationId = parseInt(req.params.id);
   try {

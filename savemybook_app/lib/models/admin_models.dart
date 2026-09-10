@@ -359,6 +359,7 @@ class AdminOverview {
   final int pendingDisputeCount;
   final int activeCabinetCount;
   final int todayOrderCount;
+  final int openTicketCount;
 
   AdminOverview({
     required this.memberCount,
@@ -366,6 +367,7 @@ class AdminOverview {
     required this.pendingDisputeCount,
     required this.activeCabinetCount,
     required this.todayOrderCount,
+    this.openTicketCount = 0,
   });
 
   factory AdminOverview.fromJson(Map<String, dynamic> json) {
@@ -375,6 +377,7 @@ class AdminOverview {
       pendingDisputeCount: parseInt(json['pending_dispute_count']),
       activeCabinetCount: parseInt(json['active_cabinet_count']),
       todayOrderCount: parseInt(json['today_order_count']),
+      openTicketCount: parseInt(json['open_ticket_count']),
     );
   }
 
@@ -814,13 +817,19 @@ class AdminMemberDetail {
   bool get isAdmin => role == 'admin';
 
   /// 權限鍵值與畫面上的說明。
+  /// 權限鍵值 -> (名稱, 說明)，順序即畫面上的顯示順序。
   static const permissionLabels = {
-    'can_manage_transactions': ('交易管理', '訂單、仲裁、錢包'),
-    'can_manage_members': ('會員管理', '會員狀態、等級、權限'),
+    'can_manage_members': ('會員管控', '停權、黑名單、身分'),
+    'can_manage_levels': ('會員等級', '等級門檻與人工調整'),
     'can_manage_content': ('商品管理', '書籍與分類'),
     'can_manage_reports': ('檢舉審核', '處理商品檢舉'),
-    'can_manage_announcements': ('系統公告', '發佈與編輯公告'),
+    'can_manage_orders': ('訂單管理', '查詢與調整訂單狀態'),
+    'can_manage_transactions': ('交易仲裁', '申訴案件裁決'),
+    'can_manage_wallets': ('錢包管理', '查詢與增減代幣'),
     'can_manage_cabinets': ('硬體維護', '書櫃與櫃位'),
+    'can_manage_announcements': ('公告與文件', '公告、常見問題、法律文件'),
+    'can_manage_support': ('客服工單', '回覆使用者問題'),
+    'can_view_stats': ('營運報表', '檢視營收與成長數據'),
   };
 
   factory AdminMemberDetail.fromJson(Map<String, dynamic> json) {

@@ -268,7 +268,8 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
           _buildAppBar(c),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
               child: Column(
                 children: [
                   _buildImageUploadSection(c),
@@ -376,6 +377,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
             SizedBox(
               height: 140,
               child: ListView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 scrollDirection: Axis.horizontal,
                 children: [
                   for (var i = 0; i < _slots.length; i++)

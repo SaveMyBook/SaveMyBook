@@ -4,6 +4,7 @@ import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
+import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
@@ -168,6 +169,28 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     await _run(
       () => _api.updateAdminPermissions(detail.userId, {key: value}),
       value ? '已開放權限' : '已收回權限',
+    );
+  }
+
+  Future<void> _setAllPermissions(bool value) async {
+    final detail = _detail!;
+    final ok = await showConfirmDialog(
+      context,
+      title: value ? '開放全部權限' : '收回全部權限',
+      message: value
+          ? '${detail.nickname} 將可以使用後台所有功能。'
+          : '${detail.nickname} 進入後台後每一項功能都會被擋下。',
+      confirmLabel: '確認',
+      isDestructive: !value,
+    );
+    if (!ok || !mounted) return;
+
+    await _run(
+      () => _api.updateAdminPermissions(
+        detail.userId,
+        {for (final key in AdminMemberDetail.permissionLabels.keys) key: value},
+      ),
+      value ? '已開放全部權限' : '已收回全部權限',
     );
   }
 
@@ -435,7 +458,24 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeading(title: '後台權限'),
+          SectionHeading(
+            title: '後台權限',
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SmallActionButton(
+                  label: '全開',
+                  onTap: _isSelf || _isBusy ? null : () => _setAllPermissions(true),
+                ),
+                const SizedBox(width: 6),
+                SmallActionButton(
+                  label: '全關',
+                  color: c.danger,
+                  onTap: _isSelf || _isBusy ? null : () => _setAllPermissions(false),
+                ),
+              ],
+            ),
+          ),
           for (final entry in AdminMemberDetail.permissionLabels.entries)
             SwitchListTile(
               contentPadding: EdgeInsets.zero,

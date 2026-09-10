@@ -7,7 +7,12 @@ const PERMISSIONS = {
   content: 'can_manage_content',
   reports: 'can_manage_reports',
   announcements: 'can_manage_announcements',
-  cabinets: 'can_manage_cabinets'
+  cabinets: 'can_manage_cabinets',
+  orders: 'can_manage_orders',
+  wallets: 'can_manage_wallets',
+  levels: 'can_manage_levels',
+  stats: 'can_view_stats',
+  support: 'can_manage_support'
 };
 
 /// requireAdmin() 只擋身分；requireAdmin('members') 會再檢查細部權限。

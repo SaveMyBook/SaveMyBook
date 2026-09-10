@@ -96,7 +96,8 @@ class _DisputeScreenState extends State<DisputeScreen> {
           const AppHeader(title: '爭議處理', icon: Icons.error_outline_rounded),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -138,6 +139,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                         Expanded(
                           child: AppTextField(
                             controller: _orderIdController,
+                            hint: '例如 SMB20260910123456789',
                             enabled: widget.orderId == null,
                             keyboardType: TextInputType.number,
                             maxLength: 12,
