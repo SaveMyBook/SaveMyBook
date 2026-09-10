@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/chat.dart';
 import '../services/api_service.dart';
 import '../utils/api_helpers.dart';
@@ -173,6 +174,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
+  Future<void> _copyMessage(String content) async {
+    await Clipboard.setData(ClipboardData(text: content));
+    if (!mounted) return;
+    HapticFeedback.selectionClick();
+    showAppSnackBar(context, '已複製訊息');
+  }
+
   Widget _buildBubble(int index, AppColors c) {
     final message = _messages[index];
     final card = message.bookCard;
@@ -216,7 +224,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   constraints: BoxConstraints(
                     maxWidth: MediaQuery.of(context).size.width * 0.68,
                   ),
-                  child: Container(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onLongPress: message.messageType == 'image'
+                        ? null
+                        : () => _copyMessage(message.content),
+                    child: Container(
                     padding: message.messageType == 'image'
                         ? const EdgeInsets.all(4)
                         : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -239,6 +252,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                               color: isMine ? Colors.white : c.textPrimary,
                             ),
                           ),
+                    ),
                   ),
                 ),
               ),

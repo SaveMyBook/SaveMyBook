@@ -126,6 +126,15 @@ router.post('/checkout', authenticateToken, async (req, res) => {
       return res.status(400).json({ success: false, message: `《${unavailable.books.title}》已無法購買，請先移除` });
     }
 
+    // 舊資料可能存在 0 元的書，這裡再擋一次，避免零元購。
+    const invalidPrice = cartItems.find(i => Number(i.books.price) <= 0);
+    if (invalidPrice) {
+      return res.status(400).json({
+        success: false,
+        message: `《${invalidPrice.books.title}》的售價異常，請聯絡賣家或先移除`
+      });
+    }
+
     const bySeller = new Map();
     for (const item of cartItems) {
       const sellerId = item.books.seller_id;

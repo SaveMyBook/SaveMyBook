@@ -175,8 +175,17 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       _showAlertDialog('照片不足', '還缺少：$missing。這三張是必填的。');
       return;
     }
-    if (_priceController.text.trim().isEmpty) {
+    final price = double.tryParse(_priceController.text.trim());
+    if (price == null) {
       _showAlertDialog('資料不齊全', '請輸入自訂價格。');
+      return;
+    }
+    if (price <= 0) {
+      _showAlertDialog('價格不正確', '售價必須大於 0 元。');
+      return;
+    }
+    if (price > 99999) {
+      _showAlertDialog('價格不正確', '售價不可超過 99999 元。');
       return;
     }
     if (_selectedCabinet == null) {
@@ -203,7 +212,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       request.fields['isbn'] = widget.isbn;
       request.fields['description'] = widget.description;
       request.fields['category_id'] = widget.categoryId.toString();
-      request.fields['price'] = _priceController.text.trim();
+      request.fields['price'] = price.toStringAsFixed(0);
       request.fields['condition_level'] = _condition;
       request.fields['cabinet_id'] = _selectedCabinet.toString();
 

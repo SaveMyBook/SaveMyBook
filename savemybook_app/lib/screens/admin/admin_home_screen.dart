@@ -18,6 +18,7 @@ import 'admin_operation_log_screen.dart';
 import 'admin_order_screen.dart';
 import 'admin_report_screen.dart';
 import 'admin_stats_screen.dart';
+import 'admin_wallet_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -122,8 +123,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             icon: Icons.workspace_premium_outlined,
                             title: '會員等級管理',
                             subtitle: '等級門檻與權益設定',
-                            isLast: true,
                             onTap: () => _open(const AdminLevelScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.account_balance_wallet_outlined,
+                            title: '錢包管理',
+                            subtitle: '查詢餘額、人工增減代幣',
+                            isLast: true,
+                            onTap: () => _open(const AdminWalletScreen()),
                           ),
                         ]),
                         const SizedBox(height: 20),

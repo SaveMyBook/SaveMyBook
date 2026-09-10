@@ -986,6 +986,186 @@ router.get('/operation-logs', async (req, res) => {
   }
 });
 
+
+// ---------- 錢包管理 ----------
+
+const walletUserSelect = { user_id: true, nickname: true, avatar_url: true, email: true };
+
+router.get('/wallets', async (req, res) => {
+  const keyword = (req.query.keyword || '').trim();
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 30;
+
+  try {
+    const where = keyword
+      ? {
+          OR: [
+            { nickname: { contains: keyword } },
+            { email: { contains: keyword } }
+          ]
+        }
+      : {};
+
+    const [users, total] = await Promise.all([
+      prisma.users.findMany({
+        where,
+        select: { ...walletUserSelect, wallets: true },
+        orderBy: { user_id: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit
+      }),
+      prisma.users.count({ where })
+    ]);
+
+    res.status(200).json({
+      success: true,
+      pagination: { total, page, limit, total_pages: Math.ceil(total / limit) },
+      data: users.map((u) => ({
+        user_id: u.user_id,
+        nickname: u.nickname,
+        email: u.email,
+        avatar_url: u.avatar_url,
+        // 沒有錢包的人視為 0，前端不用另外處理 null。
+        balance: u.wallets?.balance ?? 0,
+        frozen_amount: u.wallets?.frozen_amount ?? 0,
+        total_income: u.wallets?.total_income ?? 0,
+        total_expense: u.wallets?.total_expense ?? 0
+      }))
+    });
+  } catch (err) {
+    console.error('[取得錢包列表失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.get('/wallets/:userId', async (req, res) => {
+  const userId = parseInt(req.params.userId);
+
+  try {
+    const user = await prisma.users.findUnique({
+      where: { user_id: userId },
+      select: { ...walletUserSelect, wallets: true }
+    });
+    if (!user) return res.status(404).json({ success: false, message: '找不到這位會員' });
+
+    const transactions = user.wallets
+      ? await prisma.wallet_transactions.findMany({
+          where: { wallet_id: user.wallets.wallet_id },
+          orderBy: { created_at: 'desc' },
+          take: 50
+        })
+      : [];
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user_id: user.user_id,
+        nickname: user.nickname,
+        email: user.email,
+        avatar_url: user.avatar_url,
+        balance: user.wallets?.balance ?? 0,
+        frozen_amount: user.wallets?.frozen_amount ?? 0,
+        total_income: user.wallets?.total_income ?? 0,
+        total_expense: user.wallets?.total_expense ?? 0,
+        transactions
+      }
+    });
+  } catch (err) {
+    console.error('[取得錢包明細失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.post('/wallets/:userId/adjust', async (req, res) => {
+  const userId = parseInt(req.params.userId);
+  const amount = parseFloat(req.body.amount);
+  const description = (req.body.description || '').trim();
+
+  if (!Number.isFinite(amount) || amount === 0) {
+    return res.status(400).json({ success: false, message: '請輸入非零的調整金額' });
+  }
+  if (Math.abs(amount) > 1000000) {
+    return res.status(400).json({ success: false, message: '單次調整不可超過 1,000,000' });
+  }
+  if (!description) {
+    return res.status(400).json({ success: false, message: '請填寫調整原因，這會寫進帳務紀錄' });
+  }
+
+  try {
+    const user = await prisma.users.findUnique({
+      where: { user_id: userId },
+      select: { user_id: true, nickname: true, wallets: true }
+    });
+    if (!user) return res.status(404).json({ success: false, message: '找不到這位會員' });
+
+    const result = await prisma.$transaction(async (tx) => {
+      // 沒有錢包的會員先幫他開一個，否則無法調整。
+      const wallet = user.wallets ??
+        (await tx.wallets.create({ data: { user_id: userId, balance: 0 } }));
+
+      const current = Number(wallet.balance);
+      const next = current + amount;
+      if (next < 0) throw new Error('INSUFFICIENT');
+
+      const updated = await tx.wallets.update({
+        where: { wallet_id: wallet.wallet_id },
+        data: {
+          balance: next,
+          total_income: amount > 0
+            ? { increment: amount }
+            : undefined,
+          total_expense: amount < 0
+            ? { increment: Math.abs(amount) }
+            : undefined,
+          updated_at: new Date()
+        }
+      });
+
+      await tx.wallet_transactions.create({
+        data: {
+          wallet_id: wallet.wallet_id,
+          type: 'admin_adjust',
+          amount,
+          balance_after: next,
+          description: `管理員調整：${description}`
+        }
+      });
+
+      await tx.notifications.create({
+        data: {
+          user_id: userId,
+          type: 'system',
+          title: amount > 0 ? '代幣已入帳' : '代幣已扣除',
+          content: `客服調整了您的代幣 ${amount > 0 ? '+' : ''}${amount}，餘額 ${next}。原因：${description}`,
+          related_type: 'wallet'
+        }
+      });
+
+      return updated;
+    });
+
+    await logAction(
+      req.user.userId,
+      '調整會員錢包',
+      'wallet',
+      userId,
+      `${amount > 0 ? '+' : ''}${amount}｜${description}`
+    );
+
+    res.status(200).json({
+      success: true,
+      message: '已調整餘額',
+      data: { balance: result.balance }
+    });
+  } catch (err) {
+    if (err instanceof Error && err.message === 'INSUFFICIENT') {
+      return res.status(400).json({ success: false, message: '調整後餘額會變成負數，請確認金額' });
+    }
+    console.error('[調整錢包失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
 router.get('/overview', async (req, res) => {
   try {
     const [members, pendingReports, pendingDisputes, cabinets, todayOrders] = await Promise.all([

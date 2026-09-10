@@ -175,7 +175,9 @@ class _AdminReportScreenState extends State<AdminReportScreen>
             bottom: AppTabBar(controller: _tabController, tabs: const ['待處理', '已處理']),
           ),
           Expanded(
-            child: SwitchIn(child: _isLoading
+            child: SwipeTabs(
+              controller: _tabController,
+              child: SwitchIn(child: _isLoading
                 ? const LoadingView.list()
                 : RefreshIndicator(
                     color: c.accent,
@@ -193,6 +195,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                             itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(_reports[i], c)),
                           ),
                   )),
+            ),
           ),
         ],
       ),

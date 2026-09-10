@@ -7,6 +7,7 @@ import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/order_card.dart';
 import '../widgets/state_views.dart';
+import 'order_detail_screen.dart';
 
 class SalesHistoryScreen extends StatefulWidget {
   const SalesHistoryScreen({super.key});
@@ -143,7 +144,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
             ),
           ),
           Expanded(
-            child: SwitchIn(child: _isLoading
+            child: SwipeTabs(
+              controller: _tabController,
+              child: SwitchIn(child: _isLoading
                 ? const LoadingView.list()
                 : RefreshIndicator(
                     color: c.accent,
@@ -167,10 +170,19 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                             itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(orders[i])),
                           ),
                   )),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _openDetail(Order order) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order, asSeller: true)),
+    );
+    _load();
   }
 
   Widget _buildCard(Order order) {
@@ -178,6 +190,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
       case 'pending_deposit':
         return OrderCard(
           order: order,
+          onTap: () => _openDetail(order),
           showPickupWindow: true,
           onShowQr: () => _showPickupCode(order),
           actionLabel: '完成存書',
@@ -186,13 +199,14 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
       case 'on_sale':
         return OrderCard(
           order: order,
+          onTap: () => _openDetail(order),
           showPickupWindow: true,
           onShowQr: () => _showPickupCode(order),
           actionLabel: order.isCancellable ? '取消訂單' : null,
           onAction: () => _cancelOrder(order),
         );
       default:
-        return OrderCard(order: order);
+        return OrderCard(order: order, onTap: () => _openDetail(order));
     }
   }
 }

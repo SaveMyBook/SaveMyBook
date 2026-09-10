@@ -864,6 +864,29 @@ class ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? '刪除失敗');
   }
 
+  Future<List<AdminWallet>> fetchAdminWallets({String keyword = ''}) async {
+    final res = await _send('GET', '/admin/wallets', query: {
+      if (keyword.isNotEmpty) 'keyword': keyword,
+      'limit': '50',
+    });
+    return _mapList(res, AdminWallet.fromJson);
+  }
+
+  Future<AdminWalletDetail?> fetchAdminWalletDetail(int userId) async {
+    final res = await _send('GET', '/admin/wallets/$userId');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return AdminWalletDetail.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<String?> adjustWallet(int userId, {required double amount, required String description}) async {
+    final res = await _send('POST', '/admin/wallets/$userId/adjust', body: {
+      'amount': amount,
+      'description': description,
+    });
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '調整失敗');
+  }
+
   Future<AdminStats> fetchAdminStats({int days = 7}) async {
     final res = await _send('GET', '/admin/stats', query: {'days': '$days'});
     if (res == null || res['success'] != true || res['data'] is! Map) return AdminStats.empty;

@@ -175,7 +175,9 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
             bottom: AppTabBar(controller: _tabController, tabs: const ['處理中', '已結案']),
           ),
           Expanded(
-            child: SwitchIn(child: _isLoading
+            child: SwipeTabs(
+              controller: _tabController,
+              child: SwitchIn(child: _isLoading
                 ? const LoadingView.list()
                 : RefreshIndicator(
                     color: c.accent,
@@ -193,6 +195,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                             itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(_disputes[i], c)),
                           ),
                   )),
+            ),
           ),
         ],
       ),

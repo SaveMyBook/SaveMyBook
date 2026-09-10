@@ -154,8 +154,15 @@ router.post('/', authenticateToken, upload.fields([
     return res.status(400).json({ success: false, message: '缺少必要欄位：書名(title) 或 價格(price)' });
   }
 
+  const cleanPrice = parseFloat(price);
+  if (!Number.isFinite(cleanPrice) || cleanPrice <= 0) {
+    return res.status(400).json({ success: false, message: '售價必須大於 0 元' });
+  }
+  if (cleanPrice > 99999) {
+    return res.status(400).json({ success: false, message: '售價不可超過 99999 元' });
+  }
+
   try {
-    const cleanPrice = parseFloat(price);
     const cleanCategoryId = (category_id && category_id !== 'null') ? parseInt(category_id) : null;
     const cleanCabinetId = (cabinet_id && cabinet_id !== 'null') ? parseInt(cabinet_id) : null;
 
@@ -173,7 +180,7 @@ router.post('/', authenticateToken, upload.fields([
         publish_date: cleanDate || null,
         isbn: isbn || null,
         description: description || null,
-        price: isNaN(cleanPrice) ? 0 : cleanPrice,
+        price: cleanPrice,
         quantity: 1,
         condition_level: condition_level || 'good',
         category_id: cleanCategoryId,
@@ -222,6 +229,16 @@ router.put('/:id', authenticateToken, async (req, res) => {
     category_id, price, quantity, condition_level,
     condition_note, description, cabinet_id, status
   } = req.body;
+
+  if (price !== undefined) {
+    const cleanPrice = parseFloat(price);
+    if (!Number.isFinite(cleanPrice) || cleanPrice <= 0) {
+      return res.status(400).json({ success: false, message: '售價必須大於 0 元' });
+    }
+    if (cleanPrice > 99999) {
+      return res.status(400).json({ success: false, message: '售價不可超過 99999 元' });
+    }
+  }
 
   try {
     const targetBook = await prisma.books.findUnique({ where: { book_id: bookId } });

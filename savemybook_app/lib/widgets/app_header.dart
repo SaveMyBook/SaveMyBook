@@ -279,3 +279,34 @@ class AppTabBar extends StatelessWidget {
     );
   }
 }
+
+/// 讓分頁畫面可以左右滑動切換。
+///
+/// 這些畫面的內容各自有快取邏輯，直接改成 TabBarView 要動的地方太多，
+/// 所以改成攔水平方向的甩動手勢去推 TabController。
+class SwipeTabs extends StatelessWidget {
+  final TabController controller;
+  final Widget child;
+
+  const SwipeTabs({super.key, required this.controller, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.deferToChild,
+      onHorizontalDragEnd: (details) {
+        final velocity = details.primaryVelocity ?? 0;
+        // 太慢的話當成使用者只是手抖，不切頁。
+        if (velocity.abs() < 220) return;
+
+        final next = velocity < 0 ? controller.index + 1 : controller.index - 1;
+        if (next < 0 || next >= controller.length) return;
+
+        HapticFeedback.selectionClick();
+        controller.animateTo(next);
+      },
+      child: child,
+    );
+  }
+}
+

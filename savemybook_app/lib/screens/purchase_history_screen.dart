@@ -7,6 +7,7 @@ import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/order_card.dart';
 import '../widgets/state_views.dart';
+import 'order_detail_screen.dart';
 import 'dispute_screen.dart';
 import 'pickup_success_screen.dart';
 
@@ -160,7 +161,9 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
             ),
           ),
           Expanded(
-            child: SwitchIn(child: _isLoading
+            child: SwipeTabs(
+              controller: _tabController,
+              child: SwitchIn(child: _isLoading
                 ? const LoadingView.list()
                 : RefreshIndicator(
                     color: c.accent,
@@ -184,10 +187,19 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
                             itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(orders[i])),
                           ),
                   )),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _openDetail(Order order) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order)),
+    );
+    _load();
   }
 
   Widget _buildCard(Order order) {
@@ -195,6 +207,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
       case 'pending_pickup':
         return OrderCard(
           order: order,
+          onTap: () => _openDetail(order),
           showPickupWindow: true,
           actionLabel: order.isCancellable ? '取消訂單' : null,
           onAction: () => _cancelOrder(order),
@@ -203,6 +216,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
       case 'completed':
         return OrderCard(
           order: order,
+          onTap: () => _openDetail(order),
           actionLabel: '申請爭議',
           onAction: () => Navigator.push(
             context,
@@ -210,7 +224,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
           ).then((_) => _load()),
         );
       default:
-        return OrderCard(order: order);
+        return OrderCard(order: order, onTap: () => _openDetail(order));
     }
   }
 }
