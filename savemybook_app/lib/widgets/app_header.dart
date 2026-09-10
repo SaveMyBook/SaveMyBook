@@ -30,6 +30,10 @@ class AppHeader extends StatelessWidget {
   final List<Widget> actions;
   final VoidCallback? onBack;
 
+  /// 直接接在標題列下面的東西（頁籤、篩選列）。放進來才會跟 header 共用同一個
+  /// 圓角容器，否則 header 的圓角會在下面那條列的左右各留一塊空白缺口。
+  final Widget? bottom;
+
   const AppHeader({
     super.key,
     required this.title,
@@ -37,6 +41,7 @@ class AppHeader extends StatelessWidget {
     this.showBack = true,
     this.actions = const [],
     this.onBack,
+    this.bottom,
   });
 
   @override
@@ -44,64 +49,74 @@ class AppHeader extends StatelessWidget {
     final c = AppColors.of(context);
 
     return LightStatusBar(
-      child: Container(
-        // 必須撐滿寬度：Column 預設的 crossAxisAlignment.center 會讓子項目收縮成
-        // 內容寬度，header 會變成畫面中間一小塊，Positioned 的按鈕也會疊到標題上。
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: c.headerBg,
-          borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(24),
-            bottomRight: Radius.circular(24),
-          ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
         ),
-        child: SafeArea(
-          bottom: false,
-          child: SizedBox(
-            height: 56,
-            width: double.infinity,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 56),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+        child: Container(
+          // 必須撐滿寬度：Column 預設的 crossAxisAlignment.center 會讓子項目收縮成
+          // 內容寬度，header 會變成畫面中間一小塊，Positioned 的按鈕也會疊到標題上。
+          width: double.infinity,
+          color: c.headerBg,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SafeArea(
+                bottom: false,
+                child: SizedBox(
+                  height: 56,
+                  width: double.infinity,
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      if (icon != null) ...[
-                        Icon(icon, color: Colors.white, size: 20),
-                        const SizedBox(width: 8),
-                      ],
-                      Flexible(
-                        child: Text(
-                          title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      Padding(
+                        // 標題置中，所以兩側必須留一樣寬；右邊按鈕多的時候要一起加寬，
+                        // 否則長標題會壓到 action 按鈕上。
+                        padding: EdgeInsets.symmetric(
+                          horizontal: actions.isEmpty ? 56 : 56 + (actions.length - 1) * 44.0,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (icon != null) ...[
+                              Icon(icon, color: Colors.white, size: 20),
+                              const SizedBox(width: 8),
+                            ],
+                            Flexible(
+                              child: Text(
+                                title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      if (showBack)
+                        Positioned(
+                          left: 4,
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                            onPressed: onBack ?? () => Navigator.of(context).maybePop(),
+                          ),
+                        ),
+                      if (actions.isNotEmpty)
+                        Positioned(
+                          right: 8,
+                          child: Row(mainAxisSize: MainAxisSize.min, children: actions),
+                        ),
                     ],
                   ),
                 ),
-                if (showBack)
-                  Positioned(
-                    left: 4,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-                      onPressed: onBack ?? () => Navigator.of(context).maybePop(),
-                    ),
-                  ),
-                if (actions.isNotEmpty)
-                  Positioned(
-                    right: 8,
-                    child: Row(mainAxisSize: MainAxisSize.min, children: actions),
-                  ),
-              ],
-            ),
+              ),
+              ?bottom,
+            ],
           ),
         ),
       ),

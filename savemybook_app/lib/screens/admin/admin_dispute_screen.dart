@@ -169,8 +169,11 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '仲裁交易', icon: Icons.gavel_rounded),
-          AppTabBar(controller: _tabController, tabs: const ['處理中', '已結案']),
+          AppHeader(
+            title: '仲裁交易',
+            icon: Icons.gavel_rounded,
+            bottom: AppTabBar(controller: _tabController, tabs: const ['處理中', '已結案']),
+          ),
           Expanded(
             child: SwitchIn(child: _isLoading
                 ? const LoadingView()

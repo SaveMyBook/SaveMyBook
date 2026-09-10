@@ -255,7 +255,7 @@ return LightStatusBar(
               onTap: () => _openAndRefresh(const EditProfileScreen()),
             ),
             AppMenuItem(
-              icon: Icons.favorite_border_rounded,
+              icon: Icons.bookmark_outline_rounded,
               title: '收藏書籍',
               trailingText: _stats.favoriteCount > 0 ? '${_stats.favoriteCount}' : null,
               onTap: () => _openAndRefresh(const FavoritesScreen()),

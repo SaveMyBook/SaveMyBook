@@ -461,6 +461,13 @@ class ApiService {
     return count;
   }
 
+  Future<bool> markAllChatsRead() async {
+    final res = await _send('PATCH', '/chat/read-all');
+    final ok = res != null && res['success'] == true;
+    if (ok) _setBadge(unreadChatCount, 0);
+    return ok;
+  }
+
   Future<int> fetchUnreadChatCount() async {
     final res = await _send('GET', '/chat/unread-count');
     if (res == null || res['success'] != true) return 0;

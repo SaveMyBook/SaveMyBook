@@ -15,6 +15,7 @@ import '../widgets/animations.dart';
 import '../widgets/book_card.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../widgets/search_bar_widget.dart';
+import '../widgets/state_views.dart';
 
 class HomeScreen extends StatefulWidget {
   final String initialKeyword;
@@ -50,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    kBottomNavVisible = true;
     // 沒有推播，所以固定輪詢讓通知／聊天的紅點自己跳出來。
     _badgeTimer = Timer.periodic(const Duration(seconds: 20), (_) => _loadBadges());
     _loadInitialData();
@@ -73,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    kBottomNavVisible = false;
     _badgeTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();

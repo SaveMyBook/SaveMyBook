@@ -134,8 +134,8 @@ class _BookManageScreenState extends State<BookManageScreen> {
                 },
               ),
             ],
+            bottom: _buildFilterBar(c),
           ),
-          _buildFilterBar(c),
           Expanded(
             child: SwitchIn(
               child: _isLoading

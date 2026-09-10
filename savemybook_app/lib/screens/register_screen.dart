@@ -129,53 +129,109 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decorationColor: c.accent,
     );
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 24,
-          height: 24,
-          child: Checkbox(
-            value: _agreedToTerms,
-            activeColor: c.accent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-            onChanged: (value) => setState(() => _agreedToTerms = value ?? false),
+    return AppCard(
+      padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Checkbox(
+              value: _agreedToTerms,
+              activeColor: c.accent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              onChanged: (value) => setState(() => _agreedToTerms = value ?? false),
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text.rich(
-              TextSpan(
-                style: TextStyle(fontSize: 13, height: 1.6, color: c.textSecondary),
-                children: [
-                  const TextSpan(text: '我已閱讀並同意 '),
-                  TextSpan(
-                    text: '服務條款',
-                    style: linkStyle,
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const TermsScreen()),
-                          ),
-                  ),
-                  const TextSpan(text: ' 與 '),
-                  TextSpan(
-                    text: '隱私權政策',
-                    style: linkStyle,
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const PrivacyScreen()),
-                          ),
-                  ),
-                ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text.rich(
+                TextSpan(
+                  style: TextStyle(fontSize: 13, height: 1.6, color: c.textSecondary),
+                  children: [
+                    const TextSpan(text: '我已閱讀並同意 '),
+                    TextSpan(
+                      text: '服務條款',
+                      style: linkStyle,
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const TermsScreen()),
+                            ),
+                    ),
+                    const TextSpan(text: ' 與 '),
+                    TextSpan(
+                      text: '隱私權政策',
+                      style: linkStyle,
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const PrivacyScreen()),
+                            ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildField({
+    required int index,
+    required IconData icon,
+    required String label,
+    required TextEditingController controller,
+    required AppColors c,
+    String? hint,
+    String? errorText,
+    bool obscureText = false,
+    bool isLast = false,
+    int? maxLength,
+    TextInputType? keyboardType,
+    Widget? suffix,
+    ValueChanged<String>? onChanged,
+    ValueChanged<String>? onSubmitted,
+  }) {
+    return FadeSlideIn(
+      index: index,
+      child: AppCard(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 16, color: c.accent),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            AppTextField(
+              controller: controller,
+              hint: hint,
+              errorText: errorText,
+              obscureText: obscureText,
+              maxLength: maxLength,
+              keyboardType: keyboardType,
+              textInputAction: isLast ? TextInputAction.done : TextInputAction.next,
+              suffix: suffix,
+              onChanged: onChanged,
+              onSubmitted: onSubmitted,
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -184,118 +240,149 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final c = AppColors.of(context);
 
     return Scaffold(
-      backgroundColor: c.card,
+      backgroundColor: c.scaffold,
       body: Column(
         children: [
           const AppHeader(title: '建立帳號', icon: Icons.person_add_alt_1_rounded),
           Expanded(
             child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => FocusScope.of(context).unfocus(),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(32, 24, 32, 40),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      FadeSlideIn(
-                        child: Text(
-                          '加入 SaveMyBook',
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.accent),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      FadeSlideIn(
-                        index: 1,
-                        child: Text(
-                          '註冊後就能買書、賣書與使用智慧書櫃',
-                          style: TextStyle(fontSize: 13, color: c.textSecondary),
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      FadeSlideIn(
-                        index: 2,
-                        child: AppTextField(
-                          controller: _nicknameController,
-                          hint: '暱稱',
-                          errorText: _nicknameError,
-                          maxLength: 50,
-                          textInputAction: TextInputAction.next,
-                          onChanged: (_) {
-                            if (_nicknameError != null) setState(() => _nicknameError = null);
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      FadeSlideIn(
-                        index: 3,
-                        child: AppTextField(
-                          controller: _emailController,
-                          hint: 'Email',
-                          errorText: _emailError,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          maxLength: 255,
-                          onChanged: (_) {
-                            if (_emailError != null) setState(() => _emailError = null);
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      FadeSlideIn(
-                        index: 4,
-                        child: AppTextField(
-                          controller: _passwordController,
-                          hint: '密碼（至少 8 碼，含英文與數字）',
-                          errorText: _passwordError,
-                          obscureText: _obscurePassword,
-                          maxLength: 64,
-                          textInputAction: TextInputAction.next,
-                          onChanged: (_) {
-                            if (_passwordError != null) setState(() => _passwordError = null);
-                          },
-                          suffix: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
-                              size: 20,
-                              color: c.iconInactive,
+              behavior: HitTestBehavior.opaque,
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+                children: [
+                  FadeSlideIn(
+                    child: AppCard(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(18),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: c.accent.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            child: Icon(Icons.menu_book_rounded, color: c.accent, size: 24),
                           ),
-                        ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '加入 SaveMyBook',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: c.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '註冊後就能買書、賣書與使用智慧書櫃',
+                                  style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.4),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      FadeSlideIn(
-                        index: 5,
-                        child: AppTextField(
-                          controller: _confirmController,
-                          hint: '再次輸入密碼',
-                          errorText: _confirmError,
-                          obscureText: _obscurePassword,
-                          maxLength: 64,
-                          textInputAction: TextInputAction.done,
-                          onSubmitted: (_) => _handleRegister(),
-                          onChanged: (_) {
-                            if (_confirmError != null) setState(() => _confirmError = null);
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      FadeSlideIn(index: 6, child: _buildTermsRow(c)),
-                      const SizedBox(height: 24),
-                      FadeSlideIn(
-                        index: 7,
-                        child: PrimaryButton(
-                          label: '建立帳號',
-                          height: 50,
-                          isLoading: _isLoading,
-                          onPressed: _agreedToTerms ? _handleRegister : null,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  _buildField(
+                    index: 1,
+                    icon: Icons.badge_outlined,
+                    label: '暱稱',
+                    hint: '其他人會看到的名字',
+                    controller: _nicknameController,
+                    errorText: _nicknameError,
+                    maxLength: 50,
+                    c: c,
+                    onChanged: (_) {
+                      if (_nicknameError != null) setState(() => _nicknameError = null);
+                    },
+                  ),
+                  _buildField(
+                    index: 2,
+                    icon: Icons.alternate_email_rounded,
+                    label: 'Email',
+                    hint: '用來登入的信箱',
+                    controller: _emailController,
+                    errorText: _emailError,
+                    keyboardType: TextInputType.emailAddress,
+                    maxLength: 255,
+                    c: c,
+                    onChanged: (_) {
+                      if (_emailError != null) setState(() => _emailError = null);
+                    },
+                  ),
+                  _buildField(
+                    index: 3,
+                    icon: Icons.lock_outline_rounded,
+                    label: '密碼',
+                    hint: '至少 8 碼，需含英文與數字',
+                    controller: _passwordController,
+                    errorText: _passwordError,
+                    obscureText: _obscurePassword,
+                    maxLength: 64,
+                    c: c,
+                    suffix: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        size: 20,
+                        color: c.iconInactive,
+                      ),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                    onChanged: (_) {
+                      if (_passwordError != null) setState(() => _passwordError = null);
+                    },
+                  ),
+                  _buildField(
+                    index: 4,
+                    icon: Icons.lock_reset_rounded,
+                    label: '確認密碼',
+                    hint: '再輸入一次密碼',
+                    controller: _confirmController,
+                    errorText: _confirmError,
+                    obscureText: _obscurePassword,
+                    maxLength: 64,
+                    isLast: true,
+                    c: c,
+                    onSubmitted: (_) => _handleRegister(),
+                    onChanged: (_) {
+                      if (_confirmError != null) setState(() => _confirmError = null);
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                  FadeSlideIn(index: 5, child: _buildTermsRow(c)),
+                  const SizedBox(height: 24),
+                  FadeSlideIn(
+                    index: 6,
+                    child: PrimaryButton(
+                      label: '建立帳號',
+                      height: 50,
+                      isLoading: _isLoading,
+                      onPressed: _agreedToTerms ? _handleRegister : null,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  FadeSlideIn(
+                    index: 7,
+                    child: Center(
+                      child: Text(
+                        '已經有帳號了？返回上一頁登入',
+                        style: TextStyle(fontSize: 12, color: c.textHint),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

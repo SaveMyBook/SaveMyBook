@@ -59,10 +59,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _markAllRead() async {
-    if (_notifications.every((n) => n.isRead)) {
+    final unread = _notifications.where((n) => !n.isRead).length;
+    if (unread == 0) {
       showAppSnackBar(context, '沒有未讀的通知');
       return;
     }
+
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '全部標為已讀',
+      message: '要把 $unread 則未讀通知全部標為已讀嗎？此動作無法復原。',
+      confirmLabel: '全部已讀',
+    );
+    if (!confirmed || !mounted) return;
 
     final ok = await runBusy(context, () => _api.markAllNotificationsRead());
     if (!mounted) return;

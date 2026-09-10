@@ -108,37 +108,40 @@ class _AppCardState extends State<AppCard> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
+    final radius = BorderRadius.circular(16);
+
     return Padding(
       padding: widget.margin,
       child: AnimatedScale(
         scale: _pressed ? 0.975 : 1.0,
         duration: const Duration(milliseconds: 130),
         curve: Curves.easeOut,
-        child: Material(
-          color: c.card,
-          borderRadius: BorderRadius.circular(16),
-          elevation: 0,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: widget.onTap,
-            onHighlightChanged: (value) {
-              if (widget.onTap == null || _pressed == value) return;
-              setState(() => _pressed = value);
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: widget.padding,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: c.shadow.withValues(alpha: _pressed ? 0.02 : 0.05),
-                    blurRadius: _pressed ? 4 : 10,
-                    offset: Offset(0, _pressed ? 1 : 4),
-                  ),
-                ],
+        // 陰影必須畫在最外層：畫在 Material 內層時會在卡片邊緣內側描出一圈灰邊。
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            color: c.card,
+            borderRadius: radius,
+            boxShadow: [
+              BoxShadow(
+                color: c.shadow.withValues(alpha: _pressed ? 0.02 : 0.05),
+                blurRadius: _pressed ? 4 : 10,
+                offset: Offset(0, _pressed ? 1 : 4),
               ),
-              child: widget.child,
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: radius,
+            elevation: 0,
+            child: InkWell(
+              borderRadius: radius,
+              onTap: widget.onTap,
+              onHighlightChanged: (value) {
+                if (widget.onTap == null || _pressed == value) return;
+                setState(() => _pressed = value);
+              },
+              child: Padding(padding: widget.padding, child: widget.child),
             ),
           ),
         ),
@@ -193,7 +196,19 @@ class BookThumbnail extends StatelessWidget {
   }
 }
 
+/// 首頁的浮動導覽列還在畫面上時為 true；由 HomeScreen 自己維護。
+/// SnackBar 是掛在 app 層級的 ScaffoldMessenger，不會自己避開導覽列。
+bool kBottomNavVisible = false;
+
 void showAppSnackBar(BuildContext context, String message, {bool isError = false}) {
+  final overlapsNav = kBottomNavVisible && (ModalRoute.of(context)?.isFirst ?? false);
+  final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+  // 導覽列高 60 + 下方留白 12 + 安全區，再往上留一點空隙。
+  final bottomMargin = bottomInset > 0
+      ? 16.0
+      : (overlapsNav ? MediaQuery.of(context).padding.bottom + 88 : 16.0);
+
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(
@@ -201,7 +216,7 @@ void showAppSnackBar(BuildContext context, String message, {bool isError = false
         content: Text(message),
         backgroundColor: isError ? AppColors.of(context).danger : AppColors.of(context).accent,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
+        margin: EdgeInsets.fromLTRB(16, 0, 16, bottomMargin),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );

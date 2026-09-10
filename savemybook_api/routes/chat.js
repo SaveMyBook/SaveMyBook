@@ -64,6 +64,24 @@ router.get('/unread-count', authenticateToken, async (req, res) => {
   }
 });
 
+router.patch('/read-all', authenticateToken, async (req, res) => {
+  const myId = req.user.userId;
+  try {
+    await prisma.chat_messages.updateMany({
+      where: {
+        is_read: false,
+        sender_id: { not: myId },
+        chat_rooms: { OR: [{ user_a_id: myId }, { user_b_id: myId }] }
+      },
+      data: { is_read: true }
+    });
+    res.status(200).json({ success: true, message: '已全部標為已讀' });
+  } catch (err) {
+    console.error('[聊天全部已讀失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
 router.post('/rooms', authenticateToken, async (req, res) => {
   const myId = req.user.userId;
   const partnerId = parseInt(req.body.user_id);

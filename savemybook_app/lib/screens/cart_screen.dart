@@ -44,16 +44,34 @@ class _CartScreenState extends State<CartScreen> {
 
   double get _total => _selectedItems.fold(0, (sum, i) => sum + i.subtotal);
 
-  Future<void> _removeItem(CartItem item) async {
-    final confirmed = await showConfirmDialog(
+  Future<bool> _confirmRemove(CartItem item) {
+    return showConfirmDialog(
       context,
       title: '移出購物車',
       message: '要把《${item.book.title}》從購物車移除嗎？',
       confirmLabel: '移除',
       isDestructive: true,
     );
-    if (!confirmed || !mounted) return;
+  }
 
+  Future<void> _removeItem(CartItem item) async {
+    if (!await _confirmRemove(item) || !mounted) return;
+    await _deleteItem(item);
+  }
+
+  /// 右滑移除：widget 已經被 Dismissible 拿掉了，必須立刻同步移出清單，
+  /// 否則 ListView 還握著一個「已 dismiss」的項目會直接丟例外。
+  Future<void> _deleteDismissed(CartItem item) async {
+    setState(() => _items.removeWhere((i) => i.cartId == item.cartId));
+
+    final ok = await _api.removeCartItem(item.cartId);
+    if (!mounted || ok) return;
+
+    showAppSnackBar(context, '移除失敗，已還原', isError: true);
+    _load();
+  }
+
+  Future<void> _deleteItem(CartItem item) async {
     setState(() => _removingCartIds.add(item.cartId));
     final ok = await _api.removeCartItem(item.cartId);
     if (!mounted) return;
@@ -191,6 +209,33 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildItem(CartItem item, AppColors c) {
+    return Dismissible(
+      key: ValueKey('cart_${item.cartId}'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmRemove(item),
+      onDismissed: (_) => _deleteDismissed(item),
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.only(right: 24),
+        alignment: Alignment.centerRight,
+        decoration: BoxDecoration(
+          color: c.danger,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.delete_outline_rounded, color: Colors.white, size: 22),
+            SizedBox(width: 6),
+            Text('移除', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+      child: _buildItemCard(item, c),
+    );
+  }
+
+  Widget _buildItemCard(CartItem item, AppColors c) {
     final book = item.book;
     final isRemoving = _removingCartIds.contains(item.cartId);
 

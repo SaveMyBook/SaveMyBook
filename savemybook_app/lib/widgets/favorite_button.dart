@@ -18,8 +18,8 @@ class FavoriteButton extends StatefulWidget {
     required this.bookId,
     this.size = 20,
     this.inactiveColor,
-    this.activeIcon = Icons.favorite_rounded,
-    this.inactiveIcon = Icons.favorite_border_rounded,
+    this.activeIcon = Icons.bookmark_rounded,
+    this.inactiveIcon = Icons.bookmark_border_rounded,
   });
 
   @override
@@ -57,7 +57,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
               child: Icon(
                 isFavorite ? widget.activeIcon : widget.inactiveIcon,
                 size: widget.size,
-                color: isFavorite ? c.danger : (widget.inactiveColor ?? c.iconInactive),
+                color: isFavorite ? c.accent : (widget.inactiveColor ?? c.iconInactive),
               ),
             ),
           ),
