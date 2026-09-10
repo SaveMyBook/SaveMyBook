@@ -271,7 +271,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text('最多 5 張，作為爭議佐證', style: TextStyle(fontSize: 11, color: c.textHint)),
+                Text('最多 5 張', style: TextStyle(fontSize: 11, color: c.textHint)),
               ],
             ),
           ),

@@ -288,10 +288,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                 style: TextStyle(fontSize: 11, color: c.textHint),
               ),
               const Spacer(),
-              Text(
-                '點擊調整狀態',
-                style: TextStyle(fontSize: 11, color: c.accent, fontWeight: FontWeight.w600),
-              ),
+              Icon(Icons.chevron_right_rounded, size: 18, color: c.iconInactive),
             ],
           ),
         ],

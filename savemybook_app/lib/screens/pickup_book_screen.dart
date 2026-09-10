@@ -116,7 +116,7 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
                 ),
               ),
               const Spacer(flex: 2),
-              Text('請將 QR Code 放入鏡頭內', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.9))),
+              Text('對準取書 QR Code', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.9))),
               const SizedBox(height: 8),
               Text('對準勿搖晃', style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.6))),
               const SizedBox(height: 40),

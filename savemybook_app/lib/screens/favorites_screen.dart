@@ -68,7 +68,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                               SizedBox(height: 80),
                               EmptyView(
                                 icon: Icons.bookmark_outline_rounded,
-                                message: '還沒有收藏任何書籍\n點書籍卡片上的書籤就能收藏',
+                                message: '還沒有收藏任何書籍',
                               ),
                             ],
                           )

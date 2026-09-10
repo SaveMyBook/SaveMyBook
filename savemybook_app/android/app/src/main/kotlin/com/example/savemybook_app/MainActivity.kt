@@ -6,13 +6,15 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 
-class MainActivity : FlutterActivity() {
+// local_auth 的 BiometricPrompt 必須跑在 FragmentActivity 上，
+// 繼承 FlutterActivity 會在叫出生物辨識時直接崩潰。
+class MainActivity : FlutterFragmentActivity() {
 
     private val channelName = "savemybook/deeplink"
     private val shareChannelName = "savemybook/share"

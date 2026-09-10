@@ -234,17 +234,6 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          FadeSlideIn(
-                            index: 1,
-                            child: Text(
-                              '顯示或發送這個條碼來加入好友',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.white.withValues(alpha: 0.85),
-                              ),
-                            ),
-                          ),
                           const SizedBox(height: 28),
                           FadeSlideIn(
                             index: 2,

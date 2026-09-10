@@ -62,7 +62,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
     final confirmed = await showConfirmDialog(
       context,
       title: '完成存書',
-      message: '確認已把《${order.firstBook?.title ?? '書籍'}》放入書櫃了嗎？\n買家會收到可取書的通知。',
+      message: '確認已把《${order.firstBook?.title ?? '書籍'}》放入書櫃了嗎？',
       confirmLabel: '已放入書櫃',
     );
     if (!confirmed || !mounted) return;

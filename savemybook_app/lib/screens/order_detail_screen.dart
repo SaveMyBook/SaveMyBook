@@ -363,7 +363,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               child: InfoLine(
                 icon: Icons.pin_rounded,
                 label: '取書碼',
-                value: '${_order.pickupCode!}（長按複製）',
+                value: _order.pickupCode!,
               ),
             ),
         ],

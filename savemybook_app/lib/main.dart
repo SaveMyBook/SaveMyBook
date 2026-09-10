@@ -6,6 +6,7 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/api_service.dart';
+import 'services/biometric_service.dart';
 import 'services/chat_prefs.dart';
 import 'services/deep_link_service.dart';
 import 'services/theme_provider.dart';
@@ -40,6 +41,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
   Future<void> _init() async {
     themeProvider = await ThemeProvider.init();
     await ChatPrefs.load();
+    await BiometricService.load();
 
     ApiService.onUnauthorized = (reason) {
       navigatorKey.currentState?.pushAndRemoveUntil(
@@ -63,10 +65,16 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     final token = prefs.getString('auth_token');
 
     if (token != null && token.isNotEmpty) {
-      ApiService.authToken = token;
-      await ApiService().fetchCurrentUser();
-      if (ApiService.currentUser != null) {
-        _initialRoute = const HomeScreen();
+      // 開了快速登入就先過生物辨識，沒過就停在登入頁（token 保留，可以再試一次）。
+      final unlocked = !BiometricService.isEnabled ||
+          await BiometricService.authenticate(reason: '驗證身分以登入 SaveMyBook');
+
+      if (unlocked) {
+        ApiService.authToken = token;
+        await ApiService().fetchCurrentUser();
+        if (ApiService.currentUser != null) {
+          _initialRoute = const HomeScreen();
+        }
       }
     }
 

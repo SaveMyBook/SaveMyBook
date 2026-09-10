@@ -19,9 +19,9 @@ class CustomBottomNav extends StatelessWidget {
     this.isVisible = true,
   });
 
-  static const double _barHeight = 62;
+  static const double _barHeight = 56;
   static const double _pillWidth = 52;
-  static const double _pillHeight = 46;
+  static const double _pillHeight = 42;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class CustomBottomNav extends StatelessWidget {
         curve: Curves.easeInOut,
         opacity: actuallyVisible ? 1.0 : 0.0,
         child: Padding(
-          padding: EdgeInsets.only(left: 20, right: 20, bottom: bottomPadding + 12),
+          padding: EdgeInsets.only(left: 20, right: 20, bottom: bottomPadding + 4),
           child: LiquidGlass(
             borderRadius: BorderRadius.circular(_barHeight / 2),
             blur: 34,

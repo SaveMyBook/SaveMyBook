@@ -1,12 +1,48 @@
 import 'package:flutter/material.dart';
+import '../services/biometric_service.dart';
 import '../services/theme_provider.dart';
 import '../utils/app_colors.dart';
 import 'change_password_screen.dart';
 import 'terms_screen.dart';
 import 'privacy_screen.dart';
+import '../widgets/state_views.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _biometricAvailable = false;
+  String _biometricLabel = '生物辨識';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometric();
+  }
+
+  Future<void> _checkBiometric() async {
+    final available = await BiometricService.isAvailable();
+    final label = available ? await BiometricService.label() : '生物辨識';
+    if (!mounted) return;
+    setState(() {
+      _biometricAvailable = available;
+      _biometricLabel = label;
+    });
+  }
+
+  Future<void> _toggleBiometric(bool value) async {
+    if (value && !await BiometricService.authenticate(reason: '驗證身分以啟用快速登入')) {
+      return;
+    }
+    await BiometricService.setEnabled(value);
+    if (!mounted) return;
+    setState(() {});
+    showAppSnackBar(context, value ? '已啟用 $_biometricLabel 登入' : '已關閉快速登入');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +72,12 @@ class SettingsScreen extends StatelessWidget {
             Text('外觀設定', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
             const SizedBox(height: 12),
             _buildDarkModeCard(context, c),
+            if (_biometricAvailable) ...[
+              const SizedBox(height: 32),
+              Text('登入方式', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
+              const SizedBox(height: 12),
+              _buildBiometricCard(c),
+            ],
             const SizedBox(height: 32),
             Text('關於我們', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
             const SizedBox(height: 12),
@@ -109,6 +151,44 @@ class SettingsScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildBiometricCard(AppColors c) {
+    return Container(
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: c.shadow.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Material(
+          color: Colors.transparent,
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            leading: Icon(
+              _biometricLabel == 'Face ID' ? Icons.face_rounded : Icons.fingerprint_rounded,
+              color: c.textPrimary,
+            ),
+            title: Text(
+              '$_biometricLabel 登入',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary),
+            ),
+            subtitle: Text(
+              '開啟 App 時用 $_biometricLabel 解鎖',
+              style: TextStyle(fontSize: 12, color: c.textSecondary),
+            ),
+            trailing: Switch.adaptive(
+              value: BiometricService.isEnabled,
+              activeThumbColor: c.accent,
+              onChanged: _toggleBiometric,
+            ),
+          ),
+        ),
+      ),
     );
   }
 

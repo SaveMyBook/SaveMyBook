@@ -140,7 +140,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                               SizedBox(height: 80),
                               EmptyView(
                                 icon: Icons.forum_outlined,
-                                message: '還沒有任何對話\n到書籍頁按「聯絡賣家」就能開始聊天',
+                                message: '還沒有任何對話',
                               ),
                             ],
                           )

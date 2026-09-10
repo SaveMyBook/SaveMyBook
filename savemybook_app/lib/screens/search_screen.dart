@@ -87,7 +87,7 @@ class _SearchScreenState extends State<SearchScreen> {
             child: history.isEmpty
                 ? const EmptyView(
                     icon: Icons.manage_search_rounded,
-                    message: '還沒有搜尋紀錄\n輸入書名、作者或 ISBN 開始找書',
+                    message: '還沒有搜尋紀錄',
                   )
                 : ListView(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),

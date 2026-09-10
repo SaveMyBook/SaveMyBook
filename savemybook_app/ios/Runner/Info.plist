@@ -64,6 +64,8 @@
         	<string>SaveMyBook 需要相機權限才能拍攝書本封面與條碼</string>
         	<key>NSPhotoLibraryUsageDescription</key>
         	<string>SaveMyBook 需要相簿權限才能讓您選擇書本照片</string>
+        	<key>NSFaceIDUsageDescription</key>
+        	<string>SaveMyBook 使用 Face ID 讓您快速安全地登入</string>
         	<key>NSPhotoLibraryAddUsageDescription</key>
         	<string>SaveMyBook 需要權限才能把 QR Code 儲存到您的相簿</string>
         	<key>NSLocationWhenInUseUsageDescription</key>

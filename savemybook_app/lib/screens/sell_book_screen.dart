@@ -263,7 +263,6 @@ class _SellBookScreenState extends State<SellBookScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const Text('詳細資訊都可至會員中心-書籍管理編輯', style: TextStyle(color: AppColors.primary, fontSize: 13)),
         const SizedBox(height: 120),
       ],
     );

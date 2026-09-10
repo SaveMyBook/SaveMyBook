@@ -436,11 +436,6 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SectionHeading(title: '後台權限'),
-          const SizedBox(height: 4),
-          Text(
-            '關閉之後，這位管理員打對應的 API 會直接被擋下。',
-            style: TextStyle(fontSize: 11, color: c.textHint),
-          ),
           for (final entry in AdminMemberDetail.permissionLabels.entries)
             SwitchListTile(
               contentPadding: EdgeInsets.zero,

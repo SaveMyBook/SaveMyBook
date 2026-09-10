@@ -24,11 +24,18 @@ class _LevelStyle {
 
 class _MemberLevelScreenState extends State<MemberLevelScreen> {
   final ApiService _api = ApiService();
-  late final PageController _pageController = PageController(viewportFraction: 0.88);
+  late final PageController _pageController = PageController(viewportFraction: _viewportFraction);
 
   MemberLevelInfo _info = MemberLevelInfo.empty;
   bool _isLoading = true;
   int _selectedIndex = 0;
+
+  static const _viewportFraction = 0.92;
+  static const _pageInset = 4.0;
+  static const _railPadding = 34.0;
+  static const _nodeSize = 38.0;
+  static const _caretHalf = 10.0;
+  static const _cardRadius = 20.0;
 
   static const _styles = <_LevelStyle>[
     _LevelStyle([Color(0xFF8D6E52), Color(0xFFC29B76)], Color(0xFF8D6E52), Icons.eco_rounded),
@@ -299,7 +306,8 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     final currentIndex = _currentIndex;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      // 內縮量刻意跟指標的安全範圍對齊，讓指標真的能指到節點而不必被夾住。
+      padding: const EdgeInsets.symmetric(horizontal: _railPadding),
       child: Row(
         children: [
           for (var i = 0; i < levels.length; i++) ...[
@@ -313,8 +321,8 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 280),
                 curve: Curves.easeOut,
-                width: 38,
-                height: 38,
+                width: _nodeSize,
+                height: _nodeSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: i == _selectedIndex
@@ -380,21 +388,20 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        const railPadding = 24.0;
-        const nodeSize = 38.0;
-        const caretHalf = 10.0;
-        final usable = constraints.maxWidth - railPadding * 2;
-        final step = count == 1 ? 0.0 : (usable - nodeSize) / (count - 1);
-        final nodeCentre = railPadding + nodeSize / 2 + step * _selectedIndex;
+        final usable = constraints.maxWidth - _railPadding * 2;
+        final step = count == 1 ? 0.0 : (usable - _nodeSize) / (count - 1);
+        final nodeCentre = _railPadding + _nodeSize / 2 + step * _selectedIndex;
 
-        // 卡片是 viewportFraction 0.88 的 PageView，左右各縮排 6，
-        // 指標必須夾在卡片範圍內，不然選到頭尾的等級時會指到卡片外面。
-        const pageInset = 6.0;
-        final cardLeft = constraints.maxWidth * 0.06 + pageInset;
-        final cardRight = constraints.maxWidth * 0.94 - pageInset;
-        final centre = nodeCentre
-            .clamp(cardLeft + caretHalf + 8, cardRight - caretHalf - 8)
-            .toDouble();
+        // 卡片是 viewportFraction 0.92 的 PageView，左右各再縮排 _pageInset。
+        // 安全範圍還要扣掉卡片本身的圓角，不然指標會壓在圓弧上懸空。
+        final cardLeft = constraints.maxWidth * ((1 - _viewportFraction) / 2) + _pageInset;
+        final cardRight = constraints.maxWidth * (1 - (1 - _viewportFraction) / 2) - _pageInset;
+        final safeLeft = cardLeft + _cardRadius + _caretHalf;
+        final safeRight = cardRight - _cardRadius - _caretHalf;
+
+        final centre = safeRight <= safeLeft
+            ? (cardLeft + cardRight) / 2
+            : nodeCentre.clamp(safeLeft, safeRight).toDouble();
 
         return SizedBox(
           height: 10,
@@ -403,7 +410,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 320),
                 curve: Curves.easeOutCubic,
-                left: centre - caretHalf,
+                left: centre - _caretHalf,
                 child: CustomPaint(
                   size: const Size(20, 10),
                   painter: _CaretPainter(color: AppColors.of(context).card),
@@ -498,7 +505,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: c.card,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(_cardRadius),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.12),

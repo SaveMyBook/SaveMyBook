@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import '../services/biometric_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_buttons.dart';
@@ -23,14 +25,94 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _canUseBiometric = false;
+  String _biometricLabel = '生物辨識';
   String? _emailError;
   String? _passwordError;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometric();
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  /// 只有「開過快速登入」且「本機還留著 token」時才顯示按鈕。
+  Future<void> _checkBiometric() async {
+    if (!BiometricService.isEnabled) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token == null || token.isEmpty) return;
+
+    if (!await BiometricService.isAvailable()) return;
+    final label = await BiometricService.label();
+    if (!mounted) return;
+
+    setState(() {
+      _canUseBiometric = true;
+      _biometricLabel = label;
+    });
+  }
+
+  Future<void> _biometricLogin() async {
+    if (_isLoading) return;
+
+    final ok = await BiometricService.authenticate(reason: '驗證身分以登入 SaveMyBook');
+    if (!ok || !mounted) return;
+
+    setState(() => _isLoading = true);
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token == null || token.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _canUseBiometric = false;
+      });
+      showAppSnackBar(context, '登入資訊已失效，請重新輸入密碼', isError: true);
+      return;
+    }
+
+    ApiService.authToken = token;
+    await _apiService.fetchCurrentUser();
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (ApiService.currentUser == null) {
+      setState(() => _canUseBiometric = false);
+      showAppSnackBar(context, '登入資訊已失效，請重新輸入密碼', isError: true);
+      return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
+  }
+
+  Future<void> _offerBiometric() async {
+    if (BiometricService.isEnabled) return;
+    if (!await BiometricService.isAvailable() || !mounted) return;
+
+    final label = await BiometricService.label();
+    if (!mounted) return;
+
+    final ok = await showConfirmDialog(
+      context,
+      title: '啟用 $label 登入？',
+      message: '下次開啟 App 就能直接用 $label 解鎖，不用再輸入密碼。',
+      confirmLabel: '啟用',
+      cancelLabel: '暫時不要',
+    );
+    if (ok) await BiometricService.setEnabled(true);
   }
 
   bool _validate() {
@@ -68,6 +150,8 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (outcome.isSuccess) {
+      await _offerBiometric();
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -218,6 +302,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: _handleLogin,
                         ),
                       ),
+                      if (_canUseBiometric) ...[
+                        const SizedBox(height: 12),
+                        FadeSlideIn(
+                          index: 5,
+                          child: SecondaryButton(
+                            label: '使用 $_biometricLabel 登入',
+                            icon: _biometricLabel == 'Face ID'
+                                ? Icons.face_rounded
+                                : Icons.fingerprint_rounded,
+                            height: 50,
+                            onPressed: _isLoading ? null : _biometricLogin,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       FadeSlideIn(
                         index: 5,

@@ -233,14 +233,7 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 10),
-                        child: Text(
-                          '雙指縮放、拖曳調整範圍',
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
                         child: PrimaryButton(
                           label: '使用這張',
                           height: 50,

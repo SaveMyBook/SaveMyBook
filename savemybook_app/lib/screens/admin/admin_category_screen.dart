@@ -101,12 +101,6 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
             ),
             const SizedBox(height: 16),
             AppTextField(controller: nameController, hint: '分類名稱', maxLength: 50),
-            const SizedBox(height: 8),
-            Text(
-              // 排序統一交給拖曳，這裡不再放數字欄位，免得兩種輸入互相打架。
-              category == null ? '新增的分類會排在最後，之後可以拖曳調整順序' : '順序請直接在列表上拖曳調整',
-              style: TextStyle(fontSize: 11, color: c.textHint),
-            ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -201,7 +195,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                                 SizedBox(height: 60),
                                 EmptyView(
                                   icon: Icons.category_outlined,
-                                  message: '還沒有任何分類\n點右上角新增一個',
+                                  message: '還沒有任何分類',
                                 ),
                               ],
                             )
@@ -210,13 +204,6 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                               itemCount: _categories.length,
                               onReorder: _onReorder,
                               buildDefaultDragHandles: false,
-                              header: Padding(
-                                padding: const EdgeInsets.only(bottom: 10, left: 4),
-                                child: Text(
-                                  '長按右側把手可拖曳調整順序，數字越小越前面',
-                                  style: TextStyle(fontSize: 11, color: c.textHint),
-                                ),
-                              ),
                               proxyDecorator: (child, index, animation) => AnimatedBuilder(
                                 animation: animation,
                                 builder: (context, _) => Transform.scale(

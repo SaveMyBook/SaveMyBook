@@ -200,7 +200,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
                                 SizedBox(height: 60),
                                 EmptyView(
                                   icon: Icons.workspace_premium_outlined,
-                                  message: '還沒有設定會員等級\n點右上角新增一個',
+                                  message: '還沒有設定會員等級',
                                 ),
                               ],
                             )

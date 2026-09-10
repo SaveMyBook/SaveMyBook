@@ -216,11 +216,6 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
               isAdd ? '增加代幣' : '扣除代幣',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
             ),
-            const SizedBox(height: 6),
-            Text(
-              '調整會寫進帳務紀錄並通知會員，無法撤銷。',
-              style: TextStyle(fontSize: 12, color: c.textSecondary),
-            ),
             const SizedBox(height: 16),
             AppTextField(
               controller: amountController,

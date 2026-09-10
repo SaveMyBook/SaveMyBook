@@ -78,7 +78,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
     final confirmed = await showConfirmDialog(
       context,
       title: '取消上架',
-      message: '《${book.title}》將從商城下架，買家不會再看到它。\n你之後可以在「已下架」分頁重新上架。',
+      message: '《${book.title}》將從商城下架，買家不會再看到它。',
       confirmLabel: '下架',
       isDestructive: true,
     );
