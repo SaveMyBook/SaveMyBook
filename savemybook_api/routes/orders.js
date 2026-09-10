@@ -142,8 +142,37 @@ router.post('/checkout', authenticateToken, async (req, res) => {
       bySeller.get(sellerId).push(item);
     }
 
+    const grandTotal = cartItems.reduce(
+      (sum, i) => sum + Number(i.books.price) * i.quantity,
+      0
+    );
+
+    const buyerWallet = await prisma.wallets.findUnique({
+      where: { user_id: req.user.userId }
+    });
+    const currentBalance = Number(buyerWallet?.balance ?? 0);
+
+    if (currentBalance < grandTotal) {
+      return res.status(400).json({
+        success: false,
+        code: 'INSUFFICIENT_BALANCE',
+        message: `代幣不足，這筆訂單需要 ${grandTotal} 代幣，目前只有 ${currentBalance}`
+      });
+    }
+
     const createdOrders = await prisma.$transaction(async (tx) => {
       const results = [];
+
+      // 先把錢從買家帳上扣掉；沒扣成功就不該建立訂單。
+      const wallet = await tx.wallets.upsert({
+        where: { user_id: req.user.userId },
+        update: {},
+        create: { user_id: req.user.userId, balance: 0 }
+      });
+
+      if (Number(wallet.balance) < grandTotal) throw new Error('INSUFFICIENT_BALANCE');
+
+      let runningBalance = Number(wallet.balance);
 
       for (const [sellerId, items] of bySeller) {
         const totalAmount = items.reduce((sum, i) => sum + Number(i.books.price) * i.quantity, 0);
@@ -169,6 +198,28 @@ router.post('/checkout', authenticateToken, async (req, res) => {
             }
           },
           include: orderInclude
+        });
+
+        runningBalance -= Number(totalAmount);
+
+        await tx.wallets.update({
+          where: { wallet_id: wallet.wallet_id },
+          data: {
+            balance: runningBalance,
+            total_expense: { increment: Number(totalAmount) },
+            updated_at: new Date()
+          }
+        });
+
+        await tx.wallet_transactions.create({
+          data: {
+            wallet_id: wallet.wallet_id,
+            type: 'purchase',
+            amount: -Number(totalAmount),
+            balance_after: runningBalance,
+            related_order_id: order.order_id,
+            description: `購買訂單 ${order.order_no}`
+          }
         });
 
         await tx.books.updateMany({
@@ -197,8 +248,16 @@ router.post('/checkout', authenticateToken, async (req, res) => {
 
     res.status(201).json({ success: true, message: '結帳成功', data: createdOrders });
   } catch (err) {
+    // 交易內再檢查一次餘額是為了防併發，兩支請求同時結帳時會落在這裡。
+    if (err instanceof Error && err.message === 'INSUFFICIENT_BALANCE') {
+      return res.status(400).json({
+        success: false,
+        code: 'INSUFFICIENT_BALANCE',
+        message: '代幣不足，請先儲值後再結帳'
+      });
+    }
     console.error('[結帳失敗]:', err);
-    res.status(500).json({ success: false, message: err.message || '結帳失敗' });
+    res.status(500).json({ success: false, message: '結帳失敗，請稍後再試' });
   }
 });
 
@@ -227,6 +286,49 @@ router.patch('/:id/cancel', authenticateToken, async (req, res) => {
         where: { book_id: { in: order.order_items.map(i => i.book_id) } },
         data: { status: 'on_sale', updated_at: new Date() }
       });
+
+      // 結帳時已經從買家帳上扣款，取消就要原路退回。
+      const refundable = ['pending_payment', 'pending_deposit', 'deposited', 'pending_pickup'];
+      if (refundable.includes(order.status)) {
+        const wallet = await tx.wallets.upsert({
+          where: { user_id: order.buyer_id },
+          update: {},
+          create: { user_id: order.buyer_id, balance: 0 }
+        });
+
+        const refunded = Number(wallet.balance) + Number(order.total_amount);
+
+        await tx.wallets.update({
+          where: { wallet_id: wallet.wallet_id },
+          data: {
+            balance: refunded,
+            total_expense: { decrement: Number(order.total_amount) },
+            updated_at: new Date()
+          }
+        });
+
+        await tx.wallet_transactions.create({
+          data: {
+            wallet_id: wallet.wallet_id,
+            type: 'refund',
+            amount: Number(order.total_amount),
+            balance_after: refunded,
+            related_order_id: orderId,
+            description: `訂單 ${order.order_no} 取消退款`
+          }
+        });
+
+        await tx.notifications.create({
+          data: {
+            user_id: order.buyer_id,
+            type: 'order',
+            title: '訂單已退款',
+            content: `訂單 ${order.order_no} 已取消，${order.total_amount} 代幣已退回您的帳戶。`,
+            related_id: orderId,
+            related_type: 'order'
+          }
+        });
+      }
 
       const notifyUserId = req.user.userId === order.buyer_id ? order.seller_id : order.buyer_id;
       await tx.notifications.create({

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/cart_item.dart';
+import '../models/member_level.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/animations.dart';
@@ -23,6 +24,7 @@ class _CartScreenState extends State<CartScreen> {
   final Set<int> _removingCartIds = {};
   bool _isLoading = true;
   bool _isCheckingOut = false;
+  double _balance = 0;
 
   @override
   void initState() {
@@ -31,13 +33,16 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _load() async {
-    final items = await _api.fetchCart();
+    final results = await Future.wait([_api.fetchCart(), _api.fetchUserStats()]);
     if (!mounted) return;
     setState(() {
-      _items = items;
+      _items = results[0] as List<CartItem>;
+      _balance = (results[1] as UserStats).balance;
       _isLoading = false;
     });
   }
+
+  bool get _canAfford => _balance >= _total;
 
   bool get _allSelected => _items.isNotEmpty && _items.every((i) => i.isSelected);
 
@@ -92,10 +97,20 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
+    if (!_canAfford) {
+      showAppSnackBar(
+        context,
+        '代幣不足，這筆訂單需要 ${_total.toStringAsFixed(0)}，目前只有 ${_balance.toStringAsFixed(0)}',
+        isError: true,
+      );
+      return;
+    }
+
     final confirmed = await showConfirmDialog(
       context,
       title: '確認結帳',
-      message: '共 ${selected.length} 本書，總金額 \$${_total.toStringAsFixed(0)}。\n結帳後賣家會收到通知並將書放入書櫃。',
+      message: '共 ${selected.length} 本書，總金額 \$${_total.toStringAsFixed(0)}。\n'
+          '扣款後餘額為 ${(_balance - _total).toStringAsFixed(0)} 代幣。',
       confirmLabel: '確認結帳',
     );
     if (!confirmed || !mounted) return;
@@ -378,6 +393,15 @@ class _CartScreenState extends State<CartScreen> {
                     style: TextStyle(fontSize: 11, color: c.textHint)),
               ),
               const SizedBox(height: 2),
+              Text(
+                '餘額 ${_balance.toStringAsFixed(0)}',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: _canAfford ? c.textSecondary : c.danger,
+                ),
+              ),
+              const SizedBox(height: 2),
               AnimatedCount(
                 value: _total,
                 prefix: '\$',
@@ -391,7 +415,9 @@ class _CartScreenState extends State<CartScreen> {
             child: SizedBox(
               height: 48,
               child: ElevatedButton(
-                onPressed: _isCheckingOut || _selectedItems.isEmpty ? null : _checkout,
+                onPressed: _isCheckingOut || _selectedItems.isEmpty || !_canAfford
+                    ? null
+                    : _checkout,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: c.accent,
                   foregroundColor: Colors.white,
@@ -407,7 +433,10 @@ class _CartScreenState extends State<CartScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text('結帳', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      : Text(
+                          _canAfford ? '結帳' : '代幣不足',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
                 ),
               ),
             ),

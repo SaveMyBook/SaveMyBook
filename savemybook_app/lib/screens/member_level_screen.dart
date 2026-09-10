@@ -382,9 +382,19 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
       builder: (context, constraints) {
         const railPadding = 24.0;
         const nodeSize = 38.0;
+        const caretHalf = 10.0;
         final usable = constraints.maxWidth - railPadding * 2;
         final step = count == 1 ? 0.0 : (usable - nodeSize) / (count - 1);
-        final centre = railPadding + nodeSize / 2 + step * _selectedIndex;
+        final nodeCentre = railPadding + nodeSize / 2 + step * _selectedIndex;
+
+        // 卡片是 viewportFraction 0.88 的 PageView，左右各縮排 6，
+        // 指標必須夾在卡片範圍內，不然選到頭尾的等級時會指到卡片外面。
+        const pageInset = 6.0;
+        final cardLeft = constraints.maxWidth * 0.06 + pageInset;
+        final cardRight = constraints.maxWidth * 0.94 - pageInset;
+        final centre = nodeCentre
+            .clamp(cardLeft + caretHalf + 8, cardRight - caretHalf - 8)
+            .toDouble();
 
         return SizedBox(
           height: 10,
@@ -393,7 +403,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 320),
                 curve: Curves.easeOutCubic,
-                left: centre - 10,
+                left: centre - caretHalf,
                 child: CustomPaint(
                   size: const Size(20, 10),
                   painter: _CaretPainter(color: AppColors.of(context).card),

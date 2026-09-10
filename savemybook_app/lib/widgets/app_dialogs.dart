@@ -112,6 +112,11 @@ Future<T?> showOptionSheet<T>(
   return showModalBottomSheet<T>(
     context: context,
     backgroundColor: c.sheetBg,
+    // 選項一多（例如八種訂單狀態）就會超出螢幕，必須讓它可以捲動。
+    isScrollControlled: true,
+    constraints: BoxConstraints(
+      maxHeight: MediaQuery.of(context).size.height * 0.75,
+    ),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -129,12 +134,20 @@ Future<T?> showOptionSheet<T>(
             Text(subtitle, style: TextStyle(fontSize: 12, color: c.textSecondary)),
           ],
           const SizedBox(height: 8),
-          ...options.map(
-            (o) => ListTile(
-              leading: o.icon == null ? null : Icon(o.icon, color: o.color ?? c.textPrimary),
-              title: Text(o.label, style: TextStyle(color: o.color ?? c.textPrimary)),
-              trailing: o.selected ? Icon(Icons.check_rounded, color: c.accent) : null,
-              onTap: () => Navigator.pop(ctx, o.value),
+          Flexible(
+            child: ListView(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              children: options
+                  .map(
+                    (o) => ListTile(
+                      leading: o.icon == null ? null : Icon(o.icon, color: o.color ?? c.textPrimary),
+                      title: Text(o.label, style: TextStyle(color: o.color ?? c.textPrimary)),
+                      trailing: o.selected ? Icon(Icons.check_rounded, color: c.accent) : null,
+                      onTap: () => Navigator.pop(ctx, o.value),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
           const SizedBox(height: 8),

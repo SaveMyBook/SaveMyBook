@@ -45,10 +45,12 @@ class AppTheme {
       fontFamilyFallback: const ['PingFang TC', 'Heiti TC', 'Noto Sans TC', 'sans-serif'],
       splashColor: isDark ? Colors.white12 : Colors.black12,
       highlightColor: isDark ? Colors.white10 : Colors.black12,
+      // 一定要用 Cupertino 這個 builder：左滑返回的手勢偵測器綁在它裡面，
+      // 換成自訂的轉場等於把整個 App 的左滑返回一起關掉。
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
-          TargetPlatform.android: SmoothPageTransitionsBuilder(),
-          TargetPlatform.iOS: SmoothPageTransitionsBuilder(),
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
         },
       ),
       appBarTheme: AppBarTheme(
@@ -211,41 +213,6 @@ class AppTheme {
         labelMedium: baseText,
         labelSmall: baseText,
       ).apply(fontFamily: 'NotoSansTC'),
-    );
-  }
-}
-
-/// 新頁從右邊滑入並淡入，底層頁同時稍微變暗，做出前後層次。
-class SmoothPageTransitionsBuilder extends PageTransitionsBuilder {
-  const SmoothPageTransitionsBuilder();
-
-  @override
-  Widget buildTransitions<T>(
-    PageRoute<T> route,
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    final enter = CurvedAnimation(
-      parent: animation,
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
-    );
-    final exit = CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOutCubic);
-
-    // 底層頁只變暗、不位移。位移會在頁面邊緣露出 Navigator 後面的黑底，
-    // 只要上面疊的是半透明路由（分享檔案、看大圖）就會直接被看見。
-    return FadeTransition(
-      opacity: Tween(begin: 1.0, end: 0.72).animate(exit),
-      child: SlideTransition(
-        position: Tween(begin: const Offset(1, 0), end: Offset.zero).animate(enter),
-        child: FadeTransition(
-          opacity: Tween(begin: 0.0, end: 1.0)
-              .animate(CurvedAnimation(parent: animation, curve: const Interval(0, 0.45))),
-          child: child,
-        ),
-      ),
     );
   }
 }

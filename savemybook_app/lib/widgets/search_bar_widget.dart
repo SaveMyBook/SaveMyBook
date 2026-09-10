@@ -14,17 +14,10 @@ class SearchBarWidget extends StatelessWidget {
 
     return GestureDetector(
       onTap: () async {
+        // 用 MaterialPageRoute 才會有左滑返回；Hero 在任何 route 都能運作。
         final result = await Navigator.push(
           context,
-          PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 320),
-            reverseTransitionDuration: const Duration(milliseconds: 260),
-            pageBuilder: (_, _, _) => SearchScreen(initialKeyword: currentKeyword),
-            transitionsBuilder: (_, animation, _, child) => FadeTransition(
-              opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-              child: child,
-            ),
-          ),
+          MaterialPageRoute(builder: (_) => SearchScreen(initialKeyword: currentKeyword)),
         );
         if (result != null) onSearch(result as String);
       },
