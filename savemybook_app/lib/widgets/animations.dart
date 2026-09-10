@@ -125,7 +125,7 @@ class AnimatedCount extends StatelessWidget {
       tween: Tween(begin: 0, end: value),
       duration: duration,
       curve: Curves.easeOutCubic,
-      builder: (_, animated, __) =>
+      builder: (_, animated, _) =>
           Text('$prefix${animated.toStringAsFixed(decimals)}', style: style),
     );
   }
@@ -152,7 +152,7 @@ class SwitchIn extends StatelessWidget {
       ),
       layoutBuilder: (current, previous) => Stack(
         alignment: Alignment.topCenter,
-        children: [...previous, if (current != null) current],
+        children: [...previous, ?current],
       ),
       child: child,
     );

@@ -22,7 +22,7 @@ class AppColors {
   Color get inputFill => isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF3F5F7);
   Color get headerBg => isDark ? const Color(0xFF1A2F38) : const Color(0xFF627D8D);
   Color get sheetBg => isDark ? const Color(0xFF1E1E1E) : Colors.white;
-  Color get scrim => Colors.black.withOpacity(isDark ? 0.7 : 0.5);
+  Color get scrim => Colors.black.withValues(alpha: isDark ? 0.7 : 0.5);
 
   Color get textPrimary => isDark ? const Color(0xFFE8E8E8) : const Color(0xFF151E27);
   Color get textSecondary => isDark ? const Color(0xFF9E9E9E) : Colors.black54;
@@ -34,11 +34,11 @@ class AppColors {
   Color get warning => isDark ? const Color(0xFFE9A94A) : const Color(0xFFD98613);
 
   Color get categoryChip => isDark ? const Color(0xFF2A3A42) : const Color(0xFFE8ECEF);
-  Color get divider => isDark ? Colors.white.withOpacity(0.08) : Colors.grey.withOpacity(0.2);
-  Color get border => isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08);
-  Color get navBarBg => isDark ? const Color(0xFF1E1E1E).withOpacity(0.92) : Colors.white.withOpacity(0.88);
-  Color get navBarBorder => isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.6);
-  Color get shadow => isDark ? Colors.black.withOpacity(0.45) : Colors.black.withOpacity(0.12);
+  Color get divider => isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.withValues(alpha: 0.2);
+  Color get border => isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08);
+  Color get navBarBg => isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.92) : Colors.white.withValues(alpha: 0.88);
+  Color get navBarBorder => isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.6);
+  Color get shadow => isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.12);
   Color get iconInactive => isDark ? const Color(0xFF777777) : Colors.grey.shade400;
 
   Color conditionColor(String level) {

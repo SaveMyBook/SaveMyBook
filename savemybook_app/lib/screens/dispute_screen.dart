@@ -105,7 +105,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                     child: SwitchListTile.adaptive(
                       contentPadding: EdgeInsets.zero,
                       value: _freezeRequested,
-                      activeColor: c.accent,
+                      activeThumbColor: c.accent,
                       onChanged: (value) => setState(() => _freezeRequested = value),
                       secondary: const Icon(Icons.ac_unit_rounded, color: AppColors.primary),
                       title: Text(
@@ -180,7 +180,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: c.accent,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: c.accent.withOpacity(0.5),
+                        disabledBackgroundColor: c.accent.withValues(alpha: 0.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       child: _isSubmitting

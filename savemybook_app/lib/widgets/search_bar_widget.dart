@@ -15,8 +15,8 @@ class SearchBarWidget extends StatelessWidget {
     return GestureDetector(
       onTap: () async {
         final result = await Navigator.push(context, PageRouteBuilder(
-          pageBuilder: (_, __, ___) => SearchScreen(initialKeyword: currentKeyword),
-          transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+          pageBuilder: (_, _, _) => SearchScreen(initialKeyword: currentKeyword),
+          transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
         ));
         if (result != null) onSearch(result as String);
       },

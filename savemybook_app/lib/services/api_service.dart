@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/category.dart';
@@ -562,10 +562,10 @@ class ApiService {
     String? birthday,
   }) async {
     final res = await _send('PUT', '/users/me', body: {
-      if (nickname != null) 'nickname': nickname,
-      if (bio != null) 'bio': bio,
-      if (phone != null) 'phone': phone,
-      if (birthday != null) 'birthday': birthday,
+      'nickname': ?nickname,
+      'bio': ?bio,
+      'phone': ?phone,
+      'birthday': ?birthday,
     });
     if (res == null) return '請先登入';
     if (res['success'] != true) return res['message'] as String? ?? '更新失敗';
@@ -647,7 +647,7 @@ class ApiService {
   Future<List<AdminMember>> fetchAdminMembers({String keyword = '', String? status}) async {
     final res = await _send('GET', '/admin/members', query: {
       if (keyword.isNotEmpty) 'keyword': keyword,
-      if (status != null) 'status': status,
+      'status': ?status,
       'limit': '50',
     });
     return _mapList(res, AdminMember.fromJson);
@@ -655,14 +655,14 @@ class ApiService {
 
   Future<bool> updateMemberStatus(int userId, {bool? isActive, bool? isBlacklisted}) async {
     final res = await _send('PATCH', '/admin/members/$userId', body: {
-      if (isActive != null) 'is_active': isActive,
-      if (isBlacklisted != null) 'is_blacklisted': isBlacklisted,
+      'is_active': ?isActive,
+      'is_blacklisted': ?isBlacklisted,
     });
     return res != null && res['success'] == true;
   }
 
   Future<List<ReportCase>> fetchAdminReports({String? status}) async {
-    final res = await _send('GET', '/admin/reports', query: {if (status != null) 'status': status});
+    final res = await _send('GET', '/admin/reports', query: {'status': ?status});
     return _mapList(res, ReportCase.fromJson);
   }
 
@@ -677,7 +677,7 @@ class ApiService {
   }
 
   Future<List<DisputeCase>> fetchAdminDisputes({String? status}) async {
-    final res = await _send('GET', '/admin/disputes', query: {if (status != null) 'status': status});
+    final res = await _send('GET', '/admin/disputes', query: {'status': ?status});
     return _mapList(res, DisputeCase.fromJson);
   }
 
@@ -712,9 +712,9 @@ class ApiService {
       'latitude': latitude,
       'longitude': longitude,
       if (cabinetId == null) 'total_slots': totalSlots,
-      if (openTime != null) 'open_time': openTime,
-      if (closeTime != null) 'close_time': closeTime,
-      if (isActive != null) 'is_active': isActive,
+      'open_time': ?openTime,
+      'close_time': ?closeTime,
+      'is_active': ?isActive,
     };
     final res = cabinetId == null
         ? await _send('POST', '/admin/cabinets', body: body)

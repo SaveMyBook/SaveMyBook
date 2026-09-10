@@ -45,7 +45,7 @@ class OrderCard extends StatelessWidget {
                   : Image.network(
                       book.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (_, _, _) => Container(
                         color: c.inputFill,
                         child: Icon(Icons.menu_book_rounded, color: c.iconInactive, size: 32),
                       ),

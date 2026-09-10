@@ -94,15 +94,24 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
               Text('申訴理由：${dispute.reason}',
                   style: TextStyle(fontSize: 13, color: c.textSecondary)),
               const SizedBox(height: 16),
-              ..._results.map(
-                (r) => RadioListTile<String>(
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                  value: r.value,
-                  groupValue: selected,
-                  activeColor: c.accent,
-                  title: Text(r.label, style: TextStyle(fontSize: 14, color: c.textPrimary)),
-                  onChanged: (value) => setSheetState(() => selected = value ?? selected),
+              RadioGroup<String>(
+                groupValue: selected,
+                onChanged: (value) => setSheetState(() => selected = value ?? selected),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _results
+                      .map(
+                        (r) => RadioListTile<String>(
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                          value: r.value,
+                          title: Text(
+                            r.label,
+                            style: TextStyle(fontSize: 14, color: c.textPrimary),
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
               const SizedBox(height: 8),
@@ -132,7 +141,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
       ),
     );
 
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
 
     final error = await runBusy(
       context,

@@ -144,7 +144,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                     child: SwitchListTile.adaptive(
                       contentPadding: EdgeInsets.zero,
                       value: _isPublished,
-                      activeColor: c.accent,
+                      activeThumbColor: c.accent,
                       title: Text('立即發布',
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary)),
                       subtitle: Text('關閉時只會存成草稿',
@@ -161,7 +161,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                       style: ElevatedButton.styleFrom(
                         backgroundColor: c.accent,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: c.accent.withOpacity(0.5),
+                        disabledBackgroundColor: c.accent.withValues(alpha: 0.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       child: _isSaving

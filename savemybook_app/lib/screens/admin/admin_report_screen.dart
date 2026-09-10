@@ -140,7 +140,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
       ),
     );
 
-    if (result == null) return;
+    if (result == null || !mounted) return;
 
     final error = await runBusy(
       context,

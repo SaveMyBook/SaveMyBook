@@ -123,7 +123,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
       ),
     );
 
-    if (picked == null || picked == slot.status) return;
+    if (picked == null || picked == slot.status || !mounted) return;
 
     final ok = await runBusy(
       context,
@@ -217,7 +217,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                   decoration: BoxDecoration(
-                    color: Colors.orangeAccent.withOpacity(0.15),
+                    color: Colors.orangeAccent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text('已停用',
@@ -256,7 +256,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
               tween: Tween(begin: 0, end: ratio),
               duration: const Duration(milliseconds: 600),
               curve: Curves.easeOutCubic,
-              builder: (_, animated, __) => LinearProgressIndicator(
+              builder: (_, animated, _) => LinearProgressIndicator(
                 value: animated,
                 minHeight: 6,
                 backgroundColor: c.inputFill,
@@ -325,9 +325,9 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.14),
+          color: color.withValues(alpha: 0.14),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.4)),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
         ),
         child: Text(
           '${slot.slotNumber}・${slot.statusText}',

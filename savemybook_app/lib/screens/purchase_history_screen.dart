@@ -126,7 +126,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
       ),
     );
 
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
 
     final error = await runBusy(context, () => _api.updateOrderStatus(order.orderId, 'completed'));
     if (!mounted) return;

@@ -93,7 +93,7 @@ class SettingsScreen extends StatelessWidget {
           decoration: BoxDecoration(
               color: c.card,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]
+              boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
@@ -103,7 +103,7 @@ class SettingsScreen extends StatelessWidget {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 leading: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: c.textPrimary),
                 title: Text('深色模式', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary)),
-                trailing: Switch.adaptive(value: isDark, activeColor: c.accent, onChanged: (_) => themeProvider.toggle()),
+                trailing: Switch.adaptive(value: isDark, activeThumbColor: c.accent, onChanged: (_) => themeProvider.toggle()),
               ),
             ),
           ),
@@ -117,7 +117,7 @@ class SettingsScreen extends StatelessWidget {
       decoration: BoxDecoration(
           color: c.card,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]
+          boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),

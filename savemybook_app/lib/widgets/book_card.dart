@@ -43,7 +43,7 @@ class BookCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: book.hasImage
                   ? Image.network(book.imageUrl, height: 140, width: double.infinity, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _imagePlaceholder(c, double.infinity, 140))
+                      errorBuilder: (_, _, _) => _imagePlaceholder(c, double.infinity, 140))
                   : _imagePlaceholder(c, double.infinity, 140),
             ),
           ),
@@ -72,7 +72,7 @@ class BookCard extends StatelessWidget {
                   Row(children: [
                     _buildTag(book.categoryName, c.categoryChip, c.accent),
                     const SizedBox(width: 6),
-                    _buildTag(book.conditionText, book.conditionColor.withOpacity(0.12), book.conditionColor),
+                    _buildTag(book.conditionText, book.conditionColor.withValues(alpha: 0.12), book.conditionColor),
                   ]),
                   const SizedBox(height: 8),
                   Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
@@ -106,7 +106,7 @@ class BookCard extends StatelessWidget {
               borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
               child: book.hasImage
                   ? Image.network(book.imageUrl, width: 110, height: 140, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _imagePlaceholder(c, 110, 140))
+                      errorBuilder: (_, _, _) => _imagePlaceholder(c, 110, 140))
                   : _imagePlaceholder(c, 110, 140),
             ),
           ),
@@ -125,7 +125,7 @@ class BookCard extends StatelessWidget {
                   Row(children: [
                     _buildTag(book.categoryName, c.categoryChip, c.accent),
                     const SizedBox(width: 6),
-                    _buildTag(book.conditionText, book.conditionColor.withOpacity(0.12), book.conditionColor),
+                    _buildTag(book.conditionText, book.conditionColor.withValues(alpha: 0.12), book.conditionColor),
                   ]),
                 ]),
 
@@ -166,7 +166,7 @@ class BookCard extends StatelessWidget {
     return BoxDecoration(
       color: c.card,
       borderRadius: BorderRadius.circular(16),
-      boxShadow: [BoxShadow(color: c.shadow.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+      boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
     );
   }
 

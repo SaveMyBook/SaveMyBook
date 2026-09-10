@@ -265,8 +265,8 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         );
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const HomeScreen(),
-            transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+            pageBuilder: (_, _, _) => const HomeScreen(),
+            transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
           ),
               (route) => false,
         );
@@ -380,10 +380,13 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
               children: [
                 Text.rich(
                   TextSpan(
-                      text: '書籍照片',
-                      children: const [
-                        TextSpan(text: ' *', style: TextStyle(color: c.danger, fontWeight: FontWeight.bold)),
-                      ]
+                    text: '書籍照片',
+                    children: [
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: c.danger, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
@@ -463,7 +466,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       key: key,
       children: [
         Material(
-          color: c.accent.withOpacity(0.05),
+          color: c.accent.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -471,7 +474,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
             child: Container(
               width: 90, height: 110,
               decoration: BoxDecoration(
-                border: Border.all(color: c.accent.withOpacity(0.5), width: 1.5, style: BorderStyle.solid),
+                border: Border.all(color: c.accent.withValues(alpha: 0.5), width: 1.5, style: BorderStyle.solid),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(

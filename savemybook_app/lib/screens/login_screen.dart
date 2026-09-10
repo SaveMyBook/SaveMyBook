@@ -144,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 120,
                           height: 120,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
+                          errorBuilder: (_, _, _) =>
                               Icon(Icons.menu_book_rounded, size: 100, color: c.accent),
                         ),
                       ),

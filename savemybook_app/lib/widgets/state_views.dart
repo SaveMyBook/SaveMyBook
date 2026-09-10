@@ -132,7 +132,7 @@ class _AppCardState extends State<AppCard> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: c.shadow.withOpacity(_pressed ? 0.02 : 0.05),
+                    color: c.shadow.withValues(alpha: _pressed ? 0.02 : 0.05),
                     blurRadius: _pressed ? 4 : 10,
                     offset: Offset(0, _pressed ? 1 : 4),
                   ),
@@ -177,7 +177,7 @@ class BookThumbnail extends StatelessWidget {
             : Image.network(
                 imageUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => placeholder,
+                errorBuilder: (_, _, _) => placeholder,
                 frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
                   if (wasSynchronouslyLoaded) return child;
                   return AnimatedOpacity(

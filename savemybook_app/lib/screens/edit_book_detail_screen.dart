@@ -274,7 +274,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: c.accent,
                               foregroundColor: Colors.white,
-                              disabledBackgroundColor: c.accent.withOpacity(0.5),
+                              disabledBackgroundColor: c.accent.withValues(alpha: 0.5),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
                             child: _isSaving
@@ -335,7 +335,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                       fit: BoxFit.cover,
                       width: 64,
                       height: 84,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (_, _, _) => Container(
                         width: 64,
                         height: 84,
                         color: c.inputFill,

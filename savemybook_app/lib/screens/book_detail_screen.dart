@@ -217,13 +217,17 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () async {
-                  final keyword = await Navigator.push<String>(context, PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const SearchScreen(initialKeyword: ''),
-                    transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+                  final navigator = Navigator.of(context);
+                  final keyword = await navigator.push<String>(PageRouteBuilder(
+                    pageBuilder: (_, _, _) => const SearchScreen(initialKeyword: ''),
+                    transitionsBuilder: (_, animation, _, child) =>
+                        FadeTransition(opacity: animation, child: child),
                   ));
-                  if (keyword != null && keyword.isNotEmpty && context.mounted) {
-                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => HomeScreen(initialKeyword: keyword)), (_) => false);
-                  }
+                  if (keyword == null || keyword.isEmpty || !mounted) return;
+                  navigator.pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => HomeScreen(initialKeyword: keyword)),
+                    (_) => false,
+                  );
                 },
                 child: Container(
                   height: 40, padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -271,7 +275,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               _images[index],
               fit: BoxFit.cover,
               width: double.infinity,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (_, _, _) => Container(
                 color: c.inputFill,
                 child: Icon(Icons.menu_book_rounded, size: 72, color: c.iconInactive),
               ),
@@ -307,14 +311,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           return AnimatedContainer(
             duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic,
             margin: const EdgeInsets.symmetric(horizontal: 4.0), width: isActive ? 16.0 : 6.0, height: 6.0,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: isActive ? Colors.white : Colors.white.withOpacity(0.5)),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.5)),
           );
         }),
       )),
       Positioned(top: 16, right: 16, child: PopupMenuButton<String>(
         icon: Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle),
+          decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.3), shape: BoxShape.circle),
           child: const Icon(Icons.more_vert, color: Colors.white, size: 24),
         ),
         onSelected: (value) {
@@ -498,7 +502,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
             child: Image.network(
               widget.images[index],
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) =>
+              errorBuilder: (_, _, _) =>
                   const Icon(Icons.broken_image_outlined, color: Colors.white54, size: 72),
             ),
           );

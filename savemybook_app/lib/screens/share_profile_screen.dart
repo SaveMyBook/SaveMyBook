@@ -79,7 +79,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
     final c = AppColors.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.55),
+      backgroundColor: Colors.black.withValues(alpha: 0.55),
       body: SafeArea(
         child: Stack(
           children: [
@@ -131,7 +131,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                         const SizedBox(height: 18),
                         Text(
                           '用任何相機掃描都能開啟你的個人頁',
-                          style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.85)),
+                          style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.85)),
                         ),
                       ],
                     ),

@@ -141,7 +141,7 @@ return LightStatusBar(
                           bio.isEmpty ? '這個人很懶，什麼都沒留下' : bio,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.8)),
+                          style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.8)),
                         ),
                         const SizedBox(height: 8),
                         GestureDetector(
@@ -149,7 +149,7 @@ return LightStatusBar(
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: const Row(
@@ -190,7 +190,7 @@ return LightStatusBar(
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text('代幣', style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.8))),
+                      Text('代幣', style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.8))),
                     ],
                   ),
                 ],
@@ -230,7 +230,7 @@ return LightStatusBar(
                 PageRouteBuilder(
                   opaque: false,
                   barrierColor: Colors.transparent,
-                  pageBuilder: (_, __, ___) => const ShareProfileScreen(),
+                  pageBuilder: (_, _, _) => const ShareProfileScreen(),
                 ),
               ),
             ),

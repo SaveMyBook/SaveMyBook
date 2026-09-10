@@ -154,7 +154,7 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: c.accent,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: c.accent.withOpacity(0.5),
+                        disabledBackgroundColor: c.accent.withValues(alpha: 0.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       child: _isSaving

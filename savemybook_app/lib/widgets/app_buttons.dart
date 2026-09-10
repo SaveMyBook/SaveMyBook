@@ -35,7 +35,7 @@ class PrimaryButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: background,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: background.withOpacity(0.4),
+          disabledBackgroundColor: background.withValues(alpha: 0.4),
           disabledForegroundColor: Colors.white70,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -142,7 +142,7 @@ class SmallActionButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: filled
-              ? (enabled ? tint : tint.withOpacity(0.4))
+              ? (enabled ? tint : tint.withValues(alpha: 0.4))
               : c.categoryChip,
           borderRadius: BorderRadius.circular(8),
         ),
@@ -201,7 +201,7 @@ class QuickActionButton extends StatelessWidget {
                 width: size,
                 height: size,
                 decoration: BoxDecoration(
-                  color: c.accent.withOpacity(0.12),
+                  color: c.accent.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, size: size * 0.48, color: c.accent),

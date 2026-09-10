@@ -199,7 +199,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: _filters.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          separatorBuilder: (_, _) => const SizedBox(width: 8),
           itemBuilder: (_, i) {
             final f = _filters[i];
             final selected = _filter == f.key;
@@ -273,7 +273,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                       ? Image.network(
                           book.imageUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                          errorBuilder: (_, _, _) => Container(
                             color: c.inputFill,
                             child: Icon(Icons.menu_book_rounded, color: c.iconInactive, size: 32),
                           ),
@@ -319,7 +319,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                   child: ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     child: Container(
-                      color: Colors.black.withOpacity(0.45),
+                      color: Colors.black.withValues(alpha: 0.45),
                       alignment: Alignment.center,
                       child: const Text(
                         '已下架',

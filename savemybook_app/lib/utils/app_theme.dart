@@ -132,7 +132,7 @@ class AppTheme {
       ),
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: c.accent,
-        selectionColor: c.accent.withOpacity(0.3),
+        selectionColor: c.accent.withValues(alpha: 0.3),
         selectionHandleColor: c.accent,
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
@@ -146,7 +146,7 @@ class AppTheme {
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? c.accent.withOpacity(0.4)
+              ? c.accent.withValues(alpha: 0.4)
               : c.inputFill,
         ),
       ),
@@ -181,7 +181,7 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: c.accent,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: c.accent.withOpacity(0.4),
+          disabledBackgroundColor: c.accent.withValues(alpha: 0.4),
           disabledForegroundColor: Colors.white70,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

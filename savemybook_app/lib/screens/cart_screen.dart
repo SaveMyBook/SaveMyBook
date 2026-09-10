@@ -221,7 +221,7 @@ class _CartScreenState extends State<CartScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: book.conditionColor.withOpacity(0.15),
+                          color: book.conditionColor.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -323,7 +323,7 @@ class _CartScreenState extends State<CartScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: c.accent,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: c.accent.withOpacity(0.5),
+                  disabledBackgroundColor: c.accent.withValues(alpha: 0.5),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
                 child: _isCheckingOut

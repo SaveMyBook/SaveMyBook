@@ -16,10 +16,10 @@ class SplashScreen extends StatelessWidget {
               child: Image.asset(
                 'assets/images/logo.png',
                 width: 120, height: 120, fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   width: 120, height: 120,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(28),
                   ),
                   child: const Icon(Icons.menu_book_rounded, size: 60, color: Colors.white),

@@ -32,7 +32,7 @@ class _UserAvatarState extends State<UserAvatar> {
       backgroundColor: widget.background ?? c.inputFill,
       backgroundImage: showImage ? NetworkImage(url) : null,
       onBackgroundImageError: showImage
-          ? (_, __) {
+          ? (_, _) {
               if (mounted) setState(() => _failed = true);
             }
           : null,
@@ -134,7 +134,7 @@ class StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.14),
+        color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
@@ -207,7 +207,7 @@ class SectionHeading extends StatelessWidget {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
             ),
             const Spacer(),
-            if (trailing != null) trailing!,
+            ?trailing,
           ],
         ),
         const SizedBox(height: 6),

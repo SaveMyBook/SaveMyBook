@@ -201,7 +201,7 @@ class AppSearchField extends StatelessWidget {
         prefixIcon: Icon(Icons.search, color: c.iconInactive, size: 20),
         suffixIcon: ValueListenableBuilder<TextEditingValue>(
           valueListenable: controller,
-          builder: (_, value, __) => value.text.isEmpty
+          builder: (_, value, _) => value.text.isEmpty
               ? const SizedBox.shrink()
               : IconButton(
                   icon: Icon(Icons.close_rounded, size: 18, color: c.iconInactive),

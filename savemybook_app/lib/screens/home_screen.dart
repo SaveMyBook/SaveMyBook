@@ -41,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _categoryScrollController = ScrollController();
   double _categoryScrollProgress = 0.0;
-  bool _isNavVisible = true;
   bool _isGridView = true;
 
   @override
@@ -204,12 +203,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       const iw = 60.0;
                       return Container(
                         height: 2, width: tw,
-                        decoration: BoxDecoration(color: c.accent.withOpacity(0.1), borderRadius: BorderRadius.circular(1)),
+                        decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(1)),
                         child: Stack(children: [
                           AnimatedPositioned(
                             duration: const Duration(milliseconds: 100),
                             left: _categoryScrollProgress * (tw - iw), top: 0, bottom: 0,
-                            child: Container(width: iw, decoration: BoxDecoration(color: c.accent.withOpacity(0.4), borderRadius: BorderRadius.circular(1))),
+                            child: Container(width: iw, decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(1))),
                           ),
                         ]),
                       );

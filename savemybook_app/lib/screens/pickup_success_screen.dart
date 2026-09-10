@@ -29,7 +29,7 @@ class PickupSuccessScreen extends StatelessWidget {
                   width: 108,
                   height: 108,
                   decoration: BoxDecoration(
-                    color: c.accent.withOpacity(0.12),
+                    color: c.accent.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.check_rounded, size: 62, color: AppColors.primary),

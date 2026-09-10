@@ -114,7 +114,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: c.accent.withOpacity(0.12),
+                      color: c.accent.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(n.icon, size: 20, color: c.accent),
@@ -222,7 +222,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         padding: const EdgeInsets.only(right: 24),
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: c.danger.withOpacity(0.15),
+          color: c.danger.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Icon(Icons.delete_outline_rounded, color: c.danger),
@@ -238,7 +238,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: c.accent.withOpacity(0.12),
+                color: c.accent.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(n.icon, size: 20, color: c.accent),

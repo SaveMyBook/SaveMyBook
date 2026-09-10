@@ -128,7 +128,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: c.accent.withOpacity(0.12),
+                  color: c.accent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(announcement.typeText,
@@ -138,7 +138,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.14),
+                  color: statusColor.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(announcement.isPublished ? '已發布' : '草稿',

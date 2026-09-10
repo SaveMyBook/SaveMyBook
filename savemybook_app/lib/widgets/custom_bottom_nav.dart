@@ -40,7 +40,7 @@ class CustomBottomNav extends StatelessWidget {
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(color: c.shadow, blurRadius: 32, offset: const Offset(0, 8)),
-                BoxShadow(color: c.shadow.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2)),
+                BoxShadow(color: c.shadow.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2)),
               ],
             ),
             child: ClipRRect(
@@ -134,7 +134,7 @@ class CustomBottomNav extends StatelessWidget {
           borderRadius: BorderRadius.circular(isSelected ? 22 : 15),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(isSelected ? 0.5 : 0.35),
+              color: AppColors.primary.withValues(alpha: isSelected ? 0.5 : 0.35),
               blurRadius: isSelected ? 16 : 10,
               offset: const Offset(0, 4),
             ),

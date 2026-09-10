@@ -104,7 +104,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                 width: 110,
                 height: 140,
                 decoration: BoxDecoration(
-                  color: unlocked ? c.accent.withOpacity(0.12) : c.inputFill,
+                  color: unlocked ? c.accent.withValues(alpha: 0.12) : c.inputFill,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -173,7 +173,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
               tween: Tween(begin: 0, end: progress.toDouble()),
               duration: const Duration(milliseconds: 800),
               curve: Curves.easeOutCubic,
-              builder: (_, animated, __) => FractionallySizedBox(
+              builder: (_, animated, _) => FractionallySizedBox(
                 widthFactor: animated,
                 child: Container(
                   height: 4,
