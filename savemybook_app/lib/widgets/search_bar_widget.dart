@@ -14,29 +14,68 @@ class SearchBarWidget extends StatelessWidget {
 
     return GestureDetector(
       onTap: () async {
-        final result = await Navigator.push(context, PageRouteBuilder(
-          pageBuilder: (_, _, _) => SearchScreen(initialKeyword: currentKeyword),
-          transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
-        ));
-        if (result != null) onSearch(result as String);
-      },
-      child: Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(12)),
-        child: Row(children: [
-          Icon(Icons.search, color: c.iconInactive, size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              currentKeyword.isEmpty ? '搜尋書名、作者、ISBN...' : currentKeyword,
-              style: TextStyle(color: currentKeyword.isEmpty ? c.textHint : c.textPrimary, fontSize: 15),
-              maxLines: 1, overflow: TextOverflow.ellipsis,
+        final result = await Navigator.push(
+          context,
+          PageRouteBuilder(
+            transitionDuration: const Duration(milliseconds: 320),
+            reverseTransitionDuration: const Duration(milliseconds: 260),
+            pageBuilder: (_, _, _) => SearchScreen(initialKeyword: currentKeyword),
+            transitionsBuilder: (_, animation, _, child) => FadeTransition(
+              opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+              child: child,
             ),
           ),
-          if (currentKeyword.isNotEmpty)
-            GestureDetector(onTap: () => onSearch(''), child: Icon(Icons.cancel, color: c.iconInactive, size: 20)),
-        ]),
+        );
+        if (result != null) onSearch(result as String);
+      },
+      // 跟搜尋頁的輸入框共用 Hero，兩邊的外框尺寸一致，轉場就是平滑地飛過去。
+      child: Hero(
+        tag: kSearchBarHeroTag,
+        flightShuttleBuilder: (_, _, _, _, _) => Material(
+          color: Colors.transparent,
+          child: _shell(c, const SizedBox.shrink()),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: _shell(
+            c,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    currentKeyword.isEmpty ? '搜尋書名、作者、ISBN...' : currentKeyword,
+                    style: TextStyle(
+                      color: currentKeyword.isEmpty ? c.textHint : c.textPrimary,
+                      fontSize: 15,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (currentKeyword.isNotEmpty)
+                  GestureDetector(
+                    onTap: () => onSearch(''),
+                    child: Icon(Icons.cancel, color: c.iconInactive, size: 20),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _shell(AppColors c, Widget child) {
+    return Container(
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(12)),
+      child: Row(
+        children: [
+          Icon(Icons.search, color: c.iconInactive, size: 22),
+          const SizedBox(width: 10),
+          Expanded(child: child),
+        ],
       ),
     );
   }

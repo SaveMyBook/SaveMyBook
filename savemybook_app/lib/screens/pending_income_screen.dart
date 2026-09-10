@@ -70,7 +70,7 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
           const AppHeader(title: '待定收益', icon: Icons.query_stats_rounded),
           Expanded(
             child: SwitchIn(child: _isLoading
-                ? const LoadingView()
+                ? const LoadingView.list()
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,

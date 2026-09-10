@@ -58,7 +58,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
           Expanded(
             child: SwitchIn(child: _isLoading
-                ? const LoadingView()
+                ? const LoadingView.grid()
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,

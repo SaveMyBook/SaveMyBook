@@ -82,6 +82,35 @@ router.patch('/read-all', authenticateToken, async (req, res) => {
   }
 });
 
+router.delete('/rooms/:id', authenticateToken, async (req, res) => {
+  const myId = req.user.userId;
+  const roomId = parseInt(req.params.id);
+  if (!roomId) return res.status(400).json({ success: false, message: '請提供聊天室編號' });
+
+  try {
+    const room = await prisma.chat_rooms.findUnique({
+      where: { room_id: roomId },
+      select: { user_a_id: true, user_b_id: true }
+    });
+
+    if (!room) return res.status(404).json({ success: false, message: '找不到這個聊天室' });
+    if (room.user_a_id !== myId && room.user_b_id !== myId) {
+      return res.status(403).json({ success: false, message: '你沒有權限刪除這個聊天室' });
+    }
+
+    // 訊息有 onDelete: Cascade，但這裡明確刪掉比較不依賴 DB 設定。
+    await prisma.$transaction([
+      prisma.chat_messages.deleteMany({ where: { room_id: roomId } }),
+      prisma.chat_rooms.delete({ where: { room_id: roomId } })
+    ]);
+
+    res.status(200).json({ success: true, message: '已刪除聊天室' });
+  } catch (err) {
+    console.error('[刪除聊天室失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
 router.post('/rooms', authenticateToken, async (req, res) => {
   const myId = req.user.userId;
   const partnerId = parseInt(req.body.user_id);

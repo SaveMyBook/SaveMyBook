@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import '../services/photo_service.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
 import 'home_screen.dart';
 
 class SellBookDetailScreen extends StatefulWidget {
@@ -40,8 +42,14 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   List<Map<String, dynamic>> _cabinets = [];
   bool _isLoadingCabinets = true;
 
-  final ImagePicker _picker = ImagePicker();
-  final List<XFile> _images = [];
+  /// 前三格是固定欄位（封面／背面／條碼），點哪一格就放哪一格，
+  /// 不能用單一 List append，否則點第三格的照片會被塞到第二格去。
+  static const _requiredLabels = ['封面', '背面', '條碼'];
+  final List<XFile?> _slots = List<XFile?>.filled(_requiredLabels.length, null, growable: false);
+  final List<XFile> _extra = [];
+
+  int get _filledRequired => _slots.where((f) => f != null).length;
+  int get _totalImages => _filledRequired + _extra.length;
 
   @override
   void initState() {
@@ -110,86 +118,36 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     }
   }
 
-  void _showImageSourceActionSheet() {
-    final c = AppColors.of(context);
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: c.card,
-      clipBehavior: Clip.antiAlias,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.camera_alt, color: c.textPrimary),
-              title: Text('拍照', style: TextStyle(color: c.textPrimary)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickCameraImage();
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.photo_library, color: c.textPrimary),
-              title: Text('從相簿選取', style: TextStyle(color: c.textPrimary)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickGalleryImages();
-              },
-            ),
-          ],
-        ),
-      ),
+  /// 指定其中一個固定欄位（封面／背面／條碼），一次一張，會直接覆蓋該格。
+  Future<void> _pickRequired(int slot) async {
+    final path = await PhotoService.pickAndCrop(context, aspectRatio: 3 / 4, outputSize: 1200);
+    if (path == null || !mounted) return;
+    setState(() => _slots[slot] = XFile(path));
+  }
+
+  Future<void> _addExtraImages() async {
+    final remaining = 10 - _totalImages;
+    if (remaining <= 0) {
+      _showAlertDialog('照片已滿', '最多只能上傳 10 張照片。');
+      return;
+    }
+
+    final paths = await PhotoService.pickAndCropMultiple(
+      context,
+      remaining: remaining,
+      aspectRatio: 3 / 4,
+      outputSize: 1200,
     );
+    if (paths.isEmpty || !mounted) return;
+    setState(() => _extra.addAll(paths.map(XFile.new)));
   }
 
-  Future<void> _pickCameraImage() async {
-    try {
-      if (_images.length >= 10) return;
-      final image = await _picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1080,
-        maxHeight: 1080,
-        imageQuality: 65,
-      );
-      if (image != null && mounted) {
-        setState(() => _images.add(image));
-      }
-    } catch (e) {
-      _showAlertDialog('錯誤', '無法開啟相機，請確認已授權。');
-    }
-  }
+  void _removeRequired(int slot) => setState(() => _slots[slot] = null);
 
-  Future<void> _pickGalleryImages() async {
-    try {
-      final int remaining = 10 - _images.length;
-      if (remaining <= 0) return;
+  void _removeExtra(int index) => setState(() => _extra.removeAt(index));
 
-      final List<XFile> images = await _picker.pickMultiImage(
-        maxWidth: 1080,
-        maxHeight: 1080,
-        imageQuality: 65,
-      );
-      if (images.isNotEmpty && mounted) {
-        setState(() {
-          _images.addAll(images.take(remaining));
-        });
-      }
-    } catch (e) {
-      _showAlertDialog('錯誤', '無法讀取相簿，請確認已授權。');
-    }
-  }
-
-  void _removeImage(int index) {
-    setState(() => _images.removeAt(index));
-  }
-
-  String _getImageLabel(int index) {
-    if (index == 0) return '封面';
-    if (index == 1) return '背面';
-    if (index == 2) return '條碼';
-    return '補充照片';
-  }
+  String _getImageLabel(int index) =>
+      index < _requiredLabels.length ? _requiredLabels[index] : '補充照片';
 
   void _showAlertDialog(String title, String content) {
     showDialog(
@@ -209,8 +167,12 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   }
 
   Future<void> _submitForm() async {
-    if (_images.length < 3) {
-      _showAlertDialog('照片不足', '請至少上傳 3 張必填照片（封面、背面、條碼）。');
+    if (_filledRequired < _requiredLabels.length) {
+      final missing = [
+        for (var i = 0; i < _slots.length; i++)
+          if (_slots[i] == null) _requiredLabels[i],
+      ].join('、');
+      _showAlertDialog('照片不足', '還缺少：$missing。這三張是必填的。');
       return;
     }
     if (_priceController.text.trim().isEmpty) {
@@ -245,12 +207,12 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       request.fields['condition_level'] = _condition;
       request.fields['cabinet_id'] = _selectedCabinet.toString();
 
-      request.files.add(await http.MultipartFile.fromPath('cover_image', _images[0].path));
-      request.files.add(await http.MultipartFile.fromPath('back_image', _images[1].path));
-      request.files.add(await http.MultipartFile.fromPath('barcode_image', _images[2].path));
+      request.files.add(await http.MultipartFile.fromPath('cover_image', _slots[0]!.path));
+      request.files.add(await http.MultipartFile.fromPath('back_image', _slots[1]!.path));
+      request.files.add(await http.MultipartFile.fromPath('barcode_image', _slots[2]!.path));
 
-      for (var i = 3; i < _images.length; i++) {
-        request.files.add(await http.MultipartFile.fromPath('optional_images', _images[i].path));
+      for (final file in _extra) {
+        request.files.add(await http.MultipartFile.fromPath('optional_images', file.path));
       }
 
       final streamedResponse = await request.send();
@@ -364,12 +326,11 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   }
 
   Widget _buildImageUploadSection(AppColors c) {
-    int requiredCount = _images.length > 3 ? 3 : _images.length;
-    int itemCount = _images.length < 3 ? 3 : (_images.length < 10 ? _images.length + 1 : 10);
+    final canAddMore = _totalImages < 10;
 
     return AnimatedSize(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(12)),
@@ -391,29 +352,45 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
                 const SizedBox(width: 8),
-                Text('($requiredCount/3)', style: TextStyle(fontSize: 14, color: requiredCount < 3 ? c.danger : c.textSecondary, fontWeight: FontWeight.w600)),
+                Text(
+                  '($_filledRequired/3)',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _filledRequired < 3 ? c.danger : c.success,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const Spacer(),
-                Text('${_images.length}/10', style: TextStyle(fontSize: 14, color: c.textHint)),
+                Text('$_totalImages/10', style: TextStyle(fontSize: 14, color: c.textHint)),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 4),
+            Text(
+              '封面、背面、條碼三格請分別點選，其餘為補充照片',
+              style: TextStyle(fontSize: 11, color: c.textHint),
+            ),
+            const SizedBox(height: 14),
             SizedBox(
               height: 140,
-              child: ListView.builder(
+              child: ListView(
                 scrollDirection: Axis.horizontal,
-                itemCount: itemCount,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
-                      child: index >= _images.length
-                          ? _buildAddImageButton(c, index, key: ValueKey('add_$index'))
-                          : _buildImageItem(c, index, _images[index], key: ValueKey('img_${_images[index].path}')),
+                children: [
+                  for (var i = 0; i < _slots.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: _buildSlot(c, i),
                     ),
-                  );
-                },
+                  for (var i = 0; i < _extra.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: _buildExtra(c, i),
+                    ),
+                  if (canAddMore)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: _buildAddImageButton(c),
+                    ),
+                ],
               ),
             ),
           ],
@@ -422,78 +399,121 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     );
   }
 
-  Widget _buildImageItem(AppColors c, int index, XFile imageFile, {Key? key}) {
-    return Column(
-      key: key,
-      children: [
-        Container(
-          width: 90, height: 110,
-          decoration: BoxDecoration(border: Border.all(color: c.divider, width: 1.5), borderRadius: BorderRadius.circular(8)),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(File(imageFile.path), fit: BoxFit.cover)),
-              Positioned(
-                top: 4, right: 4,
-                child: Material(
-                  color: Colors.white,
-                  shape: const CircleBorder(),
-                  elevation: 2,
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: () => _removeImage(index),
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.close, color: Colors.black87, size: 16),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-            _getImageLabel(index),
-            style: TextStyle(color: index < 3 ? c.danger : c.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)
-        ),
-      ],
+  Widget _buildSlot(AppColors c, int slot) {
+    final file = _slots[slot];
+
+    return _buildTile(
+      c,
+      label: _requiredLabels[slot],
+      labelColor: file == null ? c.danger : c.textSecondary,
+      child: file == null
+          ? _buildEmptyTile(c, Icons.add_a_photo_outlined, '必填', c.danger)
+          : _buildFilledTile(c, file, onRemove: () => _removeRequired(slot)),
+      onTap: () => _pickRequired(slot),
     );
   }
 
-  Widget _buildAddImageButton(AppColors c, int index, {Key? key}) {
+  Widget _buildExtra(AppColors c, int index) {
+    return _buildTile(
+      c,
+      label: '補充 ${index + 1}',
+      labelColor: c.textSecondary,
+      child: _buildFilledTile(c, _extra[index], onRemove: () => _removeExtra(index)),
+      onTap: null,
+    );
+  }
+
+  Widget _buildTile(
+    AppColors c, {
+    required String label,
+    required Color labelColor,
+    required Widget child,
+    VoidCallback? onTap,
+  }) {
     return Column(
-      key: key,
       children: [
-        Material(
-          color: c.accent.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(8),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: _showImageSourceActionSheet,
-            child: Container(
-              width: 90, height: 110,
-              decoration: BoxDecoration(
-                border: Border.all(color: c.accent.withValues(alpha: 0.5), width: 1.5, style: BorderStyle.solid),
-                borderRadius: BorderRadius.circular(8),
+        PressableScale(
+          scale: onTap == null ? 1 : 0.94,
+          onTap: onTap,
+          child: SizedBox(
+            width: 90,
+            height: 110,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 260),
+              switchInCurve: Curves.easeOutCubic,
+              transitionBuilder: (widget, animation) => FadeTransition(
+                opacity: animation,
+                child: ScaleTransition(scale: Tween(begin: 0.92, end: 1.0).animate(animation), child: widget),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_photo_alternate_outlined, color: c.accent, size: 28),
-                  const SizedBox(height: 4),
-                  Text('加入', style: TextStyle(color: c.accent, fontSize: 13, fontWeight: FontWeight.bold)),
-                ],
-              ),
+              child: child,
             ),
           ),
         ),
         const SizedBox(height: 6),
         Text(
-            _getImageLabel(index),
-            style: TextStyle(color: index < 3 ? c.danger : c.textHint, fontSize: 12, fontWeight: FontWeight.w600)
+          label,
+          style: TextStyle(color: labelColor, fontSize: 12, fontWeight: FontWeight.w600),
         ),
       ],
+    );
+  }
+
+  Widget _buildEmptyTile(AppColors c, IconData icon, String hint, Color tint) {
+    return Container(
+      key: ValueKey('empty_$hint$icon'),
+      decoration: BoxDecoration(
+        color: tint.withValues(alpha: 0.06),
+        border: Border.all(color: tint.withValues(alpha: 0.45), width: 1.4),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: tint, size: 26),
+          const SizedBox(height: 4),
+          Text(hint, style: TextStyle(color: tint, fontSize: 12, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilledTile(AppColors c, XFile file, {required VoidCallback onRemove}) {
+    return Stack(
+      key: ValueKey('img_${file.path}'),
+      fit: StackFit.expand,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(File(file.path), fit: BoxFit.cover),
+        ),
+        Positioned(
+          top: 4,
+          right: 4,
+          child: Material(
+            color: Colors.white,
+            shape: const CircleBorder(),
+            elevation: 2,
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: onRemove,
+              child: const Padding(
+                padding: EdgeInsets.all(4),
+                child: Icon(Icons.close, color: Colors.black87, size: 16),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddImageButton(AppColors c) {
+    return _buildTile(
+      c,
+      label: '補充照片',
+      labelColor: c.textHint,
+      onTap: _addExtraImages,
+      child: _buildEmptyTile(c, Icons.add_photo_alternate_outlined, '加入', c.accent),
     );
   }
 

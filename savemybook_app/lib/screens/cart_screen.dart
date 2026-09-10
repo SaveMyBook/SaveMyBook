@@ -6,6 +6,7 @@ import '../widgets/animations.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../widgets/swipe_action.dart';
 import 'book_detail_screen.dart';
 import 'purchase_history_screen.dart';
 
@@ -127,7 +128,7 @@ class _CartScreenState extends State<CartScreen> {
           if (_items.isNotEmpty) _buildSelectAllRow(c),
           Expanded(
             child: SwitchIn(child: _isLoading
-                ? const LoadingView()
+                ? const LoadingView.list()
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
@@ -209,27 +210,24 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildItem(CartItem item, AppColors c) {
-    return Dismissible(
-      key: ValueKey('cart_${item.cartId}'),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (_) => _confirmRemove(item),
-      onDismissed: (_) => _deleteDismissed(item),
-      background: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.only(right: 24),
-        alignment: Alignment.centerRight,
-        decoration: BoxDecoration(
-          color: c.danger,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.delete_outline_rounded, color: Colors.white, size: 22),
-            SizedBox(width: 6),
-            Text('移除', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ],
-        ),
+    return SwipeActionTile(
+      itemKey: ValueKey('cart_${item.cartId}'),
+      startToEnd: SwipeAction(
+        icon: item.isSelected ? Icons.remove_done_rounded : Icons.done_rounded,
+        label: item.isSelected ? '取消選取' : '選取',
+        color: c.accent,
+        onTrigger: () async {
+          setState(() => item.isSelected = !item.isSelected);
+          return true;
+        },
+      ),
+      endToStart: SwipeAction(
+        icon: Icons.delete_outline_rounded,
+        label: '移除',
+        color: c.danger,
+        dismisses: true,
+        onTrigger: () => _confirmRemove(item),
+        onDismissed: () => _deleteDismissed(item),
       ),
       child: _buildItemCard(item, c),
     );

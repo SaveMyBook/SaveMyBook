@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import 'image_viewer.dart';
 
 class UserAvatar extends StatefulWidget {
   final String? imageUrl;
   final double radius;
   final Color? background;
 
-  const UserAvatar({super.key, required this.imageUrl, this.radius = 20, this.background});
+  /// 點一下用全螢幕看大圖。預設關閉，避免書籍卡片上的小頭像搶走卡片的點擊。
+  final bool enablePreview;
+  final String? previewTitle;
+  final VoidCallback? onTap;
+
+  const UserAvatar({
+    super.key,
+    required this.imageUrl,
+    this.radius = 20,
+    this.background,
+    this.enablePreview = false,
+    this.previewTitle,
+    this.onTap,
+  });
 
   @override
   State<UserAvatar> createState() => _UserAvatarState();
@@ -27,7 +41,7 @@ class _UserAvatarState extends State<UserAvatar> {
     final url = widget.imageUrl;
     final showImage = !_failed && url != null && url.isNotEmpty;
 
-    return CircleAvatar(
+    final avatar = CircleAvatar(
       radius: widget.radius,
       backgroundColor: widget.background ?? c.inputFill,
       backgroundImage: showImage ? NetworkImage(url) : null,
@@ -39,6 +53,16 @@ class _UserAvatarState extends State<UserAvatar> {
       child: showImage
           ? null
           : Icon(Icons.person, size: widget.radius * 1.05, color: c.iconInactive),
+    );
+
+    final canPreview = widget.enablePreview && showImage;
+    if (widget.onTap == null && !canPreview) return avatar;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onTap ??
+          () => ImageViewer.open(context, imageUrl: url, title: widget.previewTitle),
+      child: avatar,
     );
   }
 }

@@ -6,6 +6,7 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/api_service.dart';
+import 'services/chat_prefs.dart';
 import 'services/deep_link_service.dart';
 import 'services/theme_provider.dart';
 import 'utils/app_theme.dart';
@@ -37,6 +38,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
 
   Future<void> _init() async {
     themeProvider = await ThemeProvider.init();
+    await ChatPrefs.load();
 
     ApiService.onUnauthorized = () {
       navigatorKey.currentState?.pushAndRemoveUntil(

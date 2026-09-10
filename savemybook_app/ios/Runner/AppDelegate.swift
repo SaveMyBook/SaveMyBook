@@ -4,6 +4,7 @@ import UIKit
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   private static let channelName = "savemybook/deeplink"
+  private static let shareChannelName = "savemybook/share"
 
   private var deepLinkChannel: FlutterMethodChannel?
   private var pendingLink: String?
@@ -26,6 +27,12 @@ import UIKit
         }
       }
       deepLinkChannel = channel
+
+      let share = FlutterMethodChannel(name: AppDelegate.shareChannelName,
+                                       binaryMessenger: controller.binaryMessenger)
+      share.setMethodCallHandler { [weak self] call, result in
+        self?.handleShare(call: call, result: result, host: controller)
+      }
     }
 
     if let url = launchOptions?[.url] as? URL {
@@ -46,5 +53,55 @@ import UIKit
       pendingLink = url.absoluteString
     }
     return super.application(app, open: url, options: options)
+  }
+
+  private func handleShare(call: FlutterMethodCall,
+                           result: @escaping FlutterResult,
+                           host: UIViewController) {
+    let args = call.arguments as? [String: Any] ?? [:]
+
+    switch call.method {
+    case "shareText":
+      let text = args["text"] as? String ?? ""
+      present(items: [text], from: host, result: result)
+
+    case "shareImage":
+      guard let path = args["path"] as? String,
+            let image = UIImage(contentsOfFile: path) else {
+        result(FlutterError(code: "no_image", message: "找不到圖片", details: nil))
+        return
+      }
+      var items: [Any] = [image]
+      if let text = args["text"] as? String, !text.isEmpty { items.append(text) }
+      present(items: items, from: host, result: result)
+
+    case "saveImage":
+      guard let path = args["path"] as? String,
+            let image = UIImage(contentsOfFile: path) else {
+        result(FlutterError(code: "no_image", message: "找不到圖片", details: nil))
+        return
+      }
+      UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+      result(true)
+
+    default:
+      result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func present(items: [Any], from host: UIViewController, result: @escaping FlutterResult) {
+    let sheet = UIActivityViewController(activityItems: items, applicationActivities: nil)
+
+    // iPad 的分享頁必須有錨點，否則會直接 crash。
+    if let popover = sheet.popoverPresentationController {
+      popover.sourceView = host.view
+      popover.sourceRect = CGRect(x: host.view.bounds.midX,
+                                  y: host.view.bounds.midY,
+                                  width: 0,
+                                  height: 0)
+      popover.permittedArrowDirections = []
+    }
+
+    host.present(sheet, animated: true) { result(true) }
   }
 }

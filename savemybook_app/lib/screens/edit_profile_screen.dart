@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
+import '../services/photo_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/app_dialogs.dart';
@@ -17,16 +17,12 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final ApiService _api = ApiService();
-  final ImagePicker _picker = ImagePicker();
 
   late final TextEditingController _nicknameController;
   late final TextEditingController _bioController;
   late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
-  late final TextEditingController _yearController;
-  late final TextEditingController _monthController;
-  late final TextEditingController _dayController;
-
+  DateTime? _birthday;
   bool _isSaving = false;
 
   @override
@@ -37,9 +33,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _bioController = TextEditingController(text: user?.bio ?? '');
     _phoneController = TextEditingController(text: user?.phone ?? '');
     _emailController = TextEditingController(text: user?.email ?? '');
-    _yearController = TextEditingController(text: user?.birthday?.year.toString() ?? '');
-    _monthController = TextEditingController(text: user?.birthday?.month.toString() ?? '');
-    _dayController = TextEditingController(text: user?.birthday?.day.toString() ?? '');
+    _birthday = user?.birthday;
   }
 
   @override
@@ -48,17 +42,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _bioController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
-    _yearController.dispose();
-    _monthController.dispose();
-    _dayController.dispose();
     super.dispose();
   }
 
   Future<void> _changeAvatar() async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-    if (picked == null || !mounted) return;
+    final path = await PhotoService.pickAndCrop(context, circular: true, outputSize: 720);
+    if (path == null || !mounted) return;
 
-    final ok = await runBusy(context, () => _api.uploadAvatar(picked.path), message: '上傳中…');
+    final ok = await runBusy(context, () => _api.uploadAvatar(path), message: '上傳中…');
     if (!mounted) return;
     if (ok == true) {
       setState(() {});
@@ -99,14 +90,72 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  Future<void> _pickBirthday() async {
+    final now = DateTime.now();
+    final c = AppColors.of(context);
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _birthday ?? DateTime(now.year - 20, now.month, now.day),
+      firstDate: DateTime(now.year - 100),
+      lastDate: now,
+      helpText: '選擇生日',
+      cancelText: '取消',
+      confirmText: '確定',
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: Theme.of(ctx).colorScheme.copyWith(primary: c.accent),
+        ),
+        child: child!,
+      ),
+    );
+
+    if (picked != null && mounted) setState(() => _birthday = picked);
+  }
+
+  Widget _buildBirthdayField(AppColors c) {
+    final date = _birthday;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _pickBirthday,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        decoration: BoxDecoration(
+          color: c.inputFill,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                date == null
+                    ? '請選擇日期'
+                    : '${date.year} 年 ${date.month} 月 ${date.day} 日',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: date == null ? c.textHint : c.textPrimary,
+                ),
+              ),
+            ),
+            if (date != null)
+              GestureDetector(
+                onTap: () => setState(() => _birthday = null),
+                child: Icon(Icons.close_rounded, size: 18, color: c.iconInactive),
+              ),
+            const SizedBox(width: 6),
+            Icon(Icons.calendar_today_outlined, size: 16, color: c.accent),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _save() async {
     if (_isSaving) return;
 
     final nickname = _nicknameController.text.trim();
     final phone = _phoneController.text.trim();
-    final year = _yearController.text.trim();
-    final month = _monthController.text.trim();
-    final day = _dayController.text.trim();
 
     if (nickname.isEmpty) {
       showAppSnackBar(context, '暱稱不可空白', isError: true);
@@ -121,20 +170,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
-    final dateError = Validators.date(year, month, day);
-    if (dateError != null) {
-      showAppSnackBar(context, dateError, isError: true);
-      return;
-    }
-
-    String? birthday;
-    if (year.isNotEmpty && month.isNotEmpty && day.isNotEmpty) {
-      birthday = '$year-${month.padLeft(2, '0')}-${day.padLeft(2, '0')}';
-      if (DateTime.parse(birthday).isAfter(DateTime.now())) {
-        showAppSnackBar(context, '生日不可以是未來的日期', isError: true);
-        return;
-      }
-    }
+    final date = _birthday;
+    final birthday = date == null
+        ? null
+        : '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
     setState(() => _isSaving = true);
     final error = await _api.updateProfile(
@@ -216,28 +255,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     label: '信箱',
                     child: AppTextField(controller: _emailController, enabled: false, hint: '信箱無法修改'),
                   ),
-                  FormRowCard(
-                    label: '生日',
-                    child: Row(
-                      children: [
-                        Expanded(child: AppTextField(controller: _yearController, keyboardType: TextInputType.number, maxLength: 4)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: Text('年', style: TextStyle(color: c.textPrimary)),
-                        ),
-                        Expanded(child: AppTextField(controller: _monthController, keyboardType: TextInputType.number, maxLength: 2)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: Text('月', style: TextStyle(color: c.textPrimary)),
-                        ),
-                        Expanded(child: AppTextField(controller: _dayController, keyboardType: TextInputType.number, maxLength: 2)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: Text('日', style: TextStyle(color: c.textPrimary)),
-                        ),
-                      ],
-                    ),
-                  ),
+                  FormRowCard(label: '生日', child: _buildBirthdayField(c)),
                   const SizedBox(height: 28),
                   SizedBox(
                     width: double.infinity,

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import '../services/photo_service.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
@@ -45,7 +46,6 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
   ];
 
   final ApiService _api = ApiService();
-  final ImagePicker _picker = ImagePicker();
 
   late final TextEditingController _priceController;
   late String _condition;
@@ -106,13 +106,15 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       return;
     }
 
-    final picked = await _picker.pickMultiImage();
-    if (picked.isEmpty || !mounted) return;
+    final paths = await PhotoService.pickAndCropMultiple(
+      context,
+      remaining: remaining,
+      aspectRatio: 1,
+      outputSize: 1080,
+    );
+    if (paths.isEmpty || !mounted) return;
 
-    if (picked.length > remaining) {
-      showAppSnackBar(context, '最多再加入 $remaining 張，已自動截斷', isError: true);
-    }
-    setState(() => _newImages.addAll(picked.take(remaining)));
+    setState(() => _newImages.addAll(paths.map(XFile.new)));
   }
 
   Future<void> _removeExistingImage(BookImage image) async {

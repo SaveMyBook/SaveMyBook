@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../services/photo_service.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_dialogs.dart';
@@ -18,7 +19,6 @@ class DisputeScreen extends StatefulWidget {
 
 class _DisputeScreenState extends State<DisputeScreen> {
   final ApiService _api = ApiService();
-  final ImagePicker _picker = ImagePicker();
   final TextEditingController _orderIdController = TextEditingController();
   final TextEditingController _reasonController = TextEditingController();
   final List<XFile> _evidence = [];
@@ -243,8 +243,19 @@ class _DisputeScreenState extends State<DisputeScreen> {
                       ),
                     GestureDetector(
                       onTap: () async {
-                        final picked = await _picker.pickMultiImage();
-                        if (picked.isNotEmpty) setState(() => _evidence.addAll(picked));
+                        if (_evidence.length >= 6) {
+                          showAppSnackBar(context, '最多只能上傳 6 張佐證照片', isError: true);
+                          return;
+                        }
+                        final paths = await PhotoService.pickAndCropMultiple(
+                          context,
+                          remaining: 6 - _evidence.length,
+                          aspectRatio: 3 / 4,
+                          outputSize: 1200,
+                        );
+                        if (paths.isNotEmpty && mounted) {
+                          setState(() => _evidence.addAll(paths.map(XFile.new)));
+                        }
                       },
                       child: Container(
                         width: 64,

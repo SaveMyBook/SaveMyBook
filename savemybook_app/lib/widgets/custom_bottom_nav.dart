@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import 'animations.dart';
@@ -118,13 +119,29 @@ class CustomBottomNav extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => onItemSelected(index),
+      onTap: () {
+        if (selectedIndex != index) HapticFeedback.selectionClick();
+        onItemSelected(index);
+      },
       child: SizedBox(
         width: 52, height: 60,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // 選中的膠囊底色，讓切換不是只有圖示變色而已。
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              width: isSelected ? 46 : 0,
+              height: isSelected ? 46 : 0,
+              decoration: BoxDecoration(
+                color: c.accent.withValues(alpha: isSelected ? 0.10 : 0),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
               icon,
               const SizedBox(height: 2),
               AnimatedDefaultTextStyle(
@@ -136,8 +153,9 @@ class CustomBottomNav extends StatelessWidget {
                 ),
                 child: Text(label),
               ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -148,7 +166,10 @@ class CustomBottomNav extends StatelessWidget {
 
     return PressableScale(
       scale: 0.9,
-      onTap: () => onItemSelected(2),
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        onItemSelected(2);
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 260),
         curve: Curves.easeOut,

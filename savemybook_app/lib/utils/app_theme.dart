@@ -47,8 +47,8 @@ class AppTheme {
       highlightColor: isDark ? Colors.white10 : Colors.black12,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
-          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.android: SmoothPageTransitionsBuilder(),
+          TargetPlatform.iOS: SmoothPageTransitionsBuilder(),
         },
       ),
       appBarTheme: AppBarTheme(
@@ -211,6 +211,43 @@ class AppTheme {
         labelMedium: baseText,
         labelSmall: baseText,
       ).apply(fontFamily: 'NotoSansTC'),
+    );
+  }
+}
+
+/// 新頁從右邊滑入並淡入，舊頁同時往左退一點並稍微變暗，
+/// 讓前後頁有層次感，而不是硬生生換一張。
+class SmoothPageTransitionsBuilder extends PageTransitionsBuilder {
+  const SmoothPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final enter = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    final exit = CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOutCubic);
+
+    return SlideTransition(
+      position: Tween(begin: const Offset(-0.18, 0), end: Offset.zero).animate(exit),
+      child: FadeTransition(
+        opacity: Tween(begin: 1.0, end: 0.6).animate(exit),
+        child: SlideTransition(
+          position: Tween(begin: const Offset(1, 0), end: Offset.zero).animate(enter),
+          child: FadeTransition(
+            opacity: Tween(begin: 0.0, end: 1.0)
+                .animate(CurvedAnimation(parent: animation, curve: const Interval(0, 0.45))),
+            child: child,
+          ),
+        ),
+      ),
     );
   }
 }

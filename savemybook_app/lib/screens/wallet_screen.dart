@@ -53,7 +53,7 @@ class _WalletScreenState extends State<WalletScreen> {
           const AppHeader(title: '代幣中心', icon: Icons.monetization_on_outlined),
           Expanded(
             child: SwitchIn(child: _isLoading
-                ? const LoadingView()
+                ? const LoadingView.list()
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,

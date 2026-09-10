@@ -133,7 +133,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          AppHeader(title: title.isEmpty ? '聊天' : title, icon: Icons.person_outline_rounded),
+          AppHeader(
+            title: title.isEmpty ? '聊天' : title,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: UserAvatar(
+                  imageUrl: _partner?.avatarUrl,
+                  radius: 17,
+                  background: Colors.white24,
+                  enablePreview: true,
+                  previewTitle: title,
+                ),
+              ),
+            ],
+          ),
           Expanded(
             child: SwitchIn(child: _isLoading
                 ? const LoadingView()
@@ -141,13 +155,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     ? const EmptyView(icon: Icons.chat_outlined, message: '開始你們的第一則訊息吧')
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                         itemCount: _messages.length,
                         itemBuilder: (_, i) => FadeSlideIn(
                           index: i,
                           offsetY: 10,
                           stagger: const Duration(milliseconds: 20),
-                          child: _buildBubble(_messages[i], c),
+                          child: _buildBubble(i, c),
                         ),
                       )),
           ),
@@ -157,48 +171,82 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
-  Widget _buildBubble(ChatMessage message, AppColors c) {
+  Widget _buildBubble(int index, AppColors c) {
+    final message = _messages[index];
     final isMine = message.senderId == _myId;
 
+    // 連續同一人的訊息只在最後一則顯示頭像與時間，中間的收緊間距，
+    // 不然每一行都掛一顆頭像、每一行都有時間戳，整個版面會很雜。
+    final next = index + 1 < _messages.length ? _messages[index + 1] : null;
+    final isGroupEnd = next == null || next.senderId != message.senderId;
+    final previous = index > 0 ? _messages[index - 1] : null;
+    final isGroupStart = previous == null || previous.senderId != message.senderId;
+
+    const avatarSize = 32.0;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+      padding: EdgeInsets.only(top: isGroupStart ? 10 : 2, bottom: isGroupEnd ? 4 : 0),
+      child: Column(
+        crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          if (!isMine) ...[
-            UserAvatar(imageUrl: _partner?.avatarUrl, radius: 16),
-            const SizedBox(width: 8),
-          ],
-          Flexible(
-            child: Column(
-              crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: isMine ? c.accent : c.card,
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(16),
-                      topRight: const Radius.circular(16),
-                      bottomLeft: Radius.circular(isMine ? 16 : 4),
-                      bottomRight: Radius.circular(isMine ? 4 : 16),
-                    ),
+          Row(
+            mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (!isMine)
+                SizedBox(
+                  width: avatarSize,
+                  child: isGroupEnd
+                      ? UserAvatar(
+                          imageUrl: _partner?.avatarUrl,
+                          radius: avatarSize / 2,
+                          enablePreview: true,
+                          previewTitle: _partner?.nickname,
+                        )
+                      : null,
+                ),
+              if (!isMine) const SizedBox(width: 8),
+              Flexible(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.68,
                   ),
-                  child: Text(
-                    message.content,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.4,
-                      color: isMine ? Colors.white : c.textPrimary,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isMine ? c.accent : c.card,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(isMine || isGroupStart ? 16 : 6),
+                        topRight: Radius.circular(!isMine || isGroupStart ? 16 : 6),
+                        bottomLeft: Radius.circular(isMine || !isGroupEnd ? 16 : 6),
+                        bottomRight: Radius.circular(!isMine || !isGroupEnd ? 16 : 6),
+                      ),
+                    ),
+                    child: Text(
+                      message.content,
+                      style: TextStyle(
+                        fontSize: 14,
+                        height: 1.45,
+                        color: isMine ? Colors.white : c.textPrimary,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(formatRelative(message.createdAt), style: TextStyle(fontSize: 10, color: c.textHint)),
-              ],
-            ),
+              ),
+            ],
           ),
+          if (isGroupEnd)
+            Padding(
+              padding: EdgeInsets.only(
+                left: isMine ? 0 : avatarSize + 8,
+                right: 2,
+                top: 4,
+              ),
+              child: Text(
+                formatRelative(message.createdAt),
+                style: TextStyle(fontSize: 10, color: c.textHint),
+              ),
+            ),
         ],
       ),
     );

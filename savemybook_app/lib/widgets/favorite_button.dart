@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import 'animations.dart';
@@ -32,6 +33,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
 
   Future<void> _toggle() async {
     if (_isBusy) return;
+    HapticFeedback.lightImpact();
     setState(() => _isBusy = true);
     final error = await _api.toggleFavorite(widget.bookId);
     if (!mounted) return;

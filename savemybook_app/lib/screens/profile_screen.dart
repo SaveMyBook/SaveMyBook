@@ -71,28 +71,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: c.scaffold,
-      body: RefreshIndicator(
-        color: c.accent,
-        onRefresh: _loadStats,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            _buildHeader(c, user?.nickname ?? '使用者', user?.bio ?? '', user?.avatarUrl),
-            const SizedBox(height: 20),
-            _buildQuickActions(c),
-            const SizedBox(height: 20),
-            _buildMenu(c),
-            const SizedBox(height: 20),
-            _buildLogoutButton(c),
-            const SizedBox(height: 120),
-          ],
-        ),
+      body: Column(
+        children: [
+          // header 固定在最上面，只讓下面的清單捲動。
+          _buildHeader(c, user?.nickname ?? '使用者', user?.bio ?? '', user?.avatarUrl),
+          Expanded(
+            child: RefreshIndicator(
+              color: c.accent,
+              onRefresh: _loadStats,
+              child: ListView(
+                padding: EdgeInsets.zero,
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  const SizedBox(height: 20),
+                  _buildQuickActions(c),
+                  const SizedBox(height: 20),
+                  _buildMenu(c),
+                  const SizedBox(height: 20),
+                  _buildLogoutButton(c),
+                  const SizedBox(height: 120),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildHeader(AppColors c, String nickname, String bio, String? avatarUrl) {
-return LightStatusBar(
+    return LightStatusBar(
       child: Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -121,7 +129,13 @@ return LightStatusBar(
               const SizedBox(height: 16),
               Row(
                 children: [
-                  UserAvatar(imageUrl: avatarUrl, radius: 37, background: Colors.white24),
+                  UserAvatar(
+                    imageUrl: avatarUrl,
+                    radius: 37,
+                    background: Colors.white24,
+                    enablePreview: true,
+                    previewTitle: nickname,
+                  ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(

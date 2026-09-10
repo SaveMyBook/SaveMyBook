@@ -46,7 +46,7 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
           Expanded(
             child: SwitchIn(
               child: _isLoading
-                  ? const LoadingView()
+                  ? const LoadingView.list()
                   : RefreshIndicator(
                       key: const ValueKey('logs'),
                       color: c.accent,

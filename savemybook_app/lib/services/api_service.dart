@@ -461,6 +461,11 @@ class ApiService {
     return count;
   }
 
+  Future<bool> deleteChatRoom(int roomId) async {
+    final res = await _send('DELETE', '/chat/rooms/$roomId');
+    return res != null && res['success'] == true;
+  }
+
   Future<bool> markAllChatsRead() async {
     final res = await _send('PATCH', '/chat/read-all');
     final ok = res != null && res['success'] == true;

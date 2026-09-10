@@ -2,18 +2,129 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import 'animations.dart';
 
+enum LoadingStyle { spinner, list, grid }
+
 class LoadingView extends StatelessWidget {
-  const LoadingView({super.key});
+  final LoadingStyle style;
+
+  const LoadingView({super.key, this.style = LoadingStyle.spinner});
+
+  const LoadingView.list({super.key}) : style = LoadingStyle.list;
+
+  const LoadingView.grid({super.key}) : style = LoadingStyle.grid;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(48),
-        child: FadeSlideIn(
-          offsetY: 0,
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
+    switch (style) {
+      case LoadingStyle.list:
+        return Shimmer(
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 5,
+            itemBuilder: (_, _) => const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: _SkeletonRow(),
+            ),
+          ),
+        );
+
+      case LoadingStyle.grid:
+        return Shimmer(
+          child: GridView.builder(
+            padding: const EdgeInsets.all(16),
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.58,
+            ),
+            itemCount: 4,
+            itemBuilder: (_, _) => const _SkeletonCard(),
+          ),
+        );
+
+      case LoadingStyle.spinner:
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(48),
+            child: FadeSlideIn(
+              offsetY: 0,
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+          ),
+        );
+    }
+  }
+}
+
+class _SkeletonRow extends StatelessWidget {
+  const _SkeletonRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(16)),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SkeletonBox(width: 64, height: 86, radius: 10),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 4),
+                const SkeletonBox(height: 14),
+                const SizedBox(height: 10),
+                const SkeletonBox(width: 120, height: 12),
+                const SizedBox(height: 10),
+                const SkeletonBox(width: 80, height: 12),
+                const SizedBox(height: 14),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: const SkeletonBox(width: 60, height: 18, radius: 8),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkeletonCard extends StatelessWidget {
+  const _SkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+
+    return Container(
+      decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SkeletonBox(height: 140, radius: 16),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                SkeletonBox(height: 14),
+                SizedBox(height: 10),
+                SkeletonBox(width: 90, height: 12),
+                SizedBox(height: 12),
+                SkeletonBox(width: 60, height: 18, radius: 8),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -204,10 +315,9 @@ void showAppSnackBar(BuildContext context, String message, {bool isError = false
   final overlapsNav = kBottomNavVisible && (ModalRoute.of(context)?.isFirst ?? false);
   final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-  // 導覽列高 60 + 下方留白 12 + 安全區，再往上留一點空隙。
-  final bottomMargin = bottomInset > 0
-      ? 16.0
-      : (overlapsNav ? MediaQuery.of(context).padding.bottom + 88 : 16.0);
+  // 浮動 SnackBar 本身已經會避開下方安全區，這裡只要再補導覽列的高度
+  // （60 高 + 12 下緣留白 + 8 空隙），多加安全區會整個浮太高。
+  final bottomMargin = bottomInset > 0 ? 16.0 : (overlapsNav ? 80.0 : 16.0);
 
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()

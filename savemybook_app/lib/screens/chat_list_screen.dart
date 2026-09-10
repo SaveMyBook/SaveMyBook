@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/chat.dart';
 import '../services/api_service.dart';
+import '../services/chat_prefs.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_dialogs.dart';
@@ -10,6 +11,7 @@ import '../widgets/app_tiles.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../widgets/swipe_action.dart';
 import 'cart_screen.dart';
 import 'chat_room_screen.dart';
 
@@ -46,6 +48,40 @@ class _ChatListScreenState extends State<ChatListScreen> {
       _rooms = rooms;
       _isLoading = false;
     });
+  }
+
+  Future<bool> _confirmDelete(ChatRoom room) {
+    return showConfirmDialog(
+      context,
+      title: '刪除聊天室',
+      message: '會一併刪除與 ${room.partner.nickname} 的所有訊息，雙方都看不到了。此動作無法復原。',
+      confirmLabel: '刪除',
+      isDestructive: true,
+    );
+  }
+
+  Future<void> _deleteDismissed(ChatRoom room) async {
+    setState(() => _rooms.removeWhere((r) => r.roomId == room.roomId));
+    ChatPrefs.forget(room.roomId);
+
+    final ok = await _api.deleteChatRoom(room.roomId);
+    if (!mounted) return;
+
+    if (ok) {
+      showAppSnackBar(context, '已刪除聊天室');
+      _api.fetchUnreadChatCount();
+    } else {
+      showAppSnackBar(context, '刪除失敗，已還原', isError: true);
+      _load();
+    }
+  }
+
+  Future<bool> _toggleMute(ChatRoom room) async {
+    final muted = await ChatPrefs.toggle(room.roomId);
+    if (!mounted) return true;
+    setState(() {});
+    showAppSnackBar(context, muted ? '已靜音這個聊天室' : '已取消靜音');
+    return true;
   }
 
   Future<void> _markAllRead() async {
@@ -94,7 +130,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
           Expanded(
             child: SwitchIn(child: _isLoading
-                ? const LoadingView()
+                ? const LoadingView.list()
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
@@ -121,6 +157,29 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Widget _buildRoomTile(ChatRoom room, AppColors c) {
+    final muted = ChatPrefs.isMuted(room.roomId);
+
+    return SwipeActionTile(
+      itemKey: ValueKey('room_${room.roomId}'),
+      startToEnd: SwipeAction(
+        icon: muted ? Icons.notifications_active_outlined : Icons.notifications_off_outlined,
+        label: muted ? '取消靜音' : '靜音',
+        color: c.warning,
+        onTrigger: () => _toggleMute(room),
+      ),
+      endToStart: SwipeAction(
+        icon: Icons.delete_outline_rounded,
+        label: '刪除',
+        color: c.danger,
+        dismisses: true,
+        onTrigger: () => _confirmDelete(room),
+        onDismissed: () => _deleteDismissed(room),
+      ),
+      child: _buildRoomCard(room, c, muted),
+    );
+  }
+
+  Widget _buildRoomCard(ChatRoom room, AppColors c, bool muted) {
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -135,15 +194,36 @@ class _ChatListScreenState extends State<ChatListScreen> {
       },
       child: Row(
         children: [
-          UserAvatar(imageUrl: room.partner.avatarUrl, radius: 26),
+          UserAvatar(
+            imageUrl: room.partner.avatarUrl,
+            radius: 26,
+            enablePreview: true,
+            previewTitle: room.partner.nickname,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  room.partner.nickname,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        room.partner.nickname,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: c.textPrimary,
+                        ),
+                      ),
+                    ),
+                    if (muted) ...[
+                      const SizedBox(width: 6),
+                      Icon(Icons.notifications_off_rounded, size: 14, color: c.textHint),
+                    ],
+                  ],
                 ),
                 if (room.bookTitle != null) ...[
                   const SizedBox(height: 2),

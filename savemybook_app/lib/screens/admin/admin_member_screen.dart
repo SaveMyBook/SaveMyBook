@@ -173,7 +173,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
           ),
           Expanded(
             child: SwitchIn(child: _isLoading
-                ? const LoadingView()
+                ? const LoadingView.list()
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
