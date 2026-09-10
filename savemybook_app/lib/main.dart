@@ -10,6 +10,7 @@ import 'services/chat_prefs.dart';
 import 'services/deep_link_service.dart';
 import 'services/theme_provider.dart';
 import 'utils/app_theme.dart';
+import 'widgets/state_views.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -40,11 +41,18 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     themeProvider = await ThemeProvider.init();
     await ChatPrefs.load();
 
-    ApiService.onUnauthorized = () {
+    ApiService.onUnauthorized = (reason) {
       navigatorKey.currentState?.pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const LoginScreen()),
-            (_) => false,
+        (_) => false,
       );
+
+      // 帳號被停權／列入黑名單時要明確告知，不然使用者只會看到莫名其妙被登出。
+      if (reason == null || reason.isEmpty) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null) showAppSnackBar(ctx, reason, isError: true);
+      });
     };
 
     // 先 init 再掛 handler：冷啟動時 navigatorKey 還沒有 currentState，

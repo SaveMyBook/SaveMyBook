@@ -9,6 +9,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
+import 'admin_member_detail_screen.dart';
 
 class AdminMemberScreen extends StatefulWidget {
   const AdminMemberScreen({super.key});
@@ -82,6 +83,14 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
     }
   }
 
+  Future<void> _openDetail(AdminMember member) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AdminMemberDetailScreen(userId: member.userId)),
+    );
+    _load();
+  }
+
   void _showActions(AdminMember member) {
     final c = AppColors.of(context);
     showModalBottomSheet(
@@ -124,6 +133,14 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
               onTap: () {
                 Navigator.pop(ctx);
                 _toggle(member, isBlacklisted: !member.isBlacklisted);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.manage_accounts_outlined, color: c.accent),
+              title: Text('完整設定（等級、權限）', style: TextStyle(color: c.textPrimary)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _openDetail(member);
               },
             ),
             const SizedBox(height: 8),
@@ -203,7 +220,8 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
-      onTap: () => _showActions(member),
+      onTap: () => _openDetail(member),
+      onLongPress: () => _showActions(member),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

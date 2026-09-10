@@ -7,7 +7,6 @@ import '../services/photo_service.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
-import '../widgets/animations.dart';
 import 'home_screen.dart';
 
 class SellBookDetailScreen extends StatefulWidget {
@@ -338,8 +337,8 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     final canAddMore = _totalImages < 10;
 
     return AnimatedSize(
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeOutCubic,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(12)),
@@ -365,7 +364,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                   '($_filledRequired/3)',
                   style: TextStyle(
                     fontSize: 14,
-                    color: _filledRequired < 3 ? c.danger : c.success,
+                    color: _filledRequired < 3 ? c.danger : c.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -373,12 +372,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                 Text('$_totalImages/10', style: TextStyle(fontSize: 14, color: c.textHint)),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              '封面、背面、條碼三格請分別點選，其餘為補充照片',
-              style: TextStyle(fontSize: 11, color: c.textHint),
-            ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             SizedBox(
               height: 140,
               child: ListView(
@@ -387,17 +381,31 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                   for (var i = 0; i < _slots.length; i++)
                     Padding(
                       padding: const EdgeInsets.only(right: 12),
-                      child: _buildSlot(c, i),
+                      child: _slots[i] == null
+                          ? _buildAddImageButton(c, _requiredLabels[i], () => _pickRequired(i))
+                          : _buildImageItem(
+                              c,
+                              _requiredLabels[i],
+                              _slots[i]!,
+                              isRequired: true,
+                              onRemove: () => _removeRequired(i),
+                            ),
                     ),
                   for (var i = 0; i < _extra.length; i++)
                     Padding(
                       padding: const EdgeInsets.only(right: 12),
-                      child: _buildExtra(c, i),
+                      child: _buildImageItem(
+                        c,
+                        '補充照片',
+                        _extra[i],
+                        isRequired: false,
+                        onRemove: () => _removeExtra(i),
+                      ),
                     ),
                   if (canAddMore)
                     Padding(
                       padding: const EdgeInsets.only(right: 12),
-                      child: _buildAddImageButton(c),
+                      child: _buildAddImageButton(c, '補充照片', _addExtraImages),
                     ),
                 ],
               ),
@@ -408,121 +416,102 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     );
   }
 
-  Widget _buildSlot(AppColors c, int slot) {
-    final file = _slots[slot];
-
-    return _buildTile(
-      c,
-      label: _requiredLabels[slot],
-      labelColor: file == null ? c.danger : c.textSecondary,
-      child: file == null
-          ? _buildEmptyTile(c, Icons.add_a_photo_outlined, '必填', c.danger)
-          : _buildFilledTile(c, file, onRemove: () => _removeRequired(slot)),
-      onTap: () => _pickRequired(slot),
-    );
-  }
-
-  Widget _buildExtra(AppColors c, int index) {
-    return _buildTile(
-      c,
-      label: '補充 ${index + 1}',
-      labelColor: c.textSecondary,
-      child: _buildFilledTile(c, _extra[index], onRemove: () => _removeExtra(index)),
-      onTap: null,
-    );
-  }
-
-  Widget _buildTile(
-    AppColors c, {
-    required String label,
-    required Color labelColor,
-    required Widget child,
-    VoidCallback? onTap,
+  Widget _buildImageItem(
+    AppColors c,
+    String label,
+    XFile imageFile, {
+    required bool isRequired,
+    required VoidCallback onRemove,
   }) {
     return Column(
       children: [
-        PressableScale(
-          scale: onTap == null ? 1 : 0.94,
-          onTap: onTap,
-          child: SizedBox(
-            width: 90,
-            height: 110,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 260),
-              switchInCurve: Curves.easeOutCubic,
-              transitionBuilder: (widget, animation) => FadeTransition(
-                opacity: animation,
-                child: ScaleTransition(scale: Tween(begin: 0.92, end: 1.0).animate(animation), child: widget),
+        Container(
+          width: 90,
+          height: 110,
+          decoration: BoxDecoration(
+            border: Border.all(color: c.divider, width: 1.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(File(imageFile.path), fit: BoxFit.cover),
               ),
-              child: child,
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Material(
+                  color: Colors.white,
+                  shape: const CircleBorder(),
+                  elevation: 2,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: onRemove,
+                    child: const Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Icon(Icons.close, color: Colors.black87, size: 16),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: TextStyle(
+            color: isRequired ? c.danger : c.textSecondary,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddImageButton(AppColors c, String label, VoidCallback onTap) {
+    return Column(
+      children: [
+        Material(
+          color: c.accent.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(8),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Container(
+              width: 90,
+              height: 110,
+              decoration: BoxDecoration(
+                border: Border.all(color: c.accent.withValues(alpha: 0.5), width: 1.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_photo_alternate_outlined, color: c.accent, size: 28),
+                  const SizedBox(height: 4),
+                  Text(
+                    '加入',
+                    style: TextStyle(color: c.accent, fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
         const SizedBox(height: 6),
         Text(
           label,
-          style: TextStyle(color: labelColor, fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyTile(AppColors c, IconData icon, String hint, Color tint) {
-    return Container(
-      key: ValueKey('empty_$hint$icon'),
-      decoration: BoxDecoration(
-        color: tint.withValues(alpha: 0.06),
-        border: Border.all(color: tint.withValues(alpha: 0.45), width: 1.4),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: tint, size: 26),
-          const SizedBox(height: 4),
-          Text(hint, style: TextStyle(color: tint, fontSize: 12, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilledTile(AppColors c, XFile file, {required VoidCallback onRemove}) {
-    return Stack(
-      key: ValueKey('img_${file.path}'),
-      fit: StackFit.expand,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.file(File(file.path), fit: BoxFit.cover),
-        ),
-        Positioned(
-          top: 4,
-          right: 4,
-          child: Material(
-            color: Colors.white,
-            shape: const CircleBorder(),
-            elevation: 2,
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: onRemove,
-              child: const Padding(
-                padding: EdgeInsets.all(4),
-                child: Icon(Icons.close, color: Colors.black87, size: 16),
-              ),
-            ),
+          style: TextStyle(
+            color: _requiredLabels.contains(label) ? c.danger : c.textHint,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildAddImageButton(AppColors c) {
-    return _buildTile(
-      c,
-      label: '補充照片',
-      labelColor: c.textHint,
-      onTap: _addExtraImages,
-      child: _buildEmptyTile(c, Icons.add_photo_alternate_outlined, '加入', c.accent),
     );
   }
 

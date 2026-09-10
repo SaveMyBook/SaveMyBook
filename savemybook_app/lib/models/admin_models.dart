@@ -772,3 +772,89 @@ class AdminWalletDetail {
   }
 }
 
+class AdminMemberDetail {
+  final int userId;
+  final String nickname;
+  final String email;
+  final String? phone;
+  final String? avatarUrl;
+  final String role;
+  final bool isActive;
+  final bool isBlacklisted;
+  final int bookCount;
+  final int completedOrders;
+  final int basePoints;
+  final int bonusPoints;
+  final int points;
+  final AdminLevel? currentLevel;
+  final List<AdminLevel> levels;
+  final Map<String, bool> permissions;
+  final DateTime? createdAt;
+
+  AdminMemberDetail({
+    required this.userId,
+    required this.nickname,
+    required this.email,
+    required this.role,
+    required this.isActive,
+    required this.isBlacklisted,
+    required this.bookCount,
+    required this.completedOrders,
+    required this.basePoints,
+    required this.bonusPoints,
+    required this.points,
+    required this.levels,
+    required this.permissions,
+    this.phone,
+    this.avatarUrl,
+    this.currentLevel,
+    this.createdAt,
+  });
+
+  bool get isAdmin => role == 'admin';
+
+  /// 權限鍵值與畫面上的說明。
+  static const permissionLabels = {
+    'can_manage_transactions': ('交易管理', '訂單、仲裁、錢包'),
+    'can_manage_members': ('會員管理', '會員狀態、等級、權限'),
+    'can_manage_content': ('商品管理', '書籍與分類'),
+    'can_manage_reports': ('檢舉審核', '處理商品檢舉'),
+    'can_manage_announcements': ('系統公告', '發佈與編輯公告'),
+    'can_manage_cabinets': ('硬體維護', '書櫃與櫃位'),
+  };
+
+  factory AdminMemberDetail.fromJson(Map<String, dynamic> json) {
+    final perms = <String, bool>{};
+    final raw = json['permissions'];
+    if (raw is Map) {
+      for (final entry in raw.entries) {
+        perms['${entry.key}'] = entry.value == true;
+      }
+    }
+
+    return AdminMemberDetail(
+      userId: parseInt(json['user_id']),
+      nickname: json['nickname'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      phone: json['phone'] as String?,
+      avatarUrl: resolveAssetUrl(json['avatar_url']),
+      role: json['role'] as String? ?? 'buyer_seller',
+      isActive: json['is_active'] == true,
+      isBlacklisted: json['is_blacklisted'] == true,
+      bookCount: parseInt(json['book_count']),
+      completedOrders: parseInt(json['completed_orders']),
+      basePoints: parseInt(json['base_points']),
+      bonusPoints: parseInt(json['bonus_points']),
+      points: parseInt(json['points']),
+      currentLevel: json['current_level'] == null
+          ? null
+          : AdminLevel.fromJson(Map<String, dynamic>.from(json['current_level'])),
+      levels: ((json['levels'] as List?) ?? const [])
+          .map((e) => AdminLevel.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
+      permissions: perms,
+      createdAt: parseDate(json['created_at']),
+    );
+  }
+}
+

@@ -34,7 +34,7 @@ class ApiService {
   static String? authToken;
   static User? currentUser;
 
-  static void Function()? onUnauthorized;
+  static void Function(String? reason)? onUnauthorized;
 
   static const String publicWebUrl = 'https://api.savemybook.today';
 
@@ -89,13 +89,14 @@ class ApiService {
     searchHistory.remove(keyword);
   }
 
-  static Future<void> _handleUnauthorized() async {
+  static Future<void> _handleUnauthorized({String? reason}) async {
     if (authToken == null) return;
     authToken = null;
     currentUser = null;
+    resetGlobalState();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
-    onUnauthorized?.call();
+    onUnauthorized?.call(reason);
   }
 
   static Map<String, String> _headers({bool json = false}) {
@@ -142,7 +143,23 @@ class ApiService {
       }
 
       if (response.statusCode == 401) {
-        await _handleUnauthorized();
+        // 停權／黑名單的訊息要帶回去給使用者看，不能只是靜靜踢回登入頁。
+        String? reason;
+        try {
+          final payload = jsonDecode(utf8.decode(response.bodyBytes));
+          if (payload is Map) {
+            final code = payload['code'];
+            if (code == 'ACCOUNT_BLACKLISTED' ||
+                code == 'ACCOUNT_INACTIVE' ||
+                code == 'ACCOUNT_NOT_FOUND') {
+              reason = payload['message'] as String?;
+            }
+          }
+        } catch (_) {
+          // 沒有 JSON body 就當成一般的 token 過期。
+        }
+
+        await _handleUnauthorized(reason: reason);
         return null;
       }
 
@@ -746,6 +763,40 @@ class ApiService {
       'is_blacklisted': ?isBlacklisted,
     });
     return res != null && res['success'] == true;
+  }
+
+  Future<AdminMemberDetail?> fetchAdminMemberDetail(int userId) async {
+    final res = await _send('GET', '/admin/members/$userId');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return AdminMemberDetail.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<String?> updateMemberRole(int userId, String role) async {
+    final res = await _send('PATCH', '/admin/members/$userId', body: {'role': role});
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '更新失敗');
+  }
+
+  /// 三選一：指定等級、加減點數、或恢復自動計算。
+  Future<String?> adjustMemberLevel(
+    int userId, {
+    int? levelId,
+    int? delta,
+    bool reset = false,
+  }) async {
+    final res = await _send('PATCH', '/admin/members/$userId/level', body: {
+      if (reset) 'reset': true,
+      if (!reset && delta != null) 'delta': delta,
+      if (!reset && delta == null && levelId != null) 'level_id': levelId,
+    });
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '調整失敗');
+  }
+
+  Future<String?> updateAdminPermissions(int userId, Map<String, bool> permissions) async {
+    final res = await _send('PUT', '/admin/members/$userId/permissions', body: permissions);
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '更新失敗');
   }
 
   Future<List<ReportCase>> fetchAdminReports({String? status}) async {

@@ -199,6 +199,7 @@ class AppCard extends StatefulWidget {
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry margin;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
   const AppCard({
     super.key,
@@ -206,6 +207,7 @@ class AppCard extends StatefulWidget {
     this.padding = const EdgeInsets.all(16),
     this.margin = EdgeInsets.zero,
     this.onTap,
+    this.onLongPress,
   });
 
   @override
@@ -248,8 +250,10 @@ class _AppCardState extends State<AppCard> {
             child: InkWell(
               borderRadius: radius,
               onTap: widget.onTap,
+              onLongPress: widget.onLongPress,
               onHighlightChanged: (value) {
-                if (widget.onTap == null || _pressed == value) return;
+                if (widget.onTap == null && widget.onLongPress == null) return;
+                if (_pressed == value) return;
                 setState(() => _pressed = value);
               },
               child: Padding(padding: widget.padding, child: widget.child),

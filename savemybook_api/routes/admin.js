@@ -5,14 +5,14 @@ const requireAdmin = require('../middleware/requireAdmin');
 
 const router = express.Router();
 
-router.use(authenticateToken, requireAdmin);
+router.use(authenticateToken, requireAdmin());
 
 const logAction = (adminId, action, targetType, targetId, detail) =>
   prisma.admin_operation_logs.create({
     data: { admin_id: adminId, action, target_type: targetType, target_id: targetId, detail }
   });
 
-router.get('/members', async (req, res) => {
+router.get('/members', requireAdmin('members'), async (req, res) => {
   const keyword = req.query.keyword || '';
   const status = req.query.status;
   const page = parseInt(req.query.page) || 1;
@@ -63,7 +63,7 @@ router.get('/members', async (req, res) => {
   }
 });
 
-router.patch('/members/:id', async (req, res) => {
+router.patch('/members/:id', requireAdmin('members'), async (req, res) => {
   const userId = parseInt(req.params.id);
   const { is_active, is_blacklisted, role } = req.body;
 
@@ -93,7 +93,182 @@ router.patch('/members/:id', async (req, res) => {
   }
 });
 
-router.get('/reports', async (req, res) => {
+
+// ---------- 會員細部設定（等級／權限） ----------
+
+const PERMISSION_KEYS = [
+  'can_manage_transactions',
+  'can_manage_members',
+  'can_manage_content',
+  'can_manage_reports',
+  'can_manage_announcements',
+  'can_manage_cabinets'
+];
+
+router.get('/members/:id', requireAdmin('members'), async (req, res) => {
+  const userId = parseInt(req.params.id);
+
+  try {
+    const [user, levels, completedOrders] = await Promise.all([
+      prisma.users.findUnique({
+        where: { user_id: userId },
+        select: {
+          user_id: true, nickname: true, email: true, avatar_url: true, phone: true,
+          role: true, is_active: true, is_blacklisted: true, bonus_points: true,
+          created_at: true, admin_permissions: true,
+          _count: { select: { books: true } }
+        }
+      }),
+      prisma.member_levels.findMany({ orderBy: { min_points: 'asc' } }),
+      prisma.orders.count({ where: { buyer_id: userId, status: 'completed' } })
+    ]);
+
+    if (!user) return res.status(404).json({ success: false, message: '找不到該會員' });
+
+    const basePoints = completedOrders * 10;
+    const points = Math.max(0, basePoints + user.bonus_points);
+    const current = [...levels].reverse().find((l) => points >= l.min_points) ?? levels[0] ?? null;
+
+    // 沒有 admin_permissions 資料列的管理員視為全開，避免既有帳號突然沒權限。
+    const perms = user.admin_permissions ??
+      Object.fromEntries(PERMISSION_KEYS.map((k) => [k, true]));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user_id: user.user_id,
+        nickname: user.nickname,
+        email: user.email,
+        phone: user.phone,
+        avatar_url: user.avatar_url,
+        role: user.role,
+        is_active: user.is_active,
+        is_blacklisted: user.is_blacklisted,
+        created_at: user.created_at,
+        book_count: user._count.books,
+        completed_orders: completedOrders,
+        base_points: basePoints,
+        bonus_points: user.bonus_points,
+        points,
+        current_level: current,
+        levels,
+        permissions: Object.fromEntries(PERMISSION_KEYS.map((k) => [k, !!perms[k]]))
+      }
+    });
+  } catch (err) {
+    console.error('[取得會員細節失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.patch('/members/:id/level', requireAdmin('members'), async (req, res) => {
+  const userId = parseInt(req.params.id);
+  const { level_id: levelId, reset, delta } = req.body;
+
+  try {
+    const completedOrders = await prisma.orders.count({
+      where: { buyer_id: userId, status: 'completed' }
+    });
+    const basePoints = completedOrders * 10;
+
+    let bonus;
+    let detail;
+
+    if (reset === true) {
+      bonus = 0;
+      detail = '恢復自動計算';
+    } else if (delta !== undefined) {
+      const amount = parseInt(delta);
+      if (!Number.isFinite(amount) || amount === 0) {
+        return res.status(400).json({ success: false, message: '請輸入非零的點數' });
+      }
+      const user = await prisma.users.findUnique({
+        where: { user_id: userId },
+        select: { bonus_points: true }
+      });
+      if (!user) return res.status(404).json({ success: false, message: '找不到該會員' });
+      bonus = user.bonus_points + amount;
+      detail = `點數 ${amount > 0 ? '+' : ''}${amount}`;
+    } else {
+      const level = await prisma.member_levels.findUnique({
+        where: { level_id: parseInt(levelId) }
+      });
+      if (!level) return res.status(404).json({ success: false, message: '找不到這個等級' });
+      // 把補正值調到剛好踩在該等級的門檻上。
+      bonus = level.min_points - basePoints;
+      detail = `指定等級：${level.level_name}`;
+    }
+
+    if (basePoints + bonus < 0) bonus = -basePoints;
+
+    await prisma.users.update({
+      where: { user_id: userId },
+      data: { bonus_points: bonus, updated_at: new Date() }
+    });
+
+    await prisma.notifications.create({
+      data: {
+        user_id: userId,
+        type: 'system',
+        title: '會員等級已調整',
+        content: `客服調整了您的會員等級（${detail}），目前點數 ${Math.max(0, basePoints + bonus)}。`,
+        related_type: 'user'
+      }
+    });
+
+    await logAction(req.user.userId, '調整會員等級', 'user', userId, detail);
+    res.status(200).json({
+      success: true,
+      message: '已調整等級',
+      data: { points: Math.max(0, basePoints + bonus), bonus_points: bonus }
+    });
+  } catch (err) {
+    if (err.code === 'P2025') return res.status(404).json({ success: false, message: '找不到該會員' });
+    console.error('[調整會員等級失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.put('/members/:id/permissions', requireAdmin('members'), async (req, res) => {
+  const userId = parseInt(req.params.id);
+
+  if (userId === req.user.userId) {
+    return res.status(400).json({ success: false, message: '無法變更自己的權限' });
+  }
+
+  const data = {};
+  for (const key of PERMISSION_KEYS) {
+    if (req.body[key] !== undefined) data[key] = !!req.body[key];
+  }
+  if (Object.keys(data).length === 0) {
+    return res.status(400).json({ success: false, message: '沒有要更新的權限' });
+  }
+
+  try {
+    const user = await prisma.users.findUnique({
+      where: { user_id: userId },
+      select: { role: true }
+    });
+    if (!user) return res.status(404).json({ success: false, message: '找不到該會員' });
+    if (user.role !== 'admin') {
+      return res.status(400).json({ success: false, message: '只有管理員帳號才需要設定細部權限' });
+    }
+
+    await prisma.admin_permissions.upsert({
+      where: { user_id: userId },
+      update: data,
+      create: { user_id: userId, ...data }
+    });
+
+    await logAction(req.user.userId, '調整管理員權限', 'user', userId, JSON.stringify(data));
+    res.status(200).json({ success: true, message: '已更新權限' });
+  } catch (err) {
+    console.error('[調整管理員權限失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.get('/reports', requireAdmin('reports'), async (req, res) => {
   const status = req.query.status;
   try {
     const reports = await prisma.reports.findMany({
@@ -140,7 +315,7 @@ router.get('/reports', async (req, res) => {
   }
 });
 
-router.patch('/reports/:id', async (req, res) => {
+router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
   const reportId = parseInt(req.params.id);
   const { status, admin_note, remove_target } = req.body;
   const allowed = ['reviewing', 'resolved', 'dismissed'];
@@ -226,7 +401,7 @@ router.patch('/reports/:id', async (req, res) => {
   }
 });
 
-router.get('/disputes', async (req, res) => {
+router.get('/disputes', requireAdmin('transactions'), async (req, res) => {
   const status = req.query.status;
   try {
     const disputes = await prisma.transaction_disputes.findMany({
@@ -253,7 +428,7 @@ router.get('/disputes', async (req, res) => {
   }
 });
 
-router.patch('/disputes/:id', async (req, res) => {
+router.patch('/disputes/:id', requireAdmin('transactions'), async (req, res) => {
   const disputeId = parseInt(req.params.id);
   const { result, admin_note } = req.body;
   const allowed = ['refund_manual', 'refund_auto', 'dismissed', 'mediated'];
@@ -331,7 +506,7 @@ router.patch('/disputes/:id', async (req, res) => {
   }
 });
 
-router.get('/cabinets', async (req, res) => {
+router.get('/cabinets', requireAdmin('cabinets'), async (req, res) => {
   try {
     const cabinets = await prisma.smart_cabinets.findMany({
       orderBy: { cabinet_id: 'asc' },
@@ -354,7 +529,7 @@ router.get('/cabinets', async (req, res) => {
   }
 });
 
-router.post('/cabinets', async (req, res) => {
+router.post('/cabinets', requireAdmin('cabinets'), async (req, res) => {
   const { cabinet_name, address, latitude, longitude, total_slots, open_time, close_time } = req.body;
 
   if (!cabinet_name || !address || latitude === undefined || longitude === undefined) {
@@ -391,7 +566,7 @@ router.post('/cabinets', async (req, res) => {
   }
 });
 
-router.put('/cabinets/:id', async (req, res) => {
+router.put('/cabinets/:id', requireAdmin('cabinets'), async (req, res) => {
   const cabinetId = parseInt(req.params.id);
   const { cabinet_name, address, latitude, longitude, is_active, open_time, close_time } = req.body;
 
@@ -419,7 +594,7 @@ router.put('/cabinets/:id', async (req, res) => {
   }
 });
 
-router.patch('/cabinets/:cabinetId/slots/:slotId', async (req, res) => {
+router.patch('/cabinets/:cabinetId/slots/:slotId', requireAdmin('cabinets'), async (req, res) => {
   const slotId = parseInt(req.params.slotId);
   const status = req.body.status;
   const allowed = ['empty', 'occupied', 'reserved', 'maintenance'];
@@ -515,7 +690,7 @@ const shapeOrder = (o) => ({
   }))
 });
 
-router.get('/orders', async (req, res) => {
+router.get('/orders', requireAdmin('transactions'), async (req, res) => {
   const keyword = (req.query.keyword || '').trim();
   const status = req.query.status;
   const page = parseInt(req.query.page) || 1;
@@ -560,7 +735,7 @@ const ORDER_STATUSES = [
   'completed', 'cancelled', 'refunding', 'refunded'
 ];
 
-router.patch('/orders/:id', async (req, res) => {
+router.patch('/orders/:id', requireAdmin('transactions'), async (req, res) => {
   const orderId = parseInt(req.params.id);
   const { status, note } = req.body;
 
@@ -603,7 +778,7 @@ router.patch('/orders/:id', async (req, res) => {
 
 // ---------- 書籍管理 ----------
 
-router.get('/books', async (req, res) => {
+router.get('/books', requireAdmin('content'), async (req, res) => {
   const keyword = (req.query.keyword || '').trim();
   const status = req.query.status;
   const page = parseInt(req.query.page) || 1;
@@ -677,7 +852,7 @@ router.get('/books', async (req, res) => {
   }
 });
 
-router.patch('/books/:id', async (req, res) => {
+router.patch('/books/:id', requireAdmin('content'), async (req, res) => {
   const bookId = parseInt(req.params.id);
   const { status, reason } = req.body;
 
@@ -724,7 +899,7 @@ router.patch('/books/:id', async (req, res) => {
 
 // ---------- 分類管理 ----------
 
-router.get('/categories', async (req, res) => {
+router.get('/categories', requireAdmin('content'), async (req, res) => {
   try {
     const categories = await prisma.book_categories.findMany({
       orderBy: [{ sort_order: 'asc' }, { category_id: 'asc' }],
@@ -746,7 +921,7 @@ router.get('/categories', async (req, res) => {
   }
 });
 
-router.post('/categories', async (req, res) => {
+router.post('/categories', requireAdmin('content'), async (req, res) => {
   const name = (req.body.category_name || '').trim();
   const sortOrder = parseInt(req.body.sort_order) || 0;
 
@@ -765,7 +940,7 @@ router.post('/categories', async (req, res) => {
   }
 });
 
-router.put('/categories/:id', async (req, res) => {
+router.put('/categories/:id', requireAdmin('content'), async (req, res) => {
   const categoryId = parseInt(req.params.id);
   const name = (req.body.category_name || '').trim();
   const sortOrder = parseInt(req.body.sort_order) || 0;
@@ -785,7 +960,7 @@ router.put('/categories/:id', async (req, res) => {
   }
 });
 
-router.delete('/categories/:id', async (req, res) => {
+router.delete('/categories/:id', requireAdmin('content'), async (req, res) => {
   const categoryId = parseInt(req.params.id);
 
   try {
@@ -991,7 +1166,7 @@ router.get('/operation-logs', async (req, res) => {
 
 const walletUserSelect = { user_id: true, nickname: true, avatar_url: true, email: true };
 
-router.get('/wallets', async (req, res) => {
+router.get('/wallets', requireAdmin('transactions'), async (req, res) => {
   const keyword = (req.query.keyword || '').trim();
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 30;
@@ -1038,7 +1213,7 @@ router.get('/wallets', async (req, res) => {
   }
 });
 
-router.get('/wallets/:userId', async (req, res) => {
+router.get('/wallets/:userId', requireAdmin('transactions'), async (req, res) => {
   const userId = parseInt(req.params.userId);
 
   try {
@@ -1076,7 +1251,7 @@ router.get('/wallets/:userId', async (req, res) => {
   }
 });
 
-router.post('/wallets/:userId/adjust', async (req, res) => {
+router.post('/wallets/:userId/adjust', requireAdmin('transactions'), async (req, res) => {
   const userId = parseInt(req.params.userId);
   const amount = parseFloat(req.body.amount);
   const description = (req.body.description || '').trim();

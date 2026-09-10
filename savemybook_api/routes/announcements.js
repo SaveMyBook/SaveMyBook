@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/all', authenticateToken, requireAdmin, async (req, res) => {
+router.get('/all', authenticateToken, requireAdmin('announcements'), async (req, res) => {
   try {
     const announcements = await prisma.system_announcements.findMany({
       orderBy: { created_at: 'desc' },
@@ -38,7 +38,7 @@ router.get('/all', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-router.post('/', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/', authenticateToken, requireAdmin('announcements'), async (req, res) => {
   const { title, content, type, is_published, expires_at } = req.body;
 
   if (!title || !content) {
@@ -79,7 +79,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin('announcements'), async (req, res) => {
   const announcementId = parseInt(req.params.id);
   const { title, content, type, is_published, expires_at } = req.body;
 
@@ -117,7 +117,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticateToken, requireAdmin('announcements'), async (req, res) => {
   const announcementId = parseInt(req.params.id);
   try {
     await prisma.system_announcements.delete({ where: { announcement_id: announcementId } });

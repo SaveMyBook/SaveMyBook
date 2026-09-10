@@ -30,6 +30,10 @@ const publicUserSelect = {
 
 const calcPoints = (completedOrders) => completedOrders * 10;
 
+/// 實際點數 = 完成訂單自動累積 + 管理員手動加減（bonus_points 可為負）。
+const effectivePoints = (completedOrders, bonus) =>
+  Math.max(0, calcPoints(completedOrders) + (bonus ?? 0));
+
 router.get('/me/stats', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   try {
@@ -65,7 +69,11 @@ router.get('/me/level', authenticateToken, async (req, res) => {
       prisma.orders.count({ where: { buyer_id: userId, status: 'completed' } })
     ]);
 
-    const points = calcPoints(completedOrders);
+    const me = await prisma.users.findUnique({
+      where: { user_id: userId },
+      select: { bonus_points: true }
+    });
+    const points = effectivePoints(completedOrders, me?.bonus_points);
     const current = [...levels].reverse().find(l => points >= l.min_points) ?? levels[0] ?? null;
     const next = levels.find(l => l.min_points > points) ?? null;
 
