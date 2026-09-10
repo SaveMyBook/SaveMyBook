@@ -5,11 +5,10 @@ import '../utils/app_colors.dart';
 
 /// 液態玻璃表面。
 ///
-/// Flutter 沒有 iOS 26 的 UIGlassEffect，這裡用四層疊出同樣的觀感：
+/// Flutter 沒有 iOS 26 的 UIGlassEffect，這裡用三層疊出同樣的觀感：
 /// 1. 背景高斯模糊（BackdropFilter）
-/// 2. 由左上到右下的半透明色調，模擬玻璃本身的厚度
-/// 3. 上緣的內側高光，模擬光線從上方打進玻璃
-/// 4. 一圈亮度會沿著邊緣變化的鏡面描邊（左上最亮、右下次亮、中間近乎消失）
+/// 2. 高不透明度的表面漸層 —— 玻璃要「乾淨」，不是「灰」
+/// 3. 上亮下淡的鏡面描邊，做出邊界的立體感
 class LiquidGlass extends StatelessWidget {
   final Widget child;
   final BorderRadius borderRadius;
@@ -34,21 +33,23 @@ class LiquidGlass extends StatelessWidget {
     final c = AppColors.of(context);
     final isDark = c.isDark;
 
-    final tintTop = (isDark ? Colors.white : Colors.white)
-        .withValues(alpha: (isDark ? 0.14 : 0.62) * thickness);
-    final tintBottom = (isDark ? Colors.white : Colors.white)
-        .withValues(alpha: (isDark ? 0.05 : 0.34) * thickness);
-    final base = (isDark ? const Color(0xFF14181C) : const Color(0xFFF4F7F9))
-        .withValues(alpha: (isDark ? 0.55 : 0.30) * thickness);
+    // 玻璃本體要夠不透明，內容才看得清楚。之前把三層半透明疊在模糊過的
+    // 灰底上，混出來就是一片髒灰色，圖示跟文字都糊掉。
+    final surfaceTop = isDark
+        ? const Color(0xFF23282F).withValues(alpha: 0.92 * thickness)
+        : Colors.white.withValues(alpha: 0.93 * thickness);
+    final surfaceBottom = isDark
+        ? const Color(0xFF171B20).withValues(alpha: 0.88 * thickness)
+        : Colors.white.withValues(alpha: 0.86 * thickness);
 
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: borderRadius,
         boxShadow: shadows ??
             [
-              BoxShadow(color: c.shadow, blurRadius: 34, offset: const Offset(0, 10)),
+              BoxShadow(color: c.shadow, blurRadius: 30, offset: const Offset(0, 8)),
               BoxShadow(
-                color: c.shadow.withValues(alpha: 0.08),
+                color: c.shadow.withValues(alpha: 0.06),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -61,11 +62,10 @@ class LiquidGlass extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: borderRadius,
-              color: base,
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [tintTop, tintBottom],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [surfaceTop, surfaceBottom],
               ),
             ),
             child: CustomPaint(
@@ -91,44 +91,35 @@ class _GlassRimPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    final outer = borderRadius.toRRect(rect).deflate(0.6);
+    final outer = borderRadius.toRRect(rect).deflate(0.5);
 
-    // 鏡面描邊：左上最亮、中段幾乎消失、右下再回來一點，
-    // 這個亮度落差就是玻璃邊緣折射的感覺。
+    // 鏡面描邊：上緣亮、下緣淡，只做出邊界的立體感，
+    // 不再往表面裡面灌高光（那會讓整塊看起來霧霧的）。
     canvas.drawRRect(
       outer,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: isDark ? 0.42 : 0.95),
-            Colors.white.withValues(alpha: isDark ? 0.04 : 0.12),
-            Colors.white.withValues(alpha: isDark ? 0.16 : 0.45),
-          ],
-          stops: const [0, 0.5, 1],
-        ).createShader(rect),
-    );
-
-    // 上緣往內漸層的高光，讓玻璃看起來有厚度而不是一張貼紙。
-    final inner = borderRadius.toRRect(rect).deflate(1.4);
-    canvas.save();
-    canvas.clipRRect(inner);
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height * 0.5),
-      Paint()
+        ..strokeWidth = 1
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.white.withValues(alpha: isDark ? 0.10 : 0.34),
-            Colors.white.withValues(alpha: 0),
+            Colors.white.withValues(alpha: isDark ? 0.22 : 0.95),
+            Colors.white.withValues(alpha: isDark ? 0.06 : 0.35),
           ],
-        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height * 0.5)),
+        ).createShader(rect),
     );
-    canvas.restore();
+
+    // 深色模式再補一圈很細的外緣暗線，跟背景分開。
+    if (isDark) {
+      canvas.drawRRect(
+        borderRadius.toRRect(rect).deflate(0.25),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.5
+          ..color = Colors.black.withValues(alpha: 0.35),
+      );
+    }
   }
 
   @override

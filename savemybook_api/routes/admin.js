@@ -472,6 +472,520 @@ router.get('/maintenance-logs', async (req, res) => {
   }
 });
 
+
+// ---------- 訂單管理 ----------
+
+const orderInclude = {
+  users_orders_buyer_idTousers: { select: { user_id: true, nickname: true, avatar_url: true } },
+  users_orders_seller_idTousers: { select: { user_id: true, nickname: true, avatar_url: true } },
+  smart_cabinets: { select: { cabinet_id: true, cabinet_name: true, address: true } },
+  order_items: {
+    include: {
+      books: {
+        select: {
+          book_id: true,
+          title: true,
+          book_images: { select: { image_url: true }, take: 1 }
+        }
+      }
+    }
+  }
+};
+
+const shapeOrder = (o) => ({
+  order_id: o.order_id,
+  order_no: o.order_no,
+  status: o.status,
+  total_amount: o.total_amount,
+  created_at: o.created_at,
+  completed_at: o.completed_at,
+  cancelled_at: o.cancelled_at,
+  cancel_reason: o.cancel_reason,
+  pickup_code: o.pickup_code,
+  buyer: o.users_orders_buyer_idTousers,
+  seller: o.users_orders_seller_idTousers,
+  cabinet: o.smart_cabinets,
+  items: o.order_items.map((i) => ({
+    book_id: i.books?.book_id ?? null,
+    title: i.books?.title ?? '',
+    unit_price: i.unit_price,
+    subtotal: i.subtotal,
+    quantity: i.quantity,
+    image_url: i.books?.book_images[0]?.image_url ?? null
+  }))
+});
+
+router.get('/orders', async (req, res) => {
+  const keyword = (req.query.keyword || '').trim();
+  const status = req.query.status;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+
+  try {
+    const where = {
+      ...(status && status !== 'all' && { status }),
+      ...(keyword && {
+        OR: [
+          { order_no: { contains: keyword } },
+          { users_orders_buyer_idTousers: { nickname: { contains: keyword } } },
+          { users_orders_seller_idTousers: { nickname: { contains: keyword } } }
+        ]
+      })
+    };
+
+    const [orders, total] = await Promise.all([
+      prisma.orders.findMany({
+        where,
+        include: orderInclude,
+        orderBy: { created_at: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit
+      }),
+      prisma.orders.count({ where })
+    ]);
+
+    res.status(200).json({
+      success: true,
+      pagination: { total, page, limit, total_pages: Math.ceil(total / limit) },
+      data: orders.map(shapeOrder)
+    });
+  } catch (err) {
+    console.error('[取得訂單列表失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+const ORDER_STATUSES = [
+  'pending_payment', 'pending_deposit', 'deposited', 'pending_pickup',
+  'completed', 'cancelled', 'refunding', 'refunded'
+];
+
+router.patch('/orders/:id', async (req, res) => {
+  const orderId = parseInt(req.params.id);
+  const { status, note } = req.body;
+
+  if (!ORDER_STATUSES.includes(status)) {
+    return res.status(400).json({ success: false, message: '不支援的訂單狀態' });
+  }
+
+  try {
+    const order = await prisma.orders.findUnique({ where: { order_id: orderId } });
+    if (!order) return res.status(404).json({ success: false, message: '找不到這筆訂單' });
+
+    const data = { status, updated_at: new Date() };
+    if (status === 'completed') data.completed_at = new Date();
+    if (status === 'cancelled') {
+      data.cancelled_at = new Date();
+      data.cancel_reason = note || '管理員手動取消';
+    }
+
+    await prisma.$transaction([
+      prisma.orders.update({ where: { order_id: orderId }, data }),
+      prisma.notifications.create({
+        data: {
+          user_id: order.buyer_id,
+          type: 'order',
+          title: '訂單狀態已更新',
+          content: `訂單 ${order.order_no} 已由客服調整為「${status}」。${note ? `說明：${note}` : ''}`,
+          related_id: orderId,
+          related_type: 'order'
+        }
+      })
+    ]);
+
+    await logAction(req.user.userId, '調整訂單狀態', 'order', orderId, `${order.status} -> ${status}`);
+    res.status(200).json({ success: true, message: '訂單狀態已更新' });
+  } catch (err) {
+    console.error('[調整訂單失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// ---------- 書籍管理 ----------
+
+router.get('/books', async (req, res) => {
+  const keyword = (req.query.keyword || '').trim();
+  const status = req.query.status;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+
+  try {
+    const where = {
+      ...(status && status !== 'all' && { status }),
+      ...(keyword && {
+        OR: [
+          { title: { contains: keyword } },
+          { isbn: { contains: keyword } },
+          { users: { nickname: { contains: keyword } } }
+        ]
+      })
+    };
+
+    const [books, total] = await Promise.all([
+      prisma.books.findMany({
+        where,
+        include: {
+          users: { select: { user_id: true, nickname: true, avatar_url: true } },
+          book_categories: { select: { category_id: true, category_name: true } },
+          book_images: { select: { image_url: true }, take: 1 }
+        },
+        orderBy: { created_at: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit
+      }),
+      prisma.books.count({ where })
+    ]);
+
+    // reports 是 target_type + target_id 的多型設計，沒有指向 books 的關聯，
+    // 所以待處理檢舉數要自己撈。
+    const reportRows = books.length
+      ? await prisma.reports.groupBy({
+          by: ['target_id'],
+          where: {
+            target_type: 'book',
+            status: 'pending',
+            target_id: { in: books.map((b) => b.book_id) }
+          },
+          _count: { target_id: true }
+        })
+      : [];
+    const reportCounts = Object.fromEntries(
+      reportRows.map((r) => [r.target_id, r._count.target_id])
+    );
+
+    res.status(200).json({
+      success: true,
+      pagination: { total, page, limit, total_pages: Math.ceil(total / limit) },
+      data: books.map((b) => ({
+        book_id: b.book_id,
+        pending_report_count: reportCounts[b.book_id] ?? 0,
+        title: b.title,
+        isbn: b.isbn,
+        price: b.price,
+        status: b.status,
+        condition_level: b.condition_level,
+        view_count: b.view_count,
+        created_at: b.created_at,
+        seller: b.users,
+        category_name: b.book_categories?.category_name ?? '',
+        image_url: b.book_images[0]?.image_url ?? null
+      }))
+    });
+  } catch (err) {
+    console.error('[取得書籍列表失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.patch('/books/:id', async (req, res) => {
+  const bookId = parseInt(req.params.id);
+  const { status, reason } = req.body;
+
+  if (!['on_sale', 'removed'].includes(status)) {
+    return res.status(400).json({ success: false, message: '只能設定為上架或下架' });
+  }
+
+  try {
+    const book = await prisma.books.findUnique({ where: { book_id: bookId } });
+    if (!book) return res.status(404).json({ success: false, message: '找不到這本書' });
+
+    await prisma.$transaction([
+      prisma.books.update({
+        where: { book_id: bookId },
+        data: { status, updated_at: new Date() }
+      }),
+      prisma.notifications.create({
+        data: {
+          user_id: book.seller_id,
+          type: 'system',
+          title: status === 'removed' ? '您的書籍已被下架' : '您的書籍已恢復上架',
+          content: status === 'removed'
+            ? `《${book.title}》已由管理員下架。${reason ? `原因：${reason}` : ''}`
+            : `《${book.title}》已由管理員恢復上架。`,
+          related_id: bookId,
+          related_type: 'book'
+        }
+      })
+    ]);
+
+    await logAction(
+      req.user.userId,
+      status === 'removed' ? '強制下架書籍' : '恢復書籍上架',
+      'book',
+      bookId,
+      reason || null
+    );
+    res.status(200).json({ success: true, message: status === 'removed' ? '已下架' : '已恢復上架' });
+  } catch (err) {
+    console.error('[調整書籍狀態失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// ---------- 分類管理 ----------
+
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await prisma.book_categories.findMany({
+      orderBy: [{ sort_order: 'asc' }, { category_id: 'asc' }],
+      include: { _count: { select: { books: true } } }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: categories.map((c) => ({
+        category_id: c.category_id,
+        category_name: c.category_name,
+        sort_order: c.sort_order,
+        book_count: c._count.books
+      }))
+    });
+  } catch (err) {
+    console.error('[取得分類失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.post('/categories', async (req, res) => {
+  const name = (req.body.category_name || '').trim();
+  const sortOrder = parseInt(req.body.sort_order) || 0;
+
+  if (!name) return res.status(400).json({ success: false, message: '請輸入分類名稱' });
+  if (name.length > 50) return res.status(400).json({ success: false, message: '分類名稱不可超過 50 字' });
+
+  try {
+    const created = await prisma.book_categories.create({
+      data: { category_name: name, sort_order: sortOrder }
+    });
+    await logAction(req.user.userId, '新增分類', 'category', created.category_id, name);
+    res.status(201).json({ success: true, data: { category_id: created.category_id } });
+  } catch (err) {
+    console.error('[新增分類失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.put('/categories/:id', async (req, res) => {
+  const categoryId = parseInt(req.params.id);
+  const name = (req.body.category_name || '').trim();
+  const sortOrder = parseInt(req.body.sort_order) || 0;
+
+  if (!name) return res.status(400).json({ success: false, message: '請輸入分類名稱' });
+
+  try {
+    await prisma.book_categories.update({
+      where: { category_id: categoryId },
+      data: { category_name: name, sort_order: sortOrder }
+    });
+    await logAction(req.user.userId, '編輯分類', 'category', categoryId, name);
+    res.status(200).json({ success: true, message: '已更新分類' });
+  } catch (err) {
+    console.error('[編輯分類失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.delete('/categories/:id', async (req, res) => {
+  const categoryId = parseInt(req.params.id);
+
+  try {
+    // 還有書掛在底下就不能刪，否則那些書會變成沒有分類。
+    const inUse = await prisma.books.count({ where: { category_id: categoryId } });
+    if (inUse > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `還有 ${inUse} 本書屬於這個分類，請先調整後再刪除`
+      });
+    }
+
+    await prisma.book_categories.delete({ where: { category_id: categoryId } });
+    await logAction(req.user.userId, '刪除分類', 'category', categoryId, null);
+    res.status(200).json({ success: true, message: '已刪除分類' });
+  } catch (err) {
+    console.error('[刪除分類失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// ---------- 會員等級管理 ----------
+
+router.get('/levels', async (req, res) => {
+  try {
+    const levels = await prisma.member_levels.findMany({ orderBy: { min_points: 'asc' } });
+    res.status(200).json({ success: true, data: levels });
+  } catch (err) {
+    console.error('[取得會員等級失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+const parseLevelBody = (body) => ({
+  level_name: (body.level_name || '').trim(),
+  min_points: parseInt(body.min_points) || 0,
+  max_points: body.max_points === null || body.max_points === '' || body.max_points === undefined
+    ? null
+    : parseInt(body.max_points),
+  benefits: (body.benefits || '').trim() || null
+});
+
+router.post('/levels', async (req, res) => {
+  const data = parseLevelBody(req.body);
+  if (!data.level_name) return res.status(400).json({ success: false, message: '請輸入等級名稱' });
+
+  try {
+    const created = await prisma.member_levels.create({ data });
+    await logAction(req.user.userId, '新增會員等級', 'level', created.level_id, data.level_name);
+    res.status(201).json({ success: true, data: { level_id: created.level_id } });
+  } catch (err) {
+    console.error('[新增會員等級失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.put('/levels/:id', async (req, res) => {
+  const levelId = parseInt(req.params.id);
+  const data = parseLevelBody(req.body);
+  if (!data.level_name) return res.status(400).json({ success: false, message: '請輸入等級名稱' });
+
+  try {
+    await prisma.member_levels.update({ where: { level_id: levelId }, data });
+    await logAction(req.user.userId, '編輯會員等級', 'level', levelId, data.level_name);
+    res.status(200).json({ success: true, message: '已更新等級' });
+  } catch (err) {
+    console.error('[編輯會員等級失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.delete('/levels/:id', async (req, res) => {
+  const levelId = parseInt(req.params.id);
+  try {
+    await prisma.member_levels.delete({ where: { level_id: levelId } });
+    await logAction(req.user.userId, '刪除會員等級', 'level', levelId, null);
+    res.status(200).json({ success: true, message: '已刪除等級' });
+  } catch (err) {
+    console.error('[刪除會員等級失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// ---------- 營運報表 ----------
+
+router.get('/stats', async (req, res) => {
+  const days = Math.min(Math.max(parseInt(req.query.days) || 7, 1), 90);
+
+  try {
+    const since = new Date();
+    since.setHours(0, 0, 0, 0);
+    since.setDate(since.getDate() - (days - 1));
+
+    const [orders, newUsers, newBooks, completed, topCategories] = await Promise.all([
+      prisma.orders.findMany({
+        where: { created_at: { gte: since } },
+        select: { created_at: true, total_amount: true, status: true }
+      }),
+      prisma.users.findMany({
+        where: { created_at: { gte: since } },
+        select: { created_at: true }
+      }),
+      prisma.books.findMany({
+        where: { created_at: { gte: since } },
+        select: { created_at: true }
+      }),
+      prisma.orders.aggregate({
+        where: { status: 'completed', completed_at: { gte: since } },
+        _sum: { total_amount: true },
+        _count: true
+      }),
+      prisma.books.groupBy({
+        by: ['category_id'],
+        _count: { category_id: true },
+        orderBy: { _count: { category_id: 'desc' } },
+        take: 5
+      })
+    ]);
+
+    const key = (d) => new Date(d).toISOString().slice(0, 10);
+    const series = [];
+    for (let i = 0; i < days; i += 1) {
+      const day = new Date(since);
+      day.setDate(since.getDate() + i);
+      const k = key(day);
+      series.push({
+        date: k,
+        orders: orders.filter((o) => key(o.created_at) === k).length,
+        revenue: orders
+          .filter((o) => key(o.created_at) === k)
+          .reduce((sum, o) => sum + Number(o.total_amount), 0),
+        new_users: newUsers.filter((u) => key(u.created_at) === k).length,
+        new_books: newBooks.filter((b) => key(b.created_at) === k).length
+      });
+    }
+
+    const categoryIds = topCategories.map((t) => t.category_id).filter(Boolean);
+    const categories = categoryIds.length
+      ? await prisma.book_categories.findMany({
+          where: { category_id: { in: categoryIds } },
+          select: { category_id: true, category_name: true }
+        })
+      : [];
+
+    res.status(200).json({
+      success: true,
+      data: {
+        days,
+        series,
+        completed_order_count: completed._count,
+        completed_revenue: Number(completed._sum.total_amount ?? 0),
+        top_categories: topCategories.map((t) => ({
+          category_name:
+            categories.find((c) => c.category_id === t.category_id)?.category_name ?? '未分類',
+          book_count: t._count.category_id
+        }))
+      }
+    });
+  } catch (err) {
+    console.error('[取得營運報表失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// ---------- 操作紀錄 ----------
+
+router.get('/operation-logs', async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 50;
+
+  try {
+    const [logs, total] = await Promise.all([
+      prisma.admin_operation_logs.findMany({
+        include: { users: { select: { user_id: true, nickname: true, avatar_url: true } } },
+        orderBy: { created_at: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit
+      }),
+      prisma.admin_operation_logs.count()
+    ]);
+
+    res.status(200).json({
+      success: true,
+      pagination: { total, page, limit, total_pages: Math.ceil(total / limit) },
+      data: logs.map((l) => ({
+        log_id: l.log_id,
+        action: l.action,
+        target_type: l.target_type,
+        target_id: l.target_id,
+        detail: l.detail,
+        created_at: l.created_at,
+        admin: l.users
+      }))
+    });
+  } catch (err) {
+    console.error('[取得操作紀錄失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
 router.get('/overview', async (req, res) => {
   try {
     const [members, pendingReports, pendingDisputes, cabinets, todayOrders] = await Promise.all([

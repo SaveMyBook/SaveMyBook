@@ -386,3 +386,298 @@ class AdminOverview {
         todayOrderCount: 0,
       );
 }
+
+class AdminOrderItem {
+  final int bookId;
+  final String title;
+  final double unitPrice;
+  final int quantity;
+  final String? imageUrl;
+
+  AdminOrderItem({
+    required this.bookId,
+    required this.title,
+    required this.unitPrice,
+    required this.quantity,
+    this.imageUrl,
+  });
+
+  factory AdminOrderItem.fromJson(Map<String, dynamic> json) {
+    return AdminOrderItem(
+      bookId: parseInt(json['book_id']),
+      title: json['title'] as String? ?? '',
+      unitPrice: parseDouble(json['unit_price']),
+      quantity: parseInt(json['quantity']),
+      imageUrl: resolveAssetUrl(json['image_url']),
+    );
+  }
+}
+
+class AdminOrder {
+  final int orderId;
+  final String orderNo;
+  final String status;
+  final double totalAmount;
+  final String buyerName;
+  final String sellerName;
+  final String cabinetName;
+  final String? pickupCode;
+  final String? cancelReason;
+  final DateTime? createdAt;
+  final List<AdminOrderItem> items;
+
+  AdminOrder({
+    required this.orderId,
+    required this.orderNo,
+    required this.status,
+    required this.totalAmount,
+    required this.buyerName,
+    required this.sellerName,
+    required this.cabinetName,
+    required this.items,
+    this.pickupCode,
+    this.cancelReason,
+    this.createdAt,
+  });
+
+  static const statusLabels = {
+    'pending_payment': '待付款',
+    'pending_deposit': '待存書',
+    'deposited': '已存書',
+    'pending_pickup': '待取書',
+    'completed': '已完成',
+    'cancelled': '已取消',
+    'refunding': '退款中',
+    'refunded': '已退款',
+  };
+
+  String get statusText => statusLabels[status] ?? status;
+
+  factory AdminOrder.fromJson(Map<String, dynamic> json) {
+    final buyer = json['buyer'] as Map<String, dynamic>?;
+    final seller = json['seller'] as Map<String, dynamic>?;
+    final cabinet = json['cabinet'] as Map<String, dynamic>?;
+
+    return AdminOrder(
+      orderId: parseInt(json['order_id']),
+      orderNo: json['order_no'] as String? ?? '',
+      status: json['status'] as String? ?? '',
+      totalAmount: parseDouble(json['total_amount']),
+      buyerName: buyer?['nickname'] as String? ?? '—',
+      sellerName: seller?['nickname'] as String? ?? '—',
+      cabinetName: cabinet?['cabinet_name'] as String? ?? '',
+      pickupCode: json['pickup_code'] as String?,
+      cancelReason: json['cancel_reason'] as String?,
+      createdAt: parseDate(json['created_at']),
+      items: ((json['items'] as List?) ?? const [])
+          .map((e) => AdminOrderItem.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
+    );
+  }
+}
+
+class AdminBook {
+  final int bookId;
+  final String title;
+  final String? isbn;
+  final double price;
+  final String status;
+  final String categoryName;
+  final String sellerName;
+  final int viewCount;
+  final int pendingReportCount;
+  final String? imageUrl;
+  final DateTime? createdAt;
+
+  AdminBook({
+    required this.bookId,
+    required this.title,
+    required this.price,
+    required this.status,
+    required this.categoryName,
+    required this.sellerName,
+    required this.viewCount,
+    required this.pendingReportCount,
+    this.isbn,
+    this.imageUrl,
+    this.createdAt,
+  });
+
+  static const statusLabels = {
+    'on_sale': '販售中',
+    'reserved': '已預訂',
+    'sold': '已售出',
+    'removed': '已下架',
+  };
+
+  String get statusText => statusLabels[status] ?? status;
+
+  factory AdminBook.fromJson(Map<String, dynamic> json) {
+    final seller = json['seller'] as Map<String, dynamic>?;
+
+    return AdminBook(
+      bookId: parseInt(json['book_id']),
+      title: json['title'] as String? ?? '',
+      isbn: json['isbn'] as String?,
+      price: parseDouble(json['price']),
+      status: json['status'] as String? ?? '',
+      categoryName: json['category_name'] as String? ?? '',
+      sellerName: seller?['nickname'] as String? ?? '—',
+      viewCount: parseInt(json['view_count']),
+      pendingReportCount: parseInt(json['pending_report_count']),
+      imageUrl: resolveAssetUrl(json['image_url']),
+      createdAt: parseDate(json['created_at']),
+    );
+  }
+}
+
+class AdminCategory {
+  final int categoryId;
+  final String name;
+  final int sortOrder;
+  final int bookCount;
+
+  AdminCategory({
+    required this.categoryId,
+    required this.name,
+    required this.sortOrder,
+    required this.bookCount,
+  });
+
+  factory AdminCategory.fromJson(Map<String, dynamic> json) {
+    return AdminCategory(
+      categoryId: parseInt(json['category_id']),
+      name: json['category_name'] as String? ?? '',
+      sortOrder: parseInt(json['sort_order']),
+      bookCount: parseInt(json['book_count']),
+    );
+  }
+}
+
+class AdminLevel {
+  final int levelId;
+  final String name;
+  final int minPoints;
+  final int? maxPoints;
+  final String benefits;
+
+  AdminLevel({
+    required this.levelId,
+    required this.name,
+    required this.minPoints,
+    required this.benefits,
+    this.maxPoints,
+  });
+
+  factory AdminLevel.fromJson(Map<String, dynamic> json) {
+    return AdminLevel(
+      levelId: parseInt(json['level_id']),
+      name: json['level_name'] as String? ?? '',
+      minPoints: parseInt(json['min_points']),
+      maxPoints: json['max_points'] == null ? null : parseInt(json['max_points']),
+      benefits: json['benefits'] as String? ?? '',
+    );
+  }
+}
+
+class AdminStatPoint {
+  final String date;
+  final int orders;
+  final double revenue;
+  final int newUsers;
+  final int newBooks;
+
+  AdminStatPoint({
+    required this.date,
+    required this.orders,
+    required this.revenue,
+    required this.newUsers,
+    required this.newBooks,
+  });
+
+  factory AdminStatPoint.fromJson(Map<String, dynamic> json) {
+    return AdminStatPoint(
+      date: json['date'] as String? ?? '',
+      orders: parseInt(json['orders']),
+      revenue: parseDouble(json['revenue']),
+      newUsers: parseInt(json['new_users']),
+      newBooks: parseInt(json['new_books']),
+    );
+  }
+}
+
+class AdminStats {
+  final int days;
+  final List<AdminStatPoint> series;
+  final int completedOrderCount;
+  final double completedRevenue;
+  final List<({String name, int count})> topCategories;
+
+  AdminStats({
+    required this.days,
+    required this.series,
+    required this.completedOrderCount,
+    required this.completedRevenue,
+    required this.topCategories,
+  });
+
+  factory AdminStats.fromJson(Map<String, dynamic> json) {
+    return AdminStats(
+      days: parseInt(json['days']),
+      series: ((json['series'] as List?) ?? const [])
+          .map((e) => AdminStatPoint.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
+      completedOrderCount: parseInt(json['completed_order_count']),
+      completedRevenue: parseDouble(json['completed_revenue']),
+      topCategories: ((json['top_categories'] as List?) ?? const [])
+          .map((e) => (
+                name: (e as Map)['category_name'] as String? ?? '未分類',
+                count: parseInt(e['book_count']),
+              ))
+          .toList(),
+    );
+  }
+
+  static AdminStats get empty => AdminStats(
+        days: 7,
+        series: const [],
+        completedOrderCount: 0,
+        completedRevenue: 0,
+        topCategories: const [],
+      );
+}
+
+class AdminOperationLog {
+  final int logId;
+  final String action;
+  final String? targetType;
+  final int? targetId;
+  final String? detail;
+  final String adminName;
+  final DateTime? createdAt;
+
+  AdminOperationLog({
+    required this.logId,
+    required this.action,
+    required this.adminName,
+    this.targetType,
+    this.targetId,
+    this.detail,
+    this.createdAt,
+  });
+
+  factory AdminOperationLog.fromJson(Map<String, dynamic> json) {
+    final admin = json['admin'] as Map<String, dynamic>?;
+
+    return AdminOperationLog(
+      logId: parseInt(json['log_id']),
+      action: json['action'] as String? ?? '',
+      targetType: json['target_type'] as String?,
+      targetId: json['target_id'] == null ? null : parseInt(json['target_id']),
+      detail: json['detail'] as String?,
+      adminName: admin?['nickname'] as String? ?? '管理員',
+      createdAt: parseDate(json['created_at']),
+    );
+  }
+}
+

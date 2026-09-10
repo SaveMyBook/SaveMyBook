@@ -7,11 +7,17 @@ import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import 'admin_announcement_screen.dart';
+import 'admin_book_screen.dart';
 import 'admin_cabinet_screen.dart';
+import 'admin_category_screen.dart';
 import 'admin_dispute_screen.dart';
+import 'admin_level_screen.dart';
 import 'admin_maintenance_log_screen.dart';
 import 'admin_member_screen.dart';
+import 'admin_operation_log_screen.dart';
+import 'admin_order_screen.dart';
 import 'admin_report_screen.dart';
+import 'admin_stats_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -56,7 +62,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           const AppHeader(title: '管理後台', icon: Icons.admin_panel_settings_outlined),
           Expanded(
             child: SwitchIn(child: _isLoading
-                ? const LoadingView()
+                ? const LoadingView.list()
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
@@ -64,59 +70,123 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                       children: [
                         _buildOverviewCard(c),
-                        const SizedBox(height: 20),
-                        AppCard(
-                          padding: EdgeInsets.zero,
-                          child: Column(
-                            children: [
-                              AppMenuItem(
-                                icon: Icons.people_alt_outlined,
-                                title: '會員管控',
-                                subtitle: '會員列表、停權與黑名單',
-                                onTap: () => _open(const AdminMemberScreen()),
-                              ),
-                              AppMenuItem(
-                                icon: Icons.report_gmailerrorred_outlined,
-                                title: '內容審核',
-                                subtitle: '商品檢舉處理',
-                                badge: _overview.pendingReportCount,
-                                onTap: () => _open(const AdminReportScreen()),
-                              ),
-                              AppMenuItem(
-                                icon: Icons.gavel_rounded,
-                                title: '仲裁交易',
-                                subtitle: '申訴列表與裁決',
-                                badge: _overview.pendingDisputeCount,
-                                onTap: () => _open(const AdminDisputeScreen()),
-                              ),
-                              AppMenuItem(
-                                icon: Icons.storage_rounded,
-                                title: '硬體維護',
-                                subtitle: '書櫃監控與櫃位狀態',
-                                onTap: () => _open(const AdminCabinetScreen()),
-                              ),
-                              AppMenuItem(
-                                icon: Icons.history_rounded,
-                                title: '維修紀錄',
-                                subtitle: '書櫃相關操作紀錄',
-                                onTap: () => _open(const AdminMaintenanceLogScreen()),
-                              ),
-                              AppMenuItem(
-                                icon: Icons.campaign_outlined,
-                                title: '系統公告',
-                                subtitle: '推播管理',
-                                isLast: true,
-                                onTap: () => _open(const AdminAnnouncementScreen()),
-                              ),
-                            ],
+                        const SizedBox(height: 24),
+                        _buildSection(c, '交易管理', [
+                          AppMenuItem(
+                            icon: Icons.receipt_long_outlined,
+                            title: '訂單管理',
+                            subtitle: '查詢訂單、人工調整狀態',
+                            onTap: () => _open(const AdminOrderScreen()),
                           ),
-                        ),
+                          AppMenuItem(
+                            icon: Icons.gavel_rounded,
+                            title: '仲裁交易',
+                            subtitle: '申訴列表與裁決',
+                            badge: _overview.pendingDisputeCount,
+                            isLast: true,
+                            onTap: () => _open(const AdminDisputeScreen()),
+                          ),
+                        ]),
+                        const SizedBox(height: 20),
+                        _buildSection(c, '商品管理', [
+                          AppMenuItem(
+                            icon: Icons.menu_book_rounded,
+                            title: '書籍管理',
+                            subtitle: '全站書籍、強制下架',
+                            onTap: () => _open(const AdminBookScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.report_gmailerrorred_outlined,
+                            title: '內容審核',
+                            subtitle: '商品檢舉處理',
+                            badge: _overview.pendingReportCount,
+                            onTap: () => _open(const AdminReportScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.category_outlined,
+                            title: '分類管理',
+                            subtitle: '新增、排序與刪除書籍分類',
+                            isLast: true,
+                            onTap: () => _open(const AdminCategoryScreen()),
+                          ),
+                        ]),
+                        const SizedBox(height: 20),
+                        _buildSection(c, '會員管理', [
+                          AppMenuItem(
+                            icon: Icons.people_alt_outlined,
+                            title: '會員管控',
+                            subtitle: '會員列表、停權與黑名單',
+                            onTap: () => _open(const AdminMemberScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.workspace_premium_outlined,
+                            title: '會員等級管理',
+                            subtitle: '等級門檻與權益設定',
+                            isLast: true,
+                            onTap: () => _open(const AdminLevelScreen()),
+                          ),
+                        ]),
+                        const SizedBox(height: 20),
+                        _buildSection(c, '硬體與營運', [
+                          AppMenuItem(
+                            icon: Icons.storage_rounded,
+                            title: '書櫃監控',
+                            subtitle: '書櫃與櫃位狀態',
+                            onTap: () => _open(const AdminCabinetScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.history_rounded,
+                            title: '維修紀錄',
+                            subtitle: '書櫃相關操作紀錄',
+                            onTap: () => _open(const AdminMaintenanceLogScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.insights_rounded,
+                            title: '營運報表',
+                            subtitle: '訂單、營收與會員成長',
+                            onTap: () => _open(const AdminStatsScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.campaign_outlined,
+                            title: '系統公告',
+                            subtitle: '推播管理',
+                            onTap: () => _open(const AdminAnnouncementScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.fact_check_outlined,
+                            title: '管理操作紀錄',
+                            subtitle: '誰在什麼時候做了什麼',
+                            isLast: true,
+                            onTap: () => _open(const AdminOperationLogScreen()),
+                          ),
+                        ]),
                       ],
                     ),
                   )),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSection(AppColors c, String title, List<Widget> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: c.textSecondary,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        AppCard(padding: EdgeInsets.zero, child: Column(children: items)),
+      ],
     );
   }
 

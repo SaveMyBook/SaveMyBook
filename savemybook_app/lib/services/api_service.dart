@@ -777,6 +777,104 @@ class ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? '裁決失敗');
   }
 
+  Future<List<AdminOrder>> fetchAdminOrders({String keyword = '', String? status}) async {
+    final res = await _send('GET', '/admin/orders', query: {
+      if (keyword.isNotEmpty) 'keyword': keyword,
+      if (status != null && status != 'all') 'status': status,
+      'limit': '50',
+    });
+    return _mapList(res, AdminOrder.fromJson);
+  }
+
+  Future<String?> updateOrderStatusAsAdmin(int orderId, String status, {String? note}) async {
+    final res = await _send('PATCH', '/admin/orders/$orderId', body: {
+      'status': status,
+      'note': note,
+    });
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '更新失敗');
+  }
+
+  Future<List<AdminBook>> fetchAdminBooks({String keyword = '', String? status}) async {
+    final res = await _send('GET', '/admin/books', query: {
+      if (keyword.isNotEmpty) 'keyword': keyword,
+      if (status != null && status != 'all') 'status': status,
+      'limit': '50',
+    });
+    return _mapList(res, AdminBook.fromJson);
+  }
+
+  Future<String?> setBookStatusAsAdmin(int bookId, String status, {String? reason}) async {
+    final res = await _send('PATCH', '/admin/books/$bookId', body: {
+      'status': status,
+      'reason': reason,
+    });
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '操作失敗');
+  }
+
+  Future<List<AdminCategory>> fetchAdminCategories() async {
+    final res = await _send('GET', '/admin/categories');
+    return _mapList(res, AdminCategory.fromJson);
+  }
+
+  Future<String?> saveCategory({int? categoryId, required String name, int sortOrder = 0}) async {
+    final body = {'category_name': name, 'sort_order': sortOrder};
+    final res = categoryId == null
+        ? await _send('POST', '/admin/categories', body: body)
+        : await _send('PUT', '/admin/categories/$categoryId', body: body);
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '儲存失敗');
+  }
+
+  Future<String?> deleteCategory(int categoryId) async {
+    final res = await _send('DELETE', '/admin/categories/$categoryId');
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '刪除失敗');
+  }
+
+  Future<List<AdminLevel>> fetchAdminLevels() async {
+    final res = await _send('GET', '/admin/levels');
+    return _mapList(res, AdminLevel.fromJson);
+  }
+
+  Future<String?> saveLevel({
+    int? levelId,
+    required String name,
+    required int minPoints,
+    int? maxPoints,
+    String benefits = '',
+  }) async {
+    final body = {
+      'level_name': name,
+      'min_points': minPoints,
+      'max_points': maxPoints,
+      'benefits': benefits,
+    };
+    final res = levelId == null
+        ? await _send('POST', '/admin/levels', body: body)
+        : await _send('PUT', '/admin/levels/$levelId', body: body);
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '儲存失敗');
+  }
+
+  Future<String?> deleteLevel(int levelId) async {
+    final res = await _send('DELETE', '/admin/levels/$levelId');
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '刪除失敗');
+  }
+
+  Future<AdminStats> fetchAdminStats({int days = 7}) async {
+    final res = await _send('GET', '/admin/stats', query: {'days': '$days'});
+    if (res == null || res['success'] != true || res['data'] is! Map) return AdminStats.empty;
+    return AdminStats.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<List<AdminOperationLog>> fetchAdminOperationLogs() async {
+    final res = await _send('GET', '/admin/operation-logs', query: {'limit': '80'});
+    return _mapList(res, AdminOperationLog.fromJson);
+  }
+
   Future<List<Cabinet>> fetchAdminCabinets() async {
     final res = await _send('GET', '/admin/cabinets');
     return _mapList(res, Cabinet.fromJson);
