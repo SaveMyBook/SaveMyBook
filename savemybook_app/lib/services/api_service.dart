@@ -437,7 +437,8 @@ class ApiService {
       if (streamed.statusCode < 200 || streamed.statusCode >= 300) return [];
 
       final body = jsonDecode(utf8.decode(await streamed.stream.toBytes()));
-      final urls = body is Map ? body['data']?['urls'] : null;
+      final data = body is Map ? body['data'] : null;
+      final urls = data is Map ? data['urls'] : null;
       if (urls is! List) return [];
       return urls.map((e) => e.toString()).toList();
     } catch (_) {
