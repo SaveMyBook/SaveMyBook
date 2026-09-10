@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/category.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/app_forms.dart';
 import 'barcode_scanner_screen.dart';
 import 'sell_book_detail_screen.dart';
 
@@ -49,30 +50,6 @@ class _SellBookScreenState extends State<SellBookScreen> {
     _publisherController.dispose();
     _descriptionController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (date != null && mounted) {
-      setState(() => _selectedDate = date);
-    }
   }
 
   void _onNext() {
@@ -260,7 +237,16 @@ class _SellBookScreenState extends State<SellBookScreen> {
         _buildFieldRow(c, label: '書名', isRequired: true, child: _buildInput(c, _titleController)),
         _buildFieldRow(c, label: '作者', child: _buildInput(c, _authorController)),
         _buildFieldRow(c, label: '出版社', child: _buildInput(c, _publisherController)),
-        _buildFieldRow(c, label: '出版日期', child: _buildDateField(c)),
+        _buildFieldRow(
+          c,
+          label: '出版日期',
+          child: AppDateField(
+            value: _selectedDate,
+            hint: '點擊選擇出版日期',
+            helpText: '選擇出版日期',
+            onChanged: (value) => setState(() => _selectedDate = value),
+          ),
+        ),
         _buildFieldRow(c, label: '選擇分類', isRequired: true, child: _buildCategoryDropdown(c)),
         _buildFieldRow(c, label: '書籍簡介', child: _buildInput(c, _descriptionController, maxLines: 4)),
         const SizedBox(height: 28),
@@ -292,7 +278,18 @@ class _SellBookScreenState extends State<SellBookScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              const SizedBox(width: 32),
+              // 這頁同時是首頁的分頁跟被 push 的路由，只有後者需要返回鍵。
+              if (Navigator.of(context).canPop())
+                SizedBox(
+                  width: 32,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(context).maybePop(),
+                    child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 24),
+                  ),
+                )
+              else
+                const SizedBox(width: 32),
               const Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -346,35 +343,6 @@ class _SellBookScreenState extends State<SellBookScreen> {
           const SizedBox(width: 8),
           Expanded(child: child),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDateField(AppColors c) {
-    return Material(
-      color: c.inputFill,
-      borderRadius: BorderRadius.circular(8),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: _pickDate,
-        child: Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: c.divider),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          alignment: Alignment.centerLeft,
-          child: Text(
-            _selectedDate == null
-                ? '請點擊選擇日期'
-                : '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}',
-            style: TextStyle(
-              fontSize: 15,
-              color: _selectedDate == null ? c.textHint : c.textPrimary,
-            ),
-          ),
-        ),
       ),
     );
   }

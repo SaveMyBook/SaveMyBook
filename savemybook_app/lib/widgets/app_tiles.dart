@@ -41,18 +41,41 @@ class _UserAvatarState extends State<UserAvatar> {
     final url = widget.imageUrl;
     final showImage = !_failed && url != null && url.isNotEmpty;
 
-    final avatar = CircleAvatar(
-      radius: widget.radius,
-      backgroundColor: widget.background ?? c.inputFill,
-      backgroundImage: showImage ? NetworkImage(url) : null,
-      onBackgroundImageError: showImage
-          ? (_, _) {
-              if (mounted) setState(() => _failed = true);
-            }
-          : null,
+    final fallback = Icon(Icons.person, size: widget.radius * 1.05, color: c.iconInactive);
+
+    // CircleAvatar 的 backgroundImage 在載入中是一片空白，
+    // 改用 Image.network 才能在等圖的時候先放人像佔位。
+    final avatar = Container(
+      width: widget.radius * 2,
+      height: widget.radius * 2,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: widget.background ?? c.inputFill,
+        shape: BoxShape.circle,
+      ),
       child: showImage
-          ? null
-          : Icon(Icons.person, size: widget.radius * 1.05, color: c.iconInactive),
+          ? Image.network(
+              url,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && !_failed) setState(() => _failed = true);
+                });
+                return Center(child: fallback);
+              },
+              loadingBuilder: (_, child, progress) =>
+                  progress == null ? child : Center(child: fallback),
+              frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
+                if (wasSynchronouslyLoaded) return child;
+                return AnimatedOpacity(
+                  opacity: frame == null ? 0 : 1,
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOut,
+                  child: child,
+                );
+              },
+            )
+          : Center(child: fallback),
     );
 
     final canPreview = widget.enablePreview && showImage;

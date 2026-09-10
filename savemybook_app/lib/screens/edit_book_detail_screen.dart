@@ -122,6 +122,10 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       showAppSnackBar(context, '至少要保留一張照片', isError: true);
       return;
     }
+    if (image.imageId == 0) {
+      showAppSnackBar(context, '這張照片的資料不完整，請重新整理後再試', isError: true);
+      return;
+    }
 
     final confirmed = await showConfirmDialog(
       context,
@@ -137,8 +141,9 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
 
     if (ok == true) {
       setState(() => _existingImages.removeWhere((e) => e.imageId == image.imageId));
+      showAppSnackBar(context, '已刪除照片');
     } else {
-      showAppSnackBar(context, '刪除圖片失敗', isError: true);
+      showAppSnackBar(context, '刪除圖片失敗，請稍後再試', isError: true);
     }
   }
 

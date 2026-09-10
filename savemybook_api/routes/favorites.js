@@ -6,7 +6,7 @@ const router = express.Router();
 
 const bookInclude = {
   users: { select: { user_id: true, nickname: true, avatar_url: true } },
-  book_images: { select: { image_url: true, image_type: true } },
+  book_images: { select: { image_id: true, image_url: true, image_type: true } },
   book_categories: { select: { category_name: true } }
 };
 

@@ -25,9 +25,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _authorController;
   late final TextEditingController _publisherController;
-  late final TextEditingController _yearController;
-  late final TextEditingController _monthController;
-  late final TextEditingController _dayController;
+  DateTime? _publishDate;
 
   List<Category> _categories = [];
   int? _categoryId;
@@ -42,10 +40,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
     _authorController = TextEditingController(text: book.author == '未知作者' ? '' : book.author);
     _publisherController = TextEditingController(text: book.publisher == '未知出版社' ? '' : book.publisher);
 
-    final parts = book.publishDate.split(RegExp(r'[-/]'));
-    _yearController = TextEditingController(text: parts.isNotEmpty ? parts[0] : '');
-    _monthController = TextEditingController(text: parts.length > 1 ? parts[1] : '');
-    _dayController = TextEditingController(text: parts.length > 2 ? parts[2] : '');
+    _publishDate = DateTime.tryParse(book.publishDate.replaceAll('/', '-'));
 
     _categoryId = book.categoryId;
     _loadCategories();
@@ -57,9 +52,6 @@ class _EditBookScreenState extends State<EditBookScreen> {
     _titleController.dispose();
     _authorController.dispose();
     _publisherController.dispose();
-    _yearController.dispose();
-    _monthController.dispose();
-    _dayController.dispose();
     super.dispose();
   }
 
@@ -88,9 +80,6 @@ class _EditBookScreenState extends State<EditBookScreen> {
   void _next() {
     final title = _titleController.text.trim();
     final isbn = _isbnController.text.trim();
-    final year = _yearController.text.trim();
-    final month = _monthController.text.trim();
-    final day = _dayController.text.trim();
 
     if (title.isEmpty) {
       showAppSnackBar(context, '請填寫書名', isError: true);
@@ -105,17 +94,15 @@ class _EditBookScreenState extends State<EditBookScreen> {
       return;
     }
 
-    final dateError = Validators.date(year, month, day);
-    if (dateError != null) {
-      showAppSnackBar(context, dateError, isError: true);
-      return;
-    }
     if (_categoryId == null) {
       showAppSnackBar(context, '請選擇書籍分類', isError: true);
       return;
     }
 
-    final publishDate = [year, month, day].where((e) => e.isNotEmpty).join('-');
+    final date = _publishDate;
+    final publishDate = date == null
+        ? ''
+        : '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
     Navigator.push(
       context,
@@ -167,24 +154,11 @@ class _EditBookScreenState extends State<EditBookScreen> {
                         FormRowCard(label: '出版社', child: AppTextField(controller: _publisherController)),
                         FormRowCard(
                           label: '出版日期',
-                          child: Row(
-                            children: [
-                              Expanded(child: AppTextField(controller: _yearController, keyboardType: TextInputType.number)),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6),
-                                child: Text('年', style: TextStyle(color: c.textPrimary)),
-                              ),
-                              Expanded(child: AppTextField(controller: _monthController, keyboardType: TextInputType.number)),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6),
-                                child: Text('月', style: TextStyle(color: c.textPrimary)),
-                              ),
-                              Expanded(child: AppTextField(controller: _dayController, keyboardType: TextInputType.number)),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6),
-                                child: Text('日', style: TextStyle(color: c.textPrimary)),
-                              ),
-                            ],
+                          child: AppDateField(
+                            value: _publishDate,
+                            hint: '點擊選擇出版日期',
+                            helpText: '選擇出版日期',
+                            onChanged: (value) => setState(() => _publishDate = value),
                           ),
                         ),
                         FormRowCard(

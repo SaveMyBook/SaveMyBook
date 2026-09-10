@@ -233,63 +233,100 @@ class AppSearchField extends StatelessWidget {
   }
 }
 
-class DateFieldGroup extends StatelessWidget {
-  final TextEditingController year;
-  final TextEditingController month;
-  final TextEditingController day;
+class AppDateField extends StatelessWidget {
+  final DateTime? value;
+  final ValueChanged<DateTime?> onChanged;
+  final String hint;
 
-  const DateFieldGroup({
+  /// 可選的最早／最晚日期，預設是「近 100 年到今天」。
+  final DateTime? firstDate;
+  final DateTime? lastDate;
+  final String helpText;
+  final bool clearable;
+  final bool enabled;
+
+  const AppDateField({
     super.key,
-    required this.year,
-    required this.month,
-    required this.day,
+    required this.value,
+    required this.onChanged,
+    this.hint = '請選擇日期',
+    this.firstDate,
+    this.lastDate,
+    this.helpText = '選擇日期',
+    this.clearable = true,
+    this.enabled = true,
   });
+
+  Future<void> _pick(BuildContext context) async {
+    final c = AppColors.of(context);
+    final now = DateTime.now();
+    final first = firstDate ?? DateTime(now.year - 100);
+    final last = lastDate ?? now;
+
+    var initial = value ?? (last.isBefore(now) ? last : now);
+    if (initial.isBefore(first)) initial = first;
+    if (initial.isAfter(last)) initial = last;
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: first,
+      lastDate: last,
+      helpText: helpText,
+      cancelText: '取消',
+      confirmText: '確定',
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: Theme.of(ctx).colorScheme.copyWith(primary: c.accent),
+        ),
+        child: child!,
+      ),
+    );
+
+    if (picked != null) onChanged(picked);
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final date = value;
 
-    Widget unit(String text) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: Text(text, style: TextStyle(color: c.textPrimary, fontSize: 13)),
-        );
-
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: AppTextField(
-            controller: year,
-            hint: '2026',
-            maxLength: 4,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          ),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: enabled ? () => _pick(context) : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        decoration: BoxDecoration(
+          color: c.inputFill,
+          borderRadius: BorderRadius.circular(8),
         ),
-        unit('年'),
-        Expanded(
-          flex: 2,
-          child: AppTextField(
-            controller: month,
-            hint: '01',
-            maxLength: 2,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                date == null
+                    ? hint
+                    : '${date.year} 年 ${date.month} 月 ${date.day} 日',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: date == null ? c.textHint : c.textPrimary,
+                ),
+              ),
+            ),
+            if (date != null && clearable)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onChanged(null),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Icon(Icons.close_rounded, size: 18, color: c.iconInactive),
+                ),
+              ),
+            const SizedBox(width: 4),
+            Icon(Icons.calendar_today_outlined, size: 16, color: enabled ? c.accent : c.iconInactive),
+          ],
         ),
-        unit('月'),
-        Expanded(
-          flex: 2,
-          child: AppTextField(
-            controller: day,
-            hint: '01',
-            maxLength: 2,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          ),
-        ),
-        unit('日'),
-      ],
+      ),
     );
   }
 }
@@ -308,22 +345,6 @@ class Validators {
     if (value.length < 8) return '密碼長度至少 8 個字元';
     if (!RegExp(r'[A-Za-z]').hasMatch(value)) return '密碼需包含英文字母';
     if (!RegExp(r'[0-9]').hasMatch(value)) return '密碼需包含數字';
-    return null;
-  }
-
-  static String? date(String year, String month, String day) {
-    if (year.isEmpty && month.isEmpty && day.isEmpty) return null;
-    if (year.isEmpty || month.isEmpty || day.isEmpty) return '日期請填寫完整';
-
-    final y = int.tryParse(year);
-    final m = int.tryParse(month);
-    final d = int.tryParse(day);
-    if (y == null || m == null || d == null) return '日期格式不正確';
-    if (y < 1900 || y > DateTime.now().year + 1) return '年份不在合理範圍';
-    if (m < 1 || m > 12) return '月份必須介於 1 ~ 12';
-
-    final lastDay = DateTime(y, m + 1, 0).day;
-    if (d < 1 || d > lastDay) return '該月份沒有這一天';
     return null;
   }
 }

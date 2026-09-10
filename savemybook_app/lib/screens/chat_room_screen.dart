@@ -8,6 +8,7 @@ import '../utils/app_colors.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
+import '../widgets/image_viewer.dart';
 import '../widgets/state_views.dart';
 import 'book_detail_screen.dart';
 
@@ -216,7 +217,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     maxWidth: MediaQuery.of(context).size.width * 0.68,
                   ),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: message.messageType == 'image'
+                        ? const EdgeInsets.all(4)
+                        : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
                       color: isMine ? c.accent : c.card,
                       borderRadius: BorderRadius.only(
@@ -226,14 +229,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         bottomRight: Radius.circular(!isMine || !isGroupEnd ? 16 : 6),
                       ),
                     ),
-                    child: Text(
-                      message.content,
-                      style: TextStyle(
-                        fontSize: 14,
-                        height: 1.45,
-                        color: isMine ? Colors.white : c.textPrimary,
-                      ),
-                    ),
+                    child: message.messageType == 'image'
+                        ? _buildImageMessage(message.content, c)
+                        : Text(
+                            message.content,
+                            style: TextStyle(
+                              fontSize: 14,
+                              height: 1.45,
+                              color: isMine ? Colors.white : c.textPrimary,
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -253,6 +258,49 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             ),
         ],
       ),
+    );
+  }
+
+  /// 圖片訊息。載入中先撐出固定尺寸的底圖，圖進來再淡入，
+  /// 不然氣泡會先塌成一條線再突然撐開。
+  Widget _buildImageMessage(String url, AppColors c) {
+    final resolved = resolveAssetUrl(url);
+
+    Widget placeholder(IconData icon) => Container(
+          width: 180,
+          height: 180,
+          alignment: Alignment.center,
+          color: c.inputFill,
+          child: Icon(icon, size: 32, color: c.iconInactive),
+        );
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: resolved == null
+          ? placeholder(Icons.broken_image_outlined)
+          : GestureDetector(
+              onTap: () => ImageViewer.open(context, imageUrl: resolved),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 220, maxHeight: 280),
+                child: Image.network(
+                  resolved,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => placeholder(Icons.broken_image_outlined),
+                  loadingBuilder: (_, child, progress) => progress == null
+                      ? child
+                      : Shimmer(child: placeholder(Icons.image_outlined)),
+                  frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
+                    if (wasSynchronouslyLoaded) return child;
+                    return AnimatedOpacity(
+                      opacity: frame == null ? 0 : 1,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                      child: child,
+                    );
+                  },
+                ),
+              ),
+            ),
     );
   }
 

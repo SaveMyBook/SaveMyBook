@@ -90,67 +90,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  Future<void> _pickBirthday() async {
-    final now = DateTime.now();
-    final c = AppColors.of(context);
-
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _birthday ?? DateTime(now.year - 20, now.month, now.day),
-      firstDate: DateTime(now.year - 100),
-      lastDate: now,
-      helpText: '選擇生日',
-      cancelText: '取消',
-      confirmText: '確定',
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: Theme.of(ctx).colorScheme.copyWith(primary: c.accent),
-        ),
-        child: child!,
-      ),
-    );
-
-    if (picked != null && mounted) setState(() => _birthday = picked);
-  }
-
-  Widget _buildBirthdayField(AppColors c) {
-    final date = _birthday;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: _pickBirthday,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-        decoration: BoxDecoration(
-          color: c.inputFill,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                date == null
-                    ? '請選擇日期'
-                    : '${date.year} 年 ${date.month} 月 ${date.day} 日',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: date == null ? c.textHint : c.textPrimary,
-                ),
-              ),
-            ),
-            if (date != null)
-              GestureDetector(
-                onTap: () => setState(() => _birthday = null),
-                child: Icon(Icons.close_rounded, size: 18, color: c.iconInactive),
-              ),
-            const SizedBox(width: 6),
-            Icon(Icons.calendar_today_outlined, size: 16, color: c.accent),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _save() async {
     if (_isSaving) return;
 
@@ -255,7 +194,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     label: '信箱',
                     child: AppTextField(controller: _emailController, enabled: false, hint: '信箱無法修改'),
                   ),
-                  FormRowCard(label: '生日', child: _buildBirthdayField(c)),
+                  FormRowCard(
+                    label: '生日',
+                    child: AppDateField(
+                      value: _birthday,
+                      hint: '點擊選擇生日',
+                      helpText: '選擇生日',
+                      onChanged: (value) => setState(() => _birthday = value),
+                    ),
+                  ),
                   const SizedBox(height: 28),
                   SizedBox(
                     width: double.infinity,
