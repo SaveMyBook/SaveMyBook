@@ -188,8 +188,8 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      child: _categories.isEmpty
-                          ? ListView(
+                      child: SwitchIn(child: _categories.isEmpty
+                          ? ListView(key: const ValueKey('empty'), 
                               children: const [
                                 SizedBox(height: 60),
                                 EmptyView(
@@ -198,7 +198,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                                 ),
                               ],
                             )
-                          : ReorderableListView.builder(
+                          : ReorderableListView.builder(key: const ValueKey('items'), 
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                               itemCount: _categories.length,
                               onReorder: _onReorder,
@@ -222,7 +222,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                                 index: i,
                                 key: ValueKey(_categories[i].categoryId),
                               ),
-                            ),
+                            )),
                     ),
             ),
           ),

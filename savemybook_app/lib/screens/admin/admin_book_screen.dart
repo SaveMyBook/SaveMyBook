@@ -160,8 +160,8 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      child: _books.isEmpty
-                          ? ListView(
+                      child: SwitchIn(child: _books.isEmpty
+                          ? ListView(key: const ValueKey('empty'), 
                               children: const [
                                 SizedBox(height: 60),
                                 EmptyView(
@@ -170,14 +170,14 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                                 ),
                               ],
                             )
-                          : ListView.builder(
+                          : ListView.builder(key: const ValueKey('items'), 
                               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                               itemCount: _books.length,
                               itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_books[i], c),
                               ),
-                            ),
+                            )),
                     ),
             ),
           ),

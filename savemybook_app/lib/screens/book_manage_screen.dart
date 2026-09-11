@@ -11,6 +11,7 @@ import '../widgets/state_views.dart';
 import 'book_detail_screen.dart';
 import 'edit_book_screen.dart';
 import 'sell_book_screen.dart';
+import '../utils/motion.dart';
 
 class BookManageScreen extends StatefulWidget {
   const BookManageScreen({super.key});
@@ -143,8 +144,8 @@ class _BookManageScreenState extends State<BookManageScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      child: _visible.isEmpty
-                          ? ListView(
+                      child: SwitchIn(child: _visible.isEmpty
+                          ? ListView(key: const ValueKey('empty'), 
                               children: [
                                 const SizedBox(height: 60),
                                 EmptyView(
@@ -167,7 +168,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                                 ),
                               ],
                             )
-                          : GridView.builder(
+                          : GridView.builder(key: const ValueKey('items'), 
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
@@ -180,7 +181,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                                 index: i,
                                 child: _buildCard(_visible[i], c),
                               ),
-                            ),
+                            )),
                     ),
             ),
           ),
@@ -190,7 +191,10 @@ class _BookManageScreenState extends State<BookManageScreen> {
   }
 
   Widget _buildFilterBar(AppColors c) {
-    return Container(
+    return AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
       color: c.card,
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: SizedBox(

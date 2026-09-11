@@ -87,18 +87,18 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
-                    child: _announcements.isEmpty
-                        ? ListView(
+                    child: SwitchIn(child: _announcements.isEmpty
+                        ? ListView(key: const ValueKey('empty'), 
                             children: const [
                               SizedBox(height: 80),
                               EmptyView(icon: Icons.campaign_outlined, message: '還沒有任何公告，點右上角新增推播'),
                             ],
                           )
-                        : ListView.builder(
+                        : ListView.builder(key: const ValueKey('items'), 
                             padding: const EdgeInsets.all(16),
                             itemCount: _announcements.length,
                             itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(_announcements[i], c)),
-                          ),
+                          )),
                   )),
           ),
         ],

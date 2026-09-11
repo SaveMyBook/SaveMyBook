@@ -50,8 +50,8 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      child: _logs.isEmpty
-                          ? ListView(
+                      child: SwitchIn(child: _logs.isEmpty
+                          ? ListView(key: const ValueKey('empty'), 
                               children: const [
                                 SizedBox(height: 60),
                                 EmptyView(
@@ -60,14 +60,14 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                                 ),
                               ],
                             )
-                          : ListView.builder(
+                          : ListView.builder(key: const ValueKey('items'), 
                               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                               itemCount: _logs.length,
                               itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_logs[i], c),
                               ),
-                            ),
+                            )),
                     ),
             ),
           ),

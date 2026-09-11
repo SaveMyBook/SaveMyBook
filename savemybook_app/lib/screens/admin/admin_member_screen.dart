@@ -195,18 +195,18 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
-                    child: _members.isEmpty
-                        ? ListView(
+                    child: SwitchIn(child: _members.isEmpty
+                        ? ListView(key: const ValueKey('empty'), 
                             children: const [
                               SizedBox(height: 80),
                               EmptyView(icon: Icons.person_off_outlined, message: '找不到符合條件的會員'),
                             ],
                           )
-                        : ListView.builder(
+                        : ListView.builder(key: const ValueKey('items'), 
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                             itemCount: _members.length,
                             itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildMemberCard(_members[i], c)),
-                          ),
+                          )),
                   )),
           ),
         ],

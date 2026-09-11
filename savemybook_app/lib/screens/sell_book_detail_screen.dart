@@ -9,6 +9,7 @@ import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import 'home_screen.dart';
 import '../utils/app_labels.dart';
+import '../utils/motion.dart';
 
 class SellBookDetailScreen extends StatefulWidget {
   final String isbn;
@@ -340,7 +341,10 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     return AnimatedSize(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
-      child: Container(
+      child: AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(12)),
         child: Column(

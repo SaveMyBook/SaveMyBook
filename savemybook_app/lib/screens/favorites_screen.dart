@@ -62,8 +62,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
-                    child: _books.isEmpty
-                        ? ListView(
+                    child: SwitchIn(child: _books.isEmpty
+                        ? ListView(key: const ValueKey('empty'), 
                             children: const [
                               SizedBox(height: 80),
                               EmptyView(
@@ -72,7 +72,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                               ),
                             ],
                           )
-                        : GridView.builder(
+                        : GridView.builder(key: const ValueKey('items'), 
                             padding: const EdgeInsets.all(16),
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
@@ -82,7 +82,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             ),
                             itemCount: _books.length,
                             itemBuilder: (_, i) => RevealOnScroll(index: i, child: BookCard(book: _books[i])),
-                          ),
+                          )),
                   )),
           ),
         ],

@@ -299,6 +299,44 @@ class _RevealOnScrollState extends State<RevealOnScroll>
   }
 }
 
+/// 顯示與隱藏都帶高度與淡入，元素不會憑空出現或消失。
+///
+/// 收合時 child 仍留在樹上、由 heightFactor 壓扁，所以看到的是「收起來」；
+/// 直接換成 SizedBox 的話內容會先整個不見，再剩一個空隙慢慢關。
+class Reveal extends StatelessWidget {
+  final bool visible;
+  final Widget child;
+  final Duration duration;
+  final Alignment alignment;
+
+  const Reveal({
+    super.key,
+    required this.visible,
+    required this.child,
+    this.duration = Motion.base,
+    this.alignment = Alignment.topCenter,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: visible ? 1 : 0, end: visible ? 1 : 0),
+      duration: duration,
+      curve: Motion.emphasized,
+      builder: (context, t, inner) => t == 0
+          ? const SizedBox.shrink()
+          : ClipRect(
+              child: Align(
+                alignment: alignment,
+                heightFactor: t,
+                child: Opacity(opacity: t.clamp(0.0, 1.0), child: inner),
+              ),
+            ),
+      child: child,
+    );
+  }
+}
+
 /// 極輕微的呼吸循環，用於空狀態圖示。
 class Breathe extends StatefulWidget {
   final Widget child;

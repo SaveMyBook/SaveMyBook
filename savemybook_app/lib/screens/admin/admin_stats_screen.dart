@@ -6,6 +6,7 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import '../../utils/motion.dart';
 
 class AdminStatsScreen extends StatefulWidget {
   const AdminStatsScreen({super.key});
@@ -254,7 +255,10 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
                             tween: Tween(begin: 0, end: values[i] / safeMax),
                             duration: Duration(milliseconds: 500 + i * 30),
                             curve: Curves.easeOutCubic,
-                            builder: (_, value, _) => Container(
+                            builder: (_, value, _) => AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
                               height: (value * 76).clamp(2.0, 76.0),
                               decoration: BoxDecoration(
                                 color: color.withValues(alpha: values[i] > 0 ? 0.85 : 0.2),

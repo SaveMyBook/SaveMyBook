@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../utils/app_colors.dart';
 import 'state_views.dart';
+import '../utils/motion.dart';
+import 'animations.dart';
 
 class FormRowCard extends StatelessWidget {
   final String label;
@@ -201,16 +203,20 @@ class AppSearchField extends StatelessWidget {
         prefixIcon: Icon(Icons.search, color: c.iconInactive, size: 20),
         suffixIcon: ValueListenableBuilder<TextEditingValue>(
           valueListenable: controller,
-          builder: (_, value, _) => value.text.isEmpty
-              ? const SizedBox.shrink()
-              : IconButton(
-                  icon: Icon(Icons.close_rounded, size: 18, color: c.iconInactive),
-                  onPressed: () {
-                    controller.clear();
-                    onChanged?.call('');
-                    onSubmitted?.call('');
-                  },
-                ),
+          builder: (_, value, _) => SwitchIn(
+            duration: Motion.micro,
+            child: value.text.isEmpty
+                ? const SizedBox.shrink(key: ValueKey('empty'))
+                : IconButton(
+                    key: const ValueKey('clear'),
+                    icon: Icon(Icons.close_rounded, size: 18, color: c.iconInactive),
+                    onPressed: () {
+                      controller.clear();
+                      onChanged?.call('');
+                      onSubmitted?.call('');
+                    },
+                  ),
+          ),
         ),
         isDense: true,
         filled: true,
@@ -293,7 +299,10 @@ class AppDateField extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: enabled ? () => _pick(context) : null,
-      child: Container(
+      child: AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
         decoration: BoxDecoration(
           color: c.inputFill,

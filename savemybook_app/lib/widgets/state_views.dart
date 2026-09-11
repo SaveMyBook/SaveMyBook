@@ -158,7 +158,10 @@ class EmptyView extends StatelessWidget {
             FadeSlideIn(
               offsetY: 14,
               child: Breathe(
-                child: Container(
+                child: AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
                   width: 104,
                   height: 104,
                   decoration: BoxDecoration(

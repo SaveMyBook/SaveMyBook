@@ -134,8 +134,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
-                    child: _rooms.isEmpty
-                        ? ListView(
+                    child: SwitchIn(child: _rooms.isEmpty
+                        ? ListView(key: const ValueKey('empty'), 
                             children: const [
                               SizedBox(height: 80),
                               EmptyView(
@@ -144,11 +144,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
                               ),
                             ],
                           )
-                        : ListView.builder(
+                        : ListView.builder(key: const ValueKey('items'), 
                             padding: const EdgeInsets.all(16),
                             itemCount: _rooms.length,
                             itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildRoomTile(_rooms[i], c)),
-                          ),
+                          )),
                   )),
           ),
         ],

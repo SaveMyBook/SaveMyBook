@@ -182,18 +182,18 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
-                    child: _disputes.isEmpty
-                        ? ListView(
+                    child: SwitchIn(child: _disputes.isEmpty
+                        ? ListView(key: const ValueKey('empty'), 
                             children: const [
                               SizedBox(height: 80),
                               EmptyView(icon: Icons.balance_rounded, message: '目前沒有此類申訴案件'),
                             ],
                           )
-                        : ListView.builder(
+                        : ListView.builder(key: const ValueKey('items'), 
                             padding: const EdgeInsets.all(16),
                             itemCount: _disputes.length,
                             itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(_disputes[i], c)),
-                          ),
+                          )),
                   )),
             ),
           ),

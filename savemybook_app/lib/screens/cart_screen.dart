@@ -10,6 +10,7 @@ import '../widgets/state_views.dart';
 import '../widgets/swipe_action.dart';
 import 'book_detail_screen.dart';
 import 'purchase_history_screen.dart';
+import '../utils/motion.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -147,18 +148,18 @@ class _CartScreenState extends State<CartScreen> {
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
-                    child: _items.isEmpty
-                        ? ListView(
+                    child: SwitchIn(child: _items.isEmpty
+                        ? ListView(key: const ValueKey('empty'), 
                             children: const [
                               SizedBox(height: 80),
                               EmptyView(icon: Icons.remove_shopping_cart_outlined, message: '購物車是空的'),
                             ],
                           )
-                        : ListView.builder(
+                        : ListView.builder(key: const ValueKey('items'), 
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                             itemCount: _items.length,
                             itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildItem(_items[i], c)),
-                          ),
+                          )),
                   )),
           ),
           if (_items.isNotEmpty) _buildCheckoutBar(c),
@@ -388,7 +389,10 @@ class _CartScreenState extends State<CartScreen> {
   Widget _buildCheckoutBar(AppColors c) {
     final shortfall = _total - _balance;
 
-    return Container(
+    return AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
@@ -406,12 +410,9 @@ class _CartScreenState extends State<CartScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AnimatedSize(
-            duration: const Duration(milliseconds: 240),
-            curve: Curves.easeOutCubic,
-            child: _canAfford || _selectedItems.isEmpty
-                ? const SizedBox(width: double.infinity)
-                : Container(
+          Reveal(
+            visible: !_canAfford && _selectedItems.isNotEmpty,
+            child: Container(
                     width: double.infinity,
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

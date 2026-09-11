@@ -160,8 +160,8 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      child: _orders.isEmpty
-                          ? ListView(
+                      child: SwitchIn(child: _orders.isEmpty
+                          ? ListView(key: const ValueKey('empty'), 
                               children: const [
                                 SizedBox(height: 60),
                                 EmptyView(
@@ -170,14 +170,14 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                                 ),
                               ],
                             )
-                          : ListView.builder(
+                          : ListView.builder(key: const ValueKey('items'), 
                               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                               itemCount: _orders.length,
                               itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_orders[i], c),
                               ),
-                            ),
+                            )),
                     ),
             ),
           ),

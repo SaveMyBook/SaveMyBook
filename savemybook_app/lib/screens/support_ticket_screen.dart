@@ -11,6 +11,7 @@ import '../widgets/app_header.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/state_views.dart';
 import '../utils/app_labels.dart';
+import '../utils/motion.dart';
 
 class SupportTicketScreen extends StatefulWidget {
   const SupportTicketScreen({super.key});
@@ -79,8 +80,8 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      child: _tickets.isEmpty
-                          ? ListView(
+                      child: SwitchIn(child: _tickets.isEmpty
+                          ? ListView(key: const ValueKey('empty'), 
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                               children: const [
                                 SizedBox(height: 60),
@@ -90,14 +91,14 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                                 ),
                               ],
                             )
-                          : ListView.builder(
+                          : ListView.builder(key: const ValueKey('items'), 
                               padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
                               itemCount: _tickets.length,
                               itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_tickets[i], c),
                               ),
-                            ),
+                            )),
                     ),
             ),
           ),
@@ -484,7 +485,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   constraints: BoxConstraints(
                     maxWidth: MediaQuery.of(context).size.width * 0.7,
                   ),
-                  child: Container(
+                  child: AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
                       color: alignRight ? c.accent : c.card,

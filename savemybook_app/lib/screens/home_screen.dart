@@ -236,10 +236,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: _buildSortAndLayoutRow()),
                   const SizedBox(height: 16),
                   Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: _buildBookGrid()),
-                  if (_isLoadingMore)
-                    const Padding(padding: EdgeInsets.symmetric(vertical: 24.0), child: Center(child: CircularProgressIndicator(color: AppColors.primary))),
-                  if (!_hasMoreData && _books.isNotEmpty && !_isLoadingInitial)
-                    Padding(padding: const EdgeInsets.symmetric(vertical: 24.0), child: Center(child: Text('您已滑到底部', style: TextStyle(color: c.textHint, fontSize: 13)))),
+                  Reveal(
+                    visible: _isLoadingMore,
+                    child: const Padding(padding: EdgeInsets.symmetric(vertical: 24.0), child: Center(child: CircularProgressIndicator(color: AppColors.primary))),
+                  ),
+                  Reveal(
+                    visible: !_hasMoreData && _books.isNotEmpty && !_isLoadingInitial,
+                    child: Padding(padding: const EdgeInsets.symmetric(vertical: 24.0), child: Center(child: Text('您已滑到底部', style: TextStyle(color: c.textHint, fontSize: 13)))),
+                  ),
                   SizedBox(height: MediaQuery.of(context).padding.bottom + 100),
                 ],
               ),
@@ -333,7 +337,10 @@ return LightStatusBar(
       children: [
         _buildSortDropdown(),
         const Spacer(),
-        Container(
+        AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
           decoration: BoxDecoration(
             color: c.categoryChip,
             borderRadius: BorderRadius.circular(8),
@@ -347,7 +354,10 @@ return LightStatusBar(
                   HapticFeedback.selectionClick();
                   setState(() => _isGridView = true);
                 },
-                child: Container(
+                child: AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: _isGridView ? c.accent : Colors.transparent,
@@ -362,7 +372,10 @@ return LightStatusBar(
                   HapticFeedback.selectionClick();
                   setState(() => _isGridView = false);
                 },
-                child: Container(
+                child: AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: !_isGridView ? c.accent : Colors.transparent,

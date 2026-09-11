@@ -244,14 +244,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
-                    child: _notifications.isEmpty
-                        ? ListView(
+                    child: SwitchIn(child: _notifications.isEmpty
+                        ? ListView(key: const ValueKey('empty'), 
                             children: const [
                               SizedBox(height: 80),
                               EmptyView(icon: Icons.notifications_off_outlined, message: '目前沒有任何通知'),
                             ],
                           )
-                        : ListView.builder(
+                        : ListView.builder(key: const ValueKey('items'), 
                             padding: EdgeInsets.only(
                               left: 16,
                               right: 16,
@@ -260,7 +260,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             ),
                             itemCount: _notifications.length,
                             itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildTile(_notifications[i], c)),
-                          ),
+                          )),
                   )),
           ),
         ],

@@ -9,6 +9,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import '../../utils/motion.dart';
 
 class AdminWalletScreen extends StatefulWidget {
   const AdminWalletScreen({super.key});
@@ -78,8 +79,8 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      child: _wallets.isEmpty
-                          ? ListView(
+                      child: SwitchIn(child: _wallets.isEmpty
+                          ? ListView(key: const ValueKey('empty'), 
                               children: const [
                                 SizedBox(height: 60),
                                 EmptyView(
@@ -88,14 +89,14 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                                 ),
                               ],
                             )
-                          : ListView.builder(
+                          : ListView.builder(key: const ValueKey('items'), 
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                               itemCount: _wallets.length,
                               itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_wallets[i], c),
                               ),
-                            ),
+                            )),
                     ),
             ),
           ),
@@ -475,7 +476,10 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          Container(
+          AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
             width: 34,
             height: 34,
             decoration: BoxDecoration(

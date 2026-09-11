@@ -51,21 +51,21 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
                       key: const ValueKey('logs'),
                       color: c.accent,
                       onRefresh: _load,
-                      child: _logs.isEmpty
-                          ? ListView(
+                      child: SwitchIn(child: _logs.isEmpty
+                          ? ListView(key: const ValueKey('empty'), 
                               children: const [
                                 SizedBox(height: 80),
                                 EmptyView(icon: Icons.build_outlined, message: '目前沒有維修紀錄'),
                               ],
                             )
-                          : ListView.builder(
+                          : ListView.builder(key: const ValueKey('items'), 
                               padding: const EdgeInsets.all(16),
                               itemCount: _logs.length,
                               itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildLogCard(_logs[i], c),
                               ),
-                            ),
+                            )),
                     ),
             ),
           ),

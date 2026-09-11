@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import 'animations.dart';
+import '../utils/motion.dart';
 
 class LightStatusBar extends StatelessWidget {
   final Widget child;
@@ -142,7 +143,10 @@ class CountBadge extends StatelessWidget {
 
     return PopIn(
       triggerKey: count,
-      child: Container(
+      child: AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
         constraints: const BoxConstraints(minWidth: 16),
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         decoration: BoxDecoration(

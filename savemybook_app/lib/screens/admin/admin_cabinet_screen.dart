@@ -178,18 +178,18 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
-                    child: _filtered.isEmpty
-                        ? ListView(
+                    child: SwitchIn(child: _filtered.isEmpty
+                        ? ListView(key: const ValueKey('empty'), 
                             children: const [
                               SizedBox(height: 80),
                               EmptyView(icon: Icons.inbox_outlined, message: '沒有符合條件的書櫃'),
                             ],
                           )
-                        : ListView.builder(
+                        : ListView.builder(key: const ValueKey('items'), 
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                             itemCount: _filtered.length,
                             itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCabinetCard(_filtered[i], c)),
-                          ),
+                          )),
                   )),
           ),
         ],

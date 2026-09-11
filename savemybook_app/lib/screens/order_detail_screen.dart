@@ -10,6 +10,7 @@ import '../widgets/app_tiles.dart';
 import '../widgets/state_views.dart';
 import 'book_detail_screen.dart';
 import '../utils/app_labels.dart';
+import '../utils/motion.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final Order order;
@@ -199,7 +200,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           : null,
                     ),
                     if (i != _flow.length - 1)
-                      Container(
+                      AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
                         width: 2,
                         height: 26,
                         color: i < current ? c.accent : c.divider,
@@ -337,8 +341,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             label: '櫃位',
             value: _order.slotNumber.isEmpty ? '尚未配位' : _order.slotNumber,
           ),
-          if (!widget.asSeller && _order.pickupCode != null && _order.pickupCode!.isNotEmpty)
-            GestureDetector(
+          Reveal(
+            visible: !widget.asSeller && _order.pickupCode != null && _order.pickupCode!.isNotEmpty,
+            child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onLongPress: () => _copy(_order.pickupCode!, '取書碼'),
               child: InfoLine(
@@ -347,6 +352,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 value: _order.pickupCode!,
               ),
             ),
+          ),
         ],
       ),
     );
@@ -371,12 +377,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             label: '成立時間',
             value: formatDateTime(_order.createdAt),
           ),
-          if (_order.hasOpenDispute)
-            InfoLine(
+          Reveal(
+            visible: _order.hasOpenDispute,
+            child: const InfoLine(
               icon: Icons.gavel_rounded,
               label: '爭議',
               value: '此訂單有進行中的申訴案件',
             ),
+          ),
         ],
       ),
     );

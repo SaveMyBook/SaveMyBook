@@ -92,8 +92,8 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
                     : RefreshIndicator(
                         color: c.accent,
                         onRefresh: _load,
-                        child: _tickets.isEmpty
-                            ? ListView(
+                        child: SwitchIn(child: _tickets.isEmpty
+                            ? ListView(key: const ValueKey('empty'), 
                                 children: const [
                                   SizedBox(height: 60),
                                   EmptyView(
@@ -102,14 +102,14 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
                                   ),
                                 ],
                               )
-                            : ListView.builder(
+                            : ListView.builder(key: const ValueKey('items'), 
                                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                                 itemCount: _tickets.length,
                                 itemBuilder: (_, i) => RevealOnScroll(
                                   index: i,
                                   child: _buildCard(_tickets[i], c),
                                 ),
-                              ),
+                              )),
                       ),
               ),
             ),

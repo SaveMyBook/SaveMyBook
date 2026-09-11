@@ -8,6 +8,8 @@ import 'legal_doc_screen.dart';
 import 'support_ticket_screen.dart';
 import '../widgets/biometric_icon.dart';
 import '../widgets/state_views.dart';
+import '../utils/motion.dart';
+import '../widgets/animations.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -190,7 +192,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: Colors.transparent,
               child: ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                leading: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: c.textPrimary),
+                leading: SwitchIn(
+                  duration: Motion.micro,
+                  child: Icon(
+                    isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                    key: ValueKey(isDark),
+                    color: c.textPrimary,
+                  ),
+                ),
                 title: Text('深色模式', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary)),
                 trailing: Switch.adaptive(value: isDark, activeThumbColor: c.accent, onChanged: (_) => themeProvider.toggle()),
               ),

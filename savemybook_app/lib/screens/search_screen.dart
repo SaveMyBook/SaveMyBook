@@ -84,12 +84,12 @@ class _SearchScreenState extends State<SearchScreen> {
         children: [
           _buildHeader(c),
           Expanded(
-            child: history.isEmpty
-                ? const EmptyView(
+            child: SwitchIn(child: history.isEmpty
+                ? const EmptyView(key: const ValueKey('empty'), 
                     icon: Icons.manage_search_rounded,
                     message: '還沒有搜尋紀錄',
                   )
-                : ListView(
+                : ListView(key: const ValueKey('items'), 
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                     children: [
                       Row(
@@ -128,7 +128,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         ],
                       ),
                     ],
-                  ),
+                  )),
           ),
         ],
       ),

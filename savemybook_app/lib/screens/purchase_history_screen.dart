@@ -168,14 +168,14 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
-                    child: orders.isEmpty
-                        ? ListView(
+                    child: SwitchIn(child: orders.isEmpty
+                        ? ListView(key: const ValueKey('empty'), 
                             children: const [
                               SizedBox(height: 80),
                               EmptyView(icon: Icons.receipt_long_outlined, message: '此分類目前沒有訂單'),
                             ],
                           )
-                        : GridView.builder(
+                        : GridView.builder(key: const ValueKey('items'), 
                             padding: const EdgeInsets.all(16),
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
@@ -185,7 +185,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
                             ),
                             itemCount: orders.length,
                             itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(orders[i])),
-                          ),
+                          )),
                   )),
             ),
           ),

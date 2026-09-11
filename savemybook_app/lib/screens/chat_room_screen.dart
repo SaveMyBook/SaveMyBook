@@ -12,6 +12,7 @@ import '../widgets/app_header.dart';
 import '../widgets/image_viewer.dart';
 import '../widgets/state_views.dart';
 import 'book_detail_screen.dart';
+import '../utils/motion.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final int roomId;
@@ -227,7 +228,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     onLongPress: message.messageType == 'image'
                         ? null
                         : () => _copyMessage(message.content),
-                    child: Container(
+                    child: AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
                     padding: message.messageType == 'image'
                         ? const EdgeInsets.all(4)
                         : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

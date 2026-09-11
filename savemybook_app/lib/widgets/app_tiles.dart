@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import 'image_viewer.dart';
+import '../utils/motion.dart';
 
 class UserAvatar extends StatefulWidget {
   final String? imageUrl;
@@ -45,7 +46,10 @@ class _UserAvatarState extends State<UserAvatar> {
 
     // CircleAvatar 的 backgroundImage 在載入中是一片空白，
     // 改用 Image.network 才能在等圖的時候先放人像佔位。
-    final avatar = Container(
+    final avatar = AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+
       width: widget.radius * 2,
       height: widget.radius * 2,
       clipBehavior: Clip.antiAlias,

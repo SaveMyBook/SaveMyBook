@@ -182,18 +182,18 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
-                    child: _reports.isEmpty
-                        ? ListView(
+                    child: SwitchIn(child: _reports.isEmpty
+                        ? ListView(key: const ValueKey('empty'), 
                             children: const [
                               SizedBox(height: 80),
                               EmptyView(icon: Icons.verified_outlined, message: '目前沒有此類檢舉案件'),
                             ],
                           )
-                        : ListView.builder(
+                        : ListView.builder(key: const ValueKey('items'), 
                             padding: const EdgeInsets.all(16),
                             itemCount: _reports.length,
                             itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(_reports[i], c)),
-                          ),
+                          )),
                   )),
             ),
           ),
@@ -241,22 +241,25 @@ class _AdminReportScreenState extends State<AdminReportScreen>
             children: [
               Text(formatDateTime(report.createdAt), style: TextStyle(fontSize: 11, color: c.textHint)),
               const Spacer(),
-              if (_isPendingTab)
-                GestureDetector(
-                  onTap: () => _review(report),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: c.accent,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text('審核',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
-                  ),
-                )
-              else
-                Text(report.statusText,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
+              SwitchIn(
+                child: _isPendingTab
+                    ? GestureDetector(
+                        key: const ValueKey('review'),
+                        onTap: () => _review(report),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: c.accent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text('審核',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
+                        ),
+                      )
+                    : Text(report.statusText,
+                        key: const ValueKey('status'),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
+              ),
             ],
           ),
           if (!_isPendingTab && (report.adminNote?.isNotEmpty ?? false)) ...[

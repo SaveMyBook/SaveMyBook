@@ -451,22 +451,22 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      child: _faqs.isEmpty
-                          ? ListView(
+                      child: SwitchIn(child: _faqs.isEmpty
+                          ? ListView(key: const ValueKey('empty'), 
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                               children: const [
                                 SizedBox(height: 60),
                                 EmptyView(icon: Icons.quiz_outlined, message: '還沒有常見問題'),
                               ],
                             )
-                          : ListView.builder(
+                          : ListView.builder(key: const ValueKey('items'), 
                               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                               itemCount: _faqs.length,
                               itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_faqs[i], c),
                               ),
-                            ),
+                            )),
                     ),
             ),
           ),

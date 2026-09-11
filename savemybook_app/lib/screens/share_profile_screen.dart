@@ -14,6 +14,7 @@ import '../widgets/app_tiles.dart';
 import '../widgets/state_views.dart';
 import 'barcode_scanner_screen.dart';
 import 'chat_room_screen.dart';
+import '../utils/motion.dart';
 
 class ShareProfileScreen extends StatefulWidget {
   const ShareProfileScreen({super.key});
@@ -307,13 +308,19 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                       ),
                     ),
             ),
-            if (_isBusy)
-              const Positioned.fill(
-                child: ColoredBox(
-                  color: Color(0x66000000),
-                  child: Center(child: CircularProgressIndicator(color: Colors.white)),
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: !_isBusy,
+                child: AnimatedOpacity(
+                  opacity: _isBusy ? 1 : 0,
+                  duration: Motion.base,
+                  child: const ColoredBox(
+                    color: Color(0x66000000),
+                    child: Center(child: CircularProgressIndicator(color: Colors.white)),
+                  ),
                 ),
               ),
+            ),
           ],
         ),
       ),
