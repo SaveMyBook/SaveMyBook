@@ -18,6 +18,7 @@ import '../widgets/book_card.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../widgets/search_bar_widget.dart';
 import '../widgets/state_views.dart';
+import '../i18n/strings.dart';
 
 class HomeScreen extends StatefulWidget {
   final String initialKeyword;
@@ -34,9 +35,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _hasMoreData = true;
   int _currentPage = 1;
   final Set<int> _selectedCategoryIds = {};
-  String _currentSort = '最新上架';
+  String _currentSort = S.newest;
   late String _currentKeyword = widget.initialKeyword;
-  final List<String> _sortOptions = ['最新上架', '熱門推薦', '價格由低到高', '價格由高到低'];
+  final List<String> _sortOptions = [S.newest, S.popular, S.priceLowHigh, S.priceHighLow];
 
   List<Category> _categories = [];
   List<Book> _books = [];
@@ -242,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                   Reveal(
                     visible: !_hasMoreData && _books.isNotEmpty && !_isLoadingInitial,
-                    child: Padding(padding: const EdgeInsets.symmetric(vertical: 24.0), child: Center(child: Text('您已滑到底部', style: TextStyle(color: c.textHint, fontSize: 13)))),
+                    child: Padding(padding: const EdgeInsets.symmetric(vertical: 24.0), child: Center(child: Text(S.reachedEnd, style: TextStyle(color: c.textHint, fontSize: 13)))),
                   ),
                   SizedBox(height: MediaQuery.of(context).padding.bottom + 100),
                 ],
@@ -256,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget _buildCustomHeader() {
     final c = AppColors.of(context);
-    final userName = ApiService.currentUser?.nickname ?? '訪客';
+    final userName = ApiService.currentUser?.nickname ?? S.guest;
 return LightStatusBar(
       child: Container(
       decoration: BoxDecoration(color: c.headerBg, borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24))),
@@ -268,7 +269,7 @@ return LightStatusBar(
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text('哈囉, $userName', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(S.hi(userName), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                 Row(children: [
                   CartIconButton(
                     size: 26,
@@ -417,7 +418,7 @@ return LightStatusBar(
     if (_isLoadingInitial) {
       content = const Center(key: ValueKey('loading'), child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator(color: AppColors.primary)));
     } else if (_books.isEmpty) {
-      content = Center(key: const ValueKey('empty'), child: Padding(padding: const EdgeInsets.all(32.0), child: Text('目前沒有符合條件的書籍', style: TextStyle(color: c.textHint))));
+      content = Center(key: const ValueKey('empty'), child: Padding(padding: const EdgeInsets.all(32.0), child: Text(S.noBooksMatchFilters, style: TextStyle(color: c.textHint))));
     } else if (_isGridView) {
       content = GridView.builder(
         key: const ValueKey('grid'), padding: EdgeInsets.zero, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),

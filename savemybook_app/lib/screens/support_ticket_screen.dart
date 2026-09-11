@@ -12,6 +12,7 @@ import '../widgets/app_tiles.dart';
 import '../widgets/state_views.dart';
 import '../utils/app_labels.dart';
 import '../utils/motion.dart';
+import '../i18n/strings.dart';
 
 class SupportTicketScreen extends StatefulWidget {
   const SupportTicketScreen({super.key});
@@ -68,11 +69,11 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
         backgroundColor: c.accent,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.edit_outlined, size: 20),
-        label: const Text('提出問題'),
+        label: Text(S.askQuestion),
       ),
       body: Column(
         children: [
-          const AppHeader(title: '聯絡我們', icon: Icons.support_agent_rounded),
+          AppHeader(title: S.contactUs, icon: Icons.support_agent_rounded),
           Expanded(
             child: SwitchIn(
               child: _isLoading
@@ -83,11 +84,11 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                       child: SwitchIn(child: _tickets.isEmpty
                           ? ListView(key: const ValueKey('empty'), 
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                              children: const [
+                              children: [
                                 SizedBox(height: 60),
                                 EmptyView(
                                   icon: Icons.support_agent_rounded,
-                                  message: '還沒有任何問題紀錄',
+                                  message: S.noEnquiriesYet,
                                 ),
                               ],
                             )
@@ -184,11 +185,11 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
     final content = _contentController.text.trim();
 
     if (subject.isEmpty) {
-      showAppSnackBar(context, '請填寫主旨', isError: true);
+      showAppSnackBar(context, S.enterSubject, isError: true);
       return;
     }
     if (content.trim().length < 5) {
-      showAppSnackBar(context, '請多描述一點，方便客服判斷', isError: true);
+      showAppSnackBar(context, S.addMoreDetailSoSupportCan, isError: true);
       return;
     }
 
@@ -205,7 +206,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
       showAppSnackBar(context, error, isError: true);
       return;
     }
-    showAppSnackBar(context, '已送出，客服會盡快回覆');
+    showAppSnackBar(context, S.sentSupportReplySoon);
     Navigator.pop(context, true);
   }
 
@@ -217,7 +218,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '提出問題', icon: Icons.edit_outlined),
+          AppHeader(title: S.askQuestion, icon: Icons.edit_outlined),
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -232,10 +233,10 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                 ),
                 children: [
                   FormRowCard(
-                    label: '類型',
+                    label: S.type,
                     child: AppDropdownField<String>(
                       value: _category,
-                      hint: '請選擇',
+                      hint: S.actionSelect,
                       items: AppLabels.ticketCategory.entries
                           .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
                           .toList(),
@@ -243,27 +244,27 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                     ),
                   ),
                   FormRowCard(
-                    label: '主旨',
+                    label: S.subject,
                     child: AppTextField(
                       controller: _subjectController,
-                      hint: '一句話描述問題',
+                      hint: S.sumUpOneLine,
                       maxLength: 100,
                       textInputAction: TextInputAction.next,
                     ),
                   ),
                   FormRowCard(
-                    label: '內容',
+                    label: S.content,
                     alignTop: true,
                     child: AppTextField(
                       controller: _contentController,
-                      hint: '發生什麼事？有訂單編號的話一併附上',
+                      hint: S.whatHappenedIncludeOrderNumberIf,
                       maxLines: 8,
                       maxLength: 1000,
                     ),
                   ),
                   const SizedBox(height: 24),
                   PrimaryButton(
-                    label: '送出',
+                    label: S.actionSubmit,
                     height: 50,
                     isLoading: _isSaving,
                     onPressed: _submit,
@@ -349,9 +350,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   Future<void> _close() async {
     final ok = await showConfirmDialog(
       context,
-      title: '結案',
-      message: '結案後就不能再回覆了。',
-      confirmLabel: '結案',
+      title: S.close,
+      message: S.notAbleReplyAfterClosing,
+      confirmLabel: S.close,
       isDestructive: true,
     );
     if (!ok || !mounted) return;
@@ -362,7 +363,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '工單已結案');
+      showAppSnackBar(context, S.enquiryClosed);
       _load();
     }
   }
@@ -370,7 +371,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   Future<void> _changeStatus() async {
     final status = await showOptionSheet<String>(
       context,
-      title: '調整工單狀態',
+      title: S.changeStatus,
       options: AppLabels.ticketStatus.entries
           .map((e) => SheetOption(
                 value: e.key,
@@ -387,7 +388,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '已更新狀態');
+      showAppSnackBar(context, S.statusUpdated);
       _load();
     }
   }
@@ -403,7 +404,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       body: Column(
         children: [
           AppHeader(
-            title: ticket?.subject ?? '工單',
+            title: ticket?.subject ?? S.enquiry,
             icon: Icons.support_agent_rounded,
             actions: [
               if (widget.asAdmin)
@@ -417,9 +418,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               child: _isLoading
                   ? const LoadingView.list()
                   : ticket == null
-                      ? const EmptyView(
+                      ? EmptyView(
                           icon: Icons.support_agent_rounded,
-                          message: '找不到這張工單',
+                          message: S.enquiryNotFound,
                         )
                       : ListView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -519,7 +520,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               top: 4,
             ),
             child: Text(
-              '${message.isStaff ? '客服' : message.senderName}・${formatRelative(message.createdAt)}',
+              '${message.isStaff ? S.support : message.senderName}・${formatRelative(message.createdAt)}',
               style: TextStyle(fontSize: 10, color: c.textHint),
             ),
           ),
@@ -545,7 +546,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           Expanded(
             child: AppTextField(
               controller: _controller,
-              hint: '輸入回覆…',
+              hint: S.writeReply,
               maxLines: 4,
               maxLength: 1000,
               onSubmitted: (_) => _send(),

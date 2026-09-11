@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../i18n/strings.dart';
 
 class ImageViewer extends StatefulWidget {
   final String imageUrl;
@@ -85,7 +86,7 @@ class _ImageViewerState extends State<ImageViewer> with SingleTickerProviderStat
           children: [
             Icon(Icons.broken_image_outlined, color: c.iconInactive, size: 56),
             const SizedBox(height: 12),
-            const Text('無法載入這張照片', style: TextStyle(color: Colors.white70)),
+            Text(S.couldNotLoadPhoto, style: TextStyle(color: Colors.white70)),
           ],
         ),
       ),

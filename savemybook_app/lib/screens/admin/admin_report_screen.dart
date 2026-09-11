@@ -8,6 +8,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
+import '../../i18n/strings.dart';
 
 class AdminReportScreen extends StatefulWidget {
   const AdminReportScreen({super.key});
@@ -129,7 +130,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('違規成立'),
+                      child: Text(S.violationConfirmed),
                     ),
                   ),
                 ],
@@ -172,7 +173,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
           AppHeader(
             title: '商品檢舉處理',
             icon: Icons.report_gmailerrorred_outlined,
-            bottom: AppTabBar(controller: _tabController, tabs: const ['待處理', '已處理']),
+            bottom: AppTabBar(controller: _tabController, tabs: [S.ticketOpen, S.reportResolved]),
           ),
           Expanded(
             child: SwipeTabs(

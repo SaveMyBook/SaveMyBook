@@ -10,6 +10,7 @@ import '../utils/app_colors.dart';
 import 'home_screen.dart';
 import '../utils/app_labels.dart';
 import '../utils/motion.dart';
+import '../i18n/strings.dart';
 
 class SellBookDetailScreen extends StatefulWidget {
   final String isbn;
@@ -128,7 +129,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   Future<void> _addExtraImages() async {
     final remaining = 10 - _totalImages;
     if (remaining <= 0) {
-      _showAlertDialog('照片已滿', '最多只能上傳 10 張照片。');
+      _showAlertDialog(S.photoLimitReached, S.canUploadUp10Photos);
       return;
     }
 
@@ -147,7 +148,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   void _removeExtra(int index) => setState(() => _extra.removeAt(index));
 
   String _getImageLabel(int index) =>
-      index < _requiredLabels.length ? _requiredLabels[index] : '補充照片';
+      index < _requiredLabels.length ? _requiredLabels[index] : S.morePhotos;
 
   void _showAlertDialog(String title, String content) {
     showDialog(
@@ -159,7 +160,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('確定', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+            child: Text(S.actionConfirm, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -172,24 +173,24 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         for (var i = 0; i < _slots.length; i++)
           if (_slots[i] == null) _requiredLabels[i],
       ].join('、');
-      _showAlertDialog('照片不足', '還缺少：$missing。這三張是必填的。');
+      _showAlertDialog(S.photosMissing, S.missingTheseThreeRequired2(missing));
       return;
     }
     final price = double.tryParse(_priceController.text.trim());
     if (price == null) {
-      _showAlertDialog('資料不齊全', '請輸入自訂價格。');
+      _showAlertDialog(S.missingInformation, S.enterOwnPrice);
       return;
     }
     if (price <= 0) {
-      _showAlertDialog('價格不正確', '售價必須大於 0 元。');
+      _showAlertDialog(S.invalidPrice, S.priceMustGreaterThan02);
       return;
     }
     if (price > 99999) {
-      _showAlertDialog('價格不正確', '售價不可超過 99999 元。');
+      _showAlertDialog(S.invalidPrice, S.priceCannotExceed99999);
       return;
     }
     if (_selectedCabinet == null) {
-      _showAlertDialog('資料不齊全', '請選擇存放區域。');
+      _showAlertDialog(S.missingInformation, S.chooseLockerLocation2);
       return;
     }
 
@@ -232,7 +233,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('上架成功！'), backgroundColor: Colors.green),
+          SnackBar(content: Text(S.listed2), backgroundColor: Colors.green),
         );
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
@@ -242,19 +243,19 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
               (route) => false,
         );
       } else {
-        String errMsg = '未知錯誤';
+        String errMsg = S.unknownError;
         try {
           final data = jsonDecode(response.body);
           errMsg = data['message'] ?? response.body;
         } catch (_) {
           errMsg = response.body;
         }
-        _showAlertDialog('上架失敗', '伺服器回應錯誤：$errMsg');
+        _showAlertDialog(S.couldNotListBook, S.serverError(errMsg));
       }
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);
-      _showAlertDialog('連線異常', '無法連線至伺服器或上傳超時，請檢查網路狀態。');
+      _showAlertDialog(S.connectionProblem, S.couldNotReachServerUploadTimed);
     }
   }
 
@@ -275,11 +276,11 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                 children: [
                   _buildImageUploadSection(c),
                   const SizedBox(height: 16),
-                  _buildCardRow(c, '書況', _buildConditionDropdown(c), isRequired: true),
+                  _buildCardRow(c, S.condition, _buildConditionDropdown(c), isRequired: true),
                   const SizedBox(height: 16),
-                  _buildCardRow(c, '自訂價格', _buildInput(c, _priceController, TextInputType.number), isRequired: true),
+                  _buildCardRow(c, S.customPrice, _buildInput(c, _priceController, TextInputType.number), isRequired: true),
                   const SizedBox(height: 16),
-                  _buildCardRow(c, '存放區域', _buildCabinetDropdown(c), isRequired: true),
+                  _buildCardRow(c, S.lockerLocation, _buildCabinetDropdown(c), isRequired: true),
                   const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity, height: 50,
@@ -290,7 +291,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
                       ),
-                      child: const Text('確認完成上架', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: Text(S.listBook, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(height: 80),
@@ -317,13 +318,13 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                 splashRadius: 24,
                 onPressed: () => Navigator.pop(context),
               ),
-              const Expanded(
+              Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.add_box_outlined, color: Colors.white, size: 20),
                     SizedBox(width: 8),
-                    Text('詳細資訊與照片', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(S.detailsPhotos, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -354,7 +355,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
               children: [
                 Text.rich(
                   TextSpan(
-                    text: '書籍照片',
+                    text: S.bookPhotos,
                     children: [
                       TextSpan(
                         text: ' *',
@@ -402,7 +403,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                       padding: const EdgeInsets.only(right: 12),
                       child: _buildImageItem(
                         c,
-                        '補充照片',
+                        S.morePhotos,
                         _extra[i],
                         isRequired: false,
                         onRemove: () => _removeExtra(i),
@@ -411,7 +412,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                   if (canAddMore)
                     Padding(
                       padding: const EdgeInsets.only(right: 12),
-                      child: _buildAddImageButton(c, '補充照片', _addExtraImages),
+                      child: _buildAddImageButton(c, S.morePhotos, _addExtraImages),
                     ),
                 ],
               ),
@@ -500,7 +501,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                   Icon(Icons.add_photo_alternate_outlined, color: c.accent, size: 28),
                   const SizedBox(height: 4),
                   Text(
-                    '加入',
+                    S.add,
                     style: TextStyle(color: c.accent, fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -609,14 +610,14 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         decoration: BoxDecoration(border: Border.all(color: c.divider), borderRadius: BorderRadius.circular(8)),
         child: DropdownButtonHideUnderline(
           child: _isLoadingCabinets
-              ? Center(child: Text('載入中...', style: TextStyle(color: c.textHint, fontSize: 15)))
+              ? Center(child: Text(S.loading, style: TextStyle(color: c.textHint, fontSize: 15)))
               : DropdownButton<int>(
             value: _selectedCabinet,
             isExpanded: true,
             icon: Icon(Icons.keyboard_arrow_down, color: c.iconInactive),
             dropdownColor: c.card,
             style: TextStyle(fontSize: 15, color: c.textPrimary),
-            items: _cabinets.map((cab) => DropdownMenuItem<int>(value: cab['cabinet_id'], child: Text(cab['cabinet_name'] ?? '未知機櫃'))).toList(),
+            items: _cabinets.map((cab) => DropdownMenuItem<int>(value: cab['cabinet_id'], child: Text(cab['cabinet_name'] ?? S.unknownLocker))).toList(),
             onChanged: (val) {
               if (val != null) setState(() => _selectedCabinet = val);
             },

@@ -8,6 +8,7 @@ import '../utils/motion.dart';
 import 'animations.dart';
 import 'app_header.dart';
 import 'liquid_glass.dart';
+import '../i18n/strings.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int selectedIndex;
@@ -69,7 +70,7 @@ class CustomBottomNav extends StatelessWidget {
                             child: _buildNavItem(
                               Icons.home_rounded,
                               Icons.home_outlined,
-                              '首頁',
+                              S.home,
                               0,
                               c,
                             ),
@@ -78,7 +79,7 @@ class CustomBottomNav extends StatelessWidget {
                             child: _buildNavItem(
                               Icons.notifications_rounded,
                               Icons.notifications_none_rounded,
-                              '通知',
+                              S.alerts,
                               1,
                               c,
                               badge: ApiService.unreadNotificationCount,
@@ -89,7 +90,7 @@ class CustomBottomNav extends StatelessWidget {
                             child: _buildNavItem(
                               Icons.qr_code_scanner_rounded,
                               Icons.qr_code_scanner_rounded,
-                              '取書',
+                              S.collect,
                               3,
                               c,
                             ),
@@ -98,7 +99,7 @@ class CustomBottomNav extends StatelessWidget {
                             child: _buildNavItem(
                               Icons.person_rounded,
                               Icons.person_outline_rounded,
-                              '會員',
+                              S.member,
                               4,
                               c,
                             ),

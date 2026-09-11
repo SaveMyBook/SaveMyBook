@@ -7,6 +7,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
+import '../../i18n/strings.dart';
 
 class AdminLevelScreen extends StatefulWidget {
   const AdminLevelScreen({super.key});
@@ -105,7 +106,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('儲存', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(S.actionSave, style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -156,7 +157,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
       context,
       title: '刪除等級',
       message: '要刪除「${level.name}」嗎？已在這個等級的會員會退到下一個符合的等級。',
-      confirmLabel: '刪除',
+      confirmLabel: S.actionDelete,
       isDestructive: true,
     );
     if (!ok || !mounted) return;

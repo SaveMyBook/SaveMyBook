@@ -4,6 +4,7 @@ import '../utils/app_colors.dart';
 import 'state_views.dart';
 import '../utils/motion.dart';
 import 'animations.dart';
+import '../i18n/strings.dart';
 
 class FormRowCard extends StatelessWidget {
   final String label;
@@ -138,12 +139,12 @@ class AppDropdownField<T> extends StatelessWidget {
   final ValueChanged<T?> onChanged;
   final String hint;
 
-  const AppDropdownField({
+  AppDropdownField({
     super.key,
     required this.value,
     required this.items,
     required this.onChanged,
-    this.hint = '請選擇',
+    this.hint = S.actionSelect,
   });
 
   @override
@@ -250,14 +251,14 @@ class AppDateField extends StatelessWidget {
   final bool clearable;
   final bool enabled;
 
-  const AppDateField({
+  AppDateField({
     super.key,
     required this.value,
     required this.onChanged,
-    this.hint = '請選擇日期',
+    this.hint = S.pickDate,
     this.firstDate,
     this.lastDate,
-    this.helpText = '選擇日期',
+    this.helpText = S.pickDate2,
     this.clearable = true,
     this.enabled = true,
   });
@@ -278,8 +279,8 @@ class AppDateField extends StatelessWidget {
       firstDate: first,
       lastDate: last,
       helpText: helpText,
-      cancelText: '取消',
-      confirmText: '確定',
+      cancelText: S.actionCancel,
+      confirmText: S.actionConfirm,
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: Theme.of(ctx).colorScheme.copyWith(primary: c.accent),
@@ -314,7 +315,7 @@ class AppDateField extends StatelessWidget {
               child: Text(
                 date == null
                     ? hint
-                    : '${date.year} 年 ${date.month} 月 ${date.day} 日',
+                    : S.msg5(date.year, date.month, date.day),
                 style: TextStyle(
                   fontSize: 14,
                   color: date == null ? c.textHint : c.textPrimary,
@@ -350,9 +351,9 @@ class Validators {
   static bool isPhone(String value) => _phone.hasMatch(value.trim().replaceAll('-', ''));
 
   static String? password(String value) {
-    if (value.length < 8) return '密碼長度至少 8 個字元';
-    if (!RegExp(r'[A-Za-z]').hasMatch(value)) return '密碼需包含英文字母';
-    if (!RegExp(r'[0-9]').hasMatch(value)) return '密碼需包含數字';
+    if (value.length < 8) return S.passwordsNeedLeast8Characters;
+    if (!RegExp(r'[A-Za-z]').hasMatch(value)) return S.passwordsMustIncludeLetter;
+    if (!RegExp(r'[0-9]').hasMatch(value)) return S.passwordsMustIncludeNumber;
     return null;
   }
 }

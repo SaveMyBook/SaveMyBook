@@ -7,6 +7,7 @@ import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import '../utils/app_labels.dart';
+import '../i18n/strings.dart';
 
 class HelpCenterScreen extends StatefulWidget {
   const HelpCenterScreen({super.key});
@@ -71,12 +72,12 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '幫助中心', icon: Icons.help_outline_rounded),
+          AppHeader(title: S.helpCentre, icon: Icons.help_outline_rounded),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: AppSearchField(
               controller: _searchController,
-              hint: '搜尋問題',
+              hint: S.searchQuestions,
               onChanged: (value) => setState(() => _keyword = value.trim()),
             ),
           ),
@@ -87,7 +88,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                   : grouped.isEmpty
                       ? EmptyView(
                           icon: Icons.search_off_rounded,
-                          message: _keyword.isEmpty ? '目前還沒有常見問題' : '找不到相關問題',
+                          message: _keyword.isEmpty ? S.noQuestionsYet : S.noMatchingQuestions,
                         )
                       : RefreshIndicator(
                           color: c.accent,

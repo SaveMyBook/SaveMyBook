@@ -8,6 +8,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
+import '../../i18n/strings.dart';
 
 class AdminCategoryScreen extends StatefulWidget {
   const AdminCategoryScreen({super.key});
@@ -111,7 +112,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('儲存', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(S.actionSave, style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -150,7 +151,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
       context,
       title: '刪除分類',
       message: '要刪除「${category.name}」嗎？此動作無法復原。',
-      confirmLabel: '刪除',
+      confirmLabel: S.actionDelete,
       isDestructive: true,
     );
     if (!ok || !mounted) return;

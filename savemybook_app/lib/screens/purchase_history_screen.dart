@@ -10,6 +10,7 @@ import '../widgets/state_views.dart';
 import 'order_detail_screen.dart';
 import 'dispute_screen.dart';
 import 'pickup_success_screen.dart';
+import '../i18n/strings.dart';
 
 class PurchaseHistoryScreen extends StatefulWidget {
   const PurchaseHistoryScreen({super.key});
@@ -21,10 +22,10 @@ class PurchaseHistoryScreen extends StatefulWidget {
 class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
     with SingleTickerProviderStateMixin {
   static const _tabs = [
-    (key: 'pending_pickup', label: '待取書'),
-    (key: 'completed', label: '已完成'),
-    (key: 'cancelled', label: '已取消'),
-    (key: 'disputing', label: '申訴中'),
+    (key: 'pending_pickup', label: S.orderBuyerDeposited),
+    (key: 'completed', label: S.orderCompleted),
+    (key: 'cancelled', label: S.orderCancelled),
+    (key: 'disputing', label: S.orderBuyerRefunding),
   ];
 
   final ApiService _api = ApiService();
@@ -64,10 +65,10 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
   Future<void> _cancelOrder(Order order) async {
     final confirmed = await showConfirmDialog(
       context,
-      title: '取消訂單',
-      message: '確定要取消訂單 ${order.orderNo} 嗎？取消後書籍會回到商城重新販售。',
-      confirmLabel: '取消訂單',
-      cancelLabel: '返回',
+      title: S.cancelOrder,
+      message: S.cancelOrderBookReturnsShop(order.orderNo),
+      confirmLabel: S.cancelOrder,
+      cancelLabel: S.actionBack,
       isDestructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -78,7 +79,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '訂單已取消');
+      showAppSnackBar(context, S.orderCancelled2);
       _load();
     }
   }
@@ -90,12 +91,12 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
       builder: (ctx) => AlertDialog(
         backgroundColor: c.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('取書代碼', style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
+        title: Text(S.pickupCode2, style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              order.pickupCode ?? '尚未產生',
+              order.pickupCode ?? S.notGeneratedYet,
               style: TextStyle(
                 fontSize: 34,
                 fontWeight: FontWeight.bold,
@@ -106,8 +107,8 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
             const SizedBox(height: 10),
             Text(
               order.cabinetName.isEmpty
-                  ? '請在書櫃上輸入此代碼取書'
-                  : '請至「${order.cabinetName}」輸入此代碼取書',
+                  ? S.enterCodeLockerCollect
+                  : S.enterCodeCollect(order.cabinetName),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: c.textSecondary),
             ),
@@ -116,11 +117,11 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('關閉', style: TextStyle(color: c.textSecondary)),
+            child: Text(S.actionClose, style: TextStyle(color: c.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('我已完成取書',
+            child: Text(S.iCollected,
                 style: TextStyle(color: c.accent, fontWeight: FontWeight.bold)),
           ),
         ],
@@ -153,7 +154,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
       body: Column(
         children: [
           AppHeader(
-            title: '購買紀錄',
+            title: S.purchases,
             icon: Icons.shopping_bag_outlined,
             bottom: AppTabBar(
               controller: _tabController,
@@ -170,9 +171,9 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
                     onRefresh: _load,
                     child: SwitchIn(child: orders.isEmpty
                         ? ListView(key: const ValueKey('empty'), 
-                            children: const [
+                            children: [
                               SizedBox(height: 80),
-                              EmptyView(icon: Icons.receipt_long_outlined, message: '此分類目前沒有訂單'),
+                              EmptyView(icon: Icons.receipt_long_outlined, message: S.noOrdersTab),
                             ],
                           )
                         : GridView.builder(key: const ValueKey('items'), 
@@ -209,7 +210,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
           order: order,
           onTap: () => _openDetail(order),
           showPickupWindow: true,
-          actionLabel: order.isCancellable ? '取消訂單' : null,
+          actionLabel: order.isCancellable ? S.cancelOrder : null,
           onAction: () => _cancelOrder(order),
           onShowQr: () => _pickup(order),
         );
@@ -217,7 +218,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
         return OrderCard(
           order: order,
           onTap: () => _openDetail(order),
-          actionLabel: '申請爭議',
+          actionLabel: S.openDispute,
           onAction: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => DisputeScreen(orderId: order.orderId)),

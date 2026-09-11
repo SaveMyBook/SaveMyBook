@@ -9,6 +9,7 @@ import '../utils/motion.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../i18n/strings.dart';
 
 class MemberLevelScreen extends StatefulWidget {
   const MemberLevelScreen({super.key});
@@ -89,19 +90,19 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
       body: SwitchIn(
         child: _isLoading
             ? Column(
-                children: const [
-                  AppHeader(title: '會員等級', icon: Icons.workspace_premium_outlined),
+                children: [
+                  AppHeader(title: S.membershipTier, icon: Icons.workspace_premium_outlined),
                   Expanded(child: LoadingView()),
                 ],
               )
             : _info.levels.isEmpty
                 ? Column(
-                    children: const [
-                      AppHeader(title: '會員等級', icon: Icons.workspace_premium_outlined),
+                    children: [
+                      AppHeader(title: S.membershipTier, icon: Icons.workspace_premium_outlined),
                       Expanded(
                         child: EmptyView(
                           icon: Icons.emoji_events_outlined,
-                          message: '尚未設定會員等級制度',
+                          message: S.membershipTiersNotSetUpYet,
                         ),
                       ),
                     ],
@@ -166,11 +167,11 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     if (currentIndex < 0) {
       status = AppLabels.noLevel;
     } else if (_selectedIndex == currentIndex) {
-      status = '您目前的級別';
+      status = S.currentTier;
     } else if (_selectedIndex < currentIndex) {
-      status = '已解鎖';
+      status = S.unlocked;
     } else {
-      status = '尚未解鎖';
+      status = S.locked;
     }
 
     return SafeArea(
@@ -458,7 +459,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
         children: [
           Expanded(
             child: Text(
-              index < currentIndex ? '您已高於此級別' : '您已達到最高級別',
+              index < currentIndex ? S.aboveTier : S.reachedTopTier,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary),
             ),
           ),
@@ -483,8 +484,8 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
               Expanded(
                 child: Text(
                   reached
-                      ? '已解鎖「${level.levelName}」'
-                      : '再 $remaining 點即可解鎖「${level.levelName}」',
+                      ? S.unlocked2(level.levelName)
+                      : S.morePointsUnlock(remaining, level.levelName),
                   style: TextStyle(
                     fontSize: 14,
                     height: 1.45,
@@ -562,7 +563,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
         Row(
           children: [
             Text(
-              '${level.levelName}級別獎勵',
+              S.benefits(level.levelName),
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
             ),
             const SizedBox(width: 8),
@@ -587,7 +588,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
         const SizedBox(height: 16),
         if (benefits.isEmpty)
           Text(
-            '尚未設定此等級的權益說明。',
+            S.noBenefitsBeenDescribedTierYet,
             style: TextStyle(fontSize: 13, color: c.textSecondary),
           )
         else
@@ -643,7 +644,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  '目前累積 ${_info.points} 點，已完成 ${_info.completedOrders} 筆交易',
+                  S.pointsFromCompletedOrders(_info.points, _info.completedOrders),
                   style: TextStyle(fontSize: 13, color: c.textSecondary),
                 ),
               ),

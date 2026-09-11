@@ -8,6 +8,7 @@ import '../widgets/app_header.dart';
 import '../widgets/order_card.dart';
 import '../widgets/state_views.dart';
 import 'order_detail_screen.dart';
+import '../i18n/strings.dart';
 
 class SalesHistoryScreen extends StatefulWidget {
   const SalesHistoryScreen({super.key});
@@ -19,10 +20,10 @@ class SalesHistoryScreen extends StatefulWidget {
 class _SalesHistoryScreenState extends State<SalesHistoryScreen>
     with SingleTickerProviderStateMixin {
   static const _tabs = [
-    (key: 'pending_deposit', label: '待存書'),
-    (key: 'on_sale', label: '販售中'),
-    (key: 'cancelled', label: '已取消'),
-    (key: 'completed', label: '已完成'),
+    (key: 'pending_deposit', label: S.orderPendingDeposit),
+    (key: 'on_sale', label: S.bookOnSale),
+    (key: 'cancelled', label: S.orderCancelled),
+    (key: 'completed', label: S.orderCompleted),
   ];
 
   final ApiService _api = ApiService();
@@ -61,9 +62,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
   Future<void> _markDeposited(Order order) async {
     final confirmed = await showConfirmDialog(
       context,
-      title: '完成存書',
-      message: '確認已把《${order.firstBook?.title ?? '書籍'}》放入書櫃了嗎？',
-      confirmLabel: '已放入書櫃',
+      title: S.markAsDroppedOff,
+      message: S.confirmPutLocker(order.firstBook?.title ?? S.untitled),
+      confirmLabel: S.droppedOff,
     );
     if (!confirmed || !mounted) return;
 
@@ -73,7 +74,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '已標記為完成存書');
+      showAppSnackBar(context, S.markedAsDroppedOff);
       _load();
     }
   }
@@ -81,21 +82,21 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
   Future<void> _cancelOrder(Order order) async {
     final confirmed = await showConfirmDialog(
       context,
-      title: '取消訂單',
-      message: '取消後買家會收到通知，書籍會回到商城重新販售。',
-      confirmLabel: '取消訂單',
-      cancelLabel: '返回',
+      title: S.cancelOrder,
+      message: S.buyerNotifiedBookReturnsShop,
+      confirmLabel: S.cancelOrder,
+      cancelLabel: S.actionBack,
       isDestructive: true,
     );
     if (!confirmed || !mounted) return;
 
-    final error = await runBusy(context, () => _api.cancelOrder(order.orderId, reason: '賣家取消'));
+    final error = await runBusy(context, () => _api.cancelOrder(order.orderId, reason: S.cancelledBySeller));
     if (!mounted) return;
 
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '訂單已取消');
+      showAppSnackBar(context, S.orderCancelled2);
       _load();
     }
   }
@@ -107,20 +108,20 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
       builder: (_) => AlertDialog(
         backgroundColor: c.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('存書／取書代碼', style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
+        title: Text(S.dropOffPickupCode, style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              order.pickupCode ?? '尚未產生',
+              order.pickupCode ?? S.notGeneratedYet,
               style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: AppColors.primary, letterSpacing: 4),
             ),
             const SizedBox(height: 12),
-            Text('請在書櫃上輸入此代碼', style: TextStyle(fontSize: 13, color: c.textSecondary)),
+            Text(S.enterCodeLocker, style: TextStyle(fontSize: 13, color: c.textSecondary)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('關閉')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(S.actionClose)),
         ],
       ),
     );
@@ -136,7 +137,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
       body: Column(
         children: [
           AppHeader(
-            title: '銷售紀錄',
+            title: S.sales,
             icon: Icons.inventory_2_outlined,
             bottom: AppTabBar(
               controller: _tabController,
@@ -153,9 +154,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                     onRefresh: _load,
                     child: SwitchIn(child: orders.isEmpty
                         ? ListView(key: const ValueKey('empty'), 
-                            children: const [
+                            children: [
                               SizedBox(height: 80),
-                              EmptyView(icon: Icons.sell_outlined, message: '此分類目前沒有訂單'),
+                              EmptyView(icon: Icons.sell_outlined, message: S.noOrdersTab),
                             ],
                           )
                         : GridView.builder(key: const ValueKey('items'), 
@@ -193,7 +194,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
           onTap: () => _openDetail(order),
           showPickupWindow: true,
           onShowQr: () => _showPickupCode(order),
-          actionLabel: '完成存書',
+          actionLabel: S.markAsDroppedOff,
           onAction: () => _markDeposited(order),
         );
       case 'on_sale':
@@ -202,7 +203,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
           onTap: () => _openDetail(order),
           showPickupWindow: true,
           onShowQr: () => _showPickupCode(order),
-          actionLabel: order.isCancellable ? '取消訂單' : null,
+          actionLabel: order.isCancellable ? S.cancelOrder : null,
           onAction: () => _cancelOrder(order),
         );
       default:

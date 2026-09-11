@@ -14,6 +14,7 @@ import '../models/wallet.dart';
 import '../models/member_level.dart';
 import '../models/admin_models.dart';
 import '../utils/api_helpers.dart';
+import '../i18n/strings.dart';
 
 class LoginOutcome {
   final bool isSuccess;
@@ -176,10 +177,10 @@ class ApiService {
 
       return {
         'success': false,
-        'message': decoded['message'] ?? '請求失敗（${response.statusCode}）',
+        'message': decoded['message'] ?? S.requestFailed2(response.statusCode),
       };
     } catch (e) {
-      return {'success': false, 'message': '無法連線至伺服器'};
+      return {'success': false, 'message': S.couldNotReachServer};
     }
   }
 
@@ -202,19 +203,19 @@ class ApiService {
     final res = await _send('POST', '/auth/login', body: {'email': email, 'password': password});
 
     if (res == null) {
-      return const LoginOutcome(code: 'NETWORK', message: '無法連線至伺服器，請檢查網路');
+      return LoginOutcome(code: 'NETWORK', message: S.couldNotReachServerCheckConnection);
     }
 
     if (res['success'] != true) {
       return LoginOutcome(
         code: res['code'] as String? ?? 'UNKNOWN',
-        message: res['message'] as String? ?? '登入失敗',
+        message: res['message'] as String? ?? S.signFailed,
       );
     }
 
     final token = res['data']?['token'] as String?;
     if (token == null) {
-      return const LoginOutcome(code: 'UNKNOWN', message: '登入失敗，請稍後再試');
+      return LoginOutcome(code: 'UNKNOWN', message: S.signFailedPleaseTryAgain);
     }
 
     authToken = token;
@@ -228,8 +229,8 @@ class ApiService {
   Future<String?> register(String email, String password, String nickname) async {
     final res = await _send('POST', '/users',
         body: {'email': email, 'password': password, 'nickname': nickname});
-    if (res == null) return '無法連線至伺服器，請檢查網路';
-    return res['success'] == true ? null : (res['message'] as String? ?? '註冊失敗');
+    if (res == null) return S.couldNotReachServerCheckConnection;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.signUpFailed);
   }
 
   Future<void> logout() async {
@@ -273,10 +274,10 @@ class ApiService {
     }
     if (sort != null) {
       switch (sort) {
-        case '熱門推薦': query['sort'] = 'popular'; break;
-        case '價格由低到高': query['sort'] = 'price_asc'; break;
-        case '價格由高到低': query['sort'] = 'price_desc'; break;
-        case '最新上架':
+        case S.popular: query['sort'] = 'popular'; break;
+        case S.priceLowHigh: query['sort'] = 'price_asc'; break;
+        case S.priceHighLow: query['sort'] = 'price_desc'; break;
+        case S.newest:
         default: query['sort'] = 'newest'; break;
       }
     }
@@ -353,8 +354,8 @@ class ApiService {
   /// 回傳 null 代表成功；違規下架的書會回錯誤訊息。
   Future<String?> relistBook(int bookId) async {
     final res = await _send('PUT', '/books/$bookId', body: {'status': 'on_sale'});
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '重新上架失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotRelist);
   }
 
   Future<List<Book>> fetchFavorites() async {
@@ -394,14 +395,14 @@ class ApiService {
 
   /// 先切換本地狀態再打 API，失敗時自動回滾，讓愛心點下去就有反應。
   Future<String?> toggleFavorite(int bookId) async {
-    if (authToken == null) return '請先登入';
+    if (authToken == null) return S.pleaseSignFirst;
     final wasFavorite = favoriteBookIds.value.contains(bookId);
     _setFavorite(bookId, !wasFavorite);
 
     final ok = wasFavorite ? await removeFavorite(bookId) : await addFavorite(bookId);
     if (!ok) {
       _setFavorite(bookId, wasFavorite);
-      return wasFavorite ? '取消收藏失敗' : '收藏失敗';
+      return wasFavorite ? S.couldNotRemoveFromSaved : S.couldNotSave;
     }
     return null;
   }
@@ -424,8 +425,8 @@ class ApiService {
 
   Future<String?> addToCart(int bookId, {int quantity = 1}) async {
     final res = await _send('POST', '/cart', body: {'book_id': bookId, 'quantity': quantity});
-    if (res == null) return '請先登入';
-    if (res['success'] != true) return res['message'] as String? ?? '加入購物車失敗';
+    if (res == null) return S.pleaseSignFirst;
+    if (res['success'] != true) return res['message'] as String? ?? S.couldNotAddCart;
     _setCartCount(cartCount.value + 1);
     return null;
   }
@@ -455,22 +456,22 @@ class ApiService {
 
   Future<String?> checkout(List<int> cartIds) async {
     final res = await _send('POST', '/orders/checkout', body: {'cart_ids': cartIds});
-    if (res == null) return '請先登入';
-    if (res['success'] != true) return res['message'] as String? ?? '結帳失敗';
+    if (res == null) return S.pleaseSignFirst;
+    if (res['success'] != true) return res['message'] as String? ?? S.checkoutFailed;
     _setCartCount(cartCount.value - cartIds.length);
     return null;
   }
 
   Future<String?> cancelOrder(int orderId, {String? reason}) async {
     final res = await _send('PATCH', '/orders/$orderId/cancel', body: {'reason': reason});
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '取消訂單失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotCancelOrder);
   }
 
   Future<String?> updateOrderStatus(int orderId, String status) async {
     final res = await _send('PATCH', '/orders/$orderId/status', body: {'status': status});
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '更新訂單狀態失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotUpdateOrder);
   }
 
   Future<List<AppNotification>> fetchNotifications() async {
@@ -625,8 +626,8 @@ class ApiService {
       'reason': reason,
       'evidence_urls': evidenceUrls,
     });
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '送出爭議申請失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSubmitDispute);
   }
 
   Future<Map<int, String>> fetchReportStatusForMyBooks() async {
@@ -658,8 +659,8 @@ class ApiService {
       'target_id': targetId,
       'reason': reason,
     });
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '送出檢舉失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSubmitReport);
   }
 
   Future<UserStats> fetchUserStats() async {
@@ -688,8 +689,8 @@ class ApiService {
       'phone': ?phone,
       'birthday': ?birthday,
     });
-    if (res == null) return '請先登入';
-    if (res['success'] != true) return res['message'] as String? ?? '更新失敗';
+    if (res == null) return S.pleaseSignFirst;
+    if (res['success'] != true) return res['message'] as String? ?? S.updateFailed2;
     await fetchCurrentUser();
     return null;
   }
@@ -699,8 +700,8 @@ class ApiService {
       'current_password': currentPassword,
       'new_password': newPassword,
     });
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '更改密碼失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotChangePassword);
   }
 
   Future<String?> fetchProfileQrData() async {
@@ -722,14 +723,14 @@ class ApiService {
 
   Future<String?> requestAccountDeletion(String password) async {
     final res = await _send('POST', '/users/me/deletion', body: {'password': password});
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '申請失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.requestFailed);
   }
 
   Future<String?> cancelAccountDeletion() async {
     final res = await _send('DELETE', '/users/me/deletion');
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '取消失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotCancel);
   }
 
   /// 匯出的 JSON 內容。這支不走 _send：回應是檔案不是統一的信封格式。
@@ -762,14 +763,14 @@ class ApiService {
 
   Future<String?> createBackup() async {
     final res = await _send('POST', '/admin/backups');
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '備份失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.backupFailed);
   }
 
   Future<String?> deleteBackup(int backupId) async {
     final res = await _send('DELETE', '/admin/backups/$backupId');
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '刪除失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotDelete);
   }
 
   String backupDownloadUrl(int backupId) => '$baseUrl/admin/backups/$backupId/download';
@@ -781,14 +782,14 @@ class ApiService {
 
   Future<String?> cancelMemberDeletion(int userId) async {
     final res = await _send('POST', '/admin/deletions/$userId/cancel');
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '取消失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotCancel);
   }
 
   Future<String?> purgeMember(int userId) async {
     final res = await _send('POST', '/admin/deletions/$userId/purge');
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '執行失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotComplete);
   }
 
   Future<bool> uploadAvatar(String filePath) async {
@@ -832,8 +833,8 @@ class ApiService {
     final res = announcementId == null
         ? await _send('POST', '/announcements', body: body)
         : await _send('PUT', '/announcements/$announcementId', body: body);
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '儲存公告失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSaveAnnouncement);
   }
 
   Future<bool> deleteAnnouncement(int announcementId) async {
@@ -875,20 +876,20 @@ class ApiService {
       'category': category,
       'content': content,
     });
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '送出失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSend);
   }
 
   Future<String?> replyTicket(int ticketId, String content) async {
     final res = await _send('POST', '/support/tickets/$ticketId/messages', body: {'content': content});
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '送出失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSend);
   }
 
   Future<String?> closeTicket(int ticketId) async {
     final res = await _send('PATCH', '/support/tickets/$ticketId/close');
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '操作失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.actionFailed);
   }
 
   // ---------- 管理端 ----------
@@ -910,11 +911,11 @@ class ApiService {
       'content': content,
       'notify': notify,
     });
-    if (res == null) return (error: '請先登入', message: '');
+    if (res == null) return (error: S.pleaseSignFirst, message: '');
     if (res['success'] != true) {
-      return (error: res['message'] as String? ?? '儲存失敗', message: '');
+      return (error: res['message'] as String? ?? S.couldNotSave2, message: '');
     }
-    return (error: null, message: res['message'] as String? ?? '已更新文件');
+    return (error: null, message: res['message'] as String? ?? S.documentUpdated);
   }
 
   Future<List<FaqItem>> fetchAdminFaqs() async {
@@ -940,14 +941,14 @@ class ApiService {
     final res = faqId == null
         ? await _send('POST', '/admin/faqs', body: body)
         : await _send('PUT', '/admin/faqs/$faqId', body: body);
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '儲存失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSave2);
   }
 
   Future<String?> deleteFaq(int faqId) async {
     final res = await _send('DELETE', '/admin/faqs/$faqId');
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '刪除失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotDelete);
   }
 
   Future<List<SupportTicket>> fetchAdminTickets({String? status}) async {
@@ -959,8 +960,8 @@ class ApiService {
 
   Future<String?> updateTicketStatus(int ticketId, String status) async {
     final res = await _send('PATCH', '/admin/tickets/$ticketId/status', body: {'status': status});
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '更新失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.updateFailed2);
   }
 
   Future<AdminOverview> fetchAdminOverview() async {
@@ -994,8 +995,8 @@ class ApiService {
 
   Future<String?> updateMemberRole(int userId, String role) async {
     final res = await _send('PATCH', '/admin/members/$userId', body: {'role': role});
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '更新失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.updateFailed2);
   }
 
   /// 三選一：指定等級、加減點數、或恢復自動計算。
@@ -1010,14 +1011,14 @@ class ApiService {
       if (!reset && delta != null) 'delta': delta,
       if (!reset && delta == null && levelId != null) 'level_id': levelId,
     });
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '調整失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotAdjust);
   }
 
   Future<String?> updateAdminPermissions(int userId, Map<String, bool> permissions) async {
     final res = await _send('PUT', '/admin/members/$userId/permissions', body: permissions);
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '更新失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.updateFailed2);
   }
 
   Future<List<ReportCase>> fetchAdminReports({String? status}) async {
@@ -1031,8 +1032,8 @@ class ApiService {
       'admin_note': adminNote,
       'remove_target': removeTarget,
     });
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '處理檢舉失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotProcessReport);
   }
 
   Future<List<DisputeCase>> fetchAdminDisputes({String? status}) async {
@@ -1045,8 +1046,8 @@ class ApiService {
       'result': result,
       'admin_note': adminNote,
     });
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '裁決失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotRecordDecision);
   }
 
   Future<List<AdminOrder>> fetchAdminOrders({String keyword = '', String? status}) async {
@@ -1063,8 +1064,8 @@ class ApiService {
       'status': status,
       'note': note,
     });
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '更新失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.updateFailed2);
   }
 
   Future<List<AdminBook>> fetchAdminBooks({String keyword = '', String? status}) async {
@@ -1081,8 +1082,8 @@ class ApiService {
       'status': status,
       'reason': reason,
     });
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '操作失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.actionFailed);
   }
 
   Future<List<AdminCategory>> fetchAdminCategories() async {
@@ -1095,20 +1096,20 @@ class ApiService {
     final res = categoryId == null
         ? await _send('POST', '/admin/categories', body: body)
         : await _send('PUT', '/admin/categories/$categoryId', body: body);
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '儲存失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSave2);
   }
 
   Future<String?> reorderCategories(List<int> orderedIds) async {
     final res = await _send('PUT', '/admin/categories/reorder', body: {'order': orderedIds});
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '排序失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotReorder);
   }
 
   Future<String?> deleteCategory(int categoryId) async {
     final res = await _send('DELETE', '/admin/categories/$categoryId');
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '刪除失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotDelete);
   }
 
   Future<List<AdminLevel>> fetchAdminLevels() async {
@@ -1132,14 +1133,14 @@ class ApiService {
     final res = levelId == null
         ? await _send('POST', '/admin/levels', body: body)
         : await _send('PUT', '/admin/levels/$levelId', body: body);
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '儲存失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSave2);
   }
 
   Future<String?> deleteLevel(int levelId) async {
     final res = await _send('DELETE', '/admin/levels/$levelId');
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '刪除失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotDelete);
   }
 
   Future<List<AdminWallet>> fetchAdminWallets({String keyword = ''}) async {
@@ -1161,8 +1162,8 @@ class ApiService {
       'amount': amount,
       'description': description,
     });
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '調整失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotAdjust);
   }
 
   Future<AdminStats> fetchAdminStats({int days = 7}) async {
@@ -1205,8 +1206,8 @@ class ApiService {
     final res = cabinetId == null
         ? await _send('POST', '/admin/cabinets', body: body)
         : await _send('PUT', '/admin/cabinets/$cabinetId', body: body);
-    if (res == null) return '請先登入';
-    return res['success'] == true ? null : (res['message'] as String? ?? '儲存書櫃失敗');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSaveLocker);
   }
 
   Future<bool> updateSlotStatus(int cabinetId, int slotId, String status) async {

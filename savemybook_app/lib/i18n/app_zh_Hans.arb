@@ -98,5 +98,826 @@
   "appearanceHint": "选择“跟随系统”时，会依设备的深浅色设置自动切换",
   "language": "语言",
   "languageSystem": "跟随系统",
-  "languageHint": "选择“跟随系统”时，会依设备的语言设置显示"
+  "languageHint": "选择“跟随系统”时，会依设备的语言设置显示",
+  "verifySignSavemybook": "验证身分以登录 SaveMyBook",
+  "maintenance": "系统维护",
+  "promotions": "活动优惠",
+  "policyUpdate": "政策更新",
+  "announcement": "一般公告",
+  "item": "商品",
+  "member": "会员",
+  "message": "消息",
+  "noLongerExists": "(对象已不存在)",
+  "uncategorised": "未分类",
+  "general": "一般书籍",
+  "untitled": "无书名",
+  "noDescriptionYet": "暂无简介",
+  "locationNotProvided": "地点未提供",
+  "seller3": "卖家：{p0}",
+  "@seller3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unknownAuthor": "未知作者",
+  "unknownPublisher": "未知出版社",
+  "noIsbn": "未提供 ISBN",
+  "user": "用户",
+  "noMessagesYet": "尚无消息",
+  "photo": "[图片]",
+  "item2": "[商品] {p0}",
+  "@item2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "purchase": "购买",
+  "sale": "卖出",
+  "systemAdjustment": "系统调整",
+  "preparingData": "正在整理您的数据",
+  "mySavemybookData": "我的 SaveMyBook 数据",
+  "exportedChooseWhereSave": "已导出，请选择保存位置",
+  "exportedButSharingCouldNotOpen": "导出完成，但无法打开分享",
+  "regenerateShareLink": "重新生成分享链接",
+  "oldLinkQrCodeStopWorking": "旧的链接与二维码会立即失效，已经分享出去的人将无法再打开。确定要重新生成吗？",
+  "regenerate": "重新生成",
+  "newLinkCreatedOldOneNo": "已生成新链接，旧链接已失效",
+  "deleteAccount": "删除账号",
+  "accountPermanentlyDisabled30DaysSign": "账号将在 30 天后永久停用，期间内重新登录即可取消。\n\n",
+  "personalDataErasedButCompletedOrders": "停用后个人资料会被清除，但已完成的订单与交易记录会保留，",
+  "peopleTradedWithDoNotLose": "交易对象的记录才不会出现缺漏。",
+  "continue": "继续",
+  "verify": "确认身分",
+  "enterPasswordConfirm": "请输入密码以确认这是本人的操作。",
+  "password": "密码",
+  "requestDeletion": "申请删除",
+  "receivedSignAgainWithin30Days": "已受理，30 天内重新登录即可取消",
+  "deletionCancelledAccountActiveAgain": "已取消删除，账号恢复正常",
+  "account": "账号管理",
+  "data": "你的数据",
+  "exportMyData": "导出我的数据",
+  "profileBooksOrdersTransactionsJson": "个人资料、书籍、订单与交易记录，JSON 格式",
+  "oldLinkQrCodeStopWorking2": "旧的链接与二维码会立即失效",
+  "cancelAccountDeletion": "取消删除账号",
+  "restoreAccountStopCountdown": "恢复账号，停止删除倒数",
+  "canChangeMindWithin30Days": "30 天缓冲期内可以反悔",
+  "deletionPending": "删除倒数中",
+  "daysLeftCanCancelAnyTime": "还有 {p0} 天。在这之前随时可以取消，逾期后个人资料将被清除且无法恢复。",
+  "@daysLeftCanCancelAnyTime": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signOut": "退出登录",
+  "type": "类型",
+  "content": "内容",
+  "backupFailed": "备份失败",
+  "myBooks": "书籍管理",
+  "notProvided": "未提供",
+  "openingHours": "开放时间",
+  "address": "地址",
+  "saveChanges": "保存更改",
+  "enable": "启用",
+  "termsService": "服务条款",
+  "privacyPolicy": "隐私权政策",
+  "aboutUs": "关于我们",
+  "admin": "管理后台",
+  "confirm": "确认",
+  "membershipTier": "会员等级",
+  "phone": "电话",
+  "violationConfirmed": "违规成立",
+  "scanBarcode": "扫描条码",
+  "lineUpBarcodeSpineWithFrame": "请将书脊条码对准框内",
+  "signAddItemsCart": "请先登录才能加入购物车",
+  "bookCannotPurchased": "这本书目前{p0}，无法购买",
+  "@bookCannotPurchased": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addedCart": "已加入购物车",
+  "sellerInformationNotFound": "找不到卖家信息",
+  "signContactSeller": "请先登录才能联系卖家",
+  "signStartChat": "无法创建聊天室，请先登录",
+  "signReport": "请先登录才能举报",
+  "cannotReportOwnListing": "无法举报自己上架的商品",
+  "reportListing": "举报此商品",
+  "describeProblemLeast5Characters": "请说明违规原因（至少 5 个字）",
+  "reasonNeedsLeast5Characters": "请至少填写 5 个字的举报原因",
+  "reportSubmittedWeLookInto": "举报已送出，我们会尽快处理",
+  "publisher": "出版社：",
+  "author": "作者：",
+  "listed": "上架日期：",
+  "searchTitleAuthorPublisher": "搜索书名、作者、出版社...",
+  "share": "分享",
+  "report": "举报",
+  "about": "简介：",
+  "pickup": "取书地点：{p0}",
+  "@pickup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "messageSeller": "与卖家聊聊",
+  "listing": "这是你的书",
+  "addCart": "加入购物车",
+  "bookBeenReportedUnderReviewStays": "这本书被举报，平台正在审核，期间仍可正常销售。",
+  "violationWasConfirmedBookPleaseCheck": "这本书经审核违规成立，请确认商品内容是否符合社区规范。",
+  "reportDismissed2": "举报已驳回",
+  "bookWasReportedButNoViolation": "这本书曾被举报，经审核未违规，不影响上架。",
+  "delist": "取消上架",
+  "removedFromShopBuyersNoLonger": "《{p0}》将从商城下架，买家不会再看到它。",
+  "@removedFromShopBuyersNoLonger": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "delist2": "下架",
+  "delistedRelistFromDelistedTab": "已下架，可在“已下架”页签重新上架",
+  "couldNotDelistPleaseTryAgain": "下架失败，请稍后再试",
+  "listedAgain": "《{p0}》已重新上架",
+  "@listedAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "notListedAnyBooksYet": "你还没有上架任何书籍",
+  "noBooksCategory": "这个分类目前没有书籍",
+  "listFirstBook": "去上架第一本书",
+  "relist": "重新上架",
+  "removeFromCart": "移出购物车",
+  "removeFromCart2": "要把《{p0}》从购物车移除吗？",
+  "@removeFromCart2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "remove": "移除",
+  "couldNotRemoveRestored": "移除失败，已还原",
+  "couldNotRemovePleaseTryAgain": "移除失败，请稍后再试",
+  "selectBooksWantCheckOut": "请先选择要结算的书籍",
+  "notEnoughCoinsOrderNeedsBut": "代币不足，这笔订单需要 {p0}，目前只有 {p1}",
+  "@notEnoughCoinsOrderNeedsBut": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmCheckout": "确认结算",
+  "booksTotal": "共 {p0} 本书，总金额 {p1}。\n",
+  "@booksTotal": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "balanceAfterPaymentCoins": "扣款后余额为 {p0} 代币。",
+  "@balanceAfterPaymentCoins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderPlacedSellerDropBookOff": "结算成功，请等待卖家存书",
+  "cart": "购物车",
+  "cartEmpty": "购物车是空的",
+  "selectAll": "全选",
+  "items": "{p0} 件商品",
+  "@items": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deselect": "取消选取",
+  "select": "选取",
+  "coinsShort": "还差 {p0} 代币",
+  "@coinsShort": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "total": "合计",
+  "selected": "{p0} 件",
+  "@selected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "balance2": "余额 {p0}",
+  "@balance2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "selectBookFirst": "请先选书",
+  "checkOut": "结算",
+  "notEnoughCoins": "代币不足",
+  "weak": "偏弱",
+  "fair": "普通",
+  "strong": "很强",
+  "enterCurrentPassword": "请输入当前密码",
+  "enterNewPassword": "请输入新密码",
+  "newPasswordMustDifferent": "新密码不可与当前密码相同",
+  "enterNewPasswordAgain": "请再输入一次新密码",
+  "passwordsDoNotMatch": "两次输入的新密码不一致",
+  "passwordUpdated": "密码已更新",
+  "changePassword": "更改密码",
+  "useLeast8CharactersWithBoth": "密码需要至少 8 位，并同时包含英文与数字。",
+  "currentPassword": "当前密码",
+  "newPassword": "新密码",
+  "confirmNewPassword": "确认新密码",
+  "updatePassword": "更新密码",
+  "deleteChat": "删除聊天室",
+  "allMessagesWithDeletedBothCannot": "会一并删除与 {p0} 的所有消息，双方都看不到了。此动作无法恢复。",
+  "@allMessagesWithDeletedBothCannot": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "chatDeleted": "已删除聊天室",
+  "couldNotDeleteRestored": "删除失败，已还原",
+  "chatMuted": "已静音这个聊天室",
+  "chatUnmuted": "已取消静音",
+  "noUnreadMessages": "没有未读消息",
+  "markAllAsRead": "全部标为已读",
+  "markAllUnreadMessagesAsRead": "要把 {p0} 条未读消息全部标为已读吗？此动作无法恢复。",
+  "@markAllUnreadMessagesAsRead": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "markAllRead": "全部已读",
+  "allMarkedAsRead": "已全部标为已读",
+  "somethingWentWrongPleaseTryAgain": "操作失败，请稍后再试",
+  "chats": "聊天室",
+  "noConversationsYet": "还没有任何对话",
+  "unmute": "取消静音",
+  "mute": "静音",
+  "messagesLimited500Characters": "消息长度不可超过 500 字",
+  "messageCouldNotSent": "消息发送失败",
+  "chat": "聊天",
+  "sendFirstMessage": "开始你们的第一条消息吧",
+  "messageCopied": "已复制消息",
+  "iQuestionAboutBook": "想询问这本书",
+  "bookNoLongerListed": "这本书已经下架了",
+  "writeMessage": "输入消息…",
+  "enterOrderNumberDisputing": "请填写要申诉的订单编号",
+  "describeDispute": "请填写争议说明",
+  "useLeast10CharactersSoSupport": "争议说明请至少填写 10 个字，方便客服判断",
+  "submitDispute": "提交争议申请",
+  "orderEntersDisputeProcessPaymentSeller": "提交后这笔订单会进入申诉流程，款项会暂停拨给卖家，直到客服裁决。",
+  "paymentHoldRequested": "[申请冻结款项] {p0}",
+  "@paymentHoldRequested": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "disputeSubmittedSupportContact": "争议申请已提交，客服会尽快与你联系",
+  "dispute": "争议处理",
+  "requestPaymentHold": "申请冻结款项",
+  "paymentSellerHeldUntilSupportDecides": "提交后款项会暂停拨给卖家，直到客服裁决",
+  "submitDispute2": "提交争议申请",
+  "orderNumber": "订单编号",
+  "eGSmb20260910123456789": "例如 SMB20260910123456789",
+  "whatHappened": "争议说明",
+  "describeProblemEGConditionDoes": "请描述发生的问题，例如书况与商品描述不符…",
+  "submit": "提交申请",
+  "uploadPhotos": "上传图片",
+  "canAttachUp6Photos": "最多只能上传 6 张佐证照片",
+  "up5": "最多 5 张",
+  "couldNotReplacePhotoPleaseTry": "无法替换原本的照片，请稍后再试",
+  "keepLeastOnePhoto": "至少要保留一张照片",
+  "photoDeleted": "已删除照片",
+  "couldNotDeletePhotoPleaseTry": "删除图片失败，请稍后再试",
+  "canUp10Photos": "最多只能有 10 张照片",
+  "deletePhoto": "删除照片",
+  "cannotUndoneContinue": "删除后无法恢复，确定吗？",
+  "photoMissingDataRefreshTryAgain": "这张照片的数据不完整，请刷新后再试",
+  "enterPrice": "请填写价格",
+  "priceMustGreaterThan0": "价格必须大于 0",
+  "priceCannotExceed999999": "价格不可超过 999,999",
+  "chooseLockerLocation": "请选择存放区域",
+  "missingTheseThreeRequired": "还缺少：{p0}，这三张是必填的",
+  "@missingTheseThreeRequired": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "bookUpdated": "书籍已更新",
+  "editBook": "编辑书籍",
+  "condition": "书况",
+  "customPrice": "自定价格",
+  "enterPrice2": "请输入售价",
+  "lockerLocation": "存放区域",
+  "chooseLocker": "请选择书柜",
+  "bookPhotos": "书籍照片",
+  "morePhotos": "补充照片",
+  "add": "加入",
+  "enterTitle": "请填写书名",
+  "titleLimited255Characters": "书名不可超过 255 个字符",
+  "isbn1013Digits": "ISBN 应为 10 位或 13 位",
+  "chooseCategory": "请选择书籍分类",
+  "k1013Digits": "10 或 13 位",
+  "title": "书名",
+  "required": "必填",
+  "author2": "作者",
+  "optional": "选填",
+  "publisher2": "出版社",
+  "publicationDate": "出版日期",
+  "tapPickPublicationDate": "点击选择出版日期",
+  "pickPublicationDate": "选择出版日期",
+  "pickCategory": "选择分类",
+  "next": "下一步",
+  "uploading": "上传中…",
+  "profilePhotoUpdated": "头像已更新",
+  "couldNotUploadPhoto": "头像上传失败",
+  "changeDisplayName": "修改昵称",
+  "enterDisplayName": "请输入昵称",
+  "displayNameCannotBlank": "昵称不可空白",
+  "displayNames250Characters": "昵称长度需介于 2 ~ 50 个字符",
+  "invalidPhoneNumberEG0912345678": "电话格式不正确，例：0912345678",
+  "profileUpdated": "个人资料已更新",
+  "editProfile": "编辑个人资料",
+  "bio": "个人简介",
+  "tellPeopleAboutYourself": "介绍一下自己吧",
+  "email": "邮箱",
+  "emailCannotChanged": "邮箱无法修改",
+  "dateBirth": "生日",
+  "tapPickDateBirth": "点击选择生日",
+  "pickDateBirth": "选择生日",
+  "savedBooks": "收藏书籍",
+  "notSavedAnyBooksYet": "还没有收藏任何书籍",
+  "helpCentre": "帮助中心",
+  "searchQuestions": "搜索问题",
+  "noQuestionsYet": "目前还没有常见问题",
+  "noMatchingQuestions": "找不到相关问题",
+  "newest": "最新上架",
+  "popular": "热门推荐",
+  "priceLowHigh": "价格由低到高",
+  "priceHighLow": "价格由高到低",
+  "reachedEnd": "您已滑到底部",
+  "guest": "访客",
+  "hi": "哈啰, {p0}",
+  "@hi": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBooksMatchFilters": "目前没有符合条件的书籍",
+  "couldNotReadPhoto": "无法读取这张照片",
+  "croppingFailedPleaseTryAgain": "裁剪失败，请再试一次",
+  "adjustPhoto": "调整照片",
+  "reset": "重置",
+  "usePhoto": "使用这张",
+  "documentNotBeenCreatedYet": "这份文件尚未建立",
+  "lastUpdated": "最后更新：{p0}",
+  "@lastUpdated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "biometrics": "生物识别",
+  "sessionExpiredPleaseEnterPasswordAgain": "登录信息已失效，请重新输入密码",
+  "turnSign": "启用 {p0} 登录？",
+  "@turnSign": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nextTimeOpenAppCanUnlock": "下次打开 App 就能直接用 {p0} 解锁，不用再输入密码。",
+  "@nextTimeOpenAppCanUnlock": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "notNow": "暂时不要",
+  "enterEmail": "请输入 Email",
+  "emailAddressNotValid": "Email 格式不正确",
+  "enterPassword": "请输入密码",
+  "noAccountWithEmail": "此账号尚未注册",
+  "noAccountCreateOneNow": "找不到“{p0}”这个账号。要现在创建一个吗？",
+  "@noAccountCreateOneNow": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signUp": "前往注册",
+  "tryAgain": "重新输入",
+  "sign": "登录",
+  "signWith": "使用 {p0} 登录",
+  "@signWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noAccountYetSignUp": "还没有账号？立即注册",
+  "membershipTiersNotSetUpYet": "尚未设定会员等级制度",
+  "currentTier": "您当前的级别",
+  "unlocked": "已解锁",
+  "locked": "尚未解锁",
+  "aboveTier": "您已高于此级别",
+  "reachedTopTier": "您已达到最高级别",
+  "unlocked2": "已解锁“{p0}”",
+  "@unlocked2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "morePointsUnlock": "再 {p0} 点即可解锁“{p1}”",
+  "@morePointsUnlock": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "benefits": "{p0}级别奖励",
+  "@benefits": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBenefitsBeenDescribedTierYet": "尚未设定此等级的权益说明。",
+  "pointsFromCompletedOrders": "目前累积 {p0} 点，已完成 {p1} 笔交易",
+  "@pointsFromCompletedOrders": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noNotificationsClear": "没有通知可以清除",
+  "clearAllNotifications": "清除全部通知",
+  "notificationsDeletedCannotUndone": "会删除 {p0} 条通知，无法恢复。",
+  "@notificationsDeletedCannotUndone": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "clearAll": "全部清除",
+  "allNotificationsCleared": "已清除全部通知",
+  "couldNotClearPleaseTryAgain": "清除失败，请稍后再试",
+  "noUnreadNotifications": "没有未读的通知",
+  "markAllUnreadNotificationsAsRead": "要把 {p0} 条未读通知全部标为已读吗？此动作无法恢复。",
+  "@markAllUnreadNotificationsAsRead": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "openChat": "前往聊天室",
+  "viewOrder": "查看订单",
+  "openMyBooks": "前往书籍管理",
+  "notifications": "通知中心",
+  "noNotifications": "目前没有任何通知",
+  "copied": "已复制{p0}",
+  "@copied": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderDetails": "订单详情",
+  "order": "订单编号 {p0}",
+  "@order": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderProgress": "订单进度",
+  "items2": "商品明细（{p0}）",
+  "@items2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderNoItemDetails": "这笔订单没有品项数据。",
+  "msg4": "单价 {p0} × {p1}",
+  "@msg4": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "orderTotal": "订单金额",
+  "pickupDetails": "取书信息",
+  "notAssigned": "尚未指定",
+  "slot": "柜位",
+  "notAssignedYet": "尚未配位",
+  "pickupCode": "取书码",
+  "transaction": "交易信息",
+  "buyer": "买家",
+  "seller": "卖家",
+  "placed": "成立时间",
+  "dispute2": "争议",
+  "orderOpenDispute": "此订单有进行中的申诉案件",
+  "cancelOrder": "取消订单",
+  "pendingPayoutDisappearsBuyerNotified": "取消后这笔待定收益会一并消失，买家也会收到通知。",
+  "cancelledBySeller": "卖家取消",
+  "orderCancelled2": "订单已取消",
+  "pendingPayouts": "待定收益",
+  "noPendingPayouts": "目前没有待拨款的订单",
+  "pendingAmount": "待定收益金额",
+  "coinsArriveOnceBuyerCollectsBook": "买家完成取书后会自动拨入代币余额",
+  "scanned": "扫描成功",
+  "scanAgain": "继续扫描",
+  "collectBook": "我要取书",
+  "pointPickupQrCode": "对准取书二维码",
+  "holdSteady": "对准勿摇晃",
+  "bookCollected": "取书完成",
+  "thanksUsingSavemybookHappyReading": "感谢你的使用，祝阅读愉快！",
+  "collected": "《{p0}》已完成取书",
+  "@collected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "order2": "订单编号：{p0}",
+  "@order2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signingOut": "退出登录中…",
+  "myAccount": "会员中心",
+  "personNotWrittenBioYet": "这个人很懒，什么都没留下",
+  "topTierReached": "已达到最高级别",
+  "morePointsReach": "再 {p0} 点升级为“{p1}”",
+  "@morePointsReach": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "myCoins": "我的代币",
+  "shareProfile": "分享档案",
+  "purchases": "购买记录",
+  "sales": "销售记录",
+  "settings": "设置",
+  "signOut2": "确认退出登录",
+  "needSignAgainKeepUsingApp": "退出后需要重新输入账号密码才能继续使用。",
+  "cancelOrderBookReturnsShop": "确定要取消订单 {p0} 吗？取消后书籍会回到商城重新销售。",
+  "@cancelOrderBookReturnsShop": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickupCode2": "取书代码",
+  "notGeneratedYet": "尚未生成",
+  "enterCodeLockerCollect": "请在书柜上输入此代码取书",
+  "enterCodeCollect": "请至“{p0}”输入此代码取书",
+  "@enterCodeCollect": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iCollected": "我已完成取书",
+  "noOrdersTab": "此分类目前没有订单",
+  "openDispute": "申请争议",
+  "displayNameNeedsLeast2Characters": "昵称至少 2 个字符",
+  "displayNameLimited50Characters": "昵称不可超过 50 个字符",
+  "enterPasswordAgain": "请再输入一次密码",
+  "passwordsDoNotMatch2": "两次输入的密码不一致",
+  "pleaseReadAcceptTermsServicePrivacy": "请先阅读并同意服务条款与隐私权政策",
+  "accountCreatedSignWith": "注册成功，请使用新账号登录",
+  "iReadAccept": "我已阅读并同意 ",
+  "and": " 与 ",
+  "createAccount": "创建账号",
+  "joinSavemybook": "加入 SaveMyBook",
+  "signUpBuySellUseSmart": "注册后就能买书、卖书与使用智能书柜",
+  "displayName": "昵称",
+  "nameOthersSee": "其他人会看到的名字",
+  "emailSignWith": "用来登录的邮箱",
+  "least8CharactersWithLettersNumbers": "至少 8 位，需含英文与数字",
+  "confirmPassword": "确认密码",
+  "enterPasswordAgain2": "再输入一次密码",
+  "alreadyAccountGoBackSign": "已经有账号了？返回上一页登录",
+  "markAsDroppedOff": "完成存书",
+  "droppedOff": "已放入书柜",
+  "markedAsDroppedOff": "已标记为完成存书",
+  "buyerNotifiedBookReturnsShop": "取消后买家会收到通知，书籍会回到商城重新销售。",
+  "dropOffPickupCode": "存书／取书代码",
+  "enterCodeLocker": "请在书柜上输入此代码",
+  "noRecentSearches": "还没有搜索记录",
+  "recentSearches": "最近搜索",
+  "clearAll2": "清除全部",
+  "searchTitleAuthorIsbn": "搜索书名、作者、ISBN...",
+  "photoLimitReached": "照片已满",
+  "canUploadUp10Photos": "最多只能上传 10 张照片。",
+  "photosMissing": "照片不足",
+  "missingTheseThreeRequired2": "还缺少：{p0}。这三张是必填的。",
+  "@missingTheseThreeRequired2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "missingInformation": "资料不齐全",
+  "enterOwnPrice": "请输入自定价格。",
+  "invalidPrice": "价格不正确",
+  "priceMustGreaterThan02": "售价必须大于 0 元。",
+  "priceCannotExceed99999": "售价不可超过 99999 元。",
+  "chooseLockerLocation2": "请选择存放区域。",
+  "listed2": "上架成功！",
+  "unknownError": "未知错误",
+  "couldNotListBook": "上架失败",
+  "serverError": "服务器响应错误：{p0}",
+  "@serverError": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionProblem": "连接异常",
+  "couldNotReachServerUploadTimed": "无法连接至服务器或上传超时，请检查网络状态。",
+  "listBook": "确认完成上架",
+  "detailsPhotos": "详细信息与照片",
+  "loading": "加载中...",
+  "unknownLocker": "未知机柜",
+  "enterTitle2": "请输入书名",
+  "chooseCategory2": "请选择分类",
+  "bookDetailsFilledAutomatically": "已自动带入书籍信息！",
+  "bookDetailsFilledFromBackupSource": "已通过备援系统带入书籍信息！",
+  "noSourceIsbnPleaseEnterDetails": "各系统皆找不到此 ISBN，请尝试手动输入",
+  "yearMonth": "[年月]",
+  "day": "日",
+  "tapIconRightScan": "可点击右侧图标扫描",
+  "description": "书籍简介",
+  "sellBook": "我要卖书",
+  "myShop": "我的卖场",
+  "sellerNoBooksSale": "这位卖家目前没有销售中的书籍",
+  "loading2": "加载中…",
+  "sale2": "销售中 {p0} 本",
+  "@sale2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "verifyEnableQuickSign": "验证身分以启用快速登录",
+  "sign2": "已启用 {p0} 登录",
+  "@sign2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "quickSignTurnedOff": "已关闭快速登录",
+  "appearance2": "外观设置",
+  "signMethod": "登录方式",
+  "helpSupport": "说明与支持",
+  "contactUs": "联系我们",
+  "aboutSavemybook": "关于 SaveMyBook",
+  "settingsPrivacy": "设置与隐私",
+  "sign3": "{p0} 登录",
+  "@sign3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unlockWithWhenOpenApp": "打开 App 时用 {p0} 解锁",
+  "@unlockWithWhenOpenApp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "scanProfileQrCode": "扫描个人二维码",
+  "lineUpTheirQrCodeWith": "将对方的二维码放入框内",
+  "notSavemybookProfileQrCode": "这不是 SaveMyBook 的个人二维码",
+  "ownQrCode": "这是你自己的二维码",
+  "couldNotStartChatPleaseTry": "无法创建聊天室，请稍后再试",
+  "linkCopied": "已复制链接",
+  "addMeSavemybook": "在 SaveMyBook 上加我：{p0}",
+  "@addMeSavemybook": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addMeSavemybook2": "在 SaveMyBook 上加我（{p0}）：{p1}",
+  "@addMeSavemybook2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sharingCouldNotOpenSoLink": "无法打开分享，已帮你复制链接",
+  "savedPhotos": "已保存到相册",
+  "couldNotSaveCheckPhotoLibrary": "保存失败，请确认已允许相册权限",
+  "scanTheirQrCode": "扫描对方的二维码",
+  "copyLink": "复制链接",
+  "askQuestion": "提出问题",
+  "noEnquiriesYet": "还没有任何问题记录",
+  "enterSubject": "请填写主旨",
+  "addMoreDetailSoSupportCan": "请多描述一点，方便客服判断",
+  "sentSupportReplySoon": "已提交，客服会尽快回复",
+  "subject": "主旨",
+  "sumUpOneLine": "一句话描述问题",
+  "whatHappenedIncludeOrderNumberIf": "发生什么事？有订单编号的话一并附上",
+  "close": "结案",
+  "notAbleReplyAfterClosing": "结案后就不能再回复了。",
+  "enquiryClosed": "工单已结案",
+  "changeStatus": "调整工单状态",
+  "statusUpdated": "已更新状态",
+  "enquiry": "工单",
+  "enquiryNotFound": "找不到这张工单",
+  "support": "客服",
+  "writeReply": "输入回复…",
+  "coins": "代币中心",
+  "transactions": "交易记录",
+  "noTransactionsYet": "尚无交易记录",
+  "balance": "当前余额",
+  "hold": "冻结中 {p0}",
+  "@hold": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requestFailed2": "请求失败（{p0}）",
+  "@requestFailed2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "couldNotReachServer": "无法连接至服务器",
+  "couldNotReachServerCheckConnection": "无法连接至服务器，请检查网络",
+  "signFailed": "登录失败",
+  "signFailedPleaseTryAgain": "登录失败，请稍后再试",
+  "signUpFailed": "注册失败",
+  "pleaseSignFirst": "请先登录",
+  "couldNotRelist": "重新上架失败",
+  "couldNotRemoveFromSaved": "取消收藏失败",
+  "couldNotSave": "收藏失败",
+  "couldNotAddCart": "加入购物车失败",
+  "checkoutFailed": "结算失败",
+  "couldNotCancelOrder": "取消订单失败",
+  "couldNotUpdateOrder": "更新订单状态失败",
+  "couldNotSubmitDispute": "提交争议申请失败",
+  "couldNotSubmitReport": "提交举报失败",
+  "updateFailed2": "更新失败",
+  "couldNotChangePassword": "更改密码失败",
+  "requestFailed": "申请失败",
+  "couldNotCancel": "取消失败",
+  "couldNotDelete": "删除失败",
+  "couldNotComplete": "执行失败",
+  "couldNotSaveAnnouncement": "保存公告失败",
+  "couldNotSend": "提交失败",
+  "actionFailed": "操作失败",
+  "couldNotSave2": "保存失败",
+  "documentUpdated": "已更新文件",
+  "couldNotAdjust": "调整失败",
+  "couldNotProcessReport": "处理举报失败",
+  "couldNotRecordDecision": "裁决失败",
+  "couldNotReorder": "排序失败",
+  "couldNotSaveLocker": "保存书柜失败",
+  "fingerprint": "指纹",
+  "iris": "虹膜",
+  "verifyIdentityContinue": "请验证身分以继续",
+  "msg": "繁體中文",
+  "msg2": "日本語",
+  "msg3": "简体中文",
+  "couldNotOpenPhotosCheckPermission": "无法打开相册，请确认已授权",
+  "choosePhotoSource": "选择照片来源",
+  "takePhoto": "拍照",
+  "chooseFromPhotos": "从相册选择",
+  "couldNotOpenCameraCheckPermission": "无法打开相机，请确认已授权",
+  "justNow": "刚刚",
+  "minAgo": "{p0} 分钟前",
+  "@minAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "hAgo": "{p0} 小时前",
+  "@hAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dAgo": "{p0} 天前",
+  "@dAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickDate": "请选择日期",
+  "pickDate2": "选择日期",
+  "msg5": "{p0} 年 {p1} 月 {p2} 日",
+  "@msg5": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "passwordsNeedLeast8Characters": "密码长度至少 8 个字符",
+  "passwordsMustIncludeLetter": "密码需包含英文字母",
+  "passwordsMustIncludeNumber": "密码需包含数字",
+  "seller2": "卖家：",
+  "home": "首页",
+  "alerts": "通知",
+  "collect": "取书",
+  "couldNotLoadPhoto": "无法加载这张照片",
+  "slot2": "柜号：{p0}",
+  "@slot2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmPutLocker": "确认已把《{p0}》放入书柜了吗？",
+  "@confirmPutLocker": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

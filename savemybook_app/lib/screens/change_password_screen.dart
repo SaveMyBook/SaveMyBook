@@ -6,6 +6,7 @@ import '../widgets/app_buttons.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../i18n/strings.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -41,10 +42,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   String get _strengthLabel => switch (_strength) {
         0 => '',
-        1 => '偏弱',
-        2 => '普通',
-        3 => '良好',
-        _ => '很強',
+        1 => S.weak,
+        2 => S.fair,
+        3 => S.conditionFair,
+        _ => S.strong,
       };
 
   @override
@@ -64,19 +65,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     String? newError;
     String? confirmError;
 
-    if (current.isEmpty) currentError = '請輸入目前密碼';
+    if (current.isEmpty) currentError = S.enterCurrentPassword;
 
     if (next.isEmpty) {
-      newError = '請輸入新密碼';
+      newError = S.enterNewPassword;
     } else {
       newError = Validators.password(next);
-      if (newError == null && next == current) newError = '新密碼不可與目前密碼相同';
+      if (newError == null && next == current) newError = S.newPasswordMustDifferent;
     }
 
     if (confirm.isEmpty) {
-      confirmError = '請再輸入一次新密碼';
+      confirmError = S.enterNewPasswordAgain;
     } else if (confirm != next) {
-      confirmError = '兩次輸入的新密碼不一致';
+      confirmError = S.passwordsDoNotMatch;
     }
 
     setState(() {
@@ -103,7 +104,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       return;
     }
 
-    showAppSnackBar(context, '密碼已更新');
+    showAppSnackBar(context, S.passwordUpdated);
     Navigator.of(context).maybePop();
   }
 
@@ -115,7 +116,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '更改密碼', icon: Icons.key_outlined),
+          AppHeader(title: S.changePassword, icon: Icons.key_outlined),
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -146,7 +147,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           const SizedBox(width: 14),
                           Expanded(
                             child: Text(
-                              '密碼需要至少 8 碼，並同時包含英文與數字。',
+                              S.useLeast8CharactersWithBoth,
                               style: TextStyle(fontSize: 12, height: 1.5, color: c.textSecondary),
                             ),
                           ),
@@ -158,7 +159,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     index: 1,
                     child: _buildField(
                       c,
-                      label: '目前密碼',
+                      label: S.currentPassword,
                       icon: Icons.password_rounded,
                       controller: _currentController,
                       errorText: _currentError,
@@ -173,7 +174,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     index: 2,
                     child: _buildField(
                       c,
-                      label: '新密碼',
+                      label: S.newPassword,
                       icon: Icons.lock_reset_rounded,
                       controller: _newController,
                       errorText: _newError,
@@ -187,7 +188,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     index: 3,
                     child: _buildField(
                       c,
-                      label: '確認新密碼',
+                      label: S.confirmNewPassword,
                       icon: Icons.check_circle_outline_rounded,
                       controller: _confirmController,
                       errorText: _confirmError,
@@ -204,7 +205,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   FadeSlideIn(
                     index: 4,
                     child: PrimaryButton(
-                      label: '更新密碼',
+                      label: S.updatePassword,
                       height: 50,
                       isLoading: _isSaving,
                       onPressed: _submit,

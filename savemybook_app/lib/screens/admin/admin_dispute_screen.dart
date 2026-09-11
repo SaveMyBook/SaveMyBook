@@ -8,6 +8,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
+import '../../i18n/strings.dart';
 
 class AdminDisputeScreen extends StatefulWidget {
   const AdminDisputeScreen({super.key});
@@ -19,10 +20,10 @@ class AdminDisputeScreen extends StatefulWidget {
 class _AdminDisputeScreenState extends State<AdminDisputeScreen>
     with SingleTickerProviderStateMixin {
   static const _results = [
-    (value: 'refund_manual', label: '人工退款'),
-    (value: 'refund_auto', label: '自動退款'),
-    (value: 'mediated', label: '協調結案'),
-    (value: 'dismissed', label: '駁回申訴'),
+    (value: 'refund_manual', label: S.disputeRefundManual),
+    (value: 'refund_auto', label: S.disputeRefundAuto),
+    (value: 'mediated', label: S.disputeMediated),
+    (value: 'dismissed', label: S.disputeDismissed),
   ];
 
   final ApiService _api = ApiService();
@@ -172,7 +173,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
           AppHeader(
             title: '仲裁交易',
             icon: Icons.gavel_rounded,
-            bottom: AppTabBar(controller: _tabController, tabs: const ['處理中', '已結案']),
+            bottom: AppTabBar(controller: _tabController, tabs: [S.disputeProcessing, S.ticketClosed]),
           ),
           Expanded(
             child: SwipeTabs(

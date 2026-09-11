@@ -8,6 +8,7 @@ import '../widgets/book_card.dart';
 import '../widgets/state_views.dart';
 import 'cart_screen.dart';
 import 'chat_list_screen.dart';
+import '../i18n/strings.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -45,7 +46,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       body: Column(
         children: [
           AppHeader(
-            title: '收藏書籍',
+            title: S.savedBooks,
             icon: Icons.bookmark_outline_rounded,
             actions: [
               CartIconButton(
@@ -64,11 +65,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     onRefresh: _load,
                     child: SwitchIn(child: _books.isEmpty
                         ? ListView(key: const ValueKey('empty'), 
-                            children: const [
+                            children: [
                               SizedBox(height: 80),
                               EmptyView(
                                 icon: Icons.bookmark_outline_rounded,
-                                message: '還沒有收藏任何書籍',
+                                message: S.notSavedAnyBooksYet,
                               ),
                             ],
                           )

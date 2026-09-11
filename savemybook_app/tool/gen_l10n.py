@@ -40,6 +40,34 @@ def main():
 
     keys = [k for k in files[TEMPLATE] if not k.startswith('@')]
 
+    # @key 的 placeholders 決定它是 getter 還是帶參數的方法
+    params = {}
+    for key in keys:
+        meta = files[TEMPLATE].get('@' + key) or {}
+        names = sorted((meta.get('placeholders') or {}).keys())
+        if names:
+            params[key] = names
+
+    def signature(key):
+        names = params.get(key)
+        if not names:
+            return f'String get {key}'
+        args = ', '.join(f'Object {n}' for n in names)
+        return f'String {key}({args})'
+
+    def body(key, value):
+        names = params.get(key)
+        text = value
+        if names:
+            # ARB 的 {p0} 換成 Dart 的 $p0
+            for n in names:
+                text = text.replace('{' + n + '}', '\x00' + n + '\x00')
+        out = dart_string(text)
+        if names:
+            for n in names:
+                out = out.replace('\x00' + n + '\x00', '${' + n + '}')
+        return out
+
     # 缺 key 會在執行時變成空字串，寧可在這裡就擋下來。
     for tag, data in files.items():
         missing = [k for k in keys if k not in data]
@@ -69,7 +97,7 @@ def main():
         lines.append(f'    {locale_expr(tag)},')
     lines += ['  ];', '']
     for key in keys:
-        lines.append(f'  String get {key};')
+        lines.append(f'  {signature(key)};')
     lines += ['}', '']
 
     for tag, data in files.items():
@@ -81,7 +109,7 @@ def main():
         ]
         for key in keys:
             lines.append('  @override')
-            lines.append(f'  String get {key} => {dart_string(data[key])};')
+            lines.append(f'  {signature(key)} => {body(key, data[key])};')
             lines.append('')
         lines += ['}', '']
 

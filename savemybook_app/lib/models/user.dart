@@ -1,4 +1,5 @@
 import '../utils/api_helpers.dart';
+import '../i18n/strings.dart';
 
 class User {
   final int userId;
@@ -29,7 +30,7 @@ class User {
     return User(
       userId: parseInt(json['user_id']),
       email: json['email'] as String? ?? '',
-      nickname: json['nickname'] as String? ?? '使用者',
+      nickname: json['nickname'] as String? ?? S.user,
       role: json['role'] as String? ?? 'buyer_seller',
       avatarUrl: resolveAssetUrl(json['avatar_url']),
       bio: json['bio'] as String? ?? '',

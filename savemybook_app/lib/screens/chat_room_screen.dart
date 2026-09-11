@@ -13,6 +13,7 @@ import '../widgets/image_viewer.dart';
 import '../widgets/state_views.dart';
 import 'book_detail_screen.dart';
 import '../utils/motion.dart';
+import '../i18n/strings.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final int roomId;
@@ -104,7 +105,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     if (text.isEmpty || _isSending) return;
 
     if (text.length > 500) {
-      showAppSnackBar(context, '訊息長度不可超過 500 字', isError: true);
+      showAppSnackBar(context, S.messagesLimited500Characters, isError: true);
       return;
     }
 
@@ -121,7 +122,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
 
     if (message == null) {
-      showAppSnackBar(context, '訊息傳送失敗', isError: true);
+      showAppSnackBar(context, S.messageCouldNotSent, isError: true);
     } else {
       _scrollToBottom();
     }
@@ -137,7 +138,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       body: Column(
         children: [
           AppHeader(
-            title: title.isEmpty ? '聊天' : title,
+            title: title.isEmpty ? S.chat : title,
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 12),
@@ -155,7 +156,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             child: SwitchIn(child: _isLoading
                 ? const LoadingView()
                 : _messages.isEmpty
-                    ? const EmptyView(icon: Icons.chat_outlined, message: '開始你們的第一則訊息吧')
+                    ? EmptyView(icon: Icons.chat_outlined, message: S.sendFirstMessage)
                     : ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -178,7 +179,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     await Clipboard.setData(ClipboardData(text: content));
     if (!mounted) return;
     HapticFeedback.selectionClick();
-    showAppSnackBar(context, '已複製訊息');
+    showAppSnackBar(context, S.messageCopied);
   }
 
   Widget _buildBubble(int index, AppColors c) {
@@ -341,7 +342,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '想詢問這本書',
+                        S.iQuestionAboutBook,
                         style: TextStyle(fontSize: 11, color: c.textHint),
                       ),
                       const SizedBox(height: 4),
@@ -381,7 +382,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final book = await _api.fetchBookDetail(bookId);
     if (!mounted) return;
     if (book == null) {
-      showAppSnackBar(context, '這本書已經下架了', isError: true);
+      showAppSnackBar(context, S.bookNoLongerListed, isError: true);
       return;
     }
     Navigator.push(context, MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)));
@@ -410,7 +411,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               onSubmitted: (_) => _send(),
               style: TextStyle(color: c.textPrimary, fontSize: 14),
               decoration: InputDecoration(
-                hintText: '輸入訊息…',
+                hintText: S.writeMessage,
                 hintStyle: TextStyle(color: c.textHint, fontSize: 14),
                 filled: true,
                 fillColor: c.inputFill,

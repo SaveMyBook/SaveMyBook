@@ -15,6 +15,7 @@ import '../widgets/state_views.dart';
 import 'barcode_scanner_screen.dart';
 import 'chat_room_screen.dart';
 import '../utils/motion.dart';
+import '../i18n/strings.dart';
 
 class ShareProfileScreen extends StatefulWidget {
   const ShareProfileScreen({super.key});
@@ -50,10 +51,10 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
     final code = await Navigator.push<String>(
       context,
       MaterialPageRoute(
-        builder: (_) => const BarcodeScannerScreen(
+        builder: (_) => BarcodeScannerScreen(
           formats: [BarcodeFormat.qrCode],
-          title: '掃描個人 QR Code',
-          hint: '將對方的 QR Code 放入框內',
+          title: S.scanProfileQrCode,
+          hint: S.lineUpTheirQrCodeWith,
         ),
       ),
     );
@@ -62,11 +63,11 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
 
     final userId = ApiService.parseProfileUserId(code);
     if (userId == null) {
-      showAppSnackBar(context, '這不是 SaveMyBook 的個人 QR Code', isError: true);
+      showAppSnackBar(context, S.notSavemybookProfileQrCode, isError: true);
       return;
     }
     if (userId == ApiService.currentUser?.userId) {
-      showAppSnackBar(context, '這是你自己的 QR Code');
+      showAppSnackBar(context, S.ownQrCode);
       return;
     }
 
@@ -74,7 +75,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
     if (!mounted) return;
 
     if (roomId == null) {
-      showAppSnackBar(context, '無法建立聊天室，請稍後再試', isError: true);
+      showAppSnackBar(context, S.couldNotStartChatPleaseTry, isError: true);
       return;
     }
 
@@ -110,7 +111,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
     if (data == null) return;
     await Clipboard.setData(ClipboardData(text: data));
     if (!mounted) return;
-    showAppSnackBar(context, '已複製連結');
+    showAppSnackBar(context, S.linkCopied);
   }
 
   Future<void> _share() async {
@@ -121,8 +122,8 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
     final path = await _captureQr();
     final nickname = ApiService.currentUser?.nickname ?? '';
     final message = nickname.isEmpty
-        ? '在 SaveMyBook 上加我：$data'
-        : '在 SaveMyBook 上加我（$nickname）：$data';
+        ? S.addMeSavemybook(data)
+        : S.addMeSavemybook2(nickname, data);
 
     final ok = path == null
         ? await ShareService.shareText(message)
@@ -130,7 +131,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
 
     if (!mounted) return;
     setState(() => _isBusy = false);
-    if (!ok) showAppSnackBar(context, '無法開啟分享，已幫你複製連結', isError: true);
+    if (!ok) showAppSnackBar(context, S.sharingCouldNotOpenSoLink, isError: true);
     if (!ok) _copyLink();
   }
 
@@ -145,7 +146,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
     setState(() => _isBusy = false);
     showAppSnackBar(
       context,
-      ok ? '已儲存到相簿' : '儲存失敗，請確認已允許相簿權限',
+      ok ? S.savedPhotos : S.couldNotSaveCheckPhotoLibrary,
       isError: !ok,
     );
   }
@@ -173,7 +174,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
               left: 12,
               child: IconButton(
                 icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 26),
-                tooltip: '掃描對方的 QR Code',
+                tooltip: S.scanTheirQrCode,
                 onPressed: _scan,
               ),
             ),
@@ -206,7 +207,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
-                                      user?.nickname ?? '使用者',
+                                      user?.nickname ?? S.user,
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -282,9 +283,9 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildAction(Icons.link_rounded, '複製連結', _copyLink),
-                                _buildAction(Icons.ios_share_rounded, '分享', _share),
-                                _buildAction(Icons.download_rounded, '儲存', _saveToPhotos),
+                                _buildAction(Icons.link_rounded, S.copyLink, _copyLink),
+                                _buildAction(Icons.ios_share_rounded, S.share, _share),
+                                _buildAction(Icons.download_rounded, S.actionSave, _saveToPhotos),
                               ],
                             ),
                           ),

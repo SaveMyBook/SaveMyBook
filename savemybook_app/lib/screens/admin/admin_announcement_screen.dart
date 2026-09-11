@@ -8,6 +8,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 import 'admin_announcement_edit_screen.dart';
+import '../../i18n/strings.dart';
 
 class AdminAnnouncementScreen extends StatefulWidget {
   const AdminAnnouncementScreen({super.key});
@@ -41,7 +42,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
       context,
       title: '刪除公告',
       message: '確定要刪除「${announcement.title}」嗎？此操作無法復原。',
-      confirmLabel: '刪除',
+      confirmLabel: S.actionDelete,
       isDestructive: true,
     );
     if (!confirmed || !mounted) return;

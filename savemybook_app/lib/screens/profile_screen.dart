@@ -21,6 +21,7 @@ import 'settings_screen.dart';
 import 'share_profile_screen.dart';
 import 'wallet_screen.dart';
 import '../utils/app_labels.dart';
+import '../i18n/strings.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -56,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await _api.logout();
         return true;
       },
-      message: '登出中…',
+      message: S.signingOut,
     );
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -79,7 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          _buildHeader(c, user?.nickname ?? '使用者', user?.bio ?? '', user?.avatarUrl),
+          _buildHeader(c, user?.nickname ?? S.user, user?.bio ?? '', user?.avatarUrl),
           Expanded(
             child: RefreshIndicator(
               color: c.accent,
@@ -121,8 +122,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.fromLTRB(20, 6, 20, 18),
           child: Column(
             children: [
-              const Text(
-                '會員中心',
+              Text(
+                S.myAccount,
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
               ),
               const SizedBox(height: 12),
@@ -153,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          bio.isEmpty ? '這個人很懶，什麼都沒留下' : bio,
+                          bio.isEmpty ? S.personNotWrittenBioYet : bio,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.8)),
@@ -191,7 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
                               Text(
-                                '代幣',
+                                S.faqCatWallet,
                                 style: TextStyle(
                                   fontSize: 9,
                                   color: Colors.white.withValues(alpha: 0.75),
@@ -280,8 +281,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Expanded(
                   child: Text(
                     progress.isMax
-                        ? '已達到最高級別'
-                        : '再 ${progress.remaining} 點升級為「$nextName」',
+                        ? S.topTierReached
+                        : S.morePointsReach(progress.remaining, nextName),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -338,18 +339,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             QuickActionButton(
               icon: Icons.monetization_on_outlined,
-              label: '我的代幣',
+              label: S.myCoins,
               onTap: () => _openAndRefresh(const WalletScreen()),
             ),
             QuickActionButton(
               icon: Icons.library_books_outlined,
-              label: '書籍管理',
+              label: S.myBooks,
               badge: _stats.bookCount,
               onTap: () => _openAndRefresh(const BookManageScreen()),
             ),
             QuickActionButton(
               icon: Icons.qr_code_2_rounded,
-              label: '分享檔案',
+              label: S.shareProfile,
               onTap: () => Navigator.push(
                 context,
                 PageRouteBuilder(
@@ -376,34 +377,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             AppMenuItem(
               icon: Icons.edit_outlined,
-              title: '編輯個人檔案',
+              title: S.editProfile,
               onTap: () => _openAndRefresh(const EditProfileScreen()),
             ),
             AppMenuItem(
               icon: Icons.bookmark_outline_rounded,
-              title: '收藏書籍',
+              title: S.savedBooks,
               trailingText: _stats.favoriteCount > 0 ? '${_stats.favoriteCount}' : null,
               onTap: () => _openAndRefresh(const FavoritesScreen()),
             ),
             AppMenuItem(
               icon: Icons.shopping_bag_outlined,
-              title: '購買紀錄',
+              title: S.purchases,
               onTap: () => _openAndRefresh(const PurchaseHistoryScreen()),
             ),
             AppMenuItem(
               icon: Icons.inventory_2_outlined,
-              title: '銷售紀錄',
+              title: S.sales,
               onTap: () => _openAndRefresh(const SalesHistoryScreen()),
             ),
             if (isAdmin)
               AppMenuItem(
                 icon: Icons.admin_panel_settings_outlined,
-                title: '管理後台',
+                title: S.admin,
                 onTap: () => _openAndRefresh(const AdminHomeScreen()),
               ),
             AppMenuItem(
               icon: Icons.settings_outlined,
-              title: '設定',
+              title: S.settings,
               isLast: true,
               onTap: () => _openAndRefresh(const SettingsScreen()),
             ),
@@ -421,9 +422,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onTap: () async {
           final confirmed = await showConfirmDialog(
             context,
-            title: '確認登出',
-            message: '登出後需要重新輸入帳號密碼才能繼續使用。',
-            confirmLabel: '登出',
+            title: S.signOut2,
+            message: S.needSignAgainKeepUsingApp,
+            confirmLabel: S.signOut,
             isDestructive: true,
           );
           if (confirmed) _handleLogout();
@@ -433,7 +434,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Icon(Icons.logout, color: c.danger, size: 20),
             const SizedBox(width: 8),
-            Text('登出', style: TextStyle(color: c.danger, fontSize: 16, fontWeight: FontWeight.w500)),
+            Text(S.signOut, style: TextStyle(color: c.danger, fontSize: 16, fontWeight: FontWeight.w500)),
           ],
         ),
       ),

@@ -10,6 +10,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import '../../i18n/strings.dart';
 
 class AdminBookScreen extends StatefulWidget {
   const AdminBookScreen({super.key});
@@ -20,11 +21,11 @@ class AdminBookScreen extends StatefulWidget {
 
 class _AdminBookScreenState extends State<AdminBookScreen> {
   static const _filters = [
-    (key: 'all', label: '全部'),
-    (key: 'on_sale', label: '販售中'),
-    (key: 'reserved', label: '已預訂'),
-    (key: 'sold', label: '已售出'),
-    (key: 'removed', label: '已下架'),
+    (key: 'all', label: S.actionAll),
+    (key: 'on_sale', label: S.bookOnSale),
+    (key: 'reserved', label: S.bookReserved),
+    (key: 'sold', label: S.bookSold),
+    (key: 'removed', label: S.bookRemoved),
   ];
 
   final ApiService _api = ApiService();
@@ -95,7 +96,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, removing ? '已下架' : '已恢復上架');
+      showAppSnackBar(context, removing ? S.bookRemoved : '已恢復上架');
       _load();
     }
   }
@@ -108,7 +109,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '書籍管理', icon: Icons.menu_book_rounded),
+          AppHeader(title: S.myBooks, icon: Icons.menu_book_rounded),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: AppSearchField(
@@ -233,7 +234,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'ISBN ${book.isbn?.isNotEmpty == true ? book.isbn : '未提供'}｜瀏覽 ${book.viewCount}',
+                      'ISBN ${book.isbn?.isNotEmpty == true ? book.isbn : S.notProvided}｜瀏覽 ${book.viewCount}',
                       style: TextStyle(fontSize: 11, color: c.textHint),
                     ),
                     const SizedBox(height: 6),

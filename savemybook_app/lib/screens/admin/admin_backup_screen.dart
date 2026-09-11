@@ -10,6 +10,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 import '../../widgets/swipe_action.dart';
+import '../../i18n/strings.dart';
 
 class AdminBackupScreen extends StatefulWidget {
   const AdminBackupScreen({super.key});
@@ -188,14 +189,14 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
       backgroundMargin: EdgeInsets.zero,
       endToStart: SwipeAction(
         icon: Icons.delete_outline_rounded,
-        label: '刪除',
+        label: S.actionDelete,
         color: c.danger,
         dismisses: true,
         onTrigger: () => showConfirmDialog(
           context,
           title: '刪除備份',
           message: '${record.fileName}\n\n檔案與紀錄會一併移除，無法復原。',
-          confirmLabel: '刪除',
+          confirmLabel: S.actionDelete,
           isDestructive: true,
         ),
         onDismissed: () => _delete(record),
@@ -238,7 +239,7 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
                     record.isSuccess
                         ? '${record.sizeText}・${record.isManual ? '手動' : '排程'}'
                             '${record.adminName.isEmpty ? '' : '・${record.adminName}'}'
-                        : (record.detail ?? '備份失敗'),
+                        : (record.detail ?? S.backupFailed),
                     style: TextStyle(fontSize: 12, color: c.textSecondary),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

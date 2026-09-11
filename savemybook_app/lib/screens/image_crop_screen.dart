@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_buttons.dart';
 import '../widgets/state_views.dart';
+import '../i18n/strings.dart';
 
 /// 純 Flutter 的裁切畫面，不依賴任何原生套件。
 /// 使用者用雙指縮放／拖曳把想要的部分移進取景框，確認後直接把
@@ -62,7 +63,7 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
       }
       setState(() => _image = frame.image);
     } catch (_) {
-      if (mounted) setState(() => _error = '無法讀取這張照片');
+      if (mounted) setState(() => _error = S.couldNotReadPhoto);
     }
   }
 
@@ -90,7 +91,7 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _isSaving = false);
-      showAppSnackBar(context, '裁切失敗，請再試一次', isError: true);
+      showAppSnackBar(context, S.croppingFailedPleaseTryAgain, isError: true);
     }
   }
 
@@ -175,14 +176,14 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
                   onPressed: () => Navigator.pop(context),
                 ),
                 const Spacer(),
-                const Text(
-                  '調整照片',
+                Text(
+                  S.adjustPhoto,
                   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.restart_alt_rounded, color: Colors.white),
-                  tooltip: '重設',
+                  tooltip: S.reset,
                   onPressed: () => _controller.value = Matrix4.identity(),
                 ),
               ],
@@ -232,7 +233,7 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
                         child: PrimaryButton(
-                          label: '使用這張',
+                          label: S.usePhoto,
                           height: 50,
                           color: c.accent,
                           isLoading: _isSaving,

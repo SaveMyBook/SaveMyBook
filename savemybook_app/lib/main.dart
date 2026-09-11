@@ -70,7 +70,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
 
     if (token != null && token.isNotEmpty) {
       final unlocked = !BiometricService.isEnabled ||
-          await BiometricService.authenticate(reason: '驗證身分以登入 SaveMyBook');
+          await BiometricService.authenticate(reason: S.verifySignSavemybook);
 
       if (unlocked) {
         ApiService.authToken = token;

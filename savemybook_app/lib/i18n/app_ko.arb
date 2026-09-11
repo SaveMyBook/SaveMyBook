@@ -98,5 +98,826 @@
   "appearanceHint": "시스템 설정 따르기를 선택하면 기기 설정에 따라 자동으로 전환됩니다.",
   "language": "언어",
   "languageSystem": "시스템 설정 따르기",
-  "languageHint": "시스템 설정 따르기를 선택하면 기기 언어 설정에 따라 표시됩니다."
+  "languageHint": "시스템 설정 따르기를 선택하면 기기 언어 설정에 따라 표시됩니다.",
+  "verifySignSavemybook": "SaveMyBook에 로그인하려면 인증하세요",
+  "maintenance": "시스템 점검",
+  "promotions": "이벤트 혜택",
+  "policyUpdate": "정책 변경",
+  "announcement": "일반 공지",
+  "item": "상품",
+  "member": "회원",
+  "message": "메시지",
+  "noLongerExists": "(대상이 존재하지 않음)",
+  "uncategorised": "미분류",
+  "general": "일반 도서",
+  "untitled": "제목 없음",
+  "noDescriptionYet": "아직 소개가 없습니다",
+  "locationNotProvided": "위치 정보 없음",
+  "seller3": "판매자: {p0}",
+  "@seller3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unknownAuthor": "작자 미상",
+  "unknownPublisher": "출판사 미상",
+  "noIsbn": "ISBN 없음",
+  "user": "사용자",
+  "noMessagesYet": "아직 메시지가 없습니다",
+  "photo": "[사진]",
+  "item2": "[상품] {p0}",
+  "@item2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "purchase": "구매",
+  "sale": "판매",
+  "systemAdjustment": "시스템 조정",
+  "preparingData": "데이터를 준비하고 있습니다",
+  "mySavemybookData": "내 SaveMyBook 데이터",
+  "exportedChooseWhereSave": "내보냈습니다. 저장 위치를 선택하세요.",
+  "exportedButSharingCouldNotOpen": "내보냈지만 공유를 열 수 없습니다",
+  "regenerateShareLink": "공유 링크 재생성",
+  "oldLinkQrCodeStopWorking": "기존 링크와 QR 코드가 즉시 무효화되며, 이미 공유한 사람은 더 이상 열 수 없습니다. 재생성할까요?",
+  "regenerate": "재생성",
+  "newLinkCreatedOldOneNo": "새 링크를 만들었습니다. 기존 링크는 무효입니다.",
+  "deleteAccount": "계정 삭제",
+  "accountPermanentlyDisabled30DaysSign": "계정은 30일 후 영구 비활성화됩니다. 그 전에 다시 로그인하면 취소할 수 있습니다.\n\n",
+  "personalDataErasedButCompletedOrders": "비활성화 후 개인정보는 삭제되지만, 완료된 주문과 거래 기록은 보관됩니다. ",
+  "peopleTradedWithDoNotLose": "거래 상대방의 기록이 누락되지 않도록 하기 위함입니다.",
+  "continue": "계속",
+  "verify": "본인 확인",
+  "enterPasswordConfirm": "본인 확인을 위해 비밀번호를 입력하세요.",
+  "password": "비밀번호",
+  "requestDeletion": "삭제 신청",
+  "receivedSignAgainWithin30Days": "접수되었습니다. 30일 이내에 다시 로그인하면 취소할 수 있습니다.",
+  "deletionCancelledAccountActiveAgain": "삭제를 취소했습니다. 계정이 정상으로 돌아왔습니다.",
+  "account": "계정 관리",
+  "data": "내 데이터",
+  "exportMyData": "내 데이터 내보내기",
+  "profileBooksOrdersTransactionsJson": "프로필, 도서, 주문, 거래 내역을 JSON으로",
+  "oldLinkQrCodeStopWorking2": "기존 링크와 QR 코드가 즉시 무효화됩니다",
+  "cancelAccountDeletion": "계정 삭제 취소",
+  "restoreAccountStopCountdown": "계정을 복구하고 카운트다운을 중지합니다",
+  "canChangeMindWithin30Days": "30일 이내에는 취소할 수 있습니다",
+  "deletionPending": "삭제 대기 중",
+  "daysLeftCanCancelAnyTime": "{p0}일 남았습니다. 그 전에는 언제든 취소할 수 있으며, 기한이 지나면 개인정보가 영구 삭제됩니다.",
+  "@daysLeftCanCancelAnyTime": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signOut": "로그아웃",
+  "type": "유형",
+  "content": "내용",
+  "backupFailed": "백업 실패",
+  "myBooks": "도서 관리",
+  "notProvided": "제공되지 않음",
+  "openingHours": "운영 시간",
+  "address": "주소",
+  "saveChanges": "변경 사항 저장",
+  "enable": "활성화",
+  "termsService": "이용약관",
+  "privacyPolicy": "개인정보 처리방침",
+  "aboutUs": "회사 소개",
+  "admin": "관리자",
+  "confirm": "확인",
+  "membershipTier": "회원 등급",
+  "phone": "전화번호",
+  "violationConfirmed": "위반 인정",
+  "scanBarcode": "바코드 스캔",
+  "lineUpBarcodeSpineWithFrame": "책등의 바코드를 프레임에 맞춰 주세요",
+  "signAddItemsCart": "장바구니에 담으려면 로그인하세요",
+  "bookCannotPurchased": "이 책은 {p0} 상태여서 구매할 수 없습니다",
+  "@bookCannotPurchased": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addedCart": "장바구니에 담았습니다",
+  "sellerInformationNotFound": "판매자 정보를 찾을 수 없습니다",
+  "signContactSeller": "판매자에게 연락하려면 로그인하세요",
+  "signStartChat": "채팅을 시작하려면 로그인하세요",
+  "signReport": "신고하려면 로그인하세요",
+  "cannotReportOwnListing": "본인의 상품은 신고할 수 없습니다",
+  "reportListing": "이 상품 신고",
+  "describeProblemLeast5Characters": "문제를 설명해 주세요 (5자 이상)",
+  "reasonNeedsLeast5Characters": "신고 사유는 5자 이상 입력해 주세요",
+  "reportSubmittedWeLookInto": "신고를 접수했습니다. 최대한 빨리 처리하겠습니다.",
+  "publisher": "출판사: ",
+  "author": "저자: ",
+  "listed": "등록일: ",
+  "searchTitleAuthorPublisher": "제목, 저자, 출판사 검색...",
+  "share": "공유",
+  "report": "신고",
+  "about": "소개: ",
+  "pickup": "수령 장소: {p0}",
+  "@pickup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "messageSeller": "판매자와 대화",
+  "listing": "내 상품입니다",
+  "addCart": "장바구니 담기",
+  "bookBeenReportedUnderReviewStays": "이 책은 신고되어 검토 중입니다. 검토 중에도 정상 판매됩니다.",
+  "violationWasConfirmedBookPleaseCheck": "이 책은 위반이 인정되었습니다. 커뮤니티 가이드라인에 맞는지 확인해 주세요.",
+  "reportDismissed2": "신고가 기각되었습니다",
+  "bookWasReportedButNoViolation": "이 책은 신고되었으나 위반이 확인되지 않았습니다. 판매에는 영향이 없습니다.",
+  "delist": "판매 중단",
+  "removedFromShopBuyersNoLonger": "“{p0}”이(가) 상점에서 내려가 구매자에게 더 이상 표시되지 않습니다.",
+  "@removedFromShopBuyersNoLonger": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "delist2": "내리기",
+  "delistedRelistFromDelistedTab": "판매를 중단했습니다. ‘내림’ 탭에서 다시 올릴 수 있습니다.",
+  "couldNotDelistPleaseTryAgain": "판매 중단에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+  "listedAgain": "“{p0}”을(를) 다시 등록했습니다",
+  "@listedAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "notListedAnyBooksYet": "아직 등록한 도서가 없습니다",
+  "noBooksCategory": "이 분류에 도서가 없습니다",
+  "listFirstBook": "첫 도서 등록하기",
+  "relist": "다시 올리기",
+  "removeFromCart": "장바구니에서 빼기",
+  "removeFromCart2": "“{p0}”을(를) 장바구니에서 뺄까요?",
+  "@removeFromCart2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "remove": "삭제",
+  "couldNotRemoveRestored": "삭제하지 못해 되돌렸습니다.",
+  "couldNotRemovePleaseTryAgain": "삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  "selectBooksWantCheckOut": "결제할 도서를 선택해 주세요",
+  "notEnoughCoinsOrderNeedsBut": "코인이 부족합니다. 이 주문에는 {p0}이(가) 필요하지만 잔액은 {p1}입니다.",
+  "@notEnoughCoinsOrderNeedsBut": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmCheckout": "결제 확인",
+  "booksTotal": "도서 {p0}권, 합계 {p1}.\n",
+  "@booksTotal": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "balanceAfterPaymentCoins": "결제 후 잔액은 {p0} 코인입니다.",
+  "@balanceAfterPaymentCoins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderPlacedSellerDropBookOff": "주문이 완료되었습니다. 판매자의 보관을 기다려 주세요.",
+  "cart": "장바구니",
+  "cartEmpty": "장바구니가 비어 있습니다",
+  "selectAll": "전체 선택",
+  "items": "{p0}개 상품",
+  "@items": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deselect": "선택 해제",
+  "select": "선택",
+  "coinsShort": "{p0} 코인 부족",
+  "@coinsShort": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "total": "합계",
+  "selected": "{p0}개",
+  "@selected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "balance2": "잔액 {p0}",
+  "@balance2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "selectBookFirst": "먼저 도서를 선택하세요",
+  "checkOut": "결제",
+  "notEnoughCoins": "코인이 부족합니다",
+  "weak": "약함",
+  "fair": "보통",
+  "strong": "강함",
+  "enterCurrentPassword": "현재 비밀번호를 입력하세요",
+  "enterNewPassword": "새 비밀번호를 입력하세요",
+  "newPasswordMustDifferent": "새 비밀번호는 현재 비밀번호와 달라야 합니다",
+  "enterNewPasswordAgain": "새 비밀번호를 다시 입력하세요",
+  "passwordsDoNotMatch": "입력한 새 비밀번호가 일치하지 않습니다",
+  "passwordUpdated": "비밀번호를 변경했습니다",
+  "changePassword": "비밀번호 변경",
+  "useLeast8CharactersWithBoth": "영문과 숫자를 모두 포함해 8자 이상으로 입력하세요.",
+  "currentPassword": "현재 비밀번호",
+  "newPassword": "새 비밀번호",
+  "confirmNewPassword": "새 비밀번호 확인",
+  "updatePassword": "비밀번호 변경",
+  "deleteChat": "채팅 삭제",
+  "allMessagesWithDeletedBothCannot": "{p0}님과 주고받은 모든 메시지가 양쪽 모두에서 삭제됩니다. 되돌릴 수 없습니다.",
+  "@allMessagesWithDeletedBothCannot": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "chatDeleted": "채팅을 삭제했습니다",
+  "couldNotDeleteRestored": "삭제하지 못해 되돌렸습니다.",
+  "chatMuted": "이 채팅을 음소거했습니다",
+  "chatUnmuted": "음소거를 해제했습니다",
+  "noUnreadMessages": "읽지 않은 메시지가 없습니다",
+  "markAllAsRead": "모두 읽음으로 표시",
+  "markAllUnreadMessagesAsRead": "읽지 않은 메시지 {p0}건을 모두 읽음으로 표시할까요? 되돌릴 수 없습니다.",
+  "@markAllUnreadMessagesAsRead": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "markAllRead": "모두 읽음",
+  "allMarkedAsRead": "모두 읽음으로 표시했습니다",
+  "somethingWentWrongPleaseTryAgain": "작업에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+  "chats": "채팅",
+  "noConversationsYet": "아직 대화가 없습니다",
+  "unmute": "음소거 해제",
+  "mute": "음소거",
+  "messagesLimited500Characters": "메시지는 500자까지 입력할 수 있습니다",
+  "messageCouldNotSent": "메시지를 보내지 못했습니다",
+  "chat": "채팅",
+  "sendFirstMessage": "첫 메시지를 보내 보세요",
+  "messageCopied": "메시지를 복사했습니다",
+  "iQuestionAboutBook": "이 책에 대해 문의합니다",
+  "bookNoLongerListed": "이 책은 더 이상 판매하지 않습니다",
+  "writeMessage": "메시지 입력…",
+  "enterOrderNumberDisputing": "이의를 제기할 주문 번호를 입력하세요",
+  "describeDispute": "이의 내용을 입력해 주세요",
+  "useLeast10CharactersSoSupport": "고객센터가 판단할 수 있도록 10자 이상 입력해 주세요",
+  "submitDispute": "이의 제기",
+  "orderEntersDisputeProcessPaymentSeller": "주문이 이의 처리 절차로 넘어가며, 고객센터가 판정할 때까지 판매자 정산이 보류됩니다.",
+  "paymentHoldRequested": "[정산 보류 요청] {p0}",
+  "@paymentHoldRequested": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "disputeSubmittedSupportContact": "이의를 접수했습니다. 고객센터에서 연락드리겠습니다.",
+  "dispute": "이의 처리",
+  "requestPaymentHold": "정산 보류 요청",
+  "paymentSellerHeldUntilSupportDecides": "고객센터가 판정할 때까지 판매자 정산이 보류됩니다",
+  "submitDispute2": "이의 제기하기",
+  "orderNumber": "주문 번호",
+  "eGSmb20260910123456789": "예: SMB20260910123456789",
+  "whatHappened": "이의 내용",
+  "describeProblemEGConditionDoes": "문제 상황을 적어 주세요. 예: 상태가 설명과 다름…",
+  "submit": "신청 보내기",
+  "uploadPhotos": "사진 업로드",
+  "canAttachUp6Photos": "증빙 사진은 최대 6장까지 첨부할 수 있습니다",
+  "up5": "최대 5장",
+  "couldNotReplacePhotoPleaseTry": "사진을 교체하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  "keepLeastOnePhoto": "사진은 최소 한 장 필요합니다",
+  "photoDeleted": "사진을 삭제했습니다",
+  "couldNotDeletePhotoPleaseTry": "사진을 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  "canUp10Photos": "사진은 최대 10장까지 가능합니다",
+  "deletePhoto": "사진 삭제",
+  "cannotUndoneContinue": "삭제하면 되돌릴 수 없습니다. 계속할까요?",
+  "photoMissingDataRefreshTryAgain": "이 사진의 데이터가 불완전합니다. 새로고침 후 다시 시도하세요.",
+  "enterPrice": "가격을 입력하세요",
+  "priceMustGreaterThan0": "가격은 0보다 커야 합니다",
+  "priceCannotExceed999999": "가격은 999,999를 넘을 수 없습니다",
+  "chooseLockerLocation": "보관 위치를 선택하세요",
+  "missingTheseThreeRequired": "누락: {p0}. 이 세 장은 필수입니다.",
+  "@missingTheseThreeRequired": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "bookUpdated": "도서를 수정했습니다",
+  "editBook": "도서 편집",
+  "condition": "상태",
+  "customPrice": "직접 입력",
+  "enterPrice2": "판매 가격 입력",
+  "lockerLocation": "보관 위치",
+  "chooseLocker": "보관함 선택",
+  "bookPhotos": "도서 사진",
+  "morePhotos": "추가 사진",
+  "add": "추가",
+  "enterTitle": "제목을 입력하세요",
+  "titleLimited255Characters": "제목은 255자까지 입력할 수 있습니다",
+  "isbn1013Digits": "ISBN은 10자리 또는 13자리입니다",
+  "chooseCategory": "분류를 선택하세요",
+  "k1013Digits": "10자리 또는 13자리",
+  "title": "제목",
+  "required": "필수",
+  "author2": "저자",
+  "optional": "선택",
+  "publisher2": "출판사",
+  "publicationDate": "출간일",
+  "tapPickPublicationDate": "눌러서 출간일 선택",
+  "pickPublicationDate": "출간일 선택",
+  "pickCategory": "분류 선택",
+  "next": "다음",
+  "uploading": "업로드 중…",
+  "profilePhotoUpdated": "프로필 사진을 변경했습니다",
+  "couldNotUploadPhoto": "프로필 사진을 업로드하지 못했습니다",
+  "changeDisplayName": "닉네임 변경",
+  "enterDisplayName": "닉네임을 입력하세요",
+  "displayNameCannotBlank": "닉네임은 비워 둘 수 없습니다",
+  "displayNames250Characters": "닉네임은 2~50자로 입력하세요",
+  "invalidPhoneNumberEG0912345678": "전화번호 형식이 올바르지 않습니다. 예: 0912345678",
+  "profileUpdated": "프로필을 수정했습니다",
+  "editProfile": "프로필 편집",
+  "bio": "소개",
+  "tellPeopleAboutYourself": "자신을 소개해 보세요",
+  "email": "이메일",
+  "emailCannotChanged": "이메일은 변경할 수 없습니다",
+  "dateBirth": "생년월일",
+  "tapPickDateBirth": "눌러서 생년월일 선택",
+  "pickDateBirth": "생년월일 선택",
+  "savedBooks": "저장한 도서",
+  "notSavedAnyBooksYet": "아직 저장한 도서가 없습니다",
+  "helpCentre": "고객센터",
+  "searchQuestions": "질문 검색",
+  "noQuestionsYet": "아직 자주 묻는 질문이 없습니다",
+  "noMatchingQuestions": "일치하는 질문이 없습니다",
+  "newest": "최신순",
+  "popular": "인기순",
+  "priceLowHigh": "가격 낮은순",
+  "priceHighLow": "가격 높은순",
+  "reachedEnd": "마지막입니다",
+  "guest": "게스트",
+  "hi": "안녕하세요, {p0}님",
+  "@hi": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBooksMatchFilters": "조건에 맞는 도서가 없습니다",
+  "couldNotReadPhoto": "이 사진을 읽을 수 없습니다",
+  "croppingFailedPleaseTryAgain": "자르기에 실패했습니다. 다시 시도해 주세요.",
+  "adjustPhoto": "사진 조정",
+  "reset": "초기화",
+  "usePhoto": "이 사진 사용",
+  "documentNotBeenCreatedYet": "이 문서는 아직 작성되지 않았습니다",
+  "lastUpdated": "마지막 업데이트: {p0}",
+  "@lastUpdated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "biometrics": "생체 인증",
+  "sessionExpiredPleaseEnterPasswordAgain": "로그인 정보가 만료되었습니다. 비밀번호를 다시 입력해 주세요.",
+  "turnSign": "{p0} 로그인을 켤까요?",
+  "@turnSign": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nextTimeOpenAppCanUnlock": "다음에 앱을 열 때 비밀번호 대신 {p0}(으)로 잠금을 해제할 수 있습니다.",
+  "@nextTimeOpenAppCanUnlock": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "notNow": "나중에",
+  "enterEmail": "이메일을 입력하세요",
+  "emailAddressNotValid": "이메일 형식이 올바르지 않습니다",
+  "enterPassword": "비밀번호를 입력하세요",
+  "noAccountWithEmail": "등록되지 않은 계정입니다",
+  "noAccountCreateOneNow": "“{p0}” 계정을 찾을 수 없습니다. 지금 만들까요?",
+  "@noAccountCreateOneNow": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signUp": "가입하러 가기",
+  "tryAgain": "다시 입력",
+  "sign": "로그인",
+  "signWith": "{p0}(으)로 로그인",
+  "@signWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noAccountYetSignUp": "계정이 없으신가요? 가입하기",
+  "membershipTiersNotSetUpYet": "회원 등급이 아직 설정되지 않았습니다",
+  "currentTier": "현재 등급",
+  "unlocked": "달성함",
+  "locked": "미달성",
+  "aboveTier": "이 등급보다 높습니다",
+  "reachedTopTier": "최고 등급에 도달했습니다",
+  "unlocked2": "“{p0}” 달성",
+  "@unlocked2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "morePointsUnlock": "{p0}점 더 모으면 “{p1}” 달성",
+  "@morePointsUnlock": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "benefits": "{p0} 혜택",
+  "@benefits": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBenefitsBeenDescribedTierYet": "이 등급의 혜택이 아직 설정되지 않았습니다.",
+  "pointsFromCompletedOrders": "거래 {p1}건으로 {p0}점",
+  "@pointsFromCompletedOrders": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noNotificationsClear": "지울 알림이 없습니다",
+  "clearAllNotifications": "모든 알림 지우기",
+  "notificationsDeletedCannotUndone": "알림 {p0}건을 삭제합니다. 되돌릴 수 없습니다.",
+  "@notificationsDeletedCannotUndone": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "clearAll": "모두 지우기",
+  "allNotificationsCleared": "모든 알림을 지웠습니다",
+  "couldNotClearPleaseTryAgain": "지우지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  "noUnreadNotifications": "읽지 않은 알림이 없습니다",
+  "markAllUnreadNotificationsAsRead": "읽지 않은 알림 {p0}건을 모두 읽음으로 표시할까요? 되돌릴 수 없습니다.",
+  "@markAllUnreadNotificationsAsRead": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "openChat": "채팅 열기",
+  "viewOrder": "주문 보기",
+  "openMyBooks": "도서 관리 열기",
+  "notifications": "알림",
+  "noNotifications": "알림이 없습니다",
+  "copied": "{p0}을(를) 복사했습니다",
+  "@copied": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderDetails": "주문 상세",
+  "order": "주문 번호 {p0}",
+  "@order": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderProgress": "주문 진행",
+  "items2": "상품 내역 ({p0})",
+  "@items2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderNoItemDetails": "이 주문에는 상품 정보가 없습니다.",
+  "msg4": "단가 {p0} × {p1}",
+  "@msg4": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "orderTotal": "주문 금액",
+  "pickupDetails": "수령 정보",
+  "notAssigned": "미지정",
+  "slot": "보관함",
+  "notAssignedYet": "아직 배정되지 않음",
+  "pickupCode": "수령 코드",
+  "transaction": "거래 정보",
+  "buyer": "구매자",
+  "seller": "판매자",
+  "placed": "주문 일시",
+  "dispute2": "이의",
+  "orderOpenDispute": "이 주문에는 진행 중인 이의가 있습니다",
+  "cancelOrder": "주문 취소",
+  "pendingPayoutDisappearsBuyerNotified": "대기 중인 정산이 사라지고 구매자에게도 알림이 갑니다.",
+  "cancelledBySeller": "판매자 취소",
+  "orderCancelled2": "주문을 취소했습니다",
+  "pendingPayouts": "대기 중인 정산",
+  "noPendingPayouts": "대기 중인 정산이 없습니다",
+  "pendingAmount": "대기 금액",
+  "coinsArriveOnceBuyerCollectsBook": "구매자가 수령하면 코인이 자동 지급됩니다",
+  "scanned": "스캔 완료",
+  "scanAgain": "다시 스캔",
+  "collectBook": "도서 수령",
+  "pointPickupQrCode": "수령용 QR 코드를 맞춰 주세요",
+  "holdSteady": "흔들리지 않게 유지하세요",
+  "bookCollected": "수령 완료",
+  "thanksUsingSavemybookHappyReading": "이용해 주셔서 감사합니다. 즐거운 독서 되세요!",
+  "collected": "“{p0}” 수령 완료",
+  "@collected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "order2": "주문 번호: {p0}",
+  "@order2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signingOut": "로그아웃 중…",
+  "myAccount": "마이페이지",
+  "personNotWrittenBioYet": "아직 소개가 없습니다",
+  "topTierReached": "최고 등급 달성",
+  "morePointsReach": "{p0}점 더 모으면 “{p1}”",
+  "@morePointsReach": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "myCoins": "내 코인",
+  "shareProfile": "프로필 공유",
+  "purchases": "구매 내역",
+  "sales": "판매 내역",
+  "settings": "설정",
+  "signOut2": "로그아웃할까요?",
+  "needSignAgainKeepUsingApp": "계속 사용하려면 다시 로그인해야 합니다.",
+  "cancelOrderBookReturnsShop": "주문 {p0}을(를) 취소할까요? 도서는 다시 판매됩니다.",
+  "@cancelOrderBookReturnsShop": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickupCode2": "수령 코드",
+  "notGeneratedYet": "아직 발급되지 않음",
+  "enterCodeLockerCollect": "보관함에서 이 코드를 입력해 수령하세요",
+  "enterCodeCollect": "“{p0}”에서 이 코드를 입력해 수령하세요",
+  "@enterCodeCollect": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iCollected": "수령을 완료했습니다",
+  "noOrdersTab": "이 탭에는 주문이 없습니다",
+  "openDispute": "이의 제기",
+  "displayNameNeedsLeast2Characters": "닉네임은 2자 이상이어야 합니다",
+  "displayNameLimited50Characters": "닉네임은 50자까지 가능합니다",
+  "enterPasswordAgain": "비밀번호를 다시 입력하세요",
+  "passwordsDoNotMatch2": "입력한 비밀번호가 일치하지 않습니다",
+  "pleaseReadAcceptTermsServicePrivacy": "이용약관과 개인정보 처리방침을 읽고 동의해 주세요",
+  "accountCreatedSignWith": "계정을 만들었습니다. 로그인해 주세요.",
+  "iReadAccept": "다음에 동의합니다: ",
+  "and": " 및 ",
+  "createAccount": "계정 만들기",
+  "joinSavemybook": "SaveMyBook 가입",
+  "signUpBuySellUseSmart": "가입하면 도서 매매와 스마트 보관함을 이용할 수 있습니다",
+  "displayName": "닉네임",
+  "nameOthersSee": "다른 사람에게 보이는 이름",
+  "emailSignWith": "로그인에 사용할 이메일",
+  "least8CharactersWithLettersNumbers": "영문과 숫자를 포함해 8자 이상",
+  "confirmPassword": "비밀번호 확인",
+  "enterPasswordAgain2": "비밀번호 다시 입력",
+  "alreadyAccountGoBackSign": "이미 계정이 있으신가요? 돌아가서 로그인",
+  "markAsDroppedOff": "보관 완료",
+  "droppedOff": "보관함에 넣음",
+  "markedAsDroppedOff": "보관 완료로 표시했습니다",
+  "buyerNotifiedBookReturnsShop": "구매자에게 알림이 가고 도서는 다시 판매됩니다.",
+  "dropOffPickupCode": "보관·수령 코드",
+  "enterCodeLocker": "보관함에서 이 코드를 입력하세요",
+  "noRecentSearches": "최근 검색이 없습니다",
+  "recentSearches": "최근 검색",
+  "clearAll2": "모두 지우기",
+  "searchTitleAuthorIsbn": "제목, 저자, ISBN 검색...",
+  "photoLimitReached": "사진이 가득 찼습니다",
+  "canUploadUp10Photos": "사진은 최대 10장까지 업로드할 수 있습니다.",
+  "photosMissing": "사진이 부족합니다",
+  "missingTheseThreeRequired2": "누락: {p0}. 이 세 장은 필수입니다.",
+  "@missingTheseThreeRequired2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "missingInformation": "입력이 부족합니다",
+  "enterOwnPrice": "가격을 입력해 주세요.",
+  "invalidPrice": "가격이 올바르지 않습니다",
+  "priceMustGreaterThan02": "가격은 0보다 커야 합니다.",
+  "priceCannotExceed99999": "가격은 99,999를 넘을 수 없습니다.",
+  "chooseLockerLocation2": "보관 위치를 선택해 주세요.",
+  "listed2": "등록되었습니다!",
+  "unknownError": "알 수 없는 오류",
+  "couldNotListBook": "등록에 실패했습니다",
+  "serverError": "서버 오류: {p0}",
+  "@serverError": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionProblem": "연결 오류",
+  "couldNotReachServerUploadTimed": "서버에 연결할 수 없거나 업로드가 시간 초과되었습니다. 네트워크를 확인해 주세요.",
+  "listBook": "등록 완료",
+  "detailsPhotos": "상세 정보와 사진",
+  "loading": "불러오는 중...",
+  "unknownLocker": "알 수 없는 보관함",
+  "enterTitle2": "제목을 입력하세요",
+  "chooseCategory2": "분류를 선택하세요",
+  "bookDetailsFilledAutomatically": "도서 정보를 자동으로 채웠습니다.",
+  "bookDetailsFilledFromBackupSource": "보조 데이터베이스에서 도서 정보를 가져왔습니다.",
+  "noSourceIsbnPleaseEnterDetails": "어떤 데이터베이스에도 이 ISBN이 없습니다. 직접 입력해 주세요.",
+  "yearMonth": "[연월]",
+  "day": "일",
+  "tapIconRightScan": "오른쪽 아이콘을 눌러 스캔",
+  "description": "도서 소개",
+  "sellBook": "도서 판매",
+  "myShop": "내 상점",
+  "sellerNoBooksSale": "이 판매자는 판매 중인 도서가 없습니다",
+  "loading2": "불러오는 중…",
+  "sale2": "판매 중 {p0}권",
+  "@sale2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "verifyEnableQuickSign": "빠른 로그인을 켜려면 인증하세요",
+  "sign2": "{p0} 로그인을 켰습니다",
+  "@sign2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "quickSignTurnedOff": "빠른 로그인을 껐습니다",
+  "appearance2": "화면 설정",
+  "signMethod": "로그인 방식",
+  "helpSupport": "도움말 및 지원",
+  "contactUs": "문의하기",
+  "aboutSavemybook": "SaveMyBook 정보",
+  "settingsPrivacy": "설정 및 개인정보",
+  "sign3": "{p0} 로그인",
+  "@sign3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unlockWithWhenOpenApp": "앱을 열 때 {p0}(으)로 잠금 해제",
+  "@unlockWithWhenOpenApp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "scanProfileQrCode": "프로필 QR 코드 스캔",
+  "lineUpTheirQrCodeWith": "상대방의 QR 코드를 프레임에 맞춰 주세요",
+  "notSavemybookProfileQrCode": "SaveMyBook 프로필 QR 코드가 아닙니다",
+  "ownQrCode": "본인의 QR 코드입니다",
+  "couldNotStartChatPleaseTry": "채팅을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  "linkCopied": "링크를 복사했습니다",
+  "addMeSavemybook": "SaveMyBook에서 나를 추가: {p0}",
+  "@addMeSavemybook": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addMeSavemybook2": "SaveMyBook에서 나를 추가 ({p0}): {p1}",
+  "@addMeSavemybook2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sharingCouldNotOpenSoLink": "공유를 열 수 없어 링크를 복사했습니다",
+  "savedPhotos": "사진에 저장했습니다",
+  "couldNotSaveCheckPhotoLibrary": "저장하지 못했습니다. 사진 접근 권한을 확인해 주세요.",
+  "scanTheirQrCode": "상대방 QR 코드 스캔",
+  "copyLink": "링크 복사",
+  "askQuestion": "문의하기",
+  "noEnquiriesYet": "문의 내역이 없습니다",
+  "enterSubject": "제목을 입력하세요",
+  "addMoreDetailSoSupportCan": "고객센터가 파악할 수 있도록 좀 더 자세히 적어 주세요",
+  "sentSupportReplySoon": "보냈습니다. 고객센터가 곧 답변드립니다.",
+  "subject": "제목",
+  "sumUpOneLine": "한 줄로 요약해 주세요",
+  "whatHappenedIncludeOrderNumberIf": "무슨 일이 있었나요? 주문 번호가 있다면 함께 적어 주세요.",
+  "close": "종료",
+  "notAbleReplyAfterClosing": "종료하면 더 이상 답변할 수 없습니다.",
+  "enquiryClosed": "문의를 종료했습니다",
+  "changeStatus": "상태 변경",
+  "statusUpdated": "상태를 변경했습니다",
+  "enquiry": "문의",
+  "enquiryNotFound": "문의를 찾을 수 없습니다",
+  "support": "고객센터",
+  "writeReply": "답변 입력…",
+  "coins": "코인",
+  "transactions": "거래 내역",
+  "noTransactionsYet": "거래 내역이 없습니다",
+  "balance": "현재 잔액",
+  "hold": "보류 {p0}",
+  "@hold": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requestFailed2": "요청 실패 ({p0})",
+  "@requestFailed2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "couldNotReachServer": "서버에 연결할 수 없습니다",
+  "couldNotReachServerCheckConnection": "서버에 연결할 수 없습니다. 네트워크를 확인해 주세요.",
+  "signFailed": "로그인에 실패했습니다",
+  "signFailedPleaseTryAgain": "로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+  "signUpFailed": "가입에 실패했습니다",
+  "pleaseSignFirst": "먼저 로그인해 주세요",
+  "couldNotRelist": "다시 등록하지 못했습니다",
+  "couldNotRemoveFromSaved": "저장 해제에 실패했습니다",
+  "couldNotSave": "저장하지 못했습니다",
+  "couldNotAddCart": "장바구니에 담지 못했습니다",
+  "checkoutFailed": "결제에 실패했습니다",
+  "couldNotCancelOrder": "주문을 취소하지 못했습니다",
+  "couldNotUpdateOrder": "주문 상태를 변경하지 못했습니다",
+  "couldNotSubmitDispute": "이의를 접수하지 못했습니다",
+  "couldNotSubmitReport": "신고를 보내지 못했습니다",
+  "updateFailed2": "업데이트에 실패했습니다",
+  "couldNotChangePassword": "비밀번호를 변경하지 못했습니다",
+  "requestFailed": "신청에 실패했습니다",
+  "couldNotCancel": "취소하지 못했습니다",
+  "couldNotDelete": "삭제하지 못했습니다",
+  "couldNotComplete": "실행하지 못했습니다",
+  "couldNotSaveAnnouncement": "공지를 저장하지 못했습니다",
+  "couldNotSend": "보내지 못했습니다",
+  "actionFailed": "작업에 실패했습니다",
+  "couldNotSave2": "저장하지 못했습니다",
+  "documentUpdated": "문서를 수정했습니다",
+  "couldNotAdjust": "조정하지 못했습니다",
+  "couldNotProcessReport": "신고를 처리하지 못했습니다",
+  "couldNotRecordDecision": "판정을 저장하지 못했습니다",
+  "couldNotReorder": "정렬하지 못했습니다",
+  "couldNotSaveLocker": "보관함을 저장하지 못했습니다",
+  "fingerprint": "지문",
+  "iris": "홍채",
+  "verifyIdentityContinue": "계속하려면 인증해 주세요",
+  "msg": "繁體中文",
+  "msg2": "日本語",
+  "msg3": "简体中文",
+  "couldNotOpenPhotosCheckPermission": "사진을 열 수 없습니다. 권한을 확인해 주세요.",
+  "choosePhotoSource": "사진 가져올 방법 선택",
+  "takePhoto": "사진 촬영",
+  "chooseFromPhotos": "앨범에서 선택",
+  "couldNotOpenCameraCheckPermission": "카메라를 열 수 없습니다. 권한을 확인해 주세요.",
+  "justNow": "방금",
+  "minAgo": "{p0}분 전",
+  "@minAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "hAgo": "{p0}시간 전",
+  "@hAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dAgo": "{p0}일 전",
+  "@dAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickDate": "날짜를 선택하세요",
+  "pickDate2": "날짜 선택",
+  "msg5": "{p0}년 {p1}월 {p2}일",
+  "@msg5": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "passwordsNeedLeast8Characters": "비밀번호는 8자 이상이어야 합니다",
+  "passwordsMustIncludeLetter": "비밀번호에 영문을 포함해 주세요",
+  "passwordsMustIncludeNumber": "비밀번호에 숫자를 포함해 주세요",
+  "seller2": "판매자: ",
+  "home": "홈",
+  "alerts": "알림",
+  "collect": "수령",
+  "couldNotLoadPhoto": "이 사진을 불러올 수 없습니다",
+  "slot2": "보관함 {p0}",
+  "@slot2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmPutLocker": "“{p0}”을(를) 보관함에 넣으셨나요?",
+  "@confirmPutLocker": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

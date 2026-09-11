@@ -13,6 +13,7 @@ import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/app_radius.dart';
 import '../../utils/motion.dart';
+import '../../i18n/strings.dart';
 
 class AdminLegalScreen extends StatefulWidget {
   const AdminLegalScreen({super.key});
@@ -23,9 +24,9 @@ class AdminLegalScreen extends StatefulWidget {
 
 class _AdminLegalScreenState extends State<AdminLegalScreen> {
   static const _known = {
-    'terms': '服務條款',
-    'privacy': '隱私權政策',
-    'about': '關於我們',
+    'terms': S.termsService,
+    'privacy': S.privacyPolicy,
+    'about': S.aboutUs,
   };
 
   final ApiService _api = ApiService();
@@ -300,7 +301,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
       child: Row(
         children: [
           _ModeTab(
-            label: '編輯',
+            label: S.actionEdit,
             icon: Icons.edit_rounded,
             selected: !_previewing,
             onTap: () => setState(() => _previewing = false),
@@ -452,7 +453,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
           SizedBox(
             width: 132,
             child: PrimaryButton(
-              label: '儲存',
+              label: S.actionSave,
               height: 46,
               isLoading: _isSaving,
               onPressed: _dirty ? _save : null,
@@ -608,7 +609,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('儲存', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(S.actionSave, style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -651,7 +652,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
       context,
       title: '刪除問題',
       message: '要刪除「${faq.question}」嗎？',
-      confirmLabel: '刪除',
+      confirmLabel: S.actionDelete,
       isDestructive: true,
     );
     if (!ok || !mounted) return;

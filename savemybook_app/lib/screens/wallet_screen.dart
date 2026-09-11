@@ -9,6 +9,7 @@ import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import 'dispute_screen.dart';
 import 'pending_income_screen.dart';
+import '../i18n/strings.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -50,7 +51,7 @@ class _WalletScreenState extends State<WalletScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '代幣中心', icon: Icons.monetization_on_outlined),
+          AppHeader(title: S.coins, icon: Icons.monetization_on_outlined),
           Expanded(
             child: SwitchIn(child: _isLoading
                 ? const LoadingView.list()
@@ -63,16 +64,16 @@ class _WalletScreenState extends State<WalletScreen> {
                         _buildBalanceCard(c),
                         const SizedBox(height: 24),
                         Text(
-                          '交易紀錄',
+                          S.transactions,
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                         ),
                         const SizedBox(height: 6),
                         Divider(color: c.divider),
                         const SizedBox(height: 8),
                         if (_transactions.isEmpty)
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.only(top: 40),
-                            child: EmptyView(icon: Icons.receipt_outlined, message: '尚無交易紀錄'),
+                            child: EmptyView(icon: Icons.receipt_outlined, message: S.noTransactionsYet),
                           )
                         else
                           ..._transactions.map((t) => _buildTransaction(t, c)),
@@ -90,7 +91,7 @@ class _WalletScreenState extends State<WalletScreen> {
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Column(
         children: [
-          Text('目前餘額', style: TextStyle(fontSize: 14, color: c.textSecondary)),
+          Text(S.balance, style: TextStyle(fontSize: 14, color: c.textSecondary)),
           const SizedBox(height: 14),
           Container(
             width: 72,
@@ -114,7 +115,7 @@ class _WalletScreenState extends State<WalletScreen> {
           if (_wallet.frozenAmount > 0) ...[
             const SizedBox(height: 4),
             Text(
-              '凍結中 \$${_wallet.frozenAmount.toStringAsFixed(0)}',
+              S.hold(_wallet.frozenAmount.toStringAsFixed(0)),
               style: const TextStyle(fontSize: 12, color: Colors.orangeAccent),
             ),
           ],
@@ -124,7 +125,7 @@ class _WalletScreenState extends State<WalletScreen> {
             children: [
               QuickActionButton(
                 icon: Icons.query_stats_rounded,
-                label: '待定收益',
+                label: S.pendingPayouts,
                 onTap: () async {
                   await Navigator.push(
                     context,
@@ -135,7 +136,7 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
               QuickActionButton(
                 icon: Icons.gavel_rounded,
-                label: '爭議處理',
+                label: S.dispute,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const DisputeScreen()),

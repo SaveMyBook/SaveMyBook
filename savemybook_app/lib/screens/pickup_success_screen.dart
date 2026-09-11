@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../utils/app_colors.dart';
 import '../widgets/animations.dart';
+import '../i18n/strings.dart';
 
 class PickupSuccessScreen extends StatelessWidget {
   final Order? order;
@@ -25,7 +26,7 @@ class PickupSuccessScreen extends StatelessWidget {
               FadeSlideIn(
                 index: 3,
                 child: Text(
-                '取書完成',
+                S.bookCollected,
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
               ),
@@ -33,7 +34,7 @@ class PickupSuccessScreen extends StatelessWidget {
               FadeSlideIn(
                 index: 4,
                 child: Text(
-                  book == null ? '感謝你的使用，祝閱讀愉快！' : '《${book.title}》已完成取書',
+                  book == null ? S.thanksUsingSavemybookHappyReading : S.collected(book.title),
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, color: c.textSecondary, height: 1.5),
                 ),
@@ -41,7 +42,7 @@ class PickupSuccessScreen extends StatelessWidget {
               if (order != null) ...[
                 const SizedBox(height: 8),
                 Text(
-                  '訂單編號：${order!.orderNo}',
+                  S.order2(order!.orderNo),
                   style: TextStyle(fontSize: 12, color: c.textHint),
                 ),
               ],
@@ -58,7 +59,7 @@ class PickupSuccessScreen extends StatelessWidget {
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('返回', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text(S.actionBack, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
                 ),
               ),

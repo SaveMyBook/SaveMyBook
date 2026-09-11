@@ -8,6 +8,7 @@ import '../widgets/app_header.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/book_card.dart';
 import '../widgets/state_views.dart';
+import '../i18n/strings.dart';
 
 /// 別人的賣場。從書籍卡片、訂單、聊天室的頭像或暱稱點進來。
 class SellerScreen extends StatefulWidget {
@@ -56,7 +57,7 @@ class _SellerScreenState extends State<SellerScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          AppHeader(title: isSelf ? '我的賣場' : '賣家', icon: Icons.storefront_outlined),
+          AppHeader(title: isSelf ? S.myShop : S.seller, icon: Icons.storefront_outlined),
           _buildProfile(c),
           Expanded(
             child: SwitchIn(
@@ -69,11 +70,11 @@ class _SellerScreenState extends State<SellerScreen> {
                         child: _books.isEmpty
                             ? ListView(
                                 key: const ValueKey('empty'),
-                                children: const [
+                                children: [
                                   SizedBox(height: 60),
                                   EmptyView(
                                     icon: Icons.storefront_outlined,
-                                    message: '這位賣家目前沒有販售中的書籍',
+                                    message: S.sellerNoBooksSale,
                                   ),
                                 ],
                               )
@@ -127,7 +128,7 @@ class _SellerScreenState extends State<SellerScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.sellerName.isEmpty ? '未知使用者' : widget.sellerName,
+                  widget.sellerName.isEmpty ? S.unknownUser : widget.sellerName,
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
@@ -139,7 +140,7 @@ class _SellerScreenState extends State<SellerScreen> {
                 const SizedBox(height: 4),
                 SwitchIn(
                   child: Text(
-                    _isLoading ? '載入中…' : '販售中 ${_books.length} 本',
+                    _isLoading ? S.loading2 : S.sale2(_books.length),
                     key: ValueKey(_isLoading ? -1 : _books.length),
                     style: TextStyle(fontSize: 13, color: c.textSecondary),
                   ),

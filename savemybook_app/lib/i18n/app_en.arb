@@ -98,5 +98,826 @@
   "appearanceHint": "Follow system switches automatically with your device setting.",
   "language": "Language",
   "languageSystem": "Follow system",
-  "languageHint": "Follow system uses your device language setting."
+  "languageHint": "Follow system uses your device language setting.",
+  "verifySignSavemybook": "Verify to sign in to SaveMyBook",
+  "maintenance": "Maintenance",
+  "promotions": "Promotions",
+  "policyUpdate": "Policy update",
+  "announcement": "Announcement",
+  "item": "Item",
+  "member": "Member",
+  "message": "Message",
+  "noLongerExists": "(no longer exists)",
+  "uncategorised": "Uncategorised",
+  "general": "General",
+  "untitled": "Untitled",
+  "noDescriptionYet": "No description yet",
+  "locationNotProvided": "Location not provided",
+  "seller3": "Seller: {p0}",
+  "@seller3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unknownAuthor": "Unknown author",
+  "unknownPublisher": "Unknown publisher",
+  "noIsbn": "No ISBN",
+  "user": "User",
+  "noMessagesYet": "No messages yet",
+  "photo": "[Photo]",
+  "item2": "[Item] {p0}",
+  "@item2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "purchase": "Purchase",
+  "sale": "Sale",
+  "systemAdjustment": "System adjustment",
+  "preparingData": "Preparing your data",
+  "mySavemybookData": "My SaveMyBook data",
+  "exportedChooseWhereSave": "Exported. Choose where to save it.",
+  "exportedButSharingCouldNotOpen": "Exported, but sharing could not open",
+  "regenerateShareLink": "Regenerate share link",
+  "oldLinkQrCodeStopWorking": "The old link and QR code stop working immediately, and anyone you already shared with will no longer be able to open it. Regenerate?",
+  "regenerate": "Regenerate",
+  "newLinkCreatedOldOneNo": "New link created. The old one no longer works.",
+  "deleteAccount": "Delete account",
+  "accountPermanentlyDisabled30DaysSign": "Your account will be permanently disabled in 30 days. Sign in again before then to cancel.\n\n",
+  "personalDataErasedButCompletedOrders": "Your personal data is erased, but completed orders and transaction records are kept so ",
+  "peopleTradedWithDoNotLose": "the people you traded with do not lose their records.",
+  "continue": "Continue",
+  "verify": "Verify it is you",
+  "enterPasswordConfirm": "Enter your password to confirm this is you.",
+  "password": "Password",
+  "requestDeletion": "Request deletion",
+  "receivedSignAgainWithin30Days": "Received. Sign in again within 30 days to cancel.",
+  "deletionCancelledAccountActiveAgain": "Deletion cancelled. Your account is active again.",
+  "account": "Account",
+  "data": "Your data",
+  "exportMyData": "Export my data",
+  "profileBooksOrdersTransactionsJson": "Profile, books, orders and transactions in JSON",
+  "oldLinkQrCodeStopWorking2": "The old link and QR code stop working immediately",
+  "cancelAccountDeletion": "Cancel account deletion",
+  "restoreAccountStopCountdown": "Restore the account and stop the countdown",
+  "canChangeMindWithin30Days": "You can change your mind within 30 days",
+  "deletionPending": "Deletion pending",
+  "daysLeftCanCancelAnyTime": "{p0} days left. You can cancel any time before then; after that your data is erased for good.",
+  "@daysLeftCanCancelAnyTime": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signOut": "Sign out",
+  "type": "Type",
+  "content": "Content",
+  "backupFailed": "Backup failed",
+  "myBooks": "My books",
+  "notProvided": "Not provided",
+  "openingHours": "Opening hours",
+  "address": "Address",
+  "saveChanges": "Save changes",
+  "enable": "Enable",
+  "termsService": "Terms of Service",
+  "privacyPolicy": "Privacy Policy",
+  "aboutUs": "About us",
+  "admin": "Admin",
+  "confirm": "Confirm",
+  "membershipTier": "Membership tier",
+  "phone": "Phone",
+  "violationConfirmed": "Violation confirmed",
+  "scanBarcode": "Scan barcode",
+  "lineUpBarcodeSpineWithFrame": "Line up the barcode on the spine with the frame",
+  "signAddItemsCart": "Sign in to add items to your cart",
+  "bookCannotPurchased": "This book is {p0} and cannot be purchased",
+  "@bookCannotPurchased": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addedCart": "Added to cart",
+  "sellerInformationNotFound": "Seller information not found",
+  "signContactSeller": "Sign in to contact the seller",
+  "signStartChat": "Sign in to start a chat",
+  "signReport": "Sign in to report",
+  "cannotReportOwnListing": "You cannot report your own listing",
+  "reportListing": "Report this listing",
+  "describeProblemLeast5Characters": "Describe the problem (at least 5 characters)",
+  "reasonNeedsLeast5Characters": "Your reason needs at least 5 characters",
+  "reportSubmittedWeLookInto": "Report submitted. We will look into it.",
+  "publisher": "Publisher: ",
+  "author": "Author: ",
+  "listed": "Listed: ",
+  "searchTitleAuthorPublisher": "Search title, author or publisher...",
+  "share": "Share",
+  "report": "Report",
+  "about": "About: ",
+  "pickup": "Pickup at {p0}",
+  "@pickup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "messageSeller": "Message seller",
+  "listing": "This is your listing",
+  "addCart": "Add to cart",
+  "bookBeenReportedUnderReviewStays": "This book has been reported and is under review. It stays on sale in the meantime.",
+  "violationWasConfirmedBookPleaseCheck": "A violation was confirmed for this book. Please check that the listing follows our guidelines.",
+  "reportDismissed2": "Report dismissed",
+  "bookWasReportedButNoViolation": "This book was reported but no violation was found. Your listing is unaffected.",
+  "delist": "Delist",
+  "removedFromShopBuyersNoLonger": "“{p0}” will be removed from the shop and buyers will no longer see it.",
+  "@removedFromShopBuyersNoLonger": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "delist2": "Delist",
+  "delistedRelistFromDelistedTab": "Delisted. Relist it from the Delisted tab.",
+  "couldNotDelistPleaseTryAgain": "Could not delist. Please try again.",
+  "listedAgain": "“{p0}” is listed again",
+  "@listedAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "notListedAnyBooksYet": "You have not listed any books yet",
+  "noBooksCategory": "No books in this category",
+  "listFirstBook": "List your first book",
+  "relist": "Relist",
+  "removeFromCart": "Remove from cart",
+  "removeFromCart2": "Remove “{p0}” from your cart?",
+  "@removeFromCart2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "remove": "Remove",
+  "couldNotRemoveRestored": "Could not remove. Restored.",
+  "couldNotRemovePleaseTryAgain": "Could not remove. Please try again.",
+  "selectBooksWantCheckOut": "Select the books you want to check out",
+  "notEnoughCoinsOrderNeedsBut": "Not enough coins. This order needs {p0} but you have {p1}.",
+  "@notEnoughCoinsOrderNeedsBut": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmCheckout": "Confirm checkout",
+  "booksTotal": "{p0} books, {p1} in total.\n",
+  "@booksTotal": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "balanceAfterPaymentCoins": "Your balance after payment will be {p0} coins.",
+  "@balanceAfterPaymentCoins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderPlacedSellerDropBookOff": "Order placed. The seller will drop the book off.",
+  "cart": "Cart",
+  "cartEmpty": "Your cart is empty",
+  "selectAll": "Select all",
+  "items": "{p0} items",
+  "@items": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deselect": "Deselect",
+  "select": "Select",
+  "coinsShort": "{p0} coins short",
+  "@coinsShort": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "total": "Total",
+  "selected": "{p0} selected",
+  "@selected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "balance2": "Balance {p0}",
+  "@balance2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "selectBookFirst": "Select a book first",
+  "checkOut": "Check out",
+  "notEnoughCoins": "Not enough coins",
+  "weak": "Weak",
+  "fair": "Fair",
+  "strong": "Strong",
+  "enterCurrentPassword": "Enter your current password",
+  "enterNewPassword": "Enter a new password",
+  "newPasswordMustDifferent": "The new password must be different",
+  "enterNewPasswordAgain": "Enter the new password again",
+  "passwordsDoNotMatch": "The passwords do not match",
+  "passwordUpdated": "Password updated",
+  "changePassword": "Change password",
+  "useLeast8CharactersWithBoth": "Use at least 8 characters with both letters and numbers.",
+  "currentPassword": "Current password",
+  "newPassword": "New password",
+  "confirmNewPassword": "Confirm new password",
+  "updatePassword": "Update password",
+  "deleteChat": "Delete chat",
+  "allMessagesWithDeletedBothCannot": "All messages with {p0} are deleted for both of you. This cannot be undone.",
+  "@allMessagesWithDeletedBothCannot": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "chatDeleted": "Chat deleted",
+  "couldNotDeleteRestored": "Could not delete. Restored.",
+  "chatMuted": "Chat muted",
+  "chatUnmuted": "Chat unmuted",
+  "noUnreadMessages": "No unread messages",
+  "markAllAsRead": "Mark all as read",
+  "markAllUnreadMessagesAsRead": "Mark all {p0} unread messages as read? This cannot be undone.",
+  "@markAllUnreadMessagesAsRead": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "markAllRead": "Mark all read",
+  "allMarkedAsRead": "All marked as read",
+  "somethingWentWrongPleaseTryAgain": "Something went wrong. Please try again.",
+  "chats": "Chats",
+  "noConversationsYet": "No conversations yet",
+  "unmute": "Unmute",
+  "mute": "Mute",
+  "messagesLimited500Characters": "Messages are limited to 500 characters",
+  "messageCouldNotSent": "Message could not be sent",
+  "chat": "Chat",
+  "sendFirstMessage": "Send the first message",
+  "messageCopied": "Message copied",
+  "iQuestionAboutBook": "I have a question about this book",
+  "bookNoLongerListed": "This book is no longer listed",
+  "writeMessage": "Write a message…",
+  "enterOrderNumberDisputing": "Enter the order number you are disputing",
+  "describeDispute": "Describe the dispute",
+  "useLeast10CharactersSoSupport": "Use at least 10 characters so support can assess it",
+  "submitDispute": "Submit dispute",
+  "orderEntersDisputeProcessPaymentSeller": "The order enters the dispute process and payment to the seller is held until support decides.",
+  "paymentHoldRequested": "[Payment hold requested] {p0}",
+  "@paymentHoldRequested": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "disputeSubmittedSupportContact": "Dispute submitted. Support will contact you.",
+  "dispute": "Dispute",
+  "requestPaymentHold": "Request payment hold",
+  "paymentSellerHeldUntilSupportDecides": "Payment to the seller is held until support decides",
+  "submitDispute2": "Submit a dispute",
+  "orderNumber": "Order number",
+  "eGSmb20260910123456789": "e.g. SMB20260910123456789",
+  "whatHappened": "What happened",
+  "describeProblemEGConditionDoes": "Describe the problem, e.g. the condition does not match the listing…",
+  "submit": "Submit",
+  "uploadPhotos": "Upload photos",
+  "canAttachUp6Photos": "You can attach up to 6 photos",
+  "up5": "Up to 5",
+  "couldNotReplacePhotoPleaseTry": "Could not replace the photo. Please try again.",
+  "keepLeastOnePhoto": "Keep at least one photo",
+  "photoDeleted": "Photo deleted",
+  "couldNotDeletePhotoPleaseTry": "Could not delete the photo. Please try again.",
+  "canUp10Photos": "You can have up to 10 photos",
+  "deletePhoto": "Delete photo",
+  "cannotUndoneContinue": "This cannot be undone. Continue?",
+  "photoMissingDataRefreshTryAgain": "This photo is missing data. Refresh and try again.",
+  "enterPrice": "Enter a price",
+  "priceMustGreaterThan0": "Price must be greater than 0",
+  "priceCannotExceed999999": "Price cannot exceed 999,999",
+  "chooseLockerLocation": "Choose a locker location",
+  "missingTheseThreeRequired": "Missing: {p0}. These three are required.",
+  "@missingTheseThreeRequired": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "bookUpdated": "Book updated",
+  "editBook": "Edit book",
+  "condition": "Condition",
+  "customPrice": "Custom price",
+  "enterPrice2": "Enter your price",
+  "lockerLocation": "Locker location",
+  "chooseLocker": "Choose a locker",
+  "bookPhotos": "Book photos",
+  "morePhotos": "More photos",
+  "add": "Add",
+  "enterTitle": "Enter the title",
+  "titleLimited255Characters": "The title is limited to 255 characters",
+  "isbn1013Digits": "An ISBN is 10 or 13 digits",
+  "chooseCategory": "Choose a category",
+  "k1013Digits": "10 or 13 digits",
+  "title": "Title",
+  "required": "Required",
+  "author2": "Author",
+  "optional": "Optional",
+  "publisher2": "Publisher",
+  "publicationDate": "Publication date",
+  "tapPickPublicationDate": "Tap to pick a publication date",
+  "pickPublicationDate": "Pick a publication date",
+  "pickCategory": "Pick a category",
+  "next": "Next",
+  "uploading": "Uploading…",
+  "profilePhotoUpdated": "Profile photo updated",
+  "couldNotUploadPhoto": "Could not upload the photo",
+  "changeDisplayName": "Change display name",
+  "enterDisplayName": "Enter a display name",
+  "displayNameCannotBlank": "Display name cannot be blank",
+  "displayNames250Characters": "Display names are 2 to 50 characters",
+  "invalidPhoneNumberEG0912345678": "Invalid phone number, e.g. 0912345678",
+  "profileUpdated": "Profile updated",
+  "editProfile": "Edit profile",
+  "bio": "Bio",
+  "tellPeopleAboutYourself": "Tell people about yourself",
+  "email": "Email",
+  "emailCannotChanged": "Email cannot be changed",
+  "dateBirth": "Date of birth",
+  "tapPickDateBirth": "Tap to pick your date of birth",
+  "pickDateBirth": "Pick your date of birth",
+  "savedBooks": "Saved books",
+  "notSavedAnyBooksYet": "You have not saved any books yet",
+  "helpCentre": "Help centre",
+  "searchQuestions": "Search questions",
+  "noQuestionsYet": "No questions yet",
+  "noMatchingQuestions": "No matching questions",
+  "newest": "Newest",
+  "popular": "Popular",
+  "priceLowHigh": "Price: low to high",
+  "priceHighLow": "Price: high to low",
+  "reachedEnd": "You have reached the end",
+  "guest": "Guest",
+  "hi": "Hi, {p0}",
+  "@hi": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBooksMatchFilters": "No books match your filters",
+  "couldNotReadPhoto": "Could not read this photo",
+  "croppingFailedPleaseTryAgain": "Cropping failed. Please try again.",
+  "adjustPhoto": "Adjust photo",
+  "reset": "Reset",
+  "usePhoto": "Use this photo",
+  "documentNotBeenCreatedYet": "This document has not been created yet",
+  "lastUpdated": "Last updated {p0}",
+  "@lastUpdated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "biometrics": "Biometrics",
+  "sessionExpiredPleaseEnterPasswordAgain": "Your session expired. Please enter your password again.",
+  "turnSign": "Turn on {p0} sign-in?",
+  "@turnSign": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nextTimeOpenAppCanUnlock": "Next time you open the app you can unlock with {p0} instead of typing your password.",
+  "@nextTimeOpenAppCanUnlock": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "notNow": "Not now",
+  "enterEmail": "Enter your email",
+  "emailAddressNotValid": "That email address is not valid",
+  "enterPassword": "Enter your password",
+  "noAccountWithEmail": "No account with that email",
+  "noAccountCreateOneNow": "No account for “{p0}”. Create one now?",
+  "@noAccountCreateOneNow": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signUp": "Sign up",
+  "tryAgain": "Try again",
+  "sign": "Sign in",
+  "signWith": "Sign in with {p0}",
+  "@signWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noAccountYetSignUp": "No account yet? Sign up",
+  "membershipTiersNotSetUpYet": "Membership tiers are not set up yet",
+  "currentTier": "Your current tier",
+  "unlocked": "Unlocked",
+  "locked": "Locked",
+  "aboveTier": "You are above this tier",
+  "reachedTopTier": "You have reached the top tier",
+  "unlocked2": "“{p0}” unlocked",
+  "@unlocked2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "morePointsUnlock": "{p0} more points to unlock “{p1}”",
+  "@morePointsUnlock": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "benefits": "{p0} benefits",
+  "@benefits": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBenefitsBeenDescribedTierYet": "No benefits have been described for this tier yet.",
+  "pointsFromCompletedOrders": "{p0} points from {p1} completed orders",
+  "@pointsFromCompletedOrders": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noNotificationsClear": "No notifications to clear",
+  "clearAllNotifications": "Clear all notifications",
+  "notificationsDeletedCannotUndone": "{p0} notifications will be deleted. This cannot be undone.",
+  "@notificationsDeletedCannotUndone": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "clearAll": "Clear all",
+  "allNotificationsCleared": "All notifications cleared",
+  "couldNotClearPleaseTryAgain": "Could not clear. Please try again.",
+  "noUnreadNotifications": "No unread notifications",
+  "markAllUnreadNotificationsAsRead": "Mark all {p0} unread notifications as read? This cannot be undone.",
+  "@markAllUnreadNotificationsAsRead": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "openChat": "Open chat",
+  "viewOrder": "View order",
+  "openMyBooks": "Open my books",
+  "notifications": "Notifications",
+  "noNotifications": "No notifications",
+  "copied": "{p0} copied",
+  "@copied": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderDetails": "Order details",
+  "order": "Order {p0}",
+  "@order": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderProgress": "Order progress",
+  "items2": "Items ({p0})",
+  "@items2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderNoItemDetails": "This order has no item details.",
+  "msg4": "{p0} × {p1}",
+  "@msg4": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "orderTotal": "Order total",
+  "pickupDetails": "Pickup details",
+  "notAssigned": "Not assigned",
+  "slot": "Slot",
+  "notAssignedYet": "Not assigned yet",
+  "pickupCode": "Pickup code",
+  "transaction": "Transaction",
+  "buyer": "Buyer",
+  "seller": "Seller",
+  "placed": "Placed",
+  "dispute2": "Dispute",
+  "orderOpenDispute": "This order has an open dispute",
+  "cancelOrder": "Cancel order",
+  "pendingPayoutDisappearsBuyerNotified": "The pending payout disappears and the buyer is notified.",
+  "cancelledBySeller": "Cancelled by seller",
+  "orderCancelled2": "Order cancelled",
+  "pendingPayouts": "Pending payouts",
+  "noPendingPayouts": "No pending payouts",
+  "pendingAmount": "Pending amount",
+  "coinsArriveOnceBuyerCollectsBook": "Coins arrive once the buyer collects the book",
+  "scanned": "Scanned",
+  "scanAgain": "Scan again",
+  "collectBook": "Collect a book",
+  "pointPickupQrCode": "Point at the pickup QR code",
+  "holdSteady": "Hold steady",
+  "bookCollected": "Book collected",
+  "thanksUsingSavemybookHappyReading": "Thanks for using SaveMyBook. Happy reading!",
+  "collected": "“{p0}” collected",
+  "@collected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "order2": "Order {p0}",
+  "@order2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signingOut": "Signing out…",
+  "myAccount": "My account",
+  "personNotWrittenBioYet": "This person has not written a bio yet",
+  "topTierReached": "Top tier reached",
+  "morePointsReach": "{p0} more points to reach “{p1}”",
+  "@morePointsReach": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "myCoins": "My coins",
+  "shareProfile": "Share profile",
+  "purchases": "Purchases",
+  "sales": "Sales",
+  "settings": "Settings",
+  "signOut2": "Sign out?",
+  "needSignAgainKeepUsingApp": "You will need to sign in again to keep using the app.",
+  "cancelOrderBookReturnsShop": "Cancel order {p0}? The book returns to the shop.",
+  "@cancelOrderBookReturnsShop": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickupCode2": "Pickup code",
+  "notGeneratedYet": "Not generated yet",
+  "enterCodeLockerCollect": "Enter this code on the locker to collect",
+  "enterCodeCollect": "Enter this code at {p0} to collect",
+  "@enterCodeCollect": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iCollected": "I have collected it",
+  "noOrdersTab": "No orders in this tab",
+  "openDispute": "Open a dispute",
+  "displayNameNeedsLeast2Characters": "Display name needs at least 2 characters",
+  "displayNameLimited50Characters": "Display name is limited to 50 characters",
+  "enterPasswordAgain": "Enter your password again",
+  "passwordsDoNotMatch2": "The passwords do not match",
+  "pleaseReadAcceptTermsServicePrivacy": "Please read and accept the Terms of Service and Privacy Policy",
+  "accountCreatedSignWith": "Account created. Sign in with it.",
+  "iReadAccept": "I have read and accept the ",
+  "and": " and ",
+  "createAccount": "Create account",
+  "joinSavemybook": "Join SaveMyBook",
+  "signUpBuySellUseSmart": "Sign up to buy, sell and use the smart lockers",
+  "displayName": "Display name",
+  "nameOthersSee": "The name others will see",
+  "emailSignWith": "The email you sign in with",
+  "least8CharactersWithLettersNumbers": "At least 8 characters with letters and numbers",
+  "confirmPassword": "Confirm password",
+  "enterPasswordAgain2": "Enter your password again",
+  "alreadyAccountGoBackSign": "Already have an account? Go back to sign in",
+  "markAsDroppedOff": "Mark as dropped off",
+  "droppedOff": "Dropped off",
+  "markedAsDroppedOff": "Marked as dropped off",
+  "buyerNotifiedBookReturnsShop": "The buyer is notified and the book returns to the shop.",
+  "dropOffPickupCode": "Drop-off / pickup code",
+  "enterCodeLocker": "Enter this code on the locker",
+  "noRecentSearches": "No recent searches",
+  "recentSearches": "Recent searches",
+  "clearAll2": "Clear all",
+  "searchTitleAuthorIsbn": "Search title, author or ISBN...",
+  "photoLimitReached": "Photo limit reached",
+  "canUploadUp10Photos": "You can upload up to 10 photos.",
+  "photosMissing": "Photos missing",
+  "missingTheseThreeRequired2": "Missing: {p0}. These three are required.",
+  "@missingTheseThreeRequired2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "missingInformation": "Missing information",
+  "enterOwnPrice": "Enter your own price.",
+  "invalidPrice": "Invalid price",
+  "priceMustGreaterThan02": "The price must be greater than 0.",
+  "priceCannotExceed99999": "The price cannot exceed 99,999.",
+  "chooseLockerLocation2": "Choose a locker location.",
+  "listed2": "Listed!",
+  "unknownError": "Unknown error",
+  "couldNotListBook": "Could not list the book",
+  "serverError": "Server error: {p0}",
+  "@serverError": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionProblem": "Connection problem",
+  "couldNotReachServerUploadTimed": "Could not reach the server or the upload timed out. Check your connection.",
+  "listBook": "List this book",
+  "detailsPhotos": "Details and photos",
+  "loading": "Loading...",
+  "unknownLocker": "Unknown locker",
+  "enterTitle2": "Enter the title",
+  "chooseCategory2": "Choose a category",
+  "bookDetailsFilledAutomatically": "Book details filled in automatically.",
+  "bookDetailsFilledFromBackupSource": "Book details filled in from the backup source.",
+  "noSourceIsbnPleaseEnterDetails": "No source has this ISBN. Please enter the details manually.",
+  "yearMonth": "[Year/Month]",
+  "day": "Day",
+  "tapIconRightScan": "Tap the icon on the right to scan",
+  "description": "Description",
+  "sellBook": "Sell a book",
+  "myShop": "My shop",
+  "sellerNoBooksSale": "This seller has no books on sale",
+  "loading2": "Loading…",
+  "sale2": "{p0} on sale",
+  "@sale2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "verifyEnableQuickSign": "Verify to enable quick sign-in",
+  "sign2": "{p0} sign-in is on",
+  "@sign2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "quickSignTurnedOff": "Quick sign-in turned off",
+  "appearance2": "Appearance",
+  "signMethod": "Sign-in method",
+  "helpSupport": "Help and support",
+  "contactUs": "Contact us",
+  "aboutSavemybook": "About SaveMyBook",
+  "settingsPrivacy": "Settings and privacy",
+  "sign3": "{p0} sign-in",
+  "@sign3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unlockWithWhenOpenApp": "Unlock with {p0} when you open the app",
+  "@unlockWithWhenOpenApp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "scanProfileQrCode": "Scan a profile QR code",
+  "lineUpTheirQrCodeWith": "Line up their QR code with the frame",
+  "notSavemybookProfileQrCode": "That is not a SaveMyBook profile QR code",
+  "ownQrCode": "That is your own QR code",
+  "couldNotStartChatPleaseTry": "Could not start the chat. Please try again.",
+  "linkCopied": "Link copied",
+  "addMeSavemybook": "Add me on SaveMyBook: {p0}",
+  "@addMeSavemybook": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addMeSavemybook2": "Add me on SaveMyBook ({p0}): {p1}",
+  "@addMeSavemybook2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sharingCouldNotOpenSoLink": "Sharing could not open, so the link was copied instead",
+  "savedPhotos": "Saved to your photos",
+  "couldNotSaveCheckPhotoLibrary": "Could not save. Check photo library permission.",
+  "scanTheirQrCode": "Scan their QR code",
+  "copyLink": "Copy link",
+  "askQuestion": "Ask a question",
+  "noEnquiriesYet": "No enquiries yet",
+  "enterSubject": "Enter a subject",
+  "addMoreDetailSoSupportCan": "Add more detail so support can help",
+  "sentSupportReplySoon": "Sent. Support will reply soon.",
+  "subject": "Subject",
+  "sumUpOneLine": "Sum it up in one line",
+  "whatHappenedIncludeOrderNumberIf": "What happened? Include the order number if you have one.",
+  "close": "Close",
+  "notAbleReplyAfterClosing": "You will not be able to reply after closing.",
+  "enquiryClosed": "Enquiry closed",
+  "changeStatus": "Change status",
+  "statusUpdated": "Status updated",
+  "enquiry": "Enquiry",
+  "enquiryNotFound": "Enquiry not found",
+  "support": "Support",
+  "writeReply": "Write a reply…",
+  "coins": "Coins",
+  "transactions": "Transactions",
+  "noTransactionsYet": "No transactions yet",
+  "balance": "Balance",
+  "hold": "{p0} on hold",
+  "@hold": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requestFailed2": "Request failed ({p0})",
+  "@requestFailed2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "couldNotReachServer": "Could not reach the server",
+  "couldNotReachServerCheckConnection": "Could not reach the server. Check your connection.",
+  "signFailed": "Sign-in failed",
+  "signFailedPleaseTryAgain": "Sign-in failed. Please try again.",
+  "signUpFailed": "Sign-up failed",
+  "pleaseSignFirst": "Please sign in first",
+  "couldNotRelist": "Could not relist",
+  "couldNotRemoveFromSaved": "Could not remove from saved",
+  "couldNotSave": "Could not save",
+  "couldNotAddCart": "Could not add to cart",
+  "checkoutFailed": "Checkout failed",
+  "couldNotCancelOrder": "Could not cancel the order",
+  "couldNotUpdateOrder": "Could not update the order",
+  "couldNotSubmitDispute": "Could not submit the dispute",
+  "couldNotSubmitReport": "Could not submit the report",
+  "updateFailed2": "Update failed",
+  "couldNotChangePassword": "Could not change the password",
+  "requestFailed": "Request failed",
+  "couldNotCancel": "Could not cancel",
+  "couldNotDelete": "Could not delete",
+  "couldNotComplete": "Could not complete",
+  "couldNotSaveAnnouncement": "Could not save the announcement",
+  "couldNotSend": "Could not send",
+  "actionFailed": "Action failed",
+  "couldNotSave2": "Could not save",
+  "documentUpdated": "Document updated",
+  "couldNotAdjust": "Could not adjust",
+  "couldNotProcessReport": "Could not process the report",
+  "couldNotRecordDecision": "Could not record the decision",
+  "couldNotReorder": "Could not reorder",
+  "couldNotSaveLocker": "Could not save the locker",
+  "fingerprint": "Fingerprint",
+  "iris": "Iris",
+  "verifyIdentityContinue": "Verify your identity to continue",
+  "msg": "繁體中文",
+  "msg2": "日本語",
+  "msg3": "简体中文",
+  "couldNotOpenPhotosCheckPermission": "Could not open your photos. Check the permission.",
+  "choosePhotoSource": "Choose a photo source",
+  "takePhoto": "Take a photo",
+  "chooseFromPhotos": "Choose from photos",
+  "couldNotOpenCameraCheckPermission": "Could not open the camera. Check the permission.",
+  "justNow": "Just now",
+  "minAgo": "{p0} min ago",
+  "@minAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "hAgo": "{p0} h ago",
+  "@hAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dAgo": "{p0} d ago",
+  "@dAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickDate": "Pick a date",
+  "pickDate2": "Pick a date",
+  "msg5": "{p1}/{p2}/{p0}",
+  "@msg5": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "passwordsNeedLeast8Characters": "Passwords need at least 8 characters",
+  "passwordsMustIncludeLetter": "Passwords must include a letter",
+  "passwordsMustIncludeNumber": "Passwords must include a number",
+  "seller2": "Seller: ",
+  "home": "Home",
+  "alerts": "Alerts",
+  "collect": "Collect",
+  "couldNotLoadPhoto": "Could not load this photo",
+  "slot2": "Slot {p0}",
+  "@slot2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmPutLocker": "Confirm you have put “{p0}” in the locker?",
+  "@confirmPutLocker": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

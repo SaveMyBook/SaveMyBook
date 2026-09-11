@@ -7,6 +7,7 @@ import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../i18n/strings.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -49,13 +50,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final path = await PhotoService.pickAndCrop(context, circular: true, outputSize: 720);
     if (path == null || !mounted) return;
 
-    final ok = await runBusy(context, () => _api.uploadAvatar(path), message: '上傳中…');
+    final ok = await runBusy(context, () => _api.uploadAvatar(path), message: S.uploading);
     if (!mounted) return;
     if (ok == true) {
       setState(() {});
-      showAppSnackBar(context, '頭像已更新');
+      showAppSnackBar(context, S.profilePhotoUpdated);
     } else {
-      showAppSnackBar(context, '頭像上傳失敗', isError: true);
+      showAppSnackBar(context, S.couldNotUploadPhoto, isError: true);
     }
   }
 
@@ -68,18 +69,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: c.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('修改暱稱', style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
+        title: Text(S.changeDisplayName, style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
         content: TextField(
           controller: controller,
           autofocus: true,
           style: TextStyle(color: c.textPrimary),
-          decoration: const InputDecoration(hintText: '請輸入暱稱'),
+          decoration: InputDecoration(hintText: S.enterDisplayName),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('取消', style: TextStyle(color: c.textSecondary))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.actionCancel, style: TextStyle(color: c.textSecondary))),
           TextButton(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('確定', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+            child: Text(S.actionConfirm, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -97,15 +98,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final phone = _phoneController.text.trim();
 
     if (nickname.isEmpty) {
-      showAppSnackBar(context, '暱稱不可空白', isError: true);
+      showAppSnackBar(context, S.displayNameCannotBlank, isError: true);
       return;
     }
     if (nickname.length < 2 || nickname.length > 50) {
-      showAppSnackBar(context, '暱稱長度需介於 2 ~ 50 個字元', isError: true);
+      showAppSnackBar(context, S.displayNames250Characters, isError: true);
       return;
     }
     if (phone.isNotEmpty && !Validators.isPhone(phone)) {
-      showAppSnackBar(context, '電話格式不正確，例：0912345678', isError: true);
+      showAppSnackBar(context, S.invalidPhoneNumberEG0912345678, isError: true);
       return;
     }
 
@@ -127,7 +128,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '個人檔案已更新');
+      showAppSnackBar(context, S.profileUpdated);
       Navigator.of(context).maybePop();
     }
   }
@@ -141,7 +142,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '編輯個人檔案', icon: Icons.edit_outlined),
+          AppHeader(title: S.editProfile, icon: Icons.edit_outlined),
           Expanded(
             child: SingleChildScrollView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -176,7 +177,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          _nicknameController.text.isEmpty ? '使用者' : _nicknameController.text,
+                          _nicknameController.text.isEmpty ? S.user : _nicknameController.text,
                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
                         ),
                         const SizedBox(width: 6),
@@ -186,21 +187,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 24),
                   FormRowCard(
-                    label: '個人簡介',
+                    label: S.bio,
                     alignTop: true,
-                    child: AppTextField(controller: _bioController, maxLines: 4, maxLength: 200, hint: '介紹一下自己吧'),
+                    child: AppTextField(controller: _bioController, maxLines: 4, maxLength: 200, hint: S.tellPeopleAboutYourself),
                   ),
-                  FormRowCard(label: '電話', child: AppTextField(controller: _phoneController, keyboardType: TextInputType.phone, maxLength: 20, hint: '0912345678')),
+                  FormRowCard(label: S.phone, child: AppTextField(controller: _phoneController, keyboardType: TextInputType.phone, maxLength: 20, hint: '0912345678')),
                   FormRowCard(
-                    label: '信箱',
-                    child: AppTextField(controller: _emailController, enabled: false, hint: '信箱無法修改'),
+                    label: S.email,
+                    child: AppTextField(controller: _emailController, enabled: false, hint: S.emailCannotChanged),
                   ),
                   FormRowCard(
-                    label: '生日',
+                    label: S.dateBirth,
                     child: AppDateField(
                       value: _birthday,
-                      hint: '點擊選擇生日',
-                      helpText: '選擇生日',
+                      hint: S.tapPickDateBirth,
+                      helpText: S.pickDateBirth,
                       onChanged: (value) => setState(() => _birthday = value),
                     ),
                   ),
@@ -222,7 +223,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('儲存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          : Text(S.actionSave, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(height: 40),

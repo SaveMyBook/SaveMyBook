@@ -9,6 +9,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 import 'admin_cabinet_edit_screen.dart';
 import '../../utils/app_labels.dart';
+import '../../i18n/strings.dart';
 
 class AdminCabinetScreen extends StatefulWidget {
   const AdminCabinetScreen({super.key});
@@ -54,7 +55,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
   }
 
   Future<void> _toggleActive(Cabinet cabinet) async {
-    final action = cabinet.isActive ? '停用' : '啟用';
+    final action = cabinet.isActive ? '停用' : S.enable;
     final confirmed = await showConfirmDialog(
       context,
       title: '$action書櫃',
@@ -89,10 +90,10 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
   Future<void> _editSlot(Cabinet cabinet, CabinetSlot slot) async {
     final c = AppColors.of(context);
     const options = [
-      (value: 'empty', label: '空置'),
-      (value: 'occupied', label: '使用中'),
-      (value: 'reserved', label: '已預約'),
-      (value: 'maintenance', label: '維修中'),
+      (value: 'empty', label: S.slotEmpty),
+      (value: 'occupied', label: S.slotOccupied),
+      (value: 'reserved', label: S.slotReserved),
+      (value: 'maintenance', label: S.slotMaintenance),
     ];
 
     final picked = await showModalBottomSheet<String>(

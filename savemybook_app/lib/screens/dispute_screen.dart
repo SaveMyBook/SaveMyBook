@@ -8,6 +8,7 @@ import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../i18n/strings.dart';
 
 class DisputeScreen extends StatefulWidget {
   final int? orderId;
@@ -46,23 +47,23 @@ class _DisputeScreenState extends State<DisputeScreen> {
     final reason = _reasonController.text.trim();
 
     if (orderId == null) {
-      showAppSnackBar(context, '請填寫要申訴的訂單編號', isError: true);
+      showAppSnackBar(context, S.enterOrderNumberDisputing, isError: true);
       return;
     }
     if (reason.isEmpty) {
-      showAppSnackBar(context, '請填寫爭議說明', isError: true);
+      showAppSnackBar(context, S.describeDispute, isError: true);
       return;
     }
     if (reason.length < 10) {
-      showAppSnackBar(context, '爭議說明請至少填寫 10 個字，方便客服判斷', isError: true);
+      showAppSnackBar(context, S.useLeast10CharactersSoSupport, isError: true);
       return;
     }
 
     final confirmed = await showConfirmDialog(
       context,
-      title: '送出爭議申請',
-      message: '送出後這筆訂單會進入申訴流程，款項會暫停撥給賣家，直到客服裁決。',
-      confirmLabel: '送出',
+      title: S.submitDispute,
+      message: S.orderEntersDisputeProcessPaymentSeller,
+      confirmLabel: S.actionSubmit,
     );
     if (!confirmed || !mounted) return;
 
@@ -70,7 +71,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
     final evidenceUrls = await _api.uploadFiles(_evidence.map((f) => f.path).toList());
     final error = await _api.submitDispute(
       orderId: orderId,
-      reason: _freezeRequested ? '[申請凍結款項] $reason' : reason,
+      reason: _freezeRequested ? S.paymentHoldRequested(reason) : reason,
       evidenceUrls: evidenceUrls,
     );
     if (!mounted) return;
@@ -81,7 +82,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
       return;
     }
 
-    showAppSnackBar(context, '爭議申請已送出，客服會盡快與你聯繫');
+    showAppSnackBar(context, S.disputeSubmittedSupportContact);
     Navigator.of(context).maybePop();
   }
 
@@ -93,7 +94,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '爭議處理', icon: Icons.error_outline_rounded),
+          AppHeader(title: S.dispute, icon: Icons.error_outline_rounded),
           Expanded(
             child: SingleChildScrollView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -110,18 +111,18 @@ class _DisputeScreenState extends State<DisputeScreen> {
                       onChanged: (value) => setState(() => _freezeRequested = value),
                       secondary: const Icon(Icons.ac_unit_rounded, color: AppColors.primary),
                       title: Text(
-                        '申請凍結款項',
+                        S.requestPaymentHold,
                         style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
                       ),
                       subtitle: Text(
-                        '送出後款項會暫停撥給賣家，直到客服裁決',
+                        S.paymentSellerHeldUntilSupportDecides,
                         style: TextStyle(fontSize: 12, color: c.textSecondary),
                       ),
                     ),
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    '提交爭議申請',
+                    S.submitDispute2,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                   ),
                   const SizedBox(height: 6),
@@ -133,13 +134,13 @@ class _DisputeScreenState extends State<DisputeScreen> {
                       children: [
                         SizedBox(
                           width: 76,
-                          child: Text('訂單編號',
+                          child: Text(S.orderNumber,
                               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
                         ),
                         Expanded(
                           child: AppTextField(
                             controller: _orderIdController,
-                            hint: '例如 SMB20260910123456789',
+                            hint: S.eGSmb20260910123456789,
                             enabled: widget.orderId == null,
                             keyboardType: TextInputType.number,
                             maxLength: 12,
@@ -156,7 +157,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                           width: 76,
                           child: Padding(
                             padding: const EdgeInsets.only(top: 10),
-                            child: Text('爭議說明',
+                            child: Text(S.whatHappened,
                                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
                           ),
                         ),
@@ -165,7 +166,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                             controller: _reasonController,
                             maxLines: 5,
                             maxLength: 500,
-                            hint: '請描述發生的問題，例如書況與商品描述不符…',
+                            hint: S.describeProblemEGConditionDoes,
                           ),
                         ),
                       ],
@@ -191,7 +192,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('送出申請', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          : Text(S.submit, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -213,7 +214,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
             width: 76,
             child: Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text('上傳圖片',
+              child: Text(S.uploadPhotos,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
             ),
           ),
@@ -246,7 +247,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                     GestureDetector(
                       onTap: () async {
                         if (_evidence.length >= 6) {
-                          showAppSnackBar(context, '最多只能上傳 6 張佐證照片', isError: true);
+                          showAppSnackBar(context, S.canAttachUp6Photos, isError: true);
                           return;
                         }
                         final paths = await PhotoService.pickAndCropMultiple(
@@ -273,7 +274,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text('最多 5 張', style: TextStyle(fontSize: 11, color: c.textHint)),
+                Text(S.up5, style: TextStyle(fontSize: 11, color: c.textHint)),
               ],
             ),
           ),

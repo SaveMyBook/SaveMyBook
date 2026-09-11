@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../utils/api_helpers.dart';
+import '../i18n/strings.dart';
 
 class ChatPartner {
   final int userId;
@@ -12,7 +13,7 @@ class ChatPartner {
   factory ChatPartner.fromJson(Map<String, dynamic>? json) {
     return ChatPartner(
       userId: parseInt(json?['user_id']),
-      nickname: json?['nickname'] as String? ?? '使用者',
+      nickname: json?['nickname'] as String? ?? S.user,
       avatarUrl: resolveAssetUrl(json?['avatar_url']),
     );
   }
@@ -39,10 +40,10 @@ class ChatRoom {
     final content = last?['content'] as String? ?? '';
 
     String preview() {
-      if (last == null) return '尚無訊息';
-      if (messageType == 'image') return '[圖片]';
+      if (last == null) return S.noMessagesYet;
+      if (messageType == 'image') return S.photo;
       final card = ChatBookCard.tryParse(content);
-      return card == null ? content : '[商品] ${card.title}';
+      return card == null ? content : S.item2(card.title);
     }
 
     return ChatRoom(

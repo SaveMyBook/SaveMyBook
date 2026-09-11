@@ -5,6 +5,7 @@ import '../../utils/app_colors.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
+import '../../i18n/strings.dart';
 
 class AdminCabinetEditScreen extends StatefulWidget {
   final Cabinet? cabinet;
@@ -90,7 +91,7 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
     final openTime = _openController.text.trim();
     final closeTime = _closeController.text.trim();
     final timePattern = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$');
-    for (final entry in [(openTime, '開放時間'), (closeTime, '關閉時間')]) {
+    for (final entry in [(openTime, S.openingHours), (closeTime, '關閉時間')]) {
       if (entry.$1.isNotEmpty && !timePattern.hasMatch(entry.$1)) {
         showAppSnackBar(context, '${entry.$2}格式應為 HH:mm，例：09:00', isError: true);
         return;
@@ -139,12 +140,12 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
               child: Column(
                 children: [
                   _field('書櫃名稱', _nameController, c),
-                  _field('地址', _addressController, c, maxLines: 2),
+                  _field(S.address, _addressController, c, maxLines: 2),
                   _field('緯度', _latController, c, keyboardType: TextInputType.number),
                   _field('經度', _lngController, c, keyboardType: TextInputType.number),
                   if (!_isEdit)
                     _field('櫃位數量', _slotsController, c, keyboardType: TextInputType.number),
-                  _field('開放時間', _openController, c, hint: '09:00'),
+                  _field(S.openingHours, _openController, c, hint: '09:00'),
                   _field('關閉時間', _closeController, c, hint: '21:00'),
                   const SizedBox(height: 28),
                   SizedBox(
@@ -164,7 +165,7 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : Text(_isEdit ? '儲存變更' : '建立書櫃',
+                          : Text(_isEdit ? S.saveChanges : '建立書櫃',
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),

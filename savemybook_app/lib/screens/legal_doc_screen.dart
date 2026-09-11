@@ -6,6 +6,7 @@ import '../utils/app_colors.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../i18n/strings.dart';
 
 class LegalDocScreen extends StatefulWidget {
   final String docKey;
@@ -58,9 +59,9 @@ class _LegalDocScreenState extends State<LegalDocScreen> {
               child: _isLoading
                   ? const LoadingView()
                   : doc == null
-                      ? const EmptyView(
+                      ? EmptyView(
                           icon: Icons.description_outlined,
-                          message: '這份文件尚未建立',
+                          message: S.documentNotBeenCreatedYet,
                         )
                       : RefreshIndicator(
                           color: c.accent,
@@ -83,7 +84,7 @@ class _LegalDocScreenState extends State<LegalDocScreen> {
                               ),
                               const SizedBox(height: 14),
                               Text(
-                                '最後更新：${formatDate(doc.updatedAt)}',
+                                S.lastUpdated(formatDate(doc.updatedAt)),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 11, color: c.textHint),
                               ),

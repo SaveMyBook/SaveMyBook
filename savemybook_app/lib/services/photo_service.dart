@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import '../screens/image_crop_screen.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/state_views.dart';
+import '../i18n/strings.dart';
 
 class PhotoService {
   static final ImagePicker _picker = ImagePicker();
@@ -54,7 +55,7 @@ class PhotoService {
       try {
         picked = await _picker.pickMultiImage(maxWidth: 2400, maxHeight: 2400, imageQuality: 90);
       } catch (_) {
-        if (context.mounted) showAppSnackBar(context, '無法開啟相簿，請確認已授權', isError: true);
+        if (context.mounted) showAppSnackBar(context, S.couldNotOpenPhotosCheckPermission, isError: true);
         return const [];
       }
     }
@@ -81,16 +82,16 @@ class PhotoService {
   static Future<ImageSource?> _askSource(BuildContext context) async {
     final choice = await showOptionSheet<ImageSource>(
       context,
-      title: '選擇照片來源',
-      options: const [
+      title: S.choosePhotoSource,
+      options: [
         SheetOption(
           value: ImageSource.camera,
-          label: '拍照',
+          label: S.takePhoto,
           icon: Icons.photo_camera_outlined,
         ),
         SheetOption(
           value: ImageSource.gallery,
-          label: '從相簿選擇',
+          label: S.chooseFromPhotos,
           icon: Icons.photo_library_outlined,
         ),
       ],
@@ -110,7 +111,7 @@ class PhotoService {
       if (context.mounted) {
         showAppSnackBar(
           context,
-          source == ImageSource.camera ? '無法開啟相機，請確認已授權' : '無法開啟相簿，請確認已授權',
+          source == ImageSource.camera ? S.couldNotOpenCameraCheckPermission : S.couldNotOpenPhotosCheckPermission,
           isError: true,
         );
       }

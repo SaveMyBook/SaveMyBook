@@ -12,6 +12,7 @@ import '../widgets/swipe_action.dart';
 import 'book_manage_screen.dart';
 import 'chat_list_screen.dart';
 import 'purchase_history_screen.dart';
+import '../i18n/strings.dart';
 
 class NotificationScreen extends StatefulWidget {
   final bool embedded;
@@ -61,15 +62,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Future<void> _clearAll() async {
     if (_notifications.isEmpty) {
-      showAppSnackBar(context, '沒有通知可以清除');
+      showAppSnackBar(context, S.noNotificationsClear);
       return;
     }
 
     final confirmed = await showConfirmDialog(
       context,
-      title: '清除全部通知',
-      message: '會刪除 ${_notifications.length} 則通知，無法復原。',
-      confirmLabel: '全部清除',
+      title: S.clearAllNotifications,
+      message: S.notificationsDeletedCannotUndone(_notifications.length),
+      confirmLabel: S.clearAll,
       isDestructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -79,24 +80,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     if (ok == true) {
       setState(() => _notifications = []);
-      showAppSnackBar(context, '已清除全部通知');
+      showAppSnackBar(context, S.allNotificationsCleared);
     } else {
-      showAppSnackBar(context, '清除失敗，請稍後再試', isError: true);
+      showAppSnackBar(context, S.couldNotClearPleaseTryAgain, isError: true);
     }
   }
 
   Future<void> _markAllRead() async {
     final unread = _notifications.where((n) => !n.isRead).length;
     if (unread == 0) {
-      showAppSnackBar(context, '沒有未讀的通知');
+      showAppSnackBar(context, S.noUnreadNotifications);
       return;
     }
 
     final confirmed = await showConfirmDialog(
       context,
-      title: '全部標為已讀',
-      message: '要把 $unread 則未讀通知全部標為已讀嗎？此動作無法復原。',
-      confirmLabel: '全部已讀',
+      title: S.markAllAsRead,
+      message: S.markAllUnreadNotificationsAsRead(unread),
+      confirmLabel: S.markAllRead,
     );
     if (!confirmed || !mounted) return;
 
@@ -104,10 +105,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (!mounted) return;
 
     if (ok == true) {
-      showAppSnackBar(context, '已全部標為已讀');
+      showAppSnackBar(context, S.allMarkedAsRead);
       await _load();
     } else {
-      showAppSnackBar(context, '操作失敗，請稍後再試', isError: true);
+      showAppSnackBar(context, S.somethingWentWrongPleaseTryAgain, isError: true);
     }
   }
 
@@ -142,9 +143,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final c = AppColors.of(context);
 
     final target = switch (n.relatedType) {
-      'chat_room' => (label: '前往聊天室', screen: const ChatListScreen()),
-      'order' => (label: '查看訂單', screen: const PurchaseHistoryScreen()),
-      'book' => (label: '前往書籍管理', screen: const BookManageScreen()),
+      'chat_room' => (label: S.openChat, screen: const ChatListScreen()),
+      'order' => (label: S.viewOrder, screen: const PurchaseHistoryScreen()),
+      'book' => (label: S.openMyBooks, screen: const BookManageScreen()),
       _ => null,
     };
 
@@ -197,7 +198,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               if (target != null)
                 PrimaryButton(label: target.label, onPressed: () => Navigator.pop(ctx, true))
               else
-                SecondaryButton(label: '關閉', onPressed: () => Navigator.pop(ctx, false)),
+                SecondaryButton(label: S.actionClose, onPressed: () => Navigator.pop(ctx, false)),
             ],
           ),
         ),
@@ -216,7 +217,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (!mounted) return;
 
     if (!ok) {
-      showAppSnackBar(context, '刪除失敗，已還原', isError: true);
+      showAppSnackBar(context, S.couldNotDeleteRestored, isError: true);
       _load();
     }
   }
@@ -230,7 +231,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       body: Column(
         children: [
           AppHeader(
-            title: '通知中心',
+            title: S.notifications,
             icon: Icons.notifications_none_rounded,
             showBack: !widget.embedded,
             actions: [
@@ -246,9 +247,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     onRefresh: _load,
                     child: SwitchIn(child: _notifications.isEmpty
                         ? ListView(key: const ValueKey('empty'), 
-                            children: const [
+                            children: [
                               SizedBox(height: 80),
-                              EmptyView(icon: Icons.notifications_off_outlined, message: '目前沒有任何通知'),
+                              EmptyView(icon: Icons.notifications_off_outlined, message: S.noNotifications),
                             ],
                           )
                         : ListView.builder(key: const ValueKey('items'), 
@@ -273,7 +274,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       itemKey: ValueKey('notification_${n.notificationId}'),
       endToStart: SwipeAction(
         icon: Icons.delete_outline_rounded,
-        label: '刪除',
+        label: S.actionDelete,
         color: c.danger,
         dismisses: true,
         onTrigger: () async => true,

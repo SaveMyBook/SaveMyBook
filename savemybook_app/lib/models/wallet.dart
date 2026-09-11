@@ -1,4 +1,5 @@
 import '../utils/api_helpers.dart';
+import '../i18n/strings.dart';
 
 class Wallet {
   final double balance;
@@ -59,12 +60,12 @@ class WalletTransaction {
 
   String get typeText {
     switch (type) {
-      case 'deposit': return '儲值';
-      case 'withdrawal': return '提領';
-      case 'purchase': return '購買';
-      case 'sale_income': return '賣出';
-      case 'refund': return '退款';
-      case 'admin_adjust': return '系統調整';
+      case 'deposit': return S.txnDeposit;
+      case 'withdrawal': return S.txnWithdrawal;
+      case 'purchase': return S.purchase;
+      case 'sale_income': return S.sale;
+      case 'refund': return S.txnRefund;
+      case 'admin_adjust': return S.systemAdjustment;
       default: return type;
     }
   }
@@ -81,7 +82,7 @@ class WalletTransaction {
       amount: parseDouble(json['amount']),
       balanceAfter: parseDouble(json['balance_after']),
       description: json['description'] as String? ?? '',
-      bookTitle: book?['title'] as String? ?? order?['order_no'] as String? ?? '交易',
+      bookTitle: book?['title'] as String? ?? order?['order_no'] as String? ?? S.faqCatTrade,
       bookImageUrl: images.isEmpty ? null : resolveAssetUrl((images.first as Map)['image_url']),
       createdAt: parseDate(json['created_at']),
     );

@@ -6,6 +6,7 @@ import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
+import '../../i18n/strings.dart';
 
 class AdminMaintenanceLogScreen extends StatefulWidget {
   const AdminMaintenanceLogScreen({super.key});
@@ -93,7 +94,7 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary),
               ),
               const SizedBox(height: 14),
-              _detailRow('內容', log.detail?.isNotEmpty == true ? log.detail! : '（無額外說明）', c),
+              _detailRow(S.content, log.detail?.isNotEmpty == true ? log.detail! : '（無額外說明）', c),
               _detailRow('操作人', log.adminName.isEmpty ? '（未知）' : log.adminName, c),
               _detailRow('時間', formatDateTime(log.createdAt), c),
               _detailRow('紀錄編號', '#${log.logId}', c),

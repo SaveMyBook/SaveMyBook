@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../utils/app_colors.dart';
 import 'state_views.dart';
+import '../i18n/strings.dart';
 
 class OrderCard extends StatelessWidget {
   final Order order;
@@ -109,7 +110,7 @@ class OrderCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        order.slotNumber.isEmpty ? '' : '櫃號：${order.slotNumber}',
+                        order.slotNumber.isEmpty ? '' : S.slot2(order.slotNumber),
                         style: TextStyle(fontSize: 10, color: c.textHint),
                       ),
                     ),

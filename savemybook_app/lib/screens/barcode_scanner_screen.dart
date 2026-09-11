@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../i18n/strings.dart';
 
 class BarcodeScannerScreen extends StatefulWidget {
   final List<BarcodeFormat> formats;
   final String title;
   final String hint;
 
-  const BarcodeScannerScreen({
+  BarcodeScannerScreen({
     super.key,
     this.formats = const [BarcodeFormat.ean13, BarcodeFormat.ean8],
-    this.title = '掃描條碼',
-    this.hint = '請將書背條碼對準框內',
+    this.title = S.scanBarcode,
+    this.hint = S.lineUpBarcodeSpineWithFrame,
   });
 
   @override

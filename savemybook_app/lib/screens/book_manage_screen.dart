@@ -12,6 +12,7 @@ import 'book_detail_screen.dart';
 import 'edit_book_screen.dart';
 import 'sell_book_screen.dart';
 import '../utils/motion.dart';
+import '../i18n/strings.dart';
 
 class BookManageScreen extends StatefulWidget {
   const BookManageScreen({super.key});
@@ -22,11 +23,11 @@ class BookManageScreen extends StatefulWidget {
 
 class _BookManageScreenState extends State<BookManageScreen> {
   static const _filters = [
-    (key: 'all', label: '全部'),
-    (key: 'on_sale', label: '販售中'),
-    (key: 'reserved', label: '已預訂'),
-    (key: 'sold', label: '已售出'),
-    (key: 'removed', label: '已下架'),
+    (key: 'all', label: S.actionAll),
+    (key: 'on_sale', label: S.bookOnSale),
+    (key: 'reserved', label: S.bookReserved),
+    (key: 'sold', label: S.bookSold),
+    (key: 'removed', label: S.bookRemoved),
   ];
 
   final ApiService _api = ApiService();
@@ -59,11 +60,11 @@ class _BookManageScreenState extends State<BookManageScreen> {
     switch (_reportStatus[bookId]) {
       case 'pending':
       case 'reviewing':
-        return (label: '審核中', color: c.warning, detail: '這本書被檢舉，平台正在審核，期間仍可正常販售。');
+        return (label: S.reportReviewing, color: c.warning, detail: S.bookBeenReportedUnderReviewStays);
       case 'resolved':
-        return (label: '違規成立', color: c.danger, detail: '這本書經審核違規成立，請確認商品內容是否符合社群規範。');
+        return (label: S.violationConfirmed, color: c.danger, detail: S.violationWasConfirmedBookPleaseCheck);
       case 'dismissed':
-        return (label: '檢舉已駁回', color: c.success, detail: '這本書曾被檢舉，經審核未違規，不影響上架。');
+        return (label: S.reportDismissed2, color: c.success, detail: S.bookWasReportedButNoViolation);
       default:
         return null;
     }
@@ -78,9 +79,9 @@ class _BookManageScreenState extends State<BookManageScreen> {
   Future<void> _removeBook(Book book) async {
     final confirmed = await showConfirmDialog(
       context,
-      title: '取消上架',
-      message: '《${book.title}》將從商城下架，買家不會再看到它。',
-      confirmLabel: '下架',
+      title: S.delist,
+      message: S.removedFromShopBuyersNoLonger(book.title),
+      confirmLabel: S.delist2,
       isDestructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -91,10 +92,10 @@ class _BookManageScreenState extends State<BookManageScreen> {
     setState(() => _busyBookId = null);
 
     if (ok) {
-      showAppSnackBar(context, '已下架，可在「已下架」分頁重新上架');
+      showAppSnackBar(context, S.delistedRelistFromDelistedTab);
       _load();
     } else {
-      showAppSnackBar(context, '下架失敗，請稍後再試', isError: true);
+      showAppSnackBar(context, S.couldNotDelistPleaseTryAgain, isError: true);
     }
   }
 
@@ -105,7 +106,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
     setState(() => _busyBookId = null);
 
     if (error == null) {
-      showAppSnackBar(context, '《${book.title}》已重新上架');
+      showAppSnackBar(context, S.listedAgain(book.title));
       _load();
     } else {
       showAppSnackBar(context, error, isError: true);
@@ -121,7 +122,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
       body: Column(
         children: [
           AppHeader(
-            title: '書籍管理',
+            title: S.myBooks,
             icon: Icons.library_books_outlined,
             actions: [
               HeaderIconButton(
@@ -151,9 +152,9 @@ class _BookManageScreenState extends State<BookManageScreen> {
                                 EmptyView(
                                   icon: Icons.library_add_outlined,
                                   message: _filter == 'all'
-                                      ? '你還沒有上架任何書籍'
-                                      : '這個分類目前沒有書籍',
-                                  actionLabel: _filter == 'all' ? '去上架第一本書' : null,
+                                      ? S.notListedAnyBooksYet
+                                      : S.noBooksCategory,
+                                  actionLabel: _filter == 'all' ? S.listFirstBook : null,
                                   onAction: _filter == 'all'
                                       ? () async {
                                           await Navigator.push(
@@ -316,8 +317,8 @@ class _BookManageScreenState extends State<BookManageScreen> {
                     child: Container(
                       color: Colors.black.withValues(alpha: 0.45),
                       alignment: Alignment.center,
-                      child: const Text(
-                        '已下架',
+                      child: Text(
+                        S.bookRemoved,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -371,13 +372,13 @@ class _BookManageScreenState extends State<BookManageScreen> {
                     Expanded(
                       child: isRemoved
                           ? SmallActionButton(
-                              label: '重新上架',
+                              label: S.relist,
                               filled: true,
                               isLoading: isBusy,
                               onTap: () => _relistBook(book),
                             )
                           : SmallActionButton(
-                              label: '取消上架',
+                              label: S.delist,
                               isLoading: isBusy,
                               onTap: book.status == 'sold' ? null : () => _removeBook(book),
                             ),
@@ -385,7 +386,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: SmallActionButton(
-                        label: '編輯',
+                        label: S.actionEdit,
                         filled: !isRemoved,
                         onTap: book.status == 'sold'
                             ? null

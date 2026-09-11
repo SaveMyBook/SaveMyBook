@@ -10,6 +10,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
+import '../../i18n/strings.dart';
 
 class AdminOrderScreen extends StatefulWidget {
   const AdminOrderScreen({super.key});
@@ -20,12 +21,12 @@ class AdminOrderScreen extends StatefulWidget {
 
 class _AdminOrderScreenState extends State<AdminOrderScreen> {
   static const _filters = [
-    (key: 'all', label: '全部'),
-    (key: 'pending_deposit', label: '待存書'),
-    (key: 'pending_pickup', label: '待取書'),
-    (key: 'completed', label: '已完成'),
-    (key: 'cancelled', label: '已取消'),
-    (key: 'refunding', label: '退款中'),
+    (key: 'all', label: S.actionAll),
+    (key: 'pending_deposit', label: S.orderPendingDeposit),
+    (key: 'pending_pickup', label: S.orderBuyerDeposited),
+    (key: 'completed', label: S.orderCompleted),
+    (key: 'cancelled', label: S.orderCancelled),
+    (key: 'refunding', label: S.orderRefunding),
   ];
 
   final ApiService _api = ApiService();

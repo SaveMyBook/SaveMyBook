@@ -98,5 +98,826 @@
   "appearanceHint": "選擇「跟隨系統」時，會依裝置的深淺色設定自動切換",
   "language": "語言",
   "languageSystem": "跟隨系統",
-  "languageHint": "選擇「跟隨系統」時，會依裝置的語言設定顯示"
+  "languageHint": "選擇「跟隨系統」時，會依裝置的語言設定顯示",
+  "verifySignSavemybook": "驗證身分以登入 SaveMyBook",
+  "maintenance": "系統維護",
+  "promotions": "活動優惠",
+  "policyUpdate": "政策更新",
+  "announcement": "一般公告",
+  "item": "商品",
+  "member": "會員",
+  "message": "訊息",
+  "noLongerExists": "(對象已不存在)",
+  "uncategorised": "未分類",
+  "general": "一般書籍",
+  "untitled": "無書名",
+  "noDescriptionYet": "暫無簡介",
+  "locationNotProvided": "地點未提供",
+  "seller3": "賣家：{p0}",
+  "@seller3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unknownAuthor": "未知作者",
+  "unknownPublisher": "未知出版社",
+  "noIsbn": "未提供 ISBN",
+  "user": "使用者",
+  "noMessagesYet": "尚無訊息",
+  "photo": "[圖片]",
+  "item2": "[商品] {p0}",
+  "@item2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "purchase": "購買",
+  "sale": "賣出",
+  "systemAdjustment": "系統調整",
+  "preparingData": "正在整理您的資料",
+  "mySavemybookData": "我的 SaveMyBook 資料",
+  "exportedChooseWhereSave": "已匯出，請選擇儲存位置",
+  "exportedButSharingCouldNotOpen": "匯出完成，但無法開啟分享",
+  "regenerateShareLink": "重新產生分享連結",
+  "oldLinkQrCodeStopWorking": "舊的連結與 QR Code 會立即失效，已經分享出去的人將無法再開啟。確定要重新產生嗎？",
+  "regenerate": "重新產生",
+  "newLinkCreatedOldOneNo": "已產生新連結，舊連結已失效",
+  "deleteAccount": "刪除帳號",
+  "accountPermanentlyDisabled30DaysSign": "帳號將在 30 天後永久停用，期間內重新登入即可取消。\n\n",
+  "personalDataErasedButCompletedOrders": "停用後個人資料會被清除，但已完成的訂單與交易紀錄會保留，",
+  "peopleTradedWithDoNotLose": "交易對象的紀錄才不會出現缺漏。",
+  "continue": "繼續",
+  "verify": "確認身分",
+  "enterPasswordConfirm": "請輸入密碼以確認這是本人的操作。",
+  "password": "密碼",
+  "requestDeletion": "申請刪除",
+  "receivedSignAgainWithin30Days": "已受理，30 天內重新登入即可取消",
+  "deletionCancelledAccountActiveAgain": "已取消刪除，帳號恢復正常",
+  "account": "帳號管理",
+  "data": "你的資料",
+  "exportMyData": "匯出我的資料",
+  "profileBooksOrdersTransactionsJson": "個人檔案、書籍、訂單與交易紀錄，JSON 格式",
+  "oldLinkQrCodeStopWorking2": "舊的連結與 QR Code 會立即失效",
+  "cancelAccountDeletion": "取消刪除帳號",
+  "restoreAccountStopCountdown": "恢復帳號，停止刪除倒數",
+  "canChangeMindWithin30Days": "30 天緩衝期內可以反悔",
+  "deletionPending": "刪除倒數中",
+  "daysLeftCanCancelAnyTime": "還有 {p0} 天。在這之前隨時可以取消，逾期後個人資料將被清除且無法復原。",
+  "@daysLeftCanCancelAnyTime": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signOut": "登出",
+  "type": "類型",
+  "content": "內容",
+  "backupFailed": "備份失敗",
+  "myBooks": "書籍管理",
+  "notProvided": "未提供",
+  "openingHours": "開放時間",
+  "address": "地址",
+  "saveChanges": "儲存變更",
+  "enable": "啟用",
+  "termsService": "服務條款",
+  "privacyPolicy": "隱私權政策",
+  "aboutUs": "關於我們",
+  "admin": "管理後台",
+  "confirm": "確認",
+  "membershipTier": "會員等級",
+  "phone": "電話",
+  "violationConfirmed": "違規成立",
+  "scanBarcode": "掃描條碼",
+  "lineUpBarcodeSpineWithFrame": "請將書背條碼對準框內",
+  "signAddItemsCart": "請先登入才能加入購物車",
+  "bookCannotPurchased": "這本書目前{p0}，無法購買",
+  "@bookCannotPurchased": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addedCart": "已加入購物車",
+  "sellerInformationNotFound": "找不到賣家資訊",
+  "signContactSeller": "請先登入才能聯絡賣家",
+  "signStartChat": "無法建立聊天室，請先登入",
+  "signReport": "請先登入才能檢舉",
+  "cannotReportOwnListing": "無法檢舉自己上架的商品",
+  "reportListing": "檢舉此商品",
+  "describeProblemLeast5Characters": "請說明違規原因（至少 5 個字）",
+  "reasonNeedsLeast5Characters": "請至少填寫 5 個字的檢舉原因",
+  "reportSubmittedWeLookInto": "檢舉已送出，我們會盡快處理",
+  "publisher": "出版社：",
+  "author": "作者：",
+  "listed": "上架日期：",
+  "searchTitleAuthorPublisher": "搜尋書名、作者、出版社...",
+  "share": "分享",
+  "report": "檢舉",
+  "about": "簡介：",
+  "pickup": "取書地點：{p0}",
+  "@pickup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "messageSeller": "與賣家聊聊",
+  "listing": "這是你的書",
+  "addCart": "加入購物車",
+  "bookBeenReportedUnderReviewStays": "這本書被檢舉，平台正在審核，期間仍可正常販售。",
+  "violationWasConfirmedBookPleaseCheck": "這本書經審核違規成立，請確認商品內容是否符合社群規範。",
+  "reportDismissed2": "檢舉已駁回",
+  "bookWasReportedButNoViolation": "這本書曾被檢舉，經審核未違規，不影響上架。",
+  "delist": "取消上架",
+  "removedFromShopBuyersNoLonger": "《{p0}》將從商城下架，買家不會再看到它。",
+  "@removedFromShopBuyersNoLonger": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "delist2": "下架",
+  "delistedRelistFromDelistedTab": "已下架，可在「已下架」分頁重新上架",
+  "couldNotDelistPleaseTryAgain": "下架失敗，請稍後再試",
+  "listedAgain": "《{p0}》已重新上架",
+  "@listedAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "notListedAnyBooksYet": "你還沒有上架任何書籍",
+  "noBooksCategory": "這個分類目前沒有書籍",
+  "listFirstBook": "去上架第一本書",
+  "relist": "重新上架",
+  "removeFromCart": "移出購物車",
+  "removeFromCart2": "要把《{p0}》從購物車移除嗎？",
+  "@removeFromCart2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "remove": "移除",
+  "couldNotRemoveRestored": "移除失敗，已還原",
+  "couldNotRemovePleaseTryAgain": "移除失敗，請稍後再試",
+  "selectBooksWantCheckOut": "請先選擇要結帳的書籍",
+  "notEnoughCoinsOrderNeedsBut": "代幣不足，這筆訂單需要 {p0}，目前只有 {p1}",
+  "@notEnoughCoinsOrderNeedsBut": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmCheckout": "確認結帳",
+  "booksTotal": "共 {p0} 本書，總金額 \\${p1}。\n",
+  "@booksTotal": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "balanceAfterPaymentCoins": "扣款後餘額為 {p0} 代幣。",
+  "@balanceAfterPaymentCoins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderPlacedSellerDropBookOff": "結帳成功，請等待賣家存書",
+  "cart": "購物車",
+  "cartEmpty": "購物車是空的",
+  "selectAll": "全選",
+  "items": "{p0} 件商品",
+  "@items": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deselect": "取消選取",
+  "select": "選取",
+  "coinsShort": "還差 {p0} 代幣",
+  "@coinsShort": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "total": "合計",
+  "selected": "{p0} 件",
+  "@selected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "balance2": "餘額 {p0}",
+  "@balance2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "selectBookFirst": "請先選書",
+  "checkOut": "結帳",
+  "notEnoughCoins": "代幣不足",
+  "weak": "偏弱",
+  "fair": "普通",
+  "strong": "很強",
+  "enterCurrentPassword": "請輸入目前密碼",
+  "enterNewPassword": "請輸入新密碼",
+  "newPasswordMustDifferent": "新密碼不可與目前密碼相同",
+  "enterNewPasswordAgain": "請再輸入一次新密碼",
+  "passwordsDoNotMatch": "兩次輸入的新密碼不一致",
+  "passwordUpdated": "密碼已更新",
+  "changePassword": "更改密碼",
+  "useLeast8CharactersWithBoth": "密碼需要至少 8 碼，並同時包含英文與數字。",
+  "currentPassword": "目前密碼",
+  "newPassword": "新密碼",
+  "confirmNewPassword": "確認新密碼",
+  "updatePassword": "更新密碼",
+  "deleteChat": "刪除聊天室",
+  "allMessagesWithDeletedBothCannot": "會一併刪除與 {p0} 的所有訊息，雙方都看不到了。此動作無法復原。",
+  "@allMessagesWithDeletedBothCannot": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "chatDeleted": "已刪除聊天室",
+  "couldNotDeleteRestored": "刪除失敗，已還原",
+  "chatMuted": "已靜音這個聊天室",
+  "chatUnmuted": "已取消靜音",
+  "noUnreadMessages": "沒有未讀訊息",
+  "markAllAsRead": "全部標為已讀",
+  "markAllUnreadMessagesAsRead": "要把 {p0} 則未讀訊息全部標為已讀嗎？此動作無法復原。",
+  "@markAllUnreadMessagesAsRead": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "markAllRead": "全部已讀",
+  "allMarkedAsRead": "已全部標為已讀",
+  "somethingWentWrongPleaseTryAgain": "操作失敗，請稍後再試",
+  "chats": "聊天室",
+  "noConversationsYet": "還沒有任何對話",
+  "unmute": "取消靜音",
+  "mute": "靜音",
+  "messagesLimited500Characters": "訊息長度不可超過 500 字",
+  "messageCouldNotSent": "訊息傳送失敗",
+  "chat": "聊天",
+  "sendFirstMessage": "開始你們的第一則訊息吧",
+  "messageCopied": "已複製訊息",
+  "iQuestionAboutBook": "想詢問這本書",
+  "bookNoLongerListed": "這本書已經下架了",
+  "writeMessage": "輸入訊息…",
+  "enterOrderNumberDisputing": "請填寫要申訴的訂單編號",
+  "describeDispute": "請填寫爭議說明",
+  "useLeast10CharactersSoSupport": "爭議說明請至少填寫 10 個字，方便客服判斷",
+  "submitDispute": "送出爭議申請",
+  "orderEntersDisputeProcessPaymentSeller": "送出後這筆訂單會進入申訴流程，款項會暫停撥給賣家，直到客服裁決。",
+  "paymentHoldRequested": "[申請凍結款項] {p0}",
+  "@paymentHoldRequested": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "disputeSubmittedSupportContact": "爭議申請已送出，客服會盡快與你聯繫",
+  "dispute": "爭議處理",
+  "requestPaymentHold": "申請凍結款項",
+  "paymentSellerHeldUntilSupportDecides": "送出後款項會暫停撥給賣家，直到客服裁決",
+  "submitDispute2": "提交爭議申請",
+  "orderNumber": "訂單編號",
+  "eGSmb20260910123456789": "例如 SMB20260910123456789",
+  "whatHappened": "爭議說明",
+  "describeProblemEGConditionDoes": "請描述發生的問題，例如書況與商品描述不符…",
+  "submit": "送出申請",
+  "uploadPhotos": "上傳圖片",
+  "canAttachUp6Photos": "最多只能上傳 6 張佐證照片",
+  "up5": "最多 5 張",
+  "couldNotReplacePhotoPleaseTry": "無法替換原本的照片，請稍後再試",
+  "keepLeastOnePhoto": "至少要保留一張照片",
+  "photoDeleted": "已刪除照片",
+  "couldNotDeletePhotoPleaseTry": "刪除圖片失敗，請稍後再試",
+  "canUp10Photos": "最多只能有 10 張照片",
+  "deletePhoto": "刪除照片",
+  "cannotUndoneContinue": "刪除後無法復原，確定嗎？",
+  "photoMissingDataRefreshTryAgain": "這張照片的資料不完整，請重新整理後再試",
+  "enterPrice": "請填寫價格",
+  "priceMustGreaterThan0": "價格必須大於 0",
+  "priceCannotExceed999999": "價格不可超過 999,999",
+  "chooseLockerLocation": "請選擇存放區域",
+  "missingTheseThreeRequired": "還缺少：{p0}，這三張是必填的",
+  "@missingTheseThreeRequired": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "bookUpdated": "書籍已更新",
+  "editBook": "編輯書籍",
+  "condition": "書況",
+  "customPrice": "自訂價格",
+  "enterPrice2": "請輸入售價",
+  "lockerLocation": "存放區域",
+  "chooseLocker": "請選擇書櫃",
+  "bookPhotos": "書籍照片",
+  "morePhotos": "補充照片",
+  "add": "加入",
+  "enterTitle": "請填寫書名",
+  "titleLimited255Characters": "書名不可超過 255 個字元",
+  "isbn1013Digits": "ISBN 應為 10 碼或 13 碼",
+  "chooseCategory": "請選擇書籍分類",
+  "k1013Digits": "10 或 13 碼",
+  "title": "書名",
+  "required": "必填",
+  "author2": "作者",
+  "optional": "選填",
+  "publisher2": "出版社",
+  "publicationDate": "出版日期",
+  "tapPickPublicationDate": "點擊選擇出版日期",
+  "pickPublicationDate": "選擇出版日期",
+  "pickCategory": "選擇分類",
+  "next": "下一步",
+  "uploading": "上傳中…",
+  "profilePhotoUpdated": "頭像已更新",
+  "couldNotUploadPhoto": "頭像上傳失敗",
+  "changeDisplayName": "修改暱稱",
+  "enterDisplayName": "請輸入暱稱",
+  "displayNameCannotBlank": "暱稱不可空白",
+  "displayNames250Characters": "暱稱長度需介於 2 ~ 50 個字元",
+  "invalidPhoneNumberEG0912345678": "電話格式不正確，例：0912345678",
+  "profileUpdated": "個人檔案已更新",
+  "editProfile": "編輯個人檔案",
+  "bio": "個人簡介",
+  "tellPeopleAboutYourself": "介紹一下自己吧",
+  "email": "信箱",
+  "emailCannotChanged": "信箱無法修改",
+  "dateBirth": "生日",
+  "tapPickDateBirth": "點擊選擇生日",
+  "pickDateBirth": "選擇生日",
+  "savedBooks": "收藏書籍",
+  "notSavedAnyBooksYet": "還沒有收藏任何書籍",
+  "helpCentre": "幫助中心",
+  "searchQuestions": "搜尋問題",
+  "noQuestionsYet": "目前還沒有常見問題",
+  "noMatchingQuestions": "找不到相關問題",
+  "newest": "最新上架",
+  "popular": "熱門推薦",
+  "priceLowHigh": "價格由低到高",
+  "priceHighLow": "價格由高到低",
+  "reachedEnd": "您已滑到底部",
+  "guest": "訪客",
+  "hi": "哈囉, {p0}",
+  "@hi": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBooksMatchFilters": "目前沒有符合條件的書籍",
+  "couldNotReadPhoto": "無法讀取這張照片",
+  "croppingFailedPleaseTryAgain": "裁切失敗，請再試一次",
+  "adjustPhoto": "調整照片",
+  "reset": "重設",
+  "usePhoto": "使用這張",
+  "documentNotBeenCreatedYet": "這份文件尚未建立",
+  "lastUpdated": "最後更新：{p0}",
+  "@lastUpdated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "biometrics": "生物辨識",
+  "sessionExpiredPleaseEnterPasswordAgain": "登入資訊已失效，請重新輸入密碼",
+  "turnSign": "啟用 {p0} 登入？",
+  "@turnSign": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nextTimeOpenAppCanUnlock": "下次開啟 App 就能直接用 {p0} 解鎖，不用再輸入密碼。",
+  "@nextTimeOpenAppCanUnlock": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "notNow": "暫時不要",
+  "enterEmail": "請輸入 Email",
+  "emailAddressNotValid": "Email 格式不正確",
+  "enterPassword": "請輸入密碼",
+  "noAccountWithEmail": "此帳號尚未註冊",
+  "noAccountCreateOneNow": "找不到「{p0}」這個帳號。要現在建立一個嗎？",
+  "@noAccountCreateOneNow": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signUp": "前往註冊",
+  "tryAgain": "重新輸入",
+  "sign": "登入",
+  "signWith": "使用 {p0} 登入",
+  "@signWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noAccountYetSignUp": "還沒有帳號？立即註冊",
+  "membershipTiersNotSetUpYet": "尚未設定會員等級制度",
+  "currentTier": "您目前的級別",
+  "unlocked": "已解鎖",
+  "locked": "尚未解鎖",
+  "aboveTier": "您已高於此級別",
+  "reachedTopTier": "您已達到最高級別",
+  "unlocked2": "已解鎖「{p0}」",
+  "@unlocked2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "morePointsUnlock": "再 {p0} 點即可解鎖「{p1}」",
+  "@morePointsUnlock": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "benefits": "{p0}級別獎勵",
+  "@benefits": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBenefitsBeenDescribedTierYet": "尚未設定此等級的權益說明。",
+  "pointsFromCompletedOrders": "目前累積 {p0} 點，已完成 {p1} 筆交易",
+  "@pointsFromCompletedOrders": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noNotificationsClear": "沒有通知可以清除",
+  "clearAllNotifications": "清除全部通知",
+  "notificationsDeletedCannotUndone": "會刪除 {p0} 則通知，無法復原。",
+  "@notificationsDeletedCannotUndone": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "clearAll": "全部清除",
+  "allNotificationsCleared": "已清除全部通知",
+  "couldNotClearPleaseTryAgain": "清除失敗，請稍後再試",
+  "noUnreadNotifications": "沒有未讀的通知",
+  "markAllUnreadNotificationsAsRead": "要把 {p0} 則未讀通知全部標為已讀嗎？此動作無法復原。",
+  "@markAllUnreadNotificationsAsRead": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "openChat": "前往聊天室",
+  "viewOrder": "查看訂單",
+  "openMyBooks": "前往書籍管理",
+  "notifications": "通知中心",
+  "noNotifications": "目前沒有任何通知",
+  "copied": "已複製{p0}",
+  "@copied": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderDetails": "訂單詳情",
+  "order": "訂單編號 {p0}",
+  "@order": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderProgress": "訂單進度",
+  "items2": "商品明細（{p0}）",
+  "@items2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderNoItemDetails": "這筆訂單沒有品項資料。",
+  "msg4": "單價 \\${p0} × {p1}",
+  "@msg4": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "orderTotal": "訂單金額",
+  "pickupDetails": "取書資訊",
+  "notAssigned": "尚未指定",
+  "slot": "櫃位",
+  "notAssignedYet": "尚未配位",
+  "pickupCode": "取書碼",
+  "transaction": "交易資訊",
+  "buyer": "買家",
+  "seller": "賣家",
+  "placed": "成立時間",
+  "dispute2": "爭議",
+  "orderOpenDispute": "此訂單有進行中的申訴案件",
+  "cancelOrder": "取消訂單",
+  "pendingPayoutDisappearsBuyerNotified": "取消後這筆待定收益會一併消失，買家也會收到通知。",
+  "cancelledBySeller": "賣家取消",
+  "orderCancelled2": "訂單已取消",
+  "pendingPayouts": "待定收益",
+  "noPendingPayouts": "目前沒有待撥款的訂單",
+  "pendingAmount": "待定收益金額",
+  "coinsArriveOnceBuyerCollectsBook": "買家完成取書後會自動撥入代幣餘額",
+  "scanned": "掃描成功",
+  "scanAgain": "繼續掃描",
+  "collectBook": "我要取書",
+  "pointPickupQrCode": "對準取書 QR Code",
+  "holdSteady": "對準勿搖晃",
+  "bookCollected": "取書完成",
+  "thanksUsingSavemybookHappyReading": "感謝你的使用，祝閱讀愉快！",
+  "collected": "《{p0}》已完成取書",
+  "@collected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "order2": "訂單編號：{p0}",
+  "@order2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signingOut": "登出中…",
+  "myAccount": "會員中心",
+  "personNotWrittenBioYet": "這個人很懶，什麼都沒留下",
+  "topTierReached": "已達到最高級別",
+  "morePointsReach": "再 {p0} 點升級為「{p1}」",
+  "@morePointsReach": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "myCoins": "我的代幣",
+  "shareProfile": "分享檔案",
+  "purchases": "購買紀錄",
+  "sales": "銷售紀錄",
+  "settings": "設定",
+  "signOut2": "確認登出",
+  "needSignAgainKeepUsingApp": "登出後需要重新輸入帳號密碼才能繼續使用。",
+  "cancelOrderBookReturnsShop": "確定要取消訂單 {p0} 嗎？取消後書籍會回到商城重新販售。",
+  "@cancelOrderBookReturnsShop": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickupCode2": "取書代碼",
+  "notGeneratedYet": "尚未產生",
+  "enterCodeLockerCollect": "請在書櫃上輸入此代碼取書",
+  "enterCodeCollect": "請至「{p0}」輸入此代碼取書",
+  "@enterCodeCollect": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iCollected": "我已完成取書",
+  "noOrdersTab": "此分類目前沒有訂單",
+  "openDispute": "申請爭議",
+  "displayNameNeedsLeast2Characters": "暱稱至少 2 個字元",
+  "displayNameLimited50Characters": "暱稱不可超過 50 個字元",
+  "enterPasswordAgain": "請再輸入一次密碼",
+  "passwordsDoNotMatch2": "兩次輸入的密碼不一致",
+  "pleaseReadAcceptTermsServicePrivacy": "請先閱讀並同意服務條款與隱私權政策",
+  "accountCreatedSignWith": "註冊成功，請使用新帳號登入",
+  "iReadAccept": "我已閱讀並同意 ",
+  "and": " 與 ",
+  "createAccount": "建立帳號",
+  "joinSavemybook": "加入 SaveMyBook",
+  "signUpBuySellUseSmart": "註冊後就能買書、賣書與使用智慧書櫃",
+  "displayName": "暱稱",
+  "nameOthersSee": "其他人會看到的名字",
+  "emailSignWith": "用來登入的信箱",
+  "least8CharactersWithLettersNumbers": "至少 8 碼，需含英文與數字",
+  "confirmPassword": "確認密碼",
+  "enterPasswordAgain2": "再輸入一次密碼",
+  "alreadyAccountGoBackSign": "已經有帳號了？返回上一頁登入",
+  "markAsDroppedOff": "完成存書",
+  "droppedOff": "已放入書櫃",
+  "markedAsDroppedOff": "已標記為完成存書",
+  "buyerNotifiedBookReturnsShop": "取消後買家會收到通知，書籍會回到商城重新販售。",
+  "dropOffPickupCode": "存書／取書代碼",
+  "enterCodeLocker": "請在書櫃上輸入此代碼",
+  "noRecentSearches": "還沒有搜尋紀錄",
+  "recentSearches": "最近搜尋",
+  "clearAll2": "清除全部",
+  "searchTitleAuthorIsbn": "搜尋書名、作者、ISBN...",
+  "photoLimitReached": "照片已滿",
+  "canUploadUp10Photos": "最多只能上傳 10 張照片。",
+  "photosMissing": "照片不足",
+  "missingTheseThreeRequired2": "還缺少：{p0}。這三張是必填的。",
+  "@missingTheseThreeRequired2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "missingInformation": "資料不齊全",
+  "enterOwnPrice": "請輸入自訂價格。",
+  "invalidPrice": "價格不正確",
+  "priceMustGreaterThan02": "售價必須大於 0 元。",
+  "priceCannotExceed99999": "售價不可超過 99999 元。",
+  "chooseLockerLocation2": "請選擇存放區域。",
+  "listed2": "上架成功！",
+  "unknownError": "未知錯誤",
+  "couldNotListBook": "上架失敗",
+  "serverError": "伺服器回應錯誤：{p0}",
+  "@serverError": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionProblem": "連線異常",
+  "couldNotReachServerUploadTimed": "無法連線至伺服器或上傳超時，請檢查網路狀態。",
+  "listBook": "確認完成上架",
+  "detailsPhotos": "詳細資訊與照片",
+  "loading": "載入中...",
+  "unknownLocker": "未知機櫃",
+  "enterTitle2": "請輸入書名",
+  "chooseCategory2": "請選擇分類",
+  "bookDetailsFilledAutomatically": "已自動帶入書籍資訊！",
+  "bookDetailsFilledFromBackupSource": "已透過備援系統帶入書籍資訊！",
+  "noSourceIsbnPleaseEnterDetails": "各系統皆找不到此 ISBN，請嘗試手動輸入",
+  "yearMonth": "[年月]",
+  "day": "日",
+  "tapIconRightScan": "可點擊右側圖示掃描",
+  "description": "書籍簡介",
+  "sellBook": "我要賣書",
+  "myShop": "我的賣場",
+  "sellerNoBooksSale": "這位賣家目前沒有販售中的書籍",
+  "loading2": "載入中…",
+  "sale2": "販售中 {p0} 本",
+  "@sale2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "verifyEnableQuickSign": "驗證身分以啟用快速登入",
+  "sign2": "已啟用 {p0} 登入",
+  "@sign2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "quickSignTurnedOff": "已關閉快速登入",
+  "appearance2": "外觀設定",
+  "signMethod": "登入方式",
+  "helpSupport": "說明與支援",
+  "contactUs": "聯絡我們",
+  "aboutSavemybook": "關於 SaveMyBook",
+  "settingsPrivacy": "設定與隱私",
+  "sign3": "{p0} 登入",
+  "@sign3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unlockWithWhenOpenApp": "開啟 App 時用 {p0} 解鎖",
+  "@unlockWithWhenOpenApp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "scanProfileQrCode": "掃描個人 QR Code",
+  "lineUpTheirQrCodeWith": "將對方的 QR Code 放入框內",
+  "notSavemybookProfileQrCode": "這不是 SaveMyBook 的個人 QR Code",
+  "ownQrCode": "這是你自己的 QR Code",
+  "couldNotStartChatPleaseTry": "無法建立聊天室，請稍後再試",
+  "linkCopied": "已複製連結",
+  "addMeSavemybook": "在 SaveMyBook 上加我：{p0}",
+  "@addMeSavemybook": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addMeSavemybook2": "在 SaveMyBook 上加我（{p0}）：{p1}",
+  "@addMeSavemybook2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sharingCouldNotOpenSoLink": "無法開啟分享，已幫你複製連結",
+  "savedPhotos": "已儲存到相簿",
+  "couldNotSaveCheckPhotoLibrary": "儲存失敗，請確認已允許相簿權限",
+  "scanTheirQrCode": "掃描對方的 QR Code",
+  "copyLink": "複製連結",
+  "askQuestion": "提出問題",
+  "noEnquiriesYet": "還沒有任何問題紀錄",
+  "enterSubject": "請填寫主旨",
+  "addMoreDetailSoSupportCan": "請多描述一點，方便客服判斷",
+  "sentSupportReplySoon": "已送出，客服會盡快回覆",
+  "subject": "主旨",
+  "sumUpOneLine": "一句話描述問題",
+  "whatHappenedIncludeOrderNumberIf": "發生什麼事？有訂單編號的話一併附上",
+  "close": "結案",
+  "notAbleReplyAfterClosing": "結案後就不能再回覆了。",
+  "enquiryClosed": "工單已結案",
+  "changeStatus": "調整工單狀態",
+  "statusUpdated": "已更新狀態",
+  "enquiry": "工單",
+  "enquiryNotFound": "找不到這張工單",
+  "support": "客服",
+  "writeReply": "輸入回覆…",
+  "coins": "代幣中心",
+  "transactions": "交易紀錄",
+  "noTransactionsYet": "尚無交易紀錄",
+  "balance": "目前餘額",
+  "hold": "凍結中 \\${p0}",
+  "@hold": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requestFailed2": "請求失敗（{p0}）",
+  "@requestFailed2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "couldNotReachServer": "無法連線至伺服器",
+  "couldNotReachServerCheckConnection": "無法連線至伺服器，請檢查網路",
+  "signFailed": "登入失敗",
+  "signFailedPleaseTryAgain": "登入失敗，請稍後再試",
+  "signUpFailed": "註冊失敗",
+  "pleaseSignFirst": "請先登入",
+  "couldNotRelist": "重新上架失敗",
+  "couldNotRemoveFromSaved": "取消收藏失敗",
+  "couldNotSave": "收藏失敗",
+  "couldNotAddCart": "加入購物車失敗",
+  "checkoutFailed": "結帳失敗",
+  "couldNotCancelOrder": "取消訂單失敗",
+  "couldNotUpdateOrder": "更新訂單狀態失敗",
+  "couldNotSubmitDispute": "送出爭議申請失敗",
+  "couldNotSubmitReport": "送出檢舉失敗",
+  "updateFailed2": "更新失敗",
+  "couldNotChangePassword": "更改密碼失敗",
+  "requestFailed": "申請失敗",
+  "couldNotCancel": "取消失敗",
+  "couldNotDelete": "刪除失敗",
+  "couldNotComplete": "執行失敗",
+  "couldNotSaveAnnouncement": "儲存公告失敗",
+  "couldNotSend": "送出失敗",
+  "actionFailed": "操作失敗",
+  "couldNotSave2": "儲存失敗",
+  "documentUpdated": "已更新文件",
+  "couldNotAdjust": "調整失敗",
+  "couldNotProcessReport": "處理檢舉失敗",
+  "couldNotRecordDecision": "裁決失敗",
+  "couldNotReorder": "排序失敗",
+  "couldNotSaveLocker": "儲存書櫃失敗",
+  "fingerprint": "指紋",
+  "iris": "虹膜",
+  "verifyIdentityContinue": "請驗證身分以繼續",
+  "msg": "繁體中文",
+  "msg2": "日本語",
+  "msg3": "简体中文",
+  "couldNotOpenPhotosCheckPermission": "無法開啟相簿，請確認已授權",
+  "choosePhotoSource": "選擇照片來源",
+  "takePhoto": "拍照",
+  "chooseFromPhotos": "從相簿選擇",
+  "couldNotOpenCameraCheckPermission": "無法開啟相機，請確認已授權",
+  "justNow": "剛剛",
+  "minAgo": "{p0} 分鐘前",
+  "@minAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "hAgo": "{p0} 小時前",
+  "@hAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dAgo": "{p0} 天前",
+  "@dAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickDate": "請選擇日期",
+  "pickDate2": "選擇日期",
+  "msg5": "{p0} 年 {p1} 月 {p2} 日",
+  "@msg5": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "passwordsNeedLeast8Characters": "密碼長度至少 8 個字元",
+  "passwordsMustIncludeLetter": "密碼需包含英文字母",
+  "passwordsMustIncludeNumber": "密碼需包含數字",
+  "seller2": "賣家：",
+  "home": "首頁",
+  "alerts": "通知",
+  "collect": "取書",
+  "couldNotLoadPhoto": "無法載入這張照片",
+  "slot2": "櫃號：{p0}",
+  "@slot2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmPutLocker": "確認已把《{p0}》放入書櫃了嗎？",
+  "@confirmPutLocker": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

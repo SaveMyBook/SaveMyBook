@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../screens/search_screen.dart';
 import '../utils/app_colors.dart';
+import '../i18n/strings.dart';
 
 class SearchBarWidget extends StatelessWidget {
   final String currentKeyword;
@@ -36,7 +37,7 @@ class SearchBarWidget extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    currentKeyword.isEmpty ? '搜尋書名、作者、ISBN...' : currentKeyword,
+                    currentKeyword.isEmpty ? S.searchTitleAuthorIsbn : currentKeyword,
                     style: TextStyle(
                       color: currentKeyword.isEmpty ? c.textHint : c.textPrimary,
                       fontSize: 15,

@@ -11,6 +11,7 @@ import '../widgets/state_views.dart';
 import 'book_detail_screen.dart';
 import '../utils/app_labels.dart';
 import '../utils/motion.dart';
+import '../i18n/strings.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final Order order;
@@ -61,7 +62,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     await Clipboard.setData(ClipboardData(text: value));
     if (!mounted) return;
     HapticFeedback.selectionClick();
-    showAppSnackBar(context, '已複製$label');
+    showAppSnackBar(context, S.copied(label));
   }
 
   @override
@@ -72,7 +73,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '訂單詳情', icon: Icons.receipt_long_outlined),
+          AppHeader(title: S.orderDetails, icon: Icons.receipt_long_outlined),
           Expanded(
             child: RefreshIndicator(
               color: c.accent,
@@ -143,12 +144,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 const SizedBox(height: 2),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onLongPress: () => _copy(_order.orderNo, '訂單編號'),
+                  onLongPress: () => _copy(_order.orderNo, S.orderNumber),
                   child: Row(
                     children: [
                       Flexible(
                         child: Text(
-                          '訂單編號 ${_order.orderNo}',
+                          S.order(_order.orderNo),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: 12, color: c.textSecondary),
@@ -174,7 +175,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeading(title: '訂單進度'),
+          SectionHeading(title: S.orderProgress),
           const SizedBox(height: 16),
           for (var i = 0; i < _flow.length; i++)
             Row(
@@ -234,10 +235,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionHeading(title: '商品明細（${_order.items.length}）'),
+          SectionHeading(title: S.items2(_order.items.length)),
           const SizedBox(height: 12),
           if (_order.items.isEmpty)
-            Text('這筆訂單沒有品項資料。', style: TextStyle(fontSize: 13, color: c.textHint))
+            Text(S.orderNoItemDetails, style: TextStyle(fontSize: 13, color: c.textHint))
           else
             for (final item in _order.items) ...[
               GestureDetector(
@@ -275,7 +276,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '單價 \$${item.unitPrice.toStringAsFixed(0)} × ${item.quantity}',
+                              S.msg4(item.unitPrice.toStringAsFixed(0), item.quantity),
                               style: TextStyle(fontSize: 12, color: c.textSecondary),
                             ),
                           ],
@@ -297,7 +298,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Divider(color: c.divider, height: 20),
           Row(
             children: [
-              Text('訂單金額', style: TextStyle(fontSize: 14, color: c.textSecondary)),
+              Text(S.orderTotal, style: TextStyle(fontSize: 14, color: c.textSecondary)),
               const Spacer(),
               Text(
                 '\$${_order.totalAmount.toStringAsFixed(0)}',
@@ -319,36 +320,36 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeading(title: '取書資訊'),
+          SectionHeading(title: S.pickupDetails),
           const SizedBox(height: 12),
           InfoLine(
             icon: Icons.storage_rounded,
-            label: '書櫃',
-            value: _order.cabinetName.isEmpty ? '尚未指定' : _order.cabinetName,
+            label: S.faqCatCabinet,
+            value: _order.cabinetName.isEmpty ? S.notAssigned : _order.cabinetName,
           ),
           InfoLine(
             icon: Icons.location_on_outlined,
-            label: '地址',
-            value: _order.cabinetAddress.isEmpty ? '尚未指定' : _order.cabinetAddress,
+            label: S.address,
+            value: _order.cabinetAddress.isEmpty ? S.notAssigned : _order.cabinetAddress,
           ),
           InfoLine(
             icon: Icons.schedule_rounded,
-            label: '開放時間',
-            value: _order.cabinetOpenHours.isEmpty ? '未提供' : _order.cabinetOpenHours,
+            label: S.openingHours,
+            value: _order.cabinetOpenHours.isEmpty ? S.notProvided : _order.cabinetOpenHours,
           ),
           InfoLine(
             icon: Icons.grid_view_rounded,
-            label: '櫃位',
-            value: _order.slotNumber.isEmpty ? '尚未配位' : _order.slotNumber,
+            label: S.slot,
+            value: _order.slotNumber.isEmpty ? S.notAssignedYet : _order.slotNumber,
           ),
           Reveal(
             visible: !widget.asSeller && _order.pickupCode != null && _order.pickupCode!.isNotEmpty,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onLongPress: () => _copy(_order.pickupCode!, '取書碼'),
+              onLongPress: () => _copy(_order.pickupCode!, S.pickupCode),
               child: InfoLine(
                 icon: Icons.pin_rounded,
-                label: '取書碼',
+                label: S.pickupCode,
                 value: _order.pickupCode!,
               ),
             ),
@@ -363,26 +364,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeading(title: '交易資訊'),
+          SectionHeading(title: S.transaction),
           const SizedBox(height: 12),
           InfoLine(
             icon: widget.asSeller ? Icons.person_outline_rounded : Icons.storefront_outlined,
-            label: widget.asSeller ? '買家' : '賣家',
+            label: widget.asSeller ? S.buyer : S.seller,
             value: widget.asSeller
                 ? (_order.buyerName.isEmpty ? '—' : _order.buyerName)
                 : (_order.sellerName.isEmpty ? '—' : _order.sellerName),
           ),
           InfoLine(
             icon: Icons.event_outlined,
-            label: '成立時間',
+            label: S.placed,
             value: formatDateTime(_order.createdAt),
           ),
           Reveal(
             visible: _order.hasOpenDispute,
-            child: const InfoLine(
+            child: InfoLine(
               icon: Icons.gavel_rounded,
-              label: '爭議',
-              value: '此訂單有進行中的申訴案件',
+              label: S.dispute2,
+              value: S.orderOpenDispute,
             ),
           ),
         ],

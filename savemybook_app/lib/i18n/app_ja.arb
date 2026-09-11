@@ -98,5 +98,826 @@
   "appearanceHint": "「システムに合わせる」を選ぶと、端末の設定に従って自動で切り替わります。",
   "language": "言語",
   "languageSystem": "システムに合わせる",
-  "languageHint": "「システムに合わせる」を選ぶと、端末の言語設定に従って表示されます。"
+  "languageHint": "「システムに合わせる」を選ぶと、端末の言語設定に従って表示されます。",
+  "verifySignSavemybook": "SaveMyBook にログインするため認証します",
+  "maintenance": "メンテナンス",
+  "promotions": "キャンペーン",
+  "policyUpdate": "ポリシー更新",
+  "announcement": "お知らせ",
+  "item": "商品",
+  "member": "会員",
+  "message": "メッセージ",
+  "noLongerExists": "(対象は存在しません)",
+  "uncategorised": "未分類",
+  "general": "一般書籍",
+  "untitled": "タイトルなし",
+  "noDescriptionYet": "紹介文はまだありません",
+  "locationNotProvided": "場所の記載なし",
+  "seller3": "出品者：{p0}",
+  "@seller3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unknownAuthor": "著者不明",
+  "unknownPublisher": "出版社不明",
+  "noIsbn": "ISBN なし",
+  "user": "ユーザー",
+  "noMessagesYet": "メッセージはまだありません",
+  "photo": "[画像]",
+  "item2": "[商品] {p0}",
+  "@item2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "purchase": "購入",
+  "sale": "売却",
+  "systemAdjustment": "システム調整",
+  "preparingData": "データを準備しています",
+  "mySavemybookData": "SaveMyBook のマイデータ",
+  "exportedChooseWhereSave": "エクスポートしました。保存先を選んでください。",
+  "exportedButSharingCouldNotOpen": "エクスポートしましたが、共有を開けませんでした",
+  "regenerateShareLink": "共有リンクを再生成",
+  "oldLinkQrCodeStopWorking": "古いリンクと QR コードはすぐに無効になり、すでに共有した相手は開けなくなります。再生成しますか？",
+  "regenerate": "再生成",
+  "newLinkCreatedOldOneNo": "新しいリンクを作成しました。古いリンクは無効です。",
+  "deleteAccount": "アカウントを削除",
+  "accountPermanentlyDisabled30DaysSign": "アカウントは 30 日後に完全に無効化されます。それまでに再度ログインすればキャンセルできます。\n\n",
+  "personalDataErasedButCompletedOrders": "無効化後は個人情報が削除されますが、完了した注文と取引履歴は保持されます。",
+  "peopleTradedWithDoNotLose": "取引相手の記録が欠けないようにするためです。",
+  "continue": "続ける",
+  "verify": "本人確認",
+  "enterPasswordConfirm": "ご本人の操作であることを確認するため、パスワードを入力してください。",
+  "password": "パスワード",
+  "requestDeletion": "削除を申請",
+  "receivedSignAgainWithin30Days": "受け付けました。30 日以内に再ログインすればキャンセルできます。",
+  "deletionCancelledAccountActiveAgain": "削除をキャンセルしました。アカウントは通常どおり使えます。",
+  "account": "アカウント設定",
+  "data": "あなたのデータ",
+  "exportMyData": "データをエクスポート",
+  "profileBooksOrdersTransactionsJson": "プロフィール・書籍・注文・取引履歴を JSON 形式で",
+  "oldLinkQrCodeStopWorking2": "古いリンクと QR コードはすぐに無効になります",
+  "cancelAccountDeletion": "アカウント削除をキャンセル",
+  "restoreAccountStopCountdown": "アカウントを復元し、カウントダウンを止めます",
+  "canChangeMindWithin30Days": "30 日以内なら取り消せます",
+  "deletionPending": "削除カウントダウン中",
+  "daysLeftCanCancelAnyTime": "残り {p0} 日です。それまではいつでもキャンセルできますが、期限を過ぎると個人情報は完全に削除されます。",
+  "@daysLeftCanCancelAnyTime": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signOut": "ログアウト",
+  "type": "種類",
+  "content": "本文",
+  "backupFailed": "バックアップに失敗しました",
+  "myBooks": "書籍管理",
+  "notProvided": "未設定",
+  "openingHours": "開放時間",
+  "address": "住所",
+  "saveChanges": "変更を保存",
+  "enable": "有効化",
+  "termsService": "利用規約",
+  "privacyPolicy": "プライバシーポリシー",
+  "aboutUs": "運営者について",
+  "admin": "管理画面",
+  "confirm": "確認",
+  "membershipTier": "会員ランク",
+  "phone": "電話番号",
+  "violationConfirmed": "違反が認定されました",
+  "scanBarcode": "バーコードをスキャン",
+  "lineUpBarcodeSpineWithFrame": "背表紙のバーコードを枠に合わせてください",
+  "signAddItemsCart": "カートに追加するにはログインしてください",
+  "bookCannotPurchased": "この本は{p0}のため購入できません",
+  "@bookCannotPurchased": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addedCart": "カートに追加しました",
+  "sellerInformationNotFound": "出品者情報が見つかりません",
+  "signContactSeller": "出品者に連絡するにはログインしてください",
+  "signStartChat": "チャットを開始するにはログインしてください",
+  "signReport": "報告するにはログインしてください",
+  "cannotReportOwnListing": "自分の出品は報告できません",
+  "reportListing": "この商品を報告",
+  "describeProblemLeast5Characters": "問題の内容を記入してください（5 文字以上）",
+  "reasonNeedsLeast5Characters": "報告理由は 5 文字以上で入力してください",
+  "reportSubmittedWeLookInto": "報告を送信しました。順次対応します。",
+  "publisher": "出版社：",
+  "author": "著者：",
+  "listed": "出品日：",
+  "searchTitleAuthorPublisher": "タイトル・著者・出版社で検索…",
+  "share": "共有",
+  "report": "報告",
+  "about": "紹介：",
+  "pickup": "受け取り場所：{p0}",
+  "@pickup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "messageSeller": "出品者に相談",
+  "listing": "あなたの出品です",
+  "addCart": "カートに追加",
+  "bookBeenReportedUnderReviewStays": "この本は報告を受け審査中です。審査中も販売は継続されます。",
+  "violationWasConfirmedBookPleaseCheck": "この本は違反が認定されました。コミュニティガイドラインに沿っているかご確認ください。",
+  "reportDismissed2": "報告は却下されました",
+  "bookWasReportedButNoViolation": "この本は報告されましたが違反は認められませんでした。出品に影響はありません。",
+  "delist": "出品を取り消す",
+  "removedFromShopBuyersNoLonger": "「{p0}」はショップから外され、購入者には表示されなくなります。",
+  "@removedFromShopBuyersNoLonger": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "delist2": "出品停止",
+  "delistedRelistFromDelistedTab": "出品を停止しました。「出品停止」タブから再出品できます。",
+  "couldNotDelistPleaseTryAgain": "出品停止に失敗しました。しばらくしてからお試しください。",
+  "listedAgain": "「{p0}」を再出品しました",
+  "@listedAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "notListedAnyBooksYet": "まだ book を出品していません",
+  "noBooksCategory": "このカテゴリーに書籍はありません",
+  "listFirstBook": "最初の 1 冊を出品する",
+  "relist": "再出品",
+  "removeFromCart": "カートから削除",
+  "removeFromCart2": "「{p0}」をカートから削除しますか？",
+  "@removeFromCart2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "remove": "削除",
+  "couldNotRemoveRestored": "削除できませんでした。元に戻しました。",
+  "couldNotRemovePleaseTryAgain": "削除に失敗しました。しばらくしてからお試しください。",
+  "selectBooksWantCheckOut": "お会計する本を選んでください",
+  "notEnoughCoinsOrderNeedsBut": "コインが足りません。この注文には {p0} 必要ですが、残高は {p1} です。",
+  "@notEnoughCoinsOrderNeedsBut": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmCheckout": "お会計を確定",
+  "booksTotal": "{p0} 冊、合計 {p1}。\n",
+  "@booksTotal": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "balanceAfterPaymentCoins": "お支払い後の残高は {p0} コインになります。",
+  "@balanceAfterPaymentCoins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderPlacedSellerDropBookOff": "ご注文が完了しました。出品者の預け入れをお待ちください。",
+  "cart": "カート",
+  "cartEmpty": "カートは空です",
+  "selectAll": "すべて選択",
+  "items": "{p0} 点",
+  "@items": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deselect": "選択を解除",
+  "select": "選択",
+  "coinsShort": "あと {p0} コイン不足",
+  "@coinsShort": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "total": "合計",
+  "selected": "{p0} 点",
+  "@selected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "balance2": "残高 {p0}",
+  "@balance2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "selectBookFirst": "本を選んでください",
+  "checkOut": "お会計",
+  "notEnoughCoins": "コインが足りません",
+  "weak": "弱い",
+  "fair": "普通",
+  "strong": "強い",
+  "enterCurrentPassword": "現在のパスワードを入力してください",
+  "enterNewPassword": "新しいパスワードを入力してください",
+  "newPasswordMustDifferent": "新しいパスワードは現在のものと同じにできません",
+  "enterNewPasswordAgain": "新しいパスワードをもう一度入力してください",
+  "passwordsDoNotMatch": "入力された新しいパスワードが一致しません",
+  "passwordUpdated": "パスワードを更新しました",
+  "changePassword": "パスワード変更",
+  "useLeast8CharactersWithBoth": "8 文字以上で、英字と数字の両方を含めてください。",
+  "currentPassword": "現在のパスワード",
+  "newPassword": "新しいパスワード",
+  "confirmNewPassword": "新しいパスワード（確認）",
+  "updatePassword": "パスワードを更新",
+  "deleteChat": "チャットを削除",
+  "allMessagesWithDeletedBothCannot": "{p0} とのメッセージがすべて削除され、双方とも見られなくなります。元に戻せません。",
+  "@allMessagesWithDeletedBothCannot": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "chatDeleted": "チャットを削除しました",
+  "couldNotDeleteRestored": "削除できませんでした。元に戻しました。",
+  "chatMuted": "このチャットをミュートしました",
+  "chatUnmuted": "ミュートを解除しました",
+  "noUnreadMessages": "未読メッセージはありません",
+  "markAllAsRead": "すべて既読にする",
+  "markAllUnreadMessagesAsRead": "未読メッセージ {p0} 件をすべて既読にしますか？元に戻せません。",
+  "@markAllUnreadMessagesAsRead": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "markAllRead": "すべて既読",
+  "allMarkedAsRead": "すべて既読にしました",
+  "somethingWentWrongPleaseTryAgain": "処理に失敗しました。しばらくしてからお試しください。",
+  "chats": "チャット",
+  "noConversationsYet": "まだ会話がありません",
+  "unmute": "ミュート解除",
+  "mute": "ミュート",
+  "messagesLimited500Characters": "メッセージは 500 文字までです",
+  "messageCouldNotSent": "メッセージを送信できませんでした",
+  "chat": "チャット",
+  "sendFirstMessage": "最初のメッセージを送ってみましょう",
+  "messageCopied": "メッセージをコピーしました",
+  "iQuestionAboutBook": "この本について質問があります",
+  "bookNoLongerListed": "この本は出品停止されています",
+  "writeMessage": "メッセージを入力…",
+  "enterOrderNumberDisputing": "異議を申し立てる注文番号を入力してください",
+  "describeDispute": "異議の内容を記入してください",
+  "useLeast10CharactersSoSupport": "サポートが判断できるよう 10 文字以上で記入してください",
+  "submitDispute": "異議を申し立てる",
+  "orderEntersDisputeProcessPaymentSeller": "注文は異議申立の手続きに入り、サポートが判断するまで出品者への支払いは保留されます。",
+  "paymentHoldRequested": "[支払い保留の申請] {p0}",
+  "@paymentHoldRequested": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "disputeSubmittedSupportContact": "異議を申し立てました。サポートからご連絡します。",
+  "dispute": "異議申立",
+  "requestPaymentHold": "支払い保留を申請",
+  "paymentSellerHeldUntilSupportDecides": "サポートが判断するまで出品者への支払いは保留されます",
+  "submitDispute2": "異議を申し立てる",
+  "orderNumber": "注文番号",
+  "eGSmb20260910123456789": "例：SMB20260910123456789",
+  "whatHappened": "異議の内容",
+  "describeProblemEGConditionDoes": "発生した問題を記入してください。例：状態が説明と異なる…",
+  "submit": "申請を送信",
+  "uploadPhotos": "画像をアップロード",
+  "canAttachUp6Photos": "添付できる写真は 6 枚までです",
+  "up5": "5 枚まで",
+  "couldNotReplacePhotoPleaseTry": "写真を差し替えられませんでした。しばらくしてからお試しください。",
+  "keepLeastOnePhoto": "写真は 1 枚以上必要です",
+  "photoDeleted": "写真を削除しました",
+  "couldNotDeletePhotoPleaseTry": "写真を削除できませんでした。しばらくしてからお試しください。",
+  "canUp10Photos": "写真は 10 枚までです",
+  "deletePhoto": "写真を削除",
+  "cannotUndoneContinue": "削除すると元に戻せません。よろしいですか？",
+  "photoMissingDataRefreshTryAgain": "この写真のデータが不完全です。更新してからお試しください。",
+  "enterPrice": "価格を入力してください",
+  "priceMustGreaterThan0": "価格は 0 より大きい必要があります",
+  "priceCannotExceed999999": "価格は 999,999 以下にしてください",
+  "chooseLockerLocation": "保管場所を選んでください",
+  "missingTheseThreeRequired": "不足しています：{p0}。この 3 枚は必須です。",
+  "@missingTheseThreeRequired": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "bookUpdated": "書籍を更新しました",
+  "editBook": "書籍を編集",
+  "condition": "状態",
+  "customPrice": "価格を指定",
+  "enterPrice2": "販売価格を入力",
+  "lockerLocation": "保管場所",
+  "chooseLocker": "ロッカーを選択",
+  "bookPhotos": "書籍の写真",
+  "morePhotos": "追加の写真",
+  "add": "追加",
+  "enterTitle": "タイトルを入力してください",
+  "titleLimited255Characters": "タイトルは 255 文字までです",
+  "isbn1013Digits": "ISBN は 10 桁または 13 桁です",
+  "chooseCategory": "カテゴリーを選んでください",
+  "k1013Digits": "10 桁または 13 桁",
+  "title": "タイトル",
+  "required": "必須",
+  "author2": "著者",
+  "optional": "任意",
+  "publisher2": "出版社",
+  "publicationDate": "発行日",
+  "tapPickPublicationDate": "タップして発行日を選択",
+  "pickPublicationDate": "発行日を選択",
+  "pickCategory": "カテゴリーを選択",
+  "next": "次へ",
+  "uploading": "アップロード中…",
+  "profilePhotoUpdated": "プロフィール写真を更新しました",
+  "couldNotUploadPhoto": "プロフィール写真をアップロードできませんでした",
+  "changeDisplayName": "表示名を変更",
+  "enterDisplayName": "表示名を入力してください",
+  "displayNameCannotBlank": "表示名は空にできません",
+  "displayNames250Characters": "表示名は 2〜50 文字で入力してください",
+  "invalidPhoneNumberEG0912345678": "電話番号の形式が正しくありません。例：0912345678",
+  "profileUpdated": "プロフィールを更新しました",
+  "editProfile": "プロフィールを編集",
+  "bio": "自己紹介",
+  "tellPeopleAboutYourself": "自己紹介を書いてみましょう",
+  "email": "メールアドレス",
+  "emailCannotChanged": "メールアドレスは変更できません",
+  "dateBirth": "生年月日",
+  "tapPickDateBirth": "タップして生年月日を選択",
+  "pickDateBirth": "生年月日を選択",
+  "savedBooks": "保存した本",
+  "notSavedAnyBooksYet": "まだ本を保存していません",
+  "helpCentre": "ヘルプセンター",
+  "searchQuestions": "質問を検索",
+  "noQuestionsYet": "よくある質問はまだありません",
+  "noMatchingQuestions": "該当する質問がありません",
+  "newest": "新着順",
+  "popular": "人気順",
+  "priceLowHigh": "価格の安い順",
+  "priceHighLow": "価格の高い順",
+  "reachedEnd": "これ以上はありません",
+  "guest": "ゲスト",
+  "hi": "こんにちは、{p0} さん",
+  "@hi": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBooksMatchFilters": "条件に合う書籍がありません",
+  "couldNotReadPhoto": "この写真を読み込めませんでした",
+  "croppingFailedPleaseTryAgain": "トリミングに失敗しました。もう一度お試しください。",
+  "adjustPhoto": "写真を調整",
+  "reset": "リセット",
+  "usePhoto": "この写真を使う",
+  "documentNotBeenCreatedYet": "この文書はまだ作成されていません",
+  "lastUpdated": "最終更新：{p0}",
+  "@lastUpdated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "biometrics": "生体認証",
+  "sessionExpiredPleaseEnterPasswordAgain": "ログイン情報の有効期限が切れました。パスワードを再入力してください。",
+  "turnSign": "{p0} でのログインを有効にしますか？",
+  "@turnSign": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nextTimeOpenAppCanUnlock": "次回アプリを開くときは、パスワードの代わりに {p0} で解除できます。",
+  "@nextTimeOpenAppCanUnlock": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "notNow": "後で",
+  "enterEmail": "メールアドレスを入力してください",
+  "emailAddressNotValid": "メールアドレスの形式が正しくありません",
+  "enterPassword": "パスワードを入力してください",
+  "noAccountWithEmail": "このアカウントは登録されていません",
+  "noAccountCreateOneNow": "「{p0}」のアカウントが見つかりません。今すぐ作成しますか？",
+  "@noAccountCreateOneNow": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signUp": "新規登録へ",
+  "tryAgain": "入力し直す",
+  "sign": "ログイン",
+  "signWith": "{p0} でログイン",
+  "@signWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noAccountYetSignUp": "アカウントをお持ちでないですか？新規登録",
+  "membershipTiersNotSetUpYet": "会員ランクはまだ設定されていません",
+  "currentTier": "現在のランク",
+  "unlocked": "解除済み",
+  "locked": "未解除",
+  "aboveTier": "このランクは達成済みです",
+  "reachedTopTier": "最高ランクに到達しています",
+  "unlocked2": "「{p0}」を達成しました",
+  "@unlocked2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "morePointsUnlock": "あと {p0} ポイントで「{p1}」を達成",
+  "@morePointsUnlock": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "benefits": "{p0} の特典",
+  "@benefits": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBenefitsBeenDescribedTierYet": "このランクの特典はまだ設定されていません。",
+  "pointsFromCompletedOrders": "{p1} 件の取引で {p0} ポイント",
+  "@pointsFromCompletedOrders": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noNotificationsClear": "消去する通知はありません",
+  "clearAllNotifications": "すべての通知を消去",
+  "notificationsDeletedCannotUndone": "通知 {p0} 件を削除します。元に戻せません。",
+  "@notificationsDeletedCannotUndone": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "clearAll": "すべて消去",
+  "allNotificationsCleared": "すべての通知を消去しました",
+  "couldNotClearPleaseTryAgain": "消去に失敗しました。しばらくしてからお試しください。",
+  "noUnreadNotifications": "未読の通知はありません",
+  "markAllUnreadNotificationsAsRead": "未読の通知 {p0} 件をすべて既読にしますか？元に戻せません。",
+  "@markAllUnreadNotificationsAsRead": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "openChat": "チャットを開く",
+  "viewOrder": "注文を見る",
+  "openMyBooks": "書籍管理を開く",
+  "notifications": "通知",
+  "noNotifications": "通知はありません",
+  "copied": "{p0} をコピーしました",
+  "@copied": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderDetails": "注文の詳細",
+  "order": "注文番号 {p0}",
+  "@order": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderProgress": "注文の進捗",
+  "items2": "商品明細（{p0}）",
+  "@items2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderNoItemDetails": "この注文には商品情報がありません。",
+  "msg4": "単価 {p0} × {p1}",
+  "@msg4": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "orderTotal": "注文金額",
+  "pickupDetails": "受け取り情報",
+  "notAssigned": "未指定",
+  "slot": "ロッカー番号",
+  "notAssignedYet": "まだ割り当てられていません",
+  "pickupCode": "受け取りコード",
+  "transaction": "取引情報",
+  "buyer": "購入者",
+  "seller": "出品者",
+  "placed": "注文日時",
+  "dispute2": "異議申立",
+  "orderOpenDispute": "この注文には進行中の異議申立があります",
+  "cancelOrder": "注文をキャンセル",
+  "pendingPayoutDisappearsBuyerNotified": "保留中の収益は取り消され、購入者にも通知されます。",
+  "cancelledBySeller": "出品者によるキャンセル",
+  "orderCancelled2": "注文をキャンセルしました",
+  "pendingPayouts": "保留中の収益",
+  "noPendingPayouts": "保留中の収益はありません",
+  "pendingAmount": "保留中の金額",
+  "coinsArriveOnceBuyerCollectsBook": "購入者が受け取ると自動的にコインが入金されます",
+  "scanned": "スキャン完了",
+  "scanAgain": "もう一度スキャン",
+  "collectBook": "本を受け取る",
+  "pointPickupQrCode": "受け取り用 QR コードに合わせてください",
+  "holdSteady": "手ぶれにご注意ください",
+  "bookCollected": "受け取り完了",
+  "thanksUsingSavemybookHappyReading": "ご利用ありがとうございます。よい読書を！",
+  "collected": "「{p0}」を受け取りました",
+  "@collected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "order2": "注文番号：{p0}",
+  "@order2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signingOut": "ログアウト中…",
+  "myAccount": "マイページ",
+  "personNotWrittenBioYet": "まだ自己紹介がありません",
+  "topTierReached": "最高ランク達成",
+  "morePointsReach": "あと {p0} ポイントで「{p1}」へ",
+  "@morePointsReach": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "myCoins": "マイコイン",
+  "shareProfile": "プロフィールを共有",
+  "purchases": "購入履歴",
+  "sales": "販売履歴",
+  "settings": "設定",
+  "signOut2": "ログアウトしますか？",
+  "needSignAgainKeepUsingApp": "再度ご利用いただくにはログインが必要です。",
+  "cancelOrderBookReturnsShop": "注文 {p0} をキャンセルしますか？本は再びショップに並びます。",
+  "@cancelOrderBookReturnsShop": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickupCode2": "受け取りコード",
+  "notGeneratedYet": "まだ発行されていません",
+  "enterCodeLockerCollect": "ロッカーでこのコードを入力して受け取ってください",
+  "enterCodeCollect": "「{p0}」でこのコードを入力して受け取ってください",
+  "@enterCodeCollect": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iCollected": "受け取りました",
+  "noOrdersTab": "このタブに注文はありません",
+  "openDispute": "異議を申し立てる",
+  "displayNameNeedsLeast2Characters": "表示名は 2 文字以上必要です",
+  "displayNameLimited50Characters": "表示名は 50 文字までです",
+  "enterPasswordAgain": "パスワードをもう一度入力してください",
+  "passwordsDoNotMatch2": "入力されたパスワードが一致しません",
+  "pleaseReadAcceptTermsServicePrivacy": "利用規約とプライバシーポリシーをお読みのうえ同意してください",
+  "accountCreatedSignWith": "アカウントを作成しました。ログインしてください。",
+  "iReadAccept": "同意します：",
+  "and": " と ",
+  "createAccount": "アカウントを作成",
+  "joinSavemybook": "SaveMyBook に登録",
+  "signUpBuySellUseSmart": "登録すると本の売買とスマートロッカーが使えます",
+  "displayName": "表示名",
+  "nameOthersSee": "他の人に表示される名前",
+  "emailSignWith": "ログインに使うメールアドレス",
+  "least8CharactersWithLettersNumbers": "8 文字以上、英字と数字を含む",
+  "confirmPassword": "パスワード（確認）",
+  "enterPasswordAgain2": "パスワードをもう一度",
+  "alreadyAccountGoBackSign": "すでにアカウントをお持ちですか？戻ってログイン",
+  "markAsDroppedOff": "預け入れ完了",
+  "droppedOff": "預け入れ済み",
+  "markedAsDroppedOff": "預け入れ完了にしました",
+  "buyerNotifiedBookReturnsShop": "購入者に通知され、本は再びショップに並びます。",
+  "dropOffPickupCode": "預け入れ・受け取りコード",
+  "enterCodeLocker": "ロッカーでこのコードを入力してください",
+  "noRecentSearches": "検索履歴はありません",
+  "recentSearches": "最近の検索",
+  "clearAll2": "すべて消去",
+  "searchTitleAuthorIsbn": "タイトル・著者・ISBN で検索…",
+  "photoLimitReached": "写真の上限です",
+  "canUploadUp10Photos": "アップロードできる写真は 10 枚までです。",
+  "photosMissing": "写真が足りません",
+  "missingTheseThreeRequired2": "不足しています：{p0}。この 3 枚は必須です。",
+  "@missingTheseThreeRequired2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "missingInformation": "入力が不足しています",
+  "enterOwnPrice": "価格を入力してください。",
+  "invalidPrice": "価格が正しくありません",
+  "priceMustGreaterThan02": "価格は 0 より大きくしてください。",
+  "priceCannotExceed99999": "価格は 99,999 以下にしてください。",
+  "chooseLockerLocation2": "保管場所を選んでください。",
+  "listed2": "出品しました！",
+  "unknownError": "不明なエラー",
+  "couldNotListBook": "出品に失敗しました",
+  "serverError": "サーバーエラー：{p0}",
+  "@serverError": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionProblem": "接続エラー",
+  "couldNotReachServerUploadTimed": "サーバーに接続できないか、アップロードがタイムアウトしました。通信状況をご確認ください。",
+  "listBook": "出品を確定",
+  "detailsPhotos": "詳細と写真",
+  "loading": "読み込み中...",
+  "unknownLocker": "不明なロッカー",
+  "enterTitle2": "タイトルを入力してください",
+  "chooseCategory2": "カテゴリーを選んでください",
+  "bookDetailsFilledAutomatically": "書籍情報を自動入力しました。",
+  "bookDetailsFilledFromBackupSource": "予備のデータベースから書籍情報を取得しました。",
+  "noSourceIsbnPleaseEnterDetails": "どのデータベースにもこの ISBN が見つかりません。手動で入力してください。",
+  "yearMonth": "[年月]",
+  "day": "日",
+  "tapIconRightScan": "右のアイコンをタップしてスキャン",
+  "description": "書籍の紹介",
+  "sellBook": "本を売る",
+  "myShop": "マイショップ",
+  "sellerNoBooksSale": "この出品者に販売中の本はありません",
+  "loading2": "読み込み中…",
+  "sale2": "販売中 {p0} 冊",
+  "@sale2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "verifyEnableQuickSign": "クイックログインを有効にするため認証します",
+  "sign2": "{p0} でのログインを有効にしました",
+  "@sign2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "quickSignTurnedOff": "クイックログインをオフにしました",
+  "appearance2": "表示設定",
+  "signMethod": "ログイン方法",
+  "helpSupport": "ヘルプとサポート",
+  "contactUs": "お問い合わせ",
+  "aboutSavemybook": "SaveMyBook について",
+  "settingsPrivacy": "設定とプライバシー",
+  "sign3": "{p0} でログイン",
+  "@sign3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unlockWithWhenOpenApp": "アプリを開くときに {p0} で解除",
+  "@unlockWithWhenOpenApp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "scanProfileQrCode": "プロフィール QR コードをスキャン",
+  "lineUpTheirQrCodeWith": "相手の QR コードを枠に合わせてください",
+  "notSavemybookProfileQrCode": "これは SaveMyBook のプロフィール QR コードではありません",
+  "ownQrCode": "これはご自身の QR コードです",
+  "couldNotStartChatPleaseTry": "チャットを開始できませんでした。しばらくしてからお試しください。",
+  "linkCopied": "リンクをコピーしました",
+  "addMeSavemybook": "SaveMyBook で私を追加：{p0}",
+  "@addMeSavemybook": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addMeSavemybook2": "SaveMyBook で私を追加（{p0}）：{p1}",
+  "@addMeSavemybook2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sharingCouldNotOpenSoLink": "共有を開けなかったため、リンクをコピーしました",
+  "savedPhotos": "写真に保存しました",
+  "couldNotSaveCheckPhotoLibrary": "保存できませんでした。写真へのアクセス許可をご確認ください。",
+  "scanTheirQrCode": "相手の QR コードをスキャン",
+  "copyLink": "リンクをコピー",
+  "askQuestion": "問い合わせる",
+  "noEnquiriesYet": "お問い合わせ履歴はありません",
+  "enterSubject": "件名を入力してください",
+  "addMoreDetailSoSupportCan": "サポートが判断できるようもう少し詳しくご記入ください",
+  "sentSupportReplySoon": "送信しました。サポートよりご返信します。",
+  "subject": "件名",
+  "sumUpOneLine": "一言で問題を教えてください",
+  "whatHappenedIncludeOrderNumberIf": "何が起きましたか？注文番号があればご記入ください。",
+  "close": "クローズ",
+  "notAbleReplyAfterClosing": "クローズすると返信できなくなります。",
+  "enquiryClosed": "お問い合わせをクローズしました",
+  "changeStatus": "ステータスを変更",
+  "statusUpdated": "ステータスを更新しました",
+  "enquiry": "お問い合わせ",
+  "enquiryNotFound": "お問い合わせが見つかりません",
+  "support": "サポート",
+  "writeReply": "返信を入力…",
+  "coins": "コイン",
+  "transactions": "取引履歴",
+  "noTransactionsYet": "取引履歴はありません",
+  "balance": "現在の残高",
+  "hold": "保留中 {p0}",
+  "@hold": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requestFailed2": "リクエストに失敗しました（{p0}）",
+  "@requestFailed2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "couldNotReachServer": "サーバーに接続できません",
+  "couldNotReachServerCheckConnection": "サーバーに接続できません。通信状況をご確認ください。",
+  "signFailed": "ログインに失敗しました",
+  "signFailedPleaseTryAgain": "ログインに失敗しました。しばらくしてからお試しください。",
+  "signUpFailed": "登録に失敗しました",
+  "pleaseSignFirst": "ログインしてください",
+  "couldNotRelist": "再出品に失敗しました",
+  "couldNotRemoveFromSaved": "保存を解除できませんでした",
+  "couldNotSave": "保存できませんでした",
+  "couldNotAddCart": "カートに追加できませんでした",
+  "checkoutFailed": "お会計に失敗しました",
+  "couldNotCancelOrder": "注文をキャンセルできませんでした",
+  "couldNotUpdateOrder": "注文状況を更新できませんでした",
+  "couldNotSubmitDispute": "異議を申し立てられませんでした",
+  "couldNotSubmitReport": "報告を送信できませんでした",
+  "updateFailed2": "更新に失敗しました",
+  "couldNotChangePassword": "パスワードを変更できませんでした",
+  "requestFailed": "申請に失敗しました",
+  "couldNotCancel": "キャンセルできませんでした",
+  "couldNotDelete": "削除できませんでした",
+  "couldNotComplete": "実行できませんでした",
+  "couldNotSaveAnnouncement": "お知らせを保存できませんでした",
+  "couldNotSend": "送信できませんでした",
+  "actionFailed": "処理に失敗しました",
+  "couldNotSave2": "保存できませんでした",
+  "documentUpdated": "文書を更新しました",
+  "couldNotAdjust": "調整できませんでした",
+  "couldNotProcessReport": "報告を処理できませんでした",
+  "couldNotRecordDecision": "裁定を保存できませんでした",
+  "couldNotReorder": "並べ替えに失敗しました",
+  "couldNotSaveLocker": "ロッカーを保存できませんでした",
+  "fingerprint": "指紋",
+  "iris": "虹彩",
+  "verifyIdentityContinue": "続けるには認証してください",
+  "msg": "繁體中文",
+  "msg2": "日本語",
+  "msg3": "简体中文",
+  "couldNotOpenPhotosCheckPermission": "写真を開けませんでした。アクセス許可をご確認ください。",
+  "choosePhotoSource": "写真の取得方法を選択",
+  "takePhoto": "写真を撮る",
+  "chooseFromPhotos": "写真から選ぶ",
+  "couldNotOpenCameraCheckPermission": "カメラを開けませんでした。アクセス許可をご確認ください。",
+  "justNow": "たった今",
+  "minAgo": "{p0} 分前",
+  "@minAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "hAgo": "{p0} 時間前",
+  "@hAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dAgo": "{p0} 日前",
+  "@dAgo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickDate": "日付を選択してください",
+  "pickDate2": "日付を選択",
+  "msg5": "{p0} 年 {p1} 月 {p2} 日",
+  "@msg5": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "passwordsNeedLeast8Characters": "パスワードは 8 文字以上必要です",
+  "passwordsMustIncludeLetter": "パスワードに英字を含めてください",
+  "passwordsMustIncludeNumber": "パスワードに数字を含めてください",
+  "seller2": "出品者：",
+  "home": "ホーム",
+  "alerts": "通知",
+  "collect": "受け取り",
+  "couldNotLoadPhoto": "この写真を読み込めませんでした",
+  "slot2": "ロッカー番号：{p0}",
+  "@slot2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmPutLocker": "「{p0}」をロッカーに預け入れましたか？",
+  "@confirmPutLocker": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

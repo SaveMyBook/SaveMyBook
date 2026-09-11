@@ -11,6 +11,7 @@ import '../widgets/app_forms.dart';
 import '../widgets/state_views.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
+import '../i18n/strings.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _canUseBiometric = false;
-  String _biometricLabel = '生物辨識';
+  String _biometricLabel = S.biometrics;
   String? _emailError;
   String? _passwordError;
 
@@ -64,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _biometricLogin() async {
     if (_isLoading) return;
 
-    final ok = await BiometricService.authenticate(reason: '驗證身分以登入 SaveMyBook');
+    final ok = await BiometricService.authenticate(reason: S.verifySignSavemybook);
     if (!ok || !mounted) return;
 
     setState(() => _isLoading = true);
@@ -77,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = false;
         _canUseBiometric = false;
       });
-      showAppSnackBar(context, '登入資訊已失效，請重新輸入密碼', isError: true);
+      showAppSnackBar(context, S.sessionExpiredPleaseEnterPasswordAgain, isError: true);
       return;
     }
 
@@ -88,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (ApiService.currentUser == null) {
       setState(() => _canUseBiometric = false);
-      showAppSnackBar(context, '登入資訊已失效，請重新輸入密碼', isError: true);
+      showAppSnackBar(context, S.sessionExpiredPleaseEnterPasswordAgain, isError: true);
       return;
     }
 
@@ -107,10 +108,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final ok = await showConfirmDialog(
       context,
-      title: '啟用 $label 登入？',
-      message: '下次開啟 App 就能直接用 $label 解鎖，不用再輸入密碼。',
-      confirmLabel: '啟用',
-      cancelLabel: '暫時不要',
+      title: S.turnSign(label),
+      message: S.nextTimeOpenAppCanUnlock(label),
+      confirmLabel: S.enable,
+      cancelLabel: S.notNow,
     );
     if (ok) await BiometricService.setEnabled(true);
   }
@@ -123,13 +124,13 @@ class _LoginScreenState extends State<LoginScreen> {
     String? passwordError;
 
     if (email.isEmpty) {
-      emailError = '請輸入 Email';
+      emailError = S.enterEmail;
     } else if (!Validators.isEmail(email)) {
-      emailError = 'Email 格式不正確';
+      emailError = S.emailAddressNotValid;
     }
 
     if (password.isEmpty) {
-      passwordError = '請輸入密碼';
+      passwordError = S.enterPassword;
     }
 
     setState(() {
@@ -174,10 +175,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final confirmed = await showConfirmDialog(
       context,
-      title: '此帳號尚未註冊',
-      message: '找不到「$email」這個帳號。要現在建立一個嗎？',
-      confirmLabel: '前往註冊',
-      cancelLabel: '重新輸入',
+      title: S.noAccountWithEmail,
+      message: S.noAccountCreateOneNow(email),
+      confirmLabel: S.signUp,
+      cancelLabel: S.tryAgain,
     );
 
     if (!confirmed || !mounted) return;
@@ -271,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         index: 3,
                         child: AppTextField(
                           controller: _passwordController,
-                          hint: '密碼',
+                          hint: S.password,
                           errorText: _passwordError,
                           obscureText: _obscurePassword,
                           maxLength: 64,
@@ -296,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       FadeSlideIn(
                         index: 4,
                         child: PrimaryButton(
-                          label: '登入',
+                          label: S.sign,
                           height: 50,
                           isLoading: _isLoading,
                           onPressed: _handleLogin,
@@ -307,7 +308,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         FadeSlideIn(
                           index: 5,
                           child: SecondaryButton(
-                            label: '使用 $_biometricLabel 登入',
+                            label: S.signWith(_biometricLabel),
                             iconBuilder: _biometricLabel == 'Face ID'
                                 ? (color) => FaceIdIcon(size: 19, color: color)
                                 : null,
@@ -338,7 +339,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _emailController.text = registeredEmail;
                                   }
                                 },
-                          child: Text('還沒有帳號？立即註冊', style: TextStyle(color: c.accent)),
+                          child: Text(S.noAccountYetSignUp, style: TextStyle(color: c.accent)),
                         ),
                       ),
                       SizedBox(height: keyboardOpen ? 16 : 0),

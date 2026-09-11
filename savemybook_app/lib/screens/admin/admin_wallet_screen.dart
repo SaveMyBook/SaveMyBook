@@ -10,6 +10,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/motion.dart';
+import '../../i18n/strings.dart';
 
 class AdminWalletScreen extends StatefulWidget {
   const AdminWalletScreen({super.key});
@@ -151,7 +152,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                   color: c.accent,
                 ),
               ),
-              Text('代幣', style: TextStyle(fontSize: 10, color: c.textHint)),
+              Text(S.faqCatWallet, style: TextStyle(fontSize: 10, color: c.textHint)),
             ],
           ),
           Icon(Icons.chevron_right_rounded, color: c.iconInactive),
@@ -271,7 +272,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
       title: isAdd ? '確認增加代幣' : '確認扣除代幣',
       message: '將為 ${_detail?.wallet.nickname ?? '這位會員'} '
           '${isAdd ? '增加' : '扣除'} ${raw.toStringAsFixed(0)} 代幣。\n原因：$reason',
-      confirmLabel: '確認',
+      confirmLabel: S.confirm,
       isDestructive: !isAdd,
     );
     if (!confirmed || !mounted) return;

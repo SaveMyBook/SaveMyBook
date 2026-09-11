@@ -13,6 +13,7 @@ import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import '../utils/app_labels.dart';
+import '../i18n/strings.dart';
 
 class EditBookDetailScreen extends StatefulWidget {
   final Book book;
@@ -148,7 +149,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       final ok = await _api.deleteBookImage(widget.book.bookId, old.imageId);
       if (!mounted) return;
       if (!ok) {
-        showAppSnackBar(context, '無法替換原本的照片，請稍後再試', isError: true);
+        showAppSnackBar(context, S.couldNotReplacePhotoPleaseTry, isError: true);
         return;
       }
     }
@@ -161,7 +162,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
 
   Future<void> _clearSlot(int slot) async {
     if (_totalImages <= 1) {
-      showAppSnackBar(context, '至少要保留一張照片', isError: true);
+      showAppSnackBar(context, S.keepLeastOnePhoto, isError: true);
       return;
     }
 
@@ -178,16 +179,16 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
 
     if (ok == true) {
       setState(() => _slotExisting[slot] = null);
-      showAppSnackBar(context, '已刪除照片');
+      showAppSnackBar(context, S.photoDeleted);
     } else {
-      showAppSnackBar(context, '刪除圖片失敗，請稍後再試', isError: true);
+      showAppSnackBar(context, S.couldNotDeletePhotoPleaseTry, isError: true);
     }
   }
 
   Future<void> _addExtraImages() async {
     final remaining = 10 - _totalImages;
     if (remaining <= 0) {
-      showAppSnackBar(context, '最多只能有 10 張照片', isError: true);
+      showAppSnackBar(context, S.canUp10Photos, isError: true);
       return;
     }
 
@@ -204,19 +205,19 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
 
   Future<bool> _confirmDelete() => showConfirmDialog(
         context,
-        title: '刪除照片',
-        message: '刪除後無法復原，確定嗎？',
-        confirmLabel: '刪除',
+        title: S.deletePhoto,
+        message: S.cannotUndoneContinue,
+        confirmLabel: S.actionDelete,
         isDestructive: true,
       );
 
   Future<void> _removeExtraExisting(BookImage image) async {
     if (_totalImages <= 1) {
-      showAppSnackBar(context, '至少要保留一張照片', isError: true);
+      showAppSnackBar(context, S.keepLeastOnePhoto, isError: true);
       return;
     }
     if (image.imageId == 0) {
-      showAppSnackBar(context, '這張照片的資料不完整，請重新整理後再試', isError: true);
+      showAppSnackBar(context, S.photoMissingDataRefreshTryAgain, isError: true);
       return;
     }
     if (!await _confirmDelete() || !mounted) return;
@@ -226,9 +227,9 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
 
     if (ok == true) {
       setState(() => _extraExisting.removeWhere((e) => e.imageId == image.imageId));
-      showAppSnackBar(context, '已刪除照片');
+      showAppSnackBar(context, S.photoDeleted);
     } else {
-      showAppSnackBar(context, '刪除圖片失敗，請稍後再試', isError: true);
+      showAppSnackBar(context, S.couldNotDeletePhotoPleaseTry, isError: true);
     }
   }
 
@@ -237,19 +238,19 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
 
     final price = double.tryParse(_priceController.text.trim());
     if (price == null) {
-      showAppSnackBar(context, '請填寫價格', isError: true);
+      showAppSnackBar(context, S.enterPrice, isError: true);
       return;
     }
     if (price <= 0) {
-      showAppSnackBar(context, '價格必須大於 0', isError: true);
+      showAppSnackBar(context, S.priceMustGreaterThan0, isError: true);
       return;
     }
     if (price > 999999) {
-      showAppSnackBar(context, '價格不可超過 999,999', isError: true);
+      showAppSnackBar(context, S.priceCannotExceed999999, isError: true);
       return;
     }
     if (_cabinetId == null) {
-      showAppSnackBar(context, '請選擇存放區域', isError: true);
+      showAppSnackBar(context, S.chooseLockerLocation, isError: true);
       return;
     }
     if (_filledRequired < _requiredLabels.length) {
@@ -257,7 +258,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
         for (var i = 0; i < _requiredLabels.length; i++)
           if (_slotExisting[i] == null && _slotNew[i] == null) _requiredLabels[i],
       ].join('、');
-      showAppSnackBar(context, '還缺少：$missing，這三張是必填的', isError: true);
+      showAppSnackBar(context, S.missingTheseThreeRequired(missing), isError: true);
       return;
     }
 
@@ -288,7 +289,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
     setState(() => _isSaving = false);
 
     if (ok) {
-      showAppSnackBar(context, '書籍已更新');
+      showAppSnackBar(context, S.bookUpdated);
 
       final navigator = Navigator.of(context);
       navigator.pop();
@@ -306,7 +307,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '編輯書籍', icon: Icons.edit_note_rounded),
+          AppHeader(title: S.editBook, icon: Icons.edit_note_rounded),
           Expanded(
             child: SwitchIn(child: _isLoading
                 ? const LoadingView()
@@ -320,7 +321,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                         const SizedBox(height: 16),
                         _buildRowCard(
                           c,
-                          '書況',
+                          S.condition,
                           DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               value: _condition,
@@ -336,10 +337,10 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                         ),
                         _buildRowCard(
                           c,
-                          '自訂價格',
+                          S.customPrice,
                           AppTextField(
                             controller: _priceController,
-                            hint: '請輸入售價',
+                            hint: S.enterPrice2,
                             keyboardType: TextInputType.number,
                             prefixText: '\$ ',
                             maxLength: 6,
@@ -347,12 +348,12 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                         ),
                         _buildRowCard(
                           c,
-                          '存放區域',
+                          S.lockerLocation,
                           DropdownButtonHideUnderline(
                             child: DropdownButton<int>(
                               value: _cabinetId,
                               isExpanded: true,
-                              hint: Text('請選擇書櫃', style: TextStyle(color: c.textHint, fontSize: 14)),
+                              hint: Text(S.chooseLocker, style: TextStyle(color: c.textHint, fontSize: 14)),
                               dropdownColor: c.card,
                               style: TextStyle(color: c.textPrimary, fontSize: 14),
                               items: _cabinets
@@ -386,7 +387,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                                     height: 20,
                                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                   )
-                                : const Text('儲存變更',
+                                : Text(S.saveChanges,
                                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                         ),
@@ -411,7 +412,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
             children: [
               Text.rich(
                 TextSpan(
-                  text: '書籍照片',
+                  text: S.bookPhotos,
                   children: [
                     TextSpan(
                       text: ' *',
@@ -451,7 +452,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                     padding: const EdgeInsets.only(right: 12),
                     child: _buildImageTile(
                       c,
-                      label: '補充照片',
+                      label: S.morePhotos,
                       isRequired: false,
                       onRemove: () => _removeExtraExisting(image),
                       image: AppNetworkImage(
@@ -466,7 +467,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                     padding: const EdgeInsets.only(right: 12),
                     child: _buildImageTile(
                       c,
-                      label: '補充照片',
+                      label: S.morePhotos,
                       isRequired: false,
                       onRemove: () => setState(() => _extraNew.remove(file)),
                       image: Image.file(File(file.path), fit: BoxFit.cover),
@@ -475,7 +476,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                 if (canAddMore)
                   Padding(
                     padding: const EdgeInsets.only(right: 12),
-                    child: _buildAddButton(c, '補充照片', _addExtraImages),
+                    child: _buildAddButton(c, S.morePhotos, _addExtraImages),
                   ),
               ],
             ),
@@ -594,7 +595,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                   Icon(Icons.add_photo_alternate_outlined, color: c.accent, size: 28),
                   const SizedBox(height: 4),
                   Text(
-                    '加入',
+                    S.add,
                     style: TextStyle(color: c.accent, fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ],

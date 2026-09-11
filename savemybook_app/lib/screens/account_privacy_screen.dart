@@ -13,6 +13,7 @@ import '../widgets/app_header.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/state_views.dart';
 import 'login_screen.dart';
+import '../i18n/strings.dart';
 
 class AccountPrivacyScreen extends StatefulWidget {
   const AccountPrivacyScreen({super.key});
@@ -45,7 +46,7 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
   }
 
   Future<void> _export() async {
-    final json = await runBusy(context, () => _api.exportMyData(), message: '正在整理您的資料');
+    final json = await runBusy(context, () => _api.exportMyData(), message: S.preparingData);
     if (!mounted) return;
     if (json == null) {
       showAppSnackBar(context, AppLabels.loadFailed, isError: true);
@@ -57,17 +58,17 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
     await File(path).writeAsString(json);
     if (!mounted) return;
 
-    final ok = await ShareService.shareFile(path, subject: '我的 SaveMyBook 資料');
+    final ok = await ShareService.shareFile(path, subject: S.mySavemybookData);
     if (!mounted) return;
-    showAppSnackBar(context, ok ? '已匯出，請選擇儲存位置' : '匯出完成，但無法開啟分享');
+    showAppSnackBar(context, ok ? S.exportedChooseWhereSave : S.exportedButSharingCouldNotOpen);
   }
 
   Future<void> _rotateShareLink() async {
     final confirmed = await showConfirmDialog(
       context,
-      title: '重新產生分享連結',
-      message: '舊的連結與 QR Code 會立即失效，已經分享出去的人將無法再開啟。確定要重新產生嗎？',
-      confirmLabel: '重新產生',
+      title: S.regenerateShareLink,
+      message: S.oldLinkQrCodeStopWorking,
+      confirmLabel: S.regenerate,
       icon: Icons.link_off_rounded,
     );
     if (!confirmed || !mounted) return;
@@ -76,7 +77,7 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
     if (!mounted) return;
     showAppSnackBar(
       context,
-      url == null ? AppLabels.updateFailed : '已產生新連結，舊連結已失效',
+      url == null ? AppLabels.updateFailed : S.newLinkCreatedOldOneNo,
       isError: url == null,
     );
   }
@@ -84,11 +85,11 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
   Future<void> _requestDeletion() async {
     final confirmed = await showConfirmDialog(
       context,
-      title: '刪除帳號',
-      message: '帳號將在 30 天後永久停用，期間內重新登入即可取消。\n\n'
-          '停用後個人資料會被清除，但已完成的訂單與交易紀錄會保留，'
-          '交易對象的紀錄才不會出現缺漏。',
-      confirmLabel: '繼續',
+      title: S.deleteAccount,
+      message: S.accountPermanentlyDisabled30DaysSign
+          S.personalDataErasedButCompletedOrders
+          S.peopleTradedWithDoNotLose,
+      confirmLabel: S.continue,
       isDestructive: true,
       icon: Icons.person_remove_rounded,
     );
@@ -96,11 +97,11 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
 
     final password = await showTextInputDialog(
       context,
-      title: '確認身分',
-      message: '請輸入密碼以確認這是本人的操作。',
-      hint: '密碼',
+      title: S.verify,
+      message: S.enterPasswordConfirm,
+      hint: S.password,
       obscure: true,
-      confirmLabel: '申請刪除',
+      confirmLabel: S.requestDeletion,
       isDestructive: true,
     );
     if (password == null || password.isEmpty || !mounted) return;
@@ -115,7 +116,7 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
 
     await _load();
     if (!mounted) return;
-    showAppSnackBar(context, '已受理，30 天內重新登入即可取消');
+    showAppSnackBar(context, S.receivedSignAgainWithin30Days);
   }
 
   Future<void> _cancelDeletion() async {
@@ -127,7 +128,7 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
     }
     await _load();
     if (!mounted) return;
-    showAppSnackBar(context, '已取消刪除，帳號恢復正常');
+    showAppSnackBar(context, S.deletionCancelledAccountActiveAgain);
   }
 
   Future<void> _logout() async {
@@ -147,7 +148,7 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '帳號管理', icon: Icons.manage_accounts_outlined),
+          AppHeader(title: S.account, icon: Icons.manage_accounts_outlined),
           Expanded(
             child: SwitchIn(
               child: _isLoading
@@ -156,29 +157,29 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                       children: [
                         Reveal(visible: _pendingDeletion, child: _buildPendingCard(c)),
-                        _buildSection(c, '你的資料', [
+                        _buildSection(c, S.data, [
                           AppMenuItem(
                             icon: Icons.download_rounded,
-                            title: '匯出我的資料',
-                            subtitle: '個人檔案、書籍、訂單與交易紀錄，JSON 格式',
+                            title: S.exportMyData,
+                            subtitle: S.profileBooksOrdersTransactionsJson,
                             onTap: _export,
                           ),
                           AppMenuItem(
                             icon: Icons.link_off_rounded,
-                            title: '重新產生分享連結',
-                            subtitle: '舊的連結與 QR Code 會立即失效',
+                            title: S.regenerateShareLink,
+                            subtitle: S.oldLinkQrCodeStopWorking2,
                             isLast: true,
                             onTap: _rotateShareLink,
                           ),
                         ]),
                         const SizedBox(height: 24),
-                        _buildSection(c, '帳號', [
+                        _buildSection(c, S.faqCatAccount, [
                           AppMenuItem(
                             icon: Icons.person_remove_rounded,
-                            title: _pendingDeletion ? '取消刪除帳號' : '刪除帳號',
+                            title: _pendingDeletion ? S.cancelAccountDeletion : S.deleteAccount,
                             subtitle: _pendingDeletion
-                                ? '恢復帳號，停止刪除倒數'
-                                : '30 天緩衝期內可以反悔',
+                                ? S.restoreAccountStopCountdown
+                                : S.canChangeMindWithin30Days,
                             iconColor: _pendingDeletion ? null : c.danger,
                             isLast: true,
                             onTap: _pendingDeletion ? _cancelDeletion : _requestDeletion,
@@ -217,7 +218,7 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '刪除倒數中',
+                    S.deletionPending,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -226,14 +227,14 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '還有 $days 天。在這之前隨時可以取消，逾期後個人資料將被清除且無法復原。',
+                    S.daysLeftCanCancelAnyTime(days),
                     style: TextStyle(fontSize: 13, height: 1.5, color: c.textSecondary),
                   ),
                   const SizedBox(height: 12),
                   GestureDetector(
                     onTap: _logout,
                     child: Text(
-                      '登出',
+                      S.signOut,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,

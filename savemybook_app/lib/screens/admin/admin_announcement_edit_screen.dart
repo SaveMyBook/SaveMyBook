@@ -6,6 +6,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
+import '../../i18n/strings.dart';
 
 class AdminAnnouncementEditScreen extends StatefulWidget {
   final Announcement? announcement;
@@ -17,10 +18,10 @@ class AdminAnnouncementEditScreen extends StatefulWidget {
 
 class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScreen> {
   static const _types = [
-    (value: 'general', label: '一般公告'),
-    (value: 'maintenance', label: '系統維護'),
-    (value: 'promotion', label: '活動優惠'),
-    (value: 'policy', label: '政策更新'),
+    (value: 'general', label: S.announcement),
+    (value: 'maintenance', label: S.maintenance),
+    (value: 'promotion', label: S.promotions),
+    (value: 'policy', label: S.policyUpdate),
   ];
 
   final ApiService _api = ApiService();
@@ -119,7 +120,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                     child: AppTextField(controller: _titleController, hint: '公告標題', maxLength: 255),
                   ),
                   FormRowCard(
-                    label: '類型',
+                    label: S.type,
                     labelWidth: 60,
                     child: AppDropdownField<String>(
                       value: _type,
@@ -130,7 +131,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                     ),
                   ),
                   FormRowCard(
-                    label: '內容',
+                    label: S.content,
                     labelWidth: 60,
                     alignTop: true,
                     child: AppTextField(

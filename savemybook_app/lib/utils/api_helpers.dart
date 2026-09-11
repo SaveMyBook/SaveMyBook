@@ -40,10 +40,10 @@ String formatDateTime(DateTime? dt) {
 String formatRelative(DateTime? dt) {
   if (dt == null) return '';
   final diff = DateTime.now().difference(dt);
-  if (diff.inMinutes < 1) return '剛剛';
-  if (diff.inMinutes < 60) return '${diff.inMinutes} 分鐘前';
-  if (diff.inHours < 24) return '${diff.inHours} 小時前';
-  if (diff.inDays < 7) return '${diff.inDays} 天前';
+  if (diff.inMinutes < 1) return S.justNow;
+  if (diff.inMinutes < 60) return S.minAgo(diff.inMinutes);
+  if (diff.inHours < 24) return S.hAgo(diff.inHours);
+  if (diff.inDays < 7) return S.dAgo(diff.inDays);
   return formatDate(dt);
 }
 

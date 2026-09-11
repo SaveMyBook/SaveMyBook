@@ -7,6 +7,7 @@ import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/order_card.dart';
 import '../widgets/state_views.dart';
+import '../i18n/strings.dart';
 
 class PendingIncomeScreen extends StatefulWidget {
   const PendingIncomeScreen({super.key});
@@ -40,21 +41,21 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
   Future<void> _cancel(Order order) async {
     final confirmed = await showConfirmDialog(
       context,
-      title: '取消訂單',
-      message: '取消後這筆待定收益會一併消失，買家也會收到通知。',
-      confirmLabel: '取消訂單',
-      cancelLabel: '返回',
+      title: S.cancelOrder,
+      message: S.pendingPayoutDisappearsBuyerNotified,
+      confirmLabel: S.cancelOrder,
+      cancelLabel: S.actionBack,
       isDestructive: true,
     );
     if (!confirmed || !mounted) return;
 
-    final error = await runBusy(context, () => _api.cancelOrder(order.orderId, reason: '賣家取消'));
+    final error = await runBusy(context, () => _api.cancelOrder(order.orderId, reason: S.cancelledBySeller));
     if (!mounted) return;
 
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '訂單已取消');
+      showAppSnackBar(context, S.orderCancelled2);
       _load();
     }
   }
@@ -67,7 +68,7 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '待定收益', icon: Icons.query_stats_rounded),
+          AppHeader(title: S.pendingPayouts, icon: Icons.query_stats_rounded),
           Expanded(
             child: SwitchIn(child: _isLoading
                 ? const LoadingView.list()
@@ -78,10 +79,10 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
                       slivers: [
                         SliverToBoxAdapter(child: _buildTotalCard(c)),
                         if (_orders.isEmpty)
-                          const SliverToBoxAdapter(
+                          SliverToBoxAdapter(
                             child: Padding(
                               padding: EdgeInsets.only(top: 40),
-                              child: EmptyView(icon: Icons.savings_outlined, message: '目前沒有待撥款的訂單'),
+                              child: EmptyView(icon: Icons.savings_outlined, message: S.noPendingPayouts),
                             ),
                           )
                         else
@@ -99,7 +100,7 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
                                   index: i,
                                   child: OrderCard(
                                     order: _orders[i],
-                                    actionLabel: _orders[i].isCancellable ? '取消訂單' : null,
+                                    actionLabel: _orders[i].isCancellable ? S.cancelOrder : null,
                                     onAction: () => _cancel(_orders[i]),
                                   ),
                                 ),
@@ -123,7 +124,7 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
         padding: const EdgeInsets.symmetric(vertical: 22),
         child: Column(
           children: [
-            Text('待定收益金額', style: TextStyle(fontSize: 14, color: c.textSecondary)),
+            Text(S.pendingAmount, style: TextStyle(fontSize: 14, color: c.textSecondary)),
             const SizedBox(height: 12),
             Container(
               width: 64,
@@ -145,7 +146,7 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
               style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: c.textPrimary),
             ),
             const SizedBox(height: 6),
-            Text('買家完成取書後會自動撥入代幣餘額',
+            Text(S.coinsArriveOnceBuyerCollectsBook,
                 style: TextStyle(fontSize: 12, color: c.textHint)),
           ],
         ),

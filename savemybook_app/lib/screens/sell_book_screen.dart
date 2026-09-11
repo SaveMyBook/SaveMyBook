@@ -7,6 +7,7 @@ import '../utils/app_colors.dart';
 import '../widgets/app_forms.dart';
 import 'barcode_scanner_screen.dart';
 import 'sell_book_detail_screen.dart';
+import '../i18n/strings.dart';
 
 class SellBookScreen extends StatefulWidget {
   const SellBookScreen({super.key});
@@ -54,11 +55,11 @@ class _SellBookScreenState extends State<SellBookScreen> {
 
   void _onNext() {
     if (_titleController.text.trim().isEmpty) {
-      _showError('請輸入書名');
+      _showError(S.enterTitle2);
       return;
     }
     if (_selectedCategory == null) {
-      _showError('請選擇分類');
+      _showError(S.chooseCategory2);
       return;
     }
 
@@ -120,7 +121,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
     if (bookData != null) {
       if (mounted) Navigator.pop(context);
       _fillBookData(bookData);
-      _showSuccess('已自動帶入書籍資訊！');
+      _showSuccess(S.bookDetailsFilledAutomatically);
       return;
     }
 
@@ -131,9 +132,9 @@ class _SellBookScreenState extends State<SellBookScreen> {
 
     if (backupData != null) {
       _fillBookData(backupData);
-      _showSuccess('已透過備援系統帶入書籍資訊！');
+      _showSuccess(S.bookDetailsFilledFromBackupSource);
     } else {
-      _showError('各系統皆找不到此 ISBN，請嘗試手動輸入');
+      _showError(S.noSourceIsbnPleaseEnterDetails);
     }
   }
 
@@ -146,7 +147,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
 
       String publishDate = bookData['publish_date'] ?? '';
       if (publishDate.isNotEmpty) {
-        publishDate = publishDate.replaceAll(RegExp(r'[年月]'), '-').replaceAll('日', '');
+        publishDate = publishDate.replaceAll(RegExp(rS.yearMonth), '-').replaceAll(S.day, '');
         final parts = publishDate.split('-');
         if (parts.isNotEmpty) {
           int y = int.tryParse(parts[0]) ?? DateTime.now().year;
@@ -222,7 +223,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
                 style: TextStyle(fontSize: 15, color: c.textPrimary),
                 decoration: InputDecoration(
                   isDense: true,
-                  hintText: '可點擊右側圖示掃描',
+                  hintText: S.tapIconRightScan,
                   hintStyle: TextStyle(color: c.textHint, fontSize: 14),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   filled: true, fillColor: c.inputFill,
@@ -240,21 +241,21 @@ class _SellBookScreenState extends State<SellBookScreen> {
             ),
           ],
         )),
-        _buildFieldRow(c, label: '書名', isRequired: true, child: _buildInput(c, _titleController)),
-        _buildFieldRow(c, label: '作者', child: _buildInput(c, _authorController)),
-        _buildFieldRow(c, label: '出版社', child: _buildInput(c, _publisherController)),
+        _buildFieldRow(c, label: S.title, isRequired: true, child: _buildInput(c, _titleController)),
+        _buildFieldRow(c, label: S.author2, child: _buildInput(c, _authorController)),
+        _buildFieldRow(c, label: S.publisher2, child: _buildInput(c, _publisherController)),
         _buildFieldRow(
           c,
-          label: '出版日期',
+          label: S.publicationDate,
           child: AppDateField(
             value: _selectedDate,
-            hint: '點擊選擇出版日期',
-            helpText: '選擇出版日期',
+            hint: S.tapPickPublicationDate,
+            helpText: S.pickPublicationDate,
             onChanged: (value) => setState(() => _selectedDate = value),
           ),
         ),
-        _buildFieldRow(c, label: '選擇分類', isRequired: true, child: _buildCategoryDropdown(c)),
-        _buildFieldRow(c, label: '書籍簡介', child: _buildInput(c, _descriptionController, maxLines: 4)),
+        _buildFieldRow(c, label: S.pickCategory, isRequired: true, child: _buildCategoryDropdown(c)),
+        _buildFieldRow(c, label: S.description, child: _buildInput(c, _descriptionController, maxLines: 4)),
         const SizedBox(height: 28),
         SizedBox(
           width: double.infinity, height: 50,
@@ -265,7 +266,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
-            child: const Text('下一步', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            child: Text(S.next, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
           ),
         ),
         const SizedBox(height: 16),
@@ -295,13 +296,13 @@ class _SellBookScreenState extends State<SellBookScreen> {
                 )
               else
                 const SizedBox(width: 32),
-              const Expanded(
+              Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.add_box_outlined, color: Colors.white, size: 20),
                     SizedBox(width: 8),
-                    Text('我要賣書', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(S.sellBook, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -385,7 +386,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
             borderRadius: BorderRadius.circular(12),
             style: TextStyle(fontSize: 15, color: c.textPrimary),
             items: _isLoadingCategories
-                ? [DropdownMenuItem<Category>(value: null, child: Text('載入中...', style: TextStyle(color: c.textHint)))]
+                ? [DropdownMenuItem<Category>(value: null, child: Text(S.loading, style: TextStyle(color: c.textHint)))]
                 : _categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat.categoryName))).toList(),
             onChanged: (val) => setState(() => _selectedCategory = val),
           ),

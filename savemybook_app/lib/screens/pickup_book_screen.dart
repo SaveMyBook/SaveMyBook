@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../utils/app_colors.dart';
+import '../i18n/strings.dart';
 
 class PickupBookScreen extends StatefulWidget {
   final bool isActive;
@@ -61,7 +62,7 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
         return AlertDialog(
           backgroundColor: c.card,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text('掃描成功', style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
+          title: Text(S.scanned, style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
           content: Text(value, style: TextStyle(color: c.textSecondary)),
           actions: [
             TextButton(
@@ -69,11 +70,11 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
                 Navigator.pop(ctx);
                 setState(() => _scanned = false);
               },
-              child: const Text('繼續掃描', style: TextStyle(color: AppColors.primary)),
+              child: Text(S.scanAgain, style: TextStyle(color: AppColors.primary)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('確認', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              child: Text(S.confirm, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -101,13 +102,13 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
                 child: Row(
                   children: [
                     const SizedBox(width: 22),
-                    const Expanded(
+                    Expanded(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 20),
                           SizedBox(width: 8),
-                          Text('我要取書', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text(S.collectBook, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -116,9 +117,9 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
                 ),
               ),
               const Spacer(flex: 2),
-              Text('對準取書 QR Code', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.9))),
+              Text(S.pointPickupQrCode, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.9))),
               const SizedBox(height: 8),
-              Text('對準勿搖晃', style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.6))),
+              Text(S.holdSteady, style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.6))),
               const SizedBox(height: 40),
               SizedBox(
                 width: 220, height: 220,

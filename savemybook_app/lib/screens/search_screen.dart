@@ -4,6 +4,7 @@ import '../utils/app_colors.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../i18n/strings.dart';
 
 /// 首頁搜尋框與這裡的搜尋框共用的 Hero tag，讓兩邊接得起來、不會跳一下。
 const String kSearchBarHeroTag = 'home_search_bar';
@@ -85,9 +86,9 @@ class _SearchScreenState extends State<SearchScreen> {
           _buildHeader(c),
           Expanded(
             child: SwitchIn(child: history.isEmpty
-                ? const EmptyView(key: const ValueKey('empty'), 
+                ? EmptyView(key: const ValueKey('empty'), 
                     icon: Icons.manage_search_rounded,
-                    message: '還沒有搜尋紀錄',
+                    message: S.noRecentSearches,
                   )
                 : ListView(key: const ValueKey('items'), 
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
@@ -95,7 +96,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       Row(
                         children: [
                           Text(
-                            '最近搜尋',
+                            S.recentSearches,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -107,7 +108,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             onTap: _clearHistory,
                             behavior: HitTestBehavior.opaque,
                             child: Text(
-                              '清除全部',
+                              S.clearAll2,
                               style: TextStyle(fontSize: 12, color: c.textHint),
                             ),
                           ),
@@ -178,7 +179,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             decoration: InputDecoration(
                               isDense: true,
                               filled: false,
-                              hintText: '搜尋書名、作者、ISBN...',
+                              hintText: S.searchTitleAuthorIsbn,
                               hintStyle: TextStyle(color: c.textHint, fontSize: 15),
                               contentPadding: EdgeInsets.zero,
                               // 四種狀態都要明確關掉，只設 border 的話
@@ -202,8 +203,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: GestureDetector(
                       onTap: () => _submitSearch(_searchController.text),
                       behavior: HitTestBehavior.opaque,
-                      child: const Text(
-                        '搜尋',
+                      child: Text(
+                        S.actionSearch,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,

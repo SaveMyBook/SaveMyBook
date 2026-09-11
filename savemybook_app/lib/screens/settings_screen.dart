@@ -24,7 +24,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _biometricAvailable = false;
-  String _biometricLabel = '生物辨識';
+  String _biometricLabel = S.biometrics;
 
   @override
   void initState() {
@@ -34,7 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _checkBiometric() async {
     final available = await BiometricService.isAvailable();
-    final label = available ? await BiometricService.label() : '生物辨識';
+    final label = available ? await BiometricService.label() : S.biometrics;
     if (!mounted) return;
     setState(() {
       _biometricAvailable = available;
@@ -43,13 +43,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _toggleBiometric(bool value) async {
-    if (value && !await BiometricService.authenticate(reason: '驗證身分以啟用快速登入')) {
+    if (value && !await BiometricService.authenticate(reason: S.verifyEnableQuickSign)) {
       return;
     }
     await BiometricService.setEnabled(value);
     if (!mounted) return;
     setState(() {});
-    showAppSnackBar(context, value ? '已啟用 $_biometricLabel 登入' : '已關閉快速登入');
+    showAppSnackBar(context, value ? S.sign2(_biometricLabel) : S.quickSignTurnedOff);
   }
 
   @override
@@ -60,12 +60,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: c.scaffold,
       appBar: AppBar(
         backgroundColor: c.headerBg,
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.settings_outlined, color: Colors.white, size: 20),
             SizedBox(width: 8),
-            Text('設定', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(S.settings, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
           ],
         ),
         centerTitle: true,
@@ -77,27 +77,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('外觀設定', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
+            Text(S.appearance2, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
             const SizedBox(height: 12),
             _buildDarkModeCard(context, c),
             if (_biometricAvailable) ...[
               const SizedBox(height: 32),
-              Text('登入方式', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
+              Text(S.signMethod, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
               const SizedBox(height: 12),
               _buildBiometricCard(c),
             ],
             const SizedBox(height: 32),
-            Text('關於我們', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
+            Text(S.aboutUs, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
             const SizedBox(height: 12),
             _buildExpandableCard(
               c,
               icon: Icons.help_outline_rounded,
-              title: '說明與支援',
+              title: S.helpSupport,
               children: [
                 _buildSubItem(
                   c,
                   icon: Icons.quiz_outlined,
-                  title: '幫助中心',
+                  title: S.helpCentre,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
@@ -106,7 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildSubItem(
                   c,
                   icon: Icons.support_agent_rounded,
-                  title: '聯絡我們',
+                  title: S.contactUs,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const SupportTicketScreen()),
@@ -115,13 +115,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildSubItem(
                   c,
                   icon: Icons.info_outline_rounded,
-                  title: '關於 SaveMyBook',
+                  title: S.aboutSavemybook,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const LegalDocScreen(
+                      builder: (_) => LegalDocScreen(
                         docKey: 'about',
-                        fallbackTitle: '關於我們',
+                        fallbackTitle: S.aboutUs,
                         icon: Icons.info_outline_rounded,
                       ),
                     ),
@@ -133,31 +133,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildExpandableCard(
               c,
               icon: Icons.security_rounded,
-              title: '設定與隱私',
+              title: S.settingsPrivacy,
               children: [
                 _buildSubItem(
                   c,
                   icon: Icons.key_outlined,
-                  title: '更改密碼',
+                  title: S.changePassword,
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())),
                 ),
                 _buildSubItem(
                   c,
                   icon: Icons.shield_outlined,
-                  title: '帳號管理',
+                  title: S.account,
                   onTap: () => Navigator.push(context,
                       MaterialPageRoute(builder: (_) => const AccountPrivacyScreen())),
                 ),
                 _buildSubItem(
                   c,
                   icon: Icons.privacy_tip_outlined,
-                  title: '隱私權政策',
+                  title: S.privacyPolicy,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const LegalDocScreen(
+                      builder: (_) => LegalDocScreen(
                         docKey: 'privacy',
-                        fallbackTitle: '隱私權政策',
+                        fallbackTitle: S.privacyPolicy,
                         icon: Icons.privacy_tip_outlined,
                       ),
                     ),
@@ -166,13 +166,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildSubItem(
                   c,
                   icon: Icons.description_outlined,
-                  title: '服務條款',
+                  title: S.termsService,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const LegalDocScreen(
+                      builder: (_) => LegalDocScreen(
                         docKey: 'terms',
-                        fallbackTitle: '服務條款',
+                        fallbackTitle: S.termsService,
                       ),
                     ),
                   ),
@@ -259,11 +259,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ? FaceIdIcon(size: 22, color: c.textPrimary)
                 : Icon(Icons.fingerprint_rounded, color: c.textPrimary),
             title: Text(
-              '$_biometricLabel 登入',
+              S.sign3(_biometricLabel),
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary),
             ),
             subtitle: Text(
-              '開啟 App 時用 $_biometricLabel 解鎖',
+              S.unlockWithWhenOpenApp(_biometricLabel),
               style: TextStyle(fontSize: 12, color: c.textSecondary),
             ),
             trailing: Switch.adaptive(

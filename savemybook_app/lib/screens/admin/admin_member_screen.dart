@@ -11,6 +11,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 import 'admin_member_detail_screen.dart';
 import '../../utils/app_labels.dart';
+import '../../i18n/strings.dart';
 
 class AdminMemberScreen extends StatefulWidget {
   const AdminMemberScreen({super.key});
@@ -180,10 +181,10 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                     _load();
                   },
                   itemBuilder: (_) => [
-                    const PopupMenuItem(value: null, child: Text('全部')),
-                    const PopupMenuItem(value: 'active', child: Text('正常')),
-                    const PopupMenuItem(value: 'inactive', child: Text('已停權')),
-                    const PopupMenuItem(value: 'blacklisted', child: Text('黑名單')),
+                    PopupMenuItem(value: null, child: Text(S.actionAll)),
+                    PopupMenuItem(value: 'active', child: Text(S.memberNormal)),
+                    PopupMenuItem(value: 'inactive', child: Text(S.memberInactive)),
+                    PopupMenuItem(value: 'blacklisted', child: Text(S.memberBlacklisted)),
                   ],
                 ),
               ],
@@ -248,7 +249,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            member.role == 'admin' ? '管理員' : '一般會員',
+                            member.role == 'admin' ? S.roleAdmin : S.roleBuyerSeller,
                             style: const TextStyle(fontSize: 10, color: AppColors.primary),
                           ),
                         ),
@@ -279,9 +280,9 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             spacing: 16,
             runSpacing: 6,
             children: [
-              _info('電話', member.phone.isEmpty ? '—' : member.phone, c),
+              _info(S.phone, member.phone.isEmpty ? '—' : member.phone, c),
               _info('上架書籍', '${member.bookCount}', c),
-              _info('購買', '${member.buyOrderCount}', c),
+              _info(S.purchase, '${member.buyOrderCount}', c),
               _info('銷售', '${member.sellOrderCount}', c),
               _info('創建日期', formatDate(member.createdAt), c),
             ],

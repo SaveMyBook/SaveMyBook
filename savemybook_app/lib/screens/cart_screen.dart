@@ -11,6 +11,7 @@ import '../widgets/swipe_action.dart';
 import 'book_detail_screen.dart';
 import 'purchase_history_screen.dart';
 import '../utils/motion.dart';
+import '../i18n/strings.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -54,9 +55,9 @@ class _CartScreenState extends State<CartScreen> {
   Future<bool> _confirmRemove(CartItem item) {
     return showConfirmDialog(
       context,
-      title: '移出購物車',
-      message: '要把《${item.book.title}》從購物車移除嗎？',
-      confirmLabel: '移除',
+      title: S.removeFromCart,
+      message: S.removeFromCart2(item.book.title),
+      confirmLabel: S.remove,
       isDestructive: true,
     );
   }
@@ -74,7 +75,7 @@ class _CartScreenState extends State<CartScreen> {
     final ok = await _api.removeCartItem(item.cartId);
     if (!mounted || ok) return;
 
-    showAppSnackBar(context, '移除失敗，已還原', isError: true);
+    showAppSnackBar(context, S.couldNotRemoveRestored, isError: true);
     _load();
   }
 
@@ -88,20 +89,20 @@ class _CartScreenState extends State<CartScreen> {
       if (ok) _items.removeWhere((i) => i.cartId == item.cartId);
     });
 
-    if (!ok) showAppSnackBar(context, '移除失敗，請稍後再試', isError: true);
+    if (!ok) showAppSnackBar(context, S.couldNotRemovePleaseTryAgain, isError: true);
   }
 
   Future<void> _checkout() async {
     final selected = _selectedItems;
     if (selected.isEmpty) {
-      showAppSnackBar(context, '請先選擇要結帳的書籍', isError: true);
+      showAppSnackBar(context, S.selectBooksWantCheckOut, isError: true);
       return;
     }
 
     if (!_canAfford) {
       showAppSnackBar(
         context,
-        '代幣不足，這筆訂單需要 ${_total.toStringAsFixed(0)}，目前只有 ${_balance.toStringAsFixed(0)}',
+        S.notEnoughCoinsOrderNeedsBut(_total.toStringAsFixed(0), _balance.toStringAsFixed(0)),
         isError: true,
       );
       return;
@@ -109,10 +110,10 @@ class _CartScreenState extends State<CartScreen> {
 
     final confirmed = await showConfirmDialog(
       context,
-      title: '確認結帳',
-      message: '共 ${selected.length} 本書，總金額 \$${_total.toStringAsFixed(0)}。\n'
-          '扣款後餘額為 ${(_balance - _total).toStringAsFixed(0)} 代幣。',
-      confirmLabel: '確認結帳',
+      title: S.confirmCheckout,
+      message: S.booksTotal(selected.length, _total.toStringAsFixed(0))
+          S.balanceAfterPaymentCoins((_balance - _total).toStringAsFixed(0)),
+      confirmLabel: S.confirmCheckout,
     );
     if (!confirmed || !mounted) return;
 
@@ -126,7 +127,7 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
-    showAppSnackBar(context, '結帳成功，請等待賣家存書');
+    showAppSnackBar(context, S.orderPlacedSellerDropBookOff);
     await _load();
     if (!mounted) return;
     Navigator.push(context, MaterialPageRoute(builder: (_) => const PurchaseHistoryScreen()));
@@ -140,7 +141,7 @@ class _CartScreenState extends State<CartScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '購物車', icon: Icons.shopping_cart_outlined),
+          AppHeader(title: S.cart, icon: Icons.shopping_cart_outlined),
           if (_items.isNotEmpty) _buildSelectAllRow(c),
           Expanded(
             child: SwitchIn(child: _isLoading
@@ -150,9 +151,9 @@ class _CartScreenState extends State<CartScreen> {
                     onRefresh: _load,
                     child: SwitchIn(child: _items.isEmpty
                         ? ListView(key: const ValueKey('empty'), 
-                            children: const [
+                            children: [
                               SizedBox(height: 80),
-                              EmptyView(icon: Icons.remove_shopping_cart_outlined, message: '購物車是空的'),
+                              EmptyView(icon: Icons.remove_shopping_cart_outlined, message: S.cartEmpty),
                             ],
                           )
                         : ListView.builder(key: const ValueKey('items'), 
@@ -192,13 +193,13 @@ class _CartScreenState extends State<CartScreen> {
               }
             }),
             child: Text(
-              '全選',
+              S.selectAll,
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
             ),
           ),
           const Spacer(),
           Text(
-            '${_items.length} 件商品',
+            S.items(_items.length),
             style: TextStyle(fontSize: 12, color: c.textHint),
           ),
         ],
@@ -239,7 +240,7 @@ class _CartScreenState extends State<CartScreen> {
       itemKey: ValueKey('cart_${item.cartId}'),
       startToEnd: SwipeAction(
         icon: item.isSelected ? Icons.remove_done_rounded : Icons.done_rounded,
-        label: item.isSelected ? '取消選取' : '選取',
+        label: item.isSelected ? S.deselect : S.select,
         color: c.accent,
         onTrigger: () async {
           setState(() => item.isSelected = !item.isSelected);
@@ -248,7 +249,7 @@ class _CartScreenState extends State<CartScreen> {
       ),
       endToStart: SwipeAction(
         icon: Icons.delete_outline_rounded,
-        label: '移除',
+        label: S.remove,
         color: c.danger,
         dismisses: true,
         onTrigger: () => _confirmRemove(item),
@@ -426,7 +427,7 @@ class _CartScreenState extends State<CartScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            '還差 ${shortfall.toStringAsFixed(0)} 代幣',
+                            S.coinsShort(shortfall.toStringAsFixed(0)),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -448,12 +449,12 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     Row(
                       children: [
-                        Text('合計', style: TextStyle(fontSize: 12, color: c.textHint)),
+                        Text(S.total, style: TextStyle(fontSize: 12, color: c.textHint)),
                         const SizedBox(width: 6),
                         PopIn(
                           triggerKey: _selectedItems.length,
                           child: Text(
-                            '${_selectedItems.length} 件',
+                            S.selected(_selectedItems.length),
                             style: TextStyle(fontSize: 12, color: c.textHint),
                           ),
                         ),
@@ -475,12 +476,12 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        Text('代幣', style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                        Text(S.faqCatWallet, style: TextStyle(fontSize: 12, color: c.textSecondary)),
                       ],
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '餘額 ${_balance.toStringAsFixed(0)}',
+                      S.balance2(_balance.toStringAsFixed(0)),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -516,8 +517,8 @@ class _CartScreenState extends State<CartScreen> {
                           )
                         : Text(
                             _selectedItems.isEmpty
-                                ? '請先選書'
-                                : (_canAfford ? '結帳' : '代幣不足'),
+                                ? S.selectBookFirst
+                                : (_canAfford ? S.checkOut : S.notEnoughCoins),
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                   ),

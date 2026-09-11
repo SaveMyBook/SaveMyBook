@@ -1,5 +1,6 @@
 import '../utils/app_labels.dart';
 import '../utils/api_helpers.dart';
+import '../i18n/strings.dart';
 
 class BookImage {
   final int imageId;
@@ -68,7 +69,7 @@ class Book {
   factory Book.fromJson(Map<String, dynamic> json) {
     final parsedPrice = parseDouble(json['price']);
 
-    String parsedCategory = '一般書籍';
+    String parsedCategory = S.general;
     if (json['book_categories'] != null && json['book_categories']['category_name'] != null) {
       parsedCategory = json['book_categories']['category_name'];
     }
@@ -104,18 +105,18 @@ class Book {
 
     return Book(
       bookId: parseInt(json['book_id']),
-      title: json['title'] as String? ?? '無書名',
+      title: json['title'] as String? ?? S.untitled,
       price: parsedPrice,
       conditionLevel: json['condition_level'] as String? ?? 'good',
-      description: json['description'] as String? ?? '暫無簡介',
+      description: json['description'] as String? ?? S.noDescriptionYet,
       imageUrl: parsedImageUrl,
       imageUrls: parsedImageUrls,
       images: parsedImages,
-      location: sellerName.isEmpty ? '地點未提供' : '賣家：$sellerName',
+      location: sellerName.isEmpty ? S.locationNotProvided : S.seller3(sellerName),
       categoryName: parsedCategory,
-      author: json['author'] as String? ?? '未知作者',
-      publisher: json['publisher'] as String? ?? '未知出版社',
-      isbn: json['isbn'] as String? ?? '未提供 ISBN',
+      author: json['author'] as String? ?? S.unknownAuthor,
+      publisher: json['publisher'] as String? ?? S.unknownPublisher,
+      isbn: json['isbn'] as String? ?? S.noIsbn,
       createdAt: parsedDate,
       sellerId: parseInt(json['seller_id'] ?? seller?['user_id']),
       sellerName: sellerName,

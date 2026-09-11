@@ -10,6 +10,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
+import '../../i18n/strings.dart';
 
 class AdminMemberDetailScreen extends StatefulWidget {
   final int userId;
@@ -68,7 +69,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       message: turningOff
           ? '${detail.nickname} 會立刻被登出，且無法再使用 App 的任何功能。'
           : '${detail.nickname} 將可以重新登入使用。',
-      confirmLabel: '確認',
+      confirmLabel: S.confirm,
       isDestructive: turningOff,
     );
     if (!ok || !mounted) return;
@@ -96,7 +97,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       message: detail.isAdmin
           ? '${detail.nickname} 將立刻失去所有後台權限。'
           : '${detail.nickname} 將可以進入管理後台，預設擁有全部權限，可再逐項調整。',
-      confirmLabel: '確認',
+      confirmLabel: S.confirm,
       isDestructive: detail.isAdmin,
     );
     if (!ok || !mounted) return;
@@ -181,7 +182,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       message: value
           ? '${detail.nickname} 將可以使用後台所有功能。'
           : '${detail.nickname} 進入後台後將無法使用任何功能。',
-      confirmLabel: '確認',
+      confirmLabel: S.confirm,
       isDestructive: !value,
     );
     if (!ok || !mounted) return;
@@ -268,7 +269,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                         ),
                         const SizedBox(width: 8),
                         if (detail.isAdmin)
-                          StatusBadge(label: '管理員', color: c.accent),
+                          StatusBadge(label: S.roleAdmin, color: c.accent),
                       ],
                     ),
                     const SizedBox(height: 2),
@@ -358,7 +359,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           AppMenuItem(
             icon: Icons.admin_panel_settings_outlined,
             title: '身分',
-            subtitle: detail.isAdmin ? '管理員' : '一般會員',
+            subtitle: detail.isAdmin ? S.roleAdmin : S.roleBuyerSeller,
             isLast: true,
             onTap: _isSelf || _isBusy ? null : _changeRole,
           ),
@@ -374,7 +375,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeading(title: '會員等級'),
+          SectionHeading(title: S.membershipTier),
           const SizedBox(height: 12),
           Row(
             children: [

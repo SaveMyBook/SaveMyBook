@@ -8,6 +8,7 @@ import '../models/book.dart';
 import '../screens/book_detail_screen.dart';
 import '../utils/app_colors.dart';
 import '../screens/seller_screen.dart';
+import '../i18n/strings.dart';
 
 class BookCard extends StatelessWidget {
   final Book book;
@@ -159,8 +160,8 @@ class BookCard extends StatelessWidget {
 
   String _sellerName() {
     if (book.sellerName.isNotEmpty) return book.sellerName;
-    final name = book.location.replaceAll('賣家：', '');
-    return name == '地點未提供' ? '管理員' : name;
+    final name = book.location.replaceAll(S.seller2, '');
+    return name == S.locationNotProvided ? S.roleAdmin : name;
   }
 
   void _navigateToDetail(BuildContext context) {

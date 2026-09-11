@@ -8,6 +8,7 @@ import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import 'legal_doc_screen.dart';
+import '../i18n/strings.dart';
 
 class RegisterScreen extends StatefulWidget {
   final String initialEmail;
@@ -53,25 +54,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String? confirmError;
 
     if (nickname.isEmpty) {
-      nicknameError = '請輸入暱稱';
+      nicknameError = S.enterDisplayName;
     } else if (nickname.length < 2) {
-      nicknameError = '暱稱至少 2 個字元';
+      nicknameError = S.displayNameNeedsLeast2Characters;
     } else if (nickname.length > 50) {
-      nicknameError = '暱稱不可超過 50 個字元';
+      nicknameError = S.displayNameLimited50Characters;
     }
 
     if (email.isEmpty) {
-      emailError = '請輸入 Email';
+      emailError = S.enterEmail;
     } else if (!Validators.isEmail(email)) {
-      emailError = 'Email 格式不正確';
+      emailError = S.emailAddressNotValid;
     }
 
-    passwordError = password.isEmpty ? '請輸入密碼' : Validators.password(password);
+    passwordError = password.isEmpty ? S.enterPassword : Validators.password(password);
 
     if (confirm.isEmpty) {
-      confirmError = '請再輸入一次密碼';
+      confirmError = S.enterPasswordAgain;
     } else if (confirm != password) {
-      confirmError = '兩次輸入的密碼不一致';
+      confirmError = S.passwordsDoNotMatch2;
     }
 
     setState(() {
@@ -87,7 +88,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         confirmError == null;
 
     if (passed && !_agreedToTerms) {
-      showAppSnackBar(context, '請先閱讀並同意服務條款與隱私權政策', isError: true);
+      showAppSnackBar(context, S.pleaseReadAcceptTermsServicePrivacy, isError: true);
       return false;
     }
 
@@ -115,7 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    showAppSnackBar(context, '註冊成功，請使用新帳號登入');
+    showAppSnackBar(context, S.accountCreatedSignWith);
     Navigator.pop(context, email);
   }
 
@@ -151,32 +152,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextSpan(
                   style: TextStyle(fontSize: 13, height: 1.6, color: c.textSecondary),
                   children: [
-                    const TextSpan(text: '我已閱讀並同意 '),
+                    TextSpan(text: S.iReadAccept),
                     TextSpan(
-                      text: '服務條款',
+                      text: S.termsService,
                       style: linkStyle,
                       recognizer: TapGestureRecognizer()
                         ..onTap = () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                              builder: (_) => const LegalDocScreen(
+                              builder: (_) => LegalDocScreen(
                                 docKey: 'terms',
-                                fallbackTitle: '服務條款',
+                                fallbackTitle: S.termsService,
                               ),
                             ),
                             ),
                     ),
-                    const TextSpan(text: ' 與 '),
+                    TextSpan(text: S.and),
                     TextSpan(
-                      text: '隱私權政策',
+                      text: S.privacyPolicy,
                       style: linkStyle,
                       recognizer: TapGestureRecognizer()
                         ..onTap = () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                              builder: (_) => const LegalDocScreen(
+                              builder: (_) => LegalDocScreen(
                                 docKey: 'privacy',
-                                fallbackTitle: '隱私權政策',
+                                fallbackTitle: S.privacyPolicy,
                                 icon: Icons.privacy_tip_outlined,
                               ),
                             ),
@@ -253,7 +254,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '建立帳號', icon: Icons.person_add_alt_1_rounded),
+          AppHeader(title: S.createAccount, icon: Icons.person_add_alt_1_rounded),
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -284,7 +285,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  '加入 SaveMyBook',
+                                  S.joinSavemybook,
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -293,7 +294,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '註冊後就能買書、賣書與使用智慧書櫃',
+                                  S.signUpBuySellUseSmart,
                                   style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.4),
                                 ),
                               ],
@@ -306,8 +307,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   _buildField(
                     index: 1,
                     icon: Icons.badge_outlined,
-                    label: '暱稱',
-                    hint: '其他人會看到的名字',
+                    label: S.displayName,
+                    hint: S.nameOthersSee,
                     controller: _nicknameController,
                     errorText: _nicknameError,
                     maxLength: 50,
@@ -320,7 +321,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     index: 2,
                     icon: Icons.alternate_email_rounded,
                     label: 'Email',
-                    hint: '用來登入的信箱',
+                    hint: S.emailSignWith,
                     controller: _emailController,
                     errorText: _emailError,
                     keyboardType: TextInputType.emailAddress,
@@ -333,8 +334,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   _buildField(
                     index: 3,
                     icon: Icons.lock_outline_rounded,
-                    label: '密碼',
-                    hint: '至少 8 碼，需含英文與數字',
+                    label: S.password,
+                    hint: S.least8CharactersWithLettersNumbers,
                     controller: _passwordController,
                     errorText: _passwordError,
                     obscureText: _obscurePassword,
@@ -357,8 +358,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   _buildField(
                     index: 4,
                     icon: Icons.lock_reset_rounded,
-                    label: '確認密碼',
-                    hint: '再輸入一次密碼',
+                    label: S.confirmPassword,
+                    hint: S.enterPasswordAgain2,
                     controller: _confirmController,
                     errorText: _confirmError,
                     obscureText: _obscurePassword,
@@ -376,7 +377,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   FadeSlideIn(
                     index: 6,
                     child: PrimaryButton(
-                      label: '建立帳號',
+                      label: S.createAccount,
                       height: 50,
                       isLoading: _isLoading,
                       onPressed: _agreedToTerms ? _handleRegister : null,
@@ -387,7 +388,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     index: 7,
                     child: Center(
                       child: Text(
-                        '已經有帳號了？返回上一頁登入',
+                        S.alreadyAccountGoBackSign,
                         style: TextStyle(fontSize: 12, color: c.textHint),
                       ),
                     ),

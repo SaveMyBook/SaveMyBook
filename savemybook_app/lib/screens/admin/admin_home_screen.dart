@@ -23,6 +23,7 @@ import 'admin_ticket_screen.dart';
 import 'admin_wallet_screen.dart';
 import 'admin_backup_screen.dart';
 import 'admin_deletion_screen.dart';
+import '../../i18n/strings.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -64,7 +65,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '管理後台', icon: Icons.admin_panel_settings_outlined),
+          AppHeader(title: S.admin, icon: Icons.admin_panel_settings_outlined),
           Expanded(
             child: SwitchIn(child: _isLoading
                 ? const LoadingView.menu()
@@ -96,7 +97,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         _buildSection(c, '商品管理', [
                           AppMenuItem(
                             icon: Icons.menu_book_rounded,
-                            title: '書籍管理',
+                            title: S.myBooks,
                             subtitle: '全站書籍、強制下架',
                             onTap: () => _open(const AdminBookScreen()),
                           ),

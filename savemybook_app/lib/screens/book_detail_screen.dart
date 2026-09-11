@@ -13,6 +13,7 @@ import 'home_screen.dart';
 import 'search_screen.dart';
 import 'seller_screen.dart';
 import '../widgets/animations.dart';
+import '../i18n/strings.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final Book book;
@@ -43,11 +44,11 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   Future<void> _addToCart() async {
     if (_isAddingToCart) return;
     if (ApiService.authToken == null) {
-      showAppSnackBar(context, '請先登入才能加入購物車', isError: true);
+      showAppSnackBar(context, S.signAddItemsCart, isError: true);
       return;
     }
     if (widget.book.status != 'on_sale') {
-      showAppSnackBar(context, '這本書目前${widget.book.statusText}，無法購買', isError: true);
+      showAppSnackBar(context, S.bookCannotPurchased(widget.book.statusText), isError: true);
       return;
     }
     setState(() => _isAddingToCart = true);
@@ -58,17 +59,17 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '已加入購物車');
+      showAppSnackBar(context, S.addedCart);
     }
   }
 
   Future<void> _chatWithSeller() async {
     if (widget.book.sellerId == 0) {
-      showAppSnackBar(context, '找不到賣家資訊', isError: true);
+      showAppSnackBar(context, S.sellerInformationNotFound, isError: true);
       return;
     }
     if (ApiService.authToken == null) {
-      showAppSnackBar(context, '請先登入才能聯絡賣家', isError: true);
+      showAppSnackBar(context, S.signContactSeller, isError: true);
       return;
     }
 
@@ -78,7 +79,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     );
     if (!mounted) return;
     if (roomId == null) {
-      showAppSnackBar(context, '無法建立聊天室，請先登入', isError: true);
+      showAppSnackBar(context, S.signStartChat, isError: true);
       return;
     }
     Navigator.push(
@@ -91,26 +92,26 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Future<void> _reportBook() async {
     if (ApiService.authToken == null) {
-      showAppSnackBar(context, '請先登入才能檢舉', isError: true);
+      showAppSnackBar(context, S.signReport, isError: true);
       return;
     }
     if (_isOwnBook) {
-      showAppSnackBar(context, '無法檢舉自己上架的商品', isError: true);
+      showAppSnackBar(context, S.cannotReportOwnListing, isError: true);
       return;
     }
 
     final reason = await showTextInputDialog(
       context,
-      title: '檢舉此商品',
-      hint: '請說明違規原因（至少 5 個字）',
+      title: S.reportListing,
+      hint: S.describeProblemLeast5Characters,
       maxLines: 3,
-      confirmLabel: '送出',
+      confirmLabel: S.actionSubmit,
     );
 
     if (reason == null || !mounted) return;
 
     if (reason.length < 5) {
-      showAppSnackBar(context, '請至少填寫 5 個字的檢舉原因', isError: true);
+      showAppSnackBar(context, S.reasonNeedsLeast5Characters, isError: true);
       return;
     }
 
@@ -123,7 +124,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       ),
     );
     if (!mounted) return;
-    showAppSnackBar(context, error ?? '檢舉已送出，我們會盡快處理', isError: error != null);
+    showAppSnackBar(context, error ?? S.reportSubmittedWeLookInto, isError: error != null);
   }
 
   @override
@@ -151,15 +152,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   const SizedBox(height: 10),
                   _buildPriceAndConditionRow(c),
                   const SizedBox(height: 18),
-                  _buildInfoRow(Icons.business_outlined, '出版社：', widget.book.publisher, c),
+                  _buildInfoRow(Icons.business_outlined, S.publisher, widget.book.publisher, c),
                   const SizedBox(height: 12),
-                  _buildInfoRow(Icons.edit_outlined, '作者：', widget.book.author, c),
+                  _buildInfoRow(Icons.edit_outlined, S.author, widget.book.author, c),
                   const SizedBox(height: 12),
                   _buildInfoRow(Icons.qr_code, 'ISBN：', widget.book.isbn, c),
                   const SizedBox(height: 12),
                   _buildDescriptionRow(c),
                   const SizedBox(height: 12),
-                  _buildInfoRow(Icons.calendar_today_outlined, '上架日期：', widget.book.createdAt, c),
+                  _buildInfoRow(Icons.calendar_today_outlined, S.listed, widget.book.createdAt, c),
                   const SizedBox(height: 28),
                   _buildSellerInfo(c),
                 ]),
@@ -205,7 +206,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   height: 40, padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(8)),
                   child: Row(children: [
-                    Expanded(child: Text('搜尋書名、作者、出版社...', style: TextStyle(color: c.textHint, fontSize: 14))),
+                    Expanded(child: Text(S.searchTitleAuthorPublisher, style: TextStyle(color: c.textHint, fontSize: 14))),
                     const SizedBox(width: 8),
                     Icon(Icons.search, color: c.iconInactive, size: 20),
                   ]),
@@ -297,14 +298,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           }
         },
         itemBuilder: (_) => [
-          const PopupMenuItem(value: 'share', child: Row(children: [Icon(Icons.ios_share, size: 20), SizedBox(width: 8), Text('分享')])),
+          PopupMenuItem(value: 'share', child: Row(children: [Icon(Icons.ios_share, size: 20), SizedBox(width: 8), Text(S.share)])),
           if (!_isOwnBook)
             PopupMenuItem(
               value: 'report',
               child: Row(children: [
                 Icon(Icons.warning_amber_rounded, size: 20, color: c.danger),
                 const SizedBox(width: 8),
-                const Text('檢舉'),
+                Text(S.report),
               ]),
             ),
         ],
@@ -348,13 +349,13 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Icon(Icons.notes, size: 20, color: c.textSecondary),
       const SizedBox(width: 8),
-      Text('簡介：', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, height: 1.3, color: c.textPrimary)),
+      Text(S.about, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, height: 1.3, color: c.textPrimary)),
       Expanded(child: Text(widget.book.description, style: TextStyle(fontSize: 15, height: 1.3, color: c.textPrimary))),
     ]);
   }
 
   Widget _buildSellerInfo(AppColors c) {
-    final sellerName = widget.book.sellerName.isEmpty ? '管理員' : widget.book.sellerName;
+    final sellerName = widget.book.sellerName.isEmpty ? S.roleAdmin : widget.book.sellerName;
     final avatarUrl = widget.book.sellerAvatarUrl;
 
     return PressableScale(
@@ -377,7 +378,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             Text(sellerName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textPrimary)),
             if (widget.book.cabinetName.isNotEmpty) ...[
               const SizedBox(height: 2),
-              Text('取書地點：${widget.book.cabinetName}', style: TextStyle(fontSize: 12, color: c.textSecondary)),
+              Text(S.pickup(widget.book.cabinetName), style: TextStyle(fontSize: 12, color: c.textSecondary)),
             ],
           ]),
         ),
@@ -394,7 +395,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         Expanded(child: ElevatedButton.icon(
           onPressed: _isOwnBook ? null : _chatWithSeller,
           icon: const Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.primary),
-          label: const Text('與賣家聊聊', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary)),
+          label: Text(S.messageSeller, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary)),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent, side: const BorderSide(color: AppColors.primary),
             padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), elevation: 0, shadowColor: Colors.transparent,
@@ -404,7 +405,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         Expanded(child: ElevatedButton.icon(
           onPressed: _isOwnBook || _isAddingToCart ? null : _addToCart,
           icon: const Icon(Icons.shopping_cart_outlined, size: 18),
-          label: Text(_isOwnBook ? '這是你的書' : '加入購物車', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+          label: Text(_isOwnBook ? S.listing : S.addCart, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
           style: ElevatedButton.styleFrom(
             backgroundColor: c.accent, foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), elevation: 0,

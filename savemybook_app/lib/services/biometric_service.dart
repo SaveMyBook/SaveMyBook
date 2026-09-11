@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../i18n/strings.dart';
 
 /// Face ID／指紋快速登入。
 ///
@@ -35,11 +36,11 @@ class BiometricService {
     try {
       final types = await _auth.getAvailableBiometrics();
       if (types.contains(BiometricType.face)) return 'Face ID';
-      if (types.contains(BiometricType.fingerprint)) return '指紋';
-      if (types.contains(BiometricType.iris)) return '虹膜';
-      return '生物辨識';
+      if (types.contains(BiometricType.fingerprint)) return S.fingerprint;
+      if (types.contains(BiometricType.iris)) return S.iris;
+      return S.biometrics;
     } catch (_) {
-      return '生物辨識';
+      return S.biometrics;
     }
   }
 
@@ -49,7 +50,7 @@ class BiometricService {
     await prefs.setBool(_enabledKey, value);
   }
 
-  static Future<bool> authenticate({String reason = '請驗證身分以繼續'}) async {
+  static Future<bool> authenticate({String reason = S.verifyIdentityContinue}) async {
     try {
       return await _auth.authenticate(
         localizedReason: reason,

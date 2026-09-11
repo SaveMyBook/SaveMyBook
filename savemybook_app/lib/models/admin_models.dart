@@ -1,5 +1,6 @@
 import '../utils/api_helpers.dart';
 import '../utils/app_labels.dart';
+import '../i18n/strings.dart';
 
 class Announcement {
   final int announcementId;
@@ -26,11 +27,11 @@ class Announcement {
 
   String get typeText {
     switch (type) {
-      case 'maintenance': return '系統維護';
-      case 'promotion': return '活動優惠';
-      case 'policy': return '政策更新';
+      case 'maintenance': return S.maintenance;
+      case 'promotion': return S.promotions;
+      case 'policy': return S.policyUpdate;
       case 'general':
-      default: return '一般公告';
+      default: return S.announcement;
     }
   }
 
@@ -129,9 +130,9 @@ class ReportCase {
 
   String get targetTypeText {
     switch (targetType) {
-      case 'book': return '商品';
-      case 'user': return '會員';
-      case 'message': return '訊息';
+      case 'book': return S.item;
+      case 'user': return S.member;
+      case 'message': return S.message;
       default: return targetType;
     }
   }
@@ -153,7 +154,7 @@ class ReportCase {
       resolvedAt: parseDate(json['resolved_at']),
       reporterName:
           (json['users_reports_reporter_idTousers'] as Map<String, dynamic>?)?['nickname'] as String? ?? '',
-      targetTitle: (target?['title'] ?? target?['nickname']) as String? ?? '(對象已不存在)',
+      targetTitle: (target?['title'] ?? target?['nickname']) as String? ?? S.noLongerExists,
       targetImageUrl: images.isEmpty ? null : resolveAssetUrl((images.first as Map)['image_url']),
     );
   }
@@ -583,7 +584,7 @@ class AdminStats {
       completedRevenue: parseDouble(json['completed_revenue']),
       topCategories: ((json['top_categories'] as List?) ?? const [])
           .map((e) => (
-                name: (e as Map)['category_name'] as String? ?? '未分類',
+                name: (e as Map)['category_name'] as String? ?? S.uncategorised,
                 count: parseInt(e['book_count']),
               ))
           .toList(),
@@ -627,7 +628,7 @@ class AdminOperationLog {
       targetType: json['target_type'] as String?,
       targetId: json['target_id'] == null ? null : parseInt(json['target_id']),
       detail: json['detail'] as String?,
-      adminName: admin?['nickname'] as String? ?? '管理員',
+      adminName: admin?['nickname'] as String? ?? S.roleAdmin,
       createdAt: parseDate(json['created_at']),
     );
   }

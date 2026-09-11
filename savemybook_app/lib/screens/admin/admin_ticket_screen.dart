@@ -8,6 +8,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../support_ticket_screen.dart';
+import '../../i18n/strings.dart';
 
 class AdminTicketScreen extends StatefulWidget {
   const AdminTicketScreen({super.key});
@@ -19,10 +20,10 @@ class AdminTicketScreen extends StatefulWidget {
 class _AdminTicketScreenState extends State<AdminTicketScreen>
     with SingleTickerProviderStateMixin {
   static const _tabs = [
-    (key: 'open', label: '待處理'),
+    (key: 'open', label: S.ticketOpen),
     (key: 'pending', label: '已回覆'),
-    (key: 'resolved', label: '已解決'),
-    (key: 'all', label: '全部'),
+    (key: 'resolved', label: S.ticketResolved),
+    (key: 'all', label: S.actionAll),
   ];
 
   final ApiService _api = ApiService();
@@ -132,7 +133,7 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  ticket.userName.isEmpty ? '使用者' : ticket.userName,
+                  ticket.userName.isEmpty ? S.user : ticket.userName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
