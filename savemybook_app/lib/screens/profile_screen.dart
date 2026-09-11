@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/member_level.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/level_style.dart';
 import '../widgets/app_header.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_buttons.dart';
@@ -30,6 +31,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ApiService _api = ApiService();
   UserStats _stats = UserStats.empty;
+  MemberLevelInfo _level = MemberLevelInfo.empty;
 
   @override
   void initState() {
@@ -38,9 +40,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadStats() async {
-    final stats = await _api.fetchUserStats();
+    final results = await Future.wait([_api.fetchUserStats(), _api.fetchMemberLevel()]);
     if (!mounted) return;
-    setState(() => _stats = stats);
+    setState(() {
+      _stats = results[0] as UserStats;
+      _level = results[1] as MemberLevelInfo;
+    });
   }
 
   Future<void> _handleLogout() async {
@@ -154,32 +159,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.8)),
                         ),
-                        const SizedBox(height: 6),
-                        GestureDetector(
-                          onTap: () => _openAndRefresh(const MemberLevelScreen()),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.workspace_premium_outlined, color: Colors.amber, size: 13),
-                                SizedBox(width: 4),
-                                Text(
-                                  '會員等級',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        const SizedBox(height: 7),
+                        _buildLevelBadge(),
                       ],
                     ),
                   ),
@@ -226,10 +207,131 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
+              _buildLevelProgress(),
             ],
           ),
         ),
       ),
+      ),
+    );
+  }
+
+  /// 等級徽章：用該等級的專屬漸層與圖示，一眼看得出自己是什麼級別。
+  Widget _buildLevelBadge() {
+    final level = _level.currentLevel;
+    final style = LevelStyle.at(levelIndexOf(_level, level));
+
+    return GestureDetector(
+      onTap: () => _openAndRefresh(const MemberLevelScreen()),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.fromLTRB(9, 4, 12, 4),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: style.gradient,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 0.8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(style.icon, color: Colors.white, size: 14),
+            const SizedBox(width: 5),
+            Text(
+              level?.levelName ?? '尚未評級',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 距離下一級還差多少，直接畫在 header 下緣。
+  Widget _buildLevelProgress() {
+    if (_level.levels.isEmpty) return const SizedBox.shrink();
+
+    final progress = LevelProgress.from(_level);
+    final nextName = _level.nextLevel?.levelName;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _openAndRefresh(const MemberLevelScreen()),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    progress.isMax
+                        ? '已達到最高級別'
+                        : '再 ${progress.remaining} 點升級為「$nextName」',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${progress.percent}%',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 7),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(5),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: progress.ratio),
+                duration: const Duration(milliseconds: 900),
+                curve: Curves.easeOutCubic,
+                builder: (_, value, _) => Stack(
+                  children: [
+                    Container(height: 8, color: Colors.white.withValues(alpha: 0.22)),
+                    FractionallySizedBox(
+                      widthFactor: value,
+                      child: Container(
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFFFFE082), Color(0xFFFFC107)],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

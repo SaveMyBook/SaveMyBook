@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/member_level.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/level_style.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
@@ -11,15 +12,6 @@ class MemberLevelScreen extends StatefulWidget {
 
   @override
   State<MemberLevelScreen> createState() => _MemberLevelScreenState();
-}
-
-/// 每個等級的視覺：漸層底色 + 徽章形狀 + 強調色。
-class _LevelStyle {
-  final List<Color> gradient;
-  final Color accent;
-  final IconData icon;
-
-  const _LevelStyle(this.gradient, this.accent, this.icon);
 }
 
 class _MemberLevelScreenState extends State<MemberLevelScreen> {
@@ -37,14 +29,6 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
   static const _caretHalf = 10.0;
   static const _cardRadius = 20.0;
 
-  static const _styles = <_LevelStyle>[
-    _LevelStyle([Color(0xFF8D6E52), Color(0xFFC29B76)], Color(0xFF8D6E52), Icons.eco_rounded),
-    _LevelStyle([Color(0xFF7B8B97), Color(0xFFB6C4CE)], Color(0xFF5E6E7A), Icons.hexagon_rounded),
-    _LevelStyle([Color(0xFFB08427), Color(0xFFE7C46A)], Color(0xFF9A711A), Icons.workspace_premium_rounded),
-    _LevelStyle([Color(0xFF5C6BC0), Color(0xFF9FA8DA)], Color(0xFF4A57A8), Icons.auto_awesome_rounded),
-    _LevelStyle([Color(0xFF6A3FA0), Color(0xFFB388DD)], Color(0xFF57318A), Icons.diamond_rounded),
-    _LevelStyle([Color(0xFF23272E), Color(0xFF5A6270)], Color(0xFF23272E), Icons.stars_rounded),
-  ];
 
   @override
   void initState() {
@@ -78,7 +62,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     });
   }
 
-  _LevelStyle _styleFor(int index) => _styles[index % _styles.length];
+  LevelStyle _styleFor(int index) => LevelStyle.at(index);
 
   int get _currentIndex => _info.currentLevel == null
       ? -1
@@ -172,7 +156,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     );
   }
 
-  Widget _buildHero(AppColors c, _LevelStyle style) {
+  Widget _buildHero(AppColors c, LevelStyle style) {
     final level = _info.levels[_selectedIndex];
     final currentIndex = _currentIndex;
 
@@ -266,7 +250,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     );
   }
 
-  Widget _buildBadge(_LevelStyle style, MemberLevel level) {
+  Widget _buildBadge(LevelStyle style, MemberLevel level) {
     return PopIn(
       triggerKey: level.levelId,
       child: TweenAnimationBuilder<double>(
@@ -301,7 +285,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
   }
 
   /// Trip 那種一排節點的進度軌，點一下可以跳到該等級。
-  Widget _buildRail(_LevelStyle style) {
+  Widget _buildRail(LevelStyle style) {
     final levels = _info.levels;
     final currentIndex = _currentIndex;
 
@@ -360,7 +344,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
   }
 
   /// 可左右滑的狀態卡，內容跟著等級走。
-  Widget _buildStatusCards(AppColors c, _LevelStyle style) {
+  Widget _buildStatusCards(AppColors c, LevelStyle style) {
     return Column(
       children: [
         const SizedBox(height: 18),
@@ -443,59 +427,89 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
         ],
       );
     } else {
-      final target = level.minPoints == 0 ? 1 : level.minPoints;
-      final progress = (_info.points / target).clamp(0.0, 1.0);
+      // 進度以「這一級的區間」計算：從目前等級門檻走到下一級門檻。
+      // 直接拿總點數除以門檻的話，等級越高會一直看起來快滿了。
+      final floor = index == 0 ? 0 : _info.levels[index - 1].minPoints;
+      final span = level.minPoints - floor;
+      final walked = (_info.points - floor).clamp(0, span <= 0 ? 1 : span);
+      final progress = span <= 0 ? 1.0 : (walked / span).clamp(0.0, 1.0).toDouble();
       final remaining = (level.minPoints - _info.points).clamp(0, level.minPoints);
 
       body = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            reached
-                ? '已解鎖「${level.levelName}」，繼續交易累積更多點數'
-                : '再累積 $remaining 點即可解鎖「${level.levelName}」級別',
-            style: TextStyle(
-              fontSize: 14,
-              height: 1.5,
-              fontWeight: FontWeight.w600,
-              color: c.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
             children: [
-              AnimatedCount(
-                value: _info.points.toDouble(),
-                decimals: 0,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: style.accent,
+              Expanded(
+                child: Text(
+                  reached
+                      ? '已解鎖「${level.levelName}」'
+                      : '再 $remaining 點解鎖「${level.levelName}」',
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.4,
+                    fontWeight: FontWeight.bold,
+                    color: c.textPrimary,
+                  ),
                 ),
               ),
-              Text(
-                ' / ${level.minPoints} 點',
-                style: TextStyle(fontSize: 14, color: c.textSecondary),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: style.accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Text(
+                  '${(progress * 100).round()}%',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: style.accent,
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: progress.toDouble()),
-              duration: const Duration(milliseconds: 900),
-              curve: Curves.easeOutCubic,
-              builder: (_, value, _) => LinearProgressIndicator(
-                value: value,
-                minHeight: 7,
-                backgroundColor: c.inputFill,
-                valueColor: AlwaysStoppedAnimation(style.accent),
+          const SizedBox(height: 14),
+          _ProgressTrack(
+            progress: progress,
+            color: style.accent,
+            track: c.inputFill,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                '$floor',
+                style: TextStyle(fontSize: 11, color: c.textHint),
               ),
-            ),
+              const Spacer(),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '${_info.points}',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        color: style.accent,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' / ${level.minPoints} 點',
+                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${level.minPoints}',
+                style: TextStyle(fontSize: 11, color: c.textHint),
+              ),
+            ],
           ),
         ],
       );
@@ -518,7 +532,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     );
   }
 
-  Widget _buildBenefits(AppColors c, _LevelStyle style) {
+  Widget _buildBenefits(AppColors c, LevelStyle style) {
     final level = _info.levels[_selectedIndex];
     final benefits = _benefitsOf(level);
 
@@ -638,4 +652,81 @@ class _CaretPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CaretPainter oldDelegate) => oldDelegate.color != color;
+}
+
+/// 會員等級用的進度條：比預設的 LinearProgressIndicator 粗，
+/// 末端有一顆光點標出「你現在在這裡」，一眼就看得出走到哪。
+class _ProgressTrack extends StatelessWidget {
+  final double progress;
+  final Color color;
+  final Color track;
+  final double height;
+
+  const _ProgressTrack({
+    required this.progress,
+    required this.color,
+    required this.track,
+    this.height = 12,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: progress),
+      duration: const Duration(milliseconds: 950),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, _) => LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final filled = (width * value).clamp(0.0, width);
+
+          return SizedBox(
+            height: height + 6,
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                Container(
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: track,
+                    borderRadius: BorderRadius.circular(height / 2),
+                  ),
+                ),
+                Container(
+                  width: filled,
+                  height: height,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [color.withValues(alpha: 0.75), color],
+                    ),
+                    borderRadius: BorderRadius.circular(height / 2),
+                  ),
+                ),
+                if (value > 0.02)
+                  Positioned(
+                    left: (filled - (height + 6) / 2).clamp(0.0, width - (height + 6)),
+                    child: Container(
+                      width: height + 6,
+                      height: height + 6,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: color, width: 3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.35),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 }

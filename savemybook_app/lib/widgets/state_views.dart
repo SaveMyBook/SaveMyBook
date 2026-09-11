@@ -386,11 +386,13 @@ class AppNetworkImage extends StatelessWidget {
     this.background,
   });
 
+  static const _fade = Duration(milliseconds: 420);
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    Widget placeholder({bool shimmer = false}) {
+    Widget skeleton({required bool animated}) {
       final box = Container(
         width: width,
         height: height,
@@ -398,30 +400,50 @@ class AppNetworkImage extends StatelessWidget {
         alignment: Alignment.center,
         child: Icon(
           fallbackIcon,
-          color: c.iconInactive.withValues(alpha: shimmer ? 0.45 : 1),
+          color: c.iconInactive.withValues(alpha: animated ? 0.35 : 1),
           size: fallbackIconSize ?? 30,
         ),
       );
-      return shimmer ? Shimmer(child: box) : box;
+      return animated ? Shimmer(child: box) : box;
     }
 
-    if (url == null || url!.isEmpty) return placeholder();
+    if (url == null || url!.isEmpty) return skeleton(animated: false);
 
     return Image.network(
       url!,
       fit: fit,
       width: width,
       height: height,
-      errorBuilder: (_, _, _) => placeholder(),
-      loadingBuilder: (_, child, progress) =>
-          progress == null ? child : placeholder(shimmer: true),
+      errorBuilder: (_, _, _) => skeleton(animated: false),
+      // 只用 frameBuilder：如果同時用 loadingBuilder，圖載完的瞬間骨架會被
+      // 整個換掉，中間會閃一格空白。改成把骨架墊在底下交叉淡出才順。
       frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
         if (wasSynchronouslyLoaded) return child;
-        return AnimatedOpacity(
-          opacity: frame == null ? 0 : 1,
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeOut,
-          child: child,
+        final loaded = frame != null;
+
+        return Stack(
+          fit: StackFit.passthrough,
+          children: [
+            AnimatedOpacity(
+              opacity: loaded ? 0 : 1,
+              duration: _fade,
+              curve: Curves.easeOut,
+              child: skeleton(animated: true),
+            ),
+            AnimatedOpacity(
+              opacity: loaded ? 1 : 0,
+              duration: _fade,
+              curve: Curves.easeOutCubic,
+              // 圖片同時從 1.03 收到 1.0，比單純淡入柔和很多。
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: loaded ? 1.03 : 1.0, end: 1.0),
+                duration: const Duration(milliseconds: 620),
+                curve: Curves.easeOutCubic,
+                builder: (_, scale, inner) => Transform.scale(scale: scale, child: inner),
+                child: child,
+              ),
+            ),
+          ],
         );
       },
     );
