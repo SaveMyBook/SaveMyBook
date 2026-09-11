@@ -1,5 +1,5 @@
 {
-  "@@locale": "zh-Hant",
+  "@@locale": "zh_Hant",
   "orderPendingPayment": "待付款",
   "orderPendingDeposit": "待存書",
   "orderDeposited": "已存書",
