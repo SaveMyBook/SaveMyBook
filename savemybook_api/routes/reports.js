@@ -106,7 +106,6 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
-// 自己被檢舉的案件，讓賣家在書籍管理看到標註
 router.get('/against-me', authenticateToken, async (req, res) => {
   try {
     const myBooks = await prisma.books.findMany({

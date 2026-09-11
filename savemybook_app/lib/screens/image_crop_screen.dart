@@ -12,13 +12,11 @@ import '../widgets/state_views.dart';
 class ImageCropScreen extends StatefulWidget {
   final String sourcePath;
 
-  /// 寬高比，1 = 正方形（頭像），4/3 用於書籍照片。
   final double aspectRatio;
 
   /// 取景框是否畫成圓形（只影響提示，輸出仍是方形圖）。
   final bool circular;
 
-  /// 輸出的最長邊像素。
   final int outputSize;
 
   const ImageCropScreen({
@@ -68,7 +66,6 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
     }
   }
 
-  /// 取景框在畫面上的大小。
   Size _viewportOf(BoxConstraints constraints) {
     final maxW = constraints.maxWidth - 32;
     final maxH = constraints.maxHeight - 32;

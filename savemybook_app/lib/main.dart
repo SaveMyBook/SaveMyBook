@@ -49,7 +49,6 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
         (_) => false,
       );
 
-      // 帳號被停權／列入黑名單時要明確告知，不然使用者只會看到莫名其妙被登出。
       if (reason == null || reason.isEmpty) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final ctx = navigatorKey.currentContext;
@@ -65,7 +64,6 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     final token = prefs.getString('auth_token');
 
     if (token != null && token.isNotEmpty) {
-      // 開了快速登入就先過生物辨識，沒過就停在登入頁（token 保留，可以再試一次）。
       final unlocked = !BiometricService.isEnabled ||
           await BiometricService.authenticate(reason: '驗證身分以登入 SaveMyBook');
 
@@ -90,7 +88,6 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     });
   }
 
-  /// 外部掃到別人的 QR、從網頁按「在 App 中開啟」之後，直接幫他開聊天室。
   Future<void> _openProfileLink(int userId) async {
     final navigator = navigatorKey.currentState;
     if (navigator == null) return;

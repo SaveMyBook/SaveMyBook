@@ -158,7 +158,7 @@ router.post('/rooms', authenticateToken, async (req, res) => {
       if (book) {
         const card = buildBookCard(book);
 
-        // 同一本書如果剛剛才貼過就不要重複洗版。
+        // 同一張卡片已是最後一則訊息時不重複插入。
         const recent = await prisma.chat_messages.findFirst({
           where: { room_id: room.room_id, message_type: 'system', content: card },
           orderBy: { created_at: 'desc' }

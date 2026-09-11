@@ -34,12 +34,7 @@ app.use(express.json());
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ==========================================
-// API 文件（Scalar）
-// ------------------------------------------
-// 文件在啟動時組一次就快取起來，之後每個請求都回同一份。
-// 改 docs/*.yaml 要重啟伺服器才會生效。
-// ==========================================
+// 文件在啟動時組一次並快取，改 docs/*.yaml 需重啟才會生效。
 const openapiSpec = buildSpec();
 
 app.get('/openapi.json', (req, res) => res.json(openapiSpec));

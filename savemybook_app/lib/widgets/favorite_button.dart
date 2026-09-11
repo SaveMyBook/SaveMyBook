@@ -36,7 +36,6 @@ class _FavoriteButtonState extends State<FavoriteButton> {
   Future<void> _toggle() async {
     if (_isBusy) return;
 
-    // 收藏才放擴散圈，取消收藏不放 —— 慶祝的動作只該出現在正向的操作上。
     final willFavorite = !ApiService.favoriteBookIds.value.contains(widget.bookId);
     if (willFavorite) {
       HapticFeedback.mediumImpact();
@@ -73,7 +72,6 @@ class _FavoriteButtonState extends State<FavoriteButton> {
                 alignment: Alignment.center,
                 children: [
                   BurstRing(key: _burstKey, color: c.accent, size: burstSize),
-                  // 切換圖示時順帶轉一點角度，書籤是「翻進去」而不是硬換。
                   AnimatedSwitcher(
                     duration: Motion.base,
                     switchInCurve: Motion.pop,

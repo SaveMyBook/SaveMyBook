@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 
-/// 全螢幕看圖：可雙指縮放、雙擊放大，點背景關閉。
 class ImageViewer extends StatefulWidget {
   final String imageUrl;
   final String? title;

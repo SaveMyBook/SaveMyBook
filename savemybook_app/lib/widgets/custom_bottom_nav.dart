@@ -127,7 +127,6 @@ class CustomBottomNav extends StatelessWidget {
     final isSelected = selectedIndex == index;
     final color = isSelected ? c.accent : c.iconInactive;
 
-    // 選中時圖示往上浮一點點，文字才有被「推開」的感覺。
     Widget icon = AnimatedSlide(
       offset: Offset(0, isSelected ? -0.06 : 0),
       duration: Motion.base,
@@ -246,11 +245,8 @@ class CustomBottomNav extends StatelessWidget {
   }
 }
 
-/// 沿著導覽列滑動的膠囊。
-///
-/// 用彈簧而不是補間曲線：切分頁時膠囊會稍微衝過頭再收回來，
-/// 而且移動中會依速度拉長、停下時彈回原比例。這個擠壓拉伸
-/// 是讓它看起來有重量、不像貼圖平移的關鍵。
+/// 沿導覽列滑動的膠囊。用彈簧而非補間曲線，並依速度做擠壓拉伸，
+/// 移動中沿行進方向拉長、停下時彈回原比例。
 class _SlidingPill extends StatefulWidget {
   final int index;
   final double slot;

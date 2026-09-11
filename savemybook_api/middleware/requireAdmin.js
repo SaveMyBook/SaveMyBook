@@ -1,6 +1,5 @@
 const prisma = require('../lib/prisma');
 
-/// 細部權限鍵值，對應 admin_permissions 的欄位。
 const PERMISSIONS = {
   transactions: 'can_manage_transactions',
   members: 'can_manage_members',

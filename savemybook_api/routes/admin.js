@@ -93,7 +93,6 @@ router.patch('/members/:id', requireAdmin('members'), async (req, res) => {
   }
 });
 
-
 // ---------- 會員細部設定（等級／權限） ----------
 
 const PERMISSION_KEYS = [
@@ -364,7 +363,6 @@ router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
         }
       });
 
-      // 一併通知被檢舉的一方，讓對方知道審核結果
       let ownerId = null;
       if (report.target_type === 'book') {
         const book = await tx.books.findUnique({
@@ -651,7 +649,6 @@ router.get('/maintenance-logs', async (req, res) => {
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });
-
 
 // ---------- 訂單管理 ----------
 
@@ -1008,7 +1005,6 @@ router.delete('/categories/:id', requireAdmin('content'), async (req, res) => {
   const categoryId = parseInt(req.params.id);
 
   try {
-    // 還有書掛在底下就不能刪，否則那些書會變成沒有分類。
     const inUse = await prisma.books.count({ where: { category_id: categoryId } });
     if (inUse > 0) {
       return res.status(400).json({
@@ -1205,7 +1201,6 @@ router.get('/operation-logs', async (req, res) => {
   }
 });
 
-
 // ---------- 錢包管理 ----------
 
 const walletUserSelect = { user_id: true, nickname: true, avatar_url: true, email: true };
@@ -1244,7 +1239,7 @@ router.get('/wallets', requireAdmin('wallets'), async (req, res) => {
         nickname: u.nickname,
         email: u.email,
         avatar_url: u.avatar_url,
-        // 沒有錢包的人視為 0，前端不用另外處理 null。
+        // 無錢包紀錄者一律回 0，用戶端不必處理 null。
         balance: u.wallets?.balance ?? 0,
         frozen_amount: u.wallets?.frozen_amount ?? 0,
         total_income: u.wallets?.total_income ?? 0,
@@ -1318,7 +1313,6 @@ router.post('/wallets/:userId/adjust', requireAdmin('wallets'), async (req, res)
     if (!user) return res.status(404).json({ success: false, message: '找不到這位會員' });
 
     const result = await prisma.$transaction(async (tx) => {
-      // 沒有錢包的會員先幫他開一個，否則無法調整。
       const wallet = user.wallets ??
         (await tx.wallets.create({ data: { user_id: userId, balance: 0 } }));
 
@@ -1385,7 +1379,6 @@ router.post('/wallets/:userId/adjust', requireAdmin('wallets'), async (req, res)
   }
 });
 
-
 // ---------- 法律文件 / 常見問題 / 客服工單 ----------
 
 router.get('/legal', requireAdmin('announcements'), async (req, res) => {
@@ -1417,14 +1410,14 @@ router.put('/legal/:key', requireAdmin('announcements'), async (req, res) => {
     });
 
     let notified = 0;
-    // 條款變更要讓每個人知道，所以是逐一寫通知而不是只發一則公告。
+    // 條款變更涉及全體使用者權益，逐帳號寫入通知而非僅發布公告。
     if (notify && existing?.content !== content) {
       const users = await prisma.users.findMany({
         where: { is_active: true, is_blacklisted: false },
         select: { user_id: true }
       });
 
-      // 一次塞太多列會鎖表太久，切成每批 500 筆。
+      // 單次寫入過多列會長時間鎖表，切成每批 500 筆。
       for (let i = 0; i < users.length; i += 500) {
         const batch = users.slice(i, i + 500);
         await prisma.notifications.createMany({

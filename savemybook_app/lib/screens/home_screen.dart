@@ -435,8 +435,6 @@ return LightStatusBar(
         duration: Motion.base,
         switchInCurve: Motion.emphasized,
         switchOutCurve: Motion.exitCurve,
-        // 網格從右邊進、列表從左邊進，方向對應上面那兩顆切換鈕的位置，
-        // 切換時就看得出「往哪一邊換過去」而不是原地閃一下。
         transitionBuilder: (child, animation) {
           final incoming = child.key == ValueKey(_isGridView ? 'grid' : 'list');
           final dx = (_isGridView ? 0.06 : -0.06) * (incoming ? 1 : -1);

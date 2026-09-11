@@ -27,7 +27,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   String? _newError;
   String? _confirmError;
 
-  /// 0~4 的強度分數，用來畫強度條與提示。
   int get _strength {
     final value = _newController.text;
     if (value.isEmpty) return 0;

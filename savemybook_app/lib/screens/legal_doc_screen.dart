@@ -7,7 +7,6 @@ import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 
-/// 服務條款／隱私權政策／關於我們共用這一頁，內容由管理後台編輯。
 class LegalDocScreen extends StatefulWidget {
   final String docKey;
   final String fallbackTitle;

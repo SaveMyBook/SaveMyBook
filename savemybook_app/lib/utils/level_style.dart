@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/member_level.dart';
 
-/// 會員等級的視覺定義：漸層底色、強調色、徽章圖示。
 ///
 /// 會員中心的徽章和會員等級頁必須用同一套，否則同一個等級在兩頁會長得不一樣。
 class LevelStyle {
@@ -75,7 +74,6 @@ class LevelProgress {
   int get percent => (ratio * 100).round();
 }
 
-/// 找出某個等級在清單中的索引，用來取對應的樣式。
 int levelIndexOf(MemberLevelInfo info, MemberLevel? level) {
   if (level == null) return 0;
   final index = info.levels.indexWhere((l) => l.levelId == level.levelId);

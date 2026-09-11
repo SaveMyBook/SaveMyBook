@@ -78,7 +78,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          // header 固定在最上面，只讓下面的清單捲動。
           _buildHeader(c, user?.nickname ?? '使用者', user?.bio ?? '', user?.avatarUrl),
           Expanded(
             child: RefreshIndicator(
@@ -94,7 +93,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildMenu(c),
                   const SizedBox(height: 14),
                   _buildLogoutButton(c),
-                  // 只留浮動導覽列的高度，不再多墊一大段空白。
                   SizedBox(height: MediaQuery.of(context).padding.bottom + 84),
                 ],
               ),
@@ -216,7 +214,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// 等級徽章：用該等級的專屬漸層與圖示，一眼看得出自己是什麼級別。
   Widget _buildLevelBadge() {
     final level = _level.currentLevel;
     final style = LevelStyle.at(levelIndexOf(_level, level));
@@ -263,7 +260,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// 距離下一級還差多少，直接畫在 header 下緣。
   Widget _buildLevelProgress() {
     if (_level.levels.isEmpty) return const SizedBox.shrink();
 

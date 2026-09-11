@@ -44,7 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  /// 只有「開過快速登入」且「本機還留著 token」時才顯示按鈕。
   Future<void> _checkBiometric() async {
     if (!BiometricService.isEnabled) return;
 

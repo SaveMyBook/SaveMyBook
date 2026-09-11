@@ -816,7 +816,6 @@ class AdminMemberDetail {
 
   bool get isAdmin => role == 'admin';
 
-  /// 權限鍵值與畫面上的說明。
   /// 權限鍵值 -> (名稱, 說明)，順序即畫面上的顯示順序。
   static const permissionLabels = {
     'can_manage_members': ('會員管控', '停權、黑名單、身分'),

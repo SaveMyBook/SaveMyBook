@@ -29,7 +29,6 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
   static const _caretHalf = 10.0;
   static const _cardRadius = 20.0;
 
-
   @override
   void initState() {
     super.initState();
@@ -284,7 +283,6 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     );
   }
 
-  /// Trip 那種一排節點的進度軌，點一下可以跳到該等級。
   Widget _buildRail(LevelStyle style) {
     final levels = _info.levels;
     final currentIndex = _currentIndex;
@@ -343,12 +341,10 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     );
   }
 
-  /// 可左右滑的狀態卡，內容跟著等級走。
   Widget _buildStatusCards(AppColors c, LevelStyle style) {
     return Column(
       children: [
         const SizedBox(height: 18),
-        // 指向卡片的小箭頭，跟 Trip 一樣標出目前看的是哪一級。
         _buildPointer(),
         SizedBox(
           height: 156,
@@ -654,8 +650,6 @@ class _CaretPainter extends CustomPainter {
   bool shouldRepaint(covariant _CaretPainter oldDelegate) => oldDelegate.color != color;
 }
 
-/// 會員等級用的進度條：比預設的 LinearProgressIndicator 粗，
-/// 末端有一顆光點標出「你現在在這裡」，一眼就看得出走到哪。
 class _ProgressTrack extends StatelessWidget {
   final double progress;
   final Color color;

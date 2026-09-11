@@ -238,7 +238,6 @@ class AppDateField extends StatelessWidget {
   final ValueChanged<DateTime?> onChanged;
   final String hint;
 
-  /// 可選的最早／最晚日期，預設是「近 100 年到今天」。
   final DateTime? firstDate;
   final DateTime? lastDate;
   final String helpText;

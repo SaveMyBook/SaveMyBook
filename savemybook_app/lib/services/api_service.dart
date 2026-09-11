@@ -502,7 +502,6 @@ class ApiService {
     return count;
   }
 
-  /// 一次刷新底部導覽列與 header 上所有的紅點數字。
   Future<void> refreshBadges() async {
     if (authToken == null) {
       resetGlobalState();

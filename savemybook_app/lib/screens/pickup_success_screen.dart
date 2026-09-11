@@ -20,8 +20,6 @@ class PickupSuccessScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // 彈出來的靜態勾改成一筆一筆畫出來：圈先繞完，勾才下筆。
-              // 取書完成是整個流程的終點，值得多給它半秒的儀式感。
               DrawnCheck(color: c.accent, size: 108),
               const SizedBox(height: 28),
               FadeSlideIn(

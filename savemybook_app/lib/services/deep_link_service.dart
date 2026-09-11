@@ -20,7 +20,6 @@ class DeepLinkService {
     } on PlatformException {
       // 平台沒有實作 channel（例如桌機除錯）時直接忽略。
     } on MissingPluginException {
-      // 同上。
     }
   }
 

@@ -196,7 +196,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
     );
   }
 
-  /// 用 Container 高度直接畫長條圖，不額外引進圖表套件。
+  /// 以 Container 高度直接畫長條圖，不引進圖表套件。
   Widget _buildChart(
     AppColors c,
     String title,

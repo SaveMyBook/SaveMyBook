@@ -16,7 +16,6 @@ class ChatPrefs {
 
   static bool isMuted(int roomId) => mutedRoomIds.value.contains(roomId);
 
-  /// 回傳切換後的狀態（true = 現在是靜音）。
   static Future<bool> toggle(int roomId) async {
     final next = Set<int>.from(mutedRoomIds.value);
     final muted = !next.contains(roomId);

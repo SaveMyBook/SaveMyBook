@@ -325,8 +325,7 @@ void showAppSnackBar(BuildContext context, String message, {bool isError = false
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        // 用 App 自己的卡片語彙：白底、圓角 16、左側色塊 icon，
-        // 而不是 Material 預設那顆深色膠囊。
+        // 改用 App 的卡片語彙，取代 Material 預設的深色膠囊。
         backgroundColor: Colors.transparent,
         elevation: 0,
         padding: EdgeInsets.zero,
@@ -377,10 +376,8 @@ void showAppSnackBar(BuildContext context, String message, {bool isError = false
     );
 }
 
-/// 全 App 統一的網路圖片：載入中顯示骨架、失敗顯示替代圖、載入完成淡入。
-///
-/// 直接用 Image.network 的話載入中是一片空白，使用者不知道到底是在載入
-/// 還是根本沒有圖。
+/// 全 App 統一的網路圖片：載入中顯示骨架、失敗顯示替代圖、完成後淡入。
+/// 直接用 Image.network 在載入期間是一片空白，無法區分「載入中」與「沒有圖」。
 class AppNetworkImage extends StatelessWidget {
   final String? url;
   final BoxFit fit;
@@ -449,7 +446,6 @@ class AppNetworkImage extends StatelessWidget {
               opacity: loaded ? 1 : 0,
               duration: _fade,
               curve: Curves.easeOutCubic,
-              // 圖片同時從 1.03 收到 1.0，比單純淡入柔和很多。
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: loaded ? 1.03 : 1.0, end: 1.0),
                 duration: const Duration(milliseconds: 620),

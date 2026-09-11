@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../utils/motion.dart';
 
-/// 彈窗的共用進場：從稍微縮小＋往下一點的位置浮上來。
-///
-/// Material 預設是單純的淡入，彈窗會「憑空出現」。加上一點位移與縮放，
-/// 才會像是從畫面裡長出來的。離場刻意比進場快，關掉時不拖泥帶水。
+/// 彈窗的共用進場。Material 預設只有淡入，這裡補上位移與縮放，
+/// 離場則刻意比進場短。
 Future<T?> _showAnimatedDialog<T>(
   BuildContext context, {
   required WidgetBuilder builder,

@@ -11,7 +11,6 @@ import '../widgets/app_header.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/state_views.dart';
 
-/// 我的工單列表 —— 「聯絡我們」的入口。
 class SupportTicketScreen extends StatefulWidget {
   const SupportTicketScreen({super.key});
 
@@ -292,7 +291,6 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
 class TicketDetailScreen extends StatefulWidget {
   final int ticketId;
 
-  /// 客服視角：多一排狀態調整的按鈕。
   final bool asAdmin;
 
   const TicketDetailScreen({super.key, required this.ticketId, this.asAdmin = false});
@@ -477,7 +475,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget _buildMessage(TicketMessage message, AppColors c) {
-    // 客服的訊息靠左並用強調色，使用者自己的靠右，一眼分得出誰說的。
     final isMine = !message.isStaff;
     final alignRight = widget.asAdmin ? message.isStaff : isMine;
 

@@ -126,7 +126,7 @@ router.post('/checkout', authenticateToken, async (req, res) => {
       return res.status(400).json({ success: false, message: `《${unavailable.books.title}》已無法購買，請先移除` });
     }
 
-    // 舊資料可能存在 0 元的書，這裡再擋一次，避免零元購。
+    // 既有資料可能存在售價 0 的書籍，結帳時再擋一次。
     const invalidPrice = cartItems.find(i => Number(i.books.price) <= 0);
     if (invalidPrice) {
       return res.status(400).json({
@@ -163,7 +163,6 @@ router.post('/checkout', authenticateToken, async (req, res) => {
     const createdOrders = await prisma.$transaction(async (tx) => {
       const results = [];
 
-      // 先把錢從買家帳上扣掉；沒扣成功就不該建立訂單。
       const wallet = await tx.wallets.upsert({
         where: { user_id: req.user.userId },
         update: {},
@@ -287,7 +286,7 @@ router.patch('/:id/cancel', authenticateToken, async (req, res) => {
         data: { status: 'on_sale', updated_at: new Date() }
       });
 
-      // 結帳時已經從買家帳上扣款，取消就要原路退回。
+      // 結帳時已扣款，取消須原路退回。
       const refundable = ['pending_payment', 'pending_deposit', 'deposited', 'pending_pickup'];
       if (refundable.includes(order.status)) {
         const wallet = await tx.wallets.upsert({

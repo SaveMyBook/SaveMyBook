@@ -117,7 +117,6 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     }
   }
 
-  /// 指定其中一個固定欄位（封面／背面／條碼），一次一張，會直接覆蓋該格。
   Future<void> _pickRequired(int slot) async {
     final path = await PhotoService.pickAndCrop(context, aspectRatio: 3 / 4, outputSize: 1200);
     if (path == null || !mounted) return;

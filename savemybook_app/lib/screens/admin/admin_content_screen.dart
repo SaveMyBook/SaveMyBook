@@ -11,7 +11,6 @@ import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 
-/// 服務條款、隱私權政策、關於我們。
 class AdminLegalScreen extends StatefulWidget {
   const AdminLegalScreen({super.key});
 
@@ -187,7 +186,6 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
       return;
     }
 
-    // 條款會影響全部使用者，所以走兩段確認：先確認要改，再確認要不要通知。
     final confirmed = await showConfirmDialog(
       context,
       title: '確認更新$title？',
@@ -277,7 +275,6 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
   }
 }
 
-/// 幫助中心的常見問題管理。
 class AdminFaqScreen extends StatefulWidget {
   const AdminFaqScreen({super.key});
 

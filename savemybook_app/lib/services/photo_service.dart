@@ -4,7 +4,6 @@ import '../screens/image_crop_screen.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/state_views.dart';
 
-/// 取得照片的統一入口：先問要拍照還是選相簿，拿到之後再進裁切畫面。
 class PhotoService {
   static final ImagePicker _picker = ImagePicker();
 

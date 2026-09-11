@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
 
-/// 每次請求都要回資料庫確認帳號狀態。
-/// 只驗 JWT 簽章的話，停權／黑名單要等 token 自己過期才生效，
-/// 被停權的人可以繼續用舊 token 打整個 API；role 被降級也一樣。
+/// 每次請求都回資料庫確認帳號狀態。只驗 JWT 簽章的話，停權與黑名單要等
+/// token 自然過期才生效，期間被停權者仍可持舊 token 呼叫全部端點；
+/// role 被降級同理。代價是每個請求多一次 DB 查詢。
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];

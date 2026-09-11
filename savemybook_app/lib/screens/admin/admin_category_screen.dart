@@ -60,7 +60,6 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
     if (!mounted) return;
 
     if (error != null) {
-      // 失敗就回到拖曳前的順序，不要讓畫面停在一個沒存進去的狀態。
       setState(() {
         _categories = previous;
         _isReordering = false;

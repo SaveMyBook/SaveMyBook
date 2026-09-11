@@ -83,7 +83,6 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
     );
   }
 
-  /// 把畫面上的 QR 卡片轉成 PNG 檔，分享與存檔都用同一份。
   Future<String?> _captureQr() async {
     try {
       final boundary =

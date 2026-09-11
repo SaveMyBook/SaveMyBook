@@ -59,7 +59,7 @@ class _FadeSlideInState extends State<FadeSlideIn> with SingleTickerProviderStat
       animation: _controller,
       builder: (context, child) {
         final raw = _controller.value;
-        // 透明度用較快的曲線先到位，位移慢一點收尾，進場才不會有「啪」的感覺。
+        // 透明度先到位、位移後收尾，避免進場顯得生硬。
         final fade = Curves.easeOut.transform((raw * 1.35).clamp(0.0, 1.0));
         final slide = Curves.easeOutCubic.transform(raw);
         return Opacity(
@@ -84,8 +84,7 @@ class PressableScale extends StatefulWidget {
   final VoidCallback? onLongPress;
   final double scale;
 
-  /// 按下時是否給一次輕微的觸覺回饋。列表裡密集的小元件建議關掉，
-  /// 不然滑過去會一直震。
+  /// 按下時是否給觸覺回饋。列表中密集的小元件應關閉，否則滑過會連續震動。
   final bool haptic;
 
   const PressableScale({
@@ -159,9 +158,8 @@ class _PressableScaleState extends State<PressableScale>
 
 /// 捲到看得見才進場。
 ///
-/// [FadeSlideIn] 是掛載當下就開始播，所以第一屏以外的項目等你捲到時
-/// 早就播完了 —— 畫面下半部永遠是靜止的，這正是「動畫不夠細」的來源。
-/// 這個元件改成等項目真的進入視窗才觸發。
+/// [FadeSlideIn] 在掛載當下就播，第一屏以外的項目等捲到時早已播完，
+/// 畫面下半部永遠是靜止的。這個元件改為等項目進入視窗才觸發。
 class RevealOnScroll extends StatefulWidget {
   final Widget child;
   final int index;
@@ -169,7 +167,7 @@ class RevealOnScroll extends StatefulWidget {
   final Duration duration;
   final Duration stagger;
 
-  /// 底部這段距離內才算「進場」。留一點餘裕，避免只露出一角就開始動。
+  /// 距視窗底部這段距離內才算進場，避免只露出一角就開始動。
   final double threshold;
 
   const RevealOnScroll({
@@ -285,7 +283,7 @@ class _RevealOnScrollState extends State<RevealOnScroll>
       animation: _controller,
       builder: (context, child) {
         final raw = _controller.value;
-        // 透明度跑得比位移快，收尾時只剩下位移在動，看起來比較沉穩。
+        // 透明度先到位、位移後收尾，避免進場顯得生硬。
         final fade = Curves.easeOut.transform((raw * 1.4).clamp(0.0, 1.0));
         final slide = Motion.enterCurve.transform(raw);
         return Opacity(
@@ -301,7 +299,7 @@ class _RevealOnScrollState extends State<RevealOnScroll>
   }
 }
 
-/// 極輕微的呼吸循環。給空狀態的圖示用，讓靜止的畫面還有生命。
+/// 極輕微的呼吸循環，用於空狀態圖示。
 class Breathe extends StatefulWidget {
   final Widget child;
   final double amount;
@@ -345,7 +343,7 @@ class _BreatheState extends State<Breathe> with SingleTickerProviderStateMixin {
   }
 }
 
-/// 從中心擴散出去的圈，收藏、加入購物車這類「成功了」的瞬間用。
+/// 自中心擴散的圈，用於收藏、加入購物車等正向操作的瞬間。
 class BurstRing extends StatefulWidget {
   final Color color;
   final double size;
@@ -424,7 +422,7 @@ class _BurstPainter extends CustomPainter {
       old.progress != progress || old.opacity != opacity || old.color != color;
 }
 
-/// 一筆一筆畫出來的打勾。用在結帳完成、取書成功這種需要儀式感的頁面。
+/// 依序描繪的打勾，用於結帳完成、取書成功等結果頁。
 class DrawnCheck extends StatefulWidget {
   final Color color;
   final double size;
@@ -503,7 +501,6 @@ class _CheckPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round
       ..color = color;
 
-    // 底色的圈，淡淡一層當作軌道。
     canvas.drawCircle(
       centre,
       radius,
@@ -623,7 +620,6 @@ class PopIn extends StatelessWidget {
   }
 }
 
-/// 掃過去的高光，用來做骨架載入。
 class Shimmer extends StatefulWidget {
   final Widget child;
 
@@ -672,7 +668,6 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
   }
 }
 
-/// 骨架的單一方塊。
 class SkeletonBox extends StatelessWidget {
   final double? width;
   final double height;

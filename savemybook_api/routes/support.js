@@ -20,8 +20,6 @@ const shapeTicket = (t) => ({
     : null
 });
 
-// ---------- 公開內容 ----------
-
 router.get('/faqs', async (req, res) => {
   try {
     const faqs = await prisma.faqs.findMany({
@@ -47,8 +45,6 @@ router.get('/legal/:key', async (req, res) => {
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });
-
-// ---------- 我的工單 ----------
 
 router.get('/tickets', authenticateToken, async (req, res) => {
   try {
@@ -116,7 +112,7 @@ router.post('/tickets', authenticateToken, async (req, res) => {
   if (!content) return res.status(400).json({ success: false, message: '請描述你遇到的問題' });
 
   try {
-    // 同時開太多張未處理的工單會癱瘓客服，這裡先擋。
+    // 限制同時處理中的工單數，避免單一使用者大量開單。
     const openCount = await prisma.support_tickets.count({
       where: { user_id: req.user.userId, status: { in: ['open', 'pending'] } }
     });

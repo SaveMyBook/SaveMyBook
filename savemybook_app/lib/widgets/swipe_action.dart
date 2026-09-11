@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../utils/app_colors.dart';
 
-/// 一個滑動動作的樣式定義。
 class SwipeAction {
   final IconData icon;
   final String label;

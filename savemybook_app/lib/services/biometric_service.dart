@@ -19,7 +19,6 @@ class BiometricService {
     _isEnabled = prefs.getBool(_enabledKey) ?? false;
   }
 
-  /// 裝置有沒有可用的生物辨識（或至少有螢幕鎖）。
   static Future<bool> isAvailable() async {
     try {
       if (!await _auth.isDeviceSupported()) return false;
@@ -32,7 +31,6 @@ class BiometricService {
     }
   }
 
-  /// 回傳裝置主要支援的辨識方式，用來決定按鈕文字。
   static Future<String> label() async {
     try {
       final types = await _auth.getAvailableBiometrics();
@@ -51,7 +49,6 @@ class BiometricService {
     await prefs.setBool(_enabledKey, value);
   }
 
-  /// 跳出系統的辨識畫面。使用者取消或失敗都回 false。
   static Future<bool> authenticate({String reason = '請驗證身分以繼續'}) async {
     try {
       return await _auth.authenticate(

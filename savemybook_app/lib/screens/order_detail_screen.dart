@@ -13,7 +13,6 @@ import 'book_detail_screen.dart';
 class OrderDetailScreen extends StatefulWidget {
   final Order order;
 
-  /// true = 我是賣家，畫面上的對象改顯示買家。
   final bool asSeller;
 
   const OrderDetailScreen({super.key, required this.order, this.asSeller = false});
@@ -23,7 +22,6 @@ class OrderDetailScreen extends StatefulWidget {
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
-  /// 訂單會依序經過的節點，用來畫進度。
   static const _flow = [
     (status: 'pending_deposit', label: '待賣家存書'),
     (status: 'deposited', label: '已存入書櫃'),

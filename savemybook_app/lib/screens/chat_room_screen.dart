@@ -47,7 +47,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   void dispose() {
     _pollTimer?.cancel();
-    // 進聊天室等於已讀，離開時把 header 的紅點數字補正。
     _api.fetchUnreadChatCount();
     _controller.dispose();
     _scrollController.dispose();
@@ -188,8 +187,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
     final isMine = message.senderId == _myId;
 
-    // 連續同一人的訊息只在最後一則顯示頭像與時間，中間的收緊間距，
-    // 不然每一行都掛一顆頭像、每一行都有時間戳，整個版面會很雜。
+    // 連續同一人的訊息只在最後一則顯示頭像與時間，中間收緊間距。
     final next = index + 1 < _messages.length ? _messages[index + 1] : null;
     final isGroupEnd = next == null || next.senderId != message.senderId;
     final previous = index > 0 ? _messages[index - 1] : null;

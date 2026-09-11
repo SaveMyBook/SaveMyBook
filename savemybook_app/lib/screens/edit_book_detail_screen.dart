@@ -54,7 +54,6 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
   /// 前三格固定對應封面／背面／條碼，跟新增書籍時一致。
   static const _requiredLabels = ['封面', '背面', '條碼'];
 
-  /// 每一格可能是伺服器上既有的圖，或這次要換上去的新圖（兩者只會有一個）。
   final List<BookImage?> _slotExisting = List<BookImage?>.filled(3, null, growable: false);
   final List<XFile?> _slotNew = List<XFile?>.filled(3, null, growable: false);
 

@@ -5,14 +5,6 @@ const YAML = require('yaml');
 const port = process.env.PORT || 3000;
 const docsDir = path.join(__dirname, '../docs');
 
-// ==========================================
-// OpenAPI 文件組裝
-// ------------------------------------------
-// docs/ 底下每個 .yaml 各自描述一組端點，啟動時合併成一份完整的
-// OpenAPI 文件。拆檔是為了讓每個路由檔都有對應的文件檔，改路由時
-// 一眼就知道要改哪一份，不用在一個上萬行的巨檔裡找。
-// ==========================================
-
 const description = `
 SaveMyBook 為結合智慧書櫃的二手書交易平台。賣家將書籍存入書櫃，買家憑取貨碼取件，
 雙方無須當面交付，金流以站內代幣結算。
@@ -204,7 +196,7 @@ const base = {
       }
     }
   },
-  // Scalar 用這個把左側選單分組，沒有分組時所有 tag 會平鋪成很長一條。
+  // x-tagGroups 是 Scalar 的擴充欄位，不在 OpenAPI 規格內。
   'x-tagGroups': [
     { name: '開始使用', tags: ['認證 (Auth)', '使用者 (Users)'] },
     { name: '商品', tags: ['書籍 (Books)', '分類 (Categories)', '收藏 (Favorites)', '智慧書櫃 (Cabinets)'] },
@@ -229,7 +221,6 @@ const base = {
   ]
 };
 
-/// 只往下合併兩層（components.schemas 這種），路徑本身不需要深層合併。
 const mergeInto = (target, source) => {
   for (const [key, value] of Object.entries(source)) {
     if (value && typeof value === 'object' && !Array.isArray(value) && target[key]) {
@@ -255,7 +246,7 @@ const buildSpec = () => {
     try {
       doc = YAML.parse(fs.readFileSync(path.join(docsDir, file), 'utf8'));
     } catch (err) {
-      // 一份文件寫壞不該讓整個 API 起不來，跳過並留下訊息就好。
+      // 單一文件解析失敗只跳過該檔，不讓整個 API 起不來。
       console.error(`[OpenAPI] 無法解析 docs/${file}：${err.message}`);
       continue;
     }
@@ -270,7 +261,6 @@ const buildSpec = () => {
     if (doc.components) mergeInto(spec.components, doc.components);
   }
 
-  // 讓側欄順序跟 x-tagGroups 一致，沒被分組的排最後。
   const order = spec['x-tagGroups'].flatMap((g) => g.tags);
   spec.tags.sort((a, b) => {
     const ai = order.indexOf(a.name);
