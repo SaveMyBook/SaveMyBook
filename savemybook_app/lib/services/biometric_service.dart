@@ -50,10 +50,10 @@ class BiometricService {
     await prefs.setBool(_enabledKey, value);
   }
 
-  static Future<bool> authenticate({String reason = S.verifyIdentityContinue}) async {
+  static Future<bool> authenticate({String? reason}) async {
     try {
       return await _auth.authenticate(
-        localizedReason: reason,
+        localizedReason: reason ?? S.verifyIdentityContinue,
         options: const AuthenticationOptions(
           stickyAuth: true,
           // 允許退回裝置密碼，不然沒設生物辨識的人會完全進不去。

@@ -89,7 +89,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
 
   Future<void> _editSlot(Cabinet cabinet, CabinetSlot slot) async {
     final c = AppColors.of(context);
-    const options = [
+    final options = <({String value, String label})>[
       (value: 'empty', label: S.slotEmpty),
       (value: 'occupied', label: S.slotOccupied),
       (value: 'reserved', label: S.slotReserved),

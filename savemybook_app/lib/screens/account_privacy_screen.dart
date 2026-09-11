@@ -86,10 +86,10 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
     final confirmed = await showConfirmDialog(
       context,
       title: S.deleteAccount,
-      message: S.accountPermanentlyDisabled30DaysSign
-          S.personalDataErasedButCompletedOrders
+      message: S.accountPermanentlyDisabled30DaysSign +
+          S.personalDataErasedButCompletedOrders +
           S.peopleTradedWithDoNotLose,
-      confirmLabel: S.continue,
+      confirmLabel: S.actionContinue,
       isDestructive: true,
       icon: Icons.person_remove_rounded,
     );

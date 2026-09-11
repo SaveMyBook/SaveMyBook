@@ -4,14 +4,14 @@ import '../i18n/strings.dart';
 
 class BarcodeScannerScreen extends StatefulWidget {
   final List<BarcodeFormat> formats;
-  final String title;
-  final String hint;
+  final String? title;
+  final String? hint;
 
-  BarcodeScannerScreen({
+  const BarcodeScannerScreen({
     super.key,
     this.formats = const [BarcodeFormat.ean13, BarcodeFormat.ean8],
-    this.title = S.scanBarcode,
-    this.hint = S.lineUpBarcodeSpineWithFrame,
+    this.title,
+    this.hint,
   });
 
   @override
@@ -67,13 +67,13 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                         onTap: () => Navigator.pop(context),
                         child: const Padding(padding: EdgeInsets.all(4.0), child: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22)),
                       ),
-                      Expanded(child: Text(widget.title, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))),
+                      Expanded(child: Text((widget.title ?? S.scanBarcode), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))),
                       const SizedBox(width: 30),
                     ],
                   ),
                 ),
                 const Spacer(),
-                Text(widget.hint, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                Text((widget.hint ?? S.lineUpBarcodeSpineWithFrame), style: const TextStyle(color: Colors.white70, fontSize: 14)),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: _isQrMode ? 260 : 280,

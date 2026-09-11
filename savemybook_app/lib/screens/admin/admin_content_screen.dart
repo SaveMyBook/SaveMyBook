@@ -23,7 +23,7 @@ class AdminLegalScreen extends StatefulWidget {
 }
 
 class _AdminLegalScreenState extends State<AdminLegalScreen> {
-  static const _known = {
+  Map<String, String> get _known => {
     'terms': S.termsService,
     'privacy': S.privacyPolicy,
     'about': S.aboutUs,

@@ -21,7 +21,7 @@ class PurchaseHistoryScreen extends StatefulWidget {
 
 class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
     with SingleTickerProviderStateMixin {
-  static const _tabs = [
+  List<({String key, String label})> get _tabs => [
     (key: 'pending_pickup', label: S.orderBuyerDeposited),
     (key: 'completed', label: S.orderCompleted),
     (key: 'cancelled', label: S.orderCancelled),

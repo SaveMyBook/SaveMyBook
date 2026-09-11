@@ -1,4 +1,4 @@
-
+import '../i18n/strings.dart';
 
 const String kApiHost = 'https://api.savemybook.today';
 

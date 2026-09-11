@@ -19,7 +19,7 @@ class SalesHistoryScreen extends StatefulWidget {
 
 class _SalesHistoryScreenState extends State<SalesHistoryScreen>
     with SingleTickerProviderStateMixin {
-  static const _tabs = [
+  List<({String key, String label})> get _tabs => [
     (key: 'pending_deposit', label: S.orderPendingDeposit),
     (key: 'on_sale', label: S.bookOnSale),
     (key: 'cancelled', label: S.orderCancelled),

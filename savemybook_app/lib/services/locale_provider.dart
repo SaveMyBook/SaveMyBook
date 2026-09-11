@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../i18n/strings.dart';
 
 /// 介面語言。null 代表跟隨系統。
 class LocaleProvider extends ValueNotifier<Locale?> {
@@ -19,11 +18,11 @@ class LocaleProvider extends ValueNotifier<Locale?> {
 
   /// 各語言用自己的文字標示，使用者看不懂目前語言時才找得到自己的。
   static const nativeNames = <String, String>{
-    'zh_Hant': S.msg,
+    'zh_Hant': '繁體中文',
     'en': 'English',
-    'ja': S.msg2,
+    'ja': '日本語',
     'ko': '한국어',
-    'zh_Hans': S.msg3,
+    'zh_Hans': '简体中文',
   };
 
   static String tagOf(Locale locale) =>

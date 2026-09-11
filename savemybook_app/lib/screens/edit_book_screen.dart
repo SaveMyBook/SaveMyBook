@@ -151,7 +151,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                             ],
                           ),
                         ),
-                        FormRowCard(label: S.title, child: AppTextField(controller: _titleController, hint: S.required)),
+                        FormRowCard(label: S.title, child: AppTextField(controller: _titleController, hint: S.actionRequired)),
                         FormRowCard(label: S.author2, child: AppTextField(controller: _authorController, hint: S.optional)),
                         FormRowCard(label: S.publisher2, child: AppTextField(controller: _publisherController, hint: S.optional)),
                         FormRowCard(

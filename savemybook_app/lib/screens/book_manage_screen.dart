@@ -22,7 +22,7 @@ class BookManageScreen extends StatefulWidget {
 }
 
 class _BookManageScreenState extends State<BookManageScreen> {
-  static const _filters = [
+  List<({String key, String label})> get _filters => [
     (key: 'all', label: S.actionAll),
     (key: 'on_sale', label: S.bookOnSale),
     (key: 'reserved', label: S.bookReserved),

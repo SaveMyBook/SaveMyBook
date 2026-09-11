@@ -19,7 +19,7 @@ class AdminDisputeScreen extends StatefulWidget {
 
 class _AdminDisputeScreenState extends State<AdminDisputeScreen>
     with SingleTickerProviderStateMixin {
-  static const _results = [
+  List<({String value, String label})> get _results => [
     (value: 'refund_manual', label: S.disputeRefundManual),
     (value: 'refund_auto', label: S.disputeRefundAuto),
     (value: 'mediated', label: S.disputeMediated),

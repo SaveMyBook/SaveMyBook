@@ -273,13 +273,8 @@ class ApiService {
       query['keyword'] = keyword;
     }
     if (sort != null) {
-      switch (sort) {
-        case S.popular: query['sort'] = 'popular'; break;
-        case S.priceLowHigh: query['sort'] = 'price_asc'; break;
-        case S.priceHighLow: query['sort'] = 'price_desc'; break;
-        case S.newest:
-        default: query['sort'] = 'newest'; break;
-      }
+      const allowed = {'popular', 'price_asc', 'price_desc', 'newest'};
+      query['sort'] = allowed.contains(sort) ? sort : 'newest';
     }
 
     final res = await _send('GET', '/books', query: query);

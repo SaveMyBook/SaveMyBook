@@ -17,7 +17,7 @@ class AdminAnnouncementEditScreen extends StatefulWidget {
 }
 
 class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScreen> {
-  static const _types = [
+  List<({String value, String label})> get _types => [
     (value: 'general', label: S.announcement),
     (value: 'maintenance', label: S.maintenance),
     (value: 'promotion', label: S.promotions),

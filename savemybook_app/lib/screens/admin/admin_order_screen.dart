@@ -20,7 +20,7 @@ class AdminOrderScreen extends StatefulWidget {
 }
 
 class _AdminOrderScreenState extends State<AdminOrderScreen> {
-  static const _filters = [
+  List<({String key, String label})> get _filters => [
     (key: 'all', label: S.actionAll),
     (key: 'pending_deposit', label: S.orderPendingDeposit),
     (key: 'pending_pickup', label: S.orderBuyerDeposited),

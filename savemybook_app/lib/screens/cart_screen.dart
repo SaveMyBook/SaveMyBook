@@ -111,7 +111,7 @@ class _CartScreenState extends State<CartScreen> {
     final confirmed = await showConfirmDialog(
       context,
       title: S.confirmCheckout,
-      message: S.booksTotal(selected.length, _total.toStringAsFixed(0))
+      message: S.booksTotal(selected.length, _total.toStringAsFixed(0)) +
           S.balanceAfterPaymentCoins((_balance - _total).toStringAsFixed(0)),
       confirmLabel: S.confirmCheckout,
     );

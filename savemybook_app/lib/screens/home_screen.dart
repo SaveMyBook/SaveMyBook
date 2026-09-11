@@ -35,9 +35,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _hasMoreData = true;
   int _currentPage = 1;
   final Set<int> _selectedCategoryIds = {};
-  String _currentSort = S.newest;
+  String _currentSort = 'newest';
   late String _currentKeyword = widget.initialKeyword;
-  final List<String> _sortOptions = [S.newest, S.popular, S.priceLowHigh, S.priceHighLow];
+  /// 排序傳給 API 的是 code，畫面上才換成當前語言的字。
+  /// 早期版本直接把中文標籤當參數送出去，一換語言就整個失效。
+  List<({String code, String label})> get _sortOptions => [
+    (code: 'newest', label: S.newest),
+    (code: 'popular', label: S.popular),
+    (code: 'price_asc', label: S.priceLowHigh),
+    (code: 'price_desc', label: S.priceHighLow),
+  ];
+
+  String get _currentSortLabel =>
+      _sortOptions.firstWhere((o) => o.code == _currentSort, orElse: () => _sortOptions.first).label;
 
   List<Category> _categories = [];
   List<Book> _books = [];
@@ -398,13 +408,13 @@ return LightStatusBar(
       initialValue: _currentSort, onSelected: _onSortChanged,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       color: c.card, offset: const Offset(0, 36),
-      itemBuilder: (_) => _sortOptions.map((ch) => PopupMenuItem(value: ch,
-          child: Text(ch, style: TextStyle(color: _currentSort == ch ? c.accent : c.textPrimary, fontWeight: _currentSort == ch ? FontWeight.bold : FontWeight.normal)))).toList(),
+      itemBuilder: (_) => _sortOptions.map((o) => PopupMenuItem(value: o.code,
+          child: Text(o.label, style: TextStyle(color: _currentSort == o.code ? c.accent : c.textPrimary, fontWeight: _currentSort == o.code ? FontWeight.bold : FontWeight.normal)))).toList(),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(color: c.accent, borderRadius: BorderRadius.circular(8)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text(_currentSort, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          Text(_currentSortLabel, style: const TextStyle(color: Colors.white, fontSize: 14)),
           const SizedBox(width: 4),
           const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
         ]),

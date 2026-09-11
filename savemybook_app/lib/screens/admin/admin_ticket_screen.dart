@@ -19,7 +19,7 @@ class AdminTicketScreen extends StatefulWidget {
 
 class _AdminTicketScreenState extends State<AdminTicketScreen>
     with SingleTickerProviderStateMixin {
-  static const _tabs = [
+  List<({String key, String label})> get _tabs => [
     (key: 'open', label: S.ticketOpen),
     (key: 'pending', label: '已回覆'),
     (key: 'resolved', label: S.ticketResolved),

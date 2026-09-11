@@ -137,14 +137,14 @@ class AppDropdownField<T> extends StatelessWidget {
   final T? value;
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?> onChanged;
-  final String hint;
+  final String? hint;
 
-  AppDropdownField({
+  const AppDropdownField({
     super.key,
     required this.value,
     required this.items,
     required this.onChanged,
-    this.hint = S.actionSelect,
+    this.hint,
   });
 
   @override
@@ -161,7 +161,7 @@ class AppDropdownField<T> extends StatelessWidget {
         child: DropdownButton<T>(
           value: value,
           isExpanded: true,
-          hint: Text(hint, style: TextStyle(color: c.textHint, fontSize: 13)),
+          hint: Text(hint ?? S.actionSelect, style: TextStyle(color: c.textHint, fontSize: 13)),
           dropdownColor: c.card,
           borderRadius: BorderRadius.circular(12),
           icon: Icon(Icons.keyboard_arrow_down_rounded, color: c.iconInactive),
@@ -243,22 +243,22 @@ class AppSearchField extends StatelessWidget {
 class AppDateField extends StatelessWidget {
   final DateTime? value;
   final ValueChanged<DateTime?> onChanged;
-  final String hint;
+  final String? hint;
 
   final DateTime? firstDate;
   final DateTime? lastDate;
-  final String helpText;
+  final String? helpText;
   final bool clearable;
   final bool enabled;
 
-  AppDateField({
+  const AppDateField({
     super.key,
     required this.value,
     required this.onChanged,
-    this.hint = S.pickDate,
+    this.hint,
     this.firstDate,
     this.lastDate,
-    this.helpText = S.pickDate2,
+    this.helpText,
     this.clearable = true,
     this.enabled = true,
   });
@@ -278,7 +278,7 @@ class AppDateField extends StatelessWidget {
       initialDate: initial,
       firstDate: first,
       lastDate: last,
-      helpText: helpText,
+      helpText: helpText ?? S.pickDate2,
       cancelText: S.actionCancel,
       confirmText: S.actionConfirm,
       builder: (ctx, child) => Theme(
@@ -314,7 +314,7 @@ class AppDateField extends StatelessWidget {
             Expanded(
               child: Text(
                 date == null
-                    ? hint
+                    ? (hint ?? S.pickDate)
                     : S.msg5(date.year, date.month, date.day),
                 style: TextStyle(
                   fontSize: 14,

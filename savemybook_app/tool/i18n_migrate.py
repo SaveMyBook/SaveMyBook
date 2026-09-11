@@ -26,6 +26,15 @@ def load_table():
     return table
 
 
+# Dart 保留字不能當成員名。撞到就往前補 action，讓產生器直接爆掉比編譯期才炸好。
+RESERVED = {
+    'assert', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default', 'do', 'else',
+    'enum', 'extends', 'false', 'final', 'finally', 'for', 'if', 'in', 'is', 'new', 'null',
+    'rethrow', 'return', 'super', 'switch', 'this', 'throw', 'true', 'try', 'var', 'void',
+    'while', 'with', 'hashCode', 'toString', 'runtimeType', 'noSuchMethod',
+}
+
+
 def key_from_en(en, used):
     words = re.findall(r"[A-Za-z0-9]+", en)
     words = [w for w in words if w.lower() not in STOP] or words
@@ -36,6 +45,8 @@ def key_from_en(en, used):
     key = re.sub(r'[^A-Za-z0-9]', '', key)
     if not key or key[0].isdigit():
         key = 'k' + key
+    if key in RESERVED:
+        key = 'action' + key[0].upper() + key[1:]
     base, n = key, 2
     while key in used:
         key = f'{base}{n}'; n += 1

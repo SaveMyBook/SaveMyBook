@@ -29,6 +29,15 @@ def dart_string(value):
     return f"'{escaped}'"
 
 
+# Dart 保留字不能當成員名。撞到就往前補 action，讓產生器直接爆掉比編譯期才炸好。
+RESERVED = {
+    'assert', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default', 'do', 'else',
+    'enum', 'extends', 'false', 'final', 'finally', 'for', 'if', 'in', 'is', 'new', 'null',
+    'rethrow', 'return', 'super', 'switch', 'this', 'throw', 'true', 'try', 'var', 'void',
+    'while', 'with', 'hashCode', 'toString', 'runtimeType', 'noSuchMethod',
+}
+
+
 def main():
     files = {}
     for path in sorted(glob.glob(f'{ARB_DIR}/*.arb')):
@@ -39,6 +48,9 @@ def main():
         raise SystemExit(f'找不到模板 app_{TEMPLATE}.arb')
 
     keys = [k for k in files[TEMPLATE] if not k.startswith('@')]
+    bad = sorted(k for k in keys if k in RESERVED)
+    if bad:
+        raise SystemExit(f'key 撞到 Dart 保留字，請改名：{bad}')
 
     # @key 的 placeholders 決定它是 getter 還是帶參數的方法
     params = {}

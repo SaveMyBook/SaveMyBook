@@ -159,7 +159,7 @@ abstract class AppLocalizations {
   String get accountPermanentlyDisabled30DaysSign;
   String get personalDataErasedButCompletedOrders;
   String get peopleTradedWithDoNotLose;
-  String get continue;
+  String get actionContinue;
   String get verify;
   String get enterPasswordConfirm;
   String get password;
@@ -344,7 +344,7 @@ abstract class AppLocalizations {
   String get chooseCategory;
   String get k1013Digits;
   String get title;
-  String get required;
+  String get actionRequired;
   String get author2;
   String get optional;
   String get publisher2;
@@ -1068,7 +1068,7 @@ class _LEn extends AppLocalizations {
   String get peopleTradedWithDoNotLose => 'the people you traded with do not lose their records.';
 
   @override
-  String get continue => 'Continue';
+  String get actionContinue => 'Continue';
 
   @override
   String get verify => 'Verify it is you';
@@ -1623,7 +1623,7 @@ class _LEn extends AppLocalizations {
   String get title => 'Title';
 
   @override
-  String get required => 'Required';
+  String get actionRequired => 'Required';
 
   @override
   String get author2 => 'Author';
@@ -2966,7 +2966,7 @@ class _LJa extends AppLocalizations {
   String get peopleTradedWithDoNotLose => '取引相手の記録が欠けないようにするためです。';
 
   @override
-  String get continue => '続ける';
+  String get actionContinue => '続ける';
 
   @override
   String get verify => '本人確認';
@@ -3521,7 +3521,7 @@ class _LJa extends AppLocalizations {
   String get title => 'タイトル';
 
   @override
-  String get required => '必須';
+  String get actionRequired => '必須';
 
   @override
   String get author2 => '著者';
@@ -4864,7 +4864,7 @@ class _LKo extends AppLocalizations {
   String get peopleTradedWithDoNotLose => '거래 상대방의 기록이 누락되지 않도록 하기 위함입니다.';
 
   @override
-  String get continue => '계속';
+  String get actionContinue => '계속';
 
   @override
   String get verify => '본인 확인';
@@ -5419,7 +5419,7 @@ class _LKo extends AppLocalizations {
   String get title => '제목';
 
   @override
-  String get required => '필수';
+  String get actionRequired => '필수';
 
   @override
   String get author2 => '저자';
@@ -6762,7 +6762,7 @@ class _LZh extends AppLocalizations {
   String get peopleTradedWithDoNotLose => '交易對象的紀錄才不會出現缺漏。';
 
   @override
-  String get continue => '繼續';
+  String get actionContinue => '繼續';
 
   @override
   String get verify => '確認身分';
@@ -7317,7 +7317,7 @@ class _LZh extends AppLocalizations {
   String get title => '書名';
 
   @override
-  String get required => '必填';
+  String get actionRequired => '必填';
 
   @override
   String get author2 => '作者';
@@ -8660,7 +8660,7 @@ class _LZhHans extends AppLocalizations {
   String get peopleTradedWithDoNotLose => '交易对象的记录才不会出现缺漏。';
 
   @override
-  String get continue => '继续';
+  String get actionContinue => '继续';
 
   @override
   String get verify => '确认身分';
@@ -9215,7 +9215,7 @@ class _LZhHans extends AppLocalizations {
   String get title => '书名';
 
   @override
-  String get required => '必填';
+  String get actionRequired => '必填';
 
   @override
   String get author2 => '作者';
@@ -10558,7 +10558,7 @@ class _LZhHant extends AppLocalizations {
   String get peopleTradedWithDoNotLose => '交易對象的紀錄才不會出現缺漏。';
 
   @override
-  String get continue => '繼續';
+  String get actionContinue => '繼續';
 
   @override
   String get verify => '確認身分';
@@ -11113,7 +11113,7 @@ class _LZhHant extends AppLocalizations {
   String get title => '書名';
 
   @override
-  String get required => '必填';
+  String get actionRequired => '必填';
 
   @override
   String get author2 => '作者';

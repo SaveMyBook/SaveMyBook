@@ -282,7 +282,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Text(
                     progress.isMax
                         ? S.topTierReached
-                        : S.morePointsReach(progress.remaining, nextName),
+                        : S.morePointsReach(progress.remaining, nextName ?? ''),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
