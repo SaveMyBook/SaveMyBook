@@ -67,7 +67,7 @@ class BookCard extends StatelessWidget {
                   Row(children: [
                     _buildTag(book.categoryName, c.categoryChip, c.accent),
                     const SizedBox(width: 6),
-                    _buildTag(book.conditionText, book.conditionColor.withValues(alpha: 0.12), book.conditionColor),
+                    _buildTag(book.conditionText, c.conditionColor(book.conditionLevel).withValues(alpha: 0.12), c.conditionColor(book.conditionLevel)),
                   ]),
                   const SizedBox(height: 8),
                   Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
@@ -121,7 +121,7 @@ class BookCard extends StatelessWidget {
                   Row(children: [
                     _buildTag(book.categoryName, c.categoryChip, c.accent),
                     const SizedBox(width: 6),
-                    _buildTag(book.conditionText, book.conditionColor.withValues(alpha: 0.12), book.conditionColor),
+                    _buildTag(book.conditionText, c.conditionColor(book.conditionLevel).withValues(alpha: 0.12), c.conditionColor(book.conditionLevel)),
                   ]),
                 ]),
 

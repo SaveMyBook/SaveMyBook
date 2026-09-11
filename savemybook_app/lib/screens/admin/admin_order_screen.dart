@@ -185,19 +185,6 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
     );
   }
 
-  Color _statusColor(String status, AppColors c) {
-    switch (status) {
-      case 'completed':
-        return c.success;
-      case 'cancelled':
-      case 'refunded':
-        return c.danger;
-      case 'refunding':
-        return c.warning;
-      default:
-        return c.accent;
-    }
-  }
 
   Widget _buildCard(AdminOrder order, AppColors c) {
     final first = order.items.isEmpty ? null : order.items.first;
@@ -220,7 +207,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                   ),
                 ),
               ),
-              StatusBadge(label: order.statusText, color: _statusColor(order.status, c)),
+              StatusBadge(label: order.statusText, color: c.orderStatusColor(order.status)),
             ],
           ),
           const SizedBox(height: 10),

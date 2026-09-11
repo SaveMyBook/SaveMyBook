@@ -147,7 +147,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   _buildTitleRow(c),
                   const SizedBox(height: 10),
-                  _buildPriceAndConditionRow(),
+                  _buildPriceAndConditionRow(c),
                   const SizedBox(height: 18),
                   _buildInfoRow(Icons.business_outlined, '出版社：', widget.book.publisher, c),
                   const SizedBox(height: 12),
@@ -320,8 +320,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     ]);
   }
 
-  Widget _buildPriceAndConditionRow() {
-    Color badgeColor = widget.book.conditionColor;
+  Widget _buildPriceAndConditionRow(AppColors c) {
+    Color badgeColor = c.conditionColor(widget.book.conditionLevel);
     return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
       Text('\$${widget.book.price.toInt()}', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.primary)),
       const SizedBox(width: 12),

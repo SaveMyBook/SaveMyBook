@@ -199,6 +199,8 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                     UserAvatar(
                                       imageUrl: user?.avatarUrl,
                                       radius: 32,
+                                      // 這張卡片會被輸出成 PNG 分享出去，
+                                      // 配色必須固定，不能跟著使用者的深淺色主題走。
                                       background: const Color(0xFFEDF1F4),
                                     ),
                                     const SizedBox(height: 10),
@@ -244,7 +246,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                                 errorBuilder: (_, _, _) => Container(
                                                   width: 40,
                                                   height: 40,
-                                                  color: const Color(0xFF627D8D),
+                                                  color: AppColors.primary,
                                                   alignment: Alignment.center,
                                                   child: const Icon(
                                                     Icons.menu_book_rounded,
@@ -265,7 +267,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                         fontSize: 12,
                                         fontWeight: FontWeight.w800,
                                         letterSpacing: 2,
-                                        color: Color(0xFF627D8D),
+                                        color: AppColors.primary,
                                       ),
                                     ),
                                   ],

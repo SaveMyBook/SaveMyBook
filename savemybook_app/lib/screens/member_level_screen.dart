@@ -6,6 +6,7 @@ import '../utils/level_style.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../utils/app_labels.dart';
 
 class MemberLevelScreen extends StatefulWidget {
   const MemberLevelScreen({super.key});
@@ -161,7 +162,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
 
     final String status;
     if (currentIndex < 0) {
-      status = '尚未評級';
+      status = AppLabels.noLevel;
     } else if (_selectedIndex == currentIndex) {
       status = '您目前的級別';
     } else if (_selectedIndex < currentIndex) {

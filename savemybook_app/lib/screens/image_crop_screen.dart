@@ -130,7 +130,7 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
     final canvas = Canvas(recorder);
     canvas.drawRect(
       Rect.fromLTWH(0, 0, outWidth.toDouble(), outHeight.toDouble()),
-      Paint()..color = const Color(0xFFFFFFFF),
+      Paint()..color = Colors.white,
     );
     canvas.drawImageRect(
       image,

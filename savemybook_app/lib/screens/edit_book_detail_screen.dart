@@ -12,6 +12,7 @@ import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../utils/app_labels.dart';
 
 class EditBookDetailScreen extends StatefulWidget {
   final Book book;
@@ -38,12 +39,7 @@ class EditBookDetailScreen extends StatefulWidget {
 }
 
 class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
-  static const _conditions = [
-    (value: 'like_new', label: '全新'),
-    (value: 'good', label: '近全新'),
-    (value: 'fair', label: '良好'),
-    (value: 'poor', label: '尚可'),
-  ];
+  static const _conditions = AppLabels.conditionOptions;
 
   final ApiService _api = ApiService();
 
@@ -52,7 +48,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
   int? _cabinetId;
 
   /// 前三格固定對應封面／背面／條碼，跟新增書籍時一致。
-  static const _requiredLabels = ['封面', '背面', '條碼'];
+  static const _requiredLabels = AppLabels.photoSlots;
 
   final List<BookImage?> _slotExisting = List<BookImage?>.filled(3, null, growable: false);
   final List<XFile?> _slotNew = List<XFile?>.filled(3, null, growable: false);
@@ -297,7 +293,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       navigator.pop();
       navigator.pop();
     } else {
-      showAppSnackBar(context, '更新失敗，請稍後再試', isError: true);
+      showAppSnackBar(context, AppLabels.updateFailed, isError: true);
     }
   }
 

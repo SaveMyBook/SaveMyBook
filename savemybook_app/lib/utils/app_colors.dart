@@ -41,13 +41,72 @@ class AppColors {
   Color get shadow => isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.12);
   Color get iconInactive => isDark ? const Color(0xFF777777) : Colors.grey.shade400;
 
+  Color get skeleton => isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE6EAEE);
+
+  /// 代幣、點數這類「價值」的強調色。刻意跟 accent 分開，
+  /// 金額才不會跟一般的可點擊元素混在一起。
+  static const valueGradient = [Color(0xFFFFE082), Color(0xFFFFC107)];
+
   Color conditionColor(String level) {
     switch (level) {
       case 'like_new': return isDark ? const Color(0xFF4DB6AC) : const Color(0xFF26A69A);
       case 'good': return isDark ? const Color(0xFF81C784) : const Color(0xFF66BB6A);
       case 'fair': return isDark ? const Color(0xFFFFB74D) : const Color(0xFFFFA726);
       case 'poor': return isDark ? const Color(0xFFE57373) : const Color(0xFFEF5350);
-      default: return const Color(0xFF90A4AE);
+      default: return neutral;
+    }
+  }
+
+  Color get neutral => const Color(0xFF90A4AE);
+
+  /// 訂單狀態的語意色。買賣雙方與後台共用同一組對應，
+  /// 同一個狀態在哪一頁都是同一個顏色。
+  Color orderStatusColor(String status) {
+    switch (status) {
+      case 'completed': return success;
+      case 'cancelled':
+      case 'refunded': return danger;
+      case 'refunding': return warning;
+      default: return accent;
+    }
+  }
+
+  Color bookStatusColor(String status) {
+    switch (status) {
+      case 'on_sale': return success;
+      case 'reserved': return warning;
+      case 'sold': return accent;
+      case 'removed': return iconInactive;
+      default: return neutral;
+    }
+  }
+
+  Color ticketStatusColor(String status) {
+    switch (status) {
+      case 'pending': return warning;
+      case 'resolved': return success;
+      case 'closed': return iconInactive;
+      default: return accent;
+    }
+  }
+
+  Color reportStatusColor(String status) {
+    switch (status) {
+      case 'pending': return warning;
+      case 'reviewing': return accent;
+      case 'resolved': return success;
+      case 'dismissed': return iconInactive;
+      default: return neutral;
+    }
+  }
+
+  Color slotStatusColor(String status) {
+    switch (status) {
+      case 'empty': return success;
+      case 'occupied': return accent;
+      case 'reserved': return warning;
+      case 'maintenance': return danger;
+      default: return neutral;
     }
   }
 }

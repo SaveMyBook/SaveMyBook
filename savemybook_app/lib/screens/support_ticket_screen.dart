@@ -54,18 +54,6 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
     _load();
   }
 
-  Color _statusColor(String status, AppColors c) {
-    switch (status) {
-      case 'pending':
-        return c.warning;
-      case 'resolved':
-        return c.success;
-      case 'closed':
-        return c.iconInactive;
-      default:
-        return c.accent;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +127,7 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              StatusBadge(label: ticket.statusText, color: _statusColor(ticket.status, c)),
+              StatusBadge(label: ticket.statusText, color: c.ticketStatusColor(ticket.status)),
             ],
           ),
           const SizedBox(height: 6),

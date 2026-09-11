@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import '../utils/app_labels.dart';
 import '../utils/api_helpers.dart';
 
 class BookImage {
@@ -131,35 +131,9 @@ class Book {
     );
   }
 
-  String get conditionText {
-    switch (conditionLevel) {
-      case 'like_new': return '全新';
-      case 'good': return '近全新';
-      case 'fair': return '良好';
-      case 'poor': return '尚可';
-      default: return '未知書況';
-    }
-  }
-
-  Color get conditionColor {
-    switch (conditionLevel) {
-      case 'like_new': return const Color(0xFF26A69A);
-      case 'good':     return const Color(0xFF66BB6A);
-      case 'fair':     return const Color(0xFFFFA726);
-      case 'poor':     return const Color(0xFFEF5350);
-      default:         return const Color(0xFF90A4AE);
-    }
-  }
+  String get conditionText => AppLabels.conditionOf(conditionLevel);
 
   bool get hasImage => imageUrl.isNotEmpty;
 
-  String get statusText {
-    switch (status) {
-      case 'on_sale': return '販售中';
-      case 'reserved': return '已被預訂';
-      case 'sold': return '已售出';
-      case 'removed': return '已下架';
-      default: return status;
-    }
-  }
+  String get statusText => AppLabels.book(status);
 }

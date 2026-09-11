@@ -20,6 +20,7 @@ import 'sales_history_screen.dart';
 import 'settings_screen.dart';
 import 'share_profile_screen.dart';
 import 'wallet_screen.dart';
+import '../utils/app_labels.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -246,7 +247,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Icon(style.icon, color: Colors.white, size: 14),
             const SizedBox(width: 5),
             Text(
-              level?.levelName ?? '尚未評級',
+              level?.levelName ?? AppLabels.noLevel,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
@@ -317,7 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         height: 8,
                         decoration: const BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Color(0xFFFFE082), Color(0xFFFFC107)],
+                            colors: AppColors.valueGradient,
                           ),
                         ),
                       ),

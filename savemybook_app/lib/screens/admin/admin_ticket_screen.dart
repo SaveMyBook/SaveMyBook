@@ -66,18 +66,6 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
     _load();
   }
 
-  Color _statusColor(String status, AppColors c) {
-    switch (status) {
-      case 'pending':
-        return c.warning;
-      case 'resolved':
-        return c.success;
-      case 'closed':
-        return c.iconInactive;
-      default:
-        return c.danger;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +138,7 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
                 ),
               ),
-              StatusBadge(label: ticket.statusText, color: _statusColor(ticket.status, c)),
+              StatusBadge(label: ticket.statusText, color: c.ticketStatusColor(ticket.status)),
             ],
           ),
           const SizedBox(height: 10),

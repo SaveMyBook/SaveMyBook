@@ -8,6 +8,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 import 'admin_cabinet_edit_screen.dart';
+import '../../utils/app_labels.dart';
 
 class AdminCabinetScreen extends StatefulWidget {
   const AdminCabinetScreen({super.key});
@@ -135,7 +136,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
       showAppSnackBar(context, '櫃位狀態已更新');
       _load();
     } else {
-      showAppSnackBar(context, '更新失敗，請稍後再試', isError: true);
+      showAppSnackBar(context, AppLabels.updateFailed, isError: true);
     }
   }
 

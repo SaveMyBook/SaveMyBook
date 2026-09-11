@@ -10,6 +10,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 import 'admin_member_detail_screen.dart';
+import '../../utils/app_labels.dart';
 
 class AdminMemberScreen extends StatefulWidget {
   const AdminMemberScreen({super.key});
@@ -79,7 +80,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
       showAppSnackBar(context, '已更新 ${member.nickname} 的狀態');
       _load();
     } else {
-      showAppSnackBar(context, '更新失敗，請稍後再試', isError: true);
+      showAppSnackBar(context, AppLabels.updateFailed, isError: true);
     }
   }
 

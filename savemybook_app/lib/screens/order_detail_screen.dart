@@ -9,6 +9,7 @@ import '../widgets/app_header.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/state_views.dart';
 import 'book_detail_screen.dart';
+import '../utils/app_labels.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final Order order;
@@ -22,12 +23,7 @@ class OrderDetailScreen extends StatefulWidget {
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
-  static const _flow = [
-    (status: 'pending_deposit', label: '待賣家存書'),
-    (status: 'deposited', label: '已存入書櫃'),
-    (status: 'pending_pickup', label: '待買家取書'),
-    (status: 'completed', label: '交易完成'),
-  ];
+  static const _flow = AppLabels.orderFlow;
 
   final ApiService _api = ApiService();
   late Order _order = widget.order;
@@ -59,19 +55,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       _order.status == 'refunded' ||
       _order.status == 'refunding';
 
-  Color _statusColor(AppColors c) {
-    switch (_order.status) {
-      case 'completed':
-        return c.success;
-      case 'cancelled':
-      case 'refunded':
-        return c.danger;
-      case 'refunding':
-        return c.warning;
-      default:
-        return c.accent;
-    }
-  }
 
   Future<void> _copy(String value, String label) async {
     await Clipboard.setData(ClipboardData(text: value));
@@ -134,12 +117,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: _statusColor(c).withValues(alpha: 0.12),
+              color: c.orderStatusColor(_order.status).withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
               _isClosed ? Icons.info_outline_rounded : Icons.local_shipping_outlined,
-              color: _statusColor(c),
+              color: c.orderStatusColor(_order.status),
             ),
           ),
           const SizedBox(width: 14),
@@ -153,7 +136,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: _statusColor(c),
+                    color: c.orderStatusColor(_order.status),
                   ),
                 ),
                 const SizedBox(height: 2),

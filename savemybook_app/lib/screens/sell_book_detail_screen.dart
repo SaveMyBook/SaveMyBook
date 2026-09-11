@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import 'home_screen.dart';
+import '../utils/app_labels.dart';
 
 class SellBookDetailScreen extends StatefulWidget {
   final String isbn;
@@ -43,7 +44,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
 
   /// 前三格是固定欄位（封面／背面／條碼），點哪一格就放哪一格，
   /// 不能用單一 List append，否則點第三格的照片會被塞到第二格去。
-  static const _requiredLabels = ['封面', '背面', '條碼'];
+  static const _requiredLabels = AppLabels.photoSlots;
   final List<XFile?> _slots = List<XFile?>.filled(_requiredLabels.length, null, growable: false);
   final List<XFile> _extra = [];
 
@@ -580,11 +581,9 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
             icon: Icon(Icons.keyboard_arrow_down, color: c.iconInactive),
             dropdownColor: c.card,
             style: TextStyle(fontSize: 15, color: c.textPrimary),
-            items: const [
-              DropdownMenuItem(value: 'like_new', child: Text('全新')),
-              DropdownMenuItem(value: 'good', child: Text('近全新')),
-              DropdownMenuItem(value: 'fair', child: Text('良好')),
-              DropdownMenuItem(value: 'poor', child: Text('尚可')),
+            items: [
+              for (final option in AppLabels.conditionOptions)
+                DropdownMenuItem(value: option.value, child: Text(option.label)),
             ],
             onChanged: (val) {
               if (val != null) setState(() => _condition = val);

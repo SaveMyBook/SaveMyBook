@@ -9,6 +9,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import '../../utils/app_labels.dart';
 
 class AdminMemberDetailScreen extends StatefulWidget {
   final int userId;
@@ -79,7 +80,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           isActive: active ? !detail.isActive : null,
           isBlacklisted: active ? null : !detail.isBlacklisted,
         );
-        return done ? null : '更新失敗，請稍後再試';
+        return done ? null : AppLabels.updateFailed;
       },
       '已更新帳號狀態',
     );
@@ -188,7 +189,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     await _run(
       () => _api.updateAdminPermissions(
         detail.userId,
-        {for (final key in AdminMemberDetail.permissionLabels.keys) key: value},
+        {for (final key in AppLabels.permission.keys) key: value},
       ),
       value ? '已開放全部權限' : '已收回全部權限',
     );
@@ -393,7 +394,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      detail.currentLevel?.name ?? '尚未評級',
+                      detail.currentLevel?.name ?? AppLabels.noLevel,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -476,7 +477,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
               ],
             ),
           ),
-          for (final entry in AdminMemberDetail.permissionLabels.entries)
+          for (final entry in AppLabels.permission.entries)
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(entry.value.$1, style: TextStyle(fontSize: 14, color: c.textPrimary)),

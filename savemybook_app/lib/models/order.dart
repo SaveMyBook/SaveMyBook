@@ -1,4 +1,5 @@
 import '../utils/api_helpers.dart';
+import '../utils/app_labels.dart';
 import 'book.dart';
 
 class OrderItem {
@@ -66,19 +67,8 @@ class Order {
 
   Book? get firstBook => items.isEmpty ? null : items.first.book;
 
-  String get statusText {
-    switch (status) {
-      case 'pending_payment': return '待付款';
-      case 'pending_deposit': return '待賣家存書';
-      case 'deposited': return '待取書';
-      case 'pending_pickup': return '待取書';
-      case 'completed': return '已完成';
-      case 'cancelled': return '已取消';
-      case 'refunding': return '申訴中';
-      case 'refunded': return '已退款';
-      default: return status;
-    }
-  }
+  /// 買家視角。賣家與後台請改用 AppLabels.order(status)。
+  String get statusText => AppLabels.order(status, asBuyer: true);
 
   bool get isCancellable =>
       status == 'pending_payment' || status == 'pending_deposit' || status == 'deposited';

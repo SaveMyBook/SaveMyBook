@@ -1,4 +1,5 @@
 import '../utils/api_helpers.dart';
+import '../utils/app_labels.dart';
 
 class FaqItem {
   final int faqId;
@@ -17,15 +18,7 @@ class FaqItem {
     required this.isVisible,
   });
 
-  static const categoryLabels = {
-    'general': '一般',
-    'account': '帳號',
-    'trade': '交易',
-    'wallet': '代幣',
-    'cabinet': '書櫃',
-  };
-
-  String get categoryText => categoryLabels[category] ?? category;
+  String get categoryText => AppLabels.faqCategory[category] ?? category;
 
   factory FaqItem.fromJson(Map<String, dynamic> json) {
     return FaqItem(
@@ -117,24 +110,8 @@ class SupportTicket {
     this.messages = const [],
   });
 
-  static const categoryLabels = {
-    'account': '帳號問題',
-    'trade': '交易問題',
-    'wallet': '代幣問題',
-    'cabinet': '書櫃問題',
-    'bug': '功能異常',
-    'other': '其他',
-  };
-
-  static const statusLabels = {
-    'open': '待處理',
-    'pending': '客服已回覆',
-    'resolved': '已解決',
-    'closed': '已結案',
-  };
-
-  String get categoryText => categoryLabels[category] ?? category;
-  String get statusText => statusLabels[status] ?? status;
+  String get categoryText => AppLabels.ticketCategory[category] ?? category;
+  String get statusText => AppLabels.ticket(status);
   bool get isClosed => status == 'closed';
 
   factory SupportTicket.fromJson(Map<String, dynamic> json) {

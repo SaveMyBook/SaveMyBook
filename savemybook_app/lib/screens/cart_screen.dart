@@ -311,7 +311,7 @@ class _CartScreenState extends State<CartScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: book.conditionColor.withValues(alpha: 0.15),
+                        color: c.conditionColor(book.conditionLevel).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -319,7 +319,7 @@ class _CartScreenState extends State<CartScreen> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: book.conditionColor,
+                          color: c.conditionColor(book.conditionLevel),
                         ),
                       ),
                     ),

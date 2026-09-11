@@ -1,4 +1,5 @@
 import '../utils/api_helpers.dart';
+import '../utils/app_labels.dart';
 
 class Announcement {
   final int announcementId;
@@ -77,11 +78,8 @@ class AdminMember {
     this.sellOrderCount = 0,
   });
 
-  String get statusText {
-    if (isBlacklisted) return '黑名單';
-    if (!isActive) return '已停權';
-    return '正常';
-  }
+  String get statusText =>
+      AppLabels.member(isActive: isActive, isBlacklisted: isBlacklisted);
 
   factory AdminMember.fromJson(Map<String, dynamic> json) {
     final counts = json['_count'] as Map<String, dynamic>?;
@@ -138,15 +136,7 @@ class ReportCase {
     }
   }
 
-  String get statusText {
-    switch (status) {
-      case 'pending': return '待處理';
-      case 'reviewing': return '審核中';
-      case 'resolved': return '已處理';
-      case 'dismissed': return '已駁回';
-      default: return status;
-    }
-  }
+  String get statusText => AppLabels.report(status);
 
   factory ReportCase.fromJson(Map<String, dynamic> json) {
     final target = json['target'] as Map<String, dynamic>?;
@@ -202,24 +192,9 @@ class DisputeCase {
     this.bookImageUrl,
   });
 
-  String get statusText {
-    switch (status) {
-      case 'pending': return '待受理';
-      case 'processing': return '處理中';
-      case 'resolved': return '已裁決';
-      default: return status;
-    }
-  }
+  String get statusText => AppLabels.dispute(status);
 
-  String get resultText {
-    switch (result) {
-      case 'refund_manual': return '人工退款';
-      case 'refund_auto': return '自動退款';
-      case 'dismissed': return '駁回申訴';
-      case 'mediated': return '協調結案';
-      default: return '';
-    }
-  }
+  String get resultText => AppLabels.disputeResult[result] ?? result;
 
   factory DisputeCase.fromJson(Map<String, dynamic> json) {
     final order = json['orders'] as Map<String, dynamic>?;
@@ -260,15 +235,7 @@ class CabinetSlot {
     this.updatedAt,
   });
 
-  String get statusText {
-    switch (status) {
-      case 'empty': return '空置';
-      case 'occupied': return '使用中';
-      case 'reserved': return '已預約';
-      case 'maintenance': return '維修中';
-      default: return status;
-    }
-  }
+  String get statusText => AppLabels.slot(status);
 
   factory CabinetSlot.fromJson(Map<String, dynamic> json) {
     return CabinetSlot(
@@ -443,18 +410,7 @@ class AdminOrder {
     this.createdAt,
   });
 
-  static const statusLabels = {
-    'pending_payment': '待付款',
-    'pending_deposit': '待存書',
-    'deposited': '已存書',
-    'pending_pickup': '待取書',
-    'completed': '已完成',
-    'cancelled': '已取消',
-    'refunding': '退款中',
-    'refunded': '已退款',
-  };
-
-  String get statusText => statusLabels[status] ?? status;
+  String get statusText => AppLabels.order(status);
 
   factory AdminOrder.fromJson(Map<String, dynamic> json) {
     final buyer = json['buyer'] as Map<String, dynamic>?;
@@ -506,14 +462,7 @@ class AdminBook {
     this.createdAt,
   });
 
-  static const statusLabels = {
-    'on_sale': '販售中',
-    'reserved': '已預訂',
-    'sold': '已售出',
-    'removed': '已下架',
-  };
-
-  String get statusText => statusLabels[status] ?? status;
+  String get statusText => AppLabels.book(status);
 
   factory AdminBook.fromJson(Map<String, dynamic> json) {
     final seller = json['seller'] as Map<String, dynamic>?;
@@ -736,16 +685,7 @@ class AdminWalletTxn {
     this.createdAt,
   });
 
-  static const typeLabels = {
-    'deposit': '儲值',
-    'withdrawal': '提領',
-    'purchase': '購書',
-    'sale_income': '售書收入',
-    'refund': '退款',
-    'admin_adjust': '客服調整',
-  };
-
-  String get typeText => typeLabels[type] ?? type;
+  String get typeText => AppLabels.walletTxnType[type] ?? type;
 
   factory AdminWalletTxn.fromJson(Map<String, dynamic> json) {
     return AdminWalletTxn(
@@ -817,19 +757,6 @@ class AdminMemberDetail {
   bool get isAdmin => role == 'admin';
 
   /// 權限鍵值 -> (名稱, 說明)，順序即畫面上的顯示順序。
-  static const permissionLabels = {
-    'can_manage_members': ('會員管控', '停權、黑名單、身分'),
-    'can_manage_levels': ('會員等級', '等級門檻與人工調整'),
-    'can_manage_content': ('商品管理', '書籍與分類'),
-    'can_manage_reports': ('檢舉審核', '處理商品檢舉'),
-    'can_manage_orders': ('訂單管理', '查詢與調整訂單狀態'),
-    'can_manage_transactions': ('交易仲裁', '申訴案件裁決'),
-    'can_manage_wallets': ('錢包管理', '查詢與增減代幣'),
-    'can_manage_cabinets': ('硬體維護', '書櫃與櫃位'),
-    'can_manage_announcements': ('公告與文件', '公告、常見問題、法律文件'),
-    'can_manage_support': ('客服工單', '回覆使用者問題'),
-    'can_view_stats': ('營運報表', '檢視營收與成長數據'),
-  };
 
   factory AdminMemberDetail.fromJson(Map<String, dynamic> json) {
     final perms = <String, bool>{};
