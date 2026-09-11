@@ -172,7 +172,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                           : ListView.builder(
                               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                               itemCount: _orders.length,
-                              itemBuilder: (_, i) => FadeSlideIn(
+                              itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_orders[i], c),
                               ),

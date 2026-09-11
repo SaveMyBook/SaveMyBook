@@ -63,7 +63,7 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                           : ListView.builder(
                               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                               itemCount: _logs.length,
-                              itemBuilder: (_, i) => FadeSlideIn(
+                              itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_logs[i], c),
                               ),

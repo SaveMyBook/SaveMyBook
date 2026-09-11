@@ -97,7 +97,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),
                             itemCount: _announcements.length,
-                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(_announcements[i], c)),
+                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(_announcements[i], c)),
                           ),
                   )),
           ),

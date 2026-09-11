@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/motion.dart';
 import 'animations.dart';
 import 'app_header.dart';
 import 'liquid_glass.dart';
@@ -52,14 +54,15 @@ class CustomBottomNav extends StatelessWidget {
 
                   return Stack(
                     children: [
-                      if (selectedIndex != 2)
-                        AnimatedPositioned(
-                          duration: const Duration(milliseconds: 420),
-                          curve: Curves.easeOutBack,
-                          left: slot * selectedIndex + (slot - _pillWidth) / 2,
-                          top: (_barHeight - _pillHeight) / 2,
-                          child: _buildPill(c),
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: _SlidingPill(
+                            index: selectedIndex,
+                            slot: slot,
+                            colors: c,
+                          ),
                         ),
+                      ),
                       Row(
                         children: [
                           Expanded(
@@ -113,25 +116,6 @@ class CustomBottomNav extends StatelessWidget {
     );
   }
 
-  /// 選中的膠囊本身也是一小塊玻璃，會沿著導覽列滑到下一個分頁。
-  Widget _buildPill(AppColors c) {
-    return Container(
-      width: _pillWidth,
-      height: _pillHeight,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_pillHeight / 2),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            c.accent.withValues(alpha: c.isDark ? 0.34 : 0.16),
-            c.accent.withValues(alpha: c.isDark ? 0.18 : 0.08),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildNavItem(
     IconData solidIcon,
     IconData outlinedIcon,
@@ -143,19 +127,31 @@ class CustomBottomNav extends StatelessWidget {
     final isSelected = selectedIndex == index;
     final color = isSelected ? c.accent : c.iconInactive;
 
-    Widget icon = AnimatedScale(
-      scale: isSelected ? 1.12 : 1.0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutBack,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        transitionBuilder: (child, animation) =>
-            FadeTransition(opacity: animation, child: child),
-        child: Icon(
-          isSelected ? solidIcon : outlinedIcon,
-          key: ValueKey(isSelected),
-          size: 22,
-          color: color,
+    // 選中時圖示往上浮一點點，文字才有被「推開」的感覺。
+    Widget icon = AnimatedSlide(
+      offset: Offset(0, isSelected ? -0.06 : 0),
+      duration: Motion.base,
+      curve: Motion.emphasized,
+      child: AnimatedScale(
+        scale: isSelected ? 1.14 : 1.0,
+        duration: Motion.base,
+        curve: Motion.pop,
+        child: AnimatedSwitcher(
+          duration: Motion.micro,
+          switchInCurve: Motion.enterCurve,
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: ScaleTransition(
+              scale: Tween<double>(begin: 0.82, end: 1).animate(animation),
+              child: child,
+            ),
+          ),
+          child: Icon(
+            isSelected ? solidIcon : outlinedIcon,
+            key: ValueKey(isSelected),
+            size: 22,
+            color: color,
+          ),
         ),
       ),
     );
@@ -191,9 +187,10 @@ class CustomBottomNav extends StatelessWidget {
             icon,
             const SizedBox(height: 2),
             AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
+              duration: Motion.base,
+              curve: Motion.emphasized,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: isSelected ? 10.5 : 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: color,
               ),
@@ -215,8 +212,8 @@ class CustomBottomNav extends StatelessWidget {
         onItemSelected(2);
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutBack,
+        duration: Motion.base,
+        curve: Motion.emphasized,
         width: 46,
         height: 46,
         decoration: BoxDecoration(
@@ -240,11 +237,111 @@ class CustomBottomNav extends StatelessWidget {
         ),
         child: AnimatedRotation(
           turns: isSelected ? 0.125 : 0,
-          duration: const Duration(milliseconds: 320),
-          curve: Curves.easeOutBack,
+          duration: Motion.enter,
+          curve: Motion.pop,
           child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
         ),
       ),
+    );
+  }
+}
+
+/// 沿著導覽列滑動的膠囊。
+///
+/// 用彈簧而不是補間曲線：切分頁時膠囊會稍微衝過頭再收回來，
+/// 而且移動中會依速度拉長、停下時彈回原比例。這個擠壓拉伸
+/// 是讓它看起來有重量、不像貼圖平移的關鍵。
+class _SlidingPill extends StatefulWidget {
+  final int index;
+  final double slot;
+  final AppColors colors;
+
+  const _SlidingPill({
+    required this.index,
+    required this.slot,
+    required this.colors,
+  });
+
+  @override
+  State<_SlidingPill> createState() => _SlidingPillState();
+}
+
+class _SlidingPillState extends State<_SlidingPill>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller =
+      AnimationController.unbounded(vsync: this, value: widget.index.toDouble());
+
+  @override
+  void didUpdateWidget(covariant _SlidingPill old) {
+    super.didUpdateWidget(old);
+    if (old.index != widget.index) {
+      _controller.animateWith(
+        SpringSimulation(
+          Motion.glideSpring,
+          _controller.value,
+          widget.index.toDouble(),
+          _controller.velocity,
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.colors;
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final pos = _controller.value;
+
+        // 中央的加號有自己的樣式，膠囊滑到那一格時淡出讓位。
+        final distanceToCentre = (pos - 2).abs();
+        final opacity = distanceToCentre.clamp(0.0, 1.0);
+        if (opacity == 0) return const SizedBox.shrink();
+
+        // 速度換算成擠壓量。上限壓在 0.26，再多會變成橡皮筋。
+        final speed = _controller.velocity.abs();
+        final squash = (speed * 0.05).clamp(0.0, 0.26);
+
+        return Stack(
+          children: [
+            Positioned(
+              left: widget.slot * pos + (widget.slot - CustomBottomNav._pillWidth) / 2,
+              top: (CustomBottomNav._barHeight - CustomBottomNav._pillHeight) / 2,
+              child: Opacity(
+                opacity: opacity,
+                child: Transform.scale(
+                  scaleX: 1 + squash,
+                  scaleY: 1 - squash * 0.55,
+                  child: Container(
+                    width: CustomBottomNav._pillWidth,
+                    height: CustomBottomNav._pillHeight,
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          BorderRadius.circular(CustomBottomNav._pillHeight / 2),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          c.accent.withValues(alpha: c.isDark ? 0.34 : 0.16),
+                          c.accent.withValues(alpha: c.isDark ? 0.18 : 0.08),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

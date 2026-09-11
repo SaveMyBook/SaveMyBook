@@ -259,7 +259,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               bottom: MediaQuery.of(context).padding.bottom + (widget.embedded ? 100 : 24),
                             ),
                             itemCount: _notifications.length,
-                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildTile(_notifications[i], c)),
+                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildTile(_notifications[i], c)),
                           ),
                   )),
           ),

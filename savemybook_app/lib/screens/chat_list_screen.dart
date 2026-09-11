@@ -147,7 +147,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),
                             itemCount: _rooms.length,
-                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildRoomTile(_rooms[i], c)),
+                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildRoomTile(_rooms[i], c)),
                           ),
                   )),
           ),

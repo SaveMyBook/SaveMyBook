@@ -160,7 +160,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         controller: _scrollController,
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                         itemCount: _messages.length,
-                        itemBuilder: (_, i) => FadeSlideIn(
+                        itemBuilder: (_, i) => RevealOnScroll(
                           index: i,
                           offsetY: 10,
                           stagger: const Duration(milliseconds: 20),

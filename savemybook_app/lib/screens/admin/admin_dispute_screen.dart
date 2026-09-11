@@ -192,7 +192,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),
                             itemCount: _disputes.length,
-                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(_disputes[i], c)),
+                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(_disputes[i], c)),
                           ),
                   )),
             ),

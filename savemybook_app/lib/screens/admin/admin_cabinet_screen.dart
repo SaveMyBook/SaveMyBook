@@ -187,7 +187,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                         : ListView.builder(
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                             itemCount: _filtered.length,
-                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCabinetCard(_filtered[i], c)),
+                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCabinetCard(_filtered[i], c)),
                           ),
                   )),
           ),

@@ -11,6 +11,7 @@ import '../models/category.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/motion.dart';
 import '../widgets/app_header.dart';
 import '../widgets/animations.dart';
 import '../widgets/book_card.dart';
@@ -409,13 +410,13 @@ return LightStatusBar(
         key: const ValueKey('grid'), padding: EdgeInsets.zero, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.58),
         itemCount: _books.length,
-        itemBuilder: (_, i) => FadeSlideIn(index: i, child: BookCard(book: _books[i])),
+        itemBuilder: (_, i) => RevealOnScroll(index: i, child: BookCard(book: _books[i])),
       );
     } else {
       content = ListView.builder(
         key: const ValueKey('list'), padding: EdgeInsets.zero, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
         itemCount: _books.length,
-        itemBuilder: (_, i) => FadeSlideIn(
+        itemBuilder: (_, i) => RevealOnScroll(
           index: i,
           child: Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -427,20 +428,30 @@ return LightStatusBar(
     // 網格與列表的高度差很多，只用 AnimatedSwitcher 會在切換瞬間跳一下。
     // 外面再包一層 AnimatedSize，讓容器高度跟著一起補間。
     return AnimatedSize(
-      duration: const Duration(milliseconds: 340),
-      curve: Curves.easeOutCubic,
+      duration: Motion.enter,
+      curve: Motion.emphasized,
       alignment: Alignment.topCenter,
       child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 260),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeIn,
-        transitionBuilder: (child, animation) => FadeTransition(
-          opacity: animation,
-          child: ScaleTransition(
-            scale: Tween(begin: 0.97, end: 1.0).animate(animation),
-            child: child,
-          ),
-        ),
+        duration: Motion.base,
+        switchInCurve: Motion.emphasized,
+        switchOutCurve: Motion.exitCurve,
+        // 網格從右邊進、列表從左邊進，方向對應上面那兩顆切換鈕的位置，
+        // 切換時就看得出「往哪一邊換過去」而不是原地閃一下。
+        transitionBuilder: (child, animation) {
+          final incoming = child.key == ValueKey(_isGridView ? 'grid' : 'list');
+          final dx = (_isGridView ? 0.06 : -0.06) * (incoming ? 1 : -1);
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(begin: Offset(dx, 0), end: Offset.zero)
+                  .animate(animation),
+              child: ScaleTransition(
+                scale: Tween(begin: 0.97, end: 1.0).animate(animation),
+                child: child,
+              ),
+            ),
+          );
+        },
         // 預設會把新舊畫面疊在一起，兩份清單同時存在高度會爆掉；
         // 這裡讓舊的直接淡出、不參與版面計算。
         layoutBuilder: (current, previous) => Stack(

@@ -61,7 +61,7 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
                           : ListView.builder(
                               padding: const EdgeInsets.all(16),
                               itemCount: _logs.length,
-                              itemBuilder: (_, i) => FadeSlideIn(
+                              itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildLogCard(_logs[i], c),
                               ),

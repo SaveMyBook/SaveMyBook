@@ -1,5 +1,43 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../utils/motion.dart';
+
+/// 彈窗的共用進場：從稍微縮小＋往下一點的位置浮上來。
+///
+/// Material 預設是單純的淡入，彈窗會「憑空出現」。加上一點位移與縮放，
+/// 才會像是從畫面裡長出來的。離場刻意比進場快，關掉時不拖泥帶水。
+Future<T?> _showAnimatedDialog<T>(
+  BuildContext context, {
+  required WidgetBuilder builder,
+  Color? barrierColor,
+}) {
+  return showGeneralDialog<T>(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: barrierColor ?? AppColors.of(context).scrim,
+    transitionDuration: Motion.base,
+    reverseTransitionDuration: Motion.micro,
+    pageBuilder: (ctx, _, _) => builder(ctx),
+    transitionBuilder: (ctx, animation, _, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Motion.emphasized,
+        reverseCurve: Motion.exitCurve,
+      );
+      return FadeTransition(
+        opacity: curved,
+        child: Transform.translate(
+          offset: Offset(0, 18 * (1 - curved.value)),
+          child: Transform.scale(
+            scale: 0.94 + 0.06 * curved.value,
+            child: child,
+          ),
+        ),
+      );
+    },
+  );
+}
 
 Future<bool> showConfirmDialog(
   BuildContext context, {
@@ -13,8 +51,8 @@ Future<bool> showConfirmDialog(
   final c = AppColors.of(context);
   final tint = isDestructive ? c.danger : c.accent;
 
-  final result = await showDialog<bool>(
-    context: context,
+  final result = await _showAnimatedDialog<bool>(
+    context,
     builder: (ctx) => AlertDialog(
       backgroundColor: c.card,
       surfaceTintColor: Colors.transparent,
@@ -107,8 +145,8 @@ Future<String?> showTextInputDialog(
   final c = AppColors.of(context);
   final controller = TextEditingController(text: initialValue);
 
-  final result = await showDialog<String>(
-    context: context,
+  final result = await _showAnimatedDialog<String>(
+    context,
     builder: (ctx) => AlertDialog(
       backgroundColor: c.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

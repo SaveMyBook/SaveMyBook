@@ -157,7 +157,7 @@ class _CartScreenState extends State<CartScreen> {
                         : ListView.builder(
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                             itemCount: _items.length,
-                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildItem(_items[i], c)),
+                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildItem(_items[i], c)),
                           ),
                   )),
           ),

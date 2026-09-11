@@ -176,7 +176,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                                 childAspectRatio: 0.52,
                               ),
                               itemCount: _visible.length,
-                              itemBuilder: (_, i) => FadeSlideIn(
+                              itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_visible[i], c),
                               ),

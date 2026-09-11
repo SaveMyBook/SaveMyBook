@@ -53,6 +53,11 @@ class AppTheme {
           TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
         },
       ),
+      // 全站的下拉更新一次定調，35 個列表頁不用各自設一遍。
+      refreshIndicatorTheme: RefreshIndicatorThemeData(
+        color: c.accent,
+        backgroundColor: c.card,
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: c.headerBg,
         foregroundColor: Colors.white,

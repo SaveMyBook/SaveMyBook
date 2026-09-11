@@ -192,7 +192,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),
                             itemCount: _reports.length,
-                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(_reports[i], c)),
+                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(_reports[i], c)),
                           ),
                   )),
             ),

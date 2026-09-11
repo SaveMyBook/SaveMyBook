@@ -105,7 +105,7 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                           : ListView.builder(
                               padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
                               itemCount: _tickets.length,
-                              itemBuilder: (_, i) => FadeSlideIn(
+                              itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_tickets[i], c),
                               ),

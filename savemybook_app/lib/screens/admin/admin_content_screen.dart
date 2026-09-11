@@ -464,7 +464,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
                           : ListView.builder(
                               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                               itemCount: _faqs.length,
-                              itemBuilder: (_, i) => FadeSlideIn(
+                              itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_faqs[i], c),
                               ),

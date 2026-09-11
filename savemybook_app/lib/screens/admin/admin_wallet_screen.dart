@@ -91,7 +91,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                           : ListView.builder(
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                               itemCount: _wallets.length,
-                              itemBuilder: (_, i) => FadeSlideIn(
+                              itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
                                 child: _buildCard(_wallets[i], c),
                               ),

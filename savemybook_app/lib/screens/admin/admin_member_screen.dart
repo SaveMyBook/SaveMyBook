@@ -204,7 +204,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                         : ListView.builder(
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                             itemCount: _members.length,
-                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildMemberCard(_members[i], c)),
+                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildMemberCard(_members[i], c)),
                           ),
                   )),
           ),

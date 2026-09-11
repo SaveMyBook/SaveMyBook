@@ -81,7 +81,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                               childAspectRatio: 0.58,
                             ),
                             itemCount: _books.length,
-                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: BookCard(book: _books[i])),
+                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: BookCard(book: _books[i])),
                           ),
                   )),
           ),

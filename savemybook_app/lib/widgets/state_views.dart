@@ -156,7 +156,22 @@ class EmptyView extends StatelessWidget {
           children: [
             FadeSlideIn(
               offsetY: 14,
-              child: Icon(icon, size: 56, color: c.iconInactive),
+              child: Breathe(
+                child: Container(
+                  width: 104,
+                  height: 104,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        c.accent.withValues(alpha: c.isDark ? 0.14 : 0.09),
+                        c.accent.withValues(alpha: 0),
+                      ],
+                    ),
+                  ),
+                  child: Icon(icon, size: 56, color: c.iconInactive),
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             FadeSlideIn(

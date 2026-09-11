@@ -184,7 +184,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
                               childAspectRatio: 0.55,
                             ),
                             itemCount: orders.length,
-                            itemBuilder: (_, i) => FadeSlideIn(index: i, child: _buildCard(orders[i])),
+                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(orders[i])),
                           ),
                   )),
             ),

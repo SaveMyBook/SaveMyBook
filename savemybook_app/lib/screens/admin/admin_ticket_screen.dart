@@ -117,7 +117,7 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
                             : ListView.builder(
                                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                                 itemCount: _tickets.length,
-                                itemBuilder: (_, i) => FadeSlideIn(
+                                itemBuilder: (_, i) => RevealOnScroll(
                                   index: i,
                                   child: _buildCard(_tickets[i], c),
                                 ),
