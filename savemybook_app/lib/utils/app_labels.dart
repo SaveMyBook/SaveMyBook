@@ -114,7 +114,7 @@ class AppLabels {
   static const disputeResult = <String, String>{
     'refund_manual': '人工退款',
     'refund_auto': '自動退款',
-    'dismissed': '駁回',
+    'dismissed': '駁回申訴',
     'mediated': '協調結案',
   };
 

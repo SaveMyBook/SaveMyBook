@@ -9,6 +9,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import '../../utils/app_labels.dart';
 
 class AdminOrderScreen extends StatefulWidget {
   const AdminOrderScreen({super.key});
@@ -66,7 +67,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
       context,
       title: '調整訂單狀態',
       subtitle: '訂單 ${order.orderNo}',
-      options: AdminOrder.statusLabels.entries
+      options: AppLabels.orderStatus.entries
           .map((e) => SheetOption(
                 value: e.key,
                 label: e.value,

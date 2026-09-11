@@ -6,6 +6,7 @@ import '../widgets/animations.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../utils/app_labels.dart';
 
 class HelpCenterScreen extends StatefulWidget {
   const HelpCenterScreen({super.key});
@@ -98,7 +99,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                                 Padding(
                                   padding: const EdgeInsets.only(left: 4, top: 8, bottom: 10),
                                   child: Text(
-                                    FaqItem.categoryLabels[entry.key] ?? entry.key,
+                                    AppLabels.faqCategory[entry.key] ?? entry.key,
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,

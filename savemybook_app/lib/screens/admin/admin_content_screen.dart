@@ -10,6 +10,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import '../../utils/app_labels.dart';
 
 class AdminLegalScreen extends StatefulWidget {
   const AdminLegalScreen({super.key});
@@ -337,7 +338,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
                 const SizedBox(height: 16),
                 AppDropdownField<String>(
                   value: category,
-                  items: FaqItem.categoryLabels.entries
+                  items: AppLabels.faqCategory.entries
                       .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
                       .toList(),
                   onChanged: (value) => setSheetState(() => category = value ?? 'general'),

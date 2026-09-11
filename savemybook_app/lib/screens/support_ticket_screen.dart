@@ -10,6 +10,7 @@ import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/state_views.dart';
+import '../utils/app_labels.dart';
 
 class SupportTicketScreen extends StatefulWidget {
   const SupportTicketScreen({super.key});
@@ -234,7 +235,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                     child: AppDropdownField<String>(
                       value: _category,
                       hint: '請選擇',
-                      items: SupportTicket.categoryLabels.entries
+                      items: AppLabels.ticketCategory.entries
                           .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
                           .toList(),
                       onChanged: (value) => setState(() => _category = value ?? 'other'),
@@ -369,7 +370,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     final status = await showOptionSheet<String>(
       context,
       title: '調整工單狀態',
-      options: SupportTicket.statusLabels.entries
+      options: AppLabels.ticketStatus.entries
           .map((e) => SheetOption(
                 value: e.key,
                 label: e.value,

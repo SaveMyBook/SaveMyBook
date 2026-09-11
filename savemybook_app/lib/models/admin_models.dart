@@ -194,7 +194,7 @@ class DisputeCase {
 
   String get statusText => AppLabels.dispute(status);
 
-  String get resultText => AppLabels.disputeResult[result] ?? result;
+  String get resultText => AppLabels.disputeResult[result] ?? '';
 
   factory DisputeCase.fromJson(Map<String, dynamic> json) {
     final order = json['orders'] as Map<String, dynamic>?;

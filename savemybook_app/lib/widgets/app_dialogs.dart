@@ -15,7 +15,6 @@ Future<T?> _showAnimatedDialog<T>(
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
     barrierColor: barrierColor ?? AppColors.of(context).scrim,
     transitionDuration: Motion.base,
-    reverseTransitionDuration: Motion.micro,
     pageBuilder: (ctx, _, _) => builder(ctx),
     transitionBuilder: (ctx, animation, _, child) {
       final curved = CurvedAnimation(
