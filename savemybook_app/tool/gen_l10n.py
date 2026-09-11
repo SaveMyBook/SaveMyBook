@@ -60,6 +60,9 @@ def main():
         '  static AppLocalizations of(BuildContext context) =>',
         '      Localizations.of<AppLocalizations>(context, AppLocalizations)!;',
         '',
+        '  /// 還沒有 Localizations 可用時的預設值，讓 S 永遠有值。',
+        f'  static const AppLocalizations fallback = _L{TEMPLATE.capitalize()}();',
+        '',
         '  static const List<Locale> supportedLocales = <Locale>[',
     ]
     for tag in files:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'i18n/app_localizations.dart';
+import 'i18n/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/chat_room_screen.dart';
 import 'screens/login_screen.dart';
@@ -148,6 +149,12 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
+              // builder 位於 Localizations 之下，是最早能取得譯文的位置。
+              // 模型與服務層沒有 context，靠這裡把參考交給全域的 S。
+              builder: (context, child) {
+                S = AppLocalizations.of(context);
+                return child ?? const SizedBox.shrink();
+              },
               home: _initialRoute,
             );
           },

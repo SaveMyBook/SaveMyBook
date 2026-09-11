@@ -13,6 +13,7 @@ import '../widgets/animations.dart';
 import '../widgets/app_dialogs.dart';
 import 'account_privacy_screen.dart';
 import '../services/locale_provider.dart';
+import '../i18n/strings.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -143,7 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildSubItem(
                   c,
                   icon: Icons.shield_outlined,
-                  title: '帳號與隱私',
+                  title: '帳號管理',
                   onTap: () => Navigator.push(context,
                       MaterialPageRoute(builder: (_) => const AccountPrivacyScreen())),
                 ),
@@ -210,7 +211,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: c.textPrimary,
                   ),
                 ),
-                title: Text('外觀', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary)),
+                title: Text(S.appearance, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary)),
                 subtitle: Text(_themeLabel(mode), style: TextStyle(fontSize: 12, color: c.textSecondary)),
                 trailing: Icon(Icons.chevron_right_rounded, color: c.iconInactive),
                 onTap: () => _pickTheme(mode),
@@ -221,10 +222,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 builder: (context, locale, _) => ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   leading: Icon(Icons.language_rounded, color: c.textPrimary),
-                  title: Text('語言',
+                  title: Text(S.language,
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary)),
                   subtitle: Text(
-                    locale == null ? '跟隨系統' : LocaleProvider.nameOf(locale),
+                    locale == null ? S.languageSystem : LocaleProvider.nameOf(locale),
                     style: TextStyle(fontSize: 12, color: c.textSecondary),
                   ),
                   trailing: Icon(Icons.chevron_right_rounded, color: c.iconInactive),
@@ -341,16 +342,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       };
 
   static String _themeLabel(ThemeMode mode) => switch (mode) {
-        ThemeMode.light => '淺色',
-        ThemeMode.dark => '深色',
-        ThemeMode.system => '跟隨系統',
+        ThemeMode.light => S.appearanceLight,
+        ThemeMode.dark => S.appearanceDark,
+        ThemeMode.system => S.appearanceSystem,
       };
 
   Future<void> _pickTheme(ThemeMode current) async {
     final picked = await showOptionSheet<ThemeMode>(
       context,
-      title: '外觀',
-      subtitle: '選擇「跟隨系統」時，會依裝置的深淺色設定自動切換',
+      title: S.appearance,
+      subtitle: S.appearanceHint,
       options: [
         for (final mode in ThemeMode.values)
           SheetOption(
@@ -368,12 +369,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // 用 -1 代表「跟隨系統」，SheetOption 的 value 不能是 null。
     final picked = await showOptionSheet<int>(
       context,
-      title: '語言',
-      subtitle: '選擇「跟隨系統」時，會依裝置的語言設定顯示',
+      title: S.language,
+      subtitle: S.languageHint,
       options: [
         SheetOption(
           value: -1,
-          label: '跟隨系統',
+          label: S.languageSystem,
           icon: Icons.brightness_auto_rounded,
           selected: current == null,
         ),

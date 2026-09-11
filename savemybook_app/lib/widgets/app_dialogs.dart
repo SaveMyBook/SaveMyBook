@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_radius.dart';
 import '../utils/motion.dart';
+import '../i18n/strings.dart';
 
 /// 彈窗的共用進場。Material 預設只有淡入，這裡補上位移與縮放，
 /// 離場則刻意比進場短。
@@ -41,8 +42,8 @@ Future<bool> showConfirmDialog(
   BuildContext context, {
   required String title,
   required String message,
-  String confirmLabel = '確定',
-  String cancelLabel = '取消',
+  String? confirmLabel,
+  String? cancelLabel,
   bool isDestructive = false,
   IconData? icon,
 }) async {
@@ -102,7 +103,8 @@ Future<bool> showConfirmDialog(
                     foregroundColor: c.textSecondary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: Text(cancelLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  child: Text(
+            cancelLabel ?? S.actionCancel, style: const TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ),
             ),
@@ -118,7 +120,8 @@ Future<bool> showConfirmDialog(
                     elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: Text(confirmLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+            confirmLabel ?? S.actionConfirm, style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ),
@@ -138,7 +141,7 @@ Future<String?> showTextInputDialog(
   String initialValue = '',
   int maxLines = 1,
   int maxLength = 200,
-  String confirmLabel = '確定',
+  String? confirmLabel,
   String? message,
   bool obscure = false,
   bool isDestructive = false,
@@ -190,12 +193,12 @@ Future<String?> showTextInputDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: Text('取消', style: TextStyle(color: c.textSecondary)),
+          child: Text(S.actionCancel, style: TextStyle(color: c.textSecondary)),
         ),
         TextButton(
           onPressed: () => Navigator.pop(ctx, controller.text.trim()),
           child: Text(
-            confirmLabel,
+            confirmLabel ?? S.actionConfirm,
             style: TextStyle(
               color: isDestructive ? c.danger : c.accent,
               fontWeight: FontWeight.bold,

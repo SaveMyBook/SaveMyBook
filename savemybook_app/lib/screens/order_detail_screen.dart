@@ -24,7 +24,7 @@ class OrderDetailScreen extends StatefulWidget {
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
-  static const _flow = AppLabels.orderFlow;
+  List<({String status, String label})> get _flow => AppLabels.orderFlow;
 
   final ApiService _api = ApiService();
   late Order _order = widget.order;

@@ -147,7 +147,7 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '帳號與隱私', icon: Icons.shield_outlined),
+          const AppHeader(title: '帳號管理', icon: Icons.manage_accounts_outlined),
           Expanded(
             child: SwitchIn(
               child: _isLoading

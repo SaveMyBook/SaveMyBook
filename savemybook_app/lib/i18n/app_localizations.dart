@@ -11,6 +11,9 @@ abstract class AppLocalizations {
   static AppLocalizations of(BuildContext context) =>
       Localizations.of<AppLocalizations>(context, AppLocalizations)!;
 
+  /// 還沒有 Localizations 可用時的預設值，讓 S 永遠有值。
+  static const AppLocalizations fallback = _LZh();
+
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('ja'),

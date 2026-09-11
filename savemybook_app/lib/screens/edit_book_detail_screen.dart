@@ -39,7 +39,8 @@ class EditBookDetailScreen extends StatefulWidget {
 }
 
 class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
-  static const _conditions = AppLabels.conditionOptions;
+  // AppLabels 會隨語系變動，不能是 const。
+  List<({String value, String label})> get _conditions => AppLabels.conditionOptions;
 
   final ApiService _api = ApiService();
 
@@ -48,7 +49,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
   int? _cabinetId;
 
   /// 前三格固定對應封面／背面／條碼，跟新增書籍時一致。
-  static const _requiredLabels = AppLabels.photoSlots;
+  List<String> get _requiredLabels => AppLabels.photoSlots;
 
   final List<BookImage?> _slotExisting = List<BookImage?>.filled(3, null, growable: false);
   final List<XFile?> _slotNew = List<XFile?>.filled(3, null, growable: false);

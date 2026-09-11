@@ -167,6 +167,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
 
   bool _isSaving = false;
   bool _dirty = false;
+  bool _previewing = false;
 
   @override
   void initState() {
@@ -258,7 +259,10 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final length = _contentController.text.length;
+    final text = _contentController.text;
+    final paragraphs = text.trim().isEmpty
+        ? 0
+        : text.trim().split(RegExp(r'\n\s*\n')).where((p) => p.trim().isNotEmpty).length;
 
     return PopScope(
       canPop: !_dirty,
@@ -274,88 +278,232 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
         body: Column(
           children: [
             AppHeader(title: widget.initialTitle, icon: Icons.edit_note_rounded),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-              child: AppTextField(
-                controller: _titleController,
-                hint: '文件標題',
-                maxLength: 100,
+            _buildToolbar(c, text.length, paragraphs),
+            Expanded(
+              child: SwitchIn(
+                child: _previewing ? _buildPreview(c, text) : _buildEditor(c),
               ),
             ),
-            // 內容區吃掉剩下的所有高度。放進 ListView 裡的多行輸入框
-            // 會變成「捲動中的捲動」，改幾千字的條款完全沒辦法用。
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: c.card,
-                    borderRadius: BorderRadius.circular(AppRadius.card),
-                    border: Border.all(color: c.border),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  child: TextField(
-                    controller: _contentController,
-                    maxLines: null,
-                    expands: true,
-                    textAlignVertical: TextAlignVertical.top,
-                    keyboardType: TextInputType.multiline,
-                    style: TextStyle(fontSize: 14, height: 1.7, color: c.textPrimary),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      border: InputBorder.none,
-                      hintText: '文件內容',
-                      hintStyle: TextStyle(color: c.textHint),
-                    ),
-                  ),
+            _buildBottomBar(c),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 編輯／預覽切換與即時統計。條款是給使用者看的，寫的時候
+  /// 要能隨時確認排版起來長什麼樣。
+  Widget _buildToolbar(AppColors c, int length, int paragraphs) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      color: c.card,
+      child: Row(
+        children: [
+          _ModeTab(
+            label: '編輯',
+            icon: Icons.edit_rounded,
+            selected: !_previewing,
+            onTap: () => setState(() => _previewing = false),
+          ),
+          const SizedBox(width: 8),
+          _ModeTab(
+            label: '預覽',
+            icon: Icons.visibility_rounded,
+            selected: _previewing,
+            onTap: () {
+              FocusScope.of(context).unfocus();
+              setState(() => _previewing = true);
+            },
+          ),
+          const Spacer(),
+          Text(
+            '$paragraphs 段・$length 字',
+            style: TextStyle(fontSize: 12, color: c.textHint),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditor(AppColors c) {
+    return Padding(
+      key: const ValueKey('edit'),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+      child: Column(
+        children: [
+          AppTextField(
+            controller: _titleController,
+            hint: '文件標題',
+            maxLength: 100,
+          ),
+          const SizedBox(height: 12),
+          // 內容區吃掉剩下的所有高度。放進 ListView 裡的多行輸入框會變成
+          // 「捲動中的捲動」，改幾千字的條款完全沒辦法用。
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: c.card,
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                border: Border.all(color: c.border),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: TextField(
+                controller: _contentController,
+                maxLines: null,
+                expands: true,
+                textAlignVertical: TextAlignVertical.top,
+                keyboardType: TextInputType.multiline,
+                style: TextStyle(fontSize: 14, height: 1.8, color: c.textPrimary),
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  hintText: '空一行分段。條款內容會照這裡的排版呈現給使用者。',
+                  hintStyle: TextStyle(color: c.textHint, height: 1.8),
                 ),
               ),
             ),
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
-              decoration: BoxDecoration(
-                color: c.card,
-                boxShadow: [
-                  BoxShadow(color: c.shadow.withValues(alpha: 0.08),
-                      blurRadius: 16, offset: const Offset(0, -4)),
-                ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 照使用者端的樣式呈現：同一個字級、行高與段距。
+  Widget _buildPreview(AppColors c, String text) {
+    final paragraphs = text.trim().split(RegExp(r'\n\s*\n'))
+        .where((p) => p.trim().isNotEmpty)
+        .toList();
+
+    return ListView(
+      key: const ValueKey('preview'),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: c.card,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _titleController.text.trim().isEmpty
+                    ? widget.initialTitle
+                    : _titleController.text.trim(),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: c.textPrimary,
+                ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
+              const SizedBox(height: 16),
+              if (paragraphs.isEmpty)
+                Text('尚無內容', style: TextStyle(fontSize: 14, color: c.textHint))
+              else
+                for (final p in paragraphs) ...[
+                  Text(
+                    p.trim(),
+                    style: TextStyle(fontSize: 14, height: 1.8, color: c.textSecondary),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomBar(AppColors c) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
+      decoration: BoxDecoration(
+        color: c.card,
+        boxShadow: [
+          BoxShadow(color: c.shadow.withValues(alpha: 0.08), blurRadius: 16, offset: const Offset(0, -4)),
+        ],
+      ),
+      child: Row(
+        children: [
+          SwitchIn(
+            duration: Motion.micro,
+            child: _dirty
+                ? Row(
+                    key: const ValueKey('dirty'),
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      SwitchIn(
-                        duration: Motion.micro,
-                        child: _dirty
-                            ? Row(
-                                key: const ValueKey('dirty'),
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.edit_rounded, size: 13, color: c.warning),
-                                  const SizedBox(width: 5),
-                                  Text('尚未儲存',
-                                      style: TextStyle(fontSize: 12, color: c.warning)),
-                                ],
-                              )
-                            : Text('已是最新版本',
-                                key: const ValueKey('clean'),
-                                style: TextStyle(fontSize: 12, color: c.textHint)),
-                      ),
-                      const Spacer(),
-                      Text('$length / 20000',
-                          style: TextStyle(fontSize: 12, color: c.textHint)),
+                      Icon(Icons.edit_rounded, size: 13, color: c.warning),
+                      const SizedBox(width: 5),
+                      Text('尚未儲存', style: TextStyle(fontSize: 12, color: c.warning)),
+                    ],
+                  )
+                : Row(
+                    key: const ValueKey('clean'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.check_circle_rounded, size: 13, color: c.success),
+                      const SizedBox(width: 5),
+                      Text('已是最新版本', style: TextStyle(fontSize: 12, color: c.textHint)),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  PrimaryButton(
-                    label: '儲存',
-                    height: 50,
-                    isLoading: _isSaving,
-                    onPressed: _dirty ? _save : null,
-                  ),
-                ],
+          ),
+          const Spacer(),
+          SizedBox(
+            width: 132,
+            child: PrimaryButton(
+              label: '儲存',
+              height: 46,
+              isLoading: _isSaving,
+              onPressed: _dirty ? _save : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 編輯／預覽的分段按鈕。
+class _ModeTab extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ModeTab({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+
+    return PressableScale(
+      scale: 0.95,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? c.accent : c.inputFill,
+          borderRadius: BorderRadius.circular(AppRadius.chip),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: selected ? Colors.white : c.iconInactive),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : c.textSecondary,
               ),
             ),
           ],
@@ -364,6 +512,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
     );
   }
 }
+
 
 class AdminFaqScreen extends StatefulWidget {
   const AdminFaqScreen({super.key});

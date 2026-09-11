@@ -1,32 +1,33 @@
+import '../i18n/strings.dart';
+
 /// 後端代碼與畫面文字的唯一對照來源。
 ///
 /// 同一個代碼在每個頁面必須顯示同一段文字，所以畫面裡不要自己寫 switch。
-/// 之前訂單的 `deposited` 在買家端是「待取書」、後台是「已存書」、
-/// 詳情頁又是「已存入書櫃」，就是各自為政造成的。
+/// 實際譯文來自 lib/i18n/*.arb，這裡只負責「代碼 → 哪一個 key」。
 class AppLabels {
   const AppLabels._();
 
   // ---------- 訂單 ----------
 
   /// 中立說法，後台與賣家端使用。
-  static const orderStatus = <String, String>{
-    'pending_payment': '待付款',
-    'pending_deposit': '待存書',
-    'deposited': '已存書',
-    'pending_pickup': '待取書',
-    'completed': '已完成',
-    'cancelled': '已取消',
-    'refunding': '退款中',
-    'refunded': '已退款',
-  };
+  static Map<String, String> get orderStatus => {
+        'pending_payment': S.orderPendingPayment,
+        'pending_deposit': S.orderPendingDeposit,
+        'deposited': S.orderDeposited,
+        'pending_pickup': S.orderPendingPickup,
+        'completed': S.orderCompleted,
+        'cancelled': S.orderCancelled,
+        'refunding': S.orderRefunding,
+        'refunded': S.orderRefunded,
+      };
 
   /// 買家視角的例外。買家看到的是「對方要做什麼」與「我可以做什麼」，
   /// 其餘代碼沿用 [orderStatus]。
-  static const _buyerOrderStatus = <String, String>{
-    'pending_deposit': '待賣家存書',
-    'deposited': '待取書',
-    'refunding': '申訴中',
-  };
+  static Map<String, String> get _buyerOrderStatus => {
+        'pending_deposit': S.orderBuyerPendingDeposit,
+        'deposited': S.orderBuyerDeposited,
+        'refunding': S.orderBuyerRefunding,
+      };
 
   static String order(String code, {bool asBuyer = false}) {
     if (asBuyer) {
@@ -37,148 +38,147 @@ class AppLabels {
   }
 
   /// 訂單在進度條上會依序經過的節點。
-  static const orderFlow = <({String status, String label})>[
-    (status: 'pending_deposit', label: '待賣家存書'),
-    (status: 'deposited', label: '已存入書櫃'),
-    (status: 'pending_pickup', label: '待買家取書'),
-    (status: 'completed', label: '交易完成'),
-  ];
+  static List<({String status, String label})> get orderFlow => [
+        (status: 'pending_deposit', label: S.orderFlowDeposit),
+        (status: 'deposited', label: S.orderFlowDeposited),
+        (status: 'pending_pickup', label: S.orderFlowPickup),
+        (status: 'completed', label: S.orderFlowCompleted),
+      ];
 
   // ---------- 書籍 ----------
 
-  static const bookStatus = <String, String>{
-    'on_sale': '販售中',
-    'reserved': '已預訂',
-    'sold': '已售出',
-    'removed': '已下架',
-  };
+  static Map<String, String> get bookStatus => {
+        'on_sale': S.bookOnSale,
+        'reserved': S.bookReserved,
+        'sold': S.bookSold,
+        'removed': S.bookRemoved,
+      };
 
   static String book(String code) => bookStatus[code] ?? code;
 
-  static const condition = <String, String>{
-    'like_new': '全新',
-    'good': '近全新',
-    'fair': '良好',
-    'poor': '尚可',
-  };
+  static Map<String, String> get condition => {
+        'like_new': S.conditionLikeNew,
+        'good': S.conditionGood,
+        'fair': S.conditionFair,
+        'poor': S.conditionPoor,
+      };
 
-  static String conditionOf(String code) => condition[code] ?? '未知書況';
+  static String conditionOf(String code) => condition[code] ?? S.conditionUnknown;
 
   /// 上架與編輯共用的書況選項，順序即下拉選單的顯示順序。
-  static const conditionOptions = <({String value, String label})>[
-    (value: 'like_new', label: '全新'),
-    (value: 'good', label: '近全新'),
-    (value: 'fair', label: '良好'),
-    (value: 'poor', label: '尚可'),
-  ];
+  static List<({String value, String label})> get conditionOptions => [
+        (value: 'like_new', label: S.conditionLikeNew),
+        (value: 'good', label: S.conditionGood),
+        (value: 'fair', label: S.conditionFair),
+        (value: 'poor', label: S.conditionPoor),
+      ];
 
   /// 上架時三張固定照片的欄位名稱。
-  static const photoSlots = <String>['封面', '背面', '條碼'];
+  static List<String> get photoSlots => [S.photoCover, S.photoBack, S.photoBarcode];
 
   // ---------- 會員 ----------
 
-  static const memberNormal = '正常';
-  static const memberInactive = '已停權';
-  static const memberBlacklisted = '黑名單';
-
   static String member({required bool isActive, required bool isBlacklisted}) {
-    if (isBlacklisted) return memberBlacklisted;
-    if (!isActive) return memberInactive;
-    return memberNormal;
+    if (isBlacklisted) return S.memberBlacklisted;
+    if (!isActive) return S.memberInactive;
+    return S.memberNormal;
   }
 
-  static const role = <String, String>{
-    'buyer_seller': '一般會員',
-    'admin': '管理員',
-  };
+  static Map<String, String> get role => {
+        'buyer_seller': S.roleBuyerSeller,
+        'admin': S.roleAdmin,
+      };
 
   // ---------- 檢舉與爭議 ----------
 
-  static const reportStatus = <String, String>{
-    'pending': '待處理',
-    'reviewing': '審核中',
-    'resolved': '已處理',
-    'dismissed': '已駁回',
-  };
+  static Map<String, String> get reportStatus => {
+        'pending': S.reportPending,
+        'reviewing': S.reportReviewing,
+        'resolved': S.reportResolved,
+        'dismissed': S.reportDismissed,
+      };
 
   static String report(String code) => reportStatus[code] ?? code;
 
-  static const disputeStatus = <String, String>{
-    'pending': '待受理',
-    'processing': '處理中',
-    'resolved': '已裁決',
-  };
+  static Map<String, String> get disputeStatus => {
+        'pending': S.disputePending,
+        'processing': S.disputeProcessing,
+        'resolved': S.disputeResolved,
+      };
 
   static String dispute(String code) => disputeStatus[code] ?? code;
 
-  static const disputeResult = <String, String>{
-    'refund_manual': '人工退款',
-    'refund_auto': '自動退款',
-    'dismissed': '駁回申訴',
-    'mediated': '協調結案',
-  };
+  static Map<String, String> get disputeResult => {
+        'refund_manual': S.disputeRefundManual,
+        'refund_auto': S.disputeRefundAuto,
+        'dismissed': S.disputeDismissed,
+        'mediated': S.disputeMediated,
+      };
 
   // ---------- 客服 ----------
 
-  static const ticketStatus = <String, String>{
-    'open': '待處理',
-    'pending': '客服已回覆',
-    'resolved': '已解決',
-    'closed': '已結案',
-  };
+  static Map<String, String> get ticketStatus => {
+        'open': S.ticketOpen,
+        'pending': S.ticketPending,
+        'resolved': S.ticketResolved,
+        'closed': S.ticketClosed,
+      };
 
   static String ticket(String code) => ticketStatus[code] ?? code;
 
-  static const ticketCategory = <String, String>{
-    'account': '帳號問題',
-    'trade': '交易問題',
-    'wallet': '代幣問題',
-    'cabinet': '書櫃問題',
-    'bug': '功能異常',
-    'other': '其他',
-  };
+  static Map<String, String> get ticketCategory => {
+        'account': S.ticketCatAccount,
+        'trade': S.ticketCatTrade,
+        'wallet': S.ticketCatWallet,
+        'cabinet': S.ticketCatCabinet,
+        'bug': S.ticketCatBug,
+        'other': S.ticketCatOther,
+      };
 
   /// 常見問題的分類，用字比工單分類短，因為它只是區塊標題。
-  static const faqCategory = <String, String>{
-    'general': '一般',
-    'account': '帳號',
-    'trade': '交易',
-    'wallet': '代幣',
-    'cabinet': '書櫃',
-  };
+  static Map<String, String> get faqCategory => {
+        'general': S.faqCatGeneral,
+        'account': S.faqCatAccount,
+        'trade': S.faqCatTrade,
+        'wallet': S.faqCatWallet,
+        'cabinet': S.faqCatCabinet,
+      };
 
   // ---------- 書櫃 ----------
 
-  static const slotStatus = <String, String>{
-    'empty': '空置',
-    'occupied': '使用中',
-    'reserved': '已預約',
-    'maintenance': '維修中',
-  };
+  static Map<String, String> get slotStatus => {
+        'empty': S.slotEmpty,
+        'occupied': S.slotOccupied,
+        'reserved': S.slotReserved,
+        'maintenance': S.slotMaintenance,
+      };
 
   static String slot(String code) => slotStatus[code] ?? code;
 
   // ---------- 錢包 ----------
 
-  static const walletTxnType = <String, String>{
-    'deposit': '儲值',
-    'withdrawal': '提領',
-    'purchase': '購書',
-    'sale_income': '售書收入',
-    'refund': '退款',
-    'admin_adjust': '客服調整',
-  };
+  static Map<String, String> get walletTxnType => {
+        'deposit': S.txnDeposit,
+        'withdrawal': S.txnWithdrawal,
+        'purchase': S.txnPurchase,
+        'sale_income': S.txnSaleIncome,
+        'refund': S.txnRefund,
+        'admin_adjust': S.txnAdminAdjust,
+      };
 
   // ---------- 公告 ----------
 
-  static const announcementType = <String, String>{
-    'general': '一般',
-    'maintenance': '維護',
-    'promotion': '活動',
-    'policy': '政策',
-  };
+  static Map<String, String> get announcementType => {
+        'general': S.announceGeneral,
+        'maintenance': S.announceMaintenance,
+        'promotion': S.announcePromotion,
+        'policy': S.announcePolicy,
+      };
+
+  // ---------- 管理員權限 ----------
 
   /// 管理員細部權限的名稱與說明，順序即設定頁的顯示順序。
+  /// 這些只有管理員看得到，維持繁中即可。
   static const permission = <String, (String, String)>{
     'can_manage_members': ('會員管控', '停權、黑名單、身分'),
     'can_manage_levels': ('會員等級', '等級門檻與人工調整'),
@@ -190,15 +190,17 @@ class AppLabels {
     'can_manage_cabinets': ('硬體維護', '書櫃與櫃位'),
     'can_manage_announcements': ('公告與文件', '公告、常見問題、法律文件'),
     'can_manage_support': ('客服工單', '回覆使用者問題'),
-    'can_view_stats': ('營運報表', '檢視營收與成長數據'),
+    'can_view_stats': ('營運報表', '訂單、營收與會員成長'),
     'can_manage_system': ('系統維運', '資料庫備份與下載，預設關閉'),
   };
 
   // ---------- 反覆出現的提示 ----------
 
-  static const loadFailed = '載入失敗，請稍後再試';
-  static const updateFailed = '更新失敗，請稍後再試';
-  static const saveFailed = '儲存失敗，請稍後再試';
-  static const networkError = '無法連線，請檢查網路';
-  static const noLevel = '尚未評級';
+  static String get loadFailed => S.loadFailed;
+  static String get updateFailed => S.updateFailed;
+  static String get saveFailed => S.saveFailed;
+  static String get networkError => S.networkError;
+  static String get noLevel => S.noLevel;
+  static String get unknownUser => S.unknownUser;
+  static String get deletedUser => S.deletedUser;
 }

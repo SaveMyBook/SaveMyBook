@@ -45,7 +45,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
 
   /// 前三格是固定欄位（封面／背面／條碼），點哪一格就放哪一格，
   /// 不能用單一 List append，否則點第三格的照片會被塞到第二格去。
-  static const _requiredLabels = AppLabels.photoSlots;
+  List<String> get _requiredLabels => AppLabels.photoSlots;
   final List<XFile?> _slots = List<XFile?>.filled(_requiredLabels.length, null, growable: false);
   final List<XFile> _extra = [];
 
