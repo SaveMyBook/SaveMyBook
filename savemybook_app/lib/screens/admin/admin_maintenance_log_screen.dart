@@ -43,7 +43,7 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '維修紀錄', icon: Icons.history_rounded),
+          AppHeader(title: S.maintenanceLog, icon: Icons.history_rounded),
           Expanded(
             child: SwitchIn(
               child: _isLoading
@@ -54,9 +54,9 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
                       onRefresh: _load,
                       child: SwitchIn(child: _logs.isEmpty
                           ? ListView(key: const ValueKey('empty'), 
-                              children: const [
+                              children: [
                                 SizedBox(height: 80),
-                                EmptyView(icon: Icons.build_outlined, message: '目前沒有維修紀錄'),
+                                EmptyView(icon: Icons.build_outlined, message: S.noMaintenanceRecords),
                               ],
                             )
                           : ListView.builder(key: const ValueKey('items'), 
@@ -94,10 +94,10 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary),
               ),
               const SizedBox(height: 14),
-              _detailRow(S.content, log.detail?.isNotEmpty == true ? log.detail! : '（無額外說明）', c),
-              _detailRow('操作人', log.adminName.isEmpty ? '（未知）' : log.adminName, c),
-              _detailRow('時間', formatDateTime(log.createdAt), c),
-              _detailRow('紀錄編號', '#${log.logId}', c),
+              _detailRow(S.content, log.detail?.isNotEmpty == true ? log.detail! : S.noFurtherDetail, c),
+              _detailRow(S.operator, log.adminName.isEmpty ? S.unknown : log.adminName, c),
+              _detailRow(S.time, formatDateTime(log.createdAt), c),
+              _detailRow(S.recordNumber, '#${log.logId}', c),
             ],
           ),
         ),
@@ -156,7 +156,7 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
                   Text(log.detail!, style: TextStyle(fontSize: 12, color: c.textSecondary)),
                 ],
                 const SizedBox(height: 3),
-                Text('操作人：${log.adminName}', style: TextStyle(fontSize: 11, color: c.textHint)),
+                Text(S.operatorP0(log.adminName), style: TextStyle(fontSize: 11, color: c.textHint)),
               ],
             ),
           ),

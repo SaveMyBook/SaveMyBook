@@ -66,8 +66,8 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
 
     final status = await showOptionSheet<String>(
       context,
-      title: '調整訂單狀態',
-      subtitle: '訂單 ${order.orderNo}',
+      title: S.changeOrderStatus,
+      subtitle: S.orderP0(order.orderNo),
       options: AppLabels.orderStatus.entries
           .map((e) => SheetOption(
                 value: e.key,
@@ -81,9 +81,9 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
 
     final note = await showTextInputDialog(
       context,
-      title: '調整說明',
-      hint: '會一併通知買家（選填）',
-      confirmLabel: '確認調整',
+      title: S.reasonChange,
+      hint: S.sentBuyerAsWellOptional,
+      confirmLabel: S.applyChange,
     );
     if (!mounted) return;
 
@@ -96,7 +96,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '訂單狀態已更新');
+      showAppSnackBar(context, S.orderStatusUpdated);
       _load();
     }
   }
@@ -109,12 +109,12 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '訂單管理', icon: Icons.receipt_long_outlined),
+          AppHeader(title: S.orders, icon: Icons.receipt_long_outlined),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: AppSearchField(
               controller: _searchController,
-              hint: '搜尋訂單編號或買賣家',
+              hint: S.searchOrderNumberBuyerSeller,
               onSubmitted: (_) => _load(),
             ),
           ),
@@ -163,11 +163,11 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                       onRefresh: _load,
                       child: SwitchIn(child: _orders.isEmpty
                           ? ListView(key: const ValueKey('empty'), 
-                              children: const [
+                              children: [
                                 SizedBox(height: 60),
                                 EmptyView(
                                   icon: Icons.receipt_long_outlined,
-                                  message: '找不到符合條件的訂單',
+                                  message: S.noOrdersMatch,
                                 ),
                               ],
                             )
@@ -223,7 +223,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      first == null ? '（無品項）' : first.title,
+                      first == null ? S.noItems : first.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -234,19 +234,19 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                     ),
                     if (order.items.length > 1)
                       Text(
-                        '等 ${order.items.length} 項',
+                        S.p0ItemsTotal(order.items.length),
                         style: TextStyle(fontSize: 11, color: c.textHint),
                       ),
                     const SizedBox(height: 4),
                     Text(
-                      '買家 ${order.buyerName}｜賣家 ${order.sellerName}',
+                      S.buyerP0SellerP12(order.buyerName, order.sellerName),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 12, color: c.textSecondary),
                     ),
                     if (order.cabinetName.isNotEmpty)
                       Text(
-                        '書櫃：${order.cabinetName}',
+                        S.lockerP0(order.cabinetName),
                         style: TextStyle(fontSize: 12, color: c.textSecondary),
                       ),
                   ],
@@ -265,7 +265,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
           if (order.cancelReason != null && order.cancelReason!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              '取消原因：${order.cancelReason}',
+              S.cancellationReasonP0(order.cancelReason),
               style: TextStyle(fontSize: 11, color: c.danger),
             ),
           ],

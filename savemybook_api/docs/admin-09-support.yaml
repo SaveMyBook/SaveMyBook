@@ -177,6 +177,58 @@ paths:
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/admin/faqs/reorder:
+    put:
+      summary: 調整常見問題順序
+      operationId: adminReorderFaqs
+      tags: [後台：客服與條款]
+      description: |
+        依 `order` 陣列的位置重寫 `sort_order`，第一筆為 0、依序遞增。
+        整批寫在同一個交易中，中途失敗不會留下一半新一半舊的順序。
+
+        **限同一分類**：前台依 `category` 分區呈現，排序值只在分區內比較，
+        因此送出的項目必須同屬一個分類；混入其他分類會回傳 400。
+        欲調整分類本身的前後關係，請改用 `PUT /api/admin/faqs/{id}` 修改 `category`。
+
+        需 `can_manage_announcements` 權限。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order]
+              properties:
+                order:
+                  type: array
+                  minItems: 1
+                  description: 該分類全部常見問題的編號，依想要的顯示順序排列。
+                  items: { type: integer }
+                  example: [12, 9, 15, 3]
+      responses:
+        '200':
+          description: 已更新順序。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已更新順序 }
+        '400':
+          description: |
+            `order` 非陣列或為空、含有重複或非整數的編號、
+            含有不存在的問題，或混入了不同分類的問題。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                空陣列: { value: { success: false, message: 請提供排序後的問題順序 } }
+                格式錯誤: { value: { success: false, message: 排序資料格式不正確 } }
+                編號不存在: { value: { success: false, message: 排序資料含有不存在的問題 } }
+                跨分類: { value: { success: false, message: 一次只能排序同一個分類 } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/admin/faqs/{id}:
     parameters:
       - in: path

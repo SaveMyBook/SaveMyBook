@@ -64,12 +64,12 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '錢包管理', icon: Icons.account_balance_wallet_outlined),
+          AppHeader(title: S.wallets, icon: Icons.account_balance_wallet_outlined),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: AppSearchField(
               controller: _searchController,
-              hint: '搜尋暱稱或 Email',
+              hint: S.searchDisplayNameEmail,
               onSubmitted: (_) => _load(),
             ),
           ),
@@ -82,11 +82,11 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                       onRefresh: _load,
                       child: SwitchIn(child: _wallets.isEmpty
                           ? ListView(key: const ValueKey('empty'), 
-                              children: const [
+                              children: [
                                 SizedBox(height: 60),
                                 EmptyView(
                                   icon: Icons.account_balance_wallet_outlined,
-                                  message: '找不到符合條件的會員',
+                                  message: S.noMembersMatch,
                                 ),
                               ],
                             )
@@ -215,19 +215,19 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isAdd ? '增加代幣' : '扣除代幣',
+              isAdd ? S.addCoins : S.deductCoins,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
             ),
             const SizedBox(height: 16),
             AppTextField(
               controller: amountController,
-              hint: '金額（正整數）',
+              hint: S.amountPositiveWholeNumber,
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 12),
             AppTextField(
               controller: reasonController,
-              hint: '調整原因（必填）',
+              hint: S.reasonAdjustmentRequired,
               maxLines: 3,
               maxLength: 200,
             ),
@@ -243,7 +243,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: Text(
-                  isAdd ? '確認增加' : '確認扣除',
+                  isAdd ? S.add2 : S.deduct,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
@@ -259,19 +259,21 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
     final reason = reasonController.text.trim();
 
     if (raw == null || raw <= 0) {
-      showAppSnackBar(context, '請輸入大於 0 的金額', isError: true);
+      showAppSnackBar(context, S.enterAmountGreaterThan0, isError: true);
       return;
     }
     if (reason.isEmpty) {
-      showAppSnackBar(context, '請填寫調整原因', isError: true);
+      showAppSnackBar(context, S.enterReasonAdjustment, isError: true);
       return;
     }
 
+    final who = _detail?.wallet.nickname ?? S.member2;
+    final verb = isAdd ? S.add3 : S.deduct2;
+
     final confirmed = await showConfirmDialog(
       context,
-      title: isAdd ? '確認增加代幣' : '確認扣除代幣',
-      message: '將為 ${_detail?.wallet.nickname ?? '這位會員'} '
-          '${isAdd ? '增加' : '扣除'} ${raw.toStringAsFixed(0)} 代幣。\n原因：$reason',
+      title: isAdd ? S.confirmAddingCoins : S.confirmDeductingCoins,
+      message: S.p1P2CoinsP0NreasonP3(who, verb, raw.toStringAsFixed(0), reason),
       confirmLabel: S.confirm,
       isDestructive: !isAdd,
     );
@@ -290,7 +292,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '已調整餘額');
+      showAppSnackBar(context, S.balanceAdjusted);
       _load();
     }
   }
@@ -304,15 +306,15 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '會員錢包', icon: Icons.account_balance_wallet_outlined),
+          AppHeader(title: S.memberWallets, icon: Icons.account_balance_wallet_outlined),
           Expanded(
             child: SwitchIn(
               child: _isLoading
                   ? const LoadingView.list()
                   : detail == null
-                      ? const EmptyView(
+                      ? EmptyView(
                           icon: Icons.person_off_outlined,
-                          message: '找不到這位會員的資料',
+                          message: S.noDataMember,
                         )
                       : RefreshIndicator(
                           color: c.accent,
@@ -325,7 +327,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
                               _buildActions(c),
                               const SizedBox(height: 24),
                               Text(
-                                '帳務紀錄',
+                                S.transactions3,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -335,7 +337,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
                               const SizedBox(height: 12),
                               if (detail.transactions.isEmpty)
                                 Text(
-                                  '此會員尚無帳務紀錄。',
+                                  S.memberNoTransactionsYet,
                                   style: TextStyle(fontSize: 13, color: c.textHint),
                                 )
                               else
@@ -396,13 +398,13 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
               color: c.accent,
             ),
           ),
-          Text('目前餘額（代幣）', style: TextStyle(fontSize: 12, color: c.textHint)),
+          Text(S.balanceCoins, style: TextStyle(fontSize: 12, color: c.textHint)),
           const SizedBox(height: 18),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               StatTile(
-                label: '凍結中',
+                label: S.hold2,
                 value: Text(
                   wallet.frozenAmount.toStringAsFixed(0),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.warning),
@@ -410,7 +412,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
               ),
               const VerticalDivider1(),
               StatTile(
-                label: '累積收入',
+                label: S.total2,
                 value: Text(
                   wallet.totalIncome.toStringAsFixed(0),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.success),
@@ -418,7 +420,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
               ),
               const VerticalDivider1(),
               StatTile(
-                label: '累積支出',
+                label: S.totalOut,
                 value: Text(
                   wallet.totalExpense.toStringAsFixed(0),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.danger),
@@ -440,7 +442,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
             child: ElevatedButton.icon(
               onPressed: () => _adjust(isAdd: true),
               icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text('增加代幣'),
+              label: Text(S.addCoins),
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.success,
                 foregroundColor: Colors.white,
@@ -456,7 +458,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
             child: ElevatedButton.icon(
               onPressed: () => _adjust(isAdd: false),
               icon: const Icon(Icons.remove_rounded, size: 18),
-              label: const Text('扣除代幣'),
+              label: Text(S.deductCoins),
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.danger,
                 foregroundColor: Colors.white,
@@ -538,7 +540,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
                 ),
               ),
               Text(
-                '餘 ${txn.balanceAfter.toStringAsFixed(0)}',
+                S.balanceP0(txn.balanceAfter.toStringAsFixed(0)),
                 style: TextStyle(fontSize: 10, color: c.textHint),
               ),
             ],

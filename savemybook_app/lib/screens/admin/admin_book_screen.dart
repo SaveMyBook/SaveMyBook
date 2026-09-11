@@ -68,18 +68,18 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
     if (removing) {
       reason = await showTextInputDialog(
         context,
-        title: '強制下架',
-        hint: '下架原因，會通知賣家',
+        title: S.forceDelist,
+        hint: S.reasonDelistingSellerNotified,
         maxLines: 3,
-        confirmLabel: '確認下架',
+        confirmLabel: S.delist3,
       );
       if (reason == null || !mounted) return;
     } else {
       final ok = await showConfirmDialog(
         context,
-        title: '恢復上架',
-        message: '要讓《${book.title}》重新出現在商城嗎？',
-        confirmLabel: '恢復上架',
+        title: S.relist2,
+        message: S.putP0BackStore(book.title),
+        confirmLabel: S.relist2,
       );
       if (!ok || !mounted) return;
     }
@@ -96,7 +96,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, removing ? S.bookRemoved : '已恢復上架');
+      showAppSnackBar(context, removing ? S.bookRemoved : S.relisted);
       _load();
     }
   }
@@ -114,7 +114,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: AppSearchField(
               controller: _searchController,
-              hint: '搜尋書名、ISBN 或賣家',
+              hint: S.searchTitleIsbnSeller,
               onSubmitted: (_) => _load(),
             ),
           ),
@@ -163,11 +163,11 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                       onRefresh: _load,
                       child: SwitchIn(child: _books.isEmpty
                           ? ListView(key: const ValueKey('empty'), 
-                              children: const [
+                              children: [
                                 SizedBox(height: 60),
                                 EmptyView(
                                   icon: Icons.menu_book_outlined,
-                                  message: '找不到符合條件的書籍',
+                                  message: S.noBooksMatch,
                                 ),
                               ],
                             )
@@ -189,6 +189,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
 
   Widget _buildCard(AdminBook book, AppColors c) {
     final removed = book.status == 'removed';
+    final categoryText = book.categoryName.isEmpty ? S.uncategorised : book.categoryName;
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -227,14 +228,14 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '賣家 ${book.sellerName}｜${book.categoryName.isEmpty ? '未分類' : book.categoryName}',
+                      S.sellerP0P1(book.sellerName, categoryText),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 12, color: c.textSecondary),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'ISBN ${book.isbn?.isNotEmpty == true ? book.isbn : S.notProvided}｜瀏覽 ${book.viewCount}',
+                      S.isbnP0P1Views(book.isbn?.isNotEmpty == true ? book.isbn : S.notProvided, book.viewCount),
                       style: TextStyle(fontSize: 11, color: c.textHint),
                     ),
                     const SizedBox(height: 6),
@@ -264,7 +265,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                   Icon(Icons.flag_rounded, size: 14, color: c.danger),
                   const SizedBox(width: 6),
                   Text(
-                    '有 ${book.pendingReportCount} 筆待處理檢舉',
+                    S.p0ReportsAwaitingReview(book.pendingReportCount),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -284,7 +285,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
               ),
               const Spacer(),
               SmallActionButton(
-                label: removed ? '恢復上架' : '強制下架',
+                label: removed ? S.relist2 : S.forceDelist,
                 filled: true,
                 color: removed ? c.success : c.danger,
                 isLoading: _busyBookId == book.bookId,

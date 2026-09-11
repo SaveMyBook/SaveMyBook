@@ -55,13 +55,13 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
 
   Future<void> _toggle(AdminMember member, {bool? isActive, bool? isBlacklisted}) async {
     final action = isBlacklisted != null
-        ? (isBlacklisted ? '加入黑名單' : '移出黑名單')
-        : (isActive == true ? '恢復帳號' : '停權帳號');
+        ? (isBlacklisted ? S.addBlocklist : S.removeFromBlocklist)
+        : (isActive == true ? S.reinstateAccount2 : S.suspendAccount2);
 
     final confirmed = await showConfirmDialog(
       context,
       title: action,
-      message: '確定要對「${member.nickname}」執行「$action」嗎？',
+      message: S.runP1P0(member.nickname, action),
       confirmLabel: action,
       isDestructive: isBlacklisted == true || isActive == false,
     );
@@ -78,7 +78,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
     if (!mounted) return;
 
     if (ok == true) {
-      showAppSnackBar(context, '已更新 ${member.nickname} 的狀態');
+      showAppSnackBar(context, S.updatedP0SStatus(member.nickname));
       _load();
     } else {
       showAppSnackBar(context, AppLabels.updateFailed, isError: true);
@@ -117,7 +117,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                 member.isActive ? Icons.block_rounded : Icons.check_circle_outline_rounded,
                 color: member.isActive ? c.danger : c.success,
               ),
-              title: Text(member.isActive ? '停權此帳號' : '恢復帳號', style: TextStyle(color: c.textPrimary)),
+              title: Text(member.isActive ? S.suspendAccount : S.reinstateAccount2, style: TextStyle(color: c.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 _toggle(member, isActive: !member.isActive);
@@ -129,7 +129,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                 color: member.isBlacklisted ? c.success : c.danger,
               ),
               title: Text(
-                member.isBlacklisted ? '移出黑名單' : '加入黑名單',
+                member.isBlacklisted ? S.removeFromBlocklist : S.addBlocklist,
                 style: TextStyle(color: c.textPrimary),
               ),
               onTap: () {
@@ -139,7 +139,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             ),
             ListTile(
               leading: Icon(Icons.manage_accounts_outlined, color: c.accent),
-              title: Text('完整設定（等級、權限）', style: TextStyle(color: c.textPrimary)),
+              title: Text(S.fullSettingsTierPermissions, style: TextStyle(color: c.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 _openDetail(member);
@@ -160,7 +160,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '會員列表', icon: Icons.people_alt_outlined),
+          AppHeader(title: S.members3, icon: Icons.people_alt_outlined),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
@@ -168,7 +168,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                 Expanded(
                   child: AppSearchField(
                     controller: _searchController,
-                    hint: '搜尋暱稱或 Email',
+                    hint: S.searchDisplayNameEmail,
                     onSubmitted: (_) => _load(),
                   ),
                 ),
@@ -198,9 +198,9 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                     onRefresh: _load,
                     child: SwitchIn(child: _members.isEmpty
                         ? ListView(key: const ValueKey('empty'), 
-                            children: const [
+                            children: [
                               SizedBox(height: 80),
-                              EmptyView(icon: Icons.person_off_outlined, message: '找不到符合條件的會員'),
+                              EmptyView(icon: Icons.person_off_outlined, message: S.noMembersMatch),
                             ],
                           )
                         : ListView.builder(key: const ValueKey('items'), 
@@ -281,10 +281,10 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             runSpacing: 6,
             children: [
               _info(S.phone, member.phone.isEmpty ? '—' : member.phone, c),
-              _info('上架書籍', '${member.bookCount}', c),
+              _info(S.listings2, '${member.bookCount}', c),
               _info(S.purchase, '${member.buyOrderCount}', c),
-              _info('銷售', '${member.sellOrderCount}', c),
-              _info('創建日期', formatDate(member.createdAt), c),
+              _info(S.sales2, '${member.sellOrderCount}', c),
+              _info(S.created, formatDate(member.createdAt), c),
             ],
           ),
         ],

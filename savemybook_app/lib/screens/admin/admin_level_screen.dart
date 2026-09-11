@@ -63,18 +63,18 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                level == null ? '新增等級' : '編輯等級',
+                level == null ? S.newTier : S.editTier,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
               ),
               const SizedBox(height: 16),
-              AppTextField(controller: nameController, hint: '等級名稱', maxLength: 50),
+              AppTextField(controller: nameController, hint: S.tierName, maxLength: 50),
               const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
                     child: AppTextField(
                       controller: minController,
-                      hint: '最低點數',
+                      hint: S.minimumPoints,
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -82,7 +82,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
                   Expanded(
                     child: AppTextField(
                       controller: maxController,
-                      hint: '最高點數（留空 = 無上限）',
+                      hint: S.maximumPointsLeaveEmptyNoCap,
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -91,7 +91,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
               const SizedBox(height: 12),
               AppTextField(
                 controller: benefitsController,
-                hint: '權益，用頓號或換行分隔，會在會員等級頁逐條顯示',
+                hint: S.benefitsSeparatedByCommasLineBreaks,
                 maxLines: 4,
                 maxLength: 500,
               ),
@@ -119,7 +119,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
 
     final name = nameController.text.trim();
     if (name.isEmpty) {
-      showAppSnackBar(context, '請輸入等級名稱', isError: true);
+      showAppSnackBar(context, S.enterTierName, isError: true);
       return;
     }
 
@@ -128,7 +128,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
     final maxPoints = maxText.isEmpty ? null : int.tryParse(maxText);
 
     if (maxPoints != null && maxPoints <= minPoints) {
-      showAppSnackBar(context, '最高點數必須大於最低點數', isError: true);
+      showAppSnackBar(context, S.maximumPointsMustExceedMinimum, isError: true);
       return;
     }
 
@@ -147,7 +147,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, level == null ? '已新增等級' : '已更新等級');
+      showAppSnackBar(context, level == null ? S.tierAdded : S.tierUpdated);
       _load();
     }
   }
@@ -155,8 +155,8 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
   Future<void> _delete(AdminLevel level) async {
     final ok = await showConfirmDialog(
       context,
-      title: '刪除等級',
-      message: '要刪除「${level.name}」嗎？已在這個等級的會員會退到下一個符合的等級。',
+      title: S.deleteTier,
+      message: S.deleteP0MembersTierDropNext(level.name),
       confirmLabel: S.actionDelete,
       isDestructive: true,
     );
@@ -168,7 +168,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '已刪除等級');
+      showAppSnackBar(context, S.tierDeleted);
       _load();
     }
   }
@@ -182,7 +182,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
       body: Column(
         children: [
           AppHeader(
-            title: '會員等級管理',
+            title: S.membershipTiers,
             icon: Icons.workspace_premium_outlined,
             actions: [
               HeaderIconButton(icon: Icons.add_rounded, onTap: () => _edit()),
@@ -197,11 +197,11 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
                       onRefresh: _load,
                       child: SwitchIn(child: _levels.isEmpty
                           ? ListView(key: const ValueKey('empty'), 
-                              children: const [
+                              children: [
                                 SizedBox(height: 60),
                                 EmptyView(
                                   icon: Icons.workspace_premium_outlined,
-                                  message: '尚未設定會員等級',
+                                  message: S.noMembershipTiersSetUp,
                                 ),
                               ],
                             )
@@ -223,8 +223,8 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
 
   Widget _buildCard(AdminLevel level, AppColors c) {
     final range = level.maxPoints == null
-        ? '${level.minPoints} 點以上'
-        : '${level.minPoints} ~ ${level.maxPoints} 點';
+        ? S.p0PointsUp(level.minPoints)
+        : S.p0P1Points(level.minPoints, level.maxPoints);
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -255,7 +255,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            level.benefits.isEmpty ? '尚未填寫權益說明' : level.benefits,
+            level.benefits.isEmpty ? S.noBenefitsDescribedYet : level.benefits,
             style: TextStyle(
               fontSize: 12,
               height: 1.5,

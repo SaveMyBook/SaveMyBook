@@ -147,7 +147,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
 
       String publishDate = bookData['publish_date'] ?? '';
       if (publishDate.isNotEmpty) {
-        publishDate = publishDate.replaceAll(RegExp(r'[年月]'), '-').replaceAll('日', '');
+        publishDate = publishDate.replaceAll(RegExp(r'[年月]'), '-').replaceAll(S.day, '');
         final parts = publishDate.split('-');
         if (parts.isNotEmpty) {
           int y = int.tryParse(parts[0]) ?? DateTime.now().year;

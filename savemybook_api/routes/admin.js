@@ -1490,6 +1490,51 @@ router.post('/faqs', requireAdmin('announcements'), async (req, res) => {
   }
 });
 
+// 必須排在 /faqs/:id 之前，否則 reorder 會被當成 id 吃掉。
+router.put('/faqs/reorder', requireAdmin('announcements'), async (req, res) => {
+  const order = req.body.order;
+
+  if (!Array.isArray(order) || order.length === 0) {
+    return res.status(400).json({ success: false, message: '請提供排序後的問題順序' });
+  }
+
+  const ids = order.map((id) => parseInt(id)).filter(Number.isFinite);
+  if (ids.length !== order.length || new Set(ids).size !== ids.length) {
+    return res.status(400).json({ success: false, message: '排序資料格式不正確' });
+  }
+
+  try {
+    const existing = await prisma.faqs.findMany({
+      where: { faq_id: { in: ids } },
+      select: { faq_id: true, category: true }
+    });
+    if (existing.length !== ids.length) {
+      return res.status(400).json({ success: false, message: '排序資料含有不存在的問題' });
+    }
+
+    // 前台依分類分區顯示，跨分類排序沒有意義，也會讓順序在重讀後跳掉。
+    const categories = new Set(existing.map((f) => f.category));
+    if (categories.size > 1) {
+      return res.status(400).json({ success: false, message: '一次只能排序同一個分類' });
+    }
+
+    await prisma.$transaction(
+      ids.map((id, index) =>
+        prisma.faqs.update({
+          where: { faq_id: id },
+          data: { sort_order: index }
+        })
+      )
+    );
+
+    await logAction(req.user.userId, '調整常見問題順序', 'faq', null, [...categories][0]);
+    res.status(200).json({ success: true, message: '已更新順序' });
+  } catch (err) {
+    console.error('[常見問題排序失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
 router.put('/faqs/:id', requireAdmin('announcements'), async (req, res) => {
   const faqId = parseInt(req.params.id);
   const data = parseFaq(req.body);

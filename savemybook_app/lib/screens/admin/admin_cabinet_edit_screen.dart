@@ -66,39 +66,39 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
     final lng = double.tryParse(_lngController.text.trim());
 
     if (name.isEmpty || address.isEmpty) {
-      showAppSnackBar(context, '請填寫書櫃名稱與地址', isError: true);
+      showAppSnackBar(context, S.enterLockerNameAddress, isError: true);
       return;
     }
     if (lat == null || lng == null) {
-      showAppSnackBar(context, '請填寫正確的經緯度', isError: true);
+      showAppSnackBar(context, S.enterValidLatitudeLongitude, isError: true);
       return;
     }
     if (lat < -90 || lat > 90) {
-      showAppSnackBar(context, '緯度必須介於 -90 ~ 90', isError: true);
+      showAppSnackBar(context, S.latitudeMustBetween9090, isError: true);
       return;
     }
     if (lng < -180 || lng > 180) {
-      showAppSnackBar(context, '經度必須介於 -180 ~ 180', isError: true);
+      showAppSnackBar(context, S.longitudeMustBetween180180, isError: true);
       return;
     }
 
     final slots = int.tryParse(_slotsController.text.trim()) ?? 20;
     if (!_isEdit && (slots < 1 || slots > 100)) {
-      showAppSnackBar(context, '櫃位數量必須介於 1 ~ 100', isError: true);
+      showAppSnackBar(context, S.slotCountMustBetween1100, isError: true);
       return;
     }
 
     final openTime = _openController.text.trim();
     final closeTime = _closeController.text.trim();
     final timePattern = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$');
-    for (final entry in [(openTime, S.openingHours), (closeTime, '關閉時間')]) {
+    for (final entry in [(openTime, S.openingHours), (closeTime, S.closingTime)]) {
       if (entry.$1.isNotEmpty && !timePattern.hasMatch(entry.$1)) {
-        showAppSnackBar(context, '${entry.$2}格式應為 HH:mm，例：09:00', isError: true);
+        showAppSnackBar(context, S.p0MustLookLikeHhMm(entry.$2), isError: true);
         return;
       }
     }
     if (openTime.isNotEmpty != closeTime.isNotEmpty) {
-      showAppSnackBar(context, '開放與關閉時間請一起填寫', isError: true);
+      showAppSnackBar(context, S.fillBothOpeningClosingTimes, isError: true);
       return;
     }
 
@@ -119,7 +119,7 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, _isEdit ? '書櫃已更新' : '書櫃已新增');
+      showAppSnackBar(context, _isEdit ? S.lockerUpdated : S.lockerAdded);
       Navigator.of(context).maybePop();
     }
   }
@@ -132,21 +132,21 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          AppHeader(title: _isEdit ? '修改書櫃' : '新增書櫃', icon: Icons.storage_rounded),
+          AppHeader(title: _isEdit ? S.editLocker : S.newLocker, icon: Icons.storage_rounded),
           Expanded(
             child: SingleChildScrollView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  _field('書櫃名稱', _nameController, c),
+                  _field(S.lockerName, _nameController, c),
                   _field(S.address, _addressController, c, maxLines: 2),
-                  _field('緯度', _latController, c, keyboardType: TextInputType.number),
-                  _field('經度', _lngController, c, keyboardType: TextInputType.number),
+                  _field(S.latitude, _latController, c, keyboardType: TextInputType.number),
+                  _field(S.longitude, _lngController, c, keyboardType: TextInputType.number),
                   if (!_isEdit)
-                    _field('櫃位數量', _slotsController, c, keyboardType: TextInputType.number),
+                    _field(S.slotCount, _slotsController, c, keyboardType: TextInputType.number),
                   _field(S.openingHours, _openController, c, hint: '09:00'),
-                  _field('關閉時間', _closeController, c, hint: '21:00'),
+                  _field(S.closingTime, _closeController, c, hint: '21:00'),
                   const SizedBox(height: 28),
                   SizedBox(
                     width: double.infinity,
@@ -165,7 +165,7 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : Text(_isEdit ? S.saveChanges : '建立書櫃',
+                          : Text(_isEdit ? S.saveChanges : S.createLocker,
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),

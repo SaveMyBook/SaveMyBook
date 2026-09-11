@@ -9,6 +9,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import '../../i18n/strings.dart';
 
 class AdminDeletionScreen extends StatefulWidget {
   const AdminDeletionScreen({super.key});
@@ -41,26 +42,25 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
   Future<void> _cancel(PendingDeletion item) async {
     final confirmed = await showConfirmDialog(
       context,
-      title: '取消刪除申請',
-      message: '${item.nickname} 的帳號會恢復正常，刪除倒數停止。',
-      confirmLabel: '取消刪除',
+      title: S.cancelDeletionRequest,
+      message: S.p0SAccountReturnsNormalCountdown(item.nickname),
+      confirmLabel: S.cancelDeletion,
       icon: Icons.undo_rounded,
     );
     if (!confirmed || !mounted) return;
 
     final error = await runBusy(context, () => _api.cancelMemberDeletion(item.userId));
     if (!mounted) return;
-    showAppSnackBar(context, error ?? '已取消該會員的刪除申請', isError: error != null);
+    showAppSnackBar(context, error ?? S.deletionRequestCancelled, isError: error != null);
     await _load();
   }
 
   Future<void> _purge(PendingDeletion item) async {
     final confirmed = await showConfirmDialog(
       context,
-      title: '立即執行匿名化',
-      message: '不等緩衝期結束，立刻清除 ${item.nickname} 的個人資料並停用帳號。\n\n'
-          '訂單與交易紀錄會保留，但暱稱會變成「已刪除的使用者」。此操作無法復原。',
-      confirmLabel: '立即執行',
+      title: S.anonymiseNow,
+      message: S.eraseP0SPersonalDataDisable(item.nickname),
+      confirmLabel: S.doNow,
       isDestructive: true,
       icon: Icons.delete_forever_rounded,
     );
@@ -68,7 +68,7 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
 
     final error = await runBusy(context, () => _api.purgeMember(item.userId));
     if (!mounted) return;
-    showAppSnackBar(context, error ?? '已完成匿名化', isError: error != null);
+    showAppSnackBar(context, error ?? S.anonymised, isError: error != null);
     await _load();
   }
 
@@ -80,7 +80,7 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '待刪除帳號', icon: Icons.person_remove_outlined),
+          AppHeader(title: S.pendingDeletions, icon: Icons.person_remove_outlined),
           Expanded(
             child: SwitchIn(
               child: _isLoading
@@ -92,11 +92,11 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
                         child: _pending.isEmpty
                             ? ListView(
                                 key: const ValueKey('empty'),
-                                children: const [
+                                children: [
                                   SizedBox(height: 80),
                                   EmptyView(
                                     icon: Icons.verified_user_outlined,
-                                    message: '目前沒有待處理的刪除申請',
+                                    message: S.noDeletionRequestsPending,
                                   ),
                                 ],
                               )
@@ -160,7 +160,7 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
                 ),
               ),
               StatusBadge(
-                label: days == 0 ? '即將執行' : '剩 $days 天',
+                label: days == 0 ? S.dueSoon : S.p0DaysLeft(days),
                 color: urgent ? c.danger : c.warning,
               ),
             ],
@@ -172,8 +172,7 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  '申請於 ${formatDateTime(item.requestedAt)}，'
-                  '預計 ${formatDateTime(item.purgeAt)} 執行',
+                  S.requestedP0ScheduledP1(formatDateTime(item.requestedAt), formatDateTime(item.purgeAt)),
                   style: TextStyle(fontSize: 11, color: c.textHint),
                 ),
               ),
@@ -192,7 +191,7 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
                       borderRadius: BorderRadius.circular(AppRadius.control),
                     ),
                   ),
-                  child: const Text('取消刪除'),
+                  child: Text(S.cancelDeletion),
                 ),
               ),
               const SizedBox(width: 10),
@@ -207,7 +206,7 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
                       borderRadius: BorderRadius.circular(AppRadius.control),
                     ),
                   ),
-                  child: const Text('立即執行'),
+                  child: Text(S.doNow),
                 ),
               ),
             ],

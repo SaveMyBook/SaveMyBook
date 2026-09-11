@@ -17,6 +17,7 @@ class LocaleProvider extends ValueNotifier<Locale?> {
   ];
 
   /// 各語言用自己的文字標示，使用者看不懂目前語言時才找得到自己的。
+  /// 正因如此這裡刻意不翻譯——翻了就違背這份清單存在的目的。
   static const nativeNames = <String, String>{
     'zh_Hant': '繁體中文',
     'en': 'English',

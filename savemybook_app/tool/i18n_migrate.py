@@ -11,7 +11,7 @@ import re, os, glob, json, sys, importlib.util, collections
 
 ARB_DIR = 'lib/i18n'
 LOCALES = ['zh', 'zh_Hant', 'en', 'ja', 'ko', 'zh_Hans']
-SKIP = ('lib/i18n/', 'lib/utils/app_labels.dart')
+SKIP = ('lib/i18n/',)
 
 STOP = {'the','a','an','to','of','is','are','and','or','for','in','on','at','your','you','this','that','it','be','will','has','have'}
 
@@ -87,6 +87,73 @@ def enclosing_const(src, pos):
     return None
 
 
+def bracket_stack(src, pos):
+    """由內而外列出 pos 所在的未關閉括號 [(字元, 位置), ...]。"""
+    stack, depth, i = [], 0, pos
+    while i > 0:
+        ch = src[i]
+        if ch in ')]}':
+            depth += 1
+        elif ch in '([{':
+            if depth == 0:
+                stack.append((ch, i))
+            else:
+                depth -= 1
+        i -= 1
+    return stack
+
+
+def statement_head(src, pos):
+    """往回取到本句開頭（上一個 ; { } 之後）。"""
+    start = max(src.rfind(c, 0, pos) for c in ';{}')
+    return src[start + 1:pos]
+
+
+# const 宣告不必緊貼字串——'static const _x = [(a: 1, label: '中文')]' 的
+# 字串離 = 還隔了好幾層，所以整句都要找。
+CONST_DECL = re.compile(r'(?:^|[\s;{}])(?:static\s+)?const\s+[\w<>,\[\]() ]*\w+\s*=')
+
+
+def skip_reason(raw, masked, start, end):
+    """回傳不該搬動這條字串的理由，可以搬則回 None。
+
+    這四種位置都要求編譯期常數（或會把前綴吃掉），搬進去一定編不過，
+    上一輪就是踩在這裡：預設參數值、switch case、const 宣告、raw string。
+    """
+    if start > 0 and raw[start - 1] == 'r':
+        return 'raw string'
+
+    # 相鄰字串常值會自動併接（'前半' '後半'）。拆開來各自換成 S.x 之後
+    # 中間少了運算子，語法直接壞掉——上一輪的 cart_screen 就是這樣炸的。
+    if re.search(r"'\s*$", masked[:start]) or re.match(r"\s*'", masked[end:]):
+        return '相鄰字串併接'
+
+    # 插值裡若含引號（如 ${a.join('、')}），正則會在那個引號處收尾，
+    # 切出半截字串。大括號數量對不上就是被切斷了。
+    text = raw[start + 1:end - 1]
+    if text.count('${') != text.count('}'):
+        return '插值被切斷'
+
+    head = statement_head(masked, start)
+    if re.search(r'\bcase\s*$', head):
+        return 'switch case'
+
+    stack = bracket_stack(masked, start)
+
+    # const 宣告可能隔著好幾層括號（static const x = <String, String>{ 'k': '中文' }）。
+    # statement_head 會停在最近的 { ，所以每一層括號的開頭都要回頭看一次。
+    for pos in [start] + [b for _, b in stack]:
+        if CONST_DECL.search(statement_head(masked, pos)):
+            return 'const 宣告'
+
+    if stack and stack[0][0] == '{' and re.search(r'=\s*$', head):
+        # 具名參數的 { 前面緊接著 (；方法主體的 { 前面是 )
+        before = masked[:stack[0][1]].rstrip()
+        if before.endswith('('):
+            return '預設參數值'
+    return None
+
+
 INTERP = re.compile(r'\$\{([^}]*)\}|\$(\w+)')
 
 
@@ -114,13 +181,17 @@ def main():
     used = set(arb['zh'].keys())
 
     # 蒐集所有出現處
-    rows = []
+    rows, skipped = [], []
     for f in sorted(glob.glob('lib/**/*.dart', recursive=True)):
         if any(f.startswith(s) or f == s for s in SKIP):
             continue
         raw = open(f, encoding='utf-8').read()
         src = mask(raw)
         for m in re.finditer(r"'((?:[^'\\\n]|\\.)*[一-鿿](?:[^'\\\n]|\\.)*)'", src):
+            reason = skip_reason(raw, src, m.start(), m.end())
+            if reason:
+                skipped.append((f, raw.count('\n', 0, m.start()) + 1, m.group(1), reason))
+                continue
             rows.append({'file': f, 'start': m.start(), 'end': m.end(), 'text': m.group(1)})
 
     texts = list(collections.OrderedDict((r['text'], None) for r in rows))
@@ -132,6 +203,19 @@ def main():
             key_of[t] = key_from_en(table[t][0], used)
         else:
             missing.append(t)
+
+    if skipped:
+        print(f'跳過 {len(skipped)} 處（需要編譯期常數或會吃掉前綴，得手動處理）：')
+        for f, line, text, reason in skipped:
+            print(f'   [{reason}] {f}:{line}  {text[:40]}')
+        print()
+
+    if '--report' in sys.argv:
+        print(f'可搬動 {len(rows)} 處／{len(texts)} 條不重複')
+        print(f'其中沒有譯文的有 {len(missing)} 條：')
+        for t in missing:
+            print('   ', t)
+        return 0
 
     if '--strict' in sys.argv and missing:
         print(f'還有 {len(missing)} 條沒有翻譯，前 10 條：')

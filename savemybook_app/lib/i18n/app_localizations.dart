@@ -110,7 +110,6 @@ abstract class AppLocalizations {
   String get actionSubmit;
   String get actionClose;
   String get actionBack;
-  String get actionRetry;
   String get actionSelect;
   String get actionAll;
   String get actionSearch;
@@ -539,7 +538,6 @@ abstract class AppLocalizations {
   String get bookDetailsFilledAutomatically;
   String get bookDetailsFilledFromBackupSource;
   String get noSourceIsbnPleaseEnterDetails;
-  String get yearMonth;
   String get day;
   String get tapIconRightScan;
   String get description;
@@ -629,9 +627,6 @@ abstract class AppLocalizations {
   String get fingerprint;
   String get iris;
   String get verifyIdentityContinue;
-  String get msg;
-  String get msg2;
-  String get msg3;
   String get couldNotOpenPhotosCheckPermission;
   String get choosePhotoSource;
   String get takePhoto;
@@ -654,6 +649,381 @@ abstract class AppLocalizations {
   String get couldNotLoadPhoto;
   String slot2(Object p0);
   String confirmPutLocker(Object p0);
+  String get enterTitleContent;
+  String get titleCannotExceed255Characters;
+  String get contentNeedsLeast5Characters;
+  String get publishAnnouncement;
+  String get everyUserSeeAnnouncementOncePublished;
+  String get publish;
+  String get announcementPublished;
+  String get draftSaved;
+  String get editAnnouncement;
+  String get newAnnouncement;
+  String get title2;
+  String get announcementTitle;
+  String get writeAnnouncement;
+  String get publishNow;
+  String get leaveOffSaveAsDraft;
+  String get saveDraft;
+  String get deleteAnnouncement;
+  String deleteP0CannotUndone(Object p0);
+  String get announcementDeleted;
+  String get couldNotDeleteTryAgainLater;
+  String get announcements;
+  String get noAnnouncementsYetTapAddOne;
+  String get published;
+  String get draft;
+  String get audienceEveryone;
+  String get backUpNow;
+  String get wholeDatabaseExportedCompressedWithLot;
+  String get startBackup;
+  String get backingUpDatabase;
+  String get backupComplete;
+  String get backupDeleted;
+  String get databaseBackups;
+  String backedUpDailyNewestP0Kept(Object p0);
+  String get olderBackupsBeyondCountRemovedAutomatically;
+  String get noBackupsYetSchedulerRunsOnce;
+  String get deleteBackup;
+  String p0NNtheFileItsRecord(Object p0);
+  String get manual;
+  String get scheduled;
+  String get download;
+  String get downloadBackup;
+  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1);
+  String get copyLink2;
+  String get downloadLinkCopied;
+  String get forceDelist;
+  String get reasonDelistingSellerNotified;
+  String get delist3;
+  String get relist2;
+  String putP0BackStore(Object p0);
+  String get relisted;
+  String get searchTitleIsbnSeller;
+  String get noBooksMatch;
+  String sellerP0P1(Object p0, Object p1);
+  String isbnP0P1Views(Object p0, Object p1);
+  String p0ReportsAwaitingReview(Object p0);
+  String get enterLockerNameAddress;
+  String get enterValidLatitudeLongitude;
+  String get latitudeMustBetween9090;
+  String get longitudeMustBetween180180;
+  String get slotCountMustBetween1100;
+  String get closingTime;
+  String p0MustLookLikeHhMm(Object p0);
+  String get fillBothOpeningClosingTimes;
+  String get lockerUpdated;
+  String get lockerAdded;
+  String get editLocker;
+  String get newLocker;
+  String get lockerName;
+  String get latitude;
+  String get longitude;
+  String get slotCount;
+  String get createLocker;
+  String get disable;
+  String p0Locker(Object p0);
+  String onceDisabledP0NoLongerAppears(Object p0);
+  String onceEnabledP0AvailableSellersAgain(Object p0);
+  String get lockerDisabled;
+  String get lockerEnabled;
+  String slotP0(Object p0);
+  String get slotStatusUpdated;
+  String get lockerMonitor;
+  String get searchLockerNameAddress;
+  String get noLockersMatch;
+  String get disabled;
+  String freeSlotsP0P1(Object p0, Object p1);
+  String get newCategory;
+  String get editCategory;
+  String get categoryName;
+  String get enterCategoryName;
+  String get categoryAdded;
+  String get categoryUpdated;
+  String get deleteCategory;
+  String deleteP0CannotUndone2(Object p0);
+  String get categoryDeleted;
+  String get categories;
+  String get noCategoriesYet;
+  String p0BooksUse(Object p0);
+  String get legalDocuments;
+  String get notCreatedYet;
+  String updatedP0(Object p0);
+  String p0Characters(Object p0);
+  String p0SectionsP1Characters(Object p0, Object p1);
+  String get deleteSection;
+  String get contentsSectionRemovedWith;
+  String p0ItsContentsRemoved(Object p0);
+  String get discardChanges;
+  String get documentUnsavedChangesTheyLostIf;
+  String get discard;
+  String get keepEditing;
+  String get bothTitleContentRequired;
+  String sectionP0NoTitleYet(Object p0);
+  String updateP0(Object p0);
+  String get documentBindingEveryUserSubmittingReplaces;
+  String get yesUpdate;
+  String get notifyEveryUser;
+  String everyActiveMemberReceivesP0Updated(Object p0);
+  String get updateNotify;
+  String get updateOnly;
+  String get sections;
+  String get plainText;
+  String get preview;
+  String get documentTitle;
+  String get preamble;
+  String get unnumberedOpeningTextLeaveEmptyIf;
+  String get articles;
+  String get numberedAutomatically;
+  String get noArticlesYetAddFirstOne;
+  String get addSection;
+  String get untitledSection;
+  String get sectionTitle;
+  String get bodySectionSingleLineBreaksKept;
+  String get emptyLineStartsParagraphParagraphWhose;
+  String get howUsersSee;
+  String get noContentYet;
+  String get unsaved;
+  String get upDate;
+  String get newQuestion;
+  String get editQuestion;
+  String get question;
+  String get answer;
+  String get showHelpCentre;
+  String get bothQuestionAnswerRequired;
+  String get added;
+  String get updated;
+  String get deleteQuestion;
+  String deleteP0(Object p0);
+  String get deleted;
+  String get faq;
+  String get noQuestionsYet2;
+  String get dragHandleRightReorder;
+  String get hidden;
+  String get cancelDeletionRequest;
+  String p0SAccountReturnsNormalCountdown(Object p0);
+  String get cancelDeletion;
+  String get deletionRequestCancelled;
+  String get anonymiseNow;
+  String eraseP0SPersonalDataDisable(Object p0);
+  String get doNow;
+  String get anonymised;
+  String get pendingDeletions;
+  String get noDeletionRequestsPending;
+  String get dueSoon;
+  String p0DaysLeft(Object p0);
+  String requestedP0ScheduledP1(Object p0, Object p1);
+  String get disputeResolution;
+  String orderP0P1(Object p0, Object p1);
+  String reasonP0(Object p0);
+  String get decisionNoteOptional;
+  String get submitDecision;
+  String get decisionRecorded;
+  String get resolveDispute;
+  String get noDisputesKind;
+  String orderNumberP0(Object p0);
+  String buyerP0SellerP1(Object p0, Object p1);
+  String filedByP0(Object p0);
+  String get handle;
+  String get transactions2;
+  String get orders;
+  String get lookUpOrdersAdjustStatusBy;
+  String get disputeListDecisions;
+  String get listings;
+  String get allBooksForceDelisting;
+  String get moderation;
+  String get handleListingReports;
+  String get addReorderDeleteBookCategories;
+  String get members;
+  String get memberControls;
+  String get memberListSuspensionBlocklist;
+  String get membershipTiers;
+  String get tierThresholdsBenefits;
+  String get wallets;
+  String get checkBalancesAddDeductCoinsBy;
+  String get hardwareOperations;
+  String get lockerSlotStatus;
+  String get maintenanceLog;
+  String get lockerOperationHistory;
+  String get reports;
+  String get ordersRevenueMemberGrowth;
+  String get announcements2;
+  String get supportEnquiries;
+  String get replyQuestionsFromUsers;
+  String get faqShownHelpCentre;
+  String get termsPrivacyPolicyAbout;
+  String get adminAuditLog;
+  String get auditTrailAdminChanges;
+  String get systemOperations;
+  String get dailyBackupsManualRunsDownloads;
+  String get deletionRequestsInsideGracePeriodCancel;
+  String get members2;
+  String get todaySOrders;
+  String get openCases;
+  String get activeLockers;
+  String get newTier;
+  String get editTier;
+  String get tierName;
+  String get minimumPoints;
+  String get maximumPointsLeaveEmptyNoCap;
+  String get benefitsSeparatedByCommasLineBreaks;
+  String get enterTierName;
+  String get maximumPointsMustExceedMinimum;
+  String get tierAdded;
+  String get tierUpdated;
+  String get deleteTier;
+  String deleteP0MembersTierDropNext(Object p0);
+  String get tierDeleted;
+  String get noMembershipTiersSetUp;
+  String p0PointsUp(Object p0);
+  String p0P1Points(Object p0, Object p1);
+  String get noBenefitsDescribedYet;
+  String get noMaintenanceRecords;
+  String get noFurtherDetail;
+  String get operator;
+  String get unknown;
+  String get time;
+  String get recordNumber;
+  String operatorP0(Object p0);
+  String get suspendAccount;
+  String get reinstateAccount;
+  String get addBlocklist;
+  String get removeFromBlocklist;
+  String p0SignedOutImmediatelyCanNo(Object p0);
+  String p0AbleSignAgain(Object p0);
+  String get accountStatusUpdated;
+  String get removeAdmin;
+  String get makeAdmin;
+  String p0LosesEveryAdminPermissionImmediately(Object p0);
+  String p0GainsAccessAdminAreaWith(Object p0);
+  String get roleUpdated;
+  String manualP0P1(Object p0, Object p1);
+  String get adjustMembershipTier;
+  String currentlyP0PointsAutomaticP1P2(Object p0, Object p1, Object p2);
+  String p0P1Points2(Object p0, Object p1);
+  String get adjustPointsManually;
+  String get backAutomatic;
+  String get backAutomatic2;
+  String get pointAdjustment;
+  String get positiveAddsNegativeDeductsEG;
+  String get apply;
+  String get enterNonZeroWholeNumber;
+  String get pointsAdjusted;
+  String get tierAdjusted;
+  String get permissionGranted;
+  String get permissionRevoked;
+  String get grantAllPermissions;
+  String get revokeAllPermissions;
+  String p0AbleUseEveryAdminFeature(Object p0);
+  String p0ReachAdminAreaButUnable(Object p0);
+  String get allPermissionsGranted;
+  String get allPermissionsRevoked;
+  String get memberSettings;
+  String get noDataMember;
+  String get listings2;
+  String get completedTrades;
+  String get joined;
+  String get accountStatus;
+  String get ownAccountStatusPermissionsCannotChanged;
+  String get accountEnabled;
+  String get canSignUseAppNormally;
+  String get suspendedSignedOutImmediatelyAfterSigning;
+  String get blocked;
+  String get blockedNoFeaturesAvailable;
+  String get notBlocked;
+  String get role;
+  String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2);
+  String get memberSTierBeenAdjustedBy;
+  String get adjustTier;
+  String get adminPermissions;
+  String get all;
+  String get allOff;
+  String get reinstateAccount2;
+  String get suspendAccount2;
+  String runP1P0(Object p0, Object p1);
+  String updatedP0SStatus(Object p0);
+  String get fullSettingsTierPermissions;
+  String get members3;
+  String get searchDisplayNameEmail;
+  String get noMembersMatch;
+  String get sales2;
+  String get created;
+  String get noActivityYet;
+  String get changeOrderStatus;
+  String orderP0(Object p0);
+  String get reasonChange;
+  String get sentBuyerAsWellOptional;
+  String get applyChange;
+  String get orderStatusUpdated;
+  String get searchOrderNumberBuyerSeller;
+  String get noOrdersMatch;
+  String get noItems;
+  String p0ItemsTotal(Object p0);
+  String buyerP0SellerP12(Object p0, Object p1);
+  String lockerP0(Object p0);
+  String cancellationReasonP0(Object p0);
+  String get reviewReport;
+  String reportedP0P1(Object p0, Object p1);
+  String reasonP02(Object p0);
+  String get handlingNoteOptional;
+  String get delistListingAsWell;
+  String get dismissReport;
+  String get reportHandled;
+  String get noReportsKind;
+  String reportedByP0(Object p0);
+  String get review;
+  String noteP0(Object p0);
+  String get last7Days;
+  String get last30Days;
+  String get ordersPerDay;
+  String get revenuePerDay;
+  String get newMembersPerDay;
+  String get newOrders;
+  String get newMembers;
+  String get newListings;
+  String get completedRevenue;
+  String p0Orders(Object p0);
+  String peakP0(Object p0);
+  String get topCategoriesByListings;
+  String get replied;
+  String get noEnquiriesCategory;
+  String get addCoins;
+  String get deductCoins;
+  String get amountPositiveWholeNumber;
+  String get reasonAdjustmentRequired;
+  String get add2;
+  String get deduct;
+  String get enterAmountGreaterThan0;
+  String get enterReasonAdjustment;
+  String get member2;
+  String get add3;
+  String get deduct2;
+  String get confirmAddingCoins;
+  String get confirmDeductingCoins;
+  String p1P2CoinsP0NreasonP3(Object p0, Object p1, Object p2, Object p3);
+  String get balanceAdjusted;
+  String get memberWallets;
+  String get transactions3;
+  String get memberNoTransactionsYet;
+  String get balanceCoins;
+  String get hold2;
+  String get total2;
+  String get totalOut;
+  String balanceP0(Object p0);
+  String get suspensionBlocklistRoles;
+  String get tierThresholdsManualAdjustments;
+  String get booksCategories;
+  String get reportReview;
+  String get handleListingReports2;
+  String get lookUpChangeOrderStatus;
+  String get decideDisputeCases;
+  String get checkAdjustCoinBalances;
+  String get hardware;
+  String get lockersSlots;
+  String get announcementsDocuments;
+  String get announcementsFaqLegalDocuments;
+  String get replyUserQuestions;
+  String get databaseBackupDownloadOffByDefault;
 }
 
 class _LEn extends AppLocalizations {
@@ -919,9 +1289,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get actionBack => 'Back';
-
-  @override
-  String get actionRetry => 'Retry';
 
   @override
   String get actionSelect => 'Select';
@@ -2208,9 +2575,6 @@ class _LEn extends AppLocalizations {
   String get noSourceIsbnPleaseEnterDetails => 'No source has this ISBN. Please enter the details manually.';
 
   @override
-  String get yearMonth => '[Year/Month]';
-
-  @override
   String get day => 'Day';
 
   @override
@@ -2478,15 +2842,6 @@ class _LEn extends AppLocalizations {
   String get verifyIdentityContinue => 'Verify your identity to continue';
 
   @override
-  String get msg => '繁體中文';
-
-  @override
-  String get msg2 => '日本語';
-
-  @override
-  String get msg3 => '简体中文';
-
-  @override
   String get couldNotOpenPhotosCheckPermission => 'Could not open your photos. Check the permission.';
 
   @override
@@ -2551,6 +2906,1131 @@ class _LEn extends AppLocalizations {
 
   @override
   String confirmPutLocker(Object p0) => 'Confirm you have put “${p0}” in the locker?';
+
+  @override
+  String get enterTitleContent => 'Enter a title and content';
+
+  @override
+  String get titleCannotExceed255Characters => 'Title cannot exceed 255 characters';
+
+  @override
+  String get contentNeedsLeast5Characters => 'Content needs at least 5 characters';
+
+  @override
+  String get publishAnnouncement => 'Publish announcement';
+
+  @override
+  String get everyUserSeeAnnouncementOncePublished => 'Every user will see this announcement once published. Continue?';
+
+  @override
+  String get publish => 'Publish';
+
+  @override
+  String get announcementPublished => 'Announcement published';
+
+  @override
+  String get draftSaved => 'Draft saved';
+
+  @override
+  String get editAnnouncement => 'Edit announcement';
+
+  @override
+  String get newAnnouncement => 'New announcement';
+
+  @override
+  String get title2 => 'Title';
+
+  @override
+  String get announcementTitle => 'Announcement title';
+
+  @override
+  String get writeAnnouncement => 'Write the announcement';
+
+  @override
+  String get publishNow => 'Publish now';
+
+  @override
+  String get leaveOffSaveAsDraft => 'Leave off to save as a draft';
+
+  @override
+  String get saveDraft => 'Save draft';
+
+  @override
+  String get deleteAnnouncement => 'Delete announcement';
+
+  @override
+  String deleteP0CannotUndone(Object p0) => 'Delete "${p0}"? This cannot be undone.';
+
+  @override
+  String get announcementDeleted => 'Announcement deleted';
+
+  @override
+  String get couldNotDeleteTryAgainLater => 'Could not delete. Try again later.';
+
+  @override
+  String get announcements => 'Announcements';
+
+  @override
+  String get noAnnouncementsYetTapAddOne => 'No announcements yet. Tap + to add one.';
+
+  @override
+  String get published => 'Published';
+
+  @override
+  String get draft => 'Draft';
+
+  @override
+  String get audienceEveryone => 'Audience: everyone';
+
+  @override
+  String get backUpNow => 'Back up now';
+
+  @override
+  String get wholeDatabaseExportedCompressedWithLot => 'The whole database is exported and compressed. With a lot of data this can take tens of seconds; stay on this screen until it finishes.';
+
+  @override
+  String get startBackup => 'Start backup';
+
+  @override
+  String get backingUpDatabase => 'Backing up the database';
+
+  @override
+  String get backupComplete => 'Backup complete';
+
+  @override
+  String get backupDeleted => 'Backup deleted';
+
+  @override
+  String get databaseBackups => 'Database backups';
+
+  @override
+  String backedUpDailyNewestP0Kept(Object p0) => 'Backed up daily, newest ${p0} kept';
+
+  @override
+  String get olderBackupsBeyondCountRemovedAutomatically => 'Older backups beyond that count are removed automatically. A backup contains personal data for the whole site, so keep downloads secure. Every download is written to the audit log.';
+
+  @override
+  String get noBackupsYetSchedulerRunsOnce => 'No backups yet. The scheduler runs once a day, or use the button above to create one now.';
+
+  @override
+  String get deleteBackup => 'Delete backup';
+
+  @override
+  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\nThe file and its record are both removed. This cannot be undone.';
+
+  @override
+  String get manual => 'Manual';
+
+  @override
+  String get scheduled => 'Scheduled';
+
+  @override
+  String get download => 'Download';
+
+  @override
+  String get downloadBackup => 'Download backup';
+
+  @override
+  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => 'Fetch the backup on a computer, with your authorisation header:\n\n${p0}\n\nFile size ${p1}.';
+
+  @override
+  String get copyLink2 => 'Copy link';
+
+  @override
+  String get downloadLinkCopied => 'Download link copied';
+
+  @override
+  String get forceDelist => 'Force delist';
+
+  @override
+  String get reasonDelistingSellerNotified => 'Reason for delisting; the seller is notified';
+
+  @override
+  String get delist3 => 'Delist';
+
+  @override
+  String get relist2 => 'Relist';
+
+  @override
+  String putP0BackStore(Object p0) => 'Put "${p0}" back in the store?';
+
+  @override
+  String get relisted => 'Relisted';
+
+  @override
+  String get searchTitleIsbnSeller => 'Search title, ISBN or seller';
+
+  @override
+  String get noBooksMatch => 'No books match';
+
+  @override
+  String sellerP0P1(Object p0, Object p1) => 'Seller ${p0} | ${p1}';
+
+  @override
+  String isbnP0P1Views(Object p0, Object p1) => 'ISBN ${p0} | ${p1} views';
+
+  @override
+  String p0ReportsAwaitingReview(Object p0) => '${p0} reports awaiting review';
+
+  @override
+  String get enterLockerNameAddress => 'Enter a locker name and address';
+
+  @override
+  String get enterValidLatitudeLongitude => 'Enter a valid latitude and longitude';
+
+  @override
+  String get latitudeMustBetween9090 => 'Latitude must be between -90 and 90';
+
+  @override
+  String get longitudeMustBetween180180 => 'Longitude must be between -180 and 180';
+
+  @override
+  String get slotCountMustBetween1100 => 'Slot count must be between 1 and 100';
+
+  @override
+  String get closingTime => 'Closing time';
+
+  @override
+  String p0MustLookLikeHhMm(Object p0) => '${p0} must look like HH:mm, e.g. 09:00';
+
+  @override
+  String get fillBothOpeningClosingTimes => 'Fill in both opening and closing times';
+
+  @override
+  String get lockerUpdated => 'Locker updated';
+
+  @override
+  String get lockerAdded => 'Locker added';
+
+  @override
+  String get editLocker => 'Edit locker';
+
+  @override
+  String get newLocker => 'New locker';
+
+  @override
+  String get lockerName => 'Locker name';
+
+  @override
+  String get latitude => 'Latitude';
+
+  @override
+  String get longitude => 'Longitude';
+
+  @override
+  String get slotCount => 'Slot count';
+
+  @override
+  String get createLocker => 'Create locker';
+
+  @override
+  String get disable => 'Disable';
+
+  @override
+  String p0Locker(Object p0) => '${p0} locker';
+
+  @override
+  String onceDisabledP0NoLongerAppears(Object p0) => 'Once disabled, "${p0}" no longer appears in the seller drop-off list.';
+
+  @override
+  String onceEnabledP0AvailableSellersAgain(Object p0) => 'Once enabled, "${p0}" is available to sellers again.';
+
+  @override
+  String get lockerDisabled => 'Locker disabled';
+
+  @override
+  String get lockerEnabled => 'Locker enabled';
+
+  @override
+  String slotP0(Object p0) => 'Slot ${p0}';
+
+  @override
+  String get slotStatusUpdated => 'Slot status updated';
+
+  @override
+  String get lockerMonitor => 'Locker monitor';
+
+  @override
+  String get searchLockerNameAddress => 'Search locker name or address';
+
+  @override
+  String get noLockersMatch => 'No lockers match';
+
+  @override
+  String get disabled => 'Disabled';
+
+  @override
+  String freeSlotsP0P1(Object p0, Object p1) => 'Free slots: ${p0} / ${p1}';
+
+  @override
+  String get newCategory => 'New category';
+
+  @override
+  String get editCategory => 'Edit category';
+
+  @override
+  String get categoryName => 'Category name';
+
+  @override
+  String get enterCategoryName => 'Enter a category name';
+
+  @override
+  String get categoryAdded => 'Category added';
+
+  @override
+  String get categoryUpdated => 'Category updated';
+
+  @override
+  String get deleteCategory => 'Delete category';
+
+  @override
+  String deleteP0CannotUndone2(Object p0) => 'Delete "${p0}"? This cannot be undone.';
+
+  @override
+  String get categoryDeleted => 'Category deleted';
+
+  @override
+  String get categories => 'Categories';
+
+  @override
+  String get noCategoriesYet => 'No categories yet';
+
+  @override
+  String p0BooksUse(Object p0) => '${p0} books in use';
+
+  @override
+  String get legalDocuments => 'Legal documents';
+
+  @override
+  String get notCreatedYet => 'Not created yet';
+
+  @override
+  String updatedP0(Object p0) => 'Updated ${p0}';
+
+  @override
+  String p0Characters(Object p0) => '${p0} characters';
+
+  @override
+  String p0SectionsP1Characters(Object p0, Object p1) => '${p0} sections | ${p1} characters';
+
+  @override
+  String get deleteSection => 'Delete section';
+
+  @override
+  String get contentsSectionRemovedWith => 'The contents of this section are removed with it.';
+
+  @override
+  String p0ItsContentsRemoved(Object p0) => '"${p0}" and its contents are removed.';
+
+  @override
+  String get discardChanges => 'Discard changes?';
+
+  @override
+  String get documentUnsavedChangesTheyLostIf => 'This document has unsaved changes. They are lost if you leave.';
+
+  @override
+  String get discard => 'Discard';
+
+  @override
+  String get keepEditing => 'Keep editing';
+
+  @override
+  String get bothTitleContentRequired => 'Both title and content are required';
+
+  @override
+  String sectionP0NoTitleYet(Object p0) => 'Section ${p0} has no title yet';
+
+  @override
+  String updateP0(Object p0) => 'Update ${p0}?';
+
+  @override
+  String get documentBindingEveryUserSubmittingReplaces => 'This document is binding on every user. Submitting replaces the current version immediately.';
+
+  @override
+  String get yesUpdate => 'Yes, update it';
+
+  @override
+  String get notifyEveryUser => 'Notify every user?';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => 'Every active member receives a "${p0} updated" notification.';
+
+  @override
+  String get updateNotify => 'Update and notify';
+
+  @override
+  String get updateOnly => 'Update only';
+
+  @override
+  String get sections => 'Sections';
+
+  @override
+  String get plainText => 'Plain text';
+
+  @override
+  String get preview => 'Preview';
+
+  @override
+  String get documentTitle => 'Document title';
+
+  @override
+  String get preamble => 'Preamble';
+
+  @override
+  String get unnumberedOpeningTextLeaveEmptyIf => 'Unnumbered opening text. Leave empty if there is none.';
+
+  @override
+  String get articles => 'Articles';
+
+  @override
+  String get numberedAutomatically => 'Numbered automatically';
+
+  @override
+  String get noArticlesYetAddFirstOne => 'No articles yet. Add the first one below.';
+
+  @override
+  String get addSection => 'Add section';
+
+  @override
+  String get untitledSection => 'Untitled section';
+
+  @override
+  String get sectionTitle => 'Section title';
+
+  @override
+  String get bodySectionSingleLineBreaksKept => 'The body of this section. Single line breaks are kept as-is; an empty line starts a new paragraph.';
+
+  @override
+  String get emptyLineStartsParagraphParagraphWhose => 'An empty line starts a paragraph. A paragraph whose first line reads "1. Title" becomes a section when you switch back.';
+
+  @override
+  String get howUsersSee => 'How users see it';
+
+  @override
+  String get noContentYet => 'No content yet';
+
+  @override
+  String get unsaved => 'Unsaved';
+
+  @override
+  String get upDate => 'Up to date';
+
+  @override
+  String get newQuestion => 'New question';
+
+  @override
+  String get editQuestion => 'Edit question';
+
+  @override
+  String get question => 'Question';
+
+  @override
+  String get answer => 'Answer';
+
+  @override
+  String get showHelpCentre => 'Show in the help centre';
+
+  @override
+  String get bothQuestionAnswerRequired => 'Both question and answer are required';
+
+  @override
+  String get added => 'Added';
+
+  @override
+  String get updated => 'Updated';
+
+  @override
+  String get deleteQuestion => 'Delete question';
+
+  @override
+  String deleteP0(Object p0) => 'Delete "${p0}"?';
+
+  @override
+  String get deleted => 'Deleted';
+
+  @override
+  String get faq => 'FAQ';
+
+  @override
+  String get noQuestionsYet2 => 'No questions yet';
+
+  @override
+  String get dragHandleRightReorder => 'Drag the handle on the right to reorder';
+
+  @override
+  String get hidden => 'Hidden';
+
+  @override
+  String get cancelDeletionRequest => 'Cancel deletion request';
+
+  @override
+  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0}\'s account returns to normal and the countdown stops.';
+
+  @override
+  String get cancelDeletion => 'Cancel deletion';
+
+  @override
+  String get deletionRequestCancelled => 'Deletion request cancelled';
+
+  @override
+  String get anonymiseNow => 'Anonymise now';
+
+  @override
+  String eraseP0SPersonalDataDisable(Object p0) => 'Erase ${p0}\'s personal data and disable the account now, without waiting for the grace period.\n\nOrders and transaction records are kept, but the display name becomes \\"Deleted user\\". This cannot be undone.';
+
+  @override
+  String get doNow => 'Do it now';
+
+  @override
+  String get anonymised => 'Anonymised';
+
+  @override
+  String get pendingDeletions => 'Pending deletions';
+
+  @override
+  String get noDeletionRequestsPending => 'No deletion requests pending';
+
+  @override
+  String get dueSoon => 'Due soon';
+
+  @override
+  String p0DaysLeft(Object p0) => '${p0} days left';
+
+  @override
+  String requestedP0ScheduledP1(Object p0, Object p1) => 'Requested ${p0}, scheduled for ${p1}';
+
+  @override
+  String get disputeResolution => 'Dispute resolution';
+
+  @override
+  String orderP0P1(Object p0, Object p1) => 'Order ${p0} | \\\$${p1}';
+
+  @override
+  String reasonP0(Object p0) => 'Reason: ${p0}';
+
+  @override
+  String get decisionNoteOptional => 'Decision note (optional)';
+
+  @override
+  String get submitDecision => 'Submit decision';
+
+  @override
+  String get decisionRecorded => 'Decision recorded';
+
+  @override
+  String get resolveDispute => 'Resolve dispute';
+
+  @override
+  String get noDisputesKind => 'No disputes of this kind';
+
+  @override
+  String orderNumberP0(Object p0) => 'Order number: ${p0}';
+
+  @override
+  String buyerP0SellerP1(Object p0, Object p1) => 'Buyer: ${p0} | Seller: ${p1}';
+
+  @override
+  String filedByP0(Object p0) => 'Filed by: ${p0}';
+
+  @override
+  String get handle => 'Handle';
+
+  @override
+  String get transactions2 => 'Transactions';
+
+  @override
+  String get orders => 'Orders';
+
+  @override
+  String get lookUpOrdersAdjustStatusBy => 'Look up orders and adjust status by hand';
+
+  @override
+  String get disputeListDecisions => 'Dispute list and decisions';
+
+  @override
+  String get listings => 'Listings';
+
+  @override
+  String get allBooksForceDelisting => 'All books, force delisting';
+
+  @override
+  String get moderation => 'Moderation';
+
+  @override
+  String get handleListingReports => 'Handle listing reports';
+
+  @override
+  String get addReorderDeleteBookCategories => 'Add, reorder and delete book categories';
+
+  @override
+  String get members => 'Members';
+
+  @override
+  String get memberControls => 'Member controls';
+
+  @override
+  String get memberListSuspensionBlocklist => 'Member list, suspension and blocklist';
+
+  @override
+  String get membershipTiers => 'Membership tiers';
+
+  @override
+  String get tierThresholdsBenefits => 'Tier thresholds and benefits';
+
+  @override
+  String get wallets => 'Wallets';
+
+  @override
+  String get checkBalancesAddDeductCoinsBy => 'Check balances, add or deduct coins by hand';
+
+  @override
+  String get hardwareOperations => 'Hardware and operations';
+
+  @override
+  String get lockerSlotStatus => 'Locker and slot status';
+
+  @override
+  String get maintenanceLog => 'Maintenance log';
+
+  @override
+  String get lockerOperationHistory => 'Locker operation history';
+
+  @override
+  String get reports => 'Reports';
+
+  @override
+  String get ordersRevenueMemberGrowth => 'Orders, revenue and member growth';
+
+  @override
+  String get announcements2 => 'Announcements';
+
+  @override
+  String get supportEnquiries => 'Support enquiries';
+
+  @override
+  String get replyQuestionsFromUsers => 'Reply to questions from users';
+
+  @override
+  String get faqShownHelpCentre => 'FAQ shown in the help centre';
+
+  @override
+  String get termsPrivacyPolicyAbout => 'Terms, privacy policy and about';
+
+  @override
+  String get adminAuditLog => 'Admin audit log';
+
+  @override
+  String get auditTrailAdminChanges => 'Audit trail of admin changes';
+
+  @override
+  String get systemOperations => 'System operations';
+
+  @override
+  String get dailyBackupsManualRunsDownloads => 'Daily backups, manual runs and downloads';
+
+  @override
+  String get deletionRequestsInsideGracePeriodCancel => 'Deletion requests inside the grace period; cancel or run them now';
+
+  @override
+  String get members2 => 'Members';
+
+  @override
+  String get todaySOrders => 'Today\'s orders';
+
+  @override
+  String get openCases => 'Open cases';
+
+  @override
+  String get activeLockers => 'Active lockers';
+
+  @override
+  String get newTier => 'New tier';
+
+  @override
+  String get editTier => 'Edit tier';
+
+  @override
+  String get tierName => 'Tier name';
+
+  @override
+  String get minimumPoints => 'Minimum points';
+
+  @override
+  String get maximumPointsLeaveEmptyNoCap => 'Maximum points (leave empty for no cap)';
+
+  @override
+  String get benefitsSeparatedByCommasLineBreaks => 'Benefits, separated by commas or line breaks; each is listed on the membership page';
+
+  @override
+  String get enterTierName => 'Enter a tier name';
+
+  @override
+  String get maximumPointsMustExceedMinimum => 'Maximum points must exceed the minimum';
+
+  @override
+  String get tierAdded => 'Tier added';
+
+  @override
+  String get tierUpdated => 'Tier updated';
+
+  @override
+  String get deleteTier => 'Delete tier';
+
+  @override
+  String deleteP0MembersTierDropNext(Object p0) => 'Delete "${p0}"? Members on this tier drop to the next tier they qualify for.';
+
+  @override
+  String get tierDeleted => 'Tier deleted';
+
+  @override
+  String get noMembershipTiersSetUp => 'No membership tiers set up';
+
+  @override
+  String p0PointsUp(Object p0) => '${p0} points and up';
+
+  @override
+  String p0P1Points(Object p0, Object p1) => '${p0} - ${p1} points';
+
+  @override
+  String get noBenefitsDescribedYet => 'No benefits described yet';
+
+  @override
+  String get noMaintenanceRecords => 'No maintenance records';
+
+  @override
+  String get noFurtherDetail => '(no further detail)';
+
+  @override
+  String get operator => 'Operator';
+
+  @override
+  String get unknown => '(unknown)';
+
+  @override
+  String get time => 'Time';
+
+  @override
+  String get recordNumber => 'Record number';
+
+  @override
+  String operatorP0(Object p0) => 'Operator: ${p0}';
+
+  @override
+  String get suspendAccount => 'Suspend this account';
+
+  @override
+  String get reinstateAccount => 'Reinstate this account';
+
+  @override
+  String get addBlocklist => 'Add to blocklist';
+
+  @override
+  String get removeFromBlocklist => 'Remove from blocklist';
+
+  @override
+  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0} is signed out immediately and can no longer use any part of the app.';
+
+  @override
+  String p0AbleSignAgain(Object p0) => '${p0} will be able to sign in again.';
+
+  @override
+  String get accountStatusUpdated => 'Account status updated';
+
+  @override
+  String get removeAdmin => 'Remove admin';
+
+  @override
+  String get makeAdmin => 'Make admin';
+
+  @override
+  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} loses every admin permission immediately.';
+
+  @override
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} gains access to the admin area with all permissions by default; you can adjust them one by one afterwards.';
+
+  @override
+  String get roleUpdated => 'Role updated';
+
+  @override
+  String manualP0P1(Object p0, Object p1) => ', manual ${p0}${p1}';
+
+  @override
+  String get adjustMembershipTier => 'Adjust membership tier';
+
+  @override
+  String currentlyP0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => 'Currently ${p0} points (automatic ${p1}${p2})';
+
+  @override
+  String p0P1Points2(Object p0, Object p1) => '${p0} (${p1} points)';
+
+  @override
+  String get adjustPointsManually => 'Adjust points manually';
+
+  @override
+  String get backAutomatic => 'Back to automatic';
+
+  @override
+  String get backAutomatic2 => 'Back on automatic';
+
+  @override
+  String get pointAdjustment => 'Point adjustment';
+
+  @override
+  String get positiveAddsNegativeDeductsEG => 'Positive adds, negative deducts, e.g. -50';
+
+  @override
+  String get apply => 'Apply';
+
+  @override
+  String get enterNonZeroWholeNumber => 'Enter a non-zero whole number';
+
+  @override
+  String get pointsAdjusted => 'Points adjusted';
+
+  @override
+  String get tierAdjusted => 'Tier adjusted';
+
+  @override
+  String get permissionGranted => 'Permission granted';
+
+  @override
+  String get permissionRevoked => 'Permission revoked';
+
+  @override
+  String get grantAllPermissions => 'Grant all permissions';
+
+  @override
+  String get revokeAllPermissions => 'Revoke all permissions';
+
+  @override
+  String p0AbleUseEveryAdminFeature(Object p0) => '${p0} will be able to use every admin feature.';
+
+  @override
+  String p0ReachAdminAreaButUnable(Object p0) => '${p0} will reach the admin area but be unable to use anything in it.';
+
+  @override
+  String get allPermissionsGranted => 'All permissions granted';
+
+  @override
+  String get allPermissionsRevoked => 'All permissions revoked';
+
+  @override
+  String get memberSettings => 'Member settings';
+
+  @override
+  String get noDataMember => 'No data for this member';
+
+  @override
+  String get listings2 => 'Listings';
+
+  @override
+  String get completedTrades => 'Completed trades';
+
+  @override
+  String get joined => 'Joined';
+
+  @override
+  String get accountStatus => 'Account status';
+
+  @override
+  String get ownAccountStatusPermissionsCannotChanged => 'This is your own account; status and permissions cannot be changed here.';
+
+  @override
+  String get accountEnabled => 'Account enabled';
+
+  @override
+  String get canSignUseAppNormally => 'Can sign in and use the app normally';
+
+  @override
+  String get suspendedSignedOutImmediatelyAfterSigning => 'Suspended; signed out immediately after signing in';
+
+  @override
+  String get blocked => 'Blocked';
+
+  @override
+  String get blockedNoFeaturesAvailable => 'Blocked; no features are available';
+
+  @override
+  String get notBlocked => 'Not blocked';
+
+  @override
+  String get role => 'Role';
+
+  @override
+  String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} points (automatic ${p1}${p2})';
+
+  @override
+  String get memberSTierBeenAdjustedBy => 'This member\'s tier has been adjusted by hand and no longer follows trades alone.';
+
+  @override
+  String get adjustTier => 'Adjust tier';
+
+  @override
+  String get adminPermissions => 'Admin permissions';
+
+  @override
+  String get all => 'All on';
+
+  @override
+  String get allOff => 'All off';
+
+  @override
+  String get reinstateAccount2 => 'Reinstate account';
+
+  @override
+  String get suspendAccount2 => 'Suspend account';
+
+  @override
+  String runP1P0(Object p0, Object p1) => 'Run "${p0}" on "${p1}"?';
+
+  @override
+  String updatedP0SStatus(Object p0) => 'Updated ${p0}\'s status';
+
+  @override
+  String get fullSettingsTierPermissions => 'Full settings (tier, permissions)';
+
+  @override
+  String get members3 => 'Members';
+
+  @override
+  String get searchDisplayNameEmail => 'Search display name or email';
+
+  @override
+  String get noMembersMatch => 'No members match';
+
+  @override
+  String get sales2 => 'Sales';
+
+  @override
+  String get created => 'Created';
+
+  @override
+  String get noActivityYet => 'No activity yet';
+
+  @override
+  String get changeOrderStatus => 'Change order status';
+
+  @override
+  String orderP0(Object p0) => 'Order ${p0}';
+
+  @override
+  String get reasonChange => 'Reason for the change';
+
+  @override
+  String get sentBuyerAsWellOptional => 'Sent to the buyer as well (optional)';
+
+  @override
+  String get applyChange => 'Apply change';
+
+  @override
+  String get orderStatusUpdated => 'Order status updated';
+
+  @override
+  String get searchOrderNumberBuyerSeller => 'Search order number, buyer or seller';
+
+  @override
+  String get noOrdersMatch => 'No orders match';
+
+  @override
+  String get noItems => '(no items)';
+
+  @override
+  String p0ItemsTotal(Object p0) => 'and ${p0} items in total';
+
+  @override
+  String buyerP0SellerP12(Object p0, Object p1) => 'Buyer ${p0} | Seller ${p1}';
+
+  @override
+  String lockerP0(Object p0) => 'Locker: ${p0}';
+
+  @override
+  String cancellationReasonP0(Object p0) => 'Cancellation reason: ${p0}';
+
+  @override
+  String get reviewReport => 'Review report';
+
+  @override
+  String reportedP0P1(Object p0, Object p1) => 'Reported ${p0}: ${p1}';
+
+  @override
+  String reasonP02(Object p0) => 'Reason: ${p0}';
+
+  @override
+  String get handlingNoteOptional => 'Handling note (optional)';
+
+  @override
+  String get delistListingAsWell => 'Delist the listing as well';
+
+  @override
+  String get dismissReport => 'Dismiss report';
+
+  @override
+  String get reportHandled => 'Report handled';
+
+  @override
+  String get noReportsKind => 'No reports of this kind';
+
+  @override
+  String reportedByP0(Object p0) => 'Reported by: ${p0}';
+
+  @override
+  String get review => 'Review';
+
+  @override
+  String noteP0(Object p0) => 'Note: ${p0}';
+
+  @override
+  String get last7Days => 'Last 7 days';
+
+  @override
+  String get last30Days => 'Last 30 days';
+
+  @override
+  String get ordersPerDay => 'Orders per day';
+
+  @override
+  String get revenuePerDay => 'Revenue per day';
+
+  @override
+  String get newMembersPerDay => 'New members per day';
+
+  @override
+  String get newOrders => 'New orders';
+
+  @override
+  String get newMembers => 'New members';
+
+  @override
+  String get newListings => 'New listings';
+
+  @override
+  String get completedRevenue => 'Completed revenue';
+
+  @override
+  String p0Orders(Object p0) => '${p0} orders';
+
+  @override
+  String peakP0(Object p0) => 'Peak ${p0}';
+
+  @override
+  String get topCategoriesByListings => 'Top categories by listings';
+
+  @override
+  String get replied => 'Replied';
+
+  @override
+  String get noEnquiriesCategory => 'No enquiries in this category';
+
+  @override
+  String get addCoins => 'Add coins';
+
+  @override
+  String get deductCoins => 'Deduct coins';
+
+  @override
+  String get amountPositiveWholeNumber => 'Amount (positive whole number)';
+
+  @override
+  String get reasonAdjustmentRequired => 'Reason for the adjustment (required)';
+
+  @override
+  String get add2 => 'Add';
+
+  @override
+  String get deduct => 'Deduct';
+
+  @override
+  String get enterAmountGreaterThan0 => 'Enter an amount greater than 0';
+
+  @override
+  String get enterReasonAdjustment => 'Enter a reason for the adjustment';
+
+  @override
+  String get member2 => 'this member';
+
+  @override
+  String get add3 => 'add';
+
+  @override
+  String get deduct2 => 'deduct';
+
+  @override
+  String get confirmAddingCoins => 'Confirm adding coins';
+
+  @override
+  String get confirmDeductingCoins => 'Confirm deducting coins';
+
+  @override
+  String p1P2CoinsP0NreasonP3(Object p0, Object p1, Object p2, Object p3) => 'This will ${p0} ${p1} coins for ${p2}.\nReason: ${p3}';
+
+  @override
+  String get balanceAdjusted => 'Balance adjusted';
+
+  @override
+  String get memberWallets => 'Member wallets';
+
+  @override
+  String get transactions3 => 'Transactions';
+
+  @override
+  String get memberNoTransactionsYet => 'This member has no transactions yet.';
+
+  @override
+  String get balanceCoins => 'Balance (coins)';
+
+  @override
+  String get hold2 => 'On hold';
+
+  @override
+  String get total2 => 'Total in';
+
+  @override
+  String get totalOut => 'Total out';
+
+  @override
+  String balanceP0(Object p0) => 'Balance ${p0}';
+
+  @override
+  String get suspensionBlocklistRoles => 'Suspension, blocklist, roles';
+
+  @override
+  String get tierThresholdsManualAdjustments => 'Tier thresholds and manual adjustments';
+
+  @override
+  String get booksCategories => 'Books and categories';
+
+  @override
+  String get reportReview => 'Report review';
+
+  @override
+  String get handleListingReports2 => 'Handle listing reports';
+
+  @override
+  String get lookUpChangeOrderStatus => 'Look up and change order status';
+
+  @override
+  String get decideDisputeCases => 'Decide dispute cases';
+
+  @override
+  String get checkAdjustCoinBalances => 'Check and adjust coin balances';
+
+  @override
+  String get hardware => 'Hardware';
+
+  @override
+  String get lockersSlots => 'Lockers and slots';
+
+  @override
+  String get announcementsDocuments => 'Announcements and documents';
+
+  @override
+  String get announcementsFaqLegalDocuments => 'Announcements, FAQ, legal documents';
+
+  @override
+  String get replyUserQuestions => 'Reply to user questions';
+
+  @override
+  String get databaseBackupDownloadOffByDefault => 'Database backup and download; off by default';
 
 }
 
@@ -2817,9 +4297,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get actionBack => '戻る';
-
-  @override
-  String get actionRetry => '再試行';
 
   @override
   String get actionSelect => '選択してください';
@@ -4106,9 +5583,6 @@ class _LJa extends AppLocalizations {
   String get noSourceIsbnPleaseEnterDetails => 'どのデータベースにもこの ISBN が見つかりません。手動で入力してください。';
 
   @override
-  String get yearMonth => '[年月]';
-
-  @override
   String get day => '日';
 
   @override
@@ -4376,15 +5850,6 @@ class _LJa extends AppLocalizations {
   String get verifyIdentityContinue => '続けるには認証してください';
 
   @override
-  String get msg => '繁體中文';
-
-  @override
-  String get msg2 => '日本語';
-
-  @override
-  String get msg3 => '简体中文';
-
-  @override
   String get couldNotOpenPhotosCheckPermission => '写真を開けませんでした。アクセス許可をご確認ください。';
 
   @override
@@ -4449,6 +5914,1131 @@ class _LJa extends AppLocalizations {
 
   @override
   String confirmPutLocker(Object p0) => '「${p0}」をロッカーに預け入れましたか？';
+
+  @override
+  String get enterTitleContent => 'タイトルと本文を入力してください';
+
+  @override
+  String get titleCannotExceed255Characters => 'タイトルは255文字までです';
+
+  @override
+  String get contentNeedsLeast5Characters => '本文は5文字以上必要です';
+
+  @override
+  String get publishAnnouncement => 'お知らせを公開';
+
+  @override
+  String get everyUserSeeAnnouncementOncePublished => '公開すると全ユーザーに表示されます。よろしいですか？';
+
+  @override
+  String get publish => '公開';
+
+  @override
+  String get announcementPublished => 'お知らせを公開しました';
+
+  @override
+  String get draftSaved => '下書きを保存しました';
+
+  @override
+  String get editAnnouncement => 'お知らせを編集';
+
+  @override
+  String get newAnnouncement => 'お知らせを作成';
+
+  @override
+  String get title2 => 'タイトル';
+
+  @override
+  String get announcementTitle => 'お知らせのタイトル';
+
+  @override
+  String get writeAnnouncement => 'お知らせの本文を入力';
+
+  @override
+  String get publishNow => 'すぐに公開';
+
+  @override
+  String get leaveOffSaveAsDraft => 'オフのままなら下書きとして保存';
+
+  @override
+  String get saveDraft => '下書きを保存';
+
+  @override
+  String get deleteAnnouncement => 'お知らせを削除';
+
+  @override
+  String deleteP0CannotUndone(Object p0) => '「${p0}」を削除しますか？元に戻せません。';
+
+  @override
+  String get announcementDeleted => 'お知らせを削除しました';
+
+  @override
+  String get couldNotDeleteTryAgainLater => '削除できませんでした。後でもう一度お試しください。';
+
+  @override
+  String get announcements => 'お知らせ';
+
+  @override
+  String get noAnnouncementsYetTapAddOne => 'お知らせはまだありません。右上の＋から追加できます。';
+
+  @override
+  String get published => '公開中';
+
+  @override
+  String get draft => '下書き';
+
+  @override
+  String get audienceEveryone => '対象：全ユーザー';
+
+  @override
+  String get backUpNow => '今すぐバックアップ';
+
+  @override
+  String get wholeDatabaseExportedCompressedWithLot => 'データベース全体を書き出して圧縮します。データ量が多いと数十秒かかることがあります。完了するまでこの画面を離れないでください。';
+
+  @override
+  String get startBackup => 'バックアップを開始';
+
+  @override
+  String get backingUpDatabase => 'データベースをバックアップ中';
+
+  @override
+  String get backupComplete => 'バックアップが完了しました';
+
+  @override
+  String get backupDeleted => 'バックアップを削除しました';
+
+  @override
+  String get databaseBackups => 'データベースのバックアップ';
+
+  @override
+  String backedUpDailyNewestP0Kept(Object p0) => '毎日自動バックアップ、最新${p0}';
+
+  @override
+  String get olderBackupsBeyondCountRemovedAutomatically => '保持件数を超えた古いバックアップは自動的に削除されます。バックアップにはサイト全体の個人情報が含まれるため、ダウンロードしたファイルは厳重に管理してください。ダウンロードはすべて操作ログに記録されます。';
+
+  @override
+  String get noBackupsYetSchedulerRunsOnce => 'バックアップはまだありません。スケジュールが1日1回実行されます。上のボタンですぐに作成することもできます。';
+
+  @override
+  String get deleteBackup => 'バックアップを削除';
+
+  @override
+  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\nファイルと記録の両方が削除されます。元に戻せません。';
+
+  @override
+  String get manual => '手動';
+
+  @override
+  String get scheduled => 'スケジュール';
+
+  @override
+  String get download => 'ダウンロード';
+
+  @override
+  String get downloadBackup => 'バックアップをダウンロード';
+
+  @override
+  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => 'バックアップはパソコンで、認証ヘッダーを付けて取得してください：\n\n${p0}\n\nファイルサイズ ${p1}。';
+
+  @override
+  String get copyLink2 => 'URLをコピー';
+
+  @override
+  String get downloadLinkCopied => 'ダウンロードURLをコピーしました';
+
+  @override
+  String get forceDelist => '強制的に出品停止';
+
+  @override
+  String get reasonDelistingSellerNotified => '出品停止の理由（出品者に通知されます）';
+
+  @override
+  String get delist3 => '出品停止する';
+
+  @override
+  String get relist2 => '再出品';
+
+  @override
+  String putP0BackStore(Object p0) => '『${p0}』をストアに戻しますか？';
+
+  @override
+  String get relisted => '再出品しました';
+
+  @override
+  String get searchTitleIsbnSeller => 'タイトル・ISBN・出品者で検索';
+
+  @override
+  String get noBooksMatch => '該当する本が見つかりません';
+
+  @override
+  String sellerP0P1(Object p0, Object p1) => '出品者 ${p0}｜${p1}';
+
+  @override
+  String isbnP0P1Views(Object p0, Object p1) => 'ISBN ${p0}｜閲覧 ${p1}';
+
+  @override
+  String p0ReportsAwaitingReview(Object p0) => '未処理の報告が${p0}';
+
+  @override
+  String get enterLockerNameAddress => 'ロッカー名と住所を入力してください';
+
+  @override
+  String get enterValidLatitudeLongitude => '正しい緯度・経度を入力してください';
+
+  @override
+  String get latitudeMustBetween9090 => '緯度は -90〜90 の範囲です';
+
+  @override
+  String get longitudeMustBetween180180 => '経度は -180〜180 の範囲です';
+
+  @override
+  String get slotCountMustBetween1100 => '棚の数は 1〜100 の範囲です';
+
+  @override
+  String get closingTime => '閉鎖時刻';
+
+  @override
+  String p0MustLookLikeHhMm(Object p0) => '${p0} HH:mm 形式で入力してください（例：09:00）';
+
+  @override
+  String get fillBothOpeningClosingTimes => '開放時刻と閉鎖時刻は両方入力してください';
+
+  @override
+  String get lockerUpdated => 'ロッカーを更新しました';
+
+  @override
+  String get lockerAdded => 'ロッカーを追加しました';
+
+  @override
+  String get editLocker => 'ロッカーを編集';
+
+  @override
+  String get newLocker => 'ロッカーを追加';
+
+  @override
+  String get lockerName => 'ロッカー名';
+
+  @override
+  String get latitude => '緯度';
+
+  @override
+  String get longitude => '経度';
+
+  @override
+  String get slotCount => '棚の数';
+
+  @override
+  String get createLocker => 'ロッカーを作成';
+
+  @override
+  String get disable => '無効化';
+
+  @override
+  String p0Locker(Object p0) => 'ロッカーを${p0}';
+
+  @override
+  String onceDisabledP0NoLongerAppears(Object p0) => '無効にすると「${p0}」は出品者の預け入れ先一覧に表示されなくなります。';
+
+  @override
+  String onceEnabledP0AvailableSellersAgain(Object p0) => '有効にすると「${p0}」を出品者が再び選べるようになります。';
+
+  @override
+  String get lockerDisabled => 'ロッカーを無効にしました';
+
+  @override
+  String get lockerEnabled => 'ロッカーを有効にしました';
+
+  @override
+  String slotP0(Object p0) => '棚 ${p0}';
+
+  @override
+  String get slotStatusUpdated => '棚の状態を更新しました';
+
+  @override
+  String get lockerMonitor => 'ロッカー監視';
+
+  @override
+  String get searchLockerNameAddress => 'ロッカー名・住所で検索';
+
+  @override
+  String get noLockersMatch => '該当するロッカーがありません';
+
+  @override
+  String get disabled => '無効';
+
+  @override
+  String freeSlotsP0P1(Object p0, Object p1) => '空き：${p0} / ${p1}';
+
+  @override
+  String get newCategory => 'カテゴリーを追加';
+
+  @override
+  String get editCategory => 'カテゴリーを編集';
+
+  @override
+  String get categoryName => 'カテゴリー名';
+
+  @override
+  String get enterCategoryName => 'カテゴリー名を入力してください';
+
+  @override
+  String get categoryAdded => 'カテゴリーを追加しました';
+
+  @override
+  String get categoryUpdated => 'カテゴリーを更新しました';
+
+  @override
+  String get deleteCategory => 'カテゴリーを削除';
+
+  @override
+  String deleteP0CannotUndone2(Object p0) => '「${p0}」を削除しますか？元に戻せません。';
+
+  @override
+  String get categoryDeleted => 'カテゴリーを削除しました';
+
+  @override
+  String get categories => 'カテゴリー管理';
+
+  @override
+  String get noCategoriesYet => 'カテゴリーがありません';
+
+  @override
+  String p0BooksUse(Object p0) => '${p0}';
+
+  @override
+  String get legalDocuments => '規約・ポリシー';
+
+  @override
+  String get notCreatedYet => '未作成';
+
+  @override
+  String updatedP0(Object p0) => '最終更新 ${p0}';
+
+  @override
+  String p0Characters(Object p0) => '${p0}';
+
+  @override
+  String p0SectionsP1Characters(Object p0, Object p1) => '${p0}・${p1}';
+
+  @override
+  String get deleteSection => '章を削除';
+
+  @override
+  String get contentsSectionRemovedWith => 'この章の内容も一緒に削除されます。';
+
+  @override
+  String p0ItsContentsRemoved(Object p0) => '「${p0}」とその内容が削除されます。';
+
+  @override
+  String get discardChanges => '変更を破棄しますか？';
+
+  @override
+  String get documentUnsavedChangesTheyLostIf => 'この文書には未保存の変更があります。離れると失われます。';
+
+  @override
+  String get discard => '破棄';
+
+  @override
+  String get keepEditing => '編集を続ける';
+
+  @override
+  String get bothTitleContentRequired => 'タイトルと本文の両方が必要です';
+
+  @override
+  String sectionP0NoTitleYet(Object p0) => '第${p0}';
+
+  @override
+  String updateP0(Object p0) => '${p0}？';
+
+  @override
+  String get documentBindingEveryUserSubmittingReplaces => 'この文書は全ユーザーに効力を持ちます。送信すると現在の版が直ちに置き換わります。';
+
+  @override
+  String get yesUpdate => '更新する';
+
+  @override
+  String get notifyEveryUser => '全ユーザーに通知しますか？';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => '有効な会員全員に「${p0}」という通知が届きます。';
+
+  @override
+  String get updateNotify => '更新して通知';
+
+  @override
+  String get updateOnly => '更新のみ';
+
+  @override
+  String get sections => '章立て';
+
+  @override
+  String get plainText => 'プレーンテキスト';
+
+  @override
+  String get preview => 'プレビュー';
+
+  @override
+  String get documentTitle => '文書のタイトル';
+
+  @override
+  String get preamble => '前文';
+
+  @override
+  String get unnumberedOpeningTextLeaveEmptyIf => '番号を付けない冒頭の説明文です。なければ空のままで構いません。';
+
+  @override
+  String get articles => '条文';
+
+  @override
+  String get numberedAutomatically => '番号は自動で付きます';
+
+  @override
+  String get noArticlesYetAddFirstOne => '条文がまだありません。下のボタンで最初の章を追加してください。';
+
+  @override
+  String get addSection => '章を追加';
+
+  @override
+  String get untitledSection => '無題の章';
+
+  @override
+  String get sectionTitle => '章のタイトル';
+
+  @override
+  String get bodySectionSingleLineBreaksKept => 'この章の本文です。単一の改行はそのまま表示され、空行で段落が変わります。';
+
+  @override
+  String get emptyLineStartsParagraphParagraphWhose => '空行で段落を分けます。1行目が「1. タイトル」の段落は、章立てモードに戻したときに1つの章として認識されます。';
+
+  @override
+  String get howUsersSee => 'ユーザーに見える表示';
+
+  @override
+  String get noContentYet => '内容がありません';
+
+  @override
+  String get unsaved => '未保存';
+
+  @override
+  String get upDate => '最新の状態です';
+
+  @override
+  String get newQuestion => '質問を追加';
+
+  @override
+  String get editQuestion => '質問を編集';
+
+  @override
+  String get question => '質問';
+
+  @override
+  String get answer => '回答';
+
+  @override
+  String get showHelpCentre => 'ヘルプセンターに表示';
+
+  @override
+  String get bothQuestionAnswerRequired => '質問と回答の両方が必要です';
+
+  @override
+  String get added => '追加しました';
+
+  @override
+  String get updated => '更新しました';
+
+  @override
+  String get deleteQuestion => '質問を削除';
+
+  @override
+  String deleteP0(Object p0) => '「${p0}」を削除しますか？';
+
+  @override
+  String get deleted => '削除しました';
+
+  @override
+  String get faq => 'よくある質問';
+
+  @override
+  String get noQuestionsYet2 => '質問がまだありません';
+
+  @override
+  String get dragHandleRightReorder => '右のハンドルをドラッグで並べ替え';
+
+  @override
+  String get hidden => '非表示';
+
+  @override
+  String get cancelDeletionRequest => '削除申請を取り消す';
+
+  @override
+  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0}、カウントダウンが止まります。';
+
+  @override
+  String get cancelDeletion => '削除を取り消す';
+
+  @override
+  String get deletionRequestCancelled => '削除申請を取り消しました';
+
+  @override
+  String get anonymiseNow => '今すぐ匿名化';
+
+  @override
+  String eraseP0SPersonalDataDisable(Object p0) => '猶予期間の終了を待たず、${p0}。\n\n注文と取引記録は残りますが、表示名は「削除されたユーザー」になります。元に戻せません。';
+
+  @override
+  String get doNow => '今すぐ実行';
+
+  @override
+  String get anonymised => '匿名化が完了しました';
+
+  @override
+  String get pendingDeletions => '削除待ちのアカウント';
+
+  @override
+  String get noDeletionRequestsPending => '処理待ちの削除申請はありません';
+
+  @override
+  String get dueSoon => 'まもなく実行';
+
+  @override
+  String p0DaysLeft(Object p0) => '残り${p0}';
+
+  @override
+  String requestedP0ScheduledP1(Object p0, Object p1) => '${p0}、${p1}';
+
+  @override
+  String get disputeResolution => '取引の裁定';
+
+  @override
+  String orderP0P1(Object p0, Object p1) => '注文 ${p0}｜\\\$${p1}';
+
+  @override
+  String reasonP0(Object p0) => '申し立て理由：${p0}';
+
+  @override
+  String get decisionNoteOptional => '裁定の説明（任意）';
+
+  @override
+  String get submitDecision => '裁定を送信';
+
+  @override
+  String get decisionRecorded => '裁定を記録しました';
+
+  @override
+  String get resolveDispute => '取引を裁定';
+
+  @override
+  String get noDisputesKind => 'この種類の申し立てはありません';
+
+  @override
+  String orderNumberP0(Object p0) => '注文番号：${p0}';
+
+  @override
+  String buyerP0SellerP1(Object p0, Object p1) => '購入者：${p0}｜出品者：${p1}';
+
+  @override
+  String filedByP0(Object p0) => '申立人：${p0}';
+
+  @override
+  String get handle => '対応';
+
+  @override
+  String get transactions2 => '取引管理';
+
+  @override
+  String get orders => '注文管理';
+
+  @override
+  String get lookUpOrdersAdjustStatusBy => '注文の検索と手動でのステータス変更';
+
+  @override
+  String get disputeListDecisions => '申し立て一覧と裁定';
+
+  @override
+  String get listings => '商品管理';
+
+  @override
+  String get allBooksForceDelisting => '全書籍、強制的な出品停止';
+
+  @override
+  String get moderation => 'コンテンツ審査';
+
+  @override
+  String get handleListingReports => '商品の報告対応';
+
+  @override
+  String get addReorderDeleteBookCategories => 'カテゴリーの追加・並べ替え・削除';
+
+  @override
+  String get members => '会員管理';
+
+  @override
+  String get memberControls => '会員の管理';
+
+  @override
+  String get memberListSuspensionBlocklist => '会員一覧・利用停止・ブロック';
+
+  @override
+  String get membershipTiers => '会員ランク管理';
+
+  @override
+  String get tierThresholdsBenefits => 'ランクの基準と特典の設定';
+
+  @override
+  String get wallets => 'ウォレット管理';
+
+  @override
+  String get checkBalancesAddDeductCoinsBy => '残高の確認、コインの手動増減';
+
+  @override
+  String get hardwareOperations => 'ハードウェアと運用';
+
+  @override
+  String get lockerSlotStatus => 'ロッカーと棚の状態';
+
+  @override
+  String get maintenanceLog => 'メンテナンス記録';
+
+  @override
+  String get lockerOperationHistory => 'ロッカー関連の操作履歴';
+
+  @override
+  String get reports => '運用レポート';
+
+  @override
+  String get ordersRevenueMemberGrowth => '注文・売上・会員の推移';
+
+  @override
+  String get announcements2 => 'お知らせ管理';
+
+  @override
+  String get supportEnquiries => 'お問い合わせ';
+
+  @override
+  String get replyQuestionsFromUsers => 'ユーザーからの質問に回答';
+
+  @override
+  String get faqShownHelpCentre => 'ヘルプセンターのよくある質問';
+
+  @override
+  String get termsPrivacyPolicyAbout => '利用規約・プライバシーポリシー・運営者情報';
+
+  @override
+  String get adminAuditLog => '管理操作の記録';
+
+  @override
+  String get auditTrailAdminChanges => '管理者による変更の監査証跡';
+
+  @override
+  String get systemOperations => 'システム運用';
+
+  @override
+  String get dailyBackupsManualRunsDownloads => '毎日の自動バックアップ、手動実行とダウンロード';
+
+  @override
+  String get deletionRequestsInsideGracePeriodCancel => '猶予期間中の削除申請。取り消しも即時実行もできます';
+
+  @override
+  String get members2 => '会員数';
+
+  @override
+  String get todaySOrders => '本日の注文';
+
+  @override
+  String get openCases => '未処理の案件';
+
+  @override
+  String get activeLockers => '稼働中のロッカー';
+
+  @override
+  String get newTier => 'ランクを追加';
+
+  @override
+  String get editTier => 'ランクを編集';
+
+  @override
+  String get tierName => 'ランク名';
+
+  @override
+  String get minimumPoints => '最低ポイント';
+
+  @override
+  String get maximumPointsLeaveEmptyNoCap => '最高ポイント（空欄で上限なし）';
+
+  @override
+  String get benefitsSeparatedByCommasLineBreaks => '特典。読点か改行で区切ると、会員ランクのページに1件ずつ表示されます';
+
+  @override
+  String get enterTierName => 'ランク名を入力してください';
+
+  @override
+  String get maximumPointsMustExceedMinimum => '最高ポイントは最低ポイントより大きくしてください';
+
+  @override
+  String get tierAdded => 'ランクを追加しました';
+
+  @override
+  String get tierUpdated => 'ランクを更新しました';
+
+  @override
+  String get deleteTier => 'ランクを削除';
+
+  @override
+  String deleteP0MembersTierDropNext(Object p0) => '「${p0}」を削除しますか？このランクの会員は、条件を満たす次のランクに下がります。';
+
+  @override
+  String get tierDeleted => 'ランクを削除しました';
+
+  @override
+  String get noMembershipTiersSetUp => '会員ランクが未設定です';
+
+  @override
+  String p0PointsUp(Object p0) => '${p0}';
+
+  @override
+  String p0P1Points(Object p0, Object p1) => '${p0}〜${p1}';
+
+  @override
+  String get noBenefitsDescribedYet => '特典の説明が未入力です';
+
+  @override
+  String get noMaintenanceRecords => 'メンテナンス記録はありません';
+
+  @override
+  String get noFurtherDetail => '（補足なし）';
+
+  @override
+  String get operator => '操作者';
+
+  @override
+  String get unknown => '（不明）';
+
+  @override
+  String get time => '日時';
+
+  @override
+  String get recordNumber => '記録番号';
+
+  @override
+  String operatorP0(Object p0) => '操作者：${p0}';
+
+  @override
+  String get suspendAccount => 'このアカウントを利用停止';
+
+  @override
+  String get reinstateAccount => 'このアカウントを復帰';
+
+  @override
+  String get addBlocklist => 'ブロックリストに追加';
+
+  @override
+  String get removeFromBlocklist => 'ブロックリストから削除';
+
+  @override
+  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0}、アプリのいかなる機能も使えなくなります。';
+
+  @override
+  String p0AbleSignAgain(Object p0) => '${p0}。';
+
+  @override
+  String get accountStatusUpdated => 'アカウントの状態を更新しました';
+
+  @override
+  String get removeAdmin => '管理者を解除';
+
+  @override
+  String get makeAdmin => '管理者にする';
+
+  @override
+  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0}。';
+
+  @override
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0}、既定ではすべての権限を持ちます。あとから個別に調整できます。';
+
+  @override
+  String get roleUpdated => '役割を更新しました';
+
+  @override
+  String manualP0P1(Object p0, Object p1) => '、手動 ${p0}${p1}';
+
+  @override
+  String get adjustMembershipTier => '会員ランクを調整';
+
+  @override
+  String currentlyP0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '現在${p0}（自動 ${p1}${p2}）';
+
+  @override
+  String p0P1Points2(Object p0, Object p1) => '${p0}（${p1}）';
+
+  @override
+  String get adjustPointsManually => 'ポイントを手動で増減';
+
+  @override
+  String get backAutomatic => '自動計算に戻す';
+
+  @override
+  String get backAutomatic2 => '自動計算に戻しました';
+
+  @override
+  String get pointAdjustment => 'ポイントの増減';
+
+  @override
+  String get positiveAddsNegativeDeductsEG => '正の数で加算、負の数で減算（例：-50）';
+
+  @override
+  String get apply => '適用';
+
+  @override
+  String get enterNonZeroWholeNumber => '0以外の整数を入力してください';
+
+  @override
+  String get pointsAdjusted => 'ポイントを調整しました';
+
+  @override
+  String get tierAdjusted => 'ランクを調整しました';
+
+  @override
+  String get permissionGranted => '権限を付与しました';
+
+  @override
+  String get permissionRevoked => '権限を取り消しました';
+
+  @override
+  String get grantAllPermissions => 'すべての権限を付与';
+
+  @override
+  String get revokeAllPermissions => 'すべての権限を取り消し';
+
+  @override
+  String p0AbleUseEveryAdminFeature(Object p0) => '${p0}。';
+
+  @override
+  String p0ReachAdminAreaButUnable(Object p0) => '${p0}、どの機能も使えなくなります。';
+
+  @override
+  String get allPermissionsGranted => 'すべての権限を付与しました';
+
+  @override
+  String get allPermissionsRevoked => 'すべての権限を取り消しました';
+
+  @override
+  String get memberSettings => '会員の設定';
+
+  @override
+  String get noDataMember => 'この会員のデータが見つかりません';
+
+  @override
+  String get listings2 => '出品数';
+
+  @override
+  String get completedTrades => '取引完了数';
+
+  @override
+  String get joined => '登録日';
+
+  @override
+  String get accountStatus => 'アカウントの状態';
+
+  @override
+  String get ownAccountStatusPermissionsCannotChanged => 'これはあなた自身のアカウントです。ここから状態や権限は変更できません。';
+
+  @override
+  String get accountEnabled => 'アカウント有効';
+
+  @override
+  String get canSignUseAppNormally => '通常どおりログインして利用できます';
+
+  @override
+  String get suspendedSignedOutImmediatelyAfterSigning => '利用停止中。ログインしても直ちにログアウトされます';
+
+  @override
+  String get blocked => 'ブロック中';
+
+  @override
+  String get blockedNoFeaturesAvailable => 'ブロック済み。いかなる機能も利用できません';
+
+  @override
+  String get notBlocked => 'ブロックなし';
+
+  @override
+  String get role => '役割';
+
+  @override
+  String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0}（自動 ${p1}${p2}）';
+
+  @override
+  String get memberSTierBeenAdjustedBy => 'この会員のランクは手動で調整されており、取引だけで自動計算されてはいません。';
+
+  @override
+  String get adjustTier => 'ランクを調整';
+
+  @override
+  String get adminPermissions => '管理権限';
+
+  @override
+  String get all => 'すべて有効';
+
+  @override
+  String get allOff => 'すべて無効';
+
+  @override
+  String get reinstateAccount2 => 'アカウントを復帰';
+
+  @override
+  String get suspendAccount2 => 'アカウントを利用停止';
+
+  @override
+  String runP1P0(Object p0, Object p1) => '「${p0}」に対して「${p1}」を実行しますか？';
+
+  @override
+  String updatedP0SStatus(Object p0) => '${p0}';
+
+  @override
+  String get fullSettingsTierPermissions => '詳細設定（ランク・権限）';
+
+  @override
+  String get members3 => '会員一覧';
+
+  @override
+  String get searchDisplayNameEmail => '表示名・メールで検索';
+
+  @override
+  String get noMembersMatch => '該当する会員がいません';
+
+  @override
+  String get sales2 => '販売';
+
+  @override
+  String get created => '作成日';
+
+  @override
+  String get noActivityYet => '操作記録はまだありません';
+
+  @override
+  String get changeOrderStatus => '注文ステータスを変更';
+
+  @override
+  String orderP0(Object p0) => '注文 ${p0}';
+
+  @override
+  String get reasonChange => '変更の説明';
+
+  @override
+  String get sentBuyerAsWellOptional => '購入者にも通知されます（任意）';
+
+  @override
+  String get applyChange => '変更を確定';
+
+  @override
+  String get orderStatusUpdated => '注文ステータスを更新しました';
+
+  @override
+  String get searchOrderNumberBuyerSeller => '注文番号・購入者・出品者で検索';
+
+  @override
+  String get noOrdersMatch => '該当する注文がありません';
+
+  @override
+  String get noItems => '（商品なし）';
+
+  @override
+  String p0ItemsTotal(Object p0) => 'ほか全${p0}';
+
+  @override
+  String buyerP0SellerP12(Object p0, Object p1) => '購入者 ${p0}｜出品者 ${p1}';
+
+  @override
+  String lockerP0(Object p0) => 'ロッカー：${p0}';
+
+  @override
+  String cancellationReasonP0(Object p0) => 'キャンセル理由：${p0}';
+
+  @override
+  String get reviewReport => '報告を審査';
+
+  @override
+  String reportedP0P1(Object p0, Object p1) => '報告された${p0}：${p1}';
+
+  @override
+  String reasonP02(Object p0) => '違反理由：${p0}';
+
+  @override
+  String get handlingNoteOptional => '対応メモ（任意）';
+
+  @override
+  String get delistListingAsWell => '同時に商品を出品停止';
+
+  @override
+  String get dismissReport => '報告を却下';
+
+  @override
+  String get reportHandled => '報告を処理しました';
+
+  @override
+  String get noReportsKind => 'この種類の報告はありません';
+
+  @override
+  String reportedByP0(Object p0) => '報告者：${p0}';
+
+  @override
+  String get review => '審査';
+
+  @override
+  String noteP0(Object p0) => 'メモ：${p0}';
+
+  @override
+  String get last7Days => '過去7日間';
+
+  @override
+  String get last30Days => '過去30日間';
+
+  @override
+  String get ordersPerDay => '1日あたりの注文数';
+
+  @override
+  String get revenuePerDay => '1日あたりの成約金額';
+
+  @override
+  String get newMembersPerDay => '1日あたりの新規会員';
+
+  @override
+  String get newOrders => '新規注文';
+
+  @override
+  String get newMembers => '新規会員';
+
+  @override
+  String get newListings => '新規出品';
+
+  @override
+  String get completedRevenue => '成約済み金額';
+
+  @override
+  String p0Orders(Object p0) => '${p0}';
+
+  @override
+  String peakP0(Object p0) => '最大 ${p0}';
+
+  @override
+  String get topCategoriesByListings => '人気カテゴリー（出品数順）';
+
+  @override
+  String get replied => '返信済み';
+
+  @override
+  String get noEnquiriesCategory => 'このカテゴリーにお問い合わせはありません';
+
+  @override
+  String get addCoins => 'コインを追加';
+
+  @override
+  String get deductCoins => 'コインを差し引く';
+
+  @override
+  String get amountPositiveWholeNumber => '金額（正の整数）';
+
+  @override
+  String get reasonAdjustmentRequired => '調整の理由（必須）';
+
+  @override
+  String get add2 => '追加する';
+
+  @override
+  String get deduct => '差し引く';
+
+  @override
+  String get enterAmountGreaterThan0 => '0より大きい金額を入力してください';
+
+  @override
+  String get enterReasonAdjustment => '調整の理由を入力してください';
+
+  @override
+  String get member2 => 'この会員';
+
+  @override
+  String get add3 => '追加';
+
+  @override
+  String get deduct2 => '差し引き';
+
+  @override
+  String get confirmAddingCoins => 'コインの追加を確認';
+
+  @override
+  String get confirmDeductingCoins => 'コインの差し引きを確認';
+
+  @override
+  String p1P2CoinsP0NreasonP3(Object p0, Object p1, Object p2, Object p3) => '${p0}${p1}${p2}。\n理由：${p3}';
+
+  @override
+  String get balanceAdjusted => '残高を調整しました';
+
+  @override
+  String get memberWallets => '会員のウォレット';
+
+  @override
+  String get transactions3 => '取引明細';
+
+  @override
+  String get memberNoTransactionsYet => 'この会員の取引明細はまだありません。';
+
+  @override
+  String get balanceCoins => '現在の残高（コイン）';
+
+  @override
+  String get hold2 => '保留中';
+
+  @override
+  String get total2 => '累計収入';
+
+  @override
+  String get totalOut => '累計支出';
+
+  @override
+  String balanceP0(Object p0) => '残高 ${p0}';
+
+  @override
+  String get suspensionBlocklistRoles => '利用停止・ブロック・役割';
+
+  @override
+  String get tierThresholdsManualAdjustments => 'ランクの基準と手動調整';
+
+  @override
+  String get booksCategories => '書籍とカテゴリー';
+
+  @override
+  String get reportReview => '報告の審査';
+
+  @override
+  String get handleListingReports2 => '商品の報告に対応';
+
+  @override
+  String get lookUpChangeOrderStatus => '注文の検索とステータス変更';
+
+  @override
+  String get decideDisputeCases => '申し立て案件の裁定';
+
+  @override
+  String get checkAdjustCoinBalances => 'コインの確認と増減';
+
+  @override
+  String get hardware => 'ハードウェア保守';
+
+  @override
+  String get lockersSlots => 'ロッカーと棚';
+
+  @override
+  String get announcementsDocuments => 'お知らせと文書';
+
+  @override
+  String get announcementsFaqLegalDocuments => 'お知らせ・よくある質問・規約';
+
+  @override
+  String get replyUserQuestions => 'ユーザーの質問に回答';
+
+  @override
+  String get databaseBackupDownloadOffByDefault => 'データベースのバックアップとダウンロード（既定では無効）';
 
 }
 
@@ -4715,9 +7305,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get actionBack => '뒤로';
-
-  @override
-  String get actionRetry => '다시 시도';
 
   @override
   String get actionSelect => '선택해 주세요';
@@ -6004,9 +8591,6 @@ class _LKo extends AppLocalizations {
   String get noSourceIsbnPleaseEnterDetails => '어떤 데이터베이스에도 이 ISBN이 없습니다. 직접 입력해 주세요.';
 
   @override
-  String get yearMonth => '[연월]';
-
-  @override
   String get day => '일';
 
   @override
@@ -6274,15 +8858,6 @@ class _LKo extends AppLocalizations {
   String get verifyIdentityContinue => '계속하려면 인증해 주세요';
 
   @override
-  String get msg => '繁體中文';
-
-  @override
-  String get msg2 => '日本語';
-
-  @override
-  String get msg3 => '简体中文';
-
-  @override
   String get couldNotOpenPhotosCheckPermission => '사진을 열 수 없습니다. 권한을 확인해 주세요.';
 
   @override
@@ -6347,6 +8922,1131 @@ class _LKo extends AppLocalizations {
 
   @override
   String confirmPutLocker(Object p0) => '“${p0}”을(를) 보관함에 넣으셨나요?';
+
+  @override
+  String get enterTitleContent => '제목과 내용을 입력하세요';
+
+  @override
+  String get titleCannotExceed255Characters => '제목은 255자를 넘을 수 없습니다';
+
+  @override
+  String get contentNeedsLeast5Characters => '내용은 최소 5자 이상이어야 합니다';
+
+  @override
+  String get publishAnnouncement => '공지 게시';
+
+  @override
+  String get everyUserSeeAnnouncementOncePublished => '게시하면 모든 사용자에게 표시됩니다. 계속할까요?';
+
+  @override
+  String get publish => '게시';
+
+  @override
+  String get announcementPublished => '공지를 게시했습니다';
+
+  @override
+  String get draftSaved => '초안을 저장했습니다';
+
+  @override
+  String get editAnnouncement => '공지 편집';
+
+  @override
+  String get newAnnouncement => '공지 작성';
+
+  @override
+  String get title2 => '제목';
+
+  @override
+  String get announcementTitle => '공지 제목';
+
+  @override
+  String get writeAnnouncement => '공지 내용을 입력';
+
+  @override
+  String get publishNow => '즉시 게시';
+
+  @override
+  String get leaveOffSaveAsDraft => '끄면 초안으로만 저장됩니다';
+
+  @override
+  String get saveDraft => '초안 저장';
+
+  @override
+  String get deleteAnnouncement => '공지 삭제';
+
+  @override
+  String deleteP0CannotUndone(Object p0) => '"${p0}"을(를) 삭제할까요? 되돌릴 수 없습니다.';
+
+  @override
+  String get announcementDeleted => '공지를 삭제했습니다';
+
+  @override
+  String get couldNotDeleteTryAgainLater => '삭제하지 못했습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String get announcements => '공지사항';
+
+  @override
+  String get noAnnouncementsYetTapAddOne => '공지가 없습니다. 오른쪽 위 +로 추가하세요.';
+
+  @override
+  String get published => '게시됨';
+
+  @override
+  String get draft => '초안';
+
+  @override
+  String get audienceEveryone => '대상: 전체 사용자';
+
+  @override
+  String get backUpNow => '지금 백업';
+
+  @override
+  String get wholeDatabaseExportedCompressedWithLot => '데이터베이스 전체를 내보내 압축합니다. 데이터가 많으면 수십 초가 걸릴 수 있으니 완료될 때까지 이 화면을 벗어나지 마세요.';
+
+  @override
+  String get startBackup => '백업 시작';
+
+  @override
+  String get backingUpDatabase => '데이터베이스 백업 중';
+
+  @override
+  String get backupComplete => '백업이 완료되었습니다';
+
+  @override
+  String get backupDeleted => '백업을 삭제했습니다';
+
+  @override
+  String get databaseBackups => '데이터베이스 백업';
+
+  @override
+  String backedUpDailyNewestP0Kept(Object p0) => '매일 자동 백업, 최신 ${p0} 보관';
+
+  @override
+  String get olderBackupsBeyondCountRemovedAutomatically => '보관 수를 넘은 오래된 백업은 자동으로 삭제됩니다. 백업 파일에는 사이트 전체의 개인정보가 들어 있으므로 내려받은 뒤에는 안전하게 보관하세요. 모든 다운로드는 감사 로그에 기록됩니다.';
+
+  @override
+  String get noBackupsYetSchedulerRunsOnce => '백업 기록이 없습니다. 스케줄러가 하루에 한 번 실행되며, 위 버튼으로 지금 바로 만들 수도 있습니다.';
+
+  @override
+  String get deleteBackup => '백업 삭제';
+
+  @override
+  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\n파일과 기록이 함께 삭제되며 되돌릴 수 없습니다.';
+
+  @override
+  String get manual => '수동';
+
+  @override
+  String get scheduled => '예약';
+
+  @override
+  String get download => '다운로드';
+
+  @override
+  String get downloadBackup => '백업 다운로드';
+
+  @override
+  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '백업 파일은 컴퓨터에서 인증 헤더를 함께 보내 받으세요:\n\n${p0}\n\n파일 크기 ${p1}.';
+
+  @override
+  String get copyLink2 => 'URL 복사';
+
+  @override
+  String get downloadLinkCopied => '다운로드 URL을 복사했습니다';
+
+  @override
+  String get forceDelist => '강제 내리기';
+
+  @override
+  String get reasonDelistingSellerNotified => '내리는 이유 (판매자에게 전달됩니다)';
+
+  @override
+  String get delist3 => '내리기';
+
+  @override
+  String get relist2 => '다시 등록';
+
+  @override
+  String putP0BackStore(Object p0) => '"${p0}"을(를) 스토어에 다시 올릴까요?';
+
+  @override
+  String get relisted => '다시 등록했습니다';
+
+  @override
+  String get searchTitleIsbnSeller => '제목, ISBN, 판매자 검색';
+
+  @override
+  String get noBooksMatch => '조건에 맞는 책이 없습니다';
+
+  @override
+  String sellerP0P1(Object p0, Object p1) => '판매자 ${p0} | ${p1}';
+
+  @override
+  String isbnP0P1Views(Object p0, Object p1) => 'ISBN ${p0} | 조회 ${p1}';
+
+  @override
+  String p0ReportsAwaitingReview(Object p0) => '처리 대기 중인 신고 ${p0}';
+
+  @override
+  String get enterLockerNameAddress => '보관함 이름과 주소를 입력하세요';
+
+  @override
+  String get enterValidLatitudeLongitude => '올바른 위도와 경도를 입력하세요';
+
+  @override
+  String get latitudeMustBetween9090 => '위도는 -90 ~ 90 사이여야 합니다';
+
+  @override
+  String get longitudeMustBetween180180 => '경도는 -180 ~ 180 사이여야 합니다';
+
+  @override
+  String get slotCountMustBetween1100 => '칸 수는 1 ~ 100 사이여야 합니다';
+
+  @override
+  String get closingTime => '마감 시간';
+
+  @override
+  String p0MustLookLikeHhMm(Object p0) => '${p0}(는) HH:mm 형식이어야 합니다. 예: 09:00';
+
+  @override
+  String get fillBothOpeningClosingTimes => '개방 시간과 마감 시간을 모두 입력하세요';
+
+  @override
+  String get lockerUpdated => '보관함을 수정했습니다';
+
+  @override
+  String get lockerAdded => '보관함을 추가했습니다';
+
+  @override
+  String get editLocker => '보관함 편집';
+
+  @override
+  String get newLocker => '보관함 추가';
+
+  @override
+  String get lockerName => '보관함 이름';
+
+  @override
+  String get latitude => '위도';
+
+  @override
+  String get longitude => '경도';
+
+  @override
+  String get slotCount => '칸 수';
+
+  @override
+  String get createLocker => '보관함 만들기';
+
+  @override
+  String get disable => '비활성화';
+
+  @override
+  String p0Locker(Object p0) => '보관함 ${p0}';
+
+  @override
+  String onceDisabledP0NoLongerAppears(Object p0) => '비활성화하면 "${p0}"은(는) 판매자의 보관 위치 목록에 더 이상 표시되지 않습니다.';
+
+  @override
+  String onceEnabledP0AvailableSellersAgain(Object p0) => '활성화하면 "${p0}"을(를) 판매자가 다시 선택할 수 있습니다.';
+
+  @override
+  String get lockerDisabled => '보관함을 비활성화했습니다';
+
+  @override
+  String get lockerEnabled => '보관함을 활성화했습니다';
+
+  @override
+  String slotP0(Object p0) => '${p0} 칸';
+
+  @override
+  String get slotStatusUpdated => '칸 상태를 변경했습니다';
+
+  @override
+  String get lockerMonitor => '보관함 모니터';
+
+  @override
+  String get searchLockerNameAddress => '보관함 이름 또는 주소 검색';
+
+  @override
+  String get noLockersMatch => '조건에 맞는 보관함이 없습니다';
+
+  @override
+  String get disabled => '비활성';
+
+  @override
+  String freeSlotsP0P1(Object p0, Object p1) => '남은 칸: ${p0} / ${p1}';
+
+  @override
+  String get newCategory => '카테고리 추가';
+
+  @override
+  String get editCategory => '카테고리 편집';
+
+  @override
+  String get categoryName => '카테고리 이름';
+
+  @override
+  String get enterCategoryName => '카테고리 이름을 입력하세요';
+
+  @override
+  String get categoryAdded => '카테고리를 추가했습니다';
+
+  @override
+  String get categoryUpdated => '카테고리를 수정했습니다';
+
+  @override
+  String get deleteCategory => '카테고리 삭제';
+
+  @override
+  String deleteP0CannotUndone2(Object p0) => '"${p0}"을(를) 삭제할까요? 되돌릴 수 없습니다.';
+
+  @override
+  String get categoryDeleted => '카테고리를 삭제했습니다';
+
+  @override
+  String get categories => '카테고리 관리';
+
+  @override
+  String get noCategoriesYet => '카테고리가 없습니다';
+
+  @override
+  String p0BooksUse(Object p0) => '${p0} 사용 중';
+
+  @override
+  String get legalDocuments => '약관 및 정책';
+
+  @override
+  String get notCreatedYet => '아직 작성되지 않음';
+
+  @override
+  String updatedP0(Object p0) => '최종 수정 ${p0}';
+
+  @override
+  String p0Characters(Object p0) => '${p0}';
+
+  @override
+  String p0SectionsP1Characters(Object p0, Object p1) => '${p0} 조항 | ${p1}';
+
+  @override
+  String get deleteSection => '조항 삭제';
+
+  @override
+  String get contentsSectionRemovedWith => '이 조항의 내용도 함께 삭제됩니다.';
+
+  @override
+  String p0ItsContentsRemoved(Object p0) => '"${p0}"과(와) 그 내용이 함께 삭제됩니다.';
+
+  @override
+  String get discardChanges => '변경 사항을 버릴까요?';
+
+  @override
+  String get documentUnsavedChangesTheyLostIf => '이 문서에 저장하지 않은 변경 사항이 있습니다. 나가면 사라집니다.';
+
+  @override
+  String get discard => '버리기';
+
+  @override
+  String get keepEditing => '계속 편집';
+
+  @override
+  String get bothTitleContentRequired => '제목과 내용을 모두 입력해야 합니다';
+
+  @override
+  String sectionP0NoTitleYet(Object p0) => '${p0} 조항에 제목이 없습니다';
+
+  @override
+  String updateP0(Object p0) => '${p0}(를) 업데이트할까요?';
+
+  @override
+  String get documentBindingEveryUserSubmittingReplaces => '이 문서는 모든 사용자에게 효력이 있습니다. 제출하면 현재 버전이 즉시 대체됩니다.';
+
+  @override
+  String get yesUpdate => '업데이트합니다';
+
+  @override
+  String get notifyEveryUser => '모든 사용자에게 알릴까요?';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => '활성 회원 전원에게 "${p0}(가) 업데이트되었습니다" 알림이 전송됩니다.';
+
+  @override
+  String get updateNotify => '업데이트 후 알림';
+
+  @override
+  String get updateOnly => '업데이트만';
+
+  @override
+  String get sections => '조항';
+
+  @override
+  String get plainText => '일반 텍스트';
+
+  @override
+  String get preview => '미리보기';
+
+  @override
+  String get documentTitle => '문서 제목';
+
+  @override
+  String get preamble => '머리말';
+
+  @override
+  String get unnumberedOpeningTextLeaveEmptyIf => '번호를 붙이지 않는 도입부 문구입니다. 없으면 비워 두세요.';
+
+  @override
+  String get articles => '조항';
+
+  @override
+  String get numberedAutomatically => '번호는 자동으로 매겨집니다';
+
+  @override
+  String get noArticlesYetAddFirstOne => '조항이 없습니다. 아래에서 첫 번째 조항을 추가하세요.';
+
+  @override
+  String get addSection => '조항 추가';
+
+  @override
+  String get untitledSection => '제목 없는 조항';
+
+  @override
+  String get sectionTitle => '조항 제목';
+
+  @override
+  String get bodySectionSingleLineBreaksKept => '이 조항의 본문입니다. 한 번의 줄바꿈은 그대로 표시되고, 빈 줄은 문단을 나눕니다.';
+
+  @override
+  String get emptyLineStartsParagraphParagraphWhose => '빈 줄로 문단을 나눕니다. 첫 줄이 "1. 제목" 형태인 문단은 조항 모드로 돌아갈 때 하나의 조항으로 인식됩니다.';
+
+  @override
+  String get howUsersSee => '사용자에게 보이는 모습';
+
+  @override
+  String get noContentYet => '내용이 없습니다';
+
+  @override
+  String get unsaved => '저장 안 됨';
+
+  @override
+  String get upDate => '최신 상태입니다';
+
+  @override
+  String get newQuestion => '질문 추가';
+
+  @override
+  String get editQuestion => '질문 편집';
+
+  @override
+  String get question => '질문';
+
+  @override
+  String get answer => '답변';
+
+  @override
+  String get showHelpCentre => '고객센터에 표시';
+
+  @override
+  String get bothQuestionAnswerRequired => '질문과 답변을 모두 입력해야 합니다';
+
+  @override
+  String get added => '추가했습니다';
+
+  @override
+  String get updated => '수정했습니다';
+
+  @override
+  String get deleteQuestion => '질문 삭제';
+
+  @override
+  String deleteP0(Object p0) => '"${p0}"을(를) 삭제할까요?';
+
+  @override
+  String get deleted => '삭제했습니다';
+
+  @override
+  String get faq => '자주 묻는 질문';
+
+  @override
+  String get noQuestionsYet2 => '질문이 없습니다';
+
+  @override
+  String get dragHandleRightReorder => '오른쪽 손잡이를 끌어 순서를 바꿉니다';
+
+  @override
+  String get hidden => '숨김';
+
+  @override
+  String get cancelDeletionRequest => '삭제 신청 취소';
+
+  @override
+  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0} 님의 계정이 정상으로 돌아가고 카운트다운이 멈춥니다.';
+
+  @override
+  String get cancelDeletion => '삭제 취소';
+
+  @override
+  String get deletionRequestCancelled => '삭제 신청을 취소했습니다';
+
+  @override
+  String get anonymiseNow => '지금 익명화';
+
+  @override
+  String eraseP0SPersonalDataDisable(Object p0) => '유예 기간이 끝나기를 기다리지 않고 ${p0} 님의 개인정보를 지우고 계정을 비활성화합니다.\n\n주문과 거래 기록은 남지만 표시 이름은 "삭제된 사용자"로 바뀝니다. 되돌릴 수 없습니다.';
+
+  @override
+  String get doNow => '지금 실행';
+
+  @override
+  String get anonymised => '익명화를 완료했습니다';
+
+  @override
+  String get pendingDeletions => '삭제 대기 계정';
+
+  @override
+  String get noDeletionRequestsPending => '처리 대기 중인 삭제 신청이 없습니다';
+
+  @override
+  String get dueSoon => '곧 실행';
+
+  @override
+  String p0DaysLeft(Object p0) => '${p0} 남음';
+
+  @override
+  String requestedP0ScheduledP1(Object p0, Object p1) => '${p0} 신청, ${p1} 실행 예정';
+
+  @override
+  String get disputeResolution => '거래 중재';
+
+  @override
+  String orderP0P1(Object p0, Object p1) => '주문 ${p0} | \\\$${p1}';
+
+  @override
+  String reasonP0(Object p0) => '이의 사유: ${p0}';
+
+  @override
+  String get decisionNoteOptional => '판정 설명 (선택)';
+
+  @override
+  String get submitDecision => '판정 제출';
+
+  @override
+  String get decisionRecorded => '판정을 기록했습니다';
+
+  @override
+  String get resolveDispute => '거래 중재';
+
+  @override
+  String get noDisputesKind => '해당 유형의 이의가 없습니다';
+
+  @override
+  String orderNumberP0(Object p0) => '주문 번호: ${p0}';
+
+  @override
+  String buyerP0SellerP1(Object p0, Object p1) => '구매자: ${p0} | 판매자: ${p1}';
+
+  @override
+  String filedByP0(Object p0) => '신청인: ${p0}';
+
+  @override
+  String get handle => '처리';
+
+  @override
+  String get transactions2 => '거래 관리';
+
+  @override
+  String get orders => '주문 관리';
+
+  @override
+  String get lookUpOrdersAdjustStatusBy => '주문 조회 및 수동 상태 변경';
+
+  @override
+  String get disputeListDecisions => '이의 목록 및 판정';
+
+  @override
+  String get listings => '상품 관리';
+
+  @override
+  String get allBooksForceDelisting => '전체 도서, 강제 내리기';
+
+  @override
+  String get moderation => '콘텐츠 심사';
+
+  @override
+  String get handleListingReports => '상품 신고 처리';
+
+  @override
+  String get addReorderDeleteBookCategories => '카테고리 추가, 정렬, 삭제';
+
+  @override
+  String get members => '회원 관리';
+
+  @override
+  String get memberControls => '회원 관리';
+
+  @override
+  String get memberListSuspensionBlocklist => '회원 목록, 정지, 차단 목록';
+
+  @override
+  String get membershipTiers => '회원 등급 관리';
+
+  @override
+  String get tierThresholdsBenefits => '등급 기준과 혜택 설정';
+
+  @override
+  String get wallets => '지갑 관리';
+
+  @override
+  String get checkBalancesAddDeductCoinsBy => '잔액 조회, 코인 수동 증감';
+
+  @override
+  String get hardwareOperations => '하드웨어 및 운영';
+
+  @override
+  String get lockerSlotStatus => '보관함 및 칸 상태';
+
+  @override
+  String get maintenanceLog => '정비 기록';
+
+  @override
+  String get lockerOperationHistory => '보관함 관련 작업 기록';
+
+  @override
+  String get reports => '운영 리포트';
+
+  @override
+  String get ordersRevenueMemberGrowth => '주문, 매출, 회원 증가';
+
+  @override
+  String get announcements2 => '공지 관리';
+
+  @override
+  String get supportEnquiries => '고객 문의';
+
+  @override
+  String get replyQuestionsFromUsers => '사용자 문의에 답변';
+
+  @override
+  String get faqShownHelpCentre => '고객센터의 자주 묻는 질문';
+
+  @override
+  String get termsPrivacyPolicyAbout => '이용약관, 개인정보 처리방침, 소개';
+
+  @override
+  String get adminAuditLog => '관리 작업 기록';
+
+  @override
+  String get auditTrailAdminChanges => '관리자 변경 감사 기록';
+
+  @override
+  String get systemOperations => '시스템 운영';
+
+  @override
+  String get dailyBackupsManualRunsDownloads => '매일 자동 백업, 수동 실행 및 다운로드';
+
+  @override
+  String get deletionRequestsInsideGracePeriodCancel => '유예 기간 중인 삭제 신청. 취소하거나 즉시 실행할 수 있습니다';
+
+  @override
+  String get members2 => '회원 수';
+
+  @override
+  String get todaySOrders => '오늘 주문';
+
+  @override
+  String get openCases => '처리 대기 건';
+
+  @override
+  String get activeLockers => '운영 중 보관함';
+
+  @override
+  String get newTier => '등급 추가';
+
+  @override
+  String get editTier => '등급 편집';
+
+  @override
+  String get tierName => '등급 이름';
+
+  @override
+  String get minimumPoints => '최소 포인트';
+
+  @override
+  String get maximumPointsLeaveEmptyNoCap => '최대 포인트 (비우면 상한 없음)';
+
+  @override
+  String get benefitsSeparatedByCommasLineBreaks => '혜택. 쉼표나 줄바꿈으로 구분하면 회원 등급 페이지에 하나씩 표시됩니다';
+
+  @override
+  String get enterTierName => '등급 이름을 입력하세요';
+
+  @override
+  String get maximumPointsMustExceedMinimum => '최대 포인트는 최소 포인트보다 커야 합니다';
+
+  @override
+  String get tierAdded => '등급을 추가했습니다';
+
+  @override
+  String get tierUpdated => '등급을 수정했습니다';
+
+  @override
+  String get deleteTier => '등급 삭제';
+
+  @override
+  String deleteP0MembersTierDropNext(Object p0) => '"${p0}"을(를) 삭제할까요? 이 등급의 회원은 조건에 맞는 다음 등급으로 내려갑니다.';
+
+  @override
+  String get tierDeleted => '등급을 삭제했습니다';
+
+  @override
+  String get noMembershipTiersSetUp => '회원 등급이 설정되지 않았습니다';
+
+  @override
+  String p0PointsUp(Object p0) => '${p0} 이상';
+
+  @override
+  String p0P1Points(Object p0, Object p1) => '${p0} ~ ${p1}';
+
+  @override
+  String get noBenefitsDescribedYet => '혜택 설명이 없습니다';
+
+  @override
+  String get noMaintenanceRecords => '정비 기록이 없습니다';
+
+  @override
+  String get noFurtherDetail => '(추가 설명 없음)';
+
+  @override
+  String get operator => '작업자';
+
+  @override
+  String get unknown => '(알 수 없음)';
+
+  @override
+  String get time => '시각';
+
+  @override
+  String get recordNumber => '기록 번호';
+
+  @override
+  String operatorP0(Object p0) => '작업자: ${p0}';
+
+  @override
+  String get suspendAccount => '이 계정 정지';
+
+  @override
+  String get reinstateAccount => '이 계정 복구';
+
+  @override
+  String get addBlocklist => '차단 목록에 추가';
+
+  @override
+  String get removeFromBlocklist => '차단 목록에서 제거';
+
+  @override
+  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0} 님은 즉시 로그아웃되며 앱의 어떤 기능도 사용할 수 없습니다.';
+
+  @override
+  String p0AbleSignAgain(Object p0) => '${p0} 님은 다시 로그인할 수 있습니다.';
+
+  @override
+  String get accountStatusUpdated => '계정 상태를 변경했습니다';
+
+  @override
+  String get removeAdmin => '관리자 해제';
+
+  @override
+  String get makeAdmin => '관리자로 지정';
+
+  @override
+  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 님은 모든 관리자 권한을 즉시 잃습니다.';
+
+  @override
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 님이 관리자 화면에 접근할 수 있게 되며, 기본적으로 모든 권한을 가집니다. 이후 항목별로 조정할 수 있습니다.';
+
+  @override
+  String get roleUpdated => '역할을 변경했습니다';
+
+  @override
+  String manualP0P1(Object p0, Object p1) => ', 수동 ${p0}${p1}';
+
+  @override
+  String get adjustMembershipTier => '회원 등급 조정';
+
+  @override
+  String currentlyP0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '현재 ${p0} (자동 ${p1}${p2})';
+
+  @override
+  String p0P1Points2(Object p0, Object p1) => '${p0} (${p1})';
+
+  @override
+  String get adjustPointsManually => '포인트 수동 조정';
+
+  @override
+  String get backAutomatic => '자동 계산으로 되돌리기';
+
+  @override
+  String get backAutomatic2 => '자동 계산으로 되돌렸습니다';
+
+  @override
+  String get pointAdjustment => '포인트 증감';
+
+  @override
+  String get positiveAddsNegativeDeductsEG => '양수는 추가, 음수는 차감. 예: -50';
+
+  @override
+  String get apply => '적용';
+
+  @override
+  String get enterNonZeroWholeNumber => '0이 아닌 정수를 입력하세요';
+
+  @override
+  String get pointsAdjusted => '포인트를 조정했습니다';
+
+  @override
+  String get tierAdjusted => '등급을 조정했습니다';
+
+  @override
+  String get permissionGranted => '권한을 부여했습니다';
+
+  @override
+  String get permissionRevoked => '권한을 회수했습니다';
+
+  @override
+  String get grantAllPermissions => '모든 권한 부여';
+
+  @override
+  String get revokeAllPermissions => '모든 권한 회수';
+
+  @override
+  String p0AbleUseEveryAdminFeature(Object p0) => '${p0} 님이 관리자 화면의 모든 기능을 사용할 수 있게 됩니다.';
+
+  @override
+  String p0ReachAdminAreaButUnable(Object p0) => '${p0} 님은 관리자 화면에 들어가도 아무 기능도 사용할 수 없습니다.';
+
+  @override
+  String get allPermissionsGranted => '모든 권한을 부여했습니다';
+
+  @override
+  String get allPermissionsRevoked => '모든 권한을 회수했습니다';
+
+  @override
+  String get memberSettings => '회원 설정';
+
+  @override
+  String get noDataMember => '이 회원의 데이터를 찾을 수 없습니다';
+
+  @override
+  String get listings2 => '등록 도서';
+
+  @override
+  String get completedTrades => '완료 거래';
+
+  @override
+  String get joined => '가입일';
+
+  @override
+  String get accountStatus => '계정 상태';
+
+  @override
+  String get ownAccountStatusPermissionsCannotChanged => '본인 계정입니다. 여기서는 상태와 권한을 변경할 수 없습니다.';
+
+  @override
+  String get accountEnabled => '계정 활성';
+
+  @override
+  String get canSignUseAppNormally => '정상적으로 로그인해 사용할 수 있습니다';
+
+  @override
+  String get suspendedSignedOutImmediatelyAfterSigning => '정지됨. 로그인해도 즉시 로그아웃됩니다';
+
+  @override
+  String get blocked => '차단됨';
+
+  @override
+  String get blockedNoFeaturesAvailable => '차단되어 어떤 기능도 사용할 수 없습니다';
+
+  @override
+  String get notBlocked => '차단 안 됨';
+
+  @override
+  String get role => '역할';
+
+  @override
+  String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} (자동 ${p1}${p2})';
+
+  @override
+  String get memberSTierBeenAdjustedBy => '이 회원의 등급은 수동으로 조정되어 거래만으로 자동 계산되지 않습니다.';
+
+  @override
+  String get adjustTier => '등급 조정';
+
+  @override
+  String get adminPermissions => '관리자 권한';
+
+  @override
+  String get all => '모두 켜기';
+
+  @override
+  String get allOff => '모두 끄기';
+
+  @override
+  String get reinstateAccount2 => '계정 복구';
+
+  @override
+  String get suspendAccount2 => '계정 정지';
+
+  @override
+  String runP1P0(Object p0, Object p1) => '"${p0}"에 대해 "${p1}"을(를) 실행할까요?';
+
+  @override
+  String updatedP0SStatus(Object p0) => '${p0} 님의 상태를 변경했습니다';
+
+  @override
+  String get fullSettingsTierPermissions => '전체 설정 (등급, 권한)';
+
+  @override
+  String get members3 => '회원 목록';
+
+  @override
+  String get searchDisplayNameEmail => '닉네임 또는 이메일 검색';
+
+  @override
+  String get noMembersMatch => '조건에 맞는 회원이 없습니다';
+
+  @override
+  String get sales2 => '판매';
+
+  @override
+  String get created => '생성일';
+
+  @override
+  String get noActivityYet => '작업 기록이 없습니다';
+
+  @override
+  String get changeOrderStatus => '주문 상태 변경';
+
+  @override
+  String orderP0(Object p0) => '주문 ${p0}';
+
+  @override
+  String get reasonChange => '변경 사유';
+
+  @override
+  String get sentBuyerAsWellOptional => '구매자에게도 전달됩니다 (선택)';
+
+  @override
+  String get applyChange => '변경 확정';
+
+  @override
+  String get orderStatusUpdated => '주문 상태를 변경했습니다';
+
+  @override
+  String get searchOrderNumberBuyerSeller => '주문 번호, 구매자, 판매자 검색';
+
+  @override
+  String get noOrdersMatch => '조건에 맞는 주문이 없습니다';
+
+  @override
+  String get noItems => '(항목 없음)';
+
+  @override
+  String p0ItemsTotal(Object p0) => '외 총 ${p0}';
+
+  @override
+  String buyerP0SellerP12(Object p0, Object p1) => '구매자 ${p0} | 판매자 ${p1}';
+
+  @override
+  String lockerP0(Object p0) => '보관함: ${p0}';
+
+  @override
+  String cancellationReasonP0(Object p0) => '취소 사유: ${p0}';
+
+  @override
+  String get reviewReport => '신고 심사';
+
+  @override
+  String reportedP0P1(Object p0, Object p1) => '신고된 ${p0}: ${p1}';
+
+  @override
+  String reasonP02(Object p0) => '위반 사유: ${p0}';
+
+  @override
+  String get handlingNoteOptional => '처리 메모 (선택)';
+
+  @override
+  String get delistListingAsWell => '해당 상품도 함께 내리기';
+
+  @override
+  String get dismissReport => '신고 기각';
+
+  @override
+  String get reportHandled => '신고를 처리했습니다';
+
+  @override
+  String get noReportsKind => '해당 유형의 신고가 없습니다';
+
+  @override
+  String reportedByP0(Object p0) => '신고자: ${p0}';
+
+  @override
+  String get review => '심사';
+
+  @override
+  String noteP0(Object p0) => '메모: ${p0}';
+
+  @override
+  String get last7Days => '최근 7일';
+
+  @override
+  String get last30Days => '최근 30일';
+
+  @override
+  String get ordersPerDay => '일별 주문 수';
+
+  @override
+  String get revenuePerDay => '일별 거래 금액';
+
+  @override
+  String get newMembersPerDay => '일별 신규 회원';
+
+  @override
+  String get newOrders => '신규 주문';
+
+  @override
+  String get newMembers => '신규 회원';
+
+  @override
+  String get newListings => '신규 등록 도서';
+
+  @override
+  String get completedRevenue => '완료 거래액';
+
+  @override
+  String p0Orders(Object p0) => '${p0}';
+
+  @override
+  String peakP0(Object p0) => '최고 ${p0}';
+
+  @override
+  String get topCategoriesByListings => '인기 카테고리 (등록 수 기준)';
+
+  @override
+  String get replied => '답변함';
+
+  @override
+  String get noEnquiriesCategory => '이 분류에 문의가 없습니다';
+
+  @override
+  String get addCoins => '코인 추가';
+
+  @override
+  String get deductCoins => '코인 차감';
+
+  @override
+  String get amountPositiveWholeNumber => '금액 (양의 정수)';
+
+  @override
+  String get reasonAdjustmentRequired => '조정 사유 (필수)';
+
+  @override
+  String get add2 => '추가';
+
+  @override
+  String get deduct => '차감';
+
+  @override
+  String get enterAmountGreaterThan0 => '0보다 큰 금액을 입력하세요';
+
+  @override
+  String get enterReasonAdjustment => '조정 사유를 입력하세요';
+
+  @override
+  String get member2 => '이 회원';
+
+  @override
+  String get add3 => '추가';
+
+  @override
+  String get deduct2 => '차감';
+
+  @override
+  String get confirmAddingCoins => '코인 추가 확인';
+
+  @override
+  String get confirmDeductingCoins => '코인 차감 확인';
+
+  @override
+  String p1P2CoinsP0NreasonP3(Object p0, Object p1, Object p2, Object p3) => '${p0} 님에게 ${p1} ${p2}.\n사유: ${p3}';
+
+  @override
+  String get balanceAdjusted => '잔액을 조정했습니다';
+
+  @override
+  String get memberWallets => '회원 지갑';
+
+  @override
+  String get transactions3 => '거래 내역';
+
+  @override
+  String get memberNoTransactionsYet => '이 회원의 거래 내역이 아직 없습니다.';
+
+  @override
+  String get balanceCoins => '현재 잔액 (코인)';
+
+  @override
+  String get hold2 => '보류 중';
+
+  @override
+  String get total2 => '누적 수입';
+
+  @override
+  String get totalOut => '누적 지출';
+
+  @override
+  String balanceP0(Object p0) => '잔액 ${p0}';
+
+  @override
+  String get suspensionBlocklistRoles => '정지, 차단 목록, 역할';
+
+  @override
+  String get tierThresholdsManualAdjustments => '등급 기준과 수동 조정';
+
+  @override
+  String get booksCategories => '도서와 카테고리';
+
+  @override
+  String get reportReview => '신고 심사';
+
+  @override
+  String get handleListingReports2 => '상품 신고 처리';
+
+  @override
+  String get lookUpChangeOrderStatus => '주문 조회 및 상태 변경';
+
+  @override
+  String get decideDisputeCases => '이의 사건 판정';
+
+  @override
+  String get checkAdjustCoinBalances => '코인 조회 및 증감';
+
+  @override
+  String get hardware => '하드웨어 유지보수';
+
+  @override
+  String get lockersSlots => '보관함과 칸';
+
+  @override
+  String get announcementsDocuments => '공지와 문서';
+
+  @override
+  String get announcementsFaqLegalDocuments => '공지, 자주 묻는 질문, 약관';
+
+  @override
+  String get replyUserQuestions => '사용자 질문에 답변';
+
+  @override
+  String get databaseBackupDownloadOffByDefault => '데이터베이스 백업 및 다운로드, 기본값은 꺼짐';
 
 }
 
@@ -6613,9 +10313,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get actionBack => '返回';
-
-  @override
-  String get actionRetry => '重試';
 
   @override
   String get actionSelect => '請選擇';
@@ -7902,9 +11599,6 @@ class _LZh extends AppLocalizations {
   String get noSourceIsbnPleaseEnterDetails => '各系統皆找不到此 ISBN，請嘗試手動輸入';
 
   @override
-  String get yearMonth => '[年月]';
-
-  @override
   String get day => '日';
 
   @override
@@ -8172,15 +11866,6 @@ class _LZh extends AppLocalizations {
   String get verifyIdentityContinue => '請驗證身分以繼續';
 
   @override
-  String get msg => '繁體中文';
-
-  @override
-  String get msg2 => '日本語';
-
-  @override
-  String get msg3 => '简体中文';
-
-  @override
   String get couldNotOpenPhotosCheckPermission => '無法開啟相簿，請確認已授權';
 
   @override
@@ -8245,6 +11930,1131 @@ class _LZh extends AppLocalizations {
 
   @override
   String confirmPutLocker(Object p0) => '確認已把《${p0}》放入書櫃了嗎？';
+
+  @override
+  String get enterTitleContent => '請填寫標題與內容';
+
+  @override
+  String get titleCannotExceed255Characters => '標題不可超過 255 個字元';
+
+  @override
+  String get contentNeedsLeast5Characters => '內容至少 5 個字元';
+
+  @override
+  String get publishAnnouncement => '發布推播';
+
+  @override
+  String get everyUserSeeAnnouncementOncePublished => '發布後全體使用者都會看到這則公告，確定發布嗎？';
+
+  @override
+  String get publish => '發布';
+
+  @override
+  String get announcementPublished => '公告已發布';
+
+  @override
+  String get draftSaved => '草稿已儲存';
+
+  @override
+  String get editAnnouncement => '編輯推播';
+
+  @override
+  String get newAnnouncement => '新增推播';
+
+  @override
+  String get title2 => '標題';
+
+  @override
+  String get announcementTitle => '公告標題';
+
+  @override
+  String get writeAnnouncement => '輸入推播內容';
+
+  @override
+  String get publishNow => '立即發布';
+
+  @override
+  String get leaveOffSaveAsDraft => '關閉時只會存成草稿';
+
+  @override
+  String get saveDraft => '儲存草稿';
+
+  @override
+  String get deleteAnnouncement => '刪除公告';
+
+  @override
+  String deleteP0CannotUndone(Object p0) => '確定要刪除「${p0}」嗎？此操作無法復原。';
+
+  @override
+  String get announcementDeleted => '公告已刪除';
+
+  @override
+  String get couldNotDeleteTryAgainLater => '刪除失敗，請稍後再試';
+
+  @override
+  String get announcements => '系統公告';
+
+  @override
+  String get noAnnouncementsYetTapAddOne => '尚無公告，點右上角新增';
+
+  @override
+  String get published => '已發布';
+
+  @override
+  String get draft => '草稿';
+
+  @override
+  String get audienceEveryone => '對象：全體使用者';
+
+  @override
+  String get backUpNow => '立即備份';
+
+  @override
+  String get wholeDatabaseExportedCompressedWithLot => '將匯出整個資料庫並壓縮保存。資料量大時可能需要數十秒，期間請不要離開這個畫面。';
+
+  @override
+  String get startBackup => '開始備份';
+
+  @override
+  String get backingUpDatabase => '正在備份資料庫';
+
+  @override
+  String get backupComplete => '備份完成';
+
+  @override
+  String get backupDeleted => '已刪除備份';
+
+  @override
+  String get databaseBackups => '資料庫備份';
+
+  @override
+  String backedUpDailyNewestP0Kept(Object p0) => '每日自動備份，保留最新 ${p0} 份';
+
+  @override
+  String get olderBackupsBeyondCountRemovedAutomatically => '超出份數的舊備份會自動清除。備份檔含全站個人資料，下載後請妥善保管，每次下載都會記入操作紀錄。';
+
+  @override
+  String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄。排程每天會自動跑一次，也可以按上方按鈕立刻產生一份。';
+
+  @override
+  String get deleteBackup => '刪除備份';
+
+  @override
+  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\n檔案與紀錄會一併移除，無法復原。';
+
+  @override
+  String get manual => '手動';
+
+  @override
+  String get scheduled => '排程';
+
+  @override
+  String get download => '下載';
+
+  @override
+  String get downloadBackup => '下載備份';
+
+  @override
+  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '備份檔請在電腦上取回，並帶上你的授權標頭：\n\n${p0}\n\n檔案大小 ${p1}。';
+
+  @override
+  String get copyLink2 => '複製網址';
+
+  @override
+  String get downloadLinkCopied => '已複製下載網址';
+
+  @override
+  String get forceDelist => '強制下架';
+
+  @override
+  String get reasonDelistingSellerNotified => '下架原因，會通知賣家';
+
+  @override
+  String get delist3 => '確認下架';
+
+  @override
+  String get relist2 => '恢復上架';
+
+  @override
+  String putP0BackStore(Object p0) => '要讓《${p0}》重新出現在商城嗎？';
+
+  @override
+  String get relisted => '已恢復上架';
+
+  @override
+  String get searchTitleIsbnSeller => '搜尋書名、ISBN 或賣家';
+
+  @override
+  String get noBooksMatch => '找不到符合條件的書籍';
+
+  @override
+  String sellerP0P1(Object p0, Object p1) => '賣家 ${p0}｜${p1}';
+
+  @override
+  String isbnP0P1Views(Object p0, Object p1) => 'ISBN ${p0}｜瀏覽 ${p1}';
+
+  @override
+  String p0ReportsAwaitingReview(Object p0) => '有 ${p0} 筆待處理檢舉';
+
+  @override
+  String get enterLockerNameAddress => '請填寫書櫃名稱與地址';
+
+  @override
+  String get enterValidLatitudeLongitude => '請填寫正確的經緯度';
+
+  @override
+  String get latitudeMustBetween9090 => '緯度必須介於 -90 ~ 90';
+
+  @override
+  String get longitudeMustBetween180180 => '經度必須介於 -180 ~ 180';
+
+  @override
+  String get slotCountMustBetween1100 => '櫃位數量必須介於 1 ~ 100';
+
+  @override
+  String get closingTime => '關閉時間';
+
+  @override
+  String p0MustLookLikeHhMm(Object p0) => '${p0}格式應為 HH:mm，例：09:00';
+
+  @override
+  String get fillBothOpeningClosingTimes => '開放與關閉時間請一起填寫';
+
+  @override
+  String get lockerUpdated => '書櫃已更新';
+
+  @override
+  String get lockerAdded => '書櫃已新增';
+
+  @override
+  String get editLocker => '修改書櫃';
+
+  @override
+  String get newLocker => '新增書櫃';
+
+  @override
+  String get lockerName => '書櫃名稱';
+
+  @override
+  String get latitude => '緯度';
+
+  @override
+  String get longitude => '經度';
+
+  @override
+  String get slotCount => '櫃位數量';
+
+  @override
+  String get createLocker => '建立書櫃';
+
+  @override
+  String get disable => '停用';
+
+  @override
+  String p0Locker(Object p0) => '${p0}';
+
+  @override
+  String onceDisabledP0NoLongerAppears(Object p0) => '停用後「${p0}」不會再出現在賣家的存放區域選單中。';
+
+  @override
+  String onceEnabledP0AvailableSellersAgain(Object p0) => '啟用後「${p0}」會重新開放給賣家選擇。';
+
+  @override
+  String get lockerDisabled => '書櫃已停用';
+
+  @override
+  String get lockerEnabled => '書櫃已啟用';
+
+  @override
+  String slotP0(Object p0) => '櫃位 ${p0}';
+
+  @override
+  String get slotStatusUpdated => '櫃位狀態已更新';
+
+  @override
+  String get lockerMonitor => '書櫃監控';
+
+  @override
+  String get searchLockerNameAddress => '搜尋書櫃名稱或地址';
+
+  @override
+  String get noLockersMatch => '沒有符合條件的書櫃';
+
+  @override
+  String get disabled => '已停用';
+
+  @override
+  String freeSlotsP0P1(Object p0, Object p1) => '剩餘空間：${p0} / ${p1}';
+
+  @override
+  String get newCategory => '新增分類';
+
+  @override
+  String get editCategory => '編輯分類';
+
+  @override
+  String get categoryName => '分類名稱';
+
+  @override
+  String get enterCategoryName => '請輸入分類名稱';
+
+  @override
+  String get categoryAdded => '已新增分類';
+
+  @override
+  String get categoryUpdated => '已更新分類';
+
+  @override
+  String get deleteCategory => '刪除分類';
+
+  @override
+  String deleteP0CannotUndone2(Object p0) => '要刪除「${p0}」嗎？此動作無法復原。';
+
+  @override
+  String get categoryDeleted => '已刪除分類';
+
+  @override
+  String get categories => '分類管理';
+
+  @override
+  String get noCategoriesYet => '尚無分類';
+
+  @override
+  String p0BooksUse(Object p0) => '${p0} 本書使用中';
+
+  @override
+  String get legalDocuments => '法律文件';
+
+  @override
+  String get notCreatedYet => '尚未建立';
+
+  @override
+  String updatedP0(Object p0) => '最後更新 ${p0}';
+
+  @override
+  String p0Characters(Object p0) => '${p0} 字';
+
+  @override
+  String p0SectionsP1Characters(Object p0, Object p1) => '${p0} 章・${p1} 字';
+
+  @override
+  String get deleteSection => '刪除章節';
+
+  @override
+  String get contentsSectionRemovedWith => '這一章的內容會一併移除。';
+
+  @override
+  String p0ItsContentsRemoved(Object p0) => '「${p0}」與其內容會一併移除。';
+
+  @override
+  String get discardChanges => '捨棄變更？';
+
+  @override
+  String get documentUnsavedChangesTheyLostIf => '這份文件有尚未儲存的修改，離開後會遺失。';
+
+  @override
+  String get discard => '捨棄';
+
+  @override
+  String get keepEditing => '繼續編輯';
+
+  @override
+  String get bothTitleContentRequired => '標題與內容都要填寫';
+
+  @override
+  String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章還沒有標題';
+
+  @override
+  String updateP0(Object p0) => '確認更新${p0}？';
+
+  @override
+  String get documentBindingEveryUserSubmittingReplaces => '這份文件對所有使用者都有效力，送出後會立刻取代目前的版本。';
+
+  @override
+  String get yesUpdate => '我確認要更新';
+
+  @override
+  String get notifyEveryUser => '要通知所有使用者嗎？';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位啟用中的會員都會收到一則「${p0}」的通知。';
+
+  @override
+  String get updateNotify => '更新並通知';
+
+  @override
+  String get updateOnly => '只更新不通知';
+
+  @override
+  String get sections => '章節';
+
+  @override
+  String get plainText => '純文字';
+
+  @override
+  String get preview => '預覽';
+
+  @override
+  String get documentTitle => '文件標題';
+
+  @override
+  String get preamble => '前言';
+
+  @override
+  String get unnumberedOpeningTextLeaveEmptyIf => '開頭不編號的說明文字，沒有的話可以留空。';
+
+  @override
+  String get articles => '條文';
+
+  @override
+  String get numberedAutomatically => '編號自動產生';
+
+  @override
+  String get noArticlesYetAddFirstOne => '還沒有條文。按下方新增第一章。';
+
+  @override
+  String get addSection => '新增章節';
+
+  @override
+  String get untitledSection => '未命名章節';
+
+  @override
+  String get sectionTitle => '章節標題';
+
+  @override
+  String get bodySectionSingleLineBreaksKept => '這一章的內容。單行換行會照樣呈現，空一行代表另起一段。';
+
+  @override
+  String get emptyLineStartsParagraphParagraphWhose => '空一行分段。首行寫「1. 標題」的段落，切回章節模式時會被認成一章。';
+
+  @override
+  String get howUsersSee => '使用者看到的樣子';
+
+  @override
+  String get noContentYet => '尚無內容';
+
+  @override
+  String get unsaved => '尚未儲存';
+
+  @override
+  String get upDate => '已是最新版本';
+
+  @override
+  String get newQuestion => '新增問題';
+
+  @override
+  String get editQuestion => '編輯問題';
+
+  @override
+  String get question => '問題';
+
+  @override
+  String get answer => '答案';
+
+  @override
+  String get showHelpCentre => '顯示在幫助中心';
+
+  @override
+  String get bothQuestionAnswerRequired => '問題與答案都要填寫';
+
+  @override
+  String get added => '已新增';
+
+  @override
+  String get updated => '已更新';
+
+  @override
+  String get deleteQuestion => '刪除問題';
+
+  @override
+  String deleteP0(Object p0) => '要刪除「${p0}」嗎？';
+
+  @override
+  String get deleted => '已刪除';
+
+  @override
+  String get faq => '常見問題';
+
+  @override
+  String get noQuestionsYet2 => '尚無常見問題';
+
+  @override
+  String get dragHandleRightReorder => '拖曳右側把手可調整順序';
+
+  @override
+  String get hidden => '已隱藏';
+
+  @override
+  String get cancelDeletionRequest => '取消刪除申請';
+
+  @override
+  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0} 的帳號會恢復正常，刪除倒數停止。';
+
+  @override
+  String get cancelDeletion => '取消刪除';
+
+  @override
+  String get deletionRequestCancelled => '已取消該會員的刪除申請';
+
+  @override
+  String get anonymiseNow => '立即執行匿名化';
+
+  @override
+  String eraseP0SPersonalDataDisable(Object p0) => '不等緩衝期結束，立刻清除 ${p0} 的個人資料並停用帳號。\n\n訂單與交易紀錄會保留，但暱稱會變成「已刪除的使用者」。此操作無法復原。';
+
+  @override
+  String get doNow => '立即執行';
+
+  @override
+  String get anonymised => '已完成匿名化';
+
+  @override
+  String get pendingDeletions => '待刪除帳號';
+
+  @override
+  String get noDeletionRequestsPending => '目前沒有待處理的刪除申請';
+
+  @override
+  String get dueSoon => '即將執行';
+
+  @override
+  String p0DaysLeft(Object p0) => '剩 ${p0} 天';
+
+  @override
+  String requestedP0ScheduledP1(Object p0, Object p1) => '申請於 ${p0}，預計 ${p1} 執行';
+
+  @override
+  String get disputeResolution => '交易仲裁';
+
+  @override
+  String orderP0P1(Object p0, Object p1) => '訂單 ${p0}｜\\\$${p1}';
+
+  @override
+  String reasonP0(Object p0) => '申訴理由：${p0}';
+
+  @override
+  String get decisionNoteOptional => '裁決說明（選填）';
+
+  @override
+  String get submitDecision => '送出裁決';
+
+  @override
+  String get decisionRecorded => '已完成裁決';
+
+  @override
+  String get resolveDispute => '仲裁交易';
+
+  @override
+  String get noDisputesKind => '目前沒有此類申訴案件';
+
+  @override
+  String orderNumberP0(Object p0) => '訂單編號：${p0}';
+
+  @override
+  String buyerP0SellerP1(Object p0, Object p1) => '買家：${p0}｜賣家：${p1}';
+
+  @override
+  String filedByP0(Object p0) => '申訴人：${p0}';
+
+  @override
+  String get handle => '處理';
+
+  @override
+  String get transactions2 => '交易管理';
+
+  @override
+  String get orders => '訂單管理';
+
+  @override
+  String get lookUpOrdersAdjustStatusBy => '查詢訂單、人工調整狀態';
+
+  @override
+  String get disputeListDecisions => '申訴列表與裁決';
+
+  @override
+  String get listings => '商品管理';
+
+  @override
+  String get allBooksForceDelisting => '全站書籍、強制下架';
+
+  @override
+  String get moderation => '內容審核';
+
+  @override
+  String get handleListingReports => '商品檢舉處理';
+
+  @override
+  String get addReorderDeleteBookCategories => '新增、排序與刪除書籍分類';
+
+  @override
+  String get members => '會員管理';
+
+  @override
+  String get memberControls => '會員管控';
+
+  @override
+  String get memberListSuspensionBlocklist => '會員列表、停權與黑名單';
+
+  @override
+  String get membershipTiers => '會員等級管理';
+
+  @override
+  String get tierThresholdsBenefits => '等級門檻與權益設定';
+
+  @override
+  String get wallets => '錢包管理';
+
+  @override
+  String get checkBalancesAddDeductCoinsBy => '查詢餘額、人工增減代幣';
+
+  @override
+  String get hardwareOperations => '硬體與營運';
+
+  @override
+  String get lockerSlotStatus => '書櫃與櫃位狀態';
+
+  @override
+  String get maintenanceLog => '維修紀錄';
+
+  @override
+  String get lockerOperationHistory => '書櫃相關操作紀錄';
+
+  @override
+  String get reports => '營運報表';
+
+  @override
+  String get ordersRevenueMemberGrowth => '訂單、營收與會員成長';
+
+  @override
+  String get announcements2 => '推播管理';
+
+  @override
+  String get supportEnquiries => '客服工單';
+
+  @override
+  String get replyQuestionsFromUsers => '回覆使用者提出的問題';
+
+  @override
+  String get faqShownHelpCentre => '幫助中心的常見問題';
+
+  @override
+  String get termsPrivacyPolicyAbout => '服務條款、隱私權政策、關於我們';
+
+  @override
+  String get adminAuditLog => '管理操作紀錄';
+
+  @override
+  String get auditTrailAdminChanges => '管理員異動的稽核軌跡';
+
+  @override
+  String get systemOperations => '系統維運';
+
+  @override
+  String get dailyBackupsManualRunsDownloads => '每日自動備份、手動觸發與下載';
+
+  @override
+  String get deletionRequestsInsideGracePeriodCancel => '緩衝期內的刪除申請，可代為取消或立即執行';
+
+  @override
+  String get members2 => '會員數';
+
+  @override
+  String get todaySOrders => '今日訂單';
+
+  @override
+  String get openCases => '待處理案件';
+
+  @override
+  String get activeLockers => '啟用書櫃';
+
+  @override
+  String get newTier => '新增等級';
+
+  @override
+  String get editTier => '編輯等級';
+
+  @override
+  String get tierName => '等級名稱';
+
+  @override
+  String get minimumPoints => '最低點數';
+
+  @override
+  String get maximumPointsLeaveEmptyNoCap => '最高點數（留空 = 無上限）';
+
+  @override
+  String get benefitsSeparatedByCommasLineBreaks => '權益，用頓號或換行分隔，會在會員等級頁逐條顯示';
+
+  @override
+  String get enterTierName => '請輸入等級名稱';
+
+  @override
+  String get maximumPointsMustExceedMinimum => '最高點數必須大於最低點數';
+
+  @override
+  String get tierAdded => '已新增等級';
+
+  @override
+  String get tierUpdated => '已更新等級';
+
+  @override
+  String get deleteTier => '刪除等級';
+
+  @override
+  String deleteP0MembersTierDropNext(Object p0) => '要刪除「${p0}」嗎？已在這個等級的會員會退到下一個符合的等級。';
+
+  @override
+  String get tierDeleted => '已刪除等級';
+
+  @override
+  String get noMembershipTiersSetUp => '尚未設定會員等級';
+
+  @override
+  String p0PointsUp(Object p0) => '${p0} 點以上';
+
+  @override
+  String p0P1Points(Object p0, Object p1) => '${p0} ~ ${p1} 點';
+
+  @override
+  String get noBenefitsDescribedYet => '尚未填寫權益說明';
+
+  @override
+  String get noMaintenanceRecords => '目前沒有維修紀錄';
+
+  @override
+  String get noFurtherDetail => '（無額外說明）';
+
+  @override
+  String get operator => '操作人';
+
+  @override
+  String get unknown => '（未知）';
+
+  @override
+  String get time => '時間';
+
+  @override
+  String get recordNumber => '紀錄編號';
+
+  @override
+  String operatorP0(Object p0) => '操作人：${p0}';
+
+  @override
+  String get suspendAccount => '停權此帳號';
+
+  @override
+  String get reinstateAccount => '恢復此帳號';
+
+  @override
+  String get addBlocklist => '加入黑名單';
+
+  @override
+  String get removeFromBlocklist => '移出黑名單';
+
+  @override
+  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0} 會立刻被登出，且無法再使用 App 的任何功能。';
+
+  @override
+  String p0AbleSignAgain(Object p0) => '${p0} 將可以重新登入使用。';
+
+  @override
+  String get accountStatusUpdated => '已更新帳號狀態';
+
+  @override
+  String get removeAdmin => '取消管理員';
+
+  @override
+  String get makeAdmin => '設為管理員';
+
+  @override
+  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 將立刻失去所有後台權限。';
+
+  @override
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 將可以進入管理後台，預設擁有全部權限，可再逐項調整。';
+
+  @override
+  String get roleUpdated => '已更新身分';
+
+  @override
+  String manualP0P1(Object p0, Object p1) => '、手動 ${p0}${p1}';
+
+  @override
+  String get adjustMembershipTier => '調整會員等級';
+
+  @override
+  String currentlyP0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '目前 ${p0} 點（自動 ${p1}${p2}）';
+
+  @override
+  String p0P1Points2(Object p0, Object p1) => '${p0}（${p1} 點）';
+
+  @override
+  String get adjustPointsManually => '手動加減點數';
+
+  @override
+  String get backAutomatic => '恢復自動計算';
+
+  @override
+  String get backAutomatic2 => '已恢復自動計算';
+
+  @override
+  String get pointAdjustment => '加減點數';
+
+  @override
+  String get positiveAddsNegativeDeductsEG => '正數增加、負數扣除，例如 -50';
+
+  @override
+  String get apply => '套用';
+
+  @override
+  String get enterNonZeroWholeNumber => '請輸入非零的整數';
+
+  @override
+  String get pointsAdjusted => '已調整點數';
+
+  @override
+  String get tierAdjusted => '已調整等級';
+
+  @override
+  String get permissionGranted => '已開放權限';
+
+  @override
+  String get permissionRevoked => '已收回權限';
+
+  @override
+  String get grantAllPermissions => '開放全部權限';
+
+  @override
+  String get revokeAllPermissions => '收回全部權限';
+
+  @override
+  String p0AbleUseEveryAdminFeature(Object p0) => '${p0} 將可以使用後台所有功能。';
+
+  @override
+  String p0ReachAdminAreaButUnable(Object p0) => '${p0} 進入後台後將無法使用任何功能。';
+
+  @override
+  String get allPermissionsGranted => '已開放全部權限';
+
+  @override
+  String get allPermissionsRevoked => '已收回全部權限';
+
+  @override
+  String get memberSettings => '會員設定';
+
+  @override
+  String get noDataMember => '找不到這位會員的資料';
+
+  @override
+  String get listings2 => '上架書籍';
+
+  @override
+  String get completedTrades => '完成交易';
+
+  @override
+  String get joined => '加入日期';
+
+  @override
+  String get accountStatus => '帳號狀態';
+
+  @override
+  String get ownAccountStatusPermissionsCannotChanged => '這是你自己的帳號，無法在這裡調整狀態與權限。';
+
+  @override
+  String get accountEnabled => '啟用帳號';
+
+  @override
+  String get canSignUseAppNormally => '可以正常登入使用';
+
+  @override
+  String get suspendedSignedOutImmediatelyAfterSigning => '已停權，登入後會被立刻登出';
+
+  @override
+  String get blocked => '列入黑名單';
+
+  @override
+  String get blockedNoFeaturesAvailable => '已封鎖，無法使用任何功能';
+
+  @override
+  String get notBlocked => '未封鎖';
+
+  @override
+  String get role => '身分';
+
+  @override
+  String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} 點（自動 ${p1}${p2}）';
+
+  @override
+  String get memberSTierBeenAdjustedBy => '這位會員的等級目前有人工調整，不完全依交易自動計算。';
+
+  @override
+  String get adjustTier => '調整等級';
+
+  @override
+  String get adminPermissions => '後台權限';
+
+  @override
+  String get all => '全開';
+
+  @override
+  String get allOff => '全關';
+
+  @override
+  String get reinstateAccount2 => '恢復帳號';
+
+  @override
+  String get suspendAccount2 => '停權帳號';
+
+  @override
+  String runP1P0(Object p0, Object p1) => '確定要對「${p0}」執行「${p1}」嗎？';
+
+  @override
+  String updatedP0SStatus(Object p0) => '已更新 ${p0} 的狀態';
+
+  @override
+  String get fullSettingsTierPermissions => '完整設定（等級、權限）';
+
+  @override
+  String get members3 => '會員列表';
+
+  @override
+  String get searchDisplayNameEmail => '搜尋暱稱或 Email';
+
+  @override
+  String get noMembersMatch => '找不到符合條件的會員';
+
+  @override
+  String get sales2 => '銷售';
+
+  @override
+  String get created => '創建日期';
+
+  @override
+  String get noActivityYet => '尚無操作紀錄';
+
+  @override
+  String get changeOrderStatus => '調整訂單狀態';
+
+  @override
+  String orderP0(Object p0) => '訂單 ${p0}';
+
+  @override
+  String get reasonChange => '調整說明';
+
+  @override
+  String get sentBuyerAsWellOptional => '會一併通知買家（選填）';
+
+  @override
+  String get applyChange => '確認調整';
+
+  @override
+  String get orderStatusUpdated => '訂單狀態已更新';
+
+  @override
+  String get searchOrderNumberBuyerSeller => '搜尋訂單編號或買賣家';
+
+  @override
+  String get noOrdersMatch => '找不到符合條件的訂單';
+
+  @override
+  String get noItems => '（無品項）';
+
+  @override
+  String p0ItemsTotal(Object p0) => '等 ${p0} 項';
+
+  @override
+  String buyerP0SellerP12(Object p0, Object p1) => '買家 ${p0}｜賣家 ${p1}';
+
+  @override
+  String lockerP0(Object p0) => '書櫃：${p0}';
+
+  @override
+  String cancellationReasonP0(Object p0) => '取消原因：${p0}';
+
+  @override
+  String get reviewReport => '審核檢舉';
+
+  @override
+  String reportedP0P1(Object p0, Object p1) => '被檢舉${p0}：${p1}';
+
+  @override
+  String reasonP02(Object p0) => '違規原因：${p0}';
+
+  @override
+  String get handlingNoteOptional => '處理備註（選填）';
+
+  @override
+  String get delistListingAsWell => '同時將該商品下架';
+
+  @override
+  String get dismissReport => '駁回檢舉';
+
+  @override
+  String get reportHandled => '檢舉已處理';
+
+  @override
+  String get noReportsKind => '目前沒有此類檢舉案件';
+
+  @override
+  String reportedByP0(Object p0) => '檢舉人：${p0}';
+
+  @override
+  String get review => '審核';
+
+  @override
+  String noteP0(Object p0) => '備註：${p0}';
+
+  @override
+  String get last7Days => '近 7 天';
+
+  @override
+  String get last30Days => '近 30 天';
+
+  @override
+  String get ordersPerDay => '每日訂單量';
+
+  @override
+  String get revenuePerDay => '每日成交金額';
+
+  @override
+  String get newMembersPerDay => '每日新增會員';
+
+  @override
+  String get newOrders => '新增訂單';
+
+  @override
+  String get newMembers => '新增會員';
+
+  @override
+  String get newListings => '新上架書籍';
+
+  @override
+  String get completedRevenue => '已完成交易額';
+
+  @override
+  String p0Orders(Object p0) => '${p0} 筆';
+
+  @override
+  String peakP0(Object p0) => '最高 ${p0}';
+
+  @override
+  String get topCategoriesByListings => '熱門分類（依上架數）';
+
+  @override
+  String get replied => '已回覆';
+
+  @override
+  String get noEnquiriesCategory => '此分類目前沒有工單';
+
+  @override
+  String get addCoins => '增加代幣';
+
+  @override
+  String get deductCoins => '扣除代幣';
+
+  @override
+  String get amountPositiveWholeNumber => '金額（正整數）';
+
+  @override
+  String get reasonAdjustmentRequired => '調整原因（必填）';
+
+  @override
+  String get add2 => '確認增加';
+
+  @override
+  String get deduct => '確認扣除';
+
+  @override
+  String get enterAmountGreaterThan0 => '請輸入大於 0 的金額';
+
+  @override
+  String get enterReasonAdjustment => '請填寫調整原因';
+
+  @override
+  String get member2 => '這位會員';
+
+  @override
+  String get add3 => '增加';
+
+  @override
+  String get deduct2 => '扣除';
+
+  @override
+  String get confirmAddingCoins => '確認增加代幣';
+
+  @override
+  String get confirmDeductingCoins => '確認扣除代幣';
+
+  @override
+  String p1P2CoinsP0NreasonP3(Object p0, Object p1, Object p2, Object p3) => '將為 ${p0} ${p1} ${p2} 代幣。\n原因：${p3}';
+
+  @override
+  String get balanceAdjusted => '已調整餘額';
+
+  @override
+  String get memberWallets => '會員錢包';
+
+  @override
+  String get transactions3 => '帳務紀錄';
+
+  @override
+  String get memberNoTransactionsYet => '此會員尚無帳務紀錄。';
+
+  @override
+  String get balanceCoins => '目前餘額（代幣）';
+
+  @override
+  String get hold2 => '凍結中';
+
+  @override
+  String get total2 => '累積收入';
+
+  @override
+  String get totalOut => '累積支出';
+
+  @override
+  String balanceP0(Object p0) => '餘 ${p0}';
+
+  @override
+  String get suspensionBlocklistRoles => '停權、黑名單、身分';
+
+  @override
+  String get tierThresholdsManualAdjustments => '等級門檻與人工調整';
+
+  @override
+  String get booksCategories => '書籍與分類';
+
+  @override
+  String get reportReview => '檢舉審核';
+
+  @override
+  String get handleListingReports2 => '處理商品檢舉';
+
+  @override
+  String get lookUpChangeOrderStatus => '查詢與調整訂單狀態';
+
+  @override
+  String get decideDisputeCases => '申訴案件裁決';
+
+  @override
+  String get checkAdjustCoinBalances => '查詢與增減代幣';
+
+  @override
+  String get hardware => '硬體維護';
+
+  @override
+  String get lockersSlots => '書櫃與櫃位';
+
+  @override
+  String get announcementsDocuments => '公告與文件';
+
+  @override
+  String get announcementsFaqLegalDocuments => '公告、常見問題、法律文件';
+
+  @override
+  String get replyUserQuestions => '回覆使用者問題';
+
+  @override
+  String get databaseBackupDownloadOffByDefault => '資料庫備份與下載，預設關閉';
 
 }
 
@@ -8511,9 +13321,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get actionBack => '返回';
-
-  @override
-  String get actionRetry => '重试';
 
   @override
   String get actionSelect => '请选择';
@@ -9800,9 +14607,6 @@ class _LZhHans extends AppLocalizations {
   String get noSourceIsbnPleaseEnterDetails => '各系统皆找不到此 ISBN，请尝试手动输入';
 
   @override
-  String get yearMonth => '[年月]';
-
-  @override
   String get day => '日';
 
   @override
@@ -10070,15 +14874,6 @@ class _LZhHans extends AppLocalizations {
   String get verifyIdentityContinue => '请验证身分以继续';
 
   @override
-  String get msg => '繁體中文';
-
-  @override
-  String get msg2 => '日本語';
-
-  @override
-  String get msg3 => '简体中文';
-
-  @override
   String get couldNotOpenPhotosCheckPermission => '无法打开相册，请确认已授权';
 
   @override
@@ -10143,6 +14938,1131 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String confirmPutLocker(Object p0) => '确认已把《${p0}》放入书柜了吗？';
+
+  @override
+  String get enterTitleContent => '请填写标题与内容';
+
+  @override
+  String get titleCannotExceed255Characters => '标题不可超过 255 个字符';
+
+  @override
+  String get contentNeedsLeast5Characters => '内容至少 5 个字符';
+
+  @override
+  String get publishAnnouncement => '发布推送';
+
+  @override
+  String get everyUserSeeAnnouncementOncePublished => '发布后全体用户都会看到这则公告，确定发布吗？';
+
+  @override
+  String get publish => '发布';
+
+  @override
+  String get announcementPublished => '公告已发布';
+
+  @override
+  String get draftSaved => '草稿已保存';
+
+  @override
+  String get editAnnouncement => '编辑推送';
+
+  @override
+  String get newAnnouncement => '新增推送';
+
+  @override
+  String get title2 => '标题';
+
+  @override
+  String get announcementTitle => '公告标题';
+
+  @override
+  String get writeAnnouncement => '输入推送内容';
+
+  @override
+  String get publishNow => '立即发布';
+
+  @override
+  String get leaveOffSaveAsDraft => '关闭时只会存成草稿';
+
+  @override
+  String get saveDraft => '保存草稿';
+
+  @override
+  String get deleteAnnouncement => '删除公告';
+
+  @override
+  String deleteP0CannotUndone(Object p0) => '确定要删除“${p0}”吗？此操作无法撤销。';
+
+  @override
+  String get announcementDeleted => '公告已删除';
+
+  @override
+  String get couldNotDeleteTryAgainLater => '删除失败，请稍后再试';
+
+  @override
+  String get announcements => '系统公告';
+
+  @override
+  String get noAnnouncementsYetTapAddOne => '尚无公告，点右上角新增';
+
+  @override
+  String get published => '已发布';
+
+  @override
+  String get draft => '草稿';
+
+  @override
+  String get audienceEveryone => '对象：全体用户';
+
+  @override
+  String get backUpNow => '立即备份';
+
+  @override
+  String get wholeDatabaseExportedCompressedWithLot => '将导出整个数据库并压缩保存。数据量大时可能需要数十秒，期间请不要离开这个界面。';
+
+  @override
+  String get startBackup => '开始备份';
+
+  @override
+  String get backingUpDatabase => '正在备份数据库';
+
+  @override
+  String get backupComplete => '备份完成';
+
+  @override
+  String get backupDeleted => '已删除备份';
+
+  @override
+  String get databaseBackups => '数据库备份';
+
+  @override
+  String backedUpDailyNewestP0Kept(Object p0) => '每日自动备份，保留最新 ${p0} 份';
+
+  @override
+  String get olderBackupsBeyondCountRemovedAutomatically => '超出份数的旧备份会自动清除。备份文件含全站个人资料，下载后请妥善保管，每次下载都会记入操作记录。';
+
+  @override
+  String get noBackupsYetSchedulerRunsOnce => '尚无备份记录。排程每天会自动跑一次，也可以按上方按钮立刻生成一份。';
+
+  @override
+  String get deleteBackup => '删除备份';
+
+  @override
+  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\n文件与记录会一并移除，无法恢复。';
+
+  @override
+  String get manual => '手动';
+
+  @override
+  String get scheduled => '排程';
+
+  @override
+  String get download => '下载';
+
+  @override
+  String get downloadBackup => '下载备份';
+
+  @override
+  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '备份文件请在电脑上取回，并带上你的授权标头：\n\n${p0}\n\n文件大小 ${p1}。';
+
+  @override
+  String get copyLink2 => '复制网址';
+
+  @override
+  String get downloadLinkCopied => '已复制下载网址';
+
+  @override
+  String get forceDelist => '强制下架';
+
+  @override
+  String get reasonDelistingSellerNotified => '下架原因，会通知卖家';
+
+  @override
+  String get delist3 => '确认下架';
+
+  @override
+  String get relist2 => '恢复上架';
+
+  @override
+  String putP0BackStore(Object p0) => '要让《${p0}》重新出现在商城吗？';
+
+  @override
+  String get relisted => '已恢复上架';
+
+  @override
+  String get searchTitleIsbnSeller => '搜索书名、ISBN 或卖家';
+
+  @override
+  String get noBooksMatch => '找不到符合条件的书籍';
+
+  @override
+  String sellerP0P1(Object p0, Object p1) => '卖家 ${p0}｜${p1}';
+
+  @override
+  String isbnP0P1Views(Object p0, Object p1) => 'ISBN ${p0}｜浏览 ${p1}';
+
+  @override
+  String p0ReportsAwaitingReview(Object p0) => '有 ${p0} 笔待处理举报';
+
+  @override
+  String get enterLockerNameAddress => '请填写书柜名称与地址';
+
+  @override
+  String get enterValidLatitudeLongitude => '请填写正确的经纬度';
+
+  @override
+  String get latitudeMustBetween9090 => '纬度必须介于 -90 ~ 90';
+
+  @override
+  String get longitudeMustBetween180180 => '经度必须介于 -180 ~ 180';
+
+  @override
+  String get slotCountMustBetween1100 => '柜位数量必须介于 1 ~ 100';
+
+  @override
+  String get closingTime => '关闭时间';
+
+  @override
+  String p0MustLookLikeHhMm(Object p0) => '${p0} HH:mm，例：09:00';
+
+  @override
+  String get fillBothOpeningClosingTimes => '开放与关闭时间请一起填写';
+
+  @override
+  String get lockerUpdated => '书柜已更新';
+
+  @override
+  String get lockerAdded => '书柜已新增';
+
+  @override
+  String get editLocker => '修改书柜';
+
+  @override
+  String get newLocker => '新增书柜';
+
+  @override
+  String get lockerName => '书柜名称';
+
+  @override
+  String get latitude => '纬度';
+
+  @override
+  String get longitude => '经度';
+
+  @override
+  String get slotCount => '柜位数量';
+
+  @override
+  String get createLocker => '创建书柜';
+
+  @override
+  String get disable => '停用';
+
+  @override
+  String p0Locker(Object p0) => '${p0}';
+
+  @override
+  String onceDisabledP0NoLongerAppears(Object p0) => '停用后“${p0}”不会再出现在卖家的存放区域菜单中。';
+
+  @override
+  String onceEnabledP0AvailableSellersAgain(Object p0) => '启用后“${p0}”会重新开放给卖家选择。';
+
+  @override
+  String get lockerDisabled => '书柜已停用';
+
+  @override
+  String get lockerEnabled => '书柜已启用';
+
+  @override
+  String slotP0(Object p0) => '柜位 ${p0}';
+
+  @override
+  String get slotStatusUpdated => '柜位状态已更新';
+
+  @override
+  String get lockerMonitor => '书柜监控';
+
+  @override
+  String get searchLockerNameAddress => '搜索书柜名称或地址';
+
+  @override
+  String get noLockersMatch => '没有符合条件的书柜';
+
+  @override
+  String get disabled => '已停用';
+
+  @override
+  String freeSlotsP0P1(Object p0, Object p1) => '剩余空间：${p0} / ${p1}';
+
+  @override
+  String get newCategory => '新增分类';
+
+  @override
+  String get editCategory => '编辑分类';
+
+  @override
+  String get categoryName => '分类名称';
+
+  @override
+  String get enterCategoryName => '请输入分类名称';
+
+  @override
+  String get categoryAdded => '已新增分类';
+
+  @override
+  String get categoryUpdated => '已更新分类';
+
+  @override
+  String get deleteCategory => '删除分类';
+
+  @override
+  String deleteP0CannotUndone2(Object p0) => '要删除“${p0}”吗？此操作无法撤销。';
+
+  @override
+  String get categoryDeleted => '已删除分类';
+
+  @override
+  String get categories => '分类管理';
+
+  @override
+  String get noCategoriesYet => '尚无分类';
+
+  @override
+  String p0BooksUse(Object p0) => '${p0} 本书使用中';
+
+  @override
+  String get legalDocuments => '法律文件';
+
+  @override
+  String get notCreatedYet => '尚未创建';
+
+  @override
+  String updatedP0(Object p0) => '最后更新 ${p0}';
+
+  @override
+  String p0Characters(Object p0) => '${p0} 字';
+
+  @override
+  String p0SectionsP1Characters(Object p0, Object p1) => '${p0} 章・${p1} 字';
+
+  @override
+  String get deleteSection => '删除章节';
+
+  @override
+  String get contentsSectionRemovedWith => '这一章的内容会一并移除。';
+
+  @override
+  String p0ItsContentsRemoved(Object p0) => '“${p0}”与其内容会一并移除。';
+
+  @override
+  String get discardChanges => '舍弃更改？';
+
+  @override
+  String get documentUnsavedChangesTheyLostIf => '这份文件有尚未保存的修改，离开后会丢失。';
+
+  @override
+  String get discard => '舍弃';
+
+  @override
+  String get keepEditing => '继续编辑';
+
+  @override
+  String get bothTitleContentRequired => '标题与内容都要填写';
+
+  @override
+  String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章还没有标题';
+
+  @override
+  String updateP0(Object p0) => '确认更新${p0}？';
+
+  @override
+  String get documentBindingEveryUserSubmittingReplaces => '这份文件对所有用户都有效力，提交后会立刻取代当前版本。';
+
+  @override
+  String get yesUpdate => '我确认要更新';
+
+  @override
+  String get notifyEveryUser => '要通知所有用户吗？';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位启用中的会员都会收到一则“${p0}”的通知。';
+
+  @override
+  String get updateNotify => '更新并通知';
+
+  @override
+  String get updateOnly => '只更新不通知';
+
+  @override
+  String get sections => '章节';
+
+  @override
+  String get plainText => '纯文本';
+
+  @override
+  String get preview => '预览';
+
+  @override
+  String get documentTitle => '文件标题';
+
+  @override
+  String get preamble => '前言';
+
+  @override
+  String get unnumberedOpeningTextLeaveEmptyIf => '开头不编号的说明文字，没有的话可以留空。';
+
+  @override
+  String get articles => '条文';
+
+  @override
+  String get numberedAutomatically => '编号自动生成';
+
+  @override
+  String get noArticlesYetAddFirstOne => '还没有条文。按下方新增第一章。';
+
+  @override
+  String get addSection => '新增章节';
+
+  @override
+  String get untitledSection => '未命名章节';
+
+  @override
+  String get sectionTitle => '章节标题';
+
+  @override
+  String get bodySectionSingleLineBreaksKept => '这一章的内容。单行换行会照样呈现，空一行代表另起一段。';
+
+  @override
+  String get emptyLineStartsParagraphParagraphWhose => '空一行分段。首行写“1. 标题”的段落，切回章节模式时会被认成一章。';
+
+  @override
+  String get howUsersSee => '用户看到的样子';
+
+  @override
+  String get noContentYet => '尚无内容';
+
+  @override
+  String get unsaved => '尚未保存';
+
+  @override
+  String get upDate => '已是最新版本';
+
+  @override
+  String get newQuestion => '新增问题';
+
+  @override
+  String get editQuestion => '编辑问题';
+
+  @override
+  String get question => '问题';
+
+  @override
+  String get answer => '答案';
+
+  @override
+  String get showHelpCentre => '显示在帮助中心';
+
+  @override
+  String get bothQuestionAnswerRequired => '问题与答案都要填写';
+
+  @override
+  String get added => '已新增';
+
+  @override
+  String get updated => '已更新';
+
+  @override
+  String get deleteQuestion => '删除问题';
+
+  @override
+  String deleteP0(Object p0) => '要删除“${p0}”吗？';
+
+  @override
+  String get deleted => '已删除';
+
+  @override
+  String get faq => '常见问题';
+
+  @override
+  String get noQuestionsYet2 => '尚无常见问题';
+
+  @override
+  String get dragHandleRightReorder => '拖拽右侧把手可调整顺序';
+
+  @override
+  String get hidden => '已隐藏';
+
+  @override
+  String get cancelDeletionRequest => '取消删除申请';
+
+  @override
+  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0} 的账号会恢复正常，删除倒计时停止。';
+
+  @override
+  String get cancelDeletion => '取消删除';
+
+  @override
+  String get deletionRequestCancelled => '已取消该会员的删除申请';
+
+  @override
+  String get anonymiseNow => '立即执行匿名化';
+
+  @override
+  String eraseP0SPersonalDataDisable(Object p0) => '不等缓冲期结束，立刻清除 ${p0} 的个人资料并停用账号。\n\n订单与交易记录会保留，但昵称会变成“已删除的用户”。此操作无法撤销。';
+
+  @override
+  String get doNow => '立即执行';
+
+  @override
+  String get anonymised => '已完成匿名化';
+
+  @override
+  String get pendingDeletions => '待删除账号';
+
+  @override
+  String get noDeletionRequestsPending => '目前没有待处理的删除申请';
+
+  @override
+  String get dueSoon => '即将执行';
+
+  @override
+  String p0DaysLeft(Object p0) => '剩 ${p0} 天';
+
+  @override
+  String requestedP0ScheduledP1(Object p0, Object p1) => '申请于 ${p0}，预计 ${p1} 执行';
+
+  @override
+  String get disputeResolution => '交易仲裁';
+
+  @override
+  String orderP0P1(Object p0, Object p1) => '订单 ${p0}｜\\\$${p1}';
+
+  @override
+  String reasonP0(Object p0) => '申诉理由：${p0}';
+
+  @override
+  String get decisionNoteOptional => '裁决说明（选填）';
+
+  @override
+  String get submitDecision => '提交裁决';
+
+  @override
+  String get decisionRecorded => '已完成裁决';
+
+  @override
+  String get resolveDispute => '仲裁交易';
+
+  @override
+  String get noDisputesKind => '目前没有此类申诉案件';
+
+  @override
+  String orderNumberP0(Object p0) => '订单编号：${p0}';
+
+  @override
+  String buyerP0SellerP1(Object p0, Object p1) => '买家：${p0}｜卖家：${p1}';
+
+  @override
+  String filedByP0(Object p0) => '申诉人：${p0}';
+
+  @override
+  String get handle => '处理';
+
+  @override
+  String get transactions2 => '交易管理';
+
+  @override
+  String get orders => '订单管理';
+
+  @override
+  String get lookUpOrdersAdjustStatusBy => '查询订单、人工调整状态';
+
+  @override
+  String get disputeListDecisions => '申诉列表与裁决';
+
+  @override
+  String get listings => '商品管理';
+
+  @override
+  String get allBooksForceDelisting => '全站书籍、强制下架';
+
+  @override
+  String get moderation => '内容审核';
+
+  @override
+  String get handleListingReports => '商品举报处理';
+
+  @override
+  String get addReorderDeleteBookCategories => '新增、排序与删除图书分类';
+
+  @override
+  String get members => '会员管理';
+
+  @override
+  String get memberControls => '会员管控';
+
+  @override
+  String get memberListSuspensionBlocklist => '会员列表、停权与黑名单';
+
+  @override
+  String get membershipTiers => '会员等级管理';
+
+  @override
+  String get tierThresholdsBenefits => '等级门槛与权益设置';
+
+  @override
+  String get wallets => '钱包管理';
+
+  @override
+  String get checkBalancesAddDeductCoinsBy => '查询余额、人工增减代币';
+
+  @override
+  String get hardwareOperations => '硬件与运营';
+
+  @override
+  String get lockerSlotStatus => '书柜与柜位状态';
+
+  @override
+  String get maintenanceLog => '维修记录';
+
+  @override
+  String get lockerOperationHistory => '书柜相关操作记录';
+
+  @override
+  String get reports => '运营报表';
+
+  @override
+  String get ordersRevenueMemberGrowth => '订单、营收与会员增长';
+
+  @override
+  String get announcements2 => '推送管理';
+
+  @override
+  String get supportEnquiries => '客服工单';
+
+  @override
+  String get replyQuestionsFromUsers => '回复用户提出的问题';
+
+  @override
+  String get faqShownHelpCentre => '帮助中心的常见问题';
+
+  @override
+  String get termsPrivacyPolicyAbout => '服务条款、隐私政策、关于我们';
+
+  @override
+  String get adminAuditLog => '管理操作记录';
+
+  @override
+  String get auditTrailAdminChanges => '管理员变更的审计轨迹';
+
+  @override
+  String get systemOperations => '系统运维';
+
+  @override
+  String get dailyBackupsManualRunsDownloads => '每日自动备份、手动触发与下载';
+
+  @override
+  String get deletionRequestsInsideGracePeriodCancel => '缓冲期内的删除申请，可代为取消或立即执行';
+
+  @override
+  String get members2 => '会员数';
+
+  @override
+  String get todaySOrders => '今日订单';
+
+  @override
+  String get openCases => '待处理案件';
+
+  @override
+  String get activeLockers => '启用书柜';
+
+  @override
+  String get newTier => '新增等级';
+
+  @override
+  String get editTier => '编辑等级';
+
+  @override
+  String get tierName => '等级名称';
+
+  @override
+  String get minimumPoints => '最低点数';
+
+  @override
+  String get maximumPointsLeaveEmptyNoCap => '最高点数（留空 = 无上限）';
+
+  @override
+  String get benefitsSeparatedByCommasLineBreaks => '权益，用顿号或换行分隔，会在会员等级页逐条显示';
+
+  @override
+  String get enterTierName => '请输入等级名称';
+
+  @override
+  String get maximumPointsMustExceedMinimum => '最高点数必须大于最低点数';
+
+  @override
+  String get tierAdded => '已新增等级';
+
+  @override
+  String get tierUpdated => '已更新等级';
+
+  @override
+  String get deleteTier => '删除等级';
+
+  @override
+  String deleteP0MembersTierDropNext(Object p0) => '要删除“${p0}”吗？已在这个等级的会员会退到下一个符合的等级。';
+
+  @override
+  String get tierDeleted => '已删除等级';
+
+  @override
+  String get noMembershipTiersSetUp => '尚未设置会员等级';
+
+  @override
+  String p0PointsUp(Object p0) => '${p0} 点以上';
+
+  @override
+  String p0P1Points(Object p0, Object p1) => '${p0} ~ ${p1} 点';
+
+  @override
+  String get noBenefitsDescribedYet => '尚未填写权益说明';
+
+  @override
+  String get noMaintenanceRecords => '目前没有维修记录';
+
+  @override
+  String get noFurtherDetail => '（无额外说明）';
+
+  @override
+  String get operator => '操作人';
+
+  @override
+  String get unknown => '（未知）';
+
+  @override
+  String get time => '时间';
+
+  @override
+  String get recordNumber => '记录编号';
+
+  @override
+  String operatorP0(Object p0) => '操作人：${p0}';
+
+  @override
+  String get suspendAccount => '停权此账号';
+
+  @override
+  String get reinstateAccount => '恢复此账号';
+
+  @override
+  String get addBlocklist => '加入黑名单';
+
+  @override
+  String get removeFromBlocklist => '移出黑名单';
+
+  @override
+  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0} 会立刻被登出，且无法再使用 App 的任何功能。';
+
+  @override
+  String p0AbleSignAgain(Object p0) => '${p0} 将可以重新登录使用。';
+
+  @override
+  String get accountStatusUpdated => '已更新账号状态';
+
+  @override
+  String get removeAdmin => '取消管理员';
+
+  @override
+  String get makeAdmin => '设为管理员';
+
+  @override
+  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 将立刻失去所有后台权限。';
+
+  @override
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 将可以进入管理后台，默认拥有全部权限，可再逐项调整。';
+
+  @override
+  String get roleUpdated => '已更新身份';
+
+  @override
+  String manualP0P1(Object p0, Object p1) => '、手动 ${p0}${p1}';
+
+  @override
+  String get adjustMembershipTier => '调整会员等级';
+
+  @override
+  String currentlyP0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '当前 ${p0} 点（自动 ${p1}${p2}）';
+
+  @override
+  String p0P1Points2(Object p0, Object p1) => '${p0}（${p1} 点）';
+
+  @override
+  String get adjustPointsManually => '手动加减点数';
+
+  @override
+  String get backAutomatic => '恢复自动计算';
+
+  @override
+  String get backAutomatic2 => '已恢复自动计算';
+
+  @override
+  String get pointAdjustment => '加减点数';
+
+  @override
+  String get positiveAddsNegativeDeductsEG => '正数增加、负数扣除，例如 -50';
+
+  @override
+  String get apply => '应用';
+
+  @override
+  String get enterNonZeroWholeNumber => '请输入非零的整数';
+
+  @override
+  String get pointsAdjusted => '已调整点数';
+
+  @override
+  String get tierAdjusted => '已调整等级';
+
+  @override
+  String get permissionGranted => '已开放权限';
+
+  @override
+  String get permissionRevoked => '已收回权限';
+
+  @override
+  String get grantAllPermissions => '开放全部权限';
+
+  @override
+  String get revokeAllPermissions => '收回全部权限';
+
+  @override
+  String p0AbleUseEveryAdminFeature(Object p0) => '${p0} 将可以使用后台所有功能。';
+
+  @override
+  String p0ReachAdminAreaButUnable(Object p0) => '${p0} 进入后台后将无法使用任何功能。';
+
+  @override
+  String get allPermissionsGranted => '已开放全部权限';
+
+  @override
+  String get allPermissionsRevoked => '已收回全部权限';
+
+  @override
+  String get memberSettings => '会员设置';
+
+  @override
+  String get noDataMember => '找不到这位会员的资料';
+
+  @override
+  String get listings2 => '上架图书';
+
+  @override
+  String get completedTrades => '完成交易';
+
+  @override
+  String get joined => '加入日期';
+
+  @override
+  String get accountStatus => '账号状态';
+
+  @override
+  String get ownAccountStatusPermissionsCannotChanged => '这是你自己的账号，无法在这里调整状态与权限。';
+
+  @override
+  String get accountEnabled => '启用账号';
+
+  @override
+  String get canSignUseAppNormally => '可以正常登录使用';
+
+  @override
+  String get suspendedSignedOutImmediatelyAfterSigning => '已停权，登录后会被立刻登出';
+
+  @override
+  String get blocked => '列入黑名单';
+
+  @override
+  String get blockedNoFeaturesAvailable => '已封锁，无法使用任何功能';
+
+  @override
+  String get notBlocked => '未封锁';
+
+  @override
+  String get role => '身份';
+
+  @override
+  String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} 点（自动 ${p1}${p2}）';
+
+  @override
+  String get memberSTierBeenAdjustedBy => '这位会员的等级目前有人工调整，不完全依交易自动计算。';
+
+  @override
+  String get adjustTier => '调整等级';
+
+  @override
+  String get adminPermissions => '后台权限';
+
+  @override
+  String get all => '全开';
+
+  @override
+  String get allOff => '全关';
+
+  @override
+  String get reinstateAccount2 => '恢复账号';
+
+  @override
+  String get suspendAccount2 => '停权账号';
+
+  @override
+  String runP1P0(Object p0, Object p1) => '确定要对“${p0}”执行“${p1}”吗？';
+
+  @override
+  String updatedP0SStatus(Object p0) => '已更新 ${p0} 的状态';
+
+  @override
+  String get fullSettingsTierPermissions => '完整设置（等级、权限）';
+
+  @override
+  String get members3 => '会员列表';
+
+  @override
+  String get searchDisplayNameEmail => '搜索昵称或邮箱';
+
+  @override
+  String get noMembersMatch => '找不到符合条件的会员';
+
+  @override
+  String get sales2 => '销售';
+
+  @override
+  String get created => '创建日期';
+
+  @override
+  String get noActivityYet => '尚无操作记录';
+
+  @override
+  String get changeOrderStatus => '调整订单状态';
+
+  @override
+  String orderP0(Object p0) => '订单 ${p0}';
+
+  @override
+  String get reasonChange => '调整说明';
+
+  @override
+  String get sentBuyerAsWellOptional => '会一并通知买家（选填）';
+
+  @override
+  String get applyChange => '确认调整';
+
+  @override
+  String get orderStatusUpdated => '订单状态已更新';
+
+  @override
+  String get searchOrderNumberBuyerSeller => '搜索订单编号或买卖家';
+
+  @override
+  String get noOrdersMatch => '找不到符合条件的订单';
+
+  @override
+  String get noItems => '（无品项）';
+
+  @override
+  String p0ItemsTotal(Object p0) => '等 ${p0} 项';
+
+  @override
+  String buyerP0SellerP12(Object p0, Object p1) => '买家 ${p0}｜卖家 ${p1}';
+
+  @override
+  String lockerP0(Object p0) => '书柜：${p0}';
+
+  @override
+  String cancellationReasonP0(Object p0) => '取消原因：${p0}';
+
+  @override
+  String get reviewReport => '审核举报';
+
+  @override
+  String reportedP0P1(Object p0, Object p1) => '被举报${p0}：${p1}';
+
+  @override
+  String reasonP02(Object p0) => '违规原因：${p0}';
+
+  @override
+  String get handlingNoteOptional => '处理备注（选填）';
+
+  @override
+  String get delistListingAsWell => '同时将该商品下架';
+
+  @override
+  String get dismissReport => '驳回举报';
+
+  @override
+  String get reportHandled => '举报已处理';
+
+  @override
+  String get noReportsKind => '目前没有此类举报案件';
+
+  @override
+  String reportedByP0(Object p0) => '举报人：${p0}';
+
+  @override
+  String get review => '审核';
+
+  @override
+  String noteP0(Object p0) => '备注：${p0}';
+
+  @override
+  String get last7Days => '近 7 天';
+
+  @override
+  String get last30Days => '近 30 天';
+
+  @override
+  String get ordersPerDay => '每日订单量';
+
+  @override
+  String get revenuePerDay => '每日成交金额';
+
+  @override
+  String get newMembersPerDay => '每日新增会员';
+
+  @override
+  String get newOrders => '新增订单';
+
+  @override
+  String get newMembers => '新增会员';
+
+  @override
+  String get newListings => '新上架图书';
+
+  @override
+  String get completedRevenue => '已完成交易额';
+
+  @override
+  String p0Orders(Object p0) => '${p0} 笔';
+
+  @override
+  String peakP0(Object p0) => '最高 ${p0}';
+
+  @override
+  String get topCategoriesByListings => '热门分类（按上架数）';
+
+  @override
+  String get replied => '已回复';
+
+  @override
+  String get noEnquiriesCategory => '此分类目前没有工单';
+
+  @override
+  String get addCoins => '增加代币';
+
+  @override
+  String get deductCoins => '扣除代币';
+
+  @override
+  String get amountPositiveWholeNumber => '金额（正整数）';
+
+  @override
+  String get reasonAdjustmentRequired => '调整原因（必填）';
+
+  @override
+  String get add2 => '确认增加';
+
+  @override
+  String get deduct => '确认扣除';
+
+  @override
+  String get enterAmountGreaterThan0 => '请输入大于 0 的金额';
+
+  @override
+  String get enterReasonAdjustment => '请填写调整原因';
+
+  @override
+  String get member2 => '这位会员';
+
+  @override
+  String get add3 => '增加';
+
+  @override
+  String get deduct2 => '扣除';
+
+  @override
+  String get confirmAddingCoins => '确认增加代币';
+
+  @override
+  String get confirmDeductingCoins => '确认扣除代币';
+
+  @override
+  String p1P2CoinsP0NreasonP3(Object p0, Object p1, Object p2, Object p3) => '将为 ${p0} ${p1} ${p2} 代币。\n原因：${p3}';
+
+  @override
+  String get balanceAdjusted => '已调整余额';
+
+  @override
+  String get memberWallets => '会员钱包';
+
+  @override
+  String get transactions3 => '账务记录';
+
+  @override
+  String get memberNoTransactionsYet => '此会员尚无账务记录。';
+
+  @override
+  String get balanceCoins => '当前余额（代币）';
+
+  @override
+  String get hold2 => '冻结中';
+
+  @override
+  String get total2 => '累计收入';
+
+  @override
+  String get totalOut => '累计支出';
+
+  @override
+  String balanceP0(Object p0) => '余 ${p0}';
+
+  @override
+  String get suspensionBlocklistRoles => '停权、黑名单、身份';
+
+  @override
+  String get tierThresholdsManualAdjustments => '等级门槛与人工调整';
+
+  @override
+  String get booksCategories => '图书与分类';
+
+  @override
+  String get reportReview => '举报审核';
+
+  @override
+  String get handleListingReports2 => '处理商品举报';
+
+  @override
+  String get lookUpChangeOrderStatus => '查询与调整订单状态';
+
+  @override
+  String get decideDisputeCases => '申诉案件裁决';
+
+  @override
+  String get checkAdjustCoinBalances => '查询与增减代币';
+
+  @override
+  String get hardware => '硬件维护';
+
+  @override
+  String get lockersSlots => '书柜与柜位';
+
+  @override
+  String get announcementsDocuments => '公告与文件';
+
+  @override
+  String get announcementsFaqLegalDocuments => '公告、常见问题、法律文件';
+
+  @override
+  String get replyUserQuestions => '回复用户问题';
+
+  @override
+  String get databaseBackupDownloadOffByDefault => '数据库备份与下载，默认关闭';
 
 }
 
@@ -10409,9 +16329,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get actionBack => '返回';
-
-  @override
-  String get actionRetry => '重試';
 
   @override
   String get actionSelect => '請選擇';
@@ -11698,9 +17615,6 @@ class _LZhHant extends AppLocalizations {
   String get noSourceIsbnPleaseEnterDetails => '各系統皆找不到此 ISBN，請嘗試手動輸入';
 
   @override
-  String get yearMonth => '[年月]';
-
-  @override
   String get day => '日';
 
   @override
@@ -11968,15 +17882,6 @@ class _LZhHant extends AppLocalizations {
   String get verifyIdentityContinue => '請驗證身分以繼續';
 
   @override
-  String get msg => '繁體中文';
-
-  @override
-  String get msg2 => '日本語';
-
-  @override
-  String get msg3 => '简体中文';
-
-  @override
   String get couldNotOpenPhotosCheckPermission => '無法開啟相簿，請確認已授權';
 
   @override
@@ -12041,6 +17946,1131 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String confirmPutLocker(Object p0) => '確認已把《${p0}》放入書櫃了嗎？';
+
+  @override
+  String get enterTitleContent => '請填寫標題與內容';
+
+  @override
+  String get titleCannotExceed255Characters => '標題不可超過 255 個字元';
+
+  @override
+  String get contentNeedsLeast5Characters => '內容至少 5 個字元';
+
+  @override
+  String get publishAnnouncement => '發布推播';
+
+  @override
+  String get everyUserSeeAnnouncementOncePublished => '發布後全體使用者都會看到這則公告，確定發布嗎？';
+
+  @override
+  String get publish => '發布';
+
+  @override
+  String get announcementPublished => '公告已發布';
+
+  @override
+  String get draftSaved => '草稿已儲存';
+
+  @override
+  String get editAnnouncement => '編輯推播';
+
+  @override
+  String get newAnnouncement => '新增推播';
+
+  @override
+  String get title2 => '標題';
+
+  @override
+  String get announcementTitle => '公告標題';
+
+  @override
+  String get writeAnnouncement => '輸入推播內容';
+
+  @override
+  String get publishNow => '立即發布';
+
+  @override
+  String get leaveOffSaveAsDraft => '關閉時只會存成草稿';
+
+  @override
+  String get saveDraft => '儲存草稿';
+
+  @override
+  String get deleteAnnouncement => '刪除公告';
+
+  @override
+  String deleteP0CannotUndone(Object p0) => '確定要刪除「${p0}」嗎？此操作無法復原。';
+
+  @override
+  String get announcementDeleted => '公告已刪除';
+
+  @override
+  String get couldNotDeleteTryAgainLater => '刪除失敗，請稍後再試';
+
+  @override
+  String get announcements => '系統公告';
+
+  @override
+  String get noAnnouncementsYetTapAddOne => '尚無公告，點右上角新增';
+
+  @override
+  String get published => '已發布';
+
+  @override
+  String get draft => '草稿';
+
+  @override
+  String get audienceEveryone => '對象：全體使用者';
+
+  @override
+  String get backUpNow => '立即備份';
+
+  @override
+  String get wholeDatabaseExportedCompressedWithLot => '將匯出整個資料庫並壓縮保存。資料量大時可能需要數十秒，期間請不要離開這個畫面。';
+
+  @override
+  String get startBackup => '開始備份';
+
+  @override
+  String get backingUpDatabase => '正在備份資料庫';
+
+  @override
+  String get backupComplete => '備份完成';
+
+  @override
+  String get backupDeleted => '已刪除備份';
+
+  @override
+  String get databaseBackups => '資料庫備份';
+
+  @override
+  String backedUpDailyNewestP0Kept(Object p0) => '每日自動備份，保留最新 ${p0} 份';
+
+  @override
+  String get olderBackupsBeyondCountRemovedAutomatically => '超出份數的舊備份會自動清除。備份檔含全站個人資料，下載後請妥善保管，每次下載都會記入操作紀錄。';
+
+  @override
+  String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄。排程每天會自動跑一次，也可以按上方按鈕立刻產生一份。';
+
+  @override
+  String get deleteBackup => '刪除備份';
+
+  @override
+  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\n檔案與紀錄會一併移除，無法復原。';
+
+  @override
+  String get manual => '手動';
+
+  @override
+  String get scheduled => '排程';
+
+  @override
+  String get download => '下載';
+
+  @override
+  String get downloadBackup => '下載備份';
+
+  @override
+  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '備份檔請在電腦上取回，並帶上你的授權標頭：\n\n${p0}\n\n檔案大小 ${p1}。';
+
+  @override
+  String get copyLink2 => '複製網址';
+
+  @override
+  String get downloadLinkCopied => '已複製下載網址';
+
+  @override
+  String get forceDelist => '強制下架';
+
+  @override
+  String get reasonDelistingSellerNotified => '下架原因，會通知賣家';
+
+  @override
+  String get delist3 => '確認下架';
+
+  @override
+  String get relist2 => '恢復上架';
+
+  @override
+  String putP0BackStore(Object p0) => '要讓《${p0}》重新出現在商城嗎？';
+
+  @override
+  String get relisted => '已恢復上架';
+
+  @override
+  String get searchTitleIsbnSeller => '搜尋書名、ISBN 或賣家';
+
+  @override
+  String get noBooksMatch => '找不到符合條件的書籍';
+
+  @override
+  String sellerP0P1(Object p0, Object p1) => '賣家 ${p0}｜${p1}';
+
+  @override
+  String isbnP0P1Views(Object p0, Object p1) => 'ISBN ${p0}｜瀏覽 ${p1}';
+
+  @override
+  String p0ReportsAwaitingReview(Object p0) => '有 ${p0} 筆待處理檢舉';
+
+  @override
+  String get enterLockerNameAddress => '請填寫書櫃名稱與地址';
+
+  @override
+  String get enterValidLatitudeLongitude => '請填寫正確的經緯度';
+
+  @override
+  String get latitudeMustBetween9090 => '緯度必須介於 -90 ~ 90';
+
+  @override
+  String get longitudeMustBetween180180 => '經度必須介於 -180 ~ 180';
+
+  @override
+  String get slotCountMustBetween1100 => '櫃位數量必須介於 1 ~ 100';
+
+  @override
+  String get closingTime => '關閉時間';
+
+  @override
+  String p0MustLookLikeHhMm(Object p0) => '${p0}格式應為 HH:mm，例：09:00';
+
+  @override
+  String get fillBothOpeningClosingTimes => '開放與關閉時間請一起填寫';
+
+  @override
+  String get lockerUpdated => '書櫃已更新';
+
+  @override
+  String get lockerAdded => '書櫃已新增';
+
+  @override
+  String get editLocker => '修改書櫃';
+
+  @override
+  String get newLocker => '新增書櫃';
+
+  @override
+  String get lockerName => '書櫃名稱';
+
+  @override
+  String get latitude => '緯度';
+
+  @override
+  String get longitude => '經度';
+
+  @override
+  String get slotCount => '櫃位數量';
+
+  @override
+  String get createLocker => '建立書櫃';
+
+  @override
+  String get disable => '停用';
+
+  @override
+  String p0Locker(Object p0) => '${p0}';
+
+  @override
+  String onceDisabledP0NoLongerAppears(Object p0) => '停用後「${p0}」不會再出現在賣家的存放區域選單中。';
+
+  @override
+  String onceEnabledP0AvailableSellersAgain(Object p0) => '啟用後「${p0}」會重新開放給賣家選擇。';
+
+  @override
+  String get lockerDisabled => '書櫃已停用';
+
+  @override
+  String get lockerEnabled => '書櫃已啟用';
+
+  @override
+  String slotP0(Object p0) => '櫃位 ${p0}';
+
+  @override
+  String get slotStatusUpdated => '櫃位狀態已更新';
+
+  @override
+  String get lockerMonitor => '書櫃監控';
+
+  @override
+  String get searchLockerNameAddress => '搜尋書櫃名稱或地址';
+
+  @override
+  String get noLockersMatch => '沒有符合條件的書櫃';
+
+  @override
+  String get disabled => '已停用';
+
+  @override
+  String freeSlotsP0P1(Object p0, Object p1) => '剩餘空間：${p0} / ${p1}';
+
+  @override
+  String get newCategory => '新增分類';
+
+  @override
+  String get editCategory => '編輯分類';
+
+  @override
+  String get categoryName => '分類名稱';
+
+  @override
+  String get enterCategoryName => '請輸入分類名稱';
+
+  @override
+  String get categoryAdded => '已新增分類';
+
+  @override
+  String get categoryUpdated => '已更新分類';
+
+  @override
+  String get deleteCategory => '刪除分類';
+
+  @override
+  String deleteP0CannotUndone2(Object p0) => '要刪除「${p0}」嗎？此動作無法復原。';
+
+  @override
+  String get categoryDeleted => '已刪除分類';
+
+  @override
+  String get categories => '分類管理';
+
+  @override
+  String get noCategoriesYet => '尚無分類';
+
+  @override
+  String p0BooksUse(Object p0) => '${p0} 本書使用中';
+
+  @override
+  String get legalDocuments => '法律文件';
+
+  @override
+  String get notCreatedYet => '尚未建立';
+
+  @override
+  String updatedP0(Object p0) => '最後更新 ${p0}';
+
+  @override
+  String p0Characters(Object p0) => '${p0} 字';
+
+  @override
+  String p0SectionsP1Characters(Object p0, Object p1) => '${p0} 章・${p1} 字';
+
+  @override
+  String get deleteSection => '刪除章節';
+
+  @override
+  String get contentsSectionRemovedWith => '這一章的內容會一併移除。';
+
+  @override
+  String p0ItsContentsRemoved(Object p0) => '「${p0}」與其內容會一併移除。';
+
+  @override
+  String get discardChanges => '捨棄變更？';
+
+  @override
+  String get documentUnsavedChangesTheyLostIf => '這份文件有尚未儲存的修改，離開後會遺失。';
+
+  @override
+  String get discard => '捨棄';
+
+  @override
+  String get keepEditing => '繼續編輯';
+
+  @override
+  String get bothTitleContentRequired => '標題與內容都要填寫';
+
+  @override
+  String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章還沒有標題';
+
+  @override
+  String updateP0(Object p0) => '確認更新${p0}？';
+
+  @override
+  String get documentBindingEveryUserSubmittingReplaces => '這份文件對所有使用者都有效力，送出後會立刻取代目前的版本。';
+
+  @override
+  String get yesUpdate => '我確認要更新';
+
+  @override
+  String get notifyEveryUser => '要通知所有使用者嗎？';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位啟用中的會員都會收到一則「${p0}」的通知。';
+
+  @override
+  String get updateNotify => '更新並通知';
+
+  @override
+  String get updateOnly => '只更新不通知';
+
+  @override
+  String get sections => '章節';
+
+  @override
+  String get plainText => '純文字';
+
+  @override
+  String get preview => '預覽';
+
+  @override
+  String get documentTitle => '文件標題';
+
+  @override
+  String get preamble => '前言';
+
+  @override
+  String get unnumberedOpeningTextLeaveEmptyIf => '開頭不編號的說明文字，沒有的話可以留空。';
+
+  @override
+  String get articles => '條文';
+
+  @override
+  String get numberedAutomatically => '編號自動產生';
+
+  @override
+  String get noArticlesYetAddFirstOne => '還沒有條文。按下方新增第一章。';
+
+  @override
+  String get addSection => '新增章節';
+
+  @override
+  String get untitledSection => '未命名章節';
+
+  @override
+  String get sectionTitle => '章節標題';
+
+  @override
+  String get bodySectionSingleLineBreaksKept => '這一章的內容。單行換行會照樣呈現，空一行代表另起一段。';
+
+  @override
+  String get emptyLineStartsParagraphParagraphWhose => '空一行分段。首行寫「1. 標題」的段落，切回章節模式時會被認成一章。';
+
+  @override
+  String get howUsersSee => '使用者看到的樣子';
+
+  @override
+  String get noContentYet => '尚無內容';
+
+  @override
+  String get unsaved => '尚未儲存';
+
+  @override
+  String get upDate => '已是最新版本';
+
+  @override
+  String get newQuestion => '新增問題';
+
+  @override
+  String get editQuestion => '編輯問題';
+
+  @override
+  String get question => '問題';
+
+  @override
+  String get answer => '答案';
+
+  @override
+  String get showHelpCentre => '顯示在幫助中心';
+
+  @override
+  String get bothQuestionAnswerRequired => '問題與答案都要填寫';
+
+  @override
+  String get added => '已新增';
+
+  @override
+  String get updated => '已更新';
+
+  @override
+  String get deleteQuestion => '刪除問題';
+
+  @override
+  String deleteP0(Object p0) => '要刪除「${p0}」嗎？';
+
+  @override
+  String get deleted => '已刪除';
+
+  @override
+  String get faq => '常見問題';
+
+  @override
+  String get noQuestionsYet2 => '尚無常見問題';
+
+  @override
+  String get dragHandleRightReorder => '拖曳右側把手可調整順序';
+
+  @override
+  String get hidden => '已隱藏';
+
+  @override
+  String get cancelDeletionRequest => '取消刪除申請';
+
+  @override
+  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0} 的帳號會恢復正常，刪除倒數停止。';
+
+  @override
+  String get cancelDeletion => '取消刪除';
+
+  @override
+  String get deletionRequestCancelled => '已取消該會員的刪除申請';
+
+  @override
+  String get anonymiseNow => '立即執行匿名化';
+
+  @override
+  String eraseP0SPersonalDataDisable(Object p0) => '不等緩衝期結束，立刻清除 ${p0} 的個人資料並停用帳號。\n\n訂單與交易紀錄會保留，但暱稱會變成「已刪除的使用者」。此操作無法復原。';
+
+  @override
+  String get doNow => '立即執行';
+
+  @override
+  String get anonymised => '已完成匿名化';
+
+  @override
+  String get pendingDeletions => '待刪除帳號';
+
+  @override
+  String get noDeletionRequestsPending => '目前沒有待處理的刪除申請';
+
+  @override
+  String get dueSoon => '即將執行';
+
+  @override
+  String p0DaysLeft(Object p0) => '剩 ${p0} 天';
+
+  @override
+  String requestedP0ScheduledP1(Object p0, Object p1) => '申請於 ${p0}，預計 ${p1} 執行';
+
+  @override
+  String get disputeResolution => '交易仲裁';
+
+  @override
+  String orderP0P1(Object p0, Object p1) => '訂單 ${p0}｜\\\$${p1}';
+
+  @override
+  String reasonP0(Object p0) => '申訴理由：${p0}';
+
+  @override
+  String get decisionNoteOptional => '裁決說明（選填）';
+
+  @override
+  String get submitDecision => '送出裁決';
+
+  @override
+  String get decisionRecorded => '已完成裁決';
+
+  @override
+  String get resolveDispute => '仲裁交易';
+
+  @override
+  String get noDisputesKind => '目前沒有此類申訴案件';
+
+  @override
+  String orderNumberP0(Object p0) => '訂單編號：${p0}';
+
+  @override
+  String buyerP0SellerP1(Object p0, Object p1) => '買家：${p0}｜賣家：${p1}';
+
+  @override
+  String filedByP0(Object p0) => '申訴人：${p0}';
+
+  @override
+  String get handle => '處理';
+
+  @override
+  String get transactions2 => '交易管理';
+
+  @override
+  String get orders => '訂單管理';
+
+  @override
+  String get lookUpOrdersAdjustStatusBy => '查詢訂單、人工調整狀態';
+
+  @override
+  String get disputeListDecisions => '申訴列表與裁決';
+
+  @override
+  String get listings => '商品管理';
+
+  @override
+  String get allBooksForceDelisting => '全站書籍、強制下架';
+
+  @override
+  String get moderation => '內容審核';
+
+  @override
+  String get handleListingReports => '商品檢舉處理';
+
+  @override
+  String get addReorderDeleteBookCategories => '新增、排序與刪除書籍分類';
+
+  @override
+  String get members => '會員管理';
+
+  @override
+  String get memberControls => '會員管控';
+
+  @override
+  String get memberListSuspensionBlocklist => '會員列表、停權與黑名單';
+
+  @override
+  String get membershipTiers => '會員等級管理';
+
+  @override
+  String get tierThresholdsBenefits => '等級門檻與權益設定';
+
+  @override
+  String get wallets => '錢包管理';
+
+  @override
+  String get checkBalancesAddDeductCoinsBy => '查詢餘額、人工增減代幣';
+
+  @override
+  String get hardwareOperations => '硬體與營運';
+
+  @override
+  String get lockerSlotStatus => '書櫃與櫃位狀態';
+
+  @override
+  String get maintenanceLog => '維修紀錄';
+
+  @override
+  String get lockerOperationHistory => '書櫃相關操作紀錄';
+
+  @override
+  String get reports => '營運報表';
+
+  @override
+  String get ordersRevenueMemberGrowth => '訂單、營收與會員成長';
+
+  @override
+  String get announcements2 => '推播管理';
+
+  @override
+  String get supportEnquiries => '客服工單';
+
+  @override
+  String get replyQuestionsFromUsers => '回覆使用者提出的問題';
+
+  @override
+  String get faqShownHelpCentre => '幫助中心的常見問題';
+
+  @override
+  String get termsPrivacyPolicyAbout => '服務條款、隱私權政策、關於我們';
+
+  @override
+  String get adminAuditLog => '管理操作紀錄';
+
+  @override
+  String get auditTrailAdminChanges => '管理員異動的稽核軌跡';
+
+  @override
+  String get systemOperations => '系統維運';
+
+  @override
+  String get dailyBackupsManualRunsDownloads => '每日自動備份、手動觸發與下載';
+
+  @override
+  String get deletionRequestsInsideGracePeriodCancel => '緩衝期內的刪除申請，可代為取消或立即執行';
+
+  @override
+  String get members2 => '會員數';
+
+  @override
+  String get todaySOrders => '今日訂單';
+
+  @override
+  String get openCases => '待處理案件';
+
+  @override
+  String get activeLockers => '啟用書櫃';
+
+  @override
+  String get newTier => '新增等級';
+
+  @override
+  String get editTier => '編輯等級';
+
+  @override
+  String get tierName => '等級名稱';
+
+  @override
+  String get minimumPoints => '最低點數';
+
+  @override
+  String get maximumPointsLeaveEmptyNoCap => '最高點數（留空 = 無上限）';
+
+  @override
+  String get benefitsSeparatedByCommasLineBreaks => '權益，用頓號或換行分隔，會在會員等級頁逐條顯示';
+
+  @override
+  String get enterTierName => '請輸入等級名稱';
+
+  @override
+  String get maximumPointsMustExceedMinimum => '最高點數必須大於最低點數';
+
+  @override
+  String get tierAdded => '已新增等級';
+
+  @override
+  String get tierUpdated => '已更新等級';
+
+  @override
+  String get deleteTier => '刪除等級';
+
+  @override
+  String deleteP0MembersTierDropNext(Object p0) => '要刪除「${p0}」嗎？已在這個等級的會員會退到下一個符合的等級。';
+
+  @override
+  String get tierDeleted => '已刪除等級';
+
+  @override
+  String get noMembershipTiersSetUp => '尚未設定會員等級';
+
+  @override
+  String p0PointsUp(Object p0) => '${p0} 點以上';
+
+  @override
+  String p0P1Points(Object p0, Object p1) => '${p0} ~ ${p1} 點';
+
+  @override
+  String get noBenefitsDescribedYet => '尚未填寫權益說明';
+
+  @override
+  String get noMaintenanceRecords => '目前沒有維修紀錄';
+
+  @override
+  String get noFurtherDetail => '（無額外說明）';
+
+  @override
+  String get operator => '操作人';
+
+  @override
+  String get unknown => '（未知）';
+
+  @override
+  String get time => '時間';
+
+  @override
+  String get recordNumber => '紀錄編號';
+
+  @override
+  String operatorP0(Object p0) => '操作人：${p0}';
+
+  @override
+  String get suspendAccount => '停權此帳號';
+
+  @override
+  String get reinstateAccount => '恢復此帳號';
+
+  @override
+  String get addBlocklist => '加入黑名單';
+
+  @override
+  String get removeFromBlocklist => '移出黑名單';
+
+  @override
+  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0} 會立刻被登出，且無法再使用 App 的任何功能。';
+
+  @override
+  String p0AbleSignAgain(Object p0) => '${p0} 將可以重新登入使用。';
+
+  @override
+  String get accountStatusUpdated => '已更新帳號狀態';
+
+  @override
+  String get removeAdmin => '取消管理員';
+
+  @override
+  String get makeAdmin => '設為管理員';
+
+  @override
+  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 將立刻失去所有後台權限。';
+
+  @override
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 將可以進入管理後台，預設擁有全部權限，可再逐項調整。';
+
+  @override
+  String get roleUpdated => '已更新身分';
+
+  @override
+  String manualP0P1(Object p0, Object p1) => '、手動 ${p0}${p1}';
+
+  @override
+  String get adjustMembershipTier => '調整會員等級';
+
+  @override
+  String currentlyP0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '目前 ${p0} 點（自動 ${p1}${p2}）';
+
+  @override
+  String p0P1Points2(Object p0, Object p1) => '${p0}（${p1} 點）';
+
+  @override
+  String get adjustPointsManually => '手動加減點數';
+
+  @override
+  String get backAutomatic => '恢復自動計算';
+
+  @override
+  String get backAutomatic2 => '已恢復自動計算';
+
+  @override
+  String get pointAdjustment => '加減點數';
+
+  @override
+  String get positiveAddsNegativeDeductsEG => '正數增加、負數扣除，例如 -50';
+
+  @override
+  String get apply => '套用';
+
+  @override
+  String get enterNonZeroWholeNumber => '請輸入非零的整數';
+
+  @override
+  String get pointsAdjusted => '已調整點數';
+
+  @override
+  String get tierAdjusted => '已調整等級';
+
+  @override
+  String get permissionGranted => '已開放權限';
+
+  @override
+  String get permissionRevoked => '已收回權限';
+
+  @override
+  String get grantAllPermissions => '開放全部權限';
+
+  @override
+  String get revokeAllPermissions => '收回全部權限';
+
+  @override
+  String p0AbleUseEveryAdminFeature(Object p0) => '${p0} 將可以使用後台所有功能。';
+
+  @override
+  String p0ReachAdminAreaButUnable(Object p0) => '${p0} 進入後台後將無法使用任何功能。';
+
+  @override
+  String get allPermissionsGranted => '已開放全部權限';
+
+  @override
+  String get allPermissionsRevoked => '已收回全部權限';
+
+  @override
+  String get memberSettings => '會員設定';
+
+  @override
+  String get noDataMember => '找不到這位會員的資料';
+
+  @override
+  String get listings2 => '上架書籍';
+
+  @override
+  String get completedTrades => '完成交易';
+
+  @override
+  String get joined => '加入日期';
+
+  @override
+  String get accountStatus => '帳號狀態';
+
+  @override
+  String get ownAccountStatusPermissionsCannotChanged => '這是你自己的帳號，無法在這裡調整狀態與權限。';
+
+  @override
+  String get accountEnabled => '啟用帳號';
+
+  @override
+  String get canSignUseAppNormally => '可以正常登入使用';
+
+  @override
+  String get suspendedSignedOutImmediatelyAfterSigning => '已停權，登入後會被立刻登出';
+
+  @override
+  String get blocked => '列入黑名單';
+
+  @override
+  String get blockedNoFeaturesAvailable => '已封鎖，無法使用任何功能';
+
+  @override
+  String get notBlocked => '未封鎖';
+
+  @override
+  String get role => '身分';
+
+  @override
+  String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} 點（自動 ${p1}${p2}）';
+
+  @override
+  String get memberSTierBeenAdjustedBy => '這位會員的等級目前有人工調整，不完全依交易自動計算。';
+
+  @override
+  String get adjustTier => '調整等級';
+
+  @override
+  String get adminPermissions => '後台權限';
+
+  @override
+  String get all => '全開';
+
+  @override
+  String get allOff => '全關';
+
+  @override
+  String get reinstateAccount2 => '恢復帳號';
+
+  @override
+  String get suspendAccount2 => '停權帳號';
+
+  @override
+  String runP1P0(Object p0, Object p1) => '確定要對「${p0}」執行「${p1}」嗎？';
+
+  @override
+  String updatedP0SStatus(Object p0) => '已更新 ${p0} 的狀態';
+
+  @override
+  String get fullSettingsTierPermissions => '完整設定（等級、權限）';
+
+  @override
+  String get members3 => '會員列表';
+
+  @override
+  String get searchDisplayNameEmail => '搜尋暱稱或 Email';
+
+  @override
+  String get noMembersMatch => '找不到符合條件的會員';
+
+  @override
+  String get sales2 => '銷售';
+
+  @override
+  String get created => '創建日期';
+
+  @override
+  String get noActivityYet => '尚無操作紀錄';
+
+  @override
+  String get changeOrderStatus => '調整訂單狀態';
+
+  @override
+  String orderP0(Object p0) => '訂單 ${p0}';
+
+  @override
+  String get reasonChange => '調整說明';
+
+  @override
+  String get sentBuyerAsWellOptional => '會一併通知買家（選填）';
+
+  @override
+  String get applyChange => '確認調整';
+
+  @override
+  String get orderStatusUpdated => '訂單狀態已更新';
+
+  @override
+  String get searchOrderNumberBuyerSeller => '搜尋訂單編號或買賣家';
+
+  @override
+  String get noOrdersMatch => '找不到符合條件的訂單';
+
+  @override
+  String get noItems => '（無品項）';
+
+  @override
+  String p0ItemsTotal(Object p0) => '等 ${p0} 項';
+
+  @override
+  String buyerP0SellerP12(Object p0, Object p1) => '買家 ${p0}｜賣家 ${p1}';
+
+  @override
+  String lockerP0(Object p0) => '書櫃：${p0}';
+
+  @override
+  String cancellationReasonP0(Object p0) => '取消原因：${p0}';
+
+  @override
+  String get reviewReport => '審核檢舉';
+
+  @override
+  String reportedP0P1(Object p0, Object p1) => '被檢舉${p0}：${p1}';
+
+  @override
+  String reasonP02(Object p0) => '違規原因：${p0}';
+
+  @override
+  String get handlingNoteOptional => '處理備註（選填）';
+
+  @override
+  String get delistListingAsWell => '同時將該商品下架';
+
+  @override
+  String get dismissReport => '駁回檢舉';
+
+  @override
+  String get reportHandled => '檢舉已處理';
+
+  @override
+  String get noReportsKind => '目前沒有此類檢舉案件';
+
+  @override
+  String reportedByP0(Object p0) => '檢舉人：${p0}';
+
+  @override
+  String get review => '審核';
+
+  @override
+  String noteP0(Object p0) => '備註：${p0}';
+
+  @override
+  String get last7Days => '近 7 天';
+
+  @override
+  String get last30Days => '近 30 天';
+
+  @override
+  String get ordersPerDay => '每日訂單量';
+
+  @override
+  String get revenuePerDay => '每日成交金額';
+
+  @override
+  String get newMembersPerDay => '每日新增會員';
+
+  @override
+  String get newOrders => '新增訂單';
+
+  @override
+  String get newMembers => '新增會員';
+
+  @override
+  String get newListings => '新上架書籍';
+
+  @override
+  String get completedRevenue => '已完成交易額';
+
+  @override
+  String p0Orders(Object p0) => '${p0} 筆';
+
+  @override
+  String peakP0(Object p0) => '最高 ${p0}';
+
+  @override
+  String get topCategoriesByListings => '熱門分類（依上架數）';
+
+  @override
+  String get replied => '已回覆';
+
+  @override
+  String get noEnquiriesCategory => '此分類目前沒有工單';
+
+  @override
+  String get addCoins => '增加代幣';
+
+  @override
+  String get deductCoins => '扣除代幣';
+
+  @override
+  String get amountPositiveWholeNumber => '金額（正整數）';
+
+  @override
+  String get reasonAdjustmentRequired => '調整原因（必填）';
+
+  @override
+  String get add2 => '確認增加';
+
+  @override
+  String get deduct => '確認扣除';
+
+  @override
+  String get enterAmountGreaterThan0 => '請輸入大於 0 的金額';
+
+  @override
+  String get enterReasonAdjustment => '請填寫調整原因';
+
+  @override
+  String get member2 => '這位會員';
+
+  @override
+  String get add3 => '增加';
+
+  @override
+  String get deduct2 => '扣除';
+
+  @override
+  String get confirmAddingCoins => '確認增加代幣';
+
+  @override
+  String get confirmDeductingCoins => '確認扣除代幣';
+
+  @override
+  String p1P2CoinsP0NreasonP3(Object p0, Object p1, Object p2, Object p3) => '將為 ${p0} ${p1} ${p2} 代幣。\n原因：${p3}';
+
+  @override
+  String get balanceAdjusted => '已調整餘額';
+
+  @override
+  String get memberWallets => '會員錢包';
+
+  @override
+  String get transactions3 => '帳務紀錄';
+
+  @override
+  String get memberNoTransactionsYet => '此會員尚無帳務紀錄。';
+
+  @override
+  String get balanceCoins => '目前餘額（代幣）';
+
+  @override
+  String get hold2 => '凍結中';
+
+  @override
+  String get total2 => '累積收入';
+
+  @override
+  String get totalOut => '累積支出';
+
+  @override
+  String balanceP0(Object p0) => '餘 ${p0}';
+
+  @override
+  String get suspensionBlocklistRoles => '停權、黑名單、身分';
+
+  @override
+  String get tierThresholdsManualAdjustments => '等級門檻與人工調整';
+
+  @override
+  String get booksCategories => '書籍與分類';
+
+  @override
+  String get reportReview => '檢舉審核';
+
+  @override
+  String get handleListingReports2 => '處理商品檢舉';
+
+  @override
+  String get lookUpChangeOrderStatus => '查詢與調整訂單狀態';
+
+  @override
+  String get decideDisputeCases => '申訴案件裁決';
+
+  @override
+  String get checkAdjustCoinBalances => '查詢與增減代幣';
+
+  @override
+  String get hardware => '硬體維護';
+
+  @override
+  String get lockersSlots => '書櫃與櫃位';
+
+  @override
+  String get announcementsDocuments => '公告與文件';
+
+  @override
+  String get announcementsFaqLegalDocuments => '公告、常見問題、法律文件';
+
+  @override
+  String get replyUserQuestions => '回覆使用者問題';
+
+  @override
+  String get databaseBackupDownloadOffByDefault => '資料庫備份與下載，預設關閉';
 
 }
 

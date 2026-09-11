@@ -96,11 +96,11 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              category == null ? '新增分類' : '編輯分類',
+              category == null ? S.newCategory : S.editCategory,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
             ),
             const SizedBox(height: 16),
-            AppTextField(controller: nameController, hint: '分類名稱', maxLength: 50),
+            AppTextField(controller: nameController, hint: S.categoryName, maxLength: 50),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -124,7 +124,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
 
     final name = nameController.text.trim();
     if (name.isEmpty) {
-      showAppSnackBar(context, '請輸入分類名稱', isError: true);
+      showAppSnackBar(context, S.enterCategoryName, isError: true);
       return;
     }
 
@@ -141,7 +141,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, category == null ? '已新增分類' : '已更新分類');
+      showAppSnackBar(context, category == null ? S.categoryAdded : S.categoryUpdated);
       _load();
     }
   }
@@ -149,8 +149,8 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
   Future<void> _delete(AdminCategory category) async {
     final ok = await showConfirmDialog(
       context,
-      title: '刪除分類',
-      message: '要刪除「${category.name}」嗎？此動作無法復原。',
+      title: S.deleteCategory,
+      message: S.deleteP0CannotUndone2(category.name),
       confirmLabel: S.actionDelete,
       isDestructive: true,
     );
@@ -162,7 +162,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '已刪除分類');
+      showAppSnackBar(context, S.categoryDeleted);
       _load();
     }
   }
@@ -176,7 +176,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
       body: Column(
         children: [
           AppHeader(
-            title: '分類管理',
+            title: S.categories,
             icon: Icons.category_outlined,
             actions: [
               HeaderIconButton(icon: Icons.add_rounded, onTap: () => _edit()),
@@ -191,11 +191,11 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                       onRefresh: _load,
                       child: SwitchIn(child: _categories.isEmpty
                           ? ListView(key: const ValueKey('empty'), 
-                              children: const [
+                              children: [
                                 SizedBox(height: 60),
                                 EmptyView(
                                   icon: Icons.category_outlined,
-                                  message: '尚無分類',
+                                  message: S.noCategoriesYet,
                                 ),
                               ],
                             )
@@ -269,7 +269,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${category.bookCount} 本書使用中',
+                  S.p0BooksUse(category.bookCount),
                   style: TextStyle(fontSize: 12, color: c.textSecondary),
                 ),
               ],

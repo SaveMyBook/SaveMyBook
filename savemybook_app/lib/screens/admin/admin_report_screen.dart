@@ -81,20 +81,20 @@ class _AdminReportScreenState extends State<AdminReportScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('審核檢舉',
+              Text(S.reviewReport,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary)),
               const SizedBox(height: 6),
-              Text('被檢舉${report.targetTypeText}：${report.targetTitle}',
+              Text(S.reportedP0P1(report.targetTypeText, report.targetTitle),
                   style: TextStyle(fontSize: 13, color: c.textSecondary)),
               const SizedBox(height: 4),
-              Text('違規原因：${report.reason}',
+              Text(S.reasonP02(report.reason),
                   style: TextStyle(fontSize: 13, color: c.textSecondary)),
               const SizedBox(height: 16),
               AppTextField(
                 controller: noteController,
                 maxLines: 3,
                 maxLength: 500,
-                hint: '處理備註（選填）',
+                hint: S.handlingNoteOptional,
               ),
               if (report.targetType == 'book')
                 CheckboxListTile(
@@ -102,7 +102,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                   value: removeTarget,
                   activeColor: c.accent,
                   controlAffinity: ListTileControlAffinity.leading,
-                  title: Text('同時將該商品下架',
+                  title: Text(S.delistListingAsWell,
                       style: TextStyle(fontSize: 14, color: c.textPrimary)),
                   onChanged: (value) => setSheetState(() => removeTarget = value ?? false),
                 ),
@@ -117,7 +117,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('駁回檢舉'),
+                      child: Text(S.dismissReport),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -157,7 +157,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '檢舉已處理');
+      showAppSnackBar(context, S.reportHandled);
       _load();
     }
   }
@@ -171,7 +171,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
       body: Column(
         children: [
           AppHeader(
-            title: '商品檢舉處理',
+            title: S.handleListingReports,
             icon: Icons.report_gmailerrorred_outlined,
             bottom: AppTabBar(controller: _tabController, tabs: [S.ticketOpen, S.reportResolved]),
           ),
@@ -185,9 +185,9 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                     onRefresh: _load,
                     child: SwitchIn(child: _reports.isEmpty
                         ? ListView(key: const ValueKey('empty'), 
-                            children: const [
+                            children: [
                               SizedBox(height: 80),
-                              EmptyView(icon: Icons.verified_outlined, message: '目前沒有此類檢舉案件'),
+                              EmptyView(icon: Icons.verified_outlined, message: S.noReportsKind),
                             ],
                           )
                         : ListView.builder(key: const ValueKey('items'), 
@@ -225,10 +225,10 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary),
                     ),
                     const SizedBox(height: 4),
-                    Text('檢舉人：${report.reporterName}',
+                    Text(S.reportedByP0(report.reporterName),
                         style: TextStyle(fontSize: 12, color: c.textSecondary)),
                     const SizedBox(height: 2),
-                    Text('違規原因：${report.reason}',
+                    Text(S.reasonP02(report.reason),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 12, color: c.textSecondary)),
@@ -253,7 +253,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                             color: c.accent,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text('審核',
+                          child: Text(S.review,
                               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
                         ),
                       )
@@ -265,7 +265,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
           ),
           if (!_isPendingTab && (report.adminNote?.isNotEmpty ?? false)) ...[
             const SizedBox(height: 8),
-            Text('備註：${report.adminNote}', style: TextStyle(fontSize: 12, color: c.textSecondary)),
+            Text(S.noteP0(report.adminNote), style: TextStyle(fontSize: 12, color: c.textSecondary)),
           ],
         ],
       ),

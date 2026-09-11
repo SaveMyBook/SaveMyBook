@@ -178,20 +178,19 @@ class AppLabels {
   // ---------- 管理員權限 ----------
 
   /// 管理員細部權限的名稱與說明，順序即設定頁的顯示順序。
-  /// 這些只有管理員看得到，維持繁中即可。
-  static const permission = <String, (String, String)>{
-    'can_manage_members': ('會員管控', '停權、黑名單、身分'),
-    'can_manage_levels': ('會員等級', '等級門檻與人工調整'),
-    'can_manage_content': ('商品管理', '書籍與分類'),
-    'can_manage_reports': ('檢舉審核', '處理商品檢舉'),
-    'can_manage_orders': ('訂單管理', '查詢與調整訂單狀態'),
-    'can_manage_transactions': ('交易仲裁', '申訴案件裁決'),
-    'can_manage_wallets': ('錢包管理', '查詢與增減代幣'),
-    'can_manage_cabinets': ('硬體維護', '書櫃與櫃位'),
-    'can_manage_announcements': ('公告與文件', '公告、常見問題、法律文件'),
-    'can_manage_support': ('客服工單', '回覆使用者問題'),
-    'can_view_stats': ('營運報表', '訂單、營收與會員成長'),
-    'can_manage_system': ('系統維運', '資料庫備份與下載，預設關閉'),
+  static Map<String, (String, String)> get permission => {
+    'can_manage_members': (S.memberControls, S.suspensionBlocklistRoles),
+    'can_manage_levels': (S.membershipTier, S.tierThresholdsManualAdjustments),
+    'can_manage_content': (S.listings, S.booksCategories),
+    'can_manage_reports': (S.reportReview, S.handleListingReports2),
+    'can_manage_orders': (S.orders, S.lookUpChangeOrderStatus),
+    'can_manage_transactions': (S.disputeResolution, S.decideDisputeCases),
+    'can_manage_wallets': (S.wallets, S.checkAdjustCoinBalances),
+    'can_manage_cabinets': (S.hardware, S.lockersSlots),
+    'can_manage_announcements': (S.announcementsDocuments, S.announcementsFaqLegalDocuments),
+    'can_manage_support': (S.supportEnquiries, S.replyUserQuestions),
+    'can_view_stats': (S.reports, S.ordersRevenueMemberGrowth),
+    'can_manage_system': (S.systemOperations, S.databaseBackupDownloadOffByDefault),
   };
 
   // ---------- 反覆出現的提示 ----------

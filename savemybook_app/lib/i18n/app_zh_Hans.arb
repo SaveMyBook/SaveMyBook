@@ -87,7 +87,6 @@
   "actionSubmit": "提交",
   "actionClose": "关闭",
   "actionBack": "返回",
-  "actionRetry": "重试",
   "actionSelect": "请选择",
   "actionAll": "全部",
   "actionSearch": "搜索",
@@ -732,7 +731,6 @@
   "bookDetailsFilledAutomatically": "已自动带入书籍信息！",
   "bookDetailsFilledFromBackupSource": "已通过备援系统带入书籍信息！",
   "noSourceIsbnPleaseEnterDetails": "各系统皆找不到此 ISBN，请尝试手动输入",
-  "yearMonth": "[年月]",
   "day": "日",
   "tapIconRightScan": "可点击右侧图标扫描",
   "description": "书籍简介",
@@ -863,9 +861,6 @@
   "fingerprint": "指纹",
   "iris": "虹膜",
   "verifyIdentityContinue": "请验证身分以继续",
-  "msg": "繁體中文",
-  "msg2": "日本語",
-  "msg3": "简体中文",
   "couldNotOpenPhotosCheckPermission": "无法打开相册，请确认已授权",
   "choosePhotoSource": "选择照片来源",
   "takePhoto": "拍照",
@@ -919,5 +914,711 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "enterTitleContent": "请填写标题与内容",
+  "titleCannotExceed255Characters": "标题不可超过 255 个字符",
+  "contentNeedsLeast5Characters": "内容至少 5 个字符",
+  "publishAnnouncement": "发布推送",
+  "everyUserSeeAnnouncementOncePublished": "发布后全体用户都会看到这则公告，确定发布吗？",
+  "publish": "发布",
+  "announcementPublished": "公告已发布",
+  "draftSaved": "草稿已保存",
+  "editAnnouncement": "编辑推送",
+  "newAnnouncement": "新增推送",
+  "title2": "标题",
+  "announcementTitle": "公告标题",
+  "writeAnnouncement": "输入推送内容",
+  "publishNow": "立即发布",
+  "leaveOffSaveAsDraft": "关闭时只会存成草稿",
+  "saveDraft": "保存草稿",
+  "deleteAnnouncement": "删除公告",
+  "deleteP0CannotUndone": "确定要删除“{p0}”吗？此操作无法撤销。",
+  "@deleteP0CannotUndone": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "announcementDeleted": "公告已删除",
+  "couldNotDeleteTryAgainLater": "删除失败，请稍后再试",
+  "announcements": "系统公告",
+  "noAnnouncementsYetTapAddOne": "尚无公告，点右上角新增",
+  "published": "已发布",
+  "draft": "草稿",
+  "audienceEveryone": "对象：全体用户",
+  "backUpNow": "立即备份",
+  "wholeDatabaseExportedCompressedWithLot": "将导出整个数据库并压缩保存。数据量大时可能需要数十秒，期间请不要离开这个界面。",
+  "startBackup": "开始备份",
+  "backingUpDatabase": "正在备份数据库",
+  "backupComplete": "备份完成",
+  "backupDeleted": "已删除备份",
+  "databaseBackups": "数据库备份",
+  "backedUpDailyNewestP0Kept": "每日自动备份，保留最新 {p0} 份",
+  "@backedUpDailyNewestP0Kept": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "olderBackupsBeyondCountRemovedAutomatically": "超出份数的旧备份会自动清除。备份文件含全站个人资料，下载后请妥善保管，每次下载都会记入操作记录。",
+  "noBackupsYetSchedulerRunsOnce": "尚无备份记录。排程每天会自动跑一次，也可以按上方按钮立刻生成一份。",
+  "deleteBackup": "删除备份",
+  "p0NNtheFileItsRecord": "{p0}\n\n文件与记录会一并移除，无法恢复。",
+  "@p0NNtheFileItsRecord": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "manual": "手动",
+  "scheduled": "排程",
+  "download": "下载",
+  "downloadBackup": "下载备份",
+  "fetchBackupComputerWithAuthorisationHeader": "备份文件请在电脑上取回，并带上你的授权标头：\n\n{p0}\n\n文件大小 {p1}。",
+  "@fetchBackupComputerWithAuthorisationHeader": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "copyLink2": "复制网址",
+  "downloadLinkCopied": "已复制下载网址",
+  "forceDelist": "强制下架",
+  "reasonDelistingSellerNotified": "下架原因，会通知卖家",
+  "delist3": "确认下架",
+  "relist2": "恢复上架",
+  "putP0BackStore": "要让《{p0}》重新出现在商城吗？",
+  "@putP0BackStore": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "relisted": "已恢复上架",
+  "searchTitleIsbnSeller": "搜索书名、ISBN 或卖家",
+  "noBooksMatch": "找不到符合条件的书籍",
+  "sellerP0P1": "卖家 {p0}｜{p1}",
+  "@sellerP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "isbnP0P1Views": "ISBN {p0}｜浏览 {p1}",
+  "@isbnP0P1Views": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0ReportsAwaitingReview": "有 {p0} 笔待处理举报",
+  "@p0ReportsAwaitingReview": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterLockerNameAddress": "请填写书柜名称与地址",
+  "enterValidLatitudeLongitude": "请填写正确的经纬度",
+  "latitudeMustBetween9090": "纬度必须介于 -90 ~ 90",
+  "longitudeMustBetween180180": "经度必须介于 -180 ~ 180",
+  "slotCountMustBetween1100": "柜位数量必须介于 1 ~ 100",
+  "closingTime": "关闭时间",
+  "p0MustLookLikeHhMm": "{p0} HH:mm，例：09:00",
+  "@p0MustLookLikeHhMm": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fillBothOpeningClosingTimes": "开放与关闭时间请一起填写",
+  "lockerUpdated": "书柜已更新",
+  "lockerAdded": "书柜已新增",
+  "editLocker": "修改书柜",
+  "newLocker": "新增书柜",
+  "lockerName": "书柜名称",
+  "latitude": "纬度",
+  "longitude": "经度",
+  "slotCount": "柜位数量",
+  "createLocker": "创建书柜",
+  "disable": "停用",
+  "p0Locker": "{p0}",
+  "@p0Locker": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceDisabledP0NoLongerAppears": "停用后“{p0}”不会再出现在卖家的存放区域菜单中。",
+  "@onceDisabledP0NoLongerAppears": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceEnabledP0AvailableSellersAgain": "启用后“{p0}”会重新开放给卖家选择。",
+  "@onceEnabledP0AvailableSellersAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerDisabled": "书柜已停用",
+  "lockerEnabled": "书柜已启用",
+  "slotP0": "柜位 {p0}",
+  "@slotP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "slotStatusUpdated": "柜位状态已更新",
+  "lockerMonitor": "书柜监控",
+  "searchLockerNameAddress": "搜索书柜名称或地址",
+  "noLockersMatch": "没有符合条件的书柜",
+  "disabled": "已停用",
+  "freeSlotsP0P1": "剩余空间：{p0} / {p1}",
+  "@freeSlotsP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "newCategory": "新增分类",
+  "editCategory": "编辑分类",
+  "categoryName": "分类名称",
+  "enterCategoryName": "请输入分类名称",
+  "categoryAdded": "已新增分类",
+  "categoryUpdated": "已更新分类",
+  "deleteCategory": "删除分类",
+  "deleteP0CannotUndone2": "要删除“{p0}”吗？此操作无法撤销。",
+  "@deleteP0CannotUndone2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "categoryDeleted": "已删除分类",
+  "categories": "分类管理",
+  "noCategoriesYet": "尚无分类",
+  "p0BooksUse": "{p0} 本书使用中",
+  "@p0BooksUse": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "legalDocuments": "法律文件",
+  "notCreatedYet": "尚未创建",
+  "updatedP0": "最后更新 {p0}",
+  "@updatedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Characters": "{p0} 字",
+  "@p0Characters": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SectionsP1Characters": "{p0} 章・{p1} 字",
+  "@p0SectionsP1Characters": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "deleteSection": "删除章节",
+  "contentsSectionRemovedWith": "这一章的内容会一并移除。",
+  "p0ItsContentsRemoved": "“{p0}”与其内容会一并移除。",
+  "@p0ItsContentsRemoved": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "discardChanges": "舍弃更改？",
+  "documentUnsavedChangesTheyLostIf": "这份文件有尚未保存的修改，离开后会丢失。",
+  "discard": "舍弃",
+  "keepEditing": "继续编辑",
+  "bothTitleContentRequired": "标题与内容都要填写",
+  "sectionP0NoTitleYet": "第 {p0} 章还没有标题",
+  "@sectionP0NoTitleYet": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "updateP0": "确认更新{p0}？",
+  "@updateP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "documentBindingEveryUserSubmittingReplaces": "这份文件对所有用户都有效力，提交后会立刻取代当前版本。",
+  "yesUpdate": "我确认要更新",
+  "notifyEveryUser": "要通知所有用户吗？",
+  "everyActiveMemberReceivesP0Updated": "每一位启用中的会员都会收到一则“{p0}”的通知。",
+  "@everyActiveMemberReceivesP0Updated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "updateNotify": "更新并通知",
+  "updateOnly": "只更新不通知",
+  "sections": "章节",
+  "plainText": "纯文本",
+  "preview": "预览",
+  "documentTitle": "文件标题",
+  "preamble": "前言",
+  "unnumberedOpeningTextLeaveEmptyIf": "开头不编号的说明文字，没有的话可以留空。",
+  "articles": "条文",
+  "numberedAutomatically": "编号自动生成",
+  "noArticlesYetAddFirstOne": "还没有条文。按下方新增第一章。",
+  "addSection": "新增章节",
+  "untitledSection": "未命名章节",
+  "sectionTitle": "章节标题",
+  "bodySectionSingleLineBreaksKept": "这一章的内容。单行换行会照样呈现，空一行代表另起一段。",
+  "emptyLineStartsParagraphParagraphWhose": "空一行分段。首行写“1. 标题”的段落，切回章节模式时会被认成一章。",
+  "howUsersSee": "用户看到的样子",
+  "noContentYet": "尚无内容",
+  "unsaved": "尚未保存",
+  "upDate": "已是最新版本",
+  "newQuestion": "新增问题",
+  "editQuestion": "编辑问题",
+  "question": "问题",
+  "answer": "答案",
+  "showHelpCentre": "显示在帮助中心",
+  "bothQuestionAnswerRequired": "问题与答案都要填写",
+  "added": "已新增",
+  "updated": "已更新",
+  "deleteQuestion": "删除问题",
+  "deleteP0": "要删除“{p0}”吗？",
+  "@deleteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deleted": "已删除",
+  "faq": "常见问题",
+  "noQuestionsYet2": "尚无常见问题",
+  "dragHandleRightReorder": "拖拽右侧把手可调整顺序",
+  "hidden": "已隐藏",
+  "cancelDeletionRequest": "取消删除申请",
+  "p0SAccountReturnsNormalCountdown": "{p0} 的账号会恢复正常，删除倒计时停止。",
+  "@p0SAccountReturnsNormalCountdown": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelDeletion": "取消删除",
+  "deletionRequestCancelled": "已取消该会员的删除申请",
+  "anonymiseNow": "立即执行匿名化",
+  "eraseP0SPersonalDataDisable": "不等缓冲期结束，立刻清除 {p0} 的个人资料并停用账号。\n\n订单与交易记录会保留，但昵称会变成“已删除的用户”。此操作无法撤销。",
+  "@eraseP0SPersonalDataDisable": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "doNow": "立即执行",
+  "anonymised": "已完成匿名化",
+  "pendingDeletions": "待删除账号",
+  "noDeletionRequestsPending": "目前没有待处理的删除申请",
+  "dueSoon": "即将执行",
+  "p0DaysLeft": "剩 {p0} 天",
+  "@p0DaysLeft": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requestedP0ScheduledP1": "申请于 {p0}，预计 {p1} 执行",
+  "@requestedP0ScheduledP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "disputeResolution": "交易仲裁",
+  "orderP0P1": "订单 {p0}｜\\${p1}",
+  "@orderP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reasonP0": "申诉理由：{p0}",
+  "@reasonP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "decisionNoteOptional": "裁决说明（选填）",
+  "submitDecision": "提交裁决",
+  "decisionRecorded": "已完成裁决",
+  "resolveDispute": "仲裁交易",
+  "noDisputesKind": "目前没有此类申诉案件",
+  "orderNumberP0": "订单编号：{p0}",
+  "@orderNumberP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyerP0SellerP1": "买家：{p0}｜卖家：{p1}",
+  "@buyerP0SellerP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "filedByP0": "申诉人：{p0}",
+  "@filedByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "handle": "处理",
+  "transactions2": "交易管理",
+  "orders": "订单管理",
+  "lookUpOrdersAdjustStatusBy": "查询订单、人工调整状态",
+  "disputeListDecisions": "申诉列表与裁决",
+  "listings": "商品管理",
+  "allBooksForceDelisting": "全站书籍、强制下架",
+  "moderation": "内容审核",
+  "handleListingReports": "商品举报处理",
+  "addReorderDeleteBookCategories": "新增、排序与删除图书分类",
+  "members": "会员管理",
+  "memberControls": "会员管控",
+  "memberListSuspensionBlocklist": "会员列表、停权与黑名单",
+  "membershipTiers": "会员等级管理",
+  "tierThresholdsBenefits": "等级门槛与权益设置",
+  "wallets": "钱包管理",
+  "checkBalancesAddDeductCoinsBy": "查询余额、人工增减代币",
+  "hardwareOperations": "硬件与运营",
+  "lockerSlotStatus": "书柜与柜位状态",
+  "maintenanceLog": "维修记录",
+  "lockerOperationHistory": "书柜相关操作记录",
+  "reports": "运营报表",
+  "ordersRevenueMemberGrowth": "订单、营收与会员增长",
+  "announcements2": "推送管理",
+  "supportEnquiries": "客服工单",
+  "replyQuestionsFromUsers": "回复用户提出的问题",
+  "faqShownHelpCentre": "帮助中心的常见问题",
+  "termsPrivacyPolicyAbout": "服务条款、隐私政策、关于我们",
+  "adminAuditLog": "管理操作记录",
+  "auditTrailAdminChanges": "管理员变更的审计轨迹",
+  "systemOperations": "系统运维",
+  "dailyBackupsManualRunsDownloads": "每日自动备份、手动触发与下载",
+  "deletionRequestsInsideGracePeriodCancel": "缓冲期内的删除申请，可代为取消或立即执行",
+  "members2": "会员数",
+  "todaySOrders": "今日订单",
+  "openCases": "待处理案件",
+  "activeLockers": "启用书柜",
+  "newTier": "新增等级",
+  "editTier": "编辑等级",
+  "tierName": "等级名称",
+  "minimumPoints": "最低点数",
+  "maximumPointsLeaveEmptyNoCap": "最高点数（留空 = 无上限）",
+  "benefitsSeparatedByCommasLineBreaks": "权益，用顿号或换行分隔，会在会员等级页逐条显示",
+  "enterTierName": "请输入等级名称",
+  "maximumPointsMustExceedMinimum": "最高点数必须大于最低点数",
+  "tierAdded": "已新增等级",
+  "tierUpdated": "已更新等级",
+  "deleteTier": "删除等级",
+  "deleteP0MembersTierDropNext": "要删除“{p0}”吗？已在这个等级的会员会退到下一个符合的等级。",
+  "@deleteP0MembersTierDropNext": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "tierDeleted": "已删除等级",
+  "noMembershipTiersSetUp": "尚未设置会员等级",
+  "p0PointsUp": "{p0} 点以上",
+  "@p0PointsUp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0P1Points": "{p0} ~ {p1} 点",
+  "@p0P1Points": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noBenefitsDescribedYet": "尚未填写权益说明",
+  "noMaintenanceRecords": "目前没有维修记录",
+  "noFurtherDetail": "（无额外说明）",
+  "operator": "操作人",
+  "unknown": "（未知）",
+  "time": "时间",
+  "recordNumber": "记录编号",
+  "operatorP0": "操作人：{p0}",
+  "@operatorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspendAccount": "停权此账号",
+  "reinstateAccount": "恢复此账号",
+  "addBlocklist": "加入黑名单",
+  "removeFromBlocklist": "移出黑名单",
+  "p0SignedOutImmediatelyCanNo": "{p0} 会立刻被登出，且无法再使用 App 的任何功能。",
+  "@p0SignedOutImmediatelyCanNo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0AbleSignAgain": "{p0} 将可以重新登录使用。",
+  "@p0AbleSignAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accountStatusUpdated": "已更新账号状态",
+  "removeAdmin": "取消管理员",
+  "makeAdmin": "设为管理员",
+  "p0LosesEveryAdminPermissionImmediately": "{p0} 将立刻失去所有后台权限。",
+  "@p0LosesEveryAdminPermissionImmediately": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0GainsAccessAdminAreaWith": "{p0} 将可以进入管理后台，默认拥有全部权限，可再逐项调整。",
+  "@p0GainsAccessAdminAreaWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roleUpdated": "已更新身份",
+  "manualP0P1": "、手动 {p0}{p1}",
+  "@manualP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "adjustMembershipTier": "调整会员等级",
+  "currentlyP0PointsAutomaticP1P2": "当前 {p0} 点（自动 {p1}{p2}）",
+  "@currentlyP0PointsAutomaticP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "p0P1Points2": "{p0}（{p1} 点）",
+  "@p0P1Points2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "adjustPointsManually": "手动加减点数",
+  "backAutomatic": "恢复自动计算",
+  "backAutomatic2": "已恢复自动计算",
+  "pointAdjustment": "加减点数",
+  "positiveAddsNegativeDeductsEG": "正数增加、负数扣除，例如 -50",
+  "apply": "应用",
+  "enterNonZeroWholeNumber": "请输入非零的整数",
+  "pointsAdjusted": "已调整点数",
+  "tierAdjusted": "已调整等级",
+  "permissionGranted": "已开放权限",
+  "permissionRevoked": "已收回权限",
+  "grantAllPermissions": "开放全部权限",
+  "revokeAllPermissions": "收回全部权限",
+  "p0AbleUseEveryAdminFeature": "{p0} 将可以使用后台所有功能。",
+  "@p0AbleUseEveryAdminFeature": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ReachAdminAreaButUnable": "{p0} 进入后台后将无法使用任何功能。",
+  "@p0ReachAdminAreaButUnable": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "allPermissionsGranted": "已开放全部权限",
+  "allPermissionsRevoked": "已收回全部权限",
+  "memberSettings": "会员设置",
+  "noDataMember": "找不到这位会员的资料",
+  "listings2": "上架图书",
+  "completedTrades": "完成交易",
+  "joined": "加入日期",
+  "accountStatus": "账号状态",
+  "ownAccountStatusPermissionsCannotChanged": "这是你自己的账号，无法在这里调整状态与权限。",
+  "accountEnabled": "启用账号",
+  "canSignUseAppNormally": "可以正常登录使用",
+  "suspendedSignedOutImmediatelyAfterSigning": "已停权，登录后会被立刻登出",
+  "blocked": "列入黑名单",
+  "blockedNoFeaturesAvailable": "已封锁，无法使用任何功能",
+  "notBlocked": "未封锁",
+  "role": "身份",
+  "p0PointsAutomaticP1P2": "{p0} 点（自动 {p1}{p2}）",
+  "@p0PointsAutomaticP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "memberSTierBeenAdjustedBy": "这位会员的等级目前有人工调整，不完全依交易自动计算。",
+  "adjustTier": "调整等级",
+  "adminPermissions": "后台权限",
+  "all": "全开",
+  "allOff": "全关",
+  "reinstateAccount2": "恢复账号",
+  "suspendAccount2": "停权账号",
+  "runP1P0": "确定要对“{p0}”执行“{p1}”吗？",
+  "@runP1P0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "updatedP0SStatus": "已更新 {p0} 的状态",
+  "@updatedP0SStatus": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fullSettingsTierPermissions": "完整设置（等级、权限）",
+  "members3": "会员列表",
+  "searchDisplayNameEmail": "搜索昵称或邮箱",
+  "noMembersMatch": "找不到符合条件的会员",
+  "sales2": "销售",
+  "created": "创建日期",
+  "noActivityYet": "尚无操作记录",
+  "changeOrderStatus": "调整订单状态",
+  "orderP0": "订单 {p0}",
+  "@orderP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reasonChange": "调整说明",
+  "sentBuyerAsWellOptional": "会一并通知买家（选填）",
+  "applyChange": "确认调整",
+  "orderStatusUpdated": "订单状态已更新",
+  "searchOrderNumberBuyerSeller": "搜索订单编号或买卖家",
+  "noOrdersMatch": "找不到符合条件的订单",
+  "noItems": "（无品项）",
+  "p0ItemsTotal": "等 {p0} 项",
+  "@p0ItemsTotal": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyerP0SellerP12": "买家 {p0}｜卖家 {p1}",
+  "@buyerP0SellerP12": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "lockerP0": "书柜：{p0}",
+  "@lockerP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancellationReasonP0": "取消原因：{p0}",
+  "@cancellationReasonP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reviewReport": "审核举报",
+  "reportedP0P1": "被举报{p0}：{p1}",
+  "@reportedP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reasonP02": "违规原因：{p0}",
+  "@reasonP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "handlingNoteOptional": "处理备注（选填）",
+  "delistListingAsWell": "同时将该商品下架",
+  "dismissReport": "驳回举报",
+  "reportHandled": "举报已处理",
+  "noReportsKind": "目前没有此类举报案件",
+  "reportedByP0": "举报人：{p0}",
+  "@reportedByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "review": "审核",
+  "noteP0": "备注：{p0}",
+  "@noteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "last7Days": "近 7 天",
+  "last30Days": "近 30 天",
+  "ordersPerDay": "每日订单量",
+  "revenuePerDay": "每日成交金额",
+  "newMembersPerDay": "每日新增会员",
+  "newOrders": "新增订单",
+  "newMembers": "新增会员",
+  "newListings": "新上架图书",
+  "completedRevenue": "已完成交易额",
+  "p0Orders": "{p0} 笔",
+  "@p0Orders": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "peakP0": "最高 {p0}",
+  "@peakP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "topCategoriesByListings": "热门分类（按上架数）",
+  "replied": "已回复",
+  "noEnquiriesCategory": "此分类目前没有工单",
+  "addCoins": "增加代币",
+  "deductCoins": "扣除代币",
+  "amountPositiveWholeNumber": "金额（正整数）",
+  "reasonAdjustmentRequired": "调整原因（必填）",
+  "add2": "确认增加",
+  "deduct": "确认扣除",
+  "enterAmountGreaterThan0": "请输入大于 0 的金额",
+  "enterReasonAdjustment": "请填写调整原因",
+  "member2": "这位会员",
+  "add3": "增加",
+  "deduct2": "扣除",
+  "confirmAddingCoins": "确认增加代币",
+  "confirmDeductingCoins": "确认扣除代币",
+  "p1P2CoinsP0NreasonP3": "将为 {p0} {p1} {p2} 代币。\n原因：{p3}",
+  "@p1P2CoinsP0NreasonP3": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {},
+      "p3": {}
+    }
+  },
+  "balanceAdjusted": "已调整余额",
+  "memberWallets": "会员钱包",
+  "transactions3": "账务记录",
+  "memberNoTransactionsYet": "此会员尚无账务记录。",
+  "balanceCoins": "当前余额（代币）",
+  "hold2": "冻结中",
+  "total2": "累计收入",
+  "totalOut": "累计支出",
+  "balanceP0": "余 {p0}",
+  "@balanceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspensionBlocklistRoles": "停权、黑名单、身份",
+  "tierThresholdsManualAdjustments": "等级门槛与人工调整",
+  "booksCategories": "图书与分类",
+  "reportReview": "举报审核",
+  "handleListingReports2": "处理商品举报",
+  "lookUpChangeOrderStatus": "查询与调整订单状态",
+  "decideDisputeCases": "申诉案件裁决",
+  "checkAdjustCoinBalances": "查询与增减代币",
+  "hardware": "硬件维护",
+  "lockersSlots": "书柜与柜位",
+  "announcementsDocuments": "公告与文件",
+  "announcementsFaqLegalDocuments": "公告、常见问题、法律文件",
+  "replyUserQuestions": "回复用户问题",
+  "databaseBackupDownloadOffByDefault": "数据库备份与下载，默认关闭"
 }

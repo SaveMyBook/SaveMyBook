@@ -65,10 +65,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
 
     final ok = await showConfirmDialog(
       context,
-      title: active ? (turningOff ? '停權此帳號' : '恢復此帳號') : (turningOff ? '加入黑名單' : '移出黑名單'),
+      title: active ? (turningOff ? S.suspendAccount : S.reinstateAccount) : (turningOff ? S.addBlocklist : S.removeFromBlocklist),
       message: turningOff
-          ? '${detail.nickname} 會立刻被登出，且無法再使用 App 的任何功能。'
-          : '${detail.nickname} 將可以重新登入使用。',
+          ? S.p0SignedOutImmediatelyCanNo(detail.nickname)
+          : S.p0AbleSignAgain(detail.nickname),
       confirmLabel: S.confirm,
       isDestructive: turningOff,
     );
@@ -83,7 +83,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
         );
         return done ? null : AppLabels.updateFailed;
       },
-      '已更新帳號狀態',
+      S.accountStatusUpdated,
     );
   }
 
@@ -93,44 +93,51 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
 
     final ok = await showConfirmDialog(
       context,
-      title: detail.isAdmin ? '取消管理員' : '設為管理員',
+      title: detail.isAdmin ? S.removeAdmin : S.makeAdmin,
       message: detail.isAdmin
-          ? '${detail.nickname} 將立刻失去所有後台權限。'
-          : '${detail.nickname} 將可以進入管理後台，預設擁有全部權限，可再逐項調整。',
+          ? S.p0LosesEveryAdminPermissionImmediately(detail.nickname)
+          : S.p0GainsAccessAdminAreaWith(detail.nickname),
       confirmLabel: S.confirm,
       isDestructive: detail.isAdmin,
     );
     if (!ok || !mounted) return;
 
-    await _run(() => _api.updateMemberRole(detail.userId, next), '已更新身分');
+    await _run(() => _api.updateMemberRole(detail.userId, next), S.roleUpdated);
+  }
+
+  /// 手動加減的點數。正數要自己補上 +，負數的減號由 toString 帶出來。
+  String _manualPoints(int bonus) {
+    final sign = bonus > 0 ? '+' : '';
+    return S.manualP0P1(sign, bonus);
   }
 
   Future<void> _changeLevel() async {
     final detail = _detail!;
     final c = AppColors.of(context);
 
+    final manualPart = detail.bonusPoints == 0 ? '' : _manualPoints(detail.bonusPoints);
+
     final choice = await showOptionSheet<String>(
       context,
-      title: '調整會員等級',
-      subtitle: '目前 ${detail.points} 點（自動 ${detail.basePoints}'
-          '${detail.bonusPoints == 0 ? '' : '、手動 ${detail.bonusPoints > 0 ? '+' : ''}${detail.bonusPoints}'}）',
+      title: S.adjustMembershipTier,
+      subtitle: S.currentlyP0PointsAutomaticP1P2(detail.points, detail.basePoints, manualPart),
       options: [
         ...detail.levels.map(
           (l) => SheetOption(
             value: 'level:${l.levelId}',
-            label: '${l.name}（${l.minPoints} 點）',
+            label: S.p0P1Points2(l.name, l.minPoints),
             icon: Icons.workspace_premium_outlined,
             selected: detail.currentLevel?.levelId == l.levelId,
           ),
         ),
-        const SheetOption(
+        SheetOption(
           value: 'delta',
-          label: '手動加減點數',
+          label: S.adjustPointsManually,
           icon: Icons.exposure_rounded,
         ),
         SheetOption(
           value: 'reset',
-          label: '恢復自動計算',
+          label: S.backAutomatic,
           icon: Icons.restart_alt_rounded,
           color: c.danger,
         ),
@@ -139,38 +146,38 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     if (choice == null || !mounted) return;
 
     if (choice == 'reset') {
-      await _run(() => _api.adjustMemberLevel(detail.userId, reset: true), '已恢復自動計算');
+      await _run(() => _api.adjustMemberLevel(detail.userId, reset: true), S.backAutomatic2);
       return;
     }
 
     if (choice == 'delta') {
       final input = await showTextInputDialog(
         context,
-        title: '加減點數',
-        hint: '正數增加、負數扣除，例如 -50',
-        confirmLabel: '套用',
+        title: S.pointAdjustment,
+        hint: S.positiveAddsNegativeDeductsEG,
+        confirmLabel: S.apply,
       );
       if (input == null || !mounted) return;
 
       final delta = int.tryParse(input.trim());
       if (delta == null || delta == 0) {
-        showAppSnackBar(context, '請輸入非零的整數', isError: true);
+        showAppSnackBar(context, S.enterNonZeroWholeNumber, isError: true);
         return;
       }
-      await _run(() => _api.adjustMemberLevel(detail.userId, delta: delta), '已調整點數');
+      await _run(() => _api.adjustMemberLevel(detail.userId, delta: delta), S.pointsAdjusted);
       return;
     }
 
     final levelId = int.tryParse(choice.split(':').last);
     if (levelId == null) return;
-    await _run(() => _api.adjustMemberLevel(detail.userId, levelId: levelId), '已調整等級');
+    await _run(() => _api.adjustMemberLevel(detail.userId, levelId: levelId), S.tierAdjusted);
   }
 
   Future<void> _togglePermission(String key, bool value) async {
     final detail = _detail!;
     await _run(
       () => _api.updateAdminPermissions(detail.userId, {key: value}),
-      value ? '已開放權限' : '已收回權限',
+      value ? S.permissionGranted : S.permissionRevoked,
     );
   }
 
@@ -178,10 +185,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     final detail = _detail!;
     final ok = await showConfirmDialog(
       context,
-      title: value ? '開放全部權限' : '收回全部權限',
+      title: value ? S.grantAllPermissions : S.revokeAllPermissions,
       message: value
-          ? '${detail.nickname} 將可以使用後台所有功能。'
-          : '${detail.nickname} 進入後台後將無法使用任何功能。',
+          ? S.p0AbleUseEveryAdminFeature(detail.nickname)
+          : S.p0ReachAdminAreaButUnable(detail.nickname),
       confirmLabel: S.confirm,
       isDestructive: !value,
     );
@@ -192,7 +199,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
         detail.userId,
         {for (final key in AppLabels.permission.keys) key: value},
       ),
-      value ? '已開放全部權限' : '已收回全部權限',
+      value ? S.allPermissionsGranted : S.allPermissionsRevoked,
     );
   }
 
@@ -205,15 +212,15 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '會員設定', icon: Icons.manage_accounts_outlined),
+          AppHeader(title: S.memberSettings, icon: Icons.manage_accounts_outlined),
           Expanded(
             child: SwitchIn(
               child: _isLoading
                   ? const LoadingView.menu()
                   : detail == null
-                      ? const EmptyView(
+                      ? EmptyView(
                           icon: Icons.person_off_outlined,
-                          message: '找不到這位會員的資料',
+                          message: S.noDataMember,
                         )
                       : RefreshIndicator(
                           color: c.accent,
@@ -289,7 +296,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               StatTile(
-                label: '上架書籍',
+                label: S.listings2,
                 value: Text(
                   '${detail.bookCount}',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.accent),
@@ -297,7 +304,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
               ),
               const VerticalDivider1(),
               StatTile(
-                label: '完成交易',
+                label: S.completedTrades,
                 value: Text(
                   '${detail.completedOrders}',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.accent),
@@ -305,7 +312,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
               ),
               const VerticalDivider1(),
               StatTile(
-                label: '加入日期',
+                label: S.joined,
                 value: Text(
                   formatDate(detail.createdAt),
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textPrimary),
@@ -323,20 +330,20 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeading(title: '帳號狀態'),
+          SectionHeading(title: S.accountStatus),
           if (_isSelf)
             Padding(
               padding: const EdgeInsets.only(top: 10),
               child: Text(
-                '這是你自己的帳號，無法在這裡調整狀態與權限。',
+                S.ownAccountStatusPermissionsCannotChanged,
                 style: TextStyle(fontSize: 12, color: c.textHint),
               ),
             ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('啟用帳號', style: TextStyle(fontSize: 14, color: c.textPrimary)),
+            title: Text(S.accountEnabled, style: TextStyle(fontSize: 14, color: c.textPrimary)),
             subtitle: Text(
-              detail.isActive ? '可以正常登入使用' : '已停權，登入後會被立刻登出',
+              detail.isActive ? S.canSignUseAppNormally : S.suspendedSignedOutImmediatelyAfterSigning,
               style: TextStyle(fontSize: 11, color: c.textSecondary),
             ),
             value: detail.isActive,
@@ -346,9 +353,9 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           Divider(color: c.divider, height: 1),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('列入黑名單', style: TextStyle(fontSize: 14, color: c.textPrimary)),
+            title: Text(S.blocked, style: TextStyle(fontSize: 14, color: c.textPrimary)),
             subtitle: Text(
-              detail.isBlacklisted ? '已封鎖，無法使用任何功能' : '未封鎖',
+              detail.isBlacklisted ? S.blockedNoFeaturesAvailable : S.notBlocked,
               style: TextStyle(fontSize: 11, color: c.textSecondary),
             ),
             value: detail.isBlacklisted,
@@ -358,7 +365,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           Divider(color: c.divider, height: 1),
           AppMenuItem(
             icon: Icons.admin_panel_settings_outlined,
-            title: '身分',
+            title: S.role,
             subtitle: detail.isAdmin ? S.roleAdmin : S.roleBuyerSeller,
             isLast: true,
             onTap: _isSelf || _isBusy ? null : _changeRole,
@@ -370,6 +377,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
 
   Widget _buildLevelCard(AdminMemberDetail detail, AppColors c) {
     final manual = detail.bonusPoints != 0;
+    final manualPart = manual ? _manualPoints(detail.bonusPoints) : '';
 
     return AppCard(
       child: Column(
@@ -404,8 +412,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${detail.points} 點（自動 ${detail.basePoints}'
-                      '${manual ? '、手動 ${detail.bonusPoints > 0 ? '+' : ''}${detail.bonusPoints}' : ''}）',
+                      S.p0PointsAutomaticP1P2(detail.points, detail.basePoints, manualPart),
                       style: TextStyle(fontSize: 12, color: c.textSecondary),
                     ),
                   ],
@@ -427,7 +434,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      '這位會員的等級目前有人工調整，不完全依交易自動計算。',
+                      S.memberSTierBeenAdjustedBy,
                       style: TextStyle(fontSize: 11, color: c.warning, height: 1.4),
                     ),
                   ),
@@ -442,7 +449,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
             child: ElevatedButton.icon(
               onPressed: _isBusy ? null : _changeLevel,
               icon: const Icon(Icons.tune_rounded, size: 18),
-              label: const Text('調整等級'),
+              label: Text(S.adjustTier),
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.accent,
                 foregroundColor: Colors.white,
@@ -461,17 +468,17 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeading(
-            title: '後台權限',
+            title: S.adminPermissions,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 SmallActionButton(
-                  label: '全開',
+                  label: S.all,
                   onTap: _isSelf || _isBusy ? null : () => _setAllPermissions(true),
                 ),
                 const SizedBox(width: 6),
                 SmallActionButton(
-                  label: '全關',
+                  label: S.allOff,
                   color: c.danger,
                   onTap: _isSelf || _isBusy ? null : () => _setAllPermissions(false),
                 ),

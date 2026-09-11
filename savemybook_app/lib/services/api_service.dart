@@ -940,6 +940,12 @@ class ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSave2);
   }
 
+  Future<String?> reorderFaqs(List<int> orderedIds) async {
+    final res = await _send('PUT', '/admin/faqs/reorder', body: {'order': orderedIds});
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotReorder);
+  }
+
   Future<String?> deleteFaq(int faqId) async {
     final res = await _send('DELETE', '/admin/faqs/$faqId');
     if (res == null) return S.pleaseSignFirst;

@@ -87,7 +87,6 @@
   "actionSubmit": "送出",
   "actionClose": "關閉",
   "actionBack": "返回",
-  "actionRetry": "重試",
   "actionSelect": "請選擇",
   "actionAll": "全部",
   "actionSearch": "搜尋",
@@ -732,7 +731,6 @@
   "bookDetailsFilledAutomatically": "已自動帶入書籍資訊！",
   "bookDetailsFilledFromBackupSource": "已透過備援系統帶入書籍資訊！",
   "noSourceIsbnPleaseEnterDetails": "各系統皆找不到此 ISBN，請嘗試手動輸入",
-  "yearMonth": "[年月]",
   "day": "日",
   "tapIconRightScan": "可點擊右側圖示掃描",
   "description": "書籍簡介",
@@ -863,9 +861,6 @@
   "fingerprint": "指紋",
   "iris": "虹膜",
   "verifyIdentityContinue": "請驗證身分以繼續",
-  "msg": "繁體中文",
-  "msg2": "日本語",
-  "msg3": "简体中文",
   "couldNotOpenPhotosCheckPermission": "無法開啟相簿，請確認已授權",
   "choosePhotoSource": "選擇照片來源",
   "takePhoto": "拍照",
@@ -919,5 +914,711 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "enterTitleContent": "請填寫標題與內容",
+  "titleCannotExceed255Characters": "標題不可超過 255 個字元",
+  "contentNeedsLeast5Characters": "內容至少 5 個字元",
+  "publishAnnouncement": "發布推播",
+  "everyUserSeeAnnouncementOncePublished": "發布後全體使用者都會看到這則公告，確定發布嗎？",
+  "publish": "發布",
+  "announcementPublished": "公告已發布",
+  "draftSaved": "草稿已儲存",
+  "editAnnouncement": "編輯推播",
+  "newAnnouncement": "新增推播",
+  "title2": "標題",
+  "announcementTitle": "公告標題",
+  "writeAnnouncement": "輸入推播內容",
+  "publishNow": "立即發布",
+  "leaveOffSaveAsDraft": "關閉時只會存成草稿",
+  "saveDraft": "儲存草稿",
+  "deleteAnnouncement": "刪除公告",
+  "deleteP0CannotUndone": "確定要刪除「{p0}」嗎？此操作無法復原。",
+  "@deleteP0CannotUndone": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "announcementDeleted": "公告已刪除",
+  "couldNotDeleteTryAgainLater": "刪除失敗，請稍後再試",
+  "announcements": "系統公告",
+  "noAnnouncementsYetTapAddOne": "尚無公告，點右上角新增",
+  "published": "已發布",
+  "draft": "草稿",
+  "audienceEveryone": "對象：全體使用者",
+  "backUpNow": "立即備份",
+  "wholeDatabaseExportedCompressedWithLot": "將匯出整個資料庫並壓縮保存。資料量大時可能需要數十秒，期間請不要離開這個畫面。",
+  "startBackup": "開始備份",
+  "backingUpDatabase": "正在備份資料庫",
+  "backupComplete": "備份完成",
+  "backupDeleted": "已刪除備份",
+  "databaseBackups": "資料庫備份",
+  "backedUpDailyNewestP0Kept": "每日自動備份，保留最新 {p0} 份",
+  "@backedUpDailyNewestP0Kept": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "olderBackupsBeyondCountRemovedAutomatically": "超出份數的舊備份會自動清除。備份檔含全站個人資料，下載後請妥善保管，每次下載都會記入操作紀錄。",
+  "noBackupsYetSchedulerRunsOnce": "尚無備份紀錄。排程每天會自動跑一次，也可以按上方按鈕立刻產生一份。",
+  "deleteBackup": "刪除備份",
+  "p0NNtheFileItsRecord": "{p0}\n\n檔案與紀錄會一併移除，無法復原。",
+  "@p0NNtheFileItsRecord": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "manual": "手動",
+  "scheduled": "排程",
+  "download": "下載",
+  "downloadBackup": "下載備份",
+  "fetchBackupComputerWithAuthorisationHeader": "備份檔請在電腦上取回，並帶上你的授權標頭：\n\n{p0}\n\n檔案大小 {p1}。",
+  "@fetchBackupComputerWithAuthorisationHeader": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "copyLink2": "複製網址",
+  "downloadLinkCopied": "已複製下載網址",
+  "forceDelist": "強制下架",
+  "reasonDelistingSellerNotified": "下架原因，會通知賣家",
+  "delist3": "確認下架",
+  "relist2": "恢復上架",
+  "putP0BackStore": "要讓《{p0}》重新出現在商城嗎？",
+  "@putP0BackStore": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "relisted": "已恢復上架",
+  "searchTitleIsbnSeller": "搜尋書名、ISBN 或賣家",
+  "noBooksMatch": "找不到符合條件的書籍",
+  "sellerP0P1": "賣家 {p0}｜{p1}",
+  "@sellerP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "isbnP0P1Views": "ISBN {p0}｜瀏覽 {p1}",
+  "@isbnP0P1Views": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0ReportsAwaitingReview": "有 {p0} 筆待處理檢舉",
+  "@p0ReportsAwaitingReview": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterLockerNameAddress": "請填寫書櫃名稱與地址",
+  "enterValidLatitudeLongitude": "請填寫正確的經緯度",
+  "latitudeMustBetween9090": "緯度必須介於 -90 ~ 90",
+  "longitudeMustBetween180180": "經度必須介於 -180 ~ 180",
+  "slotCountMustBetween1100": "櫃位數量必須介於 1 ~ 100",
+  "closingTime": "關閉時間",
+  "p0MustLookLikeHhMm": "{p0}格式應為 HH:mm，例：09:00",
+  "@p0MustLookLikeHhMm": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fillBothOpeningClosingTimes": "開放與關閉時間請一起填寫",
+  "lockerUpdated": "書櫃已更新",
+  "lockerAdded": "書櫃已新增",
+  "editLocker": "修改書櫃",
+  "newLocker": "新增書櫃",
+  "lockerName": "書櫃名稱",
+  "latitude": "緯度",
+  "longitude": "經度",
+  "slotCount": "櫃位數量",
+  "createLocker": "建立書櫃",
+  "disable": "停用",
+  "p0Locker": "{p0}",
+  "@p0Locker": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceDisabledP0NoLongerAppears": "停用後「{p0}」不會再出現在賣家的存放區域選單中。",
+  "@onceDisabledP0NoLongerAppears": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceEnabledP0AvailableSellersAgain": "啟用後「{p0}」會重新開放給賣家選擇。",
+  "@onceEnabledP0AvailableSellersAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerDisabled": "書櫃已停用",
+  "lockerEnabled": "書櫃已啟用",
+  "slotP0": "櫃位 {p0}",
+  "@slotP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "slotStatusUpdated": "櫃位狀態已更新",
+  "lockerMonitor": "書櫃監控",
+  "searchLockerNameAddress": "搜尋書櫃名稱或地址",
+  "noLockersMatch": "沒有符合條件的書櫃",
+  "disabled": "已停用",
+  "freeSlotsP0P1": "剩餘空間：{p0} / {p1}",
+  "@freeSlotsP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "newCategory": "新增分類",
+  "editCategory": "編輯分類",
+  "categoryName": "分類名稱",
+  "enterCategoryName": "請輸入分類名稱",
+  "categoryAdded": "已新增分類",
+  "categoryUpdated": "已更新分類",
+  "deleteCategory": "刪除分類",
+  "deleteP0CannotUndone2": "要刪除「{p0}」嗎？此動作無法復原。",
+  "@deleteP0CannotUndone2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "categoryDeleted": "已刪除分類",
+  "categories": "分類管理",
+  "noCategoriesYet": "尚無分類",
+  "p0BooksUse": "{p0} 本書使用中",
+  "@p0BooksUse": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "legalDocuments": "法律文件",
+  "notCreatedYet": "尚未建立",
+  "updatedP0": "最後更新 {p0}",
+  "@updatedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Characters": "{p0} 字",
+  "@p0Characters": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SectionsP1Characters": "{p0} 章・{p1} 字",
+  "@p0SectionsP1Characters": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "deleteSection": "刪除章節",
+  "contentsSectionRemovedWith": "這一章的內容會一併移除。",
+  "p0ItsContentsRemoved": "「{p0}」與其內容會一併移除。",
+  "@p0ItsContentsRemoved": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "discardChanges": "捨棄變更？",
+  "documentUnsavedChangesTheyLostIf": "這份文件有尚未儲存的修改，離開後會遺失。",
+  "discard": "捨棄",
+  "keepEditing": "繼續編輯",
+  "bothTitleContentRequired": "標題與內容都要填寫",
+  "sectionP0NoTitleYet": "第 {p0} 章還沒有標題",
+  "@sectionP0NoTitleYet": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "updateP0": "確認更新{p0}？",
+  "@updateP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "documentBindingEveryUserSubmittingReplaces": "這份文件對所有使用者都有效力，送出後會立刻取代目前的版本。",
+  "yesUpdate": "我確認要更新",
+  "notifyEveryUser": "要通知所有使用者嗎？",
+  "everyActiveMemberReceivesP0Updated": "每一位啟用中的會員都會收到一則「{p0}」的通知。",
+  "@everyActiveMemberReceivesP0Updated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "updateNotify": "更新並通知",
+  "updateOnly": "只更新不通知",
+  "sections": "章節",
+  "plainText": "純文字",
+  "preview": "預覽",
+  "documentTitle": "文件標題",
+  "preamble": "前言",
+  "unnumberedOpeningTextLeaveEmptyIf": "開頭不編號的說明文字，沒有的話可以留空。",
+  "articles": "條文",
+  "numberedAutomatically": "編號自動產生",
+  "noArticlesYetAddFirstOne": "還沒有條文。按下方新增第一章。",
+  "addSection": "新增章節",
+  "untitledSection": "未命名章節",
+  "sectionTitle": "章節標題",
+  "bodySectionSingleLineBreaksKept": "這一章的內容。單行換行會照樣呈現，空一行代表另起一段。",
+  "emptyLineStartsParagraphParagraphWhose": "空一行分段。首行寫「1. 標題」的段落，切回章節模式時會被認成一章。",
+  "howUsersSee": "使用者看到的樣子",
+  "noContentYet": "尚無內容",
+  "unsaved": "尚未儲存",
+  "upDate": "已是最新版本",
+  "newQuestion": "新增問題",
+  "editQuestion": "編輯問題",
+  "question": "問題",
+  "answer": "答案",
+  "showHelpCentre": "顯示在幫助中心",
+  "bothQuestionAnswerRequired": "問題與答案都要填寫",
+  "added": "已新增",
+  "updated": "已更新",
+  "deleteQuestion": "刪除問題",
+  "deleteP0": "要刪除「{p0}」嗎？",
+  "@deleteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deleted": "已刪除",
+  "faq": "常見問題",
+  "noQuestionsYet2": "尚無常見問題",
+  "dragHandleRightReorder": "拖曳右側把手可調整順序",
+  "hidden": "已隱藏",
+  "cancelDeletionRequest": "取消刪除申請",
+  "p0SAccountReturnsNormalCountdown": "{p0} 的帳號會恢復正常，刪除倒數停止。",
+  "@p0SAccountReturnsNormalCountdown": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelDeletion": "取消刪除",
+  "deletionRequestCancelled": "已取消該會員的刪除申請",
+  "anonymiseNow": "立即執行匿名化",
+  "eraseP0SPersonalDataDisable": "不等緩衝期結束，立刻清除 {p0} 的個人資料並停用帳號。\n\n訂單與交易紀錄會保留，但暱稱會變成「已刪除的使用者」。此操作無法復原。",
+  "@eraseP0SPersonalDataDisable": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "doNow": "立即執行",
+  "anonymised": "已完成匿名化",
+  "pendingDeletions": "待刪除帳號",
+  "noDeletionRequestsPending": "目前沒有待處理的刪除申請",
+  "dueSoon": "即將執行",
+  "p0DaysLeft": "剩 {p0} 天",
+  "@p0DaysLeft": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requestedP0ScheduledP1": "申請於 {p0}，預計 {p1} 執行",
+  "@requestedP0ScheduledP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "disputeResolution": "交易仲裁",
+  "orderP0P1": "訂單 {p0}｜\\${p1}",
+  "@orderP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reasonP0": "申訴理由：{p0}",
+  "@reasonP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "decisionNoteOptional": "裁決說明（選填）",
+  "submitDecision": "送出裁決",
+  "decisionRecorded": "已完成裁決",
+  "resolveDispute": "仲裁交易",
+  "noDisputesKind": "目前沒有此類申訴案件",
+  "orderNumberP0": "訂單編號：{p0}",
+  "@orderNumberP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyerP0SellerP1": "買家：{p0}｜賣家：{p1}",
+  "@buyerP0SellerP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "filedByP0": "申訴人：{p0}",
+  "@filedByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "handle": "處理",
+  "transactions2": "交易管理",
+  "orders": "訂單管理",
+  "lookUpOrdersAdjustStatusBy": "查詢訂單、人工調整狀態",
+  "disputeListDecisions": "申訴列表與裁決",
+  "listings": "商品管理",
+  "allBooksForceDelisting": "全站書籍、強制下架",
+  "moderation": "內容審核",
+  "handleListingReports": "商品檢舉處理",
+  "addReorderDeleteBookCategories": "新增、排序與刪除書籍分類",
+  "members": "會員管理",
+  "memberControls": "會員管控",
+  "memberListSuspensionBlocklist": "會員列表、停權與黑名單",
+  "membershipTiers": "會員等級管理",
+  "tierThresholdsBenefits": "等級門檻與權益設定",
+  "wallets": "錢包管理",
+  "checkBalancesAddDeductCoinsBy": "查詢餘額、人工增減代幣",
+  "hardwareOperations": "硬體與營運",
+  "lockerSlotStatus": "書櫃與櫃位狀態",
+  "maintenanceLog": "維修紀錄",
+  "lockerOperationHistory": "書櫃相關操作紀錄",
+  "reports": "營運報表",
+  "ordersRevenueMemberGrowth": "訂單、營收與會員成長",
+  "announcements2": "推播管理",
+  "supportEnquiries": "客服工單",
+  "replyQuestionsFromUsers": "回覆使用者提出的問題",
+  "faqShownHelpCentre": "幫助中心的常見問題",
+  "termsPrivacyPolicyAbout": "服務條款、隱私權政策、關於我們",
+  "adminAuditLog": "管理操作紀錄",
+  "auditTrailAdminChanges": "管理員異動的稽核軌跡",
+  "systemOperations": "系統維運",
+  "dailyBackupsManualRunsDownloads": "每日自動備份、手動觸發與下載",
+  "deletionRequestsInsideGracePeriodCancel": "緩衝期內的刪除申請，可代為取消或立即執行",
+  "members2": "會員數",
+  "todaySOrders": "今日訂單",
+  "openCases": "待處理案件",
+  "activeLockers": "啟用書櫃",
+  "newTier": "新增等級",
+  "editTier": "編輯等級",
+  "tierName": "等級名稱",
+  "minimumPoints": "最低點數",
+  "maximumPointsLeaveEmptyNoCap": "最高點數（留空 = 無上限）",
+  "benefitsSeparatedByCommasLineBreaks": "權益，用頓號或換行分隔，會在會員等級頁逐條顯示",
+  "enterTierName": "請輸入等級名稱",
+  "maximumPointsMustExceedMinimum": "最高點數必須大於最低點數",
+  "tierAdded": "已新增等級",
+  "tierUpdated": "已更新等級",
+  "deleteTier": "刪除等級",
+  "deleteP0MembersTierDropNext": "要刪除「{p0}」嗎？已在這個等級的會員會退到下一個符合的等級。",
+  "@deleteP0MembersTierDropNext": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "tierDeleted": "已刪除等級",
+  "noMembershipTiersSetUp": "尚未設定會員等級",
+  "p0PointsUp": "{p0} 點以上",
+  "@p0PointsUp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0P1Points": "{p0} ~ {p1} 點",
+  "@p0P1Points": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noBenefitsDescribedYet": "尚未填寫權益說明",
+  "noMaintenanceRecords": "目前沒有維修紀錄",
+  "noFurtherDetail": "（無額外說明）",
+  "operator": "操作人",
+  "unknown": "（未知）",
+  "time": "時間",
+  "recordNumber": "紀錄編號",
+  "operatorP0": "操作人：{p0}",
+  "@operatorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspendAccount": "停權此帳號",
+  "reinstateAccount": "恢復此帳號",
+  "addBlocklist": "加入黑名單",
+  "removeFromBlocklist": "移出黑名單",
+  "p0SignedOutImmediatelyCanNo": "{p0} 會立刻被登出，且無法再使用 App 的任何功能。",
+  "@p0SignedOutImmediatelyCanNo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0AbleSignAgain": "{p0} 將可以重新登入使用。",
+  "@p0AbleSignAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accountStatusUpdated": "已更新帳號狀態",
+  "removeAdmin": "取消管理員",
+  "makeAdmin": "設為管理員",
+  "p0LosesEveryAdminPermissionImmediately": "{p0} 將立刻失去所有後台權限。",
+  "@p0LosesEveryAdminPermissionImmediately": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0GainsAccessAdminAreaWith": "{p0} 將可以進入管理後台，預設擁有全部權限，可再逐項調整。",
+  "@p0GainsAccessAdminAreaWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roleUpdated": "已更新身分",
+  "manualP0P1": "、手動 {p0}{p1}",
+  "@manualP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "adjustMembershipTier": "調整會員等級",
+  "currentlyP0PointsAutomaticP1P2": "目前 {p0} 點（自動 {p1}{p2}）",
+  "@currentlyP0PointsAutomaticP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "p0P1Points2": "{p0}（{p1} 點）",
+  "@p0P1Points2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "adjustPointsManually": "手動加減點數",
+  "backAutomatic": "恢復自動計算",
+  "backAutomatic2": "已恢復自動計算",
+  "pointAdjustment": "加減點數",
+  "positiveAddsNegativeDeductsEG": "正數增加、負數扣除，例如 -50",
+  "apply": "套用",
+  "enterNonZeroWholeNumber": "請輸入非零的整數",
+  "pointsAdjusted": "已調整點數",
+  "tierAdjusted": "已調整等級",
+  "permissionGranted": "已開放權限",
+  "permissionRevoked": "已收回權限",
+  "grantAllPermissions": "開放全部權限",
+  "revokeAllPermissions": "收回全部權限",
+  "p0AbleUseEveryAdminFeature": "{p0} 將可以使用後台所有功能。",
+  "@p0AbleUseEveryAdminFeature": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ReachAdminAreaButUnable": "{p0} 進入後台後將無法使用任何功能。",
+  "@p0ReachAdminAreaButUnable": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "allPermissionsGranted": "已開放全部權限",
+  "allPermissionsRevoked": "已收回全部權限",
+  "memberSettings": "會員設定",
+  "noDataMember": "找不到這位會員的資料",
+  "listings2": "上架書籍",
+  "completedTrades": "完成交易",
+  "joined": "加入日期",
+  "accountStatus": "帳號狀態",
+  "ownAccountStatusPermissionsCannotChanged": "這是你自己的帳號，無法在這裡調整狀態與權限。",
+  "accountEnabled": "啟用帳號",
+  "canSignUseAppNormally": "可以正常登入使用",
+  "suspendedSignedOutImmediatelyAfterSigning": "已停權，登入後會被立刻登出",
+  "blocked": "列入黑名單",
+  "blockedNoFeaturesAvailable": "已封鎖，無法使用任何功能",
+  "notBlocked": "未封鎖",
+  "role": "身分",
+  "p0PointsAutomaticP1P2": "{p0} 點（自動 {p1}{p2}）",
+  "@p0PointsAutomaticP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "memberSTierBeenAdjustedBy": "這位會員的等級目前有人工調整，不完全依交易自動計算。",
+  "adjustTier": "調整等級",
+  "adminPermissions": "後台權限",
+  "all": "全開",
+  "allOff": "全關",
+  "reinstateAccount2": "恢復帳號",
+  "suspendAccount2": "停權帳號",
+  "runP1P0": "確定要對「{p0}」執行「{p1}」嗎？",
+  "@runP1P0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "updatedP0SStatus": "已更新 {p0} 的狀態",
+  "@updatedP0SStatus": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fullSettingsTierPermissions": "完整設定（等級、權限）",
+  "members3": "會員列表",
+  "searchDisplayNameEmail": "搜尋暱稱或 Email",
+  "noMembersMatch": "找不到符合條件的會員",
+  "sales2": "銷售",
+  "created": "創建日期",
+  "noActivityYet": "尚無操作紀錄",
+  "changeOrderStatus": "調整訂單狀態",
+  "orderP0": "訂單 {p0}",
+  "@orderP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reasonChange": "調整說明",
+  "sentBuyerAsWellOptional": "會一併通知買家（選填）",
+  "applyChange": "確認調整",
+  "orderStatusUpdated": "訂單狀態已更新",
+  "searchOrderNumberBuyerSeller": "搜尋訂單編號或買賣家",
+  "noOrdersMatch": "找不到符合條件的訂單",
+  "noItems": "（無品項）",
+  "p0ItemsTotal": "等 {p0} 項",
+  "@p0ItemsTotal": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyerP0SellerP12": "買家 {p0}｜賣家 {p1}",
+  "@buyerP0SellerP12": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "lockerP0": "書櫃：{p0}",
+  "@lockerP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancellationReasonP0": "取消原因：{p0}",
+  "@cancellationReasonP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reviewReport": "審核檢舉",
+  "reportedP0P1": "被檢舉{p0}：{p1}",
+  "@reportedP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reasonP02": "違規原因：{p0}",
+  "@reasonP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "handlingNoteOptional": "處理備註（選填）",
+  "delistListingAsWell": "同時將該商品下架",
+  "dismissReport": "駁回檢舉",
+  "reportHandled": "檢舉已處理",
+  "noReportsKind": "目前沒有此類檢舉案件",
+  "reportedByP0": "檢舉人：{p0}",
+  "@reportedByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "review": "審核",
+  "noteP0": "備註：{p0}",
+  "@noteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "last7Days": "近 7 天",
+  "last30Days": "近 30 天",
+  "ordersPerDay": "每日訂單量",
+  "revenuePerDay": "每日成交金額",
+  "newMembersPerDay": "每日新增會員",
+  "newOrders": "新增訂單",
+  "newMembers": "新增會員",
+  "newListings": "新上架書籍",
+  "completedRevenue": "已完成交易額",
+  "p0Orders": "{p0} 筆",
+  "@p0Orders": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "peakP0": "最高 {p0}",
+  "@peakP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "topCategoriesByListings": "熱門分類（依上架數）",
+  "replied": "已回覆",
+  "noEnquiriesCategory": "此分類目前沒有工單",
+  "addCoins": "增加代幣",
+  "deductCoins": "扣除代幣",
+  "amountPositiveWholeNumber": "金額（正整數）",
+  "reasonAdjustmentRequired": "調整原因（必填）",
+  "add2": "確認增加",
+  "deduct": "確認扣除",
+  "enterAmountGreaterThan0": "請輸入大於 0 的金額",
+  "enterReasonAdjustment": "請填寫調整原因",
+  "member2": "這位會員",
+  "add3": "增加",
+  "deduct2": "扣除",
+  "confirmAddingCoins": "確認增加代幣",
+  "confirmDeductingCoins": "確認扣除代幣",
+  "p1P2CoinsP0NreasonP3": "將為 {p0} {p1} {p2} 代幣。\n原因：{p3}",
+  "@p1P2CoinsP0NreasonP3": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {},
+      "p3": {}
+    }
+  },
+  "balanceAdjusted": "已調整餘額",
+  "memberWallets": "會員錢包",
+  "transactions3": "帳務紀錄",
+  "memberNoTransactionsYet": "此會員尚無帳務紀錄。",
+  "balanceCoins": "目前餘額（代幣）",
+  "hold2": "凍結中",
+  "total2": "累積收入",
+  "totalOut": "累積支出",
+  "balanceP0": "餘 {p0}",
+  "@balanceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspensionBlocklistRoles": "停權、黑名單、身分",
+  "tierThresholdsManualAdjustments": "等級門檻與人工調整",
+  "booksCategories": "書籍與分類",
+  "reportReview": "檢舉審核",
+  "handleListingReports2": "處理商品檢舉",
+  "lookUpChangeOrderStatus": "查詢與調整訂單狀態",
+  "decideDisputeCases": "申訴案件裁決",
+  "checkAdjustCoinBalances": "查詢與增減代幣",
+  "hardware": "硬體維護",
+  "lockersSlots": "書櫃與櫃位",
+  "announcementsDocuments": "公告與文件",
+  "announcementsFaqLegalDocuments": "公告、常見問題、法律文件",
+  "replyUserQuestions": "回覆使用者問題",
+  "databaseBackupDownloadOffByDefault": "資料庫備份與下載，預設關閉"
 }

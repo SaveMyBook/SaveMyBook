@@ -7,6 +7,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/motion.dart';
+import '../../i18n/strings.dart';
 
 class AdminStatsScreen extends StatefulWidget {
   const AdminStatsScreen({super.key});
@@ -16,7 +17,8 @@ class AdminStatsScreen extends StatefulWidget {
 }
 
 class _AdminStatsScreenState extends State<AdminStatsScreen> {
-  static const _ranges = [(days: 7, label: '近 7 天'), (days: 30, label: '近 30 天')];
+  List<({int days, String label})> get _ranges =>
+      [(days: 7, label: S.last7Days), (days: 30, label: S.last30Days)];
 
   final ApiService _api = ApiService();
   AdminStats _stats = AdminStats.empty;
@@ -47,7 +49,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '營運報表', icon: Icons.insights_rounded),
+          AppHeader(title: S.reports, icon: Icons.insights_rounded),
           Expanded(
             child: SwitchIn(
               child: _isLoading
@@ -62,11 +64,11 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
                           const SizedBox(height: 16),
                           _buildSummary(c),
                           const SizedBox(height: 16),
-                          _buildChart(c, '每日訂單量', (p) => p.orders.toDouble(), c.accent),
+                          _buildChart(c, S.ordersPerDay, (p) => p.orders.toDouble(), c.accent),
                           const SizedBox(height: 16),
-                          _buildChart(c, '每日成交金額', (p) => p.revenue, c.success),
+                          _buildChart(c, S.revenuePerDay, (p) => p.revenue, c.success),
                           const SizedBox(height: 16),
-                          _buildChart(c, '每日新增會員', (p) => p.newUsers.toDouble(), c.warning),
+                          _buildChart(c, S.newMembersPerDay, (p) => p.newUsers.toDouble(), c.warning),
                           const SizedBox(height: 16),
                           _buildTopCategories(c),
                         ],
@@ -125,7 +127,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               StatTile(
-                label: '新增訂單',
+                label: S.newOrders,
                 value: AnimatedCount(
                   value: totalOrders.toDouble(),
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.accent),
@@ -133,7 +135,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
               ),
               const VerticalDivider1(),
               StatTile(
-                label: '新增會員',
+                label: S.newMembers,
                 value: AnimatedCount(
                   value: totalUsers.toDouble(),
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.accent),
@@ -141,7 +143,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
               ),
               const VerticalDivider1(),
               StatTile(
-                label: '新上架書籍',
+                label: S.newListings,
                 value: AnimatedCount(
                   value: totalBooks.toDouble(),
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.accent),
@@ -170,7 +172,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '已完成交易額',
+                      S.completedRevenue,
                       style: TextStyle(fontSize: 12, color: c.textSecondary),
                     ),
                     const SizedBox(height: 2),
@@ -187,7 +189,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
                 ),
               ),
               Text(
-                '${_stats.completedOrderCount} 筆',
+                S.p0Orders(_stats.completedOrderCount),
                 style: TextStyle(fontSize: 13, color: c.textSecondary),
               ),
             ],
@@ -227,7 +229,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
               ),
               const Spacer(),
               Text(
-                '最高 ${maxValue.toStringAsFixed(0)}',
+                S.peakP0(maxValue.toStringAsFixed(0)),
                 style: TextStyle(fontSize: 11, color: c.textHint),
               ),
             ],
@@ -301,7 +303,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '熱門分類（依上架數）',
+            S.topCategoriesByListings,
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary),
           ),
           const SizedBox(height: 14),

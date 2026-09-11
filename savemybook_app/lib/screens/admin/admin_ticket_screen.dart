@@ -21,7 +21,7 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
     with SingleTickerProviderStateMixin {
   List<({String key, String label})> get _tabs => [
     (key: 'open', label: S.ticketOpen),
-    (key: 'pending', label: '已回覆'),
+    (key: 'pending', label: S.replied),
     (key: 'resolved', label: S.ticketResolved),
     (key: 'all', label: S.actionAll),
   ];
@@ -77,7 +77,7 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
       body: Column(
         children: [
           AppHeader(
-            title: '客服工單',
+            title: S.supportEnquiries,
             icon: Icons.support_agent_rounded,
             bottom: AppTabBar(
               controller: _tabController,
@@ -95,11 +95,11 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
                         onRefresh: _load,
                         child: SwitchIn(child: _tickets.isEmpty
                             ? ListView(key: const ValueKey('empty'), 
-                                children: const [
+                                children: [
                                   SizedBox(height: 60),
                                   EmptyView(
                                     icon: Icons.inbox_outlined,
-                                    message: '此分類目前沒有工單',
+                                    message: S.noEnquiriesCategory,
                                   ),
                                 ],
                               )

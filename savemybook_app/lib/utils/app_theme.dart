@@ -42,7 +42,17 @@ class AppTheme {
       canvasColor: c.card,
       dividerColor: c.divider,
       fontFamily: 'NotoSansTC',
-      fontFamilyFallback: const ['PingFang TC', 'Heiti TC', 'Noto Sans TC', 'sans-serif'],
+      // Noto Sans TC 完全沒有諺文，也缺少部分簡體專用字（如「账」），
+      // 韓文與簡體介面得靠系統字型補。原本排在最前面的 PingFang TC／Heiti TC
+      // 補不到這兩者，而 'Noto Sans TC'（含空格）不是打包進來的家族名，是無效項。
+      fontFamilyFallback: const [
+        'PingFang SC',          // iOS：简体
+        'Apple SD Gothic Neo',  // iOS：韓文
+        'Hiragino Sans',        // iOS：日文
+        'Noto Sans CJK SC',     // Android：简体
+        'Noto Sans CJK KR',     // Android：韓文
+        'Noto Sans CJK JP',     // Android：日文
+      ],
       splashColor: isDark ? Colors.white12 : Colors.black12,
       highlightColor: isDark ? Colors.white10 : Colors.black12,
       // 一定要用 Cupertino 這個 builder：左滑返回的手勢偵測器綁在它裡面，

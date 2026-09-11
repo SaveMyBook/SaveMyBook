@@ -45,17 +45,17 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
   Future<void> _createBackup() async {
     final confirmed = await showConfirmDialog(
       context,
-      title: '立即備份',
-      message: '將匯出整個資料庫並壓縮保存。資料量大時可能需要數十秒，期間請不要離開這個畫面。',
-      confirmLabel: '開始備份',
+      title: S.backUpNow,
+      message: S.wholeDatabaseExportedCompressedWithLot,
+      confirmLabel: S.startBackup,
       icon: Icons.backup_rounded,
     );
     if (!confirmed || !mounted) return;
 
-    final error = await runBusy(context, () => _api.createBackup(), message: '正在備份資料庫');
+    final error = await runBusy(context, () => _api.createBackup(), message: S.backingUpDatabase);
     if (!mounted) return;
 
-    showAppSnackBar(context, error ?? '備份完成', isError: error != null);
+    showAppSnackBar(context, error ?? S.backupComplete, isError: error != null);
     await _load();
   }
 
@@ -71,7 +71,7 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
       await _load();
       return;
     }
-    showAppSnackBar(context, '已刪除備份');
+    showAppSnackBar(context, S.backupDeleted);
   }
 
   @override
@@ -82,7 +82,7 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '資料庫備份', icon: Icons.backup_outlined),
+          AppHeader(title: S.databaseBackups, icon: Icons.backup_outlined),
           Expanded(
             child: SwitchIn(
               child: _isLoading
@@ -90,41 +90,29 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      child: SwitchIn(
-                        child: _backups.isEmpty
-                            ? ListView(
-                                key: const ValueKey('empty'),
-                                children: [
-                                  const SizedBox(height: 20),
-                                  _buildHeaderCard(c),
-                                  const SizedBox(height: 40),
-                                  const EmptyView(
-                                    icon: Icons.backup_outlined,
-                                    message: '尚無備份紀錄',
-                                  ),
-                                ],
-                              )
-                            : ListView.builder(
-                                key: const ValueKey('items'),
-                                padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-                                itemCount: _backups.length + 1,
-                                itemBuilder: (_, i) {
-                                  if (i == 0) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 20),
-                                      child: _buildHeaderCard(c),
-                                    );
-                                  }
-                                  final record = _backups[i - 1];
-                                  return RevealOnScroll(
-                                    index: i,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(bottom: 12),
-                                      child: _buildRow(record, c),
-                                    ),
-                                  );
-                                },
-                              ),
+                      // 空狀態不另闢一頁：上方的說明卡本身就講完了這個畫面在做什麼，
+                      // 再插一個整頁高的插圖只會在中間留下一大塊看不懂的留白。
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+                        itemCount: _backups.isEmpty ? 2 : _backups.length + 1,
+                        itemBuilder: (_, i) {
+                          if (i == 0) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: _buildHeaderCard(c),
+                            );
+                          }
+                          if (_backups.isEmpty) return _buildEmptyRow(c);
+
+                          final record = _backups[i - 1];
+                          return RevealOnScroll(
+                            index: i,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildRow(record, c),
+                            ),
+                          );
+                        },
                       ),
                     ),
             ),
@@ -149,13 +137,12 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '每日自動備份，保留最新 $_keep 份',
+            S.backedUpDailyNewestP0Kept(_keep),
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
           ),
           const SizedBox(height: 6),
           Text(
-            '超出份數的舊備份會自動清除。備份檔含全站個人資料，下載後請妥善保管，'
-            '每次下載都會記入操作紀錄。',
+            S.olderBackupsBeyondCountRemovedAutomatically,
             style: TextStyle(fontSize: 12, height: 1.6, color: c.textSecondary),
           ),
           const SizedBox(height: 14),
@@ -164,7 +151,7 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
             child: ElevatedButton.icon(
               onPressed: _createBackup,
               icon: const Icon(Icons.backup_rounded, size: 18),
-              label: const Text('立即備份'),
+              label: Text(S.backUpNow),
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.accent,
                 foregroundColor: Colors.white,
@@ -177,6 +164,30 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyRow(AppColors c) {
+    return FadeSlideIn(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        decoration: BoxDecoration(
+          color: c.inputFill,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.schedule_rounded, size: 20, color: c.iconInactive),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                S.noBackupsYetSchedulerRunsOnce,
+                style: TextStyle(fontSize: 13, height: 1.6, color: c.textSecondary),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -194,8 +205,8 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
         dismisses: true,
         onTrigger: () => showConfirmDialog(
           context,
-          title: '刪除備份',
-          message: '${record.fileName}\n\n檔案與紀錄會一併移除，無法復原。',
+          title: S.deleteBackup,
+          message: S.p0NNtheFileItsRecord(record.fileName),
           confirmLabel: S.actionDelete,
           isDestructive: true,
         ),
@@ -237,7 +248,7 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
                   const SizedBox(height: 3),
                   Text(
                     record.isSuccess
-                        ? '${record.sizeText}・${record.isManual ? '手動' : '排程'}'
+                        ? '${record.sizeText}・${record.isManual ? S.manual : S.scheduled}'
                             '${record.adminName.isEmpty ? '' : '・${record.adminName}'}'
                         : (record.detail ?? S.backupFailed),
                     style: TextStyle(fontSize: 12, color: c.textSecondary),
@@ -251,7 +262,7 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
               visible: record.isSuccess && record.available,
               child: IconButton(
                 icon: Icon(Icons.download_rounded, size: 20, color: c.accent),
-                tooltip: '下載',
+                tooltip: S.download,
                 onPressed: () => _showDownloadHint(record),
               ),
             ),
@@ -266,16 +277,14 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
   void _showDownloadHint(BackupRecord record) {
     showConfirmDialog(
       context,
-      title: '下載備份',
-      message: '備份檔請在電腦上取回，並帶上你的授權標頭：\n\n'
-          '${_api.backupDownloadUrl(record.backupId)}\n\n'
-          '檔案大小 ${record.sizeText}。',
-      confirmLabel: '複製網址',
+      title: S.downloadBackup,
+      message: S.fetchBackupComputerWithAuthorisationHeader(_api.backupDownloadUrl(record.backupId), record.sizeText),
+      confirmLabel: S.copyLink2,
       icon: Icons.download_rounded,
     ).then((confirmed) {
       if (!confirmed || !mounted) return;
       Clipboard.setData(ClipboardData(text: _api.backupDownloadUrl(record.backupId)));
-      showAppSnackBar(context, '已複製下載網址');
+      showAppSnackBar(context, S.downloadLinkCopied);
     });
   }
 }

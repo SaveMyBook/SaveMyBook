@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/support.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
@@ -70,7 +71,7 @@ class _AdminLegalScreenState extends State<AdminLegalScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '法律文件', icon: Icons.gavel_outlined),
+          AppHeader(title: S.legalDocuments, icon: Icons.gavel_outlined),
           Expanded(
             child: SwitchIn(
               child: _isLoading
@@ -130,7 +131,7 @@ class _AdminLegalScreenState extends State<AdminLegalScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  doc == null ? '尚未建立' : '最後更新 ${formatDate(doc.updatedAt)}',
+                  doc == null ? S.notCreatedYet : S.updatedP0(formatDate(doc.updatedAt)),
                   style: TextStyle(fontSize: 12, color: c.textSecondary),
                 ),
               ],
@@ -140,6 +141,54 @@ class _AdminLegalScreenState extends State<AdminLegalScreen> {
         ],
       ),
     );
+  }
+}
+
+/// 被拖起來的卡片。純粹靠 elevation 會在圓角外側描出方形陰影，
+/// 所以自己做：放大一點、陰影加深，讓它看起來離開了頁面。
+Widget liftDraggedCard(Widget child, int index, Animation<double> animation) {
+  return AnimatedBuilder(
+    animation: animation,
+    builder: (context, _) {
+      final t = Curves.easeOut.transform(animation.value);
+      final c = AppColors.of(context);
+      return Transform.scale(
+        scale: 1 + 0.03 * t,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            boxShadow: [
+              BoxShadow(
+                color: c.shadow.withValues(alpha: 0.18 * t),
+                blurRadius: 24 * t,
+                offset: Offset(0, 8 * t),
+              ),
+            ],
+          ),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
+enum _EditMode { sections, raw, preview }
+
+/// 條款的一個章節。標題與內文各自有 controller，
+/// id 只用來當重新排序時的 key——用索引當 key 會讓拖曳後的輸入焦點跑掉。
+class _Section {
+  final String id;
+  final TextEditingController title;
+  final TextEditingController body;
+  bool expanded;
+
+  _Section({required this.id, String title = '', String body = '', this.expanded = true})
+      : title = TextEditingController(text: title),
+        body = TextEditingController(text: body);
+
+  void dispose() {
+    title.dispose();
+    body.dispose();
   }
 }
 
@@ -160,81 +209,246 @@ class AdminLegalEditScreen extends StatefulWidget {
 }
 
 class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
+  /// 「1. 標題」「2、標題」「3) 標題」都算章節開頭。
+  static final _heading = RegExp(r'^\s*(\d{1,3})\s*[.、．)）]\s*(\S.*)$');
+
   final ApiService _api = ApiService();
   late final TextEditingController _titleController =
       TextEditingController(text: widget.initialTitle);
-  late final TextEditingController _contentController =
-      TextEditingController(text: widget.initialContent);
+  final TextEditingController _introController = TextEditingController();
+  final TextEditingController _rawController = TextEditingController();
 
+  final List<_Section> _sections = [];
+  final ValueNotifier<String> _stats = ValueNotifier('');
+
+  _EditMode _mode = _EditMode.sections;
+  int _nextId = 0;
   bool _isSaving = false;
   bool _dirty = false;
-  bool _previewing = false;
+
+  /// 解析完再組回來的內容。拿它當比較基準而不是 initialContent，
+  /// 是因為解析會順手正規化編號（「1、」→「1. 」），
+  /// 拿原文比對的話一打開就會顯示「尚未儲存」。
+  late String _baseline;
+
+  /// initState 期間 _loadInto 會觸發 listener。還沒準備好就別去動 _dirty，
+  /// 否則它會停在 true，一開啟就以為有未存的修改。
+  bool _ready = false;
 
   @override
   void initState() {
     super.initState();
-    _titleController.addListener(_checkDirty);
-    _contentController.addListener(_checkDirty);
-  }
-
-  void _checkDirty() {
-    final dirty = _titleController.text != widget.initialTitle ||
-        _contentController.text != widget.initialContent;
-    if (dirty != _dirty) setState(() => _dirty = dirty);
+    _loadInto(widget.initialContent);
+    _baseline = _compose();
+    _titleController.addListener(_onChanged);
+    _introController.addListener(_onChanged);
+    _rawController.addListener(_onChanged);
+    _ready = true;
+    _refreshStats();
   }
 
   @override
   void dispose() {
-    _titleController.removeListener(_checkDirty);
-    _contentController.removeListener(_checkDirty);
     _titleController.dispose();
-    _contentController.dispose();
+    _introController.dispose();
+    _rawController.dispose();
+    for (final section in _sections) {
+      section.dispose();
+    }
+    _stats.dispose();
     super.dispose();
   }
+
+  // ---------- 純文字 ⇄ 章節 ----------
+
+  /// 空行分段。首行帶編號的段落開一個新章節，其餘接到前一章節的內文，
+  /// 第一個編號出現之前的段落當作前言。
+  void _loadInto(String content) {
+    for (final section in _sections) {
+      _retire(section);
+    }
+    _sections.clear();
+
+    final intro = <String>[];
+    for (final block in content.split(RegExp(r'\n\s*\n'))) {
+      final trimmed = block.trim();
+      if (trimmed.isEmpty) continue;
+
+      final cut = trimmed.indexOf('\n');
+      final match = _heading.firstMatch(cut < 0 ? trimmed : trimmed.substring(0, cut));
+
+      if (match != null) {
+        _sections.add(_attach(_Section(
+          id: 's${_nextId++}',
+          title: match.group(2)!.trim(),
+          body: cut < 0 ? '' : trimmed.substring(cut + 1).trim(),
+        )));
+      } else if (_sections.isEmpty) {
+        intro.add(trimmed);
+      } else {
+        final last = _sections.last.body;
+        last.text = last.text.isEmpty ? trimmed : '${last.text}\n\n$trimmed';
+      }
+    }
+    _introController.text = intro.join('\n\n');
+  }
+
+  _Section _attach(_Section section) {
+    section.title.addListener(_onChanged);
+    section.body.addListener(_onChanged);
+    return section;
+  }
+
+  /// 這一幀畫面上的 TextField 還握著這組 controller，當場 dispose 的話
+  /// EditableText 隨後解除監聽會踩到已釋放的 notifier。等畫面換掉再收。
+  void _retire(_Section section) {
+    section.title.removeListener(_onChanged);
+    section.body.removeListener(_onChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) => section.dispose());
+  }
+
+  /// 章節編號在這裡重編，所以拖曳排序後不需要手動改號碼。
+  String _compose() {
+    final parts = <String>[];
+    final intro = _introController.text.trim();
+    if (intro.isNotEmpty) parts.add(intro);
+
+    for (var i = 0; i < _sections.length; i++) {
+      final title = _sections[i].title.text.trim();
+      final body = _sections[i].body.text.trim();
+      if (title.isEmpty && body.isEmpty) continue;
+      final head = '${i + 1}. $title';
+      parts.add(body.isEmpty ? head : '$head\n$body');
+    }
+    return parts.join('\n\n');
+  }
+
+  String get _content =>
+      _mode == _EditMode.raw ? _rawController.text.trim() : _compose();
+
+  void _switchMode(_EditMode mode) {
+    if (mode == _mode) return;
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      if (mode == _EditMode.raw) {
+        _rawController.text = _compose();
+      } else if (_mode == _EditMode.raw) {
+        // 離開純文字模式時重新解析，兩邊才不會各自有一份內容。
+        _loadInto(_rawController.text);
+      }
+      _mode = mode;
+    });
+    _refreshStats();
+  }
+
+  // ---------- 狀態 ----------
+
+  void _onChanged() {
+    if (!_ready) return;
+    _refreshStats();
+    final dirty = _titleController.text != widget.initialTitle || _content != _baseline;
+    if (dirty != _dirty) setState(() => _dirty = dirty);
+  }
+
+  void _refreshStats() {
+    final text = _content;
+    final chars = text.replaceAll(RegExp(r'\s'), '').length;
+    _stats.value = _mode == _EditMode.raw
+        ? S.p0Characters(chars)
+        : S.p0SectionsP1Characters(_sections.length, chars);
+  }
+
+  // ---------- 章節操作 ----------
+
+  void _addSection() {
+    setState(() {
+      _sections.add(_attach(_Section(id: 's${_nextId++}')));
+    });
+    _onChanged();
+    HapticFeedback.selectionClick();
+  }
+
+  Future<void> _removeSection(int index) async {
+    final section = _sections[index];
+    final title = section.title.text.trim();
+    final hasContent = title.isNotEmpty || section.body.text.trim().isNotEmpty;
+
+    if (hasContent) {
+      final ok = await showConfirmDialog(
+        context,
+        title: S.deleteSection,
+        message: title.isEmpty ? S.contentsSectionRemovedWith : S.p0ItsContentsRemoved(title),
+        confirmLabel: S.actionDelete,
+        isDestructive: true,
+      );
+      if (!ok || !mounted) return;
+    }
+
+    setState(() => _retire(_sections.removeAt(index)));
+    _onChanged();
+  }
+
+  void _reorderSections(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) newIndex -= 1;
+    if (newIndex == oldIndex) return;
+    setState(() => _sections.insert(newIndex, _sections.removeAt(oldIndex)));
+    _onChanged();
+    HapticFeedback.selectionClick();
+  }
+
+  // ---------- 儲存 ----------
 
   /// 條款動輒上千字，改到一半誤觸返回等於全部重打。
   Future<bool> _confirmLeave() async {
     if (!_dirty) return true;
     return showConfirmDialog(
       context,
-      title: '捨棄變更？',
-      message: '這份文件有尚未儲存的修改，離開後會遺失。',
-      confirmLabel: '捨棄',
-      cancelLabel: '繼續編輯',
+      title: S.discardChanges,
+      message: S.documentUnsavedChangesTheyLostIf,
+      confirmLabel: S.discard,
+      cancelLabel: S.keepEditing,
       isDestructive: true,
     );
   }
 
   Future<void> _save() async {
     final title = _titleController.text.trim();
-    final content = _contentController.text.trim();
+    final content = _content;
 
     if (title.isEmpty || content.isEmpty) {
-      showAppSnackBar(context, '標題與內容都要填寫', isError: true);
+      showAppSnackBar(context, S.bothTitleContentRequired, isError: true);
       return;
     }
 
-    final unchanged = content == widget.initialContent && title == widget.initialTitle;
-    if (unchanged) {
-      showAppSnackBar(context, '內容沒有變更');
+    final blank = <int>[];
+    for (var i = 0; i < _sections.length; i++) {
+      if (_sections[i].title.text.trim().isEmpty &&
+          _sections[i].body.text.trim().isNotEmpty) {
+        blank.add(i + 1);
+      }
+    }
+    if (_mode != _EditMode.raw && blank.isNotEmpty) {
+      final numbers = blank.join('、');
+      showAppSnackBar(context, S.sectionP0NoTitleYet(numbers), isError: true);
       return;
     }
 
     final confirmed = await showConfirmDialog(
       context,
-      title: '確認更新$title？',
-      message: '這份文件對所有使用者都有效力，送出後會立刻取代目前的版本。',
-      confirmLabel: '我確認要更新',
+      title: S.updateP0(title),
+      message: S.documentBindingEveryUserSubmittingReplaces,
+      confirmLabel: S.yesUpdate,
       isDestructive: true,
     );
     if (!confirmed || !mounted) return;
 
     final notify = await showConfirmDialog(
       context,
-      title: '要通知所有使用者嗎？',
-      message: '每一位啟用中的會員都會收到一則「$title已更新」的通知。',
-      confirmLabel: '更新並通知',
-      cancelLabel: '只更新不通知',
+      title: S.notifyEveryUser,
+      message: S.everyActiveMemberReceivesP0Updated(title已更新),
+      confirmLabel: S.updateNotify,
+      cancelLabel: S.updateOnly,
     );
     if (!mounted) return;
 
@@ -257,13 +471,11 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
     Navigator.pop(context, true);
   }
 
+  // ---------- 畫面 ----------
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final text = _contentController.text;
-    final paragraphs = text.trim().isEmpty
-        ? 0
-        : text.trim().split(RegExp(r'\n\s*\n')).where((p) => p.trim().isNotEmpty).length;
 
     return PopScope(
       canPop: !_dirty,
@@ -279,10 +491,14 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
         body: Column(
           children: [
             AppHeader(title: widget.initialTitle, icon: Icons.edit_note_rounded),
-            _buildToolbar(c, text.length, paragraphs),
+            _buildToolbar(c),
             Expanded(
               child: SwitchIn(
-                child: _previewing ? _buildPreview(c, text) : _buildEditor(c),
+                child: switch (_mode) {
+                  _EditMode.sections => _buildSectionEditor(c),
+                  _EditMode.raw => _buildRawEditor(c),
+                  _EditMode.preview => _buildPreview(c),
+                },
               ),
             ),
             _buildBottomBar(c),
@@ -292,51 +508,312 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
     );
   }
 
-  /// 編輯／預覽切換與即時統計。條款是給使用者看的，寫的時候
-  /// 要能隨時確認排版起來長什麼樣。
-  Widget _buildToolbar(AppColors c, int length, int paragraphs) {
+  Widget _buildToolbar(AppColors c) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
       color: c.card,
       child: Row(
         children: [
           _ModeTab(
-            label: S.actionEdit,
-            icon: Icons.edit_rounded,
-            selected: !_previewing,
-            onTap: () => setState(() => _previewing = false),
+            label: S.sections,
+            icon: Icons.segment_rounded,
+            selected: _mode == _EditMode.sections,
+            onTap: () => _switchMode(_EditMode.sections),
           ),
           const SizedBox(width: 8),
           _ModeTab(
-            label: '預覽',
+            label: S.plainText,
+            icon: Icons.notes_rounded,
+            selected: _mode == _EditMode.raw,
+            onTap: () => _switchMode(_EditMode.raw),
+          ),
+          const SizedBox(width: 8),
+          _ModeTab(
+            label: S.preview,
             icon: Icons.visibility_rounded,
-            selected: _previewing,
-            onTap: () {
-              FocusScope.of(context).unfocus();
-              setState(() => _previewing = true);
-            },
+            selected: _mode == _EditMode.preview,
+            onTap: () => _switchMode(_EditMode.preview),
           ),
           const Spacer(),
-          Text(
-            '$paragraphs 段・$length 字',
-            style: TextStyle(fontSize: 12, color: c.textHint),
+          ValueListenableBuilder<String>(
+            valueListenable: _stats,
+            builder: (_, value, _) => Text(
+              value,
+              style: TextStyle(fontSize: 12, color: c.textHint),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEditor(AppColors c) {
+  Widget _buildSectionEditor(AppColors c) {
+    return CustomScrollView(
+      key: const ValueKey('sections'),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _fieldLabel(S.documentTitle, c),
+                AppTextField(controller: _titleController, hint: S.documentTitle, maxLength: 100),
+                const SizedBox(height: 18),
+                _fieldLabel(S.preamble, c),
+                _buildPlainBox(
+                  c,
+                  controller: _introController,
+                  hint: S.unnumberedOpeningTextLeaveEmptyIf,
+                  minHeight: 84,
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    _fieldLabel(S.articles, c, bottom: 0),
+                    const SizedBox(width: 8),
+                    Text(
+                      S.numberedAutomatically,
+                      style: TextStyle(fontSize: 11, color: c.textHint),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          sliver: SliverReorderableList(
+            itemCount: _sections.length,
+            onReorder: _reorderSections,
+            proxyDecorator: liftDraggedCard,
+            itemBuilder: (_, i) => _buildSectionCard(i, c),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              children: [
+                if (_sections.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    child: Text(
+                      S.noArticlesYetAddFirstOne,
+                      style: TextStyle(fontSize: 13, color: c.textHint),
+                    ),
+                  ),
+                PressableScale(
+                  onTap: _addSection,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(AppRadius.card),
+                      border: Border.all(color: c.accent.withValues(alpha: 0.4)),
+                      color: c.accent.withValues(alpha: 0.05),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_rounded, size: 18, color: c.accent),
+                        const SizedBox(width: 6),
+                        Text(
+                          S.addSection,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: c.accent,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionCard(int index, AppColors c) {
+    final section = _sections[index];
+    final collapsed = !section.expanded;
+
     return Padding(
-      key: const ValueKey('edit'),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+      key: ValueKey(section.id),
+      padding: const EdgeInsets.only(bottom: 12),
+      child: AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: collapsed ? c.border : c.accent.withValues(alpha: 0.35)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+              child: Row(
+                children: [
+                  Container(
+                    width: 26,
+                    height: 26,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: c.accent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.chip),
+                    ),
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: c.accent,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: collapsed
+                        ? Text(
+                            section.title.text.trim().isEmpty
+                                ? S.untitledSection
+                                : section.title.text.trim(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: section.title.text.trim().isEmpty
+                                  ? c.textHint
+                                  : c.textPrimary,
+                            ),
+                          )
+                        : TextField(
+                            controller: section.title,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: c.textPrimary,
+                            ),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                              hintText: S.sectionTitle,
+                              hintStyle: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: c.textHint,
+                              ),
+                            ),
+                          ),
+                  ),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    icon: AnimatedRotation(
+                      turns: collapsed ? 0 : 0.5,
+                      duration: Motion.base,
+                      curve: Motion.emphasized,
+                      child: Icon(Icons.expand_more_rounded, size: 20, color: c.iconInactive),
+                    ),
+                    onPressed: () {
+                      FocusScope.of(context).unfocus();
+                      setState(() => section.expanded = !section.expanded);
+                    },
+                  ),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    icon: Icon(Icons.delete_outline_rounded, size: 20, color: c.iconInactive),
+                    onPressed: () => _removeSection(index),
+                  ),
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: Icon(Icons.drag_handle_rounded, size: 20, color: c.iconInactive),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // 內文存在 controller 裡，摺疊時 Reveal 收掉輸入框也不會掉字。
+            Reveal(
+              visible: !collapsed,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: _buildPlainBox(
+                  c,
+                  controller: section.body,
+                  hint: S.bodySectionSingleLineBreaksKept,
+                  minHeight: 110,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _fieldLabel(String text, AppColors c, {double bottom = 8}) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottom),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textSecondary),
+      ),
+    );
+  }
+
+  Widget _buildPlainBox(
+    AppColors c, {
+    required TextEditingController controller,
+    required String hint,
+    required double minHeight,
+  }) {
+    return Container(
+      constraints: BoxConstraints(minHeight: minHeight),
+      decoration: BoxDecoration(
+        color: c.inputFill,
+        borderRadius: BorderRadius.circular(AppRadius.field),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: TextField(
+        controller: controller,
+        maxLines: null,
+        keyboardType: TextInputType.multiline,
+        style: TextStyle(fontSize: 14, height: 1.8, color: c.textPrimary),
+        decoration: InputDecoration(
+          isDense: true,
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
+          hintText: hint,
+          hintStyle: TextStyle(color: c.textHint, height: 1.8, fontSize: 13),
+        ),
+      ),
+    );
+  }
+
+  /// 章節模式解析不了的文件（或想整段貼上時）用這裡改。
+  Widget _buildRawEditor(AppColors c) {
+    return Padding(
+      key: const ValueKey('raw'),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
       child: Column(
         children: [
-          AppTextField(
-            controller: _titleController,
-            hint: '文件標題',
-            maxLength: 100,
-          ),
+          AppTextField(controller: _titleController, hint: S.documentTitle, maxLength: 100),
           const SizedBox(height: 12),
           // 內容區吃掉剩下的所有高度。放進 ListView 裡的多行輸入框會變成
           // 「捲動中的捲動」，改幾千字的條款完全沒辦法用。
@@ -349,7 +826,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: TextField(
-                controller: _contentController,
+                controller: _rawController,
                 maxLines: null,
                 expands: true,
                 textAlignVertical: TextAlignVertical.top,
@@ -358,7 +835,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
                 decoration: InputDecoration(
                   isDense: true,
                   border: InputBorder.none,
-                  hintText: '空一行分段。條款內容會照這裡的排版呈現給使用者。',
+                  hintText: S.emptyLineStartsParagraphParagraphWhose,
                   hintStyle: TextStyle(color: c.textHint, height: 1.8),
                 ),
               ),
@@ -369,22 +846,28 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
     );
   }
 
-  /// 照使用者端的樣式呈現：同一個字級、行高與段距。
-  Widget _buildPreview(AppColors c, String text) {
-    final paragraphs = text.trim().split(RegExp(r'\n\s*\n'))
-        .where((p) => p.trim().isNotEmpty)
-        .toList();
+  /// 使用者端是把整份 content 當一個 Text 畫出來的，
+  /// 預覽必須用同樣的字級與行高，否則改完排版上線才發現不一樣。
+  Widget _buildPreview(AppColors c) {
+    final text = _content;
 
     return ListView(
       key: const ValueKey('preview'),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 32),
       children: [
-        Container(
+        Row(
+          children: [
+            Icon(Icons.smartphone_rounded, size: 13, color: c.textHint),
+            const SizedBox(width: 5),
+            Text(
+              S.howUsersSee,
+              style: TextStyle(fontSize: 11, color: c.textHint),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        AppCard(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: c.card,
-            borderRadius: BorderRadius.circular(AppRadius.card),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -392,23 +875,17 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
                 _titleController.text.trim().isEmpty
                     ? widget.initialTitle
                     : _titleController.text.trim(),
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: c.textPrimary,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
               ),
               const SizedBox(height: 16),
-              if (paragraphs.isEmpty)
-                Text('尚無內容', style: TextStyle(fontSize: 14, color: c.textHint))
-              else
-                for (final p in paragraphs) ...[
-                  Text(
-                    p.trim(),
-                    style: TextStyle(fontSize: 14, height: 1.8, color: c.textSecondary),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+              Text(
+                text.isEmpty ? S.noContentYet : text,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.9,
+                  color: text.isEmpty ? c.textHint : c.textPrimary,
+                ),
+              ),
             ],
           ),
         ),
@@ -436,7 +913,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
                     children: [
                       Icon(Icons.edit_rounded, size: 13, color: c.warning),
                       const SizedBox(width: 5),
-                      Text('尚未儲存', style: TextStyle(fontSize: 12, color: c.warning)),
+                      Text(S.unsaved, style: TextStyle(fontSize: 12, color: c.warning)),
                     ],
                   )
                 : Row(
@@ -445,7 +922,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
                     children: [
                       Icon(Icons.check_circle_rounded, size: 13, color: c.success),
                       const SizedBox(width: 5),
-                      Text('已是最新版本', style: TextStyle(fontSize: 12, color: c.textHint)),
+                      Text(S.upDate, style: TextStyle(fontSize: 12, color: c.textHint)),
                     ],
                   ),
           ),
@@ -465,7 +942,6 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
   }
 }
 
-/// 編輯／預覽的分段按鈕。
 class _ModeTab extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -571,7 +1047,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  faq == null ? '新增問題' : '編輯問題',
+                  faq == null ? S.newQuestion : S.editQuestion,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
                 const SizedBox(height: 16),
@@ -583,17 +1059,17 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
                   onChanged: (value) => setSheetState(() => category = value ?? 'general'),
                 ),
                 const SizedBox(height: 12),
-                AppTextField(controller: questionController, hint: '問題', maxLength: 200),
+                AppTextField(controller: questionController, hint: S.question, maxLength: 200),
                 const SizedBox(height: 12),
                 AppTextField(
                   controller: answerController,
-                  hint: '答案',
+                  hint: S.answer,
                   maxLines: 6,
                   maxLength: 2000,
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('顯示在幫助中心', style: TextStyle(fontSize: 14, color: c.textPrimary)),
+                  title: Text(S.showHelpCentre, style: TextStyle(fontSize: 14, color: c.textPrimary)),
                   value: visible,
                   activeThumbColor: c.accent,
                   onChanged: (value) => setSheetState(() => visible = value),
@@ -622,7 +1098,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
     if (saved != true || !mounted) return;
 
     if (questionController.text.trim().isEmpty || answerController.text.trim().isEmpty) {
-      showAppSnackBar(context, '問題與答案都要填寫', isError: true);
+      showAppSnackBar(context, S.bothQuestionAnswerRequired, isError: true);
       return;
     }
 
@@ -642,7 +1118,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, faq == null ? '已新增' : '已更新');
+      showAppSnackBar(context, faq == null ? S.added : S.updated);
       _load();
     }
   }
@@ -650,8 +1126,8 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
   Future<void> _delete(FaqItem faq) async {
     final ok = await showConfirmDialog(
       context,
-      title: '刪除問題',
-      message: '要刪除「${faq.question}」嗎？',
+      title: S.deleteQuestion,
+      message: S.deleteP0(faq.question),
       confirmLabel: S.actionDelete,
       isDestructive: true,
     );
@@ -663,21 +1139,53 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '已刪除');
+      showAppSnackBar(context, S.deleted);
       _load();
+    }
+  }
+
+  /// 前台依分類分區呈現，排序值只在分區內比較，所以後台也照分類分組，
+  /// 拖拉只在同一組內進行。Map 保留插入順序，分組順序等同伺服器回傳順序。
+  Map<String, List<FaqItem>> get _grouped {
+    final map = <String, List<FaqItem>>{};
+    for (final faq in _faqs) {
+      map.putIfAbsent(faq.category, () => []).add(faq);
+    }
+    return map;
+  }
+
+  Future<void> _reorder(String category, int oldIndex, int newIndex) async {
+    if (newIndex > oldIndex) newIndex -= 1;
+    if (newIndex == oldIndex) return;
+
+    final grouped = _grouped;
+    final group = grouped[category]!;
+    group.insert(newIndex, group.removeAt(oldIndex));
+
+    // 先在畫面上換位再送出，拖完等網路來回才動的話手感會斷。
+    final previous = _faqs;
+    setState(() => _faqs = [for (final entry in grouped.entries) ...entry.value]);
+    HapticFeedback.selectionClick();
+
+    final error = await _api.reorderFaqs([for (final faq in group) faq.faqId]);
+    if (!mounted) return;
+    if (error != null) {
+      setState(() => _faqs = previous);
+      showAppSnackBar(context, error, isError: true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final grouped = _grouped;
 
     return Scaffold(
       backgroundColor: c.scaffold,
       body: Column(
         children: [
           AppHeader(
-            title: '常見問題',
+            title: S.faq,
             icon: Icons.quiz_outlined,
             actions: [
               HeaderIconButton(icon: Icons.add_rounded, onTap: () => _edit()),
@@ -690,22 +1198,40 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      child: SwitchIn(child: _faqs.isEmpty
-                          ? ListView(key: const ValueKey('empty'), 
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                              children: const [
-                                SizedBox(height: 60),
-                                EmptyView(icon: Icons.quiz_outlined, message: '尚無常見問題'),
-                              ],
-                            )
-                          : ListView.builder(key: const ValueKey('items'), 
-                              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                              itemCount: _faqs.length,
-                              itemBuilder: (_, i) => RevealOnScroll(
-                                index: i,
-                                child: _buildCard(_faqs[i], c),
+                      child: SwitchIn(
+                        child: _faqs.isEmpty
+                            ? ListView(
+                                key: const ValueKey('empty'),
+                                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                children: [
+                                  SizedBox(height: 60),
+                                  EmptyView(icon: Icons.quiz_outlined, message: S.noQuestionsYet2),
+                                ],
+                              )
+                            : CustomScrollView(
+                                key: const ValueKey('items'),
+                                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                slivers: [
+                                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                                  for (final entry in grouped.entries) ...[
+                                    SliverToBoxAdapter(
+                                      child: _buildSectionHeader(entry.key, entry.value.length, c),
+                                    ),
+                                    SliverPadding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                                      sliver: SliverReorderableList(
+                                        itemCount: entry.value.length,
+                                        onReorder: (from, to) => _reorder(entry.key, from, to),
+                                        proxyDecorator: liftDraggedCard,
+                                        itemBuilder: (_, i) =>
+                                            _buildCard(entry.value[i], i, entry.value.length, c),
+                                      ),
+                                    ),
+                                  ],
+                                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                                ],
                               ),
-                            )),
+                      ),
                     ),
             ),
           ),
@@ -714,40 +1240,115 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
     );
   }
 
-  Widget _buildCard(FaqItem faq, AppColors c) {
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      onTap: () => _edit(faq: faq),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildSectionHeader(String category, int count, AppColors c) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
+      child: Row(
         children: [
-          Row(
-            children: [
-              StatusBadge(label: faq.categoryText, color: c.accent),
-              const SizedBox(width: 8),
-              if (!faq.isVisible) StatusBadge(label: '已隱藏', color: c.iconInactive),
-              const Spacer(),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                icon: Icon(Icons.delete_outline_rounded, color: c.iconInactive, size: 20),
-                onPressed: () => _delete(faq),
-              ),
-            ],
+          Container(
+            width: 3,
+            height: 14,
+            decoration: BoxDecoration(
+              color: c.accent,
+              borderRadius: BorderRadius.circular(AppRadius.tag),
+            ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(width: 8),
           Text(
-            faq.question,
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+            AppLabels.faqCategory[category] ?? category,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary),
           ),
-          const SizedBox(height: 4),
-          Text(
-            faq.answer,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.5),
-          ),
+          const SizedBox(width: 6),
+          Text('$count', style: TextStyle(fontSize: 12, color: c.textHint)),
+          const Spacer(),
+          if (count > 1)
+            Row(
+              children: [
+                Icon(Icons.swap_vert_rounded, size: 13, color: c.textHint),
+                const SizedBox(width: 3),
+                Text(S.dragHandleRightReorder,
+                    style: TextStyle(fontSize: 11, color: c.textHint)),
+              ],
+            ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCard(FaqItem faq, int index, int total, AppColors c) {
+    return Padding(
+      key: ValueKey(faq.faqId),
+      padding: const EdgeInsets.only(bottom: 12),
+      child: AppCard(
+        onTap: () => _edit(faq: faq),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: faq.isVisible ? c.accent.withValues(alpha: 0.12) : c.inputFill,
+                borderRadius: BorderRadius.circular(AppRadius.chip),
+              ),
+              child: Text(
+                '${index + 1}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: faq.isVisible ? c.accent : c.textHint,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    faq.question,
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    faq.answer,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.5),
+                  ),
+                  if (!faq.isVisible) ...[
+                    const SizedBox(height: 8),
+                    StatusBadge(label: S.hidden, color: c.iconInactive),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 4),
+            Column(
+              children: [
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  icon: Icon(Icons.delete_outline_rounded, color: c.iconInactive, size: 20),
+                  onPressed: () => _delete(faq),
+                ),
+                // 卡片本身要能點開編輯，所以把拖曳限制在把手上，
+                // 而不是整張卡片長按。
+                if (total > 1)
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: Container(
+                      height: 32,
+                      width: 32,
+                      alignment: Alignment.center,
+                      child: Icon(Icons.drag_handle_rounded, color: c.iconInactive, size: 20),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

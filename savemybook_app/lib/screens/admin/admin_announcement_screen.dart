@@ -40,8 +40,8 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
   Future<void> _delete(Announcement announcement) async {
     final confirmed = await showConfirmDialog(
       context,
-      title: '刪除公告',
-      message: '確定要刪除「${announcement.title}」嗎？此操作無法復原。',
+      title: S.deleteAnnouncement,
+      message: S.deleteP0CannotUndone(announcement.title),
       confirmLabel: S.actionDelete,
       isDestructive: true,
     );
@@ -51,10 +51,10 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
     if (!mounted) return;
 
     if (ok == true) {
-      showAppSnackBar(context, '公告已刪除');
+      showAppSnackBar(context, S.announcementDeleted);
       _load();
     } else {
-      showAppSnackBar(context, '刪除失敗，請稍後再試', isError: true);
+      showAppSnackBar(context, S.couldNotDeleteTryAgainLater, isError: true);
     }
   }
 
@@ -67,7 +67,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
       body: Column(
         children: [
           AppHeader(
-            title: '系統公告',
+            title: S.announcements,
             icon: Icons.campaign_outlined,
             actions: [
               HeaderIconButton(
@@ -90,9 +90,9 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
                     onRefresh: _load,
                     child: SwitchIn(child: _announcements.isEmpty
                         ? ListView(key: const ValueKey('empty'), 
-                            children: const [
+                            children: [
                               SizedBox(height: 80),
-                              EmptyView(icon: Icons.campaign_outlined, message: '尚無公告，點右上角新增'),
+                              EmptyView(icon: Icons.campaign_outlined, message: S.noAnnouncementsYetTapAddOne),
                             ],
                           )
                         : ListView.builder(key: const ValueKey('items'), 
@@ -142,7 +142,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
                   color: statusColor.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Text(announcement.isPublished ? '已發布' : '草稿',
+                child: Text(announcement.isPublished ? S.published : S.draft,
                     style: TextStyle(fontSize: 10, color: statusColor)),
               ),
               const Spacer(),
@@ -165,7 +165,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
           const SizedBox(height: 10),
           Row(
             children: [
-              Text('對象：全體使用者', style: TextStyle(fontSize: 11, color: c.textHint)),
+              Text(S.audienceEveryone, style: TextStyle(fontSize: 11, color: c.textHint)),
               const Spacer(),
               Text(
                 formatDateTime(announcement.publishedAt ?? announcement.createdAt),

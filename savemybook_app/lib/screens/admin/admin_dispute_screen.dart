@@ -86,13 +86,13 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('交易仲裁',
+              Text(S.disputeResolution,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary)),
               const SizedBox(height: 6),
-              Text('訂單 ${dispute.orderNo}｜\$${dispute.totalAmount.toStringAsFixed(0)}',
+              Text(S.orderP0P1(dispute.orderNo, dispute.totalAmount.toStringAsFixed(0)),
                   style: TextStyle(fontSize: 13, color: c.textSecondary)),
               const SizedBox(height: 4),
-              Text('申訴理由：${dispute.reason}',
+              Text(S.reasonP0(dispute.reason),
                   style: TextStyle(fontSize: 13, color: c.textSecondary)),
               const SizedBox(height: 16),
               RadioGroup<String>(
@@ -120,7 +120,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                 controller: noteController,
                 maxLines: 3,
                 maxLength: 500,
-                hint: '裁決說明（選填）',
+                hint: S.decisionNoteOptional,
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -133,7 +133,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('送出裁決', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(S.submitDecision, style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -157,7 +157,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, '已完成裁決');
+      showAppSnackBar(context, S.decisionRecorded);
       _load();
     }
   }
@@ -171,7 +171,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
       body: Column(
         children: [
           AppHeader(
-            title: '仲裁交易',
+            title: S.resolveDispute,
             icon: Icons.gavel_rounded,
             bottom: AppTabBar(controller: _tabController, tabs: [S.disputeProcessing, S.ticketClosed]),
           ),
@@ -185,9 +185,9 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                     onRefresh: _load,
                     child: SwitchIn(child: _disputes.isEmpty
                         ? ListView(key: const ValueKey('empty'), 
-                            children: const [
+                            children: [
                               SizedBox(height: 80),
-                              EmptyView(icon: Icons.balance_rounded, message: '目前沒有此類申訴案件'),
+                              EmptyView(icon: Icons.balance_rounded, message: S.noDisputesKind),
                             ],
                           )
                         : ListView.builder(key: const ValueKey('items'), 
@@ -225,13 +225,13 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary),
                     ),
                     const SizedBox(height: 4),
-                    Text('訂單編號：${dispute.orderNo}',
+                    Text(S.orderNumberP0(dispute.orderNo),
                         style: TextStyle(fontSize: 12, color: c.textSecondary)),
                     const SizedBox(height: 2),
-                    Text('買家：${dispute.buyerName}｜賣家：${dispute.sellerName}',
+                    Text(S.buyerP0SellerP1(dispute.buyerName, dispute.sellerName),
                         style: TextStyle(fontSize: 12, color: c.textSecondary)),
                     const SizedBox(height: 2),
-                    Text('申訴人：${dispute.applicantName}',
+                    Text(S.filedByP0(dispute.applicantName),
                         style: TextStyle(fontSize: 12, color: c.textSecondary)),
                   ],
                 ),
@@ -243,7 +243,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
             ],
           ),
           const SizedBox(height: 8),
-          Text('申訴理由：${dispute.reason}',
+          Text(S.reasonP0(dispute.reason),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.4)),
@@ -261,7 +261,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                       color: c.accent,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text('處理',
+                    child: Text(S.handle,
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
                 )

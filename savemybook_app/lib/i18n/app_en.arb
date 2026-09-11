@@ -87,7 +87,6 @@
   "actionSubmit": "Submit",
   "actionClose": "Close",
   "actionBack": "Back",
-  "actionRetry": "Retry",
   "actionSelect": "Select",
   "actionAll": "All",
   "actionSearch": "Search",
@@ -732,7 +731,6 @@
   "bookDetailsFilledAutomatically": "Book details filled in automatically.",
   "bookDetailsFilledFromBackupSource": "Book details filled in from the backup source.",
   "noSourceIsbnPleaseEnterDetails": "No source has this ISBN. Please enter the details manually.",
-  "yearMonth": "[Year/Month]",
   "day": "Day",
   "tapIconRightScan": "Tap the icon on the right to scan",
   "description": "Description",
@@ -863,9 +861,6 @@
   "fingerprint": "Fingerprint",
   "iris": "Iris",
   "verifyIdentityContinue": "Verify your identity to continue",
-  "msg": "繁體中文",
-  "msg2": "日本語",
-  "msg3": "简体中文",
   "couldNotOpenPhotosCheckPermission": "Could not open your photos. Check the permission.",
   "choosePhotoSource": "Choose a photo source",
   "takePhoto": "Take a photo",
@@ -919,5 +914,711 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "enterTitleContent": "Enter a title and content",
+  "titleCannotExceed255Characters": "Title cannot exceed 255 characters",
+  "contentNeedsLeast5Characters": "Content needs at least 5 characters",
+  "publishAnnouncement": "Publish announcement",
+  "everyUserSeeAnnouncementOncePublished": "Every user will see this announcement once published. Continue?",
+  "publish": "Publish",
+  "announcementPublished": "Announcement published",
+  "draftSaved": "Draft saved",
+  "editAnnouncement": "Edit announcement",
+  "newAnnouncement": "New announcement",
+  "title2": "Title",
+  "announcementTitle": "Announcement title",
+  "writeAnnouncement": "Write the announcement",
+  "publishNow": "Publish now",
+  "leaveOffSaveAsDraft": "Leave off to save as a draft",
+  "saveDraft": "Save draft",
+  "deleteAnnouncement": "Delete announcement",
+  "deleteP0CannotUndone": "Delete \"{p0}\"? This cannot be undone.",
+  "@deleteP0CannotUndone": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "announcementDeleted": "Announcement deleted",
+  "couldNotDeleteTryAgainLater": "Could not delete. Try again later.",
+  "announcements": "Announcements",
+  "noAnnouncementsYetTapAddOne": "No announcements yet. Tap + to add one.",
+  "published": "Published",
+  "draft": "Draft",
+  "audienceEveryone": "Audience: everyone",
+  "backUpNow": "Back up now",
+  "wholeDatabaseExportedCompressedWithLot": "The whole database is exported and compressed. With a lot of data this can take tens of seconds; stay on this screen until it finishes.",
+  "startBackup": "Start backup",
+  "backingUpDatabase": "Backing up the database",
+  "backupComplete": "Backup complete",
+  "backupDeleted": "Backup deleted",
+  "databaseBackups": "Database backups",
+  "backedUpDailyNewestP0Kept": "Backed up daily, newest {p0} kept",
+  "@backedUpDailyNewestP0Kept": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "olderBackupsBeyondCountRemovedAutomatically": "Older backups beyond that count are removed automatically. A backup contains personal data for the whole site, so keep downloads secure. Every download is written to the audit log.",
+  "noBackupsYetSchedulerRunsOnce": "No backups yet. The scheduler runs once a day, or use the button above to create one now.",
+  "deleteBackup": "Delete backup",
+  "p0NNtheFileItsRecord": "{p0}\n\nThe file and its record are both removed. This cannot be undone.",
+  "@p0NNtheFileItsRecord": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "manual": "Manual",
+  "scheduled": "Scheduled",
+  "download": "Download",
+  "downloadBackup": "Download backup",
+  "fetchBackupComputerWithAuthorisationHeader": "Fetch the backup on a computer, with your authorisation header:\n\n{p0}\n\nFile size {p1}.",
+  "@fetchBackupComputerWithAuthorisationHeader": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "copyLink2": "Copy link",
+  "downloadLinkCopied": "Download link copied",
+  "forceDelist": "Force delist",
+  "reasonDelistingSellerNotified": "Reason for delisting; the seller is notified",
+  "delist3": "Delist",
+  "relist2": "Relist",
+  "putP0BackStore": "Put \"{p0}\" back in the store?",
+  "@putP0BackStore": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "relisted": "Relisted",
+  "searchTitleIsbnSeller": "Search title, ISBN or seller",
+  "noBooksMatch": "No books match",
+  "sellerP0P1": "Seller {p0} | {p1}",
+  "@sellerP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "isbnP0P1Views": "ISBN {p0} | {p1} views",
+  "@isbnP0P1Views": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0ReportsAwaitingReview": "{p0} reports awaiting review",
+  "@p0ReportsAwaitingReview": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterLockerNameAddress": "Enter a locker name and address",
+  "enterValidLatitudeLongitude": "Enter a valid latitude and longitude",
+  "latitudeMustBetween9090": "Latitude must be between -90 and 90",
+  "longitudeMustBetween180180": "Longitude must be between -180 and 180",
+  "slotCountMustBetween1100": "Slot count must be between 1 and 100",
+  "closingTime": "Closing time",
+  "p0MustLookLikeHhMm": "{p0} must look like HH:mm, e.g. 09:00",
+  "@p0MustLookLikeHhMm": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fillBothOpeningClosingTimes": "Fill in both opening and closing times",
+  "lockerUpdated": "Locker updated",
+  "lockerAdded": "Locker added",
+  "editLocker": "Edit locker",
+  "newLocker": "New locker",
+  "lockerName": "Locker name",
+  "latitude": "Latitude",
+  "longitude": "Longitude",
+  "slotCount": "Slot count",
+  "createLocker": "Create locker",
+  "disable": "Disable",
+  "p0Locker": "{p0} locker",
+  "@p0Locker": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceDisabledP0NoLongerAppears": "Once disabled, \"{p0}\" no longer appears in the seller drop-off list.",
+  "@onceDisabledP0NoLongerAppears": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceEnabledP0AvailableSellersAgain": "Once enabled, \"{p0}\" is available to sellers again.",
+  "@onceEnabledP0AvailableSellersAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerDisabled": "Locker disabled",
+  "lockerEnabled": "Locker enabled",
+  "slotP0": "Slot {p0}",
+  "@slotP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "slotStatusUpdated": "Slot status updated",
+  "lockerMonitor": "Locker monitor",
+  "searchLockerNameAddress": "Search locker name or address",
+  "noLockersMatch": "No lockers match",
+  "disabled": "Disabled",
+  "freeSlotsP0P1": "Free slots: {p0} / {p1}",
+  "@freeSlotsP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "newCategory": "New category",
+  "editCategory": "Edit category",
+  "categoryName": "Category name",
+  "enterCategoryName": "Enter a category name",
+  "categoryAdded": "Category added",
+  "categoryUpdated": "Category updated",
+  "deleteCategory": "Delete category",
+  "deleteP0CannotUndone2": "Delete \"{p0}\"? This cannot be undone.",
+  "@deleteP0CannotUndone2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "categoryDeleted": "Category deleted",
+  "categories": "Categories",
+  "noCategoriesYet": "No categories yet",
+  "p0BooksUse": "{p0} books in use",
+  "@p0BooksUse": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "legalDocuments": "Legal documents",
+  "notCreatedYet": "Not created yet",
+  "updatedP0": "Updated {p0}",
+  "@updatedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Characters": "{p0} characters",
+  "@p0Characters": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SectionsP1Characters": "{p0} sections | {p1} characters",
+  "@p0SectionsP1Characters": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "deleteSection": "Delete section",
+  "contentsSectionRemovedWith": "The contents of this section are removed with it.",
+  "p0ItsContentsRemoved": "\"{p0}\" and its contents are removed.",
+  "@p0ItsContentsRemoved": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "discardChanges": "Discard changes?",
+  "documentUnsavedChangesTheyLostIf": "This document has unsaved changes. They are lost if you leave.",
+  "discard": "Discard",
+  "keepEditing": "Keep editing",
+  "bothTitleContentRequired": "Both title and content are required",
+  "sectionP0NoTitleYet": "Section {p0} has no title yet",
+  "@sectionP0NoTitleYet": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "updateP0": "Update {p0}?",
+  "@updateP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "documentBindingEveryUserSubmittingReplaces": "This document is binding on every user. Submitting replaces the current version immediately.",
+  "yesUpdate": "Yes, update it",
+  "notifyEveryUser": "Notify every user?",
+  "everyActiveMemberReceivesP0Updated": "Every active member receives a \"{p0} updated\" notification.",
+  "@everyActiveMemberReceivesP0Updated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "updateNotify": "Update and notify",
+  "updateOnly": "Update only",
+  "sections": "Sections",
+  "plainText": "Plain text",
+  "preview": "Preview",
+  "documentTitle": "Document title",
+  "preamble": "Preamble",
+  "unnumberedOpeningTextLeaveEmptyIf": "Unnumbered opening text. Leave empty if there is none.",
+  "articles": "Articles",
+  "numberedAutomatically": "Numbered automatically",
+  "noArticlesYetAddFirstOne": "No articles yet. Add the first one below.",
+  "addSection": "Add section",
+  "untitledSection": "Untitled section",
+  "sectionTitle": "Section title",
+  "bodySectionSingleLineBreaksKept": "The body of this section. Single line breaks are kept as-is; an empty line starts a new paragraph.",
+  "emptyLineStartsParagraphParagraphWhose": "An empty line starts a paragraph. A paragraph whose first line reads \"1. Title\" becomes a section when you switch back.",
+  "howUsersSee": "How users see it",
+  "noContentYet": "No content yet",
+  "unsaved": "Unsaved",
+  "upDate": "Up to date",
+  "newQuestion": "New question",
+  "editQuestion": "Edit question",
+  "question": "Question",
+  "answer": "Answer",
+  "showHelpCentre": "Show in the help centre",
+  "bothQuestionAnswerRequired": "Both question and answer are required",
+  "added": "Added",
+  "updated": "Updated",
+  "deleteQuestion": "Delete question",
+  "deleteP0": "Delete \"{p0}\"?",
+  "@deleteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deleted": "Deleted",
+  "faq": "FAQ",
+  "noQuestionsYet2": "No questions yet",
+  "dragHandleRightReorder": "Drag the handle on the right to reorder",
+  "hidden": "Hidden",
+  "cancelDeletionRequest": "Cancel deletion request",
+  "p0SAccountReturnsNormalCountdown": "{p0}'s account returns to normal and the countdown stops.",
+  "@p0SAccountReturnsNormalCountdown": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelDeletion": "Cancel deletion",
+  "deletionRequestCancelled": "Deletion request cancelled",
+  "anonymiseNow": "Anonymise now",
+  "eraseP0SPersonalDataDisable": "Erase {p0}'s personal data and disable the account now, without waiting for the grace period.\n\nOrders and transaction records are kept, but the display name becomes \\\"Deleted user\\\". This cannot be undone.",
+  "@eraseP0SPersonalDataDisable": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "doNow": "Do it now",
+  "anonymised": "Anonymised",
+  "pendingDeletions": "Pending deletions",
+  "noDeletionRequestsPending": "No deletion requests pending",
+  "dueSoon": "Due soon",
+  "p0DaysLeft": "{p0} days left",
+  "@p0DaysLeft": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requestedP0ScheduledP1": "Requested {p0}, scheduled for {p1}",
+  "@requestedP0ScheduledP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "disputeResolution": "Dispute resolution",
+  "orderP0P1": "Order {p0} | \\${p1}",
+  "@orderP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reasonP0": "Reason: {p0}",
+  "@reasonP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "decisionNoteOptional": "Decision note (optional)",
+  "submitDecision": "Submit decision",
+  "decisionRecorded": "Decision recorded",
+  "resolveDispute": "Resolve dispute",
+  "noDisputesKind": "No disputes of this kind",
+  "orderNumberP0": "Order number: {p0}",
+  "@orderNumberP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyerP0SellerP1": "Buyer: {p0} | Seller: {p1}",
+  "@buyerP0SellerP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "filedByP0": "Filed by: {p0}",
+  "@filedByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "handle": "Handle",
+  "transactions2": "Transactions",
+  "orders": "Orders",
+  "lookUpOrdersAdjustStatusBy": "Look up orders and adjust status by hand",
+  "disputeListDecisions": "Dispute list and decisions",
+  "listings": "Listings",
+  "allBooksForceDelisting": "All books, force delisting",
+  "moderation": "Moderation",
+  "handleListingReports": "Handle listing reports",
+  "addReorderDeleteBookCategories": "Add, reorder and delete book categories",
+  "members": "Members",
+  "memberControls": "Member controls",
+  "memberListSuspensionBlocklist": "Member list, suspension and blocklist",
+  "membershipTiers": "Membership tiers",
+  "tierThresholdsBenefits": "Tier thresholds and benefits",
+  "wallets": "Wallets",
+  "checkBalancesAddDeductCoinsBy": "Check balances, add or deduct coins by hand",
+  "hardwareOperations": "Hardware and operations",
+  "lockerSlotStatus": "Locker and slot status",
+  "maintenanceLog": "Maintenance log",
+  "lockerOperationHistory": "Locker operation history",
+  "reports": "Reports",
+  "ordersRevenueMemberGrowth": "Orders, revenue and member growth",
+  "announcements2": "Announcements",
+  "supportEnquiries": "Support enquiries",
+  "replyQuestionsFromUsers": "Reply to questions from users",
+  "faqShownHelpCentre": "FAQ shown in the help centre",
+  "termsPrivacyPolicyAbout": "Terms, privacy policy and about",
+  "adminAuditLog": "Admin audit log",
+  "auditTrailAdminChanges": "Audit trail of admin changes",
+  "systemOperations": "System operations",
+  "dailyBackupsManualRunsDownloads": "Daily backups, manual runs and downloads",
+  "deletionRequestsInsideGracePeriodCancel": "Deletion requests inside the grace period; cancel or run them now",
+  "members2": "Members",
+  "todaySOrders": "Today's orders",
+  "openCases": "Open cases",
+  "activeLockers": "Active lockers",
+  "newTier": "New tier",
+  "editTier": "Edit tier",
+  "tierName": "Tier name",
+  "minimumPoints": "Minimum points",
+  "maximumPointsLeaveEmptyNoCap": "Maximum points (leave empty for no cap)",
+  "benefitsSeparatedByCommasLineBreaks": "Benefits, separated by commas or line breaks; each is listed on the membership page",
+  "enterTierName": "Enter a tier name",
+  "maximumPointsMustExceedMinimum": "Maximum points must exceed the minimum",
+  "tierAdded": "Tier added",
+  "tierUpdated": "Tier updated",
+  "deleteTier": "Delete tier",
+  "deleteP0MembersTierDropNext": "Delete \"{p0}\"? Members on this tier drop to the next tier they qualify for.",
+  "@deleteP0MembersTierDropNext": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "tierDeleted": "Tier deleted",
+  "noMembershipTiersSetUp": "No membership tiers set up",
+  "p0PointsUp": "{p0} points and up",
+  "@p0PointsUp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0P1Points": "{p0} - {p1} points",
+  "@p0P1Points": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noBenefitsDescribedYet": "No benefits described yet",
+  "noMaintenanceRecords": "No maintenance records",
+  "noFurtherDetail": "(no further detail)",
+  "operator": "Operator",
+  "unknown": "(unknown)",
+  "time": "Time",
+  "recordNumber": "Record number",
+  "operatorP0": "Operator: {p0}",
+  "@operatorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspendAccount": "Suspend this account",
+  "reinstateAccount": "Reinstate this account",
+  "addBlocklist": "Add to blocklist",
+  "removeFromBlocklist": "Remove from blocklist",
+  "p0SignedOutImmediatelyCanNo": "{p0} is signed out immediately and can no longer use any part of the app.",
+  "@p0SignedOutImmediatelyCanNo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0AbleSignAgain": "{p0} will be able to sign in again.",
+  "@p0AbleSignAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accountStatusUpdated": "Account status updated",
+  "removeAdmin": "Remove admin",
+  "makeAdmin": "Make admin",
+  "p0LosesEveryAdminPermissionImmediately": "{p0} loses every admin permission immediately.",
+  "@p0LosesEveryAdminPermissionImmediately": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0GainsAccessAdminAreaWith": "{p0} gains access to the admin area with all permissions by default; you can adjust them one by one afterwards.",
+  "@p0GainsAccessAdminAreaWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roleUpdated": "Role updated",
+  "manualP0P1": ", manual {p0}{p1}",
+  "@manualP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "adjustMembershipTier": "Adjust membership tier",
+  "currentlyP0PointsAutomaticP1P2": "Currently {p0} points (automatic {p1}{p2})",
+  "@currentlyP0PointsAutomaticP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "p0P1Points2": "{p0} ({p1} points)",
+  "@p0P1Points2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "adjustPointsManually": "Adjust points manually",
+  "backAutomatic": "Back to automatic",
+  "backAutomatic2": "Back on automatic",
+  "pointAdjustment": "Point adjustment",
+  "positiveAddsNegativeDeductsEG": "Positive adds, negative deducts, e.g. -50",
+  "apply": "Apply",
+  "enterNonZeroWholeNumber": "Enter a non-zero whole number",
+  "pointsAdjusted": "Points adjusted",
+  "tierAdjusted": "Tier adjusted",
+  "permissionGranted": "Permission granted",
+  "permissionRevoked": "Permission revoked",
+  "grantAllPermissions": "Grant all permissions",
+  "revokeAllPermissions": "Revoke all permissions",
+  "p0AbleUseEveryAdminFeature": "{p0} will be able to use every admin feature.",
+  "@p0AbleUseEveryAdminFeature": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ReachAdminAreaButUnable": "{p0} will reach the admin area but be unable to use anything in it.",
+  "@p0ReachAdminAreaButUnable": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "allPermissionsGranted": "All permissions granted",
+  "allPermissionsRevoked": "All permissions revoked",
+  "memberSettings": "Member settings",
+  "noDataMember": "No data for this member",
+  "listings2": "Listings",
+  "completedTrades": "Completed trades",
+  "joined": "Joined",
+  "accountStatus": "Account status",
+  "ownAccountStatusPermissionsCannotChanged": "This is your own account; status and permissions cannot be changed here.",
+  "accountEnabled": "Account enabled",
+  "canSignUseAppNormally": "Can sign in and use the app normally",
+  "suspendedSignedOutImmediatelyAfterSigning": "Suspended; signed out immediately after signing in",
+  "blocked": "Blocked",
+  "blockedNoFeaturesAvailable": "Blocked; no features are available",
+  "notBlocked": "Not blocked",
+  "role": "Role",
+  "p0PointsAutomaticP1P2": "{p0} points (automatic {p1}{p2})",
+  "@p0PointsAutomaticP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "memberSTierBeenAdjustedBy": "This member's tier has been adjusted by hand and no longer follows trades alone.",
+  "adjustTier": "Adjust tier",
+  "adminPermissions": "Admin permissions",
+  "all": "All on",
+  "allOff": "All off",
+  "reinstateAccount2": "Reinstate account",
+  "suspendAccount2": "Suspend account",
+  "runP1P0": "Run \"{p0}\" on \"{p1}\"?",
+  "@runP1P0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "updatedP0SStatus": "Updated {p0}'s status",
+  "@updatedP0SStatus": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fullSettingsTierPermissions": "Full settings (tier, permissions)",
+  "members3": "Members",
+  "searchDisplayNameEmail": "Search display name or email",
+  "noMembersMatch": "No members match",
+  "sales2": "Sales",
+  "created": "Created",
+  "noActivityYet": "No activity yet",
+  "changeOrderStatus": "Change order status",
+  "orderP0": "Order {p0}",
+  "@orderP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reasonChange": "Reason for the change",
+  "sentBuyerAsWellOptional": "Sent to the buyer as well (optional)",
+  "applyChange": "Apply change",
+  "orderStatusUpdated": "Order status updated",
+  "searchOrderNumberBuyerSeller": "Search order number, buyer or seller",
+  "noOrdersMatch": "No orders match",
+  "noItems": "(no items)",
+  "p0ItemsTotal": "and {p0} items in total",
+  "@p0ItemsTotal": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyerP0SellerP12": "Buyer {p0} | Seller {p1}",
+  "@buyerP0SellerP12": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "lockerP0": "Locker: {p0}",
+  "@lockerP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancellationReasonP0": "Cancellation reason: {p0}",
+  "@cancellationReasonP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reviewReport": "Review report",
+  "reportedP0P1": "Reported {p0}: {p1}",
+  "@reportedP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reasonP02": "Reason: {p0}",
+  "@reasonP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "handlingNoteOptional": "Handling note (optional)",
+  "delistListingAsWell": "Delist the listing as well",
+  "dismissReport": "Dismiss report",
+  "reportHandled": "Report handled",
+  "noReportsKind": "No reports of this kind",
+  "reportedByP0": "Reported by: {p0}",
+  "@reportedByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "review": "Review",
+  "noteP0": "Note: {p0}",
+  "@noteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "last7Days": "Last 7 days",
+  "last30Days": "Last 30 days",
+  "ordersPerDay": "Orders per day",
+  "revenuePerDay": "Revenue per day",
+  "newMembersPerDay": "New members per day",
+  "newOrders": "New orders",
+  "newMembers": "New members",
+  "newListings": "New listings",
+  "completedRevenue": "Completed revenue",
+  "p0Orders": "{p0} orders",
+  "@p0Orders": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "peakP0": "Peak {p0}",
+  "@peakP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "topCategoriesByListings": "Top categories by listings",
+  "replied": "Replied",
+  "noEnquiriesCategory": "No enquiries in this category",
+  "addCoins": "Add coins",
+  "deductCoins": "Deduct coins",
+  "amountPositiveWholeNumber": "Amount (positive whole number)",
+  "reasonAdjustmentRequired": "Reason for the adjustment (required)",
+  "add2": "Add",
+  "deduct": "Deduct",
+  "enterAmountGreaterThan0": "Enter an amount greater than 0",
+  "enterReasonAdjustment": "Enter a reason for the adjustment",
+  "member2": "this member",
+  "add3": "add",
+  "deduct2": "deduct",
+  "confirmAddingCoins": "Confirm adding coins",
+  "confirmDeductingCoins": "Confirm deducting coins",
+  "p1P2CoinsP0NreasonP3": "This will {p0} {p1} coins for {p2}.\nReason: {p3}",
+  "@p1P2CoinsP0NreasonP3": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {},
+      "p3": {}
+    }
+  },
+  "balanceAdjusted": "Balance adjusted",
+  "memberWallets": "Member wallets",
+  "transactions3": "Transactions",
+  "memberNoTransactionsYet": "This member has no transactions yet.",
+  "balanceCoins": "Balance (coins)",
+  "hold2": "On hold",
+  "total2": "Total in",
+  "totalOut": "Total out",
+  "balanceP0": "Balance {p0}",
+  "@balanceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspensionBlocklistRoles": "Suspension, blocklist, roles",
+  "tierThresholdsManualAdjustments": "Tier thresholds and manual adjustments",
+  "booksCategories": "Books and categories",
+  "reportReview": "Report review",
+  "handleListingReports2": "Handle listing reports",
+  "lookUpChangeOrderStatus": "Look up and change order status",
+  "decideDisputeCases": "Decide dispute cases",
+  "checkAdjustCoinBalances": "Check and adjust coin balances",
+  "hardware": "Hardware",
+  "lockersSlots": "Lockers and slots",
+  "announcementsDocuments": "Announcements and documents",
+  "announcementsFaqLegalDocuments": "Announcements, FAQ, legal documents",
+  "replyUserQuestions": "Reply to user questions",
+  "databaseBackupDownloadOffByDefault": "Database backup and download; off by default"
 }

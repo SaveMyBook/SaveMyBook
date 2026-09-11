@@ -55,13 +55,13 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
   }
 
   Future<void> _toggleActive(Cabinet cabinet) async {
-    final action = cabinet.isActive ? '停用' : S.enable;
+    final action = cabinet.isActive ? S.disable : S.enable;
     final confirmed = await showConfirmDialog(
       context,
-      title: '$action書櫃',
+      title: S.p0Locker(action書櫃),
       message: cabinet.isActive
-          ? '停用後「${cabinet.cabinetName}」不會再出現在賣家的存放區域選單中。'
-          : '啟用後「${cabinet.cabinetName}」會重新開放給賣家選擇。',
+          ? S.onceDisabledP0NoLongerAppears(cabinet.cabinetName)
+          : S.onceEnabledP0AvailableSellersAgain(cabinet.cabinetName),
       confirmLabel: action,
       isDestructive: cabinet.isActive,
     );
@@ -82,7 +82,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, cabinet.isActive ? '書櫃已停用' : '書櫃已啟用');
+      showAppSnackBar(context, cabinet.isActive ? S.lockerDisabled : S.lockerEnabled);
       _load();
     }
   }
@@ -107,7 +107,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 14),
-            Text('櫃位 ${slot.slotNumber}',
+            Text(S.slotP0(slot.slotNumber),
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary)),
             const SizedBox(height: 8),
             ...options.map(
@@ -134,7 +134,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
     if (!mounted) return;
 
     if (ok == true) {
-      showAppSnackBar(context, '櫃位狀態已更新');
+      showAppSnackBar(context, S.slotStatusUpdated);
       _load();
     } else {
       showAppSnackBar(context, AppLabels.updateFailed, isError: true);
@@ -150,7 +150,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
       body: Column(
         children: [
           AppHeader(
-            title: '書櫃監控',
+            title: S.lockerMonitor,
             icon: Icons.storage_rounded,
             actions: [
               HeaderIconButton(
@@ -169,7 +169,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: AppSearchField(
               controller: _searchController,
-              hint: '搜尋書櫃名稱或地址',
+              hint: S.searchLockerNameAddress,
               onChanged: (_) => setState(() {}),
             ),
           ),
@@ -181,9 +181,9 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                     onRefresh: _load,
                     child: SwitchIn(child: _filtered.isEmpty
                         ? ListView(key: const ValueKey('empty'), 
-                            children: const [
+                            children: [
                               SizedBox(height: 80),
-                              EmptyView(icon: Icons.inbox_outlined, message: '沒有符合條件的書櫃'),
+                              EmptyView(icon: Icons.inbox_outlined, message: S.noLockersMatch),
                             ],
                           )
                         : ListView.builder(key: const ValueKey('items'), 
@@ -222,7 +222,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                     color: Colors.orangeAccent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text('已停用',
+                  child: Text(S.disabled,
                       style: TextStyle(fontSize: 10, color: Colors.orangeAccent)),
                 ),
               const Spacer(),
@@ -249,7 +249,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
             ],
           ),
           const SizedBox(height: 4),
-          Text('剩餘空間：$available / ${cabinet.totalSlots}',
+          Text(S.freeSlotsP0P1(available, cabinet.totalSlots),
               style: TextStyle(fontSize: 13, color: c.textSecondary)),
           const SizedBox(height: 8),
           ClipRRect(

@@ -6,6 +6,7 @@ import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
+import '../../i18n/strings.dart';
 
 class AdminOperationLogScreen extends StatefulWidget {
   const AdminOperationLogScreen({super.key});
@@ -42,7 +43,7 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          const AppHeader(title: '管理操作紀錄', icon: Icons.fact_check_outlined),
+          AppHeader(title: S.adminAuditLog, icon: Icons.fact_check_outlined),
           Expanded(
             child: SwitchIn(
               child: _isLoading
@@ -52,11 +53,11 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                       onRefresh: _load,
                       child: SwitchIn(child: _logs.isEmpty
                           ? ListView(key: const ValueKey('empty'), 
-                              children: const [
+                              children: [
                                 SizedBox(height: 60),
                                 EmptyView(
                                   icon: Icons.fact_check_outlined,
-                                  message: '尚無操作紀錄',
+                                  message: S.noActivityYet,
                                 ),
                               ],
                             )

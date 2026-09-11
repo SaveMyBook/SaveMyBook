@@ -87,7 +87,6 @@
   "actionSubmit": "送信",
   "actionClose": "閉じる",
   "actionBack": "戻る",
-  "actionRetry": "再試行",
   "actionSelect": "選択してください",
   "actionAll": "すべて",
   "actionSearch": "検索",
@@ -732,7 +731,6 @@
   "bookDetailsFilledAutomatically": "書籍情報を自動入力しました。",
   "bookDetailsFilledFromBackupSource": "予備のデータベースから書籍情報を取得しました。",
   "noSourceIsbnPleaseEnterDetails": "どのデータベースにもこの ISBN が見つかりません。手動で入力してください。",
-  "yearMonth": "[年月]",
   "day": "日",
   "tapIconRightScan": "右のアイコンをタップしてスキャン",
   "description": "書籍の紹介",
@@ -863,9 +861,6 @@
   "fingerprint": "指紋",
   "iris": "虹彩",
   "verifyIdentityContinue": "続けるには認証してください",
-  "msg": "繁體中文",
-  "msg2": "日本語",
-  "msg3": "简体中文",
   "couldNotOpenPhotosCheckPermission": "写真を開けませんでした。アクセス許可をご確認ください。",
   "choosePhotoSource": "写真の取得方法を選択",
   "takePhoto": "写真を撮る",
@@ -919,5 +914,711 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "enterTitleContent": "タイトルと本文を入力してください",
+  "titleCannotExceed255Characters": "タイトルは255文字までです",
+  "contentNeedsLeast5Characters": "本文は5文字以上必要です",
+  "publishAnnouncement": "お知らせを公開",
+  "everyUserSeeAnnouncementOncePublished": "公開すると全ユーザーに表示されます。よろしいですか？",
+  "publish": "公開",
+  "announcementPublished": "お知らせを公開しました",
+  "draftSaved": "下書きを保存しました",
+  "editAnnouncement": "お知らせを編集",
+  "newAnnouncement": "お知らせを作成",
+  "title2": "タイトル",
+  "announcementTitle": "お知らせのタイトル",
+  "writeAnnouncement": "お知らせの本文を入力",
+  "publishNow": "すぐに公開",
+  "leaveOffSaveAsDraft": "オフのままなら下書きとして保存",
+  "saveDraft": "下書きを保存",
+  "deleteAnnouncement": "お知らせを削除",
+  "deleteP0CannotUndone": "「{p0}」を削除しますか？元に戻せません。",
+  "@deleteP0CannotUndone": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "announcementDeleted": "お知らせを削除しました",
+  "couldNotDeleteTryAgainLater": "削除できませんでした。後でもう一度お試しください。",
+  "announcements": "お知らせ",
+  "noAnnouncementsYetTapAddOne": "お知らせはまだありません。右上の＋から追加できます。",
+  "published": "公開中",
+  "draft": "下書き",
+  "audienceEveryone": "対象：全ユーザー",
+  "backUpNow": "今すぐバックアップ",
+  "wholeDatabaseExportedCompressedWithLot": "データベース全体を書き出して圧縮します。データ量が多いと数十秒かかることがあります。完了するまでこの画面を離れないでください。",
+  "startBackup": "バックアップを開始",
+  "backingUpDatabase": "データベースをバックアップ中",
+  "backupComplete": "バックアップが完了しました",
+  "backupDeleted": "バックアップを削除しました",
+  "databaseBackups": "データベースのバックアップ",
+  "backedUpDailyNewestP0Kept": "毎日自動バックアップ、最新{p0}",
+  "@backedUpDailyNewestP0Kept": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "olderBackupsBeyondCountRemovedAutomatically": "保持件数を超えた古いバックアップは自動的に削除されます。バックアップにはサイト全体の個人情報が含まれるため、ダウンロードしたファイルは厳重に管理してください。ダウンロードはすべて操作ログに記録されます。",
+  "noBackupsYetSchedulerRunsOnce": "バックアップはまだありません。スケジュールが1日1回実行されます。上のボタンですぐに作成することもできます。",
+  "deleteBackup": "バックアップを削除",
+  "p0NNtheFileItsRecord": "{p0}\n\nファイルと記録の両方が削除されます。元に戻せません。",
+  "@p0NNtheFileItsRecord": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "manual": "手動",
+  "scheduled": "スケジュール",
+  "download": "ダウンロード",
+  "downloadBackup": "バックアップをダウンロード",
+  "fetchBackupComputerWithAuthorisationHeader": "バックアップはパソコンで、認証ヘッダーを付けて取得してください：\n\n{p0}\n\nファイルサイズ {p1}。",
+  "@fetchBackupComputerWithAuthorisationHeader": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "copyLink2": "URLをコピー",
+  "downloadLinkCopied": "ダウンロードURLをコピーしました",
+  "forceDelist": "強制的に出品停止",
+  "reasonDelistingSellerNotified": "出品停止の理由（出品者に通知されます）",
+  "delist3": "出品停止する",
+  "relist2": "再出品",
+  "putP0BackStore": "『{p0}』をストアに戻しますか？",
+  "@putP0BackStore": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "relisted": "再出品しました",
+  "searchTitleIsbnSeller": "タイトル・ISBN・出品者で検索",
+  "noBooksMatch": "該当する本が見つかりません",
+  "sellerP0P1": "出品者 {p0}｜{p1}",
+  "@sellerP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "isbnP0P1Views": "ISBN {p0}｜閲覧 {p1}",
+  "@isbnP0P1Views": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0ReportsAwaitingReview": "未処理の報告が{p0}",
+  "@p0ReportsAwaitingReview": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterLockerNameAddress": "ロッカー名と住所を入力してください",
+  "enterValidLatitudeLongitude": "正しい緯度・経度を入力してください",
+  "latitudeMustBetween9090": "緯度は -90〜90 の範囲です",
+  "longitudeMustBetween180180": "経度は -180〜180 の範囲です",
+  "slotCountMustBetween1100": "棚の数は 1〜100 の範囲です",
+  "closingTime": "閉鎖時刻",
+  "p0MustLookLikeHhMm": "{p0} HH:mm 形式で入力してください（例：09:00）",
+  "@p0MustLookLikeHhMm": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fillBothOpeningClosingTimes": "開放時刻と閉鎖時刻は両方入力してください",
+  "lockerUpdated": "ロッカーを更新しました",
+  "lockerAdded": "ロッカーを追加しました",
+  "editLocker": "ロッカーを編集",
+  "newLocker": "ロッカーを追加",
+  "lockerName": "ロッカー名",
+  "latitude": "緯度",
+  "longitude": "経度",
+  "slotCount": "棚の数",
+  "createLocker": "ロッカーを作成",
+  "disable": "無効化",
+  "p0Locker": "ロッカーを{p0}",
+  "@p0Locker": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceDisabledP0NoLongerAppears": "無効にすると「{p0}」は出品者の預け入れ先一覧に表示されなくなります。",
+  "@onceDisabledP0NoLongerAppears": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceEnabledP0AvailableSellersAgain": "有効にすると「{p0}」を出品者が再び選べるようになります。",
+  "@onceEnabledP0AvailableSellersAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerDisabled": "ロッカーを無効にしました",
+  "lockerEnabled": "ロッカーを有効にしました",
+  "slotP0": "棚 {p0}",
+  "@slotP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "slotStatusUpdated": "棚の状態を更新しました",
+  "lockerMonitor": "ロッカー監視",
+  "searchLockerNameAddress": "ロッカー名・住所で検索",
+  "noLockersMatch": "該当するロッカーがありません",
+  "disabled": "無効",
+  "freeSlotsP0P1": "空き：{p0} / {p1}",
+  "@freeSlotsP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "newCategory": "カテゴリーを追加",
+  "editCategory": "カテゴリーを編集",
+  "categoryName": "カテゴリー名",
+  "enterCategoryName": "カテゴリー名を入力してください",
+  "categoryAdded": "カテゴリーを追加しました",
+  "categoryUpdated": "カテゴリーを更新しました",
+  "deleteCategory": "カテゴリーを削除",
+  "deleteP0CannotUndone2": "「{p0}」を削除しますか？元に戻せません。",
+  "@deleteP0CannotUndone2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "categoryDeleted": "カテゴリーを削除しました",
+  "categories": "カテゴリー管理",
+  "noCategoriesYet": "カテゴリーがありません",
+  "p0BooksUse": "{p0}",
+  "@p0BooksUse": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "legalDocuments": "規約・ポリシー",
+  "notCreatedYet": "未作成",
+  "updatedP0": "最終更新 {p0}",
+  "@updatedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Characters": "{p0}",
+  "@p0Characters": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SectionsP1Characters": "{p0}・{p1}",
+  "@p0SectionsP1Characters": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "deleteSection": "章を削除",
+  "contentsSectionRemovedWith": "この章の内容も一緒に削除されます。",
+  "p0ItsContentsRemoved": "「{p0}」とその内容が削除されます。",
+  "@p0ItsContentsRemoved": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "discardChanges": "変更を破棄しますか？",
+  "documentUnsavedChangesTheyLostIf": "この文書には未保存の変更があります。離れると失われます。",
+  "discard": "破棄",
+  "keepEditing": "編集を続ける",
+  "bothTitleContentRequired": "タイトルと本文の両方が必要です",
+  "sectionP0NoTitleYet": "第{p0}",
+  "@sectionP0NoTitleYet": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "updateP0": "{p0}？",
+  "@updateP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "documentBindingEveryUserSubmittingReplaces": "この文書は全ユーザーに効力を持ちます。送信すると現在の版が直ちに置き換わります。",
+  "yesUpdate": "更新する",
+  "notifyEveryUser": "全ユーザーに通知しますか？",
+  "everyActiveMemberReceivesP0Updated": "有効な会員全員に「{p0}」という通知が届きます。",
+  "@everyActiveMemberReceivesP0Updated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "updateNotify": "更新して通知",
+  "updateOnly": "更新のみ",
+  "sections": "章立て",
+  "plainText": "プレーンテキスト",
+  "preview": "プレビュー",
+  "documentTitle": "文書のタイトル",
+  "preamble": "前文",
+  "unnumberedOpeningTextLeaveEmptyIf": "番号を付けない冒頭の説明文です。なければ空のままで構いません。",
+  "articles": "条文",
+  "numberedAutomatically": "番号は自動で付きます",
+  "noArticlesYetAddFirstOne": "条文がまだありません。下のボタンで最初の章を追加してください。",
+  "addSection": "章を追加",
+  "untitledSection": "無題の章",
+  "sectionTitle": "章のタイトル",
+  "bodySectionSingleLineBreaksKept": "この章の本文です。単一の改行はそのまま表示され、空行で段落が変わります。",
+  "emptyLineStartsParagraphParagraphWhose": "空行で段落を分けます。1行目が「1. タイトル」の段落は、章立てモードに戻したときに1つの章として認識されます。",
+  "howUsersSee": "ユーザーに見える表示",
+  "noContentYet": "内容がありません",
+  "unsaved": "未保存",
+  "upDate": "最新の状態です",
+  "newQuestion": "質問を追加",
+  "editQuestion": "質問を編集",
+  "question": "質問",
+  "answer": "回答",
+  "showHelpCentre": "ヘルプセンターに表示",
+  "bothQuestionAnswerRequired": "質問と回答の両方が必要です",
+  "added": "追加しました",
+  "updated": "更新しました",
+  "deleteQuestion": "質問を削除",
+  "deleteP0": "「{p0}」を削除しますか？",
+  "@deleteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deleted": "削除しました",
+  "faq": "よくある質問",
+  "noQuestionsYet2": "質問がまだありません",
+  "dragHandleRightReorder": "右のハンドルをドラッグで並べ替え",
+  "hidden": "非表示",
+  "cancelDeletionRequest": "削除申請を取り消す",
+  "p0SAccountReturnsNormalCountdown": "{p0}、カウントダウンが止まります。",
+  "@p0SAccountReturnsNormalCountdown": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelDeletion": "削除を取り消す",
+  "deletionRequestCancelled": "削除申請を取り消しました",
+  "anonymiseNow": "今すぐ匿名化",
+  "eraseP0SPersonalDataDisable": "猶予期間の終了を待たず、{p0}。\n\n注文と取引記録は残りますが、表示名は「削除されたユーザー」になります。元に戻せません。",
+  "@eraseP0SPersonalDataDisable": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "doNow": "今すぐ実行",
+  "anonymised": "匿名化が完了しました",
+  "pendingDeletions": "削除待ちのアカウント",
+  "noDeletionRequestsPending": "処理待ちの削除申請はありません",
+  "dueSoon": "まもなく実行",
+  "p0DaysLeft": "残り{p0}",
+  "@p0DaysLeft": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requestedP0ScheduledP1": "{p0}、{p1}",
+  "@requestedP0ScheduledP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "disputeResolution": "取引の裁定",
+  "orderP0P1": "注文 {p0}｜\\${p1}",
+  "@orderP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reasonP0": "申し立て理由：{p0}",
+  "@reasonP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "decisionNoteOptional": "裁定の説明（任意）",
+  "submitDecision": "裁定を送信",
+  "decisionRecorded": "裁定を記録しました",
+  "resolveDispute": "取引を裁定",
+  "noDisputesKind": "この種類の申し立てはありません",
+  "orderNumberP0": "注文番号：{p0}",
+  "@orderNumberP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyerP0SellerP1": "購入者：{p0}｜出品者：{p1}",
+  "@buyerP0SellerP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "filedByP0": "申立人：{p0}",
+  "@filedByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "handle": "対応",
+  "transactions2": "取引管理",
+  "orders": "注文管理",
+  "lookUpOrdersAdjustStatusBy": "注文の検索と手動でのステータス変更",
+  "disputeListDecisions": "申し立て一覧と裁定",
+  "listings": "商品管理",
+  "allBooksForceDelisting": "全書籍、強制的な出品停止",
+  "moderation": "コンテンツ審査",
+  "handleListingReports": "商品の報告対応",
+  "addReorderDeleteBookCategories": "カテゴリーの追加・並べ替え・削除",
+  "members": "会員管理",
+  "memberControls": "会員の管理",
+  "memberListSuspensionBlocklist": "会員一覧・利用停止・ブロック",
+  "membershipTiers": "会員ランク管理",
+  "tierThresholdsBenefits": "ランクの基準と特典の設定",
+  "wallets": "ウォレット管理",
+  "checkBalancesAddDeductCoinsBy": "残高の確認、コインの手動増減",
+  "hardwareOperations": "ハードウェアと運用",
+  "lockerSlotStatus": "ロッカーと棚の状態",
+  "maintenanceLog": "メンテナンス記録",
+  "lockerOperationHistory": "ロッカー関連の操作履歴",
+  "reports": "運用レポート",
+  "ordersRevenueMemberGrowth": "注文・売上・会員の推移",
+  "announcements2": "お知らせ管理",
+  "supportEnquiries": "お問い合わせ",
+  "replyQuestionsFromUsers": "ユーザーからの質問に回答",
+  "faqShownHelpCentre": "ヘルプセンターのよくある質問",
+  "termsPrivacyPolicyAbout": "利用規約・プライバシーポリシー・運営者情報",
+  "adminAuditLog": "管理操作の記録",
+  "auditTrailAdminChanges": "管理者による変更の監査証跡",
+  "systemOperations": "システム運用",
+  "dailyBackupsManualRunsDownloads": "毎日の自動バックアップ、手動実行とダウンロード",
+  "deletionRequestsInsideGracePeriodCancel": "猶予期間中の削除申請。取り消しも即時実行もできます",
+  "members2": "会員数",
+  "todaySOrders": "本日の注文",
+  "openCases": "未処理の案件",
+  "activeLockers": "稼働中のロッカー",
+  "newTier": "ランクを追加",
+  "editTier": "ランクを編集",
+  "tierName": "ランク名",
+  "minimumPoints": "最低ポイント",
+  "maximumPointsLeaveEmptyNoCap": "最高ポイント（空欄で上限なし）",
+  "benefitsSeparatedByCommasLineBreaks": "特典。読点か改行で区切ると、会員ランクのページに1件ずつ表示されます",
+  "enterTierName": "ランク名を入力してください",
+  "maximumPointsMustExceedMinimum": "最高ポイントは最低ポイントより大きくしてください",
+  "tierAdded": "ランクを追加しました",
+  "tierUpdated": "ランクを更新しました",
+  "deleteTier": "ランクを削除",
+  "deleteP0MembersTierDropNext": "「{p0}」を削除しますか？このランクの会員は、条件を満たす次のランクに下がります。",
+  "@deleteP0MembersTierDropNext": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "tierDeleted": "ランクを削除しました",
+  "noMembershipTiersSetUp": "会員ランクが未設定です",
+  "p0PointsUp": "{p0}",
+  "@p0PointsUp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0P1Points": "{p0}〜{p1}",
+  "@p0P1Points": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noBenefitsDescribedYet": "特典の説明が未入力です",
+  "noMaintenanceRecords": "メンテナンス記録はありません",
+  "noFurtherDetail": "（補足なし）",
+  "operator": "操作者",
+  "unknown": "（不明）",
+  "time": "日時",
+  "recordNumber": "記録番号",
+  "operatorP0": "操作者：{p0}",
+  "@operatorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspendAccount": "このアカウントを利用停止",
+  "reinstateAccount": "このアカウントを復帰",
+  "addBlocklist": "ブロックリストに追加",
+  "removeFromBlocklist": "ブロックリストから削除",
+  "p0SignedOutImmediatelyCanNo": "{p0}、アプリのいかなる機能も使えなくなります。",
+  "@p0SignedOutImmediatelyCanNo": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0AbleSignAgain": "{p0}。",
+  "@p0AbleSignAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accountStatusUpdated": "アカウントの状態を更新しました",
+  "removeAdmin": "管理者を解除",
+  "makeAdmin": "管理者にする",
+  "p0LosesEveryAdminPermissionImmediately": "{p0}。",
+  "@p0LosesEveryAdminPermissionImmediately": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0GainsAccessAdminAreaWith": "{p0}、既定ではすべての権限を持ちます。あとから個別に調整できます。",
+  "@p0GainsAccessAdminAreaWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roleUpdated": "役割を更新しました",
+  "manualP0P1": "、手動 {p0}{p1}",
+  "@manualP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "adjustMembershipTier": "会員ランクを調整",
+  "currentlyP0PointsAutomaticP1P2": "現在{p0}（自動 {p1}{p2}）",
+  "@currentlyP0PointsAutomaticP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "p0P1Points2": "{p0}（{p1}）",
+  "@p0P1Points2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "adjustPointsManually": "ポイントを手動で増減",
+  "backAutomatic": "自動計算に戻す",
+  "backAutomatic2": "自動計算に戻しました",
+  "pointAdjustment": "ポイントの増減",
+  "positiveAddsNegativeDeductsEG": "正の数で加算、負の数で減算（例：-50）",
+  "apply": "適用",
+  "enterNonZeroWholeNumber": "0以外の整数を入力してください",
+  "pointsAdjusted": "ポイントを調整しました",
+  "tierAdjusted": "ランクを調整しました",
+  "permissionGranted": "権限を付与しました",
+  "permissionRevoked": "権限を取り消しました",
+  "grantAllPermissions": "すべての権限を付与",
+  "revokeAllPermissions": "すべての権限を取り消し",
+  "p0AbleUseEveryAdminFeature": "{p0}。",
+  "@p0AbleUseEveryAdminFeature": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ReachAdminAreaButUnable": "{p0}、どの機能も使えなくなります。",
+  "@p0ReachAdminAreaButUnable": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "allPermissionsGranted": "すべての権限を付与しました",
+  "allPermissionsRevoked": "すべての権限を取り消しました",
+  "memberSettings": "会員の設定",
+  "noDataMember": "この会員のデータが見つかりません",
+  "listings2": "出品数",
+  "completedTrades": "取引完了数",
+  "joined": "登録日",
+  "accountStatus": "アカウントの状態",
+  "ownAccountStatusPermissionsCannotChanged": "これはあなた自身のアカウントです。ここから状態や権限は変更できません。",
+  "accountEnabled": "アカウント有効",
+  "canSignUseAppNormally": "通常どおりログインして利用できます",
+  "suspendedSignedOutImmediatelyAfterSigning": "利用停止中。ログインしても直ちにログアウトされます",
+  "blocked": "ブロック中",
+  "blockedNoFeaturesAvailable": "ブロック済み。いかなる機能も利用できません",
+  "notBlocked": "ブロックなし",
+  "role": "役割",
+  "p0PointsAutomaticP1P2": "{p0}（自動 {p1}{p2}）",
+  "@p0PointsAutomaticP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "memberSTierBeenAdjustedBy": "この会員のランクは手動で調整されており、取引だけで自動計算されてはいません。",
+  "adjustTier": "ランクを調整",
+  "adminPermissions": "管理権限",
+  "all": "すべて有効",
+  "allOff": "すべて無効",
+  "reinstateAccount2": "アカウントを復帰",
+  "suspendAccount2": "アカウントを利用停止",
+  "runP1P0": "「{p0}」に対して「{p1}」を実行しますか？",
+  "@runP1P0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "updatedP0SStatus": "{p0}",
+  "@updatedP0SStatus": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fullSettingsTierPermissions": "詳細設定（ランク・権限）",
+  "members3": "会員一覧",
+  "searchDisplayNameEmail": "表示名・メールで検索",
+  "noMembersMatch": "該当する会員がいません",
+  "sales2": "販売",
+  "created": "作成日",
+  "noActivityYet": "操作記録はまだありません",
+  "changeOrderStatus": "注文ステータスを変更",
+  "orderP0": "注文 {p0}",
+  "@orderP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reasonChange": "変更の説明",
+  "sentBuyerAsWellOptional": "購入者にも通知されます（任意）",
+  "applyChange": "変更を確定",
+  "orderStatusUpdated": "注文ステータスを更新しました",
+  "searchOrderNumberBuyerSeller": "注文番号・購入者・出品者で検索",
+  "noOrdersMatch": "該当する注文がありません",
+  "noItems": "（商品なし）",
+  "p0ItemsTotal": "ほか全{p0}",
+  "@p0ItemsTotal": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyerP0SellerP12": "購入者 {p0}｜出品者 {p1}",
+  "@buyerP0SellerP12": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "lockerP0": "ロッカー：{p0}",
+  "@lockerP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancellationReasonP0": "キャンセル理由：{p0}",
+  "@cancellationReasonP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reviewReport": "報告を審査",
+  "reportedP0P1": "報告された{p0}：{p1}",
+  "@reportedP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reasonP02": "違反理由：{p0}",
+  "@reasonP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "handlingNoteOptional": "対応メモ（任意）",
+  "delistListingAsWell": "同時に商品を出品停止",
+  "dismissReport": "報告を却下",
+  "reportHandled": "報告を処理しました",
+  "noReportsKind": "この種類の報告はありません",
+  "reportedByP0": "報告者：{p0}",
+  "@reportedByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "review": "審査",
+  "noteP0": "メモ：{p0}",
+  "@noteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "last7Days": "過去7日間",
+  "last30Days": "過去30日間",
+  "ordersPerDay": "1日あたりの注文数",
+  "revenuePerDay": "1日あたりの成約金額",
+  "newMembersPerDay": "1日あたりの新規会員",
+  "newOrders": "新規注文",
+  "newMembers": "新規会員",
+  "newListings": "新規出品",
+  "completedRevenue": "成約済み金額",
+  "p0Orders": "{p0}",
+  "@p0Orders": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "peakP0": "最大 {p0}",
+  "@peakP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "topCategoriesByListings": "人気カテゴリー（出品数順）",
+  "replied": "返信済み",
+  "noEnquiriesCategory": "このカテゴリーにお問い合わせはありません",
+  "addCoins": "コインを追加",
+  "deductCoins": "コインを差し引く",
+  "amountPositiveWholeNumber": "金額（正の整数）",
+  "reasonAdjustmentRequired": "調整の理由（必須）",
+  "add2": "追加する",
+  "deduct": "差し引く",
+  "enterAmountGreaterThan0": "0より大きい金額を入力してください",
+  "enterReasonAdjustment": "調整の理由を入力してください",
+  "member2": "この会員",
+  "add3": "追加",
+  "deduct2": "差し引き",
+  "confirmAddingCoins": "コインの追加を確認",
+  "confirmDeductingCoins": "コインの差し引きを確認",
+  "p1P2CoinsP0NreasonP3": "{p0}{p1}{p2}。\n理由：{p3}",
+  "@p1P2CoinsP0NreasonP3": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {},
+      "p3": {}
+    }
+  },
+  "balanceAdjusted": "残高を調整しました",
+  "memberWallets": "会員のウォレット",
+  "transactions3": "取引明細",
+  "memberNoTransactionsYet": "この会員の取引明細はまだありません。",
+  "balanceCoins": "現在の残高（コイン）",
+  "hold2": "保留中",
+  "total2": "累計収入",
+  "totalOut": "累計支出",
+  "balanceP0": "残高 {p0}",
+  "@balanceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspensionBlocklistRoles": "利用停止・ブロック・役割",
+  "tierThresholdsManualAdjustments": "ランクの基準と手動調整",
+  "booksCategories": "書籍とカテゴリー",
+  "reportReview": "報告の審査",
+  "handleListingReports2": "商品の報告に対応",
+  "lookUpChangeOrderStatus": "注文の検索とステータス変更",
+  "decideDisputeCases": "申し立て案件の裁定",
+  "checkAdjustCoinBalances": "コインの確認と増減",
+  "hardware": "ハードウェア保守",
+  "lockersSlots": "ロッカーと棚",
+  "announcementsDocuments": "お知らせと文書",
+  "announcementsFaqLegalDocuments": "お知らせ・よくある質問・規約",
+  "replyUserQuestions": "ユーザーの質問に回答",
+  "databaseBackupDownloadOffByDefault": "データベースのバックアップとダウンロード（既定では無効）"
 }

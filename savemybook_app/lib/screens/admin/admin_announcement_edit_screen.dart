@@ -57,24 +57,24 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
     final content = _contentController.text.trim();
 
     if (title.isEmpty || content.isEmpty) {
-      showAppSnackBar(context, '請填寫標題與內容', isError: true);
+      showAppSnackBar(context, S.enterTitleContent, isError: true);
       return;
     }
     if (title.length > 255) {
-      showAppSnackBar(context, '標題不可超過 255 個字元', isError: true);
+      showAppSnackBar(context, S.titleCannotExceed255Characters, isError: true);
       return;
     }
     if (content.length < 5) {
-      showAppSnackBar(context, '內容至少 5 個字元', isError: true);
+      showAppSnackBar(context, S.contentNeedsLeast5Characters, isError: true);
       return;
     }
 
     if (_isPublished) {
       final confirmed = await showConfirmDialog(
         context,
-        title: '發布推播',
-        message: '發布後全體使用者都會看到這則公告，確定發布嗎？',
-        confirmLabel: '發布',
+        title: S.publishAnnouncement,
+        message: S.everyUserSeeAnnouncementOncePublished,
+        confirmLabel: S.publish,
       );
       if (!confirmed || !mounted) return;
     }
@@ -93,7 +93,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
-      showAppSnackBar(context, _isPublished ? '公告已發布' : '草稿已儲存');
+      showAppSnackBar(context, _isPublished ? S.announcementPublished : S.draftSaved);
       Navigator.of(context).maybePop();
     }
   }
@@ -106,7 +106,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          AppHeader(title: _isEdit ? '編輯推播' : '新增推播', icon: Icons.campaign_outlined),
+          AppHeader(title: _isEdit ? S.editAnnouncement : S.newAnnouncement, icon: Icons.campaign_outlined),
           Expanded(
             child: SingleChildScrollView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -115,9 +115,9 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   FormRowCard(
-                    label: '標題',
+                    label: S.title2,
                     labelWidth: 60,
-                    child: AppTextField(controller: _titleController, hint: '公告標題', maxLength: 255),
+                    child: AppTextField(controller: _titleController, hint: S.announcementTitle, maxLength: 255),
                   ),
                   FormRowCard(
                     label: S.type,
@@ -138,7 +138,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                       controller: _contentController,
                       maxLines: 6,
                       maxLength: 2000,
-                      hint: '輸入推播內容',
+                      hint: S.writeAnnouncement,
                     ),
                   ),
                   AppCard(
@@ -147,9 +147,9 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                       contentPadding: EdgeInsets.zero,
                       value: _isPublished,
                       activeThumbColor: c.accent,
-                      title: Text('立即發布',
+                      title: Text(S.publishNow,
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary)),
-                      subtitle: Text('關閉時只會存成草稿',
+                      subtitle: Text(S.leaveOffSaveAsDraft,
                           style: TextStyle(fontSize: 12, color: c.textSecondary)),
                       onChanged: (value) => setState(() => _isPublished = value),
                     ),
@@ -172,7 +172,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : Text(_isPublished ? '發布推播' : '儲存草稿',
+                          : Text(_isPublished ? S.publishAnnouncement : S.saveDraft,
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),
