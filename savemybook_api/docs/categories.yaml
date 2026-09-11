@@ -1,10 +1,10 @@
 tags:
   - name: 分類 (Categories)
     description: |
-      書籍分類。支援兩層結構（父分類 → 子分類），以 `parent_id` 串接。
+      書籍分類，支援父子兩層結構，以 `parent_id` 建立關聯。
 
-      新增／編輯／刪除僅限管理員。管理後台另有一組可拖拉排序的端點：
-      `GET|POST|PUT|DELETE /api/admin/categories`。
+      新增、編輯與刪除僅限管理員。管理後台另有一組支援排序的端點，
+      路徑為 `/api/admin/categories`。
 
 paths:
   /api/categories:
@@ -13,19 +13,18 @@ paths:
       operationId: listCategories
       tags: [分類 (Categories)]
       description: |
-        預設回傳**樹狀結構**：只有頂層分類，子分類放在
-        `other_book_categories` 裡（這個欄位名稱來自 Prisma 的自我關聯命名）。
+        預設回傳樹狀結構，僅含頂層分類，子分類置於 `other_book_categories`
+        欄位內。該欄位名稱源自 Prisma 對自我關聯的命名規則。
 
-        帶 `flat=true` 會改回傳**平面清單**，包含所有層級，
-        適合做下拉選單。
+        帶入 `flat=true` 時改回傳平面清單，包含所有層級，適用於下拉選單。
 
-        不需要登入。
+        無須登入。
       security: []
       parameters:
         - in: query
           name: flat
           schema: { type: string, enum: ['true'] }
-          description: 傳 `true` 改回傳不分層的完整清單。
+          description: 帶入 `true` 時回傳不分層的完整清單。
       responses:
         '200':
           description: 成功。
@@ -44,7 +43,7 @@ paths:
                           properties:
                             other_book_categories:
                               type: array
-                              description: 子分類。`flat=true` 時不會有這個欄位。
+                              description: 子分類。`flat=true` 時不含此欄位。
                               items: { $ref: '#/components/schemas/Category' }
               examples:
                 樹狀:
@@ -69,7 +68,7 @@ paths:
       summary: 新增分類
       operationId: createCategory
       tags: [分類 (Categories)]
-      description: 建立分類。不帶 `parent_id` 就是頂層分類。僅限管理員。
+      description: 建立分類。未帶入 `parent_id` 時建立為頂層分類。僅限管理員。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -80,8 +79,8 @@ paths:
               required: [category_name]
               properties:
                 category_name: { type: string, maxLength: 50, example: 文學小說 }
-                parent_id: { type: integer, nullable: true, description: 父分類編號，不填代表頂層。, example: 1 }
-                sort_order: { type: integer, default: 0, description: 數字越小越前面。 }
+                parent_id: { type: integer, nullable: true, description: 父分類編號，未填代表建立為頂層分類。, example: 1 }
+                sort_order: { type: integer, default: 0, description: 數值越小排序越前。 }
       responses:
         '201':
           description: 建立成功。
@@ -94,7 +93,7 @@ paths:
                   message: { type: string, example: 分類建立成功 }
                   data: { $ref: '#/components/schemas/Category' }
         '400':
-          description: 沒有填分類名稱。
+          description: 未填寫分類名稱。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -116,7 +115,7 @@ paths:
       summary: 取得單一分類
       operationId: getCategory
       tags: [分類 (Categories)]
-      description: 回傳這個分類及它底下的子分類。不需要登入。
+      description: 回傳指定分類及其子分類。無須登入。
       security: []
       responses:
         '200':
@@ -143,9 +142,9 @@ paths:
       operationId: updateCategory
       tags: [分類 (Categories)]
       description: |
-        僅限管理員。`parent_id` 傳 `null` 可以把子分類升成頂層分類。
+        僅限管理員。`parent_id` 帶入 `null` 可將子分類提升為頂層分類。
 
-        不能把自己設成自己的父分類，會回 400。
+        父分類不可指向自身，否則回傳 400。
       security: [{ bearerAuth: [] }]
       requestBody:
         content:
@@ -168,7 +167,7 @@ paths:
                   message: { type: string, example: 分類更新成功 }
                   data: { $ref: '#/components/schemas/Category' }
         '400':
-          description: 父分類設定成自己。
+          description: 父分類指向自身。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -183,8 +182,8 @@ paths:
       operationId: deleteCategory
       tags: [分類 (Categories)]
       description: |
-        僅限管理員。底下還有子分類或書籍時會因為外鍵限制失敗，
-        必須先把關聯資料轉移或刪掉。
+        僅限管理員。分類底下仍有子分類或書籍時將因外鍵限制而失敗，
+        須先轉移或刪除關聯資料。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -194,7 +193,7 @@ paths:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
               example: { success: true, message: 分類已成功刪除 }
         '400':
-          description: 還有關聯資料。
+          description: 仍存在關聯資料。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }

@@ -1,8 +1,8 @@
 tags:
   - name: 後台：書櫃管理
     description: |
-      智慧書櫃與櫃位的維運。本組全部需要 `can_manage_cabinets` 權限。
-      所有異動都會寫進操作紀錄，可在 `GET /api/admin/maintenance-logs` 查到。
+      智慧書櫃與櫃位的維運。本組端點均需 `can_manage_cabinets` 權限。
+      所有異動皆寫入稽核紀錄，可由 `GET /api/admin/maintenance-logs` 查詢。
 
 paths:
   /api/admin/cabinets:
@@ -11,8 +11,8 @@ paths:
       operationId: adminListCabinets
       tags: [後台：書櫃管理]
       description: |
-        回傳全部書櫃（含停用的），每個帶櫃位清單、累計訂單數，
-        以及各狀態櫃位的數量統計 `slot_summary`，後台可以直接畫成狀態條。
+        回傳全部書櫃，含已停用者。各筆包含櫃位清單、累計訂單數，
+        以及各狀態櫃位的數量統計 `slot_summary`。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -50,7 +50,7 @@ paths:
                             _count:
                               type: object
                               properties:
-                                orders: { type: integer, description: 曾經指派到這個書櫃的訂單數, example: 140 }
+                                orders: { type: integer, description: 曾指派至此書櫃的訂單數, example: 140 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -60,11 +60,11 @@ paths:
       operationId: adminCreateCabinet
       tags: [後台：書櫃管理]
       description: |
-        建立書櫃時會**自動產生櫃位**：依 `total_slots` 建立 `A01`、`A02`…
-        （兩位數補零），`available_slots` 初始等於 `total_slots`。
+        建立書櫃時會依 `total_slots` 自動產生櫃位，編號為 `A01`、`A02` 等
+        兩位數補零格式，`available_slots` 初始值等於 `total_slots`。
 
-        `open_time` / `close_time` 傳 `HH:mm:ss` 格式的時間字串
-        （例如 `08:00:00`），伺服器會轉成時間欄位儲存。
+        `open_time` 與 `close_time` 須帶入 `HH:mm:ss` 格式的時間字串，
+        例如 `08:00:00`，伺服器將轉換為時間欄位儲存。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -78,12 +78,12 @@ paths:
                 address: { type: string, maxLength: 500, example: 台北市中正區忠孝西路一段 49 號 }
                 latitude: { type: number, format: double, example: 25.04635 }
                 longitude: { type: number, format: double, example: 121.517 }
-                total_slots: { type: integer, default: 20, description: 櫃位數量，會據此自動建立櫃位。, example: 20 }
-                open_time: { type: string, description: 開放時間，格式 HH:mm:ss。, example: '08:00:00' }
-                close_time: { type: string, description: 關閉時間，格式 HH:mm:ss。, example: '22:00:00' }
+                total_slots: { type: integer, default: 20, description: 櫃位數量，系統依此自動建立櫃位。, example: 20 }
+                open_time: { type: string, description: 開放時間，格式為 HH:mm:ss。, example: '08:00:00' }
+                close_time: { type: string, description: 關閉時間，格式為 HH:mm:ss。, example: '22:00:00' }
       responses:
         '201':
-          description: 已新增，回傳含自動建立的櫃位。
+          description: 新增成功，回應包含自動建立的櫃位。
           content:
             application/json:
               schema:
@@ -115,12 +115,12 @@ paths:
       operationId: adminUpdateCabinet
       tags: [後台：書櫃管理]
       description: |
-        只更新有帶的欄位。
+        部分更新：僅異動請求中帶入的欄位。
 
-        `is_active` 設為 false 後，這個書櫃就不會出現在
-        `GET /api/cabinets`，賣家上架時也選不到，但**既有訂單不受影響**。
+        `is_active` 設為 false 後，該書櫃不再出現於 `GET /api/cabinets`，
+        賣家上架時亦無法選取，但既有訂單不受影響。
 
-        **不能**透過這支改 `total_slots`，櫃位數在建立時就固定了。
+        `total_slots` 於建立時即固定，不得透過本端點異動。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -138,8 +138,8 @@ paths:
                 address: { type: string }
                 latitude: { type: number, format: double }
                 longitude: { type: number, format: double }
-                is_active: { type: boolean, description: false 代表停用。 }
-                open_time: { type: string, nullable: true, description: 格式 HH:mm:ss，傳 null 清除。 }
+                is_active: { type: boolean, description: 值為 false 代表停用。 }
+                open_time: { type: string, nullable: true, description: 格式為 HH:mm:ss，帶入 null 代表清除。 }
                 close_time: { type: string, nullable: true }
             example: { cabinet_name: 台北車站站前店, is_active: true, open_time: '08:00:00' }
       responses:
@@ -164,10 +164,10 @@ paths:
       operationId: adminUpdateCabinetSlot
       tags: [後台：書櫃管理]
       description: |
-        手動調整單一櫃位的狀態，主要用來把壞掉的櫃位標成 `maintenance`。
-        變更會寫進操作紀錄（維修紀錄查得到）。
+        手動調整單一櫃位的狀態，主要用於將故障櫃位標記為 `maintenance`。
+        異動會寫入稽核紀錄，可於維修紀錄查詢。
 
-        路徑上的 `cabinetId` 只是為了讓網址有層次，實際是用 `slotId` 更新。
+        路徑中的 `cabinetId` 僅用於維持資源層級，實際更新以 `slotId` 為準。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -193,7 +193,7 @@ paths:
                 status:
                   type: string
                   enum: [empty, occupied, reserved, maintenance]
-                  description: '`empty` 空／`occupied` 有書／`reserved` 已預約／`maintenance` 維修中。'
+                  description: '`empty` 未使用、`occupied` 已存放書籍、`reserved` 已預約、`maintenance` 維修中。'
             example: { status: maintenance }
       responses:
         '200':

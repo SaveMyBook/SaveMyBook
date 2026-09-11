@@ -1,14 +1,14 @@
 tags:
   - name: 後台：會員等級
     description: |
-      會員等級制度的維護。本組全部需要 `can_manage_levels` 權限。
+      會員等級制度的維護。本組端點均需 `can_manage_levels` 權限。
 
-      等級是用**點數門檻**判定的：使用者的點數落在哪個 `min_points`
-      之上，就是哪一級。點數本身的計算與調整在
-      **後台：會員管理** 的 `PATCH /api/admin/members/{id}/level`。
+      等級依點數門檻判定：使用者點數所達到的最高 `min_points` 即為其等級。
+      點數的計算與調整位於「後台：會員管理」的
+      `PATCH /api/admin/members/{id}/level`。
 
-      > 改動 `min_points` 會立刻影響所有會員的等級判定，
-      > 因為等級不是存在使用者身上，而是每次查詢時即時算出來的。
+      > 等級不儲存於使用者資料，而是每次查詢時即時計算，
+      > 因此異動 `min_points` 會立即影響全體會員的等級判定。
 
 paths:
   /api/admin/levels:
@@ -16,7 +16,7 @@ paths:
       summary: 等級列表
       operationId: adminListLevels
       tags: [後台：會員等級]
-      description: 依 `min_points` 由小到大排序。App 端的 `GET /api/users/me/level` 也會回同一份清單。
+      description: 依 `min_points` 遞增排序。前台的 `GET /api/users/me/level` 回傳相同清單。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -39,11 +39,11 @@ paths:
       operationId: adminCreateLevel
       tags: [後台：會員等級]
       description: |
-        建立新等級。`max_points` 傳 `null` 或空字串代表無上限
-        （最高等級應該這樣設）。
+        建立新等級。`max_points` 帶入 `null` 或空字串代表無上限，
+        最高等級應採此設定。
 
-        門檻不會自動檢查是否與其他等級重疊，新增前請自己確認
-        `min_points` 沒有跟既有等級撞在一起。
+        系統不會檢查門檻是否與既有等級重疊，新增前須自行確認
+        `min_points` 未與既有等級衝突。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -54,8 +54,8 @@ paths:
               required: [level_name]
               properties:
                 level_name: { type: string, maxLength: 50, example: 黃金會員 }
-                min_points: { type: integer, default: 0, description: 進入本等級的點數門檻。, example: 500 }
-                max_points: { type: integer, nullable: true, description: 上限。null 代表無上限。, example: 999 }
+                min_points: { type: integer, default: 0, description: 進入本等級所需的點數門檻。, example: 500 }
+                max_points: { type: integer, nullable: true, description: 點數上限，帶入 null 代表無上限。, example: 999 }
                 benefits: { type: string, nullable: true, example: 每月贈送 50 代幣、專屬客服 }
       responses:
         '201':
@@ -71,7 +71,7 @@ paths:
                     properties:
                       level_id: { type: integer, example: 6 }
         '400':
-          description: 沒填等級名稱。
+          description: 未填寫等級名稱。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -94,9 +94,9 @@ paths:
       operationId: adminUpdateLevel
       tags: [後台：會員等級]
       description: |
-        **整筆覆蓋**，不是部分更新：沒帶的欄位會被寫成預設值
-        （`min_points` 變 0、`max_points` 變 null、`benefits` 變 null），
-        所以請把完整內容一起送出。
+        整筆覆蓋而非部分更新：未帶入的欄位將寫入預設值，
+        即 `min_points` 為 0、`max_points` 為 null、`benefits` 為 null。
+        請務必送出完整內容。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -133,11 +133,11 @@ paths:
       operationId: adminDeleteLevel
       tags: [後台：會員等級]
       description: |
-        永久刪除。因為等級是即時算出來的，刪掉之後原本屬於這一級的會員
-        會**自動落到下一個較低的等級**，不會變成沒有等級。
+        永久刪除。由於等級為即時計算，刪除後原屬該等級的會員將自動歸入
+        次一較低等級，不會出現無等級的狀態。
 
-        但如果刪掉的是最低那一級，點數低於所有門檻的會員會退回清單的
-        第一個等級，請留意至少保留一個 `min_points = 0` 的等級。
+        刪除最低等級時，點數低於所有門檻的會員將歸入清單中的第一個等級。
+        建議至少保留一個 `min_points` 為 0 的等級。
       security: [{ bearerAuth: [] }]
       responses:
         '200':

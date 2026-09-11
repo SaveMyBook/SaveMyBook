@@ -3,14 +3,13 @@ tags:
     description: |
       法律文件、常見問題與客服工單。
 
-      | 功能 | 需要的權限 |
+      | 功能 | 所需權限 |
       | --- | --- |
       | 法律文件、常見問題 | `can_manage_announcements` |
       | 客服工單 | `can_manage_support` |
 
-      管理員回覆工單用的是 App 端的
-      `POST /api/support/tickets/{id}/messages`，那支會自動依角色
-      把 `is_staff` 設成 true，後台不需要另一支回覆端點。
+      管理員回覆工單使用 `POST /api/support/tickets/{id}/messages`，
+      該端點依角色自動將 `is_staff` 設為 true，後台無須另設回覆端點。
 
 paths:
   /api/admin/legal:
@@ -19,8 +18,8 @@ paths:
       operationId: adminListLegalDocs
       tags: [後台：客服與條款]
       description: |
-        回傳全部法律文件（目前是服務條款 `terms` 與隱私權政策 `privacy`），
-        含完整內容與最後編輯者。需要 `can_manage_announcements` 權限。
+        回傳全部法律文件，目前包含服務條款（`terms`）與隱私權政策（`privacy`），
+        內容完整並附最後編輯者。需 `can_manage_announcements` 權限。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -44,25 +43,25 @@ paths:
       operationId: adminUpdateLegalDoc
       tags: [後台：客服與條款]
       description: |
-        以 upsert 寫入：`doc_key` 不存在就建立一份新的。
-        需要 `can_manage_announcements` 權限。
+        以 upsert 寫入：`doc_key` 不存在時建立新文件。
+        需 `can_manage_announcements` 權限。
 
-        **`notify` 會逐一通知每一位使用者。** 條款變更關係到所有人的權益，
-        所以不是只發一則公告，而是每個帳號都寫一筆通知。為了避免鎖表太久，
-        寫入是**每 500 筆一批**進行的。
+        `notify` 為 true 時會逐一通知每位使用者。條款變更涉及全體使用者權益，
+        因此採逐帳號寫入通知而非僅發布公告。為避免長時間鎖表，寫入以每 500 筆
+        為一批分次執行。
 
-        通知只會在**內容真的改變**時發出（跟原本的 `content` 比對），
-        只改標題或重複送出同樣內容都不會打擾使用者。
-        通知對象限 `is_active = true` 且不在黑名單的帳號。
+        通知僅在內容確實變更時發送，判定方式為與既有 `content` 比對。
+        僅異動標題或重複送出相同內容均不會發送通知。
+        通知對象限 `is_active` 為 true 且未列入黑名單的帳號。
 
-        > 這是不可逆且影響全站的操作，後台端應該做二次確認再送出。
+        > 此操作不可復原且影響全站，建議於用戶端加入二次確認。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
           name: key
           required: true
           schema: { type: string, enum: [terms, privacy] }
-          description: '`terms` 服務條款／`privacy` 隱私權政策。'
+          description: '`terms` 為服務條款，`privacy` 為隱私權政策。'
           example: terms
       requestBody:
         required: true
@@ -77,11 +76,11 @@ paths:
                 notify:
                   type: boolean
                   default: false
-                  description: 是否通知所有使用者。只有在內容真的改變時才會實際發送。
+                  description: 是否通知全體使用者。僅在內容確實變更時實際發送。
             example: { title: 服務條款, content: 第一條 ..., notify: true }
       responses:
         '200':
-          description: 已更新。`notified` 是實際通知的人數，沒發通知時為 0。
+          description: 更新成功。`notified` 為實際通知的人數，未發送通知時為 0。
           content:
             application/json:
               schema:
@@ -94,14 +93,14 @@ paths:
                     properties:
                       notified: { type: integer, description: 實際收到通知的人數, example: 1284 }
         '400':
-          description: 標題或內容空白。
+          description: 標題或內容為空白。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
-                沒填標題:
+                未填標題:
                   value: { success: false, message: 請填寫標題 }
-                沒填內容:
+                未填內容:
                   value: { success: false, message: 請填寫內容 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
@@ -113,10 +112,10 @@ paths:
       operationId: adminListFaqs
       tags: [後台：客服與條款]
       description: |
-        包含 `is_visible = false` 的項目，依「分類 → 排序值 → 編號」排序。
-        需要 `can_manage_announcements` 權限。
+        包含 `is_visible` 為 false 的項目，依分類、排序值、編號依序排序。
+        需 `can_manage_announcements` 權限。
 
-        App 端的公開版本是 `GET /api/support/faqs`，只回顯示中的項目。
+        前台的公開端點為 `GET /api/support/faqs`，僅回傳顯示中的項目。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -139,8 +138,8 @@ paths:
       operationId: adminCreateFaq
       tags: [後台：客服與條款]
       description: |
-        `category` 是自由字串（不是列舉），App 端依它分組成摺疊區塊，
-        所以同一組的請填一樣的值。不填預設 `general`。
+        `category` 為自由字串而非列舉，前台依此分組呈現，
+        因此同組項目須填入相同值。未填時預設為 `general`。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -152,7 +151,7 @@ paths:
               properties:
                 question: { type: string, maxLength: 255, example: 買家沒有取書怎麼辦？ }
                 answer: { type: string, example: 超過七天未取書，系統會自動取消訂單並退款。 }
-                category: { type: string, default: general, description: 自由字串，用來分組。, example: trade }
+                category: { type: string, default: general, description: 自由字串，供分組使用。, example: trade }
                 sort_order: { type: integer, default: 0 }
                 is_visible: { type: boolean, default: true }
       responses:
@@ -169,7 +168,7 @@ paths:
                     properties:
                       faq_id: { type: integer, example: 12 }
         '400':
-          description: 問題或答案空白。
+          description: 問題或答案為空白。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -192,8 +191,8 @@ paths:
       operationId: adminUpdateFaq
       tags: [後台：客服與條款]
       description: |
-        **整筆覆蓋**：沒帶的欄位會回到預設值（`category` 變 `general`、
-        `sort_order` 變 0、`is_visible` 變 true），請把完整內容一起送出。
+        整筆覆蓋：未帶入的欄位將回復為預設值，即 `category` 為 `general`、
+        `sort_order` 為 0、`is_visible` 為 true。請務必送出完整內容。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -230,7 +229,7 @@ paths:
       operationId: adminDeleteFaq
       tags: [後台：客服與條款]
       description: |
-        永久刪除。想暫時隱藏的話，把 `is_visible` 設成 false 比刪掉更好。
+        永久刪除。如僅需暫時隱藏，建議改將 `is_visible` 設為 false。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -249,23 +248,23 @@ paths:
       operationId: adminListTickets
       tags: [後台：客服與條款]
       description: |
-        依最後更新時間由新到舊，**最多回 100 筆**（沒有分頁）。
-        需要 `can_manage_support` 權限。
+        依最後更新時間遞減排序，上限 100 筆，無分頁機制。
+        需 `can_manage_support` 權限。
 
-        `last_message` 是**最新**一則訊息（App 端的
-        `GET /api/support/tickets` 回的是第一則，兩邊定義不同），
-        後台看列表就知道最後是誰說了什麼。
+        `last_message` 為最新一則訊息。前台的 `GET /api/support/tickets`
+        回傳的是第一則訊息，兩者定義不同。
 
-        要看完整對話用 `GET /api/support/tickets/{id}`，
-        回覆用 `POST /api/support/tickets/{id}/messages`。
+        完整對話請查詢 `GET /api/support/tickets/{id}`，
+        回覆請使用 `POST /api/support/tickets/{id}/messages`。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
           name: status
           schema: { type: string, enum: [open, pending, resolved, closed, all] }
           description: |
-            篩選狀態。`open` 待處理／`pending` 已回覆待使用者確認／
-            `resolved` 已解決／`closed` 已結案。傳 `all` 或不帶代表全部。
+            篩選狀態。`open` 待處理、`pending` 已回覆待使用者確認、
+            `resolved` 已解決、`closed` 已結案。
+            帶入 `all` 或未帶入代表不套用此條件。
       responses:
         '200':
           description: 成功。
@@ -296,11 +295,11 @@ paths:
       operationId: adminUpdateTicketStatus
       tags: [後台：客服與條款]
       description: |
-        手動改工單狀態。需要 `can_manage_support` 權限。
-        會**通知開單者**並寫入操作紀錄。
+        手動變更工單狀態。需 `can_manage_support` 權限。
+        操作會通知開單者並寫入稽核紀錄。
 
-        設成 `closed` 會填上結案時間；設成其他狀態會把結案時間清成 null
-        （等於重新開啟工單，使用者又能繼續回覆）。
+        設為 `closed` 時寫入結案時間；設為其他狀態時將結案時間清為 null，
+        等同重新開啟工單，使用者可繼續回覆。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path

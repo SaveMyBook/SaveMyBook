@@ -1,11 +1,11 @@
 tags:
   - name: 後台：錢包管理
     description: |
-      查詢與調整會員代幣餘額。本組全部需要 `can_manage_wallets` 權限。
+      查詢與調整會員代幣餘額。本組端點均需 `can_manage_wallets` 權限。
 
-      目前平台**沒有**對使用者開放的儲值端點，代幣一律由管理員用
-      `POST /api/admin/wallets/{userId}/adjust` 發放，這也是唯一
-      能憑空增減餘額的地方，因此它強制要求填寫調整原因。
+      平台未對使用者開放儲值端點，代幣一律由管理員透過
+      `POST /api/admin/wallets/{userId}/adjust` 發放。該端點為系統中唯一
+      可直接增減餘額之處，因此強制要求填寫調整原因。
 
 paths:
   /api/admin/wallets:
@@ -14,15 +14,16 @@ paths:
       operationId: adminListWallets
       tags: [後台：錢包管理]
       description: |
-        以**會員**為單位分頁列出，依編號排序。
-        還沒建立錢包的會員也會出現，四個金額欄位都顯示 0，
-        前端不用另外處理 null。
+        以會員為單位分頁列出，依編號排序。
+
+        尚未建立錢包的會員亦會列出，四項金額欄位均回傳 0，
+        用戶端無須另行處理 null 值。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
           name: keyword
           schema: { type: string }
-          description: 同時比對暱稱與 Email。
+          description: 同時對暱稱與 Email 進行比對。
         - $ref: '#/components/parameters/Page'
         - in: query
           name: limit
@@ -60,15 +61,16 @@ paths:
       operationId: adminGetWallet
       tags: [後台：錢包管理]
       description: |
-        單一會員的餘額與**最近 50 筆**交易紀錄（由新到舊）。
-        會員還沒有錢包時金額都是 0，`transactions` 是空陣列。
+        回傳單一會員的餘額與最近 50 筆交易紀錄，依時間遞減排序。
+
+        會員尚未建立錢包時金額均為 0，`transactions` 為空陣列。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
           name: userId
           required: true
           schema: { type: integer }
-          description: 會員編號（不是 wallet_id）。
+          description: 會員編號，非 wallet_id。
           example: 12
       responses:
         '200':
@@ -105,18 +107,19 @@ paths:
       operationId: adminAdjustWallet
       tags: [後台：錢包管理]
       description: |
-        增減會員代幣。正數是加值、負數是扣除。整個流程在一個交易裡完成：
+        增減會員代幣，正數為加值、負數為扣除。整個流程於單一交易內完成：
 
-        1. 沒有錢包的會員會先自動建立一個
-        2. 更新餘額，並依正負累加到 `total_income` 或 `total_expense`
-        3. 寫一筆 `admin_adjust` 交易紀錄，`description` 前面會加上「管理員調整：」
-        4. **通知該會員**金額與原因
-        5. 寫入管理員操作紀錄
+        1. 會員尚未建立錢包時先自動建立
+        2. 更新餘額，並依正負值分別累加至 `total_income` 或 `total_expense`
+        3. 寫入一筆 `admin_adjust` 交易紀錄，`description` 前綴為「管理員調整：」
+        4. 發送通知予該會員，內容包含金額與原因
+        5. 寫入管理員稽核紀錄
 
-        **限制**
+        限制條件：
+
         - 金額不可為 0，絕對值不可超過 1,000,000
-        - **必須填寫 `description`**，因為它會寫進帳務紀錄與給會員的通知
-        - 調整後餘額不可為負數，會回 400
+        - `description` 為必填，該內容將寫入帳務紀錄與會員通知
+        - 調整後餘額不可為負數，否則回傳 400
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -134,15 +137,15 @@ paths:
               properties:
                 amount:
                   type: number
-                  description: 調整金額。正數加值、負數扣除，不可為 0，絕對值上限 1,000,000。
+                  description: 調整金額。正數為加值、負數為扣除，不可為 0，絕對值上限 1,000,000。
                   example: 500
                 description:
                   type: string
-                  description: 調整原因。必填，會寫進帳務紀錄與給會員的通知。
+                  description: 調整原因，為必填欄位，將寫入帳務紀錄與會員通知。
                   example: 客訴補償
             examples:
               加值: { value: { amount: 500, description: 活動獎勵發放 } }
-              扣除: { value: { amount: -200, description: 重複發放回收 } }
+              扣除: { value: { amount: -200, description: 重複發放之回收 } }
       responses:
         '200':
           description: 已調整。
@@ -158,7 +161,7 @@ paths:
                     properties:
                       balance: { type: string, description: 調整後的餘額, example: '1750.00' }
         '400':
-          description: 金額或原因不合法。
+          description: 金額或原因不符合限制。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -167,9 +170,9 @@ paths:
                   value: { success: false, message: 請輸入非零的調整金額 }
                 超過上限:
                   value: { success: false, message: "單次調整不可超過 1,000,000" }
-                沒填原因:
+                未填原因:
                   value: { success: false, message: 請填寫調整原因，這會寫進帳務紀錄 }
-                會變負數:
+                餘額將為負數:
                   value: { success: false, message: 調整後餘額會變成負數，請確認金額 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }

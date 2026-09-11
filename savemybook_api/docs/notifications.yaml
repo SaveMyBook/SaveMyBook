@@ -1,12 +1,12 @@
 tags:
   - name: 通知 (Notifications)
     description: |
-      站內通知。訂單成立、狀態變更、聊天新訊息、檢舉結果、客服回覆、
-      條款更新等都會寫進這裡。
+      站內通知。訂單成立、狀態變更、新聊天訊息、檢舉結果、客服回覆
+      與條款更新等事件皆寫入此處。
 
-      通知是**系統產生**的，沒有給前端建立通知的端點。
+      通知由系統產生，不提供用戶端建立通知的端點。
 
-      點擊通知要導去哪裡，看 `related_type` 與 `related_id`：
+      點擊通知後的導向目標由 `related_type` 與 `related_id` 決定：
 
       | `related_type` | 導向 |
       | --- | --- |
@@ -26,10 +26,10 @@ paths:
       operationId: listNotifications
       tags: [通知 (Notifications)]
       description: |
-        依時間由新到舊。
+        依建立時間遞減排序。
 
-        `unread_count` 統計的是**全部**未讀數，不受 `type` 篩選影響，
-        所以就算切到某個分類，底部導覽列的紅點數字還是對的。
+        `unread_count` 統計全部未讀通知，不受 `type` 篩選影響，
+        因此切換分類時未讀計數仍為全站數值。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/Page'
@@ -39,7 +39,7 @@ paths:
           schema:
             type: string
             enum: [system, order, message, promotion, reservation]
-          description: 只看某一類通知。
+          description: 限定通知類型。
       responses:
         '200':
           description: 成功。
@@ -49,7 +49,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  unread_count: { type: integer, description: 全部未讀數（不受 type 篩選影響）, example: 3 }
+                  unread_count: { type: integer, description: 全部未讀通知數，不受 type 篩選影響, example: 3 }
                   pagination: { $ref: '#/components/schemas/Pagination' }
                   data:
                     type: array
@@ -62,7 +62,7 @@ paths:
       summary: 取得未讀數
       operationId: getUnreadNotificationCount
       tags: [通知 (Notifications)]
-      description: 只回一個數字，用來更新底部導覽列的紅點。很輕量，可以定時輪詢。
+      description: 僅回傳未讀通知數量，負載極低，適合定期輪詢。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -86,9 +86,9 @@ paths:
       operationId: markAllNotificationsRead
       tags: [通知 (Notifications)]
       description: |
-        把自己所有未讀通知標成已讀。沒有未讀時也會回 200。
+        將請求者的全部未讀通知標記為已讀。無未讀通知時仍回傳 200。
 
-        這是不可逆的操作，App 端會先跳確認彈窗。
+        此操作不可復原，建議用戶端於執行前確認。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -106,10 +106,10 @@ paths:
       operationId: deleteAllNotifications
       tags: [通知 (Notifications)]
       description: |
-        **永久刪除**自己所有通知，不是標記已讀。回傳實際刪掉幾則。
+        永久刪除請求者的全部通知，並非標記已讀。回應包含實際刪除的筆數。
 
-        > 路由順序上這支必須排在 `DELETE /api/notifications/{id}` 前面，
-        > 否則 `all` 會被當成 `{id}` 參數。
+        > 路由定義順序須置於 `DELETE /api/notifications/{id}` 之前，
+        > 否則 `all` 會被解析為 `{id}` 參數。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -133,7 +133,7 @@ paths:
       summary: 標記單則已讀
       operationId: markNotificationRead
       tags: [通知 (Notifications)]
-      description: 只能標記自己的通知，別人的編號會回 404。
+      description: 僅能標記請求者自身的通知，帶入他人的編號將回傳 404。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -157,7 +157,7 @@ paths:
       summary: 刪除單則通知
       operationId: deleteNotification
       tags: [通知 (Notifications)]
-      description: 永久刪除。只能刪自己的通知。App 端是右滑刪除觸發。
+      description: 永久刪除，僅能刪除請求者自身的通知。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path

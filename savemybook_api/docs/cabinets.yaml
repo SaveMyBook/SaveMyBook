@@ -1,11 +1,10 @@
 tags:
   - name: 智慧書櫃 (Cabinets)
     description: |
-      智慧書櫃是這個平台的核心：賣家把書放進櫃位，買家憑六位數取貨碼
-      取書，雙方不需要碰面。
+      智慧書櫃為平台的交付機制：賣家將書籍存入櫃位，買家憑六位數取貨碼取件，
+      雙方無須當面交付。
 
-      這裡只有給 App 用的查詢端點。書櫃與櫃位的維運在
-      **後台：書櫃管理**。
+      本組僅提供前台查詢端點，書櫃與櫃位的維運端點位於「後台：書櫃管理」。
 
 paths:
   /api/cabinets:
@@ -14,11 +13,11 @@ paths:
       operationId: listCabinets
       tags: [智慧書櫃 (Cabinets)]
       description: |
-        只回傳 `is_active = true` 的書櫃，依編號排序。
-        上架書籍時選取貨點、以及地圖顯示都用這一支。
+        僅回傳 `is_active` 為 true 的書櫃，依編號排序，供上架時選擇取貨點
+        與地圖標示使用。
 
-        回傳欄位刻意精簡，含經緯度可直接標在地圖上。
-        要完整資料（含櫃位狀態統計）請用 `GET /api/admin/cabinets`。
+        回傳欄位經過精簡並包含經緯度。需取得完整資料（含櫃位狀態統計）時，
+        請使用 `GET /api/admin/cabinets`。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -37,12 +36,12 @@ paths:
                         cabinet_id: { type: integer, example: 2 }
                         cabinet_name: { type: string, example: 台北車站站前店 }
                         address: { type: string, example: 台北市中正區忠孝西路一段 49 號 }
-                        available_slots: { type: integer, description: 目前可用櫃位數, example: 17 }
+                        available_slots: { type: integer, description: 目前可用的櫃位數, example: 17 }
                         latitude: { type: string, example: '25.0463500' }
                         longitude: { type: string, example: '121.5170000' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500':
-          description: 查詢失敗。
+          description: 查詢書櫃列表失敗。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }

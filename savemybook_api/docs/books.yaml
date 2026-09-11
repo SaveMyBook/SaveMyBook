@@ -3,11 +3,11 @@ tags:
     description: |
       二手書的上架、查詢、編輯與照片管理。
 
-      **上架三張固定照片**：封面（`cover_image`）、封底（`back_image`）、
-      條碼（`barcode_image`），另可再加最多 7 張選填照片（`optional_images`）。
+      上架時包含三張固定照片：封面（`cover_image`）、封底（`back_image`）、
+      條碼（`barcode_image`），另可附加最多 7 張選填照片（`optional_images`）。
 
-      **違規下架**：檢舉成立時管理員會把 `is_approved` 設為 false 並下架。
-      這種書賣家**不能**自己改回 `on_sale`，會收到 403 `BOOK_NOT_APPROVED`。
+      檢舉成立時，管理員會將 `is_approved` 設為 false 並下架該書籍。
+      此狀態下賣家無法自行將狀態改回 `on_sale`，將收到 403 `BOOK_NOT_APPROVED`。
 
 paths:
   /api/books:
@@ -16,15 +16,13 @@ paths:
       operationId: listBooks
       tags: [書籍 (Books)]
       description: |
-        首頁、搜尋頁、賣家的「我的書籍」都用這一支，差別只在 query 參數。
+        首頁、搜尋與賣家書籍管理共用此端點，差異僅在 query 參數。無須登入。
 
-        兩個容易踩到的行為：
+        兩項須留意的行為：
 
-        1. `status` 預設是 `on_sale`。賣家要看自己全部狀態的書時要傳 `status=all`。
-        2. 有帶 `seller_id` 時**不會**過濾 `is_approved`，賣家才看得到自己
-           待審核或被下架的書；沒帶時只回 `is_approved = true` 的書。
-
-        這支端點不需要登入。
+        1. `status` 預設為 `on_sale`。查詢全部狀態時須明確帶入 `status=all`。
+        2. 帶入 `seller_id` 時不套用 `is_approved` 條件，賣家方能查得自身
+           待審核或已下架的書籍；未帶入時僅回傳 `is_approved` 為 true 的書籍。
       security: []
       parameters:
         - $ref: '#/components/parameters/Page'
@@ -32,7 +30,7 @@ paths:
         - in: query
           name: keyword
           schema: { type: string }
-          description: 關鍵字，同時比對書名、作者、出版社（模糊比對）。
+          description: 關鍵字，同時對書名、作者、出版社進行模糊比對。
           example: 村上春樹
         - in: query
           name: status
@@ -40,27 +38,27 @@ paths:
             type: string
             enum: [on_sale, reserved, sold, removed, all]
             default: on_sale
-          description: 書籍狀態。傳 `all` 代表不過濾。
+          description: 書籍狀態。帶入 `all` 代表不套用狀態條件。
         - in: query
           name: sort
           schema:
             type: string
             enum: [newest, price_asc, price_desc, popular]
             default: newest
-          description: '`newest` 最新上架／`price_asc` 價格低到高／`price_desc` 價格高到低／`popular` 瀏覽數多到少。'
+          description: '`newest` 依上架時間遞減、`price_asc` 價格遞增、`price_desc` 價格遞減、`popular` 瀏覽數遞減。'
         - in: query
           name: seller_id
           schema: { type: integer }
-          description: 只看某個賣家的書。帶了這個參數就不會過濾審核狀態。
+          description: 限定賣家。帶入此參數時不套用審核狀態條件。
           example: 12
         - in: query
           name: category_ids
           schema: { type: string }
-          description: 分類編號，多個以半形逗號分隔。
+          description: 分類編號，多筆以半形逗號分隔。
           example: 3,5,8
       responses:
         '200':
-          description: 成功。注意 `pagination` 在最外層。
+          description: 成功。`pagination` 位於回應最外層。
           content:
             application/json:
               schema:
@@ -78,13 +76,13 @@ paths:
       operationId: createBook
       tags: [書籍 (Books)]
       description: |
-        以 `multipart/form-data` 上傳，文字欄位與照片一起送。
-        建立成功後書籍狀態直接是 `on_sale`。
+        以 `multipart/form-data` 上傳，文字欄位與照片一併送出。
+        建立完成後書籍狀態為 `on_sale`。
 
-        **售價限制**：必須大於 0 且不超過 99999，否則回 400。
-        （擋掉零元購，舊資料若有 0 元的書，結帳時還會再擋一次。）
+        售價須大於 0 且不超過 99999，否則回傳 400。結帳流程另有一道相同檢查，
+        以攔截既有資料中售價為 0 的書籍。
 
-        照片欄位對應到 `book_images.image_type`：
+        照片欄位與 `book_images.image_type` 的對應關係：
 
         | 表單欄位 | 張數 | `image_type` |
         | --- | --- | --- |
@@ -107,13 +105,13 @@ paths:
                   format: float
                   minimum: 0.01
                   maximum: 99999
-                  description: 售價（代幣）。必須大於 0。
+                  description: 售價，單位為代幣。須大於 0。
                   example: 180
                 author: { type: string, example: 村上春樹 }
                 publisher: { type: string, example: 時報出版 }
                 publish_date:
                   type: string
-                  description: 字串欄位。結尾多餘的連字號會被清掉，只填年份也可以。
+                  description: 字串欄位。結尾多餘的連字號將被移除，亦可僅填年份。
                   example: '2003-08-01'
                 isbn: { type: string, maxLength: 13, example: '9789573317249' }
                 category_id: { type: integer, example: 3 }
@@ -121,7 +119,7 @@ paths:
                   type: string
                   enum: [like_new, good, fair, poor]
                   default: good
-                cabinet_id: { type: integer, description: 取貨書櫃編號, example: 2 }
+                cabinet_id: { type: integer, description: 指定的取貨書櫃編號, example: 2 }
                 description: { type: string, example: 只翻過一次，內頁乾淨 }
                 cover_image: { type: string, format: binary, description: 封面照片 }
                 back_image: { type: string, format: binary, description: 封底照片 }
@@ -129,10 +127,10 @@ paths:
                 optional_images:
                   type: array
                   items: { type: string, format: binary }
-                  description: 其他照片，最多 7 張。
+                  description: 選填照片，上限 7 張。
       responses:
         '201':
-          description: 上架成功。回傳的 `data` 只有書籍本體，不含照片。
+          description: 上架成功。`data` 僅含書籍本體，不包含照片。
           content:
             application/json:
               schema:
@@ -142,7 +140,7 @@ paths:
                   message: { type: string, example: 書籍上架成功 }
                   data: { $ref: '#/components/schemas/Book' }
         '400':
-          description: 欄位缺漏或售價不合法。
+          description: 欄位缺漏，或售價不符合限制。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -170,12 +168,10 @@ paths:
       operationId: getBook
       tags: [書籍 (Books)]
       description: |
-        回傳單一書籍的完整資料，含全部照片、賣家資訊與取貨書櫃。
+        回傳單一書籍的完整資料，包含全部照片、賣家資訊與取貨書櫃。無須登入。
 
-        每次呼叫會把 `view_count` 加一。這個累加是**非同步**進行的，
-        不會拖慢回應，回傳的 `view_count` 是遞增前的值。
-
-        不需要登入。
+        每次呼叫會將 `view_count` 遞增 1。該累加以非同步方式執行，
+        不阻塞回應，因此回傳的 `view_count` 為遞增前的數值。
       security: []
       responses:
         '200':
@@ -195,14 +191,14 @@ paths:
       operationId: updateBook
       tags: [書籍 (Books)]
       description: |
-        只能改自己上架的書（管理員不受限）。只送要改的欄位即可。
+        僅能異動自身上架的書籍，管理員不受此限。採部分更新，僅須帶入欲異動的欄位。
 
-        **重新上架的限制**：如果這本書因檢舉成立被下架
-        （`is_approved = false`），把 `status` 改成 `on_sale` 會被拒絕，
-        回 403 並帶 `code: BOOK_NOT_APPROVED`。只有管理員能解除。
+        書籍若因檢舉成立而下架（`is_approved` 為 false），將 `status` 改為
+        `on_sale` 的請求會被拒絕，回傳 403 並帶 `code: BOOK_NOT_APPROVED`，
+        僅管理員可解除該限制。
 
-        照片不在這支端點處理，用 `POST /api/books/{id}/images`
-        與 `DELETE /api/books/{id}/images/{imageId}`。
+        照片不透過此端點處理，請使用 `POST /api/books/{id}/images` 與
+        `DELETE /api/books/{id}/images/{imageId}`。
       security: [{ bearerAuth: [] }]
       requestBody:
         content:
@@ -236,14 +232,14 @@ paths:
                   message: { type: string, example: 書籍資料更新成功 }
                   data: { $ref: '#/components/schemas/Book' }
         '400':
-          description: 售價不合法。
+          description: 售價不符合限制。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 售價必須大於 0 元 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
-          description: 不是自己的書，或想重新上架違規書籍。
+          description: 非本人上架的書籍，或嘗試重新上架違規書籍。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -260,8 +256,8 @@ paths:
       operationId: deleteBook
       tags: [書籍 (Books)]
       description: |
-        **軟刪除**：只把 `status` 改成 `removed`，資料與照片都保留，
-        已成立的訂單才不會失去關聯。之後可以再改回 `on_sale`。
+        軟刪除：僅將 `status` 改為 `removed`，資料與照片均予保留，
+        以維持已成立訂單的關聯完整性。後續可再改回 `on_sale`。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -272,7 +268,7 @@ paths:
               example: { success: true, message: 書籍已成功下架 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
-          description: 不是自己的書。
+          description: 非本人上架的書籍。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -286,8 +282,8 @@ paths:
       operationId: addBookImages
       tags: [書籍 (Books)]
       description: |
-        一次最多 8 張，`image_type` 一律存成 `other`。
-        回傳的是這本書**全部**的照片（含原本就有的）。
+        單次上限 8 張，`image_type` 一律儲存為 `other`。
+        回應包含該書籍的全部照片，含既有照片。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -309,7 +305,7 @@ paths:
                   maxItems: 8
       responses:
         '201':
-          description: 新增成功，回傳這本書的所有照片。
+          description: 新增成功，回傳該書籍的全部照片。
           content:
             application/json:
               schema:
@@ -321,7 +317,7 @@ paths:
                     type: array
                     items: { $ref: '#/components/schemas/BookImage' }
         '400':
-          description: 沒有帶檔案。
+          description: 未帶入檔案。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -337,10 +333,10 @@ paths:
       operationId: deleteBookImage
       tags: [書籍 (Books)]
       description: |
-        刪除資料列。實體檔案留在磁碟上不清除。
+        刪除資料列，實體檔案保留於磁碟。
 
-        `imageId` 必須屬於路徑上的那本書，否則回 404
-        （避免用別人的 imageId 刪到不該刪的照片）。
+        `imageId` 須隸屬於路徑指定的書籍，否則回傳 404，
+        以避免跨書籍誤刪照片。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -365,7 +361,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404':
-          description: 找不到這本書，或這張照片不屬於這本書。
+          description: 書籍不存在，或該照片不隸屬於此書籍。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -378,11 +374,9 @@ paths:
       operationId: lookupIsbn
       tags: [書籍 (Books)]
       description: |
-        向 Google Books API 查詢，用來在上架頁自動帶入書名、作者等欄位，
-        讓賣家不用一個字一個字打。
+        代理查詢 Google Books API，供上架流程自動帶入書名、作者等欄位。
 
-        這支**不會**寫入資料庫，純粹是代理查詢。
-        若伺服器有設定 `GOOGLE_BOOKS_API_KEY` 會一併帶上。
+        此端點不寫入資料庫。伺服器若已設定 `GOOGLE_BOOKS_API_KEY`，查詢時會一併帶入。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -393,7 +387,7 @@ paths:
           example: '9789573317249'
       responses:
         '200':
-          description: 查到了。查不到的欄位會是空字串而不是 null。
+          description: 查詢成功。外部書庫未提供的欄位回傳空字串，而非 null。
           content:
             application/json:
               schema:
@@ -404,19 +398,19 @@ paths:
                     type: object
                     properties:
                       title: { type: string, example: 挪威的森林 }
-                      author: { type: string, description: 多位作者以逗號串接。, example: 村上春樹 }
+                      author: { type: string, description: 多位作者以半形逗號串接。, example: 村上春樹 }
                       publisher: { type: string, example: 時報出版 }
                       publish_date: { type: string, example: '2003-08-01' }
                       description: { type: string }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404':
-          description: 外部書庫查無此 ISBN。
+          description: 外部書庫查無此 ISBN 的資料。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 外部書庫找不到此 ISBN 的書籍資訊 }
         '500':
-          description: 連線外部 API 失敗。
+          description: 外部 API 連線失敗。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }

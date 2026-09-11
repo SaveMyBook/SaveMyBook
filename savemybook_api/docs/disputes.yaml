@@ -1,11 +1,10 @@
 tags:
   - name: 交易爭議 (Disputes)
     description: |
-      訂單出問題時的申訴管道（書況不符、沒收到書等）。
+      訂單交易爭議的申訴管道，適用書況不符、未收到書籍等情形。
 
-      送出申請後訂單會立刻轉成 `refunding`，等管理員在
-      **後台：檢舉與爭議** 裁決。裁決為退款時訂單變成 `refunded`，
-      駁回或協調結案則變回 `completed`。
+      申請送出後訂單立即轉為 `refunding`，待管理員於「後台：檢舉與爭議」裁決。
+      裁決結果為退款時訂單轉為 `refunded`；駁回或協調結案則轉回 `completed`。
 
 paths:
   /api/disputes:
@@ -14,8 +13,8 @@ paths:
       operationId: listMyDisputes
       tags: [交易爭議 (Disputes)]
       description: |
-        列出自己送出的爭議申請，帶上關聯訂單與第一本書的書名、封面。
-        依時間由新到舊，沒有分頁。
+        列出請求者送出的爭議申請，包含關聯訂單與首本書籍的書名與封面。
+        依建立時間遞減排序，無分頁機制。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -53,12 +52,12 @@ paths:
       operationId: createDispute
       tags: [交易爭議 (Disputes)]
       description: |
-        買家或賣家都能對自己參與的訂單提出爭議。
+        買賣雙方皆可對自身參與的訂單提出爭議。
 
-        送出後**訂單狀態立刻變成 `refunding`**（申訴中），
-        建立申請與改訂單狀態在同一個交易裡完成。
+        送出後訂單狀態立即轉為 `refunding`。建立申請與更新訂單狀態
+        於同一資料庫交易內完成。
 
-        同一筆訂單若已有 `pending` 或 `processing` 的申請，會回 409。
+        同一訂單若已存在狀態為 `pending` 或 `processing` 的申請，回傳 409。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -69,13 +68,13 @@ paths:
               required: [order_id, reason]
               properties:
                 order_id: { type: integer, example: 40 }
-                reason: { type: string, description: 爭議說明，不可空白。, example: 書況與描述不符，有大量畫線 }
+                reason: { type: string, description: 爭議說明，不可為空白。, example: 書況與描述不符，有大量畫線 }
                 evidence_urls:
                   oneOf:
                     - type: array
                       items: { type: string }
                     - type: string
-                  description: 佐證圖片路徑，先用 `POST /api/uploads` 取得。
+                  description: 佐證圖片路徑，須先經 `POST /api/uploads` 上傳取得。
                   example: [/uploads/evidence/c.jpg]
       responses:
         '201':
@@ -94,20 +93,20 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
-                缺少訂單:
+                未帶訂單編號:
                   value: { success: false, message: 請提供 order_id }
-                沒填說明:
+                未填爭議說明:
                   value: { success: false, message: 請填寫爭議說明 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
-          description: 這筆訂單跟你無關。
+          description: 請求者非該訂單的關係人。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 存取被拒 }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
-          description: 這筆訂單已有處理中的爭議。
+          description: 該訂單已有處理中的爭議申請。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }

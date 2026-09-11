@@ -1,11 +1,11 @@
 tags:
   - name: 後台：總覽與報表
     description: |
-      管理後台首頁的數字、營運報表與操作稽核紀錄。
+      管理後台的總覽數字、營運報表與操作稽核紀錄。
 
-      `/api/admin/*` 底下**所有**端點都要求 `role = admin`，
-      大多數還會再檢查細部權限。本組端點中只有 `/stats` 需要
-      `can_view_stats`，`/overview` 與兩組紀錄查詢只要是管理員就能看。
+      `/api/admin` 底下所有端點均要求 `role` 為 `admin`，多數另檢查細部權限。
+      本組端點中僅 `/stats` 需 `can_view_stats` 權限；`/overview` 與兩組
+      紀錄查詢僅需管理員身分。
 
 paths:
   /api/admin/overview:
@@ -14,10 +14,9 @@ paths:
       operationId: adminOverview
       tags: [後台：總覽與報表]
       description: |
-        一次回傳首頁六張卡片要的數字，避免前端打六支 API。
-        「今日訂單」是從今天 00:00 起算。
+        一次回傳後台首頁所需的六項統計數字。今日訂單數自當日 00:00 起算。
 
-        只要是管理員就能看，不檢查細部權限。
+        僅需管理員身分，不檢查細部權限。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -31,9 +30,9 @@ paths:
                   data:
                     type: object
                     properties:
-                      member_count: { type: integer, description: 會員總數（含停權）, example: 1284 }
+                      member_count: { type: integer, description: 會員總數，含已停權帳號, example: 1284 }
                       pending_report_count: { type: integer, description: 待處理檢舉數, example: 3 }
-                      pending_dispute_count: { type: integer, description: 待處理／處理中的爭議數, example: 1 }
+                      pending_dispute_count: { type: integer, description: 待處理與處理中的爭議數, example: 1 }
                       active_cabinet_count: { type: integer, description: 啟用中的書櫃數, example: 8 }
                       today_order_count: { type: integer, description: 今日建立的訂單數, example: 27 }
                       open_ticket_count: { type: integer, description: 待處理工單數, example: 5 }
@@ -47,19 +46,19 @@ paths:
       operationId: adminStats
       tags: [後台：總覽與報表]
       description: |
-        回傳每日趨勢資料，可以直接畫成折線圖。需要 `can_view_stats` 權限。
+        回傳每日趨勢資料。需 `can_view_stats` 權限。
 
-        `series` 一定會有 `days` 筆，**沒有資料的日子會補 0**，
-        前端不需要自己補空洞。日期是 `YYYY-MM-DD` 格式。
+        `series` 固定包含 `days` 筆資料，無資料的日期補 0，用戶端無須自行補齊。
+        日期格式為 `YYYY-MM-DD`。
 
-        `completed_revenue` 只計算期間內**完成**的訂單金額，
-        跟 `series[].revenue`（依建立日期計算）算法不同，數字不會相等。
+        `completed_revenue` 統計期間內完成的訂單金額，與依建立日期彙總的
+        `series[].revenue` 計算基準不同，兩者數值不相等。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
           name: days
           schema: { type: integer, minimum: 1, maximum: 90, default: 7 }
-          description: 統計最近幾天（含今天）。超出範圍會被夾回 1–90。
+          description: 統計期間天數，含當日。超出範圍時夾限於 1 至 90。
           example: 30
       responses:
         '200':
@@ -76,7 +75,7 @@ paths:
                       days: { type: integer, example: 7 }
                       series:
                         type: array
-                        description: 每日數字，由舊到新，沒資料的日子補 0。
+                        description: 每日統計，由舊至新排序，無資料的日期補 0。
                         items:
                           type: object
                           properties:
@@ -89,7 +88,7 @@ paths:
                       completed_revenue: { type: number, description: 期間內完成的訂單金額, example: 24180 }
                       top_categories:
                         type: array
-                        description: 書籍數最多的前 5 個分類。已刪除或未分類會顯示「未分類」。
+                        description: 書籍數最多的前 5 個分類。分類已刪除或書籍未分類時顯示為「未分類」。
                         items:
                           type: object
                           properties:
@@ -105,12 +104,12 @@ paths:
       operationId: adminOperationLogs
       tags: [後台：總覽與報表]
       description: |
-        所有管理員的異動稽核軌跡，依時間由新到舊。
+        管理員的異動稽核軌跡，依時間遞減排序。
 
-        後台幾乎每個寫入操作都會寫一筆，包含停權會員、調整錢包、
-        強制下架書籍、編輯條款等。紀錄是**唯讀**的，沒有刪除端點。
+        後台多數寫入操作皆會產生紀錄，包含停權會員、調整錢包、強制下架書籍
+        與編輯法律文件等。紀錄為唯讀，不提供刪除端點。
 
-        只要是管理員就能看，不檢查細部權限。
+        僅需管理員身分，不檢查細部權限。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/Page'
@@ -141,10 +140,10 @@ paths:
       operationId: adminMaintenanceLogs
       tags: [後台：總覽與報表]
       description: |
-        操作紀錄的子集，只篩出 `target_type` 為 `cabinet` 或
-        `cabinet_slot` 的項目，也就是書櫃與櫃位的異動歷史。
+        操作紀錄的子集，篩選 `target_type` 為 `cabinet` 或 `cabinet_slot`
+        的項目，即書櫃與櫃位的異動歷史。
 
-        只要是管理員就能看，不檢查細部權限。
+        僅需管理員身分，不檢查細部權限。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/Page'
@@ -170,7 +169,7 @@ paths:
                           properties:
                             users:
                               type: object
-                              description: 執行的管理員。
+                              description: 執行操作的管理員。
                               properties:
                                 user_id: { type: integer }
                                 nickname: { type: string }

@@ -1,10 +1,9 @@
 tags:
   - name: 購物車 (Cart)
     description: |
-      購物車。同一本書重複加入會累加數量而不是新增一列。
+      購物車。重複加入同一本書將累加數量，不會新增資料列。
 
-      結帳在 **訂單 (Orders)** 的 `POST /api/orders/checkout`，
-      可以只結帳勾選的項目。
+      結帳端點為 `POST /api/orders/checkout`，支援僅結帳部分選取的項目。
 
 paths:
   /api/cart:
@@ -13,12 +12,11 @@ paths:
       operationId: getCart
       tags: [購物車 (Cart)]
       description: |
-        回傳購物車項目與**全部**項目的合計金額。
-        每個項目都帶完整書籍資料（含賣家與取貨書櫃），
-        前端可以直接依賣家分組顯示。
+        回傳購物車項目及全部項目的合計金額。各項目包含完整書籍資料
+        （含賣家與取貨書櫃），可直接依賣家分組呈現。
 
-        `total_amount` 是整台車的總額。如果使用者只勾選部分商品，
-        前端要自己重算勾選的小計。
+        `total_amount` 為購物車全部項目的總額。使用者僅選取部分項目時，
+        小計須由用戶端自行計算。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -29,7 +27,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  total_amount: { type: number, description: 全部項目的合計金額, example: 540 }
+                  total_amount: { type: number, description: 購物車全部項目的合計金額, example: 540 }
                   data:
                     type: array
                     items: { $ref: '#/components/schemas/CartItem' }
@@ -41,11 +39,12 @@ paths:
       operationId: addToCart
       tags: [購物車 (Cart)]
       description: |
-        已經在車上的書會**累加數量**。
+        購物車中已存在的書籍將累加數量。
 
-        會擋掉兩種情況：
-        - 加入自己上架的書
-        - 書籍狀態不是 `on_sale`（已被下單保留、已售出或已下架）
+        下列兩種情形會被拒絕：
+
+        - 加入本人上架的書籍
+        - 書籍狀態非 `on_sale`，即已下單保留、已售出或已下架
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -76,14 +75,14 @@ paths:
                       quantity: { type: integer, example: 1 }
                       added_at: { type: string, format: date-time }
         '400':
-          description: 參數錯誤，或這本書不能買。
+          description: 參數錯誤，或該書籍目前無法購買。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 缺少參數:
                   value: { success: false, message: 請提供 book_id }
-                自己的書:
+                本人上架的書籍:
                   value: { success: false, message: 無法將自己上架的書籍加入購物車 }
                 已被買走:
                   value: { success: false, message: 此書籍目前無法購買 }
@@ -97,14 +96,14 @@ paths:
         name: cartId
         required: true
         schema: { type: integer }
-        description: 購物車項目編號（`cart_id`，不是 `book_id`）。
+        description: 購物車項目編號，即 `cart_id`，非 `book_id`。
         example: 55
 
     patch:
       summary: 調整數量
       operationId: updateCartItem
       tags: [購物車 (Cart)]
-      description: 設定成指定數量（不是增減）。要移除請用 DELETE，傳 0 會被拒絕。
+      description: 將數量設為指定值，非增減操作。數量帶入 0 會被拒絕，移除項目請使用 DELETE。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -146,9 +145,9 @@ paths:
       operationId: removeCartItem
       tags: [購物車 (Cart)]
       description: |
-        從購物車移除。App 端是右滑刪除觸發這支。
+        自購物車移除指定項目。
 
-        只會刪自己車上的項目，別人的 `cart_id` 會回 404。
+        僅能移除請求者自身的項目，帶入他人的 `cart_id` 將回傳 404。
       security: [{ bearerAuth: [] }]
       responses:
         '200':

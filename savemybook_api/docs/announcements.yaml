@@ -1,11 +1,11 @@
 tags:
   - name: 系統公告 (Announcements)
     description: |
-      系統公告。查看是公開的，建立與維護需要管理員的
+      系統公告。查詢為公開端點，建立與維護需管理員具備
       `can_manage_announcements` 權限。
 
-      所有寫入操作都會留下管理員操作紀錄
-      （`GET /api/admin/operation-logs` 可查）。
+      所有寫入操作皆會留下管理員操作紀錄，可由
+      `GET /api/admin/operation-logs` 查詢。
 
 paths:
   /api/announcements:
@@ -14,10 +14,9 @@ paths:
       operationId: listAnnouncements
       tags: [系統公告 (Announcements)]
       description: |
-        只回傳**已發布且未過期**的公告，依發布時間由新到舊。
-        不需要登入。
+        僅回傳已發布且未到期的公告，依發布時間遞減排序。無須登入。
 
-        要看草稿與已過期的請用 `GET /api/announcements/all`。
+        草稿與已到期的公告請改用 `GET /api/announcements/all` 查詢。
       security: []
       responses:
         '200':
@@ -38,10 +37,10 @@ paths:
       operationId: createAnnouncement
       tags: [系統公告 (Announcements)]
       description: |
-        需要 `can_manage_announcements` 權限。
+        需 `can_manage_announcements` 權限。
 
-        `is_published` 設為 true 時會自動填上 `published_at`。
-        先存草稿的話之後用 PUT 發布，發布時間會在那時才寫入。
+        `is_published` 設為 true 時自動寫入 `published_at`。
+        以草稿建立者，發布時間將於後續透過 PUT 發布時始行寫入。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -57,12 +56,12 @@ paths:
                   type: string
                   enum: [general, maintenance, promotion, policy]
                   default: general
-                is_published: { type: boolean, default: false, description: false 是草稿，不會出現在公開列表。 }
+                is_published: { type: boolean, default: false, description: 值為 false 代表草稿，不會出現於公開列表。 }
                 expires_at:
                   type: string
                   format: date-time
                   nullable: true
-                  description: 到期時間。不填代表不過期。
+                  description: 到期時間。未填代表無到期限制。
                   example: '2025-12-31T23:59:59.000Z'
       responses:
         '201':
@@ -76,7 +75,7 @@ paths:
                   message: { type: string, example: 公告已建立 }
                   data: { $ref: '#/components/schemas/Announcement' }
         '400':
-          description: 欄位缺漏或類型不合法。
+          description: 欄位缺漏，或公告類型不合法。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -95,10 +94,10 @@ paths:
       operationId: listAllAnnouncements
       tags: [系統公告 (Announcements)]
       description: |
-        管理後台用，包含草稿與已過期的公告，依建立時間由新到舊。
-        需要 `can_manage_announcements` 權限。
+        供管理後台使用，包含草稿與已到期的公告，依建立時間遞減排序。
+        需 `can_manage_announcements` 權限。
 
-        > 路由順序上這支必須排在 `/:id` 前面，否則 `all` 會被當成 ID。
+        > 路由定義順序須置於 `/:id` 之前，否則 `all` 會被解析為公告編號。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -130,12 +129,12 @@ paths:
       operationId: updateAnnouncement
       tags: [系統公告 (Announcements)]
       description: |
-        需要 `can_manage_announcements` 權限。
+        需 `can_manage_announcements` 權限。
 
-        `published_at` 只會在**第一次**發布時寫入，之後再編輯不會覆蓋，
-        所以公告的發布時間不會因為修錯字而改變。
+        `published_at` 僅於首次發布時寫入，後續編輯不會覆寫，
+        因此公告的發布時間不受內容修訂影響。
 
-        `expires_at` 不帶代表不變更，帶 `null` 代表清除到期時間。
+        `expires_at` 未帶入代表不變更，帶入 `null` 代表清除到期時間。
       security: [{ bearerAuth: [] }]
       requestBody:
         content:
@@ -168,7 +167,7 @@ paths:
       summary: 刪除公告
       operationId: deleteAnnouncement
       tags: [系統公告 (Announcements)]
-      description: 永久刪除。需要 `can_manage_announcements` 權限。
+      description: 永久刪除。需 `can_manage_announcements` 權限。
       security: [{ bearerAuth: [] }]
       responses:
         '200':

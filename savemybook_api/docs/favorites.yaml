@@ -1,8 +1,7 @@
 tags:
   - name: 收藏 (Favorites)
     description: |
-      書籍收藏（App 端的書籤圖示）。
-      同一本書重複收藏不會產生重複資料，也不會報錯。
+      書籍收藏。同一本書重複收藏不會產生重複資料，亦不回傳錯誤。
 
 paths:
   /api/favorites:
@@ -11,10 +10,8 @@ paths:
       operationId: listFavorites
       tags: [收藏 (Favorites)]
       description: |
-        回傳收藏的**書籍**本身（不是收藏紀錄），已經帶好賣家、照片與分類，
-        可以直接餵給書籍卡片元件。依收藏時間由新到舊排序。
-
-        沒有分頁。
+        回傳收藏的書籍本體而非收藏紀錄，已包含賣家、照片與分類等關聯資料。
+        依收藏時間遞減排序，無分頁機制。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -36,8 +33,8 @@ paths:
       operationId: addFavorite
       tags: [收藏 (Favorites)]
       description: |
-        以 upsert 實作：已經收藏過再呼叫一次也是回 201，不會變成兩筆，
-        前端不需要先查再寫。
+        以 upsert 實作：重複收藏同一本書仍回傳 201 且不會產生第二筆紀錄，
+        用戶端無須先行查詢。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -66,7 +63,7 @@ paths:
                       book_id: { type: integer, example: 101 }
                       created_at: { type: string, format: date-time }
         '400':
-          description: 沒有帶 `book_id`。
+          description: 未帶入 `book_id`。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -81,10 +78,10 @@ paths:
       operationId: listFavoriteIds
       tags: [收藏 (Favorites)]
       description: |
-        只回傳編號陣列，非常輕量。
+        僅回傳書籍編號陣列。
 
-        App 啟動時呼叫一次快取起來，列表上每張卡片就能直接判斷
-        要不要把書籤圖示畫成實心，不必為了每本書各打一次 API。
+        建議於應用程式啟動時呼叫一次並快取，供列表判斷各書籍的收藏狀態，
+        避免逐筆查詢。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -108,8 +105,9 @@ paths:
       operationId: removeFavorite
       tags: [收藏 (Favorites)]
       description: |
-        用**書籍編號**刪除，不是收藏紀錄編號。
-        本來就沒有收藏也會回 200，方便前端做樂觀更新。
+        以書籍編號刪除，而非收藏紀錄編號。
+
+        該書籍原本未被收藏時仍回傳 200，以利用戶端實作樂觀更新。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path

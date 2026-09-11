@@ -1,11 +1,10 @@
 tags:
   - name: 檔案上傳 (Uploads)
     description: |
-      通用檔案上傳，目前用於檢舉與交易爭議的佐證圖片。
+      通用檔案上傳，目前供檢舉與交易爭議的佐證圖片使用。
 
-      書籍照片與個人頭像**不走這支**，各自有專屬端點
-      （`POST /api/books`、`POST /api/books/{id}/images`、
-      `POST /api/users/me/avatar`）。
+      書籍照片與個人頭像不使用此端點，另有專屬端點：`POST /api/books`、
+      `POST /api/books/{id}/images` 與 `POST /api/users/me/avatar`。
 
 paths:
   /api/uploads:
@@ -14,13 +13,13 @@ paths:
       operationId: uploadFiles
       tags: [檔案上傳 (Uploads)]
       description: |
-        一次最多 5 個檔案，單檔上限 **8 MB**。檔案存到 `/uploads/evidence/`，
-        檔名由時間戳與亂數組成，不會撞名。
+        單次上限 5 個檔案，單檔大小上限 8 MB。檔案存放於 `/uploads/evidence/`，
+        檔名由時間戳與隨機碼組成以避免衝突。
 
-        回傳的是相對路徑陣列，接著把它帶進
-        `POST /api/reports` 或 `POST /api/disputes` 的 `evidence_urls`。
+        回應為相對路徑陣列，可帶入 `POST /api/reports` 或
+        `POST /api/disputes` 的 `evidence_urls` 欄位。
 
-        上傳後的檔案**不會**自動清理。
+        上傳後的檔案不會自動清理。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -34,7 +33,7 @@ paths:
                   type: array
                   items: { type: string, format: binary }
                   maxItems: 5
-                  description: 要上傳的檔案，欄位名稱固定是 `files`。
+                  description: 欲上傳的檔案，欄位名稱固定為 `files`。
       responses:
         '201':
           description: 上傳成功。
@@ -53,7 +52,7 @@ paths:
                         items: { type: string }
                         example: [/uploads/evidence/1736512345678-123456789.jpg]
         '400':
-          description: 沒有選擇檔案。
+          description: 未選擇任何檔案。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }

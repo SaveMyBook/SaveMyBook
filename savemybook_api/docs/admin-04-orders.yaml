@@ -1,10 +1,10 @@
 tags:
   - name: 後台：訂單管理
     description: |
-      訂單查詢與人工調整狀態。需要 `can_manage_orders` 權限。
+      訂單查詢與人工調整狀態。本組端點需 `can_manage_orders` 權限。
 
-      > 這裡的狀態調整是**純資料操作**，不會連動錢包。
-      > 需要退款請走 **後台：檢舉與爭議** 的爭議裁決，那支才會寫退款紀錄。
+      > 此處的狀態調整僅異動訂單資料，不連動錢包。
+      > 退款須經「後台：檢舉與爭議」的爭議裁決端點執行，該端點才會寫入退款紀錄。
 
 paths:
   /api/admin/orders:
@@ -13,22 +13,23 @@ paths:
       operationId: adminListOrders
       tags: [後台：訂單管理]
       description: |
-        分頁查詢全站訂單，依建立時間由新到舊。
-        回傳的是**整理過的扁平格式**，跟 `GET /api/orders` 的巢狀結構不同：
-        買賣雙方各自放在 `buyer` / `seller`，書籍攤平在 `items`。
+        分頁查詢全站訂單，依建立時間遞減排序。
+
+        回應為整併後的扁平格式，與 `GET /api/orders` 的巢狀結構不同：
+        買賣雙方分別置於 `buyer` 與 `seller`，書籍項目攤平於 `items`。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
           name: keyword
           schema: { type: string }
-          description: 同時比對訂單編號、買家暱稱與賣家暱稱。
+          description: 同時對訂單編號、買家暱稱與賣家暱稱進行比對。
           example: SMB20250911
         - in: query
           name: status
           schema:
             type: string
             enum: [pending_payment, pending_deposit, deposited, pending_pickup, completed, cancelled, refunding, refunded, all]
-          description: 訂單狀態。傳 `all` 或不帶代表全部。
+          description: 訂單狀態。帶入 `all` 或未帶入代表不套用此條件。
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/Limit'
       responses:
@@ -85,14 +86,15 @@ paths:
       operationId: adminUpdateOrderStatus
       tags: [後台：訂單管理]
       description: |
-        接受全部八種訂單狀態，供客服處理卡住的訂單。
-        設成 `completed` 會補上完成時間，設成 `cancelled` 會補上取消時間
-        （`cancel_reason` 沒填的話寫入「管理員手動取消」）。
+        接受全部八種訂單狀態，供客服處理流程中斷的訂單。
 
-        會**通知買家**狀態被客服調整，並寫入操作紀錄。
+        設為 `completed` 時補寫完成時間；設為 `cancelled` 時補寫取消時間，
+        `cancel_reason` 未帶入時預設寫入「管理員手動取消」。
 
-        > **不會退款也不會撥款**：這支只改訂單資料，錢包完全不動。
-        > 要退錢請用 `PATCH /api/admin/disputes/{id}`。
+        操作會通知買家訂單狀態已由客服調整，並寫入稽核紀錄。
+
+        > 本端點不執行退款或撥款，僅異動訂單資料，錢包餘額不受影響。
+        > 退款請使用 `PATCH /api/admin/disputes/{id}`。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -113,7 +115,7 @@ paths:
                   enum: [pending_payment, pending_deposit, deposited, pending_pickup, completed, cancelled, refunding, refunded]
                 note:
                   type: string
-                  description: 說明文字。會附在給買家的通知裡；取消時也會寫進 `cancel_reason`。
+                  description: 說明文字，將包含於發送給買家的通知；取消時一併寫入 `cancel_reason`。
                   example: 買家聯繫客服表示已取書
             example: { status: completed, note: 買家聯繫客服表示已取書 }
       responses:

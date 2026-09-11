@@ -3,9 +3,10 @@ tags:
     description: |
       註冊、個人檔案、頭像、密碼、會員等級與個人 QR Code。
 
-      端點分成兩組：
-      - `/api/users/me/*` 一律操作**自己**的資料，從 Token 取得身分，不用傳 ID。
-      - `/api/users/{id}` 是舊的泛用端點，只有本人或管理員能改。
+      端點分為兩組：
+
+      - `/api/users/me/*` 一律操作請求者自身的資料，身分取自 Token，無須帶入 ID。
+      - `/api/users/{id}` 為早期的泛用端點，僅本人或管理員可異動。
 
 paths:
   /api/users:
@@ -14,10 +15,9 @@ paths:
       operationId: register
       tags: [使用者 (Users)]
       description: |
-        建立帳號。密碼會以 bcrypt（10 rounds）雜湊後儲存。
+        建立帳號，密碼以 bcrypt（10 rounds）雜湊後儲存。
 
-        註冊成功**不會**自動登入，前端要再打一次 `POST /api/auth/login`
-        才能拿到 Token。
+        註冊成功不會自動登入，用戶端須另行呼叫 `POST /api/auth/login` 取得 Token。
       security: []
       requestBody:
         required: true
@@ -30,7 +30,7 @@ paths:
                 email:
                   type: string
                   format: email
-                  description: 必須是尚未註冊過的 Email。
+                  description: 須為尚未註冊的 Email。
                   example: newuser@example.com
                 password: { type: string, format: password, example: my_password123 }
                 nickname: { type: string, maxLength: 50, example: 小明 }
@@ -38,7 +38,7 @@ paths:
                   type: string
                   enum: [buyer_seller, admin]
                   default: buyer_seller
-                  description: 一般註冊不要帶這個欄位，留預設值即可。
+                  description: 一般註冊無須帶入此欄位，維持預設值即可。
       responses:
         '201':
           description: 建立成功。
@@ -51,7 +51,7 @@ paths:
                   message: { type: string, example: 使用者建立成功 }
                   data: { $ref: '#/components/schemas/User' }
         '400':
-          description: 欄位不完整、格式錯誤，或 Email 重複。
+          description: 欄位缺漏、格式錯誤，或 Email 已被註冊。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -67,10 +67,10 @@ paths:
       operationId: listUsers
       tags: [使用者 (Users)]
       description: |
-        回傳全部使用者。這是早期開發時留下的端點，沒有分頁也沒有篩選。
+        回傳全部使用者，無分頁與篩選機制。此為早期開發階段保留的端點。
 
-        > 管理後台請改用 `GET /api/admin/members`，那支有分頁、搜尋
-        > 與統計數字，也受細部權限保護。
+        > 管理後台請改用 `GET /api/admin/members`，該端點提供分頁、搜尋
+        > 與統計欄位，並受細部權限保護。
       deprecated: true
       security: [{ bearerAuth: [] }]
       responses:
@@ -94,10 +94,10 @@ paths:
       operationId: getMyStats
       tags: [使用者 (Users)]
       description: |
-        會員中心首頁要的所有數字，一次查完回傳，避免前端打五支 API。
+        一次回傳會員中心首頁所需的全部統計數字。
 
-        `book_count` 只算 `on_sale` 與 `reserved` 的書，
-        已售出與已下架的不計入。
+        `book_count` 僅計入狀態為 `on_sale` 與 `reserved` 的書籍，
+        已售出與已下架者不計入。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -111,7 +111,7 @@ paths:
                   data:
                     type: object
                     properties:
-                      balance: { type: string, description: 代幣餘額。沒有錢包時回 0。, example: '1250.00' }
+                      balance: { type: string, description: 代幣餘額。尚未建立錢包時回傳 0。, example: '1250.00' }
                       book_count: { type: integer, description: 上架中的書籍數, example: 4 }
                       favorite_count: { type: integer, description: 收藏數, example: 12 }
                       unread_notification_count: { type: integer, example: 3 }
@@ -131,15 +131,15 @@ paths:
         points = max(0, 完成訂單數 × 10 + bonus_points)
         ```
 
-        `bonus_points` 是管理員手動調整的補正值，可為負數
-        （見 `PATCH /api/admin/members/{id}/level`）。
+        `bonus_points` 為管理員調整的補正值，可為負數，
+        調整端點為 `PATCH /api/admin/members/{id}/level`。
 
-        `current_level` 是**點數已達門檻的最高等級**，`next_level`
-        是下一個還沒達到的等級（已是最高等級時為 `null`）。
+        `current_level` 為點數已達門檻的最高等級；`next_level` 為下一個尚未達成的
+        等級，已達最高等級時為 `null`。
 
-        > 畫進度條時要用「本級區間」而不是 `points / next_level.min_points`，
-        > 否則等級越高會一直看起來快滿了：
-        > `(points − current_level.min_points) / (next_level.min_points − current_level.min_points)`
+        > 呈現升級進度時應以本級區間計算，即
+        > `(points − current_level.min_points) / (next_level.min_points − current_level.min_points)`。
+        > 直接以 `points / next_level.min_points` 計算會使高等級的進度恆近滿格。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -161,11 +161,11 @@ paths:
                       next_level:
                         allOf: [{ $ref: '#/components/schemas/MemberLevel' }]
                         nullable: true
-                        description: 已是最高等級時為 null。
-                      points_to_next: { type: integer, description: 還差多少點升級，最高等級時為 0, example: 180 }
+                        description: 已達最高等級時為 null。
+                      points_to_next: { type: integer, description: 距離下一等級所需點數，已達最高等級時為 0, example: 180 }
                       levels:
                         type: array
-                        description: 全部等級，依 min_points 由小到大。
+                        description: 全部等級，依 min_points 遞增排序。
                         items: { $ref: '#/components/schemas/MemberLevel' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -176,10 +176,10 @@ paths:
       operationId: updateMyProfile
       tags: [使用者 (Users)]
       description: |
-        只更新有帶的欄位，沒帶的欄位維持原值（部分更新）。
+        部分更新：僅異動請求中帶入的欄位，其餘維持原值。
 
-        `gender` 傳了不在列舉裡的值會被**忽略**而不是報錯。
-        `birthday` 傳空字串或 `null` 會清空生日。
+        `gender` 帶入未列於列舉的值時將被忽略，不回傳錯誤。
+        `birthday` 帶入空字串或 `null` 代表清除生日。
       security: [{ bearerAuth: [] }]
       requestBody:
         content:
@@ -194,11 +194,11 @@ paths:
                 gender: { type: string, enum: [male, female, other, undisclosed] }
                 avatar_url:
                   type: string
-                  description: 通常不用自己帶，改用 `POST /api/users/me/avatar` 上傳。
+                  description: 一般無須帶入，請改用 `POST /api/users/me/avatar` 上傳。
             example: { nickname: 小明, bio: 喜歡看推理小說, birthday: '1999-09-14', gender: male }
       responses:
         '200':
-          description: 更新成功，回傳更新後的公開欄位。
+          description: 更新成功，回傳異動後的公開欄位。
           content:
             application/json:
               schema:
@@ -216,11 +216,10 @@ paths:
       operationId: uploadMyAvatar
       tags: [使用者 (Users)]
       description: |
-        上傳圖片並直接把 `avatar_url` 寫回使用者資料，不用再呼叫更新個人檔案。
+        上傳圖片並同步將 `avatar_url` 寫回使用者資料，無須另行呼叫更新個人檔案。
 
-        檔案存到 `/uploads/avatars/`，檔名是時間戳加亂數，
-        回傳的路徑是相對路徑，前端要接上 API origin 才能顯示。
-        舊的頭像檔案不會被刪除。
+        檔案存放於 `/uploads/avatars/`，檔名由時間戳與隨機碼組成。
+        回傳為相對路徑，用戶端須自行組合 API origin。舊有的頭像檔案不會刪除。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -230,7 +229,7 @@ paths:
               type: object
               required: [avatar]
               properties:
-                avatar: { type: string, format: binary, description: 圖片檔。App 端會先裁切成正方形再上傳。 }
+                avatar: { type: string, format: binary, description: 圖片檔。用戶端應先裁切為正方形再上傳。 }
       responses:
         '200':
           description: 上傳成功。
@@ -243,7 +242,7 @@ paths:
                   message: { type: string, example: 頭像已更新 }
                   data: { $ref: '#/components/schemas/User' }
         '400':
-          description: 沒有帶檔案。
+          description: 未帶入檔案。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -257,9 +256,9 @@ paths:
       operationId: changeMyPassword
       tags: [使用者 (Users)]
       description: |
-        需要驗證目前的密碼。新密碼至少 6 個字元。
+        須通過目前密碼驗證，新密碼長度至少 6 個字元。
 
-        改完密碼**不會**讓既有 Token 失效，使用者不需要重新登入。
+        變更密碼不會使既有 Token 失效，使用者無須重新登入。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -279,7 +278,7 @@ paths:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
               example: { success: true, message: 密碼已更新 }
         '400':
-          description: 欄位缺漏或新密碼太短。
+          description: 欄位缺漏，或新密碼長度不足。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -289,7 +288,7 @@ paths:
                 密碼太短:
                   value: { success: false, message: 新密碼長度至少 6 個字元 }
         '401':
-          description: 目前密碼輸入錯誤（或 Token 無效）。
+          description: 目前密碼錯誤，或 Token 無效。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -303,15 +302,13 @@ paths:
       operationId: getMyQrCode
       tags: [使用者 (Users)]
       description: |
-        回傳要編進 QR Code 的網址。**伺服器不產生圖片**，
-        圖是 App 端自己畫的（中間會疊上 App logo）。
+        回傳供編碼為 QR Code 的網址。伺服器不產生圖片，圖像由用戶端自行繪製。
 
-        `qr_data` 用的是 `https://` 連結而不是 `savemybook://` 自訂 scheme，
-        這樣手機內建相機也掃得動。掃到之後會開啟 `GET /u/{id}` 這個
-        公開網頁，網頁上再提供「在 App 中開啟」的按鈕做 deep link。
+        `qr_data` 採用 `https://` 連結而非 `savemybook://` 自訂 scheme，
+        以確保裝置內建相機可正常辨識。掃描後開啟 `GET /u/{id}` 公開網頁，
+        再由該頁面提供 deep link 導向應用程式。
 
-        網址的 origin 取自環境變數 `PUBLIC_WEB_URL`，沒設定時
-        退回這台 API 自己的 origin。
+        網址的 origin 取自環境變數 `PUBLIC_WEB_URL`；未設定時回退為本 API 的 origin。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -330,7 +327,7 @@ paths:
                       avatar_url: { type: string, nullable: true }
                       qr_data:
                         type: string
-                        description: 要編進 QR Code 的完整網址。
+                        description: 供編碼為 QR Code 的完整網址。
                         example: https://api.savemybook.today/u/12
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -349,7 +346,7 @@ paths:
       summary: 取得指定使用者
       operationId: getUserById
       tags: [使用者 (Users)]
-      description: 回傳該使用者的完整資料。任何登入者都可以查詢。
+      description: 回傳指定使用者的完整資料，任何已登入者皆可查詢。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -370,9 +367,9 @@ paths:
       operationId: updateUserById
       tags: [使用者 (Users)]
       description: |
-        只有本人或管理員能改。欄位比 `PUT /api/users/me` 少。
+        僅本人或管理員可異動，可更新的欄位少於 `PUT /api/users/me`。
 
-        > 一般情況請用 `PUT /api/users/me`，那支支援生日、性別等完整欄位。
+        > 一般情況請使用 `PUT /api/users/me`，該端點支援生日、性別等完整欄位。
       deprecated: true
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -398,7 +395,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
-          description: 想改別人的資料。
+          description: 嘗試異動他人資料。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -411,12 +408,12 @@ paths:
       operationId: deleteUserById
       tags: [使用者 (Users)]
       description: |
-        實際從資料表刪除，**不是**軟刪除。只有本人或管理員能執行。
+        自資料表實際刪除，非軟刪除。僅本人或管理員可執行。
 
-        如果這個帳號還有訂單等關聯資料，外鍵限制會讓刪除失敗並回 500。
+        帳號若仍有訂單等關聯資料，將因外鍵限制導致刪除失敗並回傳 500。
 
-        > 管理後台停權帳號請用 `PATCH /api/admin/members/{id}`
-        > 把 `is_active` 設為 false，不要真的刪除。
+        > 管理後台停用帳號請改以 `PATCH /api/admin/members/{id}` 將
+        > `is_active` 設為 false，不應執行實際刪除。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -427,14 +424,14 @@ paths:
               example: { success: true, message: 使用者已成功刪除 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
-          description: 想刪別人的帳號。
+          description: 嘗試刪除他人帳號。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 存取被拒，您無權限刪除他人的資料 }
         '404': { $ref: '#/components/responses/NotFound' }
         '500':
-          description: 有關聯資料無法刪除。
+          description: 存在關聯資料，無法刪除。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }

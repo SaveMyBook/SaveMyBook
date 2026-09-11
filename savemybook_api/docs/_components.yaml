@@ -1,5 +1,4 @@
-# 共用元件：所有 docs/*.yaml 都可以用 $ref 指到這裡。
-# 檔名開頭的底線只是為了讓它排在最前面，載入器不看檔名。
+# 共用元件定義，供 docs/ 目錄下各文件以 $ref 引用。
 
 components:
   parameters:
@@ -8,7 +7,7 @@ components:
       name: page
       required: false
       schema: { type: integer, minimum: 1, default: 1 }
-      description: 頁碼，從 1 開始。超出總頁數會回空陣列而不是錯誤。
+      description: 頁碼，自 1 起算。超出總頁數時回傳空陣列，不視為錯誤。
       example: 1
     Limit:
       in: query
@@ -22,7 +21,7 @@ components:
     # ---------- 通用外層 ----------
     Pagination:
       type: object
-      description: 分頁資訊。注意它在回應的**最外層**，不在 `data` 裡面。
+      description: 分頁資訊，位於回應的最外層，並非置於 `data` 之內。
       properties:
         total: { type: integer, description: 符合條件的總筆數, example: 137 }
         page: { type: integer, description: 目前頁碼, example: 2 }
@@ -31,7 +30,7 @@ components:
 
     SuccessMessage:
       type: object
-      description: 沒有回傳內容的操作（刪除、標記已讀等）用的格式。
+      description: 無回傳內容的操作（刪除、標記已讀等）所使用的格式。
       properties:
         success: { type: boolean, example: true }
         message: { type: string, example: 操作成功 }
@@ -42,32 +41,32 @@ components:
         success: { type: boolean, example: false }
         message:
           type: string
-          description: 可以直接顯示給使用者的繁體中文訊息。
+          description: 可直接呈現給使用者的繁體中文訊息。
           example: 伺服器發生錯誤
         code:
           type: string
           nullable: true
           description: |
-            只有需要前端分流處理的錯誤才會帶。可能的值：
+            僅需用戶端分支處理的錯誤帶此欄位。可能的值為
             `ACCOUNT_NOT_FOUND`、`ACCOUNT_BLACKLISTED`、`ACCOUNT_INACTIVE`、
             `INVALID_PASSWORD`、`INSUFFICIENT_BALANCE`、`BOOK_NOT_APPROVED`。
 
     # ---------- 使用者 ----------
     UserBrief:
       type: object
-      description: 出現在書籍、訂單、訊息裡的精簡使用者資訊。
+      description: 巢狀於書籍、訂單、訊息中的精簡使用者資訊。
       properties:
         user_id: { type: integer, example: 12 }
         nickname: { type: string, example: 小明 }
         avatar_url:
           type: string
           nullable: true
-          description: 相對路徑，前端要自己接上 API origin。
+          description: 相對路徑，用戶端須自行組合 API origin。
           example: /uploads/avatars/1736512345678-123456789.jpg
 
     User:
       type: object
-      description: 使用者完整資料。`password_hash` 永遠不會出現在回應裡。
+      description: 使用者完整資料。`password_hash` 不會出現於任何回應中。
       properties:
         user_id: { type: integer, example: 12 }
         email: { type: string, format: email, example: test@example.com }
@@ -84,13 +83,13 @@ components:
         role:
           type: string
           enum: [buyer_seller, admin]
-          description: '`buyer_seller` 同時是買家也是賣家；`admin` 可進管理後台。'
+          description: '`buyer_seller` 兼具買家與賣家身分；`admin` 具管理後台存取權。'
           example: buyer_seller
-        is_active: { type: boolean, description: false 代表被停權, example: true }
-        is_blacklisted: { type: boolean, description: true 代表被列入黑名單, example: false }
+        is_active: { type: boolean, description: 值為 false 代表帳號已停權, example: true }
+        is_blacklisted: { type: boolean, description: 值為 true 代表帳號已列入黑名單, example: false }
         bonus_points:
           type: integer
-          description: 管理員手動調整的點數補正值，可為負數。實際點數 = 完成訂單數 × 10 + 這個值。
+          description: 管理員調整的點數補正值，可為負數。實際點數為「完成訂單數 × 10 + 本欄位值」。
           example: 0
         created_at: { type: string, format: date-time, example: '2025-06-01T10:23:00.000Z' }
         updated_at: { type: string, format: date-time, example: '2025-09-01T08:00:00.000Z' }
@@ -105,8 +104,8 @@ components:
           type: string
           enum: [cover, back, inside, other]
           description: |
-            上架時三個固定欄位的對應：
-            封面 → `cover`、封底 → `back`、條碼 → `other`、其餘選填照片 → `inside`。
+            對應上架時的三個固定欄位：封面為 `cover`、封底為 `back`、
+            條碼為 `other`，其餘選填照片為 `inside`。
           example: cover
         sort_order: { type: integer, example: 0 }
 
@@ -122,18 +121,18 @@ components:
         publish_date:
           type: string
           nullable: true
-          description: 字串欄位，不是日期型別。可能只有年份（`2003`）或年月（`2003-08`）。
+          description: 字串欄位而非日期型別，內容可能僅含年份（`2003`）或年月（`2003-08`）。
           example: '2003-08-01'
         category_id: { type: integer, nullable: true, example: 3 }
         condition_level:
           type: string
           enum: [like_new, good, fair, poor]
-          description: 幾成新。`like_new` 近全新／`good` 良好／`fair` 普通／`poor` 較差。
+          description: 書況分級。`like_new` 近全新、`good` 良好、`fair` 普通、`poor` 較差。
           example: good
         condition_note: { type: string, nullable: true, example: 書角有輕微折痕 }
         price:
           type: string
-          description: Decimal(10,2)，序列化成字串以免浮點誤差。必須大於 0 且不超過 99999。
+          description: Decimal(10,2)，序列化為字串以避免浮點誤差。須大於 0 且不超過 99999。
           example: '180.00'
         quantity: { type: integer, example: 1 }
         description: { type: string, nullable: true, example: 只翻過一次，內頁乾淨 }
@@ -141,12 +140,12 @@ components:
         status:
           type: string
           enum: [on_sale, reserved, sold, removed]
-          description: '`on_sale` 販售中／`reserved` 已被下單保留／`sold` 已售出／`removed` 已下架。'
+          description: '`on_sale` 販售中、`reserved` 已下單保留、`sold` 已售出、`removed` 已下架。'
           example: on_sale
         view_count: { type: integer, example: 42 }
         is_approved:
           type: boolean
-          description: 檢舉成立會被設為 false，此時賣家**無法**自行改回 `on_sale`。
+          description: 檢舉成立時設為 false，此時賣家無法自行將狀態改回 `on_sale`。
           example: true
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
@@ -170,7 +169,7 @@ components:
       properties:
         category_id: { type: integer, example: 3 }
         category_name: { type: string, example: 文學小說 }
-        parent_id: { type: integer, nullable: true, description: null 代表這是頂層分類, example: null }
+        parent_id: { type: integer, nullable: true, description: 值為 null 代表頂層分類, example: null }
         sort_order: { type: integer, description: 數字越小越前面, example: 0 }
         created_at: { type: string, format: date-time }
 
@@ -205,11 +204,11 @@ components:
       properties:
         slot_id: { type: integer, example: 31 }
         cabinet_id: { type: integer, example: 2 }
-        slot_number: { type: string, description: 建立書櫃時自動產生 A01、A02…, example: A03 }
+        slot_number: { type: string, description: 建立書櫃時依序自動產生 A01、A02 等編號, example: A03 }
         status:
           type: string
           enum: [empty, occupied, reserved, maintenance]
-          description: '`empty` 空／`occupied` 有書／`reserved` 已預約／`maintenance` 維修中。'
+          description: '`empty` 未使用、`occupied` 已存放書籍、`reserved` 已預約、`maintenance` 維修中。'
           example: empty
         current_book_id: { type: integer, nullable: true }
         current_order_id: { type: integer, nullable: true }
@@ -234,7 +233,7 @@ components:
         order_id: { type: integer, example: 40 }
         book_id: { type: integer, example: 101 }
         quantity: { type: integer, example: 1 }
-        unit_price: { type: string, description: 下單當下的單價，之後賣家改價不影響已成立的訂單, example: '180.00' }
+        unit_price: { type: string, description: 下單當時的單價。賣家後續調價不影響已成立的訂單, example: '180.00' }
         subtotal: { type: string, example: '180.00' }
         books: { $ref: '#/components/schemas/Book' }
 
@@ -244,7 +243,7 @@ components:
         order_id: { type: integer, example: 40 }
         order_no:
           type: string
-          description: '對外顯示的訂單編號，格式 `SMB` + 年月日時分秒 + 三位亂數。'
+          description: '對外顯示的訂單編號，格式為 `SMB` 加年月日時分秒再加三位隨機碼。'
           example: SMB20250911143012517
         buyer_id: { type: integer, example: 12 }
         seller_id: { type: integer, example: 8 }
@@ -258,8 +257,8 @@ components:
           example: pending_deposit
         payment_method: { type: string, nullable: true, enum: [wallet, bank_transfer], example: wallet }
         payment_at: { type: string, format: date-time, nullable: true }
-        deposited_at: { type: string, format: date-time, nullable: true, description: 賣家存書時間 }
-        picked_up_at: { type: string, format: date-time, nullable: true, description: 買家取書時間 }
+        deposited_at: { type: string, format: date-time, nullable: true, description: 賣家完成存書的時間 }
+        picked_up_at: { type: string, format: date-time, nullable: true, description: 買家完成取件的時間 }
         completed_at: { type: string, format: date-time, nullable: true }
         cancelled_at: { type: string, format: date-time, nullable: true }
         cancel_reason: { type: string, nullable: true }
@@ -280,13 +279,13 @@ components:
             slot_number: { type: string, example: A03 }
         users_orders_buyer_idTousers:
           allOf: [{ $ref: '#/components/schemas/UserBrief' }]
-          description: 買家。名稱來自 Prisma 的雙重外鍵關聯命名。
+          description: 買家。欄位名稱源自 Prisma 對雙重外鍵關聯的命名規則。
         users_orders_seller_idTousers:
           allOf: [{ $ref: '#/components/schemas/UserBrief' }]
           description: 賣家。
         transaction_disputes:
           type: array
-          description: 這筆訂單的爭議申請，沒有就是空陣列。
+          description: 本訂單的爭議申請紀錄，無紀錄時為空陣列。
           items:
             type: object
             properties:
@@ -315,14 +314,14 @@ components:
           type: string
           enum: [deposit, withdrawal, purchase, sale_income, refund, admin_adjust]
           description: |
-            `deposit` 儲值／`withdrawal` 提領／`purchase` 買書扣款／
-            `sale_income` 賣出入帳／`refund` 退款／`admin_adjust` 管理員調整。
+            `deposit` 儲值、`withdrawal` 提領、`purchase` 購書扣款、
+            `sale_income` 售出入帳、`refund` 退款、`admin_adjust` 管理員調整。
           example: purchase
         amount:
           type: string
-          description: 支出為**負數**，收入為正數。
+          description: 支出為負數，收入為正數。
           example: '-360.00'
-        balance_after: { type: string, description: 這筆異動之後的餘額, example: '890.00' }
+        balance_after: { type: string, description: 本次異動後的餘額, example: '890.00' }
         related_order_id: { type: integer, nullable: true, example: 40 }
         description: { type: string, nullable: true, example: 購買訂單 SMB20250911143012517 }
         created_at: { type: string, format: date-time }
@@ -336,19 +335,19 @@ components:
         type:
           type: string
           enum: [system, order, message, promotion, reservation]
-          description: App 用這個決定要顯示什麼圖示與導去哪一頁。
+          description: 用戶端依此決定顯示的圖示與點擊後的導向目標。
           example: order
         title: { type: string, example: 您的書已售出 }
         content: { type: string, example: 訂單 SMB20250911143012517 已成立，請於七天內至書櫃存書。 }
         related_id:
           type: integer
           nullable: true
-          description: 搭配 `related_type` 使用，點擊通知時導向對應頁面。
+          description: 與 `related_type` 搭配使用，決定點擊通知後的導向目標。
           example: 40
         related_type:
           type: string
           nullable: true
-          description: '可能是 `order`、`book`、`chat_room`、`report`、`ticket`、`legal`、`user`、`wallet`。'
+          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`legal`、`user`、`wallet`。'
           example: order
         is_read: { type: boolean, example: false }
         created_at: { type: string, format: date-time }
@@ -356,12 +355,12 @@ components:
     # ---------- 聊天 ----------
     ChatRoomSummary:
       type: object
-      description: 聊天室列表用的整理後格式，不是資料表原始欄位。
+      description: 聊天室列表專用的整併格式，非資料表原始欄位。
       properties:
         room_id: { type: integer, example: 7 }
         partner:
           allOf: [{ $ref: '#/components/schemas/UserBrief' }]
-          description: 對方（已經判斷過自己是 user_a 還是 user_b）。
+          description: 對話對象，伺服器已判定請求者為 user_a 或 user_b 並回傳另一方。
         last_message:
           type: object
           nullable: true
@@ -369,7 +368,7 @@ components:
             content: { type: string, example: 請問這本還在嗎？ }
             message_type: { type: string, enum: [text, image, system] }
             created_at: { type: string, format: date-time }
-        unread_count: { type: integer, description: 對方傳來但我還沒讀的則數, example: 2 }
+        unread_count: { type: integer, description: 對方發送且尚未讀取的訊息則數, example: 2 }
         updated_at: { type: string, format: date-time }
 
     ChatMessage:
@@ -381,10 +380,10 @@ components:
         content:
           type: string
           description: |
-            `message_type` 為 `image` 時這裡放圖片相對路徑。
-            商品卡片是 `system` 訊息，內容為 `[book]` 加一段 JSON，
+            `message_type` 為 `image` 時，本欄位存放圖片的相對路徑。
+            商品卡片為 `system` 訊息，內容為 `[book]` 前綴加一段 JSON，
             例如 `[book]{"book_id":101,"title":"挪威的森林","price":"180.00","image_url":"/uploads/books/a.jpg"}`，
-            前端要自己解析成卡片。
+            由用戶端解析後渲染。
           example: 請問這本還在嗎？
         message_type: { type: string, enum: [text, image, system], example: text }
         is_read: { type: boolean, example: true }
@@ -398,12 +397,12 @@ components:
         report_id: { type: integer, example: 18 }
         reporter_id: { type: integer, example: 12 }
         target_type: { type: string, enum: [user, book, message], example: book }
-        target_id: { type: integer, description: 依 target_type 分別指向 user_id / book_id / message_id, example: 101 }
+        target_id: { type: integer, description: 依 target_type 分別對應 user_id、book_id 或 message_id, example: 101 }
         reason: { type: string, example: 商品描述與實物不符 }
         evidence_urls:
           type: string
           nullable: true
-          description: 多個網址以半形逗號串成一個字串，不是陣列。
+          description: 多筆路徑以半形逗號串接為單一字串，型別非陣列。
           example: /uploads/evidence/a.jpg,/uploads/evidence/b.jpg
         status: { type: string, enum: [pending, reviewing, resolved, dismissed], example: pending }
         admin_id: { type: integer, nullable: true }
@@ -418,13 +417,13 @@ components:
         order_id: { type: integer, example: 40 }
         applicant_id: { type: integer, example: 12 }
         reason: { type: string, example: 書況與描述不符，有大量畫線 }
-        evidence_urls: { type: string, nullable: true, description: 逗號分隔的網址字串 }
+        evidence_urls: { type: string, nullable: true, description: 以半形逗號串接的路徑字串 }
         status: { type: string, enum: [pending, processing, resolved], example: pending }
         result:
           type: string
           nullable: true
           enum: [refund_manual, refund_auto, dismissed, mediated]
-          description: '`refund_manual` 人工退款／`refund_auto` 自動退款／`dismissed` 駁回／`mediated` 協調結案。'
+          description: '`refund_manual` 人工退款、`refund_auto` 自動退款、`dismissed` 駁回、`mediated` 協調結案。'
         admin_id: { type: integer, nullable: true }
         admin_note: { type: string, nullable: true }
         created_at: { type: string, format: date-time }
@@ -448,7 +447,7 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: 過期後不會出現在公開列表。null 代表不過期。
+          description: 到期後不再出現於公開列表。值為 null 代表無到期限制。
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
         users:
@@ -464,8 +463,8 @@ components:
       properties:
         level_id: { type: integer, example: 3 }
         level_name: { type: string, example: 黃金會員 }
-        min_points: { type: integer, description: 達到這個點數就進入本等級, example: 500 }
-        max_points: { type: integer, nullable: true, description: null 代表最高等級無上限 }
+        min_points: { type: integer, description: 進入本等級所需的點數門檻, example: 500 }
+        max_points: { type: integer, nullable: true, description: 值為 null 代表無上限 }
         benefits: { type: string, nullable: true, example: 每月贈送 50 代幣、專屬客服 }
 
     # ---------- 客服 ----------
@@ -473,11 +472,11 @@ components:
       type: object
       properties:
         faq_id: { type: integer, example: 6 }
-        category: { type: string, description: 自由字串，前端依此分組顯示, example: trade }
+        category: { type: string, description: 自由字串，用戶端依此分組呈現, example: trade }
         question: { type: string, example: 買家沒有取書怎麼辦？ }
         answer: { type: string, example: 超過七天未取書，系統會自動取消訂單並退款。 }
         sort_order: { type: integer, example: 0 }
-        is_visible: { type: boolean, description: false 的項目不會出現在 App 端, example: true }
+        is_visible: { type: boolean, description: 值為 false 的項目不會出現於前台, example: true }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
 
@@ -487,10 +486,10 @@ components:
         doc_id: { type: integer, example: 1 }
         doc_key:
           type: string
-          description: '文件識別鍵。目前使用 `terms`（服務條款）與 `privacy`（隱私權政策）。'
+          description: '文件識別鍵，目前定義 `terms`（服務條款）與 `privacy`（隱私權政策）。'
           example: terms
         title: { type: string, example: 服務條款 }
-        content: { type: string, description: 純文字內容，換行以 \n 表示。 }
+        content: { type: string, description: 純文字內容，換行字元為 \n。 }
         updated_by: { type: integer, nullable: true, description: 最後編輯的管理員 }
         updated_at: { type: string, format: date-time }
         created_at: { type: string, format: date-time }
@@ -503,14 +502,14 @@ components:
         category:
           type: string
           enum: [account, trade, wallet, cabinet, bug, other]
-          description: 不在清單內的值會被存成 `other`。
+          description: 未列於列舉中的值一律儲存為 `other`。
           example: wallet
         status:
           type: string
           enum: [open, pending, resolved, closed]
           description: |
-            `open` 待客服處理／`pending` 客服已回覆待使用者確認／
-            `resolved` 已解決／`closed` 已結案（無法再回覆）。
+            `open` 待客服處理、`pending` 客服已回覆待使用者確認、
+            `resolved` 已解決、`closed` 已結案且無法再回覆。
           example: open
         message_count: { type: integer, example: 3 }
         last_message: { type: string, nullable: true }
@@ -525,7 +524,7 @@ components:
       properties:
         message_id: { type: integer, example: 61 }
         content: { type: string, example: 已為您補上代幣，造成不便敬請見諒。 }
-        is_staff: { type: boolean, description: true 代表這則是客服回覆, example: true }
+        is_staff: { type: boolean, description: 值為 true 代表此則由客服發送, example: true }
         created_at: { type: string, format: date-time }
         sender: { $ref: '#/components/schemas/UserBrief' }
 
@@ -533,8 +532,8 @@ components:
     AdminPermissions:
       type: object
       description: |
-        管理員的 11 個細部權限開關。
-        資料表裡**沒有**這筆資料的管理員視為全部為 `true`。
+        管理員的 11 項細部權限開關。
+        未於資料表建立對應紀錄的管理員，所有項目視為 `true`。
       properties:
         can_manage_members: { type: boolean, example: true }
         can_manage_levels: { type: boolean, example: true }
@@ -561,7 +560,7 @@ components:
 
   responses:
     BadRequest:
-      description: 請求參數不正確，`message` 會說明缺少或錯在哪個欄位。
+      description: 請求參數不正確，`message` 指出缺漏或錯誤的欄位。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -569,13 +568,13 @@ components:
 
     Unauthorized:
       description: |
-        未提供 Token，或帳號狀態已失效（停權／黑名單／帳號不存在）。
-        收到這個狀態碼時前端應清除本機 Token 並導回登入頁。
+        未提供 Token，或帳號狀態已失效（停權、列入黑名單、帳號不存在）。
+        用戶端收到此狀態碼時應清除本機 Token 並導向登入流程。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           examples:
-            沒有帶 Token:
+            未提供 Token:
               value: { success: false, message: 存取被拒，未提供 Token }
             帳號已停權:
               value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已被停權，如有疑問請聯絡客服 }
@@ -583,21 +582,21 @@ components:
               value: { success: false, code: ACCOUNT_BLACKLISTED, message: 此帳號已被列入黑名單，如有疑問請聯絡客服 }
 
     TokenInvalid:
-      description: Token 無效或已過期（超過 24 小時）。
+      description: Token 無效或已逾 24 小時有效期。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           example: { success: false, message: Token 無效或已過期 }
 
     Forbidden:
-      description: 已登入但沒有權限操作這筆資料。
+      description: 已通過認證，但無權存取該筆資料。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           example: { success: false, message: 存取被拒 }
 
     AdminForbidden:
-      description: 不是管理員，或該管理員沒有這項功能的細部權限。
+      description: 請求者非管理員，或該管理員未具備此功能的細部權限。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -608,14 +607,14 @@ components:
               value: { success: false, message: 您沒有這項功能的權限 }
 
     NotFound:
-      description: 找不到指定的資源。
+      description: 指定的資源不存在。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           example: { success: false, message: 找不到該資料 }
 
     ServerError:
-      description: 伺服器發生未預期的錯誤，詳細原因只寫在伺服器 log。
+      description: 伺服器發生未預期的錯誤，詳細原因僅記錄於伺服器日誌。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }

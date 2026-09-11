@@ -1,8 +1,8 @@
 tags:
   - name: 公開頁面 (Public)
     description: |
-      對外的 HTML 頁面，不是 JSON API。用來讓沒有安裝 App 的人
-      也能透過連結看到基本資訊。
+      對外的 HTML 頁面，非 JSON API。供未安裝應用程式的使用者
+      透過連結檢視基本資訊。
 
 paths:
   /u/{id}:
@@ -11,19 +11,16 @@ paths:
       operationId: publicProfilePage
       tags: [公開頁面 (Public)]
       description: |
-        掃描個人分享 QR Code 後會開到這一頁。**回傳 HTML 而不是 JSON**。
+        掃描個人分享 QR Code 後開啟的頁面，回應為 HTML 而非 JSON。
 
-        流程是這樣設計的：QR Code 編的是 `https://` 連結，手機內建相機
-        才掃得動（自訂 scheme 只有本 App 認得）。掃到後開啟這個網頁，
-        網頁上的「在 App 中開啟」按鈕再用 `savemybook://user/{id}`
-        做 deep link；1.5 秒內頁面沒有被切到背景就代表 App 沒裝，
-        這時才顯示安裝提示。
+        QR Code 編碼的是 `https://` 連結而非自訂 scheme，以確保裝置內建相機
+        可正常辨識。頁面提供的按鈕再以 `savemybook://user/{id}` 進行 deep link；
+        觸發後 1.5 秒內頁面若未進入背景，則判定應用程式未安裝並顯示安裝提示。
 
-        頁面顯示暱稱、頭像、簡介、上架書籍數與加入日期，
-        支援淺色／深色模式。所有使用者輸入都經過 HTML 跳脫。
+        頁面呈現暱稱、頭像、簡介、上架書籍數與加入日期，支援淺色與深色模式，
+        所有使用者輸入均經 HTML 跳脫處理。
 
-        帳號被停權或列入黑名單時會回 404 頁面（而不是空白頁），
-        避免從連結反推帳號狀態。
+        帳號已停權或列入黑名單時回傳 404 頁面，以避免由連結反推帳號狀態。
       security: []
       parameters:
         - in: path
@@ -39,12 +36,12 @@ paths:
             text/html:
               schema: { type: string }
         '404':
-          description: 找不到使用者，或該帳號已被停用。同樣回傳一頁 HTML。
+          description: 使用者不存在或帳號已停用，同樣回傳 HTML 頁面。
           content:
             text/html:
               schema: { type: string }
         '500':
-          description: 載入失敗的錯誤頁 HTML。
+          description: 載入失敗時回傳的錯誤頁 HTML。
           content:
             text/html:
               schema: { type: string }

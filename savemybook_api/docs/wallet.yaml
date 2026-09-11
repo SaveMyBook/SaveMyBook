@@ -1,13 +1,13 @@
 tags:
   - name: 錢包 (Wallet)
     description: |
-      站內代幣錢包。1 代幣 = 1 元。
+      站內代幣錢包，1 代幣等值 1 元。
 
-      餘額變動只有五種來源：買書扣款、賣書入帳、取消退款、爭議退款、
-      管理員手動調整。每一筆都會留下 `wallet_transactions` 紀錄，
-      並記下異動後的餘額，帳務可以完整回溯。
+      餘額變動來源共五種：購書扣款、售出入帳、取消退款、爭議退款，
+      以及管理員調整。每筆異動皆寫入 `wallet_transactions` 並記錄異動後餘額，
+      帳務具完整可追溯性。
 
-      目前**沒有**儲值與提領端點，代幣由管理員透過
+      系統目前未提供儲值與提領端點，代幣由管理員透過
       `POST /api/admin/wallets/{userId}/adjust` 發放。
 
 paths:
@@ -17,11 +17,10 @@ paths:
       operationId: getWallet
       tags: [錢包 (Wallet)]
       description: |
-        第一次呼叫時若還沒有錢包會自動建立一個（餘額 0），
-        所以這支不會回 404。
+        首次呼叫時若尚未建立錢包，系統會自動建立（餘額為 0），因此不會回傳 404。
 
-        `pending_income` 是**待定收益**：已經賣出但訂單還沒完成的金額
-        總和，這筆錢還不在 `balance` 裡。訂單完成後才會轉進餘額。
+        `pending_income` 為待定收益，即已售出但訂單尚未完成的金額總和。
+        該金額尚未計入 `balance`，須待訂單完成後始行轉入。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -39,7 +38,7 @@ paths:
                         properties:
                           pending_income:
                             type: string
-                            description: 待入帳金額（訂單狀態為 pending_payment / pending_deposit / deposited / pending_pickup 的賣出總額）。
+                            description: 待入帳金額，即訂單狀態為 pending_payment、pending_deposit、deposited 或 pending_pickup 的售出總額。
                             example: '360.00'
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -50,10 +49,10 @@ paths:
       operationId: listWalletTransactions
       tags: [錢包 (Wallet)]
       description: |
-        依時間由新到舊。若這筆異動關聯到訂單，會一併帶出訂單編號
-        與第一本書的書名、封面，讓列表不用再查一次書籍。
+        依異動時間遞減排序。異動若關聯至訂單，會一併帶出訂單編號與首本書籍的
+        書名與封面，避免用戶端另行查詢。
 
-        金額的正負號就是收支方向：支出為負、收入為正。
+        金額的正負號代表收支方向：支出為負值，收入為正值。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/Page'
@@ -78,7 +77,7 @@ paths:
                             orders:
                               type: object
                               nullable: true
-                              description: 關聯訂單。只帶第一個項目的書名與封面。
+                              description: 關聯訂單，僅含首個項目的書名與封面。
                               properties:
                                 order_id: { type: integer }
                                 order_no: { type: string }
@@ -106,12 +105,10 @@ paths:
       operationId: listPendingIncome
       tags: [錢包 (Wallet)]
       description: |
-        列出「已賣出但錢還沒入帳」的訂單，也就是狀態還在
-        `pending_payment`、`pending_deposit`、`deposited`、`pending_pickup`
-        的銷售訂單。
+        列出已售出但款項尚未入帳的訂單，即狀態為 `pending_payment`、
+        `pending_deposit`、`deposited` 或 `pending_pickup` 的銷售訂單。
 
-        賣家看這一頁就知道有哪些書待存、哪些等買家來取。
-        沒有分頁。
+        供賣家掌握待存書與待取件的訂單。無分頁機制。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -122,7 +119,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  total_amount: { type: number, description: 這些訂單的金額總和, example: 720 }
+                  total_amount: { type: number, description: 上述訂單的金額總和, example: 720 }
                   data:
                     type: array
                     items: { $ref: '#/components/schemas/Order' }

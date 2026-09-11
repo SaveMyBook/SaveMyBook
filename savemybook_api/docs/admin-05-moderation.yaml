@@ -1,11 +1,11 @@
 tags:
   - name: 後台：檢舉與爭議
     description: |
-      檢舉審核（`can_manage_reports`）與交易爭議仲裁（`can_manage_transactions`）。
-      兩組權限是分開的。
+      檢舉審核與交易爭議仲裁，分別需 `can_manage_reports` 與
+      `can_manage_transactions` 權限，兩者獨立。
 
-      **爭議裁決是唯一會動到退款紀錄的地方**，會建立 `refund_records`
-      並把訂單改成 `refunded`。
+      爭議裁決為系統中唯一會寫入退款紀錄的操作，將建立 `refund_records`
+      並將訂單狀態更新為 `refunded`。
 
 paths:
   /api/admin/reports:
@@ -14,18 +14,17 @@ paths:
       operationId: adminListReports
       tags: [後台：檢舉與爭議]
       description: |
-        依時間由新到舊，沒有分頁。需要 `can_manage_reports` 權限。
+        依建立時間遞減排序，無分頁機制。需 `can_manage_reports` 權限。
 
-        因為 `reports` 是 `target_type` + `target_id` 的多型設計，
-        沒有指向 books/users 的外鍵，所以被檢舉對象是另外查出來
-        塞進 `target` 欄位的。`target_type` 為 `message` 時 `target`
-        會是 `null`（訊息內容不另外撈）。
+        由於 `reports` 採 `target_type` 搭配 `target_id` 的多型設計，未建立指向
+        books 或 users 的外鍵，被檢舉對象由獨立查詢取得後填入 `target` 欄位。
+        `target_type` 為 `message` 時 `target` 為 `null`，不另行查詢訊息內容。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
           name: status
           schema: { type: string, enum: [pending, reviewing, resolved, dismissed] }
-          description: 篩選處理狀態。不帶代表全部。
+          description: 篩選處理狀態。未帶入代表不套用此條件。
       responses:
         '200':
           description: 成功。
@@ -46,16 +45,16 @@ paths:
                               type: object
                               nullable: true
                               description: |
-                                被檢舉的對象。`target_type` 為 `book` 時是書籍
-                                （含書名、售價、狀態、封面），為 `user` 時是使用者，
-                                為 `message` 時是 `null`。
+                                被檢舉對象。`target_type` 為 `book` 時為書籍資料
+                                （含書名、售價、狀態、封面）；為 `user` 時為使用者資料；
+                                為 `message` 時為 `null`。
                             users_reports_reporter_idTousers:
                               allOf: [{ $ref: '#/components/schemas/UserBrief' }]
                               description: 檢舉人。
                             users_reports_admin_idTousers:
                               type: object
                               nullable: true
-                              description: 處理的管理員，尚未處理時為 null。
+                              description: 處理該檢舉的管理員，尚未處理時為 null。
                               properties:
                                 user_id: { type: integer }
                                 nickname: { type: string }
@@ -69,20 +68,21 @@ paths:
       operationId: adminResolveReport
       tags: [後台：檢舉與爭議]
       description: |
-        處理一筆檢舉。需要 `can_manage_reports` 權限。
+        處理單筆檢舉。需 `can_manage_reports` 權限。
 
-        **`remove_target` 的效果**（只對 `target_type = book` 生效）：
-        把書籍設成 `removed` **並把 `is_approved` 設為 false**。
-        後者是關鍵 —— 賣家之後無法自己把這本書改回 `on_sale`，
-        會收到 403 `BOOK_NOT_APPROVED`。
+        `remove_target` 僅對 `target_type` 為 `book` 的檢舉生效，
+        會將書籍設為 `removed` 並將 `is_approved` 設為 false。
+        後者使賣家無法自行將該書籍改回 `on_sale`，嘗試時會收到
+        403 `BOOK_NOT_APPROVED`。
 
-        **通知**（同一個交易內）：
-        - 一律通知**檢舉人**審核結果
-        - 若被檢舉的一方不是檢舉人本人，也通知**被檢舉方**
-          （違規成立／未違規，商品被下架時會特別說明）
+        通知於同一交易內發送：
 
-        `status` 設成 `resolved` 或 `dismissed` 會填上 `resolved_at`；
-        設成 `reviewing` 會把它清成 null。
+        - 一律通知檢舉人審核結果
+        - 被檢舉方若非檢舉人本人，另行通知被檢舉方違規是否成立；
+          商品遭下架時通知內容會一併說明
+
+        `status` 設為 `resolved` 或 `dismissed` 時寫入 `resolved_at`；
+        設為 `reviewing` 時將該欄位清為 null。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -101,12 +101,12 @@ paths:
                 status:
                   type: string
                   enum: [reviewing, resolved, dismissed]
-                  description: '`reviewing` 審核中／`resolved` 違規成立／`dismissed` 未違規駁回。'
-                admin_note: { type: string, description: 內部備註，不會顯示給使用者。 }
+                  description: '`reviewing` 審核中、`resolved` 違規成立、`dismissed` 未違規駁回。'
+                admin_note: { type: string, description: 內部備註，不會呈現給使用者。 }
                 remove_target:
                   type: boolean
                   default: false
-                  description: 是否同時下架被檢舉的商品（只對書籍有效）。
+                  description: 是否同時下架被檢舉的商品，僅對書籍生效。
             example: { status: resolved, admin_note: 確認描述不實, remove_target: true }
       responses:
         '200':
@@ -136,8 +136,8 @@ paths:
       operationId: adminListDisputes
       tags: [後台：檢舉與爭議]
       description: |
-        依時間由新到舊，沒有分頁。需要 `can_manage_transactions` 權限。
-        每筆帶上申請人與完整訂單（含買賣雙方、書名、封面）。
+        依建立時間遞減排序，無分頁機制。需 `can_manage_transactions` 權限。
+        各筆包含申請人與完整訂單資料，含買賣雙方、書名與封面。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
@@ -165,7 +165,7 @@ paths:
                               description: 申請人。
                             orders:
                               type: object
-                              description: 關聯訂單，含買賣雙方與書籍。
+                              description: 關聯訂單，包含買賣雙方與書籍資料。
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -176,8 +176,8 @@ paths:
       operationId: adminResolveDispute
       tags: [後台：檢舉與爭議]
       description: |
-        裁決爭議案件。需要 `can_manage_transactions` 權限。
-        整個流程包在一個資料庫交易裡。
+        裁決爭議案件。需 `can_manage_transactions` 權限。
+        整個流程封裝於單一資料庫交易。
 
         | `result` | 訂單結果 | 退款紀錄 |
         | --- | --- | --- |
@@ -186,8 +186,8 @@ paths:
         | `dismissed` | `completed` | 不建立 |
         | `mediated` | `completed` | 不建立 |
 
-        爭議狀態一律設成 `resolved` 並填上處理時間，
-        同時**通知申請人**裁決結果，並寫入操作紀錄。
+        爭議狀態一律設為 `resolved` 並寫入處理時間，
+        同時通知申請人裁決結果，並寫入稽核紀錄。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -206,10 +206,10 @@ paths:
                 result:
                   type: string
                   enum: [refund_manual, refund_auto, dismissed, mediated]
-                  description: '`refund_manual` 人工退款／`refund_auto` 自動退款／`dismissed` 駁回／`mediated` 協調結案。'
+                  description: '`refund_manual` 人工退款、`refund_auto` 自動退款、`dismissed` 駁回、`mediated` 協調結案。'
                 admin_note:
                   type: string
-                  description: 處理說明。退款時也會寫進退款紀錄的 `reason`。
+                  description: 處理說明。裁決為退款時一併寫入退款紀錄的 `reason` 欄位。
                   example: 書況確實不符，全額退款
             example: { result: refund_manual, admin_note: 書況確實不符，全額退款 }
       responses:

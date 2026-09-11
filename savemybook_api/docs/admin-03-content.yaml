@@ -1,13 +1,13 @@
 tags:
   - name: 後台：內容管理
     description: |
-      書籍稽核與分類維護。本組全部需要 `can_manage_content` 權限。
+      書籍稽核與分類維護。本組端點均需 `can_manage_content` 權限。
 
-      **違規下架的關鍵**：透過 `PATCH /api/admin/reports/{id}` 帶
-      `remove_target: true` 處理檢舉時，會同時把書籍設成 `removed`
-      **並把 `is_approved` 設為 false**，賣家就無法自行重新上架。
-      這支端點（`PATCH /api/admin/books/{id}`）只改 `status`，
-      不會動到 `is_approved`。
+      違規下架須透過 `PATCH /api/admin/reports/{id}` 並帶入
+      `remove_target` 為 true，該操作會同時將書籍設為 `removed`
+      並將 `is_approved` 設為 false，使賣家無法自行重新上架。
+
+      本組的 `PATCH /api/admin/books/{id}` 僅異動 `status`，不影響 `is_approved`。
 
 paths:
   /api/admin/books:
@@ -16,23 +16,23 @@ paths:
       operationId: adminListBooks
       tags: [後台：內容管理]
       description: |
-        分頁查詢全站書籍，依上架時間由新到舊。回傳的是**扁平化**的格式，
-        不是 `GET /api/books` 那種巢狀結構。
+        分頁查詢全站書籍，依上架時間遞減排序。回應採扁平化格式，
+        與 `GET /api/books` 的巢狀結構不同。
 
-        `pending_report_count` 是這本書待處理的檢舉數。
-        因為 `reports` 用的是 `target_type` + `target_id` 的多型設計，
-        沒有指向 `books` 的外鍵關聯，所以這個數字是另外用分組查詢補上的。
+        `pending_report_count` 為該書籍待處理的檢舉數。由於 `reports` 採
+        `target_type` 搭配 `target_id` 的多型設計，未建立指向 `books` 的外鍵關聯，
+        此數值由獨立的分組查詢補入。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
           name: keyword
           schema: { type: string }
-          description: 同時比對書名、ISBN 與賣家暱稱。
+          description: 同時對書名、ISBN 與賣家暱稱進行比對。
           example: 挪威
         - in: query
           name: status
           schema: { type: string, enum: [on_sale, reserved, sold, removed, all] }
-          description: 書籍狀態。傳 `all` 或不帶代表全部。
+          description: 書籍狀態。帶入 `all` 或未帶入代表不套用此條件。
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/Limit'
       responses:
@@ -60,8 +60,8 @@ paths:
                         view_count: { type: integer, example: 42 }
                         created_at: { type: string, format: date-time }
                         seller: { $ref: '#/components/schemas/UserBrief' }
-                        category_name: { type: string, description: 沒有分類時是空字串。, example: 文學小說 }
-                        image_url: { type: string, nullable: true, description: 第一張照片。 }
+                        category_name: { type: string, description: 書籍未分類時為空字串。, example: 文學小說 }
+                        image_url: { type: string, nullable: true, description: 首張照片的路徑。 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -72,11 +72,11 @@ paths:
       operationId: adminUpdateBookStatus
       tags: [後台：內容管理]
       description: |
-        只能設成 `on_sale` 或 `removed`，其他狀態（`reserved`、`sold`）
-        由交易流程決定，不開放手動改。
+        僅能設為 `on_sale` 或 `removed`。`reserved` 與 `sold` 由交易流程決定，
+        不開放手動異動。
 
-        會**通知賣家**（下架時會把 `reason` 附在通知內容裡），
-        並寫入操作紀錄。
+        操作會發送通知予賣家，下架時 `reason` 將包含於通知內容中，
+        並寫入稽核紀錄。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -95,7 +95,7 @@ paths:
                 status: { type: string, enum: [on_sale, removed] }
                 reason:
                   type: string
-                  description: 下架原因。會出現在給賣家的通知裡，也會寫進操作紀錄。
+                  description: 下架原因，將包含於發送給賣家的通知，並寫入稽核紀錄。
                   example: 商品描述與實物不符
             example: { status: removed, reason: 商品描述與實物不符 }
       responses:
@@ -122,8 +122,8 @@ paths:
       operationId: adminListCategories
       tags: [後台：內容管理]
       description: |
-        扁平清單，依排序值排列，每筆帶該分類底下的書籍數
-        （用來判斷能不能刪）。
+        回傳扁平清單，依排序值排列。各筆包含該分類底下的書籍數，
+        供判斷是否可刪除。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -142,7 +142,7 @@ paths:
                         category_id: { type: integer, example: 3 }
                         category_name: { type: string, example: 文學小說 }
                         sort_order: { type: integer, example: 0 }
-                        book_count: { type: integer, description: 這個分類底下的書籍數, example: 312 }
+                        book_count: { type: integer, description: 該分類底下的書籍數, example: 312 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -151,7 +151,7 @@ paths:
       summary: 新增分類
       operationId: adminCreateCategory
       tags: [後台：內容管理]
-      description: 建立分類。名稱上限 50 字。會寫入操作紀錄。
+      description: 建立分類，名稱長度上限 50 字。操作會寫入稽核紀錄。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -177,14 +177,14 @@ paths:
                     properties:
                       category_id: { type: integer, example: 9 }
         '400':
-          description: 名稱空白或太長。
+          description: 名稱為空白或超出長度上限。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
-                空白:
+                名稱為空白:
                   value: { success: false, message: 請輸入分類名稱 }
-                太長:
+                名稱過長:
                   value: { success: false, message: 分類名稱不可超過 50 字 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
@@ -196,15 +196,15 @@ paths:
       operationId: adminReorderCategories
       tags: [後台：內容管理]
       description: |
-        後台拖拉排序後呼叫這一支。傳**排好順序的完整編號陣列**，
-        伺服器會把 `sort_order` 依陣列索引重寫成 0、1、2…
+        重新設定分類排序。請帶入已排序的完整編號陣列，伺服器依陣列索引
+        將 `sort_order` 重寫為 0、1、2 等序號。
 
-        整批寫在同一個資料庫交易裡，中途失敗不會留下一半新一半舊的順序。
+        整批更新於同一資料庫交易內完成，中途失敗不會產生部分更新的狀態。
 
-        送出前會先確認每個編號都存在，有不存在的就整批拒絕。
+        寫入前會驗證所有編號均存在，任一編號無效即整批拒絕。
 
-        > 路由順序上這支必須排在 `/categories/{id}` 前面，
-        > 否則 `reorder` 會被當成分類編號。
+        > 路由定義順序須置於 `/categories/{id}` 之前，
+        > 否則 `reorder` 會被解析為分類編號。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -218,7 +218,7 @@ paths:
                   type: array
                   items: { type: integer }
                   minItems: 1
-                  description: 排序後的分類編號，索引即為新的 `sort_order`。
+                  description: 已排序的分類編號，陣列索引即為新的 `sort_order`。
                   example: [5, 3, 9, 1]
       responses:
         '200':
@@ -228,16 +228,16 @@ paths:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
               example: { success: true, message: 已更新排序 }
         '400':
-          description: 陣列為空、格式錯誤，或含有不存在的分類。
+          description: 陣列為空、格式錯誤，或包含不存在的分類。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
-                空陣列:
+                陣列為空:
                   value: { success: false, message: 請提供排序後的分類順序 }
                 格式錯誤:
                   value: { success: false, message: 排序資料格式不正確 }
-                含無效編號:
+                包含無效編號:
                   value: { success: false, message: 排序資料含有不存在的分類 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
@@ -256,7 +256,7 @@ paths:
       summary: 編輯分類
       operationId: adminUpdateCategory
       tags: [後台：內容管理]
-      description: 改名稱與排序值。會寫入操作紀錄。
+      description: 更新分類名稱與排序值。操作會寫入稽核紀錄。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -276,7 +276,7 @@ paths:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
               example: { success: true, message: 已更新分類 }
         '400':
-          description: 名稱空白。
+          description: 名稱為空白。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -290,8 +290,8 @@ paths:
       operationId: adminDeleteCategory
       tags: [後台：內容管理]
       description: |
-        底下還有書就不能刪，錯誤訊息會告訴你還有幾本，
-        避免那些書變成沒有分類的孤兒。
+        分類底下仍有書籍時不得刪除，錯誤訊息會回報剩餘書籍數，
+        以避免書籍失去分類關聯。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -301,7 +301,7 @@ paths:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
               example: { success: true, message: 已刪除分類 }
         '400':
-          description: 這個分類底下還有書。
+          description: 該分類底下仍有書籍。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }

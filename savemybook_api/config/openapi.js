@@ -14,19 +14,19 @@ const docsDir = path.join(__dirname, '../docs');
 // ==========================================
 
 const description = `
-SaveMyBook 是一個結合**智慧書櫃**的二手書交易平台。買賣雙方不需碰面：
-賣家把書存進書櫃、買家憑取貨碼取書，平台以站內代幣（虛擬貨幣）完成金流。
+SaveMyBook 為結合智慧書櫃的二手書交易平台。賣家將書籍存入書櫃，買家憑取貨碼取件，
+雙方無須當面交付，金流以站內代幣結算。
 
-這份文件涵蓋 App、管理後台會用到的**全部**端點。
+本文件涵蓋行動應用程式與管理後台所使用的全部端點。
 
 ---
 
 ## 快速開始
 
-1. 用 \`POST /api/users\` 建立帳號，或直接用既有帳號。
-2. 用 \`POST /api/auth/login\` 取得 JWT Token。
-3. 點右上角 **Authentication**，把 Token 填進 Bearer 欄位（不用自己加 \`Bearer \` 前綴）。
-4. 之後所有標記 🔒 的端點都會自動帶上這個 Token。
+1. 呼叫 \`POST /api/users\` 建立帳號，或使用既有帳號。
+2. 呼叫 \`POST /api/auth/login\` 取得 JWT Token。
+3. 於右上角 **Authentication** 填入 Token（無須自行加上 \`Bearer \` 前綴）。
+4. 後續所有需授權的端點將自動帶入該 Token。
 
 \`\`\`bash
 curl -X POST http://localhost:${port}/api/auth/login \\
@@ -38,7 +38,7 @@ curl -X POST http://localhost:${port}/api/auth/login \\
 
 ## 回應格式
 
-**所有** JSON 端點都遵循同一個外層結構，前端只要檢查 \`success\` 就能分流：
+所有 JSON 端點均遵循相同的外層結構，用戶端依 \`success\` 判斷處理分支。
 
 \`\`\`jsonc
 // 成功
@@ -50,13 +50,13 @@ curl -X POST http://localhost:${port}/api/auth/login \\
 
 | 欄位 | 說明 |
 | --- | --- |
-| \`success\` | 一定會有。\`true\` / \`false\` |
-| \`message\` | 可直接顯示給使用者的繁體中文訊息。部分純查詢端點不帶這個欄位 |
-| \`data\` | 主要內容。可能是物件或陣列 |
-| \`code\` | 只有需要前端**分流處理**的錯誤才會帶（見下方錯誤代碼表） |
-| \`pagination\` | 有分頁的列表端點會在**外層**帶這個物件，不在 \`data\` 裡面 |
+| \`success\` | 必定存在，值為 \`true\` 或 \`false\` |
+| \`message\` | 可直接呈現給使用者的繁體中文訊息；部分查詢類端點不含此欄位 |
+| \`data\` | 主要內容，型別為物件或陣列 |
+| \`code\` | 僅需用戶端分支處理的錯誤帶此欄位，可能的值見錯誤代碼一節 |
+| \`pagination\` | 分頁端點於**外層**帶此物件，並非置於 \`data\` 之內 |
 
-分頁物件長這樣：
+分頁物件結構：
 
 \`\`\`json
 { "total": 137, "page": 2, "limit": 20, "total_pages": 7 }
@@ -66,36 +66,36 @@ curl -X POST http://localhost:${port}/api/auth/login \\
 
 ## 認證與帳號狀態
 
-Token 由 \`POST /api/auth/login\` 簽發，**有效期 24 小時**，用
-\`Authorization: Bearer <token>\` 夾帶。
+Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
+\`Authorization: Bearer <token>\` 標頭傳遞。
 
-驗證中介層每次請求都會回資料庫確認帳號狀態，**不是只驗簽章**。
-這代表帳號被停權或黑名單後會**立即**失效，不必等 Token 過期；
-管理員被降級為一般會員也同樣立刻生效。代價是每個請求多一次 DB 查詢。
+驗證中介層於每次請求查詢資料庫確認帳號狀態，不僅驗證簽章。因此帳號停權或列入黑名單後
+立即失效，無須等待 Token 到期；管理員遭降級亦同步生效。此設計的成本為每次請求
+增加一次資料庫查詢。
 
 | 狀況 | HTTP | \`code\` |
 | --- | --- | --- |
-| 沒帶 Token | 401 | － |
-| Token 過期或簽章錯誤 | 403 | － |
-| 帳號已被刪除 | 401 | \`ACCOUNT_NOT_FOUND\` |
-| 帳號被列入黑名單 | 401 | \`ACCOUNT_BLACKLISTED\` |
-| 帳號被停權 | 401 | \`ACCOUNT_INACTIVE\` |
+| 未提供 Token | 401 | － |
+| Token 過期或簽章無效 | 403 | － |
+| 帳號已刪除 | 401 | \`ACCOUNT_NOT_FOUND\` |
+| 帳號列入黑名單 | 401 | \`ACCOUNT_BLACKLISTED\` |
+| 帳號已停權 | 401 | \`ACCOUNT_INACTIVE\` |
 
-> 前端收到上述任何一種，都應該清掉本機 Token 並導回登入頁。
+用戶端收到上述任一回應時，應清除本機 Token 並導向登入流程。
 
 ---
 
 ## 錯誤代碼
 
-除了認證相關的代碼外，這些是業務邏輯會回的：
+除認證相關代碼外，業務邏輯另定義下列代碼：
 
-| \`code\` | HTTP | 意義 | 建議處理 |
+| \`code\` | HTTP | 意義 | 建議處理方式 |
 | --- | --- | --- | --- |
-| \`INVALID_PASSWORD\` | 401 | 登入密碼錯誤 | 只在密碼欄位顯示錯誤，不要清空 Email |
-| \`INSUFFICIENT_BALANCE\` | 400 | 代幣餘額不足以結帳 | 導去儲值頁 |
-| \`BOOK_NOT_APPROVED\` | 403 | 書籍因違規被下架，賣家不能自行重新上架 | 引導開客服工單 |
+| \`INVALID_PASSWORD\` | 401 | 登入密碼錯誤 | 保留已輸入的 Email，僅於密碼欄位提示錯誤 |
+| \`INSUFFICIENT_BALANCE\` | 400 | 代幣餘額不足以完成結帳 | 導向儲值流程 |
+| \`BOOK_NOT_APPROVED\` | 403 | 書籍因違規下架，賣家無法自行重新上架 | 引導使用者開立客服工單 |
 
-沒有 \`code\` 的錯誤直接把 \`message\` 顯示出來即可。
+未帶 \`code\` 的錯誤直接呈現 \`message\` 即可。
 
 ---
 
@@ -103,16 +103,15 @@ Token 由 \`POST /api/auth/login\` 簽發，**有效期 24 小時**，用
 
 | 層級 | 說明 |
 | --- | --- |
-| 公開 | 不需要 Token |
-| 🔒 會員 | 需要有效 Token |
-| 🔒 本人 / 管理員 | 只能操作自己的資料，管理員可跨帳號 |
-| 🔒 管理員 | \`role = admin\`，且該功能的細部權限為開啟 |
+| 公開 | 無須 Token |
+| 會員 | 需有效 Token |
+| 本人或管理員 | 僅能操作自身資料，管理員不受此限 |
+| 管理員 | \`role\` 為 \`admin\`，且該功能的細部權限為開啟 |
 
-管理員的細部權限存在 \`admin_permissions\`，共 11 個開關。
-**沒有**那筆資料的管理員視為全部開啟（這是為了讓舊帳號不會突然被鎖住）。
-權限不足回 403 \`{ "success": false, "message": "您沒有這項功能的權限" }\`。
+管理員的細部權限儲存於 \`admin_permissions\`，共 11 項開關。未建立該筆資料的管理員
+視為全部開啟。權限不足時回傳 403 \`{ "success": false, "message": "您沒有這項功能的權限" }\`。
 
-| 權限欄位 | 管到哪些端點 |
+| 權限欄位 | 適用端點 |
 | --- | --- |
 | \`can_manage_members\` | 會員列表、停權、等級、細部權限 |
 | \`can_manage_levels\` | 會員等級制度的增刪改 |
@@ -130,53 +129,52 @@ Token 由 \`POST /api/auth/login\` 簽發，**有效期 24 小時**，用
 
 ## 金流與訂單生命週期
 
-站內用**代幣**計價，1 代幣 = 1 元。結帳當下就從買家錢包扣款，
-賣家的錢則要等訂單完成才入帳，中間這段在賣家端顯示為「待定收益」
-（\`GET /api/wallet/pending\`）。
+站內以代幣計價，1 代幣等值 1 元。結帳時即自買家錢包扣款，賣方款項則於訂單完成後
+始行入帳，期間於賣家端顯示為待定收益（\`GET /api/wallet/pending\`）。
 
 \`\`\`
-              結帳（扣買家代幣）
+              結帳（扣除買家代幣）
                      ↓
 pending_payment → pending_deposit → deposited → pending_pickup → completed
                      │                                               ↑
                      │                                        （賣家代幣入帳）
-                     ├──→ cancelled（退款回買家）
+                     ├──→ cancelled（退款予買家）
                      └──→ refunding ──→ refunded（爭議裁決退款）
 \`\`\`
 
 | 狀態 | 意義 |
 | --- | --- |
-| \`pending_payment\` | 已建立、尚未付款（目前流程不會停在這） |
-| \`pending_deposit\` | 已付款，等賣家把書存進書櫃 |
-| \`deposited\` | 賣家已存書 |
-| \`pending_pickup\` | 等買家取書 |
-| \`completed\` | 買家已取書，款項入賣家錢包 |
-| \`cancelled\` | 已取消，代幣原路退回買家 |
-| \`refunding\` | 買家提出爭議，等管理員仲裁 |
-| \`refunded\` | 仲裁結果為退款，已完成 |
+| \`pending_payment\` | 訂單已建立，尚未付款 |
+| \`pending_deposit\` | 已付款，等待賣家存入書櫃 |
+| \`deposited\` | 賣家已完成存書 |
+| \`pending_pickup\` | 等待買家取件 |
+| \`completed\` | 買家已取件，款項匯入賣家錢包 |
+| \`cancelled\` | 已取消，代幣退回買家 |
+| \`refunding\` | 買家提出爭議，等待管理員仲裁 |
+| \`refunded\` | 仲裁結果為退款並已完成 |
 
-一次結帳若購物車跨多個賣家，會**依賣家拆成多筆訂單**，回傳的是陣列。
+單次結帳若涵蓋多位賣家的商品，將依賣家拆分為多筆訂單，回應為陣列。
 
 ---
 
 ## 檔案上傳
 
-需要上傳圖片的端點用 \`multipart/form-data\`，其餘一律 \`application/json\`。
-上傳後回傳的是**相對路徑**（例如 \`/uploads/books/1736...jpg\`），
-前端要自己接上 API 的 origin 才能顯示。
+需上傳圖片的端點採用 \`multipart/form-data\`，其餘一律為 \`application/json\`。
+上傳後回傳相對路徑（例如 \`/uploads/books/1736512345678-987654321.jpg\`），
+用戶端須自行組合 API origin 後方可存取。
 
 | 用途 | 端點 | 存放位置 |
 | --- | --- | --- |
 | 書籍照片 | \`POST /api/books\`、\`POST /api/books/{id}/images\` | \`/uploads/books/\` |
 | 個人頭像 | \`POST /api/users/me/avatar\` | \`/uploads/avatars/\` |
-| 檢舉／爭議佐證 | \`POST /api/uploads\` | \`/uploads/evidence/\` |
+| 檢舉與爭議佐證 | \`POST /api/uploads\` | \`/uploads/evidence/\` |
 
 ---
 
-## 分頁、排序與篩選
+## 分頁
 
-有分頁的端點一律吃 \`page\`（預設 1）與 \`limit\`，兩者都是 query string。
-超出範圍不會報錯，只會回空陣列。
+分頁端點均接受 query string 參數 \`page\`（預設 1）與 \`limit\`。
+頁碼超出總頁數時回傳空陣列，不視為錯誤。
 `.trim();
 
 const base = {

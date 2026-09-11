@@ -1,11 +1,11 @@
 tags:
   - name: 客服中心 (Support)
     description: |
-      App 內的說明與客服功能：常見問題、服務條款／隱私權政策、
+      應用程式內的說明與客服功能，包含常見問題、服務條款與隱私權政策，
       以及站內客服工單。
 
-      **沒有支援信箱**，所有客服往來都走工單，管理員在
-      **後台：客服與條款** 回覆。
+      平台未提供支援信箱，客服往來一律透過工單進行，
+      由管理員於「後台：客服與條款」回覆。
 
 paths:
   /api/support/faqs:
@@ -14,8 +14,8 @@ paths:
       operationId: listFaqs
       tags: [客服中心 (Support)]
       description: |
-        只回傳 `is_visible = true` 的項目，依「分類 → 排序值 → 編號」排序，
-        前端可以直接依 `category` 分組成摺疊區塊。不需要登入。
+        僅回傳 `is_visible` 為 true 的項目，依分類、排序值、編號依序排序，
+        可直接依 `category` 分組呈現。無須登入。
       security: []
       responses:
         '200':
@@ -37,15 +37,15 @@ paths:
       operationId: getLegalDocument
       tags: [客服中心 (Support)]
       description: |
-        取得服務條款或隱私權政策的內容。這些文件存在資料庫裡，
-        管理員可以隨時更新，不用改版 App。不需要登入。
+        取得服務條款或隱私權政策的內容。文件儲存於資料庫，
+        管理員可隨時更新而無須發布新版應用程式。無須登入。
       security: []
       parameters:
         - in: path
           name: key
           required: true
           schema: { type: string, enum: [terms, privacy] }
-          description: '`terms` 服務條款／`privacy` 隱私權政策。'
+          description: '`terms` 為服務條款，`privacy` 為隱私權政策。'
           example: terms
       responses:
         '200':
@@ -58,7 +58,7 @@ paths:
                   success: { type: boolean, example: true }
                   data: { $ref: '#/components/schemas/LegalDocument' }
         '404':
-          description: 沒有這個 key 的文件。
+          description: 指定的 key 無對應文件。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -71,9 +71,10 @@ paths:
       operationId: listMyTickets
       tags: [客服中心 (Support)]
       description: |
-        列出自己開過的工單，依最後更新時間由新到舊。
-        `last_message` 是**第一則**訊息（也就是當初的問題描述），
-        用來在列表上顯示摘要。沒有分頁。
+        列出請求者開立的工單，依最後更新時間遞減排序。
+
+        `last_message` 為工單的第一則訊息，即原始問題描述，供列表摘要使用。
+        無分頁機制。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -95,10 +96,10 @@ paths:
       operationId: createTicket
       tags: [客服中心 (Support)]
       description: |
-        開一張新工單。問題描述會成為第一則訊息，狀態是 `open`。
+        建立新工單。問題描述將成為工單的第一則訊息，初始狀態為 `open`。
 
-        **限制**：同時最多 5 張處理中（`open` 或 `pending`）的工單，
-        超過會回 400，避免有人連開癱瘓客服。
+        單一使用者同時最多保有 5 張處理中（`open` 或 `pending`）的工單，
+        超出上限時回傳 400。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -109,13 +110,13 @@ paths:
               required: [subject, content]
               properties:
                 subject: { type: string, maxLength: 100, example: 代幣沒有入帳 }
-                content: { type: string, description: 問題描述，會成為工單的第一則訊息。, example: 訂單完成三天了，代幣還是沒有入帳。 }
+                content: { type: string, description: 問題描述，將成為工單的第一則訊息。, example: 訂單完成三天，代幣仍未入帳。 }
                 category:
                   type: string
                   enum: [account, trade, wallet, cabinet, bug, other]
                   default: other
-                  description: 不在列舉內的值會被存成 `other`。
-            example: { subject: 代幣沒有入帳, content: 訂單完成三天了，代幣還是沒有入帳。, category: wallet }
+                  description: 未列於列舉的值一律儲存為 `other`。
+            example: { subject: 代幣沒有入帳, content: 訂單已完成三日，代幣尚未入帳。, category: wallet }
       responses:
         '201':
           description: 已建立。
@@ -130,18 +131,18 @@ paths:
                     properties:
                       ticket_id: { type: integer, example: 22 }
         '400':
-          description: 欄位不合法或工單太多。
+          description: 欄位不符合限制，或處理中的工單已達上限。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
-                沒填主旨:
+                未填主旨:
                   value: { success: false, message: 請填寫問題主旨 }
                 主旨太長:
                   value: { success: false, message: 主旨不可超過 100 字 }
-                沒填內容:
+                未填內容:
                   value: { success: false, message: 請描述你遇到的問題 }
-                工單太多:
+                工單數達上限:
                   value: { success: false, message: 你已有 5 張處理中的工單，請等客服回覆後再開新的 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -152,10 +153,10 @@ paths:
       operationId: getTicket
       tags: [客服中心 (Support)]
       description: |
-        回傳工單與完整對話（由舊到新）。
-        只有開單者本人或管理員能看。
+        回傳工單及其完整對話，訊息由舊至新排序。
+        僅開單者本人或管理員可查詢。
 
-        每則訊息的 `is_staff` 決定要靠左（客服）還是靠右（自己）顯示。
+        各則訊息的 `is_staff` 用於區分發送方為客服或使用者。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -179,7 +180,7 @@ paths:
                         properties:
                           messages:
                             type: array
-                            description: 對話內容，由舊到新。
+                            description: 對話內容，由舊至新排序。
                             items: { $ref: '#/components/schemas/SupportTicketMessage' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
@@ -192,14 +193,15 @@ paths:
       operationId: replyTicket
       tags: [客服中心 (Support)]
       description: |
-        使用者與管理員都用這一支回覆，`is_staff` 由伺服器依角色判斷，
-        前端不用傳。
+        使用者與管理員共用此端點回覆，`is_staff` 由伺服器依角色判定，
+        用戶端無須帶入。
 
-        **狀態會跟著變**：
-        - 管理員回覆 → 工單變成 `pending`（等使用者確認），並**通知使用者**
-        - 使用者回覆 → 工單變回 `open`（等客服處理）
+        回覆後工單狀態隨之變更：
 
-        已結案（`closed`）的工單不能再回覆。
+        - 管理員回覆後轉為 `pending`，等待使用者確認，並發送通知予使用者
+        - 使用者回覆後轉回 `open`，等待客服處理
+
+        狀態為 `closed` 的工單不接受回覆。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -224,12 +226,12 @@ paths:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
               example: { success: true, message: 已送出 }
         '400':
-          description: 內容空白或工單已結案。
+          description: 內容為空白，或工單已結案。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
-                內容空白:
+                內容為空白:
                   value: { success: false, message: 請輸入內容 }
                 已結案:
                   value: { success: false, message: 這張工單已結案，請開立新的工單 }
@@ -244,9 +246,9 @@ paths:
       operationId: closeTicket
       tags: [客服中心 (Support)]
       description: |
-        把工單標成 `closed` 並記下結案時間。開單者本人或管理員都能執行。
+        將工單標記為 `closed` 並記錄結案時間，開單者本人或管理員皆可執行。
 
-        結案後**無法再回覆**，要繼續討論必須開新工單。
+        結案後不接受回覆，如需續談須另行開立工單。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path

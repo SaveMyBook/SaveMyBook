@@ -1,10 +1,10 @@
 tags:
   - name: 認證 (Auth)
     description: |
-      取得與驗證 JWT Token。
+      JWT Token 的簽發與驗證。
 
-      Token 有效期 **24 小時**，payload 包含 `userId`、`role`、`email`。
-      過期後沒有 refresh 機制，必須重新登入。
+      Token 有效期為 24 小時，payload 包含 `userId`、`role`、`email`。
+      系統未提供 refresh 機制，Token 到期後須重新登入。
 
 paths:
   /api/auth/login:
@@ -13,10 +13,10 @@ paths:
       operationId: login
       tags: [認證 (Auth)]
       description: |
-        用 Email 與密碼換取 JWT Token。密碼以 bcrypt 比對。
+        以 Email 與密碼換發 JWT Token，密碼採 bcrypt 比對。
 
-        帳號被停權或列入黑名單時**不會**發 Token，會直接回 403，
-        前端可以依 `code` 決定要顯示什麼提示。
+        帳號已停權或列入黑名單時不簽發 Token，直接回傳 403，
+        用戶端可依 `code` 區分提示內容。
       security: []
       requestBody:
         required: true
@@ -44,10 +44,10 @@ paths:
                     properties:
                       token:
                         type: string
-                        description: "放進 `Authorization: Bearer <token>` 標頭使用。"
+                        description: "用於 `Authorization: Bearer <token>` 標頭。"
                         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyfQ.abc123
         '400':
-          description: 沒有填 Email 或密碼。
+          description: 未提供 Email 或密碼。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -59,17 +59,17 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, code: INVALID_PASSWORD, message: 密碼錯誤 }
         '403':
-          description: 帳號存在但已被停用。
+          description: 帳號存在但已停用。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 已停權:
                   value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已停權，請聯絡客服 }
-                黑名單:
+                列入黑名單:
                   value: { success: false, code: ACCOUNT_BLACKLISTED, message: 此帳號已被停用，請聯絡客服 }
         '404':
-          description: 這個 Email 沒有註冊過。
+          description: 該 Email 尚未註冊。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -82,11 +82,10 @@ paths:
       operationId: getCurrentUser
       tags: [認證 (Auth)]
       description: |
-        回傳 Token 對應的使用者完整資料，常用來在 App 啟動時
-        確認 Token 還有效、順便同步最新的個人資料。
+        回傳 Token 對應的使用者完整資料，可用於應用程式啟動時驗證 Token
+        有效性並同步個人資料。
 
-        回傳的是資料表原始欄位（含 `password_hash` 以外的全部）。
-        如果只需要暱稱、頭像，用 `GET /api/users/me/stats` 會更輕量。
+        回傳內容為資料表原始欄位，不含 `password_hash`。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
