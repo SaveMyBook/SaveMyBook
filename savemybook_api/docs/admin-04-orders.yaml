@@ -1,0 +1,135 @@
+tags:
+  - name: 後台：訂單管理
+    description: |
+      訂單查詢與人工調整狀態。需要 `can_manage_orders` 權限。
+
+      > 這裡的狀態調整是**純資料操作**，不會連動錢包。
+      > 需要退款請走 **後台：檢舉與爭議** 的爭議裁決，那支才會寫退款紀錄。
+
+paths:
+  /api/admin/orders:
+    get:
+      summary: 訂單列表
+      operationId: adminListOrders
+      tags: [後台：訂單管理]
+      description: |
+        分頁查詢全站訂單，依建立時間由新到舊。
+        回傳的是**整理過的扁平格式**，跟 `GET /api/orders` 的巢狀結構不同：
+        買賣雙方各自放在 `buyer` / `seller`，書籍攤平在 `items`。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: keyword
+          schema: { type: string }
+          description: 同時比對訂單編號、買家暱稱與賣家暱稱。
+          example: SMB20250911
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending_payment, pending_deposit, deposited, pending_pickup, completed, cancelled, refunding, refunded, all]
+          description: 訂單狀態。傳 `all` 或不帶代表全部。
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        order_id: { type: integer, example: 40 }
+                        order_no: { type: string, example: SMB20250911143012517 }
+                        status: { type: string, example: pending_deposit }
+                        total_amount: { type: string, example: '360.00' }
+                        created_at: { type: string, format: date-time }
+                        completed_at: { type: string, format: date-time, nullable: true }
+                        cancelled_at: { type: string, format: date-time, nullable: true }
+                        cancel_reason: { type: string, nullable: true }
+                        pickup_code: { type: string, nullable: true, example: '482913' }
+                        buyer: { $ref: '#/components/schemas/UserBrief' }
+                        seller: { $ref: '#/components/schemas/UserBrief' }
+                        cabinet:
+                          type: object
+                          nullable: true
+                          properties:
+                            cabinet_id: { type: integer }
+                            cabinet_name: { type: string }
+                            address: { type: string }
+                        items:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              book_id: { type: integer, nullable: true }
+                              title: { type: string }
+                              unit_price: { type: string }
+                              subtotal: { type: string }
+                              quantity: { type: integer }
+                              image_url: { type: string, nullable: true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/orders/{id}:
+    patch:
+      summary: 人工調整訂單狀態
+      operationId: adminUpdateOrderStatus
+      tags: [後台：訂單管理]
+      description: |
+        接受全部八種訂單狀態，供客服處理卡住的訂單。
+        設成 `completed` 會補上完成時間，設成 `cancelled` 會補上取消時間
+        （`cancel_reason` 沒填的話寫入「管理員手動取消」）。
+
+        會**通知買家**狀態被客服調整，並寫入操作紀錄。
+
+        > **不會退款也不會撥款**：這支只改訂單資料，錢包完全不動。
+        > 要退錢請用 `PATCH /api/admin/disputes/{id}`。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 40
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [pending_payment, pending_deposit, deposited, pending_pickup, completed, cancelled, refunding, refunded]
+                note:
+                  type: string
+                  description: 說明文字。會附在給買家的通知裡；取消時也會寫進 `cancel_reason`。
+                  example: 買家聯繫客服表示已取書
+            example: { status: completed, note: 買家聯繫客服表示已取書 }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 訂單狀態已更新 }
+        '400':
+          description: 狀態值不合法。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 不支援的訂單狀態 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

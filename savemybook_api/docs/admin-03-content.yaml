@@ -1,0 +1,311 @@
+tags:
+  - name: 後台：內容管理
+    description: |
+      書籍稽核與分類維護。本組全部需要 `can_manage_content` 權限。
+
+      **違規下架的關鍵**：透過 `PATCH /api/admin/reports/{id}` 帶
+      `remove_target: true` 處理檢舉時，會同時把書籍設成 `removed`
+      **並把 `is_approved` 設為 false**，賣家就無法自行重新上架。
+      這支端點（`PATCH /api/admin/books/{id}`）只改 `status`，
+      不會動到 `is_approved`。
+
+paths:
+  /api/admin/books:
+    get:
+      summary: 書籍列表
+      operationId: adminListBooks
+      tags: [後台：內容管理]
+      description: |
+        分頁查詢全站書籍，依上架時間由新到舊。回傳的是**扁平化**的格式，
+        不是 `GET /api/books` 那種巢狀結構。
+
+        `pending_report_count` 是這本書待處理的檢舉數。
+        因為 `reports` 用的是 `target_type` + `target_id` 的多型設計，
+        沒有指向 `books` 的外鍵關聯，所以這個數字是另外用分組查詢補上的。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: keyword
+          schema: { type: string }
+          description: 同時比對書名、ISBN 與賣家暱稱。
+          example: 挪威
+        - in: query
+          name: status
+          schema: { type: string, enum: [on_sale, reserved, sold, removed, all] }
+          description: 書籍狀態。傳 `all` 或不帶代表全部。
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        book_id: { type: integer, example: 101 }
+                        pending_report_count: { type: integer, description: 待處理的檢舉數, example: 2 }
+                        title: { type: string, example: 挪威的森林 }
+                        isbn: { type: string, nullable: true }
+                        price: { type: string, example: '180.00' }
+                        status: { type: string, enum: [on_sale, reserved, sold, removed] }
+                        condition_level: { type: string, enum: [like_new, good, fair, poor] }
+                        view_count: { type: integer, example: 42 }
+                        created_at: { type: string, format: date-time }
+                        seller: { $ref: '#/components/schemas/UserBrief' }
+                        category_name: { type: string, description: 沒有分類時是空字串。, example: 文學小說 }
+                        image_url: { type: string, nullable: true, description: 第一張照片。 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/books/{id}:
+    patch:
+      summary: 強制上下架書籍
+      operationId: adminUpdateBookStatus
+      tags: [後台：內容管理]
+      description: |
+        只能設成 `on_sale` 或 `removed`，其他狀態（`reserved`、`sold`）
+        由交易流程決定，不開放手動改。
+
+        會**通知賣家**（下架時會把 `reason` 附在通知內容裡），
+        並寫入操作紀錄。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 101
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [on_sale, removed] }
+                reason:
+                  type: string
+                  description: 下架原因。會出現在給賣家的通知裡，也會寫進操作紀錄。
+                  example: 商品描述與實物不符
+            example: { status: removed, reason: 商品描述與實物不符 }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已下架 }
+        '400':
+          description: 狀態值不合法。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 只能設定為上架或下架 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/categories:
+    get:
+      summary: 分類列表（含書籍數）
+      operationId: adminListCategories
+      tags: [後台：內容管理]
+      description: |
+        扁平清單，依排序值排列，每筆帶該分類底下的書籍數
+        （用來判斷能不能刪）。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        category_id: { type: integer, example: 3 }
+                        category_name: { type: string, example: 文學小說 }
+                        sort_order: { type: integer, example: 0 }
+                        book_count: { type: integer, description: 這個分類底下的書籍數, example: 312 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 新增分類
+      operationId: adminCreateCategory
+      tags: [後台：內容管理]
+      description: 建立分類。名稱上限 50 字。會寫入操作紀錄。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category_name]
+              properties:
+                category_name: { type: string, maxLength: 50, example: 文學小說 }
+                sort_order: { type: integer, default: 0 }
+      responses:
+        '201':
+          description: 已建立。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      category_id: { type: integer, example: 9 }
+        '400':
+          description: 名稱空白或太長。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                空白:
+                  value: { success: false, message: 請輸入分類名稱 }
+                太長:
+                  value: { success: false, message: 分類名稱不可超過 50 字 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/categories/reorder:
+    put:
+      summary: 重新排序分類
+      operationId: adminReorderCategories
+      tags: [後台：內容管理]
+      description: |
+        後台拖拉排序後呼叫這一支。傳**排好順序的完整編號陣列**，
+        伺服器會把 `sort_order` 依陣列索引重寫成 0、1、2…
+
+        整批寫在同一個資料庫交易裡，中途失敗不會留下一半新一半舊的順序。
+
+        送出前會先確認每個編號都存在，有不存在的就整批拒絕。
+
+        > 路由順序上這支必須排在 `/categories/{id}` 前面，
+        > 否則 `reorder` 會被當成分類編號。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order]
+              properties:
+                order:
+                  type: array
+                  items: { type: integer }
+                  minItems: 1
+                  description: 排序後的分類編號，索引即為新的 `sort_order`。
+                  example: [5, 3, 9, 1]
+      responses:
+        '200':
+          description: 已更新排序。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已更新排序 }
+        '400':
+          description: 陣列為空、格式錯誤，或含有不存在的分類。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                空陣列:
+                  value: { success: false, message: 請提供排序後的分類順序 }
+                格式錯誤:
+                  value: { success: false, message: 排序資料格式不正確 }
+                含無效編號:
+                  value: { success: false, message: 排序資料含有不存在的分類 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/categories/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+        description: 分類編號。
+        example: 3
+
+    put:
+      summary: 編輯分類
+      operationId: adminUpdateCategory
+      tags: [後台：內容管理]
+      description: 改名稱與排序值。會寫入操作紀錄。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category_name]
+              properties:
+                category_name: { type: string, maxLength: 50 }
+                sort_order: { type: integer, default: 0 }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已更新分類 }
+        '400':
+          description: 名稱空白。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請輸入分類名稱 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    delete:
+      summary: 刪除分類
+      operationId: adminDeleteCategory
+      tags: [後台：內容管理]
+      description: |
+        底下還有書就不能刪，錯誤訊息會告訴你還有幾本，
+        避免那些書變成沒有分類的孤兒。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已刪除分類 }
+        '400':
+          description: 這個分類底下還有書。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 還有 312 本書屬於這個分類，請先調整後再刪除 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }

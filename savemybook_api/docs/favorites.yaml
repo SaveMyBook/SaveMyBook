@@ -1,0 +1,128 @@
+tags:
+  - name: 收藏 (Favorites)
+    description: |
+      書籍收藏（App 端的書籤圖示）。
+      同一本書重複收藏不會產生重複資料，也不會報錯。
+
+paths:
+  /api/favorites:
+    get:
+      summary: 取得收藏清單
+      operationId: listFavorites
+      tags: [收藏 (Favorites)]
+      description: |
+        回傳收藏的**書籍**本身（不是收藏紀錄），已經帶好賣家、照片與分類，
+        可以直接餵給書籍卡片元件。依收藏時間由新到舊排序。
+
+        沒有分頁。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Book' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 加入收藏
+      operationId: addFavorite
+      tags: [收藏 (Favorites)]
+      description: |
+        以 upsert 實作：已經收藏過再呼叫一次也是回 201，不會變成兩筆，
+        前端不需要先查再寫。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [book_id]
+              properties:
+                book_id: { type: integer, example: 101 }
+      responses:
+        '201':
+          description: 已加入收藏。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已加入收藏 }
+                  data:
+                    type: object
+                    properties:
+                      favorite_id: { type: integer, example: 44 }
+                      user_id: { type: integer, example: 12 }
+                      book_id: { type: integer, example: 101 }
+                      created_at: { type: string, format: date-time }
+        '400':
+          description: 沒有帶 `book_id`。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請提供 book_id }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/favorites/ids:
+    get:
+      summary: 取得收藏的書籍編號
+      operationId: listFavoriteIds
+      tags: [收藏 (Favorites)]
+      description: |
+        只回傳編號陣列，非常輕量。
+
+        App 啟動時呼叫一次快取起來，列表上每張卡片就能直接判斷
+        要不要把書籤圖示畫成實心，不必為了每本書各打一次 API。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { type: integer }
+                    example: [101, 105, 132]
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/favorites/{bookId}:
+    delete:
+      summary: 取消收藏
+      operationId: removeFavorite
+      tags: [收藏 (Favorites)]
+      description: |
+        用**書籍編號**刪除，不是收藏紀錄編號。
+        本來就沒有收藏也會回 200，方便前端做樂觀更新。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: bookId
+          required: true
+          schema: { type: integer }
+          example: 101
+      responses:
+        '200':
+          description: 已取消收藏。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已取消收藏 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }

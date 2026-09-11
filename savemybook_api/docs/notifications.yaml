@@ -1,0 +1,177 @@
+tags:
+  - name: 通知 (Notifications)
+    description: |
+      站內通知。訂單成立、狀態變更、聊天新訊息、檢舉結果、客服回覆、
+      條款更新等都會寫進這裡。
+
+      通知是**系統產生**的，沒有給前端建立通知的端點。
+
+      點擊通知要導去哪裡，看 `related_type` 與 `related_id`：
+
+      | `related_type` | 導向 |
+      | --- | --- |
+      | `order` | 訂單詳情 |
+      | `book` | 書籍詳情 |
+      | `chat_room` | 聊天室 |
+      | `ticket` | 客服工單 |
+      | `report` | 檢舉紀錄 |
+      | `legal` | 服務條款／隱私權政策 |
+      | `wallet` | 錢包 |
+      | `user` | 個人頁 |
+
+paths:
+  /api/notifications:
+    get:
+      summary: 取得通知列表
+      operationId: listNotifications
+      tags: [通知 (Notifications)]
+      description: |
+        依時間由新到舊。
+
+        `unread_count` 統計的是**全部**未讀數，不受 `type` 篩選影響，
+        所以就算切到某個分類，底部導覽列的紅點數字還是對的。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [system, order, message, promotion, reservation]
+          description: 只看某一類通知。
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  unread_count: { type: integer, description: 全部未讀數（不受 type 篩選影響）, example: 3 }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Notification' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/notifications/unread-count:
+    get:
+      summary: 取得未讀數
+      operationId: getUnreadNotificationCount
+      tags: [通知 (Notifications)]
+      description: 只回一個數字，用來更新底部導覽列的紅點。很輕量，可以定時輪詢。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      unread_count: { type: integer, example: 3 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/notifications/read-all:
+    patch:
+      summary: 全部標為已讀
+      operationId: markAllNotificationsRead
+      tags: [通知 (Notifications)]
+      description: |
+        把自己所有未讀通知標成已讀。沒有未讀時也會回 200。
+
+        這是不可逆的操作，App 端會先跳確認彈窗。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已全部標為已讀。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已全部標為已讀 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/notifications/all:
+    delete:
+      summary: 清除全部通知
+      operationId: deleteAllNotifications
+      tags: [通知 (Notifications)]
+      description: |
+        **永久刪除**自己所有通知，不是標記已讀。回傳實際刪掉幾則。
+
+        > 路由順序上這支必須排在 `DELETE /api/notifications/{id}` 前面，
+        > 否則 `all` 會被當成 `{id}` 參數。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已清除。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已清除 12 則通知 }
+                  data:
+                    type: object
+                    properties:
+                      deleted: { type: integer, example: 12 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/notifications/{id}/read:
+    patch:
+      summary: 標記單則已讀
+      operationId: markNotificationRead
+      tags: [通知 (Notifications)]
+      description: 只能標記自己的通知，別人的編號會回 404。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 512
+      responses:
+        '200':
+          description: 已標為已讀。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已標為已讀 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/notifications/{id}:
+    delete:
+      summary: 刪除單則通知
+      operationId: deleteNotification
+      tags: [通知 (Notifications)]
+      description: 永久刪除。只能刪自己的通知。App 端是右滑刪除觸發。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 512
+      responses:
+        '200':
+          description: 已刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 通知已刪除 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

@@ -1,0 +1,179 @@
+tags:
+  - name: 後台：總覽與報表
+    description: |
+      管理後台首頁的數字、營運報表與操作稽核紀錄。
+
+      `/api/admin/*` 底下**所有**端點都要求 `role = admin`，
+      大多數還會再檢查細部權限。本組端點中只有 `/stats` 需要
+      `can_view_stats`，`/overview` 與兩組紀錄查詢只要是管理員就能看。
+
+paths:
+  /api/admin/overview:
+    get:
+      summary: 後台首頁總覽數字
+      operationId: adminOverview
+      tags: [後台：總覽與報表]
+      description: |
+        一次回傳首頁六張卡片要的數字，避免前端打六支 API。
+        「今日訂單」是從今天 00:00 起算。
+
+        只要是管理員就能看，不檢查細部權限。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      member_count: { type: integer, description: 會員總數（含停權）, example: 1284 }
+                      pending_report_count: { type: integer, description: 待處理檢舉數, example: 3 }
+                      pending_dispute_count: { type: integer, description: 待處理／處理中的爭議數, example: 1 }
+                      active_cabinet_count: { type: integer, description: 啟用中的書櫃數, example: 8 }
+                      today_order_count: { type: integer, description: 今日建立的訂單數, example: 27 }
+                      open_ticket_count: { type: integer, description: 待處理工單數, example: 5 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/stats:
+    get:
+      summary: 營運報表
+      operationId: adminStats
+      tags: [後台：總覽與報表]
+      description: |
+        回傳每日趨勢資料，可以直接畫成折線圖。需要 `can_view_stats` 權限。
+
+        `series` 一定會有 `days` 筆，**沒有資料的日子會補 0**，
+        前端不需要自己補空洞。日期是 `YYYY-MM-DD` 格式。
+
+        `completed_revenue` 只計算期間內**完成**的訂單金額，
+        跟 `series[].revenue`（依建立日期計算）算法不同，數字不會相等。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: days
+          schema: { type: integer, minimum: 1, maximum: 90, default: 7 }
+          description: 統計最近幾天（含今天）。超出範圍會被夾回 1–90。
+          example: 30
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      days: { type: integer, example: 7 }
+                      series:
+                        type: array
+                        description: 每日數字，由舊到新，沒資料的日子補 0。
+                        items:
+                          type: object
+                          properties:
+                            date: { type: string, format: date, example: '2025-09-11' }
+                            orders: { type: integer, description: 當日建立的訂單數, example: 12 }
+                            revenue: { type: number, description: 當日建立的訂單金額總和, example: 3420 }
+                            new_users: { type: integer, example: 5 }
+                            new_books: { type: integer, example: 18 }
+                      completed_order_count: { type: integer, description: 期間內完成的訂單數, example: 86 }
+                      completed_revenue: { type: number, description: 期間內完成的訂單金額, example: 24180 }
+                      top_categories:
+                        type: array
+                        description: 書籍數最多的前 5 個分類。已刪除或未分類會顯示「未分類」。
+                        items:
+                          type: object
+                          properties:
+                            category_name: { type: string, example: 文學小說 }
+                            book_count: { type: integer, example: 312 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/operation-logs:
+    get:
+      summary: 管理員操作紀錄
+      operationId: adminOperationLogs
+      tags: [後台：總覽與報表]
+      description: |
+        所有管理員的異動稽核軌跡，依時間由新到舊。
+
+        後台幾乎每個寫入操作都會寫一筆，包含停權會員、調整錢包、
+        強制下架書籍、編輯條款等。紀錄是**唯讀**的，沒有刪除端點。
+
+        只要是管理員就能看，不檢查細部權限。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50 }
+          description: 每頁筆數。
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminOperationLog' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/maintenance-logs:
+    get:
+      summary: 書櫃維修紀錄
+      operationId: adminMaintenanceLogs
+      tags: [後台：總覽與報表]
+      description: |
+        操作紀錄的子集，只篩出 `target_type` 為 `cabinet` 或
+        `cabinet_slot` 的項目，也就是書櫃與櫃位的異動歷史。
+
+        只要是管理員就能看，不檢查細部權限。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - in: query
+          name: limit
+          schema: { type: integer, default: 30 }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/AdminOperationLog'
+                        - type: object
+                          properties:
+                            users:
+                              type: object
+                              description: 執行的管理員。
+                              properties:
+                                user_id: { type: integer }
+                                nickname: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }

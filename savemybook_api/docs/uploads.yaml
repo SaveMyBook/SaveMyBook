@@ -1,0 +1,62 @@
+tags:
+  - name: 檔案上傳 (Uploads)
+    description: |
+      通用檔案上傳，目前用於檢舉與交易爭議的佐證圖片。
+
+      書籍照片與個人頭像**不走這支**，各自有專屬端點
+      （`POST /api/books`、`POST /api/books/{id}/images`、
+      `POST /api/users/me/avatar`）。
+
+paths:
+  /api/uploads:
+    post:
+      summary: 上傳佐證檔案
+      operationId: uploadFiles
+      tags: [檔案上傳 (Uploads)]
+      description: |
+        一次最多 5 個檔案，單檔上限 **8 MB**。檔案存到 `/uploads/evidence/`，
+        檔名由時間戳與亂數組成，不會撞名。
+
+        回傳的是相對路徑陣列，接著把它帶進
+        `POST /api/reports` 或 `POST /api/disputes` 的 `evidence_urls`。
+
+        上傳後的檔案**不會**自動清理。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  items: { type: string, format: binary }
+                  maxItems: 5
+                  description: 要上傳的檔案，欄位名稱固定是 `files`。
+      responses:
+        '201':
+          description: 上傳成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 上傳成功 }
+                  data:
+                    type: object
+                    properties:
+                      urls:
+                        type: array
+                        items: { type: string }
+                        example: [/uploads/evidence/1736512345678-123456789.jpg]
+        '400':
+          description: 沒有選擇檔案。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請選擇要上傳的檔案 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }

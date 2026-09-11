@@ -1,0 +1,162 @@
+tags:
+  - name: 購物車 (Cart)
+    description: |
+      購物車。同一本書重複加入會累加數量而不是新增一列。
+
+      結帳在 **訂單 (Orders)** 的 `POST /api/orders/checkout`，
+      可以只結帳勾選的項目。
+
+paths:
+  /api/cart:
+    get:
+      summary: 取得購物車
+      operationId: getCart
+      tags: [購物車 (Cart)]
+      description: |
+        回傳購物車項目與**全部**項目的合計金額。
+        每個項目都帶完整書籍資料（含賣家與取貨書櫃），
+        前端可以直接依賣家分組顯示。
+
+        `total_amount` 是整台車的總額。如果使用者只勾選部分商品，
+        前端要自己重算勾選的小計。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  total_amount: { type: number, description: 全部項目的合計金額, example: 540 }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/CartItem' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 加入購物車
+      operationId: addToCart
+      tags: [購物車 (Cart)]
+      description: |
+        已經在車上的書會**累加數量**。
+
+        會擋掉兩種情況：
+        - 加入自己上架的書
+        - 書籍狀態不是 `on_sale`（已被下單保留、已售出或已下架）
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [book_id]
+              properties:
+                book_id: { type: integer, example: 101 }
+                quantity: { type: integer, minimum: 1, default: 1, example: 1 }
+      responses:
+        '201':
+          description: 已加入。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已加入購物車 }
+                  data:
+                    type: object
+                    properties:
+                      cart_id: { type: integer, example: 55 }
+                      user_id: { type: integer, example: 12 }
+                      book_id: { type: integer, example: 101 }
+                      quantity: { type: integer, example: 1 }
+                      added_at: { type: string, format: date-time }
+        '400':
+          description: 參數錯誤，或這本書不能買。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                缺少參數:
+                  value: { success: false, message: 請提供 book_id }
+                自己的書:
+                  value: { success: false, message: 無法將自己上架的書籍加入購物車 }
+                已被買走:
+                  value: { success: false, message: 此書籍目前無法購買 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/cart/{cartId}:
+    parameters:
+      - in: path
+        name: cartId
+        required: true
+        schema: { type: integer }
+        description: 購物車項目編號（`cart_id`，不是 `book_id`）。
+        example: 55
+
+    patch:
+      summary: 調整數量
+      operationId: updateCartItem
+      tags: [購物車 (Cart)]
+      description: 設定成指定數量（不是增減）。要移除請用 DELETE，傳 0 會被拒絕。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity: { type: integer, minimum: 1, example: 2 }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已更新數量 }
+                  data:
+                    type: object
+                    properties:
+                      cart_id: { type: integer }
+                      quantity: { type: integer }
+        '400':
+          description: 數量小於 1。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: quantity 必須大於 0 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    delete:
+      summary: 移除項目
+      operationId: removeCartItem
+      tags: [購物車 (Cart)]
+      description: |
+        從購物車移除。App 端是右滑刪除觸發這支。
+
+        只會刪自己車上的項目，別人的 `cart_id` 會回 404。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已移除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已從購物車移除 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

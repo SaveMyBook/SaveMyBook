@@ -1,0 +1,145 @@
+tags:
+  - name: 檢舉 (Reports)
+    description: |
+      檢舉違規的使用者、商品或訊息。
+
+      審核由管理員在 **後台：檢舉與爭議** 處理。
+      **檢舉期間商品仍可正常販售**，只有違規成立後才會被下架。
+
+paths:
+  /api/reports:
+    get:
+      summary: 取得我送出的檢舉
+      operationId: listMyReports
+      tags: [檢舉 (Reports)]
+      description: 列出自己送出過的檢舉與處理狀態，依時間由新到舊。沒有分頁。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Report' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 送出檢舉
+      operationId: createReport
+      tags: [檢舉 (Reports)]
+      description: |
+        檢舉一筆內容。送出後系統會**同時通知被檢舉的一方**，
+        告知已收到檢舉並開始審核，審核期間商品仍可販售。
+
+        **限制**
+
+        - 不能檢舉自己上架的商品，也不能檢舉自己
+        - 同一個目標若已有 `pending` 或 `reviewing` 的檢舉，會回 409
+        - 佐證圖片先用 `POST /api/uploads` 上傳，再把路徑帶進來
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_type, target_id, reason]
+              properties:
+                target_type:
+                  type: string
+                  enum: [user, book, message]
+                  description: 檢舉對象的種類。
+                  example: book
+                target_id:
+                  type: integer
+                  description: 依 `target_type` 分別是 user_id / book_id / message_id。
+                  example: 101
+                reason: { type: string, description: 檢舉原因，不可空白。, example: 商品描述與實物不符 }
+                evidence_urls:
+                  oneOf:
+                    - type: array
+                      items: { type: string }
+                    - type: string
+                  description: |
+                    佐證圖片路徑。可傳陣列（伺服器會串成逗號分隔字串儲存）
+                    或直接傳已經串好的字串。
+                  example: [/uploads/evidence/a.jpg, /uploads/evidence/b.jpg]
+            example:
+              target_type: book
+              target_id: 101
+              reason: 商品描述與實物不符
+              evidence_urls: [/uploads/evidence/a.jpg]
+      responses:
+        '201':
+          description: 已送出。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 檢舉已送出，我們會盡快處理 }
+                  data: { $ref: '#/components/schemas/Report' }
+        '400':
+          description: 參數錯誤或檢舉對象不合法。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                類型錯誤:
+                  value: { success: false, message: 'target_type 僅接受：user, book, message' }
+                沒填原因:
+                  value: { success: false, message: 請填寫檢舉原因 }
+                檢舉自己的商品:
+                  value: { success: false, message: 無法檢舉自己上架的商品 }
+                檢舉自己:
+                  value: { success: false, message: 無法檢舉自己 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 已經檢舉過同一個對象且尚未處理完。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 你已經檢舉過了，我們正在處理中 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/reports/against-me:
+    get:
+      summary: 取得我的商品被檢舉的紀錄
+      operationId: listReportsAgainstMe
+      tags: [檢舉 (Reports)]
+      description: |
+        列出自己上架的書籍收到的檢舉，讓賣家在「書籍管理」頁看到標註。
+
+        只回傳必要欄位（不含佐證圖片與檢舉人身分）。
+        沒有任何上架書籍時回空陣列。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        report_id: { type: integer, example: 18 }
+                        target_id: { type: integer, description: 被檢舉的書籍編號, example: 101 }
+                        status: { type: string, enum: [pending, reviewing, resolved, dismissed] }
+                        reason: { type: string }
+                        created_at: { type: string, format: date-time }
+                        resolved_at: { type: string, format: date-time, nullable: true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }

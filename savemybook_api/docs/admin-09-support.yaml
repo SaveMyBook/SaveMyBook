@@ -1,0 +1,337 @@
+tags:
+  - name: 後台：客服與條款
+    description: |
+      法律文件、常見問題與客服工單。
+
+      | 功能 | 需要的權限 |
+      | --- | --- |
+      | 法律文件、常見問題 | `can_manage_announcements` |
+      | 客服工單 | `can_manage_support` |
+
+      管理員回覆工單用的是 App 端的
+      `POST /api/support/tickets/{id}/messages`，那支會自動依角色
+      把 `is_staff` 設成 true，後台不需要另一支回覆端點。
+
+paths:
+  /api/admin/legal:
+    get:
+      summary: 法律文件列表
+      operationId: adminListLegalDocs
+      tags: [後台：客服與條款]
+      description: |
+        回傳全部法律文件（目前是服務條款 `terms` 與隱私權政策 `privacy`），
+        含完整內容與最後編輯者。需要 `can_manage_announcements` 權限。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/LegalDocument' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/legal/{key}:
+    put:
+      summary: 更新法律文件
+      operationId: adminUpdateLegalDoc
+      tags: [後台：客服與條款]
+      description: |
+        以 upsert 寫入：`doc_key` 不存在就建立一份新的。
+        需要 `can_manage_announcements` 權限。
+
+        **`notify` 會逐一通知每一位使用者。** 條款變更關係到所有人的權益，
+        所以不是只發一則公告，而是每個帳號都寫一筆通知。為了避免鎖表太久，
+        寫入是**每 500 筆一批**進行的。
+
+        通知只會在**內容真的改變**時發出（跟原本的 `content` 比對），
+        只改標題或重複送出同樣內容都不會打擾使用者。
+        通知對象限 `is_active = true` 且不在黑名單的帳號。
+
+        > 這是不可逆且影響全站的操作，後台端應該做二次確認再送出。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema: { type: string, enum: [terms, privacy] }
+          description: '`terms` 服務條款／`privacy` 隱私權政策。'
+          example: terms
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content]
+              properties:
+                title: { type: string, maxLength: 255, example: 服務條款 }
+                content: { type: string, description: 純文字內容。 }
+                notify:
+                  type: boolean
+                  default: false
+                  description: 是否通知所有使用者。只有在內容真的改變時才會實際發送。
+            example: { title: 服務條款, content: 第一條 ..., notify: true }
+      responses:
+        '200':
+          description: 已更新。`notified` 是實際通知的人數，沒發通知時為 0。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已更新並通知 1284 位使用者 }
+                  data:
+                    type: object
+                    properties:
+                      notified: { type: integer, description: 實際收到通知的人數, example: 1284 }
+        '400':
+          description: 標題或內容空白。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                沒填標題:
+                  value: { success: false, message: 請填寫標題 }
+                沒填內容:
+                  value: { success: false, message: 請填寫內容 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/faqs:
+    get:
+      summary: 常見問題列表（含隱藏）
+      operationId: adminListFaqs
+      tags: [後台：客服與條款]
+      description: |
+        包含 `is_visible = false` 的項目，依「分類 → 排序值 → 編號」排序。
+        需要 `can_manage_announcements` 權限。
+
+        App 端的公開版本是 `GET /api/support/faqs`，只回顯示中的項目。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Faq' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 新增常見問題
+      operationId: adminCreateFaq
+      tags: [後台：客服與條款]
+      description: |
+        `category` 是自由字串（不是列舉），App 端依它分組成摺疊區塊，
+        所以同一組的請填一樣的值。不填預設 `general`。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question, answer]
+              properties:
+                question: { type: string, maxLength: 255, example: 買家沒有取書怎麼辦？ }
+                answer: { type: string, example: 超過七天未取書，系統會自動取消訂單並退款。 }
+                category: { type: string, default: general, description: 自由字串，用來分組。, example: trade }
+                sort_order: { type: integer, default: 0 }
+                is_visible: { type: boolean, default: true }
+      responses:
+        '201':
+          description: 已建立。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      faq_id: { type: integer, example: 12 }
+        '400':
+          description: 問題或答案空白。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 問題與答案都要填寫 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/faqs/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+        description: 常見問題編號。
+        example: 12
+
+    put:
+      summary: 編輯常見問題
+      operationId: adminUpdateFaq
+      tags: [後台：客服與條款]
+      description: |
+        **整筆覆蓋**：沒帶的欄位會回到預設值（`category` 變 `general`、
+        `sort_order` 變 0、`is_visible` 變 true），請把完整內容一起送出。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question, answer]
+              properties:
+                question: { type: string, maxLength: 255 }
+                answer: { type: string }
+                category: { type: string, default: general }
+                sort_order: { type: integer, default: 0 }
+                is_visible: { type: boolean, default: true }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已更新 }
+        '400':
+          description: 問題或答案空白。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 問題與答案都要填寫 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    delete:
+      summary: 刪除常見問題
+      operationId: adminDeleteFaq
+      tags: [後台：客服與條款]
+      description: |
+        永久刪除。想暫時隱藏的話，把 `is_visible` 設成 false 比刪掉更好。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已刪除 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/tickets:
+    get:
+      summary: 客服工單列表
+      operationId: adminListTickets
+      tags: [後台：客服與條款]
+      description: |
+        依最後更新時間由新到舊，**最多回 100 筆**（沒有分頁）。
+        需要 `can_manage_support` 權限。
+
+        `last_message` 是**最新**一則訊息（App 端的
+        `GET /api/support/tickets` 回的是第一則，兩邊定義不同），
+        後台看列表就知道最後是誰說了什麼。
+
+        要看完整對話用 `GET /api/support/tickets/{id}`，
+        回覆用 `POST /api/support/tickets/{id}/messages`。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [open, pending, resolved, closed, all] }
+          description: |
+            篩選狀態。`open` 待處理／`pending` 已回覆待使用者確認／
+            `resolved` 已解決／`closed` 已結案。傳 `all` 或不帶代表全部。
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/SupportTicket'
+                        - type: object
+                          properties:
+                            last_message:
+                              type: string
+                              nullable: true
+                              description: 最新一則訊息的內容。
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/tickets/{id}/status:
+    patch:
+      summary: 調整工單狀態
+      operationId: adminUpdateTicketStatus
+      tags: [後台：客服與條款]
+      description: |
+        手動改工單狀態。需要 `can_manage_support` 權限。
+        會**通知開單者**並寫入操作紀錄。
+
+        設成 `closed` 會填上結案時間；設成其他狀態會把結案時間清成 null
+        （等於重新開啟工單，使用者又能繼續回覆）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 22
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [open, pending, resolved, closed] }
+            example: { status: resolved }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已更新 }
+        '400':
+          description: 狀態值不合法。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 不支援的工單狀態 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

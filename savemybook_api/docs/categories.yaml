@@ -1,157 +1,205 @@
 tags:
-  - name: 書籍分類 (Categories)
-    description: 管理書籍分類的 API (支援主分類與子分類階層架構)
+  - name: 分類 (Categories)
+    description: |
+      書籍分類。支援兩層結構（父分類 → 子分類），以 `parent_id` 串接。
 
-components:
-  schemas:
-    Category:
-      type: object
-      properties:
-        category_id:
-          type: integer
-          description: 分類 ID
-        category_name:
-          type: string
-          description: 分類名稱
-        parent_id:
-          type: integer
-          nullable: true
-          description: 父分類 ID (若為 null 表示此為最上層主分類)
-        sort_order:
-          type: integer
-          description: 排序權重 (數字越小越前面)
-        created_at:
-          type: string
-          format: date-time
-          description: 建立時間
+      新增／編輯／刪除僅限管理員。管理後台另有一組可拖拉排序的端點：
+      `GET|POST|PUT|DELETE /api/admin/categories`。
 
 paths:
   /api/categories:
     get:
-      summary: 取得所有分類列表
-      tags: [書籍分類 (Categories)]
-      description: 預設回傳樹狀結構 (主分類包著子分類)。若加上 `?flat=true` 則回傳扁平的一維陣列。(公開 API)
+      summary: 取得分類
+      operationId: listCategories
+      tags: [分類 (Categories)]
+      description: |
+        預設回傳**樹狀結構**：只有頂層分類，子分類放在
+        `other_book_categories` 裡（這個欄位名稱來自 Prisma 的自我關聯命名）。
+
+        帶 `flat=true` 會改回傳**平面清單**，包含所有層級，
+        適合做下拉選單。
+
+        不需要登入。
+      security: []
       parameters:
         - in: query
           name: flat
-          schema:
-            type: boolean
-          description: 是否回傳扁平化陣列 (true/false)
+          schema: { type: string, enum: ['true'] }
+          description: 傳 `true` 改回傳不分層的完整清單。
       responses:
         '200':
-          description: 成功取得分類列表
-        '500':
-          description: 伺服器發生錯誤
-          
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Category'
+                        - type: object
+                          properties:
+                            other_book_categories:
+                              type: array
+                              description: 子分類。`flat=true` 時不會有這個欄位。
+                              items: { $ref: '#/components/schemas/Category' }
+              examples:
+                樹狀:
+                  value:
+                    success: true
+                    data:
+                      - category_id: 1
+                        category_name: 文學
+                        parent_id: null
+                        sort_order: 0
+                        other_book_categories:
+                          - { category_id: 3, category_name: 文學小說, parent_id: 1, sort_order: 0 }
+                平面:
+                  value:
+                    success: true
+                    data:
+                      - { category_id: 1, category_name: 文學, parent_id: null, sort_order: 0 }
+                      - { category_id: 3, category_name: 文學小說, parent_id: 1, sort_order: 0 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
     post:
-      summary: 新增分類 (僅限管理員)
-      tags: [書籍分類 (Categories)]
-      description: 建立新的書籍分類。需要 JWT Token，且使用者角色必須為 `admin`。
-      security:
-        - bearerAuth: []
+      summary: 新增分類
+      operationId: createCategory
+      tags: [分類 (Categories)]
+      description: 建立分類。不帶 `parent_id` 就是頂層分類。僅限管理員。
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - category_name
+              required: [category_name]
               properties:
-                category_name:
-                  type: string
-                  example: "程式設計"
-                parent_id:
-                  type: integer
-                  nullable: true
-                  example: null
-                sort_order:
-                  type: integer
-                  example: 10
+                category_name: { type: string, maxLength: 50, example: 文學小說 }
+                parent_id: { type: integer, nullable: true, description: 父分類編號，不填代表頂層。, example: 1 }
+                sort_order: { type: integer, default: 0, description: 數字越小越前面。 }
       responses:
         '201':
-          description: 分類建立成功
+          description: 建立成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 分類建立成功 }
+                  data: { $ref: '#/components/schemas/Category' }
         '400':
-          description: 缺少必填欄位
-        '403':
-          description: 權限不足，僅限管理員
-        '500':
-          description: 伺服器發生錯誤
+          description: 沒有填分類名稱。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: '缺少必要欄位：分類名稱(category_name)' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
 
   /api/categories/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+        description: 分類編號。
+        example: 1
+
     get:
-      summary: 取得單一分類詳情
-      tags: [書籍分類 (Categories)]
-      description: 取得分類資訊，並附帶其底下的子分類。(公開 API)
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
+      summary: 取得單一分類
+      operationId: getCategory
+      tags: [分類 (Categories)]
+      description: 回傳這個分類及它底下的子分類。不需要登入。
+      security: []
       responses:
         '200':
-          description: 成功取得分類資料
-        '404':
-          description: 找不到該分類
-          
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Category'
+                      - type: object
+                        properties:
+                          other_book_categories:
+                            type: array
+                            items: { $ref: '#/components/schemas/Category' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
     put:
-      summary: 更新分類資訊 (僅限管理員)
-      tags: [書籍分類 (Categories)]
-      description: 更新特定分類。需要 JWT Token，且必須為 `admin`。
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
+      summary: 編輯分類
+      operationId: updateCategory
+      tags: [分類 (Categories)]
+      description: |
+        僅限管理員。`parent_id` 傳 `null` 可以把子分類升成頂層分類。
+
+        不能把自己設成自己的父分類，會回 400。
+      security: [{ bearerAuth: [] }]
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                category_name:
-                  type: string
-                  example: "前端開發"
-                parent_id:
-                  type: integer
-                  nullable: true
-                  example: 1
-                sort_order:
-                  type: integer
-                  example: 20
+                category_name: { type: string, maxLength: 50 }
+                parent_id: { type: integer, nullable: true }
+                sort_order: { type: integer }
       responses:
         '200':
-          description: 分類更新成功
+          description: 更新成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 分類更新成功 }
+                  data: { $ref: '#/components/schemas/Category' }
         '400':
-          description: 格式錯誤或邏輯錯誤(如父分類設定為自己)
-        '403':
-          description: 權限不足
-        '404':
-          description: 找不到該分類
-          
+          description: 父分類設定成自己。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 父分類不能設定為自己 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
     delete:
-      summary: 刪除分類 (僅限管理員)
-      tags: [書籍分類 (Categories)]
-      description: 刪除指定分類。若該分類下還有子分類或已綁定書籍，則會被外鍵限制阻攔而刪除失敗。
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
+      summary: 刪除分類
+      operationId: deleteCategory
+      tags: [分類 (Categories)]
+      description: |
+        僅限管理員。底下還有子分類或書籍時會因為外鍵限制失敗，
+        必須先把關聯資料轉移或刪掉。
+      security: [{ bearerAuth: [] }]
       responses:
         '200':
-          description: 分類刪除成功
+          description: 已刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 分類已成功刪除 }
         '400':
-          description: 無法刪除 (因尚有關聯資料)
-        '403':
-          description: 權限不足
-        '404':
-          description: 找不到該分類
+          description: 還有關聯資料。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 無法刪除！此分類下可能還有子分類或書籍，請先轉移或刪除關聯資料 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

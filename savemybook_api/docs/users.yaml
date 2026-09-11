@@ -1,197 +1,441 @@
 tags:
   - name: 使用者 (Users)
-    description: 處理使用者相關操作的 API 端點 (包含註冊、查詢、修改與刪除)
+    description: |
+      註冊、個人檔案、頭像、密碼、會員等級與個人 QR Code。
 
-components:
-  schemas:
-    User:
-      type: object
-      properties:
-        user_id:
-          type: integer
-          description: 系統自動產生的使用者 ID
-        email:
-          type: string
-          description: 使用者的電子郵件 (必須是唯一的)
-        nickname:
-          type: string
-          description: 使用者顯示的暱稱
-        role:
-          type: string
-          description: 使用者的身分權限 (例如：buyer_seller, admin 等，需符合資料庫列舉值)
-        bio:
-          type: string
-          description: 使用者的個人簡介
-        phone:
-          type: string
-          description: 使用者的聯絡電話
-        created_at:
-          type: string
-          format: date-time
-          description: 帳號建立的時間
+      端點分成兩組：
+      - `/api/users/me/*` 一律操作**自己**的資料，從 Token 取得身分，不用傳 ID。
+      - `/api/users/{id}` 是舊的泛用端點，只有本人或管理員能改。
 
 paths:
   /api/users:
-    get:
-      summary: 取得所有使用者
-      tags: [使用者 (Users)]
-      description: 從資料庫中撈取所有使用者的列表資料。需要 JWT Token。
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: 成功取得使用者列表
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/User'
-        '401':
-          description: 存取被拒，未提供 Token
-        '500':
-          description: 伺服器發生錯誤
-          
     post:
-      summary: 新增使用者 (註冊)
+      summary: 註冊新帳號
+      operationId: register
       tags: [使用者 (Users)]
-      description: 建立一名新的使用者。
+      description: |
+        建立帳號。密碼會以 bcrypt（10 rounds）雜湊後儲存。
+
+        註冊成功**不會**自動登入，前端要再打一次 `POST /api/auth/login`
+        才能拿到 Token。
+      security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - email
-                - password
-                - nickname
+              required: [email, password, nickname]
               properties:
                 email:
                   type: string
-                  example: "test@example.com"
-                password:
-                  type: string
-                  example: "your_password123"
-                nickname:
-                  type: string
-                  example: "王小明"
+                  format: email
+                  description: 必須是尚未註冊過的 Email。
+                  example: newuser@example.com
+                password: { type: string, format: password, example: my_password123 }
+                nickname: { type: string, maxLength: 50, example: 小明 }
                 role:
                   type: string
+                  enum: [buyer_seller, admin]
                   default: buyer_seller
-                  example: "buyer_seller"
+                  description: 一般註冊不要帶這個欄位，留預設值即可。
       responses:
         '201':
-          description: 使用者建立成功
-        '400':
-          description: 請求失敗 (可能原因：缺少必填欄位、Email 已被註冊)
-        '500':
-          description: 伺服器發生錯誤
-
-  /api/users/{id}:
-    get:
-      summary: 根據 ID 取得特定使用者
-      tags: [使用者 (Users)]
-      description: 傳入 user_id 來取得該名使用者的詳細資料。需要 JWT Token。
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-          description: 使用者的 ID (user_id)
-      responses:
-        '200':
-          description: 成功取得使用者資料
+          description: 建立成功。
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    $ref: '#/components/schemas/User'
-        '401':
-          description: 存取被拒，未提供 Token
-        '404':
-          description: 找不到該使用者
-        '500':
-          description: 伺服器發生錯誤
-          
-    put:
-      summary: 更新使用者資料
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 使用者建立成功 }
+                  data: { $ref: '#/components/schemas/User' }
+        '400':
+          description: 欄位不完整、格式錯誤，或 Email 重複。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                欄位缺漏:
+                  value: { success: false, message: '缺少必要欄位：email, password或 nickname' }
+                Email 重複:
+                  value: { success: false, message: 該 Email 已經被註冊過了 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    get:
+      summary: 取得所有使用者
+      operationId: listUsers
       tags: [使用者 (Users)]
-      description: 更新特定使用者的基本資料。需要 JWT Token，且只能修改自己的資料。
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-          description: 要更新的使用者 ID
+      description: |
+        回傳全部使用者。這是早期開發時留下的端點，沒有分頁也沒有篩選。
+
+        > 管理後台請改用 `GET /api/admin/members`，那支有分頁、搜尋
+        > 與統計數字，也受細部權限保護。
+      deprecated: true
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/users/me/stats:
+    get:
+      summary: 取得個人統計數字
+      operationId: getMyStats
+      tags: [使用者 (Users)]
+      description: |
+        會員中心首頁要的所有數字，一次查完回傳，避免前端打五支 API。
+
+        `book_count` 只算 `on_sale` 與 `reserved` 的書，
+        已售出與已下架的不計入。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      balance: { type: string, description: 代幣餘額。沒有錢包時回 0。, example: '1250.00' }
+                      book_count: { type: integer, description: 上架中的書籍數, example: 4 }
+                      favorite_count: { type: integer, description: 收藏數, example: 12 }
+                      unread_notification_count: { type: integer, example: 3 }
+                      cart_count: { type: integer, description: 購物車項目數, example: 2 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/users/me/level:
+    get:
+      summary: 取得會員等級與點數
+      operationId: getMyLevel
+      tags: [使用者 (Users)]
+      description: |
+        點數計算方式：
+
+        ```
+        points = max(0, 完成訂單數 × 10 + bonus_points)
+        ```
+
+        `bonus_points` 是管理員手動調整的補正值，可為負數
+        （見 `PATCH /api/admin/members/{id}/level`）。
+
+        `current_level` 是**點數已達門檻的最高等級**，`next_level`
+        是下一個還沒達到的等級（已是最高等級時為 `null`）。
+
+        > 畫進度條時要用「本級區間」而不是 `points / next_level.min_points`，
+        > 否則等級越高會一直看起來快滿了：
+        > `(points − current_level.min_points) / (next_level.min_points − current_level.min_points)`
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      points: { type: integer, description: 目前總點數, example: 320 }
+                      completed_orders: { type: integer, description: 以買家身分完成的訂單數, example: 32 }
+                      current_level:
+                        allOf: [{ $ref: '#/components/schemas/MemberLevel' }]
+                        nullable: true
+                      next_level:
+                        allOf: [{ $ref: '#/components/schemas/MemberLevel' }]
+                        nullable: true
+                        description: 已是最高等級時為 null。
+                      points_to_next: { type: integer, description: 還差多少點升級，最高等級時為 0, example: 180 }
+                      levels:
+                        type: array
+                        description: 全部等級，依 min_points 由小到大。
+                        items: { $ref: '#/components/schemas/MemberLevel' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/users/me:
+    put:
+      summary: 更新個人檔案
+      operationId: updateMyProfile
+      tags: [使用者 (Users)]
+      description: |
+        只更新有帶的欄位，沒帶的欄位維持原值（部分更新）。
+
+        `gender` 傳了不在列舉裡的值會被**忽略**而不是報錯。
+        `birthday` 傳空字串或 `null` 會清空生日。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname: { type: string, maxLength: 50, example: 小明 }
+                bio: { type: string, example: 喜歡看推理小說 }
+                phone: { type: string, example: '0912345678' }
+                birthday: { type: string, format: date, nullable: true, example: '1999-09-14' }
+                gender: { type: string, enum: [male, female, other, undisclosed] }
+                avatar_url:
+                  type: string
+                  description: 通常不用自己帶，改用 `POST /api/users/me/avatar` 上傳。
+            example: { nickname: 小明, bio: 喜歡看推理小說, birthday: '1999-09-14', gender: male }
+      responses:
+        '200':
+          description: 更新成功，回傳更新後的公開欄位。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 個人檔案已更新 }
+                  data: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/users/me/avatar:
+    post:
+      summary: 上傳個人頭像
+      operationId: uploadMyAvatar
+      tags: [使用者 (Users)]
+      description: |
+        上傳圖片並直接把 `avatar_url` 寫回使用者資料，不用再呼叫更新個人檔案。
+
+        檔案存到 `/uploads/avatars/`，檔名是時間戳加亂數，
+        回傳的路徑是相對路徑，前端要接上 API origin 才能顯示。
+        舊的頭像檔案不會被刪除。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [avatar]
+              properties:
+                avatar: { type: string, format: binary, description: 圖片檔。App 端會先裁切成正方形再上傳。 }
+      responses:
+        '200':
+          description: 上傳成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 頭像已更新 }
+                  data: { $ref: '#/components/schemas/User' }
+        '400':
+          description: 沒有帶檔案。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請選擇要上傳的圖片 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/users/me/password:
+    put:
+      summary: 更改密碼
+      operationId: changeMyPassword
+      tags: [使用者 (Users)]
+      description: |
+        需要驗證目前的密碼。新密碼至少 6 個字元。
+
+        改完密碼**不會**讓既有 Token 失效，使用者不需要重新登入。
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required: [current_password, new_password]
               properties:
-                nickname:
-                  type: string
-                  example: "新暱稱"
-                bio:
-                  type: string
-                  example: "這是一段新的個人簡介。"
-                phone:
-                  type: string
-                  example: "0912345678"
+                current_password: { type: string, format: password, example: old_password123 }
+                new_password: { type: string, format: password, minLength: 6, example: new_password456 }
       responses:
         '200':
-          description: 使用者資料更新成功
-        '401':
-          description: 存取被拒，未提供 Token
-        '403':
-          description: 無權限修改他人的資料
+          description: 密碼已更新。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 密碼已更新 }
         '400':
-          description: 提供的資料格式錯誤
-        '404':
-          description: 找不到該使用者
-        '500':
-          description: 伺服器發生錯誤
-          
+          description: 欄位缺漏或新密碼太短。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                欄位缺漏:
+                  value: { success: false, message: 請填寫目前密碼與新密碼 }
+                密碼太短:
+                  value: { success: false, message: 新密碼長度至少 6 個字元 }
+        '401':
+          description: 目前密碼輸入錯誤（或 Token 無效）。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 目前密碼錯誤 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/users/me/qrcode:
+    get:
+      summary: 取得個人分享 QR Code 資料
+      operationId: getMyQrCode
+      tags: [使用者 (Users)]
+      description: |
+        回傳要編進 QR Code 的網址。**伺服器不產生圖片**，
+        圖是 App 端自己畫的（中間會疊上 App logo）。
+
+        `qr_data` 用的是 `https://` 連結而不是 `savemybook://` 自訂 scheme，
+        這樣手機內建相機也掃得動。掃到之後會開啟 `GET /u/{id}` 這個
+        公開網頁，網頁上再提供「在 App 中開啟」的按鈕做 deep link。
+
+        網址的 origin 取自環境變數 `PUBLIC_WEB_URL`，沒設定時
+        退回這台 API 自己的 origin。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      user_id: { type: integer, example: 12 }
+                      nickname: { type: string, example: 小明 }
+                      avatar_url: { type: string, nullable: true }
+                      qr_data:
+                        type: string
+                        description: 要編進 QR Code 的完整網址。
+                        example: https://api.savemybook.today/u/12
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/users/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+        description: 使用者編號。
+        example: 12
+
+    get:
+      summary: 取得指定使用者
+      operationId: getUserById
+      tags: [使用者 (Users)]
+      description: 回傳該使用者的完整資料。任何登入者都可以查詢。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    put:
+      summary: 更新指定使用者
+      operationId: updateUserById
+      tags: [使用者 (Users)]
+      description: |
+        只有本人或管理員能改。欄位比 `PUT /api/users/me` 少。
+
+        > 一般情況請用 `PUT /api/users/me`，那支支援生日、性別等完整欄位。
+      deprecated: true
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname: { type: string }
+                bio: { type: string }
+                phone: { type: string }
+      responses:
+        '200':
+          description: 更新成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 使用者資料更新成功 }
+                  data: { $ref: '#/components/schemas/User' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 想改別人的資料。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 存取被拒，您無權限修改他人的資料 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
     delete:
       summary: 刪除使用者
+      operationId: deleteUserById
       tags: [使用者 (Users)]
-      description: 刪除該名使用者。需要 JWT Token，且只能刪除自己的帳號。
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-          description: 要刪除的使用者 ID
+      description: |
+        實際從資料表刪除，**不是**軟刪除。只有本人或管理員能執行。
+
+        如果這個帳號還有訂單等關聯資料，外鍵限制會讓刪除失敗並回 500。
+
+        > 管理後台停權帳號請用 `PATCH /api/admin/members/{id}`
+        > 把 `is_active` 設為 false，不要真的刪除。
+      security: [{ bearerAuth: [] }]
       responses:
         '200':
-          description: 使用者已成功刪除
-        '401':
-          description: 存取被拒，未提供 Token
+          description: 已刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 使用者已成功刪除 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
-          description: 無權限刪除他人的資料
-        '404':
-          description: 找不到該使用者
+          description: 想刪別人的帳號。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 存取被拒，您無權限刪除他人的資料 }
+        '404': { $ref: '#/components/responses/NotFound' }
         '500':
-          description: 伺服器發生錯誤
+          description: 有關聯資料無法刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 伺服器發生錯誤，可能有其他關聯資料（如訂單）依賴此使用者 }

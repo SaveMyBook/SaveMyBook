@@ -1,0 +1,183 @@
+tags:
+  - name: 系統公告 (Announcements)
+    description: |
+      系統公告。查看是公開的，建立與維護需要管理員的
+      `can_manage_announcements` 權限。
+
+      所有寫入操作都會留下管理員操作紀錄
+      （`GET /api/admin/operation-logs` 可查）。
+
+paths:
+  /api/announcements:
+    get:
+      summary: 取得公開公告
+      operationId: listAnnouncements
+      tags: [系統公告 (Announcements)]
+      description: |
+        只回傳**已發布且未過期**的公告，依發布時間由新到舊。
+        不需要登入。
+
+        要看草稿與已過期的請用 `GET /api/announcements/all`。
+      security: []
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Announcement' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 建立公告
+      operationId: createAnnouncement
+      tags: [系統公告 (Announcements)]
+      description: |
+        需要 `can_manage_announcements` 權限。
+
+        `is_published` 設為 true 時會自動填上 `published_at`。
+        先存草稿的話之後用 PUT 發布，發布時間會在那時才寫入。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content]
+              properties:
+                title: { type: string, maxLength: 255, example: 系統維護公告 }
+                content: { type: string, example: 本週日凌晨 2:00–4:00 進行系統維護，期間暫停服務。 }
+                type:
+                  type: string
+                  enum: [general, maintenance, promotion, policy]
+                  default: general
+                is_published: { type: boolean, default: false, description: false 是草稿，不會出現在公開列表。 }
+                expires_at:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  description: 到期時間。不填代表不過期。
+                  example: '2025-12-31T23:59:59.000Z'
+      responses:
+        '201':
+          description: 已建立。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 公告已建立 }
+                  data: { $ref: '#/components/schemas/Announcement' }
+        '400':
+          description: 欄位缺漏或類型不合法。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                欄位缺漏:
+                  value: { success: false, message: 請填寫標題與內容 }
+                類型錯誤:
+                  value: { success: false, message: 'type 僅接受：general, maintenance, promotion, policy' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/announcements/all:
+    get:
+      summary: 取得全部公告（含草稿）
+      operationId: listAllAnnouncements
+      tags: [系統公告 (Announcements)]
+      description: |
+        管理後台用，包含草稿與已過期的公告，依建立時間由新到舊。
+        需要 `can_manage_announcements` 權限。
+
+        > 路由順序上這支必須排在 `/:id` 前面，否則 `all` 會被當成 ID。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Announcement' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/announcements/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+        description: 公告編號。
+        example: 4
+
+    put:
+      summary: 編輯公告
+      operationId: updateAnnouncement
+      tags: [系統公告 (Announcements)]
+      description: |
+        需要 `can_manage_announcements` 權限。
+
+        `published_at` 只會在**第一次**發布時寫入，之後再編輯不會覆蓋，
+        所以公告的發布時間不會因為修錯字而改變。
+
+        `expires_at` 不帶代表不變更，帶 `null` 代表清除到期時間。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                content: { type: string }
+                type: { type: string, enum: [general, maintenance, promotion, policy] }
+                is_published: { type: boolean }
+                expires_at: { type: string, format: date-time, nullable: true }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 公告已更新 }
+                  data: { $ref: '#/components/schemas/Announcement' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    delete:
+      summary: 刪除公告
+      operationId: deleteAnnouncement
+      tags: [系統公告 (Announcements)]
+      description: 永久刪除。需要 `can_manage_announcements` 權限。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 公告已刪除 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

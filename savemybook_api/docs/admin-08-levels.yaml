@@ -1,0 +1,151 @@
+tags:
+  - name: 後台：會員等級
+    description: |
+      會員等級制度的維護。本組全部需要 `can_manage_levels` 權限。
+
+      等級是用**點數門檻**判定的：使用者的點數落在哪個 `min_points`
+      之上，就是哪一級。點數本身的計算與調整在
+      **後台：會員管理** 的 `PATCH /api/admin/members/{id}/level`。
+
+      > 改動 `min_points` 會立刻影響所有會員的等級判定，
+      > 因為等級不是存在使用者身上，而是每次查詢時即時算出來的。
+
+paths:
+  /api/admin/levels:
+    get:
+      summary: 等級列表
+      operationId: adminListLevels
+      tags: [後台：會員等級]
+      description: 依 `min_points` 由小到大排序。App 端的 `GET /api/users/me/level` 也會回同一份清單。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/MemberLevel' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 新增等級
+      operationId: adminCreateLevel
+      tags: [後台：會員等級]
+      description: |
+        建立新等級。`max_points` 傳 `null` 或空字串代表無上限
+        （最高等級應該這樣設）。
+
+        門檻不會自動檢查是否與其他等級重疊，新增前請自己確認
+        `min_points` 沒有跟既有等級撞在一起。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [level_name]
+              properties:
+                level_name: { type: string, maxLength: 50, example: 黃金會員 }
+                min_points: { type: integer, default: 0, description: 進入本等級的點數門檻。, example: 500 }
+                max_points: { type: integer, nullable: true, description: 上限。null 代表無上限。, example: 999 }
+                benefits: { type: string, nullable: true, example: 每月贈送 50 代幣、專屬客服 }
+      responses:
+        '201':
+          description: 已建立。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      level_id: { type: integer, example: 6 }
+        '400':
+          description: 沒填等級名稱。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請輸入等級名稱 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/levels/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+        description: 等級編號。
+        example: 3
+
+    put:
+      summary: 編輯等級
+      operationId: adminUpdateLevel
+      tags: [後台：會員等級]
+      description: |
+        **整筆覆蓋**，不是部分更新：沒帶的欄位會被寫成預設值
+        （`min_points` 變 0、`max_points` 變 null、`benefits` 變 null），
+        所以請把完整內容一起送出。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [level_name]
+              properties:
+                level_name: { type: string, maxLength: 50 }
+                min_points: { type: integer, default: 0 }
+                max_points: { type: integer, nullable: true }
+                benefits: { type: string, nullable: true }
+            example: { level_name: 黃金會員, min_points: 500, max_points: 999, benefits: 每月贈送 50 代幣 }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已更新等級 }
+        '400':
+          description: 沒填等級名稱。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請輸入等級名稱 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    delete:
+      summary: 刪除等級
+      operationId: adminDeleteLevel
+      tags: [後台：會員等級]
+      description: |
+        永久刪除。因為等級是即時算出來的，刪掉之後原本屬於這一級的會員
+        會**自動落到下一個較低的等級**，不會變成沒有等級。
+
+        但如果刪掉的是最低那一級，點數低於所有門檻的會員會退回清單的
+        第一個等級，請留意至少保留一個 `min_points = 0` 的等級。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已刪除等級 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }

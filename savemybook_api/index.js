@@ -1,10 +1,10 @@
 require('dotenv').config();
 const express = require('express');
-const swaggerUi = require('swagger-ui-express');
 const cors = require('cors');
 const path = require('path');
 
-const swaggerSpec = require('./config/swagger');
+const { apiReference } = require('@scalar/express-api-reference');
+const { buildSpec } = require('./config/openapi');
 const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
 const bookRoutes = require('./routes/books');
@@ -34,7 +34,31 @@ app.use(express.json());
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// ==========================================
+// API 文件（Scalar）
+// ------------------------------------------
+// 文件在啟動時組一次就快取起來，之後每個請求都回同一份。
+// 改 docs/*.yaml 要重啟伺服器才會生效。
+// ==========================================
+const openapiSpec = buildSpec();
+
+app.get('/openapi.json', (req, res) => res.json(openapiSpec));
+
+app.use(
+  '/api-docs',
+  apiReference({
+    content: openapiSpec,
+    theme: 'default',
+    layout: 'modern',
+    hideModels: false,
+    hideDownloadButton: false,
+    defaultHttpClient: { targetKey: 'shell', clientKey: 'curl' },
+    metaData: {
+      title: 'SaveMyBook API 文件',
+      description: 'SaveMyBook 二手書交易平台的完整 API 文件'
+    }
+  })
+);
 
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
@@ -72,5 +96,6 @@ app.listen(port, () => {
   console.log(`🪙 Wallet API: http://localhost:${port}/api/wallet`);
   console.log(`🛡️ Admin API: http://localhost:${port}/api/admin`);
   console.log(`👤 公開個人頁: http://localhost:${port}/u/1`);
-  console.log(`📄 Swagger UI: http://localhost:${port}/api-docs`);
+  console.log(`📄 API 文件 (Scalar): http://localhost:${port}/api-docs`);
+  console.log(`📦 OpenAPI 原始檔: http://localhost:${port}/openapi.json`);
 });

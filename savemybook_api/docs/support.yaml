@@ -1,0 +1,267 @@
+tags:
+  - name: 客服中心 (Support)
+    description: |
+      App 內的說明與客服功能：常見問題、服務條款／隱私權政策、
+      以及站內客服工單。
+
+      **沒有支援信箱**，所有客服往來都走工單，管理員在
+      **後台：客服與條款** 回覆。
+
+paths:
+  /api/support/faqs:
+    get:
+      summary: 取得常見問題
+      operationId: listFaqs
+      tags: [客服中心 (Support)]
+      description: |
+        只回傳 `is_visible = true` 的項目，依「分類 → 排序值 → 編號」排序，
+        前端可以直接依 `category` 分組成摺疊區塊。不需要登入。
+      security: []
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Faq' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/support/legal/{key}:
+    get:
+      summary: 取得法律文件
+      operationId: getLegalDocument
+      tags: [客服中心 (Support)]
+      description: |
+        取得服務條款或隱私權政策的內容。這些文件存在資料庫裡，
+        管理員可以隨時更新，不用改版 App。不需要登入。
+      security: []
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema: { type: string, enum: [terms, privacy] }
+          description: '`terms` 服務條款／`privacy` 隱私權政策。'
+          example: terms
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/LegalDocument' }
+        '404':
+          description: 沒有這個 key 的文件。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到這份文件 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/support/tickets:
+    get:
+      summary: 取得我的工單
+      operationId: listMyTickets
+      tags: [客服中心 (Support)]
+      description: |
+        列出自己開過的工單，依最後更新時間由新到舊。
+        `last_message` 是**第一則**訊息（也就是當初的問題描述），
+        用來在列表上顯示摘要。沒有分頁。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/SupportTicket' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 開立工單
+      operationId: createTicket
+      tags: [客服中心 (Support)]
+      description: |
+        開一張新工單。問題描述會成為第一則訊息，狀態是 `open`。
+
+        **限制**：同時最多 5 張處理中（`open` 或 `pending`）的工單，
+        超過會回 400，避免有人連開癱瘓客服。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject, content]
+              properties:
+                subject: { type: string, maxLength: 100, example: 代幣沒有入帳 }
+                content: { type: string, description: 問題描述，會成為工單的第一則訊息。, example: 訂單完成三天了，代幣還是沒有入帳。 }
+                category:
+                  type: string
+                  enum: [account, trade, wallet, cabinet, bug, other]
+                  default: other
+                  description: 不在列舉內的值會被存成 `other`。
+            example: { subject: 代幣沒有入帳, content: 訂單完成三天了，代幣還是沒有入帳。, category: wallet }
+      responses:
+        '201':
+          description: 已建立。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      ticket_id: { type: integer, example: 22 }
+        '400':
+          description: 欄位不合法或工單太多。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                沒填主旨:
+                  value: { success: false, message: 請填寫問題主旨 }
+                主旨太長:
+                  value: { success: false, message: 主旨不可超過 100 字 }
+                沒填內容:
+                  value: { success: false, message: 請描述你遇到的問題 }
+                工單太多:
+                  value: { success: false, message: 你已有 5 張處理中的工單，請等客服回覆後再開新的 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/support/tickets/{id}:
+    get:
+      summary: 取得工單內容
+      operationId: getTicket
+      tags: [客服中心 (Support)]
+      description: |
+        回傳工單與完整對話（由舊到新）。
+        只有開單者本人或管理員能看。
+
+        每則訊息的 `is_staff` 決定要靠左（客服）還是靠右（自己）顯示。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 22
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/SupportTicket'
+                      - type: object
+                        properties:
+                          messages:
+                            type: array
+                            description: 對話內容，由舊到新。
+                            items: { $ref: '#/components/schemas/SupportTicketMessage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/support/tickets/{id}/messages:
+    post:
+      summary: 回覆工單
+      operationId: replyTicket
+      tags: [客服中心 (Support)]
+      description: |
+        使用者與管理員都用這一支回覆，`is_staff` 由伺服器依角色判斷，
+        前端不用傳。
+
+        **狀態會跟著變**：
+        - 管理員回覆 → 工單變成 `pending`（等使用者確認），並**通知使用者**
+        - 使用者回覆 → 工單變回 `open`（等客服處理）
+
+        已結案（`closed`）的工單不能再回覆。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 22
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string, example: 已為您補上代幣，造成不便敬請見諒。 }
+      responses:
+        '201':
+          description: 已送出。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已送出 }
+        '400':
+          description: 內容空白或工單已結案。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                內容空白:
+                  value: { success: false, message: 請輸入內容 }
+                已結案:
+                  value: { success: false, message: 這張工單已結案，請開立新的工單 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/support/tickets/{id}/close:
+    patch:
+      summary: 結束工單
+      operationId: closeTicket
+      tags: [客服中心 (Support)]
+      description: |
+        把工單標成 `closed` 並記下結案時間。開單者本人或管理員都能執行。
+
+        結案後**無法再回覆**，要繼續討論必須開新工單。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 22
+      responses:
+        '200':
+          description: 已結案。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 工單已結案 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

@@ -1,0 +1,294 @@
+tags:
+  - name: 訂單 (Orders)
+    description: |
+      結帳、查詢與狀態流轉。
+
+      **結帳時就扣買家代幣**，賣家的錢要等訂單 `completed` 才入帳。
+      中間這段錢在賣家端顯示為「待定收益」（`GET /api/wallet/pending`）。
+
+      購物車若跨多個賣家，結帳會**依賣家拆成多筆訂單**，所以
+      `POST /api/orders/checkout` 回傳的是陣列。
+
+paths:
+  /api/orders:
+    get:
+      summary: 取得訂單列表
+      operationId: listOrders
+      tags: [訂單 (Orders)]
+      description: |
+        同一支端點服務「購買紀錄」與「銷售紀錄」，用 `role` 切換。
+
+        `tab` 是前端頁籤，會展開成一組狀態。買賣雙方的頁籤定義不同：
+
+        **買家（`role=buyer`）**
+
+        | `tab` | 對應狀態 |
+        | --- | --- |
+        | `pending_pickup` | `pending_payment`, `pending_deposit`, `deposited`, `pending_pickup` |
+        | `completed` | `completed` |
+        | `cancelled` | `cancelled`, `refunded` |
+        | `disputing` | `refunding` |
+
+        **賣家（`role=seller`）**
+
+        | `tab` | 對應狀態 |
+        | --- | --- |
+        | `pending_deposit` | `pending_payment`, `pending_deposit` |
+        | `on_sale` | `deposited`, `pending_pickup` |
+        | `completed` | `completed` |
+        | `cancelled` | `cancelled`, `refunded` |
+
+        不傳 `tab` 就是全部狀態。傳了不支援的 `tab` 會回 400。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: role
+          schema: { type: string, enum: [buyer, seller], default: buyer }
+          description: 以買家還是賣家身分查詢。非 `seller` 的值一律當作 `buyer`。
+        - in: query
+          name: tab
+          schema: { type: string }
+          description: 頁籤名稱，可用值依 `role` 而不同（見上表）。
+          example: pending_pickup
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: "`tab` 不在該角色的清單裡。"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: '不支援的 tab：foo' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/orders/checkout:
+    post:
+      summary: 結帳
+      operationId: checkout
+      tags: [訂單 (Orders)]
+      description: |
+        把購物車轉成訂單。整個流程包在一個資料庫交易裡，任一步失敗全部回滾。
+
+        **步驟**
+
+        1. 取出購物車項目（有帶 `cart_ids` 就只取那幾筆）
+        2. 檢查每本書都是 `on_sale`，且售價大於 0
+        3. 檢查買家代幣餘額夠不夠（交易內會再檢查一次，防止兩支請求同時結帳）
+        4. 依賣家分組，每組建立一筆訂單，產生訂單編號與六位數取貨碼
+        5. 從買家錢包扣款，寫一筆 `purchase` 交易紀錄
+        6. 把書籍狀態改成 `reserved`
+        7. 通知賣家去存書
+        8. 清掉已結帳的購物車項目
+
+        **回傳的是訂單陣列**，因為跨賣家會拆單。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cart_ids:
+                  type: array
+                  items: { type: integer }
+                  description: 要結帳的購物車項目編號。不帶或傳空陣列代表**整台車全結**。
+                  example: [55, 56]
+                payment_method:
+                  type: string
+                  enum: [wallet, bank_transfer]
+                  default: wallet
+                  description: 目前實際扣款一律走站內代幣，這個欄位只是記錄用。
+            example: { cart_ids: [55, 56], payment_method: wallet }
+      responses:
+        '201':
+          description: 結帳成功，回傳建立的訂單（可能多筆）。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 結帳成功 }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: 無法結帳。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                購物車是空的:
+                  value: { success: false, message: 購物車沒有可結帳的項目 }
+                書已被買走:
+                  value: { success: false, message: 《挪威的森林》已無法購買，請先移除 }
+                售價異常:
+                  value: { success: false, message: 《挪威的森林》的售價異常，請聯絡賣家或先移除 }
+                代幣不足:
+                  value: { success: false, code: INSUFFICIENT_BALANCE, message: 代幣不足，這筆訂單需要 540 代幣，目前只有 200 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500':
+          description: 結帳過程發生錯誤，交易已回滾，代幣不會被扣。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 結帳失敗，請稍後再試 }
+
+  /api/orders/{id}:
+    get:
+      summary: 取得訂單詳情
+      operationId: getOrder
+      tags: [訂單 (Orders)]
+      description: |
+        只有這筆訂單的買家、賣家或管理員能查看。
+        回傳包含取貨碼、書櫃、櫃位與爭議狀態。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 40
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/orders/{id}/status:
+    patch:
+      summary: 更新訂單狀態
+      operationId: updateOrderStatus
+      tags: [訂單 (Orders)]
+      description: |
+        推進訂單流程。買賣雙方都能呼叫（實務上賣家存書設 `deposited`、
+        買家取書設 `completed`）。
+
+        只接受 `deposited`、`pending_pickup`、`completed` 三種值，
+        取消請用 `PATCH /api/orders/{id}/cancel`。
+
+        **設成 `completed` 時會做這些事**（同一個交易內）：
+
+        - 書籍狀態改成 `sold`
+        - 訂單金額匯入**賣家**錢包，累加 `total_income`
+        - 寫一筆 `sale_income` 錢包交易紀錄
+        - 補上 `picked_up_at`（若還沒有）與 `completed_at`
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 40
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [deposited, pending_pickup, completed]
+                  description: '`deposited` 賣家已存書／`pending_pickup` 等待取書／`completed` 已完成。'
+            example: { status: completed }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 訂單狀態已更新 }
+                  data: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: 狀態值不在允許清單內。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 'status 僅接受：deposited, pending_pickup, completed' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/orders/{id}/cancel:
+    patch:
+      summary: 取消訂單
+      operationId: cancelOrder
+      tags: [訂單 (Orders)]
+      description: |
+        買賣雙方都能取消。已經是 `completed`、`cancelled`、`refunded`
+        的訂單無法再取消。
+
+        **取消時會做這些事**（同一個交易內）：
+
+        - 訂單狀態改成 `cancelled`，記下時間與原因
+        - 書籍狀態改回 `on_sale`，重新開放購買
+        - 若原狀態屬於已付款區間（`pending_payment`、`pending_deposit`、
+          `deposited`、`pending_pickup`），把代幣**原路退回買家**，
+          寫一筆 `refund` 交易紀錄並通知買家
+        - 通知另一方訂單已被取消
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 40
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: 取消原因，會寫進訂單也會出現在給對方的通知裡。
+                  example: 臨時不需要了
+      responses:
+        '200':
+          description: 已取消。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 訂單已取消 }
+                  data: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: 這個狀態無法取消。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 此訂單狀態無法取消 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

@@ -1,0 +1,302 @@
+tags:
+  - name: 聊天室 (Chat)
+    description: |
+      買賣雙方的一對一聊天。
+
+      **一組人只有一間聊天室**。從不同商品點進來也是同一間，不會每本書
+      各開一間；改成在對話裡插一張商品卡片（像蝦皮那樣），讓對話脈絡
+      不會被切碎。
+
+      **商品卡片**是 `message_type = system` 的訊息，內容格式為
+      `[book]` 加一段 JSON：
+
+      ```
+      [book]{"book_id":101,"title":"挪威的森林","price":"180.00","image_url":"/uploads/books/a.jpg"}
+      ```
+
+      前端看到 `[book]` 開頭就把後面的 JSON 解析成卡片渲染。
+
+paths:
+  /api/chat/rooms:
+    get:
+      summary: 取得聊天室列表
+      operationId: listChatRooms
+      tags: [聊天室 (Chat)]
+      description: |
+        依最後活動時間由新到舊。回傳的是整理過的格式（不是資料表原始欄位）：
+        已經幫你判斷好誰是對方，並算好未讀數。
+
+        沒有分頁。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ChatRoomSummary' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 開啟（或建立）聊天室
+      operationId: createChatRoom
+      tags: [聊天室 (Chat)]
+      description: |
+        跟某個人開始聊天。**已經有聊天室就直接回傳既有的**，不會重複建立，
+        所以前端每次點「聯絡賣家」都可以直接呼叫這支。
+
+        帶了 `book_id` 時會在對話裡插入一張商品卡片，讓對方知道你在問哪本書。
+        若同一張卡片剛剛才貼過（是對話裡的最後一則），就不會重複插入，
+        避免洗版。
+
+        回傳只有 `room_id`，拿到之後再打
+        `GET /api/chat/rooms/{roomId}/messages` 載入訊息。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id: { type: integer, description: 對方的使用者編號。不能是自己。, example: 8 }
+                book_id:
+                  type: integer
+                  nullable: true
+                  description: 有帶就在對話裡插一張這本書的商品卡片。
+                  example: 101
+            example: { user_id: 8, book_id: 101 }
+      responses:
+        '200':
+          description: 成功（新建與既有都回 200）。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      room_id: { type: integer, example: 7 }
+        '400':
+          description: 參數錯誤。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                缺少參數:
+                  value: { success: false, message: 請提供 user_id }
+                對象是自己:
+                  value: { success: false, message: 無法與自己建立聊天室 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/chat/unread-count:
+    get:
+      summary: 取得聊天未讀數
+      operationId: getUnreadChatCount
+      tags: [聊天室 (Chat)]
+      description: |
+        所有聊天室中「對方傳來、我還沒讀」的訊息總數，
+        用來顯示聊天室圖示上的紅點數字。自己傳的訊息不計入。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      unread_count: { type: integer, example: 5 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/chat/read-all:
+    patch:
+      summary: 所有聊天室標為已讀
+      operationId: markAllChatRead
+      tags: [聊天室 (Chat)]
+      description: 一次把所有聊天室裡對方傳來的未讀訊息標成已讀。App 端會先跳確認彈窗。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已全部標為已讀。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已全部標為已讀 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/chat/rooms/{id}:
+    delete:
+      summary: 刪除聊天室
+      operationId: deleteChatRoom
+      tags: [聊天室 (Chat)]
+      description: |
+        **雙方都會看不到**：聊天室與底下所有訊息都會被實際刪除，
+        不是只從自己的列表隱藏。App 端是右滑刪除觸發，會先跳確認彈窗。
+
+        只有聊天室的兩位成員能刪。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 聊天室編號。
+          example: 7
+      responses:
+        '200':
+          description: 已刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已刪除聊天室 }
+        '400':
+          description: 編號格式錯誤。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請提供聊天室編號 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 不是這間聊天室的成員。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 你沒有權限刪除這個聊天室 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/chat/rooms/{roomId}/messages:
+    parameters:
+      - in: path
+        name: roomId
+        required: true
+        schema: { type: integer }
+        description: 聊天室編號。
+        example: 7
+
+    get:
+      summary: 取得訊息
+      operationId: listChatMessages
+      tags: [聊天室 (Chat)]
+      description: |
+        回傳最近 `limit` 則訊息，**已經反轉成由舊到新**，可以直接照順序渲染。
+
+        往上捲載入更早的訊息時，把目前最舊那則的 `created_at` 放進
+        `before`，就會拿到再更早的一批。
+
+        **副作用**：呼叫這支會自動把這間聊天室裡對方傳來的未讀訊息
+        標成已讀，不需要另外呼叫已讀端點。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50 }
+          description: 一次載入幾則。
+        - in: query
+          name: before
+          schema: { type: string, format: date-time }
+          description: 只取這個時間點之前的訊息，用來做無限往上捲。
+          example: '2025-09-11T14:30:00.000Z'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  partner:
+                    allOf: [{ $ref: '#/components/schemas/UserBrief' }]
+                    description: 對方的資訊，用來顯示聊天室標題與頭像。
+                  book:
+                    type: object
+                    nullable: true
+                    description: 這間聊天室最後一次關聯的商品，可以固定顯示在頂部。
+                    properties:
+                      book_id: { type: integer }
+                      title: { type: string }
+                      price: { type: string }
+                      book_images:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            image_url: { type: string }
+                  data:
+                    type: array
+                    description: 訊息，由舊到新。
+                    items: { $ref: '#/components/schemas/ChatMessage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 送出訊息
+      operationId: sendChatMessage
+      tags: [聊天室 (Chat)]
+      description: |
+        送出訊息，同時更新聊天室的活動時間並**通知對方**
+        （通知的 `related_type` 是 `chat_room`，`related_id` 是房號）。
+
+        通知內容會依型別簡化：圖片顯示 `[圖片]`、商品卡片顯示 `[商品]`、
+        文字則取前 100 個字。
+
+        傳圖片時 `message_type` 設成 `image`，`content` 放圖片的相對路徑
+        （先用 `POST /api/uploads` 上傳取得路徑）。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content:
+                  type: string
+                  description: 訊息內容，不可為空白。`message_type` 為 `image` 時放圖片路徑。
+                  example: 請問這本還在嗎？
+                message_type:
+                  type: string
+                  enum: [text, image, system]
+                  default: text
+                  description: 不在列舉內的值會被當成 `text`。
+      responses:
+        '201':
+          description: 已送出。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/ChatMessage' }
+        '400':
+          description: 內容是空的。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 訊息內容不可為空 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

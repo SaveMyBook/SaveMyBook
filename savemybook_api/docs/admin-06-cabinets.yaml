@@ -1,0 +1,218 @@
+tags:
+  - name: 後台：書櫃管理
+    description: |
+      智慧書櫃與櫃位的維運。本組全部需要 `can_manage_cabinets` 權限。
+      所有異動都會寫進操作紀錄，可在 `GET /api/admin/maintenance-logs` 查到。
+
+paths:
+  /api/admin/cabinets:
+    get:
+      summary: 書櫃列表
+      operationId: adminListCabinets
+      tags: [後台：書櫃管理]
+      description: |
+        回傳全部書櫃（含停用的），每個帶櫃位清單、累計訂單數，
+        以及各狀態櫃位的數量統計 `slot_summary`，後台可以直接畫成狀態條。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Cabinet'
+                        - type: object
+                          properties:
+                            cabinet_slots:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  slot_id: { type: integer }
+                                  slot_number: { type: string }
+                                  status: { type: string, enum: [empty, occupied, reserved, maintenance] }
+                                  updated_at: { type: string, format: date-time }
+                            slot_summary:
+                              type: object
+                              description: 各狀態的櫃位數量統計。
+                              properties:
+                                empty: { type: integer, example: 17 }
+                                occupied: { type: integer, example: 2 }
+                                reserved: { type: integer, example: 1 }
+                                maintenance: { type: integer, example: 0 }
+                            _count:
+                              type: object
+                              properties:
+                                orders: { type: integer, description: 曾經指派到這個書櫃的訂單數, example: 140 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 新增書櫃
+      operationId: adminCreateCabinet
+      tags: [後台：書櫃管理]
+      description: |
+        建立書櫃時會**自動產生櫃位**：依 `total_slots` 建立 `A01`、`A02`…
+        （兩位數補零），`available_slots` 初始等於 `total_slots`。
+
+        `open_time` / `close_time` 傳 `HH:mm:ss` 格式的時間字串
+        （例如 `08:00:00`），伺服器會轉成時間欄位儲存。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cabinet_name, address, latitude, longitude]
+              properties:
+                cabinet_name: { type: string, maxLength: 100, example: 台北車站站前店 }
+                address: { type: string, maxLength: 500, example: 台北市中正區忠孝西路一段 49 號 }
+                latitude: { type: number, format: double, example: 25.04635 }
+                longitude: { type: number, format: double, example: 121.517 }
+                total_slots: { type: integer, default: 20, description: 櫃位數量，會據此自動建立櫃位。, example: 20 }
+                open_time: { type: string, description: 開放時間，格式 HH:mm:ss。, example: '08:00:00' }
+                close_time: { type: string, description: 關閉時間，格式 HH:mm:ss。, example: '22:00:00' }
+      responses:
+        '201':
+          description: 已新增，回傳含自動建立的櫃位。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 書櫃已新增 }
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Cabinet'
+                      - type: object
+                        properties:
+                          cabinet_slots:
+                            type: array
+                            items: { $ref: '#/components/schemas/CabinetSlot' }
+        '400':
+          description: 必填欄位缺漏。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請填寫書櫃名稱、地址與座標 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{id}:
+    put:
+      summary: 編輯書櫃
+      operationId: adminUpdateCabinet
+      tags: [後台：書櫃管理]
+      description: |
+        只更新有帶的欄位。
+
+        `is_active` 設為 false 後，這個書櫃就不會出現在
+        `GET /api/cabinets`，賣家上架時也選不到，但**既有訂單不受影響**。
+
+        **不能**透過這支改 `total_slots`，櫃位數在建立時就固定了。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cabinet_name: { type: string }
+                address: { type: string }
+                latitude: { type: number, format: double }
+                longitude: { type: number, format: double }
+                is_active: { type: boolean, description: false 代表停用。 }
+                open_time: { type: string, nullable: true, description: 格式 HH:mm:ss，傳 null 清除。 }
+                close_time: { type: string, nullable: true }
+            example: { cabinet_name: 台北車站站前店, is_active: true, open_time: '08:00:00' }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 書櫃已更新 }
+                  data: { $ref: '#/components/schemas/Cabinet' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{cabinetId}/slots/{slotId}:
+    patch:
+      summary: 變更櫃位狀態
+      operationId: adminUpdateCabinetSlot
+      tags: [後台：書櫃管理]
+      description: |
+        手動調整單一櫃位的狀態，主要用來把壞掉的櫃位標成 `maintenance`。
+        變更會寫進操作紀錄（維修紀錄查得到）。
+
+        路徑上的 `cabinetId` 只是為了讓網址有層次，實際是用 `slotId` 更新。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: cabinetId
+          required: true
+          schema: { type: integer }
+          description: 書櫃編號。
+          example: 2
+        - in: path
+          name: slotId
+          required: true
+          schema: { type: integer }
+          description: 櫃位編號。
+          example: 31
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [empty, occupied, reserved, maintenance]
+                  description: '`empty` 空／`occupied` 有書／`reserved` 已預約／`maintenance` 維修中。'
+            example: { status: maintenance }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 櫃位狀態已更新 }
+                  data: { $ref: '#/components/schemas/CabinetSlot' }
+        '400':
+          description: 狀態值不合法。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 'status 僅接受：empty, occupied, reserved, maintenance' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

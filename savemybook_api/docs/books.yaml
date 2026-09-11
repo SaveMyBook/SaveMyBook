@@ -1,228 +1,423 @@
 tags:
-  - name: 商品書籍 (Books)
-    description: 處理二手書商品的 API 端點
+  - name: 書籍 (Books)
+    description: |
+      二手書的上架、查詢、編輯與照片管理。
 
-components:
-  schemas:
-    Book:
-      type: object
-      properties:
-        book_id:
-          type: integer
-        seller_id:
-          type: integer
-        title:
-          type: string
-        author:
-          type: string
-        publisher:
-          type: string
-        isbn:
-          type: string
-        price:
-          type: number
-        condition_level:
-          type: string
-        description:
-          type: string
+      **上架三張固定照片**：封面（`cover_image`）、封底（`back_image`）、
+      條碼（`barcode_image`），另可再加最多 7 張選填照片（`optional_images`）。
+
+      **違規下架**：檢舉成立時管理員會把 `is_approved` 設為 false 並下架。
+      這種書賣家**不能**自己改回 `on_sale`，會收到 403 `BOOK_NOT_APPROVED`。
 
 paths:
-  /api/books/isbn/{isbn}:
+  /api/books:
     get:
-      summary: 透過 ISBN 查詢外部書籍資訊
-      tags: [商品書籍 (Books)]
-      description: 以 ISBN 向 Google Books API 查詢書籍基本資訊，可用於上架時自動帶入書名、作者等欄位。需要 JWT Token。
-      security:
-        - bearerAuth: []
+      summary: 查詢書籍列表
+      operationId: listBooks
+      tags: [書籍 (Books)]
+      description: |
+        首頁、搜尋頁、賣家的「我的書籍」都用這一支，差別只在 query 參數。
+
+        兩個容易踩到的行為：
+
+        1. `status` 預設是 `on_sale`。賣家要看自己全部狀態的書時要傳 `status=all`。
+        2. 有帶 `seller_id` 時**不會**過濾 `is_approved`，賣家才看得到自己
+           待審核或被下架的書；沒帶時只回 `is_approved = true` 的書。
+
+        這支端點不需要登入。
+      security: []
       parameters:
-        - in: path
-          name: isbn
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: keyword
+          schema: { type: string }
+          description: 關鍵字，同時比對書名、作者、出版社（模糊比對）。
+          example: 村上春樹
+        - in: query
+          name: status
           schema:
             type: string
-          required: true
-          description: 書籍的 ISBN 編號
+            enum: [on_sale, reserved, sold, removed, all]
+            default: on_sale
+          description: 書籍狀態。傳 `all` 代表不過濾。
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [newest, price_asc, price_desc, popular]
+            default: newest
+          description: '`newest` 最新上架／`price_asc` 價格低到高／`price_desc` 價格高到低／`popular` 瀏覽數多到少。'
+        - in: query
+          name: seller_id
+          schema: { type: integer }
+          description: 只看某個賣家的書。帶了這個參數就不會過濾審核狀態。
+          example: 12
+        - in: query
+          name: category_ids
+          schema: { type: string }
+          description: 分類編號，多個以半形逗號分隔。
+          example: 3,5,8
       responses:
         '200':
-          description: 成功取得書籍資訊
+          description: 成功。注意 `pagination` 在最外層。
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Book' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 上架書籍
+      operationId: createBook
+      tags: [書籍 (Books)]
+      description: |
+        以 `multipart/form-data` 上傳，文字欄位與照片一起送。
+        建立成功後書籍狀態直接是 `on_sale`。
+
+        **售價限制**：必須大於 0 且不超過 99999，否則回 400。
+        （擋掉零元購，舊資料若有 0 元的書，結帳時還會再擋一次。）
+
+        照片欄位對應到 `book_images.image_type`：
+
+        | 表單欄位 | 張數 | `image_type` |
+        | --- | --- | --- |
+        | `cover_image` | 1 | `cover` |
+        | `back_image` | 1 | `back` |
+        | `barcode_image` | 1 | `other` |
+        | `optional_images` | 最多 7 | `inside` |
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, price]
+              properties:
+                title: { type: string, maxLength: 255, example: 挪威的森林 }
+                price:
+                  type: number
+                  format: float
+                  minimum: 0.01
+                  maximum: 99999
+                  description: 售價（代幣）。必須大於 0。
+                  example: 180
+                author: { type: string, example: 村上春樹 }
+                publisher: { type: string, example: 時報出版 }
+                publish_date:
+                  type: string
+                  description: 字串欄位。結尾多餘的連字號會被清掉，只填年份也可以。
+                  example: '2003-08-01'
+                isbn: { type: string, maxLength: 13, example: '9789573317249' }
+                category_id: { type: integer, example: 3 }
+                condition_level:
+                  type: string
+                  enum: [like_new, good, fair, poor]
+                  default: good
+                cabinet_id: { type: integer, description: 取貨書櫃編號, example: 2 }
+                description: { type: string, example: 只翻過一次，內頁乾淨 }
+                cover_image: { type: string, format: binary, description: 封面照片 }
+                back_image: { type: string, format: binary, description: 封底照片 }
+                barcode_image: { type: string, format: binary, description: 條碼照片 }
+                optional_images:
+                  type: array
+                  items: { type: string, format: binary }
+                  description: 其他照片，最多 7 張。
+      responses:
+        '201':
+          description: 上架成功。回傳的 `data` 只有書籍本體，不含照片。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 書籍上架成功 }
+                  data: { $ref: '#/components/schemas/Book' }
+        '400':
+          description: 欄位缺漏或售價不合法。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                缺少欄位:
+                  value: { success: false, message: '缺少必要欄位：書名(title) 或 價格(price)' }
+                售價為零:
+                  value: { success: false, message: 售價必須大於 0 元 }
+                售價過高:
+                  value: { success: false, message: 售價不可超過 99999 元 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/books/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+        description: 書籍編號。
+        example: 101
+
+    get:
+      summary: 取得書籍詳情
+      operationId: getBook
+      tags: [書籍 (Books)]
+      description: |
+        回傳單一書籍的完整資料，含全部照片、賣家資訊與取貨書櫃。
+
+        每次呼叫會把 `view_count` 加一。這個累加是**非同步**進行的，
+        不會拖慢回應，回傳的 `view_count` 是遞增前的值。
+
+        不需要登入。
+      security: []
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/Book' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    put:
+      summary: 編輯書籍
+      operationId: updateBook
+      tags: [書籍 (Books)]
+      description: |
+        只能改自己上架的書（管理員不受限）。只送要改的欄位即可。
+
+        **重新上架的限制**：如果這本書因檢舉成立被下架
+        （`is_approved = false`），把 `status` 改成 `on_sale` 會被拒絕，
+        回 403 並帶 `code: BOOK_NOT_APPROVED`。只有管理員能解除。
+
+        照片不在這支端點處理，用 `POST /api/books/{id}/images`
+        與 `DELETE /api/books/{id}/images/{imageId}`。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                author: { type: string }
+                publisher: { type: string }
+                publish_date: { type: string }
+                isbn: { type: string }
+                category_id: { type: integer }
+                price: { type: number, minimum: 0.01, maximum: 99999 }
+                quantity: { type: integer }
+                condition_level: { type: string, enum: [like_new, good, fair, poor] }
+                condition_note: { type: string }
+                description: { type: string }
+                cabinet_id: { type: integer }
+                status: { type: string, enum: [on_sale, reserved, sold, removed] }
+            example: { price: 160, description: 降價出清, status: on_sale }
+      responses:
+        '200':
+          description: 更新成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 書籍資料更新成功 }
+                  data: { $ref: '#/components/schemas/Book' }
+        '400':
+          description: 售價不合法。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 售價必須大於 0 元 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 不是自己的書，或想重新上架違規書籍。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                他人的書:
+                  value: { success: false, message: 存取被拒，您無權限修改他人的商品 }
+                違規下架:
+                  value: { success: false, code: BOOK_NOT_APPROVED, message: 這本書因違規被下架，無法自行重新上架，請聯絡客服 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    delete:
+      summary: 下架書籍
+      operationId: deleteBook
+      tags: [書籍 (Books)]
+      description: |
+        **軟刪除**：只把 `status` 改成 `removed`，資料與照片都保留，
+        已成立的訂單才不會失去關聯。之後可以再改回 `on_sale`。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已下架。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 書籍已成功下架 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 不是自己的書。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 存取被拒，您無權限刪除他人的書籍 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/books/{id}/images:
+    post:
+      summary: 為書籍加照片
+      operationId: addBookImages
+      tags: [書籍 (Books)]
+      description: |
+        一次最多 8 張，`image_type` 一律存成 `other`。
+        回傳的是這本書**全部**的照片（含原本就有的）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 101
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [images]
+              properties:
+                images:
+                  type: array
+                  items: { type: string, format: binary }
+                  maxItems: 8
+      responses:
+        '201':
+          description: 新增成功，回傳這本書的所有照片。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 圖片已新增 }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/BookImage' }
+        '400':
+          description: 沒有帶檔案。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請選擇要上傳的圖片 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/books/{id}/images/{imageId}:
+    delete:
+      summary: 刪除書籍照片
+      operationId: deleteBookImage
+      tags: [書籍 (Books)]
+      description: |
+        刪除資料列。實體檔案留在磁碟上不清除。
+
+        `imageId` 必須屬於路徑上的那本書，否則回 404
+        （避免用別人的 imageId 刪到不該刪的照片）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 書籍編號。
+          example: 101
+        - in: path
+          name: imageId
+          required: true
+          schema: { type: integer }
+          description: 照片編號，取自 `book_images[].image_id`。
+          example: 88
+      responses:
+        '200':
+          description: 已刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 圖片已刪除 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: 找不到這本書，或這張照片不屬於這本書。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到該圖片 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/books/isbn/{isbn}:
+    get:
+      summary: 用 ISBN 查外部書籍資料
+      operationId: lookupIsbn
+      tags: [書籍 (Books)]
+      description: |
+        向 Google Books API 查詢，用來在上架頁自動帶入書名、作者等欄位，
+        讓賣家不用一個字一個字打。
+
+        這支**不會**寫入資料庫，純粹是代理查詢。
+        若伺服器有設定 `GOOGLE_BOOKS_API_KEY` 會一併帶上。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: isbn
+          required: true
+          schema: { type: string }
+          description: 10 碼或 13 碼 ISBN。
+          example: '9789573317249'
+      responses:
+        '200':
+          description: 查到了。查不到的欄位會是空字串而不是 null。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
                   data:
                     type: object
                     properties:
-                      title:
-                        type: string
-                      author:
-                        type: string
-                      publisher:
-                        type: string
-                      publish_date:
-                        type: string
-                      description:
-                        type: string
-        '401':
-          description: 存取被拒，未提供 Token
+                      title: { type: string, example: 挪威的森林 }
+                      author: { type: string, description: 多位作者以逗號串接。, example: 村上春樹 }
+                      publisher: { type: string, example: 時報出版 }
+                      publish_date: { type: string, example: '2003-08-01' }
+                      description: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '404':
-          description: 外部書庫找不到此 ISBN 的書籍資訊
+          description: 外部書庫查無此 ISBN。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 外部書庫找不到此 ISBN 的書籍資訊 }
         '500':
-          description: 查詢外部書籍資訊發生錯誤
-
-  /api/books:
-    get:
-      summary: 取得所有書籍列表
-      tags: [商品書籍 (Books)]
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-        - in: query
-          name: limit
-          schema:
-            type: integer
-        - in: query
-          name: keyword
-          schema:
-            type: string
-        - in: query
-          name: category_ids
-          schema:
-            type: string
-          description: 支援多選分類，以逗號分隔 (例：1,2,3)
-        - in: query
-          name: sort
-          schema:
-            type: string
-            enum: [newest, popular, price_asc, price_desc]
-      responses:
-        '200':
-          description: 成功取得書籍列表
-        '500':
-          description: 伺服器發生錯誤
-          
-    post:
-      summary: 新增/上架書籍
-      tags: [商品書籍 (Books)]
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - title
-                - price
-              properties:
-                title:
-                  type: string
-                author:
-                  type: string
-                publisher:
-                  type: string
-                isbn:
-                  type: string
-                price:
-                  type: number
-                category_id:
-                  type: integer
-                condition_level:
-                  type: string
-                description:
-                  type: string
-      responses:
-        '201':
-          description: 書籍上架成功
-        '400':
-          description: 請求失敗
-        '401':
-          description: 未提供 Token
-        '500':
-          description: 伺服器發生錯誤
-
-  /api/books/{id}:
-    get:
-      summary: 取得單一書籍詳細資訊
-      tags: [商品書籍 (Books)]
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: 成功取得書籍資料
-        '404':
-          description: 找不到該書籍
-          
-    put:
-      summary: 更新書籍資訊
-      tags: [商品書籍 (Books)]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                author:
-                  type: string
-                publisher:
-                  type: string
-                isbn:
-                  type: string
-                price:
-                  type: number
-                category_id:
-                  type: integer
-                condition_level:
-                  type: string
-                description:
-                  type: string
-      responses:
-        '200':
-          description: 成功更新
-        '401':
-          description: 未提供 Token
-        '403':
-          description: 無權修改
-        '404':
-          description: 找不到該書籍
-          
-    delete:
-      summary: 刪除/下架書籍
-      tags: [商品書籍 (Books)]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: 書籍刪除成功
-        '401':
-          description: 未提供 Token
-        '403':
-          description: 無權刪除
-        '404':
-          description: 找不到該書籍
+          description: 連線外部 API 失敗。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 查詢外部書籍資訊發生錯誤 }

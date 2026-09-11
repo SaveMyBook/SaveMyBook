@@ -1,0 +1,309 @@
+tags:
+  - name: 後台：會員管理
+    description: |
+      會員查詢、停權、黑名單、角色、會員等級與管理員細部權限。
+      本組全部需要 `can_manage_members` 權限。
+
+      **停權是即時生效的**：驗證中介層每次請求都會回資料庫確認狀態，
+      所以把 `is_active` 設為 false 後，該帳號用舊 Token 打任何端點
+      都會立刻收到 401 `ACCOUNT_INACTIVE`，不必等 Token 過期。
+
+paths:
+  /api/admin/members:
+    get:
+      summary: 會員列表
+      operationId: adminListMembers
+      tags: [後台：會員管理]
+      description: |
+        分頁查詢會員，依註冊時間由新到舊。
+        每筆會帶上架書籍數與買賣訂單數。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: keyword
+          schema: { type: string }
+          description: 同時比對暱稱與 Email（模糊比對）。
+          example: 小明
+        - in: query
+          name: status
+          schema: { type: string, enum: [active, inactive, blacklisted] }
+          description: |
+            `active` 正常（未停權且不在黑名單）／`inactive` 已停權／
+            `blacklisted` 黑名單。不帶代表全部。
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        user_id: { type: integer, example: 12 }
+                        email: { type: string, example: test@example.com }
+                        nickname: { type: string, example: 小明 }
+                        avatar_url: { type: string, nullable: true }
+                        phone: { type: string, nullable: true }
+                        role: { type: string, enum: [buyer_seller, admin] }
+                        is_active: { type: boolean }
+                        is_blacklisted: { type: boolean }
+                        created_at: { type: string, format: date-time }
+                        _count:
+                          type: object
+                          description: 關聯資料的筆數統計。
+                          properties:
+                            books: { type: integer, description: 上架過的書籍數, example: 14 }
+                            orders_orders_buyer_idTousers: { type: integer, description: 以買家身分的訂單數, example: 32 }
+                            orders_orders_seller_idTousers: { type: integer, description: 以賣家身分的訂單數, example: 9 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/members/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+        description: 會員編號。
+        example: 12
+
+    get:
+      summary: 會員細節
+      operationId: adminGetMember
+      tags: [後台：會員管理]
+      description: |
+        單一會員的完整後台視角：基本資料、點數組成、目前等級，
+        以及（若是管理員）11 個細部權限的開關狀態。
+
+        **點數組成**：
+        - `base_points` = 完成訂單數 × 10（自動計算）
+        - `bonus_points` = 管理員手動調整的補正值，可為負
+        - `points` = `max(0, base_points + bonus_points)`
+
+        資料表裡沒有 `admin_permissions` 那一列的管理員，
+        `permissions` 會全部回 `true`（視為全開）。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      user_id: { type: integer, example: 12 }
+                      nickname: { type: string, example: 小明 }
+                      email: { type: string, example: test@example.com }
+                      phone: { type: string, nullable: true }
+                      avatar_url: { type: string, nullable: true }
+                      role: { type: string, enum: [buyer_seller, admin] }
+                      is_active: { type: boolean }
+                      is_blacklisted: { type: boolean }
+                      created_at: { type: string, format: date-time }
+                      book_count: { type: integer, example: 14 }
+                      completed_orders: { type: integer, description: 以買家身分完成的訂單數, example: 32 }
+                      base_points: { type: integer, description: 完成訂單數 × 10, example: 320 }
+                      bonus_points: { type: integer, description: 管理員調整的補正值，可為負, example: 0 }
+                      points: { type: integer, description: 實際點數, example: 320 }
+                      current_level:
+                        allOf: [{ $ref: '#/components/schemas/MemberLevel' }]
+                        nullable: true
+                      levels:
+                        type: array
+                        items: { $ref: '#/components/schemas/MemberLevel' }
+                      permissions: { $ref: '#/components/schemas/AdminPermissions' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    patch:
+      summary: 停權 / 黑名單 / 變更角色
+      operationId: adminUpdateMemberStatus
+      tags: [後台：會員管理]
+      description: |
+        只更新有帶的欄位。會寫入操作紀錄。
+
+        **不能變更自己的帳號狀態**（避免把自己鎖在門外），會回 400。
+
+        `role` 只接受 `buyer_seller` 與 `admin`，其他值會被忽略。
+        降級為一般會員後對方的管理權限立刻失效（中介層每次請求都查 DB）。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_active: { type: boolean, description: false 代表停權。 }
+                is_blacklisted: { type: boolean, description: true 代表列入黑名單。 }
+                role: { type: string, enum: [buyer_seller, admin] }
+            example: { is_active: false }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 會員狀態已更新 }
+                  data:
+                    type: object
+                    properties:
+                      user_id: { type: integer }
+                      nickname: { type: string }
+                      role: { type: string }
+                      is_active: { type: boolean }
+                      is_blacklisted: { type: boolean }
+        '400':
+          description: 想改自己的狀態。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 無法變更自己的帳號狀態 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/members/{id}/level:
+    patch:
+      summary: 調整會員等級 / 點數
+      operationId: adminAdjustMemberLevel
+      tags: [後台：會員管理]
+      description: |
+        點數是自動算的（完成訂單數 × 10），這支透過調整 `bonus_points`
+        補正值來改變結果，**不會**去動訂單資料。
+
+        三種模式擇一（優先序：`reset` → `delta` → `level_id`）：
+
+        | 帶的欄位 | 行為 |
+        | --- | --- |
+        | `reset: true` | 補正值歸零，回到純自動計算 |
+        | `delta: 50` | 補正值加減，可為負數（不可為 0） |
+        | `level_id: 3` | 把補正值算到剛好踩在該等級的門檻上 |
+
+        調整後總點數若會變成負數，會自動夾到 0。
+        操作完會**通知該會員**，並寫入操作紀錄。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 12
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reset: { type: boolean, description: 傳 true 就恢復自動計算。 }
+                delta: { type: integer, description: 點數增減，不可為 0。, example: 50 }
+                level_id: { type: integer, description: 直接指定等級。, example: 3 }
+            examples:
+              指定等級: { value: { level_id: 3 } }
+              加點數: { value: { delta: 50 } }
+              扣點數: { value: { delta: -30 } }
+              恢復自動: { value: { reset: true } }
+      responses:
+        '200':
+          description: 已調整。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已調整等級 }
+                  data:
+                    type: object
+                    properties:
+                      points: { type: integer, description: 調整後的實際點數, example: 500 }
+                      bonus_points: { type: integer, description: 調整後的補正值, example: 180 }
+        '400':
+          description: "`delta` 是 0 或不是數字。"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請輸入非零的點數 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404':
+          description: 找不到會員或該等級。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到這個等級 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/members/{id}/permissions:
+    put:
+      summary: 設定管理員細部權限
+      operationId: adminSetMemberPermissions
+      tags: [後台：會員管理]
+      description: |
+        逐項開關某位管理員的 11 個權限。只更新有帶的欄位。
+
+        **限制**
+        - 對象必須是 `role = admin` 的帳號，一般會員回 400
+        - **不能改自己的權限**（避免把自己鎖死），回 400
+        - 至少要帶一個權限欄位，全空回 400
+
+        這個帳號原本沒有權限資料列時會自動建立一列，此時
+        **沒帶到的欄位會用資料表預設值 `true`**。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 5
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminPermissions' }
+            example:
+              can_manage_members: true
+              can_manage_wallets: false
+              can_view_stats: true
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已更新權限 }
+        '400':
+          description: 對象不是管理員、想改自己，或沒帶任何欄位。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                改到自己:
+                  value: { success: false, message: 無法變更自己的權限 }
+                不是管理員:
+                  value: { success: false, message: 只有管理員帳號才需要設定細部權限 }
+                沒帶欄位:
+                  value: { success: false, message: 沒有要更新的權限 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

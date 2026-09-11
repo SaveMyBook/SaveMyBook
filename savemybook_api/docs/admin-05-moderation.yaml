@@ -1,0 +1,235 @@
+tags:
+  - name: 後台：檢舉與爭議
+    description: |
+      檢舉審核（`can_manage_reports`）與交易爭議仲裁（`can_manage_transactions`）。
+      兩組權限是分開的。
+
+      **爭議裁決是唯一會動到退款紀錄的地方**，會建立 `refund_records`
+      並把訂單改成 `refunded`。
+
+paths:
+  /api/admin/reports:
+    get:
+      summary: 檢舉列表
+      operationId: adminListReports
+      tags: [後台：檢舉與爭議]
+      description: |
+        依時間由新到舊，沒有分頁。需要 `can_manage_reports` 權限。
+
+        因為 `reports` 是 `target_type` + `target_id` 的多型設計，
+        沒有指向 books/users 的外鍵，所以被檢舉對象是另外查出來
+        塞進 `target` 欄位的。`target_type` 為 `message` 時 `target`
+        會是 `null`（訊息內容不另外撈）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, reviewing, resolved, dismissed] }
+          description: 篩選處理狀態。不帶代表全部。
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Report'
+                        - type: object
+                          properties:
+                            target:
+                              type: object
+                              nullable: true
+                              description: |
+                                被檢舉的對象。`target_type` 為 `book` 時是書籍
+                                （含書名、售價、狀態、封面），為 `user` 時是使用者，
+                                為 `message` 時是 `null`。
+                            users_reports_reporter_idTousers:
+                              allOf: [{ $ref: '#/components/schemas/UserBrief' }]
+                              description: 檢舉人。
+                            users_reports_admin_idTousers:
+                              type: object
+                              nullable: true
+                              description: 處理的管理員，尚未處理時為 null。
+                              properties:
+                                user_id: { type: integer }
+                                nickname: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/reports/{id}:
+    patch:
+      summary: 審核檢舉
+      operationId: adminResolveReport
+      tags: [後台：檢舉與爭議]
+      description: |
+        處理一筆檢舉。需要 `can_manage_reports` 權限。
+
+        **`remove_target` 的效果**（只對 `target_type = book` 生效）：
+        把書籍設成 `removed` **並把 `is_approved` 設為 false**。
+        後者是關鍵 —— 賣家之後無法自己把這本書改回 `on_sale`，
+        會收到 403 `BOOK_NOT_APPROVED`。
+
+        **通知**（同一個交易內）：
+        - 一律通知**檢舉人**審核結果
+        - 若被檢舉的一方不是檢舉人本人，也通知**被檢舉方**
+          （違規成立／未違規，商品被下架時會特別說明）
+
+        `status` 設成 `resolved` 或 `dismissed` 會填上 `resolved_at`；
+        設成 `reviewing` 會把它清成 null。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 18
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [reviewing, resolved, dismissed]
+                  description: '`reviewing` 審核中／`resolved` 違規成立／`dismissed` 未違規駁回。'
+                admin_note: { type: string, description: 內部備註，不會顯示給使用者。 }
+                remove_target:
+                  type: boolean
+                  default: false
+                  description: 是否同時下架被檢舉的商品（只對書籍有效）。
+            example: { status: resolved, admin_note: 確認描述不實, remove_target: true }
+      responses:
+        '200':
+          description: 已處理。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 檢舉已處理 }
+                  data: { $ref: '#/components/schemas/Report' }
+        '400':
+          description: 狀態值不合法。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 'status 僅接受：reviewing, resolved, dismissed' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/disputes:
+    get:
+      summary: 交易爭議列表
+      operationId: adminListDisputes
+      tags: [後台：檢舉與爭議]
+      description: |
+        依時間由新到舊，沒有分頁。需要 `can_manage_transactions` 權限。
+        每筆帶上申請人與完整訂單（含買賣雙方、書名、封面）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, processing, resolved] }
+          description: 篩選處理狀態。不帶代表全部。
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Dispute'
+                        - type: object
+                          properties:
+                            users_transaction_disputes_applicant_idTousers:
+                              allOf: [{ $ref: '#/components/schemas/UserBrief' }]
+                              description: 申請人。
+                            orders:
+                              type: object
+                              description: 關聯訂單，含買賣雙方與書籍。
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/disputes/{id}:
+    patch:
+      summary: 仲裁交易爭議
+      operationId: adminResolveDispute
+      tags: [後台：檢舉與爭議]
+      description: |
+        裁決爭議案件。需要 `can_manage_transactions` 權限。
+        整個流程包在一個資料庫交易裡。
+
+        | `result` | 訂單結果 | 退款紀錄 |
+        | --- | --- | --- |
+        | `refund_manual` | `refunded` | 建立，`refund_type = manual` |
+        | `refund_auto` | `refunded` | 建立，`refund_type = auto` |
+        | `dismissed` | `completed` | 不建立 |
+        | `mediated` | `completed` | 不建立 |
+
+        爭議狀態一律設成 `resolved` 並填上處理時間，
+        同時**通知申請人**裁決結果，並寫入操作紀錄。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 5
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [result]
+              properties:
+                result:
+                  type: string
+                  enum: [refund_manual, refund_auto, dismissed, mediated]
+                  description: '`refund_manual` 人工退款／`refund_auto` 自動退款／`dismissed` 駁回／`mediated` 協調結案。'
+                admin_note:
+                  type: string
+                  description: 處理說明。退款時也會寫進退款紀錄的 `reason`。
+                  example: 書況確實不符，全額退款
+            example: { result: refund_manual, admin_note: 書況確實不符，全額退款 }
+      responses:
+        '200':
+          description: 已裁決。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 爭議已裁決 }
+                  data: { $ref: '#/components/schemas/Dispute' }
+        '400':
+          description: 裁決結果不合法。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 'result 僅接受：refund_manual, refund_auto, dismissed, mediated' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }

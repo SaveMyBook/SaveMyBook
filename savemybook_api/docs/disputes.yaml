@@ -1,0 +1,115 @@
+tags:
+  - name: 交易爭議 (Disputes)
+    description: |
+      訂單出問題時的申訴管道（書況不符、沒收到書等）。
+
+      送出申請後訂單會立刻轉成 `refunding`，等管理員在
+      **後台：檢舉與爭議** 裁決。裁決為退款時訂單變成 `refunded`，
+      駁回或協調結案則變回 `completed`。
+
+paths:
+  /api/disputes:
+    get:
+      summary: 取得我的爭議申請
+      operationId: listMyDisputes
+      tags: [交易爭議 (Disputes)]
+      description: |
+        列出自己送出的爭議申請，帶上關聯訂單與第一本書的書名、封面。
+        依時間由新到舊，沒有分頁。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Dispute'
+                        - type: object
+                          properties:
+                            orders:
+                              type: object
+                              properties:
+                                order_id: { type: integer }
+                                order_no: { type: string }
+                                total_amount: { type: string }
+                                status: { type: string }
+                                order_items:
+                                  type: array
+                                  items: { $ref: '#/components/schemas/OrderItem' }
+                            users_transaction_disputes_applicant_idTousers:
+                              $ref: '#/components/schemas/UserBrief'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 提出爭議申請
+      operationId: createDispute
+      tags: [交易爭議 (Disputes)]
+      description: |
+        買家或賣家都能對自己參與的訂單提出爭議。
+
+        送出後**訂單狀態立刻變成 `refunding`**（申訴中），
+        建立申請與改訂單狀態在同一個交易裡完成。
+
+        同一筆訂單若已有 `pending` 或 `processing` 的申請，會回 409。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, reason]
+              properties:
+                order_id: { type: integer, example: 40 }
+                reason: { type: string, description: 爭議說明，不可空白。, example: 書況與描述不符，有大量畫線 }
+                evidence_urls:
+                  oneOf:
+                    - type: array
+                      items: { type: string }
+                    - type: string
+                  description: 佐證圖片路徑，先用 `POST /api/uploads` 取得。
+                  example: [/uploads/evidence/c.jpg]
+      responses:
+        '201':
+          description: 已送出。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 爭議申請已送出 }
+                  data: { $ref: '#/components/schemas/Dispute' }
+        '400':
+          description: 欄位缺漏。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                缺少訂單:
+                  value: { success: false, message: 請提供 order_id }
+                沒填說明:
+                  value: { success: false, message: 請填寫爭議說明 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 這筆訂單跟你無關。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 存取被拒 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 這筆訂單已有處理中的爭議。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 此訂單已有處理中的爭議申請 }
+        '500': { $ref: '#/components/responses/ServerError' }

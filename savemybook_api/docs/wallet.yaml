@@ -1,0 +1,130 @@
+tags:
+  - name: 錢包 (Wallet)
+    description: |
+      站內代幣錢包。1 代幣 = 1 元。
+
+      餘額變動只有五種來源：買書扣款、賣書入帳、取消退款、爭議退款、
+      管理員手動調整。每一筆都會留下 `wallet_transactions` 紀錄，
+      並記下異動後的餘額，帳務可以完整回溯。
+
+      目前**沒有**儲值與提領端點，代幣由管理員透過
+      `POST /api/admin/wallets/{userId}/adjust` 發放。
+
+paths:
+  /api/wallet:
+    get:
+      summary: 取得錢包餘額
+      operationId: getWallet
+      tags: [錢包 (Wallet)]
+      description: |
+        第一次呼叫時若還沒有錢包會自動建立一個（餘額 0），
+        所以這支不會回 404。
+
+        `pending_income` 是**待定收益**：已經賣出但訂單還沒完成的金額
+        總和，這筆錢還不在 `balance` 裡。訂單完成後才會轉進餘額。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Wallet'
+                      - type: object
+                        properties:
+                          pending_income:
+                            type: string
+                            description: 待入帳金額（訂單狀態為 pending_payment / pending_deposit / deposited / pending_pickup 的賣出總額）。
+                            example: '360.00'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/wallet/transactions:
+    get:
+      summary: 取得交易紀錄
+      operationId: listWalletTransactions
+      tags: [錢包 (Wallet)]
+      description: |
+        依時間由新到舊。若這筆異動關聯到訂單，會一併帶出訂單編號
+        與第一本書的書名、封面，讓列表不用再查一次書籍。
+
+        金額的正負號就是收支方向：支出為負、收入為正。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/WalletTransaction'
+                        - type: object
+                          properties:
+                            orders:
+                              type: object
+                              nullable: true
+                              description: 關聯訂單。只帶第一個項目的書名與封面。
+                              properties:
+                                order_id: { type: integer }
+                                order_no: { type: string }
+                                order_items:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      books:
+                                        type: object
+                                        properties:
+                                          title: { type: string }
+                                          book_images:
+                                            type: array
+                                            items:
+                                              type: object
+                                              properties:
+                                                image_url: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/wallet/pending:
+    get:
+      summary: 取得待定收益明細
+      operationId: listPendingIncome
+      tags: [錢包 (Wallet)]
+      description: |
+        列出「已賣出但錢還沒入帳」的訂單，也就是狀態還在
+        `pending_payment`、`pending_deposit`、`deposited`、`pending_pickup`
+        的銷售訂單。
+
+        賣家看這一頁就知道有哪些書待存、哪些等買家來取。
+        沒有分頁。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  total_amount: { type: number, description: 這些訂單的金額總和, example: 720 }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
