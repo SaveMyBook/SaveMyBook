@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_radius.dart';
 import '../utils/motion.dart';
 
 /// 彈窗的共用進場。Material 預設只有淡入，這裡補上位移與縮放，
@@ -138,6 +139,9 @@ Future<String?> showTextInputDialog(
   int maxLines = 1,
   int maxLength = 200,
   String confirmLabel = '確定',
+  String? message,
+  bool obscure = false,
+  bool isDestructive = false,
 }) async {
   final c = AppColors.of(context);
   final controller = TextEditingController(text: initialValue);
@@ -151,22 +155,37 @@ Future<String?> showTextInputDialog(
         title,
         style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary, fontSize: 17),
       ),
-      content: TextField(
-        controller: controller,
-        autofocus: true,
-        maxLines: maxLines,
-        maxLength: maxLength,
-        style: TextStyle(color: c.textPrimary),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: c.textHint),
-          filled: true,
-          fillColor: c.inputFill,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (message != null) ...[
+            Text(
+              message,
+              style: TextStyle(fontSize: 14, height: 1.5, color: c.textSecondary),
+            ),
+            const SizedBox(height: 14),
+          ],
+          TextField(
+            controller: controller,
+            autofocus: true,
+            obscureText: obscure,
+            // 密碼欄位不顯示字數，maxLines 也必須是 1。
+            maxLines: obscure ? 1 : maxLines,
+            maxLength: obscure ? null : maxLength,
+            style: TextStyle(color: c.textPrimary),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: c.textHint),
+              filled: true,
+              fillColor: c.inputFill,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.control),
+                borderSide: BorderSide.none,
+              ),
+            ),
           ),
-        ),
+        ],
       ),
       actions: [
         TextButton(
@@ -177,7 +196,10 @@ Future<String?> showTextInputDialog(
           onPressed: () => Navigator.pop(ctx, controller.text.trim()),
           child: Text(
             confirmLabel,
-            style: TextStyle(color: c.accent, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: isDestructive ? c.danger : c.accent,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],

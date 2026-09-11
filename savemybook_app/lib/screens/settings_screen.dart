@@ -11,6 +11,8 @@ import '../widgets/state_views.dart';
 import '../utils/motion.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_dialogs.dart';
+import 'account_privacy_screen.dart';
+import '../services/locale_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -140,6 +142,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildSubItem(
                   c,
+                  icon: Icons.shield_outlined,
+                  title: '帳號與隱私',
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const AccountPrivacyScreen())),
+                ),
+                _buildSubItem(
+                  c,
                   icon: Icons.privacy_tip_outlined,
                   title: '隱私權政策',
                   onTap: () => Navigator.push(
@@ -190,7 +199,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             borderRadius: BorderRadius.circular(16),
             child: Material(
               color: Colors.transparent,
-              child: ListTile(
+              child: Column(children: [
+              ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 leading: SwitchIn(
                   duration: Motion.micro,
@@ -205,6 +215,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 trailing: Icon(Icons.chevron_right_rounded, color: c.iconInactive),
                 onTap: () => _pickTheme(mode),
               ),
+              Divider(height: 1, indent: 56, color: c.divider),
+              ValueListenableBuilder<Locale?>(
+                valueListenable: localeProvider,
+                builder: (context, locale, _) => ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  leading: Icon(Icons.language_rounded, color: c.textPrimary),
+                  title: Text('語言',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary)),
+                  subtitle: Text(
+                    locale == null ? '跟隨系統' : LocaleProvider.nameOf(locale),
+                    style: TextStyle(fontSize: 12, color: c.textSecondary),
+                  ),
+                  trailing: Icon(Icons.chevron_right_rounded, color: c.iconInactive),
+                  onTap: () => _pickLanguage(locale),
+                ),
+              ),
+              ]),
             ),
           ),
         );
@@ -335,6 +362,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ],
     );
     if (picked != null) await themeProvider.setMode(picked);
+  }
+
+  Future<void> _pickLanguage(Locale? current) async {
+    // 用 -1 代表「跟隨系統」，SheetOption 的 value 不能是 null。
+    final picked = await showOptionSheet<int>(
+      context,
+      title: '語言',
+      subtitle: '選擇「跟隨系統」時，會依裝置的語言設定顯示',
+      options: [
+        SheetOption(
+          value: -1,
+          label: '跟隨系統',
+          icon: Icons.brightness_auto_rounded,
+          selected: current == null,
+        ),
+        for (var i = 0; i < LocaleProvider.supported.length; i++)
+          SheetOption(
+            value: i,
+            label: LocaleProvider.nameOf(LocaleProvider.supported[i]),
+            selected: current != null &&
+                LocaleProvider.tagOf(current) ==
+                    LocaleProvider.tagOf(LocaleProvider.supported[i]),
+          ),
+      ],
+    );
+    if (picked == null) return;
+    await localeProvider.setLocale(picked < 0 ? null : LocaleProvider.supported[picked]);
   }
 
 }

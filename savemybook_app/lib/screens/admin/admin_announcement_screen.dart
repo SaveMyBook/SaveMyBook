@@ -91,7 +91,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
                         ? ListView(key: const ValueKey('empty'), 
                             children: const [
                               SizedBox(height: 80),
-                              EmptyView(icon: Icons.campaign_outlined, message: '還沒有任何公告，點右上角新增推播'),
+                              EmptyView(icon: Icons.campaign_outlined, message: '尚無公告，點右上角新增'),
                             ],
                           )
                         : ListView.builder(key: const ValueKey('items'), 
@@ -164,7 +164,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
           const SizedBox(height: 10),
           Row(
             children: [
-              Text('發送對象：全體使用者', style: TextStyle(fontSize: 11, color: c.textHint)),
+              Text('對象：全體使用者', style: TextStyle(fontSize: 11, color: c.textHint)),
               const Spacer(),
               Text(
                 formatDateTime(announcement.publishedAt ?? announcement.createdAt),

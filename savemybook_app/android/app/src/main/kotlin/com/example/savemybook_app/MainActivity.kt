@@ -83,6 +83,24 @@ class MainActivity : FlutterFragmentActivity() {
                 result.success(true)
             }
 
+            "shareFile" -> {
+                val uri = uriFor(call.argument<String>("path"))
+                if (uri == null) {
+                    result.error("no_file", "找不到檔案", null)
+                    return
+                }
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    // 讓接收端自己判斷型別；寫死 application/json 會讓
+                    // 雲端硬碟以外的 App 在選單裡消失。
+                    type = "*/*"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    call.argument<String>("text")?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, null))
+                result.success(true)
+            }
+
             "saveImage" -> saveImage(call.argument<String>("path"), result)
 
             else -> result.notImplemented()

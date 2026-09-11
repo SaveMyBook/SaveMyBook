@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/chat_room_screen.dart';
 import 'screens/login_screen.dart';
@@ -9,6 +11,7 @@ import 'services/api_service.dart';
 import 'services/biometric_service.dart';
 import 'services/chat_prefs.dart';
 import 'services/deep_link_service.dart';
+import 'services/locale_provider.dart';
 import 'services/theme_provider.dart';
 import 'utils/app_theme.dart';
 import 'widgets/state_views.dart';
@@ -40,6 +43,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
 
   Future<void> _init() async {
     themeProvider = await ThemeProvider.init();
+    localeProvider = await LocaleProvider.init();
     await ChatPrefs.load();
     await BiometricService.load();
 
@@ -122,15 +126,31 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
 
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeProvider,
-      builder: (context, mode, child) {
-        return MaterialApp(
-          title: 'SaveMyBook',
-          debugShowCheckedModeBanner: false,
-          navigatorKey: navigatorKey,
-          themeMode: mode,
-          theme: AppTheme.build(Brightness.light),
-          darkTheme: AppTheme.build(Brightness.dark),
-          home: _initialRoute,
+      builder: (context, mode, _) {
+        return ValueListenableBuilder<Locale?>(
+          valueListenable: localeProvider,
+          builder: (context, locale, _) {
+            return MaterialApp(
+              title: 'SaveMyBook',
+              debugShowCheckedModeBanner: false,
+              navigatorKey: navigatorKey,
+              themeMode: mode,
+              theme: AppTheme.build(Brightness.light),
+              darkTheme: AppTheme.build(Brightness.dark),
+              // locale 為 null 時交給 localeResolutionCallback 依系統語言決定。
+              locale: locale,
+              supportedLocales: LocaleProvider.supported,
+              localeResolutionCallback: (device, supported) =>
+                  locale ?? LocaleProvider.resolve(device == null ? null : [device], supported),
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              home: _initialRoute,
+            );
+          },
         );
       },
     );

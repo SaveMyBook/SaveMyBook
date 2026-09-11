@@ -7,6 +7,7 @@ import 'state_views.dart';
 import '../models/book.dart';
 import '../screens/book_detail_screen.dart';
 import '../utils/app_colors.dart';
+import '../screens/seller_screen.dart';
 
 class BookCard extends StatelessWidget {
   final Book book;
@@ -72,11 +73,15 @@ class BookCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
                 ]),
-                Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                  _sellerAvatar(c, 9),
-                  const SizedBox(width: 6),
-                  Expanded(child: Text(sellerName, locale: const Locale('en', 'US'), style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                ]),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _openSeller(context),
+                  child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                    _sellerAvatar(c, 9),
+                    const SizedBox(width: 6),
+                    Expanded(child: Text(sellerName, locale: const Locale('en', 'US'), style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  ]),
+                ),
               ]),
             );
           })),
@@ -127,14 +132,18 @@ class BookCard extends StatelessWidget {
 
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.end, children: [
                   Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                  Row(mainAxisSize: MainAxisSize.min, children: [
-                    _sellerAvatar(c, 9),
-                    const SizedBox(width: 5),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 80),
-                      child: Text(sellerName, style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    ),
-                  ]),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _openSeller(context),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      _sellerAvatar(c, 9),
+                      const SizedBox(width: 5),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 80),
+                        child: Text(sellerName, style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                    ]),
+                  ),
                 ]),
               ]),
             ),
@@ -173,4 +182,17 @@ class BookCard extends StatelessWidget {
       child: Text(text, style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.w600, height: 1.0)),
     );
   }
+  void _openSeller(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SellerScreen(
+          sellerId: book.sellerId,
+          sellerName: _sellerName(),
+          sellerAvatarUrl: book.sellerAvatarUrl,
+        ),
+      ),
+    );
+  }
+
 }

@@ -1,0 +1,251 @@
+tags:
+  - name: 後台：系統維運
+    description: |
+      資料庫備份與待刪除帳號的處理。
+
+      備份相關端點需 `can_manage_system` 權限。這是唯一**不套用**
+      「未設定細部權限視為全開」規則的權限 —— 備份檔含全站個資，
+      必須由人明確開啟。既有管理員預設為關閉。
+
+      待刪除帳號的處理需 `can_manage_members` 權限。
+
+paths:
+  /api/admin/backups:
+    get:
+      summary: 備份列表
+      operationId: adminListBackups
+      tags: [後台：系統維運]
+      description: |
+        依時間遞減排序，含失敗的紀錄。
+
+        `available` 表示檔案目前是否仍在磁碟上 —— 備份檔可能被手動刪除或
+        因保留份數上限而輪替掉，用戶端據此決定能否下載。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - in: query
+          name: limit
+          schema: { type: integer, default: 30 }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  keep: { type: integer, description: 保留份數上限, example: 14 }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        backup_id: { type: integer, example: 12 }
+                        file_name: { type: string, example: savemybook-2026-09-11T13-00-00.sql.gz }
+                        size_bytes: { type: integer, example: 4823910 }
+                        trigger_by:
+                          type: string
+                          enum: [schedule, manual]
+                          description: '`schedule` 為排程產生，`manual` 為管理員手動觸發。'
+                        status: { type: string, enum: [success, failed] }
+                        detail: { type: string, nullable: true, description: 失敗時的錯誤訊息。 }
+                        created_at: { type: string, format: date-time }
+                        admin:
+                          type: object
+                          nullable: true
+                          description: 手動觸發的管理員，排程產生時為 null。
+                        available: { type: boolean, description: 檔案目前是否仍存在於磁碟。 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 立即備份
+      operationId: adminCreateBackup
+      tags: [後台：系統維運]
+      description: |
+        以 `mysqldump --single-transaction` 匯出並 gzip 壓縮，成功後套用保留份數
+        輪替（預設 14 份，由 `BACKUP_KEEP` 設定）。
+
+        資料庫密碼透過 `MYSQL_PWD` 環境變數傳遞而非命令列參數，
+        命令列參數在同一台主機上任何行程都能由 `ps` 讀到。
+
+        大型資料庫可能耗時數十秒，用戶端請放寬逾時。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '201':
+          description: 備份完成。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 備份完成 }
+                  data:
+                    type: object
+                    properties:
+                      backup_id: { type: integer }
+                      file_name: { type: string }
+                      size_bytes: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500':
+          description: 備份失敗，失敗原因會一併寫入備份紀錄。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: '備份失敗：mysqldump: command not found' }
+
+  /api/admin/backups/{id}/download:
+    get:
+      summary: 下載備份
+      operationId: adminDownloadBackup
+      tags: [後台：系統維運]
+      description: |
+        回傳 gzip 壓縮的 SQL 檔。每次下載都會寫入管理員操作紀錄。
+
+        檔名格式經過驗證，避免以 `../` 進行路徑穿越。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 12
+      responses:
+        '200':
+          description: 備份檔。
+          content:
+            application/gzip:
+              schema: { type: string, format: binary }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404':
+          description: 備份紀錄不存在，或檔案已被刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 備份檔已不存在 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/backups/{id}:
+    delete:
+      summary: 刪除備份
+      operationId: adminDeleteBackup
+      tags: [後台：系統維運]
+      description: 同時刪除磁碟上的檔案與資料庫紀錄，無法復原。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: 已刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已刪除備份 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/deletions:
+    get:
+      summary: 待刪除帳號列表
+      operationId: adminListDeletions
+      tags: [後台：系統維運]
+      description: |
+        列出已申請刪除但尚未匿名化的帳號，依申請時間遞增排序
+        （最接近執行日期的排最前）。需 `can_manage_members` 權限。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        user_id: { type: integer }
+                        nickname: { type: string }
+                        email: { type: string }
+                        avatar_url: { type: string, nullable: true }
+                        deletion_requested_at: { type: string, format: date-time }
+                        purge_at: { type: string, format: date-time, description: 預計執行匿名化的時間。 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/deletions/{id}/cancel:
+    post:
+      summary: 代為取消刪除申請
+      operationId: adminCancelDeletion
+      tags: [後台：系統維運]
+      description: 供客服協助取消。需 `can_manage_members` 權限。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: 已取消。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已取消該會員的刪除申請 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/deletions/{id}/purge:
+    post:
+      summary: 立即執行匿名化
+      operationId: adminPurgeAccount
+      tags: [後台：系統維運]
+      description: |
+        不等緩衝期，立即清除個資並停用帳號。**無法復原**。
+
+        匿名化的範圍：Email 置換為不可登入的佔位值、密碼雜湊重設為亂數、
+        暱稱改為「已刪除的使用者」、清除頭像與聯絡資料、上架中的書籍下架、
+        購物車與收藏清空、聊天訊息內容置換為佔位字串。
+
+        訂單、錢包與交易紀錄一律保留，否則交易對象的紀錄會出現破洞。
+
+        不可對自己執行。需 `can_manage_members` 權限。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: 已完成匿名化。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已完成匿名化 }
+        '400':
+          description: 對象是自己。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 無法對自己執行此操作 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }

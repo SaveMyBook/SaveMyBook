@@ -180,7 +180,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       title: value ? '開放全部權限' : '收回全部權限',
       message: value
           ? '${detail.nickname} 將可以使用後台所有功能。'
-          : '${detail.nickname} 進入後台後每一項功能都會被擋下。',
+          : '${detail.nickname} 進入後台後將無法使用任何功能。',
       confirmLabel: '確認',
       isDestructive: !value,
     );

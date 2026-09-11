@@ -194,7 +194,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                                 SizedBox(height: 60),
                                 EmptyView(
                                   icon: Icons.category_outlined,
-                                  message: '還沒有任何分類',
+                                  message: '尚無分類',
                                 ),
                               ],
                             )

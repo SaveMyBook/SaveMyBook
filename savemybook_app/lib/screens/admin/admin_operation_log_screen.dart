@@ -56,7 +56,7 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                                 SizedBox(height: 60),
                                 EmptyView(
                                   icon: Icons.fact_check_outlined,
-                                  message: '還沒有任何管理操作紀錄',
+                                  message: '尚無操作紀錄',
                                 ),
                               ],
                             )

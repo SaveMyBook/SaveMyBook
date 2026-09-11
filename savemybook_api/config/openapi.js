@@ -198,7 +198,7 @@ const base = {
   },
   // x-tagGroups 是 Scalar 的擴充欄位，不在 OpenAPI 規格內。
   'x-tagGroups': [
-    { name: '開始使用', tags: ['認證 (Auth)', '使用者 (Users)'] },
+    { name: '開始使用', tags: ['認證 (Auth)', '使用者 (Users)', '帳號與隱私 (Account)'] },
     { name: '商品', tags: ['書籍 (Books)', '分類 (Categories)', '收藏 (Favorites)', '智慧書櫃 (Cabinets)'] },
     { name: '交易', tags: ['購物車 (Cart)', '訂單 (Orders)', '錢包 (Wallet)'] },
     { name: '互動', tags: ['聊天室 (Chat)', '通知 (Notifications)', '系統公告 (Announcements)'] },
@@ -215,7 +215,8 @@ const base = {
         '後台：書櫃管理',
         '後台：錢包管理',
         '後台：會員等級',
-        '後台：客服與條款'
+        '後台：客服與條款',
+        '後台：系統維運'
       ]
     }
   ]

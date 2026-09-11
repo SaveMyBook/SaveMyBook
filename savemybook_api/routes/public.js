@@ -62,8 +62,8 @@ const page = ({ title, body, status = 200 }) => ({
 </html>`,
 });
 
-router.get('/u/:id', async (req, res) => {
-  const userId = parseInt(req.params.id, 10);
+router.get('/u/:token', async (req, res) => {
+  const token = String(req.params.token || '');
 
   const notFound = page({
     title: '找不到使用者',
@@ -75,13 +75,14 @@ router.get('/u/:id', async (req, res) => {
       <p class="bio">這個連結可能已經失效，或帳號已被停用。</p>`,
   });
 
-  if (!userId) {
+  // 只接受權杖格式。舊的 /u/<流水號> 一律視為無效，否則加密等於沒做。
+  if (!/^[0-9a-f]{32}$/.test(token)) {
     return res.status(notFound.status).type('html').send(notFound.html);
   }
 
   try {
-    const user = await prisma.users.findUnique({
-      where: { user_id: userId },
+    const user = await prisma.users.findFirst({
+      where: { share_token: token },
       select: {
         user_id: true,
         nickname: true,
@@ -90,11 +91,12 @@ router.get('/u/:id', async (req, res) => {
         created_at: true,
         is_active: true,
         is_blacklisted: true,
+        anonymized_at: true,
         _count: { select: { books: true } },
       },
     });
 
-    if (!user || !user.is_active || user.is_blacklisted) {
+    if (!user || !user.is_active || user.is_blacklisted || user.anonymized_at) {
       return res.status(notFound.status).type('html').send(notFound.html);
     }
 

@@ -1,0 +1,184 @@
+tags:
+  - name: 帳號與隱私 (Account)
+    description: |
+      刪除帳號、匯出個人資料與分享連結權杖。
+
+      刪除採 30 天緩衝：申請後帳號仍可登入，期間內隨時可取消；
+      逾期由伺服器排程執行匿名化。匿名化並非實際刪除資料列，
+      而是清除個資並停用帳號，訂單與錢包異動等帳務資料保留，
+      否則交易對象的紀錄會出現破洞。
+
+paths:
+  /api/users/me/export:
+    get:
+      summary: 匯出個人資料
+      operationId: exportMyData
+      tags: [帳號與隱私 (Account)]
+      description: |
+        以 JSON 檔下載個人資料、上架書籍、買賣訂單、錢包與交易紀錄、
+        爭議、檢舉與客服工單。
+
+        回應帶 `Content-Disposition: attachment`，檔名為
+        `savemybook-<user_id>-<YYYY-MM-DD>.json`。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 下載檔案。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exported_at: { type: string, format: date-time }
+                  format_version: { type: integer, example: 1 }
+                  profile: { $ref: '#/components/schemas/User' }
+                  books:
+                    type: array
+                    items: { $ref: '#/components/schemas/Book' }
+                  orders_as_buyer:
+                    type: array
+                    items: { $ref: '#/components/schemas/Order' }
+                  orders_as_seller:
+                    type: array
+                    items: { $ref: '#/components/schemas/Order' }
+                  wallet: { $ref: '#/components/schemas/Wallet' }
+                  disputes:
+                    type: array
+                    items: { $ref: '#/components/schemas/Dispute' }
+                  reports:
+                    type: array
+                    items: { $ref: '#/components/schemas/Report' }
+                  support_tickets:
+                    type: array
+                    items: { $ref: '#/components/schemas/SupportTicket' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/users/me/deletion:
+    get:
+      summary: 查詢刪除申請狀態
+      operationId: getDeletionStatus
+      tags: [帳號與隱私 (Account)]
+      description: 回傳是否有進行中的刪除申請，以及預計執行匿名化的時間。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      pending: { type: boolean, description: 是否有進行中的刪除申請, example: false }
+                      requested_at: { type: string, format: date-time, nullable: true }
+                      purge_at:
+                        type: string
+                        format: date-time
+                        nullable: true
+                        description: 逾此時間後執行匿名化。
+                      grace_days: { type: integer, example: 30 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    post:
+      summary: 申請刪除帳號
+      operationId: requestAccountDeletion
+      tags: [帳號與隱私 (Account)]
+      description: |
+        需以密碼確認身分。申請成立後帳號**仍可登入**，因為登入是取消刪除的唯一入口。
+
+        手上若有進行中的訂單（`pending_payment`、`pending_deposit`、`deposited`、
+        `pending_pickup`、`refunding`）會被拒絕，否則交易對象會卡在半途。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, format: password }
+      responses:
+        '200':
+          description: 已受理。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已受理，30 天內重新登入即可取消 }
+                  data:
+                    type: object
+                    properties:
+                      purge_at: { type: string, format: date-time }
+                      grace_days: { type: integer, example: 30 }
+        '400':
+          description: 未填密碼，或仍有進行中的訂單。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                未填密碼:
+                  value: { success: false, message: 請輸入密碼以確認身分 }
+                有未完成訂單:
+                  value: { success: false, code: OPEN_ORDERS, message: 還有 2 筆進行中的訂單，請先完成或取消後再申請刪除 }
+        '401':
+          description: 密碼錯誤。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 密碼錯誤 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    delete:
+      summary: 取消刪除申請
+      operationId: cancelAccountDeletion
+      tags: [帳號與隱私 (Account)]
+      description: 在緩衝期內取消刪除。逾期已完成匿名化者無法復原。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已取消。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已取消刪除帳號 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/users/me/share-token/rotate:
+    post:
+      summary: 重新產生分享連結
+      operationId: rotateShareToken
+      tags: [帳號與隱私 (Account)]
+      description: |
+        產生新的分享權杖，舊連結立即失效。連結外流時使用。
+
+        個人公開頁的路徑帶的是 32 字元隨機權杖而非 `user_id`，
+        以避免從流水號枚舉出全站使用者。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已產生新連結。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已產生新連結，舊連結立即失效 }
+                  data:
+                    type: object
+                    properties:
+                      qr_data:
+                        type: string
+                        example: https://api.savemybook.today/u/4f3c2b1a9e8d7c6b5a4f3e2d1c0b9a87
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }

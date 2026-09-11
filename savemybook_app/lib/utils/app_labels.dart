@@ -191,6 +191,7 @@ class AppLabels {
     'can_manage_announcements': ('公告與文件', '公告、常見問題、法律文件'),
     'can_manage_support': ('客服工單', '回覆使用者問題'),
     'can_view_stats': ('營運報表', '檢視營收與成長數據'),
+    'can_manage_system': ('系統維運', '資料庫備份與下載，預設關閉'),
   };
 
   // ---------- 反覆出現的提示 ----------

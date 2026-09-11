@@ -21,6 +21,8 @@ import 'admin_report_screen.dart';
 import 'admin_stats_screen.dart';
 import 'admin_ticket_screen.dart';
 import 'admin_wallet_screen.dart';
+import 'admin_backup_screen.dart';
+import 'admin_deletion_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -171,7 +173,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           AppMenuItem(
                             icon: Icons.quiz_outlined,
                             title: '常見問題',
-                            subtitle: '幫助中心的 QA 內容',
+                            subtitle: '幫助中心的常見問題',
                             onTap: () => _open(const AdminFaqScreen()),
                           ),
                           AppMenuItem(
@@ -183,9 +185,25 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           AppMenuItem(
                             icon: Icons.fact_check_outlined,
                             title: '管理操作紀錄',
-                            subtitle: '誰在什麼時候做了什麼',
+                            subtitle: '管理員異動的稽核軌跡',
                             isLast: true,
                             onTap: () => _open(const AdminOperationLogScreen()),
+                          ),
+                        ]),
+                        const SizedBox(height: 24),
+                        _buildSection(c, '系統維運', [
+                          AppMenuItem(
+                            icon: Icons.backup_outlined,
+                            title: '資料庫備份',
+                            subtitle: '每日自動備份、手動觸發與下載',
+                            onTap: () => _open(const AdminBackupScreen()),
+                          ),
+                          AppMenuItem(
+                            icon: Icons.person_remove_outlined,
+                            title: '待刪除帳號',
+                            subtitle: '緩衝期內的刪除申請，可代為取消或立即執行',
+                            isLast: true,
+                            onTap: () => _open(const AdminDeletionScreen()),
                           ),
                         ]),
                       ],

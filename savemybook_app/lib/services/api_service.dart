@@ -285,6 +285,13 @@ class ApiService {
     return _mapList(res, Book.fromJson);
   }
 
+  /// 別人的上架書籍。只回販售中的，已售出與下架的不該對外顯示。
+  Future<List<Book>> fetchSellerBooks(int sellerId) async {
+    final res = await _send('GET', '/books',
+        query: {'seller_id': sellerId.toString(), 'status': 'on_sale', 'limit': '100'});
+    return _mapList(res, Book.fromJson);
+  }
+
   Future<Book?> fetchBookDetail(int bookId) async {
     final res = await _send('GET', '/books/$bookId');
     if (res == null || res['success'] != true || res['data'] is! Map) return null;
@@ -700,6 +707,88 @@ class ApiService {
     final res = await _send('GET', '/users/me/qrcode');
     if (res == null || res['success'] != true) return null;
     return res['data']?['qr_data'] as String?;
+  }
+
+  // ---------- 帳號與隱私 ----------
+
+  /// 回傳 (待刪除中, 執行日期)。沒有申請時為 (false, null)。
+  Future<(bool, DateTime?)> fetchDeletionStatus() async {
+    final res = await _send('GET', '/users/me/deletion');
+    if (res == null || res['success'] != true) return (false, null);
+    final data = res['data'] as Map<String, dynamic>? ?? {};
+    final purge = data['purge_at'] as String?;
+    return (data['pending'] == true, purge == null ? null : DateTime.tryParse(purge));
+  }
+
+  Future<String?> requestAccountDeletion(String password) async {
+    final res = await _send('POST', '/users/me/deletion', body: {'password': password});
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '申請失敗');
+  }
+
+  Future<String?> cancelAccountDeletion() async {
+    final res = await _send('DELETE', '/users/me/deletion');
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '取消失敗');
+  }
+
+  /// 匯出的 JSON 內容。這支不走 _send：回應是檔案不是統一的信封格式。
+  Future<String?> exportMyData() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/me/export'),
+        headers: _headers(),
+      );
+      if (response.statusCode != 200) return null;
+      return utf8.decode(response.bodyBytes);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<String?> rotateShareToken() async {
+    final res = await _send('POST', '/users/me/share-token/rotate');
+    if (res == null || res['success'] != true) return null;
+    return res['data']?['qr_data'] as String?;
+  }
+
+  // ---------- 後台：系統維運 ----------
+
+  Future<(List<BackupRecord>, int)> fetchBackups() async {
+    final res = await _send('GET', '/admin/backups');
+    if (res == null || res['success'] != true) return (<BackupRecord>[], 14);
+    return (_mapList(res, BackupRecord.fromJson), (res['keep'] as num?)?.toInt() ?? 14);
+  }
+
+  Future<String?> createBackup() async {
+    final res = await _send('POST', '/admin/backups');
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '備份失敗');
+  }
+
+  Future<String?> deleteBackup(int backupId) async {
+    final res = await _send('DELETE', '/admin/backups/$backupId');
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '刪除失敗');
+  }
+
+  String backupDownloadUrl(int backupId) => '$baseUrl/admin/backups/$backupId/download';
+
+  Future<List<PendingDeletion>> fetchPendingDeletions() async {
+    final res = await _send('GET', '/admin/deletions');
+    return _mapList(res, PendingDeletion.fromJson);
+  }
+
+  Future<String?> cancelMemberDeletion(int userId) async {
+    final res = await _send('POST', '/admin/deletions/$userId/cancel');
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '取消失敗');
+  }
+
+  Future<String?> purgeMember(int userId) async {
+    final res = await _send('POST', '/admin/deletions/$userId/purge');
+    if (res == null) return '請先登入';
+    return res['success'] == true ? null : (res['message'] as String? ?? '執行失敗');
   }
 
   Future<bool> uploadAvatar(String filePath) async {

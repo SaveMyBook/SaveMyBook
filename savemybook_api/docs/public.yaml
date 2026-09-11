@@ -5,13 +5,17 @@ tags:
       透過連結檢視基本資訊。
 
 paths:
-  /u/{id}:
+  /u/{token}:
     get:
       summary: 個人公開頁（HTML）
       operationId: publicProfilePage
       tags: [公開頁面 (Public)]
       description: |
         掃描個人分享 QR Code 後開啟的頁面，回應為 HTML 而非 JSON。
+
+        路徑帶的是 32 字元隨機權杖而非 `user_id`。用流水號的話任何人都能從
+        1 枚舉到 N 把全站使用者的公開頁掃出來。舊的 `/u/<流水號>` 一律視為
+        無效，否則等於沒加密。
 
         QR Code 編碼的是 `https://` 連結而非自訂 scheme，以確保裝置內建相機
         可正常辨識。頁面提供的按鈕再以 `savemybook://user/{id}` 進行 deep link；
@@ -24,11 +28,11 @@ paths:
       security: []
       parameters:
         - in: path
-          name: id
+          name: token
           required: true
-          schema: { type: integer }
-          description: 使用者編號。
-          example: 12
+          schema: { type: string, pattern: '^[0-9a-f]{32}$' }
+          description: 分享權杖，取自 `GET /api/users/me/qrcode` 回傳的網址。
+          example: 4f3c2b1a9e8d7c6b5a4f3e2d1c0b9a87
       responses:
         '200':
           description: 個人頁 HTML。
@@ -36,7 +40,7 @@ paths:
             text/html:
               schema: { type: string }
         '404':
-          description: 使用者不存在或帳號已停用，同樣回傳 HTML 頁面。
+          description: 權杖無效、使用者不存在、帳號已停用或已匿名化，同樣回傳 HTML 頁面。
           content:
             text/html:
               schema: { type: string }

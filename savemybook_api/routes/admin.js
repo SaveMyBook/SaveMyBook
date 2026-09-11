@@ -2,6 +2,8 @@ const express = require('express');
 const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
 const requireAdmin = require('../middleware/requireAdmin');
+const backup = require('../lib/backup');
+const { anonymize, graceDeadline } = require('../lib/account');
 
 const router = express.Router();
 
@@ -1589,6 +1591,133 @@ router.patch('/tickets/:id/status', requireAdmin('support'), async (req, res) =>
   } catch (err) {
     if (err.code === 'P2025') return res.status(404).json({ success: false, message: '找不到這張工單' });
     console.error('[調整工單狀態失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// ---------- 資料庫備份 ----------
+
+router.get('/backups', requireAdmin('system'), async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 30;
+
+  try {
+    const { total, rows } = await backup.list({ page, limit });
+    res.status(200).json({
+      success: true,
+      pagination: { total, page, limit, total_pages: Math.ceil(total / limit) },
+      keep: backup.KEEP,
+      data: rows
+    });
+  } catch (err) {
+    console.error('[取得備份列表失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.post('/backups', requireAdmin('system'), async (req, res) => {
+  try {
+    const record = await backup.run({ adminId: req.user.userId, trigger: 'manual' });
+    await logAction(req.user.userId, '手動備份資料庫', 'backup', record.backup_id, record.file_name);
+    res.status(201).json({
+      success: true,
+      message: '備份完成',
+      data: { backup_id: record.backup_id, file_name: record.file_name, size_bytes: Number(record.size_bytes) }
+    });
+  } catch (err) {
+    console.error('[手動備份失敗]:', err);
+    res.status(500).json({ success: false, message: `備份失敗：${err.message}` });
+  }
+});
+
+router.get('/backups/:id/download', requireAdmin('system'), async (req, res) => {
+  const backupId = parseInt(req.params.id);
+
+  try {
+    const record = await prisma.db_backups.findUnique({ where: { backup_id: backupId } });
+    if (!record) return res.status(404).json({ success: false, message: '找不到這份備份' });
+
+    const filePath = backup.filePathOf(record.file_name);
+    if (!filePath) return res.status(404).json({ success: false, message: '備份檔已不存在' });
+
+    await logAction(req.user.userId, '下載資料庫備份', 'backup', backupId, record.file_name);
+    res.download(filePath, record.file_name);
+  } catch (err) {
+    console.error('[下載備份失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.delete('/backups/:id', requireAdmin('system'), async (req, res) => {
+  const backupId = parseInt(req.params.id);
+
+  try {
+    const removed = await backup.remove(backupId);
+    if (!removed) return res.status(404).json({ success: false, message: '找不到這份備份' });
+    await logAction(req.user.userId, '刪除資料庫備份', 'backup', backupId, null);
+    res.status(200).json({ success: true, message: '已刪除備份' });
+  } catch (err) {
+    console.error('[刪除備份失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// ---------- 待刪除帳號 ----------
+
+router.get('/deletions', requireAdmin('members'), async (req, res) => {
+  try {
+    const pending = await prisma.users.findMany({
+      where: { deletion_requested_at: { not: null }, anonymized_at: null },
+      orderBy: { deletion_requested_at: 'asc' },
+      select: {
+        user_id: true, nickname: true, email: true, avatar_url: true,
+        deletion_requested_at: true
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: pending.map((u) => ({
+        ...u,
+        purge_at: graceDeadline(u.deletion_requested_at)
+      }))
+    });
+  } catch (err) {
+    console.error('[取得待刪除帳號失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.post('/deletions/:id/cancel', requireAdmin('members'), async (req, res) => {
+  const userId = parseInt(req.params.id);
+
+  try {
+    await prisma.users.update({
+      where: { user_id: userId },
+      data: { deletion_requested_at: null, updated_at: new Date() }
+    });
+    await logAction(req.user.userId, '取消會員刪除申請', 'user', userId, null);
+    res.status(200).json({ success: true, message: '已取消該會員的刪除申請' });
+  } catch (err) {
+    if (err.code === 'P2025') return res.status(404).json({ success: false, message: '找不到該會員' });
+    console.error('[取消刪除申請失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.post('/deletions/:id/purge', requireAdmin('members'), async (req, res) => {
+  const userId = parseInt(req.params.id);
+
+  if (userId === req.user.userId) {
+    return res.status(400).json({ success: false, message: '無法對自己執行此操作' });
+  }
+
+  try {
+    await anonymize(userId);
+    await logAction(req.user.userId, '立即匿名化會員', 'user', userId, null);
+    res.status(200).json({ success: true, message: '已完成匿名化' });
+  } catch (err) {
+    console.error('[立即匿名化失敗]:', err);
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });

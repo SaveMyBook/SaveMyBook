@@ -11,6 +11,8 @@ import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
+import '../../utils/app_radius.dart';
+import '../../utils/motion.dart';
 
 class AdminLegalScreen extends StatefulWidget {
   const AdminLegalScreen({super.key});
@@ -164,12 +166,41 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
       TextEditingController(text: widget.initialContent);
 
   bool _isSaving = false;
+  bool _dirty = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController.addListener(_checkDirty);
+    _contentController.addListener(_checkDirty);
+  }
+
+  void _checkDirty() {
+    final dirty = _titleController.text != widget.initialTitle ||
+        _contentController.text != widget.initialContent;
+    if (dirty != _dirty) setState(() => _dirty = dirty);
+  }
 
   @override
   void dispose() {
+    _titleController.removeListener(_checkDirty);
+    _contentController.removeListener(_checkDirty);
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
+  }
+
+  /// 條款動輒上千字，改到一半誤觸返回等於全部重打。
+  Future<bool> _confirmLeave() async {
+    if (!_dirty) return true;
+    return showConfirmDialog(
+      context,
+      title: '捨棄變更？',
+      message: '這份文件有尚未儲存的修改，離開後會遺失。',
+      confirmLabel: '捨棄',
+      cancelLabel: '繼續編輯',
+      isDestructive: true,
+    );
   }
 
   Future<void> _save() async {
@@ -219,6 +250,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
       showAppSnackBar(context, result.error!, isError: true);
       return;
     }
+    _dirty = false;
     showAppSnackBar(context, result.message);
     Navigator.pop(context, true);
   }
@@ -226,51 +258,108 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final length = _contentController.text.characters.length;
 
-    return Scaffold(
-      backgroundColor: c.scaffold,
-      body: Column(
-        children: [
-          AppHeader(title: widget.initialTitle, icon: Icons.edit_note_rounded),
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => FocusScope.of(context).unfocus(),
-              child: ListView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: EdgeInsets.fromLTRB(
-                  20,
-                  20,
-                  20,
-                  MediaQuery.of(context).viewInsets.bottom + 40,
-                ),
-                children: [
-                  FormRowCard(
-                    label: '標題',
-                    child: AppTextField(controller: _titleController, hint: '文件標題', maxLength: 100),
+    return PopScope(
+      canPop: !_dirty,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (await _confirmLeave() && mounted) {
+          if (!mounted) return;
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: c.scaffold,
+        body: Column(
+          children: [
+            AppHeader(title: widget.initialTitle, icon: Icons.edit_note_rounded),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: AppTextField(
+                controller: _titleController,
+                hint: '文件標題',
+                maxLength: 100,
+              ),
+            ),
+            // 內容區吃掉剩下的所有高度。放進 ListView 裡的多行輸入框
+            // 會變成「捲動中的捲動」，改幾千字的條款完全沒辦法用。
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: c.card,
+                    borderRadius: BorderRadius.circular(AppRadius.card),
+                    border: Border.all(color: c.border),
                   ),
-                  FormRowCard(
-                    label: '內容',
-                    alignTop: true,
-                    child: AppTextField(
-                      controller: _contentController,
-                      hint: '文件內容',
-                      maxLines: 20,
-                      maxLength: 20000,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  child: TextField(
+                    controller: _contentController,
+                    maxLines: null,
+                    expands: true,
+                    textAlignVertical: TextAlignVertical.top,
+                    keyboardType: TextInputType.multiline,
+                    style: TextStyle(fontSize: 14, height: 1.7, color: c.textPrimary),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      hintText: '文件內容',
+                      hintStyle: TextStyle(color: c.textHint),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                ),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.fromLTRB(
+                20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
+              decoration: BoxDecoration(
+                color: c.card,
+                boxShadow: [
+                  BoxShadow(color: c.shadow.withValues(alpha: 0.08),
+                      blurRadius: 16, offset: const Offset(0, -4)),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      SwitchIn(
+                        duration: Motion.micro,
+                        child: _dirty
+                            ? Row(
+                                key: const ValueKey('dirty'),
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.edit_rounded, size: 13, color: c.warning),
+                                  const SizedBox(width: 5),
+                                  Text('尚未儲存',
+                                      style: TextStyle(fontSize: 12, color: c.warning)),
+                                ],
+                              )
+                            : Text('已是最新版本',
+                                key: const ValueKey('clean'),
+                                style: TextStyle(fontSize: 12, color: c.textHint)),
+                      ),
+                      const Spacer(),
+                      Text('$length / 20000',
+                          style: TextStyle(fontSize: 12, color: c.textHint)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
                   PrimaryButton(
                     label: '儲存',
                     height: 50,
                     isLoading: _isSaving,
-                    onPressed: _save,
+                    onPressed: _dirty ? _save : null,
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -456,7 +545,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                               children: const [
                                 SizedBox(height: 60),
-                                EmptyView(icon: Icons.quiz_outlined, message: '還沒有常見問題'),
+                                EmptyView(icon: Icons.quiz_outlined, message: '尚無常見問題'),
                               ],
                             )
                           : ListView.builder(key: const ValueKey('items'), 

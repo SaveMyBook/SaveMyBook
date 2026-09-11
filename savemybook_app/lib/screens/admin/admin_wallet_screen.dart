@@ -334,7 +334,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
                               const SizedBox(height: 12),
                               if (detail.transactions.isEmpty)
                                 Text(
-                                  '這位會員還沒有任何帳務紀錄。',
+                                  '此會員尚無帳務紀錄。',
                                   style: TextStyle(fontSize: 13, color: c.textHint),
                                 )
                               else

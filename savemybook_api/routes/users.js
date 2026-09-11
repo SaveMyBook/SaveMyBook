@@ -2,6 +2,9 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
+const {
+  GRACE_DAYS, graceDeadline, newShareToken, ensureShareToken, exportData
+} = require('../lib/account');
 
 const router = express.Router();
 
@@ -172,9 +175,11 @@ router.get('/me/qrcode', authenticateToken, async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: '找不到該使用者' });
 
     // 用 https 連結，外部相機／掃描器才掃得動（自訂 scheme 只有本 App 認得）。
-    // 預設指向本 API 自己提供的 /u/:id 公開頁，換官網時再設 PUBLIC_WEB_URL。
+    // 路徑帶的是隨機權杖不是 user_id，否則任何人都能從 1 枚舉到 N
+    // 把全站使用者的公開頁掃出來。
     const base = process.env.PUBLIC_WEB_URL || `${req.protocol}://${req.get('host')}`;
-    const qrData = `${base}/u/${user.user_id}`;
+    const token = await ensureShareToken(user.user_id);
+    const qrData = `${base}/u/${token}`;
     const existing = await prisma.user_qr_codes.findFirst({
       where: { user_id: user.user_id, qr_type: 'profile' }
     });
@@ -188,6 +193,125 @@ router.get('/me/qrcode', authenticateToken, async (req, res) => {
     res.status(200).json({ success: true, data: { ...user, qr_data: qrData } });
   } catch (err) {
     console.error('[取得個人 QR 失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// ---------- 分享連結 ----------
+
+router.post('/me/share-token/rotate', authenticateToken, async (req, res) => {
+  try {
+    const token = newShareToken();
+    await prisma.users.update({
+      where: { user_id: req.user.userId },
+      data: { share_token: token, updated_at: new Date() }
+    });
+    const base = process.env.PUBLIC_WEB_URL || `${req.protocol}://${req.get('host')}`;
+    res.status(200).json({
+      success: true,
+      message: '已產生新連結，舊連結立即失效',
+      data: { qr_data: `${base}/u/${token}` }
+    });
+  } catch (err) {
+    console.error('[重新產生分享連結失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// ---------- 匯出個人資料 ----------
+
+router.get('/me/export', authenticateToken, async (req, res) => {
+  try {
+    const data = await exportData(req.user.userId);
+    const stamp = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition',
+      `attachment; filename="savemybook-${req.user.userId}-${stamp}.json"`);
+    res.status(200).send(JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.error('[匯出個人資料失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// ---------- 刪除帳號 ----------
+
+router.get('/me/deletion', authenticateToken, async (req, res) => {
+  try {
+    const user = await prisma.users.findUnique({
+      where: { user_id: req.user.userId },
+      select: { deletion_requested_at: true }
+    });
+    const requested = user?.deletion_requested_at ?? null;
+    res.status(200).json({
+      success: true,
+      data: {
+        pending: requested != null,
+        requested_at: requested,
+        purge_at: requested ? graceDeadline(requested) : null,
+        grace_days: GRACE_DAYS
+      }
+    });
+  } catch (err) {
+    console.error('[查詢刪除狀態失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.post('/me/deletion', authenticateToken, async (req, res) => {
+  const password = req.body.password || '';
+  if (!password) {
+    return res.status(400).json({ success: false, message: '請輸入密碼以確認身分' });
+  }
+
+  try {
+    const user = await prisma.users.findUnique({ where: { user_id: req.user.userId } });
+    if (!user) return res.status(404).json({ success: false, message: '找不到該使用者' });
+
+    const match = await bcrypt.compare(password, user.password_hash);
+    if (!match) return res.status(401).json({ success: false, message: '密碼錯誤' });
+
+    // 手上還有沒走完的交易就不能刪，否則對方會卡在半途。
+    const openOrders = await prisma.orders.count({
+      where: {
+        OR: [{ buyer_id: user.user_id }, { seller_id: user.user_id }],
+        status: { in: ['pending_payment', 'pending_deposit', 'deposited', 'pending_pickup', 'refunding'] }
+      }
+    });
+    if (openOrders > 0) {
+      return res.status(400).json({
+        success: false,
+        code: 'OPEN_ORDERS',
+        message: `還有 ${openOrders} 筆進行中的訂單，請先完成或取消後再申請刪除`
+      });
+    }
+
+    const requestedAt = new Date();
+    await prisma.users.update({
+      where: { user_id: user.user_id },
+      data: { deletion_requested_at: requestedAt, updated_at: requestedAt }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `已受理，${GRACE_DAYS} 天內重新登入即可取消`,
+      data: { purge_at: graceDeadline(requestedAt), grace_days: GRACE_DAYS }
+    });
+  } catch (err) {
+    console.error('[申請刪除帳號失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+router.delete('/me/deletion', authenticateToken, async (req, res) => {
+  try {
+    await prisma.users.update({
+      where: { user_id: req.user.userId },
+      data: { deletion_requested_at: null, updated_at: new Date() }
+    });
+    res.status(200).json({ success: true, message: '已取消刪除帳號' });
+  } catch (err) {
+    console.error('[取消刪除帳號失敗]:', err);
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });

@@ -793,3 +793,90 @@ class AdminMemberDetail {
   }
 }
 
+class BackupRecord {
+  final int backupId;
+  final String fileName;
+  final int sizeBytes;
+  final String triggerBy;
+  final String status;
+  final String? detail;
+  final DateTime? createdAt;
+  final String adminName;
+
+  /// 檔案可能因保留份數輪替或人工刪除而不在磁碟上，用來決定能否下載。
+  final bool available;
+
+  const BackupRecord({
+    required this.backupId,
+    required this.fileName,
+    required this.sizeBytes,
+    required this.triggerBy,
+    required this.status,
+    required this.available,
+    this.detail,
+    this.createdAt,
+    this.adminName = '',
+  });
+
+  bool get isSuccess => status == 'success';
+  bool get isManual => triggerBy == 'manual';
+
+  String get sizeText {
+    if (sizeBytes <= 0) return '—';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    var value = sizeBytes.toDouble();
+    var unit = 0;
+    while (value >= 1024 && unit < units.length - 1) {
+      value /= 1024;
+      unit += 1;
+    }
+    return '${value.toStringAsFixed(unit == 0 ? 0 : 1)} ${units[unit]}';
+  }
+
+  factory BackupRecord.fromJson(Map<String, dynamic> json) {
+    final admin = json['admin'] as Map<String, dynamic>?;
+    return BackupRecord(
+      backupId: parseInt(json['backup_id']),
+      fileName: json['file_name'] as String? ?? '',
+      sizeBytes: parseInt(json['size_bytes']),
+      triggerBy: json['trigger_by'] as String? ?? 'schedule',
+      status: json['status'] as String? ?? 'success',
+      detail: json['detail'] as String?,
+      createdAt: parseDate(json['created_at']),
+      adminName: admin?['nickname'] as String? ?? '',
+      available: json['available'] == true,
+    );
+  }
+}
+
+class PendingDeletion {
+  final int userId;
+  final String nickname;
+  final String email;
+  final String? avatarUrl;
+  final DateTime? requestedAt;
+  final DateTime? purgeAt;
+
+  const PendingDeletion({
+    required this.userId,
+    required this.nickname,
+    required this.email,
+    this.avatarUrl,
+    this.requestedAt,
+    this.purgeAt,
+  });
+
+  int get daysLeft {
+    if (purgeAt == null) return 0;
+    return purgeAt!.difference(DateTime.now()).inDays.clamp(0, 3650);
+  }
+
+  factory PendingDeletion.fromJson(Map<String, dynamic> json) => PendingDeletion(
+        userId: parseInt(json['user_id']),
+        nickname: json['nickname'] as String? ?? '',
+        email: json['email'] as String? ?? '',
+        avatarUrl: resolveAssetUrl(json['avatar_url']),
+        requestedAt: parseDate(json['deletion_requested_at']),
+        purgeAt: parseDate(json['purge_at']),
+      );
+}

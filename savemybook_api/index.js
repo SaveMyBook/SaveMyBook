@@ -5,6 +5,8 @@ const path = require('path');
 
 const { apiReference } = require('@scalar/express-api-reference');
 const { buildSpec } = require('./config/openapi');
+const { processDueDeletions } = require('./lib/account');
+const backup = require('./lib/backup');
 const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
 const bookRoutes = require('./routes/books');
@@ -78,6 +80,40 @@ app.get('/', (req, res) => {
   res.send('SaveMyBook API is running. Visit /api-docs for API documentation.');
 });
 
+// ==========================================
+// 排程
+// ------------------------------------------
+// 用 setInterval 而不是 cron：這支服務是單一行程常駐，不需要為了兩個
+// 週期性工作多裝一個排程器。重啟後從當下重新計時，漏跑一次的影響有限
+// （刪除有 30 天緩衝、備份保留 14 份）。
+// ==========================================
+const HOUR = 3600 * 1000;
+
+const runDeletionSweep = async () => {
+  try {
+    const count = await processDueDeletions();
+    if (count > 0) console.log(`🗑️  已匿名化 ${count} 個逾期帳號`);
+  } catch (err) {
+    console.error('[刪除排程失敗]:', err);
+  }
+};
+
+const runDailyBackup = async () => {
+  if (process.env.BACKUP_ENABLED === 'false') return;
+  try {
+    const record = await backup.run({ trigger: 'schedule' });
+    console.log(`💾 資料庫已備份：${record.file_name}`);
+  } catch (err) {
+    console.error('[備份排程失敗]:', err.message);
+  }
+};
+
+setInterval(runDeletionSweep, HOUR);
+setInterval(runDailyBackup, 24 * HOUR);
+
+// 啟動後先掃一次逾期刪除；備份不在啟動時跑，避免頻繁重啟灌爆備份區。
+setTimeout(runDeletionSweep, 30 * 1000);
+
 app.listen(port, () => {
   console.log(`🚀 Server is running on http://localhost:${port}`);
   console.log(`🔗 Users API: http://localhost:${port}/api/users`);
@@ -93,4 +129,5 @@ app.listen(port, () => {
   console.log(`👤 公開個人頁: http://localhost:${port}/u/1`);
   console.log(`📄 API 文件 (Scalar): http://localhost:${port}/api-docs`);
   console.log(`📦 OpenAPI 原始檔: http://localhost:${port}/openapi.json`);
+  console.log(`💾 備份目錄: ${backup.BACKUP_DIR}（保留 ${backup.KEEP} 份）`);
 });

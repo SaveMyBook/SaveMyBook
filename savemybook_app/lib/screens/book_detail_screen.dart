@@ -11,6 +11,8 @@ import 'cart_screen.dart';
 import 'chat_room_screen.dart';
 import 'home_screen.dart';
 import 'search_screen.dart';
+import 'seller_screen.dart';
+import '../widgets/animations.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final Book book;
@@ -355,19 +357,33 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final sellerName = widget.book.sellerName.isEmpty ? '管理員' : widget.book.sellerName;
     final avatarUrl = widget.book.sellerAvatarUrl;
 
-    return Row(children: [
-      UserAvatar(imageUrl: avatarUrl, radius: 18),
-      const SizedBox(width: 12),
-      Expanded(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(sellerName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textPrimary)),
-          if (widget.book.cabinetName.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            Text('取書地點：${widget.book.cabinetName}', style: TextStyle(fontSize: 12, color: c.textSecondary)),
-          ],
-        ]),
+    return PressableScale(
+      scale: 0.985,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SellerScreen(
+            sellerId: widget.book.sellerId,
+            sellerName: sellerName,
+            sellerAvatarUrl: avatarUrl,
+          ),
+        ),
       ),
-    ]);
+      child: Row(children: [
+        UserAvatar(imageUrl: avatarUrl, radius: 18),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(sellerName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textPrimary)),
+            if (widget.book.cabinetName.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text('取書地點：${widget.book.cabinetName}', style: TextStyle(fontSize: 12, color: c.textSecondary)),
+            ],
+          ]),
+        ),
+        Icon(Icons.chevron_right_rounded, size: 20, color: c.iconInactive),
+      ]),
+    );
   }
 
   Widget _buildBottomActions(AppColors c) {

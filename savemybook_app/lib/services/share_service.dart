@@ -12,6 +12,11 @@ class ShareService {
   /// 存到系統相簿。Android 9 以下沒有 MediaStore 的相對路徑，會回 false。
   static Future<bool> saveImage(String path) => _invoke('saveImage', {'path': path});
 
+  /// 任意檔案（例如匯出的 JSON）。iOS 走 UIActivityViewController、
+  /// Android 走 FileProvider 的 ACTION_SEND。
+  static Future<bool> shareFile(String path, {String? subject}) =>
+      _invoke('shareFile', {'path': path, if (subject != null) 'text': subject});
+
   static Future<bool> _invoke(String method, Map<String, dynamic> args) async {
     try {
       return await _channel.invokeMethod<bool>(method, args) ?? false;

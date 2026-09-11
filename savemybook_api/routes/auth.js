@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const prisma = require('../lib/prisma');
+const { GRACE_DAYS, graceDeadline } = require('../lib/account');
 
 const router = express.Router();
 
@@ -61,10 +62,19 @@ router.post('/login', async (req, res) => {
 
     console.log(`User ${user.email} logged in successfully.`);
 
+    // 申請刪除後仍可登入，這是取消刪除的唯一入口。
+    const deletion = user.deletion_requested_at
+      ? {
+          requested_at: user.deletion_requested_at,
+          purge_at: graceDeadline(user.deletion_requested_at),
+          grace_days: GRACE_DAYS
+        }
+      : null;
+
     res.status(200).json({
       success: true,
       message: '登入成功',
-      data: { token }
+      data: { token, ...(deletion && { pending_deletion: deletion }) }
     });
   } catch (err) {
     console.error('Login error:', err);

@@ -75,6 +75,17 @@ import UIKit
       if let text = args["text"] as? String, !text.isEmpty { items.append(text) }
       present(items: items, from: host, result: result)
 
+    case "shareFile":
+      guard let path = args["path"] as? String,
+            FileManager.default.fileExists(atPath: path) else {
+        result(FlutterError(code: "no_file", message: "找不到檔案", details: nil))
+        return
+      }
+      // 用 URL 而不是 Data：分享頁才會帶出原本的檔名與副檔名。
+      var fileItems: [Any] = [URL(fileURLWithPath: path)]
+      if let text = args["text"] as? String, !text.isEmpty { fileItems.append(text) }
+      present(items: fileItems, from: host, result: result)
+
     case "saveImage":
       guard let path = args["path"] as? String,
             let image = UIImage(contentsOfFile: path) else {
