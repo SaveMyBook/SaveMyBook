@@ -224,7 +224,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
   Widget _buildCard(AdminLevel level, AppColors c) {
     final range = level.maxPoints == null
         ? S.p0PointsUp(level.minPoints)
-        : S.p0P1Points(level.minPoints, level.maxPoints);
+        : S.p0P1Points(level.minPoints, level.maxPoints!);
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),

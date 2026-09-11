@@ -1036,12 +1036,6 @@
   "slotCount": "Slot count",
   "createLocker": "Create locker",
   "disable": "Disable",
-  "p0Locker": "{p0} locker",
-  "@p0Locker": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "onceDisabledP0NoLongerAppears": "Once disabled, \"{p0}\" no longer appears in the seller drop-off list.",
   "@onceDisabledP0NoLongerAppears": {
     "placeholders": {
@@ -1145,12 +1139,6 @@
   "documentBindingEveryUserSubmittingReplaces": "This document is binding on every user. Submitting replaces the current version immediately.",
   "yesUpdate": "Yes, update it",
   "notifyEveryUser": "Notify every user?",
-  "everyActiveMemberReceivesP0Updated": "Every active member receives a \"{p0} updated\" notification.",
-  "@everyActiveMemberReceivesP0Updated": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "updateNotify": "Update and notify",
   "updateOnly": "Update only",
   "sections": "Sections",
@@ -1620,5 +1608,17 @@
   "announcementsDocuments": "Announcements and documents",
   "announcementsFaqLegalDocuments": "Announcements, FAQ, legal documents",
   "replyUserQuestions": "Reply to user questions",
-  "databaseBackupDownloadOffByDefault": "Database backup and download; off by default"
+  "databaseBackupDownloadOffByDefault": "Database backup and download; off by default",
+  "p0Locker": "{p0} locker",
+  "@p0Locker": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "everyActiveMemberReceivesP0Updated": "Every active member receives a \"{p0} updated\" notification.",
+  "@everyActiveMemberReceivesP0Updated": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

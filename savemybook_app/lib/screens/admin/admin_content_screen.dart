@@ -446,7 +446,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
     final notify = await showConfirmDialog(
       context,
       title: S.notifyEveryUser,
-      message: S.everyActiveMemberReceivesP0Updated(title已更新),
+      message: S.everyActiveMemberReceivesP0Updated(title),
       confirmLabel: S.updateNotify,
       cancelLabel: S.updateOnly,
     );

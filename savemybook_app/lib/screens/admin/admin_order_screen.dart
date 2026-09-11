@@ -265,7 +265,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
           if (order.cancelReason != null && order.cancelReason!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              S.cancellationReasonP0(order.cancelReason),
+              S.cancellationReasonP0(order.cancelReason!),
               style: TextStyle(fontSize: 11, color: c.danger),
             ),
           ],

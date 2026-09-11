@@ -1036,12 +1036,6 @@
   "slotCount": "柜位数量",
   "createLocker": "创建书柜",
   "disable": "停用",
-  "p0Locker": "{p0}",
-  "@p0Locker": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "onceDisabledP0NoLongerAppears": "停用后“{p0}”不会再出现在卖家的存放区域菜单中。",
   "@onceDisabledP0NoLongerAppears": {
     "placeholders": {
@@ -1145,12 +1139,6 @@
   "documentBindingEveryUserSubmittingReplaces": "这份文件对所有用户都有效力，提交后会立刻取代当前版本。",
   "yesUpdate": "我确认要更新",
   "notifyEveryUser": "要通知所有用户吗？",
-  "everyActiveMemberReceivesP0Updated": "每一位启用中的会员都会收到一则“{p0}”的通知。",
-  "@everyActiveMemberReceivesP0Updated": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "updateNotify": "更新并通知",
   "updateOnly": "只更新不通知",
   "sections": "章节",
@@ -1620,5 +1608,17 @@
   "announcementsDocuments": "公告与文件",
   "announcementsFaqLegalDocuments": "公告、常见问题、法律文件",
   "replyUserQuestions": "回复用户问题",
-  "databaseBackupDownloadOffByDefault": "数据库备份与下载，默认关闭"
+  "databaseBackupDownloadOffByDefault": "数据库备份与下载，默认关闭",
+  "p0Locker": "{p0}书柜",
+  "@p0Locker": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "everyActiveMemberReceivesP0Updated": "每一位启用中的会员都会收到一则“{p0}已更新”的通知。",
+  "@everyActiveMemberReceivesP0Updated": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

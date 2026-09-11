@@ -154,7 +154,9 @@ def skip_reason(raw, masked, start, end):
     return None
 
 
-INTERP = re.compile(r'\$\{([^}]*)\}|\$(\w+)')
+# Dart 的識別字只有 ASCII。用 Python 的 \w 會連後面的中文一起吃掉，
+# '$action書櫃' 會變成變數名 action書櫃，中文也從譯文裡消失。
+INTERP = re.compile(r'\$\{([^}]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)')
 
 
 def unescape(text):

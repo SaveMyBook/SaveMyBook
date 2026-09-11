@@ -722,7 +722,6 @@ abstract class AppLocalizations {
   String get slotCount;
   String get createLocker;
   String get disable;
-  String p0Locker(Object p0);
   String onceDisabledP0NoLongerAppears(Object p0);
   String onceEnabledP0AvailableSellersAgain(Object p0);
   String get lockerDisabled;
@@ -764,7 +763,6 @@ abstract class AppLocalizations {
   String get documentBindingEveryUserSubmittingReplaces;
   String get yesUpdate;
   String get notifyEveryUser;
-  String everyActiveMemberReceivesP0Updated(Object p0);
   String get updateNotify;
   String get updateOnly;
   String get sections;
@@ -1024,6 +1022,8 @@ abstract class AppLocalizations {
   String get announcementsFaqLegalDocuments;
   String get replyUserQuestions;
   String get databaseBackupDownloadOffByDefault;
+  String p0Locker(Object p0);
+  String everyActiveMemberReceivesP0Updated(Object p0);
 }
 
 class _LEn extends AppLocalizations {
@@ -3127,9 +3127,6 @@ class _LEn extends AppLocalizations {
   String get disable => 'Disable';
 
   @override
-  String p0Locker(Object p0) => '${p0} locker';
-
-  @override
   String onceDisabledP0NoLongerAppears(Object p0) => 'Once disabled, "${p0}" no longer appears in the seller drop-off list.';
 
   @override
@@ -3251,9 +3248,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get notifyEveryUser => 'Notify every user?';
-
-  @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => 'Every active member receives a "${p0} updated" notification.';
 
   @override
   String get updateNotify => 'Update and notify';
@@ -4031,6 +4025,12 @@ class _LEn extends AppLocalizations {
 
   @override
   String get databaseBackupDownloadOffByDefault => 'Database backup and download; off by default';
+
+  @override
+  String p0Locker(Object p0) => '${p0} locker';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => 'Every active member receives a "${p0} updated" notification.';
 
 }
 
@@ -6135,9 +6135,6 @@ class _LJa extends AppLocalizations {
   String get disable => '無効化';
 
   @override
-  String p0Locker(Object p0) => 'ロッカーを${p0}';
-
-  @override
   String onceDisabledP0NoLongerAppears(Object p0) => '無効にすると「${p0}」は出品者の預け入れ先一覧に表示されなくなります。';
 
   @override
@@ -6259,9 +6256,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get notifyEveryUser => '全ユーザーに通知しますか？';
-
-  @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '有効な会員全員に「${p0}」という通知が届きます。';
 
   @override
   String get updateNotify => '更新して通知';
@@ -7039,6 +7033,12 @@ class _LJa extends AppLocalizations {
 
   @override
   String get databaseBackupDownloadOffByDefault => 'データベースのバックアップとダウンロード（既定では無効）';
+
+  @override
+  String p0Locker(Object p0) => 'ロッカーを${p0}';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => '有効な会員全員に「${p0}が更新されました」という通知が届きます。';
 
 }
 
@@ -9143,9 +9143,6 @@ class _LKo extends AppLocalizations {
   String get disable => '비활성화';
 
   @override
-  String p0Locker(Object p0) => '보관함 ${p0}';
-
-  @override
   String onceDisabledP0NoLongerAppears(Object p0) => '비활성화하면 "${p0}"은(는) 판매자의 보관 위치 목록에 더 이상 표시되지 않습니다.';
 
   @override
@@ -9267,9 +9264,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get notifyEveryUser => '모든 사용자에게 알릴까요?';
-
-  @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '활성 회원 전원에게 "${p0}(가) 업데이트되었습니다" 알림이 전송됩니다.';
 
   @override
   String get updateNotify => '업데이트 후 알림';
@@ -10047,6 +10041,12 @@ class _LKo extends AppLocalizations {
 
   @override
   String get databaseBackupDownloadOffByDefault => '데이터베이스 백업 및 다운로드, 기본값은 꺼짐';
+
+  @override
+  String p0Locker(Object p0) => '보관함 ${p0}';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => '활성 회원 전원에게 "${p0}이(가) 업데이트되었습니다" 알림이 전송됩니다.';
 
 }
 
@@ -12151,9 +12151,6 @@ class _LZh extends AppLocalizations {
   String get disable => '停用';
 
   @override
-  String p0Locker(Object p0) => '${p0}';
-
-  @override
   String onceDisabledP0NoLongerAppears(Object p0) => '停用後「${p0}」不會再出現在賣家的存放區域選單中。';
 
   @override
@@ -12275,9 +12272,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get notifyEveryUser => '要通知所有使用者嗎？';
-
-  @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位啟用中的會員都會收到一則「${p0}」的通知。';
 
   @override
   String get updateNotify => '更新並通知';
@@ -13055,6 +13049,12 @@ class _LZh extends AppLocalizations {
 
   @override
   String get databaseBackupDownloadOffByDefault => '資料庫備份與下載，預設關閉';
+
+  @override
+  String p0Locker(Object p0) => '${p0}書櫃';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位啟用中的會員都會收到一則「${p0}已更新」的通知。';
 
 }
 
@@ -15159,9 +15159,6 @@ class _LZhHans extends AppLocalizations {
   String get disable => '停用';
 
   @override
-  String p0Locker(Object p0) => '${p0}';
-
-  @override
   String onceDisabledP0NoLongerAppears(Object p0) => '停用后“${p0}”不会再出现在卖家的存放区域菜单中。';
 
   @override
@@ -15283,9 +15280,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get notifyEveryUser => '要通知所有用户吗？';
-
-  @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位启用中的会员都会收到一则“${p0}”的通知。';
 
   @override
   String get updateNotify => '更新并通知';
@@ -16063,6 +16057,12 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get databaseBackupDownloadOffByDefault => '数据库备份与下载，默认关闭';
+
+  @override
+  String p0Locker(Object p0) => '${p0}书柜';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位启用中的会员都会收到一则“${p0}已更新”的通知。';
 
 }
 
@@ -18167,9 +18167,6 @@ class _LZhHant extends AppLocalizations {
   String get disable => '停用';
 
   @override
-  String p0Locker(Object p0) => '${p0}';
-
-  @override
   String onceDisabledP0NoLongerAppears(Object p0) => '停用後「${p0}」不會再出現在賣家的存放區域選單中。';
 
   @override
@@ -18291,9 +18288,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get notifyEveryUser => '要通知所有使用者嗎？';
-
-  @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位啟用中的會員都會收到一則「${p0}」的通知。';
 
   @override
   String get updateNotify => '更新並通知';
@@ -19071,6 +19065,12 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get databaseBackupDownloadOffByDefault => '資料庫備份與下載，預設關閉';
+
+  @override
+  String p0Locker(Object p0) => '${p0}書櫃';
+
+  @override
+  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位啟用中的會員都會收到一則「${p0}已更新」的通知。';
 
 }
 

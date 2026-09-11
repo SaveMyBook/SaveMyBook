@@ -1036,12 +1036,6 @@
   "slotCount": "櫃位數量",
   "createLocker": "建立書櫃",
   "disable": "停用",
-  "p0Locker": "{p0}",
-  "@p0Locker": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "onceDisabledP0NoLongerAppears": "停用後「{p0}」不會再出現在賣家的存放區域選單中。",
   "@onceDisabledP0NoLongerAppears": {
     "placeholders": {
@@ -1145,12 +1139,6 @@
   "documentBindingEveryUserSubmittingReplaces": "這份文件對所有使用者都有效力，送出後會立刻取代目前的版本。",
   "yesUpdate": "我確認要更新",
   "notifyEveryUser": "要通知所有使用者嗎？",
-  "everyActiveMemberReceivesP0Updated": "每一位啟用中的會員都會收到一則「{p0}」的通知。",
-  "@everyActiveMemberReceivesP0Updated": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "updateNotify": "更新並通知",
   "updateOnly": "只更新不通知",
   "sections": "章節",
@@ -1620,5 +1608,17 @@
   "announcementsDocuments": "公告與文件",
   "announcementsFaqLegalDocuments": "公告、常見問題、法律文件",
   "replyUserQuestions": "回覆使用者問題",
-  "databaseBackupDownloadOffByDefault": "資料庫備份與下載，預設關閉"
+  "databaseBackupDownloadOffByDefault": "資料庫備份與下載，預設關閉",
+  "p0Locker": "{p0}書櫃",
+  "@p0Locker": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "everyActiveMemberReceivesP0Updated": "每一位啟用中的會員都會收到一則「{p0}已更新」的通知。",
+  "@everyActiveMemberReceivesP0Updated": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

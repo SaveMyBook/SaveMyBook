@@ -1036,12 +1036,6 @@
   "slotCount": "칸 수",
   "createLocker": "보관함 만들기",
   "disable": "비활성화",
-  "p0Locker": "보관함 {p0}",
-  "@p0Locker": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "onceDisabledP0NoLongerAppears": "비활성화하면 \"{p0}\"은(는) 판매자의 보관 위치 목록에 더 이상 표시되지 않습니다.",
   "@onceDisabledP0NoLongerAppears": {
     "placeholders": {
@@ -1145,12 +1139,6 @@
   "documentBindingEveryUserSubmittingReplaces": "이 문서는 모든 사용자에게 효력이 있습니다. 제출하면 현재 버전이 즉시 대체됩니다.",
   "yesUpdate": "업데이트합니다",
   "notifyEveryUser": "모든 사용자에게 알릴까요?",
-  "everyActiveMemberReceivesP0Updated": "활성 회원 전원에게 \"{p0}(가) 업데이트되었습니다\" 알림이 전송됩니다.",
-  "@everyActiveMemberReceivesP0Updated": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "updateNotify": "업데이트 후 알림",
   "updateOnly": "업데이트만",
   "sections": "조항",
@@ -1620,5 +1608,17 @@
   "announcementsDocuments": "공지와 문서",
   "announcementsFaqLegalDocuments": "공지, 자주 묻는 질문, 약관",
   "replyUserQuestions": "사용자 질문에 답변",
-  "databaseBackupDownloadOffByDefault": "데이터베이스 백업 및 다운로드, 기본값은 꺼짐"
+  "databaseBackupDownloadOffByDefault": "데이터베이스 백업 및 다운로드, 기본값은 꺼짐",
+  "p0Locker": "보관함 {p0}",
+  "@p0Locker": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "everyActiveMemberReceivesP0Updated": "활성 회원 전원에게 \"{p0}이(가) 업데이트되었습니다\" 알림이 전송됩니다.",
+  "@everyActiveMemberReceivesP0Updated": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

@@ -265,7 +265,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
           ),
           if (!_isPendingTab && (report.adminNote?.isNotEmpty ?? false)) ...[
             const SizedBox(height: 8),
-            Text(S.noteP0(report.adminNote), style: TextStyle(fontSize: 12, color: c.textSecondary)),
+            Text(S.noteP0(report.adminNote!), style: TextStyle(fontSize: 12, color: c.textSecondary)),
           ],
         ],
       ),

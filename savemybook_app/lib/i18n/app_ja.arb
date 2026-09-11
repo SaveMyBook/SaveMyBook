@@ -1036,12 +1036,6 @@
   "slotCount": "棚の数",
   "createLocker": "ロッカーを作成",
   "disable": "無効化",
-  "p0Locker": "ロッカーを{p0}",
-  "@p0Locker": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "onceDisabledP0NoLongerAppears": "無効にすると「{p0}」は出品者の預け入れ先一覧に表示されなくなります。",
   "@onceDisabledP0NoLongerAppears": {
     "placeholders": {
@@ -1145,12 +1139,6 @@
   "documentBindingEveryUserSubmittingReplaces": "この文書は全ユーザーに効力を持ちます。送信すると現在の版が直ちに置き換わります。",
   "yesUpdate": "更新する",
   "notifyEveryUser": "全ユーザーに通知しますか？",
-  "everyActiveMemberReceivesP0Updated": "有効な会員全員に「{p0}」という通知が届きます。",
-  "@everyActiveMemberReceivesP0Updated": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "updateNotify": "更新して通知",
   "updateOnly": "更新のみ",
   "sections": "章立て",
@@ -1620,5 +1608,17 @@
   "announcementsDocuments": "お知らせと文書",
   "announcementsFaqLegalDocuments": "お知らせ・よくある質問・規約",
   "replyUserQuestions": "ユーザーの質問に回答",
-  "databaseBackupDownloadOffByDefault": "データベースのバックアップとダウンロード（既定では無効）"
+  "databaseBackupDownloadOffByDefault": "データベースのバックアップとダウンロード（既定では無効）",
+  "p0Locker": "ロッカーを{p0}",
+  "@p0Locker": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "everyActiveMemberReceivesP0Updated": "有効な会員全員に「{p0}が更新されました」という通知が届きます。",
+  "@everyActiveMemberReceivesP0Updated": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

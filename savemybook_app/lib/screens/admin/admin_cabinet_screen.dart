@@ -58,7 +58,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
     final action = cabinet.isActive ? S.disable : S.enable;
     final confirmed = await showConfirmDialog(
       context,
-      title: S.p0Locker(action書櫃),
+      title: S.p0Locker(action),
       message: cabinet.isActive
           ? S.onceDisabledP0NoLongerAppears(cabinet.cabinetName)
           : S.onceEnabledP0AvailableSellersAgain(cabinet.cabinetName),

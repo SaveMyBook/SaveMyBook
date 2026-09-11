@@ -235,7 +235,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      S.isbnP0P1Views(book.isbn?.isNotEmpty == true ? book.isbn : S.notProvided, book.viewCount),
+                      S.isbnP0P1Views(book.isbn?.isNotEmpty == true ? book.isbn! : S.notProvided, book.viewCount),
                       style: TextStyle(fontSize: 11, color: c.textHint),
                     ),
                     const SizedBox(height: 6),
