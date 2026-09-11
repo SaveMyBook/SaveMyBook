@@ -258,7 +258,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final length = _contentController.text.characters.length;
+    final length = _contentController.text.length;
 
     return PopScope(
       canPop: !_dirty,

@@ -71,7 +71,7 @@ flutter:
   uses-material-design: true
 
   # 不用 Flutter 的 gen_l10n：它在 synthetic package 與輸出位置上的行為
-  # 隨版本變動。改由 tool/gen_l10n.py 從 lib/l10n/*.arb 產生一般的 Dart 檔。
+  # 隨版本變動。改由 tool/gen_l10n.py 從 lib/i18n/*.arb 產生一般的 Dart 檔。
 
   assets:
     - assets/images/logo.png

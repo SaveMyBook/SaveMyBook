@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""從 lib/l10n/*.arb 產生 lib/l10n/app_localizations.dart。
+"""從 lib/i18n/*.arb 產生 lib/i18n/app_localizations.dart。
 
 不使用 Flutter 的 gen_l10n：它在 synthetic package 與輸出位置上的行為
 隨版本變動，升級 Flutter 時很容易整個建置掛掉。這裡產生的是一份普通
 的 Dart 檔，任何版本都能編譯。
 
+放在 lib/i18n 而不是 lib/l10n：後者是 Flutter 工具鏈預設的產出目錄，
+即使關掉 generate 旗標，flutter pub get 仍會清掉它認得的檔名。
+
 改完 ARB 後執行：  python3 tool/gen_l10n.py
 """
 import json, glob, os, re
 
-ARB_DIR = 'lib/l10n'
+ARB_DIR = 'lib/i18n'
 OUT = os.path.join(ARB_DIR, 'app_localizations.dart')
 TEMPLATE = 'zh'
 
@@ -44,7 +47,7 @@ def main():
             raise SystemExit(f'app_{tag}.arb 缺少 {len(missing)} 個 key：{missing[:5]}')
 
     lines = [
-        '// 由 tool/gen_l10n.py 從 lib/l10n/*.arb 產生，請不要手動編輯。',
+        '// 由 tool/gen_l10n.py 從 lib/i18n/*.arb 產生，請不要手動編輯。',
         '',
         "import 'package:flutter/widgets.dart';",
         '',
