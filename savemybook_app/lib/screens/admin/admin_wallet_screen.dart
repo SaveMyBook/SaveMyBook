@@ -484,7 +484,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
             height: 34,
             decoration: BoxDecoration(
               color: (isPositive ? c.success : c.danger).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               isPositive ? Icons.south_west_rounded : Icons.north_east_rounded,

@@ -169,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.fromLTRB(12, 7, 14, 7),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.16),
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
                       ),
                       child: Row(
@@ -298,7 +298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 7),
             ClipRRect(
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(6),
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0, end: progress.ratio),
                 duration: const Duration(milliseconds: 900),

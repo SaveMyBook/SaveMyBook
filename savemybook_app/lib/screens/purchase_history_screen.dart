@@ -164,7 +164,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen>
             child: SwipeTabs(
               controller: _tabController,
               child: SwitchIn(child: _isLoading
-                ? const LoadingView.list()
+                ? const LoadingView.grid()
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,

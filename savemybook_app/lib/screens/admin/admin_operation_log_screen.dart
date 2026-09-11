@@ -88,7 +88,7 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
             height: 34,
             decoration: BoxDecoration(
               color: c.accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.bolt_rounded, size: 18, color: c.accent),
           ),

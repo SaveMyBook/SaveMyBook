@@ -3,7 +3,7 @@ import '../utils/app_colors.dart';
 import '../utils/motion.dart';
 import 'animations.dart';
 
-enum LoadingStyle { spinner, list, grid }
+enum LoadingStyle { spinner, list, grid, menu }
 
 class LoadingView extends StatelessWidget {
   final LoadingStyle style;
@@ -13,6 +13,10 @@ class LoadingView extends StatelessWidget {
   const LoadingView.list({super.key}) : style = LoadingStyle.list;
 
   const LoadingView.grid({super.key}) : style = LoadingStyle.grid;
+
+  /// 統計卡 + 分組選單的版面（後台首頁、會員中心）。骨架要對得上實際內容，
+  /// 否則載入完的瞬間整個版面會重排，比沒有骨架還糟。
+  const LoadingView.menu({super.key}) : style = LoadingStyle.menu;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +50,23 @@ class LoadingView extends StatelessWidget {
           ),
         );
 
+      case LoadingStyle.menu:
+        return Shimmer(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+            physics: const NeverScrollableScrollPhysics(),
+            children: const [
+              SkeletonBox(height: 96, radius: 16),
+              SizedBox(height: 24),
+              _SkeletonSection(rows: 2),
+              SizedBox(height: 24),
+              _SkeletonSection(rows: 3),
+              SizedBox(height: 24),
+              _SkeletonSection(rows: 2),
+            ],
+          ),
+        );
+
       case LoadingStyle.spinner:
         return const Center(
           child: Padding(
@@ -57,6 +78,26 @@ class LoadingView extends StatelessWidget {
           ),
         );
     }
+  }
+}
+
+class _SkeletonSection extends StatelessWidget {
+  final int rows;
+
+  const _SkeletonSection({required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 4, bottom: 10),
+          child: SkeletonBox(width: 72, height: 13),
+        ),
+        SkeletonBox(height: rows * 68.0, radius: 16),
+      ],
+    );
   }
 }
 
@@ -353,7 +394,7 @@ void showAppSnackBar(BuildContext context, String message, {bool isError = false
                 height: 30,
                 decoration: BoxDecoration(
                   color: tint.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,

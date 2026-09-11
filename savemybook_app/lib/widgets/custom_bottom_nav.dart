@@ -23,7 +23,7 @@ class CustomBottomNav extends StatelessWidget {
 
   static const double _barHeight = 56;
   static const double _pillWidth = 52;
-  static const double _pillHeight = 42;
+  static const double _pillHeight = 46;
 
   @override
   Widget build(BuildContext context) {
@@ -127,30 +127,27 @@ class CustomBottomNav extends StatelessWidget {
     final isSelected = selectedIndex == index;
     final color = isSelected ? c.accent : c.iconInactive;
 
-    Widget icon = AnimatedSlide(
-      offset: Offset(0, isSelected ? -0.06 : 0),
+    // 圖示 22 + 間距 2 + 標籤約 14 已佔掉 38，膠囊 46。放大超過 1.10
+    // 或再疊上下位移就會頂出膠囊外框。
+    Widget icon = AnimatedScale(
+      scale: isSelected ? 1.10 : 1.0,
       duration: Motion.base,
-      curve: Motion.emphasized,
-      child: AnimatedScale(
-        scale: isSelected ? 1.14 : 1.0,
-        duration: Motion.base,
-        curve: Motion.pop,
-        child: AnimatedSwitcher(
-          duration: Motion.micro,
-          switchInCurve: Motion.enterCurve,
-          transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: 0.82, end: 1).animate(animation),
-              child: child,
-            ),
+      curve: Motion.pop,
+      child: AnimatedSwitcher(
+        duration: Motion.micro,
+        switchInCurve: Motion.enterCurve,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.82, end: 1).animate(animation),
+            child: child,
           ),
-          child: Icon(
-            isSelected ? solidIcon : outlinedIcon,
-            key: ValueKey(isSelected),
-            size: 22,
-            color: color,
-          ),
+        ),
+        child: Icon(
+          isSelected ? solidIcon : outlinedIcon,
+          key: ValueKey(isSelected),
+          size: 22,
+          color: color,
         ),
       ),
     );

@@ -294,7 +294,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         height: 4,
                         decoration: BoxDecoration(
                           color: i < score ? colors[score] : c.inputFill,
-                          borderRadius: BorderRadius.circular(2),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                       ),
                     ),

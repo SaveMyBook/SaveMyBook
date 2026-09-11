@@ -137,7 +137,7 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
             height: 38,
             decoration: BoxDecoration(
               color: c.accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.build_rounded, size: 18, color: AppColors.primary),
           ),

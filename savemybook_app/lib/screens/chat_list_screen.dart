@@ -246,7 +246,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
                     color: c.danger,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     room.unreadCount > 99 ? '99+' : '${room.unreadCount}',

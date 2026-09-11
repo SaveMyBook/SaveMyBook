@@ -138,7 +138,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: selected ? c.accent : c.categoryChip,
-                      borderRadius: BorderRadius.circular(17),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
                       f.label,

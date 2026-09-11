@@ -252,7 +252,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
               style: TextStyle(fontSize: 13, color: c.textSecondary)),
           const SizedBox(height: 8),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(6),
             child: TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: ratio),
               duration: const Duration(milliseconds: 600),

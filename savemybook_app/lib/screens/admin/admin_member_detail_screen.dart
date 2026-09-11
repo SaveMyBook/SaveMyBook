@@ -208,7 +208,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           Expanded(
             child: SwitchIn(
               child: _isLoading
-                  ? const LoadingView.list()
+                  ? const LoadingView.menu()
                   : detail == null
                       ? const EmptyView(
                           icon: Icons.person_off_outlined,

@@ -221,12 +221,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       const iw = 60.0;
                       return Container(
                         height: 2, width: tw,
-                        decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(1)),
+                        decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                         child: Stack(children: [
                           AnimatedPositioned(
                             duration: const Duration(milliseconds: 100),
                             left: _categoryScrollProgress * (tw - iw), top: 0, bottom: 0,
-                            child: Container(width: iw, decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(1))),
+                            child: Container(width: iw, decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(6))),
                           ),
                         ]),
                       );
@@ -361,7 +361,7 @@ return LightStatusBar(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: _isGridView ? c.accent : Colors.transparent,
-                    borderRadius: BorderRadius.circular(7),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(Icons.grid_view_rounded, size: 20, color: _isGridView ? Colors.white : c.iconInactive),
                 ),
@@ -379,7 +379,7 @@ return LightStatusBar(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: !_isGridView ? c.accent : Colors.transparent,
-                    borderRadius: BorderRadius.circular(7),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(Icons.view_agenda_rounded, size: 20, color: !_isGridView ? Colors.white : c.iconInactive),
                 ),

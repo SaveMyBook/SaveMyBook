@@ -65,7 +65,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           const AppHeader(title: '管理後台', icon: Icons.admin_panel_settings_outlined),
           Expanded(
             child: SwitchIn(child: _isLoading
-                ? const LoadingView.list()
+                ? const LoadingView.menu()
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,

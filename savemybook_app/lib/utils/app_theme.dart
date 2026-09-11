@@ -158,7 +158,7 @@ class AppTheme {
         ),
         checkColor: const WidgetStatePropertyAll(Colors.white),
         side: BorderSide(color: c.iconInactive, width: 1.5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       ),
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith(

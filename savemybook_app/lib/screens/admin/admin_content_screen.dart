@@ -107,7 +107,7 @@ class _AdminLegalScreenState extends State<AdminLegalScreen> {
             height: 42,
             decoration: BoxDecoration(
               color: c.accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(13),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(Icons.article_outlined, color: c.accent, size: 20),
           ),

@@ -151,7 +151,7 @@ class CountBadge extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         decoration: BoxDecoration(
           color: color ?? AppColors.of(context).danger,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.of(context).card, width: 1.4),
         ),
         alignment: Alignment.center,

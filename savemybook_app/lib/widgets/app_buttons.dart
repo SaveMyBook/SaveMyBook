@@ -224,7 +224,7 @@ class QuickActionButton extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                       decoration: BoxDecoration(
                         color: c.accent,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         badge > 99 ? '99+' : '$badge',

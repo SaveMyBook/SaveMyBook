@@ -145,7 +145,7 @@ class AppMenuItem extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
                     color: c.danger,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     badge > 99 ? '99+' : '$badge',

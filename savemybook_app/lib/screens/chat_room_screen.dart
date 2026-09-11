@@ -416,7 +416,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 fillColor: c.inputFill,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
                 ),
               ),

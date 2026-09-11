@@ -1,14 +1,16 @@
+# logo_splash.png 是 640x640。flutter_native_splash 會把來源除以 4 當作 @1x，
+# 所以 @1x=160pt。直接用 2048 的原圖會產生 512pt 的啟動圖，比手機螢幕還寬。
 flutter_native_splash:
   color: "#627D8D"
-  image: assets/images/logo.png
+  image: assets/images/logo_splash.png
   color_dark: "#1A2F38"
-  image_dark: assets/images/logo.png
+  image_dark: assets/images/logo_splash.png
   android_12:
     color: "#627D8D"
     icon_background_color: "#627D8D"
-    image: assets/images/logo.png
+    image: assets/images/logo_splash.png
     color_dark: "#1A2F38"
     icon_background_color_dark: "#1A2F38"
-    image_dark: assets/images/logo.png
+    image_dark: assets/images/logo_splash.png
   android: true
   ios: true

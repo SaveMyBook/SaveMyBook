@@ -94,7 +94,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: _days == r.days ? c.accent : c.categoryChip,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
                 r.label,
@@ -262,7 +262,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
                               height: (value * 76).clamp(2.0, 76.0),
                               decoration: BoxDecoration(
                                 color: color.withValues(alpha: values[i] > 0 ? 0.85 : 0.2),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                             ),
                           ),
@@ -319,7 +319,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
                 ),
                 Expanded(
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(6),
                     child: TweenAnimationBuilder<double>(
                       tween: Tween(begin: 0, end: max == 0 ? 0 : item.count / max),
                       duration: const Duration(milliseconds: 700),

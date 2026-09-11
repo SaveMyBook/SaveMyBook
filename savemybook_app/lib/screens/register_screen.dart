@@ -139,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Checkbox(
               value: _agreedToTerms,
               activeColor: c.accent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
               onChanged: (value) => setState(() => _agreedToTerms = value ?? false),
             ),
           ),

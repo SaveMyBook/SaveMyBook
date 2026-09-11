@@ -192,7 +192,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                 padding: const EdgeInsets.fromLTRB(24, 26, 24, 22),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(24),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
@@ -235,10 +235,10 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                             padding: const EdgeInsets.all(5),
                                             decoration: BoxDecoration(
                                               color: Colors.white,
-                                              borderRadius: BorderRadius.circular(13),
+                                              borderRadius: BorderRadius.circular(14),
                                             ),
                                             child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(9),
+                                              borderRadius: BorderRadius.circular(8),
                                               child: Image.asset(
                                                 'assets/images/logo.png',
                                                 width: 40,
@@ -288,22 +288,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          FadeSlideIn(
-                            index: 3,
-                            child: TextButton.icon(
-                              onPressed: _isBusy ? null : _load,
-                              icon: Icon(Icons.refresh_rounded, size: 18, color: c.card),
-                              label: Text('更新', style: TextStyle(color: c.card)),
-                              style: TextButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  side: BorderSide(color: Colors.white.withValues(alpha: 0.4)),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
-                              ),
-                            ),
-                          ),
+
                         ],
                       ),
                     ),

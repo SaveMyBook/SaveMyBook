@@ -10,6 +10,7 @@ import '../widgets/biometric_icon.dart';
 import '../widgets/state_views.dart';
 import '../utils/motion.dart';
 import '../widgets/animations.dart';
+import '../widgets/app_dialogs.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -179,7 +180,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeProvider,
       builder: (context, mode, _) {
-        final isDark = themeProvider.isDark(context);
         return Container(
           decoration: BoxDecoration(
               color: c.card,
@@ -195,13 +195,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: SwitchIn(
                   duration: Motion.micro,
                   child: Icon(
-                    isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                    key: ValueKey(isDark),
+                    _themeIcon(mode),
+                    key: ValueKey(mode),
                     color: c.textPrimary,
                   ),
                 ),
-                title: Text('深色模式', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary)),
-                trailing: Switch.adaptive(value: isDark, activeThumbColor: c.accent, onChanged: (_) => themeProvider.toggle()),
+                title: Text('外觀', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary)),
+                subtitle: Text(_themeLabel(mode), style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                trailing: Icon(Icons.chevron_right_rounded, color: c.iconInactive),
+                onTap: () => _pickTheme(mode),
               ),
             ),
           ),
@@ -305,4 +307,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+  static IconData _themeIcon(ThemeMode mode) => switch (mode) {
+        ThemeMode.light => Icons.light_mode_rounded,
+        ThemeMode.dark => Icons.dark_mode_rounded,
+        ThemeMode.system => Icons.brightness_auto_rounded,
+      };
+
+  static String _themeLabel(ThemeMode mode) => switch (mode) {
+        ThemeMode.light => '淺色',
+        ThemeMode.dark => '深色',
+        ThemeMode.system => '跟隨系統',
+      };
+
+  Future<void> _pickTheme(ThemeMode current) async {
+    final picked = await showOptionSheet<ThemeMode>(
+      context,
+      title: '外觀',
+      subtitle: '選擇「跟隨系統」時，會依裝置的深淺色設定自動切換',
+      options: [
+        for (final mode in ThemeMode.values)
+          SheetOption(
+            value: mode,
+            label: _themeLabel(mode),
+            icon: _themeIcon(mode),
+            selected: mode == current,
+          ),
+      ],
+    );
+    if (picked != null) await themeProvider.setMode(picked);
+  }
+
 }

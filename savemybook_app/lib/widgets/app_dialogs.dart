@@ -99,7 +99,7 @@ Future<bool> showConfirmDialog(
                   style: TextButton.styleFrom(
                     backgroundColor: c.inputFill,
                     foregroundColor: c.textSecondary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text(cancelLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
                 ),
@@ -115,7 +115,7 @@ Future<bool> showConfirmDialog(
                     backgroundColor: tint,
                     foregroundColor: Colors.white,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text(confirmLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
@@ -163,7 +163,7 @@ Future<String?> showTextInputDialog(
           filled: true,
           fillColor: c.inputFill,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
         ),

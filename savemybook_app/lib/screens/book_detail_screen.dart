@@ -277,7 +277,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           return AnimatedContainer(
             duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic,
             margin: const EdgeInsets.symmetric(horizontal: 4.0), width: isActive ? 16.0 : 6.0, height: 6.0,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.5)),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.5)),
           );
         }),
       )),
