@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../utils/motion.dart';
 import 'animations.dart';
 
 enum LoadingStyle { spinner, list, grid }
@@ -376,8 +377,11 @@ void showAppSnackBar(BuildContext context, String message, {bool isError = false
     );
 }
 
-/// 全 App 統一的網路圖片：載入中顯示骨架、失敗顯示替代圖、完成後淡入。
-/// 直接用 Image.network 在載入期間是一片空白，無法區分「載入中」與「沒有圖」。
+/// 全 App 統一的網路圖片。
+///
+/// 佔位刻意做得很安靜：只有一層極淡的漸層，沒有掃光也沒有大圖示。
+/// 一個網格同時載入十幾張書封時，十幾塊閃動的灰底比空白還吵。
+/// 書本圖示只留給「真的沒有圖」的狀態，這樣它才有意義。
 class AppNetworkImage extends StatelessWidget {
   final String? url;
   final BoxFit fit;
@@ -398,37 +402,50 @@ class AppNetworkImage extends StatelessWidget {
     this.background,
   });
 
-  static const _fade = Duration(milliseconds: 420);
-
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final base = background ?? c.inputFill;
 
-    Widget skeleton({required bool animated}) {
-      final box = Container(
-        width: width,
-        height: height,
-        color: background ?? c.inputFill,
-        alignment: Alignment.center,
-        child: Icon(
-          fallbackIcon,
-          color: c.iconInactive.withValues(alpha: animated ? 0.35 : 1),
-          size: fallbackIconSize ?? 30,
-        ),
-      );
-      return animated ? Shimmer(child: box) : box;
-    }
+    // 等圖進來的底色。上深下淺一點點，比純色塊有厚度，但低到不會被當成內容。
+    Widget placeholder() => Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                base,
+                Color.lerp(base, c.isDark ? Colors.black : Colors.white, 0.45)!,
+              ],
+            ),
+          ),
+        );
 
-    if (url == null || url!.isEmpty) return skeleton(animated: false);
+    // 沒有圖或載入失敗才顯示書本圖示。
+    Widget fallback() => Container(
+          width: width,
+          height: height,
+          color: base,
+          alignment: Alignment.center,
+          child: Icon(
+            fallbackIcon,
+            color: c.iconInactive.withValues(alpha: 0.55),
+            size: fallbackIconSize ?? 30,
+          ),
+        );
+
+    if (url == null || url!.isEmpty) return fallback();
 
     return Image.network(
       url!,
       fit: fit,
       width: width,
       height: height,
-      errorBuilder: (_, _, _) => skeleton(animated: false),
-      // 只用 frameBuilder：如果同時用 loadingBuilder，圖載完的瞬間骨架會被
-      // 整個換掉，中間會閃一格空白。改成把骨架墊在底下交叉淡出才順。
+      errorBuilder: (_, _, _) => fallback(),
+      // 只用 frameBuilder。同時掛 loadingBuilder 的話，圖解碼完的瞬間
+      // 佔位會被整個換掉，中間會閃一格空白。
       frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
         if (wasSynchronouslyLoaded) return child;
         final loaded = frame != null;
@@ -436,23 +453,14 @@ class AppNetworkImage extends StatelessWidget {
         return Stack(
           fit: StackFit.passthrough,
           children: [
-            AnimatedOpacity(
-              opacity: loaded ? 0 : 1,
-              duration: _fade,
-              curve: Curves.easeOut,
-              child: skeleton(animated: true),
-            ),
+            placeholder(),
+            // 純淡入，不做縮放。書封被 ClipRRect 切過，再加縮放會看起來
+            // 像是在框裡晃一下才停住。
             AnimatedOpacity(
               opacity: loaded ? 1 : 0,
-              duration: _fade,
-              curve: Curves.easeOutCubic,
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: loaded ? 1.03 : 1.0, end: 1.0),
-                duration: const Duration(milliseconds: 620),
-                curve: Curves.easeOutCubic,
-                builder: (_, scale, inner) => Transform.scale(scale: scale, child: inner),
-                child: child,
-              ),
+              duration: Motion.base,
+              curve: Curves.easeOut,
+              child: child,
             ),
           ],
         );

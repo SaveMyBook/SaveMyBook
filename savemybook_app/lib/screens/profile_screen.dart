@@ -292,14 +292,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  '${progress.percent}%',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
+                Icon(Icons.chevron_right_rounded,
+                    size: 16, color: Colors.white.withValues(alpha: 0.75)),
               ],
             ),
             const SizedBox(height: 7),
@@ -314,6 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Container(height: 8, color: Colors.white.withValues(alpha: 0.22)),
                     FractionallySizedBox(
                       widthFactor: value,
+                      alignment: Alignment.centerLeft,
                       child: Container(
                         height: 8,
                         decoration: const BoxDecoration(

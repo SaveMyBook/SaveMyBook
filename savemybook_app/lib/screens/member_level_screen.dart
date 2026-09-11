@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/member_level.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_labels.dart';
 import '../utils/level_style.dart';
+import '../utils/motion.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
-import '../utils/app_labels.dart';
 
 class MemberLevelScreen extends StatefulWidget {
   const MemberLevelScreen({super.key});
@@ -296,44 +298,84 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
           for (var i = 0; i < levels.length; i++) ...[
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => _pageController.animateToPage(
-                i,
-                duration: const Duration(milliseconds: 340),
-                curve: Curves.easeOutCubic,
-              ),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 280),
-                curve: Curves.easeOut,
+              onTap: () {
+                if (i == _selectedIndex) return;
+                HapticFeedback.selectionClick();
+                _pageController.animateToPage(
+                  i,
+                  duration: Motion.enter,
+                  curve: Motion.emphasized,
+                );
+              },
+              // 外框維持 _nodeSize，選中的節點靠縮放溢出去放大，
+              // 這樣指標的位置計算不必跟著節點大小一起變。
+              child: SizedBox(
                 width: _nodeSize,
                 height: _nodeSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: i == _selectedIndex
-                      ? Colors.white.withValues(alpha: 0.28)
-                      : Colors.white.withValues(alpha: 0.12),
-                  border: Border.all(
-                    color: i == _selectedIndex
-                        ? Colors.white
-                        : Colors.white.withValues(alpha: 0.35),
-                    width: i == _selectedIndex ? 2 : 1,
+                child: Center(
+                  child: AnimatedScale(
+                    scale: i == _selectedIndex ? 1.26 : 1.0,
+                    duration: Motion.enter,
+                    curve: Motion.pop,
+                    child: AnimatedContainer(
+                      duration: Motion.base,
+                      curve: Motion.emphasized,
+                      width: _nodeSize,
+                      height: _nodeSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: currentIndex >= 0 && i <= currentIndex
+                            ? Colors.white.withValues(alpha: 0.30)
+                            : Colors.white.withValues(alpha: 0.10),
+                        border: Border.all(
+                          color: i == _selectedIndex
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.30),
+                          width: i == _selectedIndex ? 2.5 : 1,
+                        ),
+                        boxShadow: i == _selectedIndex
+                            ? [
+                                BoxShadow(
+                                  color: Colors.white.withValues(alpha: 0.45),
+                                  blurRadius: 14,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Icon(
+                        _styleFor(i).icon,
+                        size: 18,
+                        color: currentIndex >= 0 && i <= currentIndex
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.45),
+                      ),
+                    ),
                   ),
-                ),
-                child: Icon(
-                  _styleFor(i).icon,
-                  size: 18,
-                  color: currentIndex >= 0 && i <= currentIndex
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.5),
                 ),
               ),
             ),
             if (i != levels.length - 1)
               Expanded(
-                child: Container(
-                  height: 2,
-                  color: currentIndex >= 0 && i < currentIndex
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.28),
+                child: Stack(
+                  alignment: Alignment.centerLeft,
+                  children: [
+                    Container(height: 2, color: Colors.white.withValues(alpha: 0.22)),
+                    // 已達成的段落用實白，並讓它從左邊長出來。
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(
+                        begin: 0,
+                        end: currentIndex >= 0 && i < currentIndex ? 1.0 : 0.0,
+                      ),
+                      duration: Motion.large,
+                      curve: Motion.emphasized,
+                      builder: (_, value, _) => FractionallySizedBox(
+                        widthFactor: value,
+                        alignment: Alignment.centerLeft,
+                        child: Container(height: 2, color: Colors.white),
+                      ),
+                    ),
+                  ],
                 ),
               ),
           ],
@@ -442,71 +484,52 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                 child: Text(
                   reached
                       ? '已解鎖「${level.levelName}」'
-                      : '再 $remaining 點解鎖「${level.levelName}」',
+                      : '再 $remaining 點即可解鎖「${level.levelName}」',
                   style: TextStyle(
-                    fontSize: 15,
-                    height: 1.4,
-                    fontWeight: FontWeight.bold,
-                    color: c.textPrimary,
+                    fontSize: 14,
+                    height: 1.45,
+                    color: c.textSecondary,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                decoration: BoxDecoration(
-                  color: style.accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(9),
-                ),
-                child: Text(
-                  '${(progress * 100).round()}%',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: style.accent,
-                  ),
-                ),
-              ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right_rounded, size: 20, color: c.iconInactive),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: _info.points.toDouble()),
+            duration: const Duration(milliseconds: 1100),
+            curve: Curves.easeOutCubic,
+            builder: (context, animated, _) => Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '${animated.round()}',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      height: 1.1,
+                      color: c.textPrimary,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' / ${level.minPoints}',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: c.textHint,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           _ProgressTrack(
             progress: progress,
             color: style.accent,
             track: c.inputFill,
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                '$floor',
-                style: TextStyle(fontSize: 11, color: c.textHint),
-              ),
-              const Spacer(),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '${_info.points}',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        color: style.accent,
-                      ),
-                    ),
-                    TextSpan(
-                      text: ' / ${level.minPoints} 點',
-                      style: TextStyle(fontSize: 12, color: c.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '${level.minPoints}',
-                style: TextStyle(fontSize: 11, color: c.textHint),
-              ),
-            ],
           ),
         ],
       );
@@ -661,67 +684,40 @@ class _ProgressTrack extends StatelessWidget {
     required this.progress,
     required this.color,
     required this.track,
-    this.height = 12,
+    this.height = 8,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: progress),
-      duration: const Duration(milliseconds: 950),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, _) => LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final filled = (width * value).clamp(0.0, width);
-
-          return SizedBox(
-            height: height + 6,
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                Container(
-                  height: height,
-                  decoration: BoxDecoration(
-                    color: track,
-                    borderRadius: BorderRadius.circular(height / 2),
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: progress.clamp(0.0, 1.0)),
+          duration: const Duration(milliseconds: 1100),
+          curve: Curves.easeOutCubic,
+          builder: (context, value, _) => Stack(
+            children: [
+              Container(
+                width: width,
+                height: height,
+                decoration: BoxDecoration(
+                  color: track,
+                  borderRadius: BorderRadius.circular(height / 2),
                 ),
-                Container(
-                  width: filled,
-                  height: height,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [color.withValues(alpha: 0.75), color],
-                    ),
-                    borderRadius: BorderRadius.circular(height / 2),
-                  ),
+              ),
+              Container(
+                width: width * value,
+                height: height,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(height / 2),
                 ),
-                if (value > 0.02)
-                  Positioned(
-                    left: (filled - (height + 6) / 2).clamp(0.0, width - (height + 6)),
-                    child: Container(
-                      width: height + 6,
-                      height: height + 6,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: color, width: 3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: color.withValues(alpha: 0.35),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
