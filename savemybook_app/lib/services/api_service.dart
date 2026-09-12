@@ -359,7 +359,7 @@ class ApiService {
     final res = await _send('GET', '/books/$bookId/share-link');
     if (res == null) return (null, S.couldNotReachServer);
     if (res['success'] != true) {
-      return (null, res['message'] as String? ?? AppLabels.loadFailed);
+      return (null, res['message'] as String? ?? S.loadFailed);
     }
     return (res['data']?['url'] as String?, null);
   }
@@ -1085,7 +1085,7 @@ class ApiService {
     final res = await _send('POST', '/admin/members/$userId/reset-password');
     if (res == null) return (null, S.pleaseSignFirst);
     if (res['success'] != true) {
-      return (null, res['message'] as String? ?? AppLabels.updateFailed);
+      return (null, res['message'] as String? ?? S.updateFailed);
     }
     return (res['data']?['temp_password'] as String?, null);
   }
@@ -1094,7 +1094,7 @@ class ApiService {
   Future<String?> updateAdminBook(int bookId, Map<String, dynamic> fields) async {
     final res = await _send('PUT', '/admin/books/$bookId', body: fields);
     if (res == null) return S.pleaseSignFirst;
-    return res['success'] == true ? null : (res['message'] as String? ?? AppLabels.updateFailed);
+    return res['success'] == true ? null : (res['message'] as String? ?? S.updateFailed);
   }
 
   Future<AdminOrderDetail?> fetchAdminOrder(int orderId) async {
