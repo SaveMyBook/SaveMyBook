@@ -3,6 +3,7 @@ import '../models/book.dart';
 import '../models/category.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/guards.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
@@ -32,6 +33,13 @@ class _EditBookScreenState extends State<EditBookScreen> {
   int? _categoryId;
   bool _isLoading = true;
 
+  // Book 這個 model 會把空欄位填成「未知作者」這類佔位字，initState 已經
+  // 還原成空字串。比對要用還原後的值，不然一進畫面就被當成改過了。
+  late final String _initialIsbn;
+  late final String _initialAuthor;
+  late final String _initialPublisher;
+  DateTime? _initialDate;
+
   @override
   void initState() {
     super.initState();
@@ -41,7 +49,12 @@ class _EditBookScreenState extends State<EditBookScreen> {
     _authorController = TextEditingController(text: book.author == S.unknownAuthor ? '' : book.author);
     _publisherController = TextEditingController(text: book.publisher == S.unknownPublisher ? '' : book.publisher);
 
+    _initialIsbn = _isbnController.text;
+    _initialAuthor = _authorController.text;
+    _initialPublisher = _publisherController.text;
+
     _publishDate = DateTime.tryParse(book.publishDate.replaceAll('/', '-'));
+    _initialDate = _publishDate;
 
     _categoryId = book.categoryId;
     _loadCategories();
@@ -121,11 +134,21 @@ class _EditBookScreenState extends State<EditBookScreen> {
     );
   }
 
+  /// 跟進來時的值比對；沒改過就不要在返回時多問一句。
+  bool get _isDirty => _titleController.text != widget.book.title ||
+      _authorController.text.trim() != _initialAuthor ||
+      _publisherController.text.trim() != _initialPublisher ||
+      _isbnController.text.trim() != _initialIsbn ||
+      _categoryId != widget.book.categoryId ||
+      _publishDate != _initialDate;
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    return Scaffold(
+    return UnsavedGuard(
+      isDirty: _isDirty,
+      child: Scaffold(
       backgroundColor: c.scaffold,
       body: Column(
         children: [
@@ -203,6 +226,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 }

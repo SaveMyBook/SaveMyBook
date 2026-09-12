@@ -3,6 +3,7 @@ import '../models/support.dart';
 import '../services/api_service.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
+import '../widgets/guards.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_buttons.dart';
 import '../widgets/app_dialogs.dart';
@@ -210,11 +211,16 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
     Navigator.pop(context, true);
   }
 
+  /// 工單內容通常是一整段描述，誤觸返回等於重打。
+  bool get _isDirty => _subjectController.text.trim().isNotEmpty || _contentController.text.trim().isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    return Scaffold(
+    return UnsavedGuard(
+      isDirty: _isDirty,
+      child: Scaffold(
       backgroundColor: c.scaffold,
       body: Column(
         children: [
@@ -275,6 +281,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 }

@@ -9,6 +9,7 @@ import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/guards.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
@@ -399,19 +400,6 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
 
   // ---------- 儲存 ----------
 
-  /// 條款動輒上千字，改到一半誤觸返回等於全部重打。
-  Future<bool> _confirmLeave() async {
-    if (!_dirty) return true;
-    return showConfirmDialog(
-      context,
-      title: S.discardChanges,
-      message: S.documentUnsavedChangesTheyLostIf,
-      confirmLabel: S.discard,
-      cancelLabel: S.keepEditing,
-      isDestructive: true,
-    );
-  }
-
   Future<void> _save() async {
     final title = _titleController.text.trim();
     final content = _content;
@@ -477,15 +465,10 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    return PopScope(
-      canPop: !_dirty,
-      onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
-        if (await _confirmLeave() && mounted) {
-          if (!mounted) return;
-          Navigator.pop(context);
-        }
-      },
+    // 條款動輒上千字，改到一半誤觸返回等於全部重打。
+    return UnsavedGuard(
+      isDirty: _dirty,
+      message: S.documentUnsavedChangesTheyLostIf,
       child: Scaffold(
         backgroundColor: c.scaffold,
         body: Column(

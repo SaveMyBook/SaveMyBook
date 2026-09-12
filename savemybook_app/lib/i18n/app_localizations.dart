@@ -1073,6 +1073,16 @@ abstract class AppLocalizations {
   String get approved;
   String get awaitingRefund;
   String get declined;
+  String get changeOwnPasswordGoSettingsChange;
+  String get memberNotAdminSoThereNo;
+  String get you;
+  String isbnMust1013DigitsOne(Object p0);
+  String get screenUnsavedChangesTheyLostIf;
+  String stillNeededP0(Object p0);
+  String photosP0(Object p0);
+  String get confirmListing;
+  String get lookingUpBook;
+  String get scan;
 }
 
 class _LEn extends AppLocalizations {
@@ -4227,6 +4237,36 @@ class _LEn extends AppLocalizations {
 
   @override
   String get declined => 'Declined';
+
+  @override
+  String get changeOwnPasswordGoSettingsChange => 'To change your own password, go to Settings → Change password';
+
+  @override
+  String get memberNotAdminSoThereNo => 'This member is not an admin, so there are no admin permissions to set. Change their role above first.';
+
+  @override
+  String get you => 'You';
+
+  @override
+  String isbnMust1013DigitsOne(Object p0) => 'ISBN must be 10 or 13 digits; this one has ${p0}';
+
+  @override
+  String get screenUnsavedChangesTheyLostIf => 'This screen has unsaved changes. They are lost if you leave.';
+
+  @override
+  String stillNeededP0(Object p0) => 'Still needed: ${p0}';
+
+  @override
+  String photosP0(Object p0) => 'Photos: ${p0}';
+
+  @override
+  String get confirmListing => 'Confirm listing';
+
+  @override
+  String get lookingUpBook => 'Looking up the book';
+
+  @override
+  String get scan => 'Scan';
 
 }
 
@@ -7383,6 +7423,36 @@ class _LJa extends AppLocalizations {
   @override
   String get declined => '返金不可';
 
+  @override
+  String get changeOwnPasswordGoSettingsChange => '自分のパスワードは「設定 → パスワード変更」から変更してください';
+
+  @override
+  String get memberNotAdminSoThereNo => 'この会員は管理者ではないため、設定できる管理権限がありません。先に上で役割を管理者に変更してください。';
+
+  @override
+  String get you => '自分';
+
+  @override
+  String isbnMust1013DigitsOne(Object p0) => 'ISBNは10桁か13桁です。現在は${p0}桁です';
+
+  @override
+  String get screenUnsavedChangesTheyLostIf => 'この画面には未保存の変更があります。離れると失われます。';
+
+  @override
+  String stillNeededP0(Object p0) => 'あと ${p0}';
+
+  @override
+  String photosP0(Object p0) => '写真：${p0}枚';
+
+  @override
+  String get confirmListing => '出品を確認';
+
+  @override
+  String get lookingUpBook => '書籍情報を検索中';
+
+  @override
+  String get scan => 'スキャン';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -10537,6 +10607,36 @@ class _LKo extends AppLocalizations {
 
   @override
   String get declined => '환불 거절';
+
+  @override
+  String get changeOwnPasswordGoSettingsChange => '본인 비밀번호는 설정 → 비밀번호 변경에서 바꾸세요';
+
+  @override
+  String get memberNotAdminSoThereNo => '이 회원은 관리자가 아니므로 설정할 관리자 권한이 없습니다. 위에서 역할을 관리자로 먼저 변경하세요.';
+
+  @override
+  String get you => '본인';
+
+  @override
+  String isbnMust1013DigitsOne(Object p0) => 'ISBN은 10자리 또는 13자리여야 합니다. 현재 ${p0}자리입니다';
+
+  @override
+  String get screenUnsavedChangesTheyLostIf => '이 화면에 저장하지 않은 변경 사항이 있습니다. 나가면 사라집니다.';
+
+  @override
+  String stillNeededP0(Object p0) => '남은 항목: ${p0}';
+
+  @override
+  String photosP0(Object p0) => '사진: ${p0}장';
+
+  @override
+  String get confirmListing => '등록 확인';
+
+  @override
+  String get lookingUpBook => '도서 정보 조회 중';
+
+  @override
+  String get scan => '스캔';
 
 }
 
@@ -13693,6 +13793,36 @@ class _LZh extends AppLocalizations {
   @override
   String get declined => '不予退款';
 
+  @override
+  String get changeOwnPasswordGoSettingsChange => '要改自己的密碼請到「設定 → 更改密碼」';
+
+  @override
+  String get memberNotAdminSoThereNo => '這位會員不是管理員，沒有後台權限可以設定。先在上方把身分改成管理員。';
+
+  @override
+  String get you => '你自己';
+
+  @override
+  String isbnMust1013DigitsOne(Object p0) => 'ISBN 要 10 或 13 碼，目前 ${p0} 碼';
+
+  @override
+  String get screenUnsavedChangesTheyLostIf => '這個畫面有尚未儲存的修改，離開後會遺失。';
+
+  @override
+  String stillNeededP0(Object p0) => '還差：${p0}';
+
+  @override
+  String photosP0(Object p0) => '照片：${p0} 張';
+
+  @override
+  String get confirmListing => '確認上架';
+
+  @override
+  String get lookingUpBook => '查詢書籍資料中';
+
+  @override
+  String get scan => '掃描';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -16848,6 +16978,36 @@ class _LZhHans extends AppLocalizations {
   @override
   String get declined => '不予退款';
 
+  @override
+  String get changeOwnPasswordGoSettingsChange => '要改自己的密码请到“设置 → 更改密码”';
+
+  @override
+  String get memberNotAdminSoThereNo => '这位会员不是管理员，没有后台权限可以设置。先在上方把身份改成管理员。';
+
+  @override
+  String get you => '你自己';
+
+  @override
+  String isbnMust1013DigitsOne(Object p0) => 'ISBN 要 10 或 13 位，目前 ${p0} 位';
+
+  @override
+  String get screenUnsavedChangesTheyLostIf => '这个界面有尚未保存的修改，离开后会丢失。';
+
+  @override
+  String stillNeededP0(Object p0) => '还差：${p0}';
+
+  @override
+  String photosP0(Object p0) => '照片：${p0} 张';
+
+  @override
+  String get confirmListing => '确认上架';
+
+  @override
+  String get lookingUpBook => '查询书籍资料中';
+
+  @override
+  String get scan => '扫描';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -20002,6 +20162,36 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get declined => '不予退款';
+
+  @override
+  String get changeOwnPasswordGoSettingsChange => '要改自己的密碼請到「設定 → 更改密碼」';
+
+  @override
+  String get memberNotAdminSoThereNo => '這位會員不是管理員，沒有後台權限可以設定。先在上方把身分改成管理員。';
+
+  @override
+  String get you => '你自己';
+
+  @override
+  String isbnMust1013DigitsOne(Object p0) => 'ISBN 要 10 或 13 碼，目前 ${p0} 碼';
+
+  @override
+  String get screenUnsavedChangesTheyLostIf => '這個畫面有尚未儲存的修改，離開後會遺失。';
+
+  @override
+  String stillNeededP0(Object p0) => '還差：${p0}';
+
+  @override
+  String photosP0(Object p0) => '照片：${p0} 張';
+
+  @override
+  String get confirmListing => '確認上架';
+
+  @override
+  String get lookingUpBook => '查詢書籍資料中';
+
+  @override
+  String get scan => '掃描';
 
 }
 

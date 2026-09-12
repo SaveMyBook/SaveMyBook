@@ -1714,5 +1714,30 @@
   "shareAnotherApp": "分享到其他 App",
   "approved": "已核准",
   "awaitingRefund": "待退款",
-  "declined": "不予退款"
+  "declined": "不予退款",
+  "changeOwnPasswordGoSettingsChange": "要改自己的密碼請到「設定 → 更改密碼」",
+  "memberNotAdminSoThereNo": "這位會員不是管理員，沒有後台權限可以設定。先在上方把身分改成管理員。",
+  "you": "你自己",
+  "isbnMust1013DigitsOne": "ISBN 要 10 或 13 碼，目前 {p0} 碼",
+  "@isbnMust1013DigitsOne": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "screenUnsavedChangesTheyLostIf": "這個畫面有尚未儲存的修改，離開後會遺失。",
+  "stillNeededP0": "還差：{p0}",
+  "@stillNeededP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "photosP0": "照片：{p0} 張",
+  "@photosP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmListing": "確認上架",
+  "lookingUpBook": "查詢書籍資料中",
+  "scan": "掃描"
 }

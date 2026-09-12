@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/photo_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/guards.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
@@ -133,12 +134,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  /// 跟載入時的值比對。沒動過就不要在返回時多問一句。
+  /// 頭像是即時上傳的，不算在這裡。
+  bool get _isDirty {
+    final user = ApiService.currentUser;
+    return _nicknameController.text != (user?.nickname ?? '') ||
+        _bioController.text != (user?.bio ?? '') ||
+        _phoneController.text != (user?.phone ?? '') ||
+        _birthday != user?.birthday;
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final avatarUrl = ApiService.currentUser?.avatarUrl;
 
-    return Scaffold(
+    return UnsavedGuard(
+      isDirty: _isDirty,
+      child: Scaffold(
       backgroundColor: c.scaffold,
       body: Column(
         children: [
@@ -233,6 +246,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 }

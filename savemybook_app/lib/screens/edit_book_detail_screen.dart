@@ -7,6 +7,7 @@ import '../services/photo_service.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/guards.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
@@ -61,10 +62,13 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
 
+  late final String _initialPrice;
+
   @override
   void initState() {
     super.initState();
     _priceController = TextEditingController(text: widget.book.price.toStringAsFixed(0));
+    _initialPrice = _priceController.text;
     _condition = widget.book.conditionLevel;
     _cabinetId = widget.book.cabinetId;
     _distributeImages(widget.book.images);
@@ -299,11 +303,19 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
     }
   }
 
+  /// 換過照片或改過價格就別讓返回鍵直接吃掉。
+  /// 刪照片在 _clearSlot 當下就送出去了，不算未存的修改；
+  /// 只有價格與還沒上傳的新照片需要攔。
+  bool get _isDirty =>
+      _priceController.text != _initialPrice || _slotNew.any((f) => f != null);
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    return Scaffold(
+    return UnsavedGuard(
+      isDirty: _isDirty,
+      child: Scaffold(
       backgroundColor: c.scaffold,
       body: Column(
         children: [
@@ -398,6 +410,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 

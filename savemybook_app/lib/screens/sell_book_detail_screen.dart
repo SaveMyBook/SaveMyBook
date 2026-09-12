@@ -7,6 +7,10 @@ import '../services/photo_service.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/app_dialogs.dart';
+import '../widgets/guards.dart';
+import '../widgets/state_views.dart';
 import 'home_screen.dart';
 import '../utils/app_labels.dart';
 import '../utils/motion.dart';
@@ -43,6 +47,12 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
 
   List<Map<String, dynamic>> _cabinets = [];
   bool _isLoadingCabinets = true;
+
+  /// 上傳中不讓再按一次。原本按鈕永遠是啟用的，連點兩下就會上架兩本。
+  bool _isSubmitting = false;
+
+  /// 上架成功後畫面會被整個換掉，這時不該再問「要不要捨棄」。
+  bool _submitted = false;
 
   /// 前三格是固定欄位（封面／背面／條碼），點哪一格就放哪一格，
   /// 不能用單一 List append，否則點第三格的照片會被塞到第二格去。
@@ -151,23 +161,31 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       index < _requiredLabels.length ? _requiredLabels[index] : S.morePhotos;
 
   void _showAlertDialog(String title, String content) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(S.actionConfirm, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
+    showConfirmDialog(context, title: title, message: content, confirmLabel: S.actionConfirm);
   }
 
+  /// 還沒填完的必填項，列在送出鍵上方。
+  List<String> get _missing {
+    final price = double.tryParse(_priceController.text.trim());
+    return [
+      for (var i = 0; i < _slots.length; i++)
+        if (_slots[i] == null) _requiredLabels[i],
+      if (price == null || price <= 0) S.customPrice,
+      if (_selectedCabinet == null) S.lockerLocation,
+    ];
+  }
+
+  bool get _isDirty =>
+      !_submitted &&
+      (_filledRequired > 0 ||
+      _extra.isNotEmpty ||
+      _priceController.text.trim().isNotEmpty ||
+      _selectedCabinet != null);
+
   Future<void> _submitForm() async {
+    // 第一道：上傳期間再按也不會進來。
+    if (_isSubmitting) return;
+
     if (_filledRequired < _requiredLabels.length) {
       final missing = [
         for (var i = 0; i < _slots.length; i++)
@@ -194,11 +212,30 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       return;
     }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+    // 上架之後商品就公開了，送出前把最後會寫進去的內容攤開來讓人確認一次。
+    final cabinetName = _cabinets
+        .firstWhere((cab) => cab['cabinet_id'] == _selectedCabinet,
+            orElse: () => const <String, dynamic>{})['cabinet_name'] as String? ??
+        '';
+    // 逐項先組好，訊息本身才是一條單純的字串——拆成相鄰常值併接的話
+    // 抽字串的工具會把它切斷。
+    final summary = [
+      '${S.customPrice}：\$${price.toStringAsFixed(0)}',
+      '${S.condition}：${AppLabels.conditionOf(_condition)}',
+      '${S.lockerLocation}：$cabinetName',
+      S.photosP0(_totalImages),
+    ].join('\n');
+
+    final confirmed = await showConfirmDialog(
+      context,
+      title: S.confirmListing,
+      message: '${widget.title}\n\n$summary',
+      confirmLabel: S.listBook,
+      icon: Icons.publish_rounded,
     );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _isSubmitting = true);
 
     try {
       final uri = Uri.parse('${ApiService.baseUrl}/books');
@@ -229,12 +266,11 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       final response = await http.Response.fromStream(streamedResponse);
 
       if (!mounted) return;
-      Navigator.pop(context);
+      setState(() => _isSubmitting = false);
 
       if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.listed2), backgroundColor: Colors.green),
-        );
+        _submitted = true;
+        showAppSnackBar(context, S.listed2);
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
             pageBuilder: (_, _, _) => const HomeScreen(),
@@ -254,7 +290,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(context);
+      setState(() => _isSubmitting = false);
       _showAlertDialog(S.connectionProblem, S.couldNotReachServerUploadTimed);
     }
   }
@@ -263,7 +299,9 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    return Scaffold(
+    return UnsavedGuard(
+      isDirty: _isDirty,
+      child: Scaffold(
       backgroundColor: c.scaffold,
       body: Column(
         children: [
@@ -281,18 +319,13 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                   _buildCardRow(c, S.customPrice, _buildInput(c, _priceController, TextInputType.number), isRequired: true),
                   const SizedBox(height: 16),
                   _buildCardRow(c, S.lockerLocation, _buildCabinetDropdown(c), isRequired: true),
-                  const SizedBox(height: 40),
-                  SizedBox(
-                    width: double.infinity, height: 50,
-                    child: ElevatedButton(
-                      onPressed: _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: c.accent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      child: Text(S.listBook, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
+                  const SizedBox(height: 32),
+                  MissingHint(missing: _missing),
+                  PrimaryButton(
+                    label: S.listBook,
+                    height: 50,
+                    isLoading: _isSubmitting,
+                    onPressed: _submitForm,
                   ),
                   const SizedBox(height: 80),
                 ],
@@ -300,6 +333,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -322,13 +356,20 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add_box_outlined, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
-                    Text(S.detailsPhotos, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Icon(Icons.add_box_outlined, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text(S.detailsPhotos, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
-              const SizedBox(width: 48),
+              SizedBox(
+                width: 48,
+                child: Text(
+                  '2 / 2',
+                  textAlign: TextAlign.end,
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+              ),
             ],
           ),
         ),

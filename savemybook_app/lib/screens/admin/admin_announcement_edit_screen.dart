@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/guards.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
@@ -31,6 +32,9 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
   late bool _isPublished;
   bool _isSaving = false;
 
+  late final String _initialTitle;
+  late final String _initialContent;
+
   bool get _isEdit => widget.announcement != null;
 
   @override
@@ -39,6 +43,8 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
     final announcement = widget.announcement;
     _titleController = TextEditingController(text: announcement?.title ?? '');
     _contentController = TextEditingController(text: announcement?.content ?? '');
+    _initialTitle = _titleController.text;
+    _initialContent = _contentController.text;
     _type = announcement?.type ?? 'general';
     _isPublished = announcement?.isPublished ?? false;
   }
@@ -98,11 +104,16 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
     }
   }
 
+  /// 公告內容是一整段文字，誤觸返回等於重打。
+  bool get _isDirty => _titleController.text != _initialTitle || _contentController.text != _initialContent;
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    return Scaffold(
+    return UnsavedGuard(
+      isDirty: _isDirty,
+      child: Scaffold(
       backgroundColor: c.scaffold,
       body: Column(
         children: [
@@ -183,6 +194,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
           ),
         ],
       ),
+    ),
     );
   }
 }

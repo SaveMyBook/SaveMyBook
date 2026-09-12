@@ -1714,5 +1714,30 @@
   "shareAnotherApp": "Share to another app",
   "approved": "Approved",
   "awaitingRefund": "Awaiting refund",
-  "declined": "Declined"
+  "declined": "Declined",
+  "changeOwnPasswordGoSettingsChange": "To change your own password, go to Settings → Change password",
+  "memberNotAdminSoThereNo": "This member is not an admin, so there are no admin permissions to set. Change their role above first.",
+  "you": "You",
+  "isbnMust1013DigitsOne": "ISBN must be 10 or 13 digits; this one has {p0}",
+  "@isbnMust1013DigitsOne": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "screenUnsavedChangesTheyLostIf": "This screen has unsaved changes. They are lost if you leave.",
+  "stillNeededP0": "Still needed: {p0}",
+  "@stillNeededP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "photosP0": "Photos: {p0}",
+  "@photosP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmListing": "Confirm listing",
+  "lookingUpBook": "Looking up the book",
+  "scan": "Scan"
 }

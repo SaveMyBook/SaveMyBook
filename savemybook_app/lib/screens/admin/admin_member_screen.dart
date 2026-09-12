@@ -8,6 +8,7 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/guards.dart';
 import '../../widgets/state_views.dart';
 import 'admin_member_detail_screen.dart';
 import '../../utils/app_labels.dart';
@@ -112,30 +113,40 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             ),
             Text(member.email, style: TextStyle(fontSize: 12, color: c.textSecondary)),
             const SizedBox(height: 8),
-            ListTile(
-              leading: Icon(
-                member.isActive ? Icons.block_rounded : Icons.check_circle_outline_rounded,
-                color: member.isActive ? c.danger : c.success,
+            // 自己的帳號伺服器會擋下來。與其讓它送出去換一句錯誤訊息，
+            // 不如在這裡就說清楚為什麼不能按。
+            DisabledHint(
+              disabled: _isSelf(member),
+              reason: S.ownAccountStatusPermissionsCannotChanged,
+              child: ListTile(
+                leading: Icon(
+                  member.isActive ? Icons.block_rounded : Icons.check_circle_outline_rounded,
+                  color: member.isActive ? c.danger : c.success,
+                ),
+                title: Text(member.isActive ? S.suspendAccount : S.reinstateAccount2, style: TextStyle(color: c.textPrimary)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _toggle(member, isActive: !member.isActive);
+                },
               ),
-              title: Text(member.isActive ? S.suspendAccount : S.reinstateAccount2, style: TextStyle(color: c.textPrimary)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _toggle(member, isActive: !member.isActive);
-              },
             ),
-            ListTile(
-              leading: Icon(
-                Icons.gpp_bad_outlined,
-                color: member.isBlacklisted ? c.success : c.danger,
+            DisabledHint(
+              disabled: _isSelf(member),
+              reason: S.ownAccountStatusPermissionsCannotChanged,
+              child: ListTile(
+                leading: Icon(
+                  Icons.gpp_bad_outlined,
+                  color: member.isBlacklisted ? c.success : c.danger,
+                ),
+                title: Text(
+                  member.isBlacklisted ? S.removeFromBlocklist : S.addBlocklist,
+                  style: TextStyle(color: c.textPrimary),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _toggle(member, isBlacklisted: !member.isBlacklisted);
+                },
               ),
-              title: Text(
-                member.isBlacklisted ? S.removeFromBlocklist : S.addBlocklist,
-                style: TextStyle(color: c.textPrimary),
-              ),
-              onTap: () {
-                Navigator.pop(ctx);
-                _toggle(member, isBlacklisted: !member.isBlacklisted);
-              },
             ),
             ListTile(
               leading: Icon(Icons.manage_accounts_outlined, color: c.accent),
@@ -242,17 +253,17 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
                         ),
                         const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: c.accent.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            member.role == 'admin' ? S.roleAdmin : S.roleBuyerSeller,
-                            style: const TextStyle(fontSize: 10, color: AppColors.primary),
-                          ),
+                        // 管理員與一般會員原本是同一個底色，看不出差別；但管理員
+                        // 很多操作是擋住的，得先認得出來才不會以為是壞了。
+                        _tag(
+                          member.role == 'admin' ? S.roleAdmin : S.roleBuyerSeller,
+                          member.role == 'admin' ? c.warning : c.accent,
+                          icon: member.role == 'admin' ? Icons.shield_outlined : null,
                         ),
+                        if (_isSelf(member)) ...[
+                          const SizedBox(width: 4),
+                          _tag(S.you, c.textHint),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 3),
@@ -287,6 +298,28 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
               _info(S.created, formatDate(member.createdAt), c),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  bool _isSelf(AdminMember member) => member.userId == ApiService.currentUser?.userId;
+
+  Widget _tag(String label, Color tint, {IconData? icon}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: tint.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 10, color: tint),
+            const SizedBox(width: 3),
+          ],
+          Text(label, style: TextStyle(fontSize: 10, color: tint)),
         ],
       ),
     );

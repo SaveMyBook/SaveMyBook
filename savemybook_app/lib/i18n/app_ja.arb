@@ -1714,5 +1714,30 @@
   "shareAnotherApp": "他のアプリで共有",
   "approved": "承認済み",
   "awaitingRefund": "返金待ち",
-  "declined": "返金不可"
+  "declined": "返金不可",
+  "changeOwnPasswordGoSettingsChange": "自分のパスワードは「設定 → パスワード変更」から変更してください",
+  "memberNotAdminSoThereNo": "この会員は管理者ではないため、設定できる管理権限がありません。先に上で役割を管理者に変更してください。",
+  "you": "自分",
+  "isbnMust1013DigitsOne": "ISBNは10桁か13桁です。現在は{p0}桁です",
+  "@isbnMust1013DigitsOne": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "screenUnsavedChangesTheyLostIf": "この画面には未保存の変更があります。離れると失われます。",
+  "stillNeededP0": "あと {p0}",
+  "@stillNeededP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "photosP0": "写真：{p0}枚",
+  "@photosP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmListing": "出品を確認",
+  "lookingUpBook": "書籍情報を検索中",
+  "scan": "スキャン"
 }

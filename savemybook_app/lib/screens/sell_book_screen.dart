@@ -1,10 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../models/category.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
+import '../widgets/guards.dart';
+import '../widgets/state_views.dart';
 import 'barcode_scanner_screen.dart';
 import 'sell_book_detail_screen.dart';
 import '../i18n/strings.dart';
@@ -84,19 +89,21 @@ class _SellBookScreenState extends State<SellBookScreen> {
     );
   }
 
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: AppColors.of(context).danger, behavior: SnackBarBehavior.floating),
-    );
-  }
+  void _showError(String msg) => showAppSnackBar(context, msg, isError: true);
 
-  void _showSuccess(String msg) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.green, behavior: SnackBarBehavior.floating),
-    );
-  }
+  void _showSuccess(String msg) => showAppSnackBar(context, msg);
+
+  /// 還沒填完的必填項。列在送出鍵上方，不用按下去撞牆才知道。
+  List<String> get _missing => [
+        if (_titleController.text.trim().isEmpty) S.title,
+        if (_selectedCategory == null) S.category,
+      ];
+
+  bool get _isDirty =>
+      _selectedCategory != null ||
+      _selectedDate != null ||
+      [_isbnController, _titleController, _authorController, _publisherController, _descriptionController]
+          .any((ctl) => ctl.text.trim().isNotEmpty);
 
   Future<void> _onScanISBN() async {
     final result = await Navigator.push<String>(
@@ -110,32 +117,28 @@ class _SellBookScreenState extends State<SellBookScreen> {
   }
 
   Future<void> _fetchBookInfoByIsbn(String isbn) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-    );
-
-    final bookData = await ApiService().fetchBookByIsbn(isbn);
-
-    if (bookData != null) {
-      if (mounted) Navigator.pop(context);
-      _fillBookData(bookData);
-      _showSuccess(S.bookDetailsFilledAutomatically);
+    // ISBN 只有 10 或 13 碼。長度不對就直接擋下，不用白跑兩支外部 API。
+    if (isbn.length != 10 && isbn.length != 13) {
+      _showError(S.isbnMust1013DigitsOne(isbn.length));
       return;
     }
 
-    final backupData = await _fetchFromBackupApi(isbn);
+    final result = await runBusy(context, () async {
+      final primary = await ApiService().fetchBookByIsbn(isbn);
+      if (primary != null) return (primary, true);
+      return (await _fetchFromBackupApi(isbn), false);
+    }, message: S.lookingUpBook);
+    if (!mounted || result == null) return;
 
-    if (!mounted) return;
-    Navigator.pop(context);
-
-    if (backupData != null) {
-      _fillBookData(backupData);
-      _showSuccess(S.bookDetailsFilledFromBackupSource);
-    } else {
+    final (data, fromPrimary) = result;
+    if (data == null) {
       _showError(S.noSourceIsbnPleaseEnterDetails);
+      return;
     }
+    _fillBookData(data);
+    _showSuccess(fromPrimary
+        ? S.bookDetailsFilledAutomatically
+        : S.bookDetailsFilledFromBackupSource);
   }
 
   void _fillBookData(Map<String, dynamic> bookData) {
@@ -188,7 +191,9 @@ class _SellBookScreenState extends State<SellBookScreen> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    return Scaffold(
+    return UnsavedGuard(
+      isDirty: _isDirty,
+      child: Scaffold(
       backgroundColor: c.scaffold,
       body: Column(
         children: [
@@ -208,6 +213,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
           ),
         ],
       ),
+      ),
     );
   }
 
@@ -220,6 +226,13 @@ class _SellBookScreenState extends State<SellBookScreen> {
               child: TextField(
                 controller: _isbnController,
                 keyboardType: TextInputType.number,
+                // ISBN 只有數字。不擋的話輸入法上的連字號跟空白會一起進來，
+                // 查詢必定落空，使用者卻看不出是自己打錯。
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(13),
+                ],
+                textInputAction: TextInputAction.search,
                 style: TextStyle(fontSize: 15, color: c.textPrimary),
                 decoration: InputDecoration(
                   isDense: true,
@@ -229,19 +242,38 @@ class _SellBookScreenState extends State<SellBookScreen> {
                   filled: true, fillColor: c.inputFill,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                 ),
+                onChanged: (_) => setState(() {}),
                 onSubmitted: (val) {
-                  if (val.isNotEmpty) _fetchBookInfoByIsbn(val);
+                  if (val.isNotEmpty) _fetchBookInfoByIsbn(val.trim());
                 },
               ),
             ),
-            const SizedBox(width: 10),
-            GestureDetector(
+            const SizedBox(width: 8),
+            PressableScale(
               onTap: _onScanISBN,
-              child: Icon(Icons.qr_code_scanner_rounded, size: 28, color: c.textPrimary),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                decoration: BoxDecoration(
+                  color: c.accent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.qr_code_scanner_rounded, size: 18, color: c.accent),
+                    const SizedBox(width: 5),
+                    Text(
+                      S.scan,
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.accent),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         )),
-        _buildFieldRow(c, label: S.title, isRequired: true, child: _buildInput(c, _titleController)),
+        _buildFieldRow(c, label: S.title, isRequired: true,
+            child: _buildInput(c, _titleController, onChanged: (_) => setState(() {}))),
         _buildFieldRow(c, label: S.author2, child: _buildInput(c, _authorController)),
         _buildFieldRow(c, label: S.publisher2, child: _buildInput(c, _publisherController)),
         _buildFieldRow(
@@ -256,7 +288,8 @@ class _SellBookScreenState extends State<SellBookScreen> {
         ),
         _buildFieldRow(c, label: S.pickCategory, isRequired: true, child: _buildCategoryDropdown(c)),
         _buildFieldRow(c, label: S.description, child: _buildInput(c, _descriptionController, maxLines: 4)),
-        const SizedBox(height: 28),
+        const SizedBox(height: 24),
+        MissingHint(missing: _missing),
         SizedBox(
           width: double.infinity, height: 50,
           child: ElevatedButton(
@@ -269,7 +302,6 @@ class _SellBookScreenState extends State<SellBookScreen> {
             child: Text(S.next, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
           ),
         ),
-        const SizedBox(height: 16),
         const SizedBox(height: 120),
       ],
     );
@@ -300,13 +332,22 @@ class _SellBookScreenState extends State<SellBookScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add_box_outlined, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
-                    Text(S.sellBook, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Icon(Icons.add_box_outlined, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text(S.sellBook, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
-              const SizedBox(width: 32),
+              // 上架分兩步。不標的話使用者在第一步不知道還有第二步，
+              // 到了第二步也不知道還有多久結束。
+              SizedBox(
+                width: 32,
+                child: Text(
+                  '1 / 2',
+                  textAlign: TextAlign.end,
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+              ),
             ],
           ),
         ),
@@ -353,11 +394,13 @@ class _SellBookScreenState extends State<SellBookScreen> {
     );
   }
 
-  Widget _buildInput(AppColors c, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1}) {
+  Widget _buildInput(AppColors c, TextEditingController controller,
+      {TextInputType? keyboardType, int maxLines = 1, ValueChanged<String>? onChanged}) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
+      onChanged: onChanged,
       style: TextStyle(fontSize: 15, color: c.textPrimary),
       decoration: InputDecoration(
         isDense: true,
@@ -381,14 +424,17 @@ class _SellBookScreenState extends State<SellBookScreen> {
             value: _selectedCategory,
             isExpanded: true,
             icon: Icon(Icons.keyboard_arrow_down, color: c.iconInactive),
-            hint: Text('', style: TextStyle(color: c.textHint, fontSize: 15)),
+            hint: Text(S.actionSelect, style: TextStyle(color: c.textHint, fontSize: 15)),
             dropdownColor: c.card,
             borderRadius: BorderRadius.circular(12),
             style: TextStyle(fontSize: 15, color: c.textPrimary),
-            items: _isLoadingCategories
-                ? [DropdownMenuItem<Category>(value: null, child: Text(S.loading, style: TextStyle(color: c.textHint)))]
-                : _categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat.categoryName))).toList(),
-            onChanged: (val) => setState(() => _selectedCategory = val),
+            items: _categories
+                .map((cat) => DropdownMenuItem(value: cat, child: Text(cat.categoryName)))
+                .toList(),
+            // 載入中原本是塞一個假的「載入中…」選項，那是可以選的，選了等於
+            // 把分類設成 null。改成整個停用，並用 disabledHint 說明狀態。
+            onChanged: _isLoadingCategories ? null : (val) => setState(() => _selectedCategory = val),
+            disabledHint: Text(S.loading, style: TextStyle(color: c.textHint, fontSize: 15)),
           ),
         ),
       ),

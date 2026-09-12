@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../services/photo_service.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/guards.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
@@ -86,11 +87,16 @@ class _DisputeScreenState extends State<DisputeScreen> {
     Navigator.of(context).maybePop();
   }
 
+  /// 申訴理由打了一半、或已經挑了證據照片，就別讓返回鍵直接吃掉。
+  bool get _isDirty => _reasonController.text.trim().isNotEmpty || _evidence.isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    return Scaffold(
+    return UnsavedGuard(
+      isDirty: _isDirty,
+      child: Scaffold(
       backgroundColor: c.scaffold,
       body: Column(
         children: [
@@ -202,6 +208,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 

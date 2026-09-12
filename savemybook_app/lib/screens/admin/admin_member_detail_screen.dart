@@ -9,6 +9,7 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/guards.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
@@ -438,45 +439,63 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                 style: TextStyle(fontSize: 12, color: c.textHint),
               ),
             ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(S.accountEnabled, style: TextStyle(fontSize: 14, color: c.textPrimary)),
-            subtitle: Text(
-              detail.isActive ? S.canSignUseAppNormally : S.suspendedSignedOutImmediatelyAfterSigning,
-              style: TextStyle(fontSize: 11, color: c.textSecondary),
+          DisabledHint(
+            disabled: _isSelf,
+            reason: S.ownAccountStatusPermissionsCannotChanged,
+            child: SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(S.accountEnabled, style: TextStyle(fontSize: 14, color: c.textPrimary)),
+              subtitle: Text(
+                detail.isActive ? S.canSignUseAppNormally : S.suspendedSignedOutImmediatelyAfterSigning,
+                style: TextStyle(fontSize: 11, color: c.textSecondary),
+              ),
+              value: detail.isActive,
+              activeThumbColor: c.accent,
+              onChanged: _isBusy ? null : (_) => _toggleStatus(active: true),
             ),
-            value: detail.isActive,
-            activeThumbColor: c.accent,
-            onChanged: _isSelf || _isBusy ? null : (_) => _toggleStatus(active: true),
           ),
           Divider(color: c.divider, height: 1),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(S.blocked, style: TextStyle(fontSize: 14, color: c.textPrimary)),
-            subtitle: Text(
-              detail.isBlacklisted ? S.blockedNoFeaturesAvailable : S.notBlocked,
-              style: TextStyle(fontSize: 11, color: c.textSecondary),
+          DisabledHint(
+            disabled: _isSelf,
+            reason: S.ownAccountStatusPermissionsCannotChanged,
+            child: SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(S.blocked, style: TextStyle(fontSize: 14, color: c.textPrimary)),
+              subtitle: Text(
+                detail.isBlacklisted ? S.blockedNoFeaturesAvailable : S.notBlocked,
+                style: TextStyle(fontSize: 11, color: c.textSecondary),
+              ),
+              value: detail.isBlacklisted,
+              activeThumbColor: c.danger,
+              onChanged: _isBusy ? null : (_) => _toggleStatus(active: false),
             ),
-            value: detail.isBlacklisted,
-            activeThumbColor: c.danger,
-            onChanged: _isSelf || _isBusy ? null : (_) => _toggleStatus(active: false),
           ),
           Divider(color: c.divider, height: 1),
-          AppMenuItem(
-            icon: Icons.admin_panel_settings_outlined,
-            title: S.role,
-            subtitle: detail.isAdmin ? S.roleAdmin : S.roleBuyerSeller,
-            onTap: _isSelf || _isBusy ? null : _changeRole,
+          DisabledHint(
+            disabled: _isSelf,
+            reason: S.ownAccountStatusPermissionsCannotChanged,
+            child: AppMenuItem(
+              icon: Icons.admin_panel_settings_outlined,
+              title: S.role,
+              subtitle: detail.isAdmin ? S.roleAdmin : S.roleBuyerSeller,
+              onTap: _isBusy ? null : _changeRole,
+            ),
           ),
           Divider(color: c.divider, height: 1),
-          AppMenuItem(
-            icon: Icons.lock_reset_rounded,
-            title: S.resetPassword,
-            subtitle: detail.isAdmin
-                ? S.cannotResetAnotherAdminSPassword
-                : S.generateTemporaryPasswordHandOver,
-            isLast: true,
-            onTap: _isSelf || _isBusy || detail.isAdmin ? null : () => _resetPassword(detail),
+          DisabledHint(
+            disabled: _isSelf || detail.isAdmin,
+            reason: _isSelf
+                ? S.changeOwnPasswordGoSettingsChange
+                : S.cannotResetAnotherAdminSPassword,
+            child: AppMenuItem(
+              icon: Icons.lock_reset_rounded,
+              title: S.resetPassword,
+              subtitle: detail.isAdmin
+                  ? S.cannotResetAnotherAdminSPassword
+                  : S.generateTemporaryPasswordHandOver,
+              isLast: true,
+              onTap: _isBusy ? null : () => _resetPassword(detail),
+            ),
           ),
         ],
       ),
@@ -577,36 +596,52 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
         children: [
           SectionHeading(
             title: S.adminPermissions,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SmallActionButton(
-                  label: S.all,
-                  onTap: _isSelf || _isBusy ? null : () => _setAllPermissions(true),
-                ),
-                const SizedBox(width: 6),
-                SmallActionButton(
-                  label: S.allOff,
-                  color: c.danger,
-                  onTap: _isSelf || _isBusy ? null : () => _setAllPermissions(false),
-                ),
-              ],
+            trailing: DisabledHint(
+              disabled: _isSelf,
+              reason: S.ownAccountStatusPermissionsCannotChanged,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SmallActionButton(
+                    label: S.all,
+                    onTap: _isBusy ? null : () => _setAllPermissions(true),
+                  ),
+                  const SizedBox(width: 6),
+                  SmallActionButton(
+                    label: S.allOff,
+                    color: c.danger,
+                    onTap: _isBusy ? null : () => _setAllPermissions(false),
+                  ),
+                ],
+              ),
             ),
           ),
-          for (final entry in AppLabels.permission.entries)
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(entry.value.$1, style: TextStyle(fontSize: 14, color: c.textPrimary)),
-              subtitle: Text(
-                entry.value.$2,
-                style: TextStyle(fontSize: 11, color: c.textSecondary),
+          // 不是管理員就沒有後台權限可以調，直接說明比列出一排點不動的開關好。
+          if (!detail.isAdmin)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                S.memberNotAdminSoThereNo,
+                style: TextStyle(fontSize: 12, height: 1.5, color: c.textHint),
               ),
-              value: detail.permissions[entry.key] ?? true,
-              activeThumbColor: c.accent,
-              onChanged: _isSelf || _isBusy
-                  ? null
-                  : (value) => _togglePermission(entry.key, value),
-            ),
+            )
+          else
+            for (final entry in AppLabels.permission.entries)
+              DisabledHint(
+                disabled: _isSelf,
+                reason: S.ownAccountStatusPermissionsCannotChanged,
+                child: SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(entry.value.$1, style: TextStyle(fontSize: 14, color: c.textPrimary)),
+                  subtitle: Text(
+                    entry.value.$2,
+                    style: TextStyle(fontSize: 11, color: c.textSecondary),
+                  ),
+                  value: detail.permissions[entry.key] ?? true,
+                  activeThumbColor: c.accent,
+                  onChanged: _isBusy ? null : (value) => _togglePermission(entry.key, value),
+                ),
+              ),
         ],
       ),
     );

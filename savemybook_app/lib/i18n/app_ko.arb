@@ -1714,5 +1714,30 @@
   "shareAnotherApp": "다른 앱으로 공유",
   "approved": "승인됨",
   "awaitingRefund": "환불 대기",
-  "declined": "환불 거절"
+  "declined": "환불 거절",
+  "changeOwnPasswordGoSettingsChange": "본인 비밀번호는 설정 → 비밀번호 변경에서 바꾸세요",
+  "memberNotAdminSoThereNo": "이 회원은 관리자가 아니므로 설정할 관리자 권한이 없습니다. 위에서 역할을 관리자로 먼저 변경하세요.",
+  "you": "본인",
+  "isbnMust1013DigitsOne": "ISBN은 10자리 또는 13자리여야 합니다. 현재 {p0}자리입니다",
+  "@isbnMust1013DigitsOne": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "screenUnsavedChangesTheyLostIf": "이 화면에 저장하지 않은 변경 사항이 있습니다. 나가면 사라집니다.",
+  "stillNeededP0": "남은 항목: {p0}",
+  "@stillNeededP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "photosP0": "사진: {p0}장",
+  "@photosP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmListing": "등록 확인",
+  "lookingUpBook": "도서 정보 조회 중",
+  "scan": "스캔"
 }
