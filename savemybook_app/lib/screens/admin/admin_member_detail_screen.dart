@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_radius.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
@@ -84,6 +86,103 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
         return done ? null : AppLabels.updateFailed;
       },
       S.accountStatusUpdated,
+    );
+  }
+
+  /// 臨時密碼由伺服器產生，而且只回傳這一次。畫面必須當場把它交出去，
+  /// 關掉之後誰都拿不回來，只能再重設一次。
+  Future<void> _resetPassword(AdminMemberDetail detail) async {
+    final ok = await showConfirmDialog(
+      context,
+      title: S.resetPassword,
+      message: S.p0SCurrentPasswordStopsWorking(detail.nickname),
+      confirmLabel: S.generateTemporaryPassword,
+      isDestructive: true,
+      icon: Icons.lock_reset_rounded,
+    );
+    if (!ok || !mounted) return;
+
+    final (password, error) = await runBusy(
+          context,
+          () => _api.resetMemberPassword(detail.userId),
+        ) ??
+        (null, null);
+    if (!mounted) return;
+
+    if (password == null) {
+      showAppSnackBar(context, error ?? AppLabels.updateFailed, isError: true);
+      return;
+    }
+
+    await _showTempPassword(detail.nickname, password);
+  }
+
+  Future<void> _showTempPassword(String nickname, String password) async {
+    final c = AppColors.of(context);
+
+    await showDialog<void>(
+      context: context,
+      // 點旁邊就關掉的話，密碼會在還沒抄下來前消失。
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: c.card,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sheet)),
+        title: Row(
+          children: [
+            Icon(Icons.key_rounded, color: c.accent, size: 20),
+            const SizedBox(width: 8),
+            Text(S.temporaryPassword, style: TextStyle(fontSize: 17, color: c.textPrimary)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              S.p0SPasswordBeenResetPassword(nickname),
+              style: TextStyle(fontSize: 13, height: 1.6, color: c.textSecondary),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: c.inputFill,
+                borderRadius: BorderRadius.circular(AppRadius.field),
+              ),
+              child: SelectableText(
+                password,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                  color: c.textPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              S.remindThemChangeSettingsChangePassword,
+              style: TextStyle(fontSize: 11, height: 1.5, color: c.textHint),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: password));
+              showAppSnackBar(context, S.temporaryPasswordCopied);
+            },
+            child: Text(S.copy, style: TextStyle(color: c.accent)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(S.actionClose, style: TextStyle(color: c.textSecondary)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -367,8 +466,17 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
             icon: Icons.admin_panel_settings_outlined,
             title: S.role,
             subtitle: detail.isAdmin ? S.roleAdmin : S.roleBuyerSeller,
-            isLast: true,
             onTap: _isSelf || _isBusy ? null : _changeRole,
+          ),
+          Divider(color: c.divider, height: 1),
+          AppMenuItem(
+            icon: Icons.lock_reset_rounded,
+            title: S.resetPassword,
+            subtitle: detail.isAdmin
+                ? S.cannotResetAnotherAdminSPassword
+                : S.generateTemporaryPasswordHandOver,
+            isLast: true,
+            onTap: _isSelf || _isBusy || detail.isAdmin ? null : () => _resetPassword(detail),
           ),
         ],
       ),

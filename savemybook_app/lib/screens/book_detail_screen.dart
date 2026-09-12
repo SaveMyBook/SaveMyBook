@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/book.dart';
+import 'package:flutter/services.dart';
 import '../services/api_service.dart';
+import '../services/share_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_labels.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/favorite_button.dart';
 import '../widgets/app_dialogs.dart';
@@ -88,6 +91,47 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         builder: (_) => ChatRoomScreen(roomId: roomId, partnerName: widget.book.sellerName),
       ),
     );
+  }
+
+  /// 分享連結由伺服器發，帶的是亂數權杖而不是書籍流水號——用流水號的話
+  /// 任何人都能從 1 開始把全站書籍掃出來。連結是一般網址，沒裝 App 也打得開。
+  Future<void> _shareBook() async {
+    final (url, error) = await runBusy(
+          context,
+          () => _api.fetchBookShareLink(widget.book.bookId),
+        ) ??
+        (null, null);
+    if (!mounted) return;
+
+    if (url == null) {
+      showAppSnackBar(context, error ?? AppLabels.loadFailed, isError: true);
+      return;
+    }
+
+    final action = await showOptionSheet<String>(
+      context,
+      title: S.shareBook,
+      subtitle: widget.book.title,
+      options: [
+        SheetOption(value: 'share', label: S.shareAnotherApp, icon: Icons.ios_share_rounded),
+        SheetOption(value: 'copy', label: S.copyLink, icon: Icons.link_rounded),
+      ],
+    );
+    if (action == null || !mounted) return;
+
+    if (action == 'copy') {
+      await Clipboard.setData(ClipboardData(text: url));
+      if (mounted) showAppSnackBar(context, S.linkCopied);
+      return;
+    }
+
+    final ok = await ShareService.shareText('${widget.book.title}\n$url');
+    if (!mounted) return;
+    // 系統分享頁叫不出來時不要讓使用者空手而回，直接退回複製。
+    if (!ok) {
+      await Clipboard.setData(ClipboardData(text: url));
+      if (mounted) showAppSnackBar(context, S.sharingCouldNotOpenSoLink, isError: true);
+    }
   }
 
   Future<void> _reportBook() async {
@@ -294,7 +338,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           if (value == 'report') {
             _reportBook();
           } else {
-            showAppSnackBar(context, '書籍連結：savemybook://book/${widget.book.bookId}');
+            _shareBook();
           }
         },
         itemBuilder: (_) => [

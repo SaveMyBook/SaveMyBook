@@ -1,29 +1,12 @@
 const crypto = require('crypto');
 const prisma = require('./prisma');
+const { newToken, ensureUserToken } = require('./share');
 
 /// 申請刪除後的緩衝天數。期間內登入即可取消，逾期才真正匿名化。
 const GRACE_DAYS = 30;
 
 const graceDeadline = (requestedAt) =>
   new Date(new Date(requestedAt).getTime() + GRACE_DAYS * 86400000);
-
-/// 分享連結用的權杖。UUID 與流水號都可被推測或枚舉，這裡用密碼學亂數。
-const newShareToken = () => crypto.randomBytes(16).toString('hex');
-
-const ensureShareToken = async (userId) => {
-  const user = await prisma.users.findUnique({
-    where: { user_id: userId },
-    select: { share_token: true }
-  });
-  if (user?.share_token) return user.share_token;
-
-  const token = newShareToken();
-  await prisma.users.update({
-    where: { user_id: userId },
-    data: { share_token: token }
-  });
-  return token;
-};
 
 /// 清掉個資但保留交易骨架。
 ///
@@ -145,8 +128,9 @@ const exportData = async (userId) => {
 module.exports = {
   GRACE_DAYS,
   graceDeadline,
-  newShareToken,
-  ensureShareToken,
+  // 權杖的產生與取得實作在 lib/share.js，這裡沿用既有名稱轉出。
+  newShareToken: newToken,
+  ensureShareToken: ensureUserToken,
   anonymize,
   processDueDeletions,
   exportData

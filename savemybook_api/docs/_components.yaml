@@ -237,6 +237,42 @@ components:
         subtotal: { type: string, example: '180.00' }
         books: { $ref: '#/components/schemas/Book' }
 
+    AdminOrder:
+      type: object
+      description: |
+        後台訂單的共同欄位，列表與詳情共用。詳情另外附加時間軸、櫃位、
+        退款、申訴與錢包異動。
+      properties:
+        order_id: { type: integer, example: 40 }
+        order_no: { type: string, example: SMB20250911143012517 }
+        status: { type: string, example: pending_deposit }
+        total_amount: { type: string, example: '360.00' }
+        created_at: { type: string, format: date-time }
+        completed_at: { type: string, format: date-time, nullable: true }
+        cancelled_at: { type: string, format: date-time, nullable: true }
+        cancel_reason: { type: string, nullable: true }
+        pickup_code: { type: string, nullable: true, example: '482913' }
+        buyer: { $ref: '#/components/schemas/UserBrief' }
+        seller: { $ref: '#/components/schemas/UserBrief' }
+        cabinet:
+          type: object
+          nullable: true
+          properties:
+            cabinet_id: { type: integer }
+            cabinet_name: { type: string }
+            address: { type: string }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              book_id: { type: integer, nullable: true }
+              title: { type: string }
+              unit_price: { type: string }
+              subtotal: { type: string }
+              quantity: { type: integer }
+              image_url: { type: string, nullable: true }
+
     Order:
       type: object
       properties:

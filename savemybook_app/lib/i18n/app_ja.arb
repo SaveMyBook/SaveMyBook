@@ -1620,5 +1620,99 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "orderPlaced": "注文成立",
+  "paid": "支払い",
+  "sellerDroppedOff": "出品者が預け入れ",
+  "buyerCollected": "購入者が受け取り",
+  "completed": "完了",
+  "editBookDetails": "書籍情報を編集",
+  "sellerP0TheyNotifiedSave": "出品者 {p0}・保存時に通知されます",
+  "@sellerP0TheyNotifiedSave": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "priceCoins": "価格（コイン）",
+  "k1013Digits2": "10桁または13桁",
+  "category": "カテゴリー",
+  "description2": "商品説明",
+  "titleRequired": "タイトルは必須です",
+  "nothingChanged": "変更はありません",
+  "resetPassword": "パスワードをリセット",
+  "p0SCurrentPasswordStopsWorking": "{p0}の現在のパスワードは直ちに使えなくなり、次に発行される仮パスワードでログインすることになります。\n\nパスワードはシステムが生成します。指定はできません。",
+  "@p0SCurrentPasswordStopsWorking": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "generateTemporaryPassword": "仮パスワードを発行",
+  "temporaryPassword": "仮パスワード",
+  "p0SPasswordBeenResetPassword": "{p0}のパスワードをリセットしました。このパスワードは一度きりの表示で、閉じると二度と確認できません。",
+  "@p0SPasswordBeenResetPassword": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "remindThemChangeSettingsChangePassword": "ログイン後すぐに「設定 → パスワード変更」で変更するよう伝えてください。",
+  "temporaryPasswordCopied": "仮パスワードをコピーしました",
+  "copy": "コピー",
+  "cannotResetAnotherAdminSPassword": "他の管理者のパスワードはリセットできません",
+  "generateTemporaryPasswordHandOver": "仮パスワードを発行して本人に渡します",
+  "orderNumberCopied": "注文番号をコピーしました",
+  "orderNotFound": "この注文が見つかりません",
+  "paidWithCoins": "コイン払い",
+  "bankTransfer": "銀行振込",
+  "notPaidYet": "未払い",
+  "progress": "進行状況",
+  "notYet": "未到達",
+  "buyerSeller": "取引相手",
+  "items3": "商品",
+  "bookDeleted": "（書籍は削除済み）",
+  "notAssignedYet2": "未割り当て",
+  "pickupCodeCopied": "受け取りコードをコピーしました",
+  "walletActivity": "ウォレットの動き",
+  "balanceP02": "残高 {p0}",
+  "@balanceP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "refunds": "返金記録",
+  "requestedP0NotProcessedYet": "{p0}に申請、未処理",
+  "@requestedP0NotProcessedYet": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "processedP0": "{p0}に処理",
+  "@processedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "disputes": "申し立て",
+  "filedP0": "{p0}に申請",
+  "@filedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "decidedP0": "{p0}に裁定",
+  "@decidedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "createdP0": "{p0}に作成",
+  "@createdP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "shareBook": "この本を共有",
+  "shareAnotherApp": "他のアプリで共有",
+  "approved": "承認済み",
+  "awaitingRefund": "返金待ち",
+  "declined": "返金不可"
 }

@@ -12,6 +12,7 @@ import '../widgets/app_header.dart';
 import '../widgets/image_viewer.dart';
 import '../widgets/state_views.dart';
 import 'book_detail_screen.dart';
+import 'seller_screen.dart';
 import '../utils/motion.dart';
 import '../i18n/strings.dart';
 
@@ -128,6 +129,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
   }
 
+  void _openPartner(String title) {
+    final partner = _partner;
+    if (partner == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SellerScreen(
+          sellerId: partner.userId,
+          sellerName: title,
+          sellerAvatarUrl: partner.avatarUrl,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
@@ -141,13 +157,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             title: title.isEmpty ? S.chat : title,
             actions: [
               Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: UserAvatar(
-                  imageUrl: _partner?.avatarUrl,
-                  radius: 17,
-                  background: Colors.white24,
-                  enablePreview: true,
-                  previewTitle: title,
+                padding: const EdgeInsets.only(right: 8),
+                child: PressableScale(
+                  onTap: _partner == null ? null : () => _openPartner(title),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      UserAvatar(
+                        imageUrl: _partner?.avatarUrl,
+                        radius: 15,
+                        background: Colors.white24,
+                      ),
+                      const Icon(Icons.chevron_right_rounded, color: Colors.white70, size: 20),
+                    ],
+                  ),
                 ),
               ),
             ],

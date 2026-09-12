@@ -182,6 +182,77 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/admin/members/{id}/reset-password:
+    post:
+      summary: 重設會員密碼
+      operationId: adminResetMemberPassword
+      tags: [後台：會員管理]
+      description: |
+        供客服處理「忘記密碼又收不到信」的求助。伺服器產生一組臨時密碼，
+        寫入該帳號並於回應中回傳**一次**，之後無法再取得。
+
+        **密碼由伺服器產生，管理員不能自行指定。** 由管理員輸入的話，
+        該密碼會經過他的鍵盤、剪貼簿與記憶，且多半會是好記的那幾組。
+        產生時排除外形相近的字元（`0`/`O`、`1`/`l`/`I`），因為這串字
+        通常是口頭或電話轉達給使用者的。
+
+        操作會發送通知予該會員，並寫入稽核紀錄；**臨時密碼不會寫進稽核紀錄**——
+        紀錄是給稽核看的，不該留存明文密碼。
+
+        需 `can_manage_members` 權限。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 會員編號。
+          example: 42
+      responses:
+        '200':
+          description: 已重設。`temp_password` 僅於此回應出現一次。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已重設，請把臨時密碼交給使用者 }
+                  data:
+                    type: object
+                    properties:
+                      temp_password: { type: string, example: KmRxQpTnVbGj7a }
+        '400':
+          description: 目標是自己。管理員應使用 `PUT /api/users/me/password`。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 不能重設自己的密碼，請用「更改密碼」 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: |
+            缺少 `can_manage_members` 權限，或目標本身是管理員。
+
+            後者為權限提升的防線：若允許，任何具會員管理權限的人都能
+            接管其他管理員的帳號，等同繞過所有權限設定。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 不能重設其他管理員的密碼 }
+        '404':
+          description: 找不到這位會員。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到這位會員 }
+        '409':
+          description: 帳號已匿名化（刪除），無法重設。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 這個帳號已刪除 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/admin/members/{id}/level:
     patch:
       summary: 調整會員等級 / 點數

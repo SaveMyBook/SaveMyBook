@@ -353,6 +353,17 @@ class ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotRelist);
   }
 
+  /// 可在瀏覽器直接開啟的公開網址。權杖由伺服器保管，首次索取時產生，
+  /// 之後固定不變。已下架的書會回 409。
+  Future<(String? url, String? error)> fetchBookShareLink(int bookId) async {
+    final res = await _send('GET', '/books/$bookId/share-link');
+    if (res == null) return (null, S.couldNotReachServer);
+    if (res['success'] != true) {
+      return (null, res['message'] as String? ?? AppLabels.loadFailed);
+    }
+    return (res['data']?['url'] as String?, null);
+  }
+
   Future<List<Book>> fetchFavorites() async {
     final res = await _send('GET', '/favorites');
     final books = _mapList(res, Book.fromJson);
@@ -1067,6 +1078,29 @@ class ApiService {
     });
     if (res == null) return S.pleaseSignFirst;
     return res['success'] == true ? null : (res['message'] as String? ?? S.updateFailed2);
+  }
+
+  /// 回傳臨時密碼。伺服器只給這一次，畫面必須當場交給管理員。
+  Future<(String? password, String? error)> resetMemberPassword(int userId) async {
+    final res = await _send('POST', '/admin/members/$userId/reset-password');
+    if (res == null) return (null, S.pleaseSignFirst);
+    if (res['success'] != true) {
+      return (null, res['message'] as String? ?? AppLabels.updateFailed);
+    }
+    return (res['data']?['temp_password'] as String?, null);
+  }
+
+  /// 代賣家更正商品資料。只送有改動的欄位。
+  Future<String?> updateAdminBook(int bookId, Map<String, dynamic> fields) async {
+    final res = await _send('PUT', '/admin/books/$bookId', body: fields);
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? AppLabels.updateFailed);
+  }
+
+  Future<AdminOrderDetail?> fetchAdminOrder(int orderId) async {
+    final res = await _send('GET', '/admin/orders/$orderId');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return AdminOrderDetail.fromJson(Map<String, dynamic>.from(res['data']));
   }
 
   Future<List<AdminBook>> fetchAdminBooks({String keyword = '', String? status}) async {

@@ -44,43 +44,119 @@ paths:
                   pagination: { $ref: '#/components/schemas/Pagination' }
                   data:
                     type: array
-                    items:
-                      type: object
-                      properties:
-                        order_id: { type: integer, example: 40 }
-                        order_no: { type: string, example: SMB20250911143012517 }
-                        status: { type: string, example: pending_deposit }
-                        total_amount: { type: string, example: '360.00' }
-                        created_at: { type: string, format: date-time }
-                        completed_at: { type: string, format: date-time, nullable: true }
-                        cancelled_at: { type: string, format: date-time, nullable: true }
-                        cancel_reason: { type: string, nullable: true }
-                        pickup_code: { type: string, nullable: true, example: '482913' }
-                        buyer: { $ref: '#/components/schemas/UserBrief' }
-                        seller: { $ref: '#/components/schemas/UserBrief' }
-                        cabinet:
-                          type: object
-                          nullable: true
-                          properties:
-                            cabinet_id: { type: integer }
-                            cabinet_name: { type: string }
-                            address: { type: string }
-                        items:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              book_id: { type: integer, nullable: true }
-                              title: { type: string }
-                              unit_price: { type: string }
-                              subtotal: { type: string }
-                              quantity: { type: integer }
-                              image_url: { type: string, nullable: true }
+                    items: { $ref: '#/components/schemas/AdminOrder' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/orders/{id}:
+    get:
+      summary: 訂單詳情
+      operationId: adminGetOrder
+      tags: [後台：訂單管理]
+      description: |
+        單筆訂單的完整樣貌。列表為求輕量只帶摘要，這裡補上客服在處理一筆
+        爭議時真正需要的細節：錢什麼時候扣的、書放進哪一格、退過款沒有、
+        對方申訴了什麼。
+
+        `timeline` 的每個欄位對應流程中的一個節點，`null` 表示尚未走到，
+        可用來判斷訂單卡在哪一步。
+
+        `wallet_transactions` 為這筆訂單造成的所有錢包異動（依時間遞增），
+        買賣雙方的紀錄都在內，可與 `total_amount` 對帳。
+
+        需 `can_manage_orders` 權限。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 訂單編號（`order_id`，非 `order_no`）。
+          example: 501
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/AdminOrder'
+                      - type: object
+                        properties:
+                          payment_method: { type: string, nullable: true, example: wallet }
+                          note: { type: string, nullable: true, description: 客服調整狀態時留下的說明。 }
+                          updated_at: { type: string, format: date-time }
+                          slot:
+                            type: object
+                            nullable: true
+                            description: 指派到的櫃位；未指派時為 null。
+                            properties:
+                              slot_id: { type: integer, example: 17 }
+                              slot_number: { type: string, example: A-03 }
+                              status: { type: string, enum: [empty, occupied, reserved, maintenance] }
+                          timeline:
+                            type: object
+                            description: 各節點時間，null 代表尚未發生。
+                            properties:
+                              created_at: { type: string, format: date-time }
+                              payment_at: { type: string, format: date-time, nullable: true }
+                              deposited_at: { type: string, format: date-time, nullable: true, description: 賣家放書進櫃的時間。 }
+                              picked_up_at: { type: string, format: date-time, nullable: true, description: 買家取書的時間。 }
+                              completed_at: { type: string, format: date-time, nullable: true }
+                              cancelled_at: { type: string, format: date-time, nullable: true }
+                          refunds:
+                            type: array
+                            description: 退款紀錄，新的在前。
+                            items:
+                              type: object
+                              properties:
+                                refund_id: { type: integer }
+                                refund_type: { type: string }
+                                amount: { type: number }
+                                reason: { type: string, nullable: true }
+                                status: { type: string }
+                                created_at: { type: string, format: date-time }
+                                processed_at: { type: string, format: date-time, nullable: true }
+                          disputes:
+                            type: array
+                            description: 這筆訂單的申訴案件，新的在前。
+                            items:
+                              type: object
+                              properties:
+                                dispute_id: { type: integer }
+                                reason: { type: string }
+                                status: { type: string }
+                                result: { type: string, nullable: true }
+                                admin_note: { type: string, nullable: true }
+                                created_at: { type: string, format: date-time }
+                                resolved_at: { type: string, format: date-time, nullable: true }
+                          wallet_transactions:
+                            type: array
+                            description: 因這筆訂單產生的錢包異動，依時間遞增。
+                            items:
+                              type: object
+                              properties:
+                                txn_id: { type: integer }
+                                type: { type: string }
+                                amount: { type: number }
+                                balance_after: { type: number }
+                                description: { type: string, nullable: true }
+                                created_at: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404':
+          description: 找不到這筆訂單。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到這筆訂單 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
     patch:
       summary: 人工調整訂單狀態
       operationId: adminUpdateOrderStatus

@@ -166,6 +166,15 @@ class AppLabels {
         'admin_adjust': S.txnAdminAdjust,
       };
 
+  /// 退款狀態。刻意不用「待處理」「已駁回」這種泛稱——那些字在工單與檢舉
+  /// 底下也出現過，翻成英文會變成 Open／Dismissed，放在退款上是錯的。
+  static Map<String, String> get refundStatus => {
+        'pending': S.awaitingRefund,
+        'approved': S.approved,
+        'rejected': S.declined,
+        'completed': S.orderRefunded,
+      };
+
   // ---------- 公告 ----------
 
   static Map<String, String> get announcementType => {

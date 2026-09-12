@@ -154,6 +154,56 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/books/{id}/share-link:
+    get:
+      summary: 取得書籍分享連結
+      operationId: getBookShareLink
+      tags: [書籍]
+      description: |
+        回傳可在瀏覽器直接開啟的公開網址，形如 `https://<host>/b/<token>`。
+
+        `token` 為 16 位元組的密碼學亂數（`crypto.randomBytes`）轉成 32 個十六進位字元，
+        首次索取時產生並寫回該書，之後固定不變——同一本書重複索取會拿到同一個連結。
+        舊版的 `savemybook://book/<流水號>` 只能在裝了 App 的裝置上開啟，
+        而且流水號可被從 1 開始枚舉，已不再使用。
+
+        公開頁見 `GET /b/{token}`。不需登入。
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      url: { type: string, example: 'https://api.savemybook.today/b/3f5a1c9e7b2d4086a1c3e5f7b9d0246a' }
+                      title: { type: string, example: 演算法圖鑑 }
+        '400':
+          description: 書籍編號不是數字。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 書籍編號不正確 }
+        '404':
+          description: 找不到這本書。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到這本書 }
+        '409':
+          description: |
+            書籍已下架。公開頁不會顯示下架的書，發出去的連結只會得到 404，
+            因此直接拒絕產生。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 這本書已下架，無法分享 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/books/{id}:
     parameters:
       - in: path

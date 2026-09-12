@@ -49,3 +49,48 @@ paths:
           content:
             text/html:
               schema: { type: string }
+
+  /b/{token}:
+    get:
+      summary: 書籍公開頁（HTML）
+      operationId: publicBookPage
+      tags: [公開頁面 (Public)]
+      description: |
+        分享單本書籍時開啟的頁面，回應為 HTML 而非 JSON。
+
+        與 `/u/{token}` 同樣採 32 字元隨機權杖：舊的 `savemybook://book/<流水號>`
+        只能在裝了 App 的裝置上開啟，且流水號可被從 1 枚舉出全站書籍。
+        權杖由 `GET /api/books/{id}/share-link` 首次索取時產生，此後固定不變。
+
+        頁面呈現封面、書名、作者、售價、分類、書況與賣家，並提供
+        `savemybook://book/{id}` 的 deep link 按鈕；觸發後 1.5 秒內頁面若未
+        進入背景，則判定應用程式未安裝並顯示提示。支援淺色與深色模式，
+        所有使用者輸入均經 HTML 跳脫處理。
+
+        下列情形一律回傳 404 頁面，以避免由連結反推書籍或帳號狀態：
+        權杖格式不符、查無此書、書籍已下架、賣家已停權、列入黑名單或已匿名化。
+        已售出或保留中的書籍仍可檢視，並標示對應狀態。
+      security: []
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema: { type: string, pattern: '^[0-9a-f]{32}$' }
+          description: 書籍分享權杖，取自 `GET /api/books/{id}/share-link`。
+          example: 3f5a1c9e7b2d4086a1c3e5f7b9d0246a
+      responses:
+        '200':
+          description: 書籍頁 HTML。
+          content:
+            text/html:
+              schema: { type: string }
+        '404':
+          description: 權杖無效、查無書籍、書籍已下架或賣家帳號不可用，同樣回傳 HTML 頁面。
+          content:
+            text/html:
+              schema: { type: string }
+        '500':
+          description: 載入失敗時回傳的錯誤頁 HTML。
+          content:
+            text/html:
+              schema: { type: string }

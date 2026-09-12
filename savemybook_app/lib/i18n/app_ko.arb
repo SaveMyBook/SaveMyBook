@@ -1620,5 +1620,99 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "orderPlaced": "주문 생성",
+  "paid": "결제",
+  "sellerDroppedOff": "판매자 보관",
+  "buyerCollected": "구매자 수령",
+  "completed": "완료",
+  "editBookDetails": "도서 정보 편집",
+  "sellerP0TheyNotifiedSave": "판매자 {p0} · 저장하면 알림이 갑니다",
+  "@sellerP0TheyNotifiedSave": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "priceCoins": "가격 (코인)",
+  "k1013Digits2": "10자리 또는 13자리",
+  "category": "카테고리",
+  "description2": "상품 설명",
+  "titleRequired": "제목은 필수입니다",
+  "nothingChanged": "변경 사항이 없습니다",
+  "resetPassword": "비밀번호 재설정",
+  "p0SCurrentPasswordStopsWorking": "{p0} 님의 현재 비밀번호는 즉시 사용할 수 없게 되며, 다음에 발급되는 임시 비밀번호로 로그인해야 합니다.\n\n비밀번호는 시스템이 생성하며 직접 지정할 수 없습니다.",
+  "@p0SCurrentPasswordStopsWorking": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "generateTemporaryPassword": "임시 비밀번호 발급",
+  "temporaryPassword": "임시 비밀번호",
+  "p0SPasswordBeenResetPassword": "{p0} 님의 비밀번호를 재설정했습니다. 이 비밀번호는 한 번만 표시되며 닫으면 다시 볼 수 없습니다.",
+  "@p0SPasswordBeenResetPassword": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "remindThemChangeSettingsChangePassword": "로그인 후 바로 설정 → 비밀번호 변경에서 바꾸도록 안내하세요.",
+  "temporaryPasswordCopied": "임시 비밀번호를 복사했습니다",
+  "copy": "복사",
+  "cannotResetAnotherAdminSPassword": "다른 관리자의 비밀번호는 재설정할 수 없습니다",
+  "generateTemporaryPasswordHandOver": "임시 비밀번호를 발급해 전달합니다",
+  "orderNumberCopied": "주문 번호를 복사했습니다",
+  "orderNotFound": "주문을 찾을 수 없습니다",
+  "paidWithCoins": "코인 결제",
+  "bankTransfer": "계좌 이체",
+  "notPaidYet": "미결제",
+  "progress": "진행 상황",
+  "notYet": "아직 아님",
+  "buyerSeller": "거래 당사자",
+  "items3": "항목",
+  "bookDeleted": "(삭제된 도서)",
+  "notAssignedYet2": "미배정",
+  "pickupCodeCopied": "수령 코드를 복사했습니다",
+  "walletActivity": "지갑 변동",
+  "balanceP02": "잔액 {p0}",
+  "@balanceP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "refunds": "환불 기록",
+  "requestedP0NotProcessedYet": "{p0} 신청, 미처리",
+  "@requestedP0NotProcessedYet": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "processedP0": "{p0} 처리",
+  "@processedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "disputes": "이의 제기",
+  "filedP0": "{p0} 신청",
+  "@filedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "decidedP0": "{p0} 판정",
+  "@decidedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "createdP0": "{p0} 생성",
+  "@createdP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "shareBook": "이 책 공유",
+  "shareAnotherApp": "다른 앱으로 공유",
+  "approved": "승인됨",
+  "awaitingRefund": "환불 대기",
+  "declined": "환불 거절"
 }

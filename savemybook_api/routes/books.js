@@ -1,6 +1,7 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
+const { ensureBookToken } = require('../lib/share');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -113,6 +114,38 @@ router.get('/', async (req, res) => {
       data: books
     });
   } catch (err) {
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// 必須排在 /:id 之前，否則會被當成書籍編號。
+router.get('/:id/share-link', async (req, res) => {
+  const bookId = parseInt(req.params.id);
+  if (!Number.isFinite(bookId)) {
+    return res.status(400).json({ success: false, message: '書籍編號不正確' });
+  }
+
+  try {
+    const book = await prisma.books.findUnique({
+      where: { book_id: bookId },
+      select: { book_id: true, title: true, status: true }
+    });
+    if (!book) return res.status(404).json({ success: false, message: '找不到這本書' });
+
+    // 已下架的書不給分享連結：公開頁本來就不會顯示它，
+    // 發出去只會得到一個「找不到」的頁面。
+    if (book.status === 'removed') {
+      return res.status(409).json({ success: false, message: '這本書已下架，無法分享' });
+    }
+
+    const token = await ensureBookToken(bookId);
+    const base = process.env.PUBLIC_WEB_URL || `${req.protocol}://${req.get('host')}`;
+    res.status(200).json({
+      success: true,
+      data: { url: `${base}/b/${token}`, title: book.title }
+    });
+  } catch (err) {
+    console.error('[取得書籍分享連結失敗]:', err);
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });

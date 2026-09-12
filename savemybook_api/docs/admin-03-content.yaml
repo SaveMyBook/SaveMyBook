@@ -22,6 +22,11 @@ paths:
         `pending_report_count` 為該書籍待處理的檢舉數。由於 `reports` 採
         `target_type` 搭配 `target_id` 的多型設計，未建立指向 `books` 的外鍵關聯，
         此數值由獨立的分組查詢補入。
+
+        回應附帶 `author`、`publisher`、`publish_date`、`condition_note`、`description`
+        與 `category_id`，供 `PUT /api/admin/books/{id}` 的編輯表單以現值開場。
+        改由 `GET /api/books/{id}` 取得的話，每次開啟編輯畫面都會替賣家的
+        瀏覽數加一。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
@@ -60,13 +65,101 @@ paths:
                         view_count: { type: integer, example: 42 }
                         created_at: { type: string, format: date-time }
                         seller: { $ref: '#/components/schemas/UserBrief' }
+                        category_id: { type: integer, nullable: true }
                         category_name: { type: string, description: 書籍未分類時為空字串。, example: 文學小說 }
                         image_url: { type: string, nullable: true, description: 首張照片的路徑。 }
+                        author: { type: string, nullable: true }
+                        publisher: { type: string, nullable: true }
+                        publish_date: { type: string, nullable: true }
+                        condition_note: { type: string, nullable: true }
+                        description: { type: string, nullable: true }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/books/{id}:
+    put:
+      summary: 修改書籍資料
+      operationId: adminUpdateBook
+      tags: [後台：內容管理]
+      description: |
+        供客服代為更正賣家填錯的商品資料（錯字、分類放錯、價格多一個零）。
+        部分更新：只有帶入的欄位會被寫入，未帶入的維持原值。
+
+        **與 `PATCH` 分開的原因**：下架是處分，要留原因並通知賣家；
+        更正是代為維護。混在同一個端點會讓「只想改個錯字」也送出一則
+        「你的書被下架」的通知。
+
+        操作一律通知賣家。書名或售價有變動時，通知會寫出改成什麼——
+        商品是賣家的，價格被動過必須讓他知道。稽核紀錄同樣記下異動欄位。
+
+        照片不由此端點處理，請使用 `POST /api/books/{id}/images`
+        與 `DELETE /api/books/{id}/images/{imageId}`。
+        上下架請使用同路徑的 `PATCH`。
+
+        需 `can_manage_content` 權限。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 書籍編號。
+          example: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: 至少要帶一個欄位。
+              properties:
+                title: { type: string, maxLength: 255, description: 不可為空字串。, example: 演算法圖鑑 }
+                author: { type: string, nullable: true, description: 空字串視為清空為 null。 }
+                publisher: { type: string, nullable: true }
+                publish_date: { type: string, nullable: true, example: '2020-05-03' }
+                isbn:
+                  type: string
+                  nullable: true
+                  pattern: '^\d{10}(\d{3})?$'
+                  description: 10 或 13 位數字，空字串視為清空。
+                  example: '9789863123456'
+                category_id: { type: integer, nullable: true, description: 須為既有分類；null 表示取消分類。 }
+                condition_level:
+                  type: string
+                  enum: [like_new, good, fair, poor]
+                condition_note: { type: string, nullable: true }
+                price: { type: number, minimum: 0, maximum: 999999, example: 320 }
+                description: { type: string, nullable: true }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已更新 }
+        '400':
+          description: 欄位不合法，或一個欄位都沒帶。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                書名: { value: { success: false, message: 書名必填，且不能超過 255 個字元 } }
+                售價: { value: { success: false, message: 售價必須介於 0 ~ 999999 } }
+                書況: { value: { success: false, message: 不支援的書況 } }
+                ISBN: { value: { success: false, message: 'ISBN 必須是 10 或 13 位數字' } }
+                分類不存在: { value: { success: false, message: 找不到這個分類 } }
+                空請求: { value: { success: false, message: 沒有要修改的欄位 } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404':
+          description: 找不到這本書。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到這本書 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
     patch:
       summary: 強制上下架書籍
       operationId: adminUpdateBookStatus

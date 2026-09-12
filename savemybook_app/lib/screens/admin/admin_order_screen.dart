@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../models/admin_models.dart';
+import 'admin_order_detail_screen.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
-import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
-import '../../utils/app_labels.dart';
 import '../../i18n/strings.dart';
 
 class AdminOrderScreen extends StatefulWidget {
@@ -61,44 +60,19 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
     });
   }
 
-  Future<void> _changeStatus(AdminOrder order) async {
-    final c = AppColors.of(context);
-
-    final status = await showOptionSheet<String>(
+  /// 點卡片先看詳情，不要直接跳改狀態的選單——那等於逼客服在看不到
+  /// 時間軸、退款與申訴的情況下做決定。
+  ///
+  /// 回來一律重載：把「有沒有改過」當成回傳值傳回來的話，得關掉
+  /// iOS 的左滑返回才收得到，代價比多打一次 API 大。
+  Future<void> _openDetail(AdminOrder order) async {
+    await Navigator.push(
       context,
-      title: S.changeOrderStatus,
-      subtitle: S.orderP0(order.orderNo),
-      options: AppLabels.orderStatus.entries
-          .map((e) => SheetOption(
-                value: e.key,
-                label: e.value,
-                selected: e.key == order.status,
-                color: e.key == 'cancelled' ? c.danger : null,
-              ))
-          .toList(),
+      MaterialPageRoute(
+        builder: (_) => AdminOrderDetailScreen(orderId: order.orderId, orderNo: order.orderNo),
+      ),
     );
-    if (status == null || status == order.status || !mounted) return;
-
-    final note = await showTextInputDialog(
-      context,
-      title: S.reasonChange,
-      hint: S.sentBuyerAsWellOptional,
-      confirmLabel: S.applyChange,
-    );
-    if (!mounted) return;
-
-    final error = await runBusy(
-      context,
-      () => _api.updateOrderStatusAsAdmin(order.orderId, status, note: note),
-    );
-    if (!mounted) return;
-
-    if (error != null) {
-      showAppSnackBar(context, error, isError: true);
-    } else {
-      showAppSnackBar(context, S.orderStatusUpdated);
-      _load();
-    }
+    if (mounted) _load();
   }
 
   @override
@@ -193,7 +167,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
-      onTap: () => _changeStatus(order),
+      onTap: () => _openDetail(order),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

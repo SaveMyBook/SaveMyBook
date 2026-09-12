@@ -1,4 +1,6 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
 const requireAdmin = require('../middleware/requireAdmin');
@@ -61,6 +63,87 @@ router.get('/members', requireAdmin('members'), async (req, res) => {
     });
   } catch (err) {
     console.error('[取得會員列表失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+// 排在 /members/:id 的 PATCH 之前無所謂——路徑不同不會互相吃掉，
+// 但要在 /members/:id/level 那組附近才好找。
+const TEMP_PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+
+/// 臨時密碼由伺服器產生，管理員不能自己指定。
+///
+/// 讓管理員輸入密碼的話，密碼會出現在他的鍵盤、剪貼簿與記憶裡，
+/// 而且多半會設成好記的那幾個。這裡用密碼學亂數，排除看起來像的字元
+/// （0/O、1/l/I），因為這串字多半是用電話或口頭念給使用者的。
+const newTempPassword = () => {
+  const bytes = crypto.randomBytes(12);
+  let out = '';
+  for (const b of bytes) out += TEMP_PASSWORD_ALPHABET[b % TEMP_PASSWORD_ALPHABET.length];
+  // 保證同時含有字母與數字，才過得了 App 端的密碼規則。
+  return `${out}7a`;
+};
+
+router.post('/members/:id/reset-password', requireAdmin('members'), async (req, res) => {
+  const userId = parseInt(req.params.id);
+
+  if (userId === req.user.userId) {
+    return res.status(400).json({
+      success: false,
+      message: '不能重設自己的密碼，請用「更改密碼」'
+    });
+  }
+
+  try {
+    const user = await prisma.users.findUnique({
+      where: { user_id: userId },
+      select: { user_id: true, nickname: true, role: true, anonymized_at: true }
+    });
+    if (!user) return res.status(404).json({ success: false, message: '找不到這位會員' });
+
+    // 擋掉管理員互相重設密碼：否則任何有會員權限的人都能接管其他管理員的帳號，
+    // 等於繞過所有權限設定。
+    if (user.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: '不能重設其他管理員的密碼'
+      });
+    }
+    if (user.anonymized_at) {
+      return res.status(409).json({ success: false, message: '這個帳號已刪除' });
+    }
+
+    const password = newTempPassword();
+    const hash = await bcrypt.hash(password, 10);
+
+    await prisma.$transaction([
+      prisma.users.update({
+        where: { user_id: userId },
+        data: { password_hash: hash, updated_at: new Date() }
+      }),
+      prisma.notifications.create({
+        data: {
+          user_id: userId,
+          type: 'system',
+          title: '密碼已被重設',
+          content: '客服已為你重設登入密碼。請用客服提供的臨時密碼登入，'
+            + '並立即到「設定 → 更改密碼」改成你自己的密碼。',
+          related_id: userId,
+          related_type: 'user'
+        }
+      })
+    ]);
+
+    // 臨時密碼本身不進操作紀錄——紀錄是給稽核看的，不該存明文密碼。
+    await logAction(req.user.userId, '重設會員密碼', 'user', userId, user.nickname);
+
+    res.status(200).json({
+      success: true,
+      message: '已重設，請把臨時密碼交給使用者',
+      data: { temp_password: password }
+    });
+  } catch (err) {
+    console.error('[重設密碼失敗]:', err);
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });
@@ -739,6 +822,73 @@ const ORDER_STATUSES = [
   'completed', 'cancelled', 'refunding', 'refunded'
 ];
 
+/// 單筆訂單的完整樣貌：時間軸、櫃位、金額、退款與申訴。
+///
+/// 列表為了輕量只帶摘要，但客服在處理一筆爭議時要看的就是這些細節——
+/// 錢什麼時候扣的、書放進哪一格、有沒有退過款、對方申訴了什麼。
+router.get('/orders/:id', requireAdmin('orders'), async (req, res) => {
+  const orderId = parseInt(req.params.id);
+
+  try {
+    const order = await prisma.orders.findUnique({
+      where: { order_id: orderId },
+      include: {
+        ...orderInclude,
+        cabinet_slots: { select: { slot_id: true, slot_number: true, status: true } },
+        refund_records: {
+          select: {
+            refund_id: true, refund_type: true, amount: true, reason: true,
+            status: true, created_at: true, processed_at: true
+          },
+          orderBy: { created_at: 'desc' }
+        },
+        transaction_disputes: {
+          select: {
+            dispute_id: true, reason: true, status: true, result: true,
+            admin_note: true, created_at: true, resolved_at: true
+          },
+          orderBy: { created_at: 'desc' }
+        },
+        wallet_transactions: {
+          select: {
+            txn_id: true, type: true, amount: true, balance_after: true,
+            description: true, created_at: true
+          },
+          orderBy: { created_at: 'asc' }
+        }
+      }
+    });
+
+    if (!order) return res.status(404).json({ success: false, message: '找不到這筆訂單' });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        ...shapeOrder(order),
+        payment_method: order.payment_method,
+        note: order.note,
+        slot: order.cabinet_slots,
+        updated_at: order.updated_at,
+        // 時間軸讓客服一眼看出卡在哪一步。null 代表還沒走到。
+        timeline: {
+          created_at: order.created_at,
+          payment_at: order.payment_at,
+          deposited_at: order.deposited_at,
+          picked_up_at: order.picked_up_at,
+          completed_at: order.completed_at,
+          cancelled_at: order.cancelled_at
+        },
+        refunds: order.refund_records,
+        disputes: order.transaction_disputes,
+        wallet_transactions: order.wallet_transactions
+      }
+    });
+  } catch (err) {
+    console.error('[取得訂單詳情失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
 router.patch('/orders/:id', requireAdmin('orders'), async (req, res) => {
   const orderId = parseInt(req.params.id);
   const { status, note } = req.body;
@@ -846,12 +996,125 @@ router.get('/books', requireAdmin('content'), async (req, res) => {
         view_count: b.view_count,
         created_at: b.created_at,
         seller: b.users,
+        category_id: b.category_id,
         category_name: b.book_categories?.category_name ?? '',
-        image_url: b.book_images[0]?.image_url ?? null
+        image_url: b.book_images[0]?.image_url ?? null,
+        // 編輯表單要用現值開場，若不附在列表裡就得再打一次 GET /api/books/:id，
+        // 而那個端點每次呼叫都會替賣家的瀏覽數加一。
+        author: b.author,
+        publisher: b.publisher,
+        publish_date: b.publish_date,
+        condition_note: b.condition_note,
+        description: b.description
       }))
     });
   } catch (err) {
     console.error('[取得書籍列表失敗]:', err);
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  }
+});
+
+const CONDITION_LEVELS = ['like_new', 'good', 'fair', 'poor'];
+
+const trimOrNull = (value) => {
+  if (value === undefined) return undefined;
+  const text = String(value ?? '').trim();
+  return text === '' ? null : text;
+};
+
+/// 內容更正與上下架分開成兩個端點。
+///
+/// 下架是處分，要留原因並通知賣家；改錯字是代為維護，語氣與通知內容都不同，
+/// 混在同一個 PATCH 裡會讓「只想改價格」也送出一則「你的書被下架」的通知。
+router.put('/books/:id', requireAdmin('content'), async (req, res) => {
+  const bookId = parseInt(req.params.id);
+  const body = req.body || {};
+
+  const title = trimOrNull(body.title);
+  if (title === null || (title !== undefined && title.length > 255)) {
+    return res.status(400).json({ success: false, message: '書名必填，且不能超過 255 個字元' });
+  }
+
+  const price = body.price === undefined ? undefined : Number(body.price);
+  if (price !== undefined && (!Number.isFinite(price) || price < 0 || price > 999999)) {
+    return res.status(400).json({ success: false, message: '售價必須介於 0 ~ 999999' });
+  }
+
+  if (body.condition_level !== undefined && !CONDITION_LEVELS.includes(body.condition_level)) {
+    return res.status(400).json({ success: false, message: '不支援的書況' });
+  }
+
+  const isbn = trimOrNull(body.isbn);
+  if (isbn && !/^\d{10}(\d{3})?$/.test(isbn)) {
+    return res.status(400).json({ success: false, message: 'ISBN 必須是 10 或 13 位數字' });
+  }
+
+  const categoryId = body.category_id === undefined || body.category_id === null
+    ? body.category_id
+    : parseInt(body.category_id);
+  if (categoryId !== undefined && categoryId !== null && !Number.isFinite(categoryId)) {
+    return res.status(400).json({ success: false, message: '分類編號不正確' });
+  }
+
+  try {
+    const book = await prisma.books.findUnique({
+      where: { book_id: bookId },
+      select: { book_id: true, title: true, price: true, seller_id: true }
+    });
+    if (!book) return res.status(404).json({ success: false, message: '找不到這本書' });
+
+    if (categoryId) {
+      const exists = await prisma.book_categories.count({ where: { category_id: categoryId } });
+      if (!exists) return res.status(400).json({ success: false, message: '找不到這個分類' });
+    }
+
+    const data = {
+      ...(title !== undefined && { title }),
+      ...(body.author !== undefined && { author: trimOrNull(body.author) }),
+      ...(body.publisher !== undefined && { publisher: trimOrNull(body.publisher) }),
+      ...(body.publish_date !== undefined && { publish_date: trimOrNull(body.publish_date) }),
+      ...(isbn !== undefined && { isbn }),
+      ...(categoryId !== undefined && { category_id: categoryId || null }),
+      ...(body.condition_level !== undefined && { condition_level: body.condition_level }),
+      ...(body.condition_note !== undefined && { condition_note: trimOrNull(body.condition_note) }),
+      ...(price !== undefined && { price }),
+      ...(body.description !== undefined && { description: trimOrNull(body.description) }),
+      updated_at: new Date()
+    };
+
+    if (Object.keys(data).length === 1) {
+      return res.status(400).json({ success: false, message: '沒有要修改的欄位' });
+    }
+
+    // 賣家得知道自己的商品被動過，尤其是價格。
+    const changes = [];
+    if (title !== undefined && title !== book.title) changes.push(`書名改為《${title}》`);
+    if (price !== undefined && price !== Number(book.price)) {
+      changes.push(`售價改為 ${price.toFixed(0)} 代幣`);
+    }
+
+    await prisma.$transaction([
+      prisma.books.update({ where: { book_id: bookId }, data }),
+      prisma.notifications.create({
+        data: {
+          user_id: book.seller_id,
+          type: 'system',
+          title: '書籍資料已由客服更新',
+          content: changes.length
+            ? `《${book.title}》：${changes.join('，')}。如有疑問請聯絡客服。`
+            : `《${book.title}》的商品資料已由客服協助更正。如有疑問請聯絡客服。`,
+          related_id: bookId,
+          related_type: 'book'
+        }
+      })
+    ]);
+
+    await logAction(req.user.userId, '修改書籍資料', 'book', bookId,
+      changes.length ? changes.join('，') : Object.keys(data).filter((k) => k !== 'updated_at').join('、'));
+
+    res.status(200).json({ success: true, message: '已更新' });
+  } catch (err) {
+    console.error('[修改書籍資料失敗]:', err);
     res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 });

@@ -12,7 +12,6 @@ import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import '../widgets/swipe_action.dart';
-import 'cart_screen.dart';
 import 'chat_room_screen.dart';
 import '../i18n/strings.dart';
 
@@ -124,9 +123,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
             icon: Icons.chat_bubble_outline_rounded,
             actions: [
               HeaderIconButton(icon: Icons.done_all_rounded, onTap: _markAllRead),
-              CartIconButton(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
-              ),
             ],
           ),
           Expanded(

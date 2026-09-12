@@ -358,6 +358,177 @@ class AdminOverview {
       );
 }
 
+/// 訂單流程的一個節點。null 代表還沒走到，用來看訂單卡在哪一步。
+class OrderStep {
+  final String label;
+  final DateTime? at;
+  const OrderStep(this.label, this.at);
+
+  bool get done => at != null;
+}
+
+class OrderRefund {
+  final int refundId;
+  final String type;
+  final double amount;
+  final String status;
+  final String? reason;
+  final DateTime? createdAt;
+  final DateTime? processedAt;
+
+  OrderRefund({
+    required this.refundId,
+    required this.type,
+    required this.amount,
+    required this.status,
+    this.reason,
+    this.createdAt,
+    this.processedAt,
+  });
+
+  factory OrderRefund.fromJson(Map<String, dynamic> json) => OrderRefund(
+        refundId: parseInt(json['refund_id']),
+        type: json['refund_type'] as String? ?? '',
+        amount: parseDouble(json['amount']),
+        status: json['status'] as String? ?? '',
+        reason: json['reason'] as String?,
+        createdAt: parseDate(json['created_at']),
+        processedAt: parseDate(json['processed_at']),
+      );
+}
+
+class OrderDispute {
+  final int disputeId;
+  final String reason;
+  final String status;
+  final String? result;
+  final String? adminNote;
+  final DateTime? createdAt;
+  final DateTime? resolvedAt;
+
+  OrderDispute({
+    required this.disputeId,
+    required this.reason,
+    required this.status,
+    this.result,
+    this.adminNote,
+    this.createdAt,
+    this.resolvedAt,
+  });
+
+  factory OrderDispute.fromJson(Map<String, dynamic> json) => OrderDispute(
+        disputeId: parseInt(json['dispute_id']),
+        reason: json['reason'] as String? ?? '',
+        status: json['status'] as String? ?? '',
+        result: json['result'] as String?,
+        adminNote: json['admin_note'] as String?,
+        createdAt: parseDate(json['created_at']),
+        resolvedAt: parseDate(json['resolved_at']),
+      );
+}
+
+class OrderWalletTxn {
+  final int txnId;
+  final String type;
+  final double amount;
+  final double balanceAfter;
+  final String? description;
+  final DateTime? createdAt;
+
+  OrderWalletTxn({
+    required this.txnId,
+    required this.type,
+    required this.amount,
+    required this.balanceAfter,
+    this.description,
+    this.createdAt,
+  });
+
+  factory OrderWalletTxn.fromJson(Map<String, dynamic> json) => OrderWalletTxn(
+        txnId: parseInt(json['txn_id']),
+        type: json['type'] as String? ?? '',
+        amount: parseDouble(json['amount']),
+        balanceAfter: parseDouble(json['balance_after']),
+        description: json['description'] as String?,
+        createdAt: parseDate(json['created_at']),
+      );
+}
+
+/// 列表用的 AdminOrder 只有摘要，處理爭議時要看的細節都在這裡。
+class AdminOrderDetail {
+  final AdminOrder order;
+  final String? paymentMethod;
+  final String? note;
+  final String? slotNumber;
+  final String buyerAvatarUrl;
+  final String sellerAvatarUrl;
+  final String cabinetAddress;
+  final Map<String, DateTime?> timeline;
+  final List<OrderRefund> refunds;
+  final List<OrderDispute> disputes;
+  final List<OrderWalletTxn> walletTxns;
+
+  AdminOrderDetail({
+    required this.order,
+    required this.timeline,
+    required this.refunds,
+    required this.disputes,
+    required this.walletTxns,
+    required this.buyerAvatarUrl,
+    required this.sellerAvatarUrl,
+    required this.cabinetAddress,
+    this.paymentMethod,
+    this.note,
+    this.slotNumber,
+  });
+
+  factory AdminOrderDetail.fromJson(Map<String, dynamic> json) {
+    final time = (json['timeline'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final slot = json['slot'] as Map<String, dynamic>?;
+    final buyer = json['buyer'] as Map<String, dynamic>?;
+    final seller = json['seller'] as Map<String, dynamic>?;
+    final cabinet = json['cabinet'] as Map<String, dynamic>?;
+
+    List<T> list<T>(String key, T Function(Map<String, dynamic>) build) =>
+        ((json[key] as List?) ?? const [])
+            .map((e) => build(Map<String, dynamic>.from(e)))
+            .toList();
+
+    return AdminOrderDetail(
+      order: AdminOrder.fromJson(json),
+      paymentMethod: json['payment_method'] as String?,
+      note: json['note'] as String?,
+      slotNumber: slot?['slot_number'] as String?,
+      buyerAvatarUrl: resolveAssetUrl(buyer?['avatar_url']) ?? '',
+      sellerAvatarUrl: resolveAssetUrl(seller?['avatar_url']) ?? '',
+      cabinetAddress: cabinet?['address'] as String? ?? '',
+      timeline: {
+        for (final key in const [
+          'created_at', 'payment_at', 'deposited_at',
+          'picked_up_at', 'completed_at', 'cancelled_at',
+        ])
+          key: parseDate(time[key]),
+      },
+      refunds: list('refunds', OrderRefund.fromJson),
+      disputes: list('disputes', OrderDispute.fromJson),
+      walletTxns: list('wallet_transactions', OrderWalletTxn.fromJson),
+    );
+  }
+
+  /// 依實際流程排出的節點。取消的訂單不顯示後面沒走到的步驟。
+  List<OrderStep> get steps {
+    final cancelled = timeline['cancelled_at'];
+    return [
+      OrderStep(S.orderPlaced, timeline['created_at']),
+      OrderStep(S.paid, timeline['payment_at']),
+      OrderStep(S.sellerDroppedOff, timeline['deposited_at']),
+      OrderStep(S.buyerCollected, timeline['picked_up_at']),
+      if (cancelled == null) OrderStep(S.completed, timeline['completed_at'])
+      else OrderStep(S.actionCancel, cancelled),
+    ];
+  }
+}
+
 class AdminOrderItem {
   final int bookId;
   final String title;
@@ -442,6 +613,8 @@ class AdminBook {
   final String? isbn;
   final double price;
   final String status;
+  final String conditionLevel;
+  final int? categoryId;
   final String categoryName;
   final String sellerName;
   final int viewCount;
@@ -449,18 +622,32 @@ class AdminBook {
   final String? imageUrl;
   final DateTime? createdAt;
 
+  // 編輯表單的現值。列表就帶回來，開編輯畫面才不用再打一次 API。
+  final String? author;
+  final String? publisher;
+  final String? publishDate;
+  final String? conditionNote;
+  final String? description;
+
   AdminBook({
     required this.bookId,
     required this.title,
     required this.price,
     required this.status,
+    required this.conditionLevel,
     required this.categoryName,
     required this.sellerName,
     required this.viewCount,
     required this.pendingReportCount,
+    this.categoryId,
     this.isbn,
     this.imageUrl,
     this.createdAt,
+    this.author,
+    this.publisher,
+    this.publishDate,
+    this.conditionNote,
+    this.description,
   });
 
   String get statusText => AppLabels.book(status);
@@ -474,12 +661,19 @@ class AdminBook {
       isbn: json['isbn'] as String?,
       price: parseDouble(json['price']),
       status: json['status'] as String? ?? '',
+      conditionLevel: json['condition_level'] as String? ?? 'good',
+      categoryId: json['category_id'] == null ? null : parseInt(json['category_id']),
       categoryName: json['category_name'] as String? ?? '',
       sellerName: seller?['nickname'] as String? ?? '—',
       viewCount: parseInt(json['view_count']),
       pendingReportCount: parseInt(json['pending_report_count']),
       imageUrl: resolveAssetUrl(json['image_url']),
       createdAt: parseDate(json['created_at']),
+      author: json['author'] as String?,
+      publisher: json['publisher'] as String?,
+      publishDate: json['publish_date'] as String?,
+      conditionNote: json['condition_note'] as String?,
+      description: json['description'] as String?,
     );
   }
 }

@@ -1620,5 +1620,99 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "orderPlaced": "成立訂單",
+  "paid": "付款",
+  "sellerDroppedOff": "賣家放書",
+  "buyerCollected": "買家取書",
+  "completed": "完成",
+  "editBookDetails": "編輯書籍資料",
+  "sellerP0TheyNotifiedSave": "賣家 {p0}・儲存後會通知他",
+  "@sellerP0TheyNotifiedSave": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "priceCoins": "售價（代幣）",
+  "k1013Digits2": "10 或 13 位數字",
+  "category": "分類",
+  "description2": "商品描述",
+  "titleRequired": "書名必填",
+  "nothingChanged": "沒有變更",
+  "resetPassword": "重設密碼",
+  "p0SCurrentPasswordStopsWorking": "{p0} 目前的密碼會立刻失效，必須改用接下來產生的臨時密碼登入。\n\n密碼由系統產生，你不能自己指定。",
+  "@p0SCurrentPasswordStopsWorking": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "generateTemporaryPassword": "產生臨時密碼",
+  "temporaryPassword": "臨時密碼",
+  "p0SPasswordBeenResetPassword": "{p0} 的密碼已重設。這組密碼只會出現這一次，關掉後無法再查看。",
+  "@p0SPasswordBeenResetPassword": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "remindThemChangeSettingsChangePassword": "請提醒對方登入後立刻到「設定 → 更改密碼」改掉。",
+  "temporaryPasswordCopied": "已複製臨時密碼",
+  "copy": "複製",
+  "cannotResetAnotherAdminSPassword": "不能重設其他管理員的密碼",
+  "generateTemporaryPasswordHandOver": "產生一組臨時密碼交給使用者",
+  "orderNumberCopied": "已複製訂單編號",
+  "orderNotFound": "找不到這筆訂單",
+  "paidWithCoins": "代幣支付",
+  "bankTransfer": "銀行轉帳",
+  "notPaidYet": "尚未付款",
+  "progress": "流程",
+  "notYet": "尚未發生",
+  "buyerSeller": "買賣雙方",
+  "items3": "品項",
+  "bookDeleted": "（書籍已刪除）",
+  "notAssignedYet2": "尚未指派",
+  "pickupCodeCopied": "已複製取書碼",
+  "walletActivity": "錢包異動",
+  "balanceP02": "餘 {p0}",
+  "@balanceP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "refunds": "退款紀錄",
+  "requestedP0NotProcessedYet": "申請於 {p0}，尚未處理",
+  "@requestedP0NotProcessedYet": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "processedP0": "處理於 {p0}",
+  "@processedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "disputes": "申訴",
+  "filedP0": "申請於 {p0}",
+  "@filedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "decidedP0": "裁決於 {p0}",
+  "@decidedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "createdP0": "建立於 {p0}",
+  "@createdP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "shareBook": "分享書籍",
+  "shareAnotherApp": "分享到其他 App",
+  "approved": "已核准",
+  "awaitingRefund": "待退款",
+  "declined": "不予退款"
 }
