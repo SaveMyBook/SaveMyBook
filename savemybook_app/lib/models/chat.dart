@@ -27,6 +27,8 @@ class ChatRoom {
   final int lastSenderId;
   final bool lastIsRead;
   final int unreadCount;
+  final bool muted;
+  final bool blocked;
   final DateTime? updatedAt;
 
   ChatRoom({
@@ -37,8 +39,23 @@ class ChatRoom {
     this.lastSenderId = 0,
     this.lastIsRead = false,
     required this.unreadCount,
+    this.muted = false,
+    this.blocked = false,
     this.updatedAt,
   });
+
+  ChatRoom copyWith({bool? muted, bool? blocked}) => ChatRoom(
+        roomId: roomId,
+        partner: partner,
+        lastMessage: lastMessage,
+        lastKind: lastKind,
+        lastSenderId: lastSenderId,
+        lastIsRead: lastIsRead,
+        unreadCount: unreadCount,
+        muted: muted ?? this.muted,
+        blocked: blocked ?? this.blocked,
+        updatedAt: updatedAt,
+      );
 
   factory ChatRoom.fromJson(Map<String, dynamic> json) {
     final last = json['last_message'] as Map<String, dynamic>?;
@@ -52,6 +69,8 @@ class ChatRoom {
       lastSenderId: parseInt(last?['sender_id']),
       lastIsRead: last?['is_read'] == true,
       unreadCount: parseInt(json['unread_count']),
+      muted: json['muted'] == true,
+      blocked: json['blocked'] == true,
       updatedAt: parseDate(json['updated_at']),
     );
   }
@@ -265,6 +284,9 @@ class ChatFetchResult {
   final List<int> recalledIds;
   final bool hasMore;
   final Map<int, ChatReservation> reservations;
+  final bool muted;
+  final bool blocked;
+  final bool canSend;
   final bool ok;
   final String? error;
   final String? code;
@@ -278,6 +300,9 @@ class ChatFetchResult {
     this.recalledIds = const [],
     this.hasMore = false,
     this.reservations = const {},
+    this.muted = false,
+    this.blocked = false,
+    this.canSend = true,
     this.ok = true,
     this.error,
     this.code,

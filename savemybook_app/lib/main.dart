@@ -13,7 +13,6 @@ import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/api_service.dart';
 import 'services/biometric_service.dart';
-import 'services/chat_prefs.dart';
 import 'services/deep_link_service.dart';
 import 'services/home_widget_service.dart';
 import 'services/locale_provider.dart';
@@ -55,7 +54,6 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     themeProvider = await ThemeProvider.init();
     paletteProvider = await PaletteProvider.init();
     localeProvider = await LocaleProvider.init();
-    await ChatPrefs.load();
     await BiometricService.load();
 
     PushService.navigatorKey = navigatorKey;

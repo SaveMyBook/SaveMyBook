@@ -17,6 +17,7 @@ import '../utils/motion.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_dialogs.dart';
 import 'account_privacy_screen.dart';
+import 'blocked_users_screen.dart';
 import 'security/security_center_screen.dart';
 import '../services/locale_provider.dart';
 import '../services/push_service.dart';
@@ -308,6 +309,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         leading: _icon(c, Icons.shield_outlined),
         title: S.account,
         onTap: () => _push(const AccountPrivacyScreen()),
+      ),
+      _row(
+        c,
+        leading: _icon(c, Icons.block_rounded),
+        title: S.blockedUsers,
+        onTap: () => _push(const BlockedUsersScreen()),
       ),
       _row(
         c,

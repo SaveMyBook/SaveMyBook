@@ -2620,5 +2620,27 @@
   "next2": "下一章",
   "unableGenerateProfileQrCodeTry": "无法生成个人 QR Code，请稍后再试",
   "myQrCode": "我的 QR Code",
-  "markAsRead": "标为已读"
+  "markAsRead": "标为已读",
+  "unblock": "解除屏蔽",
+  "afterUnblockingP0CanSendMessages": "解除屏蔽后，您与「{p0}」可再次互相发送消息。",
+  "@afterUnblockingP0CanSendMessages": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "userUnblocked": "已解除屏蔽",
+  "unableLoadBlockedUsers": "无法加载屏蔽名单",
+  "notBlockedAnyUsers": "目前没有屏蔽任何用户",
+  "blockedUsers": "屏蔽名单",
+  "blockUser": "屏蔽用户",
+  "afterBlockP0NeitherCanSend": "屏蔽「{p0}」后，双方将无法互相发送消息，对方不会收到通知。您可随时在「设置 › 屏蔽名单」解除屏蔽。",
+  "@afterBlockP0NeitherCanSend": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "block": "屏蔽",
+  "userBlocked": "已屏蔽此用户",
+  "moreOptions": "更多选项",
+  "blockedUser": "您已屏蔽此用户"
 }

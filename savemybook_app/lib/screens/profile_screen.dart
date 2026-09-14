@@ -217,42 +217,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   PressableScale(
                     onTap: () => _openAndRefresh(const WalletScreen()),
                     child: Container(
-                      padding: const EdgeInsets.fromLTRB(12, 7, 14, 7),
+                      height: 40,
+                      padding: const EdgeInsets.fromLTRB(10, 0, 14, 0),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.monetization_on_rounded, color: Colors.amber, size: 20),
-                          const SizedBox(width: 6),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              AnimatedCount(
-                                value: _stats.balance,
-                                thousands: true,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  height: 1.1,
-                                ),
+                      child: Semantics(
+                        label: S.faqCatWallet,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.monetization_on_rounded, color: Colors.amber, size: 20),
+                            const SizedBox(width: 6),
+                            AnimatedCount(
+                              value: _stats.balance,
+                              thousands: true,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                height: 1,
+                                leadingDistribution: TextLeadingDistribution.even,
                               ),
-                              Text(
-                                S.faqCatWallet,
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: Colors.white.withValues(alpha: 0.75),
-                                  height: 1.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

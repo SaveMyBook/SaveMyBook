@@ -204,16 +204,16 @@ const respond = async (reservationId, userId, action) => {
     if (room) await tx.chat_rooms.update({ where: { room_id: room.room_id }, data: { updated_at: now } });
 
     const target = isSeller ? row.buyer_id : row.seller_id;
-    const messages = {
-      accept: ['賣家已接受您的預約', `《${title}》已為您保留至 ${formatDeadline(data.pickup_deadline)}，請於期限內完成購買。`],
-      decline: ['賣家已婉拒預約', `賣家目前無法保留《${title}》。`],
-      cancel: ['預約已取消', `《${title}》的預約已被${isSeller ? '賣家' : '買家'}取消。`]
-    };
+    const [notifyTitle, notifyContent] = {
+      accept: () => ['賣家已接受您的預約', `《${title}》已為您保留至 ${formatDeadline(data.pickup_deadline)}，請於期限內完成購買。`],
+      decline: () => ['賣家已婉拒預約', `賣家目前無法保留《${title}》。`],
+      cancel: () => ['預約已取消', `《${title}》的預約已被${isSeller ? '賣家' : '買家'}取消。`]
+    }[action]();
     await notify(tx, {
       userId: target,
       type: 'reservation',
-      title: messages[action][0],
-      content: messages[action][1],
+      title: notifyTitle,
+      content: notifyContent,
       relatedId: room?.room_id ?? null,
       relatedType: room ? 'chat_room' : null
     });

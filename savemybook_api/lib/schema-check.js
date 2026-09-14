@@ -49,7 +49,9 @@ const REQUIRED = [
   { migration: '007_consent_sessions_payment.sql', table: 'user_legal_consents' },
   { migration: '007_consent_sessions_payment.sql', table: 'user_sessions' },
   { migration: '007_consent_sessions_payment.sql', table: 'user_security' },
-  { migration: '007_consent_sessions_payment.sql', table: 'push_devices', column: 'session_sid' }
+  { migration: '007_consent_sessions_payment.sql', table: 'push_devices', column: 'session_sid' },
+  { migration: '008_chat_mute_block.sql', table: 'chat_room_mutes' },
+  { migration: '008_chat_mute_block.sql', table: 'user_blocks' }
 ];
 
 const missingSchema = async () => {

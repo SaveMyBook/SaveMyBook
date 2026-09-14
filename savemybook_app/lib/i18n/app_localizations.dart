@@ -1512,6 +1512,18 @@ abstract class AppLocalizations {
   String get unableGenerateProfileQrCodeTry;
   String get myQrCode;
   String get markAsRead;
+  String get unblock;
+  String afterUnblockingP0CanSendMessages(Object p0);
+  String get userUnblocked;
+  String get unableLoadBlockedUsers;
+  String get notBlockedAnyUsers;
+  String get blockedUsers;
+  String get blockUser;
+  String afterBlockP0NeitherCanSend(Object p0);
+  String get block;
+  String get userBlocked;
+  String get moreOptions;
+  String get blockedUser;
 }
 
 class _LEn extends AppLocalizations {
@@ -5983,6 +5995,42 @@ class _LEn extends AppLocalizations {
 
   @override
   String get markAsRead => 'Mark as read';
+
+  @override
+  String get unblock => 'Unblock';
+
+  @override
+  String afterUnblockingP0CanSendMessages(Object p0) => 'After unblocking, you and "${p0}" can send messages to each other again.';
+
+  @override
+  String get userUnblocked => 'User unblocked';
+
+  @override
+  String get unableLoadBlockedUsers => 'Unable to load blocked users';
+
+  @override
+  String get notBlockedAnyUsers => 'You have not blocked any users';
+
+  @override
+  String get blockedUsers => 'Blocked users';
+
+  @override
+  String get blockUser => 'Block user';
+
+  @override
+  String afterBlockP0NeitherCanSend(Object p0) => 'After you block "${p0}", neither of you can send messages to the other. They will not be notified. You can unblock them at any time in Settings › Blocked users.';
+
+  @override
+  String get block => 'Block';
+
+  @override
+  String get userBlocked => 'User blocked';
+
+  @override
+  String get moreOptions => 'More options';
+
+  @override
+  String get blockedUser => 'You have blocked this user';
 
 }
 
@@ -10456,6 +10504,42 @@ class _LJa extends AppLocalizations {
   @override
   String get markAsRead => '既読にする';
 
+  @override
+  String get unblock => 'ブロックを解除';
+
+  @override
+  String afterUnblockingP0CanSendMessages(Object p0) => 'ブロックを解除すると、「${p0}」と再びメッセージをやり取りできます。';
+
+  @override
+  String get userUnblocked => 'ブロックを解除しました';
+
+  @override
+  String get unableLoadBlockedUsers => 'ブロックリストを読み込めません';
+
+  @override
+  String get notBlockedAnyUsers => 'ブロック中のユーザーはいません';
+
+  @override
+  String get blockedUsers => 'ブロックリスト';
+
+  @override
+  String get blockUser => 'ユーザーをブロック';
+
+  @override
+  String afterBlockP0NeitherCanSend(Object p0) => '「${p0}」をブロックすると、お互いにメッセージを送信できなくなります。相手には通知されません。ブロックは「設定 › ブロックリスト」からいつでも解除できます。';
+
+  @override
+  String get block => 'ブロック';
+
+  @override
+  String get userBlocked => 'ユーザーをブロックしました';
+
+  @override
+  String get moreOptions => 'その他のオプション';
+
+  @override
+  String get blockedUser => 'このユーザーをブロックしています';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -14927,6 +15011,42 @@ class _LKo extends AppLocalizations {
 
   @override
   String get markAsRead => '읽음으로 표시';
+
+  @override
+  String get unblock => '차단 해제';
+
+  @override
+  String afterUnblockingP0CanSendMessages(Object p0) => '차단을 해제하면 "${p0}" 님과 다시 메시지를 주고받을 수 있습니다.';
+
+  @override
+  String get userUnblocked => '차단을 해제했습니다';
+
+  @override
+  String get unableLoadBlockedUsers => '차단 목록을 불러올 수 없습니다';
+
+  @override
+  String get notBlockedAnyUsers => '차단한 사용자가 없습니다';
+
+  @override
+  String get blockedUsers => '차단 목록';
+
+  @override
+  String get blockUser => '사용자 차단';
+
+  @override
+  String afterBlockP0NeitherCanSend(Object p0) => '"${p0}" 님을 차단하면 서로 메시지를 보낼 수 없으며, 상대방에게는 알림이 가지 않습니다. 설정 › 차단 목록에서 언제든지 차단을 해제할 수 있습니다.';
+
+  @override
+  String get block => '차단';
+
+  @override
+  String get userBlocked => '사용자를 차단했습니다';
+
+  @override
+  String get moreOptions => '더보기';
+
+  @override
+  String get blockedUser => '이 사용자를 차단했습니다';
 
 }
 
@@ -19400,6 +19520,42 @@ class _LZh extends AppLocalizations {
   @override
   String get markAsRead => '標為已讀';
 
+  @override
+  String get unblock => '解除封鎖';
+
+  @override
+  String afterUnblockingP0CanSendMessages(Object p0) => '解除封鎖後，您與「${p0}」可再次互相傳送訊息。';
+
+  @override
+  String get userUnblocked => '已解除封鎖';
+
+  @override
+  String get unableLoadBlockedUsers => '無法載入封鎖名單';
+
+  @override
+  String get notBlockedAnyUsers => '目前沒有封鎖任何使用者';
+
+  @override
+  String get blockedUsers => '封鎖名單';
+
+  @override
+  String get blockUser => '封鎖使用者';
+
+  @override
+  String afterBlockP0NeitherCanSend(Object p0) => '封鎖「${p0}」後，雙方將無法互相傳送訊息，對方不會收到通知。您可隨時於「設定 › 封鎖名單」解除封鎖。';
+
+  @override
+  String get block => '封鎖';
+
+  @override
+  String get userBlocked => '已封鎖此使用者';
+
+  @override
+  String get moreOptions => '更多選項';
+
+  @override
+  String get blockedUser => '您已封鎖此使用者';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -23872,6 +24028,42 @@ class _LZhHans extends AppLocalizations {
   @override
   String get markAsRead => '标为已读';
 
+  @override
+  String get unblock => '解除屏蔽';
+
+  @override
+  String afterUnblockingP0CanSendMessages(Object p0) => '解除屏蔽后，您与「${p0}」可再次互相发送消息。';
+
+  @override
+  String get userUnblocked => '已解除屏蔽';
+
+  @override
+  String get unableLoadBlockedUsers => '无法加载屏蔽名单';
+
+  @override
+  String get notBlockedAnyUsers => '目前没有屏蔽任何用户';
+
+  @override
+  String get blockedUsers => '屏蔽名单';
+
+  @override
+  String get blockUser => '屏蔽用户';
+
+  @override
+  String afterBlockP0NeitherCanSend(Object p0) => '屏蔽「${p0}」后，双方将无法互相发送消息，对方不会收到通知。您可随时在「设置 › 屏蔽名单」解除屏蔽。';
+
+  @override
+  String get block => '屏蔽';
+
+  @override
+  String get userBlocked => '已屏蔽此用户';
+
+  @override
+  String get moreOptions => '更多选项';
+
+  @override
+  String get blockedUser => '您已屏蔽此用户';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -28343,6 +28535,42 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get markAsRead => '標為已讀';
+
+  @override
+  String get unblock => '解除封鎖';
+
+  @override
+  String afterUnblockingP0CanSendMessages(Object p0) => '解除封鎖後，您與「${p0}」可再次互相傳送訊息。';
+
+  @override
+  String get userUnblocked => '已解除封鎖';
+
+  @override
+  String get unableLoadBlockedUsers => '無法載入封鎖名單';
+
+  @override
+  String get notBlockedAnyUsers => '目前沒有封鎖任何使用者';
+
+  @override
+  String get blockedUsers => '封鎖名單';
+
+  @override
+  String get blockUser => '封鎖使用者';
+
+  @override
+  String afterBlockP0NeitherCanSend(Object p0) => '封鎖「${p0}」後，雙方將無法互相傳送訊息，對方不會收到通知。您可隨時於「設定 › 封鎖名單」解除封鎖。';
+
+  @override
+  String get block => '封鎖';
+
+  @override
+  String get userBlocked => '已封鎖此使用者';
+
+  @override
+  String get moreOptions => '更多選項';
+
+  @override
+  String get blockedUser => '您已封鎖此使用者';
 
 }
 

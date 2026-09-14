@@ -45,26 +45,23 @@ class VerificationService {
     );
   }
 
-  static Future<String?> requirePassword(BuildContext context, {String? reason}) async {
-    final token = await _passwordDialog(
-      context,
-      VerificationRequest(scope: 'sensitive', methods: const ['password'], message: reason ?? ''),
-    );
-    return token == null ? null : _remember(const VerificationRequest(scope: 'sensitive', methods: [], message: ''), token);
+  static String? get cachedSensitiveToken {
+    final cached = _sensitiveToken;
+    final expiresAt = _sensitiveExpiresAt;
+    if (cached == null || expiresAt == null || _sensitiveOwner != ApiService.authToken) return null;
+    return DateTime.now().isBefore(expiresAt) ? cached : null;
   }
+
+  static void rememberSensitive(String token) =>
+      _remember(const VerificationRequest(scope: 'sensitive', methods: [], message: ''), token);
 
   static Future<String?> _handle(VerificationRequest request, {BuildContext? context}) async {
     final ctx = context ?? navigatorKey?.currentContext;
     if (ctx == null) return null;
 
     if (!request.isPayment) {
-      final cached = _sensitiveToken;
-      if (cached != null &&
-          _sensitiveOwner == ApiService.authToken &&
-          _sensitiveExpiresAt != null &&
-          DateTime.now().isBefore(_sensitiveExpiresAt!)) {
-        return cached;
-      }
+      final cached = cachedSensitiveToken;
+      if (cached != null) return cached;
     }
 
     final api = ApiService();

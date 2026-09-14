@@ -2620,5 +2620,27 @@
   "next2": "次の章",
   "unableGenerateProfileQrCodeTry": "プロフィール QR コードを生成できません。しばらくしてからお試しください。",
   "myQrCode": "マイ QR コード",
-  "markAsRead": "既読にする"
+  "markAsRead": "既読にする",
+  "unblock": "ブロックを解除",
+  "afterUnblockingP0CanSendMessages": "ブロックを解除すると、「{p0}」と再びメッセージをやり取りできます。",
+  "@afterUnblockingP0CanSendMessages": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "userUnblocked": "ブロックを解除しました",
+  "unableLoadBlockedUsers": "ブロックリストを読み込めません",
+  "notBlockedAnyUsers": "ブロック中のユーザーはいません",
+  "blockedUsers": "ブロックリスト",
+  "blockUser": "ユーザーをブロック",
+  "afterBlockP0NeitherCanSend": "「{p0}」をブロックすると、お互いにメッセージを送信できなくなります。相手には通知されません。ブロックは「設定 › ブロックリスト」からいつでも解除できます。",
+  "@afterBlockP0NeitherCanSend": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "block": "ブロック",
+  "userBlocked": "ユーザーをブロックしました",
+  "moreOptions": "その他のオプション",
+  "blockedUser": "このユーザーをブロックしています"
 }
