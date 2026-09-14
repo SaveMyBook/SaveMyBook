@@ -3,6 +3,7 @@ const { env } = require('../config/env');
 const { FcmClient } = require('../lib/fcm');
 const maintenance = require('../lib/maintenance');
 const { hasColumn } = require('../lib/schema-check');
+const chatControls = require('./chat-controls');
 
 const PLATFORMS = ['ios', 'android'];
 const MAX_DEVICES_PER_USER = 10;
@@ -253,7 +254,13 @@ const dispatchOnce = async () => {
   if (rows.length === 0) return 0;
 
   const userIds = [...new Set(rows.map((r) => Number(r.user_id)))];
-  const { devicesOf, settingsOf, unreadOf } = await recipientsFor(userIds);
+  const chatRoomIds = [...new Set(rows
+    .filter((r) => r.type === 'message' && r.related_type === 'chat_room' && r.related_id != null)
+    .map((r) => Number(r.related_id)))];
+  const [{ devicesOf, settingsOf, unreadOf }, muted] = await Promise.all([
+    recipientsFor(userIds),
+    chatControls.mutedPairs(chatRoomIds)
+  ]);
   const invalid = new Set();
   const tasks = [];
 
@@ -261,6 +268,7 @@ const dispatchOnce = async () => {
     const userId = Number(n.user_id);
     const pref = PREFERENCE_COLUMN[n.type];
     if (pref && settingsOf.get(userId)?.[pref] === false) continue;
+    if (n.type === 'message' && n.related_type === 'chat_room' && muted.has(`${userId}:${Number(n.related_id)}`)) continue;
 
     for (const device of devicesOf(userId)) {
       tasks.push(() => sendOne({ notification: n, device, badge: unreadOf.get(userId) ?? 0, invalid }));

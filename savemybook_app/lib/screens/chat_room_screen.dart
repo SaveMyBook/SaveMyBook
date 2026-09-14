@@ -131,6 +131,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   int _failures = 0;
   bool _offline = false;
   bool _partnerUnavailable = false;
+  bool _muted = false;
+  bool _blocked = false;
+  bool _updatingControls = false;
   bool _quickRepliesOpen = false;
 
   Timer? _pollTimer;
@@ -234,6 +237,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         ..clear()
         ..addAll(result.reservations);
       _partnerTyping.value = result.partnerTyping;
+      _applyControls(result);
       _pivotId = _messages.isEmpty ? 0 : _messages.last.messageId;
       _loading = false;
       _loadError = false;
@@ -329,6 +333,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       changed = true;
     }
 
+    if (!_updatingControls && _applyControls(result)) changed = true;
+
     for (final id in result.recalledIds) {
       if (!_ids.contains(id)) continue;
       final i = _messages.indexWhere((m) => m.messageId == id);
@@ -366,6 +372,92 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       if (fresh.any((m) => m.kind == 'book')) _refreshReservable();
       if (fresh.any((m) => m.senderId != _myId)) _api.fetchUnreadChatCount();
     }
+  }
+
+  bool _applyControls(ChatFetchResult result) {
+    final unavailable = !result.canSend && !result.blocked;
+    if (_muted == result.muted && _blocked == result.blocked && _partnerUnavailable == unavailable) return false;
+    _muted = result.muted;
+    _blocked = result.blocked;
+    _partnerUnavailable = unavailable;
+    if (_blocked || _partnerUnavailable) _partnerTyping.value = false;
+    return true;
+  }
+
+  Future<void> _showRoomMenu() async {
+    final partner = _partner;
+    if (partner == null || partner.userId == 0 || _updatingControls) return;
+    FocusScope.of(context).unfocus();
+    final c = AppColors.of(context);
+    final choice = await showOptionSheet<String>(
+      context,
+      title: partner.nickname,
+      options: [
+        SheetOption(
+          value: 'mute',
+          label: _muted ? S.unmute : S.mute,
+          icon: _muted ? Icons.notifications_active_outlined : Icons.notifications_off_outlined,
+        ),
+        SheetOption(
+          value: 'block',
+          label: _blocked ? S.unblock : S.blockUser,
+          icon: _blocked ? Icons.lock_open_rounded : Icons.block_rounded,
+          color: _blocked ? null : c.danger,
+        ),
+      ],
+    );
+    if (!mounted || choice == null) return;
+    if (choice == 'mute') {
+      await _setMuted(!_muted);
+    } else {
+      await _setBlocked(!_blocked);
+    }
+  }
+
+  Future<void> _setMuted(bool muted) async {
+    setState(() {
+      _updatingControls = true;
+      _muted = muted;
+    });
+    final error = await _api.setChatRoomMuted(widget.roomId, muted);
+    if (!mounted) return;
+    setState(() {
+      _updatingControls = false;
+      if (error != null) _muted = !muted;
+    });
+    showAppSnackBar(context, error ?? (muted ? S.chatMuted : S.chatUnmuted), isError: error != null);
+  }
+
+  Future<void> _setBlocked(bool blocked) async {
+    final partner = _partner;
+    if (partner == null || partner.userId == 0) return;
+    if (blocked) {
+      final confirmed = await showConfirmDialog(
+        context,
+        title: S.blockUser,
+        message: S.afterBlockP0NeitherCanSend(partner.nickname),
+        confirmLabel: S.block,
+        isDestructive: true,
+        icon: Icons.block_rounded,
+      );
+      if (!confirmed || !mounted) return;
+    }
+
+    setState(() => _updatingControls = true);
+    final error = await _api.setUserBlocked(partner.userId, blocked);
+    if (!mounted) return;
+    setState(() {
+      _updatingControls = false;
+      if (error == null) {
+        _blocked = blocked;
+        if (blocked) {
+          _partnerTyping.value = false;
+          _quickRepliesOpen = false;
+        }
+      }
+    });
+    showAppSnackBar(context, error ?? (blocked ? S.userBlocked : S.userUnblocked), isError: error != null);
+    if (error == null) _poll(force: true);
   }
 
   bool _mergeReservations(Map<int, ChatReservation> incoming) {
@@ -526,7 +618,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
 
   bool get _canReserve {
     final book = _reserveBook;
-    if (book == null || _partnerUnavailable) return false;
+    if (book == null || _partnerUnavailable || _blocked) return false;
     return !_reservations.values.any((r) =>
         r.bookId == book.bookId &&
         r.buyerId == _myId &&
@@ -1023,7 +1115,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     final c = AppColors.of(context);
     final nickname = _partner?.nickname ?? '';
     final title = nickname.isNotEmpty ? nickname : widget.partnerName;
-    final inputEnabled = !_loading && !_loadError && !_offline && !_partnerUnavailable;
+    final inputEnabled = !_loading && !_loadError && !_offline && !_partnerUnavailable && !_blocked;
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -1031,6 +1123,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         children: [
           AppHeader(
             title: title.isEmpty ? S.chat : title,
+            actionsWidth: 106,
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 8),
@@ -1044,6 +1137,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                     ],
                   ),
                 ),
+              ),
+              IconButton(
+                onPressed: _partner == null || _loading ? null : _showRoomMenu,
+                tooltip: S.moreOptions,
+                icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
               ),
             ],
           ),
@@ -1066,7 +1164,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             controller: _controller,
             focusNode: _focus,
             enabled: inputEnabled,
-            disabledHint: _partnerUnavailable ? S.accountCanTReceiveMessagesRight : null,
+            disabledHint: _blocked
+                ? S.blockedUser
+                : _partnerUnavailable
+                    ? S.accountCanTReceiveMessagesRight
+                    : null,
             top: _buildInputTop(c),
             quickRepliesOpen: _quickRepliesOpen,
             onSend: _sendText,
@@ -1252,12 +1354,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         actionLabel: S.retry,
         onAction: () => _poll(force: true),
       ));
+    } else if (_blocked) {
+      children.add(_Banner(
+        icon: Icons.block_rounded,
+        text: S.blockedUser,
+        color: c.danger,
+        actionLabel: S.unblock,
+        onAction: _updatingControls ? null : () => _setBlocked(false),
+      ));
     } else if (_partnerUnavailable) {
       children.add(_Banner(icon: Icons.block_rounded, text: S.accountCanTReceiveMessagesRight, color: c.danger));
     }
 
     final hasConversation = _messages.any((m) => const {'text', 'image', 'voice'}.contains(m.kind)) || _pending.isNotEmpty;
-    final showQuick = !_loading && !_loadError && !_partnerUnavailable && (_quickRepliesOpen || !hasConversation);
+    final showQuick = !_loading && !_loadError && !_partnerUnavailable && !_blocked && (_quickRepliesOpen || !hasConversation);
     final quickReplies = [S.stillAvailable, S.couldLowerPriceBit, S.whenCanPutLocker];
 
     final chips = <Widget>[

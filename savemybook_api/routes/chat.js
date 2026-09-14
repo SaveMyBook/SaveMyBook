@@ -7,6 +7,7 @@ const { badRequest, conflict, forbidden, notFound } = require('../lib/errors');
 const { notify } = require('../services/notify');
 const chat = require('../services/chat');
 const reservations = require('../services/reservations');
+const controls = require('../services/chat-controls');
 
 const router = express.Router();
 
@@ -33,11 +34,13 @@ const partnerOf = (room, myId) => (room.user_a_id === myId
 
 const partnerIdOf = (room, myId) => (room.user_a_id === myId ? room.user_b_id : room.user_a_id);
 
-const shapeRoom = (room, myId) => {
+const shapeRoom = (room, myId, { muted, blocked }) => {
   const last = room.chat_messages[0] ?? null;
   return {
     room_id: room.room_id,
     partner: partnerOf(room, myId),
+    muted: muted.has(room.room_id),
+    blocked: blocked.has(partnerIdOf(room, myId)),
     last_message: last
       ? {
           content: last.content,
@@ -65,7 +68,7 @@ const findMyRoom = async (roomId, myId, include) => {
 
 router.get('/rooms', async (req, res) => {
   const myId = req.user.userId;
-  const rooms = await prisma.chat_rooms.findMany({
+  const [rooms, muted, blocked] = await Promise.all([prisma.chat_rooms.findMany({
     where: myRooms(myId),
     orderBy: { updated_at: 'desc' },
     include: {
@@ -75,9 +78,9 @@ router.get('/rooms', async (req, res) => {
       chat_messages: { orderBy: { message_id: 'desc' }, take: 1 },
       _count: { select: { chat_messages: { where: { is_read: false, sender_id: { not: myId } } } } }
     }
-  });
+  }), controls.mutedRoomIds(myId), controls.blockedUserIds(myId)]);
 
-  res.status(200).json({ success: true, data: rooms.map((r) => shapeRoom(r, myId)) });
+  res.status(200).json({ success: true, data: rooms.map((r) => shapeRoom(r, myId, { muted, blocked })) });
 });
 
 router.get('/unread-count', async (req, res) => {
@@ -129,9 +132,11 @@ router.post('/rooms', async (req, res) => {
     select: { is_active: true, is_blacklisted: true }
   });
   if (!partner) throw notFound('找不到該使用者');
-  if (!partner.is_active || partner.is_blacklisted) throw badRequest('對方帳號目前無法接收訊息');
+  if (!partner.is_active || partner.is_blacklisted) throw controls.recipientUnavailable();
 
-  const book = bookId
+  const { blocked, blockedBy } = await controls.relation(myId, partnerId);
+
+  const book = bookId && !blocked && !blockedBy
     ? await prisma.books.findUnique({
         where: { book_id: bookId },
         select: { book_id: true, title: true, price: true, book_images: { select: { image_url: true }, take: 1 } }
@@ -146,6 +151,7 @@ router.post('/rooms', async (req, res) => {
   });
 
   if (!room) {
+    if (blockedBy) throw controls.recipientUnavailable();
     room = await prisma.chat_rooms.create({
       data: { user_a_id: userA, user_b_id: userB, book_id: book?.book_id ?? null }
     });
@@ -196,6 +202,7 @@ router.get('/rooms/:roomId/messages', async (req, res) => {
     books: { select: { book_id: true, title: true, price: true, book_images: { select: { image_url: true }, take: 1 } } }
   });
   const partnerId = partnerIdOf(room, myId);
+  const partnerAccount = partnerOf(room, myId);
 
   const where = { room_id: roomId };
   if (afterId != null) where.message_id = { gt: afterId };
@@ -212,7 +219,7 @@ router.get('/rooms/:roomId/messages', async (req, res) => {
 
   const recentCutoff = new Date(Date.now() - 10 * 60 * 1000);
   const markRead = req.query.mark_read !== 'false';
-  const [, lastRead, recalled, reservationMap] = await Promise.all([
+  const [, lastRead, recalled, reservationMap, relation, muted, partnerStatus] = await Promise.all([
     markRead
       ? prisma.chat_messages.updateMany({
           where: { room_id: roomId, sender_id: { not: myId }, is_read: false },
@@ -230,16 +237,23 @@ router.get('/rooms/:roomId/messages', async (req, res) => {
           select: { message_id: true }
         })
       : Promise.resolve([]),
-    reservations.forUsers(myId, partnerId)
+    reservations.forUsers(myId, partnerId),
+    controls.relation(myId, partnerId),
+    controls.mutedRoomIds(myId),
+    prisma.users.findUnique({ where: { user_id: partnerId }, select: { is_active: true, is_blacklisted: true } })
   ]);
+  const partnerReachable = Boolean(partnerStatus?.is_active && !partnerStatus.is_blacklisted);
 
   res.status(200).json({
     success: true,
-    partner: partnerOf(room, myId),
+    partner: partnerAccount,
     book: room.books,
     meta: {
       read_upto: lastRead?.message_id ?? 0,
-      partner_typing: partnerTyping(roomId, partnerId),
+      partner_typing: !relation.blocked && !relation.blockedBy && partnerTyping(roomId, partnerId),
+      muted: muted.has(roomId),
+      blocked: relation.blocked,
+      can_send: partnerReachable && !relation.blocked && !relation.blockedBy,
       recalled_ids: recalled.map((m) => m.message_id),
       has_more: afterId == null && messages.length === limit,
       reservations: [...reservationMap.values()]
@@ -285,7 +299,8 @@ router.post('/rooms/:roomId/messages', sendLimiter, async (req, res) => {
     where: { user_id: partnerIdOf(room, myId) },
     select: { is_active: true, is_blacklisted: true, nickname: true }
   });
-  if (!partner || !partner.is_active || partner.is_blacklisted) throw badRequest('對方帳號目前無法接收訊息');
+  if (!partner || !partner.is_active || partner.is_blacklisted) throw controls.recipientUnavailable();
+  await controls.assertCanMessage(myId, partnerIdOf(room, myId));
 
   const me = await prisma.users.findUnique({ where: { user_id: myId }, select: { nickname: true } });
 
@@ -353,12 +368,42 @@ router.post('/rooms/:roomId/messages/:messageId/recall', async (req, res) => {
 router.post('/rooms/:roomId/reservations', sendLimiter, async (req, res) => {
   const roomId = v.id(req.params.roomId, '聊天室編號');
   const room = await findMyRoom(roomId, req.user.userId);
+  await controls.assertCanMessage(req.user.userId, partnerIdOf(room, req.user.userId));
   const bookId = v.id(req.body.book_id, '書籍編號');
   const hours = v.int(req.body.hours, { label: '保留時數', min: 1, max: 72 });
   const message = v.optionalText(req.body.message, { label: '備註', max: 200 }) ?? null;
 
   const data = await reservations.request({ room, buyerId: req.user.userId, bookId, hours, message });
   res.status(201).json({ success: true, message: '已送出預約，等待賣家回覆', data });
+});
+
+router.put('/rooms/:roomId/mute', async (req, res) => {
+  const roomId = v.id(req.params.roomId, '聊天室編號');
+  if (typeof req.body.muted !== 'boolean') throw badRequest('muted 必須為布林值');
+  await findMyRoom(roomId, req.user.userId);
+  await controls.setMuted(req.user.userId, roomId, req.body.muted);
+  res.status(200).json({
+    success: true,
+    message: req.body.muted ? '已將此聊天室設為靜音' : '已取消靜音',
+    data: { room_id: roomId, muted: req.body.muted }
+  });
+});
+
+router.get('/blocks', async (req, res) => {
+  const data = await controls.listBlocks(req.user.userId);
+  res.status(200).json({ success: true, data });
+});
+
+router.put('/blocks/:userId', async (req, res) => {
+  const targetId = v.id(req.params.userId, '使用者編號');
+  await controls.block(req.user.userId, targetId);
+  res.status(200).json({ success: true, message: '已封鎖此使用者', data: { user_id: targetId, blocked: true } });
+});
+
+router.delete('/blocks/:userId', async (req, res) => {
+  const targetId = v.id(req.params.userId, '使用者編號');
+  await controls.unblock(req.user.userId, targetId);
+  res.status(200).json({ success: true, message: '已解除封鎖', data: { user_id: targetId, blocked: false } });
 });
 
 router.patch('/reservations/:id', async (req, res) => {

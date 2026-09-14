@@ -65,4 +65,18 @@ UNION ALL
 SELECT '資料表', 'user_security',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_security';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_security'
+
+UNION ALL
+
+SELECT '資料表', 'chat_room_mutes',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_room_mutes'
+
+UNION ALL
+
+SELECT '資料表', 'user_blocks',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_blocks';

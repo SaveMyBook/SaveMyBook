@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../widgets/chat/chat_preview.dart';
 import '../models/chat.dart';
 import '../services/api_service.dart';
-import '../services/chat_prefs.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
 import '../utils/motion.dart';
@@ -103,7 +102,6 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
 
   Future<void> _deleteDismissed(ChatRoom room) async {
     setState(() => _rooms = _rooms.where((r) => r.roomId != room.roomId).toList());
-    ChatPrefs.forget(room.roomId);
 
     final ok = await _api.deleteChatRoom(room.roomId);
     if (!mounted) return;
@@ -118,11 +116,21 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
   }
 
   Future<bool> _toggleMute(ChatRoom room) async {
-    final muted = await ChatPrefs.toggle(room.roomId);
+    final muted = !room.muted;
+    _replaceRoom(room.roomId, (r) => r.copyWith(muted: muted));
+    final error = await _api.setChatRoomMuted(room.roomId, muted);
     if (!mounted) return true;
-    setState(() {});
-    showAppSnackBar(context, muted ? S.chatMuted : S.chatUnmuted);
+    if (error != null) {
+      _replaceRoom(room.roomId, (r) => r.copyWith(muted: !muted));
+      showAppSnackBar(context, error, isError: true);
+    } else {
+      showAppSnackBar(context, muted ? S.chatMuted : S.chatUnmuted);
+    }
     return true;
+  }
+
+  void _replaceRoom(int roomId, ChatRoom Function(ChatRoom) update) {
+    setState(() => _rooms = [for (final r in _rooms) r.roomId == roomId ? update(r) : r]);
   }
 
   Future<void> _markAllRead() async {
@@ -152,7 +160,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
   }
 
   Future<void> _preview(ChatRoom room) async {
-    final action = await showChatPreview(context, room: room, muted: ChatPrefs.isMuted(room.roomId));
+    final action = await showChatPreview(context, room: room, muted: room.muted);
     if (!mounted || action == null) return;
     switch (action) {
       case ChatPreviewAction.open:
@@ -260,7 +268,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
   }
 
   Widget _buildRoomTile(ChatRoom room, AppColors c) {
-    final muted = ChatPrefs.isMuted(room.roomId);
+    final muted = room.muted;
 
     return SwipeActionTile(
       itemKey: ValueKey('room_${room.roomId}'),

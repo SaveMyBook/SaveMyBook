@@ -2620,5 +2620,27 @@
   "next2": "下一章",
   "unableGenerateProfileQrCodeTry": "無法產生個人 QR Code，請稍後再試",
   "myQrCode": "我的 QR Code",
-  "markAsRead": "標為已讀"
+  "markAsRead": "標為已讀",
+  "unblock": "解除封鎖",
+  "afterUnblockingP0CanSendMessages": "解除封鎖後，您與「{p0}」可再次互相傳送訊息。",
+  "@afterUnblockingP0CanSendMessages": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "userUnblocked": "已解除封鎖",
+  "unableLoadBlockedUsers": "無法載入封鎖名單",
+  "notBlockedAnyUsers": "目前沒有封鎖任何使用者",
+  "blockedUsers": "封鎖名單",
+  "blockUser": "封鎖使用者",
+  "afterBlockP0NeitherCanSend": "封鎖「{p0}」後，雙方將無法互相傳送訊息，對方不會收到通知。您可隨時於「設定 › 封鎖名單」解除封鎖。",
+  "@afterBlockP0NeitherCanSend": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "block": "封鎖",
+  "userBlocked": "已封鎖此使用者",
+  "moreOptions": "更多選項",
+  "blockedUser": "您已封鎖此使用者"
 }

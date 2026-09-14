@@ -641,6 +641,24 @@ class ApiService {
     return res != null && res['success'] == true;
   }
 
+  Future<String?> setChatRoomMuted(int roomId, bool muted) async {
+    final res = await _send('PUT', '/chat/rooms/$roomId/mute', body: {'muted': muted});
+    if (res != null && res['success'] == true) return null;
+    return res?['message'] as String? ?? S.somethingWentWrongPleaseTryAgain;
+  }
+
+  Future<String?> setUserBlocked(int userId, bool blocked) async {
+    final res = await _send(blocked ? 'PUT' : 'DELETE', '/chat/blocks/$userId');
+    if (res != null && res['success'] == true) return null;
+    return res?['message'] as String? ?? S.somethingWentWrongPleaseTryAgain;
+  }
+
+  Future<List<ChatPartner>?> fetchBlockedUsers() async {
+    final res = await _send('GET', '/chat/blocks');
+    if (res == null || res['success'] != true) return null;
+    return _mapList(res, ChatPartner.fromJson);
+  }
+
   Future<bool> markAllChatsRead() async {
     final res = await _send('PATCH', '/chat/read-all');
     final ok = res != null && res['success'] == true;
@@ -734,6 +752,9 @@ class ApiService {
       recalledIds: (meta['recalled_ids'] as List? ?? const []).map(parseInt).toList(),
       hasMore: meta['has_more'] == true,
       reservations: reservations,
+      muted: meta['muted'] == true,
+      blocked: meta['blocked'] == true,
+      canSend: meta['can_send'] != false,
       ok: res != null && res['success'] == true,
       error: res == null || res['success'] == true ? null : res['message'] as String?,
       code: res?['code'] as String?,

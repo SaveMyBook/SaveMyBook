@@ -120,6 +120,9 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`BIOMETRIC_KEY_INVALID\` | 400 | 這台裝置的生物辨識付款金鑰已失效 | 清除本機金鑰，改用交易密碼 |
 | \`SESSION_REQUIRED\` | 403 | Token 未綁定裝置工作階段（舊版 Token） | 引導重新登入 |
 | \`SECURITY_UNAVAILABLE\` | 503 | 伺服器尚未執行帳號安全所需的資料庫更新 | 隱藏相關功能，稍後再試 |
+| \`CHAT_BLOCKED\` | 403 | 請求者已封鎖對方，無法傳送訊息或建立預約 | 顯示解除封鎖的入口 |
+| \`RECIPIENT_UNAVAILABLE\` | 400 | 對方帳號停用，或對方已封鎖請求者（兩者刻意不區分） | 停用輸入欄位 |
+| \`CHAT_CONTROLS_UNAVAILABLE\` | 503 | 伺服器尚未執行聊天室靜音與封鎖所需的資料庫更新 | 提示稍後再試 |
 | \`BOOK_NOT_APPROVED\` | 403 | 書籍因違規下架，賣家無法自行重新上架 | 引導使用者開立客服工單 |
 | \`OPEN_ORDERS\` | 400 | 尚有進行中的訂單，無法申請刪除帳號 | 引導使用者完成或取消訂單 |
 | \`RATE_LIMITED\` | 429 | 短時間內嘗試次數過多 | 依 \`Retry-After\` 標頭等待後再試 |

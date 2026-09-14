@@ -57,6 +57,16 @@ tags:
       - 到期由伺服器排程約每 5 分鐘處理一次，書籍仍在架上時通知買家。
       - 建立、接受、婉拒、取消時皆以 `reservation` 類型的站內通知告知對方。
 
+      ## Mute and Block
+
+      - **靜音**僅影響請求者本人：該聊天室的新訊息仍會建立站內通知並計入未讀，但不發送手機推播。
+        預約相關通知不受靜音影響。
+      - **封鎖**以使用者為單位，封鎖後雙方皆無法在彼此的聊天室傳送訊息、建立預約，也不會看到對方的輸入中狀態。
+        既有訊息保留。
+      - 封鎖者傳送時回傳 403 `CHAT_BLOCKED`；被封鎖者傳送時回傳與對方帳號停用相同的 400 `RECIPIENT_UNAVAILABLE`，
+        不透露自己已被封鎖。
+      - 取得訊息時 `meta.can_send` 綜合上述狀態，用戶端可據此停用輸入欄位。
+
 paths:
   /api/chat/rooms:
     get:
@@ -96,7 +106,8 @@ paths:
         帶入 `book_id` 時會於對話中插入一則商品卡片（`kind` 為 `book`）以標示詢問標的。
         若相同卡片已是對話中的最後一則訊息，則不重複插入；書籍不存在時略過卡片。
 
-        對方帳號已停權或列入黑名單時回傳 400。
+        對方帳號已停權或列入黑名單時回傳 400 `RECIPIENT_UNAVAILABLE`。
+        任一方封鎖另一方時不插入商品卡片；被對方封鎖且尚無聊天室時同樣回傳 400 `RECIPIENT_UNAVAILABLE`。
 
         回應僅含 `room_id`，取得後請呼叫
         `GET /api/chat/rooms/{roomId}/messages` 載入訊息。
@@ -323,8 +334,20 @@ paths:
                         example: 298
                       partner_typing:
                         type: boolean
-                        description: 對方在 6 秒內回報過正在輸入。
+                        description: 對方在 6 秒內回報過正在輸入。任一方封鎖另一方時固定為 false。
                         example: false
+                      muted:
+                        type: boolean
+                        description: 請求者已將此聊天室設為靜音。
+                        example: false
+                      blocked:
+                        type: boolean
+                        description: 請求者已封鎖對話對象。
+                        example: false
+                      can_send:
+                        type: boolean
+                        description: 請求者目前能否在此聊天室傳送訊息。對方帳號停用、請求者封鎖對方或被對方封鎖時為 false。
+                        example: true
                       recalled_ids:
                         type: array
                         items: { type: integer }
@@ -367,7 +390,8 @@ paths:
 
         語音訊息在資料表中以 `system` 型別儲存，回應的 `kind` 為 `voice`。
 
-        對方帳號已停權或列入黑名單時回傳 400。每位使用者每分鐘最多 60 次，與建立預約共用計數。
+        對方帳號已停權、列入黑名單或已封鎖請求者時回傳 400 `RECIPIENT_UNAVAILABLE`；
+        請求者已封鎖對方時回傳 403 `CHAT_BLOCKED`。每位使用者每分鐘最多 60 次，與建立預約共用計數。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -424,9 +448,18 @@ paths:
                 語音過長:
                   value: { success: false, message: 語音最長 120 秒 }
                 對方帳號停用:
-                  value: { success: false, message: 對方帳號目前無法接收訊息 }
+                  value: { success: false, code: RECIPIENT_UNAVAILABLE, message: 對方帳號目前無法接收訊息 }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
+        '403':
+          description: 請求者非該聊天室的成員，或已封鎖對方。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                非成員:
+                  value: { success: false, message: 存取被拒 }
+                已封鎖對方:
+                  value: { success: false, code: CHAT_BLOCKED, message: 您已封鎖此使用者，解除封鎖後才能傳送訊息 }
         '404': { $ref: '#/components/responses/NotFound' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -710,3 +743,151 @@ paths:
                 已被其他買家保留:
                   value: { success: false, code: BOOK_RESERVED, message: 《挪威的森林》已經被其他買家預約，保留到 9/16 18:30 }
         '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/chat/rooms/{roomId}/mute:
+    put:
+      summary: 設定聊天室靜音
+      operationId: setChatRoomMute
+      tags: [chat]
+      description: |
+        設定請求者對此聊天室的靜音狀態。靜音後新訊息不發送手機推播，站內通知與未讀數不受影響。
+        僅影響請求者本人，對方不會得知。重複設定相同狀態不會出錯。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 聊天室編號。
+          example: 7
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [muted]
+              properties:
+                muted: { type: boolean, description: true 為靜音，false 為取消靜音。, example: true }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已將此聊天室設為靜音 }
+                  data:
+                    type: object
+                    properties:
+                      room_id: { type: integer, example: 7 }
+                      muted: { type: boolean, example: true }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatControlsUnavailable' }
+
+  /api/chat/blocks:
+    get:
+      summary: 取得封鎖名單
+      operationId: listChatBlocks
+      tags: [chat]
+      description: 依封鎖時間遞減排序，無分頁機制。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - { $ref: '#/components/schemas/UserBrief' }
+                        - type: object
+                          properties:
+                            blocked_at: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatControlsUnavailable' }
+
+  /api/chat/blocks/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema: { type: integer }
+        description: 對象的使用者編號。
+        example: 8
+
+    put:
+      summary: 封鎖使用者
+      operationId: blockChatUser
+      tags: [chat]
+      description: |
+        封鎖後雙方皆無法傳送訊息給對方，詳見本節開頭說明。重複封鎖不會出錯。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已封鎖。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已封鎖此使用者 }
+                  data:
+                    type: object
+                    properties:
+                      user_id: { type: integer, example: 8 }
+                      blocked: { type: boolean, example: true }
+        '400':
+          description: 對象為請求者自身。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 無法封鎖自己 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: 使用者不存在。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到該使用者 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatControlsUnavailable' }
+
+    delete:
+      summary: 解除封鎖
+      operationId: unblockChatUser
+      tags: [chat]
+      description: 對象不在封鎖名單中時同樣回傳 200。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已解除封鎖。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已解除封鎖 }
+                  data:
+                    type: object
+                    properties:
+                      user_id: { type: integer, example: 8 }
+                      blocked: { type: boolean, example: false }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatControlsUnavailable' }

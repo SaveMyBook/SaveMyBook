@@ -16,6 +16,7 @@ import '../widgets/state_views.dart';
 import '../widgets/buyer/fly_to_cart.dart';
 import 'cart_screen.dart';
 import 'chat_room_screen.dart';
+import 'edit_book_screen.dart';
 import 'home_screen.dart';
 import 'search_screen.dart';
 import 'seller_screen.dart';
@@ -297,8 +298,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     _buildInfoRow(Icons.calendar_today_outlined, S.listed, _book.createdAt, c),
                     const SizedBox(height: 24),
                     _buildPickupCard(c),
-                    const SizedBox(height: 20),
-                    _buildSellerInfo(c),
+                    if (!_isOwnBook) ...[
+                      const SizedBox(height: 20),
+                      _buildSellerInfo(c),
+                    ],
                   ]),
                 ),
               ]),
@@ -587,21 +590,38 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   Widget _buildTitleRow(AppColors c) {
-    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    const actionSize = 40.0;
+    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
       Expanded(
         child: Text(
           _book.title,
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.25),
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: c.textPrimary,
+            height: 1.25,
+            leadingDistribution: TextLeadingDistribution.even,
+          ),
         ),
       ),
-      const SizedBox(width: 4),
-      IconButton(
-        onPressed: _shareBook,
-        tooltip: S.share,
-        visualDensity: VisualDensity.compact,
-        icon: Icon(Icons.ios_share_rounded, size: 22, color: c.iconInactive),
+      const SizedBox(width: 8),
+      SizedBox.square(
+        dimension: actionSize,
+        child: IconButton(
+          onPressed: _shareBook,
+          tooltip: S.share,
+          padding: EdgeInsets.zero,
+          icon: Icon(Icons.ios_share_rounded, size: 22, color: c.iconInactive),
+        ),
       ),
-      FavoriteButton(bookId: _book.bookId, size: 26),
+      SizedBox.square(
+        dimension: actionSize,
+        child: OverflowBox(
+          maxWidth: 64,
+          maxHeight: 64,
+          child: FavoriteButton(bookId: _book.bookId, size: 24),
+        ),
+      ),
     ]);
   }
 
@@ -615,13 +635,31 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(border: Border.all(color: badgeColor), borderRadius: BorderRadius.circular(12)),
-        child: Text(_book.conditionText, style: TextStyle(color: badgeColor, fontSize: 12, fontWeight: FontWeight.w600)),
+        child: Text(
+          _book.conditionText,
+          style: TextStyle(
+            color: badgeColor,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            height: 16 / 12,
+            leadingDistribution: TextLeadingDistribution.even,
+          ),
+        ),
       ),
       if (_book.viewCount > 0)
         Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.visibility_outlined, size: 14, color: c.textHint),
+          Icon(Icons.visibility_outlined, size: 16, color: c.textHint),
           const SizedBox(width: 4),
-          Text('${_book.viewCount}', style: TextStyle(fontSize: 12, color: c.textHint)),
+          Text(
+            '${_book.viewCount}',
+            style: TextStyle(
+              fontSize: 13,
+              height: 16 / 13,
+              leadingDistribution: TextLeadingDistribution.even,
+              color: c.textHint,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
         ]),
     ]);
   }
@@ -671,14 +709,27 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           if (_book.cabinetAddress.isNotEmpty) ...[
             const SizedBox(height: 8),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Icon(Icons.location_on_outlined, size: 16, color: c.iconInactive),
                 const SizedBox(width: 6),
-                Expanded(
+                Flexible(
                   child: Text(
                     _book.cabinetAddress,
                     style: TextStyle(fontSize: 13, height: 1.4, color: c.textSecondary),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Semantics(
+                  button: true,
+                  label: S.copyAddress,
+                  child: InkResponse(
+                    onTap: _copyAddress,
+                    radius: 18,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 6, 8, 6),
+                      child: Icon(Icons.copy_rounded, size: 16, color: c.accent),
+                    ),
                   ),
                 ),
               ],
@@ -699,22 +750,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   ),
                 ),
               ],
-            ),
-          ],
-          if (_book.cabinetAddress.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: _copyAddress,
-                style: TextButton.styleFrom(
-                  foregroundColor: c.accent,
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                ),
-                icon: const Icon(Icons.copy_rounded, size: 16),
-                label: Text(S.copyAddress, style: const TextStyle(fontWeight: FontWeight.w600)),
-              ),
             ),
           ],
         ],
@@ -740,7 +775,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       onTap = () => _resolveDistance(request: true);
     }
 
-    return Flexible(
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 150),
       child: PressableScale(
         scale: 0.94,
         onTap: onTap,
@@ -811,21 +847,53 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     );
   }
 
+  Future<void> _openEdit() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => EditBookScreen(book: _book)));
+    if (mounted) _loadDetail();
+  }
+
   Widget _buildBottomActions(AppColors c) {
+    final padding = EdgeInsets.only(left: 16, right: 16, top: 12, bottom: MediaQuery.of(context).padding.bottom + 12);
+    final decoration = BoxDecoration(color: c.card, border: Border(top: BorderSide(color: c.divider, width: 1)));
+
+    if (_isOwnBook) {
+      final canEdit = _book.status != 'sold';
+      return Container(
+        padding: padding,
+        decoration: decoration,
+        child: SizedBox(
+          height: 48,
+          child: FilledButton.icon(
+            onPressed: canEdit ? _openEdit : null,
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            label: Text(S.editBook, maxLines: 1, overflow: TextOverflow.ellipsis),
+            style: FilledButton.styleFrom(
+              backgroundColor: c.accent,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: c.inputFill,
+              disabledForegroundColor: c.textHint,
+              textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
-      padding: EdgeInsets.only(left: 16, right: 16, top: 12, bottom: MediaQuery.of(context).padding.bottom + 12),
-      decoration: BoxDecoration(color: c.card, border: Border(top: BorderSide(color: c.divider, width: 1))),
+      padding: padding,
+      decoration: decoration,
       child: Row(children: [
         Expanded(
           child: SizedBox(
             height: 48,
             child: OutlinedButton.icon(
-              onPressed: _isOwnBook ? null : _chatWithSeller,
+              onPressed: _chatWithSeller,
               icon: const Icon(Icons.chat_bubble_outline, size: 18),
               label: Text(S.messageSeller, maxLines: 1, overflow: TextOverflow.ellipsis),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary,
-                side: BorderSide(color: _isOwnBook ? c.divider : AppColors.primary),
+                side: BorderSide(color: AppColors.primary),
                 textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -853,12 +921,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
     final reservedForMe = _book.reservedForMe && (_book.reservedUntil?.isAfter(DateTime.now()) ?? false);
 
-    if (_isOwnBook) {
-      key = 'own';
-      label = S.listing;
-      icon = Icons.storefront_outlined;
-      strong = false;
-    } else if (_book.status != 'on_sale') {
+    if (_book.status != 'on_sale') {
       key = 'unavailable';
       label = _book.statusText;
       icon = Icons.block_rounded;

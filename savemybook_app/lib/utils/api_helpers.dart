@@ -27,13 +27,16 @@ DateTime? parseDate(dynamic value) {
   return DateTime.tryParse(value.toString());
 }
 
-String formatDate(DateTime? dt) {
-  if (dt == null) return '';
+// API 回傳的時間是 UTC，顯示前一律轉成裝置時區。
+String formatDate(DateTime? value) {
+  if (value == null) return '';
+  final dt = value.toLocal();
   return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
 }
 
-String formatDateTime(DateTime? dt) {
-  if (dt == null) return '';
+String formatDateTime(DateTime? value) {
+  if (value == null) return '';
+  final dt = value.toLocal();
   return '${formatDate(dt)} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 }
 

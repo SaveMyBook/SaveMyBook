@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,6 +31,7 @@ class AppHeader extends StatelessWidget {
   final IconData? icon;
   final bool showBack;
   final List<Widget> actions;
+  final double? actionsWidth;
   final VoidCallback? onBack;
 
   final Widget? bottom;
@@ -39,6 +42,7 @@ class AppHeader extends StatelessWidget {
     this.icon,
     this.showBack = true,
     this.actions = const [],
+    this.actionsWidth,
     this.onBack,
     this.bottom,
   });
@@ -73,7 +77,11 @@ class AppHeader extends StatelessWidget {
                     children: [
                       Padding(
                         padding: EdgeInsets.symmetric(
-                          horizontal: actions.isEmpty ? 56 : 56 + (actions.length - 1) * 44.0,
+                          horizontal: actionsWidth != null
+                              ? math.max(56, actionsWidth! + 12)
+                              : actions.isEmpty
+                                  ? 56
+                                  : 56 + (actions.length - 1) * 44.0,
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,

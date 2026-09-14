@@ -2620,5 +2620,27 @@
   "next2": "Next",
   "unableGenerateProfileQrCodeTry": "Unable to generate your profile QR code. Try again later.",
   "myQrCode": "My QR code",
-  "markAsRead": "Mark as read"
+  "markAsRead": "Mark as read",
+  "unblock": "Unblock",
+  "afterUnblockingP0CanSendMessages": "After unblocking, you and \"{p0}\" can send messages to each other again.",
+  "@afterUnblockingP0CanSendMessages": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "userUnblocked": "User unblocked",
+  "unableLoadBlockedUsers": "Unable to load blocked users",
+  "notBlockedAnyUsers": "You have not blocked any users",
+  "blockedUsers": "Blocked users",
+  "blockUser": "Block user",
+  "afterBlockP0NeitherCanSend": "After you block \"{p0}\", neither of you can send messages to the other. They will not be notified. You can unblock them at any time in Settings › Blocked users.",
+  "@afterBlockP0NeitherCanSend": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "block": "Block",
+  "userBlocked": "User blocked",
+  "moreOptions": "More options",
+  "blockedUser": "You have blocked this user"
 }

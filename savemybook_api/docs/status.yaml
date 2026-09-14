@@ -39,4 +39,4 @@ paths:
                       pending_migrations:
                         type: array
                         description: 尚未執行的 migration 檔名；空陣列代表資料庫結構已是最新。
-                        items: { type: string, example: 007_consent_sessions_payment.sql }
+                        items: { type: string, example: 008_chat_mute_block.sql }

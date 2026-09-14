@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../models/security.dart';
 import '../../services/api_service.dart';
 import '../../services/verification_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
 import '../../widgets/animations.dart';
+import '../../widgets/app_buttons.dart';
+import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/pin_pad.dart';
 import '../../widgets/state_views.dart';
@@ -16,7 +19,8 @@ String? paymentPinProblem(String pin) {
   final digits = pin.split('').map(int.parse).toList();
   final steps = <int>{for (var i = 1; i < digits.length; i++) (digits[i] - digits[i - 1] + 10) % 10};
   if (steps.length == 1 && (steps.contains(1) || steps.contains(9))) return S.pinTooEasyGuessTryAnother;
-  if (RegExp(r'^(\d\d)\1\1$').hasMatch(pin) || RegExp(r'^(\d\d\d)\1$').hasMatch(pin)) return S.pinTooEasyGuessTryAnother;
+  if (RegExp(r'^(\d\d)\1\1$').hasMatch(pin) || RegExp(r'^(\d\d\d)\1$').hasMatch(pin))
+    return S.pinTooEasyGuessTryAnother;
   return null;
 }
 
@@ -32,11 +36,18 @@ class PaymentPinScreen extends StatefulWidget {
 class _PaymentPinScreenState extends State<PaymentPinScreen> {
   final _api = ApiService();
 
+  final _password = TextEditingController();
+
   String? _verifyToken;
   String? _firstPin;
   String? _notice;
   int _round = 0;
   bool _verifying = true;
+  bool _needsPassword = false;
+  bool _passwordHidden = true;
+  bool _submitting = false;
+  String? _passwordError;
+  String? _loadError;
   bool _done = false;
   bool _popped = false;
 
@@ -46,18 +57,73 @@ class _PaymentPinScreenState extends State<PaymentPinScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _verify());
   }
 
+  @override
+  void dispose() {
+    _password.dispose();
+    super.dispose();
+  }
+
+  // 未設定交易密碼時改在頁面內輸入登入密碼，不在換頁動畫期間疊加對話框。
   Future<void> _verify() async {
-    final token = widget.forgot
-        ? await VerificationService.requirePassword(context, reason: S.enterPasswordResetPaymentPin)
-        : await VerificationService.requireSensitive(context, reason: S.confirmSBeforeSettingPaymentPin);
-    if (!mounted) return;
-    if (token == null) {
-      _finish(false);
+    setState(() {
+      _loadError = null;
+      _needsPassword = false;
+    });
+
+    if (!widget.forgot) {
+      final cached = VerificationService.cachedSensitiveToken;
+      if (cached != null) return _verified(cached);
+
+      final status = await _api.fetchSecurityStatus().timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => SecurityStatus.unknown,
+      );
+      if (!mounted) return;
+      if (!status.available) {
+        setState(() => _loadError = S.couldNotReachServer);
+        return;
+      }
+      if (status.hasPaymentPin) {
+        final token = await VerificationService.requireSensitive(context, reason: S.confirmSBeforeSettingPaymentPin);
+        if (!mounted) return;
+        if (token == null) return _finish(false);
+        return _verified(token);
+      }
+    }
+
+    setState(() => _needsPassword = true);
+  }
+
+  Future<void> _submitPassword() async {
+    if (_submitting) return;
+    final password = _password.text;
+    if (password.isEmpty) {
+      setState(() => _passwordError = S.enterPassword);
       return;
     }
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _submitting = true;
+      _passwordError = null;
+    });
+    final outcome = await _api.verifyIdentity(scope: 'sensitive', method: 'password', password: password);
+    if (!mounted) return;
+    setState(() => _submitting = false);
+    final token = outcome.token;
+    if (!outcome.isSuccess || token == null) {
+      setState(() => _passwordError = outcome.message);
+      return;
+    }
+    VerificationService.rememberSensitive(token);
+    _verified(token);
+  }
+
+  void _verified(String token) {
+    if (!mounted) return;
     setState(() {
       _verifyToken = token;
       _verifying = false;
+      _needsPassword = false;
     });
   }
 
@@ -117,6 +183,10 @@ class _PaymentPinScreenState extends State<PaymentPinScreen> {
         onAction: () => _finish(true),
         onAnimationDone: () => Future.delayed(const Duration(milliseconds: 900), () => _finish(true)),
       );
+    } else if (_verifying && _loadError != null) {
+      body = ErrorView(key: const ValueKey('error'), message: _loadError!, onRetry: _verify);
+    } else if (_verifying && _needsPassword) {
+      body = _buildPasswordForm(c);
     } else if (_verifying) {
       body = Center(
         key: const ValueKey('verifying'),
@@ -148,10 +218,7 @@ class _PaymentPinScreenState extends State<PaymentPinScreen> {
                   transitionBuilder: (child, animation) => FadeTransition(
                     opacity: animation,
                     child: SlideTransition(
-                      position: Tween(
-                        begin: Offset(confirming ? 0.08 : -0.08, 0),
-                        end: Offset.zero,
-                      ).animate(animation),
+                      position: Tween(begin: Offset(confirming ? 0.08 : -0.08, 0), end: Offset.zero).animate(animation),
                       child: child,
                     ),
                   ),
@@ -162,10 +229,7 @@ class _PaymentPinScreenState extends State<PaymentPinScreen> {
                       Container(
                         width: 64,
                         height: 64,
-                        decoration: BoxDecoration(
-                          color: c.accent.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
+                        decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.12), shape: BoxShape.circle),
                         child: Icon(
                           confirming ? Icons.verified_user_outlined : Icons.lock_outline_rounded,
                           size: 32,
@@ -209,6 +273,64 @@ class _PaymentPinScreenState extends State<PaymentPinScreen> {
       ),
     );
   }
+
+  Widget _buildPasswordForm(AppColors c) {
+    return SingleChildScrollView(
+      key: const ValueKey('password'),
+      padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.12), shape: BoxShape.circle),
+            child: Icon(Icons.verified_user_outlined, size: 32, color: c.accent),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            S.verifyS,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.forgot ? S.enterPasswordResetPaymentPin : S.confirmSBeforeSettingPaymentPin,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, height: 1.5, color: c.textSecondary),
+          ),
+          const SizedBox(height: 24),
+          AppCard(
+            child: AutofillGroup(
+              child: AppTextField(
+                controller: _password,
+                label: S.password,
+                hint: S.enterPassword,
+                obscureText: _passwordHidden,
+                errorText: _passwordError,
+                enabled: !_submitting,
+                maxLength: 72,
+                autofillHints: const [AutofillHints.password],
+                textInputAction: TextInputAction.done,
+                onChanged: (_) {
+                  if (_passwordError != null) setState(() => _passwordError = null);
+                },
+                onSubmitted: (_) => _submitPassword(),
+                suffix: IconButton(
+                  icon: Icon(
+                    _passwordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    size: 20,
+                    color: c.iconInactive,
+                  ),
+                  onPressed: () => setState(() => _passwordHidden = !_passwordHidden),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          PrimaryButton(label: S.confirm, isLoading: _submitting, onPressed: _submitting ? null : _submitPassword),
+        ],
+      ),
+    );
+  }
 }
 
 class _StepIndicator extends StatelessWidget {
@@ -228,10 +350,7 @@ class _StepIndicator extends StatelessWidget {
         width: step == index ? 28 : 10,
         height: 6,
         margin: const EdgeInsets.symmetric(horizontal: 3),
-        decoration: BoxDecoration(
-          color: active ? c.accent : c.divider,
-          borderRadius: BorderRadius.circular(3),
-        ),
+        decoration: BoxDecoration(color: active ? c.accent : c.divider, borderRadius: BorderRadius.circular(3)),
       );
     }
 

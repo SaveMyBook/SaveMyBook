@@ -61,7 +61,8 @@ components:
             `ACCOUNT_NOT_FOUND`、`ACCOUNT_BLACKLISTED`、`ACCOUNT_INACTIVE`、
             `TOKEN_EXPIRED`、`TOKEN_REVOKED`、`SESSION_REVOKED`、
             `INVALID_PASSWORD`、`INSUFFICIENT_BALANCE`、`BOOK_NOT_APPROVED`、`BOOK_RESERVED`、
-            `VERIFICATION_REQUIRED`、`PAYMENT_PIN_NOT_SET`、`INVALID_PIN`、`PIN_LOCKED`，
+            `VERIFICATION_REQUIRED`、`PAYMENT_PIN_NOT_SET`、`INVALID_PIN`、`PIN_LOCKED`、
+            `CHAT_BLOCKED`、`RECIPIENT_UNAVAILABLE`，
             完整列表見文件開頭的錯誤代碼一節。
 
     # ---------- 使用者 ----------
@@ -432,6 +433,8 @@ components:
             is_read: { type: boolean, description: 請求者自己發送時，代表對方是否已讀。, example: false }
             created_at: { type: string, format: date-time }
         unread_count: { type: integer, description: 對方發送且尚未讀取的訊息則數, example: 2 }
+        muted: { type: boolean, description: 請求者已將此聊天室設為靜音，新訊息不發送手機推播。, example: false }
+        blocked: { type: boolean, description: 請求者已封鎖對話對象。, example: false }
         updated_at: { type: string, format: date-time }
 
     ChatMessage:
@@ -829,6 +832,13 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           example: { success: false, code: SECURITY_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
+
+    ChatControlsUnavailable:
+      description: 伺服器尚未執行資料庫更新 008（`chat_room_mutes`、`user_blocks` 資料表），靜音與封鎖功能暫不可用。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: CHAT_CONTROLS_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
 
     BookReserved:
       description: 書籍已由其他買家預約並保留中，保留期限內僅該買家可加入購物車或結帳。

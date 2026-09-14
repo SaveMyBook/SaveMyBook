@@ -150,38 +150,37 @@ class OrderCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
                       child: Text(
                         order.slotNumber.isEmpty ? '' : S.slot2(order.slotNumber),
-                        style: TextStyle(fontSize: 10, color: c.textHint),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: c.textSecondary),
                       ),
                     ),
-                    if (actionLabel != null)
+                    if (actionLabel != null) ...[
+                      const SizedBox(width: 6),
                       Flexible(
-                        child: GestureDetector(
-                        onTap: onAction,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: c.categoryChip,
-                            borderRadius: BorderRadius.circular(8),
+                        flex: 2,
+                        child: FilledButton(
+                          onPressed: onAction,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: c.accent,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(72, 34),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.standard,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                           ),
-                          child: Text(
-                            actionLabel!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: c.accent,
-                            ),
-                          ),
+                          child: Text(actionLabel!, maxLines: 1, overflow: TextOverflow.ellipsis),
                         ),
                       ),
-                      ),
+                    ],
                   ],
                 ),
                 ],

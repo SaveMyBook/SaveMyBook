@@ -84,7 +84,7 @@ const main = async () => {
   const outdated = problems.filter((x) => x.code === 'ROUTE_NOT_FOUND');
   if (outdated.length) console.log(`→ ${outdated.length} 個端點 404：伺服器程式版本過舊，請更新並重新啟動 API`);
   const noSchema = problems.filter((x) => x.code === 'SECURITY_UNAVAILABLE' || x.status === 503);
-  if (noSchema.length) console.log('→ 有 503：請執行 migrations/007_consent_sessions_payment.sql');
+  if (noSchema.length) console.log('→ 有 503：請確認已執行 migrations 內所有 SQL 檔（npm run verify 會列出尚未執行的項目）');
   if (problems.some((x) => x.status >= 500 && x.status !== 503)) console.log('→ 有 500：請查看伺服器日誌');
   process.exit(problems.length ? 1 : 0);
 };
