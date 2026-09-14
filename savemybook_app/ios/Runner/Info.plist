@@ -75,8 +75,10 @@
         	<key>NSPhotoLibraryAddUsageDescription</key>
         	<string>救「舊」我的書需要相簿寫入權限，以將 QR Code 儲存至您的相簿。</string>
         	<key>NSLocationWhenInUseUsageDescription</key>
-        	<string>救「舊」我的書需要定位權限，以為您尋找最近的智慧書櫃。</string>
+        	<string>救「舊」我的書需要定位權限，以為您尋找最近的智慧書櫃並顯示距離。</string>
         	<key>NSLocationAlwaysUsageDescription</key>
-        	<string>救「舊」我的書需要定位權限，以為您尋找最近的智慧書櫃。</string>
+        	<string>救「舊」我的書僅在您使用 App 時取得位置，以為您尋找最近的智慧書櫃並顯示距離，不會在背景追蹤您的位置。</string>
+        	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+        	<string>救「舊」我的書僅在您使用 App 時取得位置，以為您尋找最近的智慧書櫃並顯示距離，不會在背景追蹤您的位置。</string>
 	</dict>
 </plist>

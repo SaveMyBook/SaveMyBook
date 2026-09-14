@@ -283,6 +283,7 @@
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				A558C6ACA2DAFFEA24061C32 /* [CP] Embed Pods Frameworks */,
 				029C9A751389D3D231061A34 /* [CP] Copy Pods Resources */,
+				5A7D2E1B3F4C4A8B9E0D1C2A /* Generate Missing dSYMs */,
 			);
 			buildRules = (
 			);
@@ -367,6 +368,25 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		5A7D2E1B3F4C4A8B9E0D1C2A /* Generate Missing dSYMs */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Generate Missing dSYMs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"${CONFIGURATION}\" = \"Debug\" ] || [ \"${DEBUG_INFORMATION_FORMAT}\" != \"dwarf-with-dsym\" ]; then\n  exit 0\nfi\nFRAMEWORKS_DIR=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n[ -d \"${FRAMEWORKS_DIR}\" ] || exit 0\nmkdir -p \"${DWARF_DSYM_FOLDER_PATH}\"\nfor framework in \"${FRAMEWORKS_DIR}\"/*.framework; do\n  [ -d \"${framework}\" ] || continue\n  name=$(basename \"${framework}\" .framework)\n  binary=\"${framework}/${name}\"\n  dsym=\"${DWARF_DSYM_FOLDER_PATH}/${name}.framework.dSYM\"\n  [ -f \"${binary}\" ] || continue\n  [ -d \"${dsym}\" ] && continue\n  xcrun dsymutil \"${binary}\" -o \"${dsym}\" >/dev/null 2>&1 || true\ndone\nexit 0\n";
+		};
 		029C9A751389D3D231061A34 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
