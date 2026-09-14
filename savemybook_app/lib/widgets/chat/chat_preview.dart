@@ -28,7 +28,10 @@ Future<ChatPreviewAction?> showChatPreview(
       barrierColor: Colors.black.withValues(alpha: 0.25),
       transitionDuration: Motion.base,
       reverseTransitionDuration: Motion.micro,
-      pageBuilder: (_, _, _) => _ChatPreview(room: room, muted: muted),
+      pageBuilder: (_, _, _) => Material(
+        type: MaterialType.transparency,
+        child: _ChatPreview(room: room, muted: muted),
+      ),
       transitionsBuilder: (_, animation, _, child) {
         final curved = CurvedAnimation(parent: animation, curve: Motion.emphasized, reverseCurve: Motion.exitCurve);
         return FadeTransition(
