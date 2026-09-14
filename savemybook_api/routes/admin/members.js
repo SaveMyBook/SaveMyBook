@@ -24,7 +24,8 @@ const PERMISSION_KEYS = [
   'can_manage_cabinets',
   'can_manage_announcements',
   'can_manage_support',
-  'can_view_stats'
+  'can_view_stats',
+  'can_manage_system'
 ];
 
 const MAX_BONUS = 1000000;
@@ -74,7 +75,7 @@ router.get('/members', canManage, async (req, res) => {
 router.get('/members/:id', canManage, async (req, res) => {
   const userId = v.id(req.params.id, '會員編號');
 
-  const [user, allLevels, completedOrders] = await Promise.all([
+  const [user, allLevels, completedOrders, viewerRow] = await Promise.all([
     prisma.users.findUnique({
       where: { user_id: userId },
       select: {
@@ -85,16 +86,17 @@ router.get('/members/:id', canManage, async (req, res) => {
       }
     }),
     levels.listLevels(),
-    levels.completedOrderCount(userId)
+    levels.completedOrderCount(userId),
+    prisma.admin_permissions.findUnique({ where: { user_id: req.user.userId } })
   ]);
 
   if (!user) throw notFound('找不到該會員');
+  const viewer = requireAdmin.effectivePermissions(viewerRow);
 
   const basePoints = levels.basePointsOf(completedOrders);
   const points = levels.effectivePoints(completedOrders, user.bonus_points);
 
-  // 沒有 admin_permissions 資料列的管理員視為全開，避免既有帳號突然沒權限。
-  const perms = user.admin_permissions ?? Object.fromEntries(PERMISSION_KEYS.map((k) => [k, true]));
+  const perms = requireAdmin.effectivePermissions(user.admin_permissions);
 
   res.status(200).json({
     success: true,
@@ -115,7 +117,9 @@ router.get('/members/:id', canManage, async (req, res) => {
       points,
       current_level: levels.levelFor(allLevels, points),
       levels: allLevels,
-      permissions: Object.fromEntries(PERMISSION_KEYS.map((k) => [k, !!perms[k]]))
+      permissions: Object.fromEntries(PERMISSION_KEYS.map((k) => [k, !!perms[k]])),
+      // 目前登入的管理員能不能開啟這項權限。App 用來把開不了的開關標成停用並說明原因。
+      grantable: Object.fromEntries(PERMISSION_KEYS.map((k) => [k, !!viewer[k]]))
     }
   });
 });
@@ -256,9 +260,12 @@ router.put('/members/:id/permissions', canManage, async (req, res) => {
   if (target.role !== 'admin') throw badRequest('只有管理員帳號才需要設定細部權限');
 
   // 不能把自己沒有的權限開給別人，否則只有會員權限的管理員可以替同夥開全部權限。
-  if (mine) {
-    const beyond = Object.keys(data).filter((k) => data[k] && !mine[k]);
-    if (beyond.length) throw forbidden('不能開啟你自己沒有的權限');
+  const granter = requireAdmin.effectivePermissions(mine);
+  const beyond = Object.keys(data).filter((k) => data[k] && !granter[k]);
+  if (beyond.length) {
+    throw forbidden(beyond.includes('can_manage_system')
+      ? '「系統維運」只能由已有這項權限的管理員開啟'
+      : '不能開啟你自己沒有的權限');
   }
 
   await prisma.admin_permissions.upsert({

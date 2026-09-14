@@ -4,13 +4,15 @@ const prisma = require('../lib/prisma');
 /// 超長時 MySQL 嚴格模式會讓整個交易失敗。
 const clip = (value, max) => (value.length > max ? `${value.slice(0, max - 1)}…` : value);
 
-const toRow = ({ userId, type = 'system', title, content, relatedId = null, relatedType = null }) => ({
+/// createdAt 設在未來時，推播會等到那個時間才送出。
+const toRow = ({ userId, type = 'system', title, content, relatedId = null, relatedType = null, createdAt }) => ({
   user_id: userId,
   type,
   title: clip(String(title), 255),
   content: String(content),
   related_id: relatedId,
-  related_type: relatedType
+  related_type: relatedType,
+  ...(createdAt && { created_at: createdAt })
 });
 
 /// db 傳入交易物件 tx 時會跟著同一個交易提交或回滾。

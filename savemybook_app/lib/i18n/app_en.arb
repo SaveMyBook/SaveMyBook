@@ -1762,5 +1762,14 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "donTPermissionYourselfSoCan": "You don't have this permission yourself, so you can't grant it to others.",
+  "notificationsTurnedOff": "Notifications are turned off",
+  "openSettings": "Open Settings",
+  "sendTestNotification": "Send a test notification",
+  "arrives10SecondsGoHomeScreen": "Arrives in 10 seconds. Go to the Home Screen or lock your phone after sending.",
+  "systemNotificationSettings": "System notification settings",
+  "turnNotificationsSoundsLockScreenPreviews": "Turn notifications, sounds and Lock Screen previews on or off",
+  "pushNotificationsNotSetUpBuild": "Push notifications are not set up in this build. Add the Firebase config files and rebuild.",
+  "notificationsTurnedOffAllowAppSend": "Notifications are turned off. Allow this app to send notifications in system settings."
 }

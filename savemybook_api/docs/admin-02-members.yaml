@@ -90,8 +90,11 @@ paths:
         - `bonus_points` 為管理員調整的補正值，可為負數
         - `points` 為 `max(0, base_points + bonus_points)`
 
-        未於 `admin_permissions` 建立對應紀錄的管理員，`permissions`
-        全部回傳 `true`。
+        `permissions` 為該管理員實際擁有的權限：未於 `admin_permissions` 建立紀錄時，
+        除 `can_manage_system` 為 `false` 外全部為 `true`。
+
+        `grantable` 為目前登入的管理員能否開啟各項權限（開不了自己沒有的權限），
+        用戶端據此停用對應的開關並說明原因。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -126,6 +129,7 @@ paths:
                         type: array
                         items: { $ref: '#/components/schemas/MemberLevel' }
                       permissions: { $ref: '#/components/schemas/AdminPermissions' }
+                      grantable: { $ref: '#/components/schemas/AdminPermissions' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -331,16 +335,17 @@ paths:
       operationId: adminSetMemberPermissions
       tags: [後台：會員管理]
       description: |
-        逐項設定指定管理員的 11 項權限。採部分更新，僅異動請求中帶入的欄位。
+        逐項設定指定管理員的 12 項權限。採部分更新，僅異動請求中帶入的欄位。
 
         限制條件：
 
         - 對象須為 `role` 等於 `admin` 的帳號，一般會員回傳 400
         - 不得變更請求者自身的權限，否則回傳 400
         - 至少須帶入一個權限欄位，全數為空時回傳 400
+        - 不得開啟請求者自己沒有的權限（含 `can_manage_system`），否則回傳 403
 
         該帳號若尚未建立權限紀錄，系統會自動建立；此時未帶入的欄位
-        將採用資料表預設值 `true`。
+        將採用資料表預設值（`can_manage_system` 為 `false`，其餘為 `true`）。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path

@@ -12,6 +12,7 @@ import '../widgets/state_views.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
 import '../i18n/strings.dart';
+import '../utils/app_info.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -247,7 +248,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       FadeSlideIn(
                         index: 1,
                         child: Text(
-                          'SaveMyBook',
+                          kAppName,
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: c.accent),
                         ),

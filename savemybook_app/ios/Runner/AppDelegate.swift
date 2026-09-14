@@ -40,6 +40,13 @@ import UserNotifications
       let push = FlutterMethodChannel(name: AppDelegate.pushChannelName,
                                       binaryMessenger: controller.binaryMessenger)
       push.setMethodCallHandler { call, result in
+        if call.method == "openNotificationSettings" {
+          if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
+          }
+          result(nil)
+          return
+        }
         guard call.method == "setBadge" else {
           result(FlutterMethodNotImplemented)
           return

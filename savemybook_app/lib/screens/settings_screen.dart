@@ -13,6 +13,7 @@ import '../widgets/animations.dart';
 import '../widgets/app_dialogs.dart';
 import 'account_privacy_screen.dart';
 import '../services/locale_provider.dart';
+import '../services/push_service.dart';
 import '../i18n/strings.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -86,6 +87,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               _buildBiometricCard(c),
             ],
+            const SizedBox(height: 32),
+            Text(S.alerts, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
+            const SizedBox(height: 12),
+            _buildPushCard(c),
             const SizedBox(height: 32),
             Text(S.aboutUs, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textSecondary)),
             const SizedBox(height: 12),
@@ -237,6 +242,81 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         );
       },
+    );
+  }
+
+  bool _sendingTestPush = false;
+
+  Future<void> _sendTestPush() async {
+    if (_sendingTestPush) return;
+    setState(() => _sendingTestPush = true);
+    final (message, isError, needsSettings) = await PushService.sendTest();
+    if (!mounted) return;
+    setState(() => _sendingTestPush = false);
+
+    if (needsSettings) {
+      final go = await showConfirmDialog(
+        context,
+        title: S.notificationsTurnedOff,
+        message: message,
+        confirmLabel: S.openSettings,
+      );
+      if (go) await PushService.openSystemSettings();
+      return;
+    }
+    showAppSnackBar(context, message, isError: isError);
+  }
+
+  Widget _buildPushCard(AppColors c) {
+    return Container(
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: c.shadow.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Material(
+          color: Colors.transparent,
+          child: Column(
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                leading: Icon(Icons.notifications_active_outlined, color: c.textPrimary),
+                title: Text(
+                  S.sendTestNotification,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary),
+                ),
+                subtitle: Text(
+                  S.arrives10SecondsGoHomeScreen,
+                  style: TextStyle(fontSize: 12, color: c.textSecondary),
+                ),
+                trailing: _sendingTestPush
+                    ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent))
+                    : Icon(Icons.send_rounded, size: 20, color: c.accent),
+                onTap: _sendingTestPush ? null : _sendTestPush,
+              ),
+              Divider(height: 1, indent: 56, color: c.divider),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                leading: Icon(Icons.tune_rounded, color: c.textPrimary),
+                title: Text(
+                  S.systemNotificationSettings,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary),
+                ),
+                subtitle: Text(
+                  S.turnNotificationsSoundsLockScreenPreviews,
+                  style: TextStyle(fontSize: 12, color: c.textSecondary),
+                ),
+                trailing: Icon(Icons.arrow_forward_ios, size: 14, color: c.iconInactive),
+                onTap: PushService.openSystemSettings,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

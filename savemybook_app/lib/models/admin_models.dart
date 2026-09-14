@@ -927,6 +927,9 @@ class AdminMemberDetail {
   final AdminLevel? currentLevel;
   final List<AdminLevel> levels;
   final Map<String, bool> permissions;
+
+  /// 目前登入的管理員能不能開啟這項權限。舊版伺服器沒有這個欄位時一律視為可以。
+  final Map<String, bool> grantable;
   final DateTime? createdAt;
 
   AdminMemberDetail({
@@ -943,6 +946,7 @@ class AdminMemberDetail {
     required this.points,
     required this.levels,
     required this.permissions,
+    this.grantable = const {},
     this.phone,
     this.avatarUrl,
     this.currentLevel,
@@ -954,13 +958,12 @@ class AdminMemberDetail {
   /// 權限鍵值 -> (名稱, 說明)，順序即畫面上的顯示順序。
 
   factory AdminMemberDetail.fromJson(Map<String, dynamic> json) {
-    final perms = <String, bool>{};
-    final raw = json['permissions'];
-    if (raw is Map) {
-      for (final entry in raw.entries) {
-        perms['${entry.key}'] = entry.value == true;
-      }
-    }
+    Map<String, bool> flags(Object? raw) => {
+          if (raw is Map)
+            for (final entry in raw.entries) '${entry.key}': entry.value == true,
+        };
+    final perms = flags(json['permissions']);
+    final grantable = flags(json['grantable']);
 
     return AdminMemberDetail(
       userId: parseInt(json['user_id']),
@@ -983,6 +986,7 @@ class AdminMemberDetail {
           .map((e) => AdminLevel.fromJson(Map<String, dynamic>.from(e)))
           .toList(),
       permissions: perms,
+      grantable: grantable,
       createdAt: parseDate(json['created_at']),
     );
   }

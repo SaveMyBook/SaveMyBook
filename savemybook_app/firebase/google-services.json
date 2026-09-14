@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "385756357856",
+    "project_id": "savemybook",
+    "storage_bucket": "savemybook.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:385756357856:android:b8c48bdd8890dc3c739c85",
+        "android_client_info": {
+          "package_name": "today.savemybook.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPTfeG_yipmakEeCUOmloez9sKwdW9nmo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

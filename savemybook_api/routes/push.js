@@ -2,8 +2,10 @@ const express = require('express');
 const authenticateToken = require('../middleware/auth');
 const { rateLimit, byUser } = require('../middleware/rateLimit');
 const v = require('../lib/validate');
-const { badRequest, HttpError } = require('../lib/errors');
+const prisma = require('../lib/prisma');
+const { badRequest, conflict, HttpError } = require('../lib/errors');
 const push = require('../services/push');
+const { notify } = require('../services/notify');
 
 const router = express.Router();
 
@@ -40,6 +42,42 @@ router.delete('/devices', deviceLimiter, async (req, res) => {
   assertReady();
   await push.unregisterDevice(req.user.userId, token);
   res.status(200).json({ success: true, message: '已取消推播裝置' });
+});
+
+const TEST_DELAY_SECONDS = 10;
+
+const testLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  key: byUser,
+  message: '測試通知送太多次了，請 10 分鐘後再試'
+});
+
+/// 自己送一則通知給自己，用來確認整條推播路徑（佇列 → FCM → APNs → 手機）是通的。
+///
+/// 延遲幾秒才送，讓使用者有時間回到主畫面或鎖定手機：App 開著時只會顯示 App 內的橫幅，
+/// 看不出系統推播是否正常。
+router.post('/test', testLimiter, async (req, res) => {
+  assertReady();
+
+  const devices = await push.deviceCount(req.user.userId);
+  if (devices === 0) {
+    throw conflict('這個帳號還沒有登記任何推播裝置。請確認已允許這個 App 傳送通知，然後重新開啟 App。', 'NO_PUSH_DEVICE');
+  }
+
+  await notify(prisma, {
+    userId: req.user.userId,
+    title: '測試通知',
+    content: '收到這則通知，代表推播設定正常。',
+    relatedType: 'push_test',
+    createdAt: new Date(Date.now() + TEST_DELAY_SECONDS * 1000)
+  });
+
+  res.status(200).json({
+    success: true,
+    message: `${TEST_DELAY_SECONDS} 秒後送出，請先回到主畫面或鎖定手機`,
+    data: { devices, delay_seconds: TEST_DELAY_SECONDS }
+  });
 });
 
 module.exports = router;
