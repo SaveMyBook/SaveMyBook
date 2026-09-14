@@ -315,16 +315,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          FadeSlideIn(
-                            index: 1,
-                            child: Text(
-                              S.askOtherPersonScanQrCode,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13, height: 1.5),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 28),
                           FadeSlideIn(
                             index: 2,
                             child: Row(

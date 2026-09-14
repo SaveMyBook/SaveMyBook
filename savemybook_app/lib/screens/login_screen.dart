@@ -305,7 +305,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         index: 2,
                         child: AppTextField(
                           controller: _emailController,
-                          hint: 'Email',
+                          label: S.email,
+                          hint: 'name@example.com',
+                          autofillHints: const [AutofillHints.email, AutofillHints.username],
                           errorText: _emailError,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
@@ -322,7 +324,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           trigger: _shake,
                           child: AppTextField(
                           controller: _passwordController,
-                          hint: S.password,
+                          label: S.password,
+                          hint: S.enterPassword,
+                          autofillHints: const [AutofillHints.password],
                           errorText: _passwordError,
                           obscureText: _obscurePassword,
                           maxLength: 64,

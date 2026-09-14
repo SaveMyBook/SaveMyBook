@@ -338,7 +338,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   _buildField(
                     index: 2,
                     icon: Icons.alternate_email_rounded,
-                    label: 'Email',
+                    label: S.email,
                     hint: S.emailSignWith,
                     controller: _emailController,
                     errorText: _emailError,

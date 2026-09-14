@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import 'image_viewer.dart';
@@ -26,13 +28,57 @@ class UserAvatar extends StatefulWidget {
   State<UserAvatar> createState() => _UserAvatarState();
 }
 
-class _UserAvatarState extends State<UserAvatar> {
+class _UserAvatarState extends State<UserAvatar> with WidgetsBindingObserver {
+  static const _retryDelays = [Duration(seconds: 2), Duration(seconds: 6), Duration(seconds: 15)];
+
   bool _failed = false;
+  int _attempt = 0;
+  Timer? _retryTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   @override
   void didUpdateWidget(covariant UserAvatar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.imageUrl != widget.imageUrl) _failed = false;
+    if (oldWidget.imageUrl != widget.imageUrl) _reset();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _failed) setState(_reset);
+  }
+
+  @override
+  void dispose() {
+    _retryTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _reset() {
+    _retryTimer?.cancel();
+    _failed = false;
+    _attempt = 0;
+  }
+
+  void _onError(String url) {
+    if (_failed || !mounted) return;
+    setState(() => _failed = true);
+    if (_attempt >= _retryDelays.length) return;
+    final delay = _retryDelays[_attempt];
+    _retryTimer?.cancel();
+    _retryTimer = Timer(delay, () {
+      if (!mounted || widget.imageUrl != url) return;
+      NetworkImage(url).evict();
+      setState(() {
+        _attempt++;
+        _failed = false;
+      });
+    });
   }
 
   @override
@@ -40,6 +86,7 @@ class _UserAvatarState extends State<UserAvatar> {
     final c = AppColors.of(context);
     final url = widget.imageUrl;
     final showImage = !_failed && url != null && url.isNotEmpty;
+    final cacheSize = (widget.radius * 2 * MediaQuery.devicePixelRatioOf(context)).round();
 
     final fallback = Icon(Icons.person, size: widget.radius * 1.05, color: c.iconInactive);
 
@@ -56,11 +103,11 @@ class _UserAvatarState extends State<UserAvatar> {
       child: showImage
           ? Image.network(
               url,
+              key: ValueKey('$url#$_attempt'),
               fit: BoxFit.cover,
+              cacheWidth: cacheSize,
               errorBuilder: (_, _, _) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted && !_failed) setState(() => _failed = true);
-                });
+                WidgetsBinding.instance.addPostFrameCallback((_) => _onError(url));
                 return Center(child: fallback);
               },
               loadingBuilder: (_, child, progress) =>

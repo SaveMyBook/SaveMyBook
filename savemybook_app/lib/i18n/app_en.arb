@@ -2620,7 +2620,5 @@
   "next2": "Next",
   "unableGenerateProfileQrCodeTry": "Unable to generate your profile QR code. Try again later.",
   "myQrCode": "My QR code",
-  "othersCanScanViewPublicProfile": "Others can scan it to view your public profile and chat with you",
-  "askOtherPersonScanQrCode": "Ask the other person to scan this QR code in 救「舊」我的書 to view your public profile and chat with you.",
   "markAsRead": "Mark as read"
 }

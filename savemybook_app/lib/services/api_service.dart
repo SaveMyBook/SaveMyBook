@@ -22,6 +22,8 @@ import 'payment_key_store.dart';
 
 enum _RefreshResult { refreshed, failed, offline }
 
+const _requestTimeout = Duration(seconds: 30);
+
 class VerifyOutcome {
   final String? token;
   final String code;
@@ -246,20 +248,20 @@ class ApiService {
       late http.Response response;
       switch (method) {
         case 'POST':
-          response = await http.post(uri, headers: headers, body: encoded);
+          response = await http.post(uri, headers: headers, body: encoded).timeout(_requestTimeout);
           break;
         case 'PUT':
-          response = await http.put(uri, headers: headers, body: encoded);
+          response = await http.put(uri, headers: headers, body: encoded).timeout(_requestTimeout);
           break;
         case 'PATCH':
-          response = await http.patch(uri, headers: headers, body: encoded);
+          response = await http.patch(uri, headers: headers, body: encoded).timeout(_requestTimeout);
           break;
         case 'DELETE':
-          response = await http.delete(uri, headers: headers, body: encoded);
+          response = await http.delete(uri, headers: headers, body: encoded).timeout(_requestTimeout);
           break;
         case 'GET':
         default:
-          response = await http.get(uri, headers: headers);
+          response = await http.get(uri, headers: headers).timeout(_requestTimeout);
           break;
       }
 
@@ -290,8 +292,8 @@ class ApiService {
       for (final (field, filePath) in files) {
         request.files.add(await http.MultipartFile.fromPath(field, filePath));
       }
-      final streamed = await request.send();
-      final bytes = await streamed.stream.toBytes();
+      final streamed = await request.send().timeout(const Duration(seconds: 90));
+      final bytes = await streamed.stream.toBytes().timeout(const Duration(seconds: 90));
       return await _interpret(
         streamed.statusCode,
         bytes,

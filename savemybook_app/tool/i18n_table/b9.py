@@ -108,7 +108,5 @@ T = {
     '完成': ('Done', '完了', '완료', '完成'),
     '無法產生個人 QR Code，請稍後再試': ('Unable to generate your profile QR code. Try again later.', 'プロフィール QR コードを生成できません。しばらくしてからお試しください。', '프로필 QR 코드를 생성할 수 없습니다. 잠시 후 다시 시도하세요.', '无法生成个人 QR Code，请稍后再试'),
     '我的 QR Code': ('My QR code', 'マイ QR コード', '내 QR 코드', '我的 QR Code'),
-    '對方掃描後即可查看您的公開檔案並與您聊天': ('Others can scan it to view your public profile and chat with you', '相手がスキャンすると公開プロフィールを表示し、チャットを始められます', '상대방이 스캔하면 공개 프로필을 보고 채팅할 수 있습니다', '对方扫描后即可查看您的公开资料并与您聊天'),
-    '請對方開啟救「舊」我的書掃描此 QR Code，即可查看您的公開檔案並與您聊天。': ('Ask the other person to scan this QR code in 救「舊」我的書 to view your public profile and chat with you.', '相手に救「舊」我的書でこの QR コードをスキャンしてもらうと、公開プロフィールの表示やチャットができます。', '상대방이 救「舊」我的書에서 이 QR 코드를 스캔하면 공개 프로필을 보고 채팅할 수 있습니다.', '请对方打开救「旧」我的书扫描此 QR Code，即可查看您的公开资料并与您聊天。'),
     '標為已讀': ('Mark as read', '既読にする', '읽음으로 표시', '标为已读'),
 }

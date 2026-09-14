@@ -50,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadStats() async {
     final results = await Future.wait([
       _api.fetchUserStats(),
+      _api.fetchCurrentUser(),
       _api.fetchMemberLevel(),
       _api.fetchOrders(role: 'buyer', tab: 'pending_pickup'),
       _api.fetchOrders(role: 'seller', tab: 'pending_deposit'),
@@ -57,9 +58,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
     setState(() {
       _stats = results[0] as UserStats;
-      _level = results[1] as MemberLevelInfo;
-      _pendingPickup = (results[2] as List).length;
-      _pendingDeposit = (results[3] as List).length;
+      _level = results[2] as MemberLevelInfo;
+      _pendingPickup = (results[3] as List).length;
+      _pendingDeposit = (results[4] as List).length;
     });
   }
 
@@ -453,7 +454,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             AppMenuItem(
               icon: Icons.qr_code_2_rounded,
               title: S.myQrCode,
-              subtitle: S.othersCanScanViewPublicProfile,
               onTap: _openShareProfile,
             ),
             AppMenuItem(

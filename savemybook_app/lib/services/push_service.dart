@@ -184,7 +184,7 @@ class PushService {
 
     final data = message.data;
     if (data['related_type'] == 'chat_room' &&
-        int.tryParse('${data['related_id']}') == ChatRoomScreen.activeRoomId) {
+        ChatRoomScreen.isShowing(int.tryParse('${data['related_id']}'))) {
       return;
     }
 

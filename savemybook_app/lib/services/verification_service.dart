@@ -37,11 +37,12 @@ class VerificationService {
     return _inFlight ??= _handle(request).whenComplete(() => _inFlight = null);
   }
 
+  // 不可共用 _inFlight：付款驗證流程會開啟設定交易密碼頁，該頁再次要求驗證時若等待同一個 Future 會互相卡死。
   static Future<String?> requireSensitive(BuildContext context, {String? reason}) {
-    return _inFlight ??= _handle(
+    return _handle(
       VerificationRequest(scope: 'sensitive', methods: const ['password', 'pin', 'biometric'], message: reason ?? ''),
       context: context,
-    ).whenComplete(() => _inFlight = null);
+    );
   }
 
   static Future<String?> requirePassword(BuildContext context, {String? reason}) async {
@@ -67,8 +68,13 @@ class VerificationService {
     }
 
     final api = ApiService();
-    final status = await api.fetchSecurityStatus();
+    final status = await api.fetchSecurityStatus().timeout(const Duration(seconds: 15), onTimeout: () => SecurityStatus.unknown);
     if (!ctx.mounted) return null;
+
+    if (request.isPayment && !status.available) {
+      showAppSnackBar(ctx, S.couldNotReachServer, isError: true);
+      return null;
+    }
 
     if (request.isPayment && !status.hasPaymentPin) {
       final setup = await showConfirmDialog(

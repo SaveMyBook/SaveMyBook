@@ -2620,7 +2620,5 @@
   "next2": "다음 장",
   "unableGenerateProfileQrCodeTry": "프로필 QR 코드를 생성할 수 없습니다. 잠시 후 다시 시도하세요.",
   "myQrCode": "내 QR 코드",
-  "othersCanScanViewPublicProfile": "상대방이 스캔하면 공개 프로필을 보고 채팅할 수 있습니다",
-  "askOtherPersonScanQrCode": "상대방이 救「舊」我的書에서 이 QR 코드를 스캔하면 공개 프로필을 보고 채팅할 수 있습니다.",
   "markAsRead": "읽음으로 표시"
 }

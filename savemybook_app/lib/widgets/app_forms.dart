@@ -132,6 +132,10 @@ class AppTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final FocusNode? focusNode;
   final int? minLines;
+  final String? label;
+  final Iterable<String>? autofillHints;
+
+  static const double singleLineHeight = 48;
 
   const AppTextField({
     super.key,
@@ -151,13 +155,16 @@ class AppTextField extends StatelessWidget {
     this.textInputAction,
     this.focusNode,
     this.minLines,
+    this.label,
+    this.autofillHints,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final singleLine = obscureText || (maxLines == 1 && (minLines ?? 1) == 1);
 
-    return TextField(
+    final field = TextField(
       controller: controller,
       focusNode: focusNode,
       enabled: enabled,
@@ -171,6 +178,8 @@ class AppTextField extends StatelessWidget {
       onSubmitted: onSubmitted,
       textInputAction: textInputAction,
       scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+      autofillHints: autofillHints,
+      textAlignVertical: singleLine ? TextAlignVertical.center : null,
       style: TextStyle(color: enabled ? c.textPrimary : c.textHint, fontSize: 14),
       decoration: InputDecoration(
         isDense: true,
@@ -180,12 +189,25 @@ class AppTextField extends StatelessWidget {
         errorMaxLines: 2,
         prefixText: prefixText,
         prefixStyle: TextStyle(color: c.textPrimary, fontSize: 14),
-        suffixIcon: suffix,
-        suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 24),
+        suffixIcon: suffix == null
+            ? null
+            : SizedBox(
+                child: IconButtonTheme(
+                  data: IconButtonThemeData(
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(40, 40),
+                      padding: const EdgeInsets.all(8),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                  child: Center(widthFactor: 1, child: suffix),
+                ),
+              ),
+        suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 24, maxHeight: 40),
         hintStyle: TextStyle(color: c.textHint, fontSize: 13),
         filled: true,
         fillColor: c.inputFill,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: singleLine ? 14 : 10),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
@@ -211,6 +233,24 @@ class AppTextField extends StatelessWidget {
           borderSide: BorderSide(color: c.danger, width: 1.4),
         ),
       ),
+    );
+
+    if (label == null) return field;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 2, bottom: 6),
+          child: Text(
+            label!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textSecondary),
+          ),
+        ),
+        field,
+      ],
     );
   }
 }
@@ -443,8 +483,8 @@ class AppDateField extends StatelessWidget {
       child: AnimatedContainer(
         duration: Motion.base,
         curve: Motion.standard,
-
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        constraints: const BoxConstraints(minHeight: 48),
+        padding: const EdgeInsets.fromLTRB(16, 11, 12, 11),
         decoration: BoxDecoration(
           color: c.inputFill,
           borderRadius: BorderRadius.circular(8),

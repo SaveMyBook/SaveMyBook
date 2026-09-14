@@ -2620,7 +2620,5 @@
   "next2": "下一章",
   "unableGenerateProfileQrCodeTry": "无法生成个人 QR Code，请稍后再试",
   "myQrCode": "我的 QR Code",
-  "othersCanScanViewPublicProfile": "对方扫描后即可查看您的公开资料并与您聊天",
-  "askOtherPersonScanQrCode": "请对方打开救「旧」我的书扫描此 QR Code，即可查看您的公开资料并与您聊天。",
   "markAsRead": "标为已读"
 }

@@ -111,22 +111,24 @@ const deviceCount = async (userId) => {
 const removeStaleDevices = () =>
   prisma.$executeRaw`DELETE FROM push_devices WHERE last_seen_at < NOW() - INTERVAL 90 DAY`;
 
-// 先標成已推再送，避免重啟後重複推播。
-// 時間由 Node 計算而非 DB NOW()：created_at 由 Prisma 以 UTC 寫入，資料庫時區可能不同。
+// 先標成已推再送，避免重啟後重複推播；暫時性失敗改由 retryQueue 補送。
+// 回溯視窗以資料表內最新的 created_at 為基準：created_at 由 Prisma 寫入，與 Node／資料庫時區設定無關，避免時區不一致時整批被判定過期。
 const claimBatch = async () => {
   const now = new Date();
-  const since = new Date(now.getTime() - QUEUE_WINDOW_MINUTES * 60 * 1000);
   const rows = await prisma.$queryRaw`
-    SELECT notification_id, user_id, type, title, content, related_id, related_type
-    FROM notifications
-    WHERE pushed_at IS NULL AND created_at >= ${since} AND created_at <= ${now}
-    ORDER BY notification_id
+    SELECT n.notification_id, n.user_id, n.type, n.title, n.content, n.related_id, n.related_type
+    FROM notifications n
+    JOIN (SELECT MAX(created_at) AS latest FROM notifications) m
+    WHERE n.pushed_at IS NULL
+      AND n.created_at >= m.latest - INTERVAL ${QUEUE_WINDOW_MINUTES} MINUTE
+      AND n.created_at <= ${now}
+    ORDER BY n.notification_id
     LIMIT ${BATCH_SIZE}`;
   if (rows.length === 0) return [];
 
   const ids = rows.map((r) => Number(r.notification_id));
   await prisma.$executeRawUnsafe(
-    `UPDATE notifications SET pushed_at = ? WHERE notification_id IN (${placeholders(ids)})`,
+    `UPDATE notifications SET pushed_at = ? WHERE pushed_at IS NULL AND notification_id IN (${placeholders(ids)})`,
     now,
     ...ids
   );
@@ -172,6 +174,11 @@ const recipientsFor = async (userIds) => {
 
 const clip = (text, max) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
 
+const threadOf = (notification) =>
+  notification.related_type && notification.related_id != null
+    ? `${notification.related_type}-${notification.related_id}`
+    : String(notification.type ?? 'system');
+
 const buildMessage = (notification, device, badge) => ({
   token: device.token,
   notification: {
@@ -190,8 +197,8 @@ const buildMessage = (notification, device, badge) => ({
     notification: { channel_id: 'savemybook_default', sound: 'default' }
   },
   apns: {
-    headers: { 'apns-priority': '10' },
-    payload: { aps: { sound: 'default', badge } }
+    headers: { 'apns-priority': '10', 'apns-push-type': 'alert' },
+    payload: { aps: { sound: 'default', badge, 'thread-id': threadOf(notification) } }
   }
 });
 
@@ -205,6 +212,40 @@ const runLimited = async (tasks, limit) => {
     }
   });
   await Promise.all(workers);
+};
+
+const RETRY_DELAYS_MS = [5000, 20000, 60000, 180000];
+const RETRY_MAX_AGE_MS = QUEUE_WINDOW_MINUTES * 60 * 1000;
+const retryQueue = [];
+
+const scheduleRetry = (entry) => {
+  const attempt = entry.attempt + 1;
+  if (attempt > RETRY_DELAYS_MS.length || Date.now() - entry.firstAt > RETRY_MAX_AGE_MS) {
+    console.error(`[推播放棄] notification=${entry.notification.notification_id} platform=${entry.device.platform}: ${entry.error}`);
+    return;
+  }
+  retryQueue.push({ ...entry, attempt, dueAt: Date.now() + RETRY_DELAYS_MS[attempt - 1] });
+};
+
+const sendOne = async ({ notification, device, badge, invalid, attempt = 0, firstAt = Date.now() }) => {
+  const result = await client.send(buildMessage(notification, device, badge));
+  if (result.ok) return;
+  if (result.invalidToken) {
+    invalid.add(device.token);
+    console.warn(`[推播 token 失效，已移除] user=${notification.user_id} platform=${device.platform}: ${result.error}`);
+    return;
+  }
+  if (result.retryable) {
+    scheduleRetry({ notification, device, badge, attempt, firstAt, error: result.error });
+    return;
+  }
+  console.error(`[推播失敗] notification=${notification.notification_id} platform=${device.platform}: ${result.error}`);
+};
+
+const removeInvalid = async (invalid) => {
+  if (invalid.size === 0) return;
+  const tokens = [...invalid];
+  await prisma.$executeRawUnsafe(`DELETE FROM push_devices WHERE token IN (${placeholders(tokens)})`, ...tokens);
 };
 
 const dispatchOnce = async () => {
@@ -222,29 +263,36 @@ const dispatchOnce = async () => {
     if (pref && settingsOf.get(userId)?.[pref] === false) continue;
 
     for (const device of devicesOf(userId)) {
-      tasks.push(async () => {
-        let result = await client.send(buildMessage(n, device, unreadOf.get(userId) ?? 0));
-        if (!result.ok && result.retryable) {
-          await new Promise((r) => setTimeout(r, 1000));
-          result = await client.send(buildMessage(n, device, unreadOf.get(userId) ?? 0));
-        }
-        if (result.ok) return;
-        if (result.invalidToken) {
-          invalid.add(device.token);
-          console.warn(`[推播 token 失效，已移除] user=${userId} platform=${device.platform}: ${result.error}`);
-        }
-        else console.error(`[推播失敗] notification=${n.notification_id} platform=${device.platform}: ${result.error}`);
-      });
+      tasks.push(() => sendOne({ notification: n, device, badge: unreadOf.get(userId) ?? 0, invalid }));
     }
   }
 
   await runLimited(tasks, CONCURRENCY);
-
-  if (invalid.size > 0) {
-    const tokens = [...invalid];
-    await prisma.$executeRawUnsafe(`DELETE FROM push_devices WHERE token IN (${placeholders(tokens)})`, ...tokens);
-  }
+  await removeInvalid(invalid);
   return rows.length;
+};
+
+const dispatchRetries = async () => {
+  const now = Date.now();
+  const due = [];
+  for (let i = retryQueue.length - 1; i >= 0; i -= 1) {
+    if (retryQueue[i].dueAt <= now) due.push(...retryQueue.splice(i, 1));
+  }
+  if (due.length === 0) return 0;
+
+  const tokens = [...new Set(due.map((e) => e.device.token))];
+  const rows = await prisma.$queryRawUnsafe(
+    `SELECT token FROM push_devices WHERE token IN (${placeholders(tokens)})`,
+    ...tokens
+  );
+  const stillRegistered = new Set(rows.map((r) => r.token));
+  const invalid = new Set();
+  await runLimited(
+    due.filter((e) => stillRegistered.has(e.device.token)).map((e) => () => sendOne({ ...e, invalid })),
+    CONCURRENCY
+  );
+  await removeInvalid(invalid);
+  return due.length;
 };
 
 const startDispatcher = () => {
@@ -256,6 +304,7 @@ const startDispatcher = () => {
     running = true;
     try {
       while ((await dispatchOnce()) === BATCH_SIZE);
+      await dispatchRetries();
     } catch (err) {
       console.error('[推播派送失敗]:', err.message);
     } finally {
@@ -269,5 +318,5 @@ const startDispatcher = () => {
 
 module.exports = {
   PLATFORMS, isReady, init, registerDevice, unregisterDevice, removeUserDevices, removeStaleDevices, deviceCount, listDevices,
-  dispatchOnce, startDispatcher, buildMessage
+  dispatchOnce, dispatchRetries, startDispatcher, buildMessage, retryQueue
 };

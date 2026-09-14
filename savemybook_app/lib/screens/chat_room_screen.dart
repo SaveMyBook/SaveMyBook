@@ -33,7 +33,16 @@ class ChatRoomScreen extends StatefulWidget {
 
   const ChatRoomScreen({super.key, required this.roomId, this.partnerName = ''});
 
-  static int? activeRoomId;
+  static final List<_ChatRoomScreenState> _mounted = [];
+
+  static int? get activeRoomId {
+    for (final state in _mounted.reversed) {
+      if (state._isOnScreen) return state.widget.roomId;
+    }
+    return null;
+  }
+
+  static bool isShowing(int? roomId) => roomId != null && activeRoomId == roomId;
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
@@ -135,7 +144,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   @override
   void initState() {
     super.initState();
-    ChatRoomScreen.activeRoomId = widget.roomId;
+    ChatRoomScreen._mounted.add(this);
     WidgetsBinding.instance.addObserver(this);
     _controller.addListener(_onTextChanged);
     _scroll.addListener(_onScroll);
@@ -145,7 +154,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
 
   @override
   void dispose() {
-    if (ChatRoomScreen.activeRoomId == widget.roomId) ChatRoomScreen.activeRoomId = null;
+    ChatRoomScreen._mounted.remove(this);
     WidgetsBinding.instance.removeObserver(this);
     _pollTimer?.cancel();
     _stopTyping();
@@ -158,6 +167,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     _unseen.dispose();
     _showJump.dispose();
     super.dispose();
+  }
+
+  bool get _isOnScreen {
+    if (!mounted) return false;
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return false;
+    return ModalRoute.of(context)?.isCurrent ?? false;
   }
 
   @override

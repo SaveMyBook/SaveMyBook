@@ -576,8 +576,8 @@ class _AppSelectState<T> extends State<AppSelect<T>> {
             child: AnimatedContainer(
               duration: Motion.base,
               curve: Motion.standard,
-              constraints: const BoxConstraints(minHeight: 40),
-              padding: const EdgeInsets.fromLTRB(12, 9, 8, 9),
+              constraints: const BoxConstraints(minHeight: 48),
+              padding: const EdgeInsets.fromLTRB(16, 9, 8, 9),
               decoration: BoxDecoration(
                 color: c.inputFill,
                 borderRadius: BorderRadius.circular(8),
