@@ -104,11 +104,11 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
                 Clipboard.setData(ClipboardData(text: value));
                 Navigator.pop(ctx);
               },
-              child: Text(S.copy, style: const TextStyle(color: AppColors.primary)),
+              child: Text(S.copy, style: TextStyle(color: AppColors.primary)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text(S.scanAgain, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              child: Text(S.scanAgain, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
             ),
           ],
         );

@@ -2465,5 +2465,157 @@
     }
   },
   "runNpmRunVerifyApiDirectory": "サーバーの API ディレクトリで npm run verify を実行すると、デプロイ状況をすべて確認できます。",
-  "serverUpdateRequired": "サーバーの更新が必要です"
+  "serverUpdateRequired": "サーバーの更新が必要です",
+  "versionP0": "バージョン {p0}",
+  "@versionP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requiresUserConsent": "ユーザーの同意が必要",
+  "unsavedDraft": "未保存の下書きあり",
+  "allBooks": "すべての本",
+  "results": "絞り込み結果",
+  "sortBy": "並べ替え",
+  "themeColour": "テーマカラー",
+  "forestGreen": "フォレストグリーン",
+  "oceanBlue": "オーシャンブルー",
+  "lavender": "ラベンダー",
+  "terracotta": "テラコッタ",
+  "amber": "アンバー",
+  "rose": "ローズ",
+  "graphite": "グラファイト",
+  "mistBlue": "ミストブルー",
+  "chooseAppSMainColourHeader": "ヘッダー、ボタン、強調表示に使うアプリのメインカラーを選択します。",
+  "draftRestored": "下書きを復元しました",
+  "convertSections": "章モードに変換",
+  "currentContentDoesNotFullyMatch": "現在の内容は章の書式に完全には対応していません。変換すると章番号が順番に振り直され「1. タイトル」形式に統一されます。見出しとして認識されない段落は前文または直前の章の本文に統合されます。\n\n元の書式を保持する場合は、テキストモードで編集・保存してください。",
+  "convert": "変換",
+  "keepPlainText": "テキストのまま",
+  "noSectionHeadingsDetectedFullText": "章見出しが検出されなかったため、全文を前文に配置しました",
+  "deletedP0": "「{p0}」を削除しました",
+  "@deletedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "renameSection": "章の名前を変更",
+  "editContent": "内容を編集",
+  "rename": "名前を変更",
+  "addSectionBelow": "下に章を追加",
+  "moveUp": "上へ移動",
+  "moveDown": "下へ移動",
+  "enterDocumentTitle": "文書のタイトルを入力してください",
+  "enterDocumentContent": "文書の内容を入力してください",
+  "p0NowVersionP1": "{p0}（現在はバージョン {p1}）",
+  "@p0NowVersionP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "versionP0P1": "バージョン {p0}・{p1}",
+  "@versionP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "unsavedDraftFromP0Found": "{p0} の未保存の下書きがあります",
+  "@unsavedDraftFromP0Found": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "documentWasUpdatedAfterDraftWas": "下書きの作成後に文書が更新されています。復元すると現在の内容が下書きで置き換えられます。",
+  "discardDraft": "下書きを破棄",
+  "restoreDraft": "下書きを復元",
+  "sectionTitleRequired": "章タイトル未入力",
+  "documentSFormatDoesNotFully": "この文書の書式は章構成に完全には対応していないため、元の書式を保持するためにテキストモードで開きました。",
+  "enterPasteFullTextHere": "ここに全文を入力または貼り付けてください。",
+  "noSectionHeadingsDetected": "章見出しが検出されません",
+  "p0SectionsDetected": "{p0} 件の章を検出しました",
+  "@p0SectionsDetected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paragraphWhoseFirstLine1Title": "段落の1行目が「1. タイトル」「一、タイトル」「第一條 タイトル」の場合、章見出しとして扱います。",
+  "sectionNumbersMustStart1Increase": "章番号は 1 から順に増える必要があります。そうでない場合は直前の章の本文として扱います。",
+  "blankLineStartsNewParagraphSingle": "空行で段落を区切ります。1行の改行はそのまま表示されます。",
+  "whenSwitchingSectionsAskedConfirmAny": "章モードに切り替える際、書式の調整が必要な場合は事前に確認します。",
+  "howSectionHeadingsDetected": "章見出しの判定方法",
+  "titleEdited": "タイトルを変更",
+  "p0Added": "{p0} 章を追加",
+  "@p0Added": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Removed": "{p0} 章を削除",
+  "@p0Removed": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Edited": "{p0} 章を変更",
+  "@p0Edited": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sectionsReordered": "章の順序を変更",
+  "preambleEdited": "前文を変更",
+  "contentEdited": "内容を変更",
+  "p0Characters2": "文字数 +{p0}",
+  "@p0Characters2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Characters3": "文字数 {p0}",
+  "@p0Characters3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "formattingAdjusted": "書式の調整",
+  "createdAsVersion1": "バージョン 1 として作成",
+  "staysVersionP0": "バージョン {p0} のまま",
+  "@staysVersionP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "versionP0P12": "バージョン {p0} → {p1}",
+  "@versionP0P12": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "substantiveChangesRightsObligationsTermsAll": "権利義務や規約内容の実質的な変更向け。すべてのユーザーに通知し、次回アプリ起動時に再度確認・同意していただきます。",
+  "substantiveContentChangesAllUsersNotified": "内容の実質的な変更向け。すべてのユーザーに通知します。",
+  "saveP0": "「{p0}」を保存",
+  "@saveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "summaryChanges": "変更の概要",
+  "updateType": "更新の種類",
+  "fixingTyposFormattingUsersNotNotified": "誤字の修正や書式の調整向け。ユーザーには通知しません。",
+  "contentUnchangedTitleOnlyChangeCannot": "内容に変更がありません。タイトルのみの変更は重要な更新にできません。",
+  "notificationsSentImmediatelyAfterSubmittingCannot": "送信後すぐに通知が送られます。この操作は取り消せません。",
+  "publishNotify": "公開して通知",
+  "sectionP0": "第 {p0} 章",
+  "@sectionP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "goSection": "章へ移動",
+  "sectionContent": "章の内容",
+  "previous": "前の章",
+  "next2": "次の章"
 }

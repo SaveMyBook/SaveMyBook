@@ -46,6 +46,6 @@ String chatDuration(int seconds) {
   return '${s ~/ 60}:${_two(s % 60)}';
 }
 
-Color chatMineBubble(AppColors c) => c.isDark ? const Color(0xFF3F5B6A) : AppColors.primary;
+Color chatMineBubble(AppColors c) => c.isDark ? c.bubbleMineDark : AppColors.primary;
 
 Color chatTheirsBubble(AppColors c) => c.isDark ? const Color(0xFF242628) : Colors.white;

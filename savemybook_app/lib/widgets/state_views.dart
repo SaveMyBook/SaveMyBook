@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'app_toast.dart';
+export 'app_toast.dart' show kBottomNavVisible, hideCurrentToast;
 import '../utils/app_colors.dart';
 import '../utils/motion.dart';
 import 'animations.dart';
@@ -67,12 +69,12 @@ class LoadingView extends StatelessWidget {
         );
 
       case LoadingStyle.spinner:
-        return const Center(
+        return Center(
           child: Padding(
-            padding: EdgeInsets.all(48),
+            padding: const EdgeInsets.all(48),
             child: FadeSlideIn(
               offsetY: 0,
-              child: CircularProgressIndicator(color: AppColors.primary),
+              child: CircularProgressIndicator(color: AppColors.of(context).accent),
             ),
           ),
         );
@@ -377,8 +379,6 @@ class BookThumbnail extends StatelessWidget {
   }
 }
 
-bool kBottomNavVisible = false;
-
 void showAppSnackBar(
   BuildContext context,
   String message, {
@@ -388,82 +388,23 @@ void showAppSnackBar(
   Duration? duration,
 }) {
   final c = AppColors.of(context);
-  final overlapsNav = kBottomNavVisible && (ModalRoute.of(context)?.isFirst ?? false);
-  final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-
-  final bottomMargin = bottomInset > 0 ? 16.0 : (overlapsNav ? 74.0 : 16.0);
-  final tint = isError ? c.danger : c.success;
-  final messenger = ScaffoldMessenger.of(context);
   final hasAction = actionLabel != null && onAction != null;
-
-  messenger
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        padding: EdgeInsets.zero,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.fromLTRB(16, 0, 16, bottomMargin),
-        duration: duration ?? Duration(milliseconds: hasAction ? 4200 : 2600),
-        content: Container(
-          padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
-          decoration: BoxDecoration(
-            color: c.card,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: tint.withValues(alpha: 0.35)),
-            boxShadow: [
-              BoxShadow(color: c.shadow, blurRadius: 20, offset: const Offset(0, 6)),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: tint.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
-                  size: 18,
-                  color: tint,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  message,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    height: 1.4,
-                    fontWeight: FontWeight.w500,
-                    color: c.textPrimary,
-                  ),
-                ),
-              ),
-              if (hasAction) ...[
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: () {
-                    messenger.hideCurrentSnackBar();
-                    onAction();
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: c.accent,
-                    minimumSize: const Size(0, 36),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(actionLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
+  showToast(
+    context,
+    duration: duration ?? Duration(milliseconds: hasAction ? 4200 : 2600),
+    builder: (context, close) => ToastCard(
+      icon: isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
+      tint: isError ? c.danger : c.success,
+      message: message,
+      actionLabel: hasAction ? actionLabel : null,
+      onAction: hasAction
+          ? () {
+              close(ToastCloseReason.action);
+              onAction();
+            }
+          : null,
+    ),
+  );
 }
 
 class AppNetworkImage extends StatelessWidget {
@@ -489,7 +430,7 @@ class AppNetworkImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final base = background ?? c.inputFill;
+    final base = background ?? c.skeleton;
 
     Widget placeholder() => Container(
           width: width,

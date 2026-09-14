@@ -154,7 +154,7 @@ const userProfile = ({ origin, user }) => {
     body: `${BRAND}
       ${avatar}
       <h1>${escapeHtml(nickname)}</h1>
-      <p class="bio">${escapeHtml(user.bio || '尚未填寫個人簡介')}</p>
+      <p class="bio">${escapeHtml(user.bio || '這個人很懶，什麼都沒留下')}</p>
       <p class="meta">上架 ${Number(user._count.books)} 本書 ・ ${escapeHtml(joined)} 加入</p>
       ${openAppButton(`savemybook://user/${Number(user.user_id)}`,
         '若無法開啟，請先安裝「救「舊」我的書」App，<br>或於 App 的「分享個人檔案」中掃描此 QR Code。')}`

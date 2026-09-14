@@ -12,6 +12,8 @@ import '../models/book.dart';
 import '../services/api_service.dart';
 import '../services/home_widget_service.dart';
 import '../services/server_compat.dart';
+import '../widgets/app_toast.dart';
+import '../widgets/app_select.dart';
 import '../services/push_service.dart';
 import '../services/recently_viewed.dart';
 import '../services/search_history.dart';
@@ -82,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     kBottomNavVisible = true;
+    ToastRouteTracker.notifyNavVisibility();
     _badgeTimer = Timer.periodic(const Duration(seconds: 20), (_) => _loadBadges());
     PushService.onSignedIn();
     RecentlyViewed.load();
@@ -98,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     kBottomNavVisible = false;
+    ToastRouteTracker.notifyNavVisibility();
     _badgeTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
@@ -345,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     SliverToBoxAdapter(
                       child: Padding(
                         key: _sortRowKey,
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
                         child: _buildSortAndLayoutRow(),
                       ),
                     ),
@@ -353,9 +357,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     SliverToBoxAdapter(
                       child: Reveal(
                         visible: _isLoadingMore,
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24.0),
-                          child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24.0),
+                          child: Center(child: CircularProgressIndicator(color: c.accent)),
                         ),
                       ),
                     ),
@@ -572,36 +576,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: ValueListenableBuilder<List<Book>>(
         valueListenable: RecentlyViewed.books,
         builder: (context, recent, _) {
-          final showRecent = _isBrowsingAll && recent.isNotEmpty;
-          if (!showRecent && !showPopular) return const SizedBox(width: double.infinity);
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (showPopular) ...[
-                const SizedBox(height: 20),
-                BookStrip(
-                  title: ApiService.authToken == null ? S.popular : S.picked,
-                  icon: Icons.local_fire_department_rounded,
-                  books: _popular,
-                  loading: _popularLoading,
-                  heroPrefix: 'popular',
-                  actionLabel: S.seeMore,
-                  onAction: _showAllPopular,
-                ),
-              ],
-              if (showRecent) ...[
-                const SizedBox(height: 20),
-                BookStrip(
-                  title: S.recentlyViewed,
-                  icon: Icons.history_rounded,
-                  books: recent,
-                  heroPrefix: 'recent',
-                  actionLabel: S.clear,
-                  onAction: _clearRecentlyViewed,
-                ),
-              ],
-            ],
+          final tabs = [
+            if (showPopular)
+              DiscoveryTab(
+                id: 'popular',
+                title: ApiService.authToken == null ? S.popular : S.picked,
+                icon: Icons.auto_awesome_rounded,
+                books: _popular,
+                loading: _popularLoading,
+                actionLabel: S.seeMore,
+                onAction: _showAllPopular,
+              ),
+            if (_isBrowsingAll && recent.isNotEmpty)
+              DiscoveryTab(
+                id: 'recent',
+                title: S.recentlyViewed,
+                icon: Icons.history_rounded,
+                books: recent,
+                actionLabel: S.clear,
+                onAction: _clearRecentlyViewed,
+              ),
+          ];
+          if (tabs.isEmpty) return const SizedBox(width: double.infinity);
+          return Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: DiscoveryPanel(tabs: tabs),
           );
         },
       ),
@@ -613,11 +612,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Row(
       children: [
         Expanded(
-          child: Align(alignment: Alignment.centerLeft, child: _buildSortDropdown()),
+          child: Text(
+            _isBrowsingAll ? S.allBooks : S.results,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary),
+          ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
+        ConstrainedBox(constraints: const BoxConstraints(maxWidth: 150), child: _buildSortDropdown()),
+        const SizedBox(width: 8),
         Container(
-          decoration: BoxDecoration(color: c.categoryChip, borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: c.categoryChip, borderRadius: BorderRadius.circular(10)),
+          padding: const EdgeInsets.all(2),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -642,40 +649,44 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: AnimatedContainer(
         duration: Motion.base,
         curve: Motion.standard,
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
           color: active ? c.accent : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, size: 20, color: active ? Colors.white : c.iconInactive),
+        child: Icon(icon, size: 18, color: active ? Colors.white : c.iconInactive),
       ),
     );
   }
 
+  Future<void> _pickSort() async {
+    final picked = await showAppPicker<String>(
+      context,
+      title: S.sortBy,
+      selected: _currentSort,
+      options: [
+        for (final o in _sortOptions) AppSelectOption(value: o.code, label: o.label),
+      ],
+    );
+    if (picked != null && picked != _currentSort) _onSortChanged(picked);
+  }
+
   Widget _buildSortDropdown() {
     final c = AppColors.of(context);
-    return PopupMenuButton<String>(
-      initialValue: _currentSort,
-      onSelected: _onSortChanged,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      color: c.card,
-      offset: const Offset(0, 36),
-      itemBuilder: (_) => _sortOptions
-          .map((o) => PopupMenuItem(
-                value: o.code,
-                child: Text(
-                  o.label,
-                  style: TextStyle(
-                    color: _currentSort == o.code ? c.accent : c.textPrimary,
-                    fontWeight: _currentSort == o.code ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-              ))
-          .toList(),
+    return PressableScale(
+      scale: 0.96,
+      onTap: _pickSort,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(color: c.accent, borderRadius: BorderRadius.circular(8)),
+        height: 34,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: c.border),
+        ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.swap_vert_rounded, size: 18, color: c.accent),
+          const SizedBox(width: 4),
           Flexible(
             child: SwitchIn(
               duration: Motion.micro,
@@ -684,12 +695,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 key: ValueKey(_currentSort),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: c.textPrimary, fontSize: 13.5, fontWeight: FontWeight.w600),
               ),
             ),
           ),
-          const SizedBox(width: 4),
-          const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
         ]),
       ),
     );

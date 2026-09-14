@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_palette.dart';
 
 class AppColors {
   final bool isDark;
@@ -8,8 +9,8 @@ class AppColors {
     return AppColors._(Theme.of(context).brightness == Brightness.dark);
   }
 
-  static const primary = Color(0xFF627D8D);
-  static const primaryDark = Color(0xFF8FA9B8);
+  static Color get primary => paletteProvider.value.primary;
+  static Color get primaryDark => paletteProvider.value.primaryDark;
 
   static AppColors light() => const AppColors._(false);
   static AppColors dark() => const AppColors._(true);
@@ -20,7 +21,8 @@ class AppColors {
   Color get card => isDark ? const Color(0xFF1E1E1E) : Colors.white;
   Color get cardAlt => isDark ? const Color(0xFF252525) : const Color(0xFFFAFBFC);
   Color get inputFill => isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF3F5F7);
-  Color get headerBg => isDark ? const Color(0xFF1A2F38) : const Color(0xFF627D8D);
+  Color get headerBg => isDark ? paletteProvider.value.headerDark : paletteProvider.value.primary;
+  Color get bubbleMineDark => paletteProvider.value.bubbleDark;
   Color get sheetBg => isDark ? const Color(0xFF1E1E1E) : Colors.white;
   Color get scrim => Colors.black.withValues(alpha: isDark ? 0.7 : 0.5);
 
@@ -33,7 +35,7 @@ class AppColors {
   Color get success => isDark ? const Color(0xFF5FC98A) : const Color(0xFF2E9E5B);
   Color get warning => isDark ? const Color(0xFFE9A94A) : const Color(0xFFD98613);
 
-  Color get categoryChip => isDark ? const Color(0xFF2A3A42) : const Color(0xFFE8ECEF);
+  Color get categoryChip => isDark ? Color.lerp(const Color(0xFF1E1E1E), paletteProvider.value.primary, 0.22)! : const Color(0xFFE8ECEF);
   Color get divider => isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.withValues(alpha: 0.2);
   Color get border => isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08);
   Color get navBarBg => isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.92) : Colors.white.withValues(alpha: 0.88);

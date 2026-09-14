@@ -634,7 +634,7 @@
   },
   "signingOut": "退出登录中…",
   "myAccount": "会员中心",
-  "personNotWrittenBioYet": "尚未填写个人简介",
+  "personNotWrittenBioYet": "这个人很懒，什么都没留下",
   "topTierReached": "已达最高等级",
   "morePointsReach": "再 {p0} 点升级为“{p1}”",
   "@morePointsReach": {
@@ -2465,5 +2465,157 @@
     }
   },
   "runNpmRunVerifyApiDirectory": "在服务器的 API 目录执行 npm run verify 可检查完整的部署状态。",
-  "serverUpdateRequired": "服务器需要更新"
+  "serverUpdateRequired": "服务器需要更新",
+  "versionP0": "第 {p0} 版",
+  "@versionP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requiresUserConsent": "须经用户同意",
+  "unsavedDraft": "有未保存的草稿",
+  "allBooks": "全部书籍",
+  "results": "筛选结果",
+  "sortBy": "排序方式",
+  "themeColour": "主题色",
+  "forestGreen": "森林绿",
+  "oceanBlue": "海洋蓝",
+  "lavender": "薰衣草紫",
+  "terracotta": "赤陶橘",
+  "amber": "琥珀金",
+  "rose": "玫瑰粉",
+  "graphite": "石墨灰",
+  "mistBlue": "雾蓝",
+  "chooseAppSMainColourHeader": "选择 App 的主要色彩，应用于标题栏、按钮与重点信息。",
+  "draftRestored": "已还原草稿",
+  "convertSections": "转换为章节模式",
+  "currentContentDoesNotFullyMatch": "目前内容无法完整对应章节格式。转换后，章节编号将依序重新生成并统一为「1. 标题」格式，未能识别为标题的段落将并入前言或上一章正文。\n\n若需保留原始格式，请继续以纯文本模式编辑并保存。",
+  "convert": "转换",
+  "keepPlainText": "维持纯文本",
+  "noSectionHeadingsDetectedFullText": "未检测到章节标题，全文已置于前言",
+  "deletedP0": "已删除「{p0}」",
+  "@deletedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "renameSection": "重新命名章节",
+  "editContent": "编辑内容",
+  "rename": "重新命名",
+  "addSectionBelow": "在下方新增章节",
+  "moveUp": "上移",
+  "moveDown": "下移",
+  "enterDocumentTitle": "请填写文件标题",
+  "enterDocumentContent": "请填写文件内容",
+  "p0NowVersionP1": "{p0}，目前为第 {p1} 版",
+  "@p0NowVersionP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "versionP0P1": "第 {p0} 版・{p1}",
+  "@versionP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "unsavedDraftFromP0Found": "发现 {p0} 未保存的草稿",
+  "@unsavedDraftFromP0Found": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "documentWasUpdatedAfterDraftWas": "文件已于草稿创建后更新，还原后将以草稿内容取代目前内容。",
+  "discardDraft": "舍弃草稿",
+  "restoreDraft": "还原草稿",
+  "sectionTitleRequired": "尚未填写章节标题",
+  "documentSFormatDoesNotFully": "此文件的格式无法完整对应章节结构，已以纯文本模式打开，以保留原始格式。",
+  "enterPasteFullTextHere": "请在此输入或粘贴全文。",
+  "noSectionHeadingsDetected": "未检测到章节标题",
+  "p0SectionsDetected": "已检测到 {p0} 个章节",
+  "@p0SectionsDetected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paragraphWhoseFirstLine1Title": "段落首行为「1. 标题」、「一、标题」或「第一条 标题」时，视为章节标题。",
+  "sectionNumbersMustStart1Increase": "章节编号须自 1 起依序递增；不符合者视为上一章的正文。",
+  "blankLineStartsNewParagraphSingle": "空一行代表分段，单行换行将如实呈现。",
+  "whenSwitchingSectionsAskedConfirmAny": "切换至章节模式时，若格式需要调整，将先提示确认。",
+  "howSectionHeadingsDetected": "章节标题判定方式",
+  "titleEdited": "标题已修改",
+  "p0Added": "新增 {p0} 章",
+  "@p0Added": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Removed": "删除 {p0} 章",
+  "@p0Removed": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Edited": "修改 {p0} 章",
+  "@p0Edited": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sectionsReordered": "章节顺序已调整",
+  "preambleEdited": "前言已修改",
+  "contentEdited": "内容已修改",
+  "p0Characters2": "字数 +{p0}",
+  "@p0Characters2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Characters3": "字数 {p0}",
+  "@p0Characters3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "formattingAdjusted": "排版调整",
+  "createdAsVersion1": "创建为第 1 版",
+  "staysVersionP0": "维持第 {p0} 版",
+  "@staysVersionP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "versionP0P12": "第 {p0} 版 → 第 {p1} 版",
+  "@versionP0P12": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "substantiveChangesRightsObligationsTermsAll": "适用于权利义务或条款内容的实质变更。将通知所有用户，用户下次打开 App 时须重新阅读并同意。",
+  "substantiveContentChangesAllUsersNotified": "适用于内容的实质变更。将通知所有用户。",
+  "saveP0": "保存「{p0}」",
+  "@saveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "summaryChanges": "变更摘要",
+  "updateType": "更新方式",
+  "fixingTyposFormattingUsersNotNotified": "适用于修正错字或调整排版。不通知用户。",
+  "contentUnchangedTitleOnlyChangeCannot": "内容未变更，仅修改标题时无法列为重大更新。",
+  "notificationsSentImmediatelyAfterSubmittingCannot": "提交后将立即发送通知，此操作无法撤回。",
+  "publishNotify": "发布并通知",
+  "sectionP0": "第 {p0} 章",
+  "@sectionP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "goSection": "跳至章节",
+  "sectionContent": "章节内容",
+  "previous": "上一章",
+  "next2": "下一章"
 }

@@ -80,7 +80,7 @@ class BookCard extends StatelessWidget {
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
-                    child: Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                    child: Text('\$${book.price.toInt()}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.of(context).accent)),
                   ),
                 ]),
                 GestureDetector(
@@ -144,7 +144,7 @@ class BookCard extends StatelessWidget {
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
-                      child: Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                      child: Text('\$${book.price.toInt()}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.of(context).accent)),
                     ),
                   ),
                   GestureDetector(

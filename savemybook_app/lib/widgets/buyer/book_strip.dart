@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/book.dart';
 import '../../screens/book_detail_screen.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/motion.dart';
 import '../animations.dart';
 import '../state_views.dart';
 
@@ -26,11 +27,14 @@ class BookStrip extends StatelessWidget {
     this.actionLabel,
     this.onAction,
     this.onLongPress,
+    this.showHeader = true,
   });
 
-  static const double _tileWidth = 128;
-  static const double _imageHeight = 150;
-  static const double _height = 236;
+  final bool showHeader;
+
+  static const double _tileWidth = 120;
+  static const double _imageHeight = 140;
+  static const double _height = 226;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +44,7 @@ class BookStrip extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Padding(
+        if (showHeader) Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 8, 10),
           child: Row(
             children: [
@@ -199,6 +203,146 @@ class BookStrip extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class DiscoveryTab {
+  final String id;
+  final String title;
+  final IconData icon;
+  final List<Book> books;
+  final bool loading;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  const DiscoveryTab({
+    required this.id,
+    required this.title,
+    required this.icon,
+    required this.books,
+    this.loading = false,
+    this.actionLabel,
+    this.onAction,
+  });
+}
+
+class DiscoveryPanel extends StatefulWidget {
+  final List<DiscoveryTab> tabs;
+
+  const DiscoveryPanel({super.key, required this.tabs});
+
+  @override
+  State<DiscoveryPanel> createState() => _DiscoveryPanelState();
+}
+
+class _DiscoveryPanelState extends State<DiscoveryPanel> {
+  String? _selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final tabs = widget.tabs;
+    if (tabs.isEmpty) return const SizedBox(width: double.infinity);
+    final current = tabs.firstWhere((t) => t.id == _selected, orElse: () => tabs.first);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 8, 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (final tab in tabs) ...[
+                        _tabButton(c, tab, tab.id == current.id),
+                        if (tab != tabs.last) const SizedBox(width: 6),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              if (current.actionLabel != null)
+                TextButton(
+                  onPressed: current.onAction,
+                  style: TextButton.styleFrom(
+                    foregroundColor: c.accent,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, 32),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 110),
+                        child: Text(
+                          current.actionLabel!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right_rounded, size: 18),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        AnimatedSwitcher(
+          duration: Motion.base,
+          switchInCurve: Motion.enterCurve,
+          switchOutCurve: Motion.exitCurve,
+          child: BookStrip(
+            key: ValueKey(current.id),
+            title: current.title,
+            icon: current.icon,
+            books: current.books,
+            loading: current.loading,
+            heroPrefix: current.id,
+            showHeader: false,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _tabButton(AppColors c, DiscoveryTab tab, bool active) {
+    return PressableScale(
+      scale: 0.95,
+      onTap: active ? null : () => setState(() => _selected = tab.id),
+      child: AnimatedContainer(
+        duration: Motion.base,
+        curve: Motion.standard,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: active ? c.accent.withValues(alpha: 0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(tab.icon, size: 16, color: active ? c.accent : c.textSecondary),
+            const SizedBox(width: 6),
+            Text(
+              tab.title,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: active ? FontWeight.bold : FontWeight.w500,
+                color: active ? c.textPrimary : c.textSecondary,
               ),
             ),
           ],

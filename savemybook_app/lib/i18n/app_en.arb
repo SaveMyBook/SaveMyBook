@@ -2465,5 +2465,157 @@
     }
   },
   "runNpmRunVerifyApiDirectory": "Run npm run verify in the API directory on the server to check the full deployment status.",
-  "serverUpdateRequired": "Server update required"
+  "serverUpdateRequired": "Server update required",
+  "versionP0": "Version {p0}",
+  "@versionP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "requiresUserConsent": "Requires user consent",
+  "unsavedDraft": "Unsaved draft",
+  "allBooks": "All books",
+  "results": "Results",
+  "sortBy": "Sort by",
+  "themeColour": "Theme colour",
+  "forestGreen": "Forest green",
+  "oceanBlue": "Ocean blue",
+  "lavender": "Lavender",
+  "terracotta": "Terracotta",
+  "amber": "Amber",
+  "rose": "Rose",
+  "graphite": "Graphite",
+  "mistBlue": "Mist blue",
+  "chooseAppSMainColourHeader": "Choose the app's main colour for the header, buttons and highlights.",
+  "draftRestored": "Draft restored",
+  "convertSections": "Convert to sections",
+  "currentContentDoesNotFullyMatch": "The current content does not fully match the section format. After conversion, section numbers will be regenerated in order using the \"1. Title\" format, and paragraphs not recognized as headings will be merged into the preamble or the preceding section.\n\nTo keep the original format, continue editing and saving in plain text.",
+  "convert": "Convert",
+  "keepPlainText": "Keep plain text",
+  "noSectionHeadingsDetectedFullText": "No section headings detected. The full text has been placed in the preamble.",
+  "deletedP0": "Deleted \"{p0}\"",
+  "@deletedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "renameSection": "Rename section",
+  "editContent": "Edit content",
+  "rename": "Rename",
+  "addSectionBelow": "Add section below",
+  "moveUp": "Move up",
+  "moveDown": "Move down",
+  "enterDocumentTitle": "Enter the document title",
+  "enterDocumentContent": "Enter the document content",
+  "p0NowVersionP1": "{p0} (now version {p1})",
+  "@p0NowVersionP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "versionP0P1": "Version {p0} · {p1}",
+  "@versionP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "unsavedDraftFromP0Found": "Unsaved draft from {p0} found",
+  "@unsavedDraftFromP0Found": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "documentWasUpdatedAfterDraftWas": "This document was updated after the draft was created. Restoring will replace the current content with the draft.",
+  "discardDraft": "Discard draft",
+  "restoreDraft": "Restore draft",
+  "sectionTitleRequired": "Section title required",
+  "documentSFormatDoesNotFully": "This document’s format does not fully match the section structure, so it has been opened in plain text to preserve the original formatting.",
+  "enterPasteFullTextHere": "Enter or paste the full text here.",
+  "noSectionHeadingsDetected": "No section headings detected",
+  "p0SectionsDetected": "{p0} sections detected",
+  "@p0SectionsDetected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paragraphWhoseFirstLine1Title": "A paragraph whose first line is \"1. Title\", \"一、Title\" or \"第一條 Title\" is treated as a section heading.",
+  "sectionNumbersMustStart1Increase": "Section numbers must start at 1 and increase in order; otherwise the paragraph is treated as part of the previous section.",
+  "blankLineStartsNewParagraphSingle": "A blank line starts a new paragraph. Single line breaks are kept as is.",
+  "whenSwitchingSectionsAskedConfirmAny": "When switching to Sections, you will be asked to confirm any format changes first.",
+  "howSectionHeadingsDetected": "How section headings are detected",
+  "titleEdited": "Title edited",
+  "p0Added": "{p0} added",
+  "@p0Added": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Removed": "{p0} removed",
+  "@p0Removed": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Edited": "{p0} edited",
+  "@p0Edited": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sectionsReordered": "Sections reordered",
+  "preambleEdited": "Preamble edited",
+  "contentEdited": "Content edited",
+  "p0Characters2": "+{p0} characters",
+  "@p0Characters2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Characters3": "{p0} characters",
+  "@p0Characters3": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "formattingAdjusted": "Formatting adjusted",
+  "createdAsVersion1": "Created as version 1",
+  "staysVersionP0": "Stays at version {p0}",
+  "@staysVersionP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "versionP0P12": "Version {p0} → {p1}",
+  "@versionP0P12": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "substantiveChangesRightsObligationsTermsAll": "For substantive changes to rights, obligations or terms. All users will be notified and must review and accept the document the next time they open the app.",
+  "substantiveContentChangesAllUsersNotified": "For substantive content changes. All users will be notified.",
+  "saveP0": "Save \"{p0}\"",
+  "@saveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "summaryChanges": "Summary of changes",
+  "updateType": "Update type",
+  "fixingTyposFormattingUsersNotNotified": "For fixing typos or formatting. Users are not notified.",
+  "contentUnchangedTitleOnlyChangeCannot": "The content is unchanged. A title-only change cannot be a major update.",
+  "notificationsSentImmediatelyAfterSubmittingCannot": "Notifications will be sent immediately after submitting. This cannot be undone.",
+  "publishNotify": "Publish and notify",
+  "sectionP0": "Section {p0}",
+  "@sectionP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "goSection": "Go to section",
+  "sectionContent": "Section content",
+  "previous": "Previous",
+  "next2": "Next"
 }

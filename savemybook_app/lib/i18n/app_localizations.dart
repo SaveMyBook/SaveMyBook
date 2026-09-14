@@ -1435,6 +1435,80 @@ abstract class AppLocalizations {
   String serverVersionP0(Object p0);
   String get runNpmRunVerifyApiDirectory;
   String get serverUpdateRequired;
+  String versionP0(Object p0);
+  String get requiresUserConsent;
+  String get unsavedDraft;
+  String get allBooks;
+  String get results;
+  String get sortBy;
+  String get themeColour;
+  String get forestGreen;
+  String get oceanBlue;
+  String get lavender;
+  String get terracotta;
+  String get amber;
+  String get rose;
+  String get graphite;
+  String get mistBlue;
+  String get chooseAppSMainColourHeader;
+  String get draftRestored;
+  String get convertSections;
+  String get currentContentDoesNotFullyMatch;
+  String get convert;
+  String get keepPlainText;
+  String get noSectionHeadingsDetectedFullText;
+  String deletedP0(Object p0);
+  String get renameSection;
+  String get editContent;
+  String get rename;
+  String get addSectionBelow;
+  String get moveUp;
+  String get moveDown;
+  String get enterDocumentTitle;
+  String get enterDocumentContent;
+  String p0NowVersionP1(Object p0, Object p1);
+  String versionP0P1(Object p0, Object p1);
+  String unsavedDraftFromP0Found(Object p0);
+  String get documentWasUpdatedAfterDraftWas;
+  String get discardDraft;
+  String get restoreDraft;
+  String get sectionTitleRequired;
+  String get documentSFormatDoesNotFully;
+  String get enterPasteFullTextHere;
+  String get noSectionHeadingsDetected;
+  String p0SectionsDetected(Object p0);
+  String get paragraphWhoseFirstLine1Title;
+  String get sectionNumbersMustStart1Increase;
+  String get blankLineStartsNewParagraphSingle;
+  String get whenSwitchingSectionsAskedConfirmAny;
+  String get howSectionHeadingsDetected;
+  String get titleEdited;
+  String p0Added(Object p0);
+  String p0Removed(Object p0);
+  String p0Edited(Object p0);
+  String get sectionsReordered;
+  String get preambleEdited;
+  String get contentEdited;
+  String p0Characters2(Object p0);
+  String p0Characters3(Object p0);
+  String get formattingAdjusted;
+  String get createdAsVersion1;
+  String staysVersionP0(Object p0);
+  String versionP0P12(Object p0, Object p1);
+  String get substantiveChangesRightsObligationsTermsAll;
+  String get substantiveContentChangesAllUsersNotified;
+  String saveP0(Object p0);
+  String get summaryChanges;
+  String get updateType;
+  String get fixingTyposFormattingUsersNotNotified;
+  String get contentUnchangedTitleOnlyChangeCannot;
+  String get notificationsSentImmediatelyAfterSubmittingCannot;
+  String get publishNotify;
+  String sectionP0(Object p0);
+  String get goSection;
+  String get sectionContent;
+  String get previous;
+  String get next2;
 }
 
 class _LEn extends AppLocalizations {
@@ -5675,6 +5749,228 @@ class _LEn extends AppLocalizations {
 
   @override
   String get serverUpdateRequired => 'Server update required';
+
+  @override
+  String versionP0(Object p0) => 'Version ${p0}';
+
+  @override
+  String get requiresUserConsent => 'Requires user consent';
+
+  @override
+  String get unsavedDraft => 'Unsaved draft';
+
+  @override
+  String get allBooks => 'All books';
+
+  @override
+  String get results => 'Results';
+
+  @override
+  String get sortBy => 'Sort by';
+
+  @override
+  String get themeColour => 'Theme colour';
+
+  @override
+  String get forestGreen => 'Forest green';
+
+  @override
+  String get oceanBlue => 'Ocean blue';
+
+  @override
+  String get lavender => 'Lavender';
+
+  @override
+  String get terracotta => 'Terracotta';
+
+  @override
+  String get amber => 'Amber';
+
+  @override
+  String get rose => 'Rose';
+
+  @override
+  String get graphite => 'Graphite';
+
+  @override
+  String get mistBlue => 'Mist blue';
+
+  @override
+  String get chooseAppSMainColourHeader => 'Choose the app\'s main colour for the header, buttons and highlights.';
+
+  @override
+  String get draftRestored => 'Draft restored';
+
+  @override
+  String get convertSections => 'Convert to sections';
+
+  @override
+  String get currentContentDoesNotFullyMatch => 'The current content does not fully match the section format. After conversion, section numbers will be regenerated in order using the "1. Title" format, and paragraphs not recognized as headings will be merged into the preamble or the preceding section.\n\nTo keep the original format, continue editing and saving in plain text.';
+
+  @override
+  String get convert => 'Convert';
+
+  @override
+  String get keepPlainText => 'Keep plain text';
+
+  @override
+  String get noSectionHeadingsDetectedFullText => 'No section headings detected. The full text has been placed in the preamble.';
+
+  @override
+  String deletedP0(Object p0) => 'Deleted "${p0}"';
+
+  @override
+  String get renameSection => 'Rename section';
+
+  @override
+  String get editContent => 'Edit content';
+
+  @override
+  String get rename => 'Rename';
+
+  @override
+  String get addSectionBelow => 'Add section below';
+
+  @override
+  String get moveUp => 'Move up';
+
+  @override
+  String get moveDown => 'Move down';
+
+  @override
+  String get enterDocumentTitle => 'Enter the document title';
+
+  @override
+  String get enterDocumentContent => 'Enter the document content';
+
+  @override
+  String p0NowVersionP1(Object p0, Object p1) => '${p0} (now version ${p1})';
+
+  @override
+  String versionP0P1(Object p0, Object p1) => 'Version ${p0} · ${p1}';
+
+  @override
+  String unsavedDraftFromP0Found(Object p0) => 'Unsaved draft from ${p0} found';
+
+  @override
+  String get documentWasUpdatedAfterDraftWas => 'This document was updated after the draft was created. Restoring will replace the current content with the draft.';
+
+  @override
+  String get discardDraft => 'Discard draft';
+
+  @override
+  String get restoreDraft => 'Restore draft';
+
+  @override
+  String get sectionTitleRequired => 'Section title required';
+
+  @override
+  String get documentSFormatDoesNotFully => 'This document’s format does not fully match the section structure, so it has been opened in plain text to preserve the original formatting.';
+
+  @override
+  String get enterPasteFullTextHere => 'Enter or paste the full text here.';
+
+  @override
+  String get noSectionHeadingsDetected => 'No section headings detected';
+
+  @override
+  String p0SectionsDetected(Object p0) => '${p0} sections detected';
+
+  @override
+  String get paragraphWhoseFirstLine1Title => 'A paragraph whose first line is "1. Title", "一、Title" or "第一條 Title" is treated as a section heading.';
+
+  @override
+  String get sectionNumbersMustStart1Increase => 'Section numbers must start at 1 and increase in order; otherwise the paragraph is treated as part of the previous section.';
+
+  @override
+  String get blankLineStartsNewParagraphSingle => 'A blank line starts a new paragraph. Single line breaks are kept as is.';
+
+  @override
+  String get whenSwitchingSectionsAskedConfirmAny => 'When switching to Sections, you will be asked to confirm any format changes first.';
+
+  @override
+  String get howSectionHeadingsDetected => 'How section headings are detected';
+
+  @override
+  String get titleEdited => 'Title edited';
+
+  @override
+  String p0Added(Object p0) => '${p0} added';
+
+  @override
+  String p0Removed(Object p0) => '${p0} removed';
+
+  @override
+  String p0Edited(Object p0) => '${p0} edited';
+
+  @override
+  String get sectionsReordered => 'Sections reordered';
+
+  @override
+  String get preambleEdited => 'Preamble edited';
+
+  @override
+  String get contentEdited => 'Content edited';
+
+  @override
+  String p0Characters2(Object p0) => '+${p0} characters';
+
+  @override
+  String p0Characters3(Object p0) => '${p0} characters';
+
+  @override
+  String get formattingAdjusted => 'Formatting adjusted';
+
+  @override
+  String get createdAsVersion1 => 'Created as version 1';
+
+  @override
+  String staysVersionP0(Object p0) => 'Stays at version ${p0}';
+
+  @override
+  String versionP0P12(Object p0, Object p1) => 'Version ${p0} → ${p1}';
+
+  @override
+  String get substantiveChangesRightsObligationsTermsAll => 'For substantive changes to rights, obligations or terms. All users will be notified and must review and accept the document the next time they open the app.';
+
+  @override
+  String get substantiveContentChangesAllUsersNotified => 'For substantive content changes. All users will be notified.';
+
+  @override
+  String saveP0(Object p0) => 'Save "${p0}"';
+
+  @override
+  String get summaryChanges => 'Summary of changes';
+
+  @override
+  String get updateType => 'Update type';
+
+  @override
+  String get fixingTyposFormattingUsersNotNotified => 'For fixing typos or formatting. Users are not notified.';
+
+  @override
+  String get contentUnchangedTitleOnlyChangeCannot => 'The content is unchanged. A title-only change cannot be a major update.';
+
+  @override
+  String get notificationsSentImmediatelyAfterSubmittingCannot => 'Notifications will be sent immediately after submitting. This cannot be undone.';
+
+  @override
+  String get publishNotify => 'Publish and notify';
+
+  @override
+  String sectionP0(Object p0) => 'Section ${p0}';
+
+  @override
+  String get goSection => 'Go to section';
+
+  @override
+  String get sectionContent => 'Section content';
+
+  @override
+  String get previous => 'Previous';
+
+  @override
+  String get next2 => 'Next';
 
 }
 
@@ -9917,6 +10213,228 @@ class _LJa extends AppLocalizations {
   @override
   String get serverUpdateRequired => 'サーバーの更新が必要です';
 
+  @override
+  String versionP0(Object p0) => 'バージョン ${p0}';
+
+  @override
+  String get requiresUserConsent => 'ユーザーの同意が必要';
+
+  @override
+  String get unsavedDraft => '未保存の下書きあり';
+
+  @override
+  String get allBooks => 'すべての本';
+
+  @override
+  String get results => '絞り込み結果';
+
+  @override
+  String get sortBy => '並べ替え';
+
+  @override
+  String get themeColour => 'テーマカラー';
+
+  @override
+  String get forestGreen => 'フォレストグリーン';
+
+  @override
+  String get oceanBlue => 'オーシャンブルー';
+
+  @override
+  String get lavender => 'ラベンダー';
+
+  @override
+  String get terracotta => 'テラコッタ';
+
+  @override
+  String get amber => 'アンバー';
+
+  @override
+  String get rose => 'ローズ';
+
+  @override
+  String get graphite => 'グラファイト';
+
+  @override
+  String get mistBlue => 'ミストブルー';
+
+  @override
+  String get chooseAppSMainColourHeader => 'ヘッダー、ボタン、強調表示に使うアプリのメインカラーを選択します。';
+
+  @override
+  String get draftRestored => '下書きを復元しました';
+
+  @override
+  String get convertSections => '章モードに変換';
+
+  @override
+  String get currentContentDoesNotFullyMatch => '現在の内容は章の書式に完全には対応していません。変換すると章番号が順番に振り直され「1. タイトル」形式に統一されます。見出しとして認識されない段落は前文または直前の章の本文に統合されます。\n\n元の書式を保持する場合は、テキストモードで編集・保存してください。';
+
+  @override
+  String get convert => '変換';
+
+  @override
+  String get keepPlainText => 'テキストのまま';
+
+  @override
+  String get noSectionHeadingsDetectedFullText => '章見出しが検出されなかったため、全文を前文に配置しました';
+
+  @override
+  String deletedP0(Object p0) => '「${p0}」を削除しました';
+
+  @override
+  String get renameSection => '章の名前を変更';
+
+  @override
+  String get editContent => '内容を編集';
+
+  @override
+  String get rename => '名前を変更';
+
+  @override
+  String get addSectionBelow => '下に章を追加';
+
+  @override
+  String get moveUp => '上へ移動';
+
+  @override
+  String get moveDown => '下へ移動';
+
+  @override
+  String get enterDocumentTitle => '文書のタイトルを入力してください';
+
+  @override
+  String get enterDocumentContent => '文書の内容を入力してください';
+
+  @override
+  String p0NowVersionP1(Object p0, Object p1) => '${p0}（現在はバージョン ${p1}）';
+
+  @override
+  String versionP0P1(Object p0, Object p1) => 'バージョン ${p0}・${p1}';
+
+  @override
+  String unsavedDraftFromP0Found(Object p0) => '${p0} の未保存の下書きがあります';
+
+  @override
+  String get documentWasUpdatedAfterDraftWas => '下書きの作成後に文書が更新されています。復元すると現在の内容が下書きで置き換えられます。';
+
+  @override
+  String get discardDraft => '下書きを破棄';
+
+  @override
+  String get restoreDraft => '下書きを復元';
+
+  @override
+  String get sectionTitleRequired => '章タイトル未入力';
+
+  @override
+  String get documentSFormatDoesNotFully => 'この文書の書式は章構成に完全には対応していないため、元の書式を保持するためにテキストモードで開きました。';
+
+  @override
+  String get enterPasteFullTextHere => 'ここに全文を入力または貼り付けてください。';
+
+  @override
+  String get noSectionHeadingsDetected => '章見出しが検出されません';
+
+  @override
+  String p0SectionsDetected(Object p0) => '${p0} 件の章を検出しました';
+
+  @override
+  String get paragraphWhoseFirstLine1Title => '段落の1行目が「1. タイトル」「一、タイトル」「第一條 タイトル」の場合、章見出しとして扱います。';
+
+  @override
+  String get sectionNumbersMustStart1Increase => '章番号は 1 から順に増える必要があります。そうでない場合は直前の章の本文として扱います。';
+
+  @override
+  String get blankLineStartsNewParagraphSingle => '空行で段落を区切ります。1行の改行はそのまま表示されます。';
+
+  @override
+  String get whenSwitchingSectionsAskedConfirmAny => '章モードに切り替える際、書式の調整が必要な場合は事前に確認します。';
+
+  @override
+  String get howSectionHeadingsDetected => '章見出しの判定方法';
+
+  @override
+  String get titleEdited => 'タイトルを変更';
+
+  @override
+  String p0Added(Object p0) => '${p0} 章を追加';
+
+  @override
+  String p0Removed(Object p0) => '${p0} 章を削除';
+
+  @override
+  String p0Edited(Object p0) => '${p0} 章を変更';
+
+  @override
+  String get sectionsReordered => '章の順序を変更';
+
+  @override
+  String get preambleEdited => '前文を変更';
+
+  @override
+  String get contentEdited => '内容を変更';
+
+  @override
+  String p0Characters2(Object p0) => '文字数 +${p0}';
+
+  @override
+  String p0Characters3(Object p0) => '文字数 ${p0}';
+
+  @override
+  String get formattingAdjusted => '書式の調整';
+
+  @override
+  String get createdAsVersion1 => 'バージョン 1 として作成';
+
+  @override
+  String staysVersionP0(Object p0) => 'バージョン ${p0} のまま';
+
+  @override
+  String versionP0P12(Object p0, Object p1) => 'バージョン ${p0} → ${p1}';
+
+  @override
+  String get substantiveChangesRightsObligationsTermsAll => '権利義務や規約内容の実質的な変更向け。すべてのユーザーに通知し、次回アプリ起動時に再度確認・同意していただきます。';
+
+  @override
+  String get substantiveContentChangesAllUsersNotified => '内容の実質的な変更向け。すべてのユーザーに通知します。';
+
+  @override
+  String saveP0(Object p0) => '「${p0}」を保存';
+
+  @override
+  String get summaryChanges => '変更の概要';
+
+  @override
+  String get updateType => '更新の種類';
+
+  @override
+  String get fixingTyposFormattingUsersNotNotified => '誤字の修正や書式の調整向け。ユーザーには通知しません。';
+
+  @override
+  String get contentUnchangedTitleOnlyChangeCannot => '内容に変更がありません。タイトルのみの変更は重要な更新にできません。';
+
+  @override
+  String get notificationsSentImmediatelyAfterSubmittingCannot => '送信後すぐに通知が送られます。この操作は取り消せません。';
+
+  @override
+  String get publishNotify => '公開して通知';
+
+  @override
+  String sectionP0(Object p0) => '第 ${p0} 章';
+
+  @override
+  String get goSection => '章へ移動';
+
+  @override
+  String get sectionContent => '章の内容';
+
+  @override
+  String get previous => '前の章';
+
+  @override
+  String get next2 => '次の章';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -14158,6 +14676,228 @@ class _LKo extends AppLocalizations {
   @override
   String get serverUpdateRequired => '서버 업데이트 필요';
 
+  @override
+  String versionP0(Object p0) => '버전 ${p0}';
+
+  @override
+  String get requiresUserConsent => '사용자 동의 필요';
+
+  @override
+  String get unsavedDraft => '저장되지 않은 임시 저장본';
+
+  @override
+  String get allBooks => '전체 도서';
+
+  @override
+  String get results => '필터 결과';
+
+  @override
+  String get sortBy => '정렬 기준';
+
+  @override
+  String get themeColour => '테마 색상';
+
+  @override
+  String get forestGreen => '포레스트 그린';
+
+  @override
+  String get oceanBlue => '오션 블루';
+
+  @override
+  String get lavender => '라벤더';
+
+  @override
+  String get terracotta => '테라코타';
+
+  @override
+  String get amber => '앰버';
+
+  @override
+  String get rose => '로즈';
+
+  @override
+  String get graphite => '그래파이트';
+
+  @override
+  String get mistBlue => '미스트 블루';
+
+  @override
+  String get chooseAppSMainColourHeader => '헤더, 버튼, 강조 정보에 적용할 앱의 기본 색상을 선택하세요.';
+
+  @override
+  String get draftRestored => '임시 저장본을 복원했습니다';
+
+  @override
+  String get convertSections => '장 모드로 변환';
+
+  @override
+  String get currentContentDoesNotFullyMatch => '현재 내용이 장 서식과 완전히 일치하지 않습니다. 변환하면 장 번호가 순서대로 다시 생성되어 "1. 제목" 형식으로 통일되며, 제목으로 인식되지 않은 단락은 서문 또는 이전 장 본문에 합쳐집니다.\n\n원래 서식을 유지하려면 일반 텍스트 모드에서 계속 편집하고 저장하세요.';
+
+  @override
+  String get convert => '변환';
+
+  @override
+  String get keepPlainText => '일반 텍스트 유지';
+
+  @override
+  String get noSectionHeadingsDetectedFullText => '감지된 장 제목이 없어 전체 내용을 서문에 배치했습니다';
+
+  @override
+  String deletedP0(Object p0) => '"${p0}"을(를) 삭제했습니다';
+
+  @override
+  String get renameSection => '장 이름 변경';
+
+  @override
+  String get editContent => '내용 편집';
+
+  @override
+  String get rename => '이름 변경';
+
+  @override
+  String get addSectionBelow => '아래에 장 추가';
+
+  @override
+  String get moveUp => '위로 이동';
+
+  @override
+  String get moveDown => '아래로 이동';
+
+  @override
+  String get enterDocumentTitle => '문서 제목을 입력하세요';
+
+  @override
+  String get enterDocumentContent => '문서 내용을 입력하세요';
+
+  @override
+  String p0NowVersionP1(Object p0, Object p1) => '${p0} (현재 버전 ${p1})';
+
+  @override
+  String versionP0P1(Object p0, Object p1) => '버전 ${p0} · ${p1}';
+
+  @override
+  String unsavedDraftFromP0Found(Object p0) => '${p0}에 저장되지 않은 임시 저장본이 있습니다';
+
+  @override
+  String get documentWasUpdatedAfterDraftWas => '임시 저장본 생성 후 문서가 업데이트되었습니다. 복원하면 현재 내용이 임시 저장본으로 대체됩니다.';
+
+  @override
+  String get discardDraft => '임시 저장본 삭제';
+
+  @override
+  String get restoreDraft => '임시 저장본 복원';
+
+  @override
+  String get sectionTitleRequired => '장 제목을 입력하세요';
+
+  @override
+  String get documentSFormatDoesNotFully => '이 문서의 서식이 장 구조와 완전히 일치하지 않아 원래 서식을 유지하기 위해 일반 텍스트 모드로 열었습니다.';
+
+  @override
+  String get enterPasteFullTextHere => '여기에 전체 내용을 입력하거나 붙여 넣으세요.';
+
+  @override
+  String get noSectionHeadingsDetected => '감지된 장 제목이 없습니다';
+
+  @override
+  String p0SectionsDetected(Object p0) => '장 ${p0}개 감지됨';
+
+  @override
+  String get paragraphWhoseFirstLine1Title => '단락의 첫 줄이 "1. 제목", "一、제목" 또는 "第一條 제목"이면 장 제목으로 처리합니다.';
+
+  @override
+  String get sectionNumbersMustStart1Increase => '장 번호는 1부터 순서대로 증가해야 하며, 그렇지 않으면 이전 장의 본문으로 처리됩니다.';
+
+  @override
+  String get blankLineStartsNewParagraphSingle => '빈 줄은 단락을 구분하며, 한 줄 줄바꿈은 그대로 표시됩니다.';
+
+  @override
+  String get whenSwitchingSectionsAskedConfirmAny => '장 모드로 전환할 때 서식 조정이 필요하면 먼저 확인을 요청합니다.';
+
+  @override
+  String get howSectionHeadingsDetected => '장 제목 인식 방식';
+
+  @override
+  String get titleEdited => '제목 수정됨';
+
+  @override
+  String p0Added(Object p0) => '${p0}개 장 추가';
+
+  @override
+  String p0Removed(Object p0) => '${p0}개 장 삭제';
+
+  @override
+  String p0Edited(Object p0) => '${p0}개 장 수정';
+
+  @override
+  String get sectionsReordered => '장 순서 변경됨';
+
+  @override
+  String get preambleEdited => '서문 수정됨';
+
+  @override
+  String get contentEdited => '내용 수정됨';
+
+  @override
+  String p0Characters2(Object p0) => '글자 수 +${p0}';
+
+  @override
+  String p0Characters3(Object p0) => '글자 수 ${p0}';
+
+  @override
+  String get formattingAdjusted => '서식 조정';
+
+  @override
+  String get createdAsVersion1 => '버전 1로 생성';
+
+  @override
+  String staysVersionP0(Object p0) => '버전 ${p0} 유지';
+
+  @override
+  String versionP0P12(Object p0, Object p1) => '버전 ${p0} → ${p1}';
+
+  @override
+  String get substantiveChangesRightsObligationsTermsAll => '권리·의무 또는 약관 내용의 실질적인 변경에 사용합니다. 모든 사용자에게 알리며, 사용자는 다음에 앱을 열 때 다시 확인하고 동의해야 합니다.';
+
+  @override
+  String get substantiveContentChangesAllUsersNotified => '내용의 실질적인 변경에 사용합니다. 모든 사용자에게 알립니다.';
+
+  @override
+  String saveP0(Object p0) => '"${p0}" 저장';
+
+  @override
+  String get summaryChanges => '변경 요약';
+
+  @override
+  String get updateType => '업데이트 방식';
+
+  @override
+  String get fixingTyposFormattingUsersNotNotified => '오타 수정이나 서식 조정에 사용합니다. 사용자에게 알리지 않습니다.';
+
+  @override
+  String get contentUnchangedTitleOnlyChangeCannot => '내용이 변경되지 않았습니다. 제목만 변경한 경우 주요 업데이트로 지정할 수 없습니다.';
+
+  @override
+  String get notificationsSentImmediatelyAfterSubmittingCannot => '제출 즉시 알림이 발송되며 취소할 수 없습니다.';
+
+  @override
+  String get publishNotify => '게시 및 알림';
+
+  @override
+  String sectionP0(Object p0) => '제${p0}장';
+
+  @override
+  String get goSection => '장으로 이동';
+
+  @override
+  String get sectionContent => '장 내용';
+
+  @override
+  String get previous => '이전 장';
+
+  @override
+  String get next2 => '다음 장';
+
 }
 
 class _LZh extends AppLocalizations {
@@ -15496,7 +16236,7 @@ class _LZh extends AppLocalizations {
   String get myAccount => '會員中心';
 
   @override
-  String get personNotWrittenBioYet => '尚未填寫個人簡介';
+  String get personNotWrittenBioYet => '這個人很懶，什麼都沒留下';
 
   @override
   String get topTierReached => '已達最高等級';
@@ -18399,6 +19139,228 @@ class _LZh extends AppLocalizations {
   @override
   String get serverUpdateRequired => '伺服器需要更新';
 
+  @override
+  String versionP0(Object p0) => '第 ${p0} 版';
+
+  @override
+  String get requiresUserConsent => '須經使用者同意';
+
+  @override
+  String get unsavedDraft => '有未儲存的草稿';
+
+  @override
+  String get allBooks => '全部書籍';
+
+  @override
+  String get results => '篩選結果';
+
+  @override
+  String get sortBy => '排序方式';
+
+  @override
+  String get themeColour => '主題色';
+
+  @override
+  String get forestGreen => '森林綠';
+
+  @override
+  String get oceanBlue => '海洋藍';
+
+  @override
+  String get lavender => '薰衣草紫';
+
+  @override
+  String get terracotta => '赤陶橘';
+
+  @override
+  String get amber => '琥珀金';
+
+  @override
+  String get rose => '玫瑰粉';
+
+  @override
+  String get graphite => '石墨灰';
+
+  @override
+  String get mistBlue => '霧藍';
+
+  @override
+  String get chooseAppSMainColourHeader => '選擇 App 的主要色彩，套用於標題列、按鈕與重點資訊。';
+
+  @override
+  String get draftRestored => '已還原草稿';
+
+  @override
+  String get convertSections => '轉換為章節模式';
+
+  @override
+  String get currentContentDoesNotFullyMatch => '目前內容無法完整對應章節格式。轉換後，章節編號將依序重新產生並統一為「1. 標題」格式，未能辨識為標題的段落將併入前言或上一章內文。\n\n若需保留原始格式，請繼續以純文字模式編輯並儲存。';
+
+  @override
+  String get convert => '轉換';
+
+  @override
+  String get keepPlainText => '維持純文字';
+
+  @override
+  String get noSectionHeadingsDetectedFullText => '未偵測到章節標題，全文已置於前言';
+
+  @override
+  String deletedP0(Object p0) => '已刪除「${p0}」';
+
+  @override
+  String get renameSection => '重新命名章節';
+
+  @override
+  String get editContent => '編輯內容';
+
+  @override
+  String get rename => '重新命名';
+
+  @override
+  String get addSectionBelow => '在下方新增章節';
+
+  @override
+  String get moveUp => '上移';
+
+  @override
+  String get moveDown => '下移';
+
+  @override
+  String get enterDocumentTitle => '請填寫文件標題';
+
+  @override
+  String get enterDocumentContent => '請填寫文件內容';
+
+  @override
+  String p0NowVersionP1(Object p0, Object p1) => '${p0}，目前為第 ${p1} 版';
+
+  @override
+  String versionP0P1(Object p0, Object p1) => '第 ${p0} 版・${p1}';
+
+  @override
+  String unsavedDraftFromP0Found(Object p0) => '發現 ${p0} 未儲存的草稿';
+
+  @override
+  String get documentWasUpdatedAfterDraftWas => '文件已於草稿建立後更新，還原後將以草稿內容取代目前內容。';
+
+  @override
+  String get discardDraft => '捨棄草稿';
+
+  @override
+  String get restoreDraft => '還原草稿';
+
+  @override
+  String get sectionTitleRequired => '尚未填寫章節標題';
+
+  @override
+  String get documentSFormatDoesNotFully => '此文件的格式無法完整對應章節結構，已以純文字模式開啟，以保留原始格式。';
+
+  @override
+  String get enterPasteFullTextHere => '請於此輸入或貼上全文。';
+
+  @override
+  String get noSectionHeadingsDetected => '未偵測到章節標題';
+
+  @override
+  String p0SectionsDetected(Object p0) => '已偵測到 ${p0} 個章節';
+
+  @override
+  String get paragraphWhoseFirstLine1Title => '段落首行為「1. 標題」、「一、標題」或「第一條 標題」時，視為章節標題。';
+
+  @override
+  String get sectionNumbersMustStart1Increase => '章節編號須自 1 起依序遞增；不符合者視為上一章的內文。';
+
+  @override
+  String get blankLineStartsNewParagraphSingle => '空一行代表分段，單行換行將如實呈現。';
+
+  @override
+  String get whenSwitchingSectionsAskedConfirmAny => '切換至章節模式時，若格式需要調整，將先提示確認。';
+
+  @override
+  String get howSectionHeadingsDetected => '章節標題判定方式';
+
+  @override
+  String get titleEdited => '標題已修改';
+
+  @override
+  String p0Added(Object p0) => '新增 ${p0} 章';
+
+  @override
+  String p0Removed(Object p0) => '刪除 ${p0} 章';
+
+  @override
+  String p0Edited(Object p0) => '修改 ${p0} 章';
+
+  @override
+  String get sectionsReordered => '章節順序已調整';
+
+  @override
+  String get preambleEdited => '前言已修改';
+
+  @override
+  String get contentEdited => '內容已修改';
+
+  @override
+  String p0Characters2(Object p0) => '字數 +${p0}';
+
+  @override
+  String p0Characters3(Object p0) => '字數 ${p0}';
+
+  @override
+  String get formattingAdjusted => '排版調整';
+
+  @override
+  String get createdAsVersion1 => '建立為第 1 版';
+
+  @override
+  String staysVersionP0(Object p0) => '維持第 ${p0} 版';
+
+  @override
+  String versionP0P12(Object p0, Object p1) => '第 ${p0} 版 → 第 ${p1} 版';
+
+  @override
+  String get substantiveChangesRightsObligationsTermsAll => '適用於權利義務或條款內容的實質變更。將通知所有使用者，使用者下次開啟 App 時須重新閱讀並同意。';
+
+  @override
+  String get substantiveContentChangesAllUsersNotified => '適用於內容的實質變更。將通知所有使用者。';
+
+  @override
+  String saveP0(Object p0) => '儲存「${p0}」';
+
+  @override
+  String get summaryChanges => '變更摘要';
+
+  @override
+  String get updateType => '更新方式';
+
+  @override
+  String get fixingTyposFormattingUsersNotNotified => '適用於修正錯字或調整排版。不通知使用者。';
+
+  @override
+  String get contentUnchangedTitleOnlyChangeCannot => '內容未變更，僅修改標題時無法列為重大更新。';
+
+  @override
+  String get notificationsSentImmediatelyAfterSubmittingCannot => '送出後將立即發送通知，此操作無法撤回。';
+
+  @override
+  String get publishNotify => '發布並通知';
+
+  @override
+  String sectionP0(Object p0) => '第 ${p0} 章';
+
+  @override
+  String get goSection => '跳至章節';
+
+  @override
+  String get sectionContent => '章節內容';
+
+  @override
+  String get previous => '上一章';
+
+  @override
+  String get next2 => '下一章';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -19737,7 +20699,7 @@ class _LZhHans extends AppLocalizations {
   String get myAccount => '会员中心';
 
   @override
-  String get personNotWrittenBioYet => '尚未填写个人简介';
+  String get personNotWrittenBioYet => '这个人很懒，什么都没留下';
 
   @override
   String get topTierReached => '已达最高等级';
@@ -22640,6 +23602,228 @@ class _LZhHans extends AppLocalizations {
   @override
   String get serverUpdateRequired => '服务器需要更新';
 
+  @override
+  String versionP0(Object p0) => '第 ${p0} 版';
+
+  @override
+  String get requiresUserConsent => '须经用户同意';
+
+  @override
+  String get unsavedDraft => '有未保存的草稿';
+
+  @override
+  String get allBooks => '全部书籍';
+
+  @override
+  String get results => '筛选结果';
+
+  @override
+  String get sortBy => '排序方式';
+
+  @override
+  String get themeColour => '主题色';
+
+  @override
+  String get forestGreen => '森林绿';
+
+  @override
+  String get oceanBlue => '海洋蓝';
+
+  @override
+  String get lavender => '薰衣草紫';
+
+  @override
+  String get terracotta => '赤陶橘';
+
+  @override
+  String get amber => '琥珀金';
+
+  @override
+  String get rose => '玫瑰粉';
+
+  @override
+  String get graphite => '石墨灰';
+
+  @override
+  String get mistBlue => '雾蓝';
+
+  @override
+  String get chooseAppSMainColourHeader => '选择 App 的主要色彩，应用于标题栏、按钮与重点信息。';
+
+  @override
+  String get draftRestored => '已还原草稿';
+
+  @override
+  String get convertSections => '转换为章节模式';
+
+  @override
+  String get currentContentDoesNotFullyMatch => '目前内容无法完整对应章节格式。转换后，章节编号将依序重新生成并统一为「1. 标题」格式，未能识别为标题的段落将并入前言或上一章正文。\n\n若需保留原始格式，请继续以纯文本模式编辑并保存。';
+
+  @override
+  String get convert => '转换';
+
+  @override
+  String get keepPlainText => '维持纯文本';
+
+  @override
+  String get noSectionHeadingsDetectedFullText => '未检测到章节标题，全文已置于前言';
+
+  @override
+  String deletedP0(Object p0) => '已删除「${p0}」';
+
+  @override
+  String get renameSection => '重新命名章节';
+
+  @override
+  String get editContent => '编辑内容';
+
+  @override
+  String get rename => '重新命名';
+
+  @override
+  String get addSectionBelow => '在下方新增章节';
+
+  @override
+  String get moveUp => '上移';
+
+  @override
+  String get moveDown => '下移';
+
+  @override
+  String get enterDocumentTitle => '请填写文件标题';
+
+  @override
+  String get enterDocumentContent => '请填写文件内容';
+
+  @override
+  String p0NowVersionP1(Object p0, Object p1) => '${p0}，目前为第 ${p1} 版';
+
+  @override
+  String versionP0P1(Object p0, Object p1) => '第 ${p0} 版・${p1}';
+
+  @override
+  String unsavedDraftFromP0Found(Object p0) => '发现 ${p0} 未保存的草稿';
+
+  @override
+  String get documentWasUpdatedAfterDraftWas => '文件已于草稿创建后更新，还原后将以草稿内容取代目前内容。';
+
+  @override
+  String get discardDraft => '舍弃草稿';
+
+  @override
+  String get restoreDraft => '还原草稿';
+
+  @override
+  String get sectionTitleRequired => '尚未填写章节标题';
+
+  @override
+  String get documentSFormatDoesNotFully => '此文件的格式无法完整对应章节结构，已以纯文本模式打开，以保留原始格式。';
+
+  @override
+  String get enterPasteFullTextHere => '请在此输入或粘贴全文。';
+
+  @override
+  String get noSectionHeadingsDetected => '未检测到章节标题';
+
+  @override
+  String p0SectionsDetected(Object p0) => '已检测到 ${p0} 个章节';
+
+  @override
+  String get paragraphWhoseFirstLine1Title => '段落首行为「1. 标题」、「一、标题」或「第一条 标题」时，视为章节标题。';
+
+  @override
+  String get sectionNumbersMustStart1Increase => '章节编号须自 1 起依序递增；不符合者视为上一章的正文。';
+
+  @override
+  String get blankLineStartsNewParagraphSingle => '空一行代表分段，单行换行将如实呈现。';
+
+  @override
+  String get whenSwitchingSectionsAskedConfirmAny => '切换至章节模式时，若格式需要调整，将先提示确认。';
+
+  @override
+  String get howSectionHeadingsDetected => '章节标题判定方式';
+
+  @override
+  String get titleEdited => '标题已修改';
+
+  @override
+  String p0Added(Object p0) => '新增 ${p0} 章';
+
+  @override
+  String p0Removed(Object p0) => '删除 ${p0} 章';
+
+  @override
+  String p0Edited(Object p0) => '修改 ${p0} 章';
+
+  @override
+  String get sectionsReordered => '章节顺序已调整';
+
+  @override
+  String get preambleEdited => '前言已修改';
+
+  @override
+  String get contentEdited => '内容已修改';
+
+  @override
+  String p0Characters2(Object p0) => '字数 +${p0}';
+
+  @override
+  String p0Characters3(Object p0) => '字数 ${p0}';
+
+  @override
+  String get formattingAdjusted => '排版调整';
+
+  @override
+  String get createdAsVersion1 => '创建为第 1 版';
+
+  @override
+  String staysVersionP0(Object p0) => '维持第 ${p0} 版';
+
+  @override
+  String versionP0P12(Object p0, Object p1) => '第 ${p0} 版 → 第 ${p1} 版';
+
+  @override
+  String get substantiveChangesRightsObligationsTermsAll => '适用于权利义务或条款内容的实质变更。将通知所有用户，用户下次打开 App 时须重新阅读并同意。';
+
+  @override
+  String get substantiveContentChangesAllUsersNotified => '适用于内容的实质变更。将通知所有用户。';
+
+  @override
+  String saveP0(Object p0) => '保存「${p0}」';
+
+  @override
+  String get summaryChanges => '变更摘要';
+
+  @override
+  String get updateType => '更新方式';
+
+  @override
+  String get fixingTyposFormattingUsersNotNotified => '适用于修正错字或调整排版。不通知用户。';
+
+  @override
+  String get contentUnchangedTitleOnlyChangeCannot => '内容未变更，仅修改标题时无法列为重大更新。';
+
+  @override
+  String get notificationsSentImmediatelyAfterSubmittingCannot => '提交后将立即发送通知，此操作无法撤回。';
+
+  @override
+  String get publishNotify => '发布并通知';
+
+  @override
+  String sectionP0(Object p0) => '第 ${p0} 章';
+
+  @override
+  String get goSection => '跳至章节';
+
+  @override
+  String get sectionContent => '章节内容';
+
+  @override
+  String get previous => '上一章';
+
+  @override
+  String get next2 => '下一章';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -23978,7 +25162,7 @@ class _LZhHant extends AppLocalizations {
   String get myAccount => '會員中心';
 
   @override
-  String get personNotWrittenBioYet => '尚未填寫個人簡介';
+  String get personNotWrittenBioYet => '這個人很懶，什麼都沒留下';
 
   @override
   String get topTierReached => '已達最高等級';
@@ -26880,6 +28064,228 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get serverUpdateRequired => '伺服器需要更新';
+
+  @override
+  String versionP0(Object p0) => '第 ${p0} 版';
+
+  @override
+  String get requiresUserConsent => '須經使用者同意';
+
+  @override
+  String get unsavedDraft => '有未儲存的草稿';
+
+  @override
+  String get allBooks => '全部書籍';
+
+  @override
+  String get results => '篩選結果';
+
+  @override
+  String get sortBy => '排序方式';
+
+  @override
+  String get themeColour => '主題色';
+
+  @override
+  String get forestGreen => '森林綠';
+
+  @override
+  String get oceanBlue => '海洋藍';
+
+  @override
+  String get lavender => '薰衣草紫';
+
+  @override
+  String get terracotta => '赤陶橘';
+
+  @override
+  String get amber => '琥珀金';
+
+  @override
+  String get rose => '玫瑰粉';
+
+  @override
+  String get graphite => '石墨灰';
+
+  @override
+  String get mistBlue => '霧藍';
+
+  @override
+  String get chooseAppSMainColourHeader => '選擇 App 的主要色彩，套用於標題列、按鈕與重點資訊。';
+
+  @override
+  String get draftRestored => '已還原草稿';
+
+  @override
+  String get convertSections => '轉換為章節模式';
+
+  @override
+  String get currentContentDoesNotFullyMatch => '目前內容無法完整對應章節格式。轉換後，章節編號將依序重新產生並統一為「1. 標題」格式，未能辨識為標題的段落將併入前言或上一章內文。\n\n若需保留原始格式，請繼續以純文字模式編輯並儲存。';
+
+  @override
+  String get convert => '轉換';
+
+  @override
+  String get keepPlainText => '維持純文字';
+
+  @override
+  String get noSectionHeadingsDetectedFullText => '未偵測到章節標題，全文已置於前言';
+
+  @override
+  String deletedP0(Object p0) => '已刪除「${p0}」';
+
+  @override
+  String get renameSection => '重新命名章節';
+
+  @override
+  String get editContent => '編輯內容';
+
+  @override
+  String get rename => '重新命名';
+
+  @override
+  String get addSectionBelow => '在下方新增章節';
+
+  @override
+  String get moveUp => '上移';
+
+  @override
+  String get moveDown => '下移';
+
+  @override
+  String get enterDocumentTitle => '請填寫文件標題';
+
+  @override
+  String get enterDocumentContent => '請填寫文件內容';
+
+  @override
+  String p0NowVersionP1(Object p0, Object p1) => '${p0}，目前為第 ${p1} 版';
+
+  @override
+  String versionP0P1(Object p0, Object p1) => '第 ${p0} 版・${p1}';
+
+  @override
+  String unsavedDraftFromP0Found(Object p0) => '發現 ${p0} 未儲存的草稿';
+
+  @override
+  String get documentWasUpdatedAfterDraftWas => '文件已於草稿建立後更新，還原後將以草稿內容取代目前內容。';
+
+  @override
+  String get discardDraft => '捨棄草稿';
+
+  @override
+  String get restoreDraft => '還原草稿';
+
+  @override
+  String get sectionTitleRequired => '尚未填寫章節標題';
+
+  @override
+  String get documentSFormatDoesNotFully => '此文件的格式無法完整對應章節結構，已以純文字模式開啟，以保留原始格式。';
+
+  @override
+  String get enterPasteFullTextHere => '請於此輸入或貼上全文。';
+
+  @override
+  String get noSectionHeadingsDetected => '未偵測到章節標題';
+
+  @override
+  String p0SectionsDetected(Object p0) => '已偵測到 ${p0} 個章節';
+
+  @override
+  String get paragraphWhoseFirstLine1Title => '段落首行為「1. 標題」、「一、標題」或「第一條 標題」時，視為章節標題。';
+
+  @override
+  String get sectionNumbersMustStart1Increase => '章節編號須自 1 起依序遞增；不符合者視為上一章的內文。';
+
+  @override
+  String get blankLineStartsNewParagraphSingle => '空一行代表分段，單行換行將如實呈現。';
+
+  @override
+  String get whenSwitchingSectionsAskedConfirmAny => '切換至章節模式時，若格式需要調整，將先提示確認。';
+
+  @override
+  String get howSectionHeadingsDetected => '章節標題判定方式';
+
+  @override
+  String get titleEdited => '標題已修改';
+
+  @override
+  String p0Added(Object p0) => '新增 ${p0} 章';
+
+  @override
+  String p0Removed(Object p0) => '刪除 ${p0} 章';
+
+  @override
+  String p0Edited(Object p0) => '修改 ${p0} 章';
+
+  @override
+  String get sectionsReordered => '章節順序已調整';
+
+  @override
+  String get preambleEdited => '前言已修改';
+
+  @override
+  String get contentEdited => '內容已修改';
+
+  @override
+  String p0Characters2(Object p0) => '字數 +${p0}';
+
+  @override
+  String p0Characters3(Object p0) => '字數 ${p0}';
+
+  @override
+  String get formattingAdjusted => '排版調整';
+
+  @override
+  String get createdAsVersion1 => '建立為第 1 版';
+
+  @override
+  String staysVersionP0(Object p0) => '維持第 ${p0} 版';
+
+  @override
+  String versionP0P12(Object p0, Object p1) => '第 ${p0} 版 → 第 ${p1} 版';
+
+  @override
+  String get substantiveChangesRightsObligationsTermsAll => '適用於權利義務或條款內容的實質變更。將通知所有使用者，使用者下次開啟 App 時須重新閱讀並同意。';
+
+  @override
+  String get substantiveContentChangesAllUsersNotified => '適用於內容的實質變更。將通知所有使用者。';
+
+  @override
+  String saveP0(Object p0) => '儲存「${p0}」';
+
+  @override
+  String get summaryChanges => '變更摘要';
+
+  @override
+  String get updateType => '更新方式';
+
+  @override
+  String get fixingTyposFormattingUsersNotNotified => '適用於修正錯字或調整排版。不通知使用者。';
+
+  @override
+  String get contentUnchangedTitleOnlyChangeCannot => '內容未變更，僅修改標題時無法列為重大更新。';
+
+  @override
+  String get notificationsSentImmediatelyAfterSubmittingCannot => '送出後將立即發送通知，此操作無法撤回。';
+
+  @override
+  String get publishNotify => '發布並通知';
+
+  @override
+  String sectionP0(Object p0) => '第 ${p0} 章';
+
+  @override
+  String get goSection => '跳至章節';
+
+  @override
+  String get sectionContent => '章節內容';
+
+  @override
+  String get previous => '上一章';
+
+  @override
+  String get next2 => '下一章';
 
 }
 

@@ -40,6 +40,7 @@ class LegalDoc {
 
   final int version;
   final DateTime? updatedAt;
+  final bool? requiresConsent;
 
   LegalDoc({
     required this.key,
@@ -48,6 +49,7 @@ class LegalDoc {
     this.docId = 0,
     this.version = 1,
     this.updatedAt,
+    this.requiresConsent,
   });
 
   factory LegalDoc.fromJson(Map<String, dynamic> json) {
@@ -58,6 +60,7 @@ class LegalDoc {
       content: json['content'] as String? ?? '',
       version: json['version'] == null ? 1 : parseInt(json['version']),
       updatedAt: parseDate(json['updated_at']),
+      requiresConsent: json['requires_consent'] is bool ? json['requires_consent'] as bool : null,
     );
   }
 }

@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS user_legal_consents (
   accepted_at DATETIME NOT NULL,
   PRIMARY KEY (user_id, doc_key),
   CONSTRAINT fk_consent_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS user_sessions (
   session_id   INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   UNIQUE KEY uk_session_sid (sid),
   KEY idx_session_user (user_id, revoked_at),
   CONSTRAINT fk_session_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS user_security (
   user_id            INT UNSIGNED NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS user_security (
   tokens_valid_after DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (user_id),
   CONSTRAINT fk_security_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET @sql := IF(
   (SELECT COUNT(*) FROM information_schema.TABLES
@@ -67,5 +67,27 @@ SET @sql := IF(
   AND (SELECT COUNT(*) FROM information_schema.COLUMNS
    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'push_devices' AND COLUMN_NAME = 'session_sid') = 0,
   'ALTER TABLE push_devices ADD COLUMN session_sid CHAR(32) NULL DEFAULT NULL, ADD KEY idx_push_session (session_sid)',
+  'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- 新資料表的 collation 必須與既有資料表一致，否則字串比較會出現 1267 Illegal mix of collations。
+SET @coll := (SELECT COLLATION_NAME FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'legal_documents' AND COLUMN_NAME = 'doc_key');
+
+SET @sql := IF(@coll IS NOT NULL AND @coll <> (SELECT COLLATION_NAME FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_legal_consents' AND COLUMN_NAME = 'doc_key'),
+  CONCAT('ALTER TABLE user_legal_consents CONVERT TO CHARACTER SET utf8mb4 COLLATE ', @coll),
+  'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(@coll IS NOT NULL AND @coll <> (SELECT COLLATION_NAME FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_sessions' AND COLUMN_NAME = 'sid'),
+  CONCAT('ALTER TABLE user_sessions CONVERT TO CHARACTER SET utf8mb4 COLLATE ', @coll),
+  'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(@coll IS NOT NULL AND @coll <> (SELECT COLLATION_NAME FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_security' AND COLUMN_NAME = 'payment_pin_hash'),
+  CONCAT('ALTER TABLE user_security CONVERT TO CHARACTER SET utf8mb4 COLLATE ', @coll),
   'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

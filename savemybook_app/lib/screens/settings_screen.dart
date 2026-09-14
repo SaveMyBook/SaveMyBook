@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../utils/app_palette.dart';
+import 'package:flutter/services.dart';
 import '../services/biometric_service.dart';
 import '../services/theme_provider.dart';
 import '../utils/app_colors.dart';
@@ -252,6 +254,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         _divider(c),
+        ValueListenableBuilder<AppPalette>(
+          valueListenable: paletteProvider,
+          builder: (context, palette, _) => _row(
+            c,
+            leading: _PaletteDot(palette: palette, size: 22),
+            title: S.themeColour,
+            subtitle: _paletteName(palette),
+            onTap: _pickPalette,
+          ),
+        ),
+        _divider(c),
         ValueListenableBuilder<Locale?>(
           valueListenable: localeProvider,
           builder: (context, locale, _) => _row(
@@ -447,6 +460,126 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (picked != null) await themeProvider.setMode(picked);
   }
 
+  static String _paletteName(AppPalette palette) {
+    switch (palette.id) {
+      case 'forest':
+        return S.forestGreen;
+      case 'ocean':
+        return S.oceanBlue;
+      case 'lavender':
+        return S.lavender;
+      case 'terracotta':
+        return S.terracotta;
+      case 'amber':
+        return S.amber;
+      case 'rose':
+        return S.rose;
+      case 'graphite':
+        return S.graphite;
+      default:
+        return S.mistBlue;
+    }
+  }
+
+  Future<void> _pickPalette() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => ValueListenableBuilder<AppPalette>(
+        valueListenable: paletteProvider,
+        builder: (context, current, _) {
+          final c = AppColors.of(context);
+          return Container(
+            decoration: BoxDecoration(color: c.sheetBg, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(width: 40, height: 4, decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2))),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(S.themeColour, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary)),
+                    const SizedBox(height: 4),
+                    Text(S.chooseAppSMainColourHeader, style: TextStyle(fontSize: 13, color: c.textSecondary)),
+                    const SizedBox(height: 20),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final columns = constraints.maxWidth >= 360 ? 4 : 3;
+                        const spacing = 12.0;
+                        final width = (constraints.maxWidth - spacing * (columns - 1)) / columns;
+                        return Wrap(
+                          spacing: spacing,
+                          runSpacing: 16,
+                          children: [
+                            for (final palette in AppPalette.all)
+                              SizedBox(
+                                width: width,
+                                child: PressableScale(
+                                  scale: 0.94,
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    paletteProvider.select(palette);
+                                  },
+                                  child: Column(
+                                    children: [
+                                      AnimatedContainer(
+                                        duration: Motion.base,
+                                        curve: Motion.standard,
+                                        padding: const EdgeInsets.all(3),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: palette.id == current.id ? palette.primary : Colors.transparent,
+                                            width: 2.5,
+                                          ),
+                                        ),
+                                        child: _PaletteDot(palette: palette, size: 48, selected: palette.id == current.id),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        _paletteName(palette),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: palette.id == current.id ? FontWeight.bold : FontWeight.w500,
+                                          color: palette.id == current.id ? c.textPrimary : c.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(sheetContext),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: c.accent,
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: Text(S.completed, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _pickLanguage(Locale? current) async {
     final picked = await showOptionSheet<int>(
       context,
@@ -528,6 +661,31 @@ class _SettingsRow extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _PaletteDot extends StatelessWidget {
+  final AppPalette palette;
+  final double size;
+  final bool selected;
+
+  const _PaletteDot({required this.palette, required this.size, this.selected = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [palette.primaryDark, palette.primary],
+        ),
+      ),
+      child: selected ? Icon(Icons.check_rounded, color: Colors.white, size: size * 0.5) : null,
     );
   }
 }

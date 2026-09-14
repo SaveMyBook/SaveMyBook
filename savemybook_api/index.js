@@ -12,7 +12,7 @@ const port = env.port;
 
 const server = app.listen(port, () => {
   const { buildInfo } = require('./lib/build-info');
-  console.log(`🚀 Server is running on http://localhost:${port}（版本 ${buildInfo.commit ?? '未知'}）`);
+  console.log(`🚀 Server is running on http://localhost:${port}（API 版本 ${buildInfo.apiRevision}${buildInfo.commit ? `，commit ${buildInfo.commit}` : ''}）`);
   console.log(`📄 API 文件 (Scalar): http://localhost:${port}/api-docs`);
   console.log(`📦 OpenAPI 原始檔: http://localhost:${port}/openapi.json`);
   console.log(`💾 備份目錄: ${backup.BACKUP_DIR}（保留 ${backup.KEEP} 份）`);

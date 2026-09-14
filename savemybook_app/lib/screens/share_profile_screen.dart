@@ -274,7 +274,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 14),
-                                    const Text(
+                                    Text(
                                       kAppName,
                                       style: TextStyle(
                                         fontSize: 12,

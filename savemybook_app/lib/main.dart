@@ -21,7 +21,9 @@ import 'services/push_service.dart';
 import 'services/theme_provider.dart';
 import 'services/verification_service.dart';
 import 'utils/app_info.dart';
+import 'utils/app_palette.dart';
 import 'utils/app_theme.dart';
+import 'widgets/app_toast.dart';
 import 'widgets/state_views.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -51,6 +53,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
 
   Future<void> _init() async {
     themeProvider = await ThemeProvider.init();
+    paletteProvider = await PaletteProvider.init();
     localeProvider = await LocaleProvider.init();
     await ChatPrefs.load();
     await BiometricService.load();
@@ -165,9 +168,10 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
       );
     }
 
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeProvider,
-      builder: (context, mode, _) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([themeProvider, paletteProvider]),
+      builder: (context, _) {
+        final mode = themeProvider.value;
         return ValueListenableBuilder<Locale?>(
           valueListenable: localeProvider,
           builder: (context, locale, _) {
@@ -175,6 +179,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
               title: kAppName,
               debugShowCheckedModeBanner: false,
               navigatorKey: navigatorKey,
+              navigatorObservers: [ToastRouteTracker.instance],
               themeMode: mode,
               theme: AppTheme.build(Brightness.light),
               darkTheme: AppTheme.build(Brightness.dark),

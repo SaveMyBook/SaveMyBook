@@ -131,7 +131,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                       value: _freezeRequested,
                       activeThumbColor: c.accent,
                       onChanged: (value) => setState(() => _freezeRequested = value),
-                      secondary: const Icon(Icons.ac_unit_rounded, color: AppColors.primary),
+                      secondary: Icon(Icons.ac_unit_rounded, color: AppColors.primary),
                       title: Text(
                         S.requestPaymentHold,
                         style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),

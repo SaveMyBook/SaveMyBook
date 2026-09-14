@@ -610,7 +610,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     return Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 12, runSpacing: 6, children: [
       Text(
         '\$${_book.price.toInt()}',
-        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.primary),
+        style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: c.accent),
       ),
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
