@@ -294,10 +294,14 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     );
     if (!ok || !mounted) return;
 
+    // 全開時略過自己沒有的權限，否則伺服器會整批拒絕。
     await _run(
       () => _api.updateAdminPermissions(
         detail.userId,
-        {for (final key in AppLabels.permission.keys) key: value},
+        {
+          for (final key in AppLabels.permission.keys)
+            if (!value || detail.grantable[key] != false) key: value,
+        },
       ),
       value ? S.allPermissionsGranted : S.allPermissionsRevoked,
     );
@@ -628,8 +632,12 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           else
             for (final entry in AppLabels.permission.entries)
               DisabledHint(
-                disabled: _isSelf,
-                reason: S.ownAccountStatusPermissionsCannotChanged,
+                // 關掉別人的權限一律可以；開啟則要自己也有這項權限。
+                disabled: _isSelf ||
+                    (detail.grantable[entry.key] == false && detail.permissions[entry.key] != true),
+                reason: _isSelf
+                    ? S.ownAccountStatusPermissionsCannotChanged
+                    : S.donTPermissionYourselfSoCan,
                 child: SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(entry.value.$1, style: TextStyle(fontSize: 14, color: c.textPrimary)),
@@ -637,7 +645,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                     entry.value.$2,
                     style: TextStyle(fontSize: 11, color: c.textSecondary),
                   ),
-                  value: detail.permissions[entry.key] ?? true,
+                  value: detail.permissions[entry.key] ?? false,
                   activeThumbColor: c.accent,
                   onChanged: _isBusy ? null : (value) => _togglePermission(entry.key, value),
                 ),

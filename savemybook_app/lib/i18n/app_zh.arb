@@ -98,7 +98,7 @@
   "language": "語言",
   "languageSystem": "跟隨系統",
   "languageHint": "選擇「跟隨系統」時，會依裝置的語言設定顯示",
-  "verifySignSavemybook": "驗證身分以登入 SaveMyBook",
+  "verifySignSavemybook": "驗證身分以登入救「舊」我的書",
   "maintenance": "系統維護",
   "promotions": "活動優惠",
   "policyUpdate": "政策更新",
@@ -134,7 +134,7 @@
   "sale": "賣出",
   "systemAdjustment": "系統調整",
   "preparingData": "正在整理您的資料",
-  "mySavemybookData": "我的 SaveMyBook 資料",
+  "mySavemybookData": "救「舊」我的書帳號資料",
   "exportedChooseWhereSave": "已匯出，請選擇儲存位置",
   "exportedButSharingCouldNotOpen": "匯出完成，但無法開啟分享",
   "regenerateShareLink": "重新產生分享連結",
@@ -677,7 +677,7 @@
   "iReadAccept": "我已閱讀並同意 ",
   "and": " 與 ",
   "createAccount": "建立帳號",
-  "joinSavemybook": "加入 SaveMyBook",
+  "joinSavemybook": "加入救「舊」我的書",
   "signUpBuySellUseSmart": "註冊後就能買書、賣書與使用智慧書櫃",
   "displayName": "暱稱",
   "nameOthersSee": "其他人會看到的名字",
@@ -756,7 +756,7 @@
   "signMethod": "登入方式",
   "helpSupport": "說明與支援",
   "contactUs": "聯絡我們",
-  "aboutSavemybook": "關於 SaveMyBook",
+  "aboutSavemybook": "關於救「舊」我的書",
   "settingsPrivacy": "設定與隱私",
   "sign3": "{p0} 登入",
   "@sign3": {
@@ -772,17 +772,17 @@
   },
   "scanProfileQrCode": "掃描個人 QR Code",
   "lineUpTheirQrCodeWith": "將對方的 QR Code 放入框內",
-  "notSavemybookProfileQrCode": "這不是 SaveMyBook 的個人 QR Code",
+  "notSavemybookProfileQrCode": "這不是救「舊」我的書的個人 QR Code",
   "ownQrCode": "這是你自己的 QR Code",
   "couldNotStartChatPleaseTry": "無法建立聊天室，請稍後再試",
   "linkCopied": "已複製連結",
-  "addMeSavemybook": "在 SaveMyBook 上加我：{p0}",
+  "addMeSavemybook": "在救「舊」我的書上加我：{p0}",
   "@addMeSavemybook": {
     "placeholders": {
       "p0": {}
     }
   },
-  "addMeSavemybook2": "在 SaveMyBook 上加我（{p0}）：{p1}",
+  "addMeSavemybook2": "在救「舊」我的書上加我（{p0}）：{p1}",
   "@addMeSavemybook2": {
     "placeholders": {
       "p0": {},
@@ -1762,5 +1762,14 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "donTPermissionYourselfSoCan": "你自己沒有這項權限，所以不能開給別人。",
+  "notificationsTurnedOff": "通知權限已關閉",
+  "openSettings": "前往設定",
+  "sendTestNotification": "傳送測試通知",
+  "arrives10SecondsGoHomeScreen": "10 秒後送達，送出後先回到主畫面或鎖定手機",
+  "systemNotificationSettings": "系統通知設定",
+  "turnNotificationsSoundsLockScreenPreviews": "開關通知、聲音與鎖定畫面顯示",
+  "pushNotificationsNotSetUpBuild": "這個版本的 App 還沒有設定推播，請先放入 Firebase 設定檔後重新編譯。",
+  "notificationsTurnedOffAllowAppSend": "通知權限已被關閉，請到系統設定允許這個 App 傳送通知。"
 }

@@ -98,7 +98,7 @@
   "language": "语言",
   "languageSystem": "跟随系统",
   "languageHint": "选择“跟随系统”时，会依设备的语言设置显示",
-  "verifySignSavemybook": "验证身分以登录 SaveMyBook",
+  "verifySignSavemybook": "验证身分以登录救「舊」我的書",
   "maintenance": "系统维护",
   "promotions": "活动优惠",
   "policyUpdate": "政策更新",
@@ -134,7 +134,7 @@
   "sale": "卖出",
   "systemAdjustment": "系统调整",
   "preparingData": "正在整理您的数据",
-  "mySavemybookData": "我的 SaveMyBook 数据",
+  "mySavemybookData": "救「舊」我的書账号数据",
   "exportedChooseWhereSave": "已导出，请选择保存位置",
   "exportedButSharingCouldNotOpen": "导出完成，但无法打开分享",
   "regenerateShareLink": "重新生成分享链接",
@@ -677,7 +677,7 @@
   "iReadAccept": "我已阅读并同意 ",
   "and": " 与 ",
   "createAccount": "创建账号",
-  "joinSavemybook": "加入 SaveMyBook",
+  "joinSavemybook": "加入救「舊」我的書",
   "signUpBuySellUseSmart": "注册后就能买书、卖书与使用智能书柜",
   "displayName": "昵称",
   "nameOthersSee": "其他人会看到的名字",
@@ -756,7 +756,7 @@
   "signMethod": "登录方式",
   "helpSupport": "说明与支持",
   "contactUs": "联系我们",
-  "aboutSavemybook": "关于 SaveMyBook",
+  "aboutSavemybook": "关于救「舊」我的書",
   "settingsPrivacy": "设置与隐私",
   "sign3": "{p0} 登录",
   "@sign3": {
@@ -772,17 +772,17 @@
   },
   "scanProfileQrCode": "扫描个人二维码",
   "lineUpTheirQrCodeWith": "将对方的二维码放入框内",
-  "notSavemybookProfileQrCode": "这不是 SaveMyBook 的个人二维码",
+  "notSavemybookProfileQrCode": "这不是救「舊」我的書的个人二维码",
   "ownQrCode": "这是你自己的二维码",
   "couldNotStartChatPleaseTry": "无法创建聊天室，请稍后再试",
   "linkCopied": "已复制链接",
-  "addMeSavemybook": "在 SaveMyBook 上加我：{p0}",
+  "addMeSavemybook": "在救「舊」我的書上加我：{p0}",
   "@addMeSavemybook": {
     "placeholders": {
       "p0": {}
     }
   },
-  "addMeSavemybook2": "在 SaveMyBook 上加我（{p0}）：{p1}",
+  "addMeSavemybook2": "在救「舊」我的書上加我（{p0}）：{p1}",
   "@addMeSavemybook2": {
     "placeholders": {
       "p0": {},
@@ -1762,5 +1762,14 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "donTPermissionYourselfSoCan": "你自己没有这项权限，所以不能开给别人。",
+  "notificationsTurnedOff": "通知权限已关闭",
+  "openSettings": "前往设置",
+  "sendTestNotification": "发送测试通知",
+  "arrives10SecondsGoHomeScreen": "10 秒后送达，发送后先回到主屏幕或锁定手机",
+  "systemNotificationSettings": "系统通知设置",
+  "turnNotificationsSoundsLockScreenPreviews": "开关通知、声音与锁定屏幕显示",
+  "pushNotificationsNotSetUpBuild": "这个版本的 App 还没有设置推送，请先放入 Firebase 配置文件后重新编译。",
+  "notificationsTurnedOffAllowAppSend": "通知权限已被关闭，请到系统设置允许这个 App 发送通知。"
 }

@@ -112,6 +112,7 @@ Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
 | \`POST /api/chat/rooms/{roomId}/messages\` | 每位使用者每分鐘 60 則 |
 | \`GET /api/books/isbn/{isbn}\` | 每位使用者每分鐘 30 次 |
 | \`POST\`、\`DELETE /api/push/devices\` | 每位使用者每分鐘 20 次 |
+| \`POST /api/push/test\` | 每位使用者 10 分鐘 5 次 |
 
 計數保存在伺服器行程內，重啟後歸零。
 
@@ -128,8 +129,12 @@ Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
 | 本人或管理員 | 僅能操作自身資料，管理員不受此限 |
 | 管理員 | \`role\` 為 \`admin\`，且該功能的細部權限為開啟 |
 
-管理員的細部權限儲存於 \`admin_permissions\`，共 11 項開關。未建立該筆資料的管理員
-視為全部開啟。權限不足時回傳 403 \`{ "success": false, "message": "您沒有這項功能的權限" }\`。
+管理員的細部權限儲存於 \`admin_permissions\`，共 12 項開關。未建立該筆資料的管理員
+視為全部開啟，唯獨 \`can_manage_system\` 預設關閉、必須明確開啟。
+權限不足時回傳 403，\`code\` 為 \`ADMIN_PERMISSION_REQUIRED\`，\`message\` 會指出缺少哪一項權限。
+
+管理員不能變更自己的權限，也不能開啟自己沒有的權限。第一位需要系統維運權限的管理員，
+請在伺服器上執行 \`node scripts/grant-admin-permissions.js <Email> --all\`。
 
 | 權限欄位 | 適用端點 |
 | --- | --- |
@@ -144,6 +149,7 @@ Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
 | \`can_manage_announcements\` | 系統公告、法律文件、常見問題 |
 | \`can_manage_support\` | 客服工單 |
 | \`can_view_stats\` | 營運報表 |
+| \`can_manage_system\` | 資料庫備份與下載（預設關閉） |
 
 ---
 

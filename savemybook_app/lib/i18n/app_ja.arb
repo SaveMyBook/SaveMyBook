@@ -1762,5 +1762,14 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "donTPermissionYourselfSoCan": "自分がこの権限を持っていないため、他の人に付与できません。",
+  "notificationsTurnedOff": "通知がオフになっています",
+  "openSettings": "設定を開く",
+  "sendTestNotification": "テスト通知を送信",
+  "arrives10SecondsGoHomeScreen": "10秒後に届きます。送信後はホーム画面に戻るか、端末をロックしてください。",
+  "systemNotificationSettings": "システムの通知設定",
+  "turnNotificationsSoundsLockScreenPreviews": "通知、サウンド、ロック画面の表示を切り替えます",
+  "pushNotificationsNotSetUpBuild": "このビルドではプッシュ通知が設定されていません。Firebaseの設定ファイルを追加して再ビルドしてください。",
+  "notificationsTurnedOffAllowAppSend": "通知がオフになっています。システム設定でこのアプリの通知を許可してください。"
 }

@@ -568,8 +568,8 @@ components:
     AdminPermissions:
       type: object
       description: |
-        管理員的 11 項細部權限開關。
-        未於資料表建立對應紀錄的管理員，所有項目視為 `true`。
+        管理員的 12 項細部權限開關。
+        未於資料表建立對應紀錄的管理員，除 `can_manage_system` 外所有項目視為 `true`。
       properties:
         can_manage_members: { type: boolean, example: true }
         can_manage_levels: { type: boolean, example: true }
@@ -582,6 +582,7 @@ components:
         can_manage_announcements: { type: boolean, example: true }
         can_manage_support: { type: boolean, example: true }
         can_view_stats: { type: boolean, example: true }
+        can_manage_system: { type: boolean, example: false }
 
     AdminOperationLog:
       type: object

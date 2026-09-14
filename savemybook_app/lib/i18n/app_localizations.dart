@@ -1091,6 +1091,15 @@ abstract class AppLocalizations {
   String confirmingTakesP0TokensBackFrom(Object p0);
   String get ifBuyerNotBeenRefundedYet;
   String confirmingRefundsBuyerSP0Tokens(Object p0);
+  String get donTPermissionYourselfSoCan;
+  String get notificationsTurnedOff;
+  String get openSettings;
+  String get sendTestNotification;
+  String get arrives10SecondsGoHomeScreen;
+  String get systemNotificationSettings;
+  String get turnNotificationsSoundsLockScreenPreviews;
+  String get pushNotificationsNotSetUpBuild;
+  String get notificationsTurnedOffAllowAppSend;
 }
 
 class _LEn extends AppLocalizations {
@@ -4299,6 +4308,33 @@ class _LEn extends AppLocalizations {
 
   @override
   String confirmingRefundsBuyerSP0Tokens(Object p0) => 'Confirming refunds the buyer\'s ${p0} tokens and puts reserved books back on sale.';
+
+  @override
+  String get donTPermissionYourselfSoCan => 'You don\'t have this permission yourself, so you can\'t grant it to others.';
+
+  @override
+  String get notificationsTurnedOff => 'Notifications are turned off';
+
+  @override
+  String get openSettings => 'Open Settings';
+
+  @override
+  String get sendTestNotification => 'Send a test notification';
+
+  @override
+  String get arrives10SecondsGoHomeScreen => 'Arrives in 10 seconds. Go to the Home Screen or lock your phone after sending.';
+
+  @override
+  String get systemNotificationSettings => 'System notification settings';
+
+  @override
+  String get turnNotificationsSoundsLockScreenPreviews => 'Turn notifications, sounds and Lock Screen previews on or off';
+
+  @override
+  String get pushNotificationsNotSetUpBuild => 'Push notifications are not set up in this build. Add the Firebase config files and rebuild.';
+
+  @override
+  String get notificationsTurnedOffAllowAppSend => 'Notifications are turned off. Allow this app to send notifications in system settings.';
 
 }
 
@@ -7509,6 +7545,33 @@ class _LJa extends AppLocalizations {
   @override
   String confirmingRefundsBuyerSP0Tokens(Object p0) => '確定すると買い手が支払った ${p0} トークンを返金し、取り置き中の本を再出品します。';
 
+  @override
+  String get donTPermissionYourselfSoCan => '自分がこの権限を持っていないため、他の人に付与できません。';
+
+  @override
+  String get notificationsTurnedOff => '通知がオフになっています';
+
+  @override
+  String get openSettings => '設定を開く';
+
+  @override
+  String get sendTestNotification => 'テスト通知を送信';
+
+  @override
+  String get arrives10SecondsGoHomeScreen => '10秒後に届きます。送信後はホーム画面に戻るか、端末をロックしてください。';
+
+  @override
+  String get systemNotificationSettings => 'システムの通知設定';
+
+  @override
+  String get turnNotificationsSoundsLockScreenPreviews => '通知、サウンド、ロック画面の表示を切り替えます';
+
+  @override
+  String get pushNotificationsNotSetUpBuild => 'このビルドではプッシュ通知が設定されていません。Firebaseの設定ファイルを追加して再ビルドしてください。';
+
+  @override
+  String get notificationsTurnedOffAllowAppSend => '通知がオフになっています。システム設定でこのアプリの通知を許可してください。';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -10718,6 +10781,33 @@ class _LKo extends AppLocalizations {
   @override
   String confirmingRefundsBuyerSP0Tokens(Object p0) => '확인하면 구매자가 결제한 ${p0} 토큰을 환불하고 예약 중인 책을 다시 판매합니다.';
 
+  @override
+  String get donTPermissionYourselfSoCan => '본인에게 이 권한이 없어서 다른 사람에게 부여할 수 없습니다.';
+
+  @override
+  String get notificationsTurnedOff => '알림이 꺼져 있습니다';
+
+  @override
+  String get openSettings => '설정 열기';
+
+  @override
+  String get sendTestNotification => '테스트 알림 보내기';
+
+  @override
+  String get arrives10SecondsGoHomeScreen => '10초 후 도착합니다. 보낸 뒤 홈 화면으로 가거나 휴대폰을 잠그세요.';
+
+  @override
+  String get systemNotificationSettings => '시스템 알림 설정';
+
+  @override
+  String get turnNotificationsSoundsLockScreenPreviews => '알림, 소리, 잠금 화면 표시를 켜거나 끕니다';
+
+  @override
+  String get pushNotificationsNotSetUpBuild => '이 빌드에는 푸시 알림이 설정되어 있지 않습니다. Firebase 설정 파일을 추가하고 다시 빌드하세요.';
+
+  @override
+  String get notificationsTurnedOffAllowAppSend => '알림이 꺼져 있습니다. 시스템 설정에서 이 앱의 알림을 허용하세요.';
+
 }
 
 class _LZh extends AppLocalizations {
@@ -11018,7 +11108,7 @@ class _LZh extends AppLocalizations {
   String get languageHint => '選擇「跟隨系統」時，會依裝置的語言設定顯示';
 
   @override
-  String get verifySignSavemybook => '驗證身分以登入 SaveMyBook';
+  String get verifySignSavemybook => '驗證身分以登入救「舊」我的書';
 
   @override
   String get maintenance => '系統維護';
@@ -11096,7 +11186,7 @@ class _LZh extends AppLocalizations {
   String get preparingData => '正在整理您的資料';
 
   @override
-  String get mySavemybookData => '我的 SaveMyBook 資料';
+  String get mySavemybookData => '救「舊」我的書帳號資料';
 
   @override
   String get exportedChooseWhereSave => '已匯出，請選擇儲存位置';
@@ -12137,7 +12227,7 @@ class _LZh extends AppLocalizations {
   String get createAccount => '建立帳號';
 
   @override
-  String get joinSavemybook => '加入 SaveMyBook';
+  String get joinSavemybook => '加入救「舊」我的書';
 
   @override
   String get signUpBuySellUseSmart => '註冊後就能買書、賣書與使用智慧書櫃';
@@ -12314,7 +12404,7 @@ class _LZh extends AppLocalizations {
   String get contactUs => '聯絡我們';
 
   @override
-  String get aboutSavemybook => '關於 SaveMyBook';
+  String get aboutSavemybook => '關於救「舊」我的書';
 
   @override
   String get settingsPrivacy => '設定與隱私';
@@ -12332,7 +12422,7 @@ class _LZh extends AppLocalizations {
   String get lineUpTheirQrCodeWith => '將對方的 QR Code 放入框內';
 
   @override
-  String get notSavemybookProfileQrCode => '這不是 SaveMyBook 的個人 QR Code';
+  String get notSavemybookProfileQrCode => '這不是救「舊」我的書的個人 QR Code';
 
   @override
   String get ownQrCode => '這是你自己的 QR Code';
@@ -12344,10 +12434,10 @@ class _LZh extends AppLocalizations {
   String get linkCopied => '已複製連結';
 
   @override
-  String addMeSavemybook(Object p0) => '在 SaveMyBook 上加我：${p0}';
+  String addMeSavemybook(Object p0) => '在救「舊」我的書上加我：${p0}';
 
   @override
-  String addMeSavemybook2(Object p0, Object p1) => '在 SaveMyBook 上加我（${p0}）：${p1}';
+  String addMeSavemybook2(Object p0, Object p1) => '在救「舊」我的書上加我（${p0}）：${p1}';
 
   @override
   String get sharingCouldNotOpenSoLink => '無法開啟分享，已幫你複製連結';
@@ -13927,6 +14017,33 @@ class _LZh extends AppLocalizations {
   @override
   String confirmingRefundsBuyerSP0Tokens(Object p0) => '確認後會把買家付的 ${p0} 代幣退回，保留中的書重新上架。';
 
+  @override
+  String get donTPermissionYourselfSoCan => '你自己沒有這項權限，所以不能開給別人。';
+
+  @override
+  String get notificationsTurnedOff => '通知權限已關閉';
+
+  @override
+  String get openSettings => '前往設定';
+
+  @override
+  String get sendTestNotification => '傳送測試通知';
+
+  @override
+  String get arrives10SecondsGoHomeScreen => '10 秒後送達，送出後先回到主畫面或鎖定手機';
+
+  @override
+  String get systemNotificationSettings => '系統通知設定';
+
+  @override
+  String get turnNotificationsSoundsLockScreenPreviews => '開關通知、聲音與鎖定畫面顯示';
+
+  @override
+  String get pushNotificationsNotSetUpBuild => '這個版本的 App 還沒有設定推播，請先放入 Firebase 設定檔後重新編譯。';
+
+  @override
+  String get notificationsTurnedOffAllowAppSend => '通知權限已被關閉，請到系統設定允許這個 App 傳送通知。';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -14227,7 +14344,7 @@ class _LZhHans extends AppLocalizations {
   String get languageHint => '选择“跟随系统”时，会依设备的语言设置显示';
 
   @override
-  String get verifySignSavemybook => '验证身分以登录 SaveMyBook';
+  String get verifySignSavemybook => '验证身分以登录救「舊」我的書';
 
   @override
   String get maintenance => '系统维护';
@@ -14305,7 +14422,7 @@ class _LZhHans extends AppLocalizations {
   String get preparingData => '正在整理您的数据';
 
   @override
-  String get mySavemybookData => '我的 SaveMyBook 数据';
+  String get mySavemybookData => '救「舊」我的書账号数据';
 
   @override
   String get exportedChooseWhereSave => '已导出，请选择保存位置';
@@ -15346,7 +15463,7 @@ class _LZhHans extends AppLocalizations {
   String get createAccount => '创建账号';
 
   @override
-  String get joinSavemybook => '加入 SaveMyBook';
+  String get joinSavemybook => '加入救「舊」我的書';
 
   @override
   String get signUpBuySellUseSmart => '注册后就能买书、卖书与使用智能书柜';
@@ -15523,7 +15640,7 @@ class _LZhHans extends AppLocalizations {
   String get contactUs => '联系我们';
 
   @override
-  String get aboutSavemybook => '关于 SaveMyBook';
+  String get aboutSavemybook => '关于救「舊」我的書';
 
   @override
   String get settingsPrivacy => '设置与隐私';
@@ -15541,7 +15658,7 @@ class _LZhHans extends AppLocalizations {
   String get lineUpTheirQrCodeWith => '将对方的二维码放入框内';
 
   @override
-  String get notSavemybookProfileQrCode => '这不是 SaveMyBook 的个人二维码';
+  String get notSavemybookProfileQrCode => '这不是救「舊」我的書的个人二维码';
 
   @override
   String get ownQrCode => '这是你自己的二维码';
@@ -15553,10 +15670,10 @@ class _LZhHans extends AppLocalizations {
   String get linkCopied => '已复制链接';
 
   @override
-  String addMeSavemybook(Object p0) => '在 SaveMyBook 上加我：${p0}';
+  String addMeSavemybook(Object p0) => '在救「舊」我的書上加我：${p0}';
 
   @override
-  String addMeSavemybook2(Object p0, Object p1) => '在 SaveMyBook 上加我（${p0}）：${p1}';
+  String addMeSavemybook2(Object p0, Object p1) => '在救「舊」我的書上加我（${p0}）：${p1}';
 
   @override
   String get sharingCouldNotOpenSoLink => '无法打开分享，已帮你复制链接';
@@ -17136,6 +17253,33 @@ class _LZhHans extends AppLocalizations {
   @override
   String confirmingRefundsBuyerSP0Tokens(Object p0) => '确认后会把买家付的 ${p0} 代币退回，保留中的书重新上架。';
 
+  @override
+  String get donTPermissionYourselfSoCan => '你自己没有这项权限，所以不能开给别人。';
+
+  @override
+  String get notificationsTurnedOff => '通知权限已关闭';
+
+  @override
+  String get openSettings => '前往设置';
+
+  @override
+  String get sendTestNotification => '发送测试通知';
+
+  @override
+  String get arrives10SecondsGoHomeScreen => '10 秒后送达，发送后先回到主屏幕或锁定手机';
+
+  @override
+  String get systemNotificationSettings => '系统通知设置';
+
+  @override
+  String get turnNotificationsSoundsLockScreenPreviews => '开关通知、声音与锁定屏幕显示';
+
+  @override
+  String get pushNotificationsNotSetUpBuild => '这个版本的 App 还没有设置推送，请先放入 Firebase 配置文件后重新编译。';
+
+  @override
+  String get notificationsTurnedOffAllowAppSend => '通知权限已被关闭，请到系统设置允许这个 App 发送通知。';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -17436,7 +17580,7 @@ class _LZhHant extends AppLocalizations {
   String get languageHint => '選擇「跟隨系統」時，會依裝置的語言設定顯示';
 
   @override
-  String get verifySignSavemybook => '驗證身分以登入 SaveMyBook';
+  String get verifySignSavemybook => '驗證身分以登入救「舊」我的書';
 
   @override
   String get maintenance => '系統維護';
@@ -17514,7 +17658,7 @@ class _LZhHant extends AppLocalizations {
   String get preparingData => '正在整理您的資料';
 
   @override
-  String get mySavemybookData => '我的 SaveMyBook 資料';
+  String get mySavemybookData => '救「舊」我的書帳號資料';
 
   @override
   String get exportedChooseWhereSave => '已匯出，請選擇儲存位置';
@@ -18555,7 +18699,7 @@ class _LZhHant extends AppLocalizations {
   String get createAccount => '建立帳號';
 
   @override
-  String get joinSavemybook => '加入 SaveMyBook';
+  String get joinSavemybook => '加入救「舊」我的書';
 
   @override
   String get signUpBuySellUseSmart => '註冊後就能買書、賣書與使用智慧書櫃';
@@ -18732,7 +18876,7 @@ class _LZhHant extends AppLocalizations {
   String get contactUs => '聯絡我們';
 
   @override
-  String get aboutSavemybook => '關於 SaveMyBook';
+  String get aboutSavemybook => '關於救「舊」我的書';
 
   @override
   String get settingsPrivacy => '設定與隱私';
@@ -18750,7 +18894,7 @@ class _LZhHant extends AppLocalizations {
   String get lineUpTheirQrCodeWith => '將對方的 QR Code 放入框內';
 
   @override
-  String get notSavemybookProfileQrCode => '這不是 SaveMyBook 的個人 QR Code';
+  String get notSavemybookProfileQrCode => '這不是救「舊」我的書的個人 QR Code';
 
   @override
   String get ownQrCode => '這是你自己的 QR Code';
@@ -18762,10 +18906,10 @@ class _LZhHant extends AppLocalizations {
   String get linkCopied => '已複製連結';
 
   @override
-  String addMeSavemybook(Object p0) => '在 SaveMyBook 上加我：${p0}';
+  String addMeSavemybook(Object p0) => '在救「舊」我的書上加我：${p0}';
 
   @override
-  String addMeSavemybook2(Object p0, Object p1) => '在 SaveMyBook 上加我（${p0}）：${p1}';
+  String addMeSavemybook2(Object p0, Object p1) => '在救「舊」我的書上加我（${p0}）：${p1}';
 
   @override
   String get sharingCouldNotOpenSoLink => '無法開啟分享，已幫你複製連結';
@@ -20344,6 +20488,33 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String confirmingRefundsBuyerSP0Tokens(Object p0) => '確認後會把買家付的 ${p0} 代幣退回，保留中的書重新上架。';
+
+  @override
+  String get donTPermissionYourselfSoCan => '你自己沒有這項權限，所以不能開給別人。';
+
+  @override
+  String get notificationsTurnedOff => '通知權限已關閉';
+
+  @override
+  String get openSettings => '前往設定';
+
+  @override
+  String get sendTestNotification => '傳送測試通知';
+
+  @override
+  String get arrives10SecondsGoHomeScreen => '10 秒後送達，送出後先回到主畫面或鎖定手機';
+
+  @override
+  String get systemNotificationSettings => '系統通知設定';
+
+  @override
+  String get turnNotificationsSoundsLockScreenPreviews => '開關通知、聲音與鎖定畫面顯示';
+
+  @override
+  String get pushNotificationsNotSetUpBuild => '這個版本的 App 還沒有設定推播，請先放入 Firebase 設定檔後重新編譯。';
+
+  @override
+  String get notificationsTurnedOffAllowAppSend => '通知權限已被關閉，請到系統設定允許這個 App 傳送通知。';
 
 }
 

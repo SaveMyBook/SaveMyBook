@@ -13,6 +13,7 @@ import '../screens/order_detail_screen.dart';
 import '../screens/support_ticket_screen.dart';
 import '../widgets/in_app_banner.dart';
 import 'api_service.dart';
+import '../i18n/strings.dart';
 
 /// 手機推播：Firebase Cloud Messaging，iOS 由 FCM 轉交 APNs。
 ///
@@ -104,6 +105,30 @@ class PushService {
     } catch (_) {
       // 沒有網路時刪不掉，伺服器端的失效清理會補上。
     }
+  }
+
+  /// 設定頁的「傳送測試通知」。回傳 (訊息, 是否為錯誤, 是否該引導去系統設定)。
+  static Future<(String, bool, bool)> sendTest() async {
+    if (!_initialized) {
+      return (S.pushNotificationsNotSetUpBuild, true, false);
+    }
+
+    final settings = await FirebaseMessaging.instance.requestPermission(alert: true, badge: true, sound: true);
+    if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      return (S.notificationsTurnedOffAllowAppSend, true, true);
+    }
+
+    // 伺服器那邊可能因為改密碼清掉了裝置，送之前先補登記一次。
+    await registerCurrentDevice();
+
+    final (message, error) = await ApiService().sendTestPush();
+    return error != null ? (error, true, false) : (message!, false, false);
+  }
+
+  static Future<void> openSystemSettings() async {
+    try {
+      await _badgeChannel.invokeMethod('openNotificationSettings');
+    } catch (_) {}
   }
 
   static Future<String?> _fetchToken() async {

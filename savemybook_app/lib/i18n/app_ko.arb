@@ -1762,5 +1762,14 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "donTPermissionYourselfSoCan": "본인에게 이 권한이 없어서 다른 사람에게 부여할 수 없습니다.",
+  "notificationsTurnedOff": "알림이 꺼져 있습니다",
+  "openSettings": "설정 열기",
+  "sendTestNotification": "테스트 알림 보내기",
+  "arrives10SecondsGoHomeScreen": "10초 후 도착합니다. 보낸 뒤 홈 화면으로 가거나 휴대폰을 잠그세요.",
+  "systemNotificationSettings": "시스템 알림 설정",
+  "turnNotificationsSoundsLockScreenPreviews": "알림, 소리, 잠금 화면 표시를 켜거나 끕니다",
+  "pushNotificationsNotSetUpBuild": "이 빌드에는 푸시 알림이 설정되어 있지 않습니다. Firebase 설정 파일을 추가하고 다시 빌드하세요.",
+  "notificationsTurnedOffAllowAppSend": "알림이 꺼져 있습니다. 시스템 설정에서 이 앱의 알림을 허용하세요."
 }

@@ -11,7 +11,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <application
-        android:label="savemybook_app"
+        android:label="救舊我的書"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

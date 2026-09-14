@@ -97,6 +97,11 @@ const removeUserDevices = async (userId) => {
   }
 };
 
+const deviceCount = async (userId) => {
+  const rows = await prisma.$queryRaw`SELECT COUNT(*) AS n FROM push_devices WHERE user_id = ${userId}`;
+  return Number(rows[0]?.n ?? 0);
+};
+
 const removeStaleDevices = () =>
   prisma.$executeRaw`DELETE FROM push_devices WHERE last_seen_at < NOW() - INTERVAL 90 DAY`;
 
@@ -104,18 +109,25 @@ const removeStaleDevices = () =>
 
 /// 先把這批標成已推再送：寧可行程在送到一半時掛掉漏推幾則，
 /// 也不要重啟後把同一則通知重複推給使用者。
+///
+/// 時間一律由 Node 算好再傳進去，不用資料庫的 NOW()：created_at 是 Prisma 寫入的，
+/// 資料庫時區若不是 UTC，兩邊差好幾個小時，通知會全部被當成過期而不推送。
+/// created_at 在未來的通知（例如延遲送出的測試通知）要等時間到才推。
 const claimBatch = async () => {
+  const now = new Date();
+  const since = new Date(now.getTime() - QUEUE_WINDOW_MINUTES * 60 * 1000);
   const rows = await prisma.$queryRaw`
     SELECT notification_id, user_id, type, title, content, related_id, related_type
     FROM notifications
-    WHERE pushed_at IS NULL AND created_at >= NOW() - INTERVAL ${QUEUE_WINDOW_MINUTES} MINUTE
+    WHERE pushed_at IS NULL AND created_at >= ${since} AND created_at <= ${now}
     ORDER BY notification_id
     LIMIT ${BATCH_SIZE}`;
   if (rows.length === 0) return [];
 
   const ids = rows.map((r) => Number(r.notification_id));
   await prisma.$executeRawUnsafe(
-    `UPDATE notifications SET pushed_at = NOW() WHERE notification_id IN (${placeholders(ids)})`,
+    `UPDATE notifications SET pushed_at = ? WHERE notification_id IN (${placeholders(ids)})`,
+    now,
     ...ids
   );
   return rows;
@@ -256,6 +268,6 @@ const startDispatcher = () => {
 };
 
 module.exports = {
-  PLATFORMS, isReady, init, registerDevice, unregisterDevice, removeUserDevices, removeStaleDevices,
+  PLATFORMS, isReady, init, registerDevice, unregisterDevice, removeUserDevices, removeStaleDevices, deviceCount,
   dispatchOnce, startDispatcher, buildMessage
 };
