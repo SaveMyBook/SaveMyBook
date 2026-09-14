@@ -55,8 +55,16 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
                       child: SwitchIn(child: _logs.isEmpty
                           ? ListView(key: const ValueKey('empty'), 
                               children: [
-                                SizedBox(height: 80),
-                                EmptyView(icon: Icons.build_outlined, message: S.noMaintenanceRecords),
+                                const SizedBox(height: 80),
+                                EmptyView(
+                                icon: Icons.build_outlined,
+                                message: S.noMaintenanceRecords,
+                                actionLabel: S.refresh,
+                                onAction: () {
+                                  setState(() => _isLoading = true);
+                                  _load();
+                                },
+                              ),
                               ],
                             )
                           : ListView.builder(key: const ValueKey('items'), 
@@ -140,7 +148,7 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
               color: c.accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.build_rounded, size: 18, color: AppColors.primary),
+            child: Icon(Icons.build_rounded, size: 18, color: c.accent),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -149,18 +157,30 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
               children: [
                 Text(
                   log.action,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
                 ),
                 if (log.detail?.isNotEmpty ?? false) ...[
                   const SizedBox(height: 3),
-                  Text(log.detail!, style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                  Text(
+                    log.detail!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: c.textSecondary),
+                  ),
                 ],
                 const SizedBox(height: 3),
-                Text(S.operatorP0(log.adminName), style: TextStyle(fontSize: 11, color: c.textHint)),
+                Text(
+                  '${S.operatorP0(log.adminName)}・${formatRelative(log.createdAt)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: c.textHint),
+                ),
               ],
             ),
           ),
-          Text(formatDateTime(log.createdAt), style: TextStyle(fontSize: 11, color: c.textHint)),
+          Icon(Icons.chevron_right_rounded, size: 18, color: c.iconInactive),
         ],
       ),
     );

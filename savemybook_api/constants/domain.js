@@ -3,10 +3,8 @@ const ORDER_STATUSES = [
   'completed', 'cancelled', 'refunding', 'refunded'
 ];
 
-/// 買家已付款、賣家還沒拿到錢的狀態。取消時要退款，也算賣家的待定收益。
 const ORDER_OPEN_STATUSES = ['pending_payment', 'pending_deposit', 'deposited', 'pending_pickup'];
 
-/// 還沒走完的交易，含爭議處理中。有這些訂單時不能刪帳號。
 const ORDER_UNSETTLED_STATUSES = [...ORDER_OPEN_STATUSES, 'refunding'];
 
 const ORDER_FINAL_STATUSES = ['completed', 'cancelled', 'refunded'];

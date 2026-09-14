@@ -24,6 +24,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
   AdminStats _stats = AdminStats.empty;
   int _days = 7;
   bool _isLoading = true;
+  int _loadSeq = 0;
 
   @override
   void initState() {
@@ -31,10 +32,11 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
     _load();
   }
 
-  Future<void> _load() async {
-    setState(() => _isLoading = true);
+  Future<void> _load({bool showLoading = true}) async {
+    final seq = ++_loadSeq;
+    if (showLoading) setState(() => _isLoading = true);
     final stats = await _api.fetchAdminStats(days: _days);
-    if (!mounted) return;
+    if (!mounted || seq != _loadSeq) return;
     setState(() {
       _stats = stats;
       _isLoading = false;
@@ -50,29 +52,46 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
       body: Column(
         children: [
           AppHeader(title: S.reports, icon: Icons.insights_rounded),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: Align(alignment: Alignment.centerLeft, child: _buildRangePicker(c)),
+          ),
           Expanded(
             child: SwitchIn(
               child: _isLoading
                   ? const LoadingView.list()
                   : RefreshIndicator(
+                      key: ValueKey('stats_$_days'),
                       color: c.accent,
-                      onRefresh: _load,
-                      child: ListView(
-                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-                        children: [
-                          _buildRangePicker(c),
-                          const SizedBox(height: 16),
-                          _buildSummary(c),
-                          const SizedBox(height: 16),
-                          _buildChart(c, S.ordersPerDay, (p) => p.orders.toDouble(), c.accent),
-                          const SizedBox(height: 16),
-                          _buildChart(c, S.revenuePerDay, (p) => p.revenue, c.success),
-                          const SizedBox(height: 16),
-                          _buildChart(c, S.newMembersPerDay, (p) => p.newUsers.toDouble(), c.warning),
-                          const SizedBox(height: 16),
-                          _buildTopCategories(c),
-                        ],
-                      ),
+                      onRefresh: () => _load(showLoading: false),
+                      child: _stats.series.isEmpty
+                          ? ListView(
+                              children: [
+                                const SizedBox(height: 60),
+                                EmptyView(
+                                  icon: Icons.insights_rounded,
+                                  message: S.couldnTLoadStatisticsRightNow,
+                                  actionLabel: S.refresh,
+                                  onAction: _load,
+                                ),
+                              ],
+                            )
+                          : ListView(
+                              padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+                              children: [
+                                for (final (i, section) in [
+                                  _buildSummary(c),
+                                  _buildChart(c, S.ordersPerDay, (p) => p.orders.toDouble(), c.accent),
+                                  _buildChart(c, S.revenuePerDay, (p) => p.revenue, c.success),
+                                  _buildChart(c, S.newMembersPerDay, (p) => p.newUsers.toDouble(), c.warning),
+                                  _buildTopCategories(c),
+                                ].indexed)
+                                  Padding(
+                                    padding: EdgeInsets.only(top: i == 0 ? 0 : 16),
+                                    child: RevealOnScroll(index: i, child: section),
+                                  ),
+                              ],
+                            ),
                     ),
             ),
           ),
@@ -82,10 +101,13 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
   }
 
   Widget _buildRangePicker(AppColors c) {
-    return Row(
+    return Wrap(
+      spacing: 10,
+      runSpacing: 8,
       children: [
-        for (final r in _ranges) ...[
-          GestureDetector(
+        for (final r in _ranges)
+          PressableScale(
+            scale: 0.94,
             onTap: () {
               if (_days == r.days) return;
               setState(() => _days = r.days);
@@ -108,8 +130,6 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 10),
-        ],
       ],
     );
   }
@@ -124,29 +144,34 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
         AppCard(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              StatTile(
-                label: S.newOrders,
-                value: AnimatedCount(
-                  value: totalOrders.toDouble(),
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.accent),
+              Expanded(
+                child: StatTile(
+                  label: S.newOrders,
+                  value: AnimatedCount(
+                    value: totalOrders.toDouble(),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.accent),
+                  ),
                 ),
               ),
               const VerticalDivider1(),
-              StatTile(
-                label: S.newMembers,
-                value: AnimatedCount(
-                  value: totalUsers.toDouble(),
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.accent),
+              Expanded(
+                child: StatTile(
+                  label: S.newMembers,
+                  value: AnimatedCount(
+                    value: totalUsers.toDouble(),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.accent),
+                  ),
                 ),
               ),
               const VerticalDivider1(),
-              StatTile(
-                label: S.newListings,
-                value: AnimatedCount(
-                  value: totalBooks.toDouble(),
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.accent),
+              Expanded(
+                child: StatTile(
+                  label: S.newListings,
+                  value: AnimatedCount(
+                    value: totalBooks.toDouble(),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.accent),
+                  ),
                 ),
               ),
             ],
@@ -176,21 +201,30 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
                       style: TextStyle(fontSize: 12, color: c.textSecondary),
                     ),
                     const SizedBox(height: 2),
-                    AnimatedCount(
-                      value: _stats.completedRevenue,
-                      prefix: '\$',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: c.textPrimary,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: AnimatedCount(
+                        value: _stats.completedRevenue.roundToDouble(),
+                        prefix: '\$',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: c.textPrimary,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              Text(
-                S.p0Orders(_stats.completedOrderCount),
-                style: TextStyle(fontSize: 13, color: c.textSecondary),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  S.p0Orders(_stats.completedOrderCount),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13, color: c.textSecondary),
+                ),
               ),
             ],
           ),
@@ -199,7 +233,12 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
     );
   }
 
-  /// 以 Container 高度直接畫長條圖，不引進圖表套件。
+  static String _compact(double value) {
+    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(value >= 10000000 ? 0 : 1)}M';
+    if (value >= 1000) return '${(value / 1000).toStringAsFixed(value >= 10000 ? 0 : 1)}k';
+    return value.toStringAsFixed(0);
+  }
+
   Widget _buildChart(
     AppColors c,
     String title,
@@ -212,6 +251,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
     final values = points.map(pick).toList();
     final maxValue = values.reduce((a, b) => a > b ? a : b);
     final safeMax = maxValue <= 0 ? 1.0 : maxValue;
+    final dense = points.length > 14;
 
     return AppCard(
       child: Column(
@@ -219,21 +259,25 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
         children: [
           Row(
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: c.textPrimary,
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Text(
-                S.peakP0(maxValue.toStringAsFixed(0)),
+                S.peakP0(_compact(maxValue)),
                 style: TextStyle(fontSize: 11, color: c.textHint),
               ),
             ],
           ),
+          if (dense) ...[
+            const SizedBox(height: 4),
+            Text(S.tapBarSeeDay, style: TextStyle(fontSize: 11, color: c.textHint)),
+          ],
           const SizedBox(height: 16),
           SizedBox(
             height: 110,
@@ -242,40 +286,58 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
               children: [
                 for (var i = 0; i < points.length; i++)
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          if (values[i] > 0)
-                            Text(
-                              values[i].toStringAsFixed(0),
-                              style: TextStyle(fontSize: 9, color: c.textHint),
+                    child: Tooltip(
+                      message: '${_dayLabel(points[i].date, full: true)}：${values[i].toStringAsFixed(0)}',
+                      triggerMode: TooltipTriggerMode.tap,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: dense ? 1 : 2),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            SizedBox(
+                              height: 12,
+                              child: !dense && values[i] > 0
+                                  ? FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        _compact(values[i]),
+                                        maxLines: 1,
+                                        style: TextStyle(fontSize: 9, color: c.textHint),
+                                      ),
+                                    )
+                                  : null,
                             ),
-                          const SizedBox(height: 2),
-                          TweenAnimationBuilder<double>(
-                            tween: Tween(begin: 0, end: values[i] / safeMax),
-                            duration: Duration(milliseconds: 500 + i * 30),
-                            curve: Curves.easeOutCubic,
-                            builder: (_, value, _) => AnimatedContainer(
-        duration: Motion.base,
-        curve: Motion.standard,
-
-                              height: (value * 76).clamp(2.0, 76.0),
-                              decoration: BoxDecoration(
-                                color: color.withValues(alpha: values[i] > 0 ? 0.85 : 0.2),
-                                borderRadius: BorderRadius.circular(6),
+                            const SizedBox(height: 2),
+                            TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0, end: values[i] / safeMax),
+                              duration: Duration(milliseconds: 500 + i * 30),
+                              curve: Curves.easeOutCubic,
+                              builder: (_, value, _) => AnimatedContainer(
+                                duration: Motion.base,
+                                curve: Motion.standard,
+                                height: (value * 72).clamp(2.0, 72.0),
+                                decoration: BoxDecoration(
+                                  color: color.withValues(alpha: values[i] > 0 ? 0.85 : 0.2),
+                                  borderRadius: BorderRadius.circular(dense ? 3 : 6),
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            _dayLabel(points[i].date),
-                            maxLines: 1,
-                            overflow: TextOverflow.clip,
-                            style: TextStyle(fontSize: 8, color: c.textHint),
-                          ),
-                        ],
+                            const SizedBox(height: 6),
+                            SizedBox(
+                              height: 12,
+                              child: !dense || i % 5 == 0 || i == points.length - 1
+                                  ? FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        _dayLabel(points[i].date),
+                                        maxLines: 1,
+                                        style: TextStyle(fontSize: 9, color: c.textHint),
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -287,11 +349,12 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
     );
   }
 
-  String _dayLabel(String isoDate) {
+  String _dayLabel(String isoDate, {bool full = false}) {
     final parts = isoDate.split('-');
     if (parts.length < 3) return isoDate;
-    // 30 天的時候標籤會擠在一起，只留日期。
-    return _days > 14 ? parts[2] : '${int.parse(parts[1])}/${int.parse(parts[2])}';
+    final month = int.tryParse(parts[1]) ?? 0;
+    final day = int.tryParse(parts[2]) ?? 0;
+    return full || _days <= 14 ? '$month/$day' : '$day';
   }
 
   Widget _buildTopCategories(AppColors c) {
@@ -311,7 +374,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
             Row(
               children: [
                 SizedBox(
-                  width: 76,
+                  width: 88,
                   child: Text(
                     item.name,
                     maxLines: 1,
@@ -336,9 +399,14 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  '${item.count}',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: c.accent),
+                SizedBox(
+                  width: 44,
+                  child: Text(
+                    _compact(item.count.toDouble()),
+                    textAlign: TextAlign.end,
+                    maxLines: 1,
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: c.accent),
+                  ),
                 ),
               ],
             ),

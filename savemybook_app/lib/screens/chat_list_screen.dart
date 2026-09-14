@@ -6,7 +6,9 @@ import '../services/api_service.dart';
 import '../services/chat_prefs.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
+import '../utils/motion.dart';
 import '../widgets/app_dialogs.dart';
+import '../widgets/app_forms.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
@@ -22,32 +24,70 @@ class ChatListScreen extends StatefulWidget {
   State<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-class _ChatListScreenState extends State<ChatListScreen> {
+class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObserver {
   final ApiService _api = ApiService();
+  final TextEditingController _search = TextEditingController();
   List<ChatRoom> _rooms = [];
   Timer? _pollTimer;
   bool _isLoading = true;
+  bool _refreshing = false;
+  String _query = '';
+
+  int get _myId => ApiService.currentUser?.userId ?? 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
-    _pollTimer = Timer.periodic(const Duration(seconds: 8), (_) => _load());
+    _startPolling();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pollTimer?.cancel();
+    _search.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
-    final rooms = await _api.fetchChatRooms();
-    if (!mounted) return;
-    setState(() {
-      _rooms = rooms;
-      _isLoading = false;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _startPolling();
+      _load();
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+      _pollTimer?.cancel();
+      _pollTimer = null;
+    }
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 8), (_) {
+      if (mounted && ModalRoute.isCurrentOf(context) != false) _load();
     });
+  }
+
+  Future<void> _load() async {
+    if (_refreshing) return;
+    _refreshing = true;
+    try {
+      final rooms = await _api.fetchChatRooms();
+      if (!mounted) return;
+      setState(() {
+        _rooms = rooms;
+        _isLoading = false;
+      });
+    } finally {
+      _refreshing = false;
+    }
+  }
+
+  List<ChatRoom> get _visibleRooms {
+    final q = _query.trim().toLowerCase();
+    if (q.isEmpty) return _rooms;
+    return _rooms.where((r) => r.partner.nickname.toLowerCase().contains(q)).toList();
   }
 
   Future<bool> _confirmDelete(ChatRoom room) {
@@ -61,7 +101,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _deleteDismissed(ChatRoom room) async {
-    setState(() => _rooms.removeWhere((r) => r.roomId == room.roomId));
+    setState(() => _rooms = _rooms.where((r) => r.roomId != room.roomId).toList());
     ChatPrefs.forget(room.roomId);
 
     final ok = await _api.deleteChatRoom(room.roomId);
@@ -110,6 +150,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
+  Future<void> _openRoom(ChatRoom room) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatRoomScreen(roomId: room.roomId, partnerName: room.partner.nickname),
+      ),
+    );
+    _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
@@ -126,30 +176,67 @@ class _ChatListScreenState extends State<ChatListScreen> {
             ],
           ),
           Expanded(
-            child: SwitchIn(child: _isLoading
-                ? const LoadingView.list()
-                : RefreshIndicator(
-                    color: c.accent,
-                    onRefresh: _load,
-                    child: SwitchIn(child: _rooms.isEmpty
-                        ? ListView(key: const ValueKey('empty'), 
-                            children: [
-                              SizedBox(height: 80),
-                              EmptyView(
-                                icon: Icons.forum_outlined,
-                                message: S.noConversationsYet,
-                              ),
-                            ],
-                          )
-                        : ListView.builder(key: const ValueKey('items'), 
-                            padding: const EdgeInsets.all(16),
-                            itemCount: _rooms.length,
-                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildRoomTile(_rooms[i], c)),
-                          )),
-                  )),
+            child: SwitchIn(
+              child: _isLoading
+                  ? const LoadingView.list()
+                  : RefreshIndicator(
+                      color: c.accent,
+                      onRefresh: _load,
+                      child: _buildList(c),
+                    ),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildList(AppColors c) {
+    if (_rooms.isEmpty) {
+      return ListView(
+        key: const ValueKey('empty'),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          const SizedBox(height: 80),
+          EmptyView(icon: Icons.forum_outlined, message: S.noConversationsYet),
+        ],
+      );
+    }
+
+    final rooms = _visibleRooms;
+    final showSearch = _rooms.length >= 4 || _query.isNotEmpty;
+
+    return ListView.builder(
+      key: const ValueKey('items'),
+      physics: const AlwaysScrollableScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      itemCount: rooms.length + (showSearch ? 1 : 0) + (rooms.isEmpty ? 1 : 0),
+      itemBuilder: (_, i) {
+        if (showSearch && i == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: AppSearchField(
+              controller: _search,
+              hint: S.searchChats,
+              onChanged: (value) => setState(() => _query = value),
+            ),
+          );
+        }
+        final index = i - (showSearch ? 1 : 0);
+        if (rooms.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 40),
+            child: EmptyView(icon: Icons.search_off_rounded, message: S.noMatchingChats),
+          );
+        }
+        final room = rooms[index];
+        return RevealOnScroll(
+          key: ValueKey('reveal_${room.roomId}'),
+          index: index,
+          child: _buildRoomTile(room, c),
+        );
+      },
     );
   }
 
@@ -176,19 +263,33 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  IconData? _kindIcon(String kind) {
+    switch (kind) {
+      case 'image':
+        return Icons.image_outlined;
+      case 'voice':
+        return Icons.mic_none_rounded;
+      case 'book':
+        return Icons.menu_book_outlined;
+      case 'reservation':
+        return Icons.event_available_outlined;
+      case 'recalled':
+        return Icons.undo_rounded;
+      default:
+        return null;
+    }
+  }
+
   Widget _buildRoomCard(ChatRoom room, AppColors c, bool muted) {
+    final unread = room.unreadCount > 0;
+    final mine = room.lastSenderId != 0 && room.lastSenderId == _myId;
+    final kindIcon = _kindIcon(room.lastKind);
+    final previewColor = unread ? c.textPrimary : c.textSecondary;
+
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ChatRoomScreen(roomId: room.roomId, partnerName: room.partner.nickname),
-          ),
-        );
-        _load();
-      },
+      onTap: () => _openRoom(room),
       child: Row(
         children: [
           UserAvatar(
@@ -211,7 +312,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: unread ? FontWeight.w800 : FontWeight.bold,
                           color: c.textPrimary,
                         ),
                       ),
@@ -223,11 +324,40 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  room.lastMessage,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13, color: c.textSecondary),
+                Row(
+                  children: [
+                    if (mine) ...[
+                      Icon(
+                        room.lastIsRead ? Icons.done_all_rounded : Icons.check_rounded,
+                        size: 15,
+                        color: room.lastIsRead ? c.accent : c.textHint,
+                      ),
+                      const SizedBox(width: 3),
+                      if (room.lastIsRead) ...[
+                        Text(
+                          S.read,
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.accent),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                    ],
+                    if (kindIcon != null) ...[
+                      Icon(kindIcon, size: 15, color: previewColor),
+                      const SizedBox(width: 3),
+                    ],
+                    Expanded(
+                      child: Text(
+                        room.lastMessage,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: previewColor,
+                          fontWeight: unread ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -236,20 +366,35 @@ class _ChatListScreenState extends State<ChatListScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(formatRelative(room.updatedAt), style: TextStyle(fontSize: 11, color: c.textHint)),
-              const SizedBox(height: 8),
-              if (room.unreadCount > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: c.danger,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    room.unreadCount > 99 ? '99+' : '${room.unreadCount}',
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                  ),
+              Text(
+                formatRelative(room.updatedAt),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: unread ? c.accent : c.textHint,
+                  fontWeight: unread ? FontWeight.w600 : FontWeight.normal,
                 ),
+              ),
+              const SizedBox(height: 8),
+              AnimatedSwitcher(
+                duration: Motion.base,
+                transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+                child: unread
+                    ? Container(
+                        key: ValueKey(room.unreadCount),
+                        constraints: const BoxConstraints(minWidth: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: c.danger,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          room.unreadCount > 99 ? '99+' : '${room.unreadCount}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      )
+                    : const SizedBox(key: ValueKey('none'), height: 18),
+              ),
             ],
           ),
         ],

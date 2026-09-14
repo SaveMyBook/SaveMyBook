@@ -7,6 +7,8 @@ import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/order_card.dart';
 import '../widgets/state_views.dart';
+import '../utils/motion.dart';
+import 'order_detail_screen.dart';
 import '../i18n/strings.dart';
 
 class PendingIncomeScreen extends StatefulWidget {
@@ -21,6 +23,7 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
   List<Order> _orders = [];
   double _total = 0;
   bool _isLoading = true;
+  bool _cancelling = false;
 
   @override
   void initState() {
@@ -38,7 +41,16 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
     });
   }
 
+  Future<void> _openDetail(Order order) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order, asSeller: true)),
+    );
+    if (mounted) _load();
+  }
+
   Future<void> _cancel(Order order) async {
+    if (_cancelling) return;
     final confirmed = await showConfirmDialog(
       context,
       title: S.cancelOrder,
@@ -49,7 +61,9 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
     );
     if (!confirmed || !mounted) return;
 
+    _cancelling = true;
     final error = await runBusy(context, () => _api.cancelOrder(order.orderId, reason: S.cancelledBySeller));
+    _cancelling = false;
     if (!mounted) return;
 
     if (error != null) {
@@ -76,8 +90,9 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
                     color: c.accent,
                     onRefresh: _load,
                     child: CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       slivers: [
-                        SliverToBoxAdapter(child: _buildTotalCard(c)),
+                        SliverToBoxAdapter(child: FadeSlideIn(child: _buildTotalCard(c))),
                         if (_orders.isEmpty)
                           SliverToBoxAdapter(
                             child: Padding(
@@ -96,10 +111,11 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
                                 childAspectRatio: 0.55,
                               ),
                               delegate: SliverChildBuilderDelegate(
-                                (_, i) => FadeSlideIn(
+                                (_, i) => RevealOnScroll(
                                   index: i,
                                   child: OrderCard(
                                     order: _orders[i],
+                                    onTap: () => _openDetail(_orders[i]),
                                     actionLabel: _orders[i].isCancellable ? S.cancelOrder : null,
                                     onAction: () => _cancel(_orders[i]),
                                   ),
@@ -141,13 +157,28 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            AnimatedCount(
-              value: _total,
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: c.textPrimary),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: AnimatedCount(
+                value: _total,
+                thousands: true,
+                duration: Motion.count,
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: c.textPrimary),
+              ),
             ),
+            if (_orders.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(S.p0Orders2(_orders.length), style: TextStyle(fontSize: 12, color: c.textSecondary)),
+            ],
             const SizedBox(height: 6),
-            Text(S.coinsArriveOnceBuyerCollectsBook,
-                style: TextStyle(fontSize: 12, color: c.textHint)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                S.coinsArriveOnceBuyerCollectsBook,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: c.textHint),
+              ),
+            ),
           ],
         ),
       ),

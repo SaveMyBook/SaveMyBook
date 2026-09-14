@@ -18,7 +18,6 @@ router.get('/', async (req, res) => {
   res.status(200).json({ success: true, data: reports });
 });
 
-/// 找出被檢舉對象的擁有者，順便確認對象存在、不是自己。
 const resolveOwner = async (targetType, targetId, userId) => {
   if (targetType === 'book') {
     const book = await prisma.books.findUnique({ where: { book_id: targetId }, select: { seller_id: true } });
@@ -102,7 +101,6 @@ router.get('/against-me', async (req, res) => {
   const bookIds = myBooks.map((b) => b.book_id);
   if (bookIds.length === 0) return res.status(200).json({ success: true, data: [] });
 
-  // 只回處理狀態，不回檢舉人是誰。
   const reports = await prisma.reports.findMany({
     where: { target_type: 'book', target_id: { in: bookIds } },
     orderBy: { created_at: 'desc' },

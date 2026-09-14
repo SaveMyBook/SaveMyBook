@@ -20,6 +20,8 @@ import 'sales_history_screen.dart';
 import 'settings_screen.dart';
 import 'share_profile_screen.dart';
 import 'wallet_screen.dart';
+import 'security/security_center_screen.dart';
+import '../utils/motion.dart';
 import '../utils/app_labels.dart';
 import '../i18n/strings.dart';
 
@@ -34,6 +36,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ApiService _api = ApiService();
   UserStats _stats = UserStats.empty;
   MemberLevelInfo _level = MemberLevelInfo.empty;
+  int _pendingPickup = 0;
+  int _pendingDeposit = 0;
+  bool _signingOut = false;
+  int _levelAnimationKey = 0;
 
   @override
   void initState() {
@@ -42,15 +48,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadStats() async {
-    final results = await Future.wait([_api.fetchUserStats(), _api.fetchMemberLevel()]);
+    final results = await Future.wait([
+      _api.fetchUserStats(),
+      _api.fetchMemberLevel(),
+      _api.fetchOrders(role: 'buyer', tab: 'pending_pickup'),
+      _api.fetchOrders(role: 'seller', tab: 'pending_deposit'),
+    ]);
     if (!mounted) return;
     setState(() {
       _stats = results[0] as UserStats;
       _level = results[1] as MemberLevelInfo;
+      _pendingPickup = (results[2] as List).length;
+      _pendingDeposit = (results[3] as List).length;
     });
   }
 
+  Future<void> _refresh() async {
+    setState(() => _levelAnimationKey++);
+    await _loadStats();
+  }
+
   Future<void> _handleLogout() async {
+    if (_signingOut) return;
+    _signingOut = true;
     await runBusy(
       context,
       () async {
@@ -59,10 +79,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
       message: S.signingOut,
     );
+    _signingOut = false;
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (_) => false,
+    );
+  }
+
+  void _openShareProfile() {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.transparent,
+        transitionDuration: Motion.base,
+        reverseTransitionDuration: Motion.micro,
+        pageBuilder: (_, _, _) => const ShareProfileScreen(),
+        transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
+      ),
     );
   }
 
@@ -84,17 +119,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Expanded(
             child: RefreshIndicator(
               color: c.accent,
-              onRefresh: _loadStats,
+              onRefresh: _refresh,
               child: ListView(
                 padding: EdgeInsets.zero,
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   const SizedBox(height: 14),
-                  _buildQuickActions(c),
+                  FadeSlideIn(child: _buildQuickActions(c)),
                   const SizedBox(height: 14),
-                  _buildMenu(c),
+                  FadeSlideIn(index: 1, child: _buildMenu(c)),
                   const SizedBox(height: 14),
-                  _buildLogoutButton(c),
+                  FadeSlideIn(index: 2, child: _buildLogoutButton(c)),
                   SizedBox(height: MediaQuery.of(context).padding.bottom + 84),
                 ],
               ),
@@ -122,11 +157,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.fromLTRB(20, 6, 20, 18),
           child: Column(
             children: [
-              Text(
-                S.myAccount,
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
+              SizedBox(
+                height: 32,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 44),
+                      child: Text(
+                        S.myAccount,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
+                    Positioned(
+                      right: -8,
+                      child: IconButton(
+                        tooltip: S.shareProfile,
+                        icon: const Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 24),
+                        onPressed: _openShareProfile,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   UserAvatar(
@@ -164,7 +220,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-                  GestureDetector(
+                  const SizedBox(width: 8),
+                  PressableScale(
                     onTap: () => _openAndRefresh(const WalletScreen()),
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(12, 7, 14, 7),
@@ -184,6 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               AnimatedCount(
                                 value: _stats.balance,
+                                thousands: true,
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -220,7 +278,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final level = _level.currentLevel;
     final style = LevelStyle.at(levelIndexOf(_level, level));
 
-    return GestureDetector(
+    return PressableScale(
       onTap: () => _openAndRefresh(const MemberLevelScreen()),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 320),
@@ -247,13 +305,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Icon(style.icon, color: Colors.white, size: 14),
             const SizedBox(width: 5),
-            Text(
-              level?.levelName ?? AppLabels.noLevel,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.4,
+            Flexible(
+              child: Text(
+                level?.levelName ?? AppLabels.noLevel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.4,
+                ),
               ),
             ),
           ],
@@ -301,9 +363,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: progress.ratio),
-                duration: const Duration(milliseconds: 900),
-                curve: Curves.easeOutCubic,
+                key: ValueKey(_levelAnimationKey),
+                tween: Tween(begin: 0, end: progress.ratio.clamp(0.0, 1.0)),
+                duration: Motion.count,
+                curve: Motion.emphasized,
                 builder: (_, value, _) => Stack(
                   children: [
                     Container(height: 8, color: Colors.white.withValues(alpha: 0.22)),
@@ -330,36 +393,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildQuickActions(AppColors c) {
+    Widget item(IconData icon, String label, int badge, Widget screen, {Color? badgeColor}) {
+      return Expanded(
+        child: QuickActionButton(
+          icon: icon,
+          label: label,
+          badge: badge,
+          badgeColor: badgeColor,
+          onTap: () => _openAndRefresh(screen),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: AppCard(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            QuickActionButton(
-              icon: Icons.monetization_on_outlined,
-              label: S.myCoins,
-              onTap: () => _openAndRefresh(const WalletScreen()),
+            item(Icons.shopping_bag_outlined, S.pickUp, _pendingPickup, const PurchaseHistoryScreen(), badgeColor: c.danger),
+            item(
+              Icons.move_to_inbox_outlined,
+              S.orderPendingDeposit,
+              _pendingDeposit,
+              const SalesHistoryScreen(initialTab: 'pending_deposit'),
+              badgeColor: c.danger,
             ),
-            QuickActionButton(
-              icon: Icons.library_books_outlined,
-              label: S.myBooks,
-              badge: _stats.bookCount,
-              onTap: () => _openAndRefresh(const BookManageScreen()),
-            ),
-            QuickActionButton(
-              icon: Icons.qr_code_2_rounded,
-              label: S.shareProfile,
-              onTap: () => Navigator.push(
-                context,
-                PageRouteBuilder(
-                  opaque: false,
-                  barrierColor: Colors.transparent,
-                  pageBuilder: (_, _, _) => const ShareProfileScreen(),
-                ),
-              ),
-            ),
+            item(Icons.account_balance_wallet_outlined, S.wallets2, 0, const WalletScreen()),
+            item(Icons.bookmark_outline_rounded, S.saved, _stats.favoriteCount, const FavoritesScreen()),
           ],
         ),
       ),
@@ -376,15 +438,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           children: [
             AppMenuItem(
-              icon: Icons.edit_outlined,
-              title: S.editProfile,
-              onTap: () => _openAndRefresh(const EditProfileScreen()),
-            ),
-            AppMenuItem(
-              icon: Icons.bookmark_outline_rounded,
-              title: S.savedBooks,
-              trailingText: _stats.favoriteCount > 0 ? '${_stats.favoriteCount}' : null,
-              onTap: () => _openAndRefresh(const FavoritesScreen()),
+              icon: Icons.library_books_outlined,
+              title: S.myBooks,
+              trailingText: _stats.bookCount > 0 ? '${_stats.bookCount}' : null,
+              onTap: () => _openAndRefresh(const BookManageScreen()),
             ),
             AppMenuItem(
               icon: Icons.shopping_bag_outlined,
@@ -395,6 +452,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.inventory_2_outlined,
               title: S.sales,
               onTap: () => _openAndRefresh(const SalesHistoryScreen()),
+            ),
+            AppMenuItem(
+              icon: Icons.edit_outlined,
+              title: S.editProfile,
+              onTap: () => _openAndRefresh(const EditProfileScreen()),
+            ),
+            AppMenuItem(
+              icon: Icons.verified_user_outlined,
+              title: S.accountSecurity,
+              onTap: () => _openAndRefresh(const SecurityCenterScreen()),
             ),
             if (isAdmin)
               AppMenuItem(

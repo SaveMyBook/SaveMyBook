@@ -7,15 +7,11 @@ import '../widgets/app_buttons.dart';
 import '../widgets/state_views.dart';
 import '../i18n/strings.dart';
 
-/// 純 Flutter 的裁切畫面，不依賴任何原生套件。
-/// 使用者用雙指縮放／拖曳把想要的部分移進取景框，確認後直接把
-/// 取景框對應的原圖區域重繪成新的 PNG。
 class ImageCropScreen extends StatefulWidget {
   final String sourcePath;
 
   final double aspectRatio;
 
-  /// 取景框是否畫成圓形（只影響提示，輸出仍是方形圖）。
   final bool circular;
 
   final int outputSize;
@@ -67,9 +63,11 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
     }
   }
 
+  static const double _actionAreaHeight = 86;
+
   Size _viewportOf(BoxConstraints constraints) {
     final maxW = constraints.maxWidth - 32;
-    final maxH = constraints.maxHeight - 32;
+    final maxH = constraints.maxHeight - 32 - _actionAreaHeight;
     var width = maxW;
     var height = width / widget.aspectRatio;
     if (height > maxH) {
@@ -96,8 +94,6 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
   }
 
   Future<String> _render(ui.Image image, Size viewport) async {
-    // InteractiveViewer 的 child 就是 viewport 大小、內容用 cover 填滿，
-    // 所以先把「畫面上看得到的那塊」換算回 child 座標，再換算回原圖像素。
     final matrix = _controller.value;
     final scale = matrix.getMaxScaleOnAxis();
     final translation = matrix.getTranslation();
@@ -173,18 +169,21 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.close_rounded, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: _isSaving ? null : () => Navigator.pop(context),
                 ),
-                const Spacer(),
-                Text(
-                  S.adjustPhoto,
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                Expanded(
+                  child: Text(
+                    S.adjustPhoto,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
-                const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.restart_alt_rounded, color: Colors.white),
                   tooltip: S.reset,
-                  onPressed: () => _controller.value = Matrix4.identity(),
+                  onPressed: _isSaving ? null : () => _controller.value = Matrix4.identity(),
                 ),
               ],
             ),
@@ -193,7 +192,14 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
                 builder: (context, constraints) {
                   if (_error != null) {
                     return Center(
-                      child: Text(_error!, style: const TextStyle(color: Colors.white70)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.broken_image_outlined, color: Colors.white54, size: 48),
+                          const SizedBox(height: 12),
+                          Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+                        ],
+                      ),
                     );
                   }
 
@@ -230,7 +236,8 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
                           ),
                         ),
                       ),
-                      Padding(
+                      Container(
+                        height: _actionAreaHeight,
                         padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
                         child: PrimaryButton(
                           label: S.usePhoto,

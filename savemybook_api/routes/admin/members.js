@@ -7,8 +7,10 @@ const { badRequest, forbidden, notFound, conflict } = require('../../lib/errors'
 const { USER_ROLES } = require('../../constants/domain');
 const levels = require('../../services/levels');
 const { notify } = require('../../services/notify');
-const { logAction } = require('../../services/audit');
+const audit = require('../../services/audit');
 const push = require('../../services/push');
+const sessions = require('../../services/sessions');
+const { requireVerification } = require('../../services/security');
 
 const router = express.Router();
 const canManage = requireAdmin('members');
@@ -29,6 +31,31 @@ const PERMISSION_KEYS = [
 ];
 
 const MAX_BONUS = 1000000;
+
+const ROLE_LABELS = { buyer_seller: '一般會員', admin: '管理員' };
+
+const PERMISSION_LABELS = {
+  can_manage_members: '會員管理',
+  can_manage_levels: '會員等級',
+  can_manage_content: '內容管理',
+  can_manage_reports: '檢舉審核',
+  can_manage_orders: '訂單管理',
+  can_manage_transactions: '交易爭議',
+  can_manage_wallets: '錢包管理',
+  can_manage_cabinets: '書櫃管理',
+  can_manage_announcements: '公告與文件',
+  can_manage_support: '客服工單',
+  can_view_stats: '營運報表',
+  can_manage_system: '系統維運'
+};
+
+const onOff = (v) => (v ? '開啟' : '關閉');
+
+const STATUS_FIELDS = {
+  is_active: { label: '帳號啟用', format: (v) => (v ? '啟用' : '停權') },
+  is_blacklisted: { label: '黑名單', format: (v) => (v ? '列入' : '未列入') },
+  role: { label: '身分', format: (v) => ROLE_LABELS[v] ?? v }
+};
 
 const assertNotSelf = (req, userId, message) => {
   if (userId === req.user.userId) throw badRequest(message);
@@ -118,13 +145,12 @@ router.get('/members/:id', canManage, async (req, res) => {
       current_level: levels.levelFor(allLevels, points),
       levels: allLevels,
       permissions: Object.fromEntries(PERMISSION_KEYS.map((k) => [k, !!perms[k]])),
-      // 目前登入的管理員能不能開啟這項權限。App 用來把開不了的開關標成停用並說明原因。
       grantable: Object.fromEntries(PERMISSION_KEYS.map((k) => [k, !!viewer[k]]))
     }
   });
 });
 
-router.post('/members/:id/reset-password', canManage, async (req, res) => {
+router.post('/members/:id/reset-password', canManage, requireVerification('sensitive'), async (req, res) => {
   const userId = v.id(req.params.id, '會員編號');
   assertNotSelf(req, userId, '不能重設自己的密碼，請用「更改密碼」');
 
@@ -134,8 +160,7 @@ router.post('/members/:id/reset-password', canManage, async (req, res) => {
   });
   if (!user) throw notFound('找不到這位會員');
 
-  // 擋掉管理員互相重設密碼：否則任何有會員權限的人都能接管其他管理員的帳號，
-  // 等於繞過所有權限設定。
+  // 禁止重設其他管理員的密碼，否則有會員權限者可接管管理員帳號。
   if (user.role === 'admin') throw forbidden('不能重設其他管理員的密碼');
   if (user.anonymized_at) throw conflict('這個帳號已刪除');
 
@@ -153,14 +178,22 @@ router.post('/members/:id/reset-password', canManage, async (req, res) => {
       content: '客服已為你重設登入密碼。請用客服提供的臨時密碼登入，'
         + '並立即到「設定 → 更改密碼」改成你自己的密碼。',
       relatedId: userId,
-      relatedType: 'user'
+      relatedType: 'password'
     });
   });
 
   await push.removeUserDevices(userId);
+  await sessions.revokeAll(userId);
 
-  // 臨時密碼本身不進操作紀錄——紀錄是給稽核看的，不該存明文密碼。
-  await logAction(req.user.userId, '重設會員密碼', 'user', userId, user.nickname);
+  // 臨時密碼不可寫進操作紀錄。
+  await audit.record(null, {
+    adminId: req.user.userId,
+    action: '重設會員密碼',
+    targetType: 'user',
+    targetId: userId,
+    summary: `重設了 ${user.nickname} 的登入密碼，並登出該帳號的所有裝置`,
+    req
+  });
 
   res.set('Cache-Control', 'no-store');
   res.status(200).json({
@@ -182,7 +215,10 @@ router.patch('/members/:id', canManage, async (req, res) => {
   };
   if (Object.keys(data).length === 0) throw badRequest('沒有要變更的欄位');
 
-  const target = await prisma.users.findUnique({ where: { user_id: userId }, select: { anonymized_at: true } });
+  const target = await prisma.users.findUnique({
+    where: { user_id: userId },
+    select: { anonymized_at: true, nickname: true, email: true, is_active: true, is_blacklisted: true, role: true }
+  });
   if (!target) throw notFound('找不到該會員');
   if (target.anonymized_at) throw conflict('這個帳號已刪除，無法變更狀態');
 
@@ -192,7 +228,19 @@ router.patch('/members/:id', canManage, async (req, res) => {
     select: { user_id: true, nickname: true, role: true, is_active: true, is_blacklisted: true }
   });
 
-  await logAction(req.user.userId, '變更會員狀態', 'user', userId, JSON.stringify(data));
+  const changes = audit.diff(target, updated, STATUS_FIELDS);
+  if (changes.length) {
+    await audit.record(null, {
+      adminId: req.user.userId,
+      action: '變更會員狀態',
+      targetType: 'user',
+      targetId: userId,
+      summary: `變更了 ${target.nickname}（${target.email}）的${changes.map((c) => c.label).join('、')}`,
+      changes,
+      undo: [audit.undoUpdate('users', userId, target, updated, STATUS_FIELDS)],
+      req
+    });
+  }
   res.status(200).json({ success: true, message: '會員狀態已更新', data: updated });
 });
 
@@ -220,7 +268,6 @@ router.patch('/members/:id/level', canManage, async (req, res) => {
   } else {
     const level = await prisma.member_levels.findUnique({ where: { level_id: v.id(levelId, '等級編號') } });
     if (!level) throw notFound('找不到這個等級');
-    // 把補正值調到剛好踩在該等級的門檻上。
     bonus = level.min_points - basePoints;
     detail = `指定等級：${level.level_name}`;
   }
@@ -234,15 +281,26 @@ router.patch('/members/:id/level', canManage, async (req, res) => {
       userId,
       title: '會員等級已調整',
       content: `客服調整了您的會員等級（${detail}），目前點數 ${points}。`,
-      relatedType: 'user'
+      relatedType: 'member_level'
     });
   });
 
-  await logAction(req.user.userId, '調整會員等級', 'user', userId, detail);
+  const nickname = (await prisma.users.findUnique({ where: { user_id: userId }, select: { nickname: true } }))?.nickname;
+  const bonusField = { bonus_points: '手動補正點數' };
+  await audit.record(null, {
+    adminId: req.user.userId,
+    action: '調整會員等級',
+    targetType: 'user',
+    targetId: userId,
+    summary: `調整了 ${nickname} 的會員等級（${detail}），目前點數 ${points}`,
+    changes: audit.diff(user, { bonus_points: bonus }, bonusField),
+    undo: [audit.undoUpdate('users', userId, user, { bonus_points: bonus }, bonusField)],
+    req
+  });
   res.status(200).json({ success: true, message: '已調整等級', data: { points, bonus_points: bonus } });
 });
 
-router.put('/members/:id/permissions', canManage, async (req, res) => {
+router.put('/members/:id/permissions', canManage, requireVerification('sensitive'), async (req, res) => {
   const userId = v.id(req.params.id, '會員編號');
   assertNotSelf(req, userId, '無法變更自己的權限');
 
@@ -252,14 +310,15 @@ router.put('/members/:id/permissions', canManage, async (req, res) => {
   }
   if (Object.keys(data).length === 0) throw badRequest('沒有要更新的權限');
 
-  const [target, mine] = await Promise.all([
-    prisma.users.findUnique({ where: { user_id: userId }, select: { role: true } }),
-    prisma.admin_permissions.findUnique({ where: { user_id: req.user.userId } })
+  const [target, mine, before] = await Promise.all([
+    prisma.users.findUnique({ where: { user_id: userId }, select: { role: true, nickname: true } }),
+    prisma.admin_permissions.findUnique({ where: { user_id: req.user.userId } }),
+    prisma.admin_permissions.findUnique({ where: { user_id: userId } })
   ]);
   if (!target) throw notFound('找不到該會員');
   if (target.role !== 'admin') throw badRequest('只有管理員帳號才需要設定細部權限');
 
-  // 不能把自己沒有的權限開給別人，否則只有會員權限的管理員可以替同夥開全部權限。
+  // 不能開啟自己沒有的權限，否則可替他人提權。
   const granter = requireAdmin.effectivePermissions(mine);
   const beyond = Object.keys(data).filter((k) => data[k] && !granter[k]);
   if (beyond.length) {
@@ -268,13 +327,26 @@ router.put('/members/:id/permissions', canManage, async (req, res) => {
       : '不能開啟你自己沒有的權限');
   }
 
-  await prisma.admin_permissions.upsert({
+  const after = await prisma.admin_permissions.upsert({
     where: { user_id: userId },
     update: data,
     create: { user_id: userId, ...data }
   });
 
-  await logAction(req.user.userId, '調整管理員權限', 'user', userId, JSON.stringify(data));
+  const fields = Object.fromEntries(Object.keys(data).map((k) => [k, { label: PERMISSION_LABELS[k], format: onOff }]));
+  const changes = audit.diff(requireAdmin.effectivePermissions(before), after, fields);
+  await audit.record(null, {
+    adminId: req.user.userId,
+    action: '調整管理員權限',
+    targetType: 'user',
+    targetId: userId,
+    summary: changes.length
+      ? `調整了 ${target.nickname} 的後台權限：${changes.map((c) => `${c.label}${c.to}`).join('、')}`
+      : `重新儲存了 ${target.nickname} 的後台權限（沒有實際變動）`,
+    changes,
+    undo: changes.length ? [audit.undoUpdate('admin_permissions', userId, before, after, fields)] : null,
+    req
+  });
   res.status(200).json({ success: true, message: '已更新權限' });
 });
 

@@ -33,26 +33,47 @@ class FaqItem {
 }
 
 class LegalDoc {
+  final int docId;
   final String key;
   final String title;
   final String content;
+
+  final int version;
   final DateTime? updatedAt;
 
   LegalDoc({
     required this.key,
     required this.title,
     required this.content,
+    this.docId = 0,
+    this.version = 1,
     this.updatedAt,
   });
 
   factory LegalDoc.fromJson(Map<String, dynamic> json) {
     return LegalDoc(
+      docId: parseInt(json['doc_id']),
       key: json['doc_key'] as String? ?? '',
       title: json['title'] as String? ?? '',
       content: json['content'] as String? ?? '',
+      version: json['version'] == null ? 1 : parseInt(json['version']),
       updatedAt: parseDate(json['updated_at']),
     );
   }
+}
+
+class NotificationSettings {
+  final bool order;
+  final bool message;
+  final bool promotion;
+
+  const NotificationSettings({this.order = true, this.message = true, this.promotion = true});
+
+  factory NotificationSettings.fromJson(Map<String, dynamic> json) => NotificationSettings(
+        order: json['order'] != false,
+        message: json['message'] != false,
+        promotion: json['promotion'] != false,
+      );
 }
 
 class TicketMessage {

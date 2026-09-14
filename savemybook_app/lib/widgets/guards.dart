@@ -5,16 +5,10 @@ import '../utils/app_colors.dart';
 import '../utils/motion.dart';
 import '../i18n/strings.dart';
 
-/// 有未儲存的內容時攔下返回。
-///
-/// 直接用 PopScope 要在每個畫面重寫一次「問要不要捨棄、使用者說要才 pop」，
-/// 而且 canPop 與 onPopInvokedWithResult 的搭配很容易寫錯——canPop 給 false
-/// 會連 iOS 的左滑返回一起關掉。集中在這裡實作一次。
 class UnsavedGuard extends StatelessWidget {
   final bool isDirty;
   final Widget child;
 
-  /// 覆寫提示文字。預設是「捨棄變更？／這份內容有尚未儲存的修改」。
   final String? message;
 
   const UnsavedGuard({
@@ -38,7 +32,6 @@ class UnsavedGuard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      // 沒有未存的東西就完全不攔，左滑返回維持原本的手感。
       canPop: !isDirty,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
@@ -50,10 +43,6 @@ class UnsavedGuard extends StatelessWidget {
   }
 }
 
-/// 看起來停用、但按下去會說明為什麼。
-///
-/// 直接把 onTap 設成 null 的話，使用者只會看到一個沒反應的按鈕，
-/// 分不出是「不能按」還是「壞掉了」。這裡照樣吃掉點擊，但回一句原因。
 class DisabledHint extends StatelessWidget {
   final bool disabled;
   final String reason;
@@ -80,8 +69,6 @@ class DisabledHint extends StatelessWidget {
           opacity: 0.45,
           duration: Motion.base,
           curve: Motion.standard,
-          // AbsorbPointer 在內層：外面的 GestureDetector 仍收得到點擊，
-          // 裡面的按鈕收不到。
           child: AbsorbPointer(child: child),
         ),
       ),
@@ -89,10 +76,6 @@ class DisabledHint extends StatelessWidget {
   }
 }
 
-/// 表單底部的「還差什麼」提示。
-///
-/// 按下去才用 snackbar 說「請填書名」，使用者得先撞一次牆才知道。
-/// 把未完成的項目直接列在送出鍵上方，填的過程就看得到還剩什麼。
 class MissingHint extends StatelessWidget {
   final List<String> missing;
 
@@ -125,6 +108,82 @@ class MissingHint extends StatelessWidget {
                     child: Text(
                       S.stillNeededP0(text),
                       style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+}
+
+class PasswordStrengthMeter extends StatelessWidget {
+  final String password;
+
+  const PasswordStrengthMeter({super.key, required this.password});
+
+  static int scoreOf(String value) {
+    if (value.isEmpty) return 0;
+    var score = 0;
+    if (value.length >= 8) score++;
+    if (value.length >= 12) score++;
+    if (RegExp(r'[A-Za-z]').hasMatch(value) && RegExp(r'[0-9]').hasMatch(value)) score++;
+    if (RegExp(r'[^A-Za-z0-9]').hasMatch(value) ||
+        (RegExp(r'[a-z]').hasMatch(value) && RegExp(r'[A-Z]').hasMatch(value))) {
+      score++;
+    }
+    return score.clamp(1, 4);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final score = scoreOf(password);
+    final colors = [c.danger, c.danger, c.warning, c.success, c.success];
+    final label = switch (score) {
+      0 => '',
+      1 => S.weak,
+      2 => S.fair,
+      3 => S.conditionFair,
+      _ => S.strong,
+    };
+
+    return AnimatedSize(
+      duration: Motion.base,
+      curve: Motion.emphasized,
+      alignment: Alignment.topCenter,
+      child: score == 0
+          ? const SizedBox(width: double.infinity)
+          : Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Row(
+                children: [
+                  for (var i = 0; i < 4; i++) ...[
+                    Expanded(
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 220 + i * 60),
+                        curve: Curves.easeOut,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: i < score ? colors[score] : c.inputFill,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    ),
+                    if (i != 3) const SizedBox(width: 4),
+                  ],
+                  const SizedBox(width: 10),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 34, maxWidth: 72),
+                    child: AnimatedSwitcher(
+                      duration: Motion.micro,
+                      child: Text(
+                        label,
+                        key: ValueKey(score),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors[score]),
+                      ),
                     ),
                   ),
                 ],

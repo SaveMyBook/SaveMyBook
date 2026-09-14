@@ -86,7 +86,6 @@ const render = ({ title, body }) => `<!doctype html>
 
 const BRAND = '<div class="brand">救「舊」我的書</div>';
 
-/// 自訂 scheme 叫不起 App 時（沒安裝）瀏覽器不會報錯，只能看頁面有沒有被切到背景來判斷。
 const openAppButton = (deepLink, hint) => `
   <button class="btn" id="open-app" type="button">
     在 App 中開啟
@@ -112,7 +111,6 @@ const openAppButton = (deepLink, hint) => `
 
 const CONDITION_TEXT = { like_new: '近全新', good: '良好', fair: '普通', poor: '待修補' };
 
-/// 只接受站內相對路徑或 http(s) 絕對網址，其他一律不輸出圖片。
 const imageUrl = (origin, url) => {
   if (typeof url !== 'string' || !url) return null;
   if (/^https?:\/\//i.test(url)) return url;

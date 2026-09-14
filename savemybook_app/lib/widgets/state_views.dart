@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../utils/motion.dart';
 import 'animations.dart';
+import '../i18n/strings.dart';
 
 enum LoadingStyle { spinner, list, grid, menu }
 
@@ -14,8 +15,6 @@ class LoadingView extends StatelessWidget {
 
   const LoadingView.grid({super.key}) : style = LoadingStyle.grid;
 
-  /// 統計卡 + 分組選單的版面（後台首頁、會員中心）。骨架要對得上實際內容，
-  /// 否則載入完的瞬間整個版面會重排，比沒有骨架還糟。
   const LoadingView.menu({super.key}) : style = LoadingStyle.menu;
 
   @override
@@ -177,6 +176,8 @@ class EmptyView extends StatelessWidget {
   final String message;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final String? title;
+  final IconData? actionIcon;
 
   const EmptyView({
     super.key,
@@ -184,6 +185,8 @@ class EmptyView extends StatelessWidget {
     required this.message,
     this.actionLabel,
     this.onAction,
+    this.title,
+    this.actionIcon,
   });
 
   @override
@@ -200,9 +203,8 @@ class EmptyView extends StatelessWidget {
               offsetY: 14,
               child: Breathe(
                 child: AnimatedContainer(
-        duration: Motion.base,
-        curve: Motion.standard,
-
+                  duration: Motion.base,
+                  curve: Motion.standard,
                   width: 104,
                   height: 104,
                   decoration: BoxDecoration(
@@ -219,6 +221,19 @@ class EmptyView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            if (title != null) ...[
+              FadeSlideIn(
+                index: 1,
+                stagger: const Duration(milliseconds: 90),
+                offsetY: 12,
+                child: Text(
+                  title!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: c.textPrimary, fontSize: 17, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 6),
+            ],
             FadeSlideIn(
               index: 1,
               stagger: const Duration(milliseconds: 90),
@@ -240,10 +255,20 @@ class EmptyView extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: c.accent,
                     foregroundColor: Colors.white,
+                    elevation: 0,
                     padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text(actionLabel!),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (actionIcon != null) ...[
+                        Icon(actionIcon, size: 18),
+                        const SizedBox(width: 6),
+                      ],
+                      Flexible(child: Text(actionLabel!, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -289,7 +314,6 @@ class _AppCardState extends State<AppCard> {
         scale: _pressed ? 0.975 : 1.0,
         duration: const Duration(milliseconds: 130),
         curve: Curves.easeOut,
-        // 陰影必須畫在最外層：畫在 Material 內層時會在卡片邊緣內側描出一圈灰邊。
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
@@ -353,30 +377,35 @@ class BookThumbnail extends StatelessWidget {
   }
 }
 
-/// 首頁的浮動導覽列還在畫面上時為 true；由 HomeScreen 自己維護。
-/// SnackBar 是掛在 app 層級的 ScaffoldMessenger，不會自己避開導覽列。
 bool kBottomNavVisible = false;
 
-void showAppSnackBar(BuildContext context, String message, {bool isError = false}) {
+void showAppSnackBar(
+  BuildContext context,
+  String message, {
+  bool isError = false,
+  String? actionLabel,
+  VoidCallback? onAction,
+  Duration? duration,
+}) {
   final c = AppColors.of(context);
   final overlapsNav = kBottomNavVisible && (ModalRoute.of(context)?.isFirst ?? false);
   final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-  // 浮動 SnackBar 本身已經會避開下方安全區，這裡只要再補導覽列的高度。
   final bottomMargin = bottomInset > 0 ? 16.0 : (overlapsNav ? 74.0 : 16.0);
   final tint = isError ? c.danger : c.success;
+  final messenger = ScaffoldMessenger.of(context);
+  final hasAction = actionLabel != null && onAction != null;
 
-  ScaffoldMessenger.of(context)
+  messenger
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        // 改用 App 的卡片語彙，取代 Material 預設的深色膠囊。
         backgroundColor: Colors.transparent,
         elevation: 0,
         padding: EdgeInsets.zero,
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.fromLTRB(16, 0, 16, bottomMargin),
-        duration: const Duration(milliseconds: 2600),
+        duration: duration ?? Duration(milliseconds: hasAction ? 4200 : 2600),
         content: Container(
           padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
           decoration: BoxDecoration(
@@ -414,6 +443,22 @@ void showAppSnackBar(BuildContext context, String message, {bool isError = false
                   ),
                 ),
               ),
+              if (hasAction) ...[
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () {
+                    messenger.hideCurrentSnackBar();
+                    onAction();
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: c.accent,
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(actionLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
             ],
           ),
         ),
@@ -421,11 +466,6 @@ void showAppSnackBar(BuildContext context, String message, {bool isError = false
     );
 }
 
-/// 全 App 統一的網路圖片。
-///
-/// 佔位刻意做得很安靜：只有一層極淡的漸層，沒有掃光也沒有大圖示。
-/// 一個網格同時載入十幾張書封時，十幾塊閃動的灰底比空白還吵。
-/// 書本圖示只留給「真的沒有圖」的狀態，這樣它才有意義。
 class AppNetworkImage extends StatelessWidget {
   final String? url;
   final BoxFit fit;
@@ -451,7 +491,6 @@ class AppNetworkImage extends StatelessWidget {
     final c = AppColors.of(context);
     final base = background ?? c.inputFill;
 
-    // 等圖進來的底色。上深下淺一點點，比純色塊有厚度，但低到不會被當成內容。
     Widget placeholder() => Container(
           width: width,
           height: height,
@@ -467,7 +506,6 @@ class AppNetworkImage extends StatelessWidget {
           ),
         );
 
-    // 沒有圖或載入失敗才顯示書本圖示。
     Widget fallback() => Container(
           width: width,
           height: height,
@@ -488,8 +526,6 @@ class AppNetworkImage extends StatelessWidget {
       width: width,
       height: height,
       errorBuilder: (_, _, _) => fallback(),
-      // 只用 frameBuilder。同時掛 loadingBuilder 的話，圖解碼完的瞬間
-      // 佔位會被整個換掉，中間會閃一格空白。
       frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
         if (wasSynchronouslyLoaded) return child;
         final loaded = frame != null;
@@ -498,8 +534,6 @@ class AppNetworkImage extends StatelessWidget {
           fit: StackFit.passthrough,
           children: [
             placeholder(),
-            // 純淡入，不做縮放。書封被 ClipRRect 切過，再加縮放會看起來
-            // 像是在框裡晃一下才停住。
             AnimatedOpacity(
               opacity: loaded ? 1 : 0,
               duration: Motion.base,
@@ -513,3 +547,167 @@ class AppNetworkImage extends StatelessWidget {
   }
 }
 
+
+class ErrorView extends StatelessWidget {
+  final String? message;
+  final VoidCallback? onRetry;
+  final IconData icon;
+  final String? retryLabel;
+
+  const ErrorView({
+    super.key,
+    this.message,
+    this.onRetry,
+    this.icon = Icons.cloud_off_rounded,
+    this.retryLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return EmptyView(
+      icon: icon,
+      message: message ?? S.loadFailed,
+      actionLabel: onRetry == null ? null : (retryLabel ?? S.retry),
+      actionIcon: Icons.refresh_rounded,
+      onAction: onRetry,
+    );
+  }
+}
+
+class RefreshableCenter extends StatelessWidget {
+  final Widget child;
+  final Future<void> Function() onRefresh;
+
+  const RefreshableCenter({super.key, required this.child, required this.onRefresh});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return RefreshIndicator(
+      color: c.accent,
+      onRefresh: onRefresh,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(child: child),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SuccessView extends StatelessWidget {
+  final String title;
+  final String? message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final VoidCallback? onAnimationDone;
+
+  const SuccessView({
+    super.key,
+    required this.title,
+    this.message,
+    this.actionLabel,
+    this.onAction,
+    this.onAnimationDone,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DrawnCheck(color: c.success, size: 104, haptic: true, onCompleted: onAnimationDone),
+            const SizedBox(height: 24),
+            FadeSlideIn(
+              index: 3,
+              stagger: const Duration(milliseconds: 90),
+              offsetY: 12,
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
+              ),
+            ),
+            if (message != null) ...[
+              const SizedBox(height: 8),
+              FadeSlideIn(
+                index: 4,
+                stagger: const Duration(milliseconds: 90),
+                offsetY: 12,
+                child: Text(
+                  message!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, height: 1.6, color: c.textSecondary),
+                ),
+              ),
+            ],
+            if (actionLabel != null) ...[
+              const SizedBox(height: 28),
+              FadeSlideIn(
+                index: 5,
+                stagger: const Duration(milliseconds: 90),
+                offsetY: 12,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: onAction,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: c.accent,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: Text(actionLabel!, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MonthHeader extends StatelessWidget {
+  final String label;
+  final String? trailing;
+
+  const MonthHeader({super.key, required this.label, this.trailing});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
+      child: Row(
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: Divider(color: c.divider, height: 1)),
+          if (trailing != null) ...[
+            const SizedBox(width: 10),
+            Text(trailing!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textHint)),
+          ],
+        ],
+      ),
+    );
+  }
+}

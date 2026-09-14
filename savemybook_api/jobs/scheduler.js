@@ -2,12 +2,16 @@ const { env } = require('../config/env');
 const { processDueDeletions } = require('../services/account');
 const backup = require('../services/backup');
 const push = require('../services/push');
+const maintenance = require('../lib/maintenance');
+const sessions = require('../services/sessions');
+const reservations = require('../services/reservations');
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
 const BACKUP_EVERY = 24 * HOUR;
 
 const runDeletionSweep = async () => {
+  if (maintenance.current().active) return;
   try {
     const count = await processDueDeletions();
     if (count > 0) console.log(`🗑️  已檢查 ${count} 個逾期帳號`);
@@ -16,13 +20,9 @@ const runDeletionSweep = async () => {
   }
 };
 
-/// 每小時檢查一次「距離上次成功備份是否超過 24 小時」。
-///
-/// 過去是 setInterval(備份, 24 小時)：計時從行程啟動算起，只要服務在 24 小時內
-/// 重啟過（部署、pm2 自動重啟、當機），計時就歸零，備份永遠不會執行。
-/// 失敗後至少隔一小時才重試，避免設定錯誤時每次重啟都塞一筆失敗紀錄。
+// 依上次成功備份時間判斷，不用 setInterval(24h)：重啟會讓計時歸零而永遠不備份。
 const runBackupIfDue = async () => {
-  if (!env.backupEnabled) return;
+  if (!env.backupEnabled || maintenance.current().active) return;
   try {
     const lastSuccess = await backup.lastSuccessAt();
     if (lastSuccess && Date.now() - lastSuccess.getTime() < BACKUP_EVERY) return;
@@ -39,15 +39,23 @@ const runBackupIfDue = async () => {
 };
 
 const runDeviceCleanup = async () => {
-  if (!push.isReady()) return;
   try {
-    await push.removeStaleDevices();
+    if (push.isReady()) await push.removeStaleDevices();
+    await sessions.removeStale();
   } catch (err) {
-    console.error('[清理推播裝置失敗]:', err.message);
+    console.error('[清理裝置失敗]:', err.message);
   }
 };
 
-/// 回傳停止函式，關機時要清掉，否則行程會卡在計時器上無法結束。
+const runReservationExpiry = async () => {
+  if (maintenance.current().active) return;
+  try {
+    await reservations.expireDue();
+  } catch (err) {
+    console.error('[預約到期處理失敗]:', err.message);
+  }
+};
+
 const startScheduler = () => {
   let stopDispatcher = () => {};
   push.init()
@@ -58,8 +66,9 @@ const startScheduler = () => {
     setInterval(runDeviceCleanup, 24 * HOUR),
     setInterval(runDeletionSweep, HOUR),
     setInterval(runBackupIfDue, HOUR),
+    setInterval(runReservationExpiry, 5 * MINUTE),
+    setTimeout(runReservationExpiry, MINUTE),
     setTimeout(runDeletionSweep, 30 * 1000),
-    // 啟動後稍等再檢查備份，讓資料庫連線與流量先穩定下來。重啟時若 24 小時內已備份過就不會重複備份。
     setTimeout(runBackupIfDue, 2 * MINUTE)
   ];
 

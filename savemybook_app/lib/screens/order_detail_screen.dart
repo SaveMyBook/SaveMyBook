@@ -5,10 +5,15 @@ import '../services/api_service.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
 import '../widgets/animations.dart';
+import '../widgets/app_buttons.dart';
+import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_tiles.dart';
+import '../widgets/buyer/pickup_code_card.dart';
 import '../widgets/state_views.dart';
 import 'book_detail_screen.dart';
+import 'pickup_success_screen.dart';
+import 'purchase_history_screen.dart';
 import '../utils/app_labels.dart';
 import '../utils/motion.dart';
 import '../i18n/strings.dart';
@@ -47,16 +52,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   int get _flowIndex {
-    final index = _flow.indexWhere((f) => f.status == _order.status);
-    if (_order.status == 'completed') return _flow.length - 1;
-    return index;
+    if (_order.status == 'pending_payment') return 0;
+    return _flow.indexWhere((f) => f.status == _order.status);
   }
 
   bool get _isClosed =>
-      _order.status == 'cancelled' ||
-      _order.status == 'refunded' ||
-      _order.status == 'refunding';
+      _order.status == 'cancelled' || _order.status == 'refunded' || _order.status == 'refunding';
 
+  bool get _showPickupCode =>
+      !widget.asSeller &&
+      (_order.pickupCode?.isNotEmpty ?? false) &&
+      !_isClosed &&
+      _order.status != 'completed';
+
+  String? _stepHint(String status) {
+    switch (status) {
+      case 'pending_deposit':
+        return widget.asSeller ? S.pleasePutBookAssignedLockerSoon : S.weLlLetKnowWhenSeller;
+      case 'deposited':
+      case 'pending_pickup':
+        return widget.asSeller ? S.waitingBuyerCollect : S.bookLockerEnterPickupCodeCollect;
+      case 'completed':
+        return S.transactionCompleteThank;
+    }
+    return null;
+  }
 
   Future<void> _copy(String value, String label) async {
     await Clipboard.setData(ClipboardData(text: value));
@@ -65,9 +85,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     showAppSnackBar(context, S.copied(label));
   }
 
+  Future<void> _confirmCollected() async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: S.iCollected,
+      message: S.confirmVeTakenBookFromLocker,
+      confirmLabel: S.confirm,
+      icon: Icons.inventory_2_outlined,
+    );
+    if (!confirmed || !mounted) return;
+
+    final error = await runBusy(context, () => _api.updateOrderStatus(_order.orderId, 'completed'));
+    if (!mounted) return;
+    if (error != null) {
+      showAppSnackBar(context, error, isError: true);
+      _load();
+      return;
+    }
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => PickupSuccessScreen(order: _order)));
+    if (mounted) _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final canCollect = !widget.asSeller && canCollectOrder(_order);
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -79,19 +121,44 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               color: c.accent,
               onRefresh: _load,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).padding.bottom + 40),
                 children: [
                   FadeSlideIn(child: _buildStatusCard(c)),
+                  Reveal(
+                    visible: _showPickupCode,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 14),
+                      child: _showPickupCode
+                          ? PickupCodeCard(
+                              code: _order.pickupCode!,
+                              slotNumber: _order.slotNumber,
+                              caption: _order.cabinetName.isEmpty
+                                  ? S.enterCodeLockerCollect
+                                  : S.enterCodeCollect(_order.cabinetName),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ),
                   const SizedBox(height: 14),
-                  if (!_isClosed) ...[
-                    FadeSlideIn(index: 1, child: _buildFlowCard(c)),
-                    const SizedBox(height: 14),
-                  ],
+                  FadeSlideIn(index: 1, child: _buildFlowCard(c)),
+                  const SizedBox(height: 14),
                   FadeSlideIn(index: 2, child: _buildItemsCard(c)),
                   const SizedBox(height: 14),
                   FadeSlideIn(index: 3, child: _buildPickupCard(c)),
                   const SizedBox(height: 14),
                   FadeSlideIn(index: 4, child: _buildInfoCard(c)),
+                  Reveal(
+                    visible: canCollect,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: PrimaryButton(
+                        label: S.iCollected,
+                        icon: Icons.check_rounded,
+                        onPressed: canCollect ? _confirmCollected : null,
+                      ),
+                    ),
+                  ),
                   if (_isLoading) ...[
                     const SizedBox(height: 20),
                     Center(
@@ -112,6 +179,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildStatusCard(AppColors c) {
+    final color = c.orderStatusColor(_order.status);
+    final label = AppLabels.order(_order.status, asBuyer: !widget.asSeller);
+
     return AppCard(
       child: Row(
         children: [
@@ -119,12 +189,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: c.orderStatusColor(_order.status).withValues(alpha: 0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
-              _isClosed ? Icons.info_outline_rounded : Icons.local_shipping_outlined,
-              color: c.orderStatusColor(_order.status),
+              _isClosed
+                  ? Icons.info_outline_rounded
+                  : _order.status == 'completed'
+                      ? Icons.task_alt_rounded
+                      : Icons.local_shipping_outlined,
+              color: color,
             ),
           ),
           const SizedBox(width: 14),
@@ -133,18 +207,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  _order.statusText,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: c.orderStatusColor(_order.status),
+                SwitchIn(
+                  child: Text(
+                    label,
+                    key: ValueKey(_order.status),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
                   ),
                 ),
                 const SizedBox(height: 2),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onLongPress: () => _copy(_order.orderNo, S.orderNumber),
+                  onTap: () => _copy(_order.orderNo, S.orderNumber),
                   child: Row(
                     children: [
                       Flexible(
@@ -170,6 +243,32 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildFlowCard(AppColors c) {
     final current = _flowIndex;
+    final steps = <({String label, bool done, bool active, bool failed, String? hint})>[];
+
+    if (_isClosed) {
+      final reached = _order.status == 'cancelled' ? 0 : _flow.length - 1;
+      for (var i = 0; i <= reached; i++) {
+        steps.add((label: _flow[i].label, done: true, active: false, failed: false, hint: null));
+      }
+      steps.add((
+        label: AppLabels.order(_order.status, asBuyer: !widget.asSeller),
+        done: true,
+        active: true,
+        failed: true,
+        hint: null,
+      ));
+    } else {
+      for (var i = 0; i < _flow.length; i++) {
+        final active = i == current;
+        steps.add((
+          label: _flow[i].label,
+          done: i <= current,
+          active: active,
+          failed: false,
+          hint: active ? _stepHint(_flow[i].status) : null,
+        ));
+      }
+    }
 
     return AppCard(
       child: Column(
@@ -177,54 +276,82 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           SectionHeading(title: S.orderProgress),
           const SizedBox(height: 16),
-          for (var i = 0; i < _flow.length; i++)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  children: [
-                    AnimatedContainer(
-                      duration: Duration(milliseconds: 300 + i * 80),
-                      curve: Curves.easeOut,
-                      width: 18,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        color: i <= current ? c.accent : Colors.transparent,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: i <= current ? c.accent : c.divider,
-                          width: 2,
-                        ),
-                      ),
-                      child: i <= current
-                          ? const Icon(Icons.check_rounded, size: 11, color: Colors.white)
-                          : null,
-                    ),
-                    if (i != _flow.length - 1)
-                      AnimatedContainer(
-        duration: Motion.base,
-        curve: Motion.standard,
+          for (var i = 0; i < steps.length; i++) _buildStep(c, steps[i], i, isLast: i == steps.length - 1),
+        ],
+      ),
+    );
+  }
 
-                        width: 2,
-                        height: 26,
-                        color: i < current ? c.accent : c.divider,
-                      ),
-                  ],
-                ),
-                const SizedBox(width: 12),
-                Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: Text(
-                    _flow[i].label,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: i == current ? FontWeight.bold : FontWeight.normal,
-                      color: i <= current ? c.textPrimary : c.textHint,
+  Widget _buildStep(
+    AppColors c,
+    ({String label, bool done, bool active, bool failed, String? hint}) step,
+    int index, {
+    required bool isLast,
+  }) {
+    final tint = step.failed ? c.danger : c.accent;
+    final dot = AnimatedContainer(
+      duration: Duration(milliseconds: 300 + index * 80),
+      curve: Motion.enterCurve,
+      width: step.active ? 22 : 18,
+      height: step.active ? 22 : 18,
+      decoration: BoxDecoration(
+        color: step.done ? tint : Colors.transparent,
+        shape: BoxShape.circle,
+        border: Border.all(color: step.done ? tint : c.divider, width: 2),
+        boxShadow: step.active
+            ? [BoxShadow(color: tint.withValues(alpha: 0.35), blurRadius: 10, spreadRadius: 1)]
+            : null,
+      ),
+      child: step.done
+          ? Icon(step.failed ? Icons.close_rounded : Icons.check_rounded, size: step.active ? 13 : 11, color: Colors.white)
+          : null,
+    );
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 24,
+            child: Column(
+              children: [
+                step.active && !step.failed ? Breathe(amount: 0.08, period: const Duration(milliseconds: 1800), child: dot) : dot,
+                if (!isLast)
+                  Expanded(
+                    child: Container(
+                      width: 2,
+                      margin: const EdgeInsets.symmetric(vertical: 2),
+                      constraints: const BoxConstraints(minHeight: 18),
+                      color: step.done && !step.active ? c.accent : c.divider,
                     ),
                   ),
-                ),
               ],
             ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(top: step.active ? 2 : 0, bottom: isLast ? 0 : 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    step.label,
+                    style: TextStyle(
+                      fontSize: step.active ? 14 : 13,
+                      fontWeight: step.active ? FontWeight.bold : FontWeight.normal,
+                      color: step.failed ? c.danger : (step.done ? c.textPrimary : c.textHint),
+                    ),
+                  ),
+                  if (step.hint != null) ...[
+                    const SizedBox(height: 3),
+                    Text(step.hint!, style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary)),
+                  ],
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -243,19 +370,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             for (final item in _order.items) ...[
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => BookDetailScreen(book: item.book)),
-                ),
+                onTap: item.book.bookId == 0
+                    ? null
+                    : () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BookDetailScreen(book: item.book, heroTag: 'order_item_${item.itemId}'),
+                          ),
+                        ),
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Row(
                     children: [
-                      BookThumbnail(
-                        imageUrl: item.book.hasImage ? item.book.imageUrl : null,
-                        width: 52,
-                        height: 68,
-                        radius: 8,
+                      Hero(
+                        tag: 'order_item_${item.itemId}',
+                        child: BookThumbnail(
+                          imageUrl: item.book.hasImage ? item.book.imageUrl : null,
+                          width: 52,
+                          height: 68,
+                          radius: 8,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -267,12 +401,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               item.book.title,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: c.textPrimary,
-                                height: 1.3,
-                              ),
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.3),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -282,13 +411,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Text(
                         '\$${item.subtotal.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: c.textPrimary,
-                        ),
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
                       ),
                     ],
                   ),
@@ -299,13 +425,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Row(
             children: [
               Text(S.orderTotal, style: TextStyle(fontSize: 14, color: c.textSecondary)),
-              const Spacer(),
-              Text(
-                '\$${_order.totalAmount.toStringAsFixed(0)}',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: c.accent,
+              const SizedBox(width: 12),
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '\$${_order.totalAmount.toStringAsFixed(0)}',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: c.accent),
+                  ),
                 ),
               ),
             ],
@@ -316,43 +444,55 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildPickupCard(AppColors c) {
+    final address = [_order.cabinetName, _order.cabinetAddress].where((s) => s.isNotEmpty).join(' ');
+
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionHeading(title: S.pickupDetails),
+          Row(
+            children: [
+              Expanded(child: SectionHeading(title: S.pickupDetails)),
+              if (_order.cabinetAddress.isNotEmpty)
+                TextButton.icon(
+                  onPressed: () => _copy(address, S.address),
+                  style: TextButton.styleFrom(
+                    foregroundColor: c.accent,
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                  icon: const Icon(Icons.copy_rounded, size: 14),
+                  label: Text(S.copyAddress, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                ),
+            ],
+          ),
           const SizedBox(height: 12),
           InfoLine(
             icon: Icons.storage_rounded,
             label: S.faqCatCabinet,
             value: _order.cabinetName.isEmpty ? S.notAssigned : _order.cabinetName,
+            fontSize: 13,
           ),
+          const SizedBox(height: 6),
           InfoLine(
             icon: Icons.location_on_outlined,
             label: S.address,
             value: _order.cabinetAddress.isEmpty ? S.notAssigned : _order.cabinetAddress,
+            fontSize: 13,
           ),
+          const SizedBox(height: 6),
           InfoLine(
             icon: Icons.schedule_rounded,
             label: S.openingHours,
             value: _order.cabinetOpenHours.isEmpty ? S.notProvided : _order.cabinetOpenHours,
+            fontSize: 13,
           ),
+          const SizedBox(height: 6),
           InfoLine(
             icon: Icons.grid_view_rounded,
             label: S.slot,
             value: _order.slotNumber.isEmpty ? S.notAssignedYet : _order.slotNumber,
-          ),
-          Reveal(
-            visible: !widget.asSeller && _order.pickupCode != null && _order.pickupCode!.isNotEmpty,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onLongPress: () => _copy(_order.pickupCode!, S.pickupCode),
-              child: InfoLine(
-                icon: Icons.pin_rounded,
-                label: S.pickupCode,
-                value: _order.pickupCode!,
-              ),
-            ),
+            fontSize: 13,
           ),
         ],
       ),
@@ -372,18 +512,25 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             value: widget.asSeller
                 ? (_order.buyerName.isEmpty ? '—' : _order.buyerName)
                 : (_order.sellerName.isEmpty ? '—' : _order.sellerName),
+            fontSize: 13,
           ),
+          const SizedBox(height: 6),
           InfoLine(
             icon: Icons.event_outlined,
             label: S.placed,
-            value: formatDateTime(_order.createdAt),
+            value: formatDateTime(_order.createdAt?.toLocal()),
+            fontSize: 13,
           ),
           Reveal(
             visible: _order.hasOpenDispute,
-            child: InfoLine(
-              icon: Icons.gavel_rounded,
-              label: S.dispute2,
-              value: S.orderOpenDispute,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: InfoLine(
+                icon: Icons.gavel_rounded,
+                label: S.dispute2,
+                value: S.orderOpenDispute,
+                fontSize: 13,
+              ),
             ),
           ),
         ],

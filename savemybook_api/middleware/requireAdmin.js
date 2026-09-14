@@ -30,10 +30,7 @@ const LABELS = {
   system: '系統維運'
 };
 
-/// 由 admin_permissions 的資料列算出實際擁有的權限（以欄位名稱為鍵）。
-///
-/// 沒有設定過細部權限的管理員視為全開，既有帳號才不會突然被鎖住。
-/// 系統維運（備份含全站個資）例外，必須明確開啟。
+// 沒有權限資料列的管理員視為全開，但系統維運必須明確開啟。
 const effectivePermissions = (row) =>
   Object.fromEntries(Object.values(PERMISSIONS).map((column) => [
     column,
@@ -45,14 +42,13 @@ const hasPermission = async (user, permission) => {
   if (!permission) return true;
 
   const column = PERMISSIONS[permission];
-  // 打錯權限名稱要擋下來，不能變成對所有管理員開放。
+  // 打錯權限名稱須拋錯，不能變成對所有管理員開放。
   if (!column) throw new Error(`未知的管理員權限：${permission}`);
 
   const row = await prisma.admin_permissions.findUnique({ where: { user_id: user.userId } });
   return effectivePermissions(row)[column];
 };
 
-/// requireAdmin() 只擋身分；requireAdmin('members') 會再檢查細部權限。
 const requireAdmin = (permission) => {
   if (permission && !PERMISSIONS[permission]) throw new Error(`未知的管理員權限：${permission}`);
 

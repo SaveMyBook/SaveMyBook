@@ -55,7 +55,14 @@ class PrimaryButton extends StatelessWidget {
                       Icon(icon, size: 18),
                       const SizedBox(width: 8),
                     ],
-                    Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Flexible(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ],
                 ),
         ),
@@ -71,10 +78,10 @@ class SecondaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final IconData? icon;
 
-  /// 需要自繪圖示（例如 Face ID）時用這個，會拿到目前的前景色。
   final Widget Function(Color color)? iconBuilder;
   final Color? color;
   final double height;
+  final bool isLoading;
 
   const SecondaryButton({
     super.key,
@@ -84,6 +91,7 @@ class SecondaryButton extends StatelessWidget {
     this.iconBuilder,
     this.color,
     this.height = 48,
+    this.isLoading = false,
   });
 
   @override
@@ -94,24 +102,41 @@ class SecondaryButton extends StatelessWidget {
     return SizedBox(
       height: height,
       child: OutlinedButton(
-        onPressed: onPressed,
+        onPressed: isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
           foregroundColor: tint,
-          side: BorderSide(color: tint),
+          disabledForegroundColor: tint.withValues(alpha: 0.45),
+          side: BorderSide(color: onPressed == null ? tint.withValues(alpha: 0.35) : tint),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (iconBuilder != null) ...[
-              iconBuilder!(tint),
-              const SizedBox(width: 8),
-            ] else if (icon != null) ...[
-              Icon(icon, size: 18),
-              const SizedBox(width: 8),
-            ],
-            Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-          ],
+        child: SwitchIn(
+          duration: const Duration(milliseconds: 200),
+          child: isLoading
+              ? SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: tint),
+                )
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (iconBuilder != null) ...[
+                      iconBuilder!(onPressed == null ? tint.withValues(alpha: 0.45) : tint),
+                      const SizedBox(width: 8),
+                    ] else if (icon != null) ...[
+                      Icon(icon, size: 18),
+                      const SizedBox(width: 8),
+                    ],
+                    Flexible(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
@@ -164,6 +189,8 @@ class SmallActionButton extends StatelessWidget {
               )
             : Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -181,6 +208,8 @@ class QuickActionButton extends StatelessWidget {
   final VoidCallback onTap;
   final int badge;
   final double size;
+  final Color? badgeColor;
+  final Color? tint;
 
   const QuickActionButton({
     super.key,
@@ -189,11 +218,14 @@ class QuickActionButton extends StatelessWidget {
     required this.onTap,
     this.badge = 0,
     this.size = 46,
+    this.badgeColor,
+    this.tint,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final accent = tint ?? c.accent;
 
     return PressableScale(
       scale: 0.93,
@@ -210,9 +242,9 @@ class QuickActionButton extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: c.card,
                   shape: BoxShape.circle,
-                  border: Border.all(color: c.accent.withValues(alpha: 0.28), width: 1.2),
+                  border: Border.all(color: accent.withValues(alpha: 0.28), width: 1.2),
                 ),
-                child: Icon(icon, size: size * 0.48, color: c.accent),
+                child: Icon(icon, size: size * 0.48, color: accent),
               ),
               if (badge > 0)
                 Positioned(
@@ -222,12 +254,15 @@ class QuickActionButton extends StatelessWidget {
                     triggerKey: badge,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      constraints: const BoxConstraints(minWidth: 18),
                       decoration: BoxDecoration(
-                        color: c.accent,
+                        color: badgeColor ?? c.accent,
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: c.card, width: 1.5),
                       ),
                       child: Text(
                         badge > 99 ? '99+' : '$badge',
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -240,7 +275,13 @@ class QuickActionButton extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(label, style: TextStyle(fontSize: 12, color: c.textPrimary)),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, height: 1.2, color: c.textPrimary),
+          ),
         ],
       ),
     );

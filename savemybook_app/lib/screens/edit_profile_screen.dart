@@ -7,6 +7,8 @@ import '../widgets/app_tiles.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_buttons.dart';
 import '../widgets/state_views.dart';
 import '../i18n/strings.dart';
 
@@ -26,6 +28,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _emailController;
   DateTime? _birthday;
   bool _isSaving = false;
+  bool _saved = false;
+  bool _uploadingAvatar = false;
+  String? _phoneError;
 
   @override
   void initState() {
@@ -48,6 +53,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _changeAvatar() async {
+    if (_uploadingAvatar) return;
+    _uploadingAvatar = true;
+    try {
+      await _pickAvatar();
+    } finally {
+      _uploadingAvatar = false;
+    }
+  }
+
+  Future<void> _pickAvatar() async {
     final path = await PhotoService.pickAndCrop(context, circular: true, outputSize: 720);
     if (path == null || !mounted) return;
 
@@ -62,32 +77,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _editNickname() async {
-    final c = AppColors.of(context);
-    final controller = TextEditingController(text: _nicknameController.text);
-
-    final result = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: c.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(S.changeDisplayName, style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          style: TextStyle(color: c.textPrimary),
-          decoration: InputDecoration(hintText: S.enterDisplayName),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.actionCancel, style: TextStyle(color: c.textSecondary))),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: Text(S.actionConfirm, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+    final result = await showTextInputDialog(
+      context,
+      title: S.changeDisplayName,
+      hint: S.enterDisplayName,
+      initialValue: _nicknameController.text,
+      maxLength: 50,
+      validator: (value) {
+        if (value.isEmpty) return S.displayNameCannotBlank;
+        if (value.length < 2 || value.length > 50) return S.displayNames250Characters;
+        return null;
+      },
     );
 
-    if (result != null && result.isNotEmpty) {
+    if (result != null && result.isNotEmpty && mounted) {
       setState(() => _nicknameController.text = result);
     }
   }
@@ -107,9 +110,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
     if (phone.isNotEmpty && !Validators.isPhone(phone)) {
-      showAppSnackBar(context, S.invalidPhoneNumberEG0912345678, isError: true);
+      setState(() => _phoneError = S.invalidPhoneNumberEG0912345678);
       return;
     }
+    FocusScope.of(context).unfocus();
 
     final date = _birthday;
     final birthday = date == null
@@ -129,14 +133,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
+      setState(() => _saved = true);
       showAppSnackBar(context, S.profileUpdated);
-      Navigator.of(context).maybePop();
+      Navigator.of(context).pop();
     }
   }
 
-  /// 跟載入時的值比對。沒動過就不要在返回時多問一句。
-  /// 頭像是即時上傳的，不算在這裡。
   bool get _isDirty {
+    if (_saved || _isSaving) return false;
     final user = ApiService.currentUser;
     return _nicknameController.text != (user?.nickname ?? '') ||
         _bioController.text != (user?.bio ?? '') ||
@@ -157,18 +161,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         children: [
           AppHeader(title: S.editProfile, icon: Icons.edit_outlined),
           Expanded(
-            child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
               child: Column(
                 children: [
                   Stack(
                     children: [
-                      UserAvatar(imageUrl: avatarUrl, radius: 48),
+                      PressableScale(
+                        onTap: _changeAvatar,
+                        child: UserAvatar(imageUrl: avatarUrl, radius: 48),
+                      ),
                       Positioned(
                         right: 0,
                         bottom: 0,
-                        child: GestureDetector(
+                        child: PressableScale(
+                          scale: 0.9,
                           onTap: _changeAvatar,
                           child: Container(
                             padding: const EdgeInsets.all(6),
@@ -177,40 +188,76 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               shape: BoxShape.circle,
                               boxShadow: [BoxShadow(color: c.shadow, blurRadius: 6)],
                             ),
-                            child: const Icon(Icons.photo_camera_outlined, size: 18, color: AppColors.primary),
+                            child: Icon(Icons.photo_camera_outlined, size: 18, color: c.accent),
                           ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  GestureDetector(
+                  PressableScale(
                     onTap: _editNickname,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          _nicknameController.text.isEmpty ? S.user : _nicknameController.text,
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
+                        Flexible(
+                          child: Text(
+                            _nicknameController.text.isEmpty ? S.user : _nicknameController.text,
+                            maxLines: 2,
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
+                          ),
                         ),
                         const SizedBox(width: 6),
                         Icon(Icons.edit_outlined, size: 16, color: c.iconInactive),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 6),
+                  Text(
+                    S.tapPhotoNameChange,
+                    style: TextStyle(fontSize: 12, color: c.textHint),
+                  ),
+                  const SizedBox(height: 18),
                   FormRowCard(
                     label: S.bio,
                     alignTop: true,
-                    child: AppTextField(controller: _bioController, maxLines: 4, maxLength: 200, hint: S.tellPeopleAboutYourself),
+                    state: _bioController.text.trim().isEmpty ? FieldState.empty : FieldState.normal,
+                    child: AppTextField(
+                      controller: _bioController,
+                      maxLines: 4,
+                      maxLength: 200,
+                      hint: S.tellPeopleAboutYourself,
+                      onChanged: (_) => setState(() {}),
+                    ),
                   ),
-                  FormRowCard(label: S.phone, child: AppTextField(controller: _phoneController, keyboardType: TextInputType.phone, maxLength: 20, hint: '0912345678')),
+                  FormRowCard(
+                    label: S.phone,
+                    state: _phoneController.text.trim().isEmpty ? FieldState.empty : FieldState.normal,
+                    child: AppTextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      maxLength: 20,
+                      hint: '0912345678',
+                      errorText: _phoneError,
+                      textInputAction: TextInputAction.done,
+                      onChanged: (_) => setState(() => _phoneError = null),
+                    ),
+                  ),
                   FormRowCard(
                     label: S.email,
-                    child: AppTextField(controller: _emailController, enabled: false, hint: S.emailCannotChanged),
+                    state: FieldState.locked,
+                    child: AppTextField(
+                      controller: _emailController,
+                      enabled: false,
+                      hint: S.emailCannotChanged,
+                      suffix: Icon(Icons.lock_outline_rounded, size: 16, color: c.textHint),
+                    ),
                   ),
                   FormRowCard(
                     label: S.dateBirth,
+                    state: _birthday == null ? FieldState.empty : FieldState.normal,
                     child: AppDateField(
                       value: _birthday,
                       hint: S.tapPickDateBirth,
@@ -219,29 +266,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 28),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _isSaving ? null : _save,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: c.accent,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: c.accent.withValues(alpha: 0.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : Text(S.actionSave, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
+                  PrimaryButton(
+                    label: S.actionSave,
+                    isLoading: _isSaving,
+                    onPressed: _save,
                   ),
                   const SizedBox(height: 40),
                 ],
               ),
+            ),
             ),
           ),
         ],

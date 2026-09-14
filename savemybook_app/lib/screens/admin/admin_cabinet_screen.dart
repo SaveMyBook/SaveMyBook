@@ -6,6 +6,7 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import 'admin_cabinet_edit_screen.dart';
 import '../../utils/app_labels.dart';
@@ -24,6 +25,9 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
 
   List<Cabinet> _cabinets = [];
   bool _isLoading = true;
+  bool _isBusy = false;
+  bool _navigating = false;
+  String _status = 'all';
 
   @override
   void initState() {
@@ -47,14 +51,35 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
   }
 
   List<Cabinet> get _filtered {
-    final keyword = _searchController.text.trim();
-    if (keyword.isEmpty) return _cabinets;
-    return _cabinets
-        .where((c) => c.cabinetName.contains(keyword) || c.address.contains(keyword))
-        .toList();
+    final keyword = _searchController.text.trim().toLowerCase();
+    return _cabinets.where((cabinet) {
+      if (_status == 'active' && !cabinet.isActive) return false;
+      if (_status == 'disabled' && cabinet.isActive) return false;
+      if (_status == 'maintenance' && (cabinet.slotSummary['maintenance'] ?? 0) == 0) return false;
+      if (keyword.isEmpty) return true;
+      return cabinet.cabinetName.toLowerCase().contains(keyword) ||
+          cabinet.address.toLowerCase().contains(keyword);
+    }).toList();
+  }
+
+  static bool _isCancelled(String error) => error.isEmpty || error == S.verificationCancelled;
+
+  Future<void> _openEditor([Cabinet? cabinet]) async {
+    if (_navigating) return;
+    _navigating = true;
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => AdminCabinetEditScreen(cabinet: cabinet)),
+      );
+    } finally {
+      _navigating = false;
+    }
+    if (mounted) _load();
   }
 
   Future<void> _toggleActive(Cabinet cabinet) async {
+    if (_isBusy) return;
     final action = cabinet.isActive ? S.disable : S.enable;
     final confirmed = await showConfirmDialog(
       context,
@@ -67,6 +92,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
     );
     if (!confirmed || !mounted) return;
 
+    setState(() => _isBusy = true);
     final error = await runBusy(
       context,
       () => _api.saveCabinet(
@@ -79,15 +105,17 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
       ),
     );
     if (!mounted) return;
+    setState(() => _isBusy = false);
     if (error != null) {
-      showAppSnackBar(context, error, isError: true);
+      if (!_isCancelled(error)) showAppSnackBar(context, error, isError: true);
     } else {
       showAppSnackBar(context, cabinet.isActive ? S.lockerDisabled : S.lockerEnabled);
-      _load();
+      await _load();
     }
   }
 
   Future<void> _editSlot(Cabinet cabinet, CabinetSlot slot) async {
+    if (_isBusy) return;
     final c = AppColors.of(context);
     final options = <({String value, String label})>[
       (value: 'empty', label: S.slotEmpty),
@@ -98,44 +126,67 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
 
     final picked = await showModalBottomSheet<String>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: c.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 14),
-            Text(S.slotP0(slot.slotNumber),
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary)),
-            const SizedBox(height: 8),
-            ...options.map(
-              (o) => ListTile(
-                title: Text(o.label, style: TextStyle(color: c.textPrimary)),
-                trailing: slot.status == o.value
-                    ? const Icon(Icons.check_rounded, color: AppColors.primary)
-                    : null,
-                onTap: () => Navigator.pop(ctx, o.value),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 14),
+              Text(S.slotP0(slot.slotNumber),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary)),
+              const SizedBox(height: 2),
+              Text('${cabinet.cabinetName}・${slot.statusText}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, color: c.textSecondary)),
+              const SizedBox(height: 8),
+              ...options.map(
+                (o) => ListTile(
+                  leading: Icon(Icons.circle, size: 12, color: c.slotStatusColor(o.value)),
+                  title: Text(o.label, style: TextStyle(color: c.textPrimary)),
+                  trailing: slot.status == o.value
+                      ? Icon(Icons.check_rounded, color: c.accent)
+                      : null,
+                  onTap: () => Navigator.pop(ctx, o.value),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-          ],
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );
 
     if (picked == null || picked == slot.status || !mounted) return;
 
+    if (slot.status == 'occupied' || slot.status == 'reserved') {
+      final label = options.firstWhere((o) => o.value == picked).label;
+      final ok = await showConfirmDialog(
+        context,
+        title: S.slotP0(slot.slotNumber),
+        message: S.slotCurrentlyP0MayOrderProgress(slot.statusText, label),
+        confirmLabel: S.confirm,
+        isDestructive: true,
+      );
+      if (!ok || !mounted) return;
+    }
+
+    setState(() => _isBusy = true);
     final ok = await runBusy(
       context,
       () => _api.updateSlotStatus(cabinet.cabinetId, slot.slotId, picked),
     );
     if (!mounted) return;
+    setState(() => _isBusy = false);
 
     if (ok == true) {
       showAppSnackBar(context, S.slotStatusUpdated);
-      _load();
+      await _load();
     } else {
       showAppSnackBar(context, AppLabels.updateFailed, isError: true);
     }
@@ -144,6 +195,8 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final filtered = _filtered;
+    final hasQuery = _searchController.text.trim().isNotEmpty || _status != 'all';
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -155,13 +208,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
             actions: [
               HeaderIconButton(
                 icon: Icons.add_rounded,
-                onTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AdminCabinetEditScreen()),
-                  );
-                  _load();
-                },
+                onTap: () => _openEditor(),
               ),
             ],
           ),
@@ -173,27 +220,80 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
               onChanged: (_) => setState(() {}),
             ),
           ),
+          SizedBox(
+            height: 34,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _chip(S.actionAll, 'all', c),
+                _chip(S.active, 'active', c),
+                _chip(S.disabled, 'disabled', c),
+                _chip(S.slotMaintenance, 'maintenance', c),
+              ],
+            ),
+          ),
           Expanded(
             child: SwitchIn(child: _isLoading
                 ? const LoadingView.list()
                 : RefreshIndicator(
                     color: c.accent,
                     onRefresh: _load,
-                    child: SwitchIn(child: _filtered.isEmpty
-                        ? ListView(key: const ValueKey('empty'), 
+                    child: SwitchIn(child: filtered.isEmpty
+                        ? ListView(key: const ValueKey('empty'),
                             children: [
-                              SizedBox(height: 80),
-                              EmptyView(icon: Icons.inbox_outlined, message: S.noLockersMatch),
+                              const SizedBox(height: 80),
+                              EmptyView(
+                                icon: Icons.inbox_outlined,
+                                message: S.noLockersMatch,
+                                actionLabel: hasQuery ? S.clearFilters : S.refresh,
+                                onAction: () {
+                                  if (hasQuery) {
+                                    _searchController.clear();
+                                    setState(() => _status = 'all');
+                                  } else {
+                                    _load();
+                                  }
+                                },
+                              ),
                             ],
                           )
-                        : ListView.builder(key: const ValueKey('items'), 
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                            itemCount: _filtered.length,
-                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCabinetCard(_filtered[i], c)),
+                        : ListView.builder(key: ValueKey('items_$_status'),
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                            itemCount: filtered.length,
+                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCabinetCard(filtered[i], c)),
                           )),
                   )),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _chip(String label, String value, AppColors c) {
+    final selected = _status == value;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: PressableScale(
+        scale: 0.94,
+        onTap: () => setState(() => _status = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? c.accent : c.categoryChip,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+              color: selected ? Colors.white : c.accent,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -210,47 +310,56 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
         children: [
           Row(
             children: [
-              Text(
-                cabinet.cabinetName,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
-              ),
-              const SizedBox(width: 8),
-              if (!cabinet.isActive)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: Colors.orangeAccent.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(S.disabled,
-                      style: TextStyle(fontSize: 10, color: Colors.orangeAccent)),
+              Expanded(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      cabinet.cabinetName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
+                    ),
+                    if (!cabinet.isActive) StatusBadge(label: S.disabled, color: c.warning, fontSize: 10),
+                  ],
                 ),
-              const Spacer(),
+              ),
               IconButton(
                 visualDensity: VisualDensity.compact,
+                tooltip: cabinet.isActive ? S.disable : S.enable,
                 icon: Icon(
                   cabinet.isActive ? Icons.power_settings_new_rounded : Icons.play_arrow_rounded,
                   size: 20,
                   color: cabinet.isActive ? c.danger : c.success,
                 ),
-                onPressed: () => _toggleActive(cabinet),
+                onPressed: _isBusy ? null : () => _toggleActive(cabinet),
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,
                 icon: Icon(Icons.edit_outlined, size: 20, color: c.iconInactive),
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => AdminCabinetEditScreen(cabinet: cabinet)),
-                  );
-                  _load();
-                },
+                onPressed: () => _openEditor(cabinet),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(S.freeSlotsP0P1(available, cabinet.totalSlots),
-              style: TextStyle(fontSize: 13, color: c.textSecondary)),
+          Row(
+            children: [
+              Expanded(
+                child: Text(S.freeSlotsP0P1(available, cabinet.totalSlots),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 13, color: c.textSecondary)),
+              ),
+              if ((cabinet.slotSummary['maintenance'] ?? 0) > 0)
+                StatusBadge(
+                  label: '${S.slotMaintenance} ${cabinet.slotSummary['maintenance']}',
+                  color: c.danger,
+                  fontSize: 10,
+                ),
+            ],
+          ),
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
@@ -262,7 +371,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                 value: animated,
                 minHeight: 6,
                 backgroundColor: c.inputFill,
-                valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                valueColor: AlwaysStoppedAnimation(c.accent),
               ),
             ),
           ),
@@ -284,7 +393,9 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
               children: [
                 Icon(Icons.schedule_rounded, size: 14, color: c.iconInactive),
                 const SizedBox(width: 4),
-                Text(cabinet.openHours, style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                Flexible(
+                  child: Text(cabinet.openHours, style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                ),
               ],
             ),
           ],
@@ -320,7 +431,8 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
         color = c.iconInactive;
     }
 
-    return GestureDetector(
+    return PressableScale(
+      scale: 0.92,
       onTap: () => _editSlot(cabinet, slot),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),

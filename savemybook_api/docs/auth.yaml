@@ -1,22 +1,47 @@
 tags:
-  - name: 認證 (Auth)
+  - name: auth
+    x-displayName: 認證
     description: |
-      JWT Token 的簽發與驗證。
+      JWT Token 的簽發、換發與登出。
 
-      Token 有效期為 24 小時，payload 包含 `userId`、`role`、`email`。
-      系統未提供 refresh 機制，Token 到期後須重新登入。
+      Token 有效期為 24 小時，payload 包含 `userId`、`role`、`email`、密碼版本 `pwv`，
+      以及登入裝置的工作階段編號 `sid`。
+
+      ## Token Refresh
+
+      Token 到期後，受保護的端點回傳 403 `TOKEN_EXPIRED`。App 可將過期的 Token 送至
+      `POST /api/auth/refresh` 換發新 Token，條件為該裝置工作階段未被登出，且最近 30 天內使用過。
+      換發失敗（401 `REFRESH_FAILED`）時再導向登入流程。
+
+      | 狀況 | HTTP | `code` | 建議處理方式 |
+      | --- | --- | --- | --- |
+      | Token 已過期 | 403 | `TOKEN_EXPIRED` | 呼叫 refresh 後重送原請求 |
+      | 裝置已被登出 | 401 | `SESSION_REVOKED` | 清除本機 Token，導向登入 |
+      | 換發失敗 | 401 | `REFRESH_FAILED` | 清除本機 Token，導向登入 |
+
+      ## Login Devices
+
+      登入時建立一筆裝置工作階段，並寫入登入紀錄。帳號已有其他登入紀錄、而本次的 `device_id`
+      未曾出現過（或未帶入 `device_id`）時，伺服器以站內通知提醒使用者有新裝置登入。
+      已登入的裝置可於 `GET /api/security/sessions` 查看與遠端登出。
 
 paths:
   /api/auth/login:
     post:
       summary: 登入取得 Token
       operationId: login
-      tags: [認證 (Auth)]
+      tags: [auth]
       description: |
         以 Email 與密碼換發 JWT Token，密碼採 bcrypt 比對。
 
         帳號已停權或列入黑名單時不簽發 Token，直接回傳 403，
         用戶端可依 `code` 區分提示內容。
+
+        建議 App 帶入裝置資訊：`device_id` 用來辨識同一台裝置，重新登入時會登出該裝置先前的工作階段；
+        `device_name` 與 `platform` 顯示於登入裝置列表與新裝置登入通知。裝置資訊皆為選填，
+        超過長度時截斷，不回傳錯誤。
+
+        帳號已申請刪除時仍可登入，回應會帶 `pending_deletion`，App 應提示使用者可取消刪除。
       security: []
       requestBody:
         required: true
@@ -28,7 +53,21 @@ paths:
               properties:
                 email: { type: string, format: email, example: test@example.com }
                 password: { type: string, format: password, example: your_password123 }
-            example: { email: test@example.com, password: your_password123 }
+                device_id:
+                  type: string
+                  maxLength: 64
+                  description: App 自行產生並保存的裝置識別碼，重新安裝前應保持不變。
+                  example: 6F9619FF-8B86-D011-B42D-00C04FC964FF
+                device_name: { type: string, maxLength: 100, example: iPhone 15 Pro }
+                platform: { type: string, maxLength: 20, description: 建議使用 `ios` 或 `android`。, example: ios }
+                app_version: { type: string, maxLength: 20, example: 1.4.0 }
+            example:
+              email: test@example.com
+              password: your_password123
+              device_id: 6F9619FF-8B86-D011-B42D-00C04FC964FF
+              device_name: iPhone 15 Pro
+              platform: ios
+              app_version: 1.4.0
       responses:
         '200':
           description: 登入成功。
@@ -46,6 +85,13 @@ paths:
                         type: string
                         description: "用於 `Authorization: Bearer <token>` 標頭。"
                         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyfQ.abc123
+                      pending_deletion:
+                        type: object
+                        description: 僅在帳號已申請刪除時出現。
+                        properties:
+                          requested_at: { type: string, format: date-time }
+                          purge_at: { type: string, format: date-time, description: 預定匿名化的時間 }
+                          grace_days: { type: integer, example: 30 }
         '400':
           description: 未提供 Email 或密碼。
           content:
@@ -77,11 +123,81 @@ paths:
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/auth/refresh:
+    post:
+      summary: 換發 Token
+      operationId: refreshToken
+      tags: [auth]
+      description: |
+        以 `Authorization: Bearer <token>` 送出目前的 Token（可為已過期的 Token），
+        換發一組新的 24 小時 Token，裝置工作階段維持不變。
+
+        換發條件：
+
+        - Token 簽章正確，且含有 `sid`（舊版 Token 無法換發）
+        - 對應的裝置工作階段屬於該使用者、未被登出，且最近 30 天內使用過
+        - 帳號未停權、未列入黑名單，密碼未變更
+
+        同 IP 15 分鐘內最多 60 次。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已換發。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string, example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyfQ.def456 }
+        '401':
+          description: 未提供 Token、無法換發，或帳號狀態已失效。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                未提供 Token:
+                  value: { success: false, message: 存取被拒，未提供 Token }
+                無法換發:
+                  value: { success: false, code: REFRESH_FAILED, message: 登入已失效，請重新登入 }
+                密碼已變更:
+                  value: { success: false, code: TOKEN_REVOKED, message: 密碼已經變更，請重新登入 }
+                帳號已停權:
+                  value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已被停權，如有疑問請聯絡客服 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/auth/logout:
+    post:
+      summary: 登出目前裝置
+      operationId: logout
+      tags: [auth]
+      description: |
+        登出發出請求的裝置：工作階段標記為已登出，Token 立即失效，
+        並清除與此工作階段關聯的推播裝置與生物辨識付款金鑰。
+
+        Token 已過期時本端點回傳 403，App 直接清除本機 Token 即可；
+        該工作階段閒置 30 天後自動失效。缺少 `sid` 的舊版 Token 呼叫時不做任何變更，仍回傳 200。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已登出。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已登出 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/TokenInvalid' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/auth/me:
     get:
       summary: 取得目前登入者
       operationId: getCurrentUser
-      tags: [認證 (Auth)]
+      tags: [auth]
       description: |
         回傳 Token 對應的使用者完整資料，可用於應用程式啟動時驗證 Token
         有效性並同步個人資料。

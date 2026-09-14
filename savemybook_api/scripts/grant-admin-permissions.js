@@ -1,15 +1,8 @@
 #!/usr/bin/env node
-/**
- * 在伺服器上直接替管理員開啟全部後台權限，含預設關閉的「系統維運」。
- *
- * App 裡不能改自己的權限，「系統維運」也只能由已有這項權限的人開啟，
- * 所以第一位擁有者只能從伺服器這邊設定。之後就能在 App 裡替其他管理員開關。
- *
- *   node scripts/grant-admin-permissions.js you@example.com          查看目前權限
- *   node scripts/grant-admin-permissions.js you@example.com --all    開啟全部權限
- */
+// 用法：node scripts/grant-admin-permissions.js <email> [--all]
 const prisma = require('../lib/prisma');
 const { PERMISSIONS, effectivePermissions } = require('../middleware/requireAdmin');
+const audit = require('../services/audit');
 
 const main = async () => {
   const [email, flag] = process.argv.slice(2);
@@ -42,14 +35,12 @@ const main = async () => {
       update: all,
       create: { user_id: user.user_id, ...all }
     });
-    await prisma.admin_operation_logs.create({
-      data: {
-        admin_id: user.user_id,
-        action: '伺服器端開啟全部管理員權限',
-        target_type: 'user',
-        target_id: user.user_id,
-        detail: 'scripts/grant-admin-permissions.js'
-      }
+    await audit.record(null, {
+      adminId: user.user_id,
+      action: '伺服器端開啟全部管理員權限',
+      targetType: 'user',
+      targetId: user.user_id,
+      summary: `在伺服器上執行 scripts/grant-admin-permissions.js，替 ${user.nickname} 開啟了全部後台權限`
     });
     console.log(`✅ 已替 ${user.nickname} 開啟全部權限`);
   }

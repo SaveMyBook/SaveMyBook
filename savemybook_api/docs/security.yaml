@@ -1,0 +1,465 @@
+tags:
+  - name: security
+    x-displayName: 帳號安全
+    description: |
+      交易密碼、生物辨識付款、登入裝置管理，以及敏感操作前的身分驗證。
+
+      ## Verification Flow
+
+      付款與敏感操作須先驗證身分。未帶入有效的 `X-Verify-Token` 標頭時，端點回傳 403：
+
+      ```json
+      {
+        "success": false,
+        "code": "VERIFICATION_REQUIRED",
+        "message": "請先驗證身分",
+        "verification": { "scope": "sensitive", "methods": ["password", "pin", "biometric"] }
+      }
+      ```
+
+      1. 依 `verification.methods` 讓使用者選擇驗證方式。
+      2. 呼叫 `POST /api/security/verify` 取得 `verify_token`。
+      3. 以 `X-Verify-Token: <verify_token>` 標頭重送原請求。
+
+      | 範圍 | 可用方式 | 有效期 | 使用次數 | 適用端點 |
+      | --- | --- | --- | --- | --- |
+      | `payment` | `pin`、`biometric` | 3 分鐘 | 單次 | `POST /api/orders/checkout` |
+      | `sensitive` | `password`、`pin`、`biometric` | 5 分鐘 | 有效期內可重複使用 | 匯出個人資料、變更交易密碼、登出裝置與後台高風險操作 |
+
+      - `verify_token` 綁定使用者、登入裝置與範圍，不能跨裝置或跨範圍使用。
+      - `payment` 範圍的 token 使用後即失效；受保護的請求回應狀態碼大於等於 400 時（例如餘額不足），
+        token 會恢復可用，使用者無須重新輸入交易密碼即可重試。
+      - 已使用的 token 紀錄保存在伺服器行程內，重啟後歸零。
+
+      ## Payment PIN
+
+      交易密碼為 6 位數字，下列組合不接受：
+
+      - 6 個相同數字，例如 `111111`
+      - 連續遞增或遞減，例如 `123456`、`987654`、`890123`
+      - 重複的兩位或三位組合，例如 `121212`、`123123`
+
+      連續輸入錯誤 5 次後鎖定 15 分鐘，鎖定期間回傳 423 `PIN_LOCKED`，並以站內通知告知使用者。
+      輸入錯誤時回傳 400 `INVALID_PIN`，`remaining_attempts` 為剩餘可嘗試次數。
+
+      ## Biometric Payment
+
+      生物辨識付款不在伺服器驗證指紋或臉部資料。啟用時伺服器產生一組隨機金鑰，
+      僅回傳一次並只儲存雜湊值；App 應將金鑰存入需通過生物辨識才能讀取的安全儲存區
+      （iOS Keychain、Android Keystore）。付款時由 App 通過生物辨識後取出金鑰送出。
+
+      金鑰綁定單一登入裝置，該裝置登出、被遠端登出或閒置超過 30 天時一併失效，
+      此時驗證回傳 400 `BIOMETRIC_KEY_INVALID`，App 應清除本機金鑰並改用交易密碼。
+      啟用前必須先設定交易密碼，作為生物辨識失敗時的替代方式。
+
+      ## Device Sessions
+
+      每次登入建立一筆裝置工作階段，Token 內含對應的 `sid`。
+
+      | 行為 | 說明 |
+      | --- | --- |
+      | 有效條件 | 未被登出，且最近 30 天內使用過 |
+      | 同一裝置重新登入 | 帶入相同 `device_id` 時，該裝置先前的工作階段會被登出 |
+      | 登出 | 同時刪除該工作階段的推播裝置與生物辨識金鑰 |
+      | 變更密碼 | 登出其他所有裝置，保留目前裝置 |
+
+      缺少 `sid` 的舊版 Token 無法使用需要裝置工作階段的功能，回傳 403 `SESSION_REQUIRED`，
+      App 應引導使用者重新登入。
+
+      ## Availability
+
+      伺服器尚未執行 `migrations/007_consent_sessions_payment.sql` 時，
+      所有端點略過身分驗證（不檢查 `X-Verify-Token`），
+      本組需寫入資料的端點回傳 503 `SECURITY_UNAVAILABLE`。
+
+paths:
+  /api/security:
+    get:
+      summary: 取得帳號安全狀態
+      operationId: getSecurityStatus
+      tags: [security]
+      description: |
+        回傳交易密碼與目前裝置的生物辨識付款狀態，供設定頁面與付款流程判斷要顯示的選項。
+
+        `available` 為 false 代表伺服器尚未執行資料庫更新 007，此時其餘欄位皆為預設值。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      available: { type: boolean, example: true }
+                      has_payment_pin: { type: boolean, example: true }
+                      pin_updated_at:
+                        type: string
+                        format: date-time
+                        nullable: true
+                        description: 交易密碼最後設定的時間。`available` 為 false 時不含此欄位。
+                      pin_locked_until:
+                        type: string
+                        format: date-time
+                        nullable: true
+                        description: 鎖定中時為解除時間，未鎖定為 null。
+                      biometric_pay_enabled:
+                        type: boolean
+                        description: 目前裝置是否已啟用生物辨識付款。
+                        example: false
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/TokenInvalid' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/security/verify:
+    post:
+      summary: 驗證身分
+      operationId: verifyIdentity
+      tags: [security]
+      description: |
+        以指定方式驗證身分，成功後回傳 `verify_token`，放入受保護端點的 `X-Verify-Token` 標頭。
+
+        | `method` | 需帶入的欄位 | 前提 |
+        | --- | --- | --- |
+        | `password` | `password` | 僅限 `sensitive` 範圍 |
+        | `pin` | `pin` | 已設定交易密碼 |
+        | `biometric` | `key` | 已設定交易密碼，且目前裝置已啟用生物辨識付款 |
+
+        `payment` 範圍無論使用哪種方式，都必須已設定交易密碼，否則回傳 403 `PAYMENT_PIN_NOT_SET`。
+        登入密碼錯誤回傳 400 而非 401，避免 App 誤判為登入失效。
+
+        每位使用者 15 分鐘內最多 30 次。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [scope, method]
+              properties:
+                scope: { type: string, enum: [payment, sensitive], example: payment }
+                method: { type: string, enum: [password, pin, biometric], example: pin }
+                password: { type: string, format: password, description: '`method` 為 `password` 時必填。' }
+                pin: { type: string, pattern: '^\d{6}$', description: '`method` 為 `pin` 時必填。', example: '480913' }
+                key: { type: string, description: '`method` 為 `biometric` 時必填，為 `POST /api/security/biometric-key` 取得的金鑰。' }
+            examples:
+              交易密碼付款:
+                value: { scope: payment, method: pin, pin: '480913' }
+              生物辨識付款:
+                value: { scope: payment, method: biometric, key: q3JvZkVxY2VfZXhhbXBsZV9rZXlfMzJieXRlcw }
+              登入密碼驗證:
+                value: { scope: sensitive, method: password, password: your_password123 }
+      responses:
+        '200':
+          description: 驗證成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      verify_token: { type: string, example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXAiOiJ2ZXJpZnkifQ.abc123 }
+                      scope: { type: string, enum: [payment, sensitive], example: payment }
+                      expires_in: { type: integer, description: 有效秒數, example: 180 }
+        '400':
+          description: 參數錯誤或驗證失敗。
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - type: object
+                    properties:
+                      remaining_attempts: { type: integer, description: 僅 `INVALID_PIN` 帶此欄位。, example: 3 }
+              examples:
+                範圍不支援此方式:
+                  value: { success: false, message: 'method 僅接受：pin, biometric' }
+                登入密碼錯誤:
+                  value: { success: false, code: INVALID_PASSWORD, message: 密碼錯誤 }
+                交易密碼錯誤:
+                  value: { success: false, code: INVALID_PIN, message: 交易密碼錯誤，還可以再試 3 次, remaining_attempts: 3 }
+                生物辨識金鑰失效:
+                  value: { success: false, code: BIOMETRIC_KEY_INVALID, message: 這台裝置的生物辨識付款已失效，請改用交易密碼 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 尚未設定交易密碼、Token 缺少裝置工作階段，或 Token 無效。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                尚未設定交易密碼:
+                  value: { success: false, code: PAYMENT_PIN_NOT_SET, message: 尚未設定交易密碼 }
+                缺少裝置工作階段:
+                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
+                Token 過期:
+                  value: { success: false, code: TOKEN_EXPIRED, message: 登入已逾時 }
+        '423':
+          description: 交易密碼錯誤次數過多，鎖定中。
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - type: object
+                    properties:
+                      locked_until: { type: string, format: date-time, description: 解除鎖定的時間 }
+              example: { success: false, code: PIN_LOCKED, message: 交易密碼錯誤次數過多，請 15 分鐘後再試, locked_until: '2026-09-14T08:15:00.000Z' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/SecurityUnavailable' }
+
+  /api/security/payment-pin:
+    put:
+      summary: 設定或變更交易密碼
+      operationId: setPaymentPin
+      tags: [security]
+      description: |
+        首次設定與變更皆使用此端點，需 `sensitive` 範圍的身分驗證。尚未設定交易密碼時，
+        可用登入密碼驗證。
+
+        設定後錯誤次數與鎖定狀態一併清除。變更既有的交易密碼時，會以站內通知告知使用者。
+        密碼規則見本組說明的 Payment PIN 一節。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/VerifyToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pin]
+              properties:
+                pin: { type: string, pattern: '^\d{6}$', example: '480913' }
+      responses:
+        '200':
+          description: 已設定。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              examples:
+                首次設定:
+                  value: { success: true, message: 交易密碼已設定 }
+                變更:
+                  value: { success: true, message: 交易密碼已變更 }
+        '400':
+          description: 交易密碼不符合規則。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                格式錯誤:
+                  value: { success: false, code: PIN_FORMAT, message: 交易密碼必須是 6 位數字 }
+                相同數字:
+                  value: { success: false, code: PIN_TOO_WEAK, message: 交易密碼不能是 6 個相同的數字 }
+                連續數字:
+                  value: { success: false, code: PIN_TOO_WEAK, message: 交易密碼不能是連續的數字 }
+                重複組合:
+                  value: { success: false, code: PIN_TOO_WEAK, message: 交易密碼不能是重複的數字組合 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/VerificationRequired' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/SecurityUnavailable' }
+
+  /api/security/biometric-key:
+    post:
+      summary: 啟用這台裝置的生物辨識付款
+      operationId: enableBiometricPay
+      tags: [security]
+      description: |
+        產生並回傳這台裝置專用的付款金鑰，需 `sensitive` 範圍的身分驗證，且必須已設定交易密碼。
+
+        金鑰只在此回應中出現一次，伺服器僅保存雜湊值。重複呼叫會產生新金鑰，舊金鑰立即失效。
+        App 應先確認裝置支援生物辨識，並將金鑰存入需通過生物辨識才能讀取的安全儲存區。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/VerifyToken'
+      responses:
+        '200':
+          description: 已啟用。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已在這台裝置啟用生物辨識付款 }
+                  data:
+                    type: object
+                    properties:
+                      key: { type: string, description: 32 位元組隨機值，以 base64url 編碼。, example: q3JvZkVxY2VfZXhhbXBsZV9rZXlfMzJieXRlcw }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 需要身分驗證、尚未設定交易密碼，或 Token 缺少裝置工作階段。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                需要驗證:
+                  value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, pin, biometric] } }
+                尚未設定交易密碼:
+                  value: { success: false, code: PAYMENT_PIN_NOT_SET, message: 請先設定交易密碼，生物辨識失敗時才有替代方式 }
+                缺少裝置工作階段:
+                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/SecurityUnavailable' }
+
+    delete:
+      summary: 關閉這台裝置的生物辨識付款
+      operationId: disableBiometricPay
+      tags: [security]
+      description: |
+        清除目前裝置的付款金鑰，無須身分驗證。App 應同時刪除本機儲存的金鑰。
+
+        目前裝置未啟用、Token 缺少裝置工作階段或伺服器尚未執行資料庫更新時，同樣回傳 200。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已關閉。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已關閉這台裝置的生物辨識付款 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/security/sessions:
+    get:
+      summary: 取得登入裝置列表
+      operationId: listDeviceSessions
+      tags: [security]
+      description: |
+        回傳未登出且最近 30 天內使用過的裝置。目前裝置排在第一筆，其餘依最近使用時間遞減排序。
+
+        伺服器尚未執行資料庫更新 007 時回傳空陣列。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/DeviceSession' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/security/sessions/{id}:
+    delete:
+      summary: 登出指定裝置
+      operationId: revokeDeviceSession
+      tags: [security]
+      description: |
+        登出指定的裝置，需 `sensitive` 範圍的身分驗證。該裝置的 Token 立即失效（401 `SESSION_REVOKED`），
+        推播裝置與生物辨識金鑰一併清除。
+
+        指定的是目前裝置時，`signed_out_current` 為 true，App 應清除本機 Token 並導向登入流程。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 裝置編號，即 `session_id`。
+          example: 31
+        - $ref: '#/components/parameters/VerifyToken'
+      responses:
+        '200':
+          description: 已登出。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已登出這台裝置 }
+                  data:
+                    type: object
+                    properties:
+                      signed_out_current: { type: boolean, example: false }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 需要身分驗證，或 Token 缺少裝置工作階段。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                需要驗證:
+                  value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, pin, biometric] } }
+                缺少裝置工作階段:
+                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
+        '404':
+          description: 裝置不存在、不屬於請求者，或已經登出。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到這台裝置，可能已經登出了 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/SecurityUnavailable' }
+
+  /api/security/sessions/revoke-all:
+    post:
+      summary: 登出其他所有裝置
+      operationId: revokeAllDeviceSessions
+      tags: [security]
+      description: |
+        登出請求者的全部裝置，需 `sensitive` 範圍的身分驗證。預設保留目前裝置；
+        `include_current` 為 true 時連同目前裝置一併登出。
+
+        被登出裝置的推播裝置與生物辨識金鑰一併清除。缺少 `sid` 的舊版 Token
+        若簽發於本次操作之前，同樣失效。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/VerifyToken'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                include_current:
+                  type: boolean
+                  default: false
+                  description: 僅布林值 `true` 會登出目前裝置，其他值一律視為 false。
+      responses:
+        '200':
+          description: 已登出。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已登出其他 2 台裝置 }
+                  data:
+                    type: object
+                    properties:
+                      revoked: { type: integer, description: 本次登出的裝置數, example: 2 }
+                      signed_out_current: { type: boolean, example: false }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 需要身分驗證，或 Token 缺少裝置工作階段。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                需要驗證:
+                  value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, pin, biometric] } }
+                缺少裝置工作階段:
+                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/SecurityUnavailable' }

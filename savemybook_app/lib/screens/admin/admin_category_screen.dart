@@ -4,6 +4,7 @@ import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
+import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
@@ -22,11 +23,19 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
   List<AdminCategory> _categories = [];
   bool _isLoading = true;
   bool _isReordering = false;
+  bool _isBusy = false;
 
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  static bool _isCancelled(String error) => error.isEmpty || error == S.verificationCancelled;
+
+  Future<void> _retry() async {
+    setState(() => _isLoading = true);
+    await _load();
   }
 
   Future<void> _load() async {
@@ -65,17 +74,28 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
         _categories = previous;
         _isReordering = false;
       });
-      showAppSnackBar(context, error, isError: true);
+      if (!_isCancelled(error)) showAppSnackBar(context, error, isError: true);
       return;
     }
 
     setState(() => _isReordering = false);
-    _load();
+    await _load();
   }
 
   Future<void> _edit({AdminCategory? category}) async {
+    if (_isBusy) return;
+    setState(() => _isBusy = true);
+    try {
+      await _runEdit(category);
+    } finally {
+      if (mounted) setState(() => _isBusy = false);
+    }
+  }
+
+  Future<void> _runEdit(AdminCategory? category) async {
     final c = AppColors.of(context);
     final nameController = TextEditingController(text: category?.name ?? '');
+    String? nameError;
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
@@ -84,49 +104,67 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              category == null ? S.newCategory : S.editCategory,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
-            ),
-            const SizedBox(height: 16),
-            AppTextField(controller: nameController, hint: S.categoryName, maxLength: 50),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 46,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: c.accent,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: Text(S.actionSave, style: TextStyle(fontWeight: FontWeight.bold)),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          void submit() {
+            final name = nameController.text.trim();
+            String? error;
+            if (name.isEmpty) {
+              error = S.enterCategoryName;
+            } else if (_categories.any((e) =>
+                e.categoryId != category?.categoryId && e.name.trim().toLowerCase() == name.toLowerCase())) {
+              error = S.categoryWithNameAlreadyExists;
+            }
+            if (error != null) {
+              HapticFeedback.lightImpact();
+              setSheetState(() => nameError = error);
+              return;
+            }
+            Navigator.pop(ctx, true);
+          }
+
+          return SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    category == null ? S.newCategory : S.editCategory,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: nameController,
+                    hint: S.categoryName,
+                    maxLength: 50,
+                    errorText: nameError,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => submit(),
+                    onChanged: (_) {
+                      if (nameError != null) setSheetState(() => nameError = null);
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  PrimaryButton(label: S.actionSave, height: 46, onPressed: submit),
+                ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
 
     if (saved != true || !mounted) return;
 
     final name = nameController.text.trim();
-    if (name.isEmpty) {
-      showAppSnackBar(context, S.enterCategoryName, isError: true);
-      return;
-    }
+    if (category != null && name == category.name) return;
 
     final error = await runBusy(
       context,
@@ -139,31 +177,36 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
     if (!mounted) return;
 
     if (error != null) {
-      showAppSnackBar(context, error, isError: true);
+      if (!_isCancelled(error)) showAppSnackBar(context, error, isError: true);
     } else {
       showAppSnackBar(context, category == null ? S.categoryAdded : S.categoryUpdated);
-      _load();
+      await _load();
     }
   }
 
   Future<void> _delete(AdminCategory category) async {
+    if (_isBusy || _isReordering) return;
     final ok = await showConfirmDialog(
       context,
       title: S.deleteCategory,
-      message: S.deleteP0CannotUndone2(category.name),
+      message: category.bookCount > 0
+          ? '${S.deleteP0CannotUndone2(category.name)}\n\n${S.p0BooksUse(category.bookCount)}'
+          : S.deleteP0CannotUndone2(category.name),
       confirmLabel: S.actionDelete,
       isDestructive: true,
     );
     if (!ok || !mounted) return;
 
+    setState(() => _isBusy = true);
     final error = await runBusy(context, () => _api.deleteCategory(category.categoryId));
     if (!mounted) return;
+    setState(() => _isBusy = false);
 
     if (error != null) {
-      showAppSnackBar(context, error, isError: true);
+      if (!_isCancelled(error)) showAppSnackBar(context, error, isError: true);
     } else {
       showAppSnackBar(context, S.categoryDeleted);
-      _load();
+      await _load();
     }
   }
 
@@ -179,7 +222,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
             title: S.categories,
             icon: Icons.category_outlined,
             actions: [
-              HeaderIconButton(icon: Icons.add_rounded, onTap: () => _edit()),
+              HeaderIconButton(icon: Icons.add_rounded, onTap: _isBusy ? null : () => _edit()),
             ],
           ),
           Expanded(
@@ -196,6 +239,14 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                                 EmptyView(
                                   icon: Icons.category_outlined,
                                   message: S.noCategoriesYet,
+                                  actionLabel: S.newCategory,
+                                  onAction: () => _edit(),
+                                ),
+                                Center(
+                                  child: TextButton(
+                                    onPressed: _retry,
+                                    child: Text(S.refresh, style: TextStyle(color: c.textSecondary)),
+                                  ),
                                 ),
                               ],
                             )
@@ -236,6 +287,8 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
     return Padding(
       key: key,
       padding: const EdgeInsets.only(bottom: 12),
+      child: FadeSlideIn(
+      index: index,
       child: AppCard(
       onTap: () => _edit(category: category),
       child: Row(
@@ -261,6 +314,8 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
               children: [
                 Text(
                   category.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -277,9 +332,8 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
           ),
           IconButton(
             icon: Icon(Icons.delete_outline_rounded, color: c.iconInactive, size: 20),
-            onPressed: () => _delete(category),
+            onPressed: _isBusy ? null : () => _delete(category),
           ),
-          // 把手獨立出來，卡片本身的點擊才不會被拖曳手勢吃掉。
           ReorderableDragStartListener(
             index: index,
             child: Padding(
@@ -288,6 +342,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
             ),
           ),
         ],
+      ),
       ),
       ),
     );

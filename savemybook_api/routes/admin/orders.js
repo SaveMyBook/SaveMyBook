@@ -6,7 +6,7 @@ const { notFound, conflict } = require('../../lib/errors');
 const { ORDER_STATUSES } = require('../../constants/domain');
 const orderFlow = require('../../services/orders');
 const { notify } = require('../../services/notify');
-const { logAction } = require('../../services/audit');
+const audit = require('../../services/audit');
 
 const router = express.Router();
 const canManage = requireAdmin('orders');
@@ -81,10 +81,6 @@ router.get('/orders', canManage, async (req, res) => {
   });
 });
 
-/// 單筆訂單的完整樣貌：時間軸、櫃位、金額、退款與申訴。
-///
-/// 列表為了輕量只帶摘要，但客服在處理一筆爭議時要看的就是這些細節——
-/// 錢什麼時候扣的、書放進哪一格、有沒有退過款、對方申訴了什麼。
 router.get('/orders/:id', canManage, async (req, res) => {
   const orderId = v.id(req.params.id, '訂單編號');
 
@@ -124,7 +120,6 @@ router.get('/orders/:id', canManage, async (req, res) => {
       note: order.note,
       slot: order.cabinet_slots,
       updated_at: order.updated_at,
-      // 時間軸讓客服一眼看出卡在哪一步。null 代表還沒走到。
       timeline: {
         created_at: order.created_at,
         payment_at: order.payment_at,
@@ -140,8 +135,6 @@ router.get('/orders/:id', canManage, async (req, res) => {
   });
 });
 
-/// 客服手動改狀態與使用者操作走同一套結算：改成已完成會撥款給賣家，
-/// 改成已取消／已退款會退款給買家（必要時先向賣家收回貨款）。
 router.patch('/orders/:id', canManage, async (req, res) => {
   const orderId = v.id(req.params.id, '訂單編號');
   const status = v.oneOf(req.body.status, ORDER_STATUSES, '不支援的訂單狀態');
@@ -177,8 +170,17 @@ router.patch('/orders/:id', canManage, async (req, res) => {
   }
 
   const effect = orderFlow.describeSettlement(money);
-  await logAction(req.user.userId, '調整訂單狀態', 'order', orderId,
-    `${order.status} -> ${status}${effect ? `｜${effect}` : ''}`);
+  // 涉及金流的變更不提供一鍵還原，否則等於重新扣款或撥款。
+  await audit.record(null, {
+    adminId: req.user.userId,
+    action: '調整訂單狀態',
+    targetType: 'order',
+    targetId: orderId,
+    summary: `把訂單 ${order.order_no} 從「${orderFlow.statusLabel(order.status)}」改為「${orderFlow.statusLabel(status)}」`
+      + `${effect ? `，${effect}` : ''}${note ? `。說明：${note}` : ''}`,
+    changes: [{ label: '訂單狀態', from: orderFlow.statusLabel(order.status), to: orderFlow.statusLabel(status) }],
+    req
+  });
   res.status(200).json({
     success: true,
     message: effect ? `訂單狀態已更新，${effect}` : '訂單狀態已更新',

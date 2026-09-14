@@ -5,9 +5,8 @@ import '../utils/app_colors.dart';
 import '../utils/motion.dart';
 import 'animations.dart';
 import 'state_views.dart';
+import '../i18n/strings.dart';
 
-/// 收藏愛心。狀態統一綁在 ApiService.favoriteBookIds，
-/// 首頁卡片、書籍詳情、收藏清單按下去會同步變動。
 class FavoriteButton extends StatefulWidget {
   final int bookId;
   final double size;
@@ -35,6 +34,10 @@ class _FavoriteButtonState extends State<FavoriteButton> {
 
   Future<void> _toggle() async {
     if (_isBusy) return;
+    if (ApiService.authToken == null) {
+      showAppSnackBar(context, S.pleaseSignFirst, isError: true);
+      return;
+    }
 
     final willFavorite = !ApiService.favoriteBookIds.value.contains(widget.bookId);
     if (willFavorite) {

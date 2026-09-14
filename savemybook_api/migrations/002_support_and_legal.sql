@@ -1,5 +1,4 @@
 -- SaveMyBook 追加：細部管理權限、法律文件、常見問題、客服工單
--- 全部都是新增，不會動到既有資料。
 
 ALTER TABLE admin_permissions
   ADD COLUMN can_manage_orders   TINYINT(1) NOT NULL DEFAULT 1,
@@ -64,7 +63,6 @@ CREATE TABLE IF NOT EXISTS support_ticket_messages (
   CONSTRAINT fk_tmsg_sender FOREIGN KEY (sender_id) REFERENCES users (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 預設文件與幾則常見問題，讓畫面一開始就不是空的
 INSERT IGNORE INTO legal_documents (doc_key, title, content) VALUES
   ('terms',   '服務條款',   '請由管理後台編輯服務條款內容。'),
   ('privacy', '隱私權政策', '請由管理後台編輯隱私權政策內容。'),

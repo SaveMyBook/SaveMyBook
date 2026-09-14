@@ -6,11 +6,14 @@ const { notFound, conflict } = require('../../lib/errors');
 const { REPORT_STATUSES, DISPUTE_STATUSES } = require('../../constants/domain');
 const orderFlow = require('../../services/orders');
 const { notify } = require('../../services/notify');
-const { logAction } = require('../../services/audit');
+const audit = require('../../services/audit');
+
+const REPORT_STATUS_LABELS = { pending: '待處理', reviewing: '審核中', resolved: '違規成立', dismissed: '未違規' };
+const DISPUTE_RESULT_LABELS = {
+  refund_manual: '人工退款', refund_auto: '自動退款', dismissed: '駁回申訴', mediated: '協調結案'
+};
 
 const router = express.Router();
-
-// ---------- 檢舉 ----------
 
 router.get('/reports', requireAdmin('reports'), async (req, res) => {
   const status = req.query.status ? v.oneOf(req.query.status, REPORT_STATUSES, '不支援的檢舉狀態') : null;
@@ -66,8 +69,10 @@ router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
 
   const report = await prisma.reports.findUnique({ where: { report_id: reportId } });
   if (!report) throw notFound('找不到該檢舉');
-  // 同一個結果重送一次，會讓檢舉人與被檢舉人各多收一則通知。
   if (report.status === status && REPORT_FINAL.includes(status)) throw conflict('這則檢舉已經處理過了');
+
+  let bookBefore = null;
+  let bookAfter = null;
 
   const updated = await prisma.$transaction(async (tx) => {
     const r = await tx.reports.update({
@@ -82,10 +87,12 @@ router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
 
     let ownerId = null;
     if (report.target_type === 'book') {
-      const book = await tx.books.findUnique({ where: { book_id: report.target_id }, select: { seller_id: true } });
+      const book = await tx.books.findUnique({ where: { book_id: report.target_id } });
       ownerId = book?.seller_id ?? null;
 
       if (removeTarget && book) {
+        bookBefore = book;
+        bookAfter = { status: 'removed', is_approved: false };
         await tx.books.update({
           where: { book_id: report.target_id },
           data: { status: 'removed', is_approved: false, updated_at: new Date() }
@@ -121,11 +128,30 @@ router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
     return r;
   });
 
-  await logAction(req.user.userId, '處理商品檢舉', 'report', reportId, status);
+  const reportFields = {
+    status: { label: '檢舉狀態', format: (s) => REPORT_STATUS_LABELS[s] ?? s },
+    admin_note: '處理備註'
+  };
+  const bookFields = { status: '書籍狀態', is_approved: '審核通過' };
+  await audit.record(null, {
+    adminId: req.user.userId,
+    action: '處理檢舉',
+    targetType: 'report',
+    targetId: reportId,
+    summary: `把檢舉 #${reportId} 標為「${REPORT_STATUS_LABELS[status]}」`
+      + `${bookBefore ? `，並下架《${bookBefore.title}》` : ''}。已通知檢舉人與被檢舉人（通知無法收回）`,
+    changes: [
+      ...audit.diff(report, updated, reportFields),
+      ...(bookBefore ? audit.diff(bookBefore, bookAfter, bookFields) : [])
+    ],
+    undo: [
+      audit.undoUpdate('reports', reportId, report, updated, ['status', 'admin_id', 'admin_note', 'resolved_at']),
+      ...(bookBefore ? [audit.undoUpdate('books', bookBefore.book_id, bookBefore, bookAfter, bookFields)] : [])
+    ],
+    req
+  });
   res.status(200).json({ success: true, message: '檢舉已處理', data: updated });
 });
-
-// ---------- 交易爭議 ----------
 
 router.get('/disputes', requireAdmin('transactions'), async (req, res) => {
   const status = req.query.status ? v.oneOf(req.query.status, DISPUTE_STATUSES, '不支援的爭議狀態') : null;
@@ -152,9 +178,7 @@ router.get('/disputes', requireAdmin('transactions'), async (req, res) => {
 
 const DISPUTE_RESULTS = ['refund_manual', 'refund_auto', 'dismissed', 'mediated'];
 
-/// 駁回或調解後訂單回到申訴前的位置，由時間欄位推回來：
-/// 完成過就回到已完成（此時才撥款給賣家），存過書就回到已存書，否則回到待存書。
-/// 過去一律改成已完成，賣家還沒存書的訂單也會被當成交易完成。
+// 依時間欄位推回申訴前狀態，不可一律改成已完成（會替未存書的訂單撥款）。
 const restoredStatus = (order) => {
   if (order.completed_at) return 'completed';
   if (order.deposited_at) return 'deposited';
@@ -171,19 +195,19 @@ router.patch('/disputes/:id', requireAdmin('transactions'), async (req, res) => 
     include: { orders: { include: { order_items: true } } }
   });
   if (!dispute) throw notFound('找不到該爭議案件');
-  // 已結案的案件再裁決一次會重複退款，也會把訂單狀態蓋掉。
+  // 已結案的案件再裁決會重複退款。
   if (dispute.status === 'resolved') throw conflict('這個爭議已經裁決過了');
 
   const order = dispute.orders;
   const isRefund = result === 'refund_manual' || result === 'refund_auto';
 
-  // 客服可能在爭議期間已經手動取消或退款，那時錢已經退了，只結案不再動訂單。
+  // 爭議期間若已手動取消或退款，只結案不動訂單，避免重複退款。
   const alreadyReturned = orderFlow.phaseOf(order.status) === 'returned';
   let target = isRefund ? 'refunded' : restoredStatus(order);
   if (alreadyReturned) target = order.status;
 
   const { updated, money } = await prisma.$transaction(async (tx) => {
-    // 以狀態為條件更新，兩位客服同時按下裁決時只有一位會成功。
+    // 以狀態為條件更新，避免兩位客服同時裁決。
     const claimed = await tx.transaction_disputes.updateMany({
       where: { dispute_id: disputeId, status: { not: 'resolved' } },
       data: {
@@ -245,7 +269,21 @@ router.patch('/disputes/:id', requireAdmin('transactions'), async (req, res) => 
   });
 
   const effect = orderFlow.describeSettlement(money);
-  await logAction(req.user.userId, '仲裁交易爭議', 'dispute', disputeId, effect ? `${result}｜${effect}` : result);
+  await audit.record(null, {
+    adminId: req.user.userId,
+    action: '仲裁交易爭議',
+    targetType: 'dispute',
+    targetId: disputeId,
+    summary: `裁決訂單 ${order.order_no} 的爭議：${DISPUTE_RESULT_LABELS[result]}`
+      + `${effect ? `，${effect}` : ''}${adminNote ? `。備註：${adminNote}` : ''}`,
+    changes: [
+      { label: '裁決結果', from: '（未裁決）', to: DISPUTE_RESULT_LABELS[result] },
+      ...(target !== order.status
+        ? [{ label: '訂單狀態', from: orderFlow.statusLabel(order.status), to: orderFlow.statusLabel(target) }]
+        : [])
+    ],
+    req
+  });
   res.status(200).json({ success: true, message: '爭議已裁決', data: updated });
 });
 

@@ -6,6 +6,7 @@ import '../widgets/animations.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import 'support_ticket_screen.dart';
 import '../utils/app_labels.dart';
 import '../i18n/strings.dart';
 
@@ -41,9 +42,14 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     final faqs = await _api.fetchFaqs();
     if (!mounted) return;
     setState(() {
-      _faqs = faqs;
+      if (faqs.isNotEmpty || _faqs.isEmpty) _faqs = faqs;
       _isLoading = false;
     });
+  }
+
+  Future<void> _retry() async {
+    setState(() => _isLoading = true);
+    await _load();
   }
 
   List<FaqItem> get _visible {
@@ -84,16 +90,33 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           Expanded(
             child: SwitchIn(
               child: _isLoading
-                  ? const LoadingView.list()
+                  ? const LoadingView.list(key: ValueKey('loading'))
                   : grouped.isEmpty
-                      ? EmptyView(
-                          icon: Icons.search_off_rounded,
-                          message: _keyword.isEmpty ? S.noQuestionsYet : S.noMatchingQuestions,
+                      ? RefreshableCenter(
+                          key: ValueKey('empty_${_keyword.isEmpty}'),
+                          onRefresh: _load,
+                          child: EmptyView(
+                            icon: _keyword.isEmpty ? Icons.help_outline_rounded : Icons.search_off_rounded,
+                            message: _keyword.isEmpty
+                                ? S.noQuestionsYet
+                                : S.noMatchingQuestions,
+                            actionLabel: _keyword.isEmpty ? S.retry : S.contactUs,
+                            actionIcon: _keyword.isEmpty ? Icons.refresh_rounded : Icons.support_agent_rounded,
+                            onAction: _keyword.isEmpty
+                                ? _retry
+                                : () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => const SupportTicketScreen()),
+                                    ),
+                          ),
                         )
                       : RefreshIndicator(
+                          key: const ValueKey('list'),
                           color: c.accent,
                           onRefresh: _load,
                           child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                             padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
                             children: [
                               for (final entry in grouped.entries) ...[
@@ -109,7 +132,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                                   ),
                                 ),
                                 for (var i = 0; i < entry.value.length; i++)
-                                  FadeSlideIn(
+                                  RevealOnScroll(
                                     index: i,
                                     child: _buildTile(entry.value[i], c),
                                   ),

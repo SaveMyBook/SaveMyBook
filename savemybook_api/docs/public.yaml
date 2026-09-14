@@ -1,5 +1,6 @@
 tags:
-  - name: 公開頁面 (Public)
+  - name: public
+    x-displayName: 公開頁面
     description: |
       對外的 HTML 頁面，非 JSON API。供未安裝應用程式的使用者
       透過連結檢視基本資訊。
@@ -9,7 +10,7 @@ paths:
     get:
       summary: 個人公開頁（HTML）
       operationId: publicProfilePage
-      tags: [公開頁面 (Public)]
+      tags: [public]
       description: |
         掃描個人分享 QR Code 後開啟的頁面，回應為 HTML 而非 JSON。
 
@@ -54,7 +55,7 @@ paths:
     get:
       summary: 書籍公開頁（HTML）
       operationId: publicBookPage
-      tags: [公開頁面 (Public)]
+      tags: [public]
       description: |
         分享單本書籍時開啟的頁面，回應為 HTML 而非 JSON。
 

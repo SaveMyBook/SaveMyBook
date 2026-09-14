@@ -59,20 +59,32 @@ class _LegalDocScreenState extends State<LegalDocScreen> {
               child: _isLoading
                   ? const LoadingView()
                   : doc == null
-                      ? EmptyView(
-                          icon: Icons.description_outlined,
-                          message: S.documentNotBeenCreatedYet,
+                      ? RefreshableCenter(
+                          key: const ValueKey('empty'),
+                          onRefresh: _load,
+                          child: EmptyView(
+                            icon: Icons.description_outlined,
+                            message: S.documentNotBeenCreatedYet,
+                            actionLabel: S.retry,
+                            actionIcon: Icons.refresh_rounded,
+                            onAction: () {
+                              setState(() => _isLoading = true);
+                              _load();
+                            },
+                          ),
                         )
                       : RefreshIndicator(
+                          key: const ValueKey('doc'),
                           color: c.accent,
                           onRefresh: _load,
                           child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                             children: [
                               FadeSlideIn(
                                 child: AppCard(
                                   padding: const EdgeInsets.all(20),
-                                  child: Text(
+                                  child: SelectableText(
                                     doc.content,
                                     style: TextStyle(
                                       fontSize: 14,

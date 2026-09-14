@@ -1,0 +1,35 @@
+tags:
+  - name: status
+    x-displayName: 系統狀態
+    description: 服務是否處於維護模式。資料庫還原期間，這是唯一可用的端點。
+
+paths:
+  /api/status:
+    get:
+      summary: 系統狀態
+      operationId: getSystemStatus
+      tags: [status]
+      description: |
+        不需要登入。還原資料庫時 users 表正在重建，驗證身分本身就會失敗，所以這個端點不驗證。
+        只回傳狀態與時間，不含檔名與錯誤細節。
+      security: []
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      maintenance: { type: boolean, example: false }
+                      message: { type: string, nullable: true }
+                      restore:
+                        type: object
+                        properties:
+                          state: { type: string, enum: [idle, running, done, failed] }
+                          started_at: { type: string, format: date-time, nullable: true }
+                          finished_at: { type: string, format: date-time, nullable: true }

@@ -1,5 +1,6 @@
 tags:
-  - name: 書籍 (Books)
+  - name: books
+    x-displayName: 書籍
     description: |
       二手書的上架、查詢、編輯與照片管理。
 
@@ -14,7 +15,7 @@ paths:
     get:
       summary: 查詢書籍列表
       operationId: listBooks
-      tags: [書籍 (Books)]
+      tags: [books]
       description: |
         首頁、搜尋與賣家書籍管理共用此端點，差異僅在 query 參數。無須登入。
 
@@ -23,6 +24,26 @@ paths:
         1. `status` 預設為 `on_sale`。查詢全部狀態時須明確帶入 `status=all`。
         2. 帶入 `seller_id` 時不套用 `is_approved` 條件，賣家方能查得自身
            待審核或已下架的書籍；未帶入時僅回傳 `is_approved` 為 true 的書籍。
+
+        ## Popular Ranking
+
+        `sort=popular` 且未帶入 `seller_id` 時，依推薦分數排序（帶入 `seller_id` 時改為瀏覽數遞減）。
+        候選範圍為符合其他查詢條件、最新上架的至多 2000 本書，`pagination.total` 以此為上限。
+
+        分數由下列訊號相乘組成：
+
+        | 項目 | 內容 |
+        | --- | --- |
+        | 互動熱度 | 瀏覽數（取對數）、近 7 天收藏數、總收藏數、加入購物車數、聊天詢問數 |
+        | 刊登品質 | 照片 3 張以上加分、沒有照片扣分；書況 `like_new`、`good` 加分 |
+        | 新鮮度 | 隨上架天數遞減，約兩週後明顯下降 |
+        | 分類需求 | 該分類近 30 天的成交數 |
+        | 個人偏好 | 帶入 Bearer Token 時，依請求者收藏、購買、購物車中的分類比重加權 |
+
+        排序後再做賣家分散：任意連續 10 本中同一賣家至多 2 本，超出的書往後遞延。
+        帶入 Bearer Token 時排除請求者自己上架的書。本端點不要求登入，Token 無效時視同未登入。
+
+        排序結果依查詢條件與請求者快取 60 秒，期間翻頁的順序保持一致。
       security: []
       parameters:
         - $ref: '#/components/parameters/Page'
@@ -45,7 +66,7 @@ paths:
             type: string
             enum: [newest, price_asc, price_desc, popular]
             default: newest
-          description: '`newest` 依上架時間遞減、`price_asc` 價格遞增、`price_desc` 價格遞減、`popular` 瀏覽數遞減。'
+          description: '`newest` 依上架時間遞減、`price_asc` 價格遞增、`price_desc` 價格遞減、`popular` 依推薦分數排序（見上方說明）。'
         - in: query
           name: seller_id
           schema: { type: integer }
@@ -74,7 +95,7 @@ paths:
     post:
       summary: 上架書籍
       operationId: createBook
-      tags: [書籍 (Books)]
+      tags: [books]
       description: |
         以 `multipart/form-data` 上傳，文字欄位與照片一併送出。
         建立完成後書籍狀態為 `on_sale`。
@@ -158,7 +179,7 @@ paths:
     get:
       summary: 取得書籍分享連結
       operationId: getBookShareLink
-      tags: [書籍]
+      tags: [books]
       description: |
         回傳可在瀏覽器直接開啟的公開網址，形如 `https://<host>/b/<token>`。
 
@@ -216,12 +237,16 @@ paths:
     get:
       summary: 取得書籍詳情
       operationId: getBook
-      tags: [書籍 (Books)]
+      tags: [books]
       description: |
-        回傳單一書籍的完整資料，包含全部照片、賣家資訊與取貨書櫃。無須登入。
+        回傳單一書籍的完整資料，包含全部照片、賣家資訊與取貨書櫃。無須登入；
+        帶入 Bearer Token 時可辨識請求者，用於瀏覽數計算與 `reservation.reserved_for_me`。
 
-        每次呼叫會將 `view_count` 遞增 1。該累加以非同步方式執行，
+        呼叫時將 `view_count` 遞增 1，但同一位瀏覽者（已登入以使用者、未登入以 IP 區分）
+        每小時僅計一次，賣家瀏覽自己的書不計入。該累加以非同步方式執行，
         不阻塞回應，因此回傳的 `view_count` 為遞增前的數值。
+
+        書籍正由買家透過聊天室預約保留時，`reservation` 帶保留期限；否則為 null。
       security: []
       responses:
         '200':
@@ -232,14 +257,25 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  data: { $ref: '#/components/schemas/Book' }
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Book'
+                      - type: object
+                        properties:
+                          reservation:
+                            type: object
+                            nullable: true
+                            description: 保留中的預約。其他使用者在期限內加入購物車或結帳會收到 409 `BOOK_RESERVED`。
+                            properties:
+                              reserved_until: { type: string, format: date-time, description: 保留期限 }
+                              reserved_for_me: { type: boolean, description: 是否保留給請求者本人, example: false }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 
     put:
       summary: 編輯書籍
       operationId: updateBook
-      tags: [書籍 (Books)]
+      tags: [books]
       description: |
         僅能異動自身上架的書籍，管理員不受此限。採部分更新，僅須帶入欲異動的欄位。
 
@@ -249,6 +285,9 @@ paths:
 
         照片不透過此端點處理，請使用 `POST /api/books/{id}/images` 與
         `DELETE /api/books/{id}/images/{imageId}`。
+
+        調降售價且書籍狀態為 `on_sale` 時，伺服器以 `promotion` 類型的站內通知告知收藏此書的使用者
+        （賣家本人除外），通知的 `related_type` 為 `book`。
       security: [{ bearerAuth: [] }]
       requestBody:
         content:
@@ -304,7 +343,7 @@ paths:
     delete:
       summary: 下架書籍
       operationId: deleteBook
-      tags: [書籍 (Books)]
+      tags: [books]
       description: |
         軟刪除：僅將 `status` 改為 `removed`，資料與照片均予保留，
         以維持已成立訂單的關聯完整性。後續可再改回 `on_sale`。
@@ -330,7 +369,7 @@ paths:
     post:
       summary: 為書籍加照片
       operationId: addBookImages
-      tags: [書籍 (Books)]
+      tags: [books]
       description: |
         單次上限 8 張，`image_type` 一律儲存為 `other`。
         回應包含該書籍的全部照片，含既有照片。
@@ -353,6 +392,10 @@ paths:
                   type: array
                   items: { type: string, format: binary }
                   maxItems: 8
+                image_types:
+                  type: string
+                  description: 以逗號分隔、與 images 順序對應的照片類型（cover、back、inside、other），缺少或不合法的位置視為 other。
+                  example: cover,inside
       responses:
         '201':
           description: 新增成功，回傳該書籍的全部照片。
@@ -381,7 +424,7 @@ paths:
     delete:
       summary: 刪除書籍照片
       operationId: deleteBookImage
-      tags: [書籍 (Books)]
+      tags: [books]
       description: |
         刪除資料列，實體檔案保留於磁碟。
 
@@ -422,7 +465,7 @@ paths:
     get:
       summary: 用 ISBN 查外部書籍資料
       operationId: lookupIsbn
-      tags: [書籍 (Books)]
+      tags: [books]
       description: |
         代理查詢 Google Books API，供上架流程自動帶入書名、作者等欄位。
 

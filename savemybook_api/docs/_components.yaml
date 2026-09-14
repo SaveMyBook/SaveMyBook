@@ -16,6 +16,16 @@ components:
       schema: { type: integer, minimum: 1, default: 20 }
       description: 每頁筆數。
       example: 20
+    VerifyToken:
+      in: header
+      name: X-Verify-Token
+      required: false
+      schema: { type: string }
+      description: |
+        由 `POST /api/security/verify` 取得的 `verify_token`。未帶入或已失效時回傳 403
+        `VERIFICATION_REQUIRED`，回應中的 `verification` 指出需要的範圍與可用的驗證方式。
+        伺服器尚未執行資料庫更新 007 時不檢查此標頭。
+      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXAiOiJ2ZXJpZnkifQ.abc123
 
   schemas:
     # ---------- 通用外層 ----------
@@ -47,9 +57,12 @@ components:
           type: string
           nullable: true
           description: |
-            僅需用戶端分支處理的錯誤帶此欄位。可能的值為
+            僅需用戶端分支處理的錯誤帶此欄位。常見的值包括
             `ACCOUNT_NOT_FOUND`、`ACCOUNT_BLACKLISTED`、`ACCOUNT_INACTIVE`、
-            `INVALID_PASSWORD`、`INSUFFICIENT_BALANCE`、`BOOK_NOT_APPROVED`。
+            `TOKEN_EXPIRED`、`TOKEN_REVOKED`、`SESSION_REVOKED`、
+            `INVALID_PASSWORD`、`INSUFFICIENT_BALANCE`、`BOOK_NOT_APPROVED`、`BOOK_RESERVED`、
+            `VERIFICATION_REQUIRED`、`PAYMENT_PIN_NOT_SET`、`INVALID_PIN`、`PIN_LOCKED`，
+            完整列表見文件開頭的錯誤代碼一節。
 
     # ---------- 使用者 ----------
     UserBrief:
@@ -383,7 +396,7 @@ components:
         related_type:
           type: string
           nullable: true
-          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`legal`、`user`、`wallet`。'
+          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`legal`、`user`、`wallet`、`security`、`push_test`。`security` 為新裝置登入、交易密碼變更或鎖定等帳號安全通知，無對應的 `related_id`。'
           example: order
         is_read: { type: boolean, example: false }
         created_at: { type: string, format: date-time }
@@ -401,14 +414,30 @@ components:
           type: object
           nullable: true
           properties:
-            content: { type: string, example: 請問這本還在嗎？ }
+            content: { type: string, description: 資料表原始內容，列表顯示請改用 `preview`。, example: 請問這本還在嗎？ }
             message_type: { type: string, enum: [text, image, system] }
+            kind:
+              type: string
+              enum: [text, image, voice, book, reservation, recalled, notice]
+              description: 與 `ChatMessage.kind` 相同。
+              example: text
+            preview:
+              type: string
+              description: |
+                伺服器產生的摘要，可直接顯示於列表。文字訊息取前 100 字；其餘為 `[圖片]`、`[語音]`、
+                `[商品] 書名`、`[預約]` 或 `訊息已收回`。
+              example: 請問這本還在嗎？
+            sender_id: { type: integer, description: 可用來判斷是否顯示「你：」前綴。, example: 12 }
+            is_read: { type: boolean, description: 請求者自己發送時，代表對方是否已讀。, example: false }
             created_at: { type: string, format: date-time }
         unread_count: { type: integer, description: 對方發送且尚未讀取的訊息則數, example: 2 }
         updated_at: { type: string, format: date-time }
 
     ChatMessage:
       type: object
+      description: |
+        資料表原始欄位加上伺服器解析後的 `kind`、`body`、`payload`。
+        用戶端應依 `kind` 渲染，不必自行解析 `content`。
       properties:
         message_id: { type: integer, example: 301 }
         room_id: { type: integer, example: 7 }
@@ -416,15 +445,100 @@ components:
         content:
           type: string
           description: |
-            `message_type` 為 `image` 時，本欄位存放圖片的相對路徑。
-            商品卡片為 `system` 訊息，內容為 `[book]` 前綴加一段 JSON，
-            例如 `[book]{"book_id":101,"title":"挪威的森林","price":"180.00","image_url":"/uploads/books/a.jpg"}`，
-            由用戶端解析後渲染。
+            資料表原始內容。語音、商品卡片、預約卡片與已收回的訊息皆以 `system` 型別儲存，
+            內容為前綴加 JSON（例如 `[voice]{"url":"/uploads/voice/a.m4a","duration":8}`），
+            保留此欄位僅供舊版用戶端使用。
           example: 請問這本還在嗎？
-        message_type: { type: string, enum: [text, image, system], example: text }
+        message_type:
+          type: string
+          enum: [text, image, system]
+          description: 資料表的原始型別。語音訊息為 `system`，請以 `kind` 判斷。
+          example: text
+        kind:
+          type: string
+          enum: [text, image, voice, book, reservation, recalled, notice]
+          description: |
+            | 值 | 說明 | `body` | `payload` |
+            | --- | --- | --- | --- |
+            | `text` | 文字訊息 | 訊息文字 | `null` |
+            | `image` | 圖片 | 圖片相對路徑 | `null` |
+            | `voice` | 語音 | `null` | `{ url, duration }`，`duration` 單位為秒 |
+            | `book` | 商品卡片 | `null` | `{ book_id, title, price, image_url }` |
+            | `reservation` | 預約卡片 | `null` | `Reservation` 物件；超出最近 30 筆時僅含 `reservation_id` |
+            | `recalled` | 已收回的訊息 | `null` | `null` |
+            | `notice` | 其他系統訊息 | 訊息文字 | `null` |
+          example: text
+        body:
+          type: string
+          nullable: true
+          description: 文字內容或圖片路徑，依 `kind` 而定。
+          example: 請問這本還在嗎？
+        payload:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: 結構化內容，依 `kind` 而定。
+          example: null
         is_read: { type: boolean, example: true }
         created_at: { type: string, format: date-time }
         users: { $ref: '#/components/schemas/UserBrief' }
+
+    Reservation:
+      type: object
+      description: 聊天室中的書籍預約。
+      properties:
+        reservation_id: { type: integer, example: 14 }
+        book:
+          type: object
+          nullable: true
+          properties:
+            book_id: { type: integer, example: 101 }
+            title: { type: string, example: 挪威的森林 }
+            price: { type: string, example: '180.00' }
+            status: { type: string, enum: [on_sale, reserved, sold, removed], example: on_sale }
+            image_url: { type: string, nullable: true, example: /uploads/books/a.jpg }
+        buyer_id: { type: integer, example: 12 }
+        seller_id: { type: integer, example: 8 }
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, expired]
+          description: |
+            `pending` 等待賣家回覆、`confirmed` 賣家已接受、`cancelled` 已婉拒或取消、
+            `expired` 逾時未回覆或保留期限已過。
+          example: confirmed
+        hours: { type: integer, nullable: true, enum: [24, 48, 72], description: 買家申請的保留時數, example: 48 }
+        message: { type: string, nullable: true, description: 買家附上的備註, example: 週六下午可以取書 }
+        closed_by:
+          type: string
+          nullable: true
+          enum: [seller, buyer]
+          description: 狀態為 `cancelled` 時，執行婉拒或取消的一方。
+          example: null
+        pickup_deadline:
+          type: string
+          format: date-time
+          nullable: true
+          description: 賣家接受後才有值，為接受時間加上 `hours`。
+        is_holding:
+          type: boolean
+          description: 值為 true 代表目前正保留書籍，即狀態為 `confirmed` 且尚未超過 `pickup_deadline`。
+          example: true
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    DeviceSession:
+      type: object
+      description: 一次登入所建立的裝置工作階段。
+      properties:
+        session_id: { type: integer, example: 31 }
+        device_name: { type: string, nullable: true, example: iPhone 15 Pro }
+        platform: { type: string, nullable: true, example: ios }
+        app_version: { type: string, nullable: true, example: 1.4.0 }
+        ip_address: { type: string, nullable: true, description: 最近一次使用的 IP, example: 203.0.113.24 }
+        created_at: { type: string, format: date-time, description: 登入時間 }
+        last_seen_at: { type: string, format: date-time, description: 最近使用時間，約每 5 分鐘更新一次 }
+        biometric_pay: { type: boolean, description: 這台裝置是否已啟用生物辨識付款, example: false }
+        is_current: { type: boolean, description: 是否為發出本次請求的裝置, example: true }
 
     # ---------- 檢舉／爭議 ----------
     Report:
@@ -591,7 +705,26 @@ components:
         action: { type: string, example: 強制下架書籍 }
         target_type: { type: string, nullable: true, example: book }
         target_id: { type: integer, nullable: true, example: 101 }
-        detail: { type: string, nullable: true, example: 商品描述與實物不符 }
+        summary: { type: string, example: 修改了《被討厭的勇氣》的售價，並通知賣家 }
+        changes:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string, example: price }
+              label: { type: string, example: 售價 }
+              from: { type: string, example: 250 代幣 }
+              to: { type: string, example: 220 代幣 }
+        can_undo: { type: boolean, example: true }
+        reverted:
+          type: object
+          nullable: true
+          properties:
+            at: { type: string, format: date-time }
+            by: { type: integer, description: 執行還原的管理員 }
+            log_id: { type: integer, description: 還原紀錄的編號 }
+        detail: { type: string, nullable: true, description: 與 summary 相同，保留給舊版用戶端 }
+        ip_address: { type: string, nullable: true }
         created_at: { type: string, format: date-time }
         admin: { $ref: '#/components/schemas/UserBrief' }
 
@@ -605,7 +738,7 @@ components:
 
     Unauthorized:
       description: |
-        未提供 Token，或帳號狀態已失效（停權、列入黑名單、帳號不存在）。
+        未提供 Token，或帳號狀態已失效（停權、列入黑名單、帳號不存在、密碼已變更、裝置已登出）。
         用戶端收到此狀態碼時應清除本機 Token 並導向登入流程。
       content:
         application/json:
@@ -617,13 +750,89 @@ components:
               value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已被停權，如有疑問請聯絡客服 }
             帳號在黑名單:
               value: { success: false, code: ACCOUNT_BLACKLISTED, message: 此帳號已被列入黑名單，如有疑問請聯絡客服 }
+            裝置已登出:
+              value: { success: false, code: SESSION_REVOKED, message: 這台裝置已經登出，請重新登入 }
 
     TokenInvalid:
-      description: Token 無效或已逾 24 小時有效期。
+      description: |
+        Token 簽章無效，或已逾 24 小時有效期。過期時 `code` 為 `TOKEN_EXPIRED`，
+        用戶端可先呼叫 `POST /api/auth/refresh` 換發新 Token，失敗再導向登入流程。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, message: Token 無效或已過期 }
+          examples:
+            已過期:
+              value: { success: false, code: TOKEN_EXPIRED, message: 登入已逾時 }
+            簽章無效:
+              value: { success: false, message: Token 無效或已過期 }
+
+    VerificationRequired:
+      description: |
+        此操作需要先驗證身分。呼叫 `POST /api/security/verify` 取得 `verify_token`，
+        再以 `X-Verify-Token` 標頭重送原請求。`verification.scope` 為需要的範圍，
+        `verification.methods` 為該範圍可用的驗證方式。
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - type: object
+                properties:
+                  verification:
+                    type: object
+                    properties:
+                      scope: { type: string, enum: [payment, sensitive], example: sensitive }
+                      methods:
+                        type: array
+                        items: { type: string, enum: [password, pin, biometric] }
+                        example: [password, pin, biometric]
+          examples:
+            需要驗證:
+              value:
+                success: false
+                code: VERIFICATION_REQUIRED
+                message: 請先驗證身分
+                verification: { scope: sensitive, methods: [password, pin, biometric] }
+            驗證已逾時:
+              value:
+                success: false
+                code: VERIFICATION_REQUIRED
+                message: 驗證已逾時，請重新驗證
+                verification: { scope: sensitive, methods: [password, pin, biometric] }
+
+    AdminVerificationRequired:
+      description: |
+        請求者非管理員、缺少此功能的細部權限，或尚未完成身分驗證。
+        後者 `code` 為 `VERIFICATION_REQUIRED`，須以 `POST /api/security/verify` 取得
+        `sensitive` 範圍的 `verify_token` 後，帶入 `X-Verify-Token` 標頭重送。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            不是管理員:
+              value: { success: false, message: 權限不足，僅限管理員執行此操作 }
+            缺少細部權限:
+              value: { success: false, message: 您沒有這項功能的權限 }
+            需要驗證:
+              value:
+                success: false
+                code: VERIFICATION_REQUIRED
+                message: 請先驗證身分
+                verification: { scope: sensitive, methods: [password, pin, biometric] }
+
+    SecurityUnavailable:
+      description: 伺服器尚未執行資料庫更新 007（`user_sessions`、`user_security` 資料表），帳號安全功能暫不可用。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: SECURITY_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
+
+    BookReserved:
+      description: 書籍已由其他買家預約並保留中，保留期限內僅該買家可加入購物車或結帳。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: BOOK_RESERVED, message: 《挪威的森林》已經被其他買家預約，保留到 9/16 18:30 }
 
     Forbidden:
       description: 已通過認證，但無權存取該筆資料。

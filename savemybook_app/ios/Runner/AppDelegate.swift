@@ -36,7 +36,6 @@ import UserNotifications
         self?.handleShare(call: call, result: result, host: controller)
       }
 
-      // App 圖示上的未讀數。推播送達時由 APNs 設定，讀完通知後由 App 這邊同步回來。
       let push = FlutterMethodChannel(name: AppDelegate.pushChannelName,
                                       binaryMessenger: controller.binaryMessenger)
       push.setMethodCallHandler { call, result in
@@ -81,6 +80,18 @@ import UserNotifications
     return super.application(app, open: url, options: options)
   }
 
+  override func application(_ application: UIApplication,
+                            didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    // firebase_messaging 在 Release 組態一律把 APNs token 標成正式環境，用開發描述檔安裝時推播會送不到。
+    // 改用 FIRMessaging 的 APNSToken setter（type unknown），由 Firebase 依描述檔判斷環境。
+    if let cls = NSClassFromString("FIRMessaging"),
+       let messaging = (cls as AnyObject).perform(NSSelectorFromString("messaging"))?.takeUnretainedValue() as? NSObject {
+      messaging.setValue(deviceToken, forKey: "APNSToken")
+    } else {
+      super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+    }
+  }
+
   private func handleShare(call: FlutterMethodCall,
                            result: @escaping FlutterResult,
                            host: UIViewController) {
@@ -107,7 +118,6 @@ import UserNotifications
         result(FlutterError(code: "no_file", message: "找不到檔案", details: nil))
         return
       }
-      // 用 URL 而不是 Data：分享頁才會帶出原本的檔名與副檔名。
       var fileItems: [Any] = [URL(fileURLWithPath: path)]
       if let text = args["text"] as? String, !text.isEmpty { fileItems.append(text) }
       present(items: fileItems, from: host, result: result)

@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../utils/motion.dart';
+import 'animations.dart';
 
 OverlayEntry? _current;
+GlobalKey<_BannerState>? _currentKey;
 Timer? _dismissTimer;
 
-/// App 開著時收到推播用的橫幅。
-///
-/// 系統在前景不會替 Android 顯示推播，iOS 也刻意關掉前景橫幅，
-/// 兩邊統一由這裡顯示，才能在使用者正看著那個聊天室時略過。
 void showInAppBanner(
   OverlayState overlay, {
   required String title,
@@ -18,9 +17,11 @@ void showInAppBanner(
 }) {
   _dismiss();
 
+  final key = GlobalKey<_BannerState>();
   late OverlayEntry entry;
   entry = OverlayEntry(
     builder: (context) => _Banner(
+      key: key,
       title: title,
       body: body,
       icon: icon,
@@ -32,8 +33,15 @@ void showInAppBanner(
     ),
   );
   _current = entry;
+  _currentKey = key;
   overlay.insert(entry);
-  _dismissTimer = Timer(const Duration(seconds: 4), _dismiss);
+  _dismissTimer = Timer(const Duration(seconds: 4), () => _close(entry));
+}
+
+Future<void> _close(OverlayEntry entry) async {
+  if (!identical(_current, entry)) return;
+  await _currentKey?.currentState?.close();
+  if (identical(_current, entry)) _dismiss();
 }
 
 void _dismiss() {
@@ -41,6 +49,7 @@ void _dismiss() {
   _dismissTimer = null;
   _current?.remove();
   _current = null;
+  _currentKey = null;
 }
 
 class _Banner extends StatefulWidget {
@@ -51,6 +60,7 @@ class _Banner extends StatefulWidget {
   final VoidCallback onDismiss;
 
   const _Banner({
+    super.key,
     required this.title,
     required this.body,
     required this.icon,
@@ -65,8 +75,14 @@ class _Banner extends StatefulWidget {
 class _BannerState extends State<_Banner> with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 260),
+    duration: Motion.base,
+    reverseDuration: Motion.micro,
   )..forward();
+
+  Future<void> close() async {
+    if (!mounted) return;
+    await _controller.reverse();
+  }
 
   @override
   void dispose() {
@@ -78,65 +94,74 @@ class _BannerState extends State<_Banner> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final top = MediaQuery.of(context).padding.top + 8;
+    final curved = CurvedAnimation(
+      parent: _controller,
+      curve: Motion.emphasized,
+      reverseCurve: Motion.exitCurve,
+    );
 
     return Positioned(
       top: top,
       left: 12,
       right: 12,
       child: SlideTransition(
-        position: Tween(begin: const Offset(0, -1.2), end: Offset.zero)
-            .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic)),
-        child: Dismissible(
-          key: const ValueKey('in_app_banner'),
-          direction: DismissDirection.up,
-          onDismissed: (_) => widget.onDismiss(),
-          child: Material(
-            color: Colors.transparent,
-            child: GestureDetector(
-              onTap: widget.onTap,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-                decoration: BoxDecoration(
-                  color: c.card,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: c.shadow, blurRadius: 20, offset: const Offset(0, 6))],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: c.accent.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(11),
+        position: Tween(begin: const Offset(0, -1.2), end: Offset.zero).animate(curved),
+        child: FadeTransition(
+          opacity: _controller,
+          child: Dismissible(
+            key: const ValueKey('in_app_banner'),
+            direction: DismissDirection.up,
+            onDismissed: (_) => widget.onDismiss(),
+            child: Material(
+              color: Colors.transparent,
+              child: PressableScale(
+                scale: 0.98,
+                onTap: widget.onTap,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                  decoration: BoxDecoration(
+                    color: c.card,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: c.divider.withValues(alpha: 0.6)),
+                    boxShadow: [BoxShadow(color: c.shadow, blurRadius: 20, offset: const Offset(0, 6))],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: c.accent.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(11),
+                        ),
+                        child: Icon(widget.icon, size: 20, color: c.accent),
                       ),
-                      child: Icon(widget.icon, size: 20, color: c.accent),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            widget.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary),
-                          ),
-                          if (widget.body.isNotEmpty) ...[
-                            const SizedBox(height: 2),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Text(
-                              widget.body,
-                              maxLines: 2,
+                              widget.title,
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 13, height: 1.35, color: c.textSecondary),
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary),
                             ),
+                            if (widget.body.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                widget.body,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 13, height: 1.35, color: c.textSecondary),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

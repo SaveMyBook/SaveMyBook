@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_info.dart';
+import '../widgets/animations.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -13,7 +14,9 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ClipRRect(
+            FadeSlideIn(
+              offsetY: 12,
+              child: ClipRRect(
               borderRadius: BorderRadius.circular(28),
               child: Image.asset(
                 'assets/images/logo.png',
@@ -28,8 +31,20 @@ class SplashScreen extends StatelessWidget {
                 ),
               ),
             ),
+            ),
             const SizedBox(height: 24),
-            const Text(kAppName, style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 1)),
+            const FadeSlideIn(
+              index: 2,
+              offsetY: 12,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  kAppName,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 1),
+                ),
+              ),
+            ),
             const SizedBox(height: 48),
             const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)),
           ],

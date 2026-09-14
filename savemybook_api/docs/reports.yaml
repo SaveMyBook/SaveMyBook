@@ -1,5 +1,6 @@
 tags:
-  - name: 檢舉 (Reports)
+  - name: reports
+    x-displayName: 檢舉
     description: |
       檢舉違規的使用者、商品或訊息。
 
@@ -11,7 +12,7 @@ paths:
     get:
       summary: 取得我送出的檢舉
       operationId: listMyReports
-      tags: [檢舉 (Reports)]
+      tags: [reports]
       description: 列出請求者送出的檢舉及其處理狀態，依建立時間遞減排序。無分頁機制。
       security: [{ bearerAuth: [] }]
       responses:
@@ -32,7 +33,7 @@ paths:
     post:
       summary: 送出檢舉
       operationId: createReport
-      tags: [檢舉 (Reports)]
+      tags: [reports]
       description: |
         送出檢舉。系統會同步通知被檢舉方已受理檢舉並進入審核，
         審核期間商品仍可販售。
@@ -114,7 +115,7 @@ paths:
     get:
       summary: 取得我的商品被檢舉的紀錄
       operationId: listReportsAgainstMe
-      tags: [檢舉 (Reports)]
+      tags: [reports]
       description: |
         列出請求者上架書籍所收到的檢舉，供賣家於書籍管理介面顯示標註。
 

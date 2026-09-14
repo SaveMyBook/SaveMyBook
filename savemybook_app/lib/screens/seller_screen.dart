@@ -7,10 +7,10 @@ import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/book_card.dart';
+import '../widgets/buyer/back_to_top_button.dart';
 import '../widgets/state_views.dart';
 import '../i18n/strings.dart';
 
-/// 別人的賣場。從書籍卡片、訂單、聊天室的頭像或暱稱點進來。
 class SellerScreen extends StatefulWidget {
   final int sellerId;
   final String sellerName;
@@ -29,9 +29,16 @@ class SellerScreen extends StatefulWidget {
 
 class _SellerScreenState extends State<SellerScreen> {
   final ApiService _api = ApiService();
+  final ScrollController _scrollController = ScrollController();
 
   List<Book> _books = [];
   bool _isLoading = true;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -40,6 +47,10 @@ class _SellerScreenState extends State<SellerScreen> {
   }
 
   Future<void> _load() async {
+    if (widget.sellerId <= 0) {
+      _isLoading = false;
+      return;
+    }
     final books = await _api.fetchSellerBooks(widget.sellerId);
     if (!mounted) return;
     setState(() {
@@ -63,38 +74,52 @@ class _SellerScreenState extends State<SellerScreen> {
             child: SwitchIn(
               child: _isLoading
                   ? const LoadingView.grid()
-                  : RefreshIndicator(
-                      color: c.accent,
-                      onRefresh: _load,
-                      child: SwitchIn(
-                        child: _books.isEmpty
-                            ? ListView(
-                                key: const ValueKey('empty'),
-                                children: [
-                                  SizedBox(height: 60),
-                                  EmptyView(
-                                    icon: Icons.storefront_outlined,
-                                    message: S.sellerNoBooksSale,
+                  : Stack(
+                      key: const ValueKey('content'),
+                      children: [
+                        RefreshIndicator(
+                          color: c.accent,
+                          onRefresh: _load,
+                          child: SwitchIn(
+                            child: _books.isEmpty
+                                ? ListView(
+                                    key: const ValueKey('empty'),
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    children: [
+                                      const SizedBox(height: 60),
+                                      EmptyView(
+                                        icon: Icons.storefront_outlined,
+                                        message: S.sellerNoBooksSale,
+                                      ),
+                                    ],
+                                  )
+                                : GridView.builder(
+                                    key: const ValueKey('items'),
+                                    controller: _scrollController,
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    padding: EdgeInsets.fromLTRB(16, 4, 16, MediaQuery.of(context).padding.bottom + 24),
+                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 12,
+                                      mainAxisExtent: BookCard.gridHeight,
+                                    ),
+                                    itemCount: _books.length,
+                                    itemBuilder: (_, i) => RevealOnScroll(
+                                      key: ValueKey(_books[i].bookId),
+                                      index: i,
+                                      child: BookCard(book: _books[i]),
+                                    ),
                                   ),
-                                ],
-                              )
-                            : GridView.builder(
-                                key: const ValueKey('items'),
-                                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 12,
-                                  mainAxisSpacing: 12,
-                                  childAspectRatio: 0.58,
-                                ),
-                                itemCount: _books.length,
-                                itemBuilder: (_, i) => RevealOnScroll(
-                                  index: i,
-                                  child: BookCard(book: _books[i]),
-                                ),
-                              ),
-                      ),
+                          ),
+                        ),
+                        if (_books.isNotEmpty)
+                          Positioned(
+                            right: 16,
+                            bottom: MediaQuery.of(context).padding.bottom + 16,
+                            child: BackToTopButton(controller: _scrollController, threshold: 600),
+                          ),
+                      ],
                     ),
             ),
           ),

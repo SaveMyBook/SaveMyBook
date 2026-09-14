@@ -1,5 +1,6 @@
 tags:
-  - name: 系統公告 (Announcements)
+  - name: announcements
+    x-displayName: 系統公告
     description: |
       系統公告。查詢為公開端點，建立與維護需管理員具備
       `can_manage_announcements` 權限。
@@ -12,7 +13,7 @@ paths:
     get:
       summary: 取得公開公告
       operationId: listAnnouncements
-      tags: [系統公告 (Announcements)]
+      tags: [announcements]
       description: |
         僅回傳已發布且未到期的公告，依發布時間遞減排序。無須登入。
 
@@ -35,7 +36,7 @@ paths:
     post:
       summary: 建立公告
       operationId: createAnnouncement
-      tags: [系統公告 (Announcements)]
+      tags: [announcements]
       description: |
         需 `can_manage_announcements` 權限。
 
@@ -92,7 +93,7 @@ paths:
     get:
       summary: 取得全部公告（含草稿）
       operationId: listAllAnnouncements
-      tags: [系統公告 (Announcements)]
+      tags: [announcements]
       description: |
         供管理後台使用，包含草稿與已到期的公告，依建立時間遞減排序。
         需 `can_manage_announcements` 權限。
@@ -124,15 +125,38 @@ paths:
         description: 公告編號。
         example: 4
 
+    get:
+      summary: 取得單則公告
+      operationId: getAnnouncement
+      tags: [announcements]
+      description: 只回傳已發布且未過期的公告。點開公告通知時使用。
+      security: []
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { type: object }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
     put:
       summary: 編輯公告
       operationId: updateAnnouncement
-      tags: [系統公告 (Announcements)]
+      tags: [announcements]
       description: |
         需 `can_manage_announcements` 權限。
 
         `published_at` 僅於首次發布時寫入，後續編輯不會覆寫，
         因此公告的發布時間不受內容修訂影響。
+
+        公告**第一次發布**時（建立時直接發布，或由草稿改為發布）會通知所有使用者並推播。
+        之後修改內容不會再通知。「優惠活動」類型的公告屬於 `promotion` 通知，使用者可在 App 設定中關閉推播；
+        其他類型一律送出。
 
         `expires_at` 未帶入代表不變更，帶入 `null` 代表清除到期時間。
       security: [{ bearerAuth: [] }]
@@ -166,7 +190,7 @@ paths:
     delete:
       summary: 刪除公告
       operationId: deleteAnnouncement
-      tags: [系統公告 (Announcements)]
+      tags: [announcements]
       description: 永久刪除。需 `can_manage_announcements` 權限。
       security: [{ bearerAuth: [] }]
       responses:

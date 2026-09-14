@@ -1771,5 +1771,667 @@
   "systemNotificationSettings": "系統通知設定",
   "turnNotificationsSoundsLockScreenPreviews": "開關通知、聲音與鎖定畫面顯示",
   "pushNotificationsNotSetUpBuild": "這個版本的 App 還沒有設定推播，請先放入 Firebase 設定檔後重新編譯。",
-  "notificationsTurnedOffAllowAppSend": "通知權限已被關閉，請到系統設定允許這個 App 傳送通知。"
+  "notificationsTurnedOffAllowAppSend": "通知權限已被關閉，請到系統設定允許這個 App 傳送通知。",
+  "restoreBackup": "還原到這份備份？",
+  "wholeDatabaseGoBackP0Orders": "整個資料庫會回到 {p0} 的狀態，這個時間點之後的訂單、訊息、會員資料與操作紀錄都會消失。\n\n還原前系統會先自動備份目前的狀態，還原錯了可以再還原那一份。還原期間全站暫停服務，通常需要幾十秒到幾分鐘。\n\n請輸入你的登入密碼確認：",
+  "@wholeDatabaseGoBackP0Orders": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "password2": "登入密碼",
+  "startRestore": "開始還原",
+  "backingUpCurrentState": "正在備份目前的狀態…",
+  "databaseRestoredPreviousStateWasBacked": "資料庫已還原。還原前的狀態備份在 {p0}",
+  "@databaseRestoredPreviousStateWasBacked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "restoreFailedDatabaseMayUnchangedPartly": "還原失敗，資料庫維持原狀或部分還原，請查看操作紀錄並考慮還原 {p0}",
+  "@restoreFailedDatabaseMayUnchangedPartly": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "autoBackupBeforeRestore": "還原前自動備份",
+  "restoreBackup2": "還原到這份備份",
+  "restoringDatabase": "正在還原資料庫",
+  "p0SecondsSoFarKeepApp": "已經過 {p0} 秒。請不要關閉 App，完成後會自動恢復服務。",
+  "@p0SecondsSoFarKeepApp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "majorUpdate": "這次是重大更新嗎？",
+  "majorUpdateNotifiesEveryUserTerms": "重大更新會通知所有使用者；服務條款與隱私權政策還會要求使用者下次開啟 App 時重新閱讀並同意。\n\n只是修正錯字或調整排版，請選「小幅修改」。",
+  "majorUpdate2": "重大更新",
+  "minorEdit": "小幅修改",
+  "books": "書籍",
+  "orders2": "訂單",
+  "wallets2": "錢包",
+  "announcements3": "公告",
+  "legal": "條款",
+  "backups": "備份",
+  "undoAction": "還原這筆操作？",
+  "p0NNtheDataGoesBack": "「{p0}」\n\n資料會改回操作前的狀態。已經送出的通知不會收回；如果資料之後又被修改過，系統會拒絕還原。",
+  "@p0NNtheDataGoesBack": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "undo": "還原",
+  "undone": "已還原",
+  "searchActionsEGNicknameBook": "搜尋操作內容，例如會員暱稱或書名",
+  "viewP0Changes": "查看 {p0} 項變更",
+  "@viewP0Changes": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "undoAction2": "還原這筆操作",
+  "tapBarSeeDay": "點長條可以看當天的數字",
+  "noAnnouncements": "目前沒有公告",
+  "tapPhotoNameChange": "點頭像或暱稱可以修改",
+  "canTContinueWithoutAccepting": "不同意就無法繼續使用",
+  "needAcceptLatestP0UseP1": "需要同意最新版本的「{p0}」才能使用{p1}。不同意的話會先登出，你可以隨時重新登入後再同意。",
+  "@needAcceptLatestP0UseP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "goBack": "再看看",
+  "p0BeenUpdated": "「{p0}」已經更新",
+  "@p0BeenUpdated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "readLatestVersionUpdatedP0Accept": "請閱讀最新版本（{p0} 更新）。同意後才能繼續使用。",
+  "@readLatestVersionUpdatedP0Accept": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "scrollEndContinue": "請先捲動讀完全文",
+  "iVeReadAccept": "我已閱讀並同意",
+  "decline": "不同意",
+  "viewDetails": "查看詳情",
+  "notFoundMayBeenDeletedRemoved": "找不到這筆資料，可能已經刪除或下架",
+  "salesDropOffsPickupsRefundsDisputes": "售出、存書、取貨、退款與爭議",
+  "chatMessages": "聊天訊息",
+  "newMessagesFromBuyersSellers": "買賣雙方傳來的新訊息",
+  "promotions2": "優惠活動",
+  "announcementsAboutPromotions": "優惠類型的系統公告",
+  "supportRepliesPasswordResetsPolicyUpdates": "客服回覆、密碼重設、條款更新與維護公告一律會通知。關掉的類型仍會出現在通知列表，只是不推播到手機。",
+  "notFilled": "未填寫",
+  "canTChanged": "無法修改",
+  "voice": "[語音]",
+  "reservation": "預約",
+  "messageUnsent": "訊息已收回",
+  "confirmBeforeExportingData": "匯出個人資料前，請先確認是你本人",
+  "exportFailedPleaseTryAgainLater": "匯出失敗，請稍後再試",
+  "refresh": "重新整理",
+  "clearFilters": "清除篩選",
+  "expired": "已過期",
+  "verificationCancelled": "已取消驗證",
+  "openingClosingTimesCanTSame": "開放與關閉時間不能相同",
+  "slotCurrentlyP0MayOrderProgress": "這一格目前是「{p0}」，可能有進行中的訂單。改成「{p1}」後，買賣雙方可能無法正常存取書籍。",
+  "@slotCurrentlyP0MayOrderProgress": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "active": "啟用中",
+  "categoryWithNameAlreadyExists": "已經有同名的分類",
+  "orderP0ClosedAsP1P2": "訂單 {p0} 將以「{p1}」結案，{p2} 代幣會退回買家。送出後無法修改。",
+  "@orderP0ClosedAsP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "orderP0ClosedAsP1Can": "訂單 {p0} 將以「{p1}」結案。送出後無法修改。",
+  "@orderP0ClosedAsP1Can": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "clearSearch": "清除搜尋",
+  "enterMinimumPoints": "請輸入最低點數",
+  "pointsRangeOverlapsWithP0P1": "點數範圍與「{p0}」（{p1}）重疊",
+  "@pointsRangeOverlapsWithP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noTierCoversP0P1Points": "{p0}–{p1} 點沒有對應的等級",
+  "@noTierCoversP0P1Points": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0TakenDownRightAwayOther": "「{p0}」會立即下架，其他會員將無法再看到或購買。",
+  "@p0TakenDownRightAwayOther": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "searchReportedItemReporterReason": "搜尋被檢舉項目、檢舉人或原因",
+  "couldnTLoadStatisticsRightNow": "暫時無法取得統計資料",
+  "searchSubjectMemberMessage": "搜尋主旨、會員或訊息內容",
+  "balance3": "有餘額",
+  "hold3": "有凍結金額",
+  "zeroBalance": "餘額為 0",
+  "amountCanMost2DecimalPlaces": "金額最多只能到小數點後兩位",
+  "singleAdjustmentCanTExceed1": "單次調整不可超過 1,000,000",
+  "wouldMakeBalanceNegativeCurrentBalance": "扣除後餘額會變成負數，目前餘額 {p0}",
+  "@wouldMakeBalanceNegativeCurrentBalance": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "amountUp2Decimals": "金額（最多兩位小數）",
+  "p0NbalanceAfterP1": "{p0}\n調整後餘額 {p1}",
+  "@p0NbalanceAfterP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "cameraAccessOff": "無法使用相機",
+  "couldNotStartCamera": "相機啟動失敗",
+  "allowP0UseCameraSettingsThen": "請到系統設定允許 {p0} 使用相機後再試一次。",
+  "@allowP0UseCameraSettingsThen": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "closeScreenTryAgain": "請關閉這個畫面後再試一次。",
+  "couldnTGetLocationCheckLocation": "無法取得目前位置，請確認已開啟定位服務與權限",
+  "bookReservedAnotherBuyerCanT": "這本書已被其他買家預約，暫時無法加入購物車",
+  "reservedAnotherBuyerUntilP0": "已被其他買家預約，保留到 {p0}",
+  "@reservedAnotherBuyerUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "ifIsnTSoldByThen": "保留期限過後若未成交，就能再加入購物車",
+  "sellerHoldingUntilP0": "賣家已為你保留到 {p0}",
+  "@sellerHoldingUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "checkOutBeforeHoldEndsOther": "請在保留期限內完成結帳，逾期其他買家就能購買",
+  "copyAddress": "複製地址",
+  "p0Away": "距離你 {p0}",
+  "@p0Away": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "locating": "定位中…",
+  "showDistance": "查看距離",
+  "reserved": "已被預約",
+  "goCheckout": "前往結帳",
+  "cart2": "已在購物車",
+  "buyNow": "立即購買",
+  "p0Delisted": "《{p0}》已下架",
+  "@p0Delisted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBooksMatchP0": "找不到符合「{p0}」的書籍",
+  "@noBooksMatchP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0BooksP1Views": "共 {p0} 本 · 總瀏覽 {p1} 次",
+  "@p0BooksP1Views": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "swipeQuickActions": "左右滑動可快速操作",
+  "searchTitleAuthorIsbn2": "搜尋書名、作者或 ISBN",
+  "removedP0": "已移除《{p0}》",
+  "@removedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removedP0Items": "已移除 {p0} 件商品",
+  "@removedP0Items": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paymentSuccessful": "付款成功",
+  "p0BooksSplitIntoP1Orders": "共 {p0} 本書，已依賣家拆成 {p1} 筆訂單",
+  "@p0BooksSplitIntoP1Orders": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "keepBrowsing": "繼續逛逛",
+  "reload": "重新載入",
+  "browseBooks": "去逛逛",
+  "p0Sellers": "{p0} 位賣家",
+  "@p0Sellers": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unavailableP0": "無法購買（{p0}）",
+  "@unavailableP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeAll": "全部移除",
+  "goWallet": "前往錢包",
+  "fromP0SellersCheckoutCreatesP1": "來自 {p0} 位賣家，結帳後會拆成 {p1} 筆訂單",
+  "@fromP0SellersCheckoutCreatesP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "otherDevicesNeedSignAgainWith": "其他裝置需要用新密碼重新登入。",
+  "searchChats": "搜尋聊天對象",
+  "noMatchingChats": "找不到符合的聊天對象",
+  "read": "已讀",
+  "chatNotFound": "找不到這個聊天室",
+  "messagesCanUp2000Characters": "訊息最多 2000 字",
+  "canTSendRightNowPlease": "目前無法傳送，請稍後再試",
+  "reserveBook": "預約這本書",
+  "quickReplies": "快速回覆",
+  "imagesMust10MbSmaller": "圖片不能超過 10 MB",
+  "recordingFailedPleaseTryAgain": "錄音失敗，請再試一次",
+  "voiceMessageTooLargePleaseRecord": "語音檔案太大，請縮短錄音",
+  "microphoneAllowedPressHoldAgainRecord": "已允許使用麥克風，請再按住按鈕開始錄音",
+  "microphoneAccessNeededRecordTurnSettings": "需要麥克風權限才能錄音，請到系統設定開啟",
+  "couldnTStartRecordingPleaseTry": "無法開始錄音，請稍後再試",
+  "selectText": "選取文字",
+  "unsend": "收回",
+  "resend": "重新傳送",
+  "unsendMessage": "收回這則訊息？",
+  "neitherAbleSeeMessageSContent": "收回後雙方都看不到這則訊息的內容。",
+  "reportMessage": "檢舉這則訊息",
+  "reservationSentWaitingSeller": "已送出預約，等待賣家回覆",
+  "acceptReservation": "接受預約？",
+  "p0HeldThemP1HoursNo": "《{p0}》會保留給對方 {p1} 小時，期間其他人無法購買。",
+  "@p0HeldThemP1HoursNo": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "accept": "接受",
+  "reservationAccepted": "已接受預約",
+  "declineReservation": "婉拒預約？",
+  "theyLlNotifiedDeclined": "對方會收到婉拒的通知。",
+  "decline2": "婉拒",
+  "reservationDeclined": "已婉拒預約",
+  "cancelReservation": "取消預約？",
+  "p0NoLongerHeld": "取消後《{p0}》將不再保留。",
+  "@p0NoLongerHeld": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelReservation2": "取消預約",
+  "reservationCanceled": "已取消預約",
+  "notNow2": "先不要",
+  "couldnTLoadConversationPleaseTry": "無法載入對話，請稍後再試",
+  "accountCanTReceiveMessagesRight": "對方帳號目前無法接收訊息",
+  "holdMicTalkReleaseSend": "按住麥克風說話，放開即可傳送",
+  "startConversation": "對話從這裡開始",
+  "p0New": "{p0} 則新訊息",
+  "@p0New": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionUnstableMessagesCanTSent": "連線不穩定，暫時無法傳送訊息",
+  "retry": "重試",
+  "stillAvailable": "請問還在嗎？",
+  "couldLowerPriceBit": "可以再便宜一點嗎？",
+  "whenCanPutLocker": "什麼時候可以放進書櫃？",
+  "unsentMessage": "你收回了一則訊息",
+  "theyUnsentMessage": "對方收回了一則訊息",
+  "reservationDetailsArenTAvailableRight": "預約資訊暫時無法顯示",
+  "sending": "傳送中",
+  "couldNotUploadPhotosPleaseTry": "證據照片上傳失敗，請稍後再試",
+  "bookDetailsUpdatedButPhotosCouldn": "書籍資料已更新，但照片上傳失敗，請稍後再試",
+  "sNotIsbnBarcodeScanOne": "掃到的不是 ISBN 條碼，請掃描書背上 978 或 979 開頭的條碼",
+  "couldnTLoadCategoriesTapRetry": "分類載入失敗，點此重試",
+  "removedP0FromSaved": "已取消收藏《{p0}》",
+  "@removedP0FromSaved": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "recentlyViewedCleared": "已清除最近瀏覽",
+  "clearP0": "清除（{p0}）",
+  "@clearP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "picked": "猜你喜歡",
+  "seeMore": "查看更多",
+  "recentlyViewed": "最近瀏覽",
+  "clear": "清除",
+  "notificationDeleted": "已刪除通知",
+  "pleasePutBookAssignedLockerSoon": "請盡快把書放進指定書櫃",
+  "weLlLetKnowWhenSeller": "賣家存書後會通知你前往取書",
+  "waitingBuyerCollect": "等待買家到書櫃取書",
+  "bookLockerEnterPickupCodeCollect": "書已在書櫃裡，輸入取書碼即可取書",
+  "transactionCompleteThank": "交易完成，感謝使用",
+  "confirmVeTakenBookFromLocker": "請確認已從書櫃取出書籍，確認後訂單即完成。",
+  "p0Orders2": "共 {p0} 筆訂單",
+  "@p0Orders2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ReadyPickup": "可取書 {p0} 筆",
+  "@p0ReadyPickup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickUp": "待取貨",
+  "saved": "收藏",
+  "accountSecurity": "帳號安全",
+  "sellerHasnTPutBookLocker": "賣家還沒把書放進書櫃，存書後會通知你",
+  "searchHistoryCleared": "已清除搜尋紀錄",
+  "trendingBooks": "熱門書籍",
+  "signOutDevice": "登出這台裝置？",
+  "signOutP0": "登出「{p0}」？",
+  "@signOutP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "llNeedSignAgainUseApp": "登出後需要重新登入才能使用。",
+  "deviceSignedOutRightAwayStop": "那台裝置會立即登出，也不會再收到推播。",
+  "deviceSignedOut": "已登出這台裝置",
+  "signOutAllDevicesIncludingOne": "登出所有裝置（含這台）",
+  "signOutAllOtherDevices": "登出其他所有裝置",
+  "everyDeviceIncludingOneSignedOut": "包含這台在內的所有裝置都會登出，之後需要重新登入。",
+  "everyDeviceExceptOneSignedOut": "除了這台之外的裝置都會立即登出，也不會再收到推播。",
+  "signedOutP0OtherDevices": "已登出其他 {p0} 台裝置",
+  "@signedOutP0OtherDevices": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unknownDevice": "未知裝置",
+  "couldnTLoadDevices": "無法載入登入裝置",
+  "theseDevicesSignedAccountIfDon": "這些裝置目前登入你的帳號。看到不認得的裝置，請立即登出並修改密碼。",
+  "device": "這台裝置",
+  "otherDevices": "其他裝置",
+  "otherDevicesP0": "其他裝置（{p0}）",
+  "@otherDevicesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noOtherDevicesSigned": "沒有其他裝置登入你的帳號",
+  "signedDevices": "登入裝置",
+  "activeNow": "目前使用中",
+  "lastActiveP0": "最後使用 {p0}",
+  "@lastActiveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signedP0": "{p0} 登入",
+  "@signedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "biometricPayment": "已啟用生物辨識付款",
+  "paymentPinMust6Digits": "交易密碼必須是 6 位數字",
+  "pinTooEasyGuessTryAnother": "交易密碼太簡單，請換一組",
+  "enterPasswordResetPaymentPin": "輸入登入密碼後即可重新設定交易密碼",
+  "confirmSBeforeSettingPaymentPin": "設定交易密碼前，請先確認是你本人",
+  "pinsDonTMatchStartAgain": "兩次輸入的交易密碼不一致，請重新設定",
+  "paymentPinReset": "交易密碼已重新設定",
+  "paymentPinSet": "交易密碼已設定",
+  "use6DigitPinConfirmPayments": "之後結帳時，會用這組 6 位數密碼確認付款。",
+  "verifyingIdentity": "正在確認身分…",
+  "enterAgainConfirm": "再輸入一次確認",
+  "set6DigitPaymentPin": "設定 6 位數交易密碼",
+  "enterSamePinAgain": "請再輸入一次剛才的密碼",
+  "avoidRepeatedSequentialPatternedDigits": "不能是相同、連續或重複的數字",
+  "resetPaymentPin": "重設交易密碼",
+  "paymentPin": "交易密碼",
+  "stepP02": "步驟 {p0} / 2",
+  "@stepP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "setPaymentPinFirst": "請先設定交易密碼",
+  "setPaymentPinFirstSoFallback": "請先設定交易密碼，辨識失敗時才有替代方式",
+  "setUpNow": "立即設定",
+  "biometricPaymentTurnedOff": "已關閉生物辨識付款",
+  "verifyTurnBiometricPayment": "驗證以啟用生物辨識付款",
+  "p0PaymentsTurned": "已啟用 {p0} 付款",
+  "@p0PaymentsTurned": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "securitySettingsUnavailableRightNowMay": "暫時無法取得帳號安全設定，交易密碼與登入裝置可能無法變更。",
+  "payWithP0": "使用 {p0} 付款",
+  "@payWithP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accountWellProtected": "帳號安全狀態良好",
+  "accountCouldSafer": "帳號安全還可以加強",
+  "paymentPinBiometricPaymentSetCheck": "交易密碼與生物辨識付款都已設定。記得定期檢查登入裝置。",
+  "setPaymentPinTurnBiometricPayment": "設定交易密碼並開啟生物辨識付款，結帳會更安全也更快。",
+  "tooManyAttemptsLockedUntilP0": "錯誤次數過多，鎖定到 {p0}",
+  "@tooManyAttemptsLockedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "usedConfirmPaymentsCheckout": "結帳時用來確認付款",
+  "notSetRequiredBeforeCheckout": "尚未設定，結帳前需要先設定",
+  "change": "變更",
+  "forgotPaymentPin": "忘記交易密碼",
+  "ifFailsCanEnterPaymentPin": "辨識失敗時可改輸入交易密碼",
+  "viewRemotelySignOutDevices": "查看或遠端登出裝置",
+  "p0Devices": "{p0} 台",
+  "@p0Devices": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "otherDevicesNeedSignAgain": "修改後其他裝置需要重新登入",
+  "restoredUnfinishedListing": "已帶入上次未完成的內容",
+  "isbnSCheckDigitInvalidPlease": "這組 ISBN 的檢查碼不正確，請再確認一次",
+  "draftSavedAutomatically": "已自動儲存草稿",
+  "continueUnfinishedListing": "繼續上次未完成的刊登",
+  "clearedP0MbCache": "已清除 {p0} MB 快取",
+  "@clearedP0MbCache": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cacheCleared": "快取已清除",
+  "storage": "儲存空間",
+  "paymentPinBiometricPaymentDevices": "交易密碼、生物辨識付款、登入裝置",
+  "clearCache": "清除快取",
+  "removesCachedImagesFilesAccountData": "清除暫存的圖片與檔案，不會影響帳號資料",
+  "couldNotLoadNotificationSettings": "無法載入通知設定",
+  "month": "本月",
+  "p0P1": "{p0} 年 {p1} 月",
+  "@p0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noIncomeYet": "沒有收入紀錄",
+  "noSpendingYet": "沒有支出紀錄",
+  "income": "收入",
+  "spending": "支出",
+  "totalIncome": "累計收入",
+  "totalSpending": "累計支出",
+  "item3": "項目",
+  "details": "說明",
+  "balanceAfter": "交易後餘額",
+  "transactionId": "交易編號",
+  "sessionExpiredPleaseSignAgain": "登入已過期，請重新登入",
+  "serviceTemporarilyUnavailableTryAgainLater": "服務暫時無法使用，請稍後再試",
+  "uploadFailedTryAgainLater": "上傳失敗，請稍後再試",
+  "nearby": "就在附近",
+  "p0M": "{p0} 公尺",
+  "@p0M": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Km": "{p0} 公里",
+  "@p0Km": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iphoneDidnTReceiveApnsToken": "手機沒有取得 Apple 推播憑證（APNs token）。請確認 Xcode 的 Signing & Capabilities 已加入 Push Notifications，並用同一個 Apple 開發者帳號重新安裝 App。",
+  "firebaseDidnTIssuePushToken": "Firebase 沒有發出推播 token，請確認 GoogleService-Info.plist 與 App 的 Bundle ID 一致",
+  "couldnTGetPushTokenP0": "取得推播 token 失敗：{p0}",
+  "@couldnTGetPushTokenP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "couldnTRegisterPushTokenWith": "推播 token 上傳伺服器失敗：{p0}",
+  "@couldnTRegisterPushTokenWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "protectCoinsCheckoutRequires6Digit": "為了保護你的代幣，結帳時需要輸入 6 位數交易密碼。設定後也可以開啟 Face ID 或指紋付款。",
+  "confirmPaymentP0Coins": "確認付款 {p0} 代幣",
+  "@confirmPaymentP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterPasswordContinue": "請輸入登入密碼以繼續",
+  "verifyS": "驗證身分",
+  "amount": "付款金額",
+  "p0Coins": "{p0} 代幣",
+  "@p0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterPaymentPin": "輸入交易密碼",
+  "enterPaymentPinContinue": "請輸入交易密碼以繼續",
+  "paymentPinResetEnterAgain": "交易密碼已重新設定，請再輸入一次",
+  "usePasswordInstead": "改用登入密碼",
+  "couldnTGetLocationLockersShown": "無法取得目前位置，書櫃會依預設順序排列",
+  "p0SlotsFree": "空櫃 {p0} 格",
+  "@p0SlotsFree": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "openP0": "營業 {p0}",
+  "@openP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nearest": "最近",
+  "noFreeSlots": "目前沒有空櫃",
+  "sortedByDistance": "依距離由近到遠排列",
+  "turnLocationSortByDistance": "開啟定位可依距離排序",
+  "lockerNoFreeSlotsRightNow": "這個書櫃目前沒有空櫃",
+  "turn": "開啟定位",
+  "noLockersAvailable": "目前沒有可用的書櫃",
+  "noMatchingOptions": "沒有符合的選項",
+  "undo2": "復原",
+  "copiedP0": "已複製「{p0}」",
+  "@copiedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "typing": "對方正在輸入…",
+  "today": "今天",
+  "yesterday": "昨天",
+  "p0P12": "{p0}月{p1}日",
+  "@p0P12": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p1P2P0": "{p0}年{p1}月{p2}日",
+  "@p1P2P0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "releaseCancel": "放開以取消",
+  "slideCancel": "← 滑動取消",
+  "awaitingReply": "待回覆",
+  "heldUntilP0": "已保留到 {p0}",
+  "@heldUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "declined2": "已婉拒",
+  "closed": "已結束",
+  "theyWantReserveBook": "對方想預約你的書",
+  "sentReservationRequest": "你送出了預約",
+  "holdP0H": "保留 {p0} 小時",
+  "@holdP0H": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceSellerAcceptsBookHeldNo": "賣家接受後，這本書會保留給你，其他人在期限內無法購買。",
+  "holdPeriod": "保留時間",
+  "messageSellerOptional": "想對賣家說的話（選填）",
+  "sendRequest": "送出預約",
+  "p0Hours": "{p0} 小時",
+  "@p0Hours": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0P1DigitsEntered": "已輸入 {p0} / {p1} 位",
+  "@p0P1DigitsEntered": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  }
 }

@@ -1,5 +1,6 @@
 tags:
-  - name: 交易爭議 (Disputes)
+  - name: disputes
+    x-displayName: 交易爭議
     description: |
       訂單交易爭議的申訴管道，適用書況不符、未收到書籍等情形。
 
@@ -11,7 +12,7 @@ paths:
     get:
       summary: 取得我的爭議申請
       operationId: listMyDisputes
-      tags: [交易爭議 (Disputes)]
+      tags: [disputes]
       description: |
         列出請求者送出的爭議申請，包含關聯訂單與首本書籍的書名與封面。
         依建立時間遞減排序，無分頁機制。
@@ -50,7 +51,7 @@ paths:
     post:
       summary: 提出爭議申請
       operationId: createDispute
-      tags: [交易爭議 (Disputes)]
+      tags: [disputes]
       description: |
         買賣雙方皆可對自身參與的訂單提出爭議。
 

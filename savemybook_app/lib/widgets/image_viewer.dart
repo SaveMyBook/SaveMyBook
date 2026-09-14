@@ -54,7 +54,6 @@ class _ImageViewerState extends State<ImageViewer> with SingleTickerProviderStat
     final zoomed = _controller.value.getMaxScaleOnAxis() > 1.05;
     final point = details.localPosition;
 
-    // 直接寫矩陣，避開 translate/scale 這幾個在不同 Flutter 版本改過名字的 helper。
     final target = zoomed
         ? Matrix4.identity()
         : (Matrix4.identity()

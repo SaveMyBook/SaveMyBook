@@ -1,12 +1,4 @@
 #!/usr/bin/env node
-/**
- * 檢查 docs/*.yaml 與實際路由是否同步。
- *
- * 直接讀 routes/index.js 的掛載表與各路由檔的 router.<method>('...')，
- * 跟組出來的 OpenAPI 文件比對。新增路由卻忘了寫文件時會在這裡被抓到。
- *
- *   node scripts/check-docs.js
- */
 const fs = require('fs');
 const path = require('path');
 const { buildSpec } = require('../config/openapi');
@@ -14,8 +6,6 @@ const { buildSpec } = require('../config/openapi');
 const root = path.join(__dirname, '..');
 const { MOUNTS } = require('../routes');
 
-/// 一個路由模組實際對外的檔案清單。資料夾（例如 routes/admin）讀它 index.js 的 SECTIONS，
-/// 不直接 require，免得為了檢查文件還要連資料庫。
 const routeFiles = (modulePath) => {
   const base = path.join(root, 'routes', modulePath);
   if (fs.existsSync(`${base}.js`)) return [`${base}.js`];
@@ -50,7 +40,6 @@ for (const [p, ops] of Object.entries(spec.paths)) {
   }
 }
 
-// $ref 有沒有指到不存在的元件
 const broken = [];
 const walk = (node) => {
   if (!node || typeof node !== 'object') return;
@@ -67,7 +56,6 @@ const walk = (node) => {
 };
 walk(spec);
 
-// operationId 撞名會讓產生出來的 SDK 出問題
 const ids = [];
 for (const ops of Object.values(spec.paths)) {
   for (const op of Object.values(ops)) {

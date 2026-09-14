@@ -37,6 +37,11 @@ class Book {
   final String status;
   final String publishDate;
   final String conditionNote;
+  final int viewCount;
+  final double? cabinetLatitude;
+  final double? cabinetLongitude;
+  final DateTime? reservedUntil;
+  final bool reservedForMe;
 
   Book({
     required this.bookId,
@@ -64,6 +69,11 @@ class Book {
     this.status = 'on_sale',
     this.publishDate = '',
     this.conditionNote = '',
+    this.viewCount = 0,
+    this.cabinetLatitude,
+    this.cabinetLongitude,
+    this.reservedUntil,
+    this.reservedForMe = false,
   });
 
   factory Book.fromJson(Map<String, dynamic> json) {
@@ -129,12 +139,19 @@ class Book {
       status: json['status'] as String? ?? 'on_sale',
       publishDate: json['publish_date'] as String? ?? '',
       conditionNote: json['condition_note'] as String? ?? '',
+      viewCount: parseInt(json['view_count']),
+      cabinetLatitude: cabinet?['latitude'] == null ? null : parseDouble(cabinet!['latitude']),
+      cabinetLongitude: cabinet?['longitude'] == null ? null : parseDouble(cabinet!['longitude']),
+      reservedUntil: json['reservation'] is Map ? parseDate(json['reservation']['reserved_until'])?.toLocal() : null,
+      reservedForMe: json['reservation'] is Map && json['reservation']['reserved_for_me'] == true,
     );
   }
 
   String get conditionText => AppLabels.conditionOf(conditionLevel);
 
   bool get hasImage => imageUrl.isNotEmpty;
+
+  bool get isReservedByOthers => reservedUntil != null && !reservedForMe && reservedUntil!.isAfter(DateTime.now());
 
   String get statusText => AppLabels.book(status);
 }

@@ -8,6 +8,7 @@ const { buildSpec } = require('./config/openapi');
 const { registerRoutes } = require('./routes');
 const { securityHeaders, uploadHeaders, ensureBody } = require('./middleware/security');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
+const maintenance = require('./lib/maintenance');
 
 const createApp = () => {
   const app = express();
@@ -16,6 +17,7 @@ const createApp = () => {
   app.set('trust proxy', env.trustProxy);
 
   app.use(securityHeaders);
+  app.use(maintenance.middleware);
   app.use(cors({ origin: env.corsOrigins }));
   app.use(express.json({ limit: '1mb' }));
   app.use(ensureBody);
@@ -27,7 +29,6 @@ const createApp = () => {
     setHeaders: uploadHeaders
   }));
 
-  // 文件在啟動時組一次並快取，改 docs/*.yaml 需重啟才會生效。
   const openapiSpec = buildSpec();
 
   app.get('/openapi.json', (req, res) => res.json(openapiSpec));

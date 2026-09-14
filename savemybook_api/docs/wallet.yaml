@@ -1,5 +1,6 @@
 tags:
-  - name: 錢包 (Wallet)
+  - name: wallet
+    x-displayName: 錢包
     description: |
       站內代幣錢包，1 代幣等值 1 元。
 
@@ -15,7 +16,7 @@ paths:
     get:
       summary: 取得錢包餘額
       operationId: getWallet
-      tags: [錢包 (Wallet)]
+      tags: [wallet]
       description: |
         首次呼叫時若尚未建立錢包，系統會自動建立（餘額為 0），因此不會回傳 404。
 
@@ -47,7 +48,7 @@ paths:
     get:
       summary: 取得交易紀錄
       operationId: listWalletTransactions
-      tags: [錢包 (Wallet)]
+      tags: [wallet]
       description: |
         依異動時間遞減排序。異動若關聯至訂單，會一併帶出訂單編號與首本書籍的
         書名與封面，避免用戶端另行查詢。
@@ -103,7 +104,7 @@ paths:
     get:
       summary: 取得待定收益明細
       operationId: listPendingIncome
-      tags: [錢包 (Wallet)]
+      tags: [wallet]
       description: |
         列出已售出但款項尚未入帳的訂單，即狀態為 `pending_payment`、
         `pending_deposit`、`deposited` 或 `pending_pickup` 的銷售訂單。

@@ -8,7 +8,6 @@ class UserAvatar extends StatefulWidget {
   final double radius;
   final Color? background;
 
-  /// 點一下用全螢幕看大圖。預設關閉，避免書籍卡片上的小頭像搶走卡片的點擊。
   final bool enablePreview;
   final String? previewTitle;
   final VoidCallback? onTap;
@@ -44,12 +43,9 @@ class _UserAvatarState extends State<UserAvatar> {
 
     final fallback = Icon(Icons.person, size: widget.radius * 1.05, color: c.iconInactive);
 
-    // CircleAvatar 的 backgroundImage 在載入中是一片空白，
-    // 改用 Image.network 才能在等圖的時候先放人像佔位。
     final avatar = AnimatedContainer(
-        duration: Motion.base,
-        curve: Motion.standard,
-
+      duration: Motion.base,
+      curve: Motion.standard,
       width: widget.radius * 2,
       height: widget.radius * 2,
       clipBehavior: Clip.antiAlias,
@@ -103,6 +99,9 @@ class AppMenuItem extends StatelessWidget {
   final bool isLast;
   final VoidCallback? onTap;
   final Color? iconColor;
+  final Color? titleColor;
+  final Widget? trailing;
+  final bool showChevron;
 
   const AppMenuItem({
     super.key,
@@ -114,6 +113,9 @@ class AppMenuItem extends StatelessWidget {
     this.isLast = false,
     this.onTap,
     this.iconColor,
+    this.titleColor,
+    this.trailing,
+    this.showChevron = true,
   });
 
   @override
@@ -122,8 +124,9 @@ class AppMenuItem extends StatelessWidget {
 
     return Column(
       children: [
-        ListTile(
-          // 沒有副標時把高度收緊，會員中心那種純標題的清單才不會過長。
+        Material(
+          type: MaterialType.transparency,
+          child: ListTile(
           dense: subtitle == null,
           visualDensity: subtitle == null
               ? const VisualDensity(vertical: -1)
@@ -132,7 +135,7 @@ class AppMenuItem extends StatelessWidget {
           leading: Icon(icon, color: iconColor ?? c.iconInactive, size: 22),
           title: Text(
             title,
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.textPrimary),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: titleColor ?? c.textPrimary),
           ),
           subtitle: subtitle == null
               ? null
@@ -157,12 +160,20 @@ class AppMenuItem extends StatelessWidget {
                   ),
                 ),
               if (trailingText != null)
-                Text(trailingText!, style: TextStyle(color: c.textSecondary, fontSize: 14)),
-              const SizedBox(width: 8),
-              Icon(Icons.arrow_forward_ios, size: 16, color: c.iconInactive),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 120),
+                  child: Text(trailingText!, maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: c.textSecondary, fontSize: 14)),
+                ),
+              ?trailing,
+              if (showChevron) ...[
+                const SizedBox(width: 8),
+                Icon(Icons.arrow_forward_ios, size: 16, color: c.iconInactive),
+              ],
             ],
           ),
           onTap: onTap,
+        ),
         ),
         if (!isLast)
           Padding(
@@ -196,6 +207,8 @@ class StatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600, color: color),
       ),
     );
@@ -259,11 +272,14 @@ class SectionHeading extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(
-              title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
+            Expanded(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
+              ),
             ),
-            const Spacer(),
             ?trailing,
           ],
         ),
@@ -285,10 +301,17 @@ class StatTile extends StatelessWidget {
     final c = AppColors.of(context);
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: TextStyle(color: c.textSecondary, fontSize: 12)),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(color: c.textSecondary, fontSize: 12),
+        ),
         const SizedBox(height: 6),
-        value,
+        FittedBox(fit: BoxFit.scaleDown, child: value),
       ],
     );
   }

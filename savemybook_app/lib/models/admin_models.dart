@@ -358,7 +358,6 @@ class AdminOverview {
       );
 }
 
-/// 訂單流程的一個節點。null 代表還沒走到，用來看訂單卡在哪一步。
 class OrderStep {
   final String label;
   final DateTime? at;
@@ -454,7 +453,6 @@ class OrderWalletTxn {
       );
 }
 
-/// 列表用的 AdminOrder 只有摘要，處理爭議時要看的細節都在這裡。
 class AdminOrderDetail {
   final AdminOrder order;
   final String? paymentMethod;
@@ -515,7 +513,6 @@ class AdminOrderDetail {
     );
   }
 
-  /// 依實際流程排出的節點。取消的訂單不顯示後面沒走到的步驟。
   List<OrderStep> get steps {
     final cancelled = timeline['cancelled_at'];
     return [
@@ -622,7 +619,6 @@ class AdminBook {
   final String? imageUrl;
   final DateTime? createdAt;
 
-  // 編輯表單的現值。列表就帶回來，開編輯畫面才不用再打一次 API。
   final String? author;
   final String? publisher;
   final String? publishDate;
@@ -794,35 +790,68 @@ class AdminStats {
       );
 }
 
+class LogChange {
+  final String label;
+  final String from;
+  final String to;
+
+  const LogChange({required this.label, required this.from, required this.to});
+
+  factory LogChange.fromJson(Map<String, dynamic> json) => LogChange(
+        label: json['label'] as String? ?? '',
+        from: json['from'] as String? ?? '',
+        to: json['to'] as String? ?? '',
+      );
+}
+
 class AdminOperationLog {
   final int logId;
   final String action;
   final String? targetType;
   final int? targetId;
-  final String? detail;
+
+  final String summary;
+  final List<LogChange> changes;
+  final bool canUndo;
+  final DateTime? revertedAt;
   final String adminName;
+  final String? ipAddress;
   final DateTime? createdAt;
 
   AdminOperationLog({
     required this.logId,
     required this.action,
     required this.adminName,
+    this.summary = '',
+    this.changes = const [],
+    this.canUndo = false,
+    this.revertedAt,
     this.targetType,
     this.targetId,
-    this.detail,
+    this.ipAddress,
     this.createdAt,
   });
 
+  bool get isReverted => revertedAt != null;
+
   factory AdminOperationLog.fromJson(Map<String, dynamic> json) {
     final admin = json['admin'] as Map<String, dynamic>?;
+    final reverted = json['reverted'];
 
     return AdminOperationLog(
       logId: parseInt(json['log_id']),
       action: json['action'] as String? ?? '',
       targetType: json['target_type'] as String?,
       targetId: json['target_id'] == null ? null : parseInt(json['target_id']),
-      detail: json['detail'] as String?,
+      summary: json['summary'] as String? ?? json['detail'] as String? ?? '',
+      changes: ((json['changes'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => LogChange.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
+      canUndo: json['can_undo'] == true,
+      revertedAt: reverted is Map ? parseDate(reverted['at']) : null,
       adminName: admin?['nickname'] as String? ?? S.roleAdmin,
+      ipAddress: json['ip_address'] as String?,
       createdAt: parseDate(json['created_at']),
     );
   }
@@ -928,7 +957,6 @@ class AdminMemberDetail {
   final List<AdminLevel> levels;
   final Map<String, bool> permissions;
 
-  /// 目前登入的管理員能不能開啟這項權限。舊版伺服器沒有這個欄位時一律視為可以。
   final Map<String, bool> grantable;
   final DateTime? createdAt;
 
@@ -954,8 +982,6 @@ class AdminMemberDetail {
   });
 
   bool get isAdmin => role == 'admin';
-
-  /// 權限鍵值 -> (名稱, 說明)，順序即畫面上的顯示順序。
 
   factory AdminMemberDetail.fromJson(Map<String, dynamic> json) {
     Map<String, bool> flags(Object? raw) => {
@@ -1002,7 +1028,6 @@ class BackupRecord {
   final DateTime? createdAt;
   final String adminName;
 
-  /// 檔案可能因保留份數輪替或人工刪除而不在磁碟上，用來決定能否下載。
   final bool available;
 
   const BackupRecord({
@@ -1019,6 +1044,7 @@ class BackupRecord {
 
   bool get isSuccess => status == 'success';
   bool get isManual => triggerBy == 'manual';
+  bool get isPreRestore => triggerBy == 'pre_restore';
 
   String get sizeText {
     if (sizeBytes <= 0) return '—';

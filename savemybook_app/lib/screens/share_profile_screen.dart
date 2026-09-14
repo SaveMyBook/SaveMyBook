@@ -32,6 +32,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
   String? _qrData;
   bool _isLoading = true;
   bool _isBusy = false;
+  bool _scanning = false;
 
   @override
   void initState() {
@@ -49,6 +50,16 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
   }
 
   Future<void> _scan() async {
+    if (_scanning || _isBusy) return;
+    _scanning = true;
+    try {
+      await _scanAndOpen();
+    } finally {
+      _scanning = false;
+    }
+  }
+
+  Future<void> _scanAndOpen() async {
     final code = await Navigator.push<String>(
       context,
       MaterialPageRoute(
@@ -72,8 +83,10 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
       return;
     }
 
+    setState(() => _isBusy = true);
     final roomId = await _api.openChatRoom(userId: userId);
     if (!mounted) return;
+    setState(() => _isBusy = false);
 
     if (roomId == null) {
       showAppSnackBar(context, S.couldNotStartChatPleaseTry, isError: true);
@@ -112,6 +125,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
     if (data == null) return;
     await Clipboard.setData(ClipboardData(text: data));
     if (!mounted) return;
+    HapticFeedback.selectionClick();
     showAppSnackBar(context, S.linkCopied);
   }
 
@@ -155,7 +169,6 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ApiService.currentUser;
-    final c = AppColors.of(context);
 
     return Scaffold(
       backgroundColor: Colors.black.withValues(alpha: 0.62),
@@ -202,13 +215,13 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                     UserAvatar(
                                       imageUrl: user?.avatarUrl,
                                       radius: 32,
-                                      // 這張卡片會被輸出成 PNG 分享出去，
-                                      // 配色必須固定，不能跟著使用者的深淺色主題走。
                                       background: const Color(0xFFEDF1F4),
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
                                       user?.nickname ?? S.user,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -216,9 +229,6 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 18),
-                                    // qr_flutter 的 embeddedImage 是直接畫在模組上，
-                                    // logo 會跟黑點糊在一起。改成自己疊一層，
-                                    // logo 下面墊白底再留一圈留白，邊界才乾淨。
                                     SizedBox(
                                       width: 210,
                                       height: 210,
@@ -230,7 +240,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                             version: QrVersions.auto,
                                             size: 210,
                                             backgroundColor: Colors.white,
-                                            // 中間會蓋掉部分模組，容錯必須拉到 H。
+                                            // 中央 logo 會蓋掉部分模組，容錯等級必須維持 H，否則會掃不到。
                                             errorCorrectionLevel: QrErrorCorrectLevel.H,
                                           ),
                                           Container(
@@ -326,6 +336,9 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
             const SizedBox(height: 8),
             Text(
               label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,

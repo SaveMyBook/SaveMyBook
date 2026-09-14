@@ -47,7 +47,6 @@ const errorHandler = (err, req, res, next) => {
   }
 
   const [status, message, code, extra] = known;
-  // 主動丟出的 HttpError（例如推播未啟用的 503）是預期內的狀況，不寫錯誤日誌。
   if (status >= 500 && !(err instanceof HttpError)) console.error(`[${req.method} ${req.originalUrl}]`, err);
   res.status(status).json({ success: false, ...(code && { code }), message, ...extra });
 };

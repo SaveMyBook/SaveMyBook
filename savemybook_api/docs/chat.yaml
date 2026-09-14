@@ -1,29 +1,74 @@
 tags:
-  - name: 聊天室 (Chat)
+  - name: chat
+    x-displayName: 聊天室
     description: |
-      買賣雙方的一對一聊天。
+      買賣雙方的一對一聊天，支援文字、圖片、語音、商品卡片與書籍預約。
 
       兩位使用者之間僅存在單一聊天室。自不同商品進入聊天時不會另建聊天室，
       而是於既有對話中插入一則商品卡片，以維持對話脈絡完整。
 
-      商品卡片為 `message_type` 等於 `system` 的訊息，內容格式為
-      `[book]` 前綴加一段 JSON：
+      ## Message Kinds
+
+      每則訊息除資料表原始欄位外，另帶伺服器解析後的 `kind`、`body`、`payload`，
+      用戶端依 `kind` 渲染即可，不必解析 `content`。
+
+      | `kind` | 說明 | 產生方式 |
+      | --- | --- | --- |
+      | `text` | 文字 | `POST /api/chat/rooms/{roomId}/messages` |
+      | `image` | 圖片 | 先上傳至 `POST /api/uploads/chat-image`，再送出訊息 |
+      | `voice` | 語音，最長 120 秒 | 先上傳至 `POST /api/uploads/voice`，再送出訊息 |
+      | `book` | 商品卡片 | `POST /api/chat/rooms` 帶入 `book_id` |
+      | `reservation` | 預約卡片 | `POST /api/chat/rooms/{roomId}/reservations` |
+      | `recalled` | 已收回的訊息 | `POST /api/chat/rooms/{roomId}/messages/{messageId}/recall` |
+      | `notice` | 其他系統訊息 | 伺服器產生 |
+
+      各 `kind` 對應的 `body` 與 `payload` 格式見 `ChatMessage` 結構。
+
+      ## Polling
+
+      App 在聊天畫面中定期以 `after_id` 帶入目前最新一則的 `message_id` 取得新訊息，
+      並依回應的 `meta` 更新介面：
+
+      | 欄位 | 用途 |
+      | --- | --- |
+      | `read_upto` | 對方已讀到的、請求者所發送的最後一則訊息編號，編號小於等於此值者顯示「已讀」 |
+      | `partner_typing` | 對方是否正在輸入 |
+      | `recalled_ids` | 近 10 分鐘內送出、之後被收回的訊息編號，用來替換畫面上已顯示的內容 |
+      | `reservations` | 雙方之間最近 30 筆預約的最新狀態，用來更新預約卡片 |
+
+      載入歷史訊息時改用 `before_id` 帶入目前最舊一則的 `message_id`，`has_more` 為 false 時停止。
+
+      ## Reservations
+
+      買家可在與賣家的聊天室中預約對方的書，請賣家保留一段時間。
 
       ```
-      [book]{"book_id":101,"title":"挪威的森林","price":"180.00","image_url":"/uploads/books/a.jpg"}
+      pending ──(賣家接受)──→ confirmed ──(超過 pickup_deadline)──→ expired
+         │                     └──(任一方取消)──→ cancelled
+         ├──(賣家婉拒／任一方取消)──→ cancelled
+         └──(24 小時未回覆)──→ expired
       ```
 
-      用戶端偵測到 `[book]` 前綴後，解析其後的 JSON 並渲染為卡片。
+      - 賣家接受後，`pickup_deadline` 為接受時間加上買家申請的 `hours`（24、48 或 72 小時）。
+      - 保留期間書籍狀態仍為 `on_sale`，但其他使用者加入購物車或結帳時回傳 409 `BOOK_RESERVED`；
+        預約的買家可正常購買。
+      - 賣家接受一筆預約時，同一本書其他 `pending` 的預約自動取消，並通知這些買家。
+      - 每位買家同時最多 5 筆 `pending` 或 `confirmed` 的預約，同一本書不能重複申請。
+      - 到期由伺服器排程約每 5 分鐘處理一次，書籍仍在架上時通知買家。
+      - 建立、接受、婉拒、取消時皆以 `reservation` 類型的站內通知告知對方。
 
 paths:
   /api/chat/rooms:
     get:
       summary: 取得聊天室列表
       operationId: listChatRooms
-      tags: [聊天室 (Chat)]
+      tags: [chat]
       description: |
         依最後活動時間遞減排序。回應為整併後的格式而非資料表原始欄位，
         伺服器已判定對話對象並計算未讀則數。無分頁機制。
+
+        `last_message.preview` 為伺服器產生的摘要，可直接顯示；`sender_id` 與 `is_read`
+        可用來顯示「你：」前綴與已讀狀態。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -43,13 +88,15 @@ paths:
     post:
       summary: 開啟（或建立）聊天室
       operationId: createChatRoom
-      tags: [聊天室 (Chat)]
+      tags: [chat]
       description: |
         與指定使用者建立聊天。聊天室已存在時直接回傳既有的聊天室，
         不會重複建立，因此用戶端可於每次發起對話時直接呼叫。
 
-        帶入 `book_id` 時會於對話中插入一則商品卡片以標示詢問標的。
-        若相同卡片已是對話中的最後一則訊息，則不重複插入。
+        帶入 `book_id` 時會於對話中插入一則商品卡片（`kind` 為 `book`）以標示詢問標的。
+        若相同卡片已是對話中的最後一則訊息，則不重複插入；書籍不存在時略過卡片。
+
+        對方帳號已停權或列入黑名單時回傳 400。
 
         回應僅含 `room_id`，取得後請呼叫
         `GET /api/chat/rooms/{roomId}/messages` 載入訊息。
@@ -83,7 +130,7 @@ paths:
                     properties:
                       room_id: { type: integer, example: 7 }
         '400':
-          description: 參數錯誤。
+          description: 參數錯誤，或對方帳號無法接收訊息。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -92,14 +139,22 @@ paths:
                   value: { success: false, message: 請提供 user_id }
                 對象為請求者自身:
                   value: { success: false, message: 無法與自己建立聊天室 }
+                對方帳號停用:
+                  value: { success: false, message: 對方帳號目前無法接收訊息 }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: 對話對象不存在。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到該使用者 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/chat/unread-count:
     get:
       summary: 取得聊天未讀數
       operationId: getUnreadChatCount
-      tags: [聊天室 (Chat)]
+      tags: [chat]
       description: |
         統計全部聊天室中由對方發送且尚未讀取的訊息總數。
         請求者自行發送的訊息不計入。
@@ -124,7 +179,7 @@ paths:
     patch:
       summary: 所有聊天室標為已讀
       operationId: markAllChatRead
-      tags: [聊天室 (Chat)]
+      tags: [chat]
       description: 將全部聊天室中由對方發送的未讀訊息一併標記為已讀。此操作不可復原。
       security: [{ bearerAuth: [] }]
       responses:
@@ -141,7 +196,7 @@ paths:
     delete:
       summary: 刪除聊天室
       operationId: deleteChatRoom
-      tags: [聊天室 (Chat)]
+      tags: [chat]
       description: |
         刪除範圍及於雙方：聊天室與其下全部訊息均自資料庫移除，
         並非僅自請求者的列表隱藏。此操作不可復原。
@@ -190,11 +245,20 @@ paths:
     get:
       summary: 取得訊息
       operationId: listChatMessages
-      tags: [聊天室 (Chat)]
+      tags: [chat]
       description: |
-        回傳最近 `limit` 則訊息，已重新排序為由舊至新，可直接依序渲染。
+        依查詢參數決定取得的範圍，三者同時帶入時優先順序為 `after_id`、`before_id`、`before`：
 
-        載入更早的訊息時，將目前最舊一則的 `created_at` 帶入 `before` 參數。
+        | 模式 | 參數 | 取得範圍 | 排序 |
+        | --- | --- | --- | --- |
+        | 最新訊息 | 皆未帶入 | 最近 `limit` 則 | 由舊至新 |
+        | 增量更新 | `after_id` | 編號大於 `after_id` 的最早 `limit` 則 | 由舊至新 |
+        | 歷史訊息 | `before_id` | 編號小於 `before_id` 的最近 `limit` 則 | 由舊至新 |
+        | 歷史訊息（舊版） | `before` | 早於該時間的最近 `limit` 則 | 由舊至新 |
+
+        三種模式的回應皆已排序為由舊至新，可直接依序渲染。
+        增量更新模式下 `has_more` 固定為 false；若回傳則數等於 `limit`，請以最新一則的編號再次呼叫。
+        `recalled_ids` 僅在增量更新模式下有值。
 
         本端點具副作用：呼叫後會將該聊天室中由對方發送的未讀訊息標記為已讀，
         無須另行呼叫已讀端點。
@@ -202,12 +266,22 @@ paths:
       parameters:
         - in: query
           name: limit
-          schema: { type: integer, default: 50 }
-          description: 單次載入的訊息則數。
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+          description: 單次載入的訊息則數，超過 200 以 200 計。
+        - in: query
+          name: after_id
+          schema: { type: integer, minimum: 0 }
+          description: 僅取編號大於此值的訊息，供輪詢新訊息使用。
+          example: 301
+        - in: query
+          name: before_id
+          schema: { type: integer, minimum: 1 }
+          description: 僅取編號小於此值的訊息，供分頁載入歷史訊息使用。
+          example: 251
         - in: query
           name: before
           schema: { type: string, format: date-time }
-          description: 僅取早於此時間點的訊息，供分頁載入歷史訊息使用。
+          description: 僅取早於此時間點的訊息。建議改用 `before_id`。
           example: '2025-09-11T14:30:00.000Z'
       responses:
         '200':
@@ -235,10 +309,35 @@ paths:
                           type: object
                           properties:
                             image_url: { type: string }
+                  meta:
+                    type: object
+                    properties:
+                      read_upto:
+                        type: integer
+                        description: 請求者發送、且對方已讀的最後一則訊息編號；無則為 0。
+                        example: 298
+                      partner_typing:
+                        type: boolean
+                        description: 對方在 6 秒內回報過正在輸入。
+                        example: false
+                      recalled_ids:
+                        type: array
+                        items: { type: integer }
+                        description: 近 10 分鐘內送出、目前已收回的訊息編號，僅增量更新模式有值。
+                        example: [297]
+                      has_more:
+                        type: boolean
+                        description: 是否可能還有更早的訊息。增量更新模式固定為 false。
+                        example: true
+                      reservations:
+                        type: array
+                        description: 雙方之間最近 30 筆預約（不論哪一方為買家），依建立時間遞減排序。
+                        items: { $ref: '#/components/schemas/Reservation' }
                   data:
                     type: array
                     description: 訊息清單，由舊至新排序。
                     items: { $ref: '#/components/schemas/ChatMessage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -247,16 +346,23 @@ paths:
     post:
       summary: 送出訊息
       operationId: sendChatMessage
-      tags: [聊天室 (Chat)]
+      tags: [chat]
       description: |
-        送出訊息，同時更新聊天室的活動時間並通知對方。
+        送出訊息，同時更新聊天室的活動時間、清除請求者的輸入中狀態並通知對方。
         通知的 `related_type` 為 `chat_room`，`related_id` 為聊天室編號。
 
-        通知內容依訊息型別簡化：圖片顯示為 `[圖片]`、商品卡片顯示為 `[商品]`、
-        文字訊息取前 100 個字元。
+        | `message_type` | `content` | 其他欄位 | 通知內容 |
+        | --- | --- | --- | --- |
+        | `text`（預設） | 訊息文字，不可為空白，上限 2000 字 | － | 前 100 個字元 |
+        | `image` | `POST /api/uploads/chat-image` 回傳的路徑 | － | `[圖片]` |
+        | `voice` | `POST /api/uploads/voice` 回傳的路徑 | `duration` 必填 | `[語音] 8 秒` |
 
-        傳送圖片時，`message_type` 設為 `image`，`content` 帶入圖片的相對路徑，
-        該路徑先經 `POST /api/uploads` 上傳取得。
+        圖片與語音的路徑必須分別位於 `/uploads/chat/` 與 `/uploads/voice/`，其他來源的路徑回傳 400。
+        `system` 與其他未列出的值一律回傳 400；商品卡片與預約卡片由專屬端點產生。
+
+        語音訊息在資料表中以 `system` 型別儲存，回應的 `kind` 為 `voice`。
+
+        對方帳號已停權或列入黑名單時回傳 400。每位使用者每分鐘最多 60 次，與建立預約共用計數。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -268,13 +374,26 @@ paths:
               properties:
                 content:
                   type: string
-                  description: 訊息內容，不可為空白。`message_type` 為 `image` 時帶入圖片路徑。
+                  maxLength: 2000
+                  description: 訊息文字，或圖片、語音的相對路徑。
                   example: 請問這本還在嗎？
                 message_type:
                   type: string
-                  enum: [text, image, system]
+                  enum: [text, image, voice]
                   default: text
-                  description: 未列於列舉的值一律視為 `text`。
+                duration:
+                  type: integer
+                  minimum: 1
+                  maximum: 120
+                  description: 語音長度（秒），`message_type` 為 `voice` 時必填，小數四捨五入。
+                  example: 8
+            examples:
+              文字:
+                value: { content: 請問這本還在嗎？ }
+              圖片:
+                value: { message_type: image, content: /uploads/chat/1736512345678-123456789.jpg }
+              語音:
+                value: { message_type: voice, content: /uploads/voice/1736512345678-123456789.m4a, duration: 8 }
       responses:
         '201':
           description: 已送出。
@@ -286,12 +405,303 @@ paths:
                   success: { type: boolean, example: true }
                   data: { $ref: '#/components/schemas/ChatMessage' }
         '400':
-          description: 訊息內容為空。
+          description: 訊息內容或型別不正確，或對方帳號無法接收訊息。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 訊息內容不可為空 }
+              examples:
+                內容為空:
+                  value: { success: false, message: 訊息內容不可為空 }
+                型別不支援:
+                  value: { success: false, message: 'message_type 僅接受：text, image, voice' }
+                圖片未經上傳端點:
+                  value: { success: false, message: 圖片請先透過 /api/uploads/chat-image 上傳 }
+                語音過長:
+                  value: { success: false, message: 語音最長 120 秒 }
+                對方帳號停用:
+                  value: { success: false, message: 對方帳號目前無法接收訊息 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/chat/rooms/{roomId}/typing:
+    post:
+      summary: 回報輸入中狀態
+      operationId: setChatTyping
+      tags: [chat]
+      description: |
+        回報請求者正在輸入。狀態保存 6 秒，對方於此期間取得訊息時 `meta.partner_typing` 為 true。
+
+        使用者持續輸入時建議每 3 至 4 秒呼叫一次；清空輸入框或離開畫面時帶入
+        `typing: false` 立即清除。送出訊息時伺服器會自動清除。
+
+        狀態保存在伺服器行程內，重啟後歸零。每位使用者每分鐘最多 40 次。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 聊天室編號。
+          example: 7
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                typing:
+                  type: boolean
+                  default: true
+                  description: 僅布林值 `false` 會清除狀態，其餘一律視為正在輸入。
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/chat/rooms/{roomId}/messages/{messageId}/recall:
+    post:
+      summary: 收回訊息
+      operationId: recallChatMessage
+      tags: [chat]
+      description: |
+        收回自己在 2 分鐘內送出的文字、圖片或語音訊息。商品卡片與預約卡片無法收回。
+
+        收回後訊息內容直接被取代，原始內容不保留，雙方看到的 `kind` 皆為 `recalled`。
+        對方透過增量更新的 `meta.recalled_ids` 得知，或於重新載入訊息時看到。
+        已上傳的圖片與語音檔案不會被刪除。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 聊天室編號。
+          example: 7
+        - in: path
+          name: messageId
+          required: true
+          schema: { type: integer }
+          description: 訊息編號。
+          example: 301
+      responses:
+        '200':
+          description: 已收回。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 訊息已收回 }
+                  data: { $ref: '#/components/schemas/ChatMessage' }
+        '400':
+          description: 訊息類型無法收回，或已超過 2 分鐘。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                類型無法收回:
+                  value: { success: false, message: 這種訊息無法收回 }
+                超過時限:
+                  value: { success: false, message: 只能收回 2 分鐘內傳送的訊息 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 訊息並非請求者發送。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 只能收回自己傳的訊息 }
+        '404':
+          description: 訊息不存在，或不屬於該聊天室。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到這則訊息 }
+        '409':
+          description: 訊息已經收回。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 這則訊息已經收回了 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/chat/rooms/{roomId}/reservations:
+    post:
+      summary: 預約書籍
+      operationId: createReservation
+      tags: [chat]
+      description: |
+        買家在與賣家的聊天室中預約對方上架的書，建立狀態為 `pending` 的預約，
+        於聊天室插入一則預約卡片，並通知賣家。
+
+        限制條件：
+
+        - 書籍的賣家必須是這個聊天室的另一位成員，且不能預約自己的書
+        - 書籍狀態須為 `on_sale` 且未被下架處分
+        - 已被其他買家保留中時回傳 409 `BOOK_RESERVED`
+        - 同一本書已有自己 `pending` 或保留中的預約時回傳 409
+        - 同時最多 5 筆 `pending` 或 `confirmed` 的預約
+
+        每位使用者每分鐘最多 60 次，與送出訊息共用計數。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 聊天室編號。
+          example: 7
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [book_id, hours]
+              properties:
+                book_id: { type: integer, example: 101 }
+                hours:
+                  type: integer
+                  enum: [24, 48, 72]
+                  description: 希望賣家保留的時數，自賣家接受時起算。
+                  example: 48
+                message: { type: string, maxLength: 200, description: 給賣家的備註。, example: 週六下午可以取書 }
+            example: { book_id: 101, hours: 48, message: 週六下午可以取書 }
+      responses:
+        '201':
+          description: 已送出預約。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已送出預約，等待賣家回覆 }
+                  data: { $ref: '#/components/schemas/Reservation' }
+        '400':
+          description: 參數錯誤或不符合預約條件。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                保留時數不支援:
+                  value: { success: false, message: 保留時間僅接受：24、48、72 小時 }
+                預約自己的書:
+                  value: { success: false, message: 不能預約自己上架的書 }
+                賣家不在聊天室:
+                  value: { success: false, message: 只能在和這本書的賣家的聊天室裡預約 }
+                書籍無法預約:
+                  value: { success: false, message: 這本書目前無法預約 }
+                超過上限:
+                  value: { success: false, message: 同時最多只能有 5 筆進行中的預約 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: 聊天室或書籍不存在。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到這本書 }
+        '409':
+          description: 書籍已被其他買家保留，或已有自己的進行中預約。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                已被其他買家保留:
+                  value: { success: false, code: BOOK_RESERVED, message: 《挪威的森林》已經被其他買家預約，保留到 9/16 18:30 }
+                等待回覆中:
+                  value: { success: false, message: 你已經送出預約，正在等賣家回覆 }
+                已保留:
+                  value: { success: false, message: 你已經預約了這本書 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/chat/reservations/{id}:
+    patch:
+      summary: 回覆或取消預約
+      operationId: respondReservation
+      tags: [chat]
+      description: |
+        | `action` | 執行者 | 適用狀態 | 結果 |
+        | --- | --- | --- | --- |
+        | `accept` | 賣家 | `pending` | `confirmed`，設定 `pickup_deadline` |
+        | `decline` | 賣家 | `pending` | `cancelled`，`closed_by` 為 `seller` |
+        | `cancel` | 買家或賣家 | `pending`、保留中的 `confirmed` | `cancelled`，`closed_by` 為執行者 |
+
+        接受時，書籍須仍為 `on_sale` 且未被其他買家保留；同一本書其他 `pending` 的預約會自動取消並通知其買家。
+        每個動作皆通知另一方。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 預約編號。
+          example: 14
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [accept, decline, cancel], example: accept }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, enum: [已接受預約, 已婉拒預約, 已取消預約], example: 已接受預約 }
+                  data: { $ref: '#/components/schemas/Reservation' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 請求者不是這筆預約的買賣雙方，或非賣家卻嘗試接受、婉拒。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                非當事人:
+                  value: { success: false, message: 這不是你的預約 }
+                非賣家:
+                  value: { success: false, message: 只有賣家可以回覆預約 }
+        '404':
+          description: 預約不存在。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到這筆預約 }
+        '409':
+          description: 預約狀態已變更，或書籍已無法保留。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                狀態已變更:
+                  value: { success: false, message: 這筆預約的狀態已經變更，請重新整理 }
+                書籍已下架或售出:
+                  value: { success: false, message: 這本書已經不在架上，無法接受預約 }
+                已被其他買家保留:
+                  value: { success: false, code: BOOK_RESERVED, message: 《挪威的森林》已經被其他買家預約，保留到 9/16 18:30 }
         '500': { $ref: '#/components/responses/ServerError' }

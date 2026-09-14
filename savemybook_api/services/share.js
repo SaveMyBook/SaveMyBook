@@ -1,18 +1,13 @@
 const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 
-/// 分享連結用的權杖。
-///
-/// 流水號可被枚舉，UUID v1 由時間與網卡位址推導、v4 多半也只是 Math.random，
-/// 都不該拿來當「知道連結就看得到」的憑證。這裡用密碼學亂數。
+// 須用密碼學亂數：流水號與 UUID 可被枚舉或推導。
 const newToken = () => crypto.randomBytes(16).toString('hex');
 
-/// 公開路由只認這個格式。舊的 /u/<流水號>、/b/<流水號> 一律視為無效，
-/// 否則加密等於沒做。
+// 舊的流水號路徑一律視為無效，否則可被枚舉。
 const TOKEN_RE = /^[0-9a-f]{32}$/;
 
-/// 只在欄位仍為 NULL 時寫入。兩個請求同時首次索取時，後寫的那個不會
-/// 蓋掉先發出去的連結，雙方最後都拿到資料庫裡那一組。
+// 只在欄位仍為 NULL 時寫入，避免並行首次索取時蓋掉已發出的連結。
 const ensureToken = async (model, key, id) => {
   const row = await prisma[model].findUnique({ where: { [key]: id }, select: { share_token: true } });
   if (!row) return null;

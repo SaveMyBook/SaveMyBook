@@ -13,10 +13,15 @@ import '../i18n/strings.dart';
 class BookCard extends StatelessWidget {
   final Book book;
   final bool isListMode;
+  final String? heroTag;
 
-  const BookCard({super.key, required this.book, this.isListMode = false});
+  const BookCard({super.key, required this.book, this.isListMode = false, this.heroTag});
+
+  String get _heroTag => heroTag ?? 'book_image_${book.bookId}';
 
   static const _titleStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.bold, height: 1.2);
+
+  static const double gridHeight = 296;
 
   @override
   Widget build(BuildContext context) {
@@ -32,18 +37,21 @@ class BookCard extends StatelessWidget {
       child: Container(
         decoration: _cardDecoration(c),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Hero(
-            tag: 'book_image_${book.bookId}',
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: AppNetworkImage(
-                url: book.hasImage ? book.imageUrl : null,
-                height: 140,
-                width: double.infinity,
-                fallbackIconSize: 32,
+          Stack(children: [
+            Hero(
+              tag: _heroTag,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: AppNetworkImage(
+                  url: book.hasImage ? book.imageUrl : null,
+                  height: 140,
+                  width: double.infinity,
+                  fallbackIconSize: 32,
+                ),
               ),
             ),
-          ),
+            _statusOverlay(),
+          ]),
           Expanded(child: LayoutBuilder(builder: (context, constraints) {
             final titleMaxWidth = constraints.maxWidth - 48.0;
             final painter = TextPainter(
@@ -51,6 +59,7 @@ class BookCard extends StatelessWidget {
               maxLines: 1, textDirection: TextDirection.ltr,
             )..layout(maxWidth: titleMaxWidth.clamp(0.0, double.infinity));
             final overflows = painter.didExceedMaxLines;
+            painter.dispose();
 
             return Padding(
               padding: const EdgeInsets.all(12.0),
@@ -65,14 +74,14 @@ class BookCard extends StatelessWidget {
                         : Text(book.title, style: _titleStyle.copyWith(color: c.textPrimary), maxLines: 1)),
                     FavoriteButton(bookId: book.bookId, size: 20),
                   ]),
-                  const SizedBox(height: 8),
-                  Row(children: [
-                    _buildTag(book.categoryName, c.categoryChip, c.accent),
-                    const SizedBox(width: 6),
-                    _buildTag(book.conditionText, c.conditionColor(book.conditionLevel).withValues(alpha: 0.12), c.conditionColor(book.conditionLevel)),
-                  ]),
-                  const SizedBox(height: 8),
-                  Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                  const SizedBox(height: 6),
+                  _buildTags(c),
+                  const SizedBox(height: 6),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                  ),
                 ]),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -101,18 +110,21 @@ class BookCard extends StatelessWidget {
         height: 140,
         decoration: _cardDecoration(c),
         child: Row(children: [
-          Hero(
-            tag: 'book_image_${book.bookId}',
-            child: ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-              child: AppNetworkImage(
-                url: book.hasImage ? book.imageUrl : null,
-                width: 110,
-                height: 140,
-                fallbackIconSize: 32,
+          Stack(children: [
+            Hero(
+              tag: _heroTag,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+                child: AppNetworkImage(
+                  url: book.hasImage ? book.imageUrl : null,
+                  width: 110,
+                  height: 140,
+                  fallbackIconSize: 32,
+                ),
               ),
             ),
-          ),
+            _statusOverlay(),
+          ]),
 
           Expanded(
             child: Padding(
@@ -124,15 +136,17 @@ class BookCard extends StatelessWidget {
                     FavoriteButton(bookId: book.bookId, size: 20),
                   ]),
                   const SizedBox(height: 8),
-                  Row(children: [
-                    _buildTag(book.categoryName, c.categoryChip, c.accent),
-                    const SizedBox(width: 6),
-                    _buildTag(book.conditionText, c.conditionColor(book.conditionLevel).withValues(alpha: 0.12), c.conditionColor(book.conditionLevel)),
-                  ]),
+                  _buildTags(c),
                 ]),
 
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text('\$${book.price.toInt()}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                    ),
+                  ),
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => _openSeller(context),
@@ -165,7 +179,27 @@ class BookCard extends StatelessWidget {
   }
 
   void _navigateToDetail(BuildContext context) {
-    Navigator.push(context, CupertinoPageRoute(builder: (_) => BookDetailScreen(book: book)));
+    Navigator.push(context, CupertinoPageRoute(builder: (_) => BookDetailScreen(book: book, heroTag: _heroTag)));
+  }
+
+  Widget _statusOverlay() {
+    if (book.status == 'on_sale') return const SizedBox.shrink();
+    return Positioned(
+      left: 8,
+      top: 8,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.62),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          book.statusText,
+          maxLines: 1,
+          style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
   }
 
   BoxDecoration _cardDecoration(AppColors c) {
@@ -176,14 +210,25 @@ class BookCard extends StatelessWidget {
     );
   }
 
+  Widget _buildTags(AppColors c) {
+    final conditionColor = c.conditionColor(book.conditionLevel);
+    return Row(children: [
+      Flexible(child: _buildTag(book.categoryName, c.categoryChip, c.accent)),
+      const SizedBox(width: 6),
+      Flexible(child: _buildTag(book.conditionText, conditionColor.withValues(alpha: 0.12), conditionColor)),
+    ]);
+  }
+
   Widget _buildTag(String text, Color bgColor, Color textColor) {
     return Container(
       height: 22, padding: const EdgeInsets.symmetric(horizontal: 8), alignment: Alignment.center,
       decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
-      child: Text(text, style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.w600, height: 1.0)),
+      child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis,
+          style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.w600, height: 1.0)),
     );
   }
   void _openSeller(BuildContext context) {
+    if (book.sellerId == 0) return;
     Navigator.push(
       context,
       MaterialPageRoute(

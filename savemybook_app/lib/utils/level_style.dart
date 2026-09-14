@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/member_level.dart';
 
-///
-/// 會員中心的徽章和會員等級頁必須用同一套，否則同一個等級在兩頁會長得不一樣。
 class LevelStyle {
   final List<Color> gradient;
   final Color accent;
@@ -24,8 +22,6 @@ class LevelStyle {
   static int count = _palette.length;
 }
 
-/// 目前等級的進度。重點是「在這一級裡走了多少」，
-/// 而不是「總點數除以下一級門檻」—— 後者在高等級時會一直看起來快滿了。
 class LevelProgress {
   final int points;
   final int floor;

@@ -31,8 +31,6 @@ class AppHeader extends StatelessWidget {
   final List<Widget> actions;
   final VoidCallback? onBack;
 
-  /// 直接接在標題列下面的東西（頁籤、篩選列）。放進來才會跟 header 共用同一個
-  /// 圓角容器，否則 header 的圓角會在下面那條列的左右各留一塊空白缺口。
   final Widget? bottom;
 
   const AppHeader({
@@ -49,8 +47,6 @@ class AppHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    // 有頁籤／篩選列接在下面時整塊都不做圓角：圓角會把頁籤的底線指示器
-    // 切掉，而且白色的列被削出圓弧會在下面露出底色。
     final radius = bottom == null
         ? const BorderRadius.only(
             bottomLeft: Radius.circular(24),
@@ -62,8 +58,6 @@ class AppHeader extends StatelessWidget {
       child: ClipRRect(
         borderRadius: radius,
         child: Container(
-          // 必須撐滿寬度：Column 預設的 crossAxisAlignment.center 會讓子項目收縮成
-          // 內容寬度，header 會變成畫面中間一小塊，Positioned 的按鈕也會疊到標題上。
           width: double.infinity,
           color: c.headerBg,
           child: Column(
@@ -78,8 +72,6 @@ class AppHeader extends StatelessWidget {
                     alignment: Alignment.center,
                     children: [
                       Padding(
-                        // 標題置中，所以兩側必須留一樣寬；右邊按鈕多的時候要一起加寬，
-                        // 否則長標題會壓到 action 按鈕上。
                         padding: EdgeInsets.symmetric(
                           horizontal: actions.isEmpty ? 56 : 56 + (actions.length - 1) * 44.0,
                         ),
@@ -207,7 +199,7 @@ class HeaderIconButton extends StatelessWidget {
   }
 }
 
-class CartIconButton extends StatelessWidget {
+class CartIconButton extends StatefulWidget {
   final VoidCallback onTap;
   final double size;
   final Color color;
@@ -219,14 +211,49 @@ class CartIconButton extends StatelessWidget {
     this.color = Colors.white,
   });
 
+  static final ValueNotifier<int> _bumps = ValueNotifier<int>(0);
+
+  static void bump() => _bumps.value++;
+
+  @override
+  State<CartIconButton> createState() => _CartIconButtonState();
+}
+
+class _CartIconButtonState extends State<CartIconButton> with SingleTickerProviderStateMixin {
+  late final AnimationController _bounce = AnimationController(vsync: this, duration: const Duration(milliseconds: 560));
+  late final Animation<double> _scale = TweenSequence<double>([
+    TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3).chain(CurveTween(curve: Curves.easeOut)), weight: 30),
+    TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)), weight: 70),
+  ]).animate(_bounce);
+
+  @override
+  void initState() {
+    super.initState();
+    CartIconButton._bumps.addListener(_onBump);
+  }
+
+  @override
+  void dispose() {
+    CartIconButton._bumps.removeListener(_onBump);
+    _bounce.dispose();
+    super.dispose();
+  }
+
+  void _onBump() {
+    if (mounted) _bounce.forward(from: 0);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return HeaderIconButton(
-      icon: Icons.shopping_cart_outlined,
-      onTap: onTap,
-      size: size,
-      color: color,
-      badgeListenable: ApiService.cartCount,
+    return ScaleTransition(
+      scale: _scale,
+      child: HeaderIconButton(
+        icon: Icons.shopping_cart_outlined,
+        onTap: widget.onTap,
+        size: widget.size,
+        color: widget.color,
+        badgeListenable: ApiService.cartCount,
+      ),
     );
   }
 }
@@ -265,29 +292,45 @@ class AppTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
+    const labelStyle = TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
+
     return Container(
       width: double.infinity,
       color: c.card,
-      child: TabBar(
+      child: LayoutBuilder(builder: (context, constraints) {
+        final scaler = MediaQuery.textScalerOf(context);
+        final perTab = constraints.maxWidth / tabs.length;
+        final crowded = tabs.any((t) {
+          final painter = TextPainter(
+            text: TextSpan(text: t, style: labelStyle),
+            textDirection: Directionality.of(context),
+            textScaler: scaler,
+            maxLines: 1,
+          )..layout();
+          final tooWide = painter.width + 24 > perTab;
+          painter.dispose();
+          return tooWide;
+        });
+
+        return TabBar(
         controller: controller,
+        isScrollable: crowded,
+        tabAlignment: crowded ? TabAlignment.start : null,
         indicatorColor: c.accent,
         indicatorWeight: 3,
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         labelColor: c.accent,
         unselectedLabelColor: c.textSecondary,
-        labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        labelStyle: labelStyle,
         unselectedLabelStyle: const TextStyle(fontSize: 14),
         tabs: tabs.map((t) => Tab(height: 46, text: t)).toList(),
-      ),
+        );
+      }),
     );
   }
 }
 
-/// 讓分頁畫面可以左右滑動切換。
-///
-/// 這些畫面的內容各自有快取邏輯，直接改成 TabBarView 要動的地方太多，
-/// 所以改成攔水平方向的甩動手勢去推 TabController。
 class SwipeTabs extends StatelessWidget {
   final TabController controller;
   final Widget child;
@@ -300,7 +343,6 @@ class SwipeTabs extends StatelessWidget {
       behavior: HitTestBehavior.deferToChild,
       onHorizontalDragEnd: (details) {
         final velocity = details.primaryVelocity ?? 0;
-        // 太慢的話當成使用者只是手抖，不切頁。
         if (velocity.abs() < 220) return;
 
         final next = velocity < 0 ? controller.index + 1 : controller.index - 1;

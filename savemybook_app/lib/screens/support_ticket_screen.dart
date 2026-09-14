@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/support.dart';
 import '../services/api_service.dart';
 import '../utils/api_helpers.dart';
@@ -9,6 +10,7 @@ import '../widgets/app_buttons.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
+import '../widgets/app_select.dart';
 import '../widgets/app_tiles.dart';
 import '../widgets/state_views.dart';
 import '../utils/app_labels.dart';
@@ -47,7 +49,7 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
       context,
       MaterialPageRoute(builder: (_) => const NewTicketScreen()),
     );
-    if (created == true) _load();
+    if (created == true && mounted) _load();
   }
 
   Future<void> _open(SupportTicket ticket) async {
@@ -55,9 +57,8 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
       context,
       MaterialPageRoute(builder: (_) => TicketDetailScreen(ticketId: ticket.ticketId)),
     );
-    _load();
+    if (mounted) _load();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -83,8 +84,9 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                       color: c.accent,
                       onRefresh: _load,
                       child: SwitchIn(child: _tickets.isEmpty
-                          ? ListView(key: const ValueKey('empty'), 
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                          ? ListView(
+                              key: const ValueKey('empty'),
+                              physics: const AlwaysScrollableScrollPhysics(),
                               children: [
                                 SizedBox(height: 60),
                                 EmptyView(
@@ -93,7 +95,9 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                                 ),
                               ],
                             )
-                          : ListView.builder(key: const ValueKey('items'), 
+                          : ListView.builder(
+                              key: const ValueKey('items'),
+                              physics: const AlwaysScrollableScrollPhysics(),
                               padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
                               itemCount: _tickets.length,
                               itemBuilder: (_, i) => RevealOnScroll(
@@ -148,8 +152,15 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
               const SizedBox(width: 4),
               Text('${ticket.messageCount}', style: TextStyle(fontSize: 11, color: c.textHint)),
               const SizedBox(width: 10),
-              Text(ticket.categoryText, style: TextStyle(fontSize: 11, color: c.textHint)),
-              const Spacer(),
+              Expanded(
+                child: Text(
+                  ticket.categoryText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: c.textHint),
+                ),
+              ),
+              const SizedBox(width: 8),
               Text(formatRelative(ticket.updatedAt), style: TextStyle(fontSize: 11, color: c.textHint)),
             ],
           ),
@@ -173,6 +184,8 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
 
   String _category = 'other';
   bool _isSaving = false;
+  bool _showErrors = false;
+  bool _sent = false;
 
   @override
   void dispose() {
@@ -182,14 +195,19 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
   }
 
   Future<void> _submit() async {
+    if (_isSaving) return;
+    FocusScope.of(context).unfocus();
     final subject = _subjectController.text.trim();
     final content = _contentController.text.trim();
+    setState(() => _showErrors = true);
 
     if (subject.isEmpty) {
+      HapticFeedback.heavyImpact();
       showAppSnackBar(context, S.enterSubject, isError: true);
       return;
     }
-    if (content.trim().length < 5) {
+    if (content.length < 5) {
+      HapticFeedback.heavyImpact();
       showAppSnackBar(context, S.addMoreDetailSoSupportCan, isError: true);
       return;
     }
@@ -207,82 +225,128 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
       showAppSnackBar(context, error, isError: true);
       return;
     }
+    _sent = true;
+    HapticFeedback.mediumImpact();
     showAppSnackBar(context, S.sentSupportReplySoon);
     Navigator.pop(context, true);
   }
 
-  /// 工單內容通常是一整段描述，誤觸返回等於重打。
-  bool get _isDirty => _subjectController.text.trim().isNotEmpty || _contentController.text.trim().isNotEmpty;
+  bool get _isDirty =>
+      !_sent && (_subjectController.text.trim().isNotEmpty || _contentController.text.trim().isNotEmpty);
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
     return UnsavedGuard(
-      isDirty: _isDirty,
+      isDirty: _isDirty && !_isSaving,
       child: Scaffold(
-      backgroundColor: c.scaffold,
-      body: Column(
-        children: [
-          AppHeader(title: S.askQuestion, icon: Icons.edit_outlined),
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => FocusScope.of(context).unfocus(),
-              child: ListView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: EdgeInsets.fromLTRB(
-                  20,
-                  20,
-                  20,
-                  MediaQuery.of(context).viewInsets.bottom + 40,
+        backgroundColor: c.scaffold,
+        body: Column(
+          children: [
+            AppHeader(title: S.askQuestion, icon: Icons.edit_outlined),
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => FocusScope.of(context).unfocus(),
+                child: ListView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.fromLTRB(16, 20, 16, MediaQuery.of(context).viewInsets.bottom + 40),
+                  children: [
+                    FadeSlideIn(
+                      child: FormRowCard(
+                        label: S.type,
+                        child: AppSelect<String>(
+                          value: _category,
+                          title: S.type,
+                          options: [
+                            for (final e in AppLabels.ticketCategory.entries)
+                              AppSelectOption(value: e.key, label: e.value, icon: _categoryIcon(e.key)),
+                          ],
+                          onChanged: _isSaving ? null : (value) => setState(() => _category = value),
+                        ),
+                      ),
+                    ),
+                    FadeSlideIn(
+                      index: 1,
+                      child: FormRowCard(
+                        label: S.subject,
+                        isRequired: true,
+                        child: AppTextField(
+                          controller: _subjectController,
+                          hint: S.sumUpOneLine,
+                          maxLength: 100,
+                          enabled: !_isSaving,
+                          textInputAction: TextInputAction.next,
+                          errorText: _showErrors && _subjectController.text.trim().isEmpty ? S.enterSubject : null,
+                          onChanged: (_) => setState(() {}),
+                        ),
+                      ),
+                    ),
+                    FadeSlideIn(
+                      index: 2,
+                      child: FormRowCard(
+                        label: S.content,
+                        alignTop: true,
+                        isRequired: true,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            AppTextField(
+                              controller: _contentController,
+                              hint: S.whatHappenedIncludeOrderNumberIf,
+                              minLines: 5,
+                              maxLines: 10,
+                              maxLength: 1000,
+                              enabled: !_isSaving,
+                              keyboardType: TextInputType.multiline,
+                              errorText: _showErrors && _contentController.text.trim().length < 5
+                                  ? S.addMoreDetailSoSupportCan
+                                  : null,
+                              onChanged: (_) => setState(() {}),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${_contentController.text.characters.length}/1000',
+                              style: TextStyle(fontSize: 11, color: c.textHint),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    PrimaryButton(
+                      label: S.actionSubmit,
+                      icon: Icons.send_rounded,
+                      height: 50,
+                      isLoading: _isSaving,
+                      onPressed: _submit,
+                    ),
+                  ],
                 ),
-                children: [
-                  FormRowCard(
-                    label: S.type,
-                    child: AppDropdownField<String>(
-                      value: _category,
-                      hint: S.actionSelect,
-                      items: AppLabels.ticketCategory.entries
-                          .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-                          .toList(),
-                      onChanged: (value) => setState(() => _category = value ?? 'other'),
-                    ),
-                  ),
-                  FormRowCard(
-                    label: S.subject,
-                    child: AppTextField(
-                      controller: _subjectController,
-                      hint: S.sumUpOneLine,
-                      maxLength: 100,
-                      textInputAction: TextInputAction.next,
-                    ),
-                  ),
-                  FormRowCard(
-                    label: S.content,
-                    alignTop: true,
-                    child: AppTextField(
-                      controller: _contentController,
-                      hint: S.whatHappenedIncludeOrderNumberIf,
-                      maxLines: 8,
-                      maxLength: 1000,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  PrimaryButton(
-                    label: S.actionSubmit,
-                    height: 50,
-                    isLoading: _isSaving,
-                    onPressed: _submit,
-                  ),
-                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
+  }
+
+  static IconData _categoryIcon(String key) {
+    switch (key) {
+      case 'account':
+        return Icons.person_outline_rounded;
+      case 'trade':
+        return Icons.swap_horiz_rounded;
+      case 'wallet':
+        return Icons.account_balance_wallet_outlined;
+      case 'cabinet':
+        return Icons.inventory_2_outlined;
+      case 'bug':
+        return Icons.bug_report_outlined;
+      default:
+        return Icons.help_outline_rounded;
+    }
   }
 }
 
@@ -350,6 +414,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       showAppSnackBar(context, error, isError: true);
       return;
     }
+    HapticFeedback.lightImpact();
     _controller.clear();
     await _load();
   }
@@ -376,18 +441,22 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Future<void> _changeStatus() async {
-    final status = await showOptionSheet<String>(
+    final c = AppColors.of(context);
+    final status = await showAppPicker<String>(
       context,
       title: S.changeStatus,
-      options: AppLabels.ticketStatus.entries
-          .map((e) => SheetOption(
-                value: e.key,
-                label: e.value,
-                selected: e.key == _ticket?.status,
-              ))
-          .toList(),
+      selected: _ticket?.status,
+      options: [
+        for (final e in AppLabels.ticketStatus.entries)
+          AppSelectOption(
+            value: e.key,
+            label: e.value,
+            icon: Icons.circle,
+            iconColor: c.ticketStatusColor(e.key),
+          ),
+      ],
     );
-    if (status == null || !mounted) return;
+    if (status == null || status == _ticket?.status || !mounted) return;
 
     final error = await runBusy(context, () => _api.updateTicketStatus(widget.ticketId, status));
     if (!mounted) return;
@@ -430,7 +499,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                           message: S.enquiryNotFound,
                         )
                       : ListView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                           controller: _scrollController,
                           padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
                           children: [
@@ -463,10 +532,15 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             color: ticket.isClosed ? c.iconInactive : c.accent,
           ),
           const SizedBox(width: 10),
-          Text(ticket.categoryText, style: TextStyle(fontSize: 12, color: c.textSecondary)),
-          const Spacer(),
+          Expanded(
+            child: Text(ticket.categoryText, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, color: c.textSecondary)),
+          ),
           if (widget.asAdmin && ticket.userName.isNotEmpty)
-            Text(ticket.userName, style: TextStyle(fontSize: 12, color: c.textSecondary)),
+            Flexible(
+              child: Text(ticket.userName, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, color: c.textSecondary)),
+            ),
         ],
       ),
     );
@@ -494,9 +568,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     maxWidth: MediaQuery.of(context).size.width * 0.7,
                   ),
                   child: AnimatedContainer(
-        duration: Motion.base,
-        curve: Motion.standard,
-
+                    duration: Motion.base,
+                    curve: Motion.standard,
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
                       color: alignRight ? c.accent : c.card,
@@ -528,6 +601,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
             child: Text(
               '${message.isStaff ? S.support : message.senderName}・${formatRelative(message.createdAt)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 10, color: c.textHint),
             ),
           ),
@@ -560,19 +635,29 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
           ),
           const SizedBox(width: 10),
-          GestureDetector(
-            onTap: _send,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(color: c.accent, shape: BoxShape.circle),
-              child: _isSending
-                  ? const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-            ),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _controller,
+            builder: (_, value, _) {
+              final ready = value.text.trim().isNotEmpty && !_isSending;
+              return PressableScale(
+                onTap: ready ? _send : null,
+                child: AnimatedContainer(
+                  duration: Motion.micro,
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: ready || _isSending ? c.accent : c.accent.withValues(alpha: 0.4),
+                    shape: BoxShape.circle,
+                  ),
+                  child: _isSending
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                ),
+              );
+            },
           ),
         ],
       ),

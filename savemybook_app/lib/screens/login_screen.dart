@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import '../services/home_widget_service.dart';
 import '../services/biometric_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_buttons.dart';
 import '../widgets/biometric_icon.dart';
+import '../widgets/pin_pad.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/state_views.dart';
@@ -26,7 +29,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final ApiService _apiService = ApiService();
 
+  static const _lastEmailKey = 'last_login_email';
+
   bool _isLoading = false;
+  bool _biometricBusy = false;
+  int _shake = 0;
   bool _obscurePassword = true;
   bool _canUseBiometric = false;
   String _biometricLabel = S.biometrics;
@@ -36,7 +43,20 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    _restoreEmail();
     _checkBiometric();
+  }
+
+  Future<void> _restoreEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString(_lastEmailKey);
+    if (!mounted || email == null || email.isEmpty || _emailController.text.isNotEmpty) return;
+    _emailController.text = email;
+  }
+
+  Future<void> _rememberEmail(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastEmailKey, email);
   }
 
   @override
@@ -64,9 +84,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _biometricLogin() async {
-    if (_isLoading) return;
+    if (_isLoading || _biometricBusy) return;
 
+    _biometricBusy = true;
     final ok = await BiometricService.authenticate(reason: S.verifySignSavemybook);
+    _biometricBusy = false;
     if (!ok || !mounted) return;
 
     setState(() => _isLoading = true);
@@ -89,14 +111,26 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (ApiService.currentUser == null) {
+      ApiService.authToken = null;
       setState(() => _canUseBiometric = false);
       showAppSnackBar(context, S.sessionExpiredPleaseEnterPasswordAgain, isError: true);
       return;
     }
 
+    _goHome();
+  }
+
+  void _goHome() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 420),
+        pageBuilder: (_, _, _) => const HomeScreen(),
+        transitionsBuilder: (_, animation, _, child) => FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: child,
+        ),
+      ),
     );
   }
 
@@ -143,32 +177,60 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (_isLoading || !_validate()) return;
+    if (_isLoading) return;
+    if (!_validate()) {
+      setState(() => _shake++);
+      return;
+    }
     FocusScope.of(context).unfocus();
 
+    final email = _emailController.text.trim();
     setState(() => _isLoading = true);
-    final outcome = await _apiService.login(_emailController.text.trim(), _passwordController.text);
+    if (ApiService.currentUser == null) ApiService.authToken = null;
+    final outcome = await _apiService.login(email, _passwordController.text);
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
     if (outcome.isSuccess) {
+      unawaited(HomeWidgetService.sync(force: true));
+      await _rememberEmail(email);
       await _offerBiometric();
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      _goHome();
       return;
     }
+    setState(() => _isLoading = false);
 
-    if (outcome.accountNotFound) {
-      await _offerRegistration();
-      return;
+    switch (outcome.code) {
+      case 'ACCOUNT_NOT_FOUND':
+        setState(() => _emailError = outcome.message);
+        await _offerRegistration();
+      case 'INVALID_PASSWORD':
+        _passwordController.clear();
+        setState(() {
+          _passwordError = outcome.message.isEmpty ? S.enterPassword : outcome.message;
+          _shake++;
+        });
+      case 'NETWORK':
+        showAppSnackBar(context, outcome.message, isError: true);
+      default:
+        setState(() => _shake++);
+        showAppSnackBar(context, outcome.message, isError: true);
     }
+  }
 
+  Future<void> _openRegister(String email) async {
+    final registeredEmail = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (_) => RegisterScreen(initialEmail: email)),
+    );
+    if (registeredEmail == null || !mounted) return;
+    _emailController.text = registeredEmail;
     _passwordController.clear();
-    setState(() => _passwordError = outcome.message);
-    showAppSnackBar(context, outcome.message, isError: true);
+    setState(() {
+      _emailError = null;
+      _passwordError = null;
+    });
+    _rememberEmail(registeredEmail);
   }
 
   Future<void> _offerRegistration() async {
@@ -183,20 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (!confirmed || !mounted) return;
-
-    final registeredEmail = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(builder: (_) => RegisterScreen(initialEmail: email)),
-    );
-
-    if (registeredEmail != null && mounted) {
-      _emailController.text = registeredEmail;
-      _passwordController.clear();
-      setState(() {
-        _emailError = null;
-        _passwordError = null;
-      });
-    }
+    await _openRegister(email);
   }
 
   @override
@@ -211,8 +260,6 @@ class _LoginScreenState extends State<LoginScreen> {
           onTap: () => FocusScope.of(context).unfocus(),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // 鍵盤打開時 Scaffold 已經把高度縮掉了，這裡要跟著用縮過的高度，
-              // 否則 ConstrainedBox 還撐著整個畫面高，輸入框會被推到看不見的地方。
               final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
               return SingleChildScrollView(
@@ -271,7 +318,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 16),
                       FadeSlideIn(
                         index: 3,
-                        child: AppTextField(
+                        child: ShakeOnError(
+                          trigger: _shake,
+                          child: AppTextField(
                           controller: _passwordController,
                           hint: S.password,
                           errorText: _passwordError,
@@ -292,6 +341,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                           ),
+                        ),
                         ),
                       ),
                       SizedBox(height: keyboardOpen ? 20 : 32),
@@ -317,7 +367,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? null
                                 : Icons.fingerprint_rounded,
                             height: 50,
-                            onPressed: _isLoading ? null : _biometricLogin,
+                            onPressed: _isLoading || _biometricBusy ? null : _biometricLogin,
                           ),
                         ),
                       ],
@@ -325,21 +375,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       FadeSlideIn(
                         index: 5,
                         child: TextButton(
-                          onPressed: _isLoading
-                              ? null
-                              : () async {
-                                  final registeredEmail = await Navigator.push<String>(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => RegisterScreen(
-                                        initialEmail: _emailController.text.trim(),
-                                      ),
-                                    ),
-                                  );
-                                  if (registeredEmail != null && mounted) {
-                                    _emailController.text = registeredEmail;
-                                  }
-                                },
+                          onPressed: _isLoading ? null : () => _openRegister(_emailController.text.trim()),
                           child: Text(S.noAccountYetSignUp, style: TextStyle(color: c.accent)),
                         ),
                       ),

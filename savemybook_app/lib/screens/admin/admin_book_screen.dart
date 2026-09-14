@@ -6,11 +6,13 @@ import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_labels.dart';
+import '../../utils/motion.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_select.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
@@ -134,11 +136,13 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                 final selected = _filter == f.key;
                 return GestureDetector(
                   onTap: () {
+                    if (_filter == f.key) return;
+                    HapticFeedback.selectionClick();
                     setState(() => _filter = f.key);
                     _load();
                   },
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                    duration: Motion.micro,
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
@@ -166,7 +170,9 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                       color: c.accent,
                       onRefresh: _load,
                       child: SwitchIn(child: _books.isEmpty
-                          ? ListView(key: const ValueKey('empty'), 
+                          ? ListView(
+                              key: const ValueKey('empty'),
+                              physics: const AlwaysScrollableScrollPhysics(),
                               children: [
                                 SizedBox(height: 60),
                                 EmptyView(
@@ -175,7 +181,9 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                                 ),
                               ],
                             )
-                          : ListView.builder(key: const ValueKey('items'), 
+                          : ListView.builder(
+                              key: const ValueKey('items'),
+                              physics: const AlwaysScrollableScrollPhysics(),
                               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                               itemCount: _books.length,
                               itemBuilder: (_, i) => RevealOnScroll(
@@ -191,8 +199,6 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
     );
   }
 
-  /// 代賣家更正填錯的資料。只送真的有改的欄位，未動過的維持原值——
-  /// 整筆覆蓋的話，表單上沒放的欄位會被清空。
   Future<void> _editBook(AdminBook book) async {
     final categories = _categories ?? await runBusy(context, _api.fetchCategories);
     if (!mounted) return;
@@ -206,192 +212,245 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
     final author = TextEditingController(text: book.author ?? '');
     final publisher = TextEditingController(text: book.publisher ?? '');
     final isbn = TextEditingController(text: book.isbn ?? '');
-    final price = TextEditingController(text: book.price.toStringAsFixed(0));
+    final price = TextEditingController(text: book.price > 0 ? book.price.toStringAsFixed(0) : '');
     final description = TextEditingController(text: book.description ?? '');
+    final controllers = [title, author, publisher, isbn, price, description];
     var condition = book.conditionLevel;
-    // DropdownButton 遇到 value == null 會改顯示 hint，未分類的書會變成「請選擇」。
-    // 用 0 當「未分類」的哨兵值，送出前再轉回 null。
     var categoryId = book.categoryId ?? 0;
+    String? titleError;
+    String? isbnError;
 
     final c = AppColors.of(context);
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: c.sheetBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  S.editBookDetails,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  S.sellerP0TheyNotifiedSave(book.sellerName),
-                  style: TextStyle(fontSize: 12, color: c.textHint),
-                ),
-                const SizedBox(height: 16),
-                _sheetLabel(S.title, c),
-                AppTextField(controller: title, hint: S.title, maxLength: 255),
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _sheetLabel(S.author2, c),
-                          AppTextField(controller: author, hint: S.author2, maxLength: 255),
-                        ],
+        builder: (ctx, setSheetState) => GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusScope.of(ctx).unfocus(),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.fromLTRB(20, 10, 20, 24 + MediaQuery.of(ctx).padding.bottom),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 38,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 14),
+                      decoration: BoxDecoration(
+                        color: c.iconInactive.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _sheetLabel(S.publisher2, c),
-                          AppTextField(controller: publisher, hint: S.publisher2, maxLength: 255),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _sheetLabel(S.priceCoins, c),
-                          AppTextField(
-                            controller: price,
-                            hint: '0',
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                            maxLength: 6,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _sheetLabel('ISBN', c),
-                          AppTextField(
-                            controller: isbn,
-                            hint: S.k1013Digits2,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                            maxLength: 13,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _sheetLabel(S.category, c),
-                AppDropdownField<int>(
-                  value: categoryId,
-                  items: [
-                    DropdownMenuItem<int>(value: 0, child: Text(S.uncategorised)),
-                    ...categories.map(
-                      (cat) => DropdownMenuItem<int>(value: cat.categoryId, child: Text(cat.categoryName)),
-                    ),
-                  ],
-                  onChanged: (value) => setSheetState(() => categoryId = value ?? 0),
-                ),
-                const SizedBox(height: 12),
-                _sheetLabel(S.condition, c),
-                AppDropdownField<String>(
-                  value: condition,
-                  items: AppLabels.condition.entries
-                      .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-                      .toList(),
-                  onChanged: (value) => setSheetState(() => condition = value ?? condition),
-                ),
-                const SizedBox(height: 12),
-                _sheetLabel(S.description2, c),
-                AppTextField(
-                  controller: description,
-                  hint: S.description2,
-                  maxLines: 5,
-                  maxLength: 2000,
-                ),
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  height: 46,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: c.accent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(S.actionSave, style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
-                ),
-              ],
+                  Text(
+                    S.editBookDetails,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    S.sellerP0TheyNotifiedSave(book.sellerName),
+                    style: TextStyle(fontSize: 12, color: c.textHint),
+                  ),
+                  const SizedBox(height: 16),
+                  _sheetLabel(S.title, c),
+                  AppTextField(
+                    controller: title,
+                    hint: S.title,
+                    maxLength: 255,
+                    errorText: titleError,
+                    textInputAction: TextInputAction.next,
+                    onChanged: (_) {
+                      if (titleError != null) setSheetState(() => titleError = null);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _sheetLabel(S.author2, c),
+                            AppTextField(
+                              controller: author,
+                              hint: S.author2,
+                              maxLength: 255,
+                              textInputAction: TextInputAction.next,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _sheetLabel(S.publisher2, c),
+                            AppTextField(
+                              controller: publisher,
+                              hint: S.publisher2,
+                              maxLength: 255,
+                              textInputAction: TextInputAction.next,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _sheetLabel(S.priceCoins, c),
+                            AppTextField(
+                              controller: price,
+                              hint: '0',
+                              keyboardType: TextInputType.number,
+                              inputFormatters: const [PriceInputFormatter(max: 999999)],
+                              textInputAction: TextInputAction.next,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _sheetLabel('ISBN', c),
+                            AppTextField(
+                              controller: isbn,
+                              hint: S.k1013Digits2,
+                              keyboardType: TextInputType.number,
+                              errorText: isbnError,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(RegExp(r'[0-9Xx]')),
+                                TextInputFormatter.withFunction(
+                                  (_, value) => value.copyWith(text: value.text.toUpperCase()),
+                                ),
+                              ],
+                              maxLength: 13,
+                              textInputAction: TextInputAction.done,
+                              onChanged: (_) {
+                                if (isbnError != null) setSheetState(() => isbnError = null);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _sheetLabel(S.category, c),
+                  AppSelect<int>(
+                    value: categoryId,
+                    title: S.category,
+                    leadingIcon: Icons.category_outlined,
+                    options: [
+                      AppSelectOption(value: 0, label: S.uncategorised),
+                      for (final cat in categories) AppSelectOption(value: cat.categoryId, label: cat.categoryName),
+                    ],
+                    onChanged: (value) => setSheetState(() => categoryId = value),
+                  ),
+                  const SizedBox(height: 12),
+                  _sheetLabel(S.condition, c),
+                  AppSelect<String>(
+                    value: condition,
+                    title: S.condition,
+                    options: [
+                      for (final e in AppLabels.condition.entries)
+                        AppSelectOption(
+                          value: e.key,
+                          label: e.value,
+                          icon: Icons.menu_book_rounded,
+                          iconColor: c.conditionColor(e.key),
+                        ),
+                    ],
+                    onChanged: (value) => setSheetState(() => condition = value),
+                  ),
+                  const SizedBox(height: 12),
+                  _sheetLabel(S.description2, c),
+                  AppTextField(
+                    controller: description,
+                    hint: S.description2,
+                    minLines: 3,
+                    maxLines: 6,
+                    maxLength: 2000,
+                    keyboardType: TextInputType.multiline,
+                  ),
+                  const SizedBox(height: 18),
+                  PrimaryButton(
+                    label: S.actionSave,
+                    height: 46,
+                    onPressed: () {
+                      final isbnText = isbn.text.trim();
+                      setSheetState(() {
+                        titleError = title.text.trim().isEmpty ? S.titleRequired : null;
+                        isbnError = isbnText.isNotEmpty &&
+                                isbnText != (book.isbn ?? '').trim() &&
+                                normalizeIsbn(isbnText) == null
+                            ? S.isbn1013Digits
+                            : null;
+                      });
+                      if (titleError != null || isbnError != null) {
+                        HapticFeedback.heavyImpact();
+                        return;
+                      }
+                      Navigator.pop(ctx, true);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
 
-    if (saved != true || !mounted) {
-      for (final ctl in [title, author, publisher, isbn, price, description]) {
+    final fields = <String, dynamic>{};
+    if (saved == true) {
+      void put(String key, String value, String? original) {
+        if (value.trim() != (original ?? '').trim()) fields[key] = value.trim();
+      }
+
+      put('title', title.text, book.title);
+      put('author', author.text, book.author);
+      put('publisher', publisher.text, book.publisher);
+      put('isbn', isbn.text, book.isbn);
+      put('description', description.text, book.description);
+
+      final newPrice = double.tryParse(price.text.trim());
+      if (newPrice != null && newPrice != book.price) fields['price'] = newPrice;
+      if (condition != book.conditionLevel) fields['condition_level'] = condition;
+      if (categoryId != (book.categoryId ?? 0)) {
+        fields['category_id'] = categoryId == 0 ? null : categoryId;
+      }
+    }
+
+    // 底部面板關閉動畫期間 TextField 仍握著 controller，立刻 dispose 會觸發 used-after-dispose。
+    Future.delayed(const Duration(milliseconds: 800), () {
+      for (final ctl in controllers) {
         ctl.dispose();
       }
-      return;
-    }
+    });
 
-    if (title.text.trim().isEmpty) {
-      showAppSnackBar(context, S.titleRequired, isError: true);
-      return;
-    }
-
-    final fields = <String, dynamic>{};
-    void put(String key, String value, String? original) {
-      if (value.trim() != (original ?? '').trim()) fields[key] = value.trim();
-    }
-
-    put('title', title.text, book.title);
-    put('author', author.text, book.author);
-    put('publisher', publisher.text, book.publisher);
-    put('isbn', isbn.text, book.isbn);
-    put('description', description.text, book.description);
-
-    final newPrice = double.tryParse(price.text.trim());
-    if (newPrice != null && newPrice != book.price) fields['price'] = newPrice;
-    if (condition != book.conditionLevel) fields['condition_level'] = condition;
-    if (categoryId != (book.categoryId ?? 0)) {
-      fields['category_id'] = categoryId == 0 ? null : categoryId;
-    }
-
-    for (final ctl in [title, author, publisher, isbn, price, description]) {
-      ctl.dispose();
-    }
+    if (saved != true || !mounted) return;
 
     if (fields.isEmpty) {
       showAppSnackBar(context, S.nothingChanged);
@@ -404,6 +463,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
+      HapticFeedback.mediumImpact();
       showAppSnackBar(context, S.updated);
       _load();
     }
@@ -494,7 +554,8 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                 children: [
                   Icon(Icons.flag_rounded, size: 14, color: c.danger),
                   const SizedBox(width: 6),
-                  Text(
+                  Flexible(
+                    child: Text(
                     S.p0ReportsAwaitingReview(book.pendingReportCount),
                     style: TextStyle(
                       fontSize: 11,
@@ -502,24 +563,30 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                       color: c.danger,
                     ),
                   ),
+                  ),
                 ],
               ),
             ),
           ],
           const SizedBox(height: 10),
-          Row(
+          Wrap(
+            alignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              Text(
-                formatDateTime(book.createdAt),
-                style: TextStyle(fontSize: 11, color: c.textHint),
+              SizedBox(
+                width: double.infinity,
+                child: Text(
+                  formatDateTime(book.createdAt),
+                  style: TextStyle(fontSize: 11, color: c.textHint),
+                ),
               ),
-              const Spacer(),
               SmallActionButton(
                 label: S.actionEdit,
                 color: c.accent,
                 onTap: () => _editBook(book),
               ),
-              const SizedBox(width: 8),
               SmallActionButton(
                 label: removed ? S.relist2 : S.forceDelist,
                 filled: true,

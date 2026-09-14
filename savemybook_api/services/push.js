@@ -1,18 +1,17 @@
 const prisma = require('../lib/prisma');
 const { env } = require('../config/env');
 const { FcmClient } = require('../lib/fcm');
+const maintenance = require('../lib/maintenance');
+const { hasColumn } = require('../lib/schema-check');
 
 const PLATFORMS = ['ios', 'android'];
 const MAX_DEVICES_PER_USER = 10;
 
-/// 佇列只撿最近這段時間的通知。推播沒設定好期間累積的通知，
-/// 等設定完成後不該一口氣補推給使用者。
 const QUEUE_WINDOW_MINUTES = 15;
 const BATCH_SIZE = 200;
 const CONCURRENCY = 20;
 const POLL_MS = 3000;
 
-/// 通知類型 → user_settings 的開關。沒有列在這裡的類型（system 等）一律推送。
 const PREFERENCE_COLUMN = {
   order: 'notification_order',
   reservation: 'notification_order',
@@ -20,7 +19,7 @@ const PREFERENCE_COLUMN = {
   promotion: 'notification_promo'
 };
 
-// Prisma 的 tagged template 不會展開陣列，IN 清單改用 $queryRawUnsafe 搭配 ? 佔位符，值仍走參數綁定。
+// Prisma 的 tagged template 不會展開陣列，IN 清單改用 $queryRawUnsafe 搭配 ? 佔位符。
 const placeholders = (values) => values.map(() => '?').join(',');
 
 let client = null;
@@ -28,7 +27,6 @@ let ready = false;
 
 const isReady = () => ready;
 
-/// 啟動時確認金鑰與資料表都在。缺任何一樣就停用推播並說明原因，不影響其他功能。
 const init = async () => {
   if (!env.pushEnabled) {
     console.log('🔕 推播已由 PUSH_ENABLED=false 停用');
@@ -62,18 +60,24 @@ const init = async () => {
   return true;
 };
 
-// ---------- 裝置 ----------
+const registerDevice = async (userId, { token, platform, appVersion, sessionSid = null }) => {
+  // 同一個 token 換帳號登入時須轉給新帳號，否則前帳號的通知會推到這支手機。
+  if (await hasColumn('push_devices', 'session_sid')) {
+    await prisma.$executeRaw`
+      INSERT INTO push_devices (user_id, token, platform, app_version, session_sid, created_at, last_seen_at)
+      VALUES (${userId}, ${token}, ${platform}, ${appVersion}, ${sessionSid}, NOW(), NOW())
+      ON DUPLICATE KEY UPDATE
+        user_id = VALUES(user_id), platform = VALUES(platform), app_version = VALUES(app_version),
+        session_sid = VALUES(session_sid), last_seen_at = NOW()`;
+  } else {
+    await prisma.$executeRaw`
+      INSERT INTO push_devices (user_id, token, platform, app_version, created_at, last_seen_at)
+      VALUES (${userId}, ${token}, ${platform}, ${appVersion}, NOW(), NOW())
+      ON DUPLICATE KEY UPDATE
+        user_id = VALUES(user_id), platform = VALUES(platform),
+        app_version = VALUES(app_version), last_seen_at = NOW()`;
+  }
 
-const registerDevice = async (userId, { token, platform, appVersion }) => {
-  // 同一個 token 換帳號登入時轉給新帳號，否則前一個帳號的通知會推到這支手機上。
-  await prisma.$executeRaw`
-    INSERT INTO push_devices (user_id, token, platform, app_version, created_at, last_seen_at)
-    VALUES (${userId}, ${token}, ${platform}, ${appVersion}, NOW(), NOW())
-    ON DUPLICATE KEY UPDATE
-      user_id = VALUES(user_id), platform = VALUES(platform),
-      app_version = VALUES(app_version), last_seen_at = NOW()`;
-
-  // 每個帳號只保留最近使用的幾台，舊手機的 token 不會無限累積。
   await prisma.$executeRaw`
     DELETE FROM push_devices
     WHERE user_id = ${userId} AND device_id NOT IN (
@@ -87,8 +91,6 @@ const registerDevice = async (userId, { token, platform, appVersion }) => {
 const unregisterDevice = (userId, token) =>
   prisma.$executeRaw`DELETE FROM push_devices WHERE user_id = ${userId} AND token = ${token}`;
 
-/// 改密碼、被重設密碼、刪除帳號時呼叫：舊登入已失效的裝置不該繼續收到通知。
-/// 資料表還沒建立時不讓呼叫端失敗。
 const removeUserDevices = async (userId) => {
   try {
     await prisma.$executeRaw`DELETE FROM push_devices WHERE user_id = ${userId}`;
@@ -96,6 +98,10 @@ const removeUserDevices = async (userId) => {
     if (ready) console.error('[清除推播裝置失敗]:', err.message);
   }
 };
+
+const listDevices = (userId) => prisma.$queryRaw`
+  SELECT device_id, platform, app_version, created_at, last_seen_at, RIGHT(token, 6) AS token_tail
+  FROM push_devices WHERE user_id = ${userId} ORDER BY last_seen_at DESC`;
 
 const deviceCount = async (userId) => {
   const rows = await prisma.$queryRaw`SELECT COUNT(*) AS n FROM push_devices WHERE user_id = ${userId}`;
@@ -105,14 +111,8 @@ const deviceCount = async (userId) => {
 const removeStaleDevices = () =>
   prisma.$executeRaw`DELETE FROM push_devices WHERE last_seen_at < NOW() - INTERVAL 90 DAY`;
 
-// ---------- 派送 ----------
-
-/// 先把這批標成已推再送：寧可行程在送到一半時掛掉漏推幾則，
-/// 也不要重啟後把同一則通知重複推給使用者。
-///
-/// 時間一律由 Node 算好再傳進去，不用資料庫的 NOW()：created_at 是 Prisma 寫入的，
-/// 資料庫時區若不是 UTC，兩邊差好幾個小時，通知會全部被當成過期而不推送。
-/// created_at 在未來的通知（例如延遲送出的測試通知）要等時間到才推。
+// 先標成已推再送，避免重啟後重複推播。
+// 時間由 Node 計算而非 DB NOW()：created_at 由 Prisma 以 UTC 寫入，資料庫時區可能不同。
 const claimBatch = async () => {
   const now = new Date();
   const since = new Date(now.getTime() - QUEUE_WINDOW_MINUTES * 60 * 1000);
@@ -170,7 +170,6 @@ const recipientsFor = async (userIds) => {
   };
 };
 
-
 const clip = (text, max) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
 
 const buildMessage = (notification, device, badge) => ({
@@ -179,7 +178,7 @@ const buildMessage = (notification, device, badge) => ({
     title: clip(String(notification.title), 100),
     body: clip(String(notification.content), 240)
   },
-  // data 的值必須全是字串。
+  // FCM data 的值必須全是字串。
   data: {
     notification_id: String(notification.notification_id),
     type: String(notification.type),
@@ -230,7 +229,10 @@ const dispatchOnce = async () => {
           result = await client.send(buildMessage(n, device, unreadOf.get(userId) ?? 0));
         }
         if (result.ok) return;
-        if (result.invalidToken) invalid.add(device.token);
+        if (result.invalidToken) {
+          invalid.add(device.token);
+          console.warn(`[推播 token 失效，已移除] user=${userId} platform=${device.platform}: ${result.error}`);
+        }
         else console.error(`[推播失敗] notification=${n.notification_id} platform=${device.platform}: ${result.error}`);
       });
     }
@@ -245,16 +247,14 @@ const dispatchOnce = async () => {
   return rows.length;
 };
 
-/// 回傳停止函式。
 const startDispatcher = () => {
   if (!ready) return () => {};
 
   let running = false;
   const tick = async () => {
-    if (running) return;
+    if (running || maintenance.current().active) return;
     running = true;
     try {
-      // 一批滿了代表還有，接著處理下一批，不等下一次輪詢。
       while ((await dispatchOnce()) === BATCH_SIZE);
     } catch (err) {
       console.error('[推播派送失敗]:', err.message);
@@ -268,6 +268,6 @@ const startDispatcher = () => {
 };
 
 module.exports = {
-  PLATFORMS, isReady, init, registerDevice, unregisterDevice, removeUserDevices, removeStaleDevices, deviceCount,
+  PLATFORMS, isReady, init, registerDevice, unregisterDevice, removeUserDevices, removeStaleDevices, deviceCount, listDevices,
   dispatchOnce, startDispatcher, buildMessage
 };

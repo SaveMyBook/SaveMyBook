@@ -1,6 +1,5 @@
 import 'package:flutter/services.dart';
 
-/// 系統分享頁與存圖，走原生 channel，不額外依賴套件。
 class ShareService {
   static const _channel = MethodChannel('savemybook/share');
 
@@ -9,11 +8,8 @@ class ShareService {
   static Future<bool> shareImage(String path, {String? text}) =>
       _invoke('shareImage', {'path': path, 'text': text});
 
-  /// 存到系統相簿。Android 9 以下沒有 MediaStore 的相對路徑，會回 false。
   static Future<bool> saveImage(String path) => _invoke('saveImage', {'path': path});
 
-  /// 任意檔案（例如匯出的 JSON）。iOS 走 UIActivityViewController、
-  /// Android 走 FileProvider 的 ACTION_SEND。
   static Future<bool> shareFile(String path, {String? subject}) =>
       _invoke('shareFile', {'path': path, if (subject != null) 'text': subject});
 

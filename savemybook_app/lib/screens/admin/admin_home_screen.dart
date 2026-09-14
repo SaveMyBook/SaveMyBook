@@ -36,6 +36,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   final ApiService _api = ApiService();
   AdminOverview _overview = AdminOverview.empty;
   bool _isLoading = true;
+  bool _navigating = false;
 
   @override
   void initState() {
@@ -53,8 +54,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   Future<void> _open(Widget screen) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-    _load();
+    if (_navigating) return;
+    _navigating = true;
+    try {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+    } finally {
+      _navigating = false;
+    }
+    if (mounted) _load();
   }
 
   @override
@@ -75,9 +82,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                       children: [
-                        _buildOverviewCard(c),
+                        FadeSlideIn(child: _buildOverviewCard(c)),
                         const SizedBox(height: 24),
-                        _buildSection(c, S.transactions2, [
+                        _buildSection(c, 1, S.transactions2, [
                           AppMenuItem(
                             icon: Icons.receipt_long_outlined,
                             title: S.orders,
@@ -94,7 +101,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           ),
                         ]),
                         const SizedBox(height: 20),
-                        _buildSection(c, S.listings, [
+                        _buildSection(c, 2, S.listings, [
                           AppMenuItem(
                             icon: Icons.menu_book_rounded,
                             title: S.myBooks,
@@ -117,7 +124,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           ),
                         ]),
                         const SizedBox(height: 20),
-                        _buildSection(c, S.members, [
+                        _buildSection(c, 3, S.members, [
                           AppMenuItem(
                             icon: Icons.people_alt_outlined,
                             title: S.memberControls,
@@ -139,7 +146,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           ),
                         ]),
                         const SizedBox(height: 20),
-                        _buildSection(c, S.hardwareOperations, [
+                        _buildSection(c, 4, S.hardwareOperations, [
                           AppMenuItem(
                             icon: Icons.storage_rounded,
                             title: S.lockerMonitor,
@@ -192,7 +199,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           ),
                         ]),
                         const SizedBox(height: 24),
-                        _buildSection(c, S.systemOperations, [
+                        _buildSection(c, 5, S.systemOperations, [
                           AppMenuItem(
                             icon: Icons.backup_outlined,
                             title: S.databaseBackups,
@@ -216,8 +223,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  Widget _buildSection(AppColors c, String title, List<Widget> items) {
-    return Column(
+  Widget _buildSection(AppColors c, int index, String title, List<Widget> items) {
+    return FadeSlideIn(
+      index: index,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
@@ -234,15 +243,23 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         ),
         AppCard(padding: EdgeInsets.zero, child: Column(children: items)),
       ],
+      ),
     );
   }
 
-  Widget _stat(String label, int value, AppColors c) {
-    return StatTile(
-      label: label,
-      value: AnimatedCount(
-        value: value.toDouble(),
-        style: TextStyle(color: c.accent, fontSize: 20, fontWeight: FontWeight.bold),
+  Widget _stat(String label, int value, AppColors c, {VoidCallback? onTap, bool alert = false}) {
+    return PressableScale(
+      onTap: onTap,
+      child: StatTile(
+        label: label,
+        value: AnimatedCount(
+          value: value.toDouble(),
+          style: TextStyle(
+            color: alert && value > 0 ? c.danger : c.accent,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
@@ -251,15 +268,33 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     return AppCard(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _stat(S.members2, _overview.memberCount, c),
+          Expanded(
+            child: _stat(S.members2, _overview.memberCount, c,
+                onTap: () => _open(const AdminMemberScreen())),
+          ),
           const VerticalDivider1(),
-          _stat(S.todaySOrders, _overview.todayOrderCount, c),
+          Expanded(
+            child: _stat(S.todaySOrders, _overview.todayOrderCount, c,
+                onTap: () => _open(const AdminOrderScreen())),
+          ),
           const VerticalDivider1(),
-          _stat(S.openCases, _overview.pendingReportCount + _overview.pendingDisputeCount, c),
+          Expanded(
+            child: _stat(
+              S.openCases,
+              _overview.pendingReportCount + _overview.pendingDisputeCount,
+              c,
+              alert: true,
+              onTap: () => _open(_overview.pendingDisputeCount > 0 || _overview.pendingReportCount == 0
+                  ? const AdminDisputeScreen()
+                  : const AdminReportScreen()),
+            ),
+          ),
           const VerticalDivider1(),
-          _stat(S.activeLockers, _overview.activeCabinetCount, c),
+          Expanded(
+            child: _stat(S.activeLockers, _overview.activeCabinetCount, c,
+                onTap: () => _open(const AdminCabinetScreen())),
+          ),
         ],
       ),
     );

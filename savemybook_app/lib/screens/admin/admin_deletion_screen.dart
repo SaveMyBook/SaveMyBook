@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
@@ -9,6 +10,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import 'admin_member_detail_screen.dart';
 import '../../i18n/strings.dart';
 
 class AdminDeletionScreen extends StatefulWidget {
@@ -23,6 +25,9 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
 
   List<PendingDeletion> _pending = [];
   bool _isLoading = true;
+  int? _busyUserId;
+  bool _busyPurge = false;
+  bool _navigating = false;
 
   @override
   void initState() {
@@ -33,13 +38,32 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
   Future<void> _load() async {
     final pending = await _api.fetchPendingDeletions();
     if (!mounted) return;
+    pending.sort((a, b) {
+      final left = a.purgeAt ?? DateTime(9999);
+      final right = b.purgeAt ?? DateTime(9999);
+      return left.compareTo(right);
+    });
     setState(() {
       _pending = pending;
       _isLoading = false;
     });
   }
 
+  Future<void> _retry() async {
+    setState(() => _isLoading = true);
+    await _load();
+  }
+
+  void _report(String? error, String success) {
+    if (error == null) {
+      showAppSnackBar(context, success);
+    } else if (error.isNotEmpty && error != S.verificationCancelled) {
+      showAppSnackBar(context, error, isError: true);
+    }
+  }
+
   Future<void> _cancel(PendingDeletion item) async {
+    if (_busyUserId != null) return;
     final confirmed = await showConfirmDialog(
       context,
       title: S.cancelDeletionRequest,
@@ -49,13 +73,23 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
     );
     if (!confirmed || !mounted) return;
 
-    final error = await runBusy(context, () => _api.cancelMemberDeletion(item.userId));
+    setState(() {
+      _busyUserId = item.userId;
+      _busyPurge = false;
+    });
+    String? error;
+    try {
+      error = await _api.cancelMemberDeletion(item.userId);
+    } finally {
+      if (mounted) setState(() => _busyUserId = null);
+    }
     if (!mounted) return;
-    showAppSnackBar(context, error ?? S.deletionRequestCancelled, isError: error != null);
-    await _load();
+    _report(error, S.deletionRequestCancelled);
+    if (error == null) await _load();
   }
 
   Future<void> _purge(PendingDeletion item) async {
+    if (_busyUserId != null) return;
     final confirmed = await showConfirmDialog(
       context,
       title: S.anonymiseNow,
@@ -66,10 +100,43 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
     );
     if (!confirmed || !mounted) return;
 
-    final error = await runBusy(context, () => _api.purgeMember(item.userId));
+    setState(() {
+      _busyUserId = item.userId;
+      _busyPurge = true;
+    });
+    String? error;
+    try {
+      error = await _api.purgeMember(item.userId);
+    } finally {
+      if (mounted) setState(() => _busyUserId = null);
+    }
     if (!mounted) return;
-    showAppSnackBar(context, error ?? S.anonymised, isError: error != null);
-    await _load();
+    _report(error, S.anonymised);
+    if (error == null) {
+      HapticFeedback.mediumImpact();
+      await _load();
+    }
+  }
+
+  Future<void> _openMember(PendingDeletion item) async {
+    if (_navigating) return;
+    _navigating = true;
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => AdminMemberDetailScreen(userId: item.userId)),
+      );
+    } finally {
+      _navigating = false;
+    }
+    if (mounted) _load();
+  }
+
+  void _copyEmail(PendingDeletion item) {
+    if (item.email.isEmpty) return;
+    Clipboard.setData(ClipboardData(text: item.email));
+    HapticFeedback.selectionClick();
+    showAppSnackBar(context, S.copied('Email'));
   }
 
   @override
@@ -93,10 +160,12 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
                             ? ListView(
                                 key: const ValueKey('empty'),
                                 children: [
-                                  SizedBox(height: 80),
+                                  const SizedBox(height: 80),
                                   EmptyView(
                                     icon: Icons.verified_user_outlined,
                                     message: S.noDeletionRequestsPending,
+                                    actionLabel: S.refresh,
+                                    onAction: _retry,
                                   ),
                                 ],
                               )
@@ -123,18 +192,14 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
 
   Widget _buildCard(PendingDeletion item, AppColors c) {
     final days = item.daysLeft;
-    // 剩不到一週就用警示色，讓客服知道快要來不及攔了。
     final urgent = days <= 7;
+    final busy = _busyUserId == item.userId;
+    final locked = _busyUserId != null;
 
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.card,
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        boxShadow: [
-          BoxShadow(color: c.shadow.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
-      ),
+      onTap: () => _openMember(item),
+      onLongPress: () => _copyEmail(item),
       child: Column(
         children: [
           Row(
@@ -147,18 +212,35 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
                   children: [
                     Text(
                       item.nickname,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      item.email,
-                      style: TextStyle(fontSize: 12, color: c.textSecondary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            item.email,
+                            style: TextStyle(fontSize: 12, color: c.textSecondary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (item.email.isNotEmpty)
+                          PressableScale(
+                            onTap: () => _copyEmail(item),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              child: Icon(Icons.copy_rounded, size: 13, color: c.iconInactive),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               StatusBadge(
                 label: days == 0 ? S.dueSoon : S.p0DaysLeft(days),
                 color: urgent ? c.danger : c.warning,
@@ -167,13 +249,14 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
           ),
           const SizedBox(height: 10),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(Icons.schedule_rounded, size: 14, color: c.textHint),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   S.requestedP0ScheduledP1(formatDateTime(item.requestedAt), formatDateTime(item.purgeAt)),
-                  style: TextStyle(fontSize: 11, color: c.textHint),
+                  style: TextStyle(fontSize: 11, height: 1.4, color: c.textHint),
                 ),
               ),
             ],
@@ -183,30 +266,46 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => _cancel(item),
+                  onPressed: locked ? null : () => _cancel(item),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: c.accent,
-                    side: BorderSide(color: c.accent),
+                    side: BorderSide(color: locked ? c.border : c.accent),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.control),
                     ),
                   ),
-                  child: Text(S.cancelDeletion),
+                  child: busy && !_busyPurge
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: c.accent),
+                        )
+                      : Text(S.cancelDeletion, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _purge(item),
+                  onPressed: locked ? null : () => _purge(item),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: c.danger,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: c.danger.withValues(alpha: 0.4),
+                    disabledForegroundColor: Colors.white70,
                     elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.control),
                     ),
                   ),
-                  child: Text(S.doNow),
+                  child: busy && _busyPurge
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text(S.doNow, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
               ),
             ],

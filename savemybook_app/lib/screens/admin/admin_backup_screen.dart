@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/admin_models.dart';
@@ -25,6 +26,7 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
   List<BackupRecord> _backups = [];
   int _keep = 14;
   bool _isLoading = true;
+  bool _isBusy = false;
 
   @override
   void initState() {
@@ -42,7 +44,10 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
     });
   }
 
+  static bool _isCancelled(String error) => error.isEmpty || error == S.verificationCancelled;
+
   Future<void> _createBackup() async {
+    if (_isBusy) return;
     final confirmed = await showConfirmDialog(
       context,
       title: S.backUpNow,
@@ -52,22 +57,80 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
     );
     if (!confirmed || !mounted) return;
 
-    final error = await runBusy(context, () => _api.createBackup(), message: S.backingUpDatabase);
+    setState(() => _isBusy = true);
+    String? error;
+    try {
+      error = await runBusy<String?>(context, () => _api.createBackup(), message: S.backingUpDatabase);
+    } finally {
+      if (mounted) setState(() => _isBusy = false);
+    }
     if (!mounted) return;
 
-    showAppSnackBar(context, error ?? S.backupComplete, isError: error != null);
+    if (error == null) {
+      showAppSnackBar(context, S.backupComplete);
+    } else if (!_isCancelled(error)) {
+      showAppSnackBar(context, error, isError: true);
+    }
+    await _load();
+  }
+
+  Future<void> _restore(BackupRecord record) async {
+    if (_isBusy) return;
+    final password = await showTextInputDialog(
+      context,
+      title: S.restoreBackup,
+      message: S.wholeDatabaseGoBackP0Orders(formatDateTime(record.createdAt)),
+      hint: S.password2,
+      obscure: true,
+      maxLength: 72,
+      confirmLabel: S.startRestore,
+      isDestructive: true,
+    );
+    if (password == null || password.isEmpty || !mounted) return;
+
+    setState(() => _isBusy = true);
+    try {
+      await _runRestore(record, password);
+    } finally {
+      if (mounted) setState(() => _isBusy = false);
+    }
+  }
+
+  Future<void> _runRestore(BackupRecord record, String password) async {
+    final (safety, error) = await runBusy(
+      context,
+      () => _api.restoreBackup(record.backupId, password),
+      message: S.backingUpCurrentState,
+    ) ?? (null, S.somethingWentWrongPleaseTryAgain);
+    if (!mounted) return;
+    if (error != null) {
+      if (!_isCancelled(error)) showAppSnackBar(context, error, isError: true);
+      return;
+    }
+
+    final state = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _RestoreProgressDialog(api: _api, safetyFileName: safety ?? ''),
+    );
+    if (!mounted) return;
+
+    if (state == 'done') {
+      showAppSnackBar(context, S.databaseRestoredPreviousStateWasBacked(safety ?? ''));
+    } else {
+      showAppSnackBar(context, S.restoreFailedDatabaseMayUnchangedPartly(safety ?? ''), isError: true);
+    }
     await _load();
   }
 
   Future<void> _delete(BackupRecord record) async {
-    // Dismissible 已經把項目移出畫面，清單資料必須同步，
-    // 否則 ListView 還握著一個已 dismiss 的項目會丟例外。
+    // Dismissible 已移出畫面的項目必須同步從清單移除，否則 ListView 會丟例外。
     setState(() => _backups.remove(record));
 
     final error = await _api.deleteBackup(record.backupId);
     if (!mounted) return;
     if (error != null) {
-      showAppSnackBar(context, error, isError: true);
+      if (!_isCancelled(error)) showAppSnackBar(context, error, isError: true);
       await _load();
       return;
     }
@@ -90,16 +153,16 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      // 空狀態不另闢一頁：上方的說明卡本身就講完了這個畫面在做什麼，
-                      // 再插一個整頁高的插圖只會在中間留下一大塊看不懂的留白。
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
                         itemCount: _backups.isEmpty ? 2 : _backups.length + 1,
                         itemBuilder: (_, i) {
                           if (i == 0) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: _buildHeaderCard(c),
+                            return FadeSlideIn(
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: _buildHeaderCard(c),
+                              ),
                             );
                           }
                           if (_backups.isEmpty) return _buildEmptyRow(c);
@@ -124,7 +187,6 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
 
   Widget _buildHeaderCard(AppColors c) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: c.card,
@@ -149,12 +211,14 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: _createBackup,
+              onPressed: _isBusy ? null : _createBackup,
               icon: const Icon(Icons.backup_rounded, size: 18),
-              label: Text(S.backUpNow),
+              label: Text(S.backUpNow, maxLines: 1, overflow: TextOverflow.ellipsis),
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.accent,
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: c.accent.withValues(alpha: 0.5),
+                disabledForegroundColor: Colors.white70,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -243,12 +307,19 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
                 children: [
                   Text(
                     formatDateTime(record.createdAt),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
                   ),
+                  if (formatRelative(record.createdAt) != formatDate(record.createdAt))
+                    Text(
+                      formatRelative(record.createdAt),
+                      style: TextStyle(fontSize: 11, color: c.textHint),
+                    ),
                   const SizedBox(height: 3),
                   Text(
                     record.isSuccess
-                        ? '${record.sizeText}・${record.isManual ? S.manual : S.scheduled}'
+                        ? '${record.sizeText}・${record.isPreRestore ? S.autoBackupBeforeRestore : record.isManual ? S.manual : S.scheduled}'
                             '${record.adminName.isEmpty ? '' : '・${record.adminName}'}'
                         : (record.detail ?? S.backupFailed),
                     style: TextStyle(fontSize: 12, color: c.textSecondary),
@@ -258,22 +329,24 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
                 ],
               ),
             ),
-            Reveal(
-              visible: record.isSuccess && record.available,
-              child: IconButton(
+            if (record.isSuccess && record.available) ...[
+              IconButton(
+                icon: Icon(Icons.settings_backup_restore_rounded, size: 20, color: c.danger),
+                tooltip: S.restoreBackup2,
+                onPressed: _isBusy ? null : () => _restore(record),
+              ),
+              IconButton(
                 icon: Icon(Icons.download_rounded, size: 20, color: c.accent),
                 tooltip: S.download,
                 onPressed: () => _showDownloadHint(record),
               ),
-            ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  /// 備份檔可能有數百 MB，在 App 內下載沒有意義。
-  /// 改成把附帶授權的網址交給使用者，在電腦上取回。
   void _showDownloadHint(BackupRecord record) {
     showConfirmDialog(
       context,
@@ -288,3 +361,82 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
     });
   }
 }
+
+class _RestoreProgressDialog extends StatefulWidget {
+  final ApiService api;
+  final String safetyFileName;
+
+  const _RestoreProgressDialog({required this.api, required this.safetyFileName});
+
+  @override
+  State<_RestoreProgressDialog> createState() => _RestoreProgressDialogState();
+}
+
+class _RestoreProgressDialogState extends State<_RestoreProgressDialog> {
+  Timer? _timer;
+  bool _polling = false;
+  bool _finished = false;
+  final Stopwatch _elapsed = Stopwatch()..start();
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 2), (_) => _poll());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _poll() async {
+    if (_polling || _finished) return;
+    _polling = true;
+    try {
+      final state = await widget.api.fetchRestoreState();
+      if (!mounted || _finished) return;
+      setState(() {});
+      if (state == 'done' || state == 'failed') {
+        _finished = true;
+        _timer?.cancel();
+        Navigator.pop(context, state);
+      }
+    } finally {
+      _polling = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final seconds = _elapsed.elapsed.inSeconds;
+
+    return PopScope(
+      canPop: false,
+      child: AlertDialog(
+        backgroundColor: c.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            CircularProgressIndicator(color: c.accent),
+            const SizedBox(height: 20),
+            Text(
+              S.restoringDatabase,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              S.p0SecondsSoFarKeepApp(seconds),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, height: 1.5, color: c.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

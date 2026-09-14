@@ -9,6 +9,7 @@ import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_select.dart';
 import '../../widgets/guards.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
@@ -145,8 +146,6 @@ class _AdminLegalScreenState extends State<AdminLegalScreen> {
   }
 }
 
-/// 被拖起來的卡片。純粹靠 elevation 會在圓角外側描出方形陰影，
-/// 所以自己做：放大一點、陰影加深，讓它看起來離開了頁面。
 Widget liftDraggedCard(Widget child, int index, Animation<double> animation) {
   return AnimatedBuilder(
     animation: animation,
@@ -175,15 +174,13 @@ Widget liftDraggedCard(Widget child, int index, Animation<double> animation) {
 
 enum _EditMode { sections, raw, preview }
 
-/// 條款的一個章節。標題與內文各自有 controller，
-/// id 只用來當重新排序時的 key——用索引當 key 會讓拖曳後的輸入焦點跑掉。
 class _Section {
   final String id;
   final TextEditingController title;
   final TextEditingController body;
-  bool expanded;
+  bool expanded = true;
 
-  _Section({required this.id, String title = '', String body = '', this.expanded = true})
+  _Section({required this.id, String title = '', String body = ''})
       : title = TextEditingController(text: title),
         body = TextEditingController(text: body);
 
@@ -210,7 +207,6 @@ class AdminLegalEditScreen extends StatefulWidget {
 }
 
 class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
-  /// 「1. 標題」「2、標題」「3) 標題」都算章節開頭。
   static final _heading = RegExp(r'^\s*(\d{1,3})\s*[.、．)）]\s*(\S.*)$');
 
   final ApiService _api = ApiService();
@@ -227,13 +223,8 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
   bool _isSaving = false;
   bool _dirty = false;
 
-  /// 解析完再組回來的內容。拿它當比較基準而不是 initialContent，
-  /// 是因為解析會順手正規化編號（「1、」→「1. 」），
-  /// 拿原文比對的話一打開就會顯示「尚未儲存」。
   late String _baseline;
 
-  /// initState 期間 _loadInto 會觸發 listener。還沒準備好就別去動 _dirty，
-  /// 否則它會停在 true，一開啟就以為有未存的修改。
   bool _ready = false;
 
   @override
@@ -262,8 +253,6 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
 
   // ---------- 純文字 ⇄ 章節 ----------
 
-  /// 空行分段。首行帶編號的段落開一個新章節，其餘接到前一章節的內文，
-  /// 第一個編號出現之前的段落當作前言。
   void _loadInto(String content) {
     for (final section in _sections) {
       _retire(section);
@@ -300,15 +289,13 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
     return section;
   }
 
-  /// 這一幀畫面上的 TextField 還握著這組 controller，當場 dispose 的話
-  /// EditableText 隨後解除監聽會踩到已釋放的 notifier。等畫面換掉再收。
+  // 這一幀的 TextField 仍握著 controller，當場 dispose 會在 EditableText 解除監聽時踩到已釋放的 notifier。
   void _retire(_Section section) {
     section.title.removeListener(_onChanged);
     section.body.removeListener(_onChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) => section.dispose());
   }
 
-  /// 章節編號在這裡重編，所以拖曳排序後不需要手動改號碼。
   String _compose() {
     final parts = <String>[];
     final intro = _introController.text.trim();
@@ -335,7 +322,6 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
       if (mode == _EditMode.raw) {
         _rawController.text = _compose();
       } else if (_mode == _EditMode.raw) {
-        // 離開純文字模式時重新解析，兩邊才不會各自有一份內容。
         _loadInto(_rawController.text);
       }
       _mode = mode;
@@ -401,6 +387,8 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
   // ---------- 儲存 ----------
 
   Future<void> _save() async {
+    if (_isSaving) return;
+    FocusScope.of(context).unfocus();
     final title = _titleController.text.trim();
     final content = _content;
 
@@ -431,21 +419,24 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
     );
     if (!confirmed || !mounted) return;
 
-    final notify = await showConfirmDialog(
+    final c = AppColors.of(context);
+    final major = await showAppPicker<bool>(
       context,
-      title: S.notifyEveryUser,
-      message: S.everyActiveMemberReceivesP0Updated(title),
-      confirmLabel: S.updateNotify,
-      cancelLabel: S.updateOnly,
+      title: S.majorUpdate,
+      subtitle: S.majorUpdateNotifiesEveryUserTerms,
+      options: [
+        AppSelectOption(value: false, label: S.minorEdit, icon: Icons.edit_note_rounded),
+        AppSelectOption(value: true, label: S.majorUpdate2, icon: Icons.campaign_outlined, iconColor: c.warning),
+      ],
     );
-    if (!mounted) return;
+    if (major == null || !mounted) return;
 
     setState(() => _isSaving = true);
     final result = await _api.saveLegalDoc(
       widget.docKey,
       title: title,
       content: content,
-      notify: notify,
+      major: major,
     );
     if (!mounted) return;
     setState(() => _isSaving = false);
@@ -455,6 +446,7 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
       return;
     }
     _dirty = false;
+    HapticFeedback.mediumImpact();
     showAppSnackBar(context, result.message);
     Navigator.pop(context, true);
   }
@@ -465,7 +457,6 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    // 條款動輒上千字，改到一半誤觸返回等於全部重打。
     return UnsavedGuard(
       isDirty: _dirty,
       message: S.documentUnsavedChangesTheyLostIf,
@@ -731,7 +722,6 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
                 ],
               ),
             ),
-            // 內文存在 controller 裡，摺疊時 Reveal 收掉輸入框也不會掉字。
             Reveal(
               visible: !collapsed,
               child: Padding(
@@ -789,7 +779,6 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
     );
   }
 
-  /// 章節模式解析不了的文件（或想整段貼上時）用這裡改。
   Widget _buildRawEditor(AppColors c) {
     return Padding(
       key: const ValueKey('raw'),
@@ -798,8 +787,6 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
         children: [
           AppTextField(controller: _titleController, hint: S.documentTitle, maxLength: 100),
           const SizedBox(height: 12),
-          // 內容區吃掉剩下的所有高度。放進 ListView 裡的多行輸入框會變成
-          // 「捲動中的捲動」，改幾千字的條款完全沒辦法用。
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -829,8 +816,6 @@ class _AdminLegalEditScreenState extends State<AdminLegalEditScreen> {
     );
   }
 
-  /// 使用者端是把整份 content 當一個 Text 畫出來的，
-  /// 預覽必須用同樣的字級與行高，否則改完排版上線才發現不一樣。
   Widget _buildPreview(AppColors c) {
     final text = _content;
 
@@ -1007,91 +992,122 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
     final answerController = TextEditingController(text: faq?.answer ?? '');
     var category = faq?.category ?? 'general';
     var visible = faq?.isVisible ?? true;
+    var showErrors = false;
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: c.sheetBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  faq == null ? S.newQuestion : S.editQuestion,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
-                ),
-                const SizedBox(height: 16),
-                AppDropdownField<String>(
-                  value: category,
-                  items: AppLabels.faqCategory.entries
-                      .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-                      .toList(),
-                  onChanged: (value) => setSheetState(() => category = value ?? 'general'),
-                ),
-                const SizedBox(height: 12),
-                AppTextField(controller: questionController, hint: S.question, maxLength: 200),
-                const SizedBox(height: 12),
-                AppTextField(
-                  controller: answerController,
-                  hint: S.answer,
-                  maxLines: 6,
-                  maxLength: 2000,
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(S.showHelpCentre, style: TextStyle(fontSize: 14, color: c.textPrimary)),
-                  value: visible,
-                  activeThumbColor: c.accent,
-                  onChanged: (value) => setSheetState(() => visible = value),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 46,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: c.accent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        builder: (ctx, setSheetState) => GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusScope.of(ctx).unfocus(),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.fromLTRB(20, 10, 20, 24 + MediaQuery.of(ctx).padding.bottom),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 38,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 14),
+                      decoration: BoxDecoration(
+                        color: c.iconInactive.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
-                    child: Text(S.actionSave, style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
-                ),
-              ],
+                  Text(
+                    faq == null ? S.newQuestion : S.editQuestion,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
+                  ),
+                  const SizedBox(height: 16),
+                  AppSelect<String>(
+                    value: category,
+                    title: S.category,
+                    leadingIcon: Icons.folder_outlined,
+                    options: [
+                      for (final e in AppLabels.faqCategory.entries) AppSelectOption(value: e.key, label: e.value),
+                    ],
+                    onChanged: (value) => setSheetState(() => category = value),
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    controller: questionController,
+                    hint: S.question,
+                    maxLength: 200,
+                    textInputAction: TextInputAction.next,
+                    errorText: showErrors && questionController.text.trim().isEmpty ? S.bothQuestionAnswerRequired : null,
+                    onChanged: (_) {
+                      if (showErrors) setSheetState(() {});
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    controller: answerController,
+                    hint: S.answer,
+                    minLines: 4,
+                    maxLines: 8,
+                    maxLength: 2000,
+                    keyboardType: TextInputType.multiline,
+                    errorText: showErrors && answerController.text.trim().isEmpty ? S.bothQuestionAnswerRequired : null,
+                    onChanged: (_) {
+                      if (showErrors) setSheetState(() {});
+                    },
+                  ),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(S.showHelpCentre, style: TextStyle(fontSize: 14, color: c.textPrimary)),
+                    value: visible,
+                    activeThumbColor: c.accent,
+                    onChanged: (value) => setSheetState(() => visible = value),
+                  ),
+                  const SizedBox(height: 12),
+                  PrimaryButton(
+                    label: S.actionSave,
+                    height: 46,
+                    onPressed: () {
+                      if (questionController.text.trim().isEmpty || answerController.text.trim().isEmpty) {
+                        HapticFeedback.heavyImpact();
+                        setSheetState(() => showErrors = true);
+                        return;
+                      }
+                      Navigator.pop(ctx, true);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
 
-    if (saved != true || !mounted) return;
+    final question = questionController.text.trim();
+    final answer = answerController.text.trim();
+    Future.delayed(const Duration(milliseconds: 800), () {
+      questionController.dispose();
+      answerController.dispose();
+    });
 
-    if (questionController.text.trim().isEmpty || answerController.text.trim().isEmpty) {
-      showAppSnackBar(context, S.bothQuestionAnswerRequired, isError: true);
-      return;
-    }
+    if (saved != true || !mounted) return;
 
     final error = await runBusy(
       context,
       () => _api.saveFaq(
         faqId: faq?.faqId,
         category: category,
-        question: questionController.text.trim(),
-        answer: answerController.text.trim(),
+        question: question,
+        answer: answer,
         sortOrder: faq?.sortOrder ?? _faqs.length,
         isVisible: visible,
       ),
@@ -1101,6 +1117,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
     } else {
+      HapticFeedback.mediumImpact();
       showAppSnackBar(context, faq == null ? S.added : S.updated);
       _load();
     }
@@ -1127,8 +1144,6 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
     }
   }
 
-  /// 前台依分類分區呈現，排序值只在分區內比較，所以後台也照分類分組，
-  /// 拖拉只在同一組內進行。Map 保留插入順序，分組順序等同伺服器回傳順序。
   Map<String, List<FaqItem>> get _grouped {
     final map = <String, List<FaqItem>>{};
     for (final faq in _faqs) {
@@ -1145,7 +1160,6 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
     final group = grouped[category]!;
     group.insert(newIndex, group.removeAt(oldIndex));
 
-    // 先在畫面上換位再送出，拖完等網路來回才動的話手感會斷。
     final previous = _faqs;
     setState(() => _faqs = [for (final entry in grouped.entries) ...entry.value]);
     HapticFeedback.selectionClick();
@@ -1316,8 +1330,6 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
                   icon: Icon(Icons.delete_outline_rounded, color: c.iconInactive, size: 20),
                   onPressed: () => _delete(faq),
                 ),
-                // 卡片本身要能點開編輯，所以把拖曳限制在把手上，
-                // 而不是整張卡片長按。
                 if (total > 1)
                   ReorderableDragStartListener(
                     index: index,

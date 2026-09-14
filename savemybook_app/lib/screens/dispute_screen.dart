@@ -9,6 +9,9 @@ import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
+import '../widgets/animations.dart';
+import '../widgets/app_buttons.dart';
+import 'package:flutter/services.dart';
 import '../i18n/strings.dart';
 
 class DisputeScreen extends StatefulWidget {
@@ -27,6 +30,9 @@ class _DisputeScreenState extends State<DisputeScreen> {
 
   bool _freezeRequested = false;
   bool _isSubmitting = false;
+  bool _submitted = false;
+  String? _orderError;
+  String? _reasonError;
 
   @override
   void initState() {
@@ -44,21 +50,22 @@ class _DisputeScreenState extends State<DisputeScreen> {
   }
 
   Future<void> _submit() async {
+    if (_isSubmitting) return;
     final orderId = int.tryParse(_orderIdController.text.trim());
     final reason = _reasonController.text.trim();
 
-    if (orderId == null) {
-      showAppSnackBar(context, S.enterOrderNumberDisputing, isError: true);
-      return;
-    }
-    if (reason.isEmpty) {
-      showAppSnackBar(context, S.describeDispute, isError: true);
-      return;
-    }
-    if (reason.length < 10) {
-      showAppSnackBar(context, S.useLeast10CharactersSoSupport, isError: true);
-      return;
-    }
+    final orderError = orderId == null ? S.enterOrderNumberDisputing : null;
+    final reasonError = reason.isEmpty
+        ? S.describeDispute
+        : reason.length < 10
+            ? S.useLeast10CharactersSoSupport
+            : null;
+    setState(() {
+      _orderError = orderError;
+      _reasonError = reasonError;
+    });
+    if (orderError != null || reasonError != null || orderId == null) return;
+    FocusScope.of(context).unfocus();
 
     final confirmed = await showConfirmDialog(
       context,
@@ -70,6 +77,12 @@ class _DisputeScreenState extends State<DisputeScreen> {
 
     setState(() => _isSubmitting = true);
     final evidenceUrls = await _api.uploadFiles(_evidence.map((f) => f.path).toList());
+    if (!mounted) return;
+    if (_evidence.isNotEmpty && evidenceUrls.isEmpty) {
+      setState(() => _isSubmitting = false);
+      showAppSnackBar(context, S.couldNotUploadPhotosPleaseTry, isError: true);
+      return;
+    }
     final error = await _api.submitDispute(
       orderId: orderId,
       reason: _freezeRequested ? S.paymentHoldRequested(reason) : reason,
@@ -83,12 +96,12 @@ class _DisputeScreenState extends State<DisputeScreen> {
       return;
     }
 
+    setState(() => _submitted = true);
     showAppSnackBar(context, S.disputeSubmittedSupportContact);
-    Navigator.of(context).maybePop();
+    Navigator.of(context).pop();
   }
 
-  /// 申訴理由打了一半、或已經挑了證據照片，就別讓返回鍵直接吃掉。
-  bool get _isDirty => _reasonController.text.trim().isNotEmpty || _evidence.isNotEmpty;
+  bool get _isDirty => !_submitted && (_reasonController.text.trim().isNotEmpty || _evidence.isNotEmpty);
 
   @override
   Widget build(BuildContext context) {
@@ -102,9 +115,12 @@ class _DisputeScreenState extends State<DisputeScreen> {
         children: [
           AppHeader(title: S.dispute, icon: Icons.error_outline_rounded),
           Expanded(
-            child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -134,76 +150,46 @@ class _DisputeScreenState extends State<DisputeScreen> {
                   const SizedBox(height: 6),
                   Divider(color: c.divider),
                   const SizedBox(height: 12),
-                  AppCard(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 76,
-                          child: Text(S.orderNumber,
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
-                        ),
-                        Expanded(
-                          child: AppTextField(
-                            controller: _orderIdController,
-                            hint: S.eGSmb20260910123456789,
-                            enabled: widget.orderId == null,
-                            keyboardType: TextInputType.number,
-                            maxLength: 12,
-                          ),
-                        ),
-                      ],
+                  FormRowCard(
+                    label: S.orderNumber,
+                    state: widget.orderId != null ? FieldState.locked : FieldState.normal,
+                    child: AppTextField(
+                      controller: _orderIdController,
+                      hint: S.eGSmb20260910123456789,
+                      enabled: widget.orderId == null,
+                      errorText: _orderError,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      textInputAction: TextInputAction.next,
+                      maxLength: 12,
+                      onChanged: (_) {
+                        if (_orderError != null) setState(() => _orderError = null);
+                      },
                     ),
                   ),
-                  AppCard(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 76,
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Text(S.whatHappened,
-                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
-                          ),
-                        ),
-                        Expanded(
-                          child: AppTextField(
-                            controller: _reasonController,
-                            maxLines: 5,
-                            maxLength: 500,
-                            hint: S.describeProblemEGConditionDoes,
-                          ),
-                        ),
-                      ],
+                  FormRowCard(
+                    label: S.whatHappened,
+                    alignTop: true,
+                    child: AppTextField(
+                      controller: _reasonController,
+                      maxLines: 5,
+                      maxLength: 500,
+                      errorText: _reasonError,
+                      hint: S.describeProblemEGConditionDoes,
+                      onChanged: (_) => setState(() => _reasonError = null),
                     ),
                   ),
-                  const SizedBox(height: 12),
                   _buildEvidenceCard(c),
                   const SizedBox(height: 28),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _isSubmitting ? null : _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: c.accent,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: c.accent.withValues(alpha: 0.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : Text(S.submit, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
+                  PrimaryButton(
+                    label: S.submit,
+                    isLoading: _isSubmitting,
+                    onPressed: _submit,
                   ),
                   const SizedBox(height: 40),
                 ],
               ),
+            ),
             ),
           ),
         ],
@@ -213,20 +199,11 @@ class _DisputeScreenState extends State<DisputeScreen> {
   }
 
   Widget _buildEvidenceCard(AppColors c) {
-    return AppCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 76,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(S.uploadPhotos,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
-            ),
-          ),
-          Expanded(
-            child: Column(
+    return FormRowCard(
+      label: S.uploadPhotos,
+      alignTop: true,
+      margin: EdgeInsets.zero,
+      child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Wrap(
@@ -245,13 +222,14 @@ class _DisputeScreenState extends State<DisputeScreen> {
                             right: -6,
                             top: -6,
                             child: GestureDetector(
-                              onTap: () => setState(() => _evidence.remove(file)),
-                              child: Icon(Icons.cancel, size: 18, color: c.danger),
+                              behavior: HitTestBehavior.opaque,
+                              onTap: _isSubmitting ? null : () => setState(() => _evidence.remove(file)),
+                              child: Icon(Icons.cancel, size: 20, color: c.danger),
                             ),
                           ),
                         ],
                       ),
-                    GestureDetector(
+                    PressableScale(
                       onTap: () async {
                         if (_evidence.length >= 6) {
                           showAppSnackBar(context, S.canAttachUp6Photos, isError: true);
@@ -281,12 +259,9 @@ class _DisputeScreenState extends State<DisputeScreen> {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(S.up5, style: TextStyle(fontSize: 11, color: c.textHint)),
+                Text('${_evidence.length} / 6', style: TextStyle(fontSize: 11, color: c.textHint)),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

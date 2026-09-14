@@ -1,5 +1,3 @@
-/// 路由裡直接 throw，由 middleware/errorHandler 統一轉成 JSON。
-/// Express 5 會自動把 async handler 的 rejection 交給錯誤處理器。
 class HttpError extends Error {
   constructor(status, message, code, extra) {
     super(message);
@@ -15,7 +13,6 @@ const forbidden = (message = '存取被拒', code) => new HttpError(403, message
 const notFound = (message = '找不到資料', code) => new HttpError(404, message, code);
 const conflict = (message, code) => new HttpError(409, message, code);
 
-/// Prisma 的 update/delete 找不到資料時拋 P2025，換成指定的 404 訊息。
 const orNotFound = async (promise, message) => {
   try {
     return await promise;

@@ -1,5 +1,6 @@
 tags:
-  - name: 客服中心 (Support)
+  - name: support
+    x-displayName: 客服中心
     description: |
       應用程式內的說明與客服功能，包含常見問題、服務條款與隱私權政策，
       以及站內客服工單。
@@ -12,7 +13,7 @@ paths:
     get:
       summary: 取得常見問題
       operationId: listFaqs
-      tags: [客服中心 (Support)]
+      tags: [support]
       description: |
         僅回傳 `is_visible` 為 true 的項目，依分類、排序值、編號依序排序，
         可直接依 `category` 分組呈現。無須登入。
@@ -31,11 +32,39 @@ paths:
                     items: { $ref: '#/components/schemas/Faq' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/support/legal:
+    get:
+      summary: 法律文件清單
+      operationId: listLegalDocs
+      tags: [support]
+      description: 不含內文。站內通知只帶 `doc_id`，App 用這份清單換成 `doc_key` 開啟文件。
+      security: []
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        doc_id: { type: integer }
+                        doc_key: { type: string, example: privacy }
+                        title: { type: string, example: 隱私權政策 }
+                        version: { type: integer, example: 2 }
+                        requires_consent: { type: boolean, example: true }
+                        updated_at: { type: string, format: date-time }
+
   /api/support/legal/{key}:
     get:
       summary: 取得法律文件
       operationId: getLegalDocument
-      tags: [客服中心 (Support)]
+      tags: [support]
       description: |
         取得服務條款或隱私權政策的內容。文件儲存於資料庫，
         管理員可隨時更新而無須發布新版應用程式。無須登入。
@@ -69,7 +98,7 @@ paths:
     get:
       summary: 取得我的工單
       operationId: listMyTickets
-      tags: [客服中心 (Support)]
+      tags: [support]
       description: |
         列出請求者開立的工單，依最後更新時間遞減排序。
 
@@ -94,7 +123,7 @@ paths:
     post:
       summary: 開立工單
       operationId: createTicket
-      tags: [客服中心 (Support)]
+      tags: [support]
       description: |
         建立新工單。問題描述將成為工單的第一則訊息，初始狀態為 `open`。
 
@@ -151,7 +180,7 @@ paths:
     get:
       summary: 取得工單內容
       operationId: getTicket
-      tags: [客服中心 (Support)]
+      tags: [support]
       description: |
         回傳工單及其完整對話，訊息由舊至新排序。
         僅開單者本人或管理員可查詢。
@@ -191,7 +220,7 @@ paths:
     post:
       summary: 回覆工單
       operationId: replyTicket
-      tags: [客服中心 (Support)]
+      tags: [support]
       description: |
         使用者與管理員共用此端點回覆，`is_staff` 由伺服器依角色判定，
         用戶端無須帶入。
@@ -244,7 +273,7 @@ paths:
     patch:
       summary: 結束工單
       operationId: closeTicket
-      tags: [客服中心 (Support)]
+      tags: [support]
       description: |
         將工單標記為 `closed` 並記錄結案時間，開單者本人或管理員皆可執行。
 

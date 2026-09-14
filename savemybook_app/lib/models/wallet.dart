@@ -44,6 +44,8 @@ class WalletTransaction {
   final String bookTitle;
   final String? bookImageUrl;
   final DateTime? createdAt;
+  final int? orderId;
+  final String? orderNo;
 
   WalletTransaction({
     required this.txnId,
@@ -54,9 +56,11 @@ class WalletTransaction {
     required this.bookTitle,
     this.bookImageUrl,
     this.createdAt,
+    this.orderId,
+    this.orderNo,
   });
 
-  /// 依金額正負判斷。退款時向賣家收回貨款的紀錄類型也是 refund，但金額是負的。
+  // 退款時向賣家收回貨款的紀錄類型也是 refund，但金額是負的，只能依正負判斷。
   bool get isIncome => amount > 0;
 
   String get typeText {
@@ -86,6 +90,8 @@ class WalletTransaction {
       bookTitle: book?['title'] as String? ?? order?['order_no'] as String? ?? S.faqCatTrade,
       bookImageUrl: images.isEmpty ? null : resolveAssetUrl((images.first as Map)['image_url']),
       createdAt: parseDate(json['created_at']),
+      orderId: order?['order_id'] == null ? null : parseInt(order!['order_id']),
+      orderNo: order?['order_no'] as String?,
     );
   }
 }

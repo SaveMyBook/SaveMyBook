@@ -4,6 +4,7 @@ import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
+import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
@@ -28,15 +29,19 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
 
   final ApiService _api = ApiService();
   late final TabController _tabController = TabController(length: _tabs.length, vsync: this);
+  final TextEditingController _searchController = TextEditingController();
 
   List<SupportTicket> _tickets = [];
   bool _isLoading = true;
+  bool _navigating = false;
+  int _loadSeq = 0;
+  int _loadedTab = -1;
 
   @override
   void initState() {
     super.initState();
     _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) _load();
+      if (!_tabController.indexIsChanging && _tabController.index != _loadedTab) _load();
     });
     _load();
   }
@@ -44,33 +49,61 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() => _isLoading = true);
-    final tickets = await _api.fetchAdminTickets(status: _tabs[_tabController.index].key);
-    if (!mounted) return;
+  Future<void> _load({bool showLoading = true}) async {
+    final seq = ++_loadSeq;
+    final tab = _tabController.index;
+    if (showLoading) setState(() => _isLoading = true);
+    final tickets = await _api.fetchAdminTickets(status: _tabs[tab].key);
+    if (!mounted || seq != _loadSeq) return;
     setState(() {
       _tickets = tickets;
+      _loadedTab = tab;
       _isLoading = false;
     });
   }
 
-  Future<void> _open(SupportTicket ticket) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => TicketDetailScreen(ticketId: ticket.ticketId, asAdmin: true),
-      ),
-    );
-    _load();
+  List<SupportTicket> get _visible {
+    final keyword = _searchController.text.trim().toLowerCase();
+    if (keyword.isEmpty) return _tickets;
+    return _tickets
+        .where((t) =>
+            t.subject.toLowerCase().contains(keyword) ||
+            t.userName.toLowerCase().contains(keyword) ||
+            (t.lastMessage ?? '').toLowerCase().contains(keyword))
+        .toList();
   }
 
+  Future<void> _open(SupportTicket ticket) async {
+    if (_navigating) return;
+    _navigating = true;
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TicketDetailScreen(ticketId: ticket.ticketId, asAdmin: true),
+        ),
+      );
+    } finally {
+      _navigating = false;
+    }
+    if (mounted) _load(showLoading: false);
+  }
+
+  static String _when(DateTime? dt) {
+    if (dt == null) return '';
+    final relative = formatRelative(dt);
+    final exact = formatDateTime(dt);
+    return exact.startsWith(relative) ? exact : '$relative・$exact';
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final visible = _visible;
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -84,6 +117,14 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
               tabs: _tabs.map((t) => t.label).toList(),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: AppSearchField(
+              controller: _searchController,
+              hint: S.searchSubjectMemberMessage,
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
           Expanded(
             child: SwipeTabs(
               controller: _tabController,
@@ -92,25 +133,38 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
                     ? const LoadingView.list()
                     : RefreshIndicator(
                         color: c.accent,
-                        onRefresh: _load,
-                        child: SwitchIn(child: _tickets.isEmpty
-                            ? ListView(key: const ValueKey('empty'), 
-                                children: [
-                                  SizedBox(height: 60),
-                                  EmptyView(
-                                    icon: Icons.inbox_outlined,
-                                    message: S.noEnquiriesCategory,
+                        onRefresh: () => _load(showLoading: false),
+                        child: SwitchIn(
+                          child: visible.isEmpty
+                              ? ListView(
+                                  key: const ValueKey('empty'),
+                                  children: [
+                                    const SizedBox(height: 60),
+                                    EmptyView(
+                                      icon: Icons.inbox_outlined,
+                                      message: S.noEnquiriesCategory,
+                                      actionLabel: _searchController.text.trim().isEmpty ? S.refresh : S.clearSearch,
+                                      onAction: () {
+                                        if (_searchController.text.trim().isEmpty) {
+                                          _load();
+                                        } else {
+                                          _searchController.clear();
+                                          setState(() {});
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                )
+                              : ListView.builder(
+                                  key: ValueKey('items_$_loadedTab'),
+                                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                                  itemCount: visible.length,
+                                  itemBuilder: (_, i) => RevealOnScroll(
+                                    index: i,
+                                    child: _buildCard(visible[i], c),
                                   ),
-                                ],
-                              )
-                            : ListView.builder(key: const ValueKey('items'), 
-                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                                itemCount: _tickets.length,
-                                itemBuilder: (_, i) => RevealOnScroll(
-                                  index: i,
-                                  child: _buildCard(_tickets[i], c),
                                 ),
-                              )),
+                        ),
                       ),
               ),
             ),
@@ -159,13 +213,28 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
           const SizedBox(height: 10),
           Row(
             children: [
-              Text(ticket.categoryText, style: TextStyle(fontSize: 11, color: c.textHint)),
+              Flexible(
+                child: Text(
+                  ticket.categoryText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: c.textHint),
+                ),
+              ),
               const SizedBox(width: 10),
               Icon(Icons.forum_outlined, size: 12, color: c.textHint),
               const SizedBox(width: 3),
               Text('${ticket.messageCount}', style: TextStyle(fontSize: 11, color: c.textHint)),
-              const Spacer(),
-              Text(formatRelative(ticket.updatedAt), style: TextStyle(fontSize: 11, color: c.textHint)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _when(ticket.updatedAt),
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: c.textHint),
+                ),
+              ),
             ],
           ),
         ],

@@ -67,6 +67,11 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
 
   LevelStyle _styleFor(int index) => LevelStyle.at(index);
 
+  Future<void> _retry() async {
+    setState(() => _isLoading = true);
+    await _load();
+  }
+
   int get _currentIndex => _info.currentLevel == null
       ? -1
       : _info.levels.indexWhere((l) => l.levelId == _info.currentLevel!.levelId);
@@ -92,7 +97,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
             ? Column(
                 children: [
                   AppHeader(title: S.membershipTier, icon: Icons.workspace_premium_outlined),
-                  Expanded(child: LoadingView()),
+                  const Expanded(child: LoadingView()),
                 ],
               )
             : _info.levels.isEmpty
@@ -100,9 +105,15 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                     children: [
                       AppHeader(title: S.membershipTier, icon: Icons.workspace_premium_outlined),
                       Expanded(
-                        child: EmptyView(
-                          icon: Icons.emoji_events_outlined,
-                          message: S.membershipTiersNotSetUpYet,
+                        child: RefreshableCenter(
+                          onRefresh: _load,
+                          child: EmptyView(
+                            icon: Icons.emoji_events_outlined,
+                            message: S.membershipTiersNotSetUpYet,
+                            actionLabel: S.refresh,
+                            actionIcon: Icons.refresh_rounded,
+                            onAction: _retry,
+                          ),
                         ),
                       ),
                     ],
@@ -148,7 +159,6 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                 child: _buildBenefits(c, style),
               ),
             ),
-            // 內容不夠長時把剩下的視窗補上底色，不然下面會漏出漸層。
             SliverFillRemaining(
               hasScrollBody: false,
               child: ColoredBox(color: c.scaffold),
@@ -223,6 +233,8 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                           child: Text(
                             level.levelName,
                             key: ValueKey(level.levelId),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 36,
@@ -292,7 +304,6 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     final currentIndex = _currentIndex;
 
     return Padding(
-      // 內縮量刻意跟指標的安全範圍對齊，讓指標真的能指到節點而不必被夾住。
       padding: const EdgeInsets.symmetric(horizontal: _railPadding),
       child: Row(
         children: [
@@ -308,8 +319,6 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                   curve: Motion.emphasized,
                 );
               },
-              // 外框維持 _nodeSize，選中的節點靠縮放溢出去放大，
-              // 這樣指標的位置計算不必跟著節點大小一起變。
               child: SizedBox(
                 width: _nodeSize,
                 height: _nodeSize,
@@ -362,7 +371,6 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                   alignment: Alignment.centerLeft,
                   children: [
                     Container(height: 2, color: Colors.white.withValues(alpha: 0.22)),
-                    // 已達成的段落用實白，並讓它從左邊長出來。
                     TweenAnimationBuilder<double>(
                       tween: Tween(
                         begin: 0,
@@ -391,7 +399,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
         const SizedBox(height: 18),
         _buildPointer(),
         SizedBox(
-          height: 156,
+          height: 168,
           child: PageView.builder(
             controller: _pageController,
             itemCount: _info.levels.length,
@@ -416,8 +424,6 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
         final step = count == 1 ? 0.0 : (usable - _nodeSize) / (count - 1);
         final nodeCentre = _railPadding + _nodeSize / 2 + step * _selectedIndex;
 
-        // 卡片是 viewportFraction 0.92 的 PageView，左右各再縮排 _pageInset。
-        // 安全範圍還要扣掉卡片本身的圓角，不然指標會壓在圓弧上懸空。
         final cardLeft = constraints.maxWidth * ((1 - _viewportFraction) / 2) + _pageInset;
         final cardRight = constraints.maxWidth * (1 - (1 - _viewportFraction) / 2) - _pageInset;
         final safeLeft = cardLeft + _cardRadius + _caretHalf;
@@ -467,8 +473,6 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
         ],
       );
     } else {
-      // 進度以「這一級的區間」計算：從目前等級門檻走到下一級門檻。
-      // 直接拿總點數除以門檻的話，等級越高會一直看起來快滿了。
       final floor = index == 0 ? 0 : _info.levels[index - 1].minPoints;
       final span = level.minPoints - floor;
       final walked = (_info.points - floor).clamp(0, span <= 0 ? 1 : span);
@@ -486,6 +490,8 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                   reached
                       ? S.unlocked2(level.levelName)
                       : S.morePointsUnlock(remaining, level.levelName),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14,
                     height: 1.45,
@@ -502,7 +508,10 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
             tween: Tween(begin: 0, end: _info.points.toDouble()),
             duration: const Duration(milliseconds: 1100),
             curve: Curves.easeOutCubic,
-            builder: (context, animated, _) => Text.rich(
+            builder: (context, animated, _) => FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text.rich(
               TextSpan(
                 children: [
                   TextSpan(
@@ -526,6 +535,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
               ),
             ),
           ),
+            ),
           const SizedBox(height: 12),
           _ProgressTrack(
             progress: progress,
@@ -537,7 +547,8 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         color: c.card,
         borderRadius: BorderRadius.circular(_cardRadius),
@@ -549,7 +560,12 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
           ),
         ],
       ),
-      child: Center(child: body),
+      child: Center(
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: body,
+        ),
+      ),
     );
   }
 
@@ -562,9 +578,11 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
       children: [
         Row(
           children: [
-            Text(
-              S.benefits(level.levelName),
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
+            Flexible(
+              child: Text(
+                S.benefits(level.levelName),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
+              ),
             ),
             const SizedBox(width: 8),
             if (benefits.isNotEmpty)
@@ -679,13 +697,12 @@ class _ProgressTrack extends StatelessWidget {
   final double progress;
   final Color color;
   final Color track;
-  final double height;
+  final double height = 8;
 
   const _ProgressTrack({
     required this.progress,
     required this.color,
     required this.track,
-    this.height = 8,
   });
 
   @override

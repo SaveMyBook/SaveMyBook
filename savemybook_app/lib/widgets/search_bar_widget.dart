@@ -15,14 +15,12 @@ class SearchBarWidget extends StatelessWidget {
 
     return GestureDetector(
       onTap: () async {
-        // 用 MaterialPageRoute 才會有左滑返回；Hero 在任何 route 都能運作。
         final result = await Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => SearchScreen(initialKeyword: currentKeyword)),
         );
         if (result != null) onSearch(result as String);
       },
-      // 跟搜尋頁的輸入框共用 Hero，兩邊的外框尺寸一致，轉場就是平滑地飛過去。
       child: Hero(
         tag: kSearchBarHeroTag,
         flightShuttleBuilder: (_, _, _, _, _) => Material(

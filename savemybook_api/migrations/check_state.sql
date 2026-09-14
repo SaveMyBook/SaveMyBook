@@ -11,7 +11,10 @@ FROM (
   SELECT 'users', 'share_token' UNION ALL
   SELECT 'books', 'share_token' UNION ALL
   SELECT 'admin_permissions', 'can_manage_system' UNION ALL
-  SELECT 'notifications', 'pushed_at'
+  SELECT 'notifications', 'pushed_at' UNION ALL
+  SELECT 'legal_documents', 'version' UNION ALL
+  SELECT 'legal_documents', 'requires_consent' UNION ALL
+  SELECT 'push_devices', 'session_sid'
 ) t
 LEFT JOIN information_schema.COLUMNS c
   ON c.TABLE_SCHEMA = DATABASE() AND c.TABLE_NAME = t.tbl AND c.COLUMN_NAME = t.want
@@ -41,4 +44,25 @@ UNION ALL
 SELECT '資料表', 'push_devices',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'push_devices';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'push_devices'
+
+UNION ALL
+
+SELECT '資料表', 'user_legal_consents',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_legal_consents'
+
+UNION ALL
+
+SELECT '資料表', 'user_sessions',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_sessions'
+
+UNION ALL
+
+SELECT '資料表', 'user_security',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_security';

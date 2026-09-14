@@ -1,5 +1,6 @@
 tags:
-  - name: 後台：書櫃管理
+  - name: admin-cabinets
+    x-displayName: 後台：書櫃管理
     description: |
       智慧書櫃與櫃位的維運。本組端點均需 `can_manage_cabinets` 權限。
       所有異動皆寫入稽核紀錄，可由 `GET /api/admin/maintenance-logs` 查詢。
@@ -9,7 +10,7 @@ paths:
     get:
       summary: 書櫃列表
       operationId: adminListCabinets
-      tags: [後台：書櫃管理]
+      tags: [admin-cabinets]
       description: |
         回傳全部書櫃，含已停用者。各筆包含櫃位清單、累計訂單數，
         以及各狀態櫃位的數量統計 `slot_summary`。
@@ -58,7 +59,7 @@ paths:
     post:
       summary: 新增書櫃
       operationId: adminCreateCabinet
-      tags: [後台：書櫃管理]
+      tags: [admin-cabinets]
       description: |
         建立書櫃時會依 `total_slots` 自動產生櫃位，編號為 `A01`、`A02` 等
         兩位數補零格式，`available_slots` 初始值等於 `total_slots`。
@@ -113,7 +114,7 @@ paths:
     put:
       summary: 編輯書櫃
       operationId: adminUpdateCabinet
-      tags: [後台：書櫃管理]
+      tags: [admin-cabinets]
       description: |
         部分更新：僅異動請求中帶入的欄位。
 
@@ -162,7 +163,7 @@ paths:
     patch:
       summary: 變更櫃位狀態
       operationId: adminUpdateCabinetSlot
-      tags: [後台：書櫃管理]
+      tags: [admin-cabinets]
       description: |
         手動調整單一櫃位的狀態，主要用於將故障櫃位標記為 `maintenance`。
         異動會寫入稽核紀錄，可於維修紀錄查詢。

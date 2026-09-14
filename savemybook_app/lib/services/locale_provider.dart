@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 介面語言。null 代表跟隨系統。
 class LocaleProvider extends ValueNotifier<Locale?> {
   static const _key = 'app_locale';
 
   LocaleProvider(super.value);
 
-  /// 支援的語言。順序即語言選單的顯示順序。
   static const supported = <Locale>[
     Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
     Locale('en'),
@@ -16,8 +14,6 @@ class LocaleProvider extends ValueNotifier<Locale?> {
     Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
   ];
 
-  /// 各語言用自己的文字標示，使用者看不懂目前語言時才找得到自己的。
-  /// 正因如此這裡刻意不翻譯——翻了就違背這份清單存在的目的。
   static const nativeNames = <String, String>{
     'zh_Hant': '繁體中文',
     'en': 'English',
@@ -51,16 +47,12 @@ class LocaleProvider extends ValueNotifier<Locale?> {
     }
   }
 
-  /// 系統語言不在支援清單時要落到哪一個。
-  ///
-  /// 預設的 basicLocaleListResolution 在 zh-Hant 與 zh-Hans 之間常常挑錯，
-  /// 因為它只比對 languageCode。這裡先自己比對 script。
+  // 預設的 basicLocaleListResolution 只比對 languageCode，常在 zh-Hant 與 zh-Hans 之間挑錯。
   static Locale resolve(List<Locale>? deviceLocales, Iterable<Locale> _) {
     for (final device in deviceLocales ?? const <Locale>[]) {
       for (final candidate in supported) {
         if (candidate.languageCode != device.languageCode) continue;
         if (candidate.languageCode != 'zh') return candidate;
-        // 中文再看書寫系統；沒帶 script 時用地區推斷。
         final script = device.scriptCode ??
             (const ['TW', 'HK', 'MO'].contains(device.countryCode) ? 'Hant' : 'Hans');
         if (candidate.scriptCode == script) return candidate;

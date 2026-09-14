@@ -1100,6 +1100,331 @@ abstract class AppLocalizations {
   String get turnNotificationsSoundsLockScreenPreviews;
   String get pushNotificationsNotSetUpBuild;
   String get notificationsTurnedOffAllowAppSend;
+  String get restoreBackup;
+  String wholeDatabaseGoBackP0Orders(Object p0);
+  String get password2;
+  String get startRestore;
+  String get backingUpCurrentState;
+  String databaseRestoredPreviousStateWasBacked(Object p0);
+  String restoreFailedDatabaseMayUnchangedPartly(Object p0);
+  String get autoBackupBeforeRestore;
+  String get restoreBackup2;
+  String get restoringDatabase;
+  String p0SecondsSoFarKeepApp(Object p0);
+  String get majorUpdate;
+  String get majorUpdateNotifiesEveryUserTerms;
+  String get majorUpdate2;
+  String get minorEdit;
+  String get books;
+  String get orders2;
+  String get wallets2;
+  String get announcements3;
+  String get legal;
+  String get backups;
+  String get undoAction;
+  String p0NNtheDataGoesBack(Object p0);
+  String get undo;
+  String get undone;
+  String get searchActionsEGNicknameBook;
+  String viewP0Changes(Object p0);
+  String get undoAction2;
+  String get tapBarSeeDay;
+  String get noAnnouncements;
+  String get tapPhotoNameChange;
+  String get canTContinueWithoutAccepting;
+  String needAcceptLatestP0UseP1(Object p0, Object p1);
+  String get goBack;
+  String p0BeenUpdated(Object p0);
+  String readLatestVersionUpdatedP0Accept(Object p0);
+  String get scrollEndContinue;
+  String get iVeReadAccept;
+  String get decline;
+  String get viewDetails;
+  String get notFoundMayBeenDeletedRemoved;
+  String get salesDropOffsPickupsRefundsDisputes;
+  String get chatMessages;
+  String get newMessagesFromBuyersSellers;
+  String get promotions2;
+  String get announcementsAboutPromotions;
+  String get supportRepliesPasswordResetsPolicyUpdates;
+  String get notFilled;
+  String get canTChanged;
+  String get voice;
+  String get reservation;
+  String get messageUnsent;
+  String get confirmBeforeExportingData;
+  String get exportFailedPleaseTryAgainLater;
+  String get refresh;
+  String get clearFilters;
+  String get expired;
+  String get verificationCancelled;
+  String get openingClosingTimesCanTSame;
+  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1);
+  String get active;
+  String get categoryWithNameAlreadyExists;
+  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2);
+  String orderP0ClosedAsP1Can(Object p0, Object p1);
+  String get clearSearch;
+  String get enterMinimumPoints;
+  String pointsRangeOverlapsWithP0P1(Object p0, Object p1);
+  String noTierCoversP0P1Points(Object p0, Object p1);
+  String p0TakenDownRightAwayOther(Object p0);
+  String get searchReportedItemReporterReason;
+  String get couldnTLoadStatisticsRightNow;
+  String get searchSubjectMemberMessage;
+  String get balance3;
+  String get hold3;
+  String get zeroBalance;
+  String get amountCanMost2DecimalPlaces;
+  String get singleAdjustmentCanTExceed1;
+  String wouldMakeBalanceNegativeCurrentBalance(Object p0);
+  String get amountUp2Decimals;
+  String p0NbalanceAfterP1(Object p0, Object p1);
+  String get cameraAccessOff;
+  String get couldNotStartCamera;
+  String allowP0UseCameraSettingsThen(Object p0);
+  String get closeScreenTryAgain;
+  String get couldnTGetLocationCheckLocation;
+  String get bookReservedAnotherBuyerCanT;
+  String reservedAnotherBuyerUntilP0(Object p0);
+  String get ifIsnTSoldByThen;
+  String sellerHoldingUntilP0(Object p0);
+  String get checkOutBeforeHoldEndsOther;
+  String get copyAddress;
+  String p0Away(Object p0);
+  String get locating;
+  String get showDistance;
+  String get reserved;
+  String get goCheckout;
+  String get cart2;
+  String get buyNow;
+  String p0Delisted(Object p0);
+  String noBooksMatchP0(Object p0);
+  String p0BooksP1Views(Object p0, Object p1);
+  String get swipeQuickActions;
+  String get searchTitleAuthorIsbn2;
+  String removedP0(Object p0);
+  String removedP0Items(Object p0);
+  String get paymentSuccessful;
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1);
+  String get keepBrowsing;
+  String get reload;
+  String get browseBooks;
+  String p0Sellers(Object p0);
+  String unavailableP0(Object p0);
+  String get removeAll;
+  String get goWallet;
+  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1);
+  String get otherDevicesNeedSignAgainWith;
+  String get searchChats;
+  String get noMatchingChats;
+  String get read;
+  String get chatNotFound;
+  String get messagesCanUp2000Characters;
+  String get canTSendRightNowPlease;
+  String get reserveBook;
+  String get quickReplies;
+  String get imagesMust10MbSmaller;
+  String get recordingFailedPleaseTryAgain;
+  String get voiceMessageTooLargePleaseRecord;
+  String get microphoneAllowedPressHoldAgainRecord;
+  String get microphoneAccessNeededRecordTurnSettings;
+  String get couldnTStartRecordingPleaseTry;
+  String get selectText;
+  String get unsend;
+  String get resend;
+  String get unsendMessage;
+  String get neitherAbleSeeMessageSContent;
+  String get reportMessage;
+  String get reservationSentWaitingSeller;
+  String get acceptReservation;
+  String p0HeldThemP1HoursNo(Object p0, Object p1);
+  String get accept;
+  String get reservationAccepted;
+  String get declineReservation;
+  String get theyLlNotifiedDeclined;
+  String get decline2;
+  String get reservationDeclined;
+  String get cancelReservation;
+  String p0NoLongerHeld(Object p0);
+  String get cancelReservation2;
+  String get reservationCanceled;
+  String get notNow2;
+  String get couldnTLoadConversationPleaseTry;
+  String get accountCanTReceiveMessagesRight;
+  String get holdMicTalkReleaseSend;
+  String get startConversation;
+  String p0New(Object p0);
+  String get connectionUnstableMessagesCanTSent;
+  String get retry;
+  String get stillAvailable;
+  String get couldLowerPriceBit;
+  String get whenCanPutLocker;
+  String get unsentMessage;
+  String get theyUnsentMessage;
+  String get reservationDetailsArenTAvailableRight;
+  String get sending;
+  String get couldNotUploadPhotosPleaseTry;
+  String get bookDetailsUpdatedButPhotosCouldn;
+  String get sNotIsbnBarcodeScanOne;
+  String get couldnTLoadCategoriesTapRetry;
+  String removedP0FromSaved(Object p0);
+  String get recentlyViewedCleared;
+  String clearP0(Object p0);
+  String get picked;
+  String get seeMore;
+  String get recentlyViewed;
+  String get clear;
+  String get notificationDeleted;
+  String get pleasePutBookAssignedLockerSoon;
+  String get weLlLetKnowWhenSeller;
+  String get waitingBuyerCollect;
+  String get bookLockerEnterPickupCodeCollect;
+  String get transactionCompleteThank;
+  String get confirmVeTakenBookFromLocker;
+  String p0Orders2(Object p0);
+  String p0ReadyPickup(Object p0);
+  String get pickUp;
+  String get saved;
+  String get accountSecurity;
+  String get sellerHasnTPutBookLocker;
+  String get searchHistoryCleared;
+  String get trendingBooks;
+  String get signOutDevice;
+  String signOutP0(Object p0);
+  String get llNeedSignAgainUseApp;
+  String get deviceSignedOutRightAwayStop;
+  String get deviceSignedOut;
+  String get signOutAllDevicesIncludingOne;
+  String get signOutAllOtherDevices;
+  String get everyDeviceIncludingOneSignedOut;
+  String get everyDeviceExceptOneSignedOut;
+  String signedOutP0OtherDevices(Object p0);
+  String get unknownDevice;
+  String get couldnTLoadDevices;
+  String get theseDevicesSignedAccountIfDon;
+  String get device;
+  String get otherDevices;
+  String otherDevicesP0(Object p0);
+  String get noOtherDevicesSigned;
+  String get signedDevices;
+  String get activeNow;
+  String lastActiveP0(Object p0);
+  String signedP0(Object p0);
+  String get biometricPayment;
+  String get paymentPinMust6Digits;
+  String get pinTooEasyGuessTryAnother;
+  String get enterPasswordResetPaymentPin;
+  String get confirmSBeforeSettingPaymentPin;
+  String get pinsDonTMatchStartAgain;
+  String get paymentPinReset;
+  String get paymentPinSet;
+  String get use6DigitPinConfirmPayments;
+  String get verifyingIdentity;
+  String get enterAgainConfirm;
+  String get set6DigitPaymentPin;
+  String get enterSamePinAgain;
+  String get avoidRepeatedSequentialPatternedDigits;
+  String get resetPaymentPin;
+  String get paymentPin;
+  String stepP02(Object p0);
+  String get setPaymentPinFirst;
+  String get setPaymentPinFirstSoFallback;
+  String get setUpNow;
+  String get biometricPaymentTurnedOff;
+  String get verifyTurnBiometricPayment;
+  String p0PaymentsTurned(Object p0);
+  String get securitySettingsUnavailableRightNowMay;
+  String payWithP0(Object p0);
+  String get accountWellProtected;
+  String get accountCouldSafer;
+  String get paymentPinBiometricPaymentSetCheck;
+  String get setPaymentPinTurnBiometricPayment;
+  String tooManyAttemptsLockedUntilP0(Object p0);
+  String get usedConfirmPaymentsCheckout;
+  String get notSetRequiredBeforeCheckout;
+  String get change;
+  String get forgotPaymentPin;
+  String get ifFailsCanEnterPaymentPin;
+  String get viewRemotelySignOutDevices;
+  String p0Devices(Object p0);
+  String get otherDevicesNeedSignAgain;
+  String get restoredUnfinishedListing;
+  String get isbnSCheckDigitInvalidPlease;
+  String get draftSavedAutomatically;
+  String get continueUnfinishedListing;
+  String clearedP0MbCache(Object p0);
+  String get cacheCleared;
+  String get storage;
+  String get paymentPinBiometricPaymentDevices;
+  String get clearCache;
+  String get removesCachedImagesFilesAccountData;
+  String get couldNotLoadNotificationSettings;
+  String get month;
+  String p0P1(Object p0, Object p1);
+  String get noIncomeYet;
+  String get noSpendingYet;
+  String get income;
+  String get spending;
+  String get totalIncome;
+  String get totalSpending;
+  String get item3;
+  String get details;
+  String get balanceAfter;
+  String get transactionId;
+  String get sessionExpiredPleaseSignAgain;
+  String get serviceTemporarilyUnavailableTryAgainLater;
+  String get uploadFailedTryAgainLater;
+  String get nearby;
+  String p0M(Object p0);
+  String p0Km(Object p0);
+  String get iphoneDidnTReceiveApnsToken;
+  String get firebaseDidnTIssuePushToken;
+  String couldnTGetPushTokenP0(Object p0);
+  String couldnTRegisterPushTokenWith(Object p0);
+  String get protectCoinsCheckoutRequires6Digit;
+  String confirmPaymentP0Coins(Object p0);
+  String get enterPasswordContinue;
+  String get verifyS;
+  String get amount;
+  String p0Coins(Object p0);
+  String get enterPaymentPin;
+  String get enterPaymentPinContinue;
+  String get paymentPinResetEnterAgain;
+  String get usePasswordInstead;
+  String get couldnTGetLocationLockersShown;
+  String p0SlotsFree(Object p0);
+  String openP0(Object p0);
+  String get nearest;
+  String get noFreeSlots;
+  String get sortedByDistance;
+  String get turnLocationSortByDistance;
+  String get lockerNoFreeSlotsRightNow;
+  String get turn;
+  String get noLockersAvailable;
+  String get noMatchingOptions;
+  String get undo2;
+  String copiedP0(Object p0);
+  String get typing;
+  String get today;
+  String get yesterday;
+  String p0P12(Object p0, Object p1);
+  String p1P2P0(Object p0, Object p1, Object p2);
+  String get releaseCancel;
+  String get slideCancel;
+  String get awaitingReply;
+  String heldUntilP0(Object p0);
+  String get declined2;
+  String get closed;
+  String get theyWantReserveBook;
+  String get sentReservationRequest;
+  String holdP0H(Object p0);
+  String get onceSellerAcceptsBookHeldNo;
+  String get holdPeriod;
+  String get messageSellerOptional;
+  String get sendRequest;
+  String p0Hours(Object p0);
+  String p0P1DigitsEntered(Object p0, Object p1);
 }
 
 class _LEn extends AppLocalizations {
@@ -4335,6 +4660,981 @@ class _LEn extends AppLocalizations {
 
   @override
   String get notificationsTurnedOffAllowAppSend => 'Notifications are turned off. Allow this app to send notifications in system settings.';
+
+  @override
+  String get restoreBackup => 'Restore this backup?';
+
+  @override
+  String wholeDatabaseGoBackP0Orders(Object p0) => 'The whole database will go back to ${p0}. Orders, messages, member data and activity logs after that point will be lost.\n\nThe current state is backed up automatically first, so you can restore that backup if this was a mistake. The service pauses during the restore, usually for a few seconds to a few minutes.\n\nEnter your password to confirm:';
+
+  @override
+  String get password2 => 'Password';
+
+  @override
+  String get startRestore => 'Start restore';
+
+  @override
+  String get backingUpCurrentState => 'Backing up the current state…';
+
+  @override
+  String databaseRestoredPreviousStateWasBacked(Object p0) => 'Database restored. The previous state was backed up as ${p0}';
+
+  @override
+  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => 'Restore failed. The database may be unchanged or partly restored. Check the activity log and consider restoring ${p0}';
+
+  @override
+  String get autoBackupBeforeRestore => 'Auto backup before restore';
+
+  @override
+  String get restoreBackup2 => 'Restore this backup';
+
+  @override
+  String get restoringDatabase => 'Restoring the database';
+
+  @override
+  String p0SecondsSoFarKeepApp(Object p0) => '${p0} seconds so far. Keep the app open; the service resumes automatically when it finishes.';
+
+  @override
+  String get majorUpdate => 'Is this a major update?';
+
+  @override
+  String get majorUpdateNotifiesEveryUserTerms => 'A major update notifies every user. For the Terms and Privacy Policy, users must read and accept the new version the next time they open the app.\n\nFor typo fixes or formatting changes, choose "Minor edit".';
+
+  @override
+  String get majorUpdate2 => 'Major update';
+
+  @override
+  String get minorEdit => 'Minor edit';
+
+  @override
+  String get books => 'Books';
+
+  @override
+  String get orders2 => 'Orders';
+
+  @override
+  String get wallets2 => 'Wallets';
+
+  @override
+  String get announcements3 => 'Announcements';
+
+  @override
+  String get legal => 'Legal';
+
+  @override
+  String get backups => 'Backups';
+
+  @override
+  String get undoAction => 'Undo this action?';
+
+  @override
+  String p0NNtheDataGoesBack(Object p0) => '"${p0}"\n\nThe data goes back to how it was before this action. Notifications already sent are not recalled. If the data was changed again afterwards, the undo is refused.';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get undone => 'Undone';
+
+  @override
+  String get searchActionsEGNicknameBook => 'Search actions, e.g. a nickname or book title';
+
+  @override
+  String viewP0Changes(Object p0) => 'View ${p0} changes';
+
+  @override
+  String get undoAction2 => 'Undo this action';
+
+  @override
+  String get tapBarSeeDay => 'Tap a bar to see that day';
+
+  @override
+  String get noAnnouncements => 'No announcements';
+
+  @override
+  String get tapPhotoNameChange => 'Tap the photo or name to change it';
+
+  @override
+  String get canTContinueWithoutAccepting => 'You can\'t continue without accepting';
+
+  @override
+  String needAcceptLatestP0UseP1(Object p0, Object p1) => 'You need to accept the latest "${p0}" to use ${p1}. If you decline, you are signed out; sign in again any time to accept.';
+
+  @override
+  String get goBack => 'Go back';
+
+  @override
+  String p0BeenUpdated(Object p0) => '"${p0}" has been updated';
+
+  @override
+  String readLatestVersionUpdatedP0Accept(Object p0) => 'Read the latest version (updated ${p0}). Accept it to continue.';
+
+  @override
+  String get scrollEndContinue => 'Scroll to the end to continue';
+
+  @override
+  String get iVeReadAccept => 'I\'ve read and accept';
+
+  @override
+  String get decline => 'Decline';
+
+  @override
+  String get viewDetails => 'View details';
+
+  @override
+  String get notFoundMayBeenDeletedRemoved => 'Not found. It may have been deleted or removed.';
+
+  @override
+  String get salesDropOffsPickupsRefundsDisputes => 'Sales, drop-offs, pickups, refunds and disputes';
+
+  @override
+  String get chatMessages => 'Chat messages';
+
+  @override
+  String get newMessagesFromBuyersSellers => 'New messages from buyers and sellers';
+
+  @override
+  String get promotions2 => 'Promotions';
+
+  @override
+  String get announcementsAboutPromotions => 'Announcements about promotions';
+
+  @override
+  String get supportRepliesPasswordResetsPolicyUpdates => 'Support replies, password resets, policy updates and maintenance notices are always sent. Turned-off types still appear in your notification list, just without a push.';
+
+  @override
+  String get notFilled => 'Not filled in';
+
+  @override
+  String get canTChanged => 'Can\'t be changed';
+
+  @override
+  String get voice => '[Voice]';
+
+  @override
+  String get reservation => 'Reservation';
+
+  @override
+  String get messageUnsent => 'Message unsent';
+
+  @override
+  String get confirmBeforeExportingData => 'Confirm it is you before exporting your data';
+
+  @override
+  String get exportFailedPleaseTryAgainLater => 'Export failed. Please try again later';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get clearFilters => 'Clear filters';
+
+  @override
+  String get expired => 'Expired';
+
+  @override
+  String get verificationCancelled => 'Verification cancelled';
+
+  @override
+  String get openingClosingTimesCanTSame => 'Opening and closing times can’t be the same';
+
+  @override
+  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => 'This slot is currently "${p0}" and may have an order in progress. Changing it to "${p1}" may stop the buyer or seller from dropping off or collecting the book.';
+
+  @override
+  String get active => 'Active';
+
+  @override
+  String get categoryWithNameAlreadyExists => 'A category with this name already exists';
+
+  @override
+  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => 'Order ${p0} will be closed as "${p1}" and ${p2} coins will be returned to the buyer. This can’t be changed after submitting.';
+
+  @override
+  String orderP0ClosedAsP1Can(Object p0, Object p1) => 'Order ${p0} will be closed as "${p1}". This can’t be changed after submitting.';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String get enterMinimumPoints => 'Enter the minimum points';
+
+  @override
+  String pointsRangeOverlapsWithP0P1(Object p0, Object p1) => 'Points range overlaps with "${p0}" (${p1})';
+
+  @override
+  String noTierCoversP0P1Points(Object p0, Object p1) => 'No tier covers ${p0}–${p1} points';
+
+  @override
+  String p0TakenDownRightAwayOther(Object p0) => '"${p0}" will be taken down right away and other members will no longer be able to see or buy it.';
+
+  @override
+  String get searchReportedItemReporterReason => 'Search reported item, reporter or reason';
+
+  @override
+  String get couldnTLoadStatisticsRightNow => 'Couldn’t load statistics right now';
+
+  @override
+  String get searchSubjectMemberMessage => 'Search subject, member or message';
+
+  @override
+  String get balance3 => 'Has balance';
+
+  @override
+  String get hold3 => 'On hold';
+
+  @override
+  String get zeroBalance => 'Zero balance';
+
+  @override
+  String get amountCanMost2DecimalPlaces => 'Amount can have at most 2 decimal places';
+
+  @override
+  String get singleAdjustmentCanTExceed1 => 'A single adjustment can’t exceed 1,000,000';
+
+  @override
+  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => 'This would make the balance negative. Current balance: ${p0}';
+
+  @override
+  String get amountUp2Decimals => 'Amount (up to 2 decimals)';
+
+  @override
+  String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\nBalance after: ${p1}';
+
+  @override
+  String get cameraAccessOff => 'Camera access is off';
+
+  @override
+  String get couldNotStartCamera => 'Could not start the camera';
+
+  @override
+  String allowP0UseCameraSettingsThen(Object p0) => 'Allow ${p0} to use the camera in Settings, then try again.';
+
+  @override
+  String get closeScreenTryAgain => 'Close this screen and try again.';
+
+  @override
+  String get couldnTGetLocationCheckLocation => 'Couldn\'t get your location. Check that location services and permission are on.';
+
+  @override
+  String get bookReservedAnotherBuyerCanT => 'This book is reserved for another buyer and can\'t be added to your cart right now';
+
+  @override
+  String reservedAnotherBuyerUntilP0(Object p0) => 'Reserved for another buyer until ${p0}';
+
+  @override
+  String get ifIsnTSoldByThen => 'If it isn\'t sold by then, you can add it to your cart';
+
+  @override
+  String sellerHoldingUntilP0(Object p0) => 'The seller is holding it for you until ${p0}';
+
+  @override
+  String get checkOutBeforeHoldEndsOther => 'Check out before the hold ends, or other buyers can purchase it';
+
+  @override
+  String get copyAddress => 'Copy address';
+
+  @override
+  String p0Away(Object p0) => '${p0} away';
+
+  @override
+  String get locating => 'Locating…';
+
+  @override
+  String get showDistance => 'Show distance';
+
+  @override
+  String get reserved => 'Reserved';
+
+  @override
+  String get goCheckout => 'Go to checkout';
+
+  @override
+  String get cart2 => 'In cart';
+
+  @override
+  String get buyNow => 'Buy now';
+
+  @override
+  String p0Delisted(Object p0) => '"${p0}" delisted';
+
+  @override
+  String noBooksMatchP0(Object p0) => 'No books match "${p0}"';
+
+  @override
+  String p0BooksP1Views(Object p0, Object p1) => '${p0} books · ${p1} views';
+
+  @override
+  String get swipeQuickActions => 'Swipe for quick actions';
+
+  @override
+  String get searchTitleAuthorIsbn2 => 'Search title, author or ISBN';
+
+  @override
+  String removedP0(Object p0) => 'Removed "${p0}"';
+
+  @override
+  String removedP0Items(Object p0) => 'Removed ${p0} items';
+
+  @override
+  String get paymentSuccessful => 'Payment successful';
+
+  @override
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '${p0} books, split into ${p1} orders by seller';
+
+  @override
+  String get keepBrowsing => 'Keep browsing';
+
+  @override
+  String get reload => 'Reload';
+
+  @override
+  String get browseBooks => 'Browse books';
+
+  @override
+  String p0Sellers(Object p0) => '${p0} sellers';
+
+  @override
+  String unavailableP0(Object p0) => 'Unavailable (${p0})';
+
+  @override
+  String get removeAll => 'Remove all';
+
+  @override
+  String get goWallet => 'Go to wallet';
+
+  @override
+  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => 'From ${p0} sellers; checkout creates ${p1} separate orders';
+
+  @override
+  String get otherDevicesNeedSignAgainWith => 'Your other devices will need to sign in again with the new password.';
+
+  @override
+  String get searchChats => 'Search chats';
+
+  @override
+  String get noMatchingChats => 'No matching chats';
+
+  @override
+  String get read => 'Read';
+
+  @override
+  String get chatNotFound => 'Chat not found';
+
+  @override
+  String get messagesCanUp2000Characters => 'Messages can be up to 2000 characters';
+
+  @override
+  String get canTSendRightNowPlease => 'Can\'t send right now. Please try again later';
+
+  @override
+  String get reserveBook => 'Reserve this book';
+
+  @override
+  String get quickReplies => 'Quick replies';
+
+  @override
+  String get imagesMust10MbSmaller => 'Images must be 10 MB or smaller';
+
+  @override
+  String get recordingFailedPleaseTryAgain => 'Recording failed. Please try again';
+
+  @override
+  String get voiceMessageTooLargePleaseRecord => 'Voice message is too large. Please record a shorter one';
+
+  @override
+  String get microphoneAllowedPressHoldAgainRecord => 'Microphone allowed. Press and hold again to record';
+
+  @override
+  String get microphoneAccessNeededRecordTurnSettings => 'Microphone access is needed to record. Turn it on in Settings';
+
+  @override
+  String get couldnTStartRecordingPleaseTry => 'Couldn\'t start recording. Please try again later';
+
+  @override
+  String get selectText => 'Select text';
+
+  @override
+  String get unsend => 'Unsend';
+
+  @override
+  String get resend => 'Resend';
+
+  @override
+  String get unsendMessage => 'Unsend this message?';
+
+  @override
+  String get neitherAbleSeeMessageSContent => 'Neither of you will be able to see this message\'s content.';
+
+  @override
+  String get reportMessage => 'Report this message';
+
+  @override
+  String get reservationSentWaitingSeller => 'Reservation sent. Waiting for the seller';
+
+  @override
+  String get acceptReservation => 'Accept reservation?';
+
+  @override
+  String p0HeldThemP1HoursNo(Object p0, Object p1) => '"${p0}" will be held for them for ${p1} hours. No one else can buy it during that time.';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get reservationAccepted => 'Reservation accepted';
+
+  @override
+  String get declineReservation => 'Decline reservation?';
+
+  @override
+  String get theyLlNotifiedDeclined => 'They\'ll be notified that you declined.';
+
+  @override
+  String get decline2 => 'Decline';
+
+  @override
+  String get reservationDeclined => 'Reservation declined';
+
+  @override
+  String get cancelReservation => 'Cancel reservation?';
+
+  @override
+  String p0NoLongerHeld(Object p0) => '"${p0}" will no longer be held.';
+
+  @override
+  String get cancelReservation2 => 'Cancel reservation';
+
+  @override
+  String get reservationCanceled => 'Reservation canceled';
+
+  @override
+  String get notNow2 => 'Not now';
+
+  @override
+  String get couldnTLoadConversationPleaseTry => 'Couldn\'t load the conversation. Please try again later';
+
+  @override
+  String get accountCanTReceiveMessagesRight => 'This account can\'t receive messages right now';
+
+  @override
+  String get holdMicTalkReleaseSend => 'Hold the mic to talk, release to send';
+
+  @override
+  String get startConversation => 'This is the start of your conversation';
+
+  @override
+  String p0New(Object p0) => '${p0} new';
+
+  @override
+  String get connectionUnstableMessagesCanTSent => 'Connection is unstable. Messages can\'t be sent for now';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get stillAvailable => 'Is this still available?';
+
+  @override
+  String get couldLowerPriceBit => 'Could you lower the price a bit?';
+
+  @override
+  String get whenCanPutLocker => 'When can you put it in the locker?';
+
+  @override
+  String get unsentMessage => 'You unsent a message';
+
+  @override
+  String get theyUnsentMessage => 'They unsent a message';
+
+  @override
+  String get reservationDetailsArenTAvailableRight => 'Reservation details aren\'t available right now';
+
+  @override
+  String get sending => 'Sending';
+
+  @override
+  String get couldNotUploadPhotosPleaseTry => 'Could not upload the photos. Please try again later';
+
+  @override
+  String get bookDetailsUpdatedButPhotosCouldn => 'Book details updated, but photos couldn\'t be uploaded. Please try again later.';
+
+  @override
+  String get sNotIsbnBarcodeScanOne => 'That\'s not an ISBN barcode. Scan the one starting with 978 or 979 on the back cover.';
+
+  @override
+  String get couldnTLoadCategoriesTapRetry => 'Couldn\'t load categories. Tap to retry';
+
+  @override
+  String removedP0FromSaved(Object p0) => 'Removed "${p0}" from saved';
+
+  @override
+  String get recentlyViewedCleared => 'Recently viewed cleared';
+
+  @override
+  String clearP0(Object p0) => 'Clear (${p0})';
+
+  @override
+  String get picked => 'Picked for you';
+
+  @override
+  String get seeMore => 'See more';
+
+  @override
+  String get recentlyViewed => 'Recently viewed';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get notificationDeleted => 'Notification deleted';
+
+  @override
+  String get pleasePutBookAssignedLockerSoon => 'Please put the book in the assigned locker soon';
+
+  @override
+  String get weLlLetKnowWhenSeller => 'We\'ll let you know when the seller drops the book off';
+
+  @override
+  String get waitingBuyerCollect => 'Waiting for the buyer to collect';
+
+  @override
+  String get bookLockerEnterPickupCodeCollect => 'The book is in the locker. Enter your pickup code to collect it.';
+
+  @override
+  String get transactionCompleteThank => 'Transaction complete. Thank you!';
+
+  @override
+  String get confirmVeTakenBookFromLocker => 'Confirm you\'ve taken the book from the locker. The order will then be completed.';
+
+  @override
+  String p0Orders2(Object p0) => '${p0} orders';
+
+  @override
+  String p0ReadyPickup(Object p0) => '${p0} ready for pickup';
+
+  @override
+  String get pickUp => 'To pick up';
+
+  @override
+  String get saved => 'Saved';
+
+  @override
+  String get accountSecurity => 'Account security';
+
+  @override
+  String get sellerHasnTPutBookLocker => 'The seller hasn\'t put the book in the locker yet. We\'ll notify you once it\'s there.';
+
+  @override
+  String get searchHistoryCleared => 'Search history cleared';
+
+  @override
+  String get trendingBooks => 'Trending books';
+
+  @override
+  String get signOutDevice => 'Sign out this device?';
+
+  @override
+  String signOutP0(Object p0) => 'Sign out "${p0}"?';
+
+  @override
+  String get llNeedSignAgainUseApp => 'You\'ll need to sign in again to use the app.';
+
+  @override
+  String get deviceSignedOutRightAwayStop => 'That device will be signed out right away and stop receiving notifications.';
+
+  @override
+  String get deviceSignedOut => 'Device signed out';
+
+  @override
+  String get signOutAllDevicesIncludingOne => 'Sign out all devices (including this one)';
+
+  @override
+  String get signOutAllOtherDevices => 'Sign out all other devices';
+
+  @override
+  String get everyDeviceIncludingOneSignedOut => 'Every device, including this one, will be signed out and need to sign in again.';
+
+  @override
+  String get everyDeviceExceptOneSignedOut => 'Every device except this one will be signed out right away and stop receiving notifications.';
+
+  @override
+  String signedOutP0OtherDevices(Object p0) => 'Signed out of ${p0} other devices';
+
+  @override
+  String get unknownDevice => 'Unknown device';
+
+  @override
+  String get couldnTLoadDevices => 'Couldn\'t load your devices';
+
+  @override
+  String get theseDevicesSignedAccountIfDon => 'These devices are signed in to your account. If you don\'t recognise one, sign it out and change your password.';
+
+  @override
+  String get device => 'This device';
+
+  @override
+  String get otherDevices => 'Other devices';
+
+  @override
+  String otherDevicesP0(Object p0) => 'Other devices (${p0})';
+
+  @override
+  String get noOtherDevicesSigned => 'No other devices are signed in';
+
+  @override
+  String get signedDevices => 'Signed-in devices';
+
+  @override
+  String get activeNow => 'Active now';
+
+  @override
+  String lastActiveP0(Object p0) => 'Last active ${p0}';
+
+  @override
+  String signedP0(Object p0) => 'Signed in ${p0}';
+
+  @override
+  String get biometricPayment => 'Biometric payment on';
+
+  @override
+  String get paymentPinMust6Digits => 'Payment PIN must be 6 digits';
+
+  @override
+  String get pinTooEasyGuessTryAnother => 'That PIN is too easy to guess. Try another';
+
+  @override
+  String get enterPasswordResetPaymentPin => 'Enter your password to reset your payment PIN';
+
+  @override
+  String get confirmSBeforeSettingPaymentPin => 'Confirm it\'s you before setting a payment PIN';
+
+  @override
+  String get pinsDonTMatchStartAgain => 'The PINs don\'t match. Start again';
+
+  @override
+  String get paymentPinReset => 'Payment PIN reset';
+
+  @override
+  String get paymentPinSet => 'Payment PIN set';
+
+  @override
+  String get use6DigitPinConfirmPayments => 'You will use this 6-digit PIN to confirm payments at checkout.';
+
+  @override
+  String get verifyingIdentity => 'Verifying your identity…';
+
+  @override
+  String get enterAgainConfirm => 'Enter it again to confirm';
+
+  @override
+  String get set6DigitPaymentPin => 'Set a 6-digit payment PIN';
+
+  @override
+  String get enterSamePinAgain => 'Enter the same PIN again';
+
+  @override
+  String get avoidRepeatedSequentialPatternedDigits => 'Avoid repeated, sequential or patterned digits';
+
+  @override
+  String get resetPaymentPin => 'Reset payment PIN';
+
+  @override
+  String get paymentPin => 'Payment PIN';
+
+  @override
+  String stepP02(Object p0) => 'Step ${p0} of 2';
+
+  @override
+  String get setPaymentPinFirst => 'Set a payment PIN first';
+
+  @override
+  String get setPaymentPinFirstSoFallback => 'Set a payment PIN first so you have a fallback';
+
+  @override
+  String get setUpNow => 'Set up now';
+
+  @override
+  String get biometricPaymentTurnedOff => 'Biometric payment turned off';
+
+  @override
+  String get verifyTurnBiometricPayment => 'Verify to turn on biometric payment';
+
+  @override
+  String p0PaymentsTurned(Object p0) => '${p0} payments turned on';
+
+  @override
+  String get securitySettingsUnavailableRightNowMay => 'Security settings are unavailable right now. You may not be able to change your payment PIN or devices.';
+
+  @override
+  String payWithP0(Object p0) => 'Pay with ${p0}';
+
+  @override
+  String get accountWellProtected => 'Your account is well protected';
+
+  @override
+  String get accountCouldSafer => 'Your account could be safer';
+
+  @override
+  String get paymentPinBiometricPaymentSetCheck => 'Payment PIN and biometric payment are set. Check your signed-in devices from time to time.';
+
+  @override
+  String get setPaymentPinTurnBiometricPayment => 'Set a payment PIN and turn on biometric payment for safer, faster checkout.';
+
+  @override
+  String tooManyAttemptsLockedUntilP0(Object p0) => 'Too many attempts. Locked until ${p0}';
+
+  @override
+  String get usedConfirmPaymentsCheckout => 'Used to confirm payments at checkout';
+
+  @override
+  String get notSetRequiredBeforeCheckout => 'Not set. Required before checkout';
+
+  @override
+  String get change => 'Change';
+
+  @override
+  String get forgotPaymentPin => 'Forgot payment PIN';
+
+  @override
+  String get ifFailsCanEnterPaymentPin => 'If it fails, you can enter your payment PIN instead';
+
+  @override
+  String get viewRemotelySignOutDevices => 'View or remotely sign out devices';
+
+  @override
+  String p0Devices(Object p0) => '${p0} devices';
+
+  @override
+  String get otherDevicesNeedSignAgain => 'Other devices will need to sign in again';
+
+  @override
+  String get restoredUnfinishedListing => 'Restored your unfinished listing';
+
+  @override
+  String get isbnSCheckDigitInvalidPlease => 'This ISBN\'s check digit is invalid. Please check it again.';
+
+  @override
+  String get draftSavedAutomatically => 'Draft saved automatically';
+
+  @override
+  String get continueUnfinishedListing => 'Continue your unfinished listing';
+
+  @override
+  String clearedP0MbCache(Object p0) => 'Cleared ${p0} MB of cache';
+
+  @override
+  String get cacheCleared => 'Cache cleared';
+
+  @override
+  String get storage => 'Storage';
+
+  @override
+  String get paymentPinBiometricPaymentDevices => 'Payment PIN, biometric payment, devices';
+
+  @override
+  String get clearCache => 'Clear cache';
+
+  @override
+  String get removesCachedImagesFilesAccountData => 'Removes cached images and files. Your account data is not affected';
+
+  @override
+  String get couldNotLoadNotificationSettings => 'Could not load notification settings';
+
+  @override
+  String get month => 'This month';
+
+  @override
+  String p0P1(Object p0, Object p1) => '${p0}/${p1}';
+
+  @override
+  String get noIncomeYet => 'No income yet';
+
+  @override
+  String get noSpendingYet => 'No spending yet';
+
+  @override
+  String get income => 'Income';
+
+  @override
+  String get spending => 'Spending';
+
+  @override
+  String get totalIncome => 'Total income';
+
+  @override
+  String get totalSpending => 'Total spending';
+
+  @override
+  String get item3 => 'Item';
+
+  @override
+  String get details => 'Details';
+
+  @override
+  String get balanceAfter => 'Balance after';
+
+  @override
+  String get transactionId => 'Transaction ID';
+
+  @override
+  String get sessionExpiredPleaseSignAgain => 'Your session expired. Please sign in again';
+
+  @override
+  String get serviceTemporarilyUnavailableTryAgainLater => 'Service temporarily unavailable. Try again later';
+
+  @override
+  String get uploadFailedTryAgainLater => 'Upload failed. Try again later';
+
+  @override
+  String get nearby => 'Nearby';
+
+  @override
+  String p0M(Object p0) => '${p0} m';
+
+  @override
+  String p0Km(Object p0) => '${p0} km';
+
+  @override
+  String get iphoneDidnTReceiveApnsToken => 'This iPhone didn\'t receive an APNs token. Make sure Push Notifications is added under Signing & Capabilities in Xcode, then reinstall the app with the same Apple developer account.';
+
+  @override
+  String get firebaseDidnTIssuePushToken => 'Firebase didn\'t issue a push token. Check that GoogleService-Info.plist matches the app\'s bundle ID';
+
+  @override
+  String couldnTGetPushTokenP0(Object p0) => 'Couldn\'t get a push token: ${p0}';
+
+  @override
+  String couldnTRegisterPushTokenWith(Object p0) => 'Couldn\'t register the push token with the server: ${p0}';
+
+  @override
+  String get protectCoinsCheckoutRequires6Digit => 'To protect your coins, checkout requires a 6-digit payment PIN. After setting it, you can also turn on Face ID or fingerprint payment.';
+
+  @override
+  String confirmPaymentP0Coins(Object p0) => 'Confirm payment of ${p0} coins';
+
+  @override
+  String get enterPasswordContinue => 'Enter your password to continue';
+
+  @override
+  String get verifyS => 'Verify it\'s you';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String p0Coins(Object p0) => '${p0} coins';
+
+  @override
+  String get enterPaymentPin => 'Enter payment PIN';
+
+  @override
+  String get enterPaymentPinContinue => 'Enter your payment PIN to continue';
+
+  @override
+  String get paymentPinResetEnterAgain => 'Payment PIN reset. Enter it again';
+
+  @override
+  String get usePasswordInstead => 'Use password instead';
+
+  @override
+  String get couldnTGetLocationLockersShown => 'Couldn\'t get your location. Lockers are shown in default order.';
+
+  @override
+  String p0SlotsFree(Object p0) => '${p0} slots free';
+
+  @override
+  String openP0(Object p0) => 'Open ${p0}';
+
+  @override
+  String get nearest => 'Nearest';
+
+  @override
+  String get noFreeSlots => 'No free slots';
+
+  @override
+  String get sortedByDistance => 'Sorted by distance';
+
+  @override
+  String get turnLocationSortByDistance => 'Turn on location to sort by distance';
+
+  @override
+  String get lockerNoFreeSlotsRightNow => 'This locker has no free slots right now';
+
+  @override
+  String get turn => 'Turn on';
+
+  @override
+  String get noLockersAvailable => 'No lockers available';
+
+  @override
+  String get noMatchingOptions => 'No matching options';
+
+  @override
+  String get undo2 => 'Undo';
+
+  @override
+  String copiedP0(Object p0) => 'Copied "${p0}"';
+
+  @override
+  String get typing => 'Typing…';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String p0P12(Object p0, Object p1) => '${p0}/${p1}';
+
+  @override
+  String p1P2P0(Object p0, Object p1, Object p2) => '${p0}/${p1}/${p2}';
+
+  @override
+  String get releaseCancel => 'Release to cancel';
+
+  @override
+  String get slideCancel => '← Slide to cancel';
+
+  @override
+  String get awaitingReply => 'Awaiting reply';
+
+  @override
+  String heldUntilP0(Object p0) => 'Held until ${p0}';
+
+  @override
+  String get declined2 => 'Declined';
+
+  @override
+  String get closed => 'Closed';
+
+  @override
+  String get theyWantReserveBook => 'They want to reserve your book';
+
+  @override
+  String get sentReservationRequest => 'You sent a reservation request';
+
+  @override
+  String holdP0H(Object p0) => 'Hold for ${p0} h';
+
+  @override
+  String get onceSellerAcceptsBookHeldNo => 'Once the seller accepts, the book is held for you and no one else can buy it until the deadline.';
+
+  @override
+  String get holdPeriod => 'Hold period';
+
+  @override
+  String get messageSellerOptional => 'Message to the seller (optional)';
+
+  @override
+  String get sendRequest => 'Send request';
+
+  @override
+  String p0Hours(Object p0) => '${p0} hours';
+
+  @override
+  String p0P1DigitsEntered(Object p0, Object p1) => '${p0} of ${p1} digits entered';
 
 }
 
@@ -7572,6 +8872,981 @@ class _LJa extends AppLocalizations {
   @override
   String get notificationsTurnedOffAllowAppSend => '通知がオフになっています。システム設定でこのアプリの通知を許可してください。';
 
+  @override
+  String get restoreBackup => 'このバックアップに復元しますか？';
+
+  @override
+  String wholeDatabaseGoBackP0Orders(Object p0) => 'データベース全体が ${p0} の状態に戻ります。それ以降の注文、メッセージ、会員データ、操作履歴はすべて失われます。\n\n復元前に現在の状態が自動でバックアップされるので、誤った場合はそのバックアップに戻せます。復元中はサービスが停止し、通常は数十秒から数分かかります。\n\n確認のためログインパスワードを入力してください：';
+
+  @override
+  String get password2 => 'ログインパスワード';
+
+  @override
+  String get startRestore => '復元を開始';
+
+  @override
+  String get backingUpCurrentState => '現在の状態をバックアップしています…';
+
+  @override
+  String databaseRestoredPreviousStateWasBacked(Object p0) => 'データベースを復元しました。復元前の状態は ${p0} にバックアップされています';
+
+  @override
+  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => '復元に失敗しました。データベースは元のままか一部だけ復元された可能性があります。操作履歴を確認し、${p0} への復元を検討してください';
+
+  @override
+  String get autoBackupBeforeRestore => '復元前の自動バックアップ';
+
+  @override
+  String get restoreBackup2 => 'このバックアップに復元';
+
+  @override
+  String get restoringDatabase => 'データベースを復元しています';
+
+  @override
+  String p0SecondsSoFarKeepApp(Object p0) => '${p0} 秒経過しました。アプリを閉じないでください。完了すると自動でサービスが再開します。';
+
+  @override
+  String get majorUpdate => '重要な更新ですか？';
+
+  @override
+  String get majorUpdateNotifiesEveryUserTerms => '重要な更新は全ユーザーに通知されます。利用規約とプライバシーポリシーは、次回アプリを開いたときに再度読んで同意してもらいます。\n\n誤字の修正や書式の調整だけなら「軽微な修正」を選んでください。';
+
+  @override
+  String get majorUpdate2 => '重要な更新';
+
+  @override
+  String get minorEdit => '軽微な修正';
+
+  @override
+  String get books => '本';
+
+  @override
+  String get orders2 => '注文';
+
+  @override
+  String get wallets2 => 'ウォレット';
+
+  @override
+  String get announcements3 => 'お知らせ';
+
+  @override
+  String get legal => '規約';
+
+  @override
+  String get backups => 'バックアップ';
+
+  @override
+  String get undoAction => 'この操作を取り消しますか？';
+
+  @override
+  String p0NNtheDataGoesBack(Object p0) => '「${p0}」\n\nデータは操作前の状態に戻ります。送信済みの通知は取り消されません。その後さらに変更されていた場合、取り消しはできません。';
+
+  @override
+  String get undo => '取り消す';
+
+  @override
+  String get undone => '取り消し済み';
+
+  @override
+  String get searchActionsEGNicknameBook => '操作内容を検索（例：会員名や書名）';
+
+  @override
+  String viewP0Changes(Object p0) => '${p0} 件の変更を表示';
+
+  @override
+  String get undoAction2 => 'この操作を取り消す';
+
+  @override
+  String get tapBarSeeDay => '棒をタップするとその日の数値を表示';
+
+  @override
+  String get noAnnouncements => 'お知らせはありません';
+
+  @override
+  String get tapPhotoNameChange => '写真や名前をタップして変更';
+
+  @override
+  String get canTContinueWithoutAccepting => '同意しないと利用を続けられません';
+
+  @override
+  String needAcceptLatestP0UseP1(Object p0, Object p1) => '${p0} を利用するには最新の「${p1}」への同意が必要です。同意しない場合はログアウトします。いつでも再ログインして同意できます。';
+
+  @override
+  String get goBack => '戻る';
+
+  @override
+  String p0BeenUpdated(Object p0) => '「${p0}」が更新されました';
+
+  @override
+  String readLatestVersionUpdatedP0Accept(Object p0) => '最新版（${p0} 更新）をお読みください。同意すると利用を続けられます。';
+
+  @override
+  String get scrollEndContinue => '最後までスクロールしてください';
+
+  @override
+  String get iVeReadAccept => '読んで同意しました';
+
+  @override
+  String get decline => '同意しない';
+
+  @override
+  String get viewDetails => '詳細を見る';
+
+  @override
+  String get notFoundMayBeenDeletedRemoved => '見つかりません。削除または取り下げられた可能性があります';
+
+  @override
+  String get salesDropOffsPickupsRefundsDisputes => '販売、預け入れ、受け取り、返金、申し立て';
+
+  @override
+  String get chatMessages => 'チャットメッセージ';
+
+  @override
+  String get newMessagesFromBuyersSellers => '買い手・売り手からの新着メッセージ';
+
+  @override
+  String get promotions2 => 'キャンペーン';
+
+  @override
+  String get announcementsAboutPromotions => 'キャンペーンのお知らせ';
+
+  @override
+  String get supportRepliesPasswordResetsPolicyUpdates => 'サポートの返信、パスワードのリセット、規約の更新、メンテナンスのお知らせは常に通知されます。オフにした種類も通知一覧には表示され、プッシュ通知だけが届きません。';
+
+  @override
+  String get notFilled => '未入力';
+
+  @override
+  String get canTChanged => '変更不可';
+
+  @override
+  String get voice => '[音声]';
+
+  @override
+  String get reservation => '予約';
+
+  @override
+  String get messageUnsent => 'メッセージの送信を取り消しました';
+
+  @override
+  String get confirmBeforeExportingData => 'データを書き出す前に本人確認をしてください';
+
+  @override
+  String get exportFailedPleaseTryAgainLater => '書き出しに失敗しました。しばらくしてからお試しください';
+
+  @override
+  String get refresh => '再読み込み';
+
+  @override
+  String get clearFilters => '絞り込みを解除';
+
+  @override
+  String get expired => '期限切れ';
+
+  @override
+  String get verificationCancelled => '認証をキャンセルしました';
+
+  @override
+  String get openingClosingTimesCanTSame => '開始時刻と終了時刻を同じにはできません';
+
+  @override
+  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => 'この区画は現在「${p0}」で、進行中の注文があるかもしれません。「${p1}」に変更すると、購入者や出品者が本を預けたり受け取ったりできなくなる可能性があります。';
+
+  @override
+  String get active => '稼働中';
+
+  @override
+  String get categoryWithNameAlreadyExists => '同じ名前のカテゴリがすでにあります';
+
+  @override
+  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => '注文 ${p0} を「${p1}」で解決し、${p2} コインを購入者に返金します。送信後は変更できません。';
+
+  @override
+  String orderP0ClosedAsP1Can(Object p0, Object p1) => '注文 ${p0} を「${p1}」で解決します。送信後は変更できません。';
+
+  @override
+  String get clearSearch => '検索をクリア';
+
+  @override
+  String get enterMinimumPoints => '最低ポイントを入力してください';
+
+  @override
+  String pointsRangeOverlapsWithP0P1(Object p0, Object p1) => 'ポイント範囲が「${p0}」（${p1}）と重なっています';
+
+  @override
+  String noTierCoversP0P1Points(Object p0, Object p1) => '${p0}–${p1} ポイントに該当するランクがありません';
+
+  @override
+  String p0TakenDownRightAwayOther(Object p0) => '「${p0}」はすぐに非公開になり、ほかの会員は閲覧・購入できなくなります。';
+
+  @override
+  String get searchReportedItemReporterReason => '通報対象・通報者・理由で検索';
+
+  @override
+  String get couldnTLoadStatisticsRightNow => '統計データを取得できませんでした';
+
+  @override
+  String get searchSubjectMemberMessage => '件名・会員・メッセージで検索';
+
+  @override
+  String get balance3 => '残高あり';
+
+  @override
+  String get hold3 => '保留中あり';
+
+  @override
+  String get zeroBalance => '残高 0';
+
+  @override
+  String get amountCanMost2DecimalPlaces => '金額は小数点以下2桁までです';
+
+  @override
+  String get singleAdjustmentCanTExceed1 => '1回の調整は 1,000,000 までです';
+
+  @override
+  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '差し引くと残高がマイナスになります。現在の残高：${p0}';
+
+  @override
+  String get amountUp2Decimals => '金額（小数点以下2桁まで）';
+
+  @override
+  String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\n調整後の残高：${p1}';
+
+  @override
+  String get cameraAccessOff => 'カメラを使用できません';
+
+  @override
+  String get couldNotStartCamera => 'カメラを起動できませんでした';
+
+  @override
+  String allowP0UseCameraSettingsThen(Object p0) => '設定で ${p0} のカメラへのアクセスを許可してから、もう一度お試しください。';
+
+  @override
+  String get closeScreenTryAgain => 'この画面を閉じてもう一度お試しください。';
+
+  @override
+  String get couldnTGetLocationCheckLocation => '現在地を取得できません。位置情報サービスと権限がオンか確認してください';
+
+  @override
+  String get bookReservedAnotherBuyerCanT => 'この本は他の購入者が予約中のため、今はカートに追加できません';
+
+  @override
+  String reservedAnotherBuyerUntilP0(Object p0) => '他の購入者が ${p0} まで予約中';
+
+  @override
+  String get ifIsnTSoldByThen => '期限までに売れなければ、カートに追加できるようになります';
+
+  @override
+  String sellerHoldingUntilP0(Object p0) => '出品者が ${p0} まであなたのために取り置き中';
+
+  @override
+  String get checkOutBeforeHoldEndsOther => '期限内に購入手続きを済ませてください。期限を過ぎると他の人も購入できます';
+
+  @override
+  String get copyAddress => '住所をコピー';
+
+  @override
+  String p0Away(Object p0) => 'ここから ${p0}';
+
+  @override
+  String get locating => '位置を取得中…';
+
+  @override
+  String get showDistance => '距離を表示';
+
+  @override
+  String get reserved => '予約済み';
+
+  @override
+  String get goCheckout => '購入手続きへ';
+
+  @override
+  String get cart2 => 'カートに追加済み';
+
+  @override
+  String get buyNow => '今すぐ購入';
+
+  @override
+  String p0Delisted(Object p0) => '『${p0}』を出品停止しました';
+
+  @override
+  String noBooksMatchP0(Object p0) => '「${p0}」に一致する本はありません';
+
+  @override
+  String p0BooksP1Views(Object p0, Object p1) => '${p0} 冊 · 閲覧 ${p1} 回';
+
+  @override
+  String get swipeQuickActions => 'スワイプで操作';
+
+  @override
+  String get searchTitleAuthorIsbn2 => '書名・著者・ISBN で検索';
+
+  @override
+  String removedP0(Object p0) => '「${p0}」を削除しました';
+
+  @override
+  String removedP0Items(Object p0) => '${p0} 点を削除しました';
+
+  @override
+  String get paymentSuccessful => '支払いが完了しました';
+
+  @override
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '計 ${p0} 冊、出品者ごとに ${p1} 件の注文に分けました';
+
+  @override
+  String get keepBrowsing => '買い物を続ける';
+
+  @override
+  String get reload => '再読み込み';
+
+  @override
+  String get browseBooks => '本を探す';
+
+  @override
+  String p0Sellers(Object p0) => '出品者 ${p0} 人';
+
+  @override
+  String unavailableP0(Object p0) => '購入できません（${p0}）';
+
+  @override
+  String get removeAll => 'すべて削除';
+
+  @override
+  String get goWallet => 'ウォレットへ';
+
+  @override
+  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => '出品者 ${p0} 人の商品です。購入後 ${p1} 件の注文に分かれます';
+
+  @override
+  String get otherDevicesNeedSignAgainWith => '他の端末では新しいパスワードで再ログインが必要です。';
+
+  @override
+  String get searchChats => 'チャット相手を検索';
+
+  @override
+  String get noMatchingChats => '該当するチャットがありません';
+
+  @override
+  String get read => '既読';
+
+  @override
+  String get chatNotFound => 'チャットが見つかりません';
+
+  @override
+  String get messagesCanUp2000Characters => 'メッセージは2000文字までです';
+
+  @override
+  String get canTSendRightNowPlease => '現在送信できません。しばらくしてから再度お試しください';
+
+  @override
+  String get reserveBook => 'この本を予約';
+
+  @override
+  String get quickReplies => 'クイック返信';
+
+  @override
+  String get imagesMust10MbSmaller => '画像は10MB以下にしてください';
+
+  @override
+  String get recordingFailedPleaseTryAgain => '録音に失敗しました。もう一度お試しください';
+
+  @override
+  String get voiceMessageTooLargePleaseRecord => '音声ファイルが大きすぎます。短く録音してください';
+
+  @override
+  String get microphoneAllowedPressHoldAgainRecord => 'マイクを許可しました。もう一度長押しして録音してください';
+
+  @override
+  String get microphoneAccessNeededRecordTurnSettings => '録音にはマイクへのアクセスが必要です。設定で許可してください';
+
+  @override
+  String get couldnTStartRecordingPleaseTry => '録音を開始できません。しばらくしてから再度お試しください';
+
+  @override
+  String get selectText => 'テキストを選択';
+
+  @override
+  String get unsend => '送信取消';
+
+  @override
+  String get resend => '再送信';
+
+  @override
+  String get unsendMessage => 'このメッセージの送信を取り消しますか？';
+
+  @override
+  String get neitherAbleSeeMessageSContent => '取り消すと、お互いにこのメッセージの内容が見えなくなります。';
+
+  @override
+  String get reportMessage => 'このメッセージを報告';
+
+  @override
+  String get reservationSentWaitingSeller => '予約を送信しました。出品者の返信をお待ちください';
+
+  @override
+  String get acceptReservation => '予約を承認しますか？';
+
+  @override
+  String p0HeldThemP1HoursNo(Object p0, Object p1) => '「${p0}」を相手のために${p1}時間取り置きします。その間、他の人は購入できません。';
+
+  @override
+  String get accept => '承認';
+
+  @override
+  String get reservationAccepted => '予約を承認しました';
+
+  @override
+  String get declineReservation => '予約をお断りしますか？';
+
+  @override
+  String get theyLlNotifiedDeclined => '相手にお断りの通知が届きます。';
+
+  @override
+  String get decline2 => 'お断り';
+
+  @override
+  String get reservationDeclined => '予約をお断りしました';
+
+  @override
+  String get cancelReservation => '予約をキャンセルしますか？';
+
+  @override
+  String p0NoLongerHeld(Object p0) => 'キャンセルすると「${p0}」の取り置きは解除されます。';
+
+  @override
+  String get cancelReservation2 => '予約をキャンセル';
+
+  @override
+  String get reservationCanceled => '予約をキャンセルしました';
+
+  @override
+  String get notNow2 => 'やめておく';
+
+  @override
+  String get couldnTLoadConversationPleaseTry => '会話を読み込めません。しばらくしてから再度お試しください';
+
+  @override
+  String get accountCanTReceiveMessagesRight => '相手のアカウントは現在メッセージを受け取れません';
+
+  @override
+  String get holdMicTalkReleaseSend => 'マイクを長押しして話し、指を離すと送信します';
+
+  @override
+  String get startConversation => 'ここから会話が始まります';
+
+  @override
+  String p0New(Object p0) => '新着 ${p0} 件';
+
+  @override
+  String get connectionUnstableMessagesCanTSent => '接続が不安定なため、現在メッセージを送信できません';
+
+  @override
+  String get retry => '再試行';
+
+  @override
+  String get stillAvailable => 'まだありますか？';
+
+  @override
+  String get couldLowerPriceBit => 'もう少し安くなりますか？';
+
+  @override
+  String get whenCanPutLocker => 'いつロッカーに入れてもらえますか？';
+
+  @override
+  String get unsentMessage => 'メッセージの送信を取り消しました';
+
+  @override
+  String get theyUnsentMessage => '相手がメッセージの送信を取り消しました';
+
+  @override
+  String get reservationDetailsArenTAvailableRight => '予約情報を表示できません';
+
+  @override
+  String get sending => '送信中';
+
+  @override
+  String get couldNotUploadPhotosPleaseTry => '証拠写真のアップロードに失敗しました。しばらくしてからお試しください';
+
+  @override
+  String get bookDetailsUpdatedButPhotosCouldn => '書籍情報は更新しましたが、写真をアップロードできませんでした。後でもう一度お試しください';
+
+  @override
+  String get sNotIsbnBarcodeScanOne => 'ISBN バーコードではありません。裏表紙の 978 または 979 で始まるバーコードを読み取ってください';
+
+  @override
+  String get couldnTLoadCategoriesTapRetry => 'カテゴリを読み込めませんでした。タップして再試行';
+
+  @override
+  String removedP0FromSaved(Object p0) => '「${p0}」を保存済みから外しました';
+
+  @override
+  String get recentlyViewedCleared => '最近見た本を消去しました';
+
+  @override
+  String clearP0(Object p0) => 'クリア（${p0}）';
+
+  @override
+  String get picked => 'あなたへのおすすめ';
+
+  @override
+  String get seeMore => 'もっと見る';
+
+  @override
+  String get recentlyViewed => '最近見た本';
+
+  @override
+  String get clear => 'クリア';
+
+  @override
+  String get notificationDeleted => '通知を削除しました';
+
+  @override
+  String get pleasePutBookAssignedLockerSoon => 'できるだけ早く指定のロッカーに本を入れてください';
+
+  @override
+  String get weLlLetKnowWhenSeller => '出品者が本を入れたら受け取りをお知らせします';
+
+  @override
+  String get waitingBuyerCollect => '購入者の受け取り待ち';
+
+  @override
+  String get bookLockerEnterPickupCodeCollect => '本はロッカーにあります。受け取りコードを入力して受け取ってください';
+
+  @override
+  String get transactionCompleteThank => '取引が完了しました。ご利用ありがとうございます';
+
+  @override
+  String get confirmVeTakenBookFromLocker => 'ロッカーから本を取り出したことを確認してください。確認すると注文が完了します。';
+
+  @override
+  String p0Orders2(Object p0) => '注文 ${p0} 件';
+
+  @override
+  String p0ReadyPickup(Object p0) => '受け取り可能 ${p0} 件';
+
+  @override
+  String get pickUp => '受取待ち';
+
+  @override
+  String get saved => 'お気に入り';
+
+  @override
+  String get accountSecurity => 'アカウントのセキュリティ';
+
+  @override
+  String get sellerHasnTPutBookLocker => '出品者はまだ本をロッカーに入れていません。入れたらお知らせします';
+
+  @override
+  String get searchHistoryCleared => '検索履歴を消去しました';
+
+  @override
+  String get trendingBooks => '人気の本';
+
+  @override
+  String get signOutDevice => 'この端末をログアウトしますか？';
+
+  @override
+  String signOutP0(Object p0) => '「${p0}」をログアウトしますか？';
+
+  @override
+  String get llNeedSignAgainUseApp => 'ログアウト後は再ログインが必要です。';
+
+  @override
+  String get deviceSignedOutRightAwayStop => 'その端末はすぐにログアウトし、通知も届かなくなります。';
+
+  @override
+  String get deviceSignedOut => 'この端末をログアウトしました';
+
+  @override
+  String get signOutAllDevicesIncludingOne => 'すべての端末からログアウト（この端末を含む）';
+
+  @override
+  String get signOutAllOtherDevices => 'ほかのすべての端末からログアウト';
+
+  @override
+  String get everyDeviceIncludingOneSignedOut => 'この端末を含むすべての端末がログアウトし、再ログインが必要になります。';
+
+  @override
+  String get everyDeviceExceptOneSignedOut => 'この端末以外はすぐにログアウトし、通知も届かなくなります。';
+
+  @override
+  String signedOutP0OtherDevices(Object p0) => '他の ${p0} 台の端末からログアウトしました';
+
+  @override
+  String get unknownDevice => '不明な端末';
+
+  @override
+  String get couldnTLoadDevices => '端末を読み込めませんでした';
+
+  @override
+  String get theseDevicesSignedAccountIfDon => 'これらの端末があなたのアカウントにログインしています。心当たりのない端末があれば、すぐにログアウトしてパスワードを変更してください。';
+
+  @override
+  String get device => 'この端末';
+
+  @override
+  String get otherDevices => '他の端末';
+
+  @override
+  String otherDevicesP0(Object p0) => '他の端末（${p0}）';
+
+  @override
+  String get noOtherDevicesSigned => '他の端末はログインしていません';
+
+  @override
+  String get signedDevices => 'ログイン中の端末';
+
+  @override
+  String get activeNow => '使用中';
+
+  @override
+  String lastActiveP0(Object p0) => '最終利用 ${p0}';
+
+  @override
+  String signedP0(Object p0) => '${p0} にログイン';
+
+  @override
+  String get biometricPayment => '生体認証での支払い：オン';
+
+  @override
+  String get paymentPinMust6Digits => '取引パスワードは 6 桁の数字にしてください';
+
+  @override
+  String get pinTooEasyGuessTryAnother => '取引パスワードが単純すぎます。別の番号にしてください';
+
+  @override
+  String get enterPasswordResetPaymentPin => 'ログインパスワードを入力すると取引パスワードを再設定できます';
+
+  @override
+  String get confirmSBeforeSettingPaymentPin => '取引パスワードを設定する前に本人確認をしてください';
+
+  @override
+  String get pinsDonTMatchStartAgain => '2 回の入力が一致しません。もう一度設定してください';
+
+  @override
+  String get paymentPinReset => '取引パスワードを再設定しました';
+
+  @override
+  String get paymentPinSet => '取引パスワードを設定しました';
+
+  @override
+  String get use6DigitPinConfirmPayments => '今後の決済では、この 6 桁のパスワードで支払いを確認します。';
+
+  @override
+  String get verifyingIdentity => '本人確認中…';
+
+  @override
+  String get enterAgainConfirm => '確認のためもう一度入力';
+
+  @override
+  String get set6DigitPaymentPin => '6 桁の取引パスワードを設定';
+
+  @override
+  String get enterSamePinAgain => 'もう一度同じパスワードを入力してください';
+
+  @override
+  String get avoidRepeatedSequentialPatternedDigits => '同じ数字・連続・繰り返しは使えません';
+
+  @override
+  String get resetPaymentPin => '取引パスワードを再設定';
+
+  @override
+  String get paymentPin => '取引パスワード';
+
+  @override
+  String stepP02(Object p0) => 'ステップ ${p0} / 2';
+
+  @override
+  String get setPaymentPinFirst => '先に取引パスワードを設定してください';
+
+  @override
+  String get setPaymentPinFirstSoFallback => '先に取引パスワードを設定してください。認証に失敗したときの代わりになります';
+
+  @override
+  String get setUpNow => '今すぐ設定';
+
+  @override
+  String get biometricPaymentTurnedOff => '生体認証での支払いをオフにしました';
+
+  @override
+  String get verifyTurnBiometricPayment => '生体認証での支払いをオンにするため認証します';
+
+  @override
+  String p0PaymentsTurned(Object p0) => '${p0} での支払いをオンにしました';
+
+  @override
+  String get securitySettingsUnavailableRightNowMay => 'セキュリティ設定を取得できません。取引パスワードやログイン端末を変更できない場合があります。';
+
+  @override
+  String payWithP0(Object p0) => '${p0} で支払う';
+
+  @override
+  String get accountWellProtected => 'アカウントはしっかり保護されています';
+
+  @override
+  String get accountCouldSafer => 'セキュリティを強化できます';
+
+  @override
+  String get paymentPinBiometricPaymentSetCheck => '取引パスワードと生体認証での支払いが設定済みです。ログイン中の端末もときどき確認しましょう。';
+
+  @override
+  String get setPaymentPinTurnBiometricPayment => '取引パスワードを設定し生体認証での支払いをオンにすると、決済がより安全で速くなります。';
+
+  @override
+  String tooManyAttemptsLockedUntilP0(Object p0) => '失敗回数が多すぎます。${p0} までロック中';
+
+  @override
+  String get usedConfirmPaymentsCheckout => '決済時の支払い確認に使います';
+
+  @override
+  String get notSetRequiredBeforeCheckout => '未設定です。決済前に設定が必要です';
+
+  @override
+  String get change => '変更';
+
+  @override
+  String get forgotPaymentPin => '取引パスワードを忘れた';
+
+  @override
+  String get ifFailsCanEnterPaymentPin => '認証に失敗したら取引パスワードを入力できます';
+
+  @override
+  String get viewRemotelySignOutDevices => '端末の確認とリモートログアウト';
+
+  @override
+  String p0Devices(Object p0) => '${p0} 台';
+
+  @override
+  String get otherDevicesNeedSignAgain => '変更後、ほかの端末は再ログインが必要です';
+
+  @override
+  String get restoredUnfinishedListing => '前回の入力内容を復元しました';
+
+  @override
+  String get isbnSCheckDigitInvalidPlease => 'ISBN のチェックディジットが正しくありません。もう一度確認してください';
+
+  @override
+  String get draftSavedAutomatically => '下書きを自動保存しました';
+
+  @override
+  String get continueUnfinishedListing => '前回の出品を続ける';
+
+  @override
+  String clearedP0MbCache(Object p0) => '${p0} MB のキャッシュを削除しました';
+
+  @override
+  String get cacheCleared => 'キャッシュを削除しました';
+
+  @override
+  String get storage => 'ストレージ';
+
+  @override
+  String get paymentPinBiometricPaymentDevices => '取引パスワード・生体認証支払い・ログイン端末';
+
+  @override
+  String get clearCache => 'キャッシュを削除';
+
+  @override
+  String get removesCachedImagesFilesAccountData => '一時保存の画像とファイルを削除します。アカウントのデータには影響しません';
+
+  @override
+  String get couldNotLoadNotificationSettings => '通知設定を読み込めません';
+
+  @override
+  String get month => '今月';
+
+  @override
+  String p0P1(Object p0, Object p1) => '${p0}年${p1}月';
+
+  @override
+  String get noIncomeYet => '収入の記録はありません';
+
+  @override
+  String get noSpendingYet => '支出の記録はありません';
+
+  @override
+  String get income => '収入';
+
+  @override
+  String get spending => '支出';
+
+  @override
+  String get totalIncome => '累計収入';
+
+  @override
+  String get totalSpending => '累計支出';
+
+  @override
+  String get item3 => '項目';
+
+  @override
+  String get details => '説明';
+
+  @override
+  String get balanceAfter => '取引後残高';
+
+  @override
+  String get transactionId => '取引番号';
+
+  @override
+  String get sessionExpiredPleaseSignAgain => 'ログインの有効期限が切れました。もう一度ログインしてください';
+
+  @override
+  String get serviceTemporarilyUnavailableTryAgainLater => 'サービスは一時的に利用できません。しばらくしてからお試しください';
+
+  @override
+  String get uploadFailedTryAgainLater => 'アップロードに失敗しました。しばらくしてからお試しください';
+
+  @override
+  String get nearby => 'すぐ近く';
+
+  @override
+  String p0M(Object p0) => '${p0} m';
+
+  @override
+  String p0Km(Object p0) => '${p0} km';
+
+  @override
+  String get iphoneDidnTReceiveApnsToken => 'iPhone が APNs トークンを取得できませんでした。Xcode の Signing & Capabilities に Push Notifications が追加されているか確認し、同じ Apple デベロッパーアカウントでアプリを再インストールしてください。';
+
+  @override
+  String get firebaseDidnTIssuePushToken => 'Firebase がプッシュトークンを発行しませんでした。GoogleService-Info.plist とアプリの Bundle ID が一致しているか確認してください';
+
+  @override
+  String couldnTGetPushTokenP0(Object p0) => 'プッシュトークンを取得できませんでした：${p0}';
+
+  @override
+  String couldnTRegisterPushTokenWith(Object p0) => 'プッシュトークンをサーバーに登録できませんでした：${p0}';
+
+  @override
+  String get protectCoinsCheckoutRequires6Digit => 'コインを守るため、決済時に 6 桁の取引パスワードが必要です。設定後は Face ID や指紋での支払いもオンにできます。';
+
+  @override
+  String confirmPaymentP0Coins(Object p0) => '${p0} コインの支払いを確認';
+
+  @override
+  String get enterPasswordContinue => '続けるにはログインパスワードを入力してください';
+
+  @override
+  String get verifyS => '本人確認';
+
+  @override
+  String get amount => '支払い金額';
+
+  @override
+  String p0Coins(Object p0) => '${p0} コイン';
+
+  @override
+  String get enterPaymentPin => '取引パスワードを入力';
+
+  @override
+  String get enterPaymentPinContinue => '続けるには取引パスワードを入力してください';
+
+  @override
+  String get paymentPinResetEnterAgain => '取引パスワードを再設定しました。もう一度入力してください';
+
+  @override
+  String get usePasswordInstead => 'ログインパスワードを使う';
+
+  @override
+  String get couldnTGetLocationLockersShown => '現在地を取得できませんでした。ロッカーは標準の順で表示されます';
+
+  @override
+  String p0SlotsFree(Object p0) => '空き ${p0} 区画';
+
+  @override
+  String openP0(Object p0) => '営業 ${p0}';
+
+  @override
+  String get nearest => '最寄り';
+
+  @override
+  String get noFreeSlots => '空きがありません';
+
+  @override
+  String get sortedByDistance => '近い順に表示';
+
+  @override
+  String get turnLocationSortByDistance => '位置情報をオンにすると距離順に並びます';
+
+  @override
+  String get lockerNoFreeSlotsRightNow => 'このロッカーは現在空きがありません';
+
+  @override
+  String get turn => 'オンにする';
+
+  @override
+  String get noLockersAvailable => '利用できるロッカーがありません';
+
+  @override
+  String get noMatchingOptions => '一致する項目がありません';
+
+  @override
+  String get undo2 => '元に戻す';
+
+  @override
+  String copiedP0(Object p0) => '「${p0}」をコピーしました';
+
+  @override
+  String get typing => '入力中…';
+
+  @override
+  String get today => '今日';
+
+  @override
+  String get yesterday => '昨日';
+
+  @override
+  String p0P12(Object p0, Object p1) => '${p0}月${p1}日';
+
+  @override
+  String p1P2P0(Object p0, Object p1, Object p2) => '${p0}年${p1}月${p2}日';
+
+  @override
+  String get releaseCancel => '指を離すとキャンセル';
+
+  @override
+  String get slideCancel => '← スライドでキャンセル';
+
+  @override
+  String get awaitingReply => '返信待ち';
+
+  @override
+  String heldUntilP0(Object p0) => '${p0}まで取り置き';
+
+  @override
+  String get declined2 => 'お断り済み';
+
+  @override
+  String get closed => '終了';
+
+  @override
+  String get theyWantReserveBook => '相手があなたの本を予約したいそうです';
+
+  @override
+  String get sentReservationRequest => '予約リクエストを送信しました';
+
+  @override
+  String holdP0H(Object p0) => '${p0}時間取り置き';
+
+  @override
+  String get onceSellerAcceptsBookHeldNo => '出品者が承認すると本はあなたのために取り置かれ、期限までは他の人が購入できません。';
+
+  @override
+  String get holdPeriod => '取り置き期間';
+
+  @override
+  String get messageSellerOptional => '出品者へのメッセージ（任意）';
+
+  @override
+  String get sendRequest => '予約を送信';
+
+  @override
+  String p0Hours(Object p0) => '${p0}時間';
+
+  @override
+  String p0P1DigitsEntered(Object p0, Object p1) => '入力済み ${p0} / ${p1} 桁';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -10807,6 +13082,981 @@ class _LKo extends AppLocalizations {
 
   @override
   String get notificationsTurnedOffAllowAppSend => '알림이 꺼져 있습니다. 시스템 설정에서 이 앱의 알림을 허용하세요.';
+
+  @override
+  String get restoreBackup => '이 백업으로 복원할까요?';
+
+  @override
+  String wholeDatabaseGoBackP0Orders(Object p0) => '전체 데이터베이스가 ${p0} 상태로 돌아갑니다. 그 이후의 주문, 메시지, 회원 데이터, 작업 기록은 모두 사라집니다.\n\n복원 전에 현재 상태를 자동으로 백업하므로 잘못 복원했다면 그 백업으로 되돌릴 수 있습니다. 복원하는 동안 서비스가 중단되며 보통 수십 초에서 몇 분 걸립니다.\n\n확인을 위해 로그인 비밀번호를 입력하세요:';
+
+  @override
+  String get password2 => '로그인 비밀번호';
+
+  @override
+  String get startRestore => '복원 시작';
+
+  @override
+  String get backingUpCurrentState => '현재 상태를 백업하는 중…';
+
+  @override
+  String databaseRestoredPreviousStateWasBacked(Object p0) => '데이터베이스를 복원했습니다. 복원 전 상태는 ${p0}에 백업되어 있습니다';
+
+  @override
+  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => '복원에 실패했습니다. 데이터베이스가 그대로이거나 일부만 복원되었을 수 있습니다. 작업 기록을 확인하고 ${p0} 복원을 고려하세요';
+
+  @override
+  String get autoBackupBeforeRestore => '복원 전 자동 백업';
+
+  @override
+  String get restoreBackup2 => '이 백업으로 복원';
+
+  @override
+  String get restoringDatabase => '데이터베이스 복원 중';
+
+  @override
+  String p0SecondsSoFarKeepApp(Object p0) => '${p0}초 지났습니다. 앱을 닫지 마세요. 완료되면 서비스가 자동으로 재개됩니다.';
+
+  @override
+  String get majorUpdate => '중요한 업데이트인가요?';
+
+  @override
+  String get majorUpdateNotifiesEveryUserTerms => '중요한 업데이트는 모든 사용자에게 알립니다. 이용약관과 개인정보 처리방침은 다음에 앱을 열 때 다시 읽고 동의해야 합니다.\n\n오타 수정이나 서식 조정이라면 "사소한 수정"을 선택하세요.';
+
+  @override
+  String get majorUpdate2 => '중요한 업데이트';
+
+  @override
+  String get minorEdit => '사소한 수정';
+
+  @override
+  String get books => '도서';
+
+  @override
+  String get orders2 => '주문';
+
+  @override
+  String get wallets2 => '지갑';
+
+  @override
+  String get announcements3 => '공지';
+
+  @override
+  String get legal => '약관';
+
+  @override
+  String get backups => '백업';
+
+  @override
+  String get undoAction => '이 작업을 되돌릴까요?';
+
+  @override
+  String p0NNtheDataGoesBack(Object p0) => '"${p0}"\n\n데이터가 작업 전 상태로 돌아갑니다. 이미 보낸 알림은 회수되지 않습니다. 그 뒤에 데이터가 다시 수정되었다면 되돌릴 수 없습니다.';
+
+  @override
+  String get undo => '되돌리기';
+
+  @override
+  String get undone => '되돌림';
+
+  @override
+  String get searchActionsEGNicknameBook => '작업 내용 검색 (예: 닉네임, 책 제목)';
+
+  @override
+  String viewP0Changes(Object p0) => '변경 ${p0}건 보기';
+
+  @override
+  String get undoAction2 => '이 작업 되돌리기';
+
+  @override
+  String get tapBarSeeDay => '막대를 탭하면 그날의 수치를 봅니다';
+
+  @override
+  String get noAnnouncements => '공지가 없습니다';
+
+  @override
+  String get tapPhotoNameChange => '사진이나 닉네임을 탭해 변경';
+
+  @override
+  String get canTContinueWithoutAccepting => '동의하지 않으면 계속 사용할 수 없습니다';
+
+  @override
+  String needAcceptLatestP0UseP1(Object p0, Object p1) => '${p0}을(를) 사용하려면 최신 "${p1}"에 동의해야 합니다. 동의하지 않으면 로그아웃되며, 언제든 다시 로그인해 동의할 수 있습니다.';
+
+  @override
+  String get goBack => '돌아가기';
+
+  @override
+  String p0BeenUpdated(Object p0) => '"${p0}"이(가) 업데이트되었습니다';
+
+  @override
+  String readLatestVersionUpdatedP0Accept(Object p0) => '최신 버전(${p0} 업데이트)을 읽어 주세요. 동의하면 계속 사용할 수 있습니다.';
+
+  @override
+  String get scrollEndContinue => '끝까지 스크롤해 주세요';
+
+  @override
+  String get iVeReadAccept => '읽었으며 동의합니다';
+
+  @override
+  String get decline => '동의하지 않음';
+
+  @override
+  String get viewDetails => '자세히 보기';
+
+  @override
+  String get notFoundMayBeenDeletedRemoved => '찾을 수 없습니다. 삭제되었거나 내려갔을 수 있습니다';
+
+  @override
+  String get salesDropOffsPickupsRefundsDisputes => '판매, 보관, 수령, 환불, 분쟁';
+
+  @override
+  String get chatMessages => '채팅 메시지';
+
+  @override
+  String get newMessagesFromBuyersSellers => '구매자와 판매자가 보낸 새 메시지';
+
+  @override
+  String get promotions2 => '프로모션';
+
+  @override
+  String get announcementsAboutPromotions => '프로모션 공지';
+
+  @override
+  String get supportRepliesPasswordResetsPolicyUpdates => '고객센터 답변, 비밀번호 재설정, 약관 업데이트, 점검 공지는 항상 알립니다. 끈 유형도 알림 목록에는 표시되며 푸시만 오지 않습니다.';
+
+  @override
+  String get notFilled => '미입력';
+
+  @override
+  String get canTChanged => '변경 불가';
+
+  @override
+  String get voice => '[음성]';
+
+  @override
+  String get reservation => '예약';
+
+  @override
+  String get messageUnsent => '메시지를 회수했습니다';
+
+  @override
+  String get confirmBeforeExportingData => '데이터를 내보내기 전에 본인 확인을 해 주세요';
+
+  @override
+  String get exportFailedPleaseTryAgainLater => '내보내기에 실패했습니다. 잠시 후 다시 시도해 주세요';
+
+  @override
+  String get refresh => '새로 고침';
+
+  @override
+  String get clearFilters => '필터 지우기';
+
+  @override
+  String get expired => '만료됨';
+
+  @override
+  String get verificationCancelled => '인증을 취소했습니다';
+
+  @override
+  String get openingClosingTimesCanTSame => '시작 시간과 종료 시간은 같을 수 없습니다';
+
+  @override
+  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => '이 칸은 현재 "${p0}" 상태이며 진행 중인 주문이 있을 수 있습니다. "${p1}"(으)로 바꾸면 구매자나 판매자가 책을 넣거나 찾지 못할 수 있습니다.';
+
+  @override
+  String get active => '사용 중';
+
+  @override
+  String get categoryWithNameAlreadyExists => '같은 이름의 카테고리가 이미 있습니다';
+
+  @override
+  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => '주문 ${p0}이(가) "${p1}"(으)로 종결되고 ${p2} 코인이 구매자에게 환불됩니다. 제출 후에는 변경할 수 없습니다.';
+
+  @override
+  String orderP0ClosedAsP1Can(Object p0, Object p1) => '주문 ${p0}이(가) "${p1}"(으)로 종결됩니다. 제출 후에는 변경할 수 없습니다.';
+
+  @override
+  String get clearSearch => '검색 지우기';
+
+  @override
+  String get enterMinimumPoints => '최소 포인트를 입력하세요';
+
+  @override
+  String pointsRangeOverlapsWithP0P1(Object p0, Object p1) => '포인트 범위가 "${p0}"(${p1})과(와) 겹칩니다';
+
+  @override
+  String noTierCoversP0P1Points(Object p0, Object p1) => '${p0}–${p1}포인트에 해당하는 등급이 없습니다';
+
+  @override
+  String p0TakenDownRightAwayOther(Object p0) => '"${p0}"이(가) 즉시 판매 중지되며 다른 회원은 더 이상 보거나 구매할 수 없습니다.';
+
+  @override
+  String get searchReportedItemReporterReason => '신고 대상, 신고자 또는 사유 검색';
+
+  @override
+  String get couldnTLoadStatisticsRightNow => '통계를 불러올 수 없습니다';
+
+  @override
+  String get searchSubjectMemberMessage => '제목, 회원 또는 메시지 검색';
+
+  @override
+  String get balance3 => '잔액 있음';
+
+  @override
+  String get hold3 => '보류 금액 있음';
+
+  @override
+  String get zeroBalance => '잔액 0';
+
+  @override
+  String get amountCanMost2DecimalPlaces => '금액은 소수점 이하 두 자리까지만 입력할 수 있습니다';
+
+  @override
+  String get singleAdjustmentCanTExceed1 => '한 번에 1,000,000을 초과해 조정할 수 없습니다';
+
+  @override
+  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '차감하면 잔액이 마이너스가 됩니다. 현재 잔액: ${p0}';
+
+  @override
+  String get amountUp2Decimals => '금액(소수점 이하 두 자리까지)';
+
+  @override
+  String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\n조정 후 잔액: ${p1}';
+
+  @override
+  String get cameraAccessOff => '카메라를 사용할 수 없습니다';
+
+  @override
+  String get couldNotStartCamera => '카메라를 시작하지 못했습니다';
+
+  @override
+  String allowP0UseCameraSettingsThen(Object p0) => '설정에서 ${p0}의 카메라 접근을 허용한 뒤 다시 시도해 주세요.';
+
+  @override
+  String get closeScreenTryAgain => '이 화면을 닫고 다시 시도해 주세요.';
+
+  @override
+  String get couldnTGetLocationCheckLocation => '현재 위치를 가져올 수 없습니다. 위치 서비스와 권한이 켜져 있는지 확인하세요';
+
+  @override
+  String get bookReservedAnotherBuyerCanT => '다른 구매자가 예약한 책이라 지금은 장바구니에 담을 수 없습니다';
+
+  @override
+  String reservedAnotherBuyerUntilP0(Object p0) => '다른 구매자가 ${p0}까지 예약함';
+
+  @override
+  String get ifIsnTSoldByThen => '기한까지 거래되지 않으면 장바구니에 담을 수 있습니다';
+
+  @override
+  String sellerHoldingUntilP0(Object p0) => '판매자가 ${p0}까지 회원님을 위해 보관 중';
+
+  @override
+  String get checkOutBeforeHoldEndsOther => '보관 기한 내에 결제하세요. 기한이 지나면 다른 구매자도 구매할 수 있습니다';
+
+  @override
+  String get copyAddress => '주소 복사';
+
+  @override
+  String p0Away(Object p0) => '${p0} 거리';
+
+  @override
+  String get locating => '위치 확인 중…';
+
+  @override
+  String get showDistance => '거리 보기';
+
+  @override
+  String get reserved => '예약됨';
+
+  @override
+  String get goCheckout => '결제하러 가기';
+
+  @override
+  String get cart2 => '장바구니에 있음';
+
+  @override
+  String get buyNow => '지금 구매';
+
+  @override
+  String p0Delisted(Object p0) => '《${p0}》 판매를 중지했습니다';
+
+  @override
+  String noBooksMatchP0(Object p0) => '"${p0}"과(와) 일치하는 책이 없습니다';
+
+  @override
+  String p0BooksP1Views(Object p0, Object p1) => '${p0}권 · 조회 ${p1}회';
+
+  @override
+  String get swipeQuickActions => '밀어서 빠른 작업';
+
+  @override
+  String get searchTitleAuthorIsbn2 => '제목, 저자, ISBN 검색';
+
+  @override
+  String removedP0(Object p0) => '"${p0}"을(를) 삭제했습니다';
+
+  @override
+  String removedP0Items(Object p0) => '상품 ${p0}개를 삭제했습니다';
+
+  @override
+  String get paymentSuccessful => '결제 완료';
+
+  @override
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '총 ${p0}권, 판매자별로 ${p1}건의 주문으로 나눴습니다';
+
+  @override
+  String get keepBrowsing => '계속 둘러보기';
+
+  @override
+  String get reload => '다시 불러오기';
+
+  @override
+  String get browseBooks => '둘러보기';
+
+  @override
+  String p0Sellers(Object p0) => '판매자 ${p0}명';
+
+  @override
+  String unavailableP0(Object p0) => '구매 불가 (${p0})';
+
+  @override
+  String get removeAll => '모두 삭제';
+
+  @override
+  String get goWallet => '지갑으로 이동';
+
+  @override
+  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => '판매자 ${p0}명의 상품으로, 결제 후 ${p1}건의 주문으로 나뉩니다';
+
+  @override
+  String get otherDevicesNeedSignAgainWith => '다른 기기에서는 새 비밀번호로 다시 로그인해야 합니다.';
+
+  @override
+  String get searchChats => '대화 상대 검색';
+
+  @override
+  String get noMatchingChats => '일치하는 대화가 없습니다';
+
+  @override
+  String get read => '읽음';
+
+  @override
+  String get chatNotFound => '채팅방을 찾을 수 없습니다';
+
+  @override
+  String get messagesCanUp2000Characters => '메시지는 최대 2000자까지 가능합니다';
+
+  @override
+  String get canTSendRightNowPlease => '지금은 보낼 수 없습니다. 잠시 후 다시 시도해 주세요';
+
+  @override
+  String get reserveBook => '이 책 예약하기';
+
+  @override
+  String get quickReplies => '빠른 답장';
+
+  @override
+  String get imagesMust10MbSmaller => '이미지는 10MB 이하여야 합니다';
+
+  @override
+  String get recordingFailedPleaseTryAgain => '녹음에 실패했습니다. 다시 시도해 주세요';
+
+  @override
+  String get voiceMessageTooLargePleaseRecord => '음성 파일이 너무 큽니다. 더 짧게 녹음해 주세요';
+
+  @override
+  String get microphoneAllowedPressHoldAgainRecord => '마이크 사용이 허용되었습니다. 다시 길게 눌러 녹음하세요';
+
+  @override
+  String get microphoneAccessNeededRecordTurnSettings => '녹음하려면 마이크 권한이 필요합니다. 설정에서 허용해 주세요';
+
+  @override
+  String get couldnTStartRecordingPleaseTry => '녹음을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요';
+
+  @override
+  String get selectText => '텍스트 선택';
+
+  @override
+  String get unsend => '보내기 취소';
+
+  @override
+  String get resend => '다시 보내기';
+
+  @override
+  String get unsendMessage => '이 메시지를 보내기 취소할까요?';
+
+  @override
+  String get neitherAbleSeeMessageSContent => '취소하면 두 사람 모두 이 메시지 내용을 볼 수 없습니다.';
+
+  @override
+  String get reportMessage => '이 메시지 신고하기';
+
+  @override
+  String get reservationSentWaitingSeller => '예약을 보냈습니다. 판매자의 답변을 기다리는 중입니다';
+
+  @override
+  String get acceptReservation => '예약을 수락할까요?';
+
+  @override
+  String p0HeldThemP1HoursNo(Object p0, Object p1) => '《${p0}》을(를) 상대방을 위해 ${p1}시간 동안 보류합니다. 그동안 다른 사람은 구매할 수 없습니다.';
+
+  @override
+  String get accept => '수락';
+
+  @override
+  String get reservationAccepted => '예약을 수락했습니다';
+
+  @override
+  String get declineReservation => '예약을 거절할까요?';
+
+  @override
+  String get theyLlNotifiedDeclined => '상대방에게 거절 알림이 전송됩니다.';
+
+  @override
+  String get decline2 => '거절';
+
+  @override
+  String get reservationDeclined => '예약을 거절했습니다';
+
+  @override
+  String get cancelReservation => '예약을 취소할까요?';
+
+  @override
+  String p0NoLongerHeld(Object p0) => '취소하면 《${p0}》은(는) 더 이상 보류되지 않습니다.';
+
+  @override
+  String get cancelReservation2 => '예약 취소';
+
+  @override
+  String get reservationCanceled => '예약을 취소했습니다';
+
+  @override
+  String get notNow2 => '나중에';
+
+  @override
+  String get couldnTLoadConversationPleaseTry => '대화를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요';
+
+  @override
+  String get accountCanTReceiveMessagesRight => '상대방 계정은 현재 메시지를 받을 수 없습니다';
+
+  @override
+  String get holdMicTalkReleaseSend => '마이크를 길게 눌러 말하고, 손을 떼면 전송됩니다';
+
+  @override
+  String get startConversation => '대화가 여기서 시작됩니다';
+
+  @override
+  String p0New(Object p0) => '새 메시지 ${p0}개';
+
+  @override
+  String get connectionUnstableMessagesCanTSent => '연결이 불안정하여 지금은 메시지를 보낼 수 없습니다';
+
+  @override
+  String get retry => '다시 시도';
+
+  @override
+  String get stillAvailable => '아직 판매 중인가요?';
+
+  @override
+  String get couldLowerPriceBit => '조금 더 깎아 주실 수 있나요?';
+
+  @override
+  String get whenCanPutLocker => '언제 보관함에 넣어 주실 수 있나요?';
+
+  @override
+  String get unsentMessage => '메시지를 보내기 취소했습니다';
+
+  @override
+  String get theyUnsentMessage => '상대방이 메시지를 보내기 취소했습니다';
+
+  @override
+  String get reservationDetailsArenTAvailableRight => '예약 정보를 표시할 수 없습니다';
+
+  @override
+  String get sending => '전송 중';
+
+  @override
+  String get couldNotUploadPhotosPleaseTry => '증빙 사진 업로드에 실패했습니다. 잠시 후 다시 시도해 주세요';
+
+  @override
+  String get bookDetailsUpdatedButPhotosCouldn => '도서 정보는 수정되었지만 사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요';
+
+  @override
+  String get sNotIsbnBarcodeScanOne => 'ISBN 바코드가 아닙니다. 뒤표지의 978 또는 979로 시작하는 바코드를 스캔해 주세요';
+
+  @override
+  String get couldnTLoadCategoriesTapRetry => '카테고리를 불러오지 못했습니다. 탭하여 다시 시도';
+
+  @override
+  String removedP0FromSaved(Object p0) => '"${p0}"을(를) 저장 목록에서 뺐습니다';
+
+  @override
+  String get recentlyViewedCleared => '최근 본 항목을 지웠습니다';
+
+  @override
+  String clearP0(Object p0) => '지우기 (${p0})';
+
+  @override
+  String get picked => '추천 도서';
+
+  @override
+  String get seeMore => '더 보기';
+
+  @override
+  String get recentlyViewed => '최근 본 책';
+
+  @override
+  String get clear => '지우기';
+
+  @override
+  String get notificationDeleted => '알림을 삭제했습니다';
+
+  @override
+  String get pleasePutBookAssignedLockerSoon => '지정된 보관함에 책을 빨리 넣어 주세요';
+
+  @override
+  String get weLlLetKnowWhenSeller => '판매자가 책을 넣으면 수령 안내를 보내 드립니다';
+
+  @override
+  String get waitingBuyerCollect => '구매자의 수령을 기다리는 중';
+
+  @override
+  String get bookLockerEnterPickupCodeCollect => '책이 보관함에 있습니다. 수령 코드를 입력해 찾아가세요';
+
+  @override
+  String get transactionCompleteThank => '거래가 완료되었습니다. 이용해 주셔서 감사합니다';
+
+  @override
+  String get confirmVeTakenBookFromLocker => '보관함에서 책을 꺼냈는지 확인하세요. 확인하면 주문이 완료됩니다.';
+
+  @override
+  String p0Orders2(Object p0) => '주문 ${p0}건';
+
+  @override
+  String p0ReadyPickup(Object p0) => '수령 가능 ${p0}건';
+
+  @override
+  String get pickUp => '픽업 대기';
+
+  @override
+  String get saved => '찜';
+
+  @override
+  String get accountSecurity => '계정 보안';
+
+  @override
+  String get sellerHasnTPutBookLocker => '판매자가 아직 책을 보관함에 넣지 않았습니다. 넣으면 알려 드립니다';
+
+  @override
+  String get searchHistoryCleared => '검색 기록을 지웠습니다';
+
+  @override
+  String get trendingBooks => '인기 도서';
+
+  @override
+  String get signOutDevice => '이 기기를 로그아웃할까요?';
+
+  @override
+  String signOutP0(Object p0) => '"${p0}"을(를) 로그아웃할까요?';
+
+  @override
+  String get llNeedSignAgainUseApp => '로그아웃하면 다시 로그인해야 합니다.';
+
+  @override
+  String get deviceSignedOutRightAwayStop => '해당 기기는 즉시 로그아웃되며 알림도 받지 않습니다.';
+
+  @override
+  String get deviceSignedOut => '기기를 로그아웃했습니다';
+
+  @override
+  String get signOutAllDevicesIncludingOne => '모든 기기 로그아웃(이 기기 포함)';
+
+  @override
+  String get signOutAllOtherDevices => '다른 모든 기기 로그아웃';
+
+  @override
+  String get everyDeviceIncludingOneSignedOut => '이 기기를 포함한 모든 기기가 로그아웃되며 다시 로그인해야 합니다.';
+
+  @override
+  String get everyDeviceExceptOneSignedOut => '이 기기를 제외한 모든 기기가 즉시 로그아웃되며 알림도 받지 않습니다.';
+
+  @override
+  String signedOutP0OtherDevices(Object p0) => '다른 기기 ${p0}대에서 로그아웃했습니다';
+
+  @override
+  String get unknownDevice => '알 수 없는 기기';
+
+  @override
+  String get couldnTLoadDevices => '기기 목록을 불러오지 못했습니다';
+
+  @override
+  String get theseDevicesSignedAccountIfDon => '이 기기들이 계정에 로그인되어 있습니다. 모르는 기기가 있으면 즉시 로그아웃하고 비밀번호를 변경하세요.';
+
+  @override
+  String get device => '이 기기';
+
+  @override
+  String get otherDevices => '다른 기기';
+
+  @override
+  String otherDevicesP0(Object p0) => '다른 기기 (${p0})';
+
+  @override
+  String get noOtherDevicesSigned => '로그인된 다른 기기가 없습니다';
+
+  @override
+  String get signedDevices => '로그인된 기기';
+
+  @override
+  String get activeNow => '현재 사용 중';
+
+  @override
+  String lastActiveP0(Object p0) => '마지막 사용 ${p0}';
+
+  @override
+  String signedP0(Object p0) => '${p0} 로그인';
+
+  @override
+  String get biometricPayment => '생체 인증 결제 사용 중';
+
+  @override
+  String get paymentPinMust6Digits => '결제 비밀번호는 6자리 숫자여야 합니다';
+
+  @override
+  String get pinTooEasyGuessTryAnother => '결제 비밀번호가 너무 쉽습니다. 다른 번호를 사용하세요';
+
+  @override
+  String get enterPasswordResetPaymentPin => '로그인 비밀번호를 입력하면 결제 비밀번호를 다시 설정할 수 있습니다';
+
+  @override
+  String get confirmSBeforeSettingPaymentPin => '결제 비밀번호를 설정하기 전에 본인 확인이 필요합니다';
+
+  @override
+  String get pinsDonTMatchStartAgain => '두 번 입력한 비밀번호가 다릅니다. 다시 설정하세요';
+
+  @override
+  String get paymentPinReset => '결제 비밀번호를 재설정했습니다';
+
+  @override
+  String get paymentPinSet => '결제 비밀번호를 설정했습니다';
+
+  @override
+  String get use6DigitPinConfirmPayments => '앞으로 결제할 때 이 6자리 비밀번호로 결제를 확인합니다.';
+
+  @override
+  String get verifyingIdentity => '본인 확인 중…';
+
+  @override
+  String get enterAgainConfirm => '확인을 위해 한 번 더 입력하세요';
+
+  @override
+  String get set6DigitPaymentPin => '6자리 결제 비밀번호 설정';
+
+  @override
+  String get enterSamePinAgain => '같은 비밀번호를 한 번 더 입력하세요';
+
+  @override
+  String get avoidRepeatedSequentialPatternedDigits => '같은 숫자, 연속 숫자, 반복 패턴은 사용할 수 없습니다';
+
+  @override
+  String get resetPaymentPin => '결제 비밀번호 재설정';
+
+  @override
+  String get paymentPin => '결제 비밀번호';
+
+  @override
+  String stepP02(Object p0) => '단계 ${p0} / 2';
+
+  @override
+  String get setPaymentPinFirst => '먼저 결제 비밀번호를 설정하세요';
+
+  @override
+  String get setPaymentPinFirstSoFallback => '먼저 결제 비밀번호를 설정하세요. 인증에 실패했을 때 대체 수단이 됩니다';
+
+  @override
+  String get setUpNow => '지금 설정';
+
+  @override
+  String get biometricPaymentTurnedOff => '생체 인증 결제를 껐습니다';
+
+  @override
+  String get verifyTurnBiometricPayment => '생체 인증 결제를 켜려면 인증하세요';
+
+  @override
+  String p0PaymentsTurned(Object p0) => '${p0} 결제를 켰습니다';
+
+  @override
+  String get securitySettingsUnavailableRightNowMay => '보안 설정을 불러올 수 없습니다. 결제 비밀번호와 로그인 기기를 변경하지 못할 수 있습니다.';
+
+  @override
+  String payWithP0(Object p0) => '${p0}(으)로 결제';
+
+  @override
+  String get accountWellProtected => '계정이 안전하게 보호되고 있습니다';
+
+  @override
+  String get accountCouldSafer => '계정 보안을 강화할 수 있습니다';
+
+  @override
+  String get paymentPinBiometricPaymentSetCheck => '결제 비밀번호와 생체 인증 결제가 설정되어 있습니다. 로그인된 기기도 가끔 확인하세요.';
+
+  @override
+  String get setPaymentPinTurnBiometricPayment => '결제 비밀번호를 설정하고 생체 인증 결제를 켜면 더 안전하고 빠르게 결제할 수 있습니다.';
+
+  @override
+  String tooManyAttemptsLockedUntilP0(Object p0) => '시도 횟수 초과. ${p0}까지 잠김';
+
+  @override
+  String get usedConfirmPaymentsCheckout => '결제할 때 결제 확인에 사용됩니다';
+
+  @override
+  String get notSetRequiredBeforeCheckout => '설정되지 않았습니다. 결제 전에 설정해야 합니다';
+
+  @override
+  String get change => '변경';
+
+  @override
+  String get forgotPaymentPin => '결제 비밀번호를 잊음';
+
+  @override
+  String get ifFailsCanEnterPaymentPin => '인증에 실패하면 결제 비밀번호를 입력할 수 있습니다';
+
+  @override
+  String get viewRemotelySignOutDevices => '기기 확인 및 원격 로그아웃';
+
+  @override
+  String p0Devices(Object p0) => '${p0}대';
+
+  @override
+  String get otherDevicesNeedSignAgain => '변경하면 다른 기기는 다시 로그인해야 합니다';
+
+  @override
+  String get restoredUnfinishedListing => '작성 중이던 내용을 불러왔습니다';
+
+  @override
+  String get isbnSCheckDigitInvalidPlease => 'ISBN 체크 숫자가 올바르지 않습니다. 다시 확인해 주세요';
+
+  @override
+  String get draftSavedAutomatically => '임시 저장되었습니다';
+
+  @override
+  String get continueUnfinishedListing => '작성 중이던 판매 글 이어서 쓰기';
+
+  @override
+  String clearedP0MbCache(Object p0) => '캐시 ${p0}를 삭제했습니다';
+
+  @override
+  String get cacheCleared => '캐시를 삭제했습니다';
+
+  @override
+  String get storage => '저장 공간';
+
+  @override
+  String get paymentPinBiometricPaymentDevices => '결제 비밀번호, 생체 인증 결제, 로그인 기기';
+
+  @override
+  String get clearCache => '캐시 삭제';
+
+  @override
+  String get removesCachedImagesFilesAccountData => '임시 저장된 이미지와 파일을 삭제합니다. 계정 데이터에는 영향이 없습니다';
+
+  @override
+  String get couldNotLoadNotificationSettings => '알림 설정을 불러올 수 없습니다';
+
+  @override
+  String get month => '이번 달';
+
+  @override
+  String p0P1(Object p0, Object p1) => '${p0}년 ${p1}월';
+
+  @override
+  String get noIncomeYet => '수입 내역이 없습니다';
+
+  @override
+  String get noSpendingYet => '지출 내역이 없습니다';
+
+  @override
+  String get income => '수입';
+
+  @override
+  String get spending => '지출';
+
+  @override
+  String get totalIncome => '누적 수입';
+
+  @override
+  String get totalSpending => '누적 지출';
+
+  @override
+  String get item3 => '항목';
+
+  @override
+  String get details => '설명';
+
+  @override
+  String get balanceAfter => '거래 후 잔액';
+
+  @override
+  String get transactionId => '거래 번호';
+
+  @override
+  String get sessionExpiredPleaseSignAgain => '로그인이 만료되었습니다. 다시 로그인하세요';
+
+  @override
+  String get serviceTemporarilyUnavailableTryAgainLater => '서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요';
+
+  @override
+  String get uploadFailedTryAgainLater => '업로드에 실패했습니다. 잠시 후 다시 시도하세요';
+
+  @override
+  String get nearby => '바로 근처';
+
+  @override
+  String p0M(Object p0) => '${p0}';
+
+  @override
+  String p0Km(Object p0) => '${p0}';
+
+  @override
+  String get iphoneDidnTReceiveApnsToken => 'iPhone이 APNs 토큰을 받지 못했습니다. Xcode의 Signing & Capabilities에 Push Notifications가 추가되었는지 확인하고 같은 Apple 개발자 계정으로 앱을 다시 설치하세요.';
+
+  @override
+  String get firebaseDidnTIssuePushToken => 'Firebase가 푸시 토큰을 발급하지 않았습니다. GoogleService-Info.plist와 앱의 Bundle ID가 일치하는지 확인하세요';
+
+  @override
+  String couldnTGetPushTokenP0(Object p0) => '푸시 토큰을 가져오지 못했습니다: ${p0}';
+
+  @override
+  String couldnTRegisterPushTokenWith(Object p0) => '푸시 토큰을 서버에 등록하지 못했습니다: ${p0}';
+
+  @override
+  String get protectCoinsCheckoutRequires6Digit => '코인을 보호하기 위해 결제할 때 6자리 결제 비밀번호가 필요합니다. 설정 후 Face ID나 지문 결제도 켤 수 있습니다.';
+
+  @override
+  String confirmPaymentP0Coins(Object p0) => '${p0} 코인 결제 확인';
+
+  @override
+  String get enterPasswordContinue => '계속하려면 로그인 비밀번호를 입력하세요';
+
+  @override
+  String get verifyS => '본인 확인';
+
+  @override
+  String get amount => '결제 금액';
+
+  @override
+  String p0Coins(Object p0) => '${p0} 코인';
+
+  @override
+  String get enterPaymentPin => '결제 비밀번호 입력';
+
+  @override
+  String get enterPaymentPinContinue => '계속하려면 결제 비밀번호를 입력하세요';
+
+  @override
+  String get paymentPinResetEnterAgain => '결제 비밀번호를 재설정했습니다. 다시 입력하세요';
+
+  @override
+  String get usePasswordInstead => '로그인 비밀번호 사용';
+
+  @override
+  String get couldnTGetLocationLockersShown => '현재 위치를 가져올 수 없어 보관함을 기본 순서로 표시합니다';
+
+  @override
+  String p0SlotsFree(Object p0) => '빈 칸 ${p0}개';
+
+  @override
+  String openP0(Object p0) => '운영 ${p0}';
+
+  @override
+  String get nearest => '가장 가까움';
+
+  @override
+  String get noFreeSlots => '빈 칸 없음';
+
+  @override
+  String get sortedByDistance => '가까운 순으로 정렬';
+
+  @override
+  String get turnLocationSortByDistance => '위치를 켜면 거리순으로 정렬됩니다';
+
+  @override
+  String get lockerNoFreeSlotsRightNow => '이 보관함은 현재 빈 칸이 없습니다';
+
+  @override
+  String get turn => '위치 켜기';
+
+  @override
+  String get noLockersAvailable => '이용 가능한 보관함이 없습니다';
+
+  @override
+  String get noMatchingOptions => '일치하는 항목이 없습니다';
+
+  @override
+  String get undo2 => '실행 취소';
+
+  @override
+  String copiedP0(Object p0) => '"${p0}"을(를) 복사했습니다';
+
+  @override
+  String get typing => '입력 중…';
+
+  @override
+  String get today => '오늘';
+
+  @override
+  String get yesterday => '어제';
+
+  @override
+  String p0P12(Object p0, Object p1) => '${p0}월 ${p1}일';
+
+  @override
+  String p1P2P0(Object p0, Object p1, Object p2) => '${p0}년 ${p1}월 ${p2}일';
+
+  @override
+  String get releaseCancel => '손을 떼면 취소';
+
+  @override
+  String get slideCancel => '← 밀어서 취소';
+
+  @override
+  String get awaitingReply => '답변 대기';
+
+  @override
+  String heldUntilP0(Object p0) => '${p0}까지 보류';
+
+  @override
+  String get declined2 => '거절됨';
+
+  @override
+  String get closed => '종료됨';
+
+  @override
+  String get theyWantReserveBook => '상대방이 회원님의 책을 예약하고 싶어 합니다';
+
+  @override
+  String get sentReservationRequest => '예약 요청을 보냈습니다';
+
+  @override
+  String holdP0H(Object p0) => '${p0}시간 보류';
+
+  @override
+  String get onceSellerAcceptsBookHeldNo => '판매자가 수락하면 책이 회원님을 위해 보류되며, 기한까지 다른 사람은 구매할 수 없습니다.';
+
+  @override
+  String get holdPeriod => '보류 기간';
+
+  @override
+  String get messageSellerOptional => '판매자에게 전할 말 (선택)';
+
+  @override
+  String get sendRequest => '예약 보내기';
+
+  @override
+  String p0Hours(Object p0) => '${p0}시간';
+
+  @override
+  String p0P1DigitsEntered(Object p0, Object p1) => '${p0} / ${p1}자리 입력됨';
 
 }
 
@@ -14044,6 +17294,981 @@ class _LZh extends AppLocalizations {
   @override
   String get notificationsTurnedOffAllowAppSend => '通知權限已被關閉，請到系統設定允許這個 App 傳送通知。';
 
+  @override
+  String get restoreBackup => '還原到這份備份？';
+
+  @override
+  String wholeDatabaseGoBackP0Orders(Object p0) => '整個資料庫會回到 ${p0} 的狀態，這個時間點之後的訂單、訊息、會員資料與操作紀錄都會消失。\n\n還原前系統會先自動備份目前的狀態，還原錯了可以再還原那一份。還原期間全站暫停服務，通常需要幾十秒到幾分鐘。\n\n請輸入你的登入密碼確認：';
+
+  @override
+  String get password2 => '登入密碼';
+
+  @override
+  String get startRestore => '開始還原';
+
+  @override
+  String get backingUpCurrentState => '正在備份目前的狀態…';
+
+  @override
+  String databaseRestoredPreviousStateWasBacked(Object p0) => '資料庫已還原。還原前的狀態備份在 ${p0}';
+
+  @override
+  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => '還原失敗，資料庫維持原狀或部分還原，請查看操作紀錄並考慮還原 ${p0}';
+
+  @override
+  String get autoBackupBeforeRestore => '還原前自動備份';
+
+  @override
+  String get restoreBackup2 => '還原到這份備份';
+
+  @override
+  String get restoringDatabase => '正在還原資料庫';
+
+  @override
+  String p0SecondsSoFarKeepApp(Object p0) => '已經過 ${p0} 秒。請不要關閉 App，完成後會自動恢復服務。';
+
+  @override
+  String get majorUpdate => '這次是重大更新嗎？';
+
+  @override
+  String get majorUpdateNotifiesEveryUserTerms => '重大更新會通知所有使用者；服務條款與隱私權政策還會要求使用者下次開啟 App 時重新閱讀並同意。\n\n只是修正錯字或調整排版，請選「小幅修改」。';
+
+  @override
+  String get majorUpdate2 => '重大更新';
+
+  @override
+  String get minorEdit => '小幅修改';
+
+  @override
+  String get books => '書籍';
+
+  @override
+  String get orders2 => '訂單';
+
+  @override
+  String get wallets2 => '錢包';
+
+  @override
+  String get announcements3 => '公告';
+
+  @override
+  String get legal => '條款';
+
+  @override
+  String get backups => '備份';
+
+  @override
+  String get undoAction => '還原這筆操作？';
+
+  @override
+  String p0NNtheDataGoesBack(Object p0) => '「${p0}」\n\n資料會改回操作前的狀態。已經送出的通知不會收回；如果資料之後又被修改過，系統會拒絕還原。';
+
+  @override
+  String get undo => '還原';
+
+  @override
+  String get undone => '已還原';
+
+  @override
+  String get searchActionsEGNicknameBook => '搜尋操作內容，例如會員暱稱或書名';
+
+  @override
+  String viewP0Changes(Object p0) => '查看 ${p0} 項變更';
+
+  @override
+  String get undoAction2 => '還原這筆操作';
+
+  @override
+  String get tapBarSeeDay => '點長條可以看當天的數字';
+
+  @override
+  String get noAnnouncements => '目前沒有公告';
+
+  @override
+  String get tapPhotoNameChange => '點頭像或暱稱可以修改';
+
+  @override
+  String get canTContinueWithoutAccepting => '不同意就無法繼續使用';
+
+  @override
+  String needAcceptLatestP0UseP1(Object p0, Object p1) => '需要同意最新版本的「${p0}」才能使用${p1}。不同意的話會先登出，你可以隨時重新登入後再同意。';
+
+  @override
+  String get goBack => '再看看';
+
+  @override
+  String p0BeenUpdated(Object p0) => '「${p0}」已經更新';
+
+  @override
+  String readLatestVersionUpdatedP0Accept(Object p0) => '請閱讀最新版本（${p0} 更新）。同意後才能繼續使用。';
+
+  @override
+  String get scrollEndContinue => '請先捲動讀完全文';
+
+  @override
+  String get iVeReadAccept => '我已閱讀並同意';
+
+  @override
+  String get decline => '不同意';
+
+  @override
+  String get viewDetails => '查看詳情';
+
+  @override
+  String get notFoundMayBeenDeletedRemoved => '找不到這筆資料，可能已經刪除或下架';
+
+  @override
+  String get salesDropOffsPickupsRefundsDisputes => '售出、存書、取貨、退款與爭議';
+
+  @override
+  String get chatMessages => '聊天訊息';
+
+  @override
+  String get newMessagesFromBuyersSellers => '買賣雙方傳來的新訊息';
+
+  @override
+  String get promotions2 => '優惠活動';
+
+  @override
+  String get announcementsAboutPromotions => '優惠類型的系統公告';
+
+  @override
+  String get supportRepliesPasswordResetsPolicyUpdates => '客服回覆、密碼重設、條款更新與維護公告一律會通知。關掉的類型仍會出現在通知列表，只是不推播到手機。';
+
+  @override
+  String get notFilled => '未填寫';
+
+  @override
+  String get canTChanged => '無法修改';
+
+  @override
+  String get voice => '[語音]';
+
+  @override
+  String get reservation => '預約';
+
+  @override
+  String get messageUnsent => '訊息已收回';
+
+  @override
+  String get confirmBeforeExportingData => '匯出個人資料前，請先確認是你本人';
+
+  @override
+  String get exportFailedPleaseTryAgainLater => '匯出失敗，請稍後再試';
+
+  @override
+  String get refresh => '重新整理';
+
+  @override
+  String get clearFilters => '清除篩選';
+
+  @override
+  String get expired => '已過期';
+
+  @override
+  String get verificationCancelled => '已取消驗證';
+
+  @override
+  String get openingClosingTimesCanTSame => '開放與關閉時間不能相同';
+
+  @override
+  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => '這一格目前是「${p0}」，可能有進行中的訂單。改成「${p1}」後，買賣雙方可能無法正常存取書籍。';
+
+  @override
+  String get active => '啟用中';
+
+  @override
+  String get categoryWithNameAlreadyExists => '已經有同名的分類';
+
+  @override
+  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => '訂單 ${p0} 將以「${p1}」結案，${p2} 代幣會退回買家。送出後無法修改。';
+
+  @override
+  String orderP0ClosedAsP1Can(Object p0, Object p1) => '訂單 ${p0} 將以「${p1}」結案。送出後無法修改。';
+
+  @override
+  String get clearSearch => '清除搜尋';
+
+  @override
+  String get enterMinimumPoints => '請輸入最低點數';
+
+  @override
+  String pointsRangeOverlapsWithP0P1(Object p0, Object p1) => '點數範圍與「${p0}」（${p1}）重疊';
+
+  @override
+  String noTierCoversP0P1Points(Object p0, Object p1) => '${p0}–${p1} 點沒有對應的等級';
+
+  @override
+  String p0TakenDownRightAwayOther(Object p0) => '「${p0}」會立即下架，其他會員將無法再看到或購買。';
+
+  @override
+  String get searchReportedItemReporterReason => '搜尋被檢舉項目、檢舉人或原因';
+
+  @override
+  String get couldnTLoadStatisticsRightNow => '暫時無法取得統計資料';
+
+  @override
+  String get searchSubjectMemberMessage => '搜尋主旨、會員或訊息內容';
+
+  @override
+  String get balance3 => '有餘額';
+
+  @override
+  String get hold3 => '有凍結金額';
+
+  @override
+  String get zeroBalance => '餘額為 0';
+
+  @override
+  String get amountCanMost2DecimalPlaces => '金額最多只能到小數點後兩位';
+
+  @override
+  String get singleAdjustmentCanTExceed1 => '單次調整不可超過 1,000,000';
+
+  @override
+  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除後餘額會變成負數，目前餘額 ${p0}';
+
+  @override
+  String get amountUp2Decimals => '金額（最多兩位小數）';
+
+  @override
+  String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\n調整後餘額 ${p1}';
+
+  @override
+  String get cameraAccessOff => '無法使用相機';
+
+  @override
+  String get couldNotStartCamera => '相機啟動失敗';
+
+  @override
+  String allowP0UseCameraSettingsThen(Object p0) => '請到系統設定允許 ${p0} 使用相機後再試一次。';
+
+  @override
+  String get closeScreenTryAgain => '請關閉這個畫面後再試一次。';
+
+  @override
+  String get couldnTGetLocationCheckLocation => '無法取得目前位置，請確認已開啟定位服務與權限';
+
+  @override
+  String get bookReservedAnotherBuyerCanT => '這本書已被其他買家預約，暫時無法加入購物車';
+
+  @override
+  String reservedAnotherBuyerUntilP0(Object p0) => '已被其他買家預約，保留到 ${p0}';
+
+  @override
+  String get ifIsnTSoldByThen => '保留期限過後若未成交，就能再加入購物車';
+
+  @override
+  String sellerHoldingUntilP0(Object p0) => '賣家已為你保留到 ${p0}';
+
+  @override
+  String get checkOutBeforeHoldEndsOther => '請在保留期限內完成結帳，逾期其他買家就能購買';
+
+  @override
+  String get copyAddress => '複製地址';
+
+  @override
+  String p0Away(Object p0) => '距離你 ${p0}';
+
+  @override
+  String get locating => '定位中…';
+
+  @override
+  String get showDistance => '查看距離';
+
+  @override
+  String get reserved => '已被預約';
+
+  @override
+  String get goCheckout => '前往結帳';
+
+  @override
+  String get cart2 => '已在購物車';
+
+  @override
+  String get buyNow => '立即購買';
+
+  @override
+  String p0Delisted(Object p0) => '《${p0}》已下架';
+
+  @override
+  String noBooksMatchP0(Object p0) => '找不到符合「${p0}」的書籍';
+
+  @override
+  String p0BooksP1Views(Object p0, Object p1) => '共 ${p0} 本 · 總瀏覽 ${p1} 次';
+
+  @override
+  String get swipeQuickActions => '左右滑動可快速操作';
+
+  @override
+  String get searchTitleAuthorIsbn2 => '搜尋書名、作者或 ISBN';
+
+  @override
+  String removedP0(Object p0) => '已移除《${p0}》';
+
+  @override
+  String removedP0Items(Object p0) => '已移除 ${p0} 件商品';
+
+  @override
+  String get paymentSuccessful => '付款成功';
+
+  @override
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本書，已依賣家拆成 ${p1} 筆訂單';
+
+  @override
+  String get keepBrowsing => '繼續逛逛';
+
+  @override
+  String get reload => '重新載入';
+
+  @override
+  String get browseBooks => '去逛逛';
+
+  @override
+  String p0Sellers(Object p0) => '${p0} 位賣家';
+
+  @override
+  String unavailableP0(Object p0) => '無法購買（${p0}）';
+
+  @override
+  String get removeAll => '全部移除';
+
+  @override
+  String get goWallet => '前往錢包';
+
+  @override
+  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => '來自 ${p0} 位賣家，結帳後會拆成 ${p1} 筆訂單';
+
+  @override
+  String get otherDevicesNeedSignAgainWith => '其他裝置需要用新密碼重新登入。';
+
+  @override
+  String get searchChats => '搜尋聊天對象';
+
+  @override
+  String get noMatchingChats => '找不到符合的聊天對象';
+
+  @override
+  String get read => '已讀';
+
+  @override
+  String get chatNotFound => '找不到這個聊天室';
+
+  @override
+  String get messagesCanUp2000Characters => '訊息最多 2000 字';
+
+  @override
+  String get canTSendRightNowPlease => '目前無法傳送，請稍後再試';
+
+  @override
+  String get reserveBook => '預約這本書';
+
+  @override
+  String get quickReplies => '快速回覆';
+
+  @override
+  String get imagesMust10MbSmaller => '圖片不能超過 10 MB';
+
+  @override
+  String get recordingFailedPleaseTryAgain => '錄音失敗，請再試一次';
+
+  @override
+  String get voiceMessageTooLargePleaseRecord => '語音檔案太大，請縮短錄音';
+
+  @override
+  String get microphoneAllowedPressHoldAgainRecord => '已允許使用麥克風，請再按住按鈕開始錄音';
+
+  @override
+  String get microphoneAccessNeededRecordTurnSettings => '需要麥克風權限才能錄音，請到系統設定開啟';
+
+  @override
+  String get couldnTStartRecordingPleaseTry => '無法開始錄音，請稍後再試';
+
+  @override
+  String get selectText => '選取文字';
+
+  @override
+  String get unsend => '收回';
+
+  @override
+  String get resend => '重新傳送';
+
+  @override
+  String get unsendMessage => '收回這則訊息？';
+
+  @override
+  String get neitherAbleSeeMessageSContent => '收回後雙方都看不到這則訊息的內容。';
+
+  @override
+  String get reportMessage => '檢舉這則訊息';
+
+  @override
+  String get reservationSentWaitingSeller => '已送出預約，等待賣家回覆';
+
+  @override
+  String get acceptReservation => '接受預約？';
+
+  @override
+  String p0HeldThemP1HoursNo(Object p0, Object p1) => '《${p0}》會保留給對方 ${p1} 小時，期間其他人無法購買。';
+
+  @override
+  String get accept => '接受';
+
+  @override
+  String get reservationAccepted => '已接受預約';
+
+  @override
+  String get declineReservation => '婉拒預約？';
+
+  @override
+  String get theyLlNotifiedDeclined => '對方會收到婉拒的通知。';
+
+  @override
+  String get decline2 => '婉拒';
+
+  @override
+  String get reservationDeclined => '已婉拒預約';
+
+  @override
+  String get cancelReservation => '取消預約？';
+
+  @override
+  String p0NoLongerHeld(Object p0) => '取消後《${p0}》將不再保留。';
+
+  @override
+  String get cancelReservation2 => '取消預約';
+
+  @override
+  String get reservationCanceled => '已取消預約';
+
+  @override
+  String get notNow2 => '先不要';
+
+  @override
+  String get couldnTLoadConversationPleaseTry => '無法載入對話，請稍後再試';
+
+  @override
+  String get accountCanTReceiveMessagesRight => '對方帳號目前無法接收訊息';
+
+  @override
+  String get holdMicTalkReleaseSend => '按住麥克風說話，放開即可傳送';
+
+  @override
+  String get startConversation => '對話從這裡開始';
+
+  @override
+  String p0New(Object p0) => '${p0} 則新訊息';
+
+  @override
+  String get connectionUnstableMessagesCanTSent => '連線不穩定，暫時無法傳送訊息';
+
+  @override
+  String get retry => '重試';
+
+  @override
+  String get stillAvailable => '請問還在嗎？';
+
+  @override
+  String get couldLowerPriceBit => '可以再便宜一點嗎？';
+
+  @override
+  String get whenCanPutLocker => '什麼時候可以放進書櫃？';
+
+  @override
+  String get unsentMessage => '你收回了一則訊息';
+
+  @override
+  String get theyUnsentMessage => '對方收回了一則訊息';
+
+  @override
+  String get reservationDetailsArenTAvailableRight => '預約資訊暫時無法顯示';
+
+  @override
+  String get sending => '傳送中';
+
+  @override
+  String get couldNotUploadPhotosPleaseTry => '證據照片上傳失敗，請稍後再試';
+
+  @override
+  String get bookDetailsUpdatedButPhotosCouldn => '書籍資料已更新，但照片上傳失敗，請稍後再試';
+
+  @override
+  String get sNotIsbnBarcodeScanOne => '掃到的不是 ISBN 條碼，請掃描書背上 978 或 979 開頭的條碼';
+
+  @override
+  String get couldnTLoadCategoriesTapRetry => '分類載入失敗，點此重試';
+
+  @override
+  String removedP0FromSaved(Object p0) => '已取消收藏《${p0}》';
+
+  @override
+  String get recentlyViewedCleared => '已清除最近瀏覽';
+
+  @override
+  String clearP0(Object p0) => '清除（${p0}）';
+
+  @override
+  String get picked => '猜你喜歡';
+
+  @override
+  String get seeMore => '查看更多';
+
+  @override
+  String get recentlyViewed => '最近瀏覽';
+
+  @override
+  String get clear => '清除';
+
+  @override
+  String get notificationDeleted => '已刪除通知';
+
+  @override
+  String get pleasePutBookAssignedLockerSoon => '請盡快把書放進指定書櫃';
+
+  @override
+  String get weLlLetKnowWhenSeller => '賣家存書後會通知你前往取書';
+
+  @override
+  String get waitingBuyerCollect => '等待買家到書櫃取書';
+
+  @override
+  String get bookLockerEnterPickupCodeCollect => '書已在書櫃裡，輸入取書碼即可取書';
+
+  @override
+  String get transactionCompleteThank => '交易完成，感謝使用';
+
+  @override
+  String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍，確認後訂單即完成。';
+
+  @override
+  String p0Orders2(Object p0) => '共 ${p0} 筆訂單';
+
+  @override
+  String p0ReadyPickup(Object p0) => '可取書 ${p0} 筆';
+
+  @override
+  String get pickUp => '待取貨';
+
+  @override
+  String get saved => '收藏';
+
+  @override
+  String get accountSecurity => '帳號安全';
+
+  @override
+  String get sellerHasnTPutBookLocker => '賣家還沒把書放進書櫃，存書後會通知你';
+
+  @override
+  String get searchHistoryCleared => '已清除搜尋紀錄';
+
+  @override
+  String get trendingBooks => '熱門書籍';
+
+  @override
+  String get signOutDevice => '登出這台裝置？';
+
+  @override
+  String signOutP0(Object p0) => '登出「${p0}」？';
+
+  @override
+  String get llNeedSignAgainUseApp => '登出後需要重新登入才能使用。';
+
+  @override
+  String get deviceSignedOutRightAwayStop => '那台裝置會立即登出，也不會再收到推播。';
+
+  @override
+  String get deviceSignedOut => '已登出這台裝置';
+
+  @override
+  String get signOutAllDevicesIncludingOne => '登出所有裝置（含這台）';
+
+  @override
+  String get signOutAllOtherDevices => '登出其他所有裝置';
+
+  @override
+  String get everyDeviceIncludingOneSignedOut => '包含這台在內的所有裝置都會登出，之後需要重新登入。';
+
+  @override
+  String get everyDeviceExceptOneSignedOut => '除了這台之外的裝置都會立即登出，也不會再收到推播。';
+
+  @override
+  String signedOutP0OtherDevices(Object p0) => '已登出其他 ${p0} 台裝置';
+
+  @override
+  String get unknownDevice => '未知裝置';
+
+  @override
+  String get couldnTLoadDevices => '無法載入登入裝置';
+
+  @override
+  String get theseDevicesSignedAccountIfDon => '這些裝置目前登入你的帳號。看到不認得的裝置，請立即登出並修改密碼。';
+
+  @override
+  String get device => '這台裝置';
+
+  @override
+  String get otherDevices => '其他裝置';
+
+  @override
+  String otherDevicesP0(Object p0) => '其他裝置（${p0}）';
+
+  @override
+  String get noOtherDevicesSigned => '沒有其他裝置登入你的帳號';
+
+  @override
+  String get signedDevices => '登入裝置';
+
+  @override
+  String get activeNow => '目前使用中';
+
+  @override
+  String lastActiveP0(Object p0) => '最後使用 ${p0}';
+
+  @override
+  String signedP0(Object p0) => '${p0} 登入';
+
+  @override
+  String get biometricPayment => '已啟用生物辨識付款';
+
+  @override
+  String get paymentPinMust6Digits => '交易密碼必須是 6 位數字';
+
+  @override
+  String get pinTooEasyGuessTryAnother => '交易密碼太簡單，請換一組';
+
+  @override
+  String get enterPasswordResetPaymentPin => '輸入登入密碼後即可重新設定交易密碼';
+
+  @override
+  String get confirmSBeforeSettingPaymentPin => '設定交易密碼前，請先確認是你本人';
+
+  @override
+  String get pinsDonTMatchStartAgain => '兩次輸入的交易密碼不一致，請重新設定';
+
+  @override
+  String get paymentPinReset => '交易密碼已重新設定';
+
+  @override
+  String get paymentPinSet => '交易密碼已設定';
+
+  @override
+  String get use6DigitPinConfirmPayments => '之後結帳時，會用這組 6 位數密碼確認付款。';
+
+  @override
+  String get verifyingIdentity => '正在確認身分…';
+
+  @override
+  String get enterAgainConfirm => '再輸入一次確認';
+
+  @override
+  String get set6DigitPaymentPin => '設定 6 位數交易密碼';
+
+  @override
+  String get enterSamePinAgain => '請再輸入一次剛才的密碼';
+
+  @override
+  String get avoidRepeatedSequentialPatternedDigits => '不能是相同、連續或重複的數字';
+
+  @override
+  String get resetPaymentPin => '重設交易密碼';
+
+  @override
+  String get paymentPin => '交易密碼';
+
+  @override
+  String stepP02(Object p0) => '步驟 ${p0} / 2';
+
+  @override
+  String get setPaymentPinFirst => '請先設定交易密碼';
+
+  @override
+  String get setPaymentPinFirstSoFallback => '請先設定交易密碼，辨識失敗時才有替代方式';
+
+  @override
+  String get setUpNow => '立即設定';
+
+  @override
+  String get biometricPaymentTurnedOff => '已關閉生物辨識付款';
+
+  @override
+  String get verifyTurnBiometricPayment => '驗證以啟用生物辨識付款';
+
+  @override
+  String p0PaymentsTurned(Object p0) => '已啟用 ${p0} 付款';
+
+  @override
+  String get securitySettingsUnavailableRightNowMay => '暫時無法取得帳號安全設定，交易密碼與登入裝置可能無法變更。';
+
+  @override
+  String payWithP0(Object p0) => '使用 ${p0} 付款';
+
+  @override
+  String get accountWellProtected => '帳號安全狀態良好';
+
+  @override
+  String get accountCouldSafer => '帳號安全還可以加強';
+
+  @override
+  String get paymentPinBiometricPaymentSetCheck => '交易密碼與生物辨識付款都已設定。記得定期檢查登入裝置。';
+
+  @override
+  String get setPaymentPinTurnBiometricPayment => '設定交易密碼並開啟生物辨識付款，結帳會更安全也更快。';
+
+  @override
+  String tooManyAttemptsLockedUntilP0(Object p0) => '錯誤次數過多，鎖定到 ${p0}';
+
+  @override
+  String get usedConfirmPaymentsCheckout => '結帳時用來確認付款';
+
+  @override
+  String get notSetRequiredBeforeCheckout => '尚未設定，結帳前需要先設定';
+
+  @override
+  String get change => '變更';
+
+  @override
+  String get forgotPaymentPin => '忘記交易密碼';
+
+  @override
+  String get ifFailsCanEnterPaymentPin => '辨識失敗時可改輸入交易密碼';
+
+  @override
+  String get viewRemotelySignOutDevices => '查看或遠端登出裝置';
+
+  @override
+  String p0Devices(Object p0) => '${p0} 台';
+
+  @override
+  String get otherDevicesNeedSignAgain => '修改後其他裝置需要重新登入';
+
+  @override
+  String get restoredUnfinishedListing => '已帶入上次未完成的內容';
+
+  @override
+  String get isbnSCheckDigitInvalidPlease => '這組 ISBN 的檢查碼不正確，請再確認一次';
+
+  @override
+  String get draftSavedAutomatically => '已自動儲存草稿';
+
+  @override
+  String get continueUnfinishedListing => '繼續上次未完成的刊登';
+
+  @override
+  String clearedP0MbCache(Object p0) => '已清除 ${p0} MB 快取';
+
+  @override
+  String get cacheCleared => '快取已清除';
+
+  @override
+  String get storage => '儲存空間';
+
+  @override
+  String get paymentPinBiometricPaymentDevices => '交易密碼、生物辨識付款、登入裝置';
+
+  @override
+  String get clearCache => '清除快取';
+
+  @override
+  String get removesCachedImagesFilesAccountData => '清除暫存的圖片與檔案，不會影響帳號資料';
+
+  @override
+  String get couldNotLoadNotificationSettings => '無法載入通知設定';
+
+  @override
+  String get month => '本月';
+
+  @override
+  String p0P1(Object p0, Object p1) => '${p0} 年 ${p1} 月';
+
+  @override
+  String get noIncomeYet => '沒有收入紀錄';
+
+  @override
+  String get noSpendingYet => '沒有支出紀錄';
+
+  @override
+  String get income => '收入';
+
+  @override
+  String get spending => '支出';
+
+  @override
+  String get totalIncome => '累計收入';
+
+  @override
+  String get totalSpending => '累計支出';
+
+  @override
+  String get item3 => '項目';
+
+  @override
+  String get details => '說明';
+
+  @override
+  String get balanceAfter => '交易後餘額';
+
+  @override
+  String get transactionId => '交易編號';
+
+  @override
+  String get sessionExpiredPleaseSignAgain => '登入已過期，請重新登入';
+
+  @override
+  String get serviceTemporarilyUnavailableTryAgainLater => '服務暫時無法使用，請稍後再試';
+
+  @override
+  String get uploadFailedTryAgainLater => '上傳失敗，請稍後再試';
+
+  @override
+  String get nearby => '就在附近';
+
+  @override
+  String p0M(Object p0) => '${p0} 公尺';
+
+  @override
+  String p0Km(Object p0) => '${p0} 公里';
+
+  @override
+  String get iphoneDidnTReceiveApnsToken => '手機沒有取得 Apple 推播憑證（APNs token）。請確認 Xcode 的 Signing & Capabilities 已加入 Push Notifications，並用同一個 Apple 開發者帳號重新安裝 App。';
+
+  @override
+  String get firebaseDidnTIssuePushToken => 'Firebase 沒有發出推播 token，請確認 GoogleService-Info.plist 與 App 的 Bundle ID 一致';
+
+  @override
+  String couldnTGetPushTokenP0(Object p0) => '取得推播 token 失敗：${p0}';
+
+  @override
+  String couldnTRegisterPushTokenWith(Object p0) => '推播 token 上傳伺服器失敗：${p0}';
+
+  @override
+  String get protectCoinsCheckoutRequires6Digit => '為了保護你的代幣，結帳時需要輸入 6 位數交易密碼。設定後也可以開啟 Face ID 或指紋付款。';
+
+  @override
+  String confirmPaymentP0Coins(Object p0) => '確認付款 ${p0} 代幣';
+
+  @override
+  String get enterPasswordContinue => '請輸入登入密碼以繼續';
+
+  @override
+  String get verifyS => '驗證身分';
+
+  @override
+  String get amount => '付款金額';
+
+  @override
+  String p0Coins(Object p0) => '${p0} 代幣';
+
+  @override
+  String get enterPaymentPin => '輸入交易密碼';
+
+  @override
+  String get enterPaymentPinContinue => '請輸入交易密碼以繼續';
+
+  @override
+  String get paymentPinResetEnterAgain => '交易密碼已重新設定，請再輸入一次';
+
+  @override
+  String get usePasswordInstead => '改用登入密碼';
+
+  @override
+  String get couldnTGetLocationLockersShown => '無法取得目前位置，書櫃會依預設順序排列';
+
+  @override
+  String p0SlotsFree(Object p0) => '空櫃 ${p0} 格';
+
+  @override
+  String openP0(Object p0) => '營業 ${p0}';
+
+  @override
+  String get nearest => '最近';
+
+  @override
+  String get noFreeSlots => '目前沒有空櫃';
+
+  @override
+  String get sortedByDistance => '依距離由近到遠排列';
+
+  @override
+  String get turnLocationSortByDistance => '開啟定位可依距離排序';
+
+  @override
+  String get lockerNoFreeSlotsRightNow => '這個書櫃目前沒有空櫃';
+
+  @override
+  String get turn => '開啟定位';
+
+  @override
+  String get noLockersAvailable => '目前沒有可用的書櫃';
+
+  @override
+  String get noMatchingOptions => '沒有符合的選項';
+
+  @override
+  String get undo2 => '復原';
+
+  @override
+  String copiedP0(Object p0) => '已複製「${p0}」';
+
+  @override
+  String get typing => '對方正在輸入…';
+
+  @override
+  String get today => '今天';
+
+  @override
+  String get yesterday => '昨天';
+
+  @override
+  String p0P12(Object p0, Object p1) => '${p0}月${p1}日';
+
+  @override
+  String p1P2P0(Object p0, Object p1, Object p2) => '${p0}年${p1}月${p2}日';
+
+  @override
+  String get releaseCancel => '放開以取消';
+
+  @override
+  String get slideCancel => '← 滑動取消';
+
+  @override
+  String get awaitingReply => '待回覆';
+
+  @override
+  String heldUntilP0(Object p0) => '已保留到 ${p0}';
+
+  @override
+  String get declined2 => '已婉拒';
+
+  @override
+  String get closed => '已結束';
+
+  @override
+  String get theyWantReserveBook => '對方想預約你的書';
+
+  @override
+  String get sentReservationRequest => '你送出了預約';
+
+  @override
+  String holdP0H(Object p0) => '保留 ${p0} 小時';
+
+  @override
+  String get onceSellerAcceptsBookHeldNo => '賣家接受後，這本書會保留給你，其他人在期限內無法購買。';
+
+  @override
+  String get holdPeriod => '保留時間';
+
+  @override
+  String get messageSellerOptional => '想對賣家說的話（選填）';
+
+  @override
+  String get sendRequest => '送出預約';
+
+  @override
+  String p0Hours(Object p0) => '${p0} 小時';
+
+  @override
+  String p0P1DigitsEntered(Object p0, Object p1) => '已輸入 ${p0} / ${p1} 位';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -17280,6 +21505,981 @@ class _LZhHans extends AppLocalizations {
   @override
   String get notificationsTurnedOffAllowAppSend => '通知权限已被关闭，请到系统设置允许这个 App 发送通知。';
 
+  @override
+  String get restoreBackup => '还原到这份备份？';
+
+  @override
+  String wholeDatabaseGoBackP0Orders(Object p0) => '整个数据库会回到 ${p0} 的状态，这个时间点之后的订单、消息、会员资料与操作记录都会消失。\n\n还原前系统会先自动备份当前的状态，还原错了可以再还原那一份。还原期间全站暂停服务，通常需要几十秒到几分钟。\n\n请输入你的登录密码确认：';
+
+  @override
+  String get password2 => '登录密码';
+
+  @override
+  String get startRestore => '开始还原';
+
+  @override
+  String get backingUpCurrentState => '正在备份当前的状态…';
+
+  @override
+  String databaseRestoredPreviousStateWasBacked(Object p0) => '数据库已还原。还原前的状态备份在 ${p0}';
+
+  @override
+  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => '还原失败，数据库维持原状或部分还原，请查看操作记录并考虑还原 ${p0}';
+
+  @override
+  String get autoBackupBeforeRestore => '还原前自动备份';
+
+  @override
+  String get restoreBackup2 => '还原到这份备份';
+
+  @override
+  String get restoringDatabase => '正在还原数据库';
+
+  @override
+  String p0SecondsSoFarKeepApp(Object p0) => '已经过 ${p0} 秒。请不要关闭 App，完成后会自动恢复服务。';
+
+  @override
+  String get majorUpdate => '这次是重大更新吗？';
+
+  @override
+  String get majorUpdateNotifiesEveryUserTerms => '重大更新会通知所有用户；服务条款与隐私政策还会要求用户下次打开 App 时重新阅读并同意。\n\n只是修正错字或调整排版，请选“小幅修改”。';
+
+  @override
+  String get majorUpdate2 => '重大更新';
+
+  @override
+  String get minorEdit => '小幅修改';
+
+  @override
+  String get books => '书籍';
+
+  @override
+  String get orders2 => '订单';
+
+  @override
+  String get wallets2 => '钱包';
+
+  @override
+  String get announcements3 => '公告';
+
+  @override
+  String get legal => '条款';
+
+  @override
+  String get backups => '备份';
+
+  @override
+  String get undoAction => '还原这笔操作？';
+
+  @override
+  String p0NNtheDataGoesBack(Object p0) => '“${p0}”\n\n数据会改回操作前的状态。已经发出的通知不会撤回；如果数据之后又被修改过，系统会拒绝还原。';
+
+  @override
+  String get undo => '还原';
+
+  @override
+  String get undone => '已还原';
+
+  @override
+  String get searchActionsEGNicknameBook => '搜索操作内容，例如会员昵称或书名';
+
+  @override
+  String viewP0Changes(Object p0) => '查看 ${p0} 项变更';
+
+  @override
+  String get undoAction2 => '还原这笔操作';
+
+  @override
+  String get tapBarSeeDay => '点长条可以看当天的数字';
+
+  @override
+  String get noAnnouncements => '目前没有公告';
+
+  @override
+  String get tapPhotoNameChange => '点头像或昵称可以修改';
+
+  @override
+  String get canTContinueWithoutAccepting => '不同意就无法继续使用';
+
+  @override
+  String needAcceptLatestP0UseP1(Object p0, Object p1) => '需要同意最新版本的“${p0}”才能使用${p1}。不同意的话会先登出，你可以随时重新登录后再同意。';
+
+  @override
+  String get goBack => '再看看';
+
+  @override
+  String p0BeenUpdated(Object p0) => '“${p0}”已经更新';
+
+  @override
+  String readLatestVersionUpdatedP0Accept(Object p0) => '请阅读最新版本（${p0} 更新）。同意后才能继续使用。';
+
+  @override
+  String get scrollEndContinue => '请先滚动读完全文';
+
+  @override
+  String get iVeReadAccept => '我已阅读并同意';
+
+  @override
+  String get decline => '不同意';
+
+  @override
+  String get viewDetails => '查看详情';
+
+  @override
+  String get notFoundMayBeenDeletedRemoved => '找不到这笔数据，可能已经删除或下架';
+
+  @override
+  String get salesDropOffsPickupsRefundsDisputes => '售出、存书、取货、退款与争议';
+
+  @override
+  String get chatMessages => '聊天消息';
+
+  @override
+  String get newMessagesFromBuyersSellers => '买卖双方传来的新消息';
+
+  @override
+  String get promotions2 => '优惠活动';
+
+  @override
+  String get announcementsAboutPromotions => '优惠类型的系统公告';
+
+  @override
+  String get supportRepliesPasswordResetsPolicyUpdates => '客服回复、密码重置、条款更新与维护公告一律会通知。关掉的类型仍会出现在通知列表，只是不推送到手机。';
+
+  @override
+  String get notFilled => '未填写';
+
+  @override
+  String get canTChanged => '无法修改';
+
+  @override
+  String get voice => '[语音]';
+
+  @override
+  String get reservation => '预约';
+
+  @override
+  String get messageUnsent => '消息已撤回';
+
+  @override
+  String get confirmBeforeExportingData => '导出个人资料前，请先确认是你本人';
+
+  @override
+  String get exportFailedPleaseTryAgainLater => '导出失败，请稍后再试';
+
+  @override
+  String get refresh => '刷新';
+
+  @override
+  String get clearFilters => '清除筛选';
+
+  @override
+  String get expired => '已过期';
+
+  @override
+  String get verificationCancelled => '已取消验证';
+
+  @override
+  String get openingClosingTimesCanTSame => '开放与关闭时间不能相同';
+
+  @override
+  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => '这一格目前是「${p0}」，可能有进行中的订单。改成「${p1}」后，买卖双方可能无法正常存取书籍。';
+
+  @override
+  String get active => '启用中';
+
+  @override
+  String get categoryWithNameAlreadyExists => '已经有同名的分类';
+
+  @override
+  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => '订单 ${p0} 将以「${p1}」结案，${p2} 代币会退回买家。提交后无法修改。';
+
+  @override
+  String orderP0ClosedAsP1Can(Object p0, Object p1) => '订单 ${p0} 将以「${p1}」结案。提交后无法修改。';
+
+  @override
+  String get clearSearch => '清除搜索';
+
+  @override
+  String get enterMinimumPoints => '请输入最低点数';
+
+  @override
+  String pointsRangeOverlapsWithP0P1(Object p0, Object p1) => '点数范围与「${p0}」（${p1}）重叠';
+
+  @override
+  String noTierCoversP0P1Points(Object p0, Object p1) => '${p0}–${p1} 点没有对应的等级';
+
+  @override
+  String p0TakenDownRightAwayOther(Object p0) => '「${p0}」会立即下架，其他会员将无法再看到或购买。';
+
+  @override
+  String get searchReportedItemReporterReason => '搜索被举报项目、举报人或原因';
+
+  @override
+  String get couldnTLoadStatisticsRightNow => '暂时无法获取统计数据';
+
+  @override
+  String get searchSubjectMemberMessage => '搜索主题、会员或消息内容';
+
+  @override
+  String get balance3 => '有余额';
+
+  @override
+  String get hold3 => '有冻结金额';
+
+  @override
+  String get zeroBalance => '余额为 0';
+
+  @override
+  String get amountCanMost2DecimalPlaces => '金额最多只能到小数点后两位';
+
+  @override
+  String get singleAdjustmentCanTExceed1 => '单次调整不可超过 1,000,000';
+
+  @override
+  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除后余额会变成负数，目前余额 ${p0}';
+
+  @override
+  String get amountUp2Decimals => '金额（最多两位小数）';
+
+  @override
+  String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\n调整后余额 ${p1}';
+
+  @override
+  String get cameraAccessOff => '无法使用相机';
+
+  @override
+  String get couldNotStartCamera => '相机启动失败';
+
+  @override
+  String allowP0UseCameraSettingsThen(Object p0) => '请到系统设置允许 ${p0} 使用相机后再试一次。';
+
+  @override
+  String get closeScreenTryAgain => '请关闭这个画面后再试一次。';
+
+  @override
+  String get couldnTGetLocationCheckLocation => '无法获取当前位置，请确认已开启定位服务与权限';
+
+  @override
+  String get bookReservedAnotherBuyerCanT => '这本书已被其他买家预约，暂时无法加入购物车';
+
+  @override
+  String reservedAnotherBuyerUntilP0(Object p0) => '已被其他买家预约，保留到 ${p0}';
+
+  @override
+  String get ifIsnTSoldByThen => '保留期限过后若未成交，就能再加入购物车';
+
+  @override
+  String sellerHoldingUntilP0(Object p0) => '卖家已为你保留到 ${p0}';
+
+  @override
+  String get checkOutBeforeHoldEndsOther => '请在保留期限内完成结账，逾期其他买家就能购买';
+
+  @override
+  String get copyAddress => '复制地址';
+
+  @override
+  String p0Away(Object p0) => '距离你 ${p0}';
+
+  @override
+  String get locating => '定位中…';
+
+  @override
+  String get showDistance => '查看距离';
+
+  @override
+  String get reserved => '已被预约';
+
+  @override
+  String get goCheckout => '前往结账';
+
+  @override
+  String get cart2 => '已在购物车';
+
+  @override
+  String get buyNow => '立即购买';
+
+  @override
+  String p0Delisted(Object p0) => '《${p0}》已下架';
+
+  @override
+  String noBooksMatchP0(Object p0) => '找不到符合“${p0}”的书籍';
+
+  @override
+  String p0BooksP1Views(Object p0, Object p1) => '共 ${p0} 本 · 总浏览 ${p1} 次';
+
+  @override
+  String get swipeQuickActions => '左右滑动可快速操作';
+
+  @override
+  String get searchTitleAuthorIsbn2 => '搜索书名、作者或 ISBN';
+
+  @override
+  String removedP0(Object p0) => '已移除《${p0}》';
+
+  @override
+  String removedP0Items(Object p0) => '已移除 ${p0} 件商品';
+
+  @override
+  String get paymentSuccessful => '付款成功';
+
+  @override
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本书，已按卖家拆成 ${p1} 笔订单';
+
+  @override
+  String get keepBrowsing => '继续逛逛';
+
+  @override
+  String get reload => '重新加载';
+
+  @override
+  String get browseBooks => '去逛逛';
+
+  @override
+  String p0Sellers(Object p0) => '${p0} 位卖家';
+
+  @override
+  String unavailableP0(Object p0) => '无法购买（${p0}）';
+
+  @override
+  String get removeAll => '全部移除';
+
+  @override
+  String get goWallet => '前往钱包';
+
+  @override
+  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => '来自 ${p0} 位卖家，结账后会拆成 ${p1} 笔订单';
+
+  @override
+  String get otherDevicesNeedSignAgainWith => '其他设备需要用新密码重新登录。';
+
+  @override
+  String get searchChats => '搜索聊天对象';
+
+  @override
+  String get noMatchingChats => '找不到符合的聊天对象';
+
+  @override
+  String get read => '已读';
+
+  @override
+  String get chatNotFound => '找不到这个聊天室';
+
+  @override
+  String get messagesCanUp2000Characters => '消息最多 2000 字';
+
+  @override
+  String get canTSendRightNowPlease => '目前无法发送，请稍后再试';
+
+  @override
+  String get reserveBook => '预约这本书';
+
+  @override
+  String get quickReplies => '快速回复';
+
+  @override
+  String get imagesMust10MbSmaller => '图片不能超过 10 MB';
+
+  @override
+  String get recordingFailedPleaseTryAgain => '录音失败，请再试一次';
+
+  @override
+  String get voiceMessageTooLargePleaseRecord => '语音文件太大，请缩短录音';
+
+  @override
+  String get microphoneAllowedPressHoldAgainRecord => '已允许使用麦克风，请再按住按钮开始录音';
+
+  @override
+  String get microphoneAccessNeededRecordTurnSettings => '需要麦克风权限才能录音，请到系统设置开启';
+
+  @override
+  String get couldnTStartRecordingPleaseTry => '无法开始录音，请稍后再试';
+
+  @override
+  String get selectText => '选择文字';
+
+  @override
+  String get unsend => '撤回';
+
+  @override
+  String get resend => '重新发送';
+
+  @override
+  String get unsendMessage => '撤回这条消息？';
+
+  @override
+  String get neitherAbleSeeMessageSContent => '撤回后双方都看不到这条消息的内容。';
+
+  @override
+  String get reportMessage => '举报这条消息';
+
+  @override
+  String get reservationSentWaitingSeller => '已发送预约，等待卖家回复';
+
+  @override
+  String get acceptReservation => '接受预约？';
+
+  @override
+  String p0HeldThemP1HoursNo(Object p0, Object p1) => '《${p0}》会保留给对方 ${p1} 小时，期间其他人无法购买。';
+
+  @override
+  String get accept => '接受';
+
+  @override
+  String get reservationAccepted => '已接受预约';
+
+  @override
+  String get declineReservation => '婉拒预约？';
+
+  @override
+  String get theyLlNotifiedDeclined => '对方会收到婉拒的通知。';
+
+  @override
+  String get decline2 => '婉拒';
+
+  @override
+  String get reservationDeclined => '已婉拒预约';
+
+  @override
+  String get cancelReservation => '取消预约？';
+
+  @override
+  String p0NoLongerHeld(Object p0) => '取消后《${p0}》将不再保留。';
+
+  @override
+  String get cancelReservation2 => '取消预约';
+
+  @override
+  String get reservationCanceled => '已取消预约';
+
+  @override
+  String get notNow2 => '先不要';
+
+  @override
+  String get couldnTLoadConversationPleaseTry => '无法加载对话，请稍后再试';
+
+  @override
+  String get accountCanTReceiveMessagesRight => '对方账号目前无法接收消息';
+
+  @override
+  String get holdMicTalkReleaseSend => '按住麦克风说话，松开即可发送';
+
+  @override
+  String get startConversation => '对话从这里开始';
+
+  @override
+  String p0New(Object p0) => '${p0} 条新消息';
+
+  @override
+  String get connectionUnstableMessagesCanTSent => '连接不稳定，暂时无法发送消息';
+
+  @override
+  String get retry => '重试';
+
+  @override
+  String get stillAvailable => '请问还在吗？';
+
+  @override
+  String get couldLowerPriceBit => '可以再便宜一点吗？';
+
+  @override
+  String get whenCanPutLocker => '什么时候可以放进书柜？';
+
+  @override
+  String get unsentMessage => '你撤回了一条消息';
+
+  @override
+  String get theyUnsentMessage => '对方撤回了一条消息';
+
+  @override
+  String get reservationDetailsArenTAvailableRight => '预约信息暂时无法显示';
+
+  @override
+  String get sending => '发送中';
+
+  @override
+  String get couldNotUploadPhotosPleaseTry => '证据照片上传失败，请稍后再试';
+
+  @override
+  String get bookDetailsUpdatedButPhotosCouldn => '书籍资料已更新，但照片上传失败，请稍后再试';
+
+  @override
+  String get sNotIsbnBarcodeScanOne => '扫到的不是 ISBN 条码，请扫描书背上 978 或 979 开头的条码';
+
+  @override
+  String get couldnTLoadCategoriesTapRetry => '分类加载失败，点此重试';
+
+  @override
+  String removedP0FromSaved(Object p0) => '已取消收藏《${p0}》';
+
+  @override
+  String get recentlyViewedCleared => '已清除最近浏览';
+
+  @override
+  String clearP0(Object p0) => '清除（${p0}）';
+
+  @override
+  String get picked => '猜你喜欢';
+
+  @override
+  String get seeMore => '查看更多';
+
+  @override
+  String get recentlyViewed => '最近浏览';
+
+  @override
+  String get clear => '清除';
+
+  @override
+  String get notificationDeleted => '已删除通知';
+
+  @override
+  String get pleasePutBookAssignedLockerSoon => '请尽快把书放进指定书柜';
+
+  @override
+  String get weLlLetKnowWhenSeller => '卖家存书后会通知你前往取书';
+
+  @override
+  String get waitingBuyerCollect => '等待买家到书柜取书';
+
+  @override
+  String get bookLockerEnterPickupCodeCollect => '书已在书柜里，输入取书码即可取书';
+
+  @override
+  String get transactionCompleteThank => '交易完成，感谢使用';
+
+  @override
+  String get confirmVeTakenBookFromLocker => '请确认已从书柜取出书籍，确认后订单即完成。';
+
+  @override
+  String p0Orders2(Object p0) => '共 ${p0} 笔订单';
+
+  @override
+  String p0ReadyPickup(Object p0) => '可取书 ${p0} 笔';
+
+  @override
+  String get pickUp => '待取货';
+
+  @override
+  String get saved => '收藏';
+
+  @override
+  String get accountSecurity => '账号安全';
+
+  @override
+  String get sellerHasnTPutBookLocker => '卖家还没把书放进书柜，存书后会通知你';
+
+  @override
+  String get searchHistoryCleared => '已清除搜索记录';
+
+  @override
+  String get trendingBooks => '热门书籍';
+
+  @override
+  String get signOutDevice => '登出这台设备？';
+
+  @override
+  String signOutP0(Object p0) => '登出「${p0}」？';
+
+  @override
+  String get llNeedSignAgainUseApp => '登出后需要重新登录才能使用。';
+
+  @override
+  String get deviceSignedOutRightAwayStop => '那台设备会立即登出，也不会再收到推送。';
+
+  @override
+  String get deviceSignedOut => '已登出这台设备';
+
+  @override
+  String get signOutAllDevicesIncludingOne => '登出所有设备（含这台）';
+
+  @override
+  String get signOutAllOtherDevices => '登出其他所有设备';
+
+  @override
+  String get everyDeviceIncludingOneSignedOut => '包含这台在内的所有设备都会登出，之后需要重新登录。';
+
+  @override
+  String get everyDeviceExceptOneSignedOut => '除了这台之外的设备都会立即登出，也不会再收到推送。';
+
+  @override
+  String signedOutP0OtherDevices(Object p0) => '已登出其他 ${p0} 台设备';
+
+  @override
+  String get unknownDevice => '未知设备';
+
+  @override
+  String get couldnTLoadDevices => '无法加载登录设备';
+
+  @override
+  String get theseDevicesSignedAccountIfDon => '这些设备当前登录你的账号。看到不认得的设备，请立即登出并修改密码。';
+
+  @override
+  String get device => '这台设备';
+
+  @override
+  String get otherDevices => '其他设备';
+
+  @override
+  String otherDevicesP0(Object p0) => '其他设备（${p0}）';
+
+  @override
+  String get noOtherDevicesSigned => '没有其他设备登录你的账号';
+
+  @override
+  String get signedDevices => '登录设备';
+
+  @override
+  String get activeNow => '当前使用中';
+
+  @override
+  String lastActiveP0(Object p0) => '最后使用 ${p0}';
+
+  @override
+  String signedP0(Object p0) => '${p0} 登录';
+
+  @override
+  String get biometricPayment => '已启用生物识别付款';
+
+  @override
+  String get paymentPinMust6Digits => '交易密码必须是 6 位数字';
+
+  @override
+  String get pinTooEasyGuessTryAnother => '交易密码太简单，请换一组';
+
+  @override
+  String get enterPasswordResetPaymentPin => '输入登录密码后即可重新设置交易密码';
+
+  @override
+  String get confirmSBeforeSettingPaymentPin => '设置交易密码前，请先确认是你本人';
+
+  @override
+  String get pinsDonTMatchStartAgain => '两次输入的交易密码不一致，请重新设置';
+
+  @override
+  String get paymentPinReset => '交易密码已重新设置';
+
+  @override
+  String get paymentPinSet => '交易密码已设置';
+
+  @override
+  String get use6DigitPinConfirmPayments => '之后结账时，会用这组 6 位数密码确认付款。';
+
+  @override
+  String get verifyingIdentity => '正在确认身份…';
+
+  @override
+  String get enterAgainConfirm => '再输入一次确认';
+
+  @override
+  String get set6DigitPaymentPin => '设置 6 位数交易密码';
+
+  @override
+  String get enterSamePinAgain => '请再输入一次刚才的密码';
+
+  @override
+  String get avoidRepeatedSequentialPatternedDigits => '不能是相同、连续或重复的数字';
+
+  @override
+  String get resetPaymentPin => '重设交易密码';
+
+  @override
+  String get paymentPin => '交易密码';
+
+  @override
+  String stepP02(Object p0) => '步骤 ${p0} / 2';
+
+  @override
+  String get setPaymentPinFirst => '请先设置交易密码';
+
+  @override
+  String get setPaymentPinFirstSoFallback => '请先设置交易密码，识别失败时才有替代方式';
+
+  @override
+  String get setUpNow => '立即设置';
+
+  @override
+  String get biometricPaymentTurnedOff => '已关闭生物识别付款';
+
+  @override
+  String get verifyTurnBiometricPayment => '验证以启用生物识别付款';
+
+  @override
+  String p0PaymentsTurned(Object p0) => '已启用 ${p0} 付款';
+
+  @override
+  String get securitySettingsUnavailableRightNowMay => '暂时无法获取账号安全设置，交易密码与登录设备可能无法更改。';
+
+  @override
+  String payWithP0(Object p0) => '使用 ${p0} 付款';
+
+  @override
+  String get accountWellProtected => '账号安全状态良好';
+
+  @override
+  String get accountCouldSafer => '账号安全还可以加强';
+
+  @override
+  String get paymentPinBiometricPaymentSetCheck => '交易密码与生物识别付款都已设置。记得定期检查登录设备。';
+
+  @override
+  String get setPaymentPinTurnBiometricPayment => '设置交易密码并开启生物识别付款，结账会更安全也更快。';
+
+  @override
+  String tooManyAttemptsLockedUntilP0(Object p0) => '错误次数过多，锁定到 ${p0}';
+
+  @override
+  String get usedConfirmPaymentsCheckout => '结账时用来确认付款';
+
+  @override
+  String get notSetRequiredBeforeCheckout => '尚未设置，结账前需要先设置';
+
+  @override
+  String get change => '更改';
+
+  @override
+  String get forgotPaymentPin => '忘记交易密码';
+
+  @override
+  String get ifFailsCanEnterPaymentPin => '识别失败时可改输入交易密码';
+
+  @override
+  String get viewRemotelySignOutDevices => '查看或远程登出设备';
+
+  @override
+  String p0Devices(Object p0) => '${p0} 台';
+
+  @override
+  String get otherDevicesNeedSignAgain => '修改后其他设备需要重新登录';
+
+  @override
+  String get restoredUnfinishedListing => '已带入上次未完成的内容';
+
+  @override
+  String get isbnSCheckDigitInvalidPlease => '这组 ISBN 的校验码不正确，请再确认一次';
+
+  @override
+  String get draftSavedAutomatically => '已自动保存草稿';
+
+  @override
+  String get continueUnfinishedListing => '继续上次未完成的刊登';
+
+  @override
+  String clearedP0MbCache(Object p0) => '已清除 ${p0} MB 缓存';
+
+  @override
+  String get cacheCleared => '缓存已清除';
+
+  @override
+  String get storage => '存储空间';
+
+  @override
+  String get paymentPinBiometricPaymentDevices => '交易密码、生物识别付款、登录设备';
+
+  @override
+  String get clearCache => '清除缓存';
+
+  @override
+  String get removesCachedImagesFilesAccountData => '清除暂存的图片与文件，不会影响账号数据';
+
+  @override
+  String get couldNotLoadNotificationSettings => '无法加载通知设置';
+
+  @override
+  String get month => '本月';
+
+  @override
+  String p0P1(Object p0, Object p1) => '${p0} 年 ${p1} 月';
+
+  @override
+  String get noIncomeYet => '没有收入记录';
+
+  @override
+  String get noSpendingYet => '没有支出记录';
+
+  @override
+  String get income => '收入';
+
+  @override
+  String get spending => '支出';
+
+  @override
+  String get totalIncome => '累计收入';
+
+  @override
+  String get totalSpending => '累计支出';
+
+  @override
+  String get item3 => '项目';
+
+  @override
+  String get details => '说明';
+
+  @override
+  String get balanceAfter => '交易后余额';
+
+  @override
+  String get transactionId => '交易编号';
+
+  @override
+  String get sessionExpiredPleaseSignAgain => '登录已过期，请重新登录';
+
+  @override
+  String get serviceTemporarilyUnavailableTryAgainLater => '服务暂时无法使用，请稍后再试';
+
+  @override
+  String get uploadFailedTryAgainLater => '上传失败，请稍后再试';
+
+  @override
+  String get nearby => '就在附近';
+
+  @override
+  String p0M(Object p0) => '${p0} 米';
+
+  @override
+  String p0Km(Object p0) => '${p0} 公里';
+
+  @override
+  String get iphoneDidnTReceiveApnsToken => '手机没有取得 Apple 推送凭证（APNs token）。请确认 Xcode 的 Signing & Capabilities 已加入 Push Notifications，并用同一个 Apple 开发者账号重新安装 App。';
+
+  @override
+  String get firebaseDidnTIssuePushToken => 'Firebase 没有发出推送 token，请确认 GoogleService-Info.plist 与 App 的 Bundle ID 一致';
+
+  @override
+  String couldnTGetPushTokenP0(Object p0) => '获取推送 token 失败：${p0}';
+
+  @override
+  String couldnTRegisterPushTokenWith(Object p0) => '推送 token 上传服务器失败：${p0}';
+
+  @override
+  String get protectCoinsCheckoutRequires6Digit => '为了保护你的代币，结账时需要输入 6 位数交易密码。设置后也可以开启 Face ID 或指纹付款。';
+
+  @override
+  String confirmPaymentP0Coins(Object p0) => '确认付款 ${p0} 代币';
+
+  @override
+  String get enterPasswordContinue => '请输入登录密码以继续';
+
+  @override
+  String get verifyS => '验证身份';
+
+  @override
+  String get amount => '付款金额';
+
+  @override
+  String p0Coins(Object p0) => '${p0} 代币';
+
+  @override
+  String get enterPaymentPin => '输入交易密码';
+
+  @override
+  String get enterPaymentPinContinue => '请输入交易密码以继续';
+
+  @override
+  String get paymentPinResetEnterAgain => '交易密码已重新设置，请再输入一次';
+
+  @override
+  String get usePasswordInstead => '改用登录密码';
+
+  @override
+  String get couldnTGetLocationLockersShown => '无法获取当前位置，书柜将按默认顺序排列';
+
+  @override
+  String p0SlotsFree(Object p0) => '空柜 ${p0} 格';
+
+  @override
+  String openP0(Object p0) => '营业 ${p0}';
+
+  @override
+  String get nearest => '最近';
+
+  @override
+  String get noFreeSlots => '目前没有空柜';
+
+  @override
+  String get sortedByDistance => '按距离由近到远排列';
+
+  @override
+  String get turnLocationSortByDistance => '开启定位可按距离排序';
+
+  @override
+  String get lockerNoFreeSlotsRightNow => '这个书柜目前没有空柜';
+
+  @override
+  String get turn => '开启定位';
+
+  @override
+  String get noLockersAvailable => '目前没有可用的书柜';
+
+  @override
+  String get noMatchingOptions => '没有符合的选项';
+
+  @override
+  String get undo2 => '撤销';
+
+  @override
+  String copiedP0(Object p0) => '已复制「${p0}」';
+
+  @override
+  String get typing => '对方正在输入…';
+
+  @override
+  String get today => '今天';
+
+  @override
+  String get yesterday => '昨天';
+
+  @override
+  String p0P12(Object p0, Object p1) => '${p0}月${p1}日';
+
+  @override
+  String p1P2P0(Object p0, Object p1, Object p2) => '${p0}年${p1}月${p2}日';
+
+  @override
+  String get releaseCancel => '松开以取消';
+
+  @override
+  String get slideCancel => '← 滑动取消';
+
+  @override
+  String get awaitingReply => '待回复';
+
+  @override
+  String heldUntilP0(Object p0) => '已保留到 ${p0}';
+
+  @override
+  String get declined2 => '已婉拒';
+
+  @override
+  String get closed => '已结束';
+
+  @override
+  String get theyWantReserveBook => '对方想预约你的书';
+
+  @override
+  String get sentReservationRequest => '你发送了预约';
+
+  @override
+  String holdP0H(Object p0) => '保留 ${p0} 小时';
+
+  @override
+  String get onceSellerAcceptsBookHeldNo => '卖家接受后，这本书会保留给你，其他人在期限内无法购买。';
+
+  @override
+  String get holdPeriod => '保留时间';
+
+  @override
+  String get messageSellerOptional => '想对卖家说的话（选填）';
+
+  @override
+  String get sendRequest => '发送预约';
+
+  @override
+  String p0Hours(Object p0) => '${p0} 小时';
+
+  @override
+  String p0P1DigitsEntered(Object p0, Object p1) => '已输入 ${p0} / ${p1} 位';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -20515,6 +25715,981 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get notificationsTurnedOffAllowAppSend => '通知權限已被關閉，請到系統設定允許這個 App 傳送通知。';
+
+  @override
+  String get restoreBackup => '還原到這份備份？';
+
+  @override
+  String wholeDatabaseGoBackP0Orders(Object p0) => '整個資料庫會回到 ${p0} 的狀態，這個時間點之後的訂單、訊息、會員資料與操作紀錄都會消失。\n\n還原前系統會先自動備份目前的狀態，還原錯了可以再還原那一份。還原期間全站暫停服務，通常需要幾十秒到幾分鐘。\n\n請輸入你的登入密碼確認：';
+
+  @override
+  String get password2 => '登入密碼';
+
+  @override
+  String get startRestore => '開始還原';
+
+  @override
+  String get backingUpCurrentState => '正在備份目前的狀態…';
+
+  @override
+  String databaseRestoredPreviousStateWasBacked(Object p0) => '資料庫已還原。還原前的狀態備份在 ${p0}';
+
+  @override
+  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => '還原失敗，資料庫維持原狀或部分還原，請查看操作紀錄並考慮還原 ${p0}';
+
+  @override
+  String get autoBackupBeforeRestore => '還原前自動備份';
+
+  @override
+  String get restoreBackup2 => '還原到這份備份';
+
+  @override
+  String get restoringDatabase => '正在還原資料庫';
+
+  @override
+  String p0SecondsSoFarKeepApp(Object p0) => '已經過 ${p0} 秒。請不要關閉 App，完成後會自動恢復服務。';
+
+  @override
+  String get majorUpdate => '這次是重大更新嗎？';
+
+  @override
+  String get majorUpdateNotifiesEveryUserTerms => '重大更新會通知所有使用者；服務條款與隱私權政策還會要求使用者下次開啟 App 時重新閱讀並同意。\n\n只是修正錯字或調整排版，請選「小幅修改」。';
+
+  @override
+  String get majorUpdate2 => '重大更新';
+
+  @override
+  String get minorEdit => '小幅修改';
+
+  @override
+  String get books => '書籍';
+
+  @override
+  String get orders2 => '訂單';
+
+  @override
+  String get wallets2 => '錢包';
+
+  @override
+  String get announcements3 => '公告';
+
+  @override
+  String get legal => '條款';
+
+  @override
+  String get backups => '備份';
+
+  @override
+  String get undoAction => '還原這筆操作？';
+
+  @override
+  String p0NNtheDataGoesBack(Object p0) => '「${p0}」\n\n資料會改回操作前的狀態。已經送出的通知不會收回；如果資料之後又被修改過，系統會拒絕還原。';
+
+  @override
+  String get undo => '還原';
+
+  @override
+  String get undone => '已還原';
+
+  @override
+  String get searchActionsEGNicknameBook => '搜尋操作內容，例如會員暱稱或書名';
+
+  @override
+  String viewP0Changes(Object p0) => '查看 ${p0} 項變更';
+
+  @override
+  String get undoAction2 => '還原這筆操作';
+
+  @override
+  String get tapBarSeeDay => '點長條可以看當天的數字';
+
+  @override
+  String get noAnnouncements => '目前沒有公告';
+
+  @override
+  String get tapPhotoNameChange => '點頭像或暱稱可以修改';
+
+  @override
+  String get canTContinueWithoutAccepting => '不同意就無法繼續使用';
+
+  @override
+  String needAcceptLatestP0UseP1(Object p0, Object p1) => '需要同意最新版本的「${p0}」才能使用${p1}。不同意的話會先登出，你可以隨時重新登入後再同意。';
+
+  @override
+  String get goBack => '再看看';
+
+  @override
+  String p0BeenUpdated(Object p0) => '「${p0}」已經更新';
+
+  @override
+  String readLatestVersionUpdatedP0Accept(Object p0) => '請閱讀最新版本（${p0} 更新）。同意後才能繼續使用。';
+
+  @override
+  String get scrollEndContinue => '請先捲動讀完全文';
+
+  @override
+  String get iVeReadAccept => '我已閱讀並同意';
+
+  @override
+  String get decline => '不同意';
+
+  @override
+  String get viewDetails => '查看詳情';
+
+  @override
+  String get notFoundMayBeenDeletedRemoved => '找不到這筆資料，可能已經刪除或下架';
+
+  @override
+  String get salesDropOffsPickupsRefundsDisputes => '售出、存書、取貨、退款與爭議';
+
+  @override
+  String get chatMessages => '聊天訊息';
+
+  @override
+  String get newMessagesFromBuyersSellers => '買賣雙方傳來的新訊息';
+
+  @override
+  String get promotions2 => '優惠活動';
+
+  @override
+  String get announcementsAboutPromotions => '優惠類型的系統公告';
+
+  @override
+  String get supportRepliesPasswordResetsPolicyUpdates => '客服回覆、密碼重設、條款更新與維護公告一律會通知。關掉的類型仍會出現在通知列表，只是不推播到手機。';
+
+  @override
+  String get notFilled => '未填寫';
+
+  @override
+  String get canTChanged => '無法修改';
+
+  @override
+  String get voice => '[語音]';
+
+  @override
+  String get reservation => '預約';
+
+  @override
+  String get messageUnsent => '訊息已收回';
+
+  @override
+  String get confirmBeforeExportingData => '匯出個人資料前，請先確認是你本人';
+
+  @override
+  String get exportFailedPleaseTryAgainLater => '匯出失敗，請稍後再試';
+
+  @override
+  String get refresh => '重新整理';
+
+  @override
+  String get clearFilters => '清除篩選';
+
+  @override
+  String get expired => '已過期';
+
+  @override
+  String get verificationCancelled => '已取消驗證';
+
+  @override
+  String get openingClosingTimesCanTSame => '開放與關閉時間不能相同';
+
+  @override
+  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => '這一格目前是「${p0}」，可能有進行中的訂單。改成「${p1}」後，買賣雙方可能無法正常存取書籍。';
+
+  @override
+  String get active => '啟用中';
+
+  @override
+  String get categoryWithNameAlreadyExists => '已經有同名的分類';
+
+  @override
+  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => '訂單 ${p0} 將以「${p1}」結案，${p2} 代幣會退回買家。送出後無法修改。';
+
+  @override
+  String orderP0ClosedAsP1Can(Object p0, Object p1) => '訂單 ${p0} 將以「${p1}」結案。送出後無法修改。';
+
+  @override
+  String get clearSearch => '清除搜尋';
+
+  @override
+  String get enterMinimumPoints => '請輸入最低點數';
+
+  @override
+  String pointsRangeOverlapsWithP0P1(Object p0, Object p1) => '點數範圍與「${p0}」（${p1}）重疊';
+
+  @override
+  String noTierCoversP0P1Points(Object p0, Object p1) => '${p0}–${p1} 點沒有對應的等級';
+
+  @override
+  String p0TakenDownRightAwayOther(Object p0) => '「${p0}」會立即下架，其他會員將無法再看到或購買。';
+
+  @override
+  String get searchReportedItemReporterReason => '搜尋被檢舉項目、檢舉人或原因';
+
+  @override
+  String get couldnTLoadStatisticsRightNow => '暫時無法取得統計資料';
+
+  @override
+  String get searchSubjectMemberMessage => '搜尋主旨、會員或訊息內容';
+
+  @override
+  String get balance3 => '有餘額';
+
+  @override
+  String get hold3 => '有凍結金額';
+
+  @override
+  String get zeroBalance => '餘額為 0';
+
+  @override
+  String get amountCanMost2DecimalPlaces => '金額最多只能到小數點後兩位';
+
+  @override
+  String get singleAdjustmentCanTExceed1 => '單次調整不可超過 1,000,000';
+
+  @override
+  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除後餘額會變成負數，目前餘額 ${p0}';
+
+  @override
+  String get amountUp2Decimals => '金額（最多兩位小數）';
+
+  @override
+  String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\n調整後餘額 ${p1}';
+
+  @override
+  String get cameraAccessOff => '無法使用相機';
+
+  @override
+  String get couldNotStartCamera => '相機啟動失敗';
+
+  @override
+  String allowP0UseCameraSettingsThen(Object p0) => '請到系統設定允許 ${p0} 使用相機後再試一次。';
+
+  @override
+  String get closeScreenTryAgain => '請關閉這個畫面後再試一次。';
+
+  @override
+  String get couldnTGetLocationCheckLocation => '無法取得目前位置，請確認已開啟定位服務與權限';
+
+  @override
+  String get bookReservedAnotherBuyerCanT => '這本書已被其他買家預約，暫時無法加入購物車';
+
+  @override
+  String reservedAnotherBuyerUntilP0(Object p0) => '已被其他買家預約，保留到 ${p0}';
+
+  @override
+  String get ifIsnTSoldByThen => '保留期限過後若未成交，就能再加入購物車';
+
+  @override
+  String sellerHoldingUntilP0(Object p0) => '賣家已為你保留到 ${p0}';
+
+  @override
+  String get checkOutBeforeHoldEndsOther => '請在保留期限內完成結帳，逾期其他買家就能購買';
+
+  @override
+  String get copyAddress => '複製地址';
+
+  @override
+  String p0Away(Object p0) => '距離你 ${p0}';
+
+  @override
+  String get locating => '定位中…';
+
+  @override
+  String get showDistance => '查看距離';
+
+  @override
+  String get reserved => '已被預約';
+
+  @override
+  String get goCheckout => '前往結帳';
+
+  @override
+  String get cart2 => '已在購物車';
+
+  @override
+  String get buyNow => '立即購買';
+
+  @override
+  String p0Delisted(Object p0) => '《${p0}》已下架';
+
+  @override
+  String noBooksMatchP0(Object p0) => '找不到符合「${p0}」的書籍';
+
+  @override
+  String p0BooksP1Views(Object p0, Object p1) => '共 ${p0} 本 · 總瀏覽 ${p1} 次';
+
+  @override
+  String get swipeQuickActions => '左右滑動可快速操作';
+
+  @override
+  String get searchTitleAuthorIsbn2 => '搜尋書名、作者或 ISBN';
+
+  @override
+  String removedP0(Object p0) => '已移除《${p0}》';
+
+  @override
+  String removedP0Items(Object p0) => '已移除 ${p0} 件商品';
+
+  @override
+  String get paymentSuccessful => '付款成功';
+
+  @override
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本書，已依賣家拆成 ${p1} 筆訂單';
+
+  @override
+  String get keepBrowsing => '繼續逛逛';
+
+  @override
+  String get reload => '重新載入';
+
+  @override
+  String get browseBooks => '去逛逛';
+
+  @override
+  String p0Sellers(Object p0) => '${p0} 位賣家';
+
+  @override
+  String unavailableP0(Object p0) => '無法購買（${p0}）';
+
+  @override
+  String get removeAll => '全部移除';
+
+  @override
+  String get goWallet => '前往錢包';
+
+  @override
+  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => '來自 ${p0} 位賣家，結帳後會拆成 ${p1} 筆訂單';
+
+  @override
+  String get otherDevicesNeedSignAgainWith => '其他裝置需要用新密碼重新登入。';
+
+  @override
+  String get searchChats => '搜尋聊天對象';
+
+  @override
+  String get noMatchingChats => '找不到符合的聊天對象';
+
+  @override
+  String get read => '已讀';
+
+  @override
+  String get chatNotFound => '找不到這個聊天室';
+
+  @override
+  String get messagesCanUp2000Characters => '訊息最多 2000 字';
+
+  @override
+  String get canTSendRightNowPlease => '目前無法傳送，請稍後再試';
+
+  @override
+  String get reserveBook => '預約這本書';
+
+  @override
+  String get quickReplies => '快速回覆';
+
+  @override
+  String get imagesMust10MbSmaller => '圖片不能超過 10 MB';
+
+  @override
+  String get recordingFailedPleaseTryAgain => '錄音失敗，請再試一次';
+
+  @override
+  String get voiceMessageTooLargePleaseRecord => '語音檔案太大，請縮短錄音';
+
+  @override
+  String get microphoneAllowedPressHoldAgainRecord => '已允許使用麥克風，請再按住按鈕開始錄音';
+
+  @override
+  String get microphoneAccessNeededRecordTurnSettings => '需要麥克風權限才能錄音，請到系統設定開啟';
+
+  @override
+  String get couldnTStartRecordingPleaseTry => '無法開始錄音，請稍後再試';
+
+  @override
+  String get selectText => '選取文字';
+
+  @override
+  String get unsend => '收回';
+
+  @override
+  String get resend => '重新傳送';
+
+  @override
+  String get unsendMessage => '收回這則訊息？';
+
+  @override
+  String get neitherAbleSeeMessageSContent => '收回後雙方都看不到這則訊息的內容。';
+
+  @override
+  String get reportMessage => '檢舉這則訊息';
+
+  @override
+  String get reservationSentWaitingSeller => '已送出預約，等待賣家回覆';
+
+  @override
+  String get acceptReservation => '接受預約？';
+
+  @override
+  String p0HeldThemP1HoursNo(Object p0, Object p1) => '《${p0}》會保留給對方 ${p1} 小時，期間其他人無法購買。';
+
+  @override
+  String get accept => '接受';
+
+  @override
+  String get reservationAccepted => '已接受預約';
+
+  @override
+  String get declineReservation => '婉拒預約？';
+
+  @override
+  String get theyLlNotifiedDeclined => '對方會收到婉拒的通知。';
+
+  @override
+  String get decline2 => '婉拒';
+
+  @override
+  String get reservationDeclined => '已婉拒預約';
+
+  @override
+  String get cancelReservation => '取消預約？';
+
+  @override
+  String p0NoLongerHeld(Object p0) => '取消後《${p0}》將不再保留。';
+
+  @override
+  String get cancelReservation2 => '取消預約';
+
+  @override
+  String get reservationCanceled => '已取消預約';
+
+  @override
+  String get notNow2 => '先不要';
+
+  @override
+  String get couldnTLoadConversationPleaseTry => '無法載入對話，請稍後再試';
+
+  @override
+  String get accountCanTReceiveMessagesRight => '對方帳號目前無法接收訊息';
+
+  @override
+  String get holdMicTalkReleaseSend => '按住麥克風說話，放開即可傳送';
+
+  @override
+  String get startConversation => '對話從這裡開始';
+
+  @override
+  String p0New(Object p0) => '${p0} 則新訊息';
+
+  @override
+  String get connectionUnstableMessagesCanTSent => '連線不穩定，暫時無法傳送訊息';
+
+  @override
+  String get retry => '重試';
+
+  @override
+  String get stillAvailable => '請問還在嗎？';
+
+  @override
+  String get couldLowerPriceBit => '可以再便宜一點嗎？';
+
+  @override
+  String get whenCanPutLocker => '什麼時候可以放進書櫃？';
+
+  @override
+  String get unsentMessage => '你收回了一則訊息';
+
+  @override
+  String get theyUnsentMessage => '對方收回了一則訊息';
+
+  @override
+  String get reservationDetailsArenTAvailableRight => '預約資訊暫時無法顯示';
+
+  @override
+  String get sending => '傳送中';
+
+  @override
+  String get couldNotUploadPhotosPleaseTry => '證據照片上傳失敗，請稍後再試';
+
+  @override
+  String get bookDetailsUpdatedButPhotosCouldn => '書籍資料已更新，但照片上傳失敗，請稍後再試';
+
+  @override
+  String get sNotIsbnBarcodeScanOne => '掃到的不是 ISBN 條碼，請掃描書背上 978 或 979 開頭的條碼';
+
+  @override
+  String get couldnTLoadCategoriesTapRetry => '分類載入失敗，點此重試';
+
+  @override
+  String removedP0FromSaved(Object p0) => '已取消收藏《${p0}》';
+
+  @override
+  String get recentlyViewedCleared => '已清除最近瀏覽';
+
+  @override
+  String clearP0(Object p0) => '清除（${p0}）';
+
+  @override
+  String get picked => '猜你喜歡';
+
+  @override
+  String get seeMore => '查看更多';
+
+  @override
+  String get recentlyViewed => '最近瀏覽';
+
+  @override
+  String get clear => '清除';
+
+  @override
+  String get notificationDeleted => '已刪除通知';
+
+  @override
+  String get pleasePutBookAssignedLockerSoon => '請盡快把書放進指定書櫃';
+
+  @override
+  String get weLlLetKnowWhenSeller => '賣家存書後會通知你前往取書';
+
+  @override
+  String get waitingBuyerCollect => '等待買家到書櫃取書';
+
+  @override
+  String get bookLockerEnterPickupCodeCollect => '書已在書櫃裡，輸入取書碼即可取書';
+
+  @override
+  String get transactionCompleteThank => '交易完成，感謝使用';
+
+  @override
+  String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍，確認後訂單即完成。';
+
+  @override
+  String p0Orders2(Object p0) => '共 ${p0} 筆訂單';
+
+  @override
+  String p0ReadyPickup(Object p0) => '可取書 ${p0} 筆';
+
+  @override
+  String get pickUp => '待取貨';
+
+  @override
+  String get saved => '收藏';
+
+  @override
+  String get accountSecurity => '帳號安全';
+
+  @override
+  String get sellerHasnTPutBookLocker => '賣家還沒把書放進書櫃，存書後會通知你';
+
+  @override
+  String get searchHistoryCleared => '已清除搜尋紀錄';
+
+  @override
+  String get trendingBooks => '熱門書籍';
+
+  @override
+  String get signOutDevice => '登出這台裝置？';
+
+  @override
+  String signOutP0(Object p0) => '登出「${p0}」？';
+
+  @override
+  String get llNeedSignAgainUseApp => '登出後需要重新登入才能使用。';
+
+  @override
+  String get deviceSignedOutRightAwayStop => '那台裝置會立即登出，也不會再收到推播。';
+
+  @override
+  String get deviceSignedOut => '已登出這台裝置';
+
+  @override
+  String get signOutAllDevicesIncludingOne => '登出所有裝置（含這台）';
+
+  @override
+  String get signOutAllOtherDevices => '登出其他所有裝置';
+
+  @override
+  String get everyDeviceIncludingOneSignedOut => '包含這台在內的所有裝置都會登出，之後需要重新登入。';
+
+  @override
+  String get everyDeviceExceptOneSignedOut => '除了這台之外的裝置都會立即登出，也不會再收到推播。';
+
+  @override
+  String signedOutP0OtherDevices(Object p0) => '已登出其他 ${p0} 台裝置';
+
+  @override
+  String get unknownDevice => '未知裝置';
+
+  @override
+  String get couldnTLoadDevices => '無法載入登入裝置';
+
+  @override
+  String get theseDevicesSignedAccountIfDon => '這些裝置目前登入你的帳號。看到不認得的裝置，請立即登出並修改密碼。';
+
+  @override
+  String get device => '這台裝置';
+
+  @override
+  String get otherDevices => '其他裝置';
+
+  @override
+  String otherDevicesP0(Object p0) => '其他裝置（${p0}）';
+
+  @override
+  String get noOtherDevicesSigned => '沒有其他裝置登入你的帳號';
+
+  @override
+  String get signedDevices => '登入裝置';
+
+  @override
+  String get activeNow => '目前使用中';
+
+  @override
+  String lastActiveP0(Object p0) => '最後使用 ${p0}';
+
+  @override
+  String signedP0(Object p0) => '${p0} 登入';
+
+  @override
+  String get biometricPayment => '已啟用生物辨識付款';
+
+  @override
+  String get paymentPinMust6Digits => '交易密碼必須是 6 位數字';
+
+  @override
+  String get pinTooEasyGuessTryAnother => '交易密碼太簡單，請換一組';
+
+  @override
+  String get enterPasswordResetPaymentPin => '輸入登入密碼後即可重新設定交易密碼';
+
+  @override
+  String get confirmSBeforeSettingPaymentPin => '設定交易密碼前，請先確認是你本人';
+
+  @override
+  String get pinsDonTMatchStartAgain => '兩次輸入的交易密碼不一致，請重新設定';
+
+  @override
+  String get paymentPinReset => '交易密碼已重新設定';
+
+  @override
+  String get paymentPinSet => '交易密碼已設定';
+
+  @override
+  String get use6DigitPinConfirmPayments => '之後結帳時，會用這組 6 位數密碼確認付款。';
+
+  @override
+  String get verifyingIdentity => '正在確認身分…';
+
+  @override
+  String get enterAgainConfirm => '再輸入一次確認';
+
+  @override
+  String get set6DigitPaymentPin => '設定 6 位數交易密碼';
+
+  @override
+  String get enterSamePinAgain => '請再輸入一次剛才的密碼';
+
+  @override
+  String get avoidRepeatedSequentialPatternedDigits => '不能是相同、連續或重複的數字';
+
+  @override
+  String get resetPaymentPin => '重設交易密碼';
+
+  @override
+  String get paymentPin => '交易密碼';
+
+  @override
+  String stepP02(Object p0) => '步驟 ${p0} / 2';
+
+  @override
+  String get setPaymentPinFirst => '請先設定交易密碼';
+
+  @override
+  String get setPaymentPinFirstSoFallback => '請先設定交易密碼，辨識失敗時才有替代方式';
+
+  @override
+  String get setUpNow => '立即設定';
+
+  @override
+  String get biometricPaymentTurnedOff => '已關閉生物辨識付款';
+
+  @override
+  String get verifyTurnBiometricPayment => '驗證以啟用生物辨識付款';
+
+  @override
+  String p0PaymentsTurned(Object p0) => '已啟用 ${p0} 付款';
+
+  @override
+  String get securitySettingsUnavailableRightNowMay => '暫時無法取得帳號安全設定，交易密碼與登入裝置可能無法變更。';
+
+  @override
+  String payWithP0(Object p0) => '使用 ${p0} 付款';
+
+  @override
+  String get accountWellProtected => '帳號安全狀態良好';
+
+  @override
+  String get accountCouldSafer => '帳號安全還可以加強';
+
+  @override
+  String get paymentPinBiometricPaymentSetCheck => '交易密碼與生物辨識付款都已設定。記得定期檢查登入裝置。';
+
+  @override
+  String get setPaymentPinTurnBiometricPayment => '設定交易密碼並開啟生物辨識付款，結帳會更安全也更快。';
+
+  @override
+  String tooManyAttemptsLockedUntilP0(Object p0) => '錯誤次數過多，鎖定到 ${p0}';
+
+  @override
+  String get usedConfirmPaymentsCheckout => '結帳時用來確認付款';
+
+  @override
+  String get notSetRequiredBeforeCheckout => '尚未設定，結帳前需要先設定';
+
+  @override
+  String get change => '變更';
+
+  @override
+  String get forgotPaymentPin => '忘記交易密碼';
+
+  @override
+  String get ifFailsCanEnterPaymentPin => '辨識失敗時可改輸入交易密碼';
+
+  @override
+  String get viewRemotelySignOutDevices => '查看或遠端登出裝置';
+
+  @override
+  String p0Devices(Object p0) => '${p0} 台';
+
+  @override
+  String get otherDevicesNeedSignAgain => '修改後其他裝置需要重新登入';
+
+  @override
+  String get restoredUnfinishedListing => '已帶入上次未完成的內容';
+
+  @override
+  String get isbnSCheckDigitInvalidPlease => '這組 ISBN 的檢查碼不正確，請再確認一次';
+
+  @override
+  String get draftSavedAutomatically => '已自動儲存草稿';
+
+  @override
+  String get continueUnfinishedListing => '繼續上次未完成的刊登';
+
+  @override
+  String clearedP0MbCache(Object p0) => '已清除 ${p0} MB 快取';
+
+  @override
+  String get cacheCleared => '快取已清除';
+
+  @override
+  String get storage => '儲存空間';
+
+  @override
+  String get paymentPinBiometricPaymentDevices => '交易密碼、生物辨識付款、登入裝置';
+
+  @override
+  String get clearCache => '清除快取';
+
+  @override
+  String get removesCachedImagesFilesAccountData => '清除暫存的圖片與檔案，不會影響帳號資料';
+
+  @override
+  String get couldNotLoadNotificationSettings => '無法載入通知設定';
+
+  @override
+  String get month => '本月';
+
+  @override
+  String p0P1(Object p0, Object p1) => '${p0} 年 ${p1} 月';
+
+  @override
+  String get noIncomeYet => '沒有收入紀錄';
+
+  @override
+  String get noSpendingYet => '沒有支出紀錄';
+
+  @override
+  String get income => '收入';
+
+  @override
+  String get spending => '支出';
+
+  @override
+  String get totalIncome => '累計收入';
+
+  @override
+  String get totalSpending => '累計支出';
+
+  @override
+  String get item3 => '項目';
+
+  @override
+  String get details => '說明';
+
+  @override
+  String get balanceAfter => '交易後餘額';
+
+  @override
+  String get transactionId => '交易編號';
+
+  @override
+  String get sessionExpiredPleaseSignAgain => '登入已過期，請重新登入';
+
+  @override
+  String get serviceTemporarilyUnavailableTryAgainLater => '服務暫時無法使用，請稍後再試';
+
+  @override
+  String get uploadFailedTryAgainLater => '上傳失敗，請稍後再試';
+
+  @override
+  String get nearby => '就在附近';
+
+  @override
+  String p0M(Object p0) => '${p0} 公尺';
+
+  @override
+  String p0Km(Object p0) => '${p0} 公里';
+
+  @override
+  String get iphoneDidnTReceiveApnsToken => '手機沒有取得 Apple 推播憑證（APNs token）。請確認 Xcode 的 Signing & Capabilities 已加入 Push Notifications，並用同一個 Apple 開發者帳號重新安裝 App。';
+
+  @override
+  String get firebaseDidnTIssuePushToken => 'Firebase 沒有發出推播 token，請確認 GoogleService-Info.plist 與 App 的 Bundle ID 一致';
+
+  @override
+  String couldnTGetPushTokenP0(Object p0) => '取得推播 token 失敗：${p0}';
+
+  @override
+  String couldnTRegisterPushTokenWith(Object p0) => '推播 token 上傳伺服器失敗：${p0}';
+
+  @override
+  String get protectCoinsCheckoutRequires6Digit => '為了保護你的代幣，結帳時需要輸入 6 位數交易密碼。設定後也可以開啟 Face ID 或指紋付款。';
+
+  @override
+  String confirmPaymentP0Coins(Object p0) => '確認付款 ${p0} 代幣';
+
+  @override
+  String get enterPasswordContinue => '請輸入登入密碼以繼續';
+
+  @override
+  String get verifyS => '驗證身分';
+
+  @override
+  String get amount => '付款金額';
+
+  @override
+  String p0Coins(Object p0) => '${p0} 代幣';
+
+  @override
+  String get enterPaymentPin => '輸入交易密碼';
+
+  @override
+  String get enterPaymentPinContinue => '請輸入交易密碼以繼續';
+
+  @override
+  String get paymentPinResetEnterAgain => '交易密碼已重新設定，請再輸入一次';
+
+  @override
+  String get usePasswordInstead => '改用登入密碼';
+
+  @override
+  String get couldnTGetLocationLockersShown => '無法取得目前位置，書櫃會依預設順序排列';
+
+  @override
+  String p0SlotsFree(Object p0) => '空櫃 ${p0} 格';
+
+  @override
+  String openP0(Object p0) => '營業 ${p0}';
+
+  @override
+  String get nearest => '最近';
+
+  @override
+  String get noFreeSlots => '目前沒有空櫃';
+
+  @override
+  String get sortedByDistance => '依距離由近到遠排列';
+
+  @override
+  String get turnLocationSortByDistance => '開啟定位可依距離排序';
+
+  @override
+  String get lockerNoFreeSlotsRightNow => '這個書櫃目前沒有空櫃';
+
+  @override
+  String get turn => '開啟定位';
+
+  @override
+  String get noLockersAvailable => '目前沒有可用的書櫃';
+
+  @override
+  String get noMatchingOptions => '沒有符合的選項';
+
+  @override
+  String get undo2 => '復原';
+
+  @override
+  String copiedP0(Object p0) => '已複製「${p0}」';
+
+  @override
+  String get typing => '對方正在輸入…';
+
+  @override
+  String get today => '今天';
+
+  @override
+  String get yesterday => '昨天';
+
+  @override
+  String p0P12(Object p0, Object p1) => '${p0}月${p1}日';
+
+  @override
+  String p1P2P0(Object p0, Object p1, Object p2) => '${p0}年${p1}月${p2}日';
+
+  @override
+  String get releaseCancel => '放開以取消';
+
+  @override
+  String get slideCancel => '← 滑動取消';
+
+  @override
+  String get awaitingReply => '待回覆';
+
+  @override
+  String heldUntilP0(Object p0) => '已保留到 ${p0}';
+
+  @override
+  String get declined2 => '已婉拒';
+
+  @override
+  String get closed => '已結束';
+
+  @override
+  String get theyWantReserveBook => '對方想預約你的書';
+
+  @override
+  String get sentReservationRequest => '你送出了預約';
+
+  @override
+  String holdP0H(Object p0) => '保留 ${p0} 小時';
+
+  @override
+  String get onceSellerAcceptsBookHeldNo => '賣家接受後，這本書會保留給你，其他人在期限內無法購買。';
+
+  @override
+  String get holdPeriod => '保留時間';
+
+  @override
+  String get messageSellerOptional => '想對賣家說的話（選填）';
+
+  @override
+  String get sendRequest => '送出預約';
+
+  @override
+  String p0Hours(Object p0) => '${p0} 小時';
+
+  @override
+  String p0P1DigitsEntered(Object p0, Object p1) => '已輸入 ${p0} / ${p1} 位';
 
 }
 

@@ -67,7 +67,6 @@ class Order {
 
   Book? get firstBook => items.isEmpty ? null : items.first.book;
 
-  /// 買家視角。賣家與後台請改用 AppLabels.order(status)。
   String get statusText => AppLabels.order(status, asBuyer: true);
 
   bool get isCancellable =>

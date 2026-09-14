@@ -4,8 +4,6 @@ import '../utils/app_radius.dart';
 import '../utils/motion.dart';
 import '../i18n/strings.dart';
 
-/// 彈窗的共用進場。Material 預設只有淡入，這裡補上位移與縮放，
-/// 離場則刻意比進場短。
 Future<T?> _showAnimatedDialog<T>(
   BuildContext context, {
   required WidgetBuilder builder,
@@ -53,12 +51,12 @@ Future<bool> showConfirmDialog(
   final result = await _showAnimatedDialog<bool>(
     context,
     builder: (ctx) => AlertDialog(
+      scrollable: true,
       backgroundColor: c.card,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
       contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-      // actions 用自訂的按鈕列，才能做出實心主按鈕，跟 App 其他地方一致。
       actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -104,7 +102,11 @@ Future<bool> showConfirmDialog(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text(
-            cancelLabel ?? S.actionCancel, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    cancelLabel ?? S.actionCancel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             ),
@@ -121,7 +123,11 @@ Future<bool> showConfirmDialog(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text(
-            confirmLabel ?? S.actionConfirm, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    confirmLabel ?? S.actionConfirm,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ),
@@ -145,72 +151,165 @@ Future<String?> showTextInputDialog(
   String? message,
   bool obscure = false,
   bool isDestructive = false,
-}) async {
-  final c = AppColors.of(context);
-  final controller = TextEditingController(text: initialValue);
-
-  final result = await _showAnimatedDialog<String>(
+  String? Function(String value)? validator,
+  TextInputType? keyboardType,
+}) {
+  return _showAnimatedDialog<String>(
     context,
-    builder: (ctx) => AlertDialog(
+    builder: (ctx) => _TextInputDialog(
+      title: title,
+      hint: hint,
+      initialValue: initialValue,
+      maxLines: maxLines,
+      maxLength: maxLength,
+      confirmLabel: confirmLabel,
+      message: message,
+      obscure: obscure,
+      isDestructive: isDestructive,
+      validator: validator,
+      keyboardType: keyboardType,
+    ),
+  );
+}
+
+class _TextInputDialog extends StatefulWidget {
+  final String title;
+  final String? hint;
+  final String initialValue;
+  final int maxLines;
+  final int maxLength;
+  final String? confirmLabel;
+  final String? message;
+  final bool obscure;
+  final bool isDestructive;
+  final String? Function(String value)? validator;
+  final TextInputType? keyboardType;
+
+  const _TextInputDialog({
+    required this.title,
+    required this.hint,
+    required this.initialValue,
+    required this.maxLines,
+    required this.maxLength,
+    required this.confirmLabel,
+    required this.message,
+    required this.obscure,
+    required this.isDestructive,
+    required this.validator,
+    required this.keyboardType,
+  });
+
+  @override
+  State<_TextInputDialog> createState() => _TextInputDialogState();
+}
+
+class _TextInputDialogState extends State<_TextInputDialog> {
+  late final TextEditingController _controller = TextEditingController(text: widget.initialValue);
+  late bool _hidden = widget.obscure;
+  String? _error;
+  bool _closing = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_closing) return;
+    final value = _controller.text.trim();
+    final error = widget.validator?.call(value);
+    if (error != null) {
+      setState(() => _error = error);
+      return;
+    }
+    _closing = true;
+    Navigator.pop(context, value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final singleLine = widget.obscure || widget.maxLines == 1;
+
+    return AlertDialog(
       backgroundColor: c.card,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(
-        title,
+        widget.title,
         style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary, fontSize: 17),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (message != null) ...[
-            Text(
-              message,
-              style: TextStyle(fontSize: 14, height: 1.5, color: c.textSecondary),
-            ),
-            const SizedBox(height: 14),
-          ],
-          TextField(
-            controller: controller,
-            autofocus: true,
-            obscureText: obscure,
-            // 密碼欄位不顯示字數，maxLines 也必須是 1。
-            maxLines: obscure ? 1 : maxLines,
-            maxLength: obscure ? null : maxLength,
-            style: TextStyle(color: c.textPrimary),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(color: c.textHint),
-              filled: true,
-              fillColor: c.inputFill,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.control),
-                borderSide: BorderSide.none,
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (widget.message != null) ...[
+              Text(
+                widget.message!,
+                style: TextStyle(fontSize: 14, height: 1.5, color: c.textSecondary),
+              ),
+              const SizedBox(height: 14),
+            ],
+            TextField(
+              controller: _controller,
+              autofocus: true,
+              obscureText: _hidden,
+              enableSuggestions: !widget.obscure,
+              autocorrect: !widget.obscure,
+              keyboardType: widget.keyboardType,
+              maxLines: singleLine ? 1 : widget.maxLines,
+              maxLength: widget.obscure ? null : widget.maxLength,
+              textInputAction: singleLine ? TextInputAction.done : TextInputAction.newline,
+              onSubmitted: singleLine ? (_) => _submit() : null,
+              onChanged: (_) {
+                if (_error != null) setState(() => _error = null);
+              },
+              style: TextStyle(color: c.textPrimary),
+              decoration: InputDecoration(
+                hintText: widget.hint,
+                hintStyle: TextStyle(color: c.textHint),
+                errorText: _error,
+                filled: true,
+                fillColor: c.inputFill,
+                suffixIcon: widget.obscure
+                    ? IconButton(
+                        icon: Icon(
+                          _hidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          size: 20,
+                          color: c.iconInactive,
+                        ),
+                        onPressed: () => setState(() => _hidden = !_hidden),
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.control),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(ctx),
+          onPressed: () => Navigator.pop(context),
           child: Text(S.actionCancel, style: TextStyle(color: c.textSecondary)),
         ),
         TextButton(
-          onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+          onPressed: _submit,
           child: Text(
-            confirmLabel ?? S.actionConfirm,
+            widget.confirmLabel ?? S.actionConfirm,
             style: TextStyle(
-              color: isDestructive ? c.danger : c.accent,
+              color: widget.isDestructive ? c.danger : c.accent,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
       ],
-    ),
-  );
-
-  controller.dispose();
-  return result;
+    );
+  }
 }
 
 Future<T?> showOptionSheet<T>(
@@ -224,7 +323,6 @@ Future<T?> showOptionSheet<T>(
   return showModalBottomSheet<T>(
     context: context,
     backgroundColor: c.sheetBg,
-    // 選項一多（例如八種訂單狀態）就會超出螢幕，必須讓它可以捲動。
     isScrollControlled: true,
     constraints: BoxConstraints(
       maxHeight: MediaQuery.of(context).size.height * 0.75,
@@ -236,14 +334,31 @@ Future<T?> showOptionSheet<T>(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 14),
-          Text(
-            title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
+          const SizedBox(height: 10),
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
+            ),
           ),
           if (subtitle != null) ...[
             const SizedBox(height: 2),
-            Text(subtitle, style: TextStyle(fontSize: 12, color: c.textSecondary)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: c.textSecondary),
+              ),
+            ),
           ],
           const SizedBox(height: 8),
           Flexible(
@@ -292,16 +407,17 @@ Future<T?> runBusy<T>(
 }) async {
   final navigator = Navigator.of(context, rootNavigator: true);
   final c = AppColors.of(context);
-  var dialogOpen = true;
 
-  showDialog<void>(
+  final route = DialogRoute<void>(
     context: context,
+    themes: InheritedTheme.capture(from: context, to: navigator.context),
     barrierDismissible: false,
     barrierColor: c.scrim,
     builder: (_) => PopScope(
       canPop: false,
       child: Center(
         child: Container(
+          constraints: const BoxConstraints(maxWidth: 260),
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
           decoration: BoxDecoration(
             color: c.card,
@@ -313,18 +429,30 @@ Future<T?> runBusy<T>(
               CircularProgressIndicator(color: c.accent),
               if (message != null) ...[
                 const SizedBox(height: 16),
-                Text(message, style: TextStyle(color: c.textSecondary, fontSize: 14)),
+                Material(
+                  type: MaterialType.transparency,
+                  child: Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: c.textSecondary, fontSize: 14),
+                  ),
+                ),
               ],
             ],
           ),
         ),
       ),
     ),
-  ).then((_) => dialogOpen = false);
+  );
+  navigator.push(route);
 
   try {
     return await task();
   } finally {
-    if (dialogOpen && navigator.canPop()) navigator.pop();
+    if (route.isCurrent) {
+      navigator.pop();
+    } else if (route.isActive) {
+      navigator.removeRoute(route);
+    }
   }
 }

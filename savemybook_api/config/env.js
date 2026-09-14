@@ -17,19 +17,15 @@ const env = {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),
-  // 預設只信任本機反向代理。設成 true 會讓任何人偽造 X-Forwarded-For，
-  // 登入限流就能被繞過。
+  // 設成 true 會讓任何人偽造 X-Forwarded-For 繞過登入限流。
   trustProxy: process.env.TRUST_PROXY ?? 'loopback',
   backupEnabled: process.env.BACKUP_ENABLED !== 'false',
   backupDir: process.env.BACKUP_DIR || '',
   backupKeep: int(process.env.BACKUP_KEEP, 14),
-  // Firebase 服務帳戶金鑰 JSON 的路徑。沒設定時推播整個停用，其餘功能照常。
   fcmServiceAccountFile: process.env.FCM_SERVICE_ACCOUNT_FILE || process.env.GOOGLE_APPLICATION_CREDENTIALS || '',
   pushEnabled: process.env.PUSH_ENABLED !== 'false'
 };
 
-/// 缺少必要設定時直接拒絕啟動。JWT_SECRET 為空時 jsonwebtoken 會拋錯，
-/// 但要等到第一個人登入才會發現。
 const assertEnv = () => {
   const missing = [];
   if (!env.databaseUrl) missing.push('DATABASE_URL');

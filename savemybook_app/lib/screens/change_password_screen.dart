@@ -5,6 +5,7 @@ import '../widgets/animations.dart';
 import '../widgets/app_buttons.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
+import '../widgets/guards.dart';
 import '../widgets/state_views.dart';
 import '../i18n/strings.dart';
 
@@ -22,31 +23,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _confirmController = TextEditingController();
 
   bool _isSaving = false;
+  bool _done = false;
   bool _obscureCurrent = true;
   bool _obscureNew = true;
   String? _currentError;
   String? _newError;
   String? _confirmError;
-
-  int get _strength {
-    final value = _newController.text;
-    if (value.isEmpty) return 0;
-
-    var score = 0;
-    if (value.length >= 8) score++;
-    if (value.length >= 12) score++;
-    if (RegExp(r'[A-Za-z]').hasMatch(value) && RegExp(r'[0-9]').hasMatch(value)) score++;
-    if (RegExp(r'[^A-Za-z0-9]').hasMatch(value)) score++;
-    return score;
-  }
-
-  String get _strengthLabel => switch (_strength) {
-        0 => '',
-        1 => S.weak,
-        2 => S.fair,
-        3 => S.conditionFair,
-        _ => S.strong,
-      };
 
   @override
   void dispose() {
@@ -99,13 +81,23 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     setState(() => _isSaving = false);
 
     if (error != null) {
-      setState(() => _currentError = error);
-      showAppSnackBar(context, error, isError: true);
+      if (error.contains(S.currentPassword)) {
+        setState(() => _currentError = error);
+      } else if (error.contains(S.newPassword)) {
+        setState(() => _newError = error);
+      } else {
+        showAppSnackBar(context, error, isError: true);
+      }
       return;
     }
 
-    showAppSnackBar(context, S.passwordUpdated);
-    Navigator.of(context).maybePop();
+    setState(() => _done = true);
+  }
+
+  void _close() {
+    if (!mounted) return;
+    final route = ModalRoute.of(context);
+    if (route != null && route.isCurrent) Navigator.of(context).pop();
   }
 
   @override
@@ -118,17 +110,23 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         children: [
           AppHeader(title: S.changePassword, icon: Icons.key_outlined),
           Expanded(
-            child: GestureDetector(
+            child: SwitchIn(
+              child: _done
+                  ? SuccessView(
+                      key: const ValueKey('done'),
+                      title: S.passwordUpdated,
+                      message: S.otherDevicesNeedSignAgainWith,
+                      actionLabel: S.completed,
+                      onAction: _close,
+                      onAnimationDone: () => Future.delayed(const Duration(milliseconds: 1200), _close),
+                    )
+                  : GestureDetector(
+              key: const ValueKey('form'),
               behavior: HitTestBehavior.opaque,
               onTap: () => FocusScope.of(context).unfocus(),
               child: ListView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: EdgeInsets.fromLTRB(
-                  20,
-                  20,
-                  20,
-                  MediaQuery.of(context).viewInsets.bottom + 40,
-                ),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                 children: [
                   FadeSlideIn(
                     child: AppCard(
@@ -181,7 +179,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       obscure: _obscureNew,
                       onToggle: () => setState(() => _obscureNew = !_obscureNew),
                       onChanged: () => setState(() => _newError = null),
-                      footer: _buildStrengthBar(c),
+                      footer: PasswordStrengthMeter(password: _newController.text),
                     ),
                   ),
                   FadeSlideIn(
@@ -214,6 +212,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 ],
               ),
             ),
+            ),
           ),
         ],
       ),
@@ -243,9 +242,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             children: [
               Icon(icon, size: 16, color: c.accent),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
+                ),
               ),
             ],
           ),
@@ -267,55 +270,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               onPressed: onToggle,
             ),
           ),
-          if (footer != null) footer,
+          ?footer,
         ],
       ),
-    );
-  }
-
-  Widget _buildStrengthBar(AppColors c) {
-    final score = _strength;
-    final colors = [c.danger, c.danger, c.warning, c.success, c.success];
-
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-      alignment: Alignment.topCenter,
-      child: score == 0
-          ? const SizedBox(width: double.infinity)
-          : Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Row(
-                children: [
-                  for (var i = 0; i < 4; i++) ...[
-                    Expanded(
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 220 + i * 60),
-                        curve: Curves.easeOut,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: i < score ? colors[score] : c.inputFill,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                    ),
-                    if (i != 3) const SizedBox(width: 4),
-                  ],
-                  const SizedBox(width: 10),
-                  SizedBox(
-                    width: 34,
-                    child: Text(
-                      _strengthLabel,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: colors[score],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
     );
   }
 }

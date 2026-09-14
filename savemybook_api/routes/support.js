@@ -7,6 +7,7 @@ const v = require('../lib/validate');
 const { badRequest, forbidden, notFound } = require('../lib/errors');
 const { TICKET_CATEGORIES } = require('../constants/domain');
 const { notify } = require('../services/notify');
+const legal = require('../services/legal');
 
 const router = express.Router();
 
@@ -34,8 +35,7 @@ const shapeTicket = (t) => ({
     : null
 });
 
-/// 工單的擁有者或有客服權限的管理員。只看 role 的話，
-/// 沒有客服權限的管理員也能讀到所有人的工單內容。
+// 須檢查客服權限而非只看 role，否則無客服權限的管理員也能讀所有工單。
 const findAccessibleTicket = async (ticketId, user, include) => {
   const ticket = await prisma.support_tickets.findUnique({ where: { ticket_id: ticketId }, include });
   if (!ticket) throw notFound('找不到這張工單');
@@ -55,13 +55,22 @@ router.get('/faqs', async (req, res) => {
   res.status(200).json({ success: true, data: faqs });
 });
 
+router.get('/legal', async (req, res) => {
+  const docs = await prisma.legal_documents.findMany({
+    orderBy: { doc_id: 'asc' },
+    select: { doc_id: true, doc_key: true, title: true, updated_at: true }
+  });
+  res.status(200).json({ success: true, data: await legal.withMeta(docs) });
+});
+
 router.get('/legal/:key', async (req, res) => {
   const key = String(req.params.key || '');
   if (!LEGAL_KEY_RE.test(key)) throw notFound('找不到這份文件');
 
   const doc = await prisma.legal_documents.findUnique({ where: { doc_key: key } });
   if (!doc) throw notFound('找不到這份文件');
-  res.status(200).json({ success: true, data: doc });
+  const [withVersion] = await legal.withMeta([doc]);
+  res.status(200).json({ success: true, data: withVersion });
 });
 
 router.get('/tickets', authenticateToken, async (req, res) => {
@@ -109,7 +118,6 @@ router.post('/tickets', authenticateToken, ticketLimiter, async (req, res) => {
   if (subject.length > 100) throw badRequest('主旨不可超過 100 字');
   if (!content) throw badRequest('請描述你遇到的問題');
 
-  // 限制同時處理中的工單數，避免單一使用者大量開單。
   const openCount = await prisma.support_tickets.count({
     where: { user_id: req.user.userId, status: { in: ['open', 'pending'] } }
   });
@@ -144,7 +152,6 @@ router.post('/tickets/:id/messages', authenticateToken, ticketLimiter, async (re
 
     await tx.support_tickets.update({
       where: { ticket_id: ticketId },
-      // 客服回覆 -> 等使用者看；使用者回覆 -> 回到待處理。
       data: { status: isStaff ? 'pending' : 'open', updated_at: new Date() }
     });
 

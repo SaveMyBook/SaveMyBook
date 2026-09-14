@@ -13,8 +13,6 @@ import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 
-/// 單筆訂單的全貌。列表只夠判斷「有沒有問題」，處理一筆爭議要看的是
-/// 錢什麼時候扣的、書放進哪一格、退過款沒有、對方申訴了什麼。
 class AdminOrderDetailScreen extends StatefulWidget {
   final int orderId;
   final String orderNo;
@@ -30,6 +28,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
 
   AdminOrderDetail? _detail;
   bool _isLoading = true;
+  bool _isBusy = false;
 
   @override
   void initState() {
@@ -46,9 +45,23 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     });
   }
 
+  Future<void> _retry() async {
+    setState(() => _isLoading = true);
+    await _load();
+  }
+
   Future<void> _changeStatus() async {
     final detail = _detail;
-    if (detail == null) return;
+    if (detail == null || _isBusy) return;
+    setState(() => _isBusy = true);
+    try {
+      await _submitStatusChange(detail);
+    } finally {
+      if (mounted) setState(() => _isBusy = false);
+    }
+  }
+
+  Future<void> _submitStatusChange(AdminOrderDetail detail) async {
     final c = AppColors.of(context);
 
     final status = await showOptionSheet<String>(
@@ -80,23 +93,26 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
       message: _settlementHint(from, status, detail.order.totalAmount.toStringAsFixed(0)),
       confirmLabel: S.applyChange,
     );
-    if (!mounted) return;
+    if (note == null || !mounted) return;
 
     final error = await runBusy(
       context,
-      () => _api.updateOrderStatusAsAdmin(detail.order.orderId, status, note: note),
+      () => _api.updateOrderStatusAsAdmin(
+        detail.order.orderId,
+        status,
+        note: note.isEmpty ? null : note,
+      ),
     );
     if (!mounted) return;
 
     if (error != null) {
-      showAppSnackBar(context, error, isError: true);
+      if (error.isNotEmpty && error != S.verificationCancelled) showAppSnackBar(context, error, isError: true);
       return;
     }
     showAppSnackBar(context, S.orderStatusUpdated);
-    _load();
+    await _load();
   }
 
-  /// 與伺服器 services/orders.js 的 phaseOf 一致。
   static String _phase(String status) => switch (status) {
         'completed' => 'paid_out',
         'cancelled' || 'refunded' => 'returned',
@@ -113,7 +129,6 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     return null;
   }
 
-  /// 讓客服在送出前知道這次會動到哪些錢。
   String? _settlementHint(String from, String to, String amount) {
     final target = _phase(to);
     if (target == 'paid_out') return S.confirmingPaysP0TokensSellerMarks(amount);
@@ -122,6 +137,9 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     if (_phase(from) == 'returned') return S.ifBuyerNotBeenRefundedYet;
     return S.confirmingRefundsBuyerSP0Tokens(amount);
   }
+
+  static String _money(double value) =>
+      value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(2);
 
   void _copy(String text, String message) {
     Clipboard.setData(ClipboardData(text: text));
@@ -152,9 +170,16 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                 child: _isLoading
                     ? const LoadingView()
                     : detail == null
-                        ? EmptyView(
-                            icon: Icons.receipt_long_outlined,
-                            message: S.orderNotFound,
+                        ? ListView(
+                            children: [
+                              const SizedBox(height: 60),
+                              EmptyView(
+                                icon: Icons.receipt_long_outlined,
+                                message: S.orderNotFound,
+                                actionLabel: S.refresh,
+                                onAction: _retry,
+                              ),
+                            ],
                           )
                         : RefreshIndicator(
                             color: c.accent,
@@ -162,33 +187,26 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                             child: ListView(
                               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                               children: [
-                                _buildSummary(detail, c),
-                                const SizedBox(height: 12),
-                                _buildTimeline(detail, c),
-                                const SizedBox(height: 12),
-                                _buildPeople(detail, c),
-                                const SizedBox(height: 12),
-                                _buildItems(detail, c),
-                                const SizedBox(height: 12),
-                                _buildPickup(detail, c),
-                                if (detail.walletTxns.isNotEmpty) ...[
-                                  const SizedBox(height: 12),
-                                  _buildWallet(detail, c),
-                                ],
-                                if (detail.refunds.isNotEmpty) ...[
-                                  const SizedBox(height: 12),
-                                  _buildRefunds(detail, c),
-                                ],
-                                if (detail.disputes.isNotEmpty) ...[
-                                  const SizedBox(height: 12),
-                                  _buildDisputes(detail, c),
-                                ],
+                                for (final (i, section) in [
+                                  _buildSummary(detail, c),
+                                  _buildTimeline(detail, c),
+                                  _buildPeople(detail, c),
+                                  _buildItems(detail, c),
+                                  _buildPickup(detail, c),
+                                  if (detail.walletTxns.isNotEmpty) _buildWallet(detail, c),
+                                  if (detail.refunds.isNotEmpty) _buildRefunds(detail, c),
+                                  if (detail.disputes.isNotEmpty) _buildDisputes(detail, c),
+                                ].indexed)
+                                  Padding(
+                                    padding: EdgeInsets.only(top: i == 0 ? 0 : 12),
+                                    child: RevealOnScroll(index: i, child: section),
+                                  ),
                               ],
                             ),
                           ),
               ),
             ),
-          if (detail != null) _buildBottomBar(detail, c),
+          if (detail != null && !_isLoading) _buildBottomBar(detail, c),
         ],
       ),
     );
@@ -203,11 +221,17 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  order.orderNo,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                child: GestureDetector(
+                  onLongPress: () => _copy(order.orderNo, S.orderNumberCopied),
+                  child: Text(
+                    order.orderNo,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               StatusBadge(label: order.statusText, color: c.orderStatusColor(order.status)),
             ],
           ),
@@ -215,16 +239,26 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                '\$${order.totalAmount.toStringAsFixed(0)}',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: c.accent),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '\$${order.totalAmount.toStringAsFixed(0)}',
+                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: c.accent),
+                  ),
+                ),
               ),
               const SizedBox(width: 8),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  _paymentText(detail.paymentMethod),
-                  style: TextStyle(fontSize: 12, color: c.textSecondary),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    _paymentText(detail.paymentMethod),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: c.textSecondary),
+                  ),
                 ),
               ),
             ],
@@ -242,8 +276,6 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     );
   }
 
-  /// null 先擋掉，switch 的 default 分支才會是 String 而不是 String?——
-  /// switch 運算式不會對被檢查的值做型別提升。
   String _paymentText(String? method) {
     if (method == null) return S.notPaidYet;
     return switch (method) {
@@ -273,7 +305,6 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     );
   }
 
-  /// 時間軸。空的節點代表流程還沒走到那裡，卡在哪一步一眼就看得出來。
   Widget _buildTimeline(AdminOrderDetail detail, AppColors c) {
     final steps = detail.steps;
 
@@ -377,6 +408,8 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
               const SizedBox(height: 2),
               Text(
                 name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
               ),
             ],
@@ -459,8 +492,8 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 62,
-            child: Text(label, style: TextStyle(fontSize: 12, color: c.textHint)),
+            width: 72,
+            child: Text(label, maxLines: 2, style: TextStyle(fontSize: 12, color: c.textHint)),
           ),
           Expanded(
             child: Text(value, style: TextStyle(fontSize: 13, color: c.textPrimary)),
@@ -469,8 +502,8 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
             PressableScale(
               onTap: onCopy,
               child: Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Icon(Icons.copy_rounded, size: 15, color: c.iconInactive),
+                padding: const EdgeInsets.fromLTRB(10, 2, 2, 2),
+                child: Icon(Icons.copy_rounded, size: 16, color: c.accent),
               ),
             ),
         ],
@@ -478,7 +511,6 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     );
   }
 
-  /// 這筆訂單造成的錢包異動，買賣雙方的都在裡面，可以直接跟總額對帳。
   Widget _buildWallet(AdminOrderDetail detail, AppColors c) {
     return AppCard(
       child: Column(
@@ -515,7 +547,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '${txn.amount >= 0 ? '+' : ''}${txn.amount.toStringAsFixed(0)}',
+                        '${txn.amount >= 0 ? '+' : ''}${_money(txn.amount)}',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -524,7 +556,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        S.balanceP02(txn.balanceAfter.toStringAsFixed(0)),
+                        S.balanceP02(_money(txn.balanceAfter)),
                         style: TextStyle(fontSize: 11, color: c.textHint),
                       ),
                     ],
@@ -602,19 +634,19 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
                     children: [
                       StatusBadge(
                         label: AppLabels.disputeStatus[dispute.status] ?? dispute.status,
                         color: c.neutral,
                       ),
-                      if (dispute.result != null) ...[
-                        const SizedBox(width: 6),
+                      if (dispute.result != null)
                         StatusBadge(
                           label: AppLabels.disputeResult[dispute.result] ?? dispute.result!,
                           color: c.accent,
                         ),
-                      ],
                     ],
                   ),
                   const SizedBox(height: 5),
@@ -655,18 +687,32 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
           Expanded(
             child: Text(
               S.createdP0(formatDateTime(detail.order.createdAt)),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 11, color: c.textHint),
             ),
           ),
+          const SizedBox(width: 8),
           SizedBox(
             height: 42,
             child: ElevatedButton.icon(
-              onPressed: _changeStatus,
-              icon: const Icon(Icons.tune_rounded, size: 16),
-              label: Text(S.changeOrderStatus),
+              onPressed: _isBusy ? null : _changeStatus,
+              icon: _isBusy
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(Icons.tune_rounded, size: 16),
+              label: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 150),
+                child: Text(S.changeOrderStatus, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.accent,
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: c.accent.withValues(alpha: 0.5),
+                disabledForegroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.control)),
               ),

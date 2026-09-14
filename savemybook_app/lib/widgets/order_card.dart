@@ -60,16 +60,30 @@ class OrderCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Text(
-                      '\$${order.totalAmount.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: c.accent,
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '\$${order.totalAmount.toStringAsFixed(0)}',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: c.accent,
+                          ),
+                        ),
                       ),
                     ),
-                    const Spacer(),
-                    Text(order.statusText, style: TextStyle(fontSize: 11, color: c.textHint)),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        order.statusText,
+                        textAlign: TextAlign.end,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11, color: c.textHint),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -95,14 +109,45 @@ class OrderCard extends StatelessWidget {
                     children: [
                       Icon(Icons.schedule_rounded, size: 12, color: c.iconInactive),
                       const SizedBox(width: 3),
-                      Text(order.cabinetOpenHours, style: TextStyle(fontSize: 10, color: c.textSecondary)),
-                      const Spacer(),
-                      if (onShowQr != null)
-                        GestureDetector(
-                          onTap: onShowQr,
-                          child: const Icon(Icons.qr_code_2_rounded, size: 18, color: AppColors.primary),
+                      Expanded(
+                        child: Text(
+                          order.cabinetOpenHours,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 10, color: c.textSecondary),
                         ),
+                      ),
                     ],
+                  ),
+                ],
+                if (showPickupWindow && onShowQr != null) ...[
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onShowQr,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: c.accent.withValues(alpha: c.isDark ? 0.2 : 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.qr_code_2_rounded, size: 16, color: c.accent),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              S.pickupCode,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: c.accent),
+                            ),
+                          ),
+                          Icon(Icons.chevron_right_rounded, size: 16, color: c.accent),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
                 const SizedBox(height: 8),
@@ -115,7 +160,8 @@ class OrderCard extends StatelessWidget {
                       ),
                     ),
                     if (actionLabel != null)
-                      GestureDetector(
+                      Flexible(
+                        child: GestureDetector(
                         onTap: onAction,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -125,6 +171,8 @@ class OrderCard extends StatelessWidget {
                           ),
                           child: Text(
                             actionLabel!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -132,6 +180,7 @@ class OrderCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                      ),
                       ),
                   ],
                 ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../i18n/strings.dart';
+import '../widgets/animations.dart';
+import '../utils/app_info.dart';
 
 class BarcodeScannerScreen extends StatefulWidget {
   final List<BarcodeFormat> formats;
@@ -34,10 +37,51 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   void _onDetect(BarcodeCapture capture) {
     if (_hasPopped) return;
     final barcode = capture.barcodes.firstOrNull;
-    if (barcode?.rawValue != null) {
-      _hasPopped = true;
-      Navigator.pop(context, barcode!.rawValue);
-    }
+    final value = barcode?.rawValue;
+    if (value == null || value.isEmpty) return;
+    _hasPopped = true;
+    HapticFeedback.mediumImpact();
+    Navigator.pop(context, value);
+  }
+
+  Widget _buildError(BuildContext context, MobileScannerException error) {
+    final denied = error.errorCode == MobileScannerErrorCode.permissionDenied;
+    return ColoredBox(
+      color: Colors.black,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(denied ? Icons.no_photography_outlined : Icons.videocam_off_outlined, color: Colors.white70, size: 56),
+              const SizedBox(height: 16),
+              Text(
+                denied ? S.cameraAccessOff : S.couldNotStartCamera,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                denied ? S.allowP0UseCameraSettingsThen(kAppName) : S.closeScreenTryAgain,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+              ),
+              const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white54),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text(S.actionClose),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -46,8 +90,13 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          MobileScanner(controller: _controller, onDetect: _onDetect),
-          Container(
+          MobileScanner(
+            controller: _controller,
+            onDetect: _onDetect,
+            errorBuilder: (context, error, _) => _buildError(context, error),
+          ),
+          IgnorePointer(
+            child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter, end: Alignment.bottomCenter,
@@ -56,6 +105,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
               ),
             ),
           ),
+          ),
           SafeArea(
             child: Column(
               children: [
@@ -63,22 +113,59 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const Padding(padding: EdgeInsets.all(4.0), child: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22)),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22),
                       ),
-                      Expanded(child: Text((widget.title ?? S.scanBarcode), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))),
-                      const SizedBox(width: 30),
+                      Expanded(
+                        child: Text(
+                          widget.title ?? S.scanBarcode,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      ValueListenableBuilder<MobileScannerState>(
+                        valueListenable: _controller,
+                        builder: (context, state, _) {
+                          final available = state.isInitialized && state.torchState != TorchState.unavailable;
+                          final on = state.torchState == TorchState.on;
+                          return AnimatedOpacity(
+                            opacity: available ? 1 : 0,
+                            duration: const Duration(milliseconds: 200),
+                            child: IconButton(
+                              onPressed: available ? () => _controller.toggleTorch() : null,
+                              icon: Icon(
+                                on ? Icons.flashlight_on_rounded : Icons.flashlight_off_rounded,
+                                color: on ? Colors.amber : Colors.white,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
                 const Spacer(),
-                Text((widget.hint ?? S.lineUpBarcodeSpineWithFrame), style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    widget.hint ?? S.lineUpBarcodeSpineWithFrame,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  width: _isQrMode ? 260 : 280,
-                  height: _isQrMode ? 260 : 160,
-                  child: CustomPaint(painter: _CornerFramePainter(color: Colors.white, cornerLength: 30, strokeWidth: 4, radius: 12)),
+                IgnorePointer(
+                  child: Breathe(
+                    amount: 0.02,
+                    child: SizedBox(
+                      width: _isQrMode ? 260 : 280,
+                      height: _isQrMode ? 260 : 160,
+                      child: CustomPaint(painter: _CornerFramePainter(color: Colors.white, cornerLength: 30, strokeWidth: 4, radius: 12)),
+                    ),
+                  ),
                 ),
                 const Spacer(),
                 const SizedBox(height: 60),

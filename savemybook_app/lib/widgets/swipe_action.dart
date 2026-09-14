@@ -8,12 +8,9 @@ class SwipeAction {
   final Color color;
   final Future<bool> Function() onTrigger;
 
-  /// [dismisses] 為 true 時，項目滑出畫面後呼叫；要在這裡把資料同步移出清單，
-  /// 否則 ListView 還握著一個已 dismiss 的項目會直接丟例外。
+  // dismisses 為 true 時必須在這裡同步把資料移出清單，否則 Dismissible 會丟例外。
   final VoidCallback? onDismissed;
 
-  /// true 代表觸發後這個項目要從清單消失（例如刪除）；
-  /// false 代表只是切換狀態（例如靜音、勾選），項目要留在原地。
   final bool dismisses;
 
   const SwipeAction({
@@ -26,8 +23,6 @@ class SwipeAction {
   });
 }
 
-/// 全 App 共用的左右滑動操作外觀：圓角 16、色塊滿版、icon 在上文字在下。
-/// [endToStart] 是往左拉（從右邊拉出來），[startToEnd] 是往右拉。
 class SwipeActionTile extends StatelessWidget {
   final Widget child;
   final Key itemKey;
@@ -70,6 +65,8 @@ class SwipeActionTile extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             action.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 11,
@@ -91,7 +88,6 @@ class SwipeActionTile extends StatelessWidget {
     return Dismissible(
       key: itemKey,
       direction: _direction,
-      // 只滑一點點不算數，避免捲動時誤觸。
       dismissThresholds: const {
         DismissDirection.endToStart: 0.35,
         DismissDirection.startToEnd: 0.35,
@@ -109,7 +105,6 @@ class SwipeActionTile extends StatelessWidget {
 
         HapticFeedback.mediumImpact();
         final ok = await action.onTrigger();
-        // 不需要移除的動作一律回 false，讓卡片自己彈回原位。
         return ok && action.dismisses;
       },
       child: child,

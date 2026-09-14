@@ -1,5 +1,6 @@
 tags:
-  - name: 後台：錢包管理
+  - name: admin-wallets
+    x-displayName: 後台：錢包管理
     description: |
       查詢與調整會員代幣餘額。本組端點均需 `can_manage_wallets` 權限。
 
@@ -12,7 +13,7 @@ paths:
     get:
       summary: 錢包列表
       operationId: adminListWallets
-      tags: [後台：錢包管理]
+      tags: [admin-wallets]
       description: |
         以會員為單位分頁列出，依編號排序。
 
@@ -59,7 +60,7 @@ paths:
     get:
       summary: 會員錢包明細
       operationId: adminGetWallet
-      tags: [後台：錢包管理]
+      tags: [admin-wallets]
       description: |
         回傳單一會員的餘額與最近 50 筆交易紀錄，依時間遞減排序。
 
@@ -105,7 +106,7 @@ paths:
     post:
       summary: 調整會員餘額
       operationId: adminAdjustWallet
-      tags: [後台：錢包管理]
+      tags: [admin-wallets]
       description: |
         增減會員代幣，正數為加值、負數為扣除。整個流程於單一交易內完成：
 
@@ -120,8 +121,11 @@ paths:
         - 金額不可為 0，絕對值不可超過 1,000,000
         - `description` 為必填，該內容將寫入帳務紀錄與會員通知
         - 調整後餘額不可為負數，否則回傳 400
+
+        需 `sensitive` 範圍的身分驗證（`X-Verify-Token` 標頭）。
       security: [{ bearerAuth: [] }]
       parameters:
+        - $ref: '#/components/parameters/VerifyToken'
         - in: path
           name: userId
           required: true
@@ -175,6 +179,6 @@ paths:
                 餘額將為負數:
                   value: { success: false, message: 調整後餘額會變成負數，請確認金額 }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '403': { $ref: '#/components/responses/AdminVerificationRequired' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }

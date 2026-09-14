@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
@@ -33,6 +34,20 @@ class AppTheme {
 
     final baseText = TextStyle(color: c.textPrimary);
 
+    final menuStyle = MenuStyle(
+      backgroundColor: WidgetStatePropertyAll(c.card),
+      surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+      shadowColor: WidgetStatePropertyAll(c.shadow),
+      elevation: const WidgetStatePropertyAll(10),
+      padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 6)),
+      shape: WidgetStatePropertyAll(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: c.border),
+        ),
+      ),
+    );
+
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
@@ -42,21 +57,18 @@ class AppTheme {
       canvasColor: c.card,
       dividerColor: c.divider,
       fontFamily: 'NotoSansTC',
-      // Noto Sans TC 完全沒有諺文，也缺少部分簡體專用字（如「账」），
-      // 韓文與簡體介面得靠系統字型補。原本排在最前面的 PingFang TC／Heiti TC
-      // 補不到這兩者，而 'Noto Sans TC'（含空格）不是打包進來的家族名，是無效項。
+      // Noto Sans TC 沒有諺文與部分簡體字，韓文與簡體介面靠這裡的系統字型補；PingFang TC／Heiti TC 補不到，不可排到前面。
       fontFamilyFallback: const [
-        'PingFang SC',          // iOS：简体
-        'Apple SD Gothic Neo',  // iOS：韓文
-        'Hiragino Sans',        // iOS：日文
-        'Noto Sans CJK SC',     // Android：简体
-        'Noto Sans CJK KR',     // Android：韓文
-        'Noto Sans CJK JP',     // Android：日文
+        'PingFang SC',
+        'Apple SD Gothic Neo',
+        'Hiragino Sans',
+        'Noto Sans CJK SC',
+        'Noto Sans CJK KR',
+        'Noto Sans CJK JP',
       ],
       splashColor: isDark ? Colors.white12 : Colors.black12,
       highlightColor: isDark ? Colors.white10 : Colors.black12,
-      // 一定要用 Cupertino 這個 builder：左滑返回的手勢偵測器綁在它裡面，
-      // 換成自訂的轉場等於把整個 App 的左滑返回一起關掉。
+      // 左滑返回的手勢綁在 CupertinoPageTransitionsBuilder 裡，換成自訂轉場會關掉整個 App 的左滑返回。
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: CupertinoPageTransitionsBuilder(),
@@ -84,19 +96,27 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: c.card,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 12,
+        shadowColor: c.shadow,
+        barrierColor: c.scrim,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         titleTextStyle: TextStyle(
           color: c.textPrimary,
           fontSize: 17,
           fontWeight: FontWeight.bold,
           fontFamily: 'NotoSansTC',
         ),
-        contentTextStyle: TextStyle(color: c.textSecondary, fontSize: 14, fontFamily: 'NotoSansTC'),
+        contentTextStyle: TextStyle(color: c.textSecondary, fontSize: 14, height: 1.5, fontFamily: 'NotoSansTC'),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: c.sheetBg,
         surfaceTintColor: Colors.transparent,
         modalBackgroundColor: c.sheetBg,
+        modalBarrierColor: c.scrim,
+        modalElevation: 0,
+        dragHandleColor: c.iconInactive.withValues(alpha: 0.5),
+        dragHandleSize: const Size(38, 4),
+        clipBehavior: Clip.antiAlias,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
@@ -104,15 +124,145 @@ class AppTheme {
       popupMenuTheme: PopupMenuThemeData(
         color: c.card,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 10,
+        shadowColor: c.shadow,
+        position: PopupMenuPosition.under,
+        menuPadding: const EdgeInsets.symmetric(vertical: 6),
+        iconColor: c.textPrimary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: c.border),
+        ),
         textStyle: TextStyle(color: c.textPrimary, fontSize: 14, fontFamily: 'NotoSansTC'),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => TextStyle(
+            color: states.contains(WidgetState.disabled) ? c.textHint : c.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            fontFamily: 'NotoSansTC',
+          ),
+        ),
+      ),
+      menuTheme: MenuThemeData(style: menuStyle),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        textStyle: TextStyle(color: c.textPrimary, fontSize: 14, fontFamily: 'NotoSansTC'),
+        menuStyle: menuStyle,
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: c.inputFill,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: c.accent, width: 1.4),
+          ),
+        ),
+      ),
+      menuButtonTheme: MenuButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: WidgetStatePropertyAll(c.textPrimary),
+          iconColor: WidgetStatePropertyAll(c.textSecondary),
+          overlayColor: WidgetStatePropertyAll(c.accent.withValues(alpha: 0.08)),
+          padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 14)),
+          textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 14, fontFamily: 'NotoSansTC')),
+        ),
+      ),
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: c.card,
+        surfaceTintColor: Colors.transparent,
+        elevation: 12,
+        shadowColor: c.shadow,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        headerBackgroundColor: c.headerBg,
+        headerForegroundColor: Colors.white,
+        dividerColor: c.divider,
+        weekdayStyle: TextStyle(color: c.textSecondary, fontFamily: 'NotoSansTC'),
+        dayStyle: const TextStyle(fontFamily: 'NotoSansTC'),
+        dayForegroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? Colors.white
+              : states.contains(WidgetState.disabled)
+                  ? c.textHint
+                  : c.textPrimary,
+        ),
+        dayBackgroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? c.accent : Colors.transparent,
+        ),
+        todayForegroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? Colors.white : c.accent,
+        ),
+        todayBackgroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? c.accent : Colors.transparent,
+        ),
+        todayBorder: BorderSide(color: c.accent),
+        yearForegroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? Colors.white : c.textPrimary,
+        ),
+        yearBackgroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? c.accent : Colors.transparent,
+        ),
+        rangeSelectionBackgroundColor: c.accent.withValues(alpha: 0.16),
+        cancelButtonStyle: TextButton.styleFrom(foregroundColor: c.textSecondary),
+        confirmButtonStyle: TextButton.styleFrom(
+          foregroundColor: c.accent,
+          textStyle: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'NotoSansTC'),
+        ),
+      ),
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: c.card,
+        elevation: 12,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        hourMinuteShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        dayPeriodShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        hourMinuteColor: WidgetStateColor.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? c.accent.withValues(alpha: 0.16) : c.inputFill,
+        ),
+        hourMinuteTextColor: WidgetStateColor.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? c.accent : c.textPrimary,
+        ),
+        dayPeriodColor: WidgetStateColor.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? c.accent.withValues(alpha: 0.16) : Colors.transparent,
+        ),
+        dayPeriodTextColor: WidgetStateColor.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? c.accent : c.textSecondary,
+        ),
+        dayPeriodBorderSide: BorderSide(color: c.border),
+        dialBackgroundColor: c.inputFill,
+        dialHandColor: c.accent,
+        dialTextColor: WidgetStateColor.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? Colors.white : c.textPrimary,
+        ),
+        entryModeIconColor: c.textSecondary,
+        helpTextStyle: TextStyle(color: c.textSecondary, fontSize: 13, fontFamily: 'NotoSansTC'),
+        cancelButtonStyle: TextButton.styleFrom(foregroundColor: c.textSecondary),
+        confirmButtonStyle: TextButton.styleFrom(
+          foregroundColor: c.accent,
+          textStyle: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'NotoSansTC'),
+        ),
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: c.accent,
-        contentTextStyle: const TextStyle(color: Colors.white, fontFamily: 'NotoSansTC'),
+        backgroundColor: c.card,
+        contentTextStyle: TextStyle(color: c.textPrimary, fontFamily: 'NotoSansTC'),
+        actionTextColor: c.accent,
+        closeIconColor: c.textSecondary,
+        elevation: 6,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: c.border),
+        ),
       ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF3A3A3A) : const Color(0xFF2A2A2A),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        textStyle: const TextStyle(color: Colors.white, fontSize: 12, fontFamily: 'NotoSansTC'),
+      ),
+      dividerTheme: DividerThemeData(color: c.divider, thickness: 1, space: 1),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: c.inputFill,
@@ -158,9 +308,13 @@ class AppTheme {
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? c.accent.withValues(alpha: 0.4)
+              ? c.accent.withValues(alpha: 0.35)
               : c.inputFill,
         ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? Colors.transparent : c.border,
+        ),
+        overlayColor: WidgetStatePropertyAll(c.accent.withValues(alpha: 0.08)),
       ),
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith(

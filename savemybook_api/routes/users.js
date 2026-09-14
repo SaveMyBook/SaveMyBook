@@ -4,7 +4,7 @@ const authenticateToken = require('../middleware/auth');
 const { signToken } = require('../middleware/auth');
 const requireAdmin = require('../middleware/requireAdmin');
 const { rateLimit, byIp, byUser } = require('../middleware/rateLimit');
-const { id, text, optionalText, date } = require('../lib/validate');
+const { id, int, text, optionalText, date } = require('../lib/validate');
 const password = require('../lib/password');
 const { imageUpload } = require('../lib/upload');
 const { publicBase } = require('../lib/public-url');
@@ -14,25 +14,26 @@ const account = require('../services/account');
 const share = require('../services/share');
 const levels = require('../services/levels');
 const push = require('../services/push');
+const audit = require('../services/audit');
+const legal = require('../services/legal');
+const sessions = require('../services/sessions');
+const { requireVerification } = require('../services/security');
 
 const router = express.Router();
 
 const avatars = imageUpload({ folder: 'avatars', maxFileSize: 5 * 1024 * 1024 });
 
-/// 回給本人的欄位。password_hash、share_token 這類內部欄位永遠不出現在回應裡。
 const selfSelect = {
   user_id: true, email: true, nickname: true, avatar_url: true, bio: true,
   phone: true, birthday: true, gender: true, role: true, created_at: true
 };
 
-/// 回給其他人的欄位：不含 Email、電話、生日。
 const publicSelect = {
   user_id: true, nickname: true, avatar_url: true, bio: true, role: true, created_at: true
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/// 使用者只能指向自己上傳區的頭像或 http(s) 圖片，擋掉 javascript:、data: 這類值。
 const avatarUrl = (value) => {
   const url = optionalText(value, { label: '頭像網址', max: 500 });
   if (url == null) return url;
@@ -161,7 +162,7 @@ router.put('/me/password', authenticateToken, passwordLimiter, async (req, res) 
     select: { password_hash: true }
   });
   if (!user) throw notFound('找不到該使用者');
-  // 用 400 而不是 401：App 收到 401 會當成登入失效直接登出。
+  // 用 400 不用 401：App 收到 401 會直接登出。
   if (!(await password.verify(current, user.password_hash))) throw badRequest('目前密碼錯誤');
   if (current === next) throw badRequest('新密碼不能與目前密碼相同');
 
@@ -171,11 +172,14 @@ router.put('/me/password', authenticateToken, passwordLimiter, async (req, res) 
     select: { user_id: true, email: true, role: true, password_hash: true }
   });
 
-  // 舊登入失效的裝置不該再收到推播；目前這台拿到新 token 後 App 會重新登記。
   await push.removeUserDevices(req.user.userId);
+  await sessions.revokeAll(req.user.userId, { exceptSid: req.user.sid });
 
-  // 其他裝置上的舊 token 會隨密碼失效，目前這台換發新的，才不會改完密碼就被登出。
-  res.status(200).json({ success: true, message: '密碼已更新，其他裝置需要重新登入', data: { token: signToken(updated) } });
+  res.status(200).json({
+    success: true,
+    message: '密碼已更新，其他裝置需要重新登入',
+    data: { token: signToken(updated, req.user.sid) }
+  });
 });
 
 router.get('/me/qrcode', authenticateToken, async (req, res) => {
@@ -185,9 +189,7 @@ router.get('/me/qrcode', authenticateToken, async (req, res) => {
   });
   if (!user) throw notFound('找不到該使用者');
 
-  // 用 https 連結，外部相機／掃描器才掃得動（自訂 scheme 只有本 App 認得）。
-  // 路徑帶的是隨機權杖不是 user_id，否則任何人都能從 1 枚舉到 N
-  // 把全站使用者的公開頁掃出來。
+  // 路徑用隨機權杖而非 user_id，否則可枚舉全站使用者。
   const token = await share.ensureUserToken(user.user_id);
   const qrData = `${publicBase(req)}/u/${token}`;
 
@@ -213,7 +215,7 @@ router.post('/me/share-token/rotate', authenticateToken, async (req, res) => {
   });
 });
 
-router.get('/me/export', authenticateToken, async (req, res) => {
+router.get('/me/export', authenticateToken, requireVerification('sensitive'), async (req, res) => {
   const data = await account.exportData(req.user.userId);
   const stamp = new Date().toISOString().slice(0, 10);
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -255,7 +257,7 @@ router.post('/me/deletion', authenticateToken, passwordLimiter, async (req, res)
     throw badRequest(`還有 ${openOrders} 筆進行中的訂單，請先完成或取消後再申請刪除`, 'OPEN_ORDERS');
   }
 
-  // 重複申請時沿用第一次的時間，否則每按一次緩衝期就重新計算。
+  // 重複申請沿用第一次的時間，否則緩衝期會被重新計算。
   const requestedAt = user.deletion_requested_at ?? new Date();
   if (!user.deletion_requested_at) {
     await prisma.users.update({
@@ -277,6 +279,69 @@ router.delete('/me/deletion', authenticateToken, async (req, res) => {
     data: { deletion_requested_at: null, updated_at: new Date() }
   });
   res.status(200).json({ success: true, message: '已取消刪除帳號' });
+});
+
+// ---------- 通知偏好 ----------
+
+const NOTIFICATION_SETTINGS = {
+  order: 'notification_order',
+  message: 'notification_message',
+  promotion: 'notification_promo'
+};
+
+const shapeNotificationSettings = (row) =>
+  Object.fromEntries(Object.entries(NOTIFICATION_SETTINGS).map(([key, column]) => [key, row ? row[column] !== false : true]));
+
+router.get('/me/notification-settings', authenticateToken, async (req, res) => {
+  const row = await prisma.user_settings.findUnique({ where: { user_id: req.user.userId } });
+  res.status(200).json({ success: true, data: shapeNotificationSettings(row) });
+});
+
+router.put('/me/notification-settings', authenticateToken, async (req, res) => {
+  const data = {};
+  for (const [key, column] of Object.entries(NOTIFICATION_SETTINGS)) {
+    if (req.body[key] !== undefined) {
+      if (typeof req.body[key] !== 'boolean') throw badRequest(`${key} 必須是 true 或 false`);
+      data[column] = req.body[key];
+    }
+  }
+  if (Object.keys(data).length === 0) throw badRequest('沒有要更新的設定');
+
+  const row = await prisma.user_settings.upsert({
+    where: { user_id: req.user.userId },
+    update: { ...data, updated_at: new Date() },
+    create: { user_id: req.user.userId, ...data }
+  });
+  res.status(200).json({ success: true, message: '已更新通知設定', data: shapeNotificationSettings(row) });
+});
+
+// ---------- 法律文件同意 ----------
+
+router.get('/me/legal-consents/pending', authenticateToken, async (req, res) => {
+  const docs = await legal.pendingFor(req.user.userId);
+  res.status(200).json({
+    success: true,
+    data: docs.map((d) => ({
+      doc_id: Number(d.doc_id),
+      doc_key: d.doc_key,
+      title: d.title,
+      content: d.content,
+      version: Number(d.version),
+      updated_at: d.updated_at
+    }))
+  });
+});
+
+router.post('/me/legal-consents', authenticateToken, async (req, res) => {
+  const docKey = text(req.body.doc_key, { label: '文件代碼', max: 50 });
+  const version = int(req.body.version, { label: '版本', min: 1, max: 1000000 });
+
+  const meta = (await legal.metaByKey()).get(docKey);
+  if (!meta) throw notFound('找不到這份文件');
+  if (meta.version !== version) throw conflict('這份文件剛剛又更新了，請重新閱讀後再同意', 'LEGAL_VERSION_CHANGED');
+
+  await legal.accept(req.user.userId, docKey, version);
+  res.status(200).json({ success: true, message: '已同意' });
 });
 
 // ---------- 早期的泛用端點 ----------
@@ -309,13 +374,15 @@ router.post('/', registerLimiter, async (req, res) => {
   password.assertPolicy(plain);
   nickname(name);
 
-  // role 一律由伺服器決定。過去直接採用 body 裡的 role，任何人註冊時帶
-  // "role": "admin" 就能拿到管理員身分。
+  // role 一律由伺服器決定：過去採用 body.role 讓任何人都能註冊成管理員。
   try {
     const newUser = await prisma.users.create({
       data: { email, password_hash: await password.hash(plain), nickname: name, role: 'buyer_seller' },
       select: selfSelect
     });
+    if (req.body.accept_legal === true) {
+      await legal.acceptAllCurrent(newUser.user_id).catch((err) => console.error('[記錄註冊同意失敗]:', err.message));
+    }
     res.status(201).json({ success: true, message: '使用者建立成功', data: newUser });
   } catch (err) {
     if (err.code === 'P2002') throw badRequest('該 Email 已經被註冊過了');
@@ -340,13 +407,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
   res.status(200).json({ success: true, message: '使用者資料更新成功', data: updated });
 });
 
-/// 實體刪除只保留給管理員。一般使用者要走 /me/deletion 的 30 天緩衝與匿名化流程，
-/// 否則可以跳過「有進行中訂單不能刪」的檢查。
-router.delete('/:id', authenticateToken, requireAdmin('members'), async (req, res) => {
+// 實體刪除僅限管理員，否則可繞過 /me/deletion「有進行中訂單不能刪」的檢查。
+router.delete('/:id', authenticateToken, requireAdmin('members'), requireVerification('sensitive'), async (req, res) => {
   const userId = id(req.params.id, '使用者編號');
   if (userId === req.user.userId) throw badRequest('無法刪除自己的帳號');
 
-  const target = await prisma.users.findUnique({ where: { user_id: userId }, select: { role: true } });
+  const target = await prisma.users.findUnique({ where: { user_id: userId }, select: { role: true, nickname: true, email: true } });
   if (!target) throw notFound('找不到該使用者');
   if (target.role === 'admin') throw forbidden('不能刪除管理員帳號');
   if ((await account.unsettledOrderCount(userId)) > 0) throw conflict('此使用者還有進行中的訂單，無法刪除');
@@ -357,6 +423,14 @@ router.delete('/:id', authenticateToken, requireAdmin('members'), async (req, re
     if (err.code === 'P2003') throw conflict('此使用者仍有訂單等關聯資料，請改用停權或匿名化');
     throw err;
   }
+  await audit.record(null, {
+    adminId: req.user.userId,
+    action: '刪除使用者',
+    targetType: 'user',
+    targetId: userId,
+    summary: `從資料庫永久刪除了 ${target.nickname}（${target.email}），無法復原`,
+    req
+  });
   res.status(200).json({ success: true, message: '使用者已成功刪除' });
 });
 

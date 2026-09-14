@@ -4,6 +4,7 @@ const { badRequest, forbidden, notFound, conflict } = require('../lib/errors');
 const { ORDER_FINAL_STATUSES, ORDER_STATUS_LABELS } = require('../constants/domain');
 const { changeBalance, ensureWallet } = require('./wallet');
 const { notify } = require('./notify');
+const reservations = require('./reservations');
 
 const orderInclude = {
   order_items: {
@@ -30,7 +31,7 @@ const pad = (n) => String(n).padStart(2, '0');
 const buildOrderNo = () => {
   const d = new Date();
   const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-  // 一次結帳會依賣家拆成多筆訂單，同一秒內產生多個編號，亂數段要夠長才不會撞到唯一索引。
+  // 一次結帳同一秒會產生多個編號，亂數段需夠長以免撞唯一索引。
   return `SMB${stamp}${crypto.randomInt(100000, 1000000)}`;
 };
 
@@ -39,7 +40,6 @@ const buildPickupCode = () => String(crypto.randomInt(100000, 1000000));
 const isParty = (order, user) =>
   order.buyer_id === user.userId || order.seller_id === user.userId || user.role === 'admin';
 
-/// 讀取訂單並確認請求者是買方、賣方或管理員。
 const findForParty = async (orderId, user, include) => {
   const order = await prisma.orders.findUnique({ where: { order_id: orderId }, include });
   if (!order) throw notFound('找不到該訂單');
@@ -47,10 +47,7 @@ const findForParty = async (orderId, user, include) => {
   return order;
 };
 
-/// 以「狀態仍是讀取時的值」作為更新條件。
-///
-/// 兩個請求同時取消同一筆訂單時，只有先到的那個會成功，另一個拿到 409，
-/// 不會退兩次款，也不會讓賣家收到兩次貨款。
+// 以讀取時的狀態為更新條件，避免並行請求重複退款或重複撥款。
 const guardedUpdate = async (tx, order, data) => {
   const result = await tx.orders.updateMany({
     where: { order_id: order.order_id, status: order.status },
@@ -59,19 +56,13 @@ const guardedUpdate = async (tx, order, data) => {
   if (result.count === 0) throw conflict('訂單狀態已經變更，請重新整理後再試');
 };
 
-/// 訂單在金流上的階段。
-///
-/// held：買家已付款、平台代管中；paid_out：貨款已撥給賣家；returned：款項已退回買家。
 const phaseOf = (status) => {
   if (status === 'completed') return 'paid_out';
   if (status === 'cancelled' || status === 'refunded') return 'returned';
   return 'held';
 };
 
-/// 從錢包帳本算出這筆訂單目前實際流動過的金額。
-///
-/// 結算依帳本決定要補多少、退多少，而不是依「從哪個狀態改到哪個狀態」推算：
-/// 同一筆訂單被重複結算不會多撥或多退，過去只改了狀態、錢沒動的舊訂單也能補回來。
+// 依帳本實際金流結算而非依狀態轉換推算，重複結算才不會多撥或多退。
 const ledgerOf = async (tx, order) => {
   const [buyerWallet, sellerWallet] = await Promise.all([
     ensureWallet(tx, order.buyer_id),
@@ -93,8 +84,7 @@ const ledgerOf = async (tx, order) => {
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
-/// 讓錢包與書籍狀態符合訂單的目標狀態。必須在 guardedUpdate 之後、同一個交易內呼叫，
-/// 條件更新拿到的列鎖保證同一筆訂單不會同時被兩個請求結算。
+// 必須在 guardedUpdate 之後、同一個交易內呼叫，靠其列鎖避免重複結算。
 const settle = async (tx, order, target) => {
   const phase = phaseOf(target);
   const result = { phase, paidOut: 0, clawedBack: 0, refunded: 0 };
@@ -144,7 +134,6 @@ const settle = async (tx, order, target) => {
     result.refunded = buyerPaid;
   }
 
-  // 還在保留中的書重新開放購買；已經交到買家手上的（sold）維持原狀。
   await tx.books.updateMany({
     where: { book_id: { in: bookIds }, status: 'reserved' },
     data: { status: 'on_sale', updated_at: now }
@@ -152,8 +141,6 @@ const settle = async (tx, order, target) => {
   return result;
 };
 
-/// 改訂單狀態的唯一入口：條件更新、補時間欄位、結算金流。
-/// order 需含 order_items。
 const transition = async (tx, order, target, { cancelReason = null } = {}) => {
   const now = new Date();
   const data = { status: target };
@@ -171,10 +158,6 @@ const transition = async (tx, order, target, { cancelReason = null } = {}) => {
   return settle(tx, order, target);
 };
 
-/// 客服手動改狀態的限制。
-///
-/// 款項已退回買家的訂單不能再改回進行中或已完成，那等於要重新向買家收一次錢；
-/// 已完成的訂單要退款請改成「已退款」，系統會向賣家收回貨款再退給買家。
 const assertAdminTransition = (from, to) => {
   if (from === to) throw badRequest('訂單已經是這個狀態了');
   if (phaseOf(from) === 'returned' && phaseOf(to) !== 'returned') {
@@ -185,7 +168,6 @@ const assertAdminTransition = (from, to) => {
   }
 };
 
-/// 描述這次狀態變更動了哪些錢，放進通知與操作紀錄。
 const describeSettlement = (money) => {
   const parts = [];
   if (money.paidOut) parts.push(`撥款給賣家 ${money.paidOut} 代幣`);
@@ -212,10 +194,12 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
   const unavailable = cartItems.find((i) => i.books.status !== 'on_sale');
   if (unavailable) throw badRequest(`《${unavailable.books.title}》已無法購買，請先移除`);
 
+  await reservations.assertNotHeldByOthers(null, cartItems.map((i) => i.books), buyerId);
+
   const ownBook = cartItems.find((i) => i.books.seller_id === buyerId);
   if (ownBook) throw badRequest(`《${ownBook.books.title}》是你自己上架的書，無法購買`);
 
-  // 既有資料可能存在售價 0 的書籍，結帳時再擋一次。
+  // 既有資料可能有售價 0 的書，結帳時須再擋一次。
   const invalidPrice = cartItems.find((i) => !(Number(i.books.price) > 0));
   if (invalidPrice) {
     throw badRequest(`《${invalidPrice.books.title}》的售價異常，請聯絡賣家或先移除`);
@@ -246,7 +230,7 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
     for (const [sellerId, items] of bySeller) {
       const bookIds = items.map((i) => i.book_id);
 
-      // 先把書鎖成保留中。兩個買家同時結帳同一本書時，只有一個人的 count 會對得上。
+      // 先把書鎖成保留中，兩個買家同時結帳時只有一人的 count 對得上。
       const reserved = await tx.books.updateMany({
         where: { book_id: { in: bookIds }, status: 'on_sale' },
         data: { status: 'reserved', updated_at: new Date() }
@@ -310,7 +294,7 @@ const cancel = async (orderId, user, reason) => {
   const isAdmin = user.role === 'admin';
 
   if (ORDER_FINAL_STATUSES.includes(order.status)) throw badRequest('此訂單狀態無法取消');
-  // 爭議中的訂單退不退款由仲裁決定，當事人不能自行取消。
+  // 爭議中的訂單由仲裁決定退款，當事人不能自行取消。
   if (order.status === 'refunding' && !isAdmin) {
     throw badRequest('這筆訂單正在處理爭議，無法自行取消，請等候客服裁決');
   }
@@ -342,10 +326,7 @@ const cancel = async (orderId, user, reason) => {
   });
 };
 
-/// 誰可以把訂單推進到哪個狀態、要從哪個狀態出發。
-///
-/// 過去任一方都能把訂單直接設成 completed，而且可以重複設定：賣家自己按完成就能領款，
-/// 每按一次錢包就再入帳一次。
+// 過去任一方都能重複設成 completed，每次都會再入帳一次。
 const TRANSITIONS = {
   deposited: {
     from: ['pending_payment', 'pending_deposit'],
@@ -377,8 +358,35 @@ const advance = async (orderId, status, user) => {
   if (!rule.from.includes(order.status)) throw badRequest(rule.wrongState);
 
   return prisma.$transaction(async (tx) => {
-    await transition(tx, order, status);
-    return tx.orders.findUnique({ where: { order_id: orderId }, include: orderInclude });
+    const money = await transition(tx, order, status);
+    const updated = await tx.orders.findUnique({ where: { order_id: orderId }, include: orderInclude });
+
+    if (status === 'deposited' || status === 'pending_pickup') {
+      const cabinet = updated.smart_cabinets?.cabinet_name;
+      await notify(tx, {
+        userId: order.buyer_id,
+        type: 'order',
+        title: '書已經放進書櫃了',
+        content: `訂單 ${order.order_no} 的書已放進${cabinet ? `「${cabinet}」` : ''}書櫃，可以前往取貨。`
+          + `${order.pickup_code ? `取貨碼：${order.pickup_code}` : ''}`,
+        relatedId: orderId,
+        relatedType: 'order'
+      });
+    }
+    if (status === 'completed') {
+      await notify(tx, {
+        userId: order.seller_id,
+        type: 'order',
+        title: '買家已取貨',
+        content: money.paidOut > 0
+          ? `訂單 ${order.order_no} 已完成，${money.paidOut} 代幣已撥入你的錢包。`
+          : `訂單 ${order.order_no} 已完成。`,
+        relatedId: orderId,
+        relatedType: 'order'
+      });
+    }
+
+    return updated;
   });
 };
 

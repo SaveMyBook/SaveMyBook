@@ -8,6 +8,7 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_select.dart';
 import '../../widgets/guards.dart';
 import '../../widgets/state_views.dart';
 import 'admin_member_detail_screen.dart';
@@ -113,8 +114,6 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             ),
             Text(member.email, style: TextStyle(fontSize: 12, color: c.textSecondary)),
             const SizedBox(height: 8),
-            // 自己的帳號伺服器會擋下來。與其讓它送出去換一句錯誤訊息，
-            // 不如在這裡就說清楚為什麼不能按。
             DisabledHint(
               disabled: _isSelf(member),
               reason: S.ownAccountStatusPermissionsCannotChanged,
@@ -184,19 +183,21 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                PopupMenuButton<String?>(
-                  color: c.card,
-                  icon: Icon(Icons.filter_list_rounded, color: c.textPrimary),
-                  onSelected: (value) {
+                AppSelectChip<String?>(
+                  value: _statusFilter,
+                  title: S.accountStatus,
+                  iconOnly: _statusFilter == null,
+                  highlighted: _statusFilter != null,
+                  options: [
+                    AppSelectOption(value: null, label: S.actionAll, icon: Icons.people_alt_outlined),
+                    AppSelectOption(value: 'active', label: S.memberNormal, icon: Icons.check_circle_outline_rounded, iconColor: c.success),
+                    AppSelectOption(value: 'inactive', label: S.memberInactive, icon: Icons.pause_circle_outline_rounded, iconColor: c.warning),
+                    AppSelectOption(value: 'blacklisted', label: S.memberBlacklisted, icon: Icons.gpp_bad_outlined, iconColor: c.danger),
+                  ],
+                  onChanged: (value) {
                     setState(() => _statusFilter = value);
                     _load();
                   },
-                  itemBuilder: (_) => [
-                    PopupMenuItem(value: null, child: Text(S.actionAll)),
-                    PopupMenuItem(value: 'active', child: Text(S.memberNormal)),
-                    PopupMenuItem(value: 'inactive', child: Text(S.memberInactive)),
-                    PopupMenuItem(value: 'blacklisted', child: Text(S.memberBlacklisted)),
-                  ],
                 ),
               ],
             ),
@@ -248,13 +249,15 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          member.nickname,
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                        Flexible(
+                          child: Text(
+                            member.nickname,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                          ),
                         ),
                         const SizedBox(width: 6),
-                        // 管理員與一般會員原本是同一個底色，看不出差別；但管理員
-                        // 很多操作是擋住的，得先認得出來才不會以為是壞了。
                         _tag(
                           member.role == 'admin' ? S.roleAdmin : S.roleBuyerSeller,
                           member.role == 'admin' ? c.warning : c.accent,
@@ -267,10 +270,16 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                       ],
                     ),
                     const SizedBox(height: 3),
-                    Text(member.email, style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                    Text(
+                      member.email,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -319,7 +328,9 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             Icon(icon, size: 10, color: tint),
             const SizedBox(width: 3),
           ],
-          Text(label, style: TextStyle(fontSize: 10, color: tint)),
+          Flexible(
+            child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, color: tint)),
+          ),
         ],
       ),
     );

@@ -9,6 +9,10 @@ const { env } = require('../config/env');
 const { badRequest, forbidden, notFound, conflict, HttpError } = require('../lib/errors');
 const { BOOK_STATUSES, CONDITION_LEVELS } = require('../constants/domain');
 const { ensureBookToken } = require('../services/share');
+const { peekUserId } = require('../middleware/auth');
+const ranking = require('../services/ranking');
+const reservations = require('../services/reservations');
+const { notifyMany } = require('../services/notify');
 
 const router = express.Router();
 
@@ -22,7 +26,9 @@ const SORTS = {
   popular: { view_count: 'desc' }
 };
 
-const cabinetSelect = { cabinet_id: true, cabinet_name: true, address: true, open_time: true, close_time: true };
+const cabinetSelect = {
+  cabinet_id: true, cabinet_name: true, address: true, open_time: true, close_time: true, latitude: true, longitude: true
+};
 
 const isbnLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -38,8 +44,7 @@ const price = (value) => {
   return n;
 };
 
-/// 上架流程不強制 10/13 碼：條碼掃描器也會掃到 12 碼的 UPC，既有資料裡也有這種值，
-/// 太嚴格會讓賣家連舊書都改不了。這裡只保證是數字（ISBN-10 可含 X）且放得進 VARCHAR(13)。
+// 不強制 10/13 碼：既有資料含 12 碼 UPC，太嚴格會讓舊書無法編輯。
 const isbn = (value) => {
   const s = v.optionalText(value, { label: 'ISBN', max: 20 });
   if (s == null) return s;
@@ -48,14 +53,13 @@ const isbn = (value) => {
   return digits.toUpperCase();
 };
 
-/// 前端傳來的出版日期可能是 "2020-" 或 "2020--"，把尾端多餘的連字號去掉。
 const publishDate = (value) => {
   const s = v.optionalText(value, { label: '出版日期', max: 20 });
   if (s == null) return s;
   return s.replace(/-+$/, '') || null;
 };
 
-/// 只檢查有變更的關聯。書櫃停用後，賣家原封不動送回舊的 cabinet_id 不該被擋。
+// 只檢查有變更的關聯，否則書櫃停用後賣家送回舊 cabinet_id 會被擋。
 const assertRefsExist = async ({ categoryId, cabinetId }, current = {}) => {
   if (categoryId === current.category_id) categoryId = null;
   if (cabinetId === current.cabinet_id) cabinetId = null;
@@ -86,7 +90,6 @@ router.get('/isbn/:isbn', authenticateToken, isbnLimiter, async (req, res) => {
 
   let data;
   try {
-    // 外部服務沒回應時不能讓請求一直掛著。
     const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (!response.ok) throw new Error(`Google Books HTTP ${response.status}`);
     data = await response.json();
@@ -124,9 +127,7 @@ router.get('/', async (req, res) => {
     : [];
 
   const where = {
-    // 賣家在「書籍管理」要看得到全部狀態的書，因此 status=all 時不加狀態條件
     ...(status !== 'all' && { status }),
-    // 查詢自己的書籍時不套用審核條件，避免待審核的書籍看不到
     ...(sellerId ? { seller_id: sellerId } : { is_approved: true }),
     ...(categoryIds.length > 0 && { category_id: { in: categoryIds } }),
     ...(keyword && {
@@ -138,19 +139,30 @@ router.get('/', async (req, res) => {
     })
   };
 
+  const include = {
+    users: { select: { user_id: true, nickname: true, avatar_url: true } },
+    book_images: { select: { image_id: true, image_url: true, image_type: true } },
+    book_categories: { select: { category_name: true } },
+    smart_cabinets: { select: cabinetSelect }
+  };
+
+  if (sort === 'popular' && !sellerId) {
+    const ranked = await ranking.rankedIds(where, peekUserId(req));
+    const pageIds = ranked.slice(skip, skip + limit);
+    const rows = pageIds.length > 0
+      ? await prisma.books.findMany({ where: { book_id: { in: pageIds } }, include })
+      : [];
+    const byId = new Map(rows.map((b) => [b.book_id, b]));
+    const books = pageIds.map((bookId) => byId.get(bookId)).filter(Boolean);
+    return res.status(200).json({
+      success: true,
+      pagination: v.pageMeta(ranked.length, { page, limit }),
+      data: books
+    });
+  }
+
   const [books, total] = await Promise.all([
-    prisma.books.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: SORTS[sort],
-      include: {
-        users: { select: { user_id: true, nickname: true, avatar_url: true } },
-        book_images: { select: { image_id: true, image_url: true, image_type: true } },
-        book_categories: { select: { category_name: true } },
-        smart_cabinets: { select: cabinetSelect }
-      }
-    }),
+    prisma.books.findMany({ where, skip, take: limit, orderBy: SORTS[sort], include }),
     prisma.books.count({ where })
   ]);
 
@@ -166,8 +178,6 @@ router.get('/:id/share-link', async (req, res) => {
   });
   if (!book) throw notFound('找不到這本書');
 
-  // 已下架的書不給分享連結：公開頁本來就不會顯示它，
-  // 發出去只會得到一個「找不到」的頁面。
   if (book.status === 'removed') throw conflict('這本書已下架，無法分享');
 
   const token = await ensureBookToken(bookId);
@@ -191,8 +201,12 @@ router.get('/:id', async (req, res) => {
   });
   if (!book) throw notFound('找不到該書籍');
 
-  prisma.books.update({ where: { book_id: bookId }, data: { view_count: { increment: 1 } } }).catch(() => {});
-  res.status(200).json({ success: true, data: book });
+  const viewerId = peekUserId(req);
+  if (viewerId !== book.seller_id && ranking.shouldCountView(bookId, viewerId ?? req.ip)) {
+    prisma.books.update({ where: { book_id: bookId }, data: { view_count: { increment: 1 } } }).catch(() => {});
+  }
+  const hold = await reservations.holdForViewer(bookId, viewerId);
+  res.status(200).json({ success: true, data: { ...book, reservation: hold } });
 });
 
 const IMAGE_FIELDS = [
@@ -235,7 +249,6 @@ router.post('/', authenticateToken, ...photos.fields(IMAGE_FIELDS.map(({ name, m
     const images = IMAGE_FIELDS.flatMap(({ name, type }) =>
       (req.files?.[name] ?? []).map((f) => ({ image_url: photos.urlOf(f), image_type: type })));
 
-    // 書與圖片一起寫入。分開寫的話圖片失敗會留下一本沒有照片的書。
     const newBook = await prisma.$transaction(async (tx) => {
       const created = await tx.books.create({ data });
       if (images.length > 0) {
@@ -249,7 +262,21 @@ router.post('/', authenticateToken, ...photos.fields(IMAGE_FIELDS.map(({ name, m
     res.status(201).json({ success: true, message: '書籍上架成功', data: newBook });
   });
 
-/// 賣家能自己設定的狀態。reserved 與 sold 只能由訂單流程產生。
+const notifyPriceDrop = async (book, oldPrice) => {
+  const fans = await prisma.favorites.findMany({
+    where: { book_id: book.book_id, user_id: { not: book.seller_id } },
+    select: { user_id: true }
+  });
+  if (fans.length === 0) return;
+  await notifyMany(null, fans.map((f) => f.user_id), {
+    type: 'promotion',
+    title: '收藏的書降價了',
+    content: `《${book.title}》從 ${oldPrice} 降到 ${Number(book.price)} 代幣。`,
+    relatedId: book.book_id,
+    relatedType: 'book'
+  });
+};
+
 const SELLER_STATUSES = ['on_sale', 'removed'];
 
 router.put('/:id', authenticateToken, async (req, res) => {
@@ -278,12 +305,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
   const book = await findOwnedBook(bookId, req.user, '存取被拒，您無權限修改他人的商品');
 
-  // 檢舉成立會把 is_approved 設成 false，賣家不能自己把它重新上架。
+  // 檢舉成立的書 is_approved=false，賣家不可自行重新上架。
   if (data.status === 'on_sale' && book.is_approved === false && !isAdmin) {
     throw forbidden('這本書因違規被下架，無法自行重新上架，請聯絡客服', 'BOOK_NOT_APPROVED');
   }
 
-  // 保留中的書已經有人付款。賣家若能把它改回上架中，同一本書會被第二個人買走。
+  // 保留中的書已有人付款，改回上架會被第二人買走。
   if (data.status && data.status !== book.status && ['reserved', 'sold'].includes(book.status) && !isAdmin) {
     throw conflict(book.status === 'sold' ? '這本書已售出，無法變更狀態' : '這本書正在交易中，無法變更狀態');
   }
@@ -294,6 +321,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
     where: { book_id: bookId },
     data: { ...data, updated_at: new Date() }
   });
+
+  const oldPrice = Number(book.price);
+  if (data.price !== undefined && data.price < oldPrice && updatedBook.status === 'on_sale') {
+    notifyPriceDrop(updatedBook, oldPrice).catch((err) => console.error('[降價通知失敗]:', err.message));
+  }
+
   res.status(200).json({ success: true, message: '書籍資料更新成功', data: updatedBook });
 });
 
@@ -311,6 +344,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 });
 
 const MAX_IMAGES_PER_BOOK = 10;
+const IMAGE_TYPES = ['cover', 'back', 'inside', 'other'];
 
 router.post('/:id/images', authenticateToken, ...photos.array('images', 8), async (req, res) => {
   const bookId = v.id(req.params.id, '書籍編號');
@@ -322,8 +356,10 @@ router.post('/:id/images', authenticateToken, ...photos.array('images', 8), asyn
     throw badRequest(`每本書最多 ${MAX_IMAGES_PER_BOOK} 張照片，目前已有 ${existing} 張`);
   }
 
+  const types = typeof req.body.image_types === 'string' ? req.body.image_types.split(',') : [];
+  const typeAt = (i) => (IMAGE_TYPES.includes(types[i]) ? types[i] : 'other');
   await prisma.book_images.createMany({
-    data: req.files.map((f) => ({ book_id: bookId, image_url: photos.urlOf(f), image_type: 'other' }))
+    data: req.files.map((f, i) => ({ book_id: bookId, image_url: photos.urlOf(f), image_type: typeAt(i) }))
   });
 
   const images = await prisma.book_images.findMany({ where: { book_id: bookId } });

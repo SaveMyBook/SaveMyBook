@@ -50,7 +50,6 @@ class CustomBottomNav extends StatelessWidget {
               height: _barHeight,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // 五個等寬欄位，膠囊才能算出確定的位置滑過去。
                   final slot = constraints.maxWidth / 5;
 
                   return Stack(
@@ -128,8 +127,6 @@ class CustomBottomNav extends StatelessWidget {
     final isSelected = selectedIndex == index;
     final color = isSelected ? c.accent : c.iconInactive;
 
-    // 圖示 22 + 間距 2 + 標籤約 14 已佔掉 38，膠囊 46。放大超過 1.10
-    // 或再疊上下位移就會頂出膠囊外框。
     Widget icon = AnimatedScale(
       scale: isSelected ? 1.10 : 1.0,
       duration: Motion.base,
@@ -243,8 +240,6 @@ class CustomBottomNav extends StatelessWidget {
   }
 }
 
-/// 沿導覽列滑動的膠囊。用彈簧而非補間曲線，並依速度做擠壓拉伸，
-/// 移動中沿行進方向拉長、停下時彈回原比例。
 class _SlidingPill extends StatefulWidget {
   final int index;
   final double slot;
@@ -295,12 +290,10 @@ class _SlidingPillState extends State<_SlidingPill>
       builder: (context, _) {
         final pos = _controller.value;
 
-        // 中央的加號有自己的樣式，膠囊滑到那一格時淡出讓位。
         final distanceToCentre = (pos - 2).abs();
         final opacity = distanceToCentre.clamp(0.0, 1.0);
         if (opacity == 0) return const SizedBox.shrink();
 
-        // 速度換算成擠壓量。上限壓在 0.26，再多會變成橡皮筋。
         final speed = _controller.velocity.abs();
         final squash = (speed * 0.05).clamp(0.0, 0.26);
 

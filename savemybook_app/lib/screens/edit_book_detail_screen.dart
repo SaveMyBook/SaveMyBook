@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/photo_service.dart';
 import '../models/book.dart';
@@ -9,9 +8,11 @@ import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/guards.dart';
 import '../widgets/animations.dart';
+import '../widgets/app_buttons.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
+import '../widgets/app_select.dart';
 import '../widgets/state_views.dart';
 import '../utils/app_labels.dart';
 import '../i18n/strings.dart';
@@ -41,8 +42,8 @@ class EditBookDetailScreen extends StatefulWidget {
 }
 
 class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
-  // AppLabels 會隨語系變動，不能是 const。
-  List<({String value, String label})> get _conditions => AppLabels.conditionOptions;
+  static const _maxImages = 10;
+  static const _maxPrice = 99999;
 
   final ApiService _api = ApiService();
 
@@ -50,29 +51,32 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
   late String _condition;
   int? _cabinetId;
 
-  /// 前三格固定對應封面／背面／條碼，跟新增書籍時一致。
   List<String> get _requiredLabels => AppLabels.photoSlots;
 
   final List<BookImage?> _slotExisting = List<BookImage?>.filled(3, null, growable: false);
+  final List<BookImage?> _slotReplaced = List<BookImage?>.filled(3, null, growable: false);
   final List<XFile?> _slotNew = List<XFile?>.filled(3, null, growable: false);
 
   List<BookImage> _extraExisting = [];
   final List<XFile> _extraNew = [];
-  List<Map<String, dynamic>> _cabinets = [];
-  bool _isLoading = true;
   bool _isSaving = false;
+  bool _saved = false;
+  bool _showErrors = false;
 
   late final String _initialPrice;
+  late final String _initialCondition;
+  bool _cabinetTouched = false;
 
   @override
   void initState() {
     super.initState();
-    _priceController = TextEditingController(text: widget.book.price.toStringAsFixed(0));
+    final price = widget.book.price.round();
+    _priceController = TextEditingController(text: price > 0 ? '$price' : '');
     _initialPrice = _priceController.text;
-    _condition = widget.book.conditionLevel;
+    _condition = AppLabels.condition.containsKey(widget.book.conditionLevel) ? widget.book.conditionLevel : 'good';
+    _initialCondition = _condition;
     _cabinetId = widget.book.cabinetId;
     _distributeImages(widget.book.images);
-    _loadCabinets();
   }
 
   @override
@@ -81,34 +85,6 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
     super.dispose();
   }
 
-  Future<void> _loadCabinets() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${ApiService.baseUrl}/cabinets'),
-        headers: {
-          'Authorization': 'Bearer ${ApiService.authToken}',
-          'Accept': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
-        final list = List<Map<String, dynamic>>.from(data['data'] ?? []);
-        if (!mounted) return;
-        setState(() {
-          _cabinets = list;
-          if (_cabinetId != null && !list.any((c) => c['cabinet_id'] == _cabinetId)) {
-            _cabinetId = null;
-          }
-          _isLoading = false;
-        });
-        return;
-      }
-    } catch (_) {}
-    if (mounted) setState(() => _isLoading = false);
-  }
-
-  /// 依 image_type 把既有照片放回三個固定欄位。
-  /// 新增書籍時條碼是存成 other，所以第一張 other 視為條碼，其餘算補充照片。
   void _distributeImages(List<BookImage> images) {
     final rest = <BookImage>[];
     var barcodeTaken = false;
@@ -127,7 +103,6 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       }
     }
 
-    // 型別對不上（舊資料）時，用剩下的照片把空欄位補滿，不要留空。
     for (var i = 0; i < _slotExisting.length && rest.isNotEmpty; i++) {
       if (_slotExisting[i] == null) _slotExisting[i] = rest.removeAt(0);
     }
@@ -140,42 +115,40 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
         (i) => _slotExisting[i] != null || _slotNew[i] != null,
       ).where((filled) => filled).length;
 
-  int get _totalImages =>
-      _filledRequired + _extraExisting.length + _extraNew.length;
+  int get _totalImages => _filledRequired + _extraExisting.length + _extraNew.length;
 
   Future<void> _pickSlot(int slot) async {
+    if (_isSaving) return;
     final path = await PhotoService.pickAndCrop(context, aspectRatio: 3 / 4, outputSize: 1200);
     if (path == null || !mounted) return;
-
-    // 換掉既有的照片：先把伺服器上那張刪掉，再把新的排進上傳佇列。
-    final old = _slotExisting[slot];
-    if (old != null) {
-      final ok = await _api.deleteBookImage(widget.book.bookId, old.imageId);
-      if (!mounted) return;
-      if (!ok) {
-        showAppSnackBar(context, S.couldNotReplacePhotoPleaseTry, isError: true);
-        return;
-      }
-    }
+    HapticFeedback.selectionClick();
 
     setState(() {
+      final old = _slotExisting[slot];
+      if (old != null) _slotReplaced[slot] = old;
       _slotExisting[slot] = null;
       _slotNew[slot] = XFile(path);
     });
   }
 
   Future<void> _clearSlot(int slot) async {
-    if (_totalImages <= 1) {
-      showAppSnackBar(context, S.keepLeastOnePhoto, isError: true);
+    if (_isSaving) return;
+
+    if (_slotNew[slot] != null) {
+      setState(() {
+        _slotNew[slot] = null;
+        _slotExisting[slot] = _slotReplaced[slot];
+        _slotReplaced[slot] = null;
+      });
       return;
     }
 
     final existing = _slotExisting[slot];
-    if (existing == null) {
-      setState(() => _slotNew[slot] = null);
+    if (existing == null) return;
+    if (_totalImages <= 1) {
+      showAppSnackBar(context, S.keepLeastOnePhoto, isError: true);
       return;
     }
-
     if (!await _confirmDelete() || !mounted) return;
 
     final ok = await runBusy(context, () => _api.deleteBookImage(widget.book.bookId, existing.imageId));
@@ -190,7 +163,8 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
   }
 
   Future<void> _addExtraImages() async {
-    final remaining = 10 - _totalImages;
+    if (_isSaving) return;
+    final remaining = _maxImages - _totalImages;
     if (remaining <= 0) {
       showAppSnackBar(context, S.canUp10Photos, isError: true);
       return;
@@ -203,8 +177,8 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       outputSize: 1200,
     );
     if (paths.isEmpty || !mounted) return;
-
-    setState(() => _extraNew.addAll(paths.map(XFile.new)));
+    HapticFeedback.selectionClick();
+    setState(() => _extraNew.addAll(paths.take(_maxImages - _totalImages).map(XFile.new)));
   }
 
   Future<bool> _confirmDelete() => showConfirmDialog(
@@ -216,6 +190,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       );
 
   Future<void> _removeExtraExisting(BookImage image) async {
+    if (_isSaving) return;
     if (_totalImages <= 1) {
       showAppSnackBar(context, S.keepLeastOnePhoto, isError: true);
       return;
@@ -237,23 +212,31 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
     }
   }
 
+  int? get _price => int.tryParse(_priceController.text.trim());
+
   Future<void> _save() async {
     if (_isSaving) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _showErrors = true);
 
-    final price = double.tryParse(_priceController.text.trim());
+    final price = _price;
     if (price == null) {
+      HapticFeedback.heavyImpact();
       showAppSnackBar(context, S.enterPrice, isError: true);
       return;
     }
     if (price <= 0) {
+      HapticFeedback.heavyImpact();
       showAppSnackBar(context, S.priceMustGreaterThan0, isError: true);
       return;
     }
-    if (price > 999999) {
-      showAppSnackBar(context, S.priceCannotExceed999999, isError: true);
+    if (price > _maxPrice) {
+      HapticFeedback.heavyImpact();
+      showAppSnackBar(context, S.priceCannotExceed99999, isError: true);
       return;
     }
     if (_cabinetId == null) {
+      HapticFeedback.heavyImpact();
       showAppSnackBar(context, S.chooseLockerLocation, isError: true);
       return;
     }
@@ -262,6 +245,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
         for (var i = 0; i < _requiredLabels.length; i++)
           if (_slotExisting[i] == null && _slotNew[i] == null) _requiredLabels[i],
       ].join('、');
+      HapticFeedback.heavyImpact();
       showAppSnackBar(context, S.missingTheseThreeRequired(missing), isError: true);
       return;
     }
@@ -280,179 +264,204 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       'cabinet_id': _cabinetId,
     });
 
-    final pending = [
-      ..._slotNew.whereType<XFile>(),
-      ..._extraNew,
-    ].map((f) => f.path).toList();
+    if (!ok) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      HapticFeedback.heavyImpact();
+      showAppSnackBar(context, AppLabels.updateFailed, isError: true);
+      return;
+    }
 
-    if (ok && pending.isNotEmpty) {
-      await _api.uploadBookImages(widget.book.bookId, pending);
+    const slotTypes = ['cover', 'back', 'other'];
+    final pending = <String>[];
+    final types = <String>[];
+    for (var i = 0; i < _slotNew.length; i++) {
+      final file = _slotNew[i];
+      if (file == null) continue;
+      pending.add(file.path);
+      types.add(slotTypes[i]);
+    }
+    for (final file in _extraNew) {
+      pending.add(file.path);
+      types.add('inside');
+    }
+    final uploaded = pending.isEmpty || await _api.uploadBookImages(widget.book.bookId, pending, types: types);
+
+    if (uploaded) {
+      for (final old in _slotReplaced.whereType<BookImage>()) {
+        if (old.imageId != 0) await _api.deleteBookImage(widget.book.bookId, old.imageId);
+      }
     }
 
     if (!mounted) return;
-    setState(() => _isSaving = false);
+    setState(() {
+      _isSaving = false;
+      _saved = true;
+    });
 
-    if (ok) {
+    if (uploaded) {
+      HapticFeedback.mediumImpact();
       showAppSnackBar(context, S.bookUpdated);
-
-      final navigator = Navigator.of(context);
-      navigator.pop();
-      navigator.pop();
     } else {
-      showAppSnackBar(context, AppLabels.updateFailed, isError: true);
+      showAppSnackBar(context, S.bookDetailsUpdatedButPhotosCouldn, isError: true);
     }
+    Navigator.of(context).pop(true);
   }
 
-  /// 換過照片或改過價格就別讓返回鍵直接吃掉。
-  /// 刪照片在 _clearSlot 當下就送出去了，不算未存的修改；
-  /// 只有價格與還沒上傳的新照片需要攔。
   bool get _isDirty =>
-      _priceController.text != _initialPrice || _slotNew.any((f) => f != null);
+      !_saved &&
+      (_priceController.text != _initialPrice ||
+          _condition != _initialCondition ||
+          (_cabinetTouched && _cabinetId != widget.book.cabinetId) ||
+          _slotNew.any((f) => f != null) ||
+          _extraNew.isNotEmpty);
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    return UnsavedGuard(
-      isDirty: _isDirty,
-      child: Scaffold(
-      backgroundColor: c.scaffold,
-      body: Column(
-        children: [
-          AppHeader(title: S.editBook, icon: Icons.edit_note_rounded),
-          Expanded(
-            child: SwitchIn(child: _isLoading
-                ? const LoadingView()
-                : SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                    padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildImageSection(c),
-                        const SizedBox(height: 16),
-                        _buildRowCard(
-                          c,
-                          S.condition,
-                          DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _condition,
-                              isExpanded: true,
-                              dropdownColor: c.card,
-                              style: TextStyle(color: c.textPrimary, fontSize: 14),
-                              items: _conditions
-                                  .map((e) => DropdownMenuItem(value: e.value, child: Text(e.label)))
-                                  .toList(),
-                              onChanged: (value) => setState(() => _condition = value ?? _condition),
+    return PopScope(
+      canPop: !_isSaving,
+      child: UnsavedGuard(
+        isDirty: _isDirty && !_isSaving,
+        child: Scaffold(
+          backgroundColor: c.scaffold,
+          body: Column(
+            children: [
+              AppHeader(title: S.editBook, icon: Icons.edit_note_rounded),
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () => FocusScope.of(context).unfocus(),
+                  child: AbsorbPointer(
+                    absorbing: _isSaving,
+                    child: SingleChildScrollView(
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: EdgeInsets.fromLTRB(16, 20, 16, MediaQuery.of(context).viewInsets.bottom + 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          FadeSlideIn(child: _buildImageSection(c)),
+                          const SizedBox(height: 12),
+                          FadeSlideIn(
+                            index: 1,
+                            child: FormRowCard(
+                              label: S.condition,
+                              labelWidth: 88,
+                              child: AppSelect<String>(
+                                value: _condition,
+                                title: S.condition,
+                                options: [
+                                  for (final option in AppLabels.conditionOptions)
+                                    AppSelectOption(
+                                      value: option.value,
+                                      label: option.label,
+                                      icon: Icons.menu_book_rounded,
+                                      iconColor: c.conditionColor(option.value),
+                                    ),
+                                ],
+                                onChanged: (value) => setState(() => _condition = value),
+                              ),
                             ),
                           ),
-                        ),
-                        _buildRowCard(
-                          c,
-                          S.customPrice,
-                          AppTextField(
-                            controller: _priceController,
-                            hint: S.enterPrice2,
-                            keyboardType: TextInputType.number,
-                            prefixText: '\$ ',
-                            maxLength: 6,
-                          ),
-                        ),
-                        _buildRowCard(
-                          c,
-                          S.lockerLocation,
-                          DropdownButtonHideUnderline(
-                            child: DropdownButton<int>(
-                              value: _cabinetId,
-                              isExpanded: true,
-                              hint: Text(S.chooseLocker, style: TextStyle(color: c.textHint, fontSize: 14)),
-                              dropdownColor: c.card,
-                              style: TextStyle(color: c.textPrimary, fontSize: 14),
-                              items: _cabinets
-                                  .map((cab) => DropdownMenuItem<int>(
-                                        value: cab['cabinet_id'] as int?,
-                                        child: Text(
-                                          '${cab['cabinet_name']}',
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ))
-                                  .toList(),
-                              onChanged: (value) => setState(() => _cabinetId = value),
+                          FadeSlideIn(
+                            index: 2,
+                            child: FormRowCard(
+                              label: S.customPrice,
+                              labelWidth: 88,
+                              child: AppTextField(
+                                controller: _priceController,
+                                hint: S.enterPrice2,
+                                keyboardType: TextInputType.number,
+                                textInputAction: TextInputAction.done,
+                                prefixText: '\$ ',
+                                errorText: _showErrors && (_price ?? 0) <= 0 ? S.enterPrice : null,
+                                inputFormatters: const [PriceInputFormatter(max: _maxPrice)],
+                                onChanged: (_) => setState(() {}),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 28),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: _isSaving ? null : _save,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: c.accent,
-                              foregroundColor: Colors.white,
-                              disabledBackgroundColor: c.accent.withValues(alpha: 0.5),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          FadeSlideIn(
+                            index: 3,
+                            child: FormRowCard(
+                              label: S.lockerLocation,
+                              labelWidth: 88,
+                              alignTop: true,
+                              child: CabinetSelectField(
+                                value: _cabinetId,
+                                keepSelectableId: widget.book.cabinetId,
+                                errorText: _showErrors && _cabinetId == null ? S.chooseLocker : null,
+                                onChanged: (cabinet, byUser) => setState(() {
+                                  if (byUser) _cabinetTouched = true;
+                                  _cabinetId = cabinet == null ? null : CabinetSelectField.idOf(cabinet);
+                                }),
+                              ),
                             ),
-                            child: _isSaving
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                  )
-                                : Text(S.saveChanges,
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
-                        ),
-                        const SizedBox(height: 40),
-                      ],
+                          const SizedBox(height: 16),
+                          PrimaryButton(
+                            label: S.saveChanges,
+                            icon: Icons.check_rounded,
+                            isLoading: _isSaving,
+                            onPressed: _save,
+                          ),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
                     ),
-                  )),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
-    ),
     );
   }
 
   Widget _buildImageSection(AppColors c) {
-    final canAddMore = _totalImages < 10;
+    final canAddMore = _totalImages < _maxImages;
 
     return AppCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text.rich(
-                TextSpan(
-                  text: S.bookPhotos,
-                  children: [
-                    TextSpan(
-                      text: ' *',
-                      style: TextStyle(color: c.danger, fontWeight: FontWeight.bold),
-                    ),
-                  ],
+              Flexible(
+                child: Text.rich(
+                  TextSpan(
+                    text: S.bookPhotos,
+                    children: [
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: c.danger, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
               ),
               const SizedBox(width: 8),
               Text(
                 '($_filledRequired/3)',
                 style: TextStyle(
                   fontSize: 14,
-                  color: _filledRequired < 3 ? c.danger : c.textSecondary,
+                  color: _filledRequired < 3 ? c.danger : c.success,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const Spacer(),
-              Text('$_totalImages/10', style: TextStyle(fontSize: 14, color: c.textHint)),
+              Text('$_totalImages/$_maxImages', style: TextStyle(fontSize: 14, color: c.textHint)),
             ],
           ),
           const SizedBox(height: 16),
           SizedBox(
             height: 140,
             child: ListView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               scrollDirection: Axis.horizontal,
               children: [
                 for (var i = 0; i < _requiredLabels.length; i++)
@@ -482,8 +491,10 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                       c,
                       label: S.morePhotos,
                       isRequired: false,
-                      onRemove: () => setState(() => _extraNew.remove(file)),
-                      image: Image.file(File(file.path), fit: BoxFit.cover),
+                      onRemove: () {
+                        if (!_isSaving) setState(() => _extraNew.remove(file));
+                      },
+                      image: Image.file(File(file.path), fit: BoxFit.cover, cacheWidth: 270),
                     ),
                   ),
                 if (canAddMore)
@@ -515,7 +526,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       onRemove: () => _clearSlot(slot),
       onTap: () => _pickSlot(slot),
       image: picked != null
-          ? Image.file(File(picked.path), fit: BoxFit.cover)
+          ? Image.file(File(picked.path), fit: BoxFit.cover, cacheWidth: 270)
           : AppNetworkImage(
               url: existing!.url,
               fallbackIcon: Icons.broken_image_outlined,
@@ -534,7 +545,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
   }) {
     return Column(
       children: [
-        GestureDetector(
+        PressableScale(
           onTap: onTap,
           child: Container(
             width: 90,
@@ -569,12 +580,18 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
           ),
         ),
         const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            color: isRequired ? c.danger : c.textSecondary,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+        SizedBox(
+          width: 90,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isRequired ? c.success : c.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -617,34 +634,21 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
           ),
         ),
         const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            color: isRequired ? c.danger : c.textHint,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+        SizedBox(
+          width: 90,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isRequired ? c.danger : c.textHint,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildRowCard(AppColors c, String label, Widget child) {
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 76,
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
-            ),
-          ),
-          Expanded(child: child),
-        ],
-      ),
     );
   }
 }

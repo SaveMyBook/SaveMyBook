@@ -1,5 +1,6 @@
 tags:
-  - name: 後台：客服與條款
+  - name: admin-support
+    x-displayName: 後台：客服與條款
     description: |
       法律文件、常見問題與客服工單。
 
@@ -16,7 +17,7 @@ paths:
     get:
       summary: 法律文件列表
       operationId: adminListLegalDocs
-      tags: [後台：客服與條款]
+      tags: [admin-support]
       description: |
         回傳全部法律文件，目前包含服務條款（`terms`）與隱私權政策（`privacy`），
         內容完整並附最後編輯者。需 `can_manage_announcements` 權限。
@@ -41,18 +42,19 @@ paths:
     put:
       summary: 更新法律文件
       operationId: adminUpdateLegalDoc
-      tags: [後台：客服與條款]
+      tags: [admin-support]
       description: |
         以 upsert 寫入：`doc_key` 不存在時建立新文件。
         需 `can_manage_announcements` 權限。
 
-        `notify` 為 true 時會逐一通知每位使用者。條款變更涉及全體使用者權益，
-        因此採逐帳號寫入通知而非僅發布公告。為避免長時間鎖表，寫入以每 500 筆
-        為一批分次執行。
+        `major` 為 true 表示**重大更新**，且內容確實有變動時：
 
-        通知僅在內容確實變更時發送，判定方式為與既有 `content` 比對。
-        僅異動標題或重複送出相同內容均不會發送通知。
-        通知對象限 `is_active` 為 true 且未列入黑名單的帳號。
+        - 文件版本號加一
+        - 通知並推播給所有使用者
+        - 需要同意的文件（服務條款、隱私權政策）會在使用者下次開 App 時要求重新同意
+
+        修錯字、調整排版請不要勾選，否則全站使用者都要再同意一次。舊版用戶端送的 `notify` 視同 `major`。
+        通知對象限啟用中、未列入黑名單、未刪除的帳號，以每 500 筆為一批寫入。
 
         > 此操作不可復原且影響全站，建議於用戶端加入二次確認。
       security: [{ bearerAuth: [] }]
@@ -60,7 +62,7 @@ paths:
         - in: path
           name: key
           required: true
-          schema: { type: string, enum: [terms, privacy] }
+          schema: { type: string, pattern: '^[a-z0-9_-]{1,50}$' }
           description: '`terms` 為服務條款，`privacy` 為隱私權政策。'
           example: terms
       requestBody:
@@ -73,11 +75,11 @@ paths:
               properties:
                 title: { type: string, maxLength: 255, example: 服務條款 }
                 content: { type: string, description: 純文字內容。 }
-                notify:
+                major:
                   type: boolean
                   default: false
-                  description: 是否通知全體使用者。僅在內容確實變更時實際發送。
-            example: { title: 服務條款, content: 第一條 ..., notify: true }
+                  description: 重大更新：版本加一、通知全體使用者並要求重新同意。僅在內容確實變更時生效。
+            example: { title: 服務條款, content: 第一條 ..., major: true }
       responses:
         '200':
           description: 更新成功。`notified` 為實際通知的人數，未發送通知時為 0。
@@ -92,6 +94,7 @@ paths:
                     type: object
                     properties:
                       notified: { type: integer, description: 實際收到通知的人數, example: 1284 }
+                      version: { type: integer, nullable: true, description: 重大更新後的新版本號，小幅修改時為 null, example: 3 }
         '400':
           description: 標題或內容為空白。
           content:
@@ -110,7 +113,7 @@ paths:
     get:
       summary: 常見問題列表（含隱藏）
       operationId: adminListFaqs
-      tags: [後台：客服與條款]
+      tags: [admin-support]
       description: |
         包含 `is_visible` 為 false 的項目，依分類、排序值、編號依序排序。
         需 `can_manage_announcements` 權限。
@@ -136,7 +139,7 @@ paths:
     post:
       summary: 新增常見問題
       operationId: adminCreateFaq
-      tags: [後台：客服與條款]
+      tags: [admin-support]
       description: |
         `category` 為自由字串而非列舉，前台依此分組呈現，
         因此同組項目須填入相同值。未填時預設為 `general`。
@@ -181,7 +184,7 @@ paths:
     put:
       summary: 調整常見問題順序
       operationId: adminReorderFaqs
-      tags: [後台：客服與條款]
+      tags: [admin-support]
       description: |
         依 `order` 陣列的位置重寫 `sort_order`，第一筆為 0、依序遞增。
         整批寫在同一個交易中，中途失敗不會留下一半新一半舊的順序。
@@ -241,7 +244,7 @@ paths:
     put:
       summary: 編輯常見問題
       operationId: adminUpdateFaq
-      tags: [後台：客服與條款]
+      tags: [admin-support]
       description: |
         整筆覆蓋：未帶入的欄位將回復為預設值，即 `category` 為 `general`、
         `sort_order` 為 0、`is_visible` 為 true。請務必送出完整內容。
@@ -279,7 +282,7 @@ paths:
     delete:
       summary: 刪除常見問題
       operationId: adminDeleteFaq
-      tags: [後台：客服與條款]
+      tags: [admin-support]
       description: |
         永久刪除。如僅需暫時隱藏，建議改將 `is_visible` 設為 false。
       security: [{ bearerAuth: [] }]
@@ -298,7 +301,7 @@ paths:
     get:
       summary: 客服工單列表
       operationId: adminListTickets
-      tags: [後台：客服與條款]
+      tags: [admin-support]
       description: |
         依最後更新時間遞減排序，上限 100 筆，無分頁機制。
         需 `can_manage_support` 權限。
@@ -345,7 +348,7 @@ paths:
     patch:
       summary: 調整工單狀態
       operationId: adminUpdateTicketStatus
-      tags: [後台：客服與條款]
+      tags: [admin-support]
       description: |
         手動變更工單狀態。需 `can_manage_support` 權限。
         操作會通知開單者並寫入稽核紀錄。

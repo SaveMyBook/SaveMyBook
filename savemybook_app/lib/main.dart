@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -13,9 +15,11 @@ import 'services/api_service.dart';
 import 'services/biometric_service.dart';
 import 'services/chat_prefs.dart';
 import 'services/deep_link_service.dart';
+import 'services/home_widget_service.dart';
 import 'services/locale_provider.dart';
 import 'services/push_service.dart';
 import 'services/theme_provider.dart';
+import 'services/verification_service.dart';
 import 'utils/app_info.dart';
 import 'utils/app_theme.dart';
 import 'widgets/state_views.dart';
@@ -52,9 +56,15 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     await BiometricService.load();
 
     PushService.navigatorKey = navigatorKey;
-    ApiService.onSigningOut = PushService.onSigningOut;
+    ApiService.onSigningOut = ({required bool canReachServer}) async {
+      unawaited(HomeWidgetService.clear());
+      await PushService.onSigningOut(canReachServer: canReachServer);
+    };
     ApiService.onPasswordChanged = PushService.registerCurrentDevice;
+    VerificationService.navigatorKey = navigatorKey;
+    ApiService.onVerificationRequired = VerificationService.handle;
     await PushService.init();
+    await HomeWidgetService.init();
 
     ApiService.onUnauthorized = (reason) {
       navigatorKey.currentState?.pushAndRemoveUntil(
@@ -69,8 +79,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
       });
     };
 
-    // 先 init 再掛 handler：冷啟動時 navigatorKey 還沒有 currentState，
-    // 連結會先被存起來，等第一個 frame 之後才 flush 出來。
+    // 先 init 再掛 handler：冷啟動時 navigatorKey 還沒有 currentState，連結要等第一個 frame 後才送出。
     await DeepLinkService.init();
 
     final prefs = await SharedPreferences.getInstance();
@@ -88,6 +97,8 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
         }
       }
     }
+
+    unawaited(HomeWidgetService.sync(force: true));
 
     if (mounted) {
       setState(() {
@@ -167,7 +178,6 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
               themeMode: mode,
               theme: AppTheme.build(Brightness.light),
               darkTheme: AppTheme.build(Brightness.dark),
-              // locale 為 null 時交給 localeResolutionCallback 依系統語言決定。
               locale: locale,
               supportedLocales: LocaleProvider.supported,
               localeResolutionCallback: (device, supported) =>
@@ -178,8 +188,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
-              // builder 位於 Localizations 之下，是最早能取得譯文的位置。
-              // 模型與服務層沒有 context，靠這裡把參考交給全域的 S。
+              // 模型與服務層沒有 context，全域的 S 只能在這裡指派。
               builder: (context, child) {
                 S = AppLocalizations.of(context);
                 return child ?? const SizedBox.shrink();

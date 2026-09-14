@@ -4,12 +4,12 @@ const authenticateToken = require('../middleware/auth');
 const v = require('../lib/validate');
 const { badRequest } = require('../lib/errors');
 const orders = require('../services/orders');
+const { requireVerification } = require('../services/security');
 
 const router = express.Router();
 
 router.use(authenticateToken);
 
-// 前端頁籤 -> orders.status 對照表
 const BUYER_TABS = {
   pending_pickup: ['pending_payment', 'pending_deposit', 'deposited', 'pending_pickup'],
   completed: ['completed'],
@@ -57,7 +57,7 @@ router.get('/:id', async (req, res) => {
   res.status(200).json({ success: true, data: order });
 });
 
-router.post('/checkout', async (req, res) => {
+router.post('/checkout', requireVerification('payment'), async (req, res) => {
   let cartIds = null;
   if (req.body.cart_ids !== undefined && req.body.cart_ids !== null) {
     if (!Array.isArray(req.body.cart_ids) || req.body.cart_ids.length > 200) {

@@ -1,5 +1,6 @@
 tags:
-  - name: 後台：會員管理
+  - name: admin-members
+    x-displayName: 後台：會員管理
     description: |
       會員查詢、停權、黑名單、角色、會員等級與管理員細部權限。
       本組端點均需 `can_manage_members` 權限。
@@ -13,7 +14,7 @@ paths:
     get:
       summary: 會員列表
       operationId: adminListMembers
-      tags: [後台：會員管理]
+      tags: [admin-members]
       description: |
         分頁查詢會員，依註冊時間遞減排序。
         各筆資料包含上架書籍數與買賣訂單數。
@@ -79,7 +80,7 @@ paths:
     get:
       summary: 會員細節
       operationId: adminGetMember
-      tags: [後台：會員管理]
+      tags: [admin-members]
       description: |
         回傳單一會員的完整後台資料，包含基本資料、點數組成、目前等級，
         以及管理員帳號的 11 項細部權限狀態。
@@ -138,7 +139,7 @@ paths:
     patch:
       summary: 停權 / 黑名單 / 變更角色
       operationId: adminUpdateMemberStatus
-      tags: [後台：會員管理]
+      tags: [admin-members]
       description: |
         部分更新：僅異動請求中帶入的欄位。操作會寫入稽核紀錄。
 
@@ -190,7 +191,7 @@ paths:
     post:
       summary: 重設會員密碼
       operationId: adminResetMemberPassword
-      tags: [後台：會員管理]
+      tags: [admin-members]
       description: |
         供客服處理「忘記密碼又收不到信」的求助。伺服器產生一組臨時密碼，
         寫入該帳號並於回應中回傳**一次**，之後無法再取得。
@@ -203,7 +204,7 @@ paths:
         操作會發送通知予該會員，並寫入稽核紀錄；**臨時密碼不會寫進稽核紀錄**——
         紀錄是給稽核看的，不該留存明文密碼。
 
-        需 `can_manage_members` 權限。
+        需 `can_manage_members` 權限，以及 `sensitive` 範圍的身分驗證（`X-Verify-Token` 標頭）。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -212,6 +213,7 @@ paths:
           schema: { type: integer }
           description: 會員編號。
           example: 42
+        - $ref: '#/components/parameters/VerifyToken'
       responses:
         '200':
           description: 已重設。`temp_password` 僅於此回應出現一次。
@@ -235,14 +237,22 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
           description: |
-            缺少 `can_manage_members` 權限，或目標本身是管理員。
+            缺少 `can_manage_members` 權限、尚未完成身分驗證，或目標本身是管理員。
 
-            後者為權限提升的防線：若允許，任何具會員管理權限的人都能
+            最後一項為權限提升的防線：若允許，任何具會員管理權限的人都能
             接管其他管理員的帳號，等同繞過所有權限設定。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 不能重設其他管理員的密碼 }
+              examples:
+                目標是管理員:
+                  value: { success: false, message: 不能重設其他管理員的密碼 }
+                需要驗證:
+                  value:
+                    success: false
+                    code: VERIFICATION_REQUIRED
+                    message: 請先驗證身分
+                    verification: { scope: sensitive, methods: [password, pin, biometric] }
         '404':
           description: 找不到這位會員。
           content:
@@ -261,7 +271,7 @@ paths:
     patch:
       summary: 調整會員等級 / 點數
       operationId: adminAdjustMemberLevel
-      tags: [後台：會員管理]
+      tags: [admin-members]
       description: |
         點數由系統依完成訂單數自動計算。本端點透過調整 `bonus_points`
         補正值改變結果，不會異動訂單資料。
@@ -333,7 +343,7 @@ paths:
     put:
       summary: 設定管理員細部權限
       operationId: adminSetMemberPermissions
-      tags: [後台：會員管理]
+      tags: [admin-members]
       description: |
         逐項設定指定管理員的 12 項權限。採部分更新，僅異動請求中帶入的欄位。
 
@@ -346,6 +356,8 @@ paths:
 
         該帳號若尚未建立權限紀錄，系統會自動建立；此時未帶入的欄位
         將採用資料表預設值（`can_manage_system` 為 `false`，其餘為 `true`）。
+
+        需 `sensitive` 範圍的身分驗證（`X-Verify-Token` 標頭）。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -353,6 +365,7 @@ paths:
           required: true
           schema: { type: integer }
           example: 5
+        - $ref: '#/components/parameters/VerifyToken'
       requestBody:
         required: true
         content:
@@ -382,6 +395,6 @@ paths:
                 未帶入欄位:
                   value: { success: false, message: 沒有要更新的權限 }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '403': { $ref: '#/components/responses/AdminVerificationRequired' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }

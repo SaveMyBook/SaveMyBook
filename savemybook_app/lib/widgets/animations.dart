@@ -32,9 +32,19 @@ class _FadeSlideInState extends State<FadeSlideIn> with SingleTickerProviderStat
   late final AnimationController _controller =
       AnimationController(vsync: this, duration: widget.duration);
 
+  bool _started = false;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      _controller.value = 1;
+      return;
+    }
+
     final delayMs =
         (widget.stagger.inMilliseconds * widget.index).clamp(0, widget.maxDelay.inMilliseconds);
 
@@ -59,7 +69,6 @@ class _FadeSlideInState extends State<FadeSlideIn> with SingleTickerProviderStat
       animation: _controller,
       builder: (context, child) {
         final raw = _controller.value;
-        // 透明度先到位、位移後收尾，避免進場顯得生硬。
         final fade = Curves.easeOut.transform((raw * 1.35).clamp(0.0, 1.0));
         final slide = Curves.easeOutCubic.transform(raw);
         return Opacity(
@@ -84,7 +93,6 @@ class PressableScale extends StatefulWidget {
   final VoidCallback? onLongPress;
   final double scale;
 
-  /// 按下時是否給觸覺回饋。列表中密集的小元件應關閉，否則滑過會連續震動。
   final bool haptic;
 
   const PressableScale({
@@ -102,8 +110,6 @@ class PressableScale extends StatefulWidget {
 
 class _PressableScaleState extends State<PressableScale>
     with SingleTickerProviderStateMixin {
-  /// 0 = 原始大小，1 = 完全按下。用 unbounded 是因為回彈的彈簧會衝過
-  /// 0 變成負值，那一段負值正好變成放開瞬間的微微放大。
   late final AnimationController _controller =
       AnimationController.unbounded(vsync: this, value: 0);
 
@@ -117,7 +123,6 @@ class _PressableScaleState extends State<PressableScale>
 
   void _release() {
     if (!_enabled) return;
-    // 帶著目前的速度交給彈簧，手指放開的動作跟回彈之間才沒有接縫。
     _controller.animateWith(
       SpringSimulation(Motion.pressSpring, _controller.value, 0, -_controller.velocity),
     );
@@ -156,10 +161,6 @@ class _PressableScaleState extends State<PressableScale>
   }
 }
 
-/// 捲到看得見才進場。
-///
-/// [FadeSlideIn] 在掛載當下就播，第一屏以外的項目等捲到時早已播完，
-/// 畫面下半部永遠是靜止的。這個元件改為等項目進入視窗才觸發。
 class RevealOnScroll extends StatefulWidget {
   final Widget child;
   final int index;
@@ -167,7 +168,6 @@ class RevealOnScroll extends StatefulWidget {
   final Duration duration;
   final Duration stagger;
 
-  /// 距視窗底部這段距離內才算進場，避免只露出一角就開始動。
   final double threshold;
 
   const RevealOnScroll({
@@ -203,10 +203,13 @@ class _RevealOnScrollState extends State<RevealOnScroll>
   void _attach() {
     if (!mounted) return;
 
-    // 往上收集每一層可捲動的祖先，不只最近的那一層。
-    // 首頁的書籍格是 shrinkWrap + NeverScrollableScrollPhysics 包在
-    // SingleChildScrollView 裡，內層那個 position 永遠不會動；只聽它
-    // 的話第一屏以外的卡片會一直停在透明狀態。
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      _revealed = true;
+      _controller.value = 1;
+      return;
+    }
+
+    // 必須聽每一層祖先 Scrollable：shrinkWrap 的內層清單永遠不會捲動，只聽最近一層會讓卡片一直透明。
     BuildContext? ctx = context;
     while (ctx != null && _positions.length < 4) {
       final scrollable = Scrollable.maybeOf(ctx);
@@ -225,12 +228,10 @@ class _RevealOnScrollState extends State<RevealOnScroll>
     if (_revealed) return;
 
     if (_positions.isEmpty) {
-      // 根本不在可捲動容器裡（例如被放進 Column），直接放行。
       _reveal();
       return;
     }
 
-    // 保險：萬一某個版面的捲動事件傳不到這裡，也不能讓內容永遠看不見。
     _fallback = Timer(const Duration(milliseconds: 1400), () {
       if (mounted) _reveal();
     });
@@ -254,8 +255,6 @@ class _RevealOnScrollState extends State<RevealOnScroll>
       position.removeListener(_check);
     }
 
-    // 只有開頁時就在畫面內的那一批需要依序錯開；之後捲進來的立刻播，
-    // 不然每滑一下都要等，反而像卡頓。
     final delay = _firstCheck ? Motion.delayFor(widget.index, step: widget.stagger) : Duration.zero;
 
     if (delay == Duration.zero) {
@@ -283,7 +282,6 @@ class _RevealOnScrollState extends State<RevealOnScroll>
       animation: _controller,
       builder: (context, child) {
         final raw = _controller.value;
-        // 透明度先到位、位移後收尾，避免進場顯得生硬。
         final fade = Curves.easeOut.transform((raw * 1.4).clamp(0.0, 1.0));
         final slide = Motion.enterCurve.transform(raw);
         return Opacity(
@@ -299,10 +297,6 @@ class _RevealOnScrollState extends State<RevealOnScroll>
   }
 }
 
-/// 顯示與隱藏都帶高度與淡入，元素不會憑空出現或消失。
-///
-/// 收合時 child 仍留在樹上、由 heightFactor 壓扁，所以看到的是「收起來」；
-/// 直接換成 SizedBox 的話內容會先整個不見，再剩一個空隙慢慢關。
 class Reveal extends StatelessWidget {
   final bool visible;
   final Widget child;
@@ -337,7 +331,6 @@ class Reveal extends StatelessWidget {
   }
 }
 
-/// 極輕微的呼吸循環，用於空狀態圖示。
 class Breathe extends StatefulWidget {
   final Widget child;
   final double amount;
@@ -381,7 +374,6 @@ class _BreatheState extends State<Breathe> with SingleTickerProviderStateMixin {
   }
 }
 
-/// 自中心擴散的圈，用於收藏、加入購物車等正向操作的瞬間。
 class BurstRing extends StatefulWidget {
   final Color color;
   final double size;
@@ -460,17 +452,20 @@ class _BurstPainter extends CustomPainter {
       old.progress != progress || old.opacity != opacity || old.color != color;
 }
 
-/// 依序描繪的打勾，用於結帳完成、取書成功等結果頁。
 class DrawnCheck extends StatefulWidget {
   final Color color;
   final double size;
   final Duration delay;
+  final bool haptic;
+  final VoidCallback? onCompleted;
 
   const DrawnCheck({
     super.key,
     required this.color,
     this.size = 96,
     this.delay = const Duration(milliseconds: 120),
+    this.haptic = false,
+    this.onCompleted,
   });
 
   @override
@@ -479,13 +474,18 @@ class DrawnCheck extends StatefulWidget {
 
 class _DrawnCheckState extends State<DrawnCheck> with SingleTickerProviderStateMixin {
   late final AnimationController _controller =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
+        ..addStatusListener((status) {
+          if (status == AnimationStatus.completed) widget.onCompleted?.call();
+        });
 
   @override
   void initState() {
     super.initState();
     Future.delayed(widget.delay, () {
-      if (mounted) _controller.forward();
+      if (!mounted) return;
+      if (widget.haptic) HapticFeedback.mediumImpact();
+      _controller.forward();
     });
   }
 
@@ -501,7 +501,6 @@ class _DrawnCheckState extends State<DrawnCheck> with SingleTickerProviderStateM
       animation: _controller,
       builder: (context, _) {
         final t = _controller.value;
-        // 圓圈先畫完一半，勾才開始下筆，兩段動作才不會糊在一起。
         final ring = Curves.easeOutCubic.transform((t / 0.55).clamp(0.0, 1.0));
         final tick = Curves.easeOutCubic.transform(((t - 0.42) / 0.58).clamp(0.0, 1.0));
         final pulse = Curves.easeOutBack.transform(((t - 0.30) / 0.70).clamp(0.0, 1.0));
@@ -550,7 +549,7 @@ class _CheckPainter extends CustomPainter {
     if (ring > 0) {
       canvas.drawArc(
         Rect.fromCircle(center: centre, radius: radius),
-        -1.5708, // 從 12 點鐘方向開始
+        -1.5708,
         6.2832 * ring,
         false,
         stroke..strokeWidth = 3.2,
@@ -558,7 +557,6 @@ class _CheckPainter extends CustomPainter {
     }
 
     if (tick > 0) {
-      // 勾的三個點，以圓心為基準用比例定位，換 size 也不會跑掉。
       final a = centre + Offset(-radius * 0.34, radius * 0.02);
       final b = centre + Offset(-radius * 0.08, radius * 0.28);
       final c = centre + Offset(radius * 0.38, -radius * 0.26);
@@ -587,26 +585,56 @@ class AnimatedCount extends StatelessWidget {
   final double value;
   final TextStyle? style;
   final String prefix;
+  final String suffix;
   final int decimals;
   final Duration duration;
+  final Curve curve;
+  final bool thousands;
+  final String Function(double value)? formatter;
+  final TextAlign? textAlign;
 
   const AnimatedCount({
     super.key,
     required this.value,
     this.style,
     this.prefix = '',
+    this.suffix = '',
     this.decimals = 0,
     this.duration = const Duration(milliseconds: 650),
+    this.curve = Curves.easeOutCubic,
+    this.thousands = false,
+    this.formatter,
+    this.textAlign,
   });
+
+  static String group(String digits) {
+    final negative = digits.startsWith('-');
+    final body = negative ? digits.substring(1) : digits;
+    final dot = body.indexOf('.');
+    final whole = dot < 0 ? body : body.substring(0, dot);
+    final fraction = dot < 0 ? '' : body.substring(dot);
+    final buffer = StringBuffer();
+    for (var i = 0; i < whole.length; i++) {
+      if (i > 0 && (whole.length - i) % 3 == 0) buffer.write(',');
+      buffer.write(whole[i]);
+    }
+    return '${negative ? '-' : ''}$buffer$fraction';
+  }
+
+  String _format(double v) {
+    if (formatter != null) return formatter!(v);
+    final fixed = v.toStringAsFixed(decimals);
+    return '$prefix${thousands ? group(fixed) : fixed}$suffix';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: value),
-      duration: duration,
-      curve: Curves.easeOutCubic,
-      builder: (_, animated, _) =>
-          Text('$prefix${animated.toStringAsFixed(decimals)}', style: style),
+      duration: reduceMotion ? Duration.zero : duration,
+      curve: curve,
+      builder: (_, animated, _) => Text(_format(animated), style: style, textAlign: textAlign),
     );
   }
 }

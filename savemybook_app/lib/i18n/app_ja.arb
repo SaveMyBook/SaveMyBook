@@ -1771,5 +1771,667 @@
   "systemNotificationSettings": "システムの通知設定",
   "turnNotificationsSoundsLockScreenPreviews": "通知、サウンド、ロック画面の表示を切り替えます",
   "pushNotificationsNotSetUpBuild": "このビルドではプッシュ通知が設定されていません。Firebaseの設定ファイルを追加して再ビルドしてください。",
-  "notificationsTurnedOffAllowAppSend": "通知がオフになっています。システム設定でこのアプリの通知を許可してください。"
+  "notificationsTurnedOffAllowAppSend": "通知がオフになっています。システム設定でこのアプリの通知を許可してください。",
+  "restoreBackup": "このバックアップに復元しますか？",
+  "wholeDatabaseGoBackP0Orders": "データベース全体が {p0} の状態に戻ります。それ以降の注文、メッセージ、会員データ、操作履歴はすべて失われます。\n\n復元前に現在の状態が自動でバックアップされるので、誤った場合はそのバックアップに戻せます。復元中はサービスが停止し、通常は数十秒から数分かかります。\n\n確認のためログインパスワードを入力してください：",
+  "@wholeDatabaseGoBackP0Orders": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "password2": "ログインパスワード",
+  "startRestore": "復元を開始",
+  "backingUpCurrentState": "現在の状態をバックアップしています…",
+  "databaseRestoredPreviousStateWasBacked": "データベースを復元しました。復元前の状態は {p0} にバックアップされています",
+  "@databaseRestoredPreviousStateWasBacked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "restoreFailedDatabaseMayUnchangedPartly": "復元に失敗しました。データベースは元のままか一部だけ復元された可能性があります。操作履歴を確認し、{p0} への復元を検討してください",
+  "@restoreFailedDatabaseMayUnchangedPartly": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "autoBackupBeforeRestore": "復元前の自動バックアップ",
+  "restoreBackup2": "このバックアップに復元",
+  "restoringDatabase": "データベースを復元しています",
+  "p0SecondsSoFarKeepApp": "{p0} 秒経過しました。アプリを閉じないでください。完了すると自動でサービスが再開します。",
+  "@p0SecondsSoFarKeepApp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "majorUpdate": "重要な更新ですか？",
+  "majorUpdateNotifiesEveryUserTerms": "重要な更新は全ユーザーに通知されます。利用規約とプライバシーポリシーは、次回アプリを開いたときに再度読んで同意してもらいます。\n\n誤字の修正や書式の調整だけなら「軽微な修正」を選んでください。",
+  "majorUpdate2": "重要な更新",
+  "minorEdit": "軽微な修正",
+  "books": "本",
+  "orders2": "注文",
+  "wallets2": "ウォレット",
+  "announcements3": "お知らせ",
+  "legal": "規約",
+  "backups": "バックアップ",
+  "undoAction": "この操作を取り消しますか？",
+  "p0NNtheDataGoesBack": "「{p0}」\n\nデータは操作前の状態に戻ります。送信済みの通知は取り消されません。その後さらに変更されていた場合、取り消しはできません。",
+  "@p0NNtheDataGoesBack": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "undo": "取り消す",
+  "undone": "取り消し済み",
+  "searchActionsEGNicknameBook": "操作内容を検索（例：会員名や書名）",
+  "viewP0Changes": "{p0} 件の変更を表示",
+  "@viewP0Changes": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "undoAction2": "この操作を取り消す",
+  "tapBarSeeDay": "棒をタップするとその日の数値を表示",
+  "noAnnouncements": "お知らせはありません",
+  "tapPhotoNameChange": "写真や名前をタップして変更",
+  "canTContinueWithoutAccepting": "同意しないと利用を続けられません",
+  "needAcceptLatestP0UseP1": "{p0} を利用するには最新の「{p1}」への同意が必要です。同意しない場合はログアウトします。いつでも再ログインして同意できます。",
+  "@needAcceptLatestP0UseP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "goBack": "戻る",
+  "p0BeenUpdated": "「{p0}」が更新されました",
+  "@p0BeenUpdated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "readLatestVersionUpdatedP0Accept": "最新版（{p0} 更新）をお読みください。同意すると利用を続けられます。",
+  "@readLatestVersionUpdatedP0Accept": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "scrollEndContinue": "最後までスクロールしてください",
+  "iVeReadAccept": "読んで同意しました",
+  "decline": "同意しない",
+  "viewDetails": "詳細を見る",
+  "notFoundMayBeenDeletedRemoved": "見つかりません。削除または取り下げられた可能性があります",
+  "salesDropOffsPickupsRefundsDisputes": "販売、預け入れ、受け取り、返金、申し立て",
+  "chatMessages": "チャットメッセージ",
+  "newMessagesFromBuyersSellers": "買い手・売り手からの新着メッセージ",
+  "promotions2": "キャンペーン",
+  "announcementsAboutPromotions": "キャンペーンのお知らせ",
+  "supportRepliesPasswordResetsPolicyUpdates": "サポートの返信、パスワードのリセット、規約の更新、メンテナンスのお知らせは常に通知されます。オフにした種類も通知一覧には表示され、プッシュ通知だけが届きません。",
+  "notFilled": "未入力",
+  "canTChanged": "変更不可",
+  "voice": "[音声]",
+  "reservation": "予約",
+  "messageUnsent": "メッセージの送信を取り消しました",
+  "confirmBeforeExportingData": "データを書き出す前に本人確認をしてください",
+  "exportFailedPleaseTryAgainLater": "書き出しに失敗しました。しばらくしてからお試しください",
+  "refresh": "再読み込み",
+  "clearFilters": "絞り込みを解除",
+  "expired": "期限切れ",
+  "verificationCancelled": "認証をキャンセルしました",
+  "openingClosingTimesCanTSame": "開始時刻と終了時刻を同じにはできません",
+  "slotCurrentlyP0MayOrderProgress": "この区画は現在「{p0}」で、進行中の注文があるかもしれません。「{p1}」に変更すると、購入者や出品者が本を預けたり受け取ったりできなくなる可能性があります。",
+  "@slotCurrentlyP0MayOrderProgress": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "active": "稼働中",
+  "categoryWithNameAlreadyExists": "同じ名前のカテゴリがすでにあります",
+  "orderP0ClosedAsP1P2": "注文 {p0} を「{p1}」で解決し、{p2} コインを購入者に返金します。送信後は変更できません。",
+  "@orderP0ClosedAsP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "orderP0ClosedAsP1Can": "注文 {p0} を「{p1}」で解決します。送信後は変更できません。",
+  "@orderP0ClosedAsP1Can": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "clearSearch": "検索をクリア",
+  "enterMinimumPoints": "最低ポイントを入力してください",
+  "pointsRangeOverlapsWithP0P1": "ポイント範囲が「{p0}」（{p1}）と重なっています",
+  "@pointsRangeOverlapsWithP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noTierCoversP0P1Points": "{p0}–{p1} ポイントに該当するランクがありません",
+  "@noTierCoversP0P1Points": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0TakenDownRightAwayOther": "「{p0}」はすぐに非公開になり、ほかの会員は閲覧・購入できなくなります。",
+  "@p0TakenDownRightAwayOther": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "searchReportedItemReporterReason": "通報対象・通報者・理由で検索",
+  "couldnTLoadStatisticsRightNow": "統計データを取得できませんでした",
+  "searchSubjectMemberMessage": "件名・会員・メッセージで検索",
+  "balance3": "残高あり",
+  "hold3": "保留中あり",
+  "zeroBalance": "残高 0",
+  "amountCanMost2DecimalPlaces": "金額は小数点以下2桁までです",
+  "singleAdjustmentCanTExceed1": "1回の調整は 1,000,000 までです",
+  "wouldMakeBalanceNegativeCurrentBalance": "差し引くと残高がマイナスになります。現在の残高：{p0}",
+  "@wouldMakeBalanceNegativeCurrentBalance": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "amountUp2Decimals": "金額（小数点以下2桁まで）",
+  "p0NbalanceAfterP1": "{p0}\n調整後の残高：{p1}",
+  "@p0NbalanceAfterP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "cameraAccessOff": "カメラを使用できません",
+  "couldNotStartCamera": "カメラを起動できませんでした",
+  "allowP0UseCameraSettingsThen": "設定で {p0} のカメラへのアクセスを許可してから、もう一度お試しください。",
+  "@allowP0UseCameraSettingsThen": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "closeScreenTryAgain": "この画面を閉じてもう一度お試しください。",
+  "couldnTGetLocationCheckLocation": "現在地を取得できません。位置情報サービスと権限がオンか確認してください",
+  "bookReservedAnotherBuyerCanT": "この本は他の購入者が予約中のため、今はカートに追加できません",
+  "reservedAnotherBuyerUntilP0": "他の購入者が {p0} まで予約中",
+  "@reservedAnotherBuyerUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "ifIsnTSoldByThen": "期限までに売れなければ、カートに追加できるようになります",
+  "sellerHoldingUntilP0": "出品者が {p0} まであなたのために取り置き中",
+  "@sellerHoldingUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "checkOutBeforeHoldEndsOther": "期限内に購入手続きを済ませてください。期限を過ぎると他の人も購入できます",
+  "copyAddress": "住所をコピー",
+  "p0Away": "ここから {p0}",
+  "@p0Away": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "locating": "位置を取得中…",
+  "showDistance": "距離を表示",
+  "reserved": "予約済み",
+  "goCheckout": "購入手続きへ",
+  "cart2": "カートに追加済み",
+  "buyNow": "今すぐ購入",
+  "p0Delisted": "『{p0}』を出品停止しました",
+  "@p0Delisted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBooksMatchP0": "「{p0}」に一致する本はありません",
+  "@noBooksMatchP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0BooksP1Views": "{p0} 冊 · 閲覧 {p1} 回",
+  "@p0BooksP1Views": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "swipeQuickActions": "スワイプで操作",
+  "searchTitleAuthorIsbn2": "書名・著者・ISBN で検索",
+  "removedP0": "「{p0}」を削除しました",
+  "@removedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removedP0Items": "{p0} 点を削除しました",
+  "@removedP0Items": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paymentSuccessful": "支払いが完了しました",
+  "p0BooksSplitIntoP1Orders": "計 {p0} 冊、出品者ごとに {p1} 件の注文に分けました",
+  "@p0BooksSplitIntoP1Orders": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "keepBrowsing": "買い物を続ける",
+  "reload": "再読み込み",
+  "browseBooks": "本を探す",
+  "p0Sellers": "出品者 {p0} 人",
+  "@p0Sellers": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unavailableP0": "購入できません（{p0}）",
+  "@unavailableP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeAll": "すべて削除",
+  "goWallet": "ウォレットへ",
+  "fromP0SellersCheckoutCreatesP1": "出品者 {p0} 人の商品です。購入後 {p1} 件の注文に分かれます",
+  "@fromP0SellersCheckoutCreatesP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "otherDevicesNeedSignAgainWith": "他の端末では新しいパスワードで再ログインが必要です。",
+  "searchChats": "チャット相手を検索",
+  "noMatchingChats": "該当するチャットがありません",
+  "read": "既読",
+  "chatNotFound": "チャットが見つかりません",
+  "messagesCanUp2000Characters": "メッセージは2000文字までです",
+  "canTSendRightNowPlease": "現在送信できません。しばらくしてから再度お試しください",
+  "reserveBook": "この本を予約",
+  "quickReplies": "クイック返信",
+  "imagesMust10MbSmaller": "画像は10MB以下にしてください",
+  "recordingFailedPleaseTryAgain": "録音に失敗しました。もう一度お試しください",
+  "voiceMessageTooLargePleaseRecord": "音声ファイルが大きすぎます。短く録音してください",
+  "microphoneAllowedPressHoldAgainRecord": "マイクを許可しました。もう一度長押しして録音してください",
+  "microphoneAccessNeededRecordTurnSettings": "録音にはマイクへのアクセスが必要です。設定で許可してください",
+  "couldnTStartRecordingPleaseTry": "録音を開始できません。しばらくしてから再度お試しください",
+  "selectText": "テキストを選択",
+  "unsend": "送信取消",
+  "resend": "再送信",
+  "unsendMessage": "このメッセージの送信を取り消しますか？",
+  "neitherAbleSeeMessageSContent": "取り消すと、お互いにこのメッセージの内容が見えなくなります。",
+  "reportMessage": "このメッセージを報告",
+  "reservationSentWaitingSeller": "予約を送信しました。出品者の返信をお待ちください",
+  "acceptReservation": "予約を承認しますか？",
+  "p0HeldThemP1HoursNo": "「{p0}」を相手のために{p1}時間取り置きします。その間、他の人は購入できません。",
+  "@p0HeldThemP1HoursNo": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "accept": "承認",
+  "reservationAccepted": "予約を承認しました",
+  "declineReservation": "予約をお断りしますか？",
+  "theyLlNotifiedDeclined": "相手にお断りの通知が届きます。",
+  "decline2": "お断り",
+  "reservationDeclined": "予約をお断りしました",
+  "cancelReservation": "予約をキャンセルしますか？",
+  "p0NoLongerHeld": "キャンセルすると「{p0}」の取り置きは解除されます。",
+  "@p0NoLongerHeld": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelReservation2": "予約をキャンセル",
+  "reservationCanceled": "予約をキャンセルしました",
+  "notNow2": "やめておく",
+  "couldnTLoadConversationPleaseTry": "会話を読み込めません。しばらくしてから再度お試しください",
+  "accountCanTReceiveMessagesRight": "相手のアカウントは現在メッセージを受け取れません",
+  "holdMicTalkReleaseSend": "マイクを長押しして話し、指を離すと送信します",
+  "startConversation": "ここから会話が始まります",
+  "p0New": "新着 {p0} 件",
+  "@p0New": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionUnstableMessagesCanTSent": "接続が不安定なため、現在メッセージを送信できません",
+  "retry": "再試行",
+  "stillAvailable": "まだありますか？",
+  "couldLowerPriceBit": "もう少し安くなりますか？",
+  "whenCanPutLocker": "いつロッカーに入れてもらえますか？",
+  "unsentMessage": "メッセージの送信を取り消しました",
+  "theyUnsentMessage": "相手がメッセージの送信を取り消しました",
+  "reservationDetailsArenTAvailableRight": "予約情報を表示できません",
+  "sending": "送信中",
+  "couldNotUploadPhotosPleaseTry": "証拠写真のアップロードに失敗しました。しばらくしてからお試しください",
+  "bookDetailsUpdatedButPhotosCouldn": "書籍情報は更新しましたが、写真をアップロードできませんでした。後でもう一度お試しください",
+  "sNotIsbnBarcodeScanOne": "ISBN バーコードではありません。裏表紙の 978 または 979 で始まるバーコードを読み取ってください",
+  "couldnTLoadCategoriesTapRetry": "カテゴリを読み込めませんでした。タップして再試行",
+  "removedP0FromSaved": "「{p0}」を保存済みから外しました",
+  "@removedP0FromSaved": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "recentlyViewedCleared": "最近見た本を消去しました",
+  "clearP0": "クリア（{p0}）",
+  "@clearP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "picked": "あなたへのおすすめ",
+  "seeMore": "もっと見る",
+  "recentlyViewed": "最近見た本",
+  "clear": "クリア",
+  "notificationDeleted": "通知を削除しました",
+  "pleasePutBookAssignedLockerSoon": "できるだけ早く指定のロッカーに本を入れてください",
+  "weLlLetKnowWhenSeller": "出品者が本を入れたら受け取りをお知らせします",
+  "waitingBuyerCollect": "購入者の受け取り待ち",
+  "bookLockerEnterPickupCodeCollect": "本はロッカーにあります。受け取りコードを入力して受け取ってください",
+  "transactionCompleteThank": "取引が完了しました。ご利用ありがとうございます",
+  "confirmVeTakenBookFromLocker": "ロッカーから本を取り出したことを確認してください。確認すると注文が完了します。",
+  "p0Orders2": "注文 {p0} 件",
+  "@p0Orders2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ReadyPickup": "受け取り可能 {p0} 件",
+  "@p0ReadyPickup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickUp": "受取待ち",
+  "saved": "お気に入り",
+  "accountSecurity": "アカウントのセキュリティ",
+  "sellerHasnTPutBookLocker": "出品者はまだ本をロッカーに入れていません。入れたらお知らせします",
+  "searchHistoryCleared": "検索履歴を消去しました",
+  "trendingBooks": "人気の本",
+  "signOutDevice": "この端末をログアウトしますか？",
+  "signOutP0": "「{p0}」をログアウトしますか？",
+  "@signOutP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "llNeedSignAgainUseApp": "ログアウト後は再ログインが必要です。",
+  "deviceSignedOutRightAwayStop": "その端末はすぐにログアウトし、通知も届かなくなります。",
+  "deviceSignedOut": "この端末をログアウトしました",
+  "signOutAllDevicesIncludingOne": "すべての端末からログアウト（この端末を含む）",
+  "signOutAllOtherDevices": "ほかのすべての端末からログアウト",
+  "everyDeviceIncludingOneSignedOut": "この端末を含むすべての端末がログアウトし、再ログインが必要になります。",
+  "everyDeviceExceptOneSignedOut": "この端末以外はすぐにログアウトし、通知も届かなくなります。",
+  "signedOutP0OtherDevices": "他の {p0} 台の端末からログアウトしました",
+  "@signedOutP0OtherDevices": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unknownDevice": "不明な端末",
+  "couldnTLoadDevices": "端末を読み込めませんでした",
+  "theseDevicesSignedAccountIfDon": "これらの端末があなたのアカウントにログインしています。心当たりのない端末があれば、すぐにログアウトしてパスワードを変更してください。",
+  "device": "この端末",
+  "otherDevices": "他の端末",
+  "otherDevicesP0": "他の端末（{p0}）",
+  "@otherDevicesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noOtherDevicesSigned": "他の端末はログインしていません",
+  "signedDevices": "ログイン中の端末",
+  "activeNow": "使用中",
+  "lastActiveP0": "最終利用 {p0}",
+  "@lastActiveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signedP0": "{p0} にログイン",
+  "@signedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "biometricPayment": "生体認証での支払い：オン",
+  "paymentPinMust6Digits": "取引パスワードは 6 桁の数字にしてください",
+  "pinTooEasyGuessTryAnother": "取引パスワードが単純すぎます。別の番号にしてください",
+  "enterPasswordResetPaymentPin": "ログインパスワードを入力すると取引パスワードを再設定できます",
+  "confirmSBeforeSettingPaymentPin": "取引パスワードを設定する前に本人確認をしてください",
+  "pinsDonTMatchStartAgain": "2 回の入力が一致しません。もう一度設定してください",
+  "paymentPinReset": "取引パスワードを再設定しました",
+  "paymentPinSet": "取引パスワードを設定しました",
+  "use6DigitPinConfirmPayments": "今後の決済では、この 6 桁のパスワードで支払いを確認します。",
+  "verifyingIdentity": "本人確認中…",
+  "enterAgainConfirm": "確認のためもう一度入力",
+  "set6DigitPaymentPin": "6 桁の取引パスワードを設定",
+  "enterSamePinAgain": "もう一度同じパスワードを入力してください",
+  "avoidRepeatedSequentialPatternedDigits": "同じ数字・連続・繰り返しは使えません",
+  "resetPaymentPin": "取引パスワードを再設定",
+  "paymentPin": "取引パスワード",
+  "stepP02": "ステップ {p0} / 2",
+  "@stepP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "setPaymentPinFirst": "先に取引パスワードを設定してください",
+  "setPaymentPinFirstSoFallback": "先に取引パスワードを設定してください。認証に失敗したときの代わりになります",
+  "setUpNow": "今すぐ設定",
+  "biometricPaymentTurnedOff": "生体認証での支払いをオフにしました",
+  "verifyTurnBiometricPayment": "生体認証での支払いをオンにするため認証します",
+  "p0PaymentsTurned": "{p0} での支払いをオンにしました",
+  "@p0PaymentsTurned": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "securitySettingsUnavailableRightNowMay": "セキュリティ設定を取得できません。取引パスワードやログイン端末を変更できない場合があります。",
+  "payWithP0": "{p0} で支払う",
+  "@payWithP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accountWellProtected": "アカウントはしっかり保護されています",
+  "accountCouldSafer": "セキュリティを強化できます",
+  "paymentPinBiometricPaymentSetCheck": "取引パスワードと生体認証での支払いが設定済みです。ログイン中の端末もときどき確認しましょう。",
+  "setPaymentPinTurnBiometricPayment": "取引パスワードを設定し生体認証での支払いをオンにすると、決済がより安全で速くなります。",
+  "tooManyAttemptsLockedUntilP0": "失敗回数が多すぎます。{p0} までロック中",
+  "@tooManyAttemptsLockedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "usedConfirmPaymentsCheckout": "決済時の支払い確認に使います",
+  "notSetRequiredBeforeCheckout": "未設定です。決済前に設定が必要です",
+  "change": "変更",
+  "forgotPaymentPin": "取引パスワードを忘れた",
+  "ifFailsCanEnterPaymentPin": "認証に失敗したら取引パスワードを入力できます",
+  "viewRemotelySignOutDevices": "端末の確認とリモートログアウト",
+  "p0Devices": "{p0} 台",
+  "@p0Devices": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "otherDevicesNeedSignAgain": "変更後、ほかの端末は再ログインが必要です",
+  "restoredUnfinishedListing": "前回の入力内容を復元しました",
+  "isbnSCheckDigitInvalidPlease": "ISBN のチェックディジットが正しくありません。もう一度確認してください",
+  "draftSavedAutomatically": "下書きを自動保存しました",
+  "continueUnfinishedListing": "前回の出品を続ける",
+  "clearedP0MbCache": "{p0} MB のキャッシュを削除しました",
+  "@clearedP0MbCache": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cacheCleared": "キャッシュを削除しました",
+  "storage": "ストレージ",
+  "paymentPinBiometricPaymentDevices": "取引パスワード・生体認証支払い・ログイン端末",
+  "clearCache": "キャッシュを削除",
+  "removesCachedImagesFilesAccountData": "一時保存の画像とファイルを削除します。アカウントのデータには影響しません",
+  "couldNotLoadNotificationSettings": "通知設定を読み込めません",
+  "month": "今月",
+  "p0P1": "{p0}年{p1}月",
+  "@p0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noIncomeYet": "収入の記録はありません",
+  "noSpendingYet": "支出の記録はありません",
+  "income": "収入",
+  "spending": "支出",
+  "totalIncome": "累計収入",
+  "totalSpending": "累計支出",
+  "item3": "項目",
+  "details": "説明",
+  "balanceAfter": "取引後残高",
+  "transactionId": "取引番号",
+  "sessionExpiredPleaseSignAgain": "ログインの有効期限が切れました。もう一度ログインしてください",
+  "serviceTemporarilyUnavailableTryAgainLater": "サービスは一時的に利用できません。しばらくしてからお試しください",
+  "uploadFailedTryAgainLater": "アップロードに失敗しました。しばらくしてからお試しください",
+  "nearby": "すぐ近く",
+  "p0M": "{p0} m",
+  "@p0M": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Km": "{p0} km",
+  "@p0Km": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iphoneDidnTReceiveApnsToken": "iPhone が APNs トークンを取得できませんでした。Xcode の Signing & Capabilities に Push Notifications が追加されているか確認し、同じ Apple デベロッパーアカウントでアプリを再インストールしてください。",
+  "firebaseDidnTIssuePushToken": "Firebase がプッシュトークンを発行しませんでした。GoogleService-Info.plist とアプリの Bundle ID が一致しているか確認してください",
+  "couldnTGetPushTokenP0": "プッシュトークンを取得できませんでした：{p0}",
+  "@couldnTGetPushTokenP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "couldnTRegisterPushTokenWith": "プッシュトークンをサーバーに登録できませんでした：{p0}",
+  "@couldnTRegisterPushTokenWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "protectCoinsCheckoutRequires6Digit": "コインを守るため、決済時に 6 桁の取引パスワードが必要です。設定後は Face ID や指紋での支払いもオンにできます。",
+  "confirmPaymentP0Coins": "{p0} コインの支払いを確認",
+  "@confirmPaymentP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterPasswordContinue": "続けるにはログインパスワードを入力してください",
+  "verifyS": "本人確認",
+  "amount": "支払い金額",
+  "p0Coins": "{p0} コイン",
+  "@p0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterPaymentPin": "取引パスワードを入力",
+  "enterPaymentPinContinue": "続けるには取引パスワードを入力してください",
+  "paymentPinResetEnterAgain": "取引パスワードを再設定しました。もう一度入力してください",
+  "usePasswordInstead": "ログインパスワードを使う",
+  "couldnTGetLocationLockersShown": "現在地を取得できませんでした。ロッカーは標準の順で表示されます",
+  "p0SlotsFree": "空き {p0} 区画",
+  "@p0SlotsFree": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "openP0": "営業 {p0}",
+  "@openP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nearest": "最寄り",
+  "noFreeSlots": "空きがありません",
+  "sortedByDistance": "近い順に表示",
+  "turnLocationSortByDistance": "位置情報をオンにすると距離順に並びます",
+  "lockerNoFreeSlotsRightNow": "このロッカーは現在空きがありません",
+  "turn": "オンにする",
+  "noLockersAvailable": "利用できるロッカーがありません",
+  "noMatchingOptions": "一致する項目がありません",
+  "undo2": "元に戻す",
+  "copiedP0": "「{p0}」をコピーしました",
+  "@copiedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "typing": "入力中…",
+  "today": "今日",
+  "yesterday": "昨日",
+  "p0P12": "{p0}月{p1}日",
+  "@p0P12": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p1P2P0": "{p0}年{p1}月{p2}日",
+  "@p1P2P0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "releaseCancel": "指を離すとキャンセル",
+  "slideCancel": "← スライドでキャンセル",
+  "awaitingReply": "返信待ち",
+  "heldUntilP0": "{p0}まで取り置き",
+  "@heldUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "declined2": "お断り済み",
+  "closed": "終了",
+  "theyWantReserveBook": "相手があなたの本を予約したいそうです",
+  "sentReservationRequest": "予約リクエストを送信しました",
+  "holdP0H": "{p0}時間取り置き",
+  "@holdP0H": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceSellerAcceptsBookHeldNo": "出品者が承認すると本はあなたのために取り置かれ、期限までは他の人が購入できません。",
+  "holdPeriod": "取り置き期間",
+  "messageSellerOptional": "出品者へのメッセージ（任意）",
+  "sendRequest": "予約を送信",
+  "p0Hours": "{p0}時間",
+  "@p0Hours": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0P1DigitsEntered": "入力済み {p0} / {p1} 桁",
+  "@p0P1DigitsEntered": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  }
 }

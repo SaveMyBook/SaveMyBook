@@ -1,5 +1,6 @@
 tags:
-  - name: 帳號與隱私 (Account)
+  - name: account
+    x-displayName: 帳號與隱私
     description: |
       刪除帳號、匯出個人資料與分享連結權杖。
 
@@ -13,14 +14,19 @@ paths:
     get:
       summary: 匯出個人資料
       operationId: exportMyData
-      tags: [帳號與隱私 (Account)]
+      tags: [account]
       description: |
         以 JSON 檔下載個人資料、上架書籍、買賣訂單、錢包與交易紀錄、
         爭議、檢舉與客服工單。
 
         回應帶 `Content-Disposition: attachment`，檔名為
         `savemybook-<user_id>-<YYYY-MM-DD>.json`。
+
+        需 `sensitive` 範圍的身分驗證，將 `POST /api/security/verify` 取得的 `verify_token`
+        帶入 `X-Verify-Token` 標頭。
       security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/VerifyToken'
       responses:
         '200':
           description: 下載檔案。
@@ -52,13 +58,14 @@ paths:
                     type: array
                     items: { $ref: '#/components/schemas/SupportTicket' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/VerificationRequired' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/users/me/deletion:
     get:
       summary: 查詢刪除申請狀態
       operationId: getDeletionStatus
-      tags: [帳號與隱私 (Account)]
+      tags: [account]
       description: 回傳是否有進行中的刪除申請，以及預計執行匿名化的時間。
       security: [{ bearerAuth: [] }]
       responses:
@@ -87,7 +94,7 @@ paths:
     post:
       summary: 申請刪除帳號
       operationId: requestAccountDeletion
-      tags: [帳號與隱私 (Account)]
+      tags: [account]
       description: |
         需以密碼確認身分。申請成立後帳號**仍可登入**，因為登入是取消刪除的唯一入口。
 
@@ -137,7 +144,7 @@ paths:
     delete:
       summary: 取消刪除申請
       operationId: cancelAccountDeletion
-      tags: [帳號與隱私 (Account)]
+      tags: [account]
       description: 在緩衝期內取消刪除。逾期已完成匿名化者無法復原。
       security: [{ bearerAuth: [] }]
       responses:
@@ -154,7 +161,7 @@ paths:
     post:
       summary: 重新產生分享連結
       operationId: rotateShareToken
-      tags: [帳號與隱私 (Account)]
+      tags: [account]
       description: |
         產生新的分享權杖，舊連結立即失效。連結外流時使用。
 
@@ -179,3 +186,119 @@ paths:
                         example: https://api.savemybook.today/u/4f3c2b1a9e8d7c6b5a4f3e2d1c0b9a87
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/users/me/notification-settings:
+    get:
+      summary: 取得推播偏好
+      operationId: getNotificationSettings
+      tags: [account]
+      description: |
+        三種通知類型的推播開關，未設定過時全部為 true。只影響手機推播，站內通知列表照樣會收到。
+        系統通知（客服回覆、密碼重設、條款更新、維護公告等）一律推送，無法關閉。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      order: { type: boolean, example: true, description: 訂單進度 }
+                      message: { type: boolean, example: true, description: 聊天訊息 }
+                      promotion: { type: boolean, example: false, description: 優惠活動公告 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+    put:
+      summary: 更新推播偏好
+      operationId: updateNotificationSettings
+      tags: [account]
+      description: 部分更新，只帶要改的欄位。值必須是布林值。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order: { type: boolean }
+                message: { type: boolean }
+                promotion: { type: boolean }
+            example: { promotion: false }
+      responses:
+        '200':
+          description: 已更新，回傳更新後的完整設定。
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/users/me/legal-consents/pending:
+    get:
+      summary: 待同意的法律文件
+      operationId: getPendingLegalConsents
+      tags: [account]
+      description: |
+        服務條款、隱私權政策做了重大更新後，使用者尚未同意的新版本（含全文）。
+        App 開啟時呼叫，清單不為空就擋住畫面要求同意，不同意則登出。
+
+        上線前註冊、沒有同意紀錄的使用者視為已同意第 1 版。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。沒有待同意的文件時為空陣列。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        doc_id: { type: integer }
+                        doc_key: { type: string, example: terms }
+                        title: { type: string, example: 服務條款 }
+                        content: { type: string }
+                        version: { type: integer, example: 3 }
+                        updated_at: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/users/me/legal-consents:
+    post:
+      summary: 同意法律文件
+      operationId: acceptLegalDocument
+      tags: [account]
+      description: 版本必須等於文件目前的版本；文件在使用者閱讀期間又更新時回傳 409，App 應重新載入。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [doc_key, version]
+              properties:
+                doc_key: { type: string, example: terms }
+                version: { type: integer, example: 3 }
+      responses:
+        '200':
+          description: 已記錄。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已同意 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 文件版本已變更。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: LEGAL_VERSION_CHANGED, message: 這份文件剛剛又更新了，請重新閱讀後再同意 }

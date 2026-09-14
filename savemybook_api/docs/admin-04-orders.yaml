@@ -1,5 +1,6 @@
 tags:
-  - name: 後台：訂單管理
+  - name: admin-orders
+    x-displayName: 後台：訂單管理
     description: |
       訂單查詢與人工調整狀態。本組端點需 `can_manage_orders` 權限。
 
@@ -11,7 +12,7 @@ paths:
     get:
       summary: 訂單列表
       operationId: adminListOrders
-      tags: [後台：訂單管理]
+      tags: [admin-orders]
       description: |
         分頁查詢全站訂單，依建立時間遞減排序。
 
@@ -53,7 +54,7 @@ paths:
     get:
       summary: 訂單詳情
       operationId: adminGetOrder
-      tags: [後台：訂單管理]
+      tags: [admin-orders]
       description: |
         單筆訂單的完整樣貌。列表為求輕量只帶摘要，這裡補上客服在處理一筆
         爭議時真正需要的細節：錢什麼時候扣的、書放進哪一格、退過款沒有、
@@ -160,7 +161,7 @@ paths:
     patch:
       summary: 人工調整訂單狀態
       operationId: adminUpdateOrderStatus
-      tags: [後台：訂單管理]
+      tags: [admin-orders]
       description: |
         供客服處理流程中斷的訂單，與使用者操作走同一套結算。
 

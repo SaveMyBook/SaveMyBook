@@ -1,5 +1,6 @@
 tags:
-  - name: 後台：系統維運
+  - name: admin-system
+    x-displayName: 後台：系統維運
     description: |
       資料庫備份與待刪除帳號的處理。
 
@@ -20,7 +21,7 @@ paths:
     get:
       summary: 備份列表
       operationId: adminListBackups
-      tags: [後台：系統維運]
+      tags: [admin-system]
       description: |
         依時間遞減排序，含失敗的紀錄。
 
@@ -70,7 +71,7 @@ paths:
     post:
       summary: 立即備份
       operationId: adminCreateBackup
-      tags: [後台：系統維運]
+      tags: [admin-system]
       description: |
         以 `mysqldump --single-transaction` 匯出並 gzip 壓縮，成功後套用保留份數
         輪替（預設 14 份，由 `BACKUP_KEEP` 設定）。
@@ -112,7 +113,7 @@ paths:
     get:
       summary: 下載備份
       operationId: adminDownloadBackup
-      tags: [後台：系統維運]
+      tags: [admin-system]
       description: |
         回傳 gzip 壓縮的 SQL 檔。每次下載都會寫入管理員操作紀錄。
 
@@ -140,18 +141,81 @@ paths:
               example: { success: false, message: 備份檔已不存在 }
         '500': { $ref: '#/components/responses/ServerError' }
 
-  /api/admin/backups/{id}:
-    delete:
-      summary: 刪除備份
-      operationId: adminDeleteBackup
-      tags: [後台：系統維運]
-      description: 同時刪除磁碟上的檔案與資料庫紀錄，無法復原。
+  /api/admin/backups/{id}/restore:
+    post:
+      summary: 還原資料庫
+      operationId: adminRestoreBackup
+      tags: [admin-system]
+      description: |
+        把整個資料庫還原到這份備份的狀態。需 `can_manage_system` 權限，並重新輸入登入密碼。
+
+        流程：
+
+        1. 先自動備份目前的狀態（`trigger_by` 為 `pre_restore`）。這一步失敗就不會還原，錯誤直接回傳。
+        2. 進入維護模式：除 `GET /api/status` 外所有請求回傳 503 `MAINTENANCE`，推播與排程暫停。
+        3. 在背景匯入備份檔，回應 202 後用 `GET /api/status` 輪詢進度。
+        4. 補回備份清單（備份檔裡的清單是當時的樣子），離開維護模式，寫入操作紀錄。
+
+        備份時間點之後的所有資料（訂單、訊息、操作紀錄）都會消失。還原錯了，請再還原第 1 步產生的那份備份。
+        同一位管理員 15 分鐘內最多嘗試 5 次。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
           name: id
           required: true
           schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, format: password, description: 目前登入管理員的密碼。 }
+      responses:
+        '202':
+          description: 已開始還原。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已開始還原，期間系統暫停服務，完成後會自動恢復 }
+                  data:
+                    type: object
+                    properties:
+                      file_name: { type: string, description: 要還原的備份 }
+                      safety_backup: { type: string, description: 還原前自動建立的備份 }
+        '400':
+          description: 未輸入密碼或密碼錯誤。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 密碼錯誤 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /api/admin/backups/{id}:
+    delete:
+      summary: 刪除備份
+      operationId: adminDeleteBackup
+      tags: [admin-system]
+      description: |
+        同時刪除磁碟上的檔案與資料庫紀錄，無法復原。
+
+        需 `sensitive` 範圍的身分驗證（`X-Verify-Token` 標頭）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+        - $ref: '#/components/parameters/VerifyToken'
       responses:
         '200':
           description: 已刪除。
@@ -160,7 +224,7 @@ paths:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
               example: { success: true, message: 已刪除備份 }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '403': { $ref: '#/components/responses/AdminVerificationRequired' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -168,7 +232,7 @@ paths:
     get:
       summary: 待刪除帳號列表
       operationId: adminListDeletions
-      tags: [後台：系統維運]
+      tags: [admin-system]
       description: |
         列出已申請刪除但尚未匿名化的帳號，依申請時間遞增排序
         （最接近執行日期的排最前）。需 `can_manage_members` 權限。
@@ -201,7 +265,7 @@ paths:
     post:
       summary: 代為取消刪除申請
       operationId: adminCancelDeletion
-      tags: [後台：系統維運]
+      tags: [admin-system]
       description: 供客服協助取消。需 `can_manage_members` 權限。
       security: [{ bearerAuth: [] }]
       parameters:
@@ -225,7 +289,7 @@ paths:
     post:
       summary: 立即執行匿名化
       operationId: adminPurgeAccount
-      tags: [後台：系統維運]
+      tags: [admin-system]
       description: |
         不等緩衝期，立即清除個資並停用帳號。**無法復原**。
 
@@ -235,13 +299,15 @@ paths:
 
         訂單、錢包與交易紀錄一律保留，否則交易對象的紀錄會出現破洞。
 
-        不可對自己執行。需 `can_manage_members` 權限。
+        不可對自己執行。需 `can_manage_members` 權限，以及 `sensitive` 範圍的身分驗證
+        （`X-Verify-Token` 標頭）。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
           name: id
           required: true
           schema: { type: integer }
+        - $ref: '#/components/parameters/VerifyToken'
       responses:
         '200':
           description: 已完成匿名化。
@@ -256,5 +322,5 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 無法對自己執行此操作 }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '403': { $ref: '#/components/responses/AdminVerificationRequired' }
         '500': { $ref: '#/components/responses/ServerError' }

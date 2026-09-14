@@ -1,5 +1,6 @@
 tags:
-  - name: 智慧書櫃 (Cabinets)
+  - name: cabinets
+    x-displayName: 智慧書櫃
     description: |
       智慧書櫃為平台的交付機制：賣家將書籍存入櫃位，買家憑六位數取貨碼取件，
       雙方無須當面交付。
@@ -11,14 +12,28 @@ paths:
     get:
       summary: 取得可用書櫃列表
       operationId: listCabinets
-      tags: [智慧書櫃 (Cabinets)]
+      tags: [cabinets]
       description: |
-        僅回傳 `is_active` 為 true 的書櫃，依編號排序，供上架時選擇取貨點
-        與地圖標示使用。
+        僅回傳 `is_active` 為 true 的書櫃，供上架時選擇取貨點與地圖標示使用。
 
-        回傳欄位經過精簡並包含經緯度。需取得完整資料（含櫃位狀態統計）時，
+        帶入 `lat` 與 `lng` 時，每筆資料的 `distance_m` 為與該座標的直線距離（公尺），
+        並依距離由近至遠排序；未帶入時 `distance_m` 為 null，依編號排序。
+        兩個參數須同時帶入，`0,0` 視為無效座標並回傳 400。
+
+        回傳欄位經過精簡並包含經緯度與營業時間。需取得完整資料（含櫃位狀態統計）時，
         請使用 `GET /api/admin/cabinets`。
       security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: lat
+          schema: { type: number, minimum: -90, maximum: 90 }
+          description: 目前位置的緯度，須與 `lng` 同時帶入。
+          example: 25.0478
+        - in: query
+          name: lng
+          schema: { type: number, minimum: -180, maximum: 180 }
+          description: 目前位置的經度，須與 `lat` 同時帶入。
+          example: 121.5170
       responses:
         '200':
           description: 成功。
@@ -39,6 +54,23 @@ paths:
                         available_slots: { type: integer, description: 目前可用的櫃位數, example: 17 }
                         latitude: { type: string, example: '25.0463500' }
                         longitude: { type: string, example: '121.5170000' }
+                        open_time: { type: string, nullable: true, example: '1970-01-01T08:00:00.000Z' }
+                        close_time: { type: string, nullable: true, example: '1970-01-01T22:00:00.000Z' }
+                        distance_m:
+                          type: integer
+                          nullable: true
+                          description: 與 `lat`、`lng` 的直線距離（公尺），未帶入座標時為 null。
+                          example: 180
+        '400':
+          description: 座標格式不正確。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                缺少經度:
+                  value: { success: false, message: 經度格式不正確 }
+                無效座標:
+                  value: { success: false, message: 座標不正確 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500':
           description: 查詢書櫃列表失敗。

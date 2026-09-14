@@ -1,7 +1,8 @@
 tags:
-  - name: 購物車 (Cart)
+  - name: cart
+    x-displayName: 購物車
     description: |
-      購物車。重複加入同一本書將累加數量，不會新增資料列。
+      購物車。重複加入同一本書將累加數量，不會新增資料列，且數量不會超過書籍庫存。
 
       結帳端點為 `POST /api/orders/checkout`，支援僅結帳部分選取的項目。
 
@@ -10,10 +11,13 @@ paths:
     get:
       summary: 取得購物車
       operationId: getCart
-      tags: [購物車 (Cart)]
+      tags: [cart]
       description: |
         回傳購物車項目及全部項目的合計金額。各項目包含完整書籍資料
         （含賣家與取貨書櫃），可直接依賣家分組呈現。
+
+        書籍目前被保留時，`books.reservation` 帶 `reserved_until` 與 `reserved_for_me`；
+        被其他買家保留的書結帳時會回 409 `BOOK_RESERVED`。
 
         `total_amount` 為購物車全部項目的總額。使用者僅選取部分項目時，
         小計須由用戶端自行計算。
@@ -37,14 +41,22 @@ paths:
     post:
       summary: 加入購物車
       operationId: addToCart
-      tags: [購物車 (Cart)]
+      tags: [cart]
       description: |
-        購物車中已存在的書籍將累加數量。
+        購物車中已存在的書籍將累加數量，上限為書籍的庫存數量。
 
-        下列兩種情形會被拒絕：
+        | 狀況 | HTTP | 說明 |
+        | --- | --- | --- |
+        | 新加入 | 201 | `already_in_cart` 為 false |
+        | 已在購物車且未達上限 | 200 | 數量累加，`already_in_cart` 為 false |
+        | 已在購物車且已達上限 | 200 | 不寫入資料，`already_in_cart` 為 true，`data` 僅含 `book_id` 與 `quantity` |
 
-        - 加入本人上架的書籍
-        - 書籍狀態非 `on_sale`，即已下單保留、已售出或已下架
+        下列情形會被拒絕：
+
+        - 加入本人上架的書籍（400）
+        - 書籍狀態非 `on_sale`，即已下單保留、已售出或已下架（400）
+        - 購物車已有 100 項商品（400）
+        - 書籍已由其他買家透過聊天室預約保留中（409 `BOOK_RESERVED`）
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -57,6 +69,25 @@ paths:
                 book_id: { type: integer, example: 101 }
                 quantity: { type: integer, minimum: 1, default: 1, example: 1 }
       responses:
+        '200':
+          description: 書籍已在購物車中。數量已累加，或已達上限而未寫入。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 這本書已經在購物車裡了 }
+                  already_in_cart: { type: boolean, description: 值為 true 代表已達上限、本次未寫入, example: true }
+                  data:
+                    type: object
+                    properties:
+                      cart_id: { type: integer, description: '`already_in_cart` 為 true 時不含此欄位。', example: 55 }
+                      book_id: { type: integer, example: 101 }
+                      quantity: { type: integer, example: 1 }
+              examples:
+                已達上限:
+                  value: { success: true, message: 這本書已經在購物車裡了, already_in_cart: true, data: { quantity: 1, book_id: 101 } }
         '201':
           description: 已加入。
           content:
@@ -66,6 +97,7 @@ paths:
                 properties:
                   success: { type: boolean, example: true }
                   message: { type: string, example: 已加入購物車 }
+                  already_in_cart: { type: boolean, example: false }
                   data:
                     type: object
                     properties:
@@ -86,8 +118,36 @@ paths:
                   value: { success: false, message: 無法將自己上架的書籍加入購物車 }
                 已被買走:
                   value: { success: false, message: 此書籍目前無法購買 }
+                購物車已滿:
+                  value: { success: false, message: 購物車最多放 100 項商品 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/BookReserved' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/cart/book-ids:
+    get:
+      summary: 取得購物車中的書籍編號
+      operationId: getCartBookIds
+      tags: [cart]
+      description: |
+        僅回傳購物車中所有書籍的 `book_id`，不含書籍資料。供書籍列表與詳情頁
+        標示「已在購物車」使用，比 `GET /api/cart` 輕量。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { type: integer }
+                    example: [101, 118, 240]
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/cart/{cartId}:
@@ -102,7 +162,7 @@ paths:
     patch:
       summary: 調整數量
       operationId: updateCartItem
-      tags: [購物車 (Cart)]
+      tags: [cart]
       description: 將數量設為指定值，非增減操作。數量帶入 0 會被拒絕，移除項目請使用 DELETE。
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -143,7 +203,7 @@ paths:
     delete:
       summary: 移除項目
       operationId: removeCartItem
-      tags: [購物車 (Cart)]
+      tags: [cart]
       description: |
         自購物車移除指定項目。
 

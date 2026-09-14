@@ -1771,5 +1771,667 @@
   "systemNotificationSettings": "시스템 알림 설정",
   "turnNotificationsSoundsLockScreenPreviews": "알림, 소리, 잠금 화면 표시를 켜거나 끕니다",
   "pushNotificationsNotSetUpBuild": "이 빌드에는 푸시 알림이 설정되어 있지 않습니다. Firebase 설정 파일을 추가하고 다시 빌드하세요.",
-  "notificationsTurnedOffAllowAppSend": "알림이 꺼져 있습니다. 시스템 설정에서 이 앱의 알림을 허용하세요."
+  "notificationsTurnedOffAllowAppSend": "알림이 꺼져 있습니다. 시스템 설정에서 이 앱의 알림을 허용하세요.",
+  "restoreBackup": "이 백업으로 복원할까요?",
+  "wholeDatabaseGoBackP0Orders": "전체 데이터베이스가 {p0} 상태로 돌아갑니다. 그 이후의 주문, 메시지, 회원 데이터, 작업 기록은 모두 사라집니다.\n\n복원 전에 현재 상태를 자동으로 백업하므로 잘못 복원했다면 그 백업으로 되돌릴 수 있습니다. 복원하는 동안 서비스가 중단되며 보통 수십 초에서 몇 분 걸립니다.\n\n확인을 위해 로그인 비밀번호를 입력하세요:",
+  "@wholeDatabaseGoBackP0Orders": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "password2": "로그인 비밀번호",
+  "startRestore": "복원 시작",
+  "backingUpCurrentState": "현재 상태를 백업하는 중…",
+  "databaseRestoredPreviousStateWasBacked": "데이터베이스를 복원했습니다. 복원 전 상태는 {p0}에 백업되어 있습니다",
+  "@databaseRestoredPreviousStateWasBacked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "restoreFailedDatabaseMayUnchangedPartly": "복원에 실패했습니다. 데이터베이스가 그대로이거나 일부만 복원되었을 수 있습니다. 작업 기록을 확인하고 {p0} 복원을 고려하세요",
+  "@restoreFailedDatabaseMayUnchangedPartly": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "autoBackupBeforeRestore": "복원 전 자동 백업",
+  "restoreBackup2": "이 백업으로 복원",
+  "restoringDatabase": "데이터베이스 복원 중",
+  "p0SecondsSoFarKeepApp": "{p0}초 지났습니다. 앱을 닫지 마세요. 완료되면 서비스가 자동으로 재개됩니다.",
+  "@p0SecondsSoFarKeepApp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "majorUpdate": "중요한 업데이트인가요?",
+  "majorUpdateNotifiesEveryUserTerms": "중요한 업데이트는 모든 사용자에게 알립니다. 이용약관과 개인정보 처리방침은 다음에 앱을 열 때 다시 읽고 동의해야 합니다.\n\n오타 수정이나 서식 조정이라면 \"사소한 수정\"을 선택하세요.",
+  "majorUpdate2": "중요한 업데이트",
+  "minorEdit": "사소한 수정",
+  "books": "도서",
+  "orders2": "주문",
+  "wallets2": "지갑",
+  "announcements3": "공지",
+  "legal": "약관",
+  "backups": "백업",
+  "undoAction": "이 작업을 되돌릴까요?",
+  "p0NNtheDataGoesBack": "\"{p0}\"\n\n데이터가 작업 전 상태로 돌아갑니다. 이미 보낸 알림은 회수되지 않습니다. 그 뒤에 데이터가 다시 수정되었다면 되돌릴 수 없습니다.",
+  "@p0NNtheDataGoesBack": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "undo": "되돌리기",
+  "undone": "되돌림",
+  "searchActionsEGNicknameBook": "작업 내용 검색 (예: 닉네임, 책 제목)",
+  "viewP0Changes": "변경 {p0}건 보기",
+  "@viewP0Changes": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "undoAction2": "이 작업 되돌리기",
+  "tapBarSeeDay": "막대를 탭하면 그날의 수치를 봅니다",
+  "noAnnouncements": "공지가 없습니다",
+  "tapPhotoNameChange": "사진이나 닉네임을 탭해 변경",
+  "canTContinueWithoutAccepting": "동의하지 않으면 계속 사용할 수 없습니다",
+  "needAcceptLatestP0UseP1": "{p0}을(를) 사용하려면 최신 \"{p1}\"에 동의해야 합니다. 동의하지 않으면 로그아웃되며, 언제든 다시 로그인해 동의할 수 있습니다.",
+  "@needAcceptLatestP0UseP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "goBack": "돌아가기",
+  "p0BeenUpdated": "\"{p0}\"이(가) 업데이트되었습니다",
+  "@p0BeenUpdated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "readLatestVersionUpdatedP0Accept": "최신 버전({p0} 업데이트)을 읽어 주세요. 동의하면 계속 사용할 수 있습니다.",
+  "@readLatestVersionUpdatedP0Accept": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "scrollEndContinue": "끝까지 스크롤해 주세요",
+  "iVeReadAccept": "읽었으며 동의합니다",
+  "decline": "동의하지 않음",
+  "viewDetails": "자세히 보기",
+  "notFoundMayBeenDeletedRemoved": "찾을 수 없습니다. 삭제되었거나 내려갔을 수 있습니다",
+  "salesDropOffsPickupsRefundsDisputes": "판매, 보관, 수령, 환불, 분쟁",
+  "chatMessages": "채팅 메시지",
+  "newMessagesFromBuyersSellers": "구매자와 판매자가 보낸 새 메시지",
+  "promotions2": "프로모션",
+  "announcementsAboutPromotions": "프로모션 공지",
+  "supportRepliesPasswordResetsPolicyUpdates": "고객센터 답변, 비밀번호 재설정, 약관 업데이트, 점검 공지는 항상 알립니다. 끈 유형도 알림 목록에는 표시되며 푸시만 오지 않습니다.",
+  "notFilled": "미입력",
+  "canTChanged": "변경 불가",
+  "voice": "[음성]",
+  "reservation": "예약",
+  "messageUnsent": "메시지를 회수했습니다",
+  "confirmBeforeExportingData": "데이터를 내보내기 전에 본인 확인을 해 주세요",
+  "exportFailedPleaseTryAgainLater": "내보내기에 실패했습니다. 잠시 후 다시 시도해 주세요",
+  "refresh": "새로 고침",
+  "clearFilters": "필터 지우기",
+  "expired": "만료됨",
+  "verificationCancelled": "인증을 취소했습니다",
+  "openingClosingTimesCanTSame": "시작 시간과 종료 시간은 같을 수 없습니다",
+  "slotCurrentlyP0MayOrderProgress": "이 칸은 현재 \"{p0}\" 상태이며 진행 중인 주문이 있을 수 있습니다. \"{p1}\"(으)로 바꾸면 구매자나 판매자가 책을 넣거나 찾지 못할 수 있습니다.",
+  "@slotCurrentlyP0MayOrderProgress": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "active": "사용 중",
+  "categoryWithNameAlreadyExists": "같은 이름의 카테고리가 이미 있습니다",
+  "orderP0ClosedAsP1P2": "주문 {p0}이(가) \"{p1}\"(으)로 종결되고 {p2} 코인이 구매자에게 환불됩니다. 제출 후에는 변경할 수 없습니다.",
+  "@orderP0ClosedAsP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "orderP0ClosedAsP1Can": "주문 {p0}이(가) \"{p1}\"(으)로 종결됩니다. 제출 후에는 변경할 수 없습니다.",
+  "@orderP0ClosedAsP1Can": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "clearSearch": "검색 지우기",
+  "enterMinimumPoints": "최소 포인트를 입력하세요",
+  "pointsRangeOverlapsWithP0P1": "포인트 범위가 \"{p0}\"({p1})과(와) 겹칩니다",
+  "@pointsRangeOverlapsWithP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noTierCoversP0P1Points": "{p0}–{p1}포인트에 해당하는 등급이 없습니다",
+  "@noTierCoversP0P1Points": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0TakenDownRightAwayOther": "\"{p0}\"이(가) 즉시 판매 중지되며 다른 회원은 더 이상 보거나 구매할 수 없습니다.",
+  "@p0TakenDownRightAwayOther": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "searchReportedItemReporterReason": "신고 대상, 신고자 또는 사유 검색",
+  "couldnTLoadStatisticsRightNow": "통계를 불러올 수 없습니다",
+  "searchSubjectMemberMessage": "제목, 회원 또는 메시지 검색",
+  "balance3": "잔액 있음",
+  "hold3": "보류 금액 있음",
+  "zeroBalance": "잔액 0",
+  "amountCanMost2DecimalPlaces": "금액은 소수점 이하 두 자리까지만 입력할 수 있습니다",
+  "singleAdjustmentCanTExceed1": "한 번에 1,000,000을 초과해 조정할 수 없습니다",
+  "wouldMakeBalanceNegativeCurrentBalance": "차감하면 잔액이 마이너스가 됩니다. 현재 잔액: {p0}",
+  "@wouldMakeBalanceNegativeCurrentBalance": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "amountUp2Decimals": "금액(소수점 이하 두 자리까지)",
+  "p0NbalanceAfterP1": "{p0}\n조정 후 잔액: {p1}",
+  "@p0NbalanceAfterP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "cameraAccessOff": "카메라를 사용할 수 없습니다",
+  "couldNotStartCamera": "카메라를 시작하지 못했습니다",
+  "allowP0UseCameraSettingsThen": "설정에서 {p0}의 카메라 접근을 허용한 뒤 다시 시도해 주세요.",
+  "@allowP0UseCameraSettingsThen": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "closeScreenTryAgain": "이 화면을 닫고 다시 시도해 주세요.",
+  "couldnTGetLocationCheckLocation": "현재 위치를 가져올 수 없습니다. 위치 서비스와 권한이 켜져 있는지 확인하세요",
+  "bookReservedAnotherBuyerCanT": "다른 구매자가 예약한 책이라 지금은 장바구니에 담을 수 없습니다",
+  "reservedAnotherBuyerUntilP0": "다른 구매자가 {p0}까지 예약함",
+  "@reservedAnotherBuyerUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "ifIsnTSoldByThen": "기한까지 거래되지 않으면 장바구니에 담을 수 있습니다",
+  "sellerHoldingUntilP0": "판매자가 {p0}까지 회원님을 위해 보관 중",
+  "@sellerHoldingUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "checkOutBeforeHoldEndsOther": "보관 기한 내에 결제하세요. 기한이 지나면 다른 구매자도 구매할 수 있습니다",
+  "copyAddress": "주소 복사",
+  "p0Away": "{p0} 거리",
+  "@p0Away": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "locating": "위치 확인 중…",
+  "showDistance": "거리 보기",
+  "reserved": "예약됨",
+  "goCheckout": "결제하러 가기",
+  "cart2": "장바구니에 있음",
+  "buyNow": "지금 구매",
+  "p0Delisted": "《{p0}》 판매를 중지했습니다",
+  "@p0Delisted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBooksMatchP0": "\"{p0}\"과(와) 일치하는 책이 없습니다",
+  "@noBooksMatchP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0BooksP1Views": "{p0}권 · 조회 {p1}회",
+  "@p0BooksP1Views": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "swipeQuickActions": "밀어서 빠른 작업",
+  "searchTitleAuthorIsbn2": "제목, 저자, ISBN 검색",
+  "removedP0": "\"{p0}\"을(를) 삭제했습니다",
+  "@removedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removedP0Items": "상품 {p0}개를 삭제했습니다",
+  "@removedP0Items": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paymentSuccessful": "결제 완료",
+  "p0BooksSplitIntoP1Orders": "총 {p0}권, 판매자별로 {p1}건의 주문으로 나눴습니다",
+  "@p0BooksSplitIntoP1Orders": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "keepBrowsing": "계속 둘러보기",
+  "reload": "다시 불러오기",
+  "browseBooks": "둘러보기",
+  "p0Sellers": "판매자 {p0}명",
+  "@p0Sellers": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unavailableP0": "구매 불가 ({p0})",
+  "@unavailableP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeAll": "모두 삭제",
+  "goWallet": "지갑으로 이동",
+  "fromP0SellersCheckoutCreatesP1": "판매자 {p0}명의 상품으로, 결제 후 {p1}건의 주문으로 나뉩니다",
+  "@fromP0SellersCheckoutCreatesP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "otherDevicesNeedSignAgainWith": "다른 기기에서는 새 비밀번호로 다시 로그인해야 합니다.",
+  "searchChats": "대화 상대 검색",
+  "noMatchingChats": "일치하는 대화가 없습니다",
+  "read": "읽음",
+  "chatNotFound": "채팅방을 찾을 수 없습니다",
+  "messagesCanUp2000Characters": "메시지는 최대 2000자까지 가능합니다",
+  "canTSendRightNowPlease": "지금은 보낼 수 없습니다. 잠시 후 다시 시도해 주세요",
+  "reserveBook": "이 책 예약하기",
+  "quickReplies": "빠른 답장",
+  "imagesMust10MbSmaller": "이미지는 10MB 이하여야 합니다",
+  "recordingFailedPleaseTryAgain": "녹음에 실패했습니다. 다시 시도해 주세요",
+  "voiceMessageTooLargePleaseRecord": "음성 파일이 너무 큽니다. 더 짧게 녹음해 주세요",
+  "microphoneAllowedPressHoldAgainRecord": "마이크 사용이 허용되었습니다. 다시 길게 눌러 녹음하세요",
+  "microphoneAccessNeededRecordTurnSettings": "녹음하려면 마이크 권한이 필요합니다. 설정에서 허용해 주세요",
+  "couldnTStartRecordingPleaseTry": "녹음을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요",
+  "selectText": "텍스트 선택",
+  "unsend": "보내기 취소",
+  "resend": "다시 보내기",
+  "unsendMessage": "이 메시지를 보내기 취소할까요?",
+  "neitherAbleSeeMessageSContent": "취소하면 두 사람 모두 이 메시지 내용을 볼 수 없습니다.",
+  "reportMessage": "이 메시지 신고하기",
+  "reservationSentWaitingSeller": "예약을 보냈습니다. 판매자의 답변을 기다리는 중입니다",
+  "acceptReservation": "예약을 수락할까요?",
+  "p0HeldThemP1HoursNo": "《{p0}》을(를) 상대방을 위해 {p1}시간 동안 보류합니다. 그동안 다른 사람은 구매할 수 없습니다.",
+  "@p0HeldThemP1HoursNo": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "accept": "수락",
+  "reservationAccepted": "예약을 수락했습니다",
+  "declineReservation": "예약을 거절할까요?",
+  "theyLlNotifiedDeclined": "상대방에게 거절 알림이 전송됩니다.",
+  "decline2": "거절",
+  "reservationDeclined": "예약을 거절했습니다",
+  "cancelReservation": "예약을 취소할까요?",
+  "p0NoLongerHeld": "취소하면 《{p0}》은(는) 더 이상 보류되지 않습니다.",
+  "@p0NoLongerHeld": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelReservation2": "예약 취소",
+  "reservationCanceled": "예약을 취소했습니다",
+  "notNow2": "나중에",
+  "couldnTLoadConversationPleaseTry": "대화를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요",
+  "accountCanTReceiveMessagesRight": "상대방 계정은 현재 메시지를 받을 수 없습니다",
+  "holdMicTalkReleaseSend": "마이크를 길게 눌러 말하고, 손을 떼면 전송됩니다",
+  "startConversation": "대화가 여기서 시작됩니다",
+  "p0New": "새 메시지 {p0}개",
+  "@p0New": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionUnstableMessagesCanTSent": "연결이 불안정하여 지금은 메시지를 보낼 수 없습니다",
+  "retry": "다시 시도",
+  "stillAvailable": "아직 판매 중인가요?",
+  "couldLowerPriceBit": "조금 더 깎아 주실 수 있나요?",
+  "whenCanPutLocker": "언제 보관함에 넣어 주실 수 있나요?",
+  "unsentMessage": "메시지를 보내기 취소했습니다",
+  "theyUnsentMessage": "상대방이 메시지를 보내기 취소했습니다",
+  "reservationDetailsArenTAvailableRight": "예약 정보를 표시할 수 없습니다",
+  "sending": "전송 중",
+  "couldNotUploadPhotosPleaseTry": "증빙 사진 업로드에 실패했습니다. 잠시 후 다시 시도해 주세요",
+  "bookDetailsUpdatedButPhotosCouldn": "도서 정보는 수정되었지만 사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요",
+  "sNotIsbnBarcodeScanOne": "ISBN 바코드가 아닙니다. 뒤표지의 978 또는 979로 시작하는 바코드를 스캔해 주세요",
+  "couldnTLoadCategoriesTapRetry": "카테고리를 불러오지 못했습니다. 탭하여 다시 시도",
+  "removedP0FromSaved": "\"{p0}\"을(를) 저장 목록에서 뺐습니다",
+  "@removedP0FromSaved": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "recentlyViewedCleared": "최근 본 항목을 지웠습니다",
+  "clearP0": "지우기 ({p0})",
+  "@clearP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "picked": "추천 도서",
+  "seeMore": "더 보기",
+  "recentlyViewed": "최근 본 책",
+  "clear": "지우기",
+  "notificationDeleted": "알림을 삭제했습니다",
+  "pleasePutBookAssignedLockerSoon": "지정된 보관함에 책을 빨리 넣어 주세요",
+  "weLlLetKnowWhenSeller": "판매자가 책을 넣으면 수령 안내를 보내 드립니다",
+  "waitingBuyerCollect": "구매자의 수령을 기다리는 중",
+  "bookLockerEnterPickupCodeCollect": "책이 보관함에 있습니다. 수령 코드를 입력해 찾아가세요",
+  "transactionCompleteThank": "거래가 완료되었습니다. 이용해 주셔서 감사합니다",
+  "confirmVeTakenBookFromLocker": "보관함에서 책을 꺼냈는지 확인하세요. 확인하면 주문이 완료됩니다.",
+  "p0Orders2": "주문 {p0}건",
+  "@p0Orders2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ReadyPickup": "수령 가능 {p0}건",
+  "@p0ReadyPickup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickUp": "픽업 대기",
+  "saved": "찜",
+  "accountSecurity": "계정 보안",
+  "sellerHasnTPutBookLocker": "판매자가 아직 책을 보관함에 넣지 않았습니다. 넣으면 알려 드립니다",
+  "searchHistoryCleared": "검색 기록을 지웠습니다",
+  "trendingBooks": "인기 도서",
+  "signOutDevice": "이 기기를 로그아웃할까요?",
+  "signOutP0": "\"{p0}\"을(를) 로그아웃할까요?",
+  "@signOutP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "llNeedSignAgainUseApp": "로그아웃하면 다시 로그인해야 합니다.",
+  "deviceSignedOutRightAwayStop": "해당 기기는 즉시 로그아웃되며 알림도 받지 않습니다.",
+  "deviceSignedOut": "기기를 로그아웃했습니다",
+  "signOutAllDevicesIncludingOne": "모든 기기 로그아웃(이 기기 포함)",
+  "signOutAllOtherDevices": "다른 모든 기기 로그아웃",
+  "everyDeviceIncludingOneSignedOut": "이 기기를 포함한 모든 기기가 로그아웃되며 다시 로그인해야 합니다.",
+  "everyDeviceExceptOneSignedOut": "이 기기를 제외한 모든 기기가 즉시 로그아웃되며 알림도 받지 않습니다.",
+  "signedOutP0OtherDevices": "다른 기기 {p0}대에서 로그아웃했습니다",
+  "@signedOutP0OtherDevices": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unknownDevice": "알 수 없는 기기",
+  "couldnTLoadDevices": "기기 목록을 불러오지 못했습니다",
+  "theseDevicesSignedAccountIfDon": "이 기기들이 계정에 로그인되어 있습니다. 모르는 기기가 있으면 즉시 로그아웃하고 비밀번호를 변경하세요.",
+  "device": "이 기기",
+  "otherDevices": "다른 기기",
+  "otherDevicesP0": "다른 기기 ({p0})",
+  "@otherDevicesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noOtherDevicesSigned": "로그인된 다른 기기가 없습니다",
+  "signedDevices": "로그인된 기기",
+  "activeNow": "현재 사용 중",
+  "lastActiveP0": "마지막 사용 {p0}",
+  "@lastActiveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signedP0": "{p0} 로그인",
+  "@signedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "biometricPayment": "생체 인증 결제 사용 중",
+  "paymentPinMust6Digits": "결제 비밀번호는 6자리 숫자여야 합니다",
+  "pinTooEasyGuessTryAnother": "결제 비밀번호가 너무 쉽습니다. 다른 번호를 사용하세요",
+  "enterPasswordResetPaymentPin": "로그인 비밀번호를 입력하면 결제 비밀번호를 다시 설정할 수 있습니다",
+  "confirmSBeforeSettingPaymentPin": "결제 비밀번호를 설정하기 전에 본인 확인이 필요합니다",
+  "pinsDonTMatchStartAgain": "두 번 입력한 비밀번호가 다릅니다. 다시 설정하세요",
+  "paymentPinReset": "결제 비밀번호를 재설정했습니다",
+  "paymentPinSet": "결제 비밀번호를 설정했습니다",
+  "use6DigitPinConfirmPayments": "앞으로 결제할 때 이 6자리 비밀번호로 결제를 확인합니다.",
+  "verifyingIdentity": "본인 확인 중…",
+  "enterAgainConfirm": "확인을 위해 한 번 더 입력하세요",
+  "set6DigitPaymentPin": "6자리 결제 비밀번호 설정",
+  "enterSamePinAgain": "같은 비밀번호를 한 번 더 입력하세요",
+  "avoidRepeatedSequentialPatternedDigits": "같은 숫자, 연속 숫자, 반복 패턴은 사용할 수 없습니다",
+  "resetPaymentPin": "결제 비밀번호 재설정",
+  "paymentPin": "결제 비밀번호",
+  "stepP02": "단계 {p0} / 2",
+  "@stepP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "setPaymentPinFirst": "먼저 결제 비밀번호를 설정하세요",
+  "setPaymentPinFirstSoFallback": "먼저 결제 비밀번호를 설정하세요. 인증에 실패했을 때 대체 수단이 됩니다",
+  "setUpNow": "지금 설정",
+  "biometricPaymentTurnedOff": "생체 인증 결제를 껐습니다",
+  "verifyTurnBiometricPayment": "생체 인증 결제를 켜려면 인증하세요",
+  "p0PaymentsTurned": "{p0} 결제를 켰습니다",
+  "@p0PaymentsTurned": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "securitySettingsUnavailableRightNowMay": "보안 설정을 불러올 수 없습니다. 결제 비밀번호와 로그인 기기를 변경하지 못할 수 있습니다.",
+  "payWithP0": "{p0}(으)로 결제",
+  "@payWithP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accountWellProtected": "계정이 안전하게 보호되고 있습니다",
+  "accountCouldSafer": "계정 보안을 강화할 수 있습니다",
+  "paymentPinBiometricPaymentSetCheck": "결제 비밀번호와 생체 인증 결제가 설정되어 있습니다. 로그인된 기기도 가끔 확인하세요.",
+  "setPaymentPinTurnBiometricPayment": "결제 비밀번호를 설정하고 생체 인증 결제를 켜면 더 안전하고 빠르게 결제할 수 있습니다.",
+  "tooManyAttemptsLockedUntilP0": "시도 횟수 초과. {p0}까지 잠김",
+  "@tooManyAttemptsLockedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "usedConfirmPaymentsCheckout": "결제할 때 결제 확인에 사용됩니다",
+  "notSetRequiredBeforeCheckout": "설정되지 않았습니다. 결제 전에 설정해야 합니다",
+  "change": "변경",
+  "forgotPaymentPin": "결제 비밀번호를 잊음",
+  "ifFailsCanEnterPaymentPin": "인증에 실패하면 결제 비밀번호를 입력할 수 있습니다",
+  "viewRemotelySignOutDevices": "기기 확인 및 원격 로그아웃",
+  "p0Devices": "{p0}대",
+  "@p0Devices": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "otherDevicesNeedSignAgain": "변경하면 다른 기기는 다시 로그인해야 합니다",
+  "restoredUnfinishedListing": "작성 중이던 내용을 불러왔습니다",
+  "isbnSCheckDigitInvalidPlease": "ISBN 체크 숫자가 올바르지 않습니다. 다시 확인해 주세요",
+  "draftSavedAutomatically": "임시 저장되었습니다",
+  "continueUnfinishedListing": "작성 중이던 판매 글 이어서 쓰기",
+  "clearedP0MbCache": "캐시 {p0}를 삭제했습니다",
+  "@clearedP0MbCache": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cacheCleared": "캐시를 삭제했습니다",
+  "storage": "저장 공간",
+  "paymentPinBiometricPaymentDevices": "결제 비밀번호, 생체 인증 결제, 로그인 기기",
+  "clearCache": "캐시 삭제",
+  "removesCachedImagesFilesAccountData": "임시 저장된 이미지와 파일을 삭제합니다. 계정 데이터에는 영향이 없습니다",
+  "couldNotLoadNotificationSettings": "알림 설정을 불러올 수 없습니다",
+  "month": "이번 달",
+  "p0P1": "{p0}년 {p1}월",
+  "@p0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noIncomeYet": "수입 내역이 없습니다",
+  "noSpendingYet": "지출 내역이 없습니다",
+  "income": "수입",
+  "spending": "지출",
+  "totalIncome": "누적 수입",
+  "totalSpending": "누적 지출",
+  "item3": "항목",
+  "details": "설명",
+  "balanceAfter": "거래 후 잔액",
+  "transactionId": "거래 번호",
+  "sessionExpiredPleaseSignAgain": "로그인이 만료되었습니다. 다시 로그인하세요",
+  "serviceTemporarilyUnavailableTryAgainLater": "서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요",
+  "uploadFailedTryAgainLater": "업로드에 실패했습니다. 잠시 후 다시 시도하세요",
+  "nearby": "바로 근처",
+  "p0M": "{p0}",
+  "@p0M": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Km": "{p0}",
+  "@p0Km": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iphoneDidnTReceiveApnsToken": "iPhone이 APNs 토큰을 받지 못했습니다. Xcode의 Signing & Capabilities에 Push Notifications가 추가되었는지 확인하고 같은 Apple 개발자 계정으로 앱을 다시 설치하세요.",
+  "firebaseDidnTIssuePushToken": "Firebase가 푸시 토큰을 발급하지 않았습니다. GoogleService-Info.plist와 앱의 Bundle ID가 일치하는지 확인하세요",
+  "couldnTGetPushTokenP0": "푸시 토큰을 가져오지 못했습니다: {p0}",
+  "@couldnTGetPushTokenP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "couldnTRegisterPushTokenWith": "푸시 토큰을 서버에 등록하지 못했습니다: {p0}",
+  "@couldnTRegisterPushTokenWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "protectCoinsCheckoutRequires6Digit": "코인을 보호하기 위해 결제할 때 6자리 결제 비밀번호가 필요합니다. 설정 후 Face ID나 지문 결제도 켤 수 있습니다.",
+  "confirmPaymentP0Coins": "{p0} 코인 결제 확인",
+  "@confirmPaymentP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterPasswordContinue": "계속하려면 로그인 비밀번호를 입력하세요",
+  "verifyS": "본인 확인",
+  "amount": "결제 금액",
+  "p0Coins": "{p0} 코인",
+  "@p0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterPaymentPin": "결제 비밀번호 입력",
+  "enterPaymentPinContinue": "계속하려면 결제 비밀번호를 입력하세요",
+  "paymentPinResetEnterAgain": "결제 비밀번호를 재설정했습니다. 다시 입력하세요",
+  "usePasswordInstead": "로그인 비밀번호 사용",
+  "couldnTGetLocationLockersShown": "현재 위치를 가져올 수 없어 보관함을 기본 순서로 표시합니다",
+  "p0SlotsFree": "빈 칸 {p0}개",
+  "@p0SlotsFree": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "openP0": "운영 {p0}",
+  "@openP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nearest": "가장 가까움",
+  "noFreeSlots": "빈 칸 없음",
+  "sortedByDistance": "가까운 순으로 정렬",
+  "turnLocationSortByDistance": "위치를 켜면 거리순으로 정렬됩니다",
+  "lockerNoFreeSlotsRightNow": "이 보관함은 현재 빈 칸이 없습니다",
+  "turn": "위치 켜기",
+  "noLockersAvailable": "이용 가능한 보관함이 없습니다",
+  "noMatchingOptions": "일치하는 항목이 없습니다",
+  "undo2": "실행 취소",
+  "copiedP0": "\"{p0}\"을(를) 복사했습니다",
+  "@copiedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "typing": "입력 중…",
+  "today": "오늘",
+  "yesterday": "어제",
+  "p0P12": "{p0}월 {p1}일",
+  "@p0P12": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p1P2P0": "{p0}년 {p1}월 {p2}일",
+  "@p1P2P0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "releaseCancel": "손을 떼면 취소",
+  "slideCancel": "← 밀어서 취소",
+  "awaitingReply": "답변 대기",
+  "heldUntilP0": "{p0}까지 보류",
+  "@heldUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "declined2": "거절됨",
+  "closed": "종료됨",
+  "theyWantReserveBook": "상대방이 회원님의 책을 예약하고 싶어 합니다",
+  "sentReservationRequest": "예약 요청을 보냈습니다",
+  "holdP0H": "{p0}시간 보류",
+  "@holdP0H": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceSellerAcceptsBookHeldNo": "판매자가 수락하면 책이 회원님을 위해 보류되며, 기한까지 다른 사람은 구매할 수 없습니다.",
+  "holdPeriod": "보류 기간",
+  "messageSellerOptional": "판매자에게 전할 말 (선택)",
+  "sendRequest": "예약 보내기",
+  "p0Hours": "{p0}시간",
+  "@p0Hours": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0P1DigitsEntered": "{p0} / {p1}자리 입력됨",
+  "@p0P1DigitsEntered": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  }
 }

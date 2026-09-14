@@ -1,20 +1,76 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/photo_service.dart';
-import 'package:geolocator/geolocator.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/animations.dart';
 import '../widgets/app_buttons.dart';
 import '../widgets/app_dialogs.dart';
+import '../widgets/app_forms.dart';
+import '../widgets/app_select.dart';
 import '../widgets/guards.dart';
 import '../widgets/state_views.dart';
 import 'home_screen.dart';
 import '../utils/app_labels.dart';
 import '../utils/motion.dart';
 import '../i18n/strings.dart';
+
+class SellDraft {
+  const SellDraft._();
+
+  static const _key = 'sell_draft_v1';
+
+  static int epoch = 0;
+
+  static Future<void> finish() {
+    epoch++;
+    return clear();
+  }
+
+  static Future<Map<String, dynamic>?> load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_key);
+      if (raw == null) return null;
+      final data = jsonDecode(raw);
+      return data is Map ? Map<String, dynamic>.from(data) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> saveSection(String section, Map<String, dynamic>? values) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final current = await load() ?? <String, dynamic>{};
+      if (values == null) {
+        current.remove(section);
+      } else {
+        current[section] = values;
+      }
+      current.remove('saved_at');
+      if (current.isEmpty) {
+        await prefs.remove(_key);
+        return;
+      }
+      current['saved_at'] = DateTime.now().toIso8601String();
+      await prefs.setString(_key, jsonEncode(current));
+    } catch (_) {}
+  }
+
+  static Future<void> clear() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_key);
+    } catch (_) {}
+  }
+}
 
 class SellBookDetailScreen extends StatefulWidget {
   final String isbn;
@@ -41,21 +97,21 @@ class SellBookDetailScreen extends StatefulWidget {
 }
 
 class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
+  static const _maxImages = 10;
+  static const _maxPrice = 99999;
+
   final _priceController = TextEditingController();
+  final _scrollController = ScrollController();
   String _condition = 'good';
   int? _selectedCabinet;
-
-  List<Map<String, dynamic>> _cabinets = [];
-  bool _isLoadingCabinets = true;
-
-  /// 上傳中不讓再按一次。原本按鈕永遠是啟用的，連點兩下就會上架兩本。
+  Map<String, dynamic>? _cabinet;
+  bool _cabinetTouched = false;
+  bool _showErrors = false;
   bool _isSubmitting = false;
-
-  /// 上架成功後畫面會被整個換掉，這時不該再問「要不要捨棄」。
+  bool _confirming = false;
   bool _submitted = false;
+  Timer? _saveTimer;
 
-  /// 前三格是固定欄位（封面／背面／條碼），點哪一格就放哪一格，
-  /// 不能用單一 List append，否則點第三格的照片會被塞到第二格去。
   List<String> get _requiredLabels => AppLabels.photoSlots;
   late final List<XFile?> _slots = List<XFile?>.filled(_requiredLabels.length, null, growable: false);
   final List<XFile> _extra = [];
@@ -66,78 +122,78 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCabinets();
+    _priceController.addListener(_scheduleSave);
+    _restoreDraft();
   }
 
   @override
   void dispose() {
+    _saveTimer?.cancel();
+    if (!_submitted) _saveDraftNow();
     _priceController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadCabinets() async {
-    try {
-      final uri = Uri.parse('${ApiService.baseUrl}/cabinets');
-      final response = await http.get(uri, headers: {
-        'Authorization': 'Bearer ${ApiService.authToken}',
-        'Accept': 'application/json',
-      });
+  Future<void> _restoreDraft() async {
+    final draft = await SellDraft.load();
+    final step2 = draft?['step2'];
+    if (!mounted || step2 is! Map) return;
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
-        List<Map<String, dynamic>> fetchedCabinets = List<Map<String, dynamic>>.from(data['data'] ?? []);
+    bool exists(Object? path) => path is String && path.isNotEmpty && File(path).existsSync();
+    final slots = step2['slots'];
+    final extra = step2['extra'];
 
-        Position? currentPos;
-        try {
-          bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-          if (serviceEnabled) {
-            LocationPermission permission = await Geolocator.checkPermission();
-            if (permission == LocationPermission.denied) {
-              permission = await Geolocator.requestPermission();
-            }
-            if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
-              currentPos = await Geolocator.getCurrentPosition();
-            }
-          }
-        } catch (_) {}
-
-        if (currentPos != null && fetchedCabinets.isNotEmpty) {
-          fetchedCabinets.sort((a, b) {
-            final latA = double.tryParse(a['latitude'].toString()) ?? 0.0;
-            final lngA = double.tryParse(a['longitude'].toString()) ?? 0.0;
-            final latB = double.tryParse(b['latitude'].toString()) ?? 0.0;
-            final lngB = double.tryParse(b['longitude'].toString()) ?? 0.0;
-            final distA = Geolocator.distanceBetween(currentPos!.latitude, currentPos.longitude, latA, lngA);
-            final distB = Geolocator.distanceBetween(currentPos.latitude, currentPos.longitude, latB, lngB);
-            return distA.compareTo(distB);
-          });
-        }
-
-        if (mounted) {
-          setState(() {
-            _cabinets = fetchedCabinets;
-            if (_cabinets.isNotEmpty) {
-              _selectedCabinet = _cabinets.first['cabinet_id'];
-            }
-            _isLoadingCabinets = false;
-          });
-        }
-      } else {
-        if (mounted) setState(() => _isLoadingCabinets = false);
+    setState(() {
+      final price = '${step2['price'] ?? ''}';
+      if (price.isNotEmpty && _priceController.text.isEmpty) _priceController.text = price;
+      final condition = step2['condition'];
+      if (condition is String && AppLabels.condition.containsKey(condition)) _condition = condition;
+      final cabinetId = step2['cabinet_id'];
+      if (cabinetId is num) {
+        _selectedCabinet = cabinetId.toInt();
+        _cabinetTouched = true;
       }
-    } catch (e) {
-      if (mounted) setState(() => _isLoadingCabinets = false);
-    }
+      if (slots is List) {
+        for (var i = 0; i < _slots.length && i < slots.length; i++) {
+          if (exists(slots[i])) _slots[i] = XFile(slots[i] as String);
+        }
+      }
+      if (extra is List) {
+        _extra.addAll(extra.where(exists).take(_maxImages - _filledRequired).map((p) => XFile(p as String)));
+      }
+    });
+  }
+
+  void _scheduleSave() {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(const Duration(milliseconds: 500), _saveDraftNow);
+  }
+
+  void _saveDraftNow() {
+    _saveTimer?.cancel();
+    if (_submitted) return;
+    SellDraft.saveSection('step2', {
+      'price': _priceController.text.trim(),
+      'condition': _condition,
+      if (_cabinetTouched && _selectedCabinet != null) 'cabinet_id': _selectedCabinet,
+      'slots': [for (final f in _slots) f?.path],
+      'extra': [for (final f in _extra) f.path],
+    });
   }
 
   Future<void> _pickRequired(int slot) async {
+    if (_isSubmitting) return;
     final path = await PhotoService.pickAndCrop(context, aspectRatio: 3 / 4, outputSize: 1200);
     if (path == null || !mounted) return;
+    HapticFeedback.selectionClick();
     setState(() => _slots[slot] = XFile(path));
+    _saveDraftNow();
   }
 
   Future<void> _addExtraImages() async {
-    final remaining = 10 - _totalImages;
+    if (_isSubmitting) return;
+    final remaining = _maxImages - _totalImages;
     if (remaining <= 0) {
       _showAlertDialog(S.photoLimitReached, S.canUploadUp10Photos);
       return;
@@ -150,23 +206,31 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       outputSize: 1200,
     );
     if (paths.isEmpty || !mounted) return;
-    setState(() => _extra.addAll(paths.map(XFile.new)));
+    HapticFeedback.selectionClick();
+    setState(() => _extra.addAll(paths.take(_maxImages - _totalImages).map(XFile.new)));
+    _saveDraftNow();
   }
 
-  void _removeRequired(int slot) => setState(() => _slots[slot] = null);
+  void _removeRequired(int slot) {
+    if (_isSubmitting) return;
+    setState(() => _slots[slot] = null);
+    _saveDraftNow();
+  }
 
-  void _removeExtra(int index) => setState(() => _extra.removeAt(index));
-
-  String _getImageLabel(int index) =>
-      index < _requiredLabels.length ? _requiredLabels[index] : S.morePhotos;
+  void _removeExtra(int index) {
+    if (_isSubmitting || index >= _extra.length) return;
+    setState(() => _extra.removeAt(index));
+    _saveDraftNow();
+  }
 
   void _showAlertDialog(String title, String content) {
     showConfirmDialog(context, title: title, message: content, confirmLabel: S.actionConfirm);
   }
 
-  /// 還沒填完的必填項，列在送出鍵上方。
+  int? get _price => int.tryParse(_priceController.text.trim());
+
   List<String> get _missing {
-    final price = double.tryParse(_priceController.text.trim());
+    final price = _price;
     return [
       for (var i = 0; i < _slots.length; i++)
         if (_slots[i] == null) _requiredLabels[i],
@@ -175,57 +239,58 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     ];
   }
 
-  bool get _isDirty =>
-      !_submitted &&
-      (_filledRequired > 0 ||
-      _extra.isNotEmpty ||
-      _priceController.text.trim().isNotEmpty ||
-      _selectedCabinet != null);
+  String? get _priceError => _showErrors && (_price ?? 0) <= 0 ? S.enterPrice2 : null;
 
   Future<void> _submitForm() async {
-    // 第一道：上傳期間再按也不會進來。
-    if (_isSubmitting) return;
+    if (_isSubmitting || _confirming) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _showErrors = true);
 
     if (_filledRequired < _requiredLabels.length) {
       final missing = [
         for (var i = 0; i < _slots.length; i++)
           if (_slots[i] == null) _requiredLabels[i],
       ].join('、');
+      HapticFeedback.heavyImpact();
+      _scrollController.animateTo(0, duration: Motion.base, curve: Motion.standard);
       _showAlertDialog(S.photosMissing, S.missingTheseThreeRequired2(missing));
       return;
     }
-    final price = double.tryParse(_priceController.text.trim());
+    final price = _price;
     if (price == null) {
+      HapticFeedback.heavyImpact();
       _showAlertDialog(S.missingInformation, S.enterOwnPrice);
       return;
     }
     if (price <= 0) {
+      HapticFeedback.heavyImpact();
       _showAlertDialog(S.invalidPrice, S.priceMustGreaterThan02);
       return;
     }
-    if (price > 99999) {
+    if (price > _maxPrice) {
+      HapticFeedback.heavyImpact();
       _showAlertDialog(S.invalidPrice, S.priceCannotExceed99999);
       return;
     }
     if (_selectedCabinet == null) {
+      HapticFeedback.heavyImpact();
       _showAlertDialog(S.missingInformation, S.chooseLockerLocation2);
       return;
     }
+    if (ApiService.authToken == null) {
+      showAppSnackBar(context, S.pleaseSignFirst, isError: true);
+      return;
+    }
 
-    // 上架之後商品就公開了，送出前把最後會寫進去的內容攤開來讓人確認一次。
-    final cabinetName = _cabinets
-        .firstWhere((cab) => cab['cabinet_id'] == _selectedCabinet,
-            orElse: () => const <String, dynamic>{})['cabinet_name'] as String? ??
-        '';
-    // 逐項先組好，訊息本身才是一條單純的字串——拆成相鄰常值併接的話
-    // 抽字串的工具會把它切斷。
+    final cabinetName = _cabinet == null ? '' : CabinetSelectField.nameOf(_cabinet!);
     final summary = [
-      '${S.customPrice}：\$${price.toStringAsFixed(0)}',
+      '${S.customPrice}：\$$price',
       '${S.condition}：${AppLabels.conditionOf(_condition)}',
       '${S.lockerLocation}：$cabinetName',
       S.photosP0(_totalImages),
     ].join('\n');
 
+    _confirming = true;
     final confirmed = await showConfirmDialog(
       context,
       title: S.confirmListing,
@@ -233,107 +298,160 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       confirmLabel: S.listBook,
       icon: Icons.publish_rounded,
     );
+    _confirming = false;
     if (!confirmed || !mounted) return;
-
     setState(() => _isSubmitting = true);
 
-    try {
-      final uri = Uri.parse('${ApiService.baseUrl}/books');
-      final request = http.MultipartRequest('POST', uri);
+    final error = await ApiService().createBook({
+      'title': widget.title,
+      'author': widget.author,
+      'publisher': widget.publisher,
+      'publish_date': widget.publishDate,
+      'isbn': widget.isbn,
+      'description': widget.description,
+      'category_id': widget.categoryId.toString(),
+      'price': '$price',
+      'condition_level': _condition,
+      'cabinet_id': '$_selectedCabinet',
+    }, [
+      ('cover_image', _slots[0]!.path),
+      ('back_image', _slots[1]!.path),
+      ('barcode_image', _slots[2]!.path),
+      for (final file in _extra) ('optional_images', file.path),
+    ]);
+    if (!mounted) return;
 
-      request.headers['Authorization'] = 'Bearer ${ApiService.authToken}';
-
-      request.fields['title'] = widget.title;
-      request.fields['author'] = widget.author;
-      request.fields['publisher'] = widget.publisher;
-      request.fields['publish_date'] = widget.publishDate;
-      request.fields['isbn'] = widget.isbn;
-      request.fields['description'] = widget.description;
-      request.fields['category_id'] = widget.categoryId.toString();
-      request.fields['price'] = price.toStringAsFixed(0);
-      request.fields['condition_level'] = _condition;
-      request.fields['cabinet_id'] = _selectedCabinet.toString();
-
-      request.files.add(await http.MultipartFile.fromPath('cover_image', _slots[0]!.path));
-      request.files.add(await http.MultipartFile.fromPath('back_image', _slots[1]!.path));
-      request.files.add(await http.MultipartFile.fromPath('barcode_image', _slots[2]!.path));
-
-      for (final file in _extra) {
-        request.files.add(await http.MultipartFile.fromPath('optional_images', file.path));
-      }
-
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
+    if (error == null) {
+      _submitted = true;
+      _saveTimer?.cancel();
+      await SellDraft.finish();
       if (!mounted) return;
-      setState(() => _isSubmitting = false);
-
-      if (response.statusCode == 201) {
-        _submitted = true;
-        showAppSnackBar(context, S.listed2);
-        Navigator.of(context).pushAndRemoveUntil(
-          PageRouteBuilder(
-            pageBuilder: (_, _, _) => const HomeScreen(),
-            transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
-          ),
-              (route) => false,
-        );
-      } else {
-        String errMsg = S.unknownError;
-        try {
-          final data = jsonDecode(response.body);
-          errMsg = data['message'] ?? response.body;
-        } catch (_) {
-          errMsg = response.body;
-        }
-        _showAlertDialog(S.couldNotListBook, S.serverError(errMsg));
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isSubmitting = false);
-      _showAlertDialog(S.connectionProblem, S.couldNotReachServerUploadTimed);
+      HapticFeedback.mediumImpact();
+      showAppSnackBar(context, S.listed2);
+      Navigator.of(context).pushAndRemoveUntil(
+        PageRouteBuilder(
+          transitionDuration: Motion.enter,
+          pageBuilder: (_, _, _) => const HomeScreen(),
+          transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
+        ),
+        (route) => false,
+      );
+      return;
     }
+
+    setState(() => _isSubmitting = false);
+    HapticFeedback.heavyImpact();
+    _showAlertDialog(S.couldNotListBook, S.serverError(error));
   }
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    return UnsavedGuard(
-      isDirty: _isDirty,
+    return PopScope(
+      canPop: !_isSubmitting,
       child: Scaffold(
-      backgroundColor: c.scaffold,
-      body: Column(
-        children: [
-          _buildAppBar(c),
-          Expanded(
-            child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
-              child: Column(
-                children: [
-                  _buildImageUploadSection(c),
-                  const SizedBox(height: 16),
-                  _buildCardRow(c, S.condition, _buildConditionDropdown(c), isRequired: true),
-                  const SizedBox(height: 16),
-                  _buildCardRow(c, S.customPrice, _buildInput(c, _priceController, TextInputType.number), isRequired: true),
-                  const SizedBox(height: 16),
-                  _buildCardRow(c, S.lockerLocation, _buildCabinetDropdown(c), isRequired: true),
-                  const SizedBox(height: 32),
-                  MissingHint(missing: _missing),
-                  PrimaryButton(
-                    label: S.listBook,
-                    height: 50,
-                    isLoading: _isSubmitting,
-                    onPressed: _submitForm,
+        backgroundColor: c.scaffold,
+        body: Column(
+          children: [
+            _buildAppBar(c),
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => FocusScope.of(context).unfocus(),
+                child: AbsorbPointer(
+                  absorbing: _isSubmitting,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+                    child: Column(
+                      children: [
+                        FadeSlideIn(child: _buildImageUploadSection(c)),
+                        const SizedBox(height: 12),
+                        FadeSlideIn(
+                          index: 1,
+                          child: FormRowCard(
+                            label: S.condition,
+                            labelWidth: 88,
+                            isRequired: true,
+                            child: AppSelect<String>(
+                              value: _condition,
+                              title: S.condition,
+                              options: [
+                                for (final option in AppLabels.conditionOptions)
+                                  AppSelectOption(
+                                    value: option.value,
+                                    label: option.label,
+                                    icon: Icons.menu_book_rounded,
+                                    iconColor: c.conditionColor(option.value),
+                                  ),
+                              ],
+                              onChanged: (value) {
+                                setState(() => _condition = value);
+                                _saveDraftNow();
+                              },
+                            ),
+                          ),
+                        ),
+                        FadeSlideIn(
+                          index: 2,
+                          child: FormRowCard(
+                            label: S.customPrice,
+                            labelWidth: 88,
+                            isRequired: true,
+                            child: AppTextField(
+                              controller: _priceController,
+                              hint: S.enterPrice2,
+                              prefixText: '\$ ',
+                              errorText: _priceError,
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.done,
+                              inputFormatters: const [PriceInputFormatter(max: _maxPrice)],
+                              onChanged: (_) => setState(() {}),
+                            ),
+                          ),
+                        ),
+                        FadeSlideIn(
+                          index: 3,
+                          child: FormRowCard(
+                            label: S.lockerLocation,
+                            labelWidth: 88,
+                            isRequired: true,
+                            alignTop: true,
+                            child: CabinetSelectField(
+                              value: _selectedCabinet,
+                              autoSelectNearest: !_cabinetTouched,
+                              errorText: _showErrors && _selectedCabinet == null ? S.chooseLocker : null,
+                              onChanged: (cabinet, byUser) {
+                                setState(() {
+                                  if (byUser) _cabinetTouched = true;
+                                  _selectedCabinet = cabinet == null ? null : CabinetSelectField.idOf(cabinet);
+                                  _cabinet = cabinet;
+                                });
+                                if (byUser) _saveDraftNow();
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        MissingHint(missing: _missing),
+                        PrimaryButton(
+                          label: S.listBook,
+                          icon: Icons.publish_rounded,
+                          height: 50,
+                          isLoading: _isSubmitting,
+                          onPressed: _submitForm,
+                        ),
+                        const SizedBox(height: 80),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 80),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -344,13 +462,12 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Row(
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22),
-                splashRadius: 24,
-                onPressed: () => Navigator.pop(context),
+                onPressed: _isSubmitting ? null : () => Navigator.maybePop(context),
               ),
               Expanded(
                 child: Row(
@@ -358,7 +475,14 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                   children: [
                     const Icon(Icons.add_box_outlined, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
-                    Text(S.detailsPhotos, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    Flexible(
+                      child: Text(
+                        S.detailsPhotos,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -366,7 +490,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                 width: 48,
                 child: Text(
                   '2 / 2',
-                  textAlign: TextAlign.end,
+                  textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -378,88 +502,94 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   }
 
   Widget _buildImageUploadSection(AppColors c) {
-    final canAddMore = _totalImages < 10;
+    final canAddMore = _totalImages < _maxImages;
+    final missingPhotos = _showErrors && _filledRequired < _requiredLabels.length;
 
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      child: AnimatedContainer(
-        duration: Motion.base,
-        curve: Motion.standard,
-
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text.rich(
+    return AnimatedContainer(
+      duration: Motion.base,
+      curve: Motion.standard,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: missingPhotos ? c.danger.withValues(alpha: 0.6) : Colors.transparent, width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Flexible(
+                child: Text.rich(
                   TextSpan(
                     text: S.bookPhotos,
                     children: [
-                      TextSpan(
-                        text: ' *',
-                        style: TextStyle(color: c.danger, fontWeight: FontWeight.bold),
-                      ),
+                      TextSpan(text: ' *', style: TextStyle(color: c.danger, fontWeight: FontWeight.bold)),
                     ],
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  '($_filledRequired/3)',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: _filledRequired < 3 ? c.danger : c.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '($_filledRequired/3)',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _filledRequired < 3 ? c.danger : c.success,
+                  fontWeight: FontWeight.w600,
                 ),
-                const Spacer(),
-                Text('$_totalImages/10', style: TextStyle(fontSize: 14, color: c.textHint)),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 140,
-              child: ListView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                scrollDirection: Axis.horizontal,
-                children: [
-                  for (var i = 0; i < _slots.length; i++)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 12),
+              ),
+              const Spacer(),
+              Text('$_totalImages/$_maxImages', style: TextStyle(fontSize: 14, color: c.textHint)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 140,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                for (var i = 0; i < _slots.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: SwitchIn(
                       child: _slots[i] == null
-                          ? _buildAddImageButton(c, _requiredLabels[i], () => _pickRequired(i))
+                          ? _buildAddImageButton(c, _requiredLabels[i], () => _pickRequired(i),
+                              key: ValueKey('add$i'), isRequired: true)
                           : _buildImageItem(
                               c,
                               _requiredLabels[i],
                               _slots[i]!,
+                              key: ValueKey(_slots[i]!.path),
                               isRequired: true,
+                              onTap: () => _pickRequired(i),
                               onRemove: () => _removeRequired(i),
                             ),
                     ),
-                  for (var i = 0; i < _extra.length; i++)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: _buildImageItem(
-                        c,
-                        S.morePhotos,
-                        _extra[i],
-                        isRequired: false,
-                        onRemove: () => _removeExtra(i),
-                      ),
+                  ),
+                for (var i = 0; i < _extra.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: _buildImageItem(
+                      c,
+                      S.morePhotos,
+                      _extra[i],
+                      key: ValueKey(_extra[i].path),
+                      isRequired: false,
+                      onRemove: () => _removeExtra(i),
                     ),
-                  if (canAddMore)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: _buildAddImageButton(c, S.morePhotos, _addExtraImages),
-                    ),
-                ],
-              ),
+                  ),
+                if (canAddMore)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: _buildAddImageButton(c, S.morePhotos, _addExtraImages),
+                  ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -468,60 +598,78 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     AppColors c,
     String label,
     XFile imageFile, {
+    Key? key,
     required bool isRequired,
     required VoidCallback onRemove,
+    VoidCallback? onTap,
   }) {
     return Column(
+      key: key,
       children: [
-        Container(
-          width: 90,
-          height: 110,
-          decoration: BoxDecoration(
-            border: Border.all(color: c.divider, width: 1.5),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(File(imageFile.path), fit: BoxFit.cover),
-              ),
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Material(
-                  color: Colors.white,
-                  shape: const CircleBorder(),
-                  elevation: 2,
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: onRemove,
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.close, color: Colors.black87, size: 16),
+        PressableScale(
+          onTap: onTap,
+          child: Container(
+            width: 90,
+            height: 110,
+            decoration: BoxDecoration(
+              border: Border.all(color: c.divider, width: 1.5),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(7),
+                  child: Image.file(
+                    File(imageFile.path),
+                    fit: BoxFit.cover,
+                    cacheWidth: 270,
+                    errorBuilder: (_, _, _) => Icon(Icons.broken_image_outlined, color: c.iconInactive),
+                  ),
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Material(
+                    color: Colors.white,
+                    shape: const CircleBorder(),
+                    elevation: 2,
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: onRemove,
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.close, color: Colors.black87, size: 16),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            color: isRequired ? c.danger : c.textSecondary,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+        SizedBox(
+          width: 90,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isRequired ? c.success : c.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildAddImageButton(AppColors c, String label, VoidCallback onTap) {
+  Widget _buildAddImageButton(AppColors c, String label, VoidCallback onTap, {Key? key, bool isRequired = false}) {
     return Column(
+      key: key,
       children: [
         Material(
           color: c.accent.withValues(alpha: 0.05),
@@ -543,6 +691,8 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                   const SizedBox(height: 4),
                   Text(
                     S.add,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: c.accent, fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -551,120 +701,21 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
           ),
         ),
         const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            color: _requiredLabels.contains(label) ? c.danger : c.textHint,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+        SizedBox(
+          width: 90,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isRequired ? c.danger : c.textHint,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildCardRow(AppColors c, String label, Widget child, {bool isRequired = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 96,
-            child: Text.rich(
-              TextSpan(
-                text: label,
-                children: [
-                  if (isRequired)
-                    TextSpan(
-                      text: ' *',
-                      style: TextStyle(color: c.danger, fontWeight: FontWeight.bold),
-                    ),
-                ],
-              ),
-              softWrap: false,
-              overflow: TextOverflow.visible,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
-            ),
-          ),
-          Expanded(child: child),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInput(AppColors c, TextEditingController controller, TextInputType type) {
-    return SizedBox(
-      height: 40,
-      child: TextField(
-        controller: controller,
-        keyboardType: type,
-        style: TextStyle(fontSize: 15, color: c.textPrimary),
-        decoration: InputDecoration(
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          filled: true, fillColor: c.inputFill,
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: c.divider)),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.primary)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildConditionDropdown(AppColors c) {
-    return Material(
-      color: c.inputFill,
-      borderRadius: BorderRadius.circular(8),
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(border: Border.all(color: c.divider), borderRadius: BorderRadius.circular(8)),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value: _condition,
-            isExpanded: true,
-            icon: Icon(Icons.keyboard_arrow_down, color: c.iconInactive),
-            dropdownColor: c.card,
-            style: TextStyle(fontSize: 15, color: c.textPrimary),
-            items: [
-              for (final option in AppLabels.conditionOptions)
-                DropdownMenuItem(value: option.value, child: Text(option.label)),
-            ],
-            onChanged: (val) {
-              if (val != null) setState(() => _condition = val);
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCabinetDropdown(AppColors c) {
-    return Material(
-      color: c.inputFill,
-      borderRadius: BorderRadius.circular(8),
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(border: Border.all(color: c.divider), borderRadius: BorderRadius.circular(8)),
-        child: DropdownButtonHideUnderline(
-          child: _isLoadingCabinets
-              ? Center(child: Text(S.loading, style: TextStyle(color: c.textHint, fontSize: 15)))
-              : DropdownButton<int>(
-            value: _selectedCabinet,
-            isExpanded: true,
-            icon: Icon(Icons.keyboard_arrow_down, color: c.iconInactive),
-            dropdownColor: c.card,
-            style: TextStyle(fontSize: 15, color: c.textPrimary),
-            items: _cabinets.map((cab) => DropdownMenuItem<int>(value: cab['cabinet_id'], child: Text(cab['cabinet_name'] ?? S.unknownLocker))).toList(),
-            onChanged: (val) {
-              if (val != null) setState(() => _selectedCabinet = val);
-            },
-          ),
-        ),
-      ),
     );
   }
 }

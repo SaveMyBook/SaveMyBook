@@ -8,7 +8,6 @@ import '../i18n/strings.dart';
 class PhotoService {
   static final ImagePicker _picker = ImagePicker();
 
-  /// 回傳裁切後的檔案路徑；使用者中途取消則回傳 null。
   static Future<String?> pickAndCrop(
     BuildContext context, {
     double aspectRatio = 1,
@@ -34,8 +33,6 @@ class PhotoService {
     );
   }
 
-  /// 一次選多張（只有相簿才支援），每張都會依序進裁切畫面。
-  /// 拍照則是一次一張。
   static Future<List<String>> pickAndCropMultiple(
     BuildContext context, {
     required int remaining,
@@ -73,7 +70,6 @@ class PhotoService {
           ),
         ),
       );
-      // 這張跳過裁切就不收，讓使用者可以邊裁邊淘汰。
       if (cropped != null) results.add(cropped);
     }
     return results;

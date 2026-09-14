@@ -1,5 +1,6 @@
 tags:
-  - name: 後台：會員等級
+  - name: admin-levels
+    x-displayName: 後台：會員等級
     description: |
       會員等級制度的維護。本組端點均需 `can_manage_levels` 權限。
 
@@ -15,7 +16,7 @@ paths:
     get:
       summary: 等級列表
       operationId: adminListLevels
-      tags: [後台：會員等級]
+      tags: [admin-levels]
       description: 依 `min_points` 遞增排序。前台的 `GET /api/users/me/level` 回傳相同清單。
       security: [{ bearerAuth: [] }]
       responses:
@@ -37,7 +38,7 @@ paths:
     post:
       summary: 新增等級
       operationId: adminCreateLevel
-      tags: [後台：會員等級]
+      tags: [admin-levels]
       description: |
         建立新等級。`max_points` 帶入 `null` 或空字串代表無上限，
         最高等級應採此設定。
@@ -92,7 +93,7 @@ paths:
     put:
       summary: 編輯等級
       operationId: adminUpdateLevel
-      tags: [後台：會員等級]
+      tags: [admin-levels]
       description: |
         整筆覆蓋而非部分更新：未帶入的欄位將寫入預設值，
         即 `min_points` 為 0、`max_points` 為 null、`benefits` 為 null。
@@ -131,7 +132,7 @@ paths:
     delete:
       summary: 刪除等級
       operationId: adminDeleteLevel
-      tags: [後台：會員等級]
+      tags: [admin-levels]
       description: |
         永久刪除。由於等級為即時計算，刪除後原屬該等級的會員將自動歸入
         次一較低等級，不會出現無等級的狀態。

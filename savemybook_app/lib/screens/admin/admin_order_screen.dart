@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/admin_models.dart';
 import 'admin_order_detail_screen.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/motion.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
@@ -24,8 +28,9 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
     (key: 'pending_deposit', label: S.orderPendingDeposit),
     (key: 'pending_pickup', label: S.orderBuyerDeposited),
     (key: 'completed', label: S.orderCompleted),
-    (key: 'cancelled', label: S.orderCancelled),
     (key: 'refunding', label: S.orderRefunding),
+    (key: 'refunded', label: S.orderRefunded),
+    (key: 'cancelled', label: S.orderCancelled),
   ];
 
   final ApiService _api = ApiService();
@@ -34,6 +39,9 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
   List<AdminOrder> _orders = [];
   String _filter = 'all';
   bool _isLoading = true;
+  bool _navigating = false;
+  int _loadSeq = 0;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -43,41 +51,70 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() => _isLoading = true);
+  Future<void> _load({bool showLoading = true}) async {
+    _debounce?.cancel();
+    final seq = ++_loadSeq;
+    if (showLoading) setState(() => _isLoading = true);
     final orders = await _api.fetchAdminOrders(
       keyword: _searchController.text.trim(),
       status: _filter,
     );
-    if (!mounted) return;
+    if (!mounted || seq != _loadSeq) return;
     setState(() {
       _orders = orders;
       _isLoading = false;
     });
   }
 
-  /// 點卡片先看詳情，不要直接跳改狀態的選單——那等於逼客服在看不到
-  /// 時間軸、退款與申訴的情況下做決定。
-  ///
-  /// 回來一律重載：把「有沒有改過」當成回傳值傳回來的話，得關掉
-  /// iOS 的左滑返回才收得到，代價比多打一次 API 大。
+  void _onSearchChanged(String _) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 450), _load);
+  }
+
+  void _setFilter(String key) {
+    if (_filter == key) return;
+    setState(() => _filter = key);
+    _load();
+  }
+
   Future<void> _openDetail(AdminOrder order) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AdminOrderDetailScreen(orderId: order.orderId, orderNo: order.orderNo),
-      ),
-    );
-    if (mounted) _load();
+    if (_navigating) return;
+    _navigating = true;
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AdminOrderDetailScreen(orderId: order.orderId, orderNo: order.orderNo),
+        ),
+      );
+    } finally {
+      _navigating = false;
+    }
+    if (mounted) _load(showLoading: false);
+  }
+
+  void _copyOrderNo(AdminOrder order) {
+    Clipboard.setData(ClipboardData(text: order.orderNo));
+    HapticFeedback.selectionClick();
+    showAppSnackBar(context, S.orderNumberCopied);
+  }
+
+  static String _when(DateTime? dt) {
+    if (dt == null) return '';
+    final relative = formatRelative(dt);
+    final exact = formatDateTime(dt);
+    return exact.startsWith(relative) ? exact : '$relative・$exact';
   }
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final hasQuery = _searchController.text.trim().isNotEmpty || _filter != 'all';
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -89,6 +126,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
             child: AppSearchField(
               controller: _searchController,
               hint: S.searchOrderNumberBuyerSeller,
+              onChanged: _onSearchChanged,
               onSubmitted: (_) => _load(),
             ),
           ),
@@ -102,13 +140,12 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
               itemBuilder: (_, i) {
                 final f = _filters[i];
                 final selected = _filter == f.key;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() => _filter = f.key);
-                    _load();
-                  },
+                return PressableScale(
+                  scale: 0.94,
+                  onTap: () => _setFilter(f.key),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                    duration: Motion.micro,
+                    curve: Motion.standard,
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
@@ -117,6 +154,7 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                     ),
                     child: Text(
                       f.label,
+                      maxLines: 1,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: selected ? FontWeight.bold : FontWeight.w500,
@@ -134,25 +172,37 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                   ? const LoadingView.list()
                   : RefreshIndicator(
                       color: c.accent,
-                      onRefresh: _load,
-                      child: SwitchIn(child: _orders.isEmpty
-                          ? ListView(key: const ValueKey('empty'), 
-                              children: [
-                                SizedBox(height: 60),
-                                EmptyView(
-                                  icon: Icons.receipt_long_outlined,
-                                  message: S.noOrdersMatch,
+                      onRefresh: () => _load(showLoading: false),
+                      child: SwitchIn(
+                        child: _orders.isEmpty
+                            ? ListView(
+                                key: const ValueKey('empty'),
+                                children: [
+                                  const SizedBox(height: 60),
+                                  EmptyView(
+                                    icon: Icons.receipt_long_outlined,
+                                    message: S.noOrdersMatch,
+                                    actionLabel: hasQuery ? S.clearFilters : S.refresh,
+                                    onAction: () {
+                                      if (hasQuery) {
+                                        _searchController.clear();
+                                        _filter = 'all';
+                                      }
+                                      _load();
+                                    },
+                                  ),
+                                ],
+                              )
+                            : ListView.builder(
+                                key: ValueKey('items_$_filter'),
+                                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                                itemCount: _orders.length,
+                                itemBuilder: (_, i) => RevealOnScroll(
+                                  index: i,
+                                  child: _buildCard(_orders[i], c),
                                 ),
-                              ],
-                            )
-                          : ListView.builder(key: const ValueKey('items'), 
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                              itemCount: _orders.length,
-                              itemBuilder: (_, i) => RevealOnScroll(
-                                index: i,
-                                child: _buildCard(_orders[i], c),
                               ),
-                            )),
+                      ),
                     ),
             ),
           ),
@@ -161,28 +211,44 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
     );
   }
 
-
   Widget _buildCard(AdminOrder order, AppColors c) {
     final first = order.items.isEmpty ? null : order.items.first;
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
       onTap: () => _openDetail(order),
+      onLongPress: () => _copyOrderNo(order),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Expanded(
-                child: Text(
-                  order.orderNo,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: c.textPrimary,
-                  ),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        order.orderNo,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: c.textPrimary,
+                        ),
+                      ),
+                    ),
+                    PressableScale(
+                      onTap: () => _copyOrderNo(order),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        child: Icon(Icons.copy_rounded, size: 14, color: c.iconInactive),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(width: 6),
               StatusBadge(label: order.statusText, color: c.orderStatusColor(order.status)),
             ],
           ),
@@ -221,17 +287,27 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                     if (order.cabinetName.isNotEmpty)
                       Text(
                         S.lockerP0(order.cabinetName),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 12, color: c.textSecondary),
                       ),
                   ],
                 ),
               ),
-              Text(
-                '\$${order.totalAmount.toStringAsFixed(0)}',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: c.accent,
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 96),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '\$${order.totalAmount.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: c.accent,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -240,17 +316,22 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
             const SizedBox(height: 8),
             Text(
               S.cancellationReasonP0(order.cancelReason!),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 11, color: c.danger),
             ),
           ],
           const SizedBox(height: 8),
           Row(
             children: [
-              Text(
-                formatDateTime(order.createdAt),
-                style: TextStyle(fontSize: 11, color: c.textHint),
+              Expanded(
+                child: Text(
+                  _when(order.createdAt),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: c.textHint),
+                ),
               ),
-              const Spacer(),
               Icon(Icons.chevron_right_rounded, size: 18, color: c.iconInactive),
             ],
           ),

@@ -3,15 +3,17 @@ import '../models/app_notification.dart';
 import '../services/api_service.dart';
 import '../utils/api_helpers.dart';
 import '../utils/app_colors.dart';
+import '../utils/motion.dart';
+import 'package:flutter/services.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_buttons.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/state_views.dart';
 import '../widgets/swipe_action.dart';
-import 'book_manage_screen.dart';
-import 'chat_list_screen.dart';
-import 'purchase_history_screen.dart';
+import '../widgets/buyer/undo_snackbar.dart';
+import '../services/notification_router.dart';
+import 'announcement_screen.dart';
 import '../i18n/strings.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -22,9 +24,11 @@ class NotificationScreen extends StatefulWidget {
   State<NotificationScreen> createState() => _NotificationScreenState();
 }
 
-class _NotificationScreenState extends State<NotificationScreen> {
+class _NotificationScreenState extends State<NotificationScreen> with SingleTickerProviderStateMixin {
+  late final TabController _tabs = TabController(length: 2, vsync: this)..addListener(_onTabChanged);
   final ApiService _api = ApiService();
   List<AppNotification> _notifications = [];
+  final Set<int> _pendingDelete = {};
   bool _isLoading = true;
 
   int _lastSeenUnread = ApiService.unreadNotificationCount.value;
@@ -32,7 +36,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
-    // 首頁把通知頁包在 IndexedStack 裡，不會重建，所以改成聽未讀數自己補資料。
     ApiService.unreadNotificationCount.addListener(_onUnreadChanged);
     _load();
   }
@@ -40,7 +43,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void dispose() {
     ApiService.unreadNotificationCount.removeListener(_onUnreadChanged);
+    _tabs.dispose();
     super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (!_tabs.indexIsChanging && mounted) setState(() {});
   }
 
   void _onUnreadChanged() {
@@ -105,49 +113,51 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (!mounted) return;
 
     if (ok == true) {
+      setState(() => _notifications = _notifications.map((e) => _asRead(e)).toList());
       showAppSnackBar(context, S.allMarkedAsRead);
-      await _load();
     } else {
       showAppSnackBar(context, S.somethingWentWrongPleaseTryAgain, isError: true);
     }
   }
 
-  Future<void> _onTapNotification(AppNotification n) async {
-    if (!n.isRead) {
-      await _api.markNotificationRead(n.notificationId);
-      if (mounted) {
-        setState(() {
-          _notifications = _notifications
-              .map((e) => e.notificationId == n.notificationId
-                  ? AppNotification(
-                      notificationId: e.notificationId,
-                      type: e.type,
-                      title: e.title,
-                      content: e.content,
-                      relatedId: e.relatedId,
-                      relatedType: e.relatedType,
-                      isRead: true,
-                      createdAt: e.createdAt,
-                    )
-                  : e)
-              .toList();
-        });
-      }
-    }
+  AppNotification _asRead(AppNotification e) => e.isRead
+      ? e
+      : AppNotification(
+          notificationId: e.notificationId,
+          type: e.type,
+          title: e.title,
+          content: e.content,
+          relatedId: e.relatedId,
+          relatedType: e.relatedType,
+          isRead: true,
+          createdAt: e.createdAt,
+        );
 
-    if (!mounted) return;
+  Future<bool> _markRead(AppNotification n) async {
+    if (n.isRead) return false;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _notifications = _notifications.map((e) => e.notificationId == n.notificationId ? _asRead(e) : e).toList();
+    });
+    final ok = await _api.markNotificationRead(n.notificationId);
+    if (!ok && mounted) {
+      showAppSnackBar(context, S.somethingWentWrongPleaseTryAgain, isError: true);
+      _load();
+    }
+    return false;
+  }
+
+  Future<void> _onTapNotification(AppNotification n) async {
+    if (!n.isRead) _markRead(n);
     await _showDetail(n);
   }
 
   Future<void> _showDetail(AppNotification n) async {
     final c = AppColors.of(context);
 
-    final target = switch (n.relatedType) {
-      'chat_room' => (label: S.openChat, screen: const ChatListScreen()),
-      'order' => (label: S.viewOrder, screen: const PurchaseHistoryScreen()),
-      'book' => (label: S.openMyBooks, screen: const BookManageScreen()),
-      _ => null,
-    };
+    final target = NotificationRouter.hasTarget(n.relatedType, n.relatedId)
+        ? (label: S.viewDetails,)
+        : null;
 
     final go = await showModalBottomSheet<bool>(
       context: context,
@@ -193,7 +203,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 style: TextStyle(fontSize: 14, height: 1.7, color: c.textSecondary),
               ),
               const SizedBox(height: 14),
-              Text(formatDateTime(n.createdAt), style: TextStyle(fontSize: 12, color: c.textHint)),
+              Text(formatDateTime(n.createdAt?.toLocal()), style: TextStyle(fontSize: 12, color: c.textHint)),
               const SizedBox(height: 22),
               if (target != null)
                 PrimaryButton(label: target.label, onPressed: () => Navigator.pop(ctx, true))
@@ -206,19 +216,31 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
 
     if (go == true && target != null && mounted) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => target.screen));
+      final opened = await runBusy(context, () => NotificationRouter.openNotification(Navigator.of(context), n));
+      if (opened != true && mounted) {
+        showAppSnackBar(context, S.notFoundMayBeenDeletedRemoved, isError: true);
+      }
     }
   }
 
   Future<void> _delete(AppNotification n) async {
-    setState(() => _notifications.removeWhere((e) => e.notificationId == n.notificationId));
+    setState(() => _pendingDelete.add(n.notificationId));
+    final undo = await showUndoSnackBar(context, S.notificationDeleted, icon: Icons.notifications_off_outlined);
+    if (undo) {
+      if (mounted) setState(() => _pendingDelete.remove(n.notificationId));
+      return;
+    }
 
     final ok = await _api.deleteNotification(n.notificationId);
     if (!mounted) return;
-
+    setState(() {
+      _pendingDelete.remove(n.notificationId);
+      if (ok) _notifications.removeWhere((e) => e.notificationId == n.notificationId);
+    });
     if (!ok) {
       showAppSnackBar(context, S.couldNotDeleteRestored, isError: true);
-      _load();
+    } else if (!n.isRead) {
+      _api.fetchUnreadNotificationCount();
     }
   }
 
@@ -234,44 +256,78 @@ class _NotificationScreenState extends State<NotificationScreen> {
             title: S.notifications,
             icon: Icons.notifications_none_rounded,
             showBack: !widget.embedded,
-            actions: [
-              HeaderIconButton(icon: Icons.done_all_rounded, onTap: _markAllRead),
-              HeaderIconButton(icon: Icons.delete_sweep_outlined, onTap: _clearAll),
-            ],
+            actions: _tabs.index == 0
+                ? [
+                    HeaderIconButton(icon: Icons.done_all_rounded, onTap: _markAllRead),
+                    HeaderIconButton(icon: Icons.delete_sweep_outlined, onTap: _clearAll),
+                  ]
+                : const [],
+            bottom: AppTabBar(controller: _tabs, tabs: [S.alerts, S.announcement]),
           ),
           Expanded(
-            child: SwitchIn(child: _isLoading
-                ? const LoadingView.list()
-                : RefreshIndicator(
-                    color: c.accent,
-                    onRefresh: _load,
-                    child: SwitchIn(child: _notifications.isEmpty
-                        ? ListView(key: const ValueKey('empty'), 
-                            children: [
-                              SizedBox(height: 80),
-                              EmptyView(icon: Icons.notifications_off_outlined, message: S.noNotifications),
-                            ],
-                          )
-                        : ListView.builder(key: const ValueKey('items'), 
-                            padding: EdgeInsets.only(
-                              left: 16,
-                              right: 16,
-                              top: 16,
-                              bottom: MediaQuery.of(context).padding.bottom + (widget.embedded ? 100 : 24),
-                            ),
-                            itemCount: _notifications.length,
-                            itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildTile(_notifications[i], c)),
-                          )),
-                  )),
+            child: TabBarView(
+              controller: _tabs,
+              children: [
+                _buildNotificationList(c),
+                AnnouncementList(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + (widget.embedded ? 100 : 24)),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildNotificationList(AppColors c) {
+    final visible = _notifications.where((n) => !_pendingDelete.contains(n.notificationId)).toList();
+    final bottom = MediaQuery.of(context).padding.bottom + (widget.embedded ? 100 : 24);
+
+    return SwitchIn(
+      child: _isLoading
+          ? const LoadingView.list()
+          : RefreshIndicator(
+              key: const ValueKey('content'),
+              color: c.accent,
+              onRefresh: _load,
+              child: SwitchIn(
+                child: visible.isEmpty
+                    ? ListView(
+                        key: const ValueKey('empty'),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          const SizedBox(height: 80),
+                          EmptyView(icon: Icons.notifications_off_outlined, message: S.noNotifications),
+                        ],
+                      )
+                    : ListView.builder(
+                        key: const ValueKey('items'),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.fromLTRB(16, 16, 16, bottom),
+                        itemCount: visible.length,
+                        itemBuilder: (_, i) => RevealOnScroll(
+                          key: ValueKey(visible[i].notificationId),
+                          index: i,
+                          child: _buildTile(visible[i], c),
+                        ),
+                      ),
+              ),
+            ),
+    );
+  }
+
   Widget _buildTile(AppNotification n, AppColors c) {
     return SwipeActionTile(
       itemKey: ValueKey('notification_${n.notificationId}'),
+      startToEnd: n.isRead
+          ? null
+          : SwipeAction(
+              icon: Icons.mark_email_read_outlined,
+              label: S.read,
+              color: c.success,
+              onTrigger: () => _markRead(n),
+            ),
       endToStart: SwipeAction(
         icon: Icons.delete_outline_rounded,
         label: S.actionDelete,
@@ -286,14 +342,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
+            AnimatedContainer(
+              duration: Motion.base,
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: c.accent.withValues(alpha: 0.12),
+                color: (n.isRead ? c.textHint : c.accent).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(n.icon, size: 20, color: c.accent),
+              child: Icon(n.icon, size: 20, color: n.isRead ? c.textSecondary : c.accent),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -330,11 +387,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   const SizedBox(height: 6),
                   Text(
                     n.content,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.4),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    formatDateTime(n.createdAt),
+                    formatRelative(n.createdAt?.toLocal()),
                     style: TextStyle(fontSize: 11, color: c.textHint),
                   ),
                 ],

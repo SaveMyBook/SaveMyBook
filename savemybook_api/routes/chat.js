@@ -3,8 +3,10 @@ const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
 const { rateLimit, byUser } = require('../middleware/rateLimit');
 const v = require('../lib/validate');
-const { badRequest, forbidden, notFound } = require('../lib/errors');
+const { badRequest, conflict, forbidden, notFound } = require('../lib/errors');
 const { notify } = require('../services/notify');
+const chat = require('../services/chat');
+const reservations = require('../services/reservations');
 
 const router = express.Router();
 
@@ -12,6 +14,7 @@ router.use(authenticateToken);
 
 const userSelect = { user_id: true, nickname: true, avatar_url: true };
 const MAX_MESSAGE_LENGTH = 2000;
+const TYPING_TTL_MS = 6000;
 
 const sendLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -20,16 +23,32 @@ const sendLimiter = rateLimit({
   message: '訊息傳送太頻繁，請稍後再試'
 });
 
+const typingLimiter = rateLimit({ windowMs: 60 * 1000, max: 40, key: byUser });
+
+const typing = new Map();
+
 const partnerOf = (room, myId) => (room.user_a_id === myId
   ? room.users_chat_rooms_user_b_idTousers
   : room.users_chat_rooms_user_a_idTousers);
+
+const partnerIdOf = (room, myId) => (room.user_a_id === myId ? room.user_b_id : room.user_a_id);
 
 const shapeRoom = (room, myId) => {
   const last = room.chat_messages[0] ?? null;
   return {
     room_id: room.room_id,
     partner: partnerOf(room, myId),
-    last_message: last ? { content: last.content, message_type: last.message_type, created_at: last.created_at } : null,
+    last_message: last
+      ? {
+          content: last.content,
+          message_type: last.message_type,
+          kind: chat.decode(last).kind,
+          preview: chat.previewOf(last),
+          sender_id: last.sender_id,
+          is_read: last.is_read,
+          created_at: last.created_at
+        }
+      : null,
     unread_count: room._count?.chat_messages ?? 0,
     updated_at: room.updated_at
   };
@@ -44,17 +63,6 @@ const findMyRoom = async (roomId, myId, include) => {
   return room;
 };
 
-/// 詢問商品時插進對話裡的商品卡片。用 system 訊息夾帶 JSON，
-/// 這樣不必為了它在 chat_messages 加欄位。
-const BOOK_CARD_PREFIX = '[book]';
-
-const buildBookCard = (book) => BOOK_CARD_PREFIX + JSON.stringify({
-  book_id: book.book_id,
-  title: book.title,
-  price: book.price,
-  image_url: book.book_images[0]?.image_url ?? null
-});
-
 router.get('/rooms', async (req, res) => {
   const myId = req.user.userId;
   const rooms = await prisma.chat_rooms.findMany({
@@ -64,7 +72,7 @@ router.get('/rooms', async (req, res) => {
       users_chat_rooms_user_a_idTousers: { select: userSelect },
       users_chat_rooms_user_b_idTousers: { select: userSelect },
       books: { select: { book_id: true, title: true, book_images: { select: { image_url: true }, take: 1 } } },
-      chat_messages: { orderBy: { created_at: 'desc' }, take: 1 },
+      chat_messages: { orderBy: { message_id: 'desc' }, take: 1 },
       _count: { select: { chat_messages: { where: { is_read: false, sender_id: { not: myId } } } } }
     }
   });
@@ -100,7 +108,6 @@ router.delete('/rooms/:id', async (req, res) => {
   if (!room) throw notFound('找不到這個聊天室');
   if (room.user_a_id !== myId && room.user_b_id !== myId) throw forbidden('你沒有權限刪除這個聊天室');
 
-  // 訊息有 onDelete: Cascade，但這裡明確刪掉比較不依賴 DB 設定。
   await prisma.$transaction([
     prisma.chat_messages.deleteMany({ where: { room_id: roomId } }),
     prisma.chat_rooms.delete({ where: { room_id: roomId } })
@@ -133,8 +140,6 @@ router.post('/rooms', async (req, res) => {
 
   const [userA, userB] = myId < partnerId ? [myId, partnerId] : [partnerId, myId];
 
-  // 一個人只有一間聊天室，不再依 book_id 分開。問不同的書時改成
-  // 在同一段對話裡插一張商品卡片。
   let room = await prisma.chat_rooms.findFirst({
     where: { user_a_id: userA, user_b_id: userB },
     orderBy: { updated_at: 'desc' }
@@ -147,12 +152,10 @@ router.post('/rooms', async (req, res) => {
   }
 
   if (book) {
-    const card = buildBookCard(book);
-
-    // 同一張卡片已是最後一則訊息時不重複插入。
+    const card = chat.encodeBook(book);
     const latest = await prisma.chat_messages.findFirst({
       where: { room_id: room.room_id },
-      orderBy: { created_at: 'desc' },
+      orderBy: { message_id: 'desc' },
       select: { message_type: true, content: true }
     });
 
@@ -172,10 +175,19 @@ router.post('/rooms', async (req, res) => {
   res.status(200).json({ success: true, data: { room_id: room.room_id } });
 });
 
+const typingKey = (roomId, userId) => `${roomId}:${userId}`;
+
+const partnerTyping = (roomId, partnerId) => {
+  const at = typing.get(typingKey(roomId, partnerId));
+  return Boolean(at && Date.now() - at < TYPING_TTL_MS);
+};
+
 router.get('/rooms/:roomId/messages', async (req, res) => {
   const roomId = v.id(req.params.roomId, '聊天室編號');
   const myId = req.user.userId;
   const { limit } = v.pagination(req.query, { limit: 50, max: 200 });
+  const beforeId = v.optionalId(req.query.before_id, 'before_id');
+  const afterId = req.query.after_id === undefined ? null : v.int(req.query.after_id, { label: 'after_id', min: 0 });
   const before = req.query.before ? v.date(req.query.before, 'before') : null;
 
   const room = await findMyRoom(roomId, myId, {
@@ -183,40 +195,96 @@ router.get('/rooms/:roomId/messages', async (req, res) => {
     users_chat_rooms_user_b_idTousers: { select: userSelect },
     books: { select: { book_id: true, title: true, price: true, book_images: { select: { image_url: true }, take: 1 } } }
   });
+  const partnerId = partnerIdOf(room, myId);
+
+  const where = { room_id: roomId };
+  if (afterId != null) where.message_id = { gt: afterId };
+  else if (beforeId) where.message_id = { lt: beforeId };
+  else if (before) where.created_at = { lt: before };
 
   const messages = await prisma.chat_messages.findMany({
-    where: { room_id: roomId, ...(before && { created_at: { lt: before } }) },
-    orderBy: { created_at: 'desc' },
+    where,
+    orderBy: { message_id: afterId != null ? 'asc' : 'desc' },
     take: limit,
     include: { users: { select: userSelect } }
   });
+  if (afterId == null) messages.reverse();
 
-  await prisma.chat_messages.updateMany({
-    where: { room_id: roomId, sender_id: { not: myId }, is_read: false },
-    data: { is_read: true }
-  });
+  const recentCutoff = new Date(Date.now() - 10 * 60 * 1000);
+  const [, lastRead, recalled, reservationMap] = await Promise.all([
+    prisma.chat_messages.updateMany({
+      where: { room_id: roomId, sender_id: { not: myId }, is_read: false },
+      data: { is_read: true }
+    }),
+    prisma.chat_messages.findFirst({
+      where: { room_id: roomId, sender_id: myId, is_read: true },
+      orderBy: { message_id: 'desc' },
+      select: { message_id: true }
+    }),
+    afterId != null
+      ? prisma.chat_messages.findMany({
+          where: { room_id: roomId, created_at: { gte: recentCutoff }, message_type: 'system', content: chat.PREFIX.recalled },
+          select: { message_id: true }
+        })
+      : Promise.resolve([]),
+    reservations.forUsers(myId, partnerId)
+  ]);
 
   res.status(200).json({
     success: true,
     partner: partnerOf(room, myId),
     book: room.books,
-    data: messages.reverse()
+    meta: {
+      read_upto: lastRead?.message_id ?? 0,
+      partner_typing: partnerTyping(roomId, partnerId),
+      recalled_ids: recalled.map((m) => m.message_id),
+      has_more: afterId == null && messages.length === limit,
+      reservations: [...reservationMap.values()]
+    },
+    data: messages.map((m) => chat.shapeMessage(m, { reservations: reservationMap }))
   });
 });
 
-/// 用戶端只能送文字與圖片。system 類型會被 App 當成商品卡片解析，
-/// 開放的話任何人都能在對話裡偽造一張價格不實的商品卡。
-const CLIENT_MESSAGE_TYPES = ['text', 'image'];
+const CLIENT_TYPES = ['text', 'image', 'voice'];
+const CHAT_IMAGE_RE = /^\/uploads\/chat\/[\w.-]+$/;
+const VOICE_RE = /^\/uploads\/voice\/[\w.-]+$/;
+
+const buildContent = (body) => {
+  const type = body.message_type === undefined ? 'text' : v.oneOf(body.message_type, CLIENT_TYPES, 'message_type 僅接受：text, image, voice');
+
+  if (type === 'image') {
+    const url = v.text(body.content, { label: '圖片網址', max: 500 });
+    if (!CHAT_IMAGE_RE.test(url)) throw badRequest('圖片請先透過 /api/uploads/chat-image 上傳');
+    return { messageType: 'image', content: url, preview: '[圖片]' };
+  }
+
+  if (type === 'voice') {
+    const url = v.text(body.content, { label: '語音網址', max: 500 });
+    if (!VOICE_RE.test(url)) throw badRequest('語音請先透過 /api/uploads/voice 上傳');
+    const duration = Math.round(Number(body.duration));
+    if (!Number.isFinite(duration) || duration < 1) throw badRequest('語音長度不正確');
+    if (duration > chat.MAX_VOICE_SECONDS) throw badRequest(`語音最長 ${chat.MAX_VOICE_SECONDS} 秒`);
+    return { messageType: 'system', content: chat.encodeVoice({ url, duration }), preview: `[語音] ${duration} 秒` };
+  }
+
+  const text = v.text(body.content, { label: '訊息', max: MAX_MESSAGE_LENGTH });
+  if (!text) throw badRequest('訊息內容不可為空');
+  return { messageType: 'text', content: text, preview: text.slice(0, 100) };
+};
 
 router.post('/rooms/:roomId/messages', sendLimiter, async (req, res) => {
   const roomId = v.id(req.params.roomId, '聊天室編號');
   const myId = req.user.userId;
-  const content = v.text(req.body.content, { label: '訊息', max: MAX_MESSAGE_LENGTH });
-  const messageType = CLIENT_MESSAGE_TYPES.includes(req.body.message_type) ? req.body.message_type : 'text';
-
-  if (!content) throw badRequest('訊息內容不可為空');
+  const { messageType, content, preview } = buildContent(req.body);
 
   const room = await findMyRoom(roomId, myId);
+  const partner = await prisma.users.findUnique({
+    where: { user_id: partnerIdOf(room, myId) },
+    select: { is_active: true, is_blacklisted: true, nickname: true }
+  });
+  if (!partner || !partner.is_active || partner.is_blacklisted) throw badRequest('對方帳號目前無法接收訊息');
+
+  const me = await prisma.users.findUnique({ where: { user_id: myId }, select: { nickname: true } });
 
   const message = await prisma.$transaction(async (tx) => {
     const created = await tx.chat_messages.create({
@@ -227,10 +295,10 @@ router.post('/rooms/:roomId/messages', sendLimiter, async (req, res) => {
     await tx.chat_rooms.update({ where: { room_id: roomId }, data: { updated_at: new Date() } });
 
     await notify(tx, {
-      userId: room.user_a_id === myId ? room.user_b_id : room.user_a_id,
+      userId: partnerIdOf(room, myId),
       type: 'message',
-      title: '您有一則新訊息',
-      content: messageType === 'image' ? '[圖片]' : content.slice(0, 100),
+      title: me?.nickname ? `${me.nickname} 傳來訊息` : '您有一則新訊息',
+      content: preview,
       relatedId: roomId,
       relatedType: 'chat_room'
     });
@@ -238,7 +306,64 @@ router.post('/rooms/:roomId/messages', sendLimiter, async (req, res) => {
     return created;
   });
 
-  res.status(201).json({ success: true, data: message });
+  typing.delete(typingKey(roomId, myId));
+  res.status(201).json({ success: true, data: chat.shapeMessage(message) });
+});
+
+router.post('/rooms/:roomId/typing', typingLimiter, async (req, res) => {
+  const roomId = v.id(req.params.roomId, '聊天室編號');
+  await findMyRoom(roomId, req.user.userId);
+  if (req.body.typing === false) typing.delete(typingKey(roomId, req.user.userId));
+  else typing.set(typingKey(roomId, req.user.userId), Date.now());
+  res.status(200).json({ success: true });
+});
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, at] of typing) if (now - at > TYPING_TTL_MS) typing.delete(key);
+}, 60 * 1000).unref();
+
+router.post('/rooms/:roomId/messages/:messageId/recall', async (req, res) => {
+  const roomId = v.id(req.params.roomId, '聊天室編號');
+  const messageId = v.id(req.params.messageId, '訊息編號');
+  const myId = req.user.userId;
+
+  const message = await prisma.chat_messages.findUnique({ where: { message_id: messageId } });
+  if (!message || message.room_id !== roomId) throw notFound('找不到這則訊息');
+  if (message.sender_id !== myId) throw forbidden('只能收回自己傳的訊息');
+
+  const { kind } = chat.decode(message);
+  if (kind === 'recalled') throw conflict('這則訊息已經收回了');
+  if (!['text', 'image', 'voice'].includes(kind)) throw badRequest('這種訊息無法收回');
+  if (Date.now() - new Date(message.created_at).getTime() > chat.RECALL_WINDOW_MS) {
+    throw badRequest('只能收回 2 分鐘內傳送的訊息');
+  }
+
+  const updated = await prisma.chat_messages.update({
+    where: { message_id: messageId },
+    data: { content: chat.PREFIX.recalled, message_type: 'system' },
+    include: { users: { select: userSelect } }
+  });
+  res.status(200).json({ success: true, message: '訊息已收回', data: chat.shapeMessage(updated) });
+});
+
+router.post('/rooms/:roomId/reservations', sendLimiter, async (req, res) => {
+  const roomId = v.id(req.params.roomId, '聊天室編號');
+  const room = await findMyRoom(roomId, req.user.userId);
+  const bookId = v.id(req.body.book_id, '書籍編號');
+  const hours = v.int(req.body.hours, { label: '保留時數', min: 1, max: 72 });
+  const message = v.optionalText(req.body.message, { label: '備註', max: 200 }) ?? null;
+
+  const data = await reservations.request({ room, buyerId: req.user.userId, bookId, hours, message });
+  res.status(201).json({ success: true, message: '已送出預約，等待賣家回覆', data });
+});
+
+router.patch('/reservations/:id', async (req, res) => {
+  const reservationId = v.id(req.params.id, '預約編號');
+  const action = v.oneOf(req.body.action, ['accept', 'decline', 'cancel'], 'action 僅接受：accept, decline, cancel');
+  const data = await reservations.respond(reservationId, req.user.userId, action);
+  const messages = { accept: '已接受預約', decline: '已婉拒預約', cancel: '已取消預約' };
+  res.status(200).json({ success: true, message: messages[action], data });
 });
 
 module.exports = router;

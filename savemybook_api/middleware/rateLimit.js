@@ -1,9 +1,6 @@
 const { HttpError } = require('../lib/errors');
 
-/// 行程內的固定視窗限流。
-///
-/// 服務是單一行程，不需要為此引入 Redis；重啟會清空計數，對防暴力破解影響有限。
-/// 若日後改成多行程部署，這裡要換成共用儲存。
+// 行程內計數，改成多行程部署時須換成共用儲存。
 const rateLimit = ({ windowMs, max, key, message = '操作太頻繁，請稍後再試' }) => {
   const hits = new Map();
 

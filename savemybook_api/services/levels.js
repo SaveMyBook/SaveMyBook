@@ -4,7 +4,6 @@ const POINTS_PER_ORDER = 10;
 
 const basePointsOf = (completedOrders) => completedOrders * POINTS_PER_ORDER;
 
-/// 實際點數 = 完成訂單自動累積 + 管理員手動加減（bonus_points 可為負）。
 const effectivePoints = (completedOrders, bonus) =>
   Math.max(0, basePointsOf(completedOrders) + (bonus ?? 0));
 

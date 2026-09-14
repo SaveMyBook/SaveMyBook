@@ -1,5 +1,6 @@
 tags:
-  - name: 訂單 (Orders)
+  - name: orders
+    x-displayName: 訂單
     description: |
       結帳、查詢與訂單狀態流轉。
 
@@ -14,7 +15,7 @@ paths:
     get:
       summary: 取得訂單列表
       operationId: listOrders
-      tags: [訂單 (Orders)]
+      tags: [orders]
       description: |
         購買紀錄與銷售紀錄共用此端點，以 `role` 參數切換。
 
@@ -79,7 +80,7 @@ paths:
     post:
       summary: 結帳
       operationId: checkout
-      tags: [訂單 (Orders)]
+      tags: [orders]
       description: |
         將購物車轉換為訂單。整個流程封裝於單一資料庫交易，任一步驟失敗即全部回滾。
 
@@ -95,7 +96,18 @@ paths:
         8. 移除已結帳的購物車項目
 
         因跨賣家會拆分訂單，回應為訂單陣列。
+
+        ## Payment Verification
+
+        需 `payment` 範圍的身分驗證：先以交易密碼或生物辨識呼叫 `POST /api/security/verify`，
+        再將取得的 `verify_token` 帶入 `X-Verify-Token` 標頭。該 token 僅能使用一次；
+        結帳失敗（回應狀態碼大於等於 400）時 token 恢復可用，可直接重試。
+        使用者尚未設定交易密碼時，驗證端點回傳 403 `PAYMENT_PIN_NOT_SET`，App 應先引導設定。
+
+        購物車中有書籍已由其他買家預約保留時，回傳 409 `BOOK_RESERVED`。
       security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/VerifyToken'
       requestBody:
         content:
           application/json:
@@ -141,6 +153,8 @@ paths:
                 代幣不足:
                   value: { success: false, code: INSUFFICIENT_BALANCE, message: 代幣不足，這筆訂單需要 540 代幣，目前只有 200 }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/VerificationRequired' }
+        '409': { $ref: '#/components/responses/BookReserved' }
         '500':
           description: 結帳過程發生錯誤，交易已回滾，代幣不會遭扣除。
           content:
@@ -152,7 +166,7 @@ paths:
     get:
       summary: 取得訂單詳情
       operationId: getOrder
-      tags: [訂單 (Orders)]
+      tags: [orders]
       description: |
         僅該訂單的買家、賣家或管理員可查詢。
         回應包含取貨碼、書櫃、櫃位與爭議狀態。
@@ -182,7 +196,7 @@ paths:
     patch:
       summary: 更新訂單狀態
       operationId: updateOrderStatus
-      tags: [訂單 (Orders)]
+      tags: [orders]
       description: |
         推進訂單流程。每個目標狀態限定由誰呼叫、從哪個狀態出發，管理員不受身分限制：
 
@@ -263,7 +277,7 @@ paths:
     patch:
       summary: 取消訂單
       operationId: cancelOrder
-      tags: [訂單 (Orders)]
+      tags: [orders]
       description: |
         買賣雙方皆可取消。狀態已為 `completed`、`cancelled` 或 `refunded`
         的訂單不得取消；爭議處理中（`refunding`）的訂單僅管理員可取消。

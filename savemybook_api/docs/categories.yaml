@@ -1,5 +1,6 @@
 tags:
-  - name: 分類 (Categories)
+  - name: categories
+    x-displayName: 分類
     description: |
       書籍分類，支援父子兩層結構，以 `parent_id` 建立關聯。
 
@@ -11,7 +12,7 @@ paths:
     get:
       summary: 取得分類
       operationId: listCategories
-      tags: [分類 (Categories)]
+      tags: [categories]
       description: |
         預設回傳樹狀結構，僅含頂層分類，子分類置於 `other_book_categories`
         欄位內。該欄位名稱源自 Prisma 對自我關聯的命名規則。
@@ -67,7 +68,7 @@ paths:
     post:
       summary: 新增分類
       operationId: createCategory
-      tags: [分類 (Categories)]
+      tags: [categories]
       description: 建立分類。未帶入 `parent_id` 時建立為頂層分類。僅限管理員。
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -114,7 +115,7 @@ paths:
     get:
       summary: 取得單一分類
       operationId: getCategory
-      tags: [分類 (Categories)]
+      tags: [categories]
       description: 回傳指定分類及其子分類。無須登入。
       security: []
       responses:
@@ -140,7 +141,7 @@ paths:
     put:
       summary: 編輯分類
       operationId: updateCategory
-      tags: [分類 (Categories)]
+      tags: [categories]
       description: |
         僅限管理員。`parent_id` 帶入 `null` 可將子分類提升為頂層分類。
 
@@ -180,7 +181,7 @@ paths:
     delete:
       summary: 刪除分類
       operationId: deleteCategory
-      tags: [分類 (Categories)]
+      tags: [categories]
       description: |
         僅限管理員。分類底下仍有子分類或書籍時將因外鍵限制而失敗，
         須先轉移或刪除關聯資料。

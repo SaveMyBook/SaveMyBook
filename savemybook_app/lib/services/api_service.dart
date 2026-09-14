@@ -15,7 +15,28 @@ import '../models/wallet.dart';
 import '../models/member_level.dart';
 import '../models/admin_models.dart';
 import '../utils/api_helpers.dart';
+import '../models/security.dart';
 import '../i18n/strings.dart';
+import 'device_identity.dart';
+import 'payment_key_store.dart';
+
+enum _RefreshResult { refreshed, failed, offline }
+
+class VerifyOutcome {
+  final String? token;
+  final String code;
+  final String message;
+  final int? remainingAttempts;
+
+  const VerifyOutcome({required this.code, required this.message, this.remainingAttempts}) : token = null;
+
+  const VerifyOutcome.success(String this.token)
+      : code = 'OK',
+        message = '',
+        remainingAttempts = null;
+
+  bool get isSuccess => token != null;
+}
 
 class LoginOutcome {
   final bool isSuccess;
@@ -39,9 +60,9 @@ class ApiService {
 
   static void Function(String? reason)? onUnauthorized;
 
-  /// 由 PushService 掛上。api_service 不直接 import 推播，避免服務層互相依賴。
   static Future<void> Function({required bool canReachServer})? onSigningOut;
   static Future<void> Function()? onPasswordChanged;
+  static Future<String?> Function(VerificationRequest request)? onVerificationRequired;
 
   static const String publicWebUrl = 'https://api.savemybook.today';
 
@@ -64,6 +85,7 @@ class ApiService {
   static final ValueNotifier<int> unreadNotificationCount = ValueNotifier<int>(0);
   static final ValueNotifier<int> unreadChatCount = ValueNotifier<int>(0);
   static final ValueNotifier<Set<int>> favoriteBookIds = ValueNotifier<Set<int>>(<int>{});
+  static final ValueNotifier<Set<int>> cartBookIds = ValueNotifier<Set<int>>(<int>{});
 
   static void _setCartCount(int value) {
     cartCount.value = value < 0 ? 0 : value;
@@ -78,28 +100,14 @@ class ApiService {
     unreadNotificationCount.value = 0;
     unreadChatCount.value = 0;
     favoriteBookIds.value = <int>{};
-  }
-
-  static List<String> searchHistory = [];
-
-  static void addSearchHistory(String keyword) {
-    final trimmed = keyword.trim();
-    if (trimmed.isEmpty) return;
-    searchHistory.remove(trimmed);
-    searchHistory.insert(0, trimmed);
-    if (searchHistory.length > 10) {
-      searchHistory.removeLast();
-    }
-  }
-
-  static void removeSearchHistory(String keyword) {
-    searchHistory.remove(keyword);
+    cartBookIds.value = <int>{};
   }
 
   static Future<void> _handleUnauthorized({String? reason}) async {
     if (authToken == null) return;
     authToken = null;
     unawaited(onSigningOut?.call(canReachServer: false));
+    unawaited(PaymentKeyStore.clear());
     currentUser = null;
     resetGlobalState();
     final prefs = await SharedPreferences.getInstance();
@@ -107,11 +115,113 @@ class ApiService {
     onUnauthorized?.call(reason);
   }
 
-  static Map<String, String> _headers({bool json = false}) {
+  static Future<void> _storeToken(String token) async {
+    authToken = token;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
+  }
+
+  static Map<String, String> _headers({bool json = false, Map<String, String>? extra}) {
     return {
       'Accept': 'application/json',
       if (json) 'Content-Type': 'application/json',
       if (authToken != null) 'Authorization': 'Bearer $authToken',
+      ...?extra,
+    };
+  }
+
+  static Future<_RefreshResult>? _refreshing;
+
+  static Future<_RefreshResult> _refreshToken() {
+    return _refreshing ??= _doRefresh().whenComplete(() => _refreshing = null);
+  }
+
+  static Future<_RefreshResult> _doRefresh() async {
+    final token = authToken;
+    if (token == null) return _RefreshResult.failed;
+    try {
+      final response = await http
+          .post(Uri.parse('$baseUrl/auth/refresh'), headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'})
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode != 200) return _RefreshResult.failed;
+      final payload = jsonDecode(utf8.decode(response.bodyBytes));
+      final data = payload is Map ? payload['data'] : null;
+      final next = data is Map ? data['token'] : null;
+      if (next is! String || next.isEmpty) return _RefreshResult.failed;
+      if (authToken == token) await _storeToken(next);
+      return _RefreshResult.refreshed;
+    } catch (_) {
+      return _RefreshResult.offline;
+    }
+  }
+
+  static const _signOutCodes = {
+    'ACCOUNT_BLACKLISTED',
+    'ACCOUNT_INACTIVE',
+    'TOKEN_REVOKED',
+    'ACCOUNT_NOT_FOUND',
+    'SESSION_REVOKED',
+  };
+
+  Future<Map<String, dynamic>?> _interpret(
+    int status,
+    List<int> bytes, {
+    required bool sentWithToken,
+    required Set<String> handled,
+    required Future<Map<String, dynamic>?> Function(Map<String, String> extraHeaders, Set<String> handled) retry,
+  }) async {
+    Map<String, dynamic> payload = {};
+    if (bytes.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(utf8.decode(bytes));
+        if (decoded is Map<String, dynamic>) {
+          payload = decoded;
+        } else if (status >= 200 && status < 300) {
+          return null;
+        }
+      } catch (_) {
+        if (status >= 200 && status < 300) return null;
+      }
+    }
+    final code = payload['code'] as String?;
+
+    if (status == 401 && sentWithToken) {
+      await _handleUnauthorized(reason: _signOutCodes.contains(code) ? payload['message'] as String? : null);
+      return null;
+    }
+
+    if (status == 403 && code == 'TOKEN_EXPIRED' && sentWithToken && !handled.contains('refresh')) {
+      final result = await _refreshToken();
+      if (result == _RefreshResult.refreshed) return retry(const {}, {...handled, 'refresh'});
+      if (result == _RefreshResult.offline) return {'success': false, 'code': 'NETWORK', 'message': S.couldNotReachServer};
+      await _handleUnauthorized(reason: S.sessionExpiredPleaseSignAgain);
+      return null;
+    }
+
+    if (status == 403 && code == 'VERIFICATION_REQUIRED' && !handled.contains('verify')) {
+      final handler = onVerificationRequired;
+      final info = payload['verification'];
+      if (handler != null && info is Map) {
+        final request = VerificationRequest(
+          scope: info['scope'] as String? ?? 'sensitive',
+          methods: (info['methods'] as List?)?.map((e) => '$e').toList() ?? const ['password'],
+          message: payload['message'] as String? ?? '',
+        );
+        final token = await handler(request);
+        if (token == null) {
+          return {'success': false, 'code': 'VERIFICATION_CANCELLED', 'message': S.verificationCancelled};
+        }
+        return retry({'X-Verify-Token': token}, {...handled, 'verify'});
+      }
+    }
+
+    if (status >= 200 && status < 300) return payload;
+
+    return {
+      ...payload,
+      'success': false,
+      'status': status,
+      'message': payload['message'] ?? (status == 503 ? S.serviceTemporarilyUnavailableTryAgainLater : S.requestFailed2(status)),
     };
   }
 
@@ -120,6 +230,8 @@ class ApiService {
     String path, {
     Map<String, String>? query,
     Map<String, dynamic>? body,
+    Map<String, String>? extraHeaders,
+    Set<String> handled = const {},
   }) async {
     try {
       var uri = Uri.parse('$baseUrl$path');
@@ -127,7 +239,8 @@ class ApiService {
         uri = uri.replace(queryParameters: query);
       }
 
-      final headers = _headers(json: body != null);
+      final sentWithToken = authToken != null;
+      final headers = _headers(json: body != null, extra: extraHeaders);
       final encoded = body == null ? null : jsonEncode(body);
 
       late http.Response response;
@@ -150,44 +263,44 @@ class ApiService {
           break;
       }
 
-      if (response.statusCode == 401) {
-        // 停權／黑名單的訊息要帶回去給使用者看，不能只是靜靜踢回登入頁。
-        String? reason;
-        try {
-          final payload = jsonDecode(utf8.decode(response.bodyBytes));
-          if (payload is Map) {
-            final code = payload['code'];
-            if (code == 'ACCOUNT_BLACKLISTED' ||
-                code == 'ACCOUNT_INACTIVE' ||
-                code == 'TOKEN_REVOKED' ||
-                code == 'ACCOUNT_NOT_FOUND') {
-              reason = payload['message'] as String?;
-            }
-          }
-        } catch (_) {
-          // 沒有 JSON body 就當成一般的 token 過期。
-        }
-
-        await _handleUnauthorized(reason: reason);
-        return null;
-      }
-
-      final decoded = response.body.isEmpty
-          ? <String, dynamic>{}
-          : jsonDecode(utf8.decode(response.bodyBytes));
-
-      if (decoded is! Map<String, dynamic>) return null;
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return decoded;
-      }
-
-      return {
-        'success': false,
-        'message': decoded['message'] ?? S.requestFailed2(response.statusCode),
-      };
+      return await _interpret(
+        response.statusCode,
+        response.bodyBytes,
+        sentWithToken: sentWithToken,
+        handled: handled,
+        retry: (extra, nextHandled) => _send(method, path,
+            query: query, body: body, extraHeaders: {...?extraHeaders, ...extra}, handled: nextHandled),
+      );
     } catch (e) {
-      return {'success': false, 'message': S.couldNotReachServer};
+      return {'success': false, 'code': 'NETWORK', 'message': S.couldNotReachServer};
+    }
+  }
+
+  Future<Map<String, dynamic>?> _sendMultipart(
+    String path,
+    List<(String field, String filePath)> files, {
+    Map<String, String>? fields,
+    Set<String> handled = const {},
+  }) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$path'));
+      final sentWithToken = authToken != null;
+      request.headers.addAll(_headers());
+      if (fields != null) request.fields.addAll(fields);
+      for (final (field, filePath) in files) {
+        request.files.add(await http.MultipartFile.fromPath(field, filePath));
+      }
+      final streamed = await request.send();
+      final bytes = await streamed.stream.toBytes();
+      return await _interpret(
+        streamed.statusCode,
+        bytes,
+        sentWithToken: sentWithToken,
+        handled: handled,
+        retry: (extra, nextHandled) => _sendMultipart(path, files, fields: fields, handled: nextHandled),
+      );
+    } catch (_) {
+      return {'success': false, 'code': 'NETWORK', 'message': S.couldNotReachServer};
     }
   }
 
@@ -207,7 +320,8 @@ class ApiService {
   }
 
   Future<LoginOutcome> login(String email, String password) async {
-    final res = await _send('POST', '/auth/login', body: {'email': email, 'password': password});
+    final device = await DeviceIdentity.describe();
+    final res = await _send('POST', '/auth/login', body: {'email': email, 'password': password, ...device});
 
     if (res == null) {
       return LoginOutcome(code: 'NETWORK', message: S.couldNotReachServerCheckConnection);
@@ -225,9 +339,8 @@ class ApiService {
       return LoginOutcome(code: 'UNKNOWN', message: S.signFailedPleaseTryAgain);
     }
 
-    authToken = token;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
+    await PaymentKeyStore.clear();
+    await _storeToken(token);
 
     await fetchCurrentUser();
     return const LoginOutcome.success();
@@ -235,14 +348,18 @@ class ApiService {
 
   Future<String?> register(String email, String password, String nickname) async {
     final res = await _send('POST', '/users',
-        body: {'email': email, 'password': password, 'nickname': nickname});
+        body: {'email': email, 'password': password, 'nickname': nickname, 'accept_legal': true});
     if (res == null) return S.couldNotReachServerCheckConnection;
     return res['success'] == true ? null : (res['message'] as String? ?? S.signUpFailed);
   }
 
   Future<void> logout() async {
-    // 必須在清掉登入 Token 之前，才能通知伺服器不要再推播到這台。
+    // 必須在清掉登入 Token 之前通知伺服器，否則無法取消這台的推播。
     await onSigningOut?.call(canReachServer: true);
+    if (authToken != null) {
+      await _send('POST', '/auth/logout').timeout(const Duration(seconds: 4), onTimeout: () => null);
+    }
+    await PaymentKeyStore.clear();
     authToken = null;
     currentUser = null;
     resetGlobalState();
@@ -290,7 +407,6 @@ class ApiService {
     return _mapList(res, Book.fromJson);
   }
 
-  /// 別人的上架書籍。只回販售中的，已售出與下架的不該對外顯示。
   Future<List<Book>> fetchSellerBooks(int sellerId) async {
     final res = await _send('GET', '/books',
         query: {'seller_id': sellerId.toString(), 'status': 'on_sale', 'limit': '100'});
@@ -325,24 +441,21 @@ class ApiService {
     return res != null && res['success'] == true;
   }
 
-  Future<bool> uploadBookImages(int bookId, List<String> filePaths) async {
+  Future<bool> uploadBookImages(int bookId, List<String> filePaths, {List<String>? types}) async {
     if (filePaths.isEmpty) return true;
-    try {
-      final uri = Uri.parse('$baseUrl/books/$bookId/images');
-      final request = http.MultipartRequest('POST', uri);
-      request.headers['Authorization'] = 'Bearer $authToken';
-      for (final path in filePaths) {
-        request.files.add(await http.MultipartFile.fromPath('images', path));
-      }
-      final streamed = await request.send();
-      if (streamed.statusCode == 401) {
-        await _handleUnauthorized();
-        return false;
-      }
-      return streamed.statusCode >= 200 && streamed.statusCode < 300;
-    } catch (_) {
-      return false;
-    }
+    final res = await _sendMultipart(
+      '/books/$bookId/images',
+      [for (final path in filePaths) ('images', path)],
+      fields: types == null ? null : {'image_types': types.join(',')},
+    );
+    return res != null && res['success'] == true;
+  }
+
+  Future<String?> createBook(Map<String, String> fields, List<(String field, String filePath)> files) async {
+    final res = await _sendMultipart('/books', files, fields: fields);
+    if (res == null) return S.pleaseSignFirst;
+    if (res['success'] == true) return null;
+    return res['message'] as String? ?? S.unknownError;
   }
 
   Future<bool> deleteBookImage(int bookId, int imageId) async {
@@ -355,15 +468,12 @@ class ApiService {
     return res != null && res['success'] == true;
   }
 
-  /// 回傳 null 代表成功；違規下架的書會回錯誤訊息。
   Future<String?> relistBook(int bookId) async {
     final res = await _send('PUT', '/books/$bookId', body: {'status': 'on_sale'});
     if (res == null) return S.pleaseSignFirst;
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotRelist);
   }
 
-  /// 可在瀏覽器直接開啟的公開網址。權杖由伺服器保管，首次索取時產生，
-  /// 之後固定不變。已下架的書會回 409。
   Future<(String? url, String? error)> fetchBookShareLink(int bookId) async {
     final res = await _send('GET', '/books/$bookId/share-link');
     if (res == null) return (null, S.couldNotReachServer);
@@ -408,7 +518,6 @@ class ApiService {
     return ok;
   }
 
-  /// 先切換本地狀態再打 API，失敗時自動回滾，讓愛心點下去就有反應。
   Future<String?> toggleFavorite(int bookId) async {
     if (authToken == null) return S.pleaseSignFirst;
     final wasFavorite = favoriteBookIds.value.contains(bookId);
@@ -425,7 +534,10 @@ class ApiService {
   Future<List<CartItem>> fetchCart() async {
     final res = await _send('GET', '/cart');
     final items = _mapList(res, CartItem.fromJson);
-    _setCartCount(items.length);
+    if (res != null && res['success'] == true) {
+      _setCartCount(items.length);
+      cartBookIds.value = items.map((i) => i.book.bookId).toSet();
+    }
     return items;
   }
 
@@ -442,8 +554,20 @@ class ApiService {
     final res = await _send('POST', '/cart', body: {'book_id': bookId, 'quantity': quantity});
     if (res == null) return S.pleaseSignFirst;
     if (res['success'] != true) return res['message'] as String? ?? S.couldNotAddCart;
-    _setCartCount(cartCount.value + 1);
+    if (!cartBookIds.value.contains(bookId)) {
+      cartBookIds.value = {...cartBookIds.value, bookId};
+      if (res['already_in_cart'] != true) _setCartCount(cartCount.value + 1);
+    }
     return null;
+  }
+
+  Future<Set<int>> fetchCartBookIds() async {
+    final res = await _send('GET', '/cart/book-ids');
+    if (res == null || res['success'] != true || res['data'] is! List) return cartBookIds.value;
+    final ids = (res['data'] as List).map(parseInt).where((id) => id > 0).toSet();
+    cartBookIds.value = ids;
+    _setCartCount(ids.length);
+    return ids;
   }
 
   Future<bool> updateCartQuantity(int cartId, int quantity) async {
@@ -451,10 +575,13 @@ class ApiService {
     return res != null && res['success'] == true;
   }
 
-  Future<bool> removeCartItem(int cartId) async {
+  Future<bool> removeCartItem(int cartId, {int? bookId}) async {
     final res = await _send('DELETE', '/cart/$cartId');
     final ok = res != null && res['success'] == true;
-    if (ok) _setCartCount(cartCount.value - 1);
+    if (ok) {
+      _setCartCount(cartCount.value - 1);
+      if (bookId != null) cartBookIds.value = {...cartBookIds.value}..remove(bookId);
+    }
     return ok;
   }
 
@@ -472,8 +599,10 @@ class ApiService {
   Future<String?> checkout(List<int> cartIds) async {
     final res = await _send('POST', '/orders/checkout', body: {'cart_ids': cartIds});
     if (res == null) return S.pleaseSignFirst;
-    if (res['success'] != true) return res['message'] as String? ?? S.checkoutFailed;
-    _setCartCount(cartCount.value - cartIds.length);
+    if (res['success'] != true) {
+      return res['code'] == 'VERIFICATION_CANCELLED' ? '' : (res['message'] as String? ?? S.checkoutFailed);
+    }
+    unawaited(fetchCartBookIds());
     return null;
   }
 
@@ -531,7 +660,7 @@ class ApiService {
       return;
     }
     await Future.wait([
-      refreshCartCount(),
+      fetchCartBookIds(),
       fetchUnreadNotificationCount(),
       fetchUnreadChatCount(),
       fetchFavoriteIds(),
@@ -577,19 +706,183 @@ class ApiService {
     return int.tryParse('${res['data']?['room_id']}');
   }
 
-  Future<({List<ChatMessage> messages, ChatPartner partner})> fetchChatMessages(int roomId) async {
-    final res = await _send('GET', '/chat/rooms/$roomId/messages');
+  Future<ChatFetchResult> fetchChatMessages(int roomId, {int? afterId, int? beforeId, int limit = 50}) async {
+    final res = await _send('GET', '/chat/rooms/$roomId/messages', query: {
+      'limit': '$limit',
+      if (afterId != null) 'after_id': '$afterId',
+      if (beforeId != null) 'before_id': '$beforeId',
+    });
     final messages = _mapList(res, ChatMessage.fromJson);
     final partner = ChatPartner.fromJson(
       res?['partner'] is Map ? Map<String, dynamic>.from(res!['partner']) : null,
     );
-    return (messages: messages, partner: partner);
+    final meta = res?['meta'] is Map ? Map<String, dynamic>.from(res!['meta']) : const <String, dynamic>{};
+    final reservations = <int, ChatReservation>{};
+    for (final item in (meta['reservations'] as List? ?? const [])) {
+      if (item is! Map) continue;
+      final reservation = ChatReservation.fromJson(Map<String, dynamic>.from(item));
+      reservations[reservation.reservationId] = reservation;
+    }
+    return ChatFetchResult(
+      messages: messages,
+      partner: partner,
+      readUpto: parseInt(meta['read_upto']),
+      partnerTyping: meta['partner_typing'] == true,
+      recalledIds: (meta['recalled_ids'] as List? ?? const []).map(parseInt).toList(),
+      hasMore: meta['has_more'] == true,
+      reservations: reservations,
+      ok: res != null && res['success'] == true,
+      error: res == null || res['success'] == true ? null : res['message'] as String?,
+      code: res?['code'] as String?,
+      status: res?['status'] is int ? res!['status'] as int : null,
+    );
   }
 
-  Future<ChatMessage?> sendChatMessage(int roomId, String content) async {
-    final res = await _send('POST', '/chat/rooms/$roomId/messages', body: {'content': content});
-    if (res == null || res['success'] != true || res['data'] is! Map) return null;
-    return ChatMessage.fromJson(Map<String, dynamic>.from(res['data']));
+  Future<(ChatMessage?, String?)> sendChatMessage(int roomId, String content, {String type = 'text', int? durationSeconds}) async {
+    final res = await _send('POST', '/chat/rooms/$roomId/messages', body: {
+      'content': content,
+      'message_type': type,
+      'duration': ?durationSeconds,
+    });
+    if (res == null || res['success'] != true || res['data'] is! Map) {
+      return (null, res?['message'] as String? ?? S.messageCouldNotSent);
+    }
+    return (ChatMessage.fromJson(Map<String, dynamic>.from(res['data'])), null);
+  }
+
+  Future<(String?, String?)> uploadChatImage(String filePath) async {
+    final res = await _sendMultipart('/uploads/chat-image', [('file', filePath)]);
+    final url = res?['data'] is Map ? res!['data']['url'] as String? : null;
+    return url == null ? (null, res?['message'] as String? ?? S.uploadFailedTryAgainLater) : (url, null);
+  }
+
+  Future<(String?, String?)> uploadVoice(String filePath) async {
+    final res = await _sendMultipart('/uploads/voice', [('file', filePath)]);
+    final url = res?['data'] is Map ? res!['data']['url'] as String? : null;
+    return url == null ? (null, res?['message'] as String? ?? S.uploadFailedTryAgainLater) : (url, null);
+  }
+
+  Future<void> sendTyping(int roomId, {bool typing = true}) async {
+    await _send('POST', '/chat/rooms/$roomId/typing', body: {'typing': typing});
+  }
+
+  Future<(ChatMessage?, String?)> recallChatMessage(int roomId, int messageId) async {
+    final res = await _send('POST', '/chat/rooms/$roomId/messages/$messageId/recall');
+    if (res == null || res['success'] != true || res['data'] is! Map) {
+      return (null, res?['message'] as String? ?? S.actionFailed);
+    }
+    return (ChatMessage.fromJson(Map<String, dynamic>.from(res['data'])), null);
+  }
+
+  Future<(ChatReservation?, String?)> requestReservation(int roomId, {required int bookId, required int hours, String? message}) async {
+    final res = await _send('POST', '/chat/rooms/$roomId/reservations', body: {
+      'book_id': bookId,
+      'hours': hours,
+      if (message != null && message.trim().isNotEmpty) 'message': message.trim(),
+    });
+    if (res == null || res['success'] != true || res['data'] is! Map) {
+      return (null, res?['message'] as String? ?? S.actionFailed);
+    }
+    return (ChatReservation.fromJson(Map<String, dynamic>.from(res['data'])), null);
+  }
+
+  Future<(ChatReservation?, String?)> respondReservation(int reservationId, String action) async {
+    final res = await _send('PATCH', '/chat/reservations/$reservationId', body: {'action': action});
+    if (res == null || res['success'] != true || res['data'] is! Map) {
+      return (null, res?['message'] as String? ?? S.actionFailed);
+    }
+    return (ChatReservation.fromJson(Map<String, dynamic>.from(res['data'])), null);
+  }
+
+  // ---------- 帳號安全 ----------
+
+  Future<SecurityStatus> fetchSecurityStatus() async {
+    final res = await _send('GET', '/security');
+    if (res == null || res['success'] != true || res['data'] is! Map) return SecurityStatus.unknown;
+    return SecurityStatus.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<VerifyOutcome> verifyIdentity({
+    required String scope,
+    required String method,
+    String? pin,
+    String? password,
+    String? key,
+  }) async {
+    final res = await _send('POST', '/security/verify', body: {
+      'scope': scope,
+      'method': method,
+      'pin': ?pin,
+      'password': ?password,
+      'key': ?key,
+    });
+    if (res == null) return VerifyOutcome(code: 'SIGNED_OUT', message: S.pleaseSignFirst);
+    if (res['success'] == true) {
+      return VerifyOutcome.success(res['data']?['verify_token'] as String? ?? '');
+    }
+    return VerifyOutcome(
+      code: res['code'] as String? ?? 'UNKNOWN',
+      message: res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain,
+      remainingAttempts: res['remaining_attempts'] == null ? null : parseInt(res['remaining_attempts']),
+    );
+  }
+
+  Future<String?> setPaymentPin(String pin, {required String verifyToken}) async {
+    final res = await _send('PUT', '/security/payment-pin', body: {'pin': pin}, extraHeaders: {'X-Verify-Token': verifyToken});
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
+  }
+
+  Future<(String?, String?)> enableBiometricPay({required String verifyToken}) async {
+    final res = await _send('POST', '/security/biometric-key', extraHeaders: {'X-Verify-Token': verifyToken});
+    if (res == null) return (null, S.pleaseSignFirst);
+    final key = res['data'] is Map ? res['data']['key'] as String? : null;
+    if (res['success'] != true || key == null) return (null, res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
+    final userId = currentUser?.userId;
+    if (userId != null) await PaymentKeyStore.save(userId, key);
+    return (key, null);
+  }
+
+  Future<bool> disableBiometricPay() async {
+    await PaymentKeyStore.clear();
+    final res = await _send('DELETE', '/security/biometric-key');
+    return res != null && res['success'] == true;
+  }
+
+  Future<List<LoginSession>?> fetchLoginSessions() async {
+    final res = await _send('GET', '/security/sessions');
+    if (res == null || res['success'] != true) return null;
+    return _mapList(res, LoginSession.fromJson);
+  }
+
+  Future<(bool signedOutCurrent, String? error)> revokeLoginSession(int sessionId) async {
+    final res = await _send('DELETE', '/security/sessions/$sessionId');
+    if (res == null) return (false, S.pleaseSignFirst);
+    if (res['success'] != true) return (false, res['message'] as String? ?? S.actionFailed);
+    return (res['data']?['signed_out_current'] == true, null);
+  }
+
+  Future<(int revoked, String? error)> revokeAllLoginSessions({bool includeCurrent = false}) async {
+    final res = await _send('POST', '/security/sessions/revoke-all', body: {'include_current': includeCurrent});
+    if (res == null) return (0, S.pleaseSignFirst);
+    if (res['success'] != true) return (0, res['message'] as String? ?? S.actionFailed);
+    return (parseInt(res['data']?['revoked']), null);
+  }
+
+  Future<List<PushDeviceInfo>?> fetchPushDevices() async {
+    final res = await _send('GET', '/push/devices');
+    if (res == null || res['success'] != true) return null;
+    return _mapList(res, PushDeviceInfo.fromJson);
+  }
+
+  Future<List<Map<String, dynamic>>> fetchCabinets({double? latitude, double? longitude}) async {
+    final res = await _send('GET', '/cabinets', query: {
+      if (latitude != null && longitude != null) 'lat': latitude.toStringAsFixed(6),
+      if (latitude != null && longitude != null) 'lng': longitude.toStringAsFixed(6),
+    });
+    final data = res?['data'];
+    if (res?['success'] != true || data is! List) return [];
+    return data.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
   }
 
   Future<Wallet> fetchWallet() async {
@@ -612,27 +905,10 @@ class ApiService {
 
   Future<List<String>> uploadFiles(List<String> filePaths) async {
     if (filePaths.isEmpty) return [];
-    try {
-      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/uploads'));
-      request.headers['Authorization'] = 'Bearer $authToken';
-      for (final path in filePaths) {
-        request.files.add(await http.MultipartFile.fromPath('files', path));
-      }
-      final streamed = await request.send();
-      if (streamed.statusCode == 401) {
-        await _handleUnauthorized();
-        return [];
-      }
-      if (streamed.statusCode < 200 || streamed.statusCode >= 300) return [];
-
-      final body = jsonDecode(utf8.decode(await streamed.stream.toBytes()));
-      final data = body is Map ? body['data'] : null;
-      final urls = data is Map ? data['urls'] : null;
-      if (urls is! List) return [];
-      return urls.map((e) => e.toString()).toList();
-    } catch (_) {
-      return [];
-    }
+    final res = await _sendMultipart('/uploads', [for (final path in filePaths) ('files', path)]);
+    final urls = res?['data'] is Map ? res!['data']['urls'] : null;
+    if (res?['success'] != true || urls is! List) return [];
+    return urls.map((e) => e.toString()).toList();
   }
 
   Future<String?> submitDispute({required int orderId, required String reason, List<String>? evidenceUrls}) async {
@@ -718,7 +994,7 @@ class ApiService {
     if (res == null) return S.pleaseSignFirst;
     if (res['success'] != true) return res['message'] as String? ?? S.couldNotChangePassword;
 
-    // 改密碼後伺服器會讓舊 token 失效並換發新的，不存下來下一個請求就會被登出。
+    // 伺服器改密碼後換發新 token，不存下來下一個請求就會被登出。
     final token = res['data'] is Map ? res['data']['token'] : null;
     if (token is String && token.isNotEmpty) {
       authToken = token;
@@ -729,12 +1005,12 @@ class ApiService {
     return null;
   }
 
-  Future<bool> registerPushDevice(String token, String platform) async {
+  Future<String?> registerPushDevice(String token, String platform) async {
     final res = await _send('POST', '/push/devices', body: {'token': token, 'platform': platform});
-    return res != null && res['success'] == true;
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
   }
 
-  /// 回傳 (成功訊息, 錯誤訊息)，兩者擇一。
   Future<(String?, String?)> sendTestPush() async {
     final res = await _send('POST', '/push/test');
     if (res == null) return (null, S.couldNotReachServer);
@@ -755,7 +1031,6 @@ class ApiService {
 
   // ---------- 帳號與隱私 ----------
 
-  /// 回傳 (待刪除中, 執行日期)。沒有申請時為 (false, null)。
   Future<(bool, DateTime?)> fetchDeletionStatus() async {
     final res = await _send('GET', '/users/me/deletion');
     if (res == null || res['success'] != true) return (false, null);
@@ -776,15 +1051,22 @@ class ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotCancel);
   }
 
-  /// 匯出的 JSON 內容。這支不走 _send：回應是檔案不是統一的信封格式。
-  Future<String?> exportMyData() async {
+  Future<String?> exportMyData({Map<String, String>? extraHeaders, Set<String> handled = const {}}) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/users/me/export'),
-        headers: _headers(),
+      final sentWithToken = authToken != null;
+      final response = await http.get(Uri.parse('$baseUrl/users/me/export'), headers: _headers(extra: extraHeaders));
+      if (response.statusCode == 200) return utf8.decode(response.bodyBytes);
+      final res = await _interpret(
+        response.statusCode,
+        response.bodyBytes,
+        sentWithToken: sentWithToken,
+        handled: handled,
+        retry: (extra, next) async {
+          final content = await exportMyData(extraHeaders: {...?extraHeaders, ...extra}, handled: next);
+          return content == null ? null : {'success': true, 'content': content};
+        },
       );
-      if (response.statusCode != 200) return null;
-      return utf8.decode(response.bodyBytes);
+      return res?['content'] as String?;
     } catch (_) {
       return null;
     }
@@ -818,6 +1100,20 @@ class ApiService {
 
   String backupDownloadUrl(int backupId) => '$baseUrl/admin/backups/$backupId/download';
 
+  Future<(String?, String?)> restoreBackup(int backupId, String password) async {
+    final res = await _send('POST', '/admin/backups/$backupId/restore', body: {'password': password});
+    if (res == null) return (null, S.couldNotReachServer);
+    if (res['success'] != true) return (null, res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
+    return ((res['data'] as Map?)?['safety_backup'] as String? ?? '', null);
+  }
+
+  Future<String?> fetchRestoreState() async {
+    final res = await _send('GET', '/status');
+    final data = res?['data'];
+    if (data is! Map) return null;
+    return (data['restore'] as Map?)?['state'] as String?;
+  }
+
   Future<List<PendingDeletion>> fetchPendingDeletions() async {
     final res = await _send('GET', '/admin/deletions');
     return _mapList(res, PendingDeletion.fromJson);
@@ -836,23 +1132,10 @@ class ApiService {
   }
 
   Future<bool> uploadAvatar(String filePath) async {
-    try {
-      final uri = Uri.parse('$baseUrl/users/me/avatar');
-      final request = http.MultipartRequest('POST', uri);
-      request.headers['Authorization'] = 'Bearer $authToken';
-      request.files.add(await http.MultipartFile.fromPath('avatar', filePath));
-
-      final streamed = await request.send();
-      if (streamed.statusCode == 401) {
-        await _handleUnauthorized();
-        return false;
-      }
-      if (streamed.statusCode >= 200 && streamed.statusCode < 300) {
-        await fetchCurrentUser();
-        return true;
-      }
-    } catch (_) {}
-    return false;
+    final res = await _sendMultipart('/users/me/avatar', [('avatar', filePath)]);
+    if (res == null || res['success'] != true) return false;
+    await fetchCurrentUser();
+    return true;
   }
 
   Future<List<Announcement>> fetchAnnouncements({bool includeDrafts = false}) async {
@@ -890,6 +1173,41 @@ class ApiService {
   Future<List<FaqItem>> fetchFaqs() async {
     final res = await _send('GET', '/support/faqs');
     return _mapList(res, FaqItem.fromJson);
+  }
+
+  Future<List<LegalDoc>> fetchLegalDocList() async {
+    final res = await _send('GET', '/support/legal');
+    return _mapList(res, LegalDoc.fromJson);
+  }
+
+  Future<List<LegalDoc>?> fetchPendingConsents() async {
+    final res = await _send('GET', '/users/me/legal-consents/pending');
+    if (res == null || res['success'] != true) return null;
+    return _mapList(res, LegalDoc.fromJson);
+  }
+
+  Future<String?> acceptLegalDoc(LegalDoc doc) async {
+    final res = await _send('POST', '/users/me/legal-consents', body: {'doc_key': doc.key, 'version': doc.version});
+    if (res == null) return S.couldNotReachServer;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
+  }
+
+  Future<NotificationSettings?> fetchNotificationSettings() async {
+    final res = await _send('GET', '/users/me/notification-settings');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return NotificationSettings.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<NotificationSettings?> updateNotificationSettings(Map<String, bool> changes) async {
+    final res = await _send('PUT', '/users/me/notification-settings', body: changes);
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return NotificationSettings.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
+  Future<Announcement?> fetchAnnouncement(int announcementId) async {
+    final res = await _send('GET', '/announcements/$announcementId');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return Announcement.fromJson(Map<String, dynamic>.from(res['data']));
   }
 
   Future<LegalDoc?> fetchLegalDoc(String key) async {
@@ -942,17 +1260,16 @@ class ApiService {
     return _mapList(res, LegalDoc.fromJson);
   }
 
-  /// 回傳 (error, message)：成功時 error 為 null，message 帶通知了幾個人。
   Future<({String? error, String message})> saveLegalDoc(
     String key, {
     required String title,
     required String content,
-    bool notify = false,
+    bool major = false,
   }) async {
     final res = await _send('PUT', '/admin/legal/$key', body: {
       'title': title,
       'content': content,
-      'notify': notify,
+      'major': major,
     });
     if (res == null) return (error: S.pleaseSignFirst, message: '');
     if (res['success'] != true) {
@@ -1048,7 +1365,6 @@ class ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.updateFailed2);
   }
 
-  /// 三選一：指定等級、加減點數、或恢復自動計算。
   Future<String?> adjustMemberLevel(
     int userId, {
     int? levelId,
@@ -1117,7 +1433,6 @@ class ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.updateFailed2);
   }
 
-  /// 回傳臨時密碼。伺服器只給這一次，畫面必須當場交給管理員。
   Future<(String? password, String? error)> resetMemberPassword(int userId) async {
     final res = await _send('POST', '/admin/members/$userId/reset-password');
     if (res == null) return (null, S.pleaseSignFirst);
@@ -1127,7 +1442,6 @@ class ApiService {
     return (res['data']?['temp_password'] as String?, null);
   }
 
-  /// 代賣家更正商品資料。只送有改動的欄位。
   Future<String?> updateAdminBook(int bookId, Map<String, dynamic> fields) async {
     final res = await _send('PUT', '/admin/books/$bookId', body: fields);
     if (res == null) return S.pleaseSignFirst;
@@ -1244,9 +1558,19 @@ class ApiService {
     return AdminStats.fromJson(Map<String, dynamic>.from(res['data']));
   }
 
-  Future<List<AdminOperationLog>> fetchAdminOperationLogs() async {
-    final res = await _send('GET', '/admin/operation-logs', query: {'limit': '80'});
+  Future<List<AdminOperationLog>> fetchAdminOperationLogs({String? targetType, String? keyword}) async {
+    final res = await _send('GET', '/admin/operation-logs', query: {
+      'limit': '100',
+      if (targetType != null) 'target_type': targetType,
+      if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
+    });
     return _mapList(res, AdminOperationLog.fromJson);
+  }
+
+  Future<String?> undoAdminOperation(int logId) async {
+    final res = await _send('POST', '/admin/operation-logs/$logId/undo');
+    if (res == null) return S.couldNotReachServer;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
   }
 
   Future<List<Cabinet>> fetchAdminCabinets() async {

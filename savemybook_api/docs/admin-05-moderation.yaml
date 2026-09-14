@@ -1,5 +1,6 @@
 tags:
-  - name: 後台：檢舉與爭議
+  - name: admin-moderation
+    x-displayName: 後台：檢舉與爭議
     description: |
       檢舉審核與交易爭議仲裁，分別需 `can_manage_reports` 與
       `can_manage_transactions` 權限，兩者獨立。
@@ -12,7 +13,7 @@ paths:
     get:
       summary: 檢舉列表
       operationId: adminListReports
-      tags: [後台：檢舉與爭議]
+      tags: [admin-moderation]
       description: |
         依建立時間遞減排序，無分頁機制。需 `can_manage_reports` 權限。
 
@@ -66,7 +67,7 @@ paths:
     patch:
       summary: 審核檢舉
       operationId: adminResolveReport
-      tags: [後台：檢舉與爭議]
+      tags: [admin-moderation]
       description: |
         處理單筆檢舉。需 `can_manage_reports` 權限。
 
@@ -134,7 +135,7 @@ paths:
     get:
       summary: 交易爭議列表
       operationId: adminListDisputes
-      tags: [後台：檢舉與爭議]
+      tags: [admin-moderation]
       description: |
         依建立時間遞減排序，無分頁機制。需 `can_manage_transactions` 權限。
         各筆包含申請人與完整訂單資料，含買賣雙方、書名與封面。
@@ -174,7 +175,7 @@ paths:
     patch:
       summary: 仲裁交易爭議
       operationId: adminResolveDispute
-      tags: [後台：檢舉與爭議]
+      tags: [admin-moderation]
       description: |
         裁決爭議案件。需 `can_manage_transactions` 權限。
         整個流程封裝於單一資料庫交易。

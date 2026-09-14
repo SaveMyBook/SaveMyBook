@@ -1,18 +1,15 @@
 const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 const push = require('./push');
+const sessions = require('./sessions');
 const { ORDER_UNSETTLED_STATUSES } = require('../constants/domain');
 
-/// 申請刪除後的緩衝天數。期間內登入即可取消，逾期才真正匿名化。
 const GRACE_DAYS = 30;
 
 const graceDeadline = (requestedAt) =>
   new Date(new Date(requestedAt).getTime() + GRACE_DAYS * 86400000);
 
-/// 清掉個資但保留交易骨架。
-///
-/// 完全刪除會讓對方的購買紀錄出現破洞，而且訂單、錢包異動是帳務資料，
-/// 不能因為單方刪號就消失。所以是匿名化而不是 DELETE。
+// 匿名化而非 DELETE：訂單與錢包異動屬帳務資料，不可隨單方刪號消失。
 const anonymize = async (userId) => {
   const stamp = Date.now();
 
@@ -20,7 +17,6 @@ const anonymize = async (userId) => {
     await tx.users.update({
       where: { user_id: userId },
       data: {
-        // Email 必須保持唯一，用 user_id 組一個不可能撞號的值。
         email: `deleted+${userId}.${stamp}@savemybook.invalid`,
         password_hash: crypto.randomBytes(32).toString('hex'),
         nickname: '已刪除的使用者',
@@ -36,7 +32,6 @@ const anonymize = async (userId) => {
       }
     });
 
-    // 還在架上的書一併下架，否則會出現找不到賣家的商品。
     await tx.books.updateMany({
       where: { seller_id: userId, status: { in: ['on_sale', 'reserved'] } },
       data: { status: 'removed', updated_at: new Date() }
@@ -47,8 +42,6 @@ const anonymize = async (userId) => {
     await tx.user_qr_codes.deleteMany({ where: { user_id: userId } });
     await tx.notifications.deleteMany({ where: { user_id: userId } });
 
-    // 聊天訊息內容可能含個資，但整串刪掉會讓對方的對話斷裂，
-    // 所以只把內容換成佔位字串。
     await tx.chat_messages.updateMany({
       where: { sender_id: userId },
       data: { content: '（使用者已刪除帳號）', message_type: 'system' }
@@ -56,9 +49,9 @@ const anonymize = async (userId) => {
   });
 
   await push.removeUserDevices(userId);
+  await sessions.revokeAll(userId).catch(() => {});
 };
 
-/// 手上還有沒走完的交易就不能刪，否則對方會卡在半途。
 const unsettledOrderCount = (userId) =>
   prisma.orders.count({
     where: {
@@ -67,7 +60,6 @@ const unsettledOrderCount = (userId) =>
     }
   });
 
-/// 處理所有已過緩衝期的刪除申請。由 jobs/scheduler.js 定時呼叫。
 const processDueDeletions = async () => {
   const due = await prisma.users.findMany({
     where: {
@@ -79,7 +71,7 @@ const processDueDeletions = async () => {
 
   for (const user of due) {
     try {
-      // 申請後仍可登入交易，緩衝期內新成立的訂單要等它走完才能匿名化。
+      // 緩衝期內仍可交易，新成立的訂單須走完才能匿名化。
       if ((await unsettledOrderCount(user.user_id)) > 0) {
         console.log(`[帳號匿名化延後] user_id=${user.user_id}：尚有進行中的訂單`);
         continue;
@@ -93,7 +85,6 @@ const processDueDeletions = async () => {
   return due.length;
 };
 
-/// 使用者可以帶走的完整資料。
 const exportData = async (userId) => {
   const [user, books, boughtOrders, soldOrders, wallet, disputes, reports, tickets] =
     await Promise.all([

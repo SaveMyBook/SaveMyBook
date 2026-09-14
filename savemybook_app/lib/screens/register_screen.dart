@@ -6,6 +6,8 @@ import '../widgets/animations.dart';
 import '../widgets/app_buttons.dart';
 import '../widgets/app_forms.dart';
 import '../widgets/app_header.dart';
+import '../widgets/guards.dart';
+import '../widgets/pin_pad.dart';
 import '../widgets/state_views.dart';
 import 'legal_doc_screen.dart';
 import '../i18n/strings.dart';
@@ -28,6 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _agreedToTerms = false;
+  int _termsShake = 0;
   String? _nicknameError;
   String? _emailError;
   String? _passwordError;
@@ -88,6 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         confirmError == null;
 
     if (passed && !_agreedToTerms) {
+      setState(() => _termsShake++);
       showAppSnackBar(context, S.pleaseReadAcceptTermsServicePrivacy, isError: true);
       return false;
     }
@@ -111,8 +115,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (error != null) {
-      if (error.contains('Email')) setState(() => _emailError = error);
-      showAppSnackBar(context, error, isError: true);
+      if (error.contains('Email')) {
+        setState(() => _emailError = error);
+      } else if (error.contains(S.password)) {
+        setState(() => _passwordError = error);
+      } else if (error.contains(S.displayName)) {
+        setState(() => _nicknameError = error);
+      } else {
+        showAppSnackBar(context, error, isError: true);
+      }
       return;
     }
 
@@ -130,6 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     return AppCard(
+      onTap: () => setState(() => _agreedToTerms = !_agreedToTerms),
       padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,12 +220,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     Widget? suffix,
     ValueChanged<String>? onChanged,
     ValueChanged<String>? onSubmitted,
+    Widget? footer,
   }) {
     return FadeSlideIn(
       index: index,
       child: AppCard(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).viewInsets.bottom + 14),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -221,9 +234,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 Icon(icon, size: 16, color: c.accent),
                 const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
+                  ),
                 ),
               ],
             ),
@@ -240,6 +257,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               onChanged: onChanged,
               onSubmitted: onSubmitted,
             ),
+            ?footer,
           ],
         ),
       ),
@@ -351,9 +369,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
-                    onChanged: (_) {
-                      if (_passwordError != null) setState(() => _passwordError = null);
-                    },
+                    onChanged: (_) => setState(() => _passwordError = null),
+                    footer: PasswordStrengthMeter(password: _passwordController.text),
                   ),
                   _buildField(
                     index: 4,
@@ -366,13 +383,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     maxLength: 64,
                     isLast: true,
                     c: c,
+                    suffix: ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _confirmController,
+                      builder: (_, value, _) {
+                        final matches = value.text.isNotEmpty && value.text == _passwordController.text;
+                        return AnimatedOpacity(
+                          opacity: matches ? 1 : 0,
+                          duration: const Duration(milliseconds: 180),
+                          child: Icon(Icons.check_circle_rounded, size: 18, color: c.success),
+                        );
+                      },
+                    ),
                     onSubmitted: (_) => _handleRegister(),
                     onChanged: (_) {
                       if (_confirmError != null) setState(() => _confirmError = null);
                     },
                   ),
                   const SizedBox(height: 4),
-                  FadeSlideIn(index: 5, child: _buildTermsRow(c)),
+                  FadeSlideIn(
+                    index: 5,
+                    child: ShakeOnError(trigger: _termsShake, child: _buildTermsRow(c)),
+                  ),
                   const SizedBox(height: 24),
                   FadeSlideIn(
                     index: 6,
@@ -380,7 +411,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       label: S.createAccount,
                       height: 50,
                       isLoading: _isLoading,
-                      onPressed: _agreedToTerms ? _handleRegister : null,
+                      onPressed: _handleRegister,
                     ),
                   ),
                   const SizedBox(height: 12),

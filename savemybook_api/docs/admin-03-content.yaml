@@ -1,5 +1,6 @@
 tags:
-  - name: 後台：內容管理
+  - name: admin-content
+    x-displayName: 後台：內容管理
     description: |
       書籍稽核與分類維護。本組端點均需 `can_manage_content` 權限。
 
@@ -14,7 +15,7 @@ paths:
     get:
       summary: 書籍列表
       operationId: adminListBooks
-      tags: [後台：內容管理]
+      tags: [admin-content]
       description: |
         分頁查詢全站書籍，依上架時間遞減排序。回應採扁平化格式，
         與 `GET /api/books` 的巢狀結構不同。
@@ -81,7 +82,7 @@ paths:
     put:
       summary: 修改書籍資料
       operationId: adminUpdateBook
-      tags: [後台：內容管理]
+      tags: [admin-content]
       description: |
         供客服代為更正賣家填錯的商品資料（錯字、分類放錯、價格多一個零）。
         部分更新：只有帶入的欄位會被寫入，未帶入的維持原值。
@@ -163,7 +164,7 @@ paths:
     patch:
       summary: 強制上下架書籍
       operationId: adminUpdateBookStatus
-      tags: [後台：內容管理]
+      tags: [admin-content]
       description: |
         僅能設為 `on_sale` 或 `removed`。`reserved` 與 `sold` 由交易流程決定，
         不開放手動異動。
@@ -213,7 +214,7 @@ paths:
     get:
       summary: 分類列表（含書籍數）
       operationId: adminListCategories
-      tags: [後台：內容管理]
+      tags: [admin-content]
       description: |
         回傳扁平清單，依排序值排列。各筆包含該分類底下的書籍數，
         供判斷是否可刪除。
@@ -243,7 +244,7 @@ paths:
     post:
       summary: 新增分類
       operationId: adminCreateCategory
-      tags: [後台：內容管理]
+      tags: [admin-content]
       description: 建立分類，名稱長度上限 50 字。操作會寫入稽核紀錄。
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -287,7 +288,7 @@ paths:
     put:
       summary: 重新排序分類
       operationId: adminReorderCategories
-      tags: [後台：內容管理]
+      tags: [admin-content]
       description: |
         重新設定分類排序。請帶入已排序的完整編號陣列，伺服器依陣列索引
         將 `sort_order` 重寫為 0、1、2 等序號。
@@ -348,7 +349,7 @@ paths:
     put:
       summary: 編輯分類
       operationId: adminUpdateCategory
-      tags: [後台：內容管理]
+      tags: [admin-content]
       description: 更新分類名稱與排序值。操作會寫入稽核紀錄。
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -381,7 +382,7 @@ paths:
     delete:
       summary: 刪除分類
       operationId: adminDeleteCategory
-      tags: [後台：內容管理]
+      tags: [admin-content]
       description: |
         分類底下仍有書籍時不得刪除，錯誤訊息會回報剩餘書籍數，
         以避免書籍失去分類關聯。

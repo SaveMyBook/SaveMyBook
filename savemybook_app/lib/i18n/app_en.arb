@@ -1771,5 +1771,667 @@
   "systemNotificationSettings": "System notification settings",
   "turnNotificationsSoundsLockScreenPreviews": "Turn notifications, sounds and Lock Screen previews on or off",
   "pushNotificationsNotSetUpBuild": "Push notifications are not set up in this build. Add the Firebase config files and rebuild.",
-  "notificationsTurnedOffAllowAppSend": "Notifications are turned off. Allow this app to send notifications in system settings."
+  "notificationsTurnedOffAllowAppSend": "Notifications are turned off. Allow this app to send notifications in system settings.",
+  "restoreBackup": "Restore this backup?",
+  "wholeDatabaseGoBackP0Orders": "The whole database will go back to {p0}. Orders, messages, member data and activity logs after that point will be lost.\n\nThe current state is backed up automatically first, so you can restore that backup if this was a mistake. The service pauses during the restore, usually for a few seconds to a few minutes.\n\nEnter your password to confirm:",
+  "@wholeDatabaseGoBackP0Orders": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "password2": "Password",
+  "startRestore": "Start restore",
+  "backingUpCurrentState": "Backing up the current state…",
+  "databaseRestoredPreviousStateWasBacked": "Database restored. The previous state was backed up as {p0}",
+  "@databaseRestoredPreviousStateWasBacked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "restoreFailedDatabaseMayUnchangedPartly": "Restore failed. The database may be unchanged or partly restored. Check the activity log and consider restoring {p0}",
+  "@restoreFailedDatabaseMayUnchangedPartly": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "autoBackupBeforeRestore": "Auto backup before restore",
+  "restoreBackup2": "Restore this backup",
+  "restoringDatabase": "Restoring the database",
+  "p0SecondsSoFarKeepApp": "{p0} seconds so far. Keep the app open; the service resumes automatically when it finishes.",
+  "@p0SecondsSoFarKeepApp": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "majorUpdate": "Is this a major update?",
+  "majorUpdateNotifiesEveryUserTerms": "A major update notifies every user. For the Terms and Privacy Policy, users must read and accept the new version the next time they open the app.\n\nFor typo fixes or formatting changes, choose \"Minor edit\".",
+  "majorUpdate2": "Major update",
+  "minorEdit": "Minor edit",
+  "books": "Books",
+  "orders2": "Orders",
+  "wallets2": "Wallets",
+  "announcements3": "Announcements",
+  "legal": "Legal",
+  "backups": "Backups",
+  "undoAction": "Undo this action?",
+  "p0NNtheDataGoesBack": "\"{p0}\"\n\nThe data goes back to how it was before this action. Notifications already sent are not recalled. If the data was changed again afterwards, the undo is refused.",
+  "@p0NNtheDataGoesBack": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "undo": "Undo",
+  "undone": "Undone",
+  "searchActionsEGNicknameBook": "Search actions, e.g. a nickname or book title",
+  "viewP0Changes": "View {p0} changes",
+  "@viewP0Changes": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "undoAction2": "Undo this action",
+  "tapBarSeeDay": "Tap a bar to see that day",
+  "noAnnouncements": "No announcements",
+  "tapPhotoNameChange": "Tap the photo or name to change it",
+  "canTContinueWithoutAccepting": "You can't continue without accepting",
+  "needAcceptLatestP0UseP1": "You need to accept the latest \"{p0}\" to use {p1}. If you decline, you are signed out; sign in again any time to accept.",
+  "@needAcceptLatestP0UseP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "goBack": "Go back",
+  "p0BeenUpdated": "\"{p0}\" has been updated",
+  "@p0BeenUpdated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "readLatestVersionUpdatedP0Accept": "Read the latest version (updated {p0}). Accept it to continue.",
+  "@readLatestVersionUpdatedP0Accept": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "scrollEndContinue": "Scroll to the end to continue",
+  "iVeReadAccept": "I've read and accept",
+  "decline": "Decline",
+  "viewDetails": "View details",
+  "notFoundMayBeenDeletedRemoved": "Not found. It may have been deleted or removed.",
+  "salesDropOffsPickupsRefundsDisputes": "Sales, drop-offs, pickups, refunds and disputes",
+  "chatMessages": "Chat messages",
+  "newMessagesFromBuyersSellers": "New messages from buyers and sellers",
+  "promotions2": "Promotions",
+  "announcementsAboutPromotions": "Announcements about promotions",
+  "supportRepliesPasswordResetsPolicyUpdates": "Support replies, password resets, policy updates and maintenance notices are always sent. Turned-off types still appear in your notification list, just without a push.",
+  "notFilled": "Not filled in",
+  "canTChanged": "Can't be changed",
+  "voice": "[Voice]",
+  "reservation": "Reservation",
+  "messageUnsent": "Message unsent",
+  "confirmBeforeExportingData": "Confirm it is you before exporting your data",
+  "exportFailedPleaseTryAgainLater": "Export failed. Please try again later",
+  "refresh": "Refresh",
+  "clearFilters": "Clear filters",
+  "expired": "Expired",
+  "verificationCancelled": "Verification cancelled",
+  "openingClosingTimesCanTSame": "Opening and closing times can’t be the same",
+  "slotCurrentlyP0MayOrderProgress": "This slot is currently \"{p0}\" and may have an order in progress. Changing it to \"{p1}\" may stop the buyer or seller from dropping off or collecting the book.",
+  "@slotCurrentlyP0MayOrderProgress": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "active": "Active",
+  "categoryWithNameAlreadyExists": "A category with this name already exists",
+  "orderP0ClosedAsP1P2": "Order {p0} will be closed as \"{p1}\" and {p2} coins will be returned to the buyer. This can’t be changed after submitting.",
+  "@orderP0ClosedAsP1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "orderP0ClosedAsP1Can": "Order {p0} will be closed as \"{p1}\". This can’t be changed after submitting.",
+  "@orderP0ClosedAsP1Can": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "clearSearch": "Clear search",
+  "enterMinimumPoints": "Enter the minimum points",
+  "pointsRangeOverlapsWithP0P1": "Points range overlaps with \"{p0}\" ({p1})",
+  "@pointsRangeOverlapsWithP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noTierCoversP0P1Points": "No tier covers {p0}–{p1} points",
+  "@noTierCoversP0P1Points": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0TakenDownRightAwayOther": "\"{p0}\" will be taken down right away and other members will no longer be able to see or buy it.",
+  "@p0TakenDownRightAwayOther": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "searchReportedItemReporterReason": "Search reported item, reporter or reason",
+  "couldnTLoadStatisticsRightNow": "Couldn’t load statistics right now",
+  "searchSubjectMemberMessage": "Search subject, member or message",
+  "balance3": "Has balance",
+  "hold3": "On hold",
+  "zeroBalance": "Zero balance",
+  "amountCanMost2DecimalPlaces": "Amount can have at most 2 decimal places",
+  "singleAdjustmentCanTExceed1": "A single adjustment can’t exceed 1,000,000",
+  "wouldMakeBalanceNegativeCurrentBalance": "This would make the balance negative. Current balance: {p0}",
+  "@wouldMakeBalanceNegativeCurrentBalance": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "amountUp2Decimals": "Amount (up to 2 decimals)",
+  "p0NbalanceAfterP1": "{p0}\nBalance after: {p1}",
+  "@p0NbalanceAfterP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "cameraAccessOff": "Camera access is off",
+  "couldNotStartCamera": "Could not start the camera",
+  "allowP0UseCameraSettingsThen": "Allow {p0} to use the camera in Settings, then try again.",
+  "@allowP0UseCameraSettingsThen": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "closeScreenTryAgain": "Close this screen and try again.",
+  "couldnTGetLocationCheckLocation": "Couldn't get your location. Check that location services and permission are on.",
+  "bookReservedAnotherBuyerCanT": "This book is reserved for another buyer and can't be added to your cart right now",
+  "reservedAnotherBuyerUntilP0": "Reserved for another buyer until {p0}",
+  "@reservedAnotherBuyerUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "ifIsnTSoldByThen": "If it isn't sold by then, you can add it to your cart",
+  "sellerHoldingUntilP0": "The seller is holding it for you until {p0}",
+  "@sellerHoldingUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "checkOutBeforeHoldEndsOther": "Check out before the hold ends, or other buyers can purchase it",
+  "copyAddress": "Copy address",
+  "p0Away": "{p0} away",
+  "@p0Away": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "locating": "Locating…",
+  "showDistance": "Show distance",
+  "reserved": "Reserved",
+  "goCheckout": "Go to checkout",
+  "cart2": "In cart",
+  "buyNow": "Buy now",
+  "p0Delisted": "\"{p0}\" delisted",
+  "@p0Delisted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBooksMatchP0": "No books match \"{p0}\"",
+  "@noBooksMatchP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0BooksP1Views": "{p0} books · {p1} views",
+  "@p0BooksP1Views": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "swipeQuickActions": "Swipe for quick actions",
+  "searchTitleAuthorIsbn2": "Search title, author or ISBN",
+  "removedP0": "Removed \"{p0}\"",
+  "@removedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removedP0Items": "Removed {p0} items",
+  "@removedP0Items": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paymentSuccessful": "Payment successful",
+  "p0BooksSplitIntoP1Orders": "{p0} books, split into {p1} orders by seller",
+  "@p0BooksSplitIntoP1Orders": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "keepBrowsing": "Keep browsing",
+  "reload": "Reload",
+  "browseBooks": "Browse books",
+  "p0Sellers": "{p0} sellers",
+  "@p0Sellers": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unavailableP0": "Unavailable ({p0})",
+  "@unavailableP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeAll": "Remove all",
+  "goWallet": "Go to wallet",
+  "fromP0SellersCheckoutCreatesP1": "From {p0} sellers; checkout creates {p1} separate orders",
+  "@fromP0SellersCheckoutCreatesP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "otherDevicesNeedSignAgainWith": "Your other devices will need to sign in again with the new password.",
+  "searchChats": "Search chats",
+  "noMatchingChats": "No matching chats",
+  "read": "Read",
+  "chatNotFound": "Chat not found",
+  "messagesCanUp2000Characters": "Messages can be up to 2000 characters",
+  "canTSendRightNowPlease": "Can't send right now. Please try again later",
+  "reserveBook": "Reserve this book",
+  "quickReplies": "Quick replies",
+  "imagesMust10MbSmaller": "Images must be 10 MB or smaller",
+  "recordingFailedPleaseTryAgain": "Recording failed. Please try again",
+  "voiceMessageTooLargePleaseRecord": "Voice message is too large. Please record a shorter one",
+  "microphoneAllowedPressHoldAgainRecord": "Microphone allowed. Press and hold again to record",
+  "microphoneAccessNeededRecordTurnSettings": "Microphone access is needed to record. Turn it on in Settings",
+  "couldnTStartRecordingPleaseTry": "Couldn't start recording. Please try again later",
+  "selectText": "Select text",
+  "unsend": "Unsend",
+  "resend": "Resend",
+  "unsendMessage": "Unsend this message?",
+  "neitherAbleSeeMessageSContent": "Neither of you will be able to see this message's content.",
+  "reportMessage": "Report this message",
+  "reservationSentWaitingSeller": "Reservation sent. Waiting for the seller",
+  "acceptReservation": "Accept reservation?",
+  "p0HeldThemP1HoursNo": "\"{p0}\" will be held for them for {p1} hours. No one else can buy it during that time.",
+  "@p0HeldThemP1HoursNo": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "accept": "Accept",
+  "reservationAccepted": "Reservation accepted",
+  "declineReservation": "Decline reservation?",
+  "theyLlNotifiedDeclined": "They'll be notified that you declined.",
+  "decline2": "Decline",
+  "reservationDeclined": "Reservation declined",
+  "cancelReservation": "Cancel reservation?",
+  "p0NoLongerHeld": "\"{p0}\" will no longer be held.",
+  "@p0NoLongerHeld": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelReservation2": "Cancel reservation",
+  "reservationCanceled": "Reservation canceled",
+  "notNow2": "Not now",
+  "couldnTLoadConversationPleaseTry": "Couldn't load the conversation. Please try again later",
+  "accountCanTReceiveMessagesRight": "This account can't receive messages right now",
+  "holdMicTalkReleaseSend": "Hold the mic to talk, release to send",
+  "startConversation": "This is the start of your conversation",
+  "p0New": "{p0} new",
+  "@p0New": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionUnstableMessagesCanTSent": "Connection is unstable. Messages can't be sent for now",
+  "retry": "Retry",
+  "stillAvailable": "Is this still available?",
+  "couldLowerPriceBit": "Could you lower the price a bit?",
+  "whenCanPutLocker": "When can you put it in the locker?",
+  "unsentMessage": "You unsent a message",
+  "theyUnsentMessage": "They unsent a message",
+  "reservationDetailsArenTAvailableRight": "Reservation details aren't available right now",
+  "sending": "Sending",
+  "couldNotUploadPhotosPleaseTry": "Could not upload the photos. Please try again later",
+  "bookDetailsUpdatedButPhotosCouldn": "Book details updated, but photos couldn't be uploaded. Please try again later.",
+  "sNotIsbnBarcodeScanOne": "That's not an ISBN barcode. Scan the one starting with 978 or 979 on the back cover.",
+  "couldnTLoadCategoriesTapRetry": "Couldn't load categories. Tap to retry",
+  "removedP0FromSaved": "Removed \"{p0}\" from saved",
+  "@removedP0FromSaved": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "recentlyViewedCleared": "Recently viewed cleared",
+  "clearP0": "Clear ({p0})",
+  "@clearP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "picked": "Picked for you",
+  "seeMore": "See more",
+  "recentlyViewed": "Recently viewed",
+  "clear": "Clear",
+  "notificationDeleted": "Notification deleted",
+  "pleasePutBookAssignedLockerSoon": "Please put the book in the assigned locker soon",
+  "weLlLetKnowWhenSeller": "We'll let you know when the seller drops the book off",
+  "waitingBuyerCollect": "Waiting for the buyer to collect",
+  "bookLockerEnterPickupCodeCollect": "The book is in the locker. Enter your pickup code to collect it.",
+  "transactionCompleteThank": "Transaction complete. Thank you!",
+  "confirmVeTakenBookFromLocker": "Confirm you've taken the book from the locker. The order will then be completed.",
+  "p0Orders2": "{p0} orders",
+  "@p0Orders2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ReadyPickup": "{p0} ready for pickup",
+  "@p0ReadyPickup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pickUp": "To pick up",
+  "saved": "Saved",
+  "accountSecurity": "Account security",
+  "sellerHasnTPutBookLocker": "The seller hasn't put the book in the locker yet. We'll notify you once it's there.",
+  "searchHistoryCleared": "Search history cleared",
+  "trendingBooks": "Trending books",
+  "signOutDevice": "Sign out this device?",
+  "signOutP0": "Sign out \"{p0}\"?",
+  "@signOutP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "llNeedSignAgainUseApp": "You'll need to sign in again to use the app.",
+  "deviceSignedOutRightAwayStop": "That device will be signed out right away and stop receiving notifications.",
+  "deviceSignedOut": "Device signed out",
+  "signOutAllDevicesIncludingOne": "Sign out all devices (including this one)",
+  "signOutAllOtherDevices": "Sign out all other devices",
+  "everyDeviceIncludingOneSignedOut": "Every device, including this one, will be signed out and need to sign in again.",
+  "everyDeviceExceptOneSignedOut": "Every device except this one will be signed out right away and stop receiving notifications.",
+  "signedOutP0OtherDevices": "Signed out of {p0} other devices",
+  "@signedOutP0OtherDevices": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unknownDevice": "Unknown device",
+  "couldnTLoadDevices": "Couldn't load your devices",
+  "theseDevicesSignedAccountIfDon": "These devices are signed in to your account. If you don't recognise one, sign it out and change your password.",
+  "device": "This device",
+  "otherDevices": "Other devices",
+  "otherDevicesP0": "Other devices ({p0})",
+  "@otherDevicesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noOtherDevicesSigned": "No other devices are signed in",
+  "signedDevices": "Signed-in devices",
+  "activeNow": "Active now",
+  "lastActiveP0": "Last active {p0}",
+  "@lastActiveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signedP0": "Signed in {p0}",
+  "@signedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "biometricPayment": "Biometric payment on",
+  "paymentPinMust6Digits": "Payment PIN must be 6 digits",
+  "pinTooEasyGuessTryAnother": "That PIN is too easy to guess. Try another",
+  "enterPasswordResetPaymentPin": "Enter your password to reset your payment PIN",
+  "confirmSBeforeSettingPaymentPin": "Confirm it's you before setting a payment PIN",
+  "pinsDonTMatchStartAgain": "The PINs don't match. Start again",
+  "paymentPinReset": "Payment PIN reset",
+  "paymentPinSet": "Payment PIN set",
+  "use6DigitPinConfirmPayments": "You will use this 6-digit PIN to confirm payments at checkout.",
+  "verifyingIdentity": "Verifying your identity…",
+  "enterAgainConfirm": "Enter it again to confirm",
+  "set6DigitPaymentPin": "Set a 6-digit payment PIN",
+  "enterSamePinAgain": "Enter the same PIN again",
+  "avoidRepeatedSequentialPatternedDigits": "Avoid repeated, sequential or patterned digits",
+  "resetPaymentPin": "Reset payment PIN",
+  "paymentPin": "Payment PIN",
+  "stepP02": "Step {p0} of 2",
+  "@stepP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "setPaymentPinFirst": "Set a payment PIN first",
+  "setPaymentPinFirstSoFallback": "Set a payment PIN first so you have a fallback",
+  "setUpNow": "Set up now",
+  "biometricPaymentTurnedOff": "Biometric payment turned off",
+  "verifyTurnBiometricPayment": "Verify to turn on biometric payment",
+  "p0PaymentsTurned": "{p0} payments turned on",
+  "@p0PaymentsTurned": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "securitySettingsUnavailableRightNowMay": "Security settings are unavailable right now. You may not be able to change your payment PIN or devices.",
+  "payWithP0": "Pay with {p0}",
+  "@payWithP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accountWellProtected": "Your account is well protected",
+  "accountCouldSafer": "Your account could be safer",
+  "paymentPinBiometricPaymentSetCheck": "Payment PIN and biometric payment are set. Check your signed-in devices from time to time.",
+  "setPaymentPinTurnBiometricPayment": "Set a payment PIN and turn on biometric payment for safer, faster checkout.",
+  "tooManyAttemptsLockedUntilP0": "Too many attempts. Locked until {p0}",
+  "@tooManyAttemptsLockedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "usedConfirmPaymentsCheckout": "Used to confirm payments at checkout",
+  "notSetRequiredBeforeCheckout": "Not set. Required before checkout",
+  "change": "Change",
+  "forgotPaymentPin": "Forgot payment PIN",
+  "ifFailsCanEnterPaymentPin": "If it fails, you can enter your payment PIN instead",
+  "viewRemotelySignOutDevices": "View or remotely sign out devices",
+  "p0Devices": "{p0} devices",
+  "@p0Devices": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "otherDevicesNeedSignAgain": "Other devices will need to sign in again",
+  "restoredUnfinishedListing": "Restored your unfinished listing",
+  "isbnSCheckDigitInvalidPlease": "This ISBN's check digit is invalid. Please check it again.",
+  "draftSavedAutomatically": "Draft saved automatically",
+  "continueUnfinishedListing": "Continue your unfinished listing",
+  "clearedP0MbCache": "Cleared {p0} MB of cache",
+  "@clearedP0MbCache": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cacheCleared": "Cache cleared",
+  "storage": "Storage",
+  "paymentPinBiometricPaymentDevices": "Payment PIN, biometric payment, devices",
+  "clearCache": "Clear cache",
+  "removesCachedImagesFilesAccountData": "Removes cached images and files. Your account data is not affected",
+  "couldNotLoadNotificationSettings": "Could not load notification settings",
+  "month": "This month",
+  "p0P1": "{p0}/{p1}",
+  "@p0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noIncomeYet": "No income yet",
+  "noSpendingYet": "No spending yet",
+  "income": "Income",
+  "spending": "Spending",
+  "totalIncome": "Total income",
+  "totalSpending": "Total spending",
+  "item3": "Item",
+  "details": "Details",
+  "balanceAfter": "Balance after",
+  "transactionId": "Transaction ID",
+  "sessionExpiredPleaseSignAgain": "Your session expired. Please sign in again",
+  "serviceTemporarilyUnavailableTryAgainLater": "Service temporarily unavailable. Try again later",
+  "uploadFailedTryAgainLater": "Upload failed. Try again later",
+  "nearby": "Nearby",
+  "p0M": "{p0} m",
+  "@p0M": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Km": "{p0} km",
+  "@p0Km": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iphoneDidnTReceiveApnsToken": "This iPhone didn't receive an APNs token. Make sure Push Notifications is added under Signing & Capabilities in Xcode, then reinstall the app with the same Apple developer account.",
+  "firebaseDidnTIssuePushToken": "Firebase didn't issue a push token. Check that GoogleService-Info.plist matches the app's bundle ID",
+  "couldnTGetPushTokenP0": "Couldn't get a push token: {p0}",
+  "@couldnTGetPushTokenP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "couldnTRegisterPushTokenWith": "Couldn't register the push token with the server: {p0}",
+  "@couldnTRegisterPushTokenWith": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "protectCoinsCheckoutRequires6Digit": "To protect your coins, checkout requires a 6-digit payment PIN. After setting it, you can also turn on Face ID or fingerprint payment.",
+  "confirmPaymentP0Coins": "Confirm payment of {p0} coins",
+  "@confirmPaymentP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterPasswordContinue": "Enter your password to continue",
+  "verifyS": "Verify it's you",
+  "amount": "Amount",
+  "p0Coins": "{p0} coins",
+  "@p0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterPaymentPin": "Enter payment PIN",
+  "enterPaymentPinContinue": "Enter your payment PIN to continue",
+  "paymentPinResetEnterAgain": "Payment PIN reset. Enter it again",
+  "usePasswordInstead": "Use password instead",
+  "couldnTGetLocationLockersShown": "Couldn't get your location. Lockers are shown in default order.",
+  "p0SlotsFree": "{p0} slots free",
+  "@p0SlotsFree": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "openP0": "Open {p0}",
+  "@openP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nearest": "Nearest",
+  "noFreeSlots": "No free slots",
+  "sortedByDistance": "Sorted by distance",
+  "turnLocationSortByDistance": "Turn on location to sort by distance",
+  "lockerNoFreeSlotsRightNow": "This locker has no free slots right now",
+  "turn": "Turn on",
+  "noLockersAvailable": "No lockers available",
+  "noMatchingOptions": "No matching options",
+  "undo2": "Undo",
+  "copiedP0": "Copied \"{p0}\"",
+  "@copiedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "typing": "Typing…",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "p0P12": "{p0}/{p1}",
+  "@p0P12": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p1P2P0": "{p0}/{p1}/{p2}",
+  "@p1P2P0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "releaseCancel": "Release to cancel",
+  "slideCancel": "← Slide to cancel",
+  "awaitingReply": "Awaiting reply",
+  "heldUntilP0": "Held until {p0}",
+  "@heldUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "declined2": "Declined",
+  "closed": "Closed",
+  "theyWantReserveBook": "They want to reserve your book",
+  "sentReservationRequest": "You sent a reservation request",
+  "holdP0H": "Hold for {p0} h",
+  "@holdP0H": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "onceSellerAcceptsBookHeldNo": "Once the seller accepts, the book is held for you and no one else can buy it until the deadline.",
+  "holdPeriod": "Hold period",
+  "messageSellerOptional": "Message to the seller (optional)",
+  "sendRequest": "Send request",
+  "p0Hours": "{p0} hours",
+  "@p0Hours": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0P1DigitsEntered": "{p0} of {p1} digits entered",
+  "@p0P1DigitsEntered": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  }
 }

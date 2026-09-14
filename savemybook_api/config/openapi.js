@@ -13,7 +13,7 @@ SaveMyBook 為結合智慧書櫃的二手書交易平台。賣家將書籍存入
 
 ---
 
-## 快速開始
+## Quick Start
 
 1. 呼叫 \`POST /api/users\` 建立帳號，或使用既有帳號。
 2. 呼叫 \`POST /api/auth/login\` 取得 JWT Token。
@@ -28,7 +28,7 @@ curl -X POST http://localhost:${port}/api/auth/login \\
 
 ---
 
-## 回應格式
+## Response Format
 
 所有 JSON 端點均遵循相同的外層結構，用戶端依 \`success\` 判斷處理分支。
 
@@ -56,10 +56,11 @@ curl -X POST http://localhost:${port}/api/auth/login \\
 
 ---
 
-## 認證與帳號狀態
+## Authentication
 
 Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
-\`Authorization: Bearer <token>\` 標頭傳遞。
+\`Authorization: Bearer <token>\` 標頭傳遞。每次登入建立一筆裝置工作階段，
+Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置最近 30 天內使用過即可。
 
 驗證中介層於每次請求查詢資料庫確認帳號狀態，不僅驗證簽章。因此帳號停權或列入黑名單後
 立即失效，無須等待 Token 到期；管理員遭降級亦同步生效。此設計的成本為每次請求
@@ -68,17 +69,41 @@ Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
 | 狀況 | HTTP | \`code\` |
 | --- | --- | --- |
 | 未提供 Token | 401 | － |
-| Token 過期或簽章無效 | 403 | － |
+| Token 已過期 | 403 | \`TOKEN_EXPIRED\` |
+| Token 簽章無效 | 403 | － |
 | 帳號已刪除 | 401 | \`ACCOUNT_NOT_FOUND\` |
 | 帳號列入黑名單 | 401 | \`ACCOUNT_BLACKLISTED\` |
 | 帳號已停權 | 401 | \`ACCOUNT_INACTIVE\` |
 | 密碼已變更（含客服重設），舊 Token 失效 | 401 | \`TOKEN_REVOKED\` |
+| 裝置已登出（本機登出、遠端登出或登出所有裝置） | 401 | \`SESSION_REVOKED\` |
+| \`POST /api/auth/refresh\` 無法換發 | 401 | \`REFRESH_FAILED\` |
 
-用戶端收到上述任一回應時，應清除本機 Token 並導向登入流程。
+收到 \`TOKEN_EXPIRED\` 時，先呼叫 \`POST /api/auth/refresh\` 換發 Token 並重送原請求；
+換發失敗或收到其他回應時，應清除本機 Token 並導向登入流程。
 
 ---
 
-## 錯誤代碼
+## Verification
+
+付款與敏感操作須在 Token 之外另行驗證身分。未帶入有效的 \`X-Verify-Token\` 標頭時回傳 403
+\`VERIFICATION_REQUIRED\`，回應附帶 \`verification: { scope, methods }\`：
+
+1. 依 \`verification.methods\` 讓使用者選擇驗證方式（登入密碼、交易密碼或生物辨識）。
+2. 呼叫 \`POST /api/security/verify\` 取得 \`verify_token\`。
+3. 以 \`X-Verify-Token: <verify_token>\` 標頭重送原請求。
+
+| \`scope\` | 可用方式 | 有效期 | 使用次數 | 適用端點 |
+| --- | --- | --- | --- | --- |
+| \`payment\` | 交易密碼、生物辨識 | 3 分鐘 | 單次；請求失敗（狀態碼大於等於 400）時恢復可用 | \`POST /api/orders/checkout\` |
+| \`sensitive\` | 登入密碼、交易密碼、生物辨識 | 5 分鐘 | 有效期內可重複使用 | 匯出個人資料、交易密碼與登入裝置管理、刪除使用者、錢包調整、重設會員密碼、設定管理員權限、刪除備份、立即匿名化、還原操作 |
+
+交易密碼規則、錯誤鎖定與生物辨識付款的運作方式見「帳號安全」一節。
+伺服器尚未執行 \`migrations/007_consent_sessions_payment.sql\` 時略過此驗證，
+帳號安全相關端點回傳 503 \`SECURITY_UNAVAILABLE\`。
+
+---
+
+## Error Codes
 
 除認證相關代碼外，業務邏輯另定義下列代碼：
 
@@ -86,30 +111,44 @@ Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
 | --- | --- | --- | --- |
 | \`INVALID_PASSWORD\` | 401 | 登入密碼錯誤 | 保留已輸入的 Email，僅於密碼欄位提示錯誤 |
 | \`INSUFFICIENT_BALANCE\` | 400 | 代幣餘額不足以完成結帳 | 導向儲值流程 |
+| \`BOOK_RESERVED\` | 409 | 書籍已由其他買家預約保留，無法加入購物車或結帳 | 顯示保留期限，引導瀏覽其他書籍 |
+| \`VERIFICATION_REQUIRED\` | 403 | 需要身分驗證，回應附帶 \`verification\` | 依 \`verification\` 驗證後帶 \`X-Verify-Token\` 重送 |
+| \`PAYMENT_PIN_NOT_SET\` | 403 | 尚未設定交易密碼 | 引導設定交易密碼 |
+| \`INVALID_PIN\` | 400 | 交易密碼錯誤，回應附帶 \`remaining_attempts\` | 提示剩餘可嘗試次數 |
+| \`PIN_LOCKED\` | 423 | 交易密碼連續錯誤 5 次，鎖定 15 分鐘，回應附帶 \`locked_until\` | 顯示解除時間 |
+| \`PIN_FORMAT\`、\`PIN_TOO_WEAK\` | 400 | 設定的交易密碼不是 6 位數字，或過於簡單 | 於輸入欄位提示規則 |
+| \`BIOMETRIC_KEY_INVALID\` | 400 | 這台裝置的生物辨識付款金鑰已失效 | 清除本機金鑰，改用交易密碼 |
+| \`SESSION_REQUIRED\` | 403 | Token 未綁定裝置工作階段（舊版 Token） | 引導重新登入 |
+| \`SECURITY_UNAVAILABLE\` | 503 | 伺服器尚未執行帳號安全所需的資料庫更新 | 隱藏相關功能，稍後再試 |
 | \`BOOK_NOT_APPROVED\` | 403 | 書籍因違規下架，賣家無法自行重新上架 | 引導使用者開立客服工單 |
 | \`OPEN_ORDERS\` | 400 | 尚有進行中的訂單，無法申請刪除帳號 | 引導使用者完成或取消訂單 |
 | \`RATE_LIMITED\` | 429 | 短時間內嘗試次數過多 | 依 \`Retry-After\` 標頭等待後再試 |
 | \`ROUTE_NOT_FOUND\` | 404 | 端點不存在 | 檢查路徑與 HTTP 方法 |
+| \`MAINTENANCE\` | 503 | 資料庫還原中，暫停服務 | 顯示維護訊息，稍後以 \`GET /api/status\` 確認 |
 
 409 代表資料在處理期間被其他請求變更（例如兩人同時結帳同一本書、同一筆訂單被重複取消），
 重新整理後再試即可。
 
-### 輸入驗證
+### Validation
 
 - 路徑與 body 中的編號必須是正整數，否則回傳 400，不會進到資料庫。
 - 字串欄位超過資料庫欄位長度時回傳 400，並指出是哪個欄位。
 - 列舉欄位（狀態、書況、類型等）只接受文件列出的值。
 - 請求內容不是合法 JSON 時回傳 400，body 上限 1 MB。
 
-### 限流
+### Rate Limits
 
 | 端點 | 上限 |
 | --- | --- |
 | \`POST /api/auth/login\` | 同 IP 與 Email 組合 15 分鐘 10 次；同 IP 15 分鐘 100 次 |
+| \`POST /api/auth/refresh\` | 同 IP 15 分鐘 60 次 |
+| \`POST /api/security/verify\` | 每位使用者 15 分鐘 30 次 |
 | \`POST /api/users\` | 同 IP 每小時 30 次 |
 | \`PUT /api/users/me/password\`、\`POST /api/users/me/deletion\` | 每位使用者 15 分鐘 10 次 |
 | \`POST /api/uploads\` | 每位使用者 10 分鐘 30 次 |
-| \`POST /api/chat/rooms/{roomId}/messages\` | 每位使用者每分鐘 60 則 |
+| \`POST /api/uploads/chat-image\`、\`POST /api/uploads/voice\` | 每位使用者 10 分鐘合計 60 次 |
+| \`POST /api/chat/rooms/{roomId}/messages\`、\`POST /api/chat/rooms/{roomId}/reservations\` | 每位使用者每分鐘合計 60 次 |
+| \`POST /api/chat/rooms/{roomId}/typing\` | 每位使用者每分鐘 40 次 |
 | \`GET /api/books/isbn/{isbn}\` | 每位使用者每分鐘 30 次 |
 | \`POST\`、\`DELETE /api/push/devices\` | 每位使用者每分鐘 20 次 |
 | \`POST /api/push/test\` | 每位使用者 10 分鐘 5 次 |
@@ -120,7 +159,7 @@ Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
 
 ---
 
-## 權限層級
+## Permissions
 
 | 層級 | 說明 |
 | --- | --- |
@@ -153,7 +192,7 @@ Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
 
 ---
 
-## 金流與訂單生命週期
+## Order Lifecycle
 
 站內以代幣計價，1 代幣等值 1 元。結帳時即自買家錢包扣款，賣方款項則於訂單完成後
 始行入帳，期間於賣家端顯示為待定收益（\`GET /api/wallet/pending\`）。
@@ -192,10 +231,11 @@ pending_payment → pending_deposit → deposited → pending_pickup → complet
 
 ---
 
-## 檔案上傳
+## File Uploads
 
-需上傳圖片的端點採用 \`multipart/form-data\`，其餘一律為 \`application/json\`。
-僅接受 JPG、PNG、GIF、WebP、HEIC，伺服器以檔頭判斷實際格式，檔名由伺服器產生。
+需上傳檔案的端點採用 \`multipart/form-data\`，其餘一律為 \`application/json\`。
+圖片僅接受 JPG、PNG、GIF、WebP、HEIC，語音僅接受 M4A、AAC、MP3，
+伺服器以檔頭判斷實際格式，檔名由伺服器產生。
 上傳後回傳相對路徑（例如 \`/uploads/books/1736512345678-987654321.jpg\`），
 用戶端須自行組合 API origin 後方可存取。
 
@@ -204,16 +244,20 @@ pending_payment → pending_deposit → deposited → pending_pickup → complet
 | 書籍照片 | \`POST /api/books\`、\`POST /api/books/{id}/images\` | \`/uploads/books/\` |
 | 個人頭像 | \`POST /api/users/me/avatar\` | \`/uploads/avatars/\` |
 | 檢舉與爭議佐證 | \`POST /api/uploads\` | \`/uploads/evidence/\` |
+| 聊天圖片 | \`POST /api/uploads/chat-image\` | \`/uploads/chat/\` |
+| 聊天語音 | \`POST /api/uploads/voice\` | \`/uploads/voice/\` |
 
 | 用途 | 單檔上限 |
 | --- | --- |
 | 書籍照片 | 10 MB，每本書最多 10 張 |
 | 個人頭像 | 5 MB |
 | 檢舉與爭議佐證 | 8 MB |
+| 聊天圖片 | 10 MB |
+| 聊天語音 | 5 MB，長度上限 120 秒 |
 
 ---
 
-## 分頁
+## Pagination
 
 分頁端點均接受 query string 參數 \`page\`（預設 1）與 \`limit\`（上限 100，超過以 100 計）。
 頁碼超出總頁數時回傳空陣列，不視為錯誤。
@@ -242,31 +286,30 @@ const base = {
         scheme: 'bearer',
         bearerFormat: 'JWT',
         description:
-          '把 `POST /api/auth/login` 拿到的 Token 貼進來即可，不需要自己加 `Bearer ` 前綴。有效期 24 小時。'
+          '把 `POST /api/auth/login` 拿到的 Token 貼進來即可，不需要自己加 `Bearer ` 前綴。有效期 24 小時，到期後可用 `POST /api/auth/refresh` 換發。'
       }
     }
   },
-  // x-tagGroups 是 Scalar 的擴充欄位，不在 OpenAPI 規格內。
   'x-tagGroups': [
-    { name: '開始使用', tags: ['認證 (Auth)', '使用者 (Users)', '帳號與隱私 (Account)'] },
-    { name: '商品', tags: ['書籍 (Books)', '分類 (Categories)', '收藏 (Favorites)', '智慧書櫃 (Cabinets)'] },
-    { name: '交易', tags: ['購物車 (Cart)', '訂單 (Orders)', '錢包 (Wallet)'] },
-    { name: '互動', tags: ['聊天室 (Chat)', '通知 (Notifications)', '推播 (Push)', '系統公告 (Announcements)'] },
-    { name: '客服與申訴', tags: ['客服中心 (Support)', '檢舉 (Reports)', '交易爭議 (Disputes)'] },
-    { name: '共用工具', tags: ['檔案上傳 (Uploads)', '公開頁面 (Public)'] },
+    { name: '開始使用', tags: ['auth', 'users', 'account', 'security'] },
+    { name: '商品', tags: ['books', 'categories', 'favorites', 'cabinets'] },
+    { name: '交易', tags: ['cart', 'orders', 'wallet'] },
+    { name: '互動', tags: ['chat', 'notifications', 'push', 'announcements'] },
+    { name: '客服與申訴', tags: ['support', 'reports', 'disputes'] },
+    { name: '共用工具', tags: ['uploads', 'public', 'status'] },
     {
       name: '管理後台',
       tags: [
-        '後台：總覽與報表',
-        '後台：會員管理',
-        '後台：內容管理',
-        '後台：訂單管理',
-        '後台：檢舉與爭議',
-        '後台：書櫃管理',
-        '後台：錢包管理',
-        '後台：會員等級',
-        '後台：客服與條款',
-        '後台：系統維運'
+        'admin-overview',
+        'admin-members',
+        'admin-content',
+        'admin-orders',
+        'admin-moderation',
+        'admin-cabinets',
+        'admin-wallets',
+        'admin-levels',
+        'admin-support',
+        'admin-system'
       ]
     }
   ]
@@ -297,7 +340,6 @@ const buildSpec = () => {
     try {
       doc = YAML.parse(fs.readFileSync(path.join(docsDir, file), 'utf8'));
     } catch (err) {
-      // 單一文件解析失敗只跳過該檔，不讓整個 API 起不來。
       console.error(`[OpenAPI] 無法解析 docs/${file}：${err.message}`);
       continue;
     }

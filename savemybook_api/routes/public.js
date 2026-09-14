@@ -9,7 +9,6 @@ const sendHtml = (res, status, html) => res.status(status).type('html').send(htm
 
 const isVisibleUser = (user) => user && user.is_active && !user.is_blacklisted && !user.anonymized_at;
 
-/// 公開頁是給瀏覽器看的，錯誤也要回 HTML，不能丟給 JSON 錯誤處理器。
 const htmlRoute = (label, handler) => async (req, res) => {
   try {
     await handler(req, res);

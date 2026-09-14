@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../models/book.dart';
 import '../services/api_service.dart';
+import '../services/search_history.dart';
 import '../utils/app_colors.dart';
+import '../utils/motion.dart';
 import '../widgets/animations.dart';
 import '../widgets/app_header.dart';
+import '../widgets/buyer/undo_snackbar.dart';
 import '../widgets/state_views.dart';
 import '../i18n/strings.dart';
 
-/// 首頁搜尋框與這裡的搜尋框共用的 Hero tag，讓兩邊接得起來、不會跳一下。
 const String kSearchBarHeroTag = 'home_search_bar';
 
 class SearchScreen extends StatefulWidget {
@@ -18,18 +22,21 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  late final TextEditingController _searchController =
-      TextEditingController(text: widget.initialKeyword);
+  late final TextEditingController _searchController = TextEditingController(text: widget.initialKeyword);
   final FocusNode _focusNode = FocusNode();
+  final ApiService _api = ApiService();
 
   bool _ready = false;
   Animation<double>? _routeAnimation;
+  List<Book> _trending = [];
+  bool _trendingLoading = true;
 
   @override
   void initState() {
     super.initState();
-    // 等轉場動畫跑完再叫鍵盤。太早叫鍵盤會在動畫途中多觸發一次 relayout，
-    // 畫面就會很明顯地抖一下。
+    SearchHistory.load();
+    _searchController.addListener(_onTextChanged);
+    _loadTrending();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final animation = ModalRoute.of(context)?.animation;
@@ -54,30 +61,55 @@ class _SearchScreenState extends State<SearchScreen> {
     _focusNode.requestFocus();
   }
 
+  void _onTextChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
     _routeAnimation?.removeStatusListener(_onStatus);
+    _searchController.removeListener(_onTextChanged);
     _searchController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
+  Future<void> _loadTrending() async {
+    final books = await _api.fetchBooks(page: 1, limit: 10, sort: 'popular');
+    if (!mounted) return;
+    final seen = <String>{};
+    setState(() {
+      _trending = books.where((b) => b.title.trim().isNotEmpty && seen.add(b.title.trim())).take(8).toList();
+      _trendingLoading = false;
+    });
+  }
+
   void _submitSearch(String keyword) {
     final trimmed = keyword.trim();
-    if (trimmed.isNotEmpty) ApiService.addSearchHistory(trimmed);
+    if (trimmed.isNotEmpty) {
+      HapticFeedback.selectionClick();
+      SearchHistory.add(trimmed);
+    }
     Navigator.pop(context, trimmed);
   }
 
-  void _removeHistory(String keyword) => setState(() => ApiService.removeSearchHistory(keyword));
+  void _removeHistory(String keyword) {
+    HapticFeedback.selectionClick();
+    SearchHistory.remove(keyword);
+  }
 
-  void _clearHistory() {
-    setState(() => ApiService.searchHistory.clear());
+  Future<void> _clearHistory() async {
+    final previous = SearchHistory.items.value;
+    if (previous.isEmpty) return;
+    await SearchHistory.clear();
+    if (!mounted) return;
+    final undo = await showUndoSnackBar(context, S.searchHistoryCleared, icon: Icons.history_rounded);
+    if (undo) await SearchHistory.restore(previous);
   }
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final history = ApiService.searchHistory;
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -85,53 +117,154 @@ class _SearchScreenState extends State<SearchScreen> {
         children: [
           _buildHeader(c),
           Expanded(
-            child: SwitchIn(child: history.isEmpty
-                ? EmptyView(key: const ValueKey('empty'), 
+            child: ValueListenableBuilder<List<String>>(
+              valueListenable: SearchHistory.items,
+              builder: (context, history, _) {
+                final query = _searchController.text.trim().toLowerCase();
+                final matches = query.isEmpty
+                    ? history
+                    : history.where((k) => k.toLowerCase().contains(query)).toList();
+                final hasTrending = _trendingLoading || _trending.isNotEmpty;
+
+                if (history.isEmpty && !hasTrending) {
+                  return EmptyView(
+                    key: const ValueKey('empty'),
                     icon: Icons.manage_search_rounded,
                     message: S.noRecentSearches,
-                  )
-                : ListView(key: const ValueKey('items'), 
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            S.recentSearches,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: c.textSecondary,
+                  );
+                }
+
+                return ListView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                  children: [
+                    AnimatedSize(
+                      duration: Motion.base,
+                      curve: Motion.standard,
+                      alignment: Alignment.topCenter,
+                      child: matches.isEmpty
+                          ? const SizedBox(width: double.infinity)
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _sectionTitle(
+                                  c,
+                                  S.recentSearches,
+                                  trailing: GestureDetector(
+                                    onTap: _clearHistory,
+                                    behavior: HitTestBehavior.opaque,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 4),
+                                      child: Text(S.clearAll2, style: TextStyle(fontSize: 12, color: c.textHint)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Wrap(
+                                  spacing: 10,
+                                  runSpacing: 10,
+                                  children: [
+                                    for (var i = 0; i < matches.length; i++)
+                                      FadeSlideIn(
+                                        key: ValueKey('history_${matches[i]}'),
+                                        index: i,
+                                        offsetY: 8,
+                                        stagger: const Duration(milliseconds: 28),
+                                        child: _buildHistoryChip(c, matches[i]),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 28),
+                              ],
                             ),
+                    ),
+                    if (hasTrending) ...[
+                      _sectionTitle(c, S.trendingBooks, icon: Icons.local_fire_department_rounded),
+                      const SizedBox(height: 8),
+                      if (_trendingLoading)
+                        Shimmer(
+                          child: Column(
+                            children: [
+                              for (var i = 0; i < 5; i++)
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 10),
+                                  child: Row(children: [
+                                    SkeletonBox(width: 22, height: 18, radius: 4),
+                                    SizedBox(width: 12),
+                                    Expanded(child: SkeletonBox(height: 14)),
+                                  ]),
+                                ),
+                            ],
                           ),
-                          const Spacer(),
-                          GestureDetector(
-                            onTap: _clearHistory,
-                            behavior: HitTestBehavior.opaque,
-                            child: Text(
-                              S.clearAll2,
-                              style: TextStyle(fontSize: 12, color: c.textHint),
-                            ),
+                        )
+                      else
+                        for (var i = 0; i < _trending.length; i++)
+                          FadeSlideIn(
+                            index: i,
+                            offsetY: 6,
+                            stagger: const Duration(milliseconds: 30),
+                            child: _buildTrendingRow(c, i, _trending[i]),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: [
-                          for (var i = 0; i < history.length; i++)
-                            FadeSlideIn(
-                              index: i,
-                              offsetY: 8,
-                              stagger: const Duration(milliseconds: 28),
-                              child: _buildChip(c, history[i]),
-                            ),
-                        ],
-                      ),
                     ],
-                  )),
+                  ],
+                );
+              },
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _sectionTitle(AppColors c, String title, {IconData? icon, Widget? trailing}) {
+    return Row(
+      children: [
+        if (icon != null) ...[
+          Icon(icon, size: 16, color: c.accent),
+          const SizedBox(width: 6),
+        ],
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary),
+          ),
+        ),
+        ?trailing,
+      ],
+    );
+  }
+
+  Widget _buildTrendingRow(AppColors c, int index, Book book) {
+    final rankColor = index < 3 ? c.accent : c.textHint;
+    return InkWell(
+      onTap: () => _submitSearch(book.title),
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 24,
+              child: Text(
+                '${index + 1}',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: rankColor, fontStyle: FontStyle.italic),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                book.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 14, color: c.textPrimary),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.north_west_rounded, size: 16, color: c.iconInactive),
+          ],
+        ),
       ),
     );
   }
@@ -149,7 +282,6 @@ class _SearchScreenState extends State<SearchScreen> {
           child: SafeArea(
             bottom: false,
             child: Padding(
-              // 高度刻意跟首頁 header 的搜尋列對齊，轉場才不會位移。
               padding: const EdgeInsets.fromLTRB(8, 8, 20, 20),
               child: Row(
                 children: [
@@ -160,7 +292,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   Expanded(
                     child: Hero(
                       tag: kSearchBarHeroTag,
-                      // Hero 飛行途中用 Material 包住，避免文字出現無父層 Material 的錯誤。
                       flightShuttleBuilder: (_, _, _, _, _) => Material(
                         color: Colors.transparent,
                         child: _buildFieldShell(c, const SizedBox.shrink()),
@@ -182,8 +313,6 @@ class _SearchScreenState extends State<SearchScreen> {
                               hintText: S.searchTitleAuthorIsbn,
                               hintStyle: TextStyle(color: c.textHint, fontSize: 15),
                               contentPadding: EdgeInsets.zero,
-                              // 四種狀態都要明確關掉，只設 border 的話
-                              // 主題的 focusedBorder 還是會在聚焦時畫出一圈框。
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -192,6 +321,19 @@ class _SearchScreenState extends State<SearchScreen> {
                               disabledBorder: InputBorder.none,
                             ),
                           ),
+                          trailing: _searchController.text.isEmpty
+                              ? null
+                              : GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    _searchController.clear();
+                                    _focusNode.requestFocus();
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    child: Icon(Icons.cancel, color: c.iconInactive, size: 20),
+                                  ),
+                                ),
                         ),
                       ),
                     ),
@@ -205,11 +347,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       behavior: HitTestBehavior.opaque,
                       child: Text(
                         S.actionSearch,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -222,7 +360,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildFieldShell(AppColors c, Widget child) {
+  Widget _buildFieldShell(AppColors c, Widget child, {Widget? trailing}) {
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -232,15 +370,17 @@ class _SearchScreenState extends State<SearchScreen> {
           Icon(Icons.search, color: c.iconInactive, size: 22),
           const SizedBox(width: 10),
           Expanded(child: child),
+          ?trailing,
         ],
       ),
     );
   }
 
-  Widget _buildChip(AppColors c, String keyword) {
+  Widget _buildHistoryChip(AppColors c, String keyword) {
     return PressableScale(
       scale: 0.94,
       onTap: () => _submitSearch(keyword),
+      onLongPress: () => _removeHistory(keyword),
       child: Container(
         padding: const EdgeInsets.fromLTRB(14, 9, 8, 9),
         decoration: BoxDecoration(

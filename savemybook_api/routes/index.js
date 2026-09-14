@@ -1,7 +1,7 @@
-/// 掛載表。scripts/check-docs.js 直接讀這張表比對文件，改路徑時兩邊不必各改一次。
 const MOUNTS = [
   ['/api/users', './users'],
   ['/api/auth', './auth'],
+  ['/api/security', './security'],
   ['/api/books', './books'],
   ['/api/categories', './categories'],
   ['/api/cabinets', './cabinets'],
@@ -18,6 +18,7 @@ const MOUNTS = [
   ['/api/uploads', './uploads'],
   ['/api/support', './support'],
   ['/api/push', './push'],
+  ['/api/status', './status'],
   ['/', './public']
 ];
 

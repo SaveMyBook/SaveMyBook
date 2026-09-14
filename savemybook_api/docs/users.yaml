@@ -1,5 +1,6 @@
 tags:
-  - name: 使用者 (Users)
+  - name: users
+    x-displayName: 使用者
     description: |
       註冊、個人檔案、頭像、密碼、會員等級與個人 QR Code。
 
@@ -13,7 +14,7 @@ paths:
     post:
       summary: 註冊新帳號
       operationId: register
-      tags: [使用者 (Users)]
+      tags: [users]
       description: |
         建立帳號，密碼以 bcrypt（10 rounds）雜湊後儲存。身分一律為 `buyer_seller`，
         請求中帶入的 `role` 會被忽略；管理員身分只能由後台授予。
@@ -25,6 +26,9 @@ paths:
         | `nickname` | 2 ~ 50 字 |
 
         同一 IP 每小時最多註冊 30 次，超過回傳 429。
+
+        帶入 `accept_legal: true`（使用者已勾選同意條款）時，會記錄當下服務條款與隱私權政策的版本，
+        之後文件有重大更新才會再要求同意。
 
         註冊成功不會自動登入，用戶端須另行呼叫 `POST /api/auth/login` 取得 Token。
       security: []
@@ -43,6 +47,7 @@ paths:
                   example: newuser@example.com
                 password: { type: string, format: password, minLength: 8, example: my_password123 }
                 nickname: { type: string, minLength: 2, maxLength: 50, example: 小明 }
+                accept_legal: { type: boolean, example: true, description: 使用者已勾選同意服務條款與隱私權政策。 }
       responses:
         '201':
           description: 建立成功。
@@ -70,7 +75,7 @@ paths:
     get:
       summary: 取得所有使用者
       operationId: listUsers
-      tags: [使用者 (Users)]
+      tags: [users]
       description: |
         回傳使用者清單（最多 1000 筆），不含密碼雜湊等內部欄位。此為早期開發階段保留的端點，
         僅限具備 `can_manage_members` 權限的管理員呼叫。
@@ -99,7 +104,7 @@ paths:
     get:
       summary: 取得個人統計數字
       operationId: getMyStats
-      tags: [使用者 (Users)]
+      tags: [users]
       description: |
         一次回傳會員中心首頁所需的全部統計數字。
 
@@ -130,7 +135,7 @@ paths:
     get:
       summary: 取得會員等級與點數
       operationId: getMyLevel
-      tags: [使用者 (Users)]
+      tags: [users]
       description: |
         點數計算方式：
 
@@ -181,7 +186,7 @@ paths:
     put:
       summary: 更新個人檔案
       operationId: updateMyProfile
-      tags: [使用者 (Users)]
+      tags: [users]
       description: |
         部分更新：僅異動請求中帶入的欄位，其餘維持原值。
 
@@ -221,7 +226,7 @@ paths:
     post:
       summary: 上傳個人頭像
       operationId: uploadMyAvatar
-      tags: [使用者 (Users)]
+      tags: [users]
       description: |
         上傳圖片並同步將 `avatar_url` 寫回使用者資料，無須另行呼叫更新個人檔案。
 
@@ -261,13 +266,17 @@ paths:
     put:
       summary: 更改密碼
       operationId: changeMyPassword
-      tags: [使用者 (Users)]
+      tags: [users]
       description: |
         須通過目前密碼驗證。新密碼規則與註冊相同：8 字元以上，須同時包含英文字母與數字，
         且不得與目前密碼相同。每位使用者 15 分鐘內最多嘗試 10 次。
 
-        變更後，這個帳號先前簽發的所有 Token 立即失效（其他裝置會收到 401 `TOKEN_REVOKED`）。
-        回應附上一組新 Token，用戶端須取代本機儲存的舊 Token。
+        變更後，這個帳號先前簽發的所有 Token 立即失效（其他裝置會收到 401 `TOKEN_REVOKED`），
+        其他裝置的工作階段一併登出。回應附上一組新 Token，沿用目前裝置的工作階段，
+        用戶端須取代本機儲存的舊 Token。
+
+        這個帳號的全部推播裝置（含目前裝置）同時清除，App 取得新 Token 後須重新呼叫
+        `POST /api/push/devices` 登記。
 
         目前密碼錯誤回傳 400 而非 401，避免用戶端誤判為登入失效而登出。
       security: [{ bearerAuth: [] }]
@@ -314,7 +323,7 @@ paths:
     get:
       summary: 取得個人分享 QR Code 資料
       operationId: getMyQrCode
-      tags: [使用者 (Users)]
+      tags: [users]
       description: |
         回傳供編碼為 QR Code 的網址。伺服器不產生圖片，圖像由用戶端自行繪製。
 
@@ -359,7 +368,7 @@ paths:
     get:
       summary: 取得指定使用者
       operationId: getUserById
-      tags: [使用者 (Users)]
+      tags: [users]
       description: |
         任何已登入者皆可查詢。查詢本人或由管理員查詢時回傳完整個人檔案；
         查詢他人時僅回傳 `user_id`、`nickname`、`avatar_url`、`bio`、`role`、`created_at`，
@@ -382,7 +391,7 @@ paths:
     put:
       summary: 更新指定使用者
       operationId: updateUserById
-      tags: [使用者 (Users)]
+      tags: [users]
       description: |
         僅本人或管理員可異動，可更新的欄位少於 `PUT /api/users/me`。
 
@@ -423,7 +432,7 @@ paths:
     delete:
       summary: 刪除使用者
       operationId: deleteUserById
-      tags: [使用者 (Users)]
+      tags: [users]
       description: |
         自資料表實際刪除，非軟刪除。僅限具備 `can_manage_members` 權限的管理員執行，
         且不得刪除自己或其他管理員。一般使用者刪除帳號請使用 `POST /api/users/me/deletion`。
@@ -432,7 +441,11 @@ paths:
 
         > 管理後台停用帳號請改以 `PATCH /api/admin/members/{id}` 將
         > `is_active` 設為 false，不應執行實際刪除。
+
+        需 `sensitive` 範圍的身分驗證（`X-Verify-Token` 標頭）。
       security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/VerifyToken'
       responses:
         '200':
           description: 已刪除。
@@ -441,7 +454,7 @@ paths:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
               example: { success: true, message: 使用者已成功刪除 }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
+        '403': { $ref: '#/components/responses/AdminVerificationRequired' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
           description: 存在進行中的訂單或其他關聯資料，無法刪除。

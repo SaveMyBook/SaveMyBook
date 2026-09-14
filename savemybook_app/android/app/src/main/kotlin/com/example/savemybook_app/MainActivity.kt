@@ -45,11 +45,9 @@ class MainActivity : FlutterFragmentActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, shareChannelName)
             .setMethodCallHandler { call, result -> handleShare(call, result) }
 
-        // Android 的角標由啟動器自行計算，這裡只處理「打開通知設定」。
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "savemybook/push")
             .setMethodCallHandler { call, result ->
                 if (call.method == "openNotificationSettings") {
-                    // 通知設定頁是 Android 8 才有的，更舊的版本退回 App 資訊頁。
                     val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                             .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
@@ -81,8 +79,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    // Android 8 起推播必須屬於某個頻道。id 要與 AndroidManifest 的預設頻道及伺服器送出的 channel_id 一致。
-    // 重複建立同一個 id 不會有副作用，只會更新名稱與說明。
+    // 頻道 id 必須與 AndroidManifest 的預設頻道及伺服器送出的 channel_id 一致。
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(
@@ -130,8 +127,6 @@ class MainActivity : FlutterFragmentActivity() {
                     return
                 }
                 val intent = Intent(Intent.ACTION_SEND).apply {
-                    // 讓接收端自己判斷型別；寫死 application/json 會讓
-                    // 雲端硬碟以外的 App 在選單裡消失。
                     type = "*/*"
                     putExtra(Intent.EXTRA_STREAM, uri)
                     call.argument<String>("text")?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
@@ -160,8 +155,6 @@ class MainActivity : FlutterFragmentActivity() {
             return
         }
 
-        // MediaStore 的 RELATIVE_PATH 需要 Android 10 以上；更舊的版本要
-        // WRITE_EXTERNAL_STORAGE，這裡不宣告那個權限，直接回報不支援。
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             result.error("unsupported", "此裝置版本不支援直接儲存", null)
             return

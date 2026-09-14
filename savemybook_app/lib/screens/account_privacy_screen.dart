@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/share_service.dart';
+import '../services/verification_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_labels.dart';
 import '../utils/app_radius.dart';
@@ -26,6 +27,8 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
   final ApiService _api = ApiService();
 
   bool _isLoading = true;
+  bool _exporting = false;
+  bool _busy = false;
   bool _pendingDeletion = false;
   DateTime? _purgeAt;
 
@@ -46,24 +49,43 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
   }
 
   Future<void> _export() async {
-    final json = await runBusy(context, () => _api.exportMyData(), message: S.preparingData);
-    if (!mounted) return;
-    if (json == null) {
-      showAppSnackBar(context, AppLabels.loadFailed, isError: true);
-      return;
+    if (_exporting) return;
+    _exporting = true;
+    try {
+      final token = await VerificationService.requireSensitive(context, reason: S.confirmBeforeExportingData);
+      if (token == null || !mounted) return;
+
+      final json = await runBusy(
+        context,
+        () => _api.exportMyData(extraHeaders: {'X-Verify-Token': token}),
+        message: S.preparingData,
+      );
+      if (!mounted) return;
+      if (json == null) {
+        showAppSnackBar(context, S.exportFailedPleaseTryAgainLater, isError: true);
+        return;
+      }
+
+      final stamp = DateTime.now().toIso8601String().substring(0, 10);
+      final path = '${Directory.systemTemp.path}/savemybook-$stamp.json';
+      try {
+        await File(path).writeAsString(json);
+      } catch (_) {
+        if (mounted) showAppSnackBar(context, S.exportFailedPleaseTryAgainLater, isError: true);
+        return;
+      }
+      if (!mounted) return;
+
+      final ok = await ShareService.shareFile(path, subject: S.mySavemybookData);
+      if (!mounted) return;
+      showAppSnackBar(context, ok ? S.exportedChooseWhereSave : S.exportedButSharingCouldNotOpen, isError: !ok);
+    } finally {
+      _exporting = false;
     }
-
-    final stamp = DateTime.now().toIso8601String().substring(0, 10);
-    final path = '${Directory.systemTemp.path}/savemybook-$stamp.json';
-    await File(path).writeAsString(json);
-    if (!mounted) return;
-
-    final ok = await ShareService.shareFile(path, subject: S.mySavemybookData);
-    if (!mounted) return;
-    showAppSnackBar(context, ok ? S.exportedChooseWhereSave : S.exportedButSharingCouldNotOpen);
   }
 
   Future<void> _rotateShareLink() async {
+    if (_busy) return;
     final confirmed = await showConfirmDialog(
       context,
       title: S.regenerateShareLink,
@@ -73,7 +95,9 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
     );
     if (!confirmed || !mounted) return;
 
+    _busy = true;
     final url = await runBusy(context, () => _api.rotateShareToken());
+    _busy = false;
     if (!mounted) return;
     showAppSnackBar(
       context,
@@ -83,6 +107,7 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
   }
 
   Future<void> _requestDeletion() async {
+    if (_busy) return;
     final confirmed = await showConfirmDialog(
       context,
       title: S.deleteAccount,
@@ -106,7 +131,9 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
     );
     if (password == null || password.isEmpty || !mounted) return;
 
+    _busy = true;
     final error = await runBusy(context, () => _api.requestAccountDeletion(password));
+    _busy = false;
     if (!mounted) return;
 
     if (error != null) {
@@ -120,7 +147,10 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
   }
 
   Future<void> _cancelDeletion() async {
+    if (_busy) return;
+    _busy = true;
     final error = await runBusy(context, () => _api.cancelAccountDeletion());
+    _busy = false;
     if (!mounted) return;
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
@@ -153,11 +183,15 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
             child: SwitchIn(
               child: _isLoading
                   ? const LoadingView.menu()
-                  : ListView(
+                  : RefreshIndicator(
+                      color: c.accent,
+                      onRefresh: _load,
+                      child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                       children: [
                         Reveal(visible: _pendingDeletion, child: _buildPendingCard(c)),
-                        _buildSection(c, S.data, [
+                        FadeSlideIn(child: _buildSection(c, S.data, [
                           AppMenuItem(
                             icon: Icons.download_rounded,
                             title: S.exportMyData,
@@ -171,9 +205,9 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                             isLast: true,
                             onTap: _rotateShareLink,
                           ),
-                        ]),
+                        ])),
                         const SizedBox(height: 24),
-                        _buildSection(c, S.faqCatAccount, [
+                        FadeSlideIn(index: 1, child: _buildSection(c, S.faqCatAccount, [
                           AppMenuItem(
                             icon: Icons.person_remove_rounded,
                             title: _pendingDeletion ? S.cancelAccountDeletion : S.deleteAccount,
@@ -184,8 +218,9 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                             isLast: true,
                             onTap: _pendingDeletion ? _cancelDeletion : _requestDeletion,
                           ),
-                        ]),
+                        ])),
                       ],
+                    ),
                     ),
             ),
           ),
@@ -232,6 +267,7 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                   ),
                   const SizedBox(height: 12),
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: _logout,
                     child: Text(
                       S.signOut,

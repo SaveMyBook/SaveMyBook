@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Face ID 的圖示。
-///
-/// Material 沒有對應的字符，`Icons.face` 是一顆卡通臉，跟系統跳出來的
-/// Face ID 完全不像。這裡照 Apple 的樣式自己畫：四個角括號框住一張臉。
 class FaceIdIcon extends StatelessWidget {
   final double size;
   final Color color;
@@ -37,7 +33,6 @@ class _FaceIdPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    // 四個角括號
     final inset = stroke / 2;
     final arm = s * 0.26;
     final radius = s * 0.16;
@@ -60,13 +55,11 @@ class _FaceIdPainter extends CustomPainter {
     corner(Offset(inset, s - inset), 1, -1);
     corner(Offset(s - inset, s - inset), -1, -1);
 
-    // 眼睛
     final eyeTop = s * 0.34;
     final eyeBottom = s * 0.44;
     canvas.drawLine(Offset(s * 0.34, eyeTop), Offset(s * 0.34, eyeBottom), paint);
     canvas.drawLine(Offset(s * 0.66, eyeTop), Offset(s * 0.66, eyeBottom), paint);
 
-    // 鼻子
     canvas.drawPath(
       Path()
         ..moveTo(s * 0.5, s * 0.36)
@@ -75,7 +68,6 @@ class _FaceIdPainter extends CustomPainter {
       paint,
     );
 
-    // 嘴巴
     canvas.drawPath(
       Path()
         ..moveTo(s * 0.35, s * 0.64)

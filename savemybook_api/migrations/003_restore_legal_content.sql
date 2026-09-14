@@ -1,5 +1,4 @@
 -- 把原本寫死在 App 裡的服務條款與隱私權政策灌回可編輯的文件表。
--- 用 REPLACE 是為了蓋掉前一份 migration 塞進去的預設佔位文字。
 
 REPLACE INTO legal_documents (doc_key, title, content) VALUES
   ('terms', '服務條款', '歡迎使用 SaveMyBook（以下簡稱「本平台」）。請您在註冊或使用本平台服務前，詳細閱讀以下服務條款：

@@ -47,23 +47,42 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
 
   bool get _isSelf => ApiService.currentUser?.userId == widget.userId;
 
+  static bool _isCancelled(String error) => error.isEmpty || error == S.verificationCancelled;
+
+  Future<void> _retry() async {
+    setState(() => _isLoading = true);
+    await _load();
+  }
+
   Future<void> _run(Future<String?> Function() task, String successMessage) async {
     if (_isBusy) return;
     setState(() => _isBusy = true);
-    final error = await task();
+    String? error;
+    try {
+      error = await task();
+    } finally {
+      if (mounted) setState(() => _isBusy = false);
+    }
     if (!mounted) return;
-    setState(() => _isBusy = false);
 
     if (error != null) {
-      showAppSnackBar(context, error, isError: true);
+      if (!_isCancelled(error)) showAppSnackBar(context, error, isError: true);
     } else {
       showAppSnackBar(context, successMessage);
-      _load();
+      await _load();
     }
   }
 
+  void _copyEmail(String email) {
+    if (email.isEmpty) return;
+    Clipboard.setData(ClipboardData(text: email));
+    HapticFeedback.selectionClick();
+    showAppSnackBar(context, S.copied('Email'));
+  }
+
   Future<void> _toggleStatus({required bool active}) async {
-    final detail = _detail!;
+    final detail = _detail;
+    if (detail == null || _isBusy) return;
     final turningOff = active ? detail.isActive : !detail.isBlacklisted;
 
     final ok = await showConfirmDialog(
@@ -90,9 +109,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     );
   }
 
-  /// 臨時密碼由伺服器產生，而且只回傳這一次。畫面必須當場把它交出去，
-  /// 關掉之後誰都拿不回來，只能再重設一次。
   Future<void> _resetPassword(AdminMemberDetail detail) async {
+    if (_isBusy) return;
     final ok = await showConfirmDialog(
       context,
       title: S.resetPassword,
@@ -103,15 +121,24 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     );
     if (!ok || !mounted) return;
 
-    final (password, error) = await runBusy(
-          context,
-          () => _api.resetMemberPassword(detail.userId),
-        ) ??
-        (null, null);
+    setState(() => _isBusy = true);
+    String? password;
+    String? error;
+    try {
+      (password, error) = await runBusy(
+            context,
+            () => _api.resetMemberPassword(detail.userId),
+          ) ??
+          (null, null);
+    } finally {
+      if (mounted) setState(() => _isBusy = false);
+    }
     if (!mounted) return;
 
     if (password == null) {
-      showAppSnackBar(context, error ?? AppLabels.updateFailed, isError: true);
+      if (error == null || !_isCancelled(error)) {
+        showAppSnackBar(context, error ?? AppLabels.updateFailed, isError: true);
+      }
       return;
     }
 
@@ -123,7 +150,6 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
 
     await showDialog<void>(
       context: context,
-      // 點旁邊就關掉的話，密碼會在還沒抄下來前消失。
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         backgroundColor: c.card,
@@ -133,7 +159,9 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           children: [
             Icon(Icons.key_rounded, color: c.accent, size: 20),
             const SizedBox(width: 8),
-            Text(S.temporaryPassword, style: TextStyle(fontSize: 17, color: c.textPrimary)),
+            Flexible(
+              child: Text(S.temporaryPassword, style: TextStyle(fontSize: 17, color: c.textPrimary)),
+            ),
           ],
         ),
         content: Column(
@@ -188,7 +216,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
   }
 
   Future<void> _changeRole() async {
-    final detail = _detail!;
+    final detail = _detail;
+    if (detail == null || _isBusy) return;
     final next = detail.isAdmin ? 'buyer_seller' : 'admin';
 
     final ok = await showConfirmDialog(
@@ -205,14 +234,14 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     await _run(() => _api.updateMemberRole(detail.userId, next), S.roleUpdated);
   }
 
-  /// 手動加減的點數。正數要自己補上 +，負數的減號由 toString 帶出來。
   String _manualPoints(int bonus) {
     final sign = bonus > 0 ? '+' : '';
     return S.manualP0P1(sign, bonus);
   }
 
   Future<void> _changeLevel() async {
-    final detail = _detail!;
+    final detail = _detail;
+    if (detail == null || _isBusy) return;
     final c = AppColors.of(context);
 
     final manualPart = detail.bonusPoints == 0 ? '' : _manualPoints(detail.bonusPoints);
@@ -260,7 +289,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       if (input == null || !mounted) return;
 
       final delta = int.tryParse(input.trim());
-      if (delta == null || delta == 0) {
+      if (delta == null || delta == 0 || delta.abs() > 1000000) {
         showAppSnackBar(context, S.enterNonZeroWholeNumber, isError: true);
         return;
       }
@@ -274,7 +303,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
   }
 
   Future<void> _togglePermission(String key, bool value) async {
-    final detail = _detail!;
+    final detail = _detail;
+    if (detail == null) return;
     await _run(
       () => _api.updateAdminPermissions(detail.userId, {key: value}),
       value ? S.permissionGranted : S.permissionRevoked,
@@ -282,7 +312,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
   }
 
   Future<void> _setAllPermissions(bool value) async {
-    final detail = _detail!;
+    final detail = _detail;
+    if (detail == null || _isBusy) return;
     final ok = await showConfirmDialog(
       context,
       title: value ? S.grantAllPermissions : S.revokeAllPermissions,
@@ -294,7 +325,6 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     );
     if (!ok || !mounted) return;
 
-    // 全開時略過自己沒有的權限，否則伺服器會整批拒絕。
     await _run(
       () => _api.updateAdminPermissions(
         detail.userId,
@@ -322,9 +352,16 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
               child: _isLoading
                   ? const LoadingView.menu()
                   : detail == null
-                      ? EmptyView(
-                          icon: Icons.person_off_outlined,
-                          message: S.noDataMember,
+                      ? ListView(
+                          children: [
+                            const SizedBox(height: 60),
+                            EmptyView(
+                              icon: Icons.person_off_outlined,
+                              message: S.noDataMember,
+                              actionLabel: S.refresh,
+                              onAction: _retry,
+                            ),
+                          ],
                         )
                       : RefreshIndicator(
                           color: c.accent,
@@ -384,12 +421,35 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      detail.email,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _copyEmail(detail.email),
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              detail.email,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 12, color: c.textSecondary),
+                            ),
+                          ),
+                          if (detail.email.isNotEmpty) ...[
+                            const SizedBox(width: 4),
+                            Icon(Icons.copy_rounded, size: 13, color: c.iconInactive),
+                          ],
+                        ],
+                      ),
                     ),
+                    if (detail.phone?.isNotEmpty == true) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        detail.phone!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: c.textHint),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -397,29 +457,34 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           ),
           const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              StatTile(
-                label: S.listings2,
-                value: Text(
-                  '${detail.bookCount}',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.accent),
+              Expanded(
+                child: StatTile(
+                  label: S.listings2,
+                  value: AnimatedCount(
+                    value: detail.bookCount.toDouble(),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.accent),
+                  ),
                 ),
               ),
               const VerticalDivider1(),
-              StatTile(
-                label: S.completedTrades,
-                value: Text(
-                  '${detail.completedOrders}',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.accent),
+              Expanded(
+                child: StatTile(
+                  label: S.completedTrades,
+                  value: AnimatedCount(
+                    value: detail.completedOrders.toDouble(),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.accent),
+                  ),
                 ),
               ),
               const VerticalDivider1(),
-              StatTile(
-                label: S.joined,
-                value: Text(
-                  formatDate(detail.createdAt),
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textPrimary),
+              Expanded(
+                child: StatTile(
+                  label: S.joined,
+                  value: Text(
+                    formatDate(detail.createdAt),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textPrimary),
+                  ),
                 ),
               ),
             ],
@@ -535,6 +600,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   children: [
                     Text(
                       detail.currentLevel?.name ?? AppLabels.noLevel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -580,7 +647,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
             child: ElevatedButton.icon(
               onPressed: _isBusy ? null : _changeLevel,
               icon: const Icon(Icons.tune_rounded, size: 18),
-              label: Text(S.adjustTier),
+              label: Text(S.adjustTier, maxLines: 1, overflow: TextOverflow.ellipsis),
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.accent,
                 foregroundColor: Colors.white,
@@ -620,7 +687,6 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
               ),
             ),
           ),
-          // 不是管理員就沒有後台權限可以調，直接說明比列出一排點不動的開關好。
           if (!detail.isAdmin)
             Padding(
               padding: const EdgeInsets.only(top: 10),
@@ -632,7 +698,6 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           else
             for (final entry in AppLabels.permission.entries)
               DisabledHint(
-                // 關掉別人的權限一律可以；開啟則要自己也有這項權限。
                 disabled: _isSelf ||
                     (detail.grantable[entry.key] == false && detail.permissions[entry.key] != true),
                 reason: _isSelf

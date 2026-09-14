@@ -3,6 +3,7 @@ const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
 const v = require('../lib/validate');
 const { badRequest, forbidden, notFound } = require('../lib/errors');
+const reservations = require('../services/reservations');
 
 const router = express.Router();
 
@@ -28,8 +29,23 @@ router.get('/', async (req, res) => {
     include: cartInclude
   });
 
+  const now = new Date();
+  const holds = items.length > 0
+    ? await prisma.reservations.findMany({
+        where: { book_id: { in: items.map((i) => i.book_id) }, status: 'confirmed', pickup_deadline: { gt: now } },
+        select: { book_id: true, buyer_id: true, pickup_deadline: true }
+      })
+    : [];
+  const holdOf = new Map(holds.map((h) => [h.book_id, h]));
+  const data = items.map((i) => {
+    const hold = holdOf.get(i.book_id);
+    return hold
+      ? { ...i, books: { ...i.books, reservation: { reserved_until: hold.pickup_deadline, reserved_for_me: hold.buyer_id === req.user.userId } } }
+      : i;
+  });
+
   const total = items.reduce((sum, i) => sum + Number(i.books.price) * i.quantity, 0);
-  res.status(200).json({ success: true, data: items, total_amount: total });
+  res.status(200).json({ success: true, data, total_amount: total });
 });
 
 router.post('/', async (req, res) => {
@@ -39,11 +55,12 @@ router.post('/', async (req, res) => {
 
   const book = await prisma.books.findUnique({
     where: { book_id: bookId },
-    select: { seller_id: true, status: true, quantity: true }
+    select: { book_id: true, title: true, seller_id: true, status: true, quantity: true }
   });
   if (!book) throw notFound('找不到該書籍');
   if (book.seller_id === req.user.userId) throw badRequest('無法將自己上架的書籍加入購物車');
   if (book.status !== 'on_sale') throw badRequest('此書籍目前無法購買');
+  await reservations.assertNotHeldByOthers(null, [book], req.user.userId);
 
   const existing = await prisma.shopping_cart.findUnique({
     where: { user_id_book_id: { user_id: req.user.userId, book_id: bookId } },
@@ -53,9 +70,18 @@ router.post('/', async (req, res) => {
     throw badRequest(`購物車最多放 ${MAX_CART_ITEMS} 項商品`);
   }
 
-  // 每本二手書通常只有一本。過去重複加入會一直累加數量，結帳時照數量乘上售價，
-  // 同一本書就被收了好幾次錢。
-  const capped = Math.min((existing?.quantity ?? 0) + quantity, Math.max(book.quantity, 1));
+  const max = Math.max(book.quantity, 1);
+  if (existing && existing.quantity >= max) {
+    return res.status(200).json({
+      success: true,
+      message: '這本書已經在購物車裡了',
+      data: { ...existing, book_id: bookId },
+      already_in_cart: true
+    });
+  }
+
+  // 重複加入不可累加數量，否則結帳會對同一本書重複收費。
+  const capped = Math.min((existing?.quantity ?? 0) + quantity, max);
 
   const item = await prisma.shopping_cart.upsert({
     where: { user_id_book_id: { user_id: req.user.userId, book_id: bookId } },
@@ -63,7 +89,12 @@ router.post('/', async (req, res) => {
     create: { user_id: req.user.userId, book_id: bookId, quantity: capped }
   });
 
-  res.status(201).json({ success: true, message: '已加入購物車', data: item });
+  res.status(existing ? 200 : 201).json({ success: true, message: '已加入購物車', data: item, already_in_cart: false });
+});
+
+router.get('/book-ids', async (req, res) => {
+  const items = await prisma.shopping_cart.findMany({ where: { user_id: req.user.userId }, select: { book_id: true } });
+  res.status(200).json({ success: true, data: items.map((i) => i.book_id) });
 });
 
 router.patch('/:cartId', async (req, res) => {

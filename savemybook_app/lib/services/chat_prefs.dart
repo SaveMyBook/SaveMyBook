@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 靜音只影響這台裝置要不要跳提示，資料庫沒有這個欄位，
-/// 所以存在本機就好，不用為了它動 schema。
 class ChatPrefs {
   static const _key = 'muted_chat_rooms';
 

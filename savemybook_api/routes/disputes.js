@@ -3,6 +3,7 @@ const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
 const v = require('../lib/validate');
 const { badRequest, forbidden, notFound, conflict } = require('../lib/errors');
+const { notify } = require('../services/notify');
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ const disputeInclude = {
   users_transaction_disputes_applicant_idTousers: { select: { user_id: true, nickname: true, avatar_url: true } }
 };
 
-/// 已取消（款項已退回）或已退款的訂單再申訴，裁決退款時會退第二次。
+// 已取消或已退款的訂單不可申訴，否則裁決退款會退第二次。
 const NOT_DISPUTABLE = ['cancelled', 'refunded'];
 
 router.get('/', async (req, res) => {
@@ -45,7 +46,7 @@ router.post('/', async (req, res) => {
 
   const order = await prisma.orders.findUnique({
     where: { order_id: orderId },
-    select: { buyer_id: true, seller_id: true, status: true }
+    select: { buyer_id: true, seller_id: true, status: true, order_no: true }
   });
   if (!order) throw notFound('找不到該訂單');
   if (order.buyer_id !== req.user.userId && order.seller_id !== req.user.userId) throw forbidden('存取被拒');
@@ -66,6 +67,16 @@ router.post('/', async (req, res) => {
     await tx.orders.update({
       where: { order_id: orderId },
       data: { status: 'refunding', updated_at: new Date() }
+    });
+
+    const isBuyer = order.buyer_id === req.user.userId;
+    await notify(tx, {
+      userId: isBuyer ? order.seller_id : order.buyer_id,
+      type: 'order',
+      title: `${isBuyer ? '買家' : '賣家'}對訂單提出了爭議`,
+      content: `訂單 ${order.order_no} 有一筆爭議申請，客服會協助處理，處理期間訂單暫停進行。`,
+      relatedId: orderId,
+      relatedType: 'order'
     });
 
     return created;

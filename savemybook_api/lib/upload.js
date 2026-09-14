@@ -16,10 +16,7 @@ const EXT_BY_MIME = {
 };
 const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif']);
 
-/// 用檔頭判斷是不是真的圖片。
-///
-/// 副檔名與 Content-Type 都是用戶端自己填的。/uploads 以靜態檔案對外提供，
-/// 只看副檔名的話，改名成 .jpg 的 HTML 或 SVG 仍可能被瀏覽器當成網頁執行。
+// 以檔頭判斷圖片：副檔名與 Content-Type 可偽造，改名成 .jpg 的 HTML/SVG 會被瀏覽器執行。
 const looksLikeImage = (buf) => {
   if (buf.length < 12) return false;
   if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return true;
@@ -29,6 +26,18 @@ const looksLikeImage = (buf) => {
   if (buf.subarray(4, 8).toString('latin1') === 'ftyp') {
     return ['heic', 'heix', 'hevc', 'hevx', 'mif1', 'msf1', 'avif'].includes(buf.subarray(8, 12).toString('latin1'));
   }
+  return false;
+};
+
+const looksLikeAudio = (buf) => {
+  if (buf.length < 12) return false;
+  if (buf.subarray(4, 8).toString('latin1') === 'ftyp') {
+    const brand = buf.subarray(8, 12).toString('latin1');
+    return ['M4A ', 'M4B ', 'mp42', 'mp41', 'isom', 'iso2', 'iso5', 'iso6', 'dash', '3gp4', '3gp5'].includes(brand);
+  }
+  if (buf[0] === 0xff && (buf[1] & 0xf6) === 0xf0) return true;
+  if (buf.subarray(0, 3).toString('latin1') === 'ID3') return true;
+  if (buf[0] === 0xff && (buf[1] & 0xe0) === 0xe0) return true;
   return false;
 };
 
@@ -56,27 +65,43 @@ const removeUploaded = (req) => {
   }
 };
 
-/// 回傳 multer 實例的 single/array/fields，每個都已串好檔頭檢查。
-const imageUpload = ({ folder, maxFileSize = 10 * 1024 * 1024 }) => {
+const KINDS = {
+  image: {
+    extByMime: EXT_BY_MIME,
+    allowedExt: ALLOWED_EXT,
+    looksValid: looksLikeImage,
+    typeMessage: '只接受圖片檔（JPG、PNG、GIF、WebP、HEIC）',
+    contentMessage: '檔案內容不是有效的圖片'
+  },
+  audio: {
+    extByMime: { 'audio/mp4': '.m4a', 'audio/x-m4a': '.m4a', 'audio/m4a': '.m4a', 'audio/aac': '.aac', 'audio/mpeg': '.mp3' },
+    allowedExt: new Set(['.m4a', '.aac', '.mp3']),
+    looksValid: (buf) => looksLikeAudio(buf),
+    typeMessage: '只接受語音檔（M4A、AAC、MP3）',
+    contentMessage: '檔案內容不是有效的語音'
+  }
+};
+
+const fileUpload = ({ folder, maxFileSize = 10 * 1024 * 1024, kind = 'image' }) => {
+  const rule = KINDS[kind];
   const dir = path.join(UPLOAD_ROOT, folder);
   fs.mkdirSync(dir, { recursive: true });
 
   const extOf = (file) => {
     const ext = path.extname(file.originalname || '').toLowerCase();
-    if (ALLOWED_EXT.has(ext)) return ext === '.jpeg' ? '.jpg' : ext;
-    return EXT_BY_MIME[file.mimetype] ?? null;
+    if (rule.allowedExt.has(ext)) return ext === '.jpeg' ? '.jpg' : ext;
+    return rule.extByMime[file.mimetype] ?? null;
   };
 
   const upload = multer({
     storage: multer.diskStorage({
       destination: (req, file, cb) => cb(null, dir),
-      // 檔名完全由伺服器決定，原始檔名只取副檔名，避免路徑穿越與奇怪字元。
       filename: (req, file, cb) => cb(null, `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${extOf(file)}`)
     }),
     limits: { fileSize: maxFileSize, fields: 30, fieldSize: 100 * 1024 },
     fileFilter: (req, file, cb) => {
       if (extOf(file)) return cb(null, true);
-      cb(badRequest('只接受圖片檔（JPG、PNG、GIF、WebP、HEIC）'));
+      cb(badRequest(rule.typeMessage));
     }
   });
 
@@ -84,14 +109,14 @@ const imageUpload = ({ folder, maxFileSize = 10 * 1024 * 1024 }) => {
     const files = uploadedFiles(req);
     const bad = files.some((f) => {
       try {
-        return !looksLikeImage(readHead(f.path));
+        return !rule.looksValid(readHead(f.path));
       } catch {
         return true;
       }
     });
     if (bad) {
       removeUploaded(req);
-      return next(badRequest('檔案內容不是有效的圖片'));
+      return next(badRequest(rule.contentMessage));
     }
     next();
   };
@@ -104,4 +129,7 @@ const imageUpload = ({ folder, maxFileSize = 10 * 1024 * 1024 }) => {
   };
 };
 
-module.exports = { UPLOAD_ROOT, imageUpload, uploadedFiles, removeUploaded };
+const imageUpload = (opts) => fileUpload({ ...opts, kind: 'image' });
+const audioUpload = (opts) => fileUpload({ ...opts, kind: 'audio' });
+
+module.exports = { UPLOAD_ROOT, imageUpload, audioUpload, uploadedFiles, removeUploaded };

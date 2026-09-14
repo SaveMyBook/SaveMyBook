@@ -43,8 +43,6 @@ class AppColors {
 
   Color get skeleton => isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE6EAEE);
 
-  /// 代幣、點數這類「價值」的強調色。刻意跟 accent 分開，
-  /// 金額才不會跟一般的可點擊元素混在一起。
   static const valueGradient = [Color(0xFFFFE082), Color(0xFFFFC107)];
 
   Color conditionColor(String level) {
@@ -59,8 +57,6 @@ class AppColors {
 
   Color get neutral => const Color(0xFF90A4AE);
 
-  /// 訂單狀態的語意色。買賣雙方與後台共用同一組對應，
-  /// 同一個狀態在哪一頁都是同一個顏色。
   Color orderStatusColor(String status) {
     switch (status) {
       case 'completed': return success;

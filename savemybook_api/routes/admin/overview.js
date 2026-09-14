@@ -2,6 +2,10 @@ const express = require('express');
 const prisma = require('../../lib/prisma');
 const requireAdmin = require('../../middleware/requireAdmin');
 const v = require('../../lib/validate');
+const { forbidden, notFound, conflict } = require('../../lib/errors');
+const audit = require('../../services/audit');
+const undo = require('../../services/undo');
+const { requireVerification } = require('../../services/security');
 
 const router = express.Router();
 
@@ -58,7 +62,6 @@ router.get('/stats', requireAdmin('stats'), async (req, res) => {
     })
   ]);
 
-  // 先分桶再組序列，避免每一天都把整段資料掃一遍。
   const key = (d) => new Date(d).toISOString().slice(0, 10);
   const bucket = new Map();
   const at = (k) => {
@@ -104,32 +107,99 @@ router.get('/stats', requireAdmin('stats'), async (req, res) => {
   });
 });
 
+const TARGET_TYPES = [
+  'user', 'book', 'category', 'level', 'faq', 'legal', 'announcement', 'cabinet', 'cabinet_slot',
+  'wallet', 'ticket', 'report', 'dispute', 'order', 'backup'
+];
+
+const shapeLog = (l) => {
+  const detail = audit.parseDetail(l.detail);
+  return {
+    log_id: l.log_id,
+    action: l.action,
+    target_type: l.target_type,
+    target_id: l.target_id,
+    summary: detail.summary,
+    changes: detail.changes ?? [],
+    can_undo: Boolean(detail.undo) && !detail.reverted,
+    reverted: detail.reverted ?? null,
+    // 舊版 App 讀的是 detail。
+    detail: detail.summary,
+    ip_address: l.ip_address,
+    created_at: l.created_at,
+    admin: l.users
+  };
+};
+
 router.get('/operation-logs', async (req, res) => {
   const { page, limit, skip } = v.pagination(req.query, { limit: 50 });
+  const targetType = req.query.target_type ? v.oneOf(req.query.target_type, TARGET_TYPES, '不支援的對象類型') : null;
+  const adminId = v.optionalId(req.query.admin_id, '管理員編號');
+  const keyword = v.text(req.query.keyword, { label: '關鍵字', max: 100 });
+
+  const where = {
+    ...(targetType && { target_type: targetType }),
+    ...(adminId && { admin_id: adminId }),
+    ...(keyword && { OR: [{ action: { contains: keyword } }, { detail: { contains: keyword } }] })
+  };
 
   const [logs, total] = await Promise.all([
     prisma.admin_operation_logs.findMany({
+      where,
       include: { users: { select: { user_id: true, nickname: true, avatar_url: true } } },
       orderBy: { created_at: 'desc' },
       skip,
       take: limit
     }),
-    prisma.admin_operation_logs.count()
+    prisma.admin_operation_logs.count({ where })
   ]);
 
-  res.status(200).json({
-    success: true,
-    pagination: v.pageMeta(total, { page, limit }),
-    data: logs.map((l) => ({
-      log_id: l.log_id,
-      action: l.action,
-      target_type: l.target_type,
-      target_id: l.target_id,
-      detail: l.detail,
-      created_at: l.created_at,
-      admin: l.users
-    }))
+  res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: logs.map(shapeLog) });
+});
+
+router.post('/operation-logs/:id/undo', requireVerification('sensitive'), async (req, res) => {
+  const logId = v.id(req.params.id, '紀錄編號');
+  const log = await prisma.admin_operation_logs.findUnique({ where: { log_id: logId } });
+  if (!log) throw notFound('找不到這筆操作紀錄');
+
+  const detail = audit.parseDetail(log.detail);
+  if (!detail.undo) throw conflict('這項操作無法自動還原（例如涉及金流、密碼或已刪除的檔案），請到對應頁面手動處理');
+  if (detail.reverted) throw conflict('這筆操作已經還原過了');
+
+  const permission = undo.PERMISSION_BY_TARGET[log.target_type];
+  if (!permission || !(await requireAdmin.hasPermission(req.user, permission))) {
+    throw forbidden('你沒有這項功能的權限，不能還原這筆操作');
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 以原紀錄內容為條件更新，避免兩人同時還原。
+    const reverted = { at: new Date().toISOString(), by: req.user.userId };
+    const claimed = await tx.admin_operation_logs.updateMany({
+      where: { log_id: logId, detail: log.detail },
+      data: { detail: JSON.stringify({ ...detail, reverted }) }
+    });
+    if (claimed.count === 0) throw conflict('這筆操作剛剛被其他人還原了');
+
+    await undo.run(tx, detail.undo, { adminId: req.user.userId, label: detail.summary });
+
+    const entry = await audit.record(tx, {
+      adminId: req.user.userId,
+      action: `還原：${log.action}`,
+      targetType: log.target_type,
+      targetId: log.target_id,
+      summary: `還原了 #${logId}「${detail.summary}」`,
+      changes: (detail.changes ?? []).map((c) => ({ ...c, from: c.to, to: c.from })),
+      req
+    });
+
+    await tx.admin_operation_logs.update({
+      where: { log_id: logId },
+      data: { detail: JSON.stringify({ ...detail, reverted: { ...reverted, log_id: entry.log_id } }) }
+    });
+    return entry;
   });
+
+  res.status(200).json({ success: true, message: '已還原', data: { log_id: result.log_id } });
 });
 
 router.get('/maintenance-logs', async (req, res) => {
@@ -147,7 +217,7 @@ router.get('/maintenance-logs', async (req, res) => {
     prisma.admin_operation_logs.count({ where })
   ]);
 
-  res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: logs });
+  res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: logs.map(shapeLog) });
 });
 
 module.exports = router;

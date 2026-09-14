@@ -1,9 +1,16 @@
 tags:
-  - name: 檔案上傳 (Uploads)
+  - name: uploads
+    x-displayName: 檔案上傳
     description: |
-      通用檔案上傳，目前供檢舉與交易爭議的佐證圖片使用。
+      檢舉與交易爭議的佐證圖片，以及聊天室的圖片與語音。
 
-      書籍照片與個人頭像不使用此端點，另有專屬端點：`POST /api/books`、
+      | 用途 | 端點 | 欄位 | 格式 | 單檔上限 | 存放位置 |
+      | --- | --- | --- | --- | --- | --- |
+      | 檢舉與爭議佐證 | `POST /api/uploads` | `files`，最多 5 個 | 圖片 | 8 MB | `/uploads/evidence/` |
+      | 聊天圖片 | `POST /api/uploads/chat-image` | `file` | 圖片 | 10 MB | `/uploads/chat/` |
+      | 聊天語音 | `POST /api/uploads/voice` | `file` | M4A、AAC、MP3 | 5 MB | `/uploads/voice/` |
+
+      書籍照片與個人頭像不使用本組端點，另有專屬端點：`POST /api/books`、
       `POST /api/books/{id}/images` 與 `POST /api/users/me/avatar`。
 
 paths:
@@ -11,7 +18,7 @@ paths:
     post:
       summary: 上傳佐證檔案
       operationId: uploadFiles
-      tags: [檔案上傳 (Uploads)]
+      tags: [uploads]
       description: |
         單次上限 5 個檔案，單檔大小上限 8 MB。僅接受 JPG、PNG、GIF、WebP、HEIC 圖片，
         伺服器會檢查檔頭，副檔名與內容不符的檔案回傳 400。每位使用者 10 分鐘內最多上傳 30 次。
@@ -60,4 +67,123 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 請選擇要上傳的檔案 }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/uploads/chat-image:
+    post:
+      summary: 上傳聊天圖片
+      operationId: uploadChatImage
+      tags: [uploads]
+      description: |
+        上傳聊天室要傳送的圖片，單檔上限 10 MB。僅接受 JPG、PNG、GIF、WebP、HEIC，
+        伺服器會檢查檔頭，內容不符的檔案回傳 400。
+
+        檔案存放於 `/uploads/chat/`。取得 `url` 後，以 `message_type: image` 將其帶入
+        `POST /api/chat/rooms/{roomId}/messages` 的 `content`；其他來源的路徑不會被聊天室接受。
+
+        與語音上傳合計，每位使用者 10 分鐘內最多 60 次。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 欲上傳的檔案，欄位名稱固定為 `file`，單次一個檔案。
+      responses:
+        '201':
+          description: 上傳成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      url: { type: string, example: /uploads/chat/1736512345678-9f86d081884c7d65.jpg }
+        '400':
+          description: 未選擇檔案，或檔案格式不符。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                未選擇檔案:
+                  value: { success: false, message: 請選擇要傳送的圖片 }
+                格式不符:
+                  value: { success: false, message: 只接受圖片檔（JPG、PNG、GIF、WebP、HEIC） }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '413':
+          description: 檔案超過大小上限。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 檔案太大了 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/uploads/voice:
+    post:
+      summary: 上傳語音訊息
+      operationId: uploadVoice
+      tags: [uploads]
+      description: |
+        上傳聊天室要傳送的語音，單檔上限 5 MB。僅接受 M4A、AAC、MP3，
+        伺服器會檢查檔頭，內容不符的檔案回傳 400。語音長度由用戶端於送出訊息時以 `duration` 提供，
+        上限 120 秒。
+
+        檔案存放於 `/uploads/voice/`。取得 `url` 後，以 `message_type: voice` 將其帶入
+        `POST /api/chat/rooms/{roomId}/messages` 的 `content`。
+
+        與聊天圖片上傳合計，每位使用者 10 分鐘內最多 60 次。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 欲上傳的檔案，欄位名稱固定為 `file`，單次一個檔案。
+      responses:
+        '201':
+          description: 上傳成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      url: { type: string, example: /uploads/voice/1736512345678-9f86d081884c7d65.m4a }
+        '400':
+          description: 未選擇檔案，或檔案格式不符。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                未選擇檔案:
+                  value: { success: false, message: 請選擇要傳送的語音 }
+                格式不符:
+                  value: { success: false, message: 只接受語音檔（M4A、AAC、MP3） }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '413':
+          description: 檔案超過大小上限。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 檔案太大了 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }

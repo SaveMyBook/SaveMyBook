@@ -21,8 +21,6 @@ const stopScheduler = startScheduler();
 
 let shuttingDown = false;
 
-/// 收到 SIGTERM（pm2 reload、systemd stop）時先停止接新連線，等進行中的請求結束
-/// 再斷開資料庫。直接結束行程會讓正在結帳的交易被砍在一半。
 const shutdown = (signal) => {
   if (shuttingDown) return;
   shuttingDown = true;

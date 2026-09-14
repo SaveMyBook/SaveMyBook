@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="smb_widget_name">取书与消息</string>
+    <string name="smb_widget_description">取书码、待存书、未读消息与代币一目了然</string>
+    <string name="smb_widget_signed_out">登录以查看</string>
+    <string name="smb_widget_pickup">待取书</string>
+    <string name="smb_widget_deposit">待存书</string>
+    <string name="smb_widget_unread">未读消息</string>
+    <string name="smb_widget_coins">代币</string>
+    <string name="smb_widget_updated">更新于 %1$s</string>
+    <string name="smb_widget_pickup_code">取书码 %1$s</string>
+    <string name="smb_widget_no_pickup">目前没有待取的书</string>
+</resources>

@@ -1,5 +1,6 @@
 tags:
-  - name: 推播 (Push)
+  - name: push
+    x-displayName: 推播
     description: |
       登記手機的推播 token。伺服器透過 Firebase Cloud Messaging（FCM）送出推播，
       iOS 由 FCM 轉交 APNs。
@@ -10,6 +11,7 @@ tags:
       | 行為 | 說明 |
       | --- | --- |
       | 帳號切換 | 同一個 token 由新登入的帳號登記時，會從舊帳號移除 |
+      | 登入裝置 | 登記時與目前登入的裝置工作階段關聯；該工作階段登出（含遠端登出）時一併刪除 |
       | 裝置上限 | 每個帳號保留最近使用的 10 台 |
       | 自動清除 | 90 天未更新、或 FCM 回報已失效的 token |
       | 密碼變更 | 改密碼、被客服重設密碼、刪除帳號時清除該帳號的全部裝置，App 須重新登記 |
@@ -23,15 +25,57 @@ tags:
       { "notification_id": "812", "type": "order", "related_type": "order", "related_id": "40" }
       ```
 
-      伺服器未設定 Firebase 金鑰時，兩個端點回傳 503 `PUSH_DISABLED`，App 應安靜略過。
+      伺服器未設定 Firebase 金鑰時，裝置相關端點與測試通知回傳 503 `PUSH_DISABLED`，App 應安靜略過。
 
 paths:
   /api/push/devices:
+    get:
+      summary: 取得已登記的推播裝置
+      operationId: listPushDevices
+      tags: [push]
+      description: |
+        列出目前帳號已登記的推播裝置，依最後使用時間遞減排序，供設定頁面顯示與問題排查。
+
+        不回傳完整的 FCM token，僅以 `token_tail`（末 6 碼）辨識。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        device_id: { type: integer, example: 7 }
+                        platform: { type: string, enum: [ios, android], example: ios }
+                        app_version: { type: string, nullable: true, example: 1.4.0 }
+                        token_tail: { type: string, description: FCM token 的末 6 碼, example: a1B2c3 }
+                        created_at: { type: string, format: date-time }
+                        last_seen_at: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 伺服器尚未設定推播。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: PUSH_DISABLED, message: 推播服務尚未啟用 }
+
     post:
       summary: 登記推播裝置
       operationId: registerPushDevice
-      tags: [推播 (Push)]
-      description: App 啟動、登入、FCM token 更新時呼叫。重複登記同一個 token 只會更新最後使用時間。
+      tags: [push]
+      description: |
+        App 啟動、登入、FCM token 更新時呼叫。重複登記同一個 token 只會更新最後使用時間。
+
+        登記時會與發出請求的登入裝置工作階段關聯，該工作階段登出後裝置自動刪除，
+        因此重新登入後須再登記一次。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -64,7 +108,7 @@ paths:
     delete:
       summary: 取消推播裝置
       operationId: unregisterPushDevice
-      tags: [推播 (Push)]
+      tags: [push]
       description: 登出時呼叫，須在清除本機登入 Token 之前送出。只會刪除屬於目前帳號的 token。
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -97,9 +141,9 @@ paths:
     post:
       summary: 傳送測試通知給自己
       operationId: sendTestPush
-      tags: [推播 (Push)]
+      tags: [push]
       description: |
-        寫入一則給自己的站內通知，並延遲 10 秒推送，用來確認整條推播路徑是否正常。
+        僅限管理員。寫入一則給自己的站內通知，並延遲 10 秒推送，用來確認整條推播路徑是否正常。
         延遲是為了讓使用者先回到主畫面或鎖定手機——App 在前景時只會顯示 App 內橫幅。
 
         每位使用者 10 分鐘內最多 5 次。
@@ -120,6 +164,12 @@ paths:
                       devices: { type: integer, example: 1, description: 會收到推播的裝置數 }
                       delay_seconds: { type: integer, example: 10 }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 請求者不是管理員。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 只有管理員可以傳送測試通知 }
         '409':
           description: 這個帳號沒有任何已登記的推播裝置。
           content:

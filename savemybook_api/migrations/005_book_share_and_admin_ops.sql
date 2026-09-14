@@ -1,13 +1,6 @@
 -- 005: 書籍分享權杖
---
--- 執行方式（在 API 目錄下）：
 --   mysql -u <帳號> -p <資料庫名稱> < migrations/005_book_share_and_admin_ops.sql
 --   npx prisma db pull && npx prisma generate
---
--- 與 004 同樣可重複執行，理由與寫法見該檔開頭。
-
--- 分享書籍原本是 savemybook://book/<流水號>，任何人都能從 1 開始枚舉全站書籍，
--- 而且只能在裝了 App 的裝置上開。改成跟個人頁一樣的 32 位元組亂數權杖。
 
 SET @sql := IF(
   (SELECT COUNT(*) FROM information_schema.COLUMNS
