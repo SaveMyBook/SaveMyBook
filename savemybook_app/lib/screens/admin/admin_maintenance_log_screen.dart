@@ -105,7 +105,7 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
               _detailRow(S.content, log.detail?.isNotEmpty == true ? log.detail! : S.noFurtherDetail, c),
               _detailRow(S.operator, log.adminName.isEmpty ? S.unknown : log.adminName, c),
               _detailRow(S.time, formatDateTime(log.createdAt), c),
-              _detailRow(S.recordNumber, '#${log.logId}', c),
+              if (log.logNo.isNotEmpty) _detailRow(S.recordNumber, log.logNo, c),
             ],
           ),
         ),

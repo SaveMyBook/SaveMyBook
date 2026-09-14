@@ -452,7 +452,7 @@ class _WalletScreenState extends State<WalletScreen> {
               row(S.balanceAfter, '\$${_money(t.balanceAfter)}'),
               if (local != null) row(S.time, formatDateTime(local)),
               if (t.orderNo != null) row(S.orderNumber, t.orderNo!, copyable: true),
-              row(S.transactionId, '#${t.txnId}', copyable: true),
+              if (t.txnNo.isNotEmpty) row(S.transactionId, t.txnNo, copyable: true),
               if (t.orderId != null) ...[
                 const SizedBox(height: 12),
                 SizedBox(
@@ -492,7 +492,13 @@ class _WalletScreenState extends State<WalletScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       onTap: () => _showDetail(t),
-      onLongPress: () => t.orderNo != null ? _copy(S.orderNumber, t.orderNo!) : _copy(S.transactionId, '#${t.txnId}'),
+      onLongPress: () {
+        if (t.orderNo != null) {
+          _copy(S.orderNumber, t.orderNo!);
+        } else if (t.txnNo.isNotEmpty) {
+          _copy(S.transactionId, t.txnNo);
+        }
+      },
       child: Row(
         children: [
           BookThumbnail(imageUrl: t.bookImageUrl, width: 46, height: 60, radius: 8),

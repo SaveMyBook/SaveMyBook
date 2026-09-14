@@ -37,6 +37,7 @@ class Wallet {
 
 class WalletTransaction {
   final int txnId;
+  final String txnNo;
   final String type;
   final double amount;
   final double balanceAfter;
@@ -49,6 +50,7 @@ class WalletTransaction {
 
   WalletTransaction({
     required this.txnId,
+    this.txnNo = '',
     required this.type,
     required this.amount,
     required this.balanceAfter,
@@ -83,6 +85,7 @@ class WalletTransaction {
 
     return WalletTransaction(
       txnId: parseInt(json['txn_id']),
+      txnNo: json['txn_no'] as String? ?? '',
       type: json['type'] as String? ?? 'sale_income',
       amount: parseDouble(json['amount']),
       balanceAfter: parseDouble(json['balance_after']),

@@ -44,7 +44,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
     final data = await _api.fetchProfileQrData();
     if (!mounted) return;
     setState(() {
-      _qrData = data ?? ApiService.profileUrlFor(ApiService.currentUser?.userId ?? 0);
+      _qrData = data;
       _isLoading = false;
     });
   }
@@ -73,17 +73,26 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
 
     if (code == null || !mounted) return;
 
-    final userId = ApiService.parseProfileUserId(code);
-    if (userId == null) {
+    final link = ApiService.parseShareLink(code);
+    if (link == null || link.kind != 'u') {
       showAppSnackBar(context, S.notSavemybookProfileQrCode, isError: true);
-      return;
-    }
-    if (userId == ApiService.currentUser?.userId) {
-      showAppSnackBar(context, S.ownQrCode);
       return;
     }
 
     setState(() => _isBusy = true);
+    final userId = await _api.resolveUserShareToken(link.token);
+    if (!mounted) return;
+    if (userId == null) {
+      setState(() => _isBusy = false);
+      showAppSnackBar(context, S.notSavemybookProfileQrCode, isError: true);
+      return;
+    }
+    if (userId == ApiService.currentUser?.userId) {
+      setState(() => _isBusy = false);
+      showAppSnackBar(context, S.ownQrCode);
+      return;
+    }
+
     final roomId = await _api.openChatRoom(userId: userId);
     if (!mounted) return;
     setState(() => _isBusy = false);
@@ -195,6 +204,24 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
             Center(
               child: _isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
+                  : _qrData == null
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.cloud_off_rounded, color: Colors.white70, size: 40),
+                        const SizedBox(height: 12),
+                        Text(S.unableGenerateProfileQrCodeTry, style: const TextStyle(color: Colors.white, fontSize: 15)),
+                        const SizedBox(height: 16),
+                        OutlinedButton(
+                          onPressed: () {
+                            setState(() => _isLoading = true);
+                            _load();
+                          },
+                          style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white54)),
+                          child: Text(S.retry),
+                        ),
+                      ],
+                    )
                   : SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
                       child: Column(
@@ -288,7 +315,16 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 28),
+                          const SizedBox(height: 16),
+                          FadeSlideIn(
+                            index: 1,
+                            child: Text(
+                              S.askOtherPersonScanQrCode,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13, height: 1.5),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
                           FadeSlideIn(
                             index: 2,
                             child: Row(

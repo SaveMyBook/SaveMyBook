@@ -175,6 +175,32 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/books/share/{token}:
+    get:
+      summary: 以分享權杖取得書籍
+      operationId: getBookByShareToken
+      tags: [books]
+      description: |
+        App 開啟 `https://<host>/b/<token>` 或 `savemybook://b/<token>` 時，以權杖換取書籍資料，
+        回應格式與 `GET /api/books/{id}` 相同。已下架的書籍回傳 404。不需登入。
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema: { type: string, pattern: '^[0-9a-f]{32}$' }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/Book' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/books/{id}/share-link:
     get:
       summary: 取得書籍分享連結

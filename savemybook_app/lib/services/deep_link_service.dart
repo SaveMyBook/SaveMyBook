@@ -4,10 +4,8 @@ import 'api_service.dart';
 class DeepLinkService {
   static const _channel = MethodChannel('savemybook/deeplink');
 
-  static final _bookLink = RegExp(r'^savemybook://book/(\d+)/?$');
-
-  static void Function(int userId)? onProfileLink;
-  static void Function(int bookId)? onBookLink;
+  static void Function(String token)? onProfileLink;
+  static void Function(String token)? onBookLink;
 
   static String? _pending;
 
@@ -25,27 +23,15 @@ class DeepLinkService {
 
   static void _handle(String? link) {
     if (link == null || link.isEmpty) return;
+    final parsed = ApiService.parseShareLink(link);
+    if (parsed == null) return;
 
-    final bookId = int.tryParse(_bookLink.firstMatch(link.trim())?.group(1) ?? '');
-    if (bookId != null) {
-      final handler = onBookLink;
-      if (handler == null) {
-        _pending = link;
-      } else {
-        handler(bookId);
-      }
-      return;
-    }
-
-    final userId = ApiService.parseProfileUserId(link);
-    if (userId == null) return;
-
-    final handler = onProfileLink;
+    final handler = parsed.kind == 'b' ? onBookLink : onProfileLink;
     if (handler == null) {
       _pending = link;
       return;
     }
-    handler(userId);
+    handler(parsed.token);
   }
 
   static void flushPending() {

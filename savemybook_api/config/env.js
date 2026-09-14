@@ -10,6 +10,7 @@ const env = {
   port: int(process.env.PORT, 3000),
   databaseUrl: process.env.DATABASE_URL,
   jwtSecret: process.env.JWT_SECRET,
+  publicIdSecret: process.env.PUBLIC_ID_SECRET || '',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
   publicWebUrl: (process.env.PUBLIC_WEB_URL || '').replace(/\/+$/, ''),
   googleBooksApiKey: process.env.GOOGLE_BOOKS_API_KEY || '',

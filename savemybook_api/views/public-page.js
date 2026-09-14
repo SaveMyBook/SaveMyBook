@@ -141,7 +141,7 @@ const errorPage = () => render({
     <p class="bio">請稍後再試。</p>`
 });
 
-const userProfile = ({ origin, user }) => {
+const userProfile = ({ origin, user, token }) => {
   const nickname = user.nickname || '';
   const src = imageUrl(origin, user.avatar_url);
   const avatar = src
@@ -156,12 +156,12 @@ const userProfile = ({ origin, user }) => {
       <h1>${escapeHtml(nickname)}</h1>
       <p class="bio">${escapeHtml(user.bio || '這個人很懶，什麼都沒留下')}</p>
       <p class="meta">上架 ${Number(user._count.books)} 本書 ・ ${escapeHtml(joined)} 加入</p>
-      ${openAppButton(`savemybook://user/${Number(user.user_id)}`,
+      ${openAppButton(`savemybook://u/${encodeURIComponent(token)}`,
         '若無法開啟，請先安裝「救「舊」我的書」App，<br>或於 App 的「分享個人檔案」中掃描此 QR Code。')}`
   });
 };
 
-const bookDetail = ({ origin, book }) => {
+const bookDetail = ({ origin, book, token }) => {
   const seller = book.users;
   const nickname = seller.nickname || '';
   const coverSrc = imageUrl(origin, book.book_images[0]?.image_url);
@@ -192,7 +192,7 @@ const bookDetail = ({ origin, book }) => {
       <p class="price">$${escapeHtml(Number(book.price).toFixed(0))}</p>
       <div class="tags">${tags}</div>
       <div class="seller">${avatar}<span>${escapeHtml(nickname)}</span></div>
-      ${openAppButton(`savemybook://book/${Number(book.book_id)}`,
+      ${openAppButton(`savemybook://b/${encodeURIComponent(token)}`,
         '若無法開啟，請先安裝「救「舊」我的書」App，再重新點選此連結。')}`
   });
 };

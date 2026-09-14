@@ -274,6 +274,11 @@ paths:
           description: 僅取編號大於此值的訊息，供輪詢新訊息使用。
           example: 301
         - in: query
+          name: mark_read
+          schema: { type: boolean, default: true }
+          description: 設為 `false` 時僅讀取不標記已讀，供聊天列表長按預覽使用，對方不會看到「已讀」。
+          example: false
+        - in: query
           name: before_id
           schema: { type: integer, minimum: 1 }
           description: 僅取編號小於此值的訊息，供分頁載入歷史訊息使用。

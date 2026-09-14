@@ -358,6 +358,7 @@ components:
       type: object
       properties:
         txn_id: { type: integer, example: 204 }
+        txn_no: { type: string, description: 顯示給使用者的交易編號，由流水號加密產生，不可推算出流水號。, example: TX3KER74B }
         wallet_id: { type: integer, example: 9 }
         type:
           type: string
@@ -702,6 +703,8 @@ components:
       type: object
       properties:
         log_id: { type: integer, example: 340 }
+        log_no: { type: string, description: 顯示用的紀錄編號（加密）。管理員可在 keyword 輸入此編號或 target_no 搜尋。, example: LG016QVJA }
+        target_no: { type: string, nullable: true, description: 顯示用的對象編號（加密）。, example: MB3K9Y53F }
         action: { type: string, example: 強制下架書籍 }
         target_type: { type: string, nullable: true, example: book }
         target_id: { type: integer, nullable: true, example: 101 }

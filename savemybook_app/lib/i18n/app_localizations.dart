@@ -1509,6 +1509,11 @@ abstract class AppLocalizations {
   String get sectionContent;
   String get previous;
   String get next2;
+  String get unableGenerateProfileQrCodeTry;
+  String get myQrCode;
+  String get othersCanScanViewPublicProfile;
+  String get askOtherPersonScanQrCode;
+  String get markAsRead;
 }
 
 class _LEn extends AppLocalizations {
@@ -5971,6 +5976,21 @@ class _LEn extends AppLocalizations {
 
   @override
   String get next2 => 'Next';
+
+  @override
+  String get unableGenerateProfileQrCodeTry => 'Unable to generate your profile QR code. Try again later.';
+
+  @override
+  String get myQrCode => 'My QR code';
+
+  @override
+  String get othersCanScanViewPublicProfile => 'Others can scan it to view your public profile and chat with you';
+
+  @override
+  String get askOtherPersonScanQrCode => 'Ask the other person to scan this QR code in 救「舊」我的書 to view your public profile and chat with you.';
+
+  @override
+  String get markAsRead => 'Mark as read';
 
 }
 
@@ -10435,6 +10455,21 @@ class _LJa extends AppLocalizations {
   @override
   String get next2 => '次の章';
 
+  @override
+  String get unableGenerateProfileQrCodeTry => 'プロフィール QR コードを生成できません。しばらくしてからお試しください。';
+
+  @override
+  String get myQrCode => 'マイ QR コード';
+
+  @override
+  String get othersCanScanViewPublicProfile => '相手がスキャンすると公開プロフィールを表示し、チャットを始められます';
+
+  @override
+  String get askOtherPersonScanQrCode => '相手に救「舊」我的書でこの QR コードをスキャンしてもらうと、公開プロフィールの表示やチャットができます。';
+
+  @override
+  String get markAsRead => '既読にする';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -14897,6 +14932,21 @@ class _LKo extends AppLocalizations {
 
   @override
   String get next2 => '다음 장';
+
+  @override
+  String get unableGenerateProfileQrCodeTry => '프로필 QR 코드를 생성할 수 없습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String get myQrCode => '내 QR 코드';
+
+  @override
+  String get othersCanScanViewPublicProfile => '상대방이 스캔하면 공개 프로필을 보고 채팅할 수 있습니다';
+
+  @override
+  String get askOtherPersonScanQrCode => '상대방이 救「舊」我的書에서 이 QR 코드를 스캔하면 공개 프로필을 보고 채팅할 수 있습니다.';
+
+  @override
+  String get markAsRead => '읽음으로 표시';
 
 }
 
@@ -19361,6 +19411,21 @@ class _LZh extends AppLocalizations {
   @override
   String get next2 => '下一章';
 
+  @override
+  String get unableGenerateProfileQrCodeTry => '無法產生個人 QR Code，請稍後再試';
+
+  @override
+  String get myQrCode => '我的 QR Code';
+
+  @override
+  String get othersCanScanViewPublicProfile => '對方掃描後即可查看您的公開檔案並與您聊天';
+
+  @override
+  String get askOtherPersonScanQrCode => '請對方開啟救「舊」我的書掃描此 QR Code，即可查看您的公開檔案並與您聊天。';
+
+  @override
+  String get markAsRead => '標為已讀';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -23824,6 +23889,21 @@ class _LZhHans extends AppLocalizations {
   @override
   String get next2 => '下一章';
 
+  @override
+  String get unableGenerateProfileQrCodeTry => '无法生成个人 QR Code，请稍后再试';
+
+  @override
+  String get myQrCode => '我的 QR Code';
+
+  @override
+  String get othersCanScanViewPublicProfile => '对方扫描后即可查看您的公开资料并与您聊天';
+
+  @override
+  String get askOtherPersonScanQrCode => '请对方打开救「旧」我的书扫描此 QR Code，即可查看您的公开资料并与您聊天。';
+
+  @override
+  String get markAsRead => '标为已读';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -28286,6 +28366,21 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get next2 => '下一章';
+
+  @override
+  String get unableGenerateProfileQrCodeTry => '無法產生個人 QR Code，請稍後再試';
+
+  @override
+  String get myQrCode => '我的 QR Code';
+
+  @override
+  String get othersCanScanViewPublicProfile => '對方掃描後即可查看您的公開檔案並與您聊天';
+
+  @override
+  String get askOtherPersonScanQrCode => '請對方開啟救「舊」我的書掃描此 QR Code，即可查看您的公開檔案並與您聊天。';
+
+  @override
+  String get markAsRead => '標為已讀';
 
 }
 

@@ -4,6 +4,7 @@ const authenticateToken = require('../middleware/auth');
 const v = require('../lib/validate');
 const { ORDER_OPEN_STATUSES } = require('../constants/domain');
 const { ensureWallet } = require('../services/wallet');
+const publicId = require('../lib/public-id');
 
 const router = express.Router();
 
@@ -50,7 +51,11 @@ router.get('/transactions', async (req, res) => {
     prisma.wallet_transactions.count({ where })
   ]);
 
-  res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: transactions });
+  res.status(200).json({
+    success: true,
+    pagination: v.pageMeta(total, { page, limit }),
+    data: transactions.map((t) => ({ ...t, txn_no: publicId.encode('transaction', t.txn_id) }))
+  });
 });
 
 router.get('/pending', async (req, res) => {

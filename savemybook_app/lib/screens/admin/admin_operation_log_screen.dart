@@ -294,7 +294,7 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                         ),
                         if (typeLabel != null)
                           StatusBadge(
-                            label: log.targetId == null ? typeLabel : '$typeLabel #${log.targetId}',
+                            label: log.targetNo == null ? typeLabel : '$typeLabel ${log.targetNo}',
                             color: c.neutral,
                             fontSize: 10,
                           ),
@@ -372,7 +372,7 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
                               child: Text(
-                                'IP ${log.ipAddress}・#${log.logId}',
+                                'IP ${log.ipAddress}・${log.logNo}',
                                 style: TextStyle(fontSize: 11, color: c.textHint),
                               ),
                             ),

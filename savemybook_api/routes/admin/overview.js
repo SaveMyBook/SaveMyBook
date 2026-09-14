@@ -5,6 +5,7 @@ const v = require('../../lib/validate');
 const { forbidden, notFound, conflict } = require('../../lib/errors');
 const audit = require('../../services/audit');
 const undo = require('../../services/undo');
+const publicId = require('../../lib/public-id');
 const { requireVerification } = require('../../services/security');
 
 const router = express.Router();
@@ -112,13 +113,27 @@ const TARGET_TYPES = [
   'wallet', 'ticket', 'report', 'dispute', 'order', 'backup'
 ];
 
+const keywordFilters = (keyword) => {
+  const filters = [{ action: { contains: keyword } }, { detail: { contains: keyword } }];
+  const code = publicId.decodeAny(keyword);
+  if (code?.prefix === publicId.prefixOf('log')) {
+    filters.push({ log_id: code.id });
+  } else if (code) {
+    const types = TARGET_TYPES.filter((t) => publicId.prefixOf(t) === code.prefix);
+    if (types.length > 0) filters.push({ target_id: code.id, target_type: { in: types } });
+  }
+  return filters;
+};
+
 const shapeLog = (l) => {
   const detail = audit.parseDetail(l.detail);
   return {
     log_id: l.log_id,
+    log_no: publicId.encode('log', l.log_id),
     action: l.action,
     target_type: l.target_type,
     target_id: l.target_id,
+    target_no: l.target_id == null ? null : publicId.encode(l.target_type, l.target_id),
     summary: detail.summary,
     changes: detail.changes ?? [],
     can_undo: Boolean(detail.undo) && !detail.reverted,
@@ -140,7 +155,7 @@ router.get('/operation-logs', async (req, res) => {
   const where = {
     ...(targetType && { target_type: targetType }),
     ...(adminId && { admin_id: adminId }),
-    ...(keyword && { OR: [{ action: { contains: keyword } }, { detail: { contains: keyword } }] })
+    ...(keyword && { OR: keywordFilters(keyword) })
   };
 
   const [logs, total] = await Promise.all([

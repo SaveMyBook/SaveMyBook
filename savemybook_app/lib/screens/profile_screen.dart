@@ -171,14 +171,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ),
-                    Positioned(
-                      right: -8,
-                      child: IconButton(
-                        tooltip: S.shareProfile,
-                        icon: const Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 24),
-                        onPressed: _openShareProfile,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -457,6 +449,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.edit_outlined,
               title: S.editProfile,
               onTap: () => _openAndRefresh(const EditProfileScreen()),
+            ),
+            AppMenuItem(
+              icon: Icons.qr_code_2_rounded,
+              title: S.myQrCode,
+              subtitle: S.othersCanScanViewPublicProfile,
+              onTap: _openShareProfile,
             ),
             AppMenuItem(
               icon: Icons.verified_user_outlined,

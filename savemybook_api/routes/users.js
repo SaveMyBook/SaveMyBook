@@ -351,6 +351,18 @@ router.get('/', authenticateToken, requireAdmin('members'), async (req, res) => 
   res.status(200).json({ success: true, data: users });
 });
 
+router.get('/share/:token', authenticateToken, async (req, res) => {
+  const token = String(req.params.token || '').toLowerCase();
+  if (!share.TOKEN_RE.test(token)) throw notFound('找不到此使用者');
+  const user = await prisma.users.findFirst({
+    where: { share_token: token },
+    select: { ...publicSelect, is_active: true, is_blacklisted: true, anonymized_at: true }
+  });
+  if (!user || !user.is_active || user.is_blacklisted || user.anonymized_at) throw notFound('找不到此使用者');
+  const visible = Object.fromEntries(Object.keys(publicSelect).map((key) => [key, user[key]]));
+  res.status(200).json({ success: true, data: visible });
+});
+
 router.get('/:id', authenticateToken, async (req, res) => {
   const userId = id(req.params.id, '使用者編號');
   const canSeePrivate = userId === req.user.userId || req.user.role === 'admin';

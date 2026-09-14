@@ -7,6 +7,7 @@ const { changeBalance } = require('../../services/wallet');
 const { notify } = require('../../services/notify');
 const audit = require('../../services/audit');
 const { requireVerification } = require('../../services/security');
+const publicId = require('../../lib/public-id');
 
 const router = express.Router();
 const canManage = requireAdmin('wallets');
@@ -68,7 +69,13 @@ router.get('/wallets/:userId', canManage, async (req, res) => {
       })
     : [];
 
-  res.status(200).json({ success: true, data: { ...walletSummary(user), transactions } });
+  res.status(200).json({
+    success: true,
+    data: {
+      ...walletSummary(user),
+      transactions: transactions.map((t) => ({ ...t, txn_no: publicId.encode('transaction', t.txn_id) }))
+    }
+  });
 });
 
 router.post('/wallets/:userId/adjust', canManage, requireVerification('sensitive'), async (req, res) => {

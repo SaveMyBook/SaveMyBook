@@ -8,7 +8,7 @@ const { publicBase } = require('../lib/public-url');
 const { env } = require('../config/env');
 const { badRequest, forbidden, notFound, conflict, HttpError } = require('../lib/errors');
 const { BOOK_STATUSES, CONDITION_LEVELS } = require('../constants/domain');
-const { ensureBookToken } = require('../services/share');
+const { ensureBookToken, TOKEN_RE } = require('../services/share');
 const { peekUserId } = require('../middleware/auth');
 const ranking = require('../services/ranking');
 const reservations = require('../services/reservations');
@@ -167,6 +167,23 @@ router.get('/', async (req, res) => {
   ]);
 
   res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: books });
+});
+
+router.get('/share/:token', async (req, res) => {
+  const token = String(req.params.token || '').toLowerCase();
+  if (!TOKEN_RE.test(token)) throw notFound('找不到此書籍');
+  const book = await prisma.books.findFirst({
+    where: { share_token: token, status: { not: 'removed' } },
+    include: {
+      users: { select: { user_id: true, nickname: true, avatar_url: true, created_at: true } },
+      book_images: true,
+      book_categories: { select: { category_name: true } },
+      smart_cabinets: { select: cabinetSelect }
+    }
+  });
+  if (!book) throw notFound('找不到此書籍');
+  const hold = await reservations.holdForViewer(book.book_id, peekUserId(req));
+  res.status(200).json({ success: true, data: { ...book, reservation: hold } });
 });
 
 router.get('/:id/share-link', async (req, res) => {

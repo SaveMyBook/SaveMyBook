@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../widgets/chat/chat_preview.dart';
 import '../models/chat.dart';
 import '../services/api_service.dart';
 import '../services/chat_prefs.dart';
@@ -150,6 +151,24 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     }
   }
 
+  Future<void> _preview(ChatRoom room) async {
+    final action = await showChatPreview(context, room: room, muted: ChatPrefs.isMuted(room.roomId));
+    if (!mounted || action == null) return;
+    switch (action) {
+      case ChatPreviewAction.open:
+        await _openRoom(room);
+      case ChatPreviewAction.markRead:
+        await _api.fetchChatMessages(room.roomId, limit: 1);
+        if (!mounted) return;
+        await _load();
+        _api.fetchUnreadChatCount();
+      case ChatPreviewAction.toggleMute:
+        await _toggleMute(room);
+      case ChatPreviewAction.delete:
+        if (await _confirmDelete(room) && mounted) await _deleteDismissed(room);
+    }
+  }
+
   Future<void> _openRoom(ChatRoom room) async {
     await Navigator.push(
       context,
@@ -290,6 +309,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       onTap: () => _openRoom(room),
+      onLongPress: () => _preview(room),
       child: Row(
         children: [
           UserAvatar(

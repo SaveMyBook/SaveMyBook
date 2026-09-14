@@ -297,6 +297,7 @@ class Cabinet {
 
 class MaintenanceLog {
   final int logId;
+  final String logNo;
   final String action;
   final String? detail;
   final String adminName;
@@ -304,6 +305,7 @@ class MaintenanceLog {
 
   MaintenanceLog({
     required this.logId,
+    this.logNo = '',
     required this.action,
     required this.adminName,
     this.detail,
@@ -313,6 +315,7 @@ class MaintenanceLog {
   factory MaintenanceLog.fromJson(Map<String, dynamic> json) {
     return MaintenanceLog(
       logId: parseInt(json['log_id']),
+      logNo: json['log_no'] as String? ?? '',
       action: json['action'] as String? ?? '',
       detail: json['detail'] as String?,
       adminName: (json['users'] as Map<String, dynamic>?)?['nickname'] as String? ?? '',
@@ -806,9 +809,11 @@ class LogChange {
 
 class AdminOperationLog {
   final int logId;
+  final String logNo;
   final String action;
   final String? targetType;
   final int? targetId;
+  final String? targetNo;
 
   final String summary;
   final List<LogChange> changes;
@@ -828,6 +833,8 @@ class AdminOperationLog {
     this.revertedAt,
     this.targetType,
     this.targetId,
+    this.logNo = '',
+    this.targetNo,
     this.ipAddress,
     this.createdAt,
   });
@@ -843,6 +850,8 @@ class AdminOperationLog {
       action: json['action'] as String? ?? '',
       targetType: json['target_type'] as String?,
       targetId: json['target_id'] == null ? null : parseInt(json['target_id']),
+      logNo: json['log_no'] as String? ?? '',
+      targetNo: json['target_no'] as String?,
       summary: json['summary'] as String? ?? json['detail'] as String? ?? '',
       changes: ((json['changes'] as List?) ?? const [])
           .whereType<Map>()

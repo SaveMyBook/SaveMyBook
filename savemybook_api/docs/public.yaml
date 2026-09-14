@@ -19,7 +19,7 @@ paths:
         無效，否則等於沒加密。
 
         QR Code 編碼的是 `https://` 連結而非自訂 scheme，以確保裝置內建相機
-        可正常辨識。頁面提供的按鈕再以 `savemybook://user/{id}` 進行 deep link；
+        可正常辨識。頁面提供的按鈕再以 `savemybook://u/{token}` 進行 deep link（同樣使用權杖，不帶流水號）；
         觸發後 1.5 秒內頁面若未進入背景，則判定應用程式未安裝並顯示安裝提示。
 
         頁面呈現暱稱、頭像、簡介、上架書籍數與加入日期，支援淺色與深色模式，
@@ -64,7 +64,7 @@ paths:
         權杖由 `GET /api/books/{id}/share-link` 首次索取時產生，此後固定不變。
 
         頁面呈現封面、書名、作者、售價、分類、書況與賣家，並提供
-        `savemybook://book/{id}` 的 deep link 按鈕；觸發後 1.5 秒內頁面若未
+        `savemybook://b/{token}` 的 deep link 按鈕；觸發後 1.5 秒內頁面若未
         進入背景，則判定應用程式未安裝並顯示提示。支援淺色與深色模式，
         所有使用者輸入均經 HTML 跳脫處理。
 
@@ -95,3 +95,56 @@ paths:
           content:
             text/html:
               schema: { type: string }
+
+  /terms:
+    get:
+      summary: 服務條款公開頁（HTML）
+      operationId: publicTermsPage
+      tags: [public]
+      description: |
+        以 HTML 呈現目前的服務條款，供 App Store、Google Play 審核與網站連結使用，不需登入。
+        內容即時讀取資料庫，管理員於後台更新後約 5 分鐘內生效（`Cache-Control: max-age=300`）。
+        段落開頭為「1.」「一、」「第一條」的行會呈現為章節標題；支援深色模式與列印。
+      security: []
+      responses:
+        '200': { description: HTML 頁面。, content: { text/html: { schema: { type: string } } } }
+        '404': { description: 文件不存在或內容為空。, content: { text/html: { schema: { type: string } } } }
+
+  /privacy:
+    get:
+      summary: 隱私權政策公開頁（HTML）
+      operationId: publicPrivacyPage
+      tags: [public]
+      description: 以 HTML 呈現目前的隱私權政策，行為同 `GET /terms`。
+      security: []
+      responses:
+        '200': { description: HTML 頁面。, content: { text/html: { schema: { type: string } } } }
+        '404': { description: 文件不存在或內容為空。, content: { text/html: { schema: { type: string } } } }
+
+  /about:
+    get:
+      summary: 關於我們公開頁（HTML）
+      operationId: publicAboutPage
+      tags: [public]
+      description: 以 HTML 呈現「關於我們」，行為同 `GET /terms`。
+      security: []
+      responses:
+        '200': { description: HTML 頁面。, content: { text/html: { schema: { type: string } } } }
+        '404': { description: 文件不存在或內容為空。, content: { text/html: { schema: { type: string } } } }
+
+  /legal/{key}:
+    get:
+      summary: 任一法律文件公開頁（HTML）
+      operationId: publicLegalPage
+      tags: [public]
+      description: 依 `doc_key` 呈現法律文件，行為同 `GET /terms`。
+      security: []
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema: { type: string, pattern: '^[a-z0-9_-]{1,50}$' }
+      responses:
+        '200': { description: HTML 頁面。, content: { text/html: { schema: { type: string } } } }
+        '404': { description: 文件不存在或內容為空。, content: { text/html: { schema: { type: string } } } }
+

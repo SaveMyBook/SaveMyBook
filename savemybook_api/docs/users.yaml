@@ -356,6 +356,34 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/users/share/{token}:
+    get:
+      summary: 以分享權杖取得使用者
+      operationId: getUserByShareToken
+      tags: [users]
+      description: |
+        App 掃描個人 QR Code（`https://<host>/u/<token>`）或開啟 `savemybook://u/<token>` 時，
+        以權杖換取公開資料，回傳欄位與查詢他人時相同。停權、黑名單或已刪除的帳號回傳 404。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema: { type: string, pattern: '^[0-9a-f]{32}$' }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/users/{id}:
     parameters:
       - in: path

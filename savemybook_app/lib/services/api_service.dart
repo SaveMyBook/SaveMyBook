@@ -66,17 +66,15 @@ class ApiService {
 
   static const String publicWebUrl = 'https://api.savemybook.today';
 
-  static String profileUrlFor(int userId) => '$publicWebUrl/u/$userId';
-
-  static int? parseProfileUserId(String raw) {
+  static ({String kind, String token})? parseShareLink(String raw) {
     final value = raw.trim();
     final patterns = [
-      RegExp(r'^https?://[^/]+/u/(\d+)/?$'),
-      RegExp(r'^savemybook://user/(\d+)$'),
+      RegExp(r'^https?://[^/\s]+/([ub])/([0-9a-fA-F]{32})/?(?:[?#].*)?$'),
+      RegExp(r'^savemybook://([ub])/([0-9a-fA-F]{32})/?$'),
     ];
     for (final p in patterns) {
       final match = p.firstMatch(value);
-      if (match != null) return int.tryParse(match.group(1)!);
+      if (match != null) return (kind: match.group(1)!, token: match.group(2)!.toLowerCase());
     }
     return null;
   }
@@ -708,9 +706,10 @@ class ApiService {
     return int.tryParse('${res['data']?['room_id']}');
   }
 
-  Future<ChatFetchResult> fetchChatMessages(int roomId, {int? afterId, int? beforeId, int limit = 50}) async {
+  Future<ChatFetchResult> fetchChatMessages(int roomId, {int? afterId, int? beforeId, int limit = 50, bool markRead = true}) async {
     final res = await _send('GET', '/chat/rooms/$roomId/messages', query: {
       'limit': '$limit',
+      if (!markRead) 'mark_read': 'false',
       if (afterId != null) 'after_id': '$afterId',
       if (beforeId != null) 'before_id': '$beforeId',
     });
@@ -1023,6 +1022,19 @@ class ApiService {
   Future<bool> unregisterPushDevice(String token) async {
     final res = await _send('DELETE', '/push/devices', body: {'token': token});
     return res != null && res['success'] == true;
+  }
+
+  Future<int?> resolveUserShareToken(String token) async {
+    final res = await _send('GET', '/users/share/$token');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    final id = parseInt(res['data']['user_id']);
+    return id > 0 ? id : null;
+  }
+
+  Future<Book?> fetchBookByShareToken(String token) async {
+    final res = await _send('GET', '/books/share/$token');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return Book.fromJson(Map<String, dynamic>.from(res['data']));
   }
 
   Future<String?> fetchProfileQrData() async {

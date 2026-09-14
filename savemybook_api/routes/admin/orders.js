@@ -7,6 +7,7 @@ const { ORDER_STATUSES } = require('../../constants/domain');
 const orderFlow = require('../../services/orders');
 const { notify } = require('../../services/notify');
 const audit = require('../../services/audit');
+const publicId = require('../../lib/public-id');
 
 const router = express.Router();
 const canManage = requireAdmin('orders');
@@ -130,7 +131,7 @@ router.get('/orders/:id', canManage, async (req, res) => {
       },
       refunds: order.refund_records,
       disputes: order.transaction_disputes,
-      wallet_transactions: order.wallet_transactions
+      wallet_transactions: order.wallet_transactions.map((t) => ({ ...t, txn_no: publicId.encode('transaction', t.txn_id) }))
     }
   });
 });

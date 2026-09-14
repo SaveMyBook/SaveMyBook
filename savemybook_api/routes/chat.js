@@ -211,11 +211,14 @@ router.get('/rooms/:roomId/messages', async (req, res) => {
   if (afterId == null) messages.reverse();
 
   const recentCutoff = new Date(Date.now() - 10 * 60 * 1000);
+  const markRead = req.query.mark_read !== 'false';
   const [, lastRead, recalled, reservationMap] = await Promise.all([
-    prisma.chat_messages.updateMany({
-      where: { room_id: roomId, sender_id: { not: myId }, is_read: false },
-      data: { is_read: true }
-    }),
+    markRead
+      ? prisma.chat_messages.updateMany({
+          where: { room_id: roomId, sender_id: { not: myId }, is_read: false },
+          data: { is_read: true }
+        })
+      : Promise.resolve(null),
     prisma.chat_messages.findFirst({
       where: { room_id: roomId, sender_id: myId, is_read: true },
       orderBy: { message_id: 'desc' },

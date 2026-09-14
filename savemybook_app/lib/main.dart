@@ -116,7 +116,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     });
   }
 
-  Future<void> _openProfileLink(int userId) async {
+  Future<void> _openProfileLink(String token) async {
     final navigator = navigatorKey.currentState;
     if (navigator == null) return;
 
@@ -127,7 +127,8 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
       );
       return;
     }
-    if (userId == ApiService.currentUser?.userId) return;
+    final userId = await ApiService().resolveUserShareToken(token);
+    if (userId == null || userId == ApiService.currentUser?.userId) return;
 
     final roomId = await ApiService().openChatRoom(userId: userId);
     if (roomId == null) return;
@@ -137,7 +138,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     );
   }
 
-  Future<void> _openBookLink(int bookId) async {
+  Future<void> _openBookLink(String token) async {
     final navigator = navigatorKey.currentState;
     if (navigator == null) return;
 
@@ -149,7 +150,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
       return;
     }
 
-    final book = await ApiService().fetchBookDetail(bookId);
+    final book = await ApiService().fetchBookByShareToken(token);
     if (book == null) return;
 
     navigatorKey.currentState?.push(
