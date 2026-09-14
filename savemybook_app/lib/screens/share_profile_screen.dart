@@ -16,6 +16,7 @@ import 'barcode_scanner_screen.dart';
 import 'chat_room_screen.dart';
 import '../utils/motion.dart';
 import '../i18n/strings.dart';
+import '../utils/app_info.dart';
 
 class ShareProfileScreen extends StatefulWidget {
   const ShareProfileScreen({super.key});
@@ -264,11 +265,11 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                     ),
                                     const SizedBox(height: 14),
                                     const Text(
-                                      'SaveMyBook',
+                                      kAppName,
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w800,
-                                        letterSpacing: 2,
+                                        letterSpacing: 1,
                                         color: AppColors.primary,
                                       ),
                                     ),

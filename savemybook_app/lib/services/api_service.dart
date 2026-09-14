@@ -734,6 +734,14 @@ class ApiService {
     return res != null && res['success'] == true;
   }
 
+  /// 回傳 (成功訊息, 錯誤訊息)，兩者擇一。
+  Future<(String?, String?)> sendTestPush() async {
+    final res = await _send('POST', '/push/test');
+    if (res == null) return (null, S.couldNotReachServer);
+    final message = res['message'] as String?;
+    return res['success'] == true ? (message ?? '', null) : (null, message ?? S.somethingWentWrongPleaseTryAgain);
+  }
+
   Future<bool> unregisterPushDevice(String token) async {
     final res = await _send('DELETE', '/push/devices', body: {'token': token});
     return res != null && res['success'] == true;

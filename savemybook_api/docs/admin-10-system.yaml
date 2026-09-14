@@ -7,6 +7,12 @@ tags:
       「未設定細部權限視為全開」規則的權限 —— 備份檔含全站個資，
       必須由人明確開啟。既有管理員預設為關閉。
 
+      只有已具備這項權限的管理員能在後台替別人開啟。第一位擁有者請在伺服器上執行：
+
+      ```bash
+      node scripts/grant-admin-permissions.js <管理員 Email> --all
+      ```
+
       待刪除帳號的處理需 `can_manage_members` 權限。
 
 paths:

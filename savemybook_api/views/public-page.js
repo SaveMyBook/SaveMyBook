@@ -78,13 +78,13 @@ const render = ({ title, body }) => `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>${escapeHtml(title)}｜SaveMyBook</title>
+<title>${escapeHtml(title)}｜救「舊」我的書</title>
 <style>${STYLE}</style>
 </head>
 <body><div class="card">${body}</div></body>
 </html>`;
 
-const BRAND = '<div class="brand">SaveMyBook</div>';
+const BRAND = '<div class="brand">救「舊」我的書</div>';
 
 /// 自訂 scheme 叫不起 App 時（沒安裝）瀏覽器不會報錯，只能看頁面有沒有被切到背景來判斷。
 const openAppButton = (deepLink, hint) => `
@@ -159,7 +159,7 @@ const userProfile = ({ origin, user }) => {
       <p class="bio">${escapeHtml(user.bio || '這個人很懶，什麼都沒留下')}</p>
       <p class="meta">上架 ${Number(user._count.books)} 本書 ・ ${escapeHtml(joined)} 加入</p>
       ${openAppButton(`savemybook://user/${Number(user.user_id)}`,
-        '沒有反應嗎？請先安裝 SaveMyBook App，<br>或在 App 的「分享檔案」裡直接掃描這個 QR Code。')}`
+        '沒有反應嗎？請先安裝「救「舊」我的書」App，<br>或在 App 的「分享檔案」裡直接掃描這個 QR Code。')}`
   });
 };
 
@@ -195,7 +195,7 @@ const bookDetail = ({ origin, book }) => {
       <div class="tags">${tags}</div>
       <div class="seller">${avatar}<span>${escapeHtml(nickname)}</span></div>
       ${openAppButton(`savemybook://book/${Number(book.book_id)}`,
-        '沒有反應嗎？請先安裝 SaveMyBook App，再重新點一次這個連結。')}`
+        '沒有反應嗎？請先安裝「救「舊」我的書」App，再重新點一次這個連結。')}`
   });
 };
 

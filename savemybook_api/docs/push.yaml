@@ -92,3 +92,44 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, code: PUSH_DISABLED, message: 推播服務尚未啟用 }
+
+  /api/push/test:
+    post:
+      summary: 傳送測試通知給自己
+      operationId: sendTestPush
+      tags: [推播 (Push)]
+      description: |
+        寫入一則給自己的站內通知，並延遲 10 秒推送，用來確認整條推播路徑是否正常。
+        延遲是為了讓使用者先回到主畫面或鎖定手機——App 在前景時只會顯示 App 內橫幅。
+
+        每位使用者 10 分鐘內最多 5 次。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 已排入佇列。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 10 秒後送出，請先回到主畫面或鎖定手機 }
+                  data:
+                    type: object
+                    properties:
+                      devices: { type: integer, example: 1, description: 會收到推播的裝置數 }
+                      delay_seconds: { type: integer, example: 10 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: 這個帳號沒有任何已登記的推播裝置。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: NO_PUSH_DEVICE, message: 這個帳號還沒有登記任何推播裝置。請確認已允許這個 App 傳送通知，然後重新開啟 App。 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503':
+          description: 伺服器尚未設定推播。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: PUSH_DISABLED, message: 推播服務尚未啟用 }

@@ -16,6 +16,7 @@ import 'services/deep_link_service.dart';
 import 'services/locale_provider.dart';
 import 'services/push_service.dart';
 import 'services/theme_provider.dart';
+import 'utils/app_info.dart';
 import 'utils/app_theme.dart';
 import 'widgets/state_views.dart';
 
@@ -160,7 +161,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
           valueListenable: localeProvider,
           builder: (context, locale, _) {
             return MaterialApp(
-              title: 'SaveMyBook',
+              title: kAppName,
               debugShowCheckedModeBanner: false,
               navigatorKey: navigatorKey,
               themeMode: mode,
