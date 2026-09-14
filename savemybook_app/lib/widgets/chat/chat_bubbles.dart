@@ -689,7 +689,7 @@ class _ChatEntranceState extends State<ChatEntrance> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return SizeTransition(
       sizeFactor: _curve,
-      alignment: Alignment.topCenter,
+      axisAlignment: -1,
       child: AnimatedBuilder(
         animation: _curve,
         builder: (_, child) => Opacity(
