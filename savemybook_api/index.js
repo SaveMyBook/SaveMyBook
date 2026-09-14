@@ -11,13 +11,23 @@ const app = createApp();
 const port = env.port;
 
 const server = app.listen(port, () => {
-  console.log(`🚀 Server is running on http://localhost:${port}`);
+  const { buildInfo } = require('./lib/build-info');
+  console.log(`🚀 Server is running on http://localhost:${port}（版本 ${buildInfo.commit ?? '未知'}）`);
   console.log(`📄 API 文件 (Scalar): http://localhost:${port}/api-docs`);
   console.log(`📦 OpenAPI 原始檔: http://localhost:${port}/openapi.json`);
   console.log(`💾 備份目錄: ${backup.BACKUP_DIR}（保留 ${backup.KEEP} 份）`);
 });
 
 const stopScheduler = startScheduler();
+
+require('./lib/schema-check').missingSchema()
+  .then((missing) => {
+    const files = [...new Set(missing.map((m) => m.migration))];
+    if (files.length > 0) {
+      console.warn(`⚠️  資料庫尚未執行以下 migration，相關功能會停用：${files.join('、')}`);
+    }
+  })
+  .catch((err) => console.error('[檢查資料庫結構失敗]:', err.message));
 
 let shuttingDown = false;
 

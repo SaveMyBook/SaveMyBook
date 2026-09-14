@@ -84,3 +84,17 @@ class PushDeviceInfo {
         lastSeenAt: parseDate(json['last_seen_at'])?.toLocal(),
       );
 }
+
+class ServerStatus {
+  static const requiredApiRevision = 7;
+
+  final bool reachable;
+  final int apiRevision;
+  final String? commit;
+  final List<String> pendingMigrations;
+
+  const ServerStatus({required this.reachable, required this.apiRevision, this.commit, this.pendingMigrations = const []});
+
+  bool get isOutdated => apiRevision < requiredApiRevision;
+  bool get needsMigration => pendingMigrations.isNotEmpty;
+}

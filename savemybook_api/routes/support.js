@@ -18,7 +18,7 @@ const ticketLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
   key: byUser,
-  message: '送出太頻繁，請稍後再試'
+  message: '送出過於頻繁，請稍後再試'
 });
 
 const shapeTicket = (t) => ({
@@ -38,7 +38,7 @@ const shapeTicket = (t) => ({
 // 須檢查客服權限而非只看 role，否則無客服權限的管理員也能讀所有工單。
 const findAccessibleTicket = async (ticketId, user, include) => {
   const ticket = await prisma.support_tickets.findUnique({ where: { ticket_id: ticketId }, include });
-  if (!ticket) throw notFound('找不到這張工單');
+  if (!ticket) throw notFound('找不到此工單');
 
   const isOwner = ticket.user_id === user.userId;
   const isStaff = !isOwner && (await hasPermission(user, 'support'));
@@ -65,10 +65,10 @@ router.get('/legal', async (req, res) => {
 
 router.get('/legal/:key', async (req, res) => {
   const key = String(req.params.key || '');
-  if (!LEGAL_KEY_RE.test(key)) throw notFound('找不到這份文件');
+  if (!LEGAL_KEY_RE.test(key)) throw notFound('找不到此文件');
 
   const doc = await prisma.legal_documents.findUnique({ where: { doc_key: key } });
-  if (!doc) throw notFound('找不到這份文件');
+  if (!doc) throw notFound('找不到此文件');
   const [withVersion] = await legal.withMeta([doc]);
   res.status(200).json({ success: true, data: withVersion });
 });
@@ -116,13 +116,13 @@ router.post('/tickets', authenticateToken, ticketLimiter, async (req, res) => {
 
   if (!subject) throw badRequest('請填寫問題主旨');
   if (subject.length > 100) throw badRequest('主旨不可超過 100 字');
-  if (!content) throw badRequest('請描述你遇到的問題');
+  if (!content) throw badRequest('請描述您遇到的問題');
 
   const openCount = await prisma.support_tickets.count({
     where: { user_id: req.user.userId, status: { in: ['open', 'pending'] } }
   });
   if (openCount >= MAX_OPEN_TICKETS) {
-    throw badRequest(`你已有 ${MAX_OPEN_TICKETS} 張處理中的工單，請等客服回覆後再開新的`);
+    throw badRequest(`您已有 ${MAX_OPEN_TICKETS} 張處理中的工單，請待客服回覆後再建立新工單`);
   }
 
   const ticket = await prisma.support_tickets.create({
@@ -143,7 +143,7 @@ router.post('/tickets/:id/messages', authenticateToken, ticketLimiter, async (re
   if (!content) throw badRequest('請輸入內容');
 
   const { ticket, isStaff } = await findAccessibleTicket(ticketId, req.user);
-  if (ticket.status === 'closed') throw badRequest('這張工單已結案，請開立新的工單');
+  if (ticket.status === 'closed') throw badRequest('此工單已結案，請建立新工單');
 
   await prisma.$transaction(async (tx) => {
     await tx.support_ticket_messages.create({
@@ -158,7 +158,7 @@ router.post('/tickets/:id/messages', authenticateToken, ticketLimiter, async (re
     if (isStaff) {
       await notify(tx, {
         userId: ticket.user_id,
-        title: '客服回覆了你的問題',
+        title: '客服已回覆您的問題',
         content: `工單「${ticket.subject}」有新的回覆。`,
         relatedId: ticketId,
         relatedType: 'ticket'

@@ -1425,6 +1425,16 @@ abstract class AppLocalizations {
   String get sendRequest;
   String p0Hours(Object p0);
   String p0P1DigitsEntered(Object p0, Object p1);
+  String get buildSProvisioningProfileDoesnT;
+  String get checkPhoneOnlinePushNotificationsAdded;
+  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1);
+  String get serverNotBeenUpdatedSupportFeature;
+  String get someFeaturesTemporarilyUnavailableWhileServer;
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1);
+  String databaseMigrationsNotYetRunP0(Object p0);
+  String serverVersionP0(Object p0);
+  String get runNpmRunVerifyApiDirectory;
+  String get serverUpdateRequired;
 }
 
 class _LEn extends AppLocalizations {
@@ -1878,7 +1888,7 @@ class _LEn extends AppLocalizations {
   String get restoreAccountStopCountdown => 'Restore the account and stop the countdown';
 
   @override
-  String get canChangeMindWithin30Days => 'You can change your mind within 30 days';
+  String get canChangeMindWithin30Days => 'Deletion can be cancelled within 30 days';
 
   @override
   String get deletionPending => 'Deletion pending';
@@ -2238,7 +2248,7 @@ class _LEn extends AppLocalizations {
   String get messageCopied => 'Message copied';
 
   @override
-  String get iQuestionAboutBook => 'I have a question about this book';
+  String get iQuestionAboutBook => 'Book enquiry';
 
   @override
   String get bookNoLongerListed => 'This book is no longer listed';
@@ -2451,7 +2461,7 @@ class _LEn extends AppLocalizations {
   String get bio => 'Bio';
 
   @override
-  String get tellPeopleAboutYourself => 'Tell people about yourself';
+  String get tellPeopleAboutYourself => 'A short introduction about yourself';
 
   @override
   String get email => 'Email';
@@ -2505,7 +2515,7 @@ class _LEn extends AppLocalizations {
   String get guest => 'Guest';
 
   @override
-  String hi(Object p0) => 'Hi, ${p0}';
+  String hi(Object p0) => 'Hello, ${p0}';
 
   @override
   String get noBooksMatchFilters => 'No books match your filters';
@@ -2748,7 +2758,7 @@ class _LEn extends AppLocalizations {
   String get bookCollected => 'Book collected';
 
   @override
-  String get thanksUsingSavemybookHappyReading => 'Thanks for using SaveMyBook. Happy reading!';
+  String get thanksUsingSavemybookHappyReading => 'Thank you for using SaveMyBook. Enjoy your reading.';
 
   @override
   String collected(Object p0) => '“${p0}” collected';
@@ -2931,7 +2941,7 @@ class _LEn extends AppLocalizations {
   String get chooseLockerLocation2 => 'Choose a locker location.';
 
   @override
-  String get listed2 => 'Listed!';
+  String get listed2 => 'Listed successfully';
 
   @override
   String get unknownError => 'Unknown error';
@@ -3051,13 +3061,13 @@ class _LEn extends AppLocalizations {
   String get linkCopied => 'Link copied';
 
   @override
-  String addMeSavemybook(Object p0) => 'Add me on SaveMyBook: ${p0}';
+  String addMeSavemybook(Object p0) => 'My SaveMyBook profile: ${p0}';
 
   @override
-  String addMeSavemybook2(Object p0, Object p1) => 'Add me on SaveMyBook (${p0}): ${p1}';
+  String addMeSavemybook2(Object p0, Object p1) => '${p0}\'s SaveMyBook profile: ${p1}';
 
   @override
-  String get sharingCouldNotOpenSoLink => 'Sharing could not open, so the link was copied instead';
+  String get sharingCouldNotOpenSoLink => 'Sharing is unavailable. The link has been copied.';
 
   @override
   String get savedPhotos => 'Saved to your photos';
@@ -3090,10 +3100,10 @@ class _LEn extends AppLocalizations {
   String get subject => 'Subject';
 
   @override
-  String get sumUpOneLine => 'Sum it up in one line';
+  String get sumUpOneLine => 'Brief summary of the issue';
 
   @override
-  String get whatHappenedIncludeOrderNumberIf => 'What happened? Include the order number if you have one.';
+  String get whatHappenedIncludeOrderNumberIf => 'Describe the issue and include the order number, if any.';
 
   @override
   String get close => 'Close';
@@ -3645,7 +3655,7 @@ class _LEn extends AppLocalizations {
   String get documentBindingEveryUserSubmittingReplaces => 'This document is binding on every user. Submitting replaces the current version immediately.';
 
   @override
-  String get yesUpdate => 'Yes, update it';
+  String get yesUpdate => 'Confirm update';
 
   @override
   String get notifyEveryUser => 'Notify every user?';
@@ -3837,7 +3847,7 @@ class _LEn extends AppLocalizations {
   String get orders => 'Orders';
 
   @override
-  String get lookUpOrdersAdjustStatusBy => 'Look up orders and adjust status by hand';
+  String get lookUpOrdersAdjustStatusBy => 'Look up orders and adjust status manually';
 
   @override
   String get disputeListDecisions => 'Dispute list and decisions';
@@ -3876,7 +3886,7 @@ class _LEn extends AppLocalizations {
   String get wallets => 'Wallets';
 
   @override
-  String get checkBalancesAddDeductCoinsBy => 'Check balances, add or deduct coins by hand';
+  String get checkBalancesAddDeductCoinsBy => 'Check balances, add or deduct coins manually';
 
   @override
   String get hardwareOperations => 'Hardware and operations';
@@ -4155,7 +4165,7 @@ class _LEn extends AppLocalizations {
   String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} points (automatic ${p1}${p2})';
 
   @override
-  String get memberSTierBeenAdjustedBy => 'This member\'s tier has been adjusted by hand and no longer follows trades alone.';
+  String get memberSTierBeenAdjustedBy => 'This member\'s tier has been adjusted manually and is not based solely on trades.';
 
   @override
   String get adjustTier => 'Adjust tier';
@@ -5136,10 +5146,10 @@ class _LEn extends AppLocalizations {
   String get stillAvailable => 'Is this still available?';
 
   @override
-  String get couldLowerPriceBit => 'Could you lower the price a bit?';
+  String get couldLowerPriceBit => 'Is the price negotiable?';
 
   @override
-  String get whenCanPutLocker => 'When can you put it in the locker?';
+  String get whenCanPutLocker => 'When will the book be placed in the locker?';
 
   @override
   String get unsentMessage => 'You unsent a message';
@@ -5193,7 +5203,7 @@ class _LEn extends AppLocalizations {
   String get pleasePutBookAssignedLockerSoon => 'Please put the book in the assigned locker soon';
 
   @override
-  String get weLlLetKnowWhenSeller => 'We\'ll let you know when the seller drops the book off';
+  String get weLlLetKnowWhenSeller => 'You will be notified when the seller drops off the book';
 
   @override
   String get waitingBuyerCollect => 'Waiting for the buyer to collect';
@@ -5202,7 +5212,7 @@ class _LEn extends AppLocalizations {
   String get bookLockerEnterPickupCodeCollect => 'The book is in the locker. Enter your pickup code to collect it.';
 
   @override
-  String get transactionCompleteThank => 'Transaction complete. Thank you!';
+  String get transactionCompleteThank => 'Transaction complete. Thank you.';
 
   @override
   String get confirmVeTakenBookFromLocker => 'Confirm you\'ve taken the book from the locker. The order will then be completed.';
@@ -5223,7 +5233,7 @@ class _LEn extends AppLocalizations {
   String get accountSecurity => 'Account security';
 
   @override
-  String get sellerHasnTPutBookLocker => 'The seller hasn\'t put the book in the locker yet. We\'ll notify you once it\'s there.';
+  String get sellerHasnTPutBookLocker => 'The seller has not yet placed the book in the locker. You will be notified once it is there.';
 
   @override
   String get searchHistoryCleared => 'Search history cleared';
@@ -5301,7 +5311,7 @@ class _LEn extends AppLocalizations {
   String get paymentPinMust6Digits => 'Payment PIN must be 6 digits';
 
   @override
-  String get pinTooEasyGuessTryAnother => 'That PIN is too easy to guess. Try another';
+  String get pinTooEasyGuessTryAnother => 'This PIN is too easy to guess. Please choose another.';
 
   @override
   String get enterPasswordResetPaymentPin => 'Enter your password to reset your payment PIN';
@@ -5373,10 +5383,10 @@ class _LEn extends AppLocalizations {
   String get accountWellProtected => 'Your account is well protected';
 
   @override
-  String get accountCouldSafer => 'Your account could be safer';
+  String get accountCouldSafer => 'Account security can be improved';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => 'Payment PIN and biometric payment are set. Check your signed-in devices from time to time.';
+  String get paymentPinBiometricPaymentSetCheck => 'Payment PIN and biometric payment are set. Review your signed-in devices regularly.';
 
   @override
   String get setPaymentPinTurnBiometricPayment => 'Set a payment PIN and turn on biometric payment for safer, faster checkout.';
@@ -5610,7 +5620,7 @@ class _LEn extends AppLocalizations {
   String get closed => 'Closed';
 
   @override
-  String get theyWantReserveBook => 'They want to reserve your book';
+  String get theyWantReserveBook => 'Reservation request for your book';
 
   @override
   String get sentReservationRequest => 'You sent a reservation request';
@@ -5635,6 +5645,36 @@ class _LEn extends AppLocalizations {
 
   @override
   String p0P1DigitsEntered(Object p0, Object p1) => '${p0} of ${p1} digits entered';
+
+  @override
+  String get buildSProvisioningProfileDoesnT => 'This build\'s provisioning profile doesn\'t include push notifications. In Xcode, check Runner › Signing & Capabilities has Push Notifications, then delete and reinstall the app.';
+
+  @override
+  String get checkPhoneOnlinePushNotificationsAdded => 'Check that the phone is online and that Push Notifications is added under Runner › Signing & Capabilities in Xcode.';
+
+  @override
+  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone failed to register for push notifications with Apple: ${p0}\n${p1}';
+
+  @override
+  String get serverNotBeenUpdatedSupportFeature => 'The server has not been updated to support this feature yet. Try again later.';
+
+  @override
+  String get someFeaturesTemporarilyUnavailableWhileServer => 'Some features are temporarily unavailable while the server is being updated';
+
+  @override
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => 'The server is running an outdated API (revision ${p0}; the app requires ${p1}). Update the code on the server and restart the API.';
+
+  @override
+  String databaseMigrationsNotYetRunP0(Object p0) => 'Database migrations not yet run: ${p0}';
+
+  @override
+  String serverVersionP0(Object p0) => 'Server version: ${p0}';
+
+  @override
+  String get runNpmRunVerifyApiDirectory => 'Run npm run verify in the API directory on the server to check the full deployment status.';
+
+  @override
+  String get serverUpdateRequired => 'Server update required';
 
 }
 
@@ -6092,7 +6132,7 @@ class _LJa extends AppLocalizations {
   String get canChangeMindWithin30Days => '30 日以内なら取り消せます';
 
   @override
-  String get deletionPending => '削除カウントダウン中';
+  String get deletionPending => '削除待ち';
 
   @override
   String daysLeftCanCancelAnyTime(Object p0) => '残り ${p0} 日です。それまではいつでもキャンセルできますが、期限を過ぎると個人情報は完全に削除されます。';
@@ -6257,7 +6297,7 @@ class _LJa extends AppLocalizations {
   String listedAgain(Object p0) => '「${p0}」を再出品しました';
 
   @override
-  String get notListedAnyBooksYet => 'まだ book を出品していません';
+  String get notListedAnyBooksYet => 'まだ本を出品していません';
 
   @override
   String get noBooksCategory => 'このカテゴリーに書籍はありません';
@@ -6443,13 +6483,13 @@ class _LJa extends AppLocalizations {
   String get chat => 'チャット';
 
   @override
-  String get sendFirstMessage => '最初のメッセージを送ってみましょう';
+  String get sendFirstMessage => '最初のメッセージを送信してください';
 
   @override
   String get messageCopied => 'メッセージをコピーしました';
 
   @override
-  String get iQuestionAboutBook => 'この本について質問があります';
+  String get iQuestionAboutBook => '本に関するお問い合わせ';
 
   @override
   String get bookNoLongerListed => 'この本は出品停止されています';
@@ -6662,7 +6702,7 @@ class _LJa extends AppLocalizations {
   String get bio => '自己紹介';
 
   @override
-  String get tellPeopleAboutYourself => '自己紹介を書いてみましょう';
+  String get tellPeopleAboutYourself => '自己紹介を入力してください';
 
   @override
   String get email => 'メールアドレス';
@@ -6959,7 +6999,7 @@ class _LJa extends AppLocalizations {
   String get bookCollected => '受け取り完了';
 
   @override
-  String get thanksUsingSavemybookHappyReading => 'ご利用ありがとうございます。よい読書を！';
+  String get thanksUsingSavemybookHappyReading => 'ご利用いただきありがとうございます。';
 
   @override
   String collected(Object p0) => '「${p0}」を受け取りました';
@@ -7142,7 +7182,7 @@ class _LJa extends AppLocalizations {
   String get chooseLockerLocation2 => '保管場所を選んでください。';
 
   @override
-  String get listed2 => '出品しました！';
+  String get listed2 => '出品しました';
 
   @override
   String get unknownError => '不明なエラー';
@@ -7262,10 +7302,10 @@ class _LJa extends AppLocalizations {
   String get linkCopied => 'リンクをコピーしました';
 
   @override
-  String addMeSavemybook(Object p0) => 'SaveMyBook で私を追加：${p0}';
+  String addMeSavemybook(Object p0) => 'SaveMyBook のプロフィール：${p0}';
 
   @override
-  String addMeSavemybook2(Object p0, Object p1) => 'SaveMyBook で私を追加（${p0}）：${p1}';
+  String addMeSavemybook2(Object p0, Object p1) => '${p0} さんの SaveMyBook プロフィール：${p1}';
 
   @override
   String get sharingCouldNotOpenSoLink => '共有を開けなかったため、リンクをコピーしました';
@@ -7301,10 +7341,10 @@ class _LJa extends AppLocalizations {
   String get subject => '件名';
 
   @override
-  String get sumUpOneLine => '一言で問題を教えてください';
+  String get sumUpOneLine => '問題の概要';
 
   @override
-  String get whatHappenedIncludeOrderNumberIf => '何が起きましたか？注文番号があればご記入ください。';
+  String get whatHappenedIncludeOrderNumberIf => '問題の内容をご記入ください。注文番号がある場合は併せてご記入ください。';
 
   @override
   String get close => 'クローズ';
@@ -9320,7 +9360,7 @@ class _LJa extends AppLocalizations {
   String get reservationCanceled => '予約をキャンセルしました';
 
   @override
-  String get notNow2 => 'やめておく';
+  String get notNow2 => '戻る';
 
   @override
   String get couldnTLoadConversationPleaseTry => '会話を読み込めません。しばらくしてから再度お試しください';
@@ -9344,13 +9384,13 @@ class _LJa extends AppLocalizations {
   String get retry => '再試行';
 
   @override
-  String get stillAvailable => 'まだありますか？';
+  String get stillAvailable => 'こちらの本はまだ購入可能ですか？';
 
   @override
-  String get couldLowerPriceBit => 'もう少し安くなりますか？';
+  String get couldLowerPriceBit => '価格のご相談は可能ですか？';
 
   @override
-  String get whenCanPutLocker => 'いつロッカーに入れてもらえますか？';
+  String get whenCanPutLocker => 'ロッカーへの預け入れはいつ頃になりますか？';
 
   @override
   String get unsentMessage => 'メッセージの送信を取り消しました';
@@ -9587,7 +9627,7 @@ class _LJa extends AppLocalizations {
   String get accountCouldSafer => 'セキュリティを強化できます';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => '取引パスワードと生体認証での支払いが設定済みです。ログイン中の端末もときどき確認しましょう。';
+  String get paymentPinBiometricPaymentSetCheck => '取引パスワードと生体認証での支払いが設定済みです。ログイン中の端末を定期的にご確認ください。';
 
   @override
   String get setPaymentPinTurnBiometricPayment => '取引パスワードを設定し生体認証での支払いをオンにすると、決済がより安全で速くなります。';
@@ -9698,7 +9738,7 @@ class _LJa extends AppLocalizations {
   String get uploadFailedTryAgainLater => 'アップロードに失敗しました。しばらくしてからお試しください';
 
   @override
-  String get nearby => 'すぐ近く';
+  String get nearby => '付近';
 
   @override
   String p0M(Object p0) => '${p0} m';
@@ -9821,7 +9861,7 @@ class _LJa extends AppLocalizations {
   String get closed => '終了';
 
   @override
-  String get theyWantReserveBook => '相手があなたの本を予約したいそうです';
+  String get theyWantReserveBook => 'あなたの本に予約リクエストが届いています';
 
   @override
   String get sentReservationRequest => '予約リクエストを送信しました';
@@ -9846,6 +9886,36 @@ class _LJa extends AppLocalizations {
 
   @override
   String p0P1DigitsEntered(Object p0, Object p1) => '入力済み ${p0} / ${p1} 桁';
+
+  @override
+  String get buildSProvisioningProfileDoesnT => 'このビルドのプロビジョニングプロファイルにプッシュ通知の権限がありません。Xcode の Runner › Signing & Capabilities に Push Notifications があるか確認し、アプリを削除して再インストールしてください。';
+
+  @override
+  String get checkPhoneOnlinePushNotificationsAdded => '端末がネットワークに接続されていること、Xcode の Runner › Signing & Capabilities に Push Notifications があることを確認してください。';
+
+  @override
+  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone の Apple へのプッシュ通知登録に失敗しました：${p0}\n${p1}';
+
+  @override
+  String get serverNotBeenUpdatedSupportFeature => 'サーバーはまだこの機能に対応したバージョンに更新されていません。しばらくしてからお試しください。';
+
+  @override
+  String get someFeaturesTemporarilyUnavailableWhileServer => 'サーバー更新中のため、一部の機能は一時的に利用できません';
+
+  @override
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => 'サーバーの API バージョンが古すぎます（現在 ${p0}、アプリには ${p1} が必要）。サーバーのコードを更新し、API を再起動してください。';
+
+  @override
+  String databaseMigrationsNotYetRunP0(Object p0) => '未実行のデータベース移行：${p0}';
+
+  @override
+  String serverVersionP0(Object p0) => 'サーバーの現在のバージョン：${p0}';
+
+  @override
+  String get runNpmRunVerifyApiDirectory => 'サーバーの API ディレクトリで npm run verify を実行すると、デプロイ状況をすべて確認できます。';
+
+  @override
+  String get serverUpdateRequired => 'サーバーの更新が必要です';
 
 }
 
@@ -10654,13 +10724,13 @@ class _LKo extends AppLocalizations {
   String get chat => '채팅';
 
   @override
-  String get sendFirstMessage => '첫 메시지를 보내 보세요';
+  String get sendFirstMessage => '첫 메시지를 보내세요';
 
   @override
   String get messageCopied => '메시지를 복사했습니다';
 
   @override
-  String get iQuestionAboutBook => '이 책에 대해 문의합니다';
+  String get iQuestionAboutBook => '도서 문의';
 
   @override
   String get bookNoLongerListed => '이 책은 더 이상 판매하지 않습니다';
@@ -10873,7 +10943,7 @@ class _LKo extends AppLocalizations {
   String get bio => '소개';
 
   @override
-  String get tellPeopleAboutYourself => '자신을 소개해 보세요';
+  String get tellPeopleAboutYourself => '자기소개를 입력하세요';
 
   @override
   String get email => '이메일';
@@ -11170,7 +11240,7 @@ class _LKo extends AppLocalizations {
   String get bookCollected => '수령 완료';
 
   @override
-  String get thanksUsingSavemybookHappyReading => '이용해 주셔서 감사합니다. 즐거운 독서 되세요!';
+  String get thanksUsingSavemybookHappyReading => '이용해 주셔서 감사합니다.';
 
   @override
   String collected(Object p0) => '“${p0}” 수령 완료';
@@ -11353,7 +11423,7 @@ class _LKo extends AppLocalizations {
   String get chooseLockerLocation2 => '보관 위치를 선택해 주세요.';
 
   @override
-  String get listed2 => '등록되었습니다!';
+  String get listed2 => '등록되었습니다';
 
   @override
   String get unknownError => '알 수 없는 오류';
@@ -11473,10 +11543,10 @@ class _LKo extends AppLocalizations {
   String get linkCopied => '링크를 복사했습니다';
 
   @override
-  String addMeSavemybook(Object p0) => 'SaveMyBook에서 나를 추가: ${p0}';
+  String addMeSavemybook(Object p0) => 'SaveMyBook 프로필: ${p0}';
 
   @override
-  String addMeSavemybook2(Object p0, Object p1) => 'SaveMyBook에서 나를 추가 (${p0}): ${p1}';
+  String addMeSavemybook2(Object p0, Object p1) => '${p0}님의 SaveMyBook 프로필: ${p1}';
 
   @override
   String get sharingCouldNotOpenSoLink => '공유를 열 수 없어 링크를 복사했습니다';
@@ -11515,7 +11585,7 @@ class _LKo extends AppLocalizations {
   String get sumUpOneLine => '한 줄로 요약해 주세요';
 
   @override
-  String get whatHappenedIncludeOrderNumberIf => '무슨 일이 있었나요? 주문 번호가 있다면 함께 적어 주세요.';
+  String get whatHappenedIncludeOrderNumberIf => '문제 내용을 입력해 주세요. 주문 번호가 있다면 함께 입력해 주세요.';
 
   @override
   String get close => '종료';
@@ -13558,10 +13628,10 @@ class _LKo extends AppLocalizations {
   String get stillAvailable => '아직 판매 중인가요?';
 
   @override
-  String get couldLowerPriceBit => '조금 더 깎아 주실 수 있나요?';
+  String get couldLowerPriceBit => '가격 협의가 가능한가요?';
 
   @override
-  String get whenCanPutLocker => '언제 보관함에 넣어 주실 수 있나요?';
+  String get whenCanPutLocker => '보관함 입고 예정일은 언제인가요?';
 
   @override
   String get unsentMessage => '메시지를 보내기 취소했습니다';
@@ -13798,7 +13868,7 @@ class _LKo extends AppLocalizations {
   String get accountCouldSafer => '계정 보안을 강화할 수 있습니다';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => '결제 비밀번호와 생체 인증 결제가 설정되어 있습니다. 로그인된 기기도 가끔 확인하세요.';
+  String get paymentPinBiometricPaymentSetCheck => '결제 비밀번호와 생체 인증 결제가 설정되어 있습니다. 로그인된 기기를 정기적으로 확인하세요.';
 
   @override
   String get setPaymentPinTurnBiometricPayment => '결제 비밀번호를 설정하고 생체 인증 결제를 켜면 더 안전하고 빠르게 결제할 수 있습니다.';
@@ -13909,7 +13979,7 @@ class _LKo extends AppLocalizations {
   String get uploadFailedTryAgainLater => '업로드에 실패했습니다. 잠시 후 다시 시도하세요';
 
   @override
-  String get nearby => '바로 근처';
+  String get nearby => '근처';
 
   @override
   String p0M(Object p0) => '${p0}';
@@ -14032,7 +14102,7 @@ class _LKo extends AppLocalizations {
   String get closed => '종료됨';
 
   @override
-  String get theyWantReserveBook => '상대방이 회원님의 책을 예약하고 싶어 합니다';
+  String get theyWantReserveBook => '회원님의 도서에 예약 요청이 도착했습니다';
 
   @override
   String get sentReservationRequest => '예약 요청을 보냈습니다';
@@ -14057,6 +14127,36 @@ class _LKo extends AppLocalizations {
 
   @override
   String p0P1DigitsEntered(Object p0, Object p1) => '${p0} / ${p1}자리 입력됨';
+
+  @override
+  String get buildSProvisioningProfileDoesnT => '이 빌드의 프로비저닝 프로필에 푸시 알림 권한이 없습니다. Xcode의 Runner › Signing & Capabilities에 Push Notifications가 있는지 확인한 뒤 앱을 삭제하고 다시 설치하세요.';
+
+  @override
+  String get checkPhoneOnlinePushNotificationsAdded => '휴대폰이 네트워크에 연결되어 있는지, Xcode의 Runner › Signing & Capabilities에 Push Notifications가 있는지 확인하세요.';
+
+  @override
+  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone의 Apple 푸시 알림 등록에 실패했습니다: ${p0}\n${p1}';
+
+  @override
+  String get serverNotBeenUpdatedSupportFeature => '서버가 아직 이 기능을 지원하는 버전으로 업데이트되지 않았습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String get someFeaturesTemporarilyUnavailableWhileServer => '서버 업데이트 중이라 일부 기능을 일시적으로 사용할 수 없습니다';
+
+  @override
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '서버의 API 버전이 오래되었습니다(현재 ${p0}, 앱에 필요한 버전 ${p1}). 서버 코드를 업데이트하고 API를 재시작하세요.';
+
+  @override
+  String databaseMigrationsNotYetRunP0(Object p0) => '아직 실행하지 않은 데이터베이스 마이그레이션: ${p0}';
+
+  @override
+  String serverVersionP0(Object p0) => '서버 현재 버전: ${p0}';
+
+  @override
+  String get runNpmRunVerifyApiDirectory => '서버의 API 디렉터리에서 npm run verify를 실행하면 전체 배포 상태를 확인할 수 있습니다.';
+
+  @override
+  String get serverUpdateRequired => '서버 업데이트 필요';
 
 }
 
@@ -14448,7 +14548,7 @@ class _LZh extends AppLocalizations {
   String get regenerateShareLink => '重新產生分享連結';
 
   @override
-  String get oldLinkQrCodeStopWorking => '舊的連結與 QR Code 會立即失效，已經分享出去的人將無法再開啟。確定要重新產生嗎？';
+  String get oldLinkQrCodeStopWorking => '舊的連結與 QR Code 將立即失效，已分享的連結將無法開啟。確定要重新產生嗎？';
 
   @override
   String get regenerate => '重新產生';
@@ -14463,10 +14563,10 @@ class _LZh extends AppLocalizations {
   String get accountPermanentlyDisabled30DaysSign => '帳號將在 30 天後永久停用，期間內重新登入即可取消。\n\n';
 
   @override
-  String get personalDataErasedButCompletedOrders => '停用後個人資料會被清除，但已完成的訂單與交易紀錄會保留，';
+  String get personalDataErasedButCompletedOrders => '停用後將清除個人資料，但保留已完成的訂單與交易紀錄，';
 
   @override
-  String get peopleTradedWithDoNotLose => '交易對象的紀錄才不會出現缺漏。';
+  String get peopleTradedWithDoNotLose => '以確保交易對象的紀錄完整。';
 
   @override
   String get actionContinue => '繼續';
@@ -14475,7 +14575,7 @@ class _LZh extends AppLocalizations {
   String get verify => '確認身分';
 
   @override
-  String get enterPasswordConfirm => '請輸入密碼以確認這是本人的操作。';
+  String get enterPasswordConfirm => '請輸入密碼以確認身分。';
 
   @override
   String get password => '密碼';
@@ -14487,13 +14587,13 @@ class _LZh extends AppLocalizations {
   String get receivedSignAgainWithin30Days => '已受理，30 天內重新登入即可取消';
 
   @override
-  String get deletionCancelledAccountActiveAgain => '已取消刪除，帳號恢復正常';
+  String get deletionCancelledAccountActiveAgain => '已取消刪除，帳號已恢復';
 
   @override
   String get account => '帳號管理';
 
   @override
-  String get data => '你的資料';
+  String get data => '個人資料';
 
   @override
   String get exportMyData => '匯出我的資料';
@@ -14502,22 +14602,22 @@ class _LZh extends AppLocalizations {
   String get profileBooksOrdersTransactionsJson => '個人檔案、書籍、訂單與交易紀錄，JSON 格式';
 
   @override
-  String get oldLinkQrCodeStopWorking2 => '舊的連結與 QR Code 會立即失效';
+  String get oldLinkQrCodeStopWorking2 => '舊的連結與 QR Code 將立即失效';
 
   @override
   String get cancelAccountDeletion => '取消刪除帳號';
 
   @override
-  String get restoreAccountStopCountdown => '恢復帳號，停止刪除倒數';
+  String get restoreAccountStopCountdown => '恢復帳號並停止刪除程序';
 
   @override
-  String get canChangeMindWithin30Days => '30 天緩衝期內可以反悔';
+  String get canChangeMindWithin30Days => '30 天內可取消刪除';
 
   @override
-  String get deletionPending => '刪除倒數中';
+  String get deletionPending => '待刪除';
 
   @override
-  String daysLeftCanCancelAnyTime(Object p0) => '還有 ${p0} 天。在這之前隨時可以取消，逾期後個人資料將被清除且無法復原。';
+  String daysLeftCanCancelAnyTime(Object p0) => '剩餘 ${p0} 天。期限內可隨時取消，逾期後個人資料將被清除且無法復原。';
 
   @override
   String get signOut => '登出';
@@ -14583,7 +14683,7 @@ class _LZh extends AppLocalizations {
   String get signAddItemsCart => '請先登入才能加入購物車';
 
   @override
-  String bookCannotPurchased(Object p0) => '這本書目前${p0}，無法購買';
+  String bookCannotPurchased(Object p0) => '此書籍目前${p0}，無法購買';
 
   @override
   String get addedCart => '已加入購物車';
@@ -14613,7 +14713,7 @@ class _LZh extends AppLocalizations {
   String get reasonNeedsLeast5Characters => '請至少填寫 5 個字的檢舉原因';
 
   @override
-  String get reportSubmittedWeLookInto => '檢舉已送出，我們會盡快處理';
+  String get reportSubmittedWeLookInto => '檢舉已送出，我們將盡快處理';
 
   @override
   String get publisher => '出版社：';
@@ -14625,7 +14725,7 @@ class _LZh extends AppLocalizations {
   String get listed => '上架日期：';
 
   @override
-  String get searchTitleAuthorPublisher => '搜尋書名、作者、出版社...';
+  String get searchTitleAuthorPublisher => '搜尋書名、作者或出版社';
 
   @override
   String get share => '分享';
@@ -14640,31 +14740,31 @@ class _LZh extends AppLocalizations {
   String pickup(Object p0) => '取書地點：${p0}';
 
   @override
-  String get messageSeller => '與賣家聊聊';
+  String get messageSeller => '聯絡賣家';
 
   @override
-  String get listing => '這是你的書';
+  String get listing => '您上架的書籍';
 
   @override
   String get addCart => '加入購物車';
 
   @override
-  String get bookBeenReportedUnderReviewStays => '這本書被檢舉，平台正在審核，期間仍可正常販售。';
+  String get bookBeenReportedUnderReviewStays => '此書籍已遭檢舉，平台審核期間仍可正常販售。';
 
   @override
-  String get violationWasConfirmedBookPleaseCheck => '這本書經審核違規成立，請確認商品內容是否符合社群規範。';
+  String get violationWasConfirmedBookPleaseCheck => '此書籍經審核確認違規，請確認商品內容是否符合社群規範。';
 
   @override
   String get reportDismissed2 => '檢舉已駁回';
 
   @override
-  String get bookWasReportedButNoViolation => '這本書曾被檢舉，經審核未違規，不影響上架。';
+  String get bookWasReportedButNoViolation => '此書籍曾遭檢舉，經審核未違規，不影響上架。';
 
   @override
   String get delist => '取消上架';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》將從商城下架，買家不會再看到它。';
+  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》將從商城下架，買家將無法瀏覽。';
 
   @override
   String get delist2 => '下架';
@@ -14679,13 +14779,13 @@ class _LZh extends AppLocalizations {
   String listedAgain(Object p0) => '《${p0}》已重新上架';
 
   @override
-  String get notListedAnyBooksYet => '你還沒有上架任何書籍';
+  String get notListedAnyBooksYet => '尚未上架任何書籍';
 
   @override
-  String get noBooksCategory => '這個分類目前沒有書籍';
+  String get noBooksCategory => '此分類目前沒有書籍';
 
   @override
-  String get listFirstBook => '去上架第一本書';
+  String get listFirstBook => '上架第一本書';
 
   @override
   String get relist => '重新上架';
@@ -14694,7 +14794,7 @@ class _LZh extends AppLocalizations {
   String get removeFromCart => '移出購物車';
 
   @override
-  String removeFromCart2(Object p0) => '要把《${p0}》從購物車移除嗎？';
+  String removeFromCart2(Object p0) => '確定要將《${p0}》從購物車移除嗎？';
 
   @override
   String get remove => '移除';
@@ -14709,7 +14809,7 @@ class _LZh extends AppLocalizations {
   String get selectBooksWantCheckOut => '請先選擇要結帳的書籍';
 
   @override
-  String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代幣不足，這筆訂單需要 ${p0}，目前只有 ${p1}';
+  String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代幣不足，此訂單需 ${p0}，目前餘額 ${p1}';
 
   @override
   String get confirmCheckout => '確認結帳';
@@ -14727,7 +14827,7 @@ class _LZh extends AppLocalizations {
   String get cart => '購物車';
 
   @override
-  String get cartEmpty => '購物車是空的';
+  String get cartEmpty => '購物車內沒有商品';
 
   @override
   String get selectAll => '全選';
@@ -14742,7 +14842,7 @@ class _LZh extends AppLocalizations {
   String get select => '選取';
 
   @override
-  String coinsShort(Object p0) => '還差 ${p0} 代幣';
+  String coinsShort(Object p0) => '尚差 ${p0} 代幣';
 
   @override
   String get total => '合計';
@@ -14754,7 +14854,7 @@ class _LZh extends AppLocalizations {
   String balance2(Object p0) => '餘額 ${p0}';
 
   @override
-  String get selectBookFirst => '請先選書';
+  String get selectBookFirst => '請選擇書籍';
 
   @override
   String get checkOut => '結帳';
@@ -14763,13 +14863,13 @@ class _LZh extends AppLocalizations {
   String get notEnoughCoins => '代幣不足';
 
   @override
-  String get weak => '偏弱';
+  String get weak => '弱';
 
   @override
   String get fair => '普通';
 
   @override
-  String get strong => '很強';
+  String get strong => '強';
 
   @override
   String get enterCurrentPassword => '請輸入目前密碼';
@@ -14781,7 +14881,7 @@ class _LZh extends AppLocalizations {
   String get newPasswordMustDifferent => '新密碼不可與目前密碼相同';
 
   @override
-  String get enterNewPasswordAgain => '請再輸入一次新密碼';
+  String get enterNewPasswordAgain => '請再次輸入新密碼';
 
   @override
   String get passwordsDoNotMatch => '兩次輸入的新密碼不一致';
@@ -14793,7 +14893,7 @@ class _LZh extends AppLocalizations {
   String get changePassword => '更改密碼';
 
   @override
-  String get useLeast8CharactersWithBoth => '密碼需要至少 8 碼，並同時包含英文與數字。';
+  String get useLeast8CharactersWithBoth => '密碼須至少 8 碼，且同時包含英文與數字。';
 
   @override
   String get currentPassword => '目前密碼';
@@ -14811,7 +14911,7 @@ class _LZh extends AppLocalizations {
   String get deleteChat => '刪除聊天室';
 
   @override
-  String allMessagesWithDeletedBothCannot(Object p0) => '會一併刪除與 ${p0} 的所有訊息，雙方都看不到了。此動作無法復原。';
+  String allMessagesWithDeletedBothCannot(Object p0) => '將一併刪除與 ${p0} 的所有訊息，雙方皆無法再查看。此操作無法復原。';
 
   @override
   String get chatDeleted => '已刪除聊天室';
@@ -14820,7 +14920,7 @@ class _LZh extends AppLocalizations {
   String get couldNotDeleteRestored => '刪除失敗，已還原';
 
   @override
-  String get chatMuted => '已靜音這個聊天室';
+  String get chatMuted => '已將此聊天室設為靜音';
 
   @override
   String get chatUnmuted => '已取消靜音';
@@ -14832,7 +14932,7 @@ class _LZh extends AppLocalizations {
   String get markAllAsRead => '全部標為已讀';
 
   @override
-  String markAllUnreadMessagesAsRead(Object p0) => '要把 ${p0} 則未讀訊息全部標為已讀嗎？此動作無法復原。';
+  String markAllUnreadMessagesAsRead(Object p0) => '確定要將 ${p0} 則未讀訊息全部標為已讀嗎？此操作無法復原。';
 
   @override
   String get markAllRead => '全部已讀';
@@ -14847,7 +14947,7 @@ class _LZh extends AppLocalizations {
   String get chats => '聊天室';
 
   @override
-  String get noConversationsYet => '還沒有任何對話';
+  String get noConversationsYet => '尚無任何對話';
 
   @override
   String get unmute => '取消靜音';
@@ -14865,16 +14965,16 @@ class _LZh extends AppLocalizations {
   String get chat => '聊天';
 
   @override
-  String get sendFirstMessage => '開始你們的第一則訊息吧';
+  String get sendFirstMessage => '傳送第一則訊息';
 
   @override
   String get messageCopied => '已複製訊息';
 
   @override
-  String get iQuestionAboutBook => '想詢問這本書';
+  String get iQuestionAboutBook => '詢問書籍';
 
   @override
-  String get bookNoLongerListed => '這本書已經下架了';
+  String get bookNoLongerListed => '此書籍已下架';
 
   @override
   String get writeMessage => '輸入訊息…';
@@ -14886,19 +14986,19 @@ class _LZh extends AppLocalizations {
   String get describeDispute => '請填寫爭議說明';
 
   @override
-  String get useLeast10CharactersSoSupport => '爭議說明請至少填寫 10 個字，方便客服判斷';
+  String get useLeast10CharactersSoSupport => '爭議說明請至少填寫 10 個字，以利客服判斷';
 
   @override
   String get submitDispute => '送出爭議申請';
 
   @override
-  String get orderEntersDisputeProcessPaymentSeller => '送出後這筆訂單會進入申訴流程，款項會暫停撥給賣家，直到客服裁決。';
+  String get orderEntersDisputeProcessPaymentSeller => '送出後此訂單將進入申訴流程，款項將暫停撥付給賣家，直至客服裁決。';
 
   @override
   String paymentHoldRequested(Object p0) => '[申請凍結款項] ${p0}';
 
   @override
-  String get disputeSubmittedSupportContact => '爭議申請已送出，客服會盡快與你聯繫';
+  String get disputeSubmittedSupportContact => '爭議申請已送出，客服將盡快與您聯繫';
 
   @override
   String get dispute => '爭議處理';
@@ -14907,7 +15007,7 @@ class _LZh extends AppLocalizations {
   String get requestPaymentHold => '申請凍結款項';
 
   @override
-  String get paymentSellerHeldUntilSupportDecides => '送出後款項會暫停撥給賣家，直到客服裁決';
+  String get paymentSellerHeldUntilSupportDecides => '送出後款項將暫停撥付給賣家，直至客服裁決';
 
   @override
   String get submitDispute2 => '提交爭議申請';
@@ -14931,7 +15031,7 @@ class _LZh extends AppLocalizations {
   String get uploadPhotos => '上傳圖片';
 
   @override
-  String get canAttachUp6Photos => '最多只能上傳 6 張佐證照片';
+  String get canAttachUp6Photos => '最多可上傳 6 張佐證照片';
 
   @override
   String get up5 => '最多 5 張';
@@ -14940,7 +15040,7 @@ class _LZh extends AppLocalizations {
   String get couldNotReplacePhotoPleaseTry => '無法替換原本的照片，請稍後再試';
 
   @override
-  String get keepLeastOnePhoto => '至少要保留一張照片';
+  String get keepLeastOnePhoto => '請至少保留一張照片';
 
   @override
   String get photoDeleted => '已刪除照片';
@@ -14949,16 +15049,16 @@ class _LZh extends AppLocalizations {
   String get couldNotDeletePhotoPleaseTry => '刪除圖片失敗，請稍後再試';
 
   @override
-  String get canUp10Photos => '最多只能有 10 張照片';
+  String get canUp10Photos => '最多可上傳 10 張照片';
 
   @override
   String get deletePhoto => '刪除照片';
 
   @override
-  String get cannotUndoneContinue => '刪除後無法復原，確定嗎？';
+  String get cannotUndoneContinue => '刪除後無法復原，確定要刪除嗎？';
 
   @override
-  String get photoMissingDataRefreshTryAgain => '這張照片的資料不完整，請重新整理後再試';
+  String get photoMissingDataRefreshTryAgain => '此照片資料不完整，請重新整理後再試';
 
   @override
   String get enterPrice => '請填寫價格';
@@ -14973,7 +15073,7 @@ class _LZh extends AppLocalizations {
   String get chooseLockerLocation => '請選擇存放區域';
 
   @override
-  String missingTheseThreeRequired(Object p0) => '還缺少：${p0}，這三張是必填的';
+  String missingTheseThreeRequired(Object p0) => '尚缺：${p0}（以上三張為必填）';
 
   @override
   String get bookUpdated => '書籍已更新';
@@ -15084,7 +15184,7 @@ class _LZh extends AppLocalizations {
   String get bio => '個人簡介';
 
   @override
-  String get tellPeopleAboutYourself => '介紹一下自己吧';
+  String get tellPeopleAboutYourself => '簡單介紹自己';
 
   @override
   String get email => '信箱';
@@ -15105,7 +15205,7 @@ class _LZh extends AppLocalizations {
   String get savedBooks => '收藏書籍';
 
   @override
-  String get notSavedAnyBooksYet => '還沒有收藏任何書籍';
+  String get notSavedAnyBooksYet => '尚未收藏任何書籍';
 
   @override
   String get helpCentre => '幫助中心';
@@ -15114,7 +15214,7 @@ class _LZh extends AppLocalizations {
   String get searchQuestions => '搜尋問題';
 
   @override
-  String get noQuestionsYet => '目前還沒有常見問題';
+  String get noQuestionsYet => '目前尚無常見問題';
 
   @override
   String get noMatchingQuestions => '找不到相關問題';
@@ -15132,22 +15232,22 @@ class _LZh extends AppLocalizations {
   String get priceHighLow => '價格由高到低';
 
   @override
-  String get reachedEnd => '您已滑到底部';
+  String get reachedEnd => '已顯示全部內容';
 
   @override
   String get guest => '訪客';
 
   @override
-  String hi(Object p0) => '哈囉, ${p0}';
+  String hi(Object p0) => '您好，${p0}';
 
   @override
   String get noBooksMatchFilters => '目前沒有符合條件的書籍';
 
   @override
-  String get couldNotReadPhoto => '無法讀取這張照片';
+  String get couldNotReadPhoto => '無法讀取此照片';
 
   @override
-  String get croppingFailedPleaseTryAgain => '裁切失敗，請再試一次';
+  String get croppingFailedPleaseTryAgain => '裁切失敗，請重試';
 
   @override
   String get adjustPhoto => '調整照片';
@@ -15156,10 +15256,10 @@ class _LZh extends AppLocalizations {
   String get reset => '重設';
 
   @override
-  String get usePhoto => '使用這張';
+  String get usePhoto => '使用此照片';
 
   @override
-  String get documentNotBeenCreatedYet => '這份文件尚未建立';
+  String get documentNotBeenCreatedYet => '此文件尚未建立';
 
   @override
   String lastUpdated(Object p0) => '最後更新：${p0}';
@@ -15174,10 +15274,10 @@ class _LZh extends AppLocalizations {
   String turnSign(Object p0) => '啟用 ${p0} 登入？';
 
   @override
-  String nextTimeOpenAppCanUnlock(Object p0) => '下次開啟 App 就能直接用 ${p0} 解鎖，不用再輸入密碼。';
+  String nextTimeOpenAppCanUnlock(Object p0) => '下次開啟 App 時可使用 ${p0} 解鎖，無須輸入密碼。';
 
   @override
-  String get notNow => '暫時不要';
+  String get notNow => '暫不啟用';
 
   @override
   String get enterEmail => '請輸入 Email';
@@ -15192,7 +15292,7 @@ class _LZh extends AppLocalizations {
   String get noAccountWithEmail => '此帳號尚未註冊';
 
   @override
-  String noAccountCreateOneNow(Object p0) => '找不到「${p0}」這個帳號。要現在建立一個嗎？';
+  String noAccountCreateOneNow(Object p0) => '找不到帳號「${p0}」，是否立即註冊？';
 
   @override
   String get signUp => '前往註冊';
@@ -15207,13 +15307,13 @@ class _LZh extends AppLocalizations {
   String signWith(Object p0) => '使用 ${p0} 登入';
 
   @override
-  String get noAccountYetSignUp => '還沒有帳號？立即註冊';
+  String get noAccountYetSignUp => '尚無帳號？立即註冊';
 
   @override
   String get membershipTiersNotSetUpYet => '尚未設定會員等級制度';
 
   @override
-  String get currentTier => '您目前的級別';
+  String get currentTier => '目前等級';
 
   @override
   String get unlocked => '已解鎖';
@@ -15222,10 +15322,10 @@ class _LZh extends AppLocalizations {
   String get locked => '尚未解鎖';
 
   @override
-  String get aboveTier => '您已高於此級別';
+  String get aboveTier => '已超過此等級';
 
   @override
-  String get reachedTopTier => '您已達到最高級別';
+  String get reachedTopTier => '已達最高等級';
 
   @override
   String unlocked2(Object p0) => '已解鎖「${p0}」';
@@ -15234,7 +15334,7 @@ class _LZh extends AppLocalizations {
   String morePointsUnlock(Object p0, Object p1) => '再 ${p0} 點即可解鎖「${p1}」';
 
   @override
-  String benefits(Object p0) => '${p0}級別獎勵';
+  String benefits(Object p0) => '${p0}等級權益';
 
   @override
   String get noBenefitsBeenDescribedTierYet => '尚未設定此等級的權益說明。';
@@ -15243,13 +15343,13 @@ class _LZh extends AppLocalizations {
   String pointsFromCompletedOrders(Object p0, Object p1) => '目前累積 ${p0} 點，已完成 ${p1} 筆交易';
 
   @override
-  String get noNotificationsClear => '沒有通知可以清除';
+  String get noNotificationsClear => '目前沒有可清除的通知';
 
   @override
   String get clearAllNotifications => '清除全部通知';
 
   @override
-  String notificationsDeletedCannotUndone(Object p0) => '會刪除 ${p0} 則通知，無法復原。';
+  String notificationsDeletedCannotUndone(Object p0) => '將刪除 ${p0} 則通知，此操作無法復原。';
 
   @override
   String get clearAll => '全部清除';
@@ -15261,10 +15361,10 @@ class _LZh extends AppLocalizations {
   String get couldNotClearPleaseTryAgain => '清除失敗，請稍後再試';
 
   @override
-  String get noUnreadNotifications => '沒有未讀的通知';
+  String get noUnreadNotifications => '沒有未讀通知';
 
   @override
-  String markAllUnreadNotificationsAsRead(Object p0) => '要把 ${p0} 則未讀通知全部標為已讀嗎？此動作無法復原。';
+  String markAllUnreadNotificationsAsRead(Object p0) => '確定要將 ${p0} 則未讀通知全部標為已讀嗎？此操作無法復原。';
 
   @override
   String get openChat => '前往聊天室';
@@ -15297,7 +15397,7 @@ class _LZh extends AppLocalizations {
   String items2(Object p0) => '商品明細（${p0}）';
 
   @override
-  String get orderNoItemDetails => '這筆訂單沒有品項資料。';
+  String get orderNoItemDetails => '此訂單無品項資料。';
 
   @override
   String msg4(Object p0, Object p1) => '單價 \\\$${p0} × ${p1}';
@@ -15342,7 +15442,7 @@ class _LZh extends AppLocalizations {
   String get cancelOrder => '取消訂單';
 
   @override
-  String get pendingPayoutDisappearsBuyerNotified => '取消後這筆待定收益會一併消失，買家也會收到通知。';
+  String get pendingPayoutDisappearsBuyerNotified => '取消後此筆待定收益將一併取消，並通知買家。';
 
   @override
   String get cancelledBySeller => '賣家取消';
@@ -15360,7 +15460,7 @@ class _LZh extends AppLocalizations {
   String get pendingAmount => '待定收益金額';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '買家完成取書後會自動撥入代幣餘額';
+  String get coinsArriveOnceBuyerCollectsBook => '買家完成取書後，款項將自動撥入代幣餘額';
 
   @override
   String get scanned => '掃描成功';
@@ -15369,19 +15469,19 @@ class _LZh extends AppLocalizations {
   String get scanAgain => '繼續掃描';
 
   @override
-  String get collectBook => '我要取書';
+  String get collectBook => '取書';
 
   @override
-  String get pointPickupQrCode => '對準取書 QR Code';
+  String get pointPickupQrCode => '請對準取書 QR Code';
 
   @override
-  String get holdSteady => '對準勿搖晃';
+  String get holdSteady => '請保持裝置穩定';
 
   @override
   String get bookCollected => '取書完成';
 
   @override
-  String get thanksUsingSavemybookHappyReading => '感謝你的使用，祝閱讀愉快！';
+  String get thanksUsingSavemybookHappyReading => '感謝您的使用，祝您閱讀愉快。';
 
   @override
   String collected(Object p0) => '《${p0}》已完成取書';
@@ -15396,10 +15496,10 @@ class _LZh extends AppLocalizations {
   String get myAccount => '會員中心';
 
   @override
-  String get personNotWrittenBioYet => '這個人很懶，什麼都沒留下';
+  String get personNotWrittenBioYet => '尚未填寫個人簡介';
 
   @override
-  String get topTierReached => '已達到最高級別';
+  String get topTierReached => '已達最高等級';
 
   @override
   String morePointsReach(Object p0, Object p1) => '再 ${p0} 點升級為「${p1}」';
@@ -15408,7 +15508,7 @@ class _LZh extends AppLocalizations {
   String get myCoins => '我的代幣';
 
   @override
-  String get shareProfile => '分享檔案';
+  String get shareProfile => '分享個人檔案';
 
   @override
   String get purchases => '購買紀錄';
@@ -15423,25 +15523,25 @@ class _LZh extends AppLocalizations {
   String get signOut2 => '確認登出';
 
   @override
-  String get needSignAgainKeepUsingApp => '登出後需要重新輸入帳號密碼才能繼續使用。';
+  String get needSignAgainKeepUsingApp => '登出後須重新登入才能繼續使用。';
 
   @override
-  String cancelOrderBookReturnsShop(Object p0) => '確定要取消訂單 ${p0} 嗎？取消後書籍會回到商城重新販售。';
+  String cancelOrderBookReturnsShop(Object p0) => '確定要取消訂單 ${p0} 嗎？取消後書籍將重新於商城販售。';
 
   @override
-  String get pickupCode2 => '取書代碼';
+  String get pickupCode2 => '取書碼';
 
   @override
   String get notGeneratedYet => '尚未產生';
 
   @override
-  String get enterCodeLockerCollect => '請在書櫃上輸入此代碼取書';
+  String get enterCodeLockerCollect => '請於書櫃輸入此代碼取書';
 
   @override
   String enterCodeCollect(Object p0) => '請至「${p0}」輸入此代碼取書';
 
   @override
-  String get iCollected => '我已完成取書';
+  String get iCollected => '確認取書';
 
   @override
   String get noOrdersTab => '此分類目前沒有訂單';
@@ -15456,7 +15556,7 @@ class _LZh extends AppLocalizations {
   String get displayNameLimited50Characters => '暱稱不可超過 50 個字元';
 
   @override
-  String get enterPasswordAgain => '請再輸入一次密碼';
+  String get enterPasswordAgain => '請再次輸入密碼';
 
   @override
   String get passwordsDoNotMatch2 => '兩次輸入的密碼不一致';
@@ -15480,16 +15580,16 @@ class _LZh extends AppLocalizations {
   String get joinSavemybook => '加入救「舊」我的書';
 
   @override
-  String get signUpBuySellUseSmart => '註冊後就能買書、賣書與使用智慧書櫃';
+  String get signUpBuySellUseSmart => '註冊後即可買書、賣書及使用智慧書櫃';
 
   @override
   String get displayName => '暱稱';
 
   @override
-  String get nameOthersSee => '其他人會看到的名字';
+  String get nameOthersSee => '其他使用者可見的名稱';
 
   @override
-  String get emailSignWith => '用來登入的信箱';
+  String get emailSignWith => '用於登入的信箱';
 
   @override
   String get least8CharactersWithLettersNumbers => '至少 8 碼，需含英文與數字';
@@ -15498,10 +15598,10 @@ class _LZh extends AppLocalizations {
   String get confirmPassword => '確認密碼';
 
   @override
-  String get enterPasswordAgain2 => '再輸入一次密碼';
+  String get enterPasswordAgain2 => '請再次輸入密碼';
 
   @override
-  String get alreadyAccountGoBackSign => '已經有帳號了？返回上一頁登入';
+  String get alreadyAccountGoBackSign => '已有帳號？返回登入';
 
   @override
   String get markAsDroppedOff => '完成存書';
@@ -15513,16 +15613,16 @@ class _LZh extends AppLocalizations {
   String get markedAsDroppedOff => '已標記為完成存書';
 
   @override
-  String get buyerNotifiedBookReturnsShop => '取消後買家會收到通知，書籍會回到商城重新販售。';
+  String get buyerNotifiedBookReturnsShop => '取消後將通知買家，書籍將重新於商城販售。';
 
   @override
-  String get dropOffPickupCode => '存書／取書代碼';
+  String get dropOffPickupCode => '存書／取書碼';
 
   @override
-  String get enterCodeLocker => '請在書櫃上輸入此代碼';
+  String get enterCodeLocker => '請於書櫃輸入此代碼';
 
   @override
-  String get noRecentSearches => '還沒有搜尋紀錄';
+  String get noRecentSearches => '尚無搜尋紀錄';
 
   @override
   String get recentSearches => '最近搜尋';
@@ -15531,19 +15631,19 @@ class _LZh extends AppLocalizations {
   String get clearAll2 => '清除全部';
 
   @override
-  String get searchTitleAuthorIsbn => '搜尋書名、作者、ISBN...';
+  String get searchTitleAuthorIsbn => '搜尋書名、作者或 ISBN';
 
   @override
   String get photoLimitReached => '照片已滿';
 
   @override
-  String get canUploadUp10Photos => '最多只能上傳 10 張照片。';
+  String get canUploadUp10Photos => '最多可上傳 10 張照片。';
 
   @override
   String get photosMissing => '照片不足';
 
   @override
-  String missingTheseThreeRequired2(Object p0) => '還缺少：${p0}。這三張是必填的。';
+  String missingTheseThreeRequired2(Object p0) => '尚缺：${p0}。以上三張為必填。';
 
   @override
   String get missingInformation => '資料不齊全';
@@ -15564,7 +15664,7 @@ class _LZh extends AppLocalizations {
   String get chooseLockerLocation2 => '請選擇存放區域。';
 
   @override
-  String get listed2 => '上架成功！';
+  String get listed2 => '上架成功';
 
   @override
   String get unknownError => '未知錯誤';
@@ -15579,19 +15679,19 @@ class _LZh extends AppLocalizations {
   String get connectionProblem => '連線異常';
 
   @override
-  String get couldNotReachServerUploadTimed => '無法連線至伺服器或上傳超時，請檢查網路狀態。';
+  String get couldNotReachServerUploadTimed => '無法連線至伺服器或上傳逾時，請檢查網路狀態。';
 
   @override
-  String get listBook => '確認完成上架';
+  String get listBook => '確認上架';
 
   @override
   String get detailsPhotos => '詳細資訊與照片';
 
   @override
-  String get loading => '載入中...';
+  String get loading => '載入中…';
 
   @override
-  String get unknownLocker => '未知機櫃';
+  String get unknownLocker => '未知書櫃';
 
   @override
   String get enterTitle2 => '請輸入書名';
@@ -15600,13 +15700,13 @@ class _LZh extends AppLocalizations {
   String get chooseCategory2 => '請選擇分類';
 
   @override
-  String get bookDetailsFilledAutomatically => '已自動帶入書籍資訊！';
+  String get bookDetailsFilledAutomatically => '已自動帶入書籍資訊';
 
   @override
-  String get bookDetailsFilledFromBackupSource => '已透過備援系統帶入書籍資訊！';
+  String get bookDetailsFilledFromBackupSource => '已透過備援資料來源帶入書籍資訊';
 
   @override
-  String get noSourceIsbnPleaseEnterDetails => '各系統皆找不到此 ISBN，請嘗試手動輸入';
+  String get noSourceIsbnPleaseEnterDetails => '查無此 ISBN 的書籍資訊，請手動輸入';
 
   @override
   String get day => '日';
@@ -15618,13 +15718,13 @@ class _LZh extends AppLocalizations {
   String get description => '書籍簡介';
 
   @override
-  String get sellBook => '我要賣書';
+  String get sellBook => '上架書籍';
 
   @override
   String get myShop => '我的賣場';
 
   @override
-  String get sellerNoBooksSale => '這位賣家目前沒有販售中的書籍';
+  String get sellerNoBooksSale => '此賣家目前沒有販售中的書籍';
 
   @override
   String get loading2 => '載入中…';
@@ -15672,10 +15772,10 @@ class _LZh extends AppLocalizations {
   String get lineUpTheirQrCodeWith => '將對方的 QR Code 放入框內';
 
   @override
-  String get notSavemybookProfileQrCode => '這不是救「舊」我的書的個人 QR Code';
+  String get notSavemybookProfileQrCode => '此 QR Code 並非救「舊」我的書的個人 QR Code';
 
   @override
-  String get ownQrCode => '這是你自己的 QR Code';
+  String get ownQrCode => '這是您的個人 QR Code';
 
   @override
   String get couldNotStartChatPleaseTry => '無法建立聊天室，請稍後再試';
@@ -15684,13 +15784,13 @@ class _LZh extends AppLocalizations {
   String get linkCopied => '已複製連結';
 
   @override
-  String addMeSavemybook(Object p0) => '在救「舊」我的書上加我：${p0}';
+  String addMeSavemybook(Object p0) => '我的救「舊」我的書個人檔案：${p0}';
 
   @override
-  String addMeSavemybook2(Object p0, Object p1) => '在救「舊」我的書上加我（${p0}）：${p1}';
+  String addMeSavemybook2(Object p0, Object p1) => '${p0} 的救「舊」我的書個人檔案：${p1}';
 
   @override
-  String get sharingCouldNotOpenSoLink => '無法開啟分享，已幫你複製連結';
+  String get sharingCouldNotOpenSoLink => '無法開啟分享，已複製連結';
 
   @override
   String get savedPhotos => '已儲存到相簿';
@@ -15708,31 +15808,31 @@ class _LZh extends AppLocalizations {
   String get askQuestion => '提出問題';
 
   @override
-  String get noEnquiriesYet => '還沒有任何問題紀錄';
+  String get noEnquiriesYet => '尚無提問紀錄';
 
   @override
   String get enterSubject => '請填寫主旨';
 
   @override
-  String get addMoreDetailSoSupportCan => '請多描述一點，方便客服判斷';
+  String get addMoreDetailSoSupportCan => '請提供更多說明，以利客服判斷';
 
   @override
-  String get sentSupportReplySoon => '已送出，客服會盡快回覆';
+  String get sentSupportReplySoon => '已送出，客服將盡快回覆';
 
   @override
   String get subject => '主旨';
 
   @override
-  String get sumUpOneLine => '一句話描述問題';
+  String get sumUpOneLine => '簡述問題';
 
   @override
-  String get whatHappenedIncludeOrderNumberIf => '發生什麼事？有訂單編號的話一併附上';
+  String get whatHappenedIncludeOrderNumberIf => '請描述問題，如有訂單編號請一併提供';
 
   @override
   String get close => '結案';
 
   @override
-  String get notAbleReplyAfterClosing => '結案後就不能再回覆了。';
+  String get notAbleReplyAfterClosing => '結案後將無法再回覆。';
 
   @override
   String get enquiryClosed => '工單已結案';
@@ -15747,7 +15847,7 @@ class _LZh extends AppLocalizations {
   String get enquiry => '工單';
 
   @override
-  String get enquiryNotFound => '找不到這張工單';
+  String get enquiryNotFound => '找不到此工單';
 
   @override
   String get support => '客服';
@@ -15933,13 +16033,13 @@ class _LZh extends AppLocalizations {
   String get collect => '取書';
 
   @override
-  String get couldNotLoadPhoto => '無法載入這張照片';
+  String get couldNotLoadPhoto => '無法載入此照片';
 
   @override
   String slot2(Object p0) => '櫃號：${p0}';
 
   @override
-  String confirmPutLocker(Object p0) => '確認已把《${p0}》放入書櫃了嗎？';
+  String confirmPutLocker(Object p0) => '確認已將《${p0}》放入書櫃？';
 
   @override
   String get enterTitleContent => '請填寫標題與內容';
@@ -15954,7 +16054,7 @@ class _LZh extends AppLocalizations {
   String get publishAnnouncement => '發布推播';
 
   @override
-  String get everyUserSeeAnnouncementOncePublished => '發布後全體使用者都會看到這則公告，確定發布嗎？';
+  String get everyUserSeeAnnouncementOncePublished => '發布後全體使用者皆可看到此公告，確定要發布嗎？';
 
   @override
   String get publish => '發布';
@@ -15984,7 +16084,7 @@ class _LZh extends AppLocalizations {
   String get publishNow => '立即發布';
 
   @override
-  String get leaveOffSaveAsDraft => '關閉時只會存成草稿';
+  String get leaveOffSaveAsDraft => '關閉時僅儲存為草稿';
 
   @override
   String get saveDraft => '儲存草稿';
@@ -16005,7 +16105,7 @@ class _LZh extends AppLocalizations {
   String get announcements => '系統公告';
 
   @override
-  String get noAnnouncementsYetTapAddOne => '尚無公告，點右上角新增';
+  String get noAnnouncementsYetTapAddOne => '尚無公告，請點選右上角新增';
 
   @override
   String get published => '已發布';
@@ -16020,7 +16120,7 @@ class _LZh extends AppLocalizations {
   String get backUpNow => '立即備份';
 
   @override
-  String get wholeDatabaseExportedCompressedWithLot => '將匯出整個資料庫並壓縮保存。資料量大時可能需要數十秒，期間請不要離開這個畫面。';
+  String get wholeDatabaseExportedCompressedWithLot => '將匯出整個資料庫並壓縮保存。資料量大時可能需要數十秒，期間請勿離開此畫面。';
 
   @override
   String get startBackup => '開始備份';
@@ -16041,16 +16141,16 @@ class _LZh extends AppLocalizations {
   String backedUpDailyNewestP0Kept(Object p0) => '每日自動備份，保留最新 ${p0} 份';
 
   @override
-  String get olderBackupsBeyondCountRemovedAutomatically => '超出份數的舊備份會自動清除。備份檔含全站個人資料，下載後請妥善保管，每次下載都會記入操作紀錄。';
+  String get olderBackupsBeyondCountRemovedAutomatically => '超出份數的舊備份將自動清除。備份檔含全站個人資料，下載後請妥善保管，每次下載皆會記錄於操作紀錄。';
 
   @override
-  String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄。排程每天會自動跑一次，也可以按上方按鈕立刻產生一份。';
+  String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄。系統每日自動備份一次，亦可點選上方按鈕立即備份。';
 
   @override
   String get deleteBackup => '刪除備份';
 
   @override
-  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\n檔案與紀錄會一併移除，無法復原。';
+  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\n檔案與紀錄將一併移除，此操作無法復原。';
 
   @override
   String get manual => '手動';
@@ -16065,7 +16165,7 @@ class _LZh extends AppLocalizations {
   String get downloadBackup => '下載備份';
 
   @override
-  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '備份檔請在電腦上取回，並帶上你的授權標頭：\n\n${p0}\n\n檔案大小 ${p1}。';
+  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '請於電腦下載備份檔，並附上您的授權標頭：\n\n${p0}\n\n檔案大小：${p1}。';
 
   @override
   String get copyLink2 => '複製網址';
@@ -16077,7 +16177,7 @@ class _LZh extends AppLocalizations {
   String get forceDelist => '強制下架';
 
   @override
-  String get reasonDelistingSellerNotified => '下架原因，會通知賣家';
+  String get reasonDelistingSellerNotified => '下架原因（將通知賣家）';
 
   @override
   String get delist3 => '確認下架';
@@ -16086,7 +16186,7 @@ class _LZh extends AppLocalizations {
   String get relist2 => '恢復上架';
 
   @override
-  String putP0BackStore(Object p0) => '要讓《${p0}》重新出現在商城嗎？';
+  String putP0BackStore(Object p0) => '確定要將《${p0}》恢復上架嗎？';
 
   @override
   String get relisted => '已恢復上架';
@@ -16161,10 +16261,10 @@ class _LZh extends AppLocalizations {
   String get disable => '停用';
 
   @override
-  String onceDisabledP0NoLongerAppears(Object p0) => '停用後「${p0}」不會再出現在賣家的存放區域選單中。';
+  String onceDisabledP0NoLongerAppears(Object p0) => '停用後「${p0}」將不再顯示於賣家的存放區域選單。';
 
   @override
-  String onceEnabledP0AvailableSellersAgain(Object p0) => '啟用後「${p0}」會重新開放給賣家選擇。';
+  String onceEnabledP0AvailableSellersAgain(Object p0) => '啟用後「${p0}」將重新開放賣家選擇。';
 
   @override
   String get lockerDisabled => '書櫃已停用';
@@ -16215,7 +16315,7 @@ class _LZh extends AppLocalizations {
   String get deleteCategory => '刪除分類';
 
   @override
-  String deleteP0CannotUndone2(Object p0) => '要刪除「${p0}」嗎？此動作無法復原。';
+  String deleteP0CannotUndone2(Object p0) => '確定要刪除「${p0}」嗎？此操作無法復原。';
 
   @override
   String get categoryDeleted => '已刪除分類';
@@ -16248,16 +16348,16 @@ class _LZh extends AppLocalizations {
   String get deleteSection => '刪除章節';
 
   @override
-  String get contentsSectionRemovedWith => '這一章的內容會一併移除。';
+  String get contentsSectionRemovedWith => '此章節內容將一併移除。';
 
   @override
-  String p0ItsContentsRemoved(Object p0) => '「${p0}」與其內容會一併移除。';
+  String p0ItsContentsRemoved(Object p0) => '「${p0}」及其內容將一併移除。';
 
   @override
   String get discardChanges => '捨棄變更？';
 
   @override
-  String get documentUnsavedChangesTheyLostIf => '這份文件有尚未儲存的修改，離開後會遺失。';
+  String get documentUnsavedChangesTheyLostIf => '此文件有尚未儲存的變更，離開後將遺失。';
 
   @override
   String get discard => '捨棄';
@@ -16266,28 +16366,28 @@ class _LZh extends AppLocalizations {
   String get keepEditing => '繼續編輯';
 
   @override
-  String get bothTitleContentRequired => '標題與內容都要填寫';
+  String get bothTitleContentRequired => '請填寫標題與內容';
 
   @override
-  String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章還沒有標題';
+  String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章尚未填寫標題';
 
   @override
   String updateP0(Object p0) => '確認更新${p0}？';
 
   @override
-  String get documentBindingEveryUserSubmittingReplaces => '這份文件對所有使用者都有效力，送出後會立刻取代目前的版本。';
+  String get documentBindingEveryUserSubmittingReplaces => '此文件對所有使用者皆具效力，送出後將立即取代目前版本。';
 
   @override
-  String get yesUpdate => '我確認要更新';
+  String get yesUpdate => '確認更新';
 
   @override
-  String get notifyEveryUser => '要通知所有使用者嗎？';
+  String get notifyEveryUser => '是否通知所有使用者？';
 
   @override
   String get updateNotify => '更新並通知';
 
   @override
-  String get updateOnly => '只更新不通知';
+  String get updateOnly => '僅更新，不通知';
 
   @override
   String get sections => '章節';
@@ -16305,7 +16405,7 @@ class _LZh extends AppLocalizations {
   String get preamble => '前言';
 
   @override
-  String get unnumberedOpeningTextLeaveEmptyIf => '開頭不編號的說明文字，沒有的話可以留空。';
+  String get unnumberedOpeningTextLeaveEmptyIf => '開頭不編號的說明文字，若無可留空。';
 
   @override
   String get articles => '條文';
@@ -16314,7 +16414,7 @@ class _LZh extends AppLocalizations {
   String get numberedAutomatically => '編號自動產生';
 
   @override
-  String get noArticlesYetAddFirstOne => '還沒有條文。按下方新增第一章。';
+  String get noArticlesYetAddFirstOne => '尚無條文，請點選下方新增第一章。';
 
   @override
   String get addSection => '新增章節';
@@ -16326,13 +16426,13 @@ class _LZh extends AppLocalizations {
   String get sectionTitle => '章節標題';
 
   @override
-  String get bodySectionSingleLineBreaksKept => '這一章的內容。單行換行會照樣呈現，空一行代表另起一段。';
+  String get bodySectionSingleLineBreaksKept => '章節內容。單行換行將如實呈現，空一行代表另起一段。';
 
   @override
-  String get emptyLineStartsParagraphParagraphWhose => '空一行分段。首行寫「1. 標題」的段落，切回章節模式時會被認成一章。';
+  String get emptyLineStartsParagraphParagraphWhose => '空一行即分段。首行為「1. 標題」的段落，切換回章節模式時將視為一章。';
 
   @override
-  String get howUsersSee => '使用者看到的樣子';
+  String get howUsersSee => '使用者檢視畫面';
 
   @override
   String get noContentYet => '尚無內容';
@@ -16359,7 +16459,7 @@ class _LZh extends AppLocalizations {
   String get showHelpCentre => '顯示在幫助中心';
 
   @override
-  String get bothQuestionAnswerRequired => '問題與答案都要填寫';
+  String get bothQuestionAnswerRequired => '請填寫問題與答案';
 
   @override
   String get added => '已新增';
@@ -16371,7 +16471,7 @@ class _LZh extends AppLocalizations {
   String get deleteQuestion => '刪除問題';
 
   @override
-  String deleteP0(Object p0) => '要刪除「${p0}」嗎？';
+  String deleteP0(Object p0) => '確定要刪除「${p0}」嗎？';
 
   @override
   String get deleted => '已刪除';
@@ -16392,7 +16492,7 @@ class _LZh extends AppLocalizations {
   String get cancelDeletionRequest => '取消刪除申請';
 
   @override
-  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0} 的帳號會恢復正常，刪除倒數停止。';
+  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0} 的帳號將恢復正常，並停止刪除程序。';
 
   @override
   String get cancelDeletion => '取消刪除';
@@ -16404,7 +16504,7 @@ class _LZh extends AppLocalizations {
   String get anonymiseNow => '立即執行匿名化';
 
   @override
-  String eraseP0SPersonalDataDisable(Object p0) => '不等緩衝期結束，立刻清除 ${p0} 的個人資料並停用帳號。\n\n訂單與交易紀錄會保留，但暱稱會變成「已刪除的使用者」。此操作無法復原。';
+  String eraseP0SPersonalDataDisable(Object p0) => '不待緩衝期結束，立即清除 ${p0} 的個人資料並停用帳號。\n\n訂單與交易紀錄將予以保留，暱稱將顯示為「已刪除的使用者」。此操作無法復原。';
 
   @override
   String get doNow => '立即執行';
@@ -16422,7 +16522,7 @@ class _LZh extends AppLocalizations {
   String get dueSoon => '即將執行';
 
   @override
-  String p0DaysLeft(Object p0) => '剩 ${p0} 天';
+  String p0DaysLeft(Object p0) => '剩餘 ${p0} 天';
 
   @override
   String requestedP0ScheduledP1(Object p0, Object p1) => '申請於 ${p0}，預計 ${p1} 執行';
@@ -16584,10 +16684,10 @@ class _LZh extends AppLocalizations {
   String get minimumPoints => '最低點數';
 
   @override
-  String get maximumPointsLeaveEmptyNoCap => '最高點數（留空 = 無上限）';
+  String get maximumPointsLeaveEmptyNoCap => '最高點數（留空表示無上限）';
 
   @override
-  String get benefitsSeparatedByCommasLineBreaks => '權益，用頓號或換行分隔，會在會員等級頁逐條顯示';
+  String get benefitsSeparatedByCommasLineBreaks => '權益（以頓號或換行分隔，將於會員等級頁逐條顯示）';
 
   @override
   String get enterTierName => '請輸入等級名稱';
@@ -16605,7 +16705,7 @@ class _LZh extends AppLocalizations {
   String get deleteTier => '刪除等級';
 
   @override
-  String deleteP0MembersTierDropNext(Object p0) => '要刪除「${p0}」嗎？已在這個等級的會員會退到下一個符合的等級。';
+  String deleteP0MembersTierDropNext(Object p0) => '確定要刪除「${p0}」嗎？此等級的會員將調整至下一個符合的等級。';
 
   @override
   String get tierDeleted => '已刪除等級';
@@ -16656,10 +16756,10 @@ class _LZh extends AppLocalizations {
   String get removeFromBlocklist => '移出黑名單';
 
   @override
-  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0} 會立刻被登出，且無法再使用 App 的任何功能。';
+  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0} 將立即被登出，且無法使用 App 的任何功能。';
 
   @override
-  String p0AbleSignAgain(Object p0) => '${p0} 將可以重新登入使用。';
+  String p0AbleSignAgain(Object p0) => '${p0} 將可重新登入使用。';
 
   @override
   String get accountStatusUpdated => '已更新帳號狀態';
@@ -16671,10 +16771,10 @@ class _LZh extends AppLocalizations {
   String get makeAdmin => '設為管理員';
 
   @override
-  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 將立刻失去所有後台權限。';
+  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 將立即失去所有後台權限。';
 
   @override
-  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 將可以進入管理後台，預設擁有全部權限，可再逐項調整。';
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 將可進入管理後台，預設擁有全部權限，並可逐項調整。';
 
   @override
   String get roleUpdated => '已更新身分';
@@ -16731,7 +16831,7 @@ class _LZh extends AppLocalizations {
   String get revokeAllPermissions => '收回全部權限';
 
   @override
-  String p0AbleUseEveryAdminFeature(Object p0) => '${p0} 將可以使用後台所有功能。';
+  String p0AbleUseEveryAdminFeature(Object p0) => '${p0} 將可使用後台所有功能。';
 
   @override
   String p0ReachAdminAreaButUnable(Object p0) => '${p0} 進入後台後將無法使用任何功能。';
@@ -16746,7 +16846,7 @@ class _LZh extends AppLocalizations {
   String get memberSettings => '會員設定';
 
   @override
-  String get noDataMember => '找不到這位會員的資料';
+  String get noDataMember => '找不到此會員的資料';
 
   @override
   String get listings2 => '上架書籍';
@@ -16761,16 +16861,16 @@ class _LZh extends AppLocalizations {
   String get accountStatus => '帳號狀態';
 
   @override
-  String get ownAccountStatusPermissionsCannotChanged => '這是你自己的帳號，無法在這裡調整狀態與權限。';
+  String get ownAccountStatusPermissionsCannotChanged => '此為您本人的帳號，無法於此調整狀態與權限。';
 
   @override
   String get accountEnabled => '啟用帳號';
 
   @override
-  String get canSignUseAppNormally => '可以正常登入使用';
+  String get canSignUseAppNormally => '可正常登入使用';
 
   @override
-  String get suspendedSignedOutImmediatelyAfterSigning => '已停權，登入後會被立刻登出';
+  String get suspendedSignedOutImmediatelyAfterSigning => '已停權，登入後將立即登出';
 
   @override
   String get blocked => '列入黑名單';
@@ -16788,7 +16888,7 @@ class _LZh extends AppLocalizations {
   String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} 點（自動 ${p1}${p2}）';
 
   @override
-  String get memberSTierBeenAdjustedBy => '這位會員的等級目前有人工調整，不完全依交易自動計算。';
+  String get memberSTierBeenAdjustedBy => '此會員的等級經人工調整，不完全依交易自動計算。';
 
   @override
   String get adjustTier => '調整等級';
@@ -16830,7 +16930,7 @@ class _LZh extends AppLocalizations {
   String get sales2 => '銷售';
 
   @override
-  String get created => '創建日期';
+  String get created => '建立日期';
 
   @override
   String get noActivityYet => '尚無操作紀錄';
@@ -16845,7 +16945,7 @@ class _LZh extends AppLocalizations {
   String get reasonChange => '調整說明';
 
   @override
-  String get sentBuyerAsWellOptional => '會一併通知買家（選填）';
+  String get sentBuyerAsWellOptional => '將一併通知買家（選填）';
 
   @override
   String get applyChange => '確認調整';
@@ -16974,7 +17074,7 @@ class _LZh extends AppLocalizations {
   String get enterReasonAdjustment => '請填寫調整原因';
 
   @override
-  String get member2 => '這位會員';
+  String get member2 => '此會員';
 
   @override
   String get add3 => '增加';
@@ -17064,7 +17164,7 @@ class _LZh extends AppLocalizations {
   String p0Locker(Object p0) => '${p0}書櫃';
 
   @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位啟用中的會員都會收到一則「${p0}已更新」的通知。';
+  String everyActiveMemberReceivesP0Updated(Object p0) => '所有啟用中的會員皆會收到「${p0}已更新」通知。';
 
   @override
   String get orderPlaced => '成立訂單';
@@ -17073,7 +17173,7 @@ class _LZh extends AppLocalizations {
   String get paid => '付款';
 
   @override
-  String get sellerDroppedOff => '賣家放書';
+  String get sellerDroppedOff => '賣家存書';
 
   @override
   String get buyerCollected => '買家取書';
@@ -17085,7 +17185,7 @@ class _LZh extends AppLocalizations {
   String get editBookDetails => '編輯書籍資料';
 
   @override
-  String sellerP0TheyNotifiedSave(Object p0) => '賣家 ${p0}・儲存後會通知他';
+  String sellerP0TheyNotifiedSave(Object p0) => '賣家 ${p0}・儲存後將通知賣家';
 
   @override
   String get priceCoins => '售價（代幣）';
@@ -17109,7 +17209,7 @@ class _LZh extends AppLocalizations {
   String get resetPassword => '重設密碼';
 
   @override
-  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 目前的密碼會立刻失效，必須改用接下來產生的臨時密碼登入。\n\n密碼由系統產生，你不能自己指定。';
+  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 目前的密碼將立即失效，須改用系統產生的臨時密碼登入。\n\n臨時密碼由系統產生，無法自行指定。';
 
   @override
   String get generateTemporaryPassword => '產生臨時密碼';
@@ -17118,10 +17218,10 @@ class _LZh extends AppLocalizations {
   String get temporaryPassword => '臨時密碼';
 
   @override
-  String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密碼已重設。這組密碼只會出現這一次，關掉後無法再查看。';
+  String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密碼已重設。此密碼僅顯示一次，關閉後將無法再查看。';
 
   @override
-  String get remindThemChangeSettingsChangePassword => '請提醒對方登入後立刻到「設定 → 更改密碼」改掉。';
+  String get remindThemChangeSettingsChangePassword => '請提醒對方登入後立即至「設定 → 更改密碼」變更密碼。';
 
   @override
   String get temporaryPasswordCopied => '已複製臨時密碼';
@@ -17130,7 +17230,7 @@ class _LZh extends AppLocalizations {
   String get copy => '複製';
 
   @override
-  String get cannotResetAnotherAdminSPassword => '不能重設其他管理員的密碼';
+  String get cannotResetAnotherAdminSPassword => '無法重設其他管理員的密碼';
 
   @override
   String get generateTemporaryPasswordHandOver => '產生一組臨時密碼交給使用者';
@@ -17139,7 +17239,7 @@ class _LZh extends AppLocalizations {
   String get orderNumberCopied => '已複製訂單編號';
 
   @override
-  String get orderNotFound => '找不到這筆訂單';
+  String get orderNotFound => '找不到此訂單';
 
   @override
   String get paidWithCoins => '代幣支付';
@@ -17214,22 +17314,22 @@ class _LZh extends AppLocalizations {
   String get declined => '不予退款';
 
   @override
-  String get changeOwnPasswordGoSettingsChange => '要改自己的密碼請到「設定 → 更改密碼」';
+  String get changeOwnPasswordGoSettingsChange => '如需變更本人密碼，請至「設定 → 更改密碼」';
 
   @override
-  String get memberNotAdminSoThereNo => '這位會員不是管理員，沒有後台權限可以設定。先在上方把身分改成管理員。';
+  String get memberNotAdminSoThereNo => '此會員非管理員，無後台權限可設定。請先於上方將身分設為管理員。';
 
   @override
-  String get you => '你自己';
+  String get you => '本人';
 
   @override
-  String isbnMust1013DigitsOne(Object p0) => 'ISBN 要 10 或 13 碼，目前 ${p0} 碼';
+  String isbnMust1013DigitsOne(Object p0) => 'ISBN 應為 10 或 13 碼，目前為 ${p0} 碼';
 
   @override
-  String get screenUnsavedChangesTheyLostIf => '這個畫面有尚未儲存的修改，離開後會遺失。';
+  String get screenUnsavedChangesTheyLostIf => '此畫面有尚未儲存的變更，離開後將遺失。';
 
   @override
-  String stillNeededP0(Object p0) => '還差：${p0}';
+  String stillNeededP0(Object p0) => '尚缺：${p0}';
 
   @override
   String photosP0(Object p0) => '照片：${p0} 張';
@@ -17238,37 +17338,37 @@ class _LZh extends AppLocalizations {
   String get confirmListing => '確認上架';
 
   @override
-  String get lookingUpBook => '查詢書籍資料中';
+  String get lookingUpBook => '正在查詢書籍資料';
 
   @override
   String get scan => '掃描';
 
   @override
-  String get buyerSPaymentGoesBackTheir => '買家付的款項會退回錢包；賣家若已收到貨款會先收回。';
+  String get buyerSPaymentGoesBackTheir => '買家支付的款項將退回錢包；若賣家已收到貨款，將先行收回。';
 
   @override
-  String get orderReturnsWhereWasBeforeDispute => '訂單回到申訴前的狀態繼續交易；若先前已完成取貨，貨款會撥給賣家。';
+  String get orderReturnsWhereWasBeforeDispute => '訂單將恢復至申訴前的狀態並繼續交易；若先前已完成取書，貨款將撥付給賣家。';
 
   @override
-  String get orderWasAlreadyRefundedBuyerCannot => '這筆訂單的款項已經退回買家，不能再改回進行中或已完成';
+  String get orderWasAlreadyRefundedBuyerCannot => '此訂單款項已退回買家，無法改回進行中或已完成';
 
   @override
   String get completedOrderCanOnlyChangedRefund => '已完成的訂單只能改為「退款處理中」或「已退款」';
 
   @override
-  String confirmingPaysP0TokensSellerMarks(Object p0) => '確認後會把 ${p0} 代幣撥給賣家，書籍標記為已售出。';
+  String confirmingPaysP0TokensSellerMarks(Object p0) => '確認後將撥付 ${p0} 代幣給賣家，並將書籍標記為已售出。';
 
   @override
-  String confirmingTakesP0TokensBackFrom(Object p0) => '確認後會向賣家收回 ${p0} 代幣並退還給買家。賣家餘額不足時會變成負數。';
+  String confirmingTakesP0TokensBackFrom(Object p0) => '確認後將向賣家收回 ${p0} 代幣並退還買家。賣家餘額不足時將顯示為負數。';
 
   @override
-  String get ifBuyerNotBeenRefundedYet => '若先前還沒退款，會補退給買家。';
+  String get ifBuyerNotBeenRefundedYet => '若先前尚未退款，將補退給買家。';
 
   @override
-  String confirmingRefundsBuyerSP0Tokens(Object p0) => '確認後會把買家付的 ${p0} 代幣退回，保留中的書重新上架。';
+  String confirmingRefundsBuyerSP0Tokens(Object p0) => '確認後將退還買家支付的 ${p0} 代幣，保留中的書籍將重新上架。';
 
   @override
-  String get donTPermissionYourselfSoCan => '你自己沒有這項權限，所以不能開給別人。';
+  String get donTPermissionYourselfSoCan => '您未擁有此權限，無法授予他人。';
 
   @override
   String get notificationsTurnedOff => '通知權限已關閉';
@@ -17280,25 +17380,25 @@ class _LZh extends AppLocalizations {
   String get sendTestNotification => '傳送測試通知';
 
   @override
-  String get arrives10SecondsGoHomeScreen => '10 秒後送達，送出後先回到主畫面或鎖定手機';
+  String get arrives10SecondsGoHomeScreen => '將於 10 秒後送達，送出後請返回主畫面或鎖定手機';
 
   @override
   String get systemNotificationSettings => '系統通知設定';
 
   @override
-  String get turnNotificationsSoundsLockScreenPreviews => '開關通知、聲音與鎖定畫面顯示';
+  String get turnNotificationsSoundsLockScreenPreviews => '設定通知、聲音與鎖定畫面顯示';
 
   @override
-  String get pushNotificationsNotSetUpBuild => '這個版本的 App 還沒有設定推播，請先放入 Firebase 設定檔後重新編譯。';
+  String get pushNotificationsNotSetUpBuild => '此版本的 App 尚未設定推播，請加入 Firebase 設定檔後重新編譯。';
 
   @override
-  String get notificationsTurnedOffAllowAppSend => '通知權限已被關閉，請到系統設定允許這個 App 傳送通知。';
+  String get notificationsTurnedOffAllowAppSend => '通知權限已關閉，請至系統設定允許此 App 傳送通知。';
 
   @override
-  String get restoreBackup => '還原到這份備份？';
+  String get restoreBackup => '確定要還原至此備份？';
 
   @override
-  String wholeDatabaseGoBackP0Orders(Object p0) => '整個資料庫會回到 ${p0} 的狀態，這個時間點之後的訂單、訊息、會員資料與操作紀錄都會消失。\n\n還原前系統會先自動備份目前的狀態，還原錯了可以再還原那一份。還原期間全站暫停服務，通常需要幾十秒到幾分鐘。\n\n請輸入你的登入密碼確認：';
+  String wholeDatabaseGoBackP0Orders(Object p0) => '整個資料庫將還原至 ${p0} 的狀態，此時間點之後的訂單、訊息、會員資料與操作紀錄將全部清除。\n\n還原前系統將自動備份目前狀態，如有需要可再還原該備份。還原期間全站暫停服務，通常需要數十秒至數分鐘。\n\n請輸入您的登入密碼以確認：';
 
   @override
   String get password2 => '登入密碼';
@@ -17307,31 +17407,31 @@ class _LZh extends AppLocalizations {
   String get startRestore => '開始還原';
 
   @override
-  String get backingUpCurrentState => '正在備份目前的狀態…';
+  String get backingUpCurrentState => '正在備份目前狀態…';
 
   @override
-  String databaseRestoredPreviousStateWasBacked(Object p0) => '資料庫已還原。還原前的狀態備份在 ${p0}';
+  String databaseRestoredPreviousStateWasBacked(Object p0) => '資料庫已還原。還原前的狀態已備份至 ${p0}';
 
   @override
-  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => '還原失敗，資料庫維持原狀或部分還原，請查看操作紀錄並考慮還原 ${p0}';
+  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => '還原失敗，資料庫可能維持原狀或已部分還原，請查看操作紀錄並視需要還原 ${p0}';
 
   @override
   String get autoBackupBeforeRestore => '還原前自動備份';
 
   @override
-  String get restoreBackup2 => '還原到這份備份';
+  String get restoreBackup2 => '還原至此備份';
 
   @override
   String get restoringDatabase => '正在還原資料庫';
 
   @override
-  String p0SecondsSoFarKeepApp(Object p0) => '已經過 ${p0} 秒。請不要關閉 App，完成後會自動恢復服務。';
+  String p0SecondsSoFarKeepApp(Object p0) => '已經過 ${p0} 秒。請勿關閉 App，完成後將自動恢復服務。';
 
   @override
-  String get majorUpdate => '這次是重大更新嗎？';
+  String get majorUpdate => '此次是否為重大更新？';
 
   @override
-  String get majorUpdateNotifiesEveryUserTerms => '重大更新會通知所有使用者；服務條款與隱私權政策還會要求使用者下次開啟 App 時重新閱讀並同意。\n\n只是修正錯字或調整排版，請選「小幅修改」。';
+  String get majorUpdateNotifiesEveryUserTerms => '重大更新將通知所有使用者；服務條款與隱私權政策另將要求使用者於下次開啟 App 時重新閱讀並同意。\n\n若僅修正錯字或調整排版，請選擇「小幅修改」。';
 
   @override
   String get majorUpdate2 => '重大更新';
@@ -17358,10 +17458,10 @@ class _LZh extends AppLocalizations {
   String get backups => '備份';
 
   @override
-  String get undoAction => '還原這筆操作？';
+  String get undoAction => '確定要還原此操作？';
 
   @override
-  String p0NNtheDataGoesBack(Object p0) => '「${p0}」\n\n資料會改回操作前的狀態。已經送出的通知不會收回；如果資料之後又被修改過，系統會拒絕還原。';
+  String p0NNtheDataGoesBack(Object p0) => '「${p0}」\n\n資料將恢復至操作前的狀態。已送出的通知不會收回；若資料之後曾再次修改，系統將拒絕還原。';
 
   @override
   String get undo => '還原';
@@ -17376,34 +17476,34 @@ class _LZh extends AppLocalizations {
   String viewP0Changes(Object p0) => '查看 ${p0} 項變更';
 
   @override
-  String get undoAction2 => '還原這筆操作';
+  String get undoAction2 => '還原此操作';
 
   @override
-  String get tapBarSeeDay => '點長條可以看當天的數字';
+  String get tapBarSeeDay => '點選長條圖可查看當日數據';
 
   @override
   String get noAnnouncements => '目前沒有公告';
 
   @override
-  String get tapPhotoNameChange => '點頭像或暱稱可以修改';
+  String get tapPhotoNameChange => '點選頭像或暱稱即可修改';
 
   @override
-  String get canTContinueWithoutAccepting => '不同意就無法繼續使用';
+  String get canTContinueWithoutAccepting => '未同意將無法繼續使用';
 
   @override
-  String needAcceptLatestP0UseP1(Object p0, Object p1) => '需要同意最新版本的「${p0}」才能使用${p1}。不同意的話會先登出，你可以隨時重新登入後再同意。';
+  String needAcceptLatestP0UseP1(Object p0, Object p1) => '須同意最新版本的「${p0}」才能使用${p1}。若不同意將自動登出，您可隨時重新登入後再同意。';
 
   @override
-  String get goBack => '再看看';
+  String get goBack => '返回';
 
   @override
-  String p0BeenUpdated(Object p0) => '「${p0}」已經更新';
+  String p0BeenUpdated(Object p0) => '「${p0}」已更新';
 
   @override
   String readLatestVersionUpdatedP0Accept(Object p0) => '請閱讀最新版本（${p0} 更新）。同意後才能繼續使用。';
 
   @override
-  String get scrollEndContinue => '請先捲動讀完全文';
+  String get scrollEndContinue => '請捲動至底部閱讀全文';
 
   @override
   String get iVeReadAccept => '我已閱讀並同意';
@@ -17415,10 +17515,10 @@ class _LZh extends AppLocalizations {
   String get viewDetails => '查看詳情';
 
   @override
-  String get notFoundMayBeenDeletedRemoved => '找不到這筆資料，可能已經刪除或下架';
+  String get notFoundMayBeenDeletedRemoved => '找不到此資料，可能已刪除或下架';
 
   @override
-  String get salesDropOffsPickupsRefundsDisputes => '售出、存書、取貨、退款與爭議';
+  String get salesDropOffsPickupsRefundsDisputes => '售出、存書、取書、退款與爭議';
 
   @override
   String get chatMessages => '聊天訊息';
@@ -17433,7 +17533,7 @@ class _LZh extends AppLocalizations {
   String get announcementsAboutPromotions => '優惠類型的系統公告';
 
   @override
-  String get supportRepliesPasswordResetsPolicyUpdates => '客服回覆、密碼重設、條款更新與維護公告一律會通知。關掉的類型仍會出現在通知列表，只是不推播到手機。';
+  String get supportRepliesPasswordResetsPolicyUpdates => '客服回覆、密碼重設、條款更新與維護公告將一律通知。關閉的類型仍會顯示於通知列表，但不會推播至手機。';
 
   @override
   String get notFilled => '未填寫';
@@ -17451,7 +17551,7 @@ class _LZh extends AppLocalizations {
   String get messageUnsent => '訊息已收回';
 
   @override
-  String get confirmBeforeExportingData => '匯出個人資料前，請先確認是你本人';
+  String get confirmBeforeExportingData => '匯出個人資料前，請先驗證身分';
 
   @override
   String get exportFailedPleaseTryAgainLater => '匯出失敗，請稍後再試';
@@ -17469,19 +17569,19 @@ class _LZh extends AppLocalizations {
   String get verificationCancelled => '已取消驗證';
 
   @override
-  String get openingClosingTimesCanTSame => '開放與關閉時間不能相同';
+  String get openingClosingTimesCanTSame => '開放與關閉時間不可相同';
 
   @override
-  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => '這一格目前是「${p0}」，可能有進行中的訂單。改成「${p1}」後，買賣雙方可能無法正常存取書籍。';
+  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => '此櫃位目前為「${p0}」，可能有進行中的訂單。變更為「${p1}」後，買賣雙方可能無法正常存取書籍。';
 
   @override
   String get active => '啟用中';
 
   @override
-  String get categoryWithNameAlreadyExists => '已經有同名的分類';
+  String get categoryWithNameAlreadyExists => '已有同名分類';
 
   @override
-  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => '訂單 ${p0} 將以「${p1}」結案，${p2} 代幣會退回買家。送出後無法修改。';
+  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => '訂單 ${p0} 將以「${p1}」結案，${p2} 代幣將退回買家。送出後無法修改。';
 
   @override
   String orderP0ClosedAsP1Can(Object p0, Object p1) => '訂單 ${p0} 將以「${p1}」結案。送出後無法修改。';
@@ -17499,7 +17599,7 @@ class _LZh extends AppLocalizations {
   String noTierCoversP0P1Points(Object p0, Object p1) => '${p0}–${p1} 點沒有對應的等級';
 
   @override
-  String p0TakenDownRightAwayOther(Object p0) => '「${p0}」會立即下架，其他會員將無法再看到或購買。';
+  String p0TakenDownRightAwayOther(Object p0) => '「${p0}」將立即下架，其他會員將無法瀏覽或購買。';
 
   @override
   String get searchReportedItemReporterReason => '搜尋被檢舉項目、檢舉人或原因';
@@ -17520,13 +17620,13 @@ class _LZh extends AppLocalizations {
   String get zeroBalance => '餘額為 0';
 
   @override
-  String get amountCanMost2DecimalPlaces => '金額最多只能到小數點後兩位';
+  String get amountCanMost2DecimalPlaces => '金額最多可至小數點後兩位';
 
   @override
   String get singleAdjustmentCanTExceed1 => '單次調整不可超過 1,000,000';
 
   @override
-  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除後餘額會變成負數，目前餘額 ${p0}';
+  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除後餘額將為負數，目前餘額 ${p0}';
 
   @override
   String get amountUp2Decimals => '金額（最多兩位小數）';
@@ -17541,34 +17641,34 @@ class _LZh extends AppLocalizations {
   String get couldNotStartCamera => '相機啟動失敗';
 
   @override
-  String allowP0UseCameraSettingsThen(Object p0) => '請到系統設定允許 ${p0} 使用相機後再試一次。';
+  String allowP0UseCameraSettingsThen(Object p0) => '請至系統設定允許 ${p0} 使用相機後再試。';
 
   @override
-  String get closeScreenTryAgain => '請關閉這個畫面後再試一次。';
+  String get closeScreenTryAgain => '請關閉此畫面後再試。';
 
   @override
   String get couldnTGetLocationCheckLocation => '無法取得目前位置，請確認已開啟定位服務與權限';
 
   @override
-  String get bookReservedAnotherBuyerCanT => '這本書已被其他買家預約，暫時無法加入購物車';
+  String get bookReservedAnotherBuyerCanT => '此書籍已由其他買家預約，暫時無法加入購物車';
 
   @override
-  String reservedAnotherBuyerUntilP0(Object p0) => '已被其他買家預約，保留到 ${p0}';
+  String reservedAnotherBuyerUntilP0(Object p0) => '已由其他買家預約，保留至 ${p0}';
 
   @override
-  String get ifIsnTSoldByThen => '保留期限過後若未成交，就能再加入購物車';
+  String get ifIsnTSoldByThen => '保留期限屆滿後若未成交，即可加入購物車';
 
   @override
-  String sellerHoldingUntilP0(Object p0) => '賣家已為你保留到 ${p0}';
+  String sellerHoldingUntilP0(Object p0) => '賣家已為您保留至 ${p0}';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '請在保留期限內完成結帳，逾期其他買家就能購買';
+  String get checkOutBeforeHoldEndsOther => '請於保留期限內完成結帳，逾期後其他買家即可購買';
 
   @override
   String get copyAddress => '複製地址';
 
   @override
-  String p0Away(Object p0) => '距離你 ${p0}';
+  String p0Away(Object p0) => '距離 ${p0}';
 
   @override
   String get locating => '定位中…';
@@ -17577,7 +17677,7 @@ class _LZh extends AppLocalizations {
   String get showDistance => '查看距離';
 
   @override
-  String get reserved => '已被預約';
+  String get reserved => '已預約';
 
   @override
   String get goCheckout => '前往結帳';
@@ -17613,16 +17713,16 @@ class _LZh extends AppLocalizations {
   String get paymentSuccessful => '付款成功';
 
   @override
-  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本書，已依賣家拆成 ${p1} 筆訂單';
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本書，已依賣家拆分為 ${p1} 筆訂單';
 
   @override
-  String get keepBrowsing => '繼續逛逛';
+  String get keepBrowsing => '繼續瀏覽';
 
   @override
   String get reload => '重新載入';
 
   @override
-  String get browseBooks => '去逛逛';
+  String get browseBooks => '瀏覽書籍';
 
   @override
   String p0Sellers(Object p0) => '${p0} 位賣家';
@@ -17637,10 +17737,10 @@ class _LZh extends AppLocalizations {
   String get goWallet => '前往錢包';
 
   @override
-  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => '來自 ${p0} 位賣家，結帳後會拆成 ${p1} 筆訂單';
+  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => '來自 ${p0} 位賣家，結帳後將拆分為 ${p1} 筆訂單';
 
   @override
-  String get otherDevicesNeedSignAgainWith => '其他裝置需要用新密碼重新登入。';
+  String get otherDevicesNeedSignAgainWith => '其他裝置須使用新密碼重新登入。';
 
   @override
   String get searchChats => '搜尋聊天對象';
@@ -17652,7 +17752,7 @@ class _LZh extends AppLocalizations {
   String get read => '已讀';
 
   @override
-  String get chatNotFound => '找不到這個聊天室';
+  String get chatNotFound => '找不到此聊天室';
 
   @override
   String get messagesCanUp2000Characters => '訊息最多 2000 字';
@@ -17661,25 +17761,25 @@ class _LZh extends AppLocalizations {
   String get canTSendRightNowPlease => '目前無法傳送，請稍後再試';
 
   @override
-  String get reserveBook => '預約這本書';
+  String get reserveBook => '預約書籍';
 
   @override
   String get quickReplies => '快速回覆';
 
   @override
-  String get imagesMust10MbSmaller => '圖片不能超過 10 MB';
+  String get imagesMust10MbSmaller => '圖片不可超過 10 MB';
 
   @override
-  String get recordingFailedPleaseTryAgain => '錄音失敗，請再試一次';
+  String get recordingFailedPleaseTryAgain => '錄音失敗，請重試';
 
   @override
-  String get voiceMessageTooLargePleaseRecord => '語音檔案太大，請縮短錄音';
+  String get voiceMessageTooLargePleaseRecord => '語音檔案過大，請縮短錄音時間';
 
   @override
-  String get microphoneAllowedPressHoldAgainRecord => '已允許使用麥克風，請再按住按鈕開始錄音';
+  String get microphoneAllowedPressHoldAgainRecord => '已允許使用麥克風，請再次按住按鈕開始錄音';
 
   @override
-  String get microphoneAccessNeededRecordTurnSettings => '需要麥克風權限才能錄音，請到系統設定開啟';
+  String get microphoneAccessNeededRecordTurnSettings => '錄音需要麥克風權限，請至系統設定開啟';
 
   @override
   String get couldnTStartRecordingPleaseTry => '無法開始錄音，請稍後再試';
@@ -17694,22 +17794,22 @@ class _LZh extends AppLocalizations {
   String get resend => '重新傳送';
 
   @override
-  String get unsendMessage => '收回這則訊息？';
+  String get unsendMessage => '確定要收回此訊息？';
 
   @override
-  String get neitherAbleSeeMessageSContent => '收回後雙方都看不到這則訊息的內容。';
+  String get neitherAbleSeeMessageSContent => '收回後雙方皆無法查看此訊息內容。';
 
   @override
-  String get reportMessage => '檢舉這則訊息';
+  String get reportMessage => '檢舉此訊息';
 
   @override
   String get reservationSentWaitingSeller => '已送出預約，等待賣家回覆';
 
   @override
-  String get acceptReservation => '接受預約？';
+  String get acceptReservation => '確定要接受預約？';
 
   @override
-  String p0HeldThemP1HoursNo(Object p0, Object p1) => '《${p0}》會保留給對方 ${p1} 小時，期間其他人無法購買。';
+  String p0HeldThemP1HoursNo(Object p0, Object p1) => '《${p0}》將為對方保留 ${p1} 小時，期間其他人無法購買。';
 
   @override
   String get accept => '接受';
@@ -17718,10 +17818,10 @@ class _LZh extends AppLocalizations {
   String get reservationAccepted => '已接受預約';
 
   @override
-  String get declineReservation => '婉拒預約？';
+  String get declineReservation => '確定要婉拒預約？';
 
   @override
-  String get theyLlNotifiedDeclined => '對方會收到婉拒的通知。';
+  String get theyLlNotifiedDeclined => '系統將通知對方預約已婉拒。';
 
   @override
   String get decline2 => '婉拒';
@@ -17730,7 +17830,7 @@ class _LZh extends AppLocalizations {
   String get reservationDeclined => '已婉拒預約';
 
   @override
-  String get cancelReservation => '取消預約？';
+  String get cancelReservation => '確定要取消預約？';
 
   @override
   String p0NoLongerHeld(Object p0) => '取消後《${p0}》將不再保留。';
@@ -17742,7 +17842,7 @@ class _LZh extends AppLocalizations {
   String get reservationCanceled => '已取消預約';
 
   @override
-  String get notNow2 => '先不要';
+  String get notNow2 => '返回';
 
   @override
   String get couldnTLoadConversationPleaseTry => '無法載入對話，請稍後再試';
@@ -17751,10 +17851,10 @@ class _LZh extends AppLocalizations {
   String get accountCanTReceiveMessagesRight => '對方帳號目前無法接收訊息';
 
   @override
-  String get holdMicTalkReleaseSend => '按住麥克風說話，放開即可傳送';
+  String get holdMicTalkReleaseSend => '按住麥克風錄音，放開即可傳送';
 
   @override
-  String get startConversation => '對話從這裡開始';
+  String get startConversation => '對話開始';
 
   @override
   String p0New(Object p0) => '${p0} 則新訊息';
@@ -17766,19 +17866,19 @@ class _LZh extends AppLocalizations {
   String get retry => '重試';
 
   @override
-  String get stillAvailable => '請問還在嗎？';
+  String get stillAvailable => '請問此書籍仍可購買嗎？';
 
   @override
-  String get couldLowerPriceBit => '可以再便宜一點嗎？';
+  String get couldLowerPriceBit => '請問是否可議價？';
 
   @override
-  String get whenCanPutLocker => '什麼時候可以放進書櫃？';
+  String get whenCanPutLocker => '請問預計何時存入書櫃？';
 
   @override
-  String get unsentMessage => '你收回了一則訊息';
+  String get unsentMessage => '您已收回一則訊息';
 
   @override
-  String get theyUnsentMessage => '對方收回了一則訊息';
+  String get theyUnsentMessage => '對方已收回一則訊息';
 
   @override
   String get reservationDetailsArenTAvailableRight => '預約資訊暫時無法顯示';
@@ -17793,10 +17893,10 @@ class _LZh extends AppLocalizations {
   String get bookDetailsUpdatedButPhotosCouldn => '書籍資料已更新，但照片上傳失敗，請稍後再試';
 
   @override
-  String get sNotIsbnBarcodeScanOne => '掃到的不是 ISBN 條碼，請掃描書背上 978 或 979 開頭的條碼';
+  String get sNotIsbnBarcodeScanOne => '掃描到的條碼非 ISBN，請掃描書背上 978 或 979 開頭的條碼';
 
   @override
-  String get couldnTLoadCategoriesTapRetry => '分類載入失敗，點此重試';
+  String get couldnTLoadCategoriesTapRetry => '分類載入失敗，請點此重試';
 
   @override
   String removedP0FromSaved(Object p0) => '已取消收藏《${p0}》';
@@ -17808,7 +17908,7 @@ class _LZh extends AppLocalizations {
   String clearP0(Object p0) => '清除（${p0}）';
 
   @override
-  String get picked => '猜你喜歡';
+  String get picked => '為您推薦';
 
   @override
   String get seeMore => '查看更多';
@@ -17823,19 +17923,19 @@ class _LZh extends AppLocalizations {
   String get notificationDeleted => '已刪除通知';
 
   @override
-  String get pleasePutBookAssignedLockerSoon => '請盡快把書放進指定書櫃';
+  String get pleasePutBookAssignedLockerSoon => '請盡快將書籍存入指定書櫃';
 
   @override
-  String get weLlLetKnowWhenSeller => '賣家存書後會通知你前往取書';
+  String get weLlLetKnowWhenSeller => '賣家存書後將通知您前往取書';
 
   @override
-  String get waitingBuyerCollect => '等待買家到書櫃取書';
+  String get waitingBuyerCollect => '等待買家至書櫃取書';
 
   @override
-  String get bookLockerEnterPickupCodeCollect => '書已在書櫃裡，輸入取書碼即可取書';
+  String get bookLockerEnterPickupCodeCollect => '書籍已存入書櫃，輸入取書碼即可取書';
 
   @override
-  String get transactionCompleteThank => '交易完成，感謝使用';
+  String get transactionCompleteThank => '交易完成，感謝您的使用';
 
   @override
   String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍，確認後訂單即完成。';
@@ -17847,7 +17947,7 @@ class _LZh extends AppLocalizations {
   String p0ReadyPickup(Object p0) => '可取書 ${p0} 筆';
 
   @override
-  String get pickUp => '待取貨';
+  String get pickUp => '待取書';
 
   @override
   String get saved => '收藏';
@@ -17856,7 +17956,7 @@ class _LZh extends AppLocalizations {
   String get accountSecurity => '帳號安全';
 
   @override
-  String get sellerHasnTPutBookLocker => '賣家還沒把書放進書櫃，存書後會通知你';
+  String get sellerHasnTPutBookLocker => '賣家尚未存書，存書後將通知您';
 
   @override
   String get searchHistoryCleared => '已清除搜尋紀錄';
@@ -17865,31 +17965,31 @@ class _LZh extends AppLocalizations {
   String get trendingBooks => '熱門書籍';
 
   @override
-  String get signOutDevice => '登出這台裝置？';
+  String get signOutDevice => '確定要登出此裝置？';
 
   @override
-  String signOutP0(Object p0) => '登出「${p0}」？';
+  String signOutP0(Object p0) => '確定要登出「${p0}」？';
 
   @override
-  String get llNeedSignAgainUseApp => '登出後需要重新登入才能使用。';
+  String get llNeedSignAgainUseApp => '登出後須重新登入才能使用。';
 
   @override
-  String get deviceSignedOutRightAwayStop => '那台裝置會立即登出，也不會再收到推播。';
+  String get deviceSignedOutRightAwayStop => '該裝置將立即登出，且不再接收推播通知。';
 
   @override
-  String get deviceSignedOut => '已登出這台裝置';
+  String get deviceSignedOut => '已登出裝置';
 
   @override
-  String get signOutAllDevicesIncludingOne => '登出所有裝置（含這台）';
+  String get signOutAllDevicesIncludingOne => '登出所有裝置（含本機）';
 
   @override
   String get signOutAllOtherDevices => '登出其他所有裝置';
 
   @override
-  String get everyDeviceIncludingOneSignedOut => '包含這台在內的所有裝置都會登出，之後需要重新登入。';
+  String get everyDeviceIncludingOneSignedOut => '包含本機在內的所有裝置將被登出，之後須重新登入。';
 
   @override
-  String get everyDeviceExceptOneSignedOut => '除了這台之外的裝置都會立即登出，也不會再收到推播。';
+  String get everyDeviceExceptOneSignedOut => '除本機外的所有裝置將立即登出，且不再接收推播通知。';
 
   @override
   String signedOutP0OtherDevices(Object p0) => '已登出其他 ${p0} 台裝置';
@@ -17901,10 +18001,10 @@ class _LZh extends AppLocalizations {
   String get couldnTLoadDevices => '無法載入登入裝置';
 
   @override
-  String get theseDevicesSignedAccountIfDon => '這些裝置目前登入你的帳號。看到不認得的裝置，請立即登出並修改密碼。';
+  String get theseDevicesSignedAccountIfDon => '以下裝置目前已登入您的帳號。如發現不明裝置，請立即登出並變更密碼。';
 
   @override
-  String get device => '這台裝置';
+  String get device => '本機';
 
   @override
   String get otherDevices => '其他裝置';
@@ -17913,7 +18013,7 @@ class _LZh extends AppLocalizations {
   String otherDevicesP0(Object p0) => '其他裝置（${p0}）';
 
   @override
-  String get noOtherDevicesSigned => '沒有其他裝置登入你的帳號';
+  String get noOtherDevicesSigned => '沒有其他裝置登入您的帳號';
 
   @override
   String get signedDevices => '登入裝置';
@@ -17934,13 +18034,13 @@ class _LZh extends AppLocalizations {
   String get paymentPinMust6Digits => '交易密碼必須是 6 位數字';
 
   @override
-  String get pinTooEasyGuessTryAnother => '交易密碼太簡單，請換一組';
+  String get pinTooEasyGuessTryAnother => '交易密碼過於簡單，請重新設定';
 
   @override
   String get enterPasswordResetPaymentPin => '輸入登入密碼後即可重新設定交易密碼';
 
   @override
-  String get confirmSBeforeSettingPaymentPin => '設定交易密碼前，請先確認是你本人';
+  String get confirmSBeforeSettingPaymentPin => '設定交易密碼前，請先驗證身分';
 
   @override
   String get pinsDonTMatchStartAgain => '兩次輸入的交易密碼不一致，請重新設定';
@@ -17952,22 +18052,22 @@ class _LZh extends AppLocalizations {
   String get paymentPinSet => '交易密碼已設定';
 
   @override
-  String get use6DigitPinConfirmPayments => '之後結帳時，會用這組 6 位數密碼確認付款。';
+  String get use6DigitPinConfirmPayments => '日後結帳時，將使用此 6 位數密碼確認付款。';
 
   @override
   String get verifyingIdentity => '正在確認身分…';
 
   @override
-  String get enterAgainConfirm => '再輸入一次確認';
+  String get enterAgainConfirm => '請再次輸入以確認';
 
   @override
   String get set6DigitPaymentPin => '設定 6 位數交易密碼';
 
   @override
-  String get enterSamePinAgain => '請再輸入一次剛才的密碼';
+  String get enterSamePinAgain => '請再次輸入相同密碼';
 
   @override
-  String get avoidRepeatedSequentialPatternedDigits => '不能是相同、連續或重複的數字';
+  String get avoidRepeatedSequentialPatternedDigits => '不可使用相同、連續或重複的數字';
 
   @override
   String get resetPaymentPin => '重設交易密碼';
@@ -17982,7 +18082,7 @@ class _LZh extends AppLocalizations {
   String get setPaymentPinFirst => '請先設定交易密碼';
 
   @override
-  String get setPaymentPinFirstSoFallback => '請先設定交易密碼，辨識失敗時才有替代方式';
+  String get setPaymentPinFirstSoFallback => '請先設定交易密碼，作為辨識失敗時的替代驗證方式';
 
   @override
   String get setUpNow => '立即設定';
@@ -18006,22 +18106,22 @@ class _LZh extends AppLocalizations {
   String get accountWellProtected => '帳號安全狀態良好';
 
   @override
-  String get accountCouldSafer => '帳號安全還可以加強';
+  String get accountCouldSafer => '帳號安全性有待加強';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => '交易密碼與生物辨識付款都已設定。記得定期檢查登入裝置。';
+  String get paymentPinBiometricPaymentSetCheck => '交易密碼與生物辨識付款皆已設定，請定期檢查登入裝置。';
 
   @override
-  String get setPaymentPinTurnBiometricPayment => '設定交易密碼並開啟生物辨識付款，結帳會更安全也更快。';
+  String get setPaymentPinTurnBiometricPayment => '設定交易密碼並開啟生物辨識付款，結帳更安全、快速。';
 
   @override
-  String tooManyAttemptsLockedUntilP0(Object p0) => '錯誤次數過多，鎖定到 ${p0}';
+  String tooManyAttemptsLockedUntilP0(Object p0) => '錯誤次數過多，已鎖定至 ${p0}';
 
   @override
-  String get usedConfirmPaymentsCheckout => '結帳時用來確認付款';
+  String get usedConfirmPaymentsCheckout => '用於結帳時確認付款';
 
   @override
-  String get notSetRequiredBeforeCheckout => '尚未設定，結帳前需要先設定';
+  String get notSetRequiredBeforeCheckout => '尚未設定，結帳前須完成設定';
 
   @override
   String get change => '變更';
@@ -18039,13 +18139,13 @@ class _LZh extends AppLocalizations {
   String p0Devices(Object p0) => '${p0} 台';
 
   @override
-  String get otherDevicesNeedSignAgain => '修改後其他裝置需要重新登入';
+  String get otherDevicesNeedSignAgain => '變更後其他裝置須重新登入';
 
   @override
   String get restoredUnfinishedListing => '已帶入上次未完成的內容';
 
   @override
-  String get isbnSCheckDigitInvalidPlease => '這組 ISBN 的檢查碼不正確，請再確認一次';
+  String get isbnSCheckDigitInvalidPlease => '此 ISBN 檢查碼不正確，請再次確認';
 
   @override
   String get draftSavedAutomatically => '已自動儲存草稿';
@@ -18069,7 +18169,7 @@ class _LZh extends AppLocalizations {
   String get clearCache => '清除快取';
 
   @override
-  String get removesCachedImagesFilesAccountData => '清除暫存的圖片與檔案，不會影響帳號資料';
+  String get removesCachedImagesFilesAccountData => '清除暫存的圖片與檔案，不影響帳號資料';
 
   @override
   String get couldNotLoadNotificationSettings => '無法載入通知設定';
@@ -18081,10 +18181,10 @@ class _LZh extends AppLocalizations {
   String p0P1(Object p0, Object p1) => '${p0} 年 ${p1} 月';
 
   @override
-  String get noIncomeYet => '沒有收入紀錄';
+  String get noIncomeYet => '尚無收入紀錄';
 
   @override
-  String get noSpendingYet => '沒有支出紀錄';
+  String get noSpendingYet => '尚無支出紀錄';
 
   @override
   String get income => '收入';
@@ -18120,7 +18220,7 @@ class _LZh extends AppLocalizations {
   String get uploadFailedTryAgainLater => '上傳失敗，請稍後再試';
 
   @override
-  String get nearby => '就在附近';
+  String get nearby => '附近';
 
   @override
   String p0M(Object p0) => '${p0} 公尺';
@@ -18129,10 +18229,10 @@ class _LZh extends AppLocalizations {
   String p0Km(Object p0) => '${p0} 公里';
 
   @override
-  String get iphoneDidnTReceiveApnsToken => '手機沒有取得 Apple 推播憑證（APNs token）。請確認 Xcode 的 Signing & Capabilities 已加入 Push Notifications，並用同一個 Apple 開發者帳號重新安裝 App。';
+  String get iphoneDidnTReceiveApnsToken => '裝置未取得 Apple 推播憑證（APNs token）。請確認 Xcode 的 Signing & Capabilities 已加入 Push Notifications，並使用同一個 Apple 開發者帳號重新安裝 App。';
 
   @override
-  String get firebaseDidnTIssuePushToken => 'Firebase 沒有發出推播 token，請確認 GoogleService-Info.plist 與 App 的 Bundle ID 一致';
+  String get firebaseDidnTIssuePushToken => 'Firebase 未核發推播 token，請確認 GoogleService-Info.plist 與 App 的 Bundle ID 一致';
 
   @override
   String couldnTGetPushTokenP0(Object p0) => '取得推播 token 失敗：${p0}';
@@ -18141,7 +18241,7 @@ class _LZh extends AppLocalizations {
   String couldnTRegisterPushTokenWith(Object p0) => '推播 token 上傳伺服器失敗：${p0}';
 
   @override
-  String get protectCoinsCheckoutRequires6Digit => '為了保護你的代幣，結帳時需要輸入 6 位數交易密碼。設定後也可以開啟 Face ID 或指紋付款。';
+  String get protectCoinsCheckoutRequires6Digit => '為保障您的代幣安全，結帳時須輸入 6 位數交易密碼。設定後亦可啟用 Face ID 或指紋付款。';
 
   @override
   String confirmPaymentP0Coins(Object p0) => '確認付款 ${p0} 代幣';
@@ -18165,19 +18265,19 @@ class _LZh extends AppLocalizations {
   String get enterPaymentPinContinue => '請輸入交易密碼以繼續';
 
   @override
-  String get paymentPinResetEnterAgain => '交易密碼已重新設定，請再輸入一次';
+  String get paymentPinResetEnterAgain => '交易密碼已重新設定，請再次輸入';
 
   @override
   String get usePasswordInstead => '改用登入密碼';
 
   @override
-  String get couldnTGetLocationLockersShown => '無法取得目前位置，書櫃會依預設順序排列';
+  String get couldnTGetLocationLockersShown => '無法取得目前位置，書櫃將依預設順序排列';
 
   @override
   String p0SlotsFree(Object p0) => '空櫃 ${p0} 格';
 
   @override
-  String openP0(Object p0) => '營業 ${p0}';
+  String openP0(Object p0) => '開放 ${p0}';
 
   @override
   String get nearest => '最近';
@@ -18192,7 +18292,7 @@ class _LZh extends AppLocalizations {
   String get turnLocationSortByDistance => '開啟定位可依距離排序';
 
   @override
-  String get lockerNoFreeSlotsRightNow => '這個書櫃目前沒有空櫃';
+  String get lockerNoFreeSlotsRightNow => '此書櫃目前沒有空櫃';
 
   @override
   String get turn => '開啟定位';
@@ -18228,13 +18328,13 @@ class _LZh extends AppLocalizations {
   String get releaseCancel => '放開以取消';
 
   @override
-  String get slideCancel => '← 滑動取消';
+  String get slideCancel => '← 滑動以取消';
 
   @override
   String get awaitingReply => '待回覆';
 
   @override
-  String heldUntilP0(Object p0) => '已保留到 ${p0}';
+  String heldUntilP0(Object p0) => '已保留至 ${p0}';
 
   @override
   String get declined2 => '已婉拒';
@@ -18243,22 +18343,22 @@ class _LZh extends AppLocalizations {
   String get closed => '已結束';
 
   @override
-  String get theyWantReserveBook => '對方想預約你的書';
+  String get theyWantReserveBook => '對方申請預約您的書籍';
 
   @override
-  String get sentReservationRequest => '你送出了預約';
+  String get sentReservationRequest => '您已送出預約';
 
   @override
   String holdP0H(Object p0) => '保留 ${p0} 小時';
 
   @override
-  String get onceSellerAcceptsBookHeldNo => '賣家接受後，這本書會保留給你，其他人在期限內無法購買。';
+  String get onceSellerAcceptsBookHeldNo => '賣家接受後，此書籍將為您保留，期限內其他人無法購買。';
 
   @override
   String get holdPeriod => '保留時間';
 
   @override
-  String get messageSellerOptional => '想對賣家說的話（選填）';
+  String get messageSellerOptional => '給賣家的留言（選填）';
 
   @override
   String get sendRequest => '送出預約';
@@ -18268,6 +18368,36 @@ class _LZh extends AppLocalizations {
 
   @override
   String p0P1DigitsEntered(Object p0, Object p1) => '已輸入 ${p0} / ${p1} 位';
+
+  @override
+  String get buildSProvisioningProfileDoesnT => '此安裝版本的簽署描述檔未包含推播權限。請於 Xcode 的 Runner › Signing & Capabilities 確認已加入 Push Notifications，並刪除 App 後重新安裝。';
+
+  @override
+  String get checkPhoneOnlinePushNotificationsAdded => '請確認裝置已連上網路，並於 Xcode 的 Runner › Signing & Capabilities 確認已加入 Push Notifications。';
+
+  @override
+  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone 向 Apple 註冊推播失敗：${p0}\n${p1}';
+
+  @override
+  String get serverNotBeenUpdatedSupportFeature => '伺服器尚未更新到支援這項功能的版本，請稍後再試';
+
+  @override
+  String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暫時無法使用，伺服器正在更新';
+
+  @override
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '伺服器執行的 API 版本過舊（目前 ${p0}，App 需要 ${p1}）。請在伺服器更新程式碼並重新啟動 API。';
+
+  @override
+  String databaseMigrationsNotYetRunP0(Object p0) => '資料庫尚未執行：${p0}';
+
+  @override
+  String serverVersionP0(Object p0) => '伺服器目前版本：${p0}';
+
+  @override
+  String get runNpmRunVerifyApiDirectory => '在伺服器的 API 目錄執行 npm run verify 可檢查完整的部署狀態。';
+
+  @override
+  String get serverUpdateRequired => '伺服器需要更新';
 
 }
 
@@ -18659,7 +18789,7 @@ class _LZhHans extends AppLocalizations {
   String get regenerateShareLink => '重新生成分享链接';
 
   @override
-  String get oldLinkQrCodeStopWorking => '旧的链接与二维码会立即失效，已经分享出去的人将无法再打开。确定要重新生成吗？';
+  String get oldLinkQrCodeStopWorking => '旧的链接与二维码将立即失效，已分享的链接将无法打开。确定要重新生成吗？';
 
   @override
   String get regenerate => '重新生成';
@@ -18674,10 +18804,10 @@ class _LZhHans extends AppLocalizations {
   String get accountPermanentlyDisabled30DaysSign => '账号将在 30 天后永久停用，期间内重新登录即可取消。\n\n';
 
   @override
-  String get personalDataErasedButCompletedOrders => '停用后个人资料会被清除，但已完成的订单与交易记录会保留，';
+  String get personalDataErasedButCompletedOrders => '停用后将清除个人资料，但保留已完成的订单与交易记录，';
 
   @override
-  String get peopleTradedWithDoNotLose => '交易对象的记录才不会出现缺漏。';
+  String get peopleTradedWithDoNotLose => '以确保交易对象的记录完整。';
 
   @override
   String get actionContinue => '继续';
@@ -18686,7 +18816,7 @@ class _LZhHans extends AppLocalizations {
   String get verify => '确认身分';
 
   @override
-  String get enterPasswordConfirm => '请输入密码以确认这是本人的操作。';
+  String get enterPasswordConfirm => '请输入密码以确认身份。';
 
   @override
   String get password => '密码';
@@ -18698,13 +18828,13 @@ class _LZhHans extends AppLocalizations {
   String get receivedSignAgainWithin30Days => '已受理，30 天内重新登录即可取消';
 
   @override
-  String get deletionCancelledAccountActiveAgain => '已取消删除，账号恢复正常';
+  String get deletionCancelledAccountActiveAgain => '已取消删除，账号已恢复';
 
   @override
   String get account => '账号管理';
 
   @override
-  String get data => '你的数据';
+  String get data => '个人数据';
 
   @override
   String get exportMyData => '导出我的数据';
@@ -18713,22 +18843,22 @@ class _LZhHans extends AppLocalizations {
   String get profileBooksOrdersTransactionsJson => '个人资料、书籍、订单与交易记录，JSON 格式';
 
   @override
-  String get oldLinkQrCodeStopWorking2 => '旧的链接与二维码会立即失效';
+  String get oldLinkQrCodeStopWorking2 => '旧的链接与二维码将立即失效';
 
   @override
   String get cancelAccountDeletion => '取消删除账号';
 
   @override
-  String get restoreAccountStopCountdown => '恢复账号，停止删除倒数';
+  String get restoreAccountStopCountdown => '恢复账号并停止删除流程';
 
   @override
-  String get canChangeMindWithin30Days => '30 天缓冲期内可以反悔';
+  String get canChangeMindWithin30Days => '30 天内可取消删除';
 
   @override
-  String get deletionPending => '删除倒数中';
+  String get deletionPending => '待删除';
 
   @override
-  String daysLeftCanCancelAnyTime(Object p0) => '还有 ${p0} 天。在这之前随时可以取消，逾期后个人资料将被清除且无法恢复。';
+  String daysLeftCanCancelAnyTime(Object p0) => '剩余 ${p0} 天。期限内可随时取消，逾期后个人资料将被清除且无法恢复。';
 
   @override
   String get signOut => '退出登录';
@@ -18794,7 +18924,7 @@ class _LZhHans extends AppLocalizations {
   String get signAddItemsCart => '请先登录才能加入购物车';
 
   @override
-  String bookCannotPurchased(Object p0) => '这本书目前${p0}，无法购买';
+  String bookCannotPurchased(Object p0) => '此书籍目前${p0}，无法购买';
 
   @override
   String get addedCart => '已加入购物车';
@@ -18824,7 +18954,7 @@ class _LZhHans extends AppLocalizations {
   String get reasonNeedsLeast5Characters => '请至少填写 5 个字的举报原因';
 
   @override
-  String get reportSubmittedWeLookInto => '举报已送出，我们会尽快处理';
+  String get reportSubmittedWeLookInto => '举报已提交，我们将尽快处理';
 
   @override
   String get publisher => '出版社：';
@@ -18836,7 +18966,7 @@ class _LZhHans extends AppLocalizations {
   String get listed => '上架日期：';
 
   @override
-  String get searchTitleAuthorPublisher => '搜索书名、作者、出版社...';
+  String get searchTitleAuthorPublisher => '搜索书名、作者或出版社';
 
   @override
   String get share => '分享';
@@ -18851,31 +18981,31 @@ class _LZhHans extends AppLocalizations {
   String pickup(Object p0) => '取书地点：${p0}';
 
   @override
-  String get messageSeller => '与卖家聊聊';
+  String get messageSeller => '联系卖家';
 
   @override
-  String get listing => '这是你的书';
+  String get listing => '您上架的书籍';
 
   @override
   String get addCart => '加入购物车';
 
   @override
-  String get bookBeenReportedUnderReviewStays => '这本书被举报，平台正在审核，期间仍可正常销售。';
+  String get bookBeenReportedUnderReviewStays => '此书籍已被举报，平台审核期间仍可正常销售。';
 
   @override
-  String get violationWasConfirmedBookPleaseCheck => '这本书经审核违规成立，请确认商品内容是否符合社区规范。';
+  String get violationWasConfirmedBookPleaseCheck => '此书籍经审核确认违规，请确认商品内容是否符合社区规范。';
 
   @override
   String get reportDismissed2 => '举报已驳回';
 
   @override
-  String get bookWasReportedButNoViolation => '这本书曾被举报，经审核未违规，不影响上架。';
+  String get bookWasReportedButNoViolation => '此书籍曾被举报，经审核未违规，不影响上架。';
 
   @override
   String get delist => '取消上架';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》将从商城下架，买家不会再看到它。';
+  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》将从商城下架，买家将无法浏览。';
 
   @override
   String get delist2 => '下架';
@@ -18890,13 +19020,13 @@ class _LZhHans extends AppLocalizations {
   String listedAgain(Object p0) => '《${p0}》已重新上架';
 
   @override
-  String get notListedAnyBooksYet => '你还没有上架任何书籍';
+  String get notListedAnyBooksYet => '尚未上架任何书籍';
 
   @override
-  String get noBooksCategory => '这个分类目前没有书籍';
+  String get noBooksCategory => '此分类目前没有书籍';
 
   @override
-  String get listFirstBook => '去上架第一本书';
+  String get listFirstBook => '上架第一本书';
 
   @override
   String get relist => '重新上架';
@@ -18905,7 +19035,7 @@ class _LZhHans extends AppLocalizations {
   String get removeFromCart => '移出购物车';
 
   @override
-  String removeFromCart2(Object p0) => '要把《${p0}》从购物车移除吗？';
+  String removeFromCart2(Object p0) => '确定要将《${p0}》从购物车移除吗？';
 
   @override
   String get remove => '移除';
@@ -18920,7 +19050,7 @@ class _LZhHans extends AppLocalizations {
   String get selectBooksWantCheckOut => '请先选择要结算的书籍';
 
   @override
-  String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代币不足，这笔订单需要 ${p0}，目前只有 ${p1}';
+  String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代币不足，此订单需 ${p0}，当前余额 ${p1}';
 
   @override
   String get confirmCheckout => '确认结算';
@@ -18938,7 +19068,7 @@ class _LZhHans extends AppLocalizations {
   String get cart => '购物车';
 
   @override
-  String get cartEmpty => '购物车是空的';
+  String get cartEmpty => '购物车内没有商品';
 
   @override
   String get selectAll => '全选';
@@ -18953,7 +19083,7 @@ class _LZhHans extends AppLocalizations {
   String get select => '选取';
 
   @override
-  String coinsShort(Object p0) => '还差 ${p0} 代币';
+  String coinsShort(Object p0) => '尚差 ${p0} 代币';
 
   @override
   String get total => '合计';
@@ -18965,7 +19095,7 @@ class _LZhHans extends AppLocalizations {
   String balance2(Object p0) => '余额 ${p0}';
 
   @override
-  String get selectBookFirst => '请先选书';
+  String get selectBookFirst => '请选择书籍';
 
   @override
   String get checkOut => '结算';
@@ -18974,13 +19104,13 @@ class _LZhHans extends AppLocalizations {
   String get notEnoughCoins => '代币不足';
 
   @override
-  String get weak => '偏弱';
+  String get weak => '弱';
 
   @override
   String get fair => '普通';
 
   @override
-  String get strong => '很强';
+  String get strong => '强';
 
   @override
   String get enterCurrentPassword => '请输入当前密码';
@@ -18992,7 +19122,7 @@ class _LZhHans extends AppLocalizations {
   String get newPasswordMustDifferent => '新密码不可与当前密码相同';
 
   @override
-  String get enterNewPasswordAgain => '请再输入一次新密码';
+  String get enterNewPasswordAgain => '请再次输入新密码';
 
   @override
   String get passwordsDoNotMatch => '两次输入的新密码不一致';
@@ -19004,7 +19134,7 @@ class _LZhHans extends AppLocalizations {
   String get changePassword => '更改密码';
 
   @override
-  String get useLeast8CharactersWithBoth => '密码需要至少 8 位，并同时包含英文与数字。';
+  String get useLeast8CharactersWithBoth => '密码须至少 8 位，且同时包含英文与数字。';
 
   @override
   String get currentPassword => '当前密码';
@@ -19022,7 +19152,7 @@ class _LZhHans extends AppLocalizations {
   String get deleteChat => '删除聊天室';
 
   @override
-  String allMessagesWithDeletedBothCannot(Object p0) => '会一并删除与 ${p0} 的所有消息，双方都看不到了。此动作无法恢复。';
+  String allMessagesWithDeletedBothCannot(Object p0) => '将一并删除与 ${p0} 的所有消息，双方均无法再查看。此操作无法恢复。';
 
   @override
   String get chatDeleted => '已删除聊天室';
@@ -19031,7 +19161,7 @@ class _LZhHans extends AppLocalizations {
   String get couldNotDeleteRestored => '删除失败，已还原';
 
   @override
-  String get chatMuted => '已静音这个聊天室';
+  String get chatMuted => '已将此聊天室设为静音';
 
   @override
   String get chatUnmuted => '已取消静音';
@@ -19043,7 +19173,7 @@ class _LZhHans extends AppLocalizations {
   String get markAllAsRead => '全部标为已读';
 
   @override
-  String markAllUnreadMessagesAsRead(Object p0) => '要把 ${p0} 条未读消息全部标为已读吗？此动作无法恢复。';
+  String markAllUnreadMessagesAsRead(Object p0) => '确定要将 ${p0} 条未读消息全部标为已读吗？此操作无法恢复。';
 
   @override
   String get markAllRead => '全部已读';
@@ -19058,7 +19188,7 @@ class _LZhHans extends AppLocalizations {
   String get chats => '聊天室';
 
   @override
-  String get noConversationsYet => '还没有任何对话';
+  String get noConversationsYet => '暂无任何对话';
 
   @override
   String get unmute => '取消静音';
@@ -19076,16 +19206,16 @@ class _LZhHans extends AppLocalizations {
   String get chat => '聊天';
 
   @override
-  String get sendFirstMessage => '开始你们的第一条消息吧';
+  String get sendFirstMessage => '发送第一条消息';
 
   @override
   String get messageCopied => '已复制消息';
 
   @override
-  String get iQuestionAboutBook => '想询问这本书';
+  String get iQuestionAboutBook => '咨询书籍';
 
   @override
-  String get bookNoLongerListed => '这本书已经下架了';
+  String get bookNoLongerListed => '此书籍已下架';
 
   @override
   String get writeMessage => '输入消息…';
@@ -19097,19 +19227,19 @@ class _LZhHans extends AppLocalizations {
   String get describeDispute => '请填写争议说明';
 
   @override
-  String get useLeast10CharactersSoSupport => '争议说明请至少填写 10 个字，方便客服判断';
+  String get useLeast10CharactersSoSupport => '争议说明请至少填写 10 个字，以便客服判断';
 
   @override
   String get submitDispute => '提交争议申请';
 
   @override
-  String get orderEntersDisputeProcessPaymentSeller => '提交后这笔订单会进入申诉流程，款项会暂停拨给卖家，直到客服裁决。';
+  String get orderEntersDisputeProcessPaymentSeller => '提交后此订单将进入申诉流程，款项将暂停拨付给卖家，直至客服裁决。';
 
   @override
   String paymentHoldRequested(Object p0) => '[申请冻结款项] ${p0}';
 
   @override
-  String get disputeSubmittedSupportContact => '争议申请已提交，客服会尽快与你联系';
+  String get disputeSubmittedSupportContact => '争议申请已提交，客服将尽快与您联系';
 
   @override
   String get dispute => '争议处理';
@@ -19118,7 +19248,7 @@ class _LZhHans extends AppLocalizations {
   String get requestPaymentHold => '申请冻结款项';
 
   @override
-  String get paymentSellerHeldUntilSupportDecides => '提交后款项会暂停拨给卖家，直到客服裁决';
+  String get paymentSellerHeldUntilSupportDecides => '提交后款项将暂停拨付给卖家，直至客服裁决';
 
   @override
   String get submitDispute2 => '提交争议申请';
@@ -19142,7 +19272,7 @@ class _LZhHans extends AppLocalizations {
   String get uploadPhotos => '上传图片';
 
   @override
-  String get canAttachUp6Photos => '最多只能上传 6 张佐证照片';
+  String get canAttachUp6Photos => '最多可上传 6 张佐证照片';
 
   @override
   String get up5 => '最多 5 张';
@@ -19151,7 +19281,7 @@ class _LZhHans extends AppLocalizations {
   String get couldNotReplacePhotoPleaseTry => '无法替换原本的照片，请稍后再试';
 
   @override
-  String get keepLeastOnePhoto => '至少要保留一张照片';
+  String get keepLeastOnePhoto => '请至少保留一张照片';
 
   @override
   String get photoDeleted => '已删除照片';
@@ -19160,16 +19290,16 @@ class _LZhHans extends AppLocalizations {
   String get couldNotDeletePhotoPleaseTry => '删除图片失败，请稍后再试';
 
   @override
-  String get canUp10Photos => '最多只能有 10 张照片';
+  String get canUp10Photos => '最多可上传 10 张照片';
 
   @override
   String get deletePhoto => '删除照片';
 
   @override
-  String get cannotUndoneContinue => '删除后无法恢复，确定吗？';
+  String get cannotUndoneContinue => '删除后无法恢复，确定要删除吗？';
 
   @override
-  String get photoMissingDataRefreshTryAgain => '这张照片的数据不完整，请刷新后再试';
+  String get photoMissingDataRefreshTryAgain => '此照片数据不完整，请刷新后再试';
 
   @override
   String get enterPrice => '请填写价格';
@@ -19184,7 +19314,7 @@ class _LZhHans extends AppLocalizations {
   String get chooseLockerLocation => '请选择存放区域';
 
   @override
-  String missingTheseThreeRequired(Object p0) => '还缺少：${p0}，这三张是必填的';
+  String missingTheseThreeRequired(Object p0) => '尚缺：${p0}（以上三张为必填）';
 
   @override
   String get bookUpdated => '书籍已更新';
@@ -19295,7 +19425,7 @@ class _LZhHans extends AppLocalizations {
   String get bio => '个人简介';
 
   @override
-  String get tellPeopleAboutYourself => '介绍一下自己吧';
+  String get tellPeopleAboutYourself => '简单介绍自己';
 
   @override
   String get email => '邮箱';
@@ -19316,7 +19446,7 @@ class _LZhHans extends AppLocalizations {
   String get savedBooks => '收藏书籍';
 
   @override
-  String get notSavedAnyBooksYet => '还没有收藏任何书籍';
+  String get notSavedAnyBooksYet => '尚未收藏任何书籍';
 
   @override
   String get helpCentre => '帮助中心';
@@ -19325,7 +19455,7 @@ class _LZhHans extends AppLocalizations {
   String get searchQuestions => '搜索问题';
 
   @override
-  String get noQuestionsYet => '目前还没有常见问题';
+  String get noQuestionsYet => '目前暂无常见问题';
 
   @override
   String get noMatchingQuestions => '找不到相关问题';
@@ -19343,22 +19473,22 @@ class _LZhHans extends AppLocalizations {
   String get priceHighLow => '价格由高到低';
 
   @override
-  String get reachedEnd => '您已滑到底部';
+  String get reachedEnd => '已显示全部内容';
 
   @override
   String get guest => '访客';
 
   @override
-  String hi(Object p0) => '哈啰, ${p0}';
+  String hi(Object p0) => '您好，${p0}';
 
   @override
   String get noBooksMatchFilters => '目前没有符合条件的书籍';
 
   @override
-  String get couldNotReadPhoto => '无法读取这张照片';
+  String get couldNotReadPhoto => '无法读取此照片';
 
   @override
-  String get croppingFailedPleaseTryAgain => '裁剪失败，请再试一次';
+  String get croppingFailedPleaseTryAgain => '裁剪失败，请重试';
 
   @override
   String get adjustPhoto => '调整照片';
@@ -19367,10 +19497,10 @@ class _LZhHans extends AppLocalizations {
   String get reset => '重置';
 
   @override
-  String get usePhoto => '使用这张';
+  String get usePhoto => '使用此照片';
 
   @override
-  String get documentNotBeenCreatedYet => '这份文件尚未建立';
+  String get documentNotBeenCreatedYet => '此文件尚未建立';
 
   @override
   String lastUpdated(Object p0) => '最后更新：${p0}';
@@ -19385,10 +19515,10 @@ class _LZhHans extends AppLocalizations {
   String turnSign(Object p0) => '启用 ${p0} 登录？';
 
   @override
-  String nextTimeOpenAppCanUnlock(Object p0) => '下次打开 App 就能直接用 ${p0} 解锁，不用再输入密码。';
+  String nextTimeOpenAppCanUnlock(Object p0) => '下次打开 App 时可使用 ${p0} 解锁，无需输入密码。';
 
   @override
-  String get notNow => '暂时不要';
+  String get notNow => '暂不开启';
 
   @override
   String get enterEmail => '请输入 Email';
@@ -19403,7 +19533,7 @@ class _LZhHans extends AppLocalizations {
   String get noAccountWithEmail => '此账号尚未注册';
 
   @override
-  String noAccountCreateOneNow(Object p0) => '找不到“${p0}”这个账号。要现在创建一个吗？';
+  String noAccountCreateOneNow(Object p0) => '找不到账号“${p0}”，是否立即注册？';
 
   @override
   String get signUp => '前往注册';
@@ -19418,13 +19548,13 @@ class _LZhHans extends AppLocalizations {
   String signWith(Object p0) => '使用 ${p0} 登录';
 
   @override
-  String get noAccountYetSignUp => '还没有账号？立即注册';
+  String get noAccountYetSignUp => '暂无账号？立即注册';
 
   @override
   String get membershipTiersNotSetUpYet => '尚未设定会员等级制度';
 
   @override
-  String get currentTier => '您当前的级别';
+  String get currentTier => '当前等级';
 
   @override
   String get unlocked => '已解锁';
@@ -19433,10 +19563,10 @@ class _LZhHans extends AppLocalizations {
   String get locked => '尚未解锁';
 
   @override
-  String get aboveTier => '您已高于此级别';
+  String get aboveTier => '已超过此等级';
 
   @override
-  String get reachedTopTier => '您已达到最高级别';
+  String get reachedTopTier => '已达最高等级';
 
   @override
   String unlocked2(Object p0) => '已解锁“${p0}”';
@@ -19445,7 +19575,7 @@ class _LZhHans extends AppLocalizations {
   String morePointsUnlock(Object p0, Object p1) => '再 ${p0} 点即可解锁“${p1}”';
 
   @override
-  String benefits(Object p0) => '${p0}级别奖励';
+  String benefits(Object p0) => '${p0}等级权益';
 
   @override
   String get noBenefitsBeenDescribedTierYet => '尚未设定此等级的权益说明。';
@@ -19454,13 +19584,13 @@ class _LZhHans extends AppLocalizations {
   String pointsFromCompletedOrders(Object p0, Object p1) => '目前累积 ${p0} 点，已完成 ${p1} 笔交易';
 
   @override
-  String get noNotificationsClear => '没有通知可以清除';
+  String get noNotificationsClear => '目前没有可清除的通知';
 
   @override
   String get clearAllNotifications => '清除全部通知';
 
   @override
-  String notificationsDeletedCannotUndone(Object p0) => '会删除 ${p0} 条通知，无法恢复。';
+  String notificationsDeletedCannotUndone(Object p0) => '将删除 ${p0} 条通知，此操作无法恢复。';
 
   @override
   String get clearAll => '全部清除';
@@ -19472,10 +19602,10 @@ class _LZhHans extends AppLocalizations {
   String get couldNotClearPleaseTryAgain => '清除失败，请稍后再试';
 
   @override
-  String get noUnreadNotifications => '没有未读的通知';
+  String get noUnreadNotifications => '没有未读通知';
 
   @override
-  String markAllUnreadNotificationsAsRead(Object p0) => '要把 ${p0} 条未读通知全部标为已读吗？此动作无法恢复。';
+  String markAllUnreadNotificationsAsRead(Object p0) => '确定要将 ${p0} 条未读通知全部标为已读吗？此操作无法恢复。';
 
   @override
   String get openChat => '前往聊天室';
@@ -19508,7 +19638,7 @@ class _LZhHans extends AppLocalizations {
   String items2(Object p0) => '商品明细（${p0}）';
 
   @override
-  String get orderNoItemDetails => '这笔订单没有品项数据。';
+  String get orderNoItemDetails => '此订单无品项数据。';
 
   @override
   String msg4(Object p0, Object p1) => '单价 ${p0} × ${p1}';
@@ -19553,7 +19683,7 @@ class _LZhHans extends AppLocalizations {
   String get cancelOrder => '取消订单';
 
   @override
-  String get pendingPayoutDisappearsBuyerNotified => '取消后这笔待定收益会一并消失，买家也会收到通知。';
+  String get pendingPayoutDisappearsBuyerNotified => '取消后此笔待定收益将一并取消，并通知买家。';
 
   @override
   String get cancelledBySeller => '卖家取消';
@@ -19571,7 +19701,7 @@ class _LZhHans extends AppLocalizations {
   String get pendingAmount => '待定收益金额';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '买家完成取书后会自动拨入代币余额';
+  String get coinsArriveOnceBuyerCollectsBook => '买家完成取书后，款项将自动拨入代币余额';
 
   @override
   String get scanned => '扫描成功';
@@ -19580,19 +19710,19 @@ class _LZhHans extends AppLocalizations {
   String get scanAgain => '继续扫描';
 
   @override
-  String get collectBook => '我要取书';
+  String get collectBook => '取书';
 
   @override
-  String get pointPickupQrCode => '对准取书二维码';
+  String get pointPickupQrCode => '请对准取书二维码';
 
   @override
-  String get holdSteady => '对准勿摇晃';
+  String get holdSteady => '请保持设备稳定';
 
   @override
   String get bookCollected => '取书完成';
 
   @override
-  String get thanksUsingSavemybookHappyReading => '感谢你的使用，祝阅读愉快！';
+  String get thanksUsingSavemybookHappyReading => '感谢您的使用，祝您阅读愉快。';
 
   @override
   String collected(Object p0) => '《${p0}》已完成取书';
@@ -19607,10 +19737,10 @@ class _LZhHans extends AppLocalizations {
   String get myAccount => '会员中心';
 
   @override
-  String get personNotWrittenBioYet => '这个人很懒，什么都没留下';
+  String get personNotWrittenBioYet => '尚未填写个人简介';
 
   @override
-  String get topTierReached => '已达到最高级别';
+  String get topTierReached => '已达最高等级';
 
   @override
   String morePointsReach(Object p0, Object p1) => '再 ${p0} 点升级为“${p1}”';
@@ -19619,7 +19749,7 @@ class _LZhHans extends AppLocalizations {
   String get myCoins => '我的代币';
 
   @override
-  String get shareProfile => '分享档案';
+  String get shareProfile => '分享个人档案';
 
   @override
   String get purchases => '购买记录';
@@ -19634,13 +19764,13 @@ class _LZhHans extends AppLocalizations {
   String get signOut2 => '确认退出登录';
 
   @override
-  String get needSignAgainKeepUsingApp => '退出后需要重新输入账号密码才能继续使用。';
+  String get needSignAgainKeepUsingApp => '退出后须重新登录才能继续使用。';
 
   @override
-  String cancelOrderBookReturnsShop(Object p0) => '确定要取消订单 ${p0} 吗？取消后书籍会回到商城重新销售。';
+  String cancelOrderBookReturnsShop(Object p0) => '确定要取消订单 ${p0} 吗？取消后书籍将重新在商城销售。';
 
   @override
-  String get pickupCode2 => '取书代码';
+  String get pickupCode2 => '取书码';
 
   @override
   String get notGeneratedYet => '尚未生成';
@@ -19652,7 +19782,7 @@ class _LZhHans extends AppLocalizations {
   String enterCodeCollect(Object p0) => '请至“${p0}”输入此代码取书';
 
   @override
-  String get iCollected => '我已完成取书';
+  String get iCollected => '确认取书';
 
   @override
   String get noOrdersTab => '此分类目前没有订单';
@@ -19667,7 +19797,7 @@ class _LZhHans extends AppLocalizations {
   String get displayNameLimited50Characters => '昵称不可超过 50 个字符';
 
   @override
-  String get enterPasswordAgain => '请再输入一次密码';
+  String get enterPasswordAgain => '请再次输入密码';
 
   @override
   String get passwordsDoNotMatch2 => '两次输入的密码不一致';
@@ -19691,16 +19821,16 @@ class _LZhHans extends AppLocalizations {
   String get joinSavemybook => '加入救「舊」我的書';
 
   @override
-  String get signUpBuySellUseSmart => '注册后就能买书、卖书与使用智能书柜';
+  String get signUpBuySellUseSmart => '注册后即可买书、卖书及使用智能书柜';
 
   @override
   String get displayName => '昵称';
 
   @override
-  String get nameOthersSee => '其他人会看到的名字';
+  String get nameOthersSee => '其他用户可见的名称';
 
   @override
-  String get emailSignWith => '用来登录的邮箱';
+  String get emailSignWith => '用于登录的邮箱';
 
   @override
   String get least8CharactersWithLettersNumbers => '至少 8 位，需含英文与数字';
@@ -19709,10 +19839,10 @@ class _LZhHans extends AppLocalizations {
   String get confirmPassword => '确认密码';
 
   @override
-  String get enterPasswordAgain2 => '再输入一次密码';
+  String get enterPasswordAgain2 => '请再次输入密码';
 
   @override
-  String get alreadyAccountGoBackSign => '已经有账号了？返回上一页登录';
+  String get alreadyAccountGoBackSign => '已有账号？返回登录';
 
   @override
   String get markAsDroppedOff => '完成存书';
@@ -19724,16 +19854,16 @@ class _LZhHans extends AppLocalizations {
   String get markedAsDroppedOff => '已标记为完成存书';
 
   @override
-  String get buyerNotifiedBookReturnsShop => '取消后买家会收到通知，书籍会回到商城重新销售。';
+  String get buyerNotifiedBookReturnsShop => '取消后将通知买家，书籍将重新在商城销售。';
 
   @override
-  String get dropOffPickupCode => '存书／取书代码';
+  String get dropOffPickupCode => '存书／取书码';
 
   @override
   String get enterCodeLocker => '请在书柜上输入此代码';
 
   @override
-  String get noRecentSearches => '还没有搜索记录';
+  String get noRecentSearches => '暂无搜索记录';
 
   @override
   String get recentSearches => '最近搜索';
@@ -19742,19 +19872,19 @@ class _LZhHans extends AppLocalizations {
   String get clearAll2 => '清除全部';
 
   @override
-  String get searchTitleAuthorIsbn => '搜索书名、作者、ISBN...';
+  String get searchTitleAuthorIsbn => '搜索书名、作者或 ISBN';
 
   @override
   String get photoLimitReached => '照片已满';
 
   @override
-  String get canUploadUp10Photos => '最多只能上传 10 张照片。';
+  String get canUploadUp10Photos => '最多可上传 10 张照片。';
 
   @override
   String get photosMissing => '照片不足';
 
   @override
-  String missingTheseThreeRequired2(Object p0) => '还缺少：${p0}。这三张是必填的。';
+  String missingTheseThreeRequired2(Object p0) => '尚缺：${p0}。以上三张为必填。';
 
   @override
   String get missingInformation => '资料不齐全';
@@ -19775,7 +19905,7 @@ class _LZhHans extends AppLocalizations {
   String get chooseLockerLocation2 => '请选择存放区域。';
 
   @override
-  String get listed2 => '上架成功！';
+  String get listed2 => '上架成功';
 
   @override
   String get unknownError => '未知错误';
@@ -19793,16 +19923,16 @@ class _LZhHans extends AppLocalizations {
   String get couldNotReachServerUploadTimed => '无法连接至服务器或上传超时，请检查网络状态。';
 
   @override
-  String get listBook => '确认完成上架';
+  String get listBook => '确认上架';
 
   @override
   String get detailsPhotos => '详细信息与照片';
 
   @override
-  String get loading => '加载中...';
+  String get loading => '加载中…';
 
   @override
-  String get unknownLocker => '未知机柜';
+  String get unknownLocker => '未知书柜';
 
   @override
   String get enterTitle2 => '请输入书名';
@@ -19811,13 +19941,13 @@ class _LZhHans extends AppLocalizations {
   String get chooseCategory2 => '请选择分类';
 
   @override
-  String get bookDetailsFilledAutomatically => '已自动带入书籍信息！';
+  String get bookDetailsFilledAutomatically => '已自动带入书籍信息';
 
   @override
-  String get bookDetailsFilledFromBackupSource => '已通过备援系统带入书籍信息！';
+  String get bookDetailsFilledFromBackupSource => '已通过备用数据源带入书籍信息';
 
   @override
-  String get noSourceIsbnPleaseEnterDetails => '各系统皆找不到此 ISBN，请尝试手动输入';
+  String get noSourceIsbnPleaseEnterDetails => '未查到此 ISBN 的书籍信息，请手动输入';
 
   @override
   String get day => '日';
@@ -19829,13 +19959,13 @@ class _LZhHans extends AppLocalizations {
   String get description => '书籍简介';
 
   @override
-  String get sellBook => '我要卖书';
+  String get sellBook => '上架书籍';
 
   @override
   String get myShop => '我的卖场';
 
   @override
-  String get sellerNoBooksSale => '这位卖家目前没有销售中的书籍';
+  String get sellerNoBooksSale => '此卖家目前没有销售中的书籍';
 
   @override
   String get loading2 => '加载中…';
@@ -19883,10 +20013,10 @@ class _LZhHans extends AppLocalizations {
   String get lineUpTheirQrCodeWith => '将对方的二维码放入框内';
 
   @override
-  String get notSavemybookProfileQrCode => '这不是救「舊」我的書的个人二维码';
+  String get notSavemybookProfileQrCode => '此二维码并非救「舊」我的書的个人二维码';
 
   @override
-  String get ownQrCode => '这是你自己的二维码';
+  String get ownQrCode => '这是您的个人二维码';
 
   @override
   String get couldNotStartChatPleaseTry => '无法创建聊天室，请稍后再试';
@@ -19895,13 +20025,13 @@ class _LZhHans extends AppLocalizations {
   String get linkCopied => '已复制链接';
 
   @override
-  String addMeSavemybook(Object p0) => '在救「舊」我的書上加我：${p0}';
+  String addMeSavemybook(Object p0) => '我的救「舊」我的書个人档案：${p0}';
 
   @override
-  String addMeSavemybook2(Object p0, Object p1) => '在救「舊」我的書上加我（${p0}）：${p1}';
+  String addMeSavemybook2(Object p0, Object p1) => '${p0} 的救「舊」我的書个人档案：${p1}';
 
   @override
-  String get sharingCouldNotOpenSoLink => '无法打开分享，已帮你复制链接';
+  String get sharingCouldNotOpenSoLink => '无法打开分享，已复制链接';
 
   @override
   String get savedPhotos => '已保存到相册';
@@ -19919,31 +20049,31 @@ class _LZhHans extends AppLocalizations {
   String get askQuestion => '提出问题';
 
   @override
-  String get noEnquiriesYet => '还没有任何问题记录';
+  String get noEnquiriesYet => '暂无提问记录';
 
   @override
   String get enterSubject => '请填写主旨';
 
   @override
-  String get addMoreDetailSoSupportCan => '请多描述一点，方便客服判断';
+  String get addMoreDetailSoSupportCan => '请提供更多说明，以便客服判断';
 
   @override
-  String get sentSupportReplySoon => '已提交，客服会尽快回复';
+  String get sentSupportReplySoon => '已提交，客服将尽快回复';
 
   @override
   String get subject => '主旨';
 
   @override
-  String get sumUpOneLine => '一句话描述问题';
+  String get sumUpOneLine => '简述问题';
 
   @override
-  String get whatHappenedIncludeOrderNumberIf => '发生什么事？有订单编号的话一并附上';
+  String get whatHappenedIncludeOrderNumberIf => '请描述问题，如有订单编号请一并提供';
 
   @override
   String get close => '结案';
 
   @override
-  String get notAbleReplyAfterClosing => '结案后就不能再回复了。';
+  String get notAbleReplyAfterClosing => '结案后将无法再回复。';
 
   @override
   String get enquiryClosed => '工单已结案';
@@ -19958,7 +20088,7 @@ class _LZhHans extends AppLocalizations {
   String get enquiry => '工单';
 
   @override
-  String get enquiryNotFound => '找不到这张工单';
+  String get enquiryNotFound => '找不到此工单';
 
   @override
   String get support => '客服';
@@ -20144,13 +20274,13 @@ class _LZhHans extends AppLocalizations {
   String get collect => '取书';
 
   @override
-  String get couldNotLoadPhoto => '无法加载这张照片';
+  String get couldNotLoadPhoto => '无法加载此照片';
 
   @override
   String slot2(Object p0) => '柜号：${p0}';
 
   @override
-  String confirmPutLocker(Object p0) => '确认已把《${p0}》放入书柜了吗？';
+  String confirmPutLocker(Object p0) => '确认已将《${p0}》放入书柜？';
 
   @override
   String get enterTitleContent => '请填写标题与内容';
@@ -20165,7 +20295,7 @@ class _LZhHans extends AppLocalizations {
   String get publishAnnouncement => '发布推送';
 
   @override
-  String get everyUserSeeAnnouncementOncePublished => '发布后全体用户都会看到这则公告，确定发布吗？';
+  String get everyUserSeeAnnouncementOncePublished => '发布后全体用户均可看到此公告，确定要发布吗？';
 
   @override
   String get publish => '发布';
@@ -20195,7 +20325,7 @@ class _LZhHans extends AppLocalizations {
   String get publishNow => '立即发布';
 
   @override
-  String get leaveOffSaveAsDraft => '关闭时只会存成草稿';
+  String get leaveOffSaveAsDraft => '关闭时仅保存为草稿';
 
   @override
   String get saveDraft => '保存草稿';
@@ -20216,7 +20346,7 @@ class _LZhHans extends AppLocalizations {
   String get announcements => '系统公告';
 
   @override
-  String get noAnnouncementsYetTapAddOne => '尚无公告，点右上角新增';
+  String get noAnnouncementsYetTapAddOne => '暂无公告，请点击右上角新增';
 
   @override
   String get published => '已发布';
@@ -20231,7 +20361,7 @@ class _LZhHans extends AppLocalizations {
   String get backUpNow => '立即备份';
 
   @override
-  String get wholeDatabaseExportedCompressedWithLot => '将导出整个数据库并压缩保存。数据量大时可能需要数十秒，期间请不要离开这个界面。';
+  String get wholeDatabaseExportedCompressedWithLot => '将导出整个数据库并压缩保存。数据量大时可能需要数十秒，期间请勿离开此界面。';
 
   @override
   String get startBackup => '开始备份';
@@ -20252,16 +20382,16 @@ class _LZhHans extends AppLocalizations {
   String backedUpDailyNewestP0Kept(Object p0) => '每日自动备份，保留最新 ${p0} 份';
 
   @override
-  String get olderBackupsBeyondCountRemovedAutomatically => '超出份数的旧备份会自动清除。备份文件含全站个人资料，下载后请妥善保管，每次下载都会记入操作记录。';
+  String get olderBackupsBeyondCountRemovedAutomatically => '超出份数的旧备份将自动清除。备份文件含全站个人资料，下载后请妥善保管，每次下载均会记入操作记录。';
 
   @override
-  String get noBackupsYetSchedulerRunsOnce => '尚无备份记录。排程每天会自动跑一次，也可以按上方按钮立刻生成一份。';
+  String get noBackupsYetSchedulerRunsOnce => '暂无备份记录。系统每日自动备份一次，也可点击上方按钮立即备份。';
 
   @override
   String get deleteBackup => '删除备份';
 
   @override
-  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\n文件与记录会一并移除，无法恢复。';
+  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\n文件与记录将一并移除，此操作无法恢复。';
 
   @override
   String get manual => '手动';
@@ -20276,7 +20406,7 @@ class _LZhHans extends AppLocalizations {
   String get downloadBackup => '下载备份';
 
   @override
-  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '备份文件请在电脑上取回，并带上你的授权标头：\n\n${p0}\n\n文件大小 ${p1}。';
+  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '请在电脑上下载备份文件，并附上您的授权标头：\n\n${p0}\n\n文件大小：${p1}。';
 
   @override
   String get copyLink2 => '复制网址';
@@ -20288,7 +20418,7 @@ class _LZhHans extends AppLocalizations {
   String get forceDelist => '强制下架';
 
   @override
-  String get reasonDelistingSellerNotified => '下架原因，会通知卖家';
+  String get reasonDelistingSellerNotified => '下架原因（将通知卖家）';
 
   @override
   String get delist3 => '确认下架';
@@ -20297,7 +20427,7 @@ class _LZhHans extends AppLocalizations {
   String get relist2 => '恢复上架';
 
   @override
-  String putP0BackStore(Object p0) => '要让《${p0}》重新出现在商城吗？';
+  String putP0BackStore(Object p0) => '确定要将《${p0}》恢复上架吗？';
 
   @override
   String get relisted => '已恢复上架';
@@ -20372,10 +20502,10 @@ class _LZhHans extends AppLocalizations {
   String get disable => '停用';
 
   @override
-  String onceDisabledP0NoLongerAppears(Object p0) => '停用后“${p0}”不会再出现在卖家的存放区域菜单中。';
+  String onceDisabledP0NoLongerAppears(Object p0) => '停用后“${p0}”将不再显示在卖家的存放区域菜单中。';
 
   @override
-  String onceEnabledP0AvailableSellersAgain(Object p0) => '启用后“${p0}”会重新开放给卖家选择。';
+  String onceEnabledP0AvailableSellersAgain(Object p0) => '启用后“${p0}”将重新开放卖家选择。';
 
   @override
   String get lockerDisabled => '书柜已停用';
@@ -20426,7 +20556,7 @@ class _LZhHans extends AppLocalizations {
   String get deleteCategory => '删除分类';
 
   @override
-  String deleteP0CannotUndone2(Object p0) => '要删除“${p0}”吗？此操作无法撤销。';
+  String deleteP0CannotUndone2(Object p0) => '确定要删除“${p0}”吗？此操作无法撤销。';
 
   @override
   String get categoryDeleted => '已删除分类';
@@ -20459,16 +20589,16 @@ class _LZhHans extends AppLocalizations {
   String get deleteSection => '删除章节';
 
   @override
-  String get contentsSectionRemovedWith => '这一章的内容会一并移除。';
+  String get contentsSectionRemovedWith => '此章节内容将一并移除。';
 
   @override
-  String p0ItsContentsRemoved(Object p0) => '“${p0}”与其内容会一并移除。';
+  String p0ItsContentsRemoved(Object p0) => '“${p0}”及其内容将一并移除。';
 
   @override
   String get discardChanges => '舍弃更改？';
 
   @override
-  String get documentUnsavedChangesTheyLostIf => '这份文件有尚未保存的修改，离开后会丢失。';
+  String get documentUnsavedChangesTheyLostIf => '此文件有尚未保存的修改，离开后将丢失。';
 
   @override
   String get discard => '舍弃';
@@ -20477,28 +20607,28 @@ class _LZhHans extends AppLocalizations {
   String get keepEditing => '继续编辑';
 
   @override
-  String get bothTitleContentRequired => '标题与内容都要填写';
+  String get bothTitleContentRequired => '请填写标题与内容';
 
   @override
-  String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章还没有标题';
+  String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章尚未填写标题';
 
   @override
   String updateP0(Object p0) => '确认更新${p0}？';
 
   @override
-  String get documentBindingEveryUserSubmittingReplaces => '这份文件对所有用户都有效力，提交后会立刻取代当前版本。';
+  String get documentBindingEveryUserSubmittingReplaces => '此文件对所有用户均具效力，提交后将立即取代当前版本。';
 
   @override
-  String get yesUpdate => '我确认要更新';
+  String get yesUpdate => '确认更新';
 
   @override
-  String get notifyEveryUser => '要通知所有用户吗？';
+  String get notifyEveryUser => '是否通知所有用户？';
 
   @override
   String get updateNotify => '更新并通知';
 
   @override
-  String get updateOnly => '只更新不通知';
+  String get updateOnly => '仅更新，不通知';
 
   @override
   String get sections => '章节';
@@ -20516,7 +20646,7 @@ class _LZhHans extends AppLocalizations {
   String get preamble => '前言';
 
   @override
-  String get unnumberedOpeningTextLeaveEmptyIf => '开头不编号的说明文字，没有的话可以留空。';
+  String get unnumberedOpeningTextLeaveEmptyIf => '开头不编号的说明文字，若无可留空。';
 
   @override
   String get articles => '条文';
@@ -20525,7 +20655,7 @@ class _LZhHans extends AppLocalizations {
   String get numberedAutomatically => '编号自动生成';
 
   @override
-  String get noArticlesYetAddFirstOne => '还没有条文。按下方新增第一章。';
+  String get noArticlesYetAddFirstOne => '暂无条文，请点击下方新增第一章。';
 
   @override
   String get addSection => '新增章节';
@@ -20537,13 +20667,13 @@ class _LZhHans extends AppLocalizations {
   String get sectionTitle => '章节标题';
 
   @override
-  String get bodySectionSingleLineBreaksKept => '这一章的内容。单行换行会照样呈现，空一行代表另起一段。';
+  String get bodySectionSingleLineBreaksKept => '章节内容。单行换行将如实呈现，空一行代表另起一段。';
 
   @override
-  String get emptyLineStartsParagraphParagraphWhose => '空一行分段。首行写“1. 标题”的段落，切回章节模式时会被认成一章。';
+  String get emptyLineStartsParagraphParagraphWhose => '空一行即分段。首行为“1. 标题”的段落，切换回章节模式时将视为一章。';
 
   @override
-  String get howUsersSee => '用户看到的样子';
+  String get howUsersSee => '用户查看效果';
 
   @override
   String get noContentYet => '尚无内容';
@@ -20570,7 +20700,7 @@ class _LZhHans extends AppLocalizations {
   String get showHelpCentre => '显示在帮助中心';
 
   @override
-  String get bothQuestionAnswerRequired => '问题与答案都要填写';
+  String get bothQuestionAnswerRequired => '请填写问题与答案';
 
   @override
   String get added => '已新增';
@@ -20582,7 +20712,7 @@ class _LZhHans extends AppLocalizations {
   String get deleteQuestion => '删除问题';
 
   @override
-  String deleteP0(Object p0) => '要删除“${p0}”吗？';
+  String deleteP0(Object p0) => '确定要删除“${p0}”吗？';
 
   @override
   String get deleted => '已删除';
@@ -20603,7 +20733,7 @@ class _LZhHans extends AppLocalizations {
   String get cancelDeletionRequest => '取消删除申请';
 
   @override
-  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0} 的账号会恢复正常，删除倒计时停止。';
+  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0} 的账号将恢复正常，并停止删除流程。';
 
   @override
   String get cancelDeletion => '取消删除';
@@ -20615,7 +20745,7 @@ class _LZhHans extends AppLocalizations {
   String get anonymiseNow => '立即执行匿名化';
 
   @override
-  String eraseP0SPersonalDataDisable(Object p0) => '不等缓冲期结束，立刻清除 ${p0} 的个人资料并停用账号。\n\n订单与交易记录会保留，但昵称会变成“已删除的用户”。此操作无法撤销。';
+  String eraseP0SPersonalDataDisable(Object p0) => '不待缓冲期结束，立即清除 ${p0} 的个人资料并停用账号。\n\n订单与交易记录将予以保留，昵称将显示为“已删除的用户”。此操作无法撤销。';
 
   @override
   String get doNow => '立即执行';
@@ -20633,7 +20763,7 @@ class _LZhHans extends AppLocalizations {
   String get dueSoon => '即将执行';
 
   @override
-  String p0DaysLeft(Object p0) => '剩 ${p0} 天';
+  String p0DaysLeft(Object p0) => '剩余 ${p0} 天';
 
   @override
   String requestedP0ScheduledP1(Object p0, Object p1) => '申请于 ${p0}，预计 ${p1} 执行';
@@ -20795,10 +20925,10 @@ class _LZhHans extends AppLocalizations {
   String get minimumPoints => '最低点数';
 
   @override
-  String get maximumPointsLeaveEmptyNoCap => '最高点数（留空 = 无上限）';
+  String get maximumPointsLeaveEmptyNoCap => '最高点数（留空表示无上限）';
 
   @override
-  String get benefitsSeparatedByCommasLineBreaks => '权益，用顿号或换行分隔，会在会员等级页逐条显示';
+  String get benefitsSeparatedByCommasLineBreaks => '权益（以顿号或换行分隔，将在会员等级页逐条显示）';
 
   @override
   String get enterTierName => '请输入等级名称';
@@ -20816,7 +20946,7 @@ class _LZhHans extends AppLocalizations {
   String get deleteTier => '删除等级';
 
   @override
-  String deleteP0MembersTierDropNext(Object p0) => '要删除“${p0}”吗？已在这个等级的会员会退到下一个符合的等级。';
+  String deleteP0MembersTierDropNext(Object p0) => '确定要删除“${p0}”吗？此等级的会员将调整至下一个符合的等级。';
 
   @override
   String get tierDeleted => '已删除等级';
@@ -20867,10 +20997,10 @@ class _LZhHans extends AppLocalizations {
   String get removeFromBlocklist => '移出黑名单';
 
   @override
-  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0} 会立刻被登出，且无法再使用 App 的任何功能。';
+  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0} 将立即被登出，且无法使用 App 的任何功能。';
 
   @override
-  String p0AbleSignAgain(Object p0) => '${p0} 将可以重新登录使用。';
+  String p0AbleSignAgain(Object p0) => '${p0} 将可重新登录使用。';
 
   @override
   String get accountStatusUpdated => '已更新账号状态';
@@ -20882,10 +21012,10 @@ class _LZhHans extends AppLocalizations {
   String get makeAdmin => '设为管理员';
 
   @override
-  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 将立刻失去所有后台权限。';
+  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 将立即失去所有后台权限。';
 
   @override
-  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 将可以进入管理后台，默认拥有全部权限，可再逐项调整。';
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 将可进入管理后台，默认拥有全部权限，并可逐项调整。';
 
   @override
   String get roleUpdated => '已更新身份';
@@ -20942,7 +21072,7 @@ class _LZhHans extends AppLocalizations {
   String get revokeAllPermissions => '收回全部权限';
 
   @override
-  String p0AbleUseEveryAdminFeature(Object p0) => '${p0} 将可以使用后台所有功能。';
+  String p0AbleUseEveryAdminFeature(Object p0) => '${p0} 将可使用后台所有功能。';
 
   @override
   String p0ReachAdminAreaButUnable(Object p0) => '${p0} 进入后台后将无法使用任何功能。';
@@ -20957,7 +21087,7 @@ class _LZhHans extends AppLocalizations {
   String get memberSettings => '会员设置';
 
   @override
-  String get noDataMember => '找不到这位会员的资料';
+  String get noDataMember => '找不到此会员的资料';
 
   @override
   String get listings2 => '上架图书';
@@ -20972,16 +21102,16 @@ class _LZhHans extends AppLocalizations {
   String get accountStatus => '账号状态';
 
   @override
-  String get ownAccountStatusPermissionsCannotChanged => '这是你自己的账号，无法在这里调整状态与权限。';
+  String get ownAccountStatusPermissionsCannotChanged => '此为您本人的账号，无法在此调整状态与权限。';
 
   @override
   String get accountEnabled => '启用账号';
 
   @override
-  String get canSignUseAppNormally => '可以正常登录使用';
+  String get canSignUseAppNormally => '可正常登录使用';
 
   @override
-  String get suspendedSignedOutImmediatelyAfterSigning => '已停权，登录后会被立刻登出';
+  String get suspendedSignedOutImmediatelyAfterSigning => '已停权，登录后将立即登出';
 
   @override
   String get blocked => '列入黑名单';
@@ -20999,7 +21129,7 @@ class _LZhHans extends AppLocalizations {
   String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} 点（自动 ${p1}${p2}）';
 
   @override
-  String get memberSTierBeenAdjustedBy => '这位会员的等级目前有人工调整，不完全依交易自动计算。';
+  String get memberSTierBeenAdjustedBy => '此会员的等级经人工调整，不完全按交易自动计算。';
 
   @override
   String get adjustTier => '调整等级';
@@ -21041,7 +21171,7 @@ class _LZhHans extends AppLocalizations {
   String get sales2 => '销售';
 
   @override
-  String get created => '创建日期';
+  String get created => '建立日期';
 
   @override
   String get noActivityYet => '尚无操作记录';
@@ -21056,7 +21186,7 @@ class _LZhHans extends AppLocalizations {
   String get reasonChange => '调整说明';
 
   @override
-  String get sentBuyerAsWellOptional => '会一并通知买家（选填）';
+  String get sentBuyerAsWellOptional => '将一并通知买家（选填）';
 
   @override
   String get applyChange => '确认调整';
@@ -21185,7 +21315,7 @@ class _LZhHans extends AppLocalizations {
   String get enterReasonAdjustment => '请填写调整原因';
 
   @override
-  String get member2 => '这位会员';
+  String get member2 => '此会员';
 
   @override
   String get add3 => '增加';
@@ -21275,7 +21405,7 @@ class _LZhHans extends AppLocalizations {
   String p0Locker(Object p0) => '${p0}书柜';
 
   @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位启用中的会员都会收到一则“${p0}已更新”的通知。';
+  String everyActiveMemberReceivesP0Updated(Object p0) => '所有启用中的会员均会收到“${p0}已更新”通知。';
 
   @override
   String get orderPlaced => '成立订单';
@@ -21284,7 +21414,7 @@ class _LZhHans extends AppLocalizations {
   String get paid => '付款';
 
   @override
-  String get sellerDroppedOff => '卖家放书';
+  String get sellerDroppedOff => '卖家存书';
 
   @override
   String get buyerCollected => '买家取书';
@@ -21296,7 +21426,7 @@ class _LZhHans extends AppLocalizations {
   String get editBookDetails => '编辑书籍资料';
 
   @override
-  String sellerP0TheyNotifiedSave(Object p0) => '卖家 ${p0}・保存后会通知他';
+  String sellerP0TheyNotifiedSave(Object p0) => '卖家 ${p0}・保存后将通知卖家';
 
   @override
   String get priceCoins => '售价（代币）';
@@ -21320,7 +21450,7 @@ class _LZhHans extends AppLocalizations {
   String get resetPassword => '重置密码';
 
   @override
-  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 当前的密码会立刻失效，必须改用接下来生成的临时密码登录。\n\n密码由系统生成，你不能自己指定。';
+  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 当前的密码将立即失效，须改用系统生成的临时密码登录。\n\n临时密码由系统生成，无法自行指定。';
 
   @override
   String get generateTemporaryPassword => '生成临时密码';
@@ -21329,10 +21459,10 @@ class _LZhHans extends AppLocalizations {
   String get temporaryPassword => '临时密码';
 
   @override
-  String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密码已重置。这组密码只会出现这一次，关闭后无法再查看。';
+  String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密码已重置。此密码仅显示一次，关闭后将无法再查看。';
 
   @override
-  String get remindThemChangeSettingsChangePassword => '请提醒对方登录后立刻到“设置 → 更改密码”改掉。';
+  String get remindThemChangeSettingsChangePassword => '请提醒对方登录后立即前往“设置 → 更改密码”修改密码。';
 
   @override
   String get temporaryPasswordCopied => '已复制临时密码';
@@ -21341,7 +21471,7 @@ class _LZhHans extends AppLocalizations {
   String get copy => '复制';
 
   @override
-  String get cannotResetAnotherAdminSPassword => '不能重置其他管理员的密码';
+  String get cannotResetAnotherAdminSPassword => '无法重置其他管理员的密码';
 
   @override
   String get generateTemporaryPasswordHandOver => '生成一组临时密码交给用户';
@@ -21350,7 +21480,7 @@ class _LZhHans extends AppLocalizations {
   String get orderNumberCopied => '已复制订单编号';
 
   @override
-  String get orderNotFound => '找不到这笔订单';
+  String get orderNotFound => '找不到此订单';
 
   @override
   String get paidWithCoins => '代币支付';
@@ -21425,22 +21555,22 @@ class _LZhHans extends AppLocalizations {
   String get declined => '不予退款';
 
   @override
-  String get changeOwnPasswordGoSettingsChange => '要改自己的密码请到“设置 → 更改密码”';
+  String get changeOwnPasswordGoSettingsChange => '如需修改本人密码，请前往“设置 → 更改密码”';
 
   @override
-  String get memberNotAdminSoThereNo => '这位会员不是管理员，没有后台权限可以设置。先在上方把身份改成管理员。';
+  String get memberNotAdminSoThereNo => '此会员非管理员，无后台权限可设置。请先在上方将身份设为管理员。';
 
   @override
-  String get you => '你自己';
+  String get you => '本人';
 
   @override
-  String isbnMust1013DigitsOne(Object p0) => 'ISBN 要 10 或 13 位，目前 ${p0} 位';
+  String isbnMust1013DigitsOne(Object p0) => 'ISBN 应为 10 或 13 位，当前为 ${p0} 位';
 
   @override
-  String get screenUnsavedChangesTheyLostIf => '这个界面有尚未保存的修改，离开后会丢失。';
+  String get screenUnsavedChangesTheyLostIf => '此界面有尚未保存的修改，离开后将丢失。';
 
   @override
-  String stillNeededP0(Object p0) => '还差：${p0}';
+  String stillNeededP0(Object p0) => '尚缺：${p0}';
 
   @override
   String photosP0(Object p0) => '照片：${p0} 张';
@@ -21449,37 +21579,37 @@ class _LZhHans extends AppLocalizations {
   String get confirmListing => '确认上架';
 
   @override
-  String get lookingUpBook => '查询书籍资料中';
+  String get lookingUpBook => '正在查询书籍资料';
 
   @override
   String get scan => '扫描';
 
   @override
-  String get buyerSPaymentGoesBackTheir => '买家付的款项会退回钱包；卖家若已收到货款会先收回。';
+  String get buyerSPaymentGoesBackTheir => '买家支付的款项将退回钱包；若卖家已收到货款，将先行收回。';
 
   @override
-  String get orderReturnsWhereWasBeforeDispute => '订单回到申诉前的状态继续交易；若先前已完成取货，货款会拨给卖家。';
+  String get orderReturnsWhereWasBeforeDispute => '订单将恢复至申诉前的状态并继续交易；若先前已完成取书，货款将拨付给卖家。';
 
   @override
-  String get orderWasAlreadyRefundedBuyerCannot => '这笔订单的款项已经退回买家，不能再改回进行中或已完成';
+  String get orderWasAlreadyRefundedBuyerCannot => '此订单款项已退回买家，无法改回进行中或已完成';
 
   @override
   String get completedOrderCanOnlyChangedRefund => '已完成的订单只能改为“退款处理中”或“已退款”';
 
   @override
-  String confirmingPaysP0TokensSellerMarks(Object p0) => '确认后会把 ${p0} 代币拨给卖家，书籍标记为已售出。';
+  String confirmingPaysP0TokensSellerMarks(Object p0) => '确认后将拨付 ${p0} 代币给卖家，并将书籍标记为已售出。';
 
   @override
-  String confirmingTakesP0TokensBackFrom(Object p0) => '确认后会向卖家收回 ${p0} 代币并退还给买家。卖家余额不足时会变成负数。';
+  String confirmingTakesP0TokensBackFrom(Object p0) => '确认后将向卖家收回 ${p0} 代币并退还买家。卖家余额不足时将显示为负数。';
 
   @override
-  String get ifBuyerNotBeenRefundedYet => '若先前还没退款，会补退给买家。';
+  String get ifBuyerNotBeenRefundedYet => '若先前尚未退款，将补退给买家。';
 
   @override
-  String confirmingRefundsBuyerSP0Tokens(Object p0) => '确认后会把买家付的 ${p0} 代币退回，保留中的书重新上架。';
+  String confirmingRefundsBuyerSP0Tokens(Object p0) => '确认后将退还买家支付的 ${p0} 代币，保留中的书籍将重新上架。';
 
   @override
-  String get donTPermissionYourselfSoCan => '你自己没有这项权限，所以不能开给别人。';
+  String get donTPermissionYourselfSoCan => '您不具备此权限，无法授予他人。';
 
   @override
   String get notificationsTurnedOff => '通知权限已关闭';
@@ -21491,25 +21621,25 @@ class _LZhHans extends AppLocalizations {
   String get sendTestNotification => '发送测试通知';
 
   @override
-  String get arrives10SecondsGoHomeScreen => '10 秒后送达，发送后先回到主屏幕或锁定手机';
+  String get arrives10SecondsGoHomeScreen => '将于 10 秒后送达，发送后请返回主屏幕或锁定手机';
 
   @override
   String get systemNotificationSettings => '系统通知设置';
 
   @override
-  String get turnNotificationsSoundsLockScreenPreviews => '开关通知、声音与锁定屏幕显示';
+  String get turnNotificationsSoundsLockScreenPreviews => '设置通知、声音与锁定屏幕显示';
 
   @override
-  String get pushNotificationsNotSetUpBuild => '这个版本的 App 还没有设置推送，请先放入 Firebase 配置文件后重新编译。';
+  String get pushNotificationsNotSetUpBuild => '此版本的 App 尚未设置推送，请加入 Firebase 配置文件后重新编译。';
 
   @override
-  String get notificationsTurnedOffAllowAppSend => '通知权限已被关闭，请到系统设置允许这个 App 发送通知。';
+  String get notificationsTurnedOffAllowAppSend => '通知权限已关闭，请前往系统设置允许此 App 发送通知。';
 
   @override
-  String get restoreBackup => '还原到这份备份？';
+  String get restoreBackup => '确定要还原至此备份？';
 
   @override
-  String wholeDatabaseGoBackP0Orders(Object p0) => '整个数据库会回到 ${p0} 的状态，这个时间点之后的订单、消息、会员资料与操作记录都会消失。\n\n还原前系统会先自动备份当前的状态，还原错了可以再还原那一份。还原期间全站暂停服务，通常需要几十秒到几分钟。\n\n请输入你的登录密码确认：';
+  String wholeDatabaseGoBackP0Orders(Object p0) => '整个数据库将还原至 ${p0} 的状态，此时间点之后的订单、消息、会员资料与操作记录将全部清除。\n\n还原前系统将自动备份当前状态，如有需要可再还原该备份。还原期间全站暂停服务，通常需要数十秒至数分钟。\n\n请输入您的登录密码以确认：';
 
   @override
   String get password2 => '登录密码';
@@ -21518,31 +21648,31 @@ class _LZhHans extends AppLocalizations {
   String get startRestore => '开始还原';
 
   @override
-  String get backingUpCurrentState => '正在备份当前的状态…';
+  String get backingUpCurrentState => '正在备份当前状态…';
 
   @override
-  String databaseRestoredPreviousStateWasBacked(Object p0) => '数据库已还原。还原前的状态备份在 ${p0}';
+  String databaseRestoredPreviousStateWasBacked(Object p0) => '数据库已还原。还原前的状态已备份至 ${p0}';
 
   @override
-  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => '还原失败，数据库维持原状或部分还原，请查看操作记录并考虑还原 ${p0}';
+  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => '还原失败，数据库可能维持原状或已部分还原，请查看操作记录并视需要还原 ${p0}';
 
   @override
   String get autoBackupBeforeRestore => '还原前自动备份';
 
   @override
-  String get restoreBackup2 => '还原到这份备份';
+  String get restoreBackup2 => '还原至此备份';
 
   @override
   String get restoringDatabase => '正在还原数据库';
 
   @override
-  String p0SecondsSoFarKeepApp(Object p0) => '已经过 ${p0} 秒。请不要关闭 App，完成后会自动恢复服务。';
+  String p0SecondsSoFarKeepApp(Object p0) => '已经过 ${p0} 秒。请勿关闭 App，完成后将自动恢复服务。';
 
   @override
-  String get majorUpdate => '这次是重大更新吗？';
+  String get majorUpdate => '此次是否为重大更新？';
 
   @override
-  String get majorUpdateNotifiesEveryUserTerms => '重大更新会通知所有用户；服务条款与隐私政策还会要求用户下次打开 App 时重新阅读并同意。\n\n只是修正错字或调整排版，请选“小幅修改”。';
+  String get majorUpdateNotifiesEveryUserTerms => '重大更新将通知所有用户；服务条款与隐私政策另将要求用户在下次打开 App 时重新阅读并同意。\n\n若仅修正错字或调整排版，请选择“小幅修改”。';
 
   @override
   String get majorUpdate2 => '重大更新';
@@ -21569,10 +21699,10 @@ class _LZhHans extends AppLocalizations {
   String get backups => '备份';
 
   @override
-  String get undoAction => '还原这笔操作？';
+  String get undoAction => '确定要还原此操作？';
 
   @override
-  String p0NNtheDataGoesBack(Object p0) => '“${p0}”\n\n数据会改回操作前的状态。已经发出的通知不会撤回；如果数据之后又被修改过，系统会拒绝还原。';
+  String p0NNtheDataGoesBack(Object p0) => '“${p0}”\n\n数据将恢复至操作前的状态。已发出的通知不会撤回；若数据之后曾再次修改，系统将拒绝还原。';
 
   @override
   String get undo => '还原';
@@ -21587,34 +21717,34 @@ class _LZhHans extends AppLocalizations {
   String viewP0Changes(Object p0) => '查看 ${p0} 项变更';
 
   @override
-  String get undoAction2 => '还原这笔操作';
+  String get undoAction2 => '还原此操作';
 
   @override
-  String get tapBarSeeDay => '点长条可以看当天的数字';
+  String get tapBarSeeDay => '点击柱状图可查看当日数据';
 
   @override
   String get noAnnouncements => '目前没有公告';
 
   @override
-  String get tapPhotoNameChange => '点头像或昵称可以修改';
+  String get tapPhotoNameChange => '点击头像或昵称即可修改';
 
   @override
-  String get canTContinueWithoutAccepting => '不同意就无法继续使用';
+  String get canTContinueWithoutAccepting => '未同意将无法继续使用';
 
   @override
-  String needAcceptLatestP0UseP1(Object p0, Object p1) => '需要同意最新版本的“${p0}”才能使用${p1}。不同意的话会先登出，你可以随时重新登录后再同意。';
+  String needAcceptLatestP0UseP1(Object p0, Object p1) => '须同意最新版本的“${p0}”才能使用${p1}。若不同意将自动登出，您可随时重新登录后再同意。';
 
   @override
-  String get goBack => '再看看';
+  String get goBack => '返回';
 
   @override
-  String p0BeenUpdated(Object p0) => '“${p0}”已经更新';
+  String p0BeenUpdated(Object p0) => '“${p0}”已更新';
 
   @override
   String readLatestVersionUpdatedP0Accept(Object p0) => '请阅读最新版本（${p0} 更新）。同意后才能继续使用。';
 
   @override
-  String get scrollEndContinue => '请先滚动读完全文';
+  String get scrollEndContinue => '请滚动至底部阅读全文';
 
   @override
   String get iVeReadAccept => '我已阅读并同意';
@@ -21626,10 +21756,10 @@ class _LZhHans extends AppLocalizations {
   String get viewDetails => '查看详情';
 
   @override
-  String get notFoundMayBeenDeletedRemoved => '找不到这笔数据，可能已经删除或下架';
+  String get notFoundMayBeenDeletedRemoved => '找不到此数据，可能已删除或下架';
 
   @override
-  String get salesDropOffsPickupsRefundsDisputes => '售出、存书、取货、退款与争议';
+  String get salesDropOffsPickupsRefundsDisputes => '售出、存书、取书、退款与争议';
 
   @override
   String get chatMessages => '聊天消息';
@@ -21644,7 +21774,7 @@ class _LZhHans extends AppLocalizations {
   String get announcementsAboutPromotions => '优惠类型的系统公告';
 
   @override
-  String get supportRepliesPasswordResetsPolicyUpdates => '客服回复、密码重置、条款更新与维护公告一律会通知。关掉的类型仍会出现在通知列表，只是不推送到手机。';
+  String get supportRepliesPasswordResetsPolicyUpdates => '客服回复、密码重置、条款更新与维护公告将一律通知。关闭的类型仍会显示在通知列表，但不会推送至手机。';
 
   @override
   String get notFilled => '未填写';
@@ -21662,7 +21792,7 @@ class _LZhHans extends AppLocalizations {
   String get messageUnsent => '消息已撤回';
 
   @override
-  String get confirmBeforeExportingData => '导出个人资料前，请先确认是你本人';
+  String get confirmBeforeExportingData => '导出个人资料前，请先验证身份';
 
   @override
   String get exportFailedPleaseTryAgainLater => '导出失败，请稍后再试';
@@ -21680,19 +21810,19 @@ class _LZhHans extends AppLocalizations {
   String get verificationCancelled => '已取消验证';
 
   @override
-  String get openingClosingTimesCanTSame => '开放与关闭时间不能相同';
+  String get openingClosingTimesCanTSame => '开放与关闭时间不可相同';
 
   @override
-  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => '这一格目前是「${p0}」，可能有进行中的订单。改成「${p1}」后，买卖双方可能无法正常存取书籍。';
+  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => '此柜位目前为「${p0}」，可能有进行中的订单。更改为「${p1}」后，买卖双方可能无法正常存取书籍。';
 
   @override
   String get active => '启用中';
 
   @override
-  String get categoryWithNameAlreadyExists => '已经有同名的分类';
+  String get categoryWithNameAlreadyExists => '已有同名分类';
 
   @override
-  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => '订单 ${p0} 将以「${p1}」结案，${p2} 代币会退回买家。提交后无法修改。';
+  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => '订单 ${p0} 将以「${p1}」结案，${p2} 代币将退回买家。提交后无法修改。';
 
   @override
   String orderP0ClosedAsP1Can(Object p0, Object p1) => '订单 ${p0} 将以「${p1}」结案。提交后无法修改。';
@@ -21710,7 +21840,7 @@ class _LZhHans extends AppLocalizations {
   String noTierCoversP0P1Points(Object p0, Object p1) => '${p0}–${p1} 点没有对应的等级';
 
   @override
-  String p0TakenDownRightAwayOther(Object p0) => '「${p0}」会立即下架，其他会员将无法再看到或购买。';
+  String p0TakenDownRightAwayOther(Object p0) => '「${p0}」将立即下架，其他会员将无法浏览或购买。';
 
   @override
   String get searchReportedItemReporterReason => '搜索被举报项目、举报人或原因';
@@ -21731,13 +21861,13 @@ class _LZhHans extends AppLocalizations {
   String get zeroBalance => '余额为 0';
 
   @override
-  String get amountCanMost2DecimalPlaces => '金额最多只能到小数点后两位';
+  String get amountCanMost2DecimalPlaces => '金额最多可至小数点后两位';
 
   @override
   String get singleAdjustmentCanTExceed1 => '单次调整不可超过 1,000,000';
 
   @override
-  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除后余额会变成负数，目前余额 ${p0}';
+  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除后余额将为负数，当前余额 ${p0}';
 
   @override
   String get amountUp2Decimals => '金额（最多两位小数）';
@@ -21752,34 +21882,34 @@ class _LZhHans extends AppLocalizations {
   String get couldNotStartCamera => '相机启动失败';
 
   @override
-  String allowP0UseCameraSettingsThen(Object p0) => '请到系统设置允许 ${p0} 使用相机后再试一次。';
+  String allowP0UseCameraSettingsThen(Object p0) => '请前往系统设置允许 ${p0} 使用相机后再试。';
 
   @override
-  String get closeScreenTryAgain => '请关闭这个画面后再试一次。';
+  String get closeScreenTryAgain => '请关闭此画面后再试。';
 
   @override
   String get couldnTGetLocationCheckLocation => '无法获取当前位置，请确认已开启定位服务与权限';
 
   @override
-  String get bookReservedAnotherBuyerCanT => '这本书已被其他买家预约，暂时无法加入购物车';
+  String get bookReservedAnotherBuyerCanT => '此书籍已由其他买家预约，暂时无法加入购物车';
 
   @override
-  String reservedAnotherBuyerUntilP0(Object p0) => '已被其他买家预约，保留到 ${p0}';
+  String reservedAnotherBuyerUntilP0(Object p0) => '已由其他买家预约，保留至 ${p0}';
 
   @override
-  String get ifIsnTSoldByThen => '保留期限过后若未成交，就能再加入购物车';
+  String get ifIsnTSoldByThen => '保留期限届满后若未成交，即可加入购物车';
 
   @override
-  String sellerHoldingUntilP0(Object p0) => '卖家已为你保留到 ${p0}';
+  String sellerHoldingUntilP0(Object p0) => '卖家已为您保留至 ${p0}';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '请在保留期限内完成结账，逾期其他买家就能购买';
+  String get checkOutBeforeHoldEndsOther => '请在保留期限内完成结账，逾期后其他买家即可购买';
 
   @override
   String get copyAddress => '复制地址';
 
   @override
-  String p0Away(Object p0) => '距离你 ${p0}';
+  String p0Away(Object p0) => '距离 ${p0}';
 
   @override
   String get locating => '定位中…';
@@ -21788,7 +21918,7 @@ class _LZhHans extends AppLocalizations {
   String get showDistance => '查看距离';
 
   @override
-  String get reserved => '已被预约';
+  String get reserved => '已预约';
 
   @override
   String get goCheckout => '前往结账';
@@ -21824,16 +21954,16 @@ class _LZhHans extends AppLocalizations {
   String get paymentSuccessful => '付款成功';
 
   @override
-  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本书，已按卖家拆成 ${p1} 笔订单';
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本书，已按卖家拆分为 ${p1} 笔订单';
 
   @override
-  String get keepBrowsing => '继续逛逛';
+  String get keepBrowsing => '继续浏览';
 
   @override
   String get reload => '重新加载';
 
   @override
-  String get browseBooks => '去逛逛';
+  String get browseBooks => '浏览书籍';
 
   @override
   String p0Sellers(Object p0) => '${p0} 位卖家';
@@ -21848,10 +21978,10 @@ class _LZhHans extends AppLocalizations {
   String get goWallet => '前往钱包';
 
   @override
-  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => '来自 ${p0} 位卖家，结账后会拆成 ${p1} 笔订单';
+  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => '来自 ${p0} 位卖家，结账后将拆分为 ${p1} 笔订单';
 
   @override
-  String get otherDevicesNeedSignAgainWith => '其他设备需要用新密码重新登录。';
+  String get otherDevicesNeedSignAgainWith => '其他设备须使用新密码重新登录。';
 
   @override
   String get searchChats => '搜索聊天对象';
@@ -21863,7 +21993,7 @@ class _LZhHans extends AppLocalizations {
   String get read => '已读';
 
   @override
-  String get chatNotFound => '找不到这个聊天室';
+  String get chatNotFound => '找不到此聊天室';
 
   @override
   String get messagesCanUp2000Characters => '消息最多 2000 字';
@@ -21872,25 +22002,25 @@ class _LZhHans extends AppLocalizations {
   String get canTSendRightNowPlease => '目前无法发送，请稍后再试';
 
   @override
-  String get reserveBook => '预约这本书';
+  String get reserveBook => '预约书籍';
 
   @override
   String get quickReplies => '快速回复';
 
   @override
-  String get imagesMust10MbSmaller => '图片不能超过 10 MB';
+  String get imagesMust10MbSmaller => '图片不可超过 10 MB';
 
   @override
-  String get recordingFailedPleaseTryAgain => '录音失败，请再试一次';
+  String get recordingFailedPleaseTryAgain => '录音失败，请重试';
 
   @override
-  String get voiceMessageTooLargePleaseRecord => '语音文件太大，请缩短录音';
+  String get voiceMessageTooLargePleaseRecord => '语音文件过大，请缩短录音时长';
 
   @override
-  String get microphoneAllowedPressHoldAgainRecord => '已允许使用麦克风，请再按住按钮开始录音';
+  String get microphoneAllowedPressHoldAgainRecord => '已允许使用麦克风，请再次按住按钮开始录音';
 
   @override
-  String get microphoneAccessNeededRecordTurnSettings => '需要麦克风权限才能录音，请到系统设置开启';
+  String get microphoneAccessNeededRecordTurnSettings => '录音需要麦克风权限，请前往系统设置开启';
 
   @override
   String get couldnTStartRecordingPleaseTry => '无法开始录音，请稍后再试';
@@ -21905,22 +22035,22 @@ class _LZhHans extends AppLocalizations {
   String get resend => '重新发送';
 
   @override
-  String get unsendMessage => '撤回这条消息？';
+  String get unsendMessage => '确定要撤回此消息？';
 
   @override
-  String get neitherAbleSeeMessageSContent => '撤回后双方都看不到这条消息的内容。';
+  String get neitherAbleSeeMessageSContent => '撤回后双方均无法查看此消息内容。';
 
   @override
-  String get reportMessage => '举报这条消息';
+  String get reportMessage => '举报此消息';
 
   @override
   String get reservationSentWaitingSeller => '已发送预约，等待卖家回复';
 
   @override
-  String get acceptReservation => '接受预约？';
+  String get acceptReservation => '确定要接受预约？';
 
   @override
-  String p0HeldThemP1HoursNo(Object p0, Object p1) => '《${p0}》会保留给对方 ${p1} 小时，期间其他人无法购买。';
+  String p0HeldThemP1HoursNo(Object p0, Object p1) => '《${p0}》将为对方保留 ${p1} 小时，期间其他人无法购买。';
 
   @override
   String get accept => '接受';
@@ -21929,10 +22059,10 @@ class _LZhHans extends AppLocalizations {
   String get reservationAccepted => '已接受预约';
 
   @override
-  String get declineReservation => '婉拒预约？';
+  String get declineReservation => '确定要婉拒预约？';
 
   @override
-  String get theyLlNotifiedDeclined => '对方会收到婉拒的通知。';
+  String get theyLlNotifiedDeclined => '系统将通知对方预约已婉拒。';
 
   @override
   String get decline2 => '婉拒';
@@ -21941,7 +22071,7 @@ class _LZhHans extends AppLocalizations {
   String get reservationDeclined => '已婉拒预约';
 
   @override
-  String get cancelReservation => '取消预约？';
+  String get cancelReservation => '确定要取消预约？';
 
   @override
   String p0NoLongerHeld(Object p0) => '取消后《${p0}》将不再保留。';
@@ -21953,7 +22083,7 @@ class _LZhHans extends AppLocalizations {
   String get reservationCanceled => '已取消预约';
 
   @override
-  String get notNow2 => '先不要';
+  String get notNow2 => '返回';
 
   @override
   String get couldnTLoadConversationPleaseTry => '无法加载对话，请稍后再试';
@@ -21962,10 +22092,10 @@ class _LZhHans extends AppLocalizations {
   String get accountCanTReceiveMessagesRight => '对方账号目前无法接收消息';
 
   @override
-  String get holdMicTalkReleaseSend => '按住麦克风说话，松开即可发送';
+  String get holdMicTalkReleaseSend => '按住麦克风录音，松开即可发送';
 
   @override
-  String get startConversation => '对话从这里开始';
+  String get startConversation => '对话开始';
 
   @override
   String p0New(Object p0) => '${p0} 条新消息';
@@ -21977,19 +22107,19 @@ class _LZhHans extends AppLocalizations {
   String get retry => '重试';
 
   @override
-  String get stillAvailable => '请问还在吗？';
+  String get stillAvailable => '请问此书籍仍可购买吗？';
 
   @override
-  String get couldLowerPriceBit => '可以再便宜一点吗？';
+  String get couldLowerPriceBit => '请问是否可议价？';
 
   @override
-  String get whenCanPutLocker => '什么时候可以放进书柜？';
+  String get whenCanPutLocker => '请问预计何时存入书柜？';
 
   @override
-  String get unsentMessage => '你撤回了一条消息';
+  String get unsentMessage => '您已撤回一条消息';
 
   @override
-  String get theyUnsentMessage => '对方撤回了一条消息';
+  String get theyUnsentMessage => '对方已撤回一条消息';
 
   @override
   String get reservationDetailsArenTAvailableRight => '预约信息暂时无法显示';
@@ -22004,10 +22134,10 @@ class _LZhHans extends AppLocalizations {
   String get bookDetailsUpdatedButPhotosCouldn => '书籍资料已更新，但照片上传失败，请稍后再试';
 
   @override
-  String get sNotIsbnBarcodeScanOne => '扫到的不是 ISBN 条码，请扫描书背上 978 或 979 开头的条码';
+  String get sNotIsbnBarcodeScanOne => '扫描到的条码并非 ISBN，请扫描书背上 978 或 979 开头的条码';
 
   @override
-  String get couldnTLoadCategoriesTapRetry => '分类加载失败，点此重试';
+  String get couldnTLoadCategoriesTapRetry => '分类加载失败，请点此重试';
 
   @override
   String removedP0FromSaved(Object p0) => '已取消收藏《${p0}》';
@@ -22019,7 +22149,7 @@ class _LZhHans extends AppLocalizations {
   String clearP0(Object p0) => '清除（${p0}）';
 
   @override
-  String get picked => '猜你喜欢';
+  String get picked => '为您推荐';
 
   @override
   String get seeMore => '查看更多';
@@ -22034,19 +22164,19 @@ class _LZhHans extends AppLocalizations {
   String get notificationDeleted => '已删除通知';
 
   @override
-  String get pleasePutBookAssignedLockerSoon => '请尽快把书放进指定书柜';
+  String get pleasePutBookAssignedLockerSoon => '请尽快将书籍存入指定书柜';
 
   @override
-  String get weLlLetKnowWhenSeller => '卖家存书后会通知你前往取书';
+  String get weLlLetKnowWhenSeller => '卖家存书后将通知您前往取书';
 
   @override
-  String get waitingBuyerCollect => '等待买家到书柜取书';
+  String get waitingBuyerCollect => '等待买家至书柜取书';
 
   @override
-  String get bookLockerEnterPickupCodeCollect => '书已在书柜里，输入取书码即可取书';
+  String get bookLockerEnterPickupCodeCollect => '书籍已存入书柜，输入取书码即可取书';
 
   @override
-  String get transactionCompleteThank => '交易完成，感谢使用';
+  String get transactionCompleteThank => '交易完成，感谢您的使用';
 
   @override
   String get confirmVeTakenBookFromLocker => '请确认已从书柜取出书籍，确认后订单即完成。';
@@ -22058,7 +22188,7 @@ class _LZhHans extends AppLocalizations {
   String p0ReadyPickup(Object p0) => '可取书 ${p0} 笔';
 
   @override
-  String get pickUp => '待取货';
+  String get pickUp => '待取书';
 
   @override
   String get saved => '收藏';
@@ -22067,7 +22197,7 @@ class _LZhHans extends AppLocalizations {
   String get accountSecurity => '账号安全';
 
   @override
-  String get sellerHasnTPutBookLocker => '卖家还没把书放进书柜，存书后会通知你';
+  String get sellerHasnTPutBookLocker => '卖家尚未存书，存书后将通知您';
 
   @override
   String get searchHistoryCleared => '已清除搜索记录';
@@ -22076,31 +22206,31 @@ class _LZhHans extends AppLocalizations {
   String get trendingBooks => '热门书籍';
 
   @override
-  String get signOutDevice => '登出这台设备？';
+  String get signOutDevice => '确定要登出此设备？';
 
   @override
-  String signOutP0(Object p0) => '登出「${p0}」？';
+  String signOutP0(Object p0) => '确定要登出「${p0}」？';
 
   @override
-  String get llNeedSignAgainUseApp => '登出后需要重新登录才能使用。';
+  String get llNeedSignAgainUseApp => '登出后须重新登录才能使用。';
 
   @override
-  String get deviceSignedOutRightAwayStop => '那台设备会立即登出，也不会再收到推送。';
+  String get deviceSignedOutRightAwayStop => '该设备将立即登出，且不再接收推送通知。';
 
   @override
-  String get deviceSignedOut => '已登出这台设备';
+  String get deviceSignedOut => '已登出设备';
 
   @override
-  String get signOutAllDevicesIncludingOne => '登出所有设备（含这台）';
+  String get signOutAllDevicesIncludingOne => '登出所有设备（含本机）';
 
   @override
   String get signOutAllOtherDevices => '登出其他所有设备';
 
   @override
-  String get everyDeviceIncludingOneSignedOut => '包含这台在内的所有设备都会登出，之后需要重新登录。';
+  String get everyDeviceIncludingOneSignedOut => '包含本机在内的所有设备将被登出，之后须重新登录。';
 
   @override
-  String get everyDeviceExceptOneSignedOut => '除了这台之外的设备都会立即登出，也不会再收到推送。';
+  String get everyDeviceExceptOneSignedOut => '除本机外的所有设备将立即登出，且不再接收推送通知。';
 
   @override
   String signedOutP0OtherDevices(Object p0) => '已登出其他 ${p0} 台设备';
@@ -22112,10 +22242,10 @@ class _LZhHans extends AppLocalizations {
   String get couldnTLoadDevices => '无法加载登录设备';
 
   @override
-  String get theseDevicesSignedAccountIfDon => '这些设备当前登录你的账号。看到不认得的设备，请立即登出并修改密码。';
+  String get theseDevicesSignedAccountIfDon => '以下设备当前已登录您的账号。如发现陌生设备，请立即登出并修改密码。';
 
   @override
-  String get device => '这台设备';
+  String get device => '本机';
 
   @override
   String get otherDevices => '其他设备';
@@ -22124,7 +22254,7 @@ class _LZhHans extends AppLocalizations {
   String otherDevicesP0(Object p0) => '其他设备（${p0}）';
 
   @override
-  String get noOtherDevicesSigned => '没有其他设备登录你的账号';
+  String get noOtherDevicesSigned => '没有其他设备登录您的账号';
 
   @override
   String get signedDevices => '登录设备';
@@ -22145,13 +22275,13 @@ class _LZhHans extends AppLocalizations {
   String get paymentPinMust6Digits => '交易密码必须是 6 位数字';
 
   @override
-  String get pinTooEasyGuessTryAnother => '交易密码太简单，请换一组';
+  String get pinTooEasyGuessTryAnother => '交易密码过于简单，请重新设置';
 
   @override
   String get enterPasswordResetPaymentPin => '输入登录密码后即可重新设置交易密码';
 
   @override
-  String get confirmSBeforeSettingPaymentPin => '设置交易密码前，请先确认是你本人';
+  String get confirmSBeforeSettingPaymentPin => '设置交易密码前，请先验证身份';
 
   @override
   String get pinsDonTMatchStartAgain => '两次输入的交易密码不一致，请重新设置';
@@ -22163,22 +22293,22 @@ class _LZhHans extends AppLocalizations {
   String get paymentPinSet => '交易密码已设置';
 
   @override
-  String get use6DigitPinConfirmPayments => '之后结账时，会用这组 6 位数密码确认付款。';
+  String get use6DigitPinConfirmPayments => '今后结账时，将使用此 6 位数密码确认付款。';
 
   @override
   String get verifyingIdentity => '正在确认身份…';
 
   @override
-  String get enterAgainConfirm => '再输入一次确认';
+  String get enterAgainConfirm => '请再次输入以确认';
 
   @override
   String get set6DigitPaymentPin => '设置 6 位数交易密码';
 
   @override
-  String get enterSamePinAgain => '请再输入一次刚才的密码';
+  String get enterSamePinAgain => '请再次输入相同密码';
 
   @override
-  String get avoidRepeatedSequentialPatternedDigits => '不能是相同、连续或重复的数字';
+  String get avoidRepeatedSequentialPatternedDigits => '不可使用相同、连续或重复的数字';
 
   @override
   String get resetPaymentPin => '重设交易密码';
@@ -22193,7 +22323,7 @@ class _LZhHans extends AppLocalizations {
   String get setPaymentPinFirst => '请先设置交易密码';
 
   @override
-  String get setPaymentPinFirstSoFallback => '请先设置交易密码，识别失败时才有替代方式';
+  String get setPaymentPinFirstSoFallback => '请先设置交易密码，作为识别失败时的备用验证方式';
 
   @override
   String get setUpNow => '立即设置';
@@ -22217,22 +22347,22 @@ class _LZhHans extends AppLocalizations {
   String get accountWellProtected => '账号安全状态良好';
 
   @override
-  String get accountCouldSafer => '账号安全还可以加强';
+  String get accountCouldSafer => '账号安全性有待加强';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => '交易密码与生物识别付款都已设置。记得定期检查登录设备。';
+  String get paymentPinBiometricPaymentSetCheck => '交易密码与生物识别付款均已设置，请定期检查登录设备。';
 
   @override
-  String get setPaymentPinTurnBiometricPayment => '设置交易密码并开启生物识别付款，结账会更安全也更快。';
+  String get setPaymentPinTurnBiometricPayment => '设置交易密码并开启生物识别付款，结账更安全、快捷。';
 
   @override
-  String tooManyAttemptsLockedUntilP0(Object p0) => '错误次数过多，锁定到 ${p0}';
+  String tooManyAttemptsLockedUntilP0(Object p0) => '错误次数过多，已锁定至 ${p0}';
 
   @override
-  String get usedConfirmPaymentsCheckout => '结账时用来确认付款';
+  String get usedConfirmPaymentsCheckout => '用于结账时确认付款';
 
   @override
-  String get notSetRequiredBeforeCheckout => '尚未设置，结账前需要先设置';
+  String get notSetRequiredBeforeCheckout => '尚未设置，结账前须完成设置';
 
   @override
   String get change => '更改';
@@ -22250,13 +22380,13 @@ class _LZhHans extends AppLocalizations {
   String p0Devices(Object p0) => '${p0} 台';
 
   @override
-  String get otherDevicesNeedSignAgain => '修改后其他设备需要重新登录';
+  String get otherDevicesNeedSignAgain => '修改后其他设备须重新登录';
 
   @override
   String get restoredUnfinishedListing => '已带入上次未完成的内容';
 
   @override
-  String get isbnSCheckDigitInvalidPlease => '这组 ISBN 的校验码不正确，请再确认一次';
+  String get isbnSCheckDigitInvalidPlease => '此 ISBN 校验码不正确，请再次确认';
 
   @override
   String get draftSavedAutomatically => '已自动保存草稿';
@@ -22280,7 +22410,7 @@ class _LZhHans extends AppLocalizations {
   String get clearCache => '清除缓存';
 
   @override
-  String get removesCachedImagesFilesAccountData => '清除暂存的图片与文件，不会影响账号数据';
+  String get removesCachedImagesFilesAccountData => '清除暂存的图片与文件，不影响账号数据';
 
   @override
   String get couldNotLoadNotificationSettings => '无法加载通知设置';
@@ -22292,10 +22422,10 @@ class _LZhHans extends AppLocalizations {
   String p0P1(Object p0, Object p1) => '${p0} 年 ${p1} 月';
 
   @override
-  String get noIncomeYet => '没有收入记录';
+  String get noIncomeYet => '暂无收入记录';
 
   @override
-  String get noSpendingYet => '没有支出记录';
+  String get noSpendingYet => '暂无支出记录';
 
   @override
   String get income => '收入';
@@ -22331,7 +22461,7 @@ class _LZhHans extends AppLocalizations {
   String get uploadFailedTryAgainLater => '上传失败，请稍后再试';
 
   @override
-  String get nearby => '就在附近';
+  String get nearby => '附近';
 
   @override
   String p0M(Object p0) => '${p0} 米';
@@ -22340,10 +22470,10 @@ class _LZhHans extends AppLocalizations {
   String p0Km(Object p0) => '${p0} 公里';
 
   @override
-  String get iphoneDidnTReceiveApnsToken => '手机没有取得 Apple 推送凭证（APNs token）。请确认 Xcode 的 Signing & Capabilities 已加入 Push Notifications，并用同一个 Apple 开发者账号重新安装 App。';
+  String get iphoneDidnTReceiveApnsToken => '设备未取得 Apple 推送凭证（APNs token）。请确认 Xcode 的 Signing & Capabilities 已加入 Push Notifications，并使用同一个 Apple 开发者账号重新安装 App。';
 
   @override
-  String get firebaseDidnTIssuePushToken => 'Firebase 没有发出推送 token，请确认 GoogleService-Info.plist 与 App 的 Bundle ID 一致';
+  String get firebaseDidnTIssuePushToken => 'Firebase 未签发推送 token，请确认 GoogleService-Info.plist 与 App 的 Bundle ID 一致';
 
   @override
   String couldnTGetPushTokenP0(Object p0) => '获取推送 token 失败：${p0}';
@@ -22352,7 +22482,7 @@ class _LZhHans extends AppLocalizations {
   String couldnTRegisterPushTokenWith(Object p0) => '推送 token 上传服务器失败：${p0}';
 
   @override
-  String get protectCoinsCheckoutRequires6Digit => '为了保护你的代币，结账时需要输入 6 位数交易密码。设置后也可以开启 Face ID 或指纹付款。';
+  String get protectCoinsCheckoutRequires6Digit => '为保障您的代币安全，结账时须输入 6 位数交易密码。设置后也可开启 Face ID 或指纹付款。';
 
   @override
   String confirmPaymentP0Coins(Object p0) => '确认付款 ${p0} 代币';
@@ -22376,7 +22506,7 @@ class _LZhHans extends AppLocalizations {
   String get enterPaymentPinContinue => '请输入交易密码以继续';
 
   @override
-  String get paymentPinResetEnterAgain => '交易密码已重新设置，请再输入一次';
+  String get paymentPinResetEnterAgain => '交易密码已重新设置，请再次输入';
 
   @override
   String get usePasswordInstead => '改用登录密码';
@@ -22388,7 +22518,7 @@ class _LZhHans extends AppLocalizations {
   String p0SlotsFree(Object p0) => '空柜 ${p0} 格';
 
   @override
-  String openP0(Object p0) => '营业 ${p0}';
+  String openP0(Object p0) => '开放 ${p0}';
 
   @override
   String get nearest => '最近';
@@ -22403,7 +22533,7 @@ class _LZhHans extends AppLocalizations {
   String get turnLocationSortByDistance => '开启定位可按距离排序';
 
   @override
-  String get lockerNoFreeSlotsRightNow => '这个书柜目前没有空柜';
+  String get lockerNoFreeSlotsRightNow => '此书柜目前没有空柜';
 
   @override
   String get turn => '开启定位';
@@ -22439,13 +22569,13 @@ class _LZhHans extends AppLocalizations {
   String get releaseCancel => '松开以取消';
 
   @override
-  String get slideCancel => '← 滑动取消';
+  String get slideCancel => '← 滑动以取消';
 
   @override
   String get awaitingReply => '待回复';
 
   @override
-  String heldUntilP0(Object p0) => '已保留到 ${p0}';
+  String heldUntilP0(Object p0) => '已保留至 ${p0}';
 
   @override
   String get declined2 => '已婉拒';
@@ -22454,22 +22584,22 @@ class _LZhHans extends AppLocalizations {
   String get closed => '已结束';
 
   @override
-  String get theyWantReserveBook => '对方想预约你的书';
+  String get theyWantReserveBook => '对方申请预约您的书籍';
 
   @override
-  String get sentReservationRequest => '你发送了预约';
+  String get sentReservationRequest => '您已发送预约';
 
   @override
   String holdP0H(Object p0) => '保留 ${p0} 小时';
 
   @override
-  String get onceSellerAcceptsBookHeldNo => '卖家接受后，这本书会保留给你，其他人在期限内无法购买。';
+  String get onceSellerAcceptsBookHeldNo => '卖家接受后，此书籍将为您保留，期限内其他人无法购买。';
 
   @override
   String get holdPeriod => '保留时间';
 
   @override
-  String get messageSellerOptional => '想对卖家说的话（选填）';
+  String get messageSellerOptional => '给卖家的留言（选填）';
 
   @override
   String get sendRequest => '发送预约';
@@ -22479,6 +22609,36 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String p0P1DigitsEntered(Object p0, Object p1) => '已输入 ${p0} / ${p1} 位';
+
+  @override
+  String get buildSProvisioningProfileDoesnT => '此安装版本的签名描述文件未包含推送权限。请在 Xcode 的 Runner › Signing & Capabilities 确认已加入 Push Notifications，并删除 App 后重新安装。';
+
+  @override
+  String get checkPhoneOnlinePushNotificationsAdded => '请确认设备已连接网络，并在 Xcode 的 Runner › Signing & Capabilities 确认已加入 Push Notifications。';
+
+  @override
+  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone 向 Apple 注册推送失败：${p0}\n${p1}';
+
+  @override
+  String get serverNotBeenUpdatedSupportFeature => '服务器尚未更新到支持这项功能的版本，请稍后再试';
+
+  @override
+  String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暂时无法使用，服务器正在更新';
+
+  @override
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '服务器运行的 API 版本过旧（当前 ${p0}，App 需要 ${p1}）。请在服务器更新代码并重新启动 API。';
+
+  @override
+  String databaseMigrationsNotYetRunP0(Object p0) => '数据库尚未执行：${p0}';
+
+  @override
+  String serverVersionP0(Object p0) => '服务器当前版本：${p0}';
+
+  @override
+  String get runNpmRunVerifyApiDirectory => '在服务器的 API 目录执行 npm run verify 可检查完整的部署状态。';
+
+  @override
+  String get serverUpdateRequired => '服务器需要更新';
 
 }
 
@@ -22870,7 +23030,7 @@ class _LZhHant extends AppLocalizations {
   String get regenerateShareLink => '重新產生分享連結';
 
   @override
-  String get oldLinkQrCodeStopWorking => '舊的連結與 QR Code 會立即失效，已經分享出去的人將無法再開啟。確定要重新產生嗎？';
+  String get oldLinkQrCodeStopWorking => '舊的連結與 QR Code 將立即失效，已分享的連結將無法開啟。確定要重新產生嗎？';
 
   @override
   String get regenerate => '重新產生';
@@ -22885,10 +23045,10 @@ class _LZhHant extends AppLocalizations {
   String get accountPermanentlyDisabled30DaysSign => '帳號將在 30 天後永久停用，期間內重新登入即可取消。\n\n';
 
   @override
-  String get personalDataErasedButCompletedOrders => '停用後個人資料會被清除，但已完成的訂單與交易紀錄會保留，';
+  String get personalDataErasedButCompletedOrders => '停用後將清除個人資料，但保留已完成的訂單與交易紀錄，';
 
   @override
-  String get peopleTradedWithDoNotLose => '交易對象的紀錄才不會出現缺漏。';
+  String get peopleTradedWithDoNotLose => '以確保交易對象的紀錄完整。';
 
   @override
   String get actionContinue => '繼續';
@@ -22897,7 +23057,7 @@ class _LZhHant extends AppLocalizations {
   String get verify => '確認身分';
 
   @override
-  String get enterPasswordConfirm => '請輸入密碼以確認這是本人的操作。';
+  String get enterPasswordConfirm => '請輸入密碼以確認身分。';
 
   @override
   String get password => '密碼';
@@ -22909,13 +23069,13 @@ class _LZhHant extends AppLocalizations {
   String get receivedSignAgainWithin30Days => '已受理，30 天內重新登入即可取消';
 
   @override
-  String get deletionCancelledAccountActiveAgain => '已取消刪除，帳號恢復正常';
+  String get deletionCancelledAccountActiveAgain => '已取消刪除，帳號已恢復';
 
   @override
   String get account => '帳號管理';
 
   @override
-  String get data => '你的資料';
+  String get data => '個人資料';
 
   @override
   String get exportMyData => '匯出我的資料';
@@ -22924,22 +23084,22 @@ class _LZhHant extends AppLocalizations {
   String get profileBooksOrdersTransactionsJson => '個人檔案、書籍、訂單與交易紀錄，JSON 格式';
 
   @override
-  String get oldLinkQrCodeStopWorking2 => '舊的連結與 QR Code 會立即失效';
+  String get oldLinkQrCodeStopWorking2 => '舊的連結與 QR Code 將立即失效';
 
   @override
   String get cancelAccountDeletion => '取消刪除帳號';
 
   @override
-  String get restoreAccountStopCountdown => '恢復帳號，停止刪除倒數';
+  String get restoreAccountStopCountdown => '恢復帳號並停止刪除程序';
 
   @override
-  String get canChangeMindWithin30Days => '30 天緩衝期內可以反悔';
+  String get canChangeMindWithin30Days => '30 天內可取消刪除';
 
   @override
-  String get deletionPending => '刪除倒數中';
+  String get deletionPending => '待刪除';
 
   @override
-  String daysLeftCanCancelAnyTime(Object p0) => '還有 ${p0} 天。在這之前隨時可以取消，逾期後個人資料將被清除且無法復原。';
+  String daysLeftCanCancelAnyTime(Object p0) => '剩餘 ${p0} 天。期限內可隨時取消，逾期後個人資料將被清除且無法復原。';
 
   @override
   String get signOut => '登出';
@@ -23005,7 +23165,7 @@ class _LZhHant extends AppLocalizations {
   String get signAddItemsCart => '請先登入才能加入購物車';
 
   @override
-  String bookCannotPurchased(Object p0) => '這本書目前${p0}，無法購買';
+  String bookCannotPurchased(Object p0) => '此書籍目前${p0}，無法購買';
 
   @override
   String get addedCart => '已加入購物車';
@@ -23035,7 +23195,7 @@ class _LZhHant extends AppLocalizations {
   String get reasonNeedsLeast5Characters => '請至少填寫 5 個字的檢舉原因';
 
   @override
-  String get reportSubmittedWeLookInto => '檢舉已送出，我們會盡快處理';
+  String get reportSubmittedWeLookInto => '檢舉已送出，我們將盡快處理';
 
   @override
   String get publisher => '出版社：';
@@ -23047,7 +23207,7 @@ class _LZhHant extends AppLocalizations {
   String get listed => '上架日期：';
 
   @override
-  String get searchTitleAuthorPublisher => '搜尋書名、作者、出版社...';
+  String get searchTitleAuthorPublisher => '搜尋書名、作者或出版社';
 
   @override
   String get share => '分享';
@@ -23062,31 +23222,31 @@ class _LZhHant extends AppLocalizations {
   String pickup(Object p0) => '取書地點：${p0}';
 
   @override
-  String get messageSeller => '與賣家聊聊';
+  String get messageSeller => '聯絡賣家';
 
   @override
-  String get listing => '這是你的書';
+  String get listing => '您上架的書籍';
 
   @override
   String get addCart => '加入購物車';
 
   @override
-  String get bookBeenReportedUnderReviewStays => '這本書被檢舉，平台正在審核，期間仍可正常販售。';
+  String get bookBeenReportedUnderReviewStays => '此書籍已遭檢舉，平台審核期間仍可正常販售。';
 
   @override
-  String get violationWasConfirmedBookPleaseCheck => '這本書經審核違規成立，請確認商品內容是否符合社群規範。';
+  String get violationWasConfirmedBookPleaseCheck => '此書籍經審核確認違規，請確認商品內容是否符合社群規範。';
 
   @override
   String get reportDismissed2 => '檢舉已駁回';
 
   @override
-  String get bookWasReportedButNoViolation => '這本書曾被檢舉，經審核未違規，不影響上架。';
+  String get bookWasReportedButNoViolation => '此書籍曾遭檢舉，經審核未違規，不影響上架。';
 
   @override
   String get delist => '取消上架';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》將從商城下架，買家不會再看到它。';
+  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》將從商城下架，買家將無法瀏覽。';
 
   @override
   String get delist2 => '下架';
@@ -23101,13 +23261,13 @@ class _LZhHant extends AppLocalizations {
   String listedAgain(Object p0) => '《${p0}》已重新上架';
 
   @override
-  String get notListedAnyBooksYet => '你還沒有上架任何書籍';
+  String get notListedAnyBooksYet => '尚未上架任何書籍';
 
   @override
-  String get noBooksCategory => '這個分類目前沒有書籍';
+  String get noBooksCategory => '此分類目前沒有書籍';
 
   @override
-  String get listFirstBook => '去上架第一本書';
+  String get listFirstBook => '上架第一本書';
 
   @override
   String get relist => '重新上架';
@@ -23116,7 +23276,7 @@ class _LZhHant extends AppLocalizations {
   String get removeFromCart => '移出購物車';
 
   @override
-  String removeFromCart2(Object p0) => '要把《${p0}》從購物車移除嗎？';
+  String removeFromCart2(Object p0) => '確定要將《${p0}》從購物車移除嗎？';
 
   @override
   String get remove => '移除';
@@ -23131,7 +23291,7 @@ class _LZhHant extends AppLocalizations {
   String get selectBooksWantCheckOut => '請先選擇要結帳的書籍';
 
   @override
-  String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代幣不足，這筆訂單需要 ${p0}，目前只有 ${p1}';
+  String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代幣不足，此訂單需 ${p0}，目前餘額 ${p1}';
 
   @override
   String get confirmCheckout => '確認結帳';
@@ -23149,7 +23309,7 @@ class _LZhHant extends AppLocalizations {
   String get cart => '購物車';
 
   @override
-  String get cartEmpty => '購物車是空的';
+  String get cartEmpty => '購物車內沒有商品';
 
   @override
   String get selectAll => '全選';
@@ -23164,7 +23324,7 @@ class _LZhHant extends AppLocalizations {
   String get select => '選取';
 
   @override
-  String coinsShort(Object p0) => '還差 ${p0} 代幣';
+  String coinsShort(Object p0) => '尚差 ${p0} 代幣';
 
   @override
   String get total => '合計';
@@ -23176,7 +23336,7 @@ class _LZhHant extends AppLocalizations {
   String balance2(Object p0) => '餘額 ${p0}';
 
   @override
-  String get selectBookFirst => '請先選書';
+  String get selectBookFirst => '請選擇書籍';
 
   @override
   String get checkOut => '結帳';
@@ -23185,13 +23345,13 @@ class _LZhHant extends AppLocalizations {
   String get notEnoughCoins => '代幣不足';
 
   @override
-  String get weak => '偏弱';
+  String get weak => '弱';
 
   @override
   String get fair => '普通';
 
   @override
-  String get strong => '很強';
+  String get strong => '強';
 
   @override
   String get enterCurrentPassword => '請輸入目前密碼';
@@ -23203,7 +23363,7 @@ class _LZhHant extends AppLocalizations {
   String get newPasswordMustDifferent => '新密碼不可與目前密碼相同';
 
   @override
-  String get enterNewPasswordAgain => '請再輸入一次新密碼';
+  String get enterNewPasswordAgain => '請再次輸入新密碼';
 
   @override
   String get passwordsDoNotMatch => '兩次輸入的新密碼不一致';
@@ -23215,7 +23375,7 @@ class _LZhHant extends AppLocalizations {
   String get changePassword => '更改密碼';
 
   @override
-  String get useLeast8CharactersWithBoth => '密碼需要至少 8 碼，並同時包含英文與數字。';
+  String get useLeast8CharactersWithBoth => '密碼須至少 8 碼，且同時包含英文與數字。';
 
   @override
   String get currentPassword => '目前密碼';
@@ -23233,7 +23393,7 @@ class _LZhHant extends AppLocalizations {
   String get deleteChat => '刪除聊天室';
 
   @override
-  String allMessagesWithDeletedBothCannot(Object p0) => '會一併刪除與 ${p0} 的所有訊息，雙方都看不到了。此動作無法復原。';
+  String allMessagesWithDeletedBothCannot(Object p0) => '將一併刪除與 ${p0} 的所有訊息，雙方皆無法再查看。此操作無法復原。';
 
   @override
   String get chatDeleted => '已刪除聊天室';
@@ -23242,7 +23402,7 @@ class _LZhHant extends AppLocalizations {
   String get couldNotDeleteRestored => '刪除失敗，已還原';
 
   @override
-  String get chatMuted => '已靜音這個聊天室';
+  String get chatMuted => '已將此聊天室設為靜音';
 
   @override
   String get chatUnmuted => '已取消靜音';
@@ -23254,7 +23414,7 @@ class _LZhHant extends AppLocalizations {
   String get markAllAsRead => '全部標為已讀';
 
   @override
-  String markAllUnreadMessagesAsRead(Object p0) => '要把 ${p0} 則未讀訊息全部標為已讀嗎？此動作無法復原。';
+  String markAllUnreadMessagesAsRead(Object p0) => '確定要將 ${p0} 則未讀訊息全部標為已讀嗎？此操作無法復原。';
 
   @override
   String get markAllRead => '全部已讀';
@@ -23269,7 +23429,7 @@ class _LZhHant extends AppLocalizations {
   String get chats => '聊天室';
 
   @override
-  String get noConversationsYet => '還沒有任何對話';
+  String get noConversationsYet => '尚無任何對話';
 
   @override
   String get unmute => '取消靜音';
@@ -23287,16 +23447,16 @@ class _LZhHant extends AppLocalizations {
   String get chat => '聊天';
 
   @override
-  String get sendFirstMessage => '開始你們的第一則訊息吧';
+  String get sendFirstMessage => '傳送第一則訊息';
 
   @override
   String get messageCopied => '已複製訊息';
 
   @override
-  String get iQuestionAboutBook => '想詢問這本書';
+  String get iQuestionAboutBook => '詢問書籍';
 
   @override
-  String get bookNoLongerListed => '這本書已經下架了';
+  String get bookNoLongerListed => '此書籍已下架';
 
   @override
   String get writeMessage => '輸入訊息…';
@@ -23308,19 +23468,19 @@ class _LZhHant extends AppLocalizations {
   String get describeDispute => '請填寫爭議說明';
 
   @override
-  String get useLeast10CharactersSoSupport => '爭議說明請至少填寫 10 個字，方便客服判斷';
+  String get useLeast10CharactersSoSupport => '爭議說明請至少填寫 10 個字，以利客服判斷';
 
   @override
   String get submitDispute => '送出爭議申請';
 
   @override
-  String get orderEntersDisputeProcessPaymentSeller => '送出後這筆訂單會進入申訴流程，款項會暫停撥給賣家，直到客服裁決。';
+  String get orderEntersDisputeProcessPaymentSeller => '送出後此訂單將進入申訴流程，款項將暫停撥付給賣家，直至客服裁決。';
 
   @override
   String paymentHoldRequested(Object p0) => '[申請凍結款項] ${p0}';
 
   @override
-  String get disputeSubmittedSupportContact => '爭議申請已送出，客服會盡快與你聯繫';
+  String get disputeSubmittedSupportContact => '爭議申請已送出，客服將盡快與您聯繫';
 
   @override
   String get dispute => '爭議處理';
@@ -23329,7 +23489,7 @@ class _LZhHant extends AppLocalizations {
   String get requestPaymentHold => '申請凍結款項';
 
   @override
-  String get paymentSellerHeldUntilSupportDecides => '送出後款項會暫停撥給賣家，直到客服裁決';
+  String get paymentSellerHeldUntilSupportDecides => '送出後款項將暫停撥付給賣家，直至客服裁決';
 
   @override
   String get submitDispute2 => '提交爭議申請';
@@ -23353,7 +23513,7 @@ class _LZhHant extends AppLocalizations {
   String get uploadPhotos => '上傳圖片';
 
   @override
-  String get canAttachUp6Photos => '最多只能上傳 6 張佐證照片';
+  String get canAttachUp6Photos => '最多可上傳 6 張佐證照片';
 
   @override
   String get up5 => '最多 5 張';
@@ -23362,7 +23522,7 @@ class _LZhHant extends AppLocalizations {
   String get couldNotReplacePhotoPleaseTry => '無法替換原本的照片，請稍後再試';
 
   @override
-  String get keepLeastOnePhoto => '至少要保留一張照片';
+  String get keepLeastOnePhoto => '請至少保留一張照片';
 
   @override
   String get photoDeleted => '已刪除照片';
@@ -23371,16 +23531,16 @@ class _LZhHant extends AppLocalizations {
   String get couldNotDeletePhotoPleaseTry => '刪除圖片失敗，請稍後再試';
 
   @override
-  String get canUp10Photos => '最多只能有 10 張照片';
+  String get canUp10Photos => '最多可上傳 10 張照片';
 
   @override
   String get deletePhoto => '刪除照片';
 
   @override
-  String get cannotUndoneContinue => '刪除後無法復原，確定嗎？';
+  String get cannotUndoneContinue => '刪除後無法復原，確定要刪除嗎？';
 
   @override
-  String get photoMissingDataRefreshTryAgain => '這張照片的資料不完整，請重新整理後再試';
+  String get photoMissingDataRefreshTryAgain => '此照片資料不完整，請重新整理後再試';
 
   @override
   String get enterPrice => '請填寫價格';
@@ -23395,7 +23555,7 @@ class _LZhHant extends AppLocalizations {
   String get chooseLockerLocation => '請選擇存放區域';
 
   @override
-  String missingTheseThreeRequired(Object p0) => '還缺少：${p0}，這三張是必填的';
+  String missingTheseThreeRequired(Object p0) => '尚缺：${p0}（以上三張為必填）';
 
   @override
   String get bookUpdated => '書籍已更新';
@@ -23506,7 +23666,7 @@ class _LZhHant extends AppLocalizations {
   String get bio => '個人簡介';
 
   @override
-  String get tellPeopleAboutYourself => '介紹一下自己吧';
+  String get tellPeopleAboutYourself => '簡單介紹自己';
 
   @override
   String get email => '信箱';
@@ -23527,7 +23687,7 @@ class _LZhHant extends AppLocalizations {
   String get savedBooks => '收藏書籍';
 
   @override
-  String get notSavedAnyBooksYet => '還沒有收藏任何書籍';
+  String get notSavedAnyBooksYet => '尚未收藏任何書籍';
 
   @override
   String get helpCentre => '幫助中心';
@@ -23536,7 +23696,7 @@ class _LZhHant extends AppLocalizations {
   String get searchQuestions => '搜尋問題';
 
   @override
-  String get noQuestionsYet => '目前還沒有常見問題';
+  String get noQuestionsYet => '目前尚無常見問題';
 
   @override
   String get noMatchingQuestions => '找不到相關問題';
@@ -23554,22 +23714,22 @@ class _LZhHant extends AppLocalizations {
   String get priceHighLow => '價格由高到低';
 
   @override
-  String get reachedEnd => '您已滑到底部';
+  String get reachedEnd => '已顯示全部內容';
 
   @override
   String get guest => '訪客';
 
   @override
-  String hi(Object p0) => '哈囉, ${p0}';
+  String hi(Object p0) => '您好，${p0}';
 
   @override
   String get noBooksMatchFilters => '目前沒有符合條件的書籍';
 
   @override
-  String get couldNotReadPhoto => '無法讀取這張照片';
+  String get couldNotReadPhoto => '無法讀取此照片';
 
   @override
-  String get croppingFailedPleaseTryAgain => '裁切失敗，請再試一次';
+  String get croppingFailedPleaseTryAgain => '裁切失敗，請重試';
 
   @override
   String get adjustPhoto => '調整照片';
@@ -23578,10 +23738,10 @@ class _LZhHant extends AppLocalizations {
   String get reset => '重設';
 
   @override
-  String get usePhoto => '使用這張';
+  String get usePhoto => '使用此照片';
 
   @override
-  String get documentNotBeenCreatedYet => '這份文件尚未建立';
+  String get documentNotBeenCreatedYet => '此文件尚未建立';
 
   @override
   String lastUpdated(Object p0) => '最後更新：${p0}';
@@ -23596,10 +23756,10 @@ class _LZhHant extends AppLocalizations {
   String turnSign(Object p0) => '啟用 ${p0} 登入？';
 
   @override
-  String nextTimeOpenAppCanUnlock(Object p0) => '下次開啟 App 就能直接用 ${p0} 解鎖，不用再輸入密碼。';
+  String nextTimeOpenAppCanUnlock(Object p0) => '下次開啟 App 時可使用 ${p0} 解鎖，無須輸入密碼。';
 
   @override
-  String get notNow => '暫時不要';
+  String get notNow => '暫不啟用';
 
   @override
   String get enterEmail => '請輸入 Email';
@@ -23614,7 +23774,7 @@ class _LZhHant extends AppLocalizations {
   String get noAccountWithEmail => '此帳號尚未註冊';
 
   @override
-  String noAccountCreateOneNow(Object p0) => '找不到「${p0}」這個帳號。要現在建立一個嗎？';
+  String noAccountCreateOneNow(Object p0) => '找不到帳號「${p0}」，是否立即註冊？';
 
   @override
   String get signUp => '前往註冊';
@@ -23629,13 +23789,13 @@ class _LZhHant extends AppLocalizations {
   String signWith(Object p0) => '使用 ${p0} 登入';
 
   @override
-  String get noAccountYetSignUp => '還沒有帳號？立即註冊';
+  String get noAccountYetSignUp => '尚無帳號？立即註冊';
 
   @override
   String get membershipTiersNotSetUpYet => '尚未設定會員等級制度';
 
   @override
-  String get currentTier => '您目前的級別';
+  String get currentTier => '目前等級';
 
   @override
   String get unlocked => '已解鎖';
@@ -23644,10 +23804,10 @@ class _LZhHant extends AppLocalizations {
   String get locked => '尚未解鎖';
 
   @override
-  String get aboveTier => '您已高於此級別';
+  String get aboveTier => '已超過此等級';
 
   @override
-  String get reachedTopTier => '您已達到最高級別';
+  String get reachedTopTier => '已達最高等級';
 
   @override
   String unlocked2(Object p0) => '已解鎖「${p0}」';
@@ -23656,7 +23816,7 @@ class _LZhHant extends AppLocalizations {
   String morePointsUnlock(Object p0, Object p1) => '再 ${p0} 點即可解鎖「${p1}」';
 
   @override
-  String benefits(Object p0) => '${p0}級別獎勵';
+  String benefits(Object p0) => '${p0}等級權益';
 
   @override
   String get noBenefitsBeenDescribedTierYet => '尚未設定此等級的權益說明。';
@@ -23665,13 +23825,13 @@ class _LZhHant extends AppLocalizations {
   String pointsFromCompletedOrders(Object p0, Object p1) => '目前累積 ${p0} 點，已完成 ${p1} 筆交易';
 
   @override
-  String get noNotificationsClear => '沒有通知可以清除';
+  String get noNotificationsClear => '目前沒有可清除的通知';
 
   @override
   String get clearAllNotifications => '清除全部通知';
 
   @override
-  String notificationsDeletedCannotUndone(Object p0) => '會刪除 ${p0} 則通知，無法復原。';
+  String notificationsDeletedCannotUndone(Object p0) => '將刪除 ${p0} 則通知，此操作無法復原。';
 
   @override
   String get clearAll => '全部清除';
@@ -23683,10 +23843,10 @@ class _LZhHant extends AppLocalizations {
   String get couldNotClearPleaseTryAgain => '清除失敗，請稍後再試';
 
   @override
-  String get noUnreadNotifications => '沒有未讀的通知';
+  String get noUnreadNotifications => '沒有未讀通知';
 
   @override
-  String markAllUnreadNotificationsAsRead(Object p0) => '要把 ${p0} 則未讀通知全部標為已讀嗎？此動作無法復原。';
+  String markAllUnreadNotificationsAsRead(Object p0) => '確定要將 ${p0} 則未讀通知全部標為已讀嗎？此操作無法復原。';
 
   @override
   String get openChat => '前往聊天室';
@@ -23719,7 +23879,7 @@ class _LZhHant extends AppLocalizations {
   String items2(Object p0) => '商品明細（${p0}）';
 
   @override
-  String get orderNoItemDetails => '這筆訂單沒有品項資料。';
+  String get orderNoItemDetails => '此訂單無品項資料。';
 
   @override
   String msg4(Object p0, Object p1) => '單價 \\\$${p0} × ${p1}';
@@ -23764,7 +23924,7 @@ class _LZhHant extends AppLocalizations {
   String get cancelOrder => '取消訂單';
 
   @override
-  String get pendingPayoutDisappearsBuyerNotified => '取消後這筆待定收益會一併消失，買家也會收到通知。';
+  String get pendingPayoutDisappearsBuyerNotified => '取消後此筆待定收益將一併取消，並通知買家。';
 
   @override
   String get cancelledBySeller => '賣家取消';
@@ -23782,7 +23942,7 @@ class _LZhHant extends AppLocalizations {
   String get pendingAmount => '待定收益金額';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '買家完成取書後會自動撥入代幣餘額';
+  String get coinsArriveOnceBuyerCollectsBook => '買家完成取書後，款項將自動撥入代幣餘額';
 
   @override
   String get scanned => '掃描成功';
@@ -23791,19 +23951,19 @@ class _LZhHant extends AppLocalizations {
   String get scanAgain => '繼續掃描';
 
   @override
-  String get collectBook => '我要取書';
+  String get collectBook => '取書';
 
   @override
-  String get pointPickupQrCode => '對準取書 QR Code';
+  String get pointPickupQrCode => '請對準取書 QR Code';
 
   @override
-  String get holdSteady => '對準勿搖晃';
+  String get holdSteady => '請保持裝置穩定';
 
   @override
   String get bookCollected => '取書完成';
 
   @override
-  String get thanksUsingSavemybookHappyReading => '感謝你的使用，祝閱讀愉快！';
+  String get thanksUsingSavemybookHappyReading => '感謝您的使用，祝您閱讀愉快。';
 
   @override
   String collected(Object p0) => '《${p0}》已完成取書';
@@ -23818,10 +23978,10 @@ class _LZhHant extends AppLocalizations {
   String get myAccount => '會員中心';
 
   @override
-  String get personNotWrittenBioYet => '這個人很懶，什麼都沒留下';
+  String get personNotWrittenBioYet => '尚未填寫個人簡介';
 
   @override
-  String get topTierReached => '已達到最高級別';
+  String get topTierReached => '已達最高等級';
 
   @override
   String morePointsReach(Object p0, Object p1) => '再 ${p0} 點升級為「${p1}」';
@@ -23830,7 +23990,7 @@ class _LZhHant extends AppLocalizations {
   String get myCoins => '我的代幣';
 
   @override
-  String get shareProfile => '分享檔案';
+  String get shareProfile => '分享個人檔案';
 
   @override
   String get purchases => '購買紀錄';
@@ -23845,25 +24005,25 @@ class _LZhHant extends AppLocalizations {
   String get signOut2 => '確認登出';
 
   @override
-  String get needSignAgainKeepUsingApp => '登出後需要重新輸入帳號密碼才能繼續使用。';
+  String get needSignAgainKeepUsingApp => '登出後須重新登入才能繼續使用。';
 
   @override
-  String cancelOrderBookReturnsShop(Object p0) => '確定要取消訂單 ${p0} 嗎？取消後書籍會回到商城重新販售。';
+  String cancelOrderBookReturnsShop(Object p0) => '確定要取消訂單 ${p0} 嗎？取消後書籍將重新於商城販售。';
 
   @override
-  String get pickupCode2 => '取書代碼';
+  String get pickupCode2 => '取書碼';
 
   @override
   String get notGeneratedYet => '尚未產生';
 
   @override
-  String get enterCodeLockerCollect => '請在書櫃上輸入此代碼取書';
+  String get enterCodeLockerCollect => '請於書櫃輸入此代碼取書';
 
   @override
   String enterCodeCollect(Object p0) => '請至「${p0}」輸入此代碼取書';
 
   @override
-  String get iCollected => '我已完成取書';
+  String get iCollected => '確認取書';
 
   @override
   String get noOrdersTab => '此分類目前沒有訂單';
@@ -23878,7 +24038,7 @@ class _LZhHant extends AppLocalizations {
   String get displayNameLimited50Characters => '暱稱不可超過 50 個字元';
 
   @override
-  String get enterPasswordAgain => '請再輸入一次密碼';
+  String get enterPasswordAgain => '請再次輸入密碼';
 
   @override
   String get passwordsDoNotMatch2 => '兩次輸入的密碼不一致';
@@ -23902,16 +24062,16 @@ class _LZhHant extends AppLocalizations {
   String get joinSavemybook => '加入救「舊」我的書';
 
   @override
-  String get signUpBuySellUseSmart => '註冊後就能買書、賣書與使用智慧書櫃';
+  String get signUpBuySellUseSmart => '註冊後即可買書、賣書及使用智慧書櫃';
 
   @override
   String get displayName => '暱稱';
 
   @override
-  String get nameOthersSee => '其他人會看到的名字';
+  String get nameOthersSee => '其他使用者可見的名稱';
 
   @override
-  String get emailSignWith => '用來登入的信箱';
+  String get emailSignWith => '用於登入的信箱';
 
   @override
   String get least8CharactersWithLettersNumbers => '至少 8 碼，需含英文與數字';
@@ -23920,10 +24080,10 @@ class _LZhHant extends AppLocalizations {
   String get confirmPassword => '確認密碼';
 
   @override
-  String get enterPasswordAgain2 => '再輸入一次密碼';
+  String get enterPasswordAgain2 => '請再次輸入密碼';
 
   @override
-  String get alreadyAccountGoBackSign => '已經有帳號了？返回上一頁登入';
+  String get alreadyAccountGoBackSign => '已有帳號？返回登入';
 
   @override
   String get markAsDroppedOff => '完成存書';
@@ -23935,16 +24095,16 @@ class _LZhHant extends AppLocalizations {
   String get markedAsDroppedOff => '已標記為完成存書';
 
   @override
-  String get buyerNotifiedBookReturnsShop => '取消後買家會收到通知，書籍會回到商城重新販售。';
+  String get buyerNotifiedBookReturnsShop => '取消後將通知買家，書籍將重新於商城販售。';
 
   @override
-  String get dropOffPickupCode => '存書／取書代碼';
+  String get dropOffPickupCode => '存書／取書碼';
 
   @override
-  String get enterCodeLocker => '請在書櫃上輸入此代碼';
+  String get enterCodeLocker => '請於書櫃輸入此代碼';
 
   @override
-  String get noRecentSearches => '還沒有搜尋紀錄';
+  String get noRecentSearches => '尚無搜尋紀錄';
 
   @override
   String get recentSearches => '最近搜尋';
@@ -23953,19 +24113,19 @@ class _LZhHant extends AppLocalizations {
   String get clearAll2 => '清除全部';
 
   @override
-  String get searchTitleAuthorIsbn => '搜尋書名、作者、ISBN...';
+  String get searchTitleAuthorIsbn => '搜尋書名、作者或 ISBN';
 
   @override
   String get photoLimitReached => '照片已滿';
 
   @override
-  String get canUploadUp10Photos => '最多只能上傳 10 張照片。';
+  String get canUploadUp10Photos => '最多可上傳 10 張照片。';
 
   @override
   String get photosMissing => '照片不足';
 
   @override
-  String missingTheseThreeRequired2(Object p0) => '還缺少：${p0}。這三張是必填的。';
+  String missingTheseThreeRequired2(Object p0) => '尚缺：${p0}。以上三張為必填。';
 
   @override
   String get missingInformation => '資料不齊全';
@@ -23986,7 +24146,7 @@ class _LZhHant extends AppLocalizations {
   String get chooseLockerLocation2 => '請選擇存放區域。';
 
   @override
-  String get listed2 => '上架成功！';
+  String get listed2 => '上架成功';
 
   @override
   String get unknownError => '未知錯誤';
@@ -24001,19 +24161,19 @@ class _LZhHant extends AppLocalizations {
   String get connectionProblem => '連線異常';
 
   @override
-  String get couldNotReachServerUploadTimed => '無法連線至伺服器或上傳超時，請檢查網路狀態。';
+  String get couldNotReachServerUploadTimed => '無法連線至伺服器或上傳逾時，請檢查網路狀態。';
 
   @override
-  String get listBook => '確認完成上架';
+  String get listBook => '確認上架';
 
   @override
   String get detailsPhotos => '詳細資訊與照片';
 
   @override
-  String get loading => '載入中...';
+  String get loading => '載入中…';
 
   @override
-  String get unknownLocker => '未知機櫃';
+  String get unknownLocker => '未知書櫃';
 
   @override
   String get enterTitle2 => '請輸入書名';
@@ -24022,13 +24182,13 @@ class _LZhHant extends AppLocalizations {
   String get chooseCategory2 => '請選擇分類';
 
   @override
-  String get bookDetailsFilledAutomatically => '已自動帶入書籍資訊！';
+  String get bookDetailsFilledAutomatically => '已自動帶入書籍資訊';
 
   @override
-  String get bookDetailsFilledFromBackupSource => '已透過備援系統帶入書籍資訊！';
+  String get bookDetailsFilledFromBackupSource => '已透過備援資料來源帶入書籍資訊';
 
   @override
-  String get noSourceIsbnPleaseEnterDetails => '各系統皆找不到此 ISBN，請嘗試手動輸入';
+  String get noSourceIsbnPleaseEnterDetails => '查無此 ISBN 的書籍資訊，請手動輸入';
 
   @override
   String get day => '日';
@@ -24040,13 +24200,13 @@ class _LZhHant extends AppLocalizations {
   String get description => '書籍簡介';
 
   @override
-  String get sellBook => '我要賣書';
+  String get sellBook => '上架書籍';
 
   @override
   String get myShop => '我的賣場';
 
   @override
-  String get sellerNoBooksSale => '這位賣家目前沒有販售中的書籍';
+  String get sellerNoBooksSale => '此賣家目前沒有販售中的書籍';
 
   @override
   String get loading2 => '載入中…';
@@ -24094,10 +24254,10 @@ class _LZhHant extends AppLocalizations {
   String get lineUpTheirQrCodeWith => '將對方的 QR Code 放入框內';
 
   @override
-  String get notSavemybookProfileQrCode => '這不是救「舊」我的書的個人 QR Code';
+  String get notSavemybookProfileQrCode => '此 QR Code 並非救「舊」我的書的個人 QR Code';
 
   @override
-  String get ownQrCode => '這是你自己的 QR Code';
+  String get ownQrCode => '這是您的個人 QR Code';
 
   @override
   String get couldNotStartChatPleaseTry => '無法建立聊天室，請稍後再試';
@@ -24106,13 +24266,13 @@ class _LZhHant extends AppLocalizations {
   String get linkCopied => '已複製連結';
 
   @override
-  String addMeSavemybook(Object p0) => '在救「舊」我的書上加我：${p0}';
+  String addMeSavemybook(Object p0) => '我的救「舊」我的書個人檔案：${p0}';
 
   @override
-  String addMeSavemybook2(Object p0, Object p1) => '在救「舊」我的書上加我（${p0}）：${p1}';
+  String addMeSavemybook2(Object p0, Object p1) => '${p0} 的救「舊」我的書個人檔案：${p1}';
 
   @override
-  String get sharingCouldNotOpenSoLink => '無法開啟分享，已幫你複製連結';
+  String get sharingCouldNotOpenSoLink => '無法開啟分享，已複製連結';
 
   @override
   String get savedPhotos => '已儲存到相簿';
@@ -24130,31 +24290,31 @@ class _LZhHant extends AppLocalizations {
   String get askQuestion => '提出問題';
 
   @override
-  String get noEnquiriesYet => '還沒有任何問題紀錄';
+  String get noEnquiriesYet => '尚無提問紀錄';
 
   @override
   String get enterSubject => '請填寫主旨';
 
   @override
-  String get addMoreDetailSoSupportCan => '請多描述一點，方便客服判斷';
+  String get addMoreDetailSoSupportCan => '請提供更多說明，以利客服判斷';
 
   @override
-  String get sentSupportReplySoon => '已送出，客服會盡快回覆';
+  String get sentSupportReplySoon => '已送出，客服將盡快回覆';
 
   @override
   String get subject => '主旨';
 
   @override
-  String get sumUpOneLine => '一句話描述問題';
+  String get sumUpOneLine => '簡述問題';
 
   @override
-  String get whatHappenedIncludeOrderNumberIf => '發生什麼事？有訂單編號的話一併附上';
+  String get whatHappenedIncludeOrderNumberIf => '請描述問題，如有訂單編號請一併提供';
 
   @override
   String get close => '結案';
 
   @override
-  String get notAbleReplyAfterClosing => '結案後就不能再回覆了。';
+  String get notAbleReplyAfterClosing => '結案後將無法再回覆。';
 
   @override
   String get enquiryClosed => '工單已結案';
@@ -24169,7 +24329,7 @@ class _LZhHant extends AppLocalizations {
   String get enquiry => '工單';
 
   @override
-  String get enquiryNotFound => '找不到這張工單';
+  String get enquiryNotFound => '找不到此工單';
 
   @override
   String get support => '客服';
@@ -24355,13 +24515,13 @@ class _LZhHant extends AppLocalizations {
   String get collect => '取書';
 
   @override
-  String get couldNotLoadPhoto => '無法載入這張照片';
+  String get couldNotLoadPhoto => '無法載入此照片';
 
   @override
   String slot2(Object p0) => '櫃號：${p0}';
 
   @override
-  String confirmPutLocker(Object p0) => '確認已把《${p0}》放入書櫃了嗎？';
+  String confirmPutLocker(Object p0) => '確認已將《${p0}》放入書櫃？';
 
   @override
   String get enterTitleContent => '請填寫標題與內容';
@@ -24376,7 +24536,7 @@ class _LZhHant extends AppLocalizations {
   String get publishAnnouncement => '發布推播';
 
   @override
-  String get everyUserSeeAnnouncementOncePublished => '發布後全體使用者都會看到這則公告，確定發布嗎？';
+  String get everyUserSeeAnnouncementOncePublished => '發布後全體使用者皆可看到此公告，確定要發布嗎？';
 
   @override
   String get publish => '發布';
@@ -24406,7 +24566,7 @@ class _LZhHant extends AppLocalizations {
   String get publishNow => '立即發布';
 
   @override
-  String get leaveOffSaveAsDraft => '關閉時只會存成草稿';
+  String get leaveOffSaveAsDraft => '關閉時僅儲存為草稿';
 
   @override
   String get saveDraft => '儲存草稿';
@@ -24427,7 +24587,7 @@ class _LZhHant extends AppLocalizations {
   String get announcements => '系統公告';
 
   @override
-  String get noAnnouncementsYetTapAddOne => '尚無公告，點右上角新增';
+  String get noAnnouncementsYetTapAddOne => '尚無公告，請點選右上角新增';
 
   @override
   String get published => '已發布';
@@ -24442,7 +24602,7 @@ class _LZhHant extends AppLocalizations {
   String get backUpNow => '立即備份';
 
   @override
-  String get wholeDatabaseExportedCompressedWithLot => '將匯出整個資料庫並壓縮保存。資料量大時可能需要數十秒，期間請不要離開這個畫面。';
+  String get wholeDatabaseExportedCompressedWithLot => '將匯出整個資料庫並壓縮保存。資料量大時可能需要數十秒，期間請勿離開此畫面。';
 
   @override
   String get startBackup => '開始備份';
@@ -24463,16 +24623,16 @@ class _LZhHant extends AppLocalizations {
   String backedUpDailyNewestP0Kept(Object p0) => '每日自動備份，保留最新 ${p0} 份';
 
   @override
-  String get olderBackupsBeyondCountRemovedAutomatically => '超出份數的舊備份會自動清除。備份檔含全站個人資料，下載後請妥善保管，每次下載都會記入操作紀錄。';
+  String get olderBackupsBeyondCountRemovedAutomatically => '超出份數的舊備份將自動清除。備份檔含全站個人資料，下載後請妥善保管，每次下載皆會記錄於操作紀錄。';
 
   @override
-  String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄。排程每天會自動跑一次，也可以按上方按鈕立刻產生一份。';
+  String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄。系統每日自動備份一次，亦可點選上方按鈕立即備份。';
 
   @override
   String get deleteBackup => '刪除備份';
 
   @override
-  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\n檔案與紀錄會一併移除，無法復原。';
+  String p0NNtheFileItsRecord(Object p0) => '${p0}\n\n檔案與紀錄將一併移除，此操作無法復原。';
 
   @override
   String get manual => '手動';
@@ -24487,7 +24647,7 @@ class _LZhHant extends AppLocalizations {
   String get downloadBackup => '下載備份';
 
   @override
-  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '備份檔請在電腦上取回，並帶上你的授權標頭：\n\n${p0}\n\n檔案大小 ${p1}。';
+  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '請於電腦下載備份檔，並附上您的授權標頭：\n\n${p0}\n\n檔案大小：${p1}。';
 
   @override
   String get copyLink2 => '複製網址';
@@ -24499,7 +24659,7 @@ class _LZhHant extends AppLocalizations {
   String get forceDelist => '強制下架';
 
   @override
-  String get reasonDelistingSellerNotified => '下架原因，會通知賣家';
+  String get reasonDelistingSellerNotified => '下架原因（將通知賣家）';
 
   @override
   String get delist3 => '確認下架';
@@ -24508,7 +24668,7 @@ class _LZhHant extends AppLocalizations {
   String get relist2 => '恢復上架';
 
   @override
-  String putP0BackStore(Object p0) => '要讓《${p0}》重新出現在商城嗎？';
+  String putP0BackStore(Object p0) => '確定要將《${p0}》恢復上架嗎？';
 
   @override
   String get relisted => '已恢復上架';
@@ -24583,10 +24743,10 @@ class _LZhHant extends AppLocalizations {
   String get disable => '停用';
 
   @override
-  String onceDisabledP0NoLongerAppears(Object p0) => '停用後「${p0}」不會再出現在賣家的存放區域選單中。';
+  String onceDisabledP0NoLongerAppears(Object p0) => '停用後「${p0}」將不再顯示於賣家的存放區域選單。';
 
   @override
-  String onceEnabledP0AvailableSellersAgain(Object p0) => '啟用後「${p0}」會重新開放給賣家選擇。';
+  String onceEnabledP0AvailableSellersAgain(Object p0) => '啟用後「${p0}」將重新開放賣家選擇。';
 
   @override
   String get lockerDisabled => '書櫃已停用';
@@ -24637,7 +24797,7 @@ class _LZhHant extends AppLocalizations {
   String get deleteCategory => '刪除分類';
 
   @override
-  String deleteP0CannotUndone2(Object p0) => '要刪除「${p0}」嗎？此動作無法復原。';
+  String deleteP0CannotUndone2(Object p0) => '確定要刪除「${p0}」嗎？此操作無法復原。';
 
   @override
   String get categoryDeleted => '已刪除分類';
@@ -24670,16 +24830,16 @@ class _LZhHant extends AppLocalizations {
   String get deleteSection => '刪除章節';
 
   @override
-  String get contentsSectionRemovedWith => '這一章的內容會一併移除。';
+  String get contentsSectionRemovedWith => '此章節內容將一併移除。';
 
   @override
-  String p0ItsContentsRemoved(Object p0) => '「${p0}」與其內容會一併移除。';
+  String p0ItsContentsRemoved(Object p0) => '「${p0}」及其內容將一併移除。';
 
   @override
   String get discardChanges => '捨棄變更？';
 
   @override
-  String get documentUnsavedChangesTheyLostIf => '這份文件有尚未儲存的修改，離開後會遺失。';
+  String get documentUnsavedChangesTheyLostIf => '此文件有尚未儲存的變更，離開後將遺失。';
 
   @override
   String get discard => '捨棄';
@@ -24688,28 +24848,28 @@ class _LZhHant extends AppLocalizations {
   String get keepEditing => '繼續編輯';
 
   @override
-  String get bothTitleContentRequired => '標題與內容都要填寫';
+  String get bothTitleContentRequired => '請填寫標題與內容';
 
   @override
-  String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章還沒有標題';
+  String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章尚未填寫標題';
 
   @override
   String updateP0(Object p0) => '確認更新${p0}？';
 
   @override
-  String get documentBindingEveryUserSubmittingReplaces => '這份文件對所有使用者都有效力，送出後會立刻取代目前的版本。';
+  String get documentBindingEveryUserSubmittingReplaces => '此文件對所有使用者皆具效力，送出後將立即取代目前版本。';
 
   @override
-  String get yesUpdate => '我確認要更新';
+  String get yesUpdate => '確認更新';
 
   @override
-  String get notifyEveryUser => '要通知所有使用者嗎？';
+  String get notifyEveryUser => '是否通知所有使用者？';
 
   @override
   String get updateNotify => '更新並通知';
 
   @override
-  String get updateOnly => '只更新不通知';
+  String get updateOnly => '僅更新，不通知';
 
   @override
   String get sections => '章節';
@@ -24727,7 +24887,7 @@ class _LZhHant extends AppLocalizations {
   String get preamble => '前言';
 
   @override
-  String get unnumberedOpeningTextLeaveEmptyIf => '開頭不編號的說明文字，沒有的話可以留空。';
+  String get unnumberedOpeningTextLeaveEmptyIf => '開頭不編號的說明文字，若無可留空。';
 
   @override
   String get articles => '條文';
@@ -24736,7 +24896,7 @@ class _LZhHant extends AppLocalizations {
   String get numberedAutomatically => '編號自動產生';
 
   @override
-  String get noArticlesYetAddFirstOne => '還沒有條文。按下方新增第一章。';
+  String get noArticlesYetAddFirstOne => '尚無條文，請點選下方新增第一章。';
 
   @override
   String get addSection => '新增章節';
@@ -24748,13 +24908,13 @@ class _LZhHant extends AppLocalizations {
   String get sectionTitle => '章節標題';
 
   @override
-  String get bodySectionSingleLineBreaksKept => '這一章的內容。單行換行會照樣呈現，空一行代表另起一段。';
+  String get bodySectionSingleLineBreaksKept => '章節內容。單行換行將如實呈現，空一行代表另起一段。';
 
   @override
-  String get emptyLineStartsParagraphParagraphWhose => '空一行分段。首行寫「1. 標題」的段落，切回章節模式時會被認成一章。';
+  String get emptyLineStartsParagraphParagraphWhose => '空一行即分段。首行為「1. 標題」的段落，切換回章節模式時將視為一章。';
 
   @override
-  String get howUsersSee => '使用者看到的樣子';
+  String get howUsersSee => '使用者檢視畫面';
 
   @override
   String get noContentYet => '尚無內容';
@@ -24781,7 +24941,7 @@ class _LZhHant extends AppLocalizations {
   String get showHelpCentre => '顯示在幫助中心';
 
   @override
-  String get bothQuestionAnswerRequired => '問題與答案都要填寫';
+  String get bothQuestionAnswerRequired => '請填寫問題與答案';
 
   @override
   String get added => '已新增';
@@ -24793,7 +24953,7 @@ class _LZhHant extends AppLocalizations {
   String get deleteQuestion => '刪除問題';
 
   @override
-  String deleteP0(Object p0) => '要刪除「${p0}」嗎？';
+  String deleteP0(Object p0) => '確定要刪除「${p0}」嗎？';
 
   @override
   String get deleted => '已刪除';
@@ -24814,7 +24974,7 @@ class _LZhHant extends AppLocalizations {
   String get cancelDeletionRequest => '取消刪除申請';
 
   @override
-  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0} 的帳號會恢復正常，刪除倒數停止。';
+  String p0SAccountReturnsNormalCountdown(Object p0) => '${p0} 的帳號將恢復正常，並停止刪除程序。';
 
   @override
   String get cancelDeletion => '取消刪除';
@@ -24826,7 +24986,7 @@ class _LZhHant extends AppLocalizations {
   String get anonymiseNow => '立即執行匿名化';
 
   @override
-  String eraseP0SPersonalDataDisable(Object p0) => '不等緩衝期結束，立刻清除 ${p0} 的個人資料並停用帳號。\n\n訂單與交易紀錄會保留，但暱稱會變成「已刪除的使用者」。此操作無法復原。';
+  String eraseP0SPersonalDataDisable(Object p0) => '不待緩衝期結束，立即清除 ${p0} 的個人資料並停用帳號。\n\n訂單與交易紀錄將予以保留，暱稱將顯示為「已刪除的使用者」。此操作無法復原。';
 
   @override
   String get doNow => '立即執行';
@@ -24844,7 +25004,7 @@ class _LZhHant extends AppLocalizations {
   String get dueSoon => '即將執行';
 
   @override
-  String p0DaysLeft(Object p0) => '剩 ${p0} 天';
+  String p0DaysLeft(Object p0) => '剩餘 ${p0} 天';
 
   @override
   String requestedP0ScheduledP1(Object p0, Object p1) => '申請於 ${p0}，預計 ${p1} 執行';
@@ -25006,10 +25166,10 @@ class _LZhHant extends AppLocalizations {
   String get minimumPoints => '最低點數';
 
   @override
-  String get maximumPointsLeaveEmptyNoCap => '最高點數（留空 = 無上限）';
+  String get maximumPointsLeaveEmptyNoCap => '最高點數（留空表示無上限）';
 
   @override
-  String get benefitsSeparatedByCommasLineBreaks => '權益，用頓號或換行分隔，會在會員等級頁逐條顯示';
+  String get benefitsSeparatedByCommasLineBreaks => '權益（以頓號或換行分隔，將於會員等級頁逐條顯示）';
 
   @override
   String get enterTierName => '請輸入等級名稱';
@@ -25027,7 +25187,7 @@ class _LZhHant extends AppLocalizations {
   String get deleteTier => '刪除等級';
 
   @override
-  String deleteP0MembersTierDropNext(Object p0) => '要刪除「${p0}」嗎？已在這個等級的會員會退到下一個符合的等級。';
+  String deleteP0MembersTierDropNext(Object p0) => '確定要刪除「${p0}」嗎？此等級的會員將調整至下一個符合的等級。';
 
   @override
   String get tierDeleted => '已刪除等級';
@@ -25078,10 +25238,10 @@ class _LZhHant extends AppLocalizations {
   String get removeFromBlocklist => '移出黑名單';
 
   @override
-  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0} 會立刻被登出，且無法再使用 App 的任何功能。';
+  String p0SignedOutImmediatelyCanNo(Object p0) => '${p0} 將立即被登出，且無法使用 App 的任何功能。';
 
   @override
-  String p0AbleSignAgain(Object p0) => '${p0} 將可以重新登入使用。';
+  String p0AbleSignAgain(Object p0) => '${p0} 將可重新登入使用。';
 
   @override
   String get accountStatusUpdated => '已更新帳號狀態';
@@ -25093,10 +25253,10 @@ class _LZhHant extends AppLocalizations {
   String get makeAdmin => '設為管理員';
 
   @override
-  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 將立刻失去所有後台權限。';
+  String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 將立即失去所有後台權限。';
 
   @override
-  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 將可以進入管理後台，預設擁有全部權限，可再逐項調整。';
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 將可進入管理後台，預設擁有全部權限，並可逐項調整。';
 
   @override
   String get roleUpdated => '已更新身分';
@@ -25153,7 +25313,7 @@ class _LZhHant extends AppLocalizations {
   String get revokeAllPermissions => '收回全部權限';
 
   @override
-  String p0AbleUseEveryAdminFeature(Object p0) => '${p0} 將可以使用後台所有功能。';
+  String p0AbleUseEveryAdminFeature(Object p0) => '${p0} 將可使用後台所有功能。';
 
   @override
   String p0ReachAdminAreaButUnable(Object p0) => '${p0} 進入後台後將無法使用任何功能。';
@@ -25168,7 +25328,7 @@ class _LZhHant extends AppLocalizations {
   String get memberSettings => '會員設定';
 
   @override
-  String get noDataMember => '找不到這位會員的資料';
+  String get noDataMember => '找不到此會員的資料';
 
   @override
   String get listings2 => '上架書籍';
@@ -25183,16 +25343,16 @@ class _LZhHant extends AppLocalizations {
   String get accountStatus => '帳號狀態';
 
   @override
-  String get ownAccountStatusPermissionsCannotChanged => '這是你自己的帳號，無法在這裡調整狀態與權限。';
+  String get ownAccountStatusPermissionsCannotChanged => '此為您本人的帳號，無法於此調整狀態與權限。';
 
   @override
   String get accountEnabled => '啟用帳號';
 
   @override
-  String get canSignUseAppNormally => '可以正常登入使用';
+  String get canSignUseAppNormally => '可正常登入使用';
 
   @override
-  String get suspendedSignedOutImmediatelyAfterSigning => '已停權，登入後會被立刻登出';
+  String get suspendedSignedOutImmediatelyAfterSigning => '已停權，登入後將立即登出';
 
   @override
   String get blocked => '列入黑名單';
@@ -25210,7 +25370,7 @@ class _LZhHant extends AppLocalizations {
   String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} 點（自動 ${p1}${p2}）';
 
   @override
-  String get memberSTierBeenAdjustedBy => '這位會員的等級目前有人工調整，不完全依交易自動計算。';
+  String get memberSTierBeenAdjustedBy => '此會員的等級經人工調整，不完全依交易自動計算。';
 
   @override
   String get adjustTier => '調整等級';
@@ -25252,7 +25412,7 @@ class _LZhHant extends AppLocalizations {
   String get sales2 => '銷售';
 
   @override
-  String get created => '創建日期';
+  String get created => '建立日期';
 
   @override
   String get noActivityYet => '尚無操作紀錄';
@@ -25267,7 +25427,7 @@ class _LZhHant extends AppLocalizations {
   String get reasonChange => '調整說明';
 
   @override
-  String get sentBuyerAsWellOptional => '會一併通知買家（選填）';
+  String get sentBuyerAsWellOptional => '將一併通知買家（選填）';
 
   @override
   String get applyChange => '確認調整';
@@ -25396,7 +25556,7 @@ class _LZhHant extends AppLocalizations {
   String get enterReasonAdjustment => '請填寫調整原因';
 
   @override
-  String get member2 => '這位會員';
+  String get member2 => '此會員';
 
   @override
   String get add3 => '增加';
@@ -25486,7 +25646,7 @@ class _LZhHant extends AppLocalizations {
   String p0Locker(Object p0) => '${p0}書櫃';
 
   @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '每一位啟用中的會員都會收到一則「${p0}已更新」的通知。';
+  String everyActiveMemberReceivesP0Updated(Object p0) => '所有啟用中的會員皆會收到「${p0}已更新」通知。';
 
   @override
   String get orderPlaced => '成立訂單';
@@ -25495,7 +25655,7 @@ class _LZhHant extends AppLocalizations {
   String get paid => '付款';
 
   @override
-  String get sellerDroppedOff => '賣家放書';
+  String get sellerDroppedOff => '賣家存書';
 
   @override
   String get buyerCollected => '買家取書';
@@ -25507,7 +25667,7 @@ class _LZhHant extends AppLocalizations {
   String get editBookDetails => '編輯書籍資料';
 
   @override
-  String sellerP0TheyNotifiedSave(Object p0) => '賣家 ${p0}・儲存後會通知他';
+  String sellerP0TheyNotifiedSave(Object p0) => '賣家 ${p0}・儲存後將通知賣家';
 
   @override
   String get priceCoins => '售價（代幣）';
@@ -25531,7 +25691,7 @@ class _LZhHant extends AppLocalizations {
   String get resetPassword => '重設密碼';
 
   @override
-  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 目前的密碼會立刻失效，必須改用接下來產生的臨時密碼登入。\n\n密碼由系統產生，你不能自己指定。';
+  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 目前的密碼將立即失效，須改用系統產生的臨時密碼登入。\n\n臨時密碼由系統產生，無法自行指定。';
 
   @override
   String get generateTemporaryPassword => '產生臨時密碼';
@@ -25540,10 +25700,10 @@ class _LZhHant extends AppLocalizations {
   String get temporaryPassword => '臨時密碼';
 
   @override
-  String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密碼已重設。這組密碼只會出現這一次，關掉後無法再查看。';
+  String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密碼已重設。此密碼僅顯示一次，關閉後將無法再查看。';
 
   @override
-  String get remindThemChangeSettingsChangePassword => '請提醒對方登入後立刻到「設定 → 更改密碼」改掉。';
+  String get remindThemChangeSettingsChangePassword => '請提醒對方登入後立即至「設定 → 更改密碼」變更密碼。';
 
   @override
   String get temporaryPasswordCopied => '已複製臨時密碼';
@@ -25552,7 +25712,7 @@ class _LZhHant extends AppLocalizations {
   String get copy => '複製';
 
   @override
-  String get cannotResetAnotherAdminSPassword => '不能重設其他管理員的密碼';
+  String get cannotResetAnotherAdminSPassword => '無法重設其他管理員的密碼';
 
   @override
   String get generateTemporaryPasswordHandOver => '產生一組臨時密碼交給使用者';
@@ -25561,7 +25721,7 @@ class _LZhHant extends AppLocalizations {
   String get orderNumberCopied => '已複製訂單編號';
 
   @override
-  String get orderNotFound => '找不到這筆訂單';
+  String get orderNotFound => '找不到此訂單';
 
   @override
   String get paidWithCoins => '代幣支付';
@@ -25636,22 +25796,22 @@ class _LZhHant extends AppLocalizations {
   String get declined => '不予退款';
 
   @override
-  String get changeOwnPasswordGoSettingsChange => '要改自己的密碼請到「設定 → 更改密碼」';
+  String get changeOwnPasswordGoSettingsChange => '如需變更本人密碼，請至「設定 → 更改密碼」';
 
   @override
-  String get memberNotAdminSoThereNo => '這位會員不是管理員，沒有後台權限可以設定。先在上方把身分改成管理員。';
+  String get memberNotAdminSoThereNo => '此會員非管理員，無後台權限可設定。請先於上方將身分設為管理員。';
 
   @override
-  String get you => '你自己';
+  String get you => '本人';
 
   @override
-  String isbnMust1013DigitsOne(Object p0) => 'ISBN 要 10 或 13 碼，目前 ${p0} 碼';
+  String isbnMust1013DigitsOne(Object p0) => 'ISBN 應為 10 或 13 碼，目前為 ${p0} 碼';
 
   @override
-  String get screenUnsavedChangesTheyLostIf => '這個畫面有尚未儲存的修改，離開後會遺失。';
+  String get screenUnsavedChangesTheyLostIf => '此畫面有尚未儲存的變更，離開後將遺失。';
 
   @override
-  String stillNeededP0(Object p0) => '還差：${p0}';
+  String stillNeededP0(Object p0) => '尚缺：${p0}';
 
   @override
   String photosP0(Object p0) => '照片：${p0} 張';
@@ -25660,37 +25820,37 @@ class _LZhHant extends AppLocalizations {
   String get confirmListing => '確認上架';
 
   @override
-  String get lookingUpBook => '查詢書籍資料中';
+  String get lookingUpBook => '正在查詢書籍資料';
 
   @override
   String get scan => '掃描';
 
   @override
-  String get buyerSPaymentGoesBackTheir => '買家付的款項會退回錢包；賣家若已收到貨款會先收回。';
+  String get buyerSPaymentGoesBackTheir => '買家支付的款項將退回錢包；若賣家已收到貨款，將先行收回。';
 
   @override
-  String get orderReturnsWhereWasBeforeDispute => '訂單回到申訴前的狀態繼續交易；若先前已完成取貨，貨款會撥給賣家。';
+  String get orderReturnsWhereWasBeforeDispute => '訂單將恢復至申訴前的狀態並繼續交易；若先前已完成取書，貨款將撥付給賣家。';
 
   @override
-  String get orderWasAlreadyRefundedBuyerCannot => '這筆訂單的款項已經退回買家，不能再改回進行中或已完成';
+  String get orderWasAlreadyRefundedBuyerCannot => '此訂單款項已退回買家，無法改回進行中或已完成';
 
   @override
   String get completedOrderCanOnlyChangedRefund => '已完成的訂單只能改為「退款處理中」或「已退款」';
 
   @override
-  String confirmingPaysP0TokensSellerMarks(Object p0) => '確認後會把 ${p0} 代幣撥給賣家，書籍標記為已售出。';
+  String confirmingPaysP0TokensSellerMarks(Object p0) => '確認後將撥付 ${p0} 代幣給賣家，並將書籍標記為已售出。';
 
   @override
-  String confirmingTakesP0TokensBackFrom(Object p0) => '確認後會向賣家收回 ${p0} 代幣並退還給買家。賣家餘額不足時會變成負數。';
+  String confirmingTakesP0TokensBackFrom(Object p0) => '確認後將向賣家收回 ${p0} 代幣並退還買家。賣家餘額不足時將顯示為負數。';
 
   @override
-  String get ifBuyerNotBeenRefundedYet => '若先前還沒退款，會補退給買家。';
+  String get ifBuyerNotBeenRefundedYet => '若先前尚未退款，將補退給買家。';
 
   @override
-  String confirmingRefundsBuyerSP0Tokens(Object p0) => '確認後會把買家付的 ${p0} 代幣退回，保留中的書重新上架。';
+  String confirmingRefundsBuyerSP0Tokens(Object p0) => '確認後將退還買家支付的 ${p0} 代幣，保留中的書籍將重新上架。';
 
   @override
-  String get donTPermissionYourselfSoCan => '你自己沒有這項權限，所以不能開給別人。';
+  String get donTPermissionYourselfSoCan => '您未擁有此權限，無法授予他人。';
 
   @override
   String get notificationsTurnedOff => '通知權限已關閉';
@@ -25702,25 +25862,25 @@ class _LZhHant extends AppLocalizations {
   String get sendTestNotification => '傳送測試通知';
 
   @override
-  String get arrives10SecondsGoHomeScreen => '10 秒後送達，送出後先回到主畫面或鎖定手機';
+  String get arrives10SecondsGoHomeScreen => '將於 10 秒後送達，送出後請返回主畫面或鎖定手機';
 
   @override
   String get systemNotificationSettings => '系統通知設定';
 
   @override
-  String get turnNotificationsSoundsLockScreenPreviews => '開關通知、聲音與鎖定畫面顯示';
+  String get turnNotificationsSoundsLockScreenPreviews => '設定通知、聲音與鎖定畫面顯示';
 
   @override
-  String get pushNotificationsNotSetUpBuild => '這個版本的 App 還沒有設定推播，請先放入 Firebase 設定檔後重新編譯。';
+  String get pushNotificationsNotSetUpBuild => '此版本的 App 尚未設定推播，請加入 Firebase 設定檔後重新編譯。';
 
   @override
-  String get notificationsTurnedOffAllowAppSend => '通知權限已被關閉，請到系統設定允許這個 App 傳送通知。';
+  String get notificationsTurnedOffAllowAppSend => '通知權限已關閉，請至系統設定允許此 App 傳送通知。';
 
   @override
-  String get restoreBackup => '還原到這份備份？';
+  String get restoreBackup => '確定要還原至此備份？';
 
   @override
-  String wholeDatabaseGoBackP0Orders(Object p0) => '整個資料庫會回到 ${p0} 的狀態，這個時間點之後的訂單、訊息、會員資料與操作紀錄都會消失。\n\n還原前系統會先自動備份目前的狀態，還原錯了可以再還原那一份。還原期間全站暫停服務，通常需要幾十秒到幾分鐘。\n\n請輸入你的登入密碼確認：';
+  String wholeDatabaseGoBackP0Orders(Object p0) => '整個資料庫將還原至 ${p0} 的狀態，此時間點之後的訂單、訊息、會員資料與操作紀錄將全部清除。\n\n還原前系統將自動備份目前狀態，如有需要可再還原該備份。還原期間全站暫停服務，通常需要數十秒至數分鐘。\n\n請輸入您的登入密碼以確認：';
 
   @override
   String get password2 => '登入密碼';
@@ -25729,31 +25889,31 @@ class _LZhHant extends AppLocalizations {
   String get startRestore => '開始還原';
 
   @override
-  String get backingUpCurrentState => '正在備份目前的狀態…';
+  String get backingUpCurrentState => '正在備份目前狀態…';
 
   @override
-  String databaseRestoredPreviousStateWasBacked(Object p0) => '資料庫已還原。還原前的狀態備份在 ${p0}';
+  String databaseRestoredPreviousStateWasBacked(Object p0) => '資料庫已還原。還原前的狀態已備份至 ${p0}';
 
   @override
-  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => '還原失敗，資料庫維持原狀或部分還原，請查看操作紀錄並考慮還原 ${p0}';
+  String restoreFailedDatabaseMayUnchangedPartly(Object p0) => '還原失敗，資料庫可能維持原狀或已部分還原，請查看操作紀錄並視需要還原 ${p0}';
 
   @override
   String get autoBackupBeforeRestore => '還原前自動備份';
 
   @override
-  String get restoreBackup2 => '還原到這份備份';
+  String get restoreBackup2 => '還原至此備份';
 
   @override
   String get restoringDatabase => '正在還原資料庫';
 
   @override
-  String p0SecondsSoFarKeepApp(Object p0) => '已經過 ${p0} 秒。請不要關閉 App，完成後會自動恢復服務。';
+  String p0SecondsSoFarKeepApp(Object p0) => '已經過 ${p0} 秒。請勿關閉 App，完成後將自動恢復服務。';
 
   @override
-  String get majorUpdate => '這次是重大更新嗎？';
+  String get majorUpdate => '此次是否為重大更新？';
 
   @override
-  String get majorUpdateNotifiesEveryUserTerms => '重大更新會通知所有使用者；服務條款與隱私權政策還會要求使用者下次開啟 App 時重新閱讀並同意。\n\n只是修正錯字或調整排版，請選「小幅修改」。';
+  String get majorUpdateNotifiesEveryUserTerms => '重大更新將通知所有使用者；服務條款與隱私權政策另將要求使用者於下次開啟 App 時重新閱讀並同意。\n\n若僅修正錯字或調整排版，請選擇「小幅修改」。';
 
   @override
   String get majorUpdate2 => '重大更新';
@@ -25780,10 +25940,10 @@ class _LZhHant extends AppLocalizations {
   String get backups => '備份';
 
   @override
-  String get undoAction => '還原這筆操作？';
+  String get undoAction => '確定要還原此操作？';
 
   @override
-  String p0NNtheDataGoesBack(Object p0) => '「${p0}」\n\n資料會改回操作前的狀態。已經送出的通知不會收回；如果資料之後又被修改過，系統會拒絕還原。';
+  String p0NNtheDataGoesBack(Object p0) => '「${p0}」\n\n資料將恢復至操作前的狀態。已送出的通知不會收回；若資料之後曾再次修改，系統將拒絕還原。';
 
   @override
   String get undo => '還原';
@@ -25798,34 +25958,34 @@ class _LZhHant extends AppLocalizations {
   String viewP0Changes(Object p0) => '查看 ${p0} 項變更';
 
   @override
-  String get undoAction2 => '還原這筆操作';
+  String get undoAction2 => '還原此操作';
 
   @override
-  String get tapBarSeeDay => '點長條可以看當天的數字';
+  String get tapBarSeeDay => '點選長條圖可查看當日數據';
 
   @override
   String get noAnnouncements => '目前沒有公告';
 
   @override
-  String get tapPhotoNameChange => '點頭像或暱稱可以修改';
+  String get tapPhotoNameChange => '點選頭像或暱稱即可修改';
 
   @override
-  String get canTContinueWithoutAccepting => '不同意就無法繼續使用';
+  String get canTContinueWithoutAccepting => '未同意將無法繼續使用';
 
   @override
-  String needAcceptLatestP0UseP1(Object p0, Object p1) => '需要同意最新版本的「${p0}」才能使用${p1}。不同意的話會先登出，你可以隨時重新登入後再同意。';
+  String needAcceptLatestP0UseP1(Object p0, Object p1) => '須同意最新版本的「${p0}」才能使用${p1}。若不同意將自動登出，您可隨時重新登入後再同意。';
 
   @override
-  String get goBack => '再看看';
+  String get goBack => '返回';
 
   @override
-  String p0BeenUpdated(Object p0) => '「${p0}」已經更新';
+  String p0BeenUpdated(Object p0) => '「${p0}」已更新';
 
   @override
   String readLatestVersionUpdatedP0Accept(Object p0) => '請閱讀最新版本（${p0} 更新）。同意後才能繼續使用。';
 
   @override
-  String get scrollEndContinue => '請先捲動讀完全文';
+  String get scrollEndContinue => '請捲動至底部閱讀全文';
 
   @override
   String get iVeReadAccept => '我已閱讀並同意';
@@ -25837,10 +25997,10 @@ class _LZhHant extends AppLocalizations {
   String get viewDetails => '查看詳情';
 
   @override
-  String get notFoundMayBeenDeletedRemoved => '找不到這筆資料，可能已經刪除或下架';
+  String get notFoundMayBeenDeletedRemoved => '找不到此資料，可能已刪除或下架';
 
   @override
-  String get salesDropOffsPickupsRefundsDisputes => '售出、存書、取貨、退款與爭議';
+  String get salesDropOffsPickupsRefundsDisputes => '售出、存書、取書、退款與爭議';
 
   @override
   String get chatMessages => '聊天訊息';
@@ -25855,7 +26015,7 @@ class _LZhHant extends AppLocalizations {
   String get announcementsAboutPromotions => '優惠類型的系統公告';
 
   @override
-  String get supportRepliesPasswordResetsPolicyUpdates => '客服回覆、密碼重設、條款更新與維護公告一律會通知。關掉的類型仍會出現在通知列表，只是不推播到手機。';
+  String get supportRepliesPasswordResetsPolicyUpdates => '客服回覆、密碼重設、條款更新與維護公告將一律通知。關閉的類型仍會顯示於通知列表，但不會推播至手機。';
 
   @override
   String get notFilled => '未填寫';
@@ -25873,7 +26033,7 @@ class _LZhHant extends AppLocalizations {
   String get messageUnsent => '訊息已收回';
 
   @override
-  String get confirmBeforeExportingData => '匯出個人資料前，請先確認是你本人';
+  String get confirmBeforeExportingData => '匯出個人資料前，請先驗證身分';
 
   @override
   String get exportFailedPleaseTryAgainLater => '匯出失敗，請稍後再試';
@@ -25891,19 +26051,19 @@ class _LZhHant extends AppLocalizations {
   String get verificationCancelled => '已取消驗證';
 
   @override
-  String get openingClosingTimesCanTSame => '開放與關閉時間不能相同';
+  String get openingClosingTimesCanTSame => '開放與關閉時間不可相同';
 
   @override
-  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => '這一格目前是「${p0}」，可能有進行中的訂單。改成「${p1}」後，買賣雙方可能無法正常存取書籍。';
+  String slotCurrentlyP0MayOrderProgress(Object p0, Object p1) => '此櫃位目前為「${p0}」，可能有進行中的訂單。變更為「${p1}」後，買賣雙方可能無法正常存取書籍。';
 
   @override
   String get active => '啟用中';
 
   @override
-  String get categoryWithNameAlreadyExists => '已經有同名的分類';
+  String get categoryWithNameAlreadyExists => '已有同名分類';
 
   @override
-  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => '訂單 ${p0} 將以「${p1}」結案，${p2} 代幣會退回買家。送出後無法修改。';
+  String orderP0ClosedAsP1P2(Object p0, Object p1, Object p2) => '訂單 ${p0} 將以「${p1}」結案，${p2} 代幣將退回買家。送出後無法修改。';
 
   @override
   String orderP0ClosedAsP1Can(Object p0, Object p1) => '訂單 ${p0} 將以「${p1}」結案。送出後無法修改。';
@@ -25921,7 +26081,7 @@ class _LZhHant extends AppLocalizations {
   String noTierCoversP0P1Points(Object p0, Object p1) => '${p0}–${p1} 點沒有對應的等級';
 
   @override
-  String p0TakenDownRightAwayOther(Object p0) => '「${p0}」會立即下架，其他會員將無法再看到或購買。';
+  String p0TakenDownRightAwayOther(Object p0) => '「${p0}」將立即下架，其他會員將無法瀏覽或購買。';
 
   @override
   String get searchReportedItemReporterReason => '搜尋被檢舉項目、檢舉人或原因';
@@ -25942,13 +26102,13 @@ class _LZhHant extends AppLocalizations {
   String get zeroBalance => '餘額為 0';
 
   @override
-  String get amountCanMost2DecimalPlaces => '金額最多只能到小數點後兩位';
+  String get amountCanMost2DecimalPlaces => '金額最多可至小數點後兩位';
 
   @override
   String get singleAdjustmentCanTExceed1 => '單次調整不可超過 1,000,000';
 
   @override
-  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除後餘額會變成負數，目前餘額 ${p0}';
+  String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除後餘額將為負數，目前餘額 ${p0}';
 
   @override
   String get amountUp2Decimals => '金額（最多兩位小數）';
@@ -25963,34 +26123,34 @@ class _LZhHant extends AppLocalizations {
   String get couldNotStartCamera => '相機啟動失敗';
 
   @override
-  String allowP0UseCameraSettingsThen(Object p0) => '請到系統設定允許 ${p0} 使用相機後再試一次。';
+  String allowP0UseCameraSettingsThen(Object p0) => '請至系統設定允許 ${p0} 使用相機後再試。';
 
   @override
-  String get closeScreenTryAgain => '請關閉這個畫面後再試一次。';
+  String get closeScreenTryAgain => '請關閉此畫面後再試。';
 
   @override
   String get couldnTGetLocationCheckLocation => '無法取得目前位置，請確認已開啟定位服務與權限';
 
   @override
-  String get bookReservedAnotherBuyerCanT => '這本書已被其他買家預約，暫時無法加入購物車';
+  String get bookReservedAnotherBuyerCanT => '此書籍已由其他買家預約，暫時無法加入購物車';
 
   @override
-  String reservedAnotherBuyerUntilP0(Object p0) => '已被其他買家預約，保留到 ${p0}';
+  String reservedAnotherBuyerUntilP0(Object p0) => '已由其他買家預約，保留至 ${p0}';
 
   @override
-  String get ifIsnTSoldByThen => '保留期限過後若未成交，就能再加入購物車';
+  String get ifIsnTSoldByThen => '保留期限屆滿後若未成交，即可加入購物車';
 
   @override
-  String sellerHoldingUntilP0(Object p0) => '賣家已為你保留到 ${p0}';
+  String sellerHoldingUntilP0(Object p0) => '賣家已為您保留至 ${p0}';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '請在保留期限內完成結帳，逾期其他買家就能購買';
+  String get checkOutBeforeHoldEndsOther => '請於保留期限內完成結帳，逾期後其他買家即可購買';
 
   @override
   String get copyAddress => '複製地址';
 
   @override
-  String p0Away(Object p0) => '距離你 ${p0}';
+  String p0Away(Object p0) => '距離 ${p0}';
 
   @override
   String get locating => '定位中…';
@@ -25999,7 +26159,7 @@ class _LZhHant extends AppLocalizations {
   String get showDistance => '查看距離';
 
   @override
-  String get reserved => '已被預約';
+  String get reserved => '已預約';
 
   @override
   String get goCheckout => '前往結帳';
@@ -26035,16 +26195,16 @@ class _LZhHant extends AppLocalizations {
   String get paymentSuccessful => '付款成功';
 
   @override
-  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本書，已依賣家拆成 ${p1} 筆訂單';
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本書，已依賣家拆分為 ${p1} 筆訂單';
 
   @override
-  String get keepBrowsing => '繼續逛逛';
+  String get keepBrowsing => '繼續瀏覽';
 
   @override
   String get reload => '重新載入';
 
   @override
-  String get browseBooks => '去逛逛';
+  String get browseBooks => '瀏覽書籍';
 
   @override
   String p0Sellers(Object p0) => '${p0} 位賣家';
@@ -26059,10 +26219,10 @@ class _LZhHant extends AppLocalizations {
   String get goWallet => '前往錢包';
 
   @override
-  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => '來自 ${p0} 位賣家，結帳後會拆成 ${p1} 筆訂單';
+  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => '來自 ${p0} 位賣家，結帳後將拆分為 ${p1} 筆訂單';
 
   @override
-  String get otherDevicesNeedSignAgainWith => '其他裝置需要用新密碼重新登入。';
+  String get otherDevicesNeedSignAgainWith => '其他裝置須使用新密碼重新登入。';
 
   @override
   String get searchChats => '搜尋聊天對象';
@@ -26074,7 +26234,7 @@ class _LZhHant extends AppLocalizations {
   String get read => '已讀';
 
   @override
-  String get chatNotFound => '找不到這個聊天室';
+  String get chatNotFound => '找不到此聊天室';
 
   @override
   String get messagesCanUp2000Characters => '訊息最多 2000 字';
@@ -26083,25 +26243,25 @@ class _LZhHant extends AppLocalizations {
   String get canTSendRightNowPlease => '目前無法傳送，請稍後再試';
 
   @override
-  String get reserveBook => '預約這本書';
+  String get reserveBook => '預約書籍';
 
   @override
   String get quickReplies => '快速回覆';
 
   @override
-  String get imagesMust10MbSmaller => '圖片不能超過 10 MB';
+  String get imagesMust10MbSmaller => '圖片不可超過 10 MB';
 
   @override
-  String get recordingFailedPleaseTryAgain => '錄音失敗，請再試一次';
+  String get recordingFailedPleaseTryAgain => '錄音失敗，請重試';
 
   @override
-  String get voiceMessageTooLargePleaseRecord => '語音檔案太大，請縮短錄音';
+  String get voiceMessageTooLargePleaseRecord => '語音檔案過大，請縮短錄音時間';
 
   @override
-  String get microphoneAllowedPressHoldAgainRecord => '已允許使用麥克風，請再按住按鈕開始錄音';
+  String get microphoneAllowedPressHoldAgainRecord => '已允許使用麥克風，請再次按住按鈕開始錄音';
 
   @override
-  String get microphoneAccessNeededRecordTurnSettings => '需要麥克風權限才能錄音，請到系統設定開啟';
+  String get microphoneAccessNeededRecordTurnSettings => '錄音需要麥克風權限，請至系統設定開啟';
 
   @override
   String get couldnTStartRecordingPleaseTry => '無法開始錄音，請稍後再試';
@@ -26116,22 +26276,22 @@ class _LZhHant extends AppLocalizations {
   String get resend => '重新傳送';
 
   @override
-  String get unsendMessage => '收回這則訊息？';
+  String get unsendMessage => '確定要收回此訊息？';
 
   @override
-  String get neitherAbleSeeMessageSContent => '收回後雙方都看不到這則訊息的內容。';
+  String get neitherAbleSeeMessageSContent => '收回後雙方皆無法查看此訊息內容。';
 
   @override
-  String get reportMessage => '檢舉這則訊息';
+  String get reportMessage => '檢舉此訊息';
 
   @override
   String get reservationSentWaitingSeller => '已送出預約，等待賣家回覆';
 
   @override
-  String get acceptReservation => '接受預約？';
+  String get acceptReservation => '確定要接受預約？';
 
   @override
-  String p0HeldThemP1HoursNo(Object p0, Object p1) => '《${p0}》會保留給對方 ${p1} 小時，期間其他人無法購買。';
+  String p0HeldThemP1HoursNo(Object p0, Object p1) => '《${p0}》將為對方保留 ${p1} 小時，期間其他人無法購買。';
 
   @override
   String get accept => '接受';
@@ -26140,10 +26300,10 @@ class _LZhHant extends AppLocalizations {
   String get reservationAccepted => '已接受預約';
 
   @override
-  String get declineReservation => '婉拒預約？';
+  String get declineReservation => '確定要婉拒預約？';
 
   @override
-  String get theyLlNotifiedDeclined => '對方會收到婉拒的通知。';
+  String get theyLlNotifiedDeclined => '系統將通知對方預約已婉拒。';
 
   @override
   String get decline2 => '婉拒';
@@ -26152,7 +26312,7 @@ class _LZhHant extends AppLocalizations {
   String get reservationDeclined => '已婉拒預約';
 
   @override
-  String get cancelReservation => '取消預約？';
+  String get cancelReservation => '確定要取消預約？';
 
   @override
   String p0NoLongerHeld(Object p0) => '取消後《${p0}》將不再保留。';
@@ -26164,7 +26324,7 @@ class _LZhHant extends AppLocalizations {
   String get reservationCanceled => '已取消預約';
 
   @override
-  String get notNow2 => '先不要';
+  String get notNow2 => '返回';
 
   @override
   String get couldnTLoadConversationPleaseTry => '無法載入對話，請稍後再試';
@@ -26173,10 +26333,10 @@ class _LZhHant extends AppLocalizations {
   String get accountCanTReceiveMessagesRight => '對方帳號目前無法接收訊息';
 
   @override
-  String get holdMicTalkReleaseSend => '按住麥克風說話，放開即可傳送';
+  String get holdMicTalkReleaseSend => '按住麥克風錄音，放開即可傳送';
 
   @override
-  String get startConversation => '對話從這裡開始';
+  String get startConversation => '對話開始';
 
   @override
   String p0New(Object p0) => '${p0} 則新訊息';
@@ -26188,19 +26348,19 @@ class _LZhHant extends AppLocalizations {
   String get retry => '重試';
 
   @override
-  String get stillAvailable => '請問還在嗎？';
+  String get stillAvailable => '請問此書籍仍可購買嗎？';
 
   @override
-  String get couldLowerPriceBit => '可以再便宜一點嗎？';
+  String get couldLowerPriceBit => '請問是否可議價？';
 
   @override
-  String get whenCanPutLocker => '什麼時候可以放進書櫃？';
+  String get whenCanPutLocker => '請問預計何時存入書櫃？';
 
   @override
-  String get unsentMessage => '你收回了一則訊息';
+  String get unsentMessage => '您已收回一則訊息';
 
   @override
-  String get theyUnsentMessage => '對方收回了一則訊息';
+  String get theyUnsentMessage => '對方已收回一則訊息';
 
   @override
   String get reservationDetailsArenTAvailableRight => '預約資訊暫時無法顯示';
@@ -26215,10 +26375,10 @@ class _LZhHant extends AppLocalizations {
   String get bookDetailsUpdatedButPhotosCouldn => '書籍資料已更新，但照片上傳失敗，請稍後再試';
 
   @override
-  String get sNotIsbnBarcodeScanOne => '掃到的不是 ISBN 條碼，請掃描書背上 978 或 979 開頭的條碼';
+  String get sNotIsbnBarcodeScanOne => '掃描到的條碼非 ISBN，請掃描書背上 978 或 979 開頭的條碼';
 
   @override
-  String get couldnTLoadCategoriesTapRetry => '分類載入失敗，點此重試';
+  String get couldnTLoadCategoriesTapRetry => '分類載入失敗，請點此重試';
 
   @override
   String removedP0FromSaved(Object p0) => '已取消收藏《${p0}》';
@@ -26230,7 +26390,7 @@ class _LZhHant extends AppLocalizations {
   String clearP0(Object p0) => '清除（${p0}）';
 
   @override
-  String get picked => '猜你喜歡';
+  String get picked => '為您推薦';
 
   @override
   String get seeMore => '查看更多';
@@ -26245,19 +26405,19 @@ class _LZhHant extends AppLocalizations {
   String get notificationDeleted => '已刪除通知';
 
   @override
-  String get pleasePutBookAssignedLockerSoon => '請盡快把書放進指定書櫃';
+  String get pleasePutBookAssignedLockerSoon => '請盡快將書籍存入指定書櫃';
 
   @override
-  String get weLlLetKnowWhenSeller => '賣家存書後會通知你前往取書';
+  String get weLlLetKnowWhenSeller => '賣家存書後將通知您前往取書';
 
   @override
-  String get waitingBuyerCollect => '等待買家到書櫃取書';
+  String get waitingBuyerCollect => '等待買家至書櫃取書';
 
   @override
-  String get bookLockerEnterPickupCodeCollect => '書已在書櫃裡，輸入取書碼即可取書';
+  String get bookLockerEnterPickupCodeCollect => '書籍已存入書櫃，輸入取書碼即可取書';
 
   @override
-  String get transactionCompleteThank => '交易完成，感謝使用';
+  String get transactionCompleteThank => '交易完成，感謝您的使用';
 
   @override
   String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍，確認後訂單即完成。';
@@ -26269,7 +26429,7 @@ class _LZhHant extends AppLocalizations {
   String p0ReadyPickup(Object p0) => '可取書 ${p0} 筆';
 
   @override
-  String get pickUp => '待取貨';
+  String get pickUp => '待取書';
 
   @override
   String get saved => '收藏';
@@ -26278,7 +26438,7 @@ class _LZhHant extends AppLocalizations {
   String get accountSecurity => '帳號安全';
 
   @override
-  String get sellerHasnTPutBookLocker => '賣家還沒把書放進書櫃，存書後會通知你';
+  String get sellerHasnTPutBookLocker => '賣家尚未存書，存書後將通知您';
 
   @override
   String get searchHistoryCleared => '已清除搜尋紀錄';
@@ -26287,31 +26447,31 @@ class _LZhHant extends AppLocalizations {
   String get trendingBooks => '熱門書籍';
 
   @override
-  String get signOutDevice => '登出這台裝置？';
+  String get signOutDevice => '確定要登出此裝置？';
 
   @override
-  String signOutP0(Object p0) => '登出「${p0}」？';
+  String signOutP0(Object p0) => '確定要登出「${p0}」？';
 
   @override
-  String get llNeedSignAgainUseApp => '登出後需要重新登入才能使用。';
+  String get llNeedSignAgainUseApp => '登出後須重新登入才能使用。';
 
   @override
-  String get deviceSignedOutRightAwayStop => '那台裝置會立即登出，也不會再收到推播。';
+  String get deviceSignedOutRightAwayStop => '該裝置將立即登出，且不再接收推播通知。';
 
   @override
-  String get deviceSignedOut => '已登出這台裝置';
+  String get deviceSignedOut => '已登出裝置';
 
   @override
-  String get signOutAllDevicesIncludingOne => '登出所有裝置（含這台）';
+  String get signOutAllDevicesIncludingOne => '登出所有裝置（含本機）';
 
   @override
   String get signOutAllOtherDevices => '登出其他所有裝置';
 
   @override
-  String get everyDeviceIncludingOneSignedOut => '包含這台在內的所有裝置都會登出，之後需要重新登入。';
+  String get everyDeviceIncludingOneSignedOut => '包含本機在內的所有裝置將被登出，之後須重新登入。';
 
   @override
-  String get everyDeviceExceptOneSignedOut => '除了這台之外的裝置都會立即登出，也不會再收到推播。';
+  String get everyDeviceExceptOneSignedOut => '除本機外的所有裝置將立即登出，且不再接收推播通知。';
 
   @override
   String signedOutP0OtherDevices(Object p0) => '已登出其他 ${p0} 台裝置';
@@ -26323,10 +26483,10 @@ class _LZhHant extends AppLocalizations {
   String get couldnTLoadDevices => '無法載入登入裝置';
 
   @override
-  String get theseDevicesSignedAccountIfDon => '這些裝置目前登入你的帳號。看到不認得的裝置，請立即登出並修改密碼。';
+  String get theseDevicesSignedAccountIfDon => '以下裝置目前已登入您的帳號。如發現不明裝置，請立即登出並變更密碼。';
 
   @override
-  String get device => '這台裝置';
+  String get device => '本機';
 
   @override
   String get otherDevices => '其他裝置';
@@ -26335,7 +26495,7 @@ class _LZhHant extends AppLocalizations {
   String otherDevicesP0(Object p0) => '其他裝置（${p0}）';
 
   @override
-  String get noOtherDevicesSigned => '沒有其他裝置登入你的帳號';
+  String get noOtherDevicesSigned => '沒有其他裝置登入您的帳號';
 
   @override
   String get signedDevices => '登入裝置';
@@ -26356,13 +26516,13 @@ class _LZhHant extends AppLocalizations {
   String get paymentPinMust6Digits => '交易密碼必須是 6 位數字';
 
   @override
-  String get pinTooEasyGuessTryAnother => '交易密碼太簡單，請換一組';
+  String get pinTooEasyGuessTryAnother => '交易密碼過於簡單，請重新設定';
 
   @override
   String get enterPasswordResetPaymentPin => '輸入登入密碼後即可重新設定交易密碼';
 
   @override
-  String get confirmSBeforeSettingPaymentPin => '設定交易密碼前，請先確認是你本人';
+  String get confirmSBeforeSettingPaymentPin => '設定交易密碼前，請先驗證身分';
 
   @override
   String get pinsDonTMatchStartAgain => '兩次輸入的交易密碼不一致，請重新設定';
@@ -26374,22 +26534,22 @@ class _LZhHant extends AppLocalizations {
   String get paymentPinSet => '交易密碼已設定';
 
   @override
-  String get use6DigitPinConfirmPayments => '之後結帳時，會用這組 6 位數密碼確認付款。';
+  String get use6DigitPinConfirmPayments => '日後結帳時，將使用此 6 位數密碼確認付款。';
 
   @override
   String get verifyingIdentity => '正在確認身分…';
 
   @override
-  String get enterAgainConfirm => '再輸入一次確認';
+  String get enterAgainConfirm => '請再次輸入以確認';
 
   @override
   String get set6DigitPaymentPin => '設定 6 位數交易密碼';
 
   @override
-  String get enterSamePinAgain => '請再輸入一次剛才的密碼';
+  String get enterSamePinAgain => '請再次輸入相同密碼';
 
   @override
-  String get avoidRepeatedSequentialPatternedDigits => '不能是相同、連續或重複的數字';
+  String get avoidRepeatedSequentialPatternedDigits => '不可使用相同、連續或重複的數字';
 
   @override
   String get resetPaymentPin => '重設交易密碼';
@@ -26404,7 +26564,7 @@ class _LZhHant extends AppLocalizations {
   String get setPaymentPinFirst => '請先設定交易密碼';
 
   @override
-  String get setPaymentPinFirstSoFallback => '請先設定交易密碼，辨識失敗時才有替代方式';
+  String get setPaymentPinFirstSoFallback => '請先設定交易密碼，作為辨識失敗時的替代驗證方式';
 
   @override
   String get setUpNow => '立即設定';
@@ -26428,22 +26588,22 @@ class _LZhHant extends AppLocalizations {
   String get accountWellProtected => '帳號安全狀態良好';
 
   @override
-  String get accountCouldSafer => '帳號安全還可以加強';
+  String get accountCouldSafer => '帳號安全性有待加強';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => '交易密碼與生物辨識付款都已設定。記得定期檢查登入裝置。';
+  String get paymentPinBiometricPaymentSetCheck => '交易密碼與生物辨識付款皆已設定，請定期檢查登入裝置。';
 
   @override
-  String get setPaymentPinTurnBiometricPayment => '設定交易密碼並開啟生物辨識付款，結帳會更安全也更快。';
+  String get setPaymentPinTurnBiometricPayment => '設定交易密碼並開啟生物辨識付款，結帳更安全、快速。';
 
   @override
-  String tooManyAttemptsLockedUntilP0(Object p0) => '錯誤次數過多，鎖定到 ${p0}';
+  String tooManyAttemptsLockedUntilP0(Object p0) => '錯誤次數過多，已鎖定至 ${p0}';
 
   @override
-  String get usedConfirmPaymentsCheckout => '結帳時用來確認付款';
+  String get usedConfirmPaymentsCheckout => '用於結帳時確認付款';
 
   @override
-  String get notSetRequiredBeforeCheckout => '尚未設定，結帳前需要先設定';
+  String get notSetRequiredBeforeCheckout => '尚未設定，結帳前須完成設定';
 
   @override
   String get change => '變更';
@@ -26461,13 +26621,13 @@ class _LZhHant extends AppLocalizations {
   String p0Devices(Object p0) => '${p0} 台';
 
   @override
-  String get otherDevicesNeedSignAgain => '修改後其他裝置需要重新登入';
+  String get otherDevicesNeedSignAgain => '變更後其他裝置須重新登入';
 
   @override
   String get restoredUnfinishedListing => '已帶入上次未完成的內容';
 
   @override
-  String get isbnSCheckDigitInvalidPlease => '這組 ISBN 的檢查碼不正確，請再確認一次';
+  String get isbnSCheckDigitInvalidPlease => '此 ISBN 檢查碼不正確，請再次確認';
 
   @override
   String get draftSavedAutomatically => '已自動儲存草稿';
@@ -26491,7 +26651,7 @@ class _LZhHant extends AppLocalizations {
   String get clearCache => '清除快取';
 
   @override
-  String get removesCachedImagesFilesAccountData => '清除暫存的圖片與檔案，不會影響帳號資料';
+  String get removesCachedImagesFilesAccountData => '清除暫存的圖片與檔案，不影響帳號資料';
 
   @override
   String get couldNotLoadNotificationSettings => '無法載入通知設定';
@@ -26503,10 +26663,10 @@ class _LZhHant extends AppLocalizations {
   String p0P1(Object p0, Object p1) => '${p0} 年 ${p1} 月';
 
   @override
-  String get noIncomeYet => '沒有收入紀錄';
+  String get noIncomeYet => '尚無收入紀錄';
 
   @override
-  String get noSpendingYet => '沒有支出紀錄';
+  String get noSpendingYet => '尚無支出紀錄';
 
   @override
   String get income => '收入';
@@ -26542,7 +26702,7 @@ class _LZhHant extends AppLocalizations {
   String get uploadFailedTryAgainLater => '上傳失敗，請稍後再試';
 
   @override
-  String get nearby => '就在附近';
+  String get nearby => '附近';
 
   @override
   String p0M(Object p0) => '${p0} 公尺';
@@ -26551,10 +26711,10 @@ class _LZhHant extends AppLocalizations {
   String p0Km(Object p0) => '${p0} 公里';
 
   @override
-  String get iphoneDidnTReceiveApnsToken => '手機沒有取得 Apple 推播憑證（APNs token）。請確認 Xcode 的 Signing & Capabilities 已加入 Push Notifications，並用同一個 Apple 開發者帳號重新安裝 App。';
+  String get iphoneDidnTReceiveApnsToken => '裝置未取得 Apple 推播憑證（APNs token）。請確認 Xcode 的 Signing & Capabilities 已加入 Push Notifications，並使用同一個 Apple 開發者帳號重新安裝 App。';
 
   @override
-  String get firebaseDidnTIssuePushToken => 'Firebase 沒有發出推播 token，請確認 GoogleService-Info.plist 與 App 的 Bundle ID 一致';
+  String get firebaseDidnTIssuePushToken => 'Firebase 未核發推播 token，請確認 GoogleService-Info.plist 與 App 的 Bundle ID 一致';
 
   @override
   String couldnTGetPushTokenP0(Object p0) => '取得推播 token 失敗：${p0}';
@@ -26563,7 +26723,7 @@ class _LZhHant extends AppLocalizations {
   String couldnTRegisterPushTokenWith(Object p0) => '推播 token 上傳伺服器失敗：${p0}';
 
   @override
-  String get protectCoinsCheckoutRequires6Digit => '為了保護你的代幣，結帳時需要輸入 6 位數交易密碼。設定後也可以開啟 Face ID 或指紋付款。';
+  String get protectCoinsCheckoutRequires6Digit => '為保障您的代幣安全，結帳時須輸入 6 位數交易密碼。設定後亦可啟用 Face ID 或指紋付款。';
 
   @override
   String confirmPaymentP0Coins(Object p0) => '確認付款 ${p0} 代幣';
@@ -26587,19 +26747,19 @@ class _LZhHant extends AppLocalizations {
   String get enterPaymentPinContinue => '請輸入交易密碼以繼續';
 
   @override
-  String get paymentPinResetEnterAgain => '交易密碼已重新設定，請再輸入一次';
+  String get paymentPinResetEnterAgain => '交易密碼已重新設定，請再次輸入';
 
   @override
   String get usePasswordInstead => '改用登入密碼';
 
   @override
-  String get couldnTGetLocationLockersShown => '無法取得目前位置，書櫃會依預設順序排列';
+  String get couldnTGetLocationLockersShown => '無法取得目前位置，書櫃將依預設順序排列';
 
   @override
   String p0SlotsFree(Object p0) => '空櫃 ${p0} 格';
 
   @override
-  String openP0(Object p0) => '營業 ${p0}';
+  String openP0(Object p0) => '開放 ${p0}';
 
   @override
   String get nearest => '最近';
@@ -26614,7 +26774,7 @@ class _LZhHant extends AppLocalizations {
   String get turnLocationSortByDistance => '開啟定位可依距離排序';
 
   @override
-  String get lockerNoFreeSlotsRightNow => '這個書櫃目前沒有空櫃';
+  String get lockerNoFreeSlotsRightNow => '此書櫃目前沒有空櫃';
 
   @override
   String get turn => '開啟定位';
@@ -26650,13 +26810,13 @@ class _LZhHant extends AppLocalizations {
   String get releaseCancel => '放開以取消';
 
   @override
-  String get slideCancel => '← 滑動取消';
+  String get slideCancel => '← 滑動以取消';
 
   @override
   String get awaitingReply => '待回覆';
 
   @override
-  String heldUntilP0(Object p0) => '已保留到 ${p0}';
+  String heldUntilP0(Object p0) => '已保留至 ${p0}';
 
   @override
   String get declined2 => '已婉拒';
@@ -26665,22 +26825,22 @@ class _LZhHant extends AppLocalizations {
   String get closed => '已結束';
 
   @override
-  String get theyWantReserveBook => '對方想預約你的書';
+  String get theyWantReserveBook => '對方申請預約您的書籍';
 
   @override
-  String get sentReservationRequest => '你送出了預約';
+  String get sentReservationRequest => '您已送出預約';
 
   @override
   String holdP0H(Object p0) => '保留 ${p0} 小時';
 
   @override
-  String get onceSellerAcceptsBookHeldNo => '賣家接受後，這本書會保留給你，其他人在期限內無法購買。';
+  String get onceSellerAcceptsBookHeldNo => '賣家接受後，此書籍將為您保留，期限內其他人無法購買。';
 
   @override
   String get holdPeriod => '保留時間';
 
   @override
-  String get messageSellerOptional => '想對賣家說的話（選填）';
+  String get messageSellerOptional => '給賣家的留言（選填）';
 
   @override
   String get sendRequest => '送出預約';
@@ -26690,6 +26850,36 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String p0P1DigitsEntered(Object p0, Object p1) => '已輸入 ${p0} / ${p1} 位';
+
+  @override
+  String get buildSProvisioningProfileDoesnT => '此安裝版本的簽署描述檔未包含推播權限。請於 Xcode 的 Runner › Signing & Capabilities 確認已加入 Push Notifications，並刪除 App 後重新安裝。';
+
+  @override
+  String get checkPhoneOnlinePushNotificationsAdded => '請確認裝置已連上網路，並於 Xcode 的 Runner › Signing & Capabilities 確認已加入 Push Notifications。';
+
+  @override
+  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone 向 Apple 註冊推播失敗：${p0}\n${p1}';
+
+  @override
+  String get serverNotBeenUpdatedSupportFeature => '伺服器尚未更新到支援這項功能的版本，請稍後再試';
+
+  @override
+  String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暫時無法使用，伺服器正在更新';
+
+  @override
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '伺服器執行的 API 版本過舊（目前 ${p0}，App 需要 ${p1}）。請在伺服器更新程式碼並重新啟動 API。';
+
+  @override
+  String databaseMigrationsNotYetRunP0(Object p0) => '資料庫尚未執行：${p0}';
+
+  @override
+  String serverVersionP0(Object p0) => '伺服器目前版本：${p0}';
+
+  @override
+  String get runNpmRunVerifyApiDirectory => '在伺服器的 API 目錄執行 npm run verify 可檢查完整的部署狀態。';
+
+  @override
+  String get serverUpdateRequired => '伺服器需要更新';
 
 }
 

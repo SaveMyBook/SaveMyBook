@@ -152,17 +152,17 @@ router.get('/members/:id', canManage, async (req, res) => {
 
 router.post('/members/:id/reset-password', canManage, requireVerification('sensitive'), async (req, res) => {
   const userId = v.id(req.params.id, '會員編號');
-  assertNotSelf(req, userId, '不能重設自己的密碼，請用「更改密碼」');
+  assertNotSelf(req, userId, '無法重設自己的密碼，請使用「更改密碼」');
 
   const user = await prisma.users.findUnique({
     where: { user_id: userId },
     select: { user_id: true, nickname: true, role: true, anonymized_at: true }
   });
-  if (!user) throw notFound('找不到這位會員');
+  if (!user) throw notFound('找不到此會員');
 
   // 禁止重設其他管理員的密碼，否則有會員權限者可接管管理員帳號。
-  if (user.role === 'admin') throw forbidden('不能重設其他管理員的密碼');
-  if (user.anonymized_at) throw conflict('這個帳號已刪除');
+  if (user.role === 'admin') throw forbidden('無法重設其他管理員的密碼');
+  if (user.anonymized_at) throw conflict('此帳號已刪除');
 
   const temp = password.temporary();
   const hash = await password.hash(temp);
@@ -175,8 +175,8 @@ router.post('/members/:id/reset-password', canManage, requireVerification('sensi
     await notify(tx, {
       userId,
       title: '密碼已被重設',
-      content: '客服已為你重設登入密碼。請用客服提供的臨時密碼登入，'
-        + '並立即到「設定 → 更改密碼」改成你自己的密碼。',
+      content: '客服已為您重設登入密碼。請使用客服提供的臨時密碼登入，'
+        + '並立即至「設定 → 更改密碼」設定新密碼。',
       relatedId: userId,
       relatedType: 'password'
     });
@@ -191,14 +191,14 @@ router.post('/members/:id/reset-password', canManage, requireVerification('sensi
     action: '重設會員密碼',
     targetType: 'user',
     targetId: userId,
-    summary: `重設了 ${user.nickname} 的登入密碼，並登出該帳號的所有裝置`,
+    summary: `重設 ${user.nickname} 的登入密碼，並登出該帳號的所有裝置`,
     req
   });
 
   res.set('Cache-Control', 'no-store');
   res.status(200).json({
     success: true,
-    message: '已重設，請把臨時密碼交給使用者',
+    message: '已重設，請將臨時密碼提供給使用者',
     data: { temp_password: temp }
   });
 });
@@ -213,14 +213,14 @@ router.patch('/members/:id', canManage, async (req, res) => {
     ...(isBlacklisted !== undefined && { is_blacklisted: v.bool(isBlacklisted) }),
     ...(role !== undefined && { role: v.oneOf(role, USER_ROLES, '不支援的身分') })
   };
-  if (Object.keys(data).length === 0) throw badRequest('沒有要變更的欄位');
+  if (Object.keys(data).length === 0) throw badRequest('沒有需要變更的欄位');
 
   const target = await prisma.users.findUnique({
     where: { user_id: userId },
     select: { anonymized_at: true, nickname: true, email: true, is_active: true, is_blacklisted: true, role: true }
   });
   if (!target) throw notFound('找不到該會員');
-  if (target.anonymized_at) throw conflict('這個帳號已刪除，無法變更狀態');
+  if (target.anonymized_at) throw conflict('此帳號已刪除，無法變更狀態');
 
   const updated = await prisma.users.update({
     where: { user_id: userId },
@@ -235,7 +235,7 @@ router.patch('/members/:id', canManage, async (req, res) => {
       action: '變更會員狀態',
       targetType: 'user',
       targetId: userId,
-      summary: `變更了 ${target.nickname}（${target.email}）的${changes.map((c) => c.label).join('、')}`,
+      summary: `變更 ${target.nickname}（${target.email}）的${changes.map((c) => c.label).join('、')}`,
       changes,
       undo: [audit.undoUpdate('users', userId, target, updated, STATUS_FIELDS)],
       req
@@ -267,7 +267,7 @@ router.patch('/members/:id/level', canManage, async (req, res) => {
     detail = `點數 ${amount > 0 ? '+' : ''}${amount}`;
   } else {
     const level = await prisma.member_levels.findUnique({ where: { level_id: v.id(levelId, '等級編號') } });
-    if (!level) throw notFound('找不到這個等級');
+    if (!level) throw notFound('找不到此等級');
     bonus = level.min_points - basePoints;
     detail = `指定等級：${level.level_name}`;
   }
@@ -280,7 +280,7 @@ router.patch('/members/:id/level', canManage, async (req, res) => {
     await notify(tx, {
       userId,
       title: '會員等級已調整',
-      content: `客服調整了您的會員等級（${detail}），目前點數 ${points}。`,
+      content: `客服已調整您的會員等級（${detail}），目前點數 ${points}。`,
       relatedType: 'member_level'
     });
   });
@@ -292,7 +292,7 @@ router.patch('/members/:id/level', canManage, async (req, res) => {
     action: '調整會員等級',
     targetType: 'user',
     targetId: userId,
-    summary: `調整了 ${nickname} 的會員等級（${detail}），目前點數 ${points}`,
+    summary: `調整 ${nickname} 的會員等級（${detail}），目前點數 ${points}`,
     changes: audit.diff(user, { bonus_points: bonus }, bonusField),
     undo: [audit.undoUpdate('users', userId, user, { bonus_points: bonus }, bonusField)],
     req
@@ -308,7 +308,7 @@ router.put('/members/:id/permissions', canManage, requireVerification('sensitive
   for (const key of PERMISSION_KEYS) {
     if (req.body[key] !== undefined) data[key] = v.bool(req.body[key]);
   }
-  if (Object.keys(data).length === 0) throw badRequest('沒有要更新的權限');
+  if (Object.keys(data).length === 0) throw badRequest('沒有需要更新的權限');
 
   const [target, mine, before] = await Promise.all([
     prisma.users.findUnique({ where: { user_id: userId }, select: { role: true, nickname: true } }),
@@ -323,8 +323,8 @@ router.put('/members/:id/permissions', canManage, requireVerification('sensitive
   const beyond = Object.keys(data).filter((k) => data[k] && !granter[k]);
   if (beyond.length) {
     throw forbidden(beyond.includes('can_manage_system')
-      ? '「系統維運」只能由已有這項權限的管理員開啟'
-      : '不能開啟你自己沒有的權限');
+      ? '「系統維運」僅能由具備此權限的管理員開啟'
+      : '無法開啟您本身未具備的權限');
   }
 
   const after = await prisma.admin_permissions.upsert({
@@ -341,8 +341,8 @@ router.put('/members/:id/permissions', canManage, requireVerification('sensitive
     targetType: 'user',
     targetId: userId,
     summary: changes.length
-      ? `調整了 ${target.nickname} 的後台權限：${changes.map((c) => `${c.label}${c.to}`).join('、')}`
-      : `重新儲存了 ${target.nickname} 的後台權限（沒有實際變動）`,
+      ? `調整 ${target.nickname} 的後台權限：${changes.map((c) => `${c.label}${c.to}`).join('、')}`
+      : `重新儲存 ${target.nickname} 的後台權限（無實際變更）`,
     changes,
     undo: changes.length ? [audit.undoUpdate('admin_permissions', userId, before, after, fields)] : null,
     req

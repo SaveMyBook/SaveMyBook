@@ -125,15 +125,41 @@ class PushService {
     } catch (_) {}
   }
 
+  static Future<String?> _apnsError() async {
+    try {
+      final state = await _badgeChannel.invokeMapMethod<String, dynamic>('apnsState');
+      final error = state?['error'];
+      return error is String && error.isNotEmpty ? error : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   static Future<(String?, String?)> _fetchToken() async {
     final messaging = FirebaseMessaging.instance;
     try {
       if (Platform.isIOS) {
-        String? apns;
-        for (var i = 0; i < 15 && (apns = await messaging.getAPNSToken()) == null; i++) {
-          await Future<void>.delayed(const Duration(seconds: 1));
+        String? apns = await messaging.getAPNSToken();
+        if (apns == null) {
+          try {
+            await _badgeChannel.invokeMethod('registerForRemoteNotifications');
+          } catch (_) {}
         }
-        if (apns == null) return (null, S.iphoneDidnTReceiveApnsToken);
+        String? nativeError;
+        for (var i = 0; i < 15 && apns == null && nativeError == null; i++) {
+          await Future<void>.delayed(const Duration(seconds: 1));
+          apns = await messaging.getAPNSToken();
+          nativeError = await _apnsError();
+        }
+        if (apns == null) {
+          if (nativeError != null) {
+            final hint = nativeError.contains('aps-environment')
+                ? S.buildSProvisioningProfileDoesnT
+                : S.checkPhoneOnlinePushNotificationsAdded;
+            return (null, S.iphoneFailedRegisterPushNotificationsWith(nativeError, hint));
+          }
+          return (null, S.iphoneDidnTReceiveApnsToken);
+        }
       }
       final token = await messaging.getToken();
       return token == null ? (null, S.firebaseDidnTIssuePushToken) : (token, null);

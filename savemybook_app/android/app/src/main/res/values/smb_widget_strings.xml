@@ -10,5 +10,5 @@
     <string name="smb_widget_coins">代幣</string>
     <string name="smb_widget_updated">更新於 %1$s</string>
     <string name="smb_widget_pickup_code">取書碼 %1$s</string>
-    <string name="smb_widget_no_pickup">目前沒有待取的書</string>
+    <string name="smb_widget_no_pickup">目前沒有待取書籍</string>
 </resources>

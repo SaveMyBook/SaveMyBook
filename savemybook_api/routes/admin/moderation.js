@@ -69,7 +69,7 @@ router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
 
   const report = await prisma.reports.findUnique({ where: { report_id: reportId } });
   if (!report) throw notFound('找不到該檢舉');
-  if (report.status === status && REPORT_FINAL.includes(status)) throw conflict('這則檢舉已經處理過了');
+  if (report.status === status && REPORT_FINAL.includes(status)) throw conflict('此檢舉已處理');
 
   let bookBefore = null;
   let bookAfter = null;
@@ -104,8 +104,8 @@ router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
 
     await notify(tx, {
       userId: report.reporter_id,
-      title: '你的檢舉已處理',
-      content: status === 'dismissed' ? '經審核後未違反社群規範，感謝你的回報。' : '感謝你的回報，我們已完成處理。',
+      title: '您的檢舉已處理',
+      content: status === 'dismissed' ? '經審核未違反社群規範，感謝您的回報。' : '感謝您的回報，我們已完成處理。',
       relatedId: reportId,
       relatedType: 'report'
     });
@@ -117,9 +117,9 @@ router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
         title: resolved ? '檢舉審核結果：違規成立' : '檢舉審核結果：未違規',
         content: resolved
           ? (removeTarget && report.target_type === 'book'
-              ? '經審核違規成立，該商品已被下架。如有疑問請聯絡客服。'
+              ? '經審核違規成立，該商品已下架。如有疑問請聯絡客服。'
               : '經審核違規成立，請留意社群規範，重複違規將影響帳號權益。')
-          : '經審核後未違反社群規範，你的商品／帳號不受影響。',
+          : '經審核未違反社群規範，您的商品／帳號不受影響。',
         relatedId: report.target_id,
         relatedType: report.target_type
       });
@@ -138,7 +138,7 @@ router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
     action: '處理檢舉',
     targetType: 'report',
     targetId: reportId,
-    summary: `把檢舉 #${reportId} 標為「${REPORT_STATUS_LABELS[status]}」`
+    summary: `將檢舉 #${reportId} 標為「${REPORT_STATUS_LABELS[status]}」`
       + `${bookBefore ? `，並下架《${bookBefore.title}》` : ''}。已通知檢舉人與被檢舉人（通知無法收回）`,
     changes: [
       ...audit.diff(report, updated, reportFields),
@@ -196,7 +196,7 @@ router.patch('/disputes/:id', requireAdmin('transactions'), async (req, res) => 
   });
   if (!dispute) throw notFound('找不到該爭議案件');
   // 已結案的案件再裁決會重複退款。
-  if (dispute.status === 'resolved') throw conflict('這個爭議已經裁決過了');
+  if (dispute.status === 'resolved') throw conflict('此爭議已裁決');
 
   const order = dispute.orders;
   const isRefund = result === 'refund_manual' || result === 'refund_auto';
@@ -218,7 +218,7 @@ router.patch('/disputes/:id', requireAdmin('transactions'), async (req, res) => 
         resolved_at: new Date()
       }
     });
-    if (claimed.count === 0) throw conflict('這個爭議已經裁決過了');
+    if (claimed.count === 0) throw conflict('此爭議已裁決');
 
     const settled = target === order.status
       ? { paidOut: 0, clawedBack: 0, refunded: 0 }
@@ -256,7 +256,7 @@ router.patch('/disputes/:id', requireAdmin('transactions'), async (req, res) => 
         ? `訂單 ${order.order_no} 裁決退款給買家，已從您的錢包收回 ${settled.clawedBack} 代幣。`
         : `訂單 ${order.order_no} 裁決退款給買家，交易已取消。`);
     } else {
-      const content = `訂單 ${order.order_no} 經審核後維持原交易，訂單回到「${orderFlow.statusLabel(target)}」。`
+      const content = `訂單 ${order.order_no} 經審核維持原交易，訂單恢復為「${orderFlow.statusLabel(target)}」。`
         + (settled.paidOut > 0 ? `貨款 ${settled.paidOut} 代幣已撥入賣家錢包。` : '');
       await notice(order.buyer_id, content);
       await notice(order.seller_id, content);

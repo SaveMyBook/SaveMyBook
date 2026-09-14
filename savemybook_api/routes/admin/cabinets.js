@@ -88,7 +88,7 @@ router.post('/cabinets', canManage, async (req, res) => {
     action: '新增書櫃',
     targetType: 'cabinet',
     targetId: cabinet.cabinet_id,
-    summary: `新增了書櫃「${cabinetName}」（${slots} 格），地址：${addr}`,
+    summary: `新增書櫃「${cabinetName}」（${slots} 格），地址：${addr}`,
     undo: [audit.undoUpdate('smart_cabinets', cabinet.cabinet_id, { is_active: false }, { is_active: true }, ['is_active'])],
     req
   });
@@ -125,8 +125,8 @@ router.put('/cabinets/:id', canManage, async (req, res) => {
     targetType: 'cabinet',
     targetId: cabinetId,
     summary: changes.length
-      ? `修改了書櫃「${before.cabinet_name}」的${changes.map((c) => c.label).join('、')}`
-      : `重新儲存了書櫃「${before.cabinet_name}」（沒有實際變動）`,
+      ? `修改書櫃「${before.cabinet_name}」的${changes.map((c) => c.label).join('、')}`
+      : `重新儲存書櫃「${before.cabinet_name}」（無實際變更）`,
     changes,
     undo: changes.length ? [audit.undoUpdate('smart_cabinets', cabinetId, before, data, CABINET_FIELDS)] : null,
     req
@@ -157,7 +157,7 @@ router.patch('/cabinets/:cabinetId/slots/:slotId', canManage, async (req, res) =
     action: '變更櫃位狀態',
     targetType: 'cabinet_slot',
     targetId: slotId,
-    summary: `把「${before.smart_cabinets.cabinet_name}」的 ${slot.slot_number} 改為${SLOT_LABELS[status]}`,
+    summary: `將「${before.smart_cabinets.cabinet_name}」的 ${slot.slot_number} 改為${SLOT_LABELS[status]}`,
     changes: audit.diff(before, slot, slotFields),
     undo: before.status === status ? null : [audit.undoUpdate('cabinet_slots', slotId, before, slot, slotFields)],
     req

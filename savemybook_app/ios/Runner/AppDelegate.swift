@@ -10,6 +10,8 @@ import UserNotifications
 
   private var deepLinkChannel: FlutterMethodChannel?
   private var pendingLink: String?
+  private var apnsTokenReceived = false
+  private var apnsError: String?
 
   override func application(
     _ application: UIApplication,
@@ -35,27 +37,37 @@ import UserNotifications
       share.setMethodCallHandler { [weak self] call, result in
         self?.handleShare(call: call, result: result, host: controller)
       }
+    }
 
+    if let registrar = self.registrar(forPlugin: "SaveMyBookPush") {
       let push = FlutterMethodChannel(name: AppDelegate.pushChannelName,
-                                      binaryMessenger: controller.binaryMessenger)
-      push.setMethodCallHandler { call, result in
-        if call.method == "openNotificationSettings" {
+                                      binaryMessenger: registrar.messenger())
+      push.setMethodCallHandler { [weak self] call, result in
+        switch call.method {
+        case "openNotificationSettings":
           if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
           }
           result(nil)
-          return
-        }
-        guard call.method == "setBadge" else {
-          result(FlutterMethodNotImplemented)
-          return
-        }
-        let count = max(0, call.arguments as? Int ?? 0)
-        if #available(iOS 16.0, *) {
-          UNUserNotificationCenter.current().setBadgeCount(count) { _ in result(nil) }
-        } else {
-          UIApplication.shared.applicationIconBadgeNumber = count
+        case "registerForRemoteNotifications":
+          UIApplication.shared.registerForRemoteNotifications()
           result(nil)
+        case "apnsState":
+          result([
+            "registered": UIApplication.shared.isRegisteredForRemoteNotifications,
+            "token": self?.apnsTokenReceived ?? false,
+            "error": (self?.apnsError).map { $0 as Any } ?? NSNull()
+          ])
+        case "setBadge":
+          let count = max(0, call.arguments as? Int ?? 0)
+          if #available(iOS 16.0, *) {
+            UNUserNotificationCenter.current().setBadgeCount(count) { _ in result(nil) }
+          } else {
+            UIApplication.shared.applicationIconBadgeNumber = count
+            result(nil)
+          }
+        default:
+          result(FlutterMethodNotImplemented)
         }
       }
     }
@@ -82,6 +94,8 @@ import UserNotifications
 
   override func application(_ application: UIApplication,
                             didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    apnsTokenReceived = true
+    apnsError = nil
     // firebase_messaging 在 Release 組態一律把 APNs token 標成正式環境，用開發描述檔安裝時推播會送不到。
     // 改用 FIRMessaging 的 APNSToken setter（type unknown），由 Firebase 依描述檔判斷環境。
     if let cls = NSClassFromString("FIRMessaging"),
@@ -90,6 +104,12 @@ import UserNotifications
     } else {
       super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
     }
+  }
+
+  override func application(_ application: UIApplication,
+                            didFailToRegisterForRemoteNotificationsWithError error: Error) {
+    apnsError = error.localizedDescription
+    super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
   }
 
   private func handleShare(call: FlutterMethodCall,

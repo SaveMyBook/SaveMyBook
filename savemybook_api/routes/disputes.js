@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
   });
   if (!order) throw notFound('找不到該訂單');
   if (order.buyer_id !== req.user.userId && order.seller_id !== req.user.userId) throw forbidden('存取被拒');
-  if (NOT_DISPUTABLE.includes(order.status)) throw badRequest('這筆訂單已取消或已退款，無法提出爭議');
+  if (NOT_DISPUTABLE.includes(order.status)) throw badRequest('此訂單已取消或已退款，無法提出爭議');
 
   const existing = await prisma.transaction_disputes.findFirst({
     where: { order_id: orderId, applicant_id: req.user.userId, status: { in: ['pending', 'processing'] } },
@@ -73,8 +73,8 @@ router.post('/', async (req, res) => {
     await notify(tx, {
       userId: isBuyer ? order.seller_id : order.buyer_id,
       type: 'order',
-      title: `${isBuyer ? '買家' : '賣家'}對訂單提出了爭議`,
-      content: `訂單 ${order.order_no} 有一筆爭議申請，客服會協助處理，處理期間訂單暫停進行。`,
+      title: `${isBuyer ? '買家' : '賣家'}對訂單提出爭議`,
+      content: `訂單 ${order.order_no} 有一筆爭議申請，客服將協助處理，處理期間訂單暫停進行。`,
       relatedId: orderId,
       relatedType: 'order'
     });

@@ -34,3 +34,33 @@ const hasColumn = async (table, column) => {
 const resetCache = () => cache.clear();
 
 module.exports = { hasTables, hasColumn, resetCache };
+
+const REQUIRED = [
+  { migration: '004_account_privacy_and_ops.sql', table: 'users', column: 'deletion_requested_at' },
+  { migration: '004_account_privacy_and_ops.sql', table: 'users', column: 'anonymized_at' },
+  { migration: '004_account_privacy_and_ops.sql', table: 'users', column: 'share_token' },
+  { migration: '004_account_privacy_and_ops.sql', table: 'db_backups' },
+  { migration: '005_book_share_and_admin_ops.sql', table: 'books', column: 'share_token' },
+  { migration: '005_book_share_and_admin_ops.sql', table: 'admin_permissions', column: 'can_manage_system' },
+  { migration: '006_push_notifications.sql', table: 'push_devices' },
+  { migration: '006_push_notifications.sql', table: 'notifications', column: 'pushed_at' },
+  { migration: '007_consent_sessions_payment.sql', table: 'legal_documents', column: 'version' },
+  { migration: '007_consent_sessions_payment.sql', table: 'legal_documents', column: 'requires_consent' },
+  { migration: '007_consent_sessions_payment.sql', table: 'user_legal_consents' },
+  { migration: '007_consent_sessions_payment.sql', table: 'user_sessions' },
+  { migration: '007_consent_sessions_payment.sql', table: 'user_security' },
+  { migration: '007_consent_sessions_payment.sql', table: 'push_devices', column: 'session_sid' }
+];
+
+const missingSchema = async () => {
+  const [tables, columns] = await Promise.all([
+    prisma.$queryRaw`SELECT TABLE_NAME AS t FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()`,
+    prisma.$queryRaw`SELECT TABLE_NAME AS t, COLUMN_NAME AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()`
+  ]);
+  const tableSet = new Set(tables.map((r) => String(r.t)));
+  const columnSet = new Set(columns.map((r) => `${r.t}.${r.c}`));
+  return REQUIRED.filter((r) => (r.column ? !columnSet.has(`${r.table}.${r.column}`) : !tableSet.has(r.table)));
+};
+
+module.exports.REQUIRED = REQUIRED;
+module.exports.missingSchema = missingSchema;

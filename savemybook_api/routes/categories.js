@@ -20,12 +20,12 @@ const categoryName = (value) => {
 
 const assertParent = async (parentId, selfId) => {
   if (parentId == null) return;
-  if (parentId === selfId) throw badRequest('父分類不能設定為自己');
+  if (parentId === selfId) throw badRequest('父分類不可設定為自身');
 
   const seen = new Set([selfId]);
   let cursor = parentId;
   while (cursor != null) {
-    if (seen.has(cursor)) throw badRequest('父分類不能是自己的子分類');
+    if (seen.has(cursor)) throw badRequest('父分類不可為自身的子分類');
     seen.add(cursor);
     const row = await prisma.book_categories.findUnique({
       where: { category_id: cursor },
@@ -78,7 +78,7 @@ router.post('/', ...canManage, async (req, res) => {
     action: '新增分類',
     targetType: 'category',
     targetId: newCategory.category_id,
-    summary: `新增了分類「${name}」`,
+    summary: `新增分類「${name}」`,
     undo: [audit.undoCreate('book_categories', newCategory.category_id)],
     req
   });
@@ -107,7 +107,7 @@ router.put('/:id', ...canManage, async (req, res) => {
       action: '編輯分類',
       targetType: 'category',
       targetId: categoryId,
-      summary: `編輯了分類「${before.category_name}」`,
+      summary: `編輯分類「${before.category_name}」`,
       changes,
       undo: [audit.undoUpdate('book_categories', categoryId, before, data, FIELDS)],
       req
@@ -129,13 +129,13 @@ router.delete('/:id', ...canManage, async (req, res) => {
       action: '刪除分類',
       targetType: 'category',
       targetId: categoryId,
-      summary: `刪除了分類「${before.category_name}」`,
+      summary: `刪除分類「${before.category_name}」`,
       undo: [audit.undoDelete('book_categories', before)],
       req
     });
   } catch (err) {
     if (err.code === 'P2003') {
-      throw badRequest('無法刪除！此分類下可能還有子分類或書籍，請先轉移或刪除關聯資料');
+      throw badRequest('無法刪除，此分類下可能仍有子分類或書籍，請先轉移或刪除關聯資料');
     }
     throw err;
   }

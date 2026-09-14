@@ -14,14 +14,14 @@ const uploadLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 30,
   key: byUser,
-  message: '上傳太頻繁，請稍後再試'
+  message: '上傳過於頻繁，請稍後再試'
 });
 
 const chatUploadLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 60,
   key: byUser,
-  message: '上傳太頻繁，請稍後再試'
+  message: '上傳過於頻繁，請稍後再試'
 });
 
 router.post('/', authenticateToken, uploadLimiter, ...evidence.array('files', 5), (req, res) => {

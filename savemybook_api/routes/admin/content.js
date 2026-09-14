@@ -107,7 +107,7 @@ router.put('/books/:id', canManage, async (req, res) => {
   const body = req.body;
 
   const title = v.optionalText(body.title, { label: '書名', max: 255 });
-  if (title === null) throw badRequest('書名必填，且不能超過 255 個字元');
+  if (title === null) throw badRequest('書名為必填，且不可超過 255 個字元');
 
   const price = body.price === undefined ? undefined : Number(body.price);
   if (price !== undefined && (!Number.isFinite(price) || price < 0 || price > MAX_PRICE)) {
@@ -122,11 +122,11 @@ router.put('/books/:id', canManage, async (req, res) => {
   const categoryId = body.category_id === undefined ? undefined : v.optionalId(body.category_id, '分類編號');
 
   const book = await prisma.books.findUnique({ where: { book_id: bookId } });
-  if (!book) throw notFound('找不到這本書');
+  if (!book) throw notFound('找不到此書籍');
 
   if (categoryId) {
     const exists = await prisma.book_categories.count({ where: { category_id: categoryId } });
-    if (!exists) throw badRequest('找不到這個分類');
+    if (!exists) throw badRequest('找不到此分類');
   }
 
   const data = {
@@ -142,7 +142,7 @@ router.put('/books/:id', canManage, async (req, res) => {
     ...(body.description !== undefined && { description: v.optionalText(body.description, { label: '書籍描述', max: 5000 }) })
   };
 
-  if (Object.keys(data).length === 0) throw badRequest('沒有要修改的欄位');
+  if (Object.keys(data).length === 0) throw badRequest('沒有需要修改的欄位');
 
   const changes = [];
   if (title !== undefined && title !== book.title) changes.push(`書名改為《${title}》`);
@@ -168,8 +168,8 @@ router.put('/books/:id', canManage, async (req, res) => {
     targetType: 'book',
     targetId: bookId,
     summary: logged.length
-      ? `修改了《${book.title}》的${logged.map((c) => c.label).join('、')}，並通知賣家`
-      : `重新儲存了《${book.title}》（沒有實際變動）`,
+      ? `修改《${book.title}》的${logged.map((c) => c.label).join('、')}，並通知賣家`
+      : `重新儲存《${book.title}》（無實際變更）`,
     changes: logged,
     undo: logged.length ? [audit.undoUpdate('books', bookId, book, data, BOOK_FIELDS)] : null,
     req
@@ -180,15 +180,15 @@ router.put('/books/:id', canManage, async (req, res) => {
 
 router.patch('/books/:id', canManage, async (req, res) => {
   const bookId = v.id(req.params.id, '書籍編號');
-  const status = v.oneOf(req.body.status, ['on_sale', 'removed'], '只能設定為上架或下架');
+  const status = v.oneOf(req.body.status, ['on_sale', 'removed'], '僅可設定為上架或下架');
   const reason = v.optionalText(req.body.reason, { label: '原因', max: 500 }) ?? null;
 
   const book = await prisma.books.findUnique({ where: { book_id: bookId } });
-  if (!book) throw notFound('找不到這本書');
+  if (!book) throw notFound('找不到此書籍');
 
   // 已售出或交易中的書改回上架會被第二個買家買走。
   if (status === 'on_sale' && ['reserved', 'sold'].includes(book.status)) {
-    throw conflict(book.status === 'sold' ? '這本書已售出，無法恢復上架' : '這本書正在交易中，無法恢復上架');
+    throw conflict(book.status === 'sold' ? '此書籍已售出，無法恢復上架' : '此書籍交易中，無法恢復上架');
   }
 
   // 恢復上架須一併解除違規標記，否則 is_approved=false 仍會被公開列表濾掉。
@@ -215,7 +215,7 @@ router.patch('/books/:id', canManage, async (req, res) => {
     action: status === 'removed' ? '強制下架書籍' : '恢復書籍上架',
     targetType: 'book',
     targetId: bookId,
-    summary: `${status === 'removed' ? '下架' : '恢復上架'}了《${book.title}》${reason ? `，原因：${reason}` : ''}`,
+    summary: `${status === 'removed' ? '下架' : '恢復上架'}《${book.title}》${reason ? `，原因：${reason}` : ''}`,
     changes: audit.diff(book, statusData, BOOK_STATUS_FIELDS),
     undo: [audit.undoUpdate('books', bookId, book, statusData, BOOK_STATUS_FIELDS)],
     req
@@ -258,7 +258,7 @@ router.post('/categories', canManage, async (req, res) => {
     action: '新增分類',
     targetType: 'category',
     targetId: created.category_id,
-    summary: `新增了分類「${name}」`,
+    summary: `新增分類「${name}」`,
     undo: [audit.undoCreate('book_categories', created.category_id)],
     req
   });
@@ -291,7 +291,7 @@ router.put('/categories/reorder', canManage, async (req, res) => {
     adminId: req.user.userId,
     action: '調整分類排序',
     targetType: 'category',
-    summary: '調整了分類的顯示順序',
+    summary: '調整分類的顯示順序',
     changes: [{
       label: '順序',
       from: [...existing].sort((a, b) => a.sort_order - b.sort_order).map((c) => c.category_name).join('、'),
@@ -321,7 +321,7 @@ router.put('/categories/:id', canManage, async (req, res) => {
     action: '編輯分類',
     targetType: 'category',
     targetId: categoryId,
-    summary: changes.length ? `編輯了分類「${before.category_name}」` : `重新儲存了分類「${name}」（沒有實際變動）`,
+    summary: changes.length ? `編輯分類「${before.category_name}」` : `重新儲存分類「${name}」（無實際變更）`,
     changes,
     undo: changes.length ? [audit.undoUpdate('book_categories', categoryId, before, data, fields)] : null,
     req
@@ -336,8 +336,8 @@ router.delete('/categories/:id', canManage, async (req, res) => {
     prisma.books.count({ where: { category_id: categoryId } }),
     prisma.book_categories.count({ where: { parent_id: categoryId } })
   ]);
-  if (inUse > 0) throw badRequest(`還有 ${inUse} 本書屬於這個分類，請先調整後再刪除`);
-  if (children > 0) throw badRequest(`這個分類底下還有 ${children} 個子分類，請先調整後再刪除`);
+  if (inUse > 0) throw badRequest(`此分類仍有 ${inUse} 本書籍，請先調整後再刪除`);
+  if (children > 0) throw badRequest(`此分類下仍有 ${children} 個子分類，請先調整後再刪除`);
 
   const before = await prisma.book_categories.findUnique({ where: { category_id: categoryId } });
   if (!before) throw notFound('找不到該分類');
@@ -347,7 +347,7 @@ router.delete('/categories/:id', canManage, async (req, res) => {
     action: '刪除分類',
     targetType: 'category',
     targetId: categoryId,
-    summary: `刪除了分類「${before.category_name}」`,
+    summary: `刪除分類「${before.category_name}」`,
     undo: [audit.undoDelete('book_categories', before)],
     req
   });

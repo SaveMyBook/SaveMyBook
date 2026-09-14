@@ -122,23 +122,23 @@ const userNotFound = () => render({
   title: '找不到使用者',
   body: `${BRAND}
     <div class="avatar-fallback">?</div>
-    <h1>找不到這位使用者</h1>
-    <p class="bio">這個連結可能已經失效，或帳號已被停用。</p>`
+    <h1>找不到此使用者</h1>
+    <p class="bio">此連結可能已失效，或帳號已停用。</p>`
 });
 
 const bookNotFound = () => render({
   title: '找不到書籍',
   body: `${BRAND}
     <div class="cover-fallback">?</div>
-    <h1>找不到這本書</h1>
-    <p class="bio">這個連結可能已經失效，或書籍已經下架。</p>`
+    <h1>找不到此書籍</h1>
+    <p class="bio">此連結可能已失效，或書籍已下架。</p>`
 });
 
 const errorPage = () => render({
   title: '發生錯誤',
   body: `${BRAND}
     <h1>暫時無法載入</h1>
-    <p class="bio">請稍後再試一次。</p>`
+    <p class="bio">請稍後再試。</p>`
 });
 
 const userProfile = ({ origin, user }) => {
@@ -154,10 +154,10 @@ const userProfile = ({ origin, user }) => {
     body: `${BRAND}
       ${avatar}
       <h1>${escapeHtml(nickname)}</h1>
-      <p class="bio">${escapeHtml(user.bio || '這個人很懶，什麼都沒留下')}</p>
+      <p class="bio">${escapeHtml(user.bio || '尚未填寫個人簡介')}</p>
       <p class="meta">上架 ${Number(user._count.books)} 本書 ・ ${escapeHtml(joined)} 加入</p>
       ${openAppButton(`savemybook://user/${Number(user.user_id)}`,
-        '沒有反應嗎？請先安裝「救「舊」我的書」App，<br>或在 App 的「分享檔案」裡直接掃描這個 QR Code。')}`
+        '若無法開啟，請先安裝「救「舊」我的書」App，<br>或於 App 的「分享個人檔案」中掃描此 QR Code。')}`
   });
 };
 
@@ -193,7 +193,7 @@ const bookDetail = ({ origin, book }) => {
       <div class="tags">${tags}</div>
       <div class="seller">${avatar}<span>${escapeHtml(nickname)}</span></div>
       ${openAppButton(`savemybook://book/${Number(book.book_id)}`,
-        '沒有反應嗎？請先安裝「救「舊」我的書」App，再重新點一次這個連結。')}`
+        '若無法開啟，請先安裝「救「舊」我的書」App，再重新點選此連結。')}`
   });
 };
 

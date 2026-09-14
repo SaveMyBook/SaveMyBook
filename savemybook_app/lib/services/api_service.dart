@@ -221,7 +221,9 @@ class ApiService {
       ...payload,
       'success': false,
       'status': status,
-      'message': payload['message'] ?? (status == 503 ? S.serviceTemporarilyUnavailableTryAgainLater : S.requestFailed2(status)),
+      'message': code == 'ROUTE_NOT_FOUND'
+          ? S.serverNotBeenUpdatedSupportFeature
+          : payload['message'] ?? (status == 503 ? S.serviceTemporarilyUnavailableTryAgainLater : S.requestFailed2(status)),
     };
   }
 
@@ -1105,6 +1107,22 @@ class ApiService {
     if (res == null) return (null, S.couldNotReachServer);
     if (res['success'] != true) return (null, res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
     return ((res['data'] as Map?)?['safety_backup'] as String? ?? '', null);
+  }
+
+  Future<ServerStatus?> fetchServerStatus() async {
+    final res = await _send('GET', '/status');
+    if (res == null) return null;
+    if (res['success'] != true) {
+      return res['code'] == 'ROUTE_NOT_FOUND' ? const ServerStatus(reachable: true, apiRevision: 0) : null;
+    }
+    final data = res['data'];
+    if (data is! Map) return null;
+    return ServerStatus(
+      reachable: true,
+      apiRevision: parseInt(data['api_revision']),
+      commit: data['commit'] as String?,
+      pendingMigrations: (data['pending_migrations'] as List? ?? const []).map((e) => '$e').toList(),
+    );
   }
 
   Future<String?> fetchRestoreState() async {

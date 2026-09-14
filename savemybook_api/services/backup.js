@@ -235,7 +235,7 @@ const startRestore = async ({ backupId, adminId, onFinished }) => {
   if (running) throw conflict('已有備份或還原正在進行，請稍後再試');
 
   const target = await prisma.db_backups.findUnique({ where: { backup_id: backupId } });
-  if (!target || target.status !== 'success') throw notFound('找不到這份備份');
+  if (!target || target.status !== 'success') throw notFound('找不到此備份');
   const filePath = filePathOf(target.file_name);
   if (!filePath) throw notFound('備份檔已不存在，無法還原');
 

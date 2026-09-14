@@ -64,7 +64,7 @@ const assertNotHeldByOthers = async (db, books, buyerId) => {
   for (const book of books) {
     const hold = await activeHold(db, book.book_id);
     if (hold && hold.buyer_id !== buyerId) {
-      throw conflict(`《${book.title}》已經被其他買家預約，保留到 ${formatDeadline(hold.pickup_deadline)}`, 'BOOK_RESERVED');
+      throw conflict(`《${book.title}》已由其他買家預約，保留至 ${formatDeadline(hold.pickup_deadline)}`, 'BOOK_RESERVED');
     }
   }
 };
@@ -85,11 +85,11 @@ const request = async ({ room, buyerId, bookId, hours, message }) => {
   if (!HOURS.includes(hours)) throw badRequest(`保留時間僅接受：${HOURS.join('、')} 小時`);
 
   const book = await prisma.books.findUnique({ where: { book_id: bookId }, select: bookSelect });
-  if (!book) throw notFound('找不到這本書');
+  if (!book) throw notFound('找不到此書籍');
   const sellerId = book.seller_id;
-  if (sellerId === buyerId) throw badRequest('不能預約自己上架的書');
-  if (![room.user_a_id, room.user_b_id].includes(sellerId)) throw badRequest('只能在和這本書的賣家的聊天室裡預約');
-  if (book.status !== 'on_sale' || !book.is_approved) throw badRequest('這本書目前無法預約');
+  if (sellerId === buyerId) throw badRequest('無法預約自己上架的書籍');
+  if (![room.user_a_id, room.user_b_id].includes(sellerId)) throw badRequest('僅能於與該書賣家的聊天室中預約');
+  if (book.status !== 'on_sale' || !book.is_approved) throw badRequest('此書籍目前無法預約');
 
   await assertNotHeldByOthers(prisma, [book], buyerId);
 
@@ -101,9 +101,9 @@ const request = async ({ room, buyerId, bookId, hours, message }) => {
     prisma.reservations.count({ where: { buyer_id: buyerId, status: { in: ['pending', 'confirmed'] } } })
   ]);
   if (mine && (mine.status === 'pending' || isHolding(mine))) {
-    throw conflict(mine.status === 'pending' ? '你已經送出預約，正在等賣家回覆' : '你已經預約了這本書');
+    throw conflict(mine.status === 'pending' ? '您已送出預約，正在等待賣家回覆' : '您已預約此書籍');
   }
-  if (activeCount >= MAX_ACTIVE_PER_BUYER) throw badRequest(`同時最多只能有 ${MAX_ACTIVE_PER_BUYER} 筆進行中的預約`);
+  if (activeCount >= MAX_ACTIVE_PER_BUYER) throw badRequest(`同時最多僅能有 ${MAX_ACTIVE_PER_BUYER} 筆進行中的預約`);
 
   return prisma.$transaction(async (tx) => {
     const created = await tx.reservations.create({
@@ -120,8 +120,8 @@ const request = async ({ room, buyerId, bookId, hours, message }) => {
     await notify(tx, {
       userId: sellerId,
       type: 'reservation',
-      title: '有人想預約你的書',
-      content: `對方想預約《${book.title}》，保留 ${hours} 小時。請到聊天室回覆。`,
+      title: '您的書籍收到預約申請',
+      content: `對方申請預約《${book.title}》，保留 ${hours} 小時。請至聊天室回覆。`,
       relatedId: room.room_id,
       relatedType: 'chat_room'
     });
@@ -143,13 +143,13 @@ const respond = async (reservationId, userId, action) => {
     where: { reservation_id: reservationId },
     include: { books: { select: bookSelect } }
   });
-  if (!row) throw notFound('找不到這筆預約');
+  if (!row) throw notFound('找不到此預約');
   const isSeller = row.seller_id === userId;
   const isBuyer = row.buyer_id === userId;
-  if (!isSeller && !isBuyer) throw forbidden('這不是你的預約');
-  if (rule.by === 'seller' && !isSeller) throw forbidden('只有賣家可以回覆預約');
+  if (!isSeller && !isBuyer) throw forbidden('此預約不屬於您');
+  if (rule.by === 'seller' && !isSeller) throw forbidden('僅賣家可回覆預約');
   if (!rule.from.includes(row.status) || (row.status === 'confirmed' && !isHolding(row))) {
-    throw conflict('這筆預約的狀態已經變更，請重新整理');
+    throw conflict('此預約狀態已變更，請重新整理');
   }
 
   const now = new Date();
@@ -157,7 +157,7 @@ const respond = async (reservationId, userId, action) => {
   const title = row.books?.title ?? '';
 
   if (action === 'accept') {
-    if (row.books.status !== 'on_sale') throw conflict('這本書已經不在架上，無法接受預約');
+    if (row.books.status !== 'on_sale') throw conflict('此書籍已下架，無法接受預約');
     await assertNotHeldByOthers(prisma, [row.books], row.buyer_id);
   }
 
@@ -175,7 +175,7 @@ const respond = async (reservationId, userId, action) => {
       where: { reservation_id: reservationId, status: row.status },
       data
     });
-    if (result.count === 0) throw conflict('這筆預約的狀態已經變更，請重新整理');
+    if (result.count === 0) throw conflict('此預約狀態已變更，請重新整理');
 
     if (action === 'accept') {
       const others = await tx.reservations.findMany({
@@ -192,7 +192,7 @@ const respond = async (reservationId, userId, action) => {
             userId: other.buyer_id,
             type: 'reservation',
             title: '預約未成立',
-            content: `《${title}》已經保留給其他買家了。`,
+            content: `《${title}》已保留給其他買家。`,
             relatedId: row.book_id,
             relatedType: 'book'
           });
@@ -205,8 +205,8 @@ const respond = async (reservationId, userId, action) => {
 
     const target = isSeller ? row.buyer_id : row.seller_id;
     const messages = {
-      accept: ['賣家接受了你的預約', `《${title}》已保留給你到 ${formatDeadline(data.pickup_deadline)}，請在期限內完成購買。`],
-      decline: ['賣家婉拒了預約', `賣家目前無法保留《${title}》。`],
+      accept: ['賣家已接受您的預約', `《${title}》已為您保留至 ${formatDeadline(data.pickup_deadline)}，請於期限內完成購買。`],
+      decline: ['賣家已婉拒預約', `賣家目前無法保留《${title}》。`],
       cancel: ['預約已取消', `《${title}》的預約已被${isSeller ? '賣家' : '買家'}取消。`]
     };
     await notify(tx, {
@@ -268,8 +268,8 @@ const expireDue = async () => {
     await notify(null, {
       userId: row.buyer_id,
       type: 'reservation',
-      title: wasPending ? '預約沒有回覆' : '預約已到期',
-      content: wasPending ? `賣家沒有在 24 小時內回覆《${title}》的預約。` : `《${title}》的保留期限已過，其他人現在也可以購買了。`,
+      title: wasPending ? '預約未獲回覆' : '預約已到期',
+      content: wasPending ? `賣家未於 24 小時內回覆《${title}》的預約。` : `《${title}》的保留期限已屆滿，其他買家現已可購買。`,
       relatedId: row.book_id,
       relatedType: 'book'
     }).catch(() => {});

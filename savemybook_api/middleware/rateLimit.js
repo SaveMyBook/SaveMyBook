@@ -1,7 +1,7 @@
 const { HttpError } = require('../lib/errors');
 
 // 行程內計數，改成多行程部署時須換成共用儲存。
-const rateLimit = ({ windowMs, max, key, message = '操作太頻繁，請稍後再試' }) => {
+const rateLimit = ({ windowMs, max, key, message = '操作過於頻繁，請稍後再試' }) => {
   const hits = new Map();
 
   const sweep = setInterval(() => {

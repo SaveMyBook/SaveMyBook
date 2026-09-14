@@ -58,7 +58,7 @@ router.get('/wallets/:userId', canManage, async (req, res) => {
     where: { user_id: userId },
     select: { ...walletUserSelect, wallets: true }
   });
-  if (!user) throw notFound('找不到這位會員');
+  if (!user) throw notFound('找不到此會員');
 
   const transactions = user.wallets
     ? await prisma.wallet_transactions.findMany({
@@ -79,11 +79,11 @@ router.post('/wallets/:userId/adjust', canManage, requireVerification('sensitive
   if (!Number.isFinite(amount) || amount === 0) throw badRequest('請輸入非零的調整金額');
   if (Math.abs(amount) > MAX_ADJUST) throw badRequest('單次調整不可超過 1,000,000');
   // 餘額欄位為 DECIMAL(12,2)，超過兩位小數會被資料庫默默四捨五入。
-  if (Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-6) throw badRequest('金額最多只能到小數點後兩位');
-  if (!description) throw badRequest('請填寫調整原因，這會寫進帳務紀錄');
+  if (Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-6) throw badRequest('金額最多可至小數點後兩位');
+  if (!description) throw badRequest('請填寫調整原因，此原因將記錄於帳務紀錄');
 
   const user = await prisma.users.findUnique({ where: { user_id: userId }, select: { user_id: true, nickname: true } });
-  if (!user) throw notFound('找不到這位會員');
+  if (!user) throw notFound('找不到此會員');
 
   const before = await prisma.wallets.findUnique({ where: { user_id: userId }, select: { balance: true } });
 
@@ -95,13 +95,13 @@ router.post('/wallets/:userId/adjust', canManage, requireVerification('sensitive
       counters: amount > 0
         ? { total_income: { increment: amount } }
         : { total_expense: { increment: Math.abs(amount) } },
-      insufficientMessage: '調整後餘額會變成負數，請確認金額'
+      insufficientMessage: '調整後餘額將為負數，請確認金額'
     });
 
     await notify(tx, {
       userId,
       title: amount > 0 ? '代幣已入帳' : '代幣已扣除',
-      content: `客服調整了您的代幣 ${amount > 0 ? '+' : ''}${amount}，餘額 ${next}。原因：${description}`,
+      content: `客服已調整您的代幣 ${amount > 0 ? '+' : ''}${amount}，餘額 ${next}。原因：${description}`,
       relatedType: 'wallet'
     });
 

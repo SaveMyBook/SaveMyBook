@@ -20,7 +20,7 @@ const sendLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 60,
   key: byUser,
-  message: '訊息傳送太頻繁，請稍後再試'
+  message: '訊息傳送過於頻繁，請稍後再試'
 });
 
 const typingLimiter = rateLimit({ windowMs: 60 * 1000, max: 40, key: byUser });
@@ -105,8 +105,8 @@ router.delete('/rooms/:id', async (req, res) => {
     where: { room_id: roomId },
     select: { user_a_id: true, user_b_id: true }
   });
-  if (!room) throw notFound('找不到這個聊天室');
-  if (room.user_a_id !== myId && room.user_b_id !== myId) throw forbidden('你沒有權限刪除這個聊天室');
+  if (!room) throw notFound('找不到此聊天室');
+  if (room.user_a_id !== myId && room.user_b_id !== myId) throw forbidden('您沒有權限刪除此聊天室');
 
   await prisma.$transaction([
     prisma.chat_messages.deleteMany({ where: { room_id: roomId } }),
@@ -329,14 +329,14 @@ router.post('/rooms/:roomId/messages/:messageId/recall', async (req, res) => {
   const myId = req.user.userId;
 
   const message = await prisma.chat_messages.findUnique({ where: { message_id: messageId } });
-  if (!message || message.room_id !== roomId) throw notFound('找不到這則訊息');
-  if (message.sender_id !== myId) throw forbidden('只能收回自己傳的訊息');
+  if (!message || message.room_id !== roomId) throw notFound('找不到此訊息');
+  if (message.sender_id !== myId) throw forbidden('僅能收回自己傳送的訊息');
 
   const { kind } = chat.decode(message);
-  if (kind === 'recalled') throw conflict('這則訊息已經收回了');
-  if (!['text', 'image', 'voice'].includes(kind)) throw badRequest('這種訊息無法收回');
+  if (kind === 'recalled') throw conflict('此訊息已收回');
+  if (!['text', 'image', 'voice'].includes(kind)) throw badRequest('此類訊息無法收回');
   if (Date.now() - new Date(message.created_at).getTime() > chat.RECALL_WINDOW_MS) {
-    throw badRequest('只能收回 2 分鐘內傳送的訊息');
+    throw badRequest('僅能收回 2 分鐘內傳送的訊息');
   }
 
   const updated = await prisma.chat_messages.update({

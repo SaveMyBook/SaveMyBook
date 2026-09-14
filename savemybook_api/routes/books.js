@@ -34,7 +34,7 @@ const isbnLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30,
   key: byUser,
-  message: '查詢太頻繁，請稍後再試'
+  message: '查詢過於頻繁，請稍後再試'
 });
 
 const price = (value) => {
@@ -67,8 +67,8 @@ const assertRefsExist = async ({ categoryId, cabinetId }, current = {}) => {
     categoryId ? prisma.book_categories.count({ where: { category_id: categoryId } }) : 1,
     cabinetId ? prisma.smart_cabinets.count({ where: { cabinet_id: cabinetId, is_active: true } }) : 1
   ]);
-  if (!category) throw badRequest('找不到這個分類');
-  if (!cabinet) throw badRequest('找不到這個書櫃，或書櫃已停用');
+  if (!category) throw badRequest('找不到此分類');
+  if (!cabinet) throw badRequest('找不到此書櫃，或書櫃已停用');
 };
 
 const findOwnedBook = async (bookId, user, deniedMessage) => {
@@ -176,9 +176,9 @@ router.get('/:id/share-link', async (req, res) => {
     where: { book_id: bookId },
     select: { book_id: true, title: true, status: true }
   });
-  if (!book) throw notFound('找不到這本書');
+  if (!book) throw notFound('找不到此書籍');
 
-  if (book.status === 'removed') throw conflict('這本書已下架，無法分享');
+  if (book.status === 'removed') throw conflict('此書籍已下架，無法分享');
 
   const token = await ensureBookToken(bookId);
   res.status(200).json({
@@ -270,8 +270,8 @@ const notifyPriceDrop = async (book, oldPrice) => {
   if (fans.length === 0) return;
   await notifyMany(null, fans.map((f) => f.user_id), {
     type: 'promotion',
-    title: '收藏的書降價了',
-    content: `《${book.title}》從 ${oldPrice} 降到 ${Number(book.price)} 代幣。`,
+    title: '收藏的書籍已降價',
+    content: `《${book.title}》從 ${oldPrice} 降至 ${Number(book.price)} 代幣。`,
     relatedId: book.book_id,
     relatedType: 'book'
   });
@@ -307,12 +307,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
   // 檢舉成立的書 is_approved=false，賣家不可自行重新上架。
   if (data.status === 'on_sale' && book.is_approved === false && !isAdmin) {
-    throw forbidden('這本書因違規被下架，無法自行重新上架，請聯絡客服', 'BOOK_NOT_APPROVED');
+    throw forbidden('此書籍因違規遭下架，無法自行重新上架，請聯絡客服', 'BOOK_NOT_APPROVED');
   }
 
   // 保留中的書已有人付款，改回上架會被第二人買走。
   if (data.status && data.status !== book.status && ['reserved', 'sold'].includes(book.status) && !isAdmin) {
-    throw conflict(book.status === 'sold' ? '這本書已售出，無法變更狀態' : '這本書正在交易中，無法變更狀態');
+    throw conflict(book.status === 'sold' ? '此書籍已售出，無法變更狀態' : '此書籍交易中，無法變更狀態');
   }
 
   await assertRefsExist({ categoryId: data.category_id, cabinetId: data.cabinet_id }, book);
@@ -334,7 +334,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   const bookId = v.id(req.params.id, '書籍編號');
   const book = await findOwnedBook(bookId, req.user, '存取被拒，您無權限刪除他人的書籍');
 
-  if (book.status === 'reserved') throw conflict('這本書正在交易中，請先處理訂單再下架');
+  if (book.status === 'reserved') throw conflict('此書籍交易中，請先處理訂單再下架');
 
   await prisma.books.update({
     where: { book_id: bookId },

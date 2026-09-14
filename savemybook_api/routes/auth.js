@@ -34,7 +34,7 @@ const refreshLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 60,
   key: byIp,
-  message: '操作太頻繁，請稍後再試'
+  message: '操作過於頻繁，請稍後再試'
 });
 
 const deviceFrom = (req) => ({
@@ -49,7 +49,7 @@ router.post('/login', loginBurstLimiter, loginLimiter, async (req, res) => {
   const email = text(req.body.email, { max: 255 });
   const plain = typeof req.body.password === 'string' ? req.body.password : '';
 
-  if (!email || !plain) throw badRequest('請提供 email 與密碼');
+  if (!email || !plain) throw badRequest('請提供 Email 與密碼');
 
   const user = await prisma.users.findUnique({ where: { email } });
 
@@ -74,7 +74,7 @@ router.post('/login', loginBurstLimiter, loginLimiter, async (req, res) => {
     await notify(null, {
       userId: user.user_id,
       title: '新裝置登入',
-      content: `你的帳號剛剛在「${deviceLabel(device)}」登入。如果不是你本人，請立即修改密碼並到「登入裝置」登出這台裝置。`,
+      content: `您的帳號已於「${deviceLabel(device)}」登入。若非本人操作，請立即變更密碼並至「登入裝置」登出該裝置。`,
       relatedType: 'security'
     }).catch(() => {});
   }

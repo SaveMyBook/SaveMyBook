@@ -102,7 +102,7 @@ enum WidgetText {
             "coins": "代幣",
             "updated": "更新於 {t}",
             "pickupCode": "取書碼 {t}",
-            "noPickup": "目前沒有待取的書",
+            "noPickup": "目前沒有待取書籍",
         ],
         "en": [
             "appName": "救舊我的書",
@@ -154,7 +154,7 @@ enum WidgetText {
             "coins": "代币",
             "updated": "更新于 {t}",
             "pickupCode": "取书码 {t}",
-            "noPickup": "目前没有待取的书",
+            "noPickup": "目前没有待取书籍",
         ],
     ]
 }

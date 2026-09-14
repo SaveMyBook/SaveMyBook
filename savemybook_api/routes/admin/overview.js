@@ -160,15 +160,15 @@ router.get('/operation-logs', async (req, res) => {
 router.post('/operation-logs/:id/undo', requireVerification('sensitive'), async (req, res) => {
   const logId = v.id(req.params.id, '紀錄編號');
   const log = await prisma.admin_operation_logs.findUnique({ where: { log_id: logId } });
-  if (!log) throw notFound('找不到這筆操作紀錄');
+  if (!log) throw notFound('找不到此操作紀錄');
 
   const detail = audit.parseDetail(log.detail);
-  if (!detail.undo) throw conflict('這項操作無法自動還原（例如涉及金流、密碼或已刪除的檔案），請到對應頁面手動處理');
-  if (detail.reverted) throw conflict('這筆操作已經還原過了');
+  if (!detail.undo) throw conflict('此操作無法自動還原（例如涉及金流、密碼或已刪除的檔案），請至對應頁面手動處理');
+  if (detail.reverted) throw conflict('此操作已還原');
 
   const permission = undo.PERMISSION_BY_TARGET[log.target_type];
   if (!permission || !(await requireAdmin.hasPermission(req.user, permission))) {
-    throw forbidden('你沒有這項功能的權限，不能還原這筆操作');
+    throw forbidden('您沒有此功能的權限，無法還原此操作');
   }
 
   const result = await prisma.$transaction(async (tx) => {
@@ -178,7 +178,7 @@ router.post('/operation-logs/:id/undo', requireVerification('sensitive'), async 
       where: { log_id: logId, detail: log.detail },
       data: { detail: JSON.stringify({ ...detail, reverted }) }
     });
-    if (claimed.count === 0) throw conflict('這筆操作剛剛被其他人還原了');
+    if (claimed.count === 0) throw conflict('此操作已被其他人還原');
 
     await undo.run(tx, detail.undo, { adminId: req.user.userId, label: detail.summary });
 
@@ -187,7 +187,7 @@ router.post('/operation-logs/:id/undo', requireVerification('sensitive'), async 
       action: `還原：${log.action}`,
       targetType: log.target_type,
       targetId: log.target_id,
-      summary: `還原了 #${logId}「${detail.summary}」`,
+      summary: `還原 #${logId}「${detail.summary}」`,
       changes: (detail.changes ?? []).map((c) => ({ ...c, from: c.to, to: c.from })),
       req
     });

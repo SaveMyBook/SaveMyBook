@@ -91,10 +91,23 @@
 		BA303D1EDEE33E0632A1DE80 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		425246D53057C777002B5EAA /* Exceptions for "SaveMyBookWidget" folder in "SaveMyBookWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				README.md,
+				SaveMyBookWidget.entitlements,
+			);
+			target = 425246BB3057C776002B5EAA /* SaveMyBookWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		425246C13057C776002B5EAA /* SaveMyBookWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				425246D53057C777002B5EAA /* Exceptions for "SaveMyBookWidget" folder in "SaveMyBookWidgetExtension" target */,
 			);
 			explicitFileTypes = {
 			};

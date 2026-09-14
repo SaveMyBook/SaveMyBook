@@ -67,14 +67,14 @@ router.post('/', async (req, res) => {
     select: { quantity: true }
   });
   if (!existing && (await prisma.shopping_cart.count({ where: { user_id: req.user.userId } })) >= MAX_CART_ITEMS) {
-    throw badRequest(`購物車最多放 ${MAX_CART_ITEMS} 項商品`);
+    throw badRequest(`購物車最多可放入 ${MAX_CART_ITEMS} 項商品`);
   }
 
   const max = Math.max(book.quantity, 1);
   if (existing && existing.quantity >= max) {
     return res.status(200).json({
       success: true,
-      message: '這本書已經在購物車裡了',
+      message: '此書籍已在購物車中',
       data: { ...existing, book_id: bookId },
       already_in_cart: true
     });
@@ -110,7 +110,7 @@ router.patch('/:cartId', async (req, res) => {
   if (item.user_id !== req.user.userId) throw forbidden('存取被拒');
 
   const max = Math.max(item.books.quantity, 1);
-  if (quantity > max) throw badRequest(`這本書只有 ${max} 本`);
+  if (quantity > max) throw badRequest(`此書籍數量僅 ${max} 本`);
 
   const updated = await prisma.shopping_cart.update({ where: { cart_id: cartId }, data: { quantity } });
   res.status(200).json({ success: true, message: '已更新數量', data: updated });

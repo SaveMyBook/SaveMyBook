@@ -110,7 +110,7 @@ router.get('/orders/:id', canManage, async (req, res) => {
     }
   });
 
-  if (!order) throw notFound('找不到這筆訂單');
+  if (!order) throw notFound('找不到此訂單');
 
   res.status(200).json({
     success: true,
@@ -141,7 +141,7 @@ router.patch('/orders/:id', canManage, async (req, res) => {
   const note = v.optionalText(req.body.note, { label: '說明', max: 500 }) ?? null;
 
   const order = await prisma.orders.findUnique({ where: { order_id: orderId }, include: { order_items: true } });
-  if (!order) throw notFound('找不到這筆訂單');
+  if (!order) throw notFound('找不到此訂單');
   orderFlow.assertAdminTransition(order.status, status);
 
   let money;
@@ -165,7 +165,7 @@ router.patch('/orders/:id', canManage, async (req, res) => {
       return result;
     });
   } catch (err) {
-    if (err.status === 409) throw conflict('訂單狀態剛剛被其他人變更了，請重新整理後再試');
+    if (err.status === 409) throw conflict('訂單狀態已被其他人變更，請重新整理後再試');
     throw err;
   }
 
@@ -176,7 +176,7 @@ router.patch('/orders/:id', canManage, async (req, res) => {
     action: '調整訂單狀態',
     targetType: 'order',
     targetId: orderId,
-    summary: `把訂單 ${order.order_no} 從「${orderFlow.statusLabel(order.status)}」改為「${orderFlow.statusLabel(status)}」`
+    summary: `將訂單 ${order.order_no} 從「${orderFlow.statusLabel(order.status)}」改為「${orderFlow.statusLabel(status)}」`
       + `${effect ? `，${effect}` : ''}${note ? `。說明：${note}` : ''}`,
     changes: [{ label: '訂單狀態', from: orderFlow.statusLabel(order.status), to: orderFlow.statusLabel(status) }],
     req

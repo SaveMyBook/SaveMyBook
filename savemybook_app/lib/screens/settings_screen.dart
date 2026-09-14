@@ -9,7 +9,6 @@ import 'help_center_screen.dart';
 import 'legal_doc_screen.dart';
 import 'support_ticket_screen.dart';
 import '../widgets/app_header.dart';
-import '../widgets/app_tiles.dart';
 import '../widgets/biometric_icon.dart';
 import '../widgets/state_views.dart';
 import '../utils/motion.dart';
@@ -202,153 +201,150 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _divider(AppColors c) => Divider(height: 1, indent: 56, color: c.divider);
+  Widget _divider(AppColors c) => Divider(height: 1, thickness: 1, indent: 56, color: c.divider);
+
+  Widget _chevron(AppColors c) => Icon(Icons.chevron_right_rounded, size: 22, color: c.iconInactive);
+
+  Widget _row(
+    AppColors c, {
+    required Widget leading,
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    VoidCallback? onTap,
+  }) {
+    return _SettingsRow(leading: leading, title: title, subtitle: subtitle, trailing: trailing ?? _chevron(c), onTap: onTap);
+  }
+
+  Widget _switchRow(
+    AppColors c, {
+    required Widget leading,
+    required String title,
+    String? subtitle,
+    required bool value,
+    ValueChanged<bool>? onChanged,
+  }) {
+    return _SettingsRow(
+      leading: leading,
+      title: title,
+      subtitle: subtitle,
+      onTap: onChanged == null ? null : () => onChanged(!value),
+      trailing: Switch.adaptive(value: value, activeThumbColor: c.accent, onChanged: onChanged),
+    );
+  }
+
+  Widget _icon(AppColors c, IconData icon) => Icon(icon, size: 22, color: c.textPrimary);
 
   Widget _buildAppearanceCard(AppColors c) {
-    return Material(
-      type: MaterialType.transparency,
-      child: Column(
-        children: [
-          ValueListenableBuilder<ThemeMode>(
-            valueListenable: themeProvider,
-            builder: (context, mode, _) => ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-              leading: SwitchIn(
-                duration: Motion.micro,
-                child: Icon(_themeIcon(mode), key: ValueKey(mode), color: c.textPrimary),
-              ),
-              title: Text(S.appearance, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary)),
-              subtitle: Text(_themeLabel(mode), style: TextStyle(fontSize: 12, color: c.textSecondary)),
-              trailing: Icon(Icons.chevron_right_rounded, color: c.iconInactive),
-              onTap: () => _pickTheme(mode),
+    return Column(
+      children: [
+        ValueListenableBuilder<ThemeMode>(
+          valueListenable: themeProvider,
+          builder: (context, mode, _) => _row(
+            c,
+            leading: SwitchIn(
+              duration: Motion.micro,
+              child: Icon(_themeIcon(mode), key: ValueKey(mode), size: 22, color: c.textPrimary),
             ),
+            title: S.appearance,
+            subtitle: _themeLabel(mode),
+            onTap: () => _pickTheme(mode),
           ),
-          _divider(c),
-          ValueListenableBuilder<Locale?>(
-            valueListenable: localeProvider,
-            builder: (context, locale, _) => ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-              leading: Icon(Icons.language_rounded, color: c.textPrimary),
-              title: Text(S.language, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary)),
-              subtitle: Text(
-                locale == null ? S.languageSystem : LocaleProvider.nameOf(locale),
-                style: TextStyle(fontSize: 12, color: c.textSecondary),
-              ),
-              trailing: Icon(Icons.chevron_right_rounded, color: c.iconInactive),
-              onTap: () => _pickLanguage(locale),
-            ),
+        ),
+        _divider(c),
+        ValueListenableBuilder<Locale?>(
+          valueListenable: localeProvider,
+          builder: (context, locale, _) => _row(
+            c,
+            leading: _icon(c, Icons.language_rounded),
+            title: S.language,
+            subtitle: locale == null ? S.languageSystem : LocaleProvider.nameOf(locale),
+            onTap: () => _pickLanguage(locale),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildAccountCard(AppColors c) {
+    final rows = <Widget>[
+      _row(
+        c,
+        leading: _icon(c, Icons.verified_user_outlined),
+        title: S.accountSecurity,
+        subtitle: S.paymentPinBiometricPaymentDevices,
+        onTap: () => _push(const SecurityCenterScreen()),
+      ),
+      _row(
+        c,
+        leading: _icon(c, Icons.key_outlined),
+        title: S.changePassword,
+        onTap: () => _push(const ChangePasswordScreen()),
+      ),
+      if (_biometricAvailable)
+        _switchRow(
+          c,
+          leading: _biometricLabel == 'Face ID' ? FaceIdIcon(size: 22, color: c.textPrimary) : _icon(c, Icons.fingerprint_rounded),
+          title: S.sign3(_biometricLabel),
+          subtitle: S.unlockWithWhenOpenApp(_biometricLabel),
+          value: BiometricService.isEnabled,
+          onChanged: _togglingBiometric ? null : _toggleBiometric,
+        ),
+      _row(
+        c,
+        leading: _icon(c, Icons.shield_outlined),
+        title: S.account,
+        onTap: () => _push(const AccountPrivacyScreen()),
+      ),
+      _row(
+        c,
+        leading: _icon(c, Icons.privacy_tip_outlined),
+        title: S.privacyPolicy,
+        onTap: () => _push(LegalDocScreen(docKey: 'privacy', fallbackTitle: S.privacyPolicy, icon: Icons.privacy_tip_outlined)),
+      ),
+      _row(
+        c,
+        leading: _icon(c, Icons.description_outlined),
+        title: S.termsService,
+        onTap: () => _push(LegalDocScreen(docKey: 'terms', fallbackTitle: S.termsService)),
+      ),
+    ];
+    return _joined(c, rows);
+  }
+
+  Widget _joined(AppColors c, List<Widget> rows) {
     return Column(
       children: [
-        AppMenuItem(
-          icon: Icons.verified_user_outlined,
-          iconColor: c.textPrimary,
-          title: S.accountSecurity,
-          subtitle: S.paymentPinBiometricPaymentDevices,
-          onTap: () => _push(const SecurityCenterScreen()),
-        ),
-        AppMenuItem(
-          icon: Icons.key_outlined,
-          iconColor: c.textPrimary,
-          title: S.changePassword,
-          onTap: () => _push(const ChangePasswordScreen()),
-        ),
-        if (_biometricAvailable)
-          Material(
-            type: MaterialType.transparency,
-            child: SwitchListTile.adaptive(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-              secondary: _biometricLabel == 'Face ID'
-                  ? FaceIdIcon(size: 22, color: c.textPrimary)
-                  : Icon(Icons.fingerprint_rounded, color: c.textPrimary),
-              title: Text(
-                S.sign3(_biometricLabel),
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
-              ),
-              subtitle: Text(
-                S.unlockWithWhenOpenApp(_biometricLabel),
-                style: TextStyle(fontSize: 12, color: c.textSecondary),
-              ),
-              activeThumbColor: c.accent,
-              value: BiometricService.isEnabled,
-              onChanged: _togglingBiometric ? null : _toggleBiometric,
-            ),
-          ),
-        if (_biometricAvailable) _divider(c),
-        AppMenuItem(
-          icon: Icons.shield_outlined,
-          iconColor: c.textPrimary,
-          title: S.account,
-          onTap: () => _push(const AccountPrivacyScreen()),
-        ),
-        AppMenuItem(
-          icon: Icons.privacy_tip_outlined,
-          iconColor: c.textPrimary,
-          title: S.privacyPolicy,
-          onTap: () => _push(LegalDocScreen(
-            docKey: 'privacy',
-            fallbackTitle: S.privacyPolicy,
-            icon: Icons.privacy_tip_outlined,
-          )),
-        ),
-        AppMenuItem(
-          icon: Icons.description_outlined,
-          iconColor: c.textPrimary,
-          title: S.termsService,
-          isLast: true,
-          onTap: () => _push(LegalDocScreen(docKey: 'terms', fallbackTitle: S.termsService)),
-        ),
+        for (final (i, row) in rows.indexed) ...[
+          if (i > 0) _divider(c),
+          row,
+        ],
       ],
     );
   }
 
   Widget _buildSupportCard(AppColors c) {
-    return Column(
-      children: [
-        AppMenuItem(
-          icon: Icons.quiz_outlined,
-          iconColor: c.textPrimary,
-          title: S.helpCentre,
-          onTap: () => _push(const HelpCenterScreen()),
-        ),
-        AppMenuItem(
-          icon: Icons.support_agent_rounded,
-          iconColor: c.textPrimary,
-          title: S.contactUs,
-          onTap: () => _push(const SupportTicketScreen()),
-        ),
-        AppMenuItem(
-          icon: Icons.info_outline_rounded,
-          iconColor: c.textPrimary,
-          title: S.aboutSavemybook,
-          isLast: true,
-          onTap: () => _push(LegalDocScreen(
-            docKey: 'about',
-            fallbackTitle: S.aboutUs,
-            icon: Icons.info_outline_rounded,
-          )),
-        ),
-      ],
-    );
+    return _joined(c, [
+      _row(c, leading: _icon(c, Icons.quiz_outlined), title: S.helpCentre, onTap: () => _push(const HelpCenterScreen())),
+      _row(c, leading: _icon(c, Icons.support_agent_rounded), title: S.contactUs, onTap: () => _push(const SupportTicketScreen())),
+      _row(
+        c,
+        leading: _icon(c, Icons.info_outline_rounded),
+        title: S.aboutSavemybook,
+        onTap: () => _push(LegalDocScreen(docKey: 'about', fallbackTitle: S.aboutUs, icon: Icons.info_outline_rounded)),
+      ),
+    ]);
   }
 
   Widget _buildStorageCard(AppColors c) {
-    return AppMenuItem(
-      icon: Icons.cleaning_services_outlined,
-      iconColor: c.textPrimary,
+    return _row(
+      c,
+      leading: _icon(c, Icons.cleaning_services_outlined),
       title: S.clearCache,
       subtitle: S.removesCachedImagesFilesAccountData,
-      isLast: true,
-      showChevron: !_clearingCache,
       trailing: _clearingCache
           ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent))
-          : null,
+          : _chevron(c),
       onTap: _clearingCache ? null : _clearCache,
     );
   }
@@ -356,91 +352,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildPushCard(AppColors c) {
     final settings = _notificationSettings;
 
-    return Material(
-      type: MaterialType.transparency,
-      child: Column(
-        children: [
-          if (_isAdmin) ...[
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-              leading: Icon(Icons.notifications_active_outlined, color: c.textPrimary),
-              title: Text(
-                S.sendTestNotification,
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
-              ),
-              subtitle: Text(
-                S.arrives10SecondsGoHomeScreen,
-                style: TextStyle(fontSize: 12, color: c.textSecondary),
-              ),
-              trailing: SwitchIn(
-                duration: Motion.micro,
-                child: _sendingTestPush
-                    ? SizedBox(
-                        key: const ValueKey('sending'),
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: c.accent),
-                      )
-                    : Icon(Icons.send_rounded, key: const ValueKey('send'), size: 20, color: c.accent),
-              ),
-              onTap: _sendingTestPush ? null : _sendTestPush,
-            ),
-            _divider(c),
-          ],
-          Reveal(
-            visible: _notificationLoadFailed,
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-              leading: Icon(Icons.cloud_off_rounded, color: c.warning),
-              title: Text(S.couldNotLoadNotificationSettings, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
-              trailing: Text(S.retry, style: TextStyle(color: c.accent, fontWeight: FontWeight.bold)),
-              onTap: _loadNotificationSettings,
-            ),
+    final rows = <Widget>[
+      if (_isAdmin)
+        _row(
+          c,
+          leading: _icon(c, Icons.notifications_active_outlined),
+          title: S.sendTestNotification,
+          subtitle: S.arrives10SecondsGoHomeScreen,
+          trailing: SwitchIn(
+            duration: Motion.micro,
+            child: _sendingTestPush
+                ? SizedBox(key: const ValueKey('sending'), width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent))
+                : Icon(Icons.send_rounded, key: const ValueKey('send'), size: 20, color: c.accent),
           ),
-          for (final (i, item) in [
-            (key: 'order', icon: Icons.receipt_long_outlined, title: S.orderProgress, subtitle: S.salesDropOffsPickupsRefundsDisputes),
-            (key: 'message', icon: Icons.chat_bubble_outline_rounded, title: S.chatMessages, subtitle: S.newMessagesFromBuyersSellers),
-            (key: 'promotion', icon: Icons.local_offer_outlined, title: S.promotions2, subtitle: S.announcementsAboutPromotions),
-          ].indexed) ...[
-            if (i > 0) _divider(c),
-            SwitchListTile.adaptive(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-              secondary: Icon(item.icon, color: c.textPrimary),
-              title: Text(item.title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary)),
-              subtitle: Text(item.subtitle, style: TextStyle(fontSize: 12, color: c.textSecondary)),
-              activeThumbColor: c.accent,
-              value: switch (item.key) {
-                'order' => settings?.order ?? true,
-                'message' => settings?.message ?? true,
-                _ => settings?.promotion ?? true,
-              },
-              onChanged: settings == null ? null : (v) => _toggleNotification(item.key, v),
-            ),
-          ],
-          Padding(
-            padding: const EdgeInsets.fromLTRB(56, 0, 16, 10),
-            child: Text(
-              S.supportRepliesPasswordResetsPolicyUpdates,
-              style: TextStyle(fontSize: 11, height: 1.5, color: c.textHint),
-            ),
-          ),
-          _divider(c),
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-            leading: Icon(Icons.tune_rounded, color: c.textPrimary),
-            title: Text(
-              S.systemNotificationSettings,
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
-            ),
-            subtitle: Text(
-              S.turnNotificationsSoundsLockScreenPreviews,
-              style: TextStyle(fontSize: 12, color: c.textSecondary),
-            ),
-            trailing: Icon(Icons.arrow_forward_ios, size: 14, color: c.iconInactive),
-            onTap: PushService.openSystemSettings,
-          ),
-        ],
+          onTap: _sendingTestPush ? null : _sendTestPush,
+        ),
+      if (_notificationLoadFailed)
+        _row(
+          c,
+          leading: Icon(Icons.cloud_off_rounded, size: 22, color: c.warning),
+          title: S.couldNotLoadNotificationSettings,
+          trailing: Text(S.retry, style: TextStyle(color: c.accent, fontWeight: FontWeight.w600)),
+          onTap: _loadNotificationSettings,
+        ),
+      for (final item in [
+        (key: 'order', icon: Icons.receipt_long_outlined, title: S.orderProgress, subtitle: S.salesDropOffsPickupsRefundsDisputes),
+        (key: 'message', icon: Icons.chat_bubble_outline_rounded, title: S.chatMessages, subtitle: S.newMessagesFromBuyersSellers),
+        (key: 'promotion', icon: Icons.local_offer_outlined, title: S.promotions2, subtitle: S.announcementsAboutPromotions),
+      ])
+        _switchRow(
+          c,
+          leading: _icon(c, item.icon),
+          title: item.title,
+          subtitle: item.subtitle,
+          value: switch (item.key) {
+            'order' => settings?.order ?? true,
+            'message' => settings?.message ?? true,
+            _ => settings?.promotion ?? true,
+          },
+          onChanged: settings == null ? null : (v) => _toggleNotification(item.key, v),
+        ),
+      _row(
+        c,
+        leading: _icon(c, Icons.tune_rounded),
+        title: S.systemNotificationSettings,
+        subtitle: S.turnNotificationsSoundsLockScreenPreviews,
+        onTap: PushService.openSystemSettings,
       ),
+    ];
+
+    return Column(
+      children: [
+        _joined(c, rows),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+          decoration: BoxDecoration(color: c.cardAlt, border: Border(top: BorderSide(color: c.divider))),
+          child: Text(
+            S.supportRepliesPasswordResetsPolicyUpdates,
+            style: TextStyle(fontSize: 12, height: 1.5, color: c.textSecondary),
+          ),
+        ),
+      ],
     );
   }
 
@@ -498,5 +471,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
     if (picked == null) return;
     await localeProvider.setLocale(picked < 0 ? null : LocaleProvider.supported[picked]);
+  }
+}
+
+class _SettingsRow extends StatelessWidget {
+  final Widget leading;
+  final String title;
+  final String? subtitle;
+  final Widget trailing;
+  final VoidCallback? onTap;
+
+  const _SettingsRow({required this.leading, required this.title, this.subtitle, required this.trailing, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 64),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+            child: Row(
+              children: [
+                SizedBox(width: 24, child: Center(child: leading)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.textPrimary),
+                      ),
+                      if (subtitle != null && subtitle!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, height: 1.35, color: c.textSecondary),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                trailing,
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

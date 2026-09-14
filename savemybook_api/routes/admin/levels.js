@@ -26,7 +26,7 @@ const parseLevelBody = (body) => {
     benefits: v.text(body.benefits, { label: '等級福利', max: 2000 }) || null
   };
   if (!data.level_name) throw badRequest('請輸入等級名稱');
-  if (data.max_points !== null && data.max_points < data.min_points) throw badRequest('最高點數不能小於最低點數');
+  if (data.max_points !== null && data.max_points < data.min_points) throw badRequest('最高點數不可小於最低點數');
   return data;
 };
 
@@ -42,7 +42,7 @@ router.post('/levels', canManage, async (req, res) => {
     action: '新增會員等級',
     targetType: 'level',
     targetId: created.level_id,
-    summary: `新增了會員等級「${data.level_name}」（${data.min_points} 點起）`,
+    summary: `新增會員等級「${data.level_name}」（${data.min_points} 點起）`,
     undo: [audit.undoCreate('member_levels', created.level_id)],
     req
   });
@@ -53,7 +53,7 @@ router.put('/levels/:id', canManage, async (req, res) => {
   const levelId = v.id(req.params.id, '等級編號');
   const data = parseLevelBody(req.body);
   const before = await prisma.member_levels.findUnique({ where: { level_id: levelId } });
-  if (!before) throw notFound('找不到這個等級');
+  if (!before) throw notFound('找不到此等級');
 
   await prisma.member_levels.update({ where: { level_id: levelId }, data });
 
@@ -64,8 +64,8 @@ router.put('/levels/:id', canManage, async (req, res) => {
     targetType: 'level',
     targetId: levelId,
     summary: changes.length
-      ? `修改了會員等級「${before.level_name}」的${changes.map((c) => c.label).join('、')}`
-      : `重新儲存了會員等級「${before.level_name}」（沒有實際變動）`,
+      ? `修改會員等級「${before.level_name}」的${changes.map((c) => c.label).join('、')}`
+      : `重新儲存會員等級「${before.level_name}」（無實際變更）`,
     changes,
     undo: changes.length ? [audit.undoUpdate('member_levels', levelId, before, data, LEVEL_FIELDS)] : null,
     req
@@ -76,14 +76,14 @@ router.put('/levels/:id', canManage, async (req, res) => {
 router.delete('/levels/:id', canManage, async (req, res) => {
   const levelId = v.id(req.params.id, '等級編號');
   const before = await prisma.member_levels.findUnique({ where: { level_id: levelId } });
-  if (!before) throw notFound('找不到這個等級');
+  if (!before) throw notFound('找不到此等級');
   await prisma.member_levels.delete({ where: { level_id: levelId } });
   await audit.record(null, {
     adminId: req.user.userId,
     action: '刪除會員等級',
     targetType: 'level',
     targetId: levelId,
-    summary: `刪除了會員等級「${before.level_name}」`,
+    summary: `刪除會員等級「${before.level_name}」`,
     undo: [audit.undoDelete('member_levels', before)],
     req
   });

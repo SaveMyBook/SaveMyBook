@@ -43,7 +43,7 @@ const avatarUrl = (value) => {
 
 const nickname = (value) => {
   const name = text(value, { label: '暱稱', max: 50 });
-  if (name.length < 2) throw badRequest('暱稱至少需要 2 個字');
+  if (name.length < 2) throw badRequest('暱稱至少需 2 個字');
   return name;
 };
 
@@ -164,7 +164,7 @@ router.put('/me/password', authenticateToken, passwordLimiter, async (req, res) 
   if (!user) throw notFound('找不到該使用者');
   // 用 400 不用 401：App 收到 401 會直接登出。
   if (!(await password.verify(current, user.password_hash))) throw badRequest('目前密碼錯誤');
-  if (current === next) throw badRequest('新密碼不能與目前密碼相同');
+  if (current === next) throw badRequest('新密碼不可與目前密碼相同');
 
   const updated = await prisma.users.update({
     where: { user_id: req.user.userId },
@@ -177,7 +177,7 @@ router.put('/me/password', authenticateToken, passwordLimiter, async (req, res) 
 
   res.status(200).json({
     success: true,
-    message: '密碼已更新，其他裝置需要重新登入',
+    message: '密碼已更新，其他裝置須重新登入',
     data: { token: signToken(updated, req.user.sid) }
   });
 });
@@ -254,7 +254,7 @@ router.post('/me/deletion', authenticateToken, passwordLimiter, async (req, res)
 
   const openOrders = await account.unsettledOrderCount(user.user_id);
   if (openOrders > 0) {
-    throw badRequest(`還有 ${openOrders} 筆進行中的訂單，請先完成或取消後再申請刪除`, 'OPEN_ORDERS');
+    throw badRequest(`尚有 ${openOrders} 筆進行中的訂單，請先完成或取消後再申請刪除`, 'OPEN_ORDERS');
   }
 
   // 重複申請沿用第一次的時間，否則緩衝期會被重新計算。
@@ -337,8 +337,8 @@ router.post('/me/legal-consents', authenticateToken, async (req, res) => {
   const version = int(req.body.version, { label: '版本', min: 1, max: 1000000 });
 
   const meta = (await legal.metaByKey()).get(docKey);
-  if (!meta) throw notFound('找不到這份文件');
-  if (meta.version !== version) throw conflict('這份文件剛剛又更新了，請重新閱讀後再同意', 'LEGAL_VERSION_CHANGED');
+  if (!meta) throw notFound('找不到此文件');
+  if (meta.version !== version) throw conflict('此文件已更新，請重新閱讀後再同意', 'LEGAL_VERSION_CHANGED');
 
   await legal.accept(req.user.userId, docKey, version);
   res.status(200).json({ success: true, message: '已同意' });
@@ -369,7 +369,7 @@ router.post('/', registerLimiter, async (req, res) => {
   const plain = req.body.password;
   const name = text(req.body.nickname, { label: '暱稱', max: 50 });
 
-  if (!email || !plain || !name) throw badRequest('缺少必要欄位：email, password或 nickname');
+  if (!email || !plain || !name) throw badRequest('缺少必要欄位：email、password 或 nickname');
   if (!EMAIL_RE.test(email)) throw badRequest('Email 格式不正確');
   password.assertPolicy(plain);
   nickname(name);
@@ -385,7 +385,7 @@ router.post('/', registerLimiter, async (req, res) => {
     }
     res.status(201).json({ success: true, message: '使用者建立成功', data: newUser });
   } catch (err) {
-    if (err.code === 'P2002') throw badRequest('該 Email 已經被註冊過了');
+    if (err.code === 'P2002') throw badRequest('此 Email 已被註冊');
     throw err;
   }
 });
@@ -414,7 +414,7 @@ router.delete('/:id', authenticateToken, requireAdmin('members'), requireVerific
 
   const target = await prisma.users.findUnique({ where: { user_id: userId }, select: { role: true, nickname: true, email: true } });
   if (!target) throw notFound('找不到該使用者');
-  if (target.role === 'admin') throw forbidden('不能刪除管理員帳號');
+  if (target.role === 'admin') throw forbidden('無法刪除管理員帳號');
   if ((await account.unsettledOrderCount(userId)) > 0) throw conflict('此使用者還有進行中的訂單，無法刪除');
 
   try {
@@ -428,7 +428,7 @@ router.delete('/:id', authenticateToken, requireAdmin('members'), requireVerific
     action: '刪除使用者',
     targetType: 'user',
     targetId: userId,
-    summary: `從資料庫永久刪除了 ${target.nickname}（${target.email}），無法復原`,
+    summary: `從資料庫永久刪除 ${target.nickname}（${target.email}），無法復原`,
     req
   });
   res.status(200).json({ success: true, message: '使用者已成功刪除' });

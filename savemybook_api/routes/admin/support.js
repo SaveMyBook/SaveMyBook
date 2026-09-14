@@ -64,8 +64,8 @@ router.put('/legal/:key', canEditDocs, async (req, res) => {
     notified = await notifyMany(prisma, users.map((u) => u.user_id), {
       title: `${title}已更新`,
       content: requiresConsent
-        ? `我們更新了${title}，下次開啟 App 時需要重新閱讀並同意才能繼續使用。`
-        : `我們更新了${title}，歡迎查看最新內容。`,
+        ? `我們已更新${title}，下次開啟 App 時須重新閱讀並同意才能繼續使用。`
+        : `我們已更新${title}，歡迎查看最新內容。`,
       relatedId: saved.doc_id,
       relatedType: 'legal'
     });
@@ -78,7 +78,7 @@ router.put('/legal/:key', canEditDocs, async (req, res) => {
     action: '編輯法律文件',
     targetType: 'legal',
     targetId: saved.doc_id,
-    summary: `${existing ? '編輯' : '建立'}了「${title}」`
+    summary: `${existing ? '編輯' : '建立'}「${title}」`
       + (version ? `，列為重大更新（第 ${version} 版）並通知 ${notified} 位使用者${requiresConsent ? '重新同意' : ''}` : '，小幅修改未通知使用者'),
     changes,
     undo: existing && changes.length ? [audit.undoUpdate('legal_documents', key, existing, { title, content }, fields)] : null,
@@ -100,7 +100,7 @@ const parseFaq = (body) => {
     sort_order: v.isBlank(body.sort_order) ? 0 : v.int(body.sort_order, { label: '排序', min: 0, max: 100000 }),
     is_visible: body.is_visible === undefined ? true : v.bool(body.is_visible)
   };
-  if (!data.question || !data.answer) throw badRequest('問題與答案都要填寫');
+  if (!data.question || !data.answer) throw badRequest('請填寫問題與答案');
   return data;
 };
 
@@ -119,7 +119,7 @@ router.post('/faqs', canEditDocs, async (req, res) => {
     action: '新增常見問題',
     targetType: 'faq',
     targetId: created.faq_id,
-    summary: `新增了常見問題「${data.question}」`,
+    summary: `新增常見問題「${data.question}」`,
     undo: [audit.undoCreate('faqs', created.faq_id)],
     req
   });
@@ -144,7 +144,7 @@ router.put('/faqs/reorder', canEditDocs, async (req, res) => {
   if (existing.length !== ids.length) throw badRequest('排序資料含有不存在的問題');
 
   const categories = new Set(existing.map((f) => f.category));
-  if (categories.size > 1) throw badRequest('一次只能排序同一個分類');
+  if (categories.size > 1) throw badRequest('每次僅能排序同一分類');
 
   await prisma.$transaction(
     ids.map((fid, index) => prisma.faqs.update({ where: { faq_id: fid }, data: { sort_order: index } }))
@@ -156,7 +156,7 @@ router.put('/faqs/reorder', canEditDocs, async (req, res) => {
     adminId: req.user.userId,
     action: '調整常見問題順序',
     targetType: 'faq',
-    summary: `調整了「${[...categories][0]}」分類的問題順序`,
+    summary: `調整「${[...categories][0]}」分類的問題順序`,
     changes: [{
       label: '順序',
       from: [...existing].sort((a, b) => a.sort_order - b.sort_order).map((f) => clip(f.question)).join('、'),
@@ -172,7 +172,7 @@ router.put('/faqs/:id', canEditDocs, async (req, res) => {
   const faqId = v.id(req.params.id, '問題編號');
   const data = parseFaq(req.body);
   const before = await prisma.faqs.findUnique({ where: { faq_id: faqId } });
-  if (!before) throw notFound('找不到這個問題');
+  if (!before) throw notFound('找不到此問題');
 
   await prisma.faqs.update({ where: { faq_id: faqId }, data: { ...data, updated_at: new Date() } });
 
@@ -183,8 +183,8 @@ router.put('/faqs/:id', canEditDocs, async (req, res) => {
     targetType: 'faq',
     targetId: faqId,
     summary: changes.length
-      ? `修改了常見問題「${before.question}」的${changes.map((c) => c.label).join('、')}`
-      : `重新儲存了常見問題「${before.question}」（沒有實際變動）`,
+      ? `修改常見問題「${before.question}」的${changes.map((c) => c.label).join('、')}`
+      : `重新儲存常見問題「${before.question}」（無實際變更）`,
     changes,
     undo: changes.length ? [audit.undoUpdate('faqs', faqId, before, data, FAQ_FIELDS)] : null,
     req
@@ -195,14 +195,14 @@ router.put('/faqs/:id', canEditDocs, async (req, res) => {
 router.delete('/faqs/:id', canEditDocs, async (req, res) => {
   const faqId = v.id(req.params.id, '問題編號');
   const before = await prisma.faqs.findUnique({ where: { faq_id: faqId } });
-  if (!before) throw notFound('找不到這個問題');
+  if (!before) throw notFound('找不到此問題');
   await prisma.faqs.delete({ where: { faq_id: faqId } });
   await audit.record(null, {
     adminId: req.user.userId,
     action: '刪除常見問題',
     targetType: 'faq',
     targetId: faqId,
-    summary: `刪除了常見問題「${before.question}」`,
+    summary: `刪除常見問題「${before.question}」`,
     undo: [audit.undoDelete('faqs', before)],
     req
   });
@@ -245,7 +245,7 @@ router.patch('/tickets/:id/status', canHandleTickets, async (req, res) => {
   const status = v.oneOf(req.body.status, TICKET_STATUSES, '不支援的工單狀態');
 
   const before = await prisma.support_tickets.findUnique({ where: { ticket_id: ticketId } });
-  if (!before) throw notFound('找不到這張工單');
+  if (!before) throw notFound('找不到此工單');
 
   const ticket = await prisma.support_tickets.update({
     where: { ticket_id: ticketId },
@@ -266,7 +266,7 @@ router.patch('/tickets/:id/status', canHandleTickets, async (req, res) => {
     action: '調整工單狀態',
     targetType: 'ticket',
     targetId: ticketId,
-    summary: `把工單「${ticket.subject}」改為${TICKET_STATUS_LABELS[status]}，並通知使用者`,
+    summary: `將工單「${ticket.subject}」改為${TICKET_STATUS_LABELS[status]}，並通知使用者`,
     changes: audit.diff(before, ticket, fields),
     undo: before.status === status ? null : [audit.undoUpdate('support_tickets', ticketId, before, ticket, ['status', 'closed_at'])],
     req

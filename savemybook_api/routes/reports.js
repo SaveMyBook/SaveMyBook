@@ -63,7 +63,7 @@ router.post('/', async (req, res) => {
     },
     select: { report_id: true }
   });
-  if (duplicate) throw conflict('你已經檢舉過了，我們正在處理中');
+  if (duplicate) throw conflict('您已檢舉過此項目，我們正在處理中');
 
   const report = await prisma.$transaction(async (tx) => {
     const created = await tx.reports.create({
@@ -79,8 +79,8 @@ router.post('/', async (req, res) => {
     if (ownerId) {
       await notify(tx, {
         userId: ownerId,
-        title: targetType === 'book' ? '你的商品被檢舉' : '你的帳號被檢舉',
-        content: '我們已收到一則檢舉並開始審核，審核期間商品仍可正常販售。若違規成立將會通知你。',
+        title: targetType === 'book' ? '您的商品遭到檢舉' : '您的帳號遭到檢舉',
+        content: '我們已收到一則檢舉並開始審核，審核期間商品仍可正常販售。若違規成立將另行通知您。',
         relatedId: targetId,
         relatedType: targetType
       });
@@ -89,7 +89,7 @@ router.post('/', async (req, res) => {
     return created;
   });
 
-  res.status(201).json({ success: true, message: '檢舉已送出，我們會盡快處理', data: report });
+  res.status(201).json({ success: true, message: '檢舉已送出，我們將盡快處理', data: report });
 });
 
 router.get('/against-me', async (req, res) => {

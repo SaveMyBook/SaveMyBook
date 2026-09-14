@@ -42,7 +42,7 @@ router.post('/backups', canRunSystem, async (req, res) => {
     action: '手動備份資料庫',
     targetType: 'backup',
     targetId: record.backup_id,
-    summary: `建立了資料庫備份 ${record.file_name}（${formatSize(Number(record.size_bytes))}）`,
+    summary: `建立資料庫備份 ${record.file_name}（${formatSize(Number(record.size_bytes))}）`,
     req
   });
   res.status(201).json({
@@ -56,7 +56,7 @@ router.get('/backups/:id/download', canRunSystem, async (req, res) => {
   const backupId = v.id(req.params.id, '備份編號');
 
   const record = await prisma.db_backups.findUnique({ where: { backup_id: backupId } });
-  if (!record) throw notFound('找不到這份備份');
+  if (!record) throw notFound('找不到此備份');
 
   const filePath = backup.filePathOf(record.file_name);
   if (!filePath) throw notFound('備份檔已不存在');
@@ -66,7 +66,7 @@ router.get('/backups/:id/download', canRunSystem, async (req, res) => {
     action: '下載資料庫備份',
     targetType: 'backup',
     targetId: backupId,
-    summary: `下載了資料庫備份 ${record.file_name}（含全站個資）`,
+    summary: `下載資料庫備份 ${record.file_name}（含全站個資）`,
     req
   });
   res.set('Cache-Control', 'no-store');
@@ -78,7 +78,7 @@ const restoreLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, key: byUser
 router.post('/backups/:id/restore', canRunSystem, restoreLimiter, async (req, res) => {
   const backupId = v.id(req.params.id, '備份編號');
   const plain = typeof req.body.password === 'string' ? req.body.password : '';
-  if (!plain) throw badRequest('請輸入你的登入密碼以確認還原');
+  if (!plain) throw badRequest('請輸入您的登入密碼以確認還原');
 
   const me = await prisma.users.findUnique({ where: { user_id: req.user.userId }, select: { password_hash: true, nickname: true } });
   if (!(await password.verify(plain, me?.password_hash))) throw badRequest('密碼錯誤');
@@ -96,9 +96,9 @@ router.post('/backups/:id/restore', canRunSystem, restoreLimiter, async (req, re
         action: error ? '資料庫還原失敗' : '還原資料庫',
         targetType: 'backup',
         summary: error
-          ? `嘗試把資料庫還原到 ${target.file_name} 失敗：${String(error.message).slice(0, 200)}。還原前備份為 ${safety.file_name}`
-          : `把資料庫還原到 ${target.file_name}（${target.created_at.toISOString().slice(0, 16).replace('T', ' ')} UTC）。`
-            + `還原前的狀態已備份為 ${safety.file_name}，如需退回請還原那一份`,
+          ? `嘗試將資料庫還原至 ${target.file_name} 失敗：${String(error.message).slice(0, 200)}。還原前備份為 ${safety.file_name}`
+          : `將資料庫還原至 ${target.file_name}（${target.created_at.toISOString().slice(0, 16).replace('T', ' ')} UTC）。`
+            + `還原前的狀態已備份為 ${safety.file_name}，如需復原請還原該備份`,
         req
       });
     }
@@ -106,7 +106,7 @@ router.post('/backups/:id/restore', canRunSystem, restoreLimiter, async (req, re
 
   res.status(202).json({
     success: true,
-    message: '已開始還原，期間系統暫停服務，完成後會自動恢復',
+    message: '已開始還原，期間系統暫停服務，完成後將自動恢復',
     data: { file_name: target.file_name, safety_backup: safety.file_name }
   });
 });
@@ -115,13 +115,13 @@ router.delete('/backups/:id', canRunSystem, requireVerification('sensitive'), as
   const backupId = v.id(req.params.id, '備份編號');
   const record = await prisma.db_backups.findUnique({ where: { backup_id: backupId } });
   const removed = await backup.remove(backupId);
-  if (!removed) throw notFound('找不到這份備份');
+  if (!removed) throw notFound('找不到此備份');
   await audit.record(null, {
     adminId: req.user.userId,
     action: '刪除資料庫備份',
     targetType: 'backup',
     targetId: backupId,
-    summary: `刪除了資料庫備份 ${record.file_name}（檔案已從磁碟移除，無法復原）`,
+    summary: `刪除資料庫備份 ${record.file_name}（檔案已從磁碟移除，無法復原）`,
     req
   });
   res.status(200).json({ success: true, message: '已刪除備份' });
@@ -157,7 +157,7 @@ router.post('/deletions/:id/cancel', canManageMembers, async (req, res) => {
     action: '取消會員刪除申請',
     targetType: 'user',
     targetId: userId,
-    summary: `取消了 ${before.nickname}（${before.email}）的刪除帳號申請`,
+    summary: `取消 ${before.nickname}（${before.email}）的刪除帳號申請`,
     changes: audit.diff(before, after, fields),
     undo: before.deletion_requested_at ? [audit.undoUpdate('users', userId, before, after, fields)] : null,
     req
@@ -175,11 +175,11 @@ router.post('/deletions/:id/purge', canManageMembers, requireVerification('sensi
     select: { role: true, deletion_requested_at: true, anonymized_at: true }
   });
   if (!user) throw notFound('找不到該會員');
-  if (user.anonymized_at) throw conflict('這個帳號已經匿名化了');
-  if (!user.deletion_requested_at) throw conflict('這位會員沒有申請刪除帳號，無法匿名化');
-  if (user.role === 'admin') throw forbidden('不能匿名化管理員帳號，請先移除管理員身分');
+  if (user.anonymized_at) throw conflict('此帳號已匿名化');
+  if (!user.deletion_requested_at) throw conflict('此會員未申請刪除帳號，無法匿名化');
+  if (user.role === 'admin') throw forbidden('無法匿名化管理員帳號，請先移除管理員身分');
   if ((await account.unsettledOrderCount(userId)) > 0) {
-    throw conflict('這位會員還有進行中的訂單，請先處理後再匿名化');
+    throw conflict('此會員尚有進行中的訂單，請處理完成後再匿名化');
   }
 
   const who = await prisma.users.findUnique({ where: { user_id: userId }, select: { nickname: true, email: true } });
@@ -189,7 +189,7 @@ router.post('/deletions/:id/purge', canManageMembers, requireVerification('sensi
     action: '立即匿名化會員',
     targetType: 'user',
     targetId: userId,
-    summary: `提前匿名化了 ${who.nickname}（${who.email}）的帳號，個資已清除，無法復原`,
+    summary: `提前匿名化 ${who.nickname}（${who.email}）的帳號，個資已清除，無法復原`,
     req
   });
   res.status(200).json({ success: true, message: '已完成匿名化' });

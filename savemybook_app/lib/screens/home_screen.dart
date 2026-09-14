@@ -11,6 +11,7 @@ import '../models/category.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
 import '../services/home_widget_service.dart';
+import '../services/server_compat.dart';
 import '../services/push_service.dart';
 import '../services/recently_viewed.dart';
 import '../services/search_history.dart';
@@ -87,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     SearchHistory.load();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) LegalConsentGate.check(context);
+      if (mounted) ServerCompat.check(context);
     });
     _loadInitialData();
     _scrollController.addListener(_onScroll);
@@ -589,7 +591,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ],
               if (showRecent) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 BookStrip(
                   title: S.recentlyViewed,
                   icon: Icons.history_rounded,
@@ -610,9 +612,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final c = AppColors.of(context);
     return Row(
       children: [
-        Flexible(child: _buildSortDropdown()),
+        Expanded(
+          child: Align(alignment: Alignment.centerLeft, child: _buildSortDropdown()),
+        ),
         const SizedBox(width: 12),
-        const Spacer(),
         Container(
           decoration: BoxDecoration(color: c.categoryChip, borderRadius: BorderRadius.circular(8)),
           child: Row(

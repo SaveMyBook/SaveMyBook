@@ -3,11 +3,11 @@ const { HttpError } = require('../lib/errors');
 const { removeUploaded } = require('../lib/upload');
 
 const notFound = (req, res) => {
-  res.status(404).json({ success: false, code: 'ROUTE_NOT_FOUND', message: '找不到這個端點' });
+  res.status(404).json({ success: false, code: 'ROUTE_NOT_FOUND', message: '找不到此端點' });
 };
 
 const MULTER_MESSAGES = {
-  LIMIT_FILE_SIZE: [413, '檔案太大了'],
+  LIMIT_FILE_SIZE: [413, '檔案大小超過上限'],
   LIMIT_FILE_COUNT: [400, '上傳的檔案數量超過上限'],
   LIMIT_UNEXPECTED_FILE: [400, '上傳欄位不正確或檔案數量超過上限'],
   LIMIT_FIELD_COUNT: [400, '表單欄位過多'],
@@ -17,7 +17,7 @@ const MULTER_MESSAGES = {
 const PRISMA_MESSAGES = {
   P2025: [404, '找不到資料'],
   P2002: [409, '資料重複，請確認後再試'],
-  P2003: [409, '有其他資料關聯到這筆紀錄，無法執行'],
+  P2003: [409, '此紀錄仍有關聯資料，無法執行'],
   P2000: [400, '欄位內容超過長度上限']
 };
 
@@ -28,7 +28,7 @@ const classify = (err) => {
     return [status, message];
   }
   if (err?.type === 'entity.parse.failed') return [400, '請求內容不是合法的 JSON'];
-  if (err?.type === 'entity.too.large') return [413, '請求內容太大'];
+  if (err?.type === 'entity.too.large') return [413, '請求內容過大'];
   if (err?.code && PRISMA_MESSAGES[err.code]) return PRISMA_MESSAGES[err.code];
   if (err?.name === 'PrismaClientValidationError') return [400, '提供的資料格式錯誤或包含無效的值'];
   return null;

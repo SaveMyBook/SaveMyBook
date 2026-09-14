@@ -28,8 +28,9 @@ class BookStrip extends StatelessWidget {
     this.onLongPress,
   });
 
-  static const double _tileWidth = 112;
-  static const double _height = 224;
+  static const double _tileWidth = 128;
+  static const double _imageHeight = 150;
+  static const double _height = 236;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +41,7 @@ class BookStrip extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
+          padding: const EdgeInsets.fromLTRB(16, 0, 8, 10),
           child: Row(
             children: [
               Icon(icon, size: 18, color: c.accent),
@@ -88,7 +89,7 @@ class BookStrip extends StatelessWidget {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
                     itemCount: 4,
                     separatorBuilder: (_, _) => const SizedBox(width: 12),
                     itemBuilder: (_, _) => const SizedBox(
@@ -96,7 +97,7 @@ class BookStrip extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SkeletonBox(height: 150, radius: 12),
+                          SkeletonBox(height: _imageHeight, radius: 16),
                           SizedBox(height: 8),
                           SkeletonBox(height: 12),
                           SizedBox(height: 8),
@@ -109,7 +110,7 @@ class BookStrip extends StatelessWidget {
               : ListView.separated(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
                   itemCount: books.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 12),
                   itemBuilder: (context, i) => FadeSlideIn(
@@ -134,8 +135,14 @@ class BookStrip extends StatelessWidget {
         CupertinoPageRoute(builder: (_) => BookDetailScreen(book: book, heroTag: heroTag)),
       ),
       onLongPress: onLongPress == null ? null : () => onLongPress!(book),
-      child: SizedBox(
+      child: Container(
         width: _tileWidth,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -143,14 +150,11 @@ class BookStrip extends StatelessWidget {
               children: [
                 Hero(
                   tag: heroTag,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: AppNetworkImage(
-                      url: book.hasImage ? book.imageUrl : null,
-                      width: _tileWidth,
-                      height: 150,
-                      fallbackIconSize: 30,
-                    ),
+                  child: AppNetworkImage(
+                    url: book.hasImage ? book.imageUrl : null,
+                    width: _tileWidth,
+                    height: _imageHeight,
+                    fallbackIconSize: 30,
                   ),
                 ),
                 if (unavailable)
@@ -171,18 +175,31 @@ class BookStrip extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              book.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12.5, height: 1.25, fontWeight: FontWeight.w600, color: c.textPrimary),
-            ),
-            const Spacer(),
-            Text(
-              '\$${book.price.toInt()}',
-              maxLines: 1,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: c.accent),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      book.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, height: 1.3, fontWeight: FontWeight.w600, color: c.textPrimary),
+                    ),
+                    const Spacer(),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '\$${book.price.toInt()}',
+                        maxLines: 1,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: c.accent),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

@@ -70,7 +70,7 @@ router.get('/:id', async (req, res) => {
     where: { announcement_id: v.id(req.params.id, '公告編號'), ...visibleWhere() },
     include: withAuthor
   });
-  if (!announcement) throw notFound('這則公告不存在或已經下架');
+  if (!announcement) throw notFound('此公告不存在或已下架');
   res.status(200).json({ success: true, data: announcement });
 });
 
@@ -150,8 +150,8 @@ router.put('/:id', ...canManage, async (req, res) => {
     targetType: 'announcement',
     targetId: announcementId,
     summary: (changes.length
-      ? `修改了公告「${existing.title}」的${changes.map((c) => c.label).join('、')}`
-      : `重新儲存了公告「${existing.title}」（沒有實際變動）`)
+      ? `修改公告「${existing.title}」的${changes.map((c) => c.label).join('、')}`
+      : `重新儲存公告「${existing.title}」（無實際變更）`)
       + (notified ? `，首次發布並通知 ${notified} 位使用者（通知無法收回）` : ''),
     changes,
     undo: changes.length
@@ -179,7 +179,7 @@ router.delete('/:id', ...canManage, async (req, res) => {
     action: '刪除系統公告',
     targetType: 'announcement',
     targetId: announcementId,
-    summary: `刪除了公告「${before.title}」`,
+    summary: `刪除公告「${before.title}」`,
     undo: [audit.undoDelete('system_announcements', before)],
     req
   });

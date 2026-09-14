@@ -160,7 +160,7 @@
   "cancelAccountDeletion": "アカウント削除をキャンセル",
   "restoreAccountStopCountdown": "アカウントを復元し、カウントダウンを止めます",
   "canChangeMindWithin30Days": "30 日以内なら取り消せます",
-  "deletionPending": "削除カウントダウン中",
+  "deletionPending": "削除待ち",
   "daysLeftCanCancelAnyTime": "残り {p0} 日です。それまではいつでもキャンセルできますが、期限を過ぎると個人情報は完全に削除されます。",
   "@daysLeftCanCancelAnyTime": {
     "placeholders": {
@@ -240,7 +240,7 @@
       "p0": {}
     }
   },
-  "notListedAnyBooksYet": "まだ book を出品していません",
+  "notListedAnyBooksYet": "まだ本を出品していません",
   "noBooksCategory": "このカテゴリーに書籍はありません",
   "listFirstBook": "最初の 1 冊を出品する",
   "relist": "再出品",
@@ -354,9 +354,9 @@
   "messagesLimited500Characters": "メッセージは 500 文字までです",
   "messageCouldNotSent": "メッセージを送信できませんでした",
   "chat": "チャット",
-  "sendFirstMessage": "最初のメッセージを送ってみましょう",
+  "sendFirstMessage": "最初のメッセージを送信してください",
   "messageCopied": "メッセージをコピーしました",
-  "iQuestionAboutBook": "この本について質問があります",
+  "iQuestionAboutBook": "本に関するお問い合わせ",
   "bookNoLongerListed": "この本は出品停止されています",
   "writeMessage": "メッセージを入力…",
   "enterOrderNumberDisputing": "異議を申し立てる注文番号を入力してください",
@@ -437,7 +437,7 @@
   "profileUpdated": "プロフィールを更新しました",
   "editProfile": "プロフィールを編集",
   "bio": "自己紹介",
-  "tellPeopleAboutYourself": "自己紹介を書いてみましょう",
+  "tellPeopleAboutYourself": "自己紹介を入力してください",
   "email": "メールアドレス",
   "emailCannotChanged": "メールアドレスは変更できません",
   "dateBirth": "生年月日",
@@ -619,7 +619,7 @@
   "pointPickupQrCode": "受け取り用 QR コードに合わせてください",
   "holdSteady": "手ぶれにご注意ください",
   "bookCollected": "受け取り完了",
-  "thanksUsingSavemybookHappyReading": "ご利用ありがとうございます。よい読書を！",
+  "thanksUsingSavemybookHappyReading": "ご利用いただきありがとうございます。",
   "collected": "「{p0}」を受け取りました",
   "@collected": {
     "placeholders": {
@@ -711,7 +711,7 @@
   "priceMustGreaterThan02": "価格は 0 より大きくしてください。",
   "priceCannotExceed99999": "価格は 99,999 以下にしてください。",
   "chooseLockerLocation2": "保管場所を選んでください。",
-  "listed2": "出品しました！",
+  "listed2": "出品しました",
   "unknownError": "不明なエラー",
   "couldNotListBook": "出品に失敗しました",
   "serverError": "サーバーエラー：{p0}",
@@ -776,13 +776,13 @@
   "ownQrCode": "これはご自身の QR コードです",
   "couldNotStartChatPleaseTry": "チャットを開始できませんでした。しばらくしてからお試しください。",
   "linkCopied": "リンクをコピーしました",
-  "addMeSavemybook": "SaveMyBook で私を追加：{p0}",
+  "addMeSavemybook": "SaveMyBook のプロフィール：{p0}",
   "@addMeSavemybook": {
     "placeholders": {
       "p0": {}
     }
   },
-  "addMeSavemybook2": "SaveMyBook で私を追加（{p0}）：{p1}",
+  "addMeSavemybook2": "{p0} さんの SaveMyBook プロフィール：{p1}",
   "@addMeSavemybook2": {
     "placeholders": {
       "p0": {},
@@ -800,8 +800,8 @@
   "addMoreDetailSoSupportCan": "サポートが判断できるようもう少し詳しくご記入ください",
   "sentSupportReplySoon": "送信しました。サポートよりご返信します。",
   "subject": "件名",
-  "sumUpOneLine": "一言で問題を教えてください",
-  "whatHappenedIncludeOrderNumberIf": "何が起きましたか？注文番号があればご記入ください。",
+  "sumUpOneLine": "問題の概要",
+  "whatHappenedIncludeOrderNumberIf": "問題の内容をご記入ください。注文番号がある場合は併せてご記入ください。",
   "close": "クローズ",
   "notAbleReplyAfterClosing": "クローズすると返信できなくなります。",
   "enquiryClosed": "お問い合わせをクローズしました",
@@ -2093,7 +2093,7 @@
   },
   "cancelReservation2": "予約をキャンセル",
   "reservationCanceled": "予約をキャンセルしました",
-  "notNow2": "やめておく",
+  "notNow2": "戻る",
   "couldnTLoadConversationPleaseTry": "会話を読み込めません。しばらくしてから再度お試しください",
   "accountCanTReceiveMessagesRight": "相手のアカウントは現在メッセージを受け取れません",
   "holdMicTalkReleaseSend": "マイクを長押しして話し、指を離すと送信します",
@@ -2106,9 +2106,9 @@
   },
   "connectionUnstableMessagesCanTSent": "接続が不安定なため、現在メッセージを送信できません",
   "retry": "再試行",
-  "stillAvailable": "まだありますか？",
-  "couldLowerPriceBit": "もう少し安くなりますか？",
-  "whenCanPutLocker": "いつロッカーに入れてもらえますか？",
+  "stillAvailable": "こちらの本はまだ購入可能ですか？",
+  "couldLowerPriceBit": "価格のご相談は可能ですか？",
+  "whenCanPutLocker": "ロッカーへの預け入れはいつ頃になりますか？",
   "unsentMessage": "メッセージの送信を取り消しました",
   "theyUnsentMessage": "相手がメッセージの送信を取り消しました",
   "reservationDetailsArenTAvailableRight": "予約情報を表示できません",
@@ -2247,7 +2247,7 @@
   },
   "accountWellProtected": "アカウントはしっかり保護されています",
   "accountCouldSafer": "セキュリティを強化できます",
-  "paymentPinBiometricPaymentSetCheck": "取引パスワードと生体認証での支払いが設定済みです。ログイン中の端末もときどき確認しましょう。",
+  "paymentPinBiometricPaymentSetCheck": "取引パスワードと生体認証での支払いが設定済みです。ログイン中の端末を定期的にご確認ください。",
   "setPaymentPinTurnBiometricPayment": "取引パスワードを設定し生体認証での支払いをオンにすると、決済がより安全で速くなります。",
   "tooManyAttemptsLockedUntilP0": "失敗回数が多すぎます。{p0} までロック中",
   "@tooManyAttemptsLockedUntilP0": {
@@ -2305,7 +2305,7 @@
   "sessionExpiredPleaseSignAgain": "ログインの有効期限が切れました。もう一度ログインしてください",
   "serviceTemporarilyUnavailableTryAgainLater": "サービスは一時的に利用できません。しばらくしてからお試しください",
   "uploadFailedTryAgainLater": "アップロードに失敗しました。しばらくしてからお試しください",
-  "nearby": "すぐ近く",
+  "nearby": "付近",
   "p0M": "{p0} m",
   "@p0M": {
     "placeholders": {
@@ -2409,7 +2409,7 @@
   },
   "declined2": "お断り済み",
   "closed": "終了",
-  "theyWantReserveBook": "相手があなたの本を予約したいそうです",
+  "theyWantReserveBook": "あなたの本に予約リクエストが届いています",
   "sentReservationRequest": "予約リクエストを送信しました",
   "holdP0H": "{p0}時間取り置き",
   "@holdP0H": {
@@ -2433,5 +2433,37 @@
       "p0": {},
       "p1": {}
     }
-  }
+  },
+  "buildSProvisioningProfileDoesnT": "このビルドのプロビジョニングプロファイルにプッシュ通知の権限がありません。Xcode の Runner › Signing & Capabilities に Push Notifications があるか確認し、アプリを削除して再インストールしてください。",
+  "checkPhoneOnlinePushNotificationsAdded": "端末がネットワークに接続されていること、Xcode の Runner › Signing & Capabilities に Push Notifications があることを確認してください。",
+  "iphoneFailedRegisterPushNotificationsWith": "iPhone の Apple へのプッシュ通知登録に失敗しました：{p0}\n{p1}",
+  "@iphoneFailedRegisterPushNotificationsWith": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "serverNotBeenUpdatedSupportFeature": "サーバーはまだこの機能に対応したバージョンに更新されていません。しばらくしてからお試しください。",
+  "someFeaturesTemporarilyUnavailableWhileServer": "サーバー更新中のため、一部の機能は一時的に利用できません",
+  "serverRunningOutdatedApiRevisionP0": "サーバーの API バージョンが古すぎます（現在 {p0}、アプリには {p1} が必要）。サーバーのコードを更新し、API を再起動してください。",
+  "@serverRunningOutdatedApiRevisionP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "databaseMigrationsNotYetRunP0": "未実行のデータベース移行：{p0}",
+  "@databaseMigrationsNotYetRunP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "serverVersionP0": "サーバーの現在のバージョン：{p0}",
+  "@serverVersionP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "runNpmRunVerifyApiDirectory": "サーバーの API ディレクトリで npm run verify を実行すると、デプロイ状況をすべて確認できます。",
+  "serverUpdateRequired": "サーバーの更新が必要です"
 }

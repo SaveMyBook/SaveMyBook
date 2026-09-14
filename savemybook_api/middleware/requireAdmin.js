@@ -61,7 +61,7 @@ const requireAdmin = (permission) => {
       success: false,
       code: 'ADMIN_PERMISSION_REQUIRED',
       message: permission === 'system'
-        ? '需要「系統維運」權限。這項權限預設關閉，請由已有此權限的管理員替你開啟。'
+        ? '需要「系統維運」權限。此權限預設關閉，請由具備此權限的管理員為您開啟。'
         : `您沒有「${LABELS[permission]}」的權限`
     });
   };

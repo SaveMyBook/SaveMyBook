@@ -354,9 +354,9 @@
   "messagesLimited500Characters": "메시지는 500자까지 입력할 수 있습니다",
   "messageCouldNotSent": "메시지를 보내지 못했습니다",
   "chat": "채팅",
-  "sendFirstMessage": "첫 메시지를 보내 보세요",
+  "sendFirstMessage": "첫 메시지를 보내세요",
   "messageCopied": "메시지를 복사했습니다",
-  "iQuestionAboutBook": "이 책에 대해 문의합니다",
+  "iQuestionAboutBook": "도서 문의",
   "bookNoLongerListed": "이 책은 더 이상 판매하지 않습니다",
   "writeMessage": "메시지 입력…",
   "enterOrderNumberDisputing": "이의를 제기할 주문 번호를 입력하세요",
@@ -437,7 +437,7 @@
   "profileUpdated": "프로필을 수정했습니다",
   "editProfile": "프로필 편집",
   "bio": "소개",
-  "tellPeopleAboutYourself": "자신을 소개해 보세요",
+  "tellPeopleAboutYourself": "자기소개를 입력하세요",
   "email": "이메일",
   "emailCannotChanged": "이메일은 변경할 수 없습니다",
   "dateBirth": "생년월일",
@@ -619,7 +619,7 @@
   "pointPickupQrCode": "수령용 QR 코드를 맞춰 주세요",
   "holdSteady": "흔들리지 않게 유지하세요",
   "bookCollected": "수령 완료",
-  "thanksUsingSavemybookHappyReading": "이용해 주셔서 감사합니다. 즐거운 독서 되세요!",
+  "thanksUsingSavemybookHappyReading": "이용해 주셔서 감사합니다.",
   "collected": "“{p0}” 수령 완료",
   "@collected": {
     "placeholders": {
@@ -711,7 +711,7 @@
   "priceMustGreaterThan02": "가격은 0보다 커야 합니다.",
   "priceCannotExceed99999": "가격은 99,999를 넘을 수 없습니다.",
   "chooseLockerLocation2": "보관 위치를 선택해 주세요.",
-  "listed2": "등록되었습니다!",
+  "listed2": "등록되었습니다",
   "unknownError": "알 수 없는 오류",
   "couldNotListBook": "등록에 실패했습니다",
   "serverError": "서버 오류: {p0}",
@@ -776,13 +776,13 @@
   "ownQrCode": "본인의 QR 코드입니다",
   "couldNotStartChatPleaseTry": "채팅을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.",
   "linkCopied": "링크를 복사했습니다",
-  "addMeSavemybook": "SaveMyBook에서 나를 추가: {p0}",
+  "addMeSavemybook": "SaveMyBook 프로필: {p0}",
   "@addMeSavemybook": {
     "placeholders": {
       "p0": {}
     }
   },
-  "addMeSavemybook2": "SaveMyBook에서 나를 추가 ({p0}): {p1}",
+  "addMeSavemybook2": "{p0}님의 SaveMyBook 프로필: {p1}",
   "@addMeSavemybook2": {
     "placeholders": {
       "p0": {},
@@ -801,7 +801,7 @@
   "sentSupportReplySoon": "보냈습니다. 고객센터가 곧 답변드립니다.",
   "subject": "제목",
   "sumUpOneLine": "한 줄로 요약해 주세요",
-  "whatHappenedIncludeOrderNumberIf": "무슨 일이 있었나요? 주문 번호가 있다면 함께 적어 주세요.",
+  "whatHappenedIncludeOrderNumberIf": "문제 내용을 입력해 주세요. 주문 번호가 있다면 함께 입력해 주세요.",
   "close": "종료",
   "notAbleReplyAfterClosing": "종료하면 더 이상 답변할 수 없습니다.",
   "enquiryClosed": "문의를 종료했습니다",
@@ -2107,8 +2107,8 @@
   "connectionUnstableMessagesCanTSent": "연결이 불안정하여 지금은 메시지를 보낼 수 없습니다",
   "retry": "다시 시도",
   "stillAvailable": "아직 판매 중인가요?",
-  "couldLowerPriceBit": "조금 더 깎아 주실 수 있나요?",
-  "whenCanPutLocker": "언제 보관함에 넣어 주실 수 있나요?",
+  "couldLowerPriceBit": "가격 협의가 가능한가요?",
+  "whenCanPutLocker": "보관함 입고 예정일은 언제인가요?",
   "unsentMessage": "메시지를 보내기 취소했습니다",
   "theyUnsentMessage": "상대방이 메시지를 보내기 취소했습니다",
   "reservationDetailsArenTAvailableRight": "예약 정보를 표시할 수 없습니다",
@@ -2247,7 +2247,7 @@
   },
   "accountWellProtected": "계정이 안전하게 보호되고 있습니다",
   "accountCouldSafer": "계정 보안을 강화할 수 있습니다",
-  "paymentPinBiometricPaymentSetCheck": "결제 비밀번호와 생체 인증 결제가 설정되어 있습니다. 로그인된 기기도 가끔 확인하세요.",
+  "paymentPinBiometricPaymentSetCheck": "결제 비밀번호와 생체 인증 결제가 설정되어 있습니다. 로그인된 기기를 정기적으로 확인하세요.",
   "setPaymentPinTurnBiometricPayment": "결제 비밀번호를 설정하고 생체 인증 결제를 켜면 더 안전하고 빠르게 결제할 수 있습니다.",
   "tooManyAttemptsLockedUntilP0": "시도 횟수 초과. {p0}까지 잠김",
   "@tooManyAttemptsLockedUntilP0": {
@@ -2305,7 +2305,7 @@
   "sessionExpiredPleaseSignAgain": "로그인이 만료되었습니다. 다시 로그인하세요",
   "serviceTemporarilyUnavailableTryAgainLater": "서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요",
   "uploadFailedTryAgainLater": "업로드에 실패했습니다. 잠시 후 다시 시도하세요",
-  "nearby": "바로 근처",
+  "nearby": "근처",
   "p0M": "{p0}",
   "@p0M": {
     "placeholders": {
@@ -2409,7 +2409,7 @@
   },
   "declined2": "거절됨",
   "closed": "종료됨",
-  "theyWantReserveBook": "상대방이 회원님의 책을 예약하고 싶어 합니다",
+  "theyWantReserveBook": "회원님의 도서에 예약 요청이 도착했습니다",
   "sentReservationRequest": "예약 요청을 보냈습니다",
   "holdP0H": "{p0}시간 보류",
   "@holdP0H": {
@@ -2433,5 +2433,37 @@
       "p0": {},
       "p1": {}
     }
-  }
+  },
+  "buildSProvisioningProfileDoesnT": "이 빌드의 프로비저닝 프로필에 푸시 알림 권한이 없습니다. Xcode의 Runner › Signing & Capabilities에 Push Notifications가 있는지 확인한 뒤 앱을 삭제하고 다시 설치하세요.",
+  "checkPhoneOnlinePushNotificationsAdded": "휴대폰이 네트워크에 연결되어 있는지, Xcode의 Runner › Signing & Capabilities에 Push Notifications가 있는지 확인하세요.",
+  "iphoneFailedRegisterPushNotificationsWith": "iPhone의 Apple 푸시 알림 등록에 실패했습니다: {p0}\n{p1}",
+  "@iphoneFailedRegisterPushNotificationsWith": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "serverNotBeenUpdatedSupportFeature": "서버가 아직 이 기능을 지원하는 버전으로 업데이트되지 않았습니다. 잠시 후 다시 시도하세요.",
+  "someFeaturesTemporarilyUnavailableWhileServer": "서버 업데이트 중이라 일부 기능을 일시적으로 사용할 수 없습니다",
+  "serverRunningOutdatedApiRevisionP0": "서버의 API 버전이 오래되었습니다(현재 {p0}, 앱에 필요한 버전 {p1}). 서버 코드를 업데이트하고 API를 재시작하세요.",
+  "@serverRunningOutdatedApiRevisionP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "databaseMigrationsNotYetRunP0": "아직 실행하지 않은 데이터베이스 마이그레이션: {p0}",
+  "@databaseMigrationsNotYetRunP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "serverVersionP0": "서버 현재 버전: {p0}",
+  "@serverVersionP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "runNpmRunVerifyApiDirectory": "서버의 API 디렉터리에서 npm run verify를 실행하면 전체 배포 상태를 확인할 수 있습니다.",
+  "serverUpdateRequired": "서버 업데이트 필요"
 }

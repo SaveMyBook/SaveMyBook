@@ -64,29 +64,29 @@ const testLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 5,
   key: byUser,
-  message: '測試通知送太多次了，請 10 分鐘後再試'
+  message: '測試通知傳送次數過多，請 10 分鐘後再試'
 });
 
 router.post('/test', testLimiter, async (req, res) => {
-  if (req.user.role !== 'admin') throw forbidden('只有管理員可以傳送測試通知');
+  if (req.user.role !== 'admin') throw forbidden('僅管理員可傳送測試通知');
   assertReady();
 
   const devices = await push.deviceCount(req.user.userId);
   if (devices === 0) {
-    throw conflict('伺服器上沒有這個帳號的推播裝置。App 沒有成功取得或上傳推播 token。', 'NO_PUSH_DEVICE');
+    throw conflict('伺服器上沒有此帳號的推播裝置，App 未能取得或上傳推播 token。', 'NO_PUSH_DEVICE');
   }
 
   await notify(prisma, {
     userId: req.user.userId,
     title: '測試通知',
-    content: '收到這則通知，代表推播設定正常。',
+    content: '收到此通知表示推播設定正常。',
     relatedType: 'push_test',
     createdAt: new Date(Date.now() + TEST_DELAY_SECONDS * 1000)
   });
 
   res.status(200).json({
     success: true,
-    message: `${TEST_DELAY_SECONDS} 秒後送出，請先回到主畫面或鎖定手機`,
+    message: `${TEST_DELAY_SECONDS} 秒後送出，請返回主畫面或鎖定手機`,
     data: { devices, delay_seconds: TEST_DELAY_SECONDS }
   });
 });

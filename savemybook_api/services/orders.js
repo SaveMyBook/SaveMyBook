@@ -53,7 +53,7 @@ const guardedUpdate = async (tx, order, data) => {
     where: { order_id: order.order_id, status: order.status },
     data: { ...data, updated_at: new Date() }
   });
-  if (result.count === 0) throw conflict('訂單狀態已經變更，請重新整理後再試');
+  if (result.count === 0) throw conflict('訂單狀態已變更，請重新整理後再試');
 };
 
 const phaseOf = (status) => {
@@ -159,9 +159,9 @@ const transition = async (tx, order, target, { cancelReason = null } = {}) => {
 };
 
 const assertAdminTransition = (from, to) => {
-  if (from === to) throw badRequest('訂單已經是這個狀態了');
+  if (from === to) throw badRequest('訂單已是此狀態');
   if (phaseOf(from) === 'returned' && phaseOf(to) !== 'returned') {
-    throw badRequest('這筆訂單的款項已經退回買家，不能再改回進行中或已完成');
+    throw badRequest('此訂單款項已退回買家，無法改回進行中或已完成');
   }
   if (from === 'completed' && !['refunding', 'refunded'].includes(to)) {
     throw badRequest('已完成的訂單只能改為「退款處理中」或「已退款」');
@@ -197,7 +197,7 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
   await reservations.assertNotHeldByOthers(null, cartItems.map((i) => i.books), buyerId);
 
   const ownBook = cartItems.find((i) => i.books.seller_id === buyerId);
-  if (ownBook) throw badRequest(`《${ownBook.books.title}》是你自己上架的書，無法購買`);
+  if (ownBook) throw badRequest(`《${ownBook.books.title}》為您上架的書籍，無法購買`);
 
   // 既有資料可能有售價 0 的書，結帳時須再擋一次。
   const invalidPrice = cartItems.find((i) => !(Number(i.books.price) > 0));
@@ -219,7 +219,7 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
   const currentBalance = Number(buyerWallet?.balance ?? 0);
   if (currentBalance < grandTotal) {
     throw badRequest(
-      `代幣不足，這筆訂單需要 ${grandTotal} 代幣，目前只有 ${currentBalance}`,
+      `代幣不足，此訂單需 ${grandTotal} 代幣，目前餘額 ${currentBalance}`,
       'INSUFFICIENT_BALANCE'
     );
   }
@@ -236,7 +236,7 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
         data: { status: 'reserved', updated_at: new Date() }
       });
       if (reserved.count !== bookIds.length) {
-        throw conflict('購物車裡有書剛剛被其他人買走了，請重新整理後再結帳');
+        throw conflict('購物車中有書籍已被其他買家購買，請重新整理後再結帳');
       }
 
       const totalAmount = items.reduce((sum, i) => sum + lineTotal(i), 0);
@@ -296,7 +296,7 @@ const cancel = async (orderId, user, reason) => {
   if (ORDER_FINAL_STATUSES.includes(order.status)) throw badRequest('此訂單狀態無法取消');
   // 爭議中的訂單由仲裁決定退款，當事人不能自行取消。
   if (order.status === 'refunding' && !isAdmin) {
-    throw badRequest('這筆訂單正在處理爭議，無法自行取消，請等候客服裁決');
+    throw badRequest('此訂單爭議處理中，無法自行取消，請等候客服裁決');
   }
 
   return prisma.$transaction(async (tx) => {
@@ -317,7 +317,7 @@ const cancel = async (orderId, user, reason) => {
       userId: user.userId === order.buyer_id ? order.seller_id : order.buyer_id,
       type: 'order',
       title: '訂單已取消',
-      content: `訂單 ${order.order_no} 已被取消。${reason ? `原因：${reason}` : ''}`,
+      content: `訂單 ${order.order_no} 已取消。${reason ? `原因：${reason}` : ''}`,
       relatedId: orderId,
       relatedType: 'order'
     });
@@ -331,17 +331,17 @@ const TRANSITIONS = {
   deposited: {
     from: ['pending_payment', 'pending_deposit'],
     by: 'seller',
-    wrongState: '這筆訂單目前不是待存書狀態'
+    wrongState: '此訂單目前非待存書狀態'
   },
   pending_pickup: {
     from: ['deposited'],
     by: 'seller',
-    wrongState: '賣家尚未存書，無法改為待取貨'
+    wrongState: '賣家尚未存書，無法改為待取書'
   },
   completed: {
     from: ['deposited', 'pending_pickup'],
     by: 'buyer',
-    wrongState: '賣家還沒把書放進書櫃，無法完成取貨'
+    wrongState: '賣家尚未存書，無法完成取書'
   }
 };
 
@@ -352,9 +352,9 @@ const advance = async (orderId, status, user) => {
   const isAdmin = user.role === 'admin';
   const actorId = rule.by === 'seller' ? order.seller_id : order.buyer_id;
   if (!isAdmin && user.userId !== actorId) {
-    throw forbidden(rule.by === 'seller' ? '只有賣家可以執行這個操作' : '只有買家可以確認取貨');
+    throw forbidden(rule.by === 'seller' ? '僅賣家可執行此操作' : '僅買家可確認取書');
   }
-  if (order.status === status) throw conflict('訂單已經是這個狀態了');
+  if (order.status === status) throw conflict('訂單已是此狀態');
   if (!rule.from.includes(order.status)) throw badRequest(rule.wrongState);
 
   return prisma.$transaction(async (tx) => {
@@ -366,9 +366,9 @@ const advance = async (orderId, status, user) => {
       await notify(tx, {
         userId: order.buyer_id,
         type: 'order',
-        title: '書已經放進書櫃了',
-        content: `訂單 ${order.order_no} 的書已放進${cabinet ? `「${cabinet}」` : ''}書櫃，可以前往取貨。`
-          + `${order.pickup_code ? `取貨碼：${order.pickup_code}` : ''}`,
+        title: '書籍已存入書櫃',
+        content: `訂單 ${order.order_no} 的書籍已存入${cabinet ? `「${cabinet}」` : ''}書櫃，請前往取書。`
+          + `${order.pickup_code ? `取書碼：${order.pickup_code}` : ''}`,
         relatedId: orderId,
         relatedType: 'order'
       });
@@ -377,9 +377,9 @@ const advance = async (orderId, status, user) => {
       await notify(tx, {
         userId: order.seller_id,
         type: 'order',
-        title: '買家已取貨',
+        title: '買家已取書',
         content: money.paidOut > 0
-          ? `訂單 ${order.order_no} 已完成，${money.paidOut} 代幣已撥入你的錢包。`
+          ? `訂單 ${order.order_no} 已完成，${money.paidOut} 代幣已撥入您的錢包。`
           : `訂單 ${order.order_no} 已完成。`,
         relatedId: orderId,
         relatedType: 'order'

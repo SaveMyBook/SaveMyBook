@@ -55,13 +55,13 @@ const PERMISSION_BY_TARGET = {
 
 const modelOf = (name) => {
   const spec = MODELS[name];
-  if (!spec) throw badRequest('這筆紀錄的還原資料不正確');
+  if (!spec) throw badRequest('此紀錄的還原資料不正確');
   return spec;
 };
 
 const assertFields = (spec, obj) => {
   for (const field of Object.keys(obj)) {
-    if (!spec.fields.includes(field)) throw badRequest('這筆紀錄的還原資料不正確');
+    if (!spec.fields.includes(field)) throw badRequest('此紀錄的還原資料不正確');
   }
 };
 
@@ -75,37 +75,37 @@ const checkStep = async (tx, step) => {
     assertFields(spec, step.after);
     const current = await tx[step.model].findUnique({ where: { [spec.pk]: step.id } });
     if (!current) {
-      return Object.keys(step.before).length === 0 && spec.creatable ? null : '資料已經不存在';
+      return Object.keys(step.before).length === 0 && spec.creatable ? null : '資料已不存在';
     }
     const changed = Object.keys(step.after).filter((f) => !sameValue(current[f], step.after[f]));
     return changed.length
-      ? `之後又被修改過（${changed.map((f) => `${step.labels?.[f] ?? f}目前是 ${display(current[f])}`).join('、')}）`
+      ? `之後曾再次修改（${changed.map((f) => `${step.labels?.[f] ?? f}目前是 ${display(current[f])}`).join('、')}）`
       : null;
   }
 
   if (step.op === 'delete') {
-    if (!spec.creatable) throw badRequest('這筆紀錄的還原資料不正確');
+    if (!spec.creatable) throw badRequest('此紀錄的還原資料不正確');
     const current = await tx[step.model].findUnique({ where: { [spec.pk]: step.id } });
-    return current ? null : '資料已經被刪除';
+    return current ? null : '資料已被刪除';
   }
 
   if (step.op === 'create') {
-    if (!spec.creatable) throw badRequest('這筆紀錄的還原資料不正確');
+    if (!spec.creatable) throw badRequest('此紀錄的還原資料不正確');
     const id = decode(step.row[spec.pk]);
     const current = await tx[step.model].findUnique({ where: { [spec.pk]: id } });
-    return current ? '同一筆資料已經存在' : null;
+    return current ? '相同資料已存在' : null;
   }
 
   if (step.op === 'reorder') {
     for (const item of step.items) {
       const current = await tx[step.model].findUnique({ where: { [spec.pk]: item.id } });
-      if (!current) return '排序中有資料已經被刪除';
-      if (current.sort_order !== item.after) return '排序之後又被調整過';
+      if (!current) return '排序中有資料已被刪除';
+      if (current.sort_order !== item.after) return '排序之後曾再次調整';
     }
     return null;
   }
 
-  throw badRequest('這筆紀錄的還原資料不正確');
+  throw badRequest('此紀錄的還原資料不正確');
 };
 
 const applyStep = async (tx, step, { adminId, label }) => {
@@ -116,7 +116,7 @@ const applyStep = async (tx, step, { adminId, label }) => {
       type: 'admin_adjust',
       description: `撤銷管理員調整：${label}`,
       counters: amount > 0 ? { total_income: { increment: amount } } : { total_expense: { increment: -amount } },
-      insufficientMessage: '會員的餘額已經不足以撤銷這筆加值'
+      insufficientMessage: '會員餘額不足，無法撤銷此筆加值'
     });
     return;
   }
@@ -158,7 +158,7 @@ const run = async (tx, steps, context) => {
     if (problem) problems.push(problem);
   }
   if (problems.length) {
-    throw conflict(`無法還原：資料${problems[0]}。請直接到對應的管理頁面手動調整。`, 'UNDO_CONFLICT');
+    throw conflict(`無法還原：資料${problems[0]}。請至對應的管理頁面手動調整。`, 'UNDO_CONFLICT');
   }
 
   // 刪除須先做，否則還原刪除與還原新增可能撞到同一個主鍵。

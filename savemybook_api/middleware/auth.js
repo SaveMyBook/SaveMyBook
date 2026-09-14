@@ -26,7 +26,7 @@ const loadUser = (userId) => prisma.users.findUnique({
 const accountProblem = (user, decoded) => {
   if (!user) return [401, '帳號不存在，請重新登入', 'ACCOUNT_NOT_FOUND'];
   if (decoded.pwv !== undefined && decoded.pwv !== passwordVersion(user.password_hash)) {
-    return [401, '密碼已經變更，請重新登入', 'TOKEN_REVOKED'];
+    return [401, '密碼已變更，請重新登入', 'TOKEN_REVOKED'];
   }
   if (user.is_blacklisted) return [401, '此帳號已被列入黑名單，如有疑問請聯絡客服', 'ACCOUNT_BLACKLISTED'];
   if (!user.is_active) return [401, '此帳號已被停權，如有疑問請聯絡客服', 'ACCOUNT_INACTIVE'];
@@ -38,12 +38,12 @@ const sessionProblem = async (userId, decoded) => {
   if (!state.available) return null;
   if (decoded.sid) {
     if (!state.session || state.session.userId !== userId || state.session.revoked) {
-      return [401, '這台裝置已經登出，請重新登入', 'SESSION_REVOKED'];
+      return [401, '此裝置已登出，請重新登入', 'SESSION_REVOKED'];
     }
     return null;
   }
   if (state.validAfter && decoded.iat < Math.floor(state.validAfter.getTime() / 1000)) {
-    return [401, '這台裝置已經登出，請重新登入', 'SESSION_REVOKED'];
+    return [401, '此裝置已登出，請重新登入', 'SESSION_REVOKED'];
   }
   return null;
 };

@@ -65,18 +65,18 @@
 		<key>UIStatusBarHidden</key>
 		<false/>
 		<key>NSMicrophoneUsageDescription</key>
-		<string>救「舊」我的書需要麥克風權限才能錄製聊天室的語音訊息</string>
+		<string>救「舊」我的書需要麥克風權限，以錄製聊天室語音訊息。</string>
 		<key>NSCameraUsageDescription</key>
-        	<string>救「舊」我的書需要相機權限才能拍攝書本封面與條碼</string>
+        	<string>救「舊」我的書需要相機權限，以拍攝書籍封面及掃描條碼。</string>
         	<key>NSPhotoLibraryUsageDescription</key>
-        	<string>救「舊」我的書需要相簿權限才能讓您選擇書本照片</string>
+        	<string>救「舊」我的書需要相簿權限，以選取書籍照片。</string>
         	<key>NSFaceIDUsageDescription</key>
-        	<string>救「舊」我的書使用 Face ID 讓您快速安全地登入與確認付款</string>
+        	<string>救「舊」我的書需要使用 Face ID，以便您快速且安全地登入及確認付款。</string>
         	<key>NSPhotoLibraryAddUsageDescription</key>
-        	<string>救「舊」我的書需要權限才能把 QR Code 儲存到您的相簿</string>
+        	<string>救「舊」我的書需要相簿寫入權限，以將 QR Code 儲存至您的相簿。</string>
         	<key>NSLocationWhenInUseUsageDescription</key>
-        	<string>救「舊」我的書需要定位權限來為您尋找最近的智慧書櫃</string>
+        	<string>救「舊」我的書需要定位權限，以為您尋找最近的智慧書櫃。</string>
         	<key>NSLocationAlwaysUsageDescription</key>
-        	<string>救「舊」我的書需要定位權限來為您尋找最近的智慧書櫃</string>
+        	<string>救「舊」我的書需要定位權限，以為您尋找最近的智慧書櫃。</string>
 	</dict>
 </plist>

@@ -17,13 +17,13 @@ const SCOPES = {
 
 const assertPinPolicy = (pin) => {
   if (typeof pin !== 'string' || !/^\d{6}$/.test(pin)) throw badRequest('交易密碼必須是 6 位數字', 'PIN_FORMAT');
-  if (/^(\d)\1{5}$/.test(pin)) throw badRequest('交易密碼不能是 6 個相同的數字', 'PIN_TOO_WEAK');
+  if (/^(\d)\1{5}$/.test(pin)) throw badRequest('交易密碼不可為 6 個相同的數字', 'PIN_TOO_WEAK');
   const digits = [...pin].map(Number);
   const steps = new Set(digits.slice(1).map((d, i) => (d - digits[i] + 10) % 10));
   if (steps.size === 1 && (steps.has(1) || steps.has(9))) {
-    throw badRequest('交易密碼不能是連續的數字', 'PIN_TOO_WEAK');
+    throw badRequest('交易密碼不可為連續的數字', 'PIN_TOO_WEAK');
   }
-  if (/^(\d\d)\1\1$|^(\d\d\d)\2$/.test(pin)) throw badRequest('交易密碼不能是重複的數字組合', 'PIN_TOO_WEAK');
+  if (/^(\d\d)\1\1$|^(\d\d\d)\2$/.test(pin)) throw badRequest('交易密碼不可為重複的數字組合', 'PIN_TOO_WEAK');
 };
 
 const securityRow = async (userId) => {
@@ -93,13 +93,13 @@ const verifyPin = async (userId, pin) => {
     await notify(null, {
       userId,
       title: '交易密碼已暫時鎖定',
-      content: `交易密碼連續輸入錯誤 ${MAX_PIN_ATTEMPTS} 次，已鎖定 ${PIN_LOCK_MINUTES} 分鐘。如果不是你本人操作，請立即修改登入密碼並登出其他裝置。`,
+      content: `交易密碼連續輸入錯誤 ${MAX_PIN_ATTEMPTS} 次，已鎖定 ${PIN_LOCK_MINUTES} 分鐘。若非本人操作，請立即變更登入密碼並登出其他裝置。`,
       relatedType: 'security'
     }).catch(() => {});
     throw new HttpError(423, `交易密碼錯誤次數過多，請 ${PIN_LOCK_MINUTES} 分鐘後再試`, 'PIN_LOCKED', { locked_until: until });
   }
   await prisma.$executeRaw`UPDATE user_security SET pin_failed_count = ${failed} WHERE user_id = ${userId}`;
-  throw badRequest(`交易密碼錯誤，還可以再試 ${MAX_PIN_ATTEMPTS - failed} 次`, 'INVALID_PIN', {
+  throw badRequest(`交易密碼錯誤，剩餘嘗試次數 ${MAX_PIN_ATTEMPTS - failed} 次`, 'INVALID_PIN', {
     remaining_attempts: MAX_PIN_ATTEMPTS - failed
   });
 };
@@ -141,7 +141,7 @@ const consumeToken = (req, scope) => {
     throw withScope(verificationRequired(scope));
   }
   if (SCOPES[scope].singleUse) {
-    if (usedTokens.has(decoded.jti)) throw withScope(verificationRequired(scope, '這次驗證已經使用過了，請重新驗證'));
+    if (usedTokens.has(decoded.jti)) throw withScope(verificationRequired(scope, '此驗證已使用，請重新驗證'));
     usedTokens.set(decoded.jti, decoded.exp * 1000);
   }
   return decoded;

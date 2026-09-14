@@ -24,7 +24,7 @@ const requireSessionSupport = async (req) => {
   if (!(await sessions.isAvailable())) {
     throw new HttpError(503, '伺服器尚未完成資料庫更新，請聯絡管理員', 'SECURITY_UNAVAILABLE');
   }
-  if (!req.user.sid) throw forbidden('請重新登入後再使用這項功能', 'SESSION_REQUIRED');
+  if (!req.user.sid) throw forbidden('請重新登入後再使用此功能', 'SESSION_REQUIRED');
 };
 
 router.get('/', async (req, res) => {
@@ -54,7 +54,7 @@ router.post('/verify', verifyLimiter, async (req, res) => {
     ]);
     if (!state.has_payment_pin) throw forbidden('尚未設定交易密碼', 'PAYMENT_PIN_NOT_SET');
     if (!sessions.matchesPayKey(session, req.body.key)) {
-      throw badRequest('這台裝置的生物辨識付款已失效，請改用交易密碼', 'BIOMETRIC_KEY_INVALID');
+      throw badRequest('此裝置的生物辨識付款已失效，請改用交易密碼', 'BIOMETRIC_KEY_INVALID');
     }
   }
 
@@ -76,7 +76,7 @@ router.put('/payment-pin', security.requireVerification('sensitive'), async (req
     await notify(null, {
       userId: req.user.userId,
       title: '交易密碼已變更',
-      content: '你的交易密碼剛剛被修改。如果不是你本人操作，請立即修改登入密碼並登出其他裝置。',
+      content: '您的交易密碼已變更。若非本人操作，請立即變更登入密碼並登出其他裝置。',
       relatedType: 'security'
     }).catch(() => {});
   }
@@ -87,15 +87,15 @@ router.put('/payment-pin', security.requireVerification('sensitive'), async (req
 router.post('/biometric-key', security.requireVerification('sensitive'), async (req, res) => {
   await requireSessionSupport(req);
   const state = await security.status(req.user.userId, req.user.sid);
-  if (!state.has_payment_pin) throw forbidden('請先設定交易密碼，生物辨識失敗時才有替代方式', 'PAYMENT_PIN_NOT_SET');
+  if (!state.has_payment_pin) throw forbidden('請先設定交易密碼，作為生物辨識失敗時的替代驗證方式', 'PAYMENT_PIN_NOT_SET');
 
   const key = await sessions.setPayKey(req.user.sid);
-  res.status(200).json({ success: true, message: '已在這台裝置啟用生物辨識付款', data: { key } });
+  res.status(200).json({ success: true, message: '已於此裝置啟用生物辨識付款', data: { key } });
 });
 
 router.delete('/biometric-key', async (req, res) => {
   if (req.user.sid && (await sessions.isAvailable())) await sessions.clearPayKey(req.user.sid);
-  res.status(200).json({ success: true, message: '已關閉這台裝置的生物辨識付款' });
+  res.status(200).json({ success: true, message: '已關閉此裝置的生物辨識付款' });
 });
 
 const shapeSession = (row, currentSid) => ({
@@ -121,11 +121,11 @@ router.delete('/sessions/:id', security.requireVerification('sensitive'), async 
   await requireSessionSupport(req);
   const sessionId = v.id(req.params.id, '裝置編號');
   const sid = await sessions.revoke(req.user.userId, sessionId);
-  if (!sid) throw notFound('找不到這台裝置，可能已經登出了');
+  if (!sid) throw notFound('找不到此裝置，可能已登出');
 
   res.status(200).json({
     success: true,
-    message: '已登出這台裝置',
+    message: '已登出此裝置',
     data: { signed_out_current: sid === req.user.sid }
   });
 });
