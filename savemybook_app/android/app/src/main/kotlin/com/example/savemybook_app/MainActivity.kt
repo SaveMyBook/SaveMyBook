@@ -1,5 +1,7 @@
 package com.example.savemybook_app
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
@@ -24,6 +26,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        createNotificationChannel()
 
         pendingLink = intent?.dataString ?: pendingLink
 
@@ -53,6 +56,20 @@ class MainActivity : FlutterFragmentActivity() {
         } else {
             active.invokeMethod("onLink", link)
         }
+    }
+
+    // Android 8 起推播必須屬於某個頻道。id 要與 AndroidManifest 的預設頻道及伺服器送出的 channel_id 一致。
+    // 重複建立同一個 id 不會有副作用，只會更新名稱與說明。
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val channel = NotificationChannel(
+            "savemybook_default",
+            getString(R.string.notification_channel_name),
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = getString(R.string.notification_channel_description)
+        }
+        getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
     }
 
     private fun handleShare(call: MethodCall, result: MethodChannel.Result) {

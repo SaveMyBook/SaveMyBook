@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:http/http.dart' as http;
@@ -37,6 +38,10 @@ class ApiService {
   static User? currentUser;
 
   static void Function(String? reason)? onUnauthorized;
+
+  /// 由 PushService 掛上。api_service 不直接 import 推播，避免服務層互相依賴。
+  static Future<void> Function({required bool canReachServer})? onSigningOut;
+  static Future<void> Function()? onPasswordChanged;
 
   static const String publicWebUrl = 'https://api.savemybook.today';
 
@@ -94,6 +99,7 @@ class ApiService {
   static Future<void> _handleUnauthorized({String? reason}) async {
     if (authToken == null) return;
     authToken = null;
+    unawaited(onSigningOut?.call(canReachServer: false));
     currentUser = null;
     resetGlobalState();
     final prefs = await SharedPreferences.getInstance();
@@ -153,6 +159,7 @@ class ApiService {
             final code = payload['code'];
             if (code == 'ACCOUNT_BLACKLISTED' ||
                 code == 'ACCOUNT_INACTIVE' ||
+                code == 'TOKEN_REVOKED' ||
                 code == 'ACCOUNT_NOT_FOUND') {
               reason = payload['message'] as String?;
             }
@@ -234,6 +241,8 @@ class ApiService {
   }
 
   Future<void> logout() async {
+    // 必須在清掉登入 Token 之前，才能通知伺服器不要再推播到這台。
+    await onSigningOut?.call(canReachServer: true);
     authToken = null;
     currentUser = null;
     resetGlobalState();
@@ -707,7 +716,27 @@ class ApiService {
       'new_password': newPassword,
     });
     if (res == null) return S.pleaseSignFirst;
-    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotChangePassword);
+    if (res['success'] != true) return res['message'] as String? ?? S.couldNotChangePassword;
+
+    // 改密碼後伺服器會讓舊 token 失效並換發新的，不存下來下一個請求就會被登出。
+    final token = res['data'] is Map ? res['data']['token'] : null;
+    if (token is String && token.isNotEmpty) {
+      authToken = token;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', token);
+    }
+    unawaited(onPasswordChanged?.call());
+    return null;
+  }
+
+  Future<bool> registerPushDevice(String token, String platform) async {
+    final res = await _send('POST', '/push/devices', body: {'token': token, 'platform': platform});
+    return res != null && res['success'] == true;
+  }
+
+  Future<bool> unregisterPushDevice(String token) async {
+    final res = await _send('DELETE', '/push/devices', body: {'token': token});
+    return res != null && res['success'] == true;
   }
 
   Future<String?> fetchProfileQrData() async {

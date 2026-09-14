@@ -22,6 +22,9 @@ class ChatRoomScreen extends StatefulWidget {
 
   const ChatRoomScreen({super.key, required this.roomId, this.partnerName = ''});
 
+  /// 目前停在畫面上的聊天室。這個聊天室的新訊息推播在前景時不顯示橫幅，訊息輪詢會直接帶進來。
+  static int? activeRoomId;
+
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
@@ -43,12 +46,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   void initState() {
     super.initState();
+    ChatRoomScreen.activeRoomId = widget.roomId;
     _load();
     _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) => _poll());
   }
 
   @override
   void dispose() {
+    if (ChatRoomScreen.activeRoomId == widget.roomId) ChatRoomScreen.activeRoomId = null;
     _pollTimer?.cancel();
     _api.fetchUnreadChatCount();
     _controller.dispose();

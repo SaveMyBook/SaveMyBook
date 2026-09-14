@@ -4,3 +4,6 @@ node_modules
 
 /generated/prisma
 backups/
+
+# 使用者上傳的檔案
+uploads/

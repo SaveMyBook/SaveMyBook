@@ -1739,5 +1739,28 @@
   },
   "confirmListing": "确认上架",
   "lookingUpBook": "查询书籍资料中",
-  "scan": "扫描"
+  "scan": "扫描",
+  "buyerSPaymentGoesBackTheir": "买家付的款项会退回钱包；卖家若已收到货款会先收回。",
+  "orderReturnsWhereWasBeforeDispute": "订单回到申诉前的状态继续交易；若先前已完成取货，货款会拨给卖家。",
+  "orderWasAlreadyRefundedBuyerCannot": "这笔订单的款项已经退回买家，不能再改回进行中或已完成",
+  "completedOrderCanOnlyChangedRefund": "已完成的订单只能改为“退款处理中”或“已退款”",
+  "confirmingPaysP0TokensSellerMarks": "确认后会把 {p0} 代币拨给卖家，书籍标记为已售出。",
+  "@confirmingPaysP0TokensSellerMarks": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmingTakesP0TokensBackFrom": "确认后会向卖家收回 {p0} 代币并退还给买家。卖家余额不足时会变成负数。",
+  "@confirmingTakesP0TokensBackFrom": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "ifBuyerNotBeenRefundedYet": "若先前还没退款，会补退给买家。",
+  "confirmingRefundsBuyerSP0Tokens": "确认后会把买家付的 {p0} 代币退回，保留中的书重新上架。",
+  "@confirmingRefundsBuyerSP0Tokens": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

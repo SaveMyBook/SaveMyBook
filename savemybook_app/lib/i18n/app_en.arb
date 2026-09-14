@@ -1739,5 +1739,28 @@
   },
   "confirmListing": "Confirm listing",
   "lookingUpBook": "Looking up the book",
-  "scan": "Scan"
+  "scan": "Scan",
+  "buyerSPaymentGoesBackTheir": "The buyer's payment goes back to their wallet. If the seller was already paid, that amount is taken back first.",
+  "orderReturnsWhereWasBeforeDispute": "The order returns to where it was before the dispute. If it was already picked up, the seller is paid.",
+  "orderWasAlreadyRefundedBuyerCannot": "This order was already refunded to the buyer and cannot go back to in progress or completed",
+  "completedOrderCanOnlyChangedRefund": "A completed order can only be changed to \"Refund in progress\" or \"Refunded\"",
+  "confirmingPaysP0TokensSellerMarks": "Confirming pays {p0} tokens to the seller and marks the books as sold.",
+  "@confirmingPaysP0TokensSellerMarks": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmingTakesP0TokensBackFrom": "Confirming takes {p0} tokens back from the seller and refunds the buyer. The seller's balance may go negative.",
+  "@confirmingTakesP0TokensBackFrom": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "ifBuyerNotBeenRefundedYet": "If the buyer has not been refunded yet, the refund is issued now.",
+  "confirmingRefundsBuyerSP0Tokens": "Confirming refunds the buyer's {p0} tokens and puts reserved books back on sale.",
+  "@confirmingRefundsBuyerSP0Tokens": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

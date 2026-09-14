@@ -56,7 +56,8 @@ class WalletTransaction {
     this.createdAt,
   });
 
-  bool get isIncome => type == 'sale_income' || type == 'deposit' || type == 'refund';
+  /// 依金額正負判斷。退款時向賣家收回貨款的紀錄類型也是 refund，但金額是負的。
+  bool get isIncome => amount > 0;
 
   String get typeText {
     switch (type) {

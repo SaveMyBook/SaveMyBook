@@ -179,15 +179,18 @@ paths:
         裁決爭議案件。需 `can_manage_transactions` 權限。
         整個流程封裝於單一資料庫交易。
 
-        | `result` | 訂單結果 | 退款紀錄 |
+        | `result` | 訂單結果 | 金流 |
         | --- | --- | --- |
-        | `refund_manual` | `refunded` | 建立，`refund_type = manual` |
-        | `refund_auto` | `refunded` | 建立，`refund_type = auto` |
-        | `dismissed` | `completed` | 不建立 |
-        | `mediated` | `completed` | 不建立 |
+        | `refund_manual`、`refund_auto` | `refunded` | 賣家已收到的貨款先收回，買家實付金額退回錢包；建立退款紀錄 |
+        | `dismissed`、`mediated` | 回到申訴前的狀態 | 回到 `completed` 時才撥款給賣家 |
 
-        爭議狀態一律設為 `resolved` 並寫入處理時間，
-        同時通知申請人裁決結果，並寫入稽核紀錄。
+        「申訴前的狀態」由時間欄位推回：有 `completed_at` 回到 `completed`，
+        有 `deposited_at` 回到 `deposited`，否則回到 `pending_deposit`。
+
+        爭議期間訂單若已被客服取消或退款，只結案不再異動訂單。
+        已裁決的案件再送出回傳 409。退款紀錄的 `amount` 為實際退回的金額。
+
+        爭議狀態設為 `resolved` 並寫入處理時間，買賣雙方都會收到裁決通知，並寫入稽核紀錄。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path

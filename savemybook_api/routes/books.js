@@ -1,380 +1,344 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
-const { ensureBookToken } = require('../lib/share');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { rateLimit, byUser } = require('../middleware/rateLimit');
+const v = require('../lib/validate');
+const { imageUpload } = require('../lib/upload');
+const { publicBase } = require('../lib/public-url');
+const { env } = require('../config/env');
+const { badRequest, forbidden, notFound, conflict, HttpError } = require('../lib/errors');
+const { BOOK_STATUSES, CONDITION_LEVELS } = require('../constants/domain');
+const { ensureBookToken } = require('../services/share');
 
 const router = express.Router();
 
-const uploadDir = path.join(__dirname, '../uploads/books');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+const photos = imageUpload({ folder: 'books', maxFileSize: 10 * 1024 * 1024 });
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
+const MAX_PRICE = 99999;
+const SORTS = {
+  newest: { created_at: 'desc' },
+  price_asc: { price: 'asc' },
+  price_desc: { price: 'desc' },
+  popular: { view_count: 'desc' }
+};
+
+const cabinetSelect = { cabinet_id: true, cabinet_name: true, address: true, open_time: true, close_time: true };
+
+const isbnLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  key: byUser,
+  message: '查詢太頻繁，請稍後再試'
 });
-const upload = multer({ storage: storage });
 
-router.get('/isbn/:isbn', authenticateToken, async (req, res) => {
-  const isbn = req.params.isbn;
+const price = (value) => {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) throw badRequest('售價必須大於 0 元');
+  if (n > MAX_PRICE) throw badRequest(`售價不可超過 ${MAX_PRICE} 元`);
+  return n;
+};
+
+/// 上架流程不強制 10/13 碼：條碼掃描器也會掃到 12 碼的 UPC，既有資料裡也有這種值，
+/// 太嚴格會讓賣家連舊書都改不了。這裡只保證是數字（ISBN-10 可含 X）且放得進 VARCHAR(13)。
+const isbn = (value) => {
+  const s = v.optionalText(value, { label: 'ISBN', max: 20 });
+  if (s == null) return s;
+  const digits = s.replace(/[-\s]/g, '');
+  if (!/^[\dXx]{1,13}$/.test(digits)) throw badRequest('ISBN 只能包含數字，且不超過 13 碼');
+  return digits.toUpperCase();
+};
+
+/// 前端傳來的出版日期可能是 "2020-" 或 "2020--"，把尾端多餘的連字號去掉。
+const publishDate = (value) => {
+  const s = v.optionalText(value, { label: '出版日期', max: 20 });
+  if (s == null) return s;
+  return s.replace(/-+$/, '') || null;
+};
+
+/// 只檢查有變更的關聯。書櫃停用後，賣家原封不動送回舊的 cabinet_id 不該被擋。
+const assertRefsExist = async ({ categoryId, cabinetId }, current = {}) => {
+  if (categoryId === current.category_id) categoryId = null;
+  if (cabinetId === current.cabinet_id) cabinetId = null;
+  const [category, cabinet] = await Promise.all([
+    categoryId ? prisma.book_categories.count({ where: { category_id: categoryId } }) : 1,
+    cabinetId ? prisma.smart_cabinets.count({ where: { cabinet_id: cabinetId, is_active: true } }) : 1
+  ]);
+  if (!category) throw badRequest('找不到這個分類');
+  if (!cabinet) throw badRequest('找不到這個書櫃，或書櫃已停用');
+};
+
+const findOwnedBook = async (bookId, user, deniedMessage) => {
+  const book = await prisma.books.findUnique({ where: { book_id: bookId } });
+  if (!book) throw notFound('找不到該書籍');
+  if (book.seller_id !== user.userId && user.role !== 'admin') throw forbidden(deniedMessage);
+  return book;
+};
+
+router.get('/isbn/:isbn', authenticateToken, isbnLimiter, async (req, res) => {
+  const code = String(req.params.isbn || '').replace(/[-\s]/g, '');
+  if (!/^(\d{9}[\dXx]|\d{13})$/.test(code)) throw badRequest('ISBN 必須是 10 或 13 碼');
+
+  const url = new URL('https://www.googleapis.com/books/v1/volumes');
+  url.searchParams.set('q', `isbn:${code}`);
+  url.searchParams.set('printType', 'books');
+  url.searchParams.set('projection', 'lite');
+  if (env.googleBooksApiKey) url.searchParams.set('key', env.googleBooksApiKey);
+
+  let data;
   try {
-    let apiUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&printType=books&projection=lite`;
-    if (process.env.GOOGLE_BOOKS_API_KEY) {
-      apiUrl += `&key=${process.env.GOOGLE_BOOKS_API_KEY}`;
-    }
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-
-    if (data.items && data.items.length > 0) {
-      const bookInfo = data.items[0].volumeInfo;
-      return res.status(200).json({
-        success: true,
-        data: {
-          title: bookInfo.title || '',
-          author: bookInfo.authors ? bookInfo.authors.join(', ') : '',
-          publisher: bookInfo.publisher || '',
-          publish_date: bookInfo.publishedDate || '',
-          description: bookInfo.description || '',
-        }
-      });
-    } else {
-      return res.status(404).json({ success: false, message: '外部書庫找不到此 ISBN 的書籍資訊' });
-    }
+    // 外部服務沒回應時不能讓請求一直掛著。
+    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!response.ok) throw new Error(`Google Books HTTP ${response.status}`);
+    data = await response.json();
   } catch (err) {
-    res.status(500).json({ success: false, message: '查詢外部書籍資訊發生錯誤' });
+    console.error('[查詢 ISBN 失敗]:', err.message);
+    throw new HttpError(502, '查詢外部書籍資訊發生錯誤');
   }
+
+  const info = data?.items?.[0]?.volumeInfo;
+  if (!info) throw notFound('外部書庫找不到此 ISBN 的書籍資訊');
+
+  res.status(200).json({
+    success: true,
+    data: {
+      title: info.title || '',
+      author: Array.isArray(info.authors) ? info.authors.join(', ') : '',
+      publisher: info.publisher || '',
+      publish_date: info.publishedDate || '',
+      description: info.description || ''
+    }
+  });
 });
 
 router.get('/', async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
-    const keyword = req.query.keyword || '';
-    const status = req.query.status || 'on_sale';
-    const sort = req.query.sort || 'newest';
-    const sellerId = req.query.seller_id ? parseInt(req.query.seller_id) : null;
+  const { page, limit, skip } = v.pagination(req.query);
+  const keyword = v.text(req.query.keyword, { label: '關鍵字', max: 100 });
+  const status = req.query.status || 'on_sale';
+  const sort = SORTS[req.query.sort] ? req.query.sort : 'newest';
+  const sellerId = v.optionalId(req.query.seller_id, '賣家編號');
 
-    let categoryIdsArray = [];
-    if (req.query.category_ids) {
-      categoryIdsArray = req.query.category_ids.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
-    }
+  if (status !== 'all') v.oneOf(status, BOOK_STATUSES, '不支援的書籍狀態');
 
-    const whereCondition = {
-      // 賣家在「書籍管理」要看得到全部狀態的書，因此 status=all 時不加狀態條件
-      ...(status !== 'all' && { status: status }),
-      // 查詢自己的書籍時不套用審核條件，避免待審核的書籍看不到
-      ...(sellerId ? { seller_id: sellerId } : { is_approved: true }),
-      ...(categoryIdsArray.length > 0 && { category_id: { in: categoryIdsArray } }),
-      ...(keyword && {
-        OR: [
-          { title: { contains: keyword } },
-          { author: { contains: keyword } },
-          { publisher: { contains: keyword } }
-        ]
-      })
-    };
+  const categoryIds = typeof req.query.category_ids === 'string'
+    ? req.query.category_ids.split(',').map(v.toInt).filter((n) => Number.isSafeInteger(n) && n > 0).slice(0, 50)
+    : [];
 
-    let orderByCondition = { created_at: 'desc' };
-    switch (sort) {
-      case 'price_asc': orderByCondition = { price: 'asc' }; break;
-      case 'price_desc': orderByCondition = { price: 'desc' }; break;
-      case 'popular': orderByCondition = { view_count: 'desc' }; break;
-      case 'newest': default: orderByCondition = { created_at: 'desc' }; break;
-    }
+  const where = {
+    // 賣家在「書籍管理」要看得到全部狀態的書，因此 status=all 時不加狀態條件
+    ...(status !== 'all' && { status }),
+    // 查詢自己的書籍時不套用審核條件，避免待審核的書籍看不到
+    ...(sellerId ? { seller_id: sellerId } : { is_approved: true }),
+    ...(categoryIds.length > 0 && { category_id: { in: categoryIds } }),
+    ...(keyword && {
+      OR: [
+        { title: { contains: keyword } },
+        { author: { contains: keyword } },
+        { publisher: { contains: keyword } }
+      ]
+    })
+  };
 
-    const [books, totalCount] = await Promise.all([
-      prisma.books.findMany({
-        where: whereCondition,
-        skip: skip,
-        take: limit,
-        orderBy: orderByCondition,
-        include: {
-          users: { select: { user_id: true, nickname: true, avatar_url: true } },
-          book_images: { select: { image_id: true, image_url: true, image_type: true } },
-          book_categories: { select: { category_name: true } },
-          smart_cabinets: { select: { cabinet_id: true, cabinet_name: true, address: true, open_time: true, close_time: true } }
-        }
-      }),
-      prisma.books.count({ where: whereCondition })
-    ]);
+  const [books, total] = await Promise.all([
+    prisma.books.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: SORTS[sort],
+      include: {
+        users: { select: { user_id: true, nickname: true, avatar_url: true } },
+        book_images: { select: { image_id: true, image_url: true, image_type: true } },
+        book_categories: { select: { category_name: true } },
+        smart_cabinets: { select: cabinetSelect }
+      }
+    }),
+    prisma.books.count({ where })
+  ]);
 
-    res.status(200).json({
-      success: true,
-      pagination: { total: totalCount, page: page, limit: limit, total_pages: Math.ceil(totalCount / limit) },
-      data: books
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+  res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: books });
 });
 
-// 必須排在 /:id 之前，否則會被當成書籍編號。
 router.get('/:id/share-link', async (req, res) => {
-  const bookId = parseInt(req.params.id);
-  if (!Number.isFinite(bookId)) {
-    return res.status(400).json({ success: false, message: '書籍編號不正確' });
-  }
+  const bookId = v.id(req.params.id, '書籍編號');
 
-  try {
-    const book = await prisma.books.findUnique({
-      where: { book_id: bookId },
-      select: { book_id: true, title: true, status: true }
-    });
-    if (!book) return res.status(404).json({ success: false, message: '找不到這本書' });
+  const book = await prisma.books.findUnique({
+    where: { book_id: bookId },
+    select: { book_id: true, title: true, status: true }
+  });
+  if (!book) throw notFound('找不到這本書');
 
-    // 已下架的書不給分享連結：公開頁本來就不會顯示它，
-    // 發出去只會得到一個「找不到」的頁面。
-    if (book.status === 'removed') {
-      return res.status(409).json({ success: false, message: '這本書已下架，無法分享' });
-    }
+  // 已下架的書不給分享連結：公開頁本來就不會顯示它，
+  // 發出去只會得到一個「找不到」的頁面。
+  if (book.status === 'removed') throw conflict('這本書已下架，無法分享');
 
-    const token = await ensureBookToken(bookId);
-    const base = process.env.PUBLIC_WEB_URL || `${req.protocol}://${req.get('host')}`;
-    res.status(200).json({
-      success: true,
-      data: { url: `${base}/b/${token}`, title: book.title }
-    });
-  } catch (err) {
-    console.error('[取得書籍分享連結失敗]:', err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+  const token = await ensureBookToken(bookId);
+  res.status(200).json({
+    success: true,
+    data: { url: `${publicBase(req)}/b/${token}`, title: book.title }
+  });
 });
 
 router.get('/:id', async (req, res) => {
-  const bookId = parseInt(req.params.id);
-  try {
-    const book = await prisma.books.findUnique({
-      where: { book_id: bookId },
-      include: {
-        users: { select: { user_id: true, nickname: true, avatar_url: true, created_at: true } },
-        book_images: true,
-        book_categories: { select: { category_name: true } },
-        smart_cabinets: { select: { cabinet_id: true, cabinet_name: true, address: true, open_time: true, close_time: true } }
-      }
-    });
+  const bookId = v.id(req.params.id, '書籍編號');
 
-    if (!book) return res.status(404).json({ success: false, message: '找不到該書籍' });
+  const book = await prisma.books.findUnique({
+    where: { book_id: bookId },
+    include: {
+      users: { select: { user_id: true, nickname: true, avatar_url: true, created_at: true } },
+      book_images: true,
+      book_categories: { select: { category_name: true } },
+      smart_cabinets: { select: cabinetSelect }
+    }
+  });
+  if (!book) throw notFound('找不到該書籍');
 
-    prisma.books.update({ where: { book_id: bookId }, data: { view_count: { increment: 1 } } }).catch(() => {});
-    res.status(200).json({ success: true, data: book });
-  } catch (err) {
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+  prisma.books.update({ where: { book_id: bookId }, data: { view_count: { increment: 1 } } }).catch(() => {});
+  res.status(200).json({ success: true, data: book });
 });
 
-router.post('/', authenticateToken, upload.fields([
-  { name: 'cover_image', maxCount: 1 },
-  { name: 'back_image', maxCount: 1 },
-  { name: 'barcode_image', maxCount: 1 },
-  { name: 'optional_images', maxCount: 7 }
-]), async (req, res) => {
-  const {
-    title, author, publisher, publish_date, isbn,
-    category_id, price, condition_level, cabinet_id, description
-  } = req.body;
+const IMAGE_FIELDS = [
+  { name: 'cover_image', maxCount: 1, type: 'cover' },
+  { name: 'back_image', maxCount: 1, type: 'back' },
+  { name: 'barcode_image', maxCount: 1, type: 'other' },
+  { name: 'optional_images', maxCount: 7, type: 'inside' }
+];
 
-  if (!title || price === undefined) {
-    return res.status(400).json({ success: false, message: '缺少必要欄位：書名(title) 或 價格(price)' });
-  }
+router.post('/', authenticateToken, ...photos.fields(IMAGE_FIELDS.map(({ name, maxCount }) => ({ name, maxCount }))),
+  async (req, res) => {
+    const body = req.body;
 
-  const cleanPrice = parseFloat(price);
-  if (!Number.isFinite(cleanPrice) || cleanPrice <= 0) {
-    return res.status(400).json({ success: false, message: '售價必須大於 0 元' });
-  }
-  if (cleanPrice > 99999) {
-    return res.status(400).json({ success: false, message: '售價不可超過 99999 元' });
-  }
-
-  try {
-    const cleanCategoryId = (category_id && category_id !== 'null') ? parseInt(category_id) : null;
-    const cleanCabinetId = (cabinet_id && cabinet_id !== 'null') ? parseInt(cabinet_id) : null;
-
-    let cleanDate = publish_date;
-    if (cleanDate) {
-      cleanDate = cleanDate.replace(/-+$/, '');
-      if (cleanDate === '') cleanDate = null;
+    const title = v.text(body.title, { label: '書名', max: 255 });
+    if (!title || body.price === undefined) {
+      throw badRequest('缺少必要欄位：書名(title) 或 價格(price)');
     }
 
-    const newBook = await prisma.books.create({
-      data: {
-        title,
-        author: author || null,
-        publisher: publisher || null,
-        publish_date: cleanDate || null,
-        isbn: isbn || null,
-        description: description || null,
-        price: cleanPrice,
-        quantity: 1,
-        condition_level: condition_level || 'good',
-        category_id: cleanCategoryId,
-        cabinet_id: cleanCabinetId,
-        status: 'on_sale',
-        is_approved: true,
-        seller_id: req.user.userId
+    const data = {
+      title,
+      author: v.optionalText(body.author, { label: '作者', max: 255 }) ?? null,
+      publisher: v.optionalText(body.publisher, { label: '出版社', max: 255 }) ?? null,
+      publish_date: publishDate(body.publish_date) ?? null,
+      isbn: isbn(body.isbn) ?? null,
+      description: v.optionalText(body.description, { label: '書籍描述', max: 5000 }) ?? null,
+      price: price(body.price),
+      quantity: 1,
+      condition_level: body.condition_level
+        ? v.oneOf(body.condition_level, CONDITION_LEVELS, '不支援的書況')
+        : 'good',
+      category_id: v.optionalId(body.category_id, '分類編號'),
+      cabinet_id: v.optionalId(body.cabinet_id, '書櫃編號'),
+      status: 'on_sale',
+      is_approved: true,
+      seller_id: req.user.userId
+    };
+
+    await assertRefsExist({ categoryId: data.category_id, cabinetId: data.cabinet_id });
+
+    const images = IMAGE_FIELDS.flatMap(({ name, type }) =>
+      (req.files?.[name] ?? []).map((f) => ({ image_url: photos.urlOf(f), image_type: type })));
+
+    // 書與圖片一起寫入。分開寫的話圖片失敗會留下一本沒有照片的書。
+    const newBook = await prisma.$transaction(async (tx) => {
+      const created = await tx.books.create({ data });
+      if (images.length > 0) {
+        await tx.book_images.createMany({
+          data: images.map((img) => ({ ...img, book_id: created.book_id }))
+        });
       }
+      return created;
     });
-
-    const imageRecords = [];
-    if (req.files) {
-      const processFile = (fileArray, type) => {
-        if (fileArray && fileArray.length > 0) {
-          fileArray.forEach(f => {
-            imageRecords.push({
-              book_id: newBook.book_id,
-              image_url: `/uploads/books/${f.filename}`,
-              image_type: type
-            });
-          });
-        }
-      };
-
-      processFile(req.files['cover_image'], 'cover');
-      processFile(req.files['back_image'], 'back');
-      processFile(req.files['barcode_image'], 'other');
-      processFile(req.files['optional_images'], 'inside');
-
-      if (imageRecords.length > 0) {
-        await prisma.book_images.createMany({ data: imageRecords });
-      }
-    }
 
     res.status(201).json({ success: true, message: '書籍上架成功', data: newBook });
-  } catch (err) {
-    console.error('[建立書籍失敗]:', err);
-    res.status(500).json({ success: false, message: err.message || '資料庫寫入失敗' });
-  }
-});
+  });
+
+/// 賣家能自己設定的狀態。reserved 與 sold 只能由訂單流程產生。
+const SELLER_STATUSES = ['on_sale', 'removed'];
 
 router.put('/:id', authenticateToken, async (req, res) => {
-  const bookId = parseInt(req.params.id);
-  const {
-    title, author, publisher, publish_date, isbn,
-    category_id, price, quantity, condition_level,
-    condition_note, description, cabinet_id, status
-  } = req.body;
+  const bookId = v.id(req.params.id, '書籍編號');
+  const body = req.body;
+  const isAdmin = req.user.role === 'admin';
 
-  if (price !== undefined) {
-    const cleanPrice = parseFloat(price);
-    if (!Number.isFinite(cleanPrice) || cleanPrice <= 0) {
-      return res.status(400).json({ success: false, message: '售價必須大於 0 元' });
-    }
-    if (cleanPrice > 99999) {
-      return res.status(400).json({ success: false, message: '售價不可超過 99999 元' });
-    }
+  const data = {
+    title: body.title === undefined ? undefined : v.text(body.title, { label: '書名', max: 255 }),
+    author: v.optionalText(body.author, { label: '作者', max: 255 }),
+    publisher: v.optionalText(body.publisher, { label: '出版社', max: 255 }),
+    publish_date: publishDate(body.publish_date),
+    isbn: isbn(body.isbn),
+    price: body.price === undefined ? undefined : price(body.price),
+    quantity: body.quantity === undefined ? undefined : v.int(body.quantity, { label: '數量', min: 1, max: 999 }),
+    condition_level: body.condition_level === undefined
+      ? undefined
+      : v.oneOf(body.condition_level, CONDITION_LEVELS, '不支援的書況'),
+    condition_note: v.optionalText(body.condition_note, { label: '書況說明', max: 2000 }),
+    description: v.optionalText(body.description, { label: '書籍描述', max: 5000 }),
+    category_id: body.category_id === undefined ? undefined : v.optionalId(body.category_id, '分類編號'),
+    cabinet_id: body.cabinet_id === undefined ? undefined : v.optionalId(body.cabinet_id, '書櫃編號'),
+    status: body.status === undefined ? undefined : v.oneOf(body.status, isAdmin ? BOOK_STATUSES : SELLER_STATUSES, '不支援的書籍狀態')
+  };
+  if (data.title === '') throw badRequest('書名不可為空');
+
+  const book = await findOwnedBook(bookId, req.user, '存取被拒，您無權限修改他人的商品');
+
+  // 檢舉成立會把 is_approved 設成 false，賣家不能自己把它重新上架。
+  if (data.status === 'on_sale' && book.is_approved === false && !isAdmin) {
+    throw forbidden('這本書因違規被下架，無法自行重新上架，請聯絡客服', 'BOOK_NOT_APPROVED');
   }
 
-  try {
-    const targetBook = await prisma.books.findUnique({ where: { book_id: bookId } });
-    if (!targetBook) return res.status(404).json({ success: false, message: '找不到該書籍' });
-    if (targetBook.seller_id !== req.user.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: '存取被拒，您無權限修改他人的商品' });
-    }
-
-    // 檢舉成立會把 is_approved 設成 false，賣家不能自己把它重新上架。
-    if (
-      status === 'on_sale' &&
-      targetBook.is_approved === false &&
-      req.user.role !== 'admin'
-    ) {
-      return res.status(403).json({
-        success: false,
-        code: 'BOOK_NOT_APPROVED',
-        message: '這本書因違規被下架，無法自行重新上架，請聯絡客服'
-      });
-    }
-
-    const updatedBook = await prisma.books.update({
-      where: { book_id: bookId },
-      data: {
-        title, author, publisher, publish_date, isbn,
-        price: price !== undefined ? parseFloat(price) : undefined,
-        quantity: quantity !== undefined ? parseInt(quantity) : undefined,
-        condition_level, condition_note, description,
-        category_id: category_id !== undefined ? parseInt(category_id) : undefined,
-        cabinet_id: cabinet_id !== undefined ? parseInt(cabinet_id) : undefined,
-        status, updated_at: new Date()
-      }
-    });
-    res.status(200).json({ success: true, message: '書籍資料更新成功', data: updatedBook });
-  } catch (err) {
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  // 保留中的書已經有人付款。賣家若能把它改回上架中，同一本書會被第二個人買走。
+  if (data.status && data.status !== book.status && ['reserved', 'sold'].includes(book.status) && !isAdmin) {
+    throw conflict(book.status === 'sold' ? '這本書已售出，無法變更狀態' : '這本書正在交易中，無法變更狀態');
   }
+
+  await assertRefsExist({ categoryId: data.category_id, cabinetId: data.cabinet_id }, book);
+
+  const updatedBook = await prisma.books.update({
+    where: { book_id: bookId },
+    data: { ...data, updated_at: new Date() }
+  });
+  res.status(200).json({ success: true, message: '書籍資料更新成功', data: updatedBook });
 });
 
 router.delete('/:id', authenticateToken, async (req, res) => {
-  const bookId = parseInt(req.params.id);
-  try {
-    const targetBook = await prisma.books.findUnique({ where: { book_id: bookId } });
-    if (!targetBook) return res.status(404).json({ success: false, message: '找不到該書籍' });
-    if (targetBook.seller_id !== req.user.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: '存取被拒，您無權限刪除他人的書籍' });
-    }
-    await prisma.books.update({
-      where: { book_id: bookId },
-      data: { status: 'removed', updated_at: new Date() }
-    });
-    res.status(200).json({ success: true, message: '書籍已成功下架' });
-  } catch (err) {
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+  const bookId = v.id(req.params.id, '書籍編號');
+  const book = await findOwnedBook(bookId, req.user, '存取被拒，您無權限刪除他人的書籍');
+
+  if (book.status === 'reserved') throw conflict('這本書正在交易中，請先處理訂單再下架');
+
+  await prisma.books.update({
+    where: { book_id: bookId },
+    data: { status: 'removed', updated_at: new Date() }
+  });
+  res.status(200).json({ success: true, message: '書籍已成功下架' });
 });
 
-router.post('/:id/images', authenticateToken, upload.array('images', 8), async (req, res) => {
-  const bookId = parseInt(req.params.id);
-  try {
-    const book = await prisma.books.findUnique({ where: { book_id: bookId } });
-    if (!book) return res.status(404).json({ success: false, message: '找不到該書籍' });
-    if (book.seller_id !== req.user.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: '存取被拒，您無權限修改他人的商品' });
-    }
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ success: false, message: '請選擇要上傳的圖片' });
-    }
+const MAX_IMAGES_PER_BOOK = 10;
 
-    await prisma.book_images.createMany({
-      data: req.files.map(f => ({
-        book_id: bookId,
-        image_url: `/uploads/books/${f.filename}`,
-        image_type: 'other'
-      }))
-    });
+router.post('/:id/images', authenticateToken, ...photos.array('images', 8), async (req, res) => {
+  const bookId = v.id(req.params.id, '書籍編號');
+  await findOwnedBook(bookId, req.user, '存取被拒，您無權限修改他人的商品');
+  if (!req.files || req.files.length === 0) throw badRequest('請選擇要上傳的圖片');
 
-    const images = await prisma.book_images.findMany({ where: { book_id: bookId } });
-    res.status(201).json({ success: true, message: '圖片已新增', data: images });
-  } catch (err) {
-    console.error('[新增書籍圖片失敗]:', err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+  const existing = await prisma.book_images.count({ where: { book_id: bookId } });
+  if (existing + req.files.length > MAX_IMAGES_PER_BOOK) {
+    throw badRequest(`每本書最多 ${MAX_IMAGES_PER_BOOK} 張照片，目前已有 ${existing} 張`);
   }
+
+  await prisma.book_images.createMany({
+    data: req.files.map((f) => ({ book_id: bookId, image_url: photos.urlOf(f), image_type: 'other' }))
+  });
+
+  const images = await prisma.book_images.findMany({ where: { book_id: bookId } });
+  res.status(201).json({ success: true, message: '圖片已新增', data: images });
 });
 
 router.delete('/:id/images/:imageId', authenticateToken, async (req, res) => {
-  const bookId = parseInt(req.params.id);
-  const imageId = parseInt(req.params.imageId);
-  try {
-    const book = await prisma.books.findUnique({ where: { book_id: bookId } });
-    if (!book) return res.status(404).json({ success: false, message: '找不到該書籍' });
-    if (book.seller_id !== req.user.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: '存取被拒，您無權限修改他人的商品' });
-    }
+  const bookId = v.id(req.params.id, '書籍編號');
+  const imageId = v.id(req.params.imageId, '圖片編號');
+  await findOwnedBook(bookId, req.user, '存取被拒，您無權限修改他人的商品');
 
-    const result = await prisma.book_images.deleteMany({ where: { image_id: imageId, book_id: bookId } });
-    if (result.count === 0) return res.status(404).json({ success: false, message: '找不到該圖片' });
+  const result = await prisma.book_images.deleteMany({ where: { image_id: imageId, book_id: bookId } });
+  if (result.count === 0) throw notFound('找不到該圖片');
 
-    res.status(200).json({ success: true, message: '圖片已刪除' });
-  } catch (err) {
-    console.error('[刪除書籍圖片失敗]:', err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+  res.status(200).json({ success: true, message: '圖片已刪除' });
 });
 
 module.exports = router;

@@ -1739,5 +1739,28 @@
   },
   "confirmListing": "確認上架",
   "lookingUpBook": "查詢書籍資料中",
-  "scan": "掃描"
+  "scan": "掃描",
+  "buyerSPaymentGoesBackTheir": "買家付的款項會退回錢包；賣家若已收到貨款會先收回。",
+  "orderReturnsWhereWasBeforeDispute": "訂單回到申訴前的狀態繼續交易；若先前已完成取貨，貨款會撥給賣家。",
+  "orderWasAlreadyRefundedBuyerCannot": "這筆訂單的款項已經退回買家，不能再改回進行中或已完成",
+  "completedOrderCanOnlyChangedRefund": "已完成的訂單只能改為「退款處理中」或「已退款」",
+  "confirmingPaysP0TokensSellerMarks": "確認後會把 {p0} 代幣撥給賣家，書籍標記為已售出。",
+  "@confirmingPaysP0TokensSellerMarks": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmingTakesP0TokensBackFrom": "確認後會向賣家收回 {p0} 代幣並退還給買家。賣家餘額不足時會變成負數。",
+  "@confirmingTakesP0TokensBackFrom": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "ifBuyerNotBeenRefundedYet": "若先前還沒退款，會補退給買家。",
+  "confirmingRefundsBuyerSP0Tokens": "確認後會把買家付的 {p0} 代幣退回，保留中的書重新上架。",
+  "@confirmingRefundsBuyerSP0Tokens": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

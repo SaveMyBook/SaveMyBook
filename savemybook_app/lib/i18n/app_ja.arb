@@ -1739,5 +1739,28 @@
   },
   "confirmListing": "出品を確認",
   "lookingUpBook": "書籍情報を検索中",
-  "scan": "スキャン"
+  "scan": "スキャン",
+  "buyerSPaymentGoesBackTheir": "買い手の支払いはウォレットに返金されます。売り手に代金が支払い済みの場合は先に回収します。",
+  "orderReturnsWhereWasBeforeDispute": "注文は申し立て前の状態に戻り、取引を続けます。受け取り済みだった場合は売り手に代金を支払います。",
+  "orderWasAlreadyRefundedBuyerCannot": "この注文は買い手に返金済みのため、進行中や完了には戻せません",
+  "completedOrderCanOnlyChangedRefund": "完了した注文は「返金処理中」か「返金済み」にしか変更できません",
+  "confirmingPaysP0TokensSellerMarks": "確定すると売り手に {p0} トークンを支払い、本を売却済みにします。",
+  "@confirmingPaysP0TokensSellerMarks": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmingTakesP0TokensBackFrom": "確定すると売り手から {p0} トークンを回収し、買い手に返金します。売り手の残高が不足する場合はマイナスになります。",
+  "@confirmingTakesP0TokensBackFrom": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "ifBuyerNotBeenRefundedYet": "まだ返金されていない場合は、買い手に返金します。",
+  "confirmingRefundsBuyerSP0Tokens": "確定すると買い手が支払った {p0} トークンを返金し、取り置き中の本を再出品します。",
+  "@confirmingRefundsBuyerSP0Tokens": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

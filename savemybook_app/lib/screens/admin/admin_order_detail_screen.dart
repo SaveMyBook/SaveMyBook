@@ -66,10 +66,18 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     );
     if (status == null || status == detail.order.status || !mounted) return;
 
+    final from = detail.order.status;
+    final blocked = _blockedReason(from, status);
+    if (blocked != null) {
+      showAppSnackBar(context, blocked, isError: true);
+      return;
+    }
+
     final note = await showTextInputDialog(
       context,
       title: S.reasonChange,
       hint: S.sentBuyerAsWellOptional,
+      message: _settlementHint(from, status, detail.order.totalAmount.toStringAsFixed(0)),
       confirmLabel: S.applyChange,
     );
     if (!mounted) return;
@@ -86,6 +94,33 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     }
     showAppSnackBar(context, S.orderStatusUpdated);
     _load();
+  }
+
+  /// 與伺服器 services/orders.js 的 phaseOf 一致。
+  static String _phase(String status) => switch (status) {
+        'completed' => 'paid_out',
+        'cancelled' || 'refunded' => 'returned',
+        _ => 'held',
+      };
+
+  String? _blockedReason(String from, String to) {
+    if (_phase(from) == 'returned' && _phase(to) != 'returned') {
+      return S.orderWasAlreadyRefundedBuyerCannot;
+    }
+    if (from == 'completed' && to != 'refunding' && to != 'refunded') {
+      return S.completedOrderCanOnlyChangedRefund;
+    }
+    return null;
+  }
+
+  /// 讓客服在送出前知道這次會動到哪些錢。
+  String? _settlementHint(String from, String to, String amount) {
+    final target = _phase(to);
+    if (target == 'paid_out') return S.confirmingPaysP0TokensSellerMarks(amount);
+    if (target != 'returned') return null;
+    if (from == 'completed') return S.confirmingTakesP0TokensBackFrom(amount);
+    if (_phase(from) == 'returned') return S.ifBuyerNotBeenRefundedYet;
+    return S.confirmingRefundsBuyerSP0Tokens(amount);
   }
 
   void _copy(String text, String message) {

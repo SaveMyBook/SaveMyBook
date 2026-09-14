@@ -1739,5 +1739,28 @@
   },
   "confirmListing": "등록 확인",
   "lookingUpBook": "도서 정보 조회 중",
-  "scan": "스캔"
+  "scan": "스캔",
+  "buyerSPaymentGoesBackTheir": "구매자의 결제 금액이 지갑으로 환불됩니다. 판매자에게 이미 대금이 지급됐다면 먼저 회수합니다.",
+  "orderReturnsWhereWasBeforeDispute": "주문이 이의 제기 전 상태로 돌아가 거래를 계속합니다. 이미 수령했다면 판매자에게 대금을 지급합니다.",
+  "orderWasAlreadyRefundedBuyerCannot": "이 주문은 이미 구매자에게 환불되어 진행 중이나 완료로 되돌릴 수 없습니다",
+  "completedOrderCanOnlyChangedRefund": "완료된 주문은 \"환불 처리 중\" 또는 \"환불 완료\"로만 변경할 수 있습니다",
+  "confirmingPaysP0TokensSellerMarks": "확인하면 판매자에게 {p0} 토큰을 지급하고 책을 판매 완료로 표시합니다.",
+  "@confirmingPaysP0TokensSellerMarks": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmingTakesP0TokensBackFrom": "확인하면 판매자에게서 {p0} 토큰을 회수해 구매자에게 환불합니다. 판매자 잔액이 부족하면 마이너스가 됩니다.",
+  "@confirmingTakesP0TokensBackFrom": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "ifBuyerNotBeenRefundedYet": "아직 환불되지 않았다면 구매자에게 환불합니다.",
+  "confirmingRefundsBuyerSP0Tokens": "확인하면 구매자가 결제한 {p0} 토큰을 환불하고 예약 중인 책을 다시 판매합니다.",
+  "@confirmingRefundsBuyerSP0Tokens": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

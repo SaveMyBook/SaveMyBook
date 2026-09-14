@@ -184,10 +184,16 @@ paths:
       operationId: updateOrderStatus
       tags: [訂單 (Orders)]
       description: |
-        推進訂單流程，買賣雙方皆可呼叫。實務上由賣家於存書後設為 `deposited`，
-        買家於取件後設為 `completed`。
+        推進訂單流程。每個目標狀態限定由誰呼叫、從哪個狀態出發，管理員不受身分限制：
 
-        僅接受 `deposited`、`pending_pickup`、`completed` 三種值。
+        | 目標狀態 | 呼叫者 | 目前狀態須為 |
+        | --- | --- | --- |
+        | `deposited` | 賣家 | `pending_payment`、`pending_deposit` |
+        | `pending_pickup` | 賣家 | `deposited` |
+        | `completed` | 買家 | `deposited`、`pending_pickup` |
+
+        更新以「狀態仍為讀取時的值」為條件，兩個請求同時送出時只有一個會成功，
+        另一個回傳 409，賣家不會重複入帳。
         取消訂單請使用 `PATCH /api/orders/{id}/cancel`。
 
         狀態設為 `completed` 時，於同一交易內執行下列動作：
@@ -228,14 +234,29 @@ paths:
                   message: { type: string, example: 訂單狀態已更新 }
                   data: { $ref: '#/components/schemas/Order' }
         '400':
-          description: 狀態值未列於允許清單。
+          description: 狀態值未列於允許清單，或目前狀態不能推進到目標狀態。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 'status 僅接受：deposited, pending_pickup, completed' }
+              examples:
+                狀態值錯誤:
+                  value: { success: false, message: 'status 僅接受：deposited, pending_pickup, completed' }
+                尚未存書:
+                  value: { success: false, message: 賣家還沒把書放進書櫃，無法完成取貨 }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
+        '403':
+          description: 呼叫者不是該步驟的執行方（例如賣家嘗試設為 completed）。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 只有買家可以確認取貨 }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 訂單已是目標狀態，或在處理期間被其他請求變更。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 訂單狀態已經變更，請重新整理後再試 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/orders/{id}/cancel:
@@ -245,15 +266,14 @@ paths:
       tags: [訂單 (Orders)]
       description: |
         買賣雙方皆可取消。狀態已為 `completed`、`cancelled` 或 `refunded`
-        的訂單不得取消。
+        的訂單不得取消；爭議處理中（`refunding`）的訂單僅管理員可取消。
+        同時送出的取消請求只有一個會成功，其餘回傳 409，不會重複退款。
 
         取消時於同一交易內執行下列動作：
 
         - 將訂單狀態更新為 `cancelled`，並記錄時間與原因
-        - 將書籍狀態改回 `on_sale`，重新開放購買
-        - 原狀態屬已付款區間（`pending_payment`、`pending_deposit`、
-          `deposited`、`pending_pickup`）時，將代幣退回買家，
-          寫入一筆 `refund` 交易紀錄並發送通知
+        - 將保留中的書籍改回 `on_sale`，重新開放購買
+        - 依錢包帳本退回買家實際支付的代幣，寫入一筆 `refund` 交易紀錄並發送通知
         - 通知交易對象訂單已取消
       security: [{ bearerAuth: [] }]
       parameters:

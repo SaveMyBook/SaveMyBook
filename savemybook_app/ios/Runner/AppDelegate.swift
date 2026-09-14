@@ -1,10 +1,12 @@
 import Flutter
 import UIKit
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   private static let channelName = "savemybook/deeplink"
   private static let shareChannelName = "savemybook/share"
+  private static let pushChannelName = "savemybook/push"
 
   private var deepLinkChannel: FlutterMethodChannel?
   private var pendingLink: String?
@@ -32,6 +34,23 @@ import UIKit
                                        binaryMessenger: controller.binaryMessenger)
       share.setMethodCallHandler { [weak self] call, result in
         self?.handleShare(call: call, result: result, host: controller)
+      }
+
+      // App 圖示上的未讀數。推播送達時由 APNs 設定，讀完通知後由 App 這邊同步回來。
+      let push = FlutterMethodChannel(name: AppDelegate.pushChannelName,
+                                      binaryMessenger: controller.binaryMessenger)
+      push.setMethodCallHandler { call, result in
+        guard call.method == "setBadge" else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        let count = max(0, call.arguments as? Int ?? 0)
+        if #available(iOS 16.0, *) {
+          UNUserNotificationCenter.current().setBadgeCount(count) { _ in result(nil) }
+        } else {
+          UIApplication.shared.applicationIconBadgeNumber = count
+          result(nil)
+        }
       }
     }
 

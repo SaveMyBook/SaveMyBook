@@ -15,38 +15,35 @@ const PERMISSIONS = {
   system: 'can_manage_system'
 };
 
-/// requireAdmin() 只擋身分；requireAdmin('members') 會再檢查細部權限。
-const requireAdmin = (permission) => async (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ success: false, message: '權限不足，僅限管理員執行此操作' });
-  }
-
-  if (!permission) return next();
+/// 其餘權限：沒有設定過細部權限的管理員視為全開，既有帳號才不會突然被鎖住。
+/// 系統維運牽涉全站資料，必須明確開啟，不套用「沒設定就全開」。
+const hasPermission = async (user, permission) => {
+  if (!user || user.role !== 'admin') return false;
+  if (!permission) return true;
 
   const column = PERMISSIONS[permission];
-  if (!column) return next();
+  // 打錯權限名稱要擋下來，不能變成對所有管理員開放。
+  if (!column) throw new Error(`未知的管理員權限：${permission}`);
 
-  try {
-    const perms = await prisma.admin_permissions.findUnique({
-      where: { user_id: req.user.userId }
-    });
+  const perms = await prisma.admin_permissions.findUnique({ where: { user_id: user.userId } });
+  if (permission === 'system') return !!perms?.can_manage_system;
+  return !perms || !!perms[column];
+};
 
-    // 系統維運牽涉全站資料，必須明確開啟，不套用「沒設定就全開」。
-    if (permission === 'system') {
-      if (perms?.can_manage_system) return next();
-      return res.status(403).json({ success: false, message: '您沒有這項功能的權限' });
+/// requireAdmin() 只擋身分；requireAdmin('members') 會再檢查細部權限。
+const requireAdmin = (permission) => {
+  if (permission && !PERMISSIONS[permission]) throw new Error(`未知的管理員權限：${permission}`);
+
+  return async (req, res, next) => {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: '權限不足，僅限管理員執行此操作' });
     }
-
-    // 其餘權限：沒有設定過細部權限的管理員視為全開，既有帳號才不會突然被鎖住。
-    if (!perms || perms[column]) return next();
-
+    if (await hasPermission(req.user, permission)) return next();
     res.status(403).json({ success: false, message: '您沒有這項功能的權限' });
-  } catch (err) {
-    console.error('[檢查管理員權限失敗]:', err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+  };
 };
 
 requireAdmin.PERMISSIONS = PERMISSIONS;
+requireAdmin.hasPermission = hasPermission;
 
 module.exports = requireAdmin;

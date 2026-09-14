@@ -1,144 +1,110 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
+const requireAdmin = require('../middleware/requireAdmin');
+const v = require('../lib/validate');
+const { badRequest, notFound, orNotFound } = require('../lib/errors');
 
 const router = express.Router();
 
-const requireAdmin = (req, res, next) => {
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ success: false, message: '權限不足，僅限管理員執行此操作' });
+// 早期的分類端點。管理後台改用 /api/admin/categories，這裡的寫入仍受相同的內容管理權限保護。
+const canManage = [authenticateToken, requireAdmin('content')];
+
+const categoryName = (value) => {
+  const name = v.text(value, { label: '分類名稱', max: 50 });
+  if (!name) throw badRequest('缺少必要欄位：分類名稱(category_name)');
+  return name;
+};
+
+/// 父分類必須存在，且不能是自己或自己的子分類，否則樹狀結構會出現迴圈。
+const assertParent = async (parentId, selfId) => {
+  if (parentId == null) return;
+  if (parentId === selfId) throw badRequest('父分類不能設定為自己');
+
+  const seen = new Set([selfId]);
+  let cursor = parentId;
+  while (cursor != null) {
+    if (seen.has(cursor)) throw badRequest('父分類不能是自己的子分類');
+    seen.add(cursor);
+    const row = await prisma.book_categories.findUnique({
+      where: { category_id: cursor },
+      select: { parent_id: true }
+    });
+    if (!row) throw badRequest('找不到指定的父分類');
+    cursor = row.parent_id;
   }
-  next();
 };
 
 router.get('/', async (req, res) => {
-  const { flat } = req.query;
-
-  try {
-    if (flat === 'true') {
-      const categories = await prisma.book_categories.findMany({
-        orderBy: [{ parent_id: 'asc' }, { sort_order: 'asc' }]
-      });
-      return res.status(200).json({ success: true, data: categories });
-    }
-
-    const categoryTree = await prisma.book_categories.findMany({
-      where: { parent_id: null },
-      orderBy: { sort_order: 'asc' },
-      include: {
-        other_book_categories: {
-          orderBy: { sort_order: 'asc' }
-        }
-      }
+  if (req.query.flat === 'true') {
+    const categories = await prisma.book_categories.findMany({
+      orderBy: [{ parent_id: 'asc' }, { sort_order: 'asc' }]
     });
-
-    res.status(200).json({ success: true, data: categoryTree });
-  } catch (err) {
-    console.error('Error fetching categories:', err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+    return res.status(200).json({ success: true, data: categories });
   }
+
+  const categoryTree = await prisma.book_categories.findMany({
+    where: { parent_id: null },
+    orderBy: { sort_order: 'asc' },
+    include: { other_book_categories: { orderBy: { sort_order: 'asc' } } }
+  });
+
+  res.status(200).json({ success: true, data: categoryTree });
 });
 
 router.get('/:id', async (req, res) => {
-  const categoryId = parseInt(req.params.id);
+  const category = await prisma.book_categories.findUnique({
+    where: { category_id: v.id(req.params.id, '分類編號') },
+    include: { other_book_categories: true }
+  });
+  if (!category) throw notFound('找不到該分類');
 
-  try {
-    const category = await prisma.book_categories.findUnique({
-      where: { category_id: categoryId },
-      include: {
-        other_book_categories: true
-      }
-    });
-
-    if (!category) {
-      return res.status(404).json({ success: false, message: '找不到該分類' });
-    }
-
-    res.status(200).json({ success: true, data: category });
-  } catch (err) {
-    console.error(`Error fetching category with ID ${req.params.id}:`, err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+  res.status(200).json({ success: true, data: category });
 });
 
-router.post('/', authenticateToken, requireAdmin, async (req, res) => {
-  const { category_name, parent_id, sort_order = 0 } = req.body;
+router.post('/', ...canManage, async (req, res) => {
+  const name = categoryName(req.body.category_name);
+  const parentId = v.optionalId(req.body.parent_id, '父分類編號');
+  const sortOrder = req.body.sort_order === undefined ? 0 : v.int(req.body.sort_order, { label: '排序', min: 0, max: 100000 });
 
-  if (!category_name) {
-    return res.status(400).json({ success: false, message: '缺少必要欄位：分類名稱(category_name)' });
-  }
+  await assertParent(parentId, null);
 
-  try {
-    const newCategory = await prisma.book_categories.create({
-      data: {
-        category_name,
-        parent_id: parent_id ? parseInt(parent_id) : null,
-        sort_order: parseInt(sort_order)
-      }
-    });
-
-    res.status(201).json({ success: true, message: '分類建立成功', data: newCategory });
-  } catch (err) {
-    console.error('Error creating category:', err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+  const newCategory = await prisma.book_categories.create({
+    data: { category_name: name, parent_id: parentId, sort_order: sortOrder }
+  });
+  res.status(201).json({ success: true, message: '分類建立成功', data: newCategory });
 });
 
-router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
-  const categoryId = parseInt(req.params.id);
-  const { category_name, parent_id, sort_order } = req.body;
+router.put('/:id', ...canManage, async (req, res) => {
+  const categoryId = v.id(req.params.id, '分類編號');
+  const body = req.body;
 
-  if (parent_id === categoryId) {
-    return res.status(400).json({ success: false, message: '父分類不能設定為自己' });
-  }
+  const data = {
+    category_name: body.category_name === undefined ? undefined : categoryName(body.category_name),
+    parent_id: body.parent_id === undefined ? undefined : v.optionalId(body.parent_id, '父分類編號'),
+    sort_order: body.sort_order === undefined ? undefined : v.int(body.sort_order, { label: '排序', min: 0, max: 100000 })
+  };
 
-  try {
-    const targetCategory = await prisma.book_categories.findUnique({
-      where: { category_id: categoryId }
-    });
+  const exists = await prisma.book_categories.count({ where: { category_id: categoryId } });
+  if (!exists) throw notFound('找不到該分類');
+  if (data.parent_id !== undefined) await assertParent(data.parent_id, categoryId);
 
-    if (!targetCategory) {
-      return res.status(404).json({ success: false, message: '找不到該分類' });
-    }
-
-    const updatedCategory = await prisma.book_categories.update({
-      where: { category_id: categoryId },
-      data: {
-        category_name,
-        parent_id: parent_id !== undefined ? (parent_id ? parseInt(parent_id) : null) : undefined,
-        sort_order: sort_order !== undefined ? parseInt(sort_order) : undefined
-      }
-    });
-
-    res.status(200).json({ success: true, message: '分類更新成功', data: updatedCategory });
-  } catch (err) {
-    console.error(`Error updating category with ID ${categoryId}:`, err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+  const updatedCategory = await prisma.book_categories.update({ where: { category_id: categoryId }, data });
+  res.status(200).json({ success: true, message: '分類更新成功', data: updatedCategory });
 });
 
-router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
-  const categoryId = parseInt(req.params.id);
+router.delete('/:id', ...canManage, async (req, res) => {
+  const categoryId = v.id(req.params.id, '分類編號');
 
   try {
-    await prisma.book_categories.delete({
-      where: { category_id: categoryId }
-    });
-
-    res.status(200).json({ success: true, message: '分類已成功刪除' });
+    await orNotFound(prisma.book_categories.delete({ where: { category_id: categoryId } }), '找不到該分類');
   } catch (err) {
-    console.error(`Error deleting category with ID ${categoryId}:`, err);
     if (err.code === 'P2003') {
-      return res.status(400).json({
-        success: false,
-        message: '無法刪除！此分類下可能還有子分類或書籍，請先轉移或刪除關聯資料'
-      });
+      throw badRequest('無法刪除！此分類下可能還有子分類或書籍，請先轉移或刪除關聯資料');
     }
-    if (err.code === 'P2025') {
-      return res.status(404).json({ success: false, message: '找不到該分類' });
-    }
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+    throw err;
   }
+  res.status(200).json({ success: true, message: '分類已成功刪除' });
 });
 
 module.exports = router;

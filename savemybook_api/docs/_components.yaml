@@ -655,3 +655,21 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           example: { success: false, message: 伺服器發生錯誤 }
+
+    Conflict:
+      description: 資料狀態已被其他請求變更，或目前狀態不允許此操作。重新整理後再試即可。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, message: 訂單狀態已經變更，請重新整理後再試 }
+
+    TooManyRequests:
+      description: 短時間內請求次數過多。回應標頭 `Retry-After` 為建議等待的秒數。
+      headers:
+        Retry-After:
+          schema: { type: integer }
+          description: 建議等待秒數。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: RATE_LIMITED, message: 登入嘗試次數過多，請 15 分鐘後再試 }

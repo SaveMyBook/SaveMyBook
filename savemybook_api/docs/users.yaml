@@ -15,7 +15,16 @@ paths:
       operationId: register
       tags: [使用者 (Users)]
       description: |
-        建立帳號，密碼以 bcrypt（10 rounds）雜湊後儲存。
+        建立帳號，密碼以 bcrypt（10 rounds）雜湊後儲存。身分一律為 `buyer_seller`，
+        請求中帶入的 `role` 會被忽略；管理員身分只能由後台授予。
+
+        | 欄位 | 規則 |
+        | --- | --- |
+        | `email` | 合法 Email 格式，儲存前轉為小寫 |
+        | `password` | 8 字元以上，須同時包含英文字母與數字，UTF-8 不超過 72 位元組 |
+        | `nickname` | 2 ~ 50 字 |
+
+        同一 IP 每小時最多註冊 30 次，超過回傳 429。
 
         註冊成功不會自動登入，用戶端須另行呼叫 `POST /api/auth/login` 取得 Token。
       security: []
@@ -32,13 +41,8 @@ paths:
                   format: email
                   description: 須為尚未註冊的 Email。
                   example: newuser@example.com
-                password: { type: string, format: password, example: my_password123 }
-                nickname: { type: string, maxLength: 50, example: 小明 }
-                role:
-                  type: string
-                  enum: [buyer_seller, admin]
-                  default: buyer_seller
-                  description: 一般註冊無須帶入此欄位，維持預設值即可。
+                password: { type: string, format: password, minLength: 8, example: my_password123 }
+                nickname: { type: string, minLength: 2, maxLength: 50, example: 小明 }
       responses:
         '201':
           description: 建立成功。
@@ -60,6 +64,7 @@ paths:
                   value: { success: false, message: '缺少必要欄位：email, password或 nickname' }
                 Email 重複:
                   value: { success: false, message: 該 Email 已經被註冊過了 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
 
     get:
@@ -67,7 +72,8 @@ paths:
       operationId: listUsers
       tags: [使用者 (Users)]
       description: |
-        回傳全部使用者，無分頁與篩選機制。此為早期開發階段保留的端點。
+        回傳使用者清單（最多 1000 筆），不含密碼雜湊等內部欄位。此為早期開發階段保留的端點，
+        僅限具備 `can_manage_members` 權限的管理員呼叫。
 
         > 管理後台請改用 `GET /api/admin/members`，該端點提供分頁、搜尋
         > 與統計欄位，並受細部權限保護。
@@ -86,6 +92,7 @@ paths:
                     type: array
                     items: { $ref: '#/components/schemas/User' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/users/me/stats:
@@ -256,9 +263,13 @@ paths:
       operationId: changeMyPassword
       tags: [使用者 (Users)]
       description: |
-        須通過目前密碼驗證，新密碼長度至少 6 個字元。
+        須通過目前密碼驗證。新密碼規則與註冊相同：8 字元以上，須同時包含英文字母與數字，
+        且不得與目前密碼相同。每位使用者 15 分鐘內最多嘗試 10 次。
 
-        變更密碼不會使既有 Token 失效，使用者無須重新登入。
+        變更後，這個帳號先前簽發的所有 Token 立即失效（其他裝置會收到 401 `TOKEN_REVOKED`）。
+        回應附上一組新 Token，用戶端須取代本機儲存的舊 Token。
+
+        目前密碼錯誤回傳 400 而非 401，避免用戶端誤判為登入失效而登出。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -269,16 +280,23 @@ paths:
               required: [current_password, new_password]
               properties:
                 current_password: { type: string, format: password, example: old_password123 }
-                new_password: { type: string, format: password, minLength: 6, example: new_password456 }
+                new_password: { type: string, format: password, minLength: 8, example: new_password456 }
       responses:
         '200':
           description: 密碼已更新。
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/SuccessMessage' }
-              example: { success: true, message: 密碼已更新 }
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 密碼已更新，其他裝置需要重新登入 }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string, description: 取代舊 Token 的新 Token。 }
         '400':
-          description: 欄位缺漏，或新密碼長度不足。
+          description: 欄位缺漏、新密碼不符規則，或目前密碼錯誤。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -286,14 +304,10 @@ paths:
                 欄位缺漏:
                   value: { success: false, message: 請填寫目前密碼與新密碼 }
                 密碼太短:
-                  value: { success: false, message: 新密碼長度至少 6 個字元 }
-        '401':
-          description: 目前密碼錯誤，或 Token 無效。
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 目前密碼錯誤 }
+                  value: { success: false, message: 新密碼長度至少 8 個字元 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/users/me/qrcode:
@@ -346,7 +360,10 @@ paths:
       summary: 取得指定使用者
       operationId: getUserById
       tags: [使用者 (Users)]
-      description: 回傳指定使用者的完整資料，任何已登入者皆可查詢。
+      description: |
+        任何已登入者皆可查詢。查詢本人或由管理員查詢時回傳完整個人檔案；
+        查詢他人時僅回傳 `user_id`、`nickname`、`avatar_url`、`bio`、`role`、`created_at`，
+        不含 Email、電話與生日。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -408,9 +425,10 @@ paths:
       operationId: deleteUserById
       tags: [使用者 (Users)]
       description: |
-        自資料表實際刪除，非軟刪除。僅本人或管理員可執行。
+        自資料表實際刪除，非軟刪除。僅限具備 `can_manage_members` 權限的管理員執行，
+        且不得刪除自己或其他管理員。一般使用者刪除帳號請使用 `POST /api/users/me/deletion`。
 
-        帳號若仍有訂單等關聯資料，將因外鍵限制導致刪除失敗並回傳 500。
+        帳號若仍有進行中的訂單或其他關聯資料，回傳 409。
 
         > 管理後台停用帳號請改以 `PATCH /api/admin/members/{id}` 將
         > `is_active` 設為 false，不應執行實際刪除。
@@ -423,16 +441,12 @@ paths:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
               example: { success: true, message: 使用者已成功刪除 }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403':
-          description: 嘗試刪除他人帳號。
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 存取被拒，您無權限刪除他人的資料 }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
-        '500':
-          description: 存在關聯資料，無法刪除。
+        '409':
+          description: 存在進行中的訂單或其他關聯資料，無法刪除。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 伺服器發生錯誤，可能有其他關聯資料（如訂單）依賴此使用者 }
+              example: { success: false, message: 此使用者仍有訂單等關聯資料，請改用停權或匿名化 }
+        '500': { $ref: '#/components/responses/ServerError' }

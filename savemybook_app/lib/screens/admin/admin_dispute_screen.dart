@@ -115,6 +115,13 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                       .toList(),
                 ),
               ),
+              const SizedBox(height: 4),
+              Text(
+                selected.startsWith('refund')
+                    ? S.buyerSPaymentGoesBackTheir
+                    : S.orderReturnsWhereWasBeforeDispute,
+                style: TextStyle(fontSize: 12, height: 1.5, color: c.textSecondary),
+              ),
               const SizedBox(height: 8),
               AppTextField(
                 controller: noteController,

@@ -1,12 +1,15 @@
 import 'package:flutter/services.dart';
 import 'api_service.dart';
 
-/// 處理 savemybook:// 開頭的外部連結。
-/// 目前只有個人檔案（savemybook://user/123），由網頁版個人頁的「在 App 中開啟」觸發。
+/// 處理 savemybook:// 開頭的外部連結，由網頁版分享頁的「在 App 中開啟」觸發：
+/// 個人檔案 savemybook://user/123、書籍 savemybook://book/45。
 class DeepLinkService {
   static const _channel = MethodChannel('savemybook/deeplink');
 
+  static final _bookLink = RegExp(r'^savemybook://book/(\d+)/?$');
+
   static void Function(int userId)? onProfileLink;
+  static void Function(int bookId)? onBookLink;
 
   static String? _pending;
 
@@ -25,6 +28,18 @@ class DeepLinkService {
 
   static void _handle(String? link) {
     if (link == null || link.isEmpty) return;
+
+    final bookId = int.tryParse(_bookLink.firstMatch(link.trim())?.group(1) ?? '');
+    if (bookId != null) {
+      final handler = onBookLink;
+      if (handler == null) {
+        _pending = link;
+      } else {
+        handler(bookId);
+      }
+      return;
+    }
+
     final userId = ApiService.parseProfileUserId(link);
     if (userId == null) return;
 

@@ -1,0 +1,202 @@
+const { escapeHtml } = require('../lib/html');
+
+const STYLE = `
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: #f3f5f7; color: #151e27; padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif;
+  }
+  .card {
+    background: #fff; border-radius: 24px; padding: 32px 24px 28px; width: 100%; max-width: 400px;
+    text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,.08);
+  }
+  .avatar {
+    width: 96px; height: 96px; border-radius: 50%; object-fit: cover; margin: 0 auto 16px;
+    display: block; background: #e8ecef;
+  }
+  .avatar-fallback {
+    width: 96px; height: 96px; border-radius: 50%; margin: 0 auto 16px; background: #e8ecef;
+    display: flex; align-items: center; justify-content: center; font-size: 40px; color: #90a4ae;
+  }
+  h1 { font-size: 22px; margin: 0 0 6px; }
+  .bio { color: #5b6770; font-size: 14px; line-height: 1.6; margin: 0 0 20px; white-space: pre-wrap; }
+  .meta { color: #90a4ae; font-size: 12px; margin: 0 0 24px; }
+  .brand { color: #627d8d; font-weight: 700; letter-spacing: .5px; font-size: 13px; margin-bottom: 20px; }
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; min-height: 58px; padding: 16px 20px; margin-top: 4px;
+    border: 0; border-radius: 16px; cursor: pointer;
+    background: #627d8d; color: #fff; text-decoration: none;
+    font-family: inherit; font-size: 18px; font-weight: 800; letter-spacing: .5px;
+    box-shadow: 0 10px 24px rgba(98, 125, 141, .35);
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .btn svg { width: 22px; height: 22px; flex: none; }
+  .btn:hover { background: #56707f; }
+  .btn:active { transform: scale(.97); box-shadow: 0 4px 12px rgba(98, 125, 141, .3); }
+  .btn:focus-visible { outline: 3px solid rgba(98, 125, 141, .45); outline-offset: 3px; }
+  .hint { color: #78909c; font-size: 13px; line-height: 1.7; margin: 16px 0 0; }
+  .cover {
+    width: 150px; height: 210px; object-fit: cover; border-radius: 12px; display: block;
+    margin: 0 auto 18px; background: #e8ecef; box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  }
+  .cover-fallback {
+    width: 150px; height: 210px; border-radius: 12px; margin: 0 auto 18px; background: #e8ecef;
+    display: flex; align-items: center; justify-content: center; font-size: 44px; color: #90a4ae;
+  }
+  .price { font-size: 28px; font-weight: 800; color: #627d8d; margin: 0 0 4px; }
+  .tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin: 0 0 16px; }
+  .tag {
+    font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+    background: #eef1f3; color: #5b6770;
+  }
+  .tag.sold { background: #fbe9e7; color: #c0392b; }
+  .seller { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 20px; }
+  .seller img, .seller div.ph {
+    width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: #e8ecef;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; color: #90a4ae;
+  }
+  .seller span { color: #5b6770; font-size: 13px; }
+  .hint[hidden] { display: none; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #121212; color: #e8e8e8; }
+    .btn { box-shadow: none; }
+    .card { background: #1e1e1e; box-shadow: none; }
+    .bio { color: #9e9e9e; }
+    .avatar, .avatar-fallback, .cover, .cover-fallback, .seller img, .seller div.ph { background: #2a2a2a; }
+    .tag { background: #2a2a2a; color: #b0b0b0; }
+    .seller span { color: #9e9e9e; }
+  }
+`;
+
+const render = ({ title, body }) => `<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>${escapeHtml(title)}｜SaveMyBook</title>
+<style>${STYLE}</style>
+</head>
+<body><div class="card">${body}</div></body>
+</html>`;
+
+const BRAND = '<div class="brand">SaveMyBook</div>';
+
+/// 自訂 scheme 叫不起 App 時（沒安裝）瀏覽器不會報錯，只能看頁面有沒有被切到背景來判斷。
+const openAppButton = (deepLink, hint) => `
+  <button class="btn" id="open-app" type="button">
+    在 App 中開啟
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+  </button>
+  <p class="hint" id="hint" hidden>${hint}</p>
+  <script>
+    (function () {
+      var scheme = ${JSON.stringify(deepLink).replace(/</g, '\\u003c')};
+      document.getElementById('open-app').addEventListener('click', function () {
+        var hint = document.getElementById('hint');
+        var left = false;
+        function onHide() { if (document.hidden) left = true; }
+        document.addEventListener('visibilitychange', onHide);
+        window.location.href = scheme;
+        setTimeout(function () {
+          document.removeEventListener('visibilitychange', onHide);
+          if (!left) hint.hidden = false;
+        }, 1500);
+      });
+    })();
+  </script>`;
+
+const CONDITION_TEXT = { like_new: '近全新', good: '良好', fair: '普通', poor: '待修補' };
+
+/// 只接受站內相對路徑或 http(s) 絕對網址，其他一律不輸出圖片。
+const imageUrl = (origin, url) => {
+  if (typeof url !== 'string' || !url) return null;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith('/')) return origin + url;
+  return null;
+};
+
+const userNotFound = () => render({
+  title: '找不到使用者',
+  body: `${BRAND}
+    <div class="avatar-fallback">?</div>
+    <h1>找不到這位使用者</h1>
+    <p class="bio">這個連結可能已經失效，或帳號已被停用。</p>`
+});
+
+const bookNotFound = () => render({
+  title: '找不到書籍',
+  body: `${BRAND}
+    <div class="cover-fallback">?</div>
+    <h1>找不到這本書</h1>
+    <p class="bio">這個連結可能已經失效，或書籍已經下架。</p>`
+});
+
+const errorPage = () => render({
+  title: '發生錯誤',
+  body: `${BRAND}
+    <h1>暫時無法載入</h1>
+    <p class="bio">請稍後再試一次。</p>`
+});
+
+const userProfile = ({ origin, user }) => {
+  const nickname = user.nickname || '';
+  const src = imageUrl(origin, user.avatar_url);
+  const avatar = src
+    ? `<img class="avatar" src="${escapeHtml(src)}" alt="">`
+    : `<div class="avatar-fallback">${escapeHtml(nickname.slice(0, 1))}</div>`;
+  const joined = new Date(user.created_at).toLocaleDateString('zh-TW');
+
+  return render({
+    title: nickname,
+    body: `${BRAND}
+      ${avatar}
+      <h1>${escapeHtml(nickname)}</h1>
+      <p class="bio">${escapeHtml(user.bio || '這個人很懶，什麼都沒留下')}</p>
+      <p class="meta">上架 ${Number(user._count.books)} 本書 ・ ${escapeHtml(joined)} 加入</p>
+      ${openAppButton(`savemybook://user/${Number(user.user_id)}`,
+        '沒有反應嗎？請先安裝 SaveMyBook App，<br>或在 App 的「分享檔案」裡直接掃描這個 QR Code。')}`
+  });
+};
+
+const bookDetail = ({ origin, book }) => {
+  const seller = book.users;
+  const nickname = seller.nickname || '';
+  const coverSrc = imageUrl(origin, book.book_images[0]?.image_url);
+  const cover = coverSrc
+    ? `<img class="cover" src="${escapeHtml(coverSrc)}" alt="">`
+    : '<div class="cover-fallback">📚</div>';
+
+  const avatarSrc = imageUrl(origin, seller.avatar_url);
+  const avatar = avatarSrc
+    ? `<img src="${escapeHtml(avatarSrc)}" alt="">`
+    : `<div class="ph">${escapeHtml(nickname.slice(0, 1))}</div>`;
+
+  const sold = book.status !== 'on_sale';
+  const tags = [
+    book.book_categories?.category_name
+      ? `<span class="tag">${escapeHtml(book.book_categories.category_name)}</span>`
+      : '',
+    `<span class="tag">${escapeHtml(CONDITION_TEXT[book.condition_level] || book.condition_level)}</span>`,
+    sold ? '<span class="tag sold">已售出／保留中</span>' : ''
+  ].join('');
+
+  return render({
+    title: book.title,
+    body: `${BRAND}
+      ${cover}
+      <h1>${escapeHtml(book.title)}</h1>
+      <p class="bio">${escapeHtml(book.author || '')}</p>
+      <p class="price">$${escapeHtml(Number(book.price).toFixed(0))}</p>
+      <div class="tags">${tags}</div>
+      <div class="seller">${avatar}<span>${escapeHtml(nickname)}</span></div>
+      ${openAppButton(`savemybook://book/${Number(book.book_id)}`,
+        '沒有反應嗎？請先安裝 SaveMyBook App，再重新點一次這個連結。')}`
+  });
+};
+
+module.exports = { userNotFound, bookNotFound, errorPage, userProfile, bookDetail };

@@ -1,0 +1,94 @@
+tags:
+  - name: 推播 (Push)
+    description: |
+      登記手機的推播 token。伺服器透過 Firebase Cloud Messaging（FCM）送出推播，
+      iOS 由 FCM 轉交 APNs。
+
+      推播內容與站內通知（`GET /api/notifications`）完全相同：每寫入一則站內通知，
+      伺服器會在數秒內推送到該使用者所有已登記的裝置。
+
+      | 行為 | 說明 |
+      | --- | --- |
+      | 帳號切換 | 同一個 token 由新登入的帳號登記時，會從舊帳號移除 |
+      | 裝置上限 | 每個帳號保留最近使用的 10 台 |
+      | 自動清除 | 90 天未更新、或 FCM 回報已失效的 token |
+      | 密碼變更 | 改密碼、被客服重設密碼、刪除帳號時清除該帳號的全部裝置，App 須重新登記 |
+      | 通知偏好 | `user_settings` 中對應的開關為 false 時不推送（系統通知一律推送） |
+      | 停權帳號 | 停權或列入黑名單的帳號不推送 |
+      | iOS 角標 | 等於推送當下的未讀通知數 |
+
+      推播的 `data` 欄位（值皆為字串）：
+
+      ```json
+      { "notification_id": "812", "type": "order", "related_type": "order", "related_id": "40" }
+      ```
+
+      伺服器未設定 Firebase 金鑰時，兩個端點回傳 503 `PUSH_DISABLED`，App 應安靜略過。
+
+paths:
+  /api/push/devices:
+    post:
+      summary: 登記推播裝置
+      operationId: registerPushDevice
+      tags: [推播 (Push)]
+      description: App 啟動、登入、FCM token 更新時呼叫。重複登記同一個 token 只會更新最後使用時間。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, platform]
+              properties:
+                token: { type: string, maxLength: 255, description: FCM 註冊 token。 }
+                platform: { type: string, enum: [ios, android] }
+                app_version: { type: string, maxLength: 20, example: 1.0.0 }
+      responses:
+        '200':
+          description: 已登記。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已登記推播裝置 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503':
+          description: 伺服器尚未設定推播。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: PUSH_DISABLED, message: 推播服務尚未啟用 }
+
+    delete:
+      summary: 取消推播裝置
+      operationId: unregisterPushDevice
+      tags: [推播 (Push)]
+      description: 登出時呼叫，須在清除本機登入 Token 之前送出。只會刪除屬於目前帳號的 token。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string, maxLength: 255 }
+      responses:
+        '200':
+          description: 已取消。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已取消推播裝置 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503':
+          description: 伺服器尚未設定推播。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: PUSH_DISABLED, message: 推播服務尚未啟用 }

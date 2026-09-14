@@ -2,7 +2,7 @@
 /**
  * 檢查 docs/*.yaml 與實際路由是否同步。
  *
- * 直接讀 index.js 的掛載表與各 routes/*.js 的 router.<method>('...')，
+ * 直接讀 routes/index.js 的掛載表與各路由檔的 router.<method>('...')，
  * 跟組出來的 OpenAPI 文件比對。新增路由卻忘了寫文件時會在這裡被抓到。
  *
  *   node scripts/check-docs.js
@@ -12,26 +12,31 @@ const path = require('path');
 const { buildSpec } = require('../config/openapi');
 
 const root = path.join(__dirname, '..');
-const indexSrc = fs.readFileSync(path.join(root, 'index.js'), 'utf8');
+const { MOUNTS } = require('../routes');
 
-const mounts = {};
-for (const m of indexSrc.matchAll(/app\.use\('([^']+)',\s*(\w+)\)/g)) {
-  mounts[m[2]] = m[1];
-}
-const requires = {};
-for (const m of indexSrc.matchAll(/const (\w+) = require\('\.\/routes\/(\w+)'\)/g)) {
-  requires[m[1]] = m[2];
-}
+/// 一個路由模組實際對外的檔案清單。資料夾（例如 routes/admin）讀它 index.js 的 SECTIONS，
+/// 不直接 require，免得為了檢查文件還要連資料庫。
+const routeFiles = (modulePath) => {
+  const base = path.join(root, 'routes', modulePath);
+  if (fs.existsSync(`${base}.js`)) return [`${base}.js`];
+
+  const indexFile = path.join(base, 'index.js');
+  const src = fs.readFileSync(indexFile, 'utf8');
+  const block = src.match(/const SECTIONS = \[([\s\S]*?)\]/);
+  if (!block) throw new Error(`${path.relative(root, indexFile)} 缺少 SECTIONS`);
+  const sections = [...block[1].matchAll(/'([^']+)'/g)].map((m) => path.join(base, `${m[1]}.js`));
+  return [indexFile, ...sections];
+};
 
 const actual = new Set();
-for (const [variable, prefix] of Object.entries(mounts)) {
-  const file = requires[variable];
-  if (!file) continue;
-  const src = fs.readFileSync(path.join(root, 'routes', `${file}.js`), 'utf8');
-  for (const m of src.matchAll(/^router\.(get|post|put|patch|delete)\('([^']*)'/gm)) {
-    const full = ((prefix.replace(/\/$/, '') + m[2]).replace(/\/$/, '') || '/')
-      .replace(/:(\w+)/g, '{$1}');
-    actual.add(`${m[1]} ${full}`);
+for (const [prefix, modulePath] of MOUNTS) {
+  for (const file of routeFiles(modulePath)) {
+    const src = fs.readFileSync(file, 'utf8');
+    for (const m of src.matchAll(/^router\.(get|post|put|patch|delete)\('([^']*)'/gm)) {
+      const full = ((prefix.replace(/\/$/, '') + m[2]).replace(/\/$/, '') || '/')
+        .replace(/:(\w+)/g, '{$1}');
+      actual.add(`${m[1]} ${full}`);
+    }
   }
 }
 

@@ -10,6 +10,7 @@ import 'pickup_book_screen.dart';
 import '../models/category.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
+import '../services/push_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/motion.dart';
 import '../widgets/app_header.dart';
@@ -65,8 +66,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     kBottomNavVisible = true;
-    // 沒有推播，所以固定輪詢讓通知／聊天的紅點自己跳出來。
+    // 推播可能沒啟用（伺服器未設定、使用者拒絕通知權限），紅點仍靠輪詢更新。
     _badgeTimer = Timer.periodic(const Duration(seconds: 20), (_) => _loadBadges());
+    PushService.onSignedIn();
     _loadInitialData();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&

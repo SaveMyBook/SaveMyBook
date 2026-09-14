@@ -1,6 +1,7 @@
 const crypto = require('crypto');
-const prisma = require('./prisma');
-const { newToken, ensureUserToken } = require('./share');
+const prisma = require('../lib/prisma');
+const push = require('./push');
+const { ORDER_UNSETTLED_STATUSES } = require('../constants/domain');
 
 /// 申請刪除後的緩衝天數。期間內登入即可取消，逾期才真正匿名化。
 const GRACE_DAYS = 30;
@@ -53,9 +54,20 @@ const anonymize = async (userId) => {
       data: { content: '（使用者已刪除帳號）', message_type: 'system' }
     });
   });
+
+  await push.removeUserDevices(userId);
 };
 
-/// 處理所有已過緩衝期的刪除申請。由 index.js 定時呼叫。
+/// 手上還有沒走完的交易就不能刪，否則對方會卡在半途。
+const unsettledOrderCount = (userId) =>
+  prisma.orders.count({
+    where: {
+      OR: [{ buyer_id: userId }, { seller_id: userId }],
+      status: { in: ORDER_UNSETTLED_STATUSES }
+    }
+  });
+
+/// 處理所有已過緩衝期的刪除申請。由 jobs/scheduler.js 定時呼叫。
 const processDueDeletions = async () => {
   const due = await prisma.users.findMany({
     where: {
@@ -67,6 +79,11 @@ const processDueDeletions = async () => {
 
   for (const user of due) {
     try {
+      // 申請後仍可登入交易，緩衝期內新成立的訂單要等它走完才能匿名化。
+      if ((await unsettledOrderCount(user.user_id)) > 0) {
+        console.log(`[帳號匿名化延後] user_id=${user.user_id}：尚有進行中的訂單`);
+        continue;
+      }
       await anonymize(user.user_id);
       console.log(`[帳號匿名化] user_id=${user.user_id}`);
     } catch (err) {
@@ -125,12 +142,17 @@ const exportData = async (userId) => {
   };
 };
 
+const deletionStatus = (requestedAt) => ({
+  requested_at: requestedAt,
+  purge_at: graceDeadline(requestedAt),
+  grace_days: GRACE_DAYS
+});
+
 module.exports = {
   GRACE_DAYS,
   graceDeadline,
-  // 權杖的產生與取得實作在 lib/share.js，這裡沿用既有名稱轉出。
-  newShareToken: newToken,
-  ensureShareToken: ensureUserToken,
+  deletionStatus,
+  unsettledOrderCount,
   anonymize,
   processDueDeletions,
   exportData

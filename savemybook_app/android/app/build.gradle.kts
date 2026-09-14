@@ -20,11 +20,11 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.savemybook_app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // 必須與 Firebase 主控台登記的 Android 套件名稱一致。
+        // namespace 維持舊值：它只決定 Kotlin 原始碼的套件路徑，改了得搬 MainActivity。
+        applicationId = "today.savemybook.app"
+        // Firebase Android SDK 最低支援 API 23。
+        minSdk = maxOf(flutter.minSdkVersion, 23)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

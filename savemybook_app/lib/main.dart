@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'i18n/app_localizations.dart';
 import 'i18n/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/book_detail_screen.dart';
 import 'screens/chat_room_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -13,6 +14,7 @@ import 'services/biometric_service.dart';
 import 'services/chat_prefs.dart';
 import 'services/deep_link_service.dart';
 import 'services/locale_provider.dart';
+import 'services/push_service.dart';
 import 'services/theme_provider.dart';
 import 'utils/app_theme.dart';
 import 'widgets/state_views.dart';
@@ -47,6 +49,11 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     localeProvider = await LocaleProvider.init();
     await ChatPrefs.load();
     await BiometricService.load();
+
+    PushService.navigatorKey = navigatorKey;
+    ApiService.onSigningOut = PushService.onSigningOut;
+    ApiService.onPasswordChanged = PushService.registerCurrentDevice;
+    await PushService.init();
 
     ApiService.onUnauthorized = (reason) {
       navigatorKey.currentState?.pushAndRemoveUntil(
@@ -89,6 +96,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       DeepLinkService.onProfileLink = _openProfileLink;
+      DeepLinkService.onBookLink = _openBookLink;
       DeepLinkService.flushPending();
     });
   }
@@ -111,6 +119,26 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
 
     navigatorKey.currentState?.push(
       MaterialPageRoute(builder: (_) => ChatRoomScreen(roomId: roomId)),
+    );
+  }
+
+  Future<void> _openBookLink(int bookId) async {
+    final navigator = navigatorKey.currentState;
+    if (navigator == null) return;
+
+    if (ApiService.authToken == null || ApiService.currentUser == null) {
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (_) => false,
+      );
+      return;
+    }
+
+    final book = await ApiService().fetchBookDetail(bookId);
+    if (book == null) return;
+
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)),
     );
   }
 

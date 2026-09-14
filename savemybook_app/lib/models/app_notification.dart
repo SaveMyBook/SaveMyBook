@@ -35,7 +35,9 @@ class AppNotification {
     );
   }
 
-  IconData get icon {
+  IconData get icon => iconFor(type);
+
+  static IconData iconFor(String type) {
     switch (type) {
       case 'order': return Icons.receipt_long_rounded;
       case 'message': return Icons.chat_bubble_outline_rounded;

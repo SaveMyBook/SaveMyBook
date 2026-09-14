@@ -128,12 +128,9 @@ paths:
                   value: { success: false, message: 請輸入密碼以確認身分 }
                 有未完成訂單:
                   value: { success: false, code: OPEN_ORDERS, message: 還有 2 筆進行中的訂單，請先完成或取消後再申請刪除 }
-        '401':
-          description: 密碼錯誤。
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 密碼錯誤 }
+                密碼錯誤:
+                  value: { success: false, message: 密碼錯誤 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 

@@ -1,8 +1,12 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
+const v = require('../lib/validate');
+const { badRequest, notFound } = require('../lib/errors');
 
 const router = express.Router();
+
+router.use(authenticateToken);
 
 const bookInclude = {
   users: { select: { user_id: true, nickname: true, avatar_url: true } },
@@ -10,66 +14,43 @@ const bookInclude = {
   book_categories: { select: { category_name: true } }
 };
 
-router.get('/', authenticateToken, async (req, res) => {
-  try {
-    const favorites = await prisma.favorites.findMany({
-      where: { user_id: req.user.userId },
-      orderBy: { created_at: 'desc' },
-      include: { books: { include: bookInclude } }
-    });
-
-    res.status(200).json({ success: true, data: favorites.map(f => f.books) });
-  } catch (err) {
-    console.error('[取得收藏清單失敗]:', err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+router.get('/', async (req, res) => {
+  const favorites = await prisma.favorites.findMany({
+    where: { user_id: req.user.userId },
+    orderBy: { created_at: 'desc' },
+    include: { books: { include: bookInclude } }
+  });
+  res.status(200).json({ success: true, data: favorites.map((f) => f.books) });
 });
 
-router.get('/ids', authenticateToken, async (req, res) => {
-  try {
-    const favorites = await prisma.favorites.findMany({
-      where: { user_id: req.user.userId },
-      select: { book_id: true }
-    });
-    res.status(200).json({ success: true, data: favorites.map(f => f.book_id) });
-  } catch (err) {
-    console.error('[取得收藏 ID 失敗]:', err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+router.get('/ids', async (req, res) => {
+  const favorites = await prisma.favorites.findMany({
+    where: { user_id: req.user.userId },
+    select: { book_id: true }
+  });
+  res.status(200).json({ success: true, data: favorites.map((f) => f.book_id) });
 });
 
-router.post('/', authenticateToken, async (req, res) => {
-  const bookId = parseInt(req.body.book_id);
-  if (!bookId) return res.status(400).json({ success: false, message: '請提供 book_id' });
+router.post('/', async (req, res) => {
+  if (req.body.book_id === undefined) throw badRequest('請提供 book_id');
+  const bookId = v.id(req.body.book_id, '書籍編號');
 
-  try {
-    const book = await prisma.books.findUnique({ where: { book_id: bookId } });
-    if (!book) return res.status(404).json({ success: false, message: '找不到該書籍' });
+  const book = await prisma.books.findUnique({ where: { book_id: bookId }, select: { book_id: true } });
+  if (!book) throw notFound('找不到該書籍');
 
-    const favorite = await prisma.favorites.upsert({
-      where: { user_id_book_id: { user_id: req.user.userId, book_id: bookId } },
-      update: {},
-      create: { user_id: req.user.userId, book_id: bookId }
-    });
+  const favorite = await prisma.favorites.upsert({
+    where: { user_id_book_id: { user_id: req.user.userId, book_id: bookId } },
+    update: {},
+    create: { user_id: req.user.userId, book_id: bookId }
+  });
 
-    res.status(201).json({ success: true, message: '已加入收藏', data: favorite });
-  } catch (err) {
-    console.error('[加入收藏失敗]:', err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+  res.status(201).json({ success: true, message: '已加入收藏', data: favorite });
 });
 
-router.delete('/:bookId', authenticateToken, async (req, res) => {
-  const bookId = parseInt(req.params.bookId);
-  try {
-    await prisma.favorites.deleteMany({
-      where: { user_id: req.user.userId, book_id: bookId }
-    });
-    res.status(200).json({ success: true, message: '已取消收藏' });
-  } catch (err) {
-    console.error('[取消收藏失敗]:', err);
-    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
-  }
+router.delete('/:bookId', async (req, res) => {
+  const bookId = v.id(req.params.bookId, '書籍編號');
+  await prisma.favorites.deleteMany({ where: { user_id: req.user.userId, book_id: bookId } });
+  res.status(200).json({ success: true, message: '已取消收藏' });
 });
 
 module.exports = router;

@@ -72,6 +72,7 @@ Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
 | 帳號已刪除 | 401 | \`ACCOUNT_NOT_FOUND\` |
 | 帳號列入黑名單 | 401 | \`ACCOUNT_BLACKLISTED\` |
 | 帳號已停權 | 401 | \`ACCOUNT_INACTIVE\` |
+| 密碼已變更（含客服重設），舊 Token 失效 | 401 | \`TOKEN_REVOKED\` |
 
 用戶端收到上述任一回應時，應清除本機 Token 並導向登入流程。
 
@@ -86,6 +87,33 @@ Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
 | \`INVALID_PASSWORD\` | 401 | 登入密碼錯誤 | 保留已輸入的 Email，僅於密碼欄位提示錯誤 |
 | \`INSUFFICIENT_BALANCE\` | 400 | 代幣餘額不足以完成結帳 | 導向儲值流程 |
 | \`BOOK_NOT_APPROVED\` | 403 | 書籍因違規下架，賣家無法自行重新上架 | 引導使用者開立客服工單 |
+| \`OPEN_ORDERS\` | 400 | 尚有進行中的訂單，無法申請刪除帳號 | 引導使用者完成或取消訂單 |
+| \`RATE_LIMITED\` | 429 | 短時間內嘗試次數過多 | 依 \`Retry-After\` 標頭等待後再試 |
+| \`ROUTE_NOT_FOUND\` | 404 | 端點不存在 | 檢查路徑與 HTTP 方法 |
+
+409 代表資料在處理期間被其他請求變更（例如兩人同時結帳同一本書、同一筆訂單被重複取消），
+重新整理後再試即可。
+
+### 輸入驗證
+
+- 路徑與 body 中的編號必須是正整數，否則回傳 400，不會進到資料庫。
+- 字串欄位超過資料庫欄位長度時回傳 400，並指出是哪個欄位。
+- 列舉欄位（狀態、書況、類型等）只接受文件列出的值。
+- 請求內容不是合法 JSON 時回傳 400，body 上限 1 MB。
+
+### 限流
+
+| 端點 | 上限 |
+| --- | --- |
+| \`POST /api/auth/login\` | 同 IP 與 Email 組合 15 分鐘 10 次；同 IP 15 分鐘 100 次 |
+| \`POST /api/users\` | 同 IP 每小時 30 次 |
+| \`PUT /api/users/me/password\`、\`POST /api/users/me/deletion\` | 每位使用者 15 分鐘 10 次 |
+| \`POST /api/uploads\` | 每位使用者 10 分鐘 30 次 |
+| \`POST /api/chat/rooms/{roomId}/messages\` | 每位使用者每分鐘 60 則 |
+| \`GET /api/books/isbn/{isbn}\` | 每位使用者每分鐘 30 次 |
+| \`POST\`、\`DELETE /api/push/devices\` | 每位使用者每分鐘 20 次 |
+
+計數保存在伺服器行程內，重啟後歸零。
 
 未帶 \`code\` 的錯誤直接呈現 \`message\` 即可。
 
@@ -128,10 +156,11 @@ Token 由 \`POST /api/auth/login\` 簽發，有效期 24 小時，以
               結帳（扣除買家代幣）
                      ↓
 pending_payment → pending_deposit → deposited → pending_pickup → completed
-                     │                                               ↑
+                     │         （賣家存書）              （買家取件）   ↑
                      │                                        （賣家代幣入帳）
                      ├──→ cancelled（退款予買家）
-                     └──→ refunding ──→ refunded（爭議裁決退款）
+                     └──→ refunding ──→ refunded（爭議裁決退款；已撥款則先向賣家收回）
+                                   └──→ 駁回／調解：回到申訴前的狀態
 \`\`\`
 
 | 狀態 | 意義 |
@@ -147,11 +176,20 @@ pending_payment → pending_deposit → deposited → pending_pickup → complet
 
 單次結帳若涵蓋多位賣家的商品，將依賣家拆分為多筆訂單，回應為陣列。
 
+每一步只能由對應的一方推進：賣家設為 \`deposited\`，買家設為 \`completed\`。
+所有涉及金額的狀態變更都以「狀態仍為讀取時的值」作為更新條件，扣款以「餘額足夠」作為更新條件，
+併發請求不會造成重複扣款、重複退款或同一本書被賣出兩次。
+
+結算一律依錢包帳本中該訂單實際的收支計算：改為 \`completed\` 時補撥賣家未收到的貨款；
+改為 \`cancelled\`、\`refunded\` 時先收回賣家已收到的貨款（餘額可為負，由之後的收入抵扣），
+再退回買家實付的金額。使用者操作、客服手動調整與爭議裁決都走同一套邏輯。
+
 ---
 
 ## 檔案上傳
 
 需上傳圖片的端點採用 \`multipart/form-data\`，其餘一律為 \`application/json\`。
+僅接受 JPG、PNG、GIF、WebP、HEIC，伺服器以檔頭判斷實際格式，檔名由伺服器產生。
 上傳後回傳相對路徑（例如 \`/uploads/books/1736512345678-987654321.jpg\`），
 用戶端須自行組合 API origin 後方可存取。
 
@@ -161,11 +199,17 @@ pending_payment → pending_deposit → deposited → pending_pickup → complet
 | 個人頭像 | \`POST /api/users/me/avatar\` | \`/uploads/avatars/\` |
 | 檢舉與爭議佐證 | \`POST /api/uploads\` | \`/uploads/evidence/\` |
 
+| 用途 | 單檔上限 |
+| --- | --- |
+| 書籍照片 | 10 MB，每本書最多 10 張 |
+| 個人頭像 | 5 MB |
+| 檢舉與爭議佐證 | 8 MB |
+
 ---
 
 ## 分頁
 
-分頁端點均接受 query string 參數 \`page\`（預設 1）與 \`limit\`。
+分頁端點均接受 query string 參數 \`page\`（預設 1）與 \`limit\`（上限 100，超過以 100 計）。
 頁碼超出總頁數時回傳空陣列，不視為錯誤。
 `.trim();
 
@@ -201,7 +245,7 @@ const base = {
     { name: '開始使用', tags: ['認證 (Auth)', '使用者 (Users)', '帳號與隱私 (Account)'] },
     { name: '商品', tags: ['書籍 (Books)', '分類 (Categories)', '收藏 (Favorites)', '智慧書櫃 (Cabinets)'] },
     { name: '交易', tags: ['購物車 (Cart)', '訂單 (Orders)', '錢包 (Wallet)'] },
-    { name: '互動', tags: ['聊天室 (Chat)', '通知 (Notifications)', '系統公告 (Announcements)'] },
+    { name: '互動', tags: ['聊天室 (Chat)', '通知 (Notifications)', '推播 (Push)', '系統公告 (Announcements)'] },
     { name: '客服與申訴', tags: ['客服中心 (Support)', '檢舉 (Reports)', '交易爭議 (Disputes)'] },
     { name: '共用工具', tags: ['檔案上傳 (Uploads)', '公開頁面 (Public)'] },
     {

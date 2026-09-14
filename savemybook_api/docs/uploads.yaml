@@ -13,8 +13,10 @@ paths:
       operationId: uploadFiles
       tags: [檔案上傳 (Uploads)]
       description: |
-        單次上限 5 個檔案，單檔大小上限 8 MB。檔案存放於 `/uploads/evidence/`，
-        檔名由時間戳與隨機碼組成以避免衝突。
+        單次上限 5 個檔案，單檔大小上限 8 MB。僅接受 JPG、PNG、GIF、WebP、HEIC 圖片，
+        伺服器會檢查檔頭，副檔名與內容不符的檔案回傳 400。每位使用者 10 分鐘內最多上傳 30 次。
+
+        檔案存放於 `/uploads/evidence/`，檔名完全由伺服器產生。
 
         回應為相對路徑陣列，可帶入 `POST /api/reports` 或
         `POST /api/disputes` 的 `evidence_urls` 欄位。

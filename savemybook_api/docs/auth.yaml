@@ -74,6 +74,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, code: ACCOUNT_NOT_FOUND, message: 此 Email 尚未註冊 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/auth/me:

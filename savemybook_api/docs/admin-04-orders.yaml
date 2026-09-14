@@ -162,15 +162,24 @@ paths:
       operationId: adminUpdateOrderStatus
       tags: [後台：訂單管理]
       description: |
-        接受全部八種訂單狀態，供客服處理流程中斷的訂單。
+        供客服處理流程中斷的訂單，與使用者操作走同一套結算。
 
-        設為 `completed` 時補寫完成時間；設為 `cancelled` 時補寫取消時間，
-        `cancel_reason` 未帶入時預設寫入「管理員手動取消」。
+        結算依錢包帳本中這筆訂單實際的收支決定補多少、退多少，重複操作不會多撥或多退；
+        過去只改了狀態、款項沒有移動的舊訂單，也會在這次調整時補齊。
 
-        操作會通知買家訂單狀態已由客服調整，並寫入稽核紀錄。
+        | 目標狀態 | 金流 | 書籍 |
+        | --- | --- | --- |
+        | `completed` | 賣家尚未收到的貨款撥入賣家錢包 | 改為 `sold` |
+        | `cancelled`、`refunded` | 賣家已收到的貨款先收回（餘額可為負），再把買家實付金額退回 | 保留中的改回 `on_sale` |
+        | 其他（進行中） | 不動 | 不動 |
 
-        > 本端點不執行退款或撥款，僅異動訂單資料，錢包餘額不受影響。
-        > 退款請使用 `PATCH /api/admin/disputes/{id}`。
+        不允許的變更（回傳 400）：
+
+        - 款項已退回（`cancelled`、`refunded`）的訂單改回進行中或已完成
+        - `completed` 改成 `refunding`、`refunded` 以外的狀態
+
+        設為 `cancelled` 時 `note` 會寫入取消原因，未帶入時為「管理員手動取消」。
+        買賣雙方都會收到通知，內容包含這次移動的金額。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -199,15 +208,30 @@ paths:
           description: 已更新。
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/SuccessMessage' }
-              example: { success: true, message: 訂單狀態已更新 }
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 訂單狀態已更新，撥款給賣家 220 代幣 }
+                  data:
+                    type: object
+                    description: 這次實際移動的金額，沒有移動時為 0。
+                    properties:
+                      paid_out: { type: number, example: 220, description: 撥給賣家 }
+                      clawed_back: { type: number, example: 0, description: 向賣家收回 }
+                      refunded: { type: number, example: 0, description: 退還買家 }
         '400':
-          description: 狀態值不合法。
+          description: 狀態值不合法，或不允許從目前狀態改到目標狀態。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 不支援的訂單狀態 }
+              examples:
+                狀態值錯誤:
+                  value: { success: false, message: 不支援的訂單狀態 }
+                款項已退回:
+                  value: { success: false, message: 這筆訂單的款項已經退回買家，不能再改回進行中或已完成 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/ServerError' }
