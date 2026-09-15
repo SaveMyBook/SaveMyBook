@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/support.dart';
+import '../../services/ai_status.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
@@ -19,6 +20,7 @@ import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
+import 'ai_support_entry.dart';
 
 class SupportTicketScreen extends StatefulWidget {
   const SupportTicketScreen({super.key});
@@ -36,6 +38,7 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
   void initState() {
     super.initState();
     _load();
+    AiStatus.refresh();
   }
 
   Future<void> _load() async {
@@ -79,6 +82,7 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
       body: Column(
         children: [
           AppHeader(title: S.contactUs, icon: Icons.support_agent_rounded),
+          const AiSupportEntry(maxWidth: Breakpoints.readingMaxWidth, horizontal: 20),
           Expanded(
             child: SwitchIn(
               child: _isLoading

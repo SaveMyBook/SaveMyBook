@@ -14,6 +14,7 @@ import '../models/support.dart';
 import '../models/wallet.dart';
 import '../models/member_level.dart';
 import '../models/admin_models.dart';
+import '../models/ai.dart';
 import '../utils/api_helpers.dart';
 import '../models/security.dart';
 import '../i18n/strings.dart';
@@ -25,6 +26,7 @@ part 'api/admin_commerce_api.dart';
 part 'api/admin_members_api.dart';
 part 'api/admin_support_api.dart';
 part 'api/admin_system_api.dart';
+part 'api/ai_api.dart';
 part 'api/announcements_api.dart';
 part 'api/auth_api.dart';
 part 'api/books_api.dart';
@@ -78,6 +80,7 @@ class ApiService {
   static final ValueNotifier<int> unreadChatCount = ValueNotifier<int>(0);
   static final ValueNotifier<Set<int>> favoriteBookIds = ValueNotifier<Set<int>>(<int>{});
   static final ValueNotifier<Set<int>> cartBookIds = ValueNotifier<Set<int>>(<int>{});
+  static final ValueNotifier<AiStatusInfo> aiStatus = ValueNotifier<AiStatusInfo>(AiStatusInfo.none);
 
   static void _setCartCount(int value) {
     cartCount.value = value < 0 ? 0 : value;
@@ -93,6 +96,7 @@ class ApiService {
     unreadChatCount.value = 0;
     favoriteBookIds.value = <int>{};
     cartBookIds.value = <int>{};
+    aiStatus.value = AiStatusInfo.none;
   }
 
   static Future<void> _handleUnauthorized({String? reason}) async {

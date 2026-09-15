@@ -1,0 +1,441 @@
+tags:
+  - name: ai
+    x-displayName: AI 功能
+    description: |
+      AI 客服、上架輔助與個人推薦。上架審核在上架與編輯書籍時於伺服器端執行，使用者端沒有對應端點。
+
+      模型服務商（DeepSeek、Google Gemini、OpenAI）的 API 金鑰只存放於伺服器環境變數，
+      不寫入資料庫，也不會回傳給任何用戶端。管理員於「後台：AI 設定」選擇服務商、模型、單價與用量上限。
+
+      用戶端應先呼叫 `GET /api/ai/status`，只顯示值為 `true` 的功能入口。
+
+      AI 客服、上架輔助與個人推薦會將使用者的資料提供給外部 AI 服務商處理，須先取得使用者明確同意
+      （`PUT /api/ai/consent`），同意可隨時撤回。未同意時 AI 客服與上架輔助回傳 403 `AI_CONSENT_REQUIRED`，
+      個人推薦改回傳既有推薦。上架審核只處理公開的商品內容，不含賣家個人資料，不需要使用者同意。
+      送交服務商的照片會先移除 EXIF、XMP 等中繼資料（含拍攝位置）。
+
+      | `code` | HTTP | 意義 |
+      | --- | --- | --- |
+      | `AI_DISABLED` | 503 | 管理員未開放此功能 |
+      | `AI_NOT_CONFIGURED` | 503 | 此功能使用的服務商尚未設定 API 金鑰 |
+      | `AI_BUDGET_EXCEEDED` | 503 | 本月 AI 費用已達管理員設定的預算 |
+      | `AI_CONSENT_REQUIRED` | 403 | 使用者尚未同意將資料提供給 AI 服務商處理 |
+      | `AI_DAILY_LIMIT` | 429 | 使用者今日使用次數已達上限 |
+      | `AI_PROVIDER_ERROR` | 502 | 服務商錯誤、逾時或回應格式不正確 |
+      | `AI_UNAVAILABLE` | 503 | 伺服器尚未執行 `migrations/011_ai.sql` |
+
+      模型輸出一律由伺服器驗證與清理（數值範圍、分類是否存在、書況列舉、網址格式），不會原樣轉交。
+
+paths:
+  /api/ai/status:
+    get:
+      summary: AI 功能開放狀態
+      operationId: getAiStatus
+      tags: [ai]
+      description: |
+        功能可用的條件：總開關與該功能皆開啟、該功能使用的服務商已設定金鑰、本月費用未達預算，
+        且伺服器已執行 011。`web_search` 表示上架輔助會以網路搜尋補齊書目與定價。
+
+        `consented` 為請求者是否已同意 AI 資料處理；`providers_in_use` 為目前可用的使用者功能實際會使用的服務商顯示名稱
+        （含上架輔助辨識照片時改用的服務商），供同意說明列出資料接收者。
+
+        功能狀態與服務商於伺服器快取約 30 秒，`consented` 每次即時查詢。每日次數上限因人而異，不反映在此端點。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/AiStatus' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/ai/consent:
+    put:
+      summary: 同意或撤回 AI 資料處理
+      operationId: setAiConsent
+      tags: [ai]
+      description: |
+        `granted: true` 表示使用者同意將下列資料提供給 `providers_in_use` 所列的服務商處理：
+
+        - AI 客服：使用者輸入的訊息，以及本人的訂單與預約狀態
+        - 上架輔助：ISBN、書名、書況說明與使用者選擇的照片
+        - 個人推薦：收藏與購買紀錄中的書籍資訊
+
+        `granted: false` 撤回同意，並刪除該使用者的 AI 推薦快取；之後的 AI 客服與上架輔助請求回傳 403 `AI_CONSENT_REQUIRED`。
+        回應為更新後的 `GET /api/ai/status` 內容。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [granted]
+              properties:
+                granted: { type: boolean, example: true }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已同意 AI 資料處理 }
+                  data: { $ref: '#/components/schemas/AiStatus' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /api/ai/support/session:
+    get:
+      summary: 目前的 AI 客服對話
+      operationId: getAiSupportSession
+      tags: [ai]
+      description: 回傳進行中（`open`）的對話與全部訊息；沒有進行中的對話時 `data` 為 null。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    nullable: true
+                    allOf:
+                      - $ref: '#/components/schemas/AiSupportSession'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /api/ai/support/messages:
+    post:
+      summary: 傳送訊息給 AI 客服
+      operationId: sendAiSupportMessage
+      tags: [ai]
+      description: |
+        附加到進行中的對話，沒有時自動建立。模型參考平台知識、常見問題、法律文件摘要，
+        以及請求者本人最近 5 筆訂單與預約狀態（不含交易對象的個人資料），並帶入最近 12 則對話紀錄。
+
+        模型只回答 SaveMyBook 相關問題，不自行編造政策。無法解決時 `suggest_handoff` 為 true，
+        用戶端可提示使用者以 `POST /api/ai/support/session/escalate` 轉由客服人員處理。
+
+        使用者尚未同意 AI 資料處理時回傳 403 `AI_CONSENT_REQUIRED`，不呼叫服務商也不寫入對話。
+        服務商失敗時回傳 502，這則訊息不會寫入對話。每日次數上限計算成功送出的訊息數。
+        每位使用者每分鐘另有 20 次的請求頻率限制，與上架輔助、轉接共用。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string, minLength: 1, maxLength: 1000, example: 請問買到的書要怎麼取件？ }
+      responses:
+        '201':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      session_id: { type: integer, example: 12 }
+                      user_message: { $ref: '#/components/schemas/AiSupportMessage' }
+                      reply: { $ref: '#/components/schemas/AiSupportMessage' }
+                      suggest_handoff: { type: boolean, example: false }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AiConsentRequired' }
+        '429': { $ref: '#/components/responses/AiDailyLimit' }
+        '502': { $ref: '#/components/responses/AiProviderError' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /api/ai/support/session/escalate:
+    post:
+      summary: 轉由客服人員處理
+      operationId: escalateAiSupportSession
+      tags: [ai]
+      description: |
+        以一般客服工單流程建立工單（通知具客服權限的管理員），第一則訊息為 AI 客服對話紀錄，
+        並將對話標記為 `escalated`。未提供主旨時以第一個問題產生。
+
+        沒有進行中的對話、或處理中的工單已達 5 張時回傳 400。此端點不呼叫模型，AI 功能關閉或使用者撤回 AI 資料處理同意時仍可使用。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject: { type: string, maxLength: 100, example: 訂單款項異常 }
+      responses:
+        '201':
+          description: 已建立工單。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已轉由客服人員處理 }
+                  data:
+                    type: object
+                    properties:
+                      ticket_id: { type: integer, example: 77 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /api/ai/support/session/close:
+    post:
+      summary: 結束 AI 客服對話
+      operationId: closeAiSupportSession
+      tags: [ai]
+      description: 將進行中的對話標記為 `closed`，下一則訊息會建立新對話。沒有進行中的對話時同樣回傳 200。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /api/ai/listing-assist:
+    post:
+      summary: 上架輔助
+      operationId: aiListingAssist
+      tags: [ai]
+      description: |
+        依 ISBN、書名或照片整理書目資料、建議分類、判斷書況並估算二手售價。至少須提供其中一項。
+
+        處理順序：
+
+        1. 先查詢免費的結構化來源：有 ISBN 時查 Google Books 與 Open Library，只有書名時以書名搜尋候選。
+        2. 管理員開啟網路搜尋且服務商支援時，模型以網路搜尋補齊缺少的欄位與新書定價。
+        3. 模型辨識照片中的封面、書背與版權頁，從分類清單選擇分類，依照片與書況說明判斷書況，並估算售價。
+
+        使用者尚未同意 AI 資料處理時回傳 403 `AI_CONSENT_REQUIRED`，不查詢外部書庫也不呼叫服務商。
+
+        照片只在記憶體中處理，不會儲存；送出前移除 EXIF、XMP 等中繼資料。無法移除中繼資料的格式（HEIC、HEIF、AVIF）不會送出，
+        並於 `warnings` 提示；只提供這類照片且沒有 ISBN 與書名時回傳 400。書目欄位以外部書庫為優先；無法確認的欄位為空字串。
+        售價為整數（代幣，等值新臺幣），`suggested` 介於 `min` 與 `max` 之間，且不高於已知的定價。
+        未提供照片與書況說明時 `condition` 為 null。
+
+        指定的服務商不支援照片辨識時，改用已設定金鑰的 Gemini 或 OpenAI；皆未設定時僅依文字判斷並於 `warnings` 提示。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                isbn: { type: string, description: 10 或 13 碼，可含連字號。, example: '9789573317241' }
+                title: { type: string, maxLength: 255, example: 挪威的森林 }
+                condition_note: { type: string, maxLength: 500, example: 書角有輕微折痕 }
+                images:
+                  type: array
+                  maxItems: 4
+                  items: { type: string, format: binary }
+                  description: 最多 4 張，單張 5 MB 以內，接受 JPG、PNG、GIF、WebP；HEIC、HEIF、AVIF 可上傳但不會送交服務商。
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/AiListingAssist' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AiConsentRequired' }
+        '413':
+          description: 單張照片超過 5 MB。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 檔案大小超過上限 }
+        '429': { $ref: '#/components/responses/AiDailyLimit' }
+        '502': { $ref: '#/components/responses/AiProviderError' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /api/ai/recommendations:
+    get:
+      summary: AI 個人推薦
+      operationId: listAiRecommendations
+      tags: [ai]
+      description: |
+        從最多 60 本販售中、已審核、非本人上架的候選書籍中，依使用者的收藏與購買紀錄排序並附上推薦理由。
+        結果依使用者快取 6 小時，快取期間已售出或下架的書籍會被濾除；只有實際呼叫模型才計入每日次數。
+
+        AI 無法使用（未開放、預算用盡、今日次數用完、服務商錯誤）、使用者尚未同意 AI 資料處理，或使用者沒有收藏與購買紀錄時，
+        改回傳既有推薦（`meta.source` 為 `fallback`，`reason` 為 null），此端點不會因 AI 問題回傳錯誤。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 10, maximum: 30 }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        book: { $ref: '#/components/schemas/Book' }
+                        reason: { type: string, nullable: true, maxLength: 30, example: 與您收藏的《白夜行》同屬推理小說 }
+                  meta:
+                    type: object
+                    properties:
+                      source: { type: string, enum: [ai, fallback] }
+                      generated_at: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+components:
+  schemas:
+    AiStatus:
+      type: object
+      properties:
+        support: { type: boolean, example: true }
+        listing_assist: { type: boolean, example: true }
+        recommend: { type: boolean, example: true }
+        web_search: { type: boolean, example: true }
+        consented: { type: boolean, example: false }
+        providers_in_use:
+          type: array
+          items: { type: string, enum: [DeepSeek, Google Gemini, OpenAI] }
+          example: [DeepSeek, Google Gemini]
+
+    AiSupportMessage:
+      type: object
+      properties:
+        message_id: { type: integer, example: 101 }
+        role: { type: string, enum: [user, assistant] }
+        content: { type: string, example: 您可至書櫃掃描機台上的 QR Code 取件。 }
+        created_at: { type: string, format: date-time }
+
+    AiSupportSession:
+      type: object
+      properties:
+        session_id: { type: integer, example: 12 }
+        status: { type: string, enum: [open, closed, escalated] }
+        messages:
+          type: array
+          items: { $ref: '#/components/schemas/AiSupportMessage' }
+
+    AiListingAssist:
+      type: object
+      properties:
+        fields:
+          type: object
+          properties:
+            title: { type: string, example: 挪威的森林 }
+            author: { type: string, example: 村上春樹 }
+            publisher: { type: string, example: 時報出版 }
+            publish_date: { type: string, example: '2003-08-01' }
+            isbn: { type: string, example: '9789573317241' }
+            description: { type: string, example: '' }
+        category:
+          type: object
+          nullable: true
+          properties:
+            category_id: { type: integer, example: 3 }
+            name: { type: string, example: 文學小說 }
+            confidence: { type: number, minimum: 0, maximum: 1, example: 0.82 }
+        condition:
+          type: object
+          nullable: true
+          properties:
+            level: { type: string, enum: [like_new, good, fair, poor] }
+            confidence: { type: number, minimum: 0, maximum: 1, example: 0.7 }
+            reasons:
+              type: array
+              items: { type: string }
+              example: [封面邊角輕微磨損]
+        price:
+          type: object
+          nullable: true
+          properties:
+            suggested: { type: integer, example: 180 }
+            min: { type: integer, example: 150 }
+            max: { type: integer, example: 220 }
+            original_price: { type: integer, nullable: true, example: 380 }
+            currency: { type: string, example: TWD }
+            reasons:
+              type: array
+              items: { type: string }
+              example: [定價 380 元，書況良好，約為定價五成]
+        sources:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string, example: Open Library }
+              url: { type: string, example: 'https://openlibrary.org/isbn/9789573317241' }
+        warnings:
+          type: array
+          items: { type: string }
+          example: [照片未能辨識書況，建議補充封面與書背照片]
+        provider: { type: string, enum: [deepseek, gemini, openai] }
+        model: { type: string, example: gemini-3.1-flash-lite }
+
+  responses:
+    AiUnavailable:
+      description: AI 功能無法使用：未開放、未設定金鑰、本月預算用盡，或伺服器尚未執行 011。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            未開放:
+              value: { success: false, code: AI_DISABLED, message: AI 功能目前未開放 }
+            預算用盡:
+              value: { success: false, code: AI_BUDGET_EXCEEDED, message: AI 功能本月用量已達上限，請稍後再試 }
+            未設定金鑰:
+              value: { success: false, code: AI_NOT_CONFIGURED, message: AI 服務尚未完成設定 }
+            未執行資料庫更新:
+              value: { success: false, code: AI_UNAVAILABLE, message: AI 功能目前無法使用，伺服器尚未完成資料庫更新 }
+
+    AiConsentRequired:
+      description: 使用者尚未同意將資料提供給 AI 服務商處理。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: AI_CONSENT_REQUIRED, message: 使用 AI 功能前，請先同意將相關資料提供給 AI 服務商處理 }
+
+    AiDailyLimit:
+      description: 今日使用次數已達上限。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: AI_DAILY_LIMIT, message: 今日 AI 使用次數已達上限，請明日再試 }
+
+    AiProviderError:
+      description: 服務商錯誤、逾時或回應格式不正確。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: AI_PROVIDER_ERROR, message: AI 服務暫時無法使用，請稍後再試 }

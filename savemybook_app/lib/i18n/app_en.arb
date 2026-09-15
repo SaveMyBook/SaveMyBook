@@ -2957,5 +2957,338 @@
     }
   },
   "savingImage": "Saving image",
-  "passwordsCanOnlyContainEnglishLetters": "Passwords can only contain English letters, numbers and standard symbols"
+  "passwordsCanOnlyContainEnglishLetters": "Passwords can only contain English letters, numbers and standard symbols",
+  "aiSupport": "AI support",
+  "instantReplies": "Instant replies",
+  "howDoIListBook": "How do I list a book?",
+  "howDoIPickUpFrom": "How do I pick up from a locker?",
+  "howDoIRequestRefund": "How do I request a refund?",
+  "howDoWalletCoinsWork": "How do wallet coins work?",
+  "talkPerson": "Talk to a person",
+  "supportRequestCreatedFromConversationOur": "A support request will be created from this conversation, and our support team will follow up.",
+  "transfer4": "Transfer",
+  "creatingSupportRequest": "Creating support request",
+  "transferredSupportTeam": "Transferred to support team",
+  "newConversation": "New conversation",
+  "currentConversationEnd": "The current conversation will end",
+  "copied2": "Copied",
+  "aiReplies": "AI replies",
+  "howCanWeHelp": "How can we help?",
+  "failedSend": "Failed to send",
+  "ourSupportTeamCanHelpWith": "Our support team can help with this",
+  "contactSupport": "Contact support",
+  "typeQuestion": "Type your question",
+  "aiFeatures": "AI features",
+  "usageModelsListingReview": "Usage, models and listing review",
+  "aiSettingsNotSavedChangesLost": "AI settings are not saved. Changes will be lost if you leave.",
+  "usage": "Usage",
+  "settings2": "Settings •",
+  "reviewP0": "Review {p0}",
+  "@reviewP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dailyCost": "Daily cost",
+  "noCostPeriod": "No cost in this period",
+  "peakDay": "Peak day",
+  "tapBarDetails": "Tap a bar for details",
+  "p0Requests": "{p0} requests",
+  "@p0Requests": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "listingAssist": "Listing assist",
+  "recommendations": "Recommendations",
+  "listingReview": "Listing review",
+  "connectionTest": "Connection test",
+  "today2": "Today",
+  "k7Days": "7 days",
+  "k30Days": "30 days",
+  "notBookUnrelatedItem": "Not a book or unrelated item",
+  "prohibitedPiratedContent": "Prohibited or pirated content",
+  "adultContent": "Adult content",
+  "offPlatformDealContactInfo": "Off-platform deal or contact info",
+  "misleadingDescription": "Misleading description",
+  "unusualPrice": "Unusual price",
+  "providerError": "Provider error",
+  "timedOut": "Timed out",
+  "noApiKey": "No API key",
+  "rateLimited": "Rate limited",
+  "invalidApiKey": "Invalid API key",
+  "invalidResponseFormat": "Invalid response format",
+  "rejectListing": "Reject listing",
+  "noteOptionalSentSeller": "Note (optional, sent to the seller)",
+  "reject": "Reject",
+  "listingApproved": "Listing approved",
+  "listingRejected": "Listing rejected",
+  "noListingsAwaitingReview": "No listings awaiting review",
+  "likelyViolation": "Likely violation",
+  "needsReview": "Needs review",
+  "rejected": "Rejected",
+  "approve": "Approve",
+  "pleaseFixHighlightedFields": "Please fix the highlighted fields",
+  "aiSettingsSaved": "AI settings saved",
+  "invalidFormat": "Invalid format",
+  "enter0P0": "Enter 0 to {p0}",
+  "@enter0P0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "databaseNotBeenUpdatedAiYet": "The database has not been updated for AI yet. Saved settings will not take effect until it is.",
+  "defaultModel": "Default model",
+  "features": "Features",
+  "on": "On",
+  "noProviderApiKeysSetSo": "No provider API keys are set, so AI features cannot run",
+  "p0NoApiKeyCannotSelected": "{p0} has no API key and cannot be selected",
+  "@p0NoApiKeyCannotSelected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "input": "Input",
+  "output": "Output",
+  "per1mTokens": "per 1M tokens",
+  "vision": "Vision",
+  "webSearch": "Web search",
+  "testing": "Testing",
+  "test": "Test",
+  "connectedP0Ms": "Connected・{p0} ms",
+  "@connectedP0Ms": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionFailed": "Connection failed",
+  "keySet": "Key set",
+  "noKey": "No key",
+  "model": "Model",
+  "defaultP0": "Default ({p0})",
+  "@defaultP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0NoApiKey": "{p0} has no API key",
+  "@p0NoApiKey": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0DoesNotSupportWebSearch": "{p0} does not support web search",
+  "@p0DoesNotSupportWebSearch": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "searchNotBilledSeparately": "Search is not billed separately",
+  "firstP0SearchesFreeEachMonth": "First {p0} searches free each month, then {p1} per 1,000",
+  "@firstP0SearchesFreeEachMonth": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0Per1000SearchesPlus": "{p0} per 1,000 searches, plus tokens for search content",
+  "@p0Per1000SearchesPlus": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspiciousListings": "Suspicious listings",
+  "holdReview": "Hold for review",
+  "rejectClearViolations": "Reject clear violations",
+  "budgetLimits": "Budget and limits",
+  "monthlyBudgetUsd": "Monthly budget (USD)",
+  "k0MeansNoCap": "0 means no cap",
+  "dailyLimitPerMember": "Daily limit per member",
+  "k0MeansUnlimited": "0 means unlimited",
+  "advanced": "Advanced",
+  "resetDefault": "Reset to default",
+  "modelId": "Model ID",
+  "priceUsPer1mTokens": "Price (US$ per 1M tokens)",
+  "cachedInput": "Cached input",
+  "searchPriceUsPer1000": "Search price (US$ per 1,000)",
+  "freeSearchesPerMonth": "Free searches per month",
+  "p0FieldsInvalid": "{p0} fields are invalid",
+  "@p0FieldsInvalid": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0UnsavedChanges": "{p0} unsaved changes",
+  "@p0UnsavedChanges": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unsavedChanges": "You have unsaved changes",
+  "month2": "This month",
+  "budgetP0": "Budget {p0}",
+  "@budgetP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noMonthlyBudget": "No monthly budget",
+  "projectedP0": "Projected {p0}",
+  "@projectedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "periodCost": "Period cost",
+  "requests": "Requests",
+  "p0Searches": "{p0} searches",
+  "@p0Searches": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0OutP1": "In {p0}・Out {p1}",
+  "@p0OutP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "errors": "Errors",
+  "errorRateP0": "Error rate {p0}%",
+  "@errorRateP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ListingsAwaitingReview": "{p0} listings awaiting review",
+  "@p0ListingsAwaitingReview": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "byFeature": "By feature",
+  "noDataYet": "No data yet",
+  "errorsP0": "Errors {p0}",
+  "@errorsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Calls": "{p0} calls",
+  "@p0Calls": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "byModel": "By model",
+  "p0CallsP1Ms": "{p0} calls・{p1} ms",
+  "@p0CallsP1Ms": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "topMembers": "Top members",
+  "p0Uses": "{p0} uses",
+  "@p0Uses": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "recentErrors": "Recent errors",
+  "noErrors": "No errors",
+  "fillWithAi": "Fill with AI",
+  "summary": "Summary",
+  "lookingUpBookDetails": "Looking up book details",
+  "searchingWeb": "Searching the web",
+  "analyzingPhotos": "Analyzing photos",
+  "suggestingCategoryConditionPrice": "Suggesting category, condition and price",
+  "couldNotGetAiSuggestions": "Could not get AI suggestions",
+  "done": "Done",
+  "aiAnalyzing": "AI is analyzing",
+  "aiSuggestions": "AI suggestions",
+  "noSuggestionsApply": "No suggestions to apply",
+  "bookDetails": "Book details",
+  "conditionAppliedNextStep": "Condition (applied in next step)",
+  "priceAppliedNextStep": "Price (applied in next step)",
+  "suggestedPrice": "Suggested price",
+  "rangeP0P1": "Range ${p0}–${p1}",
+  "@rangeP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "listPriceP0": "List price ${p0}",
+  "@listPriceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sources": "Sources",
+  "applyP0": "Apply {p0}",
+  "@applyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "currentP0": "Current: {p0}",
+  "@currentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sameAsCurrent": "Same as current",
+  "confidenceP0": "Confidence {p0}%",
+  "@confidenceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "listingNotApproved": "Listing not approved",
+  "editListing": "Edit listing",
+  "submittedReview": "Submitted for review",
+  "goSaleOnceApprovedNotifiedResult": "It will go on sale once approved. You will be notified of the result.",
+  "got": "Got it",
+  "aiFeaturesNotAvailableRightNow": "AI features are not available right now",
+  "bookUnderReviewGoSaleOnce": "This book is under review and will go on sale once approved",
+  "notApproved": "Not approved",
+  "bookDidNotPassListingReview": "This book did not pass listing review",
+  "enterIsbnTitleFirst": "Enter an ISBN or title first",
+  "appliedP0AiSuggestions": "Applied {p0} AI suggestions",
+  "@appliedP0AiSuggestions": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addBookPhotosFirst": "Add book photos first",
+  "nothingFoundFillCheckIsbnTitle": "Nothing found to fill in. Check the ISBN or title.",
+  "appliedP0AiSuggestions2": "Applied {p0} AI suggestions",
+  "@appliedP0AiSuggestions2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "aiDataProcessingEnabled": "AI data processing enabled",
+  "aiDataProcessingTurnedOff": "AI data processing turned off",
+  "aiDataProcessing": "AI data processing",
+  "providersP0": "Providers: {p0}",
+  "@providersP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "messagesEnterStatusOrdersReservations": "Messages you enter and the status of your orders and reservations",
+  "isbnTitleConditionNotesPhotosSelect": "ISBN, title, condition notes and the photos you select",
+  "bookDetailsFromFavoritesPurchaseHistory": "Book details from your favorites and purchase history",
+  "aiDataProcessing2": "AI data processing",
+  "whenUseAiFeaturesWeShare": "When you use AI features, we share the following data with third-party AI providers for processing.",
+  "dataShared": "Data shared",
+  "recipients": "Recipients",
+  "purpose": "Purpose",
+  "usedOnlyGenerateSupportRepliesPrepare": "Used only to generate support replies, prepare listing details and recommend books. Never used for advertising or tracking.",
+  "withdrawingConsent": "Withdrawing consent",
+  "canTurnOffAiDataProcessing": "You can turn off \"AI data processing\" at any time in Settings > Account. The data above will no longer be shared once it is turned off.",
+  "agreeContinue": "Agree"
 }

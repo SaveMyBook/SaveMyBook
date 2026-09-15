@@ -1,0 +1,407 @@
+tags:
+  - name: admin-ai
+    x-displayName: 後台：AI 設定
+    description: |
+      AI 服務商、模型、單價、功能開關、用量上限、用量報表與上架審核。
+
+      | 端點 | 權限 |
+      | --- | --- |
+      | 設定、連線測試 | `can_manage_system` |
+      | 用量報表 | `can_view_stats` 或 `can_manage_system` |
+      | 上架審核 | `can_manage_content` |
+
+      API 金鑰只能在伺服器環境變數設定（`DEEPSEEK_API_KEY`、`GEMINI_API_KEY`、`OPENAI_API_KEY`），
+      後台僅能看到 `key_configured`。服務商會更改模型名稱與價格，因此模型與單價可由管理員修改；
+      是否支援照片辨識與網路搜尋由程式固定。
+
+      伺服器尚未執行 `migrations/011_ai.sql` 時，設定讀取回傳預設值且 `migration_ready` 為 false，
+      其他端點回傳 503 `AI_UNAVAILABLE`。
+
+paths:
+  /api/admin/ai/settings:
+    get:
+      summary: 取得 AI 設定
+      operationId: adminGetAiSettings
+      tags: [admin-ai]
+      description: 資料庫沒有設定時回傳預設值（總開關預設關閉）。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/AdminAiSettingsPayload' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+
+    put:
+      summary: 更新 AI 設定
+      operationId: adminUpdateAiSettings
+      tags: [admin-ai]
+      description: |
+        整份取代。未知欄位會被捨棄，未提供的欄位使用預設值；提供了但不合法的值回傳 400：
+
+        - 單價（`input_per_m`、`cached_input_per_m`、`output_per_m`、`search_price_per_k`）為 0 ~ 1000 的數值
+        - `search_free_per_month` 為 0 ~ 1000000 的整數
+        - `limits.daily_per_user.*` 為 0 ~ 10000 的整數，0 代表不限制
+        - `limits.monthly_budget_usd` 為 0 ~ 100000，0 代表不設上限
+        - 模型名稱符合 `^[A-Za-z0-9._:\-/]{1,80}$`
+        - `features.*.provider` 為 `deepseek`、`gemini`、`openai` 或 null（null 代表使用 `default_provider`）
+
+        需 `X-Verify-Token`（`sensitive`），並寫入管理員操作紀錄（列出變更的欄位）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/VerifyToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [settings]
+              properties:
+                settings: { $ref: '#/components/schemas/AiSettings' }
+      responses:
+        '200':
+          description: 已更新，回傳內容與 GET 相同。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已更新 AI 設定 }
+                  data: { $ref: '#/components/schemas/AdminAiSettingsPayload' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminVerificationRequired' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /api/admin/ai/test:
+    post:
+      summary: 測試服務商連線
+      operationId: adminTestAiProvider
+      tags: [admin-ai]
+      description: |
+        以目前設定的模型送出極短的請求（要求回覆「連線成功」），用量記錄為 `test`。
+        服務商失敗時仍回傳 200，`ok` 為 false，`error` 為可讀的原因，例如「金鑰無效或權限不足」
+        「模型名稱不存在」「額度不足」「連線逾時」「尚未設定 API 金鑰」。
+        每位管理員 10 分鐘最多 20 次。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider]
+              properties:
+                provider: { type: string, enum: [deepseek, gemini, openai] }
+      responses:
+        '200':
+          description: 測試完成。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      ok: { type: boolean, example: true }
+                      provider: { type: string, example: gemini }
+                      model: { type: string, example: gemini-3.1-flash-lite }
+                      latency_ms: { type: integer, example: 820 }
+                      reply: { type: string, example: 連線成功 }
+                      error: { type: string, example: 模型名稱不存在 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /api/admin/ai/usage:
+    get:
+      summary: AI 用量報表
+      operationId: adminGetAiUsage
+      tags: [admin-ai]
+      description: |
+        期間以伺服器當地時間計算：`today` 為今日、`7d` 與 `30d` 含今日往前推、`month` 為本月 1 日起。
+
+        費用於呼叫當下依設定的單價計算並記錄；網路搜尋只計超出每月免費額度的次數。
+        `daily` 一定包含期間內每一天（無用量的日期為 0）。`top_users` 最多 5 位，只提供公開會員編號。
+        `projected_month_cost_usd` 依本月已經過的時間比例推估整月費用。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: period
+          schema: { type: string, enum: [today, 7d, 30d, month], default: month }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/AdminAiUsage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /api/admin/ai/reviews:
+    get:
+      summary: 上架審核列表
+      operationId: adminListAiReviews
+      tags: [admin-ai]
+      description: |
+        AI 判定需人工確認的書籍。書籍在審核期間 `is_approved` 為 false，不會出現在公開列表；
+        賣家端的書籍物件帶 `review_status: pending`。最多回傳 200 筆，依建立時間遞減。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, approved, rejected, all], default: pending }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminAiReview' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /api/admin/ai/reviews/{bookId}:
+    patch:
+      summary: 處理上架審核
+      operationId: adminDecideAiReview
+      tags: [admin-ai]
+      description: |
+        - `approve`：`is_approved` 設為 true 並通知賣家。先前駁回而下架的書籍一併恢復上架。
+        - `reject`：`is_approved` 維持 false，販售中的書籍改為 `removed`，通知賣家並附上 `note`。
+          駁回視同違規，賣家無法自行重新上架，須由管理員恢復上架。
+
+        透過「強制下架／恢復上架」恢復上架時，未結的審核會一併標記為通過。
+        重複相同的處理回傳 409。寫入管理員操作紀錄。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: bookId
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approve, reject] }
+                note: { type: string, maxLength: 500, example: 請勿於描述留下站外聯絡方式 }
+      responses:
+        '200':
+          description: 已處理。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已核准上架 }
+                  data:
+                    type: object
+                    properties:
+                      book_id: { type: integer }
+                      status: { type: string, enum: [approved, rejected] }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+components:
+  schemas:
+    AiProviderPrices:
+      type: object
+      properties:
+        model: { type: string, example: gemini-3.1-flash-lite }
+        input_per_m: { type: number, description: 每百萬輸入 token 的美元單價, example: 0.25 }
+        cached_input_per_m: { type: number, description: 每百萬快取輸入 token 的美元單價, example: 0.025 }
+        output_per_m: { type: number, description: 每百萬輸出 token 的美元單價, example: 1.5 }
+        search_price_per_k: { type: number, description: 每千次網路搜尋的美元單價, example: 14 }
+        search_free_per_month: { type: integer, description: 每月免費搜尋次數, example: 5000 }
+
+    AiSettings:
+      type: object
+      properties:
+        enabled: { type: boolean, example: false }
+        default_provider: { type: string, enum: [deepseek, gemini, openai], example: deepseek }
+        providers:
+          type: object
+          properties:
+            deepseek: { $ref: '#/components/schemas/AiProviderPrices' }
+            gemini: { $ref: '#/components/schemas/AiProviderPrices' }
+            openai: { $ref: '#/components/schemas/AiProviderPrices' }
+        features:
+          type: object
+          properties:
+            support:
+              type: object
+              properties:
+                enabled: { type: boolean }
+                provider: { type: string, nullable: true, enum: [deepseek, gemini, openai] }
+            listing_assist:
+              type: object
+              properties:
+                enabled: { type: boolean }
+                provider: { type: string, nullable: true, enum: [deepseek, gemini, openai], example: gemini }
+                web_search: { type: boolean, example: true }
+            recommend:
+              type: object
+              properties:
+                enabled: { type: boolean }
+                provider: { type: string, nullable: true, enum: [deepseek, gemini, openai] }
+            moderation:
+              type: object
+              properties:
+                enabled: { type: boolean }
+                provider: { type: string, nullable: true, enum: [deepseek, gemini, openai] }
+                action:
+                  type: string
+                  enum: [review, block]
+                  description: '`review` 可疑商品一律送人工審核；`block` 明確違規（信心 ≥ 0.85）直接拒絕上架，其餘送審。'
+        limits:
+          type: object
+          properties:
+            monthly_budget_usd: { type: number, description: 0 代表不設上限, example: 10 }
+            daily_per_user:
+              type: object
+              properties:
+                support: { type: integer, example: 30 }
+                listing_assist: { type: integer, example: 15 }
+                recommend: { type: integer, example: 5 }
+
+    AdminAiSettingsPayload:
+      type: object
+      properties:
+        settings: { $ref: '#/components/schemas/AiSettings' }
+        providers:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string, enum: [deepseek, gemini, openai] }
+              name: { type: string, example: Google Gemini }
+              key_configured: { type: boolean }
+              vision: { type: boolean }
+              web_search: { type: boolean }
+              default_model: { type: string, example: gemini-3.1-flash-lite }
+              docs_url: { type: string, example: 'https://ai.google.dev/gemini-api/docs' }
+        migration_ready: { type: boolean }
+
+    AdminAiUsage:
+      type: object
+      properties:
+        period: { type: string, enum: [today, 7d, 30d, month] }
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        summary:
+          type: object
+          properties:
+            requests: { type: integer }
+            errors: { type: integer }
+            input_tokens: { type: integer }
+            output_tokens: { type: integer }
+            search_calls: { type: integer }
+            cost_usd: { type: number }
+            month_cost_usd: { type: number }
+            monthly_budget_usd: { type: number }
+            budget_used_ratio: { type: number, example: 0.42 }
+            projected_month_cost_usd: { type: number }
+        by_feature:
+          type: array
+          items:
+            type: object
+            properties:
+              feature: { type: string, enum: [support, listing_assist, recommend, moderation, test] }
+              requests: { type: integer }
+              cost_usd: { type: number }
+              input_tokens: { type: integer }
+              output_tokens: { type: integer }
+              errors: { type: integer }
+        by_provider:
+          type: array
+          items:
+            type: object
+            properties:
+              provider: { type: string }
+              model: { type: string }
+              requests: { type: integer }
+              cost_usd: { type: number }
+              avg_latency_ms: { type: integer }
+        daily:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string, example: '2026-09-01' }
+              requests: { type: integer }
+              cost_usd: { type: number }
+              by_feature:
+                type: object
+                additionalProperties: { type: number }
+                example: { support: 0.0123 }
+        top_users:
+          type: array
+          items:
+            type: object
+            properties:
+              user_public_id: { type: string, example: MB3K9QX7A }
+              nickname: { type: string }
+              requests: { type: integer }
+              cost_usd: { type: number }
+        recent_errors:
+          type: array
+          items:
+            type: object
+            properties:
+              created_at: { type: string, format: date-time }
+              feature: { type: string }
+              provider: { type: string }
+              error_code: { type: string, example: TIMEOUT }
+        pending_reviews: { type: integer }
+
+    AdminAiReview:
+      type: object
+      properties:
+        book_id: { type: integer }
+        book: { $ref: '#/components/schemas/Book' }
+        seller: { $ref: '#/components/schemas/UserBrief' }
+        verdict: { type: string, enum: [allow, review, reject] }
+        reasons:
+          type: array
+          items: { type: string }
+        categories:
+          type: array
+          items: { type: string, enum: [not_book, prohibited, adult, contact, misleading, price] }
+        status: { type: string, enum: [pending, approved, rejected] }
+        provider: { type: string, nullable: true }
+        model: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        reviewed_at: { type: string, format: date-time, nullable: true }

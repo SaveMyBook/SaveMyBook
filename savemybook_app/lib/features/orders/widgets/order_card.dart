@@ -57,7 +57,7 @@ class ListingCard extends StatelessWidget {
       imageUrl: book.hasImage ? book.imageUrl : null,
       title: book.title,
       price: book.price,
-      status: AppLabels.book(book.status),
+      status: book.reviewStatus == null ? AppLabels.book(book.status) : book.sellerStatusText,
       address: book.cabinetAddress,
       openHours: book.cabinetOpenHours,
       slotNumber: '',

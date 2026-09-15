@@ -7,7 +7,7 @@ tags:
       刪除採 30 天緩衝：申請後帳號仍可登入，期間內隨時可取消；
       逾期由伺服器排程執行匿名化。匿名化並非實際刪除資料列，
       而是清除個資並停用帳號，訂單與錢包異動等帳務資料保留，
-      否則交易對象的紀錄會出現破洞。
+      否則交易對象的紀錄會出現破洞。AI 客服對話、AI 推薦快取與 AI 資料處理同意紀錄於匿名化時刪除。
 
 paths:
   /api/users/me/export:
@@ -17,7 +17,8 @@ paths:
       tags: [account]
       description: |
         以 JSON 檔下載個人資料、上架書籍、買賣訂單、錢包與交易紀錄、
-        爭議、檢舉與客服工單。
+        爭議、檢舉、客服工單，以及 AI 資料處理同意紀錄、AI 客服對話與 AI 推薦快取。
+        伺服器尚未執行 011 時 `ai` 為 null。
 
         回應帶 `Content-Disposition: attachment`，檔名為
         `savemybook-<user_id>-<YYYY-MM-DD>.json`。
@@ -57,6 +58,44 @@ paths:
                   support_tickets:
                     type: array
                     items: { $ref: '#/components/schemas/SupportTicket' }
+                  ai:
+                    type: object
+                    nullable: true
+                    properties:
+                      consent:
+                        type: object
+                        nullable: true
+                        properties:
+                          granted: { type: boolean }
+                          updated_at: { type: string, format: date-time }
+                      support_sessions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            status: { type: string, enum: [open, closed, escalated] }
+                            created_at: { type: string, format: date-time }
+                            updated_at: { type: string, format: date-time }
+                            messages:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  role: { type: string, enum: [user, assistant] }
+                                  content: { type: string }
+                                  created_at: { type: string, format: date-time }
+                      recommendations:
+                        type: object
+                        nullable: true
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                book_id: { type: integer }
+                                reason: { type: string, nullable: true }
+                          created_at: { type: string, format: date-time }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/VerificationRequired' }
         '500': { $ref: '#/components/responses/ServerError' }

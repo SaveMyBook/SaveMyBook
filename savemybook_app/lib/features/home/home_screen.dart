@@ -9,6 +9,7 @@ import '../selling/sell_book_screen.dart';
 import '../orders/pickup_book_screen.dart';
 import '../../models/category.dart';
 import '../../models/book.dart';
+import '../../services/ai_status.dart';
 import '../../services/api_service.dart';
 import '../../services/home_preferences.dart';
 import '../../services/home_widget_service.dart';
@@ -68,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<Category> _categories = [];
   List<Book> _books = [];
   List<Book> _recommended = [];
+  Map<int, String> _recommendReasons = const {};
 
   final ApiService _apiService = ApiService();
   final ScrollController _scrollController = ScrollController();
@@ -117,6 +119,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && mounted) {
       _loadBadges();
+      AiStatus.refresh();
       LegalConsentGate.check(context);
     } else if (state == AppLifecycleState.paused) {
       unawaited(HomeWidgetService.sync());
@@ -152,12 +155,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _loadDiscovery() async {
+    final statusFuture = AiStatus.refresh();
     if (!HomePreferences.showDiscovery.value) return;
     await RecentlyViewed.load();
+    final status = await statusFuture;
+    if (!mounted) return;
+    if (status.recommend && status.consented) {
+      final ai = await _apiService.fetchAiRecommendations();
+      if (!mounted) return;
+      if (ai != null && ai.books.isNotEmpty) {
+        setState(() {
+          _recommended = ai.books;
+          _recommendReasons = ai.reasons;
+        });
+        return;
+      }
+    }
     final viewedIds = RecentlyViewed.books.value.map((b) => b.bookId);
     final recommended = await _apiService.fetchRecommendedBooks(viewedIds: viewedIds);
     if (!mounted) return;
-    setState(() => _recommended = recommended);
+    setState(() {
+      _recommended = recommended;
+      _recommendReasons = const {};
+    });
   }
 
   void _onDiscoveryPreferenceChanged() {
@@ -610,6 +630,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 title: S.picked,
                 icon: Icons.auto_awesome_rounded,
                 books: recommended,
+                reasons: _recommendReasons,
               ),
             if (_isBrowsingAll && recent.isNotEmpty)
               DiscoveryTab(

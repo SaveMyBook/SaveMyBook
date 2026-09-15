@@ -61,7 +61,7 @@ const uploadedFiles = (req) => {
 
 const removeUploaded = (req) => {
   for (const f of uploadedFiles(req)) {
-    fs.promises.unlink(f.path).catch(() => {});
+    if (f.path) fs.promises.unlink(f.path).catch(() => {});
   }
 };
 
@@ -129,7 +129,43 @@ const fileUpload = ({ folder, maxFileSize = 10 * 1024 * 1024, kind = 'image' }) 
   };
 };
 
+const imageMimeOf = (buf) => {
+  if (!looksLikeImage(buf)) return null;
+  if (buf[0] === 0xff) return 'image/jpeg';
+  if (buf[0] === 0x89) return 'image/png';
+  if (buf.subarray(0, 4).toString('latin1') === 'GIF8') return 'image/gif';
+  if (buf.subarray(0, 4).toString('latin1') === 'RIFF') return 'image/webp';
+  const brand = buf.subarray(8, 12).toString('latin1');
+  if (brand === 'avif') return 'image/avif';
+  return ['mif1', 'msf1', 'heif'].includes(brand) ? 'image/heif' : 'image/heic';
+};
+
+// 僅在記憶體中處理、不寫入磁碟，供 AI 辨識等不需保存照片的用途。
+const memoryImageUpload = ({ maxFileSize = 5 * 1024 * 1024, maxFiles = 4 } = {}) => {
+  const rule = KINDS.image;
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: maxFileSize, files: maxFiles, fields: 30, fieldSize: 100 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const ext = path.extname(file.originalname || '').toLowerCase();
+      if (rule.allowedExt.has(ext) || rule.extByMime[file.mimetype]) return cb(null, true);
+      cb(badRequest(rule.typeMessage));
+    }
+  });
+
+  const verify = (req, res, next) => {
+    for (const f of uploadedFiles(req)) {
+      const mime = imageMimeOf(f.buffer ?? Buffer.alloc(0));
+      if (!mime) return next(badRequest(rule.contentMessage));
+      f.detectedMime = mime;
+    }
+    next();
+  };
+
+  return { array: (field, max = maxFiles) => [upload.array(field, max), verify] };
+};
+
 const imageUpload = (opts) => fileUpload({ ...opts, kind: 'image' });
 const audioUpload = (opts) => fileUpload({ ...opts, kind: 'audio' });
 
-module.exports = { imageUpload, audioUpload, removeUploaded };
+module.exports = { imageUpload, audioUpload, memoryImageUpload, removeUploaded, looksLikeImage, imageMimeOf, UPLOAD_ROOT };

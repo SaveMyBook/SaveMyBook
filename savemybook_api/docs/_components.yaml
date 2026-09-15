@@ -159,8 +159,15 @@ components:
         view_count: { type: integer, example: 42 }
         is_approved:
           type: boolean
-          description: 檢舉成立時設為 false，此時賣家無法自行將狀態改回 `on_sale`。
+          description: 檢舉成立、AI 上架審核待確認或駁回時為 false，此時不公開。違規（非待審核）時賣家無法自行將狀態改回 `on_sale`。
           example: true
+        review_status:
+          type: string
+          nullable: true
+          enum: [pending, rejected]
+          description: |
+            僅出現在賣家本人取得的書籍物件（本人書籍列表、詳情、上架與編輯的回應）。
+            `pending` 為等待上架審核（顯示「審核中」），`rejected` 為審核駁回，已公開或未經審核為 null。
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
         users: { $ref: '#/components/schemas/UserBrief' }

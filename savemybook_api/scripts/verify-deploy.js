@@ -55,6 +55,11 @@ const main = async () => {
     report(false, 'Prisma Client 與 schema 一致', `${err.message}（請執行 npx prisma db pull && npx prisma generate）`);
   }
 
+  const { PROVIDERS, keyConfigured } = require('../lib/ai');
+  const aiKeys = Object.values(PROVIDERS).map((p) => `${p.name} ${keyConfigured(p.id) ? '已設定' : '未設定'}`);
+  const anyAiKey = Object.keys(PROVIDERS).some((id) => keyConfigured(id));
+  report(true, 'AI 服務商金鑰', `${aiKeys.join('、')}${anyAiKey ? '' : '（AI 功能將維持關閉）'}`);
+
   const uploads = path.join(__dirname, '../uploads');
   try {
     fs.mkdirSync(path.join(uploads, 'voice'), { recursive: true });

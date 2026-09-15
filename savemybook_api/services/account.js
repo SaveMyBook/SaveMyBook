@@ -5,6 +5,8 @@ const { badRequest, forbidden, notFound, conflict } = require('../lib/errors');
 const push = require('./push');
 const sessions = require('./sessions');
 const audit = require('./audit');
+const aiSettings = require('./ai/settings');
+const aiConsent = require('./ai/consent');
 const { ORDER_UNSETTLED_STATUSES } = require('../constants/domain');
 
 const GRACE_DAYS = 30;
@@ -15,6 +17,7 @@ const graceDeadline = (requestedAt) =>
 // 匿名化而非 DELETE：訂單與錢包異動屬帳務資料，不可隨單方刪號消失。
 const anonymize = async (userId) => {
   const stamp = Date.now();
+  const aiReady = await aiSettings.migrationReady();
 
   await prisma.$transaction(async (tx) => {
     await tx.users.update({
@@ -44,6 +47,7 @@ const anonymize = async (userId) => {
     await tx.favorites.deleteMany({ where: { user_id: userId } });
     await tx.user_qr_codes.deleteMany({ where: { user_id: userId } });
     await tx.notifications.deleteMany({ where: { user_id: userId } });
+    if (aiReady) await aiConsent.purgeUser(tx, userId);
 
     await tx.chat_messages.updateMany({
       where: { sender_id: userId },
@@ -89,7 +93,7 @@ const processDueDeletions = async () => {
 };
 
 const exportData = async (userId) => {
-  const [user, books, boughtOrders, soldOrders, wallet, disputes, reports, tickets] =
+  const [user, books, boughtOrders, soldOrders, wallet, disputes, reports, tickets, ai] =
     await Promise.all([
       prisma.users.findUnique({
         where: { user_id: userId },
@@ -119,7 +123,8 @@ const exportData = async (userId) => {
       prisma.support_tickets.findMany({
         where: { user_id: userId },
         include: { messages: { orderBy: { created_at: 'asc' } } }
-      })
+      }),
+      aiConsent.exportUser(userId)
     ]);
 
   return {
@@ -132,7 +137,8 @@ const exportData = async (userId) => {
     wallet,
     disputes,
     reports,
-    support_tickets: tickets
+    support_tickets: tickets,
+    ai
   };
 };
 

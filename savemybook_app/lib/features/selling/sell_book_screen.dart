@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import '../../models/ai.dart';
 import '../../models/category.dart';
+import '../../services/ai_status.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
@@ -17,6 +19,7 @@ import '../../widgets/guards.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../books/barcode_scanner_screen.dart';
+import 'ai_listing_assist.dart';
 import 'sell_book_detail_screen.dart';
 import '../../i18n/strings.dart';
 
@@ -48,6 +51,11 @@ class _SellBookScreenState extends State<SellBookScreen> {
   final int _epoch = SellDraft.epoch;
   bool _touched = false;
 
+  bool _aiRunning = false;
+  String? _aiCondition;
+  int? _aiPrice;
+  final Map<String, int> _flash = {};
+
   List<TextEditingController> get _controllers =>
       [_isbnController, _titleController, _authorController, _publisherController, _descriptionController];
 
@@ -59,6 +67,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
     }
     _loadCategories();
     _checkDraft();
+    AiStatus.refresh();
   }
 
   @override
@@ -207,6 +216,8 @@ class _SellBookScreenState extends State<SellBookScreen> {
           publishDate: _selectedDate == null ? '' : _formatDate(_selectedDate!),
           description: _descriptionController.text.trim(),
           categoryId: _categoryId!,
+          aiCondition: _aiCondition,
+          aiPrice: _aiPrice,
         ),
       ),
     );
@@ -291,6 +302,98 @@ class _SellBookScreenState extends State<SellBookScreen> {
     if (hadOffer) await SellDraft.clear();
     _saveDraftNow();
   }
+
+  Future<void> _onAiAssist() async {
+    if (_aiRunning) return;
+    FocusScope.of(context).unfocus();
+    final isbnText = _isbnController.text.trim();
+    final isbn = normalizeIsbn(isbnText);
+    final title = _titleController.text.trim();
+    if (isbn == null && title.isEmpty) {
+      HapticFeedback.heavyImpact();
+      _showError(S.enterIsbnTitleFirst);
+      return;
+    }
+    _aiRunning = true;
+    final result = await runAiListingAssist(context, isbn: isbn, title: title);
+    _aiRunning = false;
+    if (result == null || !mounted) return;
+    if (result.isEmpty) {
+      _showError(S.nothingFoundFillCheckIsbnTitle);
+      return;
+    }
+    final selection = await showAiListingResultSheet(
+      context,
+      result: result,
+      targets: AiListingTargets(
+        fields: {
+          'title': title,
+          'author': _authorController.text.trim(),
+          'publisher': _publisherController.text.trim(),
+          'publish_date': _selectedDate == null ? '' : _formatDate(_selectedDate!),
+          'isbn': isbnText,
+          'description': _descriptionController.text.trim(),
+        },
+        categoryId: _categoryId,
+        categories: _categories,
+        supportsCategory: true,
+        supportsCondition: true,
+        condition: _aiCondition,
+        supportsPrice: true,
+        price: _aiPrice,
+        deferConditionAndPrice: true,
+      ),
+    );
+    if (selection == null || !mounted) return;
+    await _applyAi(result, selection);
+  }
+
+  Future<void> _applyAi(AiListingAssist result, AiListingSelection selection) async {
+    final hadOffer = _draftOffer != null;
+    _touched = true;
+    final flashed = <String>[];
+    setState(() {
+      _draftOffer = null;
+      for (final key in selection.fields) {
+        final value = result.fields[key] ?? '';
+        switch (key) {
+          case 'title':
+            _titleController.text = value;
+          case 'author':
+            _authorController.text = value;
+          case 'publisher':
+            _publisherController.text = value;
+          case 'description':
+            _descriptionController.text = value;
+          case 'isbn':
+            final normalized = normalizeIsbn(value);
+            if (normalized == null) continue;
+            _isbnController.text = normalized;
+          case 'publish_date':
+            final date = _parsePublishDate(value);
+            if (date == null) continue;
+            _selectedDate = date;
+        }
+        flashed.add(key);
+      }
+      if (selection.category && result.category != null && _categories.any((c) => c.categoryId == result.category!.categoryId)) {
+        _categoryId = result.category!.categoryId;
+        flashed.add('category');
+      }
+      if (selection.condition && result.condition != null) _aiCondition = result.condition!.level;
+      if (selection.price && result.price != null) _aiPrice = result.price!.suggested;
+      for (final key in flashed) {
+        _flash[key] = (_flash[key] ?? 0) + 1;
+      }
+    });
+    if (hadOffer) await SellDraft.clear();
+    _saveDraftNow();
+    if (!mounted) return;
+    HapticFeedback.mediumImpact();
+    showAppSnackBar(context, S.appliedP0AiSuggestions2(selection.count));
+  }
+
+  Widget _flashed(String key, Widget child) => AiFlash(trigger: _flash[key] ?? 0, child: child);
 
   static DateTime? _parsePublishDate(String raw) {
     final text = raw.trim();
@@ -399,7 +502,21 @@ class _SellBookScreenState extends State<SellBookScreen> {
           alignment: Alignment.topCenter,
           child: _draftOffer == null ? const SizedBox(width: double.infinity) : _buildDraftBanner(c),
         ),
-        FormRowCard(
+        ValueListenableBuilder<AiStatusInfo>(
+          valueListenable: AiStatus.listenable,
+          builder: (context, status, _) => AnimatedSize(
+            duration: Motion.base,
+            curve: Motion.emphasized,
+            alignment: Alignment.topCenter,
+            child: status.listingAssist
+                ? Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: AiAssistButton(onTap: _onAiAssist, busy: _aiRunning),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+        ),
+        _flashed('isbn', FormRowCard(
           label: 'ISBN',
           labelWidth: 88,
           child: Row(
@@ -454,8 +571,8 @@ class _SellBookScreenState extends State<SellBookScreen> {
               ),
             ],
           ),
-        ),
-        FormRowCard(
+        )),
+        _flashed('title', FormRowCard(
           label: S.title,
           labelWidth: 88,
           isRequired: true,
@@ -466,18 +583,18 @@ class _SellBookScreenState extends State<SellBookScreen> {
             errorText: _showErrors && _titleController.text.trim().isEmpty ? S.enterTitle2 : null,
             onChanged: (_) => setState(() {}),
           ),
-        ),
-        FormRowCard(
+        )),
+        _flashed('author', FormRowCard(
           label: S.author2,
           labelWidth: 88,
           child: AppTextField(controller: _authorController, maxLength: 255, textInputAction: TextInputAction.next),
-        ),
-        FormRowCard(
+        )),
+        _flashed('publisher', FormRowCard(
           label: S.publisher2,
           labelWidth: 88,
           child: AppTextField(controller: _publisherController, maxLength: 255, textInputAction: TextInputAction.next),
-        ),
-        FormRowCard(
+        )),
+        _flashed('publish_date', FormRowCard(
           label: S.publicationDate,
           labelWidth: 88,
           child: AppDateField(
@@ -489,8 +606,8 @@ class _SellBookScreenState extends State<SellBookScreen> {
               _scheduleSave();
             },
           ),
-        ),
-        FormRowCard(
+        )),
+        _flashed('category', FormRowCard(
           label: S.pickCategory,
           labelWidth: 88,
           isRequired: true,
@@ -529,8 +646,8 @@ class _SellBookScreenState extends State<SellBookScreen> {
                 ),
             ],
           ),
-        ),
-        FormRowCard(
+        )),
+        _flashed('description', FormRowCard(
           label: S.description,
           labelWidth: 88,
           alignTop: true,
@@ -541,7 +658,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
             maxLength: 5000,
             keyboardType: TextInputType.multiline,
           ),
-        ),
+        )),
         const SizedBox(height: 12),
         MissingHint(missing: _missing),
         PrimaryButton(label: S.next, height: 50, icon: Icons.arrow_forward_rounded, onPressed: _onNext),
@@ -700,3 +817,5 @@ class _SellBookScreenState extends State<SellBookScreen> {
     );
   }
 }
+
+DateTime? parsePublishDate(String raw) => _SellBookScreenState._parsePublishDate(raw);

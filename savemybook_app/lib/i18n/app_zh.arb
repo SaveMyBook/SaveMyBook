@@ -2957,5 +2957,338 @@
     }
   },
   "savingImage": "正在儲存圖片",
-  "passwordsCanOnlyContainEnglishLetters": "密碼僅可使用英文字母、數字及半形符號"
+  "passwordsCanOnlyContainEnglishLetters": "密碼僅可使用英文字母、數字及半形符號",
+  "aiSupport": "AI 客服",
+  "instantReplies": "即時回覆",
+  "howDoIListBook": "如何上架書籍？",
+  "howDoIPickUpFrom": "如何在智慧櫃取書？",
+  "howDoIRequestRefund": "如何申請退款？",
+  "howDoWalletCoinsWork": "錢包點數如何使用？",
+  "talkPerson": "轉接真人客服",
+  "supportRequestCreatedFromConversationOur": "將以目前的對話內容建立客服單，由客服人員接續處理",
+  "transfer4": "轉接",
+  "creatingSupportRequest": "正在建立客服單",
+  "transferredSupportTeam": "已轉接真人客服",
+  "newConversation": "開始新對話",
+  "currentConversationEnd": "目前的對話將會結束",
+  "copied2": "已複製",
+  "aiReplies": "AI 回覆",
+  "howCanWeHelp": "請問有什麼需要協助的地方？",
+  "failedSend": "傳送失敗",
+  "ourSupportTeamCanHelpWith": "此問題建議由客服人員協助處理",
+  "contactSupport": "聯絡客服",
+  "typeQuestion": "輸入問題",
+  "aiFeatures": "AI 功能",
+  "usageModelsListingReview": "用量、模型設定與上架審核",
+  "aiSettingsNotSavedChangesLost": "AI 設定尚未儲存，離開後變更將不會保留",
+  "usage": "用量",
+  "settings2": "設定 •",
+  "reviewP0": "審核 {p0}",
+  "@reviewP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dailyCost": "每日費用",
+  "noCostPeriod": "此期間尚無費用",
+  "peakDay": "單日最高",
+  "tapBarDetails": "點選長條查看明細",
+  "p0Requests": "{p0} 次請求",
+  "@p0Requests": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "listingAssist": "上架輔助",
+  "recommendations": "推薦書籍",
+  "listingReview": "上架審核",
+  "connectionTest": "連線測試",
+  "today2": "今日",
+  "k7Days": "7 天",
+  "k30Days": "30 天",
+  "notBookUnrelatedItem": "非書籍或無關商品",
+  "prohibitedPiratedContent": "違禁或盜版內容",
+  "adultContent": "成人內容",
+  "offPlatformDealContactInfo": "站外交易或聯絡資訊",
+  "misleadingDescription": "不實描述",
+  "unusualPrice": "價格異常",
+  "providerError": "服務商錯誤",
+  "timedOut": "逾時",
+  "noApiKey": "未設定金鑰",
+  "rateLimited": "頻率受限",
+  "invalidApiKey": "金鑰無效",
+  "invalidResponseFormat": "回應格式錯誤",
+  "rejectListing": "拒絕上架",
+  "noteOptionalSentSeller": "說明（選填，將通知賣家）",
+  "reject": "拒絕",
+  "listingApproved": "已核准上架",
+  "listingRejected": "已拒絕上架",
+  "noListingsAwaitingReview": "目前沒有待審核的上架",
+  "likelyViolation": "疑似違規",
+  "needsReview": "需人工確認",
+  "rejected": "已拒絕",
+  "approve": "核准上架",
+  "pleaseFixHighlightedFields": "請修正標示錯誤的欄位",
+  "aiSettingsSaved": "AI 設定已儲存",
+  "invalidFormat": "格式不正確",
+  "enter0P0": "請輸入 0 至 {p0}",
+  "@enter0P0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "databaseNotBeenUpdatedAiYet": "資料庫尚未完成 AI 相關更新，設定儲存後暫時不會生效",
+  "defaultModel": "預設模型",
+  "features": "功能",
+  "on": "已啟用",
+  "noProviderApiKeysSetSo": "尚未設定任何服務商金鑰，AI 功能無法使用",
+  "p0NoApiKeyCannotSelected": "{p0} 尚未設定金鑰，無法選用",
+  "@p0NoApiKeyCannotSelected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "input": "輸入",
+  "output": "輸出",
+  "per1mTokens": "每百萬 tokens",
+  "vision": "圖片辨識",
+  "webSearch": "上網搜尋",
+  "testing": "測試中",
+  "test": "測試連線",
+  "connectedP0Ms": "連線成功・{p0} ms",
+  "@connectedP0Ms": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionFailed": "連線失敗",
+  "keySet": "金鑰已設定",
+  "noKey": "金鑰未設定",
+  "model": "使用模型",
+  "defaultP0": "跟隨預設（{p0}）",
+  "@defaultP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0NoApiKey": "{p0} 尚未設定金鑰",
+  "@p0NoApiKey": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0DoesNotSupportWebSearch": "{p0} 不支援上網搜尋",
+  "@p0DoesNotSupportWebSearch": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "searchNotBilledSeparately": "搜尋不另計費",
+  "firstP0SearchesFreeEachMonth": "每月前 {p0} 次免費，之後每千次 {p1}",
+  "@firstP0SearchesFreeEachMonth": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0Per1000SearchesPlus": "每千次搜尋 {p0}，另計搜尋內容 tokens",
+  "@p0Per1000SearchesPlus": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspiciousListings": "可疑商品處理方式",
+  "holdReview": "送交審核",
+  "rejectClearViolations": "直接拒絕明顯違規",
+  "budgetLimits": "預算與上限",
+  "monthlyBudgetUsd": "每月預算（USD）",
+  "k0MeansNoCap": "0 為不設上限",
+  "dailyLimitPerMember": "每位會員每日次數上限",
+  "k0MeansUnlimited": "0 為不限",
+  "advanced": "進階設定",
+  "resetDefault": "恢復預設",
+  "modelId": "模型 ID",
+  "priceUsPer1mTokens": "單價（US$ / 每百萬 tokens）",
+  "cachedInput": "快取輸入",
+  "searchPriceUsPer1000": "搜尋單價（US$ / 千次）",
+  "freeSearchesPerMonth": "每月免費搜尋次數",
+  "p0FieldsInvalid": "{p0} 個欄位格式不正確",
+  "@p0FieldsInvalid": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0UnsavedChanges": "{p0} 項設定尚未儲存",
+  "@p0UnsavedChanges": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unsavedChanges": "有未儲存的變更",
+  "month2": "本月費用",
+  "budgetP0": "預算 {p0}",
+  "@budgetP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noMonthlyBudget": "未設定每月預算",
+  "projectedP0": "預估月底 {p0}",
+  "@projectedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "periodCost": "期間費用",
+  "requests": "請求次數",
+  "p0Searches": "搜尋 {p0} 次",
+  "@p0Searches": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0OutP1": "輸入 {p0}・輸出 {p1}",
+  "@p0OutP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "errors": "錯誤",
+  "errorRateP0": "錯誤率 {p0}%",
+  "@errorRateP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ListingsAwaitingReview": "{p0} 筆上架待審核",
+  "@p0ListingsAwaitingReview": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "byFeature": "依功能",
+  "noDataYet": "尚無資料",
+  "errorsP0": "錯誤 {p0}",
+  "@errorsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Calls": "{p0} 次",
+  "@p0Calls": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "byModel": "依模型",
+  "p0CallsP1Ms": "{p0} 次・{p1} ms",
+  "@p0CallsP1Ms": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "topMembers": "用量最高的會員",
+  "p0Uses": "{p0} 次",
+  "@p0Uses": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "recentErrors": "最近錯誤",
+  "noErrors": "沒有錯誤",
+  "fillWithAi": "AI 帶入",
+  "summary": "簡介",
+  "lookingUpBookDetails": "查詢書籍資料",
+  "searchingWeb": "上網搜尋補充資料",
+  "analyzingPhotos": "分析照片",
+  "suggestingCategoryConditionPrice": "判斷分類、書況與售價",
+  "couldNotGetAiSuggestions": "無法取得 AI 建議",
+  "done": "分析完成",
+  "aiAnalyzing": "AI 分析中",
+  "aiSuggestions": "AI 建議",
+  "noSuggestionsApply": "沒有可帶入的建議",
+  "bookDetails": "書籍資料",
+  "conditionAppliedNextStep": "書況（下一步帶入）",
+  "priceAppliedNextStep": "售價（下一步帶入）",
+  "suggestedPrice": "建議售價",
+  "rangeP0P1": "建議區間 ${p0}–${p1}",
+  "@rangeP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "listPriceP0": "定價 ${p0}",
+  "@listPriceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sources": "資料來源",
+  "applyP0": "套用 {p0} 項",
+  "@applyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "currentP0": "目前：{p0}",
+  "@currentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sameAsCurrent": "與目前相同",
+  "confidenceP0": "信心 {p0}%",
+  "@confidenceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "listingNotApproved": "未通過上架審核",
+  "editListing": "修改內容",
+  "submittedReview": "已送交審核",
+  "goSaleOnceApprovedNotifiedResult": "審核通過後將公開販售，結果會以通知告知",
+  "got": "我知道了",
+  "aiFeaturesNotAvailableRightNow": "AI 功能目前未開放",
+  "bookUnderReviewGoSaleOnce": "此書籍正在審核，通過後將公開販售",
+  "notApproved": "未通過審核",
+  "bookDidNotPassListingReview": "此書籍未通過上架審核",
+  "enterIsbnTitleFirst": "請先輸入 ISBN 或書名",
+  "appliedP0AiSuggestions": "已套用 {p0} 項 AI 建議",
+  "@appliedP0AiSuggestions": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addBookPhotosFirst": "請先加入書籍照片",
+  "nothingFoundFillCheckIsbnTitle": "找不到可帶入的資料，請確認 ISBN 或書名",
+  "appliedP0AiSuggestions2": "已套用 {p0} 項 AI 建議",
+  "@appliedP0AiSuggestions2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "aiDataProcessingEnabled": "已同意 AI 資料處理",
+  "aiDataProcessingTurnedOff": "已停止 AI 資料處理",
+  "aiDataProcessing": "AI 資料處理",
+  "providersP0": "服務商：{p0}",
+  "@providersP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "messagesEnterStatusOrdersReservations": "您輸入的訊息與您的訂單、預約狀態",
+  "isbnTitleConditionNotesPhotosSelect": "ISBN、書名、書況說明與您選擇的照片",
+  "bookDetailsFromFavoritesPurchaseHistory": "您的收藏與購買紀錄中的書籍資訊",
+  "aiDataProcessing2": "AI 資料處理說明",
+  "whenUseAiFeaturesWeShare": "使用 AI 功能時，我們會將下列資料提供給第三方 AI 服務商處理。",
+  "dataShared": "提供的資料",
+  "recipients": "資料接收者",
+  "purpose": "使用目的",
+  "usedOnlyGenerateSupportRepliesPrepare": "僅用於產生客服回覆、整理上架資料與推薦書籍，不會用於廣告或追蹤。",
+  "withdrawingConsent": "撤回同意",
+  "canTurnOffAiDataProcessing": "您可隨時在「設定」>「帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。",
+  "agreeContinue": "同意並繼續"
 }

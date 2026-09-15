@@ -14,6 +14,9 @@ const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
   publicWebUrl: (process.env.PUBLIC_WEB_URL || '').replace(/\/+$/, ''),
   googleBooksApiKey: process.env.GOOGLE_BOOKS_API_KEY || '',
+  deepseekApiKey: process.env.DEEPSEEK_API_KEY || '',
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
+  openaiApiKey: process.env.OPENAI_API_KEY || '',
   corsOrigins: (process.env.CORS_ORIGINS || 'https://savemybook.today,https://www.savemybook.today')
     .split(',')
     .map((s) => s.trim())

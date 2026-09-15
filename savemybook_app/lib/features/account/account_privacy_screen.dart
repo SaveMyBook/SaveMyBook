@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../models/ai.dart';
+import '../../services/ai_status.dart';
 import '../../services/api_service.dart';
 import '../../services/share_service.dart';
 import '../../services/verification_service.dart';
@@ -15,6 +17,7 @@ import '../../widgets/app_tiles.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../auth/login_screen.dart';
+import 'ai_consent_sheet.dart';
 import '../../i18n/strings.dart';
 
 class AccountPrivacyScreen extends StatefulWidget {
@@ -31,12 +34,14 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
   bool _exporting = false;
   bool _busy = false;
   bool _pendingDeletion = false;
+  bool _consentBusy = false;
   DateTime? _purgeAt;
 
   @override
   void initState() {
     super.initState();
     _load();
+    AiStatus.refresh(force: true);
   }
 
   Future<void> _load() async {
@@ -82,6 +87,26 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
       showAppSnackBar(context, ok ? S.exportedChooseWhereSave : S.exportedButSharingCouldNotOpen, isError: !ok);
     } finally {
       _exporting = false;
+    }
+  }
+
+  Future<void> _toggleAiConsent(bool enable) async {
+    if (_consentBusy) return;
+    _consentBusy = true;
+    try {
+      if (enable) {
+        final agreed = await showAiConsentSheet(context);
+        if (!agreed || !mounted) return;
+      }
+      final result = await runBusy(context, () => AiStatus.setConsent(enable));
+      if (!mounted) return;
+      if (result == null || !result.isOk) {
+        showAppSnackBar(context, result?.error ?? AppLabels.updateFailed, isError: true);
+        return;
+      }
+      showAppSnackBar(context, enable ? S.aiDataProcessingEnabled : S.aiDataProcessingTurnedOff);
+    } finally {
+      _consentBusy = false;
     }
   }
 
@@ -195,21 +220,27 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                       padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
                       children: [
                         Reveal(visible: _pendingDeletion, child: _buildPendingCard(c)),
-                        FadeSlideIn(child: _buildSection(c, S.data, [
-                          AppMenuItem(
-                            icon: Icons.download_rounded,
-                            title: S.exportMyData,
-                            subtitle: S.profileBooksOrdersTransactionsJson,
-                            onTap: _export,
+                        FadeSlideIn(
+                          child: ValueListenableBuilder<AiStatusInfo>(
+                            valueListenable: AiStatus.listenable,
+                            builder: (context, status, _) => _buildSection(c, S.data, [
+                              AppMenuItem(
+                                icon: Icons.download_rounded,
+                                title: S.exportMyData,
+                                subtitle: S.profileBooksOrdersTransactionsJson,
+                                onTap: _export,
+                              ),
+                              AppMenuItem(
+                                icon: Icons.link_off_rounded,
+                                title: S.regenerateShareLink,
+                                subtitle: S.oldLinkQrCodeStopWorking2,
+                                isLast: !status.any,
+                                onTap: _rotateShareLink,
+                              ),
+                              if (status.any) _buildAiConsentItem(c, status),
+                            ]),
                           ),
-                          AppMenuItem(
-                            icon: Icons.link_off_rounded,
-                            title: S.regenerateShareLink,
-                            subtitle: S.oldLinkQrCodeStopWorking2,
-                            isLast: true,
-                            onTap: _rotateShareLink,
-                          ),
-                        ])),
+                        ),
                         const SizedBox(height: 24),
                         FadeSlideIn(index: 1, child: _buildSection(c, S.faqCatAccount, [
                           AppMenuItem(
@@ -230,6 +261,22 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAiConsentItem(AppColors c, AiStatusInfo status) {
+    return AppMenuItem(
+      icon: Icons.auto_awesome_outlined,
+      title: S.aiDataProcessing,
+      subtitle: S.providersP0(aiProviderNames(status)),
+      isLast: true,
+      showChevron: false,
+      onTap: () => _toggleAiConsent(!status.consented),
+      trailing: Switch.adaptive(
+        value: status.consented,
+        activeThumbColor: c.accent,
+        onChanged: _toggleAiConsent,
       ),
     );
   }

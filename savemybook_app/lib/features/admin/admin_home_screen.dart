@@ -24,6 +24,7 @@ import 'admin_ticket_screen.dart';
 import 'admin_wallet_screen.dart';
 import 'admin_backup_screen.dart';
 import 'admin_deletion_screen.dart';
+import 'ai/admin_ai_screen.dart';
 import '../../i18n/strings.dart';
 
 class AdminHomeScreen extends StatefulWidget {
@@ -238,6 +239,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           ),
         ]),
         _buildSection(c, 5, S.systemOperations, [
+          AppMenuItem(
+            icon: Icons.auto_awesome_rounded,
+            title: S.aiFeatures,
+            subtitle: S.usageModelsListingReview,
+            onTap: () => _open(const AdminAiScreen()),
+          ),
           AppMenuItem(
             icon: Icons.backup_outlined,
             title: S.databaseBackups,

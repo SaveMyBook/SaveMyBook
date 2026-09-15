@@ -2957,5 +2957,338 @@
     }
   },
   "savingImage": "正在保存图片",
-  "passwordsCanOnlyContainEnglishLetters": "密码仅可使用英文字母、数字及半角符号"
+  "passwordsCanOnlyContainEnglishLetters": "密码仅可使用英文字母、数字及半角符号",
+  "aiSupport": "AI 客服",
+  "instantReplies": "即时回复",
+  "howDoIListBook": "如何上架书籍？",
+  "howDoIPickUpFrom": "如何在智能柜取书？",
+  "howDoIRequestRefund": "如何申请退款？",
+  "howDoWalletCoinsWork": "钱包点数如何使用？",
+  "talkPerson": "转接人工客服",
+  "supportRequestCreatedFromConversationOur": "将以当前的对话内容创建客服单，由客服人员接续处理",
+  "transfer4": "转接",
+  "creatingSupportRequest": "正在创建客服单",
+  "transferredSupportTeam": "已转接人工客服",
+  "newConversation": "开始新对话",
+  "currentConversationEnd": "当前的对话将会结束",
+  "copied2": "已复制",
+  "aiReplies": "AI 回复",
+  "howCanWeHelp": "请问有什么需要协助的地方？",
+  "failedSend": "发送失败",
+  "ourSupportTeamCanHelpWith": "此问题建议由客服人员协助处理",
+  "contactSupport": "联系客服",
+  "typeQuestion": "输入问题",
+  "aiFeatures": "AI 功能",
+  "usageModelsListingReview": "用量、模型设置与上架审核",
+  "aiSettingsNotSavedChangesLost": "AI 设置尚未保存，离开后更改将不会保留",
+  "usage": "用量",
+  "settings2": "设置 •",
+  "reviewP0": "审核 {p0}",
+  "@reviewP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dailyCost": "每日费用",
+  "noCostPeriod": "此期间尚无费用",
+  "peakDay": "单日最高",
+  "tapBarDetails": "点选长条查看明细",
+  "p0Requests": "{p0} 次请求",
+  "@p0Requests": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "listingAssist": "上架辅助",
+  "recommendations": "推荐书籍",
+  "listingReview": "上架审核",
+  "connectionTest": "连接测试",
+  "today2": "今日",
+  "k7Days": "7 天",
+  "k30Days": "30 天",
+  "notBookUnrelatedItem": "非书籍或无关商品",
+  "prohibitedPiratedContent": "违禁或盗版内容",
+  "adultContent": "成人内容",
+  "offPlatformDealContactInfo": "站外交易或联系信息",
+  "misleadingDescription": "不实描述",
+  "unusualPrice": "价格异常",
+  "providerError": "服务商错误",
+  "timedOut": "超时",
+  "noApiKey": "未设置密钥",
+  "rateLimited": "频率受限",
+  "invalidApiKey": "密钥无效",
+  "invalidResponseFormat": "响应格式错误",
+  "rejectListing": "拒绝上架",
+  "noteOptionalSentSeller": "说明（选填，将通知卖家）",
+  "reject": "拒绝",
+  "listingApproved": "已批准上架",
+  "listingRejected": "已拒绝上架",
+  "noListingsAwaitingReview": "目前没有待审核的上架",
+  "likelyViolation": "疑似违规",
+  "needsReview": "需人工确认",
+  "rejected": "已拒绝",
+  "approve": "批准上架",
+  "pleaseFixHighlightedFields": "请修正标示错误的字段",
+  "aiSettingsSaved": "AI 设置已保存",
+  "invalidFormat": "格式不正确",
+  "enter0P0": "请输入 0 至 {p0}",
+  "@enter0P0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "databaseNotBeenUpdatedAiYet": "数据库尚未完成 AI 相关更新，设置保存后暂时不会生效",
+  "defaultModel": "默认模型",
+  "features": "功能",
+  "on": "已启用",
+  "noProviderApiKeysSetSo": "尚未设置任何服务商密钥，AI 功能无法使用",
+  "p0NoApiKeyCannotSelected": "{p0} 尚未设置密钥，无法选用",
+  "@p0NoApiKeyCannotSelected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "input": "输入",
+  "output": "输出",
+  "per1mTokens": "每百万 tokens",
+  "vision": "图片识别",
+  "webSearch": "联网搜索",
+  "testing": "测试中",
+  "test": "测试连接",
+  "connectedP0Ms": "连接成功・{p0} ms",
+  "@connectedP0Ms": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionFailed": "连接失败",
+  "keySet": "密钥已设置",
+  "noKey": "密钥未设置",
+  "model": "使用模型",
+  "defaultP0": "跟随默认（{p0}）",
+  "@defaultP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0NoApiKey": "{p0} 尚未设置密钥",
+  "@p0NoApiKey": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0DoesNotSupportWebSearch": "{p0} 不支持联网搜索",
+  "@p0DoesNotSupportWebSearch": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "searchNotBilledSeparately": "搜索不另计费",
+  "firstP0SearchesFreeEachMonth": "每月前 {p0} 次免费，之后每千次 {p1}",
+  "@firstP0SearchesFreeEachMonth": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0Per1000SearchesPlus": "每千次搜索 {p0}，另计搜索内容 tokens",
+  "@p0Per1000SearchesPlus": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspiciousListings": "可疑商品处理方式",
+  "holdReview": "送交审核",
+  "rejectClearViolations": "直接拒绝明显违规",
+  "budgetLimits": "预算与上限",
+  "monthlyBudgetUsd": "每月预算（USD）",
+  "k0MeansNoCap": "0 为不设上限",
+  "dailyLimitPerMember": "每位会员每日次数上限",
+  "k0MeansUnlimited": "0 为不限",
+  "advanced": "高级设置",
+  "resetDefault": "恢复默认",
+  "modelId": "模型 ID",
+  "priceUsPer1mTokens": "单价（US$ / 每百万 tokens）",
+  "cachedInput": "缓存输入",
+  "searchPriceUsPer1000": "搜索单价（US$ / 千次）",
+  "freeSearchesPerMonth": "每月免费搜索次数",
+  "p0FieldsInvalid": "{p0} 个字段格式不正确",
+  "@p0FieldsInvalid": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0UnsavedChanges": "{p0} 项设置尚未保存",
+  "@p0UnsavedChanges": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unsavedChanges": "有未保存的更改",
+  "month2": "本月费用",
+  "budgetP0": "预算 {p0}",
+  "@budgetP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noMonthlyBudget": "未设置每月预算",
+  "projectedP0": "预估月底 {p0}",
+  "@projectedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "periodCost": "期间费用",
+  "requests": "请求次数",
+  "p0Searches": "搜索 {p0} 次",
+  "@p0Searches": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0OutP1": "输入 {p0}・输出 {p1}",
+  "@p0OutP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "errors": "错误",
+  "errorRateP0": "错误率 {p0}%",
+  "@errorRateP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ListingsAwaitingReview": "{p0} 笔上架待审核",
+  "@p0ListingsAwaitingReview": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "byFeature": "按功能",
+  "noDataYet": "尚无数据",
+  "errorsP0": "错误 {p0}",
+  "@errorsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Calls": "{p0} 次",
+  "@p0Calls": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "byModel": "按模型",
+  "p0CallsP1Ms": "{p0} 次・{p1} ms",
+  "@p0CallsP1Ms": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "topMembers": "用量最高的会员",
+  "p0Uses": "{p0} 次使用",
+  "@p0Uses": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "recentErrors": "最近错误",
+  "noErrors": "没有错误",
+  "fillWithAi": "AI 带入",
+  "summary": "简介",
+  "lookingUpBookDetails": "查询书籍资料",
+  "searchingWeb": "联网搜索补充资料",
+  "analyzingPhotos": "分析照片",
+  "suggestingCategoryConditionPrice": "判断分类、书况与售价",
+  "couldNotGetAiSuggestions": "无法获取 AI 建议",
+  "done": "分析完成",
+  "aiAnalyzing": "AI 分析中",
+  "aiSuggestions": "AI 建议",
+  "noSuggestionsApply": "没有可带入的建议",
+  "bookDetails": "书籍资料",
+  "conditionAppliedNextStep": "书况（下一步带入）",
+  "priceAppliedNextStep": "售价（下一步带入）",
+  "suggestedPrice": "建议售价",
+  "rangeP0P1": "建议区间 ${p0}–${p1}",
+  "@rangeP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "listPriceP0": "定价 ${p0}",
+  "@listPriceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sources": "资料来源",
+  "applyP0": "应用 {p0} 项",
+  "@applyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "currentP0": "当前：{p0}",
+  "@currentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sameAsCurrent": "与当前相同",
+  "confidenceP0": "置信度 {p0}%",
+  "@confidenceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "listingNotApproved": "未通过上架审核",
+  "editListing": "修改内容",
+  "submittedReview": "已提交审核",
+  "goSaleOnceApprovedNotifiedResult": "审核通过后将公开销售，结果会以通知告知",
+  "got": "我知道了",
+  "aiFeaturesNotAvailableRightNow": "AI 功能目前未开放",
+  "bookUnderReviewGoSaleOnce": "此书籍正在审核，通过后将公开销售",
+  "notApproved": "未通过审核",
+  "bookDidNotPassListingReview": "此书籍未通过上架审核",
+  "enterIsbnTitleFirst": "请先输入 ISBN 或书名",
+  "appliedP0AiSuggestions": "已应用 {p0} 项 AI 建议",
+  "@appliedP0AiSuggestions": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addBookPhotosFirst": "请先添加书籍照片",
+  "nothingFoundFillCheckIsbnTitle": "找不到可带入的资料，请确认 ISBN 或书名",
+  "appliedP0AiSuggestions2": "已应用 {p0} 项 AI 建议",
+  "@appliedP0AiSuggestions2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "aiDataProcessingEnabled": "已同意 AI 数据处理",
+  "aiDataProcessingTurnedOff": "已停止 AI 数据处理",
+  "aiDataProcessing": "AI 数据处理",
+  "providersP0": "服务商：{p0}",
+  "@providersP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "messagesEnterStatusOrdersReservations": "您输入的消息与您的订单、预约状态",
+  "isbnTitleConditionNotesPhotosSelect": "ISBN、书名、书况说明与您选择的照片",
+  "bookDetailsFromFavoritesPurchaseHistory": "您的收藏与购买记录中的书籍信息",
+  "aiDataProcessing2": "AI 数据处理说明",
+  "whenUseAiFeaturesWeShare": "使用 AI 功能时，我们会将下列数据提供给第三方 AI 服务商处理。",
+  "dataShared": "提供的数据",
+  "recipients": "数据接收方",
+  "purpose": "使用目的",
+  "usedOnlyGenerateSupportRepliesPrepare": "仅用于生成客服回复、整理上架数据与推荐书籍，不会用于广告或追踪。",
+  "withdrawingConsent": "撤回同意",
+  "canTurnOffAiDataProcessing": "您可随时在「设置」>「账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据。",
+  "agreeContinue": "同意并继续"
 }

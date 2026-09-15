@@ -95,7 +95,7 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`scope\` | 可用方式 | 有效期 | 使用次數 | 適用端點 |
 | --- | --- | --- | --- | --- |
 | \`payment\` | 交易密碼、生物辨識 | 3 分鐘 | 單次；請求失敗（狀態碼大於等於 400）時恢復可用 | \`POST /api/orders/checkout\`、\`POST /api/chat/rooms/{roomId}/transfers\`、\`POST /api/chat/transfers/{id}/pay\` |
-| \`sensitive\` | 登入密碼、交易密碼、生物辨識 | 5 分鐘 | 有效期內可重複使用 | 匯出個人資料、交易密碼與登入裝置管理、刪除使用者、錢包調整、重設會員密碼、設定管理員權限、刪除備份、立即匿名化、還原操作 |
+| \`sensitive\` | 登入密碼、交易密碼、生物辨識 | 5 分鐘 | 有效期內可重複使用 | 匯出個人資料、交易密碼與登入裝置管理、刪除使用者、錢包調整、重設會員密碼、設定管理員權限、刪除備份、立即匿名化、還原操作、修改 AI 設定 |
 
 交易密碼規則、錯誤鎖定與生物辨識付款的運作方式見「帳號安全」一節。
 伺服器尚未執行 \`migrations/007_consent_sessions_payment.sql\` 時略過此驗證，
@@ -131,6 +131,14 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`GROUP_MEMBER_LIMIT\` | 400 | 群組成員將超過 100 人 | 提示減少邀請人數 |
 | \`TRANSFER_STATE_CHANGED\` | 409 | 請款已被付款、婉拒、取消或已到期 | 重新取得訊息以更新轉帳卡片 |
 | \`BOOK_NOT_APPROVED\` | 403 | 書籍因違規下架，賣家無法自行重新上架 | 引導使用者開立客服工單 |
+| \`LISTING_REJECTED\` | 422 | 上架或編輯的內容未通過 AI 上架審核，資料未儲存 | 顯示 \`message\` 中的原因，引導使用者修改內容 |
+| \`AI_DISABLED\` | 503 | AI 功能目前未開放 | 隱藏 AI 功能入口 |
+| \`AI_NOT_CONFIGURED\` | 503 | 此 AI 功能使用的服務商尚未設定 API 金鑰 | 隱藏 AI 功能入口 |
+| \`AI_BUDGET_EXCEEDED\` | 503 | AI 功能本月用量已達上限 | 提示稍後再試 |
+| \`AI_CONSENT_REQUIRED\` | 403 | 使用者尚未同意將資料提供給 AI 服務商處理 | 顯示 AI 資料處理同意說明 |
+| \`AI_DAILY_LIMIT\` | 429 | 使用者今日 AI 使用次數已達上限 | 提示明日再試 |
+| \`AI_PROVIDER_ERROR\` | 502 | AI 服務商錯誤、逾時或回應格式不正確 | 提示稍後再試 |
+| \`AI_UNAVAILABLE\` | 503 | 伺服器尚未執行 AI 功能所需的資料庫更新 011 | 隱藏 AI 功能入口 |
 | \`BOOK_IN_TRANSACTION\` | 409 | 管理員刪除書籍時，書籍交易中或有進行中的預約 | 提示先處理交易或預約 |
 | \`BOOK_HAS_ORDERS\` | 409 | 管理員刪除書籍時，書籍已有訂單紀錄 | 改用強制下架 |
 | \`OPEN_ORDERS\` | 400 | 尚有進行中的訂單，無法申請刪除帳號 | 引導使用者完成或取消訂單 |
@@ -162,6 +170,7 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`POST /api/chat/rooms/{roomId}/messages\`、\`POST /api/chat/rooms/{roomId}/reservations\` | 每位使用者每分鐘合計 60 次 |
 | \`POST /api/chat/rooms/{roomId}/typing\` | 每位使用者每分鐘 40 次 |
 | \`GET /api/books/isbn/{isbn}\` | 每位使用者每分鐘 30 次 |
+| \`POST /api/ai/support/messages\`、\`POST /api/ai/support/session/escalate\`、\`POST /api/ai/listing-assist\` | 每位使用者每分鐘合計 20 次（另有管理員設定的每日次數上限） |
 | \`POST\`、\`DELETE /api/push/devices\` | 每位使用者每分鐘 20 次 |
 | \`POST /api/push/test\` | 每位使用者 10 分鐘 5 次 |
 
@@ -258,6 +267,7 @@ pending_payment → pending_deposit → deposited → pending_pickup → complet
 | 檢舉與爭議佐證 | \`POST /api/uploads\` | \`/uploads/evidence/\` |
 | 聊天圖片 | \`POST /api/uploads/chat-image\` | \`/uploads/chat/\` |
 | 聊天語音 | \`POST /api/uploads/voice\` | \`/uploads/voice/\` |
+| AI 上架輔助 | \`POST /api/ai/listing-assist\` | 不儲存，僅於記憶體中處理 |
 
 | 用途 | 單檔上限 |
 | --- | --- |
@@ -266,6 +276,7 @@ pending_payment → pending_deposit → deposited → pending_pickup → complet
 | 檢舉與爭議佐證 | 8 MB |
 | 聊天圖片 | 10 MB |
 | 聊天語音 | 5 MB，長度上限 120 秒 |
+| AI 上架輔助 | 5 MB，最多 4 張 |
 
 ---
 
@@ -308,6 +319,7 @@ const base = {
     { name: '交易', tags: ['cart', 'orders', 'wallet'] },
     { name: '互動', tags: ['chat', 'notifications', 'push', 'announcements'] },
     { name: '客服與申訴', tags: ['support', 'reports', 'disputes'] },
+    { name: 'AI', tags: ['ai'] },
     { name: '共用工具', tags: ['uploads', 'public', 'status'] },
     {
       name: '管理後台',
@@ -321,7 +333,8 @@ const base = {
         'admin-wallets',
         'admin-levels',
         'admin-support',
-        'admin-system'
+        'admin-system',
+        'admin-ai'
       ]
     }
   ]

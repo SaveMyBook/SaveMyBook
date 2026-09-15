@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../models/ai.dart';
+import '../../services/ai_status.dart';
 import '../../services/photo_service.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
@@ -17,6 +19,7 @@ import '../../widgets/guards.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../home/home_screen.dart';
+import 'ai_listing_assist.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
@@ -80,6 +83,8 @@ class SellBookDetailScreen extends StatefulWidget {
   final String publishDate;
   final String description;
   final int categoryId;
+  final String? aiCondition;
+  final int? aiPrice;
 
   const SellBookDetailScreen({
     super.key,
@@ -90,6 +95,8 @@ class SellBookDetailScreen extends StatefulWidget {
     required this.publishDate,
     required this.description,
     required this.categoryId,
+    this.aiCondition,
+    this.aiPrice,
   });
 
   @override
@@ -111,6 +118,9 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   bool _confirming = false;
   bool _submitted = false;
   Timer? _saveTimer;
+  bool _conditionTouched = false;
+  bool _aiRunning = false;
+  final Map<String, int> _flash = {};
 
   List<String> get _requiredLabels => AppLabels.photoSlots;
   late final List<XFile?> _slots = List<XFile?>.filled(_requiredLabels.length, null, growable: false);
@@ -123,7 +133,85 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   void initState() {
     super.initState();
     _priceController.addListener(_scheduleSave);
-    _restoreDraft();
+    _restoreDraft().whenComplete(_applyCarriedSuggestion);
+    AiStatus.refresh();
+  }
+
+  void _applyCarriedSuggestion() {
+    if (!mounted) return;
+    final flashed = <String>[];
+    setState(() {
+      final condition = widget.aiCondition;
+      if (condition != null && !_conditionTouched && AppLabels.condition.containsKey(condition)) {
+        _condition = condition;
+        flashed.add('condition');
+      }
+      final price = widget.aiPrice;
+      if (price != null && price > 0 && _priceController.text.trim().isEmpty) {
+        _priceController.text = '${price.clamp(1, _maxPrice)}';
+        flashed.add('price');
+      }
+      for (final key in flashed) {
+        _flash[key] = (_flash[key] ?? 0) + 1;
+      }
+    });
+  }
+
+  List<String> get _aiImagePaths => [
+        for (final f in _slots)
+          if (f != null) f.path,
+        for (final f in _extra) f.path,
+      ].take(4).toList();
+
+  Future<void> _onAiAssist() async {
+    if (_aiRunning || _isSubmitting) return;
+    FocusScope.of(context).unfocus();
+    final images = _aiImagePaths;
+    if (images.isEmpty) {
+      HapticFeedback.heavyImpact();
+      showAppSnackBar(context, S.addBookPhotosFirst, isError: true);
+      return;
+    }
+    setState(() => _aiRunning = true);
+    final result = await runAiListingAssist(
+      context,
+      isbn: widget.isbn,
+      title: widget.title,
+      imagePaths: images,
+    );
+    if (!mounted) return;
+    setState(() => _aiRunning = false);
+    if (result == null) return;
+    final selection = await showAiListingResultSheet(
+      context,
+      result: result,
+      targets: AiListingTargets(
+        supportsCondition: true,
+        condition: _condition,
+        conditionTouched: _conditionTouched,
+        supportsPrice: true,
+        price: _price,
+      ),
+    );
+    if (selection == null || !mounted) return;
+    final flashed = <String>[];
+    setState(() {
+      if (selection.condition && result.condition != null && AppLabels.condition.containsKey(result.condition!.level)) {
+        _condition = result.condition!.level;
+        _conditionTouched = true;
+        flashed.add('condition');
+      }
+      if (selection.price && result.price != null) {
+        _priceController.text = '${result.price!.suggested.clamp(1, _maxPrice)}';
+        flashed.add('price');
+      }
+      for (final key in flashed) {
+        _flash[key] = (_flash[key] ?? 0) + 1;
+      }
+    });
+    _saveDraftNow();
+    HapticFeedback.mediumImpact();
+    showAppSnackBar(context, S.appliedP0AiSuggestions(flashed.length));
   }
 
   @override
@@ -148,7 +236,10 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       final price = '${step2['price'] ?? ''}';
       if (price.isNotEmpty && _priceController.text.isEmpty) _priceController.text = price;
       final condition = step2['condition'];
-      if (condition is String && AppLabels.condition.containsKey(condition)) _condition = condition;
+      if (condition is String && AppLabels.condition.containsKey(condition)) {
+        _condition = condition;
+        _conditionTouched = true;
+      }
       final cabinetId = step2['cabinet_id'];
       if (cabinetId is num) {
         _selectedCabinet = cabinetId.toInt();
@@ -302,7 +393,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     if (!confirmed || !mounted) return;
     setState(() => _isSubmitting = true);
 
-    final error = await ApiService().createBook({
+    final outcome = await ApiService().createBook({
       'title': widget.title,
       'author': widget.author,
       'publisher': widget.publisher,
@@ -321,13 +412,18 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     ]);
     if (!mounted) return;
 
-    if (error == null) {
+    if (outcome.isOk) {
       _submitted = true;
       _saveTimer?.cancel();
       await SellDraft.finish();
       if (!mounted) return;
       HapticFeedback.mediumImpact();
-      showAppSnackBar(context, S.listed2);
+      if (outcome.pendingReview) {
+        await showPendingReviewNotice(context);
+        if (!mounted) return;
+      } else {
+        showAppSnackBar(context, S.listed2);
+      }
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
           transitionDuration: Motion.enter,
@@ -341,7 +437,11 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
 
     setState(() => _isSubmitting = false);
     HapticFeedback.heavyImpact();
-    _showAlertDialog(S.couldNotListBook, S.serverError(error));
+    if (outcome.isRejected) {
+      await showListingRejectedDialog(context, outcome);
+      return;
+    }
+    _showAlertDialog(S.couldNotListBook, S.serverError(outcome.error ?? ''));
   }
 
   @override
@@ -376,7 +476,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                           const SizedBox(height: 12),
                           FadeSlideIn(
                             index: 1,
-                            child: FormRowCard(
+                            child: AiFlash(trigger: _flash['condition'] ?? 0, child: FormRowCard(
                               label: S.condition,
                               labelWidth: 88,
                               isRequired: true,
@@ -393,15 +493,18 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                                     ),
                                 ],
                                 onChanged: (value) {
-                                  setState(() => _condition = value);
+                                  setState(() {
+                                    _condition = value;
+                                    _conditionTouched = true;
+                                  });
                                   _saveDraftNow();
                                 },
                               ),
-                            ),
+                            )),
                           ),
                           FadeSlideIn(
                             index: 2,
-                            child: FormRowCard(
+                            child: AiFlash(trigger: _flash['price'] ?? 0, child: FormRowCard(
                               label: S.customPrice,
                               labelWidth: 88,
                               isRequired: true,
@@ -415,7 +518,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                                 inputFormatters: const [PriceInputFormatter(max: _maxPrice)],
                                 onChanged: (_) => setState(() {}),
                               ),
-                            ),
+                            )),
                           ),
                           FadeSlideIn(
                             index: 3,
@@ -598,6 +701,20 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                     child: _buildAddImageButton(c, S.morePhotos, _addExtraImages),
                   ),
               ],
+            ),
+          ),
+          ValueListenableBuilder<AiStatusInfo>(
+            valueListenable: AiStatus.listenable,
+            builder: (context, status, _) => AnimatedSize(
+              duration: Motion.base,
+              curve: Motion.emphasized,
+              alignment: Alignment.topCenter,
+              child: status.listingAssist
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 14),
+                      child: AiAssistButton(onTap: _onAiAssist, busy: _aiRunning),
+                    )
+                  : const SizedBox(width: double.infinity),
             ),
           ),
         ],

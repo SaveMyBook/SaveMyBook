@@ -137,4 +137,53 @@ UNION ALL
 SELECT '資料表', 'chat_mentions',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_mentions';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_mentions'
+
+UNION ALL
+
+SELECT '資料表', 'ai_settings',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_settings'
+
+UNION ALL
+
+SELECT '資料表', 'ai_usage_logs',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_usage_logs'
+
+UNION ALL
+
+SELECT '資料表', 'ai_support_sessions',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_support_sessions'
+
+UNION ALL
+
+SELECT '資料表', 'ai_support_messages',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_support_messages'
+
+UNION ALL
+
+SELECT '資料表', 'ai_recommendation_cache',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_recommendation_cache'
+
+UNION ALL
+
+SELECT '資料表', 'ai_book_reviews',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_book_reviews'
+
+UNION ALL
+
+SELECT '資料表', 'ai_consents',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_consents';

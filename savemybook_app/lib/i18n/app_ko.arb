@@ -2957,5 +2957,338 @@
     }
   },
   "savingImage": "이미지 저장 중",
-  "passwordsCanOnlyContainEnglishLetters": "비밀번호에는 영문, 숫자, 반각 기호만 사용할 수 있습니다"
+  "passwordsCanOnlyContainEnglishLetters": "비밀번호에는 영문, 숫자, 반각 기호만 사용할 수 있습니다",
+  "aiSupport": "AI 고객센터",
+  "instantReplies": "즉시 답변",
+  "howDoIListBook": "책은 어떻게 등록하나요?",
+  "howDoIPickUpFrom": "스마트 보관함에서 어떻게 수령하나요?",
+  "howDoIRequestRefund": "환불은 어떻게 신청하나요?",
+  "howDoWalletCoinsWork": "지갑 코인은 어떻게 사용하나요?",
+  "talkPerson": "상담원 연결",
+  "supportRequestCreatedFromConversationOur": "현재 대화 내용으로 문의가 접수되며 상담원이 이어서 처리합니다",
+  "transfer4": "연결",
+  "creatingSupportRequest": "문의를 접수하는 중",
+  "transferredSupportTeam": "상담원에게 연결되었습니다",
+  "newConversation": "새 대화",
+  "currentConversationEnd": "현재 대화가 종료됩니다",
+  "copied2": "복사했습니다",
+  "aiReplies": "AI 답변",
+  "howCanWeHelp": "무엇을 도와드릴까요?",
+  "failedSend": "전송 실패",
+  "ourSupportTeamCanHelpWith": "이 문의는 상담원의 도움을 받는 것이 좋습니다",
+  "contactSupport": "고객센터 문의",
+  "typeQuestion": "질문 입력",
+  "aiFeatures": "AI 기능",
+  "usageModelsListingReview": "사용량, 모델 설정 및 등록 심사",
+  "aiSettingsNotSavedChangesLost": "AI 설정이 저장되지 않았습니다. 나가면 변경 사항이 사라집니다",
+  "usage": "사용량",
+  "settings2": "설정 •",
+  "reviewP0": "심사 {p0}",
+  "@reviewP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dailyCost": "일별 비용",
+  "noCostPeriod": "이 기간에는 비용이 없습니다",
+  "peakDay": "일 최고",
+  "tapBarDetails": "막대를 눌러 상세 보기",
+  "p0Requests": "요청 {p0}회",
+  "@p0Requests": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "listingAssist": "등록 도우미",
+  "recommendations": "추천 도서",
+  "listingReview": "등록 심사",
+  "connectionTest": "연결 테스트",
+  "today2": "오늘",
+  "k7Days": "7일",
+  "k30Days": "30일",
+  "notBookUnrelatedItem": "도서가 아니거나 무관한 상품",
+  "prohibitedPiratedContent": "금지 또는 불법 복제 콘텐츠",
+  "adultContent": "성인 콘텐츠",
+  "offPlatformDealContactInfo": "외부 거래 또는 연락처 정보",
+  "misleadingDescription": "허위 설명",
+  "unusualPrice": "비정상적인 가격",
+  "providerError": "서비스 제공자 오류",
+  "timedOut": "시간 초과",
+  "noApiKey": "API 키 없음",
+  "rateLimited": "요청 제한",
+  "invalidApiKey": "유효하지 않은 API 키",
+  "invalidResponseFormat": "응답 형식 오류",
+  "rejectListing": "등록 거절",
+  "noteOptionalSentSeller": "메모 (선택, 판매자에게 전달)",
+  "reject": "거절",
+  "listingApproved": "등록을 승인했습니다",
+  "listingRejected": "등록을 거절했습니다",
+  "noListingsAwaitingReview": "심사 대기 중인 등록이 없습니다",
+  "likelyViolation": "위반 의심",
+  "needsReview": "확인 필요",
+  "rejected": "거절됨",
+  "approve": "승인",
+  "pleaseFixHighlightedFields": "오류가 표시된 항목을 수정하세요",
+  "aiSettingsSaved": "AI 설정을 저장했습니다",
+  "invalidFormat": "형식이 올바르지 않습니다",
+  "enter0P0": "0~{p0} 사이로 입력하세요",
+  "@enter0P0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "databaseNotBeenUpdatedAiYet": "데이터베이스의 AI 업데이트가 완료되지 않아 저장한 설정이 아직 적용되지 않습니다",
+  "defaultModel": "기본 모델",
+  "features": "기능",
+  "on": "사용 중",
+  "noProviderApiKeysSetSo": "서비스 제공자 API 키가 없어 AI 기능을 사용할 수 없습니다",
+  "p0NoApiKeyCannotSelected": "{p0}에 API 키가 없어 선택할 수 없습니다",
+  "@p0NoApiKeyCannotSelected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "input": "입력",
+  "output": "출력",
+  "per1mTokens": "100만 토큰당",
+  "vision": "이미지 인식",
+  "webSearch": "웹 검색",
+  "testing": "테스트 중",
+  "test": "연결 테스트",
+  "connectedP0Ms": "연결 성공・{p0} ms",
+  "@connectedP0Ms": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionFailed": "연결 실패",
+  "keySet": "키 설정됨",
+  "noKey": "키 없음",
+  "model": "사용 모델",
+  "defaultP0": "기본값 ({p0})",
+  "@defaultP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0NoApiKey": "{p0}에 API 키가 없습니다",
+  "@p0NoApiKey": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0DoesNotSupportWebSearch": "{p0}은(는) 웹 검색을 지원하지 않습니다",
+  "@p0DoesNotSupportWebSearch": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "searchNotBilledSeparately": "검색은 별도로 과금되지 않습니다",
+  "firstP0SearchesFreeEachMonth": "매월 {p0}회까지 무료, 이후 1,000회당 {p1}",
+  "@firstP0SearchesFreeEachMonth": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0Per1000SearchesPlus": "검색 1,000회당 {p0}, 검색 내용 토큰은 별도",
+  "@p0Per1000SearchesPlus": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspiciousListings": "의심 상품 처리 방식",
+  "holdReview": "심사로 보내기",
+  "rejectClearViolations": "명백한 위반은 바로 거절",
+  "budgetLimits": "예산 및 한도",
+  "monthlyBudgetUsd": "월 예산 (USD)",
+  "k0MeansNoCap": "0은 한도 없음",
+  "dailyLimitPerMember": "회원당 일일 한도",
+  "k0MeansUnlimited": "0은 무제한",
+  "advanced": "고급 설정",
+  "resetDefault": "기본값으로 재설정",
+  "modelId": "모델 ID",
+  "priceUsPer1mTokens": "단가 (US$ / 100만 토큰)",
+  "cachedInput": "캐시 입력",
+  "searchPriceUsPer1000": "검색 단가 (US$ / 1,000회)",
+  "freeSearchesPerMonth": "월 무료 검색 횟수",
+  "p0FieldsInvalid": "{p0}개 항목의 형식이 올바르지 않습니다",
+  "@p0FieldsInvalid": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0UnsavedChanges": "저장되지 않은 설정 {p0}개",
+  "@p0UnsavedChanges": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unsavedChanges": "저장되지 않은 변경 사항이 있습니다",
+  "month2": "이번 달 비용",
+  "budgetP0": "예산 {p0}",
+  "@budgetP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noMonthlyBudget": "월 예산 없음",
+  "projectedP0": "월말 예상 {p0}",
+  "@projectedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "periodCost": "기간 비용",
+  "requests": "요청 수",
+  "p0Searches": "검색 {p0}회",
+  "@p0Searches": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0OutP1": "입력 {p0}・출력 {p1}",
+  "@p0OutP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "errors": "오류",
+  "errorRateP0": "오류율 {p0}%",
+  "@errorRateP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ListingsAwaitingReview": "심사 대기 등록 {p0}건",
+  "@p0ListingsAwaitingReview": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "byFeature": "기능별",
+  "noDataYet": "데이터가 없습니다",
+  "errorsP0": "오류 {p0}",
+  "@errorsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Calls": "{p0}회",
+  "@p0Calls": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "byModel": "모델별",
+  "p0CallsP1Ms": "{p0}회・{p1} ms",
+  "@p0CallsP1Ms": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "topMembers": "사용량 상위 회원",
+  "p0Uses": "{p0}회 사용",
+  "@p0Uses": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "recentErrors": "최근 오류",
+  "noErrors": "오류 없음",
+  "fillWithAi": "AI로 채우기",
+  "summary": "소개",
+  "lookingUpBookDetails": "도서 정보 조회",
+  "searchingWeb": "웹에서 추가 정보 검색",
+  "analyzingPhotos": "사진 분석",
+  "suggestingCategoryConditionPrice": "카테고리, 상태, 가격 판단",
+  "couldNotGetAiSuggestions": "AI 제안을 가져올 수 없습니다",
+  "done": "분석 완료",
+  "aiAnalyzing": "AI 분석 중",
+  "aiSuggestions": "AI 제안",
+  "noSuggestionsApply": "적용할 제안이 없습니다",
+  "bookDetails": "도서 정보",
+  "conditionAppliedNextStep": "상태 (다음 단계에서 적용)",
+  "priceAppliedNextStep": "가격 (다음 단계에서 적용)",
+  "suggestedPrice": "추천 가격",
+  "rangeP0P1": "추천 범위 ${p0}~${p1}",
+  "@rangeP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "listPriceP0": "정가 ${p0}",
+  "@listPriceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sources": "출처",
+  "applyP0": "{p0}개 적용",
+  "@applyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "currentP0": "현재: {p0}",
+  "@currentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sameAsCurrent": "현재와 같음",
+  "confidenceP0": "신뢰도 {p0}%",
+  "@confidenceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "listingNotApproved": "등록 심사를 통과하지 못했습니다",
+  "editListing": "내용 수정",
+  "submittedReview": "심사 요청됨",
+  "goSaleOnceApprovedNotifiedResult": "승인되면 판매가 시작되며 결과는 알림으로 안내됩니다",
+  "got": "확인",
+  "aiFeaturesNotAvailableRightNow": "AI 기능을 현재 사용할 수 없습니다",
+  "bookUnderReviewGoSaleOnce": "이 도서는 심사 중이며 승인되면 판매가 시작됩니다",
+  "notApproved": "심사 미통과",
+  "bookDidNotPassListingReview": "이 도서는 등록 심사를 통과하지 못했습니다",
+  "enterIsbnTitleFirst": "먼저 ISBN 또는 제목을 입력하세요",
+  "appliedP0AiSuggestions": "AI 제안 {p0}개를 적용했습니다",
+  "@appliedP0AiSuggestions": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addBookPhotosFirst": "먼저 도서 사진을 추가하세요",
+  "nothingFoundFillCheckIsbnTitle": "채울 수 있는 정보를 찾지 못했습니다. ISBN 또는 제목을 확인하세요",
+  "appliedP0AiSuggestions2": "AI 제안 {p0}개를 적용했습니다",
+  "@appliedP0AiSuggestions2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "aiDataProcessingEnabled": "AI 데이터 처리에 동의했습니다",
+  "aiDataProcessingTurnedOff": "AI 데이터 처리를 중지했습니다",
+  "aiDataProcessing": "AI 데이터 처리",
+  "providersP0": "제공업체: {p0}",
+  "@providersP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "messagesEnterStatusOrdersReservations": "입력한 메시지와 본인의 주문 및 예약 상태",
+  "isbnTitleConditionNotesPhotosSelect": "ISBN, 도서명, 상태 설명 및 선택한 사진",
+  "bookDetailsFromFavoritesPurchaseHistory": "찜 목록과 구매 내역에 포함된 도서 정보",
+  "aiDataProcessing2": "AI 데이터 처리 안내",
+  "whenUseAiFeaturesWeShare": "AI 기능을 사용할 때 아래 데이터를 제3자 AI 서비스 제공업체에 제공하여 처리합니다.",
+  "dataShared": "제공하는 데이터",
+  "recipients": "데이터 수신자",
+  "purpose": "이용 목적",
+  "usedOnlyGenerateSupportRepliesPrepare": "고객센터 답변 생성, 등록 정보 정리 및 도서 추천에만 사용하며 광고나 추적에는 사용하지 않습니다.",
+  "withdrawingConsent": "동의 철회",
+  "canTurnOffAiDataProcessing": "「설정」>「계정 관리」에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않습니다.",
+  "agreeContinue": "동의"
 }

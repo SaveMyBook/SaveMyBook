@@ -48,10 +48,14 @@ const settle = async (label, task) => {
 };
 
 // Google Books 對中文書與未帶金鑰的請求常查無資料或回傳 429，因此同時查詢 Open Library，逐欄位取第一個有值的來源。
-const lookup = async (isbn) => {
+const gather = async (isbn) => {
   const variants = variantsOf(isbn);
+  let googleInfo = null;
   const [google, library] = await Promise.all([
-    settle('Google Books', async () => fromGoogle(await fetchVolumeByIsbn(isbn))),
+    settle('Google Books', async () => {
+      googleInfo = await fetchVolumeByIsbn(isbn);
+      return fromGoogle(googleInfo);
+    }),
     settle('Open Library', () => openLibrary.fetchEditionByIsbn(variants))
   ]);
 
@@ -66,7 +70,19 @@ const lookup = async (isbn) => {
     const extra = await settle('Open Library 簡介', () => openLibrary.fetchDescriptionByIsbn(library.value.isbn));
     result.description = extra.value || '';
   }
-  return result;
+
+  const links = [
+    google.value && { title: 'Google Books', url: googleInfo?.infoLink || googleInfo?.canonicalVolumeLink || `https://books.google.com/books?vid=ISBN${isbn}` },
+    library.value && { title: 'Open Library', url: `${openLibrary.BASE}/isbn/${encodeURIComponent(library.value.isbn)}` }
+  ].filter(Boolean);
+  return { result, links };
 };
 
-module.exports = { lookup, variantsOf };
+const lookup = async (isbn) => (await gather(isbn)).result;
+
+const lookupWithSources = async (isbn) => {
+  const { result, links } = await gather(isbn);
+  return { fields: result, sources: links };
+};
+
+module.exports = { lookup, lookupWithSources, variantsOf };

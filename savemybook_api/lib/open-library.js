@@ -44,4 +44,22 @@ const fetchDescriptionByIsbn = async (isbn) => {
   return textOf(work?.description);
 };
 
-module.exports = { fetchEditionByIsbn, fetchDescriptionByIsbn };
+const searchByTitle = async (title, limit = 3) => {
+  const params = new URLSearchParams({
+    title,
+    limit: String(limit),
+    fields: 'key,title,author_name,publisher,first_publish_year,isbn'
+  });
+  const data = await getJson(`/search.json?${params}`);
+  return (data?.docs ?? []).slice(0, limit).map((doc) => ({
+    title: doc.title || '',
+    author: (doc.author_name ?? []).slice(0, 3).join(', '),
+    publisher: (doc.publisher ?? [])[0] || '',
+    publish_date: doc.first_publish_year ? String(doc.first_publish_year) : '',
+    isbn: (doc.isbn ?? []).find((i) => /^\d{13}$/.test(i)) || (doc.isbn ?? [])[0] || '',
+    description: '',
+    url: typeof doc.key === 'string' && /^\/works\/OL\d+W$/.test(doc.key) ? `${BASE}${doc.key}` : ''
+  }));
+};
+
+module.exports = { fetchEditionByIsbn, fetchDescriptionByIsbn, searchByTitle, BASE };

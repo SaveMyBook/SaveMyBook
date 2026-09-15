@@ -19,6 +19,7 @@ const MOUNTS = [
   ['/api/support', './support'],
   ['/api/push', './push'],
   ['/api/status', './status'],
+  ['/api/ai', './ai'],
   ['/', './public']
 ];
 

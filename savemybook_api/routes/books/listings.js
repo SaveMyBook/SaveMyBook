@@ -73,8 +73,14 @@ router.post('/', authenticateToken, ...photos.fields(IMAGE_FIELDS.map(({ name, m
     const images = IMAGE_FIELDS.flatMap(({ name, type }) =>
       (req.files?.[name] ?? []).map((f) => ({ image_url: photos.urlOf(f), image_type: type })));
 
-    const newBook = await books.create(data, images);
-    res.status(201).json({ success: true, message: '書籍上架成功', data: newBook });
+    const files = IMAGE_FIELDS.flatMap(({ name }) => req.files?.[name] ?? []);
+    const { book, moderation } = await books.create(data, images, { files });
+    res.status(201).json({
+      success: true,
+      message: moderation ? '書籍已送交審核，審核通過後將公開販售' : '書籍上架成功',
+      data: book,
+      ...(moderation && { moderation })
+    });
   });
 
 router.put('/:id', authenticateToken, async (req, res) => {
@@ -100,8 +106,13 @@ router.put('/:id', authenticateToken, async (req, res) => {
   };
   if (data.title === '') throw badRequest('書名不可為空');
 
-  const updatedBook = await books.update(bookId, req.user, data);
-  res.status(200).json({ success: true, message: '書籍資料更新成功', data: updatedBook });
+  const { book, moderation } = await books.update(bookId, req.user, data);
+  res.status(200).json({
+    success: true,
+    message: moderation ? '書籍資料已更新並送交審核，審核通過後將公開販售' : '書籍資料更新成功',
+    data: book,
+    ...(moderation && { moderation })
+  });
 });
 
 router.delete('/:id', authenticateToken, async (req, res) => {
@@ -115,8 +126,13 @@ router.post('/:id/images', authenticateToken, ...photos.array('images', 8), asyn
   const typeAt = (i) => (IMAGE_TYPES.includes(types[i]) ? types[i] : 'other');
   const images = (req.files ?? []).map((f, i) => ({ image_url: photos.urlOf(f), image_type: typeAt(i) }));
 
-  const data = await books.addImages(bookId, req.user, images);
-  res.status(201).json({ success: true, message: '圖片已新增', data });
+  const { images: data, moderation } = await books.addImages(bookId, req.user, images, { files: req.files ?? [] });
+  res.status(201).json({
+    success: true,
+    message: moderation ? '圖片已新增，書籍已送交審核' : '圖片已新增',
+    data,
+    ...(moderation && { moderation })
+  });
 });
 
 router.delete('/:id/images/:imageId', authenticateToken, async (req, res) => {

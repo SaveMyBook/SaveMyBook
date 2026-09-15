@@ -72,9 +72,15 @@ class _BookManageScreenState extends State<BookManageScreen> {
 
   String _statusOf(Book book) => _statusOverride[book.bookId] ?? book.status;
 
-  bool _violationLocked(Book book) => !book.isApproved || _reportStatus[book.bookId] == 'resolved';
+  bool _violationLocked(Book book) => (!book.isApproved && !book.isPendingReview) || _reportStatus[book.bookId] == 'resolved';
 
   ({String label, Color color, String detail})? _reportBadge(Book book, AppColors c) {
+    if (book.isPendingReview) {
+      return (label: S.reportReviewing, color: c.warning, detail: S.bookUnderReviewGoSaleOnce);
+    }
+    if (book.isReviewRejected) {
+      return (label: S.notApproved, color: c.danger, detail: S.bookDidNotPassListingReview);
+    }
     switch (book.isApproved ? _reportStatus[book.bookId] : 'resolved') {
       case 'pending':
       case 'reviewing':
@@ -554,7 +560,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.flag_rounded, size: 11, color: badge.color),
+                                Icon(book.reviewStatus != null ? Icons.policy_outlined : Icons.flag_rounded, size: 11, color: badge.color),
                                 const SizedBox(width: 3),
                                 Flexible(
                                   child: Text(

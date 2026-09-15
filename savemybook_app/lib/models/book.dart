@@ -43,6 +43,7 @@ class Book {
   final DateTime? reservedUntil;
   final bool reservedForMe;
   final bool isApproved;
+  final String? reviewStatus;
 
   Book({
     required this.bookId,
@@ -76,6 +77,7 @@ class Book {
     this.reservedUntil,
     this.reservedForMe = false,
     this.isApproved = true,
+    this.reviewStatus,
   });
 
   factory Book.fromJson(Map<String, dynamic> json) {
@@ -147,6 +149,7 @@ class Book {
       reservedUntil: json['reservation'] is Map ? parseDate(json['reservation']['reserved_until'])?.toLocal() : null,
       reservedForMe: json['reservation'] is Map && json['reservation']['reserved_for_me'] == true,
       isApproved: json['is_approved'] != false,
+      reviewStatus: json['review_status'] == 'pending' || json['review_status'] == 'rejected' ? json['review_status'] as String : null,
     );
   }
 
@@ -157,4 +160,14 @@ class Book {
   bool get isReservedByOthers => reservedUntil != null && !reservedForMe && reservedUntil!.isAfter(DateTime.now());
 
   String get statusText => AppLabels.book(status);
+
+  bool get isPendingReview => reviewStatus == 'pending';
+
+  bool get isReviewRejected => reviewStatus == 'rejected';
+
+  String get sellerStatusText {
+    if (isPendingReview) return S.reportReviewing;
+    if (isReviewRejected) return S.notApproved;
+    return statusText;
+  }
 }

@@ -12,7 +12,8 @@ const SECTIONS = [
   './wallets',
   './levels',
   './support',
-  './system'
+  './system',
+  './ai'
 ];
 
 const router = express.Router();

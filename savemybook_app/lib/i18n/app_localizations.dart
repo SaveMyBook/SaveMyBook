@@ -1672,6 +1672,185 @@ abstract class AppLocalizations {
   String savingImagesP0P1(Object p0, Object p1);
   String get savingImage;
   String get passwordsCanOnlyContainEnglishLetters;
+  String get aiSupport;
+  String get instantReplies;
+  String get howDoIListBook;
+  String get howDoIPickUpFrom;
+  String get howDoIRequestRefund;
+  String get howDoWalletCoinsWork;
+  String get talkPerson;
+  String get supportRequestCreatedFromConversationOur;
+  String get transfer4;
+  String get creatingSupportRequest;
+  String get transferredSupportTeam;
+  String get newConversation;
+  String get currentConversationEnd;
+  String get copied2;
+  String get aiReplies;
+  String get howCanWeHelp;
+  String get failedSend;
+  String get ourSupportTeamCanHelpWith;
+  String get contactSupport;
+  String get typeQuestion;
+  String get aiFeatures;
+  String get usageModelsListingReview;
+  String get aiSettingsNotSavedChangesLost;
+  String get usage;
+  String get settings2;
+  String reviewP0(Object p0);
+  String get dailyCost;
+  String get noCostPeriod;
+  String get peakDay;
+  String get tapBarDetails;
+  String p0Requests(Object p0);
+  String get listingAssist;
+  String get recommendations;
+  String get listingReview;
+  String get connectionTest;
+  String get today2;
+  String get k7Days;
+  String get k30Days;
+  String get notBookUnrelatedItem;
+  String get prohibitedPiratedContent;
+  String get adultContent;
+  String get offPlatformDealContactInfo;
+  String get misleadingDescription;
+  String get unusualPrice;
+  String get providerError;
+  String get timedOut;
+  String get noApiKey;
+  String get rateLimited;
+  String get invalidApiKey;
+  String get invalidResponseFormat;
+  String get rejectListing;
+  String get noteOptionalSentSeller;
+  String get reject;
+  String get listingApproved;
+  String get listingRejected;
+  String get noListingsAwaitingReview;
+  String get likelyViolation;
+  String get needsReview;
+  String get rejected;
+  String get approve;
+  String get pleaseFixHighlightedFields;
+  String get aiSettingsSaved;
+  String get invalidFormat;
+  String enter0P0(Object p0);
+  String get databaseNotBeenUpdatedAiYet;
+  String get defaultModel;
+  String get features;
+  String get on;
+  String get noProviderApiKeysSetSo;
+  String p0NoApiKeyCannotSelected(Object p0);
+  String get input;
+  String get output;
+  String get per1mTokens;
+  String get vision;
+  String get webSearch;
+  String get testing;
+  String get test;
+  String connectedP0Ms(Object p0);
+  String get connectionFailed;
+  String get keySet;
+  String get noKey;
+  String get model;
+  String defaultP0(Object p0);
+  String p0NoApiKey(Object p0);
+  String p0DoesNotSupportWebSearch(Object p0);
+  String get searchNotBilledSeparately;
+  String firstP0SearchesFreeEachMonth(Object p0, Object p1);
+  String p0Per1000SearchesPlus(Object p0);
+  String get suspiciousListings;
+  String get holdReview;
+  String get rejectClearViolations;
+  String get budgetLimits;
+  String get monthlyBudgetUsd;
+  String get k0MeansNoCap;
+  String get dailyLimitPerMember;
+  String get k0MeansUnlimited;
+  String get advanced;
+  String get resetDefault;
+  String get modelId;
+  String get priceUsPer1mTokens;
+  String get cachedInput;
+  String get searchPriceUsPer1000;
+  String get freeSearchesPerMonth;
+  String p0FieldsInvalid(Object p0);
+  String p0UnsavedChanges(Object p0);
+  String get unsavedChanges;
+  String get month2;
+  String budgetP0(Object p0);
+  String get noMonthlyBudget;
+  String projectedP0(Object p0);
+  String get periodCost;
+  String get requests;
+  String p0Searches(Object p0);
+  String p0OutP1(Object p0, Object p1);
+  String get errors;
+  String errorRateP0(Object p0);
+  String p0ListingsAwaitingReview(Object p0);
+  String get byFeature;
+  String get noDataYet;
+  String errorsP0(Object p0);
+  String p0Calls(Object p0);
+  String get byModel;
+  String p0CallsP1Ms(Object p0, Object p1);
+  String get topMembers;
+  String p0Uses(Object p0);
+  String get recentErrors;
+  String get noErrors;
+  String get fillWithAi;
+  String get summary;
+  String get lookingUpBookDetails;
+  String get searchingWeb;
+  String get analyzingPhotos;
+  String get suggestingCategoryConditionPrice;
+  String get couldNotGetAiSuggestions;
+  String get done;
+  String get aiAnalyzing;
+  String get aiSuggestions;
+  String get noSuggestionsApply;
+  String get bookDetails;
+  String get conditionAppliedNextStep;
+  String get priceAppliedNextStep;
+  String get suggestedPrice;
+  String rangeP0P1(Object p0, Object p1);
+  String listPriceP0(Object p0);
+  String get sources;
+  String applyP0(Object p0);
+  String currentP0(Object p0);
+  String get sameAsCurrent;
+  String confidenceP0(Object p0);
+  String get listingNotApproved;
+  String get editListing;
+  String get submittedReview;
+  String get goSaleOnceApprovedNotifiedResult;
+  String get got;
+  String get aiFeaturesNotAvailableRightNow;
+  String get bookUnderReviewGoSaleOnce;
+  String get notApproved;
+  String get bookDidNotPassListingReview;
+  String get enterIsbnTitleFirst;
+  String appliedP0AiSuggestions(Object p0);
+  String get addBookPhotosFirst;
+  String get nothingFoundFillCheckIsbnTitle;
+  String appliedP0AiSuggestions2(Object p0);
+  String get aiDataProcessingEnabled;
+  String get aiDataProcessingTurnedOff;
+  String get aiDataProcessing;
+  String providersP0(Object p0);
+  String get messagesEnterStatusOrdersReservations;
+  String get isbnTitleConditionNotesPhotosSelect;
+  String get bookDetailsFromFavoritesPurchaseHistory;
+  String get aiDataProcessing2;
+  String get whenUseAiFeaturesWeShare;
+  String get dataShared;
+  String get recipients;
+  String get purpose;
+  String get usedOnlyGenerateSupportRepliesPrepare;
+  String get withdrawingConsent;
+  String get canTurnOffAiDataProcessing;
+  String get agreeContinue;
 }
 
 class _LEn extends AppLocalizations {
@@ -6623,6 +6802,543 @@ class _LEn extends AppLocalizations {
 
   @override
   String get passwordsCanOnlyContainEnglishLetters => 'Passwords can only contain English letters, numbers and standard symbols';
+
+  @override
+  String get aiSupport => 'AI support';
+
+  @override
+  String get instantReplies => 'Instant replies';
+
+  @override
+  String get howDoIListBook => 'How do I list a book?';
+
+  @override
+  String get howDoIPickUpFrom => 'How do I pick up from a locker?';
+
+  @override
+  String get howDoIRequestRefund => 'How do I request a refund?';
+
+  @override
+  String get howDoWalletCoinsWork => 'How do wallet coins work?';
+
+  @override
+  String get talkPerson => 'Talk to a person';
+
+  @override
+  String get supportRequestCreatedFromConversationOur => 'A support request will be created from this conversation, and our support team will follow up.';
+
+  @override
+  String get transfer4 => 'Transfer';
+
+  @override
+  String get creatingSupportRequest => 'Creating support request';
+
+  @override
+  String get transferredSupportTeam => 'Transferred to support team';
+
+  @override
+  String get newConversation => 'New conversation';
+
+  @override
+  String get currentConversationEnd => 'The current conversation will end';
+
+  @override
+  String get copied2 => 'Copied';
+
+  @override
+  String get aiReplies => 'AI replies';
+
+  @override
+  String get howCanWeHelp => 'How can we help?';
+
+  @override
+  String get failedSend => 'Failed to send';
+
+  @override
+  String get ourSupportTeamCanHelpWith => 'Our support team can help with this';
+
+  @override
+  String get contactSupport => 'Contact support';
+
+  @override
+  String get typeQuestion => 'Type your question';
+
+  @override
+  String get aiFeatures => 'AI features';
+
+  @override
+  String get usageModelsListingReview => 'Usage, models and listing review';
+
+  @override
+  String get aiSettingsNotSavedChangesLost => 'AI settings are not saved. Changes will be lost if you leave.';
+
+  @override
+  String get usage => 'Usage';
+
+  @override
+  String get settings2 => 'Settings •';
+
+  @override
+  String reviewP0(Object p0) => 'Review ${p0}';
+
+  @override
+  String get dailyCost => 'Daily cost';
+
+  @override
+  String get noCostPeriod => 'No cost in this period';
+
+  @override
+  String get peakDay => 'Peak day';
+
+  @override
+  String get tapBarDetails => 'Tap a bar for details';
+
+  @override
+  String p0Requests(Object p0) => '${p0} requests';
+
+  @override
+  String get listingAssist => 'Listing assist';
+
+  @override
+  String get recommendations => 'Recommendations';
+
+  @override
+  String get listingReview => 'Listing review';
+
+  @override
+  String get connectionTest => 'Connection test';
+
+  @override
+  String get today2 => 'Today';
+
+  @override
+  String get k7Days => '7 days';
+
+  @override
+  String get k30Days => '30 days';
+
+  @override
+  String get notBookUnrelatedItem => 'Not a book or unrelated item';
+
+  @override
+  String get prohibitedPiratedContent => 'Prohibited or pirated content';
+
+  @override
+  String get adultContent => 'Adult content';
+
+  @override
+  String get offPlatformDealContactInfo => 'Off-platform deal or contact info';
+
+  @override
+  String get misleadingDescription => 'Misleading description';
+
+  @override
+  String get unusualPrice => 'Unusual price';
+
+  @override
+  String get providerError => 'Provider error';
+
+  @override
+  String get timedOut => 'Timed out';
+
+  @override
+  String get noApiKey => 'No API key';
+
+  @override
+  String get rateLimited => 'Rate limited';
+
+  @override
+  String get invalidApiKey => 'Invalid API key';
+
+  @override
+  String get invalidResponseFormat => 'Invalid response format';
+
+  @override
+  String get rejectListing => 'Reject listing';
+
+  @override
+  String get noteOptionalSentSeller => 'Note (optional, sent to the seller)';
+
+  @override
+  String get reject => 'Reject';
+
+  @override
+  String get listingApproved => 'Listing approved';
+
+  @override
+  String get listingRejected => 'Listing rejected';
+
+  @override
+  String get noListingsAwaitingReview => 'No listings awaiting review';
+
+  @override
+  String get likelyViolation => 'Likely violation';
+
+  @override
+  String get needsReview => 'Needs review';
+
+  @override
+  String get rejected => 'Rejected';
+
+  @override
+  String get approve => 'Approve';
+
+  @override
+  String get pleaseFixHighlightedFields => 'Please fix the highlighted fields';
+
+  @override
+  String get aiSettingsSaved => 'AI settings saved';
+
+  @override
+  String get invalidFormat => 'Invalid format';
+
+  @override
+  String enter0P0(Object p0) => 'Enter 0 to ${p0}';
+
+  @override
+  String get databaseNotBeenUpdatedAiYet => 'The database has not been updated for AI yet. Saved settings will not take effect until it is.';
+
+  @override
+  String get defaultModel => 'Default model';
+
+  @override
+  String get features => 'Features';
+
+  @override
+  String get on => 'On';
+
+  @override
+  String get noProviderApiKeysSetSo => 'No provider API keys are set, so AI features cannot run';
+
+  @override
+  String p0NoApiKeyCannotSelected(Object p0) => '${p0} has no API key and cannot be selected';
+
+  @override
+  String get input => 'Input';
+
+  @override
+  String get output => 'Output';
+
+  @override
+  String get per1mTokens => 'per 1M tokens';
+
+  @override
+  String get vision => 'Vision';
+
+  @override
+  String get webSearch => 'Web search';
+
+  @override
+  String get testing => 'Testing';
+
+  @override
+  String get test => 'Test';
+
+  @override
+  String connectedP0Ms(Object p0) => 'Connected・${p0} ms';
+
+  @override
+  String get connectionFailed => 'Connection failed';
+
+  @override
+  String get keySet => 'Key set';
+
+  @override
+  String get noKey => 'No key';
+
+  @override
+  String get model => 'Model';
+
+  @override
+  String defaultP0(Object p0) => 'Default (${p0})';
+
+  @override
+  String p0NoApiKey(Object p0) => '${p0} has no API key';
+
+  @override
+  String p0DoesNotSupportWebSearch(Object p0) => '${p0} does not support web search';
+
+  @override
+  String get searchNotBilledSeparately => 'Search is not billed separately';
+
+  @override
+  String firstP0SearchesFreeEachMonth(Object p0, Object p1) => 'First ${p0} searches free each month, then ${p1} per 1,000';
+
+  @override
+  String p0Per1000SearchesPlus(Object p0) => '${p0} per 1,000 searches, plus tokens for search content';
+
+  @override
+  String get suspiciousListings => 'Suspicious listings';
+
+  @override
+  String get holdReview => 'Hold for review';
+
+  @override
+  String get rejectClearViolations => 'Reject clear violations';
+
+  @override
+  String get budgetLimits => 'Budget and limits';
+
+  @override
+  String get monthlyBudgetUsd => 'Monthly budget (USD)';
+
+  @override
+  String get k0MeansNoCap => '0 means no cap';
+
+  @override
+  String get dailyLimitPerMember => 'Daily limit per member';
+
+  @override
+  String get k0MeansUnlimited => '0 means unlimited';
+
+  @override
+  String get advanced => 'Advanced';
+
+  @override
+  String get resetDefault => 'Reset to default';
+
+  @override
+  String get modelId => 'Model ID';
+
+  @override
+  String get priceUsPer1mTokens => 'Price (US\$ per 1M tokens)';
+
+  @override
+  String get cachedInput => 'Cached input';
+
+  @override
+  String get searchPriceUsPer1000 => 'Search price (US\$ per 1,000)';
+
+  @override
+  String get freeSearchesPerMonth => 'Free searches per month';
+
+  @override
+  String p0FieldsInvalid(Object p0) => '${p0} fields are invalid';
+
+  @override
+  String p0UnsavedChanges(Object p0) => '${p0} unsaved changes';
+
+  @override
+  String get unsavedChanges => 'You have unsaved changes';
+
+  @override
+  String get month2 => 'This month';
+
+  @override
+  String budgetP0(Object p0) => 'Budget ${p0}';
+
+  @override
+  String get noMonthlyBudget => 'No monthly budget';
+
+  @override
+  String projectedP0(Object p0) => 'Projected ${p0}';
+
+  @override
+  String get periodCost => 'Period cost';
+
+  @override
+  String get requests => 'Requests';
+
+  @override
+  String p0Searches(Object p0) => '${p0} searches';
+
+  @override
+  String p0OutP1(Object p0, Object p1) => 'In ${p0}・Out ${p1}';
+
+  @override
+  String get errors => 'Errors';
+
+  @override
+  String errorRateP0(Object p0) => 'Error rate ${p0}%';
+
+  @override
+  String p0ListingsAwaitingReview(Object p0) => '${p0} listings awaiting review';
+
+  @override
+  String get byFeature => 'By feature';
+
+  @override
+  String get noDataYet => 'No data yet';
+
+  @override
+  String errorsP0(Object p0) => 'Errors ${p0}';
+
+  @override
+  String p0Calls(Object p0) => '${p0} calls';
+
+  @override
+  String get byModel => 'By model';
+
+  @override
+  String p0CallsP1Ms(Object p0, Object p1) => '${p0} calls・${p1} ms';
+
+  @override
+  String get topMembers => 'Top members';
+
+  @override
+  String p0Uses(Object p0) => '${p0} uses';
+
+  @override
+  String get recentErrors => 'Recent errors';
+
+  @override
+  String get noErrors => 'No errors';
+
+  @override
+  String get fillWithAi => 'Fill with AI';
+
+  @override
+  String get summary => 'Summary';
+
+  @override
+  String get lookingUpBookDetails => 'Looking up book details';
+
+  @override
+  String get searchingWeb => 'Searching the web';
+
+  @override
+  String get analyzingPhotos => 'Analyzing photos';
+
+  @override
+  String get suggestingCategoryConditionPrice => 'Suggesting category, condition and price';
+
+  @override
+  String get couldNotGetAiSuggestions => 'Could not get AI suggestions';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get aiAnalyzing => 'AI is analyzing';
+
+  @override
+  String get aiSuggestions => 'AI suggestions';
+
+  @override
+  String get noSuggestionsApply => 'No suggestions to apply';
+
+  @override
+  String get bookDetails => 'Book details';
+
+  @override
+  String get conditionAppliedNextStep => 'Condition (applied in next step)';
+
+  @override
+  String get priceAppliedNextStep => 'Price (applied in next step)';
+
+  @override
+  String get suggestedPrice => 'Suggested price';
+
+  @override
+  String rangeP0P1(Object p0, Object p1) => 'Range \$${p0}–\$${p1}';
+
+  @override
+  String listPriceP0(Object p0) => 'List price \$${p0}';
+
+  @override
+  String get sources => 'Sources';
+
+  @override
+  String applyP0(Object p0) => 'Apply ${p0}';
+
+  @override
+  String currentP0(Object p0) => 'Current: ${p0}';
+
+  @override
+  String get sameAsCurrent => 'Same as current';
+
+  @override
+  String confidenceP0(Object p0) => 'Confidence ${p0}%';
+
+  @override
+  String get listingNotApproved => 'Listing not approved';
+
+  @override
+  String get editListing => 'Edit listing';
+
+  @override
+  String get submittedReview => 'Submitted for review';
+
+  @override
+  String get goSaleOnceApprovedNotifiedResult => 'It will go on sale once approved. You will be notified of the result.';
+
+  @override
+  String get got => 'Got it';
+
+  @override
+  String get aiFeaturesNotAvailableRightNow => 'AI features are not available right now';
+
+  @override
+  String get bookUnderReviewGoSaleOnce => 'This book is under review and will go on sale once approved';
+
+  @override
+  String get notApproved => 'Not approved';
+
+  @override
+  String get bookDidNotPassListingReview => 'This book did not pass listing review';
+
+  @override
+  String get enterIsbnTitleFirst => 'Enter an ISBN or title first';
+
+  @override
+  String appliedP0AiSuggestions(Object p0) => 'Applied ${p0} AI suggestions';
+
+  @override
+  String get addBookPhotosFirst => 'Add book photos first';
+
+  @override
+  String get nothingFoundFillCheckIsbnTitle => 'Nothing found to fill in. Check the ISBN or title.';
+
+  @override
+  String appliedP0AiSuggestions2(Object p0) => 'Applied ${p0} AI suggestions';
+
+  @override
+  String get aiDataProcessingEnabled => 'AI data processing enabled';
+
+  @override
+  String get aiDataProcessingTurnedOff => 'AI data processing turned off';
+
+  @override
+  String get aiDataProcessing => 'AI data processing';
+
+  @override
+  String providersP0(Object p0) => 'Providers: ${p0}';
+
+  @override
+  String get messagesEnterStatusOrdersReservations => 'Messages you enter and the status of your orders and reservations';
+
+  @override
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN, title, condition notes and the photos you select';
+
+  @override
+  String get bookDetailsFromFavoritesPurchaseHistory => 'Book details from your favorites and purchase history';
+
+  @override
+  String get aiDataProcessing2 => 'AI data processing';
+
+  @override
+  String get whenUseAiFeaturesWeShare => 'When you use AI features, we share the following data with third-party AI providers for processing.';
+
+  @override
+  String get dataShared => 'Data shared';
+
+  @override
+  String get recipients => 'Recipients';
+
+  @override
+  String get purpose => 'Purpose';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesPrepare => 'Used only to generate support replies, prepare listing details and recommend books. Never used for advertising or tracking.';
+
+  @override
+  String get withdrawingConsent => 'Withdrawing consent';
+
+  @override
+  String get canTurnOffAiDataProcessing => 'You can turn off "AI data processing" at any time in Settings > Account. The data above will no longer be shared once it is turned off.';
+
+  @override
+  String get agreeContinue => 'Agree';
 
 }
 
@@ -11576,6 +12292,543 @@ class _LJa extends AppLocalizations {
   @override
   String get passwordsCanOnlyContainEnglishLetters => 'パスワードには英字、数字、半角記号のみ使用できます';
 
+  @override
+  String get aiSupport => 'AI サポート';
+
+  @override
+  String get instantReplies => '即時回答';
+
+  @override
+  String get howDoIListBook => '本を出品するには？';
+
+  @override
+  String get howDoIPickUpFrom => 'スマートロッカーで受け取るには？';
+
+  @override
+  String get howDoIRequestRefund => '返金を申請するには？';
+
+  @override
+  String get howDoWalletCoinsWork => 'ウォレットのコインの使い方は？';
+
+  @override
+  String get talkPerson => '担当者に切り替え';
+
+  @override
+  String get supportRequestCreatedFromConversationOur => 'この会話内容でお問い合わせを作成し、担当者が引き継ぎます';
+
+  @override
+  String get transfer4 => '切り替える';
+
+  @override
+  String get creatingSupportRequest => 'お問い合わせを作成しています';
+
+  @override
+  String get transferredSupportTeam => '担当者に引き継ぎました';
+
+  @override
+  String get newConversation => '新しい会話';
+
+  @override
+  String get currentConversationEnd => '現在の会話は終了します';
+
+  @override
+  String get copied2 => 'コピーしました';
+
+  @override
+  String get aiReplies => 'AI による回答';
+
+  @override
+  String get howCanWeHelp => 'どのようなご用件でしょうか？';
+
+  @override
+  String get failedSend => '送信できませんでした';
+
+  @override
+  String get ourSupportTeamCanHelpWith => 'この件は担当者による対応をおすすめします';
+
+  @override
+  String get contactSupport => 'サポートに連絡';
+
+  @override
+  String get typeQuestion => '質問を入力';
+
+  @override
+  String get aiFeatures => 'AI 機能';
+
+  @override
+  String get usageModelsListingReview => '利用状況・モデル設定・出品審査';
+
+  @override
+  String get aiSettingsNotSavedChangesLost => 'AI 設定が保存されていません。移動すると変更は失われます';
+
+  @override
+  String get usage => '利用状況';
+
+  @override
+  String get settings2 => '設定 •';
+
+  @override
+  String reviewP0(Object p0) => '審査 ${p0}';
+
+  @override
+  String get dailyCost => '日別の費用';
+
+  @override
+  String get noCostPeriod => 'この期間の費用はありません';
+
+  @override
+  String get peakDay => '1 日の最高';
+
+  @override
+  String get tapBarDetails => 'バーをタップすると内訳を表示';
+
+  @override
+  String p0Requests(Object p0) => 'リクエスト ${p0} 件';
+
+  @override
+  String get listingAssist => '出品アシスト';
+
+  @override
+  String get recommendations => 'おすすめ';
+
+  @override
+  String get listingReview => '出品審査';
+
+  @override
+  String get connectionTest => '接続テスト';
+
+  @override
+  String get today2 => '今日';
+
+  @override
+  String get k7Days => '7 日間';
+
+  @override
+  String get k30Days => '30 日間';
+
+  @override
+  String get notBookUnrelatedItem => '書籍以外・無関係な商品';
+
+  @override
+  String get prohibitedPiratedContent => '禁止・海賊版コンテンツ';
+
+  @override
+  String get adultContent => '成人向けコンテンツ';
+
+  @override
+  String get offPlatformDealContactInfo => '外部取引・連絡先の記載';
+
+  @override
+  String get misleadingDescription => '不正確な説明';
+
+  @override
+  String get unusualPrice => '価格が異常';
+
+  @override
+  String get providerError => 'プロバイダーエラー';
+
+  @override
+  String get timedOut => 'タイムアウト';
+
+  @override
+  String get noApiKey => 'API キー未設定';
+
+  @override
+  String get rateLimited => 'レート制限';
+
+  @override
+  String get invalidApiKey => 'API キーが無効';
+
+  @override
+  String get invalidResponseFormat => '応答形式エラー';
+
+  @override
+  String get rejectListing => '出品を却下';
+
+  @override
+  String get noteOptionalSentSeller => 'メモ（任意・出品者に通知されます）';
+
+  @override
+  String get reject => '却下';
+
+  @override
+  String get listingApproved => '出品を承認しました';
+
+  @override
+  String get listingRejected => '出品を却下しました';
+
+  @override
+  String get noListingsAwaitingReview => '審査待ちの出品はありません';
+
+  @override
+  String get likelyViolation => '違反の疑い';
+
+  @override
+  String get needsReview => '要確認';
+
+  @override
+  String get rejected => '却下済み';
+
+  @override
+  String get approve => '承認';
+
+  @override
+  String get pleaseFixHighlightedFields => 'エラーのある項目を修正してください';
+
+  @override
+  String get aiSettingsSaved => 'AI 設定を保存しました';
+
+  @override
+  String get invalidFormat => '形式が正しくありません';
+
+  @override
+  String enter0P0(Object p0) => '0〜${p0} を入力してください';
+
+  @override
+  String get databaseNotBeenUpdatedAiYet => 'データベースの AI 用アップデートが未完了のため、保存した設定はまだ反映されません';
+
+  @override
+  String get defaultModel => 'デフォルトモデル';
+
+  @override
+  String get features => '機能';
+
+  @override
+  String get on => 'オン';
+
+  @override
+  String get noProviderApiKeysSetSo => 'プロバイダーの API キーが設定されていないため、AI 機能は使えません';
+
+  @override
+  String p0NoApiKeyCannotSelected(Object p0) => '${p0} は API キーが未設定のため選択できません';
+
+  @override
+  String get input => '入力';
+
+  @override
+  String get output => '出力';
+
+  @override
+  String get per1mTokens => '100 万トークンあたり';
+
+  @override
+  String get vision => '画像認識';
+
+  @override
+  String get webSearch => 'ウェブ検索';
+
+  @override
+  String get testing => 'テスト中';
+
+  @override
+  String get test => '接続テスト';
+
+  @override
+  String connectedP0Ms(Object p0) => '接続成功・${p0} ms';
+
+  @override
+  String get connectionFailed => '接続に失敗しました';
+
+  @override
+  String get keySet => 'キー設定済み';
+
+  @override
+  String get noKey => 'キー未設定';
+
+  @override
+  String get model => '使用モデル';
+
+  @override
+  String defaultP0(Object p0) => 'デフォルト（${p0}）';
+
+  @override
+  String p0NoApiKey(Object p0) => '${p0} は API キーが未設定です';
+
+  @override
+  String p0DoesNotSupportWebSearch(Object p0) => '${p0} はウェブ検索に対応していません';
+
+  @override
+  String get searchNotBilledSeparately => '検索は別途課金されません';
+
+  @override
+  String firstP0SearchesFreeEachMonth(Object p0, Object p1) => '毎月 ${p0} 回まで無料、以降 1,000 回ごとに ${p1}';
+
+  @override
+  String p0Per1000SearchesPlus(Object p0) => '1,000 回ごとに ${p0}、検索内容のトークンは別途';
+
+  @override
+  String get suspiciousListings => '疑わしい出品の扱い';
+
+  @override
+  String get holdReview => '審査に回す';
+
+  @override
+  String get rejectClearViolations => '明らかな違反は却下';
+
+  @override
+  String get budgetLimits => '予算と上限';
+
+  @override
+  String get monthlyBudgetUsd => '月間予算（USD）';
+
+  @override
+  String get k0MeansNoCap => '0 は上限なし';
+
+  @override
+  String get dailyLimitPerMember => '会員ごとの 1 日の上限回数';
+
+  @override
+  String get k0MeansUnlimited => '0 は無制限';
+
+  @override
+  String get advanced => '詳細設定';
+
+  @override
+  String get resetDefault => 'デフォルトに戻す';
+
+  @override
+  String get modelId => 'モデル ID';
+
+  @override
+  String get priceUsPer1mTokens => '単価（US\$ / 100 万トークン）';
+
+  @override
+  String get cachedInput => 'キャッシュ入力';
+
+  @override
+  String get searchPriceUsPer1000 => '検索単価（US\$ / 1,000 回）';
+
+  @override
+  String get freeSearchesPerMonth => '毎月の無料検索回数';
+
+  @override
+  String p0FieldsInvalid(Object p0) => '${p0} 件の項目にエラーがあります';
+
+  @override
+  String p0UnsavedChanges(Object p0) => '未保存の変更が ${p0} 件あります';
+
+  @override
+  String get unsavedChanges => '未保存の変更があります';
+
+  @override
+  String get month2 => '今月の費用';
+
+  @override
+  String budgetP0(Object p0) => '予算 ${p0}';
+
+  @override
+  String get noMonthlyBudget => '月間予算未設定';
+
+  @override
+  String projectedP0(Object p0) => '月末予測 ${p0}';
+
+  @override
+  String get periodCost => '期間の費用';
+
+  @override
+  String get requests => 'リクエスト数';
+
+  @override
+  String p0Searches(Object p0) => '検索 ${p0} 回';
+
+  @override
+  String p0OutP1(Object p0, Object p1) => '入力 ${p0}・出力 ${p1}';
+
+  @override
+  String get errors => 'エラー';
+
+  @override
+  String errorRateP0(Object p0) => 'エラー率 ${p0}%';
+
+  @override
+  String p0ListingsAwaitingReview(Object p0) => '審査待ちの出品 ${p0} 件';
+
+  @override
+  String get byFeature => '機能別';
+
+  @override
+  String get noDataYet => 'データがありません';
+
+  @override
+  String errorsP0(Object p0) => 'エラー ${p0}';
+
+  @override
+  String p0Calls(Object p0) => '${p0} 回';
+
+  @override
+  String get byModel => 'モデル別';
+
+  @override
+  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 回・${p1} ms';
+
+  @override
+  String get topMembers => '利用の多い会員';
+
+  @override
+  String p0Uses(Object p0) => '${p0} 回利用';
+
+  @override
+  String get recentErrors => '最近のエラー';
+
+  @override
+  String get noErrors => 'エラーはありません';
+
+  @override
+  String get fillWithAi => 'AI で入力';
+
+  @override
+  String get summary => '内容紹介';
+
+  @override
+  String get lookingUpBookDetails => '書籍情報を検索';
+
+  @override
+  String get searchingWeb => 'ウェブで補足情報を検索';
+
+  @override
+  String get analyzingPhotos => '写真を分析';
+
+  @override
+  String get suggestingCategoryConditionPrice => 'カテゴリ・状態・価格を判定';
+
+  @override
+  String get couldNotGetAiSuggestions => 'AI の提案を取得できませんでした';
+
+  @override
+  String get done => '分析完了';
+
+  @override
+  String get aiAnalyzing => 'AI が分析中';
+
+  @override
+  String get aiSuggestions => 'AI の提案';
+
+  @override
+  String get noSuggestionsApply => '反映できる提案はありません';
+
+  @override
+  String get bookDetails => '書籍情報';
+
+  @override
+  String get conditionAppliedNextStep => '状態（次のステップで反映）';
+
+  @override
+  String get priceAppliedNextStep => '価格（次のステップで反映）';
+
+  @override
+  String get suggestedPrice => '推奨価格';
+
+  @override
+  String rangeP0P1(Object p0, Object p1) => '推奨範囲 \$${p0}〜\$${p1}';
+
+  @override
+  String listPriceP0(Object p0) => '定価 \$${p0}';
+
+  @override
+  String get sources => '情報源';
+
+  @override
+  String applyP0(Object p0) => '${p0} 件を反映';
+
+  @override
+  String currentP0(Object p0) => '現在：${p0}';
+
+  @override
+  String get sameAsCurrent => '現在と同じ';
+
+  @override
+  String confidenceP0(Object p0) => '信頼度 ${p0}%';
+
+  @override
+  String get listingNotApproved => '出品審査に通りませんでした';
+
+  @override
+  String get editListing => '内容を修正';
+
+  @override
+  String get submittedReview => '審査に回しました';
+
+  @override
+  String get goSaleOnceApprovedNotifiedResult => '承認されると販売が開始されます。結果は通知でお知らせします';
+
+  @override
+  String get got => 'わかりました';
+
+  @override
+  String get aiFeaturesNotAvailableRightNow => 'AI 機能は現在ご利用いただけません';
+
+  @override
+  String get bookUnderReviewGoSaleOnce => 'この書籍は審査中です。承認されると販売が開始されます';
+
+  @override
+  String get notApproved => '審査不合格';
+
+  @override
+  String get bookDidNotPassListingReview => 'この書籍は出品審査に通りませんでした';
+
+  @override
+  String get enterIsbnTitleFirst => '先に ISBN または書名を入力してください';
+
+  @override
+  String appliedP0AiSuggestions(Object p0) => 'AI の提案を ${p0} 件反映しました';
+
+  @override
+  String get addBookPhotosFirst => '先に書籍の写真を追加してください';
+
+  @override
+  String get nothingFoundFillCheckIsbnTitle => '反映できる情報が見つかりません。ISBN または書名を確認してください';
+
+  @override
+  String appliedP0AiSuggestions2(Object p0) => 'AI の提案を ${p0} 件反映しました';
+
+  @override
+  String get aiDataProcessingEnabled => 'AI によるデータ処理に同意しました';
+
+  @override
+  String get aiDataProcessingTurnedOff => 'AI によるデータ処理を停止しました';
+
+  @override
+  String get aiDataProcessing => 'AI によるデータ処理';
+
+  @override
+  String providersP0(Object p0) => '提供先：${p0}';
+
+  @override
+  String get messagesEnterStatusOrdersReservations => '入力したメッセージ、ご自身の注文と予約の状況';
+
+  @override
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、状態の説明、選択した写真';
+
+  @override
+  String get bookDetailsFromFavoritesPurchaseHistory => 'お気に入りと購入履歴に含まれる書籍情報';
+
+  @override
+  String get aiDataProcessing2 => 'AI によるデータ処理について';
+
+  @override
+  String get whenUseAiFeaturesWeShare => 'AI 機能をご利用の際、以下のデータを第三者の AI サービス事業者に提供して処理します。';
+
+  @override
+  String get dataShared => '提供するデータ';
+
+  @override
+  String get recipients => '提供先';
+
+  @override
+  String get purpose => '利用目的';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesPrepare => 'サポートの回答、出品情報の整理、書籍のおすすめにのみ使用し、広告やトラッキングには使用しません。';
+
+  @override
+  String get withdrawingConsent => '同意の撤回';
+
+  @override
+  String get canTurnOffAiDataProcessing => '「設定」>「アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。';
+
+  @override
+  String get agreeContinue => '同意する';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -16527,6 +17780,543 @@ class _LKo extends AppLocalizations {
 
   @override
   String get passwordsCanOnlyContainEnglishLetters => '비밀번호에는 영문, 숫자, 반각 기호만 사용할 수 있습니다';
+
+  @override
+  String get aiSupport => 'AI 고객센터';
+
+  @override
+  String get instantReplies => '즉시 답변';
+
+  @override
+  String get howDoIListBook => '책은 어떻게 등록하나요?';
+
+  @override
+  String get howDoIPickUpFrom => '스마트 보관함에서 어떻게 수령하나요?';
+
+  @override
+  String get howDoIRequestRefund => '환불은 어떻게 신청하나요?';
+
+  @override
+  String get howDoWalletCoinsWork => '지갑 코인은 어떻게 사용하나요?';
+
+  @override
+  String get talkPerson => '상담원 연결';
+
+  @override
+  String get supportRequestCreatedFromConversationOur => '현재 대화 내용으로 문의가 접수되며 상담원이 이어서 처리합니다';
+
+  @override
+  String get transfer4 => '연결';
+
+  @override
+  String get creatingSupportRequest => '문의를 접수하는 중';
+
+  @override
+  String get transferredSupportTeam => '상담원에게 연결되었습니다';
+
+  @override
+  String get newConversation => '새 대화';
+
+  @override
+  String get currentConversationEnd => '현재 대화가 종료됩니다';
+
+  @override
+  String get copied2 => '복사했습니다';
+
+  @override
+  String get aiReplies => 'AI 답변';
+
+  @override
+  String get howCanWeHelp => '무엇을 도와드릴까요?';
+
+  @override
+  String get failedSend => '전송 실패';
+
+  @override
+  String get ourSupportTeamCanHelpWith => '이 문의는 상담원의 도움을 받는 것이 좋습니다';
+
+  @override
+  String get contactSupport => '고객센터 문의';
+
+  @override
+  String get typeQuestion => '질문 입력';
+
+  @override
+  String get aiFeatures => 'AI 기능';
+
+  @override
+  String get usageModelsListingReview => '사용량, 모델 설정 및 등록 심사';
+
+  @override
+  String get aiSettingsNotSavedChangesLost => 'AI 설정이 저장되지 않았습니다. 나가면 변경 사항이 사라집니다';
+
+  @override
+  String get usage => '사용량';
+
+  @override
+  String get settings2 => '설정 •';
+
+  @override
+  String reviewP0(Object p0) => '심사 ${p0}';
+
+  @override
+  String get dailyCost => '일별 비용';
+
+  @override
+  String get noCostPeriod => '이 기간에는 비용이 없습니다';
+
+  @override
+  String get peakDay => '일 최고';
+
+  @override
+  String get tapBarDetails => '막대를 눌러 상세 보기';
+
+  @override
+  String p0Requests(Object p0) => '요청 ${p0}회';
+
+  @override
+  String get listingAssist => '등록 도우미';
+
+  @override
+  String get recommendations => '추천 도서';
+
+  @override
+  String get listingReview => '등록 심사';
+
+  @override
+  String get connectionTest => '연결 테스트';
+
+  @override
+  String get today2 => '오늘';
+
+  @override
+  String get k7Days => '7일';
+
+  @override
+  String get k30Days => '30일';
+
+  @override
+  String get notBookUnrelatedItem => '도서가 아니거나 무관한 상품';
+
+  @override
+  String get prohibitedPiratedContent => '금지 또는 불법 복제 콘텐츠';
+
+  @override
+  String get adultContent => '성인 콘텐츠';
+
+  @override
+  String get offPlatformDealContactInfo => '외부 거래 또는 연락처 정보';
+
+  @override
+  String get misleadingDescription => '허위 설명';
+
+  @override
+  String get unusualPrice => '비정상적인 가격';
+
+  @override
+  String get providerError => '서비스 제공자 오류';
+
+  @override
+  String get timedOut => '시간 초과';
+
+  @override
+  String get noApiKey => 'API 키 없음';
+
+  @override
+  String get rateLimited => '요청 제한';
+
+  @override
+  String get invalidApiKey => '유효하지 않은 API 키';
+
+  @override
+  String get invalidResponseFormat => '응답 형식 오류';
+
+  @override
+  String get rejectListing => '등록 거절';
+
+  @override
+  String get noteOptionalSentSeller => '메모 (선택, 판매자에게 전달)';
+
+  @override
+  String get reject => '거절';
+
+  @override
+  String get listingApproved => '등록을 승인했습니다';
+
+  @override
+  String get listingRejected => '등록을 거절했습니다';
+
+  @override
+  String get noListingsAwaitingReview => '심사 대기 중인 등록이 없습니다';
+
+  @override
+  String get likelyViolation => '위반 의심';
+
+  @override
+  String get needsReview => '확인 필요';
+
+  @override
+  String get rejected => '거절됨';
+
+  @override
+  String get approve => '승인';
+
+  @override
+  String get pleaseFixHighlightedFields => '오류가 표시된 항목을 수정하세요';
+
+  @override
+  String get aiSettingsSaved => 'AI 설정을 저장했습니다';
+
+  @override
+  String get invalidFormat => '형식이 올바르지 않습니다';
+
+  @override
+  String enter0P0(Object p0) => '0~${p0} 사이로 입력하세요';
+
+  @override
+  String get databaseNotBeenUpdatedAiYet => '데이터베이스의 AI 업데이트가 완료되지 않아 저장한 설정이 아직 적용되지 않습니다';
+
+  @override
+  String get defaultModel => '기본 모델';
+
+  @override
+  String get features => '기능';
+
+  @override
+  String get on => '사용 중';
+
+  @override
+  String get noProviderApiKeysSetSo => '서비스 제공자 API 키가 없어 AI 기능을 사용할 수 없습니다';
+
+  @override
+  String p0NoApiKeyCannotSelected(Object p0) => '${p0}에 API 키가 없어 선택할 수 없습니다';
+
+  @override
+  String get input => '입력';
+
+  @override
+  String get output => '출력';
+
+  @override
+  String get per1mTokens => '100만 토큰당';
+
+  @override
+  String get vision => '이미지 인식';
+
+  @override
+  String get webSearch => '웹 검색';
+
+  @override
+  String get testing => '테스트 중';
+
+  @override
+  String get test => '연결 테스트';
+
+  @override
+  String connectedP0Ms(Object p0) => '연결 성공・${p0} ms';
+
+  @override
+  String get connectionFailed => '연결 실패';
+
+  @override
+  String get keySet => '키 설정됨';
+
+  @override
+  String get noKey => '키 없음';
+
+  @override
+  String get model => '사용 모델';
+
+  @override
+  String defaultP0(Object p0) => '기본값 (${p0})';
+
+  @override
+  String p0NoApiKey(Object p0) => '${p0}에 API 키가 없습니다';
+
+  @override
+  String p0DoesNotSupportWebSearch(Object p0) => '${p0}은(는) 웹 검색을 지원하지 않습니다';
+
+  @override
+  String get searchNotBilledSeparately => '검색은 별도로 과금되지 않습니다';
+
+  @override
+  String firstP0SearchesFreeEachMonth(Object p0, Object p1) => '매월 ${p0}회까지 무료, 이후 1,000회당 ${p1}';
+
+  @override
+  String p0Per1000SearchesPlus(Object p0) => '검색 1,000회당 ${p0}, 검색 내용 토큰은 별도';
+
+  @override
+  String get suspiciousListings => '의심 상품 처리 방식';
+
+  @override
+  String get holdReview => '심사로 보내기';
+
+  @override
+  String get rejectClearViolations => '명백한 위반은 바로 거절';
+
+  @override
+  String get budgetLimits => '예산 및 한도';
+
+  @override
+  String get monthlyBudgetUsd => '월 예산 (USD)';
+
+  @override
+  String get k0MeansNoCap => '0은 한도 없음';
+
+  @override
+  String get dailyLimitPerMember => '회원당 일일 한도';
+
+  @override
+  String get k0MeansUnlimited => '0은 무제한';
+
+  @override
+  String get advanced => '고급 설정';
+
+  @override
+  String get resetDefault => '기본값으로 재설정';
+
+  @override
+  String get modelId => '모델 ID';
+
+  @override
+  String get priceUsPer1mTokens => '단가 (US\$ / 100만 토큰)';
+
+  @override
+  String get cachedInput => '캐시 입력';
+
+  @override
+  String get searchPriceUsPer1000 => '검색 단가 (US\$ / 1,000회)';
+
+  @override
+  String get freeSearchesPerMonth => '월 무료 검색 횟수';
+
+  @override
+  String p0FieldsInvalid(Object p0) => '${p0}개 항목의 형식이 올바르지 않습니다';
+
+  @override
+  String p0UnsavedChanges(Object p0) => '저장되지 않은 설정 ${p0}개';
+
+  @override
+  String get unsavedChanges => '저장되지 않은 변경 사항이 있습니다';
+
+  @override
+  String get month2 => '이번 달 비용';
+
+  @override
+  String budgetP0(Object p0) => '예산 ${p0}';
+
+  @override
+  String get noMonthlyBudget => '월 예산 없음';
+
+  @override
+  String projectedP0(Object p0) => '월말 예상 ${p0}';
+
+  @override
+  String get periodCost => '기간 비용';
+
+  @override
+  String get requests => '요청 수';
+
+  @override
+  String p0Searches(Object p0) => '검색 ${p0}회';
+
+  @override
+  String p0OutP1(Object p0, Object p1) => '입력 ${p0}・출력 ${p1}';
+
+  @override
+  String get errors => '오류';
+
+  @override
+  String errorRateP0(Object p0) => '오류율 ${p0}%';
+
+  @override
+  String p0ListingsAwaitingReview(Object p0) => '심사 대기 등록 ${p0}건';
+
+  @override
+  String get byFeature => '기능별';
+
+  @override
+  String get noDataYet => '데이터가 없습니다';
+
+  @override
+  String errorsP0(Object p0) => '오류 ${p0}';
+
+  @override
+  String p0Calls(Object p0) => '${p0}회';
+
+  @override
+  String get byModel => '모델별';
+
+  @override
+  String p0CallsP1Ms(Object p0, Object p1) => '${p0}회・${p1} ms';
+
+  @override
+  String get topMembers => '사용량 상위 회원';
+
+  @override
+  String p0Uses(Object p0) => '${p0}회 사용';
+
+  @override
+  String get recentErrors => '최근 오류';
+
+  @override
+  String get noErrors => '오류 없음';
+
+  @override
+  String get fillWithAi => 'AI로 채우기';
+
+  @override
+  String get summary => '소개';
+
+  @override
+  String get lookingUpBookDetails => '도서 정보 조회';
+
+  @override
+  String get searchingWeb => '웹에서 추가 정보 검색';
+
+  @override
+  String get analyzingPhotos => '사진 분석';
+
+  @override
+  String get suggestingCategoryConditionPrice => '카테고리, 상태, 가격 판단';
+
+  @override
+  String get couldNotGetAiSuggestions => 'AI 제안을 가져올 수 없습니다';
+
+  @override
+  String get done => '분석 완료';
+
+  @override
+  String get aiAnalyzing => 'AI 분석 중';
+
+  @override
+  String get aiSuggestions => 'AI 제안';
+
+  @override
+  String get noSuggestionsApply => '적용할 제안이 없습니다';
+
+  @override
+  String get bookDetails => '도서 정보';
+
+  @override
+  String get conditionAppliedNextStep => '상태 (다음 단계에서 적용)';
+
+  @override
+  String get priceAppliedNextStep => '가격 (다음 단계에서 적용)';
+
+  @override
+  String get suggestedPrice => '추천 가격';
+
+  @override
+  String rangeP0P1(Object p0, Object p1) => '추천 범위 \$${p0}~\$${p1}';
+
+  @override
+  String listPriceP0(Object p0) => '정가 \$${p0}';
+
+  @override
+  String get sources => '출처';
+
+  @override
+  String applyP0(Object p0) => '${p0}개 적용';
+
+  @override
+  String currentP0(Object p0) => '현재: ${p0}';
+
+  @override
+  String get sameAsCurrent => '현재와 같음';
+
+  @override
+  String confidenceP0(Object p0) => '신뢰도 ${p0}%';
+
+  @override
+  String get listingNotApproved => '등록 심사를 통과하지 못했습니다';
+
+  @override
+  String get editListing => '내용 수정';
+
+  @override
+  String get submittedReview => '심사 요청됨';
+
+  @override
+  String get goSaleOnceApprovedNotifiedResult => '승인되면 판매가 시작되며 결과는 알림으로 안내됩니다';
+
+  @override
+  String get got => '확인';
+
+  @override
+  String get aiFeaturesNotAvailableRightNow => 'AI 기능을 현재 사용할 수 없습니다';
+
+  @override
+  String get bookUnderReviewGoSaleOnce => '이 도서는 심사 중이며 승인되면 판매가 시작됩니다';
+
+  @override
+  String get notApproved => '심사 미통과';
+
+  @override
+  String get bookDidNotPassListingReview => '이 도서는 등록 심사를 통과하지 못했습니다';
+
+  @override
+  String get enterIsbnTitleFirst => '먼저 ISBN 또는 제목을 입력하세요';
+
+  @override
+  String appliedP0AiSuggestions(Object p0) => 'AI 제안 ${p0}개를 적용했습니다';
+
+  @override
+  String get addBookPhotosFirst => '먼저 도서 사진을 추가하세요';
+
+  @override
+  String get nothingFoundFillCheckIsbnTitle => '채울 수 있는 정보를 찾지 못했습니다. ISBN 또는 제목을 확인하세요';
+
+  @override
+  String appliedP0AiSuggestions2(Object p0) => 'AI 제안 ${p0}개를 적용했습니다';
+
+  @override
+  String get aiDataProcessingEnabled => 'AI 데이터 처리에 동의했습니다';
+
+  @override
+  String get aiDataProcessingTurnedOff => 'AI 데이터 처리를 중지했습니다';
+
+  @override
+  String get aiDataProcessing => 'AI 데이터 처리';
+
+  @override
+  String providersP0(Object p0) => '제공업체: ${p0}';
+
+  @override
+  String get messagesEnterStatusOrdersReservations => '입력한 메시지와 본인의 주문 및 예약 상태';
+
+  @override
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN, 도서명, 상태 설명 및 선택한 사진';
+
+  @override
+  String get bookDetailsFromFavoritesPurchaseHistory => '찜 목록과 구매 내역에 포함된 도서 정보';
+
+  @override
+  String get aiDataProcessing2 => 'AI 데이터 처리 안내';
+
+  @override
+  String get whenUseAiFeaturesWeShare => 'AI 기능을 사용할 때 아래 데이터를 제3자 AI 서비스 제공업체에 제공하여 처리합니다.';
+
+  @override
+  String get dataShared => '제공하는 데이터';
+
+  @override
+  String get recipients => '데이터 수신자';
+
+  @override
+  String get purpose => '이용 목적';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesPrepare => '고객센터 답변 생성, 등록 정보 정리 및 도서 추천에만 사용하며 광고나 추적에는 사용하지 않습니다.';
+
+  @override
+  String get withdrawingConsent => '동의 철회';
+
+  @override
+  String get canTurnOffAiDataProcessing => '「설정」>「계정 관리」에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않습니다.';
+
+  @override
+  String get agreeContinue => '동의';
 
 }
 
@@ -21480,6 +23270,543 @@ class _LZh extends AppLocalizations {
   @override
   String get passwordsCanOnlyContainEnglishLetters => '密碼僅可使用英文字母、數字及半形符號';
 
+  @override
+  String get aiSupport => 'AI 客服';
+
+  @override
+  String get instantReplies => '即時回覆';
+
+  @override
+  String get howDoIListBook => '如何上架書籍？';
+
+  @override
+  String get howDoIPickUpFrom => '如何在智慧櫃取書？';
+
+  @override
+  String get howDoIRequestRefund => '如何申請退款？';
+
+  @override
+  String get howDoWalletCoinsWork => '錢包點數如何使用？';
+
+  @override
+  String get talkPerson => '轉接真人客服';
+
+  @override
+  String get supportRequestCreatedFromConversationOur => '將以目前的對話內容建立客服單，由客服人員接續處理';
+
+  @override
+  String get transfer4 => '轉接';
+
+  @override
+  String get creatingSupportRequest => '正在建立客服單';
+
+  @override
+  String get transferredSupportTeam => '已轉接真人客服';
+
+  @override
+  String get newConversation => '開始新對話';
+
+  @override
+  String get currentConversationEnd => '目前的對話將會結束';
+
+  @override
+  String get copied2 => '已複製';
+
+  @override
+  String get aiReplies => 'AI 回覆';
+
+  @override
+  String get howCanWeHelp => '請問有什麼需要協助的地方？';
+
+  @override
+  String get failedSend => '傳送失敗';
+
+  @override
+  String get ourSupportTeamCanHelpWith => '此問題建議由客服人員協助處理';
+
+  @override
+  String get contactSupport => '聯絡客服';
+
+  @override
+  String get typeQuestion => '輸入問題';
+
+  @override
+  String get aiFeatures => 'AI 功能';
+
+  @override
+  String get usageModelsListingReview => '用量、模型設定與上架審核';
+
+  @override
+  String get aiSettingsNotSavedChangesLost => 'AI 設定尚未儲存，離開後變更將不會保留';
+
+  @override
+  String get usage => '用量';
+
+  @override
+  String get settings2 => '設定 •';
+
+  @override
+  String reviewP0(Object p0) => '審核 ${p0}';
+
+  @override
+  String get dailyCost => '每日費用';
+
+  @override
+  String get noCostPeriod => '此期間尚無費用';
+
+  @override
+  String get peakDay => '單日最高';
+
+  @override
+  String get tapBarDetails => '點選長條查看明細';
+
+  @override
+  String p0Requests(Object p0) => '${p0} 次請求';
+
+  @override
+  String get listingAssist => '上架輔助';
+
+  @override
+  String get recommendations => '推薦書籍';
+
+  @override
+  String get listingReview => '上架審核';
+
+  @override
+  String get connectionTest => '連線測試';
+
+  @override
+  String get today2 => '今日';
+
+  @override
+  String get k7Days => '7 天';
+
+  @override
+  String get k30Days => '30 天';
+
+  @override
+  String get notBookUnrelatedItem => '非書籍或無關商品';
+
+  @override
+  String get prohibitedPiratedContent => '違禁或盜版內容';
+
+  @override
+  String get adultContent => '成人內容';
+
+  @override
+  String get offPlatformDealContactInfo => '站外交易或聯絡資訊';
+
+  @override
+  String get misleadingDescription => '不實描述';
+
+  @override
+  String get unusualPrice => '價格異常';
+
+  @override
+  String get providerError => '服務商錯誤';
+
+  @override
+  String get timedOut => '逾時';
+
+  @override
+  String get noApiKey => '未設定金鑰';
+
+  @override
+  String get rateLimited => '頻率受限';
+
+  @override
+  String get invalidApiKey => '金鑰無效';
+
+  @override
+  String get invalidResponseFormat => '回應格式錯誤';
+
+  @override
+  String get rejectListing => '拒絕上架';
+
+  @override
+  String get noteOptionalSentSeller => '說明（選填，將通知賣家）';
+
+  @override
+  String get reject => '拒絕';
+
+  @override
+  String get listingApproved => '已核准上架';
+
+  @override
+  String get listingRejected => '已拒絕上架';
+
+  @override
+  String get noListingsAwaitingReview => '目前沒有待審核的上架';
+
+  @override
+  String get likelyViolation => '疑似違規';
+
+  @override
+  String get needsReview => '需人工確認';
+
+  @override
+  String get rejected => '已拒絕';
+
+  @override
+  String get approve => '核准上架';
+
+  @override
+  String get pleaseFixHighlightedFields => '請修正標示錯誤的欄位';
+
+  @override
+  String get aiSettingsSaved => 'AI 設定已儲存';
+
+  @override
+  String get invalidFormat => '格式不正確';
+
+  @override
+  String enter0P0(Object p0) => '請輸入 0 至 ${p0}';
+
+  @override
+  String get databaseNotBeenUpdatedAiYet => '資料庫尚未完成 AI 相關更新，設定儲存後暫時不會生效';
+
+  @override
+  String get defaultModel => '預設模型';
+
+  @override
+  String get features => '功能';
+
+  @override
+  String get on => '已啟用';
+
+  @override
+  String get noProviderApiKeysSetSo => '尚未設定任何服務商金鑰，AI 功能無法使用';
+
+  @override
+  String p0NoApiKeyCannotSelected(Object p0) => '${p0} 尚未設定金鑰，無法選用';
+
+  @override
+  String get input => '輸入';
+
+  @override
+  String get output => '輸出';
+
+  @override
+  String get per1mTokens => '每百萬 tokens';
+
+  @override
+  String get vision => '圖片辨識';
+
+  @override
+  String get webSearch => '上網搜尋';
+
+  @override
+  String get testing => '測試中';
+
+  @override
+  String get test => '測試連線';
+
+  @override
+  String connectedP0Ms(Object p0) => '連線成功・${p0} ms';
+
+  @override
+  String get connectionFailed => '連線失敗';
+
+  @override
+  String get keySet => '金鑰已設定';
+
+  @override
+  String get noKey => '金鑰未設定';
+
+  @override
+  String get model => '使用模型';
+
+  @override
+  String defaultP0(Object p0) => '跟隨預設（${p0}）';
+
+  @override
+  String p0NoApiKey(Object p0) => '${p0} 尚未設定金鑰';
+
+  @override
+  String p0DoesNotSupportWebSearch(Object p0) => '${p0} 不支援上網搜尋';
+
+  @override
+  String get searchNotBilledSeparately => '搜尋不另計費';
+
+  @override
+  String firstP0SearchesFreeEachMonth(Object p0, Object p1) => '每月前 ${p0} 次免費，之後每千次 ${p1}';
+
+  @override
+  String p0Per1000SearchesPlus(Object p0) => '每千次搜尋 ${p0}，另計搜尋內容 tokens';
+
+  @override
+  String get suspiciousListings => '可疑商品處理方式';
+
+  @override
+  String get holdReview => '送交審核';
+
+  @override
+  String get rejectClearViolations => '直接拒絕明顯違規';
+
+  @override
+  String get budgetLimits => '預算與上限';
+
+  @override
+  String get monthlyBudgetUsd => '每月預算（USD）';
+
+  @override
+  String get k0MeansNoCap => '0 為不設上限';
+
+  @override
+  String get dailyLimitPerMember => '每位會員每日次數上限';
+
+  @override
+  String get k0MeansUnlimited => '0 為不限';
+
+  @override
+  String get advanced => '進階設定';
+
+  @override
+  String get resetDefault => '恢復預設';
+
+  @override
+  String get modelId => '模型 ID';
+
+  @override
+  String get priceUsPer1mTokens => '單價（US\$ / 每百萬 tokens）';
+
+  @override
+  String get cachedInput => '快取輸入';
+
+  @override
+  String get searchPriceUsPer1000 => '搜尋單價（US\$ / 千次）';
+
+  @override
+  String get freeSearchesPerMonth => '每月免費搜尋次數';
+
+  @override
+  String p0FieldsInvalid(Object p0) => '${p0} 個欄位格式不正確';
+
+  @override
+  String p0UnsavedChanges(Object p0) => '${p0} 項設定尚未儲存';
+
+  @override
+  String get unsavedChanges => '有未儲存的變更';
+
+  @override
+  String get month2 => '本月費用';
+
+  @override
+  String budgetP0(Object p0) => '預算 ${p0}';
+
+  @override
+  String get noMonthlyBudget => '未設定每月預算';
+
+  @override
+  String projectedP0(Object p0) => '預估月底 ${p0}';
+
+  @override
+  String get periodCost => '期間費用';
+
+  @override
+  String get requests => '請求次數';
+
+  @override
+  String p0Searches(Object p0) => '搜尋 ${p0} 次';
+
+  @override
+  String p0OutP1(Object p0, Object p1) => '輸入 ${p0}・輸出 ${p1}';
+
+  @override
+  String get errors => '錯誤';
+
+  @override
+  String errorRateP0(Object p0) => '錯誤率 ${p0}%';
+
+  @override
+  String p0ListingsAwaitingReview(Object p0) => '${p0} 筆上架待審核';
+
+  @override
+  String get byFeature => '依功能';
+
+  @override
+  String get noDataYet => '尚無資料';
+
+  @override
+  String errorsP0(Object p0) => '錯誤 ${p0}';
+
+  @override
+  String p0Calls(Object p0) => '${p0} 次';
+
+  @override
+  String get byModel => '依模型';
+
+  @override
+  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 次・${p1} ms';
+
+  @override
+  String get topMembers => '用量最高的會員';
+
+  @override
+  String p0Uses(Object p0) => '${p0} 次';
+
+  @override
+  String get recentErrors => '最近錯誤';
+
+  @override
+  String get noErrors => '沒有錯誤';
+
+  @override
+  String get fillWithAi => 'AI 帶入';
+
+  @override
+  String get summary => '簡介';
+
+  @override
+  String get lookingUpBookDetails => '查詢書籍資料';
+
+  @override
+  String get searchingWeb => '上網搜尋補充資料';
+
+  @override
+  String get analyzingPhotos => '分析照片';
+
+  @override
+  String get suggestingCategoryConditionPrice => '判斷分類、書況與售價';
+
+  @override
+  String get couldNotGetAiSuggestions => '無法取得 AI 建議';
+
+  @override
+  String get done => '分析完成';
+
+  @override
+  String get aiAnalyzing => 'AI 分析中';
+
+  @override
+  String get aiSuggestions => 'AI 建議';
+
+  @override
+  String get noSuggestionsApply => '沒有可帶入的建議';
+
+  @override
+  String get bookDetails => '書籍資料';
+
+  @override
+  String get conditionAppliedNextStep => '書況（下一步帶入）';
+
+  @override
+  String get priceAppliedNextStep => '售價（下一步帶入）';
+
+  @override
+  String get suggestedPrice => '建議售價';
+
+  @override
+  String rangeP0P1(Object p0, Object p1) => '建議區間 \$${p0}–\$${p1}';
+
+  @override
+  String listPriceP0(Object p0) => '定價 \$${p0}';
+
+  @override
+  String get sources => '資料來源';
+
+  @override
+  String applyP0(Object p0) => '套用 ${p0} 項';
+
+  @override
+  String currentP0(Object p0) => '目前：${p0}';
+
+  @override
+  String get sameAsCurrent => '與目前相同';
+
+  @override
+  String confidenceP0(Object p0) => '信心 ${p0}%';
+
+  @override
+  String get listingNotApproved => '未通過上架審核';
+
+  @override
+  String get editListing => '修改內容';
+
+  @override
+  String get submittedReview => '已送交審核';
+
+  @override
+  String get goSaleOnceApprovedNotifiedResult => '審核通過後將公開販售，結果會以通知告知';
+
+  @override
+  String get got => '我知道了';
+
+  @override
+  String get aiFeaturesNotAvailableRightNow => 'AI 功能目前未開放';
+
+  @override
+  String get bookUnderReviewGoSaleOnce => '此書籍正在審核，通過後將公開販售';
+
+  @override
+  String get notApproved => '未通過審核';
+
+  @override
+  String get bookDidNotPassListingReview => '此書籍未通過上架審核';
+
+  @override
+  String get enterIsbnTitleFirst => '請先輸入 ISBN 或書名';
+
+  @override
+  String appliedP0AiSuggestions(Object p0) => '已套用 ${p0} 項 AI 建議';
+
+  @override
+  String get addBookPhotosFirst => '請先加入書籍照片';
+
+  @override
+  String get nothingFoundFillCheckIsbnTitle => '找不到可帶入的資料，請確認 ISBN 或書名';
+
+  @override
+  String appliedP0AiSuggestions2(Object p0) => '已套用 ${p0} 項 AI 建議';
+
+  @override
+  String get aiDataProcessingEnabled => '已同意 AI 資料處理';
+
+  @override
+  String get aiDataProcessingTurnedOff => '已停止 AI 資料處理';
+
+  @override
+  String get aiDataProcessing => 'AI 資料處理';
+
+  @override
+  String providersP0(Object p0) => '服務商：${p0}';
+
+  @override
+  String get messagesEnterStatusOrdersReservations => '您輸入的訊息與您的訂單、預約狀態';
+
+  @override
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、書況說明與您選擇的照片';
+
+  @override
+  String get bookDetailsFromFavoritesPurchaseHistory => '您的收藏與購買紀錄中的書籍資訊';
+
+  @override
+  String get aiDataProcessing2 => 'AI 資料處理說明';
+
+  @override
+  String get whenUseAiFeaturesWeShare => '使用 AI 功能時，我們會將下列資料提供給第三方 AI 服務商處理。';
+
+  @override
+  String get dataShared => '提供的資料';
+
+  @override
+  String get recipients => '資料接收者';
+
+  @override
+  String get purpose => '使用目的';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesPrepare => '僅用於產生客服回覆、整理上架資料與推薦書籍，不會用於廣告或追蹤。';
+
+  @override
+  String get withdrawingConsent => '撤回同意';
+
+  @override
+  String get canTurnOffAiDataProcessing => '您可隨時在「設定」>「帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。';
+
+  @override
+  String get agreeContinue => '同意並繼續';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -26432,6 +28759,543 @@ class _LZhHans extends AppLocalizations {
   @override
   String get passwordsCanOnlyContainEnglishLetters => '密码仅可使用英文字母、数字及半角符号';
 
+  @override
+  String get aiSupport => 'AI 客服';
+
+  @override
+  String get instantReplies => '即时回复';
+
+  @override
+  String get howDoIListBook => '如何上架书籍？';
+
+  @override
+  String get howDoIPickUpFrom => '如何在智能柜取书？';
+
+  @override
+  String get howDoIRequestRefund => '如何申请退款？';
+
+  @override
+  String get howDoWalletCoinsWork => '钱包点数如何使用？';
+
+  @override
+  String get talkPerson => '转接人工客服';
+
+  @override
+  String get supportRequestCreatedFromConversationOur => '将以当前的对话内容创建客服单，由客服人员接续处理';
+
+  @override
+  String get transfer4 => '转接';
+
+  @override
+  String get creatingSupportRequest => '正在创建客服单';
+
+  @override
+  String get transferredSupportTeam => '已转接人工客服';
+
+  @override
+  String get newConversation => '开始新对话';
+
+  @override
+  String get currentConversationEnd => '当前的对话将会结束';
+
+  @override
+  String get copied2 => '已复制';
+
+  @override
+  String get aiReplies => 'AI 回复';
+
+  @override
+  String get howCanWeHelp => '请问有什么需要协助的地方？';
+
+  @override
+  String get failedSend => '发送失败';
+
+  @override
+  String get ourSupportTeamCanHelpWith => '此问题建议由客服人员协助处理';
+
+  @override
+  String get contactSupport => '联系客服';
+
+  @override
+  String get typeQuestion => '输入问题';
+
+  @override
+  String get aiFeatures => 'AI 功能';
+
+  @override
+  String get usageModelsListingReview => '用量、模型设置与上架审核';
+
+  @override
+  String get aiSettingsNotSavedChangesLost => 'AI 设置尚未保存，离开后更改将不会保留';
+
+  @override
+  String get usage => '用量';
+
+  @override
+  String get settings2 => '设置 •';
+
+  @override
+  String reviewP0(Object p0) => '审核 ${p0}';
+
+  @override
+  String get dailyCost => '每日费用';
+
+  @override
+  String get noCostPeriod => '此期间尚无费用';
+
+  @override
+  String get peakDay => '单日最高';
+
+  @override
+  String get tapBarDetails => '点选长条查看明细';
+
+  @override
+  String p0Requests(Object p0) => '${p0} 次请求';
+
+  @override
+  String get listingAssist => '上架辅助';
+
+  @override
+  String get recommendations => '推荐书籍';
+
+  @override
+  String get listingReview => '上架审核';
+
+  @override
+  String get connectionTest => '连接测试';
+
+  @override
+  String get today2 => '今日';
+
+  @override
+  String get k7Days => '7 天';
+
+  @override
+  String get k30Days => '30 天';
+
+  @override
+  String get notBookUnrelatedItem => '非书籍或无关商品';
+
+  @override
+  String get prohibitedPiratedContent => '违禁或盗版内容';
+
+  @override
+  String get adultContent => '成人内容';
+
+  @override
+  String get offPlatformDealContactInfo => '站外交易或联系信息';
+
+  @override
+  String get misleadingDescription => '不实描述';
+
+  @override
+  String get unusualPrice => '价格异常';
+
+  @override
+  String get providerError => '服务商错误';
+
+  @override
+  String get timedOut => '超时';
+
+  @override
+  String get noApiKey => '未设置密钥';
+
+  @override
+  String get rateLimited => '频率受限';
+
+  @override
+  String get invalidApiKey => '密钥无效';
+
+  @override
+  String get invalidResponseFormat => '响应格式错误';
+
+  @override
+  String get rejectListing => '拒绝上架';
+
+  @override
+  String get noteOptionalSentSeller => '说明（选填，将通知卖家）';
+
+  @override
+  String get reject => '拒绝';
+
+  @override
+  String get listingApproved => '已批准上架';
+
+  @override
+  String get listingRejected => '已拒绝上架';
+
+  @override
+  String get noListingsAwaitingReview => '目前没有待审核的上架';
+
+  @override
+  String get likelyViolation => '疑似违规';
+
+  @override
+  String get needsReview => '需人工确认';
+
+  @override
+  String get rejected => '已拒绝';
+
+  @override
+  String get approve => '批准上架';
+
+  @override
+  String get pleaseFixHighlightedFields => '请修正标示错误的字段';
+
+  @override
+  String get aiSettingsSaved => 'AI 设置已保存';
+
+  @override
+  String get invalidFormat => '格式不正确';
+
+  @override
+  String enter0P0(Object p0) => '请输入 0 至 ${p0}';
+
+  @override
+  String get databaseNotBeenUpdatedAiYet => '数据库尚未完成 AI 相关更新，设置保存后暂时不会生效';
+
+  @override
+  String get defaultModel => '默认模型';
+
+  @override
+  String get features => '功能';
+
+  @override
+  String get on => '已启用';
+
+  @override
+  String get noProviderApiKeysSetSo => '尚未设置任何服务商密钥，AI 功能无法使用';
+
+  @override
+  String p0NoApiKeyCannotSelected(Object p0) => '${p0} 尚未设置密钥，无法选用';
+
+  @override
+  String get input => '输入';
+
+  @override
+  String get output => '输出';
+
+  @override
+  String get per1mTokens => '每百万 tokens';
+
+  @override
+  String get vision => '图片识别';
+
+  @override
+  String get webSearch => '联网搜索';
+
+  @override
+  String get testing => '测试中';
+
+  @override
+  String get test => '测试连接';
+
+  @override
+  String connectedP0Ms(Object p0) => '连接成功・${p0} ms';
+
+  @override
+  String get connectionFailed => '连接失败';
+
+  @override
+  String get keySet => '密钥已设置';
+
+  @override
+  String get noKey => '密钥未设置';
+
+  @override
+  String get model => '使用模型';
+
+  @override
+  String defaultP0(Object p0) => '跟随默认（${p0}）';
+
+  @override
+  String p0NoApiKey(Object p0) => '${p0} 尚未设置密钥';
+
+  @override
+  String p0DoesNotSupportWebSearch(Object p0) => '${p0} 不支持联网搜索';
+
+  @override
+  String get searchNotBilledSeparately => '搜索不另计费';
+
+  @override
+  String firstP0SearchesFreeEachMonth(Object p0, Object p1) => '每月前 ${p0} 次免费，之后每千次 ${p1}';
+
+  @override
+  String p0Per1000SearchesPlus(Object p0) => '每千次搜索 ${p0}，另计搜索内容 tokens';
+
+  @override
+  String get suspiciousListings => '可疑商品处理方式';
+
+  @override
+  String get holdReview => '送交审核';
+
+  @override
+  String get rejectClearViolations => '直接拒绝明显违规';
+
+  @override
+  String get budgetLimits => '预算与上限';
+
+  @override
+  String get monthlyBudgetUsd => '每月预算（USD）';
+
+  @override
+  String get k0MeansNoCap => '0 为不设上限';
+
+  @override
+  String get dailyLimitPerMember => '每位会员每日次数上限';
+
+  @override
+  String get k0MeansUnlimited => '0 为不限';
+
+  @override
+  String get advanced => '高级设置';
+
+  @override
+  String get resetDefault => '恢复默认';
+
+  @override
+  String get modelId => '模型 ID';
+
+  @override
+  String get priceUsPer1mTokens => '单价（US\$ / 每百万 tokens）';
+
+  @override
+  String get cachedInput => '缓存输入';
+
+  @override
+  String get searchPriceUsPer1000 => '搜索单价（US\$ / 千次）';
+
+  @override
+  String get freeSearchesPerMonth => '每月免费搜索次数';
+
+  @override
+  String p0FieldsInvalid(Object p0) => '${p0} 个字段格式不正确';
+
+  @override
+  String p0UnsavedChanges(Object p0) => '${p0} 项设置尚未保存';
+
+  @override
+  String get unsavedChanges => '有未保存的更改';
+
+  @override
+  String get month2 => '本月费用';
+
+  @override
+  String budgetP0(Object p0) => '预算 ${p0}';
+
+  @override
+  String get noMonthlyBudget => '未设置每月预算';
+
+  @override
+  String projectedP0(Object p0) => '预估月底 ${p0}';
+
+  @override
+  String get periodCost => '期间费用';
+
+  @override
+  String get requests => '请求次数';
+
+  @override
+  String p0Searches(Object p0) => '搜索 ${p0} 次';
+
+  @override
+  String p0OutP1(Object p0, Object p1) => '输入 ${p0}・输出 ${p1}';
+
+  @override
+  String get errors => '错误';
+
+  @override
+  String errorRateP0(Object p0) => '错误率 ${p0}%';
+
+  @override
+  String p0ListingsAwaitingReview(Object p0) => '${p0} 笔上架待审核';
+
+  @override
+  String get byFeature => '按功能';
+
+  @override
+  String get noDataYet => '尚无数据';
+
+  @override
+  String errorsP0(Object p0) => '错误 ${p0}';
+
+  @override
+  String p0Calls(Object p0) => '${p0} 次';
+
+  @override
+  String get byModel => '按模型';
+
+  @override
+  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 次・${p1} ms';
+
+  @override
+  String get topMembers => '用量最高的会员';
+
+  @override
+  String p0Uses(Object p0) => '${p0} 次使用';
+
+  @override
+  String get recentErrors => '最近错误';
+
+  @override
+  String get noErrors => '没有错误';
+
+  @override
+  String get fillWithAi => 'AI 带入';
+
+  @override
+  String get summary => '简介';
+
+  @override
+  String get lookingUpBookDetails => '查询书籍资料';
+
+  @override
+  String get searchingWeb => '联网搜索补充资料';
+
+  @override
+  String get analyzingPhotos => '分析照片';
+
+  @override
+  String get suggestingCategoryConditionPrice => '判断分类、书况与售价';
+
+  @override
+  String get couldNotGetAiSuggestions => '无法获取 AI 建议';
+
+  @override
+  String get done => '分析完成';
+
+  @override
+  String get aiAnalyzing => 'AI 分析中';
+
+  @override
+  String get aiSuggestions => 'AI 建议';
+
+  @override
+  String get noSuggestionsApply => '没有可带入的建议';
+
+  @override
+  String get bookDetails => '书籍资料';
+
+  @override
+  String get conditionAppliedNextStep => '书况（下一步带入）';
+
+  @override
+  String get priceAppliedNextStep => '售价（下一步带入）';
+
+  @override
+  String get suggestedPrice => '建议售价';
+
+  @override
+  String rangeP0P1(Object p0, Object p1) => '建议区间 \$${p0}–\$${p1}';
+
+  @override
+  String listPriceP0(Object p0) => '定价 \$${p0}';
+
+  @override
+  String get sources => '资料来源';
+
+  @override
+  String applyP0(Object p0) => '应用 ${p0} 项';
+
+  @override
+  String currentP0(Object p0) => '当前：${p0}';
+
+  @override
+  String get sameAsCurrent => '与当前相同';
+
+  @override
+  String confidenceP0(Object p0) => '置信度 ${p0}%';
+
+  @override
+  String get listingNotApproved => '未通过上架审核';
+
+  @override
+  String get editListing => '修改内容';
+
+  @override
+  String get submittedReview => '已提交审核';
+
+  @override
+  String get goSaleOnceApprovedNotifiedResult => '审核通过后将公开销售，结果会以通知告知';
+
+  @override
+  String get got => '我知道了';
+
+  @override
+  String get aiFeaturesNotAvailableRightNow => 'AI 功能目前未开放';
+
+  @override
+  String get bookUnderReviewGoSaleOnce => '此书籍正在审核，通过后将公开销售';
+
+  @override
+  String get notApproved => '未通过审核';
+
+  @override
+  String get bookDidNotPassListingReview => '此书籍未通过上架审核';
+
+  @override
+  String get enterIsbnTitleFirst => '请先输入 ISBN 或书名';
+
+  @override
+  String appliedP0AiSuggestions(Object p0) => '已应用 ${p0} 项 AI 建议';
+
+  @override
+  String get addBookPhotosFirst => '请先添加书籍照片';
+
+  @override
+  String get nothingFoundFillCheckIsbnTitle => '找不到可带入的资料，请确认 ISBN 或书名';
+
+  @override
+  String appliedP0AiSuggestions2(Object p0) => '已应用 ${p0} 项 AI 建议';
+
+  @override
+  String get aiDataProcessingEnabled => '已同意 AI 数据处理';
+
+  @override
+  String get aiDataProcessingTurnedOff => '已停止 AI 数据处理';
+
+  @override
+  String get aiDataProcessing => 'AI 数据处理';
+
+  @override
+  String providersP0(Object p0) => '服务商：${p0}';
+
+  @override
+  String get messagesEnterStatusOrdersReservations => '您输入的消息与您的订单、预约状态';
+
+  @override
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、书名、书况说明与您选择的照片';
+
+  @override
+  String get bookDetailsFromFavoritesPurchaseHistory => '您的收藏与购买记录中的书籍信息';
+
+  @override
+  String get aiDataProcessing2 => 'AI 数据处理说明';
+
+  @override
+  String get whenUseAiFeaturesWeShare => '使用 AI 功能时，我们会将下列数据提供给第三方 AI 服务商处理。';
+
+  @override
+  String get dataShared => '提供的数据';
+
+  @override
+  String get recipients => '数据接收方';
+
+  @override
+  String get purpose => '使用目的';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesPrepare => '仅用于生成客服回复、整理上架数据与推荐书籍，不会用于广告或追踪。';
+
+  @override
+  String get withdrawingConsent => '撤回同意';
+
+  @override
+  String get canTurnOffAiDataProcessing => '您可随时在「设置」>「账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据。';
+
+  @override
+  String get agreeContinue => '同意并继续';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -31383,6 +34247,543 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get passwordsCanOnlyContainEnglishLetters => '密碼僅可使用英文字母、數字及半形符號';
+
+  @override
+  String get aiSupport => 'AI 客服';
+
+  @override
+  String get instantReplies => '即時回覆';
+
+  @override
+  String get howDoIListBook => '如何上架書籍？';
+
+  @override
+  String get howDoIPickUpFrom => '如何在智慧櫃取書？';
+
+  @override
+  String get howDoIRequestRefund => '如何申請退款？';
+
+  @override
+  String get howDoWalletCoinsWork => '錢包點數如何使用？';
+
+  @override
+  String get talkPerson => '轉接真人客服';
+
+  @override
+  String get supportRequestCreatedFromConversationOur => '將以目前的對話內容建立客服單，由客服人員接續處理';
+
+  @override
+  String get transfer4 => '轉接';
+
+  @override
+  String get creatingSupportRequest => '正在建立客服單';
+
+  @override
+  String get transferredSupportTeam => '已轉接真人客服';
+
+  @override
+  String get newConversation => '開始新對話';
+
+  @override
+  String get currentConversationEnd => '目前的對話將會結束';
+
+  @override
+  String get copied2 => '已複製';
+
+  @override
+  String get aiReplies => 'AI 回覆';
+
+  @override
+  String get howCanWeHelp => '請問有什麼需要協助的地方？';
+
+  @override
+  String get failedSend => '傳送失敗';
+
+  @override
+  String get ourSupportTeamCanHelpWith => '此問題建議由客服人員協助處理';
+
+  @override
+  String get contactSupport => '聯絡客服';
+
+  @override
+  String get typeQuestion => '輸入問題';
+
+  @override
+  String get aiFeatures => 'AI 功能';
+
+  @override
+  String get usageModelsListingReview => '用量、模型設定與上架審核';
+
+  @override
+  String get aiSettingsNotSavedChangesLost => 'AI 設定尚未儲存，離開後變更將不會保留';
+
+  @override
+  String get usage => '用量';
+
+  @override
+  String get settings2 => '設定 •';
+
+  @override
+  String reviewP0(Object p0) => '審核 ${p0}';
+
+  @override
+  String get dailyCost => '每日費用';
+
+  @override
+  String get noCostPeriod => '此期間尚無費用';
+
+  @override
+  String get peakDay => '單日最高';
+
+  @override
+  String get tapBarDetails => '點選長條查看明細';
+
+  @override
+  String p0Requests(Object p0) => '${p0} 次請求';
+
+  @override
+  String get listingAssist => '上架輔助';
+
+  @override
+  String get recommendations => '推薦書籍';
+
+  @override
+  String get listingReview => '上架審核';
+
+  @override
+  String get connectionTest => '連線測試';
+
+  @override
+  String get today2 => '今日';
+
+  @override
+  String get k7Days => '7 天';
+
+  @override
+  String get k30Days => '30 天';
+
+  @override
+  String get notBookUnrelatedItem => '非書籍或無關商品';
+
+  @override
+  String get prohibitedPiratedContent => '違禁或盜版內容';
+
+  @override
+  String get adultContent => '成人內容';
+
+  @override
+  String get offPlatformDealContactInfo => '站外交易或聯絡資訊';
+
+  @override
+  String get misleadingDescription => '不實描述';
+
+  @override
+  String get unusualPrice => '價格異常';
+
+  @override
+  String get providerError => '服務商錯誤';
+
+  @override
+  String get timedOut => '逾時';
+
+  @override
+  String get noApiKey => '未設定金鑰';
+
+  @override
+  String get rateLimited => '頻率受限';
+
+  @override
+  String get invalidApiKey => '金鑰無效';
+
+  @override
+  String get invalidResponseFormat => '回應格式錯誤';
+
+  @override
+  String get rejectListing => '拒絕上架';
+
+  @override
+  String get noteOptionalSentSeller => '說明（選填，將通知賣家）';
+
+  @override
+  String get reject => '拒絕';
+
+  @override
+  String get listingApproved => '已核准上架';
+
+  @override
+  String get listingRejected => '已拒絕上架';
+
+  @override
+  String get noListingsAwaitingReview => '目前沒有待審核的上架';
+
+  @override
+  String get likelyViolation => '疑似違規';
+
+  @override
+  String get needsReview => '需人工確認';
+
+  @override
+  String get rejected => '已拒絕';
+
+  @override
+  String get approve => '核准上架';
+
+  @override
+  String get pleaseFixHighlightedFields => '請修正標示錯誤的欄位';
+
+  @override
+  String get aiSettingsSaved => 'AI 設定已儲存';
+
+  @override
+  String get invalidFormat => '格式不正確';
+
+  @override
+  String enter0P0(Object p0) => '請輸入 0 至 ${p0}';
+
+  @override
+  String get databaseNotBeenUpdatedAiYet => '資料庫尚未完成 AI 相關更新，設定儲存後暫時不會生效';
+
+  @override
+  String get defaultModel => '預設模型';
+
+  @override
+  String get features => '功能';
+
+  @override
+  String get on => '已啟用';
+
+  @override
+  String get noProviderApiKeysSetSo => '尚未設定任何服務商金鑰，AI 功能無法使用';
+
+  @override
+  String p0NoApiKeyCannotSelected(Object p0) => '${p0} 尚未設定金鑰，無法選用';
+
+  @override
+  String get input => '輸入';
+
+  @override
+  String get output => '輸出';
+
+  @override
+  String get per1mTokens => '每百萬 tokens';
+
+  @override
+  String get vision => '圖片辨識';
+
+  @override
+  String get webSearch => '上網搜尋';
+
+  @override
+  String get testing => '測試中';
+
+  @override
+  String get test => '測試連線';
+
+  @override
+  String connectedP0Ms(Object p0) => '連線成功・${p0} ms';
+
+  @override
+  String get connectionFailed => '連線失敗';
+
+  @override
+  String get keySet => '金鑰已設定';
+
+  @override
+  String get noKey => '金鑰未設定';
+
+  @override
+  String get model => '使用模型';
+
+  @override
+  String defaultP0(Object p0) => '跟隨預設（${p0}）';
+
+  @override
+  String p0NoApiKey(Object p0) => '${p0} 尚未設定金鑰';
+
+  @override
+  String p0DoesNotSupportWebSearch(Object p0) => '${p0} 不支援上網搜尋';
+
+  @override
+  String get searchNotBilledSeparately => '搜尋不另計費';
+
+  @override
+  String firstP0SearchesFreeEachMonth(Object p0, Object p1) => '每月前 ${p0} 次免費，之後每千次 ${p1}';
+
+  @override
+  String p0Per1000SearchesPlus(Object p0) => '每千次搜尋 ${p0}，另計搜尋內容 tokens';
+
+  @override
+  String get suspiciousListings => '可疑商品處理方式';
+
+  @override
+  String get holdReview => '送交審核';
+
+  @override
+  String get rejectClearViolations => '直接拒絕明顯違規';
+
+  @override
+  String get budgetLimits => '預算與上限';
+
+  @override
+  String get monthlyBudgetUsd => '每月預算（USD）';
+
+  @override
+  String get k0MeansNoCap => '0 為不設上限';
+
+  @override
+  String get dailyLimitPerMember => '每位會員每日次數上限';
+
+  @override
+  String get k0MeansUnlimited => '0 為不限';
+
+  @override
+  String get advanced => '進階設定';
+
+  @override
+  String get resetDefault => '恢復預設';
+
+  @override
+  String get modelId => '模型 ID';
+
+  @override
+  String get priceUsPer1mTokens => '單價（US\$ / 每百萬 tokens）';
+
+  @override
+  String get cachedInput => '快取輸入';
+
+  @override
+  String get searchPriceUsPer1000 => '搜尋單價（US\$ / 千次）';
+
+  @override
+  String get freeSearchesPerMonth => '每月免費搜尋次數';
+
+  @override
+  String p0FieldsInvalid(Object p0) => '${p0} 個欄位格式不正確';
+
+  @override
+  String p0UnsavedChanges(Object p0) => '${p0} 項設定尚未儲存';
+
+  @override
+  String get unsavedChanges => '有未儲存的變更';
+
+  @override
+  String get month2 => '本月費用';
+
+  @override
+  String budgetP0(Object p0) => '預算 ${p0}';
+
+  @override
+  String get noMonthlyBudget => '未設定每月預算';
+
+  @override
+  String projectedP0(Object p0) => '預估月底 ${p0}';
+
+  @override
+  String get periodCost => '期間費用';
+
+  @override
+  String get requests => '請求次數';
+
+  @override
+  String p0Searches(Object p0) => '搜尋 ${p0} 次';
+
+  @override
+  String p0OutP1(Object p0, Object p1) => '輸入 ${p0}・輸出 ${p1}';
+
+  @override
+  String get errors => '錯誤';
+
+  @override
+  String errorRateP0(Object p0) => '錯誤率 ${p0}%';
+
+  @override
+  String p0ListingsAwaitingReview(Object p0) => '${p0} 筆上架待審核';
+
+  @override
+  String get byFeature => '依功能';
+
+  @override
+  String get noDataYet => '尚無資料';
+
+  @override
+  String errorsP0(Object p0) => '錯誤 ${p0}';
+
+  @override
+  String p0Calls(Object p0) => '${p0} 次';
+
+  @override
+  String get byModel => '依模型';
+
+  @override
+  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 次・${p1} ms';
+
+  @override
+  String get topMembers => '用量最高的會員';
+
+  @override
+  String p0Uses(Object p0) => '${p0} 次';
+
+  @override
+  String get recentErrors => '最近錯誤';
+
+  @override
+  String get noErrors => '沒有錯誤';
+
+  @override
+  String get fillWithAi => 'AI 帶入';
+
+  @override
+  String get summary => '簡介';
+
+  @override
+  String get lookingUpBookDetails => '查詢書籍資料';
+
+  @override
+  String get searchingWeb => '上網搜尋補充資料';
+
+  @override
+  String get analyzingPhotos => '分析照片';
+
+  @override
+  String get suggestingCategoryConditionPrice => '判斷分類、書況與售價';
+
+  @override
+  String get couldNotGetAiSuggestions => '無法取得 AI 建議';
+
+  @override
+  String get done => '分析完成';
+
+  @override
+  String get aiAnalyzing => 'AI 分析中';
+
+  @override
+  String get aiSuggestions => 'AI 建議';
+
+  @override
+  String get noSuggestionsApply => '沒有可帶入的建議';
+
+  @override
+  String get bookDetails => '書籍資料';
+
+  @override
+  String get conditionAppliedNextStep => '書況（下一步帶入）';
+
+  @override
+  String get priceAppliedNextStep => '售價（下一步帶入）';
+
+  @override
+  String get suggestedPrice => '建議售價';
+
+  @override
+  String rangeP0P1(Object p0, Object p1) => '建議區間 \$${p0}–\$${p1}';
+
+  @override
+  String listPriceP0(Object p0) => '定價 \$${p0}';
+
+  @override
+  String get sources => '資料來源';
+
+  @override
+  String applyP0(Object p0) => '套用 ${p0} 項';
+
+  @override
+  String currentP0(Object p0) => '目前：${p0}';
+
+  @override
+  String get sameAsCurrent => '與目前相同';
+
+  @override
+  String confidenceP0(Object p0) => '信心 ${p0}%';
+
+  @override
+  String get listingNotApproved => '未通過上架審核';
+
+  @override
+  String get editListing => '修改內容';
+
+  @override
+  String get submittedReview => '已送交審核';
+
+  @override
+  String get goSaleOnceApprovedNotifiedResult => '審核通過後將公開販售，結果會以通知告知';
+
+  @override
+  String get got => '我知道了';
+
+  @override
+  String get aiFeaturesNotAvailableRightNow => 'AI 功能目前未開放';
+
+  @override
+  String get bookUnderReviewGoSaleOnce => '此書籍正在審核，通過後將公開販售';
+
+  @override
+  String get notApproved => '未通過審核';
+
+  @override
+  String get bookDidNotPassListingReview => '此書籍未通過上架審核';
+
+  @override
+  String get enterIsbnTitleFirst => '請先輸入 ISBN 或書名';
+
+  @override
+  String appliedP0AiSuggestions(Object p0) => '已套用 ${p0} 項 AI 建議';
+
+  @override
+  String get addBookPhotosFirst => '請先加入書籍照片';
+
+  @override
+  String get nothingFoundFillCheckIsbnTitle => '找不到可帶入的資料，請確認 ISBN 或書名';
+
+  @override
+  String appliedP0AiSuggestions2(Object p0) => '已套用 ${p0} 項 AI 建議';
+
+  @override
+  String get aiDataProcessingEnabled => '已同意 AI 資料處理';
+
+  @override
+  String get aiDataProcessingTurnedOff => '已停止 AI 資料處理';
+
+  @override
+  String get aiDataProcessing => 'AI 資料處理';
+
+  @override
+  String providersP0(Object p0) => '服務商：${p0}';
+
+  @override
+  String get messagesEnterStatusOrdersReservations => '您輸入的訊息與您的訂單、預約狀態';
+
+  @override
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、書況說明與您選擇的照片';
+
+  @override
+  String get bookDetailsFromFavoritesPurchaseHistory => '您的收藏與購買紀錄中的書籍資訊';
+
+  @override
+  String get aiDataProcessing2 => 'AI 資料處理說明';
+
+  @override
+  String get whenUseAiFeaturesWeShare => '使用 AI 功能時，我們會將下列資料提供給第三方 AI 服務商處理。';
+
+  @override
+  String get dataShared => '提供的資料';
+
+  @override
+  String get recipients => '資料接收者';
+
+  @override
+  String get purpose => '使用目的';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesPrepare => '僅用於產生客服回覆、整理上架資料與推薦書籍，不會用於廣告或追蹤。';
+
+  @override
+  String get withdrawingConsent => '撤回同意';
+
+  @override
+  String get canTurnOffAiDataProcessing => '您可隨時在「設定」>「帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。';
+
+  @override
+  String get agreeContinue => '同意並繼續';
 
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/support.dart';
+import '../../services/ai_status.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/responsive.dart';
@@ -8,6 +9,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 import 'support_ticket_screen.dart';
+import 'ai_support_entry.dart';
 import '../../utils/app_labels.dart';
 import '../../i18n/strings.dart';
 
@@ -31,6 +33,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   void initState() {
     super.initState();
     _load();
+    AiStatus.refresh();
   }
 
   @override
@@ -94,6 +97,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               ),
             ),
           ),
+          const AiSupportEntry(maxWidth: Breakpoints.readingMaxWidth, horizontal: 20),
           Expanded(
             child: SwitchIn(
               child: _isLoading

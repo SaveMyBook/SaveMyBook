@@ -1,0 +1,20 @@
+# -*- coding: utf-8 -*-
+T = {
+    'AI 資料處理說明': ('AI data processing', 'AI によるデータ処理について', 'AI 데이터 처리 안내', 'AI 数据处理说明'),
+    '使用 AI 功能時，我們會將下列資料提供給第三方 AI 服務商處理。': ('When you use AI features, we share the following data with third-party AI providers for processing.', 'AI 機能をご利用の際、以下のデータを第三者の AI サービス事業者に提供して処理します。', 'AI 기능을 사용할 때 아래 데이터를 제3자 AI 서비스 제공업체에 제공하여 처리합니다.', '使用 AI 功能时，我们会将下列数据提供给第三方 AI 服务商处理。'),
+    '提供的資料': ('Data shared', '提供するデータ', '제공하는 데이터', '提供的数据'),
+    '您輸入的訊息與您的訂單、預約狀態': ('Messages you enter and the status of your orders and reservations', '入力したメッセージ、ご自身の注文と予約の状況', '입력한 메시지와 본인의 주문 및 예약 상태', '您输入的消息与您的订单、预约状态'),
+    'ISBN、書名、書況說明與您選擇的照片': ('ISBN, title, condition notes and the photos you select', 'ISBN、書名、状態の説明、選択した写真', 'ISBN, 도서명, 상태 설명 및 선택한 사진', 'ISBN、书名、书况说明与您选择的照片'),
+    '您的收藏與購買紀錄中的書籍資訊': ('Book details from your favorites and purchase history', 'お気に入りと購入履歴に含まれる書籍情報', '찜 목록과 구매 내역에 포함된 도서 정보', '您的收藏与购买记录中的书籍信息'),
+    '資料接收者': ('Recipients', '提供先', '데이터 수신자', '数据接收方'),
+    '使用目的': ('Purpose', '利用目的', '이용 목적', '使用目的'),
+    '僅用於產生客服回覆、整理上架資料與推薦書籍，不會用於廣告或追蹤。': ('Used only to generate support replies, prepare listing details and recommend books. Never used for advertising or tracking.', 'サポートの回答、出品情報の整理、書籍のおすすめにのみ使用し、広告やトラッキングには使用しません。', '고객센터 답변 생성, 등록 정보 정리 및 도서 추천에만 사용하며 광고나 추적에는 사용하지 않습니다.', '仅用于生成客服回复、整理上架数据与推荐书籍，不会用于广告或追踪。'),
+    '撤回同意': ('Withdrawing consent', '同意の撤回', '동의 철회', '撤回同意'),
+    '您可隨時在「設定」>「帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。': ('You can turn off "AI data processing" at any time in Settings > Account. The data above will no longer be shared once it is turned off.', '「設定」>「アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。', '「설정」>「계정 관리」에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않습니다.', '您可随时在「设置」>「账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据。'),
+    '不同意': ('Decline', '同意しない', '동의하지 않음', '不同意'),
+    '同意並繼續': ('Agree', '同意する', '동의', '同意并继续'),
+    'AI 資料處理': ('AI data processing', 'AI によるデータ処理', 'AI 데이터 처리', 'AI 数据处理'),
+    '服務商：${aiProviderNames(status)}': ('Providers: $p0', '提供先：$p0', '제공업체: $p0', '服务商：$p0'),
+    '已同意 AI 資料處理': ('AI data processing enabled', 'AI によるデータ処理に同意しました', 'AI 데이터 처리에 동의했습니다', '已同意 AI 数据处理'),
+    '已停止 AI 資料處理': ('AI data processing turned off', 'AI によるデータ処理を停止しました', 'AI 데이터 처리를 중지했습니다', '已停止 AI 数据处理'),
+}

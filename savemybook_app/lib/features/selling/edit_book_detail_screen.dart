@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/photo_service.dart';
+import '../../models/ai.dart';
 import '../../models/book.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
@@ -16,6 +17,7 @@ import '../../widgets/app_select.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
+import 'ai_listing_assist.dart';
 import '../../i18n/strings.dart';
 
 class EditBookDetailScreen extends StatefulWidget {
@@ -253,7 +255,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
 
     setState(() => _isSaving = true);
 
-    final error = await _api.updateBook(widget.book.bookId, {
+    final outcome = await _api.updateBook(widget.book.bookId, {
       'title': widget.title,
       'author': widget.author.isEmpty ? null : widget.author,
       'publisher': widget.publisher.isEmpty ? null : widget.publisher,
@@ -265,11 +267,15 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       'cabinet_id': _cabinetId,
     });
 
-    if (error != null) {
+    if (!outcome.isOk) {
       if (!mounted) return;
       setState(() => _isSaving = false);
       HapticFeedback.heavyImpact();
-      showAppSnackBar(context, error, isError: true);
+      if (outcome.isRejected) {
+        await showListingRejectedDialog(context, outcome);
+      } else {
+        showAppSnackBar(context, outcome.error ?? '', isError: true);
+      }
       return;
     }
 
@@ -286,7 +292,8 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       pending.add(file.path);
       types.add('inside');
     }
-    final uploaded = pending.isEmpty || await _api.uploadBookImages(widget.book.bookId, pending, types: types);
+    final imageOutcome = pending.isEmpty ? const ListingOutcome() : await _api.uploadBookImages(widget.book.bookId, pending, types: types);
+    final uploaded = imageOutcome.isOk;
 
     if (uploaded) {
       for (final old in _slotReplaced.whereType<BookImage>()) {
@@ -300,7 +307,15 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       _saved = true;
     });
 
-    if (uploaded) {
+    if (imageOutcome.isRejected) {
+      HapticFeedback.heavyImpact();
+      await showListingRejectedDialog(context, imageOutcome);
+      if (!mounted) return;
+    } else if (uploaded && (outcome.pendingReview || imageOutcome.pendingReview)) {
+      HapticFeedback.mediumImpact();
+      await showPendingReviewNotice(context);
+      if (!mounted) return;
+    } else if (uploaded) {
       HapticFeedback.mediumImpact();
       showAppSnackBar(context, S.bookUpdated);
     } else {

@@ -65,7 +65,14 @@ const REQUIRED = [
   { migration: '009_chat_groups_transfers.sql', table: 'chat_transfers' },
   { migration: '010_chat_mentions_albums.sql', table: 'chat_room_members', column: 'history_from_id' },
   { migration: '010_chat_mentions_albums.sql', table: 'chat_messages', column: 'mentions' },
-  { migration: '010_chat_mentions_albums.sql', table: 'chat_mentions' }
+  { migration: '010_chat_mentions_albums.sql', table: 'chat_mentions' },
+  { migration: '011_ai.sql', table: 'ai_settings' },
+  { migration: '011_ai.sql', table: 'ai_usage_logs' },
+  { migration: '011_ai.sql', table: 'ai_support_sessions' },
+  { migration: '011_ai.sql', table: 'ai_support_messages' },
+  { migration: '011_ai.sql', table: 'ai_recommendation_cache' },
+  { migration: '011_ai.sql', table: 'ai_book_reviews' },
+  { migration: '011_ai.sql', table: 'ai_consents' }
 ];
 
 const missingSchema = async () => {

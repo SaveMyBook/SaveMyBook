@@ -55,11 +55,11 @@ Flutter 引擎、shared_preferences、firebase_messaging、permission_handler �
 | 照片或影片（PhotosorVideos） | 書籍照片、大頭貼、聊天圖片、爭議佐證照片 | App 功能 |
 | 音訊資料（AudioData） | 聊天語音訊息 | App 功能 |
 | 電子郵件或文字訊息（EmailsOrTextMessages） | 聊天室訊息 | App 功能 |
-| 客服支援（CustomerSupport） | 客服工單內容 | App 功能 |
+| 客服支援（CustomerSupport） | 客服工單內容、AI 客服對話紀錄 | App 功能 |
 | 其他使用者內容（OtherUserContent） | 書籍刊登內容、自我介紹、檢舉、交易爭議 | App 功能 |
-| 購買記錄（PurchaseHistory） | 訂單、購物車 | App 功能、產品個人化 |
+| 購買記錄（PurchaseHistory） | 訂單、購物車；使用者同意後，AI 客服會帶入本人最近訂單與預約狀態，AI 推薦會帶入購買過的書籍資訊 | App 功能、產品個人化 |
 | 其他財務資訊（OtherFinancialInfo） | App 內代幣錢包餘額與交易紀錄（不含信用卡或銀行帳號） | App 功能 |
-| 產品互動（ProductInteraction） | 收藏清單；推薦書籍時送出的最近瀏覽書籍編號 | App 功能、產品個人化 |
+| 產品互動（ProductInteraction） | 收藏清單；推薦書籍時送出的最近瀏覽書籍編號；使用者同意後，AI 推薦會帶入收藏書籍資訊 | App 功能、產品個人化 |
 | 其他資料類型（OtherDataTypes） | 個人資料選填的生日、性別 | App 功能 |
 
 未宣告的項目與理由：
@@ -93,4 +93,62 @@ Flutter 引擎、shared_preferences、firebase_messaging、permission_handler �
 - **IP 位址**：伺服器為帳號安全記錄登入 IP，未用於推算位置，因此未申報為位置資料。若日後用於地區判斷，須改申報「大略位置」。
 - **推播 entitlement**：`Runner.entitlements` 的 `aps-environment` 為 `development`；以 App Store 發佈方式封存時，Xcode 會依描述檔自動改為 production，請於 Archive 後確認。
 - **通知服務擴充功能**：`SaveMyBookNotificationService` 若讀寫 UserDefaults、檔案時間戳等必要理由 API，須在該資料夾另加 `PrivacyInfo.xcprivacy`。
+- **第三方 AI（審核指南 5.1.2(i)）**：詳見第五節。審核備註可說明 AI 功能的同意畫面位置，並提供可觸發同意畫面的測試帳號。
 - **送審前檢查**：Xcode → Product → Archive → Organizer 右鍵 Archive →「Generate Privacy Report」，確認報告與第三節答案一致。
+
+## 五、第三方 AI 服務
+
+伺服器依後台「AI 設定」呼叫 DeepSeek、Google Gemini 或 OpenAI。App 只與自家 API 通訊，API 金鑰僅存放於伺服器，App 不直接連線 AI 服務商。
+
+### 提供給 AI 服務商的資料
+
+| 功能 | 送出的資料 | 需要使用者同意 | 未同意時 |
+| --- | --- | --- | --- |
+| AI 客服 | 使用者輸入的訊息、同一對話最近 12 則紀錄、本人最近 5 筆訂單（訂單編號、狀態、金額、書名）與預約狀態 | 是 | API 回傳 403 `AI_CONSENT_REQUIRED`，App 顯示同意畫面；仍可轉接真人客服 |
+| 上架輔助 | ISBN、書名、書況說明、使用者選擇的照片（最多 4 張，送出前移除 EXIF／XMP 等含拍攝位置的中繼資料，不儲存） | 是 | 同上；手動填寫與 ISBN 查詢不受影響 |
+| 個人推薦 | 收藏與購買紀錄中的書名、作者、分類，以及候選書籍資訊；以臨時代號取代資料庫編號 | 是 | 首頁改用既有推薦，不呼叫 AI 服務商，也不跳出同意畫面 |
+| 上架審核 | 公開刊登的書名、作者、分類、售價、描述與前 2 張照片 | 否 | 屬平台對公開刊登內容的安全審核，不含賣家暱稱、Email、電話或帳號編號 |
+
+所有請求都不帶使用者帳號、Email、裝置識別碼或 IP；伺服器端的用量紀錄（`ai_usage_logs`）保留使用者編號，只用於費用統計與每日次數上限。
+
+### 同意流程
+
+- 第一次傳送 AI 客服訊息、第一次按「AI 帶入」前，若尚未同意，App 顯示「AI 資料處理說明」（`features/account/ai_consent_sheet.dart`）：列出啟用中功能會送出的資料、實際使用的服務商名稱（API `GET /api/ai/status` 的 `providers_in_use`）、使用目的、不用於廣告或追蹤，以及撤回方式；按鈕為「同意並繼續」與「不同意」。
+- 同意紀錄存於伺服器 `ai_consents`（`PUT /api/ai/consent`），跨裝置有效。「設定 → 帳號管理 → AI 資料處理」可隨時開關；關閉後伺服器立即停止送出上述資料，並刪除該使用者的 AI 推薦快取。
+- 刪除帳號（匿名化）時刪除同意紀錄、AI 客服對話與推薦快取；個人資料匯出包含這三類資料。
+- 後台變更功能使用的服務商後，同意畫面與設定頁顯示的服務商名稱會隨之更新。若新增的服務商未曾向使用者揭露，建議評估是否要求使用者重新同意。
+
+### App Store Connect 問卷影響
+
+AI 服務商依使用者指示處理資料，視為 App 蒐集的資料，不另列為追蹤。上表資料已涵蓋於第二節的資料類型，送審前確認下列項目皆已勾選：
+
+| 資料類型 | 與身分連結 | 用於追蹤 | 用途 |
+| --- | --- | --- | --- |
+| 客服支援（CustomerSupport） | 是 | 否 | App 功能 |
+| 其他使用者內容（OtherUserContent） | 是 | 否 | App 功能 |
+| 照片或影片（PhotosorVideos） | 是 | 否 | App 功能 |
+| 購買記錄（PurchaseHistory） | 是 | 否 | App 功能、產品個人化 |
+| 產品互動（ProductInteraction） | 是 | 否 | App 功能、產品個人化 |
+
+`PrivacyInfo.xcprivacy` 的 `NSPrivacyCollectedDataTypes` 已含上述類型，不需新增；`NSPrivacyTracking` 維持 `false`。
+
+### 送審前須由營運方確認
+
+- **服務商資料政策**：確認各服務商 API 條款中，傳入內容是否會用於訓練或改善模型、保存期間與資料所在地，並與隱私權政策一致。Google Gemini API 的免費層級條款允許 Google 將內容用於改善服務，正式環境應使用已啟用付費帳單的專案；DeepSeek 的資料可能在中華人民共和國境內處理，須於隱私權政策揭露跨境傳輸。
+- **隱私權政策**：於後台法律文件新增下列段落（依實際啟用的服務商調整）。
+
+### 隱私權政策建議增訂段落
+
+> **第三方 AI 服務**
+>
+> 本平台提供 AI 客服、上架輔助與個人化書籍推薦功能。經您於 App 內同意後，我們會將下列資料提供給第三方 AI 服務商處理：
+>
+> 1. AI 客服：您輸入的訊息、同一對話的近期紀錄，以及您本人最近的訂單與預約狀態。
+> 2. 上架輔助：您提供的 ISBN、書名、書況說明與您選擇的照片。照片送出前會移除拍攝位置等中繼資料，且不會由本平台保存。
+> 3. 個人化推薦：您的收藏與購買紀錄中的書籍資訊。
+>
+> 目前合作的 AI 服務商為 DeepSeek、Google（Gemini API）及 OpenAI，實際使用的服務商以 App 內「AI 資料處理說明」顯示為準。上述資料僅用於產生回覆、整理上架資料與推薦書籍，不會用於廣告或跨平台追蹤，傳送時亦不包含您的帳號名稱、電子郵件、電話或裝置識別碼。部分服務商可能於中華民國境外（包括美國及中華人民共和國）處理資料，並依其服務條款保存一定期間。
+>
+> 您可隨時於 App「設定 → 帳號管理 → AI 資料處理」撤回同意，撤回後我們將停止提供上述資料，AI 客服、上架輔助與個人化推薦功能將無法使用，其他服務不受影響。
+>
+> 為維護交易安全，本平台會以 AI 服務審核公開刊登的書籍內容（書名、作者、分類、售價、描述與照片），此項審核不包含您的個人資料，不需另行同意。

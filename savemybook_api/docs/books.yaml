@@ -115,6 +115,16 @@ paths:
         | `back_image` | 1 | `back` |
         | `barcode_image` | 1 | `other` |
         | `optional_images` | 最多 7 | `inside` |
+
+        **上架審核**：管理員開啟 AI 上架審核時，伺服器以書名、作者、描述、分類、售價與前 2 張照片判斷是否可上架：
+
+        | 結果 | 處理 |
+        | --- | --- |
+        | 通過 | 正常上架 |
+        | 需人工確認 | 書籍照常建立但 `is_approved` 為 false（不公開），`review_status` 為 `pending`，回應附帶 `moderation`，並通知賣家 |
+        | 明確違規（管理員設定為直接拒絕且信心 ≥ 0.85） | 回傳 422 `LISTING_REJECTED`，書籍與照片都不會儲存 |
+
+        AI 服務失敗、逾時或本月預算用盡時直接放行。伺服器尚未執行 `migrations/011_ai.sql` 時不審核。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -155,7 +165,7 @@ paths:
                   description: 選填照片，上限 7 張。
       responses:
         '201':
-          description: 上架成功。`data` 僅含書籍本體，不包含照片。
+          description: 上架成功。`data` 僅含書籍本體，不包含照片。送交審核時另帶 `moderation`。
           content:
             application/json:
               schema:
@@ -164,6 +174,7 @@ paths:
                   success: { type: boolean, example: true }
                   message: { type: string, example: 書籍上架成功 }
                   data: { $ref: '#/components/schemas/Book' }
+                  moderation: { $ref: '#/components/schemas/ListingModeration' }
         '400':
           description: 欄位缺漏，或售價不符合限制。
           content:
@@ -177,6 +188,7 @@ paths:
                 售價過高:
                   value: { success: false, message: 售價不可超過 99999 元 }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ListingRejected' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/books/recommended:
@@ -374,6 +386,11 @@ paths:
 
         調降售價且書籍狀態為 `on_sale` 時，伺服器以 `promotion` 類型的站內通知告知收藏此書的使用者
         （賣家本人除外），通知的 `related_type` 為 `book`。
+
+        賣家修改書名或描述時執行上架審核（規則同 `POST /api/books`）：明確違規回傳 422 `LISTING_REJECTED` 且不套用任何變更；
+        需人工確認時書籍改為不公開並送審，回應附帶 `moderation`；審核中的書籍修改後判定通過則恢復公開。
+        因違規下架的書籍不會轉為審核中。等待審核（`review_status: pending`）不視為違規，賣家仍可自行下架與重新上架，
+        但審核通過前不會公開；審核駁回（`review_status: rejected`）視為違規。管理員編輯不執行審核。
       security: [{ bearerAuth: [] }]
       requestBody:
         content:
@@ -406,6 +423,7 @@ paths:
                   success: { type: boolean, example: true }
                   message: { type: string, example: 書籍資料更新成功 }
                   data: { $ref: '#/components/schemas/Book' }
+                  moderation: { $ref: '#/components/schemas/ListingModeration' }
         '400':
           description: 售價不符合限制。
           content:
@@ -424,6 +442,7 @@ paths:
                 違規下架:
                   value: { success: false, code: BOOK_NOT_APPROVED, message: 此書籍因違規遭下架，無法自行重新上架，請聯絡客服 }
         '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ListingRejected' }
         '500': { $ref: '#/components/responses/ServerError' }
 
     delete:
@@ -459,6 +478,9 @@ paths:
       description: |
         單次上限 8 張，`image_type` 一律儲存為 `other`。
         回應包含該書籍的全部照片，含既有照片。
+
+        賣家新增照片時以新照片執行上架審核（規則同 `POST /api/books`）：明確違規回傳 422 且照片不儲存；
+        需人工確認時照片照常新增、書籍改為不公開並送審，回應附帶 `moderation`。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -495,6 +517,7 @@ paths:
                   data:
                     type: array
                     items: { $ref: '#/components/schemas/BookImage' }
+                  moderation: { $ref: '#/components/schemas/ListingModeration' }
         '400':
           description: 未帶入檔案。
           content:
@@ -504,6 +527,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ListingRejected' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/books/{id}/images/{imageId}:
@@ -595,3 +619,23 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 查詢外部書籍資訊發生錯誤 }
+
+components:
+  schemas:
+    ListingModeration:
+      type: object
+      description: 僅在書籍送交人工審核時出現。
+      properties:
+        status: { type: string, enum: [pending_review] }
+        reasons:
+          type: array
+          items: { type: string }
+          example: [描述含站外聯絡方式]
+
+  responses:
+    ListingRejected:
+      description: 上架審核判定明確違規，書籍未儲存（編輯時變更未套用）。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: LISTING_REJECTED, message: 此商品未通過上架審核：非書籍商品、含站外聯絡資訊 }

@@ -2957,5 +2957,338 @@
     }
   },
   "savingImage": "画像を保存中",
-  "passwordsCanOnlyContainEnglishLetters": "パスワードには英字、数字、半角記号のみ使用できます"
+  "passwordsCanOnlyContainEnglishLetters": "パスワードには英字、数字、半角記号のみ使用できます",
+  "aiSupport": "AI サポート",
+  "instantReplies": "即時回答",
+  "howDoIListBook": "本を出品するには？",
+  "howDoIPickUpFrom": "スマートロッカーで受け取るには？",
+  "howDoIRequestRefund": "返金を申請するには？",
+  "howDoWalletCoinsWork": "ウォレットのコインの使い方は？",
+  "talkPerson": "担当者に切り替え",
+  "supportRequestCreatedFromConversationOur": "この会話内容でお問い合わせを作成し、担当者が引き継ぎます",
+  "transfer4": "切り替える",
+  "creatingSupportRequest": "お問い合わせを作成しています",
+  "transferredSupportTeam": "担当者に引き継ぎました",
+  "newConversation": "新しい会話",
+  "currentConversationEnd": "現在の会話は終了します",
+  "copied2": "コピーしました",
+  "aiReplies": "AI による回答",
+  "howCanWeHelp": "どのようなご用件でしょうか？",
+  "failedSend": "送信できませんでした",
+  "ourSupportTeamCanHelpWith": "この件は担当者による対応をおすすめします",
+  "contactSupport": "サポートに連絡",
+  "typeQuestion": "質問を入力",
+  "aiFeatures": "AI 機能",
+  "usageModelsListingReview": "利用状況・モデル設定・出品審査",
+  "aiSettingsNotSavedChangesLost": "AI 設定が保存されていません。移動すると変更は失われます",
+  "usage": "利用状況",
+  "settings2": "設定 •",
+  "reviewP0": "審査 {p0}",
+  "@reviewP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dailyCost": "日別の費用",
+  "noCostPeriod": "この期間の費用はありません",
+  "peakDay": "1 日の最高",
+  "tapBarDetails": "バーをタップすると内訳を表示",
+  "p0Requests": "リクエスト {p0} 件",
+  "@p0Requests": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "listingAssist": "出品アシスト",
+  "recommendations": "おすすめ",
+  "listingReview": "出品審査",
+  "connectionTest": "接続テスト",
+  "today2": "今日",
+  "k7Days": "7 日間",
+  "k30Days": "30 日間",
+  "notBookUnrelatedItem": "書籍以外・無関係な商品",
+  "prohibitedPiratedContent": "禁止・海賊版コンテンツ",
+  "adultContent": "成人向けコンテンツ",
+  "offPlatformDealContactInfo": "外部取引・連絡先の記載",
+  "misleadingDescription": "不正確な説明",
+  "unusualPrice": "価格が異常",
+  "providerError": "プロバイダーエラー",
+  "timedOut": "タイムアウト",
+  "noApiKey": "API キー未設定",
+  "rateLimited": "レート制限",
+  "invalidApiKey": "API キーが無効",
+  "invalidResponseFormat": "応答形式エラー",
+  "rejectListing": "出品を却下",
+  "noteOptionalSentSeller": "メモ（任意・出品者に通知されます）",
+  "reject": "却下",
+  "listingApproved": "出品を承認しました",
+  "listingRejected": "出品を却下しました",
+  "noListingsAwaitingReview": "審査待ちの出品はありません",
+  "likelyViolation": "違反の疑い",
+  "needsReview": "要確認",
+  "rejected": "却下済み",
+  "approve": "承認",
+  "pleaseFixHighlightedFields": "エラーのある項目を修正してください",
+  "aiSettingsSaved": "AI 設定を保存しました",
+  "invalidFormat": "形式が正しくありません",
+  "enter0P0": "0〜{p0} を入力してください",
+  "@enter0P0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "databaseNotBeenUpdatedAiYet": "データベースの AI 用アップデートが未完了のため、保存した設定はまだ反映されません",
+  "defaultModel": "デフォルトモデル",
+  "features": "機能",
+  "on": "オン",
+  "noProviderApiKeysSetSo": "プロバイダーの API キーが設定されていないため、AI 機能は使えません",
+  "p0NoApiKeyCannotSelected": "{p0} は API キーが未設定のため選択できません",
+  "@p0NoApiKeyCannotSelected": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "input": "入力",
+  "output": "出力",
+  "per1mTokens": "100 万トークンあたり",
+  "vision": "画像認識",
+  "webSearch": "ウェブ検索",
+  "testing": "テスト中",
+  "test": "接続テスト",
+  "connectedP0Ms": "接続成功・{p0} ms",
+  "@connectedP0Ms": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "connectionFailed": "接続に失敗しました",
+  "keySet": "キー設定済み",
+  "noKey": "キー未設定",
+  "model": "使用モデル",
+  "defaultP0": "デフォルト（{p0}）",
+  "@defaultP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0NoApiKey": "{p0} は API キーが未設定です",
+  "@p0NoApiKey": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0DoesNotSupportWebSearch": "{p0} はウェブ検索に対応していません",
+  "@p0DoesNotSupportWebSearch": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "searchNotBilledSeparately": "検索は別途課金されません",
+  "firstP0SearchesFreeEachMonth": "毎月 {p0} 回まで無料、以降 1,000 回ごとに {p1}",
+  "@firstP0SearchesFreeEachMonth": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0Per1000SearchesPlus": "1,000 回ごとに {p0}、検索内容のトークンは別途",
+  "@p0Per1000SearchesPlus": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "suspiciousListings": "疑わしい出品の扱い",
+  "holdReview": "審査に回す",
+  "rejectClearViolations": "明らかな違反は却下",
+  "budgetLimits": "予算と上限",
+  "monthlyBudgetUsd": "月間予算（USD）",
+  "k0MeansNoCap": "0 は上限なし",
+  "dailyLimitPerMember": "会員ごとの 1 日の上限回数",
+  "k0MeansUnlimited": "0 は無制限",
+  "advanced": "詳細設定",
+  "resetDefault": "デフォルトに戻す",
+  "modelId": "モデル ID",
+  "priceUsPer1mTokens": "単価（US$ / 100 万トークン）",
+  "cachedInput": "キャッシュ入力",
+  "searchPriceUsPer1000": "検索単価（US$ / 1,000 回）",
+  "freeSearchesPerMonth": "毎月の無料検索回数",
+  "p0FieldsInvalid": "{p0} 件の項目にエラーがあります",
+  "@p0FieldsInvalid": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0UnsavedChanges": "未保存の変更が {p0} 件あります",
+  "@p0UnsavedChanges": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unsavedChanges": "未保存の変更があります",
+  "month2": "今月の費用",
+  "budgetP0": "予算 {p0}",
+  "@budgetP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noMonthlyBudget": "月間予算未設定",
+  "projectedP0": "月末予測 {p0}",
+  "@projectedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "periodCost": "期間の費用",
+  "requests": "リクエスト数",
+  "p0Searches": "検索 {p0} 回",
+  "@p0Searches": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0OutP1": "入力 {p0}・出力 {p1}",
+  "@p0OutP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "errors": "エラー",
+  "errorRateP0": "エラー率 {p0}%",
+  "@errorRateP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ListingsAwaitingReview": "審査待ちの出品 {p0} 件",
+  "@p0ListingsAwaitingReview": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "byFeature": "機能別",
+  "noDataYet": "データがありません",
+  "errorsP0": "エラー {p0}",
+  "@errorsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0Calls": "{p0} 回",
+  "@p0Calls": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "byModel": "モデル別",
+  "p0CallsP1Ms": "{p0} 回・{p1} ms",
+  "@p0CallsP1Ms": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "topMembers": "利用の多い会員",
+  "p0Uses": "{p0} 回利用",
+  "@p0Uses": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "recentErrors": "最近のエラー",
+  "noErrors": "エラーはありません",
+  "fillWithAi": "AI で入力",
+  "summary": "内容紹介",
+  "lookingUpBookDetails": "書籍情報を検索",
+  "searchingWeb": "ウェブで補足情報を検索",
+  "analyzingPhotos": "写真を分析",
+  "suggestingCategoryConditionPrice": "カテゴリ・状態・価格を判定",
+  "couldNotGetAiSuggestions": "AI の提案を取得できませんでした",
+  "done": "分析完了",
+  "aiAnalyzing": "AI が分析中",
+  "aiSuggestions": "AI の提案",
+  "noSuggestionsApply": "反映できる提案はありません",
+  "bookDetails": "書籍情報",
+  "conditionAppliedNextStep": "状態（次のステップで反映）",
+  "priceAppliedNextStep": "価格（次のステップで反映）",
+  "suggestedPrice": "推奨価格",
+  "rangeP0P1": "推奨範囲 ${p0}〜${p1}",
+  "@rangeP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "listPriceP0": "定価 ${p0}",
+  "@listPriceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sources": "情報源",
+  "applyP0": "{p0} 件を反映",
+  "@applyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "currentP0": "現在：{p0}",
+  "@currentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sameAsCurrent": "現在と同じ",
+  "confidenceP0": "信頼度 {p0}%",
+  "@confidenceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "listingNotApproved": "出品審査に通りませんでした",
+  "editListing": "内容を修正",
+  "submittedReview": "審査に回しました",
+  "goSaleOnceApprovedNotifiedResult": "承認されると販売が開始されます。結果は通知でお知らせします",
+  "got": "わかりました",
+  "aiFeaturesNotAvailableRightNow": "AI 機能は現在ご利用いただけません",
+  "bookUnderReviewGoSaleOnce": "この書籍は審査中です。承認されると販売が開始されます",
+  "notApproved": "審査不合格",
+  "bookDidNotPassListingReview": "この書籍は出品審査に通りませんでした",
+  "enterIsbnTitleFirst": "先に ISBN または書名を入力してください",
+  "appliedP0AiSuggestions": "AI の提案を {p0} 件反映しました",
+  "@appliedP0AiSuggestions": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addBookPhotosFirst": "先に書籍の写真を追加してください",
+  "nothingFoundFillCheckIsbnTitle": "反映できる情報が見つかりません。ISBN または書名を確認してください",
+  "appliedP0AiSuggestions2": "AI の提案を {p0} 件反映しました",
+  "@appliedP0AiSuggestions2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "aiDataProcessingEnabled": "AI によるデータ処理に同意しました",
+  "aiDataProcessingTurnedOff": "AI によるデータ処理を停止しました",
+  "aiDataProcessing": "AI によるデータ処理",
+  "providersP0": "提供先：{p0}",
+  "@providersP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "messagesEnterStatusOrdersReservations": "入力したメッセージ、ご自身の注文と予約の状況",
+  "isbnTitleConditionNotesPhotosSelect": "ISBN、書名、状態の説明、選択した写真",
+  "bookDetailsFromFavoritesPurchaseHistory": "お気に入りと購入履歴に含まれる書籍情報",
+  "aiDataProcessing2": "AI によるデータ処理について",
+  "whenUseAiFeaturesWeShare": "AI 機能をご利用の際、以下のデータを第三者の AI サービス事業者に提供して処理します。",
+  "dataShared": "提供するデータ",
+  "recipients": "提供先",
+  "purpose": "利用目的",
+  "usedOnlyGenerateSupportRepliesPrepare": "サポートの回答、出品情報の整理、書籍のおすすめにのみ使用し、広告やトラッキングには使用しません。",
+  "withdrawingConsent": "同意の撤回",
+  "canTurnOffAiDataProcessing": "「設定」>「アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。",
+  "agreeContinue": "同意する"
 }

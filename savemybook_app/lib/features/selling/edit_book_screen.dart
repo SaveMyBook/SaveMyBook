@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../models/ai.dart';
 import '../../models/book.dart';
 import '../../models/category.dart';
+import '../../services/ai_status.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/guards.dart';
@@ -13,7 +15,9 @@ import '../../widgets/app_select.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../books/barcode_scanner_screen.dart';
+import 'ai_listing_assist.dart';
 import 'edit_book_detail_screen.dart';
+import 'sell_book_screen.dart' show parsePublishDate;
 import '../../i18n/strings.dart';
 
 class EditBookScreen extends StatefulWidget {
@@ -39,6 +43,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
   bool _showErrors = false;
   bool _navigating = false;
   bool _saved = false;
+  bool _aiRunning = false;
+  final Map<String, int> _flash = {};
 
   late final String _initialIsbn;
   late final String _initialAuthor;
@@ -63,7 +69,80 @@ class _EditBookScreenState extends State<EditBookScreen> {
 
     _categoryId = book.categoryId;
     _loadCategories();
+    AiStatus.refresh();
   }
+
+  static String _formatDate(DateTime? date) => date == null
+      ? ''
+      : '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+  Future<void> _onAiAssist() async {
+    if (_aiRunning) return;
+    FocusScope.of(context).unfocus();
+    final isbnText = _isbnController.text.trim();
+    final isbn = normalizeIsbn(isbnText);
+    final title = _titleController.text.trim();
+    if (isbn == null && title.isEmpty) {
+      HapticFeedback.heavyImpact();
+      showAppSnackBar(context, S.enterIsbnTitleFirst, isError: true);
+      return;
+    }
+    _aiRunning = true;
+    final result = await runAiListingAssist(context, isbn: isbn, title: title);
+    _aiRunning = false;
+    if (result == null || !mounted) return;
+    final selection = await showAiListingResultSheet(
+      context,
+      result: result,
+      targets: AiListingTargets(
+        fields: {
+          'title': title,
+          'author': _authorController.text.trim(),
+          'publisher': _publisherController.text.trim(),
+          'publish_date': _formatDate(_publishDate),
+          'isbn': isbnText,
+        },
+        categoryId: _categoryId,
+        categories: _categories,
+        supportsCategory: true,
+      ),
+    );
+    if (selection == null || !mounted) return;
+    final flashed = <String>[];
+    setState(() {
+      for (final key in selection.fields) {
+        final value = result.fields[key] ?? '';
+        switch (key) {
+          case 'title':
+            _titleController.text = value;
+          case 'author':
+            _authorController.text = value;
+          case 'publisher':
+            _publisherController.text = value;
+          case 'isbn':
+            final normalized = normalizeIsbn(value);
+            if (normalized == null) continue;
+            _isbnController.text = normalized;
+          case 'publish_date':
+            final date = parsePublishDate(value);
+            if (date == null) continue;
+            _publishDate = date;
+        }
+        flashed.add(key);
+      }
+      if (selection.category && result.category != null && _categories.any((c) => c.categoryId == result.category!.categoryId)) {
+        _categoryId = result.category!.categoryId;
+        flashed.add('category');
+      }
+      for (final key in flashed) {
+        _flash[key] = (_flash[key] ?? 0) + 1;
+      }
+    });
+    HapticFeedback.mediumImpact();
+    showAppSnackBar(context, S.appliedP0AiSuggestions(flashed.length));
+  }
+
+  Widget _flashed(String key, Widget child) => AiFlash(trigger: _flash[key] ?? 0, child: child);
 
   @override
   void dispose() {
@@ -195,8 +274,22 @@ class _EditBookScreenState extends State<EditBookScreen> {
                     ),
                     child: Column(
                       children: [
+                        ValueListenableBuilder<AiStatusInfo>(
+                          valueListenable: AiStatus.listenable,
+                          builder: (context, status, _) => AnimatedSize(
+                            duration: const Duration(milliseconds: 260),
+                            curve: Curves.easeOutCubic,
+                            alignment: Alignment.topCenter,
+                            child: status.listingAssist
+                                ? Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: AiAssistButton(onTap: _onAiAssist),
+                                  )
+                                : const SizedBox(width: double.infinity),
+                          ),
+                        ),
                         FadeSlideIn(
-                          child: FormRowCard(
+                          child: _flashed('isbn', FormRowCard(
                             label: 'ISBN',
                             child: Row(
                               children: [
@@ -232,11 +325,11 @@ class _EditBookScreenState extends State<EditBookScreen> {
                                 ),
                               ],
                             ),
-                          ),
+                          )),
                         ),
                         FadeSlideIn(
                           index: 1,
-                          child: FormRowCard(
+                          child: _flashed('title', FormRowCard(
                             label: S.title,
                             isRequired: true,
                             child: AppTextField(
@@ -247,11 +340,11 @@ class _EditBookScreenState extends State<EditBookScreen> {
                               errorText: _showErrors && _titleController.text.trim().isEmpty ? S.enterTitle : null,
                               onChanged: (_) => setState(() {}),
                             ),
-                          ),
+                          )),
                         ),
                         FadeSlideIn(
                           index: 2,
-                          child: FormRowCard(
+                          child: _flashed('author', FormRowCard(
                             label: S.author2,
                             child: AppTextField(
                               controller: _authorController,
@@ -260,11 +353,11 @@ class _EditBookScreenState extends State<EditBookScreen> {
                               textInputAction: TextInputAction.next,
                               onChanged: (_) => setState(() {}),
                             ),
-                          ),
+                          )),
                         ),
                         FadeSlideIn(
                           index: 3,
-                          child: FormRowCard(
+                          child: _flashed('publisher', FormRowCard(
                             label: S.publisher2,
                             child: AppTextField(
                               controller: _publisherController,
@@ -273,11 +366,11 @@ class _EditBookScreenState extends State<EditBookScreen> {
                               textInputAction: TextInputAction.done,
                               onChanged: (_) => setState(() {}),
                             ),
-                          ),
+                          )),
                         ),
                         FadeSlideIn(
                           index: 4,
-                          child: FormRowCard(
+                          child: _flashed('publish_date', FormRowCard(
                             label: S.publicationDate,
                             child: AppDateField(
                               value: _publishDate,
@@ -285,11 +378,11 @@ class _EditBookScreenState extends State<EditBookScreen> {
                               helpText: S.pickPublicationDate,
                               onChanged: (value) => setState(() => _publishDate = value),
                             ),
-                          ),
+                          )),
                         ),
                         FadeSlideIn(
                           index: 5,
-                          child: FormRowCard(
+                          child: _flashed('category', FormRowCard(
                             label: S.pickCategory,
                             isRequired: true,
                             child: Column(
@@ -323,7 +416,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                                   ),
                               ],
                             ),
-                          ),
+                          )),
                         ),
                         const SizedBox(height: 16),
                         PrimaryButton(label: S.next, icon: Icons.arrow_forward_rounded, onPressed: _next),

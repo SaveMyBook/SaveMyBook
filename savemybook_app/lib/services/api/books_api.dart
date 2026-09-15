@@ -70,27 +70,26 @@ extension BooksApi on ApiService {
     return res['data'] as Map<String, dynamic>?;
   }
 
-  Future<String?> updateBook(int bookId, Map<String, dynamic> data) async {
+  Future<ListingOutcome> updateBook(int bookId, Map<String, dynamic> data) async {
     final res = await _send('PUT', '/books/$bookId', body: data);
-    if (res == null) return S.pleaseSignFirst;
-    return res['success'] == true ? null : (res['message'] as String? ?? S.updateFailed);
+    if (res == null) return ListingOutcome(error: S.pleaseSignFirst);
+    return ListingOutcome.fromResponse(res, fallbackError: S.updateFailed);
   }
 
-  Future<bool> uploadBookImages(int bookId, List<String> filePaths, {List<String>? types}) async {
-    if (filePaths.isEmpty) return true;
+  Future<ListingOutcome> uploadBookImages(int bookId, List<String> filePaths, {List<String>? types}) async {
+    if (filePaths.isEmpty) return const ListingOutcome();
     final res = await _sendMultipart(
       '/books/$bookId/images',
       [for (final path in filePaths) ('images', path)],
       fields: types == null ? null : {'image_types': types.join(',')},
     );
-    return res != null && res['success'] == true;
+    return ListingOutcome.fromResponse(res, fallbackError: S.uploadFailedTryAgainLater);
   }
 
-  Future<String?> createBook(Map<String, String> fields, List<(String field, String filePath)> files) async {
+  Future<ListingOutcome> createBook(Map<String, String> fields, List<(String field, String filePath)> files) async {
     final res = await _sendMultipart('/books', files, fields: fields);
-    if (res == null) return S.pleaseSignFirst;
-    if (res['success'] == true) return null;
-    return res['message'] as String? ?? S.unknownError;
+    if (res == null) return ListingOutcome(error: S.pleaseSignFirst);
+    return ListingOutcome.fromResponse(res, fallbackError: S.unknownError);
   }
 
   Future<bool> deleteBookImage(int bookId, int imageId) async {

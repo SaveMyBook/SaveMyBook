@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' as ui;
 
@@ -11,12 +12,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:savemybook_app/i18n/app_localizations.dart';
 import 'package:savemybook_app/i18n/strings.dart';
 import 'package:savemybook_app/models/admin_models.dart';
+import 'package:savemybook_app/models/ai.dart';
 import 'package:savemybook_app/models/book.dart';
 import 'package:savemybook_app/models/order.dart';
 import 'package:savemybook_app/models/support.dart';
 import 'package:savemybook_app/models/user.dart';
 import 'package:savemybook_app/features/account/account_privacy_screen.dart';
 import 'package:savemybook_app/features/account/app_permissions_screen.dart';
+import 'package:savemybook_app/features/account/ai_consent_sheet.dart';
+import 'package:savemybook_app/features/account/ai_support_screen.dart';
+import 'package:savemybook_app/features/admin/ai/admin_ai_screen.dart';
+import 'package:savemybook_app/features/selling/ai_listing_assist.dart';
+import 'package:savemybook_app/models/category.dart';
 import 'package:savemybook_app/features/admin/admin_announcement_screen.dart';
 import 'package:savemybook_app/features/admin/admin_backup_screen.dart';
 import 'package:savemybook_app/features/admin/admin_book_screen.dart';
@@ -52,6 +59,7 @@ import 'package:savemybook_app/features/chat/transfer/transfer_card.dart';
 import 'package:savemybook_app/features/chat/widgets/chat_entry.dart';
 import 'package:savemybook_app/features/chat/widgets/chat_input_bar.dart';
 import 'package:savemybook_app/widgets/image_viewer.dart';
+import 'package:savemybook_app/widgets/buyer/book_strip.dart';
 import 'package:savemybook_app/models/chat.dart';
 import 'package:savemybook_app/features/orders/dispute_screen.dart';
 import 'package:savemybook_app/features/account/edit_profile_screen.dart';
@@ -311,6 +319,86 @@ List<Map<String, dynamic>> chatMessages(int roomId) {
   });
 }
 
+const longReason = 'Because you saved several mystery novels by the same author last week';
+
+Map<String, dynamic> aiSettingsData() => {
+      'settings': {
+        'enabled': true,
+        'default_provider': 'gemini',
+        'providers': {
+          'deepseek': {'model': 'deepseek-flash-extended-context-preview-2026-09', 'input_per_m': 0.14, 'cached_input_per_m': 0.0028, 'output_per_m': 0.28, 'search_price_per_k': 0, 'search_free_per_month': 0},
+          'gemini': {'model': 'gemini-3.1-flash-lite', 'input_per_m': 0.25, 'cached_input_per_m': 0.025, 'output_per_m': 1.5, 'search_price_per_k': 14, 'search_free_per_month': 5000},
+          'openai': {'model': 'gpt-5-nano', 'input_per_m': 123.456, 'cached_input_per_m': 0.005, 'output_per_m': 999.99, 'search_price_per_k': 10, 'search_free_per_month': 0},
+        },
+        'features': {
+          'support': {'enabled': true, 'provider': null},
+          'listing_assist': {'enabled': true, 'provider': 'openai', 'web_search': true},
+          'recommend': {'enabled': false, 'provider': null},
+          'moderation': {'enabled': true, 'provider': 'deepseek', 'action': 'block'},
+        },
+        'limits': {'monthly_budget_usd': 12345, 'daily_per_user': {'support': 10000, 'listing_assist': 15, 'recommend': 0}},
+      },
+      'providers': [
+        {'id': 'deepseek', 'name': 'DeepSeek', 'key_configured': false, 'vision': false, 'web_search': false, 'default_model': 'deepseek-flash'},
+        {'id': 'gemini', 'name': 'Gemini', 'key_configured': true, 'vision': true, 'web_search': true, 'default_model': 'gemini-3.1-flash-lite'},
+        {'id': 'openai', 'name': 'OpenAI', 'key_configured': true, 'vision': true, 'web_search': true, 'default_model': 'gpt-5-nano'},
+      ],
+      'migration_ready': false,
+    };
+
+Map<String, dynamic> aiUsageData() => {
+      'period': 'month',
+      'summary': {'requests': 1234567, 'errors': 98765, 'input_tokens': 9876543210, 'output_tokens': 123456789, 'search_calls': 45678, 'cost_usd': 9876.54321, 'month_cost_usd': 11111.2, 'monthly_budget_usd': 12345, 'budget_used_ratio': 0.9, 'projected_month_cost_usd': 23456.78},
+      'by_feature': [
+        for (final f in ['support', 'listing_assist', 'recommend', 'moderation', 'test'])
+          {'feature': f, 'requests': 123456, 'cost_usd': f == 'test' ? 0.0042 : 1234.5678, 'input_tokens': 1, 'output_tokens': 1, 'errors': 9999},
+      ],
+      'by_provider': [
+        {'provider': 'deepseek', 'model': 'deepseek-flash-extended-context-preview-2026-09', 'requests': 999999, 'cost_usd': 4321.1234, 'avg_latency_ms': 12345},
+        {'provider': 'gemini', 'model': 'gemini-3.1-flash-lite', 'requests': 12, 'cost_usd': 0.00042, 'avg_latency_ms': 840},
+      ],
+      'daily': [
+        for (var i = 1; i <= 30; i++)
+          {'date': '2026-09-${i.toString().padLeft(2, '0')}', 'requests': 1234 * i, 'cost_usd': i * 12.5, 'by_feature': {'support': i * 5.0, 'listing_assist': i * 4.0, 'recommend': i * 2.5, 'moderation': i * 1.0}},
+      ],
+      'top_users': many((i) => {'user_public_id': '0123456789abcdef0123456789abcde$i', 'nickname': longName, 'requests': 1234567, 'cost_usd': 12345.6789}, 5),
+      'recent_errors': many((i) => {'created_at': now, 'feature': 'listing_assist', 'provider': 'openai', 'error_code': i.isEven ? 'AI_PROVIDER_ERROR' : 'SOME_VERY_LONG_UNMAPPED_PROVIDER_ERROR_CODE_FROM_UPSTREAM'}, 6),
+      'pending_reviews': 9999,
+    };
+
+Map<String, dynamic> aiReviewRow(int i) => {
+      'book_id': i,
+      'book': {'book_id': i, 'title': longTitle, 'price': 123456, 'image_url': null},
+      'seller': user(2),
+      'verdict': i.isEven ? 'reject' : 'review',
+      'reasons': ['The description includes a phone number and asks buyers to pay outside the platform', 'The photos appear to show a phone case rather than a book'],
+      'categories': ['contact', 'not_book', 'misleading', 'price'],
+      'status': 'pending',
+      'created_at': now,
+    };
+
+const aiSupportLong = 'You can drop the book off at any smart locker.\n\n**Steps**\n- Open the order and tap Drop off\n- Scan the QR code on the locker screen\n1. Put the book in the open slot and close the door firmly so that it locks\n2. Wait for the confirmation notification';
+
+List<AiChatItem> aiSupportItems() => [
+      AiChatItem(id: 'a', isUser: true, content: 'How do I drop off a book I sold? ' * 3, animate: false),
+      AiChatItem(id: 'b', isUser: false, content: aiSupportLong, animate: false),
+      AiChatItem(id: 'c', isUser: true, content: 'The locker did not open after scanning and my order is stuck', animate: false),
+      AiChatItem(id: 'd', isUser: false, content: 'I am sorry about that. This needs a staff member to check the locker log.', suggestHandoff: true, animate: false),
+      AiChatItem(id: 'e', isUser: true, content: 'Please transfer me', state: AiChatState.failed, error: 'The AI service is temporarily unavailable. Please try again later.', animate: false),
+      AiChatItem(id: 'f', isUser: true, content: 'One more question', state: AiChatState.failed, error: 'You have reached today\'s AI usage limit. Please try again tomorrow.', blocked: true, animate: false),
+    ];
+
+AiListingAssist aiAssistResult() => AiListingAssist.fromJson({
+      'fields': {'title': longTitle, 'author': 'Johann Wolfgang von Goethe-Schiller', 'publisher': 'Penguin Random House International Publishing', 'publish_date': '2020-05-01', 'isbn': '9789571234567', 'description': 'A long description ' * 20},
+      'category': {'category_id': 2, 'name': 'Computer Science & Programming', 'confidence': 0.82},
+      'condition': {'level': 'good', 'confidence': 0.45, 'reasons': ['Slight wear on the cover corners and a crease along the spine', 'No visible water damage']},
+      'price': {'suggested': 12345, 'min': 10000, 'max': 99999, 'original_price': 99999, 'currency': 'TWD', 'reasons': ['List price 99999, good condition, about half of the list price']},
+      'sources': [{'title': 'Open Library: The Extraordinarily Long Title of a Second-hand Book', 'url': 'https://openlibrary.org/books/OL1M'}, {'title': '', 'url': 'https://www.books.com.tw/products/0010000000'}],
+      'warnings': ['The photos were too dark to judge the condition reliably; add a clear photo of the spine'],
+      'provider': 'gemini',
+      'model': 'gemini-3.1-flash-lite',
+    });
+
 List<Map<String, dynamic>> many(Map<String, dynamic> Function(int i) build, [int n = 4]) =>
     List.generate(n, (i) => build(i + 1));
 
@@ -330,7 +418,13 @@ Object? fakeData(String method, String path) {
     'GET /users/me/notification-settings': () => {'order': true, 'message': false, 'promotion': true},
     'GET /users/me/deletion': () => {'pending': false, 'grace_days': 30},
     'GET /users/me/qrcode': () => {'user_id': 1, 'nickname': longName, 'qr_data': 'https://api.savemybook.today/u/0123456789abcdef0123456789abcdef'},
-    'GET /books': () => many((i) => book(i)),
+    'GET /books': () => many((i) => {...book(i), 'review_status': i == 2 ? 'pending' : (i == 3 ? 'rejected' : null)}),
+    'GET /ai/status': () => {'support': true, 'listing_assist': true, 'recommend': true, 'web_search': true, 'consented': true, 'providers_in_use': ['DeepSeek', 'Google Gemini', 'OpenAI']},
+    'GET /ai/support/session': () => {'session_id': 1, 'status': 'open', 'messages': [for (final (i, m) in aiSupportItems().take(4).indexed) {'message_id': i + 1, 'role': m.isUser ? 'user' : 'assistant', 'content': m.content, 'created_at': now}]},
+    'GET /ai/recommendations': () => many((i) => {'book': book(i), 'reason': longReason}, 6),
+    'GET /admin/ai/settings': aiSettingsData,
+    'GET /admin/ai/usage': aiUsageData,
+    'GET /admin/ai/reviews': () => many(aiReviewRow, 5),
     'GET /books/5': () => book(5),
     'GET /categories': () => [
           {'category_id': 1, 'category_name': 'Literature & Fiction Classics', 'parent_id': null, 'sort_order': 0, 'other_book_categories': <Object>[]},
@@ -425,6 +519,7 @@ MockClient fakeApi() => MockClient((request) async {
         if (path == '/notifications') 'unread_count': 999,
         if (path == '/wallet/pending') 'total_amount': 4938268,
         if (path == '/admin/backups') 'keep': 14,
+        if (path == '/ai/recommendations') 'meta': {'source': 'ai', 'generated_at': now},
         if (data is List) 'pagination': {'total': data.length, 'page': 1, 'limit': 20, 'total_pages': 1},
       };
       return http.Response(jsonEncode(body), 200, headers: {'content-type': 'application/json; charset=utf-8'});
@@ -499,6 +594,30 @@ Map<String, Widget Function()> get screens => {
       'AdminDeletions': () => const AdminDeletionScreen(),
       'AdminOperationLog': () => const AdminOperationLogScreen(),
       'AdminAnnouncements': () => const AdminAnnouncementScreen(),
+      'AdminAiUsage': () => const AdminAiScreen(),
+      'AdminAiSettings': () => const AdminAiScreen(initialTab: 1, initialAdvancedOpen: true),
+      'AdminAiReview': () => const AdminAiScreen(initialTab: 2),
+      'AiSupport': () => const AiSupportScreen(),
+      'AiSupportStates': () => AiSupportScreen(initialItems: aiSupportItems()),
+      'AiListingResultSheet': () => DialogPreview(
+          show: (context) => showAiListingResultSheet(context, result: aiAssistResult(), targets: aiAssistTargets())),
+      'AiListingResultSheetStep2': () => DialogPreview(
+          show: (context) => showAiListingResultSheet(context,
+              result: aiAssistResult(),
+              targets: const AiListingTargets(supportsCondition: true, condition: 'fair', conditionTouched: true, supportsPrice: true, price: 500))),
+      'AiListingProgress': () => DialogPreview(
+          show: (context) => showModalBottomSheet<void>(
+              context: context,
+              builder: (_) => AiAssistProgressSheet(
+                    steps: const ['Looking up book details', 'Searching the web for more details', 'Analyzing photos', 'Suggesting category, condition and price'],
+                    run: () => Completer<AiResult<AiListingAssist>>().future,
+                  ))),
+      'AiRecommendStrip': () => const AiRecommendStripPreview(),
+      'AiConsentSheet': () => DialogPreview(
+          show: (context) => showAiConsentSheet(context,
+              status: const AiStatusInfo(support: true, listingAssist: true, recommend: true, providersInUse: ['DeepSeek', 'Google Gemini', 'OpenAI']))),
+      'AiConsentSheetSingle': () => DialogPreview(
+          show: (context) => showAiConsentSheet(context, status: const AiStatusInfo(listingAssist: true, providersInUse: ['Google Gemini']))),
       'AdminDeleteBookDialog': () => DialogPreview(
           show: (context) => showAdminDeleteBookDialog(
               context, AdminBook.fromJson({'book_id': 5, 'title': longTitle, 'price': 123456, 'status': 'on_sale', 'condition_level': 'fair', 'seller': user(2)}))),
@@ -507,6 +626,37 @@ Map<String, Widget Function()> get screens => {
       'ImageCropWide': () => const CropViewPreview(aspectRatio: 4 / 3),
       'ImageCropCircle': () => const CropViewPreview(circular: true),
     };
+
+AiListingTargets aiAssistTargets() => AiListingTargets(
+      fields: const {'title': 'Short title', 'author': '', 'publisher': 'Penguin Random House International Publishing', 'publish_date': '', 'isbn': '', 'description': ''},
+      categories: [
+        Category(categoryId: 1, categoryName: 'Literature & Fiction Classics', sortOrder: 0),
+        Category(categoryId: 2, categoryName: 'Computer Science & Programming', sortOrder: 1),
+      ],
+      categoryId: 1,
+      supportsCategory: true,
+      supportsCondition: true,
+      supportsPrice: true,
+      deferConditionAndPrice: true,
+    );
+
+class AiRecommendStripPreview extends StatelessWidget {
+  const AiRecommendStripPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final books = [for (var i = 1; i <= 4; i++) Book.fromJson(book(i))];
+    return Scaffold(
+      body: ListView(
+        children: [
+          DiscoveryPanel(tabs: [
+            DiscoveryTab(id: 'picked', title: 'Picked for you', icon: Icons.auto_awesome_rounded, books: books, reasons: {for (final b in books) b.bookId: longReason}),
+          ]),
+        ],
+      ),
+    );
+  }
+}
 
 ui.Image syntheticPhoto(int width, int height) {
   final recorder = ui.PictureRecorder();
