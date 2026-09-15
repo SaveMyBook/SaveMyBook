@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show File;
 import 'package:flutter/foundation.dart' show ValueChanged, ValueNotifier;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +19,7 @@ import '../models/ai.dart';
 import '../utils/api_helpers.dart';
 import '../models/security.dart';
 import '../i18n/strings.dart';
+import 'ai_image_prep.dart';
 import 'device_identity.dart';
 import 'payment_key_store.dart';
 

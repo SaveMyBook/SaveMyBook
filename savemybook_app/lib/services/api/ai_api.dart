@@ -60,15 +60,19 @@ extension AiApi on ApiService {
     String? conditionNote,
     List<String> imagePaths = const [],
   }) async {
+    final prepared = await AiImagePrep.prepareAll(imagePaths.take(4));
     final res = await _sendMultipart(
       '/ai/listing-assist',
-      [for (final path in imagePaths.take(4)) ('images', path)],
+      [for (final path in prepared) ('images', path)],
       fields: {
         if (isbn != null && isbn.isNotEmpty) 'isbn': isbn,
         if (title != null && title.isNotEmpty) 'title': title,
         if (conditionNote != null && conditionNote.isNotEmpty) 'condition_note': conditionNote,
       },
     );
+    for (final path in prepared) {
+      if (!imagePaths.contains(path)) File(path).delete().ignore();
+    }
     if (res == null || res['success'] != true) return _aiFail(res, S.somethingWentWrongPleaseTryAgain);
     final data = _dataMap(res);
     if (data == null) return AiResult.fail(S.somethingWentWrongPleaseTryAgain);
