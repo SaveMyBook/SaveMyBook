@@ -78,6 +78,17 @@ extension AdminCommerceApi on ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.actionFailed);
   }
 
+  Future<String?> deleteBookAsAdmin(int bookId, {String? reason}) async {
+    final trimmed = reason?.trim();
+    final res = await _send(
+      'DELETE',
+      '/admin/books/$bookId',
+      body: trimmed == null || trimmed.isEmpty ? null : {'reason': trimmed},
+    );
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotDelete);
+  }
+
   Future<List<AdminCategory>> fetchAdminCategories() async {
     final res = await _send('GET', '/admin/categories');
     return _mapList(res, AdminCategory.fromJson);

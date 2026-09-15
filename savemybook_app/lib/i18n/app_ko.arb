@@ -2900,5 +2900,62 @@
   "paymentRequest": "[송금 요청]",
   "transfer2": "[송금]",
   "transfer3": "받은 송금",
-  "transferOut": "보낸 송금"
+  "transferOut": "보낸 송금",
+  "deleteBook": "도서 삭제",
+  "p0PermanentlyDeletedCannotRestoredSeller": "\"{p0}\"이(가) 영구 삭제되며 복구할 수 없습니다. 판매자에게 알림이 전송됩니다.",
+  "@p0PermanentlyDeletedCannotRestoredSeller": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reasonDeletionOptional": "삭제 사유(선택)",
+  "bookDeleted2": "도서를 삭제했습니다",
+  "rotate": "회전",
+  "mentioned": "[나를 언급함]",
+  "saveImage": "이미지 저장",
+  "everyone": "모두",
+  "mentionMembers": "멤버 언급",
+  "removeAdminRole": "관리자 권한 해제",
+  "makeP0Admin": "{p0} 님을 관리자로 지정하시겠습니까?",
+  "@makeP0Admin": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeAdminRoleFromP0": "{p0} 님의 관리자 권한을 해제하시겠습니까?",
+  "@removeAdminRoleFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "remove2": "해제",
+  "p0NowAdmin": "{p0} 님을 관리자로 지정했습니다",
+  "@p0NowAdmin": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removedAdminRoleFromP0": "{p0} 님의 관리자 권한을 해제했습니다",
+  "@removedAdminRoleFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "photosP02": "[사진] {p0}장",
+  "@photosP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "savedDownloads": "다운로드 폴더에 저장했습니다",
+  "couldNotSaveImage": "이미지를 저장할 수 없습니다",
+  "savingImagesP0P1": "이미지 저장 중 {p0} / {p1}",
+  "@savingImagesP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "savingImage": "이미지 저장 중",
+  "passwordsCanOnlyContainEnglishLetters": "비밀번호에는 영문, 숫자, 반각 기호만 사용할 수 있습니다"
 }

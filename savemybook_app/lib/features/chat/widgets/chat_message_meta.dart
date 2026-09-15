@@ -52,7 +52,7 @@ class ChatMessageTime extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          if (readLabel != null) Text(readLabel!, style: small.copyWith(color: c.accent, fontWeight: FontWeight.w600)),
+          if (readLabel != null) Text(readLabel!, style: small),
           if (edited) Text(S.edited, style: small),
           Text(chatClock(createdAt), style: small),
         ],
@@ -61,4 +61,4 @@ class ChatMessageTime extends StatelessWidget {
   }
 }
 
-TextStyle _metaStyle(AppColors c) => TextStyle(fontSize: 10.5, color: c.textHint, height: 1.25);
+TextStyle _metaStyle(AppColors c) => TextStyle(fontSize: 10.5, color: c.textSecondary, height: 1.25);

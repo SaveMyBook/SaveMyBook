@@ -52,6 +52,15 @@ class ChatMember {
 
   String get displayName => alias != null && alias!.isNotEmpty ? alias! : nickname;
 
+  ChatMember copyWith({String? role}) => ChatMember(
+        userId: userId,
+        nickname: nickname,
+        avatarUrl: avatarUrl,
+        alias: alias,
+        role: role ?? this.role,
+        joinedAt: joinedAt,
+      );
+
   factory ChatMember.fromJson(Map<String, dynamic> json) {
     final alias = json['alias'] as String?;
     return ChatMember(
@@ -175,8 +184,63 @@ class ChatEdit {
   final int messageId;
   final String body;
   final DateTime? editedAt;
+  final List<ChatMention>? mentions;
 
-  const ChatEdit({required this.messageId, required this.body, this.editedAt});
+  const ChatEdit({required this.messageId, required this.body, this.editedAt, this.mentions});
+}
+
+class ChatMention {
+  static const everyone = 0;
+
+  final int userId;
+  final int start;
+  final int length;
+
+  const ChatMention({required this.userId, required this.start, required this.length});
+
+  int get end => start + length;
+
+  bool get isEveryone => userId == everyone;
+
+  ChatMention shift(int delta) => ChatMention(userId: userId, start: start + delta, length: length);
+
+  Map<String, dynamic> toJson() => {'user_id': userId, 'start': start, 'length': length};
+
+  static ChatMention? tryParse(Object? json) {
+    if (json is! Map) return null;
+    final start = int.tryParse('${json['start']}');
+    final length = int.tryParse('${json['length']}');
+    final userId = int.tryParse('${json['user_id']}');
+    if (start == null || length == null || userId == null || start < 0 || length <= 0) return null;
+    return ChatMention(userId: userId, start: start, length: length);
+  }
+
+  static List<ChatMention> listFrom(Object? raw) {
+    if (raw is! List) return const [];
+    final list = [for (final item in raw) ?tryParse(item)]..sort((a, b) => a.start.compareTo(b.start));
+    return list;
+  }
+
+  static List<ChatMention> validFor(String text, List<ChatMention> mentions) {
+    final result = <ChatMention>[];
+    var cursor = 0;
+    for (final m in [...mentions]..sort((a, b) => a.start.compareTo(b.start))) {
+      if (m.start < cursor || m.end > text.length || text.codeUnitAt(m.start) != 0x40) continue;
+      result.add(m);
+      cursor = m.end;
+    }
+    return result;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is ChatMention && other.userId == userId && other.start == start && other.length == length;
+
+  @override
+  int get hashCode => Object.hash(userId, start, length);
+
+  @override
+  String toString() => 'ChatMention($userId, $start, $length)';
 }
 
 class ChatRoom {
@@ -192,6 +256,7 @@ class ChatRoom {
   final String lastSenderName;
   final bool lastIsRead;
   final int unreadCount;
+  final bool mentionUnread;
   final bool muted;
   final bool blocked;
   final bool pinned;
@@ -211,6 +276,7 @@ class ChatRoom {
     this.lastSenderName = '',
     this.lastIsRead = false,
     required this.unreadCount,
+    this.mentionUnread = false,
     this.muted = false,
     this.blocked = false,
     this.pinned = false,
@@ -235,6 +301,7 @@ class ChatRoom {
         lastSenderName: lastSenderName,
         lastIsRead: lastIsRead,
         unreadCount: unreadCount,
+        mentionUnread: mentionUnread,
         muted: muted ?? this.muted,
         blocked: blocked ?? this.blocked,
         pinned: pinned ?? this.pinned,
@@ -260,6 +327,7 @@ class ChatRoom {
       lastSenderName: last?['sender_name'] as String? ?? '',
       lastIsRead: last?['is_read'] == true,
       unreadCount: parseInt(json['unread_count']),
+      mentionUnread: json['mention_unread'] == true,
       muted: json['muted'] == true,
       blocked: json['blocked'] == true,
       pinned: json['pinned'] == true,
@@ -268,6 +336,8 @@ class ChatRoom {
     );
   }
 }
+
+String chatAlbumPreview(int count) => S.photosP02(count);
 
 class ChatBookCard {
   static const prefix = '[book]';
@@ -411,7 +481,7 @@ class ChatReply {
         senderName: senderName,
         kind: message.kind,
         preview: message.preview,
-        imageUrl: message.imageUrl,
+        imageUrl: message.imageUrls.firstOrNull,
       );
 }
 
@@ -429,6 +499,7 @@ class ChatMessage {
   final ChatReply? replyTo;
   final String senderName;
   final String? senderAvatarUrl;
+  final List<ChatMention> mentions;
 
   ChatMessage({
     required this.messageId,
@@ -444,12 +515,16 @@ class ChatMessage {
     this.replyTo,
     this.senderName = '',
     this.senderAvatarUrl,
+    this.mentions = const [],
   }) : kind = kind ?? _legacyKind(messageType, content);
+
+  static const albumPrefix = '[album]';
 
   static String _legacyKind(String type, String content) {
     if (type == 'image') return 'image';
     if (type != 'system') return 'text';
     if (content.startsWith(ChatBookCard.prefix)) return 'book';
+    if (content.startsWith(albumPrefix)) return 'album';
     if (content.startsWith('[recalled]')) return 'recalled';
     return 'notice';
   }
@@ -459,6 +534,22 @@ class ChatMessage {
   String get text => body ?? content;
 
   String? get imageUrl => kind == 'image' ? resolveAssetUrl(body ?? content) : null;
+
+  bool get hasImages => kind == 'image' || kind == 'album';
+
+  List<String> get imageUrls {
+    if (kind == 'image') return [?imageUrl];
+    if (kind != 'album') return const [];
+    Object? raw = payload?['urls'];
+    if (raw == null && content.startsWith(albumPrefix)) {
+      try {
+        final decoded = jsonDecode(content.substring(albumPrefix.length));
+        if (decoded is Map) raw = decoded['urls'];
+      } catch (_) {}
+    }
+    if (raw is! List) return const [];
+    return [for (final url in raw) ?resolveAssetUrl(url)];
+  }
 
   ChatBookCard? get bookCard {
     if (kind != 'book') return null;
@@ -481,6 +572,8 @@ class ChatMessage {
     switch (kind) {
       case 'image':
         return S.photo;
+      case 'album':
+        return chatAlbumPreview(imageUrls.length);
       case 'voice':
         return S.voice;
       case 'book':
@@ -502,6 +595,7 @@ class ChatMessage {
     String? body,
     Map<String, dynamic>? payload,
     DateTime? editedAt,
+    List<ChatMention>? mentions,
   }) =>
       ChatMessage(
         messageId: messageId,
@@ -517,6 +611,7 @@ class ChatMessage {
         replyTo: replyTo,
         senderName: senderName,
         senderAvatarUrl: senderAvatarUrl,
+        mentions: mentions ?? this.mentions,
       );
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -535,6 +630,7 @@ class ChatMessage {
       replyTo: json['reply_to'] is Map ? ChatReply.fromJson(Map<String, dynamic>.from(json['reply_to'])) : null,
       senderName: json['users'] is Map ? json['users']['nickname'] as String? ?? '' : '',
       senderAvatarUrl: json['users'] is Map ? resolveAssetUrl(json['users']['avatar_url']) : null,
+      mentions: ChatMention.listFrom(json['mentions']),
     );
   }
 }

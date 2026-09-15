@@ -2900,5 +2900,62 @@
   "paymentRequest": "[請款]",
   "transfer2": "[轉帳]",
   "transfer3": "轉入",
-  "transferOut": "轉出"
+  "transferOut": "轉出",
+  "deleteBook": "刪除書籍",
+  "p0PermanentlyDeletedCannotRestoredSeller": "《{p0}》將永久刪除且無法復原，賣家將收到通知。",
+  "@p0PermanentlyDeletedCannotRestoredSeller": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reasonDeletionOptional": "刪除原因（選填）",
+  "bookDeleted2": "已刪除書籍",
+  "rotate": "旋轉",
+  "mentioned": "[有人提及您]",
+  "saveImage": "儲存圖片",
+  "everyone": "所有人",
+  "mentionMembers": "提及成員",
+  "removeAdminRole": "解除管理員身分",
+  "makeP0Admin": "確定要將 {p0} 設為管理員？",
+  "@makeP0Admin": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeAdminRoleFromP0": "確定要解除 {p0} 的管理員身分？",
+  "@removeAdminRoleFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "remove2": "解除",
+  "p0NowAdmin": "已將 {p0} 設為管理員",
+  "@p0NowAdmin": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removedAdminRoleFromP0": "已解除 {p0} 的管理員身分",
+  "@removedAdminRoleFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "photosP02": "[圖片] {p0} 張",
+  "@photosP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "savedDownloads": "已儲存至「下載項目」",
+  "couldNotSaveImage": "無法儲存圖片",
+  "savingImagesP0P1": "正在儲存圖片 {p0} / {p1}",
+  "@savingImagesP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "savingImage": "正在儲存圖片",
+  "passwordsCanOnlyContainEnglishLetters": "密碼僅可使用英文字母、數字及半形符號"
 }

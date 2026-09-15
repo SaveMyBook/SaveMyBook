@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/responsive.dart';
@@ -218,6 +219,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     bool isLast = false,
     int? maxLength,
     TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
     Widget? suffix,
     ValueChanged<String>? onChanged,
     ValueChanged<String>? onSubmitted,
@@ -253,6 +255,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               obscureText: obscureText,
               maxLength: maxLength,
               keyboardType: keyboardType,
+              inputFormatters: inputFormatters,
               textInputAction: isLast ? TextInputAction.done : TextInputAction.next,
               suffix: suffix,
               onChanged: onChanged,
@@ -359,6 +362,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     errorText: _passwordError,
                     obscureText: _obscurePassword,
                     maxLength: 64,
+                    keyboardType: TextInputType.visiblePassword,
+                    inputFormatters: [
+                      PasswordCharactersFormatter(
+                        onRejected: () => setState(() => _passwordError = S.passwordsCanOnlyContainEnglishLetters),
+                      ),
+                    ],
                     c: c,
                     suffix: IconButton(
                       icon: Icon(
@@ -382,6 +391,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     errorText: _confirmError,
                     obscureText: _obscurePassword,
                     maxLength: 64,
+                    keyboardType: TextInputType.visiblePassword,
+                    inputFormatters: [
+                      PasswordCharactersFormatter(
+                        onRejected: () => setState(() => _confirmError = S.passwordsCanOnlyContainEnglishLetters),
+                      ),
+                    ],
                     isLast: true,
                     c: c,
                     suffix: ValueListenableBuilder<TextEditingValue>(

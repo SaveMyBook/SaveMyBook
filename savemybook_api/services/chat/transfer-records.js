@@ -3,6 +3,7 @@ const publicId = require('../../lib/public-id');
 const { placeholders } = require('../../lib/sql');
 const codec = require('./codec');
 const schema = require('./schema');
+const history = require('./history');
 
 const RECENT_LIMIT = 30;
 
@@ -47,13 +48,13 @@ const transition = (tx, transferId, status, now) => tx.$executeRaw`
   UPDATE chat_transfers SET status = ${status}, responded_at = ${now}
   WHERE transfer_id = ${transferId} AND status = 'pending' AND expires_at > ${now}`;
 
-const forRoom = async (roomId, messages) => {
+const forRoom = async (roomId, messages, floor) => {
   if (!(await schema.isV2())) return { recent: [], byId: new Map() };
   const now = new Date();
-  const recent = await prisma.$queryRawUnsafe(
+  const recent = (await prisma.$queryRawUnsafe(
     `SELECT ${COLUMNS} FROM chat_transfers WHERE room_id = ? ORDER BY transfer_id DESC LIMIT ${RECENT_LIMIT}`,
     roomId
-  );
+  )).filter((r) => history.isVisible(floor, r));
   const known = new Set(recent.map((r) => Number(r.transfer_id)));
   const missing = [...new Set(messages
     .map(codec.decode)

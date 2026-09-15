@@ -276,15 +276,20 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     final info = _info;
     if (info == null || member.userId == _myId) return;
     final c = AppColors.of(context);
-    final canRemove = info.isOwner && !member.isOwner;
+    final manage = info.isOwner;
     final choice = await showOptionSheet<String>(
       context,
       title: member.displayName,
       subtitle: member.alias != null ? member.nickname : null,
       options: [
+        if (manage && member.isOwner)
+          SheetOption(value: 'revoke', label: S.removeAdminRole, icon: Icons.remove_moderator_outlined),
         SheetOption(value: 'alias', label: S.setNickname, icon: Icons.edit_outlined),
         SheetOption(value: 'profile', label: S.viewProfile, icon: Icons.person_outline_rounded),
-        if (canRemove) SheetOption(value: 'remove', label: S.removeMember, icon: Icons.person_remove_outlined, color: c.danger),
+        if (manage && !member.isOwner)
+          SheetOption(value: 'promote', label: S.makeAdmin, icon: Icons.add_moderator_outlined),
+        if (manage && !member.isOwner)
+          SheetOption(value: 'remove', label: S.removeMember, icon: Icons.person_remove_outlined, color: c.danger),
       ],
     );
     if (choice == null || !mounted) return;
@@ -293,8 +298,39 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
         await _editAlias(userId: member.userId, nickname: member.nickname, alias: member.alias);
       case 'profile':
         _openProfile(userId: member.userId, name: member.displayName, avatarUrl: member.avatarUrl);
+      case 'promote':
+        await _setAdmin(member, true);
+      case 'revoke':
+        await _setAdmin(member, false);
       case 'remove':
         await _removeMember(member);
+    }
+  }
+
+  Future<void> _setAdmin(ChatMember member, bool admin) async {
+    final name = member.displayName;
+    final confirmed = await showConfirmDialog(
+      context,
+      title: admin ? S.makeAdmin : S.removeAdminRole,
+      message: admin ? S.makeP0Admin(name) : S.removeAdminRoleFromP0(name),
+      confirmLabel: admin ? S.makeAdmin : S.remove2,
+      isDestructive: !admin,
+      icon: admin ? Icons.add_moderator_outlined : Icons.remove_moderator_outlined,
+    );
+    if (!confirmed || !mounted) return;
+    final (info, error) =
+        await runBusy(context, () => _api.setChatMemberRole(widget.roomId, member.userId, admin: admin)) ?? (null, S.actionFailed);
+    if (!mounted) return;
+    if (error != null) {
+      showAppSnackBar(context, error, isError: true);
+      return;
+    }
+    HapticFeedback.selectionClick();
+    showAppSnackBar(context, admin ? S.p0NowAdmin(name) : S.removedAdminRoleFromP0(name));
+    if (info != null) {
+      setState(() => _info = info);
+    } else {
+      await _load();
     }
   }
 

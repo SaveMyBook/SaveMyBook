@@ -14,6 +14,7 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
     registerPermissionChannel(messenger: flutterViewController.engine.binaryMessenger)
+    registerShareChannel(messenger: flutterViewController.engine.binaryMessenger)
 
     super.awakeFromNib()
   }
@@ -42,6 +43,37 @@ class MainFlutterWindow: NSWindow {
       default:
         result(FlutterMethodNotImplemented)
       }
+    }
+  }
+
+  private func registerShareChannel(messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "savemybook/share", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      guard call.method == "saveImage" else { return result(FlutterMethodNotImplemented) }
+      let args = call.arguments as? [String: Any] ?? [:]
+      guard let path = args["path"] as? String, FileManager.default.fileExists(atPath: path) else {
+        return result(FlutterError(code: "no_image", message: "找不到圖片", details: nil))
+      }
+      result(Self.copyToDownloads(URL(fileURLWithPath: path)))
+    }
+  }
+
+  private static func copyToDownloads(_ source: URL) -> Bool {
+    let manager = FileManager.default
+    guard let downloads = manager.urls(for: .downloadsDirectory, in: .userDomainMask).first else { return false }
+    let base = source.deletingPathExtension().lastPathComponent
+    let ext = source.pathExtension
+    var target = downloads.appendingPathComponent(source.lastPathComponent)
+    var index = 1
+    while manager.fileExists(atPath: target.path) {
+      target = downloads.appendingPathComponent(ext.isEmpty ? "\(base) (\(index))" : "\(base) (\(index)).\(ext)")
+      index += 1
+    }
+    do {
+      try manager.copyItem(at: source, to: target)
+      return true
+    } catch {
+      return false
     }
   }
 

@@ -10,8 +10,8 @@ import '../../../utils/api_helpers.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
 import '../../../widgets/app_tiles.dart';
-import '../../../widgets/state_views.dart';
 import '../groups/group_avatar.dart';
+import '../media/chat_network_image.dart';
 import 'chat_format.dart';
 
 enum ChatPreviewAction { open, markRead, toggleMute, togglePin, delete }
@@ -213,7 +213,7 @@ class _ChatPreviewState extends State<_ChatPreview> {
 
     final bubbleColor = mine ? chatMineBubble(c) : c.card;
     final textColor = mine ? Colors.white : c.textPrimary;
-    final image = m.imageUrl;
+    final image = m.imageUrls.firstOrNull;
     final sender = widget.room.isGroup && !mine && m.senderName.isNotEmpty ? m.senderName : null;
 
     return Padding(
@@ -246,7 +246,27 @@ class _ChatPreviewState extends State<_ChatPreview> {
               child: image != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(14),
-                      child: AppNetworkImage(url: image, width: 140, height: 104),
+                      child: Stack(
+                        children: [
+                          ChatNetworkImage(url: image, width: 140, height: 104),
+                          if (m.kind == 'album')
+                            Positioned(
+                              right: 6,
+                              bottom: 6,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${m.imageUrls.length}',
+                                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     )
                   : Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

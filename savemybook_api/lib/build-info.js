@@ -14,7 +14,7 @@ const readCommit = () => {
 const buildInfo = Object.freeze({
   commit: readCommit(),
   startedAt: new Date(),
-  apiRevision: 9
+  apiRevision: 10
 });
 
 module.exports = { buildInfo };

@@ -24,13 +24,21 @@ const isActive = async (roomId, userId) => {
   return rows.length > 0;
 };
 
-const join = (tx, roomId, entries, { joinedAt, lastReadId }) => tx.$executeRawUnsafe(
-  `INSERT INTO chat_room_members (room_id, user_id, role, joined_at, left_at, last_read_message_id)
-   VALUES ${entries.map(() => '(?, ?, ?, ?, NULL, ?)').join(', ')}
-   ON DUPLICATE KEY UPDATE role = VALUES(role), joined_at = VALUES(joined_at), left_at = NULL,
-     last_read_message_id = VALUES(last_read_message_id)`,
-  ...entries.flatMap((e) => [roomId, e.userId, e.role, joinedAt, lastReadId])
-);
+const join = (tx, roomId, entries, { joinedAt, lastReadId, historyFromId = null }) => (historyFromId == null
+  ? tx.$executeRawUnsafe(
+      `INSERT INTO chat_room_members (room_id, user_id, role, joined_at, left_at, last_read_message_id)
+       VALUES ${entries.map(() => '(?, ?, ?, ?, NULL, ?)').join(', ')}
+       ON DUPLICATE KEY UPDATE role = VALUES(role), joined_at = VALUES(joined_at), left_at = NULL,
+         last_read_message_id = VALUES(last_read_message_id)`,
+      ...entries.flatMap((e) => [roomId, e.userId, e.role, joinedAt, lastReadId])
+    )
+  : tx.$executeRawUnsafe(
+      `INSERT INTO chat_room_members (room_id, user_id, role, joined_at, left_at, last_read_message_id, history_from_id)
+       VALUES ${entries.map(() => '(?, ?, ?, ?, NULL, ?, ?)').join(', ')}
+       ON DUPLICATE KEY UPDATE role = VALUES(role), joined_at = VALUES(joined_at), left_at = NULL,
+         last_read_message_id = VALUES(last_read_message_id), history_from_id = VALUES(history_from_id)`,
+      ...entries.flatMap((e) => [roomId, e.userId, e.role, joinedAt, lastReadId, historyFromId])
+    ));
 
 const addDirect = (db, roomId, userIds, joinedAt) => db.$executeRawUnsafe(
   `INSERT IGNORE INTO chat_room_members (room_id, user_id, role, joined_at, last_read_message_id)
@@ -42,8 +50,8 @@ const leave = (tx, roomId, userId, now) => tx.$executeRaw`
   UPDATE chat_room_members SET left_at = ${now}, role = 'member'
   WHERE room_id = ${roomId} AND user_id = ${userId} AND left_at IS NULL`;
 
-const promote = (tx, roomId, userId) => tx.$executeRaw`
-  UPDATE chat_room_members SET role = 'owner' WHERE room_id = ${roomId} AND user_id = ${userId} AND left_at IS NULL`;
+const setRole = (tx, roomId, userId, role) => tx.$executeRaw`
+  UPDATE chat_room_members SET role = ${role} WHERE room_id = ${roomId} AND user_id = ${userId} AND left_at IS NULL`;
 
 const markRead = (db, roomId, userId, messageId) => db.$executeRaw`
   UPDATE chat_room_members SET last_read_message_id = GREATEST(last_read_message_id, ${messageId})
@@ -52,4 +60,4 @@ const markRead = (db, roomId, userId, messageId) => db.$executeRaw`
 const unpin = (db, roomId, userId) => db.$executeRaw`
   DELETE FROM chat_room_pins WHERE user_id = ${userId} AND room_id = ${roomId}`;
 
-module.exports = { active, isActive, join, addDirect, leave, promote, markRead, unpin };
+module.exports = { active, isActive, join, addDirect, leave, setRole, markRead, unpin };

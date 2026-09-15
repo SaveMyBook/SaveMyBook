@@ -7,6 +7,7 @@ import '../../../models/chat.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
 import '../../../widgets/state_views.dart';
+import 'chat_bubbles.dart';
 import 'chat_format.dart';
 
 enum ReservationAction { accept, decline, cancel, buy }
@@ -15,6 +16,8 @@ class ReservationCardView extends StatelessWidget {
   final ChatReservation reservation;
   final int myId;
   final bool isMine;
+  final bool groupStart;
+  final bool groupEnd;
   final bool busy;
   final ValueChanged<ReservationAction> onAction;
   final VoidCallback? onOpenBook;
@@ -25,6 +28,8 @@ class ReservationCardView extends StatelessWidget {
     required this.myId,
     required this.onAction,
     this.isMine = false,
+    this.groupStart = true,
+    this.groupEnd = true,
     this.busy = false,
     this.onOpenBook,
   });
@@ -79,25 +84,8 @@ class ReservationCardView extends StatelessWidget {
       }
     }
 
-    const big = Radius.circular(18);
-    const small = Radius.circular(6);
-
-    return AnimatedContainer(
-      duration: Motion.base,
-      curve: Motion.standard,
-      decoration: BoxDecoration(
-        color: c.card,
-        borderRadius: BorderRadius.only(
-          topLeft: big,
-          topRight: big,
-          bottomLeft: isMine ? big : small,
-          bottomRight: isMine ? small : big,
-        ),
-        border: Border.all(color: c.border),
-        boxShadow: c.isDark
-            ? null
-            : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
+    return ChatCardFrame(
+      radius: chatBubbleRadius(isMine: isMine, groupStart: groupStart, groupEnd: groupEnd),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(

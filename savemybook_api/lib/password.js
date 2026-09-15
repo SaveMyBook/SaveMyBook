@@ -19,6 +19,7 @@ const verify = async (plain, hashed) => {
 // 上限 72 位元組是 bcrypt 的限制，超過的部分會被默默截掉。
 const assertPolicy = (plain, label = '密碼') => {
   if (typeof plain !== 'string' || plain.length < 8) throw badRequest(`${label}長度至少 8 個字元`);
+  if (!/^[\x21-\x7E]+$/.test(plain)) throw badRequest(`${label}僅可使用英文字母、數字及半形符號`);
   if (Buffer.byteLength(plain, 'utf8') > 72) throw badRequest(`${label}長度過長`);
   if (!/[A-Za-z]/.test(plain)) throw badRequest(`${label}必須包含英文字母`);
   if (!/[0-9]/.test(plain)) throw badRequest(`${label}必須包含數字`);

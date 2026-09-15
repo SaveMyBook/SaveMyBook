@@ -530,11 +530,30 @@ class Validators {
 
   static bool isPhone(String value) => _phone.hasMatch(value.trim().replaceAll('-', ''));
 
+  static final _passwordCharacters = RegExp(r'^[\x21-\x7E]*$');
+
+  static bool isPasswordCharacters(String value) => _passwordCharacters.hasMatch(value);
+
   static String? password(String value) {
+    if (!isPasswordCharacters(value)) return S.passwordsCanOnlyContainEnglishLetters;
     if (value.length < 8) return S.passwordsNeedLeast8Characters;
     if (!RegExp(r'[A-Za-z]').hasMatch(value)) return S.passwordsMustIncludeLetter;
     if (!RegExp(r'[0-9]').hasMatch(value)) return S.passwordsMustIncludeNumber;
     return null;
+  }
+}
+
+// 拒絕整筆輸入而非濾掉字元：貼上含中文的內容時若只刪掉中文，使用者會以為密碼已完整貼上。
+class PasswordCharactersFormatter extends TextInputFormatter {
+  final VoidCallback? onRejected;
+
+  PasswordCharactersFormatter({this.onRejected});
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    if (Validators.isPasswordCharacters(newValue.text)) return newValue;
+    onRejected?.call();
+    return oldValue;
   }
 }
 

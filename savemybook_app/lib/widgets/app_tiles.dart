@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import 'animations.dart';
 import 'image_viewer.dart';
 import '../utils/motion.dart';
 
@@ -110,15 +111,20 @@ class _UserAvatarState extends State<UserAvatar> with WidgetsBindingObserver {
                 WidgetsBinding.instance.addPostFrameCallback((_) => _onError(url));
                 return Center(child: fallback);
               },
-              loadingBuilder: (_, child, progress) =>
-                  progress == null ? child : Center(child: fallback),
               frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
                 if (wasSynchronouslyLoaded) return child;
-                return AnimatedOpacity(
-                  opacity: frame == null ? 0 : 1,
-                  duration: const Duration(milliseconds: 260),
-                  curve: Curves.easeOut,
-                  child: child,
+                final loaded = frame != null;
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (!loaded) Shimmer(child: ColoredBox(color: c.skeleton)),
+                    AnimatedOpacity(
+                      opacity: loaded ? 1 : 0,
+                      duration: const Duration(milliseconds: 260),
+                      curve: Curves.easeOut,
+                      child: child,
+                    ),
+                  ],
                 );
               },
             )

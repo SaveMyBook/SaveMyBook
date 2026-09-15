@@ -180,6 +180,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       obscure: _obscureNew,
                       onToggle: () => setState(() => _obscureNew = !_obscureNew),
                       onChanged: () => setState(() => _newError = null),
+                      onInvalidCharacters: () => setState(() => _newError = S.passwordsCanOnlyContainEnglishLetters),
                       footer: PasswordStrengthMeter(password: _newController.text),
                     ),
                   ),
@@ -198,6 +199,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         if (_confirmError != null) setState(() => _confirmError = null);
                       },
                       onSubmitted: _submit,
+                      onInvalidCharacters: () => setState(() => _confirmError = S.passwordsCanOnlyContainEnglishLetters),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -232,6 +234,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     bool isLast = false,
     VoidCallback? onSubmitted,
     Widget? footer,
+    VoidCallback? onInvalidCharacters,
   }) {
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -259,6 +262,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             errorText: errorText,
             obscureText: obscure,
             maxLength: 64,
+            keyboardType: onInvalidCharacters == null ? null : TextInputType.visiblePassword,
+            inputFormatters: onInvalidCharacters == null
+                ? null
+                : [PasswordCharactersFormatter(onRejected: onInvalidCharacters)],
             textInputAction: isLast ? TextInputAction.done : TextInputAction.next,
             onChanged: (_) => onChanged(),
             onSubmitted: onSubmitted == null ? null : (_) => onSubmitted(),

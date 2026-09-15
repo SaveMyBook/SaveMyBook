@@ -73,6 +73,14 @@ router.patch('/books/:id', canManage, async (req, res) => {
   res.status(200).json({ success: true, message: status === 'removed' ? '已下架' : '已恢復上架' });
 });
 
+router.delete('/books/:id', canManage, async (req, res) => {
+  const bookId = v.id(req.params.id, '書籍編號');
+  const reason = v.optionalText(req.body?.reason, { label: '原因', max: 200 }) ?? null;
+
+  await booksAdmin.remove(bookId, reason, actorOf(req));
+  res.status(200).json({ success: true, message: '已刪除書籍' });
+});
+
 const categoryName = (value) => {
   const name = v.text(value, { label: '分類名稱', max: 50 });
   if (!name) throw badRequest('請輸入分類名稱');

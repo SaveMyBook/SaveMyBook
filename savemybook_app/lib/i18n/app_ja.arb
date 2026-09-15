@@ -2900,5 +2900,62 @@
   "paymentRequest": "[請求]",
   "transfer2": "[送金]",
   "transfer3": "受け取り",
-  "transferOut": "送金"
+  "transferOut": "送金",
+  "deleteBook": "書籍を削除",
+  "p0PermanentlyDeletedCannotRestoredSeller": "「{p0}」は完全に削除され、元に戻せません。出品者に通知されます。",
+  "@p0PermanentlyDeletedCannotRestoredSeller": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reasonDeletionOptional": "削除理由（任意）",
+  "bookDeleted2": "書籍を削除しました",
+  "rotate": "回転",
+  "mentioned": "[メンションされました]",
+  "saveImage": "画像を保存",
+  "everyone": "全員",
+  "mentionMembers": "メンバーをメンション",
+  "removeAdminRole": "管理者権限を解除",
+  "makeP0Admin": "{p0} を管理者にしますか？",
+  "@makeP0Admin": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeAdminRoleFromP0": "{p0} の管理者権限を解除しますか？",
+  "@removeAdminRoleFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "remove2": "解除",
+  "p0NowAdmin": "{p0} を管理者にしました",
+  "@p0NowAdmin": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removedAdminRoleFromP0": "{p0} の管理者権限を解除しました",
+  "@removedAdminRoleFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "photosP02": "[写真] {p0} 枚",
+  "@photosP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "savedDownloads": "「ダウンロード」に保存しました",
+  "couldNotSaveImage": "画像を保存できませんでした",
+  "savingImagesP0P1": "画像を保存中 {p0} / {p1}",
+  "@savingImagesP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "savingImage": "画像を保存中",
+  "passwordsCanOnlyContainEnglishLetters": "パスワードには英字、数字、半角記号のみ使用できます"
 }

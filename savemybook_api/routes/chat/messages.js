@@ -4,18 +4,64 @@ const v = require('../../lib/validate');
 const { badRequest } = require('../../lib/errors');
 const codec = require('../../services/chat/codec');
 const messages = require('../../services/chat/messages');
+const mentionStore = require('../../services/chat/mentions');
 const { sendLimiter, CHAT_IMAGE_RE } = require('./limits');
 
 const router = express.Router();
 
 const MAX_MESSAGE_LENGTH = 2000;
-const CLIENT_TYPES = ['text', 'image', 'voice'];
+const CLIENT_TYPES = ['text', 'image', 'voice', 'album'];
 const VOICE_RE = /^\/uploads\/voice\/[\w.-]+$/;
+const INT_MAX = 2147483647;
 
 const typingLimiter = rateLimit({ windowMs: 60 * 1000, max: 40, key: byUser });
 
+const hasMentions = (value) => value !== undefined && value !== null && !(Array.isArray(value) && value.length === 0);
+
+// v.text 會去除前後空白，App 以送出的原始字串計算位置，須扣除被去除的前導空白。
+const mentionsOf = (value, rawContent, content) => {
+  if (!hasMentions(value)) return [];
+  if (!Array.isArray(value) || value.length > mentionStore.MAX_MENTIONS) throw mentionStore.invalid();
+  const offset = typeof rawContent === 'string' ? rawContent.length - rawContent.trimStart().length : 0;
+
+  const list = value.map((m) => {
+    if (!m || typeof m !== 'object' || ![m.user_id, m.start, m.length].every(Number.isInteger)) throw mentionStore.invalid();
+    const start = m.start - offset;
+    const valid = m.user_id >= 0 && m.user_id <= INT_MAX
+      && start >= 0 && m.length >= 1 && m.length <= mentionStore.MAX_MENTION_LENGTH
+      && start + m.length <= content.length && content[start] === '@';
+    if (!valid) throw mentionStore.invalid();
+    return { user_id: m.user_id, start, length: m.length };
+  }).sort((a, b) => a.start - b.start);
+
+  for (let i = 1; i < list.length; i += 1) {
+    if (list[i].start < list[i - 1].start + list[i - 1].length) throw mentionStore.invalid();
+  }
+  return list;
+};
+
+const albumOf = (value) => {
+  const count = Array.isArray(value) ? value.length : 0;
+  if (count < codec.MIN_ALBUM_IMAGES || count > codec.MAX_ALBUM_IMAGES) {
+    throw badRequest(`相簿須包含 ${codec.MIN_ALBUM_IMAGES} 至 ${codec.MAX_ALBUM_IMAGES} 張圖片`);
+  }
+  return value.map((item) => {
+    const url = v.text(item, { label: '圖片網址', max: 500 });
+    if (!CHAT_IMAGE_RE.test(url)) throw badRequest('圖片請先透過 /api/uploads/chat-image 上傳');
+    return url;
+  });
+};
+
 const buildContent = (body) => {
-  const type = body.message_type === undefined ? 'text' : v.oneOf(body.message_type, CLIENT_TYPES, 'message_type 僅接受：text, image, voice');
+  const type = body.message_type === undefined
+    ? 'text'
+    : v.oneOf(body.message_type, CLIENT_TYPES, 'message_type 僅接受：text, image, voice, album');
+  if (type !== 'text' && hasMentions(body.mentions)) throw badRequest('僅文字訊息可提及成員');
+
+  if (type === 'album') {
+    const urls = albumOf(body.content);
+    return { messageType: 'system', content: codec.encodeAlbum(urls), preview: codec.albumPreview(urls.length) };
+  }
 
   if (type === 'image') {
     const url = v.text(body.content, { label: '圖片網址', max: 500 });
@@ -34,7 +80,7 @@ const buildContent = (body) => {
 
   const text = v.text(body.content, { label: '訊息', max: MAX_MESSAGE_LENGTH });
   if (!text) throw badRequest('訊息內容不可為空');
-  return { messageType: 'text', content: text, preview: text.slice(0, 100) };
+  return { messageType: 'text', content: text, preview: text.slice(0, 100), mentions: mentionsOf(body.mentions, body.content, text) };
 };
 
 router.get('/rooms/:roomId/messages', async (req, res) => {
@@ -64,8 +110,9 @@ router.patch('/rooms/:roomId/messages/:messageId', async (req, res) => {
   const messageId = v.id(req.params.messageId, '訊息編號');
   const content = v.text(req.body.content, { label: '訊息', max: MAX_MESSAGE_LENGTH });
   if (!content) throw badRequest('訊息內容不可為空');
+  const mentions = mentionsOf(req.body.mentions, req.body.content, content);
 
-  const data = await messages.edit(roomId, messageId, req.user.userId, content);
+  const data = await messages.edit(roomId, messageId, req.user.userId, { content, mentions });
   res.status(200).json({ success: true, message: '訊息已編輯', data });
 });
 

@@ -92,6 +92,7 @@ extension ChatApi on ApiService {
             messageId: parseInt(item['message_id']),
             body: item['body'] as String? ?? '',
             editedAt: parseDate(item['edited_at']),
+            mentions: item.containsKey('mentions') ? ChatMention.listFrom(item['mentions']) : null,
           ),
     ];
     final room = meta['room'] is Map ? Map<String, dynamic>.from(meta['room']) : const <String, dynamic>{};
@@ -122,27 +123,34 @@ extension ChatApi on ApiService {
     );
   }
 
+  static const _chatV3Unavailable = 'CHAT_V3_UNAVAILABLE';
+
   Future<(ChatMessage?, String?)> sendChatMessage(
     int roomId,
-    String content, {
+    Object content, {
     String type = 'text',
     int? durationSeconds,
     int? replyToId,
+    List<ChatMention> mentions = const [],
   }) async {
-    final res = await _send('POST', '/chat/rooms/$roomId/messages', body: {
-      'content': content,
-      'message_type': type,
-      'duration': ?durationSeconds,
-      'reply_to_id': ?replyToId,
-    });
+    Future<Map<String, dynamic>?> post(bool withMentions) => _send('POST', '/chat/rooms/$roomId/messages', body: {
+          'content': content,
+          'message_type': type,
+          'duration': ?durationSeconds,
+          'reply_to_id': ?replyToId,
+          if (withMentions) 'mentions': [for (final m in mentions) m.toJson()],
+        });
+    var res = await post(mentions.isNotEmpty);
+    // 伺服器尚未套用 010 遷移時會拒收提及；訊息本身仍須送出。
+    if (mentions.isNotEmpty && res?['code'] == _chatV3Unavailable) res = await post(false);
     if (res == null || res['success'] != true || res['data'] is! Map) {
       return (null, res?['message'] as String? ?? S.messageCouldNotSent);
     }
     return (ChatMessage.fromJson(Map<String, dynamic>.from(res['data'])), null);
   }
 
-  Future<(String?, String?)> uploadChatImage(String filePath) async {
-    final res = await _sendMultipart('/uploads/chat-image', [('file', filePath)]);
+  Future<(String?, String?)> uploadChatImage(String filePath, {ValueChanged<double>? onProgress}) async {
+    final res = await _sendMultipart('/uploads/chat-image', [('file', filePath)], onProgress: onProgress);
     final url = res?['data'] is Map ? res!['data']['url'] as String? : null;
     return url == null ? (null, res?['message'] as String? ?? S.uploadFailedTryAgainLater) : (url, null);
   }
@@ -213,6 +221,14 @@ extension ChatApi on ApiService {
     return res != null && res['success'] == true ? null : _errorOf(res);
   }
 
+  Future<(ChatRoomInfo?, String?)> setChatMemberRole(int roomId, int userId, {required bool admin}) async {
+    final res = await _send('PATCH', '/chat/groups/$roomId/members/$userId', body: {'role': admin ? 'owner' : 'member'});
+    if (res == null || res['success'] != true) return (null, _errorOf(res));
+    final data = res['data'];
+    if (data is! Map) return (null, null);
+    return (ChatRoomInfo.fromJson(Map<String, dynamic>.from(data)), null);
+  }
+
   Future<String?> removeChatGroupMember(int roomId, int userId) async {
     final res = await _send('DELETE', '/chat/groups/$roomId/members/$userId');
     return res != null && res['success'] == true ? null : _errorOf(res);
@@ -234,8 +250,18 @@ extension ChatApi on ApiService {
     return res != null && res['success'] == true ? null : _errorOf(res);
   }
 
-  Future<(ChatMessage?, String?)> editChatMessage(int roomId, int messageId, String content) async {
-    final res = await _send('PATCH', '/chat/rooms/$roomId/messages/$messageId', body: {'content': content});
+  Future<(ChatMessage?, String?)> editChatMessage(
+    int roomId,
+    int messageId,
+    String content, {
+    List<ChatMention> mentions = const [],
+  }) async {
+    Future<Map<String, dynamic>?> patch(bool withMentions) => _send('PATCH', '/chat/rooms/$roomId/messages/$messageId', body: {
+          'content': content,
+          if (withMentions) 'mentions': [for (final m in mentions) m.toJson()],
+        });
+    var res = await patch(true);
+    if (res?['code'] == _chatV3Unavailable) res = await patch(false);
     if (res == null || res['success'] != true || res['data'] is! Map) return (null, _errorOf(res));
     return (ChatMessage.fromJson(Map<String, dynamic>.from(res['data'])), null);
   }

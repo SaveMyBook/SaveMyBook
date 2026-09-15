@@ -440,13 +440,13 @@ components:
             message_type: { type: string, enum: [text, image, system] }
             kind:
               type: string
-              enum: [text, image, voice, book, reservation, transfer, recalled, notice]
+              enum: [text, image, album, voice, book, reservation, transfer, recalled, notice]
               description: 與 `ChatMessage.kind` 相同。
               example: text
             preview:
               type: string
               description: |
-                伺服器產生的摘要，可直接顯示於列表。文字訊息取前 100 字；其餘為 `[圖片]`、`[語音]`、
+                伺服器產生的摘要，可直接顯示於列表。文字訊息取前 100 字；其餘為 `[圖片]`、`[圖片] 3 張`、`[語音]`、
                 `[商品] 書名`、`[預約]`、`[轉帳]`、`[請款]` 或 `訊息已收回`。
               example: 請問這本還在嗎？
             payload:
@@ -458,10 +458,15 @@ components:
             sender_name: { type: string, nullable: true, description: 發送者名稱，優先使用請求者設定的自訂暱稱。, example: 阿華 }
             is_read: { type: boolean, description: 一對一且為請求者自己發送時，代表對方是否已讀。, example: false }
             created_at: { type: string, format: date-time }
+          description: 請求者可見的最新一則訊息；群組中早於請求者可見範圍的訊息不列出。
         unread_count:
           type: integer
-          description: 未讀則數，不含請求者自己發送的訊息。一對一依訊息的已讀狀態計算；群組依請求者的已讀位置計算。
+          description: 未讀則數，不含請求者自己發送的訊息。一對一依訊息的已讀狀態計算；群組依請求者的已讀位置計算，且僅計入可見範圍內的訊息。
           example: 2
+        mention_unread:
+          type: boolean
+          description: 群組中有提及請求者（含提及所有人）且尚未讀取的訊息；一對一固定為 false。
+          example: false
         muted: { type: boolean, description: 請求者已將此聊天室設為靜音，新訊息不發送手機推播。, example: false }
         blocked: { type: boolean, description: 僅一對一：請求者已封鎖對話對象。群組固定為 false。, example: false }
         updated_at: { type: string, format: date-time }
@@ -473,7 +478,7 @@ components:
         nickname: { type: string, example: 小華 }
         avatar_url: { type: string, nullable: true }
         alias: { type: string, nullable: true, description: 請求者為此成員設定的自訂暱稱。, example: 阿華 }
-        role: { type: string, enum: [owner, member], description: 一對一的雙方皆為 `member`。, example: member }
+        role: { type: string, enum: [owner, member], description: '`owner` 為管理員，群組可有多位；一對一的雙方皆為 `member`。', example: member }
         joined_at: { type: string, format: date-time, description: 加入時間；一對一為聊天室建立時間。 }
 
     ChatRoomDetail:
@@ -485,7 +490,7 @@ components:
         title: { type: string, nullable: true, description: 與 `ChatRoomSummary.title` 相同規則。, example: 讀書會 }
         avatar_url: { type: string, nullable: true, description: 群組頭貼；一對一為對方頭貼。 }
         created_by: { type: integer, nullable: true, description: 群組建立者；一對一為 `null`。, example: 12 }
-        my_role: { type: string, nullable: true, enum: [owner, member], description: 請求者在群組中的角色；一對一為 `null`。, example: owner }
+        my_role: { type: string, nullable: true, enum: [owner, member], description: 請求者在群組中的角色，`owner` 為管理員；一對一為 `null`。, example: owner }
         member_count: { type: integer, example: 3 }
         members:
           type: array
@@ -536,23 +541,24 @@ components:
         content:
           type: string
           description: |
-            資料表原始內容。語音、商品卡片、預約卡片與已收回的訊息皆以 `system` 型別儲存，
+            資料表原始內容。相簿、語音、商品卡片、預約卡片與已收回的訊息皆以 `system` 型別儲存，
             內容為前綴加 JSON（例如 `[voice]{"url":"/uploads/voice/a.m4a","duration":8}`），
             保留此欄位僅供舊版用戶端使用。
           example: 請問這本還在嗎？
         message_type:
           type: string
           enum: [text, image, system]
-          description: 資料表的原始型別。語音訊息為 `system`，請以 `kind` 判斷。
+          description: 資料表的原始型別。相簿與語音訊息為 `system`，請以 `kind` 判斷。
           example: text
         kind:
           type: string
-          enum: [text, image, voice, book, reservation, transfer, recalled, notice]
+          enum: [text, image, album, voice, book, reservation, transfer, recalled, notice]
           description: |
             | 值 | 說明 | `body` | `payload` |
             | --- | --- | --- | --- |
             | `text` | 文字訊息 | 訊息文字 | `null` |
             | `image` | 圖片 | 圖片相對路徑 | `null` |
+            | `album` | 相簿（2 至 20 張圖片） | `null` | `{ urls }`，依送出順序排列的圖片相對路徑 |
             | `voice` | 語音 | `null` | `{ url, duration }`，`duration` 單位為秒 |
             | `book` | 商品卡片 | `null` | `{ book_id, title, price, image_url }` |
             | `reservation` | 預約卡片 | `null` | `Reservation` 物件；超出最近 30 筆時僅含 `reservation_id` |
@@ -579,6 +585,13 @@ components:
           example: true
         created_at: { type: string, format: date-time }
         edited_at: { type: string, format: date-time, nullable: true, description: 最後編輯時間；未編輯為 `null`。 }
+        mentions:
+          type: array
+          description: |
+            文字訊息中提及的成員，依 `start` 排序；其他類型與未提及時為空陣列，不會是 `null`。
+            `start`、`length` 以 UTF-16 code unit 計算（與 JavaScript、Dart 的 `String.length` 相同），
+            範圍內的文字以 `@` 開頭。
+          items: { $ref: '#/components/schemas/ChatMention' }
         users:
           allOf: [{ $ref: '#/components/schemas/UserBrief' }]
           description: 發送者。
@@ -587,14 +600,22 @@ components:
           nullable: true
           description: |
             此訊息所回覆的訊息摘要；未回覆任何訊息時為 `null`。
-            原訊息已收回時 `kind` 為 `recalled`；原訊息已不存在時 `kind` 為 `deleted`，其餘欄位可能缺少。
+            原訊息已收回時 `kind` 為 `recalled`；原訊息已不存在，或早於請求者在群組中的可見範圍時，
+            `kind` 為 `deleted`、`preview` 為空字串，其餘欄位缺少。
           properties:
             message_id: { type: integer, example: 298 }
             sender_id: { type: integer, example: 8 }
             sender_nickname: { type: string, nullable: true, example: 小明 }
-            kind: { type: string, enum: [text, image, voice, book, reservation, transfer, recalled, notice, deleted], example: text }
+            kind: { type: string, enum: [text, image, album, voice, book, reservation, transfer, recalled, notice, deleted], example: text }
             preview: { type: string, description: 與 `ChatRoomSummary.last_message.preview` 相同規則的摘要。, example: 請問這本還在嗎？ }
-            image_url: { type: string, nullable: true, description: 原訊息為圖片時的相對路徑，供顯示縮圖。 }
+            image_url: { type: string, nullable: true, description: 原訊息為圖片時的相對路徑；相簿為第一張圖片，供顯示縮圖。 }
+
+    ChatMention:
+      type: object
+      properties:
+        user_id: { type: integer, description: 被提及的成員；`0` 代表提及所有人。, example: 8 }
+        start: { type: integer, minimum: 0, description: '`@` 在 `body` 中的位置。', example: 0 }
+        length: { type: integer, minimum: 1, maximum: 60, description: 含 `@` 的提及文字長度。, example: 3 }
 
     Reservation:
       type: object
@@ -957,6 +978,19 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           example: { success: false, code: CHAT_V2_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
+
+    ChatV3Unavailable:
+      description: |
+        伺服器尚未執行資料庫更新 010（提及成員），帶有提及的訊息暫不可用，回傳 `CHAT_V3_UNAVAILABLE`。
+        編輯訊息於尚未執行 009 時回傳 `CHAT_V2_UNAVAILABLE`。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            未執行010:
+              value: { success: false, code: CHAT_V3_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
+            未執行009:
+              value: { success: false, code: CHAT_V2_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
 
     BookReserved:
       description: 書籍已由其他買家預約並保留中，保留期限內僅該買家可加入購物車或結帳。

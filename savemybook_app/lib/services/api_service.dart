@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show ValueNotifier;
+import 'package:flutter/foundation.dart' show ValueChanged, ValueNotifier;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/category.dart';
@@ -275,6 +275,7 @@ class ApiService {
     List<(String field, String filePath)> files, {
     Map<String, String>? fields,
     Set<String> handled = const {},
+    ValueChanged<double>? onProgress,
   }) async {
     try {
       final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$path'));
@@ -284,18 +285,42 @@ class ApiService {
       for (final (field, filePath) in files) {
         request.files.add(await http.MultipartFile.fromPath(field, filePath));
       }
-      final streamed = await request.send().timeout(const Duration(seconds: 90));
+      final streamed = await (onProgress == null ? request : _withUploadProgress(request, onProgress))
+          .send()
+          .timeout(const Duration(seconds: 90));
       final bytes = await streamed.stream.toBytes().timeout(const Duration(seconds: 90));
       return await _interpret(
         streamed.statusCode,
         bytes,
         sentWithToken: sentWithToken,
         handled: handled,
-        retry: (extra, nextHandled) => _sendMultipart(path, files, fields: fields, handled: nextHandled),
+        retry: (extra, nextHandled) =>
+            _sendMultipart(path, files, fields: fields, handled: nextHandled, onProgress: onProgress),
       );
     } catch (_) {
       return {'success': false, 'code': 'NETWORK', 'message': S.couldNotReachServer};
     }
+  }
+
+  http.BaseRequest _withUploadProgress(http.MultipartRequest request, ValueChanged<double> onProgress) {
+    final total = request.contentLength;
+    final body = request.finalize();
+    final streamed = http.StreamedRequest(request.method, request.url)
+      ..contentLength = total
+      ..headers.addAll(request.headers);
+    var sent = 0;
+    onProgress(0);
+    body.listen(
+      (chunk) {
+        sent += chunk.length;
+        streamed.sink.add(chunk);
+        if (total > 0) onProgress((sent / total).clamp(0.0, 1.0));
+      },
+      onError: streamed.sink.addError,
+      onDone: streamed.sink.close,
+      cancelOnError: true,
+    );
+    return streamed;
   }
 
   List<T> _mapList<T>(Map<String, dynamic>? res, T Function(Map<String, dynamic>) build) {

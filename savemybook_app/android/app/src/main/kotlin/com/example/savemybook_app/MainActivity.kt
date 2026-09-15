@@ -148,6 +148,14 @@ class MainActivity : FlutterFragmentActivity() {
         return FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
     }
 
+    private fun imageMimeType(file: File): String = when (file.extension.lowercase()) {
+        "jpg", "jpeg" -> "image/jpeg"
+        "webp" -> "image/webp"
+        "gif" -> "image/gif"
+        "heic" -> "image/heic"
+        else -> "image/png"
+    }
+
     private fun saveImage(path: String?, result: MethodChannel.Result) {
         val file = path?.let { File(it) }
         if (file == null || !file.exists()) {
@@ -162,7 +170,7 @@ class MainActivity : FlutterFragmentActivity() {
 
         val values = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, file.name)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(MediaStore.Images.Media.MIME_TYPE, imageMimeType(file))
             put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/SaveMyBook")
         }
 

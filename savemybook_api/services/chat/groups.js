@@ -37,6 +37,7 @@ const create = async (myId, { name, memberIds, avatarUrl }) => {
   if (memberIds.includes(myId)) throw badRequest('成員名單不可包含自己');
   await invitableUsers(memberIds);
   const actor = await actorOf(myId);
+  const v3 = await schema.isV3();
   const now = new Date();
 
   return prisma.$transaction(async (tx) => {
@@ -48,9 +49,12 @@ const create = async (myId, { name, memberIds, avatarUrl }) => {
 
     const text = `${actor.nickname} 建立了群組`;
     const message = await notice.post(tx, { roomId, actorId: myId, text });
-    await members.join(tx, roomId, [{ userId: myId, role: 'owner' }], { joinedAt: now, lastReadId: message.message_id });
+    const historyFromId = v3 ? message.message_id : null;
+    await members.join(tx, roomId, [{ userId: myId, role: 'owner' }], {
+      joinedAt: now, lastReadId: message.message_id, historyFromId
+    });
     await members.join(tx, roomId, memberIds.map((userId) => ({ userId, role: 'member' })), {
-      joinedAt: now, lastReadId: message.message_id - 1
+      joinedAt: now, lastReadId: message.message_id - 1, historyFromId
     });
     await notice.notifyMembers(tx, {
       room: { room_id: roomId, room_type: 'group', name }, actor, userIds: memberIds, preview: text, withSender: false
@@ -92,27 +96,52 @@ const invite = async (roomId, myId, userIds) => {
 
   const invitees = await invitableUsers(newIds);
   const actor = await actorOf(myId);
+  const v3 = await schema.isV3();
   const now = new Date();
   const text = `${actor.nickname} 邀請 ${invitees.map((u) => u.nickname).join('、')} 加入群組`;
 
   await prisma.$transaction(async (tx) => {
     const message = await notice.post(tx, { roomId, actorId: myId, text });
     await members.join(tx, roomId, newIds.map((userId) => ({ userId, role: 'member' })), {
-      joinedAt: now, lastReadId: message.message_id - 1
+      joinedAt: now, lastReadId: message.message_id - 1, historyFromId: v3 ? message.message_id : null
     });
     await notice.notifyMembers(tx, { room, actor, userIds: newIds, preview: text, withSender: false });
   });
   return { room_id: roomId, added_user_ids: newIds };
 };
 
-const removeMember = async (roomId, myId, targetId) => {
-  const room = await loadGroup(roomId, myId);
-  if (room.my_role !== 'owner') throw forbidden('僅群組管理者可移除成員');
-  if (targetId === myId) throw badRequest('無法移除群組管理者');
-
+const activeTarget = async (roomId, targetId) => {
   const target = (await members.active(roomId)).find((m) => m.user_id === targetId);
   if (!target) throw notFound('此使用者不是群組成員');
-  if (target.role === 'owner') throw badRequest('無法移除群組管理者');
+  return target;
+};
+
+const setRole = async (roomId, myId, targetId, role) => {
+  const room = await loadGroup(roomId, myId);
+  if (room.my_role !== 'owner') throw forbidden('僅群組管理員可變更成員權限');
+  if (targetId === myId) throw badRequest('無法變更自己的管理員身分');
+
+  const target = await activeTarget(roomId, targetId);
+  if (target.role !== role) {
+    const actor = await actorOf(myId);
+    const text = role === 'owner'
+      ? `${actor.nickname} 將 ${target.nickname} 設為管理員`
+      : `${actor.nickname} 解除 ${target.nickname} 的管理員身分`;
+    await prisma.$transaction(async (tx) => {
+      await members.setRole(tx, roomId, targetId, role);
+      await notice.post(tx, { roomId, actorId: myId, text });
+    });
+  }
+  return rooms.detail(roomId, myId);
+};
+
+const removeMember = async (roomId, myId, targetId) => {
+  const room = await loadGroup(roomId, myId);
+  if (room.my_role !== 'owner') throw forbidden('僅群組管理員可移除成員');
+  if (targetId === myId) throw badRequest('無法將自己移出群組，請改用退出群組');
+
+  const target = await activeTarget(roomId, targetId);
+  if (target.role === 'owner') throw badRequest('無法移除管理員，請先解除其管理員身分');
 
   const actor = await actorOf(myId);
   const now = new Date();
@@ -142,7 +171,9 @@ const leave = async (roomId, myId) => {
   const actor = await actorOf(myId);
   await prisma.$transaction(async (tx) => {
     await members.leave(tx, roomId, myId, now);
-    if (room.my_role === 'owner') await members.promote(tx, roomId, others[0].user_id);
+    if (room.my_role === 'owner' && !others.some((m) => m.role === 'owner')) {
+      await members.setRole(tx, roomId, others[0].user_id, 'owner');
+    }
     await members.unpin(tx, roomId, myId);
     await notice.post(tx, { roomId, actorId: myId, text: `${actor.nickname} 已退出群組` });
   });
@@ -159,4 +190,6 @@ const removeRoom = async (roomId, myId) => {
   return 'deleted';
 };
 
-module.exports = { MAX_MEMBERS, MAX_INVITE, MAX_NAME_LENGTH, create, update, invite, removeMember, leave, removeRoom };
+module.exports = {
+  MAX_MEMBERS, MAX_INVITE, MAX_NAME_LENGTH, create, update, invite, setRole, removeMember, leave, removeRoom
+};

@@ -1,4 +1,5 @@
 const prisma = require('../lib/prisma');
+const publicId = require('../lib/public-id');
 const { badRequest, notFound, conflict } = require('../lib/errors');
 const { userBrief, coverImage } = require('../lib/selects');
 const { BOOK_STATUS_LABELS, CONDITION_LABELS } = require('../constants/domain');
@@ -169,4 +170,59 @@ const adminSetStatus = async (bookId, status, reason, { adminId, req }) => {
   });
 };
 
-module.exports = { findOrThrow, assertCategoryExists, list: adminList, edit: adminEdit, setStatus: adminSetStatus };
+const inTransaction = () => conflict('此書籍交易或預約進行中，請先處理後再刪除', 'BOOK_IN_TRANSACTION');
+const hasOrders = () => conflict('此書籍已有訂單紀錄，為保留交易資料無法刪除，如需停止販售請使用強制下架', 'BOOK_HAS_ORDERS');
+
+const assertDeletable = async (tx, book) => {
+  const now = new Date();
+  const [activeReservations, orderItems] = await Promise.all([
+    tx.reservations.count({
+      where: {
+        book_id: book.book_id,
+        OR: [{ status: 'pending' }, { status: 'confirmed', pickup_deadline: { gt: now } }]
+      }
+    }),
+    tx.order_items.count({ where: { book_id: book.book_id } })
+  ]);
+  if (book.status === 'reserved' || activeReservations > 0) throw inTransaction();
+  if (orderItems > 0) throw hasOrders();
+};
+
+const adminRemove = async (bookId, reason, { adminId, req }) => {
+  const book = await findOrThrow(bookId);
+  const bookNo = publicId.encode('book', bookId);
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await assertDeletable(tx, book);
+      await tx.reservations.deleteMany({ where: { book_id: bookId } });
+      await tx.shopping_cart.deleteMany({ where: { book_id: bookId } });
+      await tx.favorites.deleteMany({ where: { book_id: bookId } });
+      await tx.recommendation_logs.deleteMany({ where: { book_id: bookId } });
+      await tx.chat_rooms.updateMany({ where: { book_id: bookId }, data: { book_id: null } });
+      await tx.books.delete({ where: { book_id: bookId } });
+
+      await notify(tx, {
+        userId: book.seller_id,
+        title: '您的書籍已被刪除',
+        content: `您的書籍《${book.title}》已由管理員刪除${reason ? `。原因：${reason}` : ''}`
+      });
+      await audit.record(tx, {
+        adminId,
+        action: '刪除書籍',
+        targetType: 'book',
+        targetId: bookId,
+        summary: `刪除書籍 ${bookNo}《${book.title}》，並通知賣家${reason ? `，原因：${reason}` : ''}`,
+        req
+      });
+    });
+  } catch (err) {
+    // 檢查後、刪除前若有人下單，order_items 外鍵會讓刪除失敗。
+    if (err?.code === 'P2003') throw hasOrders();
+    throw err;
+  }
+};
+
+module.exports = {
+  findOrThrow, assertCategoryExists, list: adminList, edit: adminEdit, setStatus: adminSetStatus, remove: adminRemove
+};

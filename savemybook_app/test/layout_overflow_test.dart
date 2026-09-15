@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -37,6 +38,7 @@ import 'package:savemybook_app/features/admin/admin_ticket_screen.dart';
 import 'package:savemybook_app/features/admin/admin_wallet_screen.dart';
 import 'package:savemybook_app/features/home/announcement_screen.dart';
 import 'package:savemybook_app/features/books/book_detail_screen.dart';
+import 'package:savemybook_app/features/books/image_crop_screen.dart';
 import 'package:savemybook_app/features/selling/book_manage_screen.dart';
 import 'package:savemybook_app/features/orders/cart_screen.dart';
 import 'package:savemybook_app/features/account/change_password_screen.dart';
@@ -44,7 +46,12 @@ import 'package:savemybook_app/features/chat/chat_list_screen.dart';
 import 'package:savemybook_app/features/chat/chat_room_screen.dart';
 import 'package:savemybook_app/features/chat/groups/create_group_screen.dart';
 import 'package:savemybook_app/features/chat/settings/chat_room_settings_screen.dart';
+import 'package:savemybook_app/features/chat/media/chat_album.dart';
+import 'package:savemybook_app/features/chat/mentions/chat_mention_controller.dart';
 import 'package:savemybook_app/features/chat/transfer/transfer_card.dart';
+import 'package:savemybook_app/features/chat/widgets/chat_entry.dart';
+import 'package:savemybook_app/features/chat/widgets/chat_input_bar.dart';
+import 'package:savemybook_app/widgets/image_viewer.dart';
 import 'package:savemybook_app/models/chat.dart';
 import 'package:savemybook_app/features/orders/dispute_screen.dart';
 import 'package:savemybook_app/features/account/edit_profile_screen.dart';
@@ -191,6 +198,7 @@ Map<String, dynamic> chatRoomRow(int i) {
     'blocked': false,
     'last_message': {'content': 'Is this book still available? I would like to pick it up tomorrow.', 'message_type': 'text', 'kind': i == 2 ? 'voice' : 'text', 'sender_id': i.isOdd ? 1 : 2, 'sender_name': longName, 'is_read': i == 1, 'created_at': now},
     'unread_count': 128,
+    'mention_unread': i == 2,
     'updated_at': now,
   };
 }
@@ -259,26 +267,34 @@ Map<String, dynamic> chatMeta(int roomId) => roomId == 2
 List<Map<String, dynamic>> chatMessages(int roomId) {
   final group = roomId == 2;
   final kinds = group
-      ? ['notice', 'text', 'text', 'image', 'text', 'voice', 'text', 'recalled', 'text', 'transfer', 'transfer', 'text']
-      : ['text', 'image', 'voice', 'book', 'reservation', 'recalled', 'text', 'text', 'transfer', 'transfer'];
+      ? ['notice', 'text', 'text', 'image', 'text', 'voice', 'text', 'recalled', 'text', 'transfer', 'transfer', 'text', 'album', 'album']
+      : ['text', 'image', 'voice', 'book', 'reservation', 'recalled', 'text', 'text', 'transfer', 'transfer', 'album'];
   const long = 'This is a fairly long chat message that should wrap nicely. This is a fairly long chat message that should wrap nicely. ';
   return List.generate(kinds.length, (n) {
     final i = n + 1;
     final kind = kinds[n];
-    final sender = group ? [1, 2, 2, 3, 1, 4, 3, 2, 1, 1, 1, 1][n] : (i.isEven ? 1 : 2);
+    final sender = group ? [1, 2, 2, 3, 1, 4, 3, 2, 1, 1, 1, 1, 2, 1][n] : (i.isEven ? 1 : 2);
+    final albumUrls = [for (var k = 0; k < (group && i == 13 ? 7 : 2); k++) '/uploads/chat/album$k.jpg'];
+    final mentionText = group && i == 3 ? '@$longName $long' : group && i == 5 ? '@Everyone $long' : null;
     final transferId = kind == 'transfer' ? kinds.sublist(0, n).where((k) => k == 'transfer').length + 1 : 0;
     return {
       'message_id': i,
       'room_id': roomId,
       'sender_id': sender,
-      'content': kind == 'transfer' ? '[transfer]{"transfer_id":$transferId}' : long,
+      'content': kind == 'transfer' ? '[transfer]{"transfer_id":$transferId}' : mentionText ?? long,
       'message_type': kind == 'text' ? 'text' : kind == 'image' ? 'image' : 'system',
       'kind': kind,
-      'body': kind == 'text' ? long : kind == 'image' ? '/uploads/chat/a.jpg' : kind == 'notice' ? '$longName created the group' : null,
+      'body': kind == 'text' ? mentionText ?? long : kind == 'image' ? '/uploads/chat/a.jpg' : kind == 'notice' ? '$longName created the group' : null,
+      'mentions': mentionText == null
+          ? <Object>[]
+          : [
+              {'user_id': i == 3 ? 1 : 0, 'start': 0, 'length': i == 3 ? longName.length + 1 : 9},
+            ],
       'payload': switch (kind) {
         'voice' => {'url': '/uploads/voice/a.m4a', 'duration': 118},
         'book' => {'book_id': 5, 'title': longTitle, 'price': 123456, 'image_url': null},
         'reservation' => chatReservation(),
+        'album' => {'urls': albumUrls},
         'transfer' => group
             ? (transferId == 1 ? chatTransfer(1, room: 2, to: 3) : chatTransfer(2, kind: 'request', status: 'pending', from: 1, to: 4, room: 2))
             : (transferId == 1 ? chatTransfer(1) : chatTransfer(2, kind: 'request', status: 'pending', from: 1, to: 2)),
@@ -333,7 +349,7 @@ Object? fakeData(String method, String path) {
     'GET /announcements': () => many((i) => {'announcement_id': i, 'title': 'Scheduled maintenance for the smart locker network this weekend', 'content': 'We will upgrade the locker firmware. ' * 5, 'type': ['general', 'maintenance', 'promotion', 'policy'][i % 4], 'is_published': true, 'published_at': now, 'created_at': now, 'users': user(9)}),
     'GET /chat/rooms': () => many(chatRoomRow),
     'GET /chat/rooms/1': () => {'room_id': 1, 'type': 'direct', 'name': '', 'avatar_url': null, 'created_by': 1, 'my_role': 'member', 'members': [chatMember(1), chatMember(2)], 'partner': {...user(2), 'alias': longName}, 'muted': true, 'pinned': true},
-    'GET /chat/rooms/2': () => {'room_id': 2, 'type': 'group', 'name': 'Advanced Statistics Study Group for the Autumn Semester', 'avatar_url': null, 'created_by': 1, 'my_role': 'owner', 'members': [chatMember(1, role: 'owner'), ...many((i) => chatMember(i + 1), 6)], 'partner': null, 'muted': false, 'pinned': true},
+    'GET /chat/rooms/2': () => {'room_id': 2, 'type': 'group', 'name': 'Advanced Statistics Study Group for the Autumn Semester', 'avatar_url': null, 'created_by': 1, 'my_role': 'owner', 'members': [chatMember(1, role: 'owner'), ...many((i) => chatMember(i + 1, role: i == 1 ? 'owner' : 'member'), 6)], 'partner': null, 'muted': false, 'pinned': true},
     'GET /chat/unread-count': () => {'unread_count': 999},
     'GET /cart/book-ids': () => [1, 5],
     'GET /cabinets': () => many((i) => {...cabinet(), 'cabinet_id': i, 'available_slots': i == 2 ? 0 : 123, 'latitude': '25.0173000', 'longitude': '121.5398000', 'distance_m': i * 1234}),
@@ -450,6 +466,12 @@ Map<String, Widget Function()> get screens => {
       'ChatSettingsGroup': () => const ChatRoomSettingsScreen(roomId: 2),
       'CreateGroup': () => const CreateGroupScreen(),
       'TransferCards': () => const TransferCardsPreview(),
+      'ChatAlbums': () => const ChatAlbumsPreview(),
+      'ChatMentionPanel': () => const MentionPanelPreview(),
+      'ImageGallery': () => ImageViewer.gallery(
+            imageUrls: [for (var i = 0; i < 5; i++) 'https://api.savemybook.today/uploads/chat/album$i.jpg'],
+            initialIndex: 1,
+          ),
       'HelpCenter': () => const HelpCenterScreen(),
       'SupportTickets': () => const SupportTicketScreen(),
       'NewTicket': () => const NewTicketScreen(),
@@ -477,7 +499,78 @@ Map<String, Widget Function()> get screens => {
       'AdminDeletions': () => const AdminDeletionScreen(),
       'AdminOperationLog': () => const AdminOperationLogScreen(),
       'AdminAnnouncements': () => const AdminAnnouncementScreen(),
+      'AdminDeleteBookDialog': () => DialogPreview(
+          show: (context) => showAdminDeleteBookDialog(
+              context, AdminBook.fromJson({'book_id': 5, 'title': longTitle, 'price': 123456, 'status': 'on_sale', 'condition_level': 'fair', 'seller': user(2)}))),
+      'ImageCropLoading': () => const ImageCropScreen(sourcePath: '/nonexistent/photo.jpg', circular: true),
+      'ImageCropSquare': () => const CropViewPreview(aspectRatio: 1),
+      'ImageCropWide': () => const CropViewPreview(aspectRatio: 4 / 3),
+      'ImageCropCircle': () => const CropViewPreview(circular: true),
     };
+
+ui.Image syntheticPhoto(int width, int height) {
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder);
+  final rect = Rect.fromLTWH(0, 0, width.toDouble(), height.toDouble());
+  canvas.drawRect(
+    rect,
+    Paint()..shader = const LinearGradient(colors: [Color(0xFF3A6073), Color(0xFFE8CBC0)]).createShader(rect),
+  );
+  for (var i = 0; i < 6; i++) {
+    canvas.drawCircle(
+      Offset(width * (0.15 + i * 0.14), height * (0.3 + (i % 2) * 0.35)),
+      height * 0.12,
+      Paint()..color = Color(0xFFFFFFFF).withValues(alpha: 0.35),
+    );
+  }
+  return recorder.endRecording().toImageSync(width, height);
+}
+
+class CropViewPreview extends StatefulWidget {
+  final double aspectRatio;
+  final bool circular;
+
+  const CropViewPreview({super.key, this.aspectRatio = 1, this.circular = false});
+
+  @override
+  State<CropViewPreview> createState() => _CropViewPreviewState();
+}
+
+class _CropViewPreviewState extends State<CropViewPreview> {
+  late final ui.Image _image = syntheticPhoto(1600, 1000);
+
+  @override
+  void dispose() {
+    _image.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      ImageCropView(image: _image, aspectRatio: widget.aspectRatio, circular: widget.circular);
+}
+
+class DialogPreview extends StatefulWidget {
+  final Future<Object?> Function(BuildContext context) show;
+
+  const DialogPreview({super.key, required this.show});
+
+  @override
+  State<DialogPreview> createState() => _DialogPreviewState();
+}
+
+class _DialogPreviewState extends State<DialogPreview> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.show(context);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(body: SizedBox.expand());
+}
 
 class TransferCardsPreview extends StatelessWidget {
   const TransferCardsPreview({super.key});
@@ -516,6 +609,93 @@ class TransferCardsPreview extends StatelessWidget {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class ChatAlbumsPreview extends StatelessWidget {
+  const ChatAlbumsPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final failed = ChatUploadSlot('/nonexistent/c.jpg')..failed.value = true;
+    final uploading = ChatUploadSlot('/nonexistent/b.jpg')..progress.value = 0.4;
+    final done = ChatUploadSlot('/nonexistent/a.jpg')..url = '/uploads/chat/a.jpg';
+    final albums = <Widget>[
+      ChatAlbumView(urls: const ['/uploads/chat/a.jpg', '/uploads/chat/b.jpg'], heroPrefix: 'a2', onOpen: (_) {}),
+      ChatAlbumView(urls: const ['/a.jpg', '/b.jpg', '/c.jpg'], heroPrefix: 'a3', onOpen: (_) {}),
+      ChatAlbumView(urls: [for (var i = 0; i < 12; i++) '/uploads/chat/$i.jpg'], heroPrefix: 'a12', onOpen: (_) {}),
+      ChatAlbumView(urls: const [null, null, null], slots: [done, uploading, failed], heroPrefix: 'p3', onFailedTap: () {}),
+    ];
+    return Scaffold(
+      body: ListView(
+        padding: const EdgeInsets.all(12),
+        children: [
+          for (final (i, album) in albums.indexed)
+            Align(
+              alignment: i.isEven ? Alignment.centerRight : Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: ConstrainedBox(constraints: BoxConstraints(maxWidth: width * 0.7 > 420 ? 420 : width * 0.7), child: album),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class MentionPanelPreview extends StatefulWidget {
+  const MentionPanelPreview({super.key});
+
+  @override
+  State<MentionPanelPreview> createState() => _MentionPanelPreviewState();
+}
+
+class _MentionPanelPreviewState extends State<MentionPanelPreview> {
+  final _text = TextEditingController(text: '@');
+  final _focus = FocusNode();
+  late final _mentions = ChatMentionController(_text)
+    ..enabled = true
+    ..members = [
+      for (var i = 2; i < 9; i++)
+        ChatMentionCandidate(userId: i, name: i == 3 ? 'Study Buddy With An Extremely Long Alias' : longName, nickname: longName),
+    ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
+  }
+
+  @override
+  void dispose() {
+    _mentions.dispose();
+    _text.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          const Spacer(),
+          ChatInputBar(
+            controller: _text,
+            focusNode: _focus,
+            mentions: _mentions,
+            onSend: (_) {},
+            onAttach: () {},
+            onToggleQuickReplies: () {},
+            onVoice: (_) {},
+            onVoiceUnavailable: (_) {},
+            onVoiceTooShort: () {},
+          ),
         ],
       ),
     );

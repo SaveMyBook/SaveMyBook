@@ -5,6 +5,7 @@ import '../../../models/chat.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
 import '../../../widgets/animations.dart';
+import '../widgets/chat_bubbles.dart';
 import '../widgets/chat_format.dart';
 import '../../../i18n/strings.dart';
 
@@ -16,6 +17,8 @@ class TransferCardView extends StatelessWidget {
   final ChatTransfer transfer;
   final int myId;
   final bool isMine;
+  final bool groupStart;
+  final bool groupEnd;
   final String Function(int userId) nameOf;
   final bool busy;
   final ValueChanged<TransferAction> onAction;
@@ -25,6 +28,8 @@ class TransferCardView extends StatelessWidget {
     required this.transfer,
     required this.myId,
     required this.isMine,
+    this.groupStart = true,
+    this.groupEnd = true,
     required this.nameOf,
     this.busy = false,
     required this.onAction,
@@ -90,27 +95,10 @@ class TransferCardView extends StatelessWidget {
       }
     }
 
-    const big = Radius.circular(18);
-    const small = Radius.circular(6);
-    final radius = BorderRadius.only(
-      topLeft: big,
-      topRight: big,
-      bottomLeft: isMine ? big : small,
-      bottomRight: isMine ? small : big,
-    );
+    final radius = chatBubbleRadius(isMine: isMine, groupStart: groupStart, groupEnd: groupEnd);
 
-    return AnimatedContainer(
-      duration: Motion.base,
-      curve: Motion.standard,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: c.card,
-        borderRadius: radius,
-        border: Border.all(color: c.border),
-        boxShadow: c.isDark
-            ? null
-            : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
+    return ChatCardFrame(
+      radius: radius,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -57,6 +57,15 @@ router.post('/groups/:roomId/members', sendLimiter, async (req, res) => {
   });
 });
 
+router.patch('/groups/:roomId/members/:userId', async (req, res) => {
+  const roomId = v.id(req.params.roomId, '聊天室編號');
+  const userId = v.id(req.params.userId, '使用者編號');
+  const role = v.oneOf(req.body.role, ['owner', 'member'], 'role 僅接受：owner, member');
+
+  const data = await groups.setRole(roomId, req.user.userId, userId, role);
+  res.status(200).json({ success: true, message: role === 'owner' ? '已設為管理員' : '已解除管理員身分', data });
+});
+
 router.delete('/groups/:roomId/members/:userId', async (req, res) => {
   const roomId = v.id(req.params.roomId, '聊天室編號');
   const userId = v.id(req.params.userId, '使用者編號');

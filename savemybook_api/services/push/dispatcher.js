@@ -6,6 +6,7 @@ const { placeholders } = require('../../lib/sql');
 const { clip } = require('../../lib/text');
 const chatControls = require('../chat/controls');
 const chatSchema = require('../chat/schema');
+const chatNotice = require('../chat/notice');
 const { isReady, fcm } = require('./setup');
 
 const QUEUE_WINDOW_MINUTES = 15;
@@ -140,7 +141,9 @@ const viewOf = (n, context) => {
   const view = {
     title: String(n.title),
     body: String(n.content),
-    sender: { sender_id: '', sender_name: '', sender_avatar: '', room_type: '', room_title: '', thread_id: threadOf(n) }
+    sender: {
+      sender_id: '', sender_name: '', sender_avatar: '', room_type: '', room_title: '', thread_id: threadOf(n), mentioned: ''
+    }
   };
   if (!isChatMessage(n)) return view;
 
@@ -155,6 +158,7 @@ const viewOf = (n, context) => {
 
   const senderName = context.aliases.get(`${Number(n.user_id)}:${Number(actor.user_id)}`) || actor.nickname || '';
   const prefix = `${actor.nickname}：`;
+  const mentionPrefix = `${actor.nickname}${chatNotice.MENTION_SEPARATOR}`;
   view.sender = {
     ...view.sender,
     sender_id: String(actor.user_id),
@@ -164,7 +168,12 @@ const viewOf = (n, context) => {
   };
   if (group) {
     view.title = room.name || view.title;
-    if (view.body.startsWith(prefix)) view.body = `${senderName}：${view.body.slice(prefix.length)}`;
+    if (view.body.startsWith(mentionPrefix)) {
+      view.body = `${senderName}${chatNotice.MENTION_SEPARATOR}${view.body.slice(mentionPrefix.length)}`;
+      view.sender.mentioned = '1';
+    } else if (view.body.startsWith(prefix)) {
+      view.body = `${senderName}：${view.body.slice(prefix.length)}`;
+    }
   } else {
     view.title = senderName || view.title;
   }
@@ -277,9 +286,10 @@ const dispatchOnce = async () => {
     const userId = Number(n.user_id);
     const pref = PREFERENCE_COLUMN[n.type];
     if (pref && settingsOf.get(userId)?.[pref] === false) continue;
-    if (n.type === 'message' && n.related_type === 'chat_room' && muted.has(`${userId}:${Number(n.related_id)}`)) continue;
-
     const view = viewOf(n, context);
+    const mutedRoom = n.type === 'message' && n.related_type === 'chat_room' && muted.has(`${userId}:${Number(n.related_id)}`);
+    if (mutedRoom && view.sender.mentioned !== '1') continue;
+
     for (const device of devicesOf(userId)) {
       tasks.push(() => sendOne({ notification: n, device, badge: unreadOf.get(userId) ?? 0, view, invalid }));
     }

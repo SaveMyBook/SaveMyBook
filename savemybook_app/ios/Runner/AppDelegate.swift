@@ -12,6 +12,7 @@ import UserNotifications
   private var pendingLink: String?
   private var apnsTokenReceived = false
   private var apnsError: String?
+  private var pendingSaveResult: FlutterResult?
 
   override func application(
     _ application: UIApplication,
@@ -148,12 +149,19 @@ import UserNotifications
         result(FlutterError(code: "no_image", message: "找不到圖片", details: nil))
         return
       }
-      UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-      result(true)
+      pendingSaveResult?(false)
+      pendingSaveResult = result
+      UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
 
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  @objc private func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
+    let result = pendingSaveResult
+    pendingSaveResult = nil
+    DispatchQueue.main.async { result?(error == nil) }
   }
 
   private func present(items: [Any], from host: UIViewController, result: @escaping FlutterResult) {

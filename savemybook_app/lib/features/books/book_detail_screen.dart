@@ -1165,9 +1165,35 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
               child: Image.network(
                 widget.images[index],
                 fit: BoxFit.contain,
-                loadingBuilder: (_, child, progress) => progress == null
+                frameBuilder: (_, child, frame, wasSynchronouslyLoaded) => wasSynchronouslyLoaded
                     ? child
-                    : const Center(child: CircularProgressIndicator(color: Colors.white54)),
+                    : AnimatedOpacity(
+                        opacity: frame == null ? 0 : 1,
+                        duration: Motion.base,
+                        curve: Curves.easeOut,
+                        child: child,
+                      ),
+                loadingBuilder: (_, child, progress) {
+                  if (progress == null) return child;
+                  final total = progress.expectedTotalBytes;
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      child,
+                      SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: CircularProgressIndicator(
+                          value: total == null || total == 0 ? null : progress.cumulativeBytesLoaded / total,
+                          strokeWidth: 3,
+                          strokeCap: StrokeCap.round,
+                          color: Colors.white70,
+                          backgroundColor: Colors.white12,
+                        ),
+                      ),
+                    ],
+                  );
+                },
                 errorBuilder: (_, _, _) =>
                     const Icon(Icons.broken_image_outlined, color: Colors.white54, size: 72),
               ),

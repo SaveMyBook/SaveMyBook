@@ -1651,6 +1651,27 @@ abstract class AppLocalizations {
   String get transfer2;
   String get transfer3;
   String get transferOut;
+  String get deleteBook;
+  String p0PermanentlyDeletedCannotRestoredSeller(Object p0);
+  String get reasonDeletionOptional;
+  String get bookDeleted2;
+  String get rotate;
+  String get mentioned;
+  String get saveImage;
+  String get everyone;
+  String get mentionMembers;
+  String get removeAdminRole;
+  String makeP0Admin(Object p0);
+  String removeAdminRoleFromP0(Object p0);
+  String get remove2;
+  String p0NowAdmin(Object p0);
+  String removedAdminRoleFromP0(Object p0);
+  String photosP02(Object p0);
+  String get savedDownloads;
+  String get couldNotSaveImage;
+  String savingImagesP0P1(Object p0, Object p1);
+  String get savingImage;
+  String get passwordsCanOnlyContainEnglishLetters;
 }
 
 class _LEn extends AppLocalizations {
@@ -6539,6 +6560,69 @@ class _LEn extends AppLocalizations {
 
   @override
   String get transferOut => 'Transfer out';
+
+  @override
+  String get deleteBook => 'Delete book';
+
+  @override
+  String p0PermanentlyDeletedCannotRestoredSeller(Object p0) => '"${p0}" will be permanently deleted and cannot be restored. The seller will be notified.';
+
+  @override
+  String get reasonDeletionOptional => 'Reason for deletion (optional)';
+
+  @override
+  String get bookDeleted2 => 'Book deleted';
+
+  @override
+  String get rotate => 'Rotate';
+
+  @override
+  String get mentioned => '[Mentioned you]';
+
+  @override
+  String get saveImage => 'Save image';
+
+  @override
+  String get everyone => 'Everyone';
+
+  @override
+  String get mentionMembers => 'Mention members';
+
+  @override
+  String get removeAdminRole => 'Remove admin role';
+
+  @override
+  String makeP0Admin(Object p0) => 'Make ${p0} an admin?';
+
+  @override
+  String removeAdminRoleFromP0(Object p0) => 'Remove the admin role from ${p0}?';
+
+  @override
+  String get remove2 => 'Remove';
+
+  @override
+  String p0NowAdmin(Object p0) => '${p0} is now an admin';
+
+  @override
+  String removedAdminRoleFromP0(Object p0) => 'Removed the admin role from ${p0}';
+
+  @override
+  String photosP02(Object p0) => '[Photos] ${p0}';
+
+  @override
+  String get savedDownloads => 'Saved to Downloads';
+
+  @override
+  String get couldNotSaveImage => 'Could not save the image';
+
+  @override
+  String savingImagesP0P1(Object p0, Object p1) => 'Saving images ${p0} / ${p1}';
+
+  @override
+  String get savingImage => 'Saving image';
+
+  @override
+  String get passwordsCanOnlyContainEnglishLetters => 'Passwords can only contain English letters, numbers and standard symbols';
 
 }
 
@@ -11429,6 +11513,69 @@ class _LJa extends AppLocalizations {
   @override
   String get transferOut => '送金';
 
+  @override
+  String get deleteBook => '書籍を削除';
+
+  @override
+  String p0PermanentlyDeletedCannotRestoredSeller(Object p0) => '「${p0}」は完全に削除され、元に戻せません。出品者に通知されます。';
+
+  @override
+  String get reasonDeletionOptional => '削除理由（任意）';
+
+  @override
+  String get bookDeleted2 => '書籍を削除しました';
+
+  @override
+  String get rotate => '回転';
+
+  @override
+  String get mentioned => '[メンションされました]';
+
+  @override
+  String get saveImage => '画像を保存';
+
+  @override
+  String get everyone => '全員';
+
+  @override
+  String get mentionMembers => 'メンバーをメンション';
+
+  @override
+  String get removeAdminRole => '管理者権限を解除';
+
+  @override
+  String makeP0Admin(Object p0) => '${p0} を管理者にしますか？';
+
+  @override
+  String removeAdminRoleFromP0(Object p0) => '${p0} の管理者権限を解除しますか？';
+
+  @override
+  String get remove2 => '解除';
+
+  @override
+  String p0NowAdmin(Object p0) => '${p0} を管理者にしました';
+
+  @override
+  String removedAdminRoleFromP0(Object p0) => '${p0} の管理者権限を解除しました';
+
+  @override
+  String photosP02(Object p0) => '[写真] ${p0} 枚';
+
+  @override
+  String get savedDownloads => '「ダウンロード」に保存しました';
+
+  @override
+  String get couldNotSaveImage => '画像を保存できませんでした';
+
+  @override
+  String savingImagesP0P1(Object p0, Object p1) => '画像を保存中 ${p0} / ${p1}';
+
+  @override
+  String get savingImage => '画像を保存中';
+
+  @override
+  String get passwordsCanOnlyContainEnglishLetters => 'パスワードには英字、数字、半角記号のみ使用できます';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -16317,6 +16464,69 @@ class _LKo extends AppLocalizations {
 
   @override
   String get transferOut => '보낸 송금';
+
+  @override
+  String get deleteBook => '도서 삭제';
+
+  @override
+  String p0PermanentlyDeletedCannotRestoredSeller(Object p0) => '"${p0}"이(가) 영구 삭제되며 복구할 수 없습니다. 판매자에게 알림이 전송됩니다.';
+
+  @override
+  String get reasonDeletionOptional => '삭제 사유(선택)';
+
+  @override
+  String get bookDeleted2 => '도서를 삭제했습니다';
+
+  @override
+  String get rotate => '회전';
+
+  @override
+  String get mentioned => '[나를 언급함]';
+
+  @override
+  String get saveImage => '이미지 저장';
+
+  @override
+  String get everyone => '모두';
+
+  @override
+  String get mentionMembers => '멤버 언급';
+
+  @override
+  String get removeAdminRole => '관리자 권한 해제';
+
+  @override
+  String makeP0Admin(Object p0) => '${p0} 님을 관리자로 지정하시겠습니까?';
+
+  @override
+  String removeAdminRoleFromP0(Object p0) => '${p0} 님의 관리자 권한을 해제하시겠습니까?';
+
+  @override
+  String get remove2 => '해제';
+
+  @override
+  String p0NowAdmin(Object p0) => '${p0} 님을 관리자로 지정했습니다';
+
+  @override
+  String removedAdminRoleFromP0(Object p0) => '${p0} 님의 관리자 권한을 해제했습니다';
+
+  @override
+  String photosP02(Object p0) => '[사진] ${p0}장';
+
+  @override
+  String get savedDownloads => '다운로드 폴더에 저장했습니다';
+
+  @override
+  String get couldNotSaveImage => '이미지를 저장할 수 없습니다';
+
+  @override
+  String savingImagesP0P1(Object p0, Object p1) => '이미지 저장 중 ${p0} / ${p1}';
+
+  @override
+  String get savingImage => '이미지 저장 중';
+
+  @override
+  String get passwordsCanOnlyContainEnglishLetters => '비밀번호에는 영문, 숫자, 반각 기호만 사용할 수 있습니다';
 
 }
 
@@ -21207,6 +21417,69 @@ class _LZh extends AppLocalizations {
   @override
   String get transferOut => '轉出';
 
+  @override
+  String get deleteBook => '刪除書籍';
+
+  @override
+  String p0PermanentlyDeletedCannotRestoredSeller(Object p0) => '《${p0}》將永久刪除且無法復原，賣家將收到通知。';
+
+  @override
+  String get reasonDeletionOptional => '刪除原因（選填）';
+
+  @override
+  String get bookDeleted2 => '已刪除書籍';
+
+  @override
+  String get rotate => '旋轉';
+
+  @override
+  String get mentioned => '[有人提及您]';
+
+  @override
+  String get saveImage => '儲存圖片';
+
+  @override
+  String get everyone => '所有人';
+
+  @override
+  String get mentionMembers => '提及成員';
+
+  @override
+  String get removeAdminRole => '解除管理員身分';
+
+  @override
+  String makeP0Admin(Object p0) => '確定要將 ${p0} 設為管理員？';
+
+  @override
+  String removeAdminRoleFromP0(Object p0) => '確定要解除 ${p0} 的管理員身分？';
+
+  @override
+  String get remove2 => '解除';
+
+  @override
+  String p0NowAdmin(Object p0) => '已將 ${p0} 設為管理員';
+
+  @override
+  String removedAdminRoleFromP0(Object p0) => '已解除 ${p0} 的管理員身分';
+
+  @override
+  String photosP02(Object p0) => '[圖片] ${p0} 張';
+
+  @override
+  String get savedDownloads => '已儲存至「下載項目」';
+
+  @override
+  String get couldNotSaveImage => '無法儲存圖片';
+
+  @override
+  String savingImagesP0P1(Object p0, Object p1) => '正在儲存圖片 ${p0} / ${p1}';
+
+  @override
+  String get savingImage => '正在儲存圖片';
+
+  @override
+  String get passwordsCanOnlyContainEnglishLetters => '密碼僅可使用英文字母、數字及半形符號';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -26096,6 +26369,69 @@ class _LZhHans extends AppLocalizations {
   @override
   String get transferOut => '转出';
 
+  @override
+  String get deleteBook => '删除书籍';
+
+  @override
+  String p0PermanentlyDeletedCannotRestoredSeller(Object p0) => '《${p0}》将永久删除且无法恢复，卖家将收到通知。';
+
+  @override
+  String get reasonDeletionOptional => '删除原因（选填）';
+
+  @override
+  String get bookDeleted2 => '已删除书籍';
+
+  @override
+  String get rotate => '旋转';
+
+  @override
+  String get mentioned => '[有人提及您]';
+
+  @override
+  String get saveImage => '保存图片';
+
+  @override
+  String get everyone => '所有人';
+
+  @override
+  String get mentionMembers => '提及成员';
+
+  @override
+  String get removeAdminRole => '解除管理员身份';
+
+  @override
+  String makeP0Admin(Object p0) => '确定要将 ${p0} 设为管理员？';
+
+  @override
+  String removeAdminRoleFromP0(Object p0) => '确定要解除 ${p0} 的管理员身份？';
+
+  @override
+  String get remove2 => '解除';
+
+  @override
+  String p0NowAdmin(Object p0) => '已将 ${p0} 设为管理员';
+
+  @override
+  String removedAdminRoleFromP0(Object p0) => '已解除 ${p0} 的管理员身份';
+
+  @override
+  String photosP02(Object p0) => '[图片] ${p0} 张';
+
+  @override
+  String get savedDownloads => '已保存至“下载”';
+
+  @override
+  String get couldNotSaveImage => '无法保存图片';
+
+  @override
+  String savingImagesP0P1(Object p0, Object p1) => '正在保存图片 ${p0} / ${p1}';
+
+  @override
+  String get savingImage => '正在保存图片';
+
+  @override
+  String get passwordsCanOnlyContainEnglishLetters => '密码仅可使用英文字母、数字及半角符号';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -30984,6 +31320,69 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get transferOut => '轉出';
+
+  @override
+  String get deleteBook => '刪除書籍';
+
+  @override
+  String p0PermanentlyDeletedCannotRestoredSeller(Object p0) => '《${p0}》將永久刪除且無法復原，賣家將收到通知。';
+
+  @override
+  String get reasonDeletionOptional => '刪除原因（選填）';
+
+  @override
+  String get bookDeleted2 => '已刪除書籍';
+
+  @override
+  String get rotate => '旋轉';
+
+  @override
+  String get mentioned => '[有人提及您]';
+
+  @override
+  String get saveImage => '儲存圖片';
+
+  @override
+  String get everyone => '所有人';
+
+  @override
+  String get mentionMembers => '提及成員';
+
+  @override
+  String get removeAdminRole => '解除管理員身分';
+
+  @override
+  String makeP0Admin(Object p0) => '確定要將 ${p0} 設為管理員？';
+
+  @override
+  String removeAdminRoleFromP0(Object p0) => '確定要解除 ${p0} 的管理員身分？';
+
+  @override
+  String get remove2 => '解除';
+
+  @override
+  String p0NowAdmin(Object p0) => '已將 ${p0} 設為管理員';
+
+  @override
+  String removedAdminRoleFromP0(Object p0) => '已解除 ${p0} 的管理員身分';
+
+  @override
+  String photosP02(Object p0) => '[圖片] ${p0} 張';
+
+  @override
+  String get savedDownloads => '已儲存至「下載項目」';
+
+  @override
+  String get couldNotSaveImage => '無法儲存圖片';
+
+  @override
+  String savingImagesP0P1(Object p0, Object p1) => '正在儲存圖片 ${p0} / ${p1}';
+
+  @override
+  String get savingImage => '正在儲存圖片';
+
+  @override
+  String get passwordsCanOnlyContainEnglishLetters => '密碼僅可使用英文字母、數字及半形符號';
 
 }
 

@@ -231,16 +231,20 @@ class BookCard extends StatelessWidget {
     return Row(children: [
       Flexible(child: _buildTag(book.categoryName, c.categoryChip, c.accent)),
       const SizedBox(width: 6),
-      Flexible(child: _buildTag(book.conditionText, conditionColor.withValues(alpha: 0.12), conditionColor)),
+      _buildTag(book.conditionText, conditionColor.withValues(alpha: 0.12), conditionColor),
     ]);
   }
 
   Widget _buildTag(String text, Color bgColor, Color textColor) {
     return Container(
-      height: 22, padding: const EdgeInsets.symmetric(horizontal: 8), alignment: Alignment.center,
+      height: 22, padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
-      child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.w600, height: 1.0)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Flexible(
+          child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.w600, height: 1.0)),
+        ),
+      ]),
     );
   }
   void _openSeller(BuildContext context) {

@@ -17,6 +17,9 @@ import '../../utils/motion.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/animations.dart';
+import 'media/chat_album.dart';
+import 'media/chat_media_upload.dart';
+import 'mentions/chat_mention_controller.dart';
 import 'settings/chat_room_settings_screen.dart';
 import 'transfer/transfer_card.dart';
 import 'transfer/transfer_flow.dart';
@@ -33,6 +36,8 @@ import 'widgets/chat_scroll_anchor.dart';
 import 'widgets/chat_sheets.dart';
 import 'widgets/chat_typing_row.dart';
 import 'widgets/reservation_card.dart';
+import 'widgets/swipe_to_reply.dart';
+import '../../widgets/image_save_feedback.dart';
 import '../../widgets/image_viewer.dart';
 import '../../widgets/state_views.dart';
 import '../books/book_detail_screen.dart';
@@ -68,14 +73,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   static const _pollInterval = Duration(seconds: 3);
   static const _typingInterval = Duration(seconds: 3);
   static const _editWindow = Duration(minutes: 15);
-  static const _recallWindow = Duration(hours: 24);
+  static const _recallWindow = Duration(hours: 1);
   static const _pageSize = 40;
-  static const _replyableKinds = {'text', 'image', 'voice'};
+  static const _replyableKinds = {'text', 'image', 'album', 'voice'};
   // 用來比對伺服器回傳的中文錯誤訊息，必須維持 const，翻譯抽取才會略過它。
   static const _unreachableMarker = '無法接收訊息';
 
   final ApiService _api = ApiService();
   final TextEditingController _controller = TextEditingController();
+  late final ChatMentionController _mentions = ChatMentionController(_controller);
   final FocusNode _focus = FocusNode();
   final ScrollController _scroll = ScrollController();
   final Key _centerKey = const ValueKey('chat_center');
@@ -88,6 +94,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   final Map<int, ChatTransfer> _transfers = {};
   final Map<int, String> _clientKeys = {};
   final Map<int, String> _localImages = {};
+  final Map<int, List<String>> _localAlbums = {};
   final Set<String> _fresh = {};
   final Set<int> _busyReservations = {};
   final Set<int> _busyTransfers = {};
@@ -106,6 +113,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   ChatReply? _replyTo;
   ChatMessage? _editing;
   String _draftBeforeEdit = '';
+  List<ChatMention> _draftMentionsBeforeEdit = const [];
   int? _unreadFromId;
   final ValueNotifier<int> _unseen = ValueNotifier(0);
   final ValueNotifier<bool> _showJump = ValueNotifier(false);
@@ -166,6 +174,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     _stopTyping();
     VoicePlayback.instance.stop();
     _api.fetchUnreadChatCount();
+    _mentions.dispose();
     _controller.dispose();
     _focus.dispose();
     _scroll.dispose();
@@ -277,6 +286,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       _roomAvatarUrl = info.avatarUrl;
       if (info.members.isNotEmpty) _memberCount = info.members.length;
     }
+    _syncMentionCandidates();
+  }
+
+  void _syncMentionCandidates() {
+    _mentions.enabled = _isGroup;
+    _mentions.members = [
+      for (final m in _roomInfo?.members ?? const <ChatMember>[])
+        if (m.userId != _myId)
+          ChatMentionCandidate(
+            userId: m.userId,
+            name: _nameOf(m.userId, fallback: m.displayName),
+            nickname: m.nickname,
+            avatarUrl: m.avatarUrl,
+          ),
+    ];
   }
 
   bool _applyRoom(ChatFetchResult result) {
@@ -305,6 +329,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       _memberCount = result.memberCount;
       changed = true;
     }
+    if (changed) _syncMentionCandidates();
     return changed;
   }
 
@@ -355,7 +380,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (!mounted) return;
     final index = _messages.indexWhere((m) => m.messageId == messageId);
     final found = index >= 0 && await _scrollToEntry(_keyFor(_messages[index]));
-    if (!found && mounted) showAppSnackBar(context, S.originalMessageNotFound, isError: true);
+    if (found || !mounted) return;
+    final beforeHistory = _messages.isNotEmpty && messageId < _messages.first.messageId && !_hasMore;
+    showAppSnackBar(context, beforeHistory ? S.originalMessageUnavailable : S.originalMessageNotFound, isError: !beforeHistory);
   }
 
   String _nameOf(int userId, {String fallback = ''}) {
@@ -419,13 +446,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     HapticFeedback.selectionClick();
     final text = m.text;
     setState(() {
-      if (_editing == null) _draftBeforeEdit = _controller.text;
+      if (_editing == null) {
+        _draftBeforeEdit = _controller.text;
+        _draftMentionsBeforeEdit = _mentions.mentions;
+      }
       _editing = m;
       _replyTo = null;
       _quickRepliesOpen = false;
     });
     _stopTyping();
     _controller.value = TextEditingValue(text: text, selection: TextSelection.collapsed(offset: text.length));
+    _mentions.setMentions(m.mentions);
     _focus.requestFocus();
   }
 
@@ -433,16 +464,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (_editing == null) return;
     final draft = _draftBeforeEdit;
     _controller.value = TextEditingValue(text: draft, selection: TextSelection.collapsed(offset: draft.length));
+    _mentions.setMentions(_draftMentionsBeforeEdit);
     setState(() {
       _editing = null;
       _draftBeforeEdit = '';
+      _draftMentionsBeforeEdit = const [];
     });
   }
 
   Future<void> _submitEdit(String raw) async {
     final target = _editing;
     if (target == null) return;
-    final text = raw.trim();
+    final (:text, :mentions) = _mentions.take(raw);
     if (text.isEmpty) return;
     if (text.length > 2000) {
       showAppSnackBar(context, S.messagesCanUp2000Characters, isError: true);
@@ -454,7 +487,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       return;
     }
     final original = _messages[index];
-    if (text == original.text.trim()) {
+    if (text == original.text.trim() && listEquals(mentions, original.mentions)) {
       _cancelEdit();
       return;
     }
@@ -465,14 +498,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     }
 
     HapticFeedback.lightImpact();
-    final optimistic = original.copyWith(body: text, editedAt: DateTime.now().toUtc());
+    final optimistic = original.copyWith(body: text, editedAt: DateTime.now().toUtc(), mentions: mentions);
     _cancelEdit();
     setState(() {
       _messages[index] = optimistic;
       _rebuildEntries();
     });
 
-    final (updated, error) = await _api.editChatMessage(widget.roomId, target.messageId, text);
+    final (updated, error) = await _api.editChatMessage(widget.roomId, target.messageId, text, mentions: mentions);
     if (!mounted) return;
     final i = _messages.indexWhere((m) => m.messageId == target.messageId);
     if (i < 0) return;
@@ -487,6 +520,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       if (_editing == null && _replyTo == null && _controller.text.trim().isEmpty && _canEdit(original)) {
         _startEdit(original);
         _controller.value = TextEditingValue(text: text, selection: TextSelection.collapsed(offset: text.length));
+        _mentions.setMentions(mentions);
       }
       return;
     }
@@ -495,6 +529,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       _messages[i] = _messages[i].copyWith(
         body: updated.text.isEmpty ? text : updated.text,
         editedAt: updated.editedAt ?? optimistic.editedAt,
+        mentions: updated.text.isEmpty ? mentions : updated.mentions,
       );
       _rebuildEntries();
     });
@@ -611,8 +646,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       final i = _messages.indexWhere((m) => m.messageId == edit.messageId);
       if (i < 0) continue;
       final m = _messages[i];
-      if (m.isRecalled || (m.isEdited && m.text == edit.body)) continue;
-      _messages[i] = m.copyWith(body: edit.body, editedAt: edit.editedAt ?? DateTime.now().toUtc());
+      final sameMentions = edit.mentions == null || listEquals(edit.mentions, m.mentions);
+      if (m.isRecalled || (m.isEdited && m.text == edit.body && sameMentions)) continue;
+      _messages[i] = m.copyWith(
+        body: edit.body,
+        editedAt: edit.editedAt ?? DateTime.now().toUtc(),
+        mentions: edit.mentions,
+      );
       changed = true;
     }
 
@@ -948,32 +988,39 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (_editing != null) {
       _submitEdit(raw);
     } else {
-      _sendText(raw);
+      _sendText(raw, fromComposer: true);
     }
   }
 
-  void _sendText(String raw) {
-    final text = raw.trim();
+  void _sendText(String raw, {bool fromComposer = false}) {
+    final (:text, :mentions) = fromComposer ? _mentions.take(raw) : (text: raw.trim(), mentions: const <ChatMention>[]);
     if (text.isEmpty) return;
     if (text.length > 2000) {
       showAppSnackBar(context, S.messagesCanUp2000Characters, isError: true);
       return;
     }
     HapticFeedback.lightImpact();
-    _controller.clear();
+    if (fromComposer) {
+      _controller.clear();
+      _mentions.clear();
+    }
     _unreadFromId = null;
-    _addPending(ChatPendingMessage(key: _nextKey(), kind: 'text', text: text, replyTo: _takeReply()));
+    _addPending(ChatPendingMessage(key: _nextKey(), kind: 'text', text: text, replyTo: _takeReply(), mentions: mentions));
   }
 
   Future<void> _deliver(ChatPendingMessage p) async {
     if (!_pending.contains(p)) return;
 
-    var content = p.text;
-    if (p.kind != 'text') {
+    Object content = p.text;
+    if (p.slots.isNotEmpty) {
+      final uploadError = await uploadChatSlots(_api, p.slots);
+      if (uploadError != null) return _failPending(p, uploadError);
+      final urls = [for (final slot in p.slots) slot.url!];
+      content = p.kind == 'album' ? urls : urls.first;
+    } else if (p.kind != 'text') {
       var url = p.uploadedUrl;
       if (url == null) {
-        final (uploaded, error) =
-            p.kind == 'image' ? await _api.uploadChatImage(p.localPath!) : await _api.uploadVoice(p.localPath!);
+        final (uploaded, error) = await _api.uploadVoice(p.localPath!);
         if (uploaded == null) return _failPending(p, error);
         url = p.uploadedUrl = uploaded;
       }
@@ -986,11 +1033,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       type: p.kind,
       durationSeconds: p.kind == 'voice' ? p.seconds : null,
       replyToId: p.replyTo?.messageId,
+      mentions: p.mentions,
     );
     if (message == null) return _failPending(p, error);
 
     _clientKeys[message.messageId] = p.key;
     if (p.kind == 'image' && p.localPath != null) _localImages[message.messageId] = p.localPath!;
+    if (p.kind == 'album') _localAlbums[message.messageId] = [for (final slot in p.slots) slot.localPath];
     if (p.kind == 'voice') VoiceRecorder.deleteFile(p.localPath);
     if (!mounted) return;
 
@@ -1092,17 +1141,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     }
     if (!mounted) return;
 
-    var skipped = 0;
-    for (final file in files.take(9)) {
-      final size = await File(file.path).length().catchError((_) => 0);
-      if (size > 10 * 1024 * 1024) {
-        skipped++;
-        continue;
-      }
-      if (!mounted) return;
-      _addPending(ChatPendingMessage(key: _nextKey(), kind: 'image', localPath: file.path, replyTo: _takeReply()));
+    final sized = [
+      for (final file in files.take(kChatAlbumMax))
+        (path: file.path, bytes: await File(file.path).length().catchError((_) => -1)),
+    ];
+    if (!mounted) return;
+    final (:groups, :skipped) = groupImagesForSend(sized);
+    for (final paths in groups) {
+      _addPending(ChatPendingMessage.images(key: _nextKey(), paths: paths, replyTo: _takeReply()));
     }
-    if (skipped > 0 && mounted) showAppSnackBar(context, S.imagesMust10MbSmaller, isError: true);
+    if (skipped > 0) showAppSnackBar(context, S.imagesMust10MbSmaller, isError: true);
   }
 
   void _sendVoice(VoiceClip clip) {
@@ -1143,6 +1191,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     final created = m.createdAt;
     final canReply = _canCompose;
     final isText = m.kind == 'text';
+    final images = m.imageUrls;
     final canEdit = _canCompose && _canEdit(m);
     final canRecall = isMine && created != null && DateTime.now().difference(created) < _recallWindow;
     final canReport = !isMine;
@@ -1156,6 +1205,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         if (canReply) SheetOption(value: 'reply', label: S.reply, icon: Icons.reply_rounded),
         if (isText) SheetOption(value: 'copy', label: S.copy, icon: Icons.copy_rounded),
         if (isText) SheetOption(value: 'select', label: S.selectText, icon: Icons.text_fields_rounded),
+        if (images.isNotEmpty) SheetOption(value: 'save', label: S.saveImage, icon: Icons.download_rounded),
         if (canEdit) SheetOption(value: 'edit', label: S.actionEdit, icon: Icons.edit_outlined),
         if (canRecall) SheetOption(value: 'recall', label: S.unsend, icon: Icons.undo_rounded),
         if (canReport)
@@ -1174,6 +1224,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         showAppSnackBar(context, S.messageCopied);
       case 'select':
         showChatSelectableTextSheet(context, m.text);
+      case 'save':
+        saveImagesWithFeedback(context, images, showProgressDialog: true);
       case 'edit':
         final current = _messages.where((x) => x.messageId == m.messageId).firstOrNull;
         if (current != null) _startEdit(current);
@@ -1477,6 +1529,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             onVoice: _sendVoice,
             onVoiceUnavailable: _onVoiceUnavailable,
             onVoiceTooShort: () => showAppSnackBar(context, S.holdMicTalkReleaseSend),
+            mentions: _isGroup ? _mentions : null,
           ),
         ],
       ),
@@ -1698,7 +1751,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       return ChatBookCardView(card: card, onTap: () => _openBook(card.bookId));
     }
 
-    return ChatSystemLine(text: m.text, icon: Icons.info_outline_rounded);
+    return ChatSystemLine(text: m.text);
   }
 
   Widget _buildBubbleRow(ChatEntry entry, ChatEntry? next, bool groupStart, bool groupEnd) {
@@ -1850,6 +1903,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         reservation: r,
         myId: _myId,
         isMine: isMine,
+        groupStart: groupStart,
+        groupEnd: groupEnd,
         busy: _busyReservations.contains(r.reservationId),
         onAction: (action) => _onReservationAction(r, action),
         onOpenBook: () => _openBook(r.bookId),
@@ -1868,6 +1923,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
           transfer: transfer,
           myId: _myId,
           isMine: isMine,
+          groupStart: groupStart,
+          groupEnd: groupEnd,
           nameOf: _nameOf,
           busy: _busyTransfers.contains(transfer.transferId),
           onAction: (action) => _onTransferAction(transfer, action),
@@ -1875,22 +1932,42 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       );
     }
 
-    if (entry.kind == 'image') {
-      final url = m?.imageUrl;
-      final local = pending?.localPath ?? (m == null ? null : _localImages[m.messageId]);
-      final heroTag = 'chat_image_${entry.id}';
-      final image = GestureDetector(
-        onTap: url != null
-            ? () => ImageViewer.open(context, imageUrl: url, heroTag: heroTag)
-            : (failed && pending != null ? () => _showPendingMenu(pending) : null),
-        child: ChatImageThumb(
-          url: url,
-          localPath: local,
-          heroTag: heroTag,
-          uploading: sending,
-          failed: failed,
-        ),
-      );
+    if (entry.kind == 'image' || entry.kind == 'album') {
+      final VoidCallback? onFailedTap = failed && pending != null ? () => _showPendingMenu(pending) : null;
+      final Widget image;
+      if (entry.kind == 'album') {
+        final urls = m?.imageUrls ?? const <String>[];
+        final heroPrefix = 'chat_album_${entry.id}';
+        image = ChatAlbumView(
+          key: ValueKey('album_${entry.id}'),
+          urls: m == null ? [for (final _ in pending!.slots) null] : urls,
+          localPaths: m == null ? const [] : (_localAlbums[m.messageId] ?? const []),
+          slots: pending?.slots ?? const [],
+          heroPrefix: heroPrefix,
+          onFailedTap: onFailedTap,
+          onOpen: (index) => ImageViewer.openGallery(
+            context,
+            imageUrls: urls,
+            initialIndex: index,
+            heroTags: [for (var i = 0; i < urls.length; i++) ChatAlbumView.heroTag(heroPrefix, i)],
+          ),
+        );
+      } else {
+        final url = m?.imageUrl;
+        final local = pending?.localPath ?? (m == null ? null : _localImages[m.messageId]);
+        final heroTag = 'chat_image_${entry.id}';
+        image = GestureDetector(
+          onTap: url != null ? () => ImageViewer.open(context, imageUrl: url, heroTag: heroTag, allowSave: true) : onFailedTap,
+          child: ChatImageThumb(
+            url: url,
+            localPath: local,
+            heroTag: heroTag,
+            uploading: sending,
+            failed: failed,
+            progress: pending?.slots.firstOrNull?.progress,
+          ),
+        );
+      }
       if (reply == null) return image;
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -1943,7 +2020,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       );
     }
 
-    final text = ChatLinkText(text: pending?.text ?? m?.text ?? '', isMine: isMine);
+    final text = ChatLinkText(
+      text: pending?.text ?? m?.text ?? '',
+      isMine: isMine,
+      mentions: entry.mentions,
+      myId: _myId,
+      onMentionTap: _openProfile,
+    );
     if (reply == null) {
       return ChatBubbleShell(isMine: isMine, groupStart: groupStart, groupEnd: groupEnd, child: text);
     }

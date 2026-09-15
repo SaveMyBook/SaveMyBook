@@ -8,7 +8,8 @@
 | --- | --- | --- | --- |
 | 相機 | `NSCameraUsageDescription` | 上架書籍掃描 ISBN 條碼（`features/books/barcode_scanner_screen.dart`）、取書掃描書櫃 QR Code（`features/orders/pickup_book_screen.dart`）、拍攝書籍／大頭貼／爭議佐證照片（`services/photo_service.dart`）、聊天室拍照（`features/chat/chat_room_screen.dart`） | iOS、macOS |
 | 相簿（讀取） | `NSPhotoLibraryUsageDescription` | 選取書籍照片、大頭貼、聊天圖片、爭議佐證照片（image_picker）；iOS 14 以上使用系統照片挑選器，平常不會跳出授權，但套件仍引用相簿 API，須保留此鍵值 | iOS |
-| 相簿（寫入） | `NSPhotoLibraryAddUsageDescription` | 將個人檔案 QR Code 儲存至相簿（`features/account/share_profile_screen.dart` → `AppDelegate.swift` `saveImage`） | iOS |
+| 相簿（寫入） | `NSPhotoLibraryAddUsageDescription` | 將個人檔案 QR Code 儲存至相簿（`features/account/share_profile_screen.dart`）、儲存聊天室圖片（`widgets/image_viewer.dart` 的儲存按鈕與訊息長按選單 → `services/image_save_service.dart`），皆經由 `AppDelegate.swift` `saveImage` 寫入 | iOS |
+| 下載項目資料夾（寫入） | entitlement `com.apple.security.files.downloads.read-write` | macOS 儲存聊天室圖片時直接寫入「下載項目」（`MainFlutterWindow.swift` `saveImage`），不需相簿權限 | macOS |
 | 麥克風 | `NSMicrophoneUsageDescription` | 錄製聊天室語音訊息（`services/voice_service.dart`） | iOS、macOS |
 | 定位（使用 App 期間） | `NSLocationWhenInUseUsageDescription`（macOS 另有 `NSLocationUsageDescription`） | 書籍詳情顯示與智慧書櫃的距離（`features/books/book_detail_screen.dart`）、選擇書櫃時依距離排序（`widgets/app_forms.dart`） | iOS、macOS |
 | Face ID | `NSFaceIDUsageDescription` | 開啟 App 解鎖、快速登入、生物辨識付款（`services/biometric_service.dart`） | iOS |

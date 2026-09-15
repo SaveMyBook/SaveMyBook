@@ -210,6 +210,75 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+    delete:
+      summary: 刪除書籍
+      operationId: adminDeleteBook
+      tags: [admin-content]
+      description: |
+        永久刪除書籍，用於重複刊登、測試資料等不需保留的商品。此操作不可復原，操作紀錄不提供還原。
+
+        - 書籍狀態為 `reserved`，或有 `pending`、保留期限內 `confirmed` 的預約時回傳 409 `BOOK_IN_TRANSACTION`
+        - 已有訂單紀錄時回傳 409 `BOOK_HAS_ORDERS`；為保留交易資料，此類書籍請改用 `PATCH` 強制下架
+
+        刪除時一併移除已結束的預約、購物車項目、收藏、推薦紀錄與書籍照片資料，
+        關聯此書籍的聊天室保留並解除關聯。完成後通知賣家（附上 `reason`）並寫入稽核紀錄。
+        已上傳的照片檔案不會被刪除。
+
+        需 `can_manage_content` 權限。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 書籍編號。
+          example: 101
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  maxLength: 200
+                  description: 刪除原因，將包含於發送給賣家的通知，並寫入稽核紀錄。
+                  example: 重複刊登
+            example: { reason: 重複刊登 }
+      responses:
+        '200':
+          description: 已刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+              example: { success: true, message: 已刪除書籍 }
+        '400':
+          description: 書籍編號或原因格式不正確。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 原因不可超過 200 個字 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404':
+          description: 找不到此書籍。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到此書籍 }
+        '409':
+          description: 書籍交易或預約進行中，或已有訂單紀錄。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                交易或預約進行中:
+                  value: { success: false, code: BOOK_IN_TRANSACTION, message: 此書籍交易或預約進行中，請先處理後再刪除 }
+                已有訂單:
+                  value: { success: false, code: BOOK_HAS_ORDERS, message: 此書籍已有訂單紀錄，為保留交易資料無法刪除，如需停止販售請使用強制下架 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/admin/categories:
     get:
       summary: 分類列表（含書籍數）

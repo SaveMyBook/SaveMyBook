@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show listEquals;
+import 'package:flutter/foundation.dart' show ValueListenable, listEquals;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +13,7 @@ import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
 import '../../../widgets/animations.dart';
 import '../../../widgets/state_views.dart';
+import '../media/chat_network_image.dart';
 import 'chat_format.dart';
 
 class ChatDateSeparator extends StatelessWidget {
@@ -82,6 +83,17 @@ class ChatSystemLine extends StatelessWidget {
   }
 }
 
+BorderRadius chatBubbleRadius({required bool isMine, required bool groupStart, required bool groupEnd}) {
+  const big = Radius.circular(18);
+  const small = Radius.circular(6);
+  return BorderRadius.only(
+    topLeft: !isMine && !groupStart ? small : big,
+    bottomLeft: !isMine && !groupEnd ? small : big,
+    topRight: isMine && !groupStart ? small : big,
+    bottomRight: isMine && !groupEnd ? small : big,
+  );
+}
+
 class ChatBubbleShell extends StatelessWidget {
   final bool isMine;
   final bool groupStart;
@@ -103,19 +115,12 @@ class ChatBubbleShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    const big = Radius.circular(18);
-    const small = Radius.circular(6);
 
     return Container(
       padding: padding,
       decoration: BoxDecoration(
         color: color ?? (isMine ? chatMineBubble(c) : chatTheirsBubble(c)),
-        borderRadius: BorderRadius.only(
-          topLeft: !isMine && !groupStart ? small : big,
-          bottomLeft: !isMine && !groupEnd ? small : big,
-          topRight: isMine && !groupStart ? small : big,
-          bottomRight: isMine && !groupEnd ? small : big,
-        ),
+        borderRadius: chatBubbleRadius(isMine: isMine, groupStart: groupStart, groupEnd: groupEnd),
         boxShadow: isMine || c.isDark
             ? null
             : [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 1))],
@@ -125,11 +130,53 @@ class ChatBubbleShell extends StatelessWidget {
   }
 }
 
+class ChatCardFrame extends StatelessWidget {
+  final BorderRadius radius;
+  final Widget child;
+
+  const ChatCardFrame({super.key, required this.radius, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: c.isDark
+            ? null
+            : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      // 底色必須畫在裁切範圍內，若由外層 decoration 另外畫，圓角的反鋸齒邊緣會透出一圈底色細線。
+      child: ClipRRect(
+        borderRadius: radius,
+        child: DecoratedBox(
+          position: DecorationPosition.foreground,
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(color: c.isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.08)),
+          ),
+          child: ColoredBox(color: c.card, child: child),
+        ),
+      ),
+    );
+  }
+}
+
 class ChatLinkText extends StatefulWidget {
   final String text;
   final bool isMine;
+  final List<ChatMention> mentions;
+  final int myId;
+  final ValueChanged<int>? onMentionTap;
 
-  const ChatLinkText({super.key, required this.text, required this.isMine});
+  const ChatLinkText({
+    super.key,
+    required this.text,
+    required this.isMine,
+    this.mentions = const [],
+    this.myId = 0,
+    this.onMentionTap,
+  });
 
   static final RegExp pattern = RegExp(
     r'(https?:\/\/[^\s]+|www\.[^\s]+|(?:\+886|0)9\d{2}[- ]?\d{3}[- ]?\d{3}|0\d{1,2}[- ]?\d{3,4}[- ]?\d{4})',
@@ -162,35 +209,66 @@ class _ChatLinkTextState extends State<ChatLinkText> {
     showAppSnackBar(context, S.copiedP0(value));
   }
 
+  TapGestureRecognizer _recognizer(VoidCallback onTap) {
+    final recognizer = TapGestureRecognizer()..onTap = onTap;
+    _recognizers.add(recognizer);
+    return recognizer;
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final color = widget.isMine ? Colors.white : c.textPrimary;
+    final mine = widget.isMine;
+    final color = mine ? Colors.white : c.textPrimary;
     final style = TextStyle(fontSize: 15, height: 1.4, color: color);
     final text = widget.text;
 
     _disposeRecognizers();
-    final matches = ChatLinkText.pattern.allMatches(text).toList();
-    if (matches.isEmpty) return Text(text, style: style);
+    final mentions = ChatMention.validFor(text, widget.mentions);
+    final links = [
+      for (final m in ChatLinkText.pattern.allMatches(text))
+        if (!mentions.any((x) => m.start < x.end && m.end > x.start)) m,
+    ];
+    if (links.isEmpty && mentions.isEmpty) return Text(text, style: style);
+
+    final ranges = <(int, int, Object)>[
+      for (final m in mentions) (m.start, m.end, m),
+      for (final m in links) (m.start, m.end, m),
+    ]..sort((a, b) => a.$1.compareTo(b.$1));
 
     final spans = <InlineSpan>[];
     var cursor = 0;
-    for (final m in matches) {
-      if (m.start > cursor) spans.add(TextSpan(text: text.substring(cursor, m.start)));
-      final value = m.group(0)!;
-      final recognizer = TapGestureRecognizer()..onTap = () => _copy(value);
-      _recognizers.add(recognizer);
-      spans.add(TextSpan(
-        text: value,
-        recognizer: recognizer,
-        style: TextStyle(
-          decoration: TextDecoration.underline,
-          decorationColor: widget.isMine ? Colors.white70 : c.accent,
-          color: widget.isMine ? Colors.white : c.accent,
-          fontWeight: FontWeight.w500,
-        ),
-      ));
-      cursor = m.end;
+    for (final (start, end, item) in ranges) {
+      if (start < cursor) continue;
+      if (start > cursor) spans.add(TextSpan(text: text.substring(cursor, start)));
+      final value = text.substring(start, end);
+      if (item is ChatMention) {
+        final toMe = !mine && (item.isEveryone || (widget.myId != 0 && item.userId == widget.myId));
+        final onTap = widget.onMentionTap;
+        spans.add(TextSpan(
+          text: value,
+          recognizer: !item.isEveryone && onTap != null ? _recognizer(() => onTap(item.userId)) : null,
+          style: TextStyle(
+            color: mine ? Colors.white : c.accent,
+            fontWeight: toMe ? FontWeight.w800 : FontWeight.w700,
+            backgroundColor: toMe
+                ? c.accent.withValues(alpha: c.isDark ? 0.28 : 0.14)
+                : null,
+          ),
+        ));
+      } else {
+        spans.add(TextSpan(
+          text: value,
+          recognizer: _recognizer(() => _copy(value)),
+          style: TextStyle(
+            decoration: TextDecoration.underline,
+            decorationColor: mine ? Colors.white70 : c.accent,
+            color: mine ? Colors.white : c.accent,
+            fontWeight: FontWeight.w500,
+          ),
+        ));
+      }
+      cursor = end;
     }
     if (cursor < text.length) spans.add(TextSpan(text: text.substring(cursor)));
     return Text.rich(TextSpan(style: style, children: spans));
@@ -203,6 +281,7 @@ class ChatImageThumb extends StatefulWidget {
   final String? heroTag;
   final bool uploading;
   final bool failed;
+  final ValueListenable<double>? progress;
 
   const ChatImageThumb({
     super.key,
@@ -211,6 +290,7 @@ class ChatImageThumb extends StatefulWidget {
     this.heroTag,
     this.uploading = false,
     this.failed = false,
+    this.progress,
   });
 
   @override
@@ -362,10 +442,18 @@ class _ChatImageThumbState extends State<ChatImageThumb> {
                   alignment: Alignment.center,
                   child: widget.failed
                       ? const Icon(Icons.error_outline_rounded, color: Colors.white, size: 30)
-                      : const SizedBox(
-                          width: 30,
-                          height: 30,
-                          child: CircularProgressIndicator(strokeWidth: 2.6, color: Colors.white),
+                      : ValueListenableBuilder<double>(
+                          valueListenable: widget.progress ?? const AlwaysStoppedAnimation<double>(0),
+                          builder: (_, value, _) => SizedBox(
+                            width: 30,
+                            height: 30,
+                            child: CircularProgressIndicator(
+                              value: value <= 0.02 || value >= 1 ? null : value,
+                              strokeWidth: 2.6,
+                              color: Colors.white,
+                              backgroundColor: value <= 0.02 || value >= 1 ? null : Colors.white24,
+                            ),
+                          ),
                         ),
                 ),
             ],
@@ -706,6 +794,7 @@ class ChatReplyThumb extends StatelessWidget {
 
   static const _icons = {
     'image': Icons.image_rounded,
+    'album': Icons.photo_library_rounded,
     'voice': Icons.mic_rounded,
     'transfer': Icons.payments_rounded,
     'book': Icons.menu_book_rounded,
@@ -717,11 +806,11 @@ class ChatReplyThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final url = reply.kind == 'image' ? reply.imageUrl : null;
+    final url = reply.kind == 'image' || reply.kind == 'album' ? reply.imageUrl : null;
     if (url != null && url.isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(size * 0.18),
-        child: AppNetworkImage(url: url, width: size, height: size, fallbackIconSize: size * 0.4),
+        child: ChatNetworkImage(url: url, width: size, height: size, iconSize: size * 0.4),
       );
     }
     return Container(
@@ -814,134 +903,6 @@ class ChatReplyQuote extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class SwipeToReply extends StatefulWidget {
-  final Widget child;
-  final VoidCallback? onReply;
-
-  const SwipeToReply({super.key, required this.child, this.onReply});
-
-  @override
-  State<SwipeToReply> createState() => _SwipeToReplyState();
-}
-
-class _SwipeToReplyState extends State<SwipeToReply> with SingleTickerProviderStateMixin {
-  static const _trigger = 64.0;
-  static const _maxOffset = 88.0;
-  static const _iconSize = 30.0;
-
-  late final AnimationController _settle = AnimationController(vsync: this, duration: Motion.base);
-  double _drag = 0;
-  double _offset = 0;
-  double _settleFrom = 0;
-  bool _armed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _settle.addListener(() => setState(() => _offset = _settleFrom * (1 - Motion.enterCurve.transform(_settle.value))));
-  }
-
-  @override
-  void dispose() {
-    _settle.dispose();
-    super.dispose();
-  }
-
-  double _resist(double drag) {
-    const linear = _trigger * 0.85;
-    if (drag <= _trigger) return drag * 0.85;
-    return math.min(_maxOffset, linear + (drag - _trigger) * 0.3);
-  }
-
-  void _update(DragUpdateDetails d) {
-    if (_settle.isAnimating) _settle.stop();
-    _drag = math.max(0, _drag - d.delta.dx);
-    final armed = _drag >= _trigger;
-    if (armed && !_armed) HapticFeedback.lightImpact();
-    setState(() {
-      _offset = _resist(_drag);
-      _armed = armed;
-    });
-  }
-
-  void _onEnd(DragEndDetails _) => _release();
-
-  void _release() {
-    if (_armed) widget.onReply?.call();
-    _drag = 0;
-    _settleFrom = _offset;
-    setState(() => _armed = false);
-    if (_settleFrom > 0) _settle.forward(from: 0);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.onReply == null) return widget.child;
-    final c = AppColors.of(context);
-    final progress = (_offset / (_trigger * 0.85)).clamp(0.0, 1.0);
-
-    return RawGestureDetector(
-      gestures: {
-        _LeftSwipeRecognizer: GestureRecognizerFactoryWithHandlers<_LeftSwipeRecognizer>(
-          () => _LeftSwipeRecognizer(debugOwner: this),
-          (r) => r
-            ..onUpdate = _update
-            ..onEnd = _onEnd
-            ..onCancel = _release,
-        ),
-      },
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          if (_offset > 0)
-            Positioned(
-              top: 0,
-              bottom: 0,
-              right: (_offset - _iconSize) / 2,
-              child: Center(
-                child: Opacity(
-                  opacity: progress,
-                  child: Transform.scale(
-                    scale: 0.6 + 0.4 * progress,
-                    child: AnimatedScale(
-                      scale: _armed ? 1.12 : 1.0,
-                      duration: Motion.micro,
-                      curve: Motion.pop,
-                      child: AnimatedContainer(
-                        duration: Motion.micro,
-                        width: _iconSize,
-                        height: _iconSize,
-                        decoration: BoxDecoration(
-                          color: _armed ? c.accent : (c.isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.06)),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.reply_rounded, size: 18, color: _armed ? Colors.white : c.textSecondary),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          Transform.translate(offset: Offset(-_offset, 0), child: widget.child),
-        ],
-      ),
-    );
-  }
-}
-
-// iOS 的返回手勢從螢幕左緣開始；若在那裡搶下水平拖曳，使用者就無法滑動返回。
-class _LeftSwipeRecognizer extends HorizontalDragGestureRecognizer {
-  _LeftSwipeRecognizer({super.debugOwner});
-
-  static const _edge = 28.0;
-
-  @override
-  bool isPointerAllowed(PointerEvent event) {
-    if (event is PointerDownEvent && event.position.dx < _edge) return false;
-    return super.isPointerAllowed(event);
   }
 }
 

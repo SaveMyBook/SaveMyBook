@@ -20,7 +20,9 @@ FROM (
   SELECT 'chat_rooms', 'avatar_url' UNION ALL
   SELECT 'chat_rooms', 'created_by' UNION ALL
   SELECT 'chat_messages', 'edited_at' UNION ALL
-  SELECT 'notifications', 'actor_id'
+  SELECT 'notifications', 'actor_id' UNION ALL
+  SELECT 'chat_room_members', 'history_from_id' UNION ALL
+  SELECT 'chat_messages', 'mentions'
 ) t
 LEFT JOIN information_schema.COLUMNS c
   ON c.TABLE_SCHEMA = DATABASE() AND c.TABLE_NAME = t.tbl AND c.COLUMN_NAME = t.want
@@ -128,4 +130,11 @@ SELECT '列舉值', 'wallet_transactions.type 含 transfer_in',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.COLUMNS
 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_transactions' AND COLUMN_NAME = 'type'
-  AND COLUMN_TYPE LIKE '%''transfer_in''%';
+  AND COLUMN_TYPE LIKE '%''transfer_in''%'
+
+UNION ALL
+
+SELECT '資料表', 'chat_mentions',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_mentions';

@@ -427,6 +427,8 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     switch (kind) {
       case 'image':
         return Icons.image_outlined;
+      case 'album':
+        return Icons.photo_library_outlined;
       case 'voice':
         return Icons.mic_none_rounded;
       case 'book':
@@ -449,6 +451,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
         ? (room.lastSenderId == _myId ? S.you3 : room.lastSenderName)
         : null;
     final kindIcon = _kindIcon(room.lastKind);
+    final mentioned = unread && room.mentionUnread;
     final previewColor = unread ? c.textPrimary : c.textSecondary;
 
     final selected = _split && room.roomId == _selectedRoomId;
@@ -516,13 +519,30 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
                         const SizedBox(width: 6),
                       ],
                     ],
-                    if (kindIcon != null) ...[
+                    if (kindIcon != null && !mentioned) ...[
                       Icon(kindIcon, size: 15, color: previewColor),
                       const SizedBox(width: 3),
                     ],
                     Expanded(
-                      child: Text(
-                        sender == null ? room.lastMessage : '$sender：${room.lastMessage}',
+                      child: Text.rich(
+                        TextSpan(children: [
+                          if (mentioned) ...[
+                            TextSpan(
+                              text: '${S.mentioned} ',
+                              style: TextStyle(fontWeight: FontWeight.w700, color: c.accent),
+                            ),
+                            if (kindIcon != null)
+                              WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 3),
+                                  child: Icon(kindIcon, size: 15, color: previewColor),
+                                ),
+                              ),
+                          ],
+                          TextSpan(text: sender == null ? room.lastMessage : '$sender：${room.lastMessage}'),
+                        ]),
+                        key: mentioned ? const ValueKey('mention_unread') : null,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(

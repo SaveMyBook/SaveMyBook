@@ -18,6 +18,19 @@ import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 import 'admin_layout.dart';
 
+Future<String?> showAdminDeleteBookDialog(BuildContext context, AdminBook book) {
+  return showTextInputDialog(
+    context,
+    title: S.deleteBook,
+    message: S.p0PermanentlyDeletedCannotRestoredSeller(book.title),
+    hint: S.reasonDeletionOptional,
+    maxLines: 3,
+    maxLength: 200,
+    confirmLabel: S.actionDelete,
+    isDestructive: true,
+  );
+}
+
 class AdminBookScreen extends StatefulWidget {
   const AdminBookScreen({super.key});
 
@@ -41,6 +54,8 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
   String _filter = 'all';
   bool _isLoading = true;
   int? _busyBookId;
+  int? _deletingBookId;
+  final Set<int> _removingIds = {};
   List<Category>? _categories;
 
   @override
@@ -106,6 +121,34 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
       showAppSnackBar(context, removing ? S.bookRemoved : S.relisted);
       _load();
     }
+  }
+
+  Future<void> _deleteBook(AdminBook book) async {
+    if (_deletingBookId != null || _removingIds.contains(book.bookId)) return;
+    final reason = await showAdminDeleteBookDialog(context, book);
+    if (reason == null || !mounted) return;
+
+    setState(() => _deletingBookId = book.bookId);
+    final error = await _api.deleteBookAsAdmin(book.bookId, reason: reason);
+    if (!mounted) return;
+    setState(() => _deletingBookId = null);
+
+    if (error != null) {
+      HapticFeedback.heavyImpact();
+      showAppSnackBar(context, error, isError: true);
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    setState(() => _removingIds.add(book.bookId));
+    showAppSnackBar(context, S.bookDeleted2);
+  }
+
+  void _finishRemoval(int bookId) {
+    if (!mounted) return;
+    setState(() {
+      _removingIds.remove(bookId);
+      _books = _books.where((b) => b.bookId != bookId).toList();
+    });
   }
 
   @override
@@ -188,10 +231,18 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                                 physics: const AlwaysScrollableScrollPhysics(),
                                 padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 24)),
                                 itemCount: _books.length,
-                                itemBuilder: (_, i) => RevealOnScroll(
-                                  index: i,
-                                  child: _buildCard(_books[i], c, wide: frame.isWide),
-                                ),
+                                itemBuilder: (_, i) {
+                                  final book = _books[i];
+                                  return _CollapseOnRemove(
+                                    key: ValueKey(book.bookId),
+                                    removing: _removingIds.contains(book.bookId),
+                                    onRemoved: () => _finishRemoval(book.bookId),
+                                    child: RevealOnScroll(
+                                      index: i,
+                                      child: _buildCard(book, c, wide: frame.isWide),
+                                    ),
+                                  );
+                                },
                               )),
                       ),
               ),
@@ -480,6 +531,13 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
         ),
       );
 
+  Widget _deleteButton(AdminBook book, AppColors c) => SmallActionButton(
+        label: S.deleteBook,
+        color: c.danger,
+        isLoading: _deletingBookId == book.bookId,
+        onTap: _removingIds.contains(book.bookId) ? null : () => _deleteBook(book),
+      );
+
   Widget _buildCard(AdminBook book, AppColors c, {bool wide = false}) {
     final removed = book.status == 'removed';
     final categoryText = book.categoryName.isEmpty ? S.uncategorised : book.categoryName;
@@ -589,6 +647,8 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
+                IntrinsicWidth(child: _deleteButton(book, c)),
+                const SizedBox(width: 8),
                 IntrinsicWidth(
                   child: SmallActionButton(
                     label: removed ? S.relist2 : S.forceDelist,
@@ -621,6 +681,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                     onTap: () => _editBook(book),
                   ),
                 ),
+                IntrinsicWidth(child: _deleteButton(book, c)),
                 IntrinsicWidth(
                   child: SmallActionButton(
                     label: removed ? S.relist2 : S.forceDelist,
@@ -633,6 +694,65 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
               ],
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _CollapseOnRemove extends StatefulWidget {
+  final bool removing;
+  final VoidCallback onRemoved;
+  final Widget child;
+
+  const _CollapseOnRemove({super.key, required this.removing, required this.onRemoved, required this.child});
+
+  @override
+  State<_CollapseOnRemove> createState() => _CollapseOnRemoveState();
+}
+
+class _CollapseOnRemoveState extends State<_CollapseOnRemove> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: Motion.enter,
+    value: 1,
+  );
+  late final Animation<double> _size = CurvedAnimation(parent: _controller, curve: const Interval(0, 0.6, curve: Motion.standard));
+  late final Animation<double> _fade = CurvedAnimation(parent: _controller, curve: const Interval(0.5, 1, curve: Curves.easeOut));
+  late final Animation<Offset> _slide = Tween(begin: const Offset(0.08, 0), end: Offset.zero)
+      .animate(CurvedAnimation(parent: _controller, curve: const Interval(0.4, 1, curve: Motion.exitCurve)));
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.removing) _collapse();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CollapseOnRemove oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.removing && !oldWidget.removing) _collapse();
+  }
+
+  void _collapse() {
+    _controller.reverse().whenComplete(() {
+      if (mounted) widget.onRemoved();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizeTransition(
+      sizeFactor: _size,
+      axisAlignment: -1,
+      child: FadeTransition(
+        opacity: _fade,
+        child: SlideTransition(position: _slide, child: widget.child),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../utils/motion.dart';
 import 'animations.dart';
+import 'state_views.dart';
 
 OverlayEntry? _current;
 GlobalKey<_BannerState>? _currentKey;
@@ -115,13 +116,12 @@ class _BannerState extends State<_Banner> with SingleTickerProviderStateMixin {
         clipBehavior: Clip.none,
         children: [
           ClipOval(
-            child: Image.network(
-              url,
+            child: AppNetworkImage(
+              url: url,
               width: 40,
               height: 40,
-              fit: BoxFit.cover,
               cacheWidth: (40 * dpr).round(),
-              errorBuilder: (_, _, _) => iconTile,
+              errorWidget: iconTile,
             ),
           ),
           Positioned(

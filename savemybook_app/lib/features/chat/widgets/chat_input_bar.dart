@@ -7,6 +7,8 @@ import '../../../i18n/strings.dart';
 import '../../../services/voice_service.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
+import '../mentions/chat_mention_controller.dart';
+import '../mentions/chat_mention_panel.dart';
 import 'chat_format.dart';
 import 'voice_recorder_panel.dart';
 
@@ -16,6 +18,7 @@ class ChatInputBar extends StatefulWidget {
   final bool enabled;
   final String? disabledHint;
   final Widget? top;
+  final ChatMentionController? mentions;
   final bool quickRepliesOpen;
   final ValueChanged<String> onSend;
   final VoidCallback onAttach;
@@ -37,6 +40,7 @@ class ChatInputBar extends StatefulWidget {
     this.enabled = true,
     this.disabledHint,
     this.top,
+    this.mentions,
     this.quickRepliesOpen = false,
   });
 
@@ -62,11 +66,26 @@ class _ChatInputBarState extends State<ChatInputBar> with WidgetsBindingObserver
   // 硬體鍵盤按 Enter 直接送出、Shift+Enter 換行；輸入法組字中的 Enter 用來確認選字，不可攔截。
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    final mentions = widget.mentions;
+    if (mentions != null && mentions.showing && !widget.controller.value.composing.isValid) {
+      if (event.logicalKey == LogicalKeyboardKey.escape) {
+        mentions.dismiss();
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.tab) {
+        mentions.select(mentions.candidates.first);
+        return KeyEventResult.handled;
+      }
+    }
     if (event.logicalKey != LogicalKeyboardKey.enter && event.logicalKey != LogicalKeyboardKey.numpadEnter) {
       return KeyEventResult.ignored;
     }
     if (HardwareKeyboard.instance.isShiftPressed || widget.controller.value.composing.isValid) {
       return KeyEventResult.ignored;
+    }
+    if (mentions != null && mentions.showing) {
+      mentions.select(mentions.candidates.first);
+      return KeyEventResult.handled;
     }
     _submit();
     return KeyEventResult.handled;
@@ -164,6 +183,7 @@ class _ChatInputBarState extends State<ChatInputBar> with WidgetsBindingObserver
             alignment: Alignment.bottomCenter,
             child: widget.top ?? const SizedBox(width: double.infinity),
           ),
+          if (widget.mentions != null) _buildMentionPanel(widget.mentions!),
           AnimatedPadding(
             duration: Motion.base,
             curve: Motion.standard,
@@ -208,6 +228,21 @@ class _ChatInputBarState extends State<ChatInputBar> with WidgetsBindingObserver
     );
   }
 
+  Widget _buildMentionPanel(ChatMentionController mentions) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([mentions, widget.focusNode]),
+      builder: (context, _) {
+        final visible = widget.enabled && mentions.showing && widget.focusNode.hasFocus && !_voiceOpen;
+        return AnimatedSize(
+          duration: Motion.micro,
+          curve: Motion.standard,
+          alignment: Alignment.bottomCenter,
+          child: visible ? ChatMentionPanel(controller: mentions) : const SizedBox(width: double.infinity),
+        );
+      },
+    );
+  }
+
   Widget _buildComposer(AppColors c) {
     return Row(
       key: const ValueKey('composer'),
@@ -231,7 +266,7 @@ class _ChatInputBarState extends State<ChatInputBar> with WidgetsBindingObserver
               maxLines: 5,
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
-              inputFormatters: [LengthLimitingTextInputFormatter(2000)],
+              inputFormatters: [LengthLimitingTextInputFormatter(2000), ?widget.mentions?.formatter],
               style: TextStyle(color: c.textPrimary, fontSize: 15, height: 1.35),
               decoration: InputDecoration(
                 isDense: true,

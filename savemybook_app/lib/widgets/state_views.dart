@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'app_toast.dart';
 export 'app_toast.dart' show kBottomNavVisible, hideCurrentToast;
@@ -416,7 +418,7 @@ void showAppSnackBar(
   );
 }
 
-class AppNetworkImage extends StatelessWidget {
+class AppNetworkImage extends StatefulWidget {
   final String? url;
   final BoxFit fit;
   final double? width;
@@ -424,6 +426,8 @@ class AppNetworkImage extends StatelessWidget {
   final IconData fallbackIcon;
   final double? fallbackIconSize;
   final Color? background;
+  final Widget? errorWidget;
+  final int? cacheWidth;
 
   const AppNetworkImage({
     super.key,
@@ -434,56 +438,143 @@ class AppNetworkImage extends StatelessWidget {
     this.fallbackIcon = Icons.menu_book_rounded,
     this.fallbackIconSize,
     this.background,
+    this.errorWidget,
+    this.cacheWidth,
   });
+
+  static const double progressMinExtent = 160;
+
+  @override
+  State<AppNetworkImage> createState() => _AppNetworkImageState();
+}
+
+class _AppNetworkImageState extends State<AppNetworkImage> with WidgetsBindingObserver {
+  static const _retryDelays = [Duration(seconds: 3), Duration(seconds: 10)];
+
+  int _attempt = 0;
+  bool _failed = false;
+  Timer? _retryTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didUpdateWidget(covariant AppNetworkImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      _retryTimer?.cancel();
+      _attempt = 0;
+      _failed = false;
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _failed) _retry();
+  }
+
+  @override
+  void dispose() {
+    _retryTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _onError(String url) {
+    if (!mounted || _failed || widget.url != url) return;
+    setState(() => _failed = true);
+    if (_attempt >= _retryDelays.length) return;
+    _retryTimer?.cancel();
+    _retryTimer = Timer(_retryDelays[_attempt], () {
+      if (mounted && widget.url == url) _retry();
+    });
+  }
+
+  void _retry() {
+    final url = widget.url;
+    if (url == null || url.isEmpty) return;
+    _retryTimer?.cancel();
+    NetworkImage(url).evict();
+    setState(() {
+      _attempt++;
+      _failed = false;
+    });
+  }
+
+  bool _isLarge(Size size) => size.isFinite && size.shortestSide >= AppNetworkImage.progressMinExtent;
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final base = background ?? c.skeleton;
+    final base = widget.background ?? c.skeleton;
+    final url = widget.url;
 
-    Widget placeholder() => Container(
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                base,
-                Color.lerp(base, c.isDark ? Colors.black : Colors.white, 0.45)!,
-              ],
-            ),
-          ),
-        );
+    Widget fallback({bool canRetry = false}) {
+      final custom = widget.errorWidget;
+      if (custom != null) return SizedBox(width: widget.width, height: widget.height, child: custom);
+      final icon = Icon(
+        widget.fallbackIcon,
+        color: c.iconInactive.withValues(alpha: 0.55),
+        size: widget.fallbackIconSize ?? 30,
+      );
+      return Container(
+        width: widget.width,
+        height: widget.height,
+        color: base,
+        alignment: Alignment.center,
+        child: !canRetry
+            ? icon
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  if (!_isLarge(constraints.biggest)) return icon;
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      icon,
+                      const SizedBox(height: 6),
+                      IconButton(
+                        tooltip: S.retry,
+                        onPressed: _retry,
+                        iconSize: 20,
+                        color: c.textSecondary,
+                        icon: const Icon(Icons.refresh_rounded),
+                      ),
+                    ],
+                  );
+                },
+              ),
+      );
+    }
 
-    Widget fallback() => Container(
-          width: width,
-          height: height,
-          color: base,
-          alignment: Alignment.center,
-          child: Icon(
-            fallbackIcon,
-            color: c.iconInactive.withValues(alpha: 0.55),
-            size: fallbackIconSize ?? 30,
-          ),
-        );
-
-    if (url == null || url!.isEmpty) return fallback();
+    if (url == null || url.isEmpty) return fallback();
+    if (_failed) return fallback(canRetry: true);
 
     return Image.network(
-      url!,
-      fit: fit,
-      width: width,
-      height: height,
-      errorBuilder: (_, _, _) => fallback(),
+      url,
+      key: ValueKey('$url#$_attempt'),
+      fit: widget.fit,
+      width: widget.width,
+      height: widget.height,
+      cacheWidth: widget.cacheWidth,
+      errorBuilder: (_, _, _) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _onError(url));
+        return fallback();
+      },
       frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
         if (wasSynchronouslyLoaded) return child;
         final loaded = frame != null;
-
         return Stack(
           fit: StackFit.passthrough,
           children: [
-            placeholder(),
+            AnimatedOpacity(
+              opacity: loaded ? 0 : 1,
+              duration: Motion.base,
+              curve: Curves.easeOut,
+              child: _ImagePlaceholder(width: widget.width, height: widget.height, color: base, animate: !loaded),
+            ),
             AnimatedOpacity(
               opacity: loaded ? 1 : 0,
               duration: Motion.base,
@@ -493,6 +584,74 @@ class AppNetworkImage extends StatelessWidget {
           ],
         );
       },
+      loadingBuilder: (_, child, progress) {
+        final total = progress?.expectedTotalBytes;
+        return _ImageProgressScope(
+          value: progress == null || total == null || total == 0 ? null : progress.cumulativeBytesLoaded / total,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _ImageProgressScope extends InheritedWidget {
+  final double? value;
+
+  const _ImageProgressScope({required this.value, required super.child});
+
+  static double? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_ImageProgressScope>()?.value;
+
+  @override
+  bool updateShouldNotify(_ImageProgressScope oldWidget) => oldWidget.value != value;
+}
+
+class _ImagePlaceholder extends StatelessWidget {
+  final double? width;
+  final double? height;
+  final Color color;
+  final bool animate;
+
+  const _ImagePlaceholder({this.width, this.height, required this.color, required this.animate});
+
+  @override
+  Widget build(BuildContext context) {
+    final box = Container(width: width, height: height, color: color);
+    if (!animate) return box;
+    final c = AppColors.of(context);
+    return Stack(
+      fit: StackFit.passthrough,
+      children: [
+        Shimmer(child: box),
+        Positioned.fill(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final size = constraints.biggest;
+              if (!size.isFinite || size.shortestSide < AppNetworkImage.progressMinExtent) {
+                return const SizedBox.shrink();
+              }
+              return Center(
+                child: FadeSlideIn(
+                  offsetY: 0,
+                  index: 4,
+                  child: SizedBox(
+                    width: 26,
+                    height: 26,
+                    child: CircularProgressIndicator(
+                      value: _ImageProgressScope.of(context),
+                      strokeWidth: 2.4,
+                      strokeCap: StrokeCap.round,
+                      color: c.accent.withValues(alpha: 0.85),
+                      backgroundColor: c.textHint.withValues(alpha: 0.18),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
