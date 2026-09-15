@@ -69,6 +69,15 @@ const reasoningEffortOf = (model, search) => {
   return null;
 };
 
+const JSON_ONLY = '請只輸出一個 JSON 物件，不要加入其他文字或 Markdown。';
+
+// OpenAI 規定：json_object 格式要求 input（不含 instructions）出現 "json" 字樣；web_search 工具不能與 JSON 格式並用，搜尋時改由提示詞要求 JSON。
+const promptFor = (prompt, { json, search }) => {
+  if (!json) return prompt;
+  if (search || !/json/i.test(prompt)) return `${prompt}\n\n${JSON_ONLY}`;
+  return prompt;
+};
+
 const generate = async ({ apiKey, model, system, history = [], prompt, images = [], json, schema, search, maxOutputTokens, timeoutMs }) => {
   // gpt-5 系列在 reasoning effort 為 minimal 時不支援 web_search 工具；非推理模型不接受 reasoning 參數。
   const effort = reasoningEffortOf(model, search);
@@ -78,10 +87,10 @@ const generate = async ({ apiKey, model, system, history = [], prompt, images = 
     ...(system && { instructions: system }),
     input: [
       ...history.map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
-      { role: 'user', content: userContent(prompt, images) }
+      { role: 'user', content: userContent(promptFor(prompt, { json, search }), images) }
     ],
     ...(effort && { reasoning: { effort } }),
-    ...(textFormat({ json, schema }) && { text: textFormat({ json, schema }) }),
+    ...(!search && textFormat({ json, schema }) && { text: textFormat({ json, schema }) }),
     ...(search && { tools: [{ type: 'web_search' }] }),
     ...(maxOutputTokens && { max_output_tokens: maxOutputTokens + headroom }),
     store: false
@@ -121,4 +130,4 @@ const moderate = async ({ apiKey, text, image, timeoutMs = 10000 }) => {
   return { flagged: result.flagged === true, categories: flagged, model: data?.model ?? MODERATION_MODEL };
 };
 
-module.exports = { generate, moderate, classify, reasoningEffortOf, MODERATION_MODEL, IMAGE_TYPES };
+module.exports = { generate, moderate, classify, reasoningEffortOf, promptFor, MODERATION_MODEL, IMAGE_TYPES };

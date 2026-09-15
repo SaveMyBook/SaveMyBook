@@ -629,10 +629,11 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
                         if (e.errorDetail != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 3),
-                            child: SelectableText(
+                            child: Text(
                               e.errorDetail!,
                               maxLines: 4,
-                              style: TextStyle(fontSize: 11, color: c.textHint, height: 1.35),
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 11, color: c.textSecondary, height: 1.35),
                             ),
                           ),
                       ],

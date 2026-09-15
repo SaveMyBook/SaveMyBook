@@ -10,13 +10,14 @@ const classify = (status, data) => {
   return baseClassify(status);
 };
 
+// DeepSeek 的 json_object 格式要求提示詞出現 "json" 字樣，否則回傳 400。
 const generate = async ({ apiKey, model, system, history = [], prompt, json, maxOutputTokens, timeoutMs, temperature }) => {
   const body = {
     model,
     messages: [
       ...(system ? [{ role: 'system', content: system }] : []),
       ...history.map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
-      { role: 'user', content: prompt }
+      { role: 'user', content: json && !/json/i.test(`${system ?? ''}${prompt}`) ? `${prompt}\n\n請只輸出一個 JSON 物件。` : prompt }
     ],
     ...(json && { response_format: { type: 'json_object' } }),
     ...(maxOutputTokens && { max_tokens: maxOutputTokens }),
