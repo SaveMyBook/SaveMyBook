@@ -61,12 +61,19 @@ class AiLabels {
       };
 
   static String errorCode(String code) => switch (code) {
-        'AI_PROVIDER_ERROR' => S.providerError,
+        'AI_PROVIDER_ERROR' || 'SERVER' => S.providerError,
         'AI_TIMEOUT' || 'TIMEOUT' => S.timedOut,
-        'AI_NOT_CONFIGURED' => S.noApiKey,
+        'AI_NOT_CONFIGURED' || 'NOT_CONFIGURED' => S.noApiKey,
         'AI_RATE_LIMITED' || 'RATE_LIMITED' => S.rateLimited,
-        'AI_INVALID_KEY' || 'INVALID_KEY' => S.invalidApiKey,
-        'AI_BAD_RESPONSE' || 'BAD_RESPONSE' => S.invalidResponseFormat,
+        'AI_INVALID_KEY' || 'INVALID_KEY' || 'AUTH' => S.invalidApiKey,
+        'AI_BAD_RESPONSE' || 'BAD_RESPONSE' || 'INVALID_OUTPUT' => S.invalidResponseFormat,
+        'QUOTA' => S.insufficientQuotaPlanNotEnabled,
+        'MODEL_NOT_FOUND' => S.modelNotFound,
+        'BAD_REQUEST' => S.invalidRequestParameters,
+        'NETWORK' => S.couldNotConnectService,
+        'BLOCKED' => S.blockedByProviderSafetySystem,
+        'INCOMPLETE' => S.responseExceededOutputLimit,
+        'INTERNAL' => S.serverProcessingError,
         _ => code.isEmpty ? S.unknownError : code,
       };
 }

@@ -3290,5 +3290,12 @@
   "usedOnlyGenerateSupportRepliesPrepare": "仅用于生成客服回复、整理上架数据与推荐书籍，不会用于广告或追踪。",
   "withdrawingConsent": "撤回同意",
   "canTurnOffAiDataProcessing": "您可随时在「设置」>「账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据。",
-  "agreeContinue": "同意并继续"
+  "agreeContinue": "同意并继续",
+  "insufficientQuotaPlanNotEnabled": "额度不足或方案未开通",
+  "modelNotFound": "模型名称不存在",
+  "invalidRequestParameters": "请求参数不正确",
+  "couldNotConnectService": "无法连接至服务",
+  "blockedByProviderSafetySystem": "内容遭服务安全机制拒绝",
+  "responseExceededOutputLimit": "回应超过输出长度上限",
+  "serverProcessingError": "服务器处理错误"
 }

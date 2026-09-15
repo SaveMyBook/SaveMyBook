@@ -3290,5 +3290,12 @@
   "usedOnlyGenerateSupportRepliesPrepare": "Used only to generate support replies, prepare listing details and recommend books. Never used for advertising or tracking.",
   "withdrawingConsent": "Withdrawing consent",
   "canTurnOffAiDataProcessing": "You can turn off \"AI data processing\" at any time in Settings > Account. The data above will no longer be shared once it is turned off.",
-  "agreeContinue": "Agree"
+  "agreeContinue": "Agree",
+  "insufficientQuotaPlanNotEnabled": "Insufficient quota or plan not enabled",
+  "modelNotFound": "Model not found",
+  "invalidRequestParameters": "Invalid request parameters",
+  "couldNotConnectService": "Could not connect to the service",
+  "blockedByProviderSafetySystem": "Blocked by the provider safety system",
+  "responseExceededOutputLimit": "Response exceeded the output limit",
+  "serverProcessingError": "Server processing error"
 }

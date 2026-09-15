@@ -56,6 +56,8 @@ const normalizeDate = (value) => {
   return [m[1], month, day].filter(Boolean).join('-');
 };
 
+const NO_FALLBACK_REASONS = new Set(['AUTH', 'NOT_CONFIGURED', 'MODEL_NOT_FOUND', 'BLOCKED']);
+
 const settle = async (task) => {
   try {
     return await task();
@@ -187,26 +189,59 @@ const assist = async ({ userId, isbn, title, conditionNote, files = [] }) => {
   });
   const search = settings.features.listing_assist.web_search && spec.web_search;
 
-  const prompt = [
+  const promptFor = (withSearch) => [
     '請整理以下待上架書籍的資料。',
     `【賣家輸入】\nISBN：${isbn ? clip(String(isbn), 20) : '（未提供）'}\n書名：${title ? clip(title, 255) : '（未提供）'}\n書況說明：${conditionNote ? clip(conditionNote, 500) : '（未提供）'}`,
     `【照片】${seesImages ? `共 ${images.length} 張，請辨識封面、書背、版權頁與書況` : '未提供'}`,
     `【書目來源】\n${bibliographyText(structured, candidates)}`,
     `【分類清單】\n${categories.map((c) => `${c.category_id}: ${c.category_name}`).join('\n') || '（無）'}`,
-    search ? '【網路搜尋】可使用網路搜尋補齊缺少的書目欄位，並查詢此書在臺灣的原始定價；請在 sources 列出實際參考的網頁。' : '【網路搜尋】未開放，請勿虛構網址，sources 輸出空陣列。'
+    withSearch ? '【網路搜尋】可使用網路搜尋補齊缺少的書目欄位，並查詢此書在臺灣的原始定價；請在 sources 列出實際參考的網頁。' : '【網路搜尋】未開放，請勿虛構網址，sources 輸出空陣列。'
   ].join('\n\n');
 
-  const result = await runner.call('listing_assist', {
+  const callModel = (withSearch) => runner.call('listing_assist', {
     settings,
     provider,
     userId,
     system: SYSTEM,
-    prompt,
+    prompt: promptFor(withSearch),
     images,
     json: true,
-    search,
+    search: withSearch,
     maxOutputTokens: 2000
   });
+
+  // 搜尋工具最常因方案額度、逾時或與 JSON 格式不相容而失敗，改以不搜尋重試；仍失敗但已有書目資料時，至少回傳書目資料。
+  let result = null;
+  let searched = search;
+  try {
+    result = await callModel(search);
+  } catch (err) {
+    if (!(err instanceof ai.AiProviderError)) throw err;
+    let lastError = err;
+    if (search && !NO_FALLBACK_REASONS.has(err.reason)) {
+      searched = false;
+      try {
+        result = await callModel(false);
+      } catch (retryErr) {
+        if (!(retryErr instanceof ai.AiProviderError)) throw retryErr;
+        lastError = retryErr;
+      }
+    }
+    if (!result && !structured) throw lastError;
+  }
+
+  if (!result) {
+    return {
+      fields: mergeFields(structured, {}),
+      category: null,
+      condition: null,
+      price: null,
+      sources: mergeSources(structuredSources, [], [], []),
+      warnings: [...new Set([...warnings, 'AI 建議暫時無法取得，已帶入書目資料庫查得的資料'])],
+      provider,
+      model: settings.providers[provider].model
+    };
+  }
   const json = result.json;
 
   const fields = mergeFields(structured, sanitizeFields(json.fields));
@@ -233,7 +268,7 @@ const assist = async ({ userId, isbn, title, conditionNote, files = [] }) => {
       : null,
     condition,
     price: sanitizePrice(json.price),
-    sources: mergeSources(structuredSources, lateSources, result.sources ?? [], search ? json.sources ?? [] : []),
+    sources: mergeSources(structuredSources, lateSources, result.sources ?? [], searched ? json.sources ?? [] : []),
     warnings: [...new Set([...warnings, ...stringList(json.warnings, { max: 3, maxLength: 80 })])],
     provider: result.provider,
     model: result.model

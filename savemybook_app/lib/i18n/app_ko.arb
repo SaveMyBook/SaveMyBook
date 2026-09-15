@@ -3290,5 +3290,12 @@
   "usedOnlyGenerateSupportRepliesPrepare": "고객센터 답변 생성, 등록 정보 정리 및 도서 추천에만 사용하며 광고나 추적에는 사용하지 않습니다.",
   "withdrawingConsent": "동의 철회",
   "canTurnOffAiDataProcessing": "「설정」>「계정 관리」에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않습니다.",
-  "agreeContinue": "동의"
+  "agreeContinue": "동의",
+  "insufficientQuotaPlanNotEnabled": "할당량 부족 또는 요금제 미사용",
+  "modelNotFound": "모델 이름이 없습니다",
+  "invalidRequestParameters": "요청 매개변수가 올바르지 않습니다",
+  "couldNotConnectService": "서비스에 연결할 수 없습니다",
+  "blockedByProviderSafetySystem": "서비스 안전 기능에 의해 거부됨",
+  "responseExceededOutputLimit": "응답이 출력 한도를 초과했습니다",
+  "serverProcessingError": "서버 처리 오류"
 }

@@ -6,6 +6,8 @@ const consent = require('./consent');
 
 const STATUS_CACHE_MS = 30 * 1000;
 
+const clipMessage = (err) => ai.redact(err?.message ?? '') || null;
+
 const errors = {
   disabled: () => new HttpError(503, 'AI 功能目前未開放', 'AI_DISABLED'),
   budget: () => new HttpError(503, 'AI 功能本月用量已達上限，請稍後再試', 'AI_BUDGET_EXCEEDED'),
@@ -66,7 +68,8 @@ const call = async (feature, { settings, provider, userId = null, ...options }) 
       costUsd: partial,
       latencyMs: err.latency_ms ?? 0,
       status: 'error',
-      errorCode: err instanceof ai.AiProviderError ? err.reason : 'INTERNAL'
+      errorCode: err instanceof ai.AiProviderError ? err.reason : 'INTERNAL',
+      errorDetail: err instanceof ai.AiProviderError ? err.providerMessage || null : clipMessage(err)
     });
     if (err instanceof ai.AiProviderError) throw err;
     console.error(`[AI 呼叫失敗：${feature}]`, err);

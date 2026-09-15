@@ -186,4 +186,11 @@ UNION ALL
 SELECT '資料表', 'ai_consents',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_consents';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_consents'
+
+UNION ALL
+
+SELECT '欄位', 'ai_usage_logs.error_detail',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_usage_logs' AND COLUMN_NAME = 'error_detail';

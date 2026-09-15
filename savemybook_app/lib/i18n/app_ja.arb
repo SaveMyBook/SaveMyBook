@@ -3290,5 +3290,12 @@
   "usedOnlyGenerateSupportRepliesPrepare": "サポートの回答、出品情報の整理、書籍のおすすめにのみ使用し、広告やトラッキングには使用しません。",
   "withdrawingConsent": "同意の撤回",
   "canTurnOffAiDataProcessing": "「設定」>「アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。",
-  "agreeContinue": "同意する"
+  "agreeContinue": "同意する",
+  "insufficientQuotaPlanNotEnabled": "クォータ不足またはプラン未有効",
+  "modelNotFound": "モデル名が存在しません",
+  "invalidRequestParameters": "リクエストパラメータが不正です",
+  "couldNotConnectService": "サービスに接続できません",
+  "blockedByProviderSafetySystem": "サービスの安全機能により拒否されました",
+  "responseExceededOutputLimit": "応答が出力上限を超えました",
+  "serverProcessingError": "サーバー処理エラー"
 }

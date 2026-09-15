@@ -384,7 +384,9 @@ components:
               created_at: { type: string, format: date-time }
               feature: { type: string }
               provider: { type: string }
-              error_code: { type: string, example: TIMEOUT }
+              model: { type: string, nullable: true }
+              error_code: { type: string, example: QUOTA, description: 'AUTH、MODEL_NOT_FOUND、QUOTA、RATE_LIMITED、BAD_REQUEST、SERVER、TIMEOUT、NETWORK、INVALID_OUTPUT、INCOMPLETE、BLOCKED、NOT_CONFIGURED、INTERNAL' }
+              error_detail: { type: string, nullable: true, description: 服務商回傳的錯誤說明（已遮蔽金鑰，最多 400 字）。需執行 012_ai_error_detail.sql，未執行時為 null。 }
         pending_reviews: { type: integer }
 
     AdminAiReview:

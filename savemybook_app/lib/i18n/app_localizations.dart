@@ -1851,6 +1851,13 @@ abstract class AppLocalizations {
   String get withdrawingConsent;
   String get canTurnOffAiDataProcessing;
   String get agreeContinue;
+  String get insufficientQuotaPlanNotEnabled;
+  String get modelNotFound;
+  String get invalidRequestParameters;
+  String get couldNotConnectService;
+  String get blockedByProviderSafetySystem;
+  String get responseExceededOutputLimit;
+  String get serverProcessingError;
 }
 
 class _LEn extends AppLocalizations {
@@ -7339,6 +7346,27 @@ class _LEn extends AppLocalizations {
 
   @override
   String get agreeContinue => 'Agree';
+
+  @override
+  String get insufficientQuotaPlanNotEnabled => 'Insufficient quota or plan not enabled';
+
+  @override
+  String get modelNotFound => 'Model not found';
+
+  @override
+  String get invalidRequestParameters => 'Invalid request parameters';
+
+  @override
+  String get couldNotConnectService => 'Could not connect to the service';
+
+  @override
+  String get blockedByProviderSafetySystem => 'Blocked by the provider safety system';
+
+  @override
+  String get responseExceededOutputLimit => 'Response exceeded the output limit';
+
+  @override
+  String get serverProcessingError => 'Server processing error';
 
 }
 
@@ -12829,6 +12857,27 @@ class _LJa extends AppLocalizations {
   @override
   String get agreeContinue => '同意する';
 
+  @override
+  String get insufficientQuotaPlanNotEnabled => 'クォータ不足またはプラン未有効';
+
+  @override
+  String get modelNotFound => 'モデル名が存在しません';
+
+  @override
+  String get invalidRequestParameters => 'リクエストパラメータが不正です';
+
+  @override
+  String get couldNotConnectService => 'サービスに接続できません';
+
+  @override
+  String get blockedByProviderSafetySystem => 'サービスの安全機能により拒否されました';
+
+  @override
+  String get responseExceededOutputLimit => '応答が出力上限を超えました';
+
+  @override
+  String get serverProcessingError => 'サーバー処理エラー';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -18317,6 +18366,27 @@ class _LKo extends AppLocalizations {
 
   @override
   String get agreeContinue => '동의';
+
+  @override
+  String get insufficientQuotaPlanNotEnabled => '할당량 부족 또는 요금제 미사용';
+
+  @override
+  String get modelNotFound => '모델 이름이 없습니다';
+
+  @override
+  String get invalidRequestParameters => '요청 매개변수가 올바르지 않습니다';
+
+  @override
+  String get couldNotConnectService => '서비스에 연결할 수 없습니다';
+
+  @override
+  String get blockedByProviderSafetySystem => '서비스 안전 기능에 의해 거부됨';
+
+  @override
+  String get responseExceededOutputLimit => '응답이 출력 한도를 초과했습니다';
+
+  @override
+  String get serverProcessingError => '서버 처리 오류';
 
 }
 
@@ -23807,6 +23877,27 @@ class _LZh extends AppLocalizations {
   @override
   String get agreeContinue => '同意並繼續';
 
+  @override
+  String get insufficientQuotaPlanNotEnabled => '額度不足或方案未開通';
+
+  @override
+  String get modelNotFound => '模型名稱不存在';
+
+  @override
+  String get invalidRequestParameters => '請求參數不正確';
+
+  @override
+  String get couldNotConnectService => '無法連線至服務';
+
+  @override
+  String get blockedByProviderSafetySystem => '內容遭服務安全機制拒絕';
+
+  @override
+  String get responseExceededOutputLimit => '回應超過輸出長度上限';
+
+  @override
+  String get serverProcessingError => '伺服器處理錯誤';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -29296,6 +29387,27 @@ class _LZhHans extends AppLocalizations {
   @override
   String get agreeContinue => '同意并继续';
 
+  @override
+  String get insufficientQuotaPlanNotEnabled => '额度不足或方案未开通';
+
+  @override
+  String get modelNotFound => '模型名称不存在';
+
+  @override
+  String get invalidRequestParameters => '请求参数不正确';
+
+  @override
+  String get couldNotConnectService => '无法连接至服务';
+
+  @override
+  String get blockedByProviderSafetySystem => '内容遭服务安全机制拒绝';
+
+  @override
+  String get responseExceededOutputLimit => '回应超过输出长度上限';
+
+  @override
+  String get serverProcessingError => '服务器处理错误';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -34784,6 +34896,27 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get agreeContinue => '同意並繼續';
+
+  @override
+  String get insufficientQuotaPlanNotEnabled => '額度不足或方案未開通';
+
+  @override
+  String get modelNotFound => '模型名稱不存在';
+
+  @override
+  String get invalidRequestParameters => '請求參數不正確';
+
+  @override
+  String get couldNotConnectService => '無法連線至服務';
+
+  @override
+  String get blockedByProviderSafetySystem => '內容遭服務安全機制拒絕';
+
+  @override
+  String get responseExceededOutputLimit => '回應超過輸出長度上限';
+
+  @override
+  String get serverProcessingError => '伺服器處理錯誤';
 
 }
 

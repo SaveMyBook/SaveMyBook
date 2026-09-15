@@ -1,4 +1,4 @@
-const { AiProviderError, postJson, baseClassify, errorText } = require('./http');
+const { AiProviderError, postJson, baseClassify, errorText, quotaExhausted } = require('./http');
 
 const BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -6,12 +6,31 @@ const classify = (status, data) => {
   const text = errorText(data);
   if (text.includes('api key not valid') || text.includes('api_key_invalid') || text.includes('permission_denied')) return 'AUTH';
   if (status === 404 || (text.includes('model') && text.includes('not found'))) return 'MODEL_NOT_FOUND';
-  if (status === 429 && text.includes('quota')) return 'RATE_LIMITED';
+  if (status === 429 && quotaExhausted(text)) return 'QUOTA';
   return baseClassify(status);
 };
 
-const generate = async ({ apiKey, model, system, history = [], prompt, images = [], json, search, maxOutputTokens, timeoutMs }) => {
+// Gemini 2.5 之後的模型預設會思考，思考 token 計入 maxOutputTokens，額度不足時只會回傳空白內容。
+const THINKING_HEADROOM = 2048;
+const thinkingModel = (modelId) => /^gemini-(2\.5|[3-9])/.test(modelId);
+const levelModel = (modelId) => /^gemini-[3-9]/.test(modelId);
+
+const generate = async (options) => {
+  try {
+    return await generateOnce(options, true);
+  } catch (err) {
+    const modelId = String(options.model).replace(/^models\//, '');
+    if (!(err instanceof AiProviderError) || err.reason !== 'BAD_REQUEST' || !levelModel(modelId)) throw err;
+    if (!/thinking/i.test(err.providerMessage)) throw err;
+    return generateOnce(options, false);
+  }
+};
+
+const generateOnce = async ({ apiKey, model, system, history = [], prompt, images = [], json, search, maxOutputTokens, timeoutMs }, withThinkingLevel) => {
   const modelId = String(model).replace(/^models\//, '');
+  const thinks = thinkingModel(modelId);
+  const levelSupported = levelModel(modelId);
+  withThinkingLevel = withThinkingLevel && levelSupported;
   // Gemini 3 官方建議維持預設 temperature，調低容易造成重複輸出，因此不傳 temperature。
   // 部分 Gemini 版本不允許 google_search 與 JSON 回應格式並用，搜尋時改由提示詞要求 JSON 並寬鬆解析。
   const body = {
@@ -27,8 +46,9 @@ const generate = async ({ apiKey, model, system, history = [], prompt, images = 
       }
     ],
     generationConfig: {
-      ...(maxOutputTokens && { maxOutputTokens }),
-      ...(json && !search && { responseMimeType: 'application/json' })
+      ...(maxOutputTokens && { maxOutputTokens: maxOutputTokens + (thinks ? THINKING_HEADROOM : 0) }),
+      ...(json && !search && { responseMimeType: 'application/json' }),
+      ...(thinks && withThinkingLevel && { thinkingConfig: { thinkingLevel: search ? 'low' : 'minimal' } })
     },
     ...(search && { tools: [{ google_search: {} }] })
   };
@@ -50,6 +70,9 @@ const generate = async ({ apiKey, model, system, history = [], prompt, images = 
     .filter((p) => typeof p?.text === 'string' && !p.thought)
     .map((p) => p.text)
     .join('');
+  if (!text.trim() && candidate?.finishReason === 'MAX_TOKENS') {
+    throw new AiProviderError('INCOMPLETE', { provider: 'gemini', providerMessage: 'finishReason MAX_TOKENS' });
+  }
   const grounding = candidate?.groundingMetadata ?? {};
   const sources = (grounding.groundingChunks ?? [])
     .map((c) => c?.web)

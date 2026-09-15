@@ -1,10 +1,10 @@
-const { postJson, baseClassify, errorText } = require('./http');
+const { postJson, baseClassify, errorText, quotaExhausted } = require('./http');
 
 const BASE = 'https://api.deepseek.com';
 
 const classify = (status, data) => {
   const text = errorText(data);
-  if (status === 402 || text.includes('insufficient balance')) return 'QUOTA';
+  if (status === 402 || text.includes('insufficient balance') || quotaExhausted(text)) return 'QUOTA';
   if (text.includes('model not exist') || text.includes('model_not_found')) return 'MODEL_NOT_FOUND';
   if (text.includes('authentication') || text.includes('api key')) return status >= 500 ? 'SERVER' : 'AUTH';
   return baseClassify(status);

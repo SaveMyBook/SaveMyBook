@@ -1,5 +1,5 @@
 const { env } = require('../../config/env');
-const { AiProviderError, REASON_DETAILS } = require('./http');
+const { AiProviderError, REASON_DETAILS, redact } = require('./http');
 const deepseek = require('./deepseek');
 const gemini = require('./gemini');
 const openai = require('./openai');
@@ -41,7 +41,7 @@ const PROVIDER_IDS = Object.keys(PROVIDERS);
 const VISION_ORDER = ['gemini', 'openai'];
 
 const DEFAULT_TIMEOUT_MS = 20000;
-const SEARCH_TIMEOUT_MS = 45000;
+const SEARCH_TIMEOUT_MS = 50000;
 
 const apiKeyOf = (provider) => (PROVIDERS[provider] ? env[PROVIDERS[provider].envKey] || '' : '');
 const keyConfigured = (provider) => Boolean(apiKeyOf(provider));
@@ -117,5 +117,5 @@ const moderate = (options) => openai.moderate({ ...options, apiKey: options.apiK
 
 module.exports = {
   PROVIDERS, PROVIDER_IDS, VISION_ORDER, DEFAULT_TIMEOUT_MS, SEARCH_TIMEOUT_MS, REASON_DETAILS, AiProviderError,
-  apiKeyOf, keyConfigured, tokenCost, billableSearchCalls, costOf, extractJson, generate, moderate
+  redact, apiKeyOf, keyConfigured, tokenCost, billableSearchCalls, costOf, extractJson, generate, moderate
 };

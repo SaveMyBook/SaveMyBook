@@ -70,7 +70,7 @@ router.post('/ai/test', canRunSystem, testLimiter, async (req, res) => {
   } catch (err) {
     res.status(200).json({
       success: true,
-      data: { ok: false, provider, model, latency_ms: err.latency_ms ?? 0, error: err.detail ?? ai.REASON_DETAILS.SERVER }
+      data: { ok: false, provider, model, latency_ms: err.latency_ms ?? 0, error: err.fullDetail ?? err.detail ?? ai.REASON_DETAILS.SERVER }
     });
   }
 });

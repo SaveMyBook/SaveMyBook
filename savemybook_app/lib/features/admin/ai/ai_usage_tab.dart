@@ -621,11 +621,20 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
                         ),
                         Text(
-                          '${AiLabels.feature(e.feature)}・${AiProviders.nameOf(e.provider)}',
+                          [AiLabels.feature(e.feature), AiProviders.nameOf(e.provider), ?e.model].join('・'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: 11, color: c.textSecondary),
                         ),
+                        if (e.errorDetail != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 3),
+                            child: SelectableText(
+                              e.errorDetail!,
+                              maxLines: 4,
+                              style: TextStyle(fontSize: 11, color: c.textHint, height: 1.35),
+                            ),
+                          ),
                       ],
                     ),
                   ),

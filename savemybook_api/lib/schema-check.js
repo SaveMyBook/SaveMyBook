@@ -72,7 +72,8 @@ const REQUIRED = [
   { migration: '011_ai.sql', table: 'ai_support_messages' },
   { migration: '011_ai.sql', table: 'ai_recommendation_cache' },
   { migration: '011_ai.sql', table: 'ai_book_reviews' },
-  { migration: '011_ai.sql', table: 'ai_consents' }
+  { migration: '011_ai.sql', table: 'ai_consents' },
+  { migration: '012_ai_error_detail.sql', table: 'ai_usage_logs', column: 'error_detail' }
 ];
 
 const missingSchema = async () => {

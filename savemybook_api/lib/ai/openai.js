@@ -1,4 +1,4 @@
-const { AiProviderError, postJson, baseClassify, errorText } = require('./http');
+const { AiProviderError, postJson, baseClassify, errorText, quotaExhausted } = require('./http');
 
 const BASE = 'https://api.openai.com/v1';
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -6,7 +6,7 @@ const MODERATION_MODEL = 'omni-moderation-latest';
 
 const classify = (status, data) => {
   const text = errorText(data);
-  if (text.includes('insufficient_quota') || text.includes('billing')) return 'QUOTA';
+  if (quotaExhausted(text)) return 'QUOTA';
   if (text.includes('model_not_found') || (status === 404 && text.includes('model'))) return 'MODEL_NOT_FOUND';
   if (status === 400 && text.includes('model') && text.includes('does not exist')) return 'MODEL_NOT_FOUND';
   if (text.includes('invalid_api_key') || text.includes('incorrect api key')) return 'AUTH';
@@ -28,6 +28,16 @@ const textFormat = ({ json, schema }) => {
   return { format: { type: 'json_object' } };
 };
 
+const usageOf = (data, searchCalls) => {
+  const usage = data?.usage ?? {};
+  return {
+    input_tokens: Number(usage.input_tokens) || 0,
+    cached_tokens: Number(usage.input_tokens_details?.cached_tokens) || 0,
+    output_tokens: Number(usage.output_tokens) || 0,
+    search_calls: searchCalls
+  };
+};
+
 const parseOutput = (data) => {
   const parts = [];
   const sources = [];
@@ -47,8 +57,22 @@ const parseOutput = (data) => {
   return { text: parts.join(''), sources, searchCalls };
 };
 
+// 推理 token 計入 max_output_tokens；額度不足時回應狀態為 incomplete 且沒有任何文字，搜尋時推理量更大。
+const REASONING_HEADROOM = 2000;
+const SEARCH_REASONING_HEADROOM = 8000;
+
+const reasoningEffortOf = (model, search) => {
+  const id = String(model);
+  if (/^gpt-5(-mini|-nano)?(-\d{4}-\d{2}-\d{2})?$/.test(id)) return search ? 'low' : 'minimal';
+  if (/^gpt-5\.\d/.test(id)) return search ? 'low' : 'none';
+  if (/^o\d/.test(id)) return 'low';
+  return null;
+};
+
 const generate = async ({ apiKey, model, system, history = [], prompt, images = [], json, schema, search, maxOutputTokens, timeoutMs }) => {
-  // gpt-5 系列在 reasoning effort 為 minimal 時不支援 web_search 工具。
+  // gpt-5 系列在 reasoning effort 為 minimal 時不支援 web_search 工具；非推理模型不接受 reasoning 參數。
+  const effort = reasoningEffortOf(model, search);
+  const headroom = effort ? (search ? SEARCH_REASONING_HEADROOM : REASONING_HEADROOM) : 0;
   const body = {
     model,
     ...(system && { instructions: system }),
@@ -56,27 +80,22 @@ const generate = async ({ apiKey, model, system, history = [], prompt, images = 
       ...history.map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
       { role: 'user', content: userContent(prompt, images) }
     ],
-    reasoning: { effort: search ? 'low' : 'minimal' },
+    ...(effort && { reasoning: { effort } }),
     ...(textFormat({ json, schema }) && { text: textFormat({ json, schema }) }),
     ...(search && { tools: [{ type: 'web_search' }] }),
-    ...(maxOutputTokens && { max_output_tokens: maxOutputTokens }),
+    ...(maxOutputTokens && { max_output_tokens: maxOutputTokens + headroom }),
     store: false
   };
 
   const data = await postJson(`${BASE}/responses`, { headers: headers(apiKey), body, timeoutMs, classify, provider: 'openai' });
   const { text, sources, searchCalls } = parseOutput(data);
-  const usage = data?.usage ?? {};
-  return {
-    text,
-    sources,
-    model,
-    usage: {
-      input_tokens: Number(usage.input_tokens) || 0,
-      cached_tokens: Number(usage.input_tokens_details?.cached_tokens) || 0,
-      output_tokens: Number(usage.output_tokens) || 0,
-      search_calls: searchCalls
-    }
-  };
+  if (!text.trim() && data?.status === 'incomplete') {
+    const why = data?.incomplete_details?.reason ?? 'incomplete';
+    const err = new AiProviderError(why === 'content_filter' ? 'BLOCKED' : 'INCOMPLETE', { provider: 'openai', providerMessage: `status incomplete: ${why}` });
+    err.usage = usageOf(data, searchCalls);
+    throw err;
+  }
+  return { text, sources, model, usage: usageOf(data, searchCalls) };
 };
 
 const moderate = async ({ apiKey, text, image, timeoutMs = 10000 }) => {
@@ -102,4 +121,4 @@ const moderate = async ({ apiKey, text, image, timeoutMs = 10000 }) => {
   return { flagged: result.flagged === true, categories: flagged, model: data?.model ?? MODERATION_MODEL };
 };
 
-module.exports = { generate, moderate, classify, MODERATION_MODEL, IMAGE_TYPES };
+module.exports = { generate, moderate, classify, reasoningEffortOf, MODERATION_MODEL, IMAGE_TYPES };

@@ -362,7 +362,7 @@ Map<String, dynamic> aiUsageData() => {
           {'date': '2026-09-${i.toString().padLeft(2, '0')}', 'requests': 1234 * i, 'cost_usd': i * 12.5, 'by_feature': {'support': i * 5.0, 'listing_assist': i * 4.0, 'recommend': i * 2.5, 'moderation': i * 1.0}},
       ],
       'top_users': many((i) => {'user_public_id': '0123456789abcdef0123456789abcde$i', 'nickname': longName, 'requests': 1234567, 'cost_usd': 12345.6789}, 5),
-      'recent_errors': many((i) => {'created_at': now, 'feature': 'listing_assist', 'provider': 'openai', 'error_code': i.isEven ? 'AI_PROVIDER_ERROR' : 'SOME_VERY_LONG_UNMAPPED_PROVIDER_ERROR_CODE_FROM_UPSTREAM'}, 6),
+      'recent_errors': many((i) => {'created_at': now, 'feature': 'listing_assist', 'provider': 'openai', 'model': 'gpt-5-nano-2025-08-07-very-long-model-identifier', 'error_code': i.isEven ? 'QUOTA' : 'SOME_VERY_LONG_UNMAPPED_PROVIDER_ERROR_CODE_FROM_UPSTREAM', if (i.isEven) 'error_detail': 'You exceeded your current quota. Quota exceeded for metric: generate_content_free_tier_requests, limit: 0, model: gemini-3.1-flash-lite ' * 3}, 6),
       'pending_reviews': 9999,
     };
 

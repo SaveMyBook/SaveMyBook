@@ -3,8 +3,9 @@ const { HttpError } = require('../errors');
 const REASON_DETAILS = {
   AUTH: '金鑰無效或權限不足',
   MODEL_NOT_FOUND: '模型名稱不存在',
-  QUOTA: '額度不足',
+  QUOTA: '額度不足或方案未開通此功能，請確認服務商帳戶已啟用付費方案',
   RATE_LIMITED: '請求過於頻繁',
+  INCOMPLETE: '回應超過輸出長度上限',
   BAD_REQUEST: '請求參數不正確',
   SERVER: '服務暫時無法使用',
   TIMEOUT: '連線逾時',
@@ -14,15 +15,36 @@ const REASON_DETAILS = {
   NOT_CONFIGURED: '尚未設定 API 金鑰'
 };
 
+// 服務商錯誤訊息可能夾帶金鑰片段或請求內容，只保留遮蔽後的前 300 字供管理員排查。
+const redact = (text) => String(text ?? '')
+  .replace(/(sk|AIza)[-_A-Za-z0-9]{8,}/g, '[redacted]')
+  .replace(/key=[^&\s]+/gi, 'key=[redacted]')
+  .replace(/\s+/g, ' ')
+  .trim()
+  .slice(0, 300);
+
 class AiProviderError extends HttpError {
-  constructor(reason, { status = null, provider = null } = {}) {
+  constructor(reason, { status = null, provider = null, providerMessage = '' } = {}) {
     super(502, 'AI 服務暫時無法使用，請稍後再試', 'AI_PROVIDER_ERROR');
     this.reason = REASON_DETAILS[reason] ? reason : 'SERVER';
     this.detail = REASON_DETAILS[this.reason];
     this.httpStatus = status;
     this.provider = provider;
+    this.providerMessage = redact(providerMessage);
+  }
+
+  get fullDetail() {
+    return this.providerMessage ? `${this.detail}（${this.providerMessage}）` : this.detail;
   }
 }
+
+const providerMessageOf = (data) => {
+  const e = data?.error;
+  if (typeof e === 'string') return e;
+  if (e && typeof e.message === 'string') return e.message;
+  if (typeof data?.raw === 'string') return data.raw;
+  return '';
+};
 
 const options = { backoffMs: 800, maxRetryAfterMs: 3000 };
 
@@ -43,10 +65,16 @@ const readBody = async (response) => {
   }
 };
 
-const retryDelay = (response, attempt) => {
+// Gemini 以 error.details[].retryDelay（如 "37s"）告知等待時間，OpenAI 與 DeepSeek 使用 Retry-After 標頭。
+const requestedDelayMs = (response, data) => {
   const header = Number(response?.headers?.get?.('retry-after'));
-  if (Number.isFinite(header) && header > 0) return Math.min(header * 1000, options.maxRetryAfterMs);
-  return options.backoffMs * attempt;
+  if (Number.isFinite(header) && header > 0) return header * 1000;
+  const details = Array.isArray(data?.error?.details) ? data.error.details : [];
+  for (const d of details) {
+    const match = /^(\d+(?:\.\d+)?)s$/.exec(String(d?.retryDelay ?? ''));
+    if (match) return Number(match[1]) * 1000;
+  }
+  return null;
 };
 
 // 逾時以單一 deadline 涵蓋重試，否則重試會讓等待時間倍增。
@@ -80,14 +108,17 @@ const postJson = async (url, { headers, body, timeoutMs, classify, provider }) =
       }
       if (response.ok) return data;
 
-      const retryable = response.status === 429 || response.status >= 500;
       const reason = classify(response.status, data);
-      if (retryable && reason !== 'QUOTA' && attempt < 2) {
-        await sleep(retryDelay(response, attempt), controller.signal).catch(() => {});
+      const requested = requestedDelayMs(response, data);
+      const retryable = (response.status === 429 || response.status >= 500)
+        && reason !== 'QUOTA'
+        && (requested == null || requested <= options.maxRetryAfterMs);
+      if (retryable && attempt < 2) {
+        await sleep(requested ?? options.backoffMs * attempt, controller.signal).catch(() => {});
         if (controller.signal.aborted) throw new AiProviderError('TIMEOUT', { provider });
         continue;
       }
-      throw new AiProviderError(reason, { status: response.status, provider });
+      throw new AiProviderError(reason, { status: response.status, provider, providerMessage: providerMessageOf(data) });
     }
   } finally {
     clearTimeout(timer);
@@ -106,7 +137,11 @@ const baseClassify = (status) => {
 const errorText = (data) => {
   const e = data?.error;
   if (!e) return '';
+  if (typeof e === 'string') return e.toLowerCase();
   return [e.message, e.code, e.status, e.type, e.param].filter((x) => typeof x === 'string').join(' ').toLowerCase();
 };
 
-module.exports = { AiProviderError, REASON_DETAILS, options, postJson, baseClassify, errorText };
+// 429 同時用於短時間限流與額度用盡；後者重試無效，須提示管理員檢查方案。
+const quotaExhausted = (text) => /limit: ?0\b|free[_ ]tier|billing|exceeded your current quota|insufficient_quota|quota exceeded|per ?day|perday/.test(text);
+
+module.exports = { AiProviderError, REASON_DETAILS, options, postJson, baseClassify, errorText, quotaExhausted, redact };

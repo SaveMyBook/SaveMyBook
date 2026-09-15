@@ -461,14 +461,25 @@ class AiUsageError {
   final String feature;
   final String provider;
   final String errorCode;
+  final String? model;
+  final String? errorDetail;
 
-  const AiUsageError({this.createdAt, required this.feature, required this.provider, required this.errorCode});
+  const AiUsageError({
+    this.createdAt,
+    required this.feature,
+    required this.provider,
+    required this.errorCode,
+    this.model,
+    this.errorDetail,
+  });
 
   factory AiUsageError.fromJson(Map<String, dynamic> json) => AiUsageError(
         createdAt: parseDate(json['created_at']),
         feature: json['feature'] as String? ?? '',
         provider: json['provider'] as String? ?? '',
         errorCode: json['error_code'] as String? ?? '',
+        model: (json['model'] as String?)?.trim().isEmpty ?? true ? null : json['model'] as String,
+        errorDetail: (json['error_detail'] as String?)?.trim().isEmpty ?? true ? null : (json['error_detail'] as String).trim(),
       );
 }
 
