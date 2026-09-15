@@ -43,12 +43,13 @@ model admin_permissions {
   can_manage_reports       Boolean  @default(true)
   can_manage_announcements Boolean  @default(true)
   can_manage_cabinets      Boolean  @default(true)
+  created_at               DateTime @default(now()) @db.DateTime(0)
   can_manage_orders        Boolean  @default(true)
   can_manage_wallets       Boolean  @default(true)
   can_manage_levels        Boolean  @default(true)
   can_view_stats           Boolean  @default(true)
   can_manage_support       Boolean  @default(true)
-  created_at               DateTime @default(now()) @db.DateTime(0)
+  can_manage_system        Boolean  @default(false)
   users                    users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_admin_user")
 }
 
@@ -113,6 +114,7 @@ model books {
   status              books_status          @default(on_sale)
   view_count          Int                   @default(0) @db.UnsignedInt
   is_approved         Boolean               @default(true)
+  share_token         String?               @unique(map: "uk_book_share_token") @db.Char(32)
   created_at          DateTime              @default(now()) @db.DateTime(0)
   updated_at          DateTime              @default(now()) @db.DateTime(0)
   book_images         book_images[]
@@ -160,25 +162,35 @@ model chat_messages {
   message_type chat_messages_message_type @default(text)
   is_read      Boolean                    @default(false)
   created_at   DateTime                   @default(now()) @db.DateTime(0)
+  reply_to_id  Int?                       @db.UnsignedInt
+  edited_at    DateTime?                  @db.DateTime(0)
   chat_rooms   chat_rooms                 @relation(fields: [room_id], references: [room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_msg_room")
   users        users                      @relation(fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_msg_sender")
 
   @@index([sender_id], map: "fk_msg_sender")
   @@index([room_id, created_at], map: "idx_room_time")
+  @@index([reply_to_id], map: "idx_msg_reply")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model chat_rooms {
-  room_id                           Int             @id @default(autoincrement()) @db.UnsignedInt
-  user_a_id                         Int             @db.UnsignedInt
-  user_b_id                         Int             @db.UnsignedInt
-  book_id                           Int?            @db.UnsignedInt
-  created_at                        DateTime        @default(now()) @db.DateTime(0)
-  updated_at                        DateTime        @default(now()) @db.DateTime(0)
+  room_id                           Int                  @id @default(autoincrement()) @db.UnsignedInt
+  user_a_id                         Int                  @db.UnsignedInt
+  user_b_id                         Int                  @db.UnsignedInt
+  book_id                           Int?                 @db.UnsignedInt
+  created_at                        DateTime             @default(now()) @db.DateTime(0)
+  updated_at                        DateTime             @default(now()) @db.DateTime(0)
+  room_type                         chat_rooms_room_type @default(direct)
+  name                              String?              @db.VarChar(50)
+  avatar_url                        String?              @db.VarChar(500)
+  created_by                        Int?                 @db.UnsignedInt
   chat_messages                     chat_messages[]
-  books                             books?          @relation(fields: [book_id], references: [book_id], onUpdate: NoAction, map: "fk_chat_book")
-  users_chat_rooms_user_a_idTousers users           @relation("chat_rooms_user_a_idTousers", fields: [user_a_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_chat_user_a")
-  users_chat_rooms_user_b_idTousers users           @relation("chat_rooms_user_b_idTousers", fields: [user_b_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_chat_user_b")
+  chat_room_members                 chat_room_members[]
+  chat_room_mutes                   chat_room_mutes[]
+  chat_room_pins                    chat_room_pins[]
+  books                             books?               @relation(fields: [book_id], references: [book_id], onUpdate: NoAction, map: "fk_chat_book")
+  users_chat_rooms_user_a_idTousers users                @relation("chat_rooms_user_a_idTousers", fields: [user_a_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_chat_user_a")
+  users_chat_rooms_user_b_idTousers users                @relation("chat_rooms_user_b_idTousers", fields: [user_b_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_chat_user_b")
 
   @@unique([user_a_id, user_b_id, book_id], map: "uk_chat_pair")
   @@index([book_id], map: "fk_chat_book")
@@ -246,10 +258,13 @@ model notifications {
   related_type    String?            @db.VarChar(50)
   is_read         Boolean            @default(false)
   created_at      DateTime           @default(now()) @db.DateTime(0)
+  pushed_at       DateTime?          @db.DateTime(0)
+  actor_id        Int?               @db.UnsignedInt
   users           users              @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_notif_user")
 
   @@index([user_id, is_read], map: "idx_user_read")
   @@index([user_id, created_at], map: "idx_user_time")
+  @@index([pushed_at, notification_id], map: "idx_notification_push_queue")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -525,55 +540,73 @@ model user_settings {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model users {
-  user_id                                                       Int                    @id @default(autoincrement()) @db.UnsignedInt
-  email                                                         String                 @unique(map: "uk_email") @db.VarChar(255)
-  password_hash                                                 String                 @db.VarChar(255)
-  nickname                                                      String                 @db.VarChar(50)
-  avatar_url                                                    String?                @db.VarChar(500)
-  bio                                                           String?                @db.Text
-  phone                                                         String?                @db.VarChar(20)
-  birthday                                                      DateTime?              @db.Date
-  gender                                                        users_gender?          @default(undisclosed)
-  role                                                          users_role             @default(buyer_seller)
-  is_active                                                     Boolean                @default(true)
-  is_blacklisted                                                Boolean                @default(false)
-  bonus_points                                                  Int                    @default(0)
-  created_at                                                    DateTime               @default(now()) @db.DateTime(0)
-  updated_at                                                    DateTime               @default(now()) @db.DateTime(0)
+  user_id                                                       Int                       @id @default(autoincrement()) @db.UnsignedInt
+  email                                                         String                    @unique(map: "uk_email") @db.VarChar(255)
+  password_hash                                                 String                    @db.VarChar(255)
+  nickname                                                      String                    @db.VarChar(50)
+  avatar_url                                                    String?                   @db.VarChar(500)
+  bio                                                           String?                   @db.Text
+  phone                                                         String?                   @db.VarChar(20)
+  birthday                                                      DateTime?                 @db.Date
+  gender                                                        users_gender?             @default(undisclosed)
+  role                                                          users_role                @default(buyer_seller)
+  is_active                                                     Boolean                   @default(true)
+  is_blacklisted                                                Boolean                   @default(false)
+  created_at                                                    DateTime                  @default(now()) @db.DateTime(0)
+  updated_at                                                    DateTime                  @default(now()) @db.DateTime(0)
+  bonus_points                                                  Int                       @default(0)
+  deletion_requested_at                                         DateTime?                 @db.DateTime(0)
+  anonymized_at                                                 DateTime?                 @db.DateTime(0)
+  share_token                                                   String?                   @unique(map: "uk_share_token") @db.Char(32)
   admin_operation_logs                                          admin_operation_logs[]
   admin_permissions                                             admin_permissions?
   bankbooks                                                     bankbooks[]
   books                                                         books[]
+  chat_aliases_chat_aliases_owner_idTousers                     chat_aliases[]            @relation("chat_aliases_owner_idTousers")
+  chat_aliases_chat_aliases_target_user_idTousers               chat_aliases[]            @relation("chat_aliases_target_user_idTousers")
   chat_messages                                                 chat_messages[]
-  chat_rooms_chat_rooms_user_a_idTousers                        chat_rooms[]           @relation("chat_rooms_user_a_idTousers")
-  chat_rooms_chat_rooms_user_b_idTousers                        chat_rooms[]           @relation("chat_rooms_user_b_idTousers")
+  chat_room_members                                             chat_room_members[]
+  chat_room_mutes                                               chat_room_mutes[]
+  chat_room_pins                                                chat_room_pins[]
+  chat_rooms_chat_rooms_user_a_idTousers                        chat_rooms[]              @relation("chat_rooms_user_a_idTousers")
+  chat_rooms_chat_rooms_user_b_idTousers                        chat_rooms[]              @relation("chat_rooms_user_b_idTousers")
+  chat_transfers_chat_transfers_from_user_idTousers             chat_transfers[]          @relation("chat_transfers_from_user_idTousers")
+  chat_transfers_chat_transfers_to_user_idTousers               chat_transfers[]          @relation("chat_transfers_to_user_idTousers")
   content_reviews                                               content_reviews[]
+  db_backups                                                    db_backups[]
   favorites                                                     favorites[]
+  legal_documents                                               legal_documents[]
   login_logs                                                    login_logs[]
   notifications                                                 notifications[]
-  orders_orders_buyer_idTousers                                 orders[]               @relation("orders_buyer_idTousers")
-  orders_orders_seller_idTousers                                orders[]               @relation("orders_seller_idTousers")
+  orders_orders_buyer_idTousers                                 orders[]                  @relation("orders_buyer_idTousers")
+  orders_orders_seller_idTousers                                orders[]                  @relation("orders_seller_idTousers")
+  push_devices                                                  push_devices[]
   recommendation_logs                                           recommendation_logs[]
-  referral_records_referral_records_invitee_idTousers           referral_records[]     @relation("referral_records_invitee_idTousers")
-  referral_records_referral_records_inviter_idTousers           referral_records[]     @relation("referral_records_inviter_idTousers")
+  referral_records_referral_records_invitee_idTousers           referral_records[]        @relation("referral_records_invitee_idTousers")
+  referral_records_referral_records_inviter_idTousers           referral_records[]        @relation("referral_records_inviter_idTousers")
   refund_records                                                refund_records[]
-  reports_reports_admin_idTousers                               reports[]              @relation("reports_admin_idTousers")
-  reports_reports_reporter_idTousers                            reports[]              @relation("reports_reporter_idTousers")
-  reservations_reservations_buyer_idTousers                     reservations[]         @relation("reservations_buyer_idTousers")
-  reservations_reservations_seller_idTousers                    reservations[]         @relation("reservations_seller_idTousers")
+  reports_reports_admin_idTousers                               reports[]                 @relation("reports_admin_idTousers")
+  reports_reports_reporter_idTousers                            reports[]                 @relation("reports_reporter_idTousers")
+  reservations_reservations_buyer_idTousers                     reservations[]            @relation("reservations_buyer_idTousers")
+  reservations_reservations_seller_idTousers                    reservations[]            @relation("reservations_seller_idTousers")
   shopping_cart                                                 shopping_cart[]
-  system_announcements                                          system_announcements[]
-  legal_documents                                               legal_documents[]
-  support_tickets                                               support_tickets[]
   support_ticket_messages                                       support_ticket_messages[]
-  transaction_disputes_transaction_disputes_admin_idTousers     transaction_disputes[] @relation("transaction_disputes_admin_idTousers")
-  transaction_disputes_transaction_disputes_applicant_idTousers transaction_disputes[] @relation("transaction_disputes_applicant_idTousers")
+  support_tickets                                               support_tickets[]
+  system_announcements                                          system_announcements[]
+  transaction_disputes_transaction_disputes_admin_idTousers     transaction_disputes[]    @relation("transaction_disputes_admin_idTousers")
+  transaction_disputes_transaction_disputes_applicant_idTousers transaction_disputes[]    @relation("transaction_disputes_applicant_idTousers")
   user_achievements                                             user_achievements[]
+  user_blocks_user_blocks_blocked_idTousers                     user_blocks[]             @relation("user_blocks_blocked_idTousers")
+  user_blocks_user_blocks_blocker_idTousers                     user_blocks[]             @relation("user_blocks_blocker_idTousers")
+  user_legal_consents                                           user_legal_consents[]
   user_qr_codes                                                 user_qr_codes[]
+  user_security                                                 user_security?
+  user_sessions                                                 user_sessions[]
   user_settings                                                 user_settings?
   wallets                                                       wallets?
 
   @@index([role], map: "idx_role")
+  @@index([deletion_requested_at], map: "idx_deletion_requested")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -591,6 +624,7 @@ model wallet_transactions {
 
   @@index([related_order_id], map: "fk_txn_order")
   @@index([wallet_id], map: "idx_wallet")
+  @@index([created_at], map: "idx_user_time")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -604,6 +638,216 @@ model wallets {
   updated_at          DateTime              @default(now()) @db.DateTime(0)
   wallet_transactions wallet_transactions[]
   users               users                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_wallet_user")
+}
+
+/// 服務條款、隱私權政策這類可由管理員線上編輯的文件。
+model legal_documents {
+  doc_id           Int      @id @default(autoincrement()) @db.UnsignedInt
+  doc_key          String   @unique(map: "uk_legal_key") @db.VarChar(50)
+  title            String   @db.VarChar(255)
+  content          String   @db.Text
+  updated_by       Int?     @db.UnsignedInt
+  updated_at       DateTime @default(now()) @db.DateTime(0)
+  created_at       DateTime @default(now()) @db.DateTime(0)
+  version          Int      @default(1) @db.UnsignedInt
+  requires_consent Boolean  @default(false)
+  users            users?   @relation(fields: [updated_by], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_legal_admin")
+
+  @@index([updated_by], map: "fk_legal_admin")
+}
+
+/// 幫助中心的常見問題。
+model faqs {
+  faq_id     Int      @id @default(autoincrement()) @db.UnsignedInt
+  category   String   @default("general") @db.VarChar(50)
+  question   String   @db.VarChar(255)
+  answer     String   @db.Text
+  sort_order Int      @default(0)
+  is_visible Boolean  @default(true)
+  created_at DateTime @default(now()) @db.DateTime(0)
+  updated_at DateTime @default(now()) @db.DateTime(0)
+
+  @@index([category, sort_order], map: "idx_faq_order")
+}
+
+/// App 內客服工單。
+model support_tickets {
+  ticket_id  Int                       @id @default(autoincrement()) @db.UnsignedInt
+  user_id    Int                       @db.UnsignedInt
+  subject    String                    @db.VarChar(255)
+  category   String                    @default("other") @db.VarChar(50)
+  status     support_tickets_status    @default(open)
+  created_at DateTime                  @default(now()) @db.DateTime(0)
+  updated_at DateTime                  @default(now()) @db.DateTime(0)
+  closed_at  DateTime?                 @db.DateTime(0)
+  messages   support_ticket_messages[]
+  users      users                     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ticket_user")
+
+  @@index([user_id, updated_at], map: "idx_ticket_user")
+  @@index([status, updated_at], map: "idx_ticket_status")
+}
+
+model support_ticket_messages {
+  message_id Int             @id @default(autoincrement()) @db.UnsignedInt
+  ticket_id  Int             @db.UnsignedInt
+  sender_id  Int             @db.UnsignedInt
+  is_staff   Boolean         @default(false)
+  content    String          @db.Text
+  created_at DateTime        @default(now()) @db.DateTime(0)
+  users      users           @relation(fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tmsg_sender")
+  tickets    support_tickets @relation(fields: [ticket_id], references: [ticket_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tmsg_ticket")
+
+  @@index([ticket_id, created_at], map: "idx_tmsg_ticket")
+  @@index([sender_id], map: "fk_tmsg_sender")
+}
+
+model chat_aliases {
+  owner_id                                 Int      @db.UnsignedInt
+  target_user_id                           Int      @db.UnsignedInt
+  alias                                    String   @db.VarChar(30)
+  updated_at                               DateTime @db.DateTime(0)
+  users_chat_aliases_owner_idTousers       users    @relation("chat_aliases_owner_idTousers", fields: [owner_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_alias_owner")
+  users_chat_aliases_target_user_idTousers users    @relation("chat_aliases_target_user_idTousers", fields: [target_user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_alias_target")
+
+  @@id([owner_id, target_user_id])
+  @@index([target_user_id], map: "idx_alias_target")
+}
+
+model chat_room_members {
+  room_id              Int                    @db.UnsignedInt
+  user_id              Int                    @db.UnsignedInt
+  role                 chat_room_members_role @default(member)
+  joined_at            DateTime               @db.DateTime(0)
+  left_at              DateTime?              @db.DateTime(0)
+  last_read_message_id Int                    @default(0) @db.UnsignedInt
+  chat_rooms           chat_rooms             @relation(fields: [room_id], references: [room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_member_room")
+  users                users                  @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_member_user")
+
+  @@id([room_id, user_id])
+  @@index([user_id], map: "idx_member_user")
+}
+
+model chat_room_mutes {
+  user_id    Int        @db.UnsignedInt
+  room_id    Int        @db.UnsignedInt
+  created_at DateTime   @db.DateTime(0)
+  chat_rooms chat_rooms @relation(fields: [room_id], references: [room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mute_room")
+  users      users      @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mute_user")
+
+  @@id([user_id, room_id])
+  @@index([room_id], map: "idx_mute_room")
+}
+
+model chat_room_pins {
+  user_id    Int        @db.UnsignedInt
+  room_id    Int        @db.UnsignedInt
+  pinned_at  DateTime   @db.DateTime(0)
+  chat_rooms chat_rooms @relation(fields: [room_id], references: [room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_pin_room")
+  users      users      @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_pin_user")
+
+  @@id([user_id, room_id])
+  @@index([room_id], map: "idx_pin_room")
+}
+
+model chat_transfers {
+  transfer_id                              Int                   @id @default(autoincrement()) @db.UnsignedInt
+  room_id                                  Int                   @db.UnsignedInt
+  message_id                               Int?                  @db.UnsignedInt
+  kind                                     chat_transfers_kind
+  from_user_id                             Int                   @db.UnsignedInt
+  to_user_id                               Int                   @db.UnsignedInt
+  amount                                   Decimal               @db.Decimal(12, 2)
+  note                                     String?               @db.VarChar(100)
+  status                                   chat_transfers_status
+  created_at                               DateTime              @db.DateTime(0)
+  responded_at                             DateTime?             @db.DateTime(0)
+  expires_at                               DateTime?             @db.DateTime(0)
+  users_chat_transfers_from_user_idTousers users                 @relation("chat_transfers_from_user_idTousers", fields: [from_user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transfer_from")
+  users_chat_transfers_to_user_idTousers   users                 @relation("chat_transfers_to_user_idTousers", fields: [to_user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transfer_to")
+
+  @@index([from_user_id], map: "fk_transfer_from")
+  @@index([to_user_id], map: "fk_transfer_to")
+  @@index([status, expires_at], map: "idx_transfer_pending")
+  @@index([room_id, transfer_id], map: "idx_transfer_room")
+}
+
+model db_backups {
+  backup_id  Int      @id @default(autoincrement()) @db.UnsignedInt
+  file_name  String   @unique(map: "uk_backup_file") @db.VarChar(255)
+  size_bytes BigInt   @default(0) @db.UnsignedBigInt
+  trigger_by String   @default("schedule") @db.VarChar(20)
+  admin_id   Int?     @db.UnsignedInt
+  status     String   @default("success") @db.VarChar(20)
+  detail     String?  @db.Text
+  created_at DateTime @default(now()) @db.DateTime(0)
+  users      users?   @relation(fields: [admin_id], references: [user_id], onUpdate: NoAction, map: "fk_backup_admin")
+
+  @@index([admin_id], map: "fk_backup_admin")
+  @@index([created_at], map: "idx_backup_time")
+}
+
+model push_devices {
+  device_id    Int                   @id @default(autoincrement()) @db.UnsignedInt
+  user_id      Int                   @db.UnsignedInt
+  token        String                @unique(map: "uk_push_token") @db.VarChar(255)
+  platform     push_devices_platform
+  app_version  String?               @db.VarChar(20)
+  created_at   DateTime              @default(now()) @db.DateTime(0)
+  last_seen_at DateTime              @default(now()) @db.DateTime(0)
+  session_sid  String?               @db.Char(32)
+  users        users                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_push_user")
+
+  @@index([session_sid], map: "idx_push_session")
+  @@index([user_id], map: "idx_push_user")
+}
+
+model user_blocks {
+  blocker_id                          Int      @db.UnsignedInt
+  blocked_id                          Int      @db.UnsignedInt
+  created_at                          DateTime @db.DateTime(0)
+  users_user_blocks_blocked_idTousers users    @relation("user_blocks_blocked_idTousers", fields: [blocked_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_block_blocked")
+  users_user_blocks_blocker_idTousers users    @relation("user_blocks_blocker_idTousers", fields: [blocker_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_block_blocker")
+
+  @@id([blocker_id, blocked_id])
+  @@index([blocked_id], map: "idx_block_blocked")
+}
+
+model user_legal_consents {
+  user_id     Int      @db.UnsignedInt
+  doc_key     String   @db.VarChar(50)
+  version     Int      @db.UnsignedInt
+  accepted_at DateTime @db.DateTime(0)
+  users       users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_consent_user")
+
+  @@id([user_id, doc_key])
+}
+
+model user_security {
+  user_id            Int       @id @db.UnsignedInt
+  payment_pin_hash   String?   @db.VarChar(255)
+  pin_failed_count   Int       @default(0) @db.UnsignedInt
+  pin_locked_until   DateTime? @db.DateTime(0)
+  pin_updated_at     DateTime? @db.DateTime(0)
+  tokens_valid_after DateTime? @db.DateTime(0)
+  users              users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_security_user")
+}
+
+model user_sessions {
+  session_id   Int       @id @default(autoincrement()) @db.UnsignedInt
+  user_id      Int       @db.UnsignedInt
+  sid          String    @unique(map: "uk_session_sid") @db.Char(32)
+  device_id    String?   @db.VarChar(64)
+  device_name  String?   @db.VarChar(100)
+  platform     String?   @db.VarChar(20)
+  app_version  String?   @db.VarChar(20)
+  ip_address   String?   @db.VarChar(45)
+  pay_key_hash String?   @db.Char(64)
+  created_at   DateTime  @db.DateTime(0)
+  last_seen_at DateTime  @db.DateTime(0)
+  revoked_at   DateTime? @db.DateTime(0)
+  users        users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_session_user")
+
+  @@index([user_id, revoked_at], map: "idx_session_user")
 }
 
 enum content_reviews_content_type {
@@ -775,65 +1019,6 @@ enum books_status {
   removed
 }
 
-/// 服務條款、隱私權政策這類可由管理員線上編輯的文件。
-model legal_documents {
-  doc_id     Int      @id @default(autoincrement()) @db.UnsignedInt
-  doc_key    String   @unique(map: "uk_legal_key") @db.VarChar(50)
-  title      String   @db.VarChar(255)
-  content    String   @db.Text
-  updated_by Int?     @db.UnsignedInt
-  updated_at DateTime @default(now()) @db.DateTime(0)
-  created_at DateTime @default(now()) @db.DateTime(0)
-  users      users?   @relation(fields: [updated_by], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_legal_admin")
-
-  @@index([updated_by], map: "fk_legal_admin")
-}
-
-/// 幫助中心的常見問題。
-model faqs {
-  faq_id     Int      @id @default(autoincrement()) @db.UnsignedInt
-  category   String   @default("general") @db.VarChar(50)
-  question   String   @db.VarChar(255)
-  answer     String   @db.Text
-  sort_order Int      @default(0)
-  is_visible Boolean  @default(true)
-  created_at DateTime @default(now()) @db.DateTime(0)
-  updated_at DateTime @default(now()) @db.DateTime(0)
-
-  @@index([category, sort_order], map: "idx_faq_order")
-}
-
-/// App 內客服工單。
-model support_tickets {
-  ticket_id  Int                      @id @default(autoincrement()) @db.UnsignedInt
-  user_id    Int                      @db.UnsignedInt
-  subject    String                   @db.VarChar(255)
-  category   String                   @default("other") @db.VarChar(50)
-  status     support_tickets_status   @default(open)
-  created_at DateTime                 @default(now()) @db.DateTime(0)
-  updated_at DateTime                 @default(now()) @db.DateTime(0)
-  closed_at  DateTime?                @db.DateTime(0)
-  users      users                    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ticket_user")
-  messages   support_ticket_messages[]
-
-  @@index([user_id, updated_at], map: "idx_ticket_user")
-  @@index([status, updated_at], map: "idx_ticket_status")
-}
-
-model support_ticket_messages {
-  message_id Int             @id @default(autoincrement()) @db.UnsignedInt
-  ticket_id  Int             @db.UnsignedInt
-  sender_id  Int             @db.UnsignedInt
-  is_staff   Boolean         @default(false)
-  content    String          @db.Text
-  created_at DateTime        @default(now()) @db.DateTime(0)
-  tickets    support_tickets @relation(fields: [ticket_id], references: [ticket_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tmsg_ticket")
-  users      users           @relation(fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tmsg_sender")
-
-  @@index([ticket_id, created_at], map: "idx_tmsg_ticket")
-  @@index([sender_id], map: "fk_tmsg_sender")
-}
-
 enum support_tickets_status {
   open
   pending
@@ -841,3 +1026,30 @@ enum support_tickets_status {
   closed
 }
 
+enum chat_room_members_role {
+  owner
+  member
+}
+
+enum chat_transfers_kind {
+  transfer
+  request
+}
+
+enum push_devices_platform {
+  ios
+  android
+}
+
+enum chat_rooms_room_type {
+  direct
+  group
+}
+
+enum chat_transfers_status {
+  completed
+  pending
+  declined
+  cancelled
+  expired
+}
