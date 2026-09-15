@@ -16,7 +16,7 @@ const bookInclude = {
 
 router.get('/', async (req, res) => {
   const favorites = await prisma.favorites.findMany({
-    where: { user_id: req.user.userId },
+    where: { user_id: req.user.userId, books: { is_approved: true } },
     orderBy: { created_at: 'desc' },
     include: { books: { include: bookInclude } }
   });

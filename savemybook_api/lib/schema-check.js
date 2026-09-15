@@ -51,7 +51,8 @@ const REQUIRED = [
   { migration: '007_consent_sessions_payment.sql', table: 'user_security' },
   { migration: '007_consent_sessions_payment.sql', table: 'push_devices', column: 'session_sid' },
   { migration: '008_chat_mute_block.sql', table: 'chat_room_mutes' },
-  { migration: '008_chat_mute_block.sql', table: 'user_blocks' }
+  { migration: '008_chat_mute_block.sql', table: 'user_blocks' },
+  { migration: '008_chat_mute_block.sql', table: 'chat_messages', column: 'reply_to_id' }
 ];
 
 const missingSchema = async () => {

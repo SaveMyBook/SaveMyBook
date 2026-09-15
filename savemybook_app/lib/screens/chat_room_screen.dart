@@ -56,11 +56,12 @@ class _Pending {
   final String text;
   final String? localPath;
   final int seconds;
+  final ChatReply? replyTo;
   final DateTime createdAt = DateTime.now();
   String? uploadedUrl;
   _SendState state = _SendState.sending;
 
-  _Pending({required this.key, required this.kind, this.text = '', this.localPath, this.seconds = 0});
+  _Pending({required this.key, required this.kind, this.text = '', this.localPath, this.seconds = 0, this.replyTo});
 }
 
 class _Entry {
@@ -82,7 +83,9 @@ class _Entry {
 
   String get kind => message?.kind ?? pending!.kind;
 
-  bool get isCentered => const {'book', 'reservation', 'recalled', 'notice'}.contains(kind);
+  ChatReply? get replyTo => message?.replyTo ?? pending?.replyTo;
+
+  bool get isCentered => const {'book', 'recalled', 'notice'}.contains(kind);
 }
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObserver {
@@ -109,6 +112,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   final Set<int> _busyReservations = {};
 
   final ValueNotifier<bool> _partnerTyping = ValueNotifier(false);
+  final ValueNotifier<String?> _highlight = ValueNotifier(null);
+  final Map<String, BuildContext> _anchors = {};
+  ChatReply? _replyTo;
+  int? _unreadFromId;
   final ValueNotifier<int> _unseen = ValueNotifier(0);
   final ValueNotifier<bool> _showJump = ValueNotifier(false);
 
@@ -167,6 +174,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     _focus.dispose();
     _scroll.dispose();
     _partnerTyping.dispose();
+    _highlight.dispose();
     _unseen.dispose();
     _showJump.dispose();
     super.dispose();
@@ -226,7 +234,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       return;
     }
 
+    final firstUnread = result.messages.where((m) => m.senderId != _myId && !m.isRead && m.messageId > 0);
     setState(() {
+      _unreadFromId = firstUnread.isEmpty ? null : firstUnread.first.messageId;
       _messages.clear();
       _ids.clear();
       _mergeMessages(result.messages);
@@ -247,6 +257,75 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     });
     _refreshReservable();
     _fillViewportWithOlder();
+    _revealUnread();
+  }
+
+  void _revealUnread() {
+    final id = _unreadFromId;
+    if (id == null) return;
+    final index = _messages.indexWhere((m) => m.messageId == id);
+    if (index < 0 || _messages.length - index < 8) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToEntry(_keyFor(_messages[index]), flash: false, alignment: 0.9));
+  }
+
+  Future<bool> _scrollToEntry(String entryId, {bool flash = true, double alignment = 0.5}) async {
+    final target = _keyIndex[entryId];
+    if (target == null || !_scroll.hasClients) return false;
+    for (var attempt = 0; attempt < 60 && mounted; attempt++) {
+      final ctx = _anchors[entryId];
+      if (ctx != null && ctx.mounted) {
+        await Scrollable.ensureVisible(ctx, alignment: alignment, duration: Motion.enter, curve: Motion.emphasized);
+        if (flash && mounted) {
+          _highlight.value = entryId;
+          Timer(const Duration(milliseconds: 1400), () {
+            if (mounted && _highlight.value == entryId) _highlight.value = null;
+          });
+        }
+        return true;
+      }
+      final visible = _anchors.keys.map((k) => _keyIndex[k]).whereType<int>().toList();
+      if (visible.isEmpty) return false;
+      final older = target < visible.reduce(math.min);
+      final p = _scroll.position;
+      final next = (p.pixels + (older ? 1 : -1) * p.viewportDimension * 0.8).clamp(p.minScrollExtent, p.maxScrollExtent);
+      if ((next - p.pixels).abs() < 1) return false;
+      _scroll.jumpTo(next);
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    return false;
+  }
+
+  Future<void> _jumpToMessage(int messageId) async {
+    FocusScope.of(context).unfocus();
+    var pages = 0;
+    while (!_ids.contains(messageId) && _hasMore && pages < 10 && mounted) {
+      final before = _messages.length;
+      await _loadOlder();
+      if (_messages.length == before) break;
+      pages++;
+    }
+    if (!mounted) return;
+    final index = _messages.indexWhere((m) => m.messageId == messageId);
+    final found = index >= 0 && await _scrollToEntry(_keyFor(_messages[index]));
+    if (!found && mounted) showAppSnackBar(context, S.originalMessageNotFound, isError: true);
+  }
+
+  String _senderName(int senderId) =>
+      senderId == _myId ? S.you2 : (_partner?.nickname.isNotEmpty == true ? _partner!.nickname : widget.partnerName);
+
+  bool get _canCompose => !_loading && !_loadError && !_partnerUnavailable && !_blocked;
+
+  void _startReply(ChatMessage m) {
+    if (!_canCompose || m.isRecalled || m.messageId <= 0) return;
+    HapticFeedback.selectionClick();
+    setState(() => _replyTo = ChatReply.of(m, senderName: _senderName(m.senderId)));
+    _focus.requestFocus();
+  }
+
+  ChatReply? _takeReply() {
+    final reply = _replyTo;
+    if (reply != null) setState(() => _replyTo = null);
+    return reply;
   }
 
   void _fillViewportWithOlder() {
@@ -393,6 +472,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       context,
       title: partner.nickname,
       options: [
+        SheetOption(value: 'profile', label: S.viewProfile, icon: Icons.person_outline_rounded),
         SheetOption(
           value: 'mute',
           label: _muted ? S.unmute : S.mute,
@@ -407,7 +487,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       ],
     );
     if (!mounted || choice == null) return;
-    if (choice == 'mute') {
+    if (choice == 'profile') {
+      _openPartner(partner.nickname.isNotEmpty ? partner.nickname : widget.partnerName);
+    } else if (choice == 'mute') {
       await _setMuted(!_muted);
     } else {
       await _setBlocked(!_blocked);
@@ -654,7 +736,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     }
     HapticFeedback.lightImpact();
     _controller.clear();
-    _addPending(_Pending(key: _nextKey(), kind: 'text', text: text));
+    _unreadFromId = null;
+    _addPending(_Pending(key: _nextKey(), kind: 'text', text: text, replyTo: _takeReply()));
   }
 
   Future<void> _deliver(_Pending p) async {
@@ -677,6 +760,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       content,
       type: p.kind,
       durationSeconds: p.kind == 'voice' ? p.seconds : null,
+      replyToId: p.replyTo?.messageId,
     );
     if (message == null) return _failPending(p, error);
 
@@ -826,7 +910,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         continue;
       }
       if (!mounted) return;
-      _addPending(_Pending(key: _nextKey(), kind: 'image', localPath: file.path));
+      _addPending(_Pending(key: _nextKey(), kind: 'image', localPath: file.path, replyTo: _takeReply()));
     }
     if (skipped > 0 && mounted) showAppSnackBar(context, S.imagesMust10MbSmaller, isError: true);
   }
@@ -842,7 +926,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       showAppSnackBar(context, S.voiceMessageTooLargePleaseRecord, isError: true);
       return;
     }
-    _addPending(_Pending(key: _nextKey(), kind: 'voice', localPath: clip.path, seconds: clip.seconds));
+    _addPending(_Pending(key: _nextKey(), kind: 'voice', localPath: clip.path, seconds: clip.seconds, replyTo: _takeReply()));
   }
 
   void _onVoiceUnavailable(VoiceStartResult result) {
@@ -862,9 +946,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       return;
     }
     final m = entry.message!;
-    if (m.isRecalled) return;
+    if (m.isRecalled || m.kind == 'reservation') return;
 
     final isMine = m.senderId == _myId;
+    final canReply = _canCompose && const {'text', 'image', 'voice'}.contains(m.kind);
     final created = m.createdAt;
     final canRecall = isMine &&
         const {'text', 'image', 'voice'}.contains(m.kind) &&
@@ -879,6 +964,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       context,
       title: preview.length > 40 ? '${preview.substring(0, 40)}…' : preview,
       options: [
+        if (canReply) SheetOption(value: 'reply', label: S.reply, icon: Icons.reply_rounded),
         if (isText) SheetOption(value: 'copy', label: S.copy, icon: Icons.copy_rounded),
         if (isText) SheetOption(value: 'select', label: S.selectText, icon: Icons.text_fields_rounded),
         if (canRecall) SheetOption(value: 'recall', label: S.unsend, icon: Icons.undo_rounded),
@@ -888,7 +974,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     );
     if (!mounted || choice == null) return;
 
-    if (choice == 'copy') {
+    if (choice == 'reply') {
+      _startReply(m);
+    } else if (choice == 'copy') {
       await Clipboard.setData(ClipboardData(text: m.text));
       if (!mounted) return;
       HapticFeedback.selectionClick();
@@ -1123,21 +1211,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         children: [
           AppHeader(
             title: title.isEmpty ? S.chat : title,
-            actionsWidth: 106,
             actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: PressableScale(
-                  onTap: _partner == null ? null : () => _openPartner(title),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      UserAvatar(imageUrl: _partner?.avatarUrl, radius: 15, background: Colors.white24),
-                      const Icon(Icons.chevron_right_rounded, color: Colors.white70, size: 20),
-                    ],
-                  ),
-                ),
-              ),
               IconButton(
                 onPressed: _partner == null || _loading ? null : _showRoomMenu,
                 tooltip: S.moreOptions,
@@ -1345,6 +1419,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
 
   Widget? _buildInputTop(AppColors c) {
     final children = <Widget>[];
+    final reply = _replyTo;
+    if (reply != null && _canCompose) {
+      children.add(ChatReplyComposer(
+        key: ValueKey('reply_${reply.messageId}'),
+        reply: reply,
+        senderName: reply.senderName,
+        onClose: () => setState(() => _replyTo = null),
+      ));
+    }
 
     if (_offline) {
       children.add(_Banner(
@@ -1430,20 +1513,27 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       );
     }
 
+    final showUnread = _unreadFromId != null && entry.message?.messageId == _unreadFromId;
+
     return KeyedSubtree(
       key: ValueKey<String>(entry.id),
-      child: ChatEntrance(
-        animate: _fresh.contains(entry.id),
-        fromRight: entry.senderId == _myId,
-        child: Padding(
-          padding: EdgeInsets.only(bottom: next == null ? 14 : 0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (showDate) ChatDateSeparator(date: created),
-              body,
-            ],
+      child: _RowAnchor(
+        id: entry.id,
+        anchors: _anchors,
+        child: ChatEntrance(
+          animate: _fresh.contains(entry.id),
+          fromRight: entry.senderId == _myId,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: next == null ? 14 : 0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showDate) ChatDateSeparator(date: created),
+                if (showUnread) const ChatUnreadDivider(),
+                _HighlightFlash(id: entry.id, highlight: _highlight, child: body),
+              ],
+            ),
           ),
         ),
       ),
@@ -1467,40 +1557,26 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       return ChatBookCardView(card: card, onTap: () => _openBook(card.bookId));
     }
 
-    if (m.kind == 'reservation') {
-      final id = m.reservationId ?? 0;
-      var reservation = _reservations[id];
-      final payload = m.payload;
-      if (reservation == null && payload != null && payload['status'] != null) {
-        reservation = ChatReservation.fromJson(payload);
-      }
-      if (reservation == null) {
-        return ChatSystemLine(text: S.reservationDetailsArenTAvailableRight, icon: Icons.event_busy_rounded);
-      }
-      final r = reservation;
-      return ReservationCardView(
-        reservation: r,
-        myId: _myId,
-        busy: _busyReservations.contains(r.reservationId),
-        onAction: (action) => _onReservationAction(r, action),
-        onOpenBook: () => _openBook(r.bookId),
-      );
-    }
-
     return ChatSystemLine(text: m.text, icon: Icons.info_outline_rounded);
   }
 
   Widget _buildBubbleRow(_Entry entry, _Entry? next, bool groupStart, bool groupEnd) {
     final isMine = entry.senderId == _myId;
     final width = MediaQuery.sizeOf(context).width;
-    final maxBubble = math.min(width * 0.7, 420.0);
+    final isReservation = entry.kind == 'reservation';
+    final maxBubble = isReservation ? math.min(width * 0.78, 340.0) : math.min(width * 0.7, 420.0);
     final meta = _buildMeta(entry, next, isMine, groupEnd);
+    final message = entry.message;
+    final canSwipeReply = message != null &&
+        !message.isRecalled &&
+        _canCompose &&
+        const {'text', 'image', 'voice'}.contains(message.kind);
 
     final bubble = ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxBubble),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onLongPress: () => _showMessageMenu(entry),
+        onLongPress: isReservation ? null : () => _showMessageMenu(entry),
         child: _buildContent(entry, isMine, groupStart, groupEnd),
       ),
     );
@@ -1519,7 +1595,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             ],
     );
 
-    return Padding(
+    return SwipeToReply(
+      onReply: canSwipeReply ? () => _startReply(message) : null,
+      child: Padding(
       padding: EdgeInsets.only(left: isMine ? 40 : 10, right: isMine ? 12 : 28),
       child: Row(
         mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -1541,6 +1619,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
           Flexible(child: line),
         ],
       ),
+    ),
     );
   }
 
@@ -1592,12 +1671,42 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     final m = entry.message;
     final sending = pending?.state == _SendState.sending;
     final failed = pending?.state == _SendState.failed;
+    final reply = entry.replyTo;
+    final quote = reply == null
+        ? null
+        : ChatReplyQuote(
+            reply: reply,
+            senderName: _senderName(reply.senderId),
+            isMine: isMine,
+            onTap: () => _jumpToMessage(reply.messageId),
+          );
+
+    if (entry.kind == 'reservation' && m != null) {
+      final id = m.reservationId ?? 0;
+      var reservation = _reservations[id];
+      final payload = m.payload;
+      if (reservation == null && payload != null && payload['status'] != null) {
+        reservation = ChatReservation.fromJson(payload);
+      }
+      if (reservation == null) {
+        return ChatSystemLine(text: S.reservationDetailsArenTAvailableRight, icon: Icons.event_busy_rounded);
+      }
+      final r = reservation;
+      return ReservationCardView(
+        reservation: r,
+        myId: _myId,
+        isMine: isMine,
+        busy: _busyReservations.contains(r.reservationId),
+        onAction: (action) => _onReservationAction(r, action),
+        onOpenBook: () => _openBook(r.bookId),
+      );
+    }
 
     if (entry.kind == 'image') {
       final url = m?.imageUrl;
       final local = pending?.localPath ?? (m == null ? null : _localImages[m.messageId]);
       final heroTag = 'chat_image_${entry.id}';
-      return GestureDetector(
+      final image = GestureDetector(
         onTap: url != null
             ? () => ImageViewer.open(context, imageUrl: url, heroTag: heroTag)
             : (failed && pending != null ? () => _showPendingMenu(pending) : null),
@@ -1609,31 +1718,114 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
           failed: failed,
         ),
       );
+      if (quote == null) return image;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          ChatBubbleShell(
+            isMine: isMine,
+            groupStart: groupStart,
+            groupEnd: false,
+            padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+            child: quote,
+          ),
+          const SizedBox(height: 2),
+          image,
+        ],
+      );
     }
 
     if (entry.kind == 'voice') {
       final voice = m?.voice;
       final url = voice?.url;
+      final body = ChatVoiceBody(
+        url: url == null || url.isEmpty ? null : url,
+        seconds: pending?.seconds ?? voice?.durationSeconds ?? 0,
+        isMine: isMine,
+        uploading: sending,
+        failed: failed,
+      );
       return ChatBubbleShell(
         isMine: isMine,
         groupStart: groupStart,
         groupEnd: groupEnd,
-        padding: const EdgeInsets.fromLTRB(7, 7, 12, 7),
-        child: ChatVoiceBody(
-          url: url == null || url.isEmpty ? null : url,
-          seconds: pending?.seconds ?? voice?.durationSeconds ?? 0,
-          isMine: isMine,
-          uploading: sending,
-          failed: failed,
-        ),
+        padding: quote == null ? const EdgeInsets.fromLTRB(7, 7, 12, 7) : const EdgeInsets.fromLTRB(7, 7, 7, 7),
+        child: quote == null
+            ? body
+            : Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [quote, body]),
       );
     }
 
+    final text = ChatLinkText(text: pending?.text ?? m?.text ?? '', isMine: isMine);
     return ChatBubbleShell(
       isMine: isMine,
       groupStart: groupStart,
       groupEnd: groupEnd,
-      child: ChatLinkText(text: pending?.text ?? m?.text ?? '', isMine: isMine),
+      padding: quote == null ? const EdgeInsets.symmetric(horizontal: 13, vertical: 9) : const EdgeInsets.fromLTRB(7, 7, 13, 9),
+      child: quote == null
+          ? text
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [quote, Padding(padding: const EdgeInsets.only(left: 6), child: text)],
+            ),
+    );
+  }
+}
+
+class _RowAnchor extends StatefulWidget {
+  final String id;
+  final Map<String, BuildContext> anchors;
+  final Widget child;
+
+  const _RowAnchor({required this.id, required this.anchors, required this.child});
+
+  @override
+  State<_RowAnchor> createState() => _RowAnchorState();
+}
+
+class _RowAnchorState extends State<_RowAnchor> {
+  @override
+  Widget build(BuildContext context) {
+    widget.anchors[widget.id] = context;
+    return widget.child;
+  }
+
+  @override
+  void didUpdateWidget(_RowAnchor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.id != widget.id && identical(oldWidget.anchors[oldWidget.id], context)) {
+      oldWidget.anchors.remove(oldWidget.id);
+    }
+  }
+
+  @override
+  void dispose() {
+    if (identical(widget.anchors[widget.id], context)) widget.anchors.remove(widget.id);
+    super.dispose();
+  }
+}
+
+class _HighlightFlash extends StatelessWidget {
+  final String id;
+  final ValueNotifier<String?> highlight;
+  final Widget child;
+
+  const _HighlightFlash({required this.id, required this.highlight, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return ValueListenableBuilder<String?>(
+      valueListenable: highlight,
+      child: child,
+      builder: (_, value, child) => AnimatedContainer(
+        duration: value == id ? Motion.micro : const Duration(milliseconds: 600),
+        curve: Motion.standard,
+        color: value == id ? c.accent.withValues(alpha: c.isDark ? 0.22 : 0.14) : c.accent.withValues(alpha: 0),
+        child: child,
+      ),
     );
   }
 }

@@ -42,6 +42,7 @@ class Book {
   final double? cabinetLongitude;
   final DateTime? reservedUntil;
   final bool reservedForMe;
+  final bool isApproved;
 
   Book({
     required this.bookId,
@@ -74,6 +75,7 @@ class Book {
     this.cabinetLongitude,
     this.reservedUntil,
     this.reservedForMe = false,
+    this.isApproved = true,
   });
 
   factory Book.fromJson(Map<String, dynamic> json) {
@@ -144,6 +146,7 @@ class Book {
       cabinetLongitude: cabinet?['longitude'] == null ? null : parseDouble(cabinet!['longitude']),
       reservedUntil: json['reservation'] is Map ? parseDate(json['reservation']['reserved_until'])?.toLocal() : null,
       reservedForMe: json['reservation'] is Map && json['reservation']['reserved_for_me'] == true,
+      isApproved: json['is_approved'] != false,
     );
   }
 

@@ -300,7 +300,7 @@ components:
         total_amount: { type: string, example: '360.00' }
         cabinet_id: { type: integer, nullable: true, example: 2 }
         slot_id: { type: integer, nullable: true }
-        pickup_code: { type: string, nullable: true, description: 六位數取貨碼, example: '482913' }
+        pickup_code: { type: string, nullable: true, deprecated: true, description: 保留欄位。取件改為於書櫃掃描機台上的 QR Code，用戶端不應顯示此值。, example: '482913' }
         status:
           type: string
           enum: [pending_payment, pending_deposit, deposited, pending_pickup, completed, cancelled, refunding, refunded]
@@ -486,6 +486,19 @@ components:
         is_read: { type: boolean, example: true }
         created_at: { type: string, format: date-time }
         users: { $ref: '#/components/schemas/UserBrief' }
+        reply_to:
+          type: object
+          nullable: true
+          description: |
+            此訊息所回覆的訊息摘要；未回覆任何訊息時為 `null`。
+            原訊息已收回時 `kind` 為 `recalled`；原訊息已不存在時 `kind` 為 `deleted`，其餘欄位可能缺少。
+          properties:
+            message_id: { type: integer, example: 298 }
+            sender_id: { type: integer, example: 8 }
+            sender_nickname: { type: string, nullable: true, example: 小明 }
+            kind: { type: string, enum: [text, image, voice, book, reservation, recalled, notice, deleted], example: text }
+            preview: { type: string, description: 與 `ChatRoomSummary.last_message.preview` 相同規則的摘要。, example: 請問這本還在嗎？ }
+            image_url: { type: string, nullable: true, description: 原訊息為圖片時的相對路徑，供顯示縮圖。 }
 
     Reservation:
       type: object

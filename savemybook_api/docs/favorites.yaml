@@ -12,7 +12,7 @@ paths:
       tags: [favorites]
       description: |
         回傳收藏的書籍本體而非收藏紀錄，已包含賣家、照片與分類等關聯資料。
-        依收藏時間遞減排序，無分頁機制。
+        依收藏時間遞減排序，無分頁機制。`is_approved` 為 false 的書籍不列入。
       security: [{ bearerAuth: [] }]
       responses:
         '200':

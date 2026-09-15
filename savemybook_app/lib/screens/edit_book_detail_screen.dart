@@ -252,7 +252,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
 
     setState(() => _isSaving = true);
 
-    final ok = await _api.updateBook(widget.book.bookId, {
+    final error = await _api.updateBook(widget.book.bookId, {
       'title': widget.title,
       'author': widget.author.isEmpty ? null : widget.author,
       'publisher': widget.publisher.isEmpty ? null : widget.publisher,
@@ -264,11 +264,11 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       'cabinet_id': _cabinetId,
     });
 
-    if (!ok) {
+    if (error != null) {
       if (!mounted) return;
       setState(() => _isSaving = false);
       HapticFeedback.heavyImpact();
-      showAppSnackBar(context, AppLabels.updateFailed, isError: true);
+      showAppSnackBar(context, error, isError: true);
       return;
     }
 

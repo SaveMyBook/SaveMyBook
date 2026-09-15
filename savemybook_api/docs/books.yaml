@@ -7,8 +7,9 @@ tags:
       上架時包含三張固定照片：封面（`cover_image`）、封底（`back_image`）、
       條碼（`barcode_image`），另可附加最多 7 張選填照片（`optional_images`）。
 
-      檢舉成立時，管理員會將 `is_approved` 設為 false 並下架該書籍。
-      此狀態下賣家無法自行將狀態改回 `on_sale`，將收到 403 `BOOK_NOT_APPROVED`。
+      檢舉成立並勾選下架時，管理員會將 `is_approved` 設為 false 並下架該書籍。
+      書籍 `is_approved` 為 false，或有任一檢舉審核結果為 `resolved`（違規成立）時，
+      賣家無法自行將狀態改回 `on_sale`，將收到 403 `BOOK_NOT_APPROVED`。
 
 paths:
   /api/books:
@@ -22,8 +23,9 @@ paths:
         兩項須留意的行為：
 
         1. `status` 預設為 `on_sale`。查詢全部狀態時須明確帶入 `status=all`。
-        2. 帶入 `seller_id` 時不套用 `is_approved` 條件，賣家方能查得自身
-           待審核或已下架的書籍；未帶入時僅回傳 `is_approved` 為 true 的書籍。
+        2. 帶入的 `seller_id` 為請求者本人（須帶 Bearer Token）時不套用 `is_approved` 條件，
+           賣家方能查得自身待審核或已下架的書籍；其餘情況僅回傳 `is_approved` 為 true
+           且狀態不為 `removed` 的書籍，帶入 `status=removed` 回傳 400。
 
         ## Popular Ranking
 
@@ -38,7 +40,9 @@ paths:
         | 刊登品質 | 照片 3 張以上加分、沒有照片扣分；書況 `like_new`、`good` 加分 |
         | 新鮮度 | 隨上架天數遞減，約兩週後明顯下降 |
         | 分類需求 | 該分類近 30 天的成交數 |
-        | 個人偏好 | 帶入 Bearer Token 時，依請求者收藏、購買、購物車中的分類比重加權 |
+
+        熱門排序不含個人偏好，所有使用者看到的順序一致；依個人偏好挑選的書籍請改用
+        `GET /api/books/recommended`。
 
         排序後再做賣家分散：任意連續 10 本中同一賣家至多 2 本，超出的書往後遞延。
         帶入 Bearer Token 時排除請求者自己上架的書。本端點不要求登入，Token 無效時視同未登入。
@@ -175,6 +179,59 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/books/recommended:
+    get:
+      summary: 取得個人推薦書籍
+      operationId: listRecommendedBooks
+      tags: [books]
+      description: |
+        首頁「為您推薦」使用。依請求者的收藏、購買、購物車，以及 `viewed_ids` 帶入的最近瀏覽書籍，
+        統計偏好的分類與作者，從中挑選其他在架書籍。
+
+        | 訊號 | 權重 |
+        | --- | --- |
+        | 購買 | 3 |
+        | 收藏 | 2 |
+        | 購物車 | 1 |
+        | 最近瀏覽 | 1 |
+
+        候選書籍須同時符合：
+
+        1. 狀態為 `on_sale` 且 `is_approved` 為 true。
+        2. 分類屬於偏好分類，或作者屬於偏好作者。
+        3. 不是請求者自己上架的書，也不是上述訊號中已收藏、購買、加入購物車或瀏覽過的書。
+
+        分數以 `sort=popular` 的熱門分數為基礎，再乘上分類比重與作者比重，並套用相同的賣家分散規則。
+
+        沒有任何訊號時（新使用者、未登入且未帶入 `viewed_ids`）回傳空陣列，
+        由用戶端改為顯示熱門書籍，不以熱門排序結果補位。
+
+        不要求登入，Token 無效時視同未登入，僅依 `viewed_ids` 推薦。結果不快取，收藏或加入購物車後重新整理即反映。
+      security: []
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 30, default: 12 }
+          description: 回傳筆數上限。
+        - in: query
+          name: viewed_ids
+          schema: { type: string }
+          description: 最近瀏覽的書籍編號，多筆以半形逗號分隔，最多採計 20 筆。
+          example: 42,17,8
+      responses:
+        '200':
+          description: 成功。依推薦分數排序，不分頁。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Book' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/books/share/{token}:
     get:
       summary: 以分享權杖取得書籍
@@ -182,7 +239,7 @@ paths:
       tags: [books]
       description: |
         App 開啟 `https://<host>/b/<token>` 或 `savemybook://b/<token>` 時，以權杖換取書籍資料，
-        回應格式與 `GET /api/books/{id}` 相同。已下架的書籍回傳 404。不需登入。
+        回應格式與 `GET /api/books/{id}` 相同。已下架或 `is_approved` 為 false 的書籍回傳 404。不需登入。
       parameters:
         - in: path
           name: token
@@ -273,6 +330,8 @@ paths:
         不阻塞回應，因此回傳的 `view_count` 為遞增前的數值。
 
         書籍正由買家透過聊天室預約保留時，`reservation` 帶保留期限；否則為 null。
+
+        `is_approved` 為 false 的書籍僅賣家本人可查詢，其他請求者回傳 404。
       security: []
       responses:
         '200':
@@ -305,9 +364,10 @@ paths:
       description: |
         僅能異動自身上架的書籍，管理員不受此限。採部分更新，僅須帶入欲異動的欄位。
 
-        書籍若因檢舉成立而下架（`is_approved` 為 false），將 `status` 改為
-        `on_sale` 的請求會被拒絕，回傳 403 並帶 `code: BOOK_NOT_APPROVED`，
-        僅管理員可解除該限制。
+        書籍若因檢舉成立而下架（`is_approved` 為 false），或有任一檢舉審核結果為 `resolved`，
+        將狀態非 `on_sale` 的書籍改為 `on_sale` 的請求會被拒絕，回傳 403 並帶
+        `code: BOOK_NOT_APPROVED`。管理員不受此限，且管理員將 `status` 設為 `on_sale` 時
+        會一併將 `is_approved` 設為 true。
 
         照片不透過此端點處理，請使用 `POST /api/books/{id}/images` 與
         `DELETE /api/books/{id}/images/{imageId}`。
@@ -362,7 +422,7 @@ paths:
                 他人的書:
                   value: { success: false, message: 存取被拒，您無權限修改他人的商品 }
                 違規下架:
-                  value: { success: false, code: BOOK_NOT_APPROVED, message: 這本書因違規被下架，無法自行重新上架，請聯絡客服 }
+                  value: { success: false, code: BOOK_NOT_APPROVED, message: 此書籍因違規遭下架，無法自行重新上架，請聯絡客服 }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 

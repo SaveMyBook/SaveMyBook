@@ -8,6 +8,7 @@ const { notify } = require('../services/notify');
 const chat = require('../services/chat');
 const reservations = require('../services/reservations');
 const controls = require('../services/chat-controls');
+const { hasColumn } = require('../lib/schema-check');
 
 const router = express.Router();
 
@@ -27,6 +28,28 @@ const sendLimiter = rateLimit({
 const typingLimiter = rateLimit({ windowMs: 60 * 1000, max: 40, key: byUser });
 
 const typing = new Map();
+
+const replySupported = () => hasColumn('chat_messages', 'reply_to_id');
+
+const repliesFor = async (messages) => {
+  if (messages.length === 0 || !(await replySupported())) return new Map();
+  const ids = messages.map((m) => m.message_id);
+  const links = await prisma.$queryRawUnsafe(
+    `SELECT message_id, reply_to_id FROM chat_messages WHERE reply_to_id IS NOT NULL AND message_id IN (${ids.map(() => '?').join(',')})`,
+    ...ids
+  );
+  if (links.length === 0) return new Map();
+
+  const targets = await prisma.chat_messages.findMany({
+    where: { message_id: { in: [...new Set(links.map((l) => Number(l.reply_to_id)))] } },
+    include: { users: { select: userSelect } }
+  });
+  const byId = new Map(targets.map((t) => [t.message_id, t]));
+  return new Map(links.map((l) => {
+    const target = byId.get(Number(l.reply_to_id));
+    return [Number(l.message_id), target ? chat.replyPreview(target) : { message_id: Number(l.reply_to_id), kind: 'deleted', preview: '' }];
+  }));
+};
 
 const partnerOf = (room, myId) => (room.user_a_id === myId
   ? room.users_chat_rooms_user_b_idTousers
@@ -219,7 +242,7 @@ router.get('/rooms/:roomId/messages', async (req, res) => {
 
   const recentCutoff = new Date(Date.now() - 10 * 60 * 1000);
   const markRead = req.query.mark_read !== 'false';
-  const [, lastRead, recalled, reservationMap, relation, muted, partnerStatus] = await Promise.all([
+  const [, lastRead, recalled, reservationMap, relation, muted, partnerStatus, replies] = await Promise.all([
     markRead
       ? prisma.chat_messages.updateMany({
           where: { room_id: roomId, sender_id: { not: myId }, is_read: false },
@@ -240,7 +263,8 @@ router.get('/rooms/:roomId/messages', async (req, res) => {
     reservations.forUsers(myId, partnerId),
     controls.relation(myId, partnerId),
     controls.mutedRoomIds(myId),
-    prisma.users.findUnique({ where: { user_id: partnerId }, select: { is_active: true, is_blacklisted: true } })
+    prisma.users.findUnique({ where: { user_id: partnerId }, select: { is_active: true, is_blacklisted: true } }),
+    repliesFor(messages)
   ]);
   const partnerReachable = Boolean(partnerStatus?.is_active && !partnerStatus.is_blacklisted);
 
@@ -258,7 +282,10 @@ router.get('/rooms/:roomId/messages', async (req, res) => {
       has_more: afterId == null && messages.length === limit,
       reservations: [...reservationMap.values()]
     },
-    data: messages.map((m) => chat.shapeMessage(m, { reservations: reservationMap }))
+    data: messages.map((m) => ({
+      ...chat.shapeMessage(m, { reservations: reservationMap }),
+      reply_to: replies.get(m.message_id) ?? null
+    }))
   });
 });
 
@@ -293,6 +320,7 @@ router.post('/rooms/:roomId/messages', sendLimiter, async (req, res) => {
   const roomId = v.id(req.params.roomId, '聊天室編號');
   const myId = req.user.userId;
   const { messageType, content, preview } = buildContent(req.body);
+  const replyToId = v.optionalId(req.body.reply_to_id, '回覆的訊息編號');
 
   const room = await findMyRoom(roomId, myId);
   const partner = await prisma.users.findUnique({
@@ -304,18 +332,26 @@ router.post('/rooms/:roomId/messages', sendLimiter, async (req, res) => {
 
   const me = await prisma.users.findUnique({ where: { user_id: myId }, select: { nickname: true } });
 
+  const replyTarget = replyToId && (await replySupported())
+    ? await prisma.chat_messages.findUnique({ where: { message_id: replyToId }, include: { users: { select: userSelect } } })
+    : null;
+  if (replyToId && (await replySupported()) && replyTarget?.room_id !== roomId) throw badRequest('找不到要回覆的訊息');
+
   const message = await prisma.$transaction(async (tx) => {
     const created = await tx.chat_messages.create({
       data: { room_id: roomId, sender_id: myId, content, message_type: messageType },
       include: { users: { select: userSelect } }
     });
+    if (replyTarget) {
+      await tx.$executeRaw`UPDATE chat_messages SET reply_to_id = ${replyTarget.message_id} WHERE message_id = ${created.message_id}`;
+    }
 
     await tx.chat_rooms.update({ where: { room_id: roomId }, data: { updated_at: new Date() } });
 
     await notify(tx, {
       userId: partnerIdOf(room, myId),
       type: 'message',
-      title: me?.nickname ? `${me.nickname} 傳來訊息` : '您有一則新訊息',
+      title: me?.nickname || '新訊息',
       content: preview,
       relatedId: roomId,
       relatedType: 'chat_room'
@@ -325,7 +361,10 @@ router.post('/rooms/:roomId/messages', sendLimiter, async (req, res) => {
   });
 
   typing.delete(typingKey(roomId, myId));
-  res.status(201).json({ success: true, data: chat.shapeMessage(message) });
+  res.status(201).json({
+    success: true,
+    data: { ...chat.shapeMessage(message), reply_to: replyTarget ? chat.replyPreview(replyTarget) : null }
+  });
 });
 
 router.post('/rooms/:roomId/typing', typingLimiter, async (req, res) => {

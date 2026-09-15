@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="smb_widget_name">수령 및 메시지</string>
-    <string name="smb_widget_description">수령 코드, 보관 대기, 읽지 않은 메시지와 코인을 한눈에</string>
+    <string name="smb_widget_description">수령 대기, 보관 대기, 읽지 않은 메시지와 코인을 한눈에</string>
     <string name="smb_widget_signed_out">로그인하여 보기</string>
     <string name="smb_widget_pickup">수령 대기</string>
     <string name="smb_widget_deposit">보관 대기</string>
     <string name="smb_widget_unread">안 읽음</string>
     <string name="smb_widget_coins">코인</string>
     <string name="smb_widget_updated">%1$s 업데이트</string>
-    <string name="smb_widget_pickup_code">수령 코드 %1$s</string>
     <string name="smb_widget_no_pickup">수령 대기 중인 책이 없습니다</string>
 </resources>

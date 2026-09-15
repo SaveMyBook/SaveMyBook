@@ -103,24 +103,17 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
                         else
                           SliverPadding(
                             padding: const EdgeInsets.all(16),
-                            sliver: SliverGrid(
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 0.55,
-                              ),
-                              delegate: SliverChildBuilderDelegate(
-                                (_, i) => RevealOnScroll(
-                                  index: i,
-                                  child: OrderCard(
-                                    order: _orders[i],
-                                    onTap: () => _openDetail(_orders[i]),
-                                    actionLabel: _orders[i].isCancellable ? S.cancelOrder : null,
-                                    onAction: () => _cancel(_orders[i]),
-                                  ),
+                            sliver: SaleCardGrid.sliver(
+                              itemCount: _orders.length,
+                              itemBuilder: (_, i) => RevealOnScroll(
+                                index: i,
+                                child: OrderCard(
+                                  order: _orders[i],
+                                  asSeller: true,
+                                  onTap: () => _openDetail(_orders[i]),
+                                  actionLabel: _orders[i].isCancellable ? S.cancelOrder : null,
+                                  onAction: () => _cancel(_orders[i]),
                                 ),
-                                childCount: _orders.length,
                               ),
                             ),
                           ),

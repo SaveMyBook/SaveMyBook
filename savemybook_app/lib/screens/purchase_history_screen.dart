@@ -4,10 +4,8 @@ import '../models/order.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/animations.dart';
-import '../widgets/app_buttons.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
-import '../widgets/buyer/pickup_code_card.dart';
 import '../widgets/order_card.dart';
 import '../widgets/state_views.dart';
 import 'order_detail_screen.dart';
@@ -101,72 +99,16 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> with Sing
     }
   }
 
-  Future<void> _pickup(Order order) async {
-    final c = AppColors.of(context);
-    final code = order.pickupCode;
-    final collectable = canCollectOrder(order);
-
-    final confirmed = await showModalBottomSheet<bool>(
-      context: context,
-      backgroundColor: c.sheetBg,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                S.pickupCode2,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
-              ),
-              const SizedBox(height: 14),
-              if (code == null || code.isEmpty)
-                Text(S.notGeneratedYet, style: TextStyle(fontSize: 14, color: c.textSecondary))
-              else
-                PickupCodeCard(
-                  code: code,
-                  slotNumber: order.slotNumber,
-                  caption: order.cabinetName.isEmpty ? S.enterCodeLockerCollect : S.enterCodeCollect(order.cabinetName),
-                ),
-              if (!collectable) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(Icons.info_outline_rounded, size: 16, color: c.warning),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        S.sellerHasnTPutBookLocker,
-                        style: TextStyle(fontSize: 12, color: c.textSecondary),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: 18),
-              PrimaryButton(
-                label: S.iCollected,
-                icon: Icons.check_rounded,
-                onPressed: collectable ? () => Navigator.pop(ctx, true) : null,
-              ),
-              const SizedBox(height: 4),
-              Center(
-                child: TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  style: TextButton.styleFrom(foregroundColor: c.textSecondary),
-                  child: Text(S.actionClose),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  Future<void> _confirmPickup(Order order) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: S.iCollected,
+      message: S.confirmVeTakenBookFromLocker,
+      confirmLabel: S.confirm,
+      icon: Icons.inventory_2_outlined,
     );
 
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     final error = await runBusy(context, () => _api.updateOrderStatus(order.orderId, 'completed'));
     if (!mounted) return;
@@ -239,15 +181,8 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> with Sing
                                     EmptyView(icon: Icons.receipt_long_outlined, message: S.noOrdersTab),
                                   ],
                                 )
-                              : GridView.builder(
-                                  physics: const AlwaysScrollableScrollPhysics(),
+                              : SaleCardGrid(
                                   padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + 16),
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
-                                    childAspectRatio: tab == 'pending_pickup' ? 0.5 : 0.55,
-                                  ),
                                   itemCount: orders.length,
                                   itemBuilder: (_, i) => RevealOnScroll(
                                     key: ValueKey(orders[i].orderId),
@@ -268,13 +203,13 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> with Sing
   Widget _buildCard(String tab, Order order) {
     switch (tab) {
       case 'pending_pickup':
+        final collectable = canCollectOrder(order);
         return OrderCard(
           order: order,
           onTap: () => _openDetail(order),
           showPickupWindow: true,
-          actionLabel: order.isCancellable ? S.cancelOrder : null,
-          onAction: () => _cancelOrder(order),
-          onShowQr: () => _pickup(order),
+          actionLabel: collectable ? S.iCollected : (order.isCancellable ? S.cancelOrder : null),
+          onAction: () => collectable ? _confirmPickup(order) : _cancelOrder(order),
         );
       case 'completed':
         return OrderCard(

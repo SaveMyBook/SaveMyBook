@@ -70,15 +70,12 @@ class HomeWidgetService {
       if (generation != _generation || ApiService.authToken == null) return;
 
       final ready = buying.where((o) => _readyStatuses.contains(o.status)).toList();
-      final first = ready.isEmpty
-          ? null
-          : ready.firstWhere((o) => (o.pickupCode ?? '').isNotEmpty, orElse: () => ready.first);
+      final first = ready.isEmpty ? null : ready.first;
 
       await _write(
         signedIn: true,
         pickupCount: ready.length,
         pickupCabinet: first?.cabinetName ?? '',
-        pickupCode: first?.pickupCode ?? '',
         depositCount: selling.where((o) => o.status == 'pending_deposit').length,
         unreadChat: unread,
         coins: wallet.balance.toStringAsFixed(0),
@@ -108,7 +105,6 @@ class HomeWidgetService {
     required bool signedIn,
     int pickupCount = 0,
     String pickupCabinet = '',
-    String pickupCode = '',
     int depositCount = 0,
     int unreadChat = 0,
     String coins = '',
@@ -119,7 +115,6 @@ class HomeWidgetService {
       'smb_signed_in': signedIn ? '1' : '0',
       'smb_pickup_count': '$pickupCount',
       'smb_pickup_cabinet': pickupCabinet,
-      'smb_pickup_code': pickupCode,
       'smb_deposit_count': '$depositCount',
       'smb_unread_chat': '$unreadChat',
       'smb_coins': coins,

@@ -79,4 +79,11 @@ UNION ALL
 SELECT '資料表', 'user_blocks',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_blocks';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_blocks'
+
+UNION ALL
+
+SELECT '欄位', 'chat_messages.reply_to_id',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_messages' AND COLUMN_NAME = 'reply_to_id';

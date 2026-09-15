@@ -1,4 +1,4 @@
--- 008: 聊天室靜音、封鎖使用者
+-- 008: 聊天室靜音、封鎖使用者、回覆訊息
 --   mysql -u <帳號> -p <資料庫名稱> < migrations/008_chat_mute_block.sql
 -- 可重複執行；不需要 prisma db pull。
 
@@ -21,3 +21,10 @@ CREATE TABLE IF NOT EXISTS user_blocks (
   CONSTRAINT fk_block_blocker FOREIGN KEY (blocker_id) REFERENCES users (user_id) ON DELETE CASCADE,
   CONSTRAINT fk_block_blocked FOREIGN KEY (blocked_id) REFERENCES users (user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_messages' AND COLUMN_NAME = 'reply_to_id') = 0,
+  'ALTER TABLE chat_messages ADD COLUMN reply_to_id INT UNSIGNED NULL DEFAULT NULL, ADD KEY idx_msg_reply (reply_to_id)',
+  'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

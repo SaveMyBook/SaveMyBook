@@ -55,11 +55,11 @@ router.post('/', async (req, res) => {
 
   const book = await prisma.books.findUnique({
     where: { book_id: bookId },
-    select: { book_id: true, title: true, seller_id: true, status: true, quantity: true }
+    select: { book_id: true, title: true, seller_id: true, status: true, is_approved: true, quantity: true }
   });
   if (!book) throw notFound('找不到該書籍');
   if (book.seller_id === req.user.userId) throw badRequest('無法將自己上架的書籍加入購物車');
-  if (book.status !== 'on_sale') throw badRequest('此書籍目前無法購買');
+  if (book.status !== 'on_sale' || !book.is_approved) throw badRequest('此書籍目前無法購買');
   await reservations.assertNotHeldByOthers(null, [book], req.user.userId);
 
   const existing = await prisma.shopping_cart.findUnique({

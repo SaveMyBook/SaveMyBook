@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +6,6 @@ import '../../i18n/strings.dart';
 import '../../models/chat.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
-import '../app_tiles.dart';
 import '../state_views.dart';
 import 'chat_format.dart';
 
@@ -16,6 +14,7 @@ enum ReservationAction { accept, decline, cancel, buy }
 class ReservationCardView extends StatelessWidget {
   final ChatReservation reservation;
   final int myId;
+  final bool isMine;
   final bool busy;
   final ValueChanged<ReservationAction> onAction;
   final VoidCallback? onOpenBook;
@@ -25,6 +24,7 @@ class ReservationCardView extends StatelessWidget {
     required this.reservation,
     required this.myId,
     required this.onAction,
+    this.isMine = false,
     this.busy = false,
     this.onOpenBook,
   });
@@ -43,13 +43,14 @@ class ReservationCardView extends StatelessWidget {
     if (r.status == 'confirmed') {
       final deadline = r.pickupDeadline;
       if (r.isHolding && deadline != null) {
-        final label = chatDeadline(deadline);
-        return (S.heldUntilP0(label), c.success, Icons.lock_clock_rounded);
+        return (S.heldUntilP0(chatDeadline(deadline)), c.success, Icons.lock_clock_rounded);
       }
       return (S.expired, c.neutral, Icons.hourglass_disabled_rounded);
     }
     if (r.status == 'cancelled') {
-      if (r.closedAction == 'decline' || (r.closedAction == null && r.closedBy == 'seller' && r.pickupDeadline == null)) return (S.declined2, c.danger, Icons.block_rounded);
+      if (r.closedAction == 'decline' || (r.closedAction == null && r.closedBy == 'seller' && r.pickupDeadline == null)) {
+        return (S.declined2, c.danger, Icons.block_rounded);
+      }
       return (S.orderCancelled, c.neutral, Icons.cancel_outlined);
     }
     if (r.status == 'expired') return (S.expired, c.neutral, Icons.hourglass_disabled_rounded);
@@ -63,8 +64,7 @@ class ReservationCardView extends StatelessWidget {
     final isSeller = r.sellerId == myId;
     final isBuyer = r.buyerId == myId;
     final (label, tint, icon) = _status(c);
-    final active = (r.isPending && !_pendingExpired) || r.isConfirmed;
-    final width = MediaQuery.sizeOf(context).width;
+    final note = r.message?.trim() ?? '';
 
     final actions = <Widget>[];
     if (!_pendingExpired && r.isPending && isSeller) {
@@ -79,157 +79,157 @@ class ReservationCardView extends StatelessWidget {
       }
     }
 
-    final heading = isSeller ? S.theyWantReserveBook : S.sentReservationRequest;
-    final hoursText = S.holdP0H(r.hours);
-    final note = r.message?.trim() ?? '';
+    const big = Radius.circular(18);
+    const small = Radius.circular(6);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: math.min(width * 0.86, 380)),
-          child: AnimatedContainer(
-            duration: Motion.base,
-            curve: Motion.standard,
-            decoration: BoxDecoration(
-              color: c.card,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: active ? tint.withValues(alpha: 0.45) : c.border, width: active ? 1.2 : 1),
-              boxShadow: [
-                BoxShadow(color: c.shadow.withValues(alpha: c.isDark ? 0.25 : 0.06), blurRadius: 14, offset: const Offset(0, 4)),
+    return AnimatedContainer(
+      duration: Motion.base,
+      curve: Motion.standard,
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.only(
+          topLeft: big,
+          topRight: big,
+          bottomLeft: isMine ? big : small,
+          bottomRight: isMine ? small : big,
+        ),
+        border: Border.all(color: c.border),
+        boxShadow: c.isDark
+            ? null
+            : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.event_available_rounded, size: 16, color: c.accent),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    isSeller ? S.theyWantReserveBook : S.sentReservationRequest,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: c.textPrimary),
+                  ),
+                ),
               ],
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
-                  decoration: BoxDecoration(
-                    color: tint.withValues(alpha: c.isDark ? 0.14 : 0.08),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(19)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.event_available_rounded, size: 16, color: c.textSecondary),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          heading,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: c.textSecondary),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: AnimatedSwitcher(
-                          duration: Motion.base,
-                          child: Row(
-                            key: ValueKey(label),
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(icon, size: 13, color: tint),
-                              const SizedBox(width: 3),
-                              Flexible(child: StatusBadge(label: label, color: tint)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+            const SizedBox(height: 8),
+            AnimatedSwitcher(
+              duration: Motion.base,
+              child: Container(
+                key: ValueKey(label),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: tint.withValues(alpha: c.isDark ? 0.2 : 0.12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                InkWell(
-                  onTap: onOpenBook,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-                    child: Row(
-                      children: [
-                        BookThumbnail(imageUrl: r.bookImageUrl, width: 50, height: 68, radius: 10),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                r.bookTitle,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.3),
-                              ),
-                              const SizedBox(height: 4),
-                              Wrap(
-                                spacing: 8,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  Text(
-                                    '\$${r.bookPrice.toStringAsFixed(0)}',
-                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: c.accent),
-                                  ),
-                                  if (r.hours > 0)
-                                    Text(hoursText, style: TextStyle(fontSize: 12, color: c.textSecondary)),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, size: 14, color: tint),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: tint)),
                     ),
-                  ),
+                  ],
                 ),
-                if (note.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      decoration: BoxDecoration(color: c.inputFill, borderRadius: BorderRadius.circular(12)),
-                      child: Row(
+              ),
+            ),
+            const SizedBox(height: 10),
+            InkWell(
+              onTap: onOpenBook,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: c.inputFill, borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
+                    BookThumbnail(imageUrl: r.bookImageUrl, width: 44, height: 60, radius: 8),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.format_quote_rounded, size: 14, color: c.textHint),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              note,
-                              style: TextStyle(fontSize: 12.5, color: c.textSecondary, height: 1.45),
-                            ),
+                          Text(
+                            r.bookTitle,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: c.textPrimary, height: 1.3),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '\$${r.bookPrice.toStringAsFixed(0)}',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: c.accent),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                AnimatedSize(
-                  duration: Motion.base,
-                  curve: Motion.standard,
-                  child: actions.isEmpty
-                      ? const SizedBox(width: double.infinity)
-                      : Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                          child: busy
-                              ? SizedBox(
-                                  height: 40,
-                                  child: Center(
-                                    child: SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2.2, color: c.accent),
-                                    ),
-                                  ),
-                                )
-                              : Row(
-                                  children: [
-                                    for (var i = 0; i < actions.length; i++) ...[
-                                      if (i > 0) const SizedBox(width: 8),
-                                      Expanded(child: actions[i]),
-                                    ],
-                                  ],
-                                ),
-                        ),
+                    Icon(Icons.chevron_right_rounded, size: 18, color: c.iconInactive),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+            if (r.hours > 0) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.timer_outlined, size: 14, color: c.textHint),
+                  const SizedBox(width: 4),
+                  Text(S.holdP0H(r.hours), style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                ],
+              ),
+            ],
+            if (note.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: Icon(Icons.notes_rounded, size: 14, color: c.textHint),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(note, style: TextStyle(fontSize: 12.5, color: c.textSecondary, height: 1.45)),
+                  ),
+                ],
+              ),
+            ],
+            AnimatedSize(
+              duration: Motion.base,
+              curve: Motion.standard,
+              child: actions.isEmpty
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: busy
+                          ? SizedBox(
+                              height: 40,
+                              child: Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2.2, color: c.accent),
+                                ),
+                              ),
+                            )
+                          : Row(
+                              children: [
+                                for (var i = 0; i < actions.length; i++) ...[
+                                  if (i > 0) const SizedBox(width: 8),
+                                  Expanded(child: actions[i]),
+                                ],
+                              ],
+                            ),
+                    ),
+            ),
+          ],
         ),
       ),
     );

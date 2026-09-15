@@ -184,6 +184,44 @@ class ChatReservation {
   }
 }
 
+class ChatReply {
+  final int messageId;
+  final int senderId;
+  final String senderName;
+  final String kind;
+  final String preview;
+  final String? imageUrl;
+
+  const ChatReply({
+    required this.messageId,
+    required this.senderId,
+    required this.senderName,
+    required this.kind,
+    required this.preview,
+    this.imageUrl,
+  });
+
+  bool get isUnavailable => kind == 'recalled' || kind == 'deleted';
+
+  factory ChatReply.fromJson(Map<String, dynamic> json) => ChatReply(
+        messageId: parseInt(json['message_id']),
+        senderId: parseInt(json['sender_id']),
+        senderName: json['sender_nickname'] as String? ?? '',
+        kind: json['kind'] as String? ?? 'text',
+        preview: json['preview'] as String? ?? '',
+        imageUrl: resolveAssetUrl(json['image_url']),
+      );
+
+  factory ChatReply.of(ChatMessage message, {required String senderName}) => ChatReply(
+        messageId: message.messageId,
+        senderId: message.senderId,
+        senderName: senderName,
+        kind: message.kind,
+        preview: message.preview,
+        imageUrl: message.imageUrl,
+      );
+}
+
 class ChatMessage {
   final int messageId;
   final int senderId;
@@ -194,6 +232,7 @@ class ChatMessage {
   final Map<String, dynamic>? payload;
   final bool isRead;
   final DateTime? createdAt;
+  final ChatReply? replyTo;
 
   ChatMessage({
     required this.messageId,
@@ -205,6 +244,7 @@ class ChatMessage {
     this.payload,
     this.isRead = false,
     this.createdAt,
+    this.replyTo,
   }) : kind = kind ?? _legacyKind(messageType, content);
 
   static String _legacyKind(String type, String content) {
@@ -258,6 +298,7 @@ class ChatMessage {
         payload: payload ?? this.payload,
         isRead: isRead ?? this.isRead,
         createdAt: createdAt,
+        replyTo: replyTo,
       );
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -272,6 +313,7 @@ class ChatMessage {
       payload: payload is Map ? Map<String, dynamic>.from(payload) : null,
       isRead: json['is_read'] == true,
       createdAt: parseDate(json['created_at']),
+      replyTo: json['reply_to'] is Map ? ChatReply.fromJson(Map<String, dynamic>.from(json['reply_to'])) : null,
     );
   }
 }

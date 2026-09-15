@@ -2642,5 +2642,19 @@
   "block": "封鎖",
   "userBlocked": "已封鎖此使用者",
   "moreOptions": "更多選項",
-  "blockedUser": "您已封鎖此使用者"
+  "blockedUser": "您已封鎖此使用者",
+  "originalMessageNotFound": "找不到原訊息",
+  "you2": "您",
+  "viewProfile": "查看個人檔案",
+  "reply": "回覆",
+  "bookLockerScanQrCodeLocker": "書籍已存入書櫃，請至書櫃掃描機台上的 QR Code 取書",
+  "originalMessageUnavailable": "原訊息已無法顯示",
+  "replyingP0": "回覆 {p0}",
+  "@replyingP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelReply": "取消回覆",
+  "unreadMessages": "以下為未讀訊息"
 }

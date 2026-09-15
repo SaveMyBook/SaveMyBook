@@ -2642,5 +2642,19 @@
   "block": "Block",
   "userBlocked": "User blocked",
   "moreOptions": "More options",
-  "blockedUser": "You have blocked this user"
+  "blockedUser": "You have blocked this user",
+  "originalMessageNotFound": "Original message not found",
+  "you2": "You",
+  "viewProfile": "View profile",
+  "reply": "Reply",
+  "bookLockerScanQrCodeLocker": "The book is in the locker. Scan the QR code on the locker to collect it.",
+  "originalMessageUnavailable": "Original message unavailable",
+  "replyingP0": "Replying to {p0}",
+  "@replyingP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelReply": "Cancel reply",
+  "unreadMessages": "Unread messages"
 }

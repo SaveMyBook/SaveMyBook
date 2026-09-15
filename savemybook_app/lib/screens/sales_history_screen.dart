@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../models/book.dart';
 import '../models/order.dart';
 import '../services/api_service.dart';
 import '../utils/app_colors.dart';
@@ -8,6 +9,7 @@ import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/order_card.dart';
 import '../widgets/state_views.dart';
+import 'book_detail_screen.dart';
 import 'order_detail_screen.dart';
 import '../i18n/strings.dart';
 
@@ -31,7 +33,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
 
   final ApiService _api = ApiService();
   late final TabController _tabController;
-  final Map<String, List<Order>> _cache = {};
+  final Map<String, List<Object>> _cache = {};
   final Map<String, int> _requestIds = {};
   bool _busy = false;
   int _lastIndex = 0;
@@ -63,18 +65,23 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
     final tab = _currentTab;
     final requestId = (_requestIds[tab] ?? 0) + 1;
     _requestIds[tab] = requestId;
-    final orders = await _api.fetchOrders(role: 'seller', tab: tab);
+    final List<Object> items;
+    if (tab == 'on_sale') {
+      final (orders, books) = await (
+        _api.fetchOrders(role: 'seller', tab: tab),
+        _api.fetchMyBooks(),
+      ).wait;
+      items = [
+        ...books.where((b) => b.status == 'on_sale' || b.status == 'reserved'),
+        ...orders,
+      ];
+    } else {
+      items = await _api.fetchOrders(role: 'seller', tab: tab);
+    }
     if (!mounted || _requestIds[tab] != requestId) return;
     setState(() {
-      _cache[tab] = orders;
+      _cache[tab] = items;
     });
-  }
-
-  Future<void> _copy(String label, String value) async {
-    await Clipboard.setData(ClipboardData(text: value));
-    if (!mounted) return;
-    HapticFeedback.selectionClick();
-    showAppSnackBar(context, S.copied(label));
   }
 
   Future<void> _markDeposited(Order order) async {
@@ -98,6 +105,31 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
       showAppSnackBar(context, S.markedAsDroppedOff);
       _load();
     }
+  }
+
+  Future<void> _delist(Book book) async {
+    if (_busy) return;
+    final confirmed = await showConfirmDialog(
+      context,
+      title: S.delist,
+      message: S.removedFromShopBuyersNoLonger(book.title),
+      confirmLabel: S.delist2,
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    _busy = true;
+    final ok = await runBusy(context, () => _api.removeBook(book.bookId));
+    _busy = false;
+    if (!mounted) return;
+
+    if (ok != true) {
+      showAppSnackBar(context, S.couldNotDelistPleaseTryAgain, isError: true);
+    } else {
+      HapticFeedback.lightImpact();
+      showAppSnackBar(context, S.p0Delisted(book.title));
+    }
+    _load();
   }
 
   Future<void> _cancelOrder(Order order) async {
@@ -125,92 +157,10 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
     }
   }
 
-  void _showPickupCode(Order order) {
-    final c = AppColors.of(context);
-    final code = order.pickupCode;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: c.card,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(S.dropOffPickupCode, style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            PressableScale(
-              onTap: code == null ? null : () => _copy(S.dropOffPickupCode, code),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                decoration: BoxDecoration(
-                  color: c.accent.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Column(
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        code ?? S.notGeneratedYet,
-                        style: TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: c.accent, letterSpacing: 4),
-                      ),
-                    ),
-                    if (code != null) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.copy_rounded, size: 13, color: c.textHint),
-                          const SizedBox(width: 4),
-                          Text(S.copy, style: TextStyle(fontSize: 12, color: c.textHint)),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(S.enterCodeLocker, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: c.textSecondary)),
-            const SizedBox(height: 12),
-            InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: () => _copy(S.orderNumber, order.orderNo),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                child: Row(
-                  children: [
-                    Text(S.orderNumber, style: TextStyle(fontSize: 12, color: c.textHint)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        order.orderNo,
-                        textAlign: TextAlign.right,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Icon(Icons.copy_rounded, size: 13, color: c.iconInactive),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.actionClose)),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final orders = _cache[_currentTab];
+    final items = _cache[_currentTab];
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -228,9 +178,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
             child: SwipeTabs(
               controller: _tabController,
               child: SwitchIn(
-                child: orders == null
+                child: items == null
                     ? LoadingView.grid(key: ValueKey('loading_$_currentTab'))
-                    : orders.isEmpty
+                    : items.isEmpty
                         ? RefreshableCenter(
                             key: ValueKey('empty_$_currentTab'),
                             onRefresh: _load,
@@ -240,17 +190,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                             key: ValueKey('list_$_currentTab'),
                             color: c.accent,
                             onRefresh: _load,
-                            child: GridView.builder(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.all(16),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 0.55,
-                              ),
-                              itemCount: orders.length,
-                              itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(orders[i])),
+                            child: SaleCardGrid(
+                              itemCount: items.length,
+                              itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(items[i])),
                             ),
                           ),
               ),
@@ -269,28 +211,41 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
     _load();
   }
 
-  Widget _buildCard(Order order) {
+  Future<void> _openBook(Book book) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)));
+    _load();
+  }
+
+  Widget _buildCard(Object item) {
+    if (item is Book) {
+      return ListingCard(
+        book: item,
+        onTap: () => _openBook(item),
+        actionLabel: S.delist,
+        onAction: () => _delist(item),
+      );
+    }
+    final order = item as Order;
     switch (_currentTab) {
       case 'pending_deposit':
         return OrderCard(
           order: order,
+          asSeller: true,
           onTap: () => _openDetail(order),
           showPickupWindow: true,
-          onShowQr: () => _showPickupCode(order),
           actionLabel: S.markAsDroppedOff,
           onAction: () => _markDeposited(order),
         );
       case 'on_sale':
         return OrderCard(
           order: order,
+          asSeller: true,
           onTap: () => _openDetail(order),
-          showPickupWindow: true,
-          onShowQr: () => _showPickupCode(order),
           actionLabel: order.isCancellable ? S.cancelOrder : null,
           onAction: () => _cancelOrder(order),
         );
       default:
-        return OrderCard(order: order, onTap: () => _openDetail(order));
+        return OrderCard(order: order, asSeller: true, onTap: () => _openDetail(order));
     }
   }
 }

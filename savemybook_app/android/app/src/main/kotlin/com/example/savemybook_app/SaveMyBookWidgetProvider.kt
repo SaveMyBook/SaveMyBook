@@ -25,15 +25,11 @@ class SaveMyBookWidgetProvider : HomeWidgetProvider() {
         val depositCount = read(widgetData, "smb_deposit_count").toIntOrNull() ?: 0
         val unreadCount = read(widgetData, "smb_unread_chat").toIntOrNull() ?: 0
         val coins = read(widgetData, "smb_coins").ifEmpty { "0" }
-        val pickupCode = read(widgetData, "smb_pickup_code")
         val pickupCabinet = read(widgetData, "smb_pickup_cabinet")
         val updatedAt = read(widgetData, "smb_updated_at")
 
         val detail = when {
             pickupCount == 0 -> text.getString(R.string.smb_widget_no_pickup)
-            pickupCode.isNotEmpty() && pickupCabinet.isNotEmpty() ->
-                text.getString(R.string.smb_widget_pickup_code, pickupCode) + " · " + pickupCabinet
-            pickupCode.isNotEmpty() -> text.getString(R.string.smb_widget_pickup_code, pickupCode)
             pickupCabinet.isNotEmpty() -> pickupCabinet
             else -> text.getString(R.string.smb_widget_pickup)
         }

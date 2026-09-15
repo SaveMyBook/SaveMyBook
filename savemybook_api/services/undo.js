@@ -78,9 +78,14 @@ const checkStep = async (tx, step) => {
       return Object.keys(step.before).length === 0 && spec.creatable ? null : '資料已不存在';
     }
     const changed = Object.keys(step.after).filter((f) => !sameValue(current[f], step.after[f]));
-    return changed.length
-      ? `之後曾再次修改（${changed.map((f) => `${step.labels?.[f] ?? f}目前是 ${display(current[f])}`).join('、')}）`
-      : null;
+    if (changed.length) {
+      return `之後曾再次修改（${changed.map((f) => `${step.labels?.[f] ?? f}目前是 ${display(current[f])}`).join('、')}）`;
+    }
+    if (step.model === 'books' && step.before.status === 'on_sale' && current.is_approved === false
+      && step.before.is_approved !== true) {
+      return '已因違規下架';
+    }
+    return null;
   }
 
   if (step.op === 'delete') {

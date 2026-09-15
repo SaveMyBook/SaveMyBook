@@ -6,7 +6,7 @@ const port = process.env.PORT || 3000;
 const docsDir = path.join(__dirname, '../docs');
 
 const description = `
-SaveMyBook 為結合智慧書櫃的二手書交易平台。賣家將書籍存入書櫃，買家憑取貨碼取件，
+SaveMyBook 為結合智慧書櫃的二手書交易平台。賣家將書籍存入書櫃，買家至書櫃掃描機台上的 QR Code 取件，
 雙方無須當面交付，金流以站內代幣結算。
 
 本文件涵蓋行動應用程式與管理後台所使用的全部端點。
