@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="smb_widget_name">Pickups &amp; messages</string>
-    <string name="smb_widget_description">Pickup codes, drop-offs, unread messages and coins at a glance</string>
+    <string name="smb_widget_description">Pickups, drop-offs, unread messages and coins at a glance</string>
     <string name="smb_widget_signed_out">Sign in to view</string>
     <string name="smb_widget_pickup">Pickup</string>
     <string name="smb_widget_deposit">Drop-off</string>
     <string name="smb_widget_unread">Unread</string>
     <string name="smb_widget_coins">Coins</string>
     <string name="smb_widget_updated">Updated %1$s</string>
-    <string name="smb_widget_pickup_code">Pickup code %1$s</string>
     <string name="smb_widget_no_pickup">No books waiting for pickup</string>
 </resources>

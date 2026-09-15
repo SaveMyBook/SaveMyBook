@@ -704,3 +704,249 @@ class _ChatEntranceState extends State<ChatEntrance> with SingleTickerProviderSt
     );
   }
 }
+
+class ChatReplyQuote extends StatelessWidget {
+  final ChatReply reply;
+  final String senderName;
+  final bool isMine;
+  final VoidCallback? onTap;
+
+  const ChatReplyQuote({super.key, required this.reply, required this.senderName, required this.isMine, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final accent = isMine ? Colors.white : c.accent;
+    final text = reply.isUnavailable
+        ? (reply.kind == 'recalled' ? S.messageUnsent : S.originalMessageUnavailable)
+        : reply.preview;
+    final image = reply.kind == 'image' && !reply.isUnavailable ? reply.imageUrl : null;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: reply.isUnavailable ? null : onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+        decoration: BoxDecoration(
+          color: isMine ? Colors.white.withValues(alpha: 0.16) : c.inputFill,
+          borderRadius: BorderRadius.circular(10),
+          border: Border(left: BorderSide(color: accent.withValues(alpha: 0.85), width: 3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (image != null) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: AppNetworkImage(url: image, width: 34, height: 34, fallbackIconSize: 14),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    senderName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: accent, height: 1.3),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    text,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      height: 1.35,
+                      color: isMine ? Colors.white.withValues(alpha: 0.85) : c.textSecondary,
+                      fontStyle: reply.isUnavailable ? FontStyle.italic : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ChatReplyComposer extends StatelessWidget {
+  final ChatReply reply;
+  final String senderName;
+  final VoidCallback onClose;
+
+  const ChatReplyComposer({super.key, required this.reply, required this.senderName, required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final image = reply.kind == 'image' ? reply.imageUrl : null;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+      decoration: BoxDecoration(
+        color: c.inputFill,
+        borderRadius: BorderRadius.circular(14),
+        border: Border(left: BorderSide(color: c.accent, width: 3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.reply_rounded, size: 18, color: c.accent),
+          const SizedBox(width: 8),
+          if (image != null) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: AppNetworkImage(url: image, width: 36, height: 36, fallbackIconSize: 14),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  S.replyingP0(senderName),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: c.accent),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  reply.preview,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13, color: c.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: onClose,
+            tooltip: S.cancelReply,
+            visualDensity: VisualDensity.compact,
+            icon: Icon(Icons.close_rounded, size: 20, color: c.iconInactive),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SwipeToReply extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onReply;
+
+  const SwipeToReply({super.key, required this.child, this.onReply});
+
+  @override
+  State<SwipeToReply> createState() => _SwipeToReplyState();
+}
+
+class _SwipeToReplyState extends State<SwipeToReply> with SingleTickerProviderStateMixin {
+  static const _trigger = 56.0;
+  static const _max = 80.0;
+
+  late final AnimationController _settle = AnimationController(vsync: this, duration: Motion.base);
+  double _offset = 0;
+  double _settleFrom = 0;
+  bool _armed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _settle.addListener(() => setState(() => _offset = _settleFrom * (1 - Motion.standard.transform(_settle.value))));
+  }
+
+  @override
+  void dispose() {
+    _settle.dispose();
+    super.dispose();
+  }
+
+  void _update(DragUpdateDetails d) {
+    if (_settle.isAnimating) _settle.stop();
+    final next = (_offset - d.delta.dx).clamp(0.0, _max);
+    final armed = next >= _trigger;
+    if (armed && !_armed) HapticFeedback.selectionClick();
+    setState(() {
+      _offset = next;
+      _armed = armed;
+    });
+  }
+
+  void _end(DragEndDetails _) {
+    if (_armed) widget.onReply?.call();
+    _armed = false;
+    _settleFrom = _offset;
+    _settle.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.onReply == null) return widget.child;
+    final c = AppColors.of(context);
+    final progress = (_offset / _trigger).clamp(0.0, 1.0);
+
+    return GestureDetector(
+      onHorizontalDragUpdate: _update,
+      onHorizontalDragEnd: _end,
+      onHorizontalDragCancel: () => _end(DragEndDetails()),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.centerRight,
+        children: [
+          Positioned(
+            right: 8,
+            child: Opacity(
+              opacity: progress,
+              child: Transform.scale(
+                scale: 0.6 + 0.4 * progress,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: _armed ? c.accent : c.inputFill,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.reply_rounded, size: 18, color: _armed ? Colors.white : c.textSecondary),
+                ),
+              ),
+            ),
+          ),
+          Transform.translate(offset: Offset(-_offset, 0), child: widget.child),
+        ],
+      ),
+    );
+  }
+}
+
+class ChatUnreadDivider extends StatelessWidget {
+  const ChatUnreadDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final line = Expanded(child: Divider(height: 1, thickness: 1, color: c.accent.withValues(alpha: 0.35)));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
+        children: [
+          line,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text(S.unreadMessages, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: c.accent)),
+          ),
+          line,
+        ],
+      ),
+    );
+  }
+}

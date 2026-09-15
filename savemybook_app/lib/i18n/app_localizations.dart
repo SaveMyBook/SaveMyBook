@@ -1524,6 +1524,15 @@ abstract class AppLocalizations {
   String get userBlocked;
   String get moreOptions;
   String get blockedUser;
+  String get originalMessageNotFound;
+  String get you2;
+  String get viewProfile;
+  String get reply;
+  String get bookLockerScanQrCodeLocker;
+  String get originalMessageUnavailable;
+  String replyingP0(Object p0);
+  String get cancelReply;
+  String get unreadMessages;
 }
 
 class _LEn extends AppLocalizations {
@@ -6031,6 +6040,33 @@ class _LEn extends AppLocalizations {
 
   @override
   String get blockedUser => 'You have blocked this user';
+
+  @override
+  String get originalMessageNotFound => 'Original message not found';
+
+  @override
+  String get you2 => 'You';
+
+  @override
+  String get viewProfile => 'View profile';
+
+  @override
+  String get reply => 'Reply';
+
+  @override
+  String get bookLockerScanQrCodeLocker => 'The book is in the locker. Scan the QR code on the locker to collect it.';
+
+  @override
+  String get originalMessageUnavailable => 'Original message unavailable';
+
+  @override
+  String replyingP0(Object p0) => 'Replying to ${p0}';
+
+  @override
+  String get cancelReply => 'Cancel reply';
+
+  @override
+  String get unreadMessages => 'Unread messages';
 
 }
 
@@ -10540,6 +10576,33 @@ class _LJa extends AppLocalizations {
   @override
   String get blockedUser => 'このユーザーをブロックしています';
 
+  @override
+  String get originalMessageNotFound => '元のメッセージが見つかりません';
+
+  @override
+  String get you2 => 'あなた';
+
+  @override
+  String get viewProfile => 'プロフィールを表示';
+
+  @override
+  String get reply => '返信';
+
+  @override
+  String get bookLockerScanQrCodeLocker => '本はロッカーに預けられました。ロッカー本体の QR コードを読み取って受け取ってください。';
+
+  @override
+  String get originalMessageUnavailable => '元のメッセージは表示できません';
+
+  @override
+  String replyingP0(Object p0) => '${p0} に返信';
+
+  @override
+  String get cancelReply => '返信をキャンセル';
+
+  @override
+  String get unreadMessages => 'ここから未読メッセージ';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -15047,6 +15110,33 @@ class _LKo extends AppLocalizations {
 
   @override
   String get blockedUser => '이 사용자를 차단했습니다';
+
+  @override
+  String get originalMessageNotFound => '원본 메시지를 찾을 수 없습니다';
+
+  @override
+  String get you2 => '나';
+
+  @override
+  String get viewProfile => '프로필 보기';
+
+  @override
+  String get reply => '답장';
+
+  @override
+  String get bookLockerScanQrCodeLocker => '책이 보관함에 보관되었습니다. 보관함 기기의 QR 코드를 스캔해 수령하세요.';
+
+  @override
+  String get originalMessageUnavailable => '원본 메시지를 표시할 수 없습니다';
+
+  @override
+  String replyingP0(Object p0) => '${p0} 님에게 답장';
+
+  @override
+  String get cancelReply => '답장 취소';
+
+  @override
+  String get unreadMessages => '여기부터 읽지 않은 메시지';
 
 }
 
@@ -19556,6 +19646,33 @@ class _LZh extends AppLocalizations {
   @override
   String get blockedUser => '您已封鎖此使用者';
 
+  @override
+  String get originalMessageNotFound => '找不到原訊息';
+
+  @override
+  String get you2 => '您';
+
+  @override
+  String get viewProfile => '查看個人檔案';
+
+  @override
+  String get reply => '回覆';
+
+  @override
+  String get bookLockerScanQrCodeLocker => '書籍已存入書櫃，請至書櫃掃描機台上的 QR Code 取書';
+
+  @override
+  String get originalMessageUnavailable => '原訊息已無法顯示';
+
+  @override
+  String replyingP0(Object p0) => '回覆 ${p0}';
+
+  @override
+  String get cancelReply => '取消回覆';
+
+  @override
+  String get unreadMessages => '以下為未讀訊息';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -24064,6 +24181,33 @@ class _LZhHans extends AppLocalizations {
   @override
   String get blockedUser => '您已屏蔽此用户';
 
+  @override
+  String get originalMessageNotFound => '找不到原消息';
+
+  @override
+  String get you2 => '您';
+
+  @override
+  String get viewProfile => '查看个人档案';
+
+  @override
+  String get reply => '回复';
+
+  @override
+  String get bookLockerScanQrCodeLocker => '书籍已存入书柜，请至书柜扫描机台上的 QR Code 取书';
+
+  @override
+  String get originalMessageUnavailable => '原消息已无法显示';
+
+  @override
+  String replyingP0(Object p0) => '回复 ${p0}';
+
+  @override
+  String get cancelReply => '取消回复';
+
+  @override
+  String get unreadMessages => '以下为未读消息';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -28571,6 +28715,33 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get blockedUser => '您已封鎖此使用者';
+
+  @override
+  String get originalMessageNotFound => '找不到原訊息';
+
+  @override
+  String get you2 => '您';
+
+  @override
+  String get viewProfile => '查看個人檔案';
+
+  @override
+  String get reply => '回覆';
+
+  @override
+  String get bookLockerScanQrCodeLocker => '書籍已存入書櫃，請至書櫃掃描機台上的 QR Code 取書';
+
+  @override
+  String get originalMessageUnavailable => '原訊息已無法顯示';
+
+  @override
+  String replyingP0(Object p0) => '回覆 ${p0}';
+
+  @override
+  String get cancelReply => '取消回覆';
+
+  @override
+  String get unreadMessages => '以下為未讀訊息';
 
 }
 

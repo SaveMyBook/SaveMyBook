@@ -409,6 +409,14 @@ class ApiService {
     return _mapList(res, Book.fromJson);
   }
 
+  Future<List<Book>> fetchRecommendedBooks({int limit = 12, Iterable<int> viewedIds = const []}) async {
+    final query = <String, String>{'limit': limit.toString()};
+    final ids = viewedIds.where((id) => id > 0).take(20);
+    if (ids.isNotEmpty) query['viewed_ids'] = ids.join(',');
+    final res = await _send('GET', '/books/recommended', query: query);
+    return _mapList(res, Book.fromJson);
+  }
+
   Future<List<Book>> fetchSellerBooks(int sellerId) async {
     final res = await _send('GET', '/books',
         query: {'seller_id': sellerId.toString(), 'status': 'on_sale', 'limit': '100'});
@@ -438,9 +446,10 @@ class ApiService {
     return res['data'] as Map<String, dynamic>?;
   }
 
-  Future<bool> updateBook(int bookId, Map<String, dynamic> data) async {
+  Future<String?> updateBook(int bookId, Map<String, dynamic> data) async {
     final res = await _send('PUT', '/books/$bookId', body: data);
-    return res != null && res['success'] == true;
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.updateFailed);
   }
 
   Future<bool> uploadBookImages(int bookId, List<String> filePaths, {List<String>? types}) async {
@@ -762,11 +771,18 @@ class ApiService {
     );
   }
 
-  Future<(ChatMessage?, String?)> sendChatMessage(int roomId, String content, {String type = 'text', int? durationSeconds}) async {
+  Future<(ChatMessage?, String?)> sendChatMessage(
+    int roomId,
+    String content, {
+    String type = 'text',
+    int? durationSeconds,
+    int? replyToId,
+  }) async {
     final res = await _send('POST', '/chat/rooms/$roomId/messages', body: {
       'content': content,
       'message_type': type,
       'duration': ?durationSeconds,
+      'reply_to_id': ?replyToId,
     });
     if (res == null || res['success'] != true || res['data'] is! Map) {
       return (null, res?['message'] as String? ?? S.messageCouldNotSent);
@@ -949,7 +965,7 @@ class ApiService {
     final res = await _send('GET', '/reports/against-me');
     if (res == null || res['success'] != true || res['data'] is! List) return {};
 
-    const priority = {'pending': 3, 'reviewing': 3, 'resolved': 2, 'dismissed': 1};
+    const priority = {'resolved': 4, 'pending': 3, 'reviewing': 3, 'dismissed': 1};
     final result = <int, String>{};
 
     for (final item in res['data'] as List) {

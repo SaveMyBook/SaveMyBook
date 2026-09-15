@@ -11,7 +11,6 @@ struct SummaryEntry: TimelineEntry {
     let depositCount: Int
     let unreadCount: Int
     let coins: String
-    let pickupCode: String
     let pickupCabinet: String
     let updatedAt: String
     let language: String
@@ -24,7 +23,6 @@ struct SummaryEntry: TimelineEntry {
             depositCount: 0,
             unreadCount: 2,
             coins: "120",
-            pickupCode: "123456",
             pickupCabinet: "",
             updatedAt: "",
             language: WidgetText.systemLanguage()
@@ -48,7 +46,6 @@ struct SummaryEntry: TimelineEntry {
             depositCount: Int(value("smb_deposit_count")) ?? 0,
             unreadCount: Int(value("smb_unread_chat")) ?? 0,
             coins: coins.isEmpty ? "0" : coins,
-            pickupCode: value("smb_pickup_code"),
             pickupCabinet: value("smb_pickup_cabinet"),
             updatedAt: value("smb_updated_at"),
             language: storedLanguage.isEmpty ? WidgetText.systemLanguage() : storedLanguage
@@ -94,66 +91,61 @@ enum WidgetText {
         "zh_Hant": [
             "appName": "救舊我的書",
             "widgetName": "取書與訊息",
-            "widgetDescription": "取書碼、待存書、未讀訊息與代幣一目瞭然",
+            "widgetDescription": "待取書、待存書、未讀訊息與代幣一目瞭然",
             "signedOut": "登入以查看",
             "pickup": "待取書",
             "deposit": "待存書",
             "unread": "未讀訊息",
             "coins": "代幣",
             "updated": "更新於 {t}",
-            "pickupCode": "取書碼 {t}",
             "noPickup": "目前沒有待取書籍",
         ],
         "en": [
             "appName": "救舊我的書",
             "widgetName": "Pickups & messages",
-            "widgetDescription": "Pickup codes, drop-offs, unread messages and coins at a glance",
+            "widgetDescription": "Pickups, drop-offs, unread messages and coins at a glance",
             "signedOut": "Sign in to view",
             "pickup": "Pickup",
             "deposit": "Drop-off",
             "unread": "Unread",
             "coins": "Coins",
             "updated": "Updated {t}",
-            "pickupCode": "Pickup code {t}",
             "noPickup": "No books waiting for pickup",
         ],
         "ja": [
             "appName": "救舊我的書",
             "widgetName": "受け取りとメッセージ",
-            "widgetDescription": "受け取りコード・預け入れ・未読メッセージ・コインをひと目で確認",
+            "widgetDescription": "受け取り待ち・預け入れ・未読メッセージ・コインをひと目で確認",
             "signedOut": "ログインして表示",
             "pickup": "受取待ち",
             "deposit": "預入待ち",
             "unread": "未読",
             "coins": "コイン",
             "updated": "{t} 更新",
-            "pickupCode": "受け取りコード {t}",
             "noPickup": "受け取り待ちの本はありません",
         ],
         "ko": [
             "appName": "救舊我的書",
             "widgetName": "수령 및 메시지",
-            "widgetDescription": "수령 코드, 보관 대기, 읽지 않은 메시지와 코인을 한눈에",
+            "widgetDescription": "수령 대기, 보관 대기, 읽지 않은 메시지와 코인을 한눈에",
             "signedOut": "로그인하여 보기",
             "pickup": "수령 대기",
             "deposit": "보관 대기",
             "unread": "안 읽음",
             "coins": "코인",
             "updated": "{t} 업데이트",
-            "pickupCode": "수령 코드 {t}",
             "noPickup": "수령 대기 중인 책이 없습니다",
         ],
         "zh_Hans": [
             "appName": "救舊我的書",
             "widgetName": "取书与消息",
-            "widgetDescription": "取书码、待存书、未读消息与代币一目了然",
+            "widgetDescription": "待取书、待存书、未读消息与代币一目了然",
             "signedOut": "登录以查看",
             "pickup": "待取书",
             "deposit": "待存书",
             "unread": "未读消息",
             "coins": "代币",
             "updated": "更新于 {t}",
-            "pickupCode": "取书码 {t}",
             "noPickup": "目前没有待取书籍",
         ],
     ]
@@ -266,7 +258,7 @@ struct SummaryWidgetView: View {
                 tile(value: entry.coins, label: text("coins"), highlight: false)
             }
             HStack(spacing: 5) {
-                Image(systemName: entry.pickupCount > 0 && !entry.pickupCode.isEmpty ? "key.fill" : "books.vertical")
+                Image(systemName: entry.pickupCount > 0 ? "shippingbox.fill" : "books.vertical")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(palette.accent)
                 Text(pickupDetail)
@@ -281,14 +273,7 @@ struct SummaryWidgetView: View {
         if entry.pickupCount == 0 {
             return text("noPickup")
         }
-        var parts: [String] = []
-        if !entry.pickupCode.isEmpty {
-            parts.append(text("pickupCode").replacingOccurrences(of: "{t}", with: entry.pickupCode))
-        }
-        if !entry.pickupCabinet.isEmpty {
-            parts.append(entry.pickupCabinet)
-        }
-        return parts.isEmpty ? text("pickup") : parts.joined(separator: " · ")
+        return entry.pickupCabinet.isEmpty ? text("pickup") : entry.pickupCabinet
     }
 
     private func tile(value: String, label: String, highlight: Bool) -> some View {

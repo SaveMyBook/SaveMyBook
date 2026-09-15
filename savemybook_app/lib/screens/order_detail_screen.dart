@@ -9,7 +9,6 @@ import '../widgets/app_buttons.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_tiles.dart';
-import '../widgets/buyer/pickup_code_card.dart';
 import '../widgets/state_views.dart';
 import 'book_detail_screen.dart';
 import 'pickup_success_screen.dart';
@@ -59,19 +58,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   bool get _isClosed =>
       _order.status == 'cancelled' || _order.status == 'refunded' || _order.status == 'refunding';
 
-  bool get _showPickupCode =>
-      !widget.asSeller &&
-      (_order.pickupCode?.isNotEmpty ?? false) &&
-      !_isClosed &&
-      _order.status != 'completed';
-
   String? _stepHint(String status) {
     switch (status) {
       case 'pending_deposit':
         return widget.asSeller ? S.pleasePutBookAssignedLockerSoon : S.weLlLetKnowWhenSeller;
       case 'deposited':
       case 'pending_pickup':
-        return widget.asSeller ? S.waitingBuyerCollect : S.bookLockerEnterPickupCodeCollect;
+        return widget.asSeller ? S.waitingBuyerCollect : S.bookLockerScanQrCodeLocker;
       case 'completed':
         return S.transactionCompleteThank;
     }
@@ -125,21 +118,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).padding.bottom + 40),
                 children: [
                   FadeSlideIn(child: _buildStatusCard(c)),
-                  Reveal(
-                    visible: _showPickupCode,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 14),
-                      child: _showPickupCode
-                          ? PickupCodeCard(
-                              code: _order.pickupCode!,
-                              slotNumber: _order.slotNumber,
-                              caption: _order.cabinetName.isEmpty
-                                  ? S.enterCodeLockerCollect
-                                  : S.enterCodeCollect(_order.cabinetName),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                  ),
                   const SizedBox(height: 14),
                   FadeSlideIn(index: 1, child: _buildFlowCard(c)),
                   const SizedBox(height: 14),

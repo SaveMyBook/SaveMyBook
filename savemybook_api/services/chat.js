@@ -55,6 +55,18 @@ const previewOf = (message) => {
   return PREVIEW[kind] ?? '';
 };
 
+const replyPreview = (message) => {
+  const { kind, body } = decode(message);
+  return {
+    message_id: message.message_id,
+    sender_id: message.sender_id,
+    sender_nickname: message.users?.nickname ?? null,
+    kind,
+    preview: previewOf(message),
+    image_url: kind === 'image' ? body : null
+  };
+};
+
 const shapeMessage = (message, { reservations } = {}) => {
   const { kind, body, payload } = decode(message);
   let data = payload;
@@ -63,6 +75,6 @@ const shapeMessage = (message, { reservations } = {}) => {
 };
 
 module.exports = {
-  PREFIX, RECALL_WINDOW_MS, MAX_VOICE_SECONDS, decode, previewOf, shapeMessage,
+  PREFIX, RECALL_WINDOW_MS, MAX_VOICE_SECONDS, decode, previewOf, shapeMessage, replyPreview,
   encodeVoice, encodeReservation, encodeBook
 };

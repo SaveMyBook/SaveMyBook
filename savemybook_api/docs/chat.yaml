@@ -410,6 +410,11 @@ paths:
                   type: string
                   enum: [text, image, voice]
                   default: text
+                reply_to_id:
+                  type: integer
+                  nullable: true
+                  description: 回覆的訊息編號，必須屬於同一聊天室。伺服器尚未執行資料庫更新 008 時忽略此欄位。
+                  example: 298
                 duration:
                   type: integer
                   minimum: 1

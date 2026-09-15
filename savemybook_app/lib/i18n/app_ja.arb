@@ -2642,5 +2642,19 @@
   "block": "ブロック",
   "userBlocked": "ユーザーをブロックしました",
   "moreOptions": "その他のオプション",
-  "blockedUser": "このユーザーをブロックしています"
+  "blockedUser": "このユーザーをブロックしています",
+  "originalMessageNotFound": "元のメッセージが見つかりません",
+  "you2": "あなた",
+  "viewProfile": "プロフィールを表示",
+  "reply": "返信",
+  "bookLockerScanQrCodeLocker": "本はロッカーに預けられました。ロッカー本体の QR コードを読み取って受け取ってください。",
+  "originalMessageUnavailable": "元のメッセージは表示できません",
+  "replyingP0": "{p0} に返信",
+  "@replyingP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelReply": "返信をキャンセル",
+  "unreadMessages": "ここから未読メッセージ"
 }

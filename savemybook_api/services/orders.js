@@ -367,8 +367,7 @@ const advance = async (orderId, status, user) => {
         userId: order.buyer_id,
         type: 'order',
         title: '書籍已存入書櫃',
-        content: `訂單 ${order.order_no} 的書籍已存入${cabinet ? `「${cabinet}」` : ''}書櫃，請前往取書。`
-          + `${order.pickup_code ? `取書碼：${order.pickup_code}` : ''}`,
+        content: `訂單 ${order.order_no} 的書籍已存入${cabinet ? `「${cabinet}」` : ''}書櫃，請前往書櫃掃描機台上的 QR Code 取書。`,
         relatedId: orderId,
         relatedType: 'order'
       });

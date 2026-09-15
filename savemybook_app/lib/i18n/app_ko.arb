@@ -2642,5 +2642,19 @@
   "block": "차단",
   "userBlocked": "사용자를 차단했습니다",
   "moreOptions": "더보기",
-  "blockedUser": "이 사용자를 차단했습니다"
+  "blockedUser": "이 사용자를 차단했습니다",
+  "originalMessageNotFound": "원본 메시지를 찾을 수 없습니다",
+  "you2": "나",
+  "viewProfile": "프로필 보기",
+  "reply": "답장",
+  "bookLockerScanQrCodeLocker": "책이 보관함에 보관되었습니다. 보관함 기기의 QR 코드를 스캔해 수령하세요.",
+  "originalMessageUnavailable": "원본 메시지를 표시할 수 없습니다",
+  "replyingP0": "{p0} 님에게 답장",
+  "@replyingP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "cancelReply": "답장 취소",
+  "unreadMessages": "여기부터 읽지 않은 메시지"
 }

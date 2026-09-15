@@ -65,7 +65,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<Category> _categories = [];
   List<Book> _books = [];
   List<Book> _popular = [];
-  bool _popularLoading = true;
+  List<Book> _recommended = [];
+  bool _discoveryLoading = true;
 
   final ApiService _apiService = ApiService();
   final ScrollController _scrollController = ScrollController();
@@ -140,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> _loadInitialData() async {
     _loadBadges();
-    _loadPopular();
+    _loadDiscovery();
     final categoriesFuture = _apiService.fetchCategories();
     await _reloadBooks(showSkeleton: true);
     final categories = await categoriesFuture;
@@ -148,12 +149,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() => _categories = categories);
   }
 
-  Future<void> _loadPopular() async {
-    final books = await _apiService.fetchBooks(page: 1, limit: 12, sort: 'popular');
+  Future<void> _loadDiscovery() async {
+    await RecentlyViewed.load();
+    final viewedIds = RecentlyViewed.books.value.map((b) => b.bookId);
+    final results = await Future.wait([
+      _apiService.fetchBooks(page: 1, limit: 12, sort: 'popular'),
+      _apiService.fetchRecommendedBooks(viewedIds: viewedIds),
+    ]);
     if (!mounted) return;
     setState(() {
-      _popular = books;
-      _popularLoading = false;
+      _popular = results[0];
+      _recommended = results[1];
+      _discoveryLoading = false;
     });
   }
 
@@ -187,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     HapticFeedback.lightImpact();
     await Future.wait([
       _reloadBooks(),
-      _loadPopular(),
+      _loadDiscovery(),
       _loadBadges(),
       if (_categories.isEmpty)
         _apiService.fetchCategories().then((list) {
@@ -567,8 +574,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildDiscoverySections() {
-    final showPopular = _isBrowsingAll && _currentSort != 'popular' && (_popularLoading || _popular.isNotEmpty);
-
     return AnimatedSize(
       duration: Motion.enter,
       curve: Motion.standard,
@@ -576,14 +581,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: ValueListenableBuilder<List<Book>>(
         valueListenable: RecentlyViewed.books,
         builder: (context, recent, _) {
+          final recentIds = recent.map((b) => b.bookId).toSet();
+          final recommended = _recommended.where((b) => !recentIds.contains(b.bookId)).toList();
+          final recommendedIds = recommended.map((b) => b.bookId).toSet();
+          final popular = _popular.where((b) => !recommendedIds.contains(b.bookId)).toList();
+          final showPopular = _currentSort != 'popular' && (_discoveryLoading || popular.isNotEmpty);
           final tabs = [
-            if (showPopular)
+            if (_isBrowsingAll && recommended.isNotEmpty)
+              DiscoveryTab(
+                id: 'picked',
+                title: S.picked,
+                icon: Icons.auto_awesome_rounded,
+                books: recommended,
+              ),
+            if (_isBrowsingAll && showPopular)
               DiscoveryTab(
                 id: 'popular',
-                title: ApiService.authToken == null ? S.popular : S.picked,
-                icon: Icons.auto_awesome_rounded,
-                books: _popular,
-                loading: _popularLoading,
+                title: S.popular,
+                icon: Icons.local_fire_department_rounded,
+                books: popular,
+                loading: _discoveryLoading,
                 actionLabel: S.seeMore,
                 onAction: _showAllPopular,
               ),

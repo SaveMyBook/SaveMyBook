@@ -19,6 +19,7 @@ const router = express.Router();
 const photos = imageUpload({ folder: 'books', maxFileSize: 10 * 1024 * 1024 });
 
 const MAX_PRICE = 99999;
+const PUBLIC_STATUSES = BOOK_STATUSES.filter((s) => s !== 'removed');
 const SORTS = {
   newest: { created_at: 'desc' },
   price_asc: { price: 'asc' },
@@ -28,6 +29,13 @@ const SORTS = {
 
 const cabinetSelect = {
   cabinet_id: true, cabinet_name: true, address: true, open_time: true, close_time: true, latitude: true, longitude: true
+};
+
+const listInclude = {
+  users: { select: { user_id: true, nickname: true, avatar_url: true } },
+  book_images: { select: { image_id: true, image_url: true, image_type: true } },
+  book_categories: { select: { category_name: true } },
+  smart_cabinets: { select: cabinetSelect }
 };
 
 const isbnLimiter = rateLimit({
@@ -70,6 +78,9 @@ const assertRefsExist = async ({ categoryId, cabinetId }, current = {}) => {
   if (!category) throw badRequest('找不到此分類');
   if (!cabinet) throw badRequest('找不到此書櫃，或書櫃已停用');
 };
+
+const violationLocked = async (book) => book.is_approved === false
+  || (await prisma.reports.count({ where: { target_type: 'book', target_id: book.book_id, status: 'resolved' } })) > 0;
 
 const findOwnedBook = async (bookId, user, deniedMessage) => {
   const book = await prisma.books.findUnique({ where: { book_id: bookId } });
@@ -119,16 +130,18 @@ router.get('/', async (req, res) => {
   const status = req.query.status || 'on_sale';
   const sort = SORTS[req.query.sort] ? req.query.sort : 'newest';
   const sellerId = v.optionalId(req.query.seller_id, '賣家編號');
+  const ownView = sellerId != null && sellerId === peekUserId(req);
 
-  if (status !== 'all') v.oneOf(status, BOOK_STATUSES, '不支援的書籍狀態');
+  if (status !== 'all') v.oneOf(status, ownView ? BOOK_STATUSES : PUBLIC_STATUSES, '不支援的書籍狀態');
 
   const categoryIds = typeof req.query.category_ids === 'string'
     ? req.query.category_ids.split(',').map(v.toInt).filter((n) => Number.isSafeInteger(n) && n > 0).slice(0, 50)
     : [];
 
   const where = {
-    ...(status !== 'all' && { status }),
-    ...(sellerId ? { seller_id: sellerId } : { is_approved: true }),
+    ...(status !== 'all' ? { status } : !ownView && { status: { not: 'removed' } }),
+    ...(sellerId && { seller_id: sellerId }),
+    ...(!ownView && { is_approved: true }),
     ...(categoryIds.length > 0 && { category_id: { in: categoryIds } }),
     ...(keyword && {
       OR: [
@@ -139,18 +152,11 @@ router.get('/', async (req, res) => {
     })
   };
 
-  const include = {
-    users: { select: { user_id: true, nickname: true, avatar_url: true } },
-    book_images: { select: { image_id: true, image_url: true, image_type: true } },
-    book_categories: { select: { category_name: true } },
-    smart_cabinets: { select: cabinetSelect }
-  };
-
   if (sort === 'popular' && !sellerId) {
     const ranked = await ranking.rankedIds(where, peekUserId(req));
     const pageIds = ranked.slice(skip, skip + limit);
     const rows = pageIds.length > 0
-      ? await prisma.books.findMany({ where: { book_id: { in: pageIds } }, include })
+      ? await prisma.books.findMany({ where: { book_id: { in: pageIds } }, include: listInclude })
       : [];
     const byId = new Map(rows.map((b) => [b.book_id, b]));
     const books = pageIds.map((bookId) => byId.get(bookId)).filter(Boolean);
@@ -162,18 +168,35 @@ router.get('/', async (req, res) => {
   }
 
   const [books, total] = await Promise.all([
-    prisma.books.findMany({ where, skip, take: limit, orderBy: SORTS[sort], include }),
+    prisma.books.findMany({ where, skip, take: limit, orderBy: SORTS[sort], include: listInclude }),
     prisma.books.count({ where })
   ]);
 
   res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: books });
 });
 
+router.get('/recommended', async (req, res) => {
+  const { limit } = v.pagination(req.query, { limit: 12, max: ranking.RECOMMEND_LIMIT });
+  const viewedIds = typeof req.query.viewed_ids === 'string'
+    ? [...new Set(req.query.viewed_ids.split(',').map(v.toInt).filter((n) => Number.isSafeInteger(n) && n > 0))].slice(0, 20)
+    : [];
+
+  const ids = (await ranking.recommendedIds(peekUserId(req), viewedIds)).slice(0, limit);
+  const rows = ids.length > 0
+    ? await prisma.books.findMany({
+        where: { book_id: { in: ids }, status: 'on_sale', is_approved: true },
+        include: listInclude
+      })
+    : [];
+  const byId = new Map(rows.map((b) => [b.book_id, b]));
+  res.status(200).json({ success: true, data: ids.map((bookId) => byId.get(bookId)).filter(Boolean) });
+});
+
 router.get('/share/:token', async (req, res) => {
   const token = String(req.params.token || '').toLowerCase();
   if (!TOKEN_RE.test(token)) throw notFound('找不到此書籍');
   const book = await prisma.books.findFirst({
-    where: { share_token: token, status: { not: 'removed' } },
+    where: { share_token: token, status: { not: 'removed' }, is_approved: true },
     include: {
       users: { select: { user_id: true, nickname: true, avatar_url: true, created_at: true } },
       book_images: true,
@@ -191,11 +214,11 @@ router.get('/:id/share-link', async (req, res) => {
 
   const book = await prisma.books.findUnique({
     where: { book_id: bookId },
-    select: { book_id: true, title: true, status: true }
+    select: { book_id: true, title: true, status: true, is_approved: true }
   });
   if (!book) throw notFound('找不到此書籍');
 
-  if (book.status === 'removed') throw conflict('此書籍已下架，無法分享');
+  if (book.status === 'removed' || !book.is_approved) throw conflict('此書籍已下架，無法分享');
 
   const token = await ensureBookToken(bookId);
   res.status(200).json({
@@ -216,9 +239,9 @@ router.get('/:id', async (req, res) => {
       smart_cabinets: { select: cabinetSelect }
     }
   });
-  if (!book) throw notFound('找不到該書籍');
-
   const viewerId = peekUserId(req);
+  if (!book || (!book.is_approved && viewerId !== book.seller_id)) throw notFound('找不到該書籍');
+
   if (viewerId !== book.seller_id && ranking.shouldCountView(bookId, viewerId ?? req.ip)) {
     prisma.books.update({ where: { book_id: bookId }, data: { view_count: { increment: 1 } } }).catch(() => {});
   }
@@ -322,10 +345,11 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
   const book = await findOwnedBook(bookId, req.user, '存取被拒，您無權限修改他人的商品');
 
-  // 檢舉成立的書 is_approved=false，賣家不可自行重新上架。
-  if (data.status === 'on_sale' && book.is_approved === false && !isAdmin) {
+  // 檢舉成立但管理員未勾選下架時 is_approved 仍為 true，須一併查檢舉紀錄，否則賣家自行下架後可再上架。
+  if (data.status === 'on_sale' && book.status !== 'on_sale' && !isAdmin && await violationLocked(book)) {
     throw forbidden('此書籍因違規遭下架，無法自行重新上架，請聯絡客服', 'BOOK_NOT_APPROVED');
   }
+  if (isAdmin && data.status === 'on_sale') data.is_approved = true;
 
   // 保留中的書已有人付款，改回上架會被第二人買走。
   if (data.status && data.status !== book.status && ['reserved', 'sold'].includes(book.status) && !isAdmin) {

@@ -472,14 +472,6 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
           _kv(S.faqCatCabinet, order.cabinetName.isEmpty ? '—' : order.cabinetName, c),
           if (detail.cabinetAddress.isNotEmpty) _kv(S.address, detail.cabinetAddress, c),
           _kv(S.slot, detail.slotNumber ?? S.notAssignedYet2, c),
-          _kv(
-            S.pickupCode,
-            order.pickupCode?.isNotEmpty == true ? order.pickupCode! : S.notGeneratedYet,
-            c,
-            onCopy: order.pickupCode?.isNotEmpty == true
-                ? () => _copy(order.pickupCode!, S.pickupCodeCopied)
-                : null,
-          ),
         ],
       ),
     );

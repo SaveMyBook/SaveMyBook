@@ -157,7 +157,7 @@ const respond = async (reservationId, userId, action) => {
   const title = row.books?.title ?? '';
 
   if (action === 'accept') {
-    if (row.books.status !== 'on_sale') throw conflict('此書籍已下架，無法接受預約');
+    if (row.books.status !== 'on_sale' || !row.books.is_approved) throw conflict('此書籍已下架，無法接受預約');
     await assertNotHeldByOthers(prisma, [row.books], row.buyer_id);
   }
 

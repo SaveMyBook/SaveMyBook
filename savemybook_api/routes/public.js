@@ -57,6 +57,7 @@ router.get('/b/:token', htmlRoute('公開書籍頁失敗', async (req, res) => {
       author: true,
       price: true,
       status: true,
+      is_approved: true,
       condition_level: true,
       book_categories: { select: { category_name: true } },
       book_images: { select: { image_url: true }, orderBy: { image_id: 'asc' }, take: 1 },
@@ -66,7 +67,7 @@ router.get('/b/:token', htmlRoute('公開書籍頁失敗', async (req, res) => {
     }
   });
 
-  if (!book || book.status === 'removed' || !isVisibleUser(book.users)) {
+  if (!book || book.status === 'removed' || !book.is_approved || !isVisibleUser(book.users)) {
     return sendHtml(res, 404, views.bookNotFound());
   }
 

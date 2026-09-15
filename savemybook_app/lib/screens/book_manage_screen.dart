@@ -71,8 +71,10 @@ class _BookManageScreenState extends State<BookManageScreen> {
 
   String _statusOf(Book book) => _statusOverride[book.bookId] ?? book.status;
 
-  ({String label, Color color, String detail})? _reportBadge(int bookId, AppColors c) {
-    switch (_reportStatus[bookId]) {
+  bool _violationLocked(Book book) => !book.isApproved || _reportStatus[book.bookId] == 'resolved';
+
+  ({String label, Color color, String detail})? _reportBadge(Book book, AppColors c) {
+    switch (book.isApproved ? _reportStatus[book.bookId] : 'resolved') {
       case 'pending':
       case 'reviewing':
         return (label: S.reportReviewing, color: c.warning, detail: S.bookBeenReportedUnderReviewStays);
@@ -114,6 +116,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
   Future<void> _delist(Book book, {required bool askFirst}) async {
     if (_busyIds.contains(book.bookId)) return;
     final status = _statusOf(book);
+    final canUndo = status == 'on_sale' && !_violationLocked(book);
     if (askFirst || status == 'reserved') {
       final confirmed = await showConfirmDialog(
         context,
@@ -144,8 +147,8 @@ class _BookManageScreenState extends State<BookManageScreen> {
     showAppSnackBar(
       context,
       S.p0Delisted(book.title),
-      actionLabel: status == 'on_sale' ? S.undo : null,
-      onAction: status == 'on_sale' ? () => _relist(book, undo: true) : null,
+      actionLabel: canUndo ? S.undo : null,
+      onAction: canUndo ? () => _relist(book, undo: true) : null,
     );
     _load();
   }
@@ -165,6 +168,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
 
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
+      _load();
       return;
     }
     HapticFeedback.lightImpact();
@@ -287,7 +291,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
     final canEdit = status != 'sold';
 
     SwipeAction? statusAction;
-    if (!busy && status == 'removed') {
+    if (!busy && status == 'removed' && !_violationLocked(book)) {
       statusAction = SwipeAction(
         icon: Icons.publish_rounded,
         label: S.relist,
@@ -410,7 +414,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
     final status = _statusOf(book);
     final isRemoved = status == 'removed';
     final isBusy = _busyIds.contains(book.bookId);
-    final badge = _reportBadge(book.bookId, c);
+    final badge = _reportBadge(book, c);
     final statusLabel = status == book.status ? book.statusText : _labelFor(status);
 
     return AppCard(
@@ -546,7 +550,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                               label: S.relist,
                               filled: true,
                               isLoading: isBusy,
-                              onTap: () => _relist(book),
+                              onTap: _violationLocked(book) ? null : () => _relist(book),
                             )
                           : SmallActionButton(
                               label: S.delist2,
