@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 const { hasTables } = require('../lib/schema-check');
+const { placeholders } = require('../lib/sql');
 
 const IDLE_DAYS = 30;
 const TOUCH_EVERY_MS = 5 * 60 * 1000;
@@ -11,6 +12,15 @@ const clip = (value, max) => {
   if (typeof value !== 'string') return null;
   const s = value.trim().slice(0, max);
   return s || null;
+};
+
+const PLATFORM_NAMES = { ios: 'iOS', android: 'Android' };
+
+const deviceLabel = ({ deviceName, platform } = {}) => {
+  const name = typeof deviceName === 'string' ? deviceName.trim().slice(0, 80) : '';
+  const os = PLATFORM_NAMES[platform] ?? (typeof platform === 'string' ? platform.slice(0, 20) : '');
+  if (name && os) return `${name}（${os}）`;
+  return name || os || '未知裝置';
 };
 
 const hashKey = (key) => crypto.createHash('sha256').update(String(key)).digest('hex');
@@ -90,7 +100,7 @@ const removePushDevices = async (sids) => {
   if (sids.length === 0) return;
   try {
     await prisma.$executeRawUnsafe(
-      `DELETE FROM push_devices WHERE session_sid IN (${sids.map(() => '?').join(',')})`,
+      `DELETE FROM push_devices WHERE session_sid IN (${placeholders(sids)})`,
       ...sids
     );
   } catch {}
@@ -122,7 +132,7 @@ const revokeAll = async (userId, { exceptSid = null } = {}) => {
   const sids = rows.map((r) => r.sid);
   if (sids.length > 0) {
     await prisma.$executeRawUnsafe(
-      `UPDATE user_sessions SET revoked_at = ?, pay_key_hash = NULL WHERE sid IN (${sids.map(() => '?').join(',')})`,
+      `UPDATE user_sessions SET revoked_at = ?, pay_key_hash = NULL WHERE sid IN (${placeholders(sids)})`,
       now,
       ...sids
     );
@@ -157,6 +167,6 @@ const removeStale = async () => {
 };
 
 module.exports = {
-  IDLE_DAYS, isAvailable, create, lookup, touch, findActive, list, revoke, revokeBySid, revokeAll,
+  isAvailable, deviceLabel, create, lookup, touch, findActive, list, revoke, revokeBySid, revokeAll,
   setPayKey, clearPayKey, matchesPayKey, removeStale
 };

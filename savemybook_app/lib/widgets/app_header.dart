@@ -305,7 +305,10 @@ class AppTabBar extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: c.card,
-      child: LayoutBuilder(builder: (context, constraints) {
+      alignment: Alignment.center,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: LayoutBuilder(builder: (context, constraints) {
         final scaler = MediaQuery.textScalerOf(context);
         final perTab = constraints.maxWidth / tabs.length;
         final crowded = tabs.any((t) {
@@ -335,6 +338,7 @@ class AppTabBar extends StatelessWidget {
         tabs: tabs.map((t) => Tab(height: 46, text: t)).toList(),
         );
       }),
+      ),
     );
   }
 }

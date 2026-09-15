@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/search_screen.dart';
+import '../features/home/search_screen.dart';
 import '../utils/app_colors.dart';
 import '../i18n/strings.dart';
 

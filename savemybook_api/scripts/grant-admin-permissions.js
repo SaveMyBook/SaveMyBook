@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // 用法：node scripts/grant-admin-permissions.js <email> [--all]
 const prisma = require('../lib/prisma');
-const { PERMISSIONS, effectivePermissions } = require('../middleware/requireAdmin');
+const { ADMIN_PERMISSIONS: PERMISSIONS } = require('../constants/domain');
+const { effectivePermissions } = require('../services/admin-permissions');
 const audit = require('../services/audit');
 
 const main = async () => {

@@ -2,10 +2,31 @@ tags:
   - name: chat
     x-displayName: 聊天室
     description: |
-      買賣雙方的一對一聊天，支援文字、圖片、語音、商品卡片與書籍預約。
+      一對一聊天與群組聊天，支援文字、圖片、語音、商品卡片、書籍預約、代幣轉帳與請款。
 
-      兩位使用者之間僅存在單一聊天室。自不同商品進入聊天時不會另建聊天室，
+      兩位使用者之間僅存在單一一對一聊天室。自不同商品進入聊天時不會另建聊天室，
       而是於既有對話中插入一則商品卡片，以維持對話脈絡完整。
+
+      ## Rooms
+
+      | | 一對一（`direct`） | 群組（`group`） |
+      | --- | --- | --- |
+      | 建立 | `POST /api/chat/rooms` | `POST /api/chat/groups` |
+      | 成員 | 固定為雙方 | 1 至 100 人，建立者為 `owner`，任何成員可邀請，僅 `owner` 可移除成員 |
+      | 標題 | 自訂暱稱，未設定時為對方暱稱 | 群組名稱（1 至 50 字） |
+      | 刪除 | `DELETE /api/chat/rooms/{id}` 刪除雙方的聊天室 | 同一端點等同退出群組；最後一位成員退出時刪除聊天室 |
+      | 預約、商品卡片、封鎖 | 支援 | 不支援，封鎖關係不影響群組 |
+      | 轉帳與請款 | 對象預設為對方 | 須指定成員 |
+
+      所有聊天室端點皆以成員身分驗證，已退出或被移除的群組成員回傳 403。
+      群組的建立、改名、變更頭貼、邀請、移除與退出會插入一則 `notice` 訊息。
+      owner 退出時由加入最早的成員接任。
+
+      **釘選**與**自訂暱稱**僅影響請求者本人：每人最多釘選 10 個聊天室；自訂暱稱為 1 至 30 字，
+      一對一與群組共用，套用於聊天室標題、訊息的 `meta.aliases`、列表的發送者名稱與推播的發送者名稱。
+
+      伺服器尚未執行 `migrations/009_chat_groups_transfers.sql` 時，一對一聊天照常運作（列表的 `pinned` 固定為 false），
+      群組、釘選、自訂暱稱、編輯訊息與轉帳相關端點回傳 503 `CHAT_V2_UNAVAILABLE`。
 
       ## Message Kinds
 
@@ -19,8 +40,11 @@ tags:
       | `voice` | 語音，最長 120 秒 | 先上傳至 `POST /api/uploads/voice`，再送出訊息 |
       | `book` | 商品卡片 | `POST /api/chat/rooms` 帶入 `book_id` |
       | `reservation` | 預約卡片 | `POST /api/chat/rooms/{roomId}/reservations` |
+      | `transfer` | 轉帳或請款卡片 | `POST /api/chat/rooms/{roomId}/transfers`、`POST /api/chat/rooms/{roomId}/transfer-requests` |
       | `recalled` | 已收回的訊息 | `POST /api/chat/rooms/{roomId}/messages/{messageId}/recall` |
-      | `notice` | 其他系統訊息 | 伺服器產生 |
+      | `notice` | 系統訊息 | 伺服器產生 |
+
+      文字訊息可於送出後 15 分鐘內由本人編輯；文字、圖片、語音可於 24 小時內由本人收回。
 
       各 `kind` 對應的 `body` 與 `payload` 格式見 `ChatMessage` 結構。
 
@@ -31,10 +55,17 @@ tags:
 
       | 欄位 | 用途 |
       | --- | --- |
-      | `read_upto` | 對方已讀到的、請求者所發送的最後一則訊息編號，編號小於等於此值者顯示「已讀」 |
-      | `partner_typing` | 對方是否正在輸入 |
-      | `recalled_ids` | 近 10 分鐘內送出、之後被收回的訊息編號，用來替換畫面上已顯示的內容 |
-      | `reservations` | 雙方之間最近 30 筆預約的最新狀態，用來更新預約卡片 |
+      | `read_upto` | 一對一：對方已讀到的、請求者所發送的最後一則訊息編號。群組：其他成員中最大的已讀位置 |
+      | `my_last_read_message_id` | 群組：請求者本次標記前的已讀位置，用來放置未讀分隔線；一對一為 `null` |
+      | `members_read` | 其他成員的已讀位置，群組用來顯示「已讀 N」；一對一為對方一筆 |
+      | `partner_typing` | 一對一：對方是否正在輸入 |
+      | `typing_user_ids` | 正在輸入的其他成員 |
+      | `aliases` | 請求者為相關成員設定的自訂暱稱，鍵為使用者編號 |
+      | `edited` | 近 20 分鐘內被編輯的文字訊息，僅增量更新模式有值，用來替換畫面上已顯示的內容 |
+      | `recalled_ids` | 近 24 小時內送出、之後被收回的訊息編號，用來替換畫面上已顯示的內容 |
+      | `reservations` | 一對一雙方之間最近 30 筆預約的最新狀態，用來更新預約卡片；群組為空陣列 |
+      | `transfers` | 此聊天室最近 30 筆轉帳與請款的最新狀態，用來更新轉帳卡片 |
+      | `room` | 聊天室標題、頭貼與成員數，每次回應皆帶入，用來更新畫面標題 |
 
       載入歷史訊息時改用 `before_id` 帶入目前最舊一則的 `message_id`，`has_more` 為 false 時停止。
 
@@ -66,6 +97,27 @@ tags:
       - 封鎖者傳送時回傳 403 `CHAT_BLOCKED`；被封鎖者傳送時回傳與對方帳號停用相同的 400 `RECIPIENT_UNAVAILABLE`，
         不透露自己已被封鎖。
       - 取得訊息時 `meta.can_send` 綜合上述狀態，用戶端可據此停用輸入欄位。
+      - 封鎖僅作用於一對一聊天室；群組中的訊息、轉帳與請款不受封鎖影響。群組亦可設定靜音。
+
+      ## Transfers
+
+      成員之間可在聊天室中轉帳代幣或請款，金額為 1 至 100000 的整數，備註上限 100 字。
+      直接轉帳與支付請款須帶 `payment` 範圍的 `X-Verify-Token`（見「Verification」一節），
+      扣款、入帳、狀態更新與卡片訊息在同一個資料庫交易中完成。
+
+      ```
+      transfer：建立即 completed
+      request： pending ──(付款方付款)──→ completed
+                   ├──(付款方婉拒)──→ declined
+                   ├──(請款人取消)──→ cancelled
+                   └──(72 小時未處理)──→ expired
+      ```
+
+      - 付款方與收款方的錢包各寫入一筆 `transfer_out`、`transfer_in` 交易紀錄。
+      - 直接轉帳與請款通知對方；付款與婉拒通知請款人；取消不通知。通知類型為 `message`，關聯 `chat_room`。
+      - 請款狀態已被處理（含並行的重複付款）時回傳 409 `TRANSFER_STATE_CHANGED`，不會重複扣款。
+      - 一對一時，任一方封鎖另一方的錯誤與傳送訊息相同；對方帳號停用時回傳 400 `RECIPIENT_UNAVAILABLE`。
+      - 顯示給使用者的編號請使用 `transfer_no`。
 
 paths:
   /api/chat/rooms:
@@ -74,11 +126,11 @@ paths:
       operationId: listChatRooms
       tags: [chat]
       description: |
-        依最後活動時間遞減排序。回應為整併後的格式而非資料表原始欄位，
-        伺服器已判定對話對象並計算未讀則數。無分頁機制。
+        包含一對一與群組。已釘選的聊天室依釘選時間遞減排在最前，其餘依最後活動時間遞減排序。
+        回應為整併後的格式而非資料表原始欄位，伺服器已判定對話對象並計算未讀則數。無分頁機制。
 
-        `last_message.preview` 為伺服器產生的摘要，可直接顯示；`sender_id` 與 `is_read`
-        可用來顯示「你：」前綴與已讀狀態。
+        `last_message.preview` 為伺服器產生的摘要，可直接顯示；`sender_id`、`sender_name` 與 `is_read`
+        可用來顯示發送者前綴與已讀狀態。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -167,8 +219,8 @@ paths:
       operationId: getUnreadChatCount
       tags: [chat]
       description: |
-        統計全部聊天室中由對方發送且尚未讀取的訊息總數。
-        請求者自行發送的訊息不計入。
+        統計全部聊天室中尚未讀取的訊息總數，請求者自行發送的訊息不計入。
+        一對一依訊息的已讀狀態計算；群組計算編號大於請求者已讀位置的訊息，已退出的群組不計入。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -191,7 +243,7 @@ paths:
       summary: 所有聊天室標為已讀
       operationId: markAllChatRead
       tags: [chat]
-      description: 將全部聊天室中由對方發送的未讀訊息一併標記為已讀。此操作不可復原。
+      description: 將全部一對一聊天室中由對方發送的未讀訊息標記為已讀，並將請求者在各群組的已讀位置更新至最新訊息。此操作不可復原。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -209,10 +261,10 @@ paths:
       operationId: deleteChatRoom
       tags: [chat]
       description: |
-        刪除範圍及於雙方：聊天室與其下全部訊息均自資料庫移除，
-        並非僅自請求者的列表隱藏。此操作不可復原。
+        一對一聊天室：刪除範圍及於雙方，聊天室與其下全部訊息均自資料庫移除，
+        並非僅自請求者的列表隱藏。此操作不可復原。僅聊天室的兩位成員可執行。
 
-        僅聊天室的兩位成員可執行。
+        群組：等同 `POST /api/chat/groups/{roomId}/leave`，回應訊息為「已退出群組」。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -227,7 +279,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
-              example: { success: true, message: 已刪除聊天室 }
+              examples:
+                一對一:
+                  value: { success: true, message: 已刪除聊天室 }
+                群組:
+                  value: { success: true, message: 已退出群組 }
         '400':
           description: 聊天室編號格式錯誤。
           content:
@@ -271,8 +327,9 @@ paths:
         增量更新模式下 `has_more` 固定為 false；若回傳則數等於 `limit`，請以最新一則的編號再次呼叫。
         `recalled_ids` 僅在增量更新模式下有值。
 
-        本端點具副作用：呼叫後會將該聊天室中由對方發送的未讀訊息標記為已讀，
-        無須另行呼叫已讀端點。
+        本端點具副作用：一對一會將由對方發送的未讀訊息標記為已讀；群組會將請求者的已讀位置更新為本次回傳的最大訊息編號
+        （不會倒退）。回應中的 `is_read` 與 `my_last_read_message_id` 為標記之前的狀態。
+        帶入 `mark_read=false` 時兩者皆不更新。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
@@ -309,12 +366,13 @@ paths:
                 properties:
                   success: { type: boolean, example: true }
                   partner:
-                    allOf: [{ $ref: '#/components/schemas/UserBrief' }]
-                    description: 對話對象的資訊，供顯示聊天室標題與頭像。
+                    nullable: true
+                    allOf: [{ $ref: '#/components/schemas/ChatPartner' }]
+                    description: 一對一的對話對象，供顯示聊天室標題與頭像；群組為 `null`。
                   book:
                     type: object
                     nullable: true
-                    description: 該聊天室最後關聯的商品，可固定呈現於介面頂部。
+                    description: 一對一聊天室最後關聯的商品，可固定呈現於介面頂部；群組為 `null`。
                     properties:
                       book_id: { type: integer }
                       title: { type: string }
@@ -330,28 +388,72 @@ paths:
                     properties:
                       read_upto:
                         type: integer
-                        description: 請求者發送、且對方已讀的最後一則訊息編號；無則為 0。
+                        description: 一對一為請求者發送、且對方已讀的最後一則訊息編號；群組為其他成員中最大的已讀位置。無則為 0。
                         example: 298
+                      my_last_read_message_id:
+                        type: integer
+                        nullable: true
+                        description: 群組中請求者本次標記前的已讀位置；一對一為 `null`。
+                        example: 296
+                      members_read:
+                        type: array
+                        description: 其他現任成員的已讀位置；一對一為對方一筆，值同 `read_upto`。
+                        items:
+                          type: object
+                          properties:
+                            user_id: { type: integer, example: 8 }
+                            last_read_message_id: { type: integer, example: 298 }
                       partner_typing:
                         type: boolean
-                        description: 對方在 6 秒內回報過正在輸入。任一方封鎖另一方時固定為 false。
+                        description: 一對一：對方在 6 秒內回報過正在輸入。任一方封鎖另一方時固定為 false；群組固定為 false。
                         example: false
+                      typing_user_ids:
+                        type: array
+                        items: { type: integer }
+                        description: 6 秒內回報過正在輸入的其他成員。
+                        example: [8]
+                      aliases:
+                        type: object
+                        additionalProperties: { type: string }
+                        description: 請求者為聊天室成員與本頁訊息發送者設定的自訂暱稱，鍵為使用者編號。
+                        example: { '8': 阿華 }
+                      edited:
+                        type: array
+                        description: 近 20 分鐘內被編輯的文字訊息，僅增量更新模式有值。
+                        items:
+                          type: object
+                          properties:
+                            message_id: { type: integer, example: 297 }
+                            body: { type: string, example: 修改後的內容 }
+                            edited_at: { type: string, format: date-time }
+                      transfers:
+                        type: array
+                        description: 此聊天室最近 30 筆轉帳與請款，依建立時間遞減排序。
+                        items: { $ref: '#/components/schemas/ChatTransfer' }
+                      room:
+                        type: object
+                        description: 聊天室標題資訊，每次回應皆帶入。
+                        properties:
+                          type: { type: string, enum: [direct, group] }
+                          title: { type: string, nullable: true, example: 讀書會 }
+                          avatar_url: { type: string, nullable: true }
+                          member_count: { type: integer, example: 3 }
                       muted:
                         type: boolean
                         description: 請求者已將此聊天室設為靜音。
                         example: false
                       blocked:
                         type: boolean
-                        description: 請求者已封鎖對話對象。
+                        description: 一對一：請求者已封鎖對話對象。群組固定為 false。
                         example: false
                       can_send:
                         type: boolean
-                        description: 請求者目前能否在此聊天室傳送訊息。對方帳號停用、請求者封鎖對方或被對方封鎖時為 false。
+                        description: 請求者目前能否在此聊天室傳送訊息。一對一於對方帳號停用、請求者封鎖對方或被對方封鎖時為 false；群組固定為 true。
                         example: true
                       recalled_ids:
                         type: array
                         items: { type: integer }
-                        description: 近 10 分鐘內送出、目前已收回的訊息編號，僅增量更新模式有值。
+                        description: 近 24 小時內送出、目前已收回的訊息編號，僅增量更新模式有值。
                         example: [297]
                       has_more:
                         type: boolean
@@ -359,7 +461,7 @@ paths:
                         example: true
                       reservations:
                         type: array
-                        description: 雙方之間最近 30 筆預約（不論哪一方為買家），依建立時間遞減排序。
+                        description: 一對一雙方之間最近 30 筆預約（不論哪一方為買家），依建立時間遞減排序；群組為空陣列。
                         items: { $ref: '#/components/schemas/Reservation' }
                   data:
                     type: array
@@ -376,8 +478,10 @@ paths:
       operationId: sendChatMessage
       tags: [chat]
       description: |
-        送出訊息，同時更新聊天室的活動時間、清除請求者的輸入中狀態並通知對方。
+        送出訊息，同時更新聊天室的活動時間、清除請求者的輸入中狀態並通知其他成員。
         通知的 `related_type` 為 `chat_room`，`related_id` 為聊天室編號。
+        一對一的通知標題為發送者暱稱、內文為預覽；群組的通知標題為群組名稱、內文為「發送者暱稱：預覽」。
+        靜音只影響手機推播，站內通知照常建立。
 
         | `message_type` | `content` | 其他欄位 | 通知內容 |
         | --- | --- | --- | --- |
@@ -390,8 +494,9 @@ paths:
 
         語音訊息在資料表中以 `system` 型別儲存，回應的 `kind` 為 `voice`。
 
-        對方帳號已停權、列入黑名單或已封鎖請求者時回傳 400 `RECIPIENT_UNAVAILABLE`；
-        請求者已封鎖對方時回傳 403 `CHAT_BLOCKED`。每位使用者每分鐘最多 60 次，與建立預約共用計數。
+        一對一時，對方帳號已停權、列入黑名單或已封鎖請求者時回傳 400 `RECIPIENT_UNAVAILABLE`；
+        請求者已封鎖對方時回傳 403 `CHAT_BLOCKED`。群組不檢查封鎖關係。
+        每位使用者每分鐘最多 60 次，與建立預約、轉帳、請款、建立群組與邀請成員共用計數。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -475,7 +580,8 @@ paths:
       operationId: setChatTyping
       tags: [chat]
       description: |
-        回報請求者正在輸入。狀態保存 6 秒，對方於此期間取得訊息時 `meta.partner_typing` 為 true。
+        回報請求者正在輸入。狀態保存 6 秒，其他成員於此期間取得訊息時 `meta.typing_user_ids` 包含請求者，
+        一對一另以 `meta.partner_typing` 表示。
 
         使用者持續輸入時建議每 3 至 4 秒呼叫一次；清空輸入框或離開畫面時帶入
         `typing: false` 立即清除。送出訊息時伺服器會自動清除。
@@ -522,7 +628,8 @@ paths:
       operationId: recallChatMessage
       tags: [chat]
       description: |
-        收回自己在 2 分鐘內送出的文字、圖片或語音訊息。商品卡片與預約卡片無法收回。
+        收回自己在 24 小時內送出的文字、圖片或語音訊息。商品卡片、預約卡片與轉帳卡片無法收回。
+        群組中已退出的成員無法收回。
 
         收回後訊息內容直接被取代，原始內容不保留，雙方看到的 `kind` 皆為 `recalled`。
         對方透過增量更新的 `meta.recalled_ids` 得知，或於重新載入訊息時看到。
@@ -553,7 +660,7 @@ paths:
                   message: { type: string, example: 訊息已收回 }
                   data: { $ref: '#/components/schemas/ChatMessage' }
         '400':
-          description: 訊息類型無法收回，或已超過 2 分鐘。
+          description: 訊息類型無法收回，或已超過 24 小時。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -561,7 +668,7 @@ paths:
                 類型無法收回:
                   value: { success: false, message: 這種訊息無法收回 }
                 超過時限:
-                  value: { success: false, message: 只能收回 2 分鐘內傳送的訊息 }
+                  value: { success: false, message: 僅能收回 24 小時內傳送的訊息 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
           description: 訊息並非請求者發送。
@@ -589,8 +696,8 @@ paths:
       operationId: createReservation
       tags: [chat]
       description: |
-        買家在與賣家的聊天室中預約對方上架的書，建立狀態為 `pending` 的預約，
-        於聊天室插入一則預約卡片，並通知賣家。
+        買家在與賣家的一對一聊天室中預約對方上架的書，建立狀態為 `pending` 的預約，
+        於聊天室插入一則預約卡片，並通知賣家。群組聊天室回傳 400。
 
         限制條件：
 
@@ -652,6 +759,8 @@ paths:
                   value: { success: false, message: 這本書目前無法預約 }
                 超過上限:
                   value: { success: false, message: 同時最多只能有 5 筆進行中的預約 }
+                群組聊天室:
+                  value: { success: false, message: 群組聊天室不支援預約 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404':
@@ -755,7 +864,7 @@ paths:
       operationId: setChatRoomMute
       tags: [chat]
       description: |
-        設定請求者對此聊天室的靜音狀態。靜音後新訊息不發送手機推播，站內通知與未讀數不受影響。
+        設定請求者對此聊天室（一對一或群組）的靜音狀態。靜音後新訊息不發送手機推播，站內通知與未讀數不受影響。
         僅影響請求者本人，對方不會得知。重複設定相同狀態不會出錯。
       security: [{ bearerAuth: [] }]
       parameters:
@@ -896,3 +1005,809 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
         '503': { $ref: '#/components/responses/ChatControlsUnavailable' }
+
+  /api/chat/rooms/{roomId}:
+    get:
+      summary: 取得聊天室資訊
+      operationId: getChatRoom
+      tags: [chat]
+      description: |
+        取得聊天室設定頁所需的資訊。群組回傳現任成員與請求者的角色；一對一回傳雙方與對方的自訂暱稱。
+        伺服器尚未執行資料庫更新 009 時仍可取得一對一聊天室資訊（`pinned` 固定為 false）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 聊天室編號。
+          example: 7
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/ChatRoomDetail' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 請求者不是聊天室的現任成員。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 存取被拒 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/chat/rooms/{roomId}/pin:
+    put:
+      summary: 釘選聊天室
+      operationId: setChatRoomPin
+      tags: [chat]
+      description: |
+        設定請求者對此聊天室的釘選狀態，僅影響請求者本人的列表排序。每人最多釘選 10 個聊天室，
+        已退出的群組不計入。重複釘選不會出錯，並保留原本的 `pinned_at`。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 聊天室編號。
+          example: 7
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pinned]
+              properties:
+                pinned: { type: boolean, description: true 為釘選，false 為取消釘選。, example: true }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, enum: [已釘選聊天室, 已取消釘選], example: 已釘選聊天室 }
+                  data:
+                    type: object
+                    properties:
+                      room_id: { type: integer, example: 7 }
+                      pinned: { type: boolean, example: true }
+                      pinned_at: { type: string, format: date-time, nullable: true }
+        '400':
+          description: 參數錯誤，或已達釘選上限。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                參數錯誤:
+                  value: { success: false, message: pinned 必須為布林值 }
+                超過上限:
+                  value: { success: false, code: PIN_LIMIT, message: 最多僅能釘選 10 個聊天室 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/aliases/{userId}:
+    put:
+      summary: 設定自訂暱稱
+      operationId: setChatAlias
+      tags: [chat]
+      description: |
+        為指定使用者設定只有請求者看得到的顯示名稱，一對一與群組共用。
+        `alias` 為空字串或 `null` 時移除。前後空白會被去除，上限 30 字。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: integer }
+          description: 對象的使用者編號。
+          example: 8
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [alias]
+              properties:
+                alias: { type: string, nullable: true, maxLength: 30, example: 阿華 }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, enum: [已設定暱稱, 已移除暱稱], example: 已設定暱稱 }
+                  data:
+                    type: object
+                    properties:
+                      user_id: { type: integer, example: 8 }
+                      alias: { type: string, nullable: true, example: 阿華 }
+        '400':
+          description: 參數錯誤。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                超過長度:
+                  value: { success: false, message: 暱稱不可超過 30 個字 }
+                對象為自己:
+                  value: { success: false, message: 無法為自己設定暱稱 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: 使用者不存在。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到該使用者 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/rooms/{roomId}/messages/{messageId}:
+    patch:
+      summary: 編輯訊息
+      operationId: editChatMessage
+      tags: [chat]
+      description: |
+        編輯自己在 15 分鐘內送出的文字訊息，內容為 1 至 2000 字。編輯後 `edited_at` 更新，
+        其他成員透過增量更新的 `meta.edited` 得知。一對一時封鎖規則與送出訊息相同。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 聊天室編號。
+          example: 7
+        - in: path
+          name: messageId
+          required: true
+          schema: { type: integer }
+          description: 訊息編號。
+          example: 301
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string, maxLength: 2000, example: 請問這本書還在嗎？ }
+      responses:
+        '200':
+          description: 已編輯，回傳更新後的訊息。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 訊息已編輯 }
+                  data: { $ref: '#/components/schemas/ChatMessage' }
+        '400':
+          description: 內容不正確、訊息不是文字，或已超過 15 分鐘。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                內容為空:
+                  value: { success: false, message: 訊息內容不可為空 }
+                非文字訊息:
+                  value: { success: false, message: 僅能編輯文字訊息 }
+                超過時限:
+                  value: { success: false, code: EDIT_WINDOW_PASSED, message: 僅能編輯 15 分鐘內傳送的訊息 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 訊息並非請求者發送、請求者不是成員，或一對一已封鎖對方。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 僅能編輯自己傳送的訊息 }
+        '404':
+          description: 訊息不存在，或不屬於該聊天室。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到此訊息 }
+        '409':
+          description: 訊息已收回。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 此訊息已收回 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/groups:
+    post:
+      summary: 建立群組
+      operationId: createChatGroup
+      tags: [chat]
+      description: |
+        建立群組聊天室，請求者為 `owner`。插入「{建立者} 建立了群組」的 `notice` 訊息並通知受邀成員。
+
+        - `member_ids` 為 1 至 50 位成員，不可包含請求者，重複的編號視為一位
+        - 成員須為存在且未停權、未列入黑名單的帳號，否則整筆回傳 400
+        - `avatar_url` 須為 `POST /api/uploads/chat-image` 回傳的路徑
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, member_ids]
+              properties:
+                name: { type: string, minLength: 1, maxLength: 50, example: 讀書會 }
+                member_ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  items: { type: integer }
+                  example: [8, 15]
+                avatar_url: { type: string, nullable: true, example: /uploads/chat/1736512345678-123456789.jpg }
+      responses:
+        '201':
+          description: 已建立。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已建立群組 }
+                  data:
+                    type: object
+                    properties:
+                      room_id: { type: integer, example: 21 }
+        '400':
+          description: 參數錯誤或成員無效。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                名稱空白:
+                  value: { success: false, message: 請輸入群組名稱 }
+                人數過多:
+                  value: { success: false, message: 一次最多邀請 50 人 }
+                包含自己:
+                  value: { success: false, message: 成員名單不可包含自己 }
+                成員無效:
+                  value: { success: false, message: 成員名單包含無法加入群組的帳號 }
+                頭貼未經上傳端點:
+                  value: { success: false, message: 群組頭貼請先透過 /api/uploads/chat-image 上傳 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/groups/{roomId}:
+    patch:
+      summary: 修改群組資訊
+      operationId: updateChatGroup
+      tags: [chat]
+      description: |
+        任何成員皆可修改群組名稱或頭貼，至少提供一個欄位。實際變更時分別插入
+        「{成員} 將群組名稱變更為「…」」、「{成員} 變更了群組頭貼」的 `notice` 訊息；值未變更時不插入。
+        `avatar_url` 為 `null` 或空字串時移除頭貼。回傳更新後的聊天室資訊。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 群組的聊天室編號。
+          example: 21
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 50, example: 週末讀書會 }
+                avatar_url: { type: string, nullable: true, example: /uploads/chat/1736512345678-123456789.jpg }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已更新群組資訊 }
+                  data: { $ref: '#/components/schemas/ChatRoomDetail' }
+        '400':
+          description: 參數錯誤，或聊天室不是群組。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                未提供欄位:
+                  value: { success: false, message: 請提供 name 或 avatar_url }
+                不是群組:
+                  value: { success: false, message: 此操作僅適用於群組聊天室 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/groups/{roomId}/members:
+    post:
+      summary: 邀請成員
+      operationId: addChatGroupMembers
+      tags: [chat]
+      description: |
+        任何成員皆可邀請，一次 1 至 50 人，已在群組中的使用者略過；曾退出或被移除的使用者可再次加入。
+        加入後群組不可超過 100 人。插入「{成員} 邀請 {A}、{B} 加入群組」的 `notice` 訊息並通知新成員。
+        新成員的未讀自此則 `notice` 起算。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 群組的聊天室編號。
+          example: 21
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_ids]
+              properties:
+                user_ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  items: { type: integer }
+                  example: [23, 31]
+      responses:
+        '200':
+          description: 已處理。所選成員皆已在群組中時 `added_user_ids` 為空陣列。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, enum: [已邀請成員加入群組, 所選成員皆已在群組中], example: 已邀請成員加入群組 }
+                  data:
+                    type: object
+                    properties:
+                      room_id: { type: integer, example: 21 }
+                      added_user_ids: { type: array, items: { type: integer }, example: [31] }
+        '400':
+          description: 參數錯誤、成員無效，或超過成員上限。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                成員無效:
+                  value: { success: false, message: 成員名單包含無法加入群組的帳號 }
+                超過上限:
+                  value: { success: false, code: GROUP_MEMBER_LIMIT, message: 群組成員上限為 100 人 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/groups/{roomId}/members/{userId}:
+    delete:
+      summary: 移除成員
+      operationId: removeChatGroupMember
+      tags: [chat]
+      description: |
+        僅 `owner` 可移除其他成員，無法移除自己。被移除者立即失去存取權，其釘選一併移除，
+        並插入「{owner} 將 {成員} 移出群組」的 `notice` 訊息。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 群組的聊天室編號。
+          example: 21
+        - in: path
+          name: userId
+          required: true
+          schema: { type: integer }
+          description: 要移除的使用者編號。
+          example: 31
+      responses:
+        '200':
+          description: 已移除。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已將成員移出群組 }
+                  data:
+                    type: object
+                    properties:
+                      room_id: { type: integer, example: 21 }
+                      user_id: { type: integer, example: 31 }
+        '400':
+          description: 嘗試移除群組管理者，或聊天室不是群組。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 無法移除群組管理者 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 請求者不是成員，或不是 `owner`。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 僅群組管理者可移除成員 }
+        '404':
+          description: 群組不存在，或對象不是現任成員。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 此使用者不是群組成員 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/groups/{roomId}/leave:
+    post:
+      summary: 退出群組
+      operationId: leaveChatGroup
+      tags: [chat]
+      description: |
+        請求者退出群組並移除其釘選，插入「{成員} 已退出群組」的 `notice` 訊息。
+        `owner` 退出時由加入最早的現任成員接任；最後一位成員退出時刪除聊天室與全部訊息，`deleted` 為 true。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 群組的聊天室編號。
+          example: 21
+      responses:
+        '200':
+          description: 已退出。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已退出群組 }
+                  data:
+                    type: object
+                    properties:
+                      room_id: { type: integer, example: 21 }
+                      deleted: { type: boolean, example: false }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/rooms/{roomId}/transfers:
+    post:
+      summary: 轉帳代幣
+      operationId: createChatTransfer
+      tags: [chat]
+      description: |
+        請求者將代幣轉給聊天室成員，須帶 `payment` 範圍的 `X-Verify-Token`。參數格式錯誤時先回傳 400，不要求驗證。
+
+        在同一個資料庫交易中扣除請求者餘額（`transfer_out`，說明「轉帳給 {暱稱}」）、增加對方餘額
+        （`transfer_in`，說明「{暱稱} 轉帳」）、建立狀態為 `completed` 的轉帳並插入轉帳卡片，
+        任一步驟失敗時全部復原。完成後通知收款方。
+
+        一對一可省略 `to_user_id`（即對方）；群組必須指定現任成員。
+        每位使用者每分鐘最多 60 次，與送出訊息共用計數。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 聊天室編號。
+          example: 7
+        - $ref: '#/components/parameters/VerifyToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                to_user_id: { type: integer, nullable: true, description: 收款方。一對一可省略。, example: 8 }
+                amount: { type: integer, minimum: 1, maximum: 100000, example: 180 }
+                note: { type: string, nullable: true, maxLength: 100, example: 挪威的森林 }
+      responses:
+        '201':
+          description: 已轉帳。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 轉帳完成 }
+                  data:
+                    type: object
+                    properties:
+                      transfer: { $ref: '#/components/schemas/ChatTransfer' }
+                      message: { $ref: '#/components/schemas/ChatMessage' }
+        '400':
+          description: 參數錯誤、對象無效、餘額不足，或對方無法接收。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                金額錯誤:
+                  value: { success: false, message: 金額必須是 1 ~ 100000 之間的整數 }
+                對象為自己:
+                  value: { success: false, message: 無法轉帳給自己 }
+                未指定對象:
+                  value: { success: false, message: 請指定對象 }
+                對象不是成員:
+                  value: { success: false, message: 對象不是此聊天室的成員 }
+                餘額不足:
+                  value: { success: false, code: INSUFFICIENT_BALANCE, message: 代幣餘額不足 }
+                對方無法接收:
+                  value: { success: false, code: RECIPIENT_UNAVAILABLE, message: 對方帳號目前無法接收訊息 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 需要交易驗證、請求者不是成員，或一對一已封鎖對方。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                需要驗證:
+                  value: { success: false, code: VERIFICATION_REQUIRED, message: 請輸入交易密碼以完成付款, verification: { scope: payment, methods: [pin, biometric] } }
+                已封鎖對方:
+                  value: { success: false, code: CHAT_BLOCKED, message: 您已封鎖此使用者，解除封鎖後才能傳送訊息 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/rooms/{roomId}/transfer-requests:
+    post:
+      summary: 請款
+      operationId: createChatTransferRequest
+      tags: [chat]
+      description: |
+        請求者向聊天室成員請款，建立狀態為 `pending`、72 小時後到期的請款並插入轉帳卡片，通知付款方。
+        此時不異動任何餘額，不需交易驗證。
+
+        一對一可省略 `from_user_id`（即對方）；群組必須指定現任成員。封鎖與帳號停用的規則同轉帳。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 聊天室編號。
+          example: 7
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                from_user_id: { type: integer, nullable: true, description: 付款方。一對一可省略。, example: 8 }
+                amount: { type: integer, minimum: 1, maximum: 100000, example: 180 }
+                note: { type: string, nullable: true, maxLength: 100, example: 上次代購的書 }
+      responses:
+        '201':
+          description: 已送出請款。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已送出請款 }
+                  data:
+                    type: object
+                    properties:
+                      transfer: { $ref: '#/components/schemas/ChatTransfer' }
+                      message: { $ref: '#/components/schemas/ChatMessage' }
+        '400':
+          description: 參數錯誤、對象無效，或對方無法接收。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                對象為自己:
+                  value: { success: false, message: 無法向自己請款 }
+                對方無法接收:
+                  value: { success: false, code: RECIPIENT_UNAVAILABLE, message: 對方帳號目前無法接收訊息 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/transfers/{id}/pay:
+    post:
+      summary: 支付請款
+      operationId: payChatTransferRequest
+      tags: [chat]
+      description: |
+        付款方支付狀態為 `pending` 且未到期的請款，須帶 `payment` 範圍的 `X-Verify-Token`。
+        以「狀態仍為 `pending`」為條件更新後才扣款入帳，同一筆請款被重複或並行支付時僅一次成功，
+        其餘回傳 409 `TRANSFER_STATE_CHANGED`。餘額不足時請款維持 `pending`。完成後通知請款人。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 轉帳的 `transfer_id`。
+          example: 31
+        - $ref: '#/components/parameters/VerifyToken'
+      responses:
+        '200':
+          description: 已付款。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 付款完成 }
+                  data:
+                    type: object
+                    properties:
+                      transfer: { $ref: '#/components/schemas/ChatTransfer' }
+        '400':
+          description: 餘額不足，或請款人帳號無法接收。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                餘額不足:
+                  value: { success: false, code: INSUFFICIENT_BALANCE, message: 代幣餘額不足 }
+                對方無法接收:
+                  value: { success: false, code: RECIPIENT_UNAVAILABLE, message: 對方帳號目前無法接收訊息 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 需要交易驗證、請求者不是付款方，或一對一已封鎖請款人。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 僅付款方可支付此請款 }
+        '404':
+          description: 請款不存在，或請求者不是當事人。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到此筆請款 }
+        '409':
+          description: 請款已被處理、已到期，或不是請款。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: TRANSFER_STATE_CHANGED, message: 此筆請款狀態已變更，請重新整理 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/transfers/{id}/decline:
+    post:
+      summary: 婉拒請款
+      operationId: declineChatTransferRequest
+      tags: [chat]
+      description: 付款方婉拒狀態為 `pending` 且未到期的請款，狀態改為 `declined` 並通知請款人。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 轉帳的 `transfer_id`。
+          example: 31
+      responses:
+        '200':
+          description: 已婉拒。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已婉拒請款 }
+                  data:
+                    type: object
+                    properties:
+                      transfer: { $ref: '#/components/schemas/ChatTransfer' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 請求者不是付款方。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 僅付款方可婉拒此請款 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 請款已被處理或已到期。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: TRANSFER_STATE_CHANGED, message: 此筆請款狀態已變更，請重新整理 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/transfers/{id}/cancel:
+    post:
+      summary: 取消請款
+      operationId: cancelChatTransferRequest
+      tags: [chat]
+      description: 請款人取消狀態為 `pending` 且未到期的請款，狀態改為 `cancelled`，不通知付款方。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 轉帳的 `transfer_id`。
+          example: 31
+      responses:
+        '200':
+          description: 已取消。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已取消請款 }
+                  data:
+                    type: object
+                    properties:
+                      transfer: { $ref: '#/components/schemas/ChatTransfer' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 請求者不是請款人。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 僅請款人可取消此請款 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 請款已被處理或已到期。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: TRANSFER_STATE_CHANGED, message: 此筆請款狀態已變更，請重新整理 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503': { $ref: '#/components/responses/ChatV2Unavailable' }

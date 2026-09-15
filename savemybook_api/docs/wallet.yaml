@@ -4,9 +4,9 @@ tags:
     description: |
       站內代幣錢包，1 代幣等值 1 元。
 
-      餘額變動來源共五種：購書扣款、售出入帳、取消退款、爭議退款，
-      以及管理員調整。每筆異動皆寫入 `wallet_transactions` 並記錄異動後餘額，
-      帳務具完整可追溯性。
+      餘額變動來源共七種：購書扣款、售出入帳、取消退款、爭議退款、管理員調整，
+      以及聊天室的轉帳轉入（`transfer_in`）與轉出（`transfer_out`，含支付請款）。
+      每筆異動皆寫入 `wallet_transactions` 並記錄異動後餘額，帳務具完整可追溯性。
 
       系統目前未提供儲值與提領端點，代幣由管理員透過
       `POST /api/admin/wallets/{userId}/adjust` 發放。

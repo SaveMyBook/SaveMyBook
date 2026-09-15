@@ -263,7 +263,7 @@
     }
   },
   "confirmCheckout": "確認結帳",
-  "booksTotal": "共 {p0} 本書，總金額 \\${p1}。\n",
+  "booksTotal": "共 {p0} 本書，總金額 ${p1}。\n",
   "@booksTotal": {
     "placeholders": {
       "p0": {},
@@ -586,7 +586,7 @@
     }
   },
   "orderNoItemDetails": "此訂單無品項資料。",
-  "msg4": "單價 \\${p0} × {p1}",
+  "msg4": "單價 ${p0} × {p1}",
   "@msg4": {
     "placeholders": {
       "p0": {},
@@ -815,7 +815,7 @@
   "transactions": "交易紀錄",
   "noTransactionsYet": "尚無交易紀錄",
   "balance": "目前餘額",
-  "hold": "凍結中 \\${p0}",
+  "hold": "凍結中 ${p0}",
   "@hold": {
     "placeholders": {
       "p0": {}
@@ -1214,7 +1214,7 @@
     }
   },
   "disputeResolution": "交易仲裁",
-  "orderP0P1": "訂單 {p0}｜\\${p1}",
+  "orderP0P1": "訂單 {p0}｜${p1}",
   "@orderP0P1": {
     "placeholders": {
       "p0": {},
@@ -2656,5 +2656,249 @@
     }
   },
   "cancelReply": "取消回覆",
-  "unreadMessages": "以下為未讀訊息"
+  "unreadMessages": "以下為未讀訊息",
+  "selectChat": "請選擇聊天室",
+  "appPermissions": "App 權限",
+  "noPermissionsRequiredDevice": "此裝置沒有需要授權的項目",
+  "allowAll": "全部允許",
+  "camera": "相機",
+  "photosRead": "相簿（讀取）",
+  "photosSave": "相簿（寫入／儲存）",
+  "microphone": "麥克風",
+  "location": "定位",
+  "orderUpdatesChatMessagesAnnouncements": "訂單進度、聊天訊息與公告",
+  "scanBarcodesTakeBookPhotos": "掃描條碼與拍攝書籍照片",
+  "chooseBookPhotosProfilePicturesChat": "選取書籍照片、大頭貼與聊天圖片",
+  "saveQrCodesPhotos": "將 QR Code 儲存至相簿",
+  "recordVoiceMessagesChats": "錄製聊天語音訊息",
+  "showNearestSmartLockersTheirDistance": "顯示最近的智慧書櫃與距離",
+  "quickSignPaymentConfirmation": "快速登入與確認付款",
+  "allowed": "已允許",
+  "limited": "部分允許",
+  "notAllowed": "未允許",
+  "restricted": "受限",
+  "denied": "永久拒絕",
+  "allow": "允許",
+  "homeRecommendations": "首頁推薦區塊",
+  "pickedRecentlyViewed": "為您推薦、最近瀏覽",
+  "leaveGroup": "退出群組",
+  "leaveP0": "確定要退出「{p0}」？",
+  "@leaveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "leave": "退出",
+  "leftGroup": "已退出群組",
+  "unpin": "取消釘選",
+  "pin": "釘選",
+  "you3": "你",
+  "canOnlyEditMessagesSentWithin": "僅能編輯 15 分鐘內傳送的訊息",
+  "p0UnsentMessage": "{p0} 已收回一則訊息",
+  "@p0UnsentMessage": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "readByP0": "已讀 {p0}",
+  "@readByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transferDetailsUnavailable": "無法顯示轉帳資訊",
+  "couldNotCreateGroup": "無法建立群組",
+  "groupDetails": "群組資料",
+  "selectMembers": "選擇成員",
+  "groupName": "群組名稱",
+  "membersP0": "成員 {p0}",
+  "@membersP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "createGroup": "建立群組",
+  "inviteMembers": "邀請成員",
+  "invite": "邀請",
+  "canSelectUpP0People": "最多可選擇 {p0} 人",
+  "@canSelectUpP0People": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noChatsChooseFrom": "沒有可選擇的聊天對象",
+  "noMatchingPeople": "找不到符合的對象",
+  "searchByName": "搜尋名稱",
+  "chatPinned": "已釘選聊天室",
+  "unpinned": "已取消釘選",
+  "setNickname": "設定暱稱",
+  "onlyVisible": "僅自己可見",
+  "nicknameRemoved": "已移除暱稱",
+  "nicknameUpdated": "已更新暱稱",
+  "enterGroupName": "請輸入群組名稱",
+  "groupNameUpdated": "已更新群組名稱",
+  "groupPhotoUpdated": "已更新群組頭貼",
+  "groupReachedMemberLimit": "群組成員已達上限",
+  "invitedP0Members": "已邀請 {p0} 位成員",
+  "@invitedP0Members": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeMember": "移除成員",
+  "removeP0FromGroup": "確定要將「{p0}」移出群組？",
+  "@removeP0FromGroup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "memberRemoved": "已移除成員",
+  "chatSettings": "聊天室設定",
+  "muteNotifications": "靜音通知",
+  "pinChat": "釘選聊天室",
+  "me": "我",
+  "requestedFromP0": "向 {p0} 請款",
+  "@requestedFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0RequestedPaymentFrom": "{p0} 向你請款",
+  "@p0RequestedPaymentFrom": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0RequestedPaymentFromP1": "{p0} 向 {p1} 請款",
+  "@p0RequestedPaymentFromP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sentP0": "轉帳給 {p0}",
+  "@sentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SentCoins": "{p0} 轉帳給你",
+  "@p0SentCoins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SentCoinsP1": "{p0} 轉帳給 {p1}",
+  "@p0SentCoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "expired2": "已逾期",
+  "payNow": "立即付款",
+  "cancelRequest": "取消請款",
+  "request": "請款",
+  "transfer": "轉帳",
+  "dueP0": "期限 {p0}",
+  "@dueP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transferP0": "轉帳給 {p0}",
+  "@transferP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sentP0CoinsP1": "已轉帳 {p0} 代幣給 {p1}",
+  "@sentP0CoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmPayment": "確認付款",
+  "payP0CoinsP1": "支付 {p0} 代幣給 {p1}",
+  "@payP0CoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "declineRequest": "婉拒請款",
+  "declineP1CoinRequestFromP0": "婉拒 {p0} 的 {p1} 代幣請款",
+  "@declineP1CoinRequestFromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "cancelRequestP0P1Coins": "取消向 {p0} 請款 {p1} 代幣",
+  "@cancelRequestP0P1Coins": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "payRequestFromP0": "支付 {p0} 的請款",
+  "@payRequestFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paymentCompleted": "已完成付款",
+  "requestDeclined": "已婉拒請款",
+  "requestCanceled": "已取消請款",
+  "selectPayer": "請選擇付款人",
+  "selectRecipient": "請選擇收款人",
+  "sendRequest2": "送出請款",
+  "confirmTransfer": "確認轉帳",
+  "payer": "付款人",
+  "recipient": "收款人",
+  "limitPerTransferP0Coins": "單筆上限 {p0} 代幣",
+  "@limitPerTransferP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "insufficientBalanceP0Coins": "餘額不足（{p0} 代幣）",
+  "@insufficientBalanceP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "balanceP0Coins": "餘額 {p0} 代幣",
+  "@balanceP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noteOptional": "備註（選填）",
+  "editMessage": "編輯訊息",
+  "cancelEditing": "取消編輯",
+  "send": "傳送",
+  "switchKeyboard": "切換至鍵盤",
+  "voiceMessage": "語音訊息",
+  "edited": "已編輯",
+  "maximumRecordingLengthReached": "已達錄音上限",
+  "recordingTooShort": "錄音時間過短",
+  "p0SRemaining": "剩餘 {p0} 秒",
+  "@p0SRemaining": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "releaseSend": "放開即可傳送",
+  "recording": "錄音中",
+  "tapHoldRecord": "點按或按住以錄音",
+  "stopRecording": "停止錄音",
+  "preview2": "試聽",
+  "startRecording": "開始錄音",
+  "microphoneUnavailable": "無法使用麥克風",
+  "paymentRequest": "[請款]",
+  "transfer2": "[轉帳]",
+  "transfer3": "轉入",
+  "transferOut": "轉出"
 }

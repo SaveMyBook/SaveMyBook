@@ -326,6 +326,7 @@ Future<T?> showOptionSheet<T>(
     isScrollControlled: true,
     constraints: BoxConstraints(
       maxHeight: MediaQuery.of(context).size.height * 0.75,
+      maxWidth: 640,
     ),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

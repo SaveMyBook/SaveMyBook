@@ -1214,7 +1214,7 @@
     }
   },
   "disputeResolution": "交易仲裁",
-  "orderP0P1": "订单 {p0}｜\\${p1}",
+  "orderP0P1": "订单 {p0}｜${p1}",
   "@orderP0P1": {
     "placeholders": {
       "p0": {},
@@ -2656,5 +2656,249 @@
     }
   },
   "cancelReply": "取消回复",
-  "unreadMessages": "以下为未读消息"
+  "unreadMessages": "以下为未读消息",
+  "selectChat": "请选择聊天室",
+  "appPermissions": "App 权限",
+  "noPermissionsRequiredDevice": "此设备没有需要授权的项目",
+  "allowAll": "全部允许",
+  "camera": "相机",
+  "photosRead": "相册（读取）",
+  "photosSave": "相册（写入／保存）",
+  "microphone": "麦克风",
+  "location": "定位",
+  "orderUpdatesChatMessagesAnnouncements": "订单进度、聊天消息与公告",
+  "scanBarcodesTakeBookPhotos": "扫描条码与拍摄书籍照片",
+  "chooseBookPhotosProfilePicturesChat": "选取书籍照片、头像与聊天图片",
+  "saveQrCodesPhotos": "将 QR Code 保存至相册",
+  "recordVoiceMessagesChats": "录制聊天语音消息",
+  "showNearestSmartLockersTheirDistance": "显示最近的智能书柜与距离",
+  "quickSignPaymentConfirmation": "快速登录与确认付款",
+  "allowed": "已允许",
+  "limited": "部分允许",
+  "notAllowed": "未允许",
+  "restricted": "受限",
+  "denied": "永久拒绝",
+  "allow": "允许",
+  "homeRecommendations": "首页推荐区块",
+  "pickedRecentlyViewed": "为您推荐、最近浏览",
+  "leaveGroup": "退出群组",
+  "leaveP0": "确定要退出「{p0}」？",
+  "@leaveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "leave": "退出",
+  "leftGroup": "已退出群组",
+  "unpin": "取消置顶",
+  "pin": "置顶",
+  "you3": "你",
+  "canOnlyEditMessagesSentWithin": "仅能编辑 15 分钟内发送的消息",
+  "p0UnsentMessage": "{p0} 已撤回一条消息",
+  "@p0UnsentMessage": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "readByP0": "已读 {p0}",
+  "@readByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transferDetailsUnavailable": "无法显示转账信息",
+  "couldNotCreateGroup": "无法创建群组",
+  "groupDetails": "群组资料",
+  "selectMembers": "选择成员",
+  "groupName": "群组名称",
+  "membersP0": "成员 {p0}",
+  "@membersP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "createGroup": "创建群组",
+  "inviteMembers": "邀请成员",
+  "invite": "邀请",
+  "canSelectUpP0People": "最多可选择 {p0} 人",
+  "@canSelectUpP0People": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noChatsChooseFrom": "没有可选择的聊天对象",
+  "noMatchingPeople": "找不到符合的对象",
+  "searchByName": "搜索名称",
+  "chatPinned": "已置顶聊天室",
+  "unpinned": "已取消置顶",
+  "setNickname": "设置昵称",
+  "onlyVisible": "仅自己可见",
+  "nicknameRemoved": "已移除昵称",
+  "nicknameUpdated": "已更新昵称",
+  "enterGroupName": "请输入群组名称",
+  "groupNameUpdated": "已更新群组名称",
+  "groupPhotoUpdated": "已更新群组头像",
+  "groupReachedMemberLimit": "群组成员已达上限",
+  "invitedP0Members": "已邀请 {p0} 位成员",
+  "@invitedP0Members": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeMember": "移除成员",
+  "removeP0FromGroup": "确定要将「{p0}」移出群组？",
+  "@removeP0FromGroup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "memberRemoved": "已移除成员",
+  "chatSettings": "聊天室设置",
+  "muteNotifications": "消息免打扰",
+  "pinChat": "置顶聊天室",
+  "me": "我",
+  "requestedFromP0": "向 {p0} 请款",
+  "@requestedFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0RequestedPaymentFrom": "{p0} 向你请款",
+  "@p0RequestedPaymentFrom": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0RequestedPaymentFromP1": "{p0} 向 {p1} 请款",
+  "@p0RequestedPaymentFromP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sentP0": "转账给 {p0}",
+  "@sentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SentCoins": "{p0} 转账给你",
+  "@p0SentCoins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SentCoinsP1": "{p0} 转账给 {p1}",
+  "@p0SentCoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "expired2": "已逾期",
+  "payNow": "立即付款",
+  "cancelRequest": "取消请款",
+  "request": "请款",
+  "transfer": "转账",
+  "dueP0": "期限 {p0}",
+  "@dueP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transferP0": "转账给 {p0}",
+  "@transferP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sentP0CoinsP1": "已转账 {p0} 代币给 {p1}",
+  "@sentP0CoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmPayment": "确认付款",
+  "payP0CoinsP1": "支付 {p0} 代币给 {p1}",
+  "@payP0CoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "declineRequest": "婉拒请款",
+  "declineP1CoinRequestFromP0": "婉拒 {p0} 的 {p1} 代币请款",
+  "@declineP1CoinRequestFromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "cancelRequestP0P1Coins": "取消向 {p0} 请款 {p1} 代币",
+  "@cancelRequestP0P1Coins": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "payRequestFromP0": "支付 {p0} 的请款",
+  "@payRequestFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paymentCompleted": "已完成付款",
+  "requestDeclined": "已婉拒请款",
+  "requestCanceled": "已取消请款",
+  "selectPayer": "请选择付款人",
+  "selectRecipient": "请选择收款人",
+  "sendRequest2": "发送请款",
+  "confirmTransfer": "确认转账",
+  "payer": "付款人",
+  "recipient": "收款人",
+  "limitPerTransferP0Coins": "单笔上限 {p0} 代币",
+  "@limitPerTransferP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "insufficientBalanceP0Coins": "余额不足（{p0} 代币）",
+  "@insufficientBalanceP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "balanceP0Coins": "余额 {p0} 代币",
+  "@balanceP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noteOptional": "备注（选填）",
+  "editMessage": "编辑消息",
+  "cancelEditing": "取消编辑",
+  "send": "发送",
+  "switchKeyboard": "切换至键盘",
+  "voiceMessage": "语音消息",
+  "edited": "已编辑",
+  "maximumRecordingLengthReached": "已达录音上限",
+  "recordingTooShort": "录音时间过短",
+  "p0SRemaining": "剩余 {p0} 秒",
+  "@p0SRemaining": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "releaseSend": "松开即可发送",
+  "recording": "录音中",
+  "tapHoldRecord": "点按或按住以录音",
+  "stopRecording": "停止录音",
+  "preview2": "试听",
+  "startRecording": "开始录音",
+  "microphoneUnavailable": "无法使用麦克风",
+  "paymentRequest": "[请款]",
+  "transfer2": "[转账]",
+  "transfer3": "转入",
+  "transferOut": "转出"
 }

@@ -14,7 +14,13 @@ FROM (
   SELECT 'notifications', 'pushed_at' UNION ALL
   SELECT 'legal_documents', 'version' UNION ALL
   SELECT 'legal_documents', 'requires_consent' UNION ALL
-  SELECT 'push_devices', 'session_sid'
+  SELECT 'push_devices', 'session_sid' UNION ALL
+  SELECT 'chat_rooms', 'room_type' UNION ALL
+  SELECT 'chat_rooms', 'name' UNION ALL
+  SELECT 'chat_rooms', 'avatar_url' UNION ALL
+  SELECT 'chat_rooms', 'created_by' UNION ALL
+  SELECT 'chat_messages', 'edited_at' UNION ALL
+  SELECT 'notifications', 'actor_id'
 ) t
 LEFT JOIN information_schema.COLUMNS c
   ON c.TABLE_SCHEMA = DATABASE() AND c.TABLE_NAME = t.tbl AND c.COLUMN_NAME = t.want
@@ -86,4 +92,40 @@ UNION ALL
 SELECT '欄位', 'chat_messages.reply_to_id',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_messages' AND COLUMN_NAME = 'reply_to_id';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_messages' AND COLUMN_NAME = 'reply_to_id'
+
+UNION ALL
+
+SELECT '資料表', 'chat_room_members',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_room_members'
+
+UNION ALL
+
+SELECT '資料表', 'chat_room_pins',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_room_pins'
+
+UNION ALL
+
+SELECT '資料表', 'chat_aliases',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_aliases'
+
+UNION ALL
+
+SELECT '資料表', 'chat_transfers',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_transfers'
+
+UNION ALL
+
+SELECT '列舉值', 'wallet_transactions.type 含 transfer_in',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_transactions' AND COLUMN_NAME = 'type'
+  AND COLUMN_TYPE LIKE '%''transfer_in''%';

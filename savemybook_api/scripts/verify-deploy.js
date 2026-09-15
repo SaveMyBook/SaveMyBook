@@ -45,6 +45,16 @@ const main = async () => {
     }
   }
 
+  try {
+    const client = require('@prisma/client');
+    const generated = Object.values(client.$Enums?.wallet_transactions_type ?? {}).includes('transfer_in');
+    report(generated, 'Prisma Client 與 schema 一致', generated
+      ? '已包含 009 的轉帳交易類型'
+      : '缺少 transfer_in／transfer_out，請執行 npx prisma db pull && npx prisma generate 後重新啟動 API');
+  } catch (err) {
+    report(false, 'Prisma Client 與 schema 一致', `${err.message}（請執行 npx prisma db pull && npx prisma generate）`);
+  }
+
   const uploads = path.join(__dirname, '../uploads');
   try {
     fs.mkdirSync(path.join(uploads, 'voice'), { recursive: true });

@@ -1214,7 +1214,7 @@
     }
   },
   "disputeResolution": "거래 중재",
-  "orderP0P1": "주문 {p0} | \\${p1}",
+  "orderP0P1": "주문 {p0} | ${p1}",
   "@orderP0P1": {
     "placeholders": {
       "p0": {},
@@ -2656,5 +2656,249 @@
     }
   },
   "cancelReply": "답장 취소",
-  "unreadMessages": "여기부터 읽지 않은 메시지"
+  "unreadMessages": "여기부터 읽지 않은 메시지",
+  "selectChat": "채팅을 선택하세요",
+  "appPermissions": "앱 권한",
+  "noPermissionsRequiredDevice": "이 기기에서 허용이 필요한 항목이 없습니다",
+  "allowAll": "모두 허용",
+  "camera": "카메라",
+  "photosRead": "사진 (읽기)",
+  "photosSave": "사진 (저장)",
+  "microphone": "마이크",
+  "location": "위치",
+  "orderUpdatesChatMessagesAnnouncements": "주문 진행 상황, 채팅 메시지 및 공지",
+  "scanBarcodesTakeBookPhotos": "바코드 스캔 및 책 사진 촬영",
+  "chooseBookPhotosProfilePicturesChat": "책 사진, 프로필 사진 및 채팅 이미지 선택",
+  "saveQrCodesPhotos": "QR 코드를 사진에 저장",
+  "recordVoiceMessagesChats": "채팅 음성 메시지 녹음",
+  "showNearestSmartLockersTheirDistance": "가장 가까운 스마트 보관함과 거리 표시",
+  "quickSignPaymentConfirmation": "빠른 로그인 및 결제 확인",
+  "allowed": "허용됨",
+  "limited": "일부 허용",
+  "notAllowed": "허용 안 됨",
+  "restricted": "제한됨",
+  "denied": "거부됨",
+  "allow": "허용",
+  "homeRecommendations": "홈 추천 영역",
+  "pickedRecentlyViewed": "추천 도서, 최근 본 도서",
+  "leaveGroup": "그룹 나가기",
+  "leaveP0": "\"{p0}\"에서 나갈까요?",
+  "@leaveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "leave": "나가기",
+  "leftGroup": "그룹에서 나갔습니다",
+  "unpin": "고정 해제",
+  "pin": "고정",
+  "you3": "나",
+  "canOnlyEditMessagesSentWithin": "보낸 지 15분 이내의 메시지만 수정할 수 있습니다",
+  "p0UnsentMessage": "{p0} 님이 메시지를 취소했습니다",
+  "@p0UnsentMessage": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "readByP0": "{p0}명 읽음",
+  "@readByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transferDetailsUnavailable": "송금 정보를 표시할 수 없습니다",
+  "couldNotCreateGroup": "그룹을 만들 수 없습니다",
+  "groupDetails": "그룹 정보",
+  "selectMembers": "멤버 선택",
+  "groupName": "그룹 이름",
+  "membersP0": "멤버 {p0}",
+  "@membersP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "createGroup": "그룹 만들기",
+  "inviteMembers": "멤버 초대",
+  "invite": "초대",
+  "canSelectUpP0People": "최대 {p0}명까지 선택할 수 있습니다",
+  "@canSelectUpP0People": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noChatsChooseFrom": "선택할 수 있는 대화 상대가 없습니다",
+  "noMatchingPeople": "일치하는 사람이 없습니다",
+  "searchByName": "이름 검색",
+  "chatPinned": "채팅을 고정했습니다",
+  "unpinned": "고정을 해제했습니다",
+  "setNickname": "별명 설정",
+  "onlyVisible": "나에게만 표시",
+  "nicknameRemoved": "별명을 삭제했습니다",
+  "nicknameUpdated": "별명을 변경했습니다",
+  "enterGroupName": "그룹 이름을 입력하세요",
+  "groupNameUpdated": "그룹 이름을 변경했습니다",
+  "groupPhotoUpdated": "그룹 사진을 변경했습니다",
+  "groupReachedMemberLimit": "그룹 멤버 수가 한도에 도달했습니다",
+  "invitedP0Members": "{p0}명을 초대했습니다",
+  "@invitedP0Members": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeMember": "멤버 내보내기",
+  "removeP0FromGroup": "\"{p0}\" 님을 그룹에서 내보낼까요?",
+  "@removeP0FromGroup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "memberRemoved": "멤버를 내보냈습니다",
+  "chatSettings": "채팅 설정",
+  "muteNotifications": "알림 끄기",
+  "pinChat": "채팅 고정",
+  "me": "나",
+  "requestedFromP0": "{p0} 님에게 송금 요청",
+  "@requestedFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0RequestedPaymentFrom": "{p0} 님이 송금을 요청했습니다",
+  "@p0RequestedPaymentFrom": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0RequestedPaymentFromP1": "{p0} 님이 {p1} 님에게 송금 요청",
+  "@p0RequestedPaymentFromP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sentP0": "{p0} 님에게 송금",
+  "@sentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SentCoins": "{p0} 님이 송금했습니다",
+  "@p0SentCoins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SentCoinsP1": "{p0} 님이 {p1} 님에게 송금",
+  "@p0SentCoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "expired2": "만료됨",
+  "payNow": "지금 결제",
+  "cancelRequest": "요청 취소",
+  "request": "송금 요청",
+  "transfer": "송금",
+  "dueP0": "기한 {p0}",
+  "@dueP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transferP0": "{p0} 님에게 송금",
+  "@transferP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sentP0CoinsP1": "{p0} 님에게 {p1} 코인을 송금했습니다",
+  "@sentP0CoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmPayment": "결제 확인",
+  "payP0CoinsP1": "{p0} 님에게 {p1} 코인을 결제합니다",
+  "@payP0CoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "declineRequest": "요청 거절",
+  "declineP1CoinRequestFromP0": "{p0} 님의 {p1} 코인 요청을 거절합니다",
+  "@declineP1CoinRequestFromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "cancelRequestP0P1Coins": "{p0} 님에게 요청한 {p1} 코인을 취소합니다",
+  "@cancelRequestP0P1Coins": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "payRequestFromP0": "{p0} 님의 요청 결제",
+  "@payRequestFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paymentCompleted": "결제를 완료했습니다",
+  "requestDeclined": "요청을 거절했습니다",
+  "requestCanceled": "요청을 취소했습니다",
+  "selectPayer": "결제자를 선택하세요",
+  "selectRecipient": "받는 사람을 선택하세요",
+  "sendRequest2": "요청 보내기",
+  "confirmTransfer": "송금 확인",
+  "payer": "결제자",
+  "recipient": "받는 사람",
+  "limitPerTransferP0Coins": "1회 한도 {p0} 코인",
+  "@limitPerTransferP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "insufficientBalanceP0Coins": "잔액 부족({p0} 코인)",
+  "@insufficientBalanceP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "balanceP0Coins": "잔액 {p0} 코인",
+  "@balanceP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noteOptional": "메모(선택)",
+  "editMessage": "메시지 편집",
+  "cancelEditing": "편집 취소",
+  "send": "전송",
+  "switchKeyboard": "키보드로 전환",
+  "voiceMessage": "음성 메시지",
+  "edited": "수정됨",
+  "maximumRecordingLengthReached": "최대 녹음 시간에 도달했습니다",
+  "recordingTooShort": "녹음 시간이 너무 짧습니다",
+  "p0SRemaining": "{p0}초 남음",
+  "@p0SRemaining": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "releaseSend": "손을 떼면 전송됩니다",
+  "recording": "녹음 중",
+  "tapHoldRecord": "탭하거나 길게 눌러 녹음",
+  "stopRecording": "녹음 중지",
+  "preview2": "미리 듣기",
+  "startRecording": "녹음 시작",
+  "microphoneUnavailable": "마이크를 사용할 수 없습니다",
+  "paymentRequest": "[송금 요청]",
+  "transfer2": "[송금]",
+  "transfer3": "받은 송금",
+  "transferOut": "보낸 송금"
 }

@@ -1,5 +1,7 @@
 const prisma = require('./prisma');
 
+const { placeholders } = require('./sql');
+
 const RECHECK_MS = 60 * 1000;
 const cache = new Map();
 
@@ -10,7 +12,7 @@ const hasTables = async (tables) => {
 
   const rows = await prisma.$queryRawUnsafe(
     `SELECT COUNT(*) AS n FROM information_schema.TABLES
-     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (${tables.map(() => '?').join(',')})`,
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (${placeholders(tables)})`,
     ...tables
   );
   const ok = Number(rows[0]?.n ?? 0) === tables.length;
@@ -33,8 +35,6 @@ const hasColumn = async (table, column) => {
 
 const resetCache = () => cache.clear();
 
-module.exports = { hasTables, hasColumn, resetCache };
-
 const REQUIRED = [
   { migration: '004_account_privacy_and_ops.sql', table: 'users', column: 'deletion_requested_at' },
   { migration: '004_account_privacy_and_ops.sql', table: 'users', column: 'anonymized_at' },
@@ -52,7 +52,17 @@ const REQUIRED = [
   { migration: '007_consent_sessions_payment.sql', table: 'push_devices', column: 'session_sid' },
   { migration: '008_chat_mute_block.sql', table: 'chat_room_mutes' },
   { migration: '008_chat_mute_block.sql', table: 'user_blocks' },
-  { migration: '008_chat_mute_block.sql', table: 'chat_messages', column: 'reply_to_id' }
+  { migration: '008_chat_mute_block.sql', table: 'chat_messages', column: 'reply_to_id' },
+  { migration: '009_chat_groups_transfers.sql', table: 'chat_rooms', column: 'room_type' },
+  { migration: '009_chat_groups_transfers.sql', table: 'chat_rooms', column: 'name' },
+  { migration: '009_chat_groups_transfers.sql', table: 'chat_rooms', column: 'avatar_url' },
+  { migration: '009_chat_groups_transfers.sql', table: 'chat_rooms', column: 'created_by' },
+  { migration: '009_chat_groups_transfers.sql', table: 'chat_messages', column: 'edited_at' },
+  { migration: '009_chat_groups_transfers.sql', table: 'notifications', column: 'actor_id' },
+  { migration: '009_chat_groups_transfers.sql', table: 'chat_room_members' },
+  { migration: '009_chat_groups_transfers.sql', table: 'chat_room_pins' },
+  { migration: '009_chat_groups_transfers.sql', table: 'chat_aliases' },
+  { migration: '009_chat_groups_transfers.sql', table: 'chat_transfers' }
 ];
 
 const missingSchema = async () => {
@@ -65,5 +75,17 @@ const missingSchema = async () => {
   return REQUIRED.filter((r) => (r.column ? !columnSet.has(`${r.table}.${r.column}`) : !tableSet.has(r.table)));
 };
 
-module.exports.REQUIRED = REQUIRED;
-module.exports.missingSchema = missingSchema;
+let pending = { at: 0, migrations: [] };
+
+const pendingMigrations = async ({ cachedOnly = false } = {}) => {
+  if (cachedOnly || Date.now() - pending.at < RECHECK_MS) return pending.migrations;
+  try {
+    const missing = await missingSchema();
+    pending = { at: Date.now(), migrations: [...new Set(missing.map((m) => m.migration))] };
+  } catch {
+    pending = { at: Date.now(), migrations: pending.migrations };
+  }
+  return pending.migrations;
+};
+
+module.exports = { hasTables, hasColumn, resetCache, missingSchema, pendingMigrations };

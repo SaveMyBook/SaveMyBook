@@ -1,13 +1,10 @@
 const express = require('express');
-const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
+const { requireVerification } = require('../middleware/verification');
 const { rateLimit, byUser } = require('../middleware/rateLimit');
 const v = require('../lib/validate');
-const password = require('../lib/password');
-const { badRequest, forbidden, notFound, HttpError } = require('../lib/errors');
 const security = require('../services/security');
 const sessions = require('../services/sessions');
-const { notify } = require('../services/notify');
 
 const router = express.Router();
 
@@ -20,13 +17,6 @@ const verifyLimiter = rateLimit({
   message: '驗證嘗試次數過多，請 15 分鐘後再試'
 });
 
-const requireSessionSupport = async (req) => {
-  if (!(await sessions.isAvailable())) {
-    throw new HttpError(503, '伺服器尚未完成資料庫更新，請聯絡管理員', 'SECURITY_UNAVAILABLE');
-  }
-  if (!req.user.sid) throw forbidden('請重新登入後再使用此功能', 'SESSION_REQUIRED');
-};
-
 router.get('/', async (req, res) => {
   const data = await security.status(req.user.userId, req.user.sid);
   res.status(200).json({ success: true, data });
@@ -36,92 +26,44 @@ router.post('/verify', verifyLimiter, async (req, res) => {
   const scope = v.oneOf(req.body.scope, Object.keys(security.SCOPES), 'scope 僅接受：payment, sensitive');
   const allowed = security.SCOPES[scope].methods;
   const method = v.oneOf(req.body.method, allowed, `method 僅接受：${allowed.join(', ')}`);
-  const userId = req.user.userId;
 
-  if (method === 'password') {
-    const user = await prisma.users.findUnique({ where: { user_id: userId }, select: { password_hash: true } });
-    // 用 400 不用 401：App 收到 401 會直接登出。
-    if (!(await password.verify(req.body.password, user?.password_hash))) throw badRequest('密碼錯誤', 'INVALID_PASSWORD');
-  }
-
-  if (method === 'pin') await security.verifyPin(userId, req.body.pin);
-
-  if (method === 'biometric') {
-    await requireSessionSupport(req);
-    const [session, state] = await Promise.all([
-      sessions.findActive(req.user.sid),
-      security.status(userId, req.user.sid)
-    ]);
-    if (!state.has_payment_pin) throw forbidden('尚未設定交易密碼', 'PAYMENT_PIN_NOT_SET');
-    if (!sessions.matchesPayKey(session, req.body.key)) {
-      throw badRequest('此裝置的生物辨識付款已失效，請改用交易密碼', 'BIOMETRIC_KEY_INVALID');
-    }
-  }
-
-  if (scope === 'payment' && method !== 'biometric') {
-    const state = await security.status(userId, req.user.sid);
-    if (!state.has_payment_pin) throw forbidden('尚未設定交易密碼', 'PAYMENT_PIN_NOT_SET');
-  }
-
-  const data = security.issueToken({ userId, sid: req.user.sid, scope, method });
+  const data = await security.verify({
+    userId: req.user.userId,
+    sid: req.user.sid,
+    scope,
+    method,
+    plainPassword: req.body.password,
+    pin: req.body.pin,
+    key: req.body.key
+  });
   res.status(200).json({ success: true, data });
 });
 
-router.put('/payment-pin', security.requireVerification('sensitive'), async (req, res) => {
+router.put('/payment-pin', requireVerification('sensitive'), async (req, res) => {
   const pin = typeof req.body.pin === 'string' ? req.body.pin : '';
-  const before = await security.status(req.user.userId, req.user.sid);
-  await security.setPin(req.user.userId, pin);
-
-  if (before.has_payment_pin) {
-    await notify(null, {
-      userId: req.user.userId,
-      title: '交易密碼已變更',
-      content: '您的交易密碼已變更。若非本人操作，請立即變更登入密碼並登出其他裝置。',
-      relatedType: 'security'
-    }).catch(() => {});
-  }
-
-  res.status(200).json({ success: true, message: before.has_payment_pin ? '交易密碼已變更' : '交易密碼已設定' });
+  const changed = await security.changePin(req.user.userId, req.user.sid, pin);
+  res.status(200).json({ success: true, message: changed ? '交易密碼已變更' : '交易密碼已設定' });
 });
 
-router.post('/biometric-key', security.requireVerification('sensitive'), async (req, res) => {
-  await requireSessionSupport(req);
-  const state = await security.status(req.user.userId, req.user.sid);
-  if (!state.has_payment_pin) throw forbidden('請先設定交易密碼，作為生物辨識失敗時的替代驗證方式', 'PAYMENT_PIN_NOT_SET');
-
-  const key = await sessions.setPayKey(req.user.sid);
+router.post('/biometric-key', requireVerification('sensitive'), async (req, res) => {
+  const key = await security.enableBiometric(req.user.userId, req.user.sid);
   res.status(200).json({ success: true, message: '已於此裝置啟用生物辨識付款', data: { key } });
 });
 
 router.delete('/biometric-key', async (req, res) => {
-  if (req.user.sid && (await sessions.isAvailable())) await sessions.clearPayKey(req.user.sid);
+  await security.disableBiometric(req.user.sid);
   res.status(200).json({ success: true, message: '已關閉此裝置的生物辨識付款' });
 });
 
-const shapeSession = (row, currentSid) => ({
-  session_id: Number(row.session_id),
-  device_name: row.device_name,
-  platform: row.platform,
-  app_version: row.app_version,
-  ip_address: row.ip_address,
-  created_at: row.created_at,
-  last_seen_at: row.last_seen_at,
-  biometric_pay: Boolean(Number(row.biometric_pay)),
-  is_current: row.sid === currentSid
-});
-
 router.get('/sessions', async (req, res) => {
-  const rows = await sessions.list(req.user.userId);
-  const data = rows.map((r) => shapeSession(r, req.user.sid));
-  data.sort((a, b) => Number(b.is_current) - Number(a.is_current));
+  const data = await security.listSessions(req.user.userId, req.user.sid);
   res.status(200).json({ success: true, data });
 });
 
-router.delete('/sessions/:id', security.requireVerification('sensitive'), async (req, res) => {
-  await requireSessionSupport(req);
+router.delete('/sessions/:id', requireVerification('sensitive'), async (req, res) => {
+  await security.assertSessionSupport(req.user.sid);
   const sessionId = v.id(req.params.id, '裝置編號');
-  const sid = await sessions.revoke(req.user.userId, sessionId);
-  if (!sid) throw notFound('找不到此裝置，可能已登出');
+  const sid = await security.revokeSession(req.user.userId, sessionId);
 
   res.status(200).json({
     success: true,
@@ -130,8 +72,8 @@ router.delete('/sessions/:id', security.requireVerification('sensitive'), async 
   });
 });
 
-router.post('/sessions/revoke-all', security.requireVerification('sensitive'), async (req, res) => {
-  await requireSessionSupport(req);
+router.post('/sessions/revoke-all', requireVerification('sensitive'), async (req, res) => {
+  await security.assertSessionSupport(req.user.sid);
   const includeCurrent = req.body.include_current === true;
   const count = await sessions.revokeAll(req.user.userId, { exceptSid: includeCurrent ? null : req.user.sid });
 

@@ -1214,7 +1214,7 @@
     }
   },
   "disputeResolution": "取引の裁定",
-  "orderP0P1": "注文 {p0}｜\\${p1}",
+  "orderP0P1": "注文 {p0}｜${p1}",
   "@orderP0P1": {
     "placeholders": {
       "p0": {},
@@ -2656,5 +2656,249 @@
     }
   },
   "cancelReply": "返信をキャンセル",
-  "unreadMessages": "ここから未読メッセージ"
+  "unreadMessages": "ここから未読メッセージ",
+  "selectChat": "チャットを選択してください",
+  "appPermissions": "アプリの権限",
+  "noPermissionsRequiredDevice": "このデバイスで許可が必要な項目はありません",
+  "allowAll": "すべて許可",
+  "camera": "カメラ",
+  "photosRead": "写真（読み取り）",
+  "photosSave": "写真（保存）",
+  "microphone": "マイク",
+  "location": "位置情報",
+  "orderUpdatesChatMessagesAnnouncements": "注文の進捗、チャットメッセージ、お知らせ",
+  "scanBarcodesTakeBookPhotos": "バーコードの読み取りと本の写真撮影",
+  "chooseBookPhotosProfilePicturesChat": "本の写真、プロフィール画像、チャット画像の選択",
+  "saveQrCodesPhotos": "QR コードを写真に保存",
+  "recordVoiceMessagesChats": "チャットのボイスメッセージを録音",
+  "showNearestSmartLockersTheirDistance": "最寄りのスマートロッカーと距離を表示",
+  "quickSignPaymentConfirmation": "すばやいサインインと支払いの確認",
+  "allowed": "許可済み",
+  "limited": "一部許可",
+  "notAllowed": "未許可",
+  "restricted": "制限あり",
+  "denied": "拒否済み",
+  "allow": "許可",
+  "homeRecommendations": "ホームのおすすめ",
+  "pickedRecentlyViewed": "おすすめ、最近見た本",
+  "leaveGroup": "グループを退会",
+  "leaveP0": "「{p0}」を退会しますか？",
+  "@leaveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "leave": "退会",
+  "leftGroup": "グループを退会しました",
+  "unpin": "ピン留めを解除",
+  "pin": "ピン留め",
+  "you3": "あなた",
+  "canOnlyEditMessagesSentWithin": "編集できるのは送信から 15 分以内のメッセージのみです",
+  "p0UnsentMessage": "{p0} がメッセージの送信を取り消しました",
+  "@p0UnsentMessage": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "readByP0": "既読 {p0}",
+  "@readByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transferDetailsUnavailable": "送金情報を表示できません",
+  "couldNotCreateGroup": "グループを作成できませんでした",
+  "groupDetails": "グループ情報",
+  "selectMembers": "メンバーを選択",
+  "groupName": "グループ名",
+  "membersP0": "メンバー {p0}",
+  "@membersP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "createGroup": "グループを作成",
+  "inviteMembers": "メンバーを招待",
+  "invite": "招待",
+  "canSelectUpP0People": "最大 {p0} 人まで選択できます",
+  "@canSelectUpP0People": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noChatsChooseFrom": "選択できるトーク相手がいません",
+  "noMatchingPeople": "該当する相手がいません",
+  "searchByName": "名前で検索",
+  "chatPinned": "トークをピン留めしました",
+  "unpinned": "ピン留めを解除しました",
+  "setNickname": "ニックネームを設定",
+  "onlyVisible": "自分にのみ表示",
+  "nicknameRemoved": "ニックネームを削除しました",
+  "nicknameUpdated": "ニックネームを更新しました",
+  "enterGroupName": "グループ名を入力してください",
+  "groupNameUpdated": "グループ名を更新しました",
+  "groupPhotoUpdated": "グループ画像を更新しました",
+  "groupReachedMemberLimit": "グループのメンバー数が上限に達しています",
+  "invitedP0Members": "{p0} 人を招待しました",
+  "@invitedP0Members": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeMember": "メンバーを削除",
+  "removeP0FromGroup": "「{p0}」をグループから削除しますか？",
+  "@removeP0FromGroup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "memberRemoved": "メンバーを削除しました",
+  "chatSettings": "トーク設定",
+  "muteNotifications": "通知をミュート",
+  "pinChat": "トークをピン留め",
+  "me": "自分",
+  "requestedFromP0": "{p0} に請求",
+  "@requestedFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0RequestedPaymentFrom": "{p0} からの請求",
+  "@p0RequestedPaymentFrom": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0RequestedPaymentFromP1": "{p0} が {p1} に請求",
+  "@p0RequestedPaymentFromP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sentP0": "{p0} に送金",
+  "@sentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SentCoins": "{p0} からの送金",
+  "@p0SentCoins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SentCoinsP1": "{p0} が {p1} に送金",
+  "@p0SentCoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "expired2": "期限切れ",
+  "payNow": "今すぐ支払う",
+  "cancelRequest": "請求を取り消す",
+  "request": "請求",
+  "transfer": "送金",
+  "dueP0": "期限 {p0}",
+  "@dueP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transferP0": "{p0} に送金",
+  "@transferP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sentP0CoinsP1": "{p0} に {p1} コインを送金しました",
+  "@sentP0CoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmPayment": "支払いの確認",
+  "payP0CoinsP1": "{p0} に {p1} コインを支払います",
+  "@payP0CoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "declineRequest": "請求をお断り",
+  "declineP1CoinRequestFromP0": "{p0} からの {p1} コインの請求をお断りします",
+  "@declineP1CoinRequestFromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "cancelRequestP0P1Coins": "{p0} への {p1} コインの請求を取り消します",
+  "@cancelRequestP0P1Coins": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "payRequestFromP0": "{p0} からの請求を支払う",
+  "@payRequestFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paymentCompleted": "支払いが完了しました",
+  "requestDeclined": "請求をお断りしました",
+  "requestCanceled": "請求を取り消しました",
+  "selectPayer": "支払う人を選択してください",
+  "selectRecipient": "受取人を選択してください",
+  "sendRequest2": "請求を送信",
+  "confirmTransfer": "送金を確定",
+  "payer": "支払う人",
+  "recipient": "受取人",
+  "limitPerTransferP0Coins": "1回の上限 {p0} コイン",
+  "@limitPerTransferP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "insufficientBalanceP0Coins": "残高不足（{p0} コイン）",
+  "@insufficientBalanceP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "balanceP0Coins": "残高 {p0} コイン",
+  "@balanceP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noteOptional": "メモ（任意）",
+  "editMessage": "メッセージを編集",
+  "cancelEditing": "編集をキャンセル",
+  "send": "送信",
+  "switchKeyboard": "キーボードに切り替え",
+  "voiceMessage": "ボイスメッセージ",
+  "edited": "編集済み",
+  "maximumRecordingLengthReached": "録音時間の上限に達しました",
+  "recordingTooShort": "録音時間が短すぎます",
+  "p0SRemaining": "残り {p0} 秒",
+  "@p0SRemaining": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "releaseSend": "指を離すと送信します",
+  "recording": "録音中",
+  "tapHoldRecord": "タップまたは長押しで録音",
+  "stopRecording": "録音を停止",
+  "preview2": "試聴",
+  "startRecording": "録音を開始",
+  "microphoneUnavailable": "マイクを使用できません",
+  "paymentRequest": "[請求]",
+  "transfer2": "[送金]",
+  "transfer3": "受け取り",
+  "transferOut": "送金"
 }

@@ -1,4 +1,5 @@
 const { escapeHtml } = require('../lib/html');
+const { CONDITION_LABELS } = require('../constants/domain');
 
 const STYLE = `
   :root { color-scheme: light dark; }
@@ -109,8 +110,6 @@ const openAppButton = (deepLink, hint) => `
     })();
   </script>`;
 
-const CONDITION_TEXT = { like_new: '近全新', good: '良好', fair: '普通', poor: '待修補' };
-
 const imageUrl = (origin, url) => {
   if (typeof url !== 'string' || !url) return null;
   if (/^https?:\/\//i.test(url)) return url;
@@ -179,7 +178,7 @@ const bookDetail = ({ origin, book, token }) => {
     book.book_categories?.category_name
       ? `<span class="tag">${escapeHtml(book.book_categories.category_name)}</span>`
       : '',
-    `<span class="tag">${escapeHtml(CONDITION_TEXT[book.condition_level] || book.condition_level)}</span>`,
+    `<span class="tag">${escapeHtml(CONDITION_LABELS[book.condition_level] || book.condition_level)}</span>`,
     sold ? '<span class="tag sold">已售出／保留中</span>' : ''
   ].join('');
 

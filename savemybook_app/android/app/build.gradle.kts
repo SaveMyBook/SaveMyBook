@@ -42,3 +42,10 @@ android {
 flutter {
     source = "../.."
 }
+
+// 外掛以 implementation 引入 firebase-messaging，App 模組編譯 SaveMyBookMessagingService 時需自行宣告；BoM 版本與 firebase_core 的 FirebaseSDKVersion 保持一致。
+dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:34.18.0"))
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("androidx.core:core:1.13.1")
+}

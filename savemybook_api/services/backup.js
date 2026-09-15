@@ -1,15 +1,12 @@
-const { spawn } = require('child_process');
-const crypto = require('crypto');
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
-const zlib = require('zlib');
-const { pipeline } = require('stream/promises');
 const prisma = require('../lib/prisma');
 const { env } = require('../config/env');
-const { parseDatabaseUrl } = require('../lib/db-url');
-const { conflict, notFound } = require('../lib/errors');
+const { HttpError, badRequest, conflict, notFound } = require('../lib/errors');
 const maintenance = require('../lib/maintenance');
+const { dumpDatabase, importDatabase, dumpToolVersion } = require('../lib/mysql-client');
+const audit = require('./audit');
+const { passwordMatches } = require('./credentials');
 
 const BACKUP_DIR = env.backupDir || path.join(__dirname, '../backups');
 
@@ -26,83 +23,13 @@ let running = null;
 
 let restoreState = { state: 'idle' };
 
-// 密碼經 --defaults-extra-file 傳入：命令列參數可被 ps 看到，MYSQL_PWD 已淘汰且部分用戶端不讀。
-const writeOptionFile = (cfg) => {
-  const quote = (value) => `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
-  const file = path.join(os.tmpdir(), `smb-dump-${crypto.randomBytes(8).toString('hex')}.cnf`);
-  fs.writeFileSync(file, `[client]\npassword=${quote(cfg.password)}\n`, { mode: 0o600 });
-  return file;
-};
-
-// --no-tablespaces 與不加 --routines/--events：這些需要一般帳號沒有的權限，mysqldump 會直接中止。
-const baseArgs = (cfg, optionFile) => [
-  `--defaults-extra-file=${optionFile}`,
-  `--host=${cfg.host}`,
-  `--port=${cfg.port}`,
-  `--user=${cfg.user}`,
-  '--single-transaction',
-  '--quick',
-  '--no-tablespaces',
-  '--default-character-set=utf8mb4'
-];
-
-const collectStderr = (child) => {
-  let stderr = '';
-  child.stderr.on('data', (chunk) => {
-    if (stderr.length < 4000) stderr += chunk;
-  });
-  return () => stderr.trim();
-};
-
-const exitOf = (child, tool) => new Promise((resolve, reject) => {
-  child.on('error', (err) => reject(err.code === 'ENOENT' ? new Error(`找不到 ${tool}，請確認伺服器已安裝`) : err));
-  child.on('close', (code) => resolve(code));
-});
-
-const spawnDump = (args, filePath) => new Promise((resolve, reject) => {
-  // 以 spawn 執行而非 shell 管線：管線結束碼是 gzip 的，mysqldump 失敗也會被當成成功。
-  const child = spawn('mysqldump', args, { stdio: ['ignore', 'pipe', 'pipe'] });
-
-  let stderr = '';
-  child.stderr.on('data', (chunk) => {
-    if (stderr.length < 4000) stderr += chunk;
-  });
-
-  const exited = new Promise((res, rej) => {
-    child.on('error', (err) => rej(err.code === 'ENOENT' ? new Error('找不到 mysqldump，請確認伺服器已安裝') : err));
-    child.on('close', (code) => res(code));
-  });
-
-  Promise.all([pipeline(child.stdout, zlib.createGzip(), fs.createWriteStream(filePath)), exited])
-    .then(([, code]) => resolve({ code, stderr: stderr.trim() }))
-    .catch(reject);
-});
-
-const dump = async (filePath) => {
-  const cfg = parseDatabaseUrl(env.databaseUrl);
-  const optionFile = writeOptionFile(cfg);
-  try {
-    let result = await spawnDump([...baseArgs(cfg, optionFile), cfg.database], filePath);
-
-    // MySQL 8 的 mysqldump 連 MariaDB 或 5.7 時會因查詢 COLUMN_STATISTICS 而失敗。
-    if (result.code !== 0 && /column.statistics/i.test(result.stderr)) {
-      result = await spawnDump([...baseArgs(cfg, optionFile), '--column-statistics=0', cfg.database], filePath);
-    }
-
-    // mysqldump 會把警告寫到 stderr，須以結束碼判斷成敗。
-    if (result.code !== 0) throw new Error(result.stderr || `mysqldump 結束碼 ${result.code}`);
-  } finally {
-    fs.rmSync(optionFile, { force: true });
-  }
-};
-
 const runOnce = async ({ adminId, trigger, pruneAfter = true }) => {
   ensureDir();
   const fileName = `savemybook-${stamp()}.sql.gz`;
   const filePath = path.join(BACKUP_DIR, fileName);
 
   try {
-    await dump(filePath);
+    await dumpDatabase(filePath);
 
     const size = fs.statSync(filePath).size;
     if (size <= 20) throw new Error('備份檔為空，請確認 mysqldump 是否可用');
@@ -187,30 +114,6 @@ const filePathOf = (fileName, { mustExist = true } = {}) => {
   return !mustExist || fs.existsSync(p) ? p : null;
 };
 
-const importDump = async (filePath) => {
-  const cfg = parseDatabaseUrl(env.databaseUrl);
-  const optionFile = writeOptionFile(cfg);
-  try {
-    const child = spawn('mysql', [
-      `--defaults-extra-file=${optionFile}`,
-      `--host=${cfg.host}`,
-      `--port=${cfg.port}`,
-      `--user=${cfg.user}`,
-      '--default-character-set=utf8mb4',
-      cfg.database
-    ], { stdio: ['pipe', 'ignore', 'pipe'] });
-    const stderr = collectStderr(child);
-    const exited = exitOf(child, 'mysql');
-    exited.catch(() => {});
-
-    await pipeline(fs.createReadStream(filePath), zlib.createGunzip(), child.stdin);
-    const code = await exited;
-    if (code !== 0) throw new Error(stderr() || `mysql 結束碼 ${code}`);
-  } finally {
-    fs.rmSync(optionFile, { force: true });
-  }
-};
-
 // 匯入會覆蓋 db_backups 表，須把還原前讀到的紀錄補回。
 const restoreRecords = async (records) => {
   const existing = new Set((await prisma.db_backups.findMany({ select: { file_name: true } })).map((r) => r.file_name));
@@ -265,7 +168,7 @@ const startRestore = async ({ backupId, adminId, onFinished }) => {
   (async () => {
     let error = null;
     try {
-      await importDump(filePath);
+      await importDatabase(filePath);
     } catch (err) {
       error = err;
       console.error('[資料庫還原失敗]:', err);
@@ -320,14 +223,6 @@ const lastAttemptAt = async (trigger) => {
   return last?.created_at ?? null;
 };
 
-const checkTool = () => new Promise((resolve) => {
-  const child = spawn('mysqldump', ['--version'], { stdio: ['ignore', 'pipe', 'ignore'] });
-  let out = '';
-  child.stdout.on('data', (chunk) => { out += chunk; });
-  child.on('error', () => resolve(null));
-  child.on('close', (code) => resolve(code === 0 ? out.trim() : null));
-});
-
 const remove = async (backupId) => {
   const record = await prisma.db_backups.findUnique({ where: { backup_id: backupId } });
   if (!record) return false;
@@ -337,7 +232,86 @@ const remove = async (backupId) => {
   return true;
 };
 
+const formatSize = (bytes) => (bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`);
+
+const runManually = async ({ adminId, req }) => {
+  let record;
+  try {
+    record = await run({ adminId, trigger: 'manual' });
+  } catch (err) {
+    if (err instanceof HttpError) throw err;
+    console.error('[手動備份失敗]:', err);
+    throw new HttpError(500, `備份失敗：${String(err.message).slice(0, 300)}`);
+  }
+
+  await audit.record(null, {
+    adminId,
+    action: '手動備份資料庫',
+    targetType: 'backup',
+    targetId: record.backup_id,
+    summary: `建立資料庫備份 ${record.file_name}（${formatSize(Number(record.size_bytes))}）`,
+    req
+  });
+  return record;
+};
+
+const prepareDownload = async (backupId, { adminId, req }) => {
+  const record = await prisma.db_backups.findUnique({ where: { backup_id: backupId } });
+  if (!record) throw notFound('找不到此備份');
+
+  const filePath = filePathOf(record.file_name);
+  if (!filePath) throw notFound('備份檔已不存在');
+
+  await audit.record(null, {
+    adminId,
+    action: '下載資料庫備份',
+    targetType: 'backup',
+    targetId: backupId,
+    summary: `下載資料庫備份 ${record.file_name}（含全站個資）`,
+    req
+  });
+  return { filePath, fileName: record.file_name };
+};
+
+const restore = async (backupId, plain, { adminId, req }) => {
+  if (!(await passwordMatches(adminId, plain))) throw badRequest('密碼錯誤');
+
+  return startRestore({
+    backupId,
+    adminId,
+    // 紀錄須在匯入之後才寫，否則會被備份檔裡的舊資料蓋掉。
+    onFinished: async ({ target, safety, error }) => {
+      const adminStillExists = await prisma.users.count({ where: { user_id: adminId } });
+      if (!adminStillExists) return;
+      await audit.record(null, {
+        adminId,
+        action: error ? '資料庫還原失敗' : '還原資料庫',
+        targetType: 'backup',
+        summary: error
+          ? `嘗試將資料庫還原至 ${target.file_name} 失敗：${String(error.message).slice(0, 200)}。還原前備份為 ${safety.file_name}`
+          : `將資料庫還原至 ${target.file_name}（${target.created_at.toISOString().slice(0, 16).replace('T', ' ')} UTC）。`
+            + `還原前的狀態已備份為 ${safety.file_name}，如需復原請還原該備份`,
+        req
+      });
+    }
+  });
+};
+
+const removeWithAudit = async (backupId, { adminId, req }) => {
+  const record = await prisma.db_backups.findUnique({ where: { backup_id: backupId } });
+  const removed = await remove(backupId);
+  if (!removed) throw notFound('找不到此備份');
+  await audit.record(null, {
+    adminId,
+    action: '刪除資料庫備份',
+    targetType: 'backup',
+    targetId: backupId,
+    summary: `刪除資料庫備份 ${record.file_name}（檔案已從磁碟移除，無法復原）`,
+    req
+  });
+};
+
 module.exports = {
-  BACKUP_DIR, KEEP, run, list, filePathOf, remove, prune, lastSuccessAt, lastAttemptAt, checkTool,
-  startRestore, restoreStatus
+  BACKUP_DIR, KEEP, run, list, filePathOf, lastSuccessAt, lastAttemptAt, checkTool: dumpToolVersion,
+  restoreStatus, runManually, prepareDownload, restore, removeWithAudit
 };

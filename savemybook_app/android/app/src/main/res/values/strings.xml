@@ -2,4 +2,5 @@
 <resources>
     <string name="notification_channel_name">通知</string>
     <string name="notification_channel_description">訂單、聊天訊息與客服回覆</string>
+    <string name="notification_self_name">我</string>
 </resources>

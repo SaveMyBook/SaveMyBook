@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import '../models/app_notification.dart';
-import '../screens/announcement_screen.dart';
-import '../screens/book_detail_screen.dart';
-import '../screens/change_password_screen.dart';
-import '../screens/chat_room_screen.dart';
-import '../screens/legal_doc_screen.dart';
-import '../screens/member_level_screen.dart';
-import '../screens/order_detail_screen.dart';
-import '../screens/security/security_center_screen.dart';
-import '../screens/support_ticket_screen.dart';
-import '../screens/wallet_screen.dart';
+import '../features/home/announcement_screen.dart';
+import '../features/books/book_detail_screen.dart';
+import '../features/account/change_password_screen.dart';
+import '../features/chat/chat_room_screen.dart';
+import '../features/account/legal_doc_screen.dart';
+import '../features/account/member_level_screen.dart';
+import '../features/orders/order_detail_screen.dart';
+import '../features/security/security_center_screen.dart';
+import '../features/account/support_ticket_screen.dart';
+import '../features/account/wallet_screen.dart';
 import 'api_service.dart';
 
 class NotificationRouter {
@@ -51,6 +51,8 @@ class NotificationRouter {
         return ChatRoomScreen(roomId: id);
       case 'ticket':
         return TicketDetailScreen(ticketId: id);
+      case 'admin_ticket':
+        return TicketDetailScreen(ticketId: id, asAdmin: true);
       case 'order':
         final order = await api.fetchOrderDetail(id);
         if (order == null) return null;

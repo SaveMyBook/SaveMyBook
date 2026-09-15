@@ -4,6 +4,7 @@ export 'app_toast.dart' show kBottomNavVisible, hideCurrentToast;
 import '../utils/app_colors.dart';
 import '../utils/motion.dart';
 import 'animations.dart';
+import 'responsive.dart';
 import '../i18n/strings.dart';
 
 enum LoadingStyle { spinner, list, grid, menu }
@@ -24,14 +25,16 @@ class LoadingView extends StatelessWidget {
     switch (style) {
       case LoadingStyle.list:
         return Shimmer(
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          child: ResponsiveListPadding(
+            builder: (_, padding) => ListView.builder(
+            padding: padding,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: 5,
             itemBuilder: (_, _) => const Padding(
               padding: EdgeInsets.only(bottom: 12),
               child: _SkeletonRow(),
             ),
+          ),
           ),
         );
 
@@ -40,21 +43,26 @@ class LoadingView extends StatelessWidget {
           child: GridView.builder(
             padding: const EdgeInsets.all(16),
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 240,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
               childAspectRatio: 0.58,
             ),
-            itemCount: 4,
+            itemCount: 12,
             itemBuilder: (_, _) => const _SkeletonCard(),
           ),
         );
 
       case LoadingStyle.menu:
         return Shimmer(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+          child: ResponsiveListPadding(
+            maxWidth: Breakpoints.formMaxWidth,
+            horizontal: 20,
+            top: 20,
+            bottom: 40,
+            builder: (_, padding) => ListView(
+            padding: padding,
             physics: const NeverScrollableScrollPhysics(),
             children: const [
               SkeletonBox(height: 96, radius: 16),
@@ -65,6 +73,7 @@ class LoadingView extends StatelessWidget {
               SizedBox(height: 24),
               _SkeletonSection(rows: 2),
             ],
+          ),
           ),
         );
 

@@ -1,59 +1,28 @@
 const express = require('express');
-const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/auth');
+const { requireVerification } = require('../middleware/verification');
 const v = require('../lib/validate');
 const { badRequest } = require('../lib/errors');
 const orders = require('../services/orders');
-const { requireVerification } = require('../services/security');
 
 const router = express.Router();
 
 router.use(authenticateToken);
-
-const BUYER_TABS = {
-  pending_pickup: ['pending_payment', 'pending_deposit', 'deposited', 'pending_pickup'],
-  completed: ['completed'],
-  cancelled: ['cancelled', 'refunded'],
-  disputing: ['refunding']
-};
-
-const SELLER_TABS = {
-  pending_deposit: ['pending_payment', 'pending_deposit'],
-  on_sale: ['deposited', 'pending_pickup'],
-  cancelled: ['cancelled', 'refunded'],
-  completed: ['completed']
-};
 
 router.get('/', async (req, res) => {
   const role = req.query.role === 'seller' ? 'seller' : 'buyer';
   const tab = req.query.tab;
   const { page, limit, skip } = v.pagination(req.query);
 
-  const tabMap = role === 'seller' ? SELLER_TABS : BUYER_TABS;
-  const statuses = tab ? tabMap[tab] : null;
+  const statuses = tab ? orders.tabStatuses(role, tab) : null;
   if (tab && !statuses) throw badRequest(`不支援的 tab：${String(tab).slice(0, 30)}`);
 
-  const where = {
-    ...(role === 'seller' ? { seller_id: req.user.userId } : { buyer_id: req.user.userId }),
-    ...(statuses && { status: { in: statuses } })
-  };
-
-  const [list, total] = await Promise.all([
-    prisma.orders.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { created_at: 'desc' },
-      include: orders.orderInclude
-    }),
-    prisma.orders.count({ where })
-  ]);
-
+  const { list, total } = await orders.listForUser(req.user.userId, { role, statuses, skip, limit });
   res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: list });
 });
 
 router.get('/:id', async (req, res) => {
-  const order = await orders.findForParty(v.id(req.params.id, '訂單編號'), req.user, orders.orderInclude);
+  const order = await orders.detailForParty(v.id(req.params.id, '訂單編號'), req.user);
   res.status(200).json({ success: true, data: order });
 });
 

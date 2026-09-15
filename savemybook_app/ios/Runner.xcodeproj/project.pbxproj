@@ -19,6 +19,8 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		DB573130EBB08ACAD994EBED /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C3C93DA704D64EB6E91E9B9 /* Pods_RunnerTests.framework */; };
+		6E5A10013057D00100A1B2C3 /* SaveMyBookNotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6E5A10033057D00100A1B2C3 /* SaveMyBookNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		0114B0B8811A7FA8E68C8C9C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 247F4BFA460D4D41A0A7760D /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +38,13 @@
 			remoteGlobalIDString = 425246BB3057C776002B5EAA;
 			remoteInfo = SaveMyBookWidgetExtension;
 		};
+		6E5A10023057D00100A1B2C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6E5A10073057D00100A1B2C3;
+			remoteInfo = SaveMyBookNotificationService;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -46,6 +55,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				425246CB3057C777002B5EAA /* SaveMyBookWidgetExtension.appex in Embed Foundation Extensions */,
+				6E5A10013057D00100A1B2C3 /* SaveMyBookNotificationService.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -89,6 +99,8 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BA303D1EDEE33E0632A1DE80 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
+		6E5A10033057D00100A1B2C3 /* SaveMyBookNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SaveMyBookNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		247F4BFA460D4D41A0A7760D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -99,6 +111,13 @@
 				README.md,
 			);
 			target = 425246BB3057C776002B5EAA /* SaveMyBookWidgetExtension */;
+		};
+		6E5A10043057D00100A1B2C3 /* Exceptions for "SaveMyBookNotificationService" folder in "SaveMyBookNotificationService" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6E5A10073057D00100A1B2C3 /* SaveMyBookNotificationService */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -113,6 +132,18 @@
 			explicitFolders = (
 			);
 			path = SaveMyBookWidget;
+			sourceTree = "<group>";
+		};
+		6E5A10053057D00100A1B2C3 /* SaveMyBookNotificationService */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6E5A10043057D00100A1B2C3 /* Exceptions for "SaveMyBookNotificationService" folder in "SaveMyBookNotificationService" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = SaveMyBookNotificationService;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -140,6 +171,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				DB573130EBB08ACAD994EBED /* Pods_RunnerTests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6E5A10063057D00100A1B2C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,6 +222,7 @@
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				425246C13057C776002B5EAA /* SaveMyBookWidget */,
+				6E5A10053057D00100A1B2C3 /* SaveMyBookNotificationService */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				7D1C25F7716CD92AC7B8BDBD /* Pods */,
@@ -197,6 +236,7 @@
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
 				425246BC3057C776002B5EAA /* SaveMyBookWidgetExtension.appex */,
+				6E5A10033057D00100A1B2C3 /* SaveMyBookNotificationService.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -208,6 +248,7 @@
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
 				97C147021CF9000F007C117D /* Info.plist */,
+				247F4BFA460D4D41A0A7760D /* PrivacyInfo.xcprivacy */,
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
@@ -269,6 +310,26 @@
 			productReference = 425246BC3057C776002B5EAA /* SaveMyBookWidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		6E5A10073057D00100A1B2C3 /* SaveMyBookNotificationService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6E5A100E3057D00100A1B2C3 /* Build configuration list for PBXNativeTarget "SaveMyBookNotificationService" */;
+			buildPhases = (
+				6E5A10093057D00100A1B2C3 /* Sources */,
+				6E5A10063057D00100A1B2C3 /* Frameworks */,
+				6E5A10083057D00100A1B2C3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				6E5A10053057D00100A1B2C3 /* SaveMyBookNotificationService */,
+			);
+			name = SaveMyBookNotificationService;
+			productName = SaveMyBookNotificationService;
+			productReference = 6E5A10033057D00100A1B2C3 /* SaveMyBookNotificationService.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		97C146ED1CF9000F007C117D /* Runner */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
@@ -289,6 +350,7 @@
 			);
 			dependencies = (
 				425246CA3057C777002B5EAA /* PBXTargetDependency */,
+				6E5A100A3057D00100A1B2C3 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
@@ -311,6 +373,9 @@
 						TestTargetID = 97C146ED1CF9000F007C117D;
 					};
 					425246BB3057C776002B5EAA = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					6E5A10073057D00100A1B2C3 = {
 						CreatedOnToolsVersion = 26.6;
 					};
 					97C146ED1CF9000F007C117D = {
@@ -336,6 +401,7 @@
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
 				425246BB3057C776002B5EAA /* SaveMyBookWidgetExtension */,
+				6E5A10073057D00100A1B2C3 /* SaveMyBookNotificationService */,
 			);
 		};
 /* End PBXProject section */
@@ -363,6 +429,14 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				0114B0B8811A7FA8E68C8C9C /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6E5A10083057D00100A1B2C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -524,6 +598,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6E5A10093057D00100A1B2C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -536,6 +617,11 @@
 			isa = PBXTargetDependency;
 			target = 425246BB3057C776002B5EAA /* SaveMyBookWidgetExtension */;
 			targetProxy = 425246C93057C777002B5EAA /* PBXContainerItemProxy */;
+		};
+		6E5A100A3057D00100A1B2C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6E5A10073057D00100A1B2C3 /* SaveMyBookNotificationService */;
+			targetProxy = 6E5A10023057D00100A1B2C3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -983,6 +1069,98 @@
 			};
 			name = Release;
 		};
+		6E5A100B3057D00100A1B2C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = Q929JXJ8S7;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SaveMyBookNotificationService/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SaveMyBookNotificationService;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = today.savemybook.app.SaveMyBookNotificationService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		6E5A100C3057D00100A1B2C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = Q929JXJ8S7;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SaveMyBookNotificationService/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SaveMyBookNotificationService;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = today.savemybook.app.SaveMyBookNotificationService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		6E5A100D3057D00100A1B2C3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = Q929JXJ8S7;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SaveMyBookNotificationService/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SaveMyBookNotificationService;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = today.savemybook.app.SaveMyBookNotificationService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1022,6 +1200,16 @@
 				97C147061CF9000F007C117D /* Debug */,
 				97C147071CF9000F007C117D /* Release */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6E5A100E3057D00100A1B2C3 /* Build configuration list for PBXNativeTarget "SaveMyBookNotificationService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6E5A100B3057D00100A1B2C3 /* Debug */,
+				6E5A100C3057D00100A1B2C3 /* Release */,
+				6E5A100D3057D00100A1B2C3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -676,6 +676,8 @@ enum wallet_transactions_type {
   sale_income
   refund
   admin_adjust
+  transfer_in
+  transfer_out
 }
 
 enum chat_messages_message_type {

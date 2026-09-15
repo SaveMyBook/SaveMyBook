@@ -102,7 +102,7 @@ const parseDetail = (detail) => {
 };
 
 module.exports = {
-  encode, decode, sameValue, display, diff, pick, snapshot,
+  decode, sameValue, display, diff,
   undoUpdate, undoCreate, undoDelete, undoReorder, undoWallet,
   record, parseDetail
 };

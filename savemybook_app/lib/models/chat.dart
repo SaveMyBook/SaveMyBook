@@ -7,70 +7,263 @@ class ChatPartner {
   final int userId;
   final String nickname;
   final String? avatarUrl;
+  final String? alias;
 
-  ChatPartner({required this.userId, required this.nickname, this.avatarUrl});
+  ChatPartner({required this.userId, required this.nickname, this.avatarUrl, this.alias});
+
+  String get displayName => alias != null && alias!.isNotEmpty ? alias! : nickname;
+
+  ChatPartner copyWith({String? alias, bool clearAlias = false}) => ChatPartner(
+        userId: userId,
+        nickname: nickname,
+        avatarUrl: avatarUrl,
+        alias: clearAlias ? null : (alias ?? this.alias),
+      );
 
   factory ChatPartner.fromJson(Map<String, dynamic>? json) {
+    final alias = json?['alias'] as String?;
     return ChatPartner(
       userId: parseInt(json?['user_id']),
       nickname: json?['nickname'] as String? ?? S.user,
       avatarUrl: resolveAssetUrl(json?['avatar_url']),
+      alias: alias == null || alias.isEmpty ? null : alias,
     );
   }
 }
 
+class ChatMember {
+  final int userId;
+  final String nickname;
+  final String? avatarUrl;
+  final String? alias;
+  final String role;
+  final DateTime? joinedAt;
+
+  const ChatMember({
+    required this.userId,
+    required this.nickname,
+    this.avatarUrl,
+    this.alias,
+    this.role = 'member',
+    this.joinedAt,
+  });
+
+  bool get isOwner => role == 'owner';
+
+  String get displayName => alias != null && alias!.isNotEmpty ? alias! : nickname;
+
+  factory ChatMember.fromJson(Map<String, dynamic> json) {
+    final alias = json['alias'] as String?;
+    return ChatMember(
+      userId: parseInt(json['user_id']),
+      nickname: json['nickname'] as String? ?? S.user,
+      avatarUrl: resolveAssetUrl(json['avatar_url']),
+      alias: alias == null || alias.isEmpty ? null : alias,
+      role: json['role'] as String? ?? 'member',
+      joinedAt: parseDate(json['joined_at']),
+    );
+  }
+}
+
+class ChatRoomInfo {
+  final int roomId;
+  final String type;
+  final String name;
+  final String? avatarUrl;
+  final int createdBy;
+  final String? myRole;
+  final List<ChatMember> members;
+  final ChatPartner? partner;
+  final bool muted;
+  final bool pinned;
+  final bool blocked;
+
+  const ChatRoomInfo({
+    required this.roomId,
+    required this.type,
+    required this.name,
+    this.avatarUrl,
+    this.createdBy = 0,
+    this.myRole,
+    this.members = const [],
+    this.partner,
+    this.muted = false,
+    this.pinned = false,
+    this.blocked = false,
+  });
+
+  bool get isGroup => type == 'group';
+
+  bool get isOwner => myRole == 'owner';
+
+  factory ChatRoomInfo.fromJson(Map<String, dynamic> json) => ChatRoomInfo(
+        roomId: parseInt(json['room_id']),
+        type: json['type'] as String? ?? 'direct',
+        name: json['name'] as String? ?? '',
+        avatarUrl: resolveAssetUrl(json['avatar_url']),
+        createdBy: parseInt(json['created_by']),
+        myRole: json['my_role'] as String?,
+        members: [
+          for (final m in (json['members'] as List? ?? const []))
+            if (m is Map) ChatMember.fromJson(Map<String, dynamic>.from(m)),
+        ],
+        partner: json['partner'] is Map ? ChatPartner.fromJson(Map<String, dynamic>.from(json['partner'])) : null,
+        muted: json['muted'] == true,
+        pinned: json['pinned'] == true,
+        blocked: json['blocked'] == true,
+      );
+}
+
+class ChatTransfer {
+  final int transferId;
+  final String transferNo;
+  final String kind;
+  final int roomId;
+  final int messageId;
+  final int fromUserId;
+  final int toUserId;
+  final double amount;
+  final String? note;
+  final String status;
+  final DateTime? createdAt;
+  final DateTime? respondedAt;
+  final DateTime? expiresAt;
+
+  const ChatTransfer({
+    required this.transferId,
+    this.transferNo = '',
+    required this.kind,
+    this.roomId = 0,
+    this.messageId = 0,
+    required this.fromUserId,
+    required this.toUserId,
+    required this.amount,
+    this.note,
+    required this.status,
+    this.createdAt,
+    this.respondedAt,
+    this.expiresAt,
+  });
+
+  bool get isRequest => kind == 'request';
+
+  bool get isPending => status == 'pending' && !(expiresAt?.isBefore(DateTime.now()) ?? false);
+
+  String get effectiveStatus => status == 'pending' && !isPending ? 'expired' : status;
+
+  factory ChatTransfer.fromJson(Map<String, dynamic> json) {
+    final note = json['note'] as String?;
+    return ChatTransfer(
+      transferId: parseInt(json['transfer_id']),
+      transferNo: json['transfer_no'] as String? ?? '',
+      kind: json['kind'] as String? ?? 'transfer',
+      roomId: parseInt(json['room_id']),
+      messageId: parseInt(json['message_id']),
+      fromUserId: parseInt(json['from_user_id']),
+      toUserId: parseInt(json['to_user_id']),
+      amount: parseDouble(json['amount']),
+      note: note == null || note.trim().isEmpty ? null : note,
+      status: json['status'] as String? ?? 'pending',
+      createdAt: parseDate(json['created_at']),
+      respondedAt: parseDate(json['responded_at']),
+      expiresAt: parseDate(json['expires_at']),
+    );
+  }
+}
+
+class ChatEdit {
+  final int messageId;
+  final String body;
+  final DateTime? editedAt;
+
+  const ChatEdit({required this.messageId, required this.body, this.editedAt});
+}
+
 class ChatRoom {
   final int roomId;
+  final String type;
+  final String title;
+  final String? avatarUrl;
   final ChatPartner partner;
+  final int memberCount;
   final String lastMessage;
   final String lastKind;
   final int lastSenderId;
+  final String lastSenderName;
   final bool lastIsRead;
   final int unreadCount;
   final bool muted;
   final bool blocked;
+  final bool pinned;
+  final DateTime? pinnedAt;
   final DateTime? updatedAt;
 
   ChatRoom({
     required this.roomId,
+    this.type = 'direct',
+    String? title,
+    String? avatarUrl,
     required this.partner,
+    this.memberCount = 2,
     required this.lastMessage,
     this.lastKind = 'text',
     this.lastSenderId = 0,
+    this.lastSenderName = '',
     this.lastIsRead = false,
     required this.unreadCount,
     this.muted = false,
     this.blocked = false,
+    this.pinned = false,
+    this.pinnedAt,
     this.updatedAt,
-  });
+  })  : title = title == null || title.isEmpty ? partner.displayName : title,
+        avatarUrl = avatarUrl ?? (type == 'group' ? null : partner.avatarUrl);
 
-  ChatRoom copyWith({bool? muted, bool? blocked}) => ChatRoom(
+  bool get isGroup => type == 'group';
+
+  ChatRoom copyWith({bool? muted, bool? blocked, bool? pinned, DateTime? pinnedAt, String? title, ChatPartner? partner}) =>
+      ChatRoom(
         roomId: roomId,
-        partner: partner,
+        type: type,
+        title: title ?? this.title,
+        avatarUrl: avatarUrl,
+        partner: partner ?? this.partner,
+        memberCount: memberCount,
         lastMessage: lastMessage,
         lastKind: lastKind,
         lastSenderId: lastSenderId,
+        lastSenderName: lastSenderName,
         lastIsRead: lastIsRead,
         unreadCount: unreadCount,
         muted: muted ?? this.muted,
         blocked: blocked ?? this.blocked,
+        pinned: pinned ?? this.pinned,
+        pinnedAt: pinned == false ? null : (pinnedAt ?? this.pinnedAt),
         updatedAt: updatedAt,
       );
 
   factory ChatRoom.fromJson(Map<String, dynamic> json) {
     final last = json['last_message'] as Map<String, dynamic>?;
     final message = last == null ? null : ChatMessage.fromJson({...last, 'message_id': 0});
+    final type = json['type'] as String? ?? 'direct';
 
     return ChatRoom(
       roomId: parseInt(json['room_id']),
+      type: type,
+      title: json['title'] as String?,
+      avatarUrl: resolveAssetUrl(json['avatar_url']),
       partner: ChatPartner.fromJson(json['partner'] as Map<String, dynamic>?),
+      memberCount: json['member_count'] == null ? 2 : parseInt(json['member_count']),
       lastMessage: message == null ? S.noMessagesYet : message.preview,
       lastKind: message?.kind ?? 'text',
       lastSenderId: parseInt(last?['sender_id']),
+      lastSenderName: last?['sender_name'] as String? ?? '',
       lastIsRead: last?['is_read'] == true,
       unreadCount: parseInt(json['unread_count']),
       muted: json['muted'] == true,
       blocked: json['blocked'] == true,
+      pinned: json['pinned'] == true,
+      pinnedAt: parseDate(json['pinned_at']),
       updatedAt: parseDate(json['updated_at']),
     );
   }
@@ -232,7 +425,10 @@ class ChatMessage {
   final Map<String, dynamic>? payload;
   final bool isRead;
   final DateTime? createdAt;
+  final DateTime? editedAt;
   final ChatReply? replyTo;
+  final String senderName;
+  final String? senderAvatarUrl;
 
   ChatMessage({
     required this.messageId,
@@ -244,7 +440,10 @@ class ChatMessage {
     this.payload,
     this.isRead = false,
     this.createdAt,
+    this.editedAt,
     this.replyTo,
+    this.senderName = '',
+    this.senderAvatarUrl,
   }) : kind = kind ?? _legacyKind(messageType, content);
 
   static String _legacyKind(String type, String content) {
@@ -271,6 +470,13 @@ class ChatMessage {
 
   int? get reservationId => kind == 'reservation' ? parseInt(payload?['reservation_id']) : null;
 
+  int? get transferId => kind == 'transfer' ? parseInt(payload?['transfer_id']) : null;
+
+  ChatTransfer? get transfer =>
+      kind == 'transfer' && payload != null && payload!['status'] != null ? ChatTransfer.fromJson(payload!) : null;
+
+  bool get isEdited => editedAt != null;
+
   String get preview {
     switch (kind) {
       case 'image':
@@ -281,6 +487,8 @@ class ChatMessage {
         return S.item2(bookCard?.title ?? '');
       case 'reservation':
         return S.reservation;
+      case 'transfer':
+        return payload?['kind'] == 'request' ? S.paymentRequest : S.transfer2;
       case 'recalled':
         return S.messageUnsent;
       default:
@@ -288,17 +496,27 @@ class ChatMessage {
     }
   }
 
-  ChatMessage copyWith({bool? isRead, String? kind, String? body, Map<String, dynamic>? payload}) => ChatMessage(
+  ChatMessage copyWith({
+    bool? isRead,
+    String? kind,
+    String? body,
+    Map<String, dynamic>? payload,
+    DateTime? editedAt,
+  }) =>
+      ChatMessage(
         messageId: messageId,
         senderId: senderId,
-        content: content,
+        content: body ?? content,
         messageType: messageType,
         kind: kind ?? this.kind,
         body: body ?? this.body,
         payload: payload ?? this.payload,
         isRead: isRead ?? this.isRead,
         createdAt: createdAt,
+        editedAt: editedAt ?? this.editedAt,
         replyTo: replyTo,
+        senderName: senderName,
+        senderAvatarUrl: senderAvatarUrl,
       );
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -313,7 +531,10 @@ class ChatMessage {
       payload: payload is Map ? Map<String, dynamic>.from(payload) : null,
       isRead: json['is_read'] == true,
       createdAt: parseDate(json['created_at']),
+      editedAt: parseDate(json['edited_at']),
       replyTo: json['reply_to'] is Map ? ChatReply.fromJson(Map<String, dynamic>.from(json['reply_to'])) : null,
+      senderName: json['users'] is Map ? json['users']['nickname'] as String? ?? '' : '',
+      senderAvatarUrl: json['users'] is Map ? resolveAssetUrl(json['users']['avatar_url']) : null,
     );
   }
 }
@@ -326,6 +547,15 @@ class ChatFetchResult {
   final List<int> recalledIds;
   final bool hasMore;
   final Map<int, ChatReservation> reservations;
+  final Map<int, ChatTransfer> transfers;
+  final Map<int, int> membersRead;
+  final List<int> typingUserIds;
+  final Map<int, String> aliases;
+  final List<ChatEdit> edited;
+  final String roomType;
+  final String roomTitle;
+  final String? roomAvatarUrl;
+  final int memberCount;
   final bool muted;
   final bool blocked;
   final bool canSend;
@@ -342,6 +572,15 @@ class ChatFetchResult {
     this.recalledIds = const [],
     this.hasMore = false,
     this.reservations = const {},
+    this.transfers = const {},
+    this.membersRead = const {},
+    this.typingUserIds = const [],
+    this.aliases = const {},
+    this.edited = const [],
+    this.roomType = 'direct',
+    this.roomTitle = '',
+    this.roomAvatarUrl,
+    this.memberCount = 2,
     this.muted = false,
     this.blocked = false,
     this.canSend = true,

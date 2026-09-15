@@ -31,6 +31,8 @@ class SwipeActionTile extends StatefulWidget {
   final Key itemKey;
   final SwipeAction? endToStart;
   final SwipeAction? startToEnd;
+  final List<SwipeAction> endToStartExtra;
+  final List<SwipeAction> startToEndExtra;
   final EdgeInsets backgroundMargin;
 
   const SwipeActionTile({
@@ -39,6 +41,8 @@ class SwipeActionTile extends StatefulWidget {
     required this.child,
     this.endToStart,
     this.startToEnd,
+    this.endToStartExtra = const [],
+    this.startToEndExtra = const [],
     this.backgroundMargin = const EdgeInsets.only(bottom: 12),
   });
 
@@ -52,8 +56,8 @@ class _SwipeActionTileState extends State<SwipeActionTile> with TickerProviderSt
   static const double _actionWidth = 84;
   static const double _activationDistance = 18;
 
-  late final AnimationController _slide = AnimationController.unbounded(vsync: this);
-  late final AnimationController _collapse = AnimationController(vsync: this, duration: Motion.base, value: 1);
+  late final AnimationController _slide;
+  late final AnimationController _collapse;
 
   double _dragStartOffset = 0;
   bool _tracking = false;
@@ -67,6 +71,8 @@ class _SwipeActionTileState extends State<SwipeActionTile> with TickerProviderSt
   @override
   void initState() {
     super.initState();
+    _slide = AnimationController.unbounded(vsync: this);
+    _collapse = AnimationController(vsync: this, duration: Motion.base, value: 1);
     _openTile.addListener(_onOtherOpened);
   }
 
@@ -99,8 +105,11 @@ class _SwipeActionTileState extends State<SwipeActionTile> with TickerProviderSt
     if (_scrollPosition?.isScrollingNotifier.value == true && _offset != 0) _close();
   }
 
-  double get _maxRight => widget.startToEnd == null ? 0 : _actionWidth;
-  double get _maxLeft => widget.endToStart == null ? 0 : -_actionWidth;
+  List<SwipeAction> get _startActions => [?widget.startToEnd, ...widget.startToEndExtra];
+  List<SwipeAction> get _endActions => [?widget.endToStart, ...widget.endToStartExtra];
+
+  double get _maxRight => _startActions.length * _actionWidth;
+  double get _maxLeft => -_endActions.length * _actionWidth;
 
   void _animateTo(double target) {
     _slide.animateTo(target, duration: Motion.base, curve: Motion.emphasized);
@@ -141,13 +150,13 @@ class _SwipeActionTileState extends State<SwipeActionTile> with TickerProviderSt
 
   void _onDragEnd(DragEndDetails details) {
     if (!_tracking || !_engaged) {
-      if (_offset != 0 && !_engaged) _animateTo(_offset.abs() > _actionWidth / 2 ? _offset.sign * _actionWidth : 0);
+      if (_offset != 0 && !_engaged) _animateTo(_offset.abs() > _actionWidth / 2 ? (_offset > 0 ? _maxRight : _maxLeft) : 0);
       return;
     }
     final velocity = details.primaryVelocity ?? 0;
     double target = 0;
-    if (_offset > _actionWidth * 0.55 || (velocity > 700 && _offset > 0)) target = _maxRight;
-    if (_offset < -_actionWidth * 0.55 || (velocity < -700 && _offset < 0)) target = _maxLeft;
+    if (_offset > _maxRight * 0.45 || (velocity > 700 && _offset > 0)) target = _maxRight;
+    if (_offset < _maxLeft * 0.45 || (velocity < -700 && _offset < 0)) target = _maxLeft;
     if (target != 0 && _dragStartOffset == 0) HapticFeedback.selectionClick();
     _animateTo(target);
     _openTile.value = target == 0 ? (identical(_openTile.value, this) ? null : _openTile.value) : this;
@@ -175,9 +184,9 @@ class _SwipeActionTileState extends State<SwipeActionTile> with TickerProviderSt
     }
   }
 
-  Widget _actionButton(SwipeAction action, bool alignRight) {
-    return Align(
-      alignment: alignRight ? Alignment.centerRight : Alignment.centerLeft,
+  Widget _actionButton(SwipeAction action) {
+    return ColoredBox(
+      color: action.color,
       child: SizedBox(
         width: _actionWidth,
         child: Semantics(
@@ -210,7 +219,7 @@ class _SwipeActionTileState extends State<SwipeActionTile> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    if (widget.startToEnd == null && widget.endToStart == null) return widget.child;
+    if (_startActions.isEmpty && _endActions.isEmpty) return widget.child;
 
     return SizeTransition(
       sizeFactor: _collapse,
@@ -220,19 +229,29 @@ class _SwipeActionTileState extends State<SwipeActionTile> with TickerProviderSt
         child: widget.child,
         builder: (context, child) {
           final offset = _offset;
-          final action = offset > 0 ? widget.startToEnd : offset < 0 ? widget.endToStart : null;
+          final actions = offset > 0 ? _startActions : offset < 0 ? _endActions : const <SwipeAction>[];
+          final alignRight = offset < 0;
           return Stack(
             children: [
               Positioned.fill(
-                child: action == null
+                child: actions.isEmpty
                     ? const SizedBox.shrink()
                     : Padding(
                         padding: widget.backgroundMargin,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(color: action.color, borderRadius: BorderRadius.circular(16)),
-                          child: Opacity(
-                            opacity: (offset.abs() / _actionWidth).clamp(0.0, 1.0),
-                            child: _actionButton(action, offset < 0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: ColoredBox(
+                            color: (alignRight ? actions.first : actions.last).color,
+                            child: Opacity(
+                              opacity: (offset.abs() / _actionWidth).clamp(0.0, 1.0),
+                              child: Row(
+                                mainAxisAlignment: alignRight ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  for (final action in alignRight ? actions.reversed : actions) _actionButton(action),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),

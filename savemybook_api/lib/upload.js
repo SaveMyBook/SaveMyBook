@@ -132,4 +132,4 @@ const fileUpload = ({ folder, maxFileSize = 10 * 1024 * 1024, kind = 'image' }) 
 const imageUpload = (opts) => fileUpload({ ...opts, kind: 'image' });
 const audioUpload = (opts) => fileUpload({ ...opts, kind: 'audio' });
 
-module.exports = { UPLOAD_ROOT, imageUpload, audioUpload, uploadedFiles, removeUploaded };
+module.exports = { imageUpload, audioUpload, removeUploaded };

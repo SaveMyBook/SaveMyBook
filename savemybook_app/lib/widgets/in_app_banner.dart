@@ -13,6 +13,7 @@ void showInAppBanner(
   required String title,
   required String body,
   IconData icon = Icons.notifications_rounded,
+  String? imageUrl,
   VoidCallback? onTap,
 }) {
   _dismiss();
@@ -25,6 +26,7 @@ void showInAppBanner(
       title: title,
       body: body,
       icon: icon,
+      imageUrl: imageUrl,
       onTap: () {
         _dismiss();
         onTap?.call();
@@ -56,6 +58,7 @@ class _Banner extends StatefulWidget {
   final String title;
   final String body;
   final IconData icon;
+  final String? imageUrl;
   final VoidCallback onTap;
   final VoidCallback onDismiss;
 
@@ -64,6 +67,7 @@ class _Banner extends StatefulWidget {
     required this.title,
     required this.body,
     required this.icon,
+    this.imageUrl,
     required this.onTap,
     required this.onDismiss,
   });
@@ -88,6 +92,52 @@ class _BannerState extends State<_Banner> with SingleTickerProviderStateMixin {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Widget _leading(AppColors c) {
+    final iconTile = Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: c.accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: Icon(widget.icon, size: 20, color: c.accent),
+    );
+    final url = widget.imageUrl;
+    if (url == null || url.isEmpty) return iconTile;
+
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    return SizedBox(
+      width: 42,
+      height: 42,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ClipOval(
+            child: Image.network(
+              url,
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
+              cacheWidth: (40 * dpr).round(),
+              errorBuilder: (_, _, _) => iconTile,
+            ),
+          ),
+          Positioned(
+            right: -2,
+            bottom: -2,
+            child: Container(
+              width: 18,
+              height: 18,
+              padding: const EdgeInsets.all(1.5),
+              decoration: BoxDecoration(color: c.card, shape: BoxShape.circle),
+              child: ClipOval(child: Image.asset('assets/images/logo.png', fit: BoxFit.cover, cacheWidth: (16 * dpr).round())),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -127,15 +177,7 @@ class _BannerState extends State<_Banner> with SingleTickerProviderStateMixin {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: c.accent.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(11),
-                        ),
-                        child: Icon(widget.icon, size: 20, color: c.accent),
-                      ),
+                      _leading(c),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
