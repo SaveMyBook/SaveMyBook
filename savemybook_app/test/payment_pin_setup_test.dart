@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:savemybook_app/i18n/app_localizations.dart';
 import 'package:savemybook_app/i18n/strings.dart';
 import 'package:savemybook_app/models/user.dart';
-import 'package:savemybook_app/screens/security/security_center_screen.dart';
+import 'package:savemybook_app/features/security/security_center_screen.dart';
 import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/services/locale_provider.dart';
 import 'package:savemybook_app/services/verification_service.dart';

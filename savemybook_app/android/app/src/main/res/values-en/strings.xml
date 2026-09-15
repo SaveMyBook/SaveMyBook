@@ -2,4 +2,5 @@
 <resources>
     <string name="notification_channel_name">Notifications</string>
     <string name="notification_channel_description">Orders, chat messages and support replies</string>
+    <string name="notification_self_name">Me</string>
 </resources>

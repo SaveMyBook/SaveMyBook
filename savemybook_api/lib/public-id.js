@@ -76,7 +76,8 @@ const PREFIX = {
   member_level: 'LV',
   level: 'LV',
   backup: 'BU',
-  reservation: 'RS'
+  reservation: 'RS',
+  transfer: 'TF'
 };
 
 const prefixOf = (type) => PREFIX[type] ?? 'ID';

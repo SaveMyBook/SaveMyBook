@@ -161,7 +161,7 @@ INTERP = re.compile(r'\$\{([^}]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)')
 
 def unescape(text):
     """原始碼裡的 \\n 是換行，ARB 要存真正的換行。"""
-    return text.replace('\\n', '\n').replace("\\'", "'").replace('\\\\', '\\')
+    return text.replace('\\n', '\n').replace("\\'", "'").replace('\\$', '$').replace('\\\\', '\\')
 
 
 def split_interp(text):

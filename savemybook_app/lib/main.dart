@@ -6,14 +6,15 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'i18n/app_localizations.dart';
 import 'i18n/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/book_detail_screen.dart';
-import 'screens/chat_room_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/splash_screen.dart';
+import 'features/books/book_detail_screen.dart';
+import 'features/chat/chat_room_screen.dart';
+import 'features/auth/login_screen.dart';
+import 'features/home/home_screen.dart';
+import 'features/auth/splash_screen.dart';
 import 'services/api_service.dart';
 import 'services/biometric_service.dart';
 import 'services/deep_link_service.dart';
+import 'services/home_preferences.dart';
 import 'services/home_widget_service.dart';
 import 'services/locale_provider.dart';
 import 'services/push_service.dart';
@@ -55,6 +56,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     paletteProvider = await PaletteProvider.init();
     localeProvider = await LocaleProvider.init();
     await BiometricService.load();
+    await HomePreferences.load();
 
     PushService.navigatorKey = navigatorKey;
     ApiService.onSigningOut = ({required bool canReachServer}) async {

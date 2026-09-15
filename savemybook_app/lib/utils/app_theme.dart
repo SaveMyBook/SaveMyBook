@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
@@ -116,6 +116,7 @@ class AppTheme {
         modalElevation: 0,
         dragHandleColor: c.iconInactive.withValues(alpha: 0.5),
         dragHandleSize: const Size(38, 4),
+        constraints: const BoxConstraints(maxWidth: 640),
         clipBehavior: Clip.antiAlias,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

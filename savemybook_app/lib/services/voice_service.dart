@@ -21,11 +21,21 @@ class VoiceRecorder {
   static const maxDuration = Duration(seconds: 120);
   static const minDuration = Duration(seconds: 1);
 
+  @visibleForTesting
+  static VoiceRecorder Function()? debugFactory;
+
+  factory VoiceRecorder() => debugFactory?.call() ?? VoiceRecorder.device();
+
+  VoiceRecorder.device();
+
   final ValueNotifier<double> level = ValueNotifier<double>(0);
   final Stopwatch _watch = Stopwatch();
 
+  VoidCallback? onInterrupted;
+
   AudioRecorder? _recorder;
   StreamSubscription<Amplitude>? _amplitude;
+  StreamSubscription<RecordState>? _state;
   Future<VoiceStartResult>? _starting;
   String? _path;
   bool _disposed = false;
@@ -33,6 +43,24 @@ class VoiceRecorder {
   bool get isRecording => _path != null;
 
   Duration get elapsed => _watch.elapsed;
+
+  Future<bool> ensurePermission() async {
+    final recorder = _recorder ??= AudioRecorder();
+    try {
+      if (await recorder.hasPermission(request: false)) return true;
+      return await recorder.hasPermission();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> checkPermission() async {
+    try {
+      return await (_recorder ??= AudioRecorder()).hasPermission(request: false);
+    } catch (_) {
+      return false;
+    }
+  }
 
   Future<VoiceStartResult> start() {
     return _starting ??= _start().whenComplete(() => _starting = null);
@@ -66,6 +94,12 @@ class VoiceRecorder {
       _amplitude = recorder.onAmplitudeChanged(const Duration(milliseconds: 80)).listen((amp) {
         final db = amp.current.isFinite ? amp.current : -60.0;
         level.value = ((db + 48) / 48).clamp(0.0, 1.0);
+      });
+      // iOS 來電或其他 App 搶走音訊時，原生端會自行暫停錄音，只會從狀態串流得知。
+      _state = recorder.onStateChanged().listen((state) {
+        if (_path != path || state == RecordState.record) return;
+        _watch.stop();
+        onInterrupted?.call();
       });
       return VoiceStartResult.started;
     } catch (_) {
@@ -109,10 +143,13 @@ class VoiceRecorder {
     _path = null;
     await _amplitude?.cancel();
     _amplitude = null;
+    await _state?.cancel();
+    _state = null;
     if (!_disposed) level.value = 0;
   }
 
   Future<void> dispose() async {
+    onInterrupted = null;
     await cancel();
     _disposed = true;
     level.dispose();
@@ -221,7 +258,8 @@ class VoicePlayback {
 
       if (current.url != null) await player.stop();
       state.value = VoicePlaybackState(url: url, loading: true, duration: expected);
-      await player.play(UrlSource(url));
+      final local = !url.contains('://') && File(url).existsSync();
+      await player.play(local ? DeviceFileSource(url) : UrlSource(url));
     } catch (_) {
       state.value = const VoicePlaybackState();
     }

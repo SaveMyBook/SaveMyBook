@@ -145,11 +145,12 @@ class _ToastViewState extends State<_ToastView> with SingleTickerProviderStateMi
         final keyboard = media.viewInsets.bottom;
         final nav = keyboard == 0 && ToastRouteTracker.instance.navOnScreen;
         final bottom = keyboard > 0 ? keyboard + 12 : media.padding.bottom + (nav ? 72 : 16);
+        final side = media.size.width > 560 ? (media.size.width - 520) / 2 : 16.0;
         return AnimatedPositioned(
           duration: Motion.base,
           curve: Motion.standard,
-          left: 16,
-          right: 16,
+          left: side,
+          right: side,
           bottom: bottom,
           child: child!,
         );

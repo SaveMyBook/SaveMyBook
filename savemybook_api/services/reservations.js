@@ -1,7 +1,9 @@
 const prisma = require('../lib/prisma');
 const { badRequest, conflict, forbidden, notFound } = require('../lib/errors');
+const { coverImage } = require('../lib/selects');
 const { notify } = require('./notify');
-const chat = require('./chat');
+const codec = require('./chat/codec');
+const rooms = require('./chat/rooms');
 
 const HOURS = [24, 48, 72];
 const PENDING_TTL_MS = 24 * 60 * 60 * 1000;
@@ -9,7 +11,7 @@ const MAX_ACTIVE_PER_BUYER = 5;
 
 const bookSelect = {
   book_id: true, title: true, price: true, status: true, seller_id: true, is_approved: true,
-  book_images: { select: { image_url: true }, take: 1 }
+  book_images: coverImage
 };
 
 const noteOf = (row) => {
@@ -54,6 +56,11 @@ const activeHold = (db, bookId) => (db ?? prisma).reservations.findFirst({
   select: { reservation_id: true, buyer_id: true, pickup_deadline: true }
 });
 
+const activeHoldsFor = (bookIds, now = new Date()) => prisma.reservations.findMany({
+  where: { book_id: { in: bookIds }, status: 'confirmed', pickup_deadline: { gt: now } },
+  select: { book_id: true, buyer_id: true, pickup_deadline: true }
+});
+
 const deadlineFormat = new Intl.DateTimeFormat('zh-TW', {
   timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false
 });
@@ -69,14 +76,9 @@ const assertNotHeldByOthers = async (db, books, buyerId) => {
   }
 };
 
-const roomBetween = async (db, a, b) => {
-  const [userA, userB] = a < b ? [a, b] : [b, a];
-  return db.chat_rooms.findFirst({ where: { user_a_id: userA, user_b_id: userB }, orderBy: { updated_at: 'desc' } });
-};
-
 const postCard = async (tx, { roomId, senderId, reservationId }) => {
   await tx.chat_messages.create({
-    data: { room_id: roomId, sender_id: senderId, content: chat.encodeReservation(reservationId), message_type: 'system' }
+    data: { room_id: roomId, sender_id: senderId, content: codec.encodeReservation(reservationId), message_type: 'system' }
   });
   await tx.chat_rooms.update({ where: { room_id: roomId }, data: { updated_at: new Date() } });
 };
@@ -200,7 +202,7 @@ const respond = async (reservationId, userId, action) => {
       }
     }
 
-    const room = await roomBetween(tx, row.buyer_id, row.seller_id);
+    const room = await rooms.between(tx, row.buyer_id, row.seller_id);
     if (room) await tx.chat_rooms.update({ where: { room_id: room.room_id }, data: { updated_at: now } });
 
     const target = isSeller ? row.buyer_id : row.seller_id;
@@ -278,5 +280,5 @@ const expireDue = async () => {
 };
 
 module.exports = {
-  HOURS, shape, activeHold, assertNotHeldByOthers, request, respond, forUsers, holdForViewer, expireDue
+  activeHoldsFor, assertNotHeldByOthers, request, respond, forUsers, holdForViewer, expireDue
 };

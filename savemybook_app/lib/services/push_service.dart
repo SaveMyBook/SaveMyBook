@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../firebase_options.dart';
 import '../models/app_notification.dart';
-import '../screens/chat_room_screen.dart';
-import '../screens/notification_screen.dart';
+import '../features/chat/chat_room_screen.dart';
+import '../features/home/notification_screen.dart';
 import '../widgets/in_app_banner.dart';
 import 'api_service.dart';
 import 'notification_router.dart';
@@ -190,13 +190,17 @@ class PushService {
 
     final overlay = navigatorKey?.currentState?.overlay;
     final notification = message.notification;
-    if (overlay == null || notification == null) return;
+    final title = notification?.title ?? data['title']?.toString() ?? '';
+    final body = notification?.body ?? data['body']?.toString() ?? '';
+    if (overlay == null || (title.isEmpty && body.isEmpty)) return;
 
+    final avatar = '${data['sender_avatar'] ?? ''}';
     showInAppBanner(
       overlay,
-      title: notification.title ?? '',
-      body: notification.body ?? '',
+      title: title,
+      body: body,
       icon: AppNotification.iconFor('${data['type']}'),
+      imageUrl: avatar.isEmpty ? null : avatar,
       onTap: () => _open(data),
     );
   }

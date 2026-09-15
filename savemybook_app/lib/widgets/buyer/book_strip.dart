@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../models/book.dart';
-import '../../screens/book_detail_screen.dart';
+import '../../features/books/book_detail_screen.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
 import '../animations.dart';
@@ -218,7 +218,6 @@ class DiscoveryTab {
   final String title;
   final IconData icon;
   final List<Book> books;
-  final bool loading;
   final String? actionLabel;
   final VoidCallback? onAction;
 
@@ -227,7 +226,6 @@ class DiscoveryTab {
     required this.title,
     required this.icon,
     required this.books,
-    this.loading = false,
     this.actionLabel,
     this.onAction,
   });
@@ -310,7 +308,6 @@ class _DiscoveryPanelState extends State<DiscoveryPanel> {
             title: current.title,
             icon: current.icon,
             books: current.books,
-            loading: current.loading,
             heroPrefix: current.id,
             showHeader: false,
           ),

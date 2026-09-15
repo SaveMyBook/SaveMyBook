@@ -1,4 +1,9 @@
 const prisma = require('../lib/prisma');
+const { notFound, conflict } = require('../lib/errors');
+const { notifyActiveUsers } = require('./notify');
+const audit = require('./audit');
+
+const KEY_RE = /^[a-z0-9_-]{1,50}$/;
 
 // 欄位由 migrations/007 新增且不在 Prisma client 中，須用原生 SQL 存取。
 
@@ -67,4 +72,89 @@ const acceptAllCurrent = async (userId) => {
   }
 };
 
-module.exports = { isAvailable, metaByKey, withMeta, bumpVersion, pendingFor, accept, acceptAllCurrent };
+const pendingDocs = async (userId) => {
+  const docs = await pendingFor(userId);
+  return docs.map((d) => ({
+    doc_id: Number(d.doc_id),
+    doc_key: d.doc_key,
+    title: d.title,
+    content: d.content,
+    version: Number(d.version),
+    updated_at: d.updated_at
+  }));
+};
+
+const acceptVersion = async (userId, docKey, version) => {
+  const meta = (await metaByKey()).get(docKey);
+  if (!meta) throw notFound('找不到此文件');
+  if (meta.version !== version) throw conflict('此文件已更新，請重新閱讀後再同意', 'LEGAL_VERSION_CHANGED');
+  await accept(userId, docKey, version);
+};
+
+const listSummaries = async () => withMeta(await prisma.legal_documents.findMany({
+  orderBy: { doc_id: 'asc' },
+  select: { doc_id: true, doc_key: true, title: true, updated_at: true }
+}));
+
+const listFull = async () => withMeta(await prisma.legal_documents.findMany({ orderBy: { doc_id: 'asc' } }));
+
+const findByKey = async (key) => {
+  const doc = await prisma.legal_documents.findUnique({ where: { doc_key: key } });
+  if (!doc) throw notFound('找不到此文件');
+  const [withVersion] = await withMeta([doc]);
+  return withVersion;
+};
+
+const publishedDocs = async () => withMeta(await prisma.legal_documents.findMany({
+  select: { doc_id: true, doc_key: true, title: true, content: true, updated_at: true },
+  orderBy: { doc_id: 'asc' }
+}));
+
+const save = async (key, { title, content, major }, { adminId, req }) => {
+  const existing = await prisma.legal_documents.findUnique({ where: { doc_key: key } });
+
+  const saved = await prisma.legal_documents.upsert({
+    where: { doc_key: key },
+    update: { title, content, updated_by: adminId, updated_at: new Date() },
+    create: { doc_key: key, title, content, updated_by: adminId }
+  });
+
+  const contentChanged = !existing || existing.content !== content;
+  let version = null;
+  let notified = 0;
+  let requiresConsent = false;
+
+  if (major && contentChanged) {
+    version = existing ? await bumpVersion(key) : 1;
+    requiresConsent = (await metaByKey()).get(key)?.requires_consent ?? false;
+
+    notified = await notifyActiveUsers({
+      title: `${title}已更新`,
+      content: requiresConsent
+        ? `我們已更新${title}，下次開啟 App 時須重新閱讀並同意才能繼續使用。`
+        : `我們已更新${title}，歡迎查看最新內容。`,
+      relatedId: saved.doc_id,
+      relatedType: 'legal'
+    });
+  }
+
+  const fields = { title: '標題', content: '內容' };
+  const changes = audit.diff(existing, { title, content }, fields);
+  await audit.record(null, {
+    adminId,
+    action: '編輯法律文件',
+    targetType: 'legal',
+    targetId: saved.doc_id,
+    summary: `${existing ? '編輯' : '建立'}「${title}」`
+      + (version ? `，列為重大更新（第 ${version} 版）並通知 ${notified} 位使用者${requiresConsent ? '重新同意' : ''}` : '，小幅修改未通知使用者'),
+    changes,
+    undo: existing && changes.length ? [audit.undoUpdate('legal_documents', key, existing, { title, content }, fields)] : null,
+    req
+  });
+
+  return { notified, version };
+};
+
+module.exports = {
+  KEY_RE, pendingDocs, acceptVersion, acceptAllCurrent, listSummaries, listFull, findByKey, publishedDocs, save
+};

@@ -85,7 +85,18 @@ const evidenceUrls = (value, { max = 10 } = {}) => {
   return urls.length ? urls.join(',') : null;
 };
 
+const sortOrder = (order, emptyMessage) => {
+  if (!Array.isArray(order) || order.length === 0) throw badRequest(emptyMessage);
+  if (order.length > 1000) throw badRequest('排序資料過多');
+
+  const ids = order.map((value) => toInt(value)).filter((n) => Number.isSafeInteger(n) && n > 0);
+  if (ids.length !== order.length || new Set(ids).size !== ids.length) {
+    throw badRequest('排序資料格式不正確');
+  }
+  return ids;
+};
+
 module.exports = {
-  INT_MAX, toInt, isBlank, id, optionalId, int, number, text, optionalText, oneOf, bool, date,
-  pagination, pageMeta, evidenceUrls
+  toInt, isBlank, id, optionalId, int, number, text, optionalText, oneOf, bool, date,
+  pagination, pageMeta, evidenceUrls, sortOrder
 };

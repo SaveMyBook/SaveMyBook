@@ -35,6 +35,10 @@
 				</array>
 			</dict>
 		</array>
+		<key>NSUserActivityTypes</key>
+		<array>
+			<string>INSendMessageIntent</string>
+		</array>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>remote-notification</string>
@@ -66,21 +70,21 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
-		<key>NSMicrophoneUsageDescription</key>
-		<string>救「舊」我的書需要麥克風權限，以錄製聊天室語音訊息。</string>
 		<key>NSCameraUsageDescription</key>
-        	<string>救「舊」我的書需要相機權限，以拍攝書籍封面及掃描條碼。</string>
-        	<key>NSPhotoLibraryUsageDescription</key>
-        	<string>救「舊」我的書需要相簿權限，以選取書籍照片。</string>
-        	<key>NSFaceIDUsageDescription</key>
-        	<string>救「舊」我的書需要使用 Face ID，以便您快速且安全地登入及確認付款。</string>
-        	<key>NSPhotoLibraryAddUsageDescription</key>
-        	<string>救「舊」我的書需要相簿寫入權限，以將 QR Code 儲存至您的相簿。</string>
-        	<key>NSLocationWhenInUseUsageDescription</key>
-        	<string>救「舊」我的書需要定位權限，以為您尋找最近的智慧書櫃並顯示距離。</string>
-        	<key>NSLocationAlwaysUsageDescription</key>
-        	<string>救「舊」我的書僅在您使用 App 時取得位置，以為您尋找最近的智慧書櫃並顯示距離，不會在背景追蹤您的位置。</string>
-        	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-        	<string>救「舊」我的書僅在您使用 App 時取得位置，以為您尋找最近的智慧書櫃並顯示距離，不會在背景追蹤您的位置。</string>
+		<string>救「舊」我的書需要相機權限，以掃描書籍條碼與書櫃取書 QR Code，並拍攝書籍、大頭貼、聊天及爭議佐證照片。</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>救「舊」我的書需要相簿權限，以選取書籍照片、大頭貼、聊天圖片及爭議佐證照片。</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>救「舊」我的書需要相簿寫入權限，以將您的個人檔案 QR Code 儲存至相簿。</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>救「舊」我的書需要麥克風權限，以錄製並傳送聊天室語音訊息。</string>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>救「舊」我的書僅在您使用 App 時取得位置，以顯示您與智慧書櫃的距離並依距離排序，不會在背景取得位置。</string>
+		<key>NSLocationAlwaysUsageDescription</key>
+		<string>救「舊」我的書僅在您使用 App 時取得位置，以顯示您與智慧書櫃的距離並依距離排序，不會在背景取得位置。</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>救「舊」我的書僅在您使用 App 時取得位置，以顯示您與智慧書櫃的距離並依距離排序，不會在背景取得位置。</string>
+		<key>NSFaceIDUsageDescription</key>
+		<string>救「舊」我的書需要使用 Face ID，以便您快速登入、解鎖 App 及確認付款。</string>
 	</dict>
 </plist>

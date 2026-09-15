@@ -5,9 +5,9 @@ import 'app_tiles.dart';
 import 'favorite_button.dart';
 import 'state_views.dart';
 import '../models/book.dart';
-import '../screens/book_detail_screen.dart';
+import '../features/books/book_detail_screen.dart';
 import '../utils/app_colors.dart';
-import '../screens/seller_screen.dart';
+import '../features/books/seller_screen.dart';
 import '../i18n/strings.dart';
 
 class BookCard extends StatelessWidget {
@@ -22,6 +22,22 @@ class BookCard extends StatelessWidget {
   static const _titleStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.bold, height: 1.2);
 
   static const double gridHeight = 296;
+
+  static const SliverGridDelegate gridDelegate = SliverGridDelegateWithMaxCrossAxisExtent(
+    maxCrossAxisExtent: 240,
+    crossAxisSpacing: 12,
+    mainAxisSpacing: 12,
+    mainAxisExtent: gridHeight,
+  );
+
+  static const double listHeight = 140;
+
+  static const SliverGridDelegate listDelegate = SliverGridDelegateWithMaxCrossAxisExtent(
+    maxCrossAxisExtent: 560,
+    crossAxisSpacing: 12,
+    mainAxisSpacing: 12,
+    mainAxisExtent: listHeight,
+  );
 
   @override
   Widget build(BuildContext context) {

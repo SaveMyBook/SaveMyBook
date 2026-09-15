@@ -1,7 +1,10 @@
 const crypto = require('crypto');
 const prisma = require('../lib/prisma');
+const password = require('../lib/password');
+const { badRequest, forbidden, notFound, conflict } = require('../lib/errors');
 const push = require('./push');
 const sessions = require('./sessions');
+const audit = require('./audit');
 const { ORDER_UNSETTLED_STATUSES } = require('../constants/domain');
 
 const GRACE_DAYS = 30;
@@ -139,12 +142,119 @@ const deletionStatus = (requestedAt) => ({
   grace_days: GRACE_DAYS
 });
 
+const deletionInfo = async (userId) => {
+  const user = await prisma.users.findUnique({
+    where: { user_id: userId },
+    select: { deletion_requested_at: true }
+  });
+  const requested = user?.deletion_requested_at ?? null;
+  return {
+    pending: requested != null,
+    requested_at: requested,
+    purge_at: requested ? graceDeadline(requested) : null,
+    grace_days: GRACE_DAYS
+  };
+};
+
+const requestDeletion = async (userId, plain) => {
+  const user = await prisma.users.findUnique({
+    where: { user_id: userId },
+    select: { user_id: true, password_hash: true, role: true, deletion_requested_at: true }
+  });
+  if (!user) throw notFound('找不到該使用者');
+  if (!(await password.verify(plain, user.password_hash))) throw badRequest('密碼錯誤');
+
+  const openOrders = await unsettledOrderCount(user.user_id);
+  if (openOrders > 0) {
+    throw badRequest(`尚有 ${openOrders} 筆進行中的訂單，請先完成或取消後再申請刪除`, 'OPEN_ORDERS');
+  }
+
+  // 重複申請沿用第一次的時間，否則緩衝期會被重新計算。
+  const requestedAt = user.deletion_requested_at ?? new Date();
+  if (!user.deletion_requested_at) {
+    await prisma.users.update({
+      where: { user_id: user.user_id },
+      data: { deletion_requested_at: requestedAt, updated_at: new Date() }
+    });
+  }
+  return { purge_at: graceDeadline(requestedAt), grace_days: GRACE_DAYS };
+};
+
+const cancelDeletion = (userId) => prisma.users.update({
+  where: { user_id: userId },
+  data: { deletion_requested_at: null, updated_at: new Date() }
+});
+
+const pendingDeletions = async () => {
+  const pending = await prisma.users.findMany({
+    where: { deletion_requested_at: { not: null }, anonymized_at: null },
+    orderBy: { deletion_requested_at: 'asc' },
+    select: { user_id: true, nickname: true, email: true, avatar_url: true, deletion_requested_at: true }
+  });
+  return pending.map((u) => ({ ...u, purge_at: graceDeadline(u.deletion_requested_at) }));
+};
+
+const cancelDeletionByAdmin = async (userId, { adminId, req }) => {
+  const before = await prisma.users.findUnique({
+    where: { user_id: userId },
+    select: { nickname: true, email: true, deletion_requested_at: true }
+  });
+  if (!before) throw notFound('找不到該會員');
+
+  const after = { deletion_requested_at: null };
+  await prisma.users.update({ where: { user_id: userId }, data: { ...after, updated_at: new Date() } });
+
+  const fields = { deletion_requested_at: '申請刪除時間' };
+  await audit.record(null, {
+    adminId,
+    action: '取消會員刪除申請',
+    targetType: 'user',
+    targetId: userId,
+    summary: `取消 ${before.nickname}（${before.email}）的刪除帳號申請`,
+    changes: audit.diff(before, after, fields),
+    undo: before.deletion_requested_at ? [audit.undoUpdate('users', userId, before, after, fields)] : null,
+    req
+  });
+};
+
+// 匿名化無法復原，只能對本人已申請刪除的帳號執行。
+const anonymizeByAdmin = async (userId, { adminId, req }) => {
+  if (userId === adminId) throw badRequest('無法對自己執行此操作');
+
+  const user = await prisma.users.findUnique({
+    where: { user_id: userId },
+    select: { role: true, deletion_requested_at: true, anonymized_at: true }
+  });
+  if (!user) throw notFound('找不到該會員');
+  if (user.anonymized_at) throw conflict('此帳號已匿名化');
+  if (!user.deletion_requested_at) throw conflict('此會員未申請刪除帳號，無法匿名化');
+  if (user.role === 'admin') throw forbidden('無法匿名化管理員帳號，請先移除管理員身分');
+  if ((await unsettledOrderCount(userId)) > 0) {
+    throw conflict('此會員尚有進行中的訂單，請處理完成後再匿名化');
+  }
+
+  const who = await prisma.users.findUnique({ where: { user_id: userId }, select: { nickname: true, email: true } });
+  await anonymize(userId);
+  await audit.record(null, {
+    adminId,
+    action: '立即匿名化會員',
+    targetType: 'user',
+    targetId: userId,
+    summary: `提前匿名化 ${who.nickname}（${who.email}）的帳號，個資已清除，無法復原`,
+    req
+  });
+};
+
 module.exports = {
   GRACE_DAYS,
-  graceDeadline,
   deletionStatus,
   unsettledOrderCount,
-  anonymize,
   processDueDeletions,
-  exportData
+  exportData,
+  deletionInfo,
+  requestDeletion,
+  cancelDeletion,
+  pendingDeletions,
+  cancelDeletionByAdmin,
+  anonymizeByAdmin
 };

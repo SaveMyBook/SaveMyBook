@@ -2,7 +2,6 @@ const express = require('express');
 const authenticateToken = require('../middleware/auth');
 const { rateLimit, byUser } = require('../middleware/rateLimit');
 const v = require('../lib/validate');
-const prisma = require('../lib/prisma');
 const { badRequest, conflict, forbidden, HttpError } = require('../lib/errors');
 const push = require('../services/push');
 const { notify } = require('../services/notify');
@@ -76,7 +75,7 @@ router.post('/test', testLimiter, async (req, res) => {
     throw conflict('伺服器上沒有此帳號的推播裝置，App 未能取得或上傳推播 token。', 'NO_PUSH_DEVICE');
   }
 
-  await notify(prisma, {
+  await notify(null, {
     userId: req.user.userId,
     title: '測試通知',
     content: '收到此通知表示推播設定正常。',

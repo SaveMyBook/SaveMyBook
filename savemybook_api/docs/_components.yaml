@@ -363,10 +363,11 @@ components:
         wallet_id: { type: integer, example: 9 }
         type:
           type: string
-          enum: [deposit, withdrawal, purchase, sale_income, refund, admin_adjust]
+          enum: [deposit, withdrawal, purchase, sale_income, refund, admin_adjust, transfer_in, transfer_out]
           description: |
             `deposit` 儲值、`withdrawal` 提領、`purchase` 購書扣款、
-            `sale_income` 售出入帳、`refund` 退款、`admin_adjust` 管理員調整。
+            `sale_income` 售出入帳、`refund` 退款、`admin_adjust` 管理員調整、
+            `transfer_in` 聊天室轉帳轉入、`transfer_out` 聊天室轉帳轉出。
           example: purchase
         amount:
           type: string
@@ -404,14 +405,33 @@ components:
         created_at: { type: string, format: date-time }
 
     # ---------- 聊天 ----------
+    ChatPartner:
+      description: 對話對象，另帶請求者為對方設定的自訂暱稱。
+      allOf:
+        - $ref: '#/components/schemas/UserBrief'
+        - type: object
+          properties:
+            alias: { type: string, nullable: true, description: 請求者設定的自訂暱稱，僅設定者本人看得到。, example: 阿華 }
+
     ChatRoomSummary:
       type: object
       description: 聊天室列表專用的整併格式，非資料表原始欄位。
       properties:
         room_id: { type: integer, example: 7 }
+        type: { type: string, enum: [direct, group], example: direct }
+        title:
+          type: string
+          nullable: true
+          description: 一對一為自訂暱稱，未設定時為對方暱稱；群組為群組名稱。
+          example: 阿華
+        avatar_url: { type: string, nullable: true, description: 一對一為對方頭貼；群組為群組頭貼。, example: /uploads/avatars/8.jpg }
         partner:
-          allOf: [{ $ref: '#/components/schemas/UserBrief' }]
-          description: 對話對象，伺服器已判定請求者為 user_a 或 user_b 並回傳另一方。
+          nullable: true
+          allOf: [{ $ref: '#/components/schemas/ChatPartner' }]
+          description: 僅一對一有值，伺服器已判定請求者為 user_a 或 user_b 並回傳另一方；群組為 `null`。
+        member_count: { type: integer, description: 群組為現任成員數，一對一固定為 2。, example: 2 }
+        pinned: { type: boolean, example: false }
+        pinned_at: { type: string, format: date-time, nullable: true }
         last_message:
           type: object
           nullable: true
@@ -420,22 +440,89 @@ components:
             message_type: { type: string, enum: [text, image, system] }
             kind:
               type: string
-              enum: [text, image, voice, book, reservation, recalled, notice]
+              enum: [text, image, voice, book, reservation, transfer, recalled, notice]
               description: 與 `ChatMessage.kind` 相同。
               example: text
             preview:
               type: string
               description: |
                 伺服器產生的摘要，可直接顯示於列表。文字訊息取前 100 字；其餘為 `[圖片]`、`[語音]`、
-                `[商品] 書名`、`[預約]` 或 `訊息已收回`。
+                `[商品] 書名`、`[預約]`、`[轉帳]`、`[請款]` 或 `訊息已收回`。
               example: 請問這本還在嗎？
+            payload:
+              type: object
+              nullable: true
+              additionalProperties: true
+              description: 與 `ChatMessage.payload` 相同；轉帳卡片為 `ChatTransfer` 物件。
             sender_id: { type: integer, description: 可用來判斷是否顯示「你：」前綴。, example: 12 }
-            is_read: { type: boolean, description: 請求者自己發送時，代表對方是否已讀。, example: false }
+            sender_name: { type: string, nullable: true, description: 發送者名稱，優先使用請求者設定的自訂暱稱。, example: 阿華 }
+            is_read: { type: boolean, description: 一對一且為請求者自己發送時，代表對方是否已讀。, example: false }
             created_at: { type: string, format: date-time }
-        unread_count: { type: integer, description: 對方發送且尚未讀取的訊息則數, example: 2 }
+        unread_count:
+          type: integer
+          description: 未讀則數，不含請求者自己發送的訊息。一對一依訊息的已讀狀態計算；群組依請求者的已讀位置計算。
+          example: 2
         muted: { type: boolean, description: 請求者已將此聊天室設為靜音，新訊息不發送手機推播。, example: false }
-        blocked: { type: boolean, description: 請求者已封鎖對話對象。, example: false }
+        blocked: { type: boolean, description: 僅一對一：請求者已封鎖對話對象。群組固定為 false。, example: false }
         updated_at: { type: string, format: date-time }
+
+    ChatMember:
+      type: object
+      properties:
+        user_id: { type: integer, example: 8 }
+        nickname: { type: string, example: 小華 }
+        avatar_url: { type: string, nullable: true }
+        alias: { type: string, nullable: true, description: 請求者為此成員設定的自訂暱稱。, example: 阿華 }
+        role: { type: string, enum: [owner, member], description: 一對一的雙方皆為 `member`。, example: member }
+        joined_at: { type: string, format: date-time, description: 加入時間；一對一為聊天室建立時間。 }
+
+    ChatRoomDetail:
+      type: object
+      properties:
+        room_id: { type: integer, example: 7 }
+        type: { type: string, enum: [direct, group], example: group }
+        name: { type: string, nullable: true, description: 群組名稱；一對一為 `null`。, example: 讀書會 }
+        title: { type: string, nullable: true, description: 與 `ChatRoomSummary.title` 相同規則。, example: 讀書會 }
+        avatar_url: { type: string, nullable: true, description: 群組頭貼；一對一為對方頭貼。 }
+        created_by: { type: integer, nullable: true, description: 群組建立者；一對一為 `null`。, example: 12 }
+        my_role: { type: string, nullable: true, enum: [owner, member], description: 請求者在群組中的角色；一對一為 `null`。, example: owner }
+        member_count: { type: integer, example: 3 }
+        members:
+          type: array
+          description: 現任成員，依加入時間排序；一對一為雙方。
+          items: { $ref: '#/components/schemas/ChatMember' }
+        partner:
+          nullable: true
+          allOf: [{ $ref: '#/components/schemas/ChatPartner' }]
+          description: 僅一對一有值。
+        muted: { type: boolean, example: false }
+        blocked: { type: boolean, description: 僅一對一：請求者已封鎖對方。群組固定為 false。, example: false }
+        pinned: { type: boolean, example: false }
+        pinned_at: { type: string, format: date-time, nullable: true }
+
+    ChatTransfer:
+      type: object
+      description: 聊天室中的代幣轉帳或請款。
+      properties:
+        transfer_id: { type: integer, description: 內部編號，供 API 呼叫使用，不可顯示給使用者。, example: 31 }
+        transfer_no: { type: string, description: 顯示給使用者的轉帳編號，由流水號加密產生。, example: TF8K2M4QZ }
+        kind: { type: string, enum: [transfer, request], description: '`transfer` 直接轉帳、`request` 請款。', example: request }
+        room_id: { type: integer, example: 7 }
+        message_id: { type: integer, nullable: true, description: 對應的轉帳卡片訊息。, example: 305 }
+        from_user_id: { type: integer, description: 付款方。, example: 12 }
+        to_user_id: { type: integer, description: 收款方；請款時為請款人。, example: 8 }
+        amount: { type: number, description: 代幣數量，1 至 100000 的整數。, example: 180 }
+        note: { type: string, nullable: true, maxLength: 100, example: 挪威的森林 }
+        status:
+          type: string
+          enum: [completed, pending, declined, cancelled, expired]
+          description: |
+            `completed` 已完成、`pending` 等待付款方處理、`declined` 付款方已婉拒、
+            `cancelled` 請款人已取消、`expired` 請款 72 小時內未處理。
+          example: pending
+        created_at: { type: string, format: date-time }
+        responded_at: { type: string, format: date-time, nullable: true, description: 付款方付款、婉拒或請款人取消的時間。 }
+        expires_at: { type: string, format: date-time, nullable: true, description: 請款的處理期限；直接轉帳為 `null`。 }
 
     ChatMessage:
       type: object
@@ -460,7 +547,7 @@ components:
           example: text
         kind:
           type: string
-          enum: [text, image, voice, book, reservation, recalled, notice]
+          enum: [text, image, voice, book, reservation, transfer, recalled, notice]
           description: |
             | 值 | 說明 | `body` | `payload` |
             | --- | --- | --- | --- |
@@ -469,8 +556,9 @@ components:
             | `voice` | 語音 | `null` | `{ url, duration }`，`duration` 單位為秒 |
             | `book` | 商品卡片 | `null` | `{ book_id, title, price, image_url }` |
             | `reservation` | 預約卡片 | `null` | `Reservation` 物件；超出最近 30 筆時僅含 `reservation_id` |
+            | `transfer` | 轉帳或請款卡片 | `null` | `ChatTransfer` 物件（最新狀態） |
             | `recalled` | 已收回的訊息 | `null` | `null` |
-            | `notice` | 其他系統訊息 | 訊息文字 | `null` |
+            | `notice` | 系統訊息，例如群組建立、改名、邀請、退出 | 訊息文字 | `null` |
           example: text
         body:
           type: string
@@ -483,9 +571,17 @@ components:
           additionalProperties: true
           description: 結構化內容，依 `kind` 而定。
           example: null
-        is_read: { type: boolean, example: true }
+        is_read:
+          type: boolean
+          description: |
+            一對一為訊息的已讀狀態。群組依請求者計算：他人發送的訊息為「編號小於等於請求者本次標記前的已讀位置」；
+            請求者自己發送的訊息為「已有其他成員讀到」。皆為本次標記已讀之前的狀態。
+          example: true
         created_at: { type: string, format: date-time }
-        users: { $ref: '#/components/schemas/UserBrief' }
+        edited_at: { type: string, format: date-time, nullable: true, description: 最後編輯時間；未編輯為 `null`。 }
+        users:
+          allOf: [{ $ref: '#/components/schemas/UserBrief' }]
+          description: 發送者。
         reply_to:
           type: object
           nullable: true
@@ -496,7 +592,7 @@ components:
             message_id: { type: integer, example: 298 }
             sender_id: { type: integer, example: 8 }
             sender_nickname: { type: string, nullable: true, example: 小明 }
-            kind: { type: string, enum: [text, image, voice, book, reservation, recalled, notice, deleted], example: text }
+            kind: { type: string, enum: [text, image, voice, book, reservation, transfer, recalled, notice, deleted], example: text }
             preview: { type: string, description: 與 `ChatRoomSummary.last_message.preview` 相同規則的摘要。, example: 請問這本還在嗎？ }
             image_url: { type: string, nullable: true, description: 原訊息為圖片時的相對路徑，供顯示縮圖。 }
 
@@ -852,6 +948,15 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           example: { success: false, code: CHAT_CONTROLS_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
+
+    ChatV2Unavailable:
+      description: |
+        伺服器尚未執行資料庫更新 009（群組、釘選、自訂暱稱、編輯訊息、代幣轉帳），
+        或執行後尚未重新產生 Prisma Client（僅影響轉帳與付款），相關功能暫不可用。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: CHAT_V2_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
 
     BookReserved:
       description: 書籍已由其他買家預約並保留中，保留期限內僅該買家可加入購物車或結帳。

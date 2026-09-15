@@ -22,8 +22,26 @@ tags:
       推播的 `data` 欄位（值皆為字串）：
 
       ```json
-      { "notification_id": "812", "type": "order", "related_type": "order", "related_id": "40" }
+      {
+        "notification_id": "812", "type": "message", "related_type": "chat_room", "related_id": "7",
+        "sender_id": "12", "sender_name": "阿華", "sender_avatar": "https://api.savemybook.today/uploads/avatars/12.jpg",
+        "room_type": "group", "room_title": "讀書會", "thread_id": "chat_room-7"
+      }
       ```
+
+      | 欄位 | 說明 |
+      | --- | --- |
+      | `sender_id`、`sender_name`、`sender_avatar` | 觸發通知的使用者（聊天訊息、轉帳、請款）。`sender_name` 優先使用收件者為對方設定的自訂暱稱；`sender_avatar` 為絕對網址，無頭貼時為空字串。其他通知皆為空字串 |
+      | `room_type`、`room_title` | 聊天通知的聊天室類型（`direct`、`group`）與標題；一對一的標題等於 `sender_name` |
+      | `thread_id` | 通知分組，聊天為 `chat_room-<room_id>`，其餘為 `<related_type>-<related_id>` |
+
+      聊天通知（`type` 為 `message`）的標題與內文：一對一為「發送者名稱／預覽」，群組為「群組名稱／發送者：預覽」，
+      發送者名稱同樣優先使用自訂暱稱。各平台格式：
+
+      | 平台 | `type` 為 `message` | 其他通知 |
+      | --- | --- | --- |
+      | iOS | 保留 `notification`；`aps` 加上 `"mutable-content": 1`、`"category": "CHAT_MESSAGE"` 與 `thread-id`，由 Notification Service Extension 以 Communication Notification 顯示發送者頭貼 | 保留 `notification` |
+      | Android | 僅送 `data`（無 `notification` 與 `android.notification`，`android.priority` 為 `HIGH`），標題與內文放在 `data.title`、`data.body`，由 App 以 MessagingStyle 自行顯示 | 保留 `notification`，使用 `savemybook_default` 通知頻道 |
 
       伺服器未設定 Firebase 金鑰時，裝置相關端點與測試通知回傳 503 `PUSH_DISABLED`，App 應安靜略過。
 

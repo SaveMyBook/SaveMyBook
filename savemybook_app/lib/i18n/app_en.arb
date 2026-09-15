@@ -1214,7 +1214,7 @@
     }
   },
   "disputeResolution": "Dispute resolution",
-  "orderP0P1": "Order {p0} | \\${p1}",
+  "orderP0P1": "Order {p0} | ${p1}",
   "@orderP0P1": {
     "placeholders": {
       "p0": {},
@@ -2656,5 +2656,249 @@
     }
   },
   "cancelReply": "Cancel reply",
-  "unreadMessages": "Unread messages"
+  "unreadMessages": "Unread messages",
+  "selectChat": "Select a chat",
+  "appPermissions": "App permissions",
+  "noPermissionsRequiredDevice": "No permissions are required on this device",
+  "allowAll": "Allow all",
+  "camera": "Camera",
+  "photosRead": "Photos (read)",
+  "photosSave": "Photos (save)",
+  "microphone": "Microphone",
+  "location": "Location",
+  "orderUpdatesChatMessagesAnnouncements": "Order updates, chat messages and announcements",
+  "scanBarcodesTakeBookPhotos": "Scan barcodes and take book photos",
+  "chooseBookPhotosProfilePicturesChat": "Choose book photos, profile pictures and chat images",
+  "saveQrCodesPhotos": "Save QR codes to Photos",
+  "recordVoiceMessagesChats": "Record voice messages in chats",
+  "showNearestSmartLockersTheirDistance": "Show the nearest smart lockers and their distance",
+  "quickSignPaymentConfirmation": "Quick sign-in and payment confirmation",
+  "allowed": "Allowed",
+  "limited": "Limited",
+  "notAllowed": "Not allowed",
+  "restricted": "Restricted",
+  "denied": "Denied",
+  "allow": "Allow",
+  "homeRecommendations": "Home recommendations",
+  "pickedRecentlyViewed": "Picked for you, recently viewed",
+  "leaveGroup": "Leave group",
+  "leaveP0": "Leave \"{p0}\"?",
+  "@leaveP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "leave": "Leave",
+  "leftGroup": "Left the group",
+  "unpin": "Unpin",
+  "pin": "Pin",
+  "you3": "You",
+  "canOnlyEditMessagesSentWithin": "You can only edit messages sent within the last 15 minutes",
+  "p0UnsentMessage": "{p0} unsent a message",
+  "@p0UnsentMessage": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "readByP0": "Read by {p0}",
+  "@readByP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transferDetailsUnavailable": "Transfer details are unavailable",
+  "couldNotCreateGroup": "Could not create the group",
+  "groupDetails": "Group details",
+  "selectMembers": "Select members",
+  "groupName": "Group name",
+  "membersP0": "Members {p0}",
+  "@membersP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "createGroup": "Create group",
+  "inviteMembers": "Invite members",
+  "invite": "Invite",
+  "canSelectUpP0People": "You can select up to {p0} people",
+  "@canSelectUpP0People": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noChatsChooseFrom": "No chats to choose from",
+  "noMatchingPeople": "No matching people",
+  "searchByName": "Search by name",
+  "chatPinned": "Chat pinned",
+  "unpinned": "Unpinned",
+  "setNickname": "Set nickname",
+  "onlyVisible": "Only visible to you",
+  "nicknameRemoved": "Nickname removed",
+  "nicknameUpdated": "Nickname updated",
+  "enterGroupName": "Enter a group name",
+  "groupNameUpdated": "Group name updated",
+  "groupPhotoUpdated": "Group photo updated",
+  "groupReachedMemberLimit": "This group has reached the member limit",
+  "invitedP0Members": "Invited {p0} members",
+  "@invitedP0Members": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeMember": "Remove member",
+  "removeP0FromGroup": "Remove \"{p0}\" from the group?",
+  "@removeP0FromGroup": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "memberRemoved": "Member removed",
+  "chatSettings": "Chat settings",
+  "muteNotifications": "Mute notifications",
+  "pinChat": "Pin chat",
+  "me": "Me",
+  "requestedFromP0": "Requested from {p0}",
+  "@requestedFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0RequestedPaymentFrom": "{p0} requested payment from you",
+  "@p0RequestedPaymentFrom": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0RequestedPaymentFromP1": "{p0} requested payment from {p1}",
+  "@p0RequestedPaymentFromP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sentP0": "Sent to {p0}",
+  "@sentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SentCoins": "{p0} sent you coins",
+  "@p0SentCoins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0SentCoinsP1": "{p0} sent coins to {p1}",
+  "@p0SentCoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "expired2": "Expired",
+  "payNow": "Pay now",
+  "cancelRequest": "Cancel request",
+  "request": "Request",
+  "transfer": "Transfer",
+  "dueP0": "Due {p0}",
+  "@dueP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transferP0": "Transfer to {p0}",
+  "@transferP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "sentP0CoinsP1": "Sent {p0} coins to {p1}",
+  "@sentP0CoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmPayment": "Confirm payment",
+  "payP0CoinsP1": "Pay {p0} coins to {p1}",
+  "@payP0CoinsP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "declineRequest": "Decline request",
+  "declineP1CoinRequestFromP0": "Decline the {p0}-coin request from {p1}",
+  "@declineP1CoinRequestFromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "cancelRequestP0P1Coins": "Cancel the request to {p0} for {p1} coins",
+  "@cancelRequestP0P1Coins": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "payRequestFromP0": "Pay the request from {p0}",
+  "@payRequestFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "paymentCompleted": "Payment completed",
+  "requestDeclined": "Request declined",
+  "requestCanceled": "Request canceled",
+  "selectPayer": "Select a payer",
+  "selectRecipient": "Select a recipient",
+  "sendRequest2": "Send request",
+  "confirmTransfer": "Confirm transfer",
+  "payer": "Payer",
+  "recipient": "Recipient",
+  "limitPerTransferP0Coins": "Limit per transfer: {p0} coins",
+  "@limitPerTransferP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "insufficientBalanceP0Coins": "Insufficient balance ({p0} coins)",
+  "@insufficientBalanceP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "balanceP0Coins": "Balance {p0} coins",
+  "@balanceP0Coins": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noteOptional": "Note (optional)",
+  "editMessage": "Edit message",
+  "cancelEditing": "Cancel editing",
+  "send": "Send",
+  "switchKeyboard": "Switch to keyboard",
+  "voiceMessage": "Voice message",
+  "edited": "Edited",
+  "maximumRecordingLengthReached": "Maximum recording length reached",
+  "recordingTooShort": "Recording is too short",
+  "p0SRemaining": "{p0} s remaining",
+  "@p0SRemaining": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "releaseSend": "Release to send",
+  "recording": "Recording",
+  "tapHoldRecord": "Tap or hold to record",
+  "stopRecording": "Stop recording",
+  "preview2": "Preview",
+  "startRecording": "Start recording",
+  "microphoneUnavailable": "Microphone unavailable",
+  "paymentRequest": "[Payment request]",
+  "transfer2": "[Transfer]",
+  "transfer3": "Transfer in",
+  "transferOut": "Transfer out"
 }

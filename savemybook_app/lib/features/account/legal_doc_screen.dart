@@ -1,0 +1,113 @@
+import 'package:flutter/material.dart';
+import '../../models/support.dart';
+import '../../services/api_service.dart';
+import '../../utils/api_helpers.dart';
+import '../../utils/app_colors.dart';
+import '../../widgets/responsive.dart';
+import '../../widgets/animations.dart';
+import '../../widgets/app_header.dart';
+import '../../widgets/state_views.dart';
+import '../../i18n/strings.dart';
+
+class LegalDocScreen extends StatefulWidget {
+  final String docKey;
+  final String fallbackTitle;
+  final IconData icon;
+
+  const LegalDocScreen({
+    super.key,
+    required this.docKey,
+    required this.fallbackTitle,
+    this.icon = Icons.description_outlined,
+  });
+
+  @override
+  State<LegalDocScreen> createState() => _LegalDocScreenState();
+}
+
+class _LegalDocScreenState extends State<LegalDocScreen> {
+  final ApiService _api = ApiService();
+  LegalDoc? _doc;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final doc = await _api.fetchLegalDoc(widget.docKey);
+    if (!mounted) return;
+    setState(() {
+      _doc = doc;
+      _isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final doc = _doc;
+
+    return Scaffold(
+      backgroundColor: c.scaffold,
+      body: Column(
+        children: [
+          AppHeader(title: doc?.title ?? widget.fallbackTitle, icon: widget.icon),
+          Expanded(
+            child: SwitchIn(
+              child: _isLoading
+                  ? const LoadingView()
+                  : doc == null
+                      ? RefreshableCenter(
+                          key: const ValueKey('empty'),
+                          onRefresh: _load,
+                          child: EmptyView(
+                            icon: Icons.description_outlined,
+                            message: S.documentNotBeenCreatedYet,
+                            actionLabel: S.retry,
+                            actionIcon: Icons.refresh_rounded,
+                            onAction: () {
+                              setState(() => _isLoading = true);
+                              _load();
+                            },
+                          ),
+                        )
+                      : RefreshIndicator(
+                          key: const ValueKey('doc'),
+                          color: c.accent,
+                          onRefresh: _load,
+                          child: LayoutBuilder(builder: (context, constraints) => ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: 20, top: 20, bottom: 40),
+                            children: [
+                              FadeSlideIn(
+                                child: AppCard(
+                                  padding: const EdgeInsets.all(20),
+                                  child: SelectableText(
+                                    doc.content,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      height: 1.9,
+                                      color: c.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                S.lastUpdated(formatDate(doc.updatedAt)),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 11, color: c.textHint),
+                              ),
+                            ],
+                          )),
+                        ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

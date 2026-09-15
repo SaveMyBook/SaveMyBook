@@ -28,6 +28,16 @@ class BiometricService {
     }
   }
 
+  static Future<({bool hardware, bool usable, bool faceId})> probe() async {
+    try {
+      final hardware = await _auth.canCheckBiometrics;
+      final types = hardware ? await _auth.getAvailableBiometrics() : const <BiometricType>[];
+      return (hardware: hardware, usable: types.isNotEmpty, faceId: types.contains(BiometricType.face));
+    } catch (_) {
+      return (hardware: false, usable: false, faceId: false);
+    }
+  }
+
   static Future<String> label() async {
     try {
       final types = await _auth.getAvailableBiometrics();

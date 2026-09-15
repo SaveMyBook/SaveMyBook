@@ -1533,6 +1533,124 @@ abstract class AppLocalizations {
   String replyingP0(Object p0);
   String get cancelReply;
   String get unreadMessages;
+  String get selectChat;
+  String get appPermissions;
+  String get noPermissionsRequiredDevice;
+  String get allowAll;
+  String get camera;
+  String get photosRead;
+  String get photosSave;
+  String get microphone;
+  String get location;
+  String get orderUpdatesChatMessagesAnnouncements;
+  String get scanBarcodesTakeBookPhotos;
+  String get chooseBookPhotosProfilePicturesChat;
+  String get saveQrCodesPhotos;
+  String get recordVoiceMessagesChats;
+  String get showNearestSmartLockersTheirDistance;
+  String get quickSignPaymentConfirmation;
+  String get allowed;
+  String get limited;
+  String get notAllowed;
+  String get restricted;
+  String get denied;
+  String get allow;
+  String get homeRecommendations;
+  String get pickedRecentlyViewed;
+  String get leaveGroup;
+  String leaveP0(Object p0);
+  String get leave;
+  String get leftGroup;
+  String get unpin;
+  String get pin;
+  String get you3;
+  String get canOnlyEditMessagesSentWithin;
+  String p0UnsentMessage(Object p0);
+  String readByP0(Object p0);
+  String get transferDetailsUnavailable;
+  String get couldNotCreateGroup;
+  String get groupDetails;
+  String get selectMembers;
+  String get groupName;
+  String membersP0(Object p0);
+  String get createGroup;
+  String get inviteMembers;
+  String get invite;
+  String canSelectUpP0People(Object p0);
+  String get noChatsChooseFrom;
+  String get noMatchingPeople;
+  String get searchByName;
+  String get chatPinned;
+  String get unpinned;
+  String get setNickname;
+  String get onlyVisible;
+  String get nicknameRemoved;
+  String get nicknameUpdated;
+  String get enterGroupName;
+  String get groupNameUpdated;
+  String get groupPhotoUpdated;
+  String get groupReachedMemberLimit;
+  String invitedP0Members(Object p0);
+  String get removeMember;
+  String removeP0FromGroup(Object p0);
+  String get memberRemoved;
+  String get chatSettings;
+  String get muteNotifications;
+  String get pinChat;
+  String get me;
+  String requestedFromP0(Object p0);
+  String p0RequestedPaymentFrom(Object p0);
+  String p0RequestedPaymentFromP1(Object p0, Object p1);
+  String sentP0(Object p0);
+  String p0SentCoins(Object p0);
+  String p0SentCoinsP1(Object p0, Object p1);
+  String get expired2;
+  String get payNow;
+  String get cancelRequest;
+  String get request;
+  String get transfer;
+  String dueP0(Object p0);
+  String transferP0(Object p0);
+  String sentP0CoinsP1(Object p0, Object p1);
+  String get confirmPayment;
+  String payP0CoinsP1(Object p0, Object p1);
+  String get declineRequest;
+  String declineP1CoinRequestFromP0(Object p0, Object p1);
+  String cancelRequestP0P1Coins(Object p0, Object p1);
+  String payRequestFromP0(Object p0);
+  String get paymentCompleted;
+  String get requestDeclined;
+  String get requestCanceled;
+  String get selectPayer;
+  String get selectRecipient;
+  String get sendRequest2;
+  String get confirmTransfer;
+  String get payer;
+  String get recipient;
+  String limitPerTransferP0Coins(Object p0);
+  String insufficientBalanceP0Coins(Object p0);
+  String balanceP0Coins(Object p0);
+  String get noteOptional;
+  String get editMessage;
+  String get cancelEditing;
+  String get send;
+  String get switchKeyboard;
+  String get voiceMessage;
+  String get edited;
+  String get maximumRecordingLengthReached;
+  String get recordingTooShort;
+  String p0SRemaining(Object p0);
+  String get releaseSend;
+  String get recording;
+  String get tapHoldRecord;
+  String get stopRecording;
+  String get preview2;
+  String get startRecording;
+  String get microphoneUnavailable;
+  String get paymentRequest;
+  String get transfer2;
+  String get transfer3;
+  String get transferOut;
 }
 
 class _LEn extends AppLocalizations {
@@ -3906,7 +4024,7 @@ class _LEn extends AppLocalizations {
   String get disputeResolution => 'Dispute resolution';
 
   @override
-  String orderP0P1(Object p0, Object p1) => 'Order ${p0} | \\\$${p1}';
+  String orderP0P1(Object p0, Object p1) => 'Order ${p0} | \$${p1}';
 
   @override
   String reasonP0(Object p0) => 'Reason: ${p0}';
@@ -6067,6 +6185,360 @@ class _LEn extends AppLocalizations {
 
   @override
   String get unreadMessages => 'Unread messages';
+
+  @override
+  String get selectChat => 'Select a chat';
+
+  @override
+  String get appPermissions => 'App permissions';
+
+  @override
+  String get noPermissionsRequiredDevice => 'No permissions are required on this device';
+
+  @override
+  String get allowAll => 'Allow all';
+
+  @override
+  String get camera => 'Camera';
+
+  @override
+  String get photosRead => 'Photos (read)';
+
+  @override
+  String get photosSave => 'Photos (save)';
+
+  @override
+  String get microphone => 'Microphone';
+
+  @override
+  String get location => 'Location';
+
+  @override
+  String get orderUpdatesChatMessagesAnnouncements => 'Order updates, chat messages and announcements';
+
+  @override
+  String get scanBarcodesTakeBookPhotos => 'Scan barcodes and take book photos';
+
+  @override
+  String get chooseBookPhotosProfilePicturesChat => 'Choose book photos, profile pictures and chat images';
+
+  @override
+  String get saveQrCodesPhotos => 'Save QR codes to Photos';
+
+  @override
+  String get recordVoiceMessagesChats => 'Record voice messages in chats';
+
+  @override
+  String get showNearestSmartLockersTheirDistance => 'Show the nearest smart lockers and their distance';
+
+  @override
+  String get quickSignPaymentConfirmation => 'Quick sign-in and payment confirmation';
+
+  @override
+  String get allowed => 'Allowed';
+
+  @override
+  String get limited => 'Limited';
+
+  @override
+  String get notAllowed => 'Not allowed';
+
+  @override
+  String get restricted => 'Restricted';
+
+  @override
+  String get denied => 'Denied';
+
+  @override
+  String get allow => 'Allow';
+
+  @override
+  String get homeRecommendations => 'Home recommendations';
+
+  @override
+  String get pickedRecentlyViewed => 'Picked for you, recently viewed';
+
+  @override
+  String get leaveGroup => 'Leave group';
+
+  @override
+  String leaveP0(Object p0) => 'Leave "${p0}"?';
+
+  @override
+  String get leave => 'Leave';
+
+  @override
+  String get leftGroup => 'Left the group';
+
+  @override
+  String get unpin => 'Unpin';
+
+  @override
+  String get pin => 'Pin';
+
+  @override
+  String get you3 => 'You';
+
+  @override
+  String get canOnlyEditMessagesSentWithin => 'You can only edit messages sent within the last 15 minutes';
+
+  @override
+  String p0UnsentMessage(Object p0) => '${p0} unsent a message';
+
+  @override
+  String readByP0(Object p0) => 'Read by ${p0}';
+
+  @override
+  String get transferDetailsUnavailable => 'Transfer details are unavailable';
+
+  @override
+  String get couldNotCreateGroup => 'Could not create the group';
+
+  @override
+  String get groupDetails => 'Group details';
+
+  @override
+  String get selectMembers => 'Select members';
+
+  @override
+  String get groupName => 'Group name';
+
+  @override
+  String membersP0(Object p0) => 'Members ${p0}';
+
+  @override
+  String get createGroup => 'Create group';
+
+  @override
+  String get inviteMembers => 'Invite members';
+
+  @override
+  String get invite => 'Invite';
+
+  @override
+  String canSelectUpP0People(Object p0) => 'You can select up to ${p0} people';
+
+  @override
+  String get noChatsChooseFrom => 'No chats to choose from';
+
+  @override
+  String get noMatchingPeople => 'No matching people';
+
+  @override
+  String get searchByName => 'Search by name';
+
+  @override
+  String get chatPinned => 'Chat pinned';
+
+  @override
+  String get unpinned => 'Unpinned';
+
+  @override
+  String get setNickname => 'Set nickname';
+
+  @override
+  String get onlyVisible => 'Only visible to you';
+
+  @override
+  String get nicknameRemoved => 'Nickname removed';
+
+  @override
+  String get nicknameUpdated => 'Nickname updated';
+
+  @override
+  String get enterGroupName => 'Enter a group name';
+
+  @override
+  String get groupNameUpdated => 'Group name updated';
+
+  @override
+  String get groupPhotoUpdated => 'Group photo updated';
+
+  @override
+  String get groupReachedMemberLimit => 'This group has reached the member limit';
+
+  @override
+  String invitedP0Members(Object p0) => 'Invited ${p0} members';
+
+  @override
+  String get removeMember => 'Remove member';
+
+  @override
+  String removeP0FromGroup(Object p0) => 'Remove "${p0}" from the group?';
+
+  @override
+  String get memberRemoved => 'Member removed';
+
+  @override
+  String get chatSettings => 'Chat settings';
+
+  @override
+  String get muteNotifications => 'Mute notifications';
+
+  @override
+  String get pinChat => 'Pin chat';
+
+  @override
+  String get me => 'Me';
+
+  @override
+  String requestedFromP0(Object p0) => 'Requested from ${p0}';
+
+  @override
+  String p0RequestedPaymentFrom(Object p0) => '${p0} requested payment from you';
+
+  @override
+  String p0RequestedPaymentFromP1(Object p0, Object p1) => '${p0} requested payment from ${p1}';
+
+  @override
+  String sentP0(Object p0) => 'Sent to ${p0}';
+
+  @override
+  String p0SentCoins(Object p0) => '${p0} sent you coins';
+
+  @override
+  String p0SentCoinsP1(Object p0, Object p1) => '${p0} sent coins to ${p1}';
+
+  @override
+  String get expired2 => 'Expired';
+
+  @override
+  String get payNow => 'Pay now';
+
+  @override
+  String get cancelRequest => 'Cancel request';
+
+  @override
+  String get request => 'Request';
+
+  @override
+  String get transfer => 'Transfer';
+
+  @override
+  String dueP0(Object p0) => 'Due ${p0}';
+
+  @override
+  String transferP0(Object p0) => 'Transfer to ${p0}';
+
+  @override
+  String sentP0CoinsP1(Object p0, Object p1) => 'Sent ${p0} coins to ${p1}';
+
+  @override
+  String get confirmPayment => 'Confirm payment';
+
+  @override
+  String payP0CoinsP1(Object p0, Object p1) => 'Pay ${p0} coins to ${p1}';
+
+  @override
+  String get declineRequest => 'Decline request';
+
+  @override
+  String declineP1CoinRequestFromP0(Object p0, Object p1) => 'Decline the ${p0}-coin request from ${p1}';
+
+  @override
+  String cancelRequestP0P1Coins(Object p0, Object p1) => 'Cancel the request to ${p0} for ${p1} coins';
+
+  @override
+  String payRequestFromP0(Object p0) => 'Pay the request from ${p0}';
+
+  @override
+  String get paymentCompleted => 'Payment completed';
+
+  @override
+  String get requestDeclined => 'Request declined';
+
+  @override
+  String get requestCanceled => 'Request canceled';
+
+  @override
+  String get selectPayer => 'Select a payer';
+
+  @override
+  String get selectRecipient => 'Select a recipient';
+
+  @override
+  String get sendRequest2 => 'Send request';
+
+  @override
+  String get confirmTransfer => 'Confirm transfer';
+
+  @override
+  String get payer => 'Payer';
+
+  @override
+  String get recipient => 'Recipient';
+
+  @override
+  String limitPerTransferP0Coins(Object p0) => 'Limit per transfer: ${p0} coins';
+
+  @override
+  String insufficientBalanceP0Coins(Object p0) => 'Insufficient balance (${p0} coins)';
+
+  @override
+  String balanceP0Coins(Object p0) => 'Balance ${p0} coins';
+
+  @override
+  String get noteOptional => 'Note (optional)';
+
+  @override
+  String get editMessage => 'Edit message';
+
+  @override
+  String get cancelEditing => 'Cancel editing';
+
+  @override
+  String get send => 'Send';
+
+  @override
+  String get switchKeyboard => 'Switch to keyboard';
+
+  @override
+  String get voiceMessage => 'Voice message';
+
+  @override
+  String get edited => 'Edited';
+
+  @override
+  String get maximumRecordingLengthReached => 'Maximum recording length reached';
+
+  @override
+  String get recordingTooShort => 'Recording is too short';
+
+  @override
+  String p0SRemaining(Object p0) => '${p0} s remaining';
+
+  @override
+  String get releaseSend => 'Release to send';
+
+  @override
+  String get recording => 'Recording';
+
+  @override
+  String get tapHoldRecord => 'Tap or hold to record';
+
+  @override
+  String get stopRecording => 'Stop recording';
+
+  @override
+  String get preview2 => 'Preview';
+
+  @override
+  String get startRecording => 'Start recording';
+
+  @override
+  String get microphoneUnavailable => 'Microphone unavailable';
+
+  @override
+  String get paymentRequest => '[Payment request]';
+
+  @override
+  String get transfer2 => '[Transfer]';
+
+  @override
+  String get transfer3 => 'Transfer in';
+
+  @override
+  String get transferOut => 'Transfer out';
 
 }
 
@@ -8441,7 +8913,7 @@ class _LJa extends AppLocalizations {
   String get disputeResolution => '取引の裁定';
 
   @override
-  String orderP0P1(Object p0, Object p1) => '注文 ${p0}｜\\\$${p1}';
+  String orderP0P1(Object p0, Object p1) => '注文 ${p0}｜\$${p1}';
 
   @override
   String reasonP0(Object p0) => '申し立て理由：${p0}';
@@ -10602,6 +11074,360 @@ class _LJa extends AppLocalizations {
 
   @override
   String get unreadMessages => 'ここから未読メッセージ';
+
+  @override
+  String get selectChat => 'チャットを選択してください';
+
+  @override
+  String get appPermissions => 'アプリの権限';
+
+  @override
+  String get noPermissionsRequiredDevice => 'このデバイスで許可が必要な項目はありません';
+
+  @override
+  String get allowAll => 'すべて許可';
+
+  @override
+  String get camera => 'カメラ';
+
+  @override
+  String get photosRead => '写真（読み取り）';
+
+  @override
+  String get photosSave => '写真（保存）';
+
+  @override
+  String get microphone => 'マイク';
+
+  @override
+  String get location => '位置情報';
+
+  @override
+  String get orderUpdatesChatMessagesAnnouncements => '注文の進捗、チャットメッセージ、お知らせ';
+
+  @override
+  String get scanBarcodesTakeBookPhotos => 'バーコードの読み取りと本の写真撮影';
+
+  @override
+  String get chooseBookPhotosProfilePicturesChat => '本の写真、プロフィール画像、チャット画像の選択';
+
+  @override
+  String get saveQrCodesPhotos => 'QR コードを写真に保存';
+
+  @override
+  String get recordVoiceMessagesChats => 'チャットのボイスメッセージを録音';
+
+  @override
+  String get showNearestSmartLockersTheirDistance => '最寄りのスマートロッカーと距離を表示';
+
+  @override
+  String get quickSignPaymentConfirmation => 'すばやいサインインと支払いの確認';
+
+  @override
+  String get allowed => '許可済み';
+
+  @override
+  String get limited => '一部許可';
+
+  @override
+  String get notAllowed => '未許可';
+
+  @override
+  String get restricted => '制限あり';
+
+  @override
+  String get denied => '拒否済み';
+
+  @override
+  String get allow => '許可';
+
+  @override
+  String get homeRecommendations => 'ホームのおすすめ';
+
+  @override
+  String get pickedRecentlyViewed => 'おすすめ、最近見た本';
+
+  @override
+  String get leaveGroup => 'グループを退会';
+
+  @override
+  String leaveP0(Object p0) => '「${p0}」を退会しますか？';
+
+  @override
+  String get leave => '退会';
+
+  @override
+  String get leftGroup => 'グループを退会しました';
+
+  @override
+  String get unpin => 'ピン留めを解除';
+
+  @override
+  String get pin => 'ピン留め';
+
+  @override
+  String get you3 => 'あなた';
+
+  @override
+  String get canOnlyEditMessagesSentWithin => '編集できるのは送信から 15 分以内のメッセージのみです';
+
+  @override
+  String p0UnsentMessage(Object p0) => '${p0} がメッセージの送信を取り消しました';
+
+  @override
+  String readByP0(Object p0) => '既読 ${p0}';
+
+  @override
+  String get transferDetailsUnavailable => '送金情報を表示できません';
+
+  @override
+  String get couldNotCreateGroup => 'グループを作成できませんでした';
+
+  @override
+  String get groupDetails => 'グループ情報';
+
+  @override
+  String get selectMembers => 'メンバーを選択';
+
+  @override
+  String get groupName => 'グループ名';
+
+  @override
+  String membersP0(Object p0) => 'メンバー ${p0}';
+
+  @override
+  String get createGroup => 'グループを作成';
+
+  @override
+  String get inviteMembers => 'メンバーを招待';
+
+  @override
+  String get invite => '招待';
+
+  @override
+  String canSelectUpP0People(Object p0) => '最大 ${p0} 人まで選択できます';
+
+  @override
+  String get noChatsChooseFrom => '選択できるトーク相手がいません';
+
+  @override
+  String get noMatchingPeople => '該当する相手がいません';
+
+  @override
+  String get searchByName => '名前で検索';
+
+  @override
+  String get chatPinned => 'トークをピン留めしました';
+
+  @override
+  String get unpinned => 'ピン留めを解除しました';
+
+  @override
+  String get setNickname => 'ニックネームを設定';
+
+  @override
+  String get onlyVisible => '自分にのみ表示';
+
+  @override
+  String get nicknameRemoved => 'ニックネームを削除しました';
+
+  @override
+  String get nicknameUpdated => 'ニックネームを更新しました';
+
+  @override
+  String get enterGroupName => 'グループ名を入力してください';
+
+  @override
+  String get groupNameUpdated => 'グループ名を更新しました';
+
+  @override
+  String get groupPhotoUpdated => 'グループ画像を更新しました';
+
+  @override
+  String get groupReachedMemberLimit => 'グループのメンバー数が上限に達しています';
+
+  @override
+  String invitedP0Members(Object p0) => '${p0} 人を招待しました';
+
+  @override
+  String get removeMember => 'メンバーを削除';
+
+  @override
+  String removeP0FromGroup(Object p0) => '「${p0}」をグループから削除しますか？';
+
+  @override
+  String get memberRemoved => 'メンバーを削除しました';
+
+  @override
+  String get chatSettings => 'トーク設定';
+
+  @override
+  String get muteNotifications => '通知をミュート';
+
+  @override
+  String get pinChat => 'トークをピン留め';
+
+  @override
+  String get me => '自分';
+
+  @override
+  String requestedFromP0(Object p0) => '${p0} に請求';
+
+  @override
+  String p0RequestedPaymentFrom(Object p0) => '${p0} からの請求';
+
+  @override
+  String p0RequestedPaymentFromP1(Object p0, Object p1) => '${p0} が ${p1} に請求';
+
+  @override
+  String sentP0(Object p0) => '${p0} に送金';
+
+  @override
+  String p0SentCoins(Object p0) => '${p0} からの送金';
+
+  @override
+  String p0SentCoinsP1(Object p0, Object p1) => '${p0} が ${p1} に送金';
+
+  @override
+  String get expired2 => '期限切れ';
+
+  @override
+  String get payNow => '今すぐ支払う';
+
+  @override
+  String get cancelRequest => '請求を取り消す';
+
+  @override
+  String get request => '請求';
+
+  @override
+  String get transfer => '送金';
+
+  @override
+  String dueP0(Object p0) => '期限 ${p0}';
+
+  @override
+  String transferP0(Object p0) => '${p0} に送金';
+
+  @override
+  String sentP0CoinsP1(Object p0, Object p1) => '${p0} に ${p1} コインを送金しました';
+
+  @override
+  String get confirmPayment => '支払いの確認';
+
+  @override
+  String payP0CoinsP1(Object p0, Object p1) => '${p0} に ${p1} コインを支払います';
+
+  @override
+  String get declineRequest => '請求をお断り';
+
+  @override
+  String declineP1CoinRequestFromP0(Object p0, Object p1) => '${p0} からの ${p1} コインの請求をお断りします';
+
+  @override
+  String cancelRequestP0P1Coins(Object p0, Object p1) => '${p0} への ${p1} コインの請求を取り消します';
+
+  @override
+  String payRequestFromP0(Object p0) => '${p0} からの請求を支払う';
+
+  @override
+  String get paymentCompleted => '支払いが完了しました';
+
+  @override
+  String get requestDeclined => '請求をお断りしました';
+
+  @override
+  String get requestCanceled => '請求を取り消しました';
+
+  @override
+  String get selectPayer => '支払う人を選択してください';
+
+  @override
+  String get selectRecipient => '受取人を選択してください';
+
+  @override
+  String get sendRequest2 => '請求を送信';
+
+  @override
+  String get confirmTransfer => '送金を確定';
+
+  @override
+  String get payer => '支払う人';
+
+  @override
+  String get recipient => '受取人';
+
+  @override
+  String limitPerTransferP0Coins(Object p0) => '1回の上限 ${p0} コイン';
+
+  @override
+  String insufficientBalanceP0Coins(Object p0) => '残高不足（${p0} コイン）';
+
+  @override
+  String balanceP0Coins(Object p0) => '残高 ${p0} コイン';
+
+  @override
+  String get noteOptional => 'メモ（任意）';
+
+  @override
+  String get editMessage => 'メッセージを編集';
+
+  @override
+  String get cancelEditing => '編集をキャンセル';
+
+  @override
+  String get send => '送信';
+
+  @override
+  String get switchKeyboard => 'キーボードに切り替え';
+
+  @override
+  String get voiceMessage => 'ボイスメッセージ';
+
+  @override
+  String get edited => '編集済み';
+
+  @override
+  String get maximumRecordingLengthReached => '録音時間の上限に達しました';
+
+  @override
+  String get recordingTooShort => '録音時間が短すぎます';
+
+  @override
+  String p0SRemaining(Object p0) => '残り ${p0} 秒';
+
+  @override
+  String get releaseSend => '指を離すと送信します';
+
+  @override
+  String get recording => '録音中';
+
+  @override
+  String get tapHoldRecord => 'タップまたは長押しで録音';
+
+  @override
+  String get stopRecording => '録音を停止';
+
+  @override
+  String get preview2 => '試聴';
+
+  @override
+  String get startRecording => '録音を開始';
+
+  @override
+  String get microphoneUnavailable => 'マイクを使用できません';
+
+  @override
+  String get paymentRequest => '[請求]';
+
+  @override
+  String get transfer2 => '[送金]';
+
+  @override
+  String get transfer3 => '受け取り';
+
+  @override
+  String get transferOut => '送金';
 
 }
 
@@ -12976,7 +13802,7 @@ class _LKo extends AppLocalizations {
   String get disputeResolution => '거래 중재';
 
   @override
-  String orderP0P1(Object p0, Object p1) => '주문 ${p0} | \\\$${p1}';
+  String orderP0P1(Object p0, Object p1) => '주문 ${p0} | \$${p1}';
 
   @override
   String reasonP0(Object p0) => '이의 사유: ${p0}';
@@ -15138,6 +15964,360 @@ class _LKo extends AppLocalizations {
   @override
   String get unreadMessages => '여기부터 읽지 않은 메시지';
 
+  @override
+  String get selectChat => '채팅을 선택하세요';
+
+  @override
+  String get appPermissions => '앱 권한';
+
+  @override
+  String get noPermissionsRequiredDevice => '이 기기에서 허용이 필요한 항목이 없습니다';
+
+  @override
+  String get allowAll => '모두 허용';
+
+  @override
+  String get camera => '카메라';
+
+  @override
+  String get photosRead => '사진 (읽기)';
+
+  @override
+  String get photosSave => '사진 (저장)';
+
+  @override
+  String get microphone => '마이크';
+
+  @override
+  String get location => '위치';
+
+  @override
+  String get orderUpdatesChatMessagesAnnouncements => '주문 진행 상황, 채팅 메시지 및 공지';
+
+  @override
+  String get scanBarcodesTakeBookPhotos => '바코드 스캔 및 책 사진 촬영';
+
+  @override
+  String get chooseBookPhotosProfilePicturesChat => '책 사진, 프로필 사진 및 채팅 이미지 선택';
+
+  @override
+  String get saveQrCodesPhotos => 'QR 코드를 사진에 저장';
+
+  @override
+  String get recordVoiceMessagesChats => '채팅 음성 메시지 녹음';
+
+  @override
+  String get showNearestSmartLockersTheirDistance => '가장 가까운 스마트 보관함과 거리 표시';
+
+  @override
+  String get quickSignPaymentConfirmation => '빠른 로그인 및 결제 확인';
+
+  @override
+  String get allowed => '허용됨';
+
+  @override
+  String get limited => '일부 허용';
+
+  @override
+  String get notAllowed => '허용 안 됨';
+
+  @override
+  String get restricted => '제한됨';
+
+  @override
+  String get denied => '거부됨';
+
+  @override
+  String get allow => '허용';
+
+  @override
+  String get homeRecommendations => '홈 추천 영역';
+
+  @override
+  String get pickedRecentlyViewed => '추천 도서, 최근 본 도서';
+
+  @override
+  String get leaveGroup => '그룹 나가기';
+
+  @override
+  String leaveP0(Object p0) => '"${p0}"에서 나갈까요?';
+
+  @override
+  String get leave => '나가기';
+
+  @override
+  String get leftGroup => '그룹에서 나갔습니다';
+
+  @override
+  String get unpin => '고정 해제';
+
+  @override
+  String get pin => '고정';
+
+  @override
+  String get you3 => '나';
+
+  @override
+  String get canOnlyEditMessagesSentWithin => '보낸 지 15분 이내의 메시지만 수정할 수 있습니다';
+
+  @override
+  String p0UnsentMessage(Object p0) => '${p0} 님이 메시지를 취소했습니다';
+
+  @override
+  String readByP0(Object p0) => '${p0}명 읽음';
+
+  @override
+  String get transferDetailsUnavailable => '송금 정보를 표시할 수 없습니다';
+
+  @override
+  String get couldNotCreateGroup => '그룹을 만들 수 없습니다';
+
+  @override
+  String get groupDetails => '그룹 정보';
+
+  @override
+  String get selectMembers => '멤버 선택';
+
+  @override
+  String get groupName => '그룹 이름';
+
+  @override
+  String membersP0(Object p0) => '멤버 ${p0}';
+
+  @override
+  String get createGroup => '그룹 만들기';
+
+  @override
+  String get inviteMembers => '멤버 초대';
+
+  @override
+  String get invite => '초대';
+
+  @override
+  String canSelectUpP0People(Object p0) => '최대 ${p0}명까지 선택할 수 있습니다';
+
+  @override
+  String get noChatsChooseFrom => '선택할 수 있는 대화 상대가 없습니다';
+
+  @override
+  String get noMatchingPeople => '일치하는 사람이 없습니다';
+
+  @override
+  String get searchByName => '이름 검색';
+
+  @override
+  String get chatPinned => '채팅을 고정했습니다';
+
+  @override
+  String get unpinned => '고정을 해제했습니다';
+
+  @override
+  String get setNickname => '별명 설정';
+
+  @override
+  String get onlyVisible => '나에게만 표시';
+
+  @override
+  String get nicknameRemoved => '별명을 삭제했습니다';
+
+  @override
+  String get nicknameUpdated => '별명을 변경했습니다';
+
+  @override
+  String get enterGroupName => '그룹 이름을 입력하세요';
+
+  @override
+  String get groupNameUpdated => '그룹 이름을 변경했습니다';
+
+  @override
+  String get groupPhotoUpdated => '그룹 사진을 변경했습니다';
+
+  @override
+  String get groupReachedMemberLimit => '그룹 멤버 수가 한도에 도달했습니다';
+
+  @override
+  String invitedP0Members(Object p0) => '${p0}명을 초대했습니다';
+
+  @override
+  String get removeMember => '멤버 내보내기';
+
+  @override
+  String removeP0FromGroup(Object p0) => '"${p0}" 님을 그룹에서 내보낼까요?';
+
+  @override
+  String get memberRemoved => '멤버를 내보냈습니다';
+
+  @override
+  String get chatSettings => '채팅 설정';
+
+  @override
+  String get muteNotifications => '알림 끄기';
+
+  @override
+  String get pinChat => '채팅 고정';
+
+  @override
+  String get me => '나';
+
+  @override
+  String requestedFromP0(Object p0) => '${p0} 님에게 송금 요청';
+
+  @override
+  String p0RequestedPaymentFrom(Object p0) => '${p0} 님이 송금을 요청했습니다';
+
+  @override
+  String p0RequestedPaymentFromP1(Object p0, Object p1) => '${p0} 님이 ${p1} 님에게 송금 요청';
+
+  @override
+  String sentP0(Object p0) => '${p0} 님에게 송금';
+
+  @override
+  String p0SentCoins(Object p0) => '${p0} 님이 송금했습니다';
+
+  @override
+  String p0SentCoinsP1(Object p0, Object p1) => '${p0} 님이 ${p1} 님에게 송금';
+
+  @override
+  String get expired2 => '만료됨';
+
+  @override
+  String get payNow => '지금 결제';
+
+  @override
+  String get cancelRequest => '요청 취소';
+
+  @override
+  String get request => '송금 요청';
+
+  @override
+  String get transfer => '송금';
+
+  @override
+  String dueP0(Object p0) => '기한 ${p0}';
+
+  @override
+  String transferP0(Object p0) => '${p0} 님에게 송금';
+
+  @override
+  String sentP0CoinsP1(Object p0, Object p1) => '${p0} 님에게 ${p1} 코인을 송금했습니다';
+
+  @override
+  String get confirmPayment => '결제 확인';
+
+  @override
+  String payP0CoinsP1(Object p0, Object p1) => '${p0} 님에게 ${p1} 코인을 결제합니다';
+
+  @override
+  String get declineRequest => '요청 거절';
+
+  @override
+  String declineP1CoinRequestFromP0(Object p0, Object p1) => '${p0} 님의 ${p1} 코인 요청을 거절합니다';
+
+  @override
+  String cancelRequestP0P1Coins(Object p0, Object p1) => '${p0} 님에게 요청한 ${p1} 코인을 취소합니다';
+
+  @override
+  String payRequestFromP0(Object p0) => '${p0} 님의 요청 결제';
+
+  @override
+  String get paymentCompleted => '결제를 완료했습니다';
+
+  @override
+  String get requestDeclined => '요청을 거절했습니다';
+
+  @override
+  String get requestCanceled => '요청을 취소했습니다';
+
+  @override
+  String get selectPayer => '결제자를 선택하세요';
+
+  @override
+  String get selectRecipient => '받는 사람을 선택하세요';
+
+  @override
+  String get sendRequest2 => '요청 보내기';
+
+  @override
+  String get confirmTransfer => '송금 확인';
+
+  @override
+  String get payer => '결제자';
+
+  @override
+  String get recipient => '받는 사람';
+
+  @override
+  String limitPerTransferP0Coins(Object p0) => '1회 한도 ${p0} 코인';
+
+  @override
+  String insufficientBalanceP0Coins(Object p0) => '잔액 부족(${p0} 코인)';
+
+  @override
+  String balanceP0Coins(Object p0) => '잔액 ${p0} 코인';
+
+  @override
+  String get noteOptional => '메모(선택)';
+
+  @override
+  String get editMessage => '메시지 편집';
+
+  @override
+  String get cancelEditing => '편집 취소';
+
+  @override
+  String get send => '전송';
+
+  @override
+  String get switchKeyboard => '키보드로 전환';
+
+  @override
+  String get voiceMessage => '음성 메시지';
+
+  @override
+  String get edited => '수정됨';
+
+  @override
+  String get maximumRecordingLengthReached => '최대 녹음 시간에 도달했습니다';
+
+  @override
+  String get recordingTooShort => '녹음 시간이 너무 짧습니다';
+
+  @override
+  String p0SRemaining(Object p0) => '${p0}초 남음';
+
+  @override
+  String get releaseSend => '손을 떼면 전송됩니다';
+
+  @override
+  String get recording => '녹음 중';
+
+  @override
+  String get tapHoldRecord => '탭하거나 길게 눌러 녹음';
+
+  @override
+  String get stopRecording => '녹음 중지';
+
+  @override
+  String get preview2 => '미리 듣기';
+
+  @override
+  String get startRecording => '녹음 시작';
+
+  @override
+  String get microphoneUnavailable => '마이크를 사용할 수 없습니다';
+
+  @override
+  String get paymentRequest => '[송금 요청]';
+
+  @override
+  String get transfer2 => '[송금]';
+
+  @override
+  String get transfer3 => '받은 송금';
+
+  @override
+  String get transferOut => '보낸 송금';
+
 }
 
 class _LZh extends AppLocalizations {
@@ -15795,7 +16975,7 @@ class _LZh extends AppLocalizations {
   String get confirmCheckout => '確認結帳';
 
   @override
-  String booksTotal(Object p0, Object p1) => '共 ${p0} 本書，總金額 \\\$${p1}。\n';
+  String booksTotal(Object p0, Object p1) => '共 ${p0} 本書，總金額 \$${p1}。\n';
 
   @override
   String balanceAfterPaymentCoins(Object p0) => '扣款後餘額為 ${p0} 代幣。';
@@ -16380,7 +17560,7 @@ class _LZh extends AppLocalizations {
   String get orderNoItemDetails => '此訂單無品項資料。';
 
   @override
-  String msg4(Object p0, Object p1) => '單價 \\\$${p0} × ${p1}';
+  String msg4(Object p0, Object p1) => '單價 \$${p0} × ${p1}';
 
   @override
   String get orderTotal => '訂單金額';
@@ -16848,7 +18028,7 @@ class _LZh extends AppLocalizations {
   String get balance => '目前餘額';
 
   @override
-  String hold(Object p0) => '凍結中 \\\$${p0}';
+  String hold(Object p0) => '凍結中 \$${p0}';
 
   @override
   String requestFailed2(Object p0) => '請求失敗（${p0}）';
@@ -17511,7 +18691,7 @@ class _LZh extends AppLocalizations {
   String get disputeResolution => '交易仲裁';
 
   @override
-  String orderP0P1(Object p0, Object p1) => '訂單 ${p0}｜\\\$${p1}';
+  String orderP0P1(Object p0, Object p1) => '訂單 ${p0}｜\$${p1}';
 
   @override
   String reasonP0(Object p0) => '申訴理由：${p0}';
@@ -19672,6 +20852,360 @@ class _LZh extends AppLocalizations {
 
   @override
   String get unreadMessages => '以下為未讀訊息';
+
+  @override
+  String get selectChat => '請選擇聊天室';
+
+  @override
+  String get appPermissions => 'App 權限';
+
+  @override
+  String get noPermissionsRequiredDevice => '此裝置沒有需要授權的項目';
+
+  @override
+  String get allowAll => '全部允許';
+
+  @override
+  String get camera => '相機';
+
+  @override
+  String get photosRead => '相簿（讀取）';
+
+  @override
+  String get photosSave => '相簿（寫入／儲存）';
+
+  @override
+  String get microphone => '麥克風';
+
+  @override
+  String get location => '定位';
+
+  @override
+  String get orderUpdatesChatMessagesAnnouncements => '訂單進度、聊天訊息與公告';
+
+  @override
+  String get scanBarcodesTakeBookPhotos => '掃描條碼與拍攝書籍照片';
+
+  @override
+  String get chooseBookPhotosProfilePicturesChat => '選取書籍照片、大頭貼與聊天圖片';
+
+  @override
+  String get saveQrCodesPhotos => '將 QR Code 儲存至相簿';
+
+  @override
+  String get recordVoiceMessagesChats => '錄製聊天語音訊息';
+
+  @override
+  String get showNearestSmartLockersTheirDistance => '顯示最近的智慧書櫃與距離';
+
+  @override
+  String get quickSignPaymentConfirmation => '快速登入與確認付款';
+
+  @override
+  String get allowed => '已允許';
+
+  @override
+  String get limited => '部分允許';
+
+  @override
+  String get notAllowed => '未允許';
+
+  @override
+  String get restricted => '受限';
+
+  @override
+  String get denied => '永久拒絕';
+
+  @override
+  String get allow => '允許';
+
+  @override
+  String get homeRecommendations => '首頁推薦區塊';
+
+  @override
+  String get pickedRecentlyViewed => '為您推薦、最近瀏覽';
+
+  @override
+  String get leaveGroup => '退出群組';
+
+  @override
+  String leaveP0(Object p0) => '確定要退出「${p0}」？';
+
+  @override
+  String get leave => '退出';
+
+  @override
+  String get leftGroup => '已退出群組';
+
+  @override
+  String get unpin => '取消釘選';
+
+  @override
+  String get pin => '釘選';
+
+  @override
+  String get you3 => '你';
+
+  @override
+  String get canOnlyEditMessagesSentWithin => '僅能編輯 15 分鐘內傳送的訊息';
+
+  @override
+  String p0UnsentMessage(Object p0) => '${p0} 已收回一則訊息';
+
+  @override
+  String readByP0(Object p0) => '已讀 ${p0}';
+
+  @override
+  String get transferDetailsUnavailable => '無法顯示轉帳資訊';
+
+  @override
+  String get couldNotCreateGroup => '無法建立群組';
+
+  @override
+  String get groupDetails => '群組資料';
+
+  @override
+  String get selectMembers => '選擇成員';
+
+  @override
+  String get groupName => '群組名稱';
+
+  @override
+  String membersP0(Object p0) => '成員 ${p0}';
+
+  @override
+  String get createGroup => '建立群組';
+
+  @override
+  String get inviteMembers => '邀請成員';
+
+  @override
+  String get invite => '邀請';
+
+  @override
+  String canSelectUpP0People(Object p0) => '最多可選擇 ${p0} 人';
+
+  @override
+  String get noChatsChooseFrom => '沒有可選擇的聊天對象';
+
+  @override
+  String get noMatchingPeople => '找不到符合的對象';
+
+  @override
+  String get searchByName => '搜尋名稱';
+
+  @override
+  String get chatPinned => '已釘選聊天室';
+
+  @override
+  String get unpinned => '已取消釘選';
+
+  @override
+  String get setNickname => '設定暱稱';
+
+  @override
+  String get onlyVisible => '僅自己可見';
+
+  @override
+  String get nicknameRemoved => '已移除暱稱';
+
+  @override
+  String get nicknameUpdated => '已更新暱稱';
+
+  @override
+  String get enterGroupName => '請輸入群組名稱';
+
+  @override
+  String get groupNameUpdated => '已更新群組名稱';
+
+  @override
+  String get groupPhotoUpdated => '已更新群組頭貼';
+
+  @override
+  String get groupReachedMemberLimit => '群組成員已達上限';
+
+  @override
+  String invitedP0Members(Object p0) => '已邀請 ${p0} 位成員';
+
+  @override
+  String get removeMember => '移除成員';
+
+  @override
+  String removeP0FromGroup(Object p0) => '確定要將「${p0}」移出群組？';
+
+  @override
+  String get memberRemoved => '已移除成員';
+
+  @override
+  String get chatSettings => '聊天室設定';
+
+  @override
+  String get muteNotifications => '靜音通知';
+
+  @override
+  String get pinChat => '釘選聊天室';
+
+  @override
+  String get me => '我';
+
+  @override
+  String requestedFromP0(Object p0) => '向 ${p0} 請款';
+
+  @override
+  String p0RequestedPaymentFrom(Object p0) => '${p0} 向你請款';
+
+  @override
+  String p0RequestedPaymentFromP1(Object p0, Object p1) => '${p0} 向 ${p1} 請款';
+
+  @override
+  String sentP0(Object p0) => '轉帳給 ${p0}';
+
+  @override
+  String p0SentCoins(Object p0) => '${p0} 轉帳給你';
+
+  @override
+  String p0SentCoinsP1(Object p0, Object p1) => '${p0} 轉帳給 ${p1}';
+
+  @override
+  String get expired2 => '已逾期';
+
+  @override
+  String get payNow => '立即付款';
+
+  @override
+  String get cancelRequest => '取消請款';
+
+  @override
+  String get request => '請款';
+
+  @override
+  String get transfer => '轉帳';
+
+  @override
+  String dueP0(Object p0) => '期限 ${p0}';
+
+  @override
+  String transferP0(Object p0) => '轉帳給 ${p0}';
+
+  @override
+  String sentP0CoinsP1(Object p0, Object p1) => '已轉帳 ${p0} 代幣給 ${p1}';
+
+  @override
+  String get confirmPayment => '確認付款';
+
+  @override
+  String payP0CoinsP1(Object p0, Object p1) => '支付 ${p0} 代幣給 ${p1}';
+
+  @override
+  String get declineRequest => '婉拒請款';
+
+  @override
+  String declineP1CoinRequestFromP0(Object p0, Object p1) => '婉拒 ${p0} 的 ${p1} 代幣請款';
+
+  @override
+  String cancelRequestP0P1Coins(Object p0, Object p1) => '取消向 ${p0} 請款 ${p1} 代幣';
+
+  @override
+  String payRequestFromP0(Object p0) => '支付 ${p0} 的請款';
+
+  @override
+  String get paymentCompleted => '已完成付款';
+
+  @override
+  String get requestDeclined => '已婉拒請款';
+
+  @override
+  String get requestCanceled => '已取消請款';
+
+  @override
+  String get selectPayer => '請選擇付款人';
+
+  @override
+  String get selectRecipient => '請選擇收款人';
+
+  @override
+  String get sendRequest2 => '送出請款';
+
+  @override
+  String get confirmTransfer => '確認轉帳';
+
+  @override
+  String get payer => '付款人';
+
+  @override
+  String get recipient => '收款人';
+
+  @override
+  String limitPerTransferP0Coins(Object p0) => '單筆上限 ${p0} 代幣';
+
+  @override
+  String insufficientBalanceP0Coins(Object p0) => '餘額不足（${p0} 代幣）';
+
+  @override
+  String balanceP0Coins(Object p0) => '餘額 ${p0} 代幣';
+
+  @override
+  String get noteOptional => '備註（選填）';
+
+  @override
+  String get editMessage => '編輯訊息';
+
+  @override
+  String get cancelEditing => '取消編輯';
+
+  @override
+  String get send => '傳送';
+
+  @override
+  String get switchKeyboard => '切換至鍵盤';
+
+  @override
+  String get voiceMessage => '語音訊息';
+
+  @override
+  String get edited => '已編輯';
+
+  @override
+  String get maximumRecordingLengthReached => '已達錄音上限';
+
+  @override
+  String get recordingTooShort => '錄音時間過短';
+
+  @override
+  String p0SRemaining(Object p0) => '剩餘 ${p0} 秒';
+
+  @override
+  String get releaseSend => '放開即可傳送';
+
+  @override
+  String get recording => '錄音中';
+
+  @override
+  String get tapHoldRecord => '點按或按住以錄音';
+
+  @override
+  String get stopRecording => '停止錄音';
+
+  @override
+  String get preview2 => '試聽';
+
+  @override
+  String get startRecording => '開始錄音';
+
+  @override
+  String get microphoneUnavailable => '無法使用麥克風';
+
+  @override
+  String get paymentRequest => '[請款]';
+
+  @override
+  String get transfer2 => '[轉帳]';
+
+  @override
+  String get transfer3 => '轉入';
+
+  @override
+  String get transferOut => '轉出';
 
 }
 
@@ -22046,7 +23580,7 @@ class _LZhHans extends AppLocalizations {
   String get disputeResolution => '交易仲裁';
 
   @override
-  String orderP0P1(Object p0, Object p1) => '订单 ${p0}｜\\\$${p1}';
+  String orderP0P1(Object p0, Object p1) => '订单 ${p0}｜\$${p1}';
 
   @override
   String reasonP0(Object p0) => '申诉理由：${p0}';
@@ -24208,6 +25742,360 @@ class _LZhHans extends AppLocalizations {
   @override
   String get unreadMessages => '以下为未读消息';
 
+  @override
+  String get selectChat => '请选择聊天室';
+
+  @override
+  String get appPermissions => 'App 权限';
+
+  @override
+  String get noPermissionsRequiredDevice => '此设备没有需要授权的项目';
+
+  @override
+  String get allowAll => '全部允许';
+
+  @override
+  String get camera => '相机';
+
+  @override
+  String get photosRead => '相册（读取）';
+
+  @override
+  String get photosSave => '相册（写入／保存）';
+
+  @override
+  String get microphone => '麦克风';
+
+  @override
+  String get location => '定位';
+
+  @override
+  String get orderUpdatesChatMessagesAnnouncements => '订单进度、聊天消息与公告';
+
+  @override
+  String get scanBarcodesTakeBookPhotos => '扫描条码与拍摄书籍照片';
+
+  @override
+  String get chooseBookPhotosProfilePicturesChat => '选取书籍照片、头像与聊天图片';
+
+  @override
+  String get saveQrCodesPhotos => '将 QR Code 保存至相册';
+
+  @override
+  String get recordVoiceMessagesChats => '录制聊天语音消息';
+
+  @override
+  String get showNearestSmartLockersTheirDistance => '显示最近的智能书柜与距离';
+
+  @override
+  String get quickSignPaymentConfirmation => '快速登录与确认付款';
+
+  @override
+  String get allowed => '已允许';
+
+  @override
+  String get limited => '部分允许';
+
+  @override
+  String get notAllowed => '未允许';
+
+  @override
+  String get restricted => '受限';
+
+  @override
+  String get denied => '永久拒绝';
+
+  @override
+  String get allow => '允许';
+
+  @override
+  String get homeRecommendations => '首页推荐区块';
+
+  @override
+  String get pickedRecentlyViewed => '为您推荐、最近浏览';
+
+  @override
+  String get leaveGroup => '退出群组';
+
+  @override
+  String leaveP0(Object p0) => '确定要退出「${p0}」？';
+
+  @override
+  String get leave => '退出';
+
+  @override
+  String get leftGroup => '已退出群组';
+
+  @override
+  String get unpin => '取消置顶';
+
+  @override
+  String get pin => '置顶';
+
+  @override
+  String get you3 => '你';
+
+  @override
+  String get canOnlyEditMessagesSentWithin => '仅能编辑 15 分钟内发送的消息';
+
+  @override
+  String p0UnsentMessage(Object p0) => '${p0} 已撤回一条消息';
+
+  @override
+  String readByP0(Object p0) => '已读 ${p0}';
+
+  @override
+  String get transferDetailsUnavailable => '无法显示转账信息';
+
+  @override
+  String get couldNotCreateGroup => '无法创建群组';
+
+  @override
+  String get groupDetails => '群组资料';
+
+  @override
+  String get selectMembers => '选择成员';
+
+  @override
+  String get groupName => '群组名称';
+
+  @override
+  String membersP0(Object p0) => '成员 ${p0}';
+
+  @override
+  String get createGroup => '创建群组';
+
+  @override
+  String get inviteMembers => '邀请成员';
+
+  @override
+  String get invite => '邀请';
+
+  @override
+  String canSelectUpP0People(Object p0) => '最多可选择 ${p0} 人';
+
+  @override
+  String get noChatsChooseFrom => '没有可选择的聊天对象';
+
+  @override
+  String get noMatchingPeople => '找不到符合的对象';
+
+  @override
+  String get searchByName => '搜索名称';
+
+  @override
+  String get chatPinned => '已置顶聊天室';
+
+  @override
+  String get unpinned => '已取消置顶';
+
+  @override
+  String get setNickname => '设置昵称';
+
+  @override
+  String get onlyVisible => '仅自己可见';
+
+  @override
+  String get nicknameRemoved => '已移除昵称';
+
+  @override
+  String get nicknameUpdated => '已更新昵称';
+
+  @override
+  String get enterGroupName => '请输入群组名称';
+
+  @override
+  String get groupNameUpdated => '已更新群组名称';
+
+  @override
+  String get groupPhotoUpdated => '已更新群组头像';
+
+  @override
+  String get groupReachedMemberLimit => '群组成员已达上限';
+
+  @override
+  String invitedP0Members(Object p0) => '已邀请 ${p0} 位成员';
+
+  @override
+  String get removeMember => '移除成员';
+
+  @override
+  String removeP0FromGroup(Object p0) => '确定要将「${p0}」移出群组？';
+
+  @override
+  String get memberRemoved => '已移除成员';
+
+  @override
+  String get chatSettings => '聊天室设置';
+
+  @override
+  String get muteNotifications => '消息免打扰';
+
+  @override
+  String get pinChat => '置顶聊天室';
+
+  @override
+  String get me => '我';
+
+  @override
+  String requestedFromP0(Object p0) => '向 ${p0} 请款';
+
+  @override
+  String p0RequestedPaymentFrom(Object p0) => '${p0} 向你请款';
+
+  @override
+  String p0RequestedPaymentFromP1(Object p0, Object p1) => '${p0} 向 ${p1} 请款';
+
+  @override
+  String sentP0(Object p0) => '转账给 ${p0}';
+
+  @override
+  String p0SentCoins(Object p0) => '${p0} 转账给你';
+
+  @override
+  String p0SentCoinsP1(Object p0, Object p1) => '${p0} 转账给 ${p1}';
+
+  @override
+  String get expired2 => '已逾期';
+
+  @override
+  String get payNow => '立即付款';
+
+  @override
+  String get cancelRequest => '取消请款';
+
+  @override
+  String get request => '请款';
+
+  @override
+  String get transfer => '转账';
+
+  @override
+  String dueP0(Object p0) => '期限 ${p0}';
+
+  @override
+  String transferP0(Object p0) => '转账给 ${p0}';
+
+  @override
+  String sentP0CoinsP1(Object p0, Object p1) => '已转账 ${p0} 代币给 ${p1}';
+
+  @override
+  String get confirmPayment => '确认付款';
+
+  @override
+  String payP0CoinsP1(Object p0, Object p1) => '支付 ${p0} 代币给 ${p1}';
+
+  @override
+  String get declineRequest => '婉拒请款';
+
+  @override
+  String declineP1CoinRequestFromP0(Object p0, Object p1) => '婉拒 ${p0} 的 ${p1} 代币请款';
+
+  @override
+  String cancelRequestP0P1Coins(Object p0, Object p1) => '取消向 ${p0} 请款 ${p1} 代币';
+
+  @override
+  String payRequestFromP0(Object p0) => '支付 ${p0} 的请款';
+
+  @override
+  String get paymentCompleted => '已完成付款';
+
+  @override
+  String get requestDeclined => '已婉拒请款';
+
+  @override
+  String get requestCanceled => '已取消请款';
+
+  @override
+  String get selectPayer => '请选择付款人';
+
+  @override
+  String get selectRecipient => '请选择收款人';
+
+  @override
+  String get sendRequest2 => '发送请款';
+
+  @override
+  String get confirmTransfer => '确认转账';
+
+  @override
+  String get payer => '付款人';
+
+  @override
+  String get recipient => '收款人';
+
+  @override
+  String limitPerTransferP0Coins(Object p0) => '单笔上限 ${p0} 代币';
+
+  @override
+  String insufficientBalanceP0Coins(Object p0) => '余额不足（${p0} 代币）';
+
+  @override
+  String balanceP0Coins(Object p0) => '余额 ${p0} 代币';
+
+  @override
+  String get noteOptional => '备注（选填）';
+
+  @override
+  String get editMessage => '编辑消息';
+
+  @override
+  String get cancelEditing => '取消编辑';
+
+  @override
+  String get send => '发送';
+
+  @override
+  String get switchKeyboard => '切换至键盘';
+
+  @override
+  String get voiceMessage => '语音消息';
+
+  @override
+  String get edited => '已编辑';
+
+  @override
+  String get maximumRecordingLengthReached => '已达录音上限';
+
+  @override
+  String get recordingTooShort => '录音时间过短';
+
+  @override
+  String p0SRemaining(Object p0) => '剩余 ${p0} 秒';
+
+  @override
+  String get releaseSend => '松开即可发送';
+
+  @override
+  String get recording => '录音中';
+
+  @override
+  String get tapHoldRecord => '点按或按住以录音';
+
+  @override
+  String get stopRecording => '停止录音';
+
+  @override
+  String get preview2 => '试听';
+
+  @override
+  String get startRecording => '开始录音';
+
+  @override
+  String get microphoneUnavailable => '无法使用麦克风';
+
+  @override
+  String get paymentRequest => '[请款]';
+
+  @override
+  String get transfer2 => '[转账]';
+
+  @override
+  String get transfer3 => '转入';
+
+  @override
+  String get transferOut => '转出';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -24865,7 +26753,7 @@ class _LZhHant extends AppLocalizations {
   String get confirmCheckout => '確認結帳';
 
   @override
-  String booksTotal(Object p0, Object p1) => '共 ${p0} 本書，總金額 \\\$${p1}。\n';
+  String booksTotal(Object p0, Object p1) => '共 ${p0} 本書，總金額 \$${p1}。\n';
 
   @override
   String balanceAfterPaymentCoins(Object p0) => '扣款後餘額為 ${p0} 代幣。';
@@ -25450,7 +27338,7 @@ class _LZhHant extends AppLocalizations {
   String get orderNoItemDetails => '此訂單無品項資料。';
 
   @override
-  String msg4(Object p0, Object p1) => '單價 \\\$${p0} × ${p1}';
+  String msg4(Object p0, Object p1) => '單價 \$${p0} × ${p1}';
 
   @override
   String get orderTotal => '訂單金額';
@@ -25918,7 +27806,7 @@ class _LZhHant extends AppLocalizations {
   String get balance => '目前餘額';
 
   @override
-  String hold(Object p0) => '凍結中 \\\$${p0}';
+  String hold(Object p0) => '凍結中 \$${p0}';
 
   @override
   String requestFailed2(Object p0) => '請求失敗（${p0}）';
@@ -26581,7 +28469,7 @@ class _LZhHant extends AppLocalizations {
   String get disputeResolution => '交易仲裁';
 
   @override
-  String orderP0P1(Object p0, Object p1) => '訂單 ${p0}｜\\\$${p1}';
+  String orderP0P1(Object p0, Object p1) => '訂單 ${p0}｜\$${p1}';
 
   @override
   String reasonP0(Object p0) => '申訴理由：${p0}';
@@ -28742,6 +30630,360 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get unreadMessages => '以下為未讀訊息';
+
+  @override
+  String get selectChat => '請選擇聊天室';
+
+  @override
+  String get appPermissions => 'App 權限';
+
+  @override
+  String get noPermissionsRequiredDevice => '此裝置沒有需要授權的項目';
+
+  @override
+  String get allowAll => '全部允許';
+
+  @override
+  String get camera => '相機';
+
+  @override
+  String get photosRead => '相簿（讀取）';
+
+  @override
+  String get photosSave => '相簿（寫入／儲存）';
+
+  @override
+  String get microphone => '麥克風';
+
+  @override
+  String get location => '定位';
+
+  @override
+  String get orderUpdatesChatMessagesAnnouncements => '訂單進度、聊天訊息與公告';
+
+  @override
+  String get scanBarcodesTakeBookPhotos => '掃描條碼與拍攝書籍照片';
+
+  @override
+  String get chooseBookPhotosProfilePicturesChat => '選取書籍照片、大頭貼與聊天圖片';
+
+  @override
+  String get saveQrCodesPhotos => '將 QR Code 儲存至相簿';
+
+  @override
+  String get recordVoiceMessagesChats => '錄製聊天語音訊息';
+
+  @override
+  String get showNearestSmartLockersTheirDistance => '顯示最近的智慧書櫃與距離';
+
+  @override
+  String get quickSignPaymentConfirmation => '快速登入與確認付款';
+
+  @override
+  String get allowed => '已允許';
+
+  @override
+  String get limited => '部分允許';
+
+  @override
+  String get notAllowed => '未允許';
+
+  @override
+  String get restricted => '受限';
+
+  @override
+  String get denied => '永久拒絕';
+
+  @override
+  String get allow => '允許';
+
+  @override
+  String get homeRecommendations => '首頁推薦區塊';
+
+  @override
+  String get pickedRecentlyViewed => '為您推薦、最近瀏覽';
+
+  @override
+  String get leaveGroup => '退出群組';
+
+  @override
+  String leaveP0(Object p0) => '確定要退出「${p0}」？';
+
+  @override
+  String get leave => '退出';
+
+  @override
+  String get leftGroup => '已退出群組';
+
+  @override
+  String get unpin => '取消釘選';
+
+  @override
+  String get pin => '釘選';
+
+  @override
+  String get you3 => '你';
+
+  @override
+  String get canOnlyEditMessagesSentWithin => '僅能編輯 15 分鐘內傳送的訊息';
+
+  @override
+  String p0UnsentMessage(Object p0) => '${p0} 已收回一則訊息';
+
+  @override
+  String readByP0(Object p0) => '已讀 ${p0}';
+
+  @override
+  String get transferDetailsUnavailable => '無法顯示轉帳資訊';
+
+  @override
+  String get couldNotCreateGroup => '無法建立群組';
+
+  @override
+  String get groupDetails => '群組資料';
+
+  @override
+  String get selectMembers => '選擇成員';
+
+  @override
+  String get groupName => '群組名稱';
+
+  @override
+  String membersP0(Object p0) => '成員 ${p0}';
+
+  @override
+  String get createGroup => '建立群組';
+
+  @override
+  String get inviteMembers => '邀請成員';
+
+  @override
+  String get invite => '邀請';
+
+  @override
+  String canSelectUpP0People(Object p0) => '最多可選擇 ${p0} 人';
+
+  @override
+  String get noChatsChooseFrom => '沒有可選擇的聊天對象';
+
+  @override
+  String get noMatchingPeople => '找不到符合的對象';
+
+  @override
+  String get searchByName => '搜尋名稱';
+
+  @override
+  String get chatPinned => '已釘選聊天室';
+
+  @override
+  String get unpinned => '已取消釘選';
+
+  @override
+  String get setNickname => '設定暱稱';
+
+  @override
+  String get onlyVisible => '僅自己可見';
+
+  @override
+  String get nicknameRemoved => '已移除暱稱';
+
+  @override
+  String get nicknameUpdated => '已更新暱稱';
+
+  @override
+  String get enterGroupName => '請輸入群組名稱';
+
+  @override
+  String get groupNameUpdated => '已更新群組名稱';
+
+  @override
+  String get groupPhotoUpdated => '已更新群組頭貼';
+
+  @override
+  String get groupReachedMemberLimit => '群組成員已達上限';
+
+  @override
+  String invitedP0Members(Object p0) => '已邀請 ${p0} 位成員';
+
+  @override
+  String get removeMember => '移除成員';
+
+  @override
+  String removeP0FromGroup(Object p0) => '確定要將「${p0}」移出群組？';
+
+  @override
+  String get memberRemoved => '已移除成員';
+
+  @override
+  String get chatSettings => '聊天室設定';
+
+  @override
+  String get muteNotifications => '靜音通知';
+
+  @override
+  String get pinChat => '釘選聊天室';
+
+  @override
+  String get me => '我';
+
+  @override
+  String requestedFromP0(Object p0) => '向 ${p0} 請款';
+
+  @override
+  String p0RequestedPaymentFrom(Object p0) => '${p0} 向你請款';
+
+  @override
+  String p0RequestedPaymentFromP1(Object p0, Object p1) => '${p0} 向 ${p1} 請款';
+
+  @override
+  String sentP0(Object p0) => '轉帳給 ${p0}';
+
+  @override
+  String p0SentCoins(Object p0) => '${p0} 轉帳給你';
+
+  @override
+  String p0SentCoinsP1(Object p0, Object p1) => '${p0} 轉帳給 ${p1}';
+
+  @override
+  String get expired2 => '已逾期';
+
+  @override
+  String get payNow => '立即付款';
+
+  @override
+  String get cancelRequest => '取消請款';
+
+  @override
+  String get request => '請款';
+
+  @override
+  String get transfer => '轉帳';
+
+  @override
+  String dueP0(Object p0) => '期限 ${p0}';
+
+  @override
+  String transferP0(Object p0) => '轉帳給 ${p0}';
+
+  @override
+  String sentP0CoinsP1(Object p0, Object p1) => '已轉帳 ${p0} 代幣給 ${p1}';
+
+  @override
+  String get confirmPayment => '確認付款';
+
+  @override
+  String payP0CoinsP1(Object p0, Object p1) => '支付 ${p0} 代幣給 ${p1}';
+
+  @override
+  String get declineRequest => '婉拒請款';
+
+  @override
+  String declineP1CoinRequestFromP0(Object p0, Object p1) => '婉拒 ${p0} 的 ${p1} 代幣請款';
+
+  @override
+  String cancelRequestP0P1Coins(Object p0, Object p1) => '取消向 ${p0} 請款 ${p1} 代幣';
+
+  @override
+  String payRequestFromP0(Object p0) => '支付 ${p0} 的請款';
+
+  @override
+  String get paymentCompleted => '已完成付款';
+
+  @override
+  String get requestDeclined => '已婉拒請款';
+
+  @override
+  String get requestCanceled => '已取消請款';
+
+  @override
+  String get selectPayer => '請選擇付款人';
+
+  @override
+  String get selectRecipient => '請選擇收款人';
+
+  @override
+  String get sendRequest2 => '送出請款';
+
+  @override
+  String get confirmTransfer => '確認轉帳';
+
+  @override
+  String get payer => '付款人';
+
+  @override
+  String get recipient => '收款人';
+
+  @override
+  String limitPerTransferP0Coins(Object p0) => '單筆上限 ${p0} 代幣';
+
+  @override
+  String insufficientBalanceP0Coins(Object p0) => '餘額不足（${p0} 代幣）';
+
+  @override
+  String balanceP0Coins(Object p0) => '餘額 ${p0} 代幣';
+
+  @override
+  String get noteOptional => '備註（選填）';
+
+  @override
+  String get editMessage => '編輯訊息';
+
+  @override
+  String get cancelEditing => '取消編輯';
+
+  @override
+  String get send => '傳送';
+
+  @override
+  String get switchKeyboard => '切換至鍵盤';
+
+  @override
+  String get voiceMessage => '語音訊息';
+
+  @override
+  String get edited => '已編輯';
+
+  @override
+  String get maximumRecordingLengthReached => '已達錄音上限';
+
+  @override
+  String get recordingTooShort => '錄音時間過短';
+
+  @override
+  String p0SRemaining(Object p0) => '剩餘 ${p0} 秒';
+
+  @override
+  String get releaseSend => '放開即可傳送';
+
+  @override
+  String get recording => '錄音中';
+
+  @override
+  String get tapHoldRecord => '點按或按住以錄音';
+
+  @override
+  String get stopRecording => '停止錄音';
+
+  @override
+  String get preview2 => '試聽';
+
+  @override
+  String get startRecording => '開始錄音';
+
+  @override
+  String get microphoneUnavailable => '無法使用麥克風';
+
+  @override
+  String get paymentRequest => '[請款]';
+
+  @override
+  String get transfer2 => '[轉帳]';
+
+  @override
+  String get transfer3 => '轉入';
+
+  @override
+  String get transferOut => '轉出';
 
 }
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../i18n/strings.dart';
 import '../models/security.dart';
-import '../screens/security/payment_pin_screen.dart';
+import '../features/security/payment_pin_screen.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/biometric_icon.dart';

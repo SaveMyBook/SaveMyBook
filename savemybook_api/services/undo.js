@@ -1,19 +1,12 @@
 const { conflict, badRequest } = require('../lib/errors');
+const { ADMIN_PERMISSIONS } = require('../constants/domain');
 const { decode, sameValue, display } = require('./audit');
 const { changeBalance } = require('./wallet');
 
 // 白名單限制還原可碰的欄位，紀錄被竄改也改不到密碼或餘額。
 const MODELS = {
   users: { pk: 'user_id', fields: ['is_active', 'is_blacklisted', 'role', 'bonus_points', 'deletion_requested_at'] },
-  admin_permissions: {
-    pk: 'user_id',
-    fields: [
-      'can_manage_members', 'can_manage_levels', 'can_manage_content', 'can_manage_reports',
-      'can_manage_orders', 'can_manage_transactions', 'can_manage_wallets', 'can_manage_cabinets',
-      'can_manage_announcements', 'can_manage_support', 'can_view_stats', 'can_manage_system'
-    ],
-    creatable: true
-  },
+  admin_permissions: { pk: 'user_id', fields: Object.values(ADMIN_PERMISSIONS), creatable: true },
   books: {
     pk: 'book_id',
     fields: ['title', 'author', 'publisher', 'publish_date', 'isbn', 'category_id', 'condition_level',
@@ -171,4 +164,4 @@ const run = async (tx, steps, context) => {
   for (const step of ordered) await applyStep(tx, step, context);
 };
 
-module.exports = { MODELS, PERMISSION_BY_TARGET, run };
+module.exports = { PERMISSION_BY_TARGET, run };

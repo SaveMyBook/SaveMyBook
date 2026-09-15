@@ -14,56 +14,61 @@ import 'package:savemybook_app/models/book.dart';
 import 'package:savemybook_app/models/order.dart';
 import 'package:savemybook_app/models/support.dart';
 import 'package:savemybook_app/models/user.dart';
-import 'package:savemybook_app/screens/account_privacy_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_announcement_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_backup_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_book_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_cabinet_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_category_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_deletion_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_dispute_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_home_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_level_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_maintenance_log_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_member_detail_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_member_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_operation_log_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_order_detail_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_order_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_report_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_stats_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_ticket_screen.dart';
-import 'package:savemybook_app/screens/admin/admin_wallet_screen.dart';
-import 'package:savemybook_app/screens/announcement_screen.dart';
-import 'package:savemybook_app/screens/book_detail_screen.dart';
-import 'package:savemybook_app/screens/book_manage_screen.dart';
-import 'package:savemybook_app/screens/cart_screen.dart';
-import 'package:savemybook_app/screens/change_password_screen.dart';
-import 'package:savemybook_app/screens/chat_list_screen.dart';
-import 'package:savemybook_app/screens/chat_room_screen.dart';
-import 'package:savemybook_app/screens/dispute_screen.dart';
-import 'package:savemybook_app/screens/edit_profile_screen.dart';
-import 'package:savemybook_app/screens/favorites_screen.dart';
-import 'package:savemybook_app/screens/help_center_screen.dart';
-import 'package:savemybook_app/screens/home_screen.dart';
-import 'package:savemybook_app/screens/legal_consent_screen.dart';
-import 'package:savemybook_app/screens/legal_doc_screen.dart';
-import 'package:savemybook_app/screens/login_screen.dart';
-import 'package:savemybook_app/screens/member_level_screen.dart';
-import 'package:savemybook_app/screens/notification_screen.dart';
-import 'package:savemybook_app/screens/order_detail_screen.dart';
-import 'package:savemybook_app/screens/pending_income_screen.dart';
-import 'package:savemybook_app/screens/profile_screen.dart';
-import 'package:savemybook_app/screens/purchase_history_screen.dart';
-import 'package:savemybook_app/screens/register_screen.dart';
-import 'package:savemybook_app/screens/sales_history_screen.dart';
-import 'package:savemybook_app/screens/security/login_devices_screen.dart';
-import 'package:savemybook_app/screens/security/security_center_screen.dart';
-import 'package:savemybook_app/screens/sell_book_screen.dart';
-import 'package:savemybook_app/screens/settings_screen.dart';
-import 'package:savemybook_app/screens/share_profile_screen.dart';
-import 'package:savemybook_app/screens/support_ticket_screen.dart';
-import 'package:savemybook_app/screens/wallet_screen.dart';
+import 'package:savemybook_app/features/account/account_privacy_screen.dart';
+import 'package:savemybook_app/features/account/app_permissions_screen.dart';
+import 'package:savemybook_app/features/admin/admin_announcement_screen.dart';
+import 'package:savemybook_app/features/admin/admin_backup_screen.dart';
+import 'package:savemybook_app/features/admin/admin_book_screen.dart';
+import 'package:savemybook_app/features/admin/admin_cabinet_screen.dart';
+import 'package:savemybook_app/features/admin/admin_category_screen.dart';
+import 'package:savemybook_app/features/admin/admin_deletion_screen.dart';
+import 'package:savemybook_app/features/admin/admin_dispute_screen.dart';
+import 'package:savemybook_app/features/admin/admin_home_screen.dart';
+import 'package:savemybook_app/features/admin/admin_level_screen.dart';
+import 'package:savemybook_app/features/admin/admin_maintenance_log_screen.dart';
+import 'package:savemybook_app/features/admin/admin_member_detail_screen.dart';
+import 'package:savemybook_app/features/admin/admin_member_screen.dart';
+import 'package:savemybook_app/features/admin/admin_operation_log_screen.dart';
+import 'package:savemybook_app/features/admin/admin_order_detail_screen.dart';
+import 'package:savemybook_app/features/admin/admin_order_screen.dart';
+import 'package:savemybook_app/features/admin/admin_report_screen.dart';
+import 'package:savemybook_app/features/admin/admin_stats_screen.dart';
+import 'package:savemybook_app/features/admin/admin_ticket_screen.dart';
+import 'package:savemybook_app/features/admin/admin_wallet_screen.dart';
+import 'package:savemybook_app/features/home/announcement_screen.dart';
+import 'package:savemybook_app/features/books/book_detail_screen.dart';
+import 'package:savemybook_app/features/selling/book_manage_screen.dart';
+import 'package:savemybook_app/features/orders/cart_screen.dart';
+import 'package:savemybook_app/features/account/change_password_screen.dart';
+import 'package:savemybook_app/features/chat/chat_list_screen.dart';
+import 'package:savemybook_app/features/chat/chat_room_screen.dart';
+import 'package:savemybook_app/features/chat/groups/create_group_screen.dart';
+import 'package:savemybook_app/features/chat/settings/chat_room_settings_screen.dart';
+import 'package:savemybook_app/features/chat/transfer/transfer_card.dart';
+import 'package:savemybook_app/models/chat.dart';
+import 'package:savemybook_app/features/orders/dispute_screen.dart';
+import 'package:savemybook_app/features/account/edit_profile_screen.dart';
+import 'package:savemybook_app/features/books/favorites_screen.dart';
+import 'package:savemybook_app/features/account/help_center_screen.dart';
+import 'package:savemybook_app/features/home/home_screen.dart';
+import 'package:savemybook_app/features/auth/legal_consent_screen.dart';
+import 'package:savemybook_app/features/account/legal_doc_screen.dart';
+import 'package:savemybook_app/features/auth/login_screen.dart';
+import 'package:savemybook_app/features/account/member_level_screen.dart';
+import 'package:savemybook_app/features/home/notification_screen.dart';
+import 'package:savemybook_app/features/orders/order_detail_screen.dart';
+import 'package:savemybook_app/features/selling/pending_income_screen.dart';
+import 'package:savemybook_app/features/account/profile_screen.dart';
+import 'package:savemybook_app/features/orders/purchase_history_screen.dart';
+import 'package:savemybook_app/features/auth/register_screen.dart';
+import 'package:savemybook_app/features/selling/sales_history_screen.dart';
+import 'package:savemybook_app/features/security/login_devices_screen.dart';
+import 'package:savemybook_app/features/security/security_center_screen.dart';
+import 'package:savemybook_app/features/selling/sell_book_screen.dart';
+import 'package:savemybook_app/features/account/settings_screen.dart';
+import 'package:savemybook_app/features/account/share_profile_screen.dart';
+import 'package:savemybook_app/features/account/support_ticket_screen.dart';
+import 'package:savemybook_app/features/account/wallet_screen.dart';
 import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/services/locale_provider.dart';
 import 'package:savemybook_app/services/theme_provider.dart';
@@ -164,6 +169,132 @@ Map<String, dynamic> chatReservation() => {
       'created_at': now,
     };
 
+Map<String, dynamic> chatMember(int id, {String role = 'member'}) => {
+      ...user(id),
+      'alias': id == 3 ? 'Study group partner with a long alias' : null,
+      'role': role,
+      'joined_at': now,
+    };
+
+Map<String, dynamic> chatRoomRow(int i) {
+  final group = i.isEven;
+  return {
+    'room_id': i,
+    'type': group ? 'group' : 'direct',
+    'title': group ? 'Advanced Statistics Study Group for the Autumn Semester' : longName,
+    'avatar_url': null,
+    'partner': group ? null : {...user(2), 'alias': i == 1 ? longName : null},
+    'member_count': group ? 100 : 2,
+    'pinned': i <= 2,
+    'pinned_at': i <= 2 ? now : null,
+    'muted': i == 2,
+    'blocked': false,
+    'last_message': {'content': 'Is this book still available? I would like to pick it up tomorrow.', 'message_type': 'text', 'kind': i == 2 ? 'voice' : 'text', 'sender_id': i.isOdd ? 1 : 2, 'sender_name': longName, 'is_read': i == 1, 'created_at': now},
+    'unread_count': 128,
+    'updated_at': now,
+  };
+}
+
+Map<String, dynamic> chatTransfer(int id, {String kind = 'transfer', String status = 'completed', int from = 1, int to = 2, int room = 1}) => {
+      'transfer_id': id,
+      'transfer_no': 'TF2026091410300012345$id',
+      'kind': kind,
+      'room_id': room,
+      'message_id': 8 + id,
+      'from_user_id': from,
+      'to_user_id': to,
+      'amount': 123456,
+      'note': 'Deposit for the textbook I will pick up at the locker on Saturday',
+      'status': status,
+      'created_at': now,
+      'responded_at': status == 'pending' ? null : now,
+      'expires_at': '2099-01-01T00:00:00.000Z',
+    };
+
+Map<String, dynamic> chatGroupInfo() => {
+      'room_id': 2,
+      'type': 'group',
+      'name': 'Second-hand Textbook Exchange Group for Engineering Students',
+      'avatar_url': null,
+      'created_by': 1,
+      'my_role': 'owner',
+      'members': [for (final id in [1, 2, 3, 4]) {...user(id), 'role': id == 1 ? 'owner' : 'member', 'alias': id == 3 ? 'Study Buddy With An Extremely Long Alias' : null, 'joined_at': now}],
+      'partner': null,
+      'muted': true,
+      'pinned': true,
+    };
+
+Map<String, dynamic> chatMeta(int roomId) => roomId == 2
+    ? {
+        'members_read': [
+          {'user_id': 2, 'last_read_message_id': 12},
+          {'user_id': 3, 'last_read_message_id': 12},
+          {'user_id': 4, 'last_read_message_id': 6},
+        ],
+        'typing_user_ids': [2, 3, 4],
+        'aliases': {'3': 'Study Buddy With An Extremely Long Alias'},
+        'edited': <Object>[],
+        'recalled_ids': <int>[],
+        'has_more': true,
+        'reservations': <Object>[],
+        'transfers': [chatTransfer(1, room: 2, to: 3), chatTransfer(2, kind: 'request', status: 'pending', from: 1, to: 4, room: 2)],
+        'muted': true,
+        'room': {'type': 'group', 'title': 'Second-hand Textbook Exchange Group for Engineering Students', 'avatar_url': null, 'member_count': 100},
+      }
+    : {
+        'read_upto': 6,
+        'partner_typing': true,
+        'recalled_ids': <int>[],
+        'has_more': true,
+        'reservations': [chatReservation()],
+        'transfers': [chatTransfer(1), chatTransfer(2, kind: 'request', status: 'pending', from: 1, to: 2)],
+        'members_read': [
+          {'user_id': 2, 'last_read_message_id': 6},
+        ],
+        'aliases': <String, String>{},
+        'edited': <Object>[],
+        'room': {'type': 'direct', 'title': longName, 'avatar_url': null, 'member_count': 2},
+      };
+
+List<Map<String, dynamic>> chatMessages(int roomId) {
+  final group = roomId == 2;
+  final kinds = group
+      ? ['notice', 'text', 'text', 'image', 'text', 'voice', 'text', 'recalled', 'text', 'transfer', 'transfer', 'text']
+      : ['text', 'image', 'voice', 'book', 'reservation', 'recalled', 'text', 'text', 'transfer', 'transfer'];
+  const long = 'This is a fairly long chat message that should wrap nicely. This is a fairly long chat message that should wrap nicely. ';
+  return List.generate(kinds.length, (n) {
+    final i = n + 1;
+    final kind = kinds[n];
+    final sender = group ? [1, 2, 2, 3, 1, 4, 3, 2, 1, 1, 1, 1][n] : (i.isEven ? 1 : 2);
+    final transferId = kind == 'transfer' ? kinds.sublist(0, n).where((k) => k == 'transfer').length + 1 : 0;
+    return {
+      'message_id': i,
+      'room_id': roomId,
+      'sender_id': sender,
+      'content': kind == 'transfer' ? '[transfer]{"transfer_id":$transferId}' : long,
+      'message_type': kind == 'text' ? 'text' : kind == 'image' ? 'image' : 'system',
+      'kind': kind,
+      'body': kind == 'text' ? long : kind == 'image' ? '/uploads/chat/a.jpg' : kind == 'notice' ? '$longName created the group' : null,
+      'payload': switch (kind) {
+        'voice' => {'url': '/uploads/voice/a.m4a', 'duration': 118},
+        'book' => {'book_id': 5, 'title': longTitle, 'price': 123456, 'image_url': null},
+        'reservation' => chatReservation(),
+        'transfer' => group
+            ? (transferId == 1 ? chatTransfer(1, room: 2, to: 3) : chatTransfer(2, kind: 'request', status: 'pending', from: 1, to: 4, room: 2))
+            : (transferId == 1 ? chatTransfer(1) : chatTransfer(2, kind: 'request', status: 'pending', from: 1, to: 2)),
+        _ => null,
+      },
+      'is_read': i < 6,
+      'created_at': now,
+      'edited_at': kind == 'text' && i.isEven ? now : null,
+      'reply_to': kind == 'text' && i > 6
+          ? {'message_id': 2, 'sender_id': group ? 2 : 1, 'sender_nickname': longName, 'kind': group ? 'text' : 'image', 'preview': long, 'image_url': group ? null : '/uploads/chat/a.jpg'}
+          : null,
+      'users': {'user_id': sender, 'nickname': longName, 'avatar_url': null},
+    };
+  });
+}
+
 List<Map<String, dynamic>> many(Map<String, dynamic> Function(int i) build, [int n = 4]) =>
     List.generate(n, (i) => build(i + 1));
 
@@ -195,12 +326,14 @@ Object? fakeData(String method, String path) {
     'GET /orders': () => many((i) => order(i, statuses[i % statuses.length])),
     'GET /orders/7': () => order(7, 'deposited'),
     'GET /wallet': () => {'balance': 9876543.5, 'frozen_amount': 123456, 'total_income': 98765432, 'total_expense': 12345678, 'pending_income': 7654321},
-    'GET /wallet/transactions': () => many((i) => {'txn_id': i, 'type': ['purchase', 'sale_income', 'refund', 'admin_adjust'][i % 4], 'amount': i.isEven ? 1234567 : -1234567, 'balance_after': 9876543, 'description': 'Order SMB20260914103000123456 refund', 'created_at': now, 'orders': {'order_id': i, 'order_no': 'SMB20260914103000123456', 'order_items': [{'books': book(i)}]}}),
+    'GET /wallet/transactions': () => many((i) => {'txn_id': i, 'type': ['purchase', 'sale_income', 'transfer_in', 'transfer_out', 'refund', 'admin_adjust'][i % 6], 'amount': i.isEven ? 1234567 : -1234567, 'balance_after': 9876543, 'description': 'Order SMB20260914103000123456 refund', 'created_at': now, 'orders': {'order_id': i, 'order_no': 'SMB20260914103000123456', 'order_items': [{'books': book(i)}]}}),
     'GET /wallet/pending': () => many((i) => order(i, 'deposited')),
     'GET /notifications': () => many((i) => {'notification_id': i, 'type': ['order', 'message', 'system', 'promotion'][i % 4], 'title': 'Your book "$longTitle" has been sold', 'content': 'Order SMB20260914103000123456 was placed. Please drop the book off at $longCabinet within seven days.', 'related_id': i, 'related_type': 'order', 'is_read': i.isEven, 'created_at': now}),
     'GET /notifications/unread-count': () => {'unread_count': 999},
     'GET /announcements': () => many((i) => {'announcement_id': i, 'title': 'Scheduled maintenance for the smart locker network this weekend', 'content': 'We will upgrade the locker firmware. ' * 5, 'type': ['general', 'maintenance', 'promotion', 'policy'][i % 4], 'is_published': true, 'published_at': now, 'created_at': now, 'users': user(9)}),
-    'GET /chat/rooms': () => many((i) => {'room_id': i, 'partner': user(2), 'last_message': {'content': 'Is this book still available? I would like to pick it up tomorrow.', 'message_type': 'text', 'kind': i == 2 ? 'voice' : 'text', 'sender_id': i.isOdd ? 1 : 2, 'is_read': i == 1, 'created_at': now}, 'unread_count': 128, 'updated_at': now}),
+    'GET /chat/rooms': () => many(chatRoomRow),
+    'GET /chat/rooms/1': () => {'room_id': 1, 'type': 'direct', 'name': '', 'avatar_url': null, 'created_by': 1, 'my_role': 'member', 'members': [chatMember(1), chatMember(2)], 'partner': {...user(2), 'alias': longName}, 'muted': true, 'pinned': true},
+    'GET /chat/rooms/2': () => {'room_id': 2, 'type': 'group', 'name': 'Advanced Statistics Study Group for the Autumn Semester', 'avatar_url': null, 'created_by': 1, 'my_role': 'owner', 'members': [chatMember(1, role: 'owner'), ...many((i) => chatMember(i + 1), 6)], 'partner': null, 'muted': false, 'pinned': true},
     'GET /chat/unread-count': () => {'unread_count': 999},
     'GET /cart/book-ids': () => [1, 5],
     'GET /cabinets': () => many((i) => {...cabinet(), 'cabinet_id': i, 'available_slots': i == 2 ? 0 : 123, 'latitude': '25.0173000', 'longitude': '121.5398000', 'distance_m': i * 1234}),
@@ -256,30 +389,8 @@ Object? fakeData(String method, String path) {
 
   final key = '$method $path';
   if (routes.containsKey(key)) return routes[key]!();
-  if (RegExp(r'^GET /chat/rooms/\d+/messages$').hasMatch(key)) {
-    const kinds = ['text', 'image', 'voice', 'book', 'reservation', 'recalled', 'text', 'text'];
-    return List.generate(kinds.length, (n) {
-      final i = n + 1;
-      final kind = kinds[n];
-      return {
-        'message_id': i,
-        'room_id': 1,
-        'sender_id': i.isEven ? 1 : 2,
-        'content': 'This is a fairly long chat message that should wrap nicely. ' * 2,
-        'message_type': kind == 'text' ? 'text' : kind == 'image' ? 'image' : 'system',
-        'kind': kind,
-        'body': kind == 'text' ? 'This is a fairly long chat message that should wrap nicely. ' * 2 : kind == 'image' ? '/uploads/chat/a.jpg' : null,
-        'payload': switch (kind) {
-          'voice' => {'url': '/uploads/voice/a.m4a', 'duration': 118},
-          'book' => {'book_id': 5, 'title': longTitle, 'price': 123456, 'image_url': null},
-          'reservation' => chatReservation(),
-          _ => null,
-        },
-        'is_read': i < 6,
-        'created_at': now,
-      };
-    });
-  }
+  final chatRoom = RegExp(r'^GET /chat/rooms/(\d+)/messages$').firstMatch(key);
+  if (chatRoom != null) return chatMessages(int.parse(chatRoom.group(1)!));
   if (method == 'GET') return <Object>[];
   return <String, Object>{};
 }
@@ -292,7 +403,8 @@ MockClient fakeApi() => MockClient((request) async {
         'message': 'OK',
         'data': data,
         if (path == '/chat/rooms/1/messages') 'partner': user(2),
-        if (path == '/chat/rooms/1/messages') 'meta': {'read_upto': 6, 'partner_typing': true, 'recalled_ids': <int>[], 'has_more': true, 'reservations': [chatReservation()]},
+        if (path == '/chat/rooms/1/messages') 'meta': chatMeta(1),
+        if (path == '/chat/rooms/2/messages') 'meta': chatMeta(2),
         if (path == '/cart') 'total_amount': 4938268,
         if (path == '/notifications') 'unread_count': 999,
         if (path == '/wallet/pending') 'total_amount': 4938268,
@@ -312,6 +424,7 @@ Map<String, Widget Function()> get screens => {
       'EditProfile': () => const EditProfileScreen(),
       'Settings': () => const SettingsScreen(),
       'AccountPrivacy': () => const AccountPrivacyScreen(),
+      'AppPermissions': () => const AppPermissionsScreen(),
       'ChangePassword': () => const ChangePasswordScreen(),
       'ShareProfile': () => const ShareProfileScreen(),
       'MemberLevel': () => const MemberLevelScreen(),
@@ -332,6 +445,11 @@ Map<String, Widget Function()> get screens => {
           announcement: Announcement.fromJson({'announcement_id': 1, 'title': 'Scheduled maintenance for the smart locker network', 'content': 'Content ' * 50, 'type': 'maintenance', 'is_published': true, 'published_at': now})),
       'ChatList': () => const ChatListScreen(),
       'ChatRoom': () => const ChatRoomScreen(roomId: 1, partnerName: longName),
+      'ChatRoomGroup': () => const ChatRoomScreen(roomId: 2),
+      'ChatSettingsDirect': () => const ChatRoomSettingsScreen(roomId: 1),
+      'ChatSettingsGroup': () => const ChatRoomSettingsScreen(roomId: 2),
+      'CreateGroup': () => const CreateGroupScreen(),
+      'TransferCards': () => const TransferCardsPreview(),
       'HelpCenter': () => const HelpCenterScreen(),
       'SupportTickets': () => const SupportTicketScreen(),
       'NewTicket': () => const NewTicketScreen(),
@@ -361,8 +479,53 @@ Map<String, Widget Function()> get screens => {
       'AdminAnnouncements': () => const AdminAnnouncementScreen(),
     };
 
+class TransferCardsPreview extends StatelessWidget {
+  const TransferCardsPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final states = <(ChatTransfer, bool)>[
+      (ChatTransfer.fromJson(chatTransfer(1)), true),
+      (ChatTransfer.fromJson(chatTransfer(2, from: 2, to: 1)), false),
+      (ChatTransfer.fromJson(chatTransfer(3, kind: 'request', status: 'pending', from: 1, to: 2)), false),
+      (ChatTransfer.fromJson(chatTransfer(4, kind: 'request', status: 'pending', from: 2, to: 1)), true),
+      (ChatTransfer.fromJson(chatTransfer(5, kind: 'request', status: 'declined')), false),
+      (ChatTransfer.fromJson(chatTransfer(6, kind: 'request', status: 'cancelled')), true),
+      (ChatTransfer.fromJson({...chatTransfer(7, kind: 'request', status: 'pending'), 'expires_at': '2020-01-01T00:00:00.000Z'}), false),
+      (ChatTransfer.fromJson(chatTransfer(8, from: 2, to: 3)), false),
+    ];
+    return Scaffold(
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          for (final (i, (transfer, mine)) in states.indexed)
+            Align(
+              alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 260),
+                  child: TransferCardView(
+                    transfer: transfer,
+                    myId: 1,
+                    isMine: mine,
+                    busy: i == 3,
+                    nameOf: (_) => longName,
+                    onAction: (_) {},
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 const locales = [Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'), Locale('en'), Locale('ja'), Locale('ko')];
 const sizes = [Size(360, 740), Size(390, 844)];
+const wideSizes = [Size(768, 1024), Size(1180, 820), Size(1440, 900)];
+const wideLocales = ['zh-Hant', 'en'];
 
 void main() {
   final problems = <String>[];
@@ -379,7 +542,7 @@ void main() {
   });
 
   for (final locale in locales) {
-    for (final size in sizes) {
+    for (final size in [...sizes, if (wideLocales.contains(locale.toLanguageTag())) ...wideSizes]) {
       for (final entry in screens.entries) {
         testWidgets('${entry.key} ${locale.toLanguageTag()} ${size.width.toInt()}', (tester) async {
           ApiService.authToken = 'test-token';

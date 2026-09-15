@@ -73,6 +73,8 @@ class WalletTransaction {
       case 'sale_income': return S.sale;
       case 'refund': return S.txnRefund;
       case 'admin_adjust': return S.systemAdjustment;
+      case 'transfer_in': return S.transfer3;
+      case 'transfer_out': return S.transferOut;
       default: return type;
     }
   }

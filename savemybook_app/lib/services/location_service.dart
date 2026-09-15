@@ -37,6 +37,16 @@ class LocationService {
     }
   }
 
+  static Future<LocationPermission?> permission({bool request = false}) async {
+    try {
+      final current = await Geolocator.checkPermission();
+      if (!request || current != LocationPermission.denied) return current;
+      return await Geolocator.requestPermission();
+    } catch (_) {
+      return null;
+    }
+  }
+
   static double? distanceTo(double latitude, double longitude) {
     final here = _last;
     if (here == null || (latitude == 0 && longitude == 0)) return null;

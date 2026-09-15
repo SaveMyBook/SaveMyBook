@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../screens/image_crop_screen.dart';
+import '../features/books/image_crop_screen.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/state_views.dart';
 import '../i18n/strings.dart';
@@ -75,7 +75,10 @@ class PhotoService {
     return results;
   }
 
+  static bool get canUseCamera => _picker.supportsImageSource(ImageSource.camera);
+
   static Future<ImageSource?> _askSource(BuildContext context) async {
+    if (!canUseCamera) return ImageSource.gallery;
     final choice = await showOptionSheet<ImageSource>(
       context,
       title: S.choosePhotoSource,

@@ -5,6 +5,7 @@ const push = require('../services/push');
 const maintenance = require('../lib/maintenance');
 const sessions = require('../services/sessions');
 const reservations = require('../services/reservations');
+const transferRecords = require('../services/chat/transfer-records');
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
@@ -53,6 +54,11 @@ const runReservationExpiry = async () => {
     await reservations.expireDue();
   } catch (err) {
     console.error('[預約到期處理失敗]:', err.message);
+  }
+  try {
+    await transferRecords.expireDue();
+  } catch (err) {
+    console.error('[請款到期處理失敗]:', err.message);
   }
 };
 

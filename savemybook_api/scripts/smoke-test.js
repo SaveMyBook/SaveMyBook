@@ -45,6 +45,7 @@ const main = async () => {
     const d = status.json.data;
     console.log(`伺服器版本 commit ${d.commit ?? '未知'}，啟動於 ${d.started_at ?? '未知'}`);
     if (d.pending_migrations?.length) console.log(`❌ 尚未執行的 migration：${d.pending_migrations.join('、')}`);
+    if (d.pending_migrations?.includes('009_chat_groups_transfers.sql')) console.log('   執行 009 後須再執行 npx prisma db pull && npx prisma generate 並重新啟動 API');
   }
 
   const login = await call('POST', '/api/auth/login', {
@@ -84,7 +85,7 @@ const main = async () => {
   const outdated = problems.filter((x) => x.code === 'ROUTE_NOT_FOUND');
   if (outdated.length) console.log(`→ ${outdated.length} 個端點 404：伺服器程式版本過舊，請更新並重新啟動 API`);
   const noSchema = problems.filter((x) => x.code === 'SECURITY_UNAVAILABLE' || x.status === 503);
-  if (noSchema.length) console.log('→ 有 503：請確認已執行 migrations 內所有 SQL 檔（npm run verify 會列出尚未執行的項目）');
+  if (noSchema.length) console.log('→ 有 503：請確認已執行 migrations 內所有 SQL 檔，009 之後須再執行 npx prisma db pull && npx prisma generate（npm run verify 會列出尚未完成的項目）');
   if (problems.some((x) => x.status >= 500 && x.status !== 503)) console.log('→ 有 500：請查看伺服器日誌');
   process.exit(problems.length ? 1 : 0);
 };

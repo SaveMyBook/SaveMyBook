@@ -94,7 +94,7 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 
 | \`scope\` | 可用方式 | 有效期 | 使用次數 | 適用端點 |
 | --- | --- | --- | --- | --- |
-| \`payment\` | 交易密碼、生物辨識 | 3 分鐘 | 單次；請求失敗（狀態碼大於等於 400）時恢復可用 | \`POST /api/orders/checkout\` |
+| \`payment\` | 交易密碼、生物辨識 | 3 分鐘 | 單次；請求失敗（狀態碼大於等於 400）時恢復可用 | \`POST /api/orders/checkout\`、\`POST /api/chat/rooms/{roomId}/transfers\`、\`POST /api/chat/transfers/{id}/pay\` |
 | \`sensitive\` | 登入密碼、交易密碼、生物辨識 | 5 分鐘 | 有效期內可重複使用 | 匯出個人資料、交易密碼與登入裝置管理、刪除使用者、錢包調整、重設會員密碼、設定管理員權限、刪除備份、立即匿名化、還原操作 |
 
 交易密碼規則、錯誤鎖定與生物辨識付款的運作方式見「帳號安全」一節。
@@ -110,7 +110,7 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`code\` | HTTP | 意義 | 建議處理方式 |
 | --- | --- | --- | --- |
 | \`INVALID_PASSWORD\` | 401 | 登入密碼錯誤 | 保留已輸入的 Email，僅於密碼欄位提示錯誤 |
-| \`INSUFFICIENT_BALANCE\` | 400 | 代幣餘額不足以完成結帳 | 導向儲值流程 |
+| \`INSUFFICIENT_BALANCE\` | 400 | 代幣餘額不足以完成結帳、轉帳或支付請款 | 導向儲值流程 |
 | \`BOOK_RESERVED\` | 409 | 書籍已由其他買家預約保留，無法加入購物車或結帳 | 顯示保留期限，引導瀏覽其他書籍 |
 | \`VERIFICATION_REQUIRED\` | 403 | 需要身分驗證，回應附帶 \`verification\` | 依 \`verification\` 驗證後帶 \`X-Verify-Token\` 重送 |
 | \`PAYMENT_PIN_NOT_SET\` | 403 | 尚未設定交易密碼 | 引導設定交易密碼 |
@@ -120,9 +120,14 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`BIOMETRIC_KEY_INVALID\` | 400 | 這台裝置的生物辨識付款金鑰已失效 | 清除本機金鑰，改用交易密碼 |
 | \`SESSION_REQUIRED\` | 403 | Token 未綁定裝置工作階段（舊版 Token） | 引導重新登入 |
 | \`SECURITY_UNAVAILABLE\` | 503 | 伺服器尚未執行帳號安全所需的資料庫更新 | 隱藏相關功能，稍後再試 |
-| \`CHAT_BLOCKED\` | 403 | 請求者已封鎖對方，無法傳送訊息或建立預約 | 顯示解除封鎖的入口 |
+| \`CHAT_BLOCKED\` | 403 | 請求者已封鎖對方，無法傳送或編輯訊息、建立預約、轉帳或請款 | 顯示解除封鎖的入口 |
 | \`RECIPIENT_UNAVAILABLE\` | 400 | 對方帳號停用，或對方已封鎖請求者（兩者刻意不區分） | 停用輸入欄位 |
 | \`CHAT_CONTROLS_UNAVAILABLE\` | 503 | 伺服器尚未執行聊天室靜音與封鎖所需的資料庫更新 | 提示稍後再試 |
+| \`CHAT_V2_UNAVAILABLE\` | 503 | 伺服器尚未執行群組、釘選、自訂暱稱、編輯訊息與轉帳所需的資料庫更新 009，或尚未重新產生 Prisma Client | 隱藏相關功能，稍後再試 |
+| \`PIN_LIMIT\` | 400 | 釘選的聊天室已達 10 個 | 提示先取消其他釘選 |
+| \`EDIT_WINDOW_PASSED\` | 400 | 訊息送出已超過 15 分鐘，無法編輯 | 隱藏編輯選項 |
+| \`GROUP_MEMBER_LIMIT\` | 400 | 群組成員將超過 100 人 | 提示減少邀請人數 |
+| \`TRANSFER_STATE_CHANGED\` | 409 | 請款已被付款、婉拒、取消或已到期 | 重新取得訊息以更新轉帳卡片 |
 | \`BOOK_NOT_APPROVED\` | 403 | 書籍因違規下架，賣家無法自行重新上架 | 引導使用者開立客服工單 |
 | \`OPEN_ORDERS\` | 400 | 尚有進行中的訂單，無法申請刪除帳號 | 引導使用者完成或取消訂單 |
 | \`RATE_LIMITED\` | 429 | 短時間內嘗試次數過多 | 依 \`Retry-After\` 標頭等待後再試 |
