@@ -553,9 +553,10 @@ paths:
       operationId: lookupIsbn
       tags: [books]
       description: |
-        代理查詢 Google Books API，供上架流程自動帶入書名、作者等欄位。
+        同時查詢 Google Books API 與 Open Library，逐欄位採用第一個有值的來源（Google Books 優先），供上架流程自動帶入書名、作者等欄位。
+        Open Library 會一併以對應的 10 碼與 13 碼 ISBN 查詢；兩者皆未提供簡介時，再向 Open Library 查詢版本與作品簡介。
 
-        此端點不寫入資料庫。伺服器若已設定 `GOOGLE_BOOKS_API_KEY`，查詢時會一併帶入。
+        此端點不寫入資料庫。伺服器若已設定 `GOOGLE_BOOKS_API_KEY`，查詢 Google Books 時會一併帶入。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -589,7 +590,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 外部書庫找不到此 ISBN 的書籍資訊 }
         '500':
-          description: 外部 API 連線失敗。
+          description: 兩個外部書庫皆連線失敗。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }

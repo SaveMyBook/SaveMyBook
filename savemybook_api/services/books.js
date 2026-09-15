@@ -1,9 +1,9 @@
 const prisma = require('../lib/prisma');
-const { fetchVolumeByIsbn } = require('../lib/google-books');
-const { badRequest, forbidden, notFound, conflict, HttpError } = require('../lib/errors');
+const { badRequest, forbidden, notFound, conflict } = require('../lib/errors');
 const { bookCard, cabinetLocation, categoryName } = require('../lib/selects');
 const { BOOK_STATUSES } = require('../constants/domain');
 const share = require('./share');
+const isbnLookup = require('./isbn-lookup');
 const ranking = require('./ranking');
 const reservations = require('./reservations');
 const { notifyMany } = require('./notify');
@@ -27,24 +27,7 @@ const detailInclude = {
   smart_cabinets: { select: cabinetLocation }
 };
 
-const lookupIsbn = async (isbn) => {
-  let info;
-  try {
-    info = await fetchVolumeByIsbn(isbn);
-  } catch (err) {
-    console.error('[查詢 ISBN 失敗]:', err.message);
-    throw new HttpError(502, '查詢外部書籍資訊發生錯誤');
-  }
-  if (!info) throw notFound('外部書庫找不到此 ISBN 的書籍資訊');
-
-  return {
-    title: info.title || '',
-    author: Array.isArray(info.authors) ? info.authors.join(', ') : '',
-    publisher: info.publisher || '',
-    publish_date: info.publishedDate || '',
-    description: info.description || ''
-  };
-};
+const lookupIsbn = (isbn) => isbnLookup.lookup(isbn);
 
 const listWhere = ({ status, sellerId, ownView, categoryIds, keyword }) => ({
   ...(status !== 'all' ? { status } : !ownView && { status: { not: 'removed' } }),
