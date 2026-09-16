@@ -117,6 +117,7 @@ model books {
   share_token         String?               @unique(map: "uk_book_share_token") @db.Char(32)
   created_at          DateTime              @default(now()) @db.DateTime(0)
   updated_at          DateTime              @default(now()) @db.DateTime(0)
+  ai_book_reviews     ai_book_reviews?
   book_images         book_images[]
   smart_cabinets      smart_cabinets?       @relation(fields: [cabinet_id], references: [cabinet_id], onUpdate: NoAction, map: "fk_book_cabinet")
   book_categories     book_categories?      @relation(fields: [category_id], references: [category_id], onUpdate: NoAction, map: "fk_book_category")
@@ -155,17 +156,19 @@ model cabinet_slots {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model chat_messages {
-  message_id   Int                        @id @default(autoincrement()) @db.UnsignedInt
-  room_id      Int                        @db.UnsignedInt
-  sender_id    Int                        @db.UnsignedInt
-  content      String                     @db.Text
-  message_type chat_messages_message_type @default(text)
-  is_read      Boolean                    @default(false)
-  created_at   DateTime                   @default(now()) @db.DateTime(0)
-  reply_to_id  Int?                       @db.UnsignedInt
-  edited_at    DateTime?                  @db.DateTime(0)
-  chat_rooms   chat_rooms                 @relation(fields: [room_id], references: [room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_msg_room")
-  users        users                      @relation(fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_msg_sender")
+  message_id    Int                        @id @default(autoincrement()) @db.UnsignedInt
+  room_id       Int                        @db.UnsignedInt
+  sender_id     Int                        @db.UnsignedInt
+  content       String                     @db.Text
+  message_type  chat_messages_message_type @default(text)
+  is_read       Boolean                    @default(false)
+  created_at    DateTime                   @default(now()) @db.DateTime(0)
+  reply_to_id   Int?                       @db.UnsignedInt
+  edited_at     DateTime?                  @db.DateTime(0)
+  mentions      String?                    @db.Text
+  chat_mentions chat_mentions[]
+  chat_rooms    chat_rooms                 @relation(fields: [room_id], references: [room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_msg_room")
+  users         users                      @relation(fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_msg_sender")
 
   @@index([sender_id], map: "fk_msg_sender")
   @@index([room_id, created_at], map: "idx_room_time")
@@ -228,12 +231,13 @@ model favorites {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model login_logs {
-  log_id      Int      @id @default(autoincrement()) @db.UnsignedInt
-  user_id     Int      @db.UnsignedInt
-  login_at    DateTime @default(now()) @db.DateTime(0)
-  ip_address  String?  @db.VarChar(45)
-  device_info String?  @db.VarChar(255)
-  users       users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_login_user")
+  log_id       Int      @id @default(autoincrement()) @db.UnsignedInt
+  user_id      Int      @db.UnsignedInt
+  login_at     DateTime @default(now()) @db.DateTime(0)
+  ip_address   String?  @db.VarChar(45)
+  device_info  String?  @db.VarChar(255)
+  login_method String?  @db.VarChar(20)
+  users        users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_login_user")
 
   @@index([user_id, login_at], map: "idx_user_login")
 }
@@ -558,8 +562,13 @@ model users {
   deletion_requested_at                                         DateTime?                 @db.DateTime(0)
   anonymized_at                                                 DateTime?                 @db.DateTime(0)
   share_token                                                   String?                   @unique(map: "uk_share_token") @db.Char(32)
+  password_set                                                  Boolean                   @default(true)
   admin_operation_logs                                          admin_operation_logs[]
   admin_permissions                                             admin_permissions?
+  ai_chat_sessions                                              ai_chat_sessions[]
+  ai_consents                                                   ai_consents?
+  ai_recommendation_cache                                       ai_recommendation_cache?
+  ai_support_sessions                                           ai_support_sessions[]
   bankbooks                                                     bankbooks[]
   books                                                         books[]
   chat_aliases_chat_aliases_owner_idTousers                     chat_aliases[]            @relation("chat_aliases_owner_idTousers")
@@ -598,6 +607,7 @@ model users {
   user_achievements                                             user_achievements[]
   user_blocks_user_blocks_blocked_idTousers                     user_blocks[]             @relation("user_blocks_blocked_idTousers")
   user_blocks_user_blocks_blocker_idTousers                     user_blocks[]             @relation("user_blocks_blocker_idTousers")
+  user_identities                                               user_identities[]
   user_legal_consents                                           user_legal_consents[]
   user_qr_codes                                                 user_qr_codes[]
   user_security                                                 user_security?
@@ -720,6 +730,7 @@ model chat_room_members {
   joined_at            DateTime               @db.DateTime(0)
   left_at              DateTime?              @db.DateTime(0)
   last_read_message_id Int                    @default(0) @db.UnsignedInt
+  history_from_id      Int                    @default(0) @db.UnsignedInt
   chat_rooms           chat_rooms             @relation(fields: [room_id], references: [room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_member_room")
   users                users                  @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_member_user")
 
@@ -848,6 +859,164 @@ model user_sessions {
   users        users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_session_user")
 
   @@index([user_id, revoked_at], map: "idx_session_user")
+}
+
+model ai_book_reviews {
+  book_id     Int                    @id @db.UnsignedInt
+  verdict     String                 @db.VarChar(10)
+  reasons     String?                @db.Text
+  categories  String?                @db.Text
+  status      ai_book_reviews_status @default(pending)
+  provider    String?                @db.VarChar(20)
+  model       String?                @db.VarChar(80)
+  created_at  DateTime               @db.DateTime(0)
+  reviewed_by Int?                   @db.UnsignedInt
+  reviewed_at DateTime?              @db.DateTime(0)
+  books       books                  @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_review_book")
+
+  @@index([status, created_at], map: "idx_ai_review_status")
+}
+
+model ai_chat_messages {
+  message_id       Int                   @id @default(autoincrement()) @db.UnsignedInt
+  session_id       Int                   @db.UnsignedInt
+  role             ai_chat_messages_role
+  content          String                @db.Text
+  book_ids         String?               @db.VarChar(255)
+  created_at       DateTime              @db.DateTime(0)
+  ai_chat_sessions ai_chat_sessions      @relation(fields: [session_id], references: [session_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_chat_message_session")
+
+  @@index([session_id, message_id], map: "idx_ai_chat_message_session")
+}
+
+model ai_chat_sessions {
+  session_id       Int                     @id @default(autoincrement()) @db.UnsignedInt
+  user_id          Int                     @db.UnsignedInt
+  status           ai_chat_sessions_status @default(open)
+  created_at       DateTime                @db.DateTime(0)
+  updated_at       DateTime                @db.DateTime(0)
+  ai_chat_messages ai_chat_messages[]
+  users            users                   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_chat_session_user")
+
+  @@index([user_id, status], map: "idx_ai_chat_session_user")
+}
+
+model ai_consents {
+  user_id    Int      @id @db.UnsignedInt
+  granted    Boolean
+  updated_at DateTime @db.DateTime(0)
+  users      users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_consent_user")
+}
+
+model ai_recommendation_cache {
+  user_id    Int      @id @db.UnsignedInt
+  payload    String   @db.Text
+  created_at DateTime @db.DateTime(0)
+  users      users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_rec_user")
+}
+
+model ai_settings {
+  id         Int      @id @db.UnsignedTinyInt
+  config     String   @db.Text
+  updated_by Int?     @db.UnsignedInt
+  updated_at DateTime @db.DateTime(0)
+}
+
+model ai_support_messages {
+  message_id          Int                      @id @default(autoincrement()) @db.UnsignedInt
+  session_id          Int                      @db.UnsignedInt
+  role                ai_support_messages_role
+  content             String                   @db.Text
+  created_at          DateTime                 @db.DateTime(0)
+  ai_support_sessions ai_support_sessions      @relation(fields: [session_id], references: [session_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_message_session")
+
+  @@index([session_id, message_id], map: "idx_ai_message_session")
+}
+
+model ai_support_sessions {
+  session_id          Int                        @id @default(autoincrement()) @db.UnsignedInt
+  user_id             Int                        @db.UnsignedInt
+  status              ai_support_sessions_status @default(open)
+  ticket_id           Int?                       @db.UnsignedInt
+  created_at          DateTime                   @db.DateTime(0)
+  updated_at          DateTime                   @db.DateTime(0)
+  ai_support_messages ai_support_messages[]
+  users               users                      @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_session_user")
+
+  @@index([user_id, status], map: "idx_ai_session_user")
+}
+
+model ai_usage_logs {
+  usage_id      BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
+  feature       String               @db.VarChar(30)
+  provider      String               @db.VarChar(20)
+  model         String               @db.VarChar(80)
+  user_id       Int?                 @db.UnsignedInt
+  input_tokens  Int                  @default(0) @db.UnsignedInt
+  cached_tokens Int                  @default(0) @db.UnsignedInt
+  output_tokens Int                  @default(0) @db.UnsignedInt
+  search_calls  Int                  @default(0) @db.UnsignedInt
+  cost_usd      Decimal              @default(0.000000) @db.Decimal(12, 6)
+  latency_ms    Int                  @default(0) @db.UnsignedInt
+  status        ai_usage_logs_status
+  error_code    String?              @db.VarChar(60)
+  error_detail  String?              @db.VarChar(400)
+  created_at    DateTime             @db.DateTime(0)
+
+  @@index([created_at], map: "idx_ai_usage_created")
+  @@index([feature, created_at], map: "idx_ai_usage_feature")
+  @@index([user_id, feature, created_at], map: "idx_ai_usage_user")
+}
+
+model auth_settings {
+  id         Int      @id @db.UnsignedTinyInt
+  config     String   @db.Text
+  updated_by Int?     @db.UnsignedInt
+  updated_at DateTime @db.DateTime(0)
+}
+
+model chat_mentions {
+  message_id    Int           @db.UnsignedInt
+  room_id       Int           @db.UnsignedInt
+  user_id       Int           @db.UnsignedInt
+  chat_messages chat_messages @relation(fields: [message_id], references: [message_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mention_message")
+
+  @@id([message_id, user_id])
+  @@index([user_id, room_id, message_id], map: "idx_mention_user_room")
+}
+
+model oauth_results {
+  code       String   @id @db.Char(32)
+  payload    String   @db.Text
+  created_at DateTime @db.DateTime(0)
+
+  @@index([created_at], map: "idx_oauth_result_created")
+}
+
+model oauth_states {
+  state      String            @id @db.Char(32)
+  provider   String            @db.VarChar(20)
+  mode       oauth_states_mode @default(login)
+  user_id    Int?              @db.UnsignedInt
+  created_at DateTime          @db.DateTime(0)
+
+  @@index([created_at], map: "idx_oauth_state_created")
+}
+
+model user_identities {
+  identity_id   Int                      @id @default(autoincrement()) @db.UnsignedInt
+  user_id       Int                      @db.UnsignedInt
+  provider      user_identities_provider
+  subject       String
+  email         String?                  @db.VarChar(255)
+  phone         String?                  @db.VarChar(20)
+  display_name  String?                  @db.VarChar(100)
+  created_at    DateTime                 @db.DateTime(0)
+  last_login_at DateTime?                @db.DateTime(0)
+  users         users                    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_identity_user")
+
+  @@unique([provider, subject], map: "uk_identity")
+  @@index([user_id], map: "idx_identity_user")
 }
 
 enum content_reviews_content_type {
@@ -1052,4 +1221,49 @@ enum chat_transfers_status {
   declined
   cancelled
   expired
+}
+
+enum ai_chat_messages_role {
+  user
+  assistant
+}
+
+enum ai_chat_sessions_status {
+  open
+  closed
+}
+
+enum ai_support_messages_role {
+  user
+  assistant
+}
+
+enum ai_support_sessions_status {
+  open
+  closed
+  escalated
+}
+
+enum oauth_states_mode {
+  login
+  link
+}
+
+enum user_identities_provider {
+  google
+  apple
+  phone
+  line
+  discord
+}
+
+enum ai_book_reviews_status {
+  pending
+  approved
+  rejected
+}
+
+enum ai_usage_logs_status {
+  ok
+  error
 }
