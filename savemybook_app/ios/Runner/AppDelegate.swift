@@ -3,7 +3,10 @@ import UIKit
 import UserNotifications
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+  // Scene Delegate 需要把深層連結轉回這裡，啟動流程只會有一個 App Delegate 實例。
+  static private(set) var shared: AppDelegate?
+
   private static let channelName = "savemybook/deeplink"
   private static let shareChannelName = "savemybook/share"
   private static let pushChannelName = "savemybook/push"
@@ -18,66 +21,73 @@ import UserNotifications
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GeneratedPluginRegistrant.register(with: self)
-
-    if let controller = window?.rootViewController as? FlutterViewController {
-      let channel = FlutterMethodChannel(name: AppDelegate.channelName,
-                                         binaryMessenger: controller.binaryMessenger)
-      channel.setMethodCallHandler { [weak self] call, result in
-        if call.method == "getInitialLink" {
-          result(self?.pendingLink)
-          self?.pendingLink = nil
-        } else {
-          result(FlutterMethodNotImplemented)
-        }
-      }
-      deepLinkChannel = channel
-
-      let share = FlutterMethodChannel(name: AppDelegate.shareChannelName,
-                                       binaryMessenger: controller.binaryMessenger)
-      share.setMethodCallHandler { [weak self] call, result in
-        self?.handleShare(call: call, result: result, host: controller)
-      }
-    }
-
-    if let registrar = self.registrar(forPlugin: "SaveMyBookPush") {
-      let push = FlutterMethodChannel(name: AppDelegate.pushChannelName,
-                                      binaryMessenger: registrar.messenger())
-      push.setMethodCallHandler { [weak self] call, result in
-        switch call.method {
-        case "openNotificationSettings":
-          if let url = URL(string: UIApplication.openSettingsURLString) {
-            UIApplication.shared.open(url)
-          }
-          result(nil)
-        case "registerForRemoteNotifications":
-          UIApplication.shared.registerForRemoteNotifications()
-          result(nil)
-        case "apnsState":
-          result([
-            "registered": UIApplication.shared.isRegisteredForRemoteNotifications,
-            "token": self?.apnsTokenReceived ?? false,
-            "error": (self?.apnsError).map { $0 as Any } ?? NSNull()
-          ])
-        case "setBadge":
-          let count = max(0, call.arguments as? Int ?? 0)
-          if #available(iOS 16.0, *) {
-            UNUserNotificationCenter.current().setBadgeCount(count) { _ in result(nil) }
-          } else {
-            UIApplication.shared.applicationIconBadgeNumber = count
-            result(nil)
-          }
-        default:
-          result(FlutterMethodNotImplemented)
-        }
-      }
-    }
-
+    AppDelegate.shared = self
     if let url = launchOptions?[.url] as? URL {
       pendingLink = url.absoluteString
     }
-
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  // 採用 UIScene 後，畫面由 Storyboard 建立，window 在啟動當下還是 nil；
+  // 外掛註冊與各方法通道改在引擎初始化完成時設定。
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+
+    let messenger = engineBridge.applicationRegistrar.messenger()
+
+    let channel = FlutterMethodChannel(name: AppDelegate.channelName, binaryMessenger: messenger)
+    channel.setMethodCallHandler { [weak self] call, result in
+      if call.method == "getInitialLink" {
+        result(self?.pendingLink)
+        self?.pendingLink = nil
+      } else {
+        result(FlutterMethodNotImplemented)
+      }
+    }
+    deepLinkChannel = channel
+
+    let share = FlutterMethodChannel(name: AppDelegate.shareChannelName, binaryMessenger: messenger)
+    share.setMethodCallHandler { [weak self] call, result in
+      self?.handleShare(call: call, result: result)
+    }
+
+    let push = FlutterMethodChannel(name: AppDelegate.pushChannelName, binaryMessenger: messenger)
+    push.setMethodCallHandler { [weak self] call, result in
+      switch call.method {
+      case "openNotificationSettings":
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+          UIApplication.shared.open(url)
+        }
+        result(nil)
+      case "registerForRemoteNotifications":
+        UIApplication.shared.registerForRemoteNotifications()
+        result(nil)
+      case "apnsState":
+        result([
+          "registered": UIApplication.shared.isRegisteredForRemoteNotifications,
+          "token": self?.apnsTokenReceived ?? false,
+          "error": (self?.apnsError).map { $0 as Any } ?? NSNull()
+        ])
+      case "setBadge":
+        let count = max(0, call.arguments as? Int ?? 0)
+        if #available(iOS 16.0, *) {
+          UNUserNotificationCenter.current().setBadgeCount(count) { _ in result(nil) }
+        } else {
+          UIApplication.shared.applicationIconBadgeNumber = count
+          result(nil)
+        }
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+  }
+
+  func receiveDeepLink(_ url: URL) {
+    if let channel = deepLinkChannel {
+      channel.invokeMethod("onLink", arguments: url.absoluteString)
+    } else {
+      pendingLink = url.absoluteString
+    }
   }
 
   override func application(
@@ -85,11 +95,7 @@ import UserNotifications
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
-    if let channel = deepLinkChannel {
-      channel.invokeMethod("onLink", arguments: url.absoluteString)
-    } else {
-      pendingLink = url.absoluteString
-    }
+    receiveDeepLink(url)
     return super.application(app, open: url, options: options)
   }
 
@@ -113,10 +119,24 @@ import UserNotifications
     super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
   }
 
-  private func handleShare(call: FlutterMethodCall,
-                           result: @escaping FlutterResult,
-                           host: UIViewController) {
+  private func topViewController() -> UIViewController? {
+    let scene = UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .first { $0.activationState == .foregroundActive } ?? UIApplication.shared.connectedScenes.first as? UIWindowScene
+    var controller = scene?.windows.first { $0.isKeyWindow }?.rootViewController
+      ?? scene?.windows.first?.rootViewController
+    while let presented = controller?.presentedViewController {
+      controller = presented
+    }
+    return controller
+  }
+
+  private func handleShare(call: FlutterMethodCall, result: @escaping FlutterResult) {
     let args = call.arguments as? [String: Any] ?? [:]
+    guard let host = topViewController() else {
+      result(FlutterError(code: "no_window", message: "目前沒有可顯示的畫面", details: nil))
+      return
+    }
 
     switch call.method {
     case "shareText":
