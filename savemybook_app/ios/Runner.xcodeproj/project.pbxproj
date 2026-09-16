@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 71;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,9 +15,10 @@
 		425246BE3057C776002B5EAA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 425246BD3057C776002B5EAA /* WidgetKit.framework */; };
 		425246C03057C776002B5EAA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 425246BF3057C776002B5EAA /* SwiftUI.framework */; };
 		425246CB3057C777002B5EAA /* SaveMyBookWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 425246BC3057C776002B5EAA /* SaveMyBookWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		42BDC471305A82200085478E /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 42BDC470305A82200085478E /* GoogleService-Info.plist */; };
+		5B1A9C2E2C7F41A0009SCENE /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1A9C2F2C7F41A0009SCENE /* SceneDelegate.swift */; };
 		6E5A10013057D00100A1B2C3 /* SaveMyBookNotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6E5A10033057D00100A1B2C3 /* SaveMyBookNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
-		5B1A9C2E2C7F41A0009SCENE /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1A9C2F2C7F41A0009SCENE /* SceneDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
@@ -87,12 +88,13 @@
 		425246BC3057C776002B5EAA /* SaveMyBookWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SaveMyBookWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		425246BD3057C776002B5EAA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		425246BF3057C776002B5EAA /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		42BDC470305A82200085478E /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		5B1A9C2F2C7F41A0009SCENE /* SceneDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		6C6E28F35C2E046861F2C3E0 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		6C85CE3415E973EBD807CD3A /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		6E5A10033057D00100A1B2C3 /* SaveMyBookNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SaveMyBookNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		5B1A9C2F2C7F41A0009SCENE /* SceneDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -106,7 +108,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		425246D53057C777002B5EAA /* Exceptions for "SaveMyBookWidget" folder in "SaveMyBookWidgetExtension" target */ = {
+		425246D53057C777002B5EAA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -114,7 +116,7 @@
 			);
 			target = 425246BB3057C776002B5EAA /* SaveMyBookWidgetExtension */;
 		};
-		6E5A10043057D00100A1B2C3 /* Exceptions for "SaveMyBookNotificationService" folder in "SaveMyBookNotificationService" target */ = {
+		6E5A10043057D00100A1B2C3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -124,30 +126,8 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		425246C13057C776002B5EAA /* SaveMyBookWidget */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				425246D53057C777002B5EAA /* Exceptions for "SaveMyBookWidget" folder in "SaveMyBookWidgetExtension" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = SaveMyBookWidget;
-			sourceTree = "<group>";
-		};
-		6E5A10053057D00100A1B2C3 /* SaveMyBookNotificationService */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				6E5A10043057D00100A1B2C3 /* Exceptions for "SaveMyBookNotificationService" folder in "SaveMyBookNotificationService" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = SaveMyBookNotificationService;
-			sourceTree = "<group>";
-		};
+		425246C13057C776002B5EAA /* SaveMyBookWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (425246D53057C777002B5EAA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = SaveMyBookWidget; sourceTree = "<group>"; };
+		6E5A10053057D00100A1B2C3 /* SaveMyBookNotificationService */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (6E5A10043057D00100A1B2C3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = SaveMyBookNotificationService; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -256,6 +236,7 @@
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				5B1A9C2F2C7F41A0009SCENE /* SceneDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
+				42BDC470305A82200085478E /* GoogleService-Info.plist */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -439,6 +420,7 @@
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 				0114B0B8811A7FA8E68C8C9C /* PrivacyInfo.xcprivacy in Resources */,
+				42BDC471305A82200085478E /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -453,9 +435,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -542,9 +528,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
