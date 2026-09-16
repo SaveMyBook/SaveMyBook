@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 71;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -108,7 +108,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		425246D53057C777002B5EAA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		425246D53057C777002B5EAA /* Exceptions for "SaveMyBookWidget" folder in "SaveMyBookWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -116,7 +116,7 @@
 			);
 			target = 425246BB3057C776002B5EAA /* SaveMyBookWidgetExtension */;
 		};
-		6E5A10043057D00100A1B2C3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		6E5A10043057D00100A1B2C3 /* Exceptions for "SaveMyBookNotificationService" folder in "SaveMyBookNotificationService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -126,8 +126,30 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		425246C13057C776002B5EAA /* SaveMyBookWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (425246D53057C777002B5EAA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = SaveMyBookWidget; sourceTree = "<group>"; };
-		6E5A10053057D00100A1B2C3 /* SaveMyBookNotificationService */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (6E5A10043057D00100A1B2C3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = SaveMyBookNotificationService; sourceTree = "<group>"; };
+		425246C13057C776002B5EAA /* SaveMyBookWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				425246D53057C777002B5EAA /* Exceptions for "SaveMyBookWidget" folder in "SaveMyBookWidgetExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = SaveMyBookWidget;
+			sourceTree = "<group>";
+		};
+		6E5A10053057D00100A1B2C3 /* SaveMyBookNotificationService */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6E5A10043057D00100A1B2C3 /* Exceptions for "SaveMyBookNotificationService" folder in "SaveMyBookNotificationService" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = SaveMyBookNotificationService;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -435,13 +457,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -528,13 +546,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
