@@ -600,7 +600,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         color: c.warning,
         icon: Icons.lock_clock_rounded,
         title: S.reservedAnotherBuyerUntilP0(_formatDeadline(until)),
-        subtitle: S.ifIsnTSoldByThen,
       );
     } else if (until != null && _book.reservedForMe && until.isAfter(DateTime.now())) {
       banner = _banner(

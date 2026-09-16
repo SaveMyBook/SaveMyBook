@@ -118,6 +118,9 @@ paths:
         回傳 gzip 壓縮的 SQL 檔。每次下載都會寫入管理員操作紀錄。
 
         檔名格式經過驗證，避免以 `../` 進行路徑穿越。
+
+        此端點須帶登入權杖，供指令列工具使用。App 改以
+        `POST /api/admin/backups/{id}/download-link` 產生一次性下載網址，不在畫面上顯示任何權杖。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -139,6 +142,99 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 備份檔已不存在 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/backups/{id}/download-link:
+    post:
+      summary: 產生備份下載網址
+      operationId: adminCreateBackupDownloadLink
+      tags: [admin-system]
+      description: |
+        產生短時效、一次性的下載網址，供管理員在其他裝置（例如電腦瀏覽器）下載備份，
+        無須提供自己的登入權杖。
+
+        - 網址 5 分鐘內有效，且只能使用一次；使用後、逾時或伺服器重新啟動即失效。
+        - 網址只含隨機票證，不含登入權杖或備份編號。
+        - 實際下載時才寫入管理員操作紀錄；若該管理員在下載前被停權或移除「系統維運」權限，網址即失效。
+
+        需 `can_manage_system` 權限，以及 `admin` 範圍的身分驗證（`X-Verify-Token` 標頭，只接受帳號的登入密碼或通行密鑰）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 12
+        - $ref: '#/components/parameters/VerifyToken'
+      responses:
+        '201':
+          description: 已產生下載網址。
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    required: [url, expires_at, expires_in, file_name, size_bytes]
+                    properties:
+                      url: { type: string, format: uri, description: 一次性下載網址。 }
+                      expires_at: { type: string, format: date-time }
+                      expires_in: { type: integer, description: 有效秒數。, example: 300 }
+                      file_name: { type: string, example: savemybook-2026-05-10T00-00-00.sql.gz }
+                      size_bytes: { type: integer, example: 1048576 }
+              example:
+                success: true
+                data:
+                  url: https://api.example.com/api/backup-downloads/Vn3kQ0pX2mB7yT9rL4sD8fH1jK6cW5eA0uI3oP2qZ7x
+                  expires_at: '2026-05-10T08:05:00.000Z'
+                  expires_in: 300
+                  file_name: savemybook-2026-05-10T00-00-00.sql.gz
+                  size_bytes: 1048576
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminVerificationRequired' }
+        '404':
+          description: 備份紀錄不存在、備份失敗，或檔案已被刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 備份檔已不存在 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/backup-downloads/{ticket}:
+    get:
+      summary: 以一次性網址下載備份
+      operationId: downloadBackupWithTicket
+      tags: [admin-system]
+      description: |
+        由 `POST /api/admin/backups/{id}/download-link` 產生的網址，不需登入權杖。
+        回傳 gzip 壓縮的 SQL 檔並寫入管理員操作紀錄；同一網址只能下載一次。
+      security: []
+      parameters:
+        - in: path
+          name: ticket
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: 備份檔。
+          content:
+            application/gzip:
+              schema: { type: string, format: binary }
+        '404':
+          description: 備份紀錄不存在，或檔案已被刪除。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 備份檔已不存在 }
+        '410':
+          description: 網址已使用、已逾時、格式不正確，或產生網址的管理員已失去權限。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: DOWNLOAD_LINK_EXPIRED, message: 下載連結已失效，請重新產生 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/backups/{id}/restore:
@@ -208,7 +304,7 @@ paths:
       description: |
         同時刪除磁碟上的檔案與資料庫紀錄，無法復原。
 
-        需 `sensitive` 範圍的身分驗證（`X-Verify-Token` 標頭）。
+        需 `admin` 範圍的身分驗證（`X-Verify-Token` 標頭，只接受帳號的登入密碼或通行密鑰）。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -299,7 +395,7 @@ paths:
 
         訂單、錢包與交易紀錄一律保留，否則交易對象的紀錄會出現破洞。
 
-        不可對自己執行。需 `can_manage_members` 權限，以及 `sensitive` 範圍的身分驗證
+        不可對自己執行。需 `can_manage_members` 權限，以及 `admin` 範圍的身分驗證
         （`X-Verify-Token` 標頭）。
       security: [{ bearerAuth: [] }]
       parameters:

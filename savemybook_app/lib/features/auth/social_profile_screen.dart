@@ -1,7 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/auth_social.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
@@ -85,7 +84,6 @@ class _SocialProfileScreenState extends State<SocialProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final providerName = AuthProviders.labelOf(widget.provider);
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -119,7 +117,7 @@ class _SocialProfileScreenState extends State<SocialProfileScreen> {
                             const SizedBox(width: 14),
                             Expanded(
                               child: Text(
-                                S.p0DidNotProvideEmailAddress(providerName),
+                                S.p0DidNotProvideEmailAddress,
                                 style: TextStyle(fontSize: 12, height: 1.5, color: c.textSecondary),
                               ),
                             ),
@@ -149,7 +147,7 @@ class _SocialProfileScreenState extends State<SocialProfileScreen> {
                         c,
                         icon: Icons.badge_outlined,
                         label: S.displayName,
-                        hint: S.nameOthersSee,
+                        hint: S.enterDisplayName,
                         controller: _nicknameController,
                         errorText: _nicknameError,
                         maxLength: 50,

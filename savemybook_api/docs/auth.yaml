@@ -160,7 +160,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 未提供 Token:
-                  value: { success: false, message: 存取被拒，未提供 Token }
+                  value: { success: false, message: 請先登入 }
                 無法換發:
                   value: { success: false, code: REFRESH_FAILED, message: 登入已失效，請重新登入 }
                 密碼已變更:

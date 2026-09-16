@@ -163,8 +163,8 @@ void main() {
         AiStatus.debugSet(const AiStatusInfo(bookChat: true, consented: true, providersInUse: ['DeepSeek']));
         await settle(tester);
 
-        expect(find.text('想找適合通勤看的推理小說'), findsOneWidget);
-        await tester.tap(find.text('想找適合通勤看的推理小說'));
+        expect(find.text('適合通勤閱讀的推理小說'), findsOneWidget);
+        await tester.tap(find.text('適合通勤閱讀的推理小說'));
         await settle(tester, 12);
 
         expect(api.requests.where((r) => r == 'POST /ai/book-chat/messages').length, 1);
@@ -192,7 +192,7 @@ void main() {
         AiStatus.debugSet(const AiStatusInfo(bookChat: true, providersInUse: ['DeepSeek']));
         await settle(tester);
 
-        await tester.tap(find.text('想找適合通勤看的推理小說'));
+        await tester.tap(find.text('適合通勤閱讀的推理小說'));
         await settle(tester);
         expect(api.requests.where((r) => r.contains('/ai/book-chat/messages')), isEmpty);
 

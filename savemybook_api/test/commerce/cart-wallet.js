@@ -18,7 +18,7 @@ const tests = [
 
     const missing = await request('POST', '/api/cart', { token, body: {} });
     assert.strictEqual(missing.status, 400);
-    assert.strictEqual(missing.body.message, '請提供 book_id');
+    assert.strictEqual(missing.body.message, '請指定書籍');
 
     const notFound = await request('POST', '/api/cart', { token, body: { book_id: 9999 } });
     assert.strictEqual(notFound.status, 404);

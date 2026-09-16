@@ -290,12 +290,6 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
                 child: Text(S.tellMeWhatBookLooking,
                     textAlign: TextAlign.center, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary)),
               ),
-              const SizedBox(height: 6),
-              FadeSlideIn(
-                index: 2,
-                child: Text(S.allRecommendationsComeFromBooksCurrently,
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 13, height: 1.5, color: c.textSecondary)),
-              ),
               const SizedBox(height: 20),
               if (_blockedMessage == null)
                 Wrap(

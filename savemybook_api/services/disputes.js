@@ -11,6 +11,9 @@ const RESULTS = ['refund_manual', 'refund_auto', 'dismissed', 'mediated'];
 // 已取消或已退款的訂單不可申訴，否則裁決退款會退第二次。
 const NOT_DISPUTABLE = ['cancelled', 'refunded'];
 
+// 服務條款：取書後 24 小時內可提出申訴；取書前（放書、待取書等階段）不受此限。
+const DISPUTE_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 const disputeInclude = {
   orders: {
     select: {
@@ -33,11 +36,15 @@ const listMine = (userId) => prisma.transaction_disputes.findMany({
 const create = async (userId, { orderId, reason, evidenceUrls }) => {
   const order = await prisma.orders.findUnique({
     where: { order_id: orderId },
-    select: { buyer_id: true, seller_id: true, status: true, order_no: true }
+    select: { buyer_id: true, seller_id: true, status: true, order_no: true, picked_up_at: true, completed_at: true }
   });
   if (!order) throw notFound('找不到該訂單');
   if (order.buyer_id !== userId && order.seller_id !== userId) throw forbidden('存取被拒');
   if (NOT_DISPUTABLE.includes(order.status)) throw badRequest('此訂單已取消或已退款，無法提出爭議');
+  const pickedUpAt = order.picked_up_at ?? order.completed_at;
+  if (order.status === 'completed' && pickedUpAt && Date.now() - new Date(pickedUpAt).getTime() > DISPUTE_WINDOW_MS) {
+    throw badRequest('已超過取書後 24 小時的申訴期限', 'DISPUTE_WINDOW_PASSED');
+  }
 
   const existing = await prisma.transaction_disputes.findFirst({
     where: { order_id: orderId, applicant_id: userId, status: { in: ['pending', 'processing'] } },
@@ -191,4 +198,4 @@ const resolve = async (disputeId, { result, adminNote }, { adminId, req }) => {
   return updated;
 };
 
-module.exports = { RESULTS, listMine, create, adminList, resolve };
+module.exports = { DISPUTE_WINDOW_MS, RESULTS, listMine, create, adminList, resolve };

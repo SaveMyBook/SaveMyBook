@@ -6,13 +6,23 @@ const { badRequest, forbidden, notFound, HttpError } = require('../lib/errors');
 const sessions = require('./sessions');
 const { notify } = require('./notify');
 const { passwordMatches } = require('./credentials');
+const identities = require('./auth-identities');
+const passkeys = require('./passkeys');
 
 const MAX_PIN_ATTEMPTS = 5;
 const PIN_LOCK_MINUTES = 15;
 
+// 權杖記錄簽發時使用的驗證方法，consumeToken 會比對範圍允許的方法：
+// admin 只收登入密碼與通行密鑰（兩者同等強度），交易密碼與生物辨識簽出的權杖一律不通過。
 const SCOPES = {
   payment: { ttl: 3 * 60, singleUse: true, methods: ['pin', 'biometric'] },
-  sensitive: { ttl: 5 * 60, singleUse: false, methods: ['password', 'pin', 'biometric'] }
+  sensitive: { ttl: 5 * 60, singleUse: false, methods: ['password', 'passkey', 'pin', 'biometric'] },
+  admin: { ttl: 5 * 60, singleUse: false, methods: ['password', 'passkey'] }
+};
+
+const passkeyState = async (userId) => {
+  const available = await passkeys.isAvailable();
+  return { passkey_available: available, has_passkey: available && (await passkeys.hasPasskey(userId)) };
 };
 
 const assertPinPolicy = (pin) => {
@@ -35,22 +45,36 @@ const securityRow = async (userId) => {
 
 const status = async (userId, sid) => {
   if (!(await sessions.isAvailable())) {
-    return { available: false, has_payment_pin: false, pin_locked_until: null, biometric_pay_enabled: false };
+    return {
+      available: false,
+      has_password: await identities.hasPassword(userId),
+      has_payment_pin: false,
+      pin_locked_until: null,
+      biometric_pay_enabled: false,
+      ...(await passkeyState(userId))
+    };
   }
-  const [row, session] = await Promise.all([securityRow(userId), sessions.findActive(sid)]);
+  const [row, session, hasPassword, passkey] = await Promise.all([
+    securityRow(userId),
+    sessions.findActive(sid),
+    identities.hasPassword(userId),
+    passkeyState(userId)
+  ]);
   const lockedUntil = row?.pin_locked_until && new Date(row.pin_locked_until) > new Date() ? row.pin_locked_until : null;
   return {
     available: true,
+    has_password: hasPassword,
     has_payment_pin: Boolean(row?.payment_pin_hash),
     pin_updated_at: row?.pin_updated_at ?? null,
     pin_locked_until: lockedUntil,
-    biometric_pay_enabled: Boolean(session?.pay_key_hash)
+    biometric_pay_enabled: Boolean(session?.pay_key_hash),
+    ...passkey
   };
 };
 
 const assertAvailable = async () => {
   if (!(await sessions.isAvailable())) {
-    throw new HttpError(503, '伺服器尚未完成交易密碼的資料庫更新，請聯絡管理員', 'SECURITY_UNAVAILABLE');
+    throw new HttpError(503, '交易密碼功能暫時無法使用，請稍後再試', 'SECURITY_UNAVAILABLE');
   }
 };
 
@@ -122,8 +146,14 @@ const issueToken = ({ userId, sid, scope, method }) => {
   return { verify_token: token, scope, expires_in: rule.ttl };
 };
 
+const DEFAULT_PROMPT = {
+  payment: '請輸入交易密碼以完成付款',
+  sensitive: '請先驗證身分',
+  admin: '請以登入密碼或通行密鑰驗證身分以執行此後台操作'
+};
+
 const verificationRequired = (scope, message) =>
-  forbidden(message ?? (scope === 'payment' ? '請輸入交易密碼以完成付款' : '請先驗證身分'), 'VERIFICATION_REQUIRED');
+  forbidden(message ?? DEFAULT_PROMPT[scope] ?? '請先驗證身分', 'VERIFICATION_REQUIRED');
 
 const consumeToken = (raw, user, scope) => {
   const withScope = (err) => Object.assign(err, { extra: { verification: { scope, methods: SCOPES[scope].methods } } });
@@ -139,6 +169,8 @@ const consumeToken = (raw, user, scope) => {
   if (decoded.typ !== 'verify' || decoded.uid !== user.userId || !sameSession || decoded.scope !== scope) {
     throw withScope(verificationRequired(scope));
   }
+  // 範圍縮減後，舊權杖或以其他方法簽出的權杖都不得通行。
+  if (!SCOPES[scope].methods.includes(decoded.method)) throw withScope(verificationRequired(scope));
   if (SCOPES[scope].singleUse) {
     if (usedTokens.has(decoded.jti)) throw withScope(verificationRequired(scope, '此驗證已使用，請重新驗證'));
     usedTokens.set(decoded.jti, decoded.exp * 1000);
@@ -150,13 +182,18 @@ const releaseToken = (jti) => usedTokens.delete(jti);
 
 const assertSessionSupport = async (sid) => {
   if (!(await sessions.isAvailable())) {
-    throw new HttpError(503, '伺服器尚未完成資料庫更新，請聯絡管理員', 'SECURITY_UNAVAILABLE');
+    throw new HttpError(503, '此功能暫時無法使用，請稍後再試', 'SECURITY_UNAVAILABLE');
   }
   if (!sid) throw forbidden('請重新登入後再使用此功能', 'SESSION_REQUIRED');
 };
 
-const verify = async ({ userId, sid, scope, method, plainPassword, pin, key }) => {
+const verify = async ({ userId, sid, scope, method, plainPassword, pin, key, assertion }) => {
+  if (method === 'passkey') await passkeys.verifyAssertion(assertion, { purpose: 'verify', scope, userId });
+
   if (method === 'password') {
+    if (!(await identities.hasPassword(userId))) {
+      throw forbidden('此帳號尚未設定登入密碼，請先於「帳號安全」設定密碼', 'PASSWORD_NOT_SET');
+    }
     // 用 400 不用 401：App 收到 401 會直接登出。
     if (!(await passwordMatches(userId, plainPassword))) throw badRequest('密碼錯誤', 'INVALID_PASSWORD');
   }

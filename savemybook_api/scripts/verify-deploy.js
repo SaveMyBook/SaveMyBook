@@ -73,13 +73,76 @@ const main = async () => {
       : '未設定 OAUTH_REDIRECT_BASE 或 PUBLIC_WEB_URL，LINE 與 Discord 無法使用');
   }
 
+  const origins = env.passkeyOrigins;
+  const badOrigins = origins.filter((o) => !/^https:\/\/[^/]+$/.test(o) && !/^android:apk-key-hash:[A-Za-z0-9_-]{43}$/.test(o));
+  report(Boolean(env.passkeyRpId) && origins.length > 0 && badOrigins.length === 0, '通行密鑰 RP ID 與來源',
+    badOrigins.length
+      ? `PASSKEY_ORIGINS 格式不正確：${badOrigins.join('、')}`
+      : `RP ID ${env.passkeyRpId || '（未設定）'}，來源 ${origins.length} 組`);
+  if (!origins.includes(`https://${env.passkeyRpId}`)) {
+    report(false, '通行密鑰 iOS 來源', `PASSKEY_ORIGINS 須包含 https://${env.passkeyRpId}`);
+  }
+  report(true, '通行密鑰 Android 來源', origins.some((o) => o.startsWith('android:apk-key-hash:'))
+    ? '已設定'
+    : 'PASSKEY_ORIGINS 未包含 android:apk-key-hash:<指紋>，Android 將無法使用通行密鑰');
+  report(true, '/.well-known 關聯檔案', [
+    env.appleTeamId && env.iosBundleId ? 'apple-app-site-association 由 API 提供' : 'apple-app-site-association 未由 API 提供（須由 nginx 提供靜態檔案）',
+    env.androidPackageName && env.androidCertFingerprints.length ? 'assetlinks.json 由 API 提供' : 'assetlinks.json 未由 API 提供（須由 nginx 提供靜態檔案）'
+  ].join('；'));
+
   const uploads = path.join(__dirname, '../uploads');
+  const UPLOAD_FOLDERS = ['avatars', 'books', 'chat', 'evidence', 'voice'];
   try {
-    fs.mkdirSync(path.join(uploads, 'voice'), { recursive: true });
+    for (const folder of UPLOAD_FOLDERS) fs.mkdirSync(path.join(uploads, folder), { recursive: true });
     fs.accessSync(uploads, fs.constants.W_OK);
     report(true, '上傳目錄可寫入', uploads);
   } catch (err) {
     report(false, '上傳目錄可寫入', err.message);
+  }
+
+  // 以 SFTP 覆蓋整個專案目錄時很容易把 uploads/ 一起洗掉，
+  // 而 App 端只會看到一片替代圖，不會有任何錯誤訊息，因此這裡主動點名。
+  const countFiles = (dir) => {
+    let total = 0;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name.startsWith('.')) continue;
+      total += entry.isDirectory() ? countFiles(path.join(dir, entry.name)) : 1;
+    }
+    return total;
+  };
+
+  try {
+    const counts = UPLOAD_FOLDERS.map((folder) => {
+      const dir = path.join(uploads, folder);
+      return { folder, files: fs.existsSync(dir) ? countFiles(dir) : null };
+    });
+    const empty = counts.filter((c) => !c.files).map((c) => c.folder);
+    report(
+      empty.length < UPLOAD_FOLDERS.length,
+      '上傳檔案存在',
+      `${counts.map((c) => `${c.folder} ${c.files === null ? '不存在' : `${c.files} 個檔案`}`).join('、')}` +
+        (empty.length === UPLOAD_FOLDERS.length ? '；uploads/ 疑似在部署時被覆蓋或刪除' : '')
+    );
+  } catch (err) {
+    report(false, '上傳檔案存在', err.message);
+  }
+
+  if (prisma) {
+    try {
+      const { sweep } = require('../services/uploads-cleanup');
+      const { results: sweepResults, missingCount } = await sweep({ apply: false });
+      const checked = sweepResults.reduce((sum, r) => sum + (r.checked ?? 0), 0);
+      report(
+        missingCount === 0,
+        '資料庫圖片對得到檔案',
+        missingCount === 0
+          ? `檢查 ${checked} 筆，全部找得到檔案`
+          : `檢查 ${checked} 筆，其中 ${missingCount} 筆在 uploads/ 找不到檔案，請確認部署時是否覆蓋了 uploads/；` +
+            '確定檔案已無法救回時可執行 node scripts/prune-missing-uploads.js --apply 清除失效欄位'
+      );
+    } catch (err) {
+      report(false, '資料庫圖片對得到檔案', err.message);
+    }
   }
 
   const dump = tool('mysqldump');

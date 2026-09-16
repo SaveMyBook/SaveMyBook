@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../i18n/strings.dart';
 import '../models/security.dart';
+import '../features/security/identity_verification_sheet.dart';
 import '../features/security/payment_pin_screen.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_dialogs.dart';
-import '../widgets/biometric_icon.dart';
 import '../widgets/pin_pad.dart';
 import '../widgets/state_views.dart';
 import 'api_service.dart';
 import 'biometric_service.dart';
+import 'passkey_service.dart';
 import 'payment_key_store.dart';
 
 class PaymentSummary {
@@ -19,19 +20,17 @@ class PaymentSummary {
   const PaymentSummary({required this.amount, required this.detail});
 }
 
+typedef _CachedToken = ({String token, DateTime expiresAt, String? owner});
+
 class VerificationService {
   static GlobalKey<NavigatorState>? navigatorKey;
   static PaymentSummary? paymentSummary;
 
-  static String? _sensitiveToken;
-  static DateTime? _sensitiveExpiresAt;
-  static String? _sensitiveOwner;
+  // 依範圍分開存放：後台範圍只認登入密碼簽發的權杖，不能拿一般敏感操作的權杖頂替。
+  static final Map<String, _CachedToken> _tokens = {};
   static Future<String?>? _inFlight;
 
-  static void clearCache() {
-    _sensitiveToken = null;
-    _sensitiveExpiresAt = null;
-  }
+  static void clearCache() => _tokens.clear();
 
   static Future<String?> handle(VerificationRequest request) {
     return _inFlight ??= _handle(request).whenComplete(() => _inFlight = null);
@@ -40,27 +39,39 @@ class VerificationService {
   // 不可共用 _inFlight：付款驗證流程會開啟設定交易密碼頁，該頁再次要求驗證時若等待同一個 Future 會互相卡死。
   static Future<String?> requireSensitive(BuildContext context, {String? reason}) {
     return _handle(
-      VerificationRequest(scope: 'sensitive', methods: const ['password', 'pin', 'biometric'], message: reason ?? ''),
+      VerificationRequest(scope: 'sensitive', methods: const ['password', 'passkey', 'pin', 'biometric'], message: reason ?? ''),
       context: context,
     );
   }
 
-  static String? get cachedSensitiveToken {
-    final cached = _sensitiveToken;
-    final expiresAt = _sensitiveExpiresAt;
-    if (cached == null || expiresAt == null || _sensitiveOwner != ApiService.authToken) return null;
-    return DateTime.now().isBefore(expiresAt) ? cached : null;
+  /// 後台高風險操作：只接受登入密碼或通行密鑰，不提供交易密碼與生物辨識。
+  static Future<String?> requireAdminPassword(BuildContext context, {String? reason}) {
+    return _handle(
+      VerificationRequest(
+        scope: 'admin',
+        methods: const ['password', 'passkey'],
+        message: reason ?? S.enterSignPasswordRunAdminAction,
+      ),
+      context: context,
+    );
   }
 
-  static void rememberSensitive(String token) =>
-      _remember(const VerificationRequest(scope: 'sensitive', methods: [], message: ''), token);
+  static String? _cached(String scope) {
+    final entry = _tokens[scope];
+    if (entry == null || entry.owner != ApiService.authToken) return null;
+    return DateTime.now().isBefore(entry.expiresAt) ? entry.token : null;
+  }
+
+  static String? get cachedSensitiveToken => _cached('sensitive');
+
+  static void rememberSensitive(String token) => _store('sensitive', token);
 
   static Future<String?> _handle(VerificationRequest request, {BuildContext? context}) async {
     final ctx = context ?? navigatorKey?.currentContext;
     if (ctx == null) return null;
 
     if (!request.isPayment) {
-      final cached = cachedSensitiveToken;
+      final cached = _cached(request.scope);
       if (cached != null) return cached;
     }
 
@@ -69,7 +80,7 @@ class VerificationService {
     if (!ctx.mounted) return null;
 
     if (request.isPayment && !status.available) {
-      showAppSnackBar(ctx, S.couldNotReachServer, isError: true);
+      showAppSnackBar(ctx, S.networkError, isError: true);
       return null;
     }
 
@@ -88,60 +99,87 @@ class VerificationService {
 
     final userId = ApiService.currentUser?.userId;
     final canUseBiometric = request.methods.contains('biometric') && status.biometricPayEnabled && userId != null;
+    String? payKey;
     if (canUseBiometric) {
       final key = await PaymentKeyStore.read(userId);
       if (key != null && await BiometricService.isAvailable()) {
+        payKey = key;
         final reason = request.isPayment
             ? S.confirmPaymentP0Coins((paymentSummary?.amount ?? 0).toStringAsFixed(0))
             : S.verifyIdentityContinue;
         if (await BiometricService.authenticate(reason: reason, biometricOnly: true)) {
           final outcome = await api.verifyIdentity(scope: request.scope, method: 'biometric', key: key);
           if (outcome.isSuccess) return _remember(request, outcome.token!);
-          if (outcome.code == 'BIOMETRIC_KEY_INVALID') await PaymentKeyStore.clear();
+          if (outcome.code == 'BIOMETRIC_KEY_INVALID') {
+            await PaymentKeyStore.clear();
+            payKey = null;
+          }
         }
       }
     }
+    // 已註冊通行密鑰時預設使用通行密鑰，交易密碼面板只留給付款。
+    final usePasskey = await _canUsePasskey(request, status);
     if (!ctx.mounted) return null;
 
     final hasPin = request.isPayment || status.hasPaymentPin;
-    final token = hasPin && request.methods.contains('pin')
-        ? await _pinSheet(ctx, request, allowPassword: !request.isPayment)
-        : await _passwordDialog(ctx, request);
+    final usePin = hasPin && request.methods.contains('pin') && !usePasskey;
+    final pending = usePin
+        ? _pinSheet(ctx, request, status: status, payKey: payKey)
+        : _passwordSheet(ctx, request, status: status, payKey: payKey);
+    final token = await pending;
     return token == null ? null : _remember(request, token);
   }
 
+  static Future<bool> _canUsePasskey(VerificationRequest request, SecurityStatus status) async =>
+      !request.isPayment && request.methods.contains('passkey') && status.hasPasskey && await PasskeyService.isSupported();
+
+  static void _store(String scope, String token) {
+    _tokens[scope] = (token: token, expiresAt: DateTime.now().add(const Duration(minutes: 4)), owner: ApiService.authToken);
+  }
+
   static String _remember(VerificationRequest request, String token) {
-    if (!request.isPayment) {
-      _sensitiveToken = token;
-      _sensitiveOwner = ApiService.authToken;
-      _sensitiveExpiresAt = DateTime.now().add(const Duration(minutes: 4));
-    }
+    if (!request.isPayment) _store(request.scope, token);
     return token;
   }
 
-  static Future<String?> _passwordDialog(BuildContext context, VerificationRequest request) async {
-    final api = ApiService();
-    String? message = request.message.isEmpty ? S.enterPasswordContinue : request.message;
-    while (context.mounted) {
-      final password = await showTextInputDialog(
-        context,
-        title: S.verifyS,
-        message: message,
-        hint: S.password,
-        obscure: true,
-        maxLength: 72,
-        confirmLabel: S.confirm,
-      );
-      if (password == null || password.isEmpty || !context.mounted) return null;
-      final outcome = await runBusy(context, () => api.verifyIdentity(scope: request.scope, method: 'password', password: password));
-      if (outcome == null) return null;
-      if (outcome.isSuccess) return outcome.token;
-      message = outcome.message;
+  static Future<({String? token, String? message})> _biometricVerify(VerificationRequest request, String key) async {
+    if (!await BiometricService.authenticate(reason: S.verifyIdentityContinue, biometricOnly: true)) {
+      return (token: null, message: null);
     }
-    return null;
+    final outcome = await ApiService().verifyIdentity(scope: request.scope, method: 'biometric', key: key);
+    if (outcome.isSuccess) return (token: outcome.token, message: null);
+    if (outcome.code == 'BIOMETRIC_KEY_INVALID') await PaymentKeyStore.clear();
+    return (token: null, message: outcome.message);
   }
 
-  static Future<String?> _pinSheet(BuildContext context, VerificationRequest request, {required bool allowPassword}) {
+  static Future<String?> _passwordSheet(
+    BuildContext context,
+    VerificationRequest request, {
+    required SecurityStatus status,
+    String? payKey,
+  }) async {
+    final key = request.methods.contains('biometric') && status.biometricPayEnabled ? payKey : null;
+    final label = key == null ? null : await BiometricService.label();
+    final passkey = await _canUsePasskey(request, status);
+    if (!context.mounted) return null;
+
+    return showIdentityVerificationSheet(
+      context,
+      scope: request.scope,
+      reason: request.message,
+      hasPassword: status.hasPassword,
+      biometricLabel: label,
+      onBiometric: key == null ? null : () => _biometricVerify(request, key),
+      onPasskey: passkey ? () => PasskeyService.verify(request.scope) : null,
+    );
+  }
+
+  static Future<String?> _pinSheet(
+    BuildContext context,
+    VerificationRequest request, {
+    required SecurityStatus status,
+    String? payKey,
+  }) {
     final c = AppColors.of(context);
     final summary = paymentSummary;
     return showModalBottomSheet<String>(
@@ -149,7 +187,13 @@ class VerificationService {
       isScrollControlled: true,
       backgroundColor: c.sheetBg,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (sheetContext) => _PinSheet(request: request, summary: summary, allowPassword: allowPassword),
+      builder: (sheetContext) => _PinSheet(
+        request: request,
+        summary: summary,
+        status: status,
+        payKey: payKey,
+        allowPassword: !request.isPayment && request.methods.contains('password'),
+      ),
     );
   }
 }
@@ -157,9 +201,17 @@ class VerificationService {
 class _PinSheet extends StatelessWidget {
   final VerificationRequest request;
   final PaymentSummary? summary;
+  final SecurityStatus status;
+  final String? payKey;
   final bool allowPassword;
 
-  const _PinSheet({required this.request, required this.summary, required this.allowPassword});
+  const _PinSheet({
+    required this.request,
+    required this.summary,
+    required this.status,
+    required this.payKey,
+    required this.allowPassword,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +274,7 @@ class _PinSheet extends StatelessWidget {
                 if (allowPassword)
                   TextButton(
                     onPressed: () async {
-                      final token = await VerificationService._passwordDialog(context, request);
+                      final token = await VerificationService._passwordSheet(context, request, status: status, payKey: payKey);
                       if (token != null && context.mounted) Navigator.pop(context, token);
                     },
                     child: Text(S.usePasswordInstead, style: TextStyle(color: c.accent)),
@@ -233,20 +285,5 @@ class _PinSheet extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class BiometricGlyph extends StatelessWidget {
-  final String label;
-  final Color color;
-  final double size;
-
-  const BiometricGlyph({super.key, required this.label, required this.color, this.size = 22});
-
-  @override
-  Widget build(BuildContext context) {
-    return label == 'Face ID'
-        ? FaceIdIcon(size: size, color: color)
-        : Icon(Icons.fingerprint_rounded, size: size + 2, color: color);
   }
 }

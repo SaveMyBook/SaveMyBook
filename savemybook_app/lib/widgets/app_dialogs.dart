@@ -39,7 +39,7 @@ Future<T?> _showAnimatedDialog<T>(
 Future<bool> showConfirmDialog(
   BuildContext context, {
   required String title,
-  required String message,
+  String? message,
   String? confirmLabel,
   String? cancelLabel,
   bool isDestructive = false,
@@ -80,12 +80,14 @@ Future<bool> showConfirmDialog(
             textAlign: TextAlign.center,
             style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary, fontSize: 17),
           ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: c.textSecondary, fontSize: 13.5, height: 1.6),
-          ),
+          if (message != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: c.textSecondary, fontSize: 13.5, height: 1.6),
+            ),
+          ],
         ],
       ),
       actions: [

@@ -446,7 +446,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SalesHistoryScreen(initialTab: 'pending_deposit'),
             badgeColor: c.danger,
           ),
-          item(Icons.account_balance_wallet_outlined, S.wallets2, 0, const WalletScreen()),
+          item(Icons.account_balance_wallet_outlined, S.coins, 0, const WalletScreen()),
           item(Icons.bookmark_outline_rounded, S.saved, _stats.favoriteCount, const FavoritesScreen()),
         ],
       ),
@@ -521,7 +521,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final confirmed = await showConfirmDialog(
           context,
           title: S.signOut2,
-          message: S.needSignAgainKeepUsingApp,
           confirmLabel: S.signOut,
           isDestructive: true,
         );

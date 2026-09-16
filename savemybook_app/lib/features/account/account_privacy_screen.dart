@@ -139,9 +139,7 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
     final confirmed = await showConfirmDialog(
       context,
       title: S.deleteAccount,
-      message: S.accountPermanentlyDisabled30DaysSign +
-          S.personalDataErasedButCompletedOrders +
-          S.peopleTradedWithDoNotLose,
+      message: S.accountPermanentlyDisabled30DaysSign,
       confirmLabel: S.actionContinue,
       isDestructive: true,
       icon: Icons.person_remove_rounded,
@@ -246,13 +244,11 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                               AppMenuItem(
                                 icon: Icons.download_rounded,
                                 title: S.exportMyData,
-                                subtitle: S.profileBooksOrdersTransactionsJson,
                                 onTap: _export,
                               ),
                               AppMenuItem(
                                 icon: Icons.link_off_rounded,
                                 title: S.regenerateShareLink,
-                                subtitle: S.oldLinkQrCodeStopWorking2,
                                 isLast: !status.any,
                                 onTap: _rotateShareLink,
                               ),
@@ -265,9 +261,6 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                           AppMenuItem(
                             icon: Icons.person_remove_rounded,
                             title: _pendingDeletion ? S.cancelAccountDeletion : S.deleteAccount,
-                            subtitle: _pendingDeletion
-                                ? S.restoreAccountStopCountdown
-                                : S.canChangeMindWithin30Days,
                             iconColor: _pendingDeletion ? null : c.danger,
                             isLast: true,
                             onTap: _pendingDeletion ? _cancelDeletion : _requestDeletion,
@@ -288,7 +281,6 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
     return AppMenuItem(
       icon: Icons.auto_awesome_outlined,
       title: S.aiDataProcessing,
-      subtitle: S.providersP0(aiProviderNames(status)),
       isLast: true,
       showChevron: false,
       onTap: () => _toggleAiConsent(!status.consented),

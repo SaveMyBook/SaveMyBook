@@ -30,6 +30,7 @@ import 'widgets/chat_entry.dart';
 import 'widgets/chat_format.dart';
 import 'widgets/chat_input_accessories.dart';
 import 'widgets/chat_input_bar.dart';
+import 'widgets/chat_link_preview.dart';
 import 'widgets/chat_message_meta.dart';
 import 'widgets/chat_room_header.dart';
 import 'widgets/chat_scroll_anchor.dart';
@@ -1383,7 +1384,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (action == ReservationAction.buy) return _buyReserved(r);
 
     final String title;
-    final String message;
+    final String? message;
     final String confirmLabel;
     final bool destructive;
     final String apiAction;
@@ -1397,7 +1398,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       done = S.reservationAccepted;
     } else if (action == ReservationAction.decline) {
       title = S.declineReservation;
-      message = S.theyLlNotifiedDeclined;
+      message = null;
       confirmLabel = S.decline2;
       destructive = true;
       apiAction = 'decline';
@@ -2020,13 +2021,29 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       );
     }
 
-    final text = ChatLinkText(
-      text: pending?.text ?? m?.text ?? '',
+    final value = pending?.text ?? m?.text ?? '';
+    final linkText = ChatLinkText(
+      text: value,
       isMine: isMine,
       mentions: entry.mentions,
       myId: _myId,
       onMentionTap: _openProfile,
     );
+    final previewUrl = LinkPreviewStore.firstUrl(value, mentions: entry.mentions);
+    final Widget text = previewUrl == null
+        ? linkText
+        : Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              linkText,
+              ChatLinkPreviewCard(
+                url: previewUrl,
+                isMine: isMine,
+                width: math.min(math.min(MediaQuery.sizeOf(context).width * 0.7, 420.0) - 26, 300.0),
+              ),
+            ],
+          );
     if (reply == null) {
       return ChatBubbleShell(isMine: isMine, groupStart: groupStart, groupEnd: groupEnd, child: text);
     }

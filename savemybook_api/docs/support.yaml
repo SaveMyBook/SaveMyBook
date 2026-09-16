@@ -291,7 +291,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
-              example: { success: true, message: 工單已結案 }
+              example: { success: true, message: 問題已結案 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }

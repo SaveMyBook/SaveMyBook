@@ -2,12 +2,16 @@ import '../i18n/strings.dart';
 
 const String kApiHost = 'https://api.savemybook.today';
 
+// API 回傳的檔案路徑可能是絕對網址，也可能是 /uploads/... 相對路徑，
+// 而歷史資料還有缺前導斜線、夾帶空白、或被序列化成 "null" 的情況；
+// 直接字串相接會拼出 https://api.savemybook.todayuploads/... 這種必然 404 的網址。
 String? resolveAssetUrl(dynamic raw) {
-  if (raw == null) return null;
-  final url = raw.toString();
-  if (url.isEmpty) return null;
-  if (url.startsWith('http')) return url;
-  return '$kApiHost$url';
+  if (raw == null || raw is Map || raw is Iterable) return null;
+  final url = raw.toString().trim();
+  if (url.isEmpty || url == 'null' || url == 'undefined') return null;
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
+  if (url.startsWith('//')) return 'https:$url';
+  return '$kApiHost/${url.replaceFirst(RegExp(r'^/+'), '')}';
 }
 
 double parseDouble(dynamic value) {

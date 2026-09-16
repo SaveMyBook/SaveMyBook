@@ -28,13 +28,14 @@ module.exports = {
       const res = await request('GET', '/api/security', { token: ctx.token });
       assert.strictEqual(res.status, 200);
       assert.deepStrictEqual(res.body.data, {
-        available: false, has_payment_pin: false, pin_locked_until: null, biometric_pay_enabled: false
+        available: false, has_password: true, has_payment_pin: false, pin_locked_until: null, biometric_pay_enabled: false,
+        passkey_available: true, has_passkey: false
       });
 
       const set = await request('PUT', '/api/security/payment-pin', { token: ctx.token, body: { pin: PIN } });
       assert.strictEqual(set.status, 503);
       assert.strictEqual(set.body.code, 'SECURITY_UNAVAILABLE');
-      assert.strictEqual(set.body.message, '伺服器尚未完成交易密碼的資料庫更新，請聯絡管理員');
+      assert.strictEqual(set.body.message, '交易密碼功能暫時無法使用，請稍後再試');
     }],
 
     ['尚未設定交易密碼時的安全設定內容', async () => {
@@ -50,14 +51,19 @@ module.exports = {
       const ctx = signedIn({ pin: PIN });
       const scope = await verify(ctx, { scope: 'everything', method: 'pin' });
       assert.strictEqual(scope.status, 400);
-      assert.strictEqual(scope.body.message, 'scope 僅接受：payment, sensitive');
+      assert.strictEqual(scope.body.message, '驗證範圍不正確');
 
       const method = await verify(ctx, { scope: 'payment', method: 'password' });
       assert.strictEqual(method.status, 400);
-      assert.strictEqual(method.body.message, 'method 僅接受：pin, biometric');
+      assert.strictEqual(method.body.message, '不支援此驗證方式');
 
       const sensitive = await verify(ctx, { scope: 'sensitive', method: 'face' });
-      assert.strictEqual(sensitive.body.message, 'method 僅接受：password, pin, biometric');
+      assert.strictEqual(sensitive.body.message, '不支援此驗證方式');
+
+      // 後台範圍只收登入密碼，交易密碼與生物辨識連簽發都不允許。
+      const admin = await verify(ctx, { scope: 'admin', method: 'pin', pin: PIN });
+      assert.strictEqual(admin.status, 400);
+      assert.strictEqual(admin.body.message, '不支援此驗證方式');
     }],
 
     ['以登入密碼驗證身分：密碼錯誤用 400 回報，避免 App 直接登出', async () => {
@@ -130,7 +136,7 @@ module.exports = {
       assert.strictEqual(res.status, 403);
       assert.strictEqual(res.body.code, 'VERIFICATION_REQUIRED');
       assert.strictEqual(res.body.message, '請先驗證身分');
-      assert.deepStrictEqual(res.body.verification, { scope: 'sensitive', methods: ['password', 'pin', 'biometric'] });
+      assert.deepStrictEqual(res.body.verification, { scope: 'sensitive', methods: ['password', 'passkey', 'pin', 'biometric'] });
     }],
 
     ['交易密碼錯誤會回報剩餘次數，成功後歸零', async () => {
@@ -229,6 +235,69 @@ module.exports = {
         () => security.consumeToken(null, user, 'payment'),
         (err) => err.message === '請輸入交易密碼以完成付款' && err.extra.verification.methods.join() === 'pin,biometric'
       );
+    }],
+
+    ['後台範圍的驗證權杖只認登入密碼簽發的那一份', async () => {
+      const ctx = signedIn({ pin: PIN });
+      const user = { userId: ctx.user.user_id, sid: ctx.session.sid };
+
+      const byPassword = await verify(ctx, { scope: 'admin', method: 'password', password: 'Passw0rd123' });
+      assert.strictEqual(byPassword.status, 200);
+      assert.strictEqual(byPassword.body.data.scope, 'admin');
+      assert.strictEqual(security.consumeToken(byPassword.body.data.verify_token, user, 'admin').method, 'password');
+
+      // sensitive 與 admin 是不同範圍：兩邊的權杖都不能互相頂替。
+      const sensitive = await verify(ctx, { scope: 'sensitive', method: 'password', password: 'Passw0rd123' });
+      assert.throws(
+        () => security.consumeToken(sensitive.body.data.verify_token, user, 'admin'),
+        (err) => err.code === 'VERIFICATION_REQUIRED' && err.extra.verification.methods.join() === 'password,passkey'
+      );
+      assert.throws(
+        () => security.consumeToken(byPassword.body.data.verify_token, user, 'sensitive'),
+        (err) => err.code === 'VERIFICATION_REQUIRED'
+      );
+
+      // 直接偽造一份以交易密碼簽發的 admin 權杖，仍不得通行。
+      const forged = h.verifyTokenFor({ user: ctx.user, sid: ctx.session.sid, scope: 'admin', method: 'pin' });
+      assert.throws(() => security.consumeToken(forged, user, 'admin'), (err) => err.code === 'VERIFICATION_REQUIRED');
+    }],
+
+    ['後台端點要求登入密碼驗證，交易密碼簽發的權杖不通過', async () => {
+      const admin = h.addAdmin({ can_manage_system: true });
+      const session = h.addSession(admin);
+      const token = h.tokenFor(admin, session.sid);
+      h.setPin(admin, PIN);
+      const body = { settings: { ai_enabled: false } };
+
+      const bare = await request('PUT', '/api/admin/ai/settings', { token, body });
+      assert.strictEqual(bare.status, 403);
+      assert.strictEqual(bare.body.code, 'VERIFICATION_REQUIRED');
+      assert.strictEqual(bare.body.message, '請以登入密碼或通行密鑰驗證身分以執行此後台操作');
+      assert.deepStrictEqual(bare.body.verification, { scope: 'admin', methods: ['password', 'passkey'] });
+
+      const withPin = await request('PUT', '/api/admin/ai/settings', {
+        token, body, headers: { 'x-verify-token': h.verifyTokenFor({ user: admin, sid: session.sid, scope: 'admin', method: 'pin' }) }
+      });
+      assert.strictEqual(withPin.status, 403);
+      assert.strictEqual(withPin.body.code, 'VERIFICATION_REQUIRED');
+
+      const withPassword = await request('PUT', '/api/admin/ai/settings', {
+        token, body, headers: { 'x-verify-token': h.verifyTokenFor({ user: admin, sid: session.sid, scope: 'admin' }) }
+      });
+      assert.strictEqual(withPassword.status, 200);
+    }],
+
+    ['沒有設定登入密碼的帳號不能以密碼驗證身分', async () => {
+      const ctx = signedIn();
+      ctx.user.password_set = 0;
+
+      const res = await verify(ctx, { scope: 'admin', method: 'password', password: 'Passw0rd123' });
+      assert.strictEqual(res.status, 403);
+      assert.strictEqual(res.body.code, 'PASSWORD_NOT_SET');
+      assert.strictEqual(res.body.message, '此帳號尚未設定登入密碼，請先於「帳號安全」設定密碼');
+
+      const status = await request('GET', '/api/security', { token: ctx.token });
+      assert.strictEqual(status.body.data.has_password, false);
     }],
 
     ['裝置清單只列出未登出且近期使用過的裝置，目前裝置排在最前面', async () => {

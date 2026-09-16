@@ -24,9 +24,16 @@ tags:
       | 範圍 | 可用方式 | 有效期 | 使用次數 | 適用端點 |
       | --- | --- | --- | --- | --- |
       | `payment` | `pin`、`biometric` | 3 分鐘 | 單次 | `POST /api/orders/checkout` |
-      | `sensitive` | `password`、`pin`、`biometric` | 5 分鐘 | 有效期內可重複使用 | 匯出個人資料、變更交易密碼、登出裝置與後台高風險操作 |
+      | `sensitive` | `password`、`passkey`、`pin`、`biometric` | 5 分鐘 | 有效期內可重複使用 | 匯出個人資料、變更交易密碼、登出裝置、管理通行密鑰 |
+      | `admin` | `password`、`passkey` | 5 分鐘 | 有效期內可重複使用 | 後台高風險操作（`/api/admin/**`） |
 
-      - `verify_token` 綁定使用者、登入裝置與範圍，不能跨裝置或跨範圍使用。
+      - `verify_token` 綁定使用者、登入裝置、範圍與簽發時使用的驗證方式，不能跨裝置或跨範圍使用。
+      - `admin` 範圍只接受帳號的登入密碼或通行密鑰（兩者視為同等強度）；以交易密碼或生物辨識簽發的 token 一律不通過，
+        後台端點會再次回傳 403 `VERIFICATION_REQUIRED`，`verification.methods` 為 `["password", "passkey"]`。
+      - `passkey` 須先呼叫 `POST /api/security/verify/passkey/options` 取得綁定該範圍的挑戰值，
+        App 應在 `has_passkey` 為 true 時才提供此方式。
+      - 以社群方式建立、`password_set` 為 `false` 的帳號無法通過 `password` 驗證，
+        回傳 403 `PASSWORD_NOT_SET`，須先設定登入密碼。
       - `payment` 範圍的 token 使用後即失效；受保護的請求回應狀態碼大於等於 400 時（例如餘額不足），
         token 會恢復可用，使用者無須重新輸入交易密碼即可重試。
       - 已使用的 token 紀錄保存在伺服器行程內，重啟後歸零。
@@ -96,6 +103,10 @@ paths:
                     type: object
                     properties:
                       available: { type: boolean, example: true }
+                      has_password:
+                        type: boolean
+                        description: 帳號是否已設定登入密碼。為 false 時無法通過 `password` 驗證，也無法執行後台高風險操作。
+                        example: true
                       has_payment_pin: { type: boolean, example: true }
                       pin_updated_at:
                         type: string
@@ -111,6 +122,14 @@ paths:
                         type: boolean
                         description: 目前裝置是否已啟用生物辨識付款。
                         example: false
+                      passkey_available:
+                        type: boolean
+                        description: 伺服器是否已啟用通行密鑰（已執行資料庫更新 016 且完成設定）。
+                        example: true
+                      has_passkey:
+                        type: boolean
+                        description: 帳號是否已註冊通行密鑰。為 true 時可用 `passkey` 驗證 `sensitive` 與 `admin` 範圍。
+                        example: false
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/TokenInvalid' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -125,11 +144,14 @@ paths:
 
         | `method` | 需帶入的欄位 | 前提 |
         | --- | --- | --- |
-        | `password` | `password` | 僅限 `sensitive` 範圍 |
-        | `pin` | `pin` | 已設定交易密碼 |
-        | `biometric` | `key` | 已設定交易密碼，且目前裝置已啟用生物辨識付款 |
+        | `password` | `password` | 帳號已設定登入密碼；限 `sensitive` 與 `admin` 範圍 |
+        | `passkey` | `assertion` | 已註冊通行密鑰，並以相同 `scope` 呼叫過 `POST /api/security/verify/passkey/options`；限 `sensitive` 與 `admin` 範圍 |
+        | `pin` | `pin` | 已設定交易密碼；限 `payment` 與 `sensitive` 範圍 |
+        | `biometric` | `key` | 已設定交易密碼，且目前裝置已啟用生物辨識付款；限 `payment` 與 `sensitive` 範圍 |
 
         `payment` 範圍無論使用哪種方式，都必須已設定交易密碼，否則回傳 403 `PAYMENT_PIN_NOT_SET`。
+        `admin` 範圍只接受 `password` 與 `passkey`，以密碼驗證但帳號尚未設定登入密碼時回傳 403 `PASSWORD_NOT_SET`。
+        通行密鑰驗證失敗的錯誤代碼見「通行密鑰」一節。
         登入密碼錯誤回傳 400 而非 401，避免 App 誤判為登入失效。
 
         每位使用者 15 分鐘內最多 30 次。
@@ -142,11 +164,12 @@ paths:
               type: object
               required: [scope, method]
               properties:
-                scope: { type: string, enum: [payment, sensitive], example: payment }
-                method: { type: string, enum: [password, pin, biometric], example: pin }
+                scope: { type: string, enum: [payment, sensitive, admin], example: payment }
+                method: { type: string, enum: [password, passkey, pin, biometric], example: pin }
                 password: { type: string, format: password, description: '`method` 為 `password` 時必填。' }
                 pin: { type: string, pattern: '^\d{6}$', description: '`method` 為 `pin` 時必填。', example: '480913' }
                 key: { type: string, description: '`method` 為 `biometric` 時必填，為 `POST /api/security/biometric-key` 取得的金鑰。' }
+                assertion: { type: object, description: '`method` 為 `passkey` 時必填，為系統回傳的 `AuthenticationResponseJSON`。' }
             examples:
               交易密碼付款:
                 value: { scope: payment, method: pin, pin: '480913' }
@@ -154,6 +177,10 @@ paths:
                 value: { scope: payment, method: biometric, key: q3JvZkVxY2VfZXhhbXBsZV9rZXlfMzJieXRlcw }
               登入密碼驗證:
                 value: { scope: sensitive, method: password, password: your_password123 }
+              後台操作驗證:
+                value: { scope: admin, method: password, password: your_password123 }
+              通行密鑰驗證:
+                value: { scope: admin, method: passkey, assertion: { id: 3q2-7w, rawId: 3q2-7w, type: public-key, response: { clientDataJSON: eyJ0eXBlIjoid2ViYXV0aG4uZ2V0In0, authenticatorData: SZYN5YgO, signature: MEUCIQ } } }
       responses:
         '200':
           description: 驗證成功。
@@ -167,7 +194,7 @@ paths:
                     type: object
                     properties:
                       verify_token: { type: string, example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXAiOiJ2ZXJpZnkifQ.abc123 }
-                      scope: { type: string, enum: [payment, sensitive], example: payment }
+                      scope: { type: string, enum: [payment, sensitive, admin], example: payment }
                       expires_in: { type: integer, description: 有效秒數, example: 180 }
         '400':
           description: 參數錯誤或驗證失敗。
@@ -182,6 +209,8 @@ paths:
               examples:
                 範圍不支援此方式:
                   value: { success: false, message: 'method 僅接受：pin, biometric' }
+                通行密鑰驗證失敗:
+                  value: { success: false, code: PASSKEY_VERIFICATION_FAILED, message: 通行密鑰驗證失敗，請重新操作 }
                 登入密碼錯誤:
                   value: { success: false, code: INVALID_PASSWORD, message: 密碼錯誤 }
                 交易密碼錯誤:
@@ -190,13 +219,15 @@ paths:
                   value: { success: false, code: BIOMETRIC_KEY_INVALID, message: 這台裝置的生物辨識付款已失效，請改用交易密碼 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
-          description: 尚未設定交易密碼、Token 缺少裝置工作階段，或 Token 無效。
+          description: 尚未設定交易密碼或登入密碼、Token 缺少裝置工作階段，或 Token 無效。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 尚未設定交易密碼:
                   value: { success: false, code: PAYMENT_PIN_NOT_SET, message: 尚未設定交易密碼 }
+                尚未設定登入密碼:
+                  value: { success: false, code: PASSWORD_NOT_SET, message: 此帳號尚未設定登入密碼，請先於「帳號安全」設定密碼 }
                 缺少裝置工作階段:
                   value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
                 Token 過期:
@@ -304,7 +335,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 需要驗證:
-                  value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, pin, biometric] } }
+                  value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, passkey, pin, biometric] } }
                 尚未設定交易密碼:
                   value: { success: false, code: PAYMENT_PIN_NOT_SET, message: 請先設定交易密碼，生物辨識失敗時才有替代方式 }
                 缺少裝置工作階段:
@@ -398,7 +429,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 需要驗證:
-                  value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, pin, biometric] } }
+                  value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, passkey, pin, biometric] } }
                 缺少裝置工作階段:
                   value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
         '404':
@@ -458,7 +489,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 需要驗證:
-                  value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, pin, biometric] } }
+                  value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, passkey, pin, biometric] } }
                 缺少裝置工作階段:
                   value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
         '500': { $ref: '#/components/responses/ServerError' }

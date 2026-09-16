@@ -110,7 +110,7 @@ module.exports = {
         () => settingsService.save({ enabled: true }, { adminId: 1, req: null }),
         (err) => err.status === 503
           && err.code === 'AI_UNAVAILABLE'
-          && err.message === 'AI 功能目前無法使用，伺服器尚未完成資料庫更新'
+          && err.message === 'AI 功能暫時無法使用，請稍後再試'
       );
     }],
 

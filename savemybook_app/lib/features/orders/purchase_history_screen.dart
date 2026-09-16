@@ -215,7 +215,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> with Sing
         return OrderCard(
           order: order,
           onTap: () => _openDetail(order),
-          actionLabel: order.hasOpenDispute ? null : S.openDispute,
+          actionLabel: order.canOpenDispute() ? S.openDispute : null,
           onAction: () => _openDispute(order),
         );
       default:

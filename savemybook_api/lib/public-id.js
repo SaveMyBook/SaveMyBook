@@ -77,7 +77,8 @@ const PREFIX = {
   level: 'LV',
   backup: 'BU',
   reservation: 'RS',
-  transfer: 'TF'
+  transfer: 'TF',
+  passkey: 'PK'
 };
 
 const prefixOf = (type) => PREFIX[type] ?? 'ID';

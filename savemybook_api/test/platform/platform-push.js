@@ -64,11 +64,11 @@ module.exports = {
       const token = h.tokenFor(user);
       const post = (body) => request('POST', '/api/push/devices', { token, body });
 
-      assert.strictEqual((await post({ platform: 'ios' })).body.message, '裝置 token 格式不正確');
-      assert.strictEqual((await post({ token: 'too-short', platform: 'ios' })).body.message, '裝置 token 格式不正確');
-      assert.strictEqual((await post({ token: `${TOKEN}!!`, platform: 'ios' })).body.message, '裝置 token 格式不正確');
-      assert.strictEqual((await post({ token: 'x'.repeat(256), platform: 'ios' })).body.message, '裝置 token不可超過 255 個字');
-      assert.strictEqual((await post({ token: TOKEN, platform: 'web' })).body.message, 'platform 僅接受：ios, android');
+      assert.strictEqual((await post({ platform: 'ios' })).body.message, '推播裝置識別碼格式不正確');
+      assert.strictEqual((await post({ token: 'too-short', platform: 'ios' })).body.message, '推播裝置識別碼格式不正確');
+      assert.strictEqual((await post({ token: `${TOKEN}!!`, platform: 'ios' })).body.message, '推播裝置識別碼格式不正確');
+      assert.strictEqual((await post({ token: 'x'.repeat(256), platform: 'ios' })).body.message, '推播裝置識別碼不可超過 255 個字');
+      assert.strictEqual((await post({ token: TOKEN, platform: 'web' })).body.message, '不支援此裝置平台');
     }],
 
     ['登記裝置：綁定目前的登入裝置，重複登記會更新而非新增', async () => {

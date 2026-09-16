@@ -15,8 +15,8 @@ const deviceLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, key: byUser });
 const TOKEN_RE = /^[\w:-]{20,255}$/;
 
 const readToken = (body) => {
-  const token = v.text(body.token, { label: '裝置 token', max: 255 });
-  if (!TOKEN_RE.test(token)) throw badRequest('裝置 token 格式不正確');
+  const token = v.text(body.token, { label: '推播裝置識別碼', max: 255 });
+  if (!TOKEN_RE.test(token)) throw badRequest('推播裝置識別碼格式不正確');
   return token;
 };
 
@@ -42,7 +42,7 @@ router.get('/devices', async (req, res) => {
 
 router.post('/devices', deviceLimiter, async (req, res) => {
   const token = readToken(req.body);
-  const platform = v.oneOf(req.body.platform, push.PLATFORMS, 'platform 僅接受：ios, android');
+  const platform = v.oneOf(req.body.platform, push.PLATFORMS, '不支援此裝置平台');
   const appVersion = v.optionalText(req.body.app_version, { label: 'App 版本', max: 20 }) ?? null;
   assertReady();
 
@@ -72,7 +72,7 @@ router.post('/test', testLimiter, async (req, res) => {
 
   const devices = await push.deviceCount(req.user.userId);
   if (devices === 0) {
-    throw conflict('伺服器上沒有此帳號的推播裝置，App 未能取得或上傳推播 token。', 'NO_PUSH_DEVICE');
+    throw conflict('此帳號尚無已登錄的推播裝置，請確認 App 已取得通知權限後再試。', 'NO_PUSH_DEVICE');
   }
 
   await notify(null, {

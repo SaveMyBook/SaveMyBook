@@ -62,6 +62,11 @@ dependencies:
   sign_in_with_apple: ^7.0.1
   url_launcher: ^6.3.2
   crypto: ^3.0.7
+  # 社群登入按鈕的品牌標誌（Font Awesome Free，CC BY 4.0）。
+  font_awesome_flutter: ^11.0.0
+  # 通行密鑰：iOS 走 ASAuthorizationPlatformPublicKeyCredentialProvider，Android 走 Credential Manager。
+  passkeys: ^2.23.1
+  passkeys_platform_interface: ^2.10.0
 
 dev_dependencies:
   flutter_test:

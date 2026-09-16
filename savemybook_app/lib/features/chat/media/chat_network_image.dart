@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
 import '../../../widgets/animations.dart';
+import '../../../widgets/app_asset_image.dart';
 
 class ChatNetworkImage extends StatefulWidget {
   final String? url;
@@ -14,6 +15,7 @@ class ChatNetworkImage extends StatefulWidget {
   final BoxFit fit;
   final bool showProgress;
   final double iconSize;
+  final Map<String, String>? headers;
 
   const ChatNetworkImage({
     super.key,
@@ -24,6 +26,7 @@ class ChatNetworkImage extends StatefulWidget {
     this.fit = BoxFit.cover,
     this.showProgress = false,
     this.iconSize = 26,
+    this.headers,
   });
 
   @override
@@ -32,19 +35,34 @@ class ChatNetworkImage extends StatefulWidget {
 
 class _ChatNetworkImageState extends State<ChatNetworkImage> {
   int _attempt = 0;
+  bool _permanent = false;
+
+  @override
+  void didUpdateWidget(covariant ChatNetworkImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url || oldWidget.localPath != widget.localPath) _permanent = false;
+  }
 
   ImageProvider? get _provider {
     final path = widget.localPath;
     if (path != null && File(path).existsSync()) return FileImage(File(path));
     final url = widget.url;
-    return url == null || url.isEmpty ? null : NetworkImage(url);
+    return url == null || url.isEmpty ? null : NetworkImage(url, headers: widget.headers);
   }
 
   void _retry() {
     final url = widget.url;
     if (url == null) return;
-    NetworkImage(url).evict();
-    setState(() => _attempt++);
+    NetworkImage(url, headers: widget.headers).evict();
+    setState(() {
+      _attempt++;
+      _permanent = false;
+    });
+  }
+
+  void _onError(Object error) {
+    if (!mounted || _permanent || !isPermanentImageError(error)) return;
+    setState(() => _permanent = true);
   }
 
   @override
@@ -80,7 +98,11 @@ class _ChatNetworkImageState extends State<ChatNetworkImage> {
       height: widget.height,
       fit: widget.fit,
       gaplessPlayback: true,
-      errorBuilder: (_, _, _) => fallback(onTap: widget.url == null ? null : _retry),
+      // 404 代表檔案已不在伺服器上，只顯示替代圖，不提供會再打一次的重試入口。
+      errorBuilder: (_, error, _) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _onError(error));
+        return fallback(onTap: widget.url == null || _permanent || isPermanentImageError(error) ? null : _retry);
+      },
       frameBuilder: (_, child, frame, sync) {
         if (sync) return child;
         return Stack(

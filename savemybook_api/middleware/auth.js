@@ -7,18 +7,18 @@ const deny = (res, status, message, code) =>
 
 const authenticateToken = async (req, res, next) => {
   const token = readToken(req);
-  if (!token) return deny(res, 401, '存取被拒，未提供 Token');
+  if (!token) return deny(res, 401, '請先登入');
 
   let decoded;
   try {
     decoded = verify(token);
   } catch (err) {
     if (err.name === 'TokenExpiredError') return deny(res, 403, '登入已逾時', 'TOKEN_EXPIRED');
-    return deny(res, 403, 'Token 無效或已過期');
+    return deny(res, 403, '登入已失效，請重新登入');
   }
 
   const userId = Number(decoded?.userId);
-  if (decoded?.typ || !Number.isSafeInteger(userId) || userId < 1) return deny(res, 403, 'Token 無效或已過期');
+  if (decoded?.typ || !Number.isSafeInteger(userId) || userId < 1) return deny(res, 403, '登入已失效，請重新登入');
 
   const [user, revoked] = await Promise.all([auth.loadUser(userId), auth.sessionProblem(userId, decoded)]);
   const problem = auth.accountProblem(user, decoded) ?? revoked;

@@ -10,9 +10,9 @@ const isV3 = async () => (await isV2())
   && (await hasColumn('chat_room_members', 'history_from_id'))
   && hasColumn('chat_messages', 'mentions');
 
-const unavailable = () => new HttpError(503, '伺服器尚未完成資料庫更新，請聯絡管理員', 'CHAT_V2_UNAVAILABLE');
+const unavailable = () => new HttpError(503, '此功能暫時無法使用，請稍後再試', 'CHAT_V2_UNAVAILABLE');
 
-const v3Unavailable = () => new HttpError(503, '伺服器尚未完成資料庫更新，請聯絡管理員', 'CHAT_V3_UNAVAILABLE');
+const v3Unavailable = () => new HttpError(503, '此功能暫時無法使用，請稍後再試', 'CHAT_V3_UNAVAILABLE');
 
 const requireV2 = async () => {
   if (!(await isV2())) throw unavailable();

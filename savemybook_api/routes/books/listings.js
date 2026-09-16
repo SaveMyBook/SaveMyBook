@@ -22,8 +22,8 @@ const IMAGE_FIELDS = [
 
 const price = (value) => {
   const n = Number(value);
-  if (!Number.isFinite(n) || n <= 0) throw badRequest('售價必須大於 0 元');
-  if (n > MAX_PRICE) throw badRequest(`售價不可超過 ${MAX_PRICE} 元`);
+  if (!Number.isFinite(n) || n <= 0) throw badRequest('售價必須大於 0');
+  if (n > MAX_PRICE) throw badRequest(`售價不可超過 ${MAX_PRICE.toLocaleString('en-US')} 代幣`);
   return n;
 };
 

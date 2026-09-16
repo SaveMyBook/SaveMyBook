@@ -27,7 +27,7 @@ router.get('/members/:id', canManage, async (req, res) => {
   res.status(200).json({ success: true, data });
 });
 
-router.post('/members/:id/reset-password', canManage, requireVerification('sensitive'), async (req, res) => {
+router.post('/members/:id/reset-password', canManage, requireVerification('admin'), async (req, res) => {
   const userId = v.id(req.params.id, '會員編號');
   assertNotSelf(req, userId, '無法重設自己的密碼，請使用「更改密碼」');
 
@@ -65,7 +65,7 @@ router.patch('/members/:id/level', canManage, async (req, res) => {
   res.status(200).json({ success: true, message: '已調整等級', data });
 });
 
-router.put('/members/:id/permissions', canManage, requireVerification('sensitive'), async (req, res) => {
+router.put('/members/:id/permissions', canManage, requireVerification('admin'), async (req, res) => {
   const userId = v.id(req.params.id, '會員編號');
   assertNotSelf(req, userId, '無法變更自己的權限');
 

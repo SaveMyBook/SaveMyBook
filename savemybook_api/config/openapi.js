@@ -88,14 +88,19 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 付款與敏感操作須在 Token 之外另行驗證身分。未帶入有效的 \`X-Verify-Token\` 標頭時回傳 403
 \`VERIFICATION_REQUIRED\`，回應附帶 \`verification: { scope, methods }\`：
 
-1. 依 \`verification.methods\` 讓使用者選擇驗證方式（登入密碼、交易密碼或生物辨識）。
+1. 依 \`verification.methods\` 讓使用者選擇驗證方式（登入密碼、通行密鑰、交易密碼或生物辨識）。
 2. 呼叫 \`POST /api/security/verify\` 取得 \`verify_token\`。
 3. 以 \`X-Verify-Token: <verify_token>\` 標頭重送原請求。
 
 | \`scope\` | 可用方式 | 有效期 | 使用次數 | 適用端點 |
 | --- | --- | --- | --- | --- |
 | \`payment\` | 交易密碼、生物辨識 | 3 分鐘 | 單次；請求失敗（狀態碼大於等於 400）時恢復可用 | \`POST /api/orders/checkout\`、\`POST /api/chat/rooms/{roomId}/transfers\`、\`POST /api/chat/transfers/{id}/pay\` |
-| \`sensitive\` | 登入密碼、交易密碼、生物辨識 | 5 分鐘 | 有效期內可重複使用 | 匯出個人資料、交易密碼與登入裝置管理、刪除使用者、錢包調整、重設會員密碼、設定管理員權限、刪除備份、立即匿名化、還原操作、修改 AI 設定 |
+| \`sensitive\` | 登入密碼、通行密鑰、交易密碼、生物辨識 | 5 分鐘 | 有效期內可重複使用 | 匯出個人資料、交易密碼與登入裝置管理；後台刪除使用者（\`DELETE /api/users/{id}\`） |
+| \`admin\` | 登入密碼、通行密鑰 | 5 分鐘 | 有效期內可重複使用 | 後台高風險操作：錢包調整、重設會員密碼、設定管理員權限、產生備份下載網址、刪除備份、立即匿名化、還原操作、修改 AI 與登入方式設定 |
+
+\`verify_token\` 記錄簽發時使用的驗證方式。\`admin\` 範圍只接受帳號的登入密碼或通行密鑰（兩者視為同等強度），
+以交易密碼或生物辨識簽發的權杖不得用於後台端點；尚未設定登入密碼的帳號（社群註冊）
+須先於「帳號安全」設定密碼，否則驗證回傳 403 \`PASSWORD_NOT_SET\`。
 
 交易密碼規則、錯誤鎖定與生物辨識付款的運作方式見「帳號安全」一節。
 伺服器尚未執行 \`migrations/007_consent_sessions_payment.sql\` 時略過此驗證，
@@ -114,6 +119,7 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`BOOK_RESERVED\` | 409 | 書籍已由其他買家預約保留，無法加入購物車或結帳 | 顯示保留期限，引導瀏覽其他書籍 |
 | \`VERIFICATION_REQUIRED\` | 403 | 需要身分驗證，回應附帶 \`verification\` | 依 \`verification\` 驗證後帶 \`X-Verify-Token\` 重送 |
 | \`PAYMENT_PIN_NOT_SET\` | 403 | 尚未設定交易密碼 | 引導設定交易密碼 |
+| \`PASSWORD_NOT_SET\` | 403 | 帳號尚未設定登入密碼，無法以密碼驗證身分 | 引導前往設定登入密碼 |
 | \`INVALID_PIN\` | 400 | 交易密碼錯誤，回應附帶 \`remaining_attempts\` | 提示剩餘可嘗試次數 |
 | \`PIN_LOCKED\` | 423 | 交易密碼連續錯誤 5 次，鎖定 15 分鐘，回應附帶 \`locked_until\` | 顯示解除時間 |
 | \`PIN_FORMAT\`、\`PIN_TOO_WEAK\` | 400 | 設定的交易密碼不是 6 位數字，或過於簡單 | 於輸入欄位提示規則 |
@@ -130,6 +136,7 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`RECALL_WINDOW_PASSED\` | 400 | 訊息送出已超過 1 小時，無法收回 | 隱藏收回選項 |
 | \`GROUP_MEMBER_LIMIT\` | 400 | 群組成員將超過 100 人 | 提示減少邀請人數 |
 | \`TRANSFER_STATE_CHANGED\` | 409 | 請款已被付款、婉拒、取消或已到期 | 重新取得訊息以更新轉帳卡片 |
+| \`DISPUTE_WINDOW_PASSED\` | 400 | 訂單已完成取書超過 24 小時，依服務條款不可再提出爭議 | 隱藏申訴入口 |
 | \`BOOK_NOT_APPROVED\` | 403 | 書籍因違規下架，賣家無法自行重新上架 | 引導使用者開立客服工單 |
 | \`LISTING_REJECTED\` | 422 | 上架或編輯的內容未通過 AI 上架審核，資料未儲存 | 顯示 \`message\` 中的原因，引導使用者修改內容 |
 | \`AI_DISABLED\` | 503 | AI 功能目前未開放 | 隱藏 AI 功能入口 |
@@ -141,19 +148,28 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`AI_UNAVAILABLE\` | 503 | 伺服器尚未執行 AI 功能所需的資料庫更新 011 | 隱藏 AI 功能入口 |
 | \`INVALID_ID_TOKEN\` | 401 | 第三方登入憑證無效、過期或簽章不符 | 重新取得登入憑證後再試 |
 | \`PROVIDER_MISMATCH\` | 400 | 登入憑證的實際來源與請求的 \`provider\` 不符 | 檢查 App 的登入流程 |
+| \`NO_ACCOUNT_FOR_PROVIDER\` | 404 | 此第三方帳號尚未綁定任何帳號，且請求未帶 \`create\` | 詢問使用者要先登入綁定、建立新帳號，還是取消 |
 | \`ACCOUNT_EXISTS_LINK_REQUIRED\` | 409 | 該電子郵件已有帳號，但尚未綁定此登入方式 | 引導以密碼登入後於帳號安全綁定 |
 | \`EMAIL_REQUIRED\` | 400 | 第三方未提供已驗證的電子郵件，無法建立帳號 | 收集電子郵件與暱稱後以相同憑證重送 |
 | \`SIGN_IN_METHOD_DISABLED\` | 403 | 該登入方式目前未開放，或伺服器未設定其憑證 | 隱藏該登入按鈕 |
 | \`SIGNUP_NOT_ALLOWED\` | 403 | 該登入方式僅供既有帳號使用 | 提示改以既有方式登入後再綁定 |
 | \`IDENTITY_TAKEN\` | 409 | 此第三方身分已綁定其他帳號 | 提示改用該帳號登入 |
 | \`ALREADY_LINKED\` | 409 | 本帳號已綁定此登入方式 | 重新載入登入方式列表 |
-| \`LAST_SIGN_IN_METHOD\` | 400 | 解除後將沒有任何登入方式 | 引導先設定密碼或綁定其他方式 |
+| \`LAST_SIGN_IN_METHOD\` | 400 | 解除綁定或刪除通行密鑰後將沒有任何登入方式 | 引導先設定密碼或綁定其他方式 |
 | \`PASSWORD_NOT_SET\` | 400 | 帳號尚未設定密碼，不能使用需輸入目前密碼的流程 | 引導改用 \`POST /api/auth/password/set\` |
 | \`PASSWORD_ALREADY_SET\` | 400 | 帳號已有密碼，不能重複設定 | 改用變更密碼 |
 | \`OAUTH_STATE_INVALID\` | 400 | 授權連結已逾時、已使用或不屬於此渠道 | 重新開始授權流程 |
 | \`OAUTH_CODE_INVALID\` | 400 | 一次性碼不存在、已使用或已逾時 | 重新開始授權流程 |
 | \`AUTH_PROVIDER_ERROR\` | 502 | 無法連線至第三方登入服務或其回應不正確 | 提示稍後再試 |
 | \`AUTH_SOCIAL_UNAVAILABLE\` | 503 | 伺服器尚未執行社群登入所需的資料庫更新 014 | 隱藏社群登入入口 |
+| \`PASSKEY_UNAVAILABLE\` | 503 | 伺服器尚未執行通行密鑰所需的資料庫更新 016，或未設定 RP ID 與來源 | 隱藏通行密鑰入口 |
+| \`PASSKEY_CHALLENGE_INVALID\`、\`PASSKEY_CHALLENGE_EXPIRED\` | 400 | 挑戰值已使用、逾時，或用途與範圍不符 | 重新取得 options 後再試 |
+| \`PASSKEY_VERIFICATION_FAILED\`、\`PASSKEY_INVALID_RESPONSE\` | 400 | 通行密鑰的簽章、來源或格式驗證未通過 | 提示改用密碼 |
+| \`PASSKEY_NOT_RECOGNIZED\` | 400 | 伺服器沒有這組通行密鑰，可能已刪除 | 提示改用密碼，並請使用者至系統設定移除該通行密鑰 |
+| \`PASSKEY_COUNTER_REGRESSED\` | 400 | 通行密鑰的簽章計數倒退，疑似遭複製 | 提示改用密碼並檢查帳號安全 |
+| \`PASSKEY_NOT_REGISTERED\` | 400 | 帳號尚未註冊通行密鑰 | 改用登入密碼驗證 |
+| \`PASSKEY_ALREADY_REGISTERED\` | 409 | 這組通行密鑰已經註冊 | 重新載入清單 |
+| \`PASSKEY_LIMIT\` | 400 | 通行密鑰已達 10 組上限 | 引導刪除不再使用的裝置 |
 | \`BOOK_IN_TRANSACTION\` | 409 | 管理員刪除書籍時，書籍交易中或有進行中的預約 | 提示先處理交易或預約 |
 | \`BOOK_HAS_ORDERS\` | 409 | 管理員刪除書籍時，書籍已有訂單紀錄 | 改用強制下架 |
 | \`OPEN_ORDERS\` | 400 | 尚有進行中的訂單，無法申請刪除帳號 | 引導使用者完成或取消訂單 |
@@ -179,13 +195,18 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`POST /api/auth/refresh\` | 同 IP 15 分鐘 60 次 |
 | \`POST /api/auth/social\`、\`POST /api/auth/oauth/{provider}/start\`、\`POST /api/auth/oauth/exchange\` | 同 IP 15 分鐘合計 30 次 |
 | \`POST /api/auth/link\`、\`POST /api/auth/password/set\` | 每位使用者 15 分鐘合計 20 次 |
-| \`POST /api/security/verify\` | 每位使用者 15 分鐘 30 次 |
+| \`POST /api/security/verify\`、\`POST /api/security/verify/passkey/options\` | 每位使用者 15 分鐘合計 30 次 |
+| \`POST /api/auth/passkeys/login/options\` | 同 IP 15 分鐘 60 次 |
+| \`POST /api/auth/passkeys/login\` | 同 IP 15 分鐘 30 次 |
+| \`POST /api/users/me/passkeys/options\`、\`POST /api/users/me/passkeys\` | 每位使用者 15 分鐘合計 20 次 |
 | \`POST /api/users\` | 同 IP 每小時 30 次 |
 | \`PUT /api/users/me/password\`、\`POST /api/users/me/deletion\` | 每位使用者 15 分鐘 10 次 |
 | \`POST /api/uploads\` | 每位使用者 10 分鐘 30 次 |
 | \`POST /api/uploads/chat-image\`、\`POST /api/uploads/voice\` | 每位使用者 10 分鐘合計 60 次 |
 | \`POST /api/chat/rooms/{roomId}/messages\`、\`POST /api/chat/rooms/{roomId}/reservations\` | 每位使用者每分鐘合計 60 次 |
 | \`POST /api/chat/rooms/{roomId}/typing\` | 每位使用者每分鐘 40 次 |
+| \`GET /api/chat/link-preview\` | 每位使用者每分鐘 30 次 |
+| \`GET /api/chat/link-preview/image\` | 每位使用者每分鐘 120 次 |
 | \`GET /api/books/isbn/{isbn}\` | 每位使用者每分鐘 30 次 |
 | \`POST /api/ai/support/messages\`、\`POST /api/ai/support/session/escalate\`、\`POST /api/ai/listing-assist\` | 每位使用者每分鐘合計 20 次（另有管理員設定的每日次數上限） |
 | \`POST\`、\`DELETE /api/push/devices\` | 每位使用者每分鐘 20 次 |
@@ -331,13 +352,13 @@ const base = {
     }
   },
   'x-tagGroups': [
-    { name: '開始使用', tags: ['auth', 'auth-social', 'users', 'account', 'security'] },
+    { name: '開始使用', tags: ['auth', 'auth-social', 'passkeys', 'users', 'account', 'security'] },
     { name: '商品', tags: ['books', 'categories', 'favorites', 'cabinets'] },
     { name: '交易', tags: ['cart', 'orders', 'wallet'] },
     { name: '互動', tags: ['chat', 'notifications', 'push', 'announcements'] },
     { name: '客服與申訴', tags: ['support', 'reports', 'disputes'] },
     { name: 'AI', tags: ['ai'] },
-    { name: '共用工具', tags: ['uploads', 'public', 'status'] },
+    { name: '共用工具', tags: ['uploads', 'public', 'well-known', 'status'] },
     {
       name: '管理後台',
       tags: [

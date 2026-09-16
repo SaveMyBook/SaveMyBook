@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const prisma = require('../lib/prisma');
@@ -7,6 +8,7 @@ const maintenance = require('../lib/maintenance');
 const { dumpDatabase, importDatabase, dumpToolVersion } = require('../lib/mysql-client');
 const audit = require('./audit');
 const { passwordMatches } = require('./credentials');
+const { hasPermission } = require('./admin-permissions');
 
 const BACKUP_DIR = env.backupDir || path.join(__dirname, '../backups');
 
@@ -163,7 +165,7 @@ const startRestore = async ({ backupId, adminId, onFinished }) => {
     safety_file_name: safety.file_name,
     started_at: new Date()
   };
-  maintenance.enter('系統正在還原資料庫，請稍後再試');
+  maintenance.enter('系統維護中，請稍後再試');
 
   (async () => {
     let error = null;
@@ -273,6 +275,52 @@ const prepareDownload = async (backupId, { adminId, req }) => {
   return { filePath, fileName: record.file_name };
 };
 
+const DOWNLOAD_LINK_TTL_SECONDS = 5 * 60;
+
+// 票證只存在記憶體：重啟即失效正好符合短時效，且網址內不含任何可解碼的流水號。
+const downloadTickets = new Map();
+
+const hashTicket = (ticket) => crypto.createHash('sha256').update(ticket).digest('hex');
+
+const sweepTickets = setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of downloadTickets) if (entry.expiresAt <= now) downloadTickets.delete(key);
+}, 60 * 1000);
+sweepTickets.unref();
+
+const issueDownloadLink = async (backupId, { adminId }) => {
+  const record = await prisma.db_backups.findUnique({ where: { backup_id: backupId } });
+  if (!record || record.status !== 'success') throw notFound('找不到此備份');
+  if (!filePathOf(record.file_name)) throw notFound('備份檔已不存在');
+
+  const ticket = crypto.randomBytes(32).toString('base64url');
+  const expiresAt = Date.now() + DOWNLOAD_LINK_TTL_SECONDS * 1000;
+  downloadTickets.set(hashTicket(ticket), { backupId, adminId, expiresAt });
+  return { ticket, expiresAt: new Date(expiresAt), expiresIn: DOWNLOAD_LINK_TTL_SECONDS, record };
+};
+
+const redeemDownloadTicket = async (ticket, req) => {
+  const invalid = () => new HttpError(410, '下載連結已失效，請重新產生', 'DOWNLOAD_LINK_EXPIRED');
+  if (typeof ticket !== 'string' || !/^[\w-]{43}$/.test(ticket)) throw invalid();
+
+  const key = hashTicket(ticket);
+  const entry = downloadTickets.get(key);
+  // 先刪除再檢查，確保同一張票證即使下載失敗也不能再用。
+  downloadTickets.delete(key);
+  if (!entry || entry.expiresAt <= Date.now()) throw invalid();
+
+  // 產生連結後才被停權或移除權限的管理員，不得再取用備份。
+  const admin = await prisma.users.findUnique({
+    where: { user_id: entry.adminId },
+    select: { user_id: true, role: true, is_active: true, is_blacklisted: true }
+  });
+  const allowed = admin && admin.is_active && !admin.is_blacklisted
+    && (await hasPermission({ userId: admin.user_id, role: admin.role }, 'system'));
+  if (!allowed) throw invalid();
+
+  return prepareDownload(entry.backupId, { adminId: entry.adminId, req });
+};
+
 const restore = async (backupId, plain, { adminId, req }) => {
   if (!(await passwordMatches(adminId, plain))) throw badRequest('密碼錯誤');
 
@@ -313,5 +361,6 @@ const removeWithAudit = async (backupId, { adminId, req }) => {
 
 module.exports = {
   BACKUP_DIR, KEEP, run, list, filePathOf, lastSuccessAt, lastAttemptAt, checkTool: dumpToolVersion,
-  restoreStatus, runManually, prepareDownload, restore, removeWithAudit
+  restoreStatus, runManually, prepareDownload, restore, removeWithAudit,
+  DOWNLOAD_LINK_TTL_SECONDS, issueDownloadLink, redeemDownloadTicket
 };

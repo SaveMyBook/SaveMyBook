@@ -37,7 +37,7 @@ router.post('/groups', sendLimiter, async (req, res) => {
 
 router.patch('/groups/:roomId', async (req, res) => {
   const roomId = v.id(req.params.roomId, '聊天室編號');
-  if (req.body.name === undefined && req.body.avatar_url === undefined) throw badRequest('請提供 name 或 avatar_url');
+  if (req.body.name === undefined && req.body.avatar_url === undefined) throw badRequest('請提供群組名稱或頭貼');
   const name = req.body.name === undefined ? undefined : nameOf(req.body.name);
   const avatarUrl = avatarOf(req.body.avatar_url);
 
@@ -60,7 +60,7 @@ router.post('/groups/:roomId/members', sendLimiter, async (req, res) => {
 router.patch('/groups/:roomId/members/:userId', async (req, res) => {
   const roomId = v.id(req.params.roomId, '聊天室編號');
   const userId = v.id(req.params.userId, '使用者編號');
-  const role = v.oneOf(req.body.role, ['owner', 'member'], 'role 僅接受：owner, member');
+  const role = v.oneOf(req.body.role, ['owner', 'member'], '成員角色不正確');
 
   const data = await groups.setRole(roomId, req.user.userId, userId, role);
   res.status(200).json({ success: true, message: role === 'owner' ? '已設為管理員' : '已解除管理員身分', data });

@@ -87,8 +87,6 @@ class _BookManageScreenState extends State<BookManageScreen> {
         return (label: S.reportReviewing, color: c.warning, detail: S.bookBeenReportedUnderReviewStays);
       case 'resolved':
         return (label: S.violationConfirmed, color: c.danger, detail: S.violationWasConfirmedBookPleaseCheck);
-      case 'dismissed':
-        return (label: S.reportDismissed2, color: c.success, detail: S.bookWasReportedButNoViolation);
       default:
         return null;
     }
@@ -268,17 +266,6 @@ class _BookManageScreenState extends State<BookManageScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(Icons.swipe_rounded, size: 14, color: c.textHint),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        S.swipeQuickActions,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 11, color: c.textHint),
                       ),
                     ),
                   ],

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../i18n/strings.dart';
 import '../utils/app_colors.dart';
 import '../utils/motion.dart';
+import 'app_asset_image.dart';
 import 'image_save_feedback.dart';
 
 class ImageViewer extends StatefulWidget {
@@ -437,22 +438,32 @@ class _ZoomableImageState extends State<_ZoomableImage> with SingleTickerProvide
           ],
         );
       },
-      errorBuilder: (_, _, _) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.broken_image_outlined, color: c.iconInactive, size: 56),
-            const SizedBox(height: 12),
-            Text(S.couldNotLoadPhoto, style: const TextStyle(color: Colors.white70)),
-            const SizedBox(height: 8),
-            TextButton.icon(
-              onPressed: _retry,
-              icon: const Icon(Icons.refresh_rounded, color: Colors.white),
-              label: Text(S.retry, style: const TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      ),
+      // 404 代表原圖已不存在，重試不會有結果，只說明狀況。
+      errorBuilder: (_, error, _) {
+        final permanent = isPermanentImageError(error);
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.broken_image_outlined, color: c.iconInactive, size: 56),
+              const SizedBox(height: 12),
+              Text(
+                permanent ? S.notFoundMayBeenDeletedRemoved : S.couldNotLoadPhoto,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70),
+              ),
+              if (!permanent) ...[
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: _retry,
+                  icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                  label: Text(S.retry, style: const TextStyle(color: Colors.white)),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
 
     image = SizedBox.expand(child: image);

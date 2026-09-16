@@ -215,11 +215,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    S.tapPhotoNameChange,
-                    style: TextStyle(fontSize: 12, color: c.textHint),
-                  ),
                   const SizedBox(height: 18),
                   FormRowCard(
                     label: S.bio,

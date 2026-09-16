@@ -48,7 +48,7 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
         (value: 'faq', label: S.faq),
         (value: 'level', label: S.membershipTier),
         (value: 'cabinet', label: S.faqCatCabinet),
-        (value: 'ticket', label: S.enquiry),
+        (value: 'ticket', label: S.supportEnquiries),
         (value: 'backup', label: S.backups),
       ];
 

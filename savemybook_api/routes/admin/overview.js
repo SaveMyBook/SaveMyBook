@@ -26,7 +26,7 @@ router.get('/operation-logs', async (req, res) => {
   res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: rows });
 });
 
-router.post('/operation-logs/:id/undo', requireVerification('sensitive'), async (req, res) => {
+router.post('/operation-logs/:id/undo', requireVerification('admin'), async (req, res) => {
   const entry = await operationLogs.revert(v.id(req.params.id, '紀錄編號'), { user: req.user, req });
   res.status(200).json({ success: true, message: '已還原', data: { log_id: entry.log_id } });
 });

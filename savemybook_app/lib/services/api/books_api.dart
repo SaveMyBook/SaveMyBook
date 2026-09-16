@@ -110,7 +110,7 @@ extension BooksApi on ApiService {
 
   Future<(String? url, String? error)> fetchBookShareLink(int bookId) async {
     final res = await _send('GET', '/books/$bookId/share-link');
-    if (res == null) return (null, S.couldNotReachServer);
+    if (res == null) return (null, S.networkError);
     if (res['success'] != true) {
       return (null, res['message'] as String? ?? S.loadFailed);
     }

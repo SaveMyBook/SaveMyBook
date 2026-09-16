@@ -3,7 +3,7 @@ tags:
     x-displayName: 後台：登入方式
     description: |
       社群登入的總開關、各渠道開關，以及是否允許以該渠道直接建立新帳號。
-      兩個端點都需要 `can_manage_system` 權限，儲存另需通過敏感操作驗證。
+      兩個端點都需要 `can_manage_system` 權限，儲存另需通過 `admin` 範圍的身分驗證（只接受帳號的登入密碼或通行密鑰）。
 
       各渠道的憑證只能在伺服器環境變數設定，後台僅能看到 `configured`：
 
@@ -89,7 +89,7 @@ paths:
               example:
                 success: false
                 code: AUTH_SOCIAL_UNAVAILABLE
-                message: 社群登入目前無法使用，伺服器尚未完成資料庫更新
+                message: 社群登入暫時無法使用，請稍後再試
 
 components:
   schemas:

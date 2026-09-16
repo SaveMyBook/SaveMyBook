@@ -138,10 +138,6 @@ class _DisputeScreenState extends State<DisputeScreen> {
                           S.requestPaymentHold,
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
                         ),
-                        subtitle: Text(
-                          S.paymentSellerHeldUntilSupportDecides,
-                          style: TextStyle(fontSize: 12, color: c.textSecondary),
-                        ),
                       ),
                     ),
                     const SizedBox(height: 24),

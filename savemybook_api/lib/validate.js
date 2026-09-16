@@ -48,7 +48,7 @@ const optionalText = (value, opts) => {
 };
 
 const oneOf = (value, allowed, message) => {
-  if (!allowed.includes(value)) throw badRequest(message ?? `僅接受：${allowed.join(', ')}`);
+  if (!allowed.includes(value)) throw badRequest(message ?? '選項不正確');
   return value;
 };
 

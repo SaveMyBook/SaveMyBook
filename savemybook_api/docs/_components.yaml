@@ -52,7 +52,7 @@ components:
         message:
           type: string
           description: 可直接呈現給使用者的繁體中文訊息。
-          example: 伺服器發生錯誤
+          example: 系統發生錯誤，請稍後再試
         code:
           type: string
           nullable: true
@@ -534,6 +534,22 @@ components:
         responded_at: { type: string, format: date-time, nullable: true, description: 付款方付款、婉拒或請款人取消的時間。 }
         expires_at: { type: string, format: date-time, nullable: true, description: 請款的處理期限；直接轉帳為 `null`。 }
 
+    LinkPreview:
+      type: object
+      description: 聊天訊息中網址的預覽卡片資料。
+      properties:
+        url: { type: string, description: 請求的網址（已移除 `#` 之後的片段）, example: 'https://blog.example.com/used-book-pricing' }
+        site_name: { type: string, description: 網站名稱；網站未提供時為主機名稱, example: 書店部落格 }
+        title: { type: string, maxLength: 120, example: 二手書交易指南 }
+        description: { type: string, nullable: true, maxLength: 200, description: '`kind` 為 `book` 時為作者', example: 如何為舊書訂出合理價格 }
+        image_url:
+          type: string
+          nullable: true
+          description: '`web` 為 `GET /api/chat/link-preview/image` 的代理網址；`book` 為站內圖片路徑'
+          example: /api/chat/link-preview/image?u=aHR0cHM6Ly9jZG4uZXhhbXBsZS5jb20vY292ZXIuanBn.Qm9vZ3VzU2lnbmF0dXJlRXhhbXBsZQ
+        kind: { type: string, enum: [web, book], example: web }
+        price: { type: number, description: 僅 `kind` 為 `book` 時提供, example: 350 }
+
     ChatMessage:
       type: object
       description: |
@@ -875,7 +891,7 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, message: 請提供 book_id }
+          example: { success: false, message: 請指定書籍 }
 
     Unauthorized:
       description: |
@@ -886,13 +902,13 @@ components:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           examples:
             未提供 Token:
-              value: { success: false, message: 存取被拒，未提供 Token }
+              value: { success: false, message: 請先登入 }
             帳號已停權:
               value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已被停權，如有疑問請聯絡客服 }
             帳號在黑名單:
               value: { success: false, code: ACCOUNT_BLACKLISTED, message: 此帳號已被列入黑名單，如有疑問請聯絡客服 }
             裝置已登出:
-              value: { success: false, code: SESSION_REVOKED, message: 這台裝置已經登出，請重新登入 }
+              value: { success: false, code: SESSION_REVOKED, message: 此裝置已登出，請重新登入 }
 
     TokenInvalid:
       description: |
@@ -905,7 +921,7 @@ components:
             已過期:
               value: { success: false, code: TOKEN_EXPIRED, message: 登入已逾時 }
             簽章無效:
-              value: { success: false, message: Token 無效或已過期 }
+              value: { success: false, message: 登入已失效，請重新登入 }
 
     VerificationRequired:
       description: |
@@ -922,30 +938,31 @@ components:
                   verification:
                     type: object
                     properties:
-                      scope: { type: string, enum: [payment, sensitive], example: sensitive }
+                      scope: { type: string, enum: [payment, sensitive, admin], example: sensitive }
                       methods:
                         type: array
-                        items: { type: string, enum: [password, pin, biometric] }
-                        example: [password, pin, biometric]
+                        items: { type: string, enum: [password, passkey, pin, biometric] }
+                        example: [password, passkey, pin, biometric]
           examples:
             需要驗證:
               value:
                 success: false
                 code: VERIFICATION_REQUIRED
                 message: 請先驗證身分
-                verification: { scope: sensitive, methods: [password, pin, biometric] }
+                verification: { scope: sensitive, methods: [password, passkey, pin, biometric] }
             驗證已逾時:
               value:
                 success: false
                 code: VERIFICATION_REQUIRED
                 message: 驗證已逾時，請重新驗證
-                verification: { scope: sensitive, methods: [password, pin, biometric] }
+                verification: { scope: sensitive, methods: [password, passkey, pin, biometric] }
 
     AdminVerificationRequired:
       description: |
         請求者非管理員、缺少此功能的細部權限，或尚未完成身分驗證。
         後者 `code` 為 `VERIFICATION_REQUIRED`，須以 `POST /api/security/verify` 取得
-        `sensitive` 範圍的 `verify_token` 後，帶入 `X-Verify-Token` 標頭重送。
+        `admin` 範圍的 `verify_token` 後，帶入 `X-Verify-Token` 標頭重送。
+        `admin` 範圍只接受帳號的登入密碼或通行密鑰；交易密碼與生物辨識不適用於後台操作。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -958,22 +975,24 @@ components:
               value:
                 success: false
                 code: VERIFICATION_REQUIRED
-                message: 請先驗證身分
-                verification: { scope: sensitive, methods: [password, pin, biometric] }
+                message: 請以登入密碼或通行密鑰驗證身分以執行此後台操作
+                verification: { scope: admin, methods: [password, passkey] }
+            尚未設定登入密碼:
+              value: { success: false, code: PASSWORD_NOT_SET, message: 此帳號尚未設定登入密碼，請先於「帳號安全」設定密碼 }
 
     SecurityUnavailable:
       description: 伺服器尚未執行資料庫更新 007（`user_sessions`、`user_security` 資料表），帳號安全功能暫不可用。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, code: SECURITY_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
+          example: { success: false, code: SECURITY_UNAVAILABLE, message: 此功能暫時無法使用，請稍後再試 }
 
     ChatControlsUnavailable:
       description: 伺服器尚未執行資料庫更新 008（`chat_room_mutes`、`user_blocks` 資料表），靜音與封鎖功能暫不可用。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, code: CHAT_CONTROLS_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
+          example: { success: false, code: CHAT_CONTROLS_UNAVAILABLE, message: 此功能暫時無法使用，請稍後再試 }
 
     ChatV2Unavailable:
       description: |
@@ -982,7 +1001,7 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, code: CHAT_V2_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
+          example: { success: false, code: CHAT_V2_UNAVAILABLE, message: 此功能暫時無法使用，請稍後再試 }
 
     ChatV3Unavailable:
       description: |
@@ -993,9 +1012,9 @@ components:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           examples:
             未執行010:
-              value: { success: false, code: CHAT_V3_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
+              value: { success: false, code: CHAT_V3_UNAVAILABLE, message: 此功能暫時無法使用，請稍後再試 }
             未執行009:
-              value: { success: false, code: CHAT_V2_UNAVAILABLE, message: 伺服器尚未完成資料庫更新，請聯絡管理員 }
+              value: { success: false, code: CHAT_V2_UNAVAILABLE, message: 此功能暫時無法使用，請稍後再試 }
 
     BookReserved:
       description: 書籍已由其他買家預約並保留中，保留期限內僅該買家可加入購物車或結帳。
@@ -1034,7 +1053,7 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, message: 伺服器發生錯誤 }
+          example: { success: false, message: 系統發生錯誤，請稍後再試 }
 
     Conflict:
       description: 資料狀態已被其他請求變更，或目前狀態不允許此操作。重新整理後再試即可。

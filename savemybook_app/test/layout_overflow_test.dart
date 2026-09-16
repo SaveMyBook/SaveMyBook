@@ -73,8 +73,12 @@ import 'package:savemybook_app/features/auth/login_screen.dart';
 import 'package:savemybook_app/features/auth/phone_sign_in_screen.dart';
 import 'package:savemybook_app/features/auth/social_profile_screen.dart';
 import 'package:savemybook_app/features/admin/admin_auth_screen.dart';
+import 'package:savemybook_app/features/security/identity_verification_sheet.dart';
 import 'package:savemybook_app/features/security/set_password_screen.dart';
 import 'package:savemybook_app/features/security/sign_in_methods_card.dart';
+import 'package:savemybook_app/features/security/passkeys_card.dart';
+import 'package:savemybook_app/models/passkey.dart';
+import 'package:savemybook_app/services/passkey_service.dart';
 import 'package:savemybook_app/models/auth_social.dart';
 import 'package:savemybook_app/services/social_auth_service.dart';
 import 'package:savemybook_app/features/account/member_level_screen.dart';
@@ -282,6 +286,34 @@ Map<String, dynamic> chatMeta(int roomId) => roomId == 2
         'room': {'type': 'direct', 'title': longName, 'avatar_url': null, 'member_count': 2},
       };
 
+String? chatLinkText(int roomId, int i) => switch ((roomId, i)) {
+      (1, 1) => 'https://blog.example.com/articles/how-to-price-used-textbooks-for-the-new-semester',
+      (1, 7) => 'This one is still available https://api.savemybook.today/b/0123456789abcdef0123456789abcdef',
+      (1, 8) => 'www.example.org/very/long/path/without/any/preview/that/keeps/going/and/going',
+      (2, 9) => 'Notes from last week: https://docs.example.com/shared/statistics-study-group-notes',
+      _ => null,
+    };
+
+Map<String, dynamic>? linkPreviewData(String url) {
+  if (url.contains('/b/')) {
+    return {'url': url, 'site_name': '救「舊」我的書', 'title': longTitle, 'description': longName, 'image_url': null, 'kind': 'book', 'price': 123456};
+  }
+  if (url.contains('blog.example.com')) {
+    return {
+      'url': url,
+      'site_name': 'The Second-hand Book Collectors Weekly Journal and Community Blog',
+      'title': 'How to price used textbooks for the new semester without losing money or scaring buyers away',
+      'description': 'A practical guide covering condition grades, edition changes, market demand and the timing of your listing. ' * 2,
+      'image_url': '/api/chat/link-preview/image?u=abc.def',
+      'kind': 'web',
+    };
+  }
+  if (url.contains('docs.example.com')) {
+    return {'url': url, 'site_name': 'docs.example.com', 'title': 'Statistics study group notes', 'description': null, 'image_url': null, 'kind': 'web'};
+  }
+  return null;
+}
+
 List<Map<String, dynamic>> chatMessages(int roomId) {
   final group = roomId == 2;
   final kinds = group
@@ -293,7 +325,11 @@ List<Map<String, dynamic>> chatMessages(int roomId) {
     final kind = kinds[n];
     final sender = group ? [1, 2, 2, 3, 1, 4, 3, 2, 1, 1, 1, 1, 2, 1][n] : (i.isEven ? 1 : 2);
     final albumUrls = [for (var k = 0; k < (group && i == 13 ? 7 : 2); k++) '/uploads/chat/album$k.jpg'];
-    final mentionText = group && i == 3 ? '@$longName $long' : group && i == 5 ? '@Everyone $long' : null;
+    final mentionText = group && i == 3
+        ? '@$longName $long'
+        : group && i == 5
+            ? '@Everyone $long'
+            : chatLinkText(roomId, i);
     final transferId = kind == 'transfer' ? kinds.sublist(0, n).where((k) => k == 'transfer').length + 1 : 0;
     return {
       'message_id': i,
@@ -303,7 +339,7 @@ List<Map<String, dynamic>> chatMessages(int roomId) {
       'message_type': kind == 'text' ? 'text' : kind == 'image' ? 'image' : 'system',
       'kind': kind,
       'body': kind == 'text' ? mentionText ?? long : kind == 'image' ? '/uploads/chat/a.jpg' : kind == 'notice' ? '$longName created the group' : null,
-      'mentions': mentionText == null
+      'mentions': !(group && (i == 3 || i == 5))
           ? <Object>[]
           : [
               {'user_id': i == 3 ? 1 : 0, 'start': 0, 'length': i == 3 ? longName.length + 1 : 9},
@@ -515,7 +551,9 @@ Object? fakeData(String method, String path) {
           ],
           'migration_ready': true,
         },
-    'GET /security': () => {'available': true, 'has_payment_pin': true, 'pin_locked_until': null, 'biometric_pay_enabled': true},
+    'GET /security': () => {'available': true, 'has_payment_pin': true, 'pin_locked_until': null, 'biometric_pay_enabled': true, 'passkey_available': true, 'has_passkey': true},
+    'GET /auth/passkeys/status': () => {'enabled': true},
+    'GET /users/me/passkeys': () => [passkeyRow('PK3M7Q2XA', 'Samsung Galaxy Z Fold7 Ultra Enterprise Edition'), passkeyRow('PK9QW2E4R', null, used: false)],
     'GET /security/sessions': () => many((i) => {'session_id': i, 'device_name': i == 1 ? 'iPhone 17 Pro Max' : 'Samsung Galaxy Z Fold7 Ultra Enterprise Edition', 'platform': i.isOdd ? 'ios' : 'android', 'app_version': '1.0.0', 'ip_address': '2001:0db8:85a3:0000:0000:8a2e:0370:7334', 'created_at': now, 'last_seen_at': now, 'biometric_pay': i == 1, 'is_current': i == 1}),
     'GET /push/devices': () => many((i) => {'device_id': i, 'platform': 'ios', 'token_tail': 'a1b2c3', 'created_at': now, 'last_seen_at': now}, 2),
     'GET /support/faqs': () => many((i) => {'faq_id': i, 'category': ['account', 'trade', 'wallet', 'cabinet'][i % 4], 'question': 'How do I get my coins back if the seller never drops the book off?', 'answer': 'Answer ' * 30, 'sort_order': i, 'is_visible': true}),
@@ -575,7 +613,9 @@ Object? fakeData(String method, String path) {
 
 MockClient fakeApi() => MockClient((request) async {
       final path = request.url.path.replaceFirst('/api', '');
-      final data = fakeData(request.method, path);
+      final data = path == '/chat/link-preview'
+          ? linkPreviewData(request.url.queryParameters['url'] ?? '')
+          : fakeData(request.method, path);
       final body = <String, Object?>{
         'success': true,
         'message': 'OK',
@@ -643,6 +683,15 @@ Map<String, Widget Function()> get screens => {
       'LegalConsent': () => LegalConsentScreen(documents: [LegalDoc.fromJson({'doc_id': 1, 'doc_key': 'terms', 'title': 'Terms of Service and Community Guidelines', 'content': 'Article 1. ' * 300, 'version': 3, 'updated_at': now})]),
       'SecurityCenter': () => const SecurityCenterScreen(),
       'SignInMethods': () => const SignInMethodsPreview(),
+      'Passkeys': () => const PasskeysPreview(),
+      'IdentityVerifyPasskey': () => DialogPreview(
+          show: (context) => showIdentityVerificationSheet(context,
+              scope: 'admin',
+              reason: 'Verify your identity before changing the administrator permissions of $longName',
+              onPasskey: () async => (token: null, message: 'This device does not support passkeys. Use your password instead.'))),
+      'IdentityVerifyPasskeyNoPassword': () => DialogPreview(
+          show: (context) => showIdentityVerificationSheet(context,
+              scope: 'sensitive', reason: '', hasPassword: false, onPasskey: () async => (token: null, message: null))),
       'SetPassword': () => const SetPasswordScreen(),
       'PhoneSignIn': () => const PhoneSignInScreen(),
       'PhoneSmsCode': () => const PhoneSmsCodePreview(),
@@ -697,6 +746,18 @@ Map<String, Widget Function()> get screens => {
       'AdminDeleteBookDialog': () => DialogPreview(
           show: (context) => showAdminDeleteBookDialog(
               context, AdminBook.fromJson({'book_id': 5, 'title': longTitle, 'price': 123456, 'status': 'on_sale', 'condition_level': 'fair', 'seller': user(2)}))),
+      'IdentityVerifyAdmin': () => DialogPreview(
+          show: (context) => showIdentityVerificationSheet(context,
+              scope: 'admin', reason: '調整 $longName 的管理員權限前，請先驗證身分，此操作會寫入管理員操作紀錄。')),
+      'IdentityVerifyBiometric': () => DialogPreview(
+          show: (context) => showIdentityVerificationSheet(context,
+              scope: 'sensitive',
+              reason: 'Verify your identity before exporting a copy of all the personal data in this account',
+              biometricLabel: 'Face ID',
+              onBiometric: () async => (token: null, message: null))),
+      'IdentityVerifyNoPassword': () => DialogPreview(
+          show: (context) => showIdentityVerificationSheet(context,
+              scope: 'admin', reason: '請輸入您的登入密碼以執行此後台操作', hasPassword: false)),
       'ImageCropLoading': () => const ImageCropScreen(sourcePath: '/nonexistent/photo.jpg', circular: true),
       'ImageCropSquare': () => const CropViewPreview(aspectRatio: 1),
       'ImageCropWide': () => const CropViewPreview(aspectRatio: 4 / 3),
@@ -713,7 +774,6 @@ AiListingTargets aiAssistTargets() => AiListingTargets(
       supportsCategory: true,
       supportsCondition: true,
       supportsPrice: true,
-      deferConditionAndPrice: true,
     );
 
 class AiRecommendStripPreview extends StatelessWidget {
@@ -928,6 +988,43 @@ class _MentionPanelPreviewState extends State<MentionPanelPreview> {
   }
 }
 
+Map<String, dynamic> passkeyRow(String id, String? label, {bool used = true}) =>
+    {'passkey_id': id, 'device_label': label, 'created_at': now, 'last_used_at': used ? now : null, 'backed_up': used};
+
+class FakePasskeyClient implements PasskeyClient {
+  @override
+  Future<bool> isSupported() async => true;
+
+  @override
+  Future<Map<String, dynamic>> create(Map<String, dynamic> options) async => throw const PasskeyClientException.cancelled();
+
+  @override
+  Future<Map<String, dynamic>> get(Map<String, dynamic> options) async => throw const PasskeyClientException.cancelled();
+}
+
+class PasskeysPreview extends StatelessWidget {
+  const PasskeysPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            PasskeysCard(initialItems: [
+              PasskeyItem.fromJson(passkeyRow('PK3M7Q2XA', 'Samsung Galaxy Z Fold7 Ultra Enterprise Edition')),
+              PasskeyItem.fromJson(passkeyRow('PK9QW2E4R', null, used: false)),
+            ]),
+            const SizedBox(height: 16),
+            const PasskeysCard(initialItems: []),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class SignInMethodsPreview extends StatelessWidget {
   const SignInMethodsPreview({super.key});
 
@@ -993,6 +1090,8 @@ void main() {
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
     SocialAuth.gateway = FakeAuthGateway();
+    PasskeyService.client = FakePasskeyClient();
+    PasskeyService.resetCache();
     themeProvider = await ThemeProvider.init();
     localeProvider = await LocaleProvider.init();
   });

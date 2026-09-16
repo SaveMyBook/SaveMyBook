@@ -246,7 +246,7 @@ const tests = [
       token: sellerToken, body: { action: 'approve' }
     });
     assert.strictEqual(bad.status, 400);
-    assert.strictEqual(bad.body.message, 'action 僅接受：accept, decline, cancel');
+    assert.strictEqual(bad.body.message, '操作類型不正確');
   }],
 
   ['保留中的書籍其他買家不可加入購物車', async () => {

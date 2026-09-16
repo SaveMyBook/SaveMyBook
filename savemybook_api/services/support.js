@@ -35,7 +35,7 @@ const shapeTicket = (t) => ({
 // 須檢查客服權限而非只看 role，否則無客服權限的管理員也能讀所有工單。
 const findAccessibleTicket = async (ticketId, user, include) => {
   const ticket = await prisma.support_tickets.findUnique({ where: { ticket_id: ticketId }, include });
-  if (!ticket) throw notFound('找不到此工單');
+  if (!ticket) throw notFound('找不到此提問');
 
   const isOwner = ticket.user_id === user.userId;
   const isStaff = !isOwner && (await hasPermission(user, 'support'));
@@ -82,7 +82,7 @@ const open = async (userId, { subject, category, content }) => {
     where: { user_id: userId, status: { in: ['open', 'pending'] } }
   });
   if (openCount >= MAX_OPEN_TICKETS) {
-    throw badRequest(`您已有 ${MAX_OPEN_TICKETS} 張處理中的工單，請待客服回覆後再建立新工單`);
+    throw badRequest(`您已有 ${MAX_OPEN_TICKETS} 則處理中的提問，請待客服回覆後再提出新問題`);
   }
 
   const ticket = await prisma.support_tickets.create({
@@ -104,7 +104,7 @@ const open = async (userId, { subject, category, content }) => {
 
 const reply = async (ticketId, user, content) => {
   const { ticket, isStaff } = await findAccessibleTicket(ticketId, user);
-  if (ticket.status === 'closed') throw badRequest('此工單已結案，請建立新工單');
+  if (ticket.status === 'closed') throw badRequest('此提問已結案，請提出新問題');
 
   await prisma.$transaction(async (tx) => {
     await tx.support_ticket_messages.create({
@@ -120,7 +120,7 @@ const reply = async (ticketId, user, content) => {
       await notify(tx, {
         userId: ticket.user_id,
         title: '客服已回覆您的問題',
-        content: `工單「${ticket.subject}」有新的回覆。`,
+        content: `您的提問「${ticket.subject}」有新的回覆。`,
         relatedId: ticketId,
         relatedType: 'ticket'
       });
@@ -181,8 +181,8 @@ const setStatus = async (ticketId, status, { adminId, req }) => {
 
   await notify(null, {
     userId: ticket.user_id,
-    title: '工單狀態更新',
-    content: `工單「${ticket.subject}」已更新為「${TICKET_STATUS_LABELS[status]}」。`,
+    title: '提問狀態更新',
+    content: `您的提問「${ticket.subject}」已更新為「${TICKET_STATUS_LABELS[status]}」。`,
     relatedId: ticketId,
     relatedType: 'ticket'
   });

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import 'animations.dart';
+import 'app_asset_image.dart';
 import 'image_viewer.dart';
 import '../utils/motion.dart';
 
@@ -33,8 +34,10 @@ class _UserAvatarState extends State<UserAvatar> with WidgetsBindingObserver {
   static const _retryDelays = [Duration(seconds: 2), Duration(seconds: 6), Duration(seconds: 15)];
 
   bool _failed = false;
+  bool _permanent = false;
   int _attempt = 0;
   Timer? _retryTimer;
+  int? _cacheSize;
 
   @override
   void initState() {
@@ -50,7 +53,7 @@ class _UserAvatarState extends State<UserAvatar> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _failed) setState(_reset);
+    if (state == AppLifecycleState.resumed && _failed && !_permanent) setState(_reset);
   }
 
   @override
@@ -63,18 +66,28 @@ class _UserAvatarState extends State<UserAvatar> with WidgetsBindingObserver {
   void _reset() {
     _retryTimer?.cancel();
     _failed = false;
+    _permanent = false;
     _attempt = 0;
   }
 
-  void _onError(String url) {
+  // cacheWidth 讓 Image 以 ResizeImage 當快取鍵，evict 必須針對同一個 provider，
+  // 否則重試只會再讀到快取裡的同一份結果。
+  ImageProvider _providerFor(String url) =>
+      ResizeImage.resizeIfNeeded(_cacheSize, null, NetworkImage(url));
+
+  void _onError(String url, Object error) {
     if (_failed || !mounted) return;
-    setState(() => _failed = true);
-    if (_attempt >= _retryDelays.length) return;
+    final permanent = isPermanentImageError(error);
+    setState(() {
+      _failed = true;
+      _permanent = permanent;
+    });
+    if (permanent || _attempt >= _retryDelays.length) return;
     final delay = _retryDelays[_attempt];
     _retryTimer?.cancel();
     _retryTimer = Timer(delay, () {
       if (!mounted || widget.imageUrl != url) return;
-      NetworkImage(url).evict();
+      _providerFor(url).evict();
       setState(() {
         _attempt++;
         _failed = false;
@@ -87,7 +100,8 @@ class _UserAvatarState extends State<UserAvatar> with WidgetsBindingObserver {
     final c = AppColors.of(context);
     final url = widget.imageUrl;
     final showImage = !_failed && url != null && url.isNotEmpty;
-    final cacheSize = (widget.radius * 2 * MediaQuery.devicePixelRatioOf(context)).round();
+    final cacheSize = (widget.radius * 2 * MediaQuery.devicePixelRatioOf(context)).round().clamp(1, 4096);
+    _cacheSize = cacheSize;
 
     final fallback = Icon(Icons.person, size: widget.radius * 1.05, color: c.iconInactive);
 
@@ -102,13 +116,12 @@ class _UserAvatarState extends State<UserAvatar> with WidgetsBindingObserver {
         shape: BoxShape.circle,
       ),
       child: showImage
-          ? Image.network(
-              url,
+          ? Image(
+              image: _providerFor(url),
               key: ValueKey('$url#$_attempt'),
               fit: BoxFit.cover,
-              cacheWidth: cacheSize,
-              errorBuilder: (_, _, _) {
-                WidgetsBinding.instance.addPostFrameCallback((_) => _onError(url));
+              errorBuilder: (_, error, _) {
+                WidgetsBinding.instance.addPostFrameCallback((_) => _onError(url, error));
                 return Center(child: fallback);
               },
               frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {

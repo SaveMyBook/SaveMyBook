@@ -65,7 +65,7 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
     final confirmed = await showConfirmDialog(
       context,
       title: session.isCurrent ? S.signOutDevice : S.signOutP0(_nameOf(session)),
-      message: session.isCurrent ? S.llNeedSignAgainUseApp : S.deviceSignedOutRightAwayStop,
+      message: session.isCurrent ? null : S.deviceSignedOutRightAwayStop,
       confirmLabel: S.signOut,
       isDestructive: true,
       icon: Icons.logout_rounded,
@@ -164,29 +164,6 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: responsiveListPadding(constraints, bottom: 40),
           children: [
-            FadeSlideIn(
-              index: index++,
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: c.accent.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.info_outline_rounded, size: 18, color: c.accent),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        S.theseDevicesSignedAccountIfDon,
-                        style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
             if (current.isNotEmpty) ...[
               _sectionTitle(c, S.device),
               for (final s in current) FadeSlideIn(index: index++, child: _tile(c, s)),

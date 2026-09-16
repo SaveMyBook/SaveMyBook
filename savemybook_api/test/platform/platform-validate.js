@@ -52,7 +52,7 @@ module.exports = {
 
     ['列舉值與布林值', () => {
       assert.strictEqual(v.oneOf('ios', ['ios', 'android']), 'ios');
-      assert.throws(() => v.oneOf('web', ['ios', 'android']), badRequest('僅接受：ios, android'));
+      assert.throws(() => v.oneOf('web', ['ios', 'android']), badRequest('選項不正確'));
       assert.throws(() => v.oneOf('web', ['ios'], '不支援的平台'), badRequest('不支援的平台'));
 
       assert.strictEqual(v.bool(true), true);

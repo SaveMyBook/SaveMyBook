@@ -42,7 +42,7 @@ const PRICE_LABELS = {
   search_free_per_month: '每月免費搜尋次數'
 };
 
-const unavailable = () => new HttpError(503, 'AI 功能目前無法使用，伺服器尚未完成資料庫更新', 'AI_UNAVAILABLE');
+const unavailable = () => new HttpError(503, 'AI 功能暫時無法使用，請稍後再試', 'AI_UNAVAILABLE');
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 

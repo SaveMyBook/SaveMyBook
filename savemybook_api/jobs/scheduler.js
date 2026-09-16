@@ -7,6 +7,8 @@ const sessions = require('../services/sessions');
 const reservations = require('../services/reservations');
 const transferRecords = require('../services/chat/transfer-records');
 const oauth = require('../services/oauth-providers');
+const passkeys = require('../services/passkeys');
+const uploadsCleanup = require('../services/uploads-cleanup');
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
@@ -55,6 +57,11 @@ const runOauthCleanup = async () => {
   } catch (err) {
     console.error('[清理社群登入暫存資料失敗]:', err.message);
   }
+  try {
+    await passkeys.cleanupExpired();
+  } catch (err) {
+    console.error('[清理通行密鑰挑戰值失敗]:', err.message);
+  }
 };
 
 const runReservationExpiry = async () => {
@@ -71,6 +78,17 @@ const runReservationExpiry = async () => {
   }
 };
 
+// 上傳目錄可能因為部署覆蓋而遺失檔案；每天清一次，避免畫面長期出現破圖。
+const runUploadsSweep = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const { missingCount } = await uploadsCleanup.sweep({ apply: true });
+    if (missingCount > 0) console.log(`🖼️  已清除 ${missingCount} 筆找不到檔案的圖片欄位`);
+  } catch (err) {
+    console.error('[清理失效圖片欄位失敗]:', err.message);
+  }
+};
+
 const startScheduler = () => {
   let stopDispatcher = () => {};
   push.init()
@@ -83,6 +101,8 @@ const startScheduler = () => {
     setInterval(runBackupIfDue, HOUR),
     setInterval(runReservationExpiry, 5 * MINUTE),
     setInterval(runOauthCleanup, 10 * MINUTE),
+    setInterval(runUploadsSweep, 24 * HOUR),
+    setTimeout(runUploadsSweep, 3 * MINUTE),
     setTimeout(runReservationExpiry, MINUTE),
     setTimeout(runDeletionSweep, 30 * 1000),
     setTimeout(runBackupIfDue, 2 * MINUTE)

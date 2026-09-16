@@ -15,8 +15,8 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   const targetType = v.oneOf(req.body.target_type, REPORT_TARGET_TYPES,
-    `target_type 僅接受：${REPORT_TARGET_TYPES.join(', ')}`);
-  if (req.body.target_id === undefined) throw badRequest('請提供 target_id');
+    '檢舉類型不正確');
+  if (req.body.target_id === undefined) throw badRequest('請指定檢舉對象');
   const targetId = v.id(req.body.target_id, '檢舉對象編號');
   const reason = v.text(req.body.reason, { label: '檢舉原因', max: 2000 });
   const evidenceUrls = v.evidenceUrls(req.body.evidence_urls);

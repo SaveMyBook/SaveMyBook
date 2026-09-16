@@ -16,6 +16,7 @@
     "@prisma/adapter-mariadb": "^7.6.0",
     "@prisma/client": "^7.6.0",
     "@scalar/express-api-reference": "^0.10.18",
+    "@simplewebauthn/server": "^14.0.2",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",

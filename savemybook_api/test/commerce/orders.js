@@ -408,7 +408,7 @@ const tests = [
 
     const res = await setStatus(sellerToken, order.order_id, 'refunded');
     assert.strictEqual(res.status, 400);
-    assert.strictEqual(res.body.message, 'status 僅接受：deposited, pending_pickup, completed');
+    assert.strictEqual(res.body.message, '訂單狀態不正確');
   }],
 
   ['訂單不再產生或回傳取書碼', async () => {

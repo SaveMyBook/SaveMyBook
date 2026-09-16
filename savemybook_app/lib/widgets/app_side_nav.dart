@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_info.dart';
 import '../utils/motion.dart';
+import 'app_asset_image.dart';
 import 'app_header.dart';
 
 class AppSideNav extends StatelessWidget {
@@ -47,7 +48,7 @@ class AppSideNav extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset('assets/images/logo.png', width: 40, height: 40),
+                  child: const AppAssetImage(asset: 'assets/images/logo.png', width: 40, height: 40, fallbackIcon: Icons.menu_book_rounded),
                 ),
                 if (extended) ...[
                   const SizedBox(width: 12),

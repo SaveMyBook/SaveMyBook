@@ -11,8 +11,12 @@ App 端（`lib/features/auth`、`lib/services/social_auth_service.dart`）與 AP
 | Google | google_sign_in → firebase_auth | Firebase ID Token |
 | Apple | sign_in_with_apple → firebase_auth | Firebase ID Token |
 | 手機號碼 | firebase_auth 簡訊驗證 | Firebase ID Token |
-| LINE | 開啟瀏覽器授權，伺服器交換權杖 | LINE Login OAuth 2.1 |
-| Discord | 開啟瀏覽器授權，伺服器交換權杖 | Discord OAuth2 |
+| LINE | App 內瀏覽器授權，伺服器交換權杖 | LINE Login OAuth 2.1 |
+| Discord | App 內瀏覽器授權，伺服器交換權杖 | Discord OAuth2 |
+
+登入按鈕的品牌標誌取自 Font Awesome Free（`font_awesome_flutter` 套件，圖示為 CC BY 4.0、
+字型為 SIL OFL 1.1），不需另外準備圖檔。打包時請保留套件授權（Flutter 會自動把各套件的
+LICENSE 收進「開放原始碼授權」頁面），不要在 `flutter build` 加上會移除授權資訊的設定。
 
 ---
 
@@ -50,17 +54,19 @@ flutter build apk --dart-define=GOOGLE_SERVER_CLIENT_ID=<Firebase Web 用戶端 
 
 ## 二、Xcode（iOS 與 macOS）
 
-以下檔案已預先加入設定，**佔位字串必須替換**：
+兩個 Info.plist 已填入正式的 Google Client ID，一般情況不需修改：
 
-| 檔案 | 需要替換的內容 |
+| 檔案 | 相關設定 |
 | --- | --- |
-| `ios/Runner/Info.plist` | `GIDClientID` 與 URL scheme 中的 `REPLACE_WITH_IOS_CLIENT_ID` |
-| `macos/Runner/Info.plist` | `GIDClientID` 與 URL scheme 中的 `REPLACE_WITH_MACOS_CLIENT_ID` |
+| `ios/Runner/Info.plist` | `GIDClientID` 與 `CFBundleURLSchemes` 中的 `com.googleusercontent.apps.…` |
+| `macos/Runner/Info.plist` | `GIDClientID` 與 `CFBundleURLSchemes` 中的 `com.googleusercontent.apps.…` |
 
-替換值取自 Firebase 下載的 `GoogleService-Info.plist`：
+確認方式：與 Firebase 主控台下載的 `GoogleService-Info.plist` 比對。
 
-- `GIDClientID` = 該檔的 `CLIENT_ID`（形如 `1234-abcd.apps.googleusercontent.com`）。
-- URL scheme = 該檔的 `REVERSED_CLIENT_ID`（形如 `com.googleusercontent.apps.1234-abcd`），**整段**取代 `com.googleusercontent.apps.REPLACE_WITH_IOS_CLIENT_ID`。
+- `GIDClientID` 須等於該檔的 `CLIENT_ID`（形如 `1234-abcd.apps.googleusercontent.com`）。
+- URL scheme 須等於該檔的 `REVERSED_CLIENT_ID`（形如 `com.googleusercontent.apps.1234-abcd`）。
+
+更換 Firebase 專案或重新建立 OAuth 用戶端時，以新檔案的兩個值**整段**取代上述設定；兩者不一致時，Google 登入授權後無法返回 App。
 
 其他步驟：
 
@@ -126,16 +132,23 @@ Firebase 需要 Service ID 與私密金鑰才能驗證 Apple 憑證：
 
 ## 七、後台開關
 
-管理端 →「系統維運 → 登入方式」（需要 `system` 權限，儲存時需通過敏感操作驗證）：
+管理端 →「系統維運 → 登入方式」（需要 `system` 權限，儲存時需以管理員的登入密碼或通行密鑰通過 `admin` 範圍驗證）：
 
 - 總開關：關閉後登入頁不再顯示任何社群與簡訊登入。
 - 各渠道「開放此方式登入與綁定」：控制登入與帳號安全頁的綁定。
 - 各渠道「允許以這個方式直接建立新帳號」：關閉時只有已存在的帳號能用該方式登入或綁定，新使用者會看到「此登入方式僅供既有帳號使用」。
-- 伺服器沒有該渠道憑證時顯示「未設定」並強制停用，開關無法打開。
+- 伺服器沒有該渠道憑證時，該渠道的卡片整張淡化、標示「未設定」並列出要補的環境變數，開關無法打開。
+
+## 八、不自動建立帳號
+
+第三方身分尚未綁定任何帳號時，`POST /api/auth/social` 與 `POST /api/auth/oauth/exchange`
+一律回 404 `NO_ACCOUNT_FOR_PROVIDER`，不會自動註冊。App 詢問使用者後，只有在選擇
+「以這個身分建立新帳號」時才帶 `create: true` 重送；LINE／Discord 會沿用同一組一次性碼，
+不必再開一次授權頁。
 
 ---
 
-## 八、驗收清單
+## 九、驗收清單
 
 完成上述設定後，依序確認：
 
@@ -145,6 +158,9 @@ Firebase 需要 Service ID 與私密金鑰才能驗證 Apple 憑證：
 4. 手機號碼登入可收到簡訊，輸入錯誤驗證碼會顯示錯誤並可重新輸入，倒數結束後可重新傳送。
 5. 以手機號碼註冊新帳號時，會出現「完成帳號資料」畫面要求填寫信箱、暱稱並勾選同意條款。
 6. 使用已註冊信箱的第三方帳號登入時，出現「此電子郵件已註冊」對話框，提示改以密碼登入後再綁定。
-7. LINE／Discord 會開啟瀏覽器，授權後自動返回 App 並完成登入。
-8. 帳號安全 →「登入方式」可綁定與解除綁定（需通過敏感操作驗證），沒有密碼的帳號會先要求設定密碼。
-9. 沒有密碼的帳號在「變更密碼」與「刪除帳號」會被提示先設定密碼。
+7. LINE／Discord 會在 App 內開啟瀏覽器（iOS 為 SFSafariViewController、Android 為 Custom Tabs），
+   授權後自動返回 App、瀏覽器自動關閉，且不會重複開窗。中途取消或逾時都直接回到登入頁。
+8. 以尚未綁定的第三方帳號登入時，出現「此登入方式尚未綁定帳號」對話框，三個選項分別可
+   回到登入頁綁定、直接建立新帳號，或取消；取消後伺服器不會留下任何新帳號。
+9. 帳號安全 →「登入方式」可綁定與解除綁定（需通過敏感操作驗證），沒有密碼的帳號會先要求設定密碼。
+10. 沒有密碼的帳號在「變更密碼」與「刪除帳號」會被提示先設定密碼。

@@ -48,7 +48,7 @@ const tests = [
 
     const type = await send(me, roomId, { content: '嗨', message_type: 'sticker' });
     assert.strictEqual(type.status, 400);
-    assert.strictEqual(type.body.message, 'message_type 僅接受：text, image, voice, album');
+    assert.strictEqual(type.body.message, '不支援此訊息類型');
   }],
 
   ['傳送圖片訊息', async () => {

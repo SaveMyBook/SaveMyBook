@@ -3,7 +3,6 @@ import '../../models/support.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
-import '../../utils/app_info.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
@@ -107,7 +106,7 @@ class _LegalConsentScreenState extends State<LegalConsentScreen> {
     final ok = await showConfirmDialog(
       context,
       title: S.canTContinueWithoutAccepting,
-      message: S.needAcceptLatestP0UseP1(_current.title, kAppName),
+      message: S.needAcceptLatestP0UseP1(_current.title),
       confirmLabel: S.signOut,
       cancelLabel: S.goBack,
       isDestructive: true,

@@ -10,7 +10,7 @@ const FALLBACK_TTL_MS = 60 * 60 * 1000;
 // Firebase 的 sign_in_provider 值與本站的 provider 代號不同名。
 const SIGN_IN_PROVIDERS = { google: 'google.com', apple: 'apple.com', phone: 'phone' };
 
-const invalidToken = () => new HttpError(401, '登入憑證無效或已過期，請重新登入', 'INVALID_ID_TOKEN');
+const invalidToken = () => new HttpError(401, '登入逾時，請重新操作', 'INVALID_ID_TOKEN');
 const providerError = () => new HttpError(502, '目前無法完成第三方登入驗證，請稍後再試', 'AUTH_PROVIDER_ERROR');
 
 let projectIdCache = null;
@@ -79,7 +79,7 @@ const verifyIdToken = async (idToken, provider) => {
   if (!expected) throw invalidToken();
 
   const projectId = readProjectId();
-  if (!projectId) throw new HttpError(503, '伺服器尚未設定 Firebase 專案，無法使用此登入方式', 'AUTH_SOCIAL_UNAVAILABLE');
+  if (!projectId) throw new HttpError(503, '此登入方式暫時無法使用，請稍後再試', 'AUTH_SOCIAL_UNAVAILABLE');
   if (typeof idToken !== 'string' || idToken.length < 20 || idToken.length > 8192) throw invalidToken();
 
   const decoded = jwt.decode(idToken, { complete: true });

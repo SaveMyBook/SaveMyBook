@@ -117,10 +117,8 @@ abstract class AppLocalizations {
   String get appearanceLight;
   String get appearanceDark;
   String get appearanceSystem;
-  String get appearanceHint;
   String get language;
   String get languageSystem;
-  String get languageHint;
   String get verifySignSavemybook;
   String get maintenance;
   String get promotions;
@@ -156,8 +154,6 @@ abstract class AppLocalizations {
   String get newLinkCreatedOldOneNo;
   String get deleteAccount;
   String get accountPermanentlyDisabled30DaysSign;
-  String get personalDataErasedButCompletedOrders;
-  String get peopleTradedWithDoNotLose;
   String get actionContinue;
   String get verify;
   String get enterPasswordConfirm;
@@ -168,11 +164,7 @@ abstract class AppLocalizations {
   String get account;
   String get data;
   String get exportMyData;
-  String get profileBooksOrdersTransactionsJson;
-  String get oldLinkQrCodeStopWorking2;
   String get cancelAccountDeletion;
-  String get restoreAccountStopCountdown;
-  String get canChangeMindWithin30Days;
   String get deletionPending;
   String daysLeftCanCancelAnyTime(Object p0);
   String get signOut;
@@ -214,32 +206,23 @@ abstract class AppLocalizations {
   String get share;
   String get report;
   String get about;
-  String pickup(Object p0);
   String get messageSeller;
   String get listing;
   String get addCart;
   String get bookBeenReportedUnderReviewStays;
   String get violationWasConfirmedBookPleaseCheck;
-  String get reportDismissed2;
-  String get bookWasReportedButNoViolation;
   String get delist;
   String removedFromShopBuyersNoLonger(Object p0);
   String get delist2;
-  String get delistedRelistFromDelistedTab;
   String get couldNotDelistPleaseTryAgain;
   String listedAgain(Object p0);
   String get notListedAnyBooksYet;
   String get noBooksCategory;
-  String get listFirstBook;
   String get relist;
-  String get removeFromCart;
-  String removeFromCart2(Object p0);
   String get remove;
   String get couldNotRemoveRestored;
-  String get couldNotRemovePleaseTryAgain;
   String get selectBooksWantCheckOut;
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1);
-  String get confirmCheckout;
   String booksTotal(Object p0, Object p1);
   String balanceAfterPaymentCoins(Object p0);
   String get orderPlacedSellerDropBookOff;
@@ -287,7 +270,6 @@ abstract class AppLocalizations {
   String get noConversationsYet;
   String get unmute;
   String get mute;
-  String get messagesLimited500Characters;
   String get messageCouldNotSent;
   String get chat;
   String get sendFirstMessage;
@@ -304,7 +286,6 @@ abstract class AppLocalizations {
   String get disputeSubmittedSupportContact;
   String get dispute;
   String get requestPaymentHold;
-  String get paymentSellerHeldUntilSupportDecides;
   String get submitDispute2;
   String get orderNumber;
   String get eGSmb20260910123456789;
@@ -313,8 +294,6 @@ abstract class AppLocalizations {
   String get submit;
   String get uploadPhotos;
   String get canAttachUp6Photos;
-  String get up5;
-  String get couldNotReplacePhotoPleaseTry;
   String get keepLeastOnePhoto;
   String get photoDeleted;
   String get couldNotDeletePhotoPleaseTry;
@@ -324,7 +303,6 @@ abstract class AppLocalizations {
   String get photoMissingDataRefreshTryAgain;
   String get enterPrice;
   String get priceMustGreaterThan0;
-  String get priceCannotExceed999999;
   String get chooseLockerLocation;
   String missingTheseThreeRequired(Object p0);
   String get bookUpdated;
@@ -387,7 +365,6 @@ abstract class AppLocalizations {
   String get croppingFailedPleaseTryAgain;
   String get adjustPhoto;
   String get reset;
-  String get usePhoto;
   String get documentNotBeenCreatedYet;
   String lastUpdated(Object p0);
   String get biometrics;
@@ -426,7 +403,6 @@ abstract class AppLocalizations {
   String markAllUnreadNotificationsAsRead(Object p0);
   String get openChat;
   String get viewOrder;
-  String get openMyBooks;
   String get notifications;
   String get noNotifications;
   String copied(Object p0);
@@ -462,7 +438,6 @@ abstract class AppLocalizations {
   String get pointPickupQrCode;
   String get holdSteady;
   String get bookCollected;
-  String get thanksUsingSavemybookHappyReading;
   String collected(Object p0);
   String order2(Object p0);
   String get signingOut;
@@ -470,18 +445,11 @@ abstract class AppLocalizations {
   String get personNotWrittenBioYet;
   String get topTierReached;
   String morePointsReach(Object p0, Object p1);
-  String get myCoins;
-  String get shareProfile;
   String get purchases;
   String get sales;
   String get settings;
   String get signOut2;
-  String get needSignAgainKeepUsingApp;
   String cancelOrderBookReturnsShop(Object p0);
-  String get pickupCode2;
-  String get notGeneratedYet;
-  String get enterCodeLockerCollect;
-  String enterCodeCollect(Object p0);
   String get iCollected;
   String get noOrdersTab;
   String get openDispute;
@@ -495,9 +463,7 @@ abstract class AppLocalizations {
   String get and;
   String get createAccount;
   String get joinSavemybook;
-  String get signUpBuySellUseSmart;
   String get displayName;
-  String get nameOthersSee;
   String get emailSignWith;
   String get least8CharactersWithLettersNumbers;
   String get confirmPassword;
@@ -507,8 +473,6 @@ abstract class AppLocalizations {
   String get droppedOff;
   String get markedAsDroppedOff;
   String get buyerNotifiedBookReturnsShop;
-  String get dropOffPickupCode;
-  String get enterCodeLocker;
   String get noRecentSearches;
   String get recentSearches;
   String get clearAll2;
@@ -526,9 +490,6 @@ abstract class AppLocalizations {
   String get listed2;
   String get unknownError;
   String get couldNotListBook;
-  String serverError(Object p0);
-  String get connectionProblem;
-  String get couldNotReachServerUploadTimed;
   String get listBook;
   String get detailsPhotos;
   String get loading;
@@ -536,7 +497,6 @@ abstract class AppLocalizations {
   String get enterTitle2;
   String get chooseCategory2;
   String get bookDetailsFilledAutomatically;
-  String get bookDetailsFilledFromBackupSource;
   String get noSourceIsbnPleaseEnterDetails;
   String get day;
   String get tapIconRightScan;
@@ -554,9 +514,7 @@ abstract class AppLocalizations {
   String get helpSupport;
   String get contactUs;
   String get aboutSavemybook;
-  String get settingsPrivacy;
   String sign3(Object p0);
-  String unlockWithWhenOpenApp(Object p0);
   String get scanProfileQrCode;
   String get lineUpTheirQrCodeWith;
   String get notSavemybookProfileQrCode;
@@ -592,9 +550,6 @@ abstract class AppLocalizations {
   String get noTransactionsYet;
   String get balance;
   String hold(Object p0);
-  String requestFailed2(Object p0);
-  String get couldNotReachServer;
-  String get couldNotReachServerCheckConnection;
   String get signFailed;
   String get signFailedPleaseTryAgain;
   String get signUpFailed;
@@ -690,7 +645,6 @@ abstract class AppLocalizations {
   String get scheduled;
   String get download;
   String get downloadBackup;
-  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1);
   String get copyLink2;
   String get downloadLinkCopied;
   String get forceDelist;
@@ -757,14 +711,7 @@ abstract class AppLocalizations {
   String get documentUnsavedChangesTheyLostIf;
   String get discard;
   String get keepEditing;
-  String get bothTitleContentRequired;
   String sectionP0NoTitleYet(Object p0);
-  String updateP0(Object p0);
-  String get documentBindingEveryUserSubmittingReplaces;
-  String get yesUpdate;
-  String get notifyEveryUser;
-  String get updateNotify;
-  String get updateOnly;
   String get sections;
   String get plainText;
   String get preview;
@@ -772,17 +719,14 @@ abstract class AppLocalizations {
   String get preamble;
   String get unnumberedOpeningTextLeaveEmptyIf;
   String get articles;
-  String get numberedAutomatically;
   String get noArticlesYetAddFirstOne;
   String get addSection;
   String get untitledSection;
   String get sectionTitle;
   String get bodySectionSingleLineBreaksKept;
-  String get emptyLineStartsParagraphParagraphWhose;
   String get howUsersSee;
   String get noContentYet;
   String get unsaved;
-  String get upDate;
   String get newQuestion;
   String get editQuestion;
   String get question;
@@ -796,7 +740,6 @@ abstract class AppLocalizations {
   String get deleted;
   String get faq;
   String get noQuestionsYet2;
-  String get dragHandleRightReorder;
   String get hidden;
   String get cancelDeletionRequest;
   String p0SAccountReturnsNormalCountdown(Object p0);
@@ -825,36 +768,20 @@ abstract class AppLocalizations {
   String get handle;
   String get transactions2;
   String get orders;
-  String get lookUpOrdersAdjustStatusBy;
-  String get disputeListDecisions;
   String get listings;
-  String get allBooksForceDelisting;
   String get moderation;
   String get handleListingReports;
-  String get addReorderDeleteBookCategories;
   String get members;
   String get memberControls;
-  String get memberListSuspensionBlocklist;
   String get membershipTiers;
-  String get tierThresholdsBenefits;
   String get wallets;
-  String get checkBalancesAddDeductCoinsBy;
   String get hardwareOperations;
-  String get lockerSlotStatus;
   String get maintenanceLog;
-  String get lockerOperationHistory;
   String get reports;
   String get ordersRevenueMemberGrowth;
-  String get announcements2;
   String get supportEnquiries;
-  String get replyQuestionsFromUsers;
-  String get faqShownHelpCentre;
-  String get termsPrivacyPolicyAbout;
   String get adminAuditLog;
-  String get auditTrailAdminChanges;
   String get systemOperations;
-  String get dailyBackupsManualRunsDownloads;
-  String get deletionRequestsInsideGracePeriodCancel;
   String get members2;
   String get todaySOrders;
   String get openCases;
@@ -987,7 +914,6 @@ abstract class AppLocalizations {
   String get noEnquiriesCategory;
   String get addCoins;
   String get deductCoins;
-  String get amountPositiveWholeNumber;
   String get reasonAdjustmentRequired;
   String get add2;
   String get deduct;
@@ -1023,7 +949,6 @@ abstract class AppLocalizations {
   String get replyUserQuestions;
   String get databaseBackupDownloadOffByDefault;
   String p0Locker(Object p0);
-  String everyActiveMemberReceivesP0Updated(Object p0);
   String get orderPlaced;
   String get paid;
   String get sellerDroppedOff;
@@ -1058,7 +983,6 @@ abstract class AppLocalizations {
   String get items3;
   String get bookDeleted;
   String get notAssignedYet2;
-  String get pickupCodeCopied;
   String get walletActivity;
   String balanceP02(Object p0);
   String get refunds;
@@ -1097,7 +1021,6 @@ abstract class AppLocalizations {
   String get sendTestNotification;
   String get arrives10SecondsGoHomeScreen;
   String get systemNotificationSettings;
-  String get turnNotificationsSoundsLockScreenPreviews;
   String get pushNotificationsNotSetUpBuild;
   String get notificationsTurnedOffAllowAppSend;
   String get restoreBackup;
@@ -1111,8 +1034,6 @@ abstract class AppLocalizations {
   String get restoreBackup2;
   String get restoringDatabase;
   String p0SecondsSoFarKeepApp(Object p0);
-  String get majorUpdate;
-  String get majorUpdateNotifiesEveryUserTerms;
   String get majorUpdate2;
   String get minorEdit;
   String get books;
@@ -1128,11 +1049,9 @@ abstract class AppLocalizations {
   String get searchActionsEGNicknameBook;
   String viewP0Changes(Object p0);
   String get undoAction2;
-  String get tapBarSeeDay;
   String get noAnnouncements;
-  String get tapPhotoNameChange;
   String get canTContinueWithoutAccepting;
-  String needAcceptLatestP0UseP1(Object p0, Object p1);
+  String needAcceptLatestP0UseP1(Object p0);
   String get goBack;
   String p0BeenUpdated(Object p0);
   String readLatestVersionUpdatedP0Accept(Object p0);
@@ -1141,11 +1060,8 @@ abstract class AppLocalizations {
   String get decline;
   String get viewDetails;
   String get notFoundMayBeenDeletedRemoved;
-  String get salesDropOffsPickupsRefundsDisputes;
   String get chatMessages;
-  String get newMessagesFromBuyersSellers;
   String get promotions2;
-  String get announcementsAboutPromotions;
   String get supportRepliesPasswordResetsPolicyUpdates;
   String get notFilled;
   String get canTChanged;
@@ -1187,7 +1103,6 @@ abstract class AppLocalizations {
   String get couldnTGetLocationCheckLocation;
   String get bookReservedAnotherBuyerCanT;
   String reservedAnotherBuyerUntilP0(Object p0);
-  String get ifIsnTSoldByThen;
   String sellerHoldingUntilP0(Object p0);
   String get checkOutBeforeHoldEndsOther;
   String get copyAddress;
@@ -1201,7 +1116,6 @@ abstract class AppLocalizations {
   String p0Delisted(Object p0);
   String noBooksMatchP0(Object p0);
   String p0BooksP1Views(Object p0, Object p1);
-  String get swipeQuickActions;
   String get searchTitleAuthorIsbn2;
   String removedP0(Object p0);
   String removedP0Items(Object p0);
@@ -1242,7 +1156,6 @@ abstract class AppLocalizations {
   String get accept;
   String get reservationAccepted;
   String get declineReservation;
-  String get theyLlNotifiedDeclined;
   String get decline2;
   String get reservationDeclined;
   String get cancelReservation;
@@ -1272,14 +1185,12 @@ abstract class AppLocalizations {
   String get recentlyViewedCleared;
   String clearP0(Object p0);
   String get picked;
-  String get seeMore;
   String get recentlyViewed;
   String get clear;
   String get notificationDeleted;
   String get pleasePutBookAssignedLockerSoon;
   String get weLlLetKnowWhenSeller;
   String get waitingBuyerCollect;
-  String get bookLockerEnterPickupCodeCollect;
   String get transactionCompleteThank;
   String get confirmVeTakenBookFromLocker;
   String p0Orders2(Object p0);
@@ -1287,12 +1198,10 @@ abstract class AppLocalizations {
   String get pickUp;
   String get saved;
   String get accountSecurity;
-  String get sellerHasnTPutBookLocker;
   String get searchHistoryCleared;
   String get trendingBooks;
   String get signOutDevice;
   String signOutP0(Object p0);
-  String get llNeedSignAgainUseApp;
   String get deviceSignedOutRightAwayStop;
   String get deviceSignedOut;
   String get signOutAllDevicesIncludingOne;
@@ -1302,7 +1211,6 @@ abstract class AppLocalizations {
   String signedOutP0OtherDevices(Object p0);
   String get unknownDevice;
   String get couldnTLoadDevices;
-  String get theseDevicesSignedAccountIfDon;
   String get device;
   String get otherDevices;
   String otherDevicesP0(Object p0);
@@ -1319,7 +1227,6 @@ abstract class AppLocalizations {
   String get pinsDonTMatchStartAgain;
   String get paymentPinReset;
   String get paymentPinSet;
-  String get use6DigitPinConfirmPayments;
   String get verifyingIdentity;
   String get enterAgainConfirm;
   String get set6DigitPaymentPin;
@@ -1338,17 +1245,12 @@ abstract class AppLocalizations {
   String payWithP0(Object p0);
   String get accountWellProtected;
   String get accountCouldSafer;
-  String get paymentPinBiometricPaymentSetCheck;
   String get setPaymentPinTurnBiometricPayment;
   String tooManyAttemptsLockedUntilP0(Object p0);
-  String get usedConfirmPaymentsCheckout;
   String get notSetRequiredBeforeCheckout;
   String get change;
   String get forgotPaymentPin;
-  String get ifFailsCanEnterPaymentPin;
-  String get viewRemotelySignOutDevices;
   String p0Devices(Object p0);
-  String get otherDevicesNeedSignAgain;
   String get restoredUnfinishedListing;
   String get isbnSCheckDigitInvalidPlease;
   String get draftSavedAutomatically;
@@ -1356,9 +1258,7 @@ abstract class AppLocalizations {
   String clearedP0MbCache(Object p0);
   String get cacheCleared;
   String get storage;
-  String get paymentPinBiometricPaymentDevices;
   String get clearCache;
-  String get removesCachedImagesFilesAccountData;
   String get couldNotLoadNotificationSettings;
   String get month;
   String p0P1(Object p0, Object p1);
@@ -1397,7 +1297,6 @@ abstract class AppLocalizations {
   String openP0(Object p0);
   String get nearest;
   String get noFreeSlots;
-  String get sortedByDistance;
   String get turnLocationSortByDistance;
   String get lockerNoFreeSlotsRightNow;
   String get turn;
@@ -1411,7 +1310,6 @@ abstract class AppLocalizations {
   String p0P12(Object p0, Object p1);
   String p1P2P0(Object p0, Object p1, Object p2);
   String get releaseCancel;
-  String get slideCancel;
   String get awaitingReply;
   String heldUntilP0(Object p0);
   String get declined2;
@@ -1419,7 +1317,6 @@ abstract class AppLocalizations {
   String get theyWantReserveBook;
   String get sentReservationRequest;
   String holdP0H(Object p0);
-  String get onceSellerAcceptsBookHeldNo;
   String get holdPeriod;
   String get messageSellerOptional;
   String get sendRequest;
@@ -1450,7 +1347,6 @@ abstract class AppLocalizations {
   String get rose;
   String get graphite;
   String get mistBlue;
-  String get chooseAppSMainColourHeader;
   String get draftRestored;
   String get convertSections;
   String get currentContentDoesNotFullyMatch;
@@ -1530,7 +1426,6 @@ abstract class AppLocalizations {
   String get reply;
   String get bookLockerScanQrCodeLocker;
   String get originalMessageUnavailable;
-  String replyingP0(Object p0);
   String get cancelReply;
   String get unreadMessages;
   String get selectChat;
@@ -1556,7 +1451,6 @@ abstract class AppLocalizations {
   String get denied;
   String get allow;
   String get homeRecommendations;
-  String get pickedRecentlyViewed;
   String get leaveGroup;
   String leaveP0(Object p0);
   String get leave;
@@ -1673,7 +1567,6 @@ abstract class AppLocalizations {
   String get savingImage;
   String get passwordsCanOnlyContainEnglishLetters;
   String get aiSupport;
-  String get instantReplies;
   String get howDoIListBook;
   String get howDoIPickUpFrom;
   String get howDoIRequestRefund;
@@ -1686,22 +1579,18 @@ abstract class AppLocalizations {
   String get newConversation;
   String get currentConversationEnd;
   String get copied2;
-  String get aiReplies;
   String get howCanWeHelp;
   String get failedSend;
   String get ourSupportTeamCanHelpWith;
   String get contactSupport;
   String get typeQuestion;
   String get aiFeatures;
-  String get usageModelsListingReview;
   String get aiSettingsNotSavedChangesLost;
   String get usage;
-  String get settings2;
   String reviewP0(Object p0);
   String get dailyCost;
   String get noCostPeriod;
   String get peakDay;
-  String get tapBarDetails;
   String p0Requests(Object p0);
   String get listingAssist;
   String get recommendations;
@@ -1811,16 +1700,12 @@ abstract class AppLocalizations {
   String get aiSuggestions;
   String get noSuggestionsApply;
   String get bookDetails;
-  String get conditionAppliedNextStep;
-  String get priceAppliedNextStep;
   String get suggestedPrice;
   String rangeP0P1(Object p0, Object p1);
   String listPriceP0(Object p0);
-  String get sources;
   String applyP0(Object p0);
   String currentP0(Object p0);
   String get sameAsCurrent;
-  String confidenceP0(Object p0);
   String get listingNotApproved;
   String get editListing;
   String get submittedReview;
@@ -1838,7 +1723,6 @@ abstract class AppLocalizations {
   String get aiDataProcessingEnabled;
   String get aiDataProcessingTurnedOff;
   String get aiDataProcessing;
-  String providersP0(Object p0);
   String get messagesEnterStatusOrdersReservations;
   String get isbnTitleConditionNotesPhotosSelect;
   String get bookDetailsFromFavoritesPurchaseHistory;
@@ -1865,15 +1749,11 @@ abstract class AppLocalizations {
   String get booksUnder200Coins;
   String get popularLiteraryFictionRightNow;
   String get tellMeWhatBookLooking;
-  String get allRecommendationsComeFromBooksCurrently;
   String get describeBookLooking;
   String get tellMeWhatWantReadI;
   String get subtitle;
   String get monthOnly;
   String get yearOnly;
-  String get fromBookDatabase;
-  String get writtenByAi;
-  String get aiTidiedSourceText;
   String get msg;
   String get additionalInformation;
   String get readFull;
@@ -1895,9 +1775,7 @@ abstract class AppLocalizations {
   String get whenOffSignPageHidesThese;
   String get notConfigured;
   String get allowCreatingNewAccountsWithMethod;
-  String get serverNoCredentialsChannel;
   String get unsavedChanges2;
-  String get switchesSignupPermissionsSocialSmsSign;
   String get taiwan;
   String get hongKong;
   String get macau;
@@ -1925,7 +1803,7 @@ abstract class AppLocalizations {
   String canResendP0S(Object p0);
   String get resendCode;
   String get completeAccountDetails;
-  String p0DidNotProvideEmailAddress(Object p0);
+  String get p0DidNotProvideEmailAddress;
   String signWithP0(Object p0);
   String get signWith2;
   String get creatingAccountWithMethodsAboveMeans;
@@ -1946,7 +1824,6 @@ abstract class AppLocalizations {
   String get socialSmsSignNotAvailableRight;
   String get noSignMethodAvailableLink;
   String get noPasswordSet;
-  String get requiredBeforeChangingSignMethodsDeleting;
   String linkedP0(Object p0);
   String get link;
   String get emailAlreadyRegisteredSignWithPassword;
@@ -1965,7 +1842,6 @@ abstract class AppLocalizations {
   String get thirdPartySignServiceUnavailablePlease;
   String get couldNotCompleteSignPleaseTry;
   String get accountNotLinkedSignMethod;
-  String get couldNotReachServerCheckConnection2;
   String get mobileNumberFormatNotValid;
   String get verificationTimedOutRequestNewCode;
   String get codeExpiredRequestNewOne;
@@ -1974,6 +1850,54 @@ abstract class AppLocalizations {
   String get smsVerificationNotSetUpDevice;
   String get couldNotCompleteSmsVerificationPlease;
   String get allowSigningLinkingWithMethod;
+  String get appNeverStoresPasswordUsedOnly;
+  String get verifyWithBiometricsInstead;
+  String get accountWasCreatedWithSocialPhone;
+  String get setSignPassword;
+  String get enterSignPasswordRunAdminAction;
+  String p1P0MethodsEnabled(Object p0, Object p1);
+  String get masterSwitchOffSoEveryMethod;
+  String get signLinkingDirectSignUpAllowed;
+  String credentialsNotSetPleaseConfigureP0(Object p0);
+  String get whenOffMethodHiddenFromSign;
+  String get whenOffOnlyAccountsAlreadyLinked;
+  String get signMethodNotLinkedAccount;
+  String p0AccountNotLinkedAnySavemybook(Object p0);
+  String get iAlreadyAccountSignFirst;
+  String get createNewAccountWithIdentity;
+  String signExistingAccountFirstThenLink(Object p0);
+  String get signMethodNotLinkedAnyAccount;
+  String get verifyIdentityWithPasskeyContinue;
+  String get verifyWithPasskeyInstead;
+  String get passkeys;
+  String get verifyWithFaceIdFingerprintScreen;
+  String get verifyWithPasskey;
+  String get useSignPasswordInstead;
+  String get signWithPasskey;
+  String get passkeyAdded;
+  String get screenLock;
+  String fromNowCanSignVerifyIdentity(Object p0);
+  String get deletePasskey;
+  String get noLongerAbleSignVerifyIdentity;
+  String get passkeyDeleted;
+  String get signVerifyIdentityWithFaceId;
+  String get addPasskey;
+  String get notUsedYet;
+  String lastUsedFormatdateItemLastusedat(Object p0);
+  String createdCreated(Object p0);
+  String get noPasskeyAvailableDeviceUsePassword;
+  String get passkeyAlreadyRegisteredDevice;
+  String get signGoogleAccountTurnPasswordManager;
+  String get setUpScreenLockPasswordManager;
+  String get deviceDoesNotSupportPasskeysUse;
+  String get passkeysTemporarilyUnavailableBecauseAppWebsite;
+  String get requestTimedOutPleaseTryAgain;
+  String get passkeyRequestFailedUsePasswordInstead;
+  String get verifyIdentityBeforeAddingPasskey;
+  String get couldNotListPleaseTryAgain;
+  String downloadLinkValidOnceP0P1(Object p0, Object p1);
+  String get sources;
+  String get unableOpenLink;
 }
 
 class _LEn extends AppLocalizations {
@@ -2262,16 +2186,10 @@ class _LEn extends AppLocalizations {
   String get appearanceSystem => 'Follow system';
 
   @override
-  String get appearanceHint => 'Follow system switches automatically with your device setting.';
-
-  @override
   String get language => 'Language';
 
   @override
   String get languageSystem => 'Follow system';
-
-  @override
-  String get languageHint => 'Follow system uses your device language setting.';
 
   @override
   String get verifySignSavemybook => 'Verify to sign in to SaveMyBook';
@@ -2376,13 +2294,7 @@ class _LEn extends AppLocalizations {
   String get deleteAccount => 'Delete account';
 
   @override
-  String get accountPermanentlyDisabled30DaysSign => 'Your account will be permanently disabled in 30 days. Sign in again before then to cancel.\n\n';
-
-  @override
-  String get personalDataErasedButCompletedOrders => 'Your personal data is erased, but completed orders and transaction records are kept so ';
-
-  @override
-  String get peopleTradedWithDoNotLose => 'the people you traded with do not lose their records.';
+  String get accountPermanentlyDisabled30DaysSign => 'Your account will be deleted in 30 days. Sign in again before then to cancel. Your personal data will be erased; completed orders and transaction records will be kept.';
 
   @override
   String get actionContinue => 'Continue';
@@ -2415,19 +2327,7 @@ class _LEn extends AppLocalizations {
   String get exportMyData => 'Export my data';
 
   @override
-  String get profileBooksOrdersTransactionsJson => 'Profile, books, orders and transactions in JSON';
-
-  @override
-  String get oldLinkQrCodeStopWorking2 => 'The old link and QR code stop working immediately';
-
-  @override
   String get cancelAccountDeletion => 'Cancel account deletion';
-
-  @override
-  String get restoreAccountStopCountdown => 'Restore the account and stop the countdown';
-
-  @override
-  String get canChangeMindWithin30Days => 'Deletion can be cancelled within 30 days';
 
   @override
   String get deletionPending => 'Deletion pending';
@@ -2511,7 +2411,7 @@ class _LEn extends AppLocalizations {
   String get signContactSeller => 'Sign in to contact the seller';
 
   @override
-  String get signStartChat => 'Sign in to start a chat';
+  String get signStartChat => 'Sign in to contact the seller';
 
   @override
   String get signReport => 'Sign in to report';
@@ -2529,7 +2429,7 @@ class _LEn extends AppLocalizations {
   String get reasonNeedsLeast5Characters => 'Your reason needs at least 5 characters';
 
   @override
-  String get reportSubmittedWeLookInto => 'Report submitted. We will look into it.';
+  String get reportSubmittedWeLookInto => 'Report submitted';
 
   @override
   String get publisher => 'Publisher: ';
@@ -2553,9 +2453,6 @@ class _LEn extends AppLocalizations {
   String get about => 'About: ';
 
   @override
-  String pickup(Object p0) => 'Pickup at ${p0}';
-
-  @override
   String get messageSeller => 'Message seller';
 
   @override
@@ -2565,16 +2462,10 @@ class _LEn extends AppLocalizations {
   String get addCart => 'Add to cart';
 
   @override
-  String get bookBeenReportedUnderReviewStays => 'This book has been reported and is under review. It stays on sale in the meantime.';
+  String get bookBeenReportedUnderReviewStays => 'This book has been reported and is under review.';
 
   @override
-  String get violationWasConfirmedBookPleaseCheck => 'A violation was confirmed for this book. Please check that the listing follows our guidelines.';
-
-  @override
-  String get reportDismissed2 => 'Report dismissed';
-
-  @override
-  String get bookWasReportedButNoViolation => 'This book was reported but no violation was found. Your listing is unaffected.';
+  String get violationWasConfirmedBookPleaseCheck => 'A violation was confirmed for this book. Please edit the listing.';
 
   @override
   String get delist => 'Delist';
@@ -2584,9 +2475,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get delist2 => 'Delist';
-
-  @override
-  String get delistedRelistFromDelistedTab => 'Delisted. Relist it from the Delisted tab.';
 
   @override
   String get couldNotDelistPleaseTryAgain => 'Could not delist. Please try again.';
@@ -2601,16 +2489,7 @@ class _LEn extends AppLocalizations {
   String get noBooksCategory => 'No books in this category';
 
   @override
-  String get listFirstBook => 'List your first book';
-
-  @override
   String get relist => 'Relist';
-
-  @override
-  String get removeFromCart => 'Remove from cart';
-
-  @override
-  String removeFromCart2(Object p0) => 'Remove “${p0}” from your cart?';
 
   @override
   String get remove => 'Remove';
@@ -2619,16 +2498,10 @@ class _LEn extends AppLocalizations {
   String get couldNotRemoveRestored => 'Could not remove. Restored.';
 
   @override
-  String get couldNotRemovePleaseTryAgain => 'Could not remove. Please try again.';
-
-  @override
   String get selectBooksWantCheckOut => 'Select the books you want to check out';
 
   @override
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => 'Not enough coins. This order needs ${p0} but you have ${p1}.';
-
-  @override
-  String get confirmCheckout => 'Confirm checkout';
 
   @override
   String booksTotal(Object p0, Object p1) => '${p0} books, ${p1} in total.\n';
@@ -2748,7 +2621,7 @@ class _LEn extends AppLocalizations {
   String get markAllAsRead => 'Mark all as read';
 
   @override
-  String markAllUnreadMessagesAsRead(Object p0) => 'Mark all ${p0} unread messages as read? This cannot be undone.';
+  String markAllUnreadMessagesAsRead(Object p0) => 'Mark all ${p0} unread messages as read?';
 
   @override
   String get markAllRead => 'Mark all read';
@@ -2770,9 +2643,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get mute => 'Mute';
-
-  @override
-  String get messagesLimited500Characters => 'Messages are limited to 500 characters';
 
   @override
   String get messageCouldNotSent => 'Message could not be sent';
@@ -2802,7 +2672,7 @@ class _LEn extends AppLocalizations {
   String get describeDispute => 'Describe the dispute';
 
   @override
-  String get useLeast10CharactersSoSupport => 'Use at least 10 characters so support can assess it';
+  String get useLeast10CharactersSoSupport => 'The description must be at least 10 characters';
 
   @override
   String get submitDispute => 'Submit dispute';
@@ -2823,9 +2693,6 @@ class _LEn extends AppLocalizations {
   String get requestPaymentHold => 'Request payment hold';
 
   @override
-  String get paymentSellerHeldUntilSupportDecides => 'Payment to the seller is held until support decides';
-
-  @override
   String get submitDispute2 => 'Submit a dispute';
 
   @override
@@ -2838,7 +2705,7 @@ class _LEn extends AppLocalizations {
   String get whatHappened => 'What happened';
 
   @override
-  String get describeProblemEGConditionDoes => 'Describe the problem, e.g. the condition does not match the listing…';
+  String get describeProblemEGConditionDoes => 'Describe the problem';
 
   @override
   String get submit => 'Submit';
@@ -2848,12 +2715,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get canAttachUp6Photos => 'You can attach up to 6 photos';
-
-  @override
-  String get up5 => 'Up to 5';
-
-  @override
-  String get couldNotReplacePhotoPleaseTry => 'Could not replace the photo. Please try again.';
 
   @override
   String get keepLeastOnePhoto => 'Keep at least one photo';
@@ -2874,16 +2735,13 @@ class _LEn extends AppLocalizations {
   String get cannotUndoneContinue => 'This cannot be undone. Continue?';
 
   @override
-  String get photoMissingDataRefreshTryAgain => 'This photo is missing data. Refresh and try again.';
+  String get photoMissingDataRefreshTryAgain => 'Unable to process this photo. Refresh and try again.';
 
   @override
   String get enterPrice => 'Enter a price';
 
   @override
   String get priceMustGreaterThan0 => 'Price must be greater than 0';
-
-  @override
-  String get priceCannotExceed999999 => 'Price cannot exceed 999,999';
 
   @override
   String get chooseLockerLocation => 'Choose a locker location';
@@ -2955,7 +2813,7 @@ class _LEn extends AppLocalizations {
   String get publicationDate => 'Publication date';
 
   @override
-  String get tapPickPublicationDate => 'Tap to pick a publication date';
+  String get tapPickPublicationDate => 'Select publication date';
 
   @override
   String get pickPublicationDate => 'Pick a publication date';
@@ -3000,7 +2858,7 @@ class _LEn extends AppLocalizations {
   String get bio => 'Bio';
 
   @override
-  String get tellPeopleAboutYourself => 'A short introduction about yourself';
+  String get tellPeopleAboutYourself => 'Enter a bio';
 
   @override
   String get email => 'Email';
@@ -3012,7 +2870,7 @@ class _LEn extends AppLocalizations {
   String get dateBirth => 'Date of birth';
 
   @override
-  String get tapPickDateBirth => 'Tap to pick your date of birth';
+  String get tapPickDateBirth => 'Select date of birth';
 
   @override
   String get pickDateBirth => 'Pick your date of birth';
@@ -3072,10 +2930,7 @@ class _LEn extends AppLocalizations {
   String get reset => 'Reset';
 
   @override
-  String get usePhoto => 'Use this photo';
-
-  @override
-  String get documentNotBeenCreatedYet => 'This document has not been created yet';
+  String get documentNotBeenCreatedYet => 'No content available';
 
   @override
   String lastUpdated(Object p0) => 'Last updated ${p0}';
@@ -3099,7 +2954,7 @@ class _LEn extends AppLocalizations {
   String get enterEmail => 'Enter your email';
 
   @override
-  String get emailAddressNotValid => 'That email address is not valid';
+  String get emailAddressNotValid => 'Invalid email address';
 
   @override
   String get enterPassword => 'Enter your password';
@@ -3126,7 +2981,7 @@ class _LEn extends AppLocalizations {
   String get noAccountYetSignUp => 'No account yet? Sign up';
 
   @override
-  String get membershipTiersNotSetUpYet => 'Membership tiers are not set up yet';
+  String get membershipTiersNotSetUpYet => 'Membership tiers are not available';
 
   @override
   String get currentTier => 'Your current tier';
@@ -3153,7 +3008,7 @@ class _LEn extends AppLocalizations {
   String benefits(Object p0) => '${p0} benefits';
 
   @override
-  String get noBenefitsBeenDescribedTierYet => 'No benefits have been described for this tier yet.';
+  String get noBenefitsBeenDescribedTierYet => 'This tier has no additional benefits';
 
   @override
   String pointsFromCompletedOrders(Object p0, Object p1) => '${p0} points from ${p1} completed orders';
@@ -3180,16 +3035,13 @@ class _LEn extends AppLocalizations {
   String get noUnreadNotifications => 'No unread notifications';
 
   @override
-  String markAllUnreadNotificationsAsRead(Object p0) => 'Mark all ${p0} unread notifications as read? This cannot be undone.';
+  String markAllUnreadNotificationsAsRead(Object p0) => 'Mark all ${p0} unread notifications as read?';
 
   @override
   String get openChat => 'Open chat';
 
   @override
   String get viewOrder => 'View order';
-
-  @override
-  String get openMyBooks => 'Open my books';
 
   @override
   String get notifications => 'Notifications';
@@ -3213,7 +3065,7 @@ class _LEn extends AppLocalizations {
   String items2(Object p0) => 'Items (${p0})';
 
   @override
-  String get orderNoItemDetails => 'This order has no item details.';
+  String get orderNoItemDetails => 'No item details';
 
   @override
   String msg4(Object p0, Object p1) => '${p0} × ${p1}';
@@ -3231,7 +3083,7 @@ class _LEn extends AppLocalizations {
   String get slot => 'Slot';
 
   @override
-  String get notAssignedYet => 'Not assigned yet';
+  String get notAssignedYet => 'No slot assigned yet';
 
   @override
   String get pickupCode => 'Pickup code';
@@ -3276,7 +3128,7 @@ class _LEn extends AppLocalizations {
   String get pendingAmount => 'Pending amount';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => 'Coins arrive once the buyer collects the book';
+  String get coinsArriveOnceBuyerCollectsBook => 'Paid automatically after the buyer collects the book';
 
   @override
   String get scanned => 'Scanned';
@@ -3297,9 +3149,6 @@ class _LEn extends AppLocalizations {
   String get bookCollected => 'Book collected';
 
   @override
-  String get thanksUsingSavemybookHappyReading => 'Thank you for using SaveMyBook. Enjoy your reading.';
-
-  @override
   String collected(Object p0) => '“${p0}” collected';
 
   @override
@@ -3312,19 +3161,13 @@ class _LEn extends AppLocalizations {
   String get myAccount => 'My account';
 
   @override
-  String get personNotWrittenBioYet => 'This person has not written a bio yet';
+  String get personNotWrittenBioYet => 'No bio yet';
 
   @override
   String get topTierReached => 'Top tier reached';
 
   @override
   String morePointsReach(Object p0, Object p1) => '${p0} more points to reach “${p1}”';
-
-  @override
-  String get myCoins => 'My coins';
-
-  @override
-  String get shareProfile => 'Share profile';
 
   @override
   String get purchases => 'Purchases';
@@ -3339,22 +3182,7 @@ class _LEn extends AppLocalizations {
   String get signOut2 => 'Sign out?';
 
   @override
-  String get needSignAgainKeepUsingApp => 'You will need to sign in again to keep using the app.';
-
-  @override
   String cancelOrderBookReturnsShop(Object p0) => 'Cancel order ${p0}? The book returns to the shop.';
-
-  @override
-  String get pickupCode2 => 'Pickup code';
-
-  @override
-  String get notGeneratedYet => 'Not generated yet';
-
-  @override
-  String get enterCodeLockerCollect => 'Enter this code on the locker to collect';
-
-  @override
-  String enterCodeCollect(Object p0) => 'Enter this code at ${p0} to collect';
 
   @override
   String get iCollected => 'I have collected it';
@@ -3393,19 +3221,13 @@ class _LEn extends AppLocalizations {
   String get createAccount => 'Create account';
 
   @override
-  String get joinSavemybook => 'Join SaveMyBook';
-
-  @override
-  String get signUpBuySellUseSmart => 'Sign up to buy, sell and use the smart lockers';
+  String get joinSavemybook => 'Create account';
 
   @override
   String get displayName => 'Display name';
 
   @override
-  String get nameOthersSee => 'The name others will see';
-
-  @override
-  String get emailSignWith => 'The email you sign in with';
+  String get emailSignWith => 'Email';
 
   @override
   String get least8CharactersWithLettersNumbers => 'At least 8 characters with letters and numbers';
@@ -3430,12 +3252,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get buyerNotifiedBookReturnsShop => 'The buyer is notified and the book returns to the shop.';
-
-  @override
-  String get dropOffPickupCode => 'Drop-off / pickup code';
-
-  @override
-  String get enterCodeLocker => 'Enter this code on the locker';
 
   @override
   String get noRecentSearches => 'No recent searches';
@@ -3474,7 +3290,7 @@ class _LEn extends AppLocalizations {
   String get priceMustGreaterThan02 => 'The price must be greater than 0.';
 
   @override
-  String get priceCannotExceed99999 => 'The price cannot exceed 99,999.';
+  String get priceCannotExceed99999 => 'The price cannot exceed 99,999 coins.';
 
   @override
   String get chooseLockerLocation2 => 'Choose a locker location.';
@@ -3487,15 +3303,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get couldNotListBook => 'Could not list the book';
-
-  @override
-  String serverError(Object p0) => 'Server error: ${p0}';
-
-  @override
-  String get connectionProblem => 'Connection problem';
-
-  @override
-  String get couldNotReachServerUploadTimed => 'Could not reach the server or the upload timed out. Check your connection.';
 
   @override
   String get listBook => 'List this book';
@@ -3519,16 +3326,13 @@ class _LEn extends AppLocalizations {
   String get bookDetailsFilledAutomatically => 'Book details filled in automatically.';
 
   @override
-  String get bookDetailsFilledFromBackupSource => 'Book details filled in from the backup source.';
-
-  @override
   String get noSourceIsbnPleaseEnterDetails => 'No source has this ISBN. Please enter the details manually.';
 
   @override
   String get day => 'Day';
 
   @override
-  String get tapIconRightScan => 'Tap the icon on the right to scan';
+  String get tapIconRightScan => 'Enter ISBN';
 
   @override
   String get description => 'Description';
@@ -3573,13 +3377,7 @@ class _LEn extends AppLocalizations {
   String get aboutSavemybook => 'About SaveMyBook';
 
   @override
-  String get settingsPrivacy => 'Settings and privacy';
-
-  @override
   String sign3(Object p0) => '${p0} sign-in';
-
-  @override
-  String unlockWithWhenOpenApp(Object p0) => 'Unlock with ${p0} when you open the app';
 
   @override
   String get scanProfileQrCode => 'Scan a profile QR code';
@@ -3630,7 +3428,7 @@ class _LEn extends AppLocalizations {
   String get enterSubject => 'Enter a subject';
 
   @override
-  String get addMoreDetailSoSupportCan => 'Add more detail so support can help';
+  String get addMoreDetailSoSupportCan => 'Add more detail to the description';
 
   @override
   String get sentSupportReplySoon => 'Sent. Support will reply soon.';
@@ -3685,15 +3483,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String hold(Object p0) => '${p0} on hold';
-
-  @override
-  String requestFailed2(Object p0) => 'Request failed (${p0})';
-
-  @override
-  String get couldNotReachServer => 'Could not reach the server';
-
-  @override
-  String get couldNotReachServerCheckConnection => 'Could not reach the server. Check your connection.';
 
   @override
   String get signFailed => 'Sign-in failed';
@@ -3852,7 +3641,7 @@ class _LEn extends AppLocalizations {
   String get couldNotLoadPhoto => 'Could not load this photo';
 
   @override
-  String slot2(Object p0) => 'Slot ${p0}';
+  String slot2(Object p0) => 'Slot: ${p0}';
 
   @override
   String confirmPutLocker(Object p0) => 'Confirm you have put “${p0}” in the locker?';
@@ -3894,7 +3683,7 @@ class _LEn extends AppLocalizations {
   String get announcementTitle => 'Announcement title';
 
   @override
-  String get writeAnnouncement => 'Write the announcement';
+  String get writeAnnouncement => 'Enter announcement content';
 
   @override
   String get publishNow => 'Publish now';
@@ -3921,7 +3710,7 @@ class _LEn extends AppLocalizations {
   String get announcements => 'Announcements';
 
   @override
-  String get noAnnouncementsYetTapAddOne => 'No announcements yet. Tap + to add one.';
+  String get noAnnouncementsYetTapAddOne => 'No announcements yet';
 
   @override
   String get published => 'Published';
@@ -3960,7 +3749,7 @@ class _LEn extends AppLocalizations {
   String get olderBackupsBeyondCountRemovedAutomatically => 'Older backups beyond that count are removed automatically. A backup contains personal data for the whole site, so keep downloads secure. Every download is written to the audit log.';
 
   @override
-  String get noBackupsYetSchedulerRunsOnce => 'No backups yet. The scheduler runs once a day, or use the button above to create one now.';
+  String get noBackupsYetSchedulerRunsOnce => 'No backups yet';
 
   @override
   String get deleteBackup => 'Delete backup';
@@ -3979,9 +3768,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get downloadBackup => 'Download backup';
-
-  @override
-  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => 'Fetch the backup on a computer, with your authorisation header:\n\n${p0}\n\nFile size ${p1}.';
 
   @override
   String get copyLink2 => 'Copy link';
@@ -4182,28 +3968,7 @@ class _LEn extends AppLocalizations {
   String get keepEditing => 'Keep editing';
 
   @override
-  String get bothTitleContentRequired => 'Both title and content are required';
-
-  @override
   String sectionP0NoTitleYet(Object p0) => 'Section ${p0} has no title yet';
-
-  @override
-  String updateP0(Object p0) => 'Update ${p0}?';
-
-  @override
-  String get documentBindingEveryUserSubmittingReplaces => 'This document is binding on every user. Submitting replaces the current version immediately.';
-
-  @override
-  String get yesUpdate => 'Confirm update';
-
-  @override
-  String get notifyEveryUser => 'Notify every user?';
-
-  @override
-  String get updateNotify => 'Update and notify';
-
-  @override
-  String get updateOnly => 'Update only';
 
   @override
   String get sections => 'Sections';
@@ -4227,10 +3992,7 @@ class _LEn extends AppLocalizations {
   String get articles => 'Articles';
 
   @override
-  String get numberedAutomatically => 'Numbered automatically';
-
-  @override
-  String get noArticlesYetAddFirstOne => 'No articles yet. Add the first one below.';
+  String get noArticlesYetAddFirstOne => 'No articles yet';
 
   @override
   String get addSection => 'Add section';
@@ -4245,9 +4007,6 @@ class _LEn extends AppLocalizations {
   String get bodySectionSingleLineBreaksKept => 'The body of this section. Single line breaks are kept as-is; an empty line starts a new paragraph.';
 
   @override
-  String get emptyLineStartsParagraphParagraphWhose => 'An empty line starts a paragraph. A paragraph whose first line reads "1. Title" becomes a section when you switch back.';
-
-  @override
   String get howUsersSee => 'How users see it';
 
   @override
@@ -4255,9 +4014,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get unsaved => 'Unsaved';
-
-  @override
-  String get upDate => 'Up to date';
 
   @override
   String get newQuestion => 'New question';
@@ -4297,9 +4053,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get noQuestionsYet2 => 'No questions yet';
-
-  @override
-  String get dragHandleRightReorder => 'Drag the handle on the right to reorder';
 
   @override
   String get hidden => 'Hidden';
@@ -4386,16 +4139,7 @@ class _LEn extends AppLocalizations {
   String get orders => 'Orders';
 
   @override
-  String get lookUpOrdersAdjustStatusBy => 'Look up orders and adjust status manually';
-
-  @override
-  String get disputeListDecisions => 'Dispute list and decisions';
-
-  @override
   String get listings => 'Listings';
-
-  @override
-  String get allBooksForceDelisting => 'All books, force delisting';
 
   @override
   String get moderation => 'Moderation';
@@ -4404,40 +4148,22 @@ class _LEn extends AppLocalizations {
   String get handleListingReports => 'Handle listing reports';
 
   @override
-  String get addReorderDeleteBookCategories => 'Add, reorder and delete book categories';
-
-  @override
   String get members => 'Members';
 
   @override
   String get memberControls => 'Member controls';
 
   @override
-  String get memberListSuspensionBlocklist => 'Member list, suspension and blocklist';
-
-  @override
   String get membershipTiers => 'Membership tiers';
-
-  @override
-  String get tierThresholdsBenefits => 'Tier thresholds and benefits';
 
   @override
   String get wallets => 'Wallets';
 
   @override
-  String get checkBalancesAddDeductCoinsBy => 'Check balances, add or deduct coins manually';
-
-  @override
   String get hardwareOperations => 'Hardware and operations';
 
   @override
-  String get lockerSlotStatus => 'Locker and slot status';
-
-  @override
   String get maintenanceLog => 'Maintenance log';
-
-  @override
-  String get lockerOperationHistory => 'Locker operation history';
 
   @override
   String get reports => 'Reports';
@@ -4446,34 +4172,13 @@ class _LEn extends AppLocalizations {
   String get ordersRevenueMemberGrowth => 'Orders, revenue and member growth';
 
   @override
-  String get announcements2 => 'Announcements';
-
-  @override
   String get supportEnquiries => 'Support enquiries';
-
-  @override
-  String get replyQuestionsFromUsers => 'Reply to questions from users';
-
-  @override
-  String get faqShownHelpCentre => 'FAQ shown in the help centre';
-
-  @override
-  String get termsPrivacyPolicyAbout => 'Terms, privacy policy and about';
 
   @override
   String get adminAuditLog => 'Admin audit log';
 
   @override
-  String get auditTrailAdminChanges => 'Audit trail of admin changes';
-
-  @override
   String get systemOperations => 'System operations';
-
-  @override
-  String get dailyBackupsManualRunsDownloads => 'Daily backups, manual runs and downloads';
-
-  @override
-  String get deletionRequestsInsideGracePeriodCancel => 'Deletion requests inside the grace period; cancel or run them now';
 
   @override
   String get members2 => 'Members';
@@ -4872,9 +4577,6 @@ class _LEn extends AppLocalizations {
   String get deductCoins => 'Deduct coins';
 
   @override
-  String get amountPositiveWholeNumber => 'Amount (positive whole number)';
-
-  @override
   String get reasonAdjustmentRequired => 'Reason for the adjustment (required)';
 
   @override
@@ -4980,9 +4682,6 @@ class _LEn extends AppLocalizations {
   String p0Locker(Object p0) => '${p0} locker';
 
   @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => 'Every active member receives a "${p0} updated" notification.';
-
-  @override
   String get orderPlaced => 'Order placed';
 
   @override
@@ -5037,7 +4736,7 @@ class _LEn extends AppLocalizations {
   String p0SPasswordBeenResetPassword(Object p0) => '${p0}\'s password has been reset. This password is shown once only — it cannot be viewed again after closing.';
 
   @override
-  String get remindThemChangeSettingsChangePassword => 'Remind them to change it at Settings → Change password right after signing in.';
+  String get remindThemChangeSettingsChangePassword => 'Remind them to change it in Settings › Change password right after signing in.';
 
   @override
   String get temporaryPasswordCopied => 'Temporary password copied';
@@ -5085,9 +4784,6 @@ class _LEn extends AppLocalizations {
   String get notAssignedYet2 => 'Not assigned yet';
 
   @override
-  String get pickupCodeCopied => 'Pickup code copied';
-
-  @override
   String get walletActivity => 'Wallet activity';
 
   @override
@@ -5130,7 +4826,7 @@ class _LEn extends AppLocalizations {
   String get declined => 'Declined';
 
   @override
-  String get changeOwnPasswordGoSettingsChange => 'To change your own password, go to Settings → Change password';
+  String get changeOwnPasswordGoSettingsChange => 'To change your own password, go to Settings › Change password';
 
   @override
   String get memberNotAdminSoThereNo => 'This member is not an admin, so there are no admin permissions to set. Change their role above first.';
@@ -5202,9 +4898,6 @@ class _LEn extends AppLocalizations {
   String get systemNotificationSettings => 'System notification settings';
 
   @override
-  String get turnNotificationsSoundsLockScreenPreviews => 'Turn notifications, sounds and Lock Screen previews on or off';
-
-  @override
   String get pushNotificationsNotSetUpBuild => 'Push notifications are not set up in this build. Add the Firebase config files and rebuild.';
 
   @override
@@ -5242,12 +4935,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String p0SecondsSoFarKeepApp(Object p0) => '${p0} seconds so far. Keep the app open; the service resumes automatically when it finishes.';
-
-  @override
-  String get majorUpdate => 'Is this a major update?';
-
-  @override
-  String get majorUpdateNotifiesEveryUserTerms => 'A major update notifies every user. For the Terms and Privacy Policy, users must read and accept the new version the next time they open the app.\n\nFor typo fixes or formatting changes, choose "Minor edit".';
 
   @override
   String get majorUpdate2 => 'Major update';
@@ -5295,19 +4982,13 @@ class _LEn extends AppLocalizations {
   String get undoAction2 => 'Undo this action';
 
   @override
-  String get tapBarSeeDay => 'Tap a bar to see that day';
-
-  @override
   String get noAnnouncements => 'No announcements';
-
-  @override
-  String get tapPhotoNameChange => 'Tap the photo or name to change it';
 
   @override
   String get canTContinueWithoutAccepting => 'You can\'t continue without accepting';
 
   @override
-  String needAcceptLatestP0UseP1(Object p0, Object p1) => 'You need to accept the latest "${p0}" to use ${p1}. If you decline, you are signed out; sign in again any time to accept.';
+  String needAcceptLatestP0UseP1(Object p0) => 'If you do not accept "${p0}", you will be signed out.';
 
   @override
   String get goBack => 'Go back';
@@ -5316,7 +4997,7 @@ class _LEn extends AppLocalizations {
   String p0BeenUpdated(Object p0) => '"${p0}" has been updated';
 
   @override
-  String readLatestVersionUpdatedP0Accept(Object p0) => 'Read the latest version (updated ${p0}). Accept it to continue.';
+  String readLatestVersionUpdatedP0Accept(Object p0) => 'Updated ${p0}';
 
   @override
   String get scrollEndContinue => 'Scroll to the end to continue';
@@ -5331,25 +5012,16 @@ class _LEn extends AppLocalizations {
   String get viewDetails => 'View details';
 
   @override
-  String get notFoundMayBeenDeletedRemoved => 'Not found. It may have been deleted or removed.';
-
-  @override
-  String get salesDropOffsPickupsRefundsDisputes => 'Sales, drop-offs, pickups, refunds and disputes';
+  String get notFoundMayBeenDeletedRemoved => 'This content is no longer available';
 
   @override
   String get chatMessages => 'Chat messages';
 
   @override
-  String get newMessagesFromBuyersSellers => 'New messages from buyers and sellers';
-
-  @override
   String get promotions2 => 'Promotions';
 
   @override
-  String get announcementsAboutPromotions => 'Announcements about promotions';
-
-  @override
-  String get supportRepliesPasswordResetsPolicyUpdates => 'Support replies, password resets, policy updates and maintenance notices are always sent. Turned-off types still appear in your notification list, just without a push.';
+  String get supportRepliesPasswordResetsPolicyUpdates => 'Support replies, account security and system announcements cannot be turned off.';
 
   @override
   String get notFilled => 'Not filled in';
@@ -5472,13 +5144,10 @@ class _LEn extends AppLocalizations {
   String reservedAnotherBuyerUntilP0(Object p0) => 'Reserved for another buyer until ${p0}';
 
   @override
-  String get ifIsnTSoldByThen => 'If it isn\'t sold by then, you can add it to your cart';
-
-  @override
   String sellerHoldingUntilP0(Object p0) => 'The seller is holding it for you until ${p0}';
 
   @override
-  String get checkOutBeforeHoldEndsOther => 'Check out before the hold ends, or other buyers can purchase it';
+  String get checkOutBeforeHoldEndsOther => 'Check out before the hold expires';
 
   @override
   String get copyAddress => 'Copy address';
@@ -5512,9 +5181,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String p0BooksP1Views(Object p0, Object p1) => '${p0} books · ${p1} views';
-
-  @override
-  String get swipeQuickActions => 'Swipe for quick actions';
 
   @override
   String get searchTitleAuthorIsbn2 => 'Search title, author or ISBN';
@@ -5637,9 +5303,6 @@ class _LEn extends AppLocalizations {
   String get declineReservation => 'Decline reservation?';
 
   @override
-  String get theyLlNotifiedDeclined => 'They\'ll be notified that you declined.';
-
-  @override
   String get decline2 => 'Decline';
 
   @override
@@ -5667,7 +5330,7 @@ class _LEn extends AppLocalizations {
   String get accountCanTReceiveMessagesRight => 'This account can\'t receive messages right now';
 
   @override
-  String get holdMicTalkReleaseSend => 'Hold the mic to talk, release to send';
+  String get holdMicTalkReleaseSend => 'Recording too short';
 
   @override
   String get startConversation => 'This is the start of your conversation';
@@ -5694,7 +5357,7 @@ class _LEn extends AppLocalizations {
   String get unsentMessage => 'You unsent a message';
 
   @override
-  String get theyUnsentMessage => 'They unsent a message';
+  String get theyUnsentMessage => 'The other user unsent a message';
 
   @override
   String get reservationDetailsArenTAvailableRight => 'Reservation details aren\'t available right now';
@@ -5727,9 +5390,6 @@ class _LEn extends AppLocalizations {
   String get picked => 'Picked for you';
 
   @override
-  String get seeMore => 'See more';
-
-  @override
   String get recentlyViewed => 'Recently viewed';
 
   @override
@@ -5748,10 +5408,7 @@ class _LEn extends AppLocalizations {
   String get waitingBuyerCollect => 'Waiting for the buyer to collect';
 
   @override
-  String get bookLockerEnterPickupCodeCollect => 'The book is in the locker. Enter your pickup code to collect it.';
-
-  @override
-  String get transactionCompleteThank => 'Transaction complete. Thank you.';
+  String get transactionCompleteThank => 'Transaction complete';
 
   @override
   String get confirmVeTakenBookFromLocker => 'Confirm you\'ve taken the book from the locker. The order will then be completed.';
@@ -5772,9 +5429,6 @@ class _LEn extends AppLocalizations {
   String get accountSecurity => 'Account security';
 
   @override
-  String get sellerHasnTPutBookLocker => 'The seller has not yet placed the book in the locker. You will be notified once it is there.';
-
-  @override
   String get searchHistoryCleared => 'Search history cleared';
 
   @override
@@ -5787,10 +5441,7 @@ class _LEn extends AppLocalizations {
   String signOutP0(Object p0) => 'Sign out "${p0}"?';
 
   @override
-  String get llNeedSignAgainUseApp => 'You\'ll need to sign in again to use the app.';
-
-  @override
-  String get deviceSignedOutRightAwayStop => 'That device will be signed out right away and stop receiving notifications.';
+  String get deviceSignedOutRightAwayStop => 'That device will be signed out immediately.';
 
   @override
   String get deviceSignedOut => 'Device signed out';
@@ -5802,10 +5453,10 @@ class _LEn extends AppLocalizations {
   String get signOutAllOtherDevices => 'Sign out all other devices';
 
   @override
-  String get everyDeviceIncludingOneSignedOut => 'Every device, including this one, will be signed out and need to sign in again.';
+  String get everyDeviceIncludingOneSignedOut => 'All devices, including this one, will be signed out immediately.';
 
   @override
-  String get everyDeviceExceptOneSignedOut => 'Every device except this one will be signed out right away and stop receiving notifications.';
+  String get everyDeviceExceptOneSignedOut => 'All devices except this one will be signed out immediately.';
 
   @override
   String signedOutP0OtherDevices(Object p0) => 'Signed out of ${p0} other devices';
@@ -5815,9 +5466,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get couldnTLoadDevices => 'Couldn\'t load your devices';
-
-  @override
-  String get theseDevicesSignedAccountIfDon => 'These devices are signed in to your account. If you don\'t recognise one, sign it out and change your password.';
 
   @override
   String get device => 'This device';
@@ -5868,9 +5516,6 @@ class _LEn extends AppLocalizations {
   String get paymentPinSet => 'Payment PIN set';
 
   @override
-  String get use6DigitPinConfirmPayments => 'You will use this 6-digit PIN to confirm payments at checkout.';
-
-  @override
   String get verifyingIdentity => 'Verifying your identity…';
 
   @override
@@ -5913,7 +5558,7 @@ class _LEn extends AppLocalizations {
   String p0PaymentsTurned(Object p0) => '${p0} payments turned on';
 
   @override
-  String get securitySettingsUnavailableRightNowMay => 'Security settings are unavailable right now. You may not be able to change your payment PIN or devices.';
+  String get securitySettingsUnavailableRightNowMay => 'Unable to load security settings';
 
   @override
   String payWithP0(Object p0) => 'Pay with ${p0}';
@@ -5925,19 +5570,13 @@ class _LEn extends AppLocalizations {
   String get accountCouldSafer => 'Account security can be improved';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => 'Payment PIN and biometric payment are set. Review your signed-in devices regularly.';
-
-  @override
-  String get setPaymentPinTurnBiometricPayment => 'Set a payment PIN and turn on biometric payment for safer, faster checkout.';
+  String get setPaymentPinTurnBiometricPayment => 'Payment PIN not set';
 
   @override
   String tooManyAttemptsLockedUntilP0(Object p0) => 'Too many attempts. Locked until ${p0}';
 
   @override
-  String get usedConfirmPaymentsCheckout => 'Used to confirm payments at checkout';
-
-  @override
-  String get notSetRequiredBeforeCheckout => 'Not set. Required before checkout';
+  String get notSetRequiredBeforeCheckout => 'Not set';
 
   @override
   String get change => 'Change';
@@ -5946,16 +5585,7 @@ class _LEn extends AppLocalizations {
   String get forgotPaymentPin => 'Forgot payment PIN';
 
   @override
-  String get ifFailsCanEnterPaymentPin => 'If it fails, you can enter your payment PIN instead';
-
-  @override
-  String get viewRemotelySignOutDevices => 'View or remotely sign out devices';
-
-  @override
   String p0Devices(Object p0) => '${p0} devices';
-
-  @override
-  String get otherDevicesNeedSignAgain => 'Other devices will need to sign in again';
 
   @override
   String get restoredUnfinishedListing => 'Restored your unfinished listing';
@@ -5979,13 +5609,7 @@ class _LEn extends AppLocalizations {
   String get storage => 'Storage';
 
   @override
-  String get paymentPinBiometricPaymentDevices => 'Payment PIN, biometric payment, devices';
-
-  @override
   String get clearCache => 'Clear cache';
-
-  @override
-  String get removesCachedImagesFilesAccountData => 'Removes cached images and files. Your account data is not affected';
 
   @override
   String get couldNotLoadNotificationSettings => 'Could not load notification settings';
@@ -6057,7 +5681,7 @@ class _LEn extends AppLocalizations {
   String couldnTRegisterPushTokenWith(Object p0) => 'Couldn\'t register the push token with the server: ${p0}';
 
   @override
-  String get protectCoinsCheckoutRequires6Digit => 'To protect your coins, checkout requires a 6-digit payment PIN. After setting it, you can also turn on Face ID or fingerprint payment.';
+  String get protectCoinsCheckoutRequires6Digit => 'Set a 6-digit payment PIN before checking out.';
 
   @override
   String confirmPaymentP0Coins(Object p0) => 'Confirm payment of ${p0} coins';
@@ -6087,7 +5711,7 @@ class _LEn extends AppLocalizations {
   String get usePasswordInstead => 'Use password instead';
 
   @override
-  String get couldnTGetLocationLockersShown => 'Couldn\'t get your location. Lockers are shown in default order.';
+  String get couldnTGetLocationLockersShown => 'Unable to get your location';
 
   @override
   String p0SlotsFree(Object p0) => '${p0} slots free';
@@ -6100,9 +5724,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get noFreeSlots => 'No free slots';
-
-  @override
-  String get sortedByDistance => 'Sorted by distance';
 
   @override
   String get turnLocationSortByDistance => 'Turn on location to sort by distance';
@@ -6144,9 +5765,6 @@ class _LEn extends AppLocalizations {
   String get releaseCancel => 'Release to cancel';
 
   @override
-  String get slideCancel => '← Slide to cancel';
-
-  @override
   String get awaitingReply => 'Awaiting reply';
 
   @override
@@ -6166,9 +5784,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String holdP0H(Object p0) => 'Hold for ${p0} h';
-
-  @override
-  String get onceSellerAcceptsBookHeldNo => 'Once the seller accepts, the book is held for you and no one else can buy it until the deadline.';
 
   @override
   String get holdPeriod => 'Hold period';
@@ -6195,10 +5810,10 @@ class _LEn extends AppLocalizations {
   String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone failed to register for push notifications with Apple: ${p0}\n${p1}';
 
   @override
-  String get serverNotBeenUpdatedSupportFeature => 'The server has not been updated to support this feature yet. Try again later.';
+  String get serverNotBeenUpdatedSupportFeature => 'This feature is temporarily unavailable. Please try again later.';
 
   @override
-  String get someFeaturesTemporarilyUnavailableWhileServer => 'Some features are temporarily unavailable while the server is being updated';
+  String get someFeaturesTemporarilyUnavailableWhileServer => 'Some features are temporarily unavailable';
 
   @override
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => 'The server is running an outdated API (revision ${p0}; the app requires ${p1}). Update the code on the server and restart the API.';
@@ -6259,9 +5874,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get mistBlue => 'Mist blue';
-
-  @override
-  String get chooseAppSMainColourHeader => 'Choose the app\'s main colour for the header, buttons and highlights.';
 
   @override
   String get draftRestored => 'Draft restored';
@@ -6468,7 +6080,7 @@ class _LEn extends AppLocalizations {
   String get blockUser => 'Block user';
 
   @override
-  String afterBlockP0NeitherCanSend(Object p0) => 'After you block "${p0}", neither of you can send messages to the other. They will not be notified. You can unblock them at any time in Settings › Blocked users.';
+  String afterBlockP0NeitherCanSend(Object p0) => 'After you block "${p0}", neither of you can send messages to the other.';
 
   @override
   String get block => 'Block';
@@ -6499,9 +6111,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get originalMessageUnavailable => 'Original message unavailable';
-
-  @override
-  String replyingP0(Object p0) => 'Replying to ${p0}';
 
   @override
   String get cancelReply => 'Cancel reply';
@@ -6567,7 +6176,7 @@ class _LEn extends AppLocalizations {
   String get notAllowed => 'Not allowed';
 
   @override
-  String get restricted => 'Restricted';
+  String get restricted => 'Restricted by the system';
 
   @override
   String get denied => 'Denied';
@@ -6577,9 +6186,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get homeRecommendations => 'Home recommendations';
-
-  @override
-  String get pickedRecentlyViewed => 'Picked for you, recently viewed';
 
   @override
   String get leaveGroup => 'Leave group';
@@ -6909,7 +6515,7 @@ class _LEn extends AppLocalizations {
   String removedAdminRoleFromP0(Object p0) => 'Removed the admin role from ${p0}';
 
   @override
-  String photosP02(Object p0) => '[Photos] ${p0}';
+  String photosP02(Object p0) => '[${p0} photos]';
 
   @override
   String get savedDownloads => 'Saved to Downloads';
@@ -6930,34 +6536,31 @@ class _LEn extends AppLocalizations {
   String get aiSupport => 'AI support';
 
   @override
-  String get instantReplies => 'Instant replies';
-
-  @override
   String get howDoIListBook => 'How do I list a book?';
 
   @override
-  String get howDoIPickUpFrom => 'How do I pick up from a locker?';
+  String get howDoIPickUpFrom => 'How do I collect a book from a locker?';
 
   @override
   String get howDoIRequestRefund => 'How do I request a refund?';
 
   @override
-  String get howDoWalletCoinsWork => 'How do wallet coins work?';
+  String get howDoWalletCoinsWork => 'How are coins used?';
 
   @override
-  String get talkPerson => 'Talk to a person';
+  String get talkPerson => 'Contact a support agent';
 
   @override
-  String get supportRequestCreatedFromConversationOur => 'A support request will be created from this conversation, and our support team will follow up.';
+  String get supportRequestCreatedFromConversationOur => 'You will be connected to a support agent, who will receive this conversation';
 
   @override
   String get transfer4 => 'Transfer';
 
   @override
-  String get creatingSupportRequest => 'Creating support request';
+  String get creatingSupportRequest => 'Connecting to support';
 
   @override
-  String get transferredSupportTeam => 'Transferred to support team';
+  String get transferredSupportTeam => 'Transferred to a support agent';
 
   @override
   String get newConversation => 'New conversation';
@@ -6967,9 +6570,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get copied2 => 'Copied';
-
-  @override
-  String get aiReplies => 'AI replies';
 
   @override
   String get howCanWeHelp => 'How can we help?';
@@ -6990,16 +6590,10 @@ class _LEn extends AppLocalizations {
   String get aiFeatures => 'AI features';
 
   @override
-  String get usageModelsListingReview => 'Usage, models and listing review';
-
-  @override
   String get aiSettingsNotSavedChangesLost => 'AI settings are not saved. Changes will be lost if you leave.';
 
   @override
   String get usage => 'Usage';
-
-  @override
-  String get settings2 => 'Settings •';
 
   @override
   String reviewP0(Object p0) => 'Review ${p0}';
@@ -7012,9 +6606,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get peakDay => 'Peak day';
-
-  @override
-  String get tapBarDetails => 'Tap a bar for details';
 
   @override
   String p0Requests(Object p0) => '${p0} requests';
@@ -7344,12 +6935,6 @@ class _LEn extends AppLocalizations {
   String get bookDetails => 'Book details';
 
   @override
-  String get conditionAppliedNextStep => 'Condition (applied in next step)';
-
-  @override
-  String get priceAppliedNextStep => 'Price (applied in next step)';
-
-  @override
   String get suggestedPrice => 'Suggested price';
 
   @override
@@ -7357,9 +6942,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String listPriceP0(Object p0) => 'List price \$${p0}';
-
-  @override
-  String get sources => 'Sources';
 
   @override
   String applyP0(Object p0) => 'Apply ${p0}';
@@ -7371,9 +6953,6 @@ class _LEn extends AppLocalizations {
   String get sameAsCurrent => 'Same as current';
 
   @override
-  String confidenceP0(Object p0) => 'Confidence ${p0}%';
-
-  @override
   String get listingNotApproved => 'Listing not approved';
 
   @override
@@ -7383,10 +6962,10 @@ class _LEn extends AppLocalizations {
   String get submittedReview => 'Submitted for review';
 
   @override
-  String get goSaleOnceApprovedNotifiedResult => 'It will go on sale once approved. You will be notified of the result.';
+  String get goSaleOnceApprovedNotifiedResult => 'It will go on sale once approved';
 
   @override
-  String get got => 'Got it';
+  String get got => 'OK';
 
   @override
   String get aiFeaturesNotAvailableRightNow => 'AI features are not available right now';
@@ -7425,9 +7004,6 @@ class _LEn extends AppLocalizations {
   String get aiDataProcessing => 'AI data processing';
 
   @override
-  String providersP0(Object p0) => 'Providers: ${p0}';
-
-  @override
   String get messagesEnterStatusOrdersReservations => 'Messages you enter and the status of your orders and reservations';
 
   @override
@@ -7458,7 +7034,7 @@ class _LEn extends AppLocalizations {
   String get withdrawingConsent => 'Withdrawing consent';
 
   @override
-  String get canTurnOffAiDataProcessing => 'You can turn off "AI data processing" at any time in Settings > Account. The data above will no longer be shared once it is turned off.';
+  String get canTurnOffAiDataProcessing => 'You can turn off "AI data processing" at any time in Settings › Account. The data above will no longer be shared once it is turned off.';
 
   @override
   String get agreeContinue => 'Agree';
@@ -7491,7 +7067,7 @@ class _LEn extends AppLocalizations {
   String get requiresDatabaseUpdate013 => 'Requires database update 013';
 
   @override
-  String get mysteryNovelMyCommute => 'A mystery novel for my commute';
+  String get mysteryNovelMyCommute => 'Mystery novels for commuting';
 
   @override
   String get programmingBooksBeginners => 'Programming books for beginners';
@@ -7503,16 +7079,13 @@ class _LEn extends AppLocalizations {
   String get popularLiteraryFictionRightNow => 'Popular literary fiction right now';
 
   @override
-  String get tellMeWhatBookLooking => 'Tell me what book you are looking for';
-
-  @override
-  String get allRecommendationsComeFromBooksCurrently => 'All recommendations come from books currently on sale here';
+  String get tellMeWhatBookLooking => 'Describe the book you are looking for';
 
   @override
   String get describeBookLooking => 'Describe the book you are looking for';
 
   @override
-  String get tellMeWhatWantReadI => 'Tell me what you want to read and I will pick for you';
+  String get tellMeWhatWantReadI => 'Book recommendations based on your needs';
 
   @override
   String get subtitle => 'Subtitle';
@@ -7522,15 +7095,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get yearOnly => 'Year only';
-
-  @override
-  String get fromBookDatabase => 'From the book database';
-
-  @override
-  String get writtenByAi => 'Written by AI';
-
-  @override
-  String get aiTidiedSourceText => 'AI tidied the source text';
 
   @override
   String get msg => '繁體中文';
@@ -7575,7 +7139,7 @@ class _LEn extends AppLocalizations {
   String get signMethodSettingsSaved => 'Sign-in method settings saved';
 
   @override
-  String get signMethodSettingsUnsavedLeavingDiscards => 'Sign-in method settings are unsaved; leaving discards the changes.';
+  String get signMethodSettingsUnsavedLeavingDiscards => 'Sign-in method settings are not saved. Changes will be lost if you leave.';
 
   @override
   String get serverNotRunDatabaseUpdate014 => 'The server has not run database update 014, so the settings cannot take effect yet.';
@@ -7593,19 +7157,13 @@ class _LEn extends AppLocalizations {
   String get notConfigured => 'Not configured';
 
   @override
-  String get allowCreatingNewAccountsWithMethod => 'Allow creating new accounts with this method';
-
-  @override
-  String get serverNoCredentialsChannel => 'The server has no credentials for this channel';
+  String get allowCreatingNewAccountsWithMethod => 'Allow new accounts with this method';
 
   @override
   String get unsavedChanges2 => 'Unsaved changes';
 
   @override
-  String get switchesSignupPermissionsSocialSmsSign => 'Switches and signup permissions for social and SMS sign-in';
-
-  @override
-  String get taiwan => 'Taiwan';
+  String get taiwan => 'Republic of China (Taiwan)';
 
   @override
   String get hongKong => 'Hong Kong';
@@ -7614,7 +7172,7 @@ class _LEn extends AppLocalizations {
   String get macau => 'Macau';
 
   @override
-  String get china => 'China';
+  String get china => 'People\'s Republic of China';
 
   @override
   String get japan => 'Japan';
@@ -7653,7 +7211,7 @@ class _LEn extends AppLocalizations {
   String get signWithMobileNumber => 'Sign in with a mobile number';
 
   @override
-  String get k6DigitCodeSentNumberMessage => 'A 6-digit code will be sent to this number. The message may take a moment to arrive.';
+  String get k6DigitCodeSentNumberMessage => 'A 6-digit code will be sent to this number.';
 
   @override
   String get mobileNumber => 'Mobile number';
@@ -7686,7 +7244,7 @@ class _LEn extends AppLocalizations {
   String get completeAccountDetails => 'Complete your account details';
 
   @override
-  String p0DidNotProvideEmailAddress(Object p0) => '${p0} did not provide an email address. Fill in the details to create an account.';
+  String get p0DidNotProvideEmailAddress => 'Enter your email to complete sign-up.';
 
   @override
   String signWithP0(Object p0) => 'Sign in with ${p0}';
@@ -7701,7 +7259,7 @@ class _LEn extends AppLocalizations {
   String get emailAlreadyRegistered => 'This email is already registered';
 
   @override
-  String get signWithPasswordThenLinkMethod => 'Sign in with your password, then link this method under Sign-in methods in Account security.';
+  String get signWithPasswordThenLinkMethod => 'Sign in with your password, then link it in Account security › Sign-in methods.';
 
   @override
   String get signWithPassword => 'Sign in with a password';
@@ -7713,16 +7271,16 @@ class _LEn extends AppLocalizations {
   String get passwordSet => 'Password set';
 
   @override
-  String get canNowSignWithEmailPassword => 'You can now sign in with your email and password. Other devices must sign in again.';
+  String get canNowSignWithEmailPassword => 'Other devices must sign in again.';
 
   @override
-  String get passwordRequiredBeforeCanUnlinkSign => 'A password is required before you can unlink a sign-in method, and it lets you sign in by email on a new device. Use at least 8 characters with letters and numbers.';
+  String get passwordRequiredBeforeCanUnlinkSign => 'Use at least 8 characters, including letters and numbers.';
 
   @override
-  String get changingSignMethodsRequiresIdentityVerification => 'Changing sign-in methods requires identity verification. Set a password for this account first.';
+  String get changingSignMethodsRequiresIdentityVerification => 'Set a password before changing sign-in methods.';
 
   @override
-  String get later => 'Later';
+  String get later => 'Not now';
 
   @override
   String p0Linked(Object p0) => '${p0} linked';
@@ -7731,7 +7289,7 @@ class _LEn extends AppLocalizations {
   String unlinkP0(Object p0) => 'Unlink ${p0}';
 
   @override
-  String get noLongerAbleSignWayCan => 'You will no longer be able to sign in this way. You can link it again whenever you need.';
+  String get noLongerAbleSignWayCan => 'You will no longer be able to sign in this way.';
 
   @override
   String get unlink => 'Unlink';
@@ -7747,9 +7305,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get noPasswordSet => 'No password set';
-
-  @override
-  String get requiredBeforeChangingSignMethodsDeleting => 'Required before changing sign-in methods or deleting the account';
 
   @override
   String linkedP0(Object p0) => 'Linked on ${p0}';
@@ -7770,22 +7325,22 @@ class _LEn extends AppLocalizations {
   String get signMethodNotAvailableRightNow => 'This sign-in method is not available right now';
 
   @override
-  String get credentialDoesNotMatchSelectedSign => 'The credential does not match the selected sign-in method';
+  String get credentialDoesNotMatchSelectedSign => 'Sign-in failed. Please try again.';
 
   @override
   String get signMethodLinkedAnotherAccount => 'This sign-in method is linked to another account';
 
   @override
-  String get accountAlreadyLinkedSignMethod => 'This account is already linked to that sign-in method';
+  String get accountAlreadyLinkedSignMethod => 'This account is already linked to this sign-in method';
 
   @override
   String get onlySignMethodAccountSetPassword => 'This is the only sign-in method on the account. Set a password or link another method first.';
 
   @override
-  String get socialSignUnavailableServerNotFinished => 'Social sign-in is unavailable; the server has not finished the database update.';
+  String get socialSignUnavailableServerNotFinished => 'Social sign-in is temporarily unavailable. Please try again later.';
 
   @override
-  String get credentialInvalidExpiredPleaseTryAgain => 'The credential is invalid or expired. Please try again.';
+  String get credentialInvalidExpiredPleaseTryAgain => 'Sign-in timed out. Please try again.';
 
   @override
   String get accountAlreadyPasswordUseChangePassword => 'This account already has a password. Use Change password instead.';
@@ -7794,7 +7349,7 @@ class _LEn extends AppLocalizations {
   String get signLinkExpiredPleaseTryAgain => 'The sign-in link has expired. Please try again.';
 
   @override
-  String get signResultExpiredPleaseTryAgain => 'The sign-in result has expired. Please try again.';
+  String get signResultExpiredPleaseTryAgain => 'Sign-in timed out. Please try again.';
 
   @override
   String get thirdPartySignServiceUnavailablePlease => 'The third-party sign-in service is unavailable. Please try again later.';
@@ -7803,10 +7358,7 @@ class _LEn extends AppLocalizations {
   String get couldNotCompleteSignPleaseTry => 'Could not complete the sign-in. Please try again.';
 
   @override
-  String get accountNotLinkedSignMethod => 'This account is not linked to that sign-in method';
-
-  @override
-  String get couldNotReachServerCheckConnection2 => 'Could not reach the server. Check your connection.';
+  String get accountNotLinkedSignMethod => 'This account is not linked to this sign-in method';
 
   @override
   String get mobileNumberFormatNotValid => 'The mobile number format is not valid';
@@ -7824,13 +7376,157 @@ class _LEn extends AppLocalizations {
   String get smsSendingLimitBeenReachedPlease => 'The SMS sending limit has been reached. Please try again later.';
 
   @override
-  String get smsVerificationNotSetUpDevice => 'SMS verification is not set up on this device. Please use another sign-in method.';
+  String get smsVerificationNotSetUpDevice => 'SMS verification is not available on this device. Use another sign-in method.';
 
   @override
   String get couldNotCompleteSmsVerificationPlease => 'Could not complete SMS verification. Please try again later.';
 
   @override
   String get allowSigningLinkingWithMethod => 'Allow signing in and linking with this method';
+
+  @override
+  String get appNeverStoresPasswordUsedOnly => 'This app never stores your password; it is used only for this verification.';
+
+  @override
+  String get verifyWithBiometricsInstead => 'Verify with biometrics instead';
+
+  @override
+  String get accountWasCreatedWithSocialPhone => 'This account has no sign-in password. Set one first.';
+
+  @override
+  String get setSignPassword => 'Set a sign-in password';
+
+  @override
+  String get enterSignPasswordRunAdminAction => 'Verify with your sign-in password or a passkey to run this admin action';
+
+  @override
+  String p1P0MethodsEnabled(Object p0, Object p1) => '${p0} of ${p1} methods are enabled';
+
+  @override
+  String get masterSwitchOffSoEveryMethod => 'The master switch is off, so every method is disabled';
+
+  @override
+  String get signLinkingDirectSignUpAllowed => 'Sign-in, linking and direct sign-up are allowed';
+
+  @override
+  String credentialsNotSetPleaseConfigureP0(Object p0) => 'Credentials are not set. Please configure ${p0} on the server';
+
+  @override
+  String get whenOffMethodHiddenFromSign => 'When off, this method is hidden from the sign-in page and Account security';
+
+  @override
+  String get whenOffOnlyAccountsAlreadyLinked => 'When off, only accounts already linked to this method can use it';
+
+  @override
+  String get signMethodNotLinkedAccount => 'This sign-in method is not linked to an account';
+
+  @override
+  String p0AccountNotLinkedAnySavemybook(Object p0) => 'This ${p0} account is not linked to a SaveMyBook account.';
+
+  @override
+  String get iAlreadyAccountSignFirst => 'Sign in to an existing account and link';
+
+  @override
+  String get createNewAccountWithIdentity => 'Create a new account';
+
+  @override
+  String signExistingAccountFirstThenLink(Object p0) => 'Sign in to your existing account first, then link ${p0} in Account security › Sign-in methods.';
+
+  @override
+  String get signMethodNotLinkedAnyAccount => 'This sign-in method is not linked to any account';
+
+  @override
+  String get verifyIdentityWithPasskeyContinue => 'Verify your identity with a passkey to continue';
+
+  @override
+  String get verifyWithPasskeyInstead => 'Verify with a passkey instead';
+
+  @override
+  String get passkeys => 'Passkeys';
+
+  @override
+  String get verifyWithFaceIdFingerprintScreen => 'Verify with Face ID, fingerprint or the screen lock on this device. No password needed.';
+
+  @override
+  String get verifyWithPasskey => 'Verify with passkey';
+
+  @override
+  String get useSignPasswordInstead => 'Use sign-in password instead';
+
+  @override
+  String get signWithPasskey => 'Sign in with a passkey';
+
+  @override
+  String get passkeyAdded => 'Passkey added';
+
+  @override
+  String get screenLock => 'your screen lock';
+
+  @override
+  String fromNowCanSignVerifyIdentity(Object p0) => 'From now on you can sign in and verify your identity with ${p0} instead of entering your password.';
+
+  @override
+  String get deletePasskey => 'Delete passkey';
+
+  @override
+  String get noLongerAbleSignVerifyIdentity => 'You will no longer be able to sign in or verify your identity with this passkey. The passkey saved on your device is not removed; you can delete it in the system password settings.';
+
+  @override
+  String get passkeyDeleted => 'Passkey deleted';
+
+  @override
+  String get signVerifyIdentityWithFaceId => 'Sign in and verify your identity with Face ID, fingerprint or screen lock instead of a password. Passkeys are stored only on your devices and in your password manager.';
+
+  @override
+  String get addPasskey => 'Add a passkey';
+
+  @override
+  String get notUsedYet => 'Not used yet';
+
+  @override
+  String lastUsedFormatdateItemLastusedat(Object p0) => 'Last used ${p0}';
+
+  @override
+  String createdCreated(Object p0) => 'Created ${p0}';
+
+  @override
+  String get noPasskeyAvailableDeviceUsePassword => 'No passkey is available on this device. Use your password instead.';
+
+  @override
+  String get passkeyAlreadyRegisteredDevice => 'A passkey is already registered on this device.';
+
+  @override
+  String get signGoogleAccountTurnPasswordManager => 'Sign in to a Google account and turn on a password manager on this device, or use your password instead.';
+
+  @override
+  String get setUpScreenLockPasswordManager => 'Set up a screen lock or password manager on this device to create a passkey.';
+
+  @override
+  String get deviceDoesNotSupportPasskeysUse => 'This device does not support passkeys. Use your password instead.';
+
+  @override
+  String get passkeysTemporarilyUnavailableBecauseAppWebsite => 'Passkeys are currently unavailable. Use your password instead.';
+
+  @override
+  String get requestTimedOutPleaseTryAgain => 'The request timed out. Please try again.';
+
+  @override
+  String get passkeyRequestFailedUsePasswordInstead => 'The passkey request failed. Use your password instead.';
+
+  @override
+  String get verifyIdentityBeforeAddingPasskey => 'Verify your identity before adding a passkey';
+
+  @override
+  String get couldNotListPleaseTryAgain => 'Could not list the book. Please try again later.';
+
+  @override
+  String downloadLinkValidOnceP0P1(Object p0, Object p1) => 'This download link is valid for 5 minutes and can be used only once. Do not share it.\n\n${p0}\n\nFile size: ${p1}';
+
+  @override
+  String get sources => 'Sources';
+
+  @override
+  String get unableOpenLink => 'Unable to open the link.';
 
 }
 
@@ -8120,16 +7816,10 @@ class _LJa extends AppLocalizations {
   String get appearanceSystem => 'システムに合わせる';
 
   @override
-  String get appearanceHint => '「システムに合わせる」を選ぶと、端末の設定に従って自動で切り替わります。';
-
-  @override
   String get language => '言語';
 
   @override
   String get languageSystem => 'システムに合わせる';
-
-  @override
-  String get languageHint => '「システムに合わせる」を選ぶと、端末の言語設定に従って表示されます。';
 
   @override
   String get verifySignSavemybook => 'SaveMyBook にログインするため認証します';
@@ -8234,13 +7924,7 @@ class _LJa extends AppLocalizations {
   String get deleteAccount => 'アカウントを削除';
 
   @override
-  String get accountPermanentlyDisabled30DaysSign => 'アカウントは 30 日後に完全に無効化されます。それまでに再度ログインすればキャンセルできます。\n\n';
-
-  @override
-  String get personalDataErasedButCompletedOrders => '無効化後は個人情報が削除されますが、完了した注文と取引履歴は保持されます。';
-
-  @override
-  String get peopleTradedWithDoNotLose => '取引相手の記録が欠けないようにするためです。';
+  String get accountPermanentlyDisabled30DaysSign => 'アカウントは 30 日後に削除されます。期間内に再ログインするとキャンセルできます。削除後は個人データが消去されますが、完了した注文と取引記録は保持されます。';
 
   @override
   String get actionContinue => '続ける';
@@ -8273,19 +7957,7 @@ class _LJa extends AppLocalizations {
   String get exportMyData => 'データをエクスポート';
 
   @override
-  String get profileBooksOrdersTransactionsJson => 'プロフィール・書籍・注文・取引履歴を JSON 形式で';
-
-  @override
-  String get oldLinkQrCodeStopWorking2 => '古いリンクと QR コードはすぐに無効になります';
-
-  @override
   String get cancelAccountDeletion => 'アカウント削除をキャンセル';
-
-  @override
-  String get restoreAccountStopCountdown => 'アカウントを復元し、カウントダウンを止めます';
-
-  @override
-  String get canChangeMindWithin30Days => '30 日以内なら取り消せます';
 
   @override
   String get deletionPending => '削除待ち';
@@ -8369,7 +8041,7 @@ class _LJa extends AppLocalizations {
   String get signContactSeller => '出品者に連絡するにはログインしてください';
 
   @override
-  String get signStartChat => 'チャットを開始するにはログインしてください';
+  String get signStartChat => '出品者に連絡するにはログインしてください';
 
   @override
   String get signReport => '報告するにはログインしてください';
@@ -8387,7 +8059,7 @@ class _LJa extends AppLocalizations {
   String get reasonNeedsLeast5Characters => '報告理由は 5 文字以上で入力してください';
 
   @override
-  String get reportSubmittedWeLookInto => '報告を送信しました。順次対応します。';
+  String get reportSubmittedWeLookInto => '報告を送信しました';
 
   @override
   String get publisher => '出版社：';
@@ -8411,9 +8083,6 @@ class _LJa extends AppLocalizations {
   String get about => '紹介：';
 
   @override
-  String pickup(Object p0) => '受け取り場所：${p0}';
-
-  @override
   String get messageSeller => '出品者に相談';
 
   @override
@@ -8423,16 +8092,10 @@ class _LJa extends AppLocalizations {
   String get addCart => 'カートに追加';
 
   @override
-  String get bookBeenReportedUnderReviewStays => 'この本は報告を受け審査中です。審査中も販売は継続されます。';
+  String get bookBeenReportedUnderReviewStays => 'この本は報告を受け、審査中です。';
 
   @override
-  String get violationWasConfirmedBookPleaseCheck => 'この本は違反が認定されました。コミュニティガイドラインに沿っているかご確認ください。';
-
-  @override
-  String get reportDismissed2 => '報告は却下されました';
-
-  @override
-  String get bookWasReportedButNoViolation => 'この本は報告されましたが違反は認められませんでした。出品に影響はありません。';
+  String get violationWasConfirmedBookPleaseCheck => 'この本は違反が確認されました。出品内容を修正してください。';
 
   @override
   String get delist => '出品を取り消す';
@@ -8442,9 +8105,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get delist2 => '出品停止';
-
-  @override
-  String get delistedRelistFromDelistedTab => '出品を停止しました。「出品停止」タブから再出品できます。';
 
   @override
   String get couldNotDelistPleaseTryAgain => '出品停止に失敗しました。しばらくしてからお試しください。';
@@ -8459,16 +8119,7 @@ class _LJa extends AppLocalizations {
   String get noBooksCategory => 'このカテゴリーに書籍はありません';
 
   @override
-  String get listFirstBook => '最初の 1 冊を出品する';
-
-  @override
   String get relist => '再出品';
-
-  @override
-  String get removeFromCart => 'カートから削除';
-
-  @override
-  String removeFromCart2(Object p0) => '「${p0}」をカートから削除しますか？';
 
   @override
   String get remove => '削除';
@@ -8477,16 +8128,10 @@ class _LJa extends AppLocalizations {
   String get couldNotRemoveRestored => '削除できませんでした。元に戻しました。';
 
   @override
-  String get couldNotRemovePleaseTryAgain => '削除に失敗しました。しばらくしてからお試しください。';
-
-  @override
   String get selectBooksWantCheckOut => 'お会計する本を選んでください';
 
   @override
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => 'コインが足りません。この注文には ${p0} 必要ですが、残高は ${p1} です。';
-
-  @override
-  String get confirmCheckout => 'お会計を確定';
 
   @override
   String booksTotal(Object p0, Object p1) => '${p0} 冊、合計 ${p1}。\n';
@@ -8606,7 +8251,7 @@ class _LJa extends AppLocalizations {
   String get markAllAsRead => 'すべて既読にする';
 
   @override
-  String markAllUnreadMessagesAsRead(Object p0) => '未読メッセージ ${p0} 件をすべて既読にしますか？元に戻せません。';
+  String markAllUnreadMessagesAsRead(Object p0) => '未読メッセージ ${p0} 件をすべて既読にしますか？';
 
   @override
   String get markAllRead => 'すべて既読';
@@ -8628,9 +8273,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get mute => 'ミュート';
-
-  @override
-  String get messagesLimited500Characters => 'メッセージは 500 文字までです';
 
   @override
   String get messageCouldNotSent => 'メッセージを送信できませんでした';
@@ -8660,7 +8302,7 @@ class _LJa extends AppLocalizations {
   String get describeDispute => '異議の内容を記入してください';
 
   @override
-  String get useLeast10CharactersSoSupport => 'サポートが判断できるよう 10 文字以上で記入してください';
+  String get useLeast10CharactersSoSupport => '説明は 10 文字以上必要です';
 
   @override
   String get submitDispute => '異議を申し立てる';
@@ -8681,9 +8323,6 @@ class _LJa extends AppLocalizations {
   String get requestPaymentHold => '支払い保留を申請';
 
   @override
-  String get paymentSellerHeldUntilSupportDecides => 'サポートが判断するまで出品者への支払いは保留されます';
-
-  @override
   String get submitDispute2 => '異議を申し立てる';
 
   @override
@@ -8696,7 +8335,7 @@ class _LJa extends AppLocalizations {
   String get whatHappened => '異議の内容';
 
   @override
-  String get describeProblemEGConditionDoes => '発生した問題を記入してください。例：状態が説明と異なる…';
+  String get describeProblemEGConditionDoes => '発生した問題を入力してください';
 
   @override
   String get submit => '申請を送信';
@@ -8706,12 +8345,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get canAttachUp6Photos => '添付できる写真は 6 枚までです';
-
-  @override
-  String get up5 => '5 枚まで';
-
-  @override
-  String get couldNotReplacePhotoPleaseTry => '写真を差し替えられませんでした。しばらくしてからお試しください。';
 
   @override
   String get keepLeastOnePhoto => '写真は 1 枚以上必要です';
@@ -8732,16 +8365,13 @@ class _LJa extends AppLocalizations {
   String get cannotUndoneContinue => '削除すると元に戻せません。よろしいですか？';
 
   @override
-  String get photoMissingDataRefreshTryAgain => 'この写真のデータが不完全です。更新してからお試しください。';
+  String get photoMissingDataRefreshTryAgain => 'この写真を処理できません。更新してからお試しください。';
 
   @override
   String get enterPrice => '価格を入力してください';
 
   @override
   String get priceMustGreaterThan0 => '価格は 0 より大きい必要があります';
-
-  @override
-  String get priceCannotExceed999999 => '価格は 999,999 以下にしてください';
 
   @override
   String get chooseLockerLocation => '保管場所を選んでください';
@@ -8813,7 +8443,7 @@ class _LJa extends AppLocalizations {
   String get publicationDate => '発行日';
 
   @override
-  String get tapPickPublicationDate => 'タップして発行日を選択';
+  String get tapPickPublicationDate => '発行日を選択';
 
   @override
   String get pickPublicationDate => '発行日を選択';
@@ -8870,7 +8500,7 @@ class _LJa extends AppLocalizations {
   String get dateBirth => '生年月日';
 
   @override
-  String get tapPickDateBirth => 'タップして生年月日を選択';
+  String get tapPickDateBirth => '生年月日を選択';
 
   @override
   String get pickDateBirth => '生年月日を選択';
@@ -8930,10 +8560,7 @@ class _LJa extends AppLocalizations {
   String get reset => 'リセット';
 
   @override
-  String get usePhoto => 'この写真を使う';
-
-  @override
-  String get documentNotBeenCreatedYet => 'この文書はまだ作成されていません';
+  String get documentNotBeenCreatedYet => '内容はありません';
 
   @override
   String lastUpdated(Object p0) => '最終更新：${p0}';
@@ -8984,7 +8611,7 @@ class _LJa extends AppLocalizations {
   String get noAccountYetSignUp => 'アカウントをお持ちでないですか？新規登録';
 
   @override
-  String get membershipTiersNotSetUpYet => '会員ランクはまだ設定されていません';
+  String get membershipTiersNotSetUpYet => '会員ランクは現在提供されていません';
 
   @override
   String get currentTier => '現在のランク';
@@ -9011,7 +8638,7 @@ class _LJa extends AppLocalizations {
   String benefits(Object p0) => '${p0} の特典';
 
   @override
-  String get noBenefitsBeenDescribedTierYet => 'このランクの特典はまだ設定されていません。';
+  String get noBenefitsBeenDescribedTierYet => 'このランクには追加特典はありません';
 
   @override
   String pointsFromCompletedOrders(Object p0, Object p1) => '${p1} 件の取引で ${p0} ポイント';
@@ -9038,16 +8665,13 @@ class _LJa extends AppLocalizations {
   String get noUnreadNotifications => '未読の通知はありません';
 
   @override
-  String markAllUnreadNotificationsAsRead(Object p0) => '未読の通知 ${p0} 件をすべて既読にしますか？元に戻せません。';
+  String markAllUnreadNotificationsAsRead(Object p0) => '未読の通知 ${p0} 件をすべて既読にしますか？';
 
   @override
   String get openChat => 'チャットを開く';
 
   @override
   String get viewOrder => '注文を見る';
-
-  @override
-  String get openMyBooks => '書籍管理を開く';
 
   @override
   String get notifications => '通知';
@@ -9071,7 +8695,7 @@ class _LJa extends AppLocalizations {
   String items2(Object p0) => '商品明細（${p0}）';
 
   @override
-  String get orderNoItemDetails => 'この注文には商品情報がありません。';
+  String get orderNoItemDetails => '商品明細はありません';
 
   @override
   String msg4(Object p0, Object p1) => '単価 ${p0} × ${p1}';
@@ -9089,7 +8713,7 @@ class _LJa extends AppLocalizations {
   String get slot => 'ロッカー番号';
 
   @override
-  String get notAssignedYet => 'まだ割り当てられていません';
+  String get notAssignedYet => 'ロッカー未割り当て';
 
   @override
   String get pickupCode => '受け取りコード';
@@ -9134,7 +8758,7 @@ class _LJa extends AppLocalizations {
   String get pendingAmount => '保留中の金額';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '購入者が受け取ると自動的にコインが入金されます';
+  String get coinsArriveOnceBuyerCollectsBook => '購入者の受け取り後に自動入金';
 
   @override
   String get scanned => 'スキャン完了';
@@ -9155,9 +8779,6 @@ class _LJa extends AppLocalizations {
   String get bookCollected => '受け取り完了';
 
   @override
-  String get thanksUsingSavemybookHappyReading => 'ご利用いただきありがとうございます。';
-
-  @override
   String collected(Object p0) => '「${p0}」を受け取りました';
 
   @override
@@ -9170,19 +8791,13 @@ class _LJa extends AppLocalizations {
   String get myAccount => 'マイページ';
 
   @override
-  String get personNotWrittenBioYet => 'まだ自己紹介がありません';
+  String get personNotWrittenBioYet => '自己紹介は未入力です';
 
   @override
   String get topTierReached => '最高ランク達成';
 
   @override
   String morePointsReach(Object p0, Object p1) => 'あと ${p0} ポイントで「${p1}」へ';
-
-  @override
-  String get myCoins => 'マイコイン';
-
-  @override
-  String get shareProfile => 'プロフィールを共有';
 
   @override
   String get purchases => '購入履歴';
@@ -9197,22 +8812,7 @@ class _LJa extends AppLocalizations {
   String get signOut2 => 'ログアウトしますか？';
 
   @override
-  String get needSignAgainKeepUsingApp => '再度ご利用いただくにはログインが必要です。';
-
-  @override
   String cancelOrderBookReturnsShop(Object p0) => '注文 ${p0} をキャンセルしますか？本は再びショップに並びます。';
-
-  @override
-  String get pickupCode2 => '受け取りコード';
-
-  @override
-  String get notGeneratedYet => 'まだ発行されていません';
-
-  @override
-  String get enterCodeLockerCollect => 'ロッカーでこのコードを入力して受け取ってください';
-
-  @override
-  String enterCodeCollect(Object p0) => '「${p0}」でこのコードを入力して受け取ってください';
 
   @override
   String get iCollected => '受け取りました';
@@ -9251,19 +8851,13 @@ class _LJa extends AppLocalizations {
   String get createAccount => 'アカウントを作成';
 
   @override
-  String get joinSavemybook => 'SaveMyBook に登録';
-
-  @override
-  String get signUpBuySellUseSmart => '登録すると本の売買とスマートロッカーが使えます';
+  String get joinSavemybook => 'アカウント登録';
 
   @override
   String get displayName => '表示名';
 
   @override
-  String get nameOthersSee => '他の人に表示される名前';
-
-  @override
-  String get emailSignWith => 'ログインに使うメールアドレス';
+  String get emailSignWith => 'メールアドレス';
 
   @override
   String get least8CharactersWithLettersNumbers => '8 文字以上、英字と数字を含む';
@@ -9288,12 +8882,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get buyerNotifiedBookReturnsShop => '購入者に通知され、本は再びショップに並びます。';
-
-  @override
-  String get dropOffPickupCode => '預け入れ・受け取りコード';
-
-  @override
-  String get enterCodeLocker => 'ロッカーでこのコードを入力してください';
 
   @override
   String get noRecentSearches => '検索履歴はありません';
@@ -9332,7 +8920,7 @@ class _LJa extends AppLocalizations {
   String get priceMustGreaterThan02 => '価格は 0 より大きくしてください。';
 
   @override
-  String get priceCannotExceed99999 => '価格は 99,999 以下にしてください。';
+  String get priceCannotExceed99999 => '価格は 99,999 コイン以下にしてください。';
 
   @override
   String get chooseLockerLocation2 => '保管場所を選んでください。';
@@ -9345,15 +8933,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get couldNotListBook => '出品に失敗しました';
-
-  @override
-  String serverError(Object p0) => 'サーバーエラー：${p0}';
-
-  @override
-  String get connectionProblem => '接続エラー';
-
-  @override
-  String get couldNotReachServerUploadTimed => 'サーバーに接続できないか、アップロードがタイムアウトしました。通信状況をご確認ください。';
 
   @override
   String get listBook => '出品を確定';
@@ -9377,16 +8956,13 @@ class _LJa extends AppLocalizations {
   String get bookDetailsFilledAutomatically => '書籍情報を自動入力しました。';
 
   @override
-  String get bookDetailsFilledFromBackupSource => '予備のデータベースから書籍情報を取得しました。';
-
-  @override
   String get noSourceIsbnPleaseEnterDetails => 'どのデータベースにもこの ISBN が見つかりません。手動で入力してください。';
 
   @override
   String get day => '日';
 
   @override
-  String get tapIconRightScan => '右のアイコンをタップしてスキャン';
+  String get tapIconRightScan => 'ISBN を入力';
 
   @override
   String get description => '書籍の紹介';
@@ -9431,13 +9007,7 @@ class _LJa extends AppLocalizations {
   String get aboutSavemybook => 'SaveMyBook について';
 
   @override
-  String get settingsPrivacy => '設定とプライバシー';
-
-  @override
   String sign3(Object p0) => '${p0} でログイン';
-
-  @override
-  String unlockWithWhenOpenApp(Object p0) => 'アプリを開くときに ${p0} で解除';
 
   @override
   String get scanProfileQrCode => 'プロフィール QR コードをスキャン';
@@ -9488,7 +9058,7 @@ class _LJa extends AppLocalizations {
   String get enterSubject => '件名を入力してください';
 
   @override
-  String get addMoreDetailSoSupportCan => 'サポートが判断できるようもう少し詳しくご記入ください';
+  String get addMoreDetailSoSupportCan => '問題の説明を追記してください';
 
   @override
   String get sentSupportReplySoon => '送信しました。サポートよりご返信します。';
@@ -9509,7 +9079,7 @@ class _LJa extends AppLocalizations {
   String get notAbleReplyAfterClosing => 'クローズすると返信できなくなります。';
 
   @override
-  String get enquiryClosed => 'お問い合わせをクローズしました';
+  String get enquiryClosed => 'お問い合わせを終了しました';
 
   @override
   String get changeStatus => 'ステータスを変更';
@@ -9543,15 +9113,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String hold(Object p0) => '保留中 ${p0}';
-
-  @override
-  String requestFailed2(Object p0) => 'リクエストに失敗しました（${p0}）';
-
-  @override
-  String get couldNotReachServer => 'サーバーに接続できません';
-
-  @override
-  String get couldNotReachServerCheckConnection => 'サーバーに接続できません。通信状況をご確認ください。';
 
   @override
   String get signFailed => 'ログインに失敗しました';
@@ -9779,7 +9340,7 @@ class _LJa extends AppLocalizations {
   String get announcements => 'お知らせ';
 
   @override
-  String get noAnnouncementsYetTapAddOne => 'お知らせはまだありません。右上の＋から追加できます。';
+  String get noAnnouncementsYetTapAddOne => 'お知らせはありません';
 
   @override
   String get published => '公開中';
@@ -9818,7 +9379,7 @@ class _LJa extends AppLocalizations {
   String get olderBackupsBeyondCountRemovedAutomatically => '保持件数を超えた古いバックアップは自動的に削除されます。バックアップにはサイト全体の個人情報が含まれるため、ダウンロードしたファイルは厳重に管理してください。ダウンロードはすべて操作ログに記録されます。';
 
   @override
-  String get noBackupsYetSchedulerRunsOnce => 'バックアップはまだありません。スケジュールが1日1回実行されます。上のボタンですぐに作成することもできます。';
+  String get noBackupsYetSchedulerRunsOnce => 'バックアップはありません';
 
   @override
   String get deleteBackup => 'バックアップを削除';
@@ -9837,9 +9398,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get downloadBackup => 'バックアップをダウンロード';
-
-  @override
-  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => 'バックアップはパソコンで、認証ヘッダーを付けて取得してください：\n\n${p0}\n\nファイルサイズ ${p1}。';
 
   @override
   String get copyLink2 => 'URLをコピー';
@@ -10040,28 +9598,7 @@ class _LJa extends AppLocalizations {
   String get keepEditing => '編集を続ける';
 
   @override
-  String get bothTitleContentRequired => 'タイトルと本文の両方が必要です';
-
-  @override
   String sectionP0NoTitleYet(Object p0) => '第${p0}';
-
-  @override
-  String updateP0(Object p0) => '${p0}？';
-
-  @override
-  String get documentBindingEveryUserSubmittingReplaces => 'この文書は全ユーザーに効力を持ちます。送信すると現在の版が直ちに置き換わります。';
-
-  @override
-  String get yesUpdate => '更新する';
-
-  @override
-  String get notifyEveryUser => '全ユーザーに通知しますか？';
-
-  @override
-  String get updateNotify => '更新して通知';
-
-  @override
-  String get updateOnly => '更新のみ';
 
   @override
   String get sections => '章立て';
@@ -10085,10 +9622,7 @@ class _LJa extends AppLocalizations {
   String get articles => '条文';
 
   @override
-  String get numberedAutomatically => '番号は自動で付きます';
-
-  @override
-  String get noArticlesYetAddFirstOne => '条文がまだありません。下のボタンで最初の章を追加してください。';
+  String get noArticlesYetAddFirstOne => '条文はありません';
 
   @override
   String get addSection => '章を追加';
@@ -10103,9 +9637,6 @@ class _LJa extends AppLocalizations {
   String get bodySectionSingleLineBreaksKept => 'この章の本文です。単一の改行はそのまま表示され、空行で段落が変わります。';
 
   @override
-  String get emptyLineStartsParagraphParagraphWhose => '空行で段落を分けます。1行目が「1. タイトル」の段落は、章立てモードに戻したときに1つの章として認識されます。';
-
-  @override
   String get howUsersSee => 'ユーザーに見える表示';
 
   @override
@@ -10113,9 +9644,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get unsaved => '未保存';
-
-  @override
-  String get upDate => '最新の状態です';
 
   @override
   String get newQuestion => '質問を追加';
@@ -10155,9 +9683,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get noQuestionsYet2 => '質問がまだありません';
-
-  @override
-  String get dragHandleRightReorder => '右のハンドルをドラッグで並べ替え';
 
   @override
   String get hidden => '非表示';
@@ -10244,16 +9769,7 @@ class _LJa extends AppLocalizations {
   String get orders => '注文管理';
 
   @override
-  String get lookUpOrdersAdjustStatusBy => '注文の検索と手動でのステータス変更';
-
-  @override
-  String get disputeListDecisions => '申し立て一覧と裁定';
-
-  @override
   String get listings => '商品管理';
-
-  @override
-  String get allBooksForceDelisting => '全書籍、強制的な出品停止';
 
   @override
   String get moderation => 'コンテンツ審査';
@@ -10262,40 +9778,22 @@ class _LJa extends AppLocalizations {
   String get handleListingReports => '商品の報告対応';
 
   @override
-  String get addReorderDeleteBookCategories => 'カテゴリーの追加・並べ替え・削除';
-
-  @override
   String get members => '会員管理';
 
   @override
   String get memberControls => '会員の管理';
 
   @override
-  String get memberListSuspensionBlocklist => '会員一覧・利用停止・ブロック';
-
-  @override
   String get membershipTiers => '会員ランク管理';
-
-  @override
-  String get tierThresholdsBenefits => 'ランクの基準と特典の設定';
 
   @override
   String get wallets => 'ウォレット管理';
 
   @override
-  String get checkBalancesAddDeductCoinsBy => '残高の確認、コインの手動増減';
-
-  @override
   String get hardwareOperations => 'ハードウェアと運用';
 
   @override
-  String get lockerSlotStatus => 'ロッカーと棚の状態';
-
-  @override
   String get maintenanceLog => 'メンテナンス記録';
-
-  @override
-  String get lockerOperationHistory => 'ロッカー関連の操作履歴';
 
   @override
   String get reports => '運用レポート';
@@ -10304,34 +9802,13 @@ class _LJa extends AppLocalizations {
   String get ordersRevenueMemberGrowth => '注文・売上・会員の推移';
 
   @override
-  String get announcements2 => 'お知らせ管理';
-
-  @override
   String get supportEnquiries => 'お問い合わせ';
-
-  @override
-  String get replyQuestionsFromUsers => 'ユーザーからの質問に回答';
-
-  @override
-  String get faqShownHelpCentre => 'ヘルプセンターのよくある質問';
-
-  @override
-  String get termsPrivacyPolicyAbout => '利用規約・プライバシーポリシー・運営者情報';
 
   @override
   String get adminAuditLog => '管理操作の記録';
 
   @override
-  String get auditTrailAdminChanges => '管理者による変更の監査証跡';
-
-  @override
   String get systemOperations => 'システム運用';
-
-  @override
-  String get dailyBackupsManualRunsDownloads => '毎日の自動バックアップ、手動実行とダウンロード';
-
-  @override
-  String get deletionRequestsInsideGracePeriodCancel => '猶予期間中の削除申請。取り消しも即時実行もできます';
 
   @override
   String get members2 => '会員数';
@@ -10595,7 +10072,7 @@ class _LJa extends AppLocalizations {
   String get members3 => '会員一覧';
 
   @override
-  String get searchDisplayNameEmail => '表示名・メールで検索';
+  String get searchDisplayNameEmail => '表示名・メールアドレスで検索';
 
   @override
   String get noMembersMatch => '該当する会員がいません';
@@ -10730,9 +10207,6 @@ class _LJa extends AppLocalizations {
   String get deductCoins => 'コインを差し引く';
 
   @override
-  String get amountPositiveWholeNumber => '金額（正の整数）';
-
-  @override
   String get reasonAdjustmentRequired => '調整の理由（必須）';
 
   @override
@@ -10838,9 +10312,6 @@ class _LJa extends AppLocalizations {
   String p0Locker(Object p0) => 'ロッカーを${p0}';
 
   @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '有効な会員全員に「${p0}が更新されました」という通知が届きます。';
-
-  @override
   String get orderPlaced => '注文成立';
 
   @override
@@ -10895,7 +10366,7 @@ class _LJa extends AppLocalizations {
   String p0SPasswordBeenResetPassword(Object p0) => '${p0}のパスワードをリセットしました。このパスワードは一度きりの表示で、閉じると二度と確認できません。';
 
   @override
-  String get remindThemChangeSettingsChangePassword => 'ログイン後すぐに「設定 → パスワード変更」で変更するよう伝えてください。';
+  String get remindThemChangeSettingsChangePassword => 'ログイン後すぐに「設定 › パスワード変更」で変更するよう伝えてください。';
 
   @override
   String get temporaryPasswordCopied => '仮パスワードをコピーしました';
@@ -10943,9 +10414,6 @@ class _LJa extends AppLocalizations {
   String get notAssignedYet2 => '未割り当て';
 
   @override
-  String get pickupCodeCopied => '受け取りコードをコピーしました';
-
-  @override
   String get walletActivity => 'ウォレットの動き';
 
   @override
@@ -10988,7 +10456,7 @@ class _LJa extends AppLocalizations {
   String get declined => '返金不可';
 
   @override
-  String get changeOwnPasswordGoSettingsChange => '自分のパスワードは「設定 → パスワード変更」から変更してください';
+  String get changeOwnPasswordGoSettingsChange => '自分のパスワードは「設定 › パスワード変更」から変更してください';
 
   @override
   String get memberNotAdminSoThereNo => 'この会員は管理者ではないため、設定できる管理権限がありません。先に上で役割を管理者に変更してください。';
@@ -11060,9 +10528,6 @@ class _LJa extends AppLocalizations {
   String get systemNotificationSettings => 'システムの通知設定';
 
   @override
-  String get turnNotificationsSoundsLockScreenPreviews => '通知、サウンド、ロック画面の表示を切り替えます';
-
-  @override
   String get pushNotificationsNotSetUpBuild => 'このビルドではプッシュ通知が設定されていません。Firebaseの設定ファイルを追加して再ビルドしてください。';
 
   @override
@@ -11100,12 +10565,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String p0SecondsSoFarKeepApp(Object p0) => '${p0} 秒経過しました。アプリを閉じないでください。完了すると自動でサービスが再開します。';
-
-  @override
-  String get majorUpdate => '重要な更新ですか？';
-
-  @override
-  String get majorUpdateNotifiesEveryUserTerms => '重要な更新は全ユーザーに通知されます。利用規約とプライバシーポリシーは、次回アプリを開いたときに再度読んで同意してもらいます。\n\n誤字の修正や書式の調整だけなら「軽微な修正」を選んでください。';
 
   @override
   String get majorUpdate2 => '重要な更新';
@@ -11153,19 +10612,13 @@ class _LJa extends AppLocalizations {
   String get undoAction2 => 'この操作を取り消す';
 
   @override
-  String get tapBarSeeDay => '棒をタップするとその日の数値を表示';
-
-  @override
   String get noAnnouncements => 'お知らせはありません';
-
-  @override
-  String get tapPhotoNameChange => '写真や名前をタップして変更';
 
   @override
   String get canTContinueWithoutAccepting => '同意しないと利用を続けられません';
 
   @override
-  String needAcceptLatestP0UseP1(Object p0, Object p1) => '${p0} を利用するには最新の「${p1}」への同意が必要です。同意しない場合はログアウトします。いつでも再ログインして同意できます。';
+  String needAcceptLatestP0UseP1(Object p0) => '「${p0}」に同意しない場合はログアウトします。';
 
   @override
   String get goBack => '戻る';
@@ -11174,7 +10627,7 @@ class _LJa extends AppLocalizations {
   String p0BeenUpdated(Object p0) => '「${p0}」が更新されました';
 
   @override
-  String readLatestVersionUpdatedP0Accept(Object p0) => '最新版（${p0} 更新）をお読みください。同意すると利用を続けられます。';
+  String readLatestVersionUpdatedP0Accept(Object p0) => '${p0} 更新';
 
   @override
   String get scrollEndContinue => '最後までスクロールしてください';
@@ -11189,25 +10642,16 @@ class _LJa extends AppLocalizations {
   String get viewDetails => '詳細を見る';
 
   @override
-  String get notFoundMayBeenDeletedRemoved => '見つかりません。削除または取り下げられた可能性があります';
-
-  @override
-  String get salesDropOffsPickupsRefundsDisputes => '販売、預け入れ、受け取り、返金、申し立て';
+  String get notFoundMayBeenDeletedRemoved => 'このコンテンツは存在しません';
 
   @override
   String get chatMessages => 'チャットメッセージ';
 
   @override
-  String get newMessagesFromBuyersSellers => '買い手・売り手からの新着メッセージ';
-
-  @override
   String get promotions2 => 'キャンペーン';
 
   @override
-  String get announcementsAboutPromotions => 'キャンペーンのお知らせ';
-
-  @override
-  String get supportRepliesPasswordResetsPolicyUpdates => 'サポートの返信、パスワードのリセット、規約の更新、メンテナンスのお知らせは常に通知されます。オフにした種類も通知一覧には表示され、プッシュ通知だけが届きません。';
+  String get supportRepliesPasswordResetsPolicyUpdates => 'サポートの返信、アカウントセキュリティ、システムのお知らせはオフにできません。';
 
   @override
   String get notFilled => '未入力';
@@ -11330,13 +10774,10 @@ class _LJa extends AppLocalizations {
   String reservedAnotherBuyerUntilP0(Object p0) => '他の購入者が ${p0} まで予約中';
 
   @override
-  String get ifIsnTSoldByThen => '期限までに売れなければ、カートに追加できるようになります';
-
-  @override
   String sellerHoldingUntilP0(Object p0) => '出品者が ${p0} まであなたのために取り置き中';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '期限内に購入手続きを済ませてください。期限を過ぎると他の人も購入できます';
+  String get checkOutBeforeHoldEndsOther => '保留期限内に購入手続きを完了してください';
 
   @override
   String get copyAddress => '住所をコピー';
@@ -11370,9 +10811,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String p0BooksP1Views(Object p0, Object p1) => '${p0} 冊 · 閲覧 ${p1} 回';
-
-  @override
-  String get swipeQuickActions => 'スワイプで操作';
 
   @override
   String get searchTitleAuthorIsbn2 => '書名・著者・ISBN で検索';
@@ -11495,9 +10933,6 @@ class _LJa extends AppLocalizations {
   String get declineReservation => '予約をお断りしますか？';
 
   @override
-  String get theyLlNotifiedDeclined => '相手にお断りの通知が届きます。';
-
-  @override
   String get decline2 => 'お断り';
 
   @override
@@ -11525,7 +10960,7 @@ class _LJa extends AppLocalizations {
   String get accountCanTReceiveMessagesRight => '相手のアカウントは現在メッセージを受け取れません';
 
   @override
-  String get holdMicTalkReleaseSend => 'マイクを長押しして話し、指を離すと送信します';
+  String get holdMicTalkReleaseSend => '録音が短すぎます';
 
   @override
   String get startConversation => 'ここから会話が始まります';
@@ -11585,9 +11020,6 @@ class _LJa extends AppLocalizations {
   String get picked => 'あなたへのおすすめ';
 
   @override
-  String get seeMore => 'もっと見る';
-
-  @override
   String get recentlyViewed => '最近見た本';
 
   @override
@@ -11606,10 +11038,7 @@ class _LJa extends AppLocalizations {
   String get waitingBuyerCollect => '購入者の受け取り待ち';
 
   @override
-  String get bookLockerEnterPickupCodeCollect => '本はロッカーにあります。受け取りコードを入力して受け取ってください';
-
-  @override
-  String get transactionCompleteThank => '取引が完了しました。ご利用ありがとうございます';
+  String get transactionCompleteThank => '取引完了';
 
   @override
   String get confirmVeTakenBookFromLocker => 'ロッカーから本を取り出したことを確認してください。確認すると注文が完了します。';
@@ -11630,9 +11059,6 @@ class _LJa extends AppLocalizations {
   String get accountSecurity => 'アカウントのセキュリティ';
 
   @override
-  String get sellerHasnTPutBookLocker => '出品者はまだ本をロッカーに入れていません。入れたらお知らせします';
-
-  @override
   String get searchHistoryCleared => '検索履歴を消去しました';
 
   @override
@@ -11645,10 +11071,7 @@ class _LJa extends AppLocalizations {
   String signOutP0(Object p0) => '「${p0}」をログアウトしますか？';
 
   @override
-  String get llNeedSignAgainUseApp => 'ログアウト後は再ログインが必要です。';
-
-  @override
-  String get deviceSignedOutRightAwayStop => 'その端末はすぐにログアウトし、通知も届かなくなります。';
+  String get deviceSignedOutRightAwayStop => 'その端末はすぐにログアウトされます。';
 
   @override
   String get deviceSignedOut => 'この端末をログアウトしました';
@@ -11660,10 +11083,10 @@ class _LJa extends AppLocalizations {
   String get signOutAllOtherDevices => 'ほかのすべての端末からログアウト';
 
   @override
-  String get everyDeviceIncludingOneSignedOut => 'この端末を含むすべての端末がログアウトし、再ログインが必要になります。';
+  String get everyDeviceIncludingOneSignedOut => 'この端末を含むすべての端末がすぐにログアウトされます。';
 
   @override
-  String get everyDeviceExceptOneSignedOut => 'この端末以外はすぐにログアウトし、通知も届かなくなります。';
+  String get everyDeviceExceptOneSignedOut => 'この端末以外のすべての端末がすぐにログアウトされます。';
 
   @override
   String signedOutP0OtherDevices(Object p0) => '他の ${p0} 台の端末からログアウトしました';
@@ -11673,9 +11096,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get couldnTLoadDevices => '端末を読み込めませんでした';
-
-  @override
-  String get theseDevicesSignedAccountIfDon => 'これらの端末があなたのアカウントにログインしています。心当たりのない端末があれば、すぐにログアウトしてパスワードを変更してください。';
 
   @override
   String get device => 'この端末';
@@ -11726,9 +11146,6 @@ class _LJa extends AppLocalizations {
   String get paymentPinSet => '取引パスワードを設定しました';
 
   @override
-  String get use6DigitPinConfirmPayments => '今後の決済では、この 6 桁のパスワードで支払いを確認します。';
-
-  @override
   String get verifyingIdentity => '本人確認中…';
 
   @override
@@ -11771,7 +11188,7 @@ class _LJa extends AppLocalizations {
   String p0PaymentsTurned(Object p0) => '${p0} での支払いをオンにしました';
 
   @override
-  String get securitySettingsUnavailableRightNowMay => 'セキュリティ設定を取得できません。取引パスワードやログイン端末を変更できない場合があります。';
+  String get securitySettingsUnavailableRightNowMay => 'セキュリティ設定を読み込めません';
 
   @override
   String payWithP0(Object p0) => '${p0} で支払う';
@@ -11783,19 +11200,13 @@ class _LJa extends AppLocalizations {
   String get accountCouldSafer => 'セキュリティを強化できます';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => '取引パスワードと生体認証での支払いが設定済みです。ログイン中の端末を定期的にご確認ください。';
-
-  @override
-  String get setPaymentPinTurnBiometricPayment => '取引パスワードを設定し生体認証での支払いをオンにすると、決済がより安全で速くなります。';
+  String get setPaymentPinTurnBiometricPayment => '取引パスワードが未設定です';
 
   @override
   String tooManyAttemptsLockedUntilP0(Object p0) => '失敗回数が多すぎます。${p0} までロック中';
 
   @override
-  String get usedConfirmPaymentsCheckout => '決済時の支払い確認に使います';
-
-  @override
-  String get notSetRequiredBeforeCheckout => '未設定です。決済前に設定が必要です';
+  String get notSetRequiredBeforeCheckout => '未設定';
 
   @override
   String get change => '変更';
@@ -11804,16 +11215,7 @@ class _LJa extends AppLocalizations {
   String get forgotPaymentPin => '取引パスワードを忘れた';
 
   @override
-  String get ifFailsCanEnterPaymentPin => '認証に失敗したら取引パスワードを入力できます';
-
-  @override
-  String get viewRemotelySignOutDevices => '端末の確認とリモートログアウト';
-
-  @override
   String p0Devices(Object p0) => '${p0} 台';
-
-  @override
-  String get otherDevicesNeedSignAgain => '変更後、ほかの端末は再ログインが必要です';
 
   @override
   String get restoredUnfinishedListing => '前回の入力内容を復元しました';
@@ -11837,13 +11239,7 @@ class _LJa extends AppLocalizations {
   String get storage => 'ストレージ';
 
   @override
-  String get paymentPinBiometricPaymentDevices => '取引パスワード・生体認証支払い・ログイン端末';
-
-  @override
   String get clearCache => 'キャッシュを削除';
-
-  @override
-  String get removesCachedImagesFilesAccountData => '一時保存の画像とファイルを削除します。アカウントのデータには影響しません';
 
   @override
   String get couldNotLoadNotificationSettings => '通知設定を読み込めません';
@@ -11915,7 +11311,7 @@ class _LJa extends AppLocalizations {
   String couldnTRegisterPushTokenWith(Object p0) => 'プッシュトークンをサーバーに登録できませんでした：${p0}';
 
   @override
-  String get protectCoinsCheckoutRequires6Digit => 'コインを守るため、決済時に 6 桁の取引パスワードが必要です。設定後は Face ID や指紋での支払いもオンにできます。';
+  String get protectCoinsCheckoutRequires6Digit => '決済の前に 6 桁の取引パスワードを設定してください。';
 
   @override
   String confirmPaymentP0Coins(Object p0) => '${p0} コインの支払いを確認';
@@ -11945,7 +11341,7 @@ class _LJa extends AppLocalizations {
   String get usePasswordInstead => 'ログインパスワードを使う';
 
   @override
-  String get couldnTGetLocationLockersShown => '現在地を取得できませんでした。ロッカーは標準の順で表示されます';
+  String get couldnTGetLocationLockersShown => '現在地を取得できません';
 
   @override
   String p0SlotsFree(Object p0) => '空き ${p0} 区画';
@@ -11958,9 +11354,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get noFreeSlots => '空きがありません';
-
-  @override
-  String get sortedByDistance => '近い順に表示';
 
   @override
   String get turnLocationSortByDistance => '位置情報をオンにすると距離順に並びます';
@@ -12002,9 +11395,6 @@ class _LJa extends AppLocalizations {
   String get releaseCancel => '指を離すとキャンセル';
 
   @override
-  String get slideCancel => '← スライドでキャンセル';
-
-  @override
   String get awaitingReply => '返信待ち';
 
   @override
@@ -12024,9 +11414,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String holdP0H(Object p0) => '${p0}時間取り置き';
-
-  @override
-  String get onceSellerAcceptsBookHeldNo => '出品者が承認すると本はあなたのために取り置かれ、期限までは他の人が購入できません。';
 
   @override
   String get holdPeriod => '取り置き期間';
@@ -12053,10 +11440,10 @@ class _LJa extends AppLocalizations {
   String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone の Apple へのプッシュ通知登録に失敗しました：${p0}\n${p1}';
 
   @override
-  String get serverNotBeenUpdatedSupportFeature => 'サーバーはまだこの機能に対応したバージョンに更新されていません。しばらくしてからお試しください。';
+  String get serverNotBeenUpdatedSupportFeature => 'この機能は一時的に利用できません。しばらくしてからお試しください。';
 
   @override
-  String get someFeaturesTemporarilyUnavailableWhileServer => 'サーバー更新中のため、一部の機能は一時的に利用できません';
+  String get someFeaturesTemporarilyUnavailableWhileServer => '一部の機能は一時的に利用できません';
 
   @override
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => 'サーバーの API バージョンが古すぎます（現在 ${p0}、アプリには ${p1} が必要）。サーバーのコードを更新し、API を再起動してください。';
@@ -12117,9 +11504,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get mistBlue => 'ミストブルー';
-
-  @override
-  String get chooseAppSMainColourHeader => 'ヘッダー、ボタン、強調表示に使うアプリのメインカラーを選択します。';
 
   @override
   String get draftRestored => '下書きを復元しました';
@@ -12326,7 +11710,7 @@ class _LJa extends AppLocalizations {
   String get blockUser => 'ユーザーをブロック';
 
   @override
-  String afterBlockP0NeitherCanSend(Object p0) => '「${p0}」をブロックすると、お互いにメッセージを送信できなくなります。相手には通知されません。ブロックは「設定 › ブロックリスト」からいつでも解除できます。';
+  String afterBlockP0NeitherCanSend(Object p0) => '「${p0}」をブロックすると、お互いにメッセージを送信できなくなります。';
 
   @override
   String get block => 'ブロック';
@@ -12357,9 +11741,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get originalMessageUnavailable => '元のメッセージは表示できません';
-
-  @override
-  String replyingP0(Object p0) => '${p0} に返信';
 
   @override
   String get cancelReply => '返信をキャンセル';
@@ -12425,7 +11806,7 @@ class _LJa extends AppLocalizations {
   String get notAllowed => '未許可';
 
   @override
-  String get restricted => '制限あり';
+  String get restricted => 'システムにより制限';
 
   @override
   String get denied => '拒否済み';
@@ -12435,9 +11816,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get homeRecommendations => 'ホームのおすすめ';
-
-  @override
-  String get pickedRecentlyViewed => 'おすすめ、最近見た本';
 
   @override
   String get leaveGroup => 'グループを退会';
@@ -12737,7 +12115,7 @@ class _LJa extends AppLocalizations {
   String get rotate => '回転';
 
   @override
-  String get mentioned => '[メンションされました]';
+  String get mentioned => '[メンション]';
 
   @override
   String get saveImage => '画像を保存';
@@ -12767,7 +12145,7 @@ class _LJa extends AppLocalizations {
   String removedAdminRoleFromP0(Object p0) => '${p0} の管理者権限を解除しました';
 
   @override
-  String photosP02(Object p0) => '[写真] ${p0} 枚';
+  String photosP02(Object p0) => '[写真 ${p0} 枚]';
 
   @override
   String get savedDownloads => '「ダウンロード」に保存しました';
@@ -12788,34 +12166,31 @@ class _LJa extends AppLocalizations {
   String get aiSupport => 'AI サポート';
 
   @override
-  String get instantReplies => '即時回答';
-
-  @override
   String get howDoIListBook => '本を出品するには？';
 
   @override
-  String get howDoIPickUpFrom => 'スマートロッカーで受け取るには？';
+  String get howDoIPickUpFrom => 'ロッカーで本を受け取るには？';
 
   @override
   String get howDoIRequestRefund => '返金を申請するには？';
 
   @override
-  String get howDoWalletCoinsWork => 'ウォレットのコインの使い方は？';
+  String get howDoWalletCoinsWork => 'コインの使い方は？';
 
   @override
-  String get talkPerson => '担当者に切り替え';
+  String get talkPerson => 'サポート担当者に接続';
 
   @override
-  String get supportRequestCreatedFromConversationOur => 'この会話内容でお問い合わせを作成し、担当者が引き継ぎます';
+  String get supportRequestCreatedFromConversationOur => 'サポート担当者に接続し、現在の会話内容を共有します';
 
   @override
   String get transfer4 => '切り替える';
 
   @override
-  String get creatingSupportRequest => 'お問い合わせを作成しています';
+  String get creatingSupportRequest => 'サポートに接続しています';
 
   @override
-  String get transferredSupportTeam => '担当者に引き継ぎました';
+  String get transferredSupportTeam => 'サポート担当者に接続しました';
 
   @override
   String get newConversation => '新しい会話';
@@ -12825,9 +12200,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get copied2 => 'コピーしました';
-
-  @override
-  String get aiReplies => 'AI による回答';
 
   @override
   String get howCanWeHelp => 'どのようなご用件でしょうか？';
@@ -12848,16 +12220,10 @@ class _LJa extends AppLocalizations {
   String get aiFeatures => 'AI 機能';
 
   @override
-  String get usageModelsListingReview => '利用状況・モデル設定・出品審査';
-
-  @override
   String get aiSettingsNotSavedChangesLost => 'AI 設定が保存されていません。移動すると変更は失われます';
 
   @override
   String get usage => '利用状況';
-
-  @override
-  String get settings2 => '設定 •';
 
   @override
   String reviewP0(Object p0) => '審査 ${p0}';
@@ -12870,9 +12236,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get peakDay => '1 日の最高';
-
-  @override
-  String get tapBarDetails => 'バーをタップすると内訳を表示';
 
   @override
   String p0Requests(Object p0) => 'リクエスト ${p0} 件';
@@ -13202,12 +12565,6 @@ class _LJa extends AppLocalizations {
   String get bookDetails => '書籍情報';
 
   @override
-  String get conditionAppliedNextStep => '状態（次のステップで反映）';
-
-  @override
-  String get priceAppliedNextStep => '価格（次のステップで反映）';
-
-  @override
   String get suggestedPrice => '推奨価格';
 
   @override
@@ -13215,9 +12572,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String listPriceP0(Object p0) => '定価 \$${p0}';
-
-  @override
-  String get sources => '情報源';
 
   @override
   String applyP0(Object p0) => '${p0} 件を反映';
@@ -13229,9 +12583,6 @@ class _LJa extends AppLocalizations {
   String get sameAsCurrent => '現在と同じ';
 
   @override
-  String confidenceP0(Object p0) => '信頼度 ${p0}%';
-
-  @override
   String get listingNotApproved => '出品審査に通りませんでした';
 
   @override
@@ -13241,10 +12592,10 @@ class _LJa extends AppLocalizations {
   String get submittedReview => '審査に回しました';
 
   @override
-  String get goSaleOnceApprovedNotifiedResult => '承認されると販売が開始されます。結果は通知でお知らせします';
+  String get goSaleOnceApprovedNotifiedResult => '承認後に販売が開始されます';
 
   @override
-  String get got => 'わかりました';
+  String get got => 'OK';
 
   @override
   String get aiFeaturesNotAvailableRightNow => 'AI 機能は現在ご利用いただけません';
@@ -13283,9 +12634,6 @@ class _LJa extends AppLocalizations {
   String get aiDataProcessing => 'AI によるデータ処理';
 
   @override
-  String providersP0(Object p0) => '提供先：${p0}';
-
-  @override
   String get messagesEnterStatusOrdersReservations => '入力したメッセージ、ご自身の注文と予約の状況';
 
   @override
@@ -13316,7 +12664,7 @@ class _LJa extends AppLocalizations {
   String get withdrawingConsent => '同意の撤回';
 
   @override
-  String get canTurnOffAiDataProcessing => '「設定」>「アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。';
+  String get canTurnOffAiDataProcessing => '「設定 › アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。';
 
   @override
   String get agreeContinue => '同意する';
@@ -13361,16 +12709,13 @@ class _LJa extends AppLocalizations {
   String get popularLiteraryFictionRightNow => '最近人気の文芸小説';
 
   @override
-  String get tellMeWhatBookLooking => 'お探しの本をお聞かせください';
-
-  @override
-  String get allRecommendationsComeFromBooksCurrently => 'おすすめはすべて出品中の書籍から選ばれます';
+  String get tellMeWhatBookLooking => 'お探しの本の内容を入力してください';
 
   @override
   String get describeBookLooking => 'お探しの本を入力してください';
 
   @override
-  String get tellMeWhatWantReadI => '読みたい本をお聞かせください。お選びします';
+  String get tellMeWhatWantReadI => 'ご希望に合わせて本をおすすめします';
 
   @override
   String get subtitle => 'サブタイトル';
@@ -13380,15 +12725,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get yearOnly => '年まで確認';
-
-  @override
-  String get fromBookDatabase => '書誌データベースより';
-
-  @override
-  String get writtenByAi => 'AI が作成';
-
-  @override
-  String get aiTidiedSourceText => 'AI が原文を整理';
 
   @override
   String get msg => '繁體中文';
@@ -13433,7 +12769,7 @@ class _LJa extends AppLocalizations {
   String get signMethodSettingsSaved => 'ログイン方法の設定を保存しました';
 
   @override
-  String get signMethodSettingsUnsavedLeavingDiscards => 'ログイン方法の設定は未保存です。移動すると変更は失われます。';
+  String get signMethodSettingsUnsavedLeavingDiscards => 'ログイン方法の設定は保存されていません。移動すると変更は失われます。';
 
   @override
   String get serverNotRunDatabaseUpdate014 => 'サーバーでデータベース更新 014 が未実行のため、設定はまだ反映されません。';
@@ -13451,19 +12787,13 @@ class _LJa extends AppLocalizations {
   String get notConfigured => '未設定';
 
   @override
-  String get allowCreatingNewAccountsWithMethod => 'この方法での新規アカウント作成を許可';
-
-  @override
-  String get serverNoCredentialsChannel => 'サーバーにこのチャネルの認証情報がありません';
+  String get allowCreatingNewAccountsWithMethod => 'この方法での新規登録を許可';
 
   @override
   String get unsavedChanges2 => '未保存の変更';
 
   @override
-  String get switchesSignupPermissionsSocialSmsSign => 'ソーシャル・SMS ログインの開閉と新規登録の可否';
-
-  @override
-  String get taiwan => '台湾';
+  String get taiwan => '中華民国（台湾）';
 
   @override
   String get hongKong => '香港';
@@ -13472,7 +12802,7 @@ class _LJa extends AppLocalizations {
   String get macau => 'マカオ';
 
   @override
-  String get china => '中国';
+  String get china => '中華人民共和国';
 
   @override
   String get japan => '日本';
@@ -13511,7 +12841,7 @@ class _LJa extends AppLocalizations {
   String get signWithMobileNumber => '携帯電話番号でログイン';
 
   @override
-  String get k6DigitCodeSentNumberMessage => 'この番号に 6 桁の認証コードを送信します。SMS の到着には時間がかかる場合があります。';
+  String get k6DigitCodeSentNumberMessage => 'この番号に 6 桁の認証コードを送信します。';
 
   @override
   String get mobileNumber => '携帯電話番号';
@@ -13544,7 +12874,7 @@ class _LJa extends AppLocalizations {
   String get completeAccountDetails => 'アカウント情報の入力';
 
   @override
-  String p0DidNotProvideEmailAddress(Object p0) => '${p0} からメールアドレスが提供されませんでした。情報を入力してアカウントを作成してください。';
+  String get p0DidNotProvideEmailAddress => '登録を完了するにはメールアドレスを入力してください。';
 
   @override
   String signWithP0(Object p0) => '${p0} でログイン';
@@ -13559,7 +12889,7 @@ class _LJa extends AppLocalizations {
   String get emailAlreadyRegistered => 'このメールアドレスは登録済みです';
 
   @override
-  String get signWithPasswordThenLinkMethod => 'パスワードでログインし、アカウントセキュリティのログイン方法から連携してください。';
+  String get signWithPasswordThenLinkMethod => 'パスワードでログインし、「アカウントセキュリティ › ログイン方法」で連携してください。';
 
   @override
   String get signWithPassword => 'パスワードでログイン';
@@ -13571,16 +12901,16 @@ class _LJa extends AppLocalizations {
   String get passwordSet => 'パスワードを設定しました';
 
   @override
-  String get canNowSignWithEmailPassword => '今後はメールアドレスとパスワードでログインできます。他の端末は再ログインが必要です。';
+  String get canNowSignWithEmailPassword => '他の端末は再ログインが必要です。';
 
   @override
-  String get passwordRequiredBeforeCanUnlinkSign => 'ログイン方法の連携解除にはパスワードが必要です。機種変更時もメールアドレスでログインできます。8 文字以上で英字と数字を含めてください。';
+  String get passwordRequiredBeforeCanUnlinkSign => '8 文字以上で、英字と数字を含めてください。';
 
   @override
-  String get changingSignMethodsRequiresIdentityVerification => 'ログイン方法の変更には本人確認が必要です。先にパスワードを設定してください。';
+  String get changingSignMethodsRequiresIdentityVerification => 'ログイン方法を変更する前に、パスワードを設定してください。';
 
   @override
-  String get later => '後で';
+  String get later => '今は設定しない';
 
   @override
   String p0Linked(Object p0) => '${p0} を連携しました';
@@ -13589,7 +12919,7 @@ class _LJa extends AppLocalizations {
   String unlinkP0(Object p0) => '${p0} の連携を解除';
 
   @override
-  String get noLongerAbleSignWayCan => 'この方法ではログインできなくなります。必要になれば再度連携できます。';
+  String get noLongerAbleSignWayCan => '連携を解除すると、この方法ではログインできなくなります。';
 
   @override
   String get unlink => '連携を解除';
@@ -13605,9 +12935,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get noPasswordSet => 'パスワード未設定';
-
-  @override
-  String get requiredBeforeChangingSignMethodsDeleting => 'ログイン方法の変更とアカウント削除に必要です';
 
   @override
   String linkedP0(Object p0) => '${p0} に連携';
@@ -13628,7 +12955,7 @@ class _LJa extends AppLocalizations {
   String get signMethodNotAvailableRightNow => 'このログイン方法は現在利用できません';
 
   @override
-  String get credentialDoesNotMatchSelectedSign => '認証情報が選択したログイン方法と一致しません';
+  String get credentialDoesNotMatchSelectedSign => 'ログインに失敗しました。もう一度お試しください。';
 
   @override
   String get signMethodLinkedAnotherAccount => 'このログイン方法は他のアカウントに連携されています';
@@ -13640,10 +12967,10 @@ class _LJa extends AppLocalizations {
   String get onlySignMethodAccountSetPassword => 'これはこのアカウント唯一のログイン方法です。先にパスワードを設定するか、他の方法を連携してください。';
 
   @override
-  String get socialSignUnavailableServerNotFinished => 'ソーシャルログインは利用できません。サーバーのデータベース更新が未完了です。';
+  String get socialSignUnavailableServerNotFinished => 'ソーシャルログインは一時的に利用できません。しばらくしてからお試しください。';
 
   @override
-  String get credentialInvalidExpiredPleaseTryAgain => '認証情報が無効か期限切れです。もう一度お試しください。';
+  String get credentialInvalidExpiredPleaseTryAgain => 'ログインがタイムアウトしました。もう一度お試しください。';
 
   @override
   String get accountAlreadyPasswordUseChangePassword => 'このアカウントはパスワード設定済みです。パスワードの変更をご利用ください。';
@@ -13652,7 +12979,7 @@ class _LJa extends AppLocalizations {
   String get signLinkExpiredPleaseTryAgain => 'ログインリンクの有効期限が切れました。もう一度お試しください。';
 
   @override
-  String get signResultExpiredPleaseTryAgain => 'ログイン結果の有効期限が切れました。もう一度お試しください。';
+  String get signResultExpiredPleaseTryAgain => 'ログインがタイムアウトしました。もう一度お試しください。';
 
   @override
   String get thirdPartySignServiceUnavailablePlease => '外部のログインサービスが利用できません。しばらくしてからお試しください。';
@@ -13662,9 +12989,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get accountNotLinkedSignMethod => 'このアカウントはこのログイン方法と連携していません';
-
-  @override
-  String get couldNotReachServerCheckConnection2 => 'サーバーに接続できません。ネットワークをご確認ください。';
 
   @override
   String get mobileNumberFormatNotValid => '携帯電話番号の形式が正しくありません';
@@ -13682,13 +13006,157 @@ class _LJa extends AppLocalizations {
   String get smsSendingLimitBeenReachedPlease => 'SMS の送信回数が上限に達しました。しばらくしてからお試しください。';
 
   @override
-  String get smsVerificationNotSetUpDevice => 'この端末では SMS 認証の設定が完了していません。別のログイン方法をご利用ください。';
+  String get smsVerificationNotSetUpDevice => 'この端末では SMS 認証を利用できません。別のログイン方法をご利用ください。';
 
   @override
   String get couldNotCompleteSmsVerificationPlease => 'SMS 認証を完了できませんでした。しばらくしてからお試しください。';
 
   @override
   String get allowSigningLinkingWithMethod => 'この方法でのログインと連携を許可';
+
+  @override
+  String get appNeverStoresPasswordUsedOnly => 'このアプリはパスワードを保存しません。今回の認証にのみ使用します。';
+
+  @override
+  String get verifyWithBiometricsInstead => '生体認証で確認する';
+
+  @override
+  String get accountWasCreatedWithSocialPhone => 'このアカウントはログインパスワードが未設定です。先に設定してください。';
+
+  @override
+  String get setSignPassword => 'ログインパスワードを設定';
+
+  @override
+  String get enterSignPasswordRunAdminAction => 'この管理操作を実行するには、ログインパスワードまたはパスキーで本人確認を行ってください';
+
+  @override
+  String p1P0MethodsEnabled(Object p0, Object p1) => '全 ${p0} 種類のうち ${p1} 種類が有効';
+
+  @override
+  String get masterSwitchOffSoEveryMethod => '総合スイッチがオフのため、すべての方法が無効です';
+
+  @override
+  String get signLinkingDirectSignUpAllowed => 'ログイン・連携・新規登録が可能';
+
+  @override
+  String credentialsNotSetPleaseConfigureP0(Object p0) => '認証情報が未設定です。サーバーで ${p0} を設定してください';
+
+  @override
+  String get whenOffMethodHiddenFromSign => 'オフにするとログイン画面とアカウントセキュリティに表示されません';
+
+  @override
+  String get whenOffOnlyAccountsAlreadyLinked => 'オフにすると連携済みのアカウントのみ利用できます';
+
+  @override
+  String get signMethodNotLinkedAccount => 'このログイン方法はアカウントに連携されていません';
+
+  @override
+  String p0AccountNotLinkedAnySavemybook(Object p0) => 'この ${p0} アカウントは SaveMyBook アカウントと連携されていません。';
+
+  @override
+  String get iAlreadyAccountSignFirst => '既存のアカウントにログインして連携';
+
+  @override
+  String get createNewAccountWithIdentity => '新しいアカウントを作成';
+
+  @override
+  String signExistingAccountFirstThenLink(Object p0) => '先に既存のアカウントでログインし、「アカウントセキュリティ › ログイン方法」で ${p0} を連携してください。';
+
+  @override
+  String get signMethodNotLinkedAnyAccount => 'このログイン方法はどのアカウントとも連携されていません';
+
+  @override
+  String get verifyIdentityWithPasskeyContinue => '続行するにはパスキーで本人確認を行ってください';
+
+  @override
+  String get verifyWithPasskeyInstead => 'パスキーで確認する';
+
+  @override
+  String get passkeys => 'パスキー';
+
+  @override
+  String get verifyWithFaceIdFingerprintScreen => 'このデバイスの Face ID、指紋、画面ロックで確認します。パスワードは不要です。';
+
+  @override
+  String get verifyWithPasskey => 'パスキーで確認';
+
+  @override
+  String get useSignPasswordInstead => 'ログインパスワードで確認する';
+
+  @override
+  String get signWithPasskey => 'パスキーでログイン';
+
+  @override
+  String get passkeyAdded => 'パスキーを追加しました';
+
+  @override
+  String get screenLock => '画面ロック';
+
+  @override
+  String fromNowCanSignVerifyIdentity(Object p0) => '今後はパスワードを入力せずに、${p0} でログインと本人確認ができます。';
+
+  @override
+  String get deletePasskey => 'パスキーを削除';
+
+  @override
+  String get noLongerAbleSignVerifyIdentity => '削除すると、このパスキーでログインや本人確認ができなくなります。デバイスに保存されたパスキーは削除されないため、システムのパスワード設定から削除してください。';
+
+  @override
+  String get passkeyDeleted => 'パスキーを削除しました';
+
+  @override
+  String get signVerifyIdentityWithFaceId => 'パスワードの代わりに Face ID、指紋、画面ロックでログインと本人確認ができます。パスキーはお使いのデバイスとパスワード マネージャーにのみ保存されます。';
+
+  @override
+  String get addPasskey => 'パスキーを追加';
+
+  @override
+  String get notUsedYet => '未使用';
+
+  @override
+  String lastUsedFormatdateItemLastusedat(Object p0) => '最終使用 ${p0}';
+
+  @override
+  String createdCreated(Object p0) => '作成日 ${p0}';
+
+  @override
+  String get noPasskeyAvailableDeviceUsePassword => 'このデバイスで使用できるパスキーがありません。パスワードをご利用ください。';
+
+  @override
+  String get passkeyAlreadyRegisteredDevice => 'このデバイスには既にパスキーが登録されています。';
+
+  @override
+  String get signGoogleAccountTurnPasswordManager => 'このデバイスで Google アカウントにログインしてパスワード マネージャーを有効にするか、パスワードをご利用ください。';
+
+  @override
+  String get setUpScreenLockPasswordManager => 'パスキーを作成するには、このデバイスで画面ロックまたはパスワード マネージャーを設定してください。';
+
+  @override
+  String get deviceDoesNotSupportPasskeysUse => 'このデバイスはパスキーに対応していません。パスワードをご利用ください。';
+
+  @override
+  String get passkeysTemporarilyUnavailableBecauseAppWebsite => '現在パスキーは利用できません。パスワードをご利用ください。';
+
+  @override
+  String get requestTimedOutPleaseTryAgain => '操作がタイムアウトしました。もう一度お試しください。';
+
+  @override
+  String get passkeyRequestFailedUsePasswordInstead => 'パスキーの操作に失敗しました。パスワードをご利用ください。';
+
+  @override
+  String get verifyIdentityBeforeAddingPasskey => 'パスキーを追加する前に本人確認を行ってください';
+
+  @override
+  String get couldNotListPleaseTryAgain => '出品に失敗しました。しばらくしてからお試しください。';
+
+  @override
+  String downloadLinkValidOnceP0P1(Object p0, Object p1) => 'このダウンロードリンクは 5 分間有効で、1 回のみ使用できます。共有しないでください。\n\n${p0}\n\nファイルサイズ：${p1}';
+
+  @override
+  String get sources => '情報源';
+
+  @override
+  String get unableOpenLink => 'リンクを開けませんでした。';
 
 }
 
@@ -13978,16 +13446,10 @@ class _LKo extends AppLocalizations {
   String get appearanceSystem => '시스템 설정 따르기';
 
   @override
-  String get appearanceHint => '시스템 설정 따르기를 선택하면 기기 설정에 따라 자동으로 전환됩니다.';
-
-  @override
   String get language => '언어';
 
   @override
   String get languageSystem => '시스템 설정 따르기';
-
-  @override
-  String get languageHint => '시스템 설정 따르기를 선택하면 기기 언어 설정에 따라 표시됩니다.';
 
   @override
   String get verifySignSavemybook => 'SaveMyBook에 로그인하려면 인증하세요';
@@ -14092,13 +13554,7 @@ class _LKo extends AppLocalizations {
   String get deleteAccount => '계정 삭제';
 
   @override
-  String get accountPermanentlyDisabled30DaysSign => '계정은 30일 후 영구 비활성화됩니다. 그 전에 다시 로그인하면 취소할 수 있습니다.\n\n';
-
-  @override
-  String get personalDataErasedButCompletedOrders => '비활성화 후 개인정보는 삭제되지만, 완료된 주문과 거래 기록은 보관됩니다. ';
-
-  @override
-  String get peopleTradedWithDoNotLose => '거래 상대방의 기록이 누락되지 않도록 하기 위함입니다.';
+  String get accountPermanentlyDisabled30DaysSign => '계정은 30일 후 삭제되며, 기간 내에 다시 로그인하면 취소됩니다. 삭제 후 개인 정보는 지워지며 완료된 주문과 거래 기록은 보존됩니다.';
 
   @override
   String get actionContinue => '계속';
@@ -14131,19 +13587,7 @@ class _LKo extends AppLocalizations {
   String get exportMyData => '내 데이터 내보내기';
 
   @override
-  String get profileBooksOrdersTransactionsJson => '프로필, 도서, 주문, 거래 내역을 JSON으로';
-
-  @override
-  String get oldLinkQrCodeStopWorking2 => '기존 링크와 QR 코드가 즉시 무효화됩니다';
-
-  @override
   String get cancelAccountDeletion => '계정 삭제 취소';
-
-  @override
-  String get restoreAccountStopCountdown => '계정을 복구하고 카운트다운을 중지합니다';
-
-  @override
-  String get canChangeMindWithin30Days => '30일 이내에는 취소할 수 있습니다';
 
   @override
   String get deletionPending => '삭제 대기 중';
@@ -14227,7 +13671,7 @@ class _LKo extends AppLocalizations {
   String get signContactSeller => '판매자에게 연락하려면 로그인하세요';
 
   @override
-  String get signStartChat => '채팅을 시작하려면 로그인하세요';
+  String get signStartChat => '판매자에게 연락하려면 로그인하세요';
 
   @override
   String get signReport => '신고하려면 로그인하세요';
@@ -14245,7 +13689,7 @@ class _LKo extends AppLocalizations {
   String get reasonNeedsLeast5Characters => '신고 사유는 5자 이상 입력해 주세요';
 
   @override
-  String get reportSubmittedWeLookInto => '신고를 접수했습니다. 최대한 빨리 처리하겠습니다.';
+  String get reportSubmittedWeLookInto => '신고가 접수되었습니다';
 
   @override
   String get publisher => '출판사: ';
@@ -14269,9 +13713,6 @@ class _LKo extends AppLocalizations {
   String get about => '소개: ';
 
   @override
-  String pickup(Object p0) => '수령 장소: ${p0}';
-
-  @override
   String get messageSeller => '판매자와 대화';
 
   @override
@@ -14281,16 +13722,10 @@ class _LKo extends AppLocalizations {
   String get addCart => '장바구니 담기';
 
   @override
-  String get bookBeenReportedUnderReviewStays => '이 책은 신고되어 검토 중입니다. 검토 중에도 정상 판매됩니다.';
+  String get bookBeenReportedUnderReviewStays => '이 책은 신고되어 검토 중입니다.';
 
   @override
-  String get violationWasConfirmedBookPleaseCheck => '이 책은 위반이 인정되었습니다. 커뮤니티 가이드라인에 맞는지 확인해 주세요.';
-
-  @override
-  String get reportDismissed2 => '신고가 기각되었습니다';
-
-  @override
-  String get bookWasReportedButNoViolation => '이 책은 신고되었으나 위반이 확인되지 않았습니다. 판매에는 영향이 없습니다.';
+  String get violationWasConfirmedBookPleaseCheck => '이 책은 위반이 확인되었습니다. 상품 내용을 수정하세요.';
 
   @override
   String get delist => '판매 중단';
@@ -14300,9 +13735,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get delist2 => '내리기';
-
-  @override
-  String get delistedRelistFromDelistedTab => '판매를 중단했습니다. ‘내림’ 탭에서 다시 올릴 수 있습니다.';
 
   @override
   String get couldNotDelistPleaseTryAgain => '판매 중단에 실패했습니다. 잠시 후 다시 시도해 주세요.';
@@ -14317,16 +13749,7 @@ class _LKo extends AppLocalizations {
   String get noBooksCategory => '이 분류에 도서가 없습니다';
 
   @override
-  String get listFirstBook => '첫 도서 등록하기';
-
-  @override
   String get relist => '다시 올리기';
-
-  @override
-  String get removeFromCart => '장바구니에서 빼기';
-
-  @override
-  String removeFromCart2(Object p0) => '“${p0}”을(를) 장바구니에서 뺄까요?';
 
   @override
   String get remove => '삭제';
@@ -14335,16 +13758,10 @@ class _LKo extends AppLocalizations {
   String get couldNotRemoveRestored => '삭제하지 못해 되돌렸습니다.';
 
   @override
-  String get couldNotRemovePleaseTryAgain => '삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.';
-
-  @override
   String get selectBooksWantCheckOut => '결제할 도서를 선택해 주세요';
 
   @override
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '코인이 부족합니다. 이 주문에는 ${p0}이(가) 필요하지만 잔액은 ${p1}입니다.';
-
-  @override
-  String get confirmCheckout => '결제 확인';
 
   @override
   String booksTotal(Object p0, Object p1) => '도서 ${p0}권, 합계 ${p1}.\n';
@@ -14464,7 +13881,7 @@ class _LKo extends AppLocalizations {
   String get markAllAsRead => '모두 읽음으로 표시';
 
   @override
-  String markAllUnreadMessagesAsRead(Object p0) => '읽지 않은 메시지 ${p0}건을 모두 읽음으로 표시할까요? 되돌릴 수 없습니다.';
+  String markAllUnreadMessagesAsRead(Object p0) => '읽지 않은 메시지 ${p0}건을 모두 읽음으로 표시할까요?';
 
   @override
   String get markAllRead => '모두 읽음';
@@ -14486,9 +13903,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get mute => '음소거';
-
-  @override
-  String get messagesLimited500Characters => '메시지는 500자까지 입력할 수 있습니다';
 
   @override
   String get messageCouldNotSent => '메시지를 보내지 못했습니다';
@@ -14518,7 +13932,7 @@ class _LKo extends AppLocalizations {
   String get describeDispute => '이의 내용을 입력해 주세요';
 
   @override
-  String get useLeast10CharactersSoSupport => '고객센터가 판단할 수 있도록 10자 이상 입력해 주세요';
+  String get useLeast10CharactersSoSupport => '설명은 10자 이상이어야 합니다';
 
   @override
   String get submitDispute => '이의 제기';
@@ -14539,9 +13953,6 @@ class _LKo extends AppLocalizations {
   String get requestPaymentHold => '정산 보류 요청';
 
   @override
-  String get paymentSellerHeldUntilSupportDecides => '고객센터가 판정할 때까지 판매자 정산이 보류됩니다';
-
-  @override
   String get submitDispute2 => '이의 제기하기';
 
   @override
@@ -14554,7 +13965,7 @@ class _LKo extends AppLocalizations {
   String get whatHappened => '이의 내용';
 
   @override
-  String get describeProblemEGConditionDoes => '문제 상황을 적어 주세요. 예: 상태가 설명과 다름…';
+  String get describeProblemEGConditionDoes => '발생한 문제를 설명해 주세요';
 
   @override
   String get submit => '신청 보내기';
@@ -14564,12 +13975,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get canAttachUp6Photos => '증빙 사진은 최대 6장까지 첨부할 수 있습니다';
-
-  @override
-  String get up5 => '최대 5장';
-
-  @override
-  String get couldNotReplacePhotoPleaseTry => '사진을 교체하지 못했습니다. 잠시 후 다시 시도해 주세요.';
 
   @override
   String get keepLeastOnePhoto => '사진은 최소 한 장 필요합니다';
@@ -14590,16 +13995,13 @@ class _LKo extends AppLocalizations {
   String get cannotUndoneContinue => '삭제하면 되돌릴 수 없습니다. 계속할까요?';
 
   @override
-  String get photoMissingDataRefreshTryAgain => '이 사진의 데이터가 불완전합니다. 새로고침 후 다시 시도하세요.';
+  String get photoMissingDataRefreshTryAgain => '이 사진을 처리할 수 없습니다. 새로고침 후 다시 시도하세요.';
 
   @override
   String get enterPrice => '가격을 입력하세요';
 
   @override
   String get priceMustGreaterThan0 => '가격은 0보다 커야 합니다';
-
-  @override
-  String get priceCannotExceed999999 => '가격은 999,999를 넘을 수 없습니다';
 
   @override
   String get chooseLockerLocation => '보관 위치를 선택하세요';
@@ -14671,7 +14073,7 @@ class _LKo extends AppLocalizations {
   String get publicationDate => '출간일';
 
   @override
-  String get tapPickPublicationDate => '눌러서 출간일 선택';
+  String get tapPickPublicationDate => '출간일 선택';
 
   @override
   String get pickPublicationDate => '출간일 선택';
@@ -14716,7 +14118,7 @@ class _LKo extends AppLocalizations {
   String get bio => '소개';
 
   @override
-  String get tellPeopleAboutYourself => '자기소개를 입력하세요';
+  String get tellPeopleAboutYourself => '소개를 입력하세요';
 
   @override
   String get email => '이메일';
@@ -14728,7 +14130,7 @@ class _LKo extends AppLocalizations {
   String get dateBirth => '생년월일';
 
   @override
-  String get tapPickDateBirth => '눌러서 생년월일 선택';
+  String get tapPickDateBirth => '생년월일 선택';
 
   @override
   String get pickDateBirth => '생년월일 선택';
@@ -14788,10 +14190,7 @@ class _LKo extends AppLocalizations {
   String get reset => '초기화';
 
   @override
-  String get usePhoto => '이 사진 사용';
-
-  @override
-  String get documentNotBeenCreatedYet => '이 문서는 아직 작성되지 않았습니다';
+  String get documentNotBeenCreatedYet => '내용이 없습니다';
 
   @override
   String lastUpdated(Object p0) => '마지막 업데이트: ${p0}';
@@ -14842,7 +14241,7 @@ class _LKo extends AppLocalizations {
   String get noAccountYetSignUp => '계정이 없으신가요? 가입하기';
 
   @override
-  String get membershipTiersNotSetUpYet => '회원 등급이 아직 설정되지 않았습니다';
+  String get membershipTiersNotSetUpYet => '현재 회원 등급이 제공되지 않습니다';
 
   @override
   String get currentTier => '현재 등급';
@@ -14869,7 +14268,7 @@ class _LKo extends AppLocalizations {
   String benefits(Object p0) => '${p0} 혜택';
 
   @override
-  String get noBenefitsBeenDescribedTierYet => '이 등급의 혜택이 아직 설정되지 않았습니다.';
+  String get noBenefitsBeenDescribedTierYet => '이 등급에는 추가 혜택이 없습니다';
 
   @override
   String pointsFromCompletedOrders(Object p0, Object p1) => '거래 ${p1}건으로 ${p0}점';
@@ -14896,16 +14295,13 @@ class _LKo extends AppLocalizations {
   String get noUnreadNotifications => '읽지 않은 알림이 없습니다';
 
   @override
-  String markAllUnreadNotificationsAsRead(Object p0) => '읽지 않은 알림 ${p0}건을 모두 읽음으로 표시할까요? 되돌릴 수 없습니다.';
+  String markAllUnreadNotificationsAsRead(Object p0) => '읽지 않은 알림 ${p0}건을 모두 읽음으로 표시할까요?';
 
   @override
   String get openChat => '채팅 열기';
 
   @override
   String get viewOrder => '주문 보기';
-
-  @override
-  String get openMyBooks => '도서 관리 열기';
 
   @override
   String get notifications => '알림';
@@ -14929,7 +14325,7 @@ class _LKo extends AppLocalizations {
   String items2(Object p0) => '상품 내역 (${p0})';
 
   @override
-  String get orderNoItemDetails => '이 주문에는 상품 정보가 없습니다.';
+  String get orderNoItemDetails => '상품 내역 없음';
 
   @override
   String msg4(Object p0, Object p1) => '단가 ${p0} × ${p1}';
@@ -14947,7 +14343,7 @@ class _LKo extends AppLocalizations {
   String get slot => '보관함';
 
   @override
-  String get notAssignedYet => '아직 배정되지 않음';
+  String get notAssignedYet => '보관함 미배정';
 
   @override
   String get pickupCode => '수령 코드';
@@ -14992,7 +14388,7 @@ class _LKo extends AppLocalizations {
   String get pendingAmount => '대기 금액';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '구매자가 수령하면 코인이 자동 지급됩니다';
+  String get coinsArriveOnceBuyerCollectsBook => '구매자 수령 후 자동 지급';
 
   @override
   String get scanned => '스캔 완료';
@@ -15013,9 +14409,6 @@ class _LKo extends AppLocalizations {
   String get bookCollected => '수령 완료';
 
   @override
-  String get thanksUsingSavemybookHappyReading => '이용해 주셔서 감사합니다.';
-
-  @override
   String collected(Object p0) => '“${p0}” 수령 완료';
 
   @override
@@ -15028,19 +14421,13 @@ class _LKo extends AppLocalizations {
   String get myAccount => '마이페이지';
 
   @override
-  String get personNotWrittenBioYet => '아직 소개가 없습니다';
+  String get personNotWrittenBioYet => '소개가 없습니다';
 
   @override
   String get topTierReached => '최고 등급 달성';
 
   @override
   String morePointsReach(Object p0, Object p1) => '${p0}점 더 모으면 “${p1}”';
-
-  @override
-  String get myCoins => '내 코인';
-
-  @override
-  String get shareProfile => '프로필 공유';
 
   @override
   String get purchases => '구매 내역';
@@ -15055,22 +14442,7 @@ class _LKo extends AppLocalizations {
   String get signOut2 => '로그아웃할까요?';
 
   @override
-  String get needSignAgainKeepUsingApp => '계속 사용하려면 다시 로그인해야 합니다.';
-
-  @override
   String cancelOrderBookReturnsShop(Object p0) => '주문 ${p0}을(를) 취소할까요? 도서는 다시 판매됩니다.';
-
-  @override
-  String get pickupCode2 => '수령 코드';
-
-  @override
-  String get notGeneratedYet => '아직 발급되지 않음';
-
-  @override
-  String get enterCodeLockerCollect => '보관함에서 이 코드를 입력해 수령하세요';
-
-  @override
-  String enterCodeCollect(Object p0) => '“${p0}”에서 이 코드를 입력해 수령하세요';
 
   @override
   String get iCollected => '수령을 완료했습니다';
@@ -15109,19 +14481,13 @@ class _LKo extends AppLocalizations {
   String get createAccount => '계정 만들기';
 
   @override
-  String get joinSavemybook => 'SaveMyBook 가입';
-
-  @override
-  String get signUpBuySellUseSmart => '가입하면 도서 매매와 스마트 보관함을 이용할 수 있습니다';
+  String get joinSavemybook => '계정 가입';
 
   @override
   String get displayName => '닉네임';
 
   @override
-  String get nameOthersSee => '다른 사람에게 보이는 이름';
-
-  @override
-  String get emailSignWith => '로그인에 사용할 이메일';
+  String get emailSignWith => '이메일';
 
   @override
   String get least8CharactersWithLettersNumbers => '영문과 숫자를 포함해 8자 이상';
@@ -15146,12 +14512,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get buyerNotifiedBookReturnsShop => '구매자에게 알림이 가고 도서는 다시 판매됩니다.';
-
-  @override
-  String get dropOffPickupCode => '보관·수령 코드';
-
-  @override
-  String get enterCodeLocker => '보관함에서 이 코드를 입력하세요';
 
   @override
   String get noRecentSearches => '최근 검색이 없습니다';
@@ -15190,7 +14550,7 @@ class _LKo extends AppLocalizations {
   String get priceMustGreaterThan02 => '가격은 0보다 커야 합니다.';
 
   @override
-  String get priceCannotExceed99999 => '가격은 99,999를 넘을 수 없습니다.';
+  String get priceCannotExceed99999 => '가격은 99,999 코인을 넘을 수 없습니다.';
 
   @override
   String get chooseLockerLocation2 => '보관 위치를 선택해 주세요.';
@@ -15203,15 +14563,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get couldNotListBook => '등록에 실패했습니다';
-
-  @override
-  String serverError(Object p0) => '서버 오류: ${p0}';
-
-  @override
-  String get connectionProblem => '연결 오류';
-
-  @override
-  String get couldNotReachServerUploadTimed => '서버에 연결할 수 없거나 업로드가 시간 초과되었습니다. 네트워크를 확인해 주세요.';
 
   @override
   String get listBook => '등록 완료';
@@ -15235,16 +14586,13 @@ class _LKo extends AppLocalizations {
   String get bookDetailsFilledAutomatically => '도서 정보를 자동으로 채웠습니다.';
 
   @override
-  String get bookDetailsFilledFromBackupSource => '보조 데이터베이스에서 도서 정보를 가져왔습니다.';
-
-  @override
   String get noSourceIsbnPleaseEnterDetails => '어떤 데이터베이스에도 이 ISBN이 없습니다. 직접 입력해 주세요.';
 
   @override
   String get day => '일';
 
   @override
-  String get tapIconRightScan => '오른쪽 아이콘을 눌러 스캔';
+  String get tapIconRightScan => 'ISBN 입력';
 
   @override
   String get description => '도서 소개';
@@ -15289,13 +14637,7 @@ class _LKo extends AppLocalizations {
   String get aboutSavemybook => 'SaveMyBook 정보';
 
   @override
-  String get settingsPrivacy => '설정 및 개인정보';
-
-  @override
   String sign3(Object p0) => '${p0} 로그인';
-
-  @override
-  String unlockWithWhenOpenApp(Object p0) => '앱을 열 때 ${p0}(으)로 잠금 해제';
 
   @override
   String get scanProfileQrCode => '프로필 QR 코드 스캔';
@@ -15346,7 +14688,7 @@ class _LKo extends AppLocalizations {
   String get enterSubject => '제목을 입력하세요';
 
   @override
-  String get addMoreDetailSoSupportCan => '고객센터가 파악할 수 있도록 좀 더 자세히 적어 주세요';
+  String get addMoreDetailSoSupportCan => '문제 설명을 보충해 주세요';
 
   @override
   String get sentSupportReplySoon => '보냈습니다. 고객센터가 곧 답변드립니다.';
@@ -15367,7 +14709,7 @@ class _LKo extends AppLocalizations {
   String get notAbleReplyAfterClosing => '종료하면 더 이상 답변할 수 없습니다.';
 
   @override
-  String get enquiryClosed => '문의를 종료했습니다';
+  String get enquiryClosed => '문의가 종료되었습니다';
 
   @override
   String get changeStatus => '상태 변경';
@@ -15376,7 +14718,7 @@ class _LKo extends AppLocalizations {
   String get statusUpdated => '상태를 변경했습니다';
 
   @override
-  String get enquiry => '문의';
+  String get enquiry => '문의 내역';
 
   @override
   String get enquiryNotFound => '문의를 찾을 수 없습니다';
@@ -15401,15 +14743,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String hold(Object p0) => '보류 ${p0}';
-
-  @override
-  String requestFailed2(Object p0) => '요청 실패 (${p0})';
-
-  @override
-  String get couldNotReachServer => '서버에 연결할 수 없습니다';
-
-  @override
-  String get couldNotReachServerCheckConnection => '서버에 연결할 수 없습니다. 네트워크를 확인해 주세요.';
 
   @override
   String get signFailed => '로그인에 실패했습니다';
@@ -15568,7 +14901,7 @@ class _LKo extends AppLocalizations {
   String get couldNotLoadPhoto => '이 사진을 불러올 수 없습니다';
 
   @override
-  String slot2(Object p0) => '보관함 ${p0}';
+  String slot2(Object p0) => '보관함: ${p0}';
 
   @override
   String confirmPutLocker(Object p0) => '“${p0}”을(를) 보관함에 넣으셨나요?';
@@ -15637,7 +14970,7 @@ class _LKo extends AppLocalizations {
   String get announcements => '공지사항';
 
   @override
-  String get noAnnouncementsYetTapAddOne => '공지가 없습니다. 오른쪽 위 +로 추가하세요.';
+  String get noAnnouncementsYetTapAddOne => '공지가 없습니다';
 
   @override
   String get published => '게시됨';
@@ -15676,7 +15009,7 @@ class _LKo extends AppLocalizations {
   String get olderBackupsBeyondCountRemovedAutomatically => '보관 수를 넘은 오래된 백업은 자동으로 삭제됩니다. 백업 파일에는 사이트 전체의 개인정보가 들어 있으므로 내려받은 뒤에는 안전하게 보관하세요. 모든 다운로드는 감사 로그에 기록됩니다.';
 
   @override
-  String get noBackupsYetSchedulerRunsOnce => '백업 기록이 없습니다. 스케줄러가 하루에 한 번 실행되며, 위 버튼으로 지금 바로 만들 수도 있습니다.';
+  String get noBackupsYetSchedulerRunsOnce => '백업 기록이 없습니다';
 
   @override
   String get deleteBackup => '백업 삭제';
@@ -15695,9 +15028,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get downloadBackup => '백업 다운로드';
-
-  @override
-  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '백업 파일은 컴퓨터에서 인증 헤더를 함께 보내 받으세요:\n\n${p0}\n\n파일 크기 ${p1}.';
 
   @override
   String get copyLink2 => 'URL 복사';
@@ -15898,28 +15228,7 @@ class _LKo extends AppLocalizations {
   String get keepEditing => '계속 편집';
 
   @override
-  String get bothTitleContentRequired => '제목과 내용을 모두 입력해야 합니다';
-
-  @override
   String sectionP0NoTitleYet(Object p0) => '${p0} 조항에 제목이 없습니다';
-
-  @override
-  String updateP0(Object p0) => '${p0}(를) 업데이트할까요?';
-
-  @override
-  String get documentBindingEveryUserSubmittingReplaces => '이 문서는 모든 사용자에게 효력이 있습니다. 제출하면 현재 버전이 즉시 대체됩니다.';
-
-  @override
-  String get yesUpdate => '업데이트합니다';
-
-  @override
-  String get notifyEveryUser => '모든 사용자에게 알릴까요?';
-
-  @override
-  String get updateNotify => '업데이트 후 알림';
-
-  @override
-  String get updateOnly => '업데이트만';
 
   @override
   String get sections => '조항';
@@ -15943,10 +15252,7 @@ class _LKo extends AppLocalizations {
   String get articles => '조항';
 
   @override
-  String get numberedAutomatically => '번호는 자동으로 매겨집니다';
-
-  @override
-  String get noArticlesYetAddFirstOne => '조항이 없습니다. 아래에서 첫 번째 조항을 추가하세요.';
+  String get noArticlesYetAddFirstOne => '조항이 없습니다';
 
   @override
   String get addSection => '조항 추가';
@@ -15961,9 +15267,6 @@ class _LKo extends AppLocalizations {
   String get bodySectionSingleLineBreaksKept => '이 조항의 본문입니다. 한 번의 줄바꿈은 그대로 표시되고, 빈 줄은 문단을 나눕니다.';
 
   @override
-  String get emptyLineStartsParagraphParagraphWhose => '빈 줄로 문단을 나눕니다. 첫 줄이 "1. 제목" 형태인 문단은 조항 모드로 돌아갈 때 하나의 조항으로 인식됩니다.';
-
-  @override
   String get howUsersSee => '사용자에게 보이는 모습';
 
   @override
@@ -15971,9 +15274,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get unsaved => '저장 안 됨';
-
-  @override
-  String get upDate => '최신 상태입니다';
 
   @override
   String get newQuestion => '질문 추가';
@@ -16013,9 +15313,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get noQuestionsYet2 => '질문이 없습니다';
-
-  @override
-  String get dragHandleRightReorder => '오른쪽 손잡이를 끌어 순서를 바꿉니다';
 
   @override
   String get hidden => '숨김';
@@ -16102,16 +15399,7 @@ class _LKo extends AppLocalizations {
   String get orders => '주문 관리';
 
   @override
-  String get lookUpOrdersAdjustStatusBy => '주문 조회 및 수동 상태 변경';
-
-  @override
-  String get disputeListDecisions => '이의 목록 및 판정';
-
-  @override
   String get listings => '상품 관리';
-
-  @override
-  String get allBooksForceDelisting => '전체 도서, 강제 내리기';
 
   @override
   String get moderation => '콘텐츠 심사';
@@ -16120,40 +15408,22 @@ class _LKo extends AppLocalizations {
   String get handleListingReports => '상품 신고 처리';
 
   @override
-  String get addReorderDeleteBookCategories => '카테고리 추가, 정렬, 삭제';
-
-  @override
   String get members => '회원 관리';
 
   @override
   String get memberControls => '회원 관리';
 
   @override
-  String get memberListSuspensionBlocklist => '회원 목록, 정지, 차단 목록';
-
-  @override
   String get membershipTiers => '회원 등급 관리';
-
-  @override
-  String get tierThresholdsBenefits => '등급 기준과 혜택 설정';
 
   @override
   String get wallets => '지갑 관리';
 
   @override
-  String get checkBalancesAddDeductCoinsBy => '잔액 조회, 코인 수동 증감';
-
-  @override
   String get hardwareOperations => '하드웨어 및 운영';
 
   @override
-  String get lockerSlotStatus => '보관함 및 칸 상태';
-
-  @override
   String get maintenanceLog => '정비 기록';
-
-  @override
-  String get lockerOperationHistory => '보관함 관련 작업 기록';
 
   @override
   String get reports => '운영 리포트';
@@ -16162,34 +15432,13 @@ class _LKo extends AppLocalizations {
   String get ordersRevenueMemberGrowth => '주문, 매출, 회원 증가';
 
   @override
-  String get announcements2 => '공지 관리';
-
-  @override
   String get supportEnquiries => '고객 문의';
-
-  @override
-  String get replyQuestionsFromUsers => '사용자 문의에 답변';
-
-  @override
-  String get faqShownHelpCentre => '고객센터의 자주 묻는 질문';
-
-  @override
-  String get termsPrivacyPolicyAbout => '이용약관, 개인정보 처리방침, 소개';
 
   @override
   String get adminAuditLog => '관리 작업 기록';
 
   @override
-  String get auditTrailAdminChanges => '관리자 변경 감사 기록';
-
-  @override
   String get systemOperations => '시스템 운영';
-
-  @override
-  String get dailyBackupsManualRunsDownloads => '매일 자동 백업, 수동 실행 및 다운로드';
-
-  @override
-  String get deletionRequestsInsideGracePeriodCancel => '유예 기간 중인 삭제 신청. 취소하거나 즉시 실행할 수 있습니다';
 
   @override
   String get members2 => '회원 수';
@@ -16588,9 +15837,6 @@ class _LKo extends AppLocalizations {
   String get deductCoins => '코인 차감';
 
   @override
-  String get amountPositiveWholeNumber => '금액 (양의 정수)';
-
-  @override
   String get reasonAdjustmentRequired => '조정 사유 (필수)';
 
   @override
@@ -16696,9 +15942,6 @@ class _LKo extends AppLocalizations {
   String p0Locker(Object p0) => '보관함 ${p0}';
 
   @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '활성 회원 전원에게 "${p0}이(가) 업데이트되었습니다" 알림이 전송됩니다.';
-
-  @override
   String get orderPlaced => '주문 생성';
 
   @override
@@ -16753,7 +15996,7 @@ class _LKo extends AppLocalizations {
   String p0SPasswordBeenResetPassword(Object p0) => '${p0} 님의 비밀번호를 재설정했습니다. 이 비밀번호는 한 번만 표시되며 닫으면 다시 볼 수 없습니다.';
 
   @override
-  String get remindThemChangeSettingsChangePassword => '로그인 후 바로 설정 → 비밀번호 변경에서 바꾸도록 안내하세요.';
+  String get remindThemChangeSettingsChangePassword => '로그인 후 바로 설정 › 비밀번호 변경에서 바꾸도록 안내하세요.';
 
   @override
   String get temporaryPasswordCopied => '임시 비밀번호를 복사했습니다';
@@ -16801,9 +16044,6 @@ class _LKo extends AppLocalizations {
   String get notAssignedYet2 => '미배정';
 
   @override
-  String get pickupCodeCopied => '수령 코드를 복사했습니다';
-
-  @override
   String get walletActivity => '지갑 변동';
 
   @override
@@ -16846,7 +16086,7 @@ class _LKo extends AppLocalizations {
   String get declined => '환불 거절';
 
   @override
-  String get changeOwnPasswordGoSettingsChange => '본인 비밀번호는 설정 → 비밀번호 변경에서 바꾸세요';
+  String get changeOwnPasswordGoSettingsChange => '본인 비밀번호는 설정 › 비밀번호 변경에서 바꾸세요';
 
   @override
   String get memberNotAdminSoThereNo => '이 회원은 관리자가 아니므로 설정할 관리자 권한이 없습니다. 위에서 역할을 관리자로 먼저 변경하세요.';
@@ -16918,9 +16158,6 @@ class _LKo extends AppLocalizations {
   String get systemNotificationSettings => '시스템 알림 설정';
 
   @override
-  String get turnNotificationsSoundsLockScreenPreviews => '알림, 소리, 잠금 화면 표시를 켜거나 끕니다';
-
-  @override
   String get pushNotificationsNotSetUpBuild => '이 빌드에는 푸시 알림이 설정되어 있지 않습니다. Firebase 설정 파일을 추가하고 다시 빌드하세요.';
 
   @override
@@ -16958,12 +16195,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String p0SecondsSoFarKeepApp(Object p0) => '${p0}초 지났습니다. 앱을 닫지 마세요. 완료되면 서비스가 자동으로 재개됩니다.';
-
-  @override
-  String get majorUpdate => '중요한 업데이트인가요?';
-
-  @override
-  String get majorUpdateNotifiesEveryUserTerms => '중요한 업데이트는 모든 사용자에게 알립니다. 이용약관과 개인정보 처리방침은 다음에 앱을 열 때 다시 읽고 동의해야 합니다.\n\n오타 수정이나 서식 조정이라면 "사소한 수정"을 선택하세요.';
 
   @override
   String get majorUpdate2 => '중요한 업데이트';
@@ -17011,19 +16242,13 @@ class _LKo extends AppLocalizations {
   String get undoAction2 => '이 작업 되돌리기';
 
   @override
-  String get tapBarSeeDay => '막대를 탭하면 그날의 수치를 봅니다';
-
-  @override
   String get noAnnouncements => '공지가 없습니다';
-
-  @override
-  String get tapPhotoNameChange => '사진이나 닉네임을 탭해 변경';
 
   @override
   String get canTContinueWithoutAccepting => '동의하지 않으면 계속 사용할 수 없습니다';
 
   @override
-  String needAcceptLatestP0UseP1(Object p0, Object p1) => '${p0}을(를) 사용하려면 최신 "${p1}"에 동의해야 합니다. 동의하지 않으면 로그아웃되며, 언제든 다시 로그인해 동의할 수 있습니다.';
+  String needAcceptLatestP0UseP1(Object p0) => '"${p0}"에 동의하지 않으면 로그아웃됩니다.';
 
   @override
   String get goBack => '돌아가기';
@@ -17032,7 +16257,7 @@ class _LKo extends AppLocalizations {
   String p0BeenUpdated(Object p0) => '"${p0}"이(가) 업데이트되었습니다';
 
   @override
-  String readLatestVersionUpdatedP0Accept(Object p0) => '최신 버전(${p0} 업데이트)을 읽어 주세요. 동의하면 계속 사용할 수 있습니다.';
+  String readLatestVersionUpdatedP0Accept(Object p0) => '${p0} 업데이트';
 
   @override
   String get scrollEndContinue => '끝까지 스크롤해 주세요';
@@ -17047,25 +16272,16 @@ class _LKo extends AppLocalizations {
   String get viewDetails => '자세히 보기';
 
   @override
-  String get notFoundMayBeenDeletedRemoved => '찾을 수 없습니다. 삭제되었거나 내려갔을 수 있습니다';
-
-  @override
-  String get salesDropOffsPickupsRefundsDisputes => '판매, 보관, 수령, 환불, 분쟁';
+  String get notFoundMayBeenDeletedRemoved => '이 콘텐츠는 더 이상 존재하지 않습니다';
 
   @override
   String get chatMessages => '채팅 메시지';
 
   @override
-  String get newMessagesFromBuyersSellers => '구매자와 판매자가 보낸 새 메시지';
-
-  @override
   String get promotions2 => '프로모션';
 
   @override
-  String get announcementsAboutPromotions => '프로모션 공지';
-
-  @override
-  String get supportRepliesPasswordResetsPolicyUpdates => '고객센터 답변, 비밀번호 재설정, 약관 업데이트, 점검 공지는 항상 알립니다. 끈 유형도 알림 목록에는 표시되며 푸시만 오지 않습니다.';
+  String get supportRepliesPasswordResetsPolicyUpdates => '고객센터 답변, 계정 보안, 시스템 공지 알림은 끌 수 없습니다.';
 
   @override
   String get notFilled => '미입력';
@@ -17188,13 +16404,10 @@ class _LKo extends AppLocalizations {
   String reservedAnotherBuyerUntilP0(Object p0) => '다른 구매자가 ${p0}까지 예약함';
 
   @override
-  String get ifIsnTSoldByThen => '기한까지 거래되지 않으면 장바구니에 담을 수 있습니다';
-
-  @override
   String sellerHoldingUntilP0(Object p0) => '판매자가 ${p0}까지 회원님을 위해 보관 중';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '보관 기한 내에 결제하세요. 기한이 지나면 다른 구매자도 구매할 수 있습니다';
+  String get checkOutBeforeHoldEndsOther => '보관 기한 내에 결제를 완료하세요';
 
   @override
   String get copyAddress => '주소 복사';
@@ -17228,9 +16441,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String p0BooksP1Views(Object p0, Object p1) => '${p0}권 · 조회 ${p1}회';
-
-  @override
-  String get swipeQuickActions => '밀어서 빠른 작업';
 
   @override
   String get searchTitleAuthorIsbn2 => '제목, 저자, ISBN 검색';
@@ -17353,9 +16563,6 @@ class _LKo extends AppLocalizations {
   String get declineReservation => '예약을 거절할까요?';
 
   @override
-  String get theyLlNotifiedDeclined => '상대방에게 거절 알림이 전송됩니다.';
-
-  @override
   String get decline2 => '거절';
 
   @override
@@ -17383,7 +16590,7 @@ class _LKo extends AppLocalizations {
   String get accountCanTReceiveMessagesRight => '상대방 계정은 현재 메시지를 받을 수 없습니다';
 
   @override
-  String get holdMicTalkReleaseSend => '마이크를 길게 눌러 말하고, 손을 떼면 전송됩니다';
+  String get holdMicTalkReleaseSend => '녹음 시간이 너무 짧습니다';
 
   @override
   String get startConversation => '대화가 여기서 시작됩니다';
@@ -17407,10 +16614,10 @@ class _LKo extends AppLocalizations {
   String get whenCanPutLocker => '보관함 입고 예정일은 언제인가요?';
 
   @override
-  String get unsentMessage => '메시지를 보내기 취소했습니다';
+  String get unsentMessage => '메시지 전송을 취소했습니다';
 
   @override
-  String get theyUnsentMessage => '상대방이 메시지를 보내기 취소했습니다';
+  String get theyUnsentMessage => '상대방이 메시지 전송을 취소했습니다';
 
   @override
   String get reservationDetailsArenTAvailableRight => '예약 정보를 표시할 수 없습니다';
@@ -17443,9 +16650,6 @@ class _LKo extends AppLocalizations {
   String get picked => '추천 도서';
 
   @override
-  String get seeMore => '더 보기';
-
-  @override
   String get recentlyViewed => '최근 본 책';
 
   @override
@@ -17464,10 +16668,7 @@ class _LKo extends AppLocalizations {
   String get waitingBuyerCollect => '구매자의 수령을 기다리는 중';
 
   @override
-  String get bookLockerEnterPickupCodeCollect => '책이 보관함에 있습니다. 수령 코드를 입력해 찾아가세요';
-
-  @override
-  String get transactionCompleteThank => '거래가 완료되었습니다. 이용해 주셔서 감사합니다';
+  String get transactionCompleteThank => '거래 완료';
 
   @override
   String get confirmVeTakenBookFromLocker => '보관함에서 책을 꺼냈는지 확인하세요. 확인하면 주문이 완료됩니다.';
@@ -17488,9 +16689,6 @@ class _LKo extends AppLocalizations {
   String get accountSecurity => '계정 보안';
 
   @override
-  String get sellerHasnTPutBookLocker => '판매자가 아직 책을 보관함에 넣지 않았습니다. 넣으면 알려 드립니다';
-
-  @override
   String get searchHistoryCleared => '검색 기록을 지웠습니다';
 
   @override
@@ -17503,10 +16701,7 @@ class _LKo extends AppLocalizations {
   String signOutP0(Object p0) => '"${p0}"을(를) 로그아웃할까요?';
 
   @override
-  String get llNeedSignAgainUseApp => '로그아웃하면 다시 로그인해야 합니다.';
-
-  @override
-  String get deviceSignedOutRightAwayStop => '해당 기기는 즉시 로그아웃되며 알림도 받지 않습니다.';
+  String get deviceSignedOutRightAwayStop => '해당 기기는 즉시 로그아웃됩니다.';
 
   @override
   String get deviceSignedOut => '기기를 로그아웃했습니다';
@@ -17518,10 +16713,10 @@ class _LKo extends AppLocalizations {
   String get signOutAllOtherDevices => '다른 모든 기기 로그아웃';
 
   @override
-  String get everyDeviceIncludingOneSignedOut => '이 기기를 포함한 모든 기기가 로그아웃되며 다시 로그인해야 합니다.';
+  String get everyDeviceIncludingOneSignedOut => '이 기기를 포함한 모든 기기가 즉시 로그아웃됩니다.';
 
   @override
-  String get everyDeviceExceptOneSignedOut => '이 기기를 제외한 모든 기기가 즉시 로그아웃되며 알림도 받지 않습니다.';
+  String get everyDeviceExceptOneSignedOut => '이 기기를 제외한 모든 기기가 즉시 로그아웃됩니다.';
 
   @override
   String signedOutP0OtherDevices(Object p0) => '다른 기기 ${p0}대에서 로그아웃했습니다';
@@ -17531,9 +16726,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get couldnTLoadDevices => '기기 목록을 불러오지 못했습니다';
-
-  @override
-  String get theseDevicesSignedAccountIfDon => '이 기기들이 계정에 로그인되어 있습니다. 모르는 기기가 있으면 즉시 로그아웃하고 비밀번호를 변경하세요.';
 
   @override
   String get device => '이 기기';
@@ -17584,9 +16776,6 @@ class _LKo extends AppLocalizations {
   String get paymentPinSet => '결제 비밀번호를 설정했습니다';
 
   @override
-  String get use6DigitPinConfirmPayments => '앞으로 결제할 때 이 6자리 비밀번호로 결제를 확인합니다.';
-
-  @override
   String get verifyingIdentity => '본인 확인 중…';
 
   @override
@@ -17629,7 +16818,7 @@ class _LKo extends AppLocalizations {
   String p0PaymentsTurned(Object p0) => '${p0} 결제를 켰습니다';
 
   @override
-  String get securitySettingsUnavailableRightNowMay => '보안 설정을 불러올 수 없습니다. 결제 비밀번호와 로그인 기기를 변경하지 못할 수 있습니다.';
+  String get securitySettingsUnavailableRightNowMay => '보안 설정을 불러올 수 없습니다';
 
   @override
   String payWithP0(Object p0) => '${p0}(으)로 결제';
@@ -17641,19 +16830,13 @@ class _LKo extends AppLocalizations {
   String get accountCouldSafer => '계정 보안을 강화할 수 있습니다';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => '결제 비밀번호와 생체 인증 결제가 설정되어 있습니다. 로그인된 기기를 정기적으로 확인하세요.';
-
-  @override
-  String get setPaymentPinTurnBiometricPayment => '결제 비밀번호를 설정하고 생체 인증 결제를 켜면 더 안전하고 빠르게 결제할 수 있습니다.';
+  String get setPaymentPinTurnBiometricPayment => '결제 비밀번호가 설정되지 않았습니다';
 
   @override
   String tooManyAttemptsLockedUntilP0(Object p0) => '시도 횟수 초과. ${p0}까지 잠김';
 
   @override
-  String get usedConfirmPaymentsCheckout => '결제할 때 결제 확인에 사용됩니다';
-
-  @override
-  String get notSetRequiredBeforeCheckout => '설정되지 않았습니다. 결제 전에 설정해야 합니다';
+  String get notSetRequiredBeforeCheckout => '설정되지 않음';
 
   @override
   String get change => '변경';
@@ -17662,16 +16845,7 @@ class _LKo extends AppLocalizations {
   String get forgotPaymentPin => '결제 비밀번호를 잊음';
 
   @override
-  String get ifFailsCanEnterPaymentPin => '인증에 실패하면 결제 비밀번호를 입력할 수 있습니다';
-
-  @override
-  String get viewRemotelySignOutDevices => '기기 확인 및 원격 로그아웃';
-
-  @override
   String p0Devices(Object p0) => '${p0}대';
-
-  @override
-  String get otherDevicesNeedSignAgain => '변경하면 다른 기기는 다시 로그인해야 합니다';
 
   @override
   String get restoredUnfinishedListing => '작성 중이던 내용을 불러왔습니다';
@@ -17695,13 +16869,7 @@ class _LKo extends AppLocalizations {
   String get storage => '저장 공간';
 
   @override
-  String get paymentPinBiometricPaymentDevices => '결제 비밀번호, 생체 인증 결제, 로그인 기기';
-
-  @override
   String get clearCache => '캐시 삭제';
-
-  @override
-  String get removesCachedImagesFilesAccountData => '임시 저장된 이미지와 파일을 삭제합니다. 계정 데이터에는 영향이 없습니다';
 
   @override
   String get couldNotLoadNotificationSettings => '알림 설정을 불러올 수 없습니다';
@@ -17773,7 +16941,7 @@ class _LKo extends AppLocalizations {
   String couldnTRegisterPushTokenWith(Object p0) => '푸시 토큰을 서버에 등록하지 못했습니다: ${p0}';
 
   @override
-  String get protectCoinsCheckoutRequires6Digit => '코인을 보호하기 위해 결제할 때 6자리 결제 비밀번호가 필요합니다. 설정 후 Face ID나 지문 결제도 켤 수 있습니다.';
+  String get protectCoinsCheckoutRequires6Digit => '결제 전에 6자리 결제 비밀번호를 설정하세요.';
 
   @override
   String confirmPaymentP0Coins(Object p0) => '${p0} 코인 결제 확인';
@@ -17803,7 +16971,7 @@ class _LKo extends AppLocalizations {
   String get usePasswordInstead => '로그인 비밀번호 사용';
 
   @override
-  String get couldnTGetLocationLockersShown => '현재 위치를 가져올 수 없어 보관함을 기본 순서로 표시합니다';
+  String get couldnTGetLocationLockersShown => '현재 위치를 가져올 수 없습니다';
 
   @override
   String p0SlotsFree(Object p0) => '빈 칸 ${p0}개';
@@ -17816,9 +16984,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get noFreeSlots => '빈 칸 없음';
-
-  @override
-  String get sortedByDistance => '가까운 순으로 정렬';
 
   @override
   String get turnLocationSortByDistance => '위치를 켜면 거리순으로 정렬됩니다';
@@ -17860,9 +17025,6 @@ class _LKo extends AppLocalizations {
   String get releaseCancel => '손을 떼면 취소';
 
   @override
-  String get slideCancel => '← 밀어서 취소';
-
-  @override
   String get awaitingReply => '답변 대기';
 
   @override
@@ -17882,9 +17044,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String holdP0H(Object p0) => '${p0}시간 보류';
-
-  @override
-  String get onceSellerAcceptsBookHeldNo => '판매자가 수락하면 책이 회원님을 위해 보류되며, 기한까지 다른 사람은 구매할 수 없습니다.';
 
   @override
   String get holdPeriod => '보류 기간';
@@ -17911,10 +17070,10 @@ class _LKo extends AppLocalizations {
   String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone의 Apple 푸시 알림 등록에 실패했습니다: ${p0}\n${p1}';
 
   @override
-  String get serverNotBeenUpdatedSupportFeature => '서버가 아직 이 기능을 지원하는 버전으로 업데이트되지 않았습니다. 잠시 후 다시 시도하세요.';
+  String get serverNotBeenUpdatedSupportFeature => '이 기능은 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.';
 
   @override
-  String get someFeaturesTemporarilyUnavailableWhileServer => '서버 업데이트 중이라 일부 기능을 일시적으로 사용할 수 없습니다';
+  String get someFeaturesTemporarilyUnavailableWhileServer => '일부 기능을 일시적으로 사용할 수 없습니다';
 
   @override
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '서버의 API 버전이 오래되었습니다(현재 ${p0}, 앱에 필요한 버전 ${p1}). 서버 코드를 업데이트하고 API를 재시작하세요.';
@@ -17975,9 +17134,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get mistBlue => '미스트 블루';
-
-  @override
-  String get chooseAppSMainColourHeader => '헤더, 버튼, 강조 정보에 적용할 앱의 기본 색상을 선택하세요.';
 
   @override
   String get draftRestored => '임시 저장본을 복원했습니다';
@@ -18184,7 +17340,7 @@ class _LKo extends AppLocalizations {
   String get blockUser => '사용자 차단';
 
   @override
-  String afterBlockP0NeitherCanSend(Object p0) => '"${p0}" 님을 차단하면 서로 메시지를 보낼 수 없으며, 상대방에게는 알림이 가지 않습니다. 설정 › 차단 목록에서 언제든지 차단을 해제할 수 있습니다.';
+  String afterBlockP0NeitherCanSend(Object p0) => '"${p0}" 님을 차단하면 서로 메시지를 보낼 수 없습니다.';
 
   @override
   String get block => '차단';
@@ -18215,9 +17371,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get originalMessageUnavailable => '원본 메시지를 표시할 수 없습니다';
-
-  @override
-  String replyingP0(Object p0) => '${p0} 님에게 답장';
 
   @override
   String get cancelReply => '답장 취소';
@@ -18283,7 +17436,7 @@ class _LKo extends AppLocalizations {
   String get notAllowed => '허용 안 됨';
 
   @override
-  String get restricted => '제한됨';
+  String get restricted => '시스템에 의해 제한됨';
 
   @override
   String get denied => '거부됨';
@@ -18293,9 +17446,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get homeRecommendations => '홈 추천 영역';
-
-  @override
-  String get pickedRecentlyViewed => '추천 도서, 최근 본 도서';
 
   @override
   String get leaveGroup => '그룹 나가기';
@@ -18595,7 +17745,7 @@ class _LKo extends AppLocalizations {
   String get rotate => '회전';
 
   @override
-  String get mentioned => '[나를 언급함]';
+  String get mentioned => '[나를 언급]';
 
   @override
   String get saveImage => '이미지 저장';
@@ -18625,7 +17775,7 @@ class _LKo extends AppLocalizations {
   String removedAdminRoleFromP0(Object p0) => '${p0} 님의 관리자 권한을 해제했습니다';
 
   @override
-  String photosP02(Object p0) => '[사진] ${p0}장';
+  String photosP02(Object p0) => '[사진 ${p0}장]';
 
   @override
   String get savedDownloads => '다운로드 폴더에 저장했습니다';
@@ -18646,31 +17796,28 @@ class _LKo extends AppLocalizations {
   String get aiSupport => 'AI 고객센터';
 
   @override
-  String get instantReplies => '즉시 답변';
-
-  @override
   String get howDoIListBook => '책은 어떻게 등록하나요?';
 
   @override
-  String get howDoIPickUpFrom => '스마트 보관함에서 어떻게 수령하나요?';
+  String get howDoIPickUpFrom => '보관함에서 책을 수령하려면?';
 
   @override
   String get howDoIRequestRefund => '환불은 어떻게 신청하나요?';
 
   @override
-  String get howDoWalletCoinsWork => '지갑 코인은 어떻게 사용하나요?';
+  String get howDoWalletCoinsWork => '코인은 어떻게 사용하나요?';
 
   @override
   String get talkPerson => '상담원 연결';
 
   @override
-  String get supportRequestCreatedFromConversationOur => '현재 대화 내용으로 문의가 접수되며 상담원이 이어서 처리합니다';
+  String get supportRequestCreatedFromConversationOur => '상담원에게 연결되며 현재 대화 내용이 전달됩니다';
 
   @override
   String get transfer4 => '연결';
 
   @override
-  String get creatingSupportRequest => '문의를 접수하는 중';
+  String get creatingSupportRequest => '상담원에게 연결하는 중';
 
   @override
   String get transferredSupportTeam => '상담원에게 연결되었습니다';
@@ -18683,9 +17830,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get copied2 => '복사했습니다';
-
-  @override
-  String get aiReplies => 'AI 답변';
 
   @override
   String get howCanWeHelp => '무엇을 도와드릴까요?';
@@ -18706,16 +17850,10 @@ class _LKo extends AppLocalizations {
   String get aiFeatures => 'AI 기능';
 
   @override
-  String get usageModelsListingReview => '사용량, 모델 설정 및 등록 심사';
-
-  @override
   String get aiSettingsNotSavedChangesLost => 'AI 설정이 저장되지 않았습니다. 나가면 변경 사항이 사라집니다';
 
   @override
   String get usage => '사용량';
-
-  @override
-  String get settings2 => '설정 •';
 
   @override
   String reviewP0(Object p0) => '심사 ${p0}';
@@ -18728,9 +17866,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get peakDay => '일 최고';
-
-  @override
-  String get tapBarDetails => '막대를 눌러 상세 보기';
 
   @override
   String p0Requests(Object p0) => '요청 ${p0}회';
@@ -19060,12 +18195,6 @@ class _LKo extends AppLocalizations {
   String get bookDetails => '도서 정보';
 
   @override
-  String get conditionAppliedNextStep => '상태 (다음 단계에서 적용)';
-
-  @override
-  String get priceAppliedNextStep => '가격 (다음 단계에서 적용)';
-
-  @override
   String get suggestedPrice => '추천 가격';
 
   @override
@@ -19073,9 +18202,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String listPriceP0(Object p0) => '정가 \$${p0}';
-
-  @override
-  String get sources => '출처';
 
   @override
   String applyP0(Object p0) => '${p0}개 적용';
@@ -19087,9 +18213,6 @@ class _LKo extends AppLocalizations {
   String get sameAsCurrent => '현재와 같음';
 
   @override
-  String confidenceP0(Object p0) => '신뢰도 ${p0}%';
-
-  @override
   String get listingNotApproved => '등록 심사를 통과하지 못했습니다';
 
   @override
@@ -19099,7 +18222,7 @@ class _LKo extends AppLocalizations {
   String get submittedReview => '심사 요청됨';
 
   @override
-  String get goSaleOnceApprovedNotifiedResult => '승인되면 판매가 시작되며 결과는 알림으로 안내됩니다';
+  String get goSaleOnceApprovedNotifiedResult => '승인 후 판매가 시작됩니다';
 
   @override
   String get got => '확인';
@@ -19141,9 +18264,6 @@ class _LKo extends AppLocalizations {
   String get aiDataProcessing => 'AI 데이터 처리';
 
   @override
-  String providersP0(Object p0) => '제공업체: ${p0}';
-
-  @override
   String get messagesEnterStatusOrdersReservations => '입력한 메시지와 본인의 주문 및 예약 상태';
 
   @override
@@ -19174,7 +18294,7 @@ class _LKo extends AppLocalizations {
   String get withdrawingConsent => '동의 철회';
 
   @override
-  String get canTurnOffAiDataProcessing => '「설정」>「계정 관리」에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않습니다.';
+  String get canTurnOffAiDataProcessing => '설정 › 계정 관리에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않습니다.';
 
   @override
   String get agreeContinue => '동의';
@@ -19207,7 +18327,7 @@ class _LKo extends AppLocalizations {
   String get requiresDatabaseUpdate013 => '데이터베이스 업데이트 013 필요';
 
   @override
-  String get mysteryNovelMyCommute => '출퇴근길에 읽을 추리 소설';
+  String get mysteryNovelMyCommute => '출퇴근길에 읽기 좋은 추리 소설';
 
   @override
   String get programmingBooksBeginners => '입문자를 위한 프로그래밍 책';
@@ -19219,16 +18339,13 @@ class _LKo extends AppLocalizations {
   String get popularLiteraryFictionRightNow => '요즘 인기 있는 문학 소설';
 
   @override
-  String get tellMeWhatBookLooking => '어떤 책을 찾으시는지 알려주세요';
-
-  @override
-  String get allRecommendationsComeFromBooksCurrently => '추천 도서는 모두 현재 판매 중인 책입니다';
+  String get tellMeWhatBookLooking => '찾으시는 책을 설명해 주세요';
 
   @override
   String get describeBookLooking => '찾으시는 책을 설명해 주세요';
 
   @override
-  String get tellMeWhatWantReadI => '읽고 싶은 책을 알려주시면 골라 드립니다';
+  String get tellMeWhatWantReadI => '원하시는 조건에 맞춰 책을 추천합니다';
 
   @override
   String get subtitle => '부제';
@@ -19238,15 +18355,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get yearOnly => '연도까지만 확인';
-
-  @override
-  String get fromBookDatabase => '서지 데이터베이스 출처';
-
-  @override
-  String get writtenByAi => 'AI 작성';
-
-  @override
-  String get aiTidiedSourceText => 'AI가 원문을 정리';
 
   @override
   String get msg => '繁體中文';
@@ -19309,19 +18417,13 @@ class _LKo extends AppLocalizations {
   String get notConfigured => '미설정';
 
   @override
-  String get allowCreatingNewAccountsWithMethod => '이 방식으로 새 계정 만들기 허용';
-
-  @override
-  String get serverNoCredentialsChannel => '서버에 이 채널의 자격 증명이 없습니다';
+  String get allowCreatingNewAccountsWithMethod => '이 방식으로 신규 가입 허용';
 
   @override
   String get unsavedChanges2 => '저장하지 않은 변경';
 
   @override
-  String get switchesSignupPermissionsSocialSmsSign => '소셜 및 SMS 로그인 스위치와 가입 허용 설정';
-
-  @override
-  String get taiwan => '대만';
+  String get taiwan => '중화민국(대만)';
 
   @override
   String get hongKong => '홍콩';
@@ -19330,7 +18432,7 @@ class _LKo extends AppLocalizations {
   String get macau => '마카오';
 
   @override
-  String get china => '중국';
+  String get china => '중화인민공화국';
 
   @override
   String get japan => '일본';
@@ -19369,7 +18471,7 @@ class _LKo extends AppLocalizations {
   String get signWithMobileNumber => '휴대전화 번호로 로그인';
 
   @override
-  String get k6DigitCodeSentNumberMessage => '이 번호로 6자리 인증번호를 보냅니다. 문자 도착까지 시간이 걸릴 수 있습니다.';
+  String get k6DigitCodeSentNumberMessage => '이 번호로 6자리 인증번호를 보냅니다.';
 
   @override
   String get mobileNumber => '휴대전화 번호';
@@ -19402,7 +18504,7 @@ class _LKo extends AppLocalizations {
   String get completeAccountDetails => '계정 정보 입력';
 
   @override
-  String p0DidNotProvideEmailAddress(Object p0) => '${p0} 에서 이메일 주소를 제공하지 않았습니다. 정보를 입력해 계정을 만드세요.';
+  String get p0DidNotProvideEmailAddress => '가입을 완료하려면 이메일을 입력하세요.';
 
   @override
   String signWithP0(Object p0) => '${p0} (으)로 로그인';
@@ -19417,7 +18519,7 @@ class _LKo extends AppLocalizations {
   String get emailAlreadyRegistered => '이미 등록된 이메일입니다';
 
   @override
-  String get signWithPasswordThenLinkMethod => '비밀번호로 로그인한 뒤 계정 보안의 로그인 방식에서 연결하세요.';
+  String get signWithPasswordThenLinkMethod => '비밀번호로 로그인한 뒤 계정 보안 › 로그인 방식에서 연결하세요.';
 
   @override
   String get signWithPassword => '비밀번호로 로그인';
@@ -19429,16 +18531,16 @@ class _LKo extends AppLocalizations {
   String get passwordSet => '비밀번호를 설정했습니다';
 
   @override
-  String get canNowSignWithEmailPassword => '이제 이메일과 비밀번호로 로그인할 수 있습니다. 다른 기기는 다시 로그인해야 합니다.';
+  String get canNowSignWithEmailPassword => '다른 기기는 다시 로그인해야 합니다.';
 
   @override
-  String get passwordRequiredBeforeCanUnlinkSign => '로그인 방식을 해제하려면 비밀번호가 필요하며, 기기를 바꿔도 이메일로 로그인할 수 있습니다. 영문과 숫자를 포함해 8자 이상으로 설정하세요.';
+  String get passwordRequiredBeforeCanUnlinkSign => '영문과 숫자를 포함해 8자 이상 입력하세요.';
 
   @override
-  String get changingSignMethodsRequiresIdentityVerification => '로그인 방식을 변경하려면 본인 확인이 필요합니다. 먼저 비밀번호를 설정하세요.';
+  String get changingSignMethodsRequiresIdentityVerification => '로그인 방식을 변경하기 전에 비밀번호를 설정하세요.';
 
   @override
-  String get later => '나중에';
+  String get later => '나중에 설정';
 
   @override
   String p0Linked(Object p0) => '${p0} 을(를) 연결했습니다';
@@ -19447,7 +18549,7 @@ class _LKo extends AppLocalizations {
   String unlinkP0(Object p0) => '${p0} 연결 해제';
 
   @override
-  String get noLongerAbleSignWayCan => '이 방법으로는 로그인할 수 없게 됩니다. 필요하면 다시 연결할 수 있습니다.';
+  String get noLongerAbleSignWayCan => '연결을 해제하면 이 방식으로 로그인할 수 없습니다.';
 
   @override
   String get unlink => '연결 해제';
@@ -19463,9 +18565,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get noPasswordSet => '비밀번호 미설정';
-
-  @override
-  String get requiredBeforeChangingSignMethodsDeleting => '로그인 방식 변경과 계정 삭제에 필요합니다';
 
   @override
   String linkedP0(Object p0) => '${p0} 연결';
@@ -19486,22 +18585,22 @@ class _LKo extends AppLocalizations {
   String get signMethodNotAvailableRightNow => '이 로그인 방식은 현재 이용할 수 없습니다';
 
   @override
-  String get credentialDoesNotMatchSelectedSign => '인증 정보가 선택한 로그인 방식과 일치하지 않습니다';
+  String get credentialDoesNotMatchSelectedSign => '로그인에 실패했습니다. 다시 시도하세요.';
 
   @override
   String get signMethodLinkedAnotherAccount => '이 로그인 방식은 다른 계정에 연결되어 있습니다';
 
   @override
-  String get accountAlreadyLinkedSignMethod => '이 계정은 이미 해당 로그인 방식과 연결되어 있습니다';
+  String get accountAlreadyLinkedSignMethod => '이 계정은 이미 이 로그인 방식과 연결되어 있습니다';
 
   @override
   String get onlySignMethodAccountSetPassword => '이 계정의 유일한 로그인 방식입니다. 먼저 비밀번호를 설정하거나 다른 방식을 연결하세요.';
 
   @override
-  String get socialSignUnavailableServerNotFinished => '소셜 로그인을 이용할 수 없습니다. 서버의 데이터베이스 업데이트가 완료되지 않았습니다.';
+  String get socialSignUnavailableServerNotFinished => '소셜 로그인을 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.';
 
   @override
-  String get credentialInvalidExpiredPleaseTryAgain => '인증 정보가 유효하지 않거나 만료되었습니다. 다시 시도하세요.';
+  String get credentialInvalidExpiredPleaseTryAgain => '로그인 시간이 초과되었습니다. 다시 시도하세요.';
 
   @override
   String get accountAlreadyPasswordUseChangePassword => '이 계정에는 이미 비밀번호가 있습니다. 비밀번호 변경을 이용하세요.';
@@ -19510,7 +18609,7 @@ class _LKo extends AppLocalizations {
   String get signLinkExpiredPleaseTryAgain => '로그인 링크가 만료되었습니다. 다시 시도하세요.';
 
   @override
-  String get signResultExpiredPleaseTryAgain => '로그인 결과가 만료되었습니다. 다시 시도하세요.';
+  String get signResultExpiredPleaseTryAgain => '로그인 시간이 초과되었습니다. 다시 시도하세요.';
 
   @override
   String get thirdPartySignServiceUnavailablePlease => '외부 로그인 서비스를 이용할 수 없습니다. 잠시 후 다시 시도하세요.';
@@ -19519,10 +18618,7 @@ class _LKo extends AppLocalizations {
   String get couldNotCompleteSignPleaseTry => '로그인을 완료하지 못했습니다. 다시 시도하세요.';
 
   @override
-  String get accountNotLinkedSignMethod => '이 계정은 해당 로그인 방식과 연결되어 있지 않습니다';
-
-  @override
-  String get couldNotReachServerCheckConnection2 => '서버에 연결할 수 없습니다. 네트워크를 확인하세요.';
+  String get accountNotLinkedSignMethod => '이 계정은 이 로그인 방식과 연결되어 있지 않습니다';
 
   @override
   String get mobileNumberFormatNotValid => '휴대전화 번호 형식이 올바르지 않습니다';
@@ -19540,13 +18636,157 @@ class _LKo extends AppLocalizations {
   String get smsSendingLimitBeenReachedPlease => 'SMS 발송 횟수가 한도에 도달했습니다. 잠시 후 다시 시도하세요.';
 
   @override
-  String get smsVerificationNotSetUpDevice => '이 기기에서는 SMS 인증 설정이 완료되지 않았습니다. 다른 로그인 방식을 이용하세요.';
+  String get smsVerificationNotSetUpDevice => '이 기기에서는 SMS 인증을 사용할 수 없습니다. 다른 로그인 방식을 이용하세요.';
 
   @override
   String get couldNotCompleteSmsVerificationPlease => 'SMS 인증을 완료하지 못했습니다. 잠시 후 다시 시도하세요.';
 
   @override
   String get allowSigningLinkingWithMethod => '이 방식으로 로그인 및 연결 허용';
+
+  @override
+  String get appNeverStoresPasswordUsedOnly => '이 앱은 비밀번호를 저장하지 않으며 이번 인증에만 사용합니다。';
+
+  @override
+  String get verifyWithBiometricsInstead => '생체 인증으로 확인';
+
+  @override
+  String get accountWasCreatedWithSocialPhone => '이 계정은 로그인 비밀번호가 없습니다. 먼저 설정하세요.';
+
+  @override
+  String get setSignPassword => '로그인 비밀번호 설정';
+
+  @override
+  String get enterSignPasswordRunAdminAction => '관리자 작업을 실행하려면 로그인 비밀번호 또는 패스키로 본인 인증을 진행하세요';
+
+  @override
+  String p1P0MethodsEnabled(Object p0, Object p1) => '전체 ${p0}개 중 ${p1}개 사용 중';
+
+  @override
+  String get masterSwitchOffSoEveryMethod => '전체 스위치가 꺼져 있어 모든 방식이 비활성화됩니다';
+
+  @override
+  String get signLinkingDirectSignUpAllowed => '로그인, 연결, 신규 가입 가능';
+
+  @override
+  String credentialsNotSetPleaseConfigureP0(Object p0) => '자격 증명이 설정되지 않았습니다. 서버에서 ${p0} 을(를) 설정하세요';
+
+  @override
+  String get whenOffMethodHiddenFromSign => '끄면 로그인 화면과 계정 보안에 표시되지 않습니다';
+
+  @override
+  String get whenOffOnlyAccountsAlreadyLinked => '끄면 이미 연결된 계정만 사용할 수 있습니다';
+
+  @override
+  String get signMethodNotLinkedAccount => '이 로그인 방식은 계정에 연결되어 있지 않습니다';
+
+  @override
+  String p0AccountNotLinkedAnySavemybook(Object p0) => '이 ${p0} 계정은 SaveMyBook 계정과 연결되어 있지 않습니다.';
+
+  @override
+  String get iAlreadyAccountSignFirst => '기존 계정에 로그인하여 연결';
+
+  @override
+  String get createNewAccountWithIdentity => '새 계정 만들기';
+
+  @override
+  String signExistingAccountFirstThenLink(Object p0) => '기존 계정으로 먼저 로그인한 뒤 계정 보안 › 로그인 방식에서 ${p0}을(를) 연결하세요.';
+
+  @override
+  String get signMethodNotLinkedAnyAccount => '이 로그인 방식은 어떤 계정과도 연결되어 있지 않습니다';
+
+  @override
+  String get verifyIdentityWithPasskeyContinue => '계속하려면 패스키로 본인 인증을 진행하세요';
+
+  @override
+  String get verifyWithPasskeyInstead => '패스키로 인증';
+
+  @override
+  String get passkeys => '패스키';
+
+  @override
+  String get verifyWithFaceIdFingerprintScreen => '이 기기의 Face ID, 지문 또는 화면 잠금으로 인증합니다. 비밀번호가 필요하지 않습니다.';
+
+  @override
+  String get verifyWithPasskey => '패스키로 인증';
+
+  @override
+  String get useSignPasswordInstead => '로그인 비밀번호로 인증';
+
+  @override
+  String get signWithPasskey => '패스키로 로그인';
+
+  @override
+  String get passkeyAdded => '패스키가 추가되었습니다';
+
+  @override
+  String get screenLock => '화면 잠금';
+
+  @override
+  String fromNowCanSignVerifyIdentity(Object p0) => '이제 비밀번호를 입력하지 않고 ${p0}(으)로 로그인하고 본인 인증을 할 수 있습니다.';
+
+  @override
+  String get deletePasskey => '패스키 삭제';
+
+  @override
+  String get noLongerAbleSignVerifyIdentity => '삭제하면 이 패스키로 로그인하거나 본인 인증을 할 수 없습니다. 기기에 저장된 패스키는 함께 삭제되지 않으며 시스템 비밀번호 설정에서 삭제할 수 있습니다.';
+
+  @override
+  String get passkeyDeleted => '패스키가 삭제되었습니다';
+
+  @override
+  String get signVerifyIdentityWithFaceId => '비밀번호 대신 Face ID, 지문 또는 화면 잠금으로 로그인하고 본인 인증을 할 수 있습니다. 패스키는 사용자의 기기와 비밀번호 관리자에만 저장됩니다.';
+
+  @override
+  String get addPasskey => '패스키 추가';
+
+  @override
+  String get notUsedYet => '아직 사용하지 않음';
+
+  @override
+  String lastUsedFormatdateItemLastusedat(Object p0) => '마지막 사용 ${p0}';
+
+  @override
+  String createdCreated(Object p0) => '생성일 ${p0}';
+
+  @override
+  String get noPasskeyAvailableDeviceUsePassword => '이 기기에서 사용할 수 있는 패스키가 없습니다. 비밀번호를 사용해 주세요.';
+
+  @override
+  String get passkeyAlreadyRegisteredDevice => '이 기기에는 이미 패스키가 등록되어 있습니다.';
+
+  @override
+  String get signGoogleAccountTurnPasswordManager => '이 기기에서 Google 계정에 로그인하고 비밀번호 관리자를 켜거나 비밀번호를 사용해 주세요.';
+
+  @override
+  String get setUpScreenLockPasswordManager => '패스키를 만들려면 이 기기에서 화면 잠금 또는 비밀번호 관리자를 설정하세요.';
+
+  @override
+  String get deviceDoesNotSupportPasskeysUse => '이 기기는 패스키를 지원하지 않습니다. 비밀번호를 사용해 주세요.';
+
+  @override
+  String get passkeysTemporarilyUnavailableBecauseAppWebsite => '현재 패스키를 사용할 수 없습니다. 비밀번호를 사용하세요.';
+
+  @override
+  String get requestTimedOutPleaseTryAgain => '작업 시간이 초과되었습니다. 다시 시도해 주세요.';
+
+  @override
+  String get passkeyRequestFailedUsePasswordInstead => '패스키 작업에 실패했습니다. 비밀번호를 사용해 주세요.';
+
+  @override
+  String get verifyIdentityBeforeAddingPasskey => '패스키를 추가하기 전에 본인 인증을 진행해 주세요';
+
+  @override
+  String get couldNotListPleaseTryAgain => '등록에 실패했습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String downloadLinkValidOnceP0P1(Object p0, Object p1) => '이 다운로드 링크는 5분 동안 유효하며 한 번만 사용할 수 있습니다. 공유하지 마세요.\n\n${p0}\n\n파일 크기: ${p1}';
+
+  @override
+  String get sources => '출처';
+
+  @override
+  String get unableOpenLink => '링크를 열 수 없습니다.';
 
 }
 
@@ -19836,16 +19076,10 @@ class _LZh extends AppLocalizations {
   String get appearanceSystem => '跟隨系統';
 
   @override
-  String get appearanceHint => '選擇「跟隨系統」時，會依裝置的深淺色設定自動切換';
-
-  @override
   String get language => '語言';
 
   @override
   String get languageSystem => '跟隨系統';
-
-  @override
-  String get languageHint => '選擇「跟隨系統」時，會依裝置的語言設定顯示';
 
   @override
   String get verifySignSavemybook => '驗證身分以登入救「舊」我的書';
@@ -19950,13 +19184,7 @@ class _LZh extends AppLocalizations {
   String get deleteAccount => '刪除帳號';
 
   @override
-  String get accountPermanentlyDisabled30DaysSign => '帳號將在 30 天後永久停用，期間內重新登入即可取消。\n\n';
-
-  @override
-  String get personalDataErasedButCompletedOrders => '停用後將清除個人資料，但保留已完成的訂單與交易紀錄，';
-
-  @override
-  String get peopleTradedWithDoNotLose => '以確保交易對象的紀錄完整。';
+  String get accountPermanentlyDisabled30DaysSign => '帳號將於 30 天後刪除，期間內重新登入即可取消。刪除後將清除個人資料，已完成的訂單與交易紀錄將予以保留。';
 
   @override
   String get actionContinue => '繼續';
@@ -19989,19 +19217,7 @@ class _LZh extends AppLocalizations {
   String get exportMyData => '匯出我的資料';
 
   @override
-  String get profileBooksOrdersTransactionsJson => '個人檔案、書籍、訂單與交易紀錄，JSON 格式';
-
-  @override
-  String get oldLinkQrCodeStopWorking2 => '舊的連結與 QR Code 將立即失效';
-
-  @override
   String get cancelAccountDeletion => '取消刪除帳號';
-
-  @override
-  String get restoreAccountStopCountdown => '恢復帳號並停止刪除程序';
-
-  @override
-  String get canChangeMindWithin30Days => '30 天內可取消刪除';
 
   @override
   String get deletionPending => '待刪除';
@@ -20085,7 +19301,7 @@ class _LZh extends AppLocalizations {
   String get signContactSeller => '請先登入才能聯絡賣家';
 
   @override
-  String get signStartChat => '無法建立聊天室，請先登入';
+  String get signStartChat => '請先登入才能聯絡賣家';
 
   @override
   String get signReport => '請先登入才能檢舉';
@@ -20103,7 +19319,7 @@ class _LZh extends AppLocalizations {
   String get reasonNeedsLeast5Characters => '請至少填寫 5 個字的檢舉原因';
 
   @override
-  String get reportSubmittedWeLookInto => '檢舉已送出，我們將盡快處理';
+  String get reportSubmittedWeLookInto => '檢舉已送出';
 
   @override
   String get publisher => '出版社：';
@@ -20127,9 +19343,6 @@ class _LZh extends AppLocalizations {
   String get about => '簡介：';
 
   @override
-  String pickup(Object p0) => '取書地點：${p0}';
-
-  @override
   String get messageSeller => '聯絡賣家';
 
   @override
@@ -20139,16 +19352,10 @@ class _LZh extends AppLocalizations {
   String get addCart => '加入購物車';
 
   @override
-  String get bookBeenReportedUnderReviewStays => '此書籍已遭檢舉，平台審核期間仍可正常販售。';
+  String get bookBeenReportedUnderReviewStays => '此書籍已遭檢舉，審核中。';
 
   @override
-  String get violationWasConfirmedBookPleaseCheck => '此書籍經審核確認違規，請確認商品內容是否符合社群規範。';
-
-  @override
-  String get reportDismissed2 => '檢舉已駁回';
-
-  @override
-  String get bookWasReportedButNoViolation => '此書籍曾遭檢舉，經審核未違規，不影響上架。';
+  String get violationWasConfirmedBookPleaseCheck => '此書籍經審核確認違規，請修改商品內容。';
 
   @override
   String get delist => '取消上架';
@@ -20158,9 +19365,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get delist2 => '下架';
-
-  @override
-  String get delistedRelistFromDelistedTab => '已下架，可在「已下架」分頁重新上架';
 
   @override
   String get couldNotDelistPleaseTryAgain => '下架失敗，請稍後再試';
@@ -20175,16 +19379,7 @@ class _LZh extends AppLocalizations {
   String get noBooksCategory => '此分類目前沒有書籍';
 
   @override
-  String get listFirstBook => '上架第一本書';
-
-  @override
   String get relist => '重新上架';
-
-  @override
-  String get removeFromCart => '移出購物車';
-
-  @override
-  String removeFromCart2(Object p0) => '確定要將《${p0}》從購物車移除嗎？';
 
   @override
   String get remove => '移除';
@@ -20193,16 +19388,10 @@ class _LZh extends AppLocalizations {
   String get couldNotRemoveRestored => '移除失敗，已還原';
 
   @override
-  String get couldNotRemovePleaseTryAgain => '移除失敗，請稍後再試';
-
-  @override
   String get selectBooksWantCheckOut => '請先選擇要結帳的書籍';
 
   @override
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代幣不足，此訂單需 ${p0}，目前餘額 ${p1}';
-
-  @override
-  String get confirmCheckout => '確認結帳';
 
   @override
   String booksTotal(Object p0, Object p1) => '共 ${p0} 本書，總金額 \$${p1}。\n';
@@ -20322,7 +19511,7 @@ class _LZh extends AppLocalizations {
   String get markAllAsRead => '全部標為已讀';
 
   @override
-  String markAllUnreadMessagesAsRead(Object p0) => '確定要將 ${p0} 則未讀訊息全部標為已讀嗎？此操作無法復原。';
+  String markAllUnreadMessagesAsRead(Object p0) => '確定要將 ${p0} 則未讀訊息全部標為已讀？';
 
   @override
   String get markAllRead => '全部已讀';
@@ -20344,9 +19533,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get mute => '靜音';
-
-  @override
-  String get messagesLimited500Characters => '訊息長度不可超過 500 字';
 
   @override
   String get messageCouldNotSent => '訊息傳送失敗';
@@ -20376,7 +19562,7 @@ class _LZh extends AppLocalizations {
   String get describeDispute => '請填寫爭議說明';
 
   @override
-  String get useLeast10CharactersSoSupport => '爭議說明請至少填寫 10 個字，以利客服判斷';
+  String get useLeast10CharactersSoSupport => '爭議說明至少需 10 個字';
 
   @override
   String get submitDispute => '送出爭議申請';
@@ -20397,9 +19583,6 @@ class _LZh extends AppLocalizations {
   String get requestPaymentHold => '申請凍結款項';
 
   @override
-  String get paymentSellerHeldUntilSupportDecides => '送出後款項將暫停撥付給賣家，直至客服裁決';
-
-  @override
   String get submitDispute2 => '提交爭議申請';
 
   @override
@@ -20412,7 +19595,7 @@ class _LZh extends AppLocalizations {
   String get whatHappened => '爭議說明';
 
   @override
-  String get describeProblemEGConditionDoes => '請描述發生的問題，例如書況與商品描述不符…';
+  String get describeProblemEGConditionDoes => '請描述發生的問題';
 
   @override
   String get submit => '送出申請';
@@ -20422,12 +19605,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get canAttachUp6Photos => '最多可上傳 6 張佐證照片';
-
-  @override
-  String get up5 => '最多 5 張';
-
-  @override
-  String get couldNotReplacePhotoPleaseTry => '無法替換原本的照片，請稍後再試';
 
   @override
   String get keepLeastOnePhoto => '請至少保留一張照片';
@@ -20448,16 +19625,13 @@ class _LZh extends AppLocalizations {
   String get cannotUndoneContinue => '刪除後無法復原，確定要刪除嗎？';
 
   @override
-  String get photoMissingDataRefreshTryAgain => '此照片資料不完整，請重新整理後再試';
+  String get photoMissingDataRefreshTryAgain => '無法處理此照片，請重新整理後再試';
 
   @override
   String get enterPrice => '請填寫價格';
 
   @override
   String get priceMustGreaterThan0 => '價格必須大於 0';
-
-  @override
-  String get priceCannotExceed999999 => '價格不可超過 999,999';
 
   @override
   String get chooseLockerLocation => '請選擇存放區域';
@@ -20529,7 +19703,7 @@ class _LZh extends AppLocalizations {
   String get publicationDate => '出版日期';
 
   @override
-  String get tapPickPublicationDate => '點擊選擇出版日期';
+  String get tapPickPublicationDate => '選擇出版日期';
 
   @override
   String get pickPublicationDate => '選擇出版日期';
@@ -20574,19 +19748,19 @@ class _LZh extends AppLocalizations {
   String get bio => '個人簡介';
 
   @override
-  String get tellPeopleAboutYourself => '簡單介紹自己';
+  String get tellPeopleAboutYourself => '請輸入個人簡介';
 
   @override
-  String get email => '信箱';
+  String get email => '電子郵件';
 
   @override
-  String get emailCannotChanged => '信箱無法修改';
+  String get emailCannotChanged => '電子郵件無法修改';
 
   @override
   String get dateBirth => '生日';
 
   @override
-  String get tapPickDateBirth => '點擊選擇生日';
+  String get tapPickDateBirth => '選擇生日';
 
   @override
   String get pickDateBirth => '選擇生日';
@@ -20646,10 +19820,7 @@ class _LZh extends AppLocalizations {
   String get reset => '重設';
 
   @override
-  String get usePhoto => '使用此照片';
-
-  @override
-  String get documentNotBeenCreatedYet => '此文件尚未建立';
+  String get documentNotBeenCreatedYet => '目前無內容';
 
   @override
   String lastUpdated(Object p0) => '最後更新：${p0}';
@@ -20670,10 +19841,10 @@ class _LZh extends AppLocalizations {
   String get notNow => '暫不啟用';
 
   @override
-  String get enterEmail => '請輸入 Email';
+  String get enterEmail => '請輸入電子郵件';
 
   @override
-  String get emailAddressNotValid => 'Email 格式不正確';
+  String get emailAddressNotValid => '電子郵件格式不正確';
 
   @override
   String get enterPassword => '請輸入密碼';
@@ -20700,7 +19871,7 @@ class _LZh extends AppLocalizations {
   String get noAccountYetSignUp => '尚無帳號？立即註冊';
 
   @override
-  String get membershipTiersNotSetUpYet => '尚未設定會員等級制度';
+  String get membershipTiersNotSetUpYet => '目前未提供會員等級';
 
   @override
   String get currentTier => '目前等級';
@@ -20727,7 +19898,7 @@ class _LZh extends AppLocalizations {
   String benefits(Object p0) => '${p0}等級權益';
 
   @override
-  String get noBenefitsBeenDescribedTierYet => '尚未設定此等級的權益說明。';
+  String get noBenefitsBeenDescribedTierYet => '此等級目前無額外權益';
 
   @override
   String pointsFromCompletedOrders(Object p0, Object p1) => '目前累積 ${p0} 點，已完成 ${p1} 筆交易';
@@ -20754,16 +19925,13 @@ class _LZh extends AppLocalizations {
   String get noUnreadNotifications => '沒有未讀通知';
 
   @override
-  String markAllUnreadNotificationsAsRead(Object p0) => '確定要將 ${p0} 則未讀通知全部標為已讀嗎？此操作無法復原。';
+  String markAllUnreadNotificationsAsRead(Object p0) => '確定要將 ${p0} 則未讀通知全部標為已讀？';
 
   @override
   String get openChat => '前往聊天室';
 
   @override
   String get viewOrder => '查看訂單';
-
-  @override
-  String get openMyBooks => '前往書籍管理';
 
   @override
   String get notifications => '通知中心';
@@ -20787,7 +19955,7 @@ class _LZh extends AppLocalizations {
   String items2(Object p0) => '商品明細（${p0}）';
 
   @override
-  String get orderNoItemDetails => '此訂單無品項資料。';
+  String get orderNoItemDetails => '無商品明細';
 
   @override
   String msg4(Object p0, Object p1) => '單價 \$${p0} × ${p1}';
@@ -20805,7 +19973,7 @@ class _LZh extends AppLocalizations {
   String get slot => '櫃位';
 
   @override
-  String get notAssignedYet => '尚未配位';
+  String get notAssignedYet => '尚未分配櫃位';
 
   @override
   String get pickupCode => '取書碼';
@@ -20850,7 +20018,7 @@ class _LZh extends AppLocalizations {
   String get pendingAmount => '待定收益金額';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '買家完成取書後，款項將自動撥入代幣餘額';
+  String get coinsArriveOnceBuyerCollectsBook => '買家取書後自動撥款';
 
   @override
   String get scanned => '掃描成功';
@@ -20871,9 +20039,6 @@ class _LZh extends AppLocalizations {
   String get bookCollected => '取書完成';
 
   @override
-  String get thanksUsingSavemybookHappyReading => '感謝您的使用，祝您閱讀愉快。';
-
-  @override
   String collected(Object p0) => '《${p0}》已完成取書';
 
   @override
@@ -20886,19 +20051,13 @@ class _LZh extends AppLocalizations {
   String get myAccount => '會員中心';
 
   @override
-  String get personNotWrittenBioYet => '這個人很懶，什麼都沒留下';
+  String get personNotWrittenBioYet => '尚未填寫個人簡介';
 
   @override
   String get topTierReached => '已達最高等級';
 
   @override
   String morePointsReach(Object p0, Object p1) => '再 ${p0} 點升級為「${p1}」';
-
-  @override
-  String get myCoins => '我的代幣';
-
-  @override
-  String get shareProfile => '分享個人檔案';
 
   @override
   String get purchases => '購買紀錄';
@@ -20913,22 +20072,7 @@ class _LZh extends AppLocalizations {
   String get signOut2 => '確認登出';
 
   @override
-  String get needSignAgainKeepUsingApp => '登出後須重新登入才能繼續使用。';
-
-  @override
   String cancelOrderBookReturnsShop(Object p0) => '確定要取消訂單 ${p0} 嗎？取消後書籍將重新於商城販售。';
-
-  @override
-  String get pickupCode2 => '取書碼';
-
-  @override
-  String get notGeneratedYet => '尚未產生';
-
-  @override
-  String get enterCodeLockerCollect => '請於書櫃輸入此代碼取書';
-
-  @override
-  String enterCodeCollect(Object p0) => '請至「${p0}」輸入此代碼取書';
 
   @override
   String get iCollected => '確認取書';
@@ -20967,19 +20111,13 @@ class _LZh extends AppLocalizations {
   String get createAccount => '建立帳號';
 
   @override
-  String get joinSavemybook => '加入救「舊」我的書';
-
-  @override
-  String get signUpBuySellUseSmart => '註冊後即可買書、賣書及使用智慧書櫃';
+  String get joinSavemybook => '註冊帳號';
 
   @override
   String get displayName => '暱稱';
 
   @override
-  String get nameOthersSee => '其他使用者可見的名稱';
-
-  @override
-  String get emailSignWith => '用於登入的信箱';
+  String get emailSignWith => '電子郵件';
 
   @override
   String get least8CharactersWithLettersNumbers => '至少 8 碼，需含英文與數字';
@@ -21004,12 +20142,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get buyerNotifiedBookReturnsShop => '取消後將通知買家，書籍將重新於商城販售。';
-
-  @override
-  String get dropOffPickupCode => '存書／取書碼';
-
-  @override
-  String get enterCodeLocker => '請於書櫃輸入此代碼';
 
   @override
   String get noRecentSearches => '尚無搜尋紀錄';
@@ -21045,10 +20177,10 @@ class _LZh extends AppLocalizations {
   String get invalidPrice => '價格不正確';
 
   @override
-  String get priceMustGreaterThan02 => '售價必須大於 0 元。';
+  String get priceMustGreaterThan02 => '售價必須大於 0。';
 
   @override
-  String get priceCannotExceed99999 => '售價不可超過 99999 元。';
+  String get priceCannotExceed99999 => '售價不可超過 99,999 代幣。';
 
   @override
   String get chooseLockerLocation2 => '請選擇存放區域。';
@@ -21061,15 +20193,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get couldNotListBook => '上架失敗';
-
-  @override
-  String serverError(Object p0) => '伺服器回應錯誤：${p0}';
-
-  @override
-  String get connectionProblem => '連線異常';
-
-  @override
-  String get couldNotReachServerUploadTimed => '無法連線至伺服器或上傳逾時，請檢查網路狀態。';
 
   @override
   String get listBook => '確認上架';
@@ -21093,16 +20216,13 @@ class _LZh extends AppLocalizations {
   String get bookDetailsFilledAutomatically => '已自動帶入書籍資訊';
 
   @override
-  String get bookDetailsFilledFromBackupSource => '已透過備援資料來源帶入書籍資訊';
-
-  @override
   String get noSourceIsbnPleaseEnterDetails => '查無此 ISBN 的書籍資訊，請手動輸入';
 
   @override
   String get day => '日';
 
   @override
-  String get tapIconRightScan => '可點擊右側圖示掃描';
+  String get tapIconRightScan => '請輸入 ISBN';
 
   @override
   String get description => '書籍簡介';
@@ -21147,13 +20267,7 @@ class _LZh extends AppLocalizations {
   String get aboutSavemybook => '關於救「舊」我的書';
 
   @override
-  String get settingsPrivacy => '設定與隱私';
-
-  @override
   String sign3(Object p0) => '${p0} 登入';
-
-  @override
-  String unlockWithWhenOpenApp(Object p0) => '開啟 App 時用 ${p0} 解鎖';
 
   @override
   String get scanProfileQrCode => '掃描個人 QR Code';
@@ -21204,7 +20318,7 @@ class _LZh extends AppLocalizations {
   String get enterSubject => '請填寫主旨';
 
   @override
-  String get addMoreDetailSoSupportCan => '請提供更多說明，以利客服判斷';
+  String get addMoreDetailSoSupportCan => '請補充問題描述';
 
   @override
   String get sentSupportReplySoon => '已送出，客服將盡快回覆';
@@ -21225,19 +20339,19 @@ class _LZh extends AppLocalizations {
   String get notAbleReplyAfterClosing => '結案後將無法再回覆。';
 
   @override
-  String get enquiryClosed => '工單已結案';
+  String get enquiryClosed => '問題已結案';
 
   @override
-  String get changeStatus => '調整工單狀態';
+  String get changeStatus => '變更狀態';
 
   @override
   String get statusUpdated => '已更新狀態';
 
   @override
-  String get enquiry => '工單';
+  String get enquiry => '提問紀錄';
 
   @override
-  String get enquiryNotFound => '找不到此工單';
+  String get enquiryNotFound => '找不到此提問';
 
   @override
   String get support => '客服';
@@ -21259,15 +20373,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String hold(Object p0) => '凍結中 \$${p0}';
-
-  @override
-  String requestFailed2(Object p0) => '請求失敗（${p0}）';
-
-  @override
-  String get couldNotReachServer => '無法連線至伺服器';
-
-  @override
-  String get couldNotReachServerCheckConnection => '無法連線至伺服器，請檢查網路';
 
   @override
   String get signFailed => '登入失敗';
@@ -21426,7 +20531,7 @@ class _LZh extends AppLocalizations {
   String get couldNotLoadPhoto => '無法載入此照片';
 
   @override
-  String slot2(Object p0) => '櫃號：${p0}';
+  String slot2(Object p0) => '櫃位：${p0}';
 
   @override
   String confirmPutLocker(Object p0) => '確認已將《${p0}》放入書櫃？';
@@ -21441,7 +20546,7 @@ class _LZh extends AppLocalizations {
   String get contentNeedsLeast5Characters => '內容至少 5 個字元';
 
   @override
-  String get publishAnnouncement => '發布推播';
+  String get publishAnnouncement => '發布公告';
 
   @override
   String get everyUserSeeAnnouncementOncePublished => '發布後全體使用者皆可看到此公告，確定要發布嗎？';
@@ -21456,10 +20561,10 @@ class _LZh extends AppLocalizations {
   String get draftSaved => '草稿已儲存';
 
   @override
-  String get editAnnouncement => '編輯推播';
+  String get editAnnouncement => '編輯公告';
 
   @override
-  String get newAnnouncement => '新增推播';
+  String get newAnnouncement => '新增公告';
 
   @override
   String get title2 => '標題';
@@ -21468,7 +20573,7 @@ class _LZh extends AppLocalizations {
   String get announcementTitle => '公告標題';
 
   @override
-  String get writeAnnouncement => '輸入推播內容';
+  String get writeAnnouncement => '輸入公告內容';
 
   @override
   String get publishNow => '立即發布';
@@ -21495,7 +20600,7 @@ class _LZh extends AppLocalizations {
   String get announcements => '系統公告';
 
   @override
-  String get noAnnouncementsYetTapAddOne => '尚無公告，請點選右上角新增';
+  String get noAnnouncementsYetTapAddOne => '尚無公告';
 
   @override
   String get published => '已發布';
@@ -21534,7 +20639,7 @@ class _LZh extends AppLocalizations {
   String get olderBackupsBeyondCountRemovedAutomatically => '超出份數的舊備份將自動清除。備份檔含全站個人資料，下載後請妥善保管，每次下載皆會記錄於操作紀錄。';
 
   @override
-  String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄。系統每日自動備份一次，亦可點選上方按鈕立即備份。';
+  String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄';
 
   @override
   String get deleteBackup => '刪除備份';
@@ -21553,9 +20658,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get downloadBackup => '下載備份';
-
-  @override
-  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '請於電腦下載備份檔，並附上您的授權標頭：\n\n${p0}\n\n檔案大小：${p1}。';
 
   @override
   String get copyLink2 => '複製網址';
@@ -21756,28 +20858,7 @@ class _LZh extends AppLocalizations {
   String get keepEditing => '繼續編輯';
 
   @override
-  String get bothTitleContentRequired => '請填寫標題與內容';
-
-  @override
   String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章尚未填寫標題';
-
-  @override
-  String updateP0(Object p0) => '確認更新${p0}？';
-
-  @override
-  String get documentBindingEveryUserSubmittingReplaces => '此文件對所有使用者皆具效力，送出後將立即取代目前版本。';
-
-  @override
-  String get yesUpdate => '確認更新';
-
-  @override
-  String get notifyEveryUser => '是否通知所有使用者？';
-
-  @override
-  String get updateNotify => '更新並通知';
-
-  @override
-  String get updateOnly => '僅更新，不通知';
 
   @override
   String get sections => '章節';
@@ -21801,10 +20882,7 @@ class _LZh extends AppLocalizations {
   String get articles => '條文';
 
   @override
-  String get numberedAutomatically => '編號自動產生';
-
-  @override
-  String get noArticlesYetAddFirstOne => '尚無條文，請點選下方新增第一章。';
+  String get noArticlesYetAddFirstOne => '尚無條文';
 
   @override
   String get addSection => '新增章節';
@@ -21819,9 +20897,6 @@ class _LZh extends AppLocalizations {
   String get bodySectionSingleLineBreaksKept => '章節內容。單行換行將如實呈現，空一行代表另起一段。';
 
   @override
-  String get emptyLineStartsParagraphParagraphWhose => '空一行即分段。首行為「1. 標題」的段落，切換回章節模式時將視為一章。';
-
-  @override
   String get howUsersSee => '使用者檢視畫面';
 
   @override
@@ -21829,9 +20904,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get unsaved => '尚未儲存';
-
-  @override
-  String get upDate => '已是最新版本';
 
   @override
   String get newQuestion => '新增問題';
@@ -21871,9 +20943,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get noQuestionsYet2 => '尚無常見問題';
-
-  @override
-  String get dragHandleRightReorder => '拖曳右側把手可調整順序';
 
   @override
   String get hidden => '已隱藏';
@@ -21960,16 +21029,7 @@ class _LZh extends AppLocalizations {
   String get orders => '訂單管理';
 
   @override
-  String get lookUpOrdersAdjustStatusBy => '查詢訂單、人工調整狀態';
-
-  @override
-  String get disputeListDecisions => '申訴列表與裁決';
-
-  @override
   String get listings => '商品管理';
-
-  @override
-  String get allBooksForceDelisting => '全站書籍、強制下架';
 
   @override
   String get moderation => '內容審核';
@@ -21978,40 +21038,22 @@ class _LZh extends AppLocalizations {
   String get handleListingReports => '商品檢舉處理';
 
   @override
-  String get addReorderDeleteBookCategories => '新增、排序與刪除書籍分類';
-
-  @override
   String get members => '會員管理';
 
   @override
   String get memberControls => '會員管控';
 
   @override
-  String get memberListSuspensionBlocklist => '會員列表、停權與黑名單';
-
-  @override
   String get membershipTiers => '會員等級管理';
-
-  @override
-  String get tierThresholdsBenefits => '等級門檻與權益設定';
 
   @override
   String get wallets => '錢包管理';
 
   @override
-  String get checkBalancesAddDeductCoinsBy => '查詢餘額、人工增減代幣';
-
-  @override
   String get hardwareOperations => '硬體與營運';
 
   @override
-  String get lockerSlotStatus => '書櫃與櫃位狀態';
-
-  @override
   String get maintenanceLog => '維修紀錄';
-
-  @override
-  String get lockerOperationHistory => '書櫃相關操作紀錄';
 
   @override
   String get reports => '營運報表';
@@ -22020,34 +21062,13 @@ class _LZh extends AppLocalizations {
   String get ordersRevenueMemberGrowth => '訂單、營收與會員成長';
 
   @override
-  String get announcements2 => '推播管理';
-
-  @override
   String get supportEnquiries => '客服工單';
-
-  @override
-  String get replyQuestionsFromUsers => '回覆使用者提出的問題';
-
-  @override
-  String get faqShownHelpCentre => '幫助中心的常見問題';
-
-  @override
-  String get termsPrivacyPolicyAbout => '服務條款、隱私權政策、關於我們';
 
   @override
   String get adminAuditLog => '管理操作紀錄';
 
   @override
-  String get auditTrailAdminChanges => '管理員異動的稽核軌跡';
-
-  @override
   String get systemOperations => '系統維運';
-
-  @override
-  String get dailyBackupsManualRunsDownloads => '每日自動備份、手動觸發與下載';
-
-  @override
-  String get deletionRequestsInsideGracePeriodCancel => '緩衝期內的刪除申請，可代為取消或立即執行';
 
   @override
   String get members2 => '會員數';
@@ -22311,7 +21332,7 @@ class _LZh extends AppLocalizations {
   String get members3 => '會員列表';
 
   @override
-  String get searchDisplayNameEmail => '搜尋暱稱或 Email';
+  String get searchDisplayNameEmail => '搜尋暱稱或電子郵件';
 
   @override
   String get noMembersMatch => '找不到符合條件的會員';
@@ -22446,9 +21467,6 @@ class _LZh extends AppLocalizations {
   String get deductCoins => '扣除代幣';
 
   @override
-  String get amountPositiveWholeNumber => '金額（正整數）';
-
-  @override
   String get reasonAdjustmentRequired => '調整原因（必填）';
 
   @override
@@ -22554,9 +21572,6 @@ class _LZh extends AppLocalizations {
   String p0Locker(Object p0) => '${p0}書櫃';
 
   @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '所有啟用中的會員皆會收到「${p0}已更新」通知。';
-
-  @override
   String get orderPlaced => '成立訂單';
 
   @override
@@ -22611,7 +21626,7 @@ class _LZh extends AppLocalizations {
   String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密碼已重設。此密碼僅顯示一次，關閉後將無法再查看。';
 
   @override
-  String get remindThemChangeSettingsChangePassword => '請提醒對方登入後立即至「設定 → 更改密碼」變更密碼。';
+  String get remindThemChangeSettingsChangePassword => '請提醒對方登入後立即至「設定 › 更改密碼」變更密碼。';
 
   @override
   String get temporaryPasswordCopied => '已複製臨時密碼';
@@ -22659,9 +21674,6 @@ class _LZh extends AppLocalizations {
   String get notAssignedYet2 => '尚未指派';
 
   @override
-  String get pickupCodeCopied => '已複製取書碼';
-
-  @override
   String get walletActivity => '錢包異動';
 
   @override
@@ -22704,7 +21716,7 @@ class _LZh extends AppLocalizations {
   String get declined => '不予退款';
 
   @override
-  String get changeOwnPasswordGoSettingsChange => '如需變更本人密碼，請至「設定 → 更改密碼」';
+  String get changeOwnPasswordGoSettingsChange => '如需變更本人密碼，請至「設定 › 更改密碼」';
 
   @override
   String get memberNotAdminSoThereNo => '此會員非管理員，無後台權限可設定。請先於上方將身分設為管理員。';
@@ -22776,9 +21788,6 @@ class _LZh extends AppLocalizations {
   String get systemNotificationSettings => '系統通知設定';
 
   @override
-  String get turnNotificationsSoundsLockScreenPreviews => '設定通知、聲音與鎖定畫面顯示';
-
-  @override
   String get pushNotificationsNotSetUpBuild => '此版本的 App 尚未設定推播，請加入 Firebase 設定檔後重新編譯。';
 
   @override
@@ -22816,12 +21825,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String p0SecondsSoFarKeepApp(Object p0) => '已經過 ${p0} 秒。請勿關閉 App，完成後將自動恢復服務。';
-
-  @override
-  String get majorUpdate => '此次是否為重大更新？';
-
-  @override
-  String get majorUpdateNotifiesEveryUserTerms => '重大更新將通知所有使用者；服務條款與隱私權政策另將要求使用者於下次開啟 App 時重新閱讀並同意。\n\n若僅修正錯字或調整排版，請選擇「小幅修改」。';
 
   @override
   String get majorUpdate2 => '重大更新';
@@ -22869,19 +21872,13 @@ class _LZh extends AppLocalizations {
   String get undoAction2 => '還原此操作';
 
   @override
-  String get tapBarSeeDay => '點選長條圖可查看當日數據';
-
-  @override
   String get noAnnouncements => '目前沒有公告';
-
-  @override
-  String get tapPhotoNameChange => '點選頭像或暱稱即可修改';
 
   @override
   String get canTContinueWithoutAccepting => '未同意將無法繼續使用';
 
   @override
-  String needAcceptLatestP0UseP1(Object p0, Object p1) => '須同意最新版本的「${p0}」才能使用${p1}。若不同意將自動登出，您可隨時重新登入後再同意。';
+  String needAcceptLatestP0UseP1(Object p0) => '不同意「${p0}」將登出帳號。';
 
   @override
   String get goBack => '返回';
@@ -22890,7 +21887,7 @@ class _LZh extends AppLocalizations {
   String p0BeenUpdated(Object p0) => '「${p0}」已更新';
 
   @override
-  String readLatestVersionUpdatedP0Accept(Object p0) => '請閱讀最新版本（${p0} 更新）。同意後才能繼續使用。';
+  String readLatestVersionUpdatedP0Accept(Object p0) => '${p0} 更新';
 
   @override
   String get scrollEndContinue => '請捲動至底部閱讀全文';
@@ -22905,25 +21902,16 @@ class _LZh extends AppLocalizations {
   String get viewDetails => '查看詳情';
 
   @override
-  String get notFoundMayBeenDeletedRemoved => '找不到此資料，可能已刪除或下架';
-
-  @override
-  String get salesDropOffsPickupsRefundsDisputes => '售出、存書、取書、退款與爭議';
+  String get notFoundMayBeenDeletedRemoved => '此內容已不存在';
 
   @override
   String get chatMessages => '聊天訊息';
 
   @override
-  String get newMessagesFromBuyersSellers => '買賣雙方傳來的新訊息';
-
-  @override
   String get promotions2 => '優惠活動';
 
   @override
-  String get announcementsAboutPromotions => '優惠類型的系統公告';
-
-  @override
-  String get supportRepliesPasswordResetsPolicyUpdates => '客服回覆、密碼重設、條款更新與維護公告將一律通知。關閉的類型仍會顯示於通知列表，但不會推播至手機。';
+  String get supportRepliesPasswordResetsPolicyUpdates => '客服回覆、帳號安全與系統公告通知無法關閉。';
 
   @override
   String get notFilled => '未填寫';
@@ -23046,13 +22034,10 @@ class _LZh extends AppLocalizations {
   String reservedAnotherBuyerUntilP0(Object p0) => '已由其他買家預約，保留至 ${p0}';
 
   @override
-  String get ifIsnTSoldByThen => '保留期限屆滿後若未成交，即可加入購物車';
-
-  @override
   String sellerHoldingUntilP0(Object p0) => '賣家已為您保留至 ${p0}';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '請於保留期限內完成結帳，逾期後其他買家即可購買';
+  String get checkOutBeforeHoldEndsOther => '請於保留期限內完成結帳';
 
   @override
   String get copyAddress => '複製地址';
@@ -23086,9 +22071,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String p0BooksP1Views(Object p0, Object p1) => '共 ${p0} 本 · 總瀏覽 ${p1} 次';
-
-  @override
-  String get swipeQuickActions => '左右滑動可快速操作';
 
   @override
   String get searchTitleAuthorIsbn2 => '搜尋書名、作者或 ISBN';
@@ -23211,9 +22193,6 @@ class _LZh extends AppLocalizations {
   String get declineReservation => '確定要婉拒預約？';
 
   @override
-  String get theyLlNotifiedDeclined => '系統將通知對方預約已婉拒。';
-
-  @override
   String get decline2 => '婉拒';
 
   @override
@@ -23241,7 +22220,7 @@ class _LZh extends AppLocalizations {
   String get accountCanTReceiveMessagesRight => '對方帳號目前無法接收訊息';
 
   @override
-  String get holdMicTalkReleaseSend => '按住麥克風錄音，放開即可傳送';
+  String get holdMicTalkReleaseSend => '錄音時間過短';
 
   @override
   String get startConversation => '對話開始';
@@ -23265,10 +22244,10 @@ class _LZh extends AppLocalizations {
   String get whenCanPutLocker => '請問預計何時存入書櫃？';
 
   @override
-  String get unsentMessage => '您已收回一則訊息';
+  String get unsentMessage => '您已收回訊息';
 
   @override
-  String get theyUnsentMessage => '對方已收回一則訊息';
+  String get theyUnsentMessage => '對方已收回訊息';
 
   @override
   String get reservationDetailsArenTAvailableRight => '預約資訊暫時無法顯示';
@@ -23301,9 +22280,6 @@ class _LZh extends AppLocalizations {
   String get picked => '為您推薦';
 
   @override
-  String get seeMore => '查看更多';
-
-  @override
   String get recentlyViewed => '最近瀏覽';
 
   @override
@@ -23322,10 +22298,7 @@ class _LZh extends AppLocalizations {
   String get waitingBuyerCollect => '等待買家至書櫃取書';
 
   @override
-  String get bookLockerEnterPickupCodeCollect => '書籍已存入書櫃，輸入取書碼即可取書';
-
-  @override
-  String get transactionCompleteThank => '交易完成，感謝您的使用';
+  String get transactionCompleteThank => '交易完成';
 
   @override
   String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍，確認後訂單即完成。';
@@ -23346,9 +22319,6 @@ class _LZh extends AppLocalizations {
   String get accountSecurity => '帳號安全';
 
   @override
-  String get sellerHasnTPutBookLocker => '賣家尚未存書，存書後將通知您';
-
-  @override
   String get searchHistoryCleared => '已清除搜尋紀錄';
 
   @override
@@ -23361,10 +22331,7 @@ class _LZh extends AppLocalizations {
   String signOutP0(Object p0) => '確定要登出「${p0}」？';
 
   @override
-  String get llNeedSignAgainUseApp => '登出後須重新登入才能使用。';
-
-  @override
-  String get deviceSignedOutRightAwayStop => '該裝置將立即登出，且不再接收推播通知。';
+  String get deviceSignedOutRightAwayStop => '該裝置將立即登出。';
 
   @override
   String get deviceSignedOut => '已登出裝置';
@@ -23376,10 +22343,10 @@ class _LZh extends AppLocalizations {
   String get signOutAllOtherDevices => '登出其他所有裝置';
 
   @override
-  String get everyDeviceIncludingOneSignedOut => '包含本機在內的所有裝置將被登出，之後須重新登入。';
+  String get everyDeviceIncludingOneSignedOut => '包含本機在內的所有裝置將立即登出。';
 
   @override
-  String get everyDeviceExceptOneSignedOut => '除本機外的所有裝置將立即登出，且不再接收推播通知。';
+  String get everyDeviceExceptOneSignedOut => '除本機外的所有裝置將立即登出。';
 
   @override
   String signedOutP0OtherDevices(Object p0) => '已登出其他 ${p0} 台裝置';
@@ -23389,9 +22356,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get couldnTLoadDevices => '無法載入登入裝置';
-
-  @override
-  String get theseDevicesSignedAccountIfDon => '以下裝置目前已登入您的帳號。如發現不明裝置，請立即登出並變更密碼。';
 
   @override
   String get device => '本機';
@@ -23442,9 +22406,6 @@ class _LZh extends AppLocalizations {
   String get paymentPinSet => '交易密碼已設定';
 
   @override
-  String get use6DigitPinConfirmPayments => '日後結帳時，將使用此 6 位數密碼確認付款。';
-
-  @override
   String get verifyingIdentity => '正在確認身分…';
 
   @override
@@ -23487,7 +22448,7 @@ class _LZh extends AppLocalizations {
   String p0PaymentsTurned(Object p0) => '已啟用 ${p0} 付款';
 
   @override
-  String get securitySettingsUnavailableRightNowMay => '暫時無法取得帳號安全設定，交易密碼與登入裝置可能無法變更。';
+  String get securitySettingsUnavailableRightNowMay => '無法載入帳號安全設定';
 
   @override
   String payWithP0(Object p0) => '使用 ${p0} 付款';
@@ -23499,19 +22460,13 @@ class _LZh extends AppLocalizations {
   String get accountCouldSafer => '帳號安全性有待加強';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => '交易密碼與生物辨識付款皆已設定，請定期檢查登入裝置。';
-
-  @override
-  String get setPaymentPinTurnBiometricPayment => '設定交易密碼並開啟生物辨識付款，結帳更安全、快速。';
+  String get setPaymentPinTurnBiometricPayment => '尚未設定交易密碼';
 
   @override
   String tooManyAttemptsLockedUntilP0(Object p0) => '錯誤次數過多，已鎖定至 ${p0}';
 
   @override
-  String get usedConfirmPaymentsCheckout => '用於結帳時確認付款';
-
-  @override
-  String get notSetRequiredBeforeCheckout => '尚未設定，結帳前須完成設定';
+  String get notSetRequiredBeforeCheckout => '尚未設定';
 
   @override
   String get change => '變更';
@@ -23520,16 +22475,7 @@ class _LZh extends AppLocalizations {
   String get forgotPaymentPin => '忘記交易密碼';
 
   @override
-  String get ifFailsCanEnterPaymentPin => '辨識失敗時可改輸入交易密碼';
-
-  @override
-  String get viewRemotelySignOutDevices => '查看或遠端登出裝置';
-
-  @override
   String p0Devices(Object p0) => '${p0} 台';
-
-  @override
-  String get otherDevicesNeedSignAgain => '變更後其他裝置須重新登入';
 
   @override
   String get restoredUnfinishedListing => '已帶入上次未完成的內容';
@@ -23553,13 +22499,7 @@ class _LZh extends AppLocalizations {
   String get storage => '儲存空間';
 
   @override
-  String get paymentPinBiometricPaymentDevices => '交易密碼、生物辨識付款、登入裝置';
-
-  @override
   String get clearCache => '清除快取';
-
-  @override
-  String get removesCachedImagesFilesAccountData => '清除暫存的圖片與檔案，不影響帳號資料';
 
   @override
   String get couldNotLoadNotificationSettings => '無法載入通知設定';
@@ -23631,7 +22571,7 @@ class _LZh extends AppLocalizations {
   String couldnTRegisterPushTokenWith(Object p0) => '推播 token 上傳伺服器失敗：${p0}';
 
   @override
-  String get protectCoinsCheckoutRequires6Digit => '為保障您的代幣安全，結帳時須輸入 6 位數交易密碼。設定後亦可啟用 Face ID 或指紋付款。';
+  String get protectCoinsCheckoutRequires6Digit => '結帳前請先設定 6 位數交易密碼。';
 
   @override
   String confirmPaymentP0Coins(Object p0) => '確認付款 ${p0} 代幣';
@@ -23661,7 +22601,7 @@ class _LZh extends AppLocalizations {
   String get usePasswordInstead => '改用登入密碼';
 
   @override
-  String get couldnTGetLocationLockersShown => '無法取得目前位置，書櫃將依預設順序排列';
+  String get couldnTGetLocationLockersShown => '無法取得目前位置';
 
   @override
   String p0SlotsFree(Object p0) => '空櫃 ${p0} 格';
@@ -23674,9 +22614,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get noFreeSlots => '目前沒有空櫃';
-
-  @override
-  String get sortedByDistance => '依距離由近到遠排列';
 
   @override
   String get turnLocationSortByDistance => '開啟定位可依距離排序';
@@ -23718,9 +22655,6 @@ class _LZh extends AppLocalizations {
   String get releaseCancel => '放開以取消';
 
   @override
-  String get slideCancel => '← 滑動以取消';
-
-  @override
   String get awaitingReply => '待回覆';
 
   @override
@@ -23740,9 +22674,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String holdP0H(Object p0) => '保留 ${p0} 小時';
-
-  @override
-  String get onceSellerAcceptsBookHeldNo => '賣家接受後，此書籍將為您保留，期限內其他人無法購買。';
 
   @override
   String get holdPeriod => '保留時間';
@@ -23769,10 +22700,10 @@ class _LZh extends AppLocalizations {
   String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone 向 Apple 註冊推播失敗：${p0}\n${p1}';
 
   @override
-  String get serverNotBeenUpdatedSupportFeature => '伺服器尚未更新到支援這項功能的版本，請稍後再試';
+  String get serverNotBeenUpdatedSupportFeature => '此功能暫時無法使用，請稍後再試';
 
   @override
-  String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暫時無法使用，伺服器正在更新';
+  String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暫時無法使用';
 
   @override
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '伺服器執行的 API 版本過舊（目前 ${p0}，App 需要 ${p1}）。請在伺服器更新程式碼並重新啟動 API。';
@@ -23833,9 +22764,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get mistBlue => '霧藍';
-
-  @override
-  String get chooseAppSMainColourHeader => '選擇 App 的主要色彩，套用於標題列、按鈕與重點資訊。';
 
   @override
   String get draftRestored => '已還原草稿';
@@ -24042,7 +22970,7 @@ class _LZh extends AppLocalizations {
   String get blockUser => '封鎖使用者';
 
   @override
-  String afterBlockP0NeitherCanSend(Object p0) => '封鎖「${p0}」後，雙方將無法互相傳送訊息，對方不會收到通知。您可隨時於「設定 › 封鎖名單」解除封鎖。';
+  String afterBlockP0NeitherCanSend(Object p0) => '封鎖「${p0}」後，雙方將無法互相傳送訊息。';
 
   @override
   String get block => '封鎖';
@@ -24073,9 +23001,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get originalMessageUnavailable => '原訊息已無法顯示';
-
-  @override
-  String replyingP0(Object p0) => '回覆 ${p0}';
 
   @override
   String get cancelReply => '取消回覆';
@@ -24141,19 +23066,16 @@ class _LZh extends AppLocalizations {
   String get notAllowed => '未允許';
 
   @override
-  String get restricted => '受限';
+  String get restricted => '受系統限制';
 
   @override
-  String get denied => '永久拒絕';
+  String get denied => '已拒絕';
 
   @override
   String get allow => '允許';
 
   @override
   String get homeRecommendations => '首頁推薦區塊';
-
-  @override
-  String get pickedRecentlyViewed => '為您推薦、最近瀏覽';
 
   @override
   String get leaveGroup => '退出群組';
@@ -24174,7 +23096,7 @@ class _LZh extends AppLocalizations {
   String get pin => '釘選';
 
   @override
-  String get you3 => '你';
+  String get you3 => '您';
 
   @override
   String get canOnlyEditMessagesSentWithin => '僅能編輯 15 分鐘內傳送的訊息';
@@ -24282,7 +23204,7 @@ class _LZh extends AppLocalizations {
   String requestedFromP0(Object p0) => '向 ${p0} 請款';
 
   @override
-  String p0RequestedPaymentFrom(Object p0) => '${p0} 向你請款';
+  String p0RequestedPaymentFrom(Object p0) => '${p0} 向您請款';
 
   @override
   String p0RequestedPaymentFromP1(Object p0, Object p1) => '${p0} 向 ${p1} 請款';
@@ -24291,7 +23213,7 @@ class _LZh extends AppLocalizations {
   String sentP0(Object p0) => '轉帳給 ${p0}';
 
   @override
-  String p0SentCoins(Object p0) => '${p0} 轉帳給你';
+  String p0SentCoins(Object p0) => '${p0} 轉帳給您';
 
   @override
   String p0SentCoinsP1(Object p0, Object p1) => '${p0} 轉帳給 ${p1}';
@@ -24453,7 +23375,7 @@ class _LZh extends AppLocalizations {
   String get rotate => '旋轉';
 
   @override
-  String get mentioned => '[有人提及您]';
+  String get mentioned => '[提及您]';
 
   @override
   String get saveImage => '儲存圖片';
@@ -24483,7 +23405,7 @@ class _LZh extends AppLocalizations {
   String removedAdminRoleFromP0(Object p0) => '已解除 ${p0} 的管理員身分';
 
   @override
-  String photosP02(Object p0) => '[圖片] ${p0} 張';
+  String photosP02(Object p0) => '[${p0} 張圖片]';
 
   @override
   String get savedDownloads => '已儲存至「下載項目」';
@@ -24504,34 +23426,31 @@ class _LZh extends AppLocalizations {
   String get aiSupport => 'AI 客服';
 
   @override
-  String get instantReplies => '即時回覆';
-
-  @override
   String get howDoIListBook => '如何上架書籍？';
 
   @override
-  String get howDoIPickUpFrom => '如何在智慧櫃取書？';
+  String get howDoIPickUpFrom => '如何至書櫃取書？';
 
   @override
   String get howDoIRequestRefund => '如何申請退款？';
 
   @override
-  String get howDoWalletCoinsWork => '錢包點數如何使用？';
+  String get howDoWalletCoinsWork => '代幣如何使用？';
 
   @override
-  String get talkPerson => '轉接真人客服';
+  String get talkPerson => '轉接客服人員';
 
   @override
-  String get supportRequestCreatedFromConversationOur => '將以目前的對話內容建立客服單，由客服人員接續處理';
+  String get supportRequestCreatedFromConversationOur => '將轉接客服人員，並提供目前的對話內容';
 
   @override
   String get transfer4 => '轉接';
 
   @override
-  String get creatingSupportRequest => '正在建立客服單';
+  String get creatingSupportRequest => '正在轉接客服';
 
   @override
-  String get transferredSupportTeam => '已轉接真人客服';
+  String get transferredSupportTeam => '已轉接客服人員';
 
   @override
   String get newConversation => '開始新對話';
@@ -24541,9 +23460,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get copied2 => '已複製';
-
-  @override
-  String get aiReplies => 'AI 回覆';
 
   @override
   String get howCanWeHelp => '請問有什麼需要協助的地方？';
@@ -24564,16 +23480,10 @@ class _LZh extends AppLocalizations {
   String get aiFeatures => 'AI 功能';
 
   @override
-  String get usageModelsListingReview => '用量、模型設定與上架審核';
-
-  @override
   String get aiSettingsNotSavedChangesLost => 'AI 設定尚未儲存，離開後變更將不會保留';
 
   @override
   String get usage => '用量';
-
-  @override
-  String get settings2 => '設定 •';
 
   @override
   String reviewP0(Object p0) => '審核 ${p0}';
@@ -24586,9 +23496,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get peakDay => '單日最高';
-
-  @override
-  String get tapBarDetails => '點選長條查看明細';
 
   @override
   String p0Requests(Object p0) => '${p0} 次請求';
@@ -24918,12 +23825,6 @@ class _LZh extends AppLocalizations {
   String get bookDetails => '書籍資料';
 
   @override
-  String get conditionAppliedNextStep => '書況（下一步帶入）';
-
-  @override
-  String get priceAppliedNextStep => '售價（下一步帶入）';
-
-  @override
   String get suggestedPrice => '建議售價';
 
   @override
@@ -24931,9 +23832,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String listPriceP0(Object p0) => '定價 \$${p0}';
-
-  @override
-  String get sources => '資料來源';
 
   @override
   String applyP0(Object p0) => '套用 ${p0} 項';
@@ -24945,9 +23843,6 @@ class _LZh extends AppLocalizations {
   String get sameAsCurrent => '與目前相同';
 
   @override
-  String confidenceP0(Object p0) => '信心 ${p0}%';
-
-  @override
   String get listingNotApproved => '未通過上架審核';
 
   @override
@@ -24957,10 +23852,10 @@ class _LZh extends AppLocalizations {
   String get submittedReview => '已送交審核';
 
   @override
-  String get goSaleOnceApprovedNotifiedResult => '審核通過後將公開販售，結果會以通知告知';
+  String get goSaleOnceApprovedNotifiedResult => '審核通過後將公開販售';
 
   @override
-  String get got => '我知道了';
+  String get got => '確定';
 
   @override
   String get aiFeaturesNotAvailableRightNow => 'AI 功能目前未開放';
@@ -24999,9 +23894,6 @@ class _LZh extends AppLocalizations {
   String get aiDataProcessing => 'AI 資料處理';
 
   @override
-  String providersP0(Object p0) => '服務商：${p0}';
-
-  @override
   String get messagesEnterStatusOrdersReservations => '您輸入的訊息與您的訂單、預約狀態';
 
   @override
@@ -25032,7 +23924,7 @@ class _LZh extends AppLocalizations {
   String get withdrawingConsent => '撤回同意';
 
   @override
-  String get canTurnOffAiDataProcessing => '您可隨時在「設定」>「帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。';
+  String get canTurnOffAiDataProcessing => '您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。';
 
   @override
   String get agreeContinue => '同意並繼續';
@@ -25065,28 +23957,25 @@ class _LZh extends AppLocalizations {
   String get requiresDatabaseUpdate013 => '需先執行資料庫更新 013';
 
   @override
-  String get mysteryNovelMyCommute => '想找適合通勤看的推理小說';
+  String get mysteryNovelMyCommute => '適合通勤閱讀的推理小說';
 
   @override
   String get programmingBooksBeginners => '適合入門的程式設計書';
 
   @override
-  String get booksUnder200Coins => '200 代幣以內的書';
+  String get booksUnder200Coins => '200 代幣以內的書籍';
 
   @override
   String get popularLiteraryFictionRightNow => '最近熱門的文學小說';
 
   @override
-  String get tellMeWhatBookLooking => '告訴我您想找什麼書';
-
-  @override
-  String get allRecommendationsComeFromBooksCurrently => '推薦內容均來自站上目前販售中的書籍';
+  String get tellMeWhatBookLooking => '請描述您想找的書籍';
 
   @override
   String get describeBookLooking => '描述您想找的書籍';
 
   @override
-  String get tellMeWhatWantReadI => '說說您想看什麼，我來為您挑選';
+  String get tellMeWhatWantReadI => '依您的需求推薦書籍';
 
   @override
   String get subtitle => '副標題';
@@ -25096,15 +23985,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get yearOnly => '僅確認到年';
-
-  @override
-  String get fromBookDatabase => '來自書目資料庫';
-
-  @override
-  String get writtenByAi => 'AI 依資料撰寫';
-
-  @override
-  String get aiTidiedSourceText => 'AI 整理來源文字';
 
   @override
   String get msg => '繁體中文';
@@ -25149,7 +24029,7 @@ class _LZh extends AppLocalizations {
   String get signMethodSettingsSaved => '登入方式設定已儲存';
 
   @override
-  String get signMethodSettingsUnsavedLeavingDiscards => '登入方式設定尚未儲存，離開後變更會遺失。';
+  String get signMethodSettingsUnsavedLeavingDiscards => '登入方式設定尚未儲存，離開後變更將遺失。';
 
   @override
   String get serverNotRunDatabaseUpdate014 => '伺服器尚未執行資料庫更新 014，設定暫時無法生效。';
@@ -25167,19 +24047,13 @@ class _LZh extends AppLocalizations {
   String get notConfigured => '未設定';
 
   @override
-  String get allowCreatingNewAccountsWithMethod => '允許以這個方式直接建立新帳號';
-
-  @override
-  String get serverNoCredentialsChannel => '伺服器尚未設定這個渠道的憑證';
+  String get allowCreatingNewAccountsWithMethod => '允許以此方式註冊新帳號';
 
   @override
   String get unsavedChanges2 => '尚未儲存的變更';
 
   @override
-  String get switchesSignupPermissionsSocialSmsSign => '社群與簡訊登入的開關與註冊權限';
-
-  @override
-  String get taiwan => '台灣';
+  String get taiwan => '中華民國';
 
   @override
   String get hongKong => '香港';
@@ -25188,7 +24062,7 @@ class _LZh extends AppLocalizations {
   String get macau => '澳門';
 
   @override
-  String get china => '中國';
+  String get china => '中華人民共和國';
 
   @override
   String get japan => '日本';
@@ -25227,7 +24101,7 @@ class _LZh extends AppLocalizations {
   String get signWithMobileNumber => '手機號碼登入';
 
   @override
-  String get k6DigitCodeSentNumberMessage => '我們會傳送一組 6 位數驗證碼到這個號碼，簡訊可能需要一些時間送達。';
+  String get k6DigitCodeSentNumberMessage => '將傳送 6 位數驗證碼至此手機號碼。';
 
   @override
   String get mobileNumber => '手機號碼';
@@ -25260,7 +24134,7 @@ class _LZh extends AppLocalizations {
   String get completeAccountDetails => '完成帳號資料';
 
   @override
-  String p0DidNotProvideEmailAddress(Object p0) => '${p0}未提供電子郵件，請補齊資料以建立帳號。';
+  String get p0DidNotProvideEmailAddress => '請填寫電子郵件以完成註冊。';
 
   @override
   String signWithP0(Object p0) => '以 ${p0} 登入';
@@ -25275,7 +24149,7 @@ class _LZh extends AppLocalizations {
   String get emailAlreadyRegistered => '此電子郵件已註冊';
 
   @override
-  String get signWithPasswordThenLinkMethod => '請改以密碼登入，再到帳號安全的登入方式綁定這個方式。';
+  String get signWithPasswordThenLinkMethod => '請以密碼登入後，至「帳號安全 › 登入方式」綁定。';
 
   @override
   String get signWithPassword => '以密碼登入';
@@ -25287,16 +24161,16 @@ class _LZh extends AppLocalizations {
   String get passwordSet => '密碼已設定';
 
   @override
-  String get canNowSignWithEmailPassword => '之後可以電子郵件與密碼登入，其他裝置需要重新登入。';
+  String get canNowSignWithEmailPassword => '其他裝置須重新登入。';
 
   @override
-  String get passwordRequiredBeforeCanUnlinkSign => '設定密碼後才能解除綁定登入方式，也能在換裝置時以電子郵件登入。密碼至少 8 碼並含英文與數字。';
+  String get passwordRequiredBeforeCanUnlinkSign => '密碼須至少 8 碼，且包含英文與數字。';
 
   @override
-  String get changingSignMethodsRequiresIdentityVerification => '變更登入方式需要驗證身分，請先為這個帳號設定密碼。';
+  String get changingSignMethodsRequiresIdentityVerification => '變更登入方式前，請先設定密碼。';
 
   @override
-  String get later => '稍後再說';
+  String get later => '暫不設定';
 
   @override
   String p0Linked(Object p0) => '已綁定 ${p0}';
@@ -25305,7 +24179,7 @@ class _LZh extends AppLocalizations {
   String unlinkP0(Object p0) => '解除綁定 ${p0}';
 
   @override
-  String get noLongerAbleSignWayCan => '解除後將無法再以這個方式登入，需要時可以重新綁定。';
+  String get noLongerAbleSignWayCan => '解除後將無法以此方式登入。';
 
   @override
   String get unlink => '解除綁定';
@@ -25321,9 +24195,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get noPasswordSet => '尚未設定密碼';
-
-  @override
-  String get requiredBeforeChangingSignMethodsDeleting => '設定後才能變更登入方式與刪除帳號';
 
   @override
   String linkedP0(Object p0) => '${p0} 綁定';
@@ -25344,22 +24215,22 @@ class _LZh extends AppLocalizations {
   String get signMethodNotAvailableRightNow => '目前未開放此登入方式';
 
   @override
-  String get credentialDoesNotMatchSelectedSign => '登入憑證與所選的登入方式不符';
+  String get credentialDoesNotMatchSelectedSign => '登入失敗，請重新操作';
 
   @override
   String get signMethodLinkedAnotherAccount => '此登入方式已綁定其他帳號';
 
   @override
-  String get accountAlreadyLinkedSignMethod => '此帳號已綁定這個登入方式';
+  String get accountAlreadyLinkedSignMethod => '此帳號已綁定此登入方式';
 
   @override
   String get onlySignMethodAccountSetPassword => '這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式';
 
   @override
-  String get socialSignUnavailableServerNotFinished => '社群登入目前無法使用，伺服器尚未完成資料庫更新';
+  String get socialSignUnavailableServerNotFinished => '社群登入暫時無法使用，請稍後再試';
 
   @override
-  String get credentialInvalidExpiredPleaseTryAgain => '登入憑證無效或已過期，請重新操作';
+  String get credentialInvalidExpiredPleaseTryAgain => '登入逾時，請重新操作';
 
   @override
   String get accountAlreadyPasswordUseChangePassword => '此帳號已設定密碼，請改用變更密碼';
@@ -25368,7 +24239,7 @@ class _LZh extends AppLocalizations {
   String get signLinkExpiredPleaseTryAgain => '登入連結已失效，請重新操作';
 
   @override
-  String get signResultExpiredPleaseTryAgain => '登入結果已失效，請重新操作';
+  String get signResultExpiredPleaseTryAgain => '登入逾時，請重新操作';
 
   @override
   String get thirdPartySignServiceUnavailablePlease => '第三方登入服務目前無法使用，請稍後再試';
@@ -25377,10 +24248,7 @@ class _LZh extends AppLocalizations {
   String get couldNotCompleteSignPleaseTry => '無法完成登入，請重新操作';
 
   @override
-  String get accountNotLinkedSignMethod => '此帳號未綁定這個登入方式';
-
-  @override
-  String get couldNotReachServerCheckConnection2 => '無法連線到伺服器，請確認網路連線';
+  String get accountNotLinkedSignMethod => '此帳號未綁定此登入方式';
 
   @override
   String get mobileNumberFormatNotValid => '手機號碼格式不正確';
@@ -25398,13 +24266,157 @@ class _LZh extends AppLocalizations {
   String get smsSendingLimitBeenReachedPlease => '簡訊發送次數已達上限，請稍後再試';
 
   @override
-  String get smsVerificationNotSetUpDevice => '此裝置尚未完成簡訊驗證設定，請改用其他登入方式';
+  String get smsVerificationNotSetUpDevice => '此裝置目前無法使用簡訊驗證，請改用其他登入方式';
 
   @override
   String get couldNotCompleteSmsVerificationPlease => '無法完成簡訊驗證，請稍後再試';
 
   @override
   String get allowSigningLinkingWithMethod => '開放此方式登入與綁定';
+
+  @override
+  String get appNeverStoresPasswordUsedOnly => '本 App 不會儲存您的密碼，僅用於本次驗證。';
+
+  @override
+  String get verifyWithBiometricsInstead => '改用生物辨識驗證';
+
+  @override
+  String get accountWasCreatedWithSocialPhone => '此帳號尚未設定登入密碼，請先完成設定。';
+
+  @override
+  String get setSignPassword => '前往設定登入密碼';
+
+  @override
+  String get enterSignPasswordRunAdminAction => '請以登入密碼或通行密鑰驗證身分以執行此後台操作';
+
+  @override
+  String p1P0MethodsEnabled(Object p0, Object p1) => '共 ${p0} 種方式，目前啟用 ${p1} 種';
+
+  @override
+  String get masterSwitchOffSoEveryMethod => '總開關關閉，所有方式一律停用';
+
+  @override
+  String get signLinkingDirectSignUpAllowed => '可登入、綁定與直接註冊';
+
+  @override
+  String credentialsNotSetPleaseConfigureP0(Object p0) => '尚未設定憑證，請於伺服器設定 ${p0}';
+
+  @override
+  String get whenOffMethodHiddenFromSign => '關閉後登入頁與帳號安全將不顯示此方式';
+
+  @override
+  String get whenOffOnlyAccountsAlreadyLinked => '關閉後僅限已綁定的帳號使用此方式';
+
+  @override
+  String get signMethodNotLinkedAccount => '此登入方式尚未綁定帳號';
+
+  @override
+  String p0AccountNotLinkedAnySavemybook(Object p0) => '${p0} 帳號尚未綁定救「舊」我的書帳號。';
+
+  @override
+  String get iAlreadyAccountSignFirst => '登入既有帳號並綁定';
+
+  @override
+  String get createNewAccountWithIdentity => '建立新帳號';
+
+  @override
+  String signExistingAccountFirstThenLink(Object p0) => '請先登入原有帳號，再至「帳號安全 › 登入方式」綁定 ${p0}。';
+
+  @override
+  String get signMethodNotLinkedAnyAccount => '此登入方式尚未綁定任何帳號';
+
+  @override
+  String get verifyIdentityWithPasskeyContinue => '請使用通行密鑰驗證身分以繼續';
+
+  @override
+  String get verifyWithPasskeyInstead => '改用通行密鑰驗證';
+
+  @override
+  String get passkeys => '通行密鑰';
+
+  @override
+  String get verifyWithFaceIdFingerprintScreen => '以此裝置的 Face ID、指紋或螢幕鎖定完成驗證，不必輸入密碼。';
+
+  @override
+  String get verifyWithPasskey => '使用通行密鑰驗證';
+
+  @override
+  String get useSignPasswordInstead => '改用登入密碼驗證';
+
+  @override
+  String get signWithPasskey => '使用通行密鑰登入';
+
+  @override
+  String get passkeyAdded => '已新增通行密鑰';
+
+  @override
+  String get screenLock => '螢幕鎖定';
+
+  @override
+  String fromNowCanSignVerifyIdentity(Object p0) => '之後登入與驗證身分可改用 ${p0}，不必再輸入密碼。';
+
+  @override
+  String get deletePasskey => '刪除通行密鑰';
+
+  @override
+  String get noLongerAbleSignVerifyIdentity => '刪除後將無法以此通行密鑰登入或驗證身分。裝置中儲存的通行密鑰不會一併移除，可至系統的密碼設定中刪除。';
+
+  @override
+  String get passkeyDeleted => '已刪除通行密鑰';
+
+  @override
+  String get signVerifyIdentityWithFaceId => '以 Face ID、指紋或螢幕鎖定登入與驗證身分，不必輸入密碼。通行密鑰只儲存在您的裝置與密碼管理工具中。';
+
+  @override
+  String get addPasskey => '新增通行密鑰';
+
+  @override
+  String get notUsedYet => '尚未使用';
+
+  @override
+  String lastUsedFormatdateItemLastusedat(Object p0) => '最後使用 ${p0}';
+
+  @override
+  String createdCreated(Object p0) => '建立於 ${p0}';
+
+  @override
+  String get noPasskeyAvailableDeviceUsePassword => '此裝置沒有可用的通行密鑰，請改用密碼';
+
+  @override
+  String get passkeyAlreadyRegisteredDevice => '此裝置已經註冊過通行密鑰';
+
+  @override
+  String get signGoogleAccountTurnPasswordManager => '請先在裝置上登入 Google 帳號並開啟密碼管理工具，或改用密碼';
+
+  @override
+  String get setUpScreenLockPasswordManager => '此裝置尚未設定螢幕鎖定或密碼管理工具，無法建立通行密鑰';
+
+  @override
+  String get deviceDoesNotSupportPasskeysUse => '此裝置不支援通行密鑰，請改用密碼';
+
+  @override
+  String get passkeysTemporarilyUnavailableBecauseAppWebsite => '目前無法使用通行密鑰，請改用密碼';
+
+  @override
+  String get requestTimedOutPleaseTryAgain => '操作逾時，請再試一次';
+
+  @override
+  String get passkeyRequestFailedUsePasswordInstead => '通行密鑰操作失敗，請改用密碼';
+
+  @override
+  String get verifyIdentityBeforeAddingPasskey => '新增通行密鑰前，請先驗證身分';
+
+  @override
+  String get couldNotListPleaseTryAgain => '上架失敗，請稍後再試';
+
+  @override
+  String downloadLinkValidOnceP0P1(Object p0, Object p1) => '此下載網址 5 分鐘內有效，且僅能使用一次，請勿分享。\n\n${p0}\n\n檔案大小：${p1}';
+
+  @override
+  String get sources => '資料來源';
+
+  @override
+  String get unableOpenLink => '無法開啟連結';
 
 }
 
@@ -25694,16 +24706,10 @@ class _LZhHans extends AppLocalizations {
   String get appearanceSystem => '跟随系统';
 
   @override
-  String get appearanceHint => '选择“跟随系统”时，会依设备的深浅色设置自动切换';
-
-  @override
   String get language => '语言';
 
   @override
   String get languageSystem => '跟随系统';
-
-  @override
-  String get languageHint => '选择“跟随系统”时，会依设备的语言设置显示';
 
   @override
   String get verifySignSavemybook => '验证身分以登录救「舊」我的書';
@@ -25808,13 +24814,7 @@ class _LZhHans extends AppLocalizations {
   String get deleteAccount => '删除账号';
 
   @override
-  String get accountPermanentlyDisabled30DaysSign => '账号将在 30 天后永久停用，期间内重新登录即可取消。\n\n';
-
-  @override
-  String get personalDataErasedButCompletedOrders => '停用后将清除个人资料，但保留已完成的订单与交易记录，';
-
-  @override
-  String get peopleTradedWithDoNotLose => '以确保交易对象的记录完整。';
+  String get accountPermanentlyDisabled30DaysSign => '账号将于 30 天后删除，期间内重新登录即可取消。删除后将清除个人资料，已完成的订单与交易记录将予以保留。';
 
   @override
   String get actionContinue => '继续';
@@ -25847,19 +24847,7 @@ class _LZhHans extends AppLocalizations {
   String get exportMyData => '导出我的数据';
 
   @override
-  String get profileBooksOrdersTransactionsJson => '个人资料、书籍、订单与交易记录，JSON 格式';
-
-  @override
-  String get oldLinkQrCodeStopWorking2 => '旧的链接与二维码将立即失效';
-
-  @override
   String get cancelAccountDeletion => '取消删除账号';
-
-  @override
-  String get restoreAccountStopCountdown => '恢复账号并停止删除流程';
-
-  @override
-  String get canChangeMindWithin30Days => '30 天内可取消删除';
 
   @override
   String get deletionPending => '待删除';
@@ -25943,7 +24931,7 @@ class _LZhHans extends AppLocalizations {
   String get signContactSeller => '请先登录才能联系卖家';
 
   @override
-  String get signStartChat => '无法创建聊天室，请先登录';
+  String get signStartChat => '请先登录才能联系卖家';
 
   @override
   String get signReport => '请先登录才能举报';
@@ -25961,7 +24949,7 @@ class _LZhHans extends AppLocalizations {
   String get reasonNeedsLeast5Characters => '请至少填写 5 个字的举报原因';
 
   @override
-  String get reportSubmittedWeLookInto => '举报已提交，我们将尽快处理';
+  String get reportSubmittedWeLookInto => '举报已提交';
 
   @override
   String get publisher => '出版社：';
@@ -25985,9 +24973,6 @@ class _LZhHans extends AppLocalizations {
   String get about => '简介：';
 
   @override
-  String pickup(Object p0) => '取书地点：${p0}';
-
-  @override
   String get messageSeller => '联系卖家';
 
   @override
@@ -25997,16 +24982,10 @@ class _LZhHans extends AppLocalizations {
   String get addCart => '加入购物车';
 
   @override
-  String get bookBeenReportedUnderReviewStays => '此书籍已被举报，平台审核期间仍可正常销售。';
+  String get bookBeenReportedUnderReviewStays => '此书籍已被举报，审核中。';
 
   @override
-  String get violationWasConfirmedBookPleaseCheck => '此书籍经审核确认违规，请确认商品内容是否符合社区规范。';
-
-  @override
-  String get reportDismissed2 => '举报已驳回';
-
-  @override
-  String get bookWasReportedButNoViolation => '此书籍曾被举报，经审核未违规，不影响上架。';
+  String get violationWasConfirmedBookPleaseCheck => '此书籍经审核确认违规，请修改商品内容。';
 
   @override
   String get delist => '取消上架';
@@ -26016,9 +24995,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get delist2 => '下架';
-
-  @override
-  String get delistedRelistFromDelistedTab => '已下架，可在“已下架”页签重新上架';
 
   @override
   String get couldNotDelistPleaseTryAgain => '下架失败，请稍后再试';
@@ -26033,16 +25009,7 @@ class _LZhHans extends AppLocalizations {
   String get noBooksCategory => '此分类目前没有书籍';
 
   @override
-  String get listFirstBook => '上架第一本书';
-
-  @override
   String get relist => '重新上架';
-
-  @override
-  String get removeFromCart => '移出购物车';
-
-  @override
-  String removeFromCart2(Object p0) => '确定要将《${p0}》从购物车移除吗？';
 
   @override
   String get remove => '移除';
@@ -26051,16 +25018,10 @@ class _LZhHans extends AppLocalizations {
   String get couldNotRemoveRestored => '移除失败，已还原';
 
   @override
-  String get couldNotRemovePleaseTryAgain => '移除失败，请稍后再试';
-
-  @override
   String get selectBooksWantCheckOut => '请先选择要结算的书籍';
 
   @override
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代币不足，此订单需 ${p0}，当前余额 ${p1}';
-
-  @override
-  String get confirmCheckout => '确认结算';
 
   @override
   String booksTotal(Object p0, Object p1) => '共 ${p0} 本书，总金额 ${p1}。\n';
@@ -26180,7 +25141,7 @@ class _LZhHans extends AppLocalizations {
   String get markAllAsRead => '全部标为已读';
 
   @override
-  String markAllUnreadMessagesAsRead(Object p0) => '确定要将 ${p0} 条未读消息全部标为已读吗？此操作无法恢复。';
+  String markAllUnreadMessagesAsRead(Object p0) => '确定要将 ${p0} 条未读消息全部标为已读？';
 
   @override
   String get markAllRead => '全部已读';
@@ -26202,9 +25163,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get mute => '静音';
-
-  @override
-  String get messagesLimited500Characters => '消息长度不可超过 500 字';
 
   @override
   String get messageCouldNotSent => '消息发送失败';
@@ -26234,7 +25192,7 @@ class _LZhHans extends AppLocalizations {
   String get describeDispute => '请填写争议说明';
 
   @override
-  String get useLeast10CharactersSoSupport => '争议说明请至少填写 10 个字，以便客服判断';
+  String get useLeast10CharactersSoSupport => '争议说明至少需 10 个字';
 
   @override
   String get submitDispute => '提交争议申请';
@@ -26255,9 +25213,6 @@ class _LZhHans extends AppLocalizations {
   String get requestPaymentHold => '申请冻结款项';
 
   @override
-  String get paymentSellerHeldUntilSupportDecides => '提交后款项将暂停拨付给卖家，直至客服裁决';
-
-  @override
   String get submitDispute2 => '提交争议申请';
 
   @override
@@ -26270,7 +25225,7 @@ class _LZhHans extends AppLocalizations {
   String get whatHappened => '争议说明';
 
   @override
-  String get describeProblemEGConditionDoes => '请描述发生的问题，例如书况与商品描述不符…';
+  String get describeProblemEGConditionDoes => '请描述发生的问题';
 
   @override
   String get submit => '提交申请';
@@ -26280,12 +25235,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get canAttachUp6Photos => '最多可上传 6 张佐证照片';
-
-  @override
-  String get up5 => '最多 5 张';
-
-  @override
-  String get couldNotReplacePhotoPleaseTry => '无法替换原本的照片，请稍后再试';
 
   @override
   String get keepLeastOnePhoto => '请至少保留一张照片';
@@ -26306,16 +25255,13 @@ class _LZhHans extends AppLocalizations {
   String get cannotUndoneContinue => '删除后无法恢复，确定要删除吗？';
 
   @override
-  String get photoMissingDataRefreshTryAgain => '此照片数据不完整，请刷新后再试';
+  String get photoMissingDataRefreshTryAgain => '无法处理此照片，请刷新后再试';
 
   @override
   String get enterPrice => '请填写价格';
 
   @override
   String get priceMustGreaterThan0 => '价格必须大于 0';
-
-  @override
-  String get priceCannotExceed999999 => '价格不可超过 999,999';
 
   @override
   String get chooseLockerLocation => '请选择存放区域';
@@ -26387,7 +25333,7 @@ class _LZhHans extends AppLocalizations {
   String get publicationDate => '出版日期';
 
   @override
-  String get tapPickPublicationDate => '点击选择出版日期';
+  String get tapPickPublicationDate => '选择出版日期';
 
   @override
   String get pickPublicationDate => '选择出版日期';
@@ -26432,19 +25378,19 @@ class _LZhHans extends AppLocalizations {
   String get bio => '个人简介';
 
   @override
-  String get tellPeopleAboutYourself => '简单介绍自己';
+  String get tellPeopleAboutYourself => '请输入个人简介';
 
   @override
-  String get email => '邮箱';
+  String get email => '电子邮件';
 
   @override
-  String get emailCannotChanged => '邮箱无法修改';
+  String get emailCannotChanged => '电子邮件无法修改';
 
   @override
   String get dateBirth => '生日';
 
   @override
-  String get tapPickDateBirth => '点击选择生日';
+  String get tapPickDateBirth => '选择生日';
 
   @override
   String get pickDateBirth => '选择生日';
@@ -26504,10 +25450,7 @@ class _LZhHans extends AppLocalizations {
   String get reset => '重置';
 
   @override
-  String get usePhoto => '使用此照片';
-
-  @override
-  String get documentNotBeenCreatedYet => '此文件尚未建立';
+  String get documentNotBeenCreatedYet => '目前无内容';
 
   @override
   String lastUpdated(Object p0) => '最后更新：${p0}';
@@ -26528,10 +25471,10 @@ class _LZhHans extends AppLocalizations {
   String get notNow => '暂不开启';
 
   @override
-  String get enterEmail => '请输入 Email';
+  String get enterEmail => '请输入电子邮件';
 
   @override
-  String get emailAddressNotValid => 'Email 格式不正确';
+  String get emailAddressNotValid => '电子邮件格式不正确';
 
   @override
   String get enterPassword => '请输入密码';
@@ -26558,7 +25501,7 @@ class _LZhHans extends AppLocalizations {
   String get noAccountYetSignUp => '暂无账号？立即注册';
 
   @override
-  String get membershipTiersNotSetUpYet => '尚未设定会员等级制度';
+  String get membershipTiersNotSetUpYet => '目前未提供会员等级';
 
   @override
   String get currentTier => '当前等级';
@@ -26585,7 +25528,7 @@ class _LZhHans extends AppLocalizations {
   String benefits(Object p0) => '${p0}等级权益';
 
   @override
-  String get noBenefitsBeenDescribedTierYet => '尚未设定此等级的权益说明。';
+  String get noBenefitsBeenDescribedTierYet => '此等级目前无额外权益';
 
   @override
   String pointsFromCompletedOrders(Object p0, Object p1) => '目前累积 ${p0} 点，已完成 ${p1} 笔交易';
@@ -26612,16 +25555,13 @@ class _LZhHans extends AppLocalizations {
   String get noUnreadNotifications => '没有未读通知';
 
   @override
-  String markAllUnreadNotificationsAsRead(Object p0) => '确定要将 ${p0} 条未读通知全部标为已读吗？此操作无法恢复。';
+  String markAllUnreadNotificationsAsRead(Object p0) => '确定要将 ${p0} 条未读通知全部标为已读？';
 
   @override
   String get openChat => '前往聊天室';
 
   @override
   String get viewOrder => '查看订单';
-
-  @override
-  String get openMyBooks => '前往书籍管理';
 
   @override
   String get notifications => '通知中心';
@@ -26645,7 +25585,7 @@ class _LZhHans extends AppLocalizations {
   String items2(Object p0) => '商品明细（${p0}）';
 
   @override
-  String get orderNoItemDetails => '此订单无品项数据。';
+  String get orderNoItemDetails => '无商品明细';
 
   @override
   String msg4(Object p0, Object p1) => '单价 ${p0} × ${p1}';
@@ -26663,7 +25603,7 @@ class _LZhHans extends AppLocalizations {
   String get slot => '柜位';
 
   @override
-  String get notAssignedYet => '尚未配位';
+  String get notAssignedYet => '尚未分配柜位';
 
   @override
   String get pickupCode => '取书码';
@@ -26708,7 +25648,7 @@ class _LZhHans extends AppLocalizations {
   String get pendingAmount => '待定收益金额';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '买家完成取书后，款项将自动拨入代币余额';
+  String get coinsArriveOnceBuyerCollectsBook => '买家取书后自动拨款';
 
   @override
   String get scanned => '扫描成功';
@@ -26729,9 +25669,6 @@ class _LZhHans extends AppLocalizations {
   String get bookCollected => '取书完成';
 
   @override
-  String get thanksUsingSavemybookHappyReading => '感谢您的使用，祝您阅读愉快。';
-
-  @override
   String collected(Object p0) => '《${p0}》已完成取书';
 
   @override
@@ -26744,19 +25681,13 @@ class _LZhHans extends AppLocalizations {
   String get myAccount => '会员中心';
 
   @override
-  String get personNotWrittenBioYet => '这个人很懒，什么都没留下';
+  String get personNotWrittenBioYet => '尚未填写个人简介';
 
   @override
   String get topTierReached => '已达最高等级';
 
   @override
   String morePointsReach(Object p0, Object p1) => '再 ${p0} 点升级为“${p1}”';
-
-  @override
-  String get myCoins => '我的代币';
-
-  @override
-  String get shareProfile => '分享个人档案';
 
   @override
   String get purchases => '购买记录';
@@ -26771,22 +25702,7 @@ class _LZhHans extends AppLocalizations {
   String get signOut2 => '确认退出登录';
 
   @override
-  String get needSignAgainKeepUsingApp => '退出后须重新登录才能继续使用。';
-
-  @override
   String cancelOrderBookReturnsShop(Object p0) => '确定要取消订单 ${p0} 吗？取消后书籍将重新在商城销售。';
-
-  @override
-  String get pickupCode2 => '取书码';
-
-  @override
-  String get notGeneratedYet => '尚未生成';
-
-  @override
-  String get enterCodeLockerCollect => '请在书柜上输入此代码取书';
-
-  @override
-  String enterCodeCollect(Object p0) => '请至“${p0}”输入此代码取书';
 
   @override
   String get iCollected => '确认取书';
@@ -26825,19 +25741,13 @@ class _LZhHans extends AppLocalizations {
   String get createAccount => '创建账号';
 
   @override
-  String get joinSavemybook => '加入救「舊」我的書';
-
-  @override
-  String get signUpBuySellUseSmart => '注册后即可买书、卖书及使用智能书柜';
+  String get joinSavemybook => '注册账号';
 
   @override
   String get displayName => '昵称';
 
   @override
-  String get nameOthersSee => '其他用户可见的名称';
-
-  @override
-  String get emailSignWith => '用于登录的邮箱';
+  String get emailSignWith => '电子邮件';
 
   @override
   String get least8CharactersWithLettersNumbers => '至少 8 位，需含英文与数字';
@@ -26862,12 +25772,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get buyerNotifiedBookReturnsShop => '取消后将通知买家，书籍将重新在商城销售。';
-
-  @override
-  String get dropOffPickupCode => '存书／取书码';
-
-  @override
-  String get enterCodeLocker => '请在书柜上输入此代码';
 
   @override
   String get noRecentSearches => '暂无搜索记录';
@@ -26903,10 +25807,10 @@ class _LZhHans extends AppLocalizations {
   String get invalidPrice => '价格不正确';
 
   @override
-  String get priceMustGreaterThan02 => '售价必须大于 0 元。';
+  String get priceMustGreaterThan02 => '售价必须大于 0。';
 
   @override
-  String get priceCannotExceed99999 => '售价不可超过 99999 元。';
+  String get priceCannotExceed99999 => '售价不可超过 99,999 代币。';
 
   @override
   String get chooseLockerLocation2 => '请选择存放区域。';
@@ -26919,15 +25823,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get couldNotListBook => '上架失败';
-
-  @override
-  String serverError(Object p0) => '服务器响应错误：${p0}';
-
-  @override
-  String get connectionProblem => '连接异常';
-
-  @override
-  String get couldNotReachServerUploadTimed => '无法连接至服务器或上传超时，请检查网络状态。';
 
   @override
   String get listBook => '确认上架';
@@ -26951,16 +25846,13 @@ class _LZhHans extends AppLocalizations {
   String get bookDetailsFilledAutomatically => '已自动带入书籍信息';
 
   @override
-  String get bookDetailsFilledFromBackupSource => '已通过备用数据源带入书籍信息';
-
-  @override
   String get noSourceIsbnPleaseEnterDetails => '未查到此 ISBN 的书籍信息，请手动输入';
 
   @override
   String get day => '日';
 
   @override
-  String get tapIconRightScan => '可点击右侧图标扫描';
+  String get tapIconRightScan => '请输入 ISBN';
 
   @override
   String get description => '书籍简介';
@@ -27005,13 +25897,7 @@ class _LZhHans extends AppLocalizations {
   String get aboutSavemybook => '关于救「舊」我的書';
 
   @override
-  String get settingsPrivacy => '设置与隐私';
-
-  @override
   String sign3(Object p0) => '${p0} 登录';
-
-  @override
-  String unlockWithWhenOpenApp(Object p0) => '打开 App 时用 ${p0} 解锁';
 
   @override
   String get scanProfileQrCode => '扫描个人二维码';
@@ -27062,7 +25948,7 @@ class _LZhHans extends AppLocalizations {
   String get enterSubject => '请填写主旨';
 
   @override
-  String get addMoreDetailSoSupportCan => '请提供更多说明，以便客服判断';
+  String get addMoreDetailSoSupportCan => '请补充问题描述';
 
   @override
   String get sentSupportReplySoon => '已提交，客服将尽快回复';
@@ -27083,19 +25969,19 @@ class _LZhHans extends AppLocalizations {
   String get notAbleReplyAfterClosing => '结案后将无法再回复。';
 
   @override
-  String get enquiryClosed => '工单已结案';
+  String get enquiryClosed => '问题已结案';
 
   @override
-  String get changeStatus => '调整工单状态';
+  String get changeStatus => '更改状态';
 
   @override
   String get statusUpdated => '已更新状态';
 
   @override
-  String get enquiry => '工单';
+  String get enquiry => '提问记录';
 
   @override
-  String get enquiryNotFound => '找不到此工单';
+  String get enquiryNotFound => '找不到此提问';
 
   @override
   String get support => '客服';
@@ -27117,15 +26003,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String hold(Object p0) => '冻结中 ${p0}';
-
-  @override
-  String requestFailed2(Object p0) => '请求失败（${p0}）';
-
-  @override
-  String get couldNotReachServer => '无法连接至服务器';
-
-  @override
-  String get couldNotReachServerCheckConnection => '无法连接至服务器，请检查网络';
 
   @override
   String get signFailed => '登录失败';
@@ -27284,7 +26161,7 @@ class _LZhHans extends AppLocalizations {
   String get couldNotLoadPhoto => '无法加载此照片';
 
   @override
-  String slot2(Object p0) => '柜号：${p0}';
+  String slot2(Object p0) => '柜位：${p0}';
 
   @override
   String confirmPutLocker(Object p0) => '确认已将《${p0}》放入书柜？';
@@ -27299,7 +26176,7 @@ class _LZhHans extends AppLocalizations {
   String get contentNeedsLeast5Characters => '内容至少 5 个字符';
 
   @override
-  String get publishAnnouncement => '发布推送';
+  String get publishAnnouncement => '发布公告';
 
   @override
   String get everyUserSeeAnnouncementOncePublished => '发布后全体用户均可看到此公告，确定要发布吗？';
@@ -27314,10 +26191,10 @@ class _LZhHans extends AppLocalizations {
   String get draftSaved => '草稿已保存';
 
   @override
-  String get editAnnouncement => '编辑推送';
+  String get editAnnouncement => '编辑公告';
 
   @override
-  String get newAnnouncement => '新增推送';
+  String get newAnnouncement => '新增公告';
 
   @override
   String get title2 => '标题';
@@ -27326,7 +26203,7 @@ class _LZhHans extends AppLocalizations {
   String get announcementTitle => '公告标题';
 
   @override
-  String get writeAnnouncement => '输入推送内容';
+  String get writeAnnouncement => '输入公告内容';
 
   @override
   String get publishNow => '立即发布';
@@ -27353,7 +26230,7 @@ class _LZhHans extends AppLocalizations {
   String get announcements => '系统公告';
 
   @override
-  String get noAnnouncementsYetTapAddOne => '暂无公告，请点击右上角新增';
+  String get noAnnouncementsYetTapAddOne => '暂无公告';
 
   @override
   String get published => '已发布';
@@ -27392,7 +26269,7 @@ class _LZhHans extends AppLocalizations {
   String get olderBackupsBeyondCountRemovedAutomatically => '超出份数的旧备份将自动清除。备份文件含全站个人资料，下载后请妥善保管，每次下载均会记入操作记录。';
 
   @override
-  String get noBackupsYetSchedulerRunsOnce => '暂无备份记录。系统每日自动备份一次，也可点击上方按钮立即备份。';
+  String get noBackupsYetSchedulerRunsOnce => '暂无备份记录';
 
   @override
   String get deleteBackup => '删除备份';
@@ -27411,9 +26288,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get downloadBackup => '下载备份';
-
-  @override
-  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '请在电脑上下载备份文件，并附上您的授权标头：\n\n${p0}\n\n文件大小：${p1}。';
 
   @override
   String get copyLink2 => '复制网址';
@@ -27614,28 +26488,7 @@ class _LZhHans extends AppLocalizations {
   String get keepEditing => '继续编辑';
 
   @override
-  String get bothTitleContentRequired => '请填写标题与内容';
-
-  @override
   String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章尚未填写标题';
-
-  @override
-  String updateP0(Object p0) => '确认更新${p0}？';
-
-  @override
-  String get documentBindingEveryUserSubmittingReplaces => '此文件对所有用户均具效力，提交后将立即取代当前版本。';
-
-  @override
-  String get yesUpdate => '确认更新';
-
-  @override
-  String get notifyEveryUser => '是否通知所有用户？';
-
-  @override
-  String get updateNotify => '更新并通知';
-
-  @override
-  String get updateOnly => '仅更新，不通知';
 
   @override
   String get sections => '章节';
@@ -27659,10 +26512,7 @@ class _LZhHans extends AppLocalizations {
   String get articles => '条文';
 
   @override
-  String get numberedAutomatically => '编号自动生成';
-
-  @override
-  String get noArticlesYetAddFirstOne => '暂无条文，请点击下方新增第一章。';
+  String get noArticlesYetAddFirstOne => '暂无条文';
 
   @override
   String get addSection => '新增章节';
@@ -27677,9 +26527,6 @@ class _LZhHans extends AppLocalizations {
   String get bodySectionSingleLineBreaksKept => '章节内容。单行换行将如实呈现，空一行代表另起一段。';
 
   @override
-  String get emptyLineStartsParagraphParagraphWhose => '空一行即分段。首行为“1. 标题”的段落，切换回章节模式时将视为一章。';
-
-  @override
   String get howUsersSee => '用户查看效果';
 
   @override
@@ -27687,9 +26534,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get unsaved => '尚未保存';
-
-  @override
-  String get upDate => '已是最新版本';
 
   @override
   String get newQuestion => '新增问题';
@@ -27729,9 +26573,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get noQuestionsYet2 => '尚无常见问题';
-
-  @override
-  String get dragHandleRightReorder => '拖拽右侧把手可调整顺序';
 
   @override
   String get hidden => '已隐藏';
@@ -27818,16 +26659,7 @@ class _LZhHans extends AppLocalizations {
   String get orders => '订单管理';
 
   @override
-  String get lookUpOrdersAdjustStatusBy => '查询订单、人工调整状态';
-
-  @override
-  String get disputeListDecisions => '申诉列表与裁决';
-
-  @override
   String get listings => '商品管理';
-
-  @override
-  String get allBooksForceDelisting => '全站书籍、强制下架';
 
   @override
   String get moderation => '内容审核';
@@ -27836,40 +26668,22 @@ class _LZhHans extends AppLocalizations {
   String get handleListingReports => '商品举报处理';
 
   @override
-  String get addReorderDeleteBookCategories => '新增、排序与删除图书分类';
-
-  @override
   String get members => '会员管理';
 
   @override
   String get memberControls => '会员管控';
 
   @override
-  String get memberListSuspensionBlocklist => '会员列表、停权与黑名单';
-
-  @override
   String get membershipTiers => '会员等级管理';
-
-  @override
-  String get tierThresholdsBenefits => '等级门槛与权益设置';
 
   @override
   String get wallets => '钱包管理';
 
   @override
-  String get checkBalancesAddDeductCoinsBy => '查询余额、人工增减代币';
-
-  @override
   String get hardwareOperations => '硬件与运营';
 
   @override
-  String get lockerSlotStatus => '书柜与柜位状态';
-
-  @override
   String get maintenanceLog => '维修记录';
-
-  @override
-  String get lockerOperationHistory => '书柜相关操作记录';
 
   @override
   String get reports => '运营报表';
@@ -27878,34 +26692,13 @@ class _LZhHans extends AppLocalizations {
   String get ordersRevenueMemberGrowth => '订单、营收与会员增长';
 
   @override
-  String get announcements2 => '推送管理';
-
-  @override
   String get supportEnquiries => '客服工单';
-
-  @override
-  String get replyQuestionsFromUsers => '回复用户提出的问题';
-
-  @override
-  String get faqShownHelpCentre => '帮助中心的常见问题';
-
-  @override
-  String get termsPrivacyPolicyAbout => '服务条款、隐私政策、关于我们';
 
   @override
   String get adminAuditLog => '管理操作记录';
 
   @override
-  String get auditTrailAdminChanges => '管理员变更的审计轨迹';
-
-  @override
   String get systemOperations => '系统运维';
-
-  @override
-  String get dailyBackupsManualRunsDownloads => '每日自动备份、手动触发与下载';
-
-  @override
-  String get deletionRequestsInsideGracePeriodCancel => '缓冲期内的删除申请，可代为取消或立即执行';
 
   @override
   String get members2 => '会员数';
@@ -28169,7 +26962,7 @@ class _LZhHans extends AppLocalizations {
   String get members3 => '会员列表';
 
   @override
-  String get searchDisplayNameEmail => '搜索昵称或邮箱';
+  String get searchDisplayNameEmail => '搜索昵称或电子邮件';
 
   @override
   String get noMembersMatch => '找不到符合条件的会员';
@@ -28304,9 +27097,6 @@ class _LZhHans extends AppLocalizations {
   String get deductCoins => '扣除代币';
 
   @override
-  String get amountPositiveWholeNumber => '金额（正整数）';
-
-  @override
   String get reasonAdjustmentRequired => '调整原因（必填）';
 
   @override
@@ -28412,9 +27202,6 @@ class _LZhHans extends AppLocalizations {
   String p0Locker(Object p0) => '${p0}书柜';
 
   @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '所有启用中的会员均会收到“${p0}已更新”通知。';
-
-  @override
   String get orderPlaced => '成立订单';
 
   @override
@@ -28469,7 +27256,7 @@ class _LZhHans extends AppLocalizations {
   String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密码已重置。此密码仅显示一次，关闭后将无法再查看。';
 
   @override
-  String get remindThemChangeSettingsChangePassword => '请提醒对方登录后立即前往“设置 → 更改密码”修改密码。';
+  String get remindThemChangeSettingsChangePassword => '请提醒对方登录后立即至「设置 › 更改密码」修改密码。';
 
   @override
   String get temporaryPasswordCopied => '已复制临时密码';
@@ -28517,9 +27304,6 @@ class _LZhHans extends AppLocalizations {
   String get notAssignedYet2 => '尚未指派';
 
   @override
-  String get pickupCodeCopied => '已复制取书码';
-
-  @override
   String get walletActivity => '钱包变动';
 
   @override
@@ -28562,7 +27346,7 @@ class _LZhHans extends AppLocalizations {
   String get declined => '不予退款';
 
   @override
-  String get changeOwnPasswordGoSettingsChange => '如需修改本人密码，请前往“设置 → 更改密码”';
+  String get changeOwnPasswordGoSettingsChange => '如需修改本人密码，请至「设置 › 更改密码」';
 
   @override
   String get memberNotAdminSoThereNo => '此会员非管理员，无后台权限可设置。请先在上方将身份设为管理员。';
@@ -28634,9 +27418,6 @@ class _LZhHans extends AppLocalizations {
   String get systemNotificationSettings => '系统通知设置';
 
   @override
-  String get turnNotificationsSoundsLockScreenPreviews => '设置通知、声音与锁定屏幕显示';
-
-  @override
   String get pushNotificationsNotSetUpBuild => '此版本的 App 尚未设置推送，请加入 Firebase 配置文件后重新编译。';
 
   @override
@@ -28674,12 +27455,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String p0SecondsSoFarKeepApp(Object p0) => '已经过 ${p0} 秒。请勿关闭 App，完成后将自动恢复服务。';
-
-  @override
-  String get majorUpdate => '此次是否为重大更新？';
-
-  @override
-  String get majorUpdateNotifiesEveryUserTerms => '重大更新将通知所有用户；服务条款与隐私政策另将要求用户在下次打开 App 时重新阅读并同意。\n\n若仅修正错字或调整排版，请选择“小幅修改”。';
 
   @override
   String get majorUpdate2 => '重大更新';
@@ -28727,19 +27502,13 @@ class _LZhHans extends AppLocalizations {
   String get undoAction2 => '还原此操作';
 
   @override
-  String get tapBarSeeDay => '点击柱状图可查看当日数据';
-
-  @override
   String get noAnnouncements => '目前没有公告';
-
-  @override
-  String get tapPhotoNameChange => '点击头像或昵称即可修改';
 
   @override
   String get canTContinueWithoutAccepting => '未同意将无法继续使用';
 
   @override
-  String needAcceptLatestP0UseP1(Object p0, Object p1) => '须同意最新版本的“${p0}”才能使用${p1}。若不同意将自动登出，您可随时重新登录后再同意。';
+  String needAcceptLatestP0UseP1(Object p0) => '不同意「${p0}」将登出账号。';
 
   @override
   String get goBack => '返回';
@@ -28748,7 +27517,7 @@ class _LZhHans extends AppLocalizations {
   String p0BeenUpdated(Object p0) => '“${p0}”已更新';
 
   @override
-  String readLatestVersionUpdatedP0Accept(Object p0) => '请阅读最新版本（${p0} 更新）。同意后才能继续使用。';
+  String readLatestVersionUpdatedP0Accept(Object p0) => '${p0} 更新';
 
   @override
   String get scrollEndContinue => '请滚动至底部阅读全文';
@@ -28763,25 +27532,16 @@ class _LZhHans extends AppLocalizations {
   String get viewDetails => '查看详情';
 
   @override
-  String get notFoundMayBeenDeletedRemoved => '找不到此数据，可能已删除或下架';
-
-  @override
-  String get salesDropOffsPickupsRefundsDisputes => '售出、存书、取书、退款与争议';
+  String get notFoundMayBeenDeletedRemoved => '此内容已不存在';
 
   @override
   String get chatMessages => '聊天消息';
 
   @override
-  String get newMessagesFromBuyersSellers => '买卖双方传来的新消息';
-
-  @override
   String get promotions2 => '优惠活动';
 
   @override
-  String get announcementsAboutPromotions => '优惠类型的系统公告';
-
-  @override
-  String get supportRepliesPasswordResetsPolicyUpdates => '客服回复、密码重置、条款更新与维护公告将一律通知。关闭的类型仍会显示在通知列表，但不会推送至手机。';
+  String get supportRepliesPasswordResetsPolicyUpdates => '客服回复、账号安全与系统公告通知无法关闭。';
 
   @override
   String get notFilled => '未填写';
@@ -28904,13 +27664,10 @@ class _LZhHans extends AppLocalizations {
   String reservedAnotherBuyerUntilP0(Object p0) => '已由其他买家预约，保留至 ${p0}';
 
   @override
-  String get ifIsnTSoldByThen => '保留期限届满后若未成交，即可加入购物车';
-
-  @override
   String sellerHoldingUntilP0(Object p0) => '卖家已为您保留至 ${p0}';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '请在保留期限内完成结账，逾期后其他买家即可购买';
+  String get checkOutBeforeHoldEndsOther => '请于保留期限内完成结账';
 
   @override
   String get copyAddress => '复制地址';
@@ -28944,9 +27701,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String p0BooksP1Views(Object p0, Object p1) => '共 ${p0} 本 · 总浏览 ${p1} 次';
-
-  @override
-  String get swipeQuickActions => '左右滑动可快速操作';
 
   @override
   String get searchTitleAuthorIsbn2 => '搜索书名、作者或 ISBN';
@@ -29069,9 +27823,6 @@ class _LZhHans extends AppLocalizations {
   String get declineReservation => '确定要婉拒预约？';
 
   @override
-  String get theyLlNotifiedDeclined => '系统将通知对方预约已婉拒。';
-
-  @override
   String get decline2 => '婉拒';
 
   @override
@@ -29099,7 +27850,7 @@ class _LZhHans extends AppLocalizations {
   String get accountCanTReceiveMessagesRight => '对方账号目前无法接收消息';
 
   @override
-  String get holdMicTalkReleaseSend => '按住麦克风录音，松开即可发送';
+  String get holdMicTalkReleaseSend => '录音时间过短';
 
   @override
   String get startConversation => '对话开始';
@@ -29123,10 +27874,10 @@ class _LZhHans extends AppLocalizations {
   String get whenCanPutLocker => '请问预计何时存入书柜？';
 
   @override
-  String get unsentMessage => '您已撤回一条消息';
+  String get unsentMessage => '您已撤回消息';
 
   @override
-  String get theyUnsentMessage => '对方已撤回一条消息';
+  String get theyUnsentMessage => '对方已撤回消息';
 
   @override
   String get reservationDetailsArenTAvailableRight => '预约信息暂时无法显示';
@@ -29159,9 +27910,6 @@ class _LZhHans extends AppLocalizations {
   String get picked => '为您推荐';
 
   @override
-  String get seeMore => '查看更多';
-
-  @override
   String get recentlyViewed => '最近浏览';
 
   @override
@@ -29180,10 +27928,7 @@ class _LZhHans extends AppLocalizations {
   String get waitingBuyerCollect => '等待买家至书柜取书';
 
   @override
-  String get bookLockerEnterPickupCodeCollect => '书籍已存入书柜，输入取书码即可取书';
-
-  @override
-  String get transactionCompleteThank => '交易完成，感谢您的使用';
+  String get transactionCompleteThank => '交易完成';
 
   @override
   String get confirmVeTakenBookFromLocker => '请确认已从书柜取出书籍，确认后订单即完成。';
@@ -29204,9 +27949,6 @@ class _LZhHans extends AppLocalizations {
   String get accountSecurity => '账号安全';
 
   @override
-  String get sellerHasnTPutBookLocker => '卖家尚未存书，存书后将通知您';
-
-  @override
   String get searchHistoryCleared => '已清除搜索记录';
 
   @override
@@ -29219,10 +27961,7 @@ class _LZhHans extends AppLocalizations {
   String signOutP0(Object p0) => '确定要登出「${p0}」？';
 
   @override
-  String get llNeedSignAgainUseApp => '登出后须重新登录才能使用。';
-
-  @override
-  String get deviceSignedOutRightAwayStop => '该设备将立即登出，且不再接收推送通知。';
+  String get deviceSignedOutRightAwayStop => '该设备将立即登出。';
 
   @override
   String get deviceSignedOut => '已登出设备';
@@ -29234,10 +27973,10 @@ class _LZhHans extends AppLocalizations {
   String get signOutAllOtherDevices => '登出其他所有设备';
 
   @override
-  String get everyDeviceIncludingOneSignedOut => '包含本机在内的所有设备将被登出，之后须重新登录。';
+  String get everyDeviceIncludingOneSignedOut => '包含本机在内的所有设备将立即登出。';
 
   @override
-  String get everyDeviceExceptOneSignedOut => '除本机外的所有设备将立即登出，且不再接收推送通知。';
+  String get everyDeviceExceptOneSignedOut => '除本机外的所有设备将立即登出。';
 
   @override
   String signedOutP0OtherDevices(Object p0) => '已登出其他 ${p0} 台设备';
@@ -29247,9 +27986,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get couldnTLoadDevices => '无法加载登录设备';
-
-  @override
-  String get theseDevicesSignedAccountIfDon => '以下设备当前已登录您的账号。如发现陌生设备，请立即登出并修改密码。';
 
   @override
   String get device => '本机';
@@ -29300,9 +28036,6 @@ class _LZhHans extends AppLocalizations {
   String get paymentPinSet => '交易密码已设置';
 
   @override
-  String get use6DigitPinConfirmPayments => '今后结账时，将使用此 6 位数密码确认付款。';
-
-  @override
   String get verifyingIdentity => '正在确认身份…';
 
   @override
@@ -29345,7 +28078,7 @@ class _LZhHans extends AppLocalizations {
   String p0PaymentsTurned(Object p0) => '已启用 ${p0} 付款';
 
   @override
-  String get securitySettingsUnavailableRightNowMay => '暂时无法获取账号安全设置，交易密码与登录设备可能无法更改。';
+  String get securitySettingsUnavailableRightNowMay => '无法加载账号安全设置';
 
   @override
   String payWithP0(Object p0) => '使用 ${p0} 付款';
@@ -29357,19 +28090,13 @@ class _LZhHans extends AppLocalizations {
   String get accountCouldSafer => '账号安全性有待加强';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => '交易密码与生物识别付款均已设置，请定期检查登录设备。';
-
-  @override
-  String get setPaymentPinTurnBiometricPayment => '设置交易密码并开启生物识别付款，结账更安全、快捷。';
+  String get setPaymentPinTurnBiometricPayment => '尚未设置交易密码';
 
   @override
   String tooManyAttemptsLockedUntilP0(Object p0) => '错误次数过多，已锁定至 ${p0}';
 
   @override
-  String get usedConfirmPaymentsCheckout => '用于结账时确认付款';
-
-  @override
-  String get notSetRequiredBeforeCheckout => '尚未设置，结账前须完成设置';
+  String get notSetRequiredBeforeCheckout => '尚未设置';
 
   @override
   String get change => '更改';
@@ -29378,16 +28105,7 @@ class _LZhHans extends AppLocalizations {
   String get forgotPaymentPin => '忘记交易密码';
 
   @override
-  String get ifFailsCanEnterPaymentPin => '识别失败时可改输入交易密码';
-
-  @override
-  String get viewRemotelySignOutDevices => '查看或远程登出设备';
-
-  @override
   String p0Devices(Object p0) => '${p0} 台';
-
-  @override
-  String get otherDevicesNeedSignAgain => '修改后其他设备须重新登录';
 
   @override
   String get restoredUnfinishedListing => '已带入上次未完成的内容';
@@ -29411,13 +28129,7 @@ class _LZhHans extends AppLocalizations {
   String get storage => '存储空间';
 
   @override
-  String get paymentPinBiometricPaymentDevices => '交易密码、生物识别付款、登录设备';
-
-  @override
   String get clearCache => '清除缓存';
-
-  @override
-  String get removesCachedImagesFilesAccountData => '清除暂存的图片与文件，不影响账号数据';
 
   @override
   String get couldNotLoadNotificationSettings => '无法加载通知设置';
@@ -29489,7 +28201,7 @@ class _LZhHans extends AppLocalizations {
   String couldnTRegisterPushTokenWith(Object p0) => '推送 token 上传服务器失败：${p0}';
 
   @override
-  String get protectCoinsCheckoutRequires6Digit => '为保障您的代币安全，结账时须输入 6 位数交易密码。设置后也可开启 Face ID 或指纹付款。';
+  String get protectCoinsCheckoutRequires6Digit => '结账前请先设置 6 位数交易密码。';
 
   @override
   String confirmPaymentP0Coins(Object p0) => '确认付款 ${p0} 代币';
@@ -29519,7 +28231,7 @@ class _LZhHans extends AppLocalizations {
   String get usePasswordInstead => '改用登录密码';
 
   @override
-  String get couldnTGetLocationLockersShown => '无法获取当前位置，书柜将按默认顺序排列';
+  String get couldnTGetLocationLockersShown => '无法获取当前位置';
 
   @override
   String p0SlotsFree(Object p0) => '空柜 ${p0} 格';
@@ -29532,9 +28244,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get noFreeSlots => '目前没有空柜';
-
-  @override
-  String get sortedByDistance => '按距离由近到远排列';
 
   @override
   String get turnLocationSortByDistance => '开启定位可按距离排序';
@@ -29576,9 +28285,6 @@ class _LZhHans extends AppLocalizations {
   String get releaseCancel => '松开以取消';
 
   @override
-  String get slideCancel => '← 滑动以取消';
-
-  @override
   String get awaitingReply => '待回复';
 
   @override
@@ -29598,9 +28304,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String holdP0H(Object p0) => '保留 ${p0} 小时';
-
-  @override
-  String get onceSellerAcceptsBookHeldNo => '卖家接受后，此书籍将为您保留，期限内其他人无法购买。';
 
   @override
   String get holdPeriod => '保留时间';
@@ -29627,10 +28330,10 @@ class _LZhHans extends AppLocalizations {
   String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone 向 Apple 注册推送失败：${p0}\n${p1}';
 
   @override
-  String get serverNotBeenUpdatedSupportFeature => '服务器尚未更新到支持这项功能的版本，请稍后再试';
+  String get serverNotBeenUpdatedSupportFeature => '此功能暂时无法使用，请稍后再试';
 
   @override
-  String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暂时无法使用，服务器正在更新';
+  String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暂时无法使用';
 
   @override
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '服务器运行的 API 版本过旧（当前 ${p0}，App 需要 ${p1}）。请在服务器更新代码并重新启动 API。';
@@ -29691,9 +28394,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get mistBlue => '雾蓝';
-
-  @override
-  String get chooseAppSMainColourHeader => '选择 App 的主要色彩，应用于标题栏、按钮与重点信息。';
 
   @override
   String get draftRestored => '已还原草稿';
@@ -29900,7 +28600,7 @@ class _LZhHans extends AppLocalizations {
   String get blockUser => '屏蔽用户';
 
   @override
-  String afterBlockP0NeitherCanSend(Object p0) => '屏蔽「${p0}」后，双方将无法互相发送消息，对方不会收到通知。您可随时在「设置 › 屏蔽名单」解除屏蔽。';
+  String afterBlockP0NeitherCanSend(Object p0) => '屏蔽「${p0}」后，双方将无法互相发送消息。';
 
   @override
   String get block => '屏蔽';
@@ -29931,9 +28631,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get originalMessageUnavailable => '原消息已无法显示';
-
-  @override
-  String replyingP0(Object p0) => '回复 ${p0}';
 
   @override
   String get cancelReply => '取消回复';
@@ -29999,19 +28696,16 @@ class _LZhHans extends AppLocalizations {
   String get notAllowed => '未允许';
 
   @override
-  String get restricted => '受限';
+  String get restricted => '受系统限制';
 
   @override
-  String get denied => '永久拒绝';
+  String get denied => '已拒绝';
 
   @override
   String get allow => '允许';
 
   @override
   String get homeRecommendations => '首页推荐区块';
-
-  @override
-  String get pickedRecentlyViewed => '为您推荐、最近浏览';
 
   @override
   String get leaveGroup => '退出群组';
@@ -30032,7 +28726,7 @@ class _LZhHans extends AppLocalizations {
   String get pin => '置顶';
 
   @override
-  String get you3 => '你';
+  String get you3 => '您';
 
   @override
   String get canOnlyEditMessagesSentWithin => '仅能编辑 15 分钟内发送的消息';
@@ -30140,7 +28834,7 @@ class _LZhHans extends AppLocalizations {
   String requestedFromP0(Object p0) => '向 ${p0} 请款';
 
   @override
-  String p0RequestedPaymentFrom(Object p0) => '${p0} 向你请款';
+  String p0RequestedPaymentFrom(Object p0) => '${p0} 向您请款';
 
   @override
   String p0RequestedPaymentFromP1(Object p0, Object p1) => '${p0} 向 ${p1} 请款';
@@ -30149,7 +28843,7 @@ class _LZhHans extends AppLocalizations {
   String sentP0(Object p0) => '转账给 ${p0}';
 
   @override
-  String p0SentCoins(Object p0) => '${p0} 转账给你';
+  String p0SentCoins(Object p0) => '${p0} 转账给您';
 
   @override
   String p0SentCoinsP1(Object p0, Object p1) => '${p0} 转账给 ${p1}';
@@ -30311,7 +29005,7 @@ class _LZhHans extends AppLocalizations {
   String get rotate => '旋转';
 
   @override
-  String get mentioned => '[有人提及您]';
+  String get mentioned => '[提及您]';
 
   @override
   String get saveImage => '保存图片';
@@ -30341,7 +29035,7 @@ class _LZhHans extends AppLocalizations {
   String removedAdminRoleFromP0(Object p0) => '已解除 ${p0} 的管理员身份';
 
   @override
-  String photosP02(Object p0) => '[图片] ${p0} 张';
+  String photosP02(Object p0) => '[${p0} 张图片]';
 
   @override
   String get savedDownloads => '已保存至“下载”';
@@ -30362,34 +29056,31 @@ class _LZhHans extends AppLocalizations {
   String get aiSupport => 'AI 客服';
 
   @override
-  String get instantReplies => '即时回复';
-
-  @override
   String get howDoIListBook => '如何上架书籍？';
 
   @override
-  String get howDoIPickUpFrom => '如何在智能柜取书？';
+  String get howDoIPickUpFrom => '如何至书柜取书？';
 
   @override
   String get howDoIRequestRefund => '如何申请退款？';
 
   @override
-  String get howDoWalletCoinsWork => '钱包点数如何使用？';
+  String get howDoWalletCoinsWork => '代币如何使用？';
 
   @override
-  String get talkPerson => '转接人工客服';
+  String get talkPerson => '转接客服人员';
 
   @override
-  String get supportRequestCreatedFromConversationOur => '将以当前的对话内容创建客服单，由客服人员接续处理';
+  String get supportRequestCreatedFromConversationOur => '将转接客服人员，并提供当前的对话内容';
 
   @override
   String get transfer4 => '转接';
 
   @override
-  String get creatingSupportRequest => '正在创建客服单';
+  String get creatingSupportRequest => '正在转接客服';
 
   @override
-  String get transferredSupportTeam => '已转接人工客服';
+  String get transferredSupportTeam => '已转接客服人员';
 
   @override
   String get newConversation => '开始新对话';
@@ -30399,9 +29090,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get copied2 => '已复制';
-
-  @override
-  String get aiReplies => 'AI 回复';
 
   @override
   String get howCanWeHelp => '请问有什么需要协助的地方？';
@@ -30422,16 +29110,10 @@ class _LZhHans extends AppLocalizations {
   String get aiFeatures => 'AI 功能';
 
   @override
-  String get usageModelsListingReview => '用量、模型设置与上架审核';
-
-  @override
   String get aiSettingsNotSavedChangesLost => 'AI 设置尚未保存，离开后更改将不会保留';
 
   @override
   String get usage => '用量';
-
-  @override
-  String get settings2 => '设置 •';
 
   @override
   String reviewP0(Object p0) => '审核 ${p0}';
@@ -30444,9 +29126,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get peakDay => '单日最高';
-
-  @override
-  String get tapBarDetails => '点选长条查看明细';
 
   @override
   String p0Requests(Object p0) => '${p0} 次请求';
@@ -30776,12 +29455,6 @@ class _LZhHans extends AppLocalizations {
   String get bookDetails => '书籍资料';
 
   @override
-  String get conditionAppliedNextStep => '书况（下一步带入）';
-
-  @override
-  String get priceAppliedNextStep => '售价（下一步带入）';
-
-  @override
   String get suggestedPrice => '建议售价';
 
   @override
@@ -30789,9 +29462,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String listPriceP0(Object p0) => '定价 \$${p0}';
-
-  @override
-  String get sources => '资料来源';
 
   @override
   String applyP0(Object p0) => '应用 ${p0} 项';
@@ -30803,9 +29473,6 @@ class _LZhHans extends AppLocalizations {
   String get sameAsCurrent => '与当前相同';
 
   @override
-  String confidenceP0(Object p0) => '置信度 ${p0}%';
-
-  @override
   String get listingNotApproved => '未通过上架审核';
 
   @override
@@ -30815,10 +29482,10 @@ class _LZhHans extends AppLocalizations {
   String get submittedReview => '已提交审核';
 
   @override
-  String get goSaleOnceApprovedNotifiedResult => '审核通过后将公开销售，结果会以通知告知';
+  String get goSaleOnceApprovedNotifiedResult => '审核通过后将公开销售';
 
   @override
-  String get got => '我知道了';
+  String get got => '确定';
 
   @override
   String get aiFeaturesNotAvailableRightNow => 'AI 功能目前未开放';
@@ -30857,9 +29524,6 @@ class _LZhHans extends AppLocalizations {
   String get aiDataProcessing => 'AI 数据处理';
 
   @override
-  String providersP0(Object p0) => '服务商：${p0}';
-
-  @override
   String get messagesEnterStatusOrdersReservations => '您输入的消息与您的订单、预约状态';
 
   @override
@@ -30890,7 +29554,7 @@ class _LZhHans extends AppLocalizations {
   String get withdrawingConsent => '撤回同意';
 
   @override
-  String get canTurnOffAiDataProcessing => '您可随时在「设置」>「账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据。';
+  String get canTurnOffAiDataProcessing => '您可随时于「设置 › 账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据。';
 
   @override
   String get agreeContinue => '同意并继续';
@@ -30923,28 +29587,25 @@ class _LZhHans extends AppLocalizations {
   String get requiresDatabaseUpdate013 => '需先执行数据库更新 013';
 
   @override
-  String get mysteryNovelMyCommute => '想找适合通勤看的推理小说';
+  String get mysteryNovelMyCommute => '适合通勤阅读的推理小说';
 
   @override
   String get programmingBooksBeginners => '适合入门的程序设计书';
 
   @override
-  String get booksUnder200Coins => '200 代币以内的书';
+  String get booksUnder200Coins => '200 代币以内的书籍';
 
   @override
   String get popularLiteraryFictionRightNow => '最近热门的文学小说';
 
   @override
-  String get tellMeWhatBookLooking => '告诉我您想找什么书';
-
-  @override
-  String get allRecommendationsComeFromBooksCurrently => '推荐内容均来自站上目前贩售中的书籍';
+  String get tellMeWhatBookLooking => '请描述您想找的书籍';
 
   @override
   String get describeBookLooking => '描述您想找的书籍';
 
   @override
-  String get tellMeWhatWantReadI => '说说您想看什么，我来为您挑选';
+  String get tellMeWhatWantReadI => '依您的需求推荐书籍';
 
   @override
   String get subtitle => '副标题';
@@ -30954,15 +29615,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get yearOnly => '仅确认到年';
-
-  @override
-  String get fromBookDatabase => '来自书目数据库';
-
-  @override
-  String get writtenByAi => 'AI 依资料撰写';
-
-  @override
-  String get aiTidiedSourceText => 'AI 整理来源文字';
 
   @override
   String get msg => '繁體中文';
@@ -31007,7 +29659,7 @@ class _LZhHans extends AppLocalizations {
   String get signMethodSettingsSaved => '登录方式设置已保存';
 
   @override
-  String get signMethodSettingsUnsavedLeavingDiscards => '登录方式设置尚未保存，离开后更改会丢失。';
+  String get signMethodSettingsUnsavedLeavingDiscards => '登录方式设置尚未保存，离开后更改将丢失。';
 
   @override
   String get serverNotRunDatabaseUpdate014 => '服务器尚未执行数据库更新 014，设置暂时无法生效。';
@@ -31025,19 +29677,13 @@ class _LZhHans extends AppLocalizations {
   String get notConfigured => '未设置';
 
   @override
-  String get allowCreatingNewAccountsWithMethod => '允许以这种方式直接创建新账号';
-
-  @override
-  String get serverNoCredentialsChannel => '服务器尚未设置这个渠道的凭证';
+  String get allowCreatingNewAccountsWithMethod => '允许以此方式注册新账号';
 
   @override
   String get unsavedChanges2 => '尚未保存的更改';
 
   @override
-  String get switchesSignupPermissionsSocialSmsSign => '社交与短信登录的开关与注册权限';
-
-  @override
-  String get taiwan => '台湾';
+  String get taiwan => '中华民国';
 
   @override
   String get hongKong => '香港';
@@ -31046,7 +29692,7 @@ class _LZhHans extends AppLocalizations {
   String get macau => '澳门';
 
   @override
-  String get china => '中国';
+  String get china => '中华人民共和国';
 
   @override
   String get japan => '日本';
@@ -31085,7 +29731,7 @@ class _LZhHans extends AppLocalizations {
   String get signWithMobileNumber => '手机号码登录';
 
   @override
-  String get k6DigitCodeSentNumberMessage => '我们会发送一组 6 位数验证码到这个号码，短信可能需要一些时间送达。';
+  String get k6DigitCodeSentNumberMessage => '将发送 6 位数验证码至此手机号码。';
 
   @override
   String get mobileNumber => '手机号码';
@@ -31118,7 +29764,7 @@ class _LZhHans extends AppLocalizations {
   String get completeAccountDetails => '完成账号资料';
 
   @override
-  String p0DidNotProvideEmailAddress(Object p0) => '${p0} 未提供电子邮件，请补齐资料以创建账号。';
+  String get p0DidNotProvideEmailAddress => '请填写电子邮件以完成注册。';
 
   @override
   String signWithP0(Object p0) => '以 ${p0} 登录';
@@ -31133,7 +29779,7 @@ class _LZhHans extends AppLocalizations {
   String get emailAlreadyRegistered => '此电子邮件已注册';
 
   @override
-  String get signWithPasswordThenLinkMethod => '请改以密码登录，再到账号安全的登录方式绑定这个方式。';
+  String get signWithPasswordThenLinkMethod => '请以密码登录后，至「账号安全 › 登录方式」绑定。';
 
   @override
   String get signWithPassword => '以密码登录';
@@ -31145,16 +29791,16 @@ class _LZhHans extends AppLocalizations {
   String get passwordSet => '密码已设置';
 
   @override
-  String get canNowSignWithEmailPassword => '之后可以电子邮件与密码登录，其他设备需要重新登录。';
+  String get canNowSignWithEmailPassword => '其他设备须重新登录。';
 
   @override
-  String get passwordRequiredBeforeCanUnlinkSign => '设置密码后才能解除绑定登录方式，也能在换设备时以电子邮件登录。密码至少 8 位并含英文与数字。';
+  String get passwordRequiredBeforeCanUnlinkSign => '密码须至少 8 位，且包含英文与数字。';
 
   @override
-  String get changingSignMethodsRequiresIdentityVerification => '更改登录方式需要验证身份，请先为这个账号设置密码。';
+  String get changingSignMethodsRequiresIdentityVerification => '更改登录方式前，请先设置密码。';
 
   @override
-  String get later => '稍后再说';
+  String get later => '暂不设置';
 
   @override
   String p0Linked(Object p0) => '已绑定 ${p0}';
@@ -31163,7 +29809,7 @@ class _LZhHans extends AppLocalizations {
   String unlinkP0(Object p0) => '解除绑定 ${p0}';
 
   @override
-  String get noLongerAbleSignWayCan => '解除后将无法再以这种方式登录，需要时可以重新绑定。';
+  String get noLongerAbleSignWayCan => '解除后将无法以此方式登录。';
 
   @override
   String get unlink => '解除绑定';
@@ -31179,9 +29825,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get noPasswordSet => '尚未设置密码';
-
-  @override
-  String get requiredBeforeChangingSignMethodsDeleting => '设置后才能更改登录方式与删除账号';
 
   @override
   String linkedP0(Object p0) => '${p0} 绑定';
@@ -31202,22 +29845,22 @@ class _LZhHans extends AppLocalizations {
   String get signMethodNotAvailableRightNow => '目前未开放此登录方式';
 
   @override
-  String get credentialDoesNotMatchSelectedSign => '登录凭证与所选的登录方式不符';
+  String get credentialDoesNotMatchSelectedSign => '登录失败，请重新操作';
 
   @override
   String get signMethodLinkedAnotherAccount => '此登录方式已绑定其他账号';
 
   @override
-  String get accountAlreadyLinkedSignMethod => '此账号已绑定这个登录方式';
+  String get accountAlreadyLinkedSignMethod => '此账号已绑定此登录方式';
 
   @override
   String get onlySignMethodAccountSetPassword => '这是此账号唯一的登录方式，请先设置密码或绑定其他登录方式';
 
   @override
-  String get socialSignUnavailableServerNotFinished => '社交登录目前无法使用，服务器尚未完成数据库更新';
+  String get socialSignUnavailableServerNotFinished => '社交登录暂时无法使用，请稍后再试';
 
   @override
-  String get credentialInvalidExpiredPleaseTryAgain => '登录凭证无效或已过期，请重新操作';
+  String get credentialInvalidExpiredPleaseTryAgain => '登录超时，请重新操作';
 
   @override
   String get accountAlreadyPasswordUseChangePassword => '此账号已设置密码，请改用更改密码';
@@ -31226,7 +29869,7 @@ class _LZhHans extends AppLocalizations {
   String get signLinkExpiredPleaseTryAgain => '登录链接已失效，请重新操作';
 
   @override
-  String get signResultExpiredPleaseTryAgain => '登录结果已失效，请重新操作';
+  String get signResultExpiredPleaseTryAgain => '登录超时，请重新操作';
 
   @override
   String get thirdPartySignServiceUnavailablePlease => '第三方登录服务目前无法使用，请稍后再试';
@@ -31235,10 +29878,7 @@ class _LZhHans extends AppLocalizations {
   String get couldNotCompleteSignPleaseTry => '无法完成登录，请重新操作';
 
   @override
-  String get accountNotLinkedSignMethod => '此账号未绑定这个登录方式';
-
-  @override
-  String get couldNotReachServerCheckConnection2 => '无法连接到服务器，请确认网络连接';
+  String get accountNotLinkedSignMethod => '此账号未绑定此登录方式';
 
   @override
   String get mobileNumberFormatNotValid => '手机号码格式不正确';
@@ -31256,13 +29896,157 @@ class _LZhHans extends AppLocalizations {
   String get smsSendingLimitBeenReachedPlease => '短信发送次数已达上限，请稍后再试';
 
   @override
-  String get smsVerificationNotSetUpDevice => '此设备尚未完成短信验证设置，请改用其他登录方式';
+  String get smsVerificationNotSetUpDevice => '此设备目前无法使用短信验证，请改用其他登录方式';
 
   @override
   String get couldNotCompleteSmsVerificationPlease => '无法完成短信验证，请稍后再试';
 
   @override
   String get allowSigningLinkingWithMethod => '开放此方式登录与绑定';
+
+  @override
+  String get appNeverStoresPasswordUsedOnly => '本 App 不会储存您的密码，仅用于本次验证。';
+
+  @override
+  String get verifyWithBiometricsInstead => '改用生物识别验证';
+
+  @override
+  String get accountWasCreatedWithSocialPhone => '此账号尚未设置登录密码，请先完成设置。';
+
+  @override
+  String get setSignPassword => '前往设定登入密码';
+
+  @override
+  String get enterSignPasswordRunAdminAction => '请以登入密码或通行密钥验证身分以执行此后台操作';
+
+  @override
+  String p1P0MethodsEnabled(Object p0, Object p1) => '共 ${p0} 种方式，目前启用 ${p1} 种';
+
+  @override
+  String get masterSwitchOffSoEveryMethod => '总开关关闭，所有方式一律停用';
+
+  @override
+  String get signLinkingDirectSignUpAllowed => '可登录、绑定与直接注册';
+
+  @override
+  String credentialsNotSetPleaseConfigureP0(Object p0) => '尚未设置凭证，请于服务器设置 ${p0}';
+
+  @override
+  String get whenOffMethodHiddenFromSign => '关闭后登录页与账号安全将不显示此方式';
+
+  @override
+  String get whenOffOnlyAccountsAlreadyLinked => '关闭后仅限已绑定的账号使用此方式';
+
+  @override
+  String get signMethodNotLinkedAccount => '此登录方式尚未绑定账号';
+
+  @override
+  String p0AccountNotLinkedAnySavemybook(Object p0) => '${p0} 账号尚未绑定救「舊」我的書账号。';
+
+  @override
+  String get iAlreadyAccountSignFirst => '登录已有账号并绑定';
+
+  @override
+  String get createNewAccountWithIdentity => '创建新账号';
+
+  @override
+  String signExistingAccountFirstThenLink(Object p0) => '请先登录原有账号，再至「账号安全 › 登录方式」绑定 ${p0}。';
+
+  @override
+  String get signMethodNotLinkedAnyAccount => '此登录方式尚未绑定任何账号';
+
+  @override
+  String get verifyIdentityWithPasskeyContinue => '请使用通行密钥验证身分以继续';
+
+  @override
+  String get verifyWithPasskeyInstead => '改用通行密钥验证';
+
+  @override
+  String get passkeys => '通行密钥';
+
+  @override
+  String get verifyWithFaceIdFingerprintScreen => '以此装置的 Face ID、指纹或屏幕锁定完成验证，不必输入密码。';
+
+  @override
+  String get verifyWithPasskey => '使用通行密钥验证';
+
+  @override
+  String get useSignPasswordInstead => '改用登入密码验证';
+
+  @override
+  String get signWithPasskey => '使用通行密钥登入';
+
+  @override
+  String get passkeyAdded => '已新增通行密钥';
+
+  @override
+  String get screenLock => '屏幕锁定';
+
+  @override
+  String fromNowCanSignVerifyIdentity(Object p0) => '之后登入与验证身分可改用 ${p0}，不必再输入密码。';
+
+  @override
+  String get deletePasskey => '删除通行密钥';
+
+  @override
+  String get noLongerAbleSignVerifyIdentity => '删除后将无法以此通行密钥登入或验证身分。装置中储存的通行密钥不会一并移除，可至系统的密码设定中删除。';
+
+  @override
+  String get passkeyDeleted => '已删除通行密钥';
+
+  @override
+  String get signVerifyIdentityWithFaceId => '以 Face ID、指纹或屏幕锁定登入与验证身分，不必输入密码。通行密钥只储存在您的装置与密码管理工具中。';
+
+  @override
+  String get addPasskey => '新增通行密钥';
+
+  @override
+  String get notUsedYet => '尚未使用';
+
+  @override
+  String lastUsedFormatdateItemLastusedat(Object p0) => '最后使用 ${p0}';
+
+  @override
+  String createdCreated(Object p0) => '建立于 ${p0}';
+
+  @override
+  String get noPasskeyAvailableDeviceUsePassword => '此装置没有可用的通行密钥，请改用密码';
+
+  @override
+  String get passkeyAlreadyRegisteredDevice => '此装置已经注册过通行密钥';
+
+  @override
+  String get signGoogleAccountTurnPasswordManager => '请先在装置上登入 Google 账号并开启密码管理工具，或改用密码';
+
+  @override
+  String get setUpScreenLockPasswordManager => '此装置尚未设定屏幕锁定或密码管理工具，无法建立通行密钥';
+
+  @override
+  String get deviceDoesNotSupportPasskeysUse => '此装置不支持通行密钥，请改用密码';
+
+  @override
+  String get passkeysTemporarilyUnavailableBecauseAppWebsite => '目前无法使用通行密钥，请改用密码';
+
+  @override
+  String get requestTimedOutPleaseTryAgain => '操作超时，请再试一次';
+
+  @override
+  String get passkeyRequestFailedUsePasswordInstead => '通行密钥操作失败，请改用密码';
+
+  @override
+  String get verifyIdentityBeforeAddingPasskey => '新增通行密钥前，请先验证身分';
+
+  @override
+  String get couldNotListPleaseTryAgain => '上架失败，请稍后再试';
+
+  @override
+  String downloadLinkValidOnceP0P1(Object p0, Object p1) => '此下载网址 5 分钟内有效，且仅能使用一次，请勿分享。\n\n${p0}\n\n文件大小：${p1}';
+
+  @override
+  String get sources => '资料来源';
+
+  @override
+  String get unableOpenLink => '无法打开链接';
 
 }
 
@@ -31552,16 +30336,10 @@ class _LZhHant extends AppLocalizations {
   String get appearanceSystem => '跟隨系統';
 
   @override
-  String get appearanceHint => '選擇「跟隨系統」時，會依裝置的深淺色設定自動切換';
-
-  @override
   String get language => '語言';
 
   @override
   String get languageSystem => '跟隨系統';
-
-  @override
-  String get languageHint => '選擇「跟隨系統」時，會依裝置的語言設定顯示';
 
   @override
   String get verifySignSavemybook => '驗證身分以登入救「舊」我的書';
@@ -31666,13 +30444,7 @@ class _LZhHant extends AppLocalizations {
   String get deleteAccount => '刪除帳號';
 
   @override
-  String get accountPermanentlyDisabled30DaysSign => '帳號將在 30 天後永久停用，期間內重新登入即可取消。\n\n';
-
-  @override
-  String get personalDataErasedButCompletedOrders => '停用後將清除個人資料，但保留已完成的訂單與交易紀錄，';
-
-  @override
-  String get peopleTradedWithDoNotLose => '以確保交易對象的紀錄完整。';
+  String get accountPermanentlyDisabled30DaysSign => '帳號將於 30 天後刪除，期間內重新登入即可取消。刪除後將清除個人資料，已完成的訂單與交易紀錄將予以保留。';
 
   @override
   String get actionContinue => '繼續';
@@ -31705,19 +30477,7 @@ class _LZhHant extends AppLocalizations {
   String get exportMyData => '匯出我的資料';
 
   @override
-  String get profileBooksOrdersTransactionsJson => '個人檔案、書籍、訂單與交易紀錄，JSON 格式';
-
-  @override
-  String get oldLinkQrCodeStopWorking2 => '舊的連結與 QR Code 將立即失效';
-
-  @override
   String get cancelAccountDeletion => '取消刪除帳號';
-
-  @override
-  String get restoreAccountStopCountdown => '恢復帳號並停止刪除程序';
-
-  @override
-  String get canChangeMindWithin30Days => '30 天內可取消刪除';
 
   @override
   String get deletionPending => '待刪除';
@@ -31801,7 +30561,7 @@ class _LZhHant extends AppLocalizations {
   String get signContactSeller => '請先登入才能聯絡賣家';
 
   @override
-  String get signStartChat => '無法建立聊天室，請先登入';
+  String get signStartChat => '請先登入才能聯絡賣家';
 
   @override
   String get signReport => '請先登入才能檢舉';
@@ -31819,7 +30579,7 @@ class _LZhHant extends AppLocalizations {
   String get reasonNeedsLeast5Characters => '請至少填寫 5 個字的檢舉原因';
 
   @override
-  String get reportSubmittedWeLookInto => '檢舉已送出，我們將盡快處理';
+  String get reportSubmittedWeLookInto => '檢舉已送出';
 
   @override
   String get publisher => '出版社：';
@@ -31843,9 +30603,6 @@ class _LZhHant extends AppLocalizations {
   String get about => '簡介：';
 
   @override
-  String pickup(Object p0) => '取書地點：${p0}';
-
-  @override
   String get messageSeller => '聯絡賣家';
 
   @override
@@ -31855,16 +30612,10 @@ class _LZhHant extends AppLocalizations {
   String get addCart => '加入購物車';
 
   @override
-  String get bookBeenReportedUnderReviewStays => '此書籍已遭檢舉，平台審核期間仍可正常販售。';
+  String get bookBeenReportedUnderReviewStays => '此書籍已遭檢舉，審核中。';
 
   @override
-  String get violationWasConfirmedBookPleaseCheck => '此書籍經審核確認違規，請確認商品內容是否符合社群規範。';
-
-  @override
-  String get reportDismissed2 => '檢舉已駁回';
-
-  @override
-  String get bookWasReportedButNoViolation => '此書籍曾遭檢舉，經審核未違規，不影響上架。';
+  String get violationWasConfirmedBookPleaseCheck => '此書籍經審核確認違規，請修改商品內容。';
 
   @override
   String get delist => '取消上架';
@@ -31874,9 +30625,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get delist2 => '下架';
-
-  @override
-  String get delistedRelistFromDelistedTab => '已下架，可在「已下架」分頁重新上架';
 
   @override
   String get couldNotDelistPleaseTryAgain => '下架失敗，請稍後再試';
@@ -31891,16 +30639,7 @@ class _LZhHant extends AppLocalizations {
   String get noBooksCategory => '此分類目前沒有書籍';
 
   @override
-  String get listFirstBook => '上架第一本書';
-
-  @override
   String get relist => '重新上架';
-
-  @override
-  String get removeFromCart => '移出購物車';
-
-  @override
-  String removeFromCart2(Object p0) => '確定要將《${p0}》從購物車移除嗎？';
 
   @override
   String get remove => '移除';
@@ -31909,16 +30648,10 @@ class _LZhHant extends AppLocalizations {
   String get couldNotRemoveRestored => '移除失敗，已還原';
 
   @override
-  String get couldNotRemovePleaseTryAgain => '移除失敗，請稍後再試';
-
-  @override
   String get selectBooksWantCheckOut => '請先選擇要結帳的書籍';
 
   @override
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代幣不足，此訂單需 ${p0}，目前餘額 ${p1}';
-
-  @override
-  String get confirmCheckout => '確認結帳';
 
   @override
   String booksTotal(Object p0, Object p1) => '共 ${p0} 本書，總金額 \$${p1}。\n';
@@ -32038,7 +30771,7 @@ class _LZhHant extends AppLocalizations {
   String get markAllAsRead => '全部標為已讀';
 
   @override
-  String markAllUnreadMessagesAsRead(Object p0) => '確定要將 ${p0} 則未讀訊息全部標為已讀嗎？此操作無法復原。';
+  String markAllUnreadMessagesAsRead(Object p0) => '確定要將 ${p0} 則未讀訊息全部標為已讀？';
 
   @override
   String get markAllRead => '全部已讀';
@@ -32060,9 +30793,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get mute => '靜音';
-
-  @override
-  String get messagesLimited500Characters => '訊息長度不可超過 500 字';
 
   @override
   String get messageCouldNotSent => '訊息傳送失敗';
@@ -32092,7 +30822,7 @@ class _LZhHant extends AppLocalizations {
   String get describeDispute => '請填寫爭議說明';
 
   @override
-  String get useLeast10CharactersSoSupport => '爭議說明請至少填寫 10 個字，以利客服判斷';
+  String get useLeast10CharactersSoSupport => '爭議說明至少需 10 個字';
 
   @override
   String get submitDispute => '送出爭議申請';
@@ -32113,9 +30843,6 @@ class _LZhHant extends AppLocalizations {
   String get requestPaymentHold => '申請凍結款項';
 
   @override
-  String get paymentSellerHeldUntilSupportDecides => '送出後款項將暫停撥付給賣家，直至客服裁決';
-
-  @override
   String get submitDispute2 => '提交爭議申請';
 
   @override
@@ -32128,7 +30855,7 @@ class _LZhHant extends AppLocalizations {
   String get whatHappened => '爭議說明';
 
   @override
-  String get describeProblemEGConditionDoes => '請描述發生的問題，例如書況與商品描述不符…';
+  String get describeProblemEGConditionDoes => '請描述發生的問題';
 
   @override
   String get submit => '送出申請';
@@ -32138,12 +30865,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get canAttachUp6Photos => '最多可上傳 6 張佐證照片';
-
-  @override
-  String get up5 => '最多 5 張';
-
-  @override
-  String get couldNotReplacePhotoPleaseTry => '無法替換原本的照片，請稍後再試';
 
   @override
   String get keepLeastOnePhoto => '請至少保留一張照片';
@@ -32164,16 +30885,13 @@ class _LZhHant extends AppLocalizations {
   String get cannotUndoneContinue => '刪除後無法復原，確定要刪除嗎？';
 
   @override
-  String get photoMissingDataRefreshTryAgain => '此照片資料不完整，請重新整理後再試';
+  String get photoMissingDataRefreshTryAgain => '無法處理此照片，請重新整理後再試';
 
   @override
   String get enterPrice => '請填寫價格';
 
   @override
   String get priceMustGreaterThan0 => '價格必須大於 0';
-
-  @override
-  String get priceCannotExceed999999 => '價格不可超過 999,999';
 
   @override
   String get chooseLockerLocation => '請選擇存放區域';
@@ -32245,7 +30963,7 @@ class _LZhHant extends AppLocalizations {
   String get publicationDate => '出版日期';
 
   @override
-  String get tapPickPublicationDate => '點擊選擇出版日期';
+  String get tapPickPublicationDate => '選擇出版日期';
 
   @override
   String get pickPublicationDate => '選擇出版日期';
@@ -32290,19 +31008,19 @@ class _LZhHant extends AppLocalizations {
   String get bio => '個人簡介';
 
   @override
-  String get tellPeopleAboutYourself => '簡單介紹自己';
+  String get tellPeopleAboutYourself => '請輸入個人簡介';
 
   @override
-  String get email => '信箱';
+  String get email => '電子郵件';
 
   @override
-  String get emailCannotChanged => '信箱無法修改';
+  String get emailCannotChanged => '電子郵件無法修改';
 
   @override
   String get dateBirth => '生日';
 
   @override
-  String get tapPickDateBirth => '點擊選擇生日';
+  String get tapPickDateBirth => '選擇生日';
 
   @override
   String get pickDateBirth => '選擇生日';
@@ -32362,10 +31080,7 @@ class _LZhHant extends AppLocalizations {
   String get reset => '重設';
 
   @override
-  String get usePhoto => '使用此照片';
-
-  @override
-  String get documentNotBeenCreatedYet => '此文件尚未建立';
+  String get documentNotBeenCreatedYet => '目前無內容';
 
   @override
   String lastUpdated(Object p0) => '最後更新：${p0}';
@@ -32386,10 +31101,10 @@ class _LZhHant extends AppLocalizations {
   String get notNow => '暫不啟用';
 
   @override
-  String get enterEmail => '請輸入 Email';
+  String get enterEmail => '請輸入電子郵件';
 
   @override
-  String get emailAddressNotValid => 'Email 格式不正確';
+  String get emailAddressNotValid => '電子郵件格式不正確';
 
   @override
   String get enterPassword => '請輸入密碼';
@@ -32416,7 +31131,7 @@ class _LZhHant extends AppLocalizations {
   String get noAccountYetSignUp => '尚無帳號？立即註冊';
 
   @override
-  String get membershipTiersNotSetUpYet => '尚未設定會員等級制度';
+  String get membershipTiersNotSetUpYet => '目前未提供會員等級';
 
   @override
   String get currentTier => '目前等級';
@@ -32443,7 +31158,7 @@ class _LZhHant extends AppLocalizations {
   String benefits(Object p0) => '${p0}等級權益';
 
   @override
-  String get noBenefitsBeenDescribedTierYet => '尚未設定此等級的權益說明。';
+  String get noBenefitsBeenDescribedTierYet => '此等級目前無額外權益';
 
   @override
   String pointsFromCompletedOrders(Object p0, Object p1) => '目前累積 ${p0} 點，已完成 ${p1} 筆交易';
@@ -32470,16 +31185,13 @@ class _LZhHant extends AppLocalizations {
   String get noUnreadNotifications => '沒有未讀通知';
 
   @override
-  String markAllUnreadNotificationsAsRead(Object p0) => '確定要將 ${p0} 則未讀通知全部標為已讀嗎？此操作無法復原。';
+  String markAllUnreadNotificationsAsRead(Object p0) => '確定要將 ${p0} 則未讀通知全部標為已讀？';
 
   @override
   String get openChat => '前往聊天室';
 
   @override
   String get viewOrder => '查看訂單';
-
-  @override
-  String get openMyBooks => '前往書籍管理';
 
   @override
   String get notifications => '通知中心';
@@ -32503,7 +31215,7 @@ class _LZhHant extends AppLocalizations {
   String items2(Object p0) => '商品明細（${p0}）';
 
   @override
-  String get orderNoItemDetails => '此訂單無品項資料。';
+  String get orderNoItemDetails => '無商品明細';
 
   @override
   String msg4(Object p0, Object p1) => '單價 \$${p0} × ${p1}';
@@ -32521,7 +31233,7 @@ class _LZhHant extends AppLocalizations {
   String get slot => '櫃位';
 
   @override
-  String get notAssignedYet => '尚未配位';
+  String get notAssignedYet => '尚未分配櫃位';
 
   @override
   String get pickupCode => '取書碼';
@@ -32566,7 +31278,7 @@ class _LZhHant extends AppLocalizations {
   String get pendingAmount => '待定收益金額';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '買家完成取書後，款項將自動撥入代幣餘額';
+  String get coinsArriveOnceBuyerCollectsBook => '買家取書後自動撥款';
 
   @override
   String get scanned => '掃描成功';
@@ -32587,9 +31299,6 @@ class _LZhHant extends AppLocalizations {
   String get bookCollected => '取書完成';
 
   @override
-  String get thanksUsingSavemybookHappyReading => '感謝您的使用，祝您閱讀愉快。';
-
-  @override
   String collected(Object p0) => '《${p0}》已完成取書';
 
   @override
@@ -32602,19 +31311,13 @@ class _LZhHant extends AppLocalizations {
   String get myAccount => '會員中心';
 
   @override
-  String get personNotWrittenBioYet => '這個人很懶，什麼都沒留下';
+  String get personNotWrittenBioYet => '尚未填寫個人簡介';
 
   @override
   String get topTierReached => '已達最高等級';
 
   @override
   String morePointsReach(Object p0, Object p1) => '再 ${p0} 點升級為「${p1}」';
-
-  @override
-  String get myCoins => '我的代幣';
-
-  @override
-  String get shareProfile => '分享個人檔案';
 
   @override
   String get purchases => '購買紀錄';
@@ -32629,22 +31332,7 @@ class _LZhHant extends AppLocalizations {
   String get signOut2 => '確認登出';
 
   @override
-  String get needSignAgainKeepUsingApp => '登出後須重新登入才能繼續使用。';
-
-  @override
   String cancelOrderBookReturnsShop(Object p0) => '確定要取消訂單 ${p0} 嗎？取消後書籍將重新於商城販售。';
-
-  @override
-  String get pickupCode2 => '取書碼';
-
-  @override
-  String get notGeneratedYet => '尚未產生';
-
-  @override
-  String get enterCodeLockerCollect => '請於書櫃輸入此代碼取書';
-
-  @override
-  String enterCodeCollect(Object p0) => '請至「${p0}」輸入此代碼取書';
 
   @override
   String get iCollected => '確認取書';
@@ -32683,19 +31371,13 @@ class _LZhHant extends AppLocalizations {
   String get createAccount => '建立帳號';
 
   @override
-  String get joinSavemybook => '加入救「舊」我的書';
-
-  @override
-  String get signUpBuySellUseSmart => '註冊後即可買書、賣書及使用智慧書櫃';
+  String get joinSavemybook => '註冊帳號';
 
   @override
   String get displayName => '暱稱';
 
   @override
-  String get nameOthersSee => '其他使用者可見的名稱';
-
-  @override
-  String get emailSignWith => '用於登入的信箱';
+  String get emailSignWith => '電子郵件';
 
   @override
   String get least8CharactersWithLettersNumbers => '至少 8 碼，需含英文與數字';
@@ -32720,12 +31402,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get buyerNotifiedBookReturnsShop => '取消後將通知買家，書籍將重新於商城販售。';
-
-  @override
-  String get dropOffPickupCode => '存書／取書碼';
-
-  @override
-  String get enterCodeLocker => '請於書櫃輸入此代碼';
 
   @override
   String get noRecentSearches => '尚無搜尋紀錄';
@@ -32761,10 +31437,10 @@ class _LZhHant extends AppLocalizations {
   String get invalidPrice => '價格不正確';
 
   @override
-  String get priceMustGreaterThan02 => '售價必須大於 0 元。';
+  String get priceMustGreaterThan02 => '售價必須大於 0。';
 
   @override
-  String get priceCannotExceed99999 => '售價不可超過 99999 元。';
+  String get priceCannotExceed99999 => '售價不可超過 99,999 代幣。';
 
   @override
   String get chooseLockerLocation2 => '請選擇存放區域。';
@@ -32777,15 +31453,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get couldNotListBook => '上架失敗';
-
-  @override
-  String serverError(Object p0) => '伺服器回應錯誤：${p0}';
-
-  @override
-  String get connectionProblem => '連線異常';
-
-  @override
-  String get couldNotReachServerUploadTimed => '無法連線至伺服器或上傳逾時，請檢查網路狀態。';
 
   @override
   String get listBook => '確認上架';
@@ -32809,16 +31476,13 @@ class _LZhHant extends AppLocalizations {
   String get bookDetailsFilledAutomatically => '已自動帶入書籍資訊';
 
   @override
-  String get bookDetailsFilledFromBackupSource => '已透過備援資料來源帶入書籍資訊';
-
-  @override
   String get noSourceIsbnPleaseEnterDetails => '查無此 ISBN 的書籍資訊，請手動輸入';
 
   @override
   String get day => '日';
 
   @override
-  String get tapIconRightScan => '可點擊右側圖示掃描';
+  String get tapIconRightScan => '請輸入 ISBN';
 
   @override
   String get description => '書籍簡介';
@@ -32863,13 +31527,7 @@ class _LZhHant extends AppLocalizations {
   String get aboutSavemybook => '關於救「舊」我的書';
 
   @override
-  String get settingsPrivacy => '設定與隱私';
-
-  @override
   String sign3(Object p0) => '${p0} 登入';
-
-  @override
-  String unlockWithWhenOpenApp(Object p0) => '開啟 App 時用 ${p0} 解鎖';
 
   @override
   String get scanProfileQrCode => '掃描個人 QR Code';
@@ -32920,7 +31578,7 @@ class _LZhHant extends AppLocalizations {
   String get enterSubject => '請填寫主旨';
 
   @override
-  String get addMoreDetailSoSupportCan => '請提供更多說明，以利客服判斷';
+  String get addMoreDetailSoSupportCan => '請補充問題描述';
 
   @override
   String get sentSupportReplySoon => '已送出，客服將盡快回覆';
@@ -32941,19 +31599,19 @@ class _LZhHant extends AppLocalizations {
   String get notAbleReplyAfterClosing => '結案後將無法再回覆。';
 
   @override
-  String get enquiryClosed => '工單已結案';
+  String get enquiryClosed => '問題已結案';
 
   @override
-  String get changeStatus => '調整工單狀態';
+  String get changeStatus => '變更狀態';
 
   @override
   String get statusUpdated => '已更新狀態';
 
   @override
-  String get enquiry => '工單';
+  String get enquiry => '提問紀錄';
 
   @override
-  String get enquiryNotFound => '找不到此工單';
+  String get enquiryNotFound => '找不到此提問';
 
   @override
   String get support => '客服';
@@ -32975,15 +31633,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String hold(Object p0) => '凍結中 \$${p0}';
-
-  @override
-  String requestFailed2(Object p0) => '請求失敗（${p0}）';
-
-  @override
-  String get couldNotReachServer => '無法連線至伺服器';
-
-  @override
-  String get couldNotReachServerCheckConnection => '無法連線至伺服器，請檢查網路';
 
   @override
   String get signFailed => '登入失敗';
@@ -33142,7 +31791,7 @@ class _LZhHant extends AppLocalizations {
   String get couldNotLoadPhoto => '無法載入此照片';
 
   @override
-  String slot2(Object p0) => '櫃號：${p0}';
+  String slot2(Object p0) => '櫃位：${p0}';
 
   @override
   String confirmPutLocker(Object p0) => '確認已將《${p0}》放入書櫃？';
@@ -33157,7 +31806,7 @@ class _LZhHant extends AppLocalizations {
   String get contentNeedsLeast5Characters => '內容至少 5 個字元';
 
   @override
-  String get publishAnnouncement => '發布推播';
+  String get publishAnnouncement => '發布公告';
 
   @override
   String get everyUserSeeAnnouncementOncePublished => '發布後全體使用者皆可看到此公告，確定要發布嗎？';
@@ -33172,10 +31821,10 @@ class _LZhHant extends AppLocalizations {
   String get draftSaved => '草稿已儲存';
 
   @override
-  String get editAnnouncement => '編輯推播';
+  String get editAnnouncement => '編輯公告';
 
   @override
-  String get newAnnouncement => '新增推播';
+  String get newAnnouncement => '新增公告';
 
   @override
   String get title2 => '標題';
@@ -33184,7 +31833,7 @@ class _LZhHant extends AppLocalizations {
   String get announcementTitle => '公告標題';
 
   @override
-  String get writeAnnouncement => '輸入推播內容';
+  String get writeAnnouncement => '輸入公告內容';
 
   @override
   String get publishNow => '立即發布';
@@ -33211,7 +31860,7 @@ class _LZhHant extends AppLocalizations {
   String get announcements => '系統公告';
 
   @override
-  String get noAnnouncementsYetTapAddOne => '尚無公告，請點選右上角新增';
+  String get noAnnouncementsYetTapAddOne => '尚無公告';
 
   @override
   String get published => '已發布';
@@ -33250,7 +31899,7 @@ class _LZhHant extends AppLocalizations {
   String get olderBackupsBeyondCountRemovedAutomatically => '超出份數的舊備份將自動清除。備份檔含全站個人資料，下載後請妥善保管，每次下載皆會記錄於操作紀錄。';
 
   @override
-  String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄。系統每日自動備份一次，亦可點選上方按鈕立即備份。';
+  String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄';
 
   @override
   String get deleteBackup => '刪除備份';
@@ -33269,9 +31918,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get downloadBackup => '下載備份';
-
-  @override
-  String fetchBackupComputerWithAuthorisationHeader(Object p0, Object p1) => '請於電腦下載備份檔，並附上您的授權標頭：\n\n${p0}\n\n檔案大小：${p1}。';
 
   @override
   String get copyLink2 => '複製網址';
@@ -33472,28 +32118,7 @@ class _LZhHant extends AppLocalizations {
   String get keepEditing => '繼續編輯';
 
   @override
-  String get bothTitleContentRequired => '請填寫標題與內容';
-
-  @override
   String sectionP0NoTitleYet(Object p0) => '第 ${p0} 章尚未填寫標題';
-
-  @override
-  String updateP0(Object p0) => '確認更新${p0}？';
-
-  @override
-  String get documentBindingEveryUserSubmittingReplaces => '此文件對所有使用者皆具效力，送出後將立即取代目前版本。';
-
-  @override
-  String get yesUpdate => '確認更新';
-
-  @override
-  String get notifyEveryUser => '是否通知所有使用者？';
-
-  @override
-  String get updateNotify => '更新並通知';
-
-  @override
-  String get updateOnly => '僅更新，不通知';
 
   @override
   String get sections => '章節';
@@ -33517,10 +32142,7 @@ class _LZhHant extends AppLocalizations {
   String get articles => '條文';
 
   @override
-  String get numberedAutomatically => '編號自動產生';
-
-  @override
-  String get noArticlesYetAddFirstOne => '尚無條文，請點選下方新增第一章。';
+  String get noArticlesYetAddFirstOne => '尚無條文';
 
   @override
   String get addSection => '新增章節';
@@ -33535,9 +32157,6 @@ class _LZhHant extends AppLocalizations {
   String get bodySectionSingleLineBreaksKept => '章節內容。單行換行將如實呈現，空一行代表另起一段。';
 
   @override
-  String get emptyLineStartsParagraphParagraphWhose => '空一行即分段。首行為「1. 標題」的段落，切換回章節模式時將視為一章。';
-
-  @override
   String get howUsersSee => '使用者檢視畫面';
 
   @override
@@ -33545,9 +32164,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get unsaved => '尚未儲存';
-
-  @override
-  String get upDate => '已是最新版本';
 
   @override
   String get newQuestion => '新增問題';
@@ -33587,9 +32203,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get noQuestionsYet2 => '尚無常見問題';
-
-  @override
-  String get dragHandleRightReorder => '拖曳右側把手可調整順序';
 
   @override
   String get hidden => '已隱藏';
@@ -33676,16 +32289,7 @@ class _LZhHant extends AppLocalizations {
   String get orders => '訂單管理';
 
   @override
-  String get lookUpOrdersAdjustStatusBy => '查詢訂單、人工調整狀態';
-
-  @override
-  String get disputeListDecisions => '申訴列表與裁決';
-
-  @override
   String get listings => '商品管理';
-
-  @override
-  String get allBooksForceDelisting => '全站書籍、強制下架';
 
   @override
   String get moderation => '內容審核';
@@ -33694,40 +32298,22 @@ class _LZhHant extends AppLocalizations {
   String get handleListingReports => '商品檢舉處理';
 
   @override
-  String get addReorderDeleteBookCategories => '新增、排序與刪除書籍分類';
-
-  @override
   String get members => '會員管理';
 
   @override
   String get memberControls => '會員管控';
 
   @override
-  String get memberListSuspensionBlocklist => '會員列表、停權與黑名單';
-
-  @override
   String get membershipTiers => '會員等級管理';
-
-  @override
-  String get tierThresholdsBenefits => '等級門檻與權益設定';
 
   @override
   String get wallets => '錢包管理';
 
   @override
-  String get checkBalancesAddDeductCoinsBy => '查詢餘額、人工增減代幣';
-
-  @override
   String get hardwareOperations => '硬體與營運';
 
   @override
-  String get lockerSlotStatus => '書櫃與櫃位狀態';
-
-  @override
   String get maintenanceLog => '維修紀錄';
-
-  @override
-  String get lockerOperationHistory => '書櫃相關操作紀錄';
 
   @override
   String get reports => '營運報表';
@@ -33736,34 +32322,13 @@ class _LZhHant extends AppLocalizations {
   String get ordersRevenueMemberGrowth => '訂單、營收與會員成長';
 
   @override
-  String get announcements2 => '推播管理';
-
-  @override
   String get supportEnquiries => '客服工單';
-
-  @override
-  String get replyQuestionsFromUsers => '回覆使用者提出的問題';
-
-  @override
-  String get faqShownHelpCentre => '幫助中心的常見問題';
-
-  @override
-  String get termsPrivacyPolicyAbout => '服務條款、隱私權政策、關於我們';
 
   @override
   String get adminAuditLog => '管理操作紀錄';
 
   @override
-  String get auditTrailAdminChanges => '管理員異動的稽核軌跡';
-
-  @override
   String get systemOperations => '系統維運';
-
-  @override
-  String get dailyBackupsManualRunsDownloads => '每日自動備份、手動觸發與下載';
-
-  @override
-  String get deletionRequestsInsideGracePeriodCancel => '緩衝期內的刪除申請，可代為取消或立即執行';
 
   @override
   String get members2 => '會員數';
@@ -34027,7 +32592,7 @@ class _LZhHant extends AppLocalizations {
   String get members3 => '會員列表';
 
   @override
-  String get searchDisplayNameEmail => '搜尋暱稱或 Email';
+  String get searchDisplayNameEmail => '搜尋暱稱或電子郵件';
 
   @override
   String get noMembersMatch => '找不到符合條件的會員';
@@ -34162,9 +32727,6 @@ class _LZhHant extends AppLocalizations {
   String get deductCoins => '扣除代幣';
 
   @override
-  String get amountPositiveWholeNumber => '金額（正整數）';
-
-  @override
   String get reasonAdjustmentRequired => '調整原因（必填）';
 
   @override
@@ -34270,9 +32832,6 @@ class _LZhHant extends AppLocalizations {
   String p0Locker(Object p0) => '${p0}書櫃';
 
   @override
-  String everyActiveMemberReceivesP0Updated(Object p0) => '所有啟用中的會員皆會收到「${p0}已更新」通知。';
-
-  @override
   String get orderPlaced => '成立訂單';
 
   @override
@@ -34327,7 +32886,7 @@ class _LZhHant extends AppLocalizations {
   String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密碼已重設。此密碼僅顯示一次，關閉後將無法再查看。';
 
   @override
-  String get remindThemChangeSettingsChangePassword => '請提醒對方登入後立即至「設定 → 更改密碼」變更密碼。';
+  String get remindThemChangeSettingsChangePassword => '請提醒對方登入後立即至「設定 › 更改密碼」變更密碼。';
 
   @override
   String get temporaryPasswordCopied => '已複製臨時密碼';
@@ -34375,9 +32934,6 @@ class _LZhHant extends AppLocalizations {
   String get notAssignedYet2 => '尚未指派';
 
   @override
-  String get pickupCodeCopied => '已複製取書碼';
-
-  @override
   String get walletActivity => '錢包異動';
 
   @override
@@ -34420,7 +32976,7 @@ class _LZhHant extends AppLocalizations {
   String get declined => '不予退款';
 
   @override
-  String get changeOwnPasswordGoSettingsChange => '如需變更本人密碼，請至「設定 → 更改密碼」';
+  String get changeOwnPasswordGoSettingsChange => '如需變更本人密碼，請至「設定 › 更改密碼」';
 
   @override
   String get memberNotAdminSoThereNo => '此會員非管理員，無後台權限可設定。請先於上方將身分設為管理員。';
@@ -34492,9 +33048,6 @@ class _LZhHant extends AppLocalizations {
   String get systemNotificationSettings => '系統通知設定';
 
   @override
-  String get turnNotificationsSoundsLockScreenPreviews => '設定通知、聲音與鎖定畫面顯示';
-
-  @override
   String get pushNotificationsNotSetUpBuild => '此版本的 App 尚未設定推播，請加入 Firebase 設定檔後重新編譯。';
 
   @override
@@ -34532,12 +33085,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String p0SecondsSoFarKeepApp(Object p0) => '已經過 ${p0} 秒。請勿關閉 App，完成後將自動恢復服務。';
-
-  @override
-  String get majorUpdate => '此次是否為重大更新？';
-
-  @override
-  String get majorUpdateNotifiesEveryUserTerms => '重大更新將通知所有使用者；服務條款與隱私權政策另將要求使用者於下次開啟 App 時重新閱讀並同意。\n\n若僅修正錯字或調整排版，請選擇「小幅修改」。';
 
   @override
   String get majorUpdate2 => '重大更新';
@@ -34585,19 +33132,13 @@ class _LZhHant extends AppLocalizations {
   String get undoAction2 => '還原此操作';
 
   @override
-  String get tapBarSeeDay => '點選長條圖可查看當日數據';
-
-  @override
   String get noAnnouncements => '目前沒有公告';
-
-  @override
-  String get tapPhotoNameChange => '點選頭像或暱稱即可修改';
 
   @override
   String get canTContinueWithoutAccepting => '未同意將無法繼續使用';
 
   @override
-  String needAcceptLatestP0UseP1(Object p0, Object p1) => '須同意最新版本的「${p0}」才能使用${p1}。若不同意將自動登出，您可隨時重新登入後再同意。';
+  String needAcceptLatestP0UseP1(Object p0) => '不同意「${p0}」將登出帳號。';
 
   @override
   String get goBack => '返回';
@@ -34606,7 +33147,7 @@ class _LZhHant extends AppLocalizations {
   String p0BeenUpdated(Object p0) => '「${p0}」已更新';
 
   @override
-  String readLatestVersionUpdatedP0Accept(Object p0) => '請閱讀最新版本（${p0} 更新）。同意後才能繼續使用。';
+  String readLatestVersionUpdatedP0Accept(Object p0) => '${p0} 更新';
 
   @override
   String get scrollEndContinue => '請捲動至底部閱讀全文';
@@ -34621,25 +33162,16 @@ class _LZhHant extends AppLocalizations {
   String get viewDetails => '查看詳情';
 
   @override
-  String get notFoundMayBeenDeletedRemoved => '找不到此資料，可能已刪除或下架';
-
-  @override
-  String get salesDropOffsPickupsRefundsDisputes => '售出、存書、取書、退款與爭議';
+  String get notFoundMayBeenDeletedRemoved => '此內容已不存在';
 
   @override
   String get chatMessages => '聊天訊息';
 
   @override
-  String get newMessagesFromBuyersSellers => '買賣雙方傳來的新訊息';
-
-  @override
   String get promotions2 => '優惠活動';
 
   @override
-  String get announcementsAboutPromotions => '優惠類型的系統公告';
-
-  @override
-  String get supportRepliesPasswordResetsPolicyUpdates => '客服回覆、密碼重設、條款更新與維護公告將一律通知。關閉的類型仍會顯示於通知列表，但不會推播至手機。';
+  String get supportRepliesPasswordResetsPolicyUpdates => '客服回覆、帳號安全與系統公告通知無法關閉。';
 
   @override
   String get notFilled => '未填寫';
@@ -34762,13 +33294,10 @@ class _LZhHant extends AppLocalizations {
   String reservedAnotherBuyerUntilP0(Object p0) => '已由其他買家預約，保留至 ${p0}';
 
   @override
-  String get ifIsnTSoldByThen => '保留期限屆滿後若未成交，即可加入購物車';
-
-  @override
   String sellerHoldingUntilP0(Object p0) => '賣家已為您保留至 ${p0}';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '請於保留期限內完成結帳，逾期後其他買家即可購買';
+  String get checkOutBeforeHoldEndsOther => '請於保留期限內完成結帳';
 
   @override
   String get copyAddress => '複製地址';
@@ -34802,9 +33331,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String p0BooksP1Views(Object p0, Object p1) => '共 ${p0} 本 · 總瀏覽 ${p1} 次';
-
-  @override
-  String get swipeQuickActions => '左右滑動可快速操作';
 
   @override
   String get searchTitleAuthorIsbn2 => '搜尋書名、作者或 ISBN';
@@ -34927,9 +33453,6 @@ class _LZhHant extends AppLocalizations {
   String get declineReservation => '確定要婉拒預約？';
 
   @override
-  String get theyLlNotifiedDeclined => '系統將通知對方預約已婉拒。';
-
-  @override
   String get decline2 => '婉拒';
 
   @override
@@ -34957,7 +33480,7 @@ class _LZhHant extends AppLocalizations {
   String get accountCanTReceiveMessagesRight => '對方帳號目前無法接收訊息';
 
   @override
-  String get holdMicTalkReleaseSend => '按住麥克風錄音，放開即可傳送';
+  String get holdMicTalkReleaseSend => '錄音時間過短';
 
   @override
   String get startConversation => '對話開始';
@@ -34981,10 +33504,10 @@ class _LZhHant extends AppLocalizations {
   String get whenCanPutLocker => '請問預計何時存入書櫃？';
 
   @override
-  String get unsentMessage => '您已收回一則訊息';
+  String get unsentMessage => '您已收回訊息';
 
   @override
-  String get theyUnsentMessage => '對方已收回一則訊息';
+  String get theyUnsentMessage => '對方已收回訊息';
 
   @override
   String get reservationDetailsArenTAvailableRight => '預約資訊暫時無法顯示';
@@ -35017,9 +33540,6 @@ class _LZhHant extends AppLocalizations {
   String get picked => '為您推薦';
 
   @override
-  String get seeMore => '查看更多';
-
-  @override
   String get recentlyViewed => '最近瀏覽';
 
   @override
@@ -35038,10 +33558,7 @@ class _LZhHant extends AppLocalizations {
   String get waitingBuyerCollect => '等待買家至書櫃取書';
 
   @override
-  String get bookLockerEnterPickupCodeCollect => '書籍已存入書櫃，輸入取書碼即可取書';
-
-  @override
-  String get transactionCompleteThank => '交易完成，感謝您的使用';
+  String get transactionCompleteThank => '交易完成';
 
   @override
   String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍，確認後訂單即完成。';
@@ -35062,9 +33579,6 @@ class _LZhHant extends AppLocalizations {
   String get accountSecurity => '帳號安全';
 
   @override
-  String get sellerHasnTPutBookLocker => '賣家尚未存書，存書後將通知您';
-
-  @override
   String get searchHistoryCleared => '已清除搜尋紀錄';
 
   @override
@@ -35077,10 +33591,7 @@ class _LZhHant extends AppLocalizations {
   String signOutP0(Object p0) => '確定要登出「${p0}」？';
 
   @override
-  String get llNeedSignAgainUseApp => '登出後須重新登入才能使用。';
-
-  @override
-  String get deviceSignedOutRightAwayStop => '該裝置將立即登出，且不再接收推播通知。';
+  String get deviceSignedOutRightAwayStop => '該裝置將立即登出。';
 
   @override
   String get deviceSignedOut => '已登出裝置';
@@ -35092,10 +33603,10 @@ class _LZhHant extends AppLocalizations {
   String get signOutAllOtherDevices => '登出其他所有裝置';
 
   @override
-  String get everyDeviceIncludingOneSignedOut => '包含本機在內的所有裝置將被登出，之後須重新登入。';
+  String get everyDeviceIncludingOneSignedOut => '包含本機在內的所有裝置將立即登出。';
 
   @override
-  String get everyDeviceExceptOneSignedOut => '除本機外的所有裝置將立即登出，且不再接收推播通知。';
+  String get everyDeviceExceptOneSignedOut => '除本機外的所有裝置將立即登出。';
 
   @override
   String signedOutP0OtherDevices(Object p0) => '已登出其他 ${p0} 台裝置';
@@ -35105,9 +33616,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get couldnTLoadDevices => '無法載入登入裝置';
-
-  @override
-  String get theseDevicesSignedAccountIfDon => '以下裝置目前已登入您的帳號。如發現不明裝置，請立即登出並變更密碼。';
 
   @override
   String get device => '本機';
@@ -35158,9 +33666,6 @@ class _LZhHant extends AppLocalizations {
   String get paymentPinSet => '交易密碼已設定';
 
   @override
-  String get use6DigitPinConfirmPayments => '日後結帳時，將使用此 6 位數密碼確認付款。';
-
-  @override
   String get verifyingIdentity => '正在確認身分…';
 
   @override
@@ -35203,7 +33708,7 @@ class _LZhHant extends AppLocalizations {
   String p0PaymentsTurned(Object p0) => '已啟用 ${p0} 付款';
 
   @override
-  String get securitySettingsUnavailableRightNowMay => '暫時無法取得帳號安全設定，交易密碼與登入裝置可能無法變更。';
+  String get securitySettingsUnavailableRightNowMay => '無法載入帳號安全設定';
 
   @override
   String payWithP0(Object p0) => '使用 ${p0} 付款';
@@ -35215,19 +33720,13 @@ class _LZhHant extends AppLocalizations {
   String get accountCouldSafer => '帳號安全性有待加強';
 
   @override
-  String get paymentPinBiometricPaymentSetCheck => '交易密碼與生物辨識付款皆已設定，請定期檢查登入裝置。';
-
-  @override
-  String get setPaymentPinTurnBiometricPayment => '設定交易密碼並開啟生物辨識付款，結帳更安全、快速。';
+  String get setPaymentPinTurnBiometricPayment => '尚未設定交易密碼';
 
   @override
   String tooManyAttemptsLockedUntilP0(Object p0) => '錯誤次數過多，已鎖定至 ${p0}';
 
   @override
-  String get usedConfirmPaymentsCheckout => '用於結帳時確認付款';
-
-  @override
-  String get notSetRequiredBeforeCheckout => '尚未設定，結帳前須完成設定';
+  String get notSetRequiredBeforeCheckout => '尚未設定';
 
   @override
   String get change => '變更';
@@ -35236,16 +33735,7 @@ class _LZhHant extends AppLocalizations {
   String get forgotPaymentPin => '忘記交易密碼';
 
   @override
-  String get ifFailsCanEnterPaymentPin => '辨識失敗時可改輸入交易密碼';
-
-  @override
-  String get viewRemotelySignOutDevices => '查看或遠端登出裝置';
-
-  @override
   String p0Devices(Object p0) => '${p0} 台';
-
-  @override
-  String get otherDevicesNeedSignAgain => '變更後其他裝置須重新登入';
 
   @override
   String get restoredUnfinishedListing => '已帶入上次未完成的內容';
@@ -35269,13 +33759,7 @@ class _LZhHant extends AppLocalizations {
   String get storage => '儲存空間';
 
   @override
-  String get paymentPinBiometricPaymentDevices => '交易密碼、生物辨識付款、登入裝置';
-
-  @override
   String get clearCache => '清除快取';
-
-  @override
-  String get removesCachedImagesFilesAccountData => '清除暫存的圖片與檔案，不影響帳號資料';
 
   @override
   String get couldNotLoadNotificationSettings => '無法載入通知設定';
@@ -35347,7 +33831,7 @@ class _LZhHant extends AppLocalizations {
   String couldnTRegisterPushTokenWith(Object p0) => '推播 token 上傳伺服器失敗：${p0}';
 
   @override
-  String get protectCoinsCheckoutRequires6Digit => '為保障您的代幣安全，結帳時須輸入 6 位數交易密碼。設定後亦可啟用 Face ID 或指紋付款。';
+  String get protectCoinsCheckoutRequires6Digit => '結帳前請先設定 6 位數交易密碼。';
 
   @override
   String confirmPaymentP0Coins(Object p0) => '確認付款 ${p0} 代幣';
@@ -35377,7 +33861,7 @@ class _LZhHant extends AppLocalizations {
   String get usePasswordInstead => '改用登入密碼';
 
   @override
-  String get couldnTGetLocationLockersShown => '無法取得目前位置，書櫃將依預設順序排列';
+  String get couldnTGetLocationLockersShown => '無法取得目前位置';
 
   @override
   String p0SlotsFree(Object p0) => '空櫃 ${p0} 格';
@@ -35390,9 +33874,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get noFreeSlots => '目前沒有空櫃';
-
-  @override
-  String get sortedByDistance => '依距離由近到遠排列';
 
   @override
   String get turnLocationSortByDistance => '開啟定位可依距離排序';
@@ -35434,9 +33915,6 @@ class _LZhHant extends AppLocalizations {
   String get releaseCancel => '放開以取消';
 
   @override
-  String get slideCancel => '← 滑動以取消';
-
-  @override
   String get awaitingReply => '待回覆';
 
   @override
@@ -35456,9 +33934,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String holdP0H(Object p0) => '保留 ${p0} 小時';
-
-  @override
-  String get onceSellerAcceptsBookHeldNo => '賣家接受後，此書籍將為您保留，期限內其他人無法購買。';
 
   @override
   String get holdPeriod => '保留時間';
@@ -35485,10 +33960,10 @@ class _LZhHant extends AppLocalizations {
   String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone 向 Apple 註冊推播失敗：${p0}\n${p1}';
 
   @override
-  String get serverNotBeenUpdatedSupportFeature => '伺服器尚未更新到支援這項功能的版本，請稍後再試';
+  String get serverNotBeenUpdatedSupportFeature => '此功能暫時無法使用，請稍後再試';
 
   @override
-  String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暫時無法使用，伺服器正在更新';
+  String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暫時無法使用';
 
   @override
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '伺服器執行的 API 版本過舊（目前 ${p0}，App 需要 ${p1}）。請在伺服器更新程式碼並重新啟動 API。';
@@ -35549,9 +34024,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get mistBlue => '霧藍';
-
-  @override
-  String get chooseAppSMainColourHeader => '選擇 App 的主要色彩，套用於標題列、按鈕與重點資訊。';
 
   @override
   String get draftRestored => '已還原草稿';
@@ -35758,7 +34230,7 @@ class _LZhHant extends AppLocalizations {
   String get blockUser => '封鎖使用者';
 
   @override
-  String afterBlockP0NeitherCanSend(Object p0) => '封鎖「${p0}」後，雙方將無法互相傳送訊息，對方不會收到通知。您可隨時於「設定 › 封鎖名單」解除封鎖。';
+  String afterBlockP0NeitherCanSend(Object p0) => '封鎖「${p0}」後，雙方將無法互相傳送訊息。';
 
   @override
   String get block => '封鎖';
@@ -35789,9 +34261,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get originalMessageUnavailable => '原訊息已無法顯示';
-
-  @override
-  String replyingP0(Object p0) => '回覆 ${p0}';
 
   @override
   String get cancelReply => '取消回覆';
@@ -35857,19 +34326,16 @@ class _LZhHant extends AppLocalizations {
   String get notAllowed => '未允許';
 
   @override
-  String get restricted => '受限';
+  String get restricted => '受系統限制';
 
   @override
-  String get denied => '永久拒絕';
+  String get denied => '已拒絕';
 
   @override
   String get allow => '允許';
 
   @override
   String get homeRecommendations => '首頁推薦區塊';
-
-  @override
-  String get pickedRecentlyViewed => '為您推薦、最近瀏覽';
 
   @override
   String get leaveGroup => '退出群組';
@@ -35890,7 +34356,7 @@ class _LZhHant extends AppLocalizations {
   String get pin => '釘選';
 
   @override
-  String get you3 => '你';
+  String get you3 => '您';
 
   @override
   String get canOnlyEditMessagesSentWithin => '僅能編輯 15 分鐘內傳送的訊息';
@@ -35998,7 +34464,7 @@ class _LZhHant extends AppLocalizations {
   String requestedFromP0(Object p0) => '向 ${p0} 請款';
 
   @override
-  String p0RequestedPaymentFrom(Object p0) => '${p0} 向你請款';
+  String p0RequestedPaymentFrom(Object p0) => '${p0} 向您請款';
 
   @override
   String p0RequestedPaymentFromP1(Object p0, Object p1) => '${p0} 向 ${p1} 請款';
@@ -36007,7 +34473,7 @@ class _LZhHant extends AppLocalizations {
   String sentP0(Object p0) => '轉帳給 ${p0}';
 
   @override
-  String p0SentCoins(Object p0) => '${p0} 轉帳給你';
+  String p0SentCoins(Object p0) => '${p0} 轉帳給您';
 
   @override
   String p0SentCoinsP1(Object p0, Object p1) => '${p0} 轉帳給 ${p1}';
@@ -36169,7 +34635,7 @@ class _LZhHant extends AppLocalizations {
   String get rotate => '旋轉';
 
   @override
-  String get mentioned => '[有人提及您]';
+  String get mentioned => '[提及您]';
 
   @override
   String get saveImage => '儲存圖片';
@@ -36199,7 +34665,7 @@ class _LZhHant extends AppLocalizations {
   String removedAdminRoleFromP0(Object p0) => '已解除 ${p0} 的管理員身分';
 
   @override
-  String photosP02(Object p0) => '[圖片] ${p0} 張';
+  String photosP02(Object p0) => '[${p0} 張圖片]';
 
   @override
   String get savedDownloads => '已儲存至「下載項目」';
@@ -36220,34 +34686,31 @@ class _LZhHant extends AppLocalizations {
   String get aiSupport => 'AI 客服';
 
   @override
-  String get instantReplies => '即時回覆';
-
-  @override
   String get howDoIListBook => '如何上架書籍？';
 
   @override
-  String get howDoIPickUpFrom => '如何在智慧櫃取書？';
+  String get howDoIPickUpFrom => '如何至書櫃取書？';
 
   @override
   String get howDoIRequestRefund => '如何申請退款？';
 
   @override
-  String get howDoWalletCoinsWork => '錢包點數如何使用？';
+  String get howDoWalletCoinsWork => '代幣如何使用？';
 
   @override
-  String get talkPerson => '轉接真人客服';
+  String get talkPerson => '轉接客服人員';
 
   @override
-  String get supportRequestCreatedFromConversationOur => '將以目前的對話內容建立客服單，由客服人員接續處理';
+  String get supportRequestCreatedFromConversationOur => '將轉接客服人員，並提供目前的對話內容';
 
   @override
   String get transfer4 => '轉接';
 
   @override
-  String get creatingSupportRequest => '正在建立客服單';
+  String get creatingSupportRequest => '正在轉接客服';
 
   @override
-  String get transferredSupportTeam => '已轉接真人客服';
+  String get transferredSupportTeam => '已轉接客服人員';
 
   @override
   String get newConversation => '開始新對話';
@@ -36257,9 +34720,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get copied2 => '已複製';
-
-  @override
-  String get aiReplies => 'AI 回覆';
 
   @override
   String get howCanWeHelp => '請問有什麼需要協助的地方？';
@@ -36280,16 +34740,10 @@ class _LZhHant extends AppLocalizations {
   String get aiFeatures => 'AI 功能';
 
   @override
-  String get usageModelsListingReview => '用量、模型設定與上架審核';
-
-  @override
   String get aiSettingsNotSavedChangesLost => 'AI 設定尚未儲存，離開後變更將不會保留';
 
   @override
   String get usage => '用量';
-
-  @override
-  String get settings2 => '設定 •';
 
   @override
   String reviewP0(Object p0) => '審核 ${p0}';
@@ -36302,9 +34756,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get peakDay => '單日最高';
-
-  @override
-  String get tapBarDetails => '點選長條查看明細';
 
   @override
   String p0Requests(Object p0) => '${p0} 次請求';
@@ -36634,12 +35085,6 @@ class _LZhHant extends AppLocalizations {
   String get bookDetails => '書籍資料';
 
   @override
-  String get conditionAppliedNextStep => '書況（下一步帶入）';
-
-  @override
-  String get priceAppliedNextStep => '售價（下一步帶入）';
-
-  @override
   String get suggestedPrice => '建議售價';
 
   @override
@@ -36647,9 +35092,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String listPriceP0(Object p0) => '定價 \$${p0}';
-
-  @override
-  String get sources => '資料來源';
 
   @override
   String applyP0(Object p0) => '套用 ${p0} 項';
@@ -36661,9 +35103,6 @@ class _LZhHant extends AppLocalizations {
   String get sameAsCurrent => '與目前相同';
 
   @override
-  String confidenceP0(Object p0) => '信心 ${p0}%';
-
-  @override
   String get listingNotApproved => '未通過上架審核';
 
   @override
@@ -36673,10 +35112,10 @@ class _LZhHant extends AppLocalizations {
   String get submittedReview => '已送交審核';
 
   @override
-  String get goSaleOnceApprovedNotifiedResult => '審核通過後將公開販售，結果會以通知告知';
+  String get goSaleOnceApprovedNotifiedResult => '審核通過後將公開販售';
 
   @override
-  String get got => '我知道了';
+  String get got => '確定';
 
   @override
   String get aiFeaturesNotAvailableRightNow => 'AI 功能目前未開放';
@@ -36715,9 +35154,6 @@ class _LZhHant extends AppLocalizations {
   String get aiDataProcessing => 'AI 資料處理';
 
   @override
-  String providersP0(Object p0) => '服務商：${p0}';
-
-  @override
   String get messagesEnterStatusOrdersReservations => '您輸入的訊息與您的訂單、預約狀態';
 
   @override
@@ -36748,7 +35184,7 @@ class _LZhHant extends AppLocalizations {
   String get withdrawingConsent => '撤回同意';
 
   @override
-  String get canTurnOffAiDataProcessing => '您可隨時在「設定」>「帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。';
+  String get canTurnOffAiDataProcessing => '您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。';
 
   @override
   String get agreeContinue => '同意並繼續';
@@ -36781,28 +35217,25 @@ class _LZhHant extends AppLocalizations {
   String get requiresDatabaseUpdate013 => '需先執行資料庫更新 013';
 
   @override
-  String get mysteryNovelMyCommute => '想找適合通勤看的推理小說';
+  String get mysteryNovelMyCommute => '適合通勤閱讀的推理小說';
 
   @override
   String get programmingBooksBeginners => '適合入門的程式設計書';
 
   @override
-  String get booksUnder200Coins => '200 代幣以內的書';
+  String get booksUnder200Coins => '200 代幣以內的書籍';
 
   @override
   String get popularLiteraryFictionRightNow => '最近熱門的文學小說';
 
   @override
-  String get tellMeWhatBookLooking => '告訴我您想找什麼書';
-
-  @override
-  String get allRecommendationsComeFromBooksCurrently => '推薦內容均來自站上目前販售中的書籍';
+  String get tellMeWhatBookLooking => '請描述您想找的書籍';
 
   @override
   String get describeBookLooking => '描述您想找的書籍';
 
   @override
-  String get tellMeWhatWantReadI => '說說您想看什麼，我來為您挑選';
+  String get tellMeWhatWantReadI => '依您的需求推薦書籍';
 
   @override
   String get subtitle => '副標題';
@@ -36812,15 +35245,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get yearOnly => '僅確認到年';
-
-  @override
-  String get fromBookDatabase => '來自書目資料庫';
-
-  @override
-  String get writtenByAi => 'AI 依資料撰寫';
-
-  @override
-  String get aiTidiedSourceText => 'AI 整理來源文字';
 
   @override
   String get msg => '繁體中文';
@@ -36865,7 +35289,7 @@ class _LZhHant extends AppLocalizations {
   String get signMethodSettingsSaved => '登入方式設定已儲存';
 
   @override
-  String get signMethodSettingsUnsavedLeavingDiscards => '登入方式設定尚未儲存，離開後變更會遺失。';
+  String get signMethodSettingsUnsavedLeavingDiscards => '登入方式設定尚未儲存，離開後變更將遺失。';
 
   @override
   String get serverNotRunDatabaseUpdate014 => '伺服器尚未執行資料庫更新 014，設定暫時無法生效。';
@@ -36883,19 +35307,13 @@ class _LZhHant extends AppLocalizations {
   String get notConfigured => '未設定';
 
   @override
-  String get allowCreatingNewAccountsWithMethod => '允許以這個方式直接建立新帳號';
-
-  @override
-  String get serverNoCredentialsChannel => '伺服器尚未設定這個渠道的憑證';
+  String get allowCreatingNewAccountsWithMethod => '允許以此方式註冊新帳號';
 
   @override
   String get unsavedChanges2 => '尚未儲存的變更';
 
   @override
-  String get switchesSignupPermissionsSocialSmsSign => '社群與簡訊登入的開關與註冊權限';
-
-  @override
-  String get taiwan => '台灣';
+  String get taiwan => '中華民國';
 
   @override
   String get hongKong => '香港';
@@ -36904,7 +35322,7 @@ class _LZhHant extends AppLocalizations {
   String get macau => '澳門';
 
   @override
-  String get china => '中國';
+  String get china => '中華人民共和國';
 
   @override
   String get japan => '日本';
@@ -36943,7 +35361,7 @@ class _LZhHant extends AppLocalizations {
   String get signWithMobileNumber => '手機號碼登入';
 
   @override
-  String get k6DigitCodeSentNumberMessage => '我們會傳送一組 6 位數驗證碼到這個號碼，簡訊可能需要一些時間送達。';
+  String get k6DigitCodeSentNumberMessage => '將傳送 6 位數驗證碼至此手機號碼。';
 
   @override
   String get mobileNumber => '手機號碼';
@@ -36976,7 +35394,7 @@ class _LZhHant extends AppLocalizations {
   String get completeAccountDetails => '完成帳號資料';
 
   @override
-  String p0DidNotProvideEmailAddress(Object p0) => '${p0}未提供電子郵件，請補齊資料以建立帳號。';
+  String get p0DidNotProvideEmailAddress => '請填寫電子郵件以完成註冊。';
 
   @override
   String signWithP0(Object p0) => '以 ${p0} 登入';
@@ -36991,7 +35409,7 @@ class _LZhHant extends AppLocalizations {
   String get emailAlreadyRegistered => '此電子郵件已註冊';
 
   @override
-  String get signWithPasswordThenLinkMethod => '請改以密碼登入，再到帳號安全的登入方式綁定這個方式。';
+  String get signWithPasswordThenLinkMethod => '請以密碼登入後，至「帳號安全 › 登入方式」綁定。';
 
   @override
   String get signWithPassword => '以密碼登入';
@@ -37003,16 +35421,16 @@ class _LZhHant extends AppLocalizations {
   String get passwordSet => '密碼已設定';
 
   @override
-  String get canNowSignWithEmailPassword => '之後可以電子郵件與密碼登入，其他裝置需要重新登入。';
+  String get canNowSignWithEmailPassword => '其他裝置須重新登入。';
 
   @override
-  String get passwordRequiredBeforeCanUnlinkSign => '設定密碼後才能解除綁定登入方式，也能在換裝置時以電子郵件登入。密碼至少 8 碼並含英文與數字。';
+  String get passwordRequiredBeforeCanUnlinkSign => '密碼須至少 8 碼，且包含英文與數字。';
 
   @override
-  String get changingSignMethodsRequiresIdentityVerification => '變更登入方式需要驗證身分，請先為這個帳號設定密碼。';
+  String get changingSignMethodsRequiresIdentityVerification => '變更登入方式前，請先設定密碼。';
 
   @override
-  String get later => '稍後再說';
+  String get later => '暫不設定';
 
   @override
   String p0Linked(Object p0) => '已綁定 ${p0}';
@@ -37021,7 +35439,7 @@ class _LZhHant extends AppLocalizations {
   String unlinkP0(Object p0) => '解除綁定 ${p0}';
 
   @override
-  String get noLongerAbleSignWayCan => '解除後將無法再以這個方式登入，需要時可以重新綁定。';
+  String get noLongerAbleSignWayCan => '解除後將無法以此方式登入。';
 
   @override
   String get unlink => '解除綁定';
@@ -37037,9 +35455,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get noPasswordSet => '尚未設定密碼';
-
-  @override
-  String get requiredBeforeChangingSignMethodsDeleting => '設定後才能變更登入方式與刪除帳號';
 
   @override
   String linkedP0(Object p0) => '${p0} 綁定';
@@ -37060,22 +35475,22 @@ class _LZhHant extends AppLocalizations {
   String get signMethodNotAvailableRightNow => '目前未開放此登入方式';
 
   @override
-  String get credentialDoesNotMatchSelectedSign => '登入憑證與所選的登入方式不符';
+  String get credentialDoesNotMatchSelectedSign => '登入失敗，請重新操作';
 
   @override
   String get signMethodLinkedAnotherAccount => '此登入方式已綁定其他帳號';
 
   @override
-  String get accountAlreadyLinkedSignMethod => '此帳號已綁定這個登入方式';
+  String get accountAlreadyLinkedSignMethod => '此帳號已綁定此登入方式';
 
   @override
   String get onlySignMethodAccountSetPassword => '這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式';
 
   @override
-  String get socialSignUnavailableServerNotFinished => '社群登入目前無法使用，伺服器尚未完成資料庫更新';
+  String get socialSignUnavailableServerNotFinished => '社群登入暫時無法使用，請稍後再試';
 
   @override
-  String get credentialInvalidExpiredPleaseTryAgain => '登入憑證無效或已過期，請重新操作';
+  String get credentialInvalidExpiredPleaseTryAgain => '登入逾時，請重新操作';
 
   @override
   String get accountAlreadyPasswordUseChangePassword => '此帳號已設定密碼，請改用變更密碼';
@@ -37084,7 +35499,7 @@ class _LZhHant extends AppLocalizations {
   String get signLinkExpiredPleaseTryAgain => '登入連結已失效，請重新操作';
 
   @override
-  String get signResultExpiredPleaseTryAgain => '登入結果已失效，請重新操作';
+  String get signResultExpiredPleaseTryAgain => '登入逾時，請重新操作';
 
   @override
   String get thirdPartySignServiceUnavailablePlease => '第三方登入服務目前無法使用，請稍後再試';
@@ -37093,10 +35508,7 @@ class _LZhHant extends AppLocalizations {
   String get couldNotCompleteSignPleaseTry => '無法完成登入，請重新操作';
 
   @override
-  String get accountNotLinkedSignMethod => '此帳號未綁定這個登入方式';
-
-  @override
-  String get couldNotReachServerCheckConnection2 => '無法連線到伺服器，請確認網路連線';
+  String get accountNotLinkedSignMethod => '此帳號未綁定此登入方式';
 
   @override
   String get mobileNumberFormatNotValid => '手機號碼格式不正確';
@@ -37114,13 +35526,157 @@ class _LZhHant extends AppLocalizations {
   String get smsSendingLimitBeenReachedPlease => '簡訊發送次數已達上限，請稍後再試';
 
   @override
-  String get smsVerificationNotSetUpDevice => '此裝置尚未完成簡訊驗證設定，請改用其他登入方式';
+  String get smsVerificationNotSetUpDevice => '此裝置目前無法使用簡訊驗證，請改用其他登入方式';
 
   @override
   String get couldNotCompleteSmsVerificationPlease => '無法完成簡訊驗證，請稍後再試';
 
   @override
   String get allowSigningLinkingWithMethod => '開放此方式登入與綁定';
+
+  @override
+  String get appNeverStoresPasswordUsedOnly => '本 App 不會儲存您的密碼，僅用於本次驗證。';
+
+  @override
+  String get verifyWithBiometricsInstead => '改用生物辨識驗證';
+
+  @override
+  String get accountWasCreatedWithSocialPhone => '此帳號尚未設定登入密碼，請先完成設定。';
+
+  @override
+  String get setSignPassword => '前往設定登入密碼';
+
+  @override
+  String get enterSignPasswordRunAdminAction => '請以登入密碼或通行密鑰驗證身分以執行此後台操作';
+
+  @override
+  String p1P0MethodsEnabled(Object p0, Object p1) => '共 ${p0} 種方式，目前啟用 ${p1} 種';
+
+  @override
+  String get masterSwitchOffSoEveryMethod => '總開關關閉，所有方式一律停用';
+
+  @override
+  String get signLinkingDirectSignUpAllowed => '可登入、綁定與直接註冊';
+
+  @override
+  String credentialsNotSetPleaseConfigureP0(Object p0) => '尚未設定憑證，請於伺服器設定 ${p0}';
+
+  @override
+  String get whenOffMethodHiddenFromSign => '關閉後登入頁與帳號安全將不顯示此方式';
+
+  @override
+  String get whenOffOnlyAccountsAlreadyLinked => '關閉後僅限已綁定的帳號使用此方式';
+
+  @override
+  String get signMethodNotLinkedAccount => '此登入方式尚未綁定帳號';
+
+  @override
+  String p0AccountNotLinkedAnySavemybook(Object p0) => '${p0} 帳號尚未綁定救「舊」我的書帳號。';
+
+  @override
+  String get iAlreadyAccountSignFirst => '登入既有帳號並綁定';
+
+  @override
+  String get createNewAccountWithIdentity => '建立新帳號';
+
+  @override
+  String signExistingAccountFirstThenLink(Object p0) => '請先登入原有帳號，再至「帳號安全 › 登入方式」綁定 ${p0}。';
+
+  @override
+  String get signMethodNotLinkedAnyAccount => '此登入方式尚未綁定任何帳號';
+
+  @override
+  String get verifyIdentityWithPasskeyContinue => '請使用通行密鑰驗證身分以繼續';
+
+  @override
+  String get verifyWithPasskeyInstead => '改用通行密鑰驗證';
+
+  @override
+  String get passkeys => '通行密鑰';
+
+  @override
+  String get verifyWithFaceIdFingerprintScreen => '以此裝置的 Face ID、指紋或螢幕鎖定完成驗證，不必輸入密碼。';
+
+  @override
+  String get verifyWithPasskey => '使用通行密鑰驗證';
+
+  @override
+  String get useSignPasswordInstead => '改用登入密碼驗證';
+
+  @override
+  String get signWithPasskey => '使用通行密鑰登入';
+
+  @override
+  String get passkeyAdded => '已新增通行密鑰';
+
+  @override
+  String get screenLock => '螢幕鎖定';
+
+  @override
+  String fromNowCanSignVerifyIdentity(Object p0) => '之後登入與驗證身分可改用 ${p0}，不必再輸入密碼。';
+
+  @override
+  String get deletePasskey => '刪除通行密鑰';
+
+  @override
+  String get noLongerAbleSignVerifyIdentity => '刪除後將無法以此通行密鑰登入或驗證身分。裝置中儲存的通行密鑰不會一併移除，可至系統的密碼設定中刪除。';
+
+  @override
+  String get passkeyDeleted => '已刪除通行密鑰';
+
+  @override
+  String get signVerifyIdentityWithFaceId => '以 Face ID、指紋或螢幕鎖定登入與驗證身分，不必輸入密碼。通行密鑰只儲存在您的裝置與密碼管理工具中。';
+
+  @override
+  String get addPasskey => '新增通行密鑰';
+
+  @override
+  String get notUsedYet => '尚未使用';
+
+  @override
+  String lastUsedFormatdateItemLastusedat(Object p0) => '最後使用 ${p0}';
+
+  @override
+  String createdCreated(Object p0) => '建立於 ${p0}';
+
+  @override
+  String get noPasskeyAvailableDeviceUsePassword => '此裝置沒有可用的通行密鑰，請改用密碼';
+
+  @override
+  String get passkeyAlreadyRegisteredDevice => '此裝置已經註冊過通行密鑰';
+
+  @override
+  String get signGoogleAccountTurnPasswordManager => '請先在裝置上登入 Google 帳號並開啟密碼管理工具，或改用密碼';
+
+  @override
+  String get setUpScreenLockPasswordManager => '此裝置尚未設定螢幕鎖定或密碼管理工具，無法建立通行密鑰';
+
+  @override
+  String get deviceDoesNotSupportPasskeysUse => '此裝置不支援通行密鑰，請改用密碼';
+
+  @override
+  String get passkeysTemporarilyUnavailableBecauseAppWebsite => '目前無法使用通行密鑰，請改用密碼';
+
+  @override
+  String get requestTimedOutPleaseTryAgain => '操作逾時，請再試一次';
+
+  @override
+  String get passkeyRequestFailedUsePasswordInstead => '通行密鑰操作失敗，請改用密碼';
+
+  @override
+  String get verifyIdentityBeforeAddingPasskey => '新增通行密鑰前，請先驗證身分';
+
+  @override
+  String get couldNotListPleaseTryAgain => '上架失敗，請稍後再試';
+
+  @override
+  String downloadLinkValidOnceP0P1(Object p0, Object p1) => '此下載網址 5 分鐘內有效，且僅能使用一次，請勿分享。\n\n${p0}\n\n檔案大小：${p1}';
+
+  @override
+  String get sources => '資料來源';
+
+  @override
+  String get unableOpenLink => '無法開啟連結';
 
 }
 

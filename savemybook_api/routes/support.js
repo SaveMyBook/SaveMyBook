@@ -64,7 +64,7 @@ router.post('/tickets/:id/messages', authenticateToken, ticketLimiter, async (re
 
 router.patch('/tickets/:id/close', authenticateToken, async (req, res) => {
   await support.close(v.id(req.params.id, '工單編號'), req.user);
-  res.status(200).json({ success: true, message: '工單已結案' });
+  res.status(200).json({ success: true, message: '問題已結案' });
 });
 
 module.exports = router;

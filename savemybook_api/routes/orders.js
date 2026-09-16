@@ -30,7 +30,7 @@ router.post('/checkout', requireVerification('payment'), async (req, res) => {
   let cartIds = null;
   if (req.body.cart_ids !== undefined && req.body.cart_ids !== null) {
     if (!Array.isArray(req.body.cart_ids) || req.body.cart_ids.length > 200) {
-      throw badRequest('cart_ids 格式不正確');
+      throw badRequest('購物車項目格式不正確');
     }
     cartIds = req.body.cart_ids.map((cid) => v.id(cid, '購物車項目編號'));
   }
@@ -49,7 +49,7 @@ router.patch('/:id/cancel', async (req, res) => {
 router.patch('/:id/status', async (req, res) => {
   const orderId = v.id(req.params.id, '訂單編號');
   const allowed = Object.keys(orders.TRANSITIONS);
-  const status = v.oneOf(req.body.status, allowed, `status 僅接受：${allowed.join(', ')}`);
+  const status = v.oneOf(req.body.status, allowed, '訂單狀態不正確');
 
   const updated = await orders.advance(orderId, status, req.user);
   res.status(200).json({ success: true, message: '訂單狀態已更新', data: updated });

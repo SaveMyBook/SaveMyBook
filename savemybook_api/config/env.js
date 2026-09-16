@@ -33,7 +33,20 @@ const env = {
   lineChannelSecret: process.env.LINE_CHANNEL_SECRET || '',
   discordClientId: process.env.DISCORD_CLIENT_ID || '',
   discordClientSecret: process.env.DISCORD_CLIENT_SECRET || '',
-  oauthRedirectBase: (process.env.OAUTH_REDIRECT_BASE || process.env.PUBLIC_WEB_URL || '').replace(/\/+$/, '')
+  oauthRedirectBase: (process.env.OAUTH_REDIRECT_BASE || process.env.PUBLIC_WEB_URL || '').replace(/\/+$/, ''),
+  passkeyRpId: (process.env.PASSKEY_RP_ID ?? 'savemybook.today').trim(),
+  passkeyRpName: process.env.PASSKEY_RP_NAME || '救「舊」我的書',
+  passkeyOrigins: (process.env.PASSKEY_ORIGINS ?? 'https://savemybook.today,https://api.savemybook.today')
+    .split(',')
+    .map((s) => s.trim().replace(/\/+$/, ''))
+    .filter(Boolean),
+  appleTeamId: (process.env.APPLE_TEAM_ID || '').trim(),
+  iosBundleId: (process.env.IOS_BUNDLE_ID || '').trim(),
+  androidPackageName: (process.env.ANDROID_PACKAGE_NAME || '').trim(),
+  androidCertFingerprints: (process.env.ANDROID_CERT_SHA256 || '')
+    .split(',')
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean)
 };
 
 const assertEnv = () => {

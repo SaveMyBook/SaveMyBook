@@ -184,9 +184,9 @@ paths:
                 缺少欄位:
                   value: { success: false, message: '缺少必要欄位：書名(title) 或 價格(price)' }
                 售價為零:
-                  value: { success: false, message: 售價必須大於 0 元 }
+                  value: { success: false, message: 售價必須大於 0 }
                 售價過高:
-                  value: { success: false, message: 售價不可超過 99999 元 }
+                  value: { success: false, message: 售價不可超過 99,999 代幣 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ListingRejected' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -429,7 +429,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 售價必須大於 0 元 }
+              example: { success: false, message: 售價必須大於 0 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
           description: 非本人上架的書籍，或嘗試重新上架違規書籍。
@@ -612,7 +612,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 外部書庫找不到此 ISBN 的書籍資訊 }
+              example: { success: false, message: 找不到此 ISBN 的書籍資訊 }
         '500':
           description: 兩個外部書庫皆連線失敗。
           content:

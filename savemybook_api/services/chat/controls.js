@@ -7,7 +7,7 @@ const isAvailable = () => hasTables(['chat_room_mutes', 'user_blocks']);
 
 const requireAvailable = async () => {
   if (!(await isAvailable())) {
-    throw new HttpError(503, '伺服器尚未完成資料庫更新，請聯絡管理員', 'CHAT_CONTROLS_UNAVAILABLE');
+    throw new HttpError(503, '此功能暫時無法使用，請稍後再試', 'CHAT_CONTROLS_UNAVAILABLE');
   }
 };
 

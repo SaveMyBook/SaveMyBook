@@ -7,7 +7,8 @@ const SECTIONS = [
   './groups',
   './reservations',
   './transfers',
-  './controls'
+  './controls',
+  './link-preview'
 ];
 
 const router = express.Router();

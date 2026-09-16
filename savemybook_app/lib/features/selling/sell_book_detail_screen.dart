@@ -441,7 +441,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       await showListingRejectedDialog(context, outcome);
       return;
     }
-    _showAlertDialog(S.couldNotListBook, S.serverError(outcome.error ?? ''));
+    _showAlertDialog(S.couldNotListBook, outcome.error ?? S.couldNotListPleaseTryAgain);
   }
 
   @override

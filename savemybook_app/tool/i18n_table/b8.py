@@ -72,12 +72,7 @@ T = {
     ),
     '再看看': ('Go back', '戻る', '돌아가기', '再看看'),
     r'「${doc.title}」已經更新': (r'"$p0" has been updated', r'「$p0」が更新されました', r'"$p0"이(가) 업데이트되었습니다', r'“$p0”已经更新'),
-    r'請閱讀最新版本（${formatDate(doc.updatedAt)} 更新）。同意後才能繼續使用。': (
-        r'Read the latest version (updated $p0). Accept it to continue.',
-        r'最新版（$p0 更新）をお読みください。同意すると利用を続けられます。',
-        r'최신 버전($p0 업데이트)을 읽어 주세요. 동의하면 계속 사용할 수 있습니다.',
-        r'请阅读最新版本（$p0 更新）。同意后才能继续使用。',
-    ),
+    '${formatDate(doc.updatedAt)} 更新': ('Updated ${formatDate(doc.updatedAt)}', '${formatDate(doc.updatedAt)} 更新', '${formatDate(doc.updatedAt)} 업데이트', '${formatDate(doc.updatedAt)} 更新'),
     '請先捲動讀完全文': ('Scroll to the end to continue', '最後までスクロールしてください', '끝까지 스크롤해 주세요', '请先滚动读完全文'),
     '我已閱讀並同意': ("I've read and accept", '読んで同意しました', '읽었으며 동의합니다', '我已阅读并同意'),
     '不同意': ('Decline', '同意しない', '동의하지 않음', '不同意'),
@@ -85,9 +80,7 @@ T = {
     '找不到這筆資料，可能已經刪除或下架': ('Not found. It may have been deleted or removed.', '見つかりません。削除または取り下げられた可能性があります', '찾을 수 없습니다. 삭제되었거나 내려갔을 수 있습니다', '找不到这笔数据，可能已经删除或下架'),
     '售出、存書、取貨、退款與爭議': ('Sales, drop-offs, pickups, refunds and disputes', '販売、預け入れ、受け取り、返金、申し立て', '판매, 보관, 수령, 환불, 분쟁', '售出、存书、取货、退款与争议'),
     '聊天訊息': ('Chat messages', 'チャットメッセージ', '채팅 메시지', '聊天消息'),
-    '買賣雙方傳來的新訊息': ('New messages from buyers and sellers', '買い手・売り手からの新着メッセージ', '구매자와 판매자가 보낸 새 메시지', '买卖双方传来的新消息'),
     '優惠活動': ('Promotions', 'キャンペーン', '프로모션', '优惠活动'),
-    '優惠類型的系統公告': ('Announcements about promotions', 'キャンペーンのお知らせ', '프로모션 공지', '优惠类型的系统公告'),
     '客服回覆、密碼重設、條款更新與維護公告一律會通知。關掉的類型仍會出現在通知列表，只是不推播到手機。': (
         'Support replies, password resets, policy updates and maintenance notices are always sent. Turned-off types still appear in your notification list, just without a push.',
         'サポートの返信、パスワードのリセット、規約の更新、メンテナンスのお知らせは常に通知されます。オフにした種類も通知一覧には表示され、プッシュ通知だけが届きません。',

@@ -94,10 +94,8 @@
   "appearanceLight": "Light",
   "appearanceDark": "Dark",
   "appearanceSystem": "Follow system",
-  "appearanceHint": "Follow system switches automatically with your device setting.",
   "language": "Language",
   "languageSystem": "Follow system",
-  "languageHint": "Follow system uses your device language setting.",
   "verifySignSavemybook": "Verify to sign in to SaveMyBook",
   "maintenance": "Maintenance",
   "promotions": "Promotions",
@@ -142,9 +140,7 @@
   "regenerate": "Regenerate",
   "newLinkCreatedOldOneNo": "New link created. The old one no longer works.",
   "deleteAccount": "Delete account",
-  "accountPermanentlyDisabled30DaysSign": "Your account will be permanently disabled in 30 days. Sign in again before then to cancel.\n\n",
-  "personalDataErasedButCompletedOrders": "Your personal data is erased, but completed orders and transaction records are kept so ",
-  "peopleTradedWithDoNotLose": "the people you traded with do not lose their records.",
+  "accountPermanentlyDisabled30DaysSign": "Your account will be deleted in 30 days. Sign in again before then to cancel. Your personal data will be erased; completed orders and transaction records will be kept.",
   "actionContinue": "Continue",
   "verify": "Verify it is you",
   "enterPasswordConfirm": "Enter your password to confirm this is you.",
@@ -155,11 +151,7 @@
   "account": "Account",
   "data": "Your data",
   "exportMyData": "Export my data",
-  "profileBooksOrdersTransactionsJson": "Profile, books, orders and transactions in JSON",
-  "oldLinkQrCodeStopWorking2": "The old link and QR code stop working immediately",
   "cancelAccountDeletion": "Cancel account deletion",
-  "restoreAccountStopCountdown": "Restore the account and stop the countdown",
-  "canChangeMindWithin30Days": "Deletion can be cancelled within 30 days",
   "deletionPending": "Deletion pending",
   "daysLeftCanCancelAnyTime": "{p0} days left. You can cancel any time before then; after that your data is erased for good.",
   "@daysLeftCanCancelAnyTime": {
@@ -197,13 +189,13 @@
   "addedCart": "Added to cart",
   "sellerInformationNotFound": "Seller information not found",
   "signContactSeller": "Sign in to contact the seller",
-  "signStartChat": "Sign in to start a chat",
+  "signStartChat": "Sign in to contact the seller",
   "signReport": "Sign in to report",
   "cannotReportOwnListing": "You cannot report your own listing",
   "reportListing": "Report this listing",
   "describeProblemLeast5Characters": "Describe the problem (at least 5 characters)",
   "reasonNeedsLeast5Characters": "Your reason needs at least 5 characters",
-  "reportSubmittedWeLookInto": "Report submitted. We will look into it.",
+  "reportSubmittedWeLookInto": "Report submitted",
   "publisher": "Publisher: ",
   "author": "Author: ",
   "listed": "Listed: ",
@@ -211,19 +203,11 @@
   "share": "Share",
   "report": "Report",
   "about": "About: ",
-  "pickup": "Pickup at {p0}",
-  "@pickup": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "messageSeller": "Message seller",
   "listing": "This is your listing",
   "addCart": "Add to cart",
-  "bookBeenReportedUnderReviewStays": "This book has been reported and is under review. It stays on sale in the meantime.",
-  "violationWasConfirmedBookPleaseCheck": "A violation was confirmed for this book. Please check that the listing follows our guidelines.",
-  "reportDismissed2": "Report dismissed",
-  "bookWasReportedButNoViolation": "This book was reported but no violation was found. Your listing is unaffected.",
+  "bookBeenReportedUnderReviewStays": "This book has been reported and is under review.",
+  "violationWasConfirmedBookPleaseCheck": "A violation was confirmed for this book. Please edit the listing.",
   "delist": "Delist",
   "removedFromShopBuyersNoLonger": "“{p0}” will be removed from the shop and buyers will no longer see it.",
   "@removedFromShopBuyersNoLonger": {
@@ -232,7 +216,6 @@
     }
   },
   "delist2": "Delist",
-  "delistedRelistFromDelistedTab": "Delisted. Relist it from the Delisted tab.",
   "couldNotDelistPleaseTryAgain": "Could not delist. Please try again.",
   "listedAgain": "“{p0}” is listed again",
   "@listedAgain": {
@@ -242,18 +225,9 @@
   },
   "notListedAnyBooksYet": "You have not listed any books yet",
   "noBooksCategory": "No books in this category",
-  "listFirstBook": "List your first book",
   "relist": "Relist",
-  "removeFromCart": "Remove from cart",
-  "removeFromCart2": "Remove “{p0}” from your cart?",
-  "@removeFromCart2": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "remove": "Remove",
   "couldNotRemoveRestored": "Could not remove. Restored.",
-  "couldNotRemovePleaseTryAgain": "Could not remove. Please try again.",
   "selectBooksWantCheckOut": "Select the books you want to check out",
   "notEnoughCoinsOrderNeedsBut": "Not enough coins. This order needs {p0} but you have {p1}.",
   "@notEnoughCoinsOrderNeedsBut": {
@@ -262,7 +236,6 @@
       "p1": {}
     }
   },
-  "confirmCheckout": "Confirm checkout",
   "booksTotal": "{p0} books, {p1} in total.\n",
   "@booksTotal": {
     "placeholders": {
@@ -338,7 +311,7 @@
   "chatUnmuted": "Chat unmuted",
   "noUnreadMessages": "No unread messages",
   "markAllAsRead": "Mark all as read",
-  "markAllUnreadMessagesAsRead": "Mark all {p0} unread messages as read? This cannot be undone.",
+  "markAllUnreadMessagesAsRead": "Mark all {p0} unread messages as read?",
   "@markAllUnreadMessagesAsRead": {
     "placeholders": {
       "p0": {}
@@ -351,7 +324,6 @@
   "noConversationsYet": "No conversations yet",
   "unmute": "Unmute",
   "mute": "Mute",
-  "messagesLimited500Characters": "Messages are limited to 500 characters",
   "messageCouldNotSent": "Message could not be sent",
   "chat": "Chat",
   "sendFirstMessage": "Send the first message",
@@ -361,7 +333,7 @@
   "writeMessage": "Write a message…",
   "enterOrderNumberDisputing": "Enter the order number you are disputing",
   "describeDispute": "Describe the dispute",
-  "useLeast10CharactersSoSupport": "Use at least 10 characters so support can assess it",
+  "useLeast10CharactersSoSupport": "The description must be at least 10 characters",
   "submitDispute": "Submit dispute",
   "orderEntersDisputeProcessPaymentSeller": "The order enters the dispute process and payment to the seller is held until support decides.",
   "paymentHoldRequested": "[Payment hold requested] {p0}",
@@ -373,27 +345,23 @@
   "disputeSubmittedSupportContact": "Dispute submitted. Support will contact you.",
   "dispute": "Dispute",
   "requestPaymentHold": "Request payment hold",
-  "paymentSellerHeldUntilSupportDecides": "Payment to the seller is held until support decides",
   "submitDispute2": "Submit a dispute",
   "orderNumber": "Order number",
   "eGSmb20260910123456789": "e.g. SMB20260910123456789",
   "whatHappened": "What happened",
-  "describeProblemEGConditionDoes": "Describe the problem, e.g. the condition does not match the listing…",
+  "describeProblemEGConditionDoes": "Describe the problem",
   "submit": "Submit",
   "uploadPhotos": "Upload photos",
   "canAttachUp6Photos": "You can attach up to 6 photos",
-  "up5": "Up to 5",
-  "couldNotReplacePhotoPleaseTry": "Could not replace the photo. Please try again.",
   "keepLeastOnePhoto": "Keep at least one photo",
   "photoDeleted": "Photo deleted",
   "couldNotDeletePhotoPleaseTry": "Could not delete the photo. Please try again.",
   "canUp10Photos": "You can have up to 10 photos",
   "deletePhoto": "Delete photo",
   "cannotUndoneContinue": "This cannot be undone. Continue?",
-  "photoMissingDataRefreshTryAgain": "This photo is missing data. Refresh and try again.",
+  "photoMissingDataRefreshTryAgain": "Unable to process this photo. Refresh and try again.",
   "enterPrice": "Enter a price",
   "priceMustGreaterThan0": "Price must be greater than 0",
-  "priceCannotExceed999999": "Price cannot exceed 999,999",
   "chooseLockerLocation": "Choose a locker location",
   "missingTheseThreeRequired": "Missing: {p0}. These three are required.",
   "@missingTheseThreeRequired": {
@@ -422,7 +390,7 @@
   "optional": "Optional",
   "publisher2": "Publisher",
   "publicationDate": "Publication date",
-  "tapPickPublicationDate": "Tap to pick a publication date",
+  "tapPickPublicationDate": "Select publication date",
   "pickPublicationDate": "Pick a publication date",
   "pickCategory": "Pick a category",
   "next": "Next",
@@ -437,11 +405,11 @@
   "profileUpdated": "Profile updated",
   "editProfile": "Edit profile",
   "bio": "Bio",
-  "tellPeopleAboutYourself": "A short introduction about yourself",
+  "tellPeopleAboutYourself": "Enter a bio",
   "email": "Email",
   "emailCannotChanged": "Email cannot be changed",
   "dateBirth": "Date of birth",
-  "tapPickDateBirth": "Tap to pick your date of birth",
+  "tapPickDateBirth": "Select date of birth",
   "pickDateBirth": "Pick your date of birth",
   "savedBooks": "Saved books",
   "notSavedAnyBooksYet": "You have not saved any books yet",
@@ -466,8 +434,7 @@
   "croppingFailedPleaseTryAgain": "Cropping failed. Please try again.",
   "adjustPhoto": "Adjust photo",
   "reset": "Reset",
-  "usePhoto": "Use this photo",
-  "documentNotBeenCreatedYet": "This document has not been created yet",
+  "documentNotBeenCreatedYet": "No content available",
   "lastUpdated": "Last updated {p0}",
   "@lastUpdated": {
     "placeholders": {
@@ -490,7 +457,7 @@
   },
   "notNow": "Not now",
   "enterEmail": "Enter your email",
-  "emailAddressNotValid": "That email address is not valid",
+  "emailAddressNotValid": "Invalid email address",
   "enterPassword": "Enter your password",
   "noAccountWithEmail": "No account with that email",
   "noAccountCreateOneNow": "No account for “{p0}”. Create one now?",
@@ -509,7 +476,7 @@
     }
   },
   "noAccountYetSignUp": "No account yet? Sign up",
-  "membershipTiersNotSetUpYet": "Membership tiers are not set up yet",
+  "membershipTiersNotSetUpYet": "Membership tiers are not available",
   "currentTier": "Your current tier",
   "unlocked": "Unlocked",
   "locked": "Locked",
@@ -534,7 +501,7 @@
       "p0": {}
     }
   },
-  "noBenefitsBeenDescribedTierYet": "No benefits have been described for this tier yet.",
+  "noBenefitsBeenDescribedTierYet": "This tier has no additional benefits",
   "pointsFromCompletedOrders": "{p0} points from {p1} completed orders",
   "@pointsFromCompletedOrders": {
     "placeholders": {
@@ -554,7 +521,7 @@
   "allNotificationsCleared": "All notifications cleared",
   "couldNotClearPleaseTryAgain": "Could not clear. Please try again.",
   "noUnreadNotifications": "No unread notifications",
-  "markAllUnreadNotificationsAsRead": "Mark all {p0} unread notifications as read? This cannot be undone.",
+  "markAllUnreadNotificationsAsRead": "Mark all {p0} unread notifications as read?",
   "@markAllUnreadNotificationsAsRead": {
     "placeholders": {
       "p0": {}
@@ -562,7 +529,6 @@
   },
   "openChat": "Open chat",
   "viewOrder": "View order",
-  "openMyBooks": "Open my books",
   "notifications": "Notifications",
   "noNotifications": "No notifications",
   "copied": "{p0} copied",
@@ -585,7 +551,7 @@
       "p0": {}
     }
   },
-  "orderNoItemDetails": "This order has no item details.",
+  "orderNoItemDetails": "No item details",
   "msg4": "{p0} × {p1}",
   "@msg4": {
     "placeholders": {
@@ -597,7 +563,7 @@
   "pickupDetails": "Pickup details",
   "notAssigned": "Not assigned",
   "slot": "Slot",
-  "notAssignedYet": "Not assigned yet",
+  "notAssignedYet": "No slot assigned yet",
   "pickupCode": "Pickup code",
   "transaction": "Transaction",
   "buyer": "Buyer",
@@ -612,14 +578,13 @@
   "pendingPayouts": "Pending payouts",
   "noPendingPayouts": "No pending payouts",
   "pendingAmount": "Pending amount",
-  "coinsArriveOnceBuyerCollectsBook": "Coins arrive once the buyer collects the book",
+  "coinsArriveOnceBuyerCollectsBook": "Paid automatically after the buyer collects the book",
   "scanned": "Scanned",
   "scanAgain": "Scan again",
   "collectBook": "Collect a book",
   "pointPickupQrCode": "Point at the pickup QR code",
   "holdSteady": "Hold steady",
   "bookCollected": "Book collected",
-  "thanksUsingSavemybookHappyReading": "Thank you for using SaveMyBook. Enjoy your reading.",
   "collected": "“{p0}” collected",
   "@collected": {
     "placeholders": {
@@ -634,7 +599,7 @@
   },
   "signingOut": "Signing out…",
   "myAccount": "My account",
-  "personNotWrittenBioYet": "This person has not written a bio yet",
+  "personNotWrittenBioYet": "No bio yet",
   "topTierReached": "Top tier reached",
   "morePointsReach": "{p0} more points to reach “{p1}”",
   "@morePointsReach": {
@@ -643,24 +608,12 @@
       "p1": {}
     }
   },
-  "myCoins": "My coins",
-  "shareProfile": "Share profile",
   "purchases": "Purchases",
   "sales": "Sales",
   "settings": "Settings",
   "signOut2": "Sign out?",
-  "needSignAgainKeepUsingApp": "You will need to sign in again to keep using the app.",
   "cancelOrderBookReturnsShop": "Cancel order {p0}? The book returns to the shop.",
   "@cancelOrderBookReturnsShop": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "pickupCode2": "Pickup code",
-  "notGeneratedYet": "Not generated yet",
-  "enterCodeLockerCollect": "Enter this code on the locker to collect",
-  "enterCodeCollect": "Enter this code at {p0} to collect",
-  "@enterCodeCollect": {
     "placeholders": {
       "p0": {}
     }
@@ -677,11 +630,9 @@
   "iReadAccept": "I have read and accept the ",
   "and": " and ",
   "createAccount": "Create account",
-  "joinSavemybook": "Join SaveMyBook",
-  "signUpBuySellUseSmart": "Sign up to buy, sell and use the smart lockers",
+  "joinSavemybook": "Create account",
   "displayName": "Display name",
-  "nameOthersSee": "The name others will see",
-  "emailSignWith": "The email you sign in with",
+  "emailSignWith": "Email",
   "least8CharactersWithLettersNumbers": "At least 8 characters with letters and numbers",
   "confirmPassword": "Confirm password",
   "enterPasswordAgain2": "Enter your password again",
@@ -690,8 +641,6 @@
   "droppedOff": "Dropped off",
   "markedAsDroppedOff": "Marked as dropped off",
   "buyerNotifiedBookReturnsShop": "The buyer is notified and the book returns to the shop.",
-  "dropOffPickupCode": "Drop-off / pickup code",
-  "enterCodeLocker": "Enter this code on the locker",
   "noRecentSearches": "No recent searches",
   "recentSearches": "Recent searches",
   "clearAll2": "Clear all",
@@ -709,19 +658,11 @@
   "enterOwnPrice": "Enter your own price.",
   "invalidPrice": "Invalid price",
   "priceMustGreaterThan02": "The price must be greater than 0.",
-  "priceCannotExceed99999": "The price cannot exceed 99,999.",
+  "priceCannotExceed99999": "The price cannot exceed 99,999 coins.",
   "chooseLockerLocation2": "Choose a locker location.",
   "listed2": "Listed successfully",
   "unknownError": "Unknown error",
   "couldNotListBook": "Could not list the book",
-  "serverError": "Server error: {p0}",
-  "@serverError": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "connectionProblem": "Connection problem",
-  "couldNotReachServerUploadTimed": "Could not reach the server or the upload timed out. Check your connection.",
   "listBook": "List this book",
   "detailsPhotos": "Details and photos",
   "loading": "Loading...",
@@ -729,10 +670,9 @@
   "enterTitle2": "Enter the title",
   "chooseCategory2": "Choose a category",
   "bookDetailsFilledAutomatically": "Book details filled in automatically.",
-  "bookDetailsFilledFromBackupSource": "Book details filled in from the backup source.",
   "noSourceIsbnPleaseEnterDetails": "No source has this ISBN. Please enter the details manually.",
   "day": "Day",
-  "tapIconRightScan": "Tap the icon on the right to scan",
+  "tapIconRightScan": "Enter ISBN",
   "description": "Description",
   "sellBook": "Sell a book",
   "myShop": "My shop",
@@ -757,15 +697,8 @@
   "helpSupport": "Help and support",
   "contactUs": "Contact us",
   "aboutSavemybook": "About SaveMyBook",
-  "settingsPrivacy": "Settings and privacy",
   "sign3": "{p0} sign-in",
   "@sign3": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "unlockWithWhenOpenApp": "Unlock with {p0} when you open the app",
-  "@unlockWithWhenOpenApp": {
     "placeholders": {
       "p0": {}
     }
@@ -797,7 +730,7 @@
   "askQuestion": "Ask a question",
   "noEnquiriesYet": "No enquiries yet",
   "enterSubject": "Enter a subject",
-  "addMoreDetailSoSupportCan": "Add more detail so support can help",
+  "addMoreDetailSoSupportCan": "Add more detail to the description",
   "sentSupportReplySoon": "Sent. Support will reply soon.",
   "subject": "Subject",
   "sumUpOneLine": "Brief summary of the issue",
@@ -821,14 +754,6 @@
       "p0": {}
     }
   },
-  "requestFailed2": "Request failed ({p0})",
-  "@requestFailed2": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "couldNotReachServer": "Could not reach the server",
-  "couldNotReachServerCheckConnection": "Could not reach the server. Check your connection.",
   "signFailed": "Sign-in failed",
   "signFailedPleaseTryAgain": "Sign-in failed. Please try again.",
   "signUpFailed": "Sign-up failed",
@@ -903,7 +828,7 @@
   "alerts": "Alerts",
   "collect": "Collect",
   "couldNotLoadPhoto": "Could not load this photo",
-  "slot2": "Slot {p0}",
+  "slot2": "Slot: {p0}",
   "@slot2": {
     "placeholders": {
       "p0": {}
@@ -927,7 +852,7 @@
   "newAnnouncement": "New announcement",
   "title2": "Title",
   "announcementTitle": "Announcement title",
-  "writeAnnouncement": "Write the announcement",
+  "writeAnnouncement": "Enter announcement content",
   "publishNow": "Publish now",
   "leaveOffSaveAsDraft": "Leave off to save as a draft",
   "saveDraft": "Save draft",
@@ -941,7 +866,7 @@
   "announcementDeleted": "Announcement deleted",
   "couldNotDeleteTryAgainLater": "Could not delete. Try again later.",
   "announcements": "Announcements",
-  "noAnnouncementsYetTapAddOne": "No announcements yet. Tap + to add one.",
+  "noAnnouncementsYetTapAddOne": "No announcements yet",
   "published": "Published",
   "draft": "Draft",
   "audienceEveryone": "Audience: everyone",
@@ -959,7 +884,7 @@
     }
   },
   "olderBackupsBeyondCountRemovedAutomatically": "Older backups beyond that count are removed automatically. A backup contains personal data for the whole site, so keep downloads secure. Every download is written to the audit log.",
-  "noBackupsYetSchedulerRunsOnce": "No backups yet. The scheduler runs once a day, or use the button above to create one now.",
+  "noBackupsYetSchedulerRunsOnce": "No backups yet",
   "deleteBackup": "Delete backup",
   "p0NNtheFileItsRecord": "{p0}\n\nThe file and its record are both removed. This cannot be undone.",
   "@p0NNtheFileItsRecord": {
@@ -971,13 +896,6 @@
   "scheduled": "Scheduled",
   "download": "Download",
   "downloadBackup": "Download backup",
-  "fetchBackupComputerWithAuthorisationHeader": "Fetch the backup on a computer, with your authorisation header:\n\n{p0}\n\nFile size {p1}.",
-  "@fetchBackupComputerWithAuthorisationHeader": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "copyLink2": "Copy link",
   "downloadLinkCopied": "Download link copied",
   "forceDelist": "Force delist",
@@ -1123,24 +1041,12 @@
   "documentUnsavedChangesTheyLostIf": "This document has unsaved changes. They are lost if you leave.",
   "discard": "Discard",
   "keepEditing": "Keep editing",
-  "bothTitleContentRequired": "Both title and content are required",
   "sectionP0NoTitleYet": "Section {p0} has no title yet",
   "@sectionP0NoTitleYet": {
     "placeholders": {
       "p0": {}
     }
   },
-  "updateP0": "Update {p0}?",
-  "@updateP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "documentBindingEveryUserSubmittingReplaces": "This document is binding on every user. Submitting replaces the current version immediately.",
-  "yesUpdate": "Confirm update",
-  "notifyEveryUser": "Notify every user?",
-  "updateNotify": "Update and notify",
-  "updateOnly": "Update only",
   "sections": "Sections",
   "plainText": "Plain text",
   "preview": "Preview",
@@ -1148,17 +1054,14 @@
   "preamble": "Preamble",
   "unnumberedOpeningTextLeaveEmptyIf": "Unnumbered opening text. Leave empty if there is none.",
   "articles": "Articles",
-  "numberedAutomatically": "Numbered automatically",
-  "noArticlesYetAddFirstOne": "No articles yet. Add the first one below.",
+  "noArticlesYetAddFirstOne": "No articles yet",
   "addSection": "Add section",
   "untitledSection": "Untitled section",
   "sectionTitle": "Section title",
   "bodySectionSingleLineBreaksKept": "The body of this section. Single line breaks are kept as-is; an empty line starts a new paragraph.",
-  "emptyLineStartsParagraphParagraphWhose": "An empty line starts a paragraph. A paragraph whose first line reads \"1. Title\" becomes a section when you switch back.",
   "howUsersSee": "How users see it",
   "noContentYet": "No content yet",
   "unsaved": "Unsaved",
-  "upDate": "Up to date",
   "newQuestion": "New question",
   "editQuestion": "Edit question",
   "question": "Question",
@@ -1177,7 +1080,6 @@
   "deleted": "Deleted",
   "faq": "FAQ",
   "noQuestionsYet2": "No questions yet",
-  "dragHandleRightReorder": "Drag the handle on the right to reorder",
   "hidden": "Hidden",
   "cancelDeletionRequest": "Cancel deletion request",
   "p0SAccountReturnsNormalCountdown": "{p0}'s account returns to normal and the countdown stops.",
@@ -1254,36 +1156,20 @@
   "handle": "Handle",
   "transactions2": "Transactions",
   "orders": "Orders",
-  "lookUpOrdersAdjustStatusBy": "Look up orders and adjust status manually",
-  "disputeListDecisions": "Dispute list and decisions",
   "listings": "Listings",
-  "allBooksForceDelisting": "All books, force delisting",
   "moderation": "Moderation",
   "handleListingReports": "Handle listing reports",
-  "addReorderDeleteBookCategories": "Add, reorder and delete book categories",
   "members": "Members",
   "memberControls": "Member controls",
-  "memberListSuspensionBlocklist": "Member list, suspension and blocklist",
   "membershipTiers": "Membership tiers",
-  "tierThresholdsBenefits": "Tier thresholds and benefits",
   "wallets": "Wallets",
-  "checkBalancesAddDeductCoinsBy": "Check balances, add or deduct coins manually",
   "hardwareOperations": "Hardware and operations",
-  "lockerSlotStatus": "Locker and slot status",
   "maintenanceLog": "Maintenance log",
-  "lockerOperationHistory": "Locker operation history",
   "reports": "Reports",
   "ordersRevenueMemberGrowth": "Orders, revenue and member growth",
-  "announcements2": "Announcements",
   "supportEnquiries": "Support enquiries",
-  "replyQuestionsFromUsers": "Reply to questions from users",
-  "faqShownHelpCentre": "FAQ shown in the help centre",
-  "termsPrivacyPolicyAbout": "Terms, privacy policy and about",
   "adminAuditLog": "Admin audit log",
-  "auditTrailAdminChanges": "Audit trail of admin changes",
   "systemOperations": "System operations",
-  "dailyBackupsManualRunsDownloads": "Daily backups, manual runs and downloads",
-  "deletionRequestsInsideGracePeriodCancel": "Deletion requests inside the grace period; cancel or run them now",
   "members2": "Members",
   "todaySOrders": "Today's orders",
   "openCases": "Open cases",
@@ -1561,7 +1447,6 @@
   "noEnquiriesCategory": "No enquiries in this category",
   "addCoins": "Add coins",
   "deductCoins": "Deduct coins",
-  "amountPositiveWholeNumber": "Amount (positive whole number)",
   "reasonAdjustmentRequired": "Reason for the adjustment (required)",
   "add2": "Add",
   "deduct": "Deduct",
@@ -1615,12 +1500,6 @@
       "p0": {}
     }
   },
-  "everyActiveMemberReceivesP0Updated": "Every active member receives a \"{p0} updated\" notification.",
-  "@everyActiveMemberReceivesP0Updated": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "orderPlaced": "Order placed",
   "paid": "Paid",
   "sellerDroppedOff": "Seller dropped off",
@@ -1654,7 +1533,7 @@
       "p0": {}
     }
   },
-  "remindThemChangeSettingsChangePassword": "Remind them to change it at Settings → Change password right after signing in.",
+  "remindThemChangeSettingsChangePassword": "Remind them to change it in Settings › Change password right after signing in.",
   "temporaryPasswordCopied": "Temporary password copied",
   "copy": "Copy",
   "cannotResetAnotherAdminSPassword": "You cannot reset another admin's password",
@@ -1670,7 +1549,6 @@
   "items3": "Items",
   "bookDeleted": "(book deleted)",
   "notAssignedYet2": "Not assigned yet",
-  "pickupCodeCopied": "Pickup code copied",
   "walletActivity": "Wallet activity",
   "balanceP02": "Balance {p0}",
   "@balanceP02": {
@@ -1715,7 +1593,7 @@
   "approved": "Approved",
   "awaitingRefund": "Awaiting refund",
   "declined": "Declined",
-  "changeOwnPasswordGoSettingsChange": "To change your own password, go to Settings → Change password",
+  "changeOwnPasswordGoSettingsChange": "To change your own password, go to Settings › Change password",
   "memberNotAdminSoThereNo": "This member is not an admin, so there are no admin permissions to set. Change their role above first.",
   "you": "You",
   "isbnMust1013DigitsOne": "ISBN must be 10 or 13 digits; this one has {p0}",
@@ -1769,7 +1647,6 @@
   "sendTestNotification": "Send a test notification",
   "arrives10SecondsGoHomeScreen": "Arrives in 10 seconds. Go to the Home Screen or lock your phone after sending.",
   "systemNotificationSettings": "System notification settings",
-  "turnNotificationsSoundsLockScreenPreviews": "Turn notifications, sounds and Lock Screen previews on or off",
   "pushNotificationsNotSetUpBuild": "Push notifications are not set up in this build. Add the Firebase config files and rebuild.",
   "notificationsTurnedOffAllowAppSend": "Notifications are turned off. Allow this app to send notifications in system settings.",
   "restoreBackup": "Restore this backup?",
@@ -1803,8 +1680,6 @@
       "p0": {}
     }
   },
-  "majorUpdate": "Is this a major update?",
-  "majorUpdateNotifiesEveryUserTerms": "A major update notifies every user. For the Terms and Privacy Policy, users must read and accept the new version the next time they open the app.\n\nFor typo fixes or formatting changes, choose \"Minor edit\".",
   "majorUpdate2": "Major update",
   "minorEdit": "Minor edit",
   "books": "Books",
@@ -1830,15 +1705,12 @@
     }
   },
   "undoAction2": "Undo this action",
-  "tapBarSeeDay": "Tap a bar to see that day",
   "noAnnouncements": "No announcements",
-  "tapPhotoNameChange": "Tap the photo or name to change it",
   "canTContinueWithoutAccepting": "You can't continue without accepting",
-  "needAcceptLatestP0UseP1": "You need to accept the latest \"{p0}\" to use {p1}. If you decline, you are signed out; sign in again any time to accept.",
+  "needAcceptLatestP0UseP1": "If you do not accept \"{p0}\", you will be signed out.",
   "@needAcceptLatestP0UseP1": {
     "placeholders": {
-      "p0": {},
-      "p1": {}
+      "p0": {}
     }
   },
   "goBack": "Go back",
@@ -1848,7 +1720,7 @@
       "p0": {}
     }
   },
-  "readLatestVersionUpdatedP0Accept": "Read the latest version (updated {p0}). Accept it to continue.",
+  "readLatestVersionUpdatedP0Accept": "Updated {p0}",
   "@readLatestVersionUpdatedP0Accept": {
     "placeholders": {
       "p0": {}
@@ -1858,13 +1730,10 @@
   "iVeReadAccept": "I've read and accept",
   "decline": "Decline",
   "viewDetails": "View details",
-  "notFoundMayBeenDeletedRemoved": "Not found. It may have been deleted or removed.",
-  "salesDropOffsPickupsRefundsDisputes": "Sales, drop-offs, pickups, refunds and disputes",
+  "notFoundMayBeenDeletedRemoved": "This content is no longer available",
   "chatMessages": "Chat messages",
-  "newMessagesFromBuyersSellers": "New messages from buyers and sellers",
   "promotions2": "Promotions",
-  "announcementsAboutPromotions": "Announcements about promotions",
-  "supportRepliesPasswordResetsPolicyUpdates": "Support replies, password resets, policy updates and maintenance notices are always sent. Turned-off types still appear in your notification list, just without a push.",
+  "supportRepliesPasswordResetsPolicyUpdates": "Support replies, account security and system announcements cannot be turned off.",
   "notFilled": "Not filled in",
   "canTChanged": "Can't be changed",
   "voice": "[Voice]",
@@ -1962,14 +1831,13 @@
       "p0": {}
     }
   },
-  "ifIsnTSoldByThen": "If it isn't sold by then, you can add it to your cart",
   "sellerHoldingUntilP0": "The seller is holding it for you until {p0}",
   "@sellerHoldingUntilP0": {
     "placeholders": {
       "p0": {}
     }
   },
-  "checkOutBeforeHoldEndsOther": "Check out before the hold ends, or other buyers can purchase it",
+  "checkOutBeforeHoldEndsOther": "Check out before the hold expires",
   "copyAddress": "Copy address",
   "p0Away": "{p0} away",
   "@p0Away": {
@@ -2002,7 +1870,6 @@
       "p1": {}
     }
   },
-  "swipeQuickActions": "Swipe for quick actions",
   "searchTitleAuthorIsbn2": "Search title, author or ISBN",
   "removedP0": "Removed \"{p0}\"",
   "@removedP0": {
@@ -2081,7 +1948,6 @@
   "accept": "Accept",
   "reservationAccepted": "Reservation accepted",
   "declineReservation": "Decline reservation?",
-  "theyLlNotifiedDeclined": "They'll be notified that you declined.",
   "decline2": "Decline",
   "reservationDeclined": "Reservation declined",
   "cancelReservation": "Cancel reservation?",
@@ -2096,7 +1962,7 @@
   "notNow2": "Not now",
   "couldnTLoadConversationPleaseTry": "Couldn't load the conversation. Please try again later",
   "accountCanTReceiveMessagesRight": "This account can't receive messages right now",
-  "holdMicTalkReleaseSend": "Hold the mic to talk, release to send",
+  "holdMicTalkReleaseSend": "Recording too short",
   "startConversation": "This is the start of your conversation",
   "p0New": "{p0} new",
   "@p0New": {
@@ -2110,7 +1976,7 @@
   "couldLowerPriceBit": "Is the price negotiable?",
   "whenCanPutLocker": "When will the book be placed in the locker?",
   "unsentMessage": "You unsent a message",
-  "theyUnsentMessage": "They unsent a message",
+  "theyUnsentMessage": "The other user unsent a message",
   "reservationDetailsArenTAvailableRight": "Reservation details aren't available right now",
   "sending": "Sending",
   "couldNotUploadPhotosPleaseTry": "Could not upload the photos. Please try again later",
@@ -2131,15 +1997,13 @@
     }
   },
   "picked": "Picked for you",
-  "seeMore": "See more",
   "recentlyViewed": "Recently viewed",
   "clear": "Clear",
   "notificationDeleted": "Notification deleted",
   "pleasePutBookAssignedLockerSoon": "Please put the book in the assigned locker soon",
   "weLlLetKnowWhenSeller": "You will be notified when the seller drops off the book",
   "waitingBuyerCollect": "Waiting for the buyer to collect",
-  "bookLockerEnterPickupCodeCollect": "The book is in the locker. Enter your pickup code to collect it.",
-  "transactionCompleteThank": "Transaction complete. Thank you.",
+  "transactionCompleteThank": "Transaction complete",
   "confirmVeTakenBookFromLocker": "Confirm you've taken the book from the locker. The order will then be completed.",
   "p0Orders2": "{p0} orders",
   "@p0Orders2": {
@@ -2156,7 +2020,6 @@
   "pickUp": "To pick up",
   "saved": "Saved",
   "accountSecurity": "Account security",
-  "sellerHasnTPutBookLocker": "The seller has not yet placed the book in the locker. You will be notified once it is there.",
   "searchHistoryCleared": "Search history cleared",
   "trendingBooks": "Trending books",
   "signOutDevice": "Sign out this device?",
@@ -2166,13 +2029,12 @@
       "p0": {}
     }
   },
-  "llNeedSignAgainUseApp": "You'll need to sign in again to use the app.",
-  "deviceSignedOutRightAwayStop": "That device will be signed out right away and stop receiving notifications.",
+  "deviceSignedOutRightAwayStop": "That device will be signed out immediately.",
   "deviceSignedOut": "Device signed out",
   "signOutAllDevicesIncludingOne": "Sign out all devices (including this one)",
   "signOutAllOtherDevices": "Sign out all other devices",
-  "everyDeviceIncludingOneSignedOut": "Every device, including this one, will be signed out and need to sign in again.",
-  "everyDeviceExceptOneSignedOut": "Every device except this one will be signed out right away and stop receiving notifications.",
+  "everyDeviceIncludingOneSignedOut": "All devices, including this one, will be signed out immediately.",
+  "everyDeviceExceptOneSignedOut": "All devices except this one will be signed out immediately.",
   "signedOutP0OtherDevices": "Signed out of {p0} other devices",
   "@signedOutP0OtherDevices": {
     "placeholders": {
@@ -2181,7 +2043,6 @@
   },
   "unknownDevice": "Unknown device",
   "couldnTLoadDevices": "Couldn't load your devices",
-  "theseDevicesSignedAccountIfDon": "These devices are signed in to your account. If you don't recognise one, sign it out and change your password.",
   "device": "This device",
   "otherDevices": "Other devices",
   "otherDevicesP0": "Other devices ({p0})",
@@ -2213,7 +2074,6 @@
   "pinsDonTMatchStartAgain": "The PINs don't match. Start again",
   "paymentPinReset": "Payment PIN reset",
   "paymentPinSet": "Payment PIN set",
-  "use6DigitPinConfirmPayments": "You will use this 6-digit PIN to confirm payments at checkout.",
   "verifyingIdentity": "Verifying your identity…",
   "enterAgainConfirm": "Enter it again to confirm",
   "set6DigitPaymentPin": "Set a 6-digit payment PIN",
@@ -2238,7 +2098,7 @@
       "p0": {}
     }
   },
-  "securitySettingsUnavailableRightNowMay": "Security settings are unavailable right now. You may not be able to change your payment PIN or devices.",
+  "securitySettingsUnavailableRightNowMay": "Unable to load security settings",
   "payWithP0": "Pay with {p0}",
   "@payWithP0": {
     "placeholders": {
@@ -2247,27 +2107,22 @@
   },
   "accountWellProtected": "Your account is well protected",
   "accountCouldSafer": "Account security can be improved",
-  "paymentPinBiometricPaymentSetCheck": "Payment PIN and biometric payment are set. Review your signed-in devices regularly.",
-  "setPaymentPinTurnBiometricPayment": "Set a payment PIN and turn on biometric payment for safer, faster checkout.",
+  "setPaymentPinTurnBiometricPayment": "Payment PIN not set",
   "tooManyAttemptsLockedUntilP0": "Too many attempts. Locked until {p0}",
   "@tooManyAttemptsLockedUntilP0": {
     "placeholders": {
       "p0": {}
     }
   },
-  "usedConfirmPaymentsCheckout": "Used to confirm payments at checkout",
-  "notSetRequiredBeforeCheckout": "Not set. Required before checkout",
+  "notSetRequiredBeforeCheckout": "Not set",
   "change": "Change",
   "forgotPaymentPin": "Forgot payment PIN",
-  "ifFailsCanEnterPaymentPin": "If it fails, you can enter your payment PIN instead",
-  "viewRemotelySignOutDevices": "View or remotely sign out devices",
   "p0Devices": "{p0} devices",
   "@p0Devices": {
     "placeholders": {
       "p0": {}
     }
   },
-  "otherDevicesNeedSignAgain": "Other devices will need to sign in again",
   "restoredUnfinishedListing": "Restored your unfinished listing",
   "isbnSCheckDigitInvalidPlease": "This ISBN's check digit is invalid. Please check it again.",
   "draftSavedAutomatically": "Draft saved automatically",
@@ -2280,9 +2135,7 @@
   },
   "cacheCleared": "Cache cleared",
   "storage": "Storage",
-  "paymentPinBiometricPaymentDevices": "Payment PIN, biometric payment, devices",
   "clearCache": "Clear cache",
-  "removesCachedImagesFilesAccountData": "Removes cached images and files. Your account data is not affected",
   "couldNotLoadNotificationSettings": "Could not load notification settings",
   "month": "This month",
   "p0P1": "{p0}/{p1}",
@@ -2332,7 +2185,7 @@
       "p0": {}
     }
   },
-  "protectCoinsCheckoutRequires6Digit": "To protect your coins, checkout requires a 6-digit payment PIN. After setting it, you can also turn on Face ID or fingerprint payment.",
+  "protectCoinsCheckoutRequires6Digit": "Set a 6-digit payment PIN before checking out.",
   "confirmPaymentP0Coins": "Confirm payment of {p0} coins",
   "@confirmPaymentP0Coins": {
     "placeholders": {
@@ -2352,7 +2205,7 @@
   "enterPaymentPinContinue": "Enter your payment PIN to continue",
   "paymentPinResetEnterAgain": "Payment PIN reset. Enter it again",
   "usePasswordInstead": "Use password instead",
-  "couldnTGetLocationLockersShown": "Couldn't get your location. Lockers are shown in default order.",
+  "couldnTGetLocationLockersShown": "Unable to get your location",
   "p0SlotsFree": "{p0} slots free",
   "@p0SlotsFree": {
     "placeholders": {
@@ -2367,7 +2220,6 @@
   },
   "nearest": "Nearest",
   "noFreeSlots": "No free slots",
-  "sortedByDistance": "Sorted by distance",
   "turnLocationSortByDistance": "Turn on location to sort by distance",
   "lockerNoFreeSlotsRightNow": "This locker has no free slots right now",
   "turn": "Turn on",
@@ -2399,7 +2251,6 @@
     }
   },
   "releaseCancel": "Release to cancel",
-  "slideCancel": "← Slide to cancel",
   "awaitingReply": "Awaiting reply",
   "heldUntilP0": "Held until {p0}",
   "@heldUntilP0": {
@@ -2417,7 +2268,6 @@
       "p0": {}
     }
   },
-  "onceSellerAcceptsBookHeldNo": "Once the seller accepts, the book is held for you and no one else can buy it until the deadline.",
   "holdPeriod": "Hold period",
   "messageSellerOptional": "Message to the seller (optional)",
   "sendRequest": "Send request",
@@ -2443,8 +2293,8 @@
       "p1": {}
     }
   },
-  "serverNotBeenUpdatedSupportFeature": "The server has not been updated to support this feature yet. Try again later.",
-  "someFeaturesTemporarilyUnavailableWhileServer": "Some features are temporarily unavailable while the server is being updated",
+  "serverNotBeenUpdatedSupportFeature": "This feature is temporarily unavailable. Please try again later.",
+  "someFeaturesTemporarilyUnavailableWhileServer": "Some features are temporarily unavailable",
   "serverRunningOutdatedApiRevisionP0": "The server is running an outdated API (revision {p0}; the app requires {p1}). Update the code on the server and restart the API.",
   "@serverRunningOutdatedApiRevisionP0": {
     "placeholders": {
@@ -2486,7 +2336,6 @@
   "rose": "Rose",
   "graphite": "Graphite",
   "mistBlue": "Mist blue",
-  "chooseAppSMainColourHeader": "Choose the app's main colour for the header, buttons and highlights.",
   "draftRestored": "Draft restored",
   "convertSections": "Convert to sections",
   "currentContentDoesNotFullyMatch": "The current content does not fully match the section format. After conversion, section numbers will be regenerated in order using the \"1. Title\" format, and paragraphs not recognized as headings will be merged into the preamble or the preceding section.\n\nTo keep the original format, continue editing and saving in plain text.",
@@ -2633,7 +2482,7 @@
   "notBlockedAnyUsers": "You have not blocked any users",
   "blockedUsers": "Blocked users",
   "blockUser": "Block user",
-  "afterBlockP0NeitherCanSend": "After you block \"{p0}\", neither of you can send messages to the other. They will not be notified. You can unblock them at any time in Settings › Blocked users.",
+  "afterBlockP0NeitherCanSend": "After you block \"{p0}\", neither of you can send messages to the other.",
   "@afterBlockP0NeitherCanSend": {
     "placeholders": {
       "p0": {}
@@ -2649,12 +2498,6 @@
   "reply": "Reply",
   "bookLockerScanQrCodeLocker": "The book is in the locker. Scan the QR code on the locker to collect it.",
   "originalMessageUnavailable": "Original message unavailable",
-  "replyingP0": "Replying to {p0}",
-  "@replyingP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "cancelReply": "Cancel reply",
   "unreadMessages": "Unread messages",
   "selectChat": "Select a chat",
@@ -2676,11 +2519,10 @@
   "allowed": "Allowed",
   "limited": "Limited",
   "notAllowed": "Not allowed",
-  "restricted": "Restricted",
+  "restricted": "Restricted by the system",
   "denied": "Denied",
   "allow": "Allow",
   "homeRecommendations": "Home recommendations",
-  "pickedRecentlyViewed": "Picked for you, recently viewed",
   "leaveGroup": "Leave group",
   "leaveP0": "Leave \"{p0}\"?",
   "@leaveP0": {
@@ -2941,7 +2783,7 @@
       "p0": {}
     }
   },
-  "photosP02": "[Photos] {p0}",
+  "photosP02": "[{p0} photos]",
   "@photosP02": {
     "placeholders": {
       "p0": {}
@@ -2959,30 +2801,26 @@
   "savingImage": "Saving image",
   "passwordsCanOnlyContainEnglishLetters": "Passwords can only contain English letters, numbers and standard symbols",
   "aiSupport": "AI support",
-  "instantReplies": "Instant replies",
   "howDoIListBook": "How do I list a book?",
-  "howDoIPickUpFrom": "How do I pick up from a locker?",
+  "howDoIPickUpFrom": "How do I collect a book from a locker?",
   "howDoIRequestRefund": "How do I request a refund?",
-  "howDoWalletCoinsWork": "How do wallet coins work?",
-  "talkPerson": "Talk to a person",
-  "supportRequestCreatedFromConversationOur": "A support request will be created from this conversation, and our support team will follow up.",
+  "howDoWalletCoinsWork": "How are coins used?",
+  "talkPerson": "Contact a support agent",
+  "supportRequestCreatedFromConversationOur": "You will be connected to a support agent, who will receive this conversation",
   "transfer4": "Transfer",
-  "creatingSupportRequest": "Creating support request",
-  "transferredSupportTeam": "Transferred to support team",
+  "creatingSupportRequest": "Connecting to support",
+  "transferredSupportTeam": "Transferred to a support agent",
   "newConversation": "New conversation",
   "currentConversationEnd": "The current conversation will end",
   "copied2": "Copied",
-  "aiReplies": "AI replies",
   "howCanWeHelp": "How can we help?",
   "failedSend": "Failed to send",
   "ourSupportTeamCanHelpWith": "Our support team can help with this",
   "contactSupport": "Contact support",
   "typeQuestion": "Type your question",
   "aiFeatures": "AI features",
-  "usageModelsListingReview": "Usage, models and listing review",
   "aiSettingsNotSavedChangesLost": "AI settings are not saved. Changes will be lost if you leave.",
   "usage": "Usage",
-  "settings2": "Settings •",
   "reviewP0": "Review {p0}",
   "@reviewP0": {
     "placeholders": {
@@ -2992,7 +2830,6 @@
   "dailyCost": "Daily cost",
   "noCostPeriod": "No cost in this period",
   "peakDay": "Peak day",
-  "tapBarDetails": "Tap a bar for details",
   "p0Requests": "{p0} requests",
   "@p0Requests": {
     "placeholders": {
@@ -3210,8 +3047,6 @@
   "aiSuggestions": "AI suggestions",
   "noSuggestionsApply": "No suggestions to apply",
   "bookDetails": "Book details",
-  "conditionAppliedNextStep": "Condition (applied in next step)",
-  "priceAppliedNextStep": "Price (applied in next step)",
   "suggestedPrice": "Suggested price",
   "rangeP0P1": "Range ${p0}–${p1}",
   "@rangeP0P1": {
@@ -3226,7 +3061,6 @@
       "p0": {}
     }
   },
-  "sources": "Sources",
   "applyP0": "Apply {p0}",
   "@applyP0": {
     "placeholders": {
@@ -3240,17 +3074,11 @@
     }
   },
   "sameAsCurrent": "Same as current",
-  "confidenceP0": "Confidence {p0}%",
-  "@confidenceP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "listingNotApproved": "Listing not approved",
   "editListing": "Edit listing",
   "submittedReview": "Submitted for review",
-  "goSaleOnceApprovedNotifiedResult": "It will go on sale once approved. You will be notified of the result.",
-  "got": "Got it",
+  "goSaleOnceApprovedNotifiedResult": "It will go on sale once approved",
+  "got": "OK",
   "aiFeaturesNotAvailableRightNow": "AI features are not available right now",
   "bookUnderReviewGoSaleOnce": "This book is under review and will go on sale once approved",
   "notApproved": "Not approved",
@@ -3273,12 +3101,6 @@
   "aiDataProcessingEnabled": "AI data processing enabled",
   "aiDataProcessingTurnedOff": "AI data processing turned off",
   "aiDataProcessing": "AI data processing",
-  "providersP0": "Providers: {p0}",
-  "@providersP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "messagesEnterStatusOrdersReservations": "Messages you enter and the status of your orders and reservations",
   "isbnTitleConditionNotesPhotosSelect": "ISBN, title, condition notes and the photos you select",
   "bookDetailsFromFavoritesPurchaseHistory": "Book details from your favorites and purchase history",
@@ -3289,7 +3111,7 @@
   "purpose": "Purpose",
   "usedOnlyGenerateSupportRepliesPrepare": "Used only to generate support replies, prepare listing details and recommend books. Never used for advertising or tracking.",
   "withdrawingConsent": "Withdrawing consent",
-  "canTurnOffAiDataProcessing": "You can turn off \"AI data processing\" at any time in Settings > Account. The data above will no longer be shared once it is turned off.",
+  "canTurnOffAiDataProcessing": "You can turn off \"AI data processing\" at any time in Settings › Account. The data above will no longer be shared once it is turned off.",
   "agreeContinue": "Agree",
   "insufficientQuotaPlanNotEnabled": "Insufficient quota or plan not enabled",
   "modelNotFound": "Model not found",
@@ -3300,20 +3122,16 @@
   "serverProcessingError": "Server processing error",
   "aiBookAdvisor": "AI book advisor",
   "requiresDatabaseUpdate013": "Requires database update 013",
-  "mysteryNovelMyCommute": "A mystery novel for my commute",
+  "mysteryNovelMyCommute": "Mystery novels for commuting",
   "programmingBooksBeginners": "Programming books for beginners",
   "booksUnder200Coins": "Books under 200 coins",
   "popularLiteraryFictionRightNow": "Popular literary fiction right now",
-  "tellMeWhatBookLooking": "Tell me what book you are looking for",
-  "allRecommendationsComeFromBooksCurrently": "All recommendations come from books currently on sale here",
+  "tellMeWhatBookLooking": "Describe the book you are looking for",
   "describeBookLooking": "Describe the book you are looking for",
-  "tellMeWhatWantReadI": "Tell me what you want to read and I will pick for you",
+  "tellMeWhatWantReadI": "Book recommendations based on your needs",
   "subtitle": "Subtitle",
   "monthOnly": "Month only",
   "yearOnly": "Year only",
-  "fromBookDatabase": "From the book database",
-  "writtenByAi": "Written by AI",
-  "aiTidiedSourceText": "AI tidied the source text",
   "msg": "繁體中文",
   "additionalInformation": "Additional information",
   "readFull": "Read in full",
@@ -3333,20 +3151,18 @@
   "setPasswordFirst": "Set a password first",
   "setPassword": "Set password",
   "signMethodSettingsSaved": "Sign-in method settings saved",
-  "signMethodSettingsUnsavedLeavingDiscards": "Sign-in method settings are unsaved; leaving discards the changes.",
+  "signMethodSettingsUnsavedLeavingDiscards": "Sign-in method settings are not saved. Changes will be lost if you leave.",
   "serverNotRunDatabaseUpdate014": "The server has not run database update 014, so the settings cannot take effect yet.",
   "signChannels": "Sign-in channels",
   "socialSmsSign": "Social and SMS sign-in",
   "whenOffSignPageHidesThese": "When off, the sign-in page hides these methods; linked accounts can still sign in with a password.",
   "notConfigured": "Not configured",
-  "allowCreatingNewAccountsWithMethod": "Allow creating new accounts with this method",
-  "serverNoCredentialsChannel": "The server has no credentials for this channel",
+  "allowCreatingNewAccountsWithMethod": "Allow new accounts with this method",
   "unsavedChanges2": "Unsaved changes",
-  "switchesSignupPermissionsSocialSmsSign": "Switches and signup permissions for social and SMS sign-in",
-  "taiwan": "Taiwan",
+  "taiwan": "Republic of China (Taiwan)",
   "hongKong": "Hong Kong",
   "macau": "Macau",
-  "china": "China",
+  "china": "People's Republic of China",
   "japan": "Japan",
   "southKorea": "South Korea",
   "singapore": "Singapore",
@@ -3359,7 +3175,7 @@
   "couldNotSendCodePleaseTry": "Could not send the code. Please try again later.",
   "linkMobileNumber": "Link mobile number",
   "signWithMobileNumber": "Sign in with a mobile number",
-  "k6DigitCodeSentNumberMessage": "A 6-digit code will be sent to this number. The message may take a moment to arrive.",
+  "k6DigitCodeSentNumberMessage": "A 6-digit code will be sent to this number.",
   "mobileNumber": "Mobile number",
   "sendCode": "Send code",
   "codeIncorrectPleaseEnterAgain": "The code is incorrect. Please enter it again.",
@@ -3380,12 +3196,7 @@
   },
   "resendCode": "Resend the code",
   "completeAccountDetails": "Complete your account details",
-  "p0DidNotProvideEmailAddress": "{p0} did not provide an email address. Fill in the details to create an account.",
-  "@p0DidNotProvideEmailAddress": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
+  "p0DidNotProvideEmailAddress": "Enter your email to complete sign-up.",
   "signWithP0": "Sign in with {p0}",
   "@signWithP0": {
     "placeholders": {
@@ -3395,14 +3206,14 @@
   "signWith2": "Or sign in with",
   "creatingAccountWithMethodsAboveMeans": "Creating an account with the methods above means you accept the Terms of Service and the Privacy Policy.",
   "emailAlreadyRegistered": "This email is already registered",
-  "signWithPasswordThenLinkMethod": "Sign in with your password, then link this method under Sign-in methods in Account security.",
+  "signWithPasswordThenLinkMethod": "Sign in with your password, then link it in Account security › Sign-in methods.",
   "signWithPassword": "Sign in with a password",
   "accountNoPasswordYet": "This account has no password yet",
   "passwordSet": "Password set",
-  "canNowSignWithEmailPassword": "You can now sign in with your email and password. Other devices must sign in again.",
-  "passwordRequiredBeforeCanUnlinkSign": "A password is required before you can unlink a sign-in method, and it lets you sign in by email on a new device. Use at least 8 characters with letters and numbers.",
-  "changingSignMethodsRequiresIdentityVerification": "Changing sign-in methods requires identity verification. Set a password for this account first.",
-  "later": "Later",
+  "canNowSignWithEmailPassword": "Other devices must sign in again.",
+  "passwordRequiredBeforeCanUnlinkSign": "Use at least 8 characters, including letters and numbers.",
+  "changingSignMethodsRequiresIdentityVerification": "Set a password before changing sign-in methods.",
+  "later": "Not now",
   "p0Linked": "{p0} linked",
   "@p0Linked": {
     "placeholders": {
@@ -3415,7 +3226,7 @@
       "p0": {}
     }
   },
-  "noLongerAbleSignWayCan": "You will no longer be able to sign in this way. You can link it again whenever you need.",
+  "noLongerAbleSignWayCan": "You will no longer be able to sign in this way.",
   "unlink": "Unlink",
   "p0Unlinked": "{p0} unlinked",
   "@p0Unlinked": {
@@ -3426,7 +3237,6 @@
   "socialSmsSignNotAvailableRight": "Social and SMS sign-in are not available right now.",
   "noSignMethodAvailableLink": "No sign-in method is available to link.",
   "noPasswordSet": "No password set",
-  "requiredBeforeChangingSignMethodsDeleting": "Required before changing sign-in methods or deleting the account",
   "linkedP0": "Linked on {p0}",
   "@linkedP0": {
     "placeholders": {
@@ -3438,25 +3248,114 @@
   "provideEmailAddressCreateAccount": "Provide an email address to create an account",
   "signMethodOnlyExistingAccounts": "This sign-in method is only for existing accounts",
   "signMethodNotAvailableRightNow": "This sign-in method is not available right now",
-  "credentialDoesNotMatchSelectedSign": "The credential does not match the selected sign-in method",
+  "credentialDoesNotMatchSelectedSign": "Sign-in failed. Please try again.",
   "signMethodLinkedAnotherAccount": "This sign-in method is linked to another account",
-  "accountAlreadyLinkedSignMethod": "This account is already linked to that sign-in method",
+  "accountAlreadyLinkedSignMethod": "This account is already linked to this sign-in method",
   "onlySignMethodAccountSetPassword": "This is the only sign-in method on the account. Set a password or link another method first.",
-  "socialSignUnavailableServerNotFinished": "Social sign-in is unavailable; the server has not finished the database update.",
-  "credentialInvalidExpiredPleaseTryAgain": "The credential is invalid or expired. Please try again.",
+  "socialSignUnavailableServerNotFinished": "Social sign-in is temporarily unavailable. Please try again later.",
+  "credentialInvalidExpiredPleaseTryAgain": "Sign-in timed out. Please try again.",
   "accountAlreadyPasswordUseChangePassword": "This account already has a password. Use Change password instead.",
   "signLinkExpiredPleaseTryAgain": "The sign-in link has expired. Please try again.",
-  "signResultExpiredPleaseTryAgain": "The sign-in result has expired. Please try again.",
+  "signResultExpiredPleaseTryAgain": "Sign-in timed out. Please try again.",
   "thirdPartySignServiceUnavailablePlease": "The third-party sign-in service is unavailable. Please try again later.",
   "couldNotCompleteSignPleaseTry": "Could not complete the sign-in. Please try again.",
-  "accountNotLinkedSignMethod": "This account is not linked to that sign-in method",
-  "couldNotReachServerCheckConnection2": "Could not reach the server. Check your connection.",
+  "accountNotLinkedSignMethod": "This account is not linked to this sign-in method",
   "mobileNumberFormatNotValid": "The mobile number format is not valid",
   "verificationTimedOutRequestNewCode": "The verification timed out. Request a new code.",
   "codeExpiredRequestNewOne": "The code has expired. Request a new one.",
   "tooManyAttemptsPleaseTryAgain": "Too many attempts. Please try again later.",
   "smsSendingLimitBeenReachedPlease": "The SMS sending limit has been reached. Please try again later.",
-  "smsVerificationNotSetUpDevice": "SMS verification is not set up on this device. Please use another sign-in method.",
+  "smsVerificationNotSetUpDevice": "SMS verification is not available on this device. Use another sign-in method.",
   "couldNotCompleteSmsVerificationPlease": "Could not complete SMS verification. Please try again later.",
-  "allowSigningLinkingWithMethod": "Allow signing in and linking with this method"
+  "allowSigningLinkingWithMethod": "Allow signing in and linking with this method",
+  "appNeverStoresPasswordUsedOnly": "This app never stores your password; it is used only for this verification.",
+  "verifyWithBiometricsInstead": "Verify with biometrics instead",
+  "accountWasCreatedWithSocialPhone": "This account has no sign-in password. Set one first.",
+  "setSignPassword": "Set a sign-in password",
+  "enterSignPasswordRunAdminAction": "Verify with your sign-in password or a passkey to run this admin action",
+  "p1P0MethodsEnabled": "{p0} of {p1} methods are enabled",
+  "@p1P0MethodsEnabled": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "masterSwitchOffSoEveryMethod": "The master switch is off, so every method is disabled",
+  "signLinkingDirectSignUpAllowed": "Sign-in, linking and direct sign-up are allowed",
+  "credentialsNotSetPleaseConfigureP0": "Credentials are not set. Please configure {p0} on the server",
+  "@credentialsNotSetPleaseConfigureP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "whenOffMethodHiddenFromSign": "When off, this method is hidden from the sign-in page and Account security",
+  "whenOffOnlyAccountsAlreadyLinked": "When off, only accounts already linked to this method can use it",
+  "signMethodNotLinkedAccount": "This sign-in method is not linked to an account",
+  "p0AccountNotLinkedAnySavemybook": "This {p0} account is not linked to a SaveMyBook account.",
+  "@p0AccountNotLinkedAnySavemybook": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iAlreadyAccountSignFirst": "Sign in to an existing account and link",
+  "createNewAccountWithIdentity": "Create a new account",
+  "signExistingAccountFirstThenLink": "Sign in to your existing account first, then link {p0} in Account security › Sign-in methods.",
+  "@signExistingAccountFirstThenLink": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signMethodNotLinkedAnyAccount": "This sign-in method is not linked to any account",
+  "verifyIdentityWithPasskeyContinue": "Verify your identity with a passkey to continue",
+  "verifyWithPasskeyInstead": "Verify with a passkey instead",
+  "passkeys": "Passkeys",
+  "verifyWithFaceIdFingerprintScreen": "Verify with Face ID, fingerprint or the screen lock on this device. No password needed.",
+  "verifyWithPasskey": "Verify with passkey",
+  "useSignPasswordInstead": "Use sign-in password instead",
+  "signWithPasskey": "Sign in with a passkey",
+  "passkeyAdded": "Passkey added",
+  "screenLock": "your screen lock",
+  "fromNowCanSignVerifyIdentity": "From now on you can sign in and verify your identity with {p0} instead of entering your password.",
+  "@fromNowCanSignVerifyIdentity": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deletePasskey": "Delete passkey",
+  "noLongerAbleSignVerifyIdentity": "You will no longer be able to sign in or verify your identity with this passkey. The passkey saved on your device is not removed; you can delete it in the system password settings.",
+  "passkeyDeleted": "Passkey deleted",
+  "signVerifyIdentityWithFaceId": "Sign in and verify your identity with Face ID, fingerprint or screen lock instead of a password. Passkeys are stored only on your devices and in your password manager.",
+  "addPasskey": "Add a passkey",
+  "notUsedYet": "Not used yet",
+  "lastUsedFormatdateItemLastusedat": "Last used {p0}",
+  "@lastUsedFormatdateItemLastusedat": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "createdCreated": "Created {p0}",
+  "@createdCreated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noPasskeyAvailableDeviceUsePassword": "No passkey is available on this device. Use your password instead.",
+  "passkeyAlreadyRegisteredDevice": "A passkey is already registered on this device.",
+  "signGoogleAccountTurnPasswordManager": "Sign in to a Google account and turn on a password manager on this device, or use your password instead.",
+  "setUpScreenLockPasswordManager": "Set up a screen lock or password manager on this device to create a passkey.",
+  "deviceDoesNotSupportPasskeysUse": "This device does not support passkeys. Use your password instead.",
+  "passkeysTemporarilyUnavailableBecauseAppWebsite": "Passkeys are currently unavailable. Use your password instead.",
+  "requestTimedOutPleaseTryAgain": "The request timed out. Please try again.",
+  "passkeyRequestFailedUsePasswordInstead": "The passkey request failed. Use your password instead.",
+  "verifyIdentityBeforeAddingPasskey": "Verify your identity before adding a passkey",
+  "couldNotListPleaseTryAgain": "Could not list the book. Please try again later.",
+  "downloadLinkValidOnceP0P1": "This download link is valid for 5 minutes and can be used only once. Do not share it.\n\n{p0}\n\nFile size: {p1}",
+  "@downloadLinkValidOnceP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sources": "Sources",
+  "unableOpenLink": "Unable to open the link."
 }

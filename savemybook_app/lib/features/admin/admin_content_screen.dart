@@ -508,16 +508,6 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
           ),
           const SizedBox(width: 6),
           Text('$count', style: TextStyle(fontSize: 12, color: c.textHint)),
-          const Spacer(),
-          if (count > 1)
-            Row(
-              children: [
-                Icon(Icons.swap_vert_rounded, size: 13, color: c.textHint),
-                const SizedBox(width: 3),
-                Text(S.dragHandleRightReorder,
-                    style: TextStyle(fontSize: 11, color: c.textHint)),
-              ],
-            ),
         ],
       ),
     );

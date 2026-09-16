@@ -26,7 +26,7 @@ const addBackup = ({ fileName, status = 'success', trigger = 'manual', adminId =
   return row;
 };
 
-const verifiedAs = (admin) => ({ 'x-verify-token': h.verifyTokenFor({ user: admin }) });
+const verifiedAs = (admin) => ({ 'x-verify-token': h.verifyTokenFor({ user: admin, scope: 'admin' }) });
 
 const systemAdmin = () => {
   const admin = h.addAdmin({ can_manage_system: true });
@@ -84,6 +84,84 @@ module.exports = {
       assert.strictEqual(log.action, '下載資料庫備份');
       assert.strictEqual(log.target_type, 'backup');
       assert.ok(JSON.parse(log.detail).summary.includes('含全站個資'));
+    }],
+
+    ['下載連結須先驗證身分，網址不含登入權杖或備份編號', async () => {
+      const { admin, token } = systemAdmin();
+      writeFile('savemybook-2026-05-10T00-00-00.sql.gz', '備份內容');
+      const record = addBackup({ fileName: 'savemybook-2026-05-10T00-00-00.sql.gz', adminId: admin.user_id, size: 12 });
+
+      const unverified = await request('POST', `/api/admin/backups/${record.backup_id}/download-link`, { token });
+      assert.strictEqual(unverified.status, 403);
+      assert.strictEqual(unverified.body.code, 'VERIFICATION_REQUIRED');
+
+      const res = await request('POST', `/api/admin/backups/${record.backup_id}/download-link`, { token, headers: verifiedAs(admin) });
+      assert.strictEqual(res.status, 201);
+      assert.strictEqual(res.headers.get('cache-control'), 'no-store');
+      assert.strictEqual(res.body.data.expires_in, backup.DOWNLOAD_LINK_TTL_SECONDS);
+      assert.strictEqual(res.body.data.size_bytes, 12);
+      const { pathname } = new URL(res.body.data.url);
+      assert.match(pathname, /^\/api\/backup-downloads\/[\w-]{43}$/);
+      assert.ok(!res.body.data.url.includes(token));
+      assert.ok(!res.body.data.url.includes(`/${record.backup_id}/`));
+      assert.strictEqual(prisma.rows('admin_operation_logs').length, 0);
+    }],
+
+    ['下載連結不需登入即可使用，但僅限一次', async () => {
+      const { admin, token } = systemAdmin();
+      writeFile('savemybook-2026-05-10T00-00-00.sql.gz', '備份內容');
+      const record = addBackup({ fileName: 'savemybook-2026-05-10T00-00-00.sql.gz', adminId: admin.user_id });
+      const link = await request('POST', `/api/admin/backups/${record.backup_id}/download-link`, { token, headers: verifiedAs(admin) });
+      const { pathname } = new URL(link.body.data.url);
+
+      const first = await request('GET', pathname);
+      assert.strictEqual(first.status, 200);
+      assert.strictEqual(first.text, '備份內容');
+      assert.strictEqual(first.headers.get('cache-control'), 'no-store');
+      const [log] = prisma.rows('admin_operation_logs');
+      assert.strictEqual(log.action, '下載資料庫備份');
+      assert.strictEqual(log.admin_id, admin.user_id);
+
+      const second = await request('GET', pathname);
+      assert.strictEqual(second.status, 410);
+      assert.strictEqual(second.body.code, 'DOWNLOAD_LINK_EXPIRED');
+      assert.strictEqual(second.body.message, '下載連結已失效，請重新產生');
+
+      const forged = await request('GET', '/api/backup-downloads/not-a-ticket');
+      assert.strictEqual(forged.status, 410);
+    }],
+
+    ['下載連結逾時或管理員失去權限後即失效', async () => {
+      const { admin, token } = systemAdmin();
+      writeFile('savemybook-2026-05-10T00-00-00.sql.gz', '備份內容');
+      const record = addBackup({ fileName: 'savemybook-2026-05-10T00-00-00.sql.gz', adminId: admin.user_id });
+      const issue = async () => new URL((await request('POST', `/api/admin/backups/${record.backup_id}/download-link`, {
+        token, headers: verifiedAs(admin)
+      })).body.data.url).pathname;
+
+      const expiring = await issue();
+      const realNow = Date.now;
+      Date.now = () => realNow() + (backup.DOWNLOAD_LINK_TTL_SECONDS + 1) * 1000;
+      try {
+        const expired = await request('GET', expiring);
+        assert.strictEqual(expired.status, 410);
+      } finally {
+        Date.now = realNow;
+      }
+
+      const revoked = await issue();
+      prisma.rows('admin_permissions').find((row) => row.user_id === admin.user_id).can_manage_system = false;
+      const denied = await request('GET', revoked);
+      assert.strictEqual(denied.status, 410);
+      assert.strictEqual(prisma.rows('admin_operation_logs').length, 0);
+    }],
+
+    ['備份檔已遺失時無法產生下載連結', async () => {
+      const { admin, token } = systemAdmin();
+      const record = addBackup({ fileName: 'savemybook-2026-05-07T00-00-00.sql.gz', adminId: admin.user_id });
+      const res = await request('POST', `/api/admin/backups/${record.backup_id}/download-link`, { token, headers: verifiedAs(admin) });
+      assert.strictEqual(res.status, 404);
+      assert.strictEqual(res.body.message, '備份檔已不存在');
     }],
 
     ['下載不存在的備份或已遺失的檔案都會回 404', async () => {
@@ -193,6 +271,7 @@ module.exports = {
         ['GET', '/api/admin/backups'],
         ['POST', '/api/admin/backups'],
         ['GET', '/api/admin/backups/1/download'],
+        ['POST', '/api/admin/backups/1/download-link'],
         ['DELETE', '/api/admin/backups/1']
       ];
       for (const [method, url] of calls) {

@@ -51,16 +51,16 @@ class _PickupSuccessScreenState extends State<PickupSuccessScreen> {
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.textPrimary),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  FadeSlideIn(
-                    index: 4,
-                    child: Text(
-                      book == null ? S.thanksUsingSavemybookHappyReading : S.collected(book.title),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 15, color: c.textSecondary, height: 1.5),
-                    ),
-                  ),
                   if (book != null) ...[
+                    const SizedBox(height: 12),
+                    FadeSlideIn(
+                      index: 4,
+                      child: Text(
+                        S.collected(book.title),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 15, color: c.textSecondary, height: 1.5),
+                      ),
+                    ),
                     const SizedBox(height: 20),
                     FadeSlideIn(
                       index: 5,

@@ -66,7 +66,7 @@ module.exports = {
     }],
 
     ['維護模式只放行狀態端點', () => {
-      maintenance.enter('系統正在還原資料庫，請稍後再試');
+      maintenance.enter('系統維護中，請稍後再試');
       assert.strictEqual(maintenance.current().active, true);
 
       const blocked = fakeRes();
@@ -75,7 +75,7 @@ module.exports = {
       assert.strictEqual(passed, false);
       assert.strictEqual(blocked.code, 503);
       assert.strictEqual(blocked.body.code, 'MAINTENANCE');
-      assert.strictEqual(blocked.body.message, '系統正在還原資料庫，請稍後再試');
+      assert.strictEqual(blocked.body.message, '系統維護中，請稍後再試');
       assert.strictEqual(blocked.headers['retry-after'], '30');
 
       maintenance.middleware({ path: '/api/status' }, fakeRes(), () => { passed = true; });
@@ -88,11 +88,11 @@ module.exports = {
     ['未提供或不合法的 Token 會被擋下', async () => {
       const none = await request('GET', ME);
       assert.strictEqual(none.status, 401);
-      assert.strictEqual(none.body.message, '存取被拒，未提供 Token');
+      assert.strictEqual(none.body.message, '請先登入');
 
       const garbage = await request('GET', ME, { token: 'not-a-token' });
       assert.strictEqual(garbage.status, 403);
-      assert.strictEqual(garbage.body.message, 'Token 無效或已過期');
+      assert.strictEqual(garbage.body.message, '登入已失效，請重新登入');
 
       const user = h.addUser();
       const expired = authToken.sign({ userId: user.user_id, role: user.role }, -1);
@@ -107,7 +107,7 @@ module.exports = {
       const verifyToken = h.verifyTokenFor({ user });
       const res = await request('GET', ME, { token: verifyToken });
       assert.strictEqual(res.status, 403);
-      assert.strictEqual(res.body.message, 'Token 無效或已過期');
+      assert.strictEqual(res.body.message, '登入已失效，請重新登入');
     }],
 
     ['帳號狀態異常時各有對應的錯誤代碼', async () => {
@@ -197,7 +197,7 @@ module.exports = {
       assert.strictEqual(known.code, 409);
       assert.deepStrictEqual(known.body, { success: false, code: 'CONFLICT', message: '資料衝突', remaining_attempts: 2 });
 
-      assert.strictEqual(run({ type: 'entity.parse.failed' }).body.message, '請求內容不是合法的 JSON');
+      assert.strictEqual(run({ type: 'entity.parse.failed' }).body.message, '資料格式不正確');
       assert.strictEqual(run({ type: 'entity.too.large' }).code, 413);
       assert.strictEqual(run({ code: 'P2025' }).code, 404);
       assert.strictEqual(run({ code: 'P2002' }).body.message, '資料重複，請確認後再試');
@@ -210,7 +210,7 @@ module.exports = {
       // 未預期的錯誤不得把內部訊息外洩給使用者。
       const unexpected = run(new Error('資料庫密碼錯誤'));
       assert.strictEqual(unexpected.code, 500);
-      assert.deepStrictEqual(unexpected.body, { success: false, message: '伺服器發生錯誤' });
+      assert.deepStrictEqual(unexpected.body, { success: false, message: '系統發生錯誤，請稍後再試' });
     }],
 
     ['超過限流上限時回 429 並附上重試秒數', async () => {

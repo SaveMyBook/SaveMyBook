@@ -94,7 +94,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 類型錯誤:
-                  value: { success: false, message: 'target_type 僅接受：user, book, message' }
+                  value: { success: false, message: 檢舉類型不正確 }
                 未填原因:
                   value: { success: false, message: 請填寫檢舉原因 }
                 檢舉本人商品:

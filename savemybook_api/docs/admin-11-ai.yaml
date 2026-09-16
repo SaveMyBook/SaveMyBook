@@ -53,7 +53,7 @@ paths:
         - 模型名稱符合 `^[A-Za-z0-9._:\-/]{1,80}$`
         - `features.*.provider` 為 `deepseek`、`gemini`、`openai` 或 null（null 代表使用 `default_provider`）
 
-        需 `X-Verify-Token`（`sensitive`），並寫入管理員操作紀錄（列出變更的欄位）。
+        需 `X-Verify-Token`（`admin` 範圍，只接受帳號的登入密碼或通行密鑰），並寫入管理員操作紀錄（列出變更的欄位）。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/VerifyToken'

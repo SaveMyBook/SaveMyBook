@@ -570,7 +570,7 @@ components:
             未設定金鑰:
               value: { success: false, code: AI_NOT_CONFIGURED, message: AI 服務尚未完成設定 }
             未執行資料庫更新:
-              value: { success: false, code: AI_UNAVAILABLE, message: AI 功能目前無法使用，伺服器尚未完成資料庫更新 }
+              value: { success: false, code: AI_UNAVAILABLE, message: AI 功能暫時無法使用，請稍後再試 }
 
     AiConsentRequired:
       description: 使用者尚未同意將資料提供給 AI 服務商處理。

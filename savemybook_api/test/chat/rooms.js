@@ -42,7 +42,7 @@ const tests = [
     const me = addUser();
     const missing = await request('POST', '/api/chat/rooms', { token: me.token, body: {} });
     assert.strictEqual(missing.status, 400);
-    assert.strictEqual(missing.body.message, '請提供 user_id');
+    assert.strictEqual(missing.body.message, '請指定聊天對象');
 
     const self = await request('POST', '/api/chat/rooms', { token: me.token, body: { user_id: me.user_id } });
     assert.strictEqual(self.status, 400);

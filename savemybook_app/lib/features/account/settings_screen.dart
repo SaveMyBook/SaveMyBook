@@ -311,7 +311,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             c,
             leading: _icon(c, Icons.auto_awesome_outlined),
             title: S.homeRecommendations,
-            subtitle: S.pickedRecentlyViewed,
             value: show,
             onChanged: (value) {
               HapticFeedback.selectionClick();
@@ -329,7 +328,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         c,
         leading: _icon(c, Icons.verified_user_outlined),
         title: S.accountSecurity,
-        subtitle: S.paymentPinBiometricPaymentDevices,
         onTap: () => _push(const SecurityCenterScreen()),
       ),
       _row(
@@ -343,7 +341,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           c,
           leading: _biometricLabel == 'Face ID' ? FaceIdIcon(size: 22, color: c.textPrimary) : _icon(c, Icons.fingerprint_rounded),
           title: S.sign3(_biometricLabel),
-          subtitle: S.unlockWithWhenOpenApp(_biometricLabel),
           value: BiometricService.isEnabled,
           onChanged: _togglingBiometric ? null : _toggleBiometric,
         ),
@@ -411,7 +408,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       c,
       leading: _icon(c, Icons.cleaning_services_outlined),
       title: S.clearCache,
-      subtitle: S.removesCachedImagesFilesAccountData,
       trailing: _clearingCache
           ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent))
           : _chevron(c),
@@ -446,15 +442,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onTap: _loadNotificationSettings,
         ),
       for (final item in [
-        (key: 'order', icon: Icons.receipt_long_outlined, title: S.orderProgress, subtitle: S.salesDropOffsPickupsRefundsDisputes),
-        (key: 'message', icon: Icons.chat_bubble_outline_rounded, title: S.chatMessages, subtitle: S.newMessagesFromBuyersSellers),
-        (key: 'promotion', icon: Icons.local_offer_outlined, title: S.promotions2, subtitle: S.announcementsAboutPromotions),
+        (key: 'order', icon: Icons.receipt_long_outlined, title: S.orderProgress),
+        (key: 'message', icon: Icons.chat_bubble_outline_rounded, title: S.chatMessages),
+        (key: 'promotion', icon: Icons.local_offer_outlined, title: S.promotions2),
       ])
         _switchRow(
           c,
           leading: _icon(c, item.icon),
           title: item.title,
-          subtitle: item.subtitle,
           value: switch (item.key) {
             'order' => settings?.order ?? true,
             'message' => settings?.message ?? true,
@@ -466,7 +461,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         c,
         leading: _icon(c, Icons.tune_rounded),
         title: S.systemNotificationSettings,
-        subtitle: S.turnNotificationsSoundsLockScreenPreviews,
         onTap: PushService.openSystemSettings,
       ),
     ];
@@ -503,7 +497,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final picked = await showOptionSheet<ThemeMode>(
       context,
       title: S.appearance,
-      subtitle: S.appearanceHint,
       options: [
         for (final mode in ThemeMode.values)
           SheetOption(
@@ -562,8 +555,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(S.themeColour, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary)),
-                    const SizedBox(height: 4),
-                    Text(S.chooseAppSMainColourHeader, style: TextStyle(fontSize: 13, color: c.textSecondary)),
                     const SizedBox(height: 20),
                     LayoutBuilder(
                       builder: (context, constraints) {
@@ -641,7 +632,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final picked = await showOptionSheet<int>(
       context,
       title: S.language,
-      subtitle: S.languageHint,
       options: [
         SheetOption(
           value: -1,

@@ -19,11 +19,18 @@ extension AdminSystemApi on ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotDelete);
   }
 
-  String backupDownloadUrl(int backupId) => '${ApiService.baseUrl}/admin/backups/$backupId/download';
+  /// 下載網址只含一次性票證，5 分鐘內有效；畫面不得顯示登入權杖。
+  Future<(String?, String?)> createBackupDownloadLink(int backupId) async {
+    final res = await _send('POST', '/admin/backups/$backupId/download-link');
+    if (res == null) return (null, S.pleaseSignFirst);
+    if (res['success'] != true) return (null, res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
+    final url = (res['data'] as Map?)?['url'];
+    return url is String && url.isNotEmpty ? (url, null) : (null, S.somethingWentWrongPleaseTryAgain);
+  }
 
   Future<(String?, String?)> restoreBackup(int backupId, String password) async {
     final res = await _send('POST', '/admin/backups/$backupId/restore', body: {'password': password});
-    if (res == null) return (null, S.couldNotReachServer);
+    if (res == null) return (null, S.networkError);
     if (res['success'] != true) return (null, res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
     return ((res['data'] as Map?)?['safety_backup'] as String? ?? '', null);
   }
@@ -68,7 +75,7 @@ extension AdminSystemApi on ApiService {
 
   Future<String?> undoAdminOperation(int logId) async {
     final res = await _send('POST', '/admin/operation-logs/$logId/undo');
-    if (res == null) return S.couldNotReachServer;
+    if (res == null) return S.networkError;
     return res['success'] == true ? null : (res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
   }
 }

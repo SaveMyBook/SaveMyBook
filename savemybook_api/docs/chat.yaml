@@ -147,6 +147,26 @@ tags:
       - 一對一時，任一方封鎖另一方的錯誤與傳送訊息相同；對方帳號停用時回傳 400 `RECIPIENT_UNAVAILABLE`。
       - 顯示給使用者的編號請使用 `transfer_no`。
 
+      ## Link Previews
+
+      文字訊息中的網址由 App 呼叫 `GET /api/chat/link-preview` 取得預覽卡片資料，App 不直接連線至第三方網站，
+      以免暴露使用者 IP。回傳 `data: null` 時不顯示卡片。
+
+      - 僅抓取 `http`、`https` 且連接埠為 80 或 443 的網址，不接受含帳號密碼的網址。
+      - 解析 DNS 後檢查全部位址，任一位址屬於私有、保留、迴路、連結本機、多播或雲端中繼資料範圍（含 IPv4-mapped IPv6、NAT64）即拒絕；
+        實際連線綁定已檢查的位址，避免 DNS rebinding。最多轉址 3 次，每次轉址重新檢查。
+      - 逾時 5 秒；HTML 最多讀取 1 MB（含解壓縮後），僅處理 `text/html`。
+      - 標題取自 `og:title`、`twitter:title`、`<title>`，描述取自 `og:description`、`twitter:description`、`meta name=description`；
+        清除 HTML 與控制字元，標題截為 120 字、描述截為 200 字。沒有標題時回傳 `null`。
+      - `PUBLIC_WEB_URL` 主機的書籍分享連結（`/b/{share_token}`）不對外抓取，直接查詢資料庫，`kind` 為 `book`；
+        書籍已下架、違規或賣家帳號不可用時回傳 `null`。同一主機的其他路徑一律回傳 `null`。
+      - 一般網址的結果於伺服器記憶體快取（500 筆，成功 24 小時、失敗 10 分鐘），同一網址同時多個請求只抓取一次。
+        書籍連結不快取，下架後立即反映。
+
+      一般網址的 `image_url` 為 `GET /api/chat/link-preview/image` 的代理網址，以伺服器密鑰簽章，無法用來抓取任意網址。
+      圖片套用相同的連線檢查，逾時 5 秒、上限 3 MB，只接受 `image/*`（不含 SVG），並以檔頭判斷實際格式。
+      App 載入時須帶 `Authorization` 標頭。書籍卡片的 `image_url` 為站內 `/uploads/books/` 路徑。
+
 paths:
   /api/chat/rooms:
     get:
@@ -228,7 +248,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 缺少參數:
-                  value: { success: false, message: 請提供 user_id }
+                  value: { success: false, message: 請指定聊天對象 }
                 對象為請求者自身:
                   value: { success: false, message: 無法與自己建立聊天室 }
                 對方帳號停用:
@@ -603,7 +623,7 @@ paths:
                 內容為空:
                   value: { success: false, message: 訊息內容不可為空 }
                 型別不支援:
-                  value: { success: false, message: 'message_type 僅接受：text, image, voice, album' }
+                  value: { success: false, message: '不支援此訊息類型' }
                 圖片未經上傳端點:
                   value: { success: false, message: 圖片請先透過 /api/uploads/chat-image 上傳 }
                 相簿張數不正確:
@@ -1418,7 +1438,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 未提供欄位:
-                  value: { success: false, message: 請提供 name 或 avatar_url }
+                  value: { success: false, message: 請提供群組名稱或頭貼 }
                 不是群組:
                   value: { success: false, message: 此操作僅適用於群組聊天室 }
         '401': { $ref: '#/components/responses/Unauthorized' }
@@ -1540,7 +1560,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 角色不正確:
-                  value: { success: false, message: 'role 僅接受：owner, member' }
+                  value: { success: false, message: '成員角色不正確' }
                 變更自己:
                   value: { success: false, message: 無法變更自己的管理員身分 }
                 不是群組:
@@ -1961,3 +1981,108 @@ paths:
               example: { success: false, code: TRANSFER_STATE_CHANGED, message: 此筆請款狀態已變更，請重新整理 }
         '500': { $ref: '#/components/responses/ServerError' }
         '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/link-preview:
+    get:
+      summary: 取得連結預覽
+      operationId: getChatLinkPreview
+      tags: [chat]
+      description: |
+        由伺服器抓取網址的標題、描述與圖片，規則見「Link Previews」一節。
+        抓取失敗或不適合預覽時仍回傳 200，`data` 為 `null`。每位使用者每分鐘 30 次。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: url
+          required: true
+          schema: { type: string, maxLength: 2048 }
+          description: 訊息中的網址（含 `http://` 或 `https://`）。
+          example: https://api.savemybook.today/b/0123456789abcdef0123456789abcdef
+      responses:
+        '200':
+          description: 成功；無法預覽時 `data` 為 `null`。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    allOf:
+                      - { $ref: '#/components/schemas/LinkPreview' }
+                    nullable: true
+              examples:
+                web:
+                  summary: 一般網站
+                  value:
+                    success: true
+                    data:
+                      url: https://blog.example.com/used-book-pricing
+                      site_name: 書店部落格
+                      title: 二手書交易指南
+                      description: 如何為舊書訂出合理價格
+                      image_url: /api/chat/link-preview/image?u=aHR0cHM6Ly9jZG4uZXhhbXBsZS5jb20vY292ZXIuanBn.Qm9vZ3VzU2lnbmF0dXJlRXhhbXBsZQ
+                      kind: web
+                book:
+                  summary: 站內書籍
+                  value:
+                    success: true
+                    data:
+                      url: https://api.savemybook.today/b/0123456789abcdef0123456789abcdef
+                      site_name: 救「舊」我的書
+                      title: 深入淺出統計學
+                      description: 王大明
+                      image_url: /uploads/books/1736512345678-987654321.jpg
+                      kind: book
+                      price: 350
+                none:
+                  summary: 無法預覽
+                  value: { success: true, data: null }
+        '400':
+          description: 未提供網址或網址超過 2048 字。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請提供網址 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/chat/link-preview/image:
+    get:
+      summary: 取得連結預覽圖片
+      operationId: getChatLinkPreviewImage
+      tags: [chat]
+      description: |
+        以伺服器代為取得預覽圖片，網址由 `GET /api/chat/link-preview` 的 `image_url` 提供，用戶端不應自行組合。
+        回應帶 `Cache-Control: private, max-age=86400`。每位使用者每分鐘 120 次。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: u
+          required: true
+          schema: { type: string }
+          description: 伺服器簽章後的圖片網址。
+          example: aHR0cHM6Ly9jZG4uZXhhbXBsZS5jb20vY292ZXIuanBn.Qm9vZ3VzU2lnbmF0dXJlRXhhbXBsZQ
+      responses:
+        '200':
+          description: 圖片內容，`Content-Type` 依檔頭判斷。
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/png: { schema: { type: string, format: binary } }
+            image/gif: { schema: { type: string, format: binary } }
+            image/webp: { schema: { type: string, format: binary } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 簽章無效或遭竄改。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 圖片連結無效 }
+        '404':
+          description: 無法取得圖片（位址不允許、逾時、超過 3 MB 或格式不符）。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 無法載入圖片 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }

@@ -24,7 +24,7 @@ const runGuard = async (permission, user) => {
   return { passed, ...res };
 };
 
-const verifiedAs = (admin) => ({ 'x-verify-token': h.verifyTokenFor({ user: admin }) });
+const verifiedAs = (admin) => ({ 'x-verify-token': h.verifyTokenFor({ user: admin, scope: 'admin' }) });
 
 module.exports = {
   name: '平台：後台權限與會員管理',
@@ -260,6 +260,19 @@ module.exports = {
       const [log] = prisma.rows('admin_operation_logs');
       assert.strictEqual(log.action, '重設會員密碼');
       assert.strictEqual(log.detail.includes(res.body.data.temp_password), false);
+    }],
+
+    ['重設只用社群登入的帳號時會標記為已設定密碼', async () => {
+      const admin = h.addAdmin({ can_manage_members: true });
+      const target = h.addUser({ nickname: '社群帳號' });
+      target.password_set = 0;
+
+      const res = await request('POST', `/api/admin/members/${target.user_id}/reset-password`, {
+        token: h.tokenFor(admin), headers: verifiedAs(admin)
+      });
+      assert.strictEqual(res.status, 200);
+      // 未標記時，使用者用臨時密碼登入後仍會被當成沒有密碼，無法通過身分驗證或解除綁定。
+      assert.strictEqual(Number(target.password_set), 1);
     }],
 
     ['重設密碼需要先完成身分驗證', async () => {

@@ -122,7 +122,7 @@ paths:
         - `description` 為必填，該內容將寫入帳務紀錄與會員通知
         - 調整後餘額不可為負數，否則回傳 400
 
-        需 `sensitive` 範圍的身分驗證（`X-Verify-Token` 標頭）。
+        需 `admin` 範圍的身分驗證（`X-Verify-Token` 標頭，只接受帳號的登入密碼或通行密鑰）。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/VerifyToken'

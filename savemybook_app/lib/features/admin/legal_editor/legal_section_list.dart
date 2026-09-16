@@ -27,17 +27,6 @@ class LegalSectionsHeading extends StatelessWidget {
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary),
           ),
         ),
-        const SizedBox(width: 10),
-        if (count > 1)
-          Expanded(
-            child: Text(
-              S.dragHandleRightReorder,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.right,
-              style: TextStyle(fontSize: 11, color: c.textHint),
-            ),
-          ),
       ],
     );
   }

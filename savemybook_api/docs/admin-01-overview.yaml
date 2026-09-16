@@ -168,7 +168,7 @@ paths:
         - 錢包調整的還原是寫一筆反向的調整交易，不刪除原本的帳務紀錄
         - 新增書櫃的還原是停用該書櫃，不刪除（可能已被書籍或訂單引用）
 
-        需 `sensitive` 範圍的身分驗證（`X-Verify-Token` 標頭）。
+        需 `admin` 範圍的身分驗證（`X-Verify-Token` 標頭，只接受帳號的登入密碼或通行密鑰）。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path

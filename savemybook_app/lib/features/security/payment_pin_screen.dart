@@ -81,7 +81,7 @@ class _PaymentPinScreenState extends State<PaymentPinScreen> {
       );
       if (!mounted) return;
       if (!status.available) {
-        setState(() => _loadError = S.couldNotReachServer);
+        setState(() => _loadError = S.networkError);
         return;
       }
       if (status.hasPaymentPin) {
@@ -179,7 +179,6 @@ class _PaymentPinScreenState extends State<PaymentPinScreen> {
       body = SuccessView(
         key: const ValueKey('done'),
         title: widget.forgot ? S.paymentPinReset : S.paymentPinSet,
-        message: S.use6DigitPinConfirmPayments,
         actionLabel: S.completed,
         onAction: () => _finish(true),
         onAnimationDone: () => Future.delayed(const Duration(milliseconds: 900), () => _finish(true)),

@@ -48,12 +48,6 @@ class AiSupportEntry extends StatelessWidget {
                             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(color: c.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-                          child: Text(S.instantReplies, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: c.success)),
-                        ),
-                        const SizedBox(width: 6),
                         Icon(Icons.chevron_right_rounded, color: c.iconInactive),
                       ],
                     ),

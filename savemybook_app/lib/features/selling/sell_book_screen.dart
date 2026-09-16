@@ -268,14 +268,14 @@ class _SellBookScreenState extends State<SellBookScreen> {
     _lookingUp = false;
     if (!mounted || result == null) return;
 
-    final (data, fromPrimary) = result;
+    final (data, _) = result;
     if (data == null) {
       _showError(S.noSourceIsbnPleaseEnterDetails);
       return;
     }
     _fillBookData(data);
     HapticFeedback.mediumImpact();
-    showAppSnackBar(context, fromPrimary ? S.bookDetailsFilledAutomatically : S.bookDetailsFilledFromBackupSource);
+    showAppSnackBar(context, S.bookDetailsFilledAutomatically);
   }
 
   Future<void> _fillBookData(Map<String, dynamic> bookData) async {
@@ -341,7 +341,6 @@ class _SellBookScreenState extends State<SellBookScreen> {
         condition: _aiCondition,
         supportsPrice: true,
         price: _aiPrice,
-        deferConditionAndPrice: true,
       ),
     );
     if (selection == null || !mounted) return;

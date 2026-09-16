@@ -185,7 +185,8 @@ const FULL_SCHEMA = {
     'chat_room_mutes', 'user_blocks', 'chat_room_members', 'chat_room_pins', 'chat_aliases',
     'chat_transfers', 'chat_mentions', 'ai_settings', 'ai_usage_logs', 'ai_support_sessions',
     'ai_support_messages', 'ai_recommendation_cache', 'ai_book_reviews', 'ai_consents',
-    'ai_chat_sessions', 'ai_chat_messages', 'user_identities', 'auth_settings', 'oauth_states', 'oauth_results'
+    'ai_chat_sessions', 'ai_chat_messages', 'user_identities', 'auth_settings', 'oauth_states', 'oauth_results',
+    'user_passkeys', 'webauthn_challenges'
   ],
   columns: [
     'users.deletion_requested_at', 'users.anonymized_at', 'users.share_token', 'users.password_set',
@@ -208,7 +209,7 @@ const EMPTY_TABLES = [
   'shopping_cart', 'orders', 'order_items', 'books', 'wallets', 'wallet_transactions', 'reports',
   'transaction_disputes', 'support_tickets', 'user_legal_consents', 'legal_documents', 'chat_messages',
   'chat_room_mutes', 'member_levels', 'ai_consents', 'ai_support_sessions', 'ai_recommendation_cache',
-  'ai_chat_sessions', 'user_identities'
+  'ai_chat_sessions', 'user_identities', 'user_passkeys', 'webauthn_challenges'
 ];
 
 const reset = ({ schema = FULL_SCHEMA, tables = {} } = {}) => {

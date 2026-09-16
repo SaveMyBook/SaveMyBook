@@ -31,7 +31,7 @@ router.get('/rooms/:roomId', async (req, res) => {
 });
 
 router.post('/rooms', async (req, res) => {
-  if (req.body.user_id === undefined) throw badRequest('請提供 user_id');
+  if (req.body.user_id === undefined) throw badRequest('請指定聊天對象');
   const partnerId = v.id(req.body.user_id, '使用者編號');
   const bookId = v.optionalId(req.body.book_id, '書籍編號');
 

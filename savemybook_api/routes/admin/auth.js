@@ -21,7 +21,7 @@ router.get('/auth/settings', canRunSystem, async (req, res) => {
   res.status(200).json({ success: true, data: await settingsPayload() });
 });
 
-router.put('/auth/settings', canRunSystem, requireVerification('sensitive'), async (req, res) => {
+router.put('/auth/settings', canRunSystem, requireVerification('admin'), async (req, res) => {
   const input = req.body?.settings;
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw badRequest('請提供 settings 設定內容');
 

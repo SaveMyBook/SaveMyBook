@@ -65,16 +65,31 @@ const deviceFrom = (req) => ({
 
 const idTokenOf = (body) => {
   const token = typeof body.id_token === 'string' ? body.id_token.trim() : '';
-  if (!token) throw badRequest('請提供 id_token');
+  if (!token) throw badRequest('登入失敗，請重新操作');
   return token;
 };
 
 const firebaseProvider = (value) =>
-  oneOf(value, authSettings.FIREBASE_PROVIDERS, `provider 僅接受：${authSettings.FIREBASE_PROVIDERS.join(', ')}`);
+  oneOf(value, authSettings.FIREBASE_PROVIDERS, '不支援此登入方式');
+
+// 建立帳號時才需要的補充資料；App 在使用者選擇「建立新帳號」後才會帶上。
+const signupInputOf = (body) => {
+  const email = text(body.email, { label: '電子郵件', max: 255 }).toLowerCase();
+  if (email && !EMAIL_RE.test(email)) throw badRequest('電子郵件格式不正確');
+  const nickname = text(body.nickname, { label: '暱稱', max: 50 });
+  if (nickname && nickname.length < 2) throw badRequest('暱稱至少需 2 個字');
+
+  return {
+    email: email || null,
+    nickname: nickname || null,
+    acceptLegal: body.accept_legal === true,
+    create: body.create === true
+  };
+};
 
 const verifiedInfo = async (provider, idToken) => {
   const info = await firebase.verifyIdToken(idToken, provider);
-  if (!info.matchesProvider) throw badRequest('登入憑證與所選的登入方式不符', 'PROVIDER_MISMATCH');
+  if (!info.matchesProvider) throw badRequest('登入失敗，請重新操作', 'PROVIDER_MISMATCH');
   return info;
 };
 
@@ -112,7 +127,7 @@ router.post('/login', loginBurstLimiter, loginLimiter, async (req, res) => {
 
 router.post('/refresh', refreshLimiter, async (req, res) => {
   const raw = readToken(req);
-  if (!raw) throw unauthorized('存取被拒，未提供 Token');
+  if (!raw) throw unauthorized('請先登入');
 
   const token = await auth.refresh(raw, req.ip);
   res.status(200).json({ success: true, data: { token } });
@@ -136,10 +151,7 @@ router.post('/social', socialLimiter, async (req, res) => {
   const provider = firebaseProvider(req.body.provider);
   const idToken = idTokenOf(req.body);
 
-  const email = text(req.body.email, { label: 'Email', max: 255 }).toLowerCase();
-  if (email && !EMAIL_RE.test(email)) throw badRequest('Email 格式不正確');
-  const nickname = text(req.body.nickname, { label: '暱稱', max: 50 });
-  if (nickname && nickname.length < 2) throw badRequest('暱稱至少需 2 個字');
+  const signup = signupInputOf(req.body);
 
   await authSettings.assertEnabled(provider);
   const info = await verifiedInfo(provider, idToken);
@@ -148,9 +160,7 @@ router.post('/social', socialLimiter, async (req, res) => {
     provider,
     info,
     device: deviceFrom(req),
-    email: email || null,
-    nickname: nickname || null,
-    acceptLegal: req.body.accept_legal === true
+    ...signup
   });
 
   res.status(200).json({
@@ -175,7 +185,7 @@ router.delete('/link/:provider', authenticateToken, requireVerification('sensiti
   const provider = oneOf(
     req.params.provider,
     authSettings.PROVIDER_IDS,
-    `provider 僅接受：${authSettings.PROVIDER_IDS.join(', ')}`
+    '不支援此登入方式'
   );
 
   const data = await identities.unlink(req.user.userId, provider);
@@ -192,9 +202,9 @@ router.post('/password/set', authenticateToken, linkLimiter, sensitiveWhenAvaila
 
 router.post('/oauth/exchange', socialLimiter, async (req, res) => {
   const code = typeof req.body.code === 'string' ? req.body.code.trim() : '';
-  if (!code) throw badRequest('請提供 code');
+  if (!code) throw badRequest('缺少授權資訊，請重新操作');
 
-  const result = await oauth.exchangeResult(code, deviceFrom(req));
+  const result = await oauth.exchangeResult(code, deviceFrom(req), signupInputOf(req.body));
   if (result.linked) {
     return res.status(200).json({ success: true, message: '已綁定此登入方式', data: result });
   }
@@ -209,9 +219,9 @@ router.post('/oauth/:provider/start', socialLimiter, linkModeAuth, linkModeVerif
   const provider = oneOf(
     req.params.provider,
     authSettings.OAUTH_PROVIDERS,
-    `provider 僅接受：${authSettings.OAUTH_PROVIDERS.join(', ')}`
+    '不支援此登入方式'
   );
-  const mode = oneOf(req.body.mode ?? 'login', ['login', 'link'], 'mode 僅接受：login, link');
+  const mode = oneOf(req.body.mode ?? 'login', ['login', 'link'], '登入模式不正確');
 
   const data = await oauth.start(provider, mode, mode === 'link' ? req.user.userId : null);
   res.status(200).json({ success: true, data });
@@ -227,7 +237,7 @@ router.get('/oauth/:provider/callback', async (req, res) => {
   };
 
   try {
-    const provider = oneOf(req.params.provider, authSettings.OAUTH_PROVIDERS, 'provider 不正確');
+    const provider = oneOf(req.params.provider, authSettings.OAUTH_PROVIDERS, '不支援此登入方式');
     const code = await oauth.handleCallback(provider, req.query.code, req.query.state);
     finish({ code });
   } catch (err) {

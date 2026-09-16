@@ -163,7 +163,6 @@ class _AiCostChartState extends State<AiCostChart> {
       children: [
         _metric(c, S.total, formatUsd(total)),
         _metric(c, S.peakDay, formatUsd(peak)),
-        Text(S.tapBarDetails, style: TextStyle(fontSize: 11, color: c.textHint)),
       ],
     );
   }

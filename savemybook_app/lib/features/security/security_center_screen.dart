@@ -5,6 +5,7 @@ import '../../i18n/strings.dart';
 import '../../models/security.dart';
 import '../../services/api_service.dart';
 import '../../services/biometric_service.dart';
+import '../../services/passkey_service.dart';
 import '../../services/payment_key_store.dart';
 import '../../services/verification_service.dart';
 import '../../utils/api_helpers.dart';
@@ -15,9 +16,11 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/biometric_icon.dart';
 import '../../widgets/state_views.dart';
 import '../account/change_password_screen.dart';
 import 'login_devices_screen.dart';
+import 'passkeys_card.dart';
 import 'payment_pin_screen.dart';
 import 'set_password_screen.dart';
 import 'sign_in_methods_card.dart';
@@ -40,6 +43,8 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   int? _deviceCount;
   bool _togglingBiometric = false;
   bool _passwordSet = true;
+  int _identitiesTick = 0;
+  bool _passkeySupported = false;
   Future<void>? _loadingFuture;
 
   @override
@@ -56,6 +61,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
       _api.fetchSecurityStatus(),
       BiometricService.isAvailable(),
       _api.fetchLoginSessions(),
+      PasskeyService.isSupported(),
       if (userId != null) PaymentKeyStore.read(userId) else Future.value(null),
     ]);
     final available = results[1] as bool;
@@ -66,7 +72,8 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
       _biometricAvailable = available;
       _biometricLabel = label;
       _deviceCount = (results[2] as List<LoginSession>?)?.length;
-      _hasLocalKey = results.length > 3 && results[3] != null;
+      _passkeySupported = results[3] as bool;
+      _hasLocalKey = results.length > 4 && results[4] != null;
       _loading = false;
     });
   }
@@ -79,6 +86,22 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
       MaterialPageRoute(builder: (_) => PaymentPinScreen(forgot: forgot)),
     );
     if (changed == true) _load();
+  }
+
+  // 設定或變更密碼後要立刻反映在本頁與「登入方式」卡片，不能等使用者離開再回來。
+  Future<void> _openPasswordScreen() async {
+    final done = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _passwordSet ? const ChangePasswordScreen() : const SetPasswordScreen(),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {
+      if (done == true) _passwordSet = true;
+      _identitiesTick += 1;
+    });
+    await _load();
   }
 
   Future<void> _openDevices() async {
@@ -163,11 +186,17 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                           _sectionTitle(c, S.sign),
                           FadeSlideIn(index: 3, child: _signInCard(c)),
                           const SizedBox(height: 24),
+                          if (_status.passkeyAvailable && _passkeySupported) ...[
+                            _sectionTitle(c, S.passkeys),
+                            FadeSlideIn(index: 4, child: PasskeysCard(onChanged: _load)),
+                            const SizedBox(height: 24),
+                          ],
                           _sectionTitle(c, S.signMethod),
                           FadeSlideIn(
                             index: 4,
                             child: SignInMethodsCard(
                               hasPaymentPin: _status.hasPaymentPin,
+                              refreshTick: _identitiesTick,
                               onLoaded: (identities) {
                                 if (_passwordSet == identities.passwordSet) return;
                                 setState(() => _passwordSet = identities.passwordSet);
@@ -281,11 +310,13 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                       good ? S.accountWellProtected : S.accountCouldSafer,
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      good ? S.paymentPinBiometricPaymentSetCheck : S.setPaymentPinTurnBiometricPayment,
-                      style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.45),
-                    ),
+                    if (!good) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        S.setPaymentPinTurnBiometricPayment,
+                        style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.45),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -349,7 +380,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
             subtitle: isLocked
                 ? S.tooManyAttemptsLockedUntilP0(formatDateTime(locked))
                 : _status.hasPaymentPin
-                    ? S.usedConfirmPaymentsCheckout
+                    ? null
                     : S.notSetRequiredBeforeCheckout,
             trailingText: _status.hasPaymentPin ? S.change : S.settings,
             isLast: !_status.hasPaymentPin && !_biometricAvailable,
@@ -360,7 +391,6 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
               icon: Icons.help_outline_rounded,
               iconColor: c.accent,
               title: S.forgotPaymentPin,
-              subtitle: S.enterPasswordResetPaymentPin,
               isLast: !_biometricAvailable,
               onTap: _status.available ? () => _openPin(forgot: true) : null,
             ),
@@ -380,10 +410,6 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                 S.payWithP0(_biometricLabel),
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.textPrimary),
               ),
-              subtitle: Text(
-                S.ifFailsCanEnterPaymentPin,
-                style: TextStyle(fontSize: 12, color: c.textSecondary),
-              ),
               value: _biometricPayOn,
               activeTrackColor: c.accent,
               onChanged: _togglingBiometric || !_status.available ? null : _toggleBiometricPay,
@@ -402,7 +428,6 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
             icon: Icons.devices_rounded,
             iconColor: c.accent,
             title: S.signedDevices,
-            subtitle: S.viewRemotelySignOutDevices,
             trailingText: _deviceCount == null ? null : S.p0Devices(_deviceCount!),
             onTap: _openDevices,
           ),
@@ -410,14 +435,9 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
             icon: Icons.lock_reset_rounded,
             iconColor: _passwordSet ? c.accent : c.warning,
             title: _passwordSet ? S.changePassword : S.setPassword,
-            subtitle: _passwordSet ? S.otherDevicesNeedSignAgain : S.accountNoPasswordYet,
+            subtitle: _passwordSet ? null : S.accountNoPasswordYet,
             isLast: true,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => _passwordSet ? const ChangePasswordScreen() : const SetPasswordScreen(),
-              ),
-            ),
+            onTap: _openPasswordScreen,
           ),
         ],
       ),

@@ -3,7 +3,7 @@ const {
   request, prisma, reset, SCHEMA, ok, addUser, openRoom, say
 } = require('./harness');
 
-const UNAVAILABLE = '伺服器尚未完成資料庫更新，請聯絡管理員';
+const UNAVAILABLE = '此功能暫時無法使用，請稍後再試';
 
 const tests = [
   ['未登入時所有聊天端點都回 401', async () => {
@@ -16,7 +16,7 @@ const tests = [
     ]) {
       const res = await request(method, url);
       assert.strictEqual(res.status, 401, `${url} 應回 401，實際 ${res.status}`);
-      assert.strictEqual(res.body.message, '存取被拒，未提供 Token');
+      assert.strictEqual(res.body.message, '請先登入');
     }
   }],
 

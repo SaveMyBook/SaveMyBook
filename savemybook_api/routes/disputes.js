@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  if (req.body.order_id === undefined) throw badRequest('請提供 order_id');
+  if (req.body.order_id === undefined) throw badRequest('請指定訂單');
   const orderId = v.id(req.body.order_id, '訂單編號');
   const reason = v.text(req.body.reason, { label: '爭議說明', max: 2000 });
   const evidenceUrls = v.evidenceUrls(req.body.evidence_urls);

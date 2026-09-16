@@ -10,6 +10,7 @@ import '../../services/api_service.dart';
 import '../../services/share_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
+import '../../widgets/app_asset_image.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../books/barcode_scanner_screen.dart';
@@ -278,22 +279,14 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                                             ),
                                             child: ClipRRect(
                                               borderRadius: BorderRadius.circular(8),
-                                              child: Image.asset(
-                                                'assets/images/logo.png',
+                                              child: AppAssetImage(
+                                                asset: 'assets/images/logo.png',
                                                 width: 40,
                                                 height: 40,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (_, _, _) => Container(
-                                                  width: 40,
-                                                  height: 40,
-                                                  color: AppColors.primary,
-                                                  alignment: Alignment.center,
-                                                  child: const Icon(
-                                                    Icons.menu_book_rounded,
-                                                    color: Colors.white,
-                                                    size: 22,
-                                                  ),
-                                                ),
+                                                fallbackIcon: Icons.menu_book_rounded,
+                                                fallbackBackground: AppColors.primary,
+                                                fallbackIconColor: Colors.white,
+                                                fallbackIconSize: 22,
                                               ),
                                             ),
                                           ),

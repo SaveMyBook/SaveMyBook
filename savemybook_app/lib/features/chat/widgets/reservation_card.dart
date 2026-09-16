@@ -332,11 +332,6 @@ class _ReservationSheetState extends State<_ReservationSheet> {
                 S.reserveBook,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
               ),
-              const SizedBox(height: 4),
-              Text(
-                S.onceSellerAcceptsBookHeldNo,
-                style: TextStyle(fontSize: 12.5, color: c.textSecondary, height: 1.5),
-              ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(10),

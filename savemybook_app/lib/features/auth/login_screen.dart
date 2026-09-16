@@ -15,8 +15,10 @@ import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../home/home_screen.dart';
 import '../../models/auth_social.dart';
+import '../security/passkey_sign_in_button.dart';
 import 'register_screen.dart';
 import 'social_sign_in.dart';
+import '../../services/social_auth_service.dart';
 import '../../i18n/strings.dart';
 import '../../utils/app_info.dart';
 
@@ -59,6 +61,15 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _providers = providers);
   }
 
+  Future<void> _handlePasskeySignedIn() async {
+    unawaited(HomeWidgetService.sync(force: true));
+    final email = ApiService.currentUser?.email;
+    if (email != null && email.isNotEmpty) await _rememberEmail(email);
+    await _offerBiometric();
+    if (!mounted) return;
+    _goHome();
+  }
+
   Future<void> _handleSocial(String provider) async {
     if (_isLoading || _socialBusy != null) return;
     FocusScope.of(context).unfocus();
@@ -89,6 +100,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    // 離開登入頁時不留下等待中的 LINE／Discord 授權。
+    SocialAuth.cancelOAuthWait();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -525,6 +538,13 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ],
+      FadeSlideIn(
+        index: 5,
+        child: PasskeySignInButton(
+          disabled: _isLoading || _socialBusy != null,
+          onSignedIn: _handlePasskeySignedIn,
+        ),
+      ),
       if (SocialSignInSection.visibleIds(_providers).isNotEmpty) ...[
         SizedBox(height: keyboardOpen ? 20 : 28),
         FadeSlideIn(
@@ -534,6 +554,8 @@ class _LoginScreenState extends State<LoginScreen> {
             busyProvider: _socialBusy,
             disabled: _isLoading,
             onSelect: _handleSocial,
+            // iOS 的 App 內瀏覽器被使用者關閉時不會通知 App，須讓使用者能自行結束等待。
+            onCancel: _socialBusy != null && AuthProviders.isOauth(_socialBusy!) ? SocialAuth.cancelOAuthWait : null,
           ),
         ),
       ],

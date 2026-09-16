@@ -21,7 +21,7 @@ router.post('/rooms/:roomId/reservations', sendLimiter, async (req, res) => {
 
 router.patch('/reservations/:id', async (req, res) => {
   const reservationId = v.id(req.params.id, '預約編號');
-  const action = v.oneOf(req.body.action, ['accept', 'decline', 'cancel'], 'action 僅接受：accept, decline, cancel');
+  const action = v.oneOf(req.body.action, ['accept', 'decline', 'cancel'], '操作類型不正確');
   const data = await reservations.respond(reservationId, req.user.userId, action);
   res.status(200).json({ success: true, message: RESPONSE_MESSAGES[action], data });
 });

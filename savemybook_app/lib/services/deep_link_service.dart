@@ -17,7 +17,6 @@ class DeepLinkService {
   static void Function(OAuthDeepLink result)? onOAuthResult;
 
   static String? _pending;
-  static String? _pendingOAuth;
 
   static Future<void> init() async {
     _channel.setMethodCallHandler((call) async {
@@ -44,12 +43,9 @@ class DeepLinkService {
 
     final oauth = parseOAuthLink(link);
     if (oauth != null) {
-      final handler = onOAuthResult;
-      if (handler == null) {
-        _pendingOAuth = link;
-        return;
-      }
-      handler(oauth);
+      // 沒有等待中的授權流程時直接丟棄：一次性碼只對當初送出的那一次授權有效，
+      // 留到下一次登入只會讓流程立刻以失效的碼結束，使用者被迫一直重按而不停開新視窗。
+      onOAuthResult?.call(oauth);
       return;
     }
 
@@ -65,20 +61,17 @@ class DeepLinkService {
   }
 
   static void flushPending() {
-    final oauth = _pendingOAuth;
-    if (oauth != null) {
-      _pendingOAuth = null;
-      _handle(oauth);
-    }
     final link = _pending;
     if (link == null) return;
     _pending = null;
     _handle(link);
   }
 
+  /// 測試用：模擬原生端送進來的深層連結。
+  static void deliver(String link) => _handle(link);
+
   /// 測試用：清掉尚未派送的連結。
   static void reset() {
     _pending = null;
-    _pendingOAuth = null;
   }
 }

@@ -2,24 +2,36 @@ import '../utils/api_helpers.dart';
 
 class SecurityStatus {
   final bool available;
+  final bool hasPassword;
   final bool hasPaymentPin;
   final DateTime? pinLockedUntil;
   final bool biometricPayEnabled;
 
+  /// 伺服器已執行 016 並完成通行密鑰設定。
+  final bool passkeyAvailable;
+  final bool hasPasskey;
+
   const SecurityStatus({
     required this.available,
+    this.hasPassword = true,
     required this.hasPaymentPin,
     this.pinLockedUntil,
     required this.biometricPayEnabled,
+    this.passkeyAvailable = false,
+    this.hasPasskey = false,
   });
 
   static const unknown = SecurityStatus(available: false, hasPaymentPin: false, biometricPayEnabled: false);
 
+  // 舊版伺服器不回 has_password，預設為 true 才不會把密碼欄位擋掉。
   factory SecurityStatus.fromJson(Map<String, dynamic> json) => SecurityStatus(
         available: json['available'] != false,
+        hasPassword: json['has_password'] != false,
         hasPaymentPin: json['has_payment_pin'] == true,
         pinLockedUntil: parseDate(json['pin_locked_until'])?.toLocal(),
         biometricPayEnabled: json['biometric_pay_enabled'] == true,
+        passkeyAvailable: json['passkey_available'] == true,
+        hasPasskey: json['passkey_available'] == true && json['has_passkey'] == true,
       );
 }
 

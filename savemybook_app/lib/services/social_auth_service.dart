@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -50,7 +51,8 @@ abstract class FirebaseAuthGateway {
   Future<void> signOut();
 }
 
-String _firebaseFailureMessage(String code) => switch (code) {
+String _firebaseFailureMessage(String code) {
+  final message = switch (code) {
       'invalid-phone-number' => S.mobileNumberFormatNotValid,
       'invalid-verification-code' => S.codeIncorrectPleaseEnterAgain,
       'invalid-verification-id' => S.verificationTimedOutRequestNewCode,
@@ -58,10 +60,14 @@ String _firebaseFailureMessage(String code) => switch (code) {
       'too-many-requests' => S.tooManyAttemptsPleaseTryAgain,
       'quota-exceeded' => S.smsSendingLimitBeenReachedPlease,
       'operation-not-allowed' => S.signMethodNotAvailableRightNow,
-      'network-request-failed' => S.couldNotReachServerCheckConnection2,
+      'network-request-failed' => S.networkError,
       'missing-client-identifier' => S.smsVerificationNotSetUpDevice,
-      _ => S.couldNotCompleteSmsVerificationPlease,
+      _ => null,
     };
+  if (message != null) return message;
+  debugPrint('[SMS] Unmapped Firebase error code: $code');
+  return S.couldNotCompleteSmsVerificationPlease;
+}
 
 class _PluginAuthGateway implements FirebaseAuthGateway {
   bool _googleReady = false;
@@ -191,11 +197,25 @@ class SocialAuth {
 
   static FirebaseAuthGateway gateway = _PluginAuthGateway();
 
-  /// 開啟瀏覽器的實作，測試可替換。
-  static Future<bool> Function(Uri url) openExternal =
-      (url) => launchUrl(url, mode: LaunchMode.externalApplication);
+  /// 授權頁改開 App 內瀏覽器（iOS 的 SFSafariViewController、Android 的 Custom Tabs）：
+  /// 系統瀏覽器是另一個 App，回跳後那個視窗會留著，每重試一次就多一個。
+  static Future<bool> Function(Uri url) openAuthBrowser =
+      (url) => launchUrl(url, mode: _inAppBrowserSupported ? LaunchMode.inAppBrowserView : LaunchMode.externalApplication);
+
+  /// 回跳後 App 內瀏覽器不會自己關閉，必須主動收掉。
+  static Future<void> Function() closeAuthBrowser = closeInAppWebView;
 
   static Duration oauthTimeout = const Duration(minutes: 5);
+
+  static bool get _inAppBrowserSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+  /// 回到 App 後等候回呼深層連結的時間；深層連結可能比「回到前景」晚一點送達。
+  static Duration browserCloseGrace = const Duration(seconds: 3);
+
+  static Completer<AuthResult<String>>? _oauthWait;
+  static Timer? _oauthTimer;
+  static Timer? _closeGrace;
+  static AppLifecycleListener? _lifecycle;
 
   static bool isAvailableOn(String provider) => switch (provider) {
         AuthProviders.google => gateway.supportsGoogle,
@@ -220,38 +240,70 @@ class SocialAuth {
   }
 
   /// 開啟 LINE／Discord 授權頁，等回呼帶回一次性碼。
+  /// 同一時間只允許一個等待中的流程，重複呼叫會先把前一個收乾淨。
   static Future<AuthResult<String>> awaitOAuthCode(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null) return AuthResult<String>.of(AuthCodes.oauthFailed);
 
-    final completer = Completer<AuthResult<String>>();
-    final timeout = Timer(oauthTimeout, () {
-      if (completer.isCompleted) return;
-      DeepLinkService.onOAuthResult = null;
-      completer.complete(AuthResult<String>.of(AuthCodes.cancelled));
-    });
+    cancelOAuthWait();
 
-    void finish(AuthResult<String> result) {
-      if (completer.isCompleted) return;
-      timeout.cancel();
-      DeepLinkService.onOAuthResult = null;
-      completer.complete(result);
-    }
+    final completer = Completer<AuthResult<String>>();
+    _oauthWait = completer;
+    _oauthTimer = Timer(oauthTimeout, () => _finishOAuth(AuthResult<String>.of(AuthCodes.cancelled)));
 
     DeepLinkService.onOAuthResult = (result) {
       final code = result.code;
       if (code != null && code.isNotEmpty) {
-        finish(AuthResult.ok(code));
+        _finishOAuth(AuthResult.ok(code));
         return;
       }
-      finish(AuthResult<String>.of(result.error?.isNotEmpty == true ? result.error! : AuthCodes.oauthFailed));
+      _finishOAuth(
+        AuthResult<String>.of(result.error?.isNotEmpty == true ? result.error! : AuthCodes.oauthFailed),
+      );
     };
-    DeepLinkService.flushPending();
 
-    if (!completer.isCompleted && !await openExternal(uri)) {
-      finish(AuthResult<String>.of(AuthCodes.oauthFailed));
+    // Android 的 Custom Tabs 是另一個工作，關閉後 App 會經過 paused → resumed；
+    // 只看 inactive → resumed 會把 Face ID、通知中心等系統視窗誤判成取消。
+    if (!kIsWeb && Platform.isAndroid) {
+      var paused = false;
+      _lifecycle = AppLifecycleListener(
+        onPause: () => paused = true,
+        onResume: () {
+          if (paused) handleBrowserClosed();
+        },
+      );
+    }
+
+    if (!await openAuthBrowser(uri)) {
+      _finishOAuth(AuthResult<String>.of(AuthCodes.oauthFailed));
     }
     return completer.future;
+  }
+
+  /// 使用者關閉授權頁回到 App；寬限時間內仍沒收到回呼就視為取消。
+  static void handleBrowserClosed() {
+    if (_oauthWait == null) return;
+    _closeGrace?.cancel();
+    _closeGrace = Timer(browserCloseGrace, cancelOAuthWait);
+  }
+
+  /// 使用者離開登入畫面時呼叫，確保不留下計時器與深層連結處理器。
+  static void cancelOAuthWait() => _finishOAuth(AuthResult<String>.of(AuthCodes.cancelled));
+
+  static void _finishOAuth(AuthResult<String> result) {
+    final completer = _oauthWait;
+    if (completer == null || completer.isCompleted) return;
+
+    _oauthWait = null;
+    _oauthTimer?.cancel();
+    _oauthTimer = null;
+    _closeGrace?.cancel();
+    _closeGrace = null;
+    _lifecycle?.dispose();
+    _lifecycle = null;
+    DeepLinkService.onOAuthResult = null;
+    unawaited(closeAuthBrowser());
+    completer.complete(result);
   }
 }
 

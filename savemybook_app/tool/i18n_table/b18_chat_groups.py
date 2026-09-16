@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 T = {
     '$requester 向 $payer 請款': ('$p0 requested payment from $p1', '$p0 が $p1 に請求', '$p0 님이 $p1 님에게 송금 요청', '$p0 向 $p1 请款'),
-    '$requester 向你請款': ('$p0 requested payment from you', '$p0 からの請求', '$p0 님이 송금을 요청했습니다', '$p0 向你请款'),
+    '$requester 向您請款': ('$requester requested payment from you', '$requester からの請求', '$requester 님이 송금을 요청했습니다', '$requester 向您请款'),
     '$sender 轉帳給 $receiver': ('$p0 sent coins to $p1', '$p0 が $p1 に送金', '$p0 님이 $p1 님에게 송금', '$p0 转账给 $p1'),
-    '$sender 轉帳給你': ('$p0 sent you coins', '$p0 からの送金', '$p0 님이 송금했습니다', '$p0 转账给你'),
+    '$sender 轉帳給您': ('$sender sent you coins', '$sender からの送金', '$sender 님이 송금했습니다', '$sender 转账给您'),
     '付款人': ('Payer', '支払う人', '결제자', '付款人'),
     '收款人': ('Recipient', '受取人', '받는 사람', '收款人'),
     '代幣': ('coins', 'コイン', '코인', '代币'),
-    '你': ('You', 'あなた', '나', '你'),
+    '您': ('You', 'あなた', '나', '您'),
     '我': ('Me', '自分', '나', '我'),
     '備註（選填）': ('Note (optional)', 'メモ（任意）', '메모(선택)', '备注（选填）'),
     '僅自己可見': ('Only visible to you', '自分にのみ表示', '나에게만 표시', '仅自己可见'),

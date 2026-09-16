@@ -144,7 +144,6 @@ class AiListingTargets {
   final bool supportsCondition;
   final int? price;
   final bool supportsPrice;
-  final bool deferConditionAndPrice;
 
   const AiListingTargets({
     this.fields = const {},
@@ -156,7 +155,6 @@ class AiListingTargets {
     this.supportsCondition = false,
     this.price,
     this.supportsPrice = false,
-    this.deferConditionAndPrice = false,
   });
 }
 
@@ -179,13 +177,6 @@ const aiReferenceFieldKeys = ['subtitle', 'page_count', 'language'];
 String aiPublishDatePrecisionLabel(String precision) => switch (precision) {
       'month' => S.monthOnly,
       'year' => S.yearOnly,
-      _ => '',
-    };
-
-String aiDescriptionSourceLabel(String source) => switch (source) {
-      'sources' => S.fromBookDatabase,
-      'ai' => S.writtenByAi,
-      'mixed' => S.aiTidiedSourceText,
       _ => '',
     };
 
@@ -574,7 +565,6 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
                     selected: _category,
                     onChanged: (v) => setState(() => _category = v),
                     title: _categoryMatch!.categoryName,
-                    confidence: r.category!.confidence,
                     current: t.categoryId == null || t.categoryId == r.category!.categoryId
                         ? null
                         : t.categories.where((cat) => cat.categoryId == t.categoryId).map((cat) => cat.categoryName).firstOrNull,
@@ -582,21 +572,20 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
                   ),
                 ],
                 if (_showCondition) ...[
-                  _section(c, t.deferConditionAndPrice ? S.conditionAppliedNextStep : S.condition),
+                  _section(c, S.condition),
                   _choiceTile(
                     c,
                     selected: _condition,
                     onChanged: (v) => setState(() => _condition = v),
                     title: AppLabels.conditionOf(r.condition!.level),
                     titleColor: c.conditionColor(r.condition!.level),
-                    confidence: r.condition!.confidence,
                     reasons: r.condition!.reasons,
                     current: t.condition != null && t.conditionTouched && t.condition != r.condition!.level ? AppLabels.conditionOf(t.condition!) : null,
                     same: t.condition == r.condition!.level,
                   ),
                 ],
                 if (_showPrice) ...[
-                  _section(c, t.deferConditionAndPrice ? S.priceAppliedNextStep : S.suggestedPrice),
+                  _section(c, S.suggestedPrice),
                   _choiceTile(
                     c,
                     selected: _price,
@@ -801,7 +790,6 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
     final value = r.fields[key]!;
     final isDescription = key == 'description';
     final precisionNote = key == 'publish_date' && r.publishDateIsApproximate ? aiPublishDatePrecisionLabel(r.publishDatePrecision) : '';
-    final sourceNote = isDescription ? aiDescriptionSourceLabel(r.descriptionSource) : '';
     final expandable = isDescription && value.length > 90;
 
     return _checkFrame(
@@ -819,7 +807,6 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
               Text(aiFieldLabel(key), style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: c.textSecondary)),
               if (same) _sameTag(c),
               if (precisionNote.isNotEmpty) _noteTag(c, precisionNote, c.warning),
-              if (sourceNote.isNotEmpty) _noteTag(c, sourceNote, c.textSecondary),
             ],
           ),
           const SizedBox(height: 3),
@@ -863,7 +850,6 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
     required ValueChanged<bool> onChanged,
     required String title,
     Color? titleColor,
-    double? confidence,
     String? detail,
     List<String> reasons = const [],
     String? current,
@@ -883,7 +869,6 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: titleColor ?? c.textPrimary)),
-              if (confidence != null) ConfidenceChip(value: confidence),
               if (same) _sameTag(c),
             ],
           ),
@@ -906,37 +891,6 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
               ),
             ),
           if (current != null && !same) _currentLine(c, current),
-        ],
-      ),
-    );
-  }
-}
-
-class ConfidenceChip extends StatelessWidget {
-  final double value;
-
-  const ConfidenceChip({super.key, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    final color = value >= 0.75 ? c.success : (value >= 0.5 ? c.warning : c.textSecondary);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 18,
-            height: 4,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(value: value, backgroundColor: color.withValues(alpha: 0.2), valueColor: AlwaysStoppedAnimation(color)),
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(S.confidenceP0((value * 100).round()), style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: color)),
         ],
       ),
     );

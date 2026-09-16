@@ -19,6 +19,9 @@ class SignInMethodsCard extends StatefulWidget {
   final bool hasPaymentPin;
   final ValueChanged<AuthIdentityList>? onLoaded;
 
+  /// 外層畫面改變這個值即可要求重新載入（例如在別處設定完密碼）。
+  final int refreshTick;
+
   /// 測試用：直接帶入資料，不再呼叫伺服器。
   final AuthProvidersInfo? initialProviders;
   final AuthIdentityList? initialIdentities;
@@ -26,6 +29,7 @@ class SignInMethodsCard extends StatefulWidget {
   const SignInMethodsCard({
     super.key,
     this.hasPaymentPin = false,
+    this.refreshTick = 0,
     this.onLoaded,
     this.initialProviders,
     this.initialIdentities,
@@ -48,6 +52,12 @@ class _SignInMethodsCardState extends State<SignInMethodsCard> {
   void initState() {
     super.initState();
     if (widget.initialProviders == null) _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant SignInMethodsCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.refreshTick != oldWidget.refreshTick && widget.initialProviders == null) _load();
   }
 
   Future<void> _load() async {
@@ -251,11 +261,6 @@ class _SignInMethodsCardState extends State<SignInMethodsCard> {
               Text(
                 S.noPasswordSet,
                 style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600, color: c.textPrimary),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                S.requiredBeforeChangingSignMethodsDeleting,
-                style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary),
               ),
             ],
           ),

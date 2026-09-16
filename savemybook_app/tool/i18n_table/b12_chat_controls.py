@@ -2,7 +2,7 @@ T = {
     '解除封鎖': ('Unblock', 'ブロックを解除', '차단 해제', '解除屏蔽'),
     '封鎖使用者': ('Block user', 'ユーザーをブロック', '사용자 차단', '屏蔽用户'),
     '封鎖': ('Block', 'ブロック', '차단', '屏蔽'),
-    '封鎖「${partner.nickname}」後，雙方將無法互相傳送訊息，對方不會收到通知。您可隨時於「設定 › 封鎖名單」解除封鎖。': ('After you block "$p0", neither of you can send messages to the other. They will not be notified. You can unblock them at any time in Settings › Blocked users.', '「$p0」をブロックすると、お互いにメッセージを送信できなくなります。相手には通知されません。ブロックは「設定 › ブロックリスト」からいつでも解除できます。', '"$p0" 님을 차단하면 서로 메시지를 보낼 수 없으며, 상대방에게는 알림이 가지 않습니다. 설정 › 차단 목록에서 언제든지 차단을 해제할 수 있습니다.', '屏蔽「$p0」后，双方将无法互相发送消息，对方不会收到通知。您可随时在「设置 › 屏蔽名单」解除屏蔽。'),
+    '封鎖「${partner.nickname}」後，雙方將無法互相傳送訊息。': ('After you block "${partner.nickname}", neither of you can send messages to the other.', '「${partner.nickname}」をブロックすると、お互いにメッセージを送信できなくなります。', '"${partner.nickname}" 님을 차단하면 서로 메시지를 보낼 수 없습니다.', '屏蔽「${partner.nickname}」后，双方将无法互相发送消息。'),
     '已封鎖此使用者': ('User blocked', 'ユーザーをブロックしました', '사용자를 차단했습니다', '已屏蔽此用户'),
     '已解除封鎖': ('User unblocked', 'ブロックを解除しました', '차단을 해제했습니다', '已解除屏蔽'),
     '更多選項': ('More options', 'その他のオプション', '더보기', '更多选项'),

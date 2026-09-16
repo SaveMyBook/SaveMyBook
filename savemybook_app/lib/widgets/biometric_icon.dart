@@ -79,3 +79,19 @@ class _FaceIdPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _FaceIdPainter oldDelegate) => oldDelegate.color != color;
 }
+
+/// 依裝置支援的生物辨識種類決定圖示：Face ID 用自繪方框，其餘用指紋。
+class BiometricGlyph extends StatelessWidget {
+  final String label;
+  final Color color;
+  final double size;
+
+  const BiometricGlyph({super.key, required this.label, required this.color, this.size = 22});
+
+  @override
+  Widget build(BuildContext context) {
+    return label == 'Face ID'
+        ? FaceIdIcon(size: size, color: color)
+        : Icon(Icons.fingerprint_rounded, size: size + 2, color: color);
+  }
+}

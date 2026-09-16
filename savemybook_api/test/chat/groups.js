@@ -119,7 +119,7 @@ const tests = [
 
     const empty = await request('PATCH', `/api/chat/groups/${roomId}`, { token: owner.token, body: {} });
     assert.strictEqual(empty.status, 400);
-    assert.strictEqual(empty.body.message, '請提供 name 或 avatar_url');
+    assert.strictEqual(empty.body.message, '請提供群組名稱或頭貼');
   }],
 
   ['指派與解除管理員', async () => {
@@ -164,7 +164,7 @@ const tests = [
       token: owner.token, body: { role: 'admin' }
     });
     assert.strictEqual(badRole.status, 400);
-    assert.strictEqual(badRole.body.message, 'role 僅接受：owner, member');
+    assert.strictEqual(badRole.body.message, '成員角色不正確');
   }],
 
   ['移除成員', async () => {

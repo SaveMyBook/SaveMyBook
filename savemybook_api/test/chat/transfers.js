@@ -278,7 +278,7 @@ const tests = [
     });
     assert.strictEqual(res.status, 503);
     assert.strictEqual(res.body.code, 'CHAT_V2_UNAVAILABLE');
-    assert.strictEqual(res.body.message, '伺服器尚未完成資料庫更新，請聯絡管理員');
+    assert.strictEqual(res.body.message, '此功能暫時無法使用，請稍後再試');
 
     const requested = await request('POST', `/api/chat/rooms/${roomId}/transfer-requests`, {
       token: payee.token, body: { from_user_id: payer.user_id, amount: 10 }

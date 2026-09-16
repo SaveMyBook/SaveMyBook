@@ -39,12 +39,12 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 router.post('/', registerLimiter, async (req, res) => {
-  const email = text(req.body.email, { label: 'Email', max: 255 }).toLowerCase();
+  const email = text(req.body.email, { label: '電子郵件', max: 255 }).toLowerCase();
   const plain = req.body.password;
   const name = text(req.body.nickname, { label: '暱稱', max: 50 });
 
   if (!email || !plain || !name) throw badRequest('缺少必要欄位：email、password 或 nickname');
-  if (!EMAIL_RE.test(email)) throw badRequest('Email 格式不正確');
+  if (!EMAIL_RE.test(email)) throw badRequest('電子郵件格式不正確');
   password.assertPolicy(plain);
   nickname(name);
 

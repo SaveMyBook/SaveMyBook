@@ -310,10 +310,6 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
               ),
             ],
           ),
-          if (dense) ...[
-            const SizedBox(height: 4),
-            Text(S.tapBarSeeDay, style: TextStyle(fontSize: 11, color: c.textHint)),
-          ],
           const SizedBox(height: 16),
           SizedBox(
             height: height,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../utils/motion.dart';
 import 'animations.dart';
+import 'app_asset_image.dart';
 import 'state_views.dart';
 
 OverlayEntry? _current;
@@ -132,7 +133,15 @@ class _BannerState extends State<_Banner> with SingleTickerProviderStateMixin {
               height: 18,
               padding: const EdgeInsets.all(1.5),
               decoration: BoxDecoration(color: c.card, shape: BoxShape.circle),
-              child: ClipOval(child: Image.asset('assets/images/logo.png', fit: BoxFit.cover, cacheWidth: (16 * dpr).round())),
+              child: ClipOval(
+                child: AppAssetImage(
+                  asset: 'assets/images/logo.png',
+                  fit: BoxFit.cover,
+                  cacheWidth: (16 * dpr).round(),
+                  fallbackIcon: Icons.menu_book_rounded,
+                  fallbackIconSize: 12,
+                ),
+              ),
             ),
           ),
         ],

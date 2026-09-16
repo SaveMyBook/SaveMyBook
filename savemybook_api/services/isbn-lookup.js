@@ -94,7 +94,7 @@ const gather = async (isbn) => {
   const sources = [google.value, fromOpenLibrary(library.value)].filter(Boolean);
   if (sources.length === 0) {
     if (google.failed && library.failed) throw new HttpError(502, '查詢外部書籍資訊發生錯誤');
-    throw notFound('外部書庫找不到此 ISBN 的書籍資訊');
+    throw notFound('找不到此 ISBN 的書籍資訊');
   }
 
   if (library.value) {

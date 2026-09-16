@@ -94,10 +94,8 @@
   "appearanceLight": "라이트",
   "appearanceDark": "다크",
   "appearanceSystem": "시스템 설정 따르기",
-  "appearanceHint": "시스템 설정 따르기를 선택하면 기기 설정에 따라 자동으로 전환됩니다.",
   "language": "언어",
   "languageSystem": "시스템 설정 따르기",
-  "languageHint": "시스템 설정 따르기를 선택하면 기기 언어 설정에 따라 표시됩니다.",
   "verifySignSavemybook": "SaveMyBook에 로그인하려면 인증하세요",
   "maintenance": "시스템 점검",
   "promotions": "이벤트 혜택",
@@ -142,9 +140,7 @@
   "regenerate": "재생성",
   "newLinkCreatedOldOneNo": "새 링크를 만들었습니다. 기존 링크는 무효입니다.",
   "deleteAccount": "계정 삭제",
-  "accountPermanentlyDisabled30DaysSign": "계정은 30일 후 영구 비활성화됩니다. 그 전에 다시 로그인하면 취소할 수 있습니다.\n\n",
-  "personalDataErasedButCompletedOrders": "비활성화 후 개인정보는 삭제되지만, 완료된 주문과 거래 기록은 보관됩니다. ",
-  "peopleTradedWithDoNotLose": "거래 상대방의 기록이 누락되지 않도록 하기 위함입니다.",
+  "accountPermanentlyDisabled30DaysSign": "계정은 30일 후 삭제되며, 기간 내에 다시 로그인하면 취소됩니다. 삭제 후 개인 정보는 지워지며 완료된 주문과 거래 기록은 보존됩니다.",
   "actionContinue": "계속",
   "verify": "본인 확인",
   "enterPasswordConfirm": "본인 확인을 위해 비밀번호를 입력하세요.",
@@ -155,11 +151,7 @@
   "account": "계정 관리",
   "data": "내 데이터",
   "exportMyData": "내 데이터 내보내기",
-  "profileBooksOrdersTransactionsJson": "프로필, 도서, 주문, 거래 내역을 JSON으로",
-  "oldLinkQrCodeStopWorking2": "기존 링크와 QR 코드가 즉시 무효화됩니다",
   "cancelAccountDeletion": "계정 삭제 취소",
-  "restoreAccountStopCountdown": "계정을 복구하고 카운트다운을 중지합니다",
-  "canChangeMindWithin30Days": "30일 이내에는 취소할 수 있습니다",
   "deletionPending": "삭제 대기 중",
   "daysLeftCanCancelAnyTime": "{p0}일 남았습니다. 그 전에는 언제든 취소할 수 있으며, 기한이 지나면 개인정보가 영구 삭제됩니다.",
   "@daysLeftCanCancelAnyTime": {
@@ -197,13 +189,13 @@
   "addedCart": "장바구니에 담았습니다",
   "sellerInformationNotFound": "판매자 정보를 찾을 수 없습니다",
   "signContactSeller": "판매자에게 연락하려면 로그인하세요",
-  "signStartChat": "채팅을 시작하려면 로그인하세요",
+  "signStartChat": "판매자에게 연락하려면 로그인하세요",
   "signReport": "신고하려면 로그인하세요",
   "cannotReportOwnListing": "본인의 상품은 신고할 수 없습니다",
   "reportListing": "이 상품 신고",
   "describeProblemLeast5Characters": "문제를 설명해 주세요 (5자 이상)",
   "reasonNeedsLeast5Characters": "신고 사유는 5자 이상 입력해 주세요",
-  "reportSubmittedWeLookInto": "신고를 접수했습니다. 최대한 빨리 처리하겠습니다.",
+  "reportSubmittedWeLookInto": "신고가 접수되었습니다",
   "publisher": "출판사: ",
   "author": "저자: ",
   "listed": "등록일: ",
@@ -211,19 +203,11 @@
   "share": "공유",
   "report": "신고",
   "about": "소개: ",
-  "pickup": "수령 장소: {p0}",
-  "@pickup": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "messageSeller": "판매자와 대화",
   "listing": "내 상품입니다",
   "addCart": "장바구니 담기",
-  "bookBeenReportedUnderReviewStays": "이 책은 신고되어 검토 중입니다. 검토 중에도 정상 판매됩니다.",
-  "violationWasConfirmedBookPleaseCheck": "이 책은 위반이 인정되었습니다. 커뮤니티 가이드라인에 맞는지 확인해 주세요.",
-  "reportDismissed2": "신고가 기각되었습니다",
-  "bookWasReportedButNoViolation": "이 책은 신고되었으나 위반이 확인되지 않았습니다. 판매에는 영향이 없습니다.",
+  "bookBeenReportedUnderReviewStays": "이 책은 신고되어 검토 중입니다.",
+  "violationWasConfirmedBookPleaseCheck": "이 책은 위반이 확인되었습니다. 상품 내용을 수정하세요.",
   "delist": "판매 중단",
   "removedFromShopBuyersNoLonger": "“{p0}”이(가) 상점에서 내려가 구매자에게 더 이상 표시되지 않습니다.",
   "@removedFromShopBuyersNoLonger": {
@@ -232,7 +216,6 @@
     }
   },
   "delist2": "내리기",
-  "delistedRelistFromDelistedTab": "판매를 중단했습니다. ‘내림’ 탭에서 다시 올릴 수 있습니다.",
   "couldNotDelistPleaseTryAgain": "판매 중단에 실패했습니다. 잠시 후 다시 시도해 주세요.",
   "listedAgain": "“{p0}”을(를) 다시 등록했습니다",
   "@listedAgain": {
@@ -242,18 +225,9 @@
   },
   "notListedAnyBooksYet": "아직 등록한 도서가 없습니다",
   "noBooksCategory": "이 분류에 도서가 없습니다",
-  "listFirstBook": "첫 도서 등록하기",
   "relist": "다시 올리기",
-  "removeFromCart": "장바구니에서 빼기",
-  "removeFromCart2": "“{p0}”을(를) 장바구니에서 뺄까요?",
-  "@removeFromCart2": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "remove": "삭제",
   "couldNotRemoveRestored": "삭제하지 못해 되돌렸습니다.",
-  "couldNotRemovePleaseTryAgain": "삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.",
   "selectBooksWantCheckOut": "결제할 도서를 선택해 주세요",
   "notEnoughCoinsOrderNeedsBut": "코인이 부족합니다. 이 주문에는 {p0}이(가) 필요하지만 잔액은 {p1}입니다.",
   "@notEnoughCoinsOrderNeedsBut": {
@@ -262,7 +236,6 @@
       "p1": {}
     }
   },
-  "confirmCheckout": "결제 확인",
   "booksTotal": "도서 {p0}권, 합계 {p1}.\n",
   "@booksTotal": {
     "placeholders": {
@@ -338,7 +311,7 @@
   "chatUnmuted": "음소거를 해제했습니다",
   "noUnreadMessages": "읽지 않은 메시지가 없습니다",
   "markAllAsRead": "모두 읽음으로 표시",
-  "markAllUnreadMessagesAsRead": "읽지 않은 메시지 {p0}건을 모두 읽음으로 표시할까요? 되돌릴 수 없습니다.",
+  "markAllUnreadMessagesAsRead": "읽지 않은 메시지 {p0}건을 모두 읽음으로 표시할까요?",
   "@markAllUnreadMessagesAsRead": {
     "placeholders": {
       "p0": {}
@@ -351,7 +324,6 @@
   "noConversationsYet": "아직 대화가 없습니다",
   "unmute": "음소거 해제",
   "mute": "음소거",
-  "messagesLimited500Characters": "메시지는 500자까지 입력할 수 있습니다",
   "messageCouldNotSent": "메시지를 보내지 못했습니다",
   "chat": "채팅",
   "sendFirstMessage": "첫 메시지를 보내세요",
@@ -361,7 +333,7 @@
   "writeMessage": "메시지 입력…",
   "enterOrderNumberDisputing": "이의를 제기할 주문 번호를 입력하세요",
   "describeDispute": "이의 내용을 입력해 주세요",
-  "useLeast10CharactersSoSupport": "고객센터가 판단할 수 있도록 10자 이상 입력해 주세요",
+  "useLeast10CharactersSoSupport": "설명은 10자 이상이어야 합니다",
   "submitDispute": "이의 제기",
   "orderEntersDisputeProcessPaymentSeller": "주문이 이의 처리 절차로 넘어가며, 고객센터가 판정할 때까지 판매자 정산이 보류됩니다.",
   "paymentHoldRequested": "[정산 보류 요청] {p0}",
@@ -373,27 +345,23 @@
   "disputeSubmittedSupportContact": "이의를 접수했습니다. 고객센터에서 연락드리겠습니다.",
   "dispute": "이의 처리",
   "requestPaymentHold": "정산 보류 요청",
-  "paymentSellerHeldUntilSupportDecides": "고객센터가 판정할 때까지 판매자 정산이 보류됩니다",
   "submitDispute2": "이의 제기하기",
   "orderNumber": "주문 번호",
   "eGSmb20260910123456789": "예: SMB20260910123456789",
   "whatHappened": "이의 내용",
-  "describeProblemEGConditionDoes": "문제 상황을 적어 주세요. 예: 상태가 설명과 다름…",
+  "describeProblemEGConditionDoes": "발생한 문제를 설명해 주세요",
   "submit": "신청 보내기",
   "uploadPhotos": "사진 업로드",
   "canAttachUp6Photos": "증빙 사진은 최대 6장까지 첨부할 수 있습니다",
-  "up5": "최대 5장",
-  "couldNotReplacePhotoPleaseTry": "사진을 교체하지 못했습니다. 잠시 후 다시 시도해 주세요.",
   "keepLeastOnePhoto": "사진은 최소 한 장 필요합니다",
   "photoDeleted": "사진을 삭제했습니다",
   "couldNotDeletePhotoPleaseTry": "사진을 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.",
   "canUp10Photos": "사진은 최대 10장까지 가능합니다",
   "deletePhoto": "사진 삭제",
   "cannotUndoneContinue": "삭제하면 되돌릴 수 없습니다. 계속할까요?",
-  "photoMissingDataRefreshTryAgain": "이 사진의 데이터가 불완전합니다. 새로고침 후 다시 시도하세요.",
+  "photoMissingDataRefreshTryAgain": "이 사진을 처리할 수 없습니다. 새로고침 후 다시 시도하세요.",
   "enterPrice": "가격을 입력하세요",
   "priceMustGreaterThan0": "가격은 0보다 커야 합니다",
-  "priceCannotExceed999999": "가격은 999,999를 넘을 수 없습니다",
   "chooseLockerLocation": "보관 위치를 선택하세요",
   "missingTheseThreeRequired": "누락: {p0}. 이 세 장은 필수입니다.",
   "@missingTheseThreeRequired": {
@@ -422,7 +390,7 @@
   "optional": "선택",
   "publisher2": "출판사",
   "publicationDate": "출간일",
-  "tapPickPublicationDate": "눌러서 출간일 선택",
+  "tapPickPublicationDate": "출간일 선택",
   "pickPublicationDate": "출간일 선택",
   "pickCategory": "분류 선택",
   "next": "다음",
@@ -437,11 +405,11 @@
   "profileUpdated": "프로필을 수정했습니다",
   "editProfile": "프로필 편집",
   "bio": "소개",
-  "tellPeopleAboutYourself": "자기소개를 입력하세요",
+  "tellPeopleAboutYourself": "소개를 입력하세요",
   "email": "이메일",
   "emailCannotChanged": "이메일은 변경할 수 없습니다",
   "dateBirth": "생년월일",
-  "tapPickDateBirth": "눌러서 생년월일 선택",
+  "tapPickDateBirth": "생년월일 선택",
   "pickDateBirth": "생년월일 선택",
   "savedBooks": "저장한 도서",
   "notSavedAnyBooksYet": "아직 저장한 도서가 없습니다",
@@ -466,8 +434,7 @@
   "croppingFailedPleaseTryAgain": "자르기에 실패했습니다. 다시 시도해 주세요.",
   "adjustPhoto": "사진 조정",
   "reset": "초기화",
-  "usePhoto": "이 사진 사용",
-  "documentNotBeenCreatedYet": "이 문서는 아직 작성되지 않았습니다",
+  "documentNotBeenCreatedYet": "내용이 없습니다",
   "lastUpdated": "마지막 업데이트: {p0}",
   "@lastUpdated": {
     "placeholders": {
@@ -509,7 +476,7 @@
     }
   },
   "noAccountYetSignUp": "계정이 없으신가요? 가입하기",
-  "membershipTiersNotSetUpYet": "회원 등급이 아직 설정되지 않았습니다",
+  "membershipTiersNotSetUpYet": "현재 회원 등급이 제공되지 않습니다",
   "currentTier": "현재 등급",
   "unlocked": "달성함",
   "locked": "미달성",
@@ -534,7 +501,7 @@
       "p0": {}
     }
   },
-  "noBenefitsBeenDescribedTierYet": "이 등급의 혜택이 아직 설정되지 않았습니다.",
+  "noBenefitsBeenDescribedTierYet": "이 등급에는 추가 혜택이 없습니다",
   "pointsFromCompletedOrders": "거래 {p1}건으로 {p0}점",
   "@pointsFromCompletedOrders": {
     "placeholders": {
@@ -554,7 +521,7 @@
   "allNotificationsCleared": "모든 알림을 지웠습니다",
   "couldNotClearPleaseTryAgain": "지우지 못했습니다. 잠시 후 다시 시도해 주세요.",
   "noUnreadNotifications": "읽지 않은 알림이 없습니다",
-  "markAllUnreadNotificationsAsRead": "읽지 않은 알림 {p0}건을 모두 읽음으로 표시할까요? 되돌릴 수 없습니다.",
+  "markAllUnreadNotificationsAsRead": "읽지 않은 알림 {p0}건을 모두 읽음으로 표시할까요?",
   "@markAllUnreadNotificationsAsRead": {
     "placeholders": {
       "p0": {}
@@ -562,7 +529,6 @@
   },
   "openChat": "채팅 열기",
   "viewOrder": "주문 보기",
-  "openMyBooks": "도서 관리 열기",
   "notifications": "알림",
   "noNotifications": "알림이 없습니다",
   "copied": "{p0}을(를) 복사했습니다",
@@ -585,7 +551,7 @@
       "p0": {}
     }
   },
-  "orderNoItemDetails": "이 주문에는 상품 정보가 없습니다.",
+  "orderNoItemDetails": "상품 내역 없음",
   "msg4": "단가 {p0} × {p1}",
   "@msg4": {
     "placeholders": {
@@ -597,7 +563,7 @@
   "pickupDetails": "수령 정보",
   "notAssigned": "미지정",
   "slot": "보관함",
-  "notAssignedYet": "아직 배정되지 않음",
+  "notAssignedYet": "보관함 미배정",
   "pickupCode": "수령 코드",
   "transaction": "거래 정보",
   "buyer": "구매자",
@@ -612,14 +578,13 @@
   "pendingPayouts": "대기 중인 정산",
   "noPendingPayouts": "대기 중인 정산이 없습니다",
   "pendingAmount": "대기 금액",
-  "coinsArriveOnceBuyerCollectsBook": "구매자가 수령하면 코인이 자동 지급됩니다",
+  "coinsArriveOnceBuyerCollectsBook": "구매자 수령 후 자동 지급",
   "scanned": "스캔 완료",
   "scanAgain": "다시 스캔",
   "collectBook": "도서 수령",
   "pointPickupQrCode": "수령용 QR 코드를 맞춰 주세요",
   "holdSteady": "흔들리지 않게 유지하세요",
   "bookCollected": "수령 완료",
-  "thanksUsingSavemybookHappyReading": "이용해 주셔서 감사합니다.",
   "collected": "“{p0}” 수령 완료",
   "@collected": {
     "placeholders": {
@@ -634,7 +599,7 @@
   },
   "signingOut": "로그아웃 중…",
   "myAccount": "마이페이지",
-  "personNotWrittenBioYet": "아직 소개가 없습니다",
+  "personNotWrittenBioYet": "소개가 없습니다",
   "topTierReached": "최고 등급 달성",
   "morePointsReach": "{p0}점 더 모으면 “{p1}”",
   "@morePointsReach": {
@@ -643,24 +608,12 @@
       "p1": {}
     }
   },
-  "myCoins": "내 코인",
-  "shareProfile": "프로필 공유",
   "purchases": "구매 내역",
   "sales": "판매 내역",
   "settings": "설정",
   "signOut2": "로그아웃할까요?",
-  "needSignAgainKeepUsingApp": "계속 사용하려면 다시 로그인해야 합니다.",
   "cancelOrderBookReturnsShop": "주문 {p0}을(를) 취소할까요? 도서는 다시 판매됩니다.",
   "@cancelOrderBookReturnsShop": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "pickupCode2": "수령 코드",
-  "notGeneratedYet": "아직 발급되지 않음",
-  "enterCodeLockerCollect": "보관함에서 이 코드를 입력해 수령하세요",
-  "enterCodeCollect": "“{p0}”에서 이 코드를 입력해 수령하세요",
-  "@enterCodeCollect": {
     "placeholders": {
       "p0": {}
     }
@@ -677,11 +630,9 @@
   "iReadAccept": "다음에 동의합니다: ",
   "and": " 및 ",
   "createAccount": "계정 만들기",
-  "joinSavemybook": "SaveMyBook 가입",
-  "signUpBuySellUseSmart": "가입하면 도서 매매와 스마트 보관함을 이용할 수 있습니다",
+  "joinSavemybook": "계정 가입",
   "displayName": "닉네임",
-  "nameOthersSee": "다른 사람에게 보이는 이름",
-  "emailSignWith": "로그인에 사용할 이메일",
+  "emailSignWith": "이메일",
   "least8CharactersWithLettersNumbers": "영문과 숫자를 포함해 8자 이상",
   "confirmPassword": "비밀번호 확인",
   "enterPasswordAgain2": "비밀번호 다시 입력",
@@ -690,8 +641,6 @@
   "droppedOff": "보관함에 넣음",
   "markedAsDroppedOff": "보관 완료로 표시했습니다",
   "buyerNotifiedBookReturnsShop": "구매자에게 알림이 가고 도서는 다시 판매됩니다.",
-  "dropOffPickupCode": "보관·수령 코드",
-  "enterCodeLocker": "보관함에서 이 코드를 입력하세요",
   "noRecentSearches": "최근 검색이 없습니다",
   "recentSearches": "최근 검색",
   "clearAll2": "모두 지우기",
@@ -709,19 +658,11 @@
   "enterOwnPrice": "가격을 입력해 주세요.",
   "invalidPrice": "가격이 올바르지 않습니다",
   "priceMustGreaterThan02": "가격은 0보다 커야 합니다.",
-  "priceCannotExceed99999": "가격은 99,999를 넘을 수 없습니다.",
+  "priceCannotExceed99999": "가격은 99,999 코인을 넘을 수 없습니다.",
   "chooseLockerLocation2": "보관 위치를 선택해 주세요.",
   "listed2": "등록되었습니다",
   "unknownError": "알 수 없는 오류",
   "couldNotListBook": "등록에 실패했습니다",
-  "serverError": "서버 오류: {p0}",
-  "@serverError": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "connectionProblem": "연결 오류",
-  "couldNotReachServerUploadTimed": "서버에 연결할 수 없거나 업로드가 시간 초과되었습니다. 네트워크를 확인해 주세요.",
   "listBook": "등록 완료",
   "detailsPhotos": "상세 정보와 사진",
   "loading": "불러오는 중...",
@@ -729,10 +670,9 @@
   "enterTitle2": "제목을 입력하세요",
   "chooseCategory2": "분류를 선택하세요",
   "bookDetailsFilledAutomatically": "도서 정보를 자동으로 채웠습니다.",
-  "bookDetailsFilledFromBackupSource": "보조 데이터베이스에서 도서 정보를 가져왔습니다.",
   "noSourceIsbnPleaseEnterDetails": "어떤 데이터베이스에도 이 ISBN이 없습니다. 직접 입력해 주세요.",
   "day": "일",
-  "tapIconRightScan": "오른쪽 아이콘을 눌러 스캔",
+  "tapIconRightScan": "ISBN 입력",
   "description": "도서 소개",
   "sellBook": "도서 판매",
   "myShop": "내 상점",
@@ -757,15 +697,8 @@
   "helpSupport": "도움말 및 지원",
   "contactUs": "문의하기",
   "aboutSavemybook": "SaveMyBook 정보",
-  "settingsPrivacy": "설정 및 개인정보",
   "sign3": "{p0} 로그인",
   "@sign3": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "unlockWithWhenOpenApp": "앱을 열 때 {p0}(으)로 잠금 해제",
-  "@unlockWithWhenOpenApp": {
     "placeholders": {
       "p0": {}
     }
@@ -797,17 +730,17 @@
   "askQuestion": "문의하기",
   "noEnquiriesYet": "문의 내역이 없습니다",
   "enterSubject": "제목을 입력하세요",
-  "addMoreDetailSoSupportCan": "고객센터가 파악할 수 있도록 좀 더 자세히 적어 주세요",
+  "addMoreDetailSoSupportCan": "문제 설명을 보충해 주세요",
   "sentSupportReplySoon": "보냈습니다. 고객센터가 곧 답변드립니다.",
   "subject": "제목",
   "sumUpOneLine": "한 줄로 요약해 주세요",
   "whatHappenedIncludeOrderNumberIf": "문제 내용을 입력해 주세요. 주문 번호가 있다면 함께 입력해 주세요.",
   "close": "종료",
   "notAbleReplyAfterClosing": "종료하면 더 이상 답변할 수 없습니다.",
-  "enquiryClosed": "문의를 종료했습니다",
+  "enquiryClosed": "문의가 종료되었습니다",
   "changeStatus": "상태 변경",
   "statusUpdated": "상태를 변경했습니다",
-  "enquiry": "문의",
+  "enquiry": "문의 내역",
   "enquiryNotFound": "문의를 찾을 수 없습니다",
   "support": "고객센터",
   "writeReply": "답변 입력…",
@@ -821,14 +754,6 @@
       "p0": {}
     }
   },
-  "requestFailed2": "요청 실패 ({p0})",
-  "@requestFailed2": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "couldNotReachServer": "서버에 연결할 수 없습니다",
-  "couldNotReachServerCheckConnection": "서버에 연결할 수 없습니다. 네트워크를 확인해 주세요.",
   "signFailed": "로그인에 실패했습니다",
   "signFailedPleaseTryAgain": "로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
   "signUpFailed": "가입에 실패했습니다",
@@ -903,7 +828,7 @@
   "alerts": "알림",
   "collect": "수령",
   "couldNotLoadPhoto": "이 사진을 불러올 수 없습니다",
-  "slot2": "보관함 {p0}",
+  "slot2": "보관함: {p0}",
   "@slot2": {
     "placeholders": {
       "p0": {}
@@ -941,7 +866,7 @@
   "announcementDeleted": "공지를 삭제했습니다",
   "couldNotDeleteTryAgainLater": "삭제하지 못했습니다. 잠시 후 다시 시도하세요.",
   "announcements": "공지사항",
-  "noAnnouncementsYetTapAddOne": "공지가 없습니다. 오른쪽 위 +로 추가하세요.",
+  "noAnnouncementsYetTapAddOne": "공지가 없습니다",
   "published": "게시됨",
   "draft": "초안",
   "audienceEveryone": "대상: 전체 사용자",
@@ -959,7 +884,7 @@
     }
   },
   "olderBackupsBeyondCountRemovedAutomatically": "보관 수를 넘은 오래된 백업은 자동으로 삭제됩니다. 백업 파일에는 사이트 전체의 개인정보가 들어 있으므로 내려받은 뒤에는 안전하게 보관하세요. 모든 다운로드는 감사 로그에 기록됩니다.",
-  "noBackupsYetSchedulerRunsOnce": "백업 기록이 없습니다. 스케줄러가 하루에 한 번 실행되며, 위 버튼으로 지금 바로 만들 수도 있습니다.",
+  "noBackupsYetSchedulerRunsOnce": "백업 기록이 없습니다",
   "deleteBackup": "백업 삭제",
   "p0NNtheFileItsRecord": "{p0}\n\n파일과 기록이 함께 삭제되며 되돌릴 수 없습니다.",
   "@p0NNtheFileItsRecord": {
@@ -971,13 +896,6 @@
   "scheduled": "예약",
   "download": "다운로드",
   "downloadBackup": "백업 다운로드",
-  "fetchBackupComputerWithAuthorisationHeader": "백업 파일은 컴퓨터에서 인증 헤더를 함께 보내 받으세요:\n\n{p0}\n\n파일 크기 {p1}.",
-  "@fetchBackupComputerWithAuthorisationHeader": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "copyLink2": "URL 복사",
   "downloadLinkCopied": "다운로드 URL을 복사했습니다",
   "forceDelist": "강제 내리기",
@@ -1123,24 +1041,12 @@
   "documentUnsavedChangesTheyLostIf": "이 문서에 저장하지 않은 변경 사항이 있습니다. 나가면 사라집니다.",
   "discard": "버리기",
   "keepEditing": "계속 편집",
-  "bothTitleContentRequired": "제목과 내용을 모두 입력해야 합니다",
   "sectionP0NoTitleYet": "{p0} 조항에 제목이 없습니다",
   "@sectionP0NoTitleYet": {
     "placeholders": {
       "p0": {}
     }
   },
-  "updateP0": "{p0}(를) 업데이트할까요?",
-  "@updateP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "documentBindingEveryUserSubmittingReplaces": "이 문서는 모든 사용자에게 효력이 있습니다. 제출하면 현재 버전이 즉시 대체됩니다.",
-  "yesUpdate": "업데이트합니다",
-  "notifyEveryUser": "모든 사용자에게 알릴까요?",
-  "updateNotify": "업데이트 후 알림",
-  "updateOnly": "업데이트만",
   "sections": "조항",
   "plainText": "일반 텍스트",
   "preview": "미리보기",
@@ -1148,17 +1054,14 @@
   "preamble": "머리말",
   "unnumberedOpeningTextLeaveEmptyIf": "번호를 붙이지 않는 도입부 문구입니다. 없으면 비워 두세요.",
   "articles": "조항",
-  "numberedAutomatically": "번호는 자동으로 매겨집니다",
-  "noArticlesYetAddFirstOne": "조항이 없습니다. 아래에서 첫 번째 조항을 추가하세요.",
+  "noArticlesYetAddFirstOne": "조항이 없습니다",
   "addSection": "조항 추가",
   "untitledSection": "제목 없는 조항",
   "sectionTitle": "조항 제목",
   "bodySectionSingleLineBreaksKept": "이 조항의 본문입니다. 한 번의 줄바꿈은 그대로 표시되고, 빈 줄은 문단을 나눕니다.",
-  "emptyLineStartsParagraphParagraphWhose": "빈 줄로 문단을 나눕니다. 첫 줄이 \"1. 제목\" 형태인 문단은 조항 모드로 돌아갈 때 하나의 조항으로 인식됩니다.",
   "howUsersSee": "사용자에게 보이는 모습",
   "noContentYet": "내용이 없습니다",
   "unsaved": "저장 안 됨",
-  "upDate": "최신 상태입니다",
   "newQuestion": "질문 추가",
   "editQuestion": "질문 편집",
   "question": "질문",
@@ -1177,7 +1080,6 @@
   "deleted": "삭제했습니다",
   "faq": "자주 묻는 질문",
   "noQuestionsYet2": "질문이 없습니다",
-  "dragHandleRightReorder": "오른쪽 손잡이를 끌어 순서를 바꿉니다",
   "hidden": "숨김",
   "cancelDeletionRequest": "삭제 신청 취소",
   "p0SAccountReturnsNormalCountdown": "{p0} 님의 계정이 정상으로 돌아가고 카운트다운이 멈춥니다.",
@@ -1254,36 +1156,20 @@
   "handle": "처리",
   "transactions2": "거래 관리",
   "orders": "주문 관리",
-  "lookUpOrdersAdjustStatusBy": "주문 조회 및 수동 상태 변경",
-  "disputeListDecisions": "이의 목록 및 판정",
   "listings": "상품 관리",
-  "allBooksForceDelisting": "전체 도서, 강제 내리기",
   "moderation": "콘텐츠 심사",
   "handleListingReports": "상품 신고 처리",
-  "addReorderDeleteBookCategories": "카테고리 추가, 정렬, 삭제",
   "members": "회원 관리",
   "memberControls": "회원 관리",
-  "memberListSuspensionBlocklist": "회원 목록, 정지, 차단 목록",
   "membershipTiers": "회원 등급 관리",
-  "tierThresholdsBenefits": "등급 기준과 혜택 설정",
   "wallets": "지갑 관리",
-  "checkBalancesAddDeductCoinsBy": "잔액 조회, 코인 수동 증감",
   "hardwareOperations": "하드웨어 및 운영",
-  "lockerSlotStatus": "보관함 및 칸 상태",
   "maintenanceLog": "정비 기록",
-  "lockerOperationHistory": "보관함 관련 작업 기록",
   "reports": "운영 리포트",
   "ordersRevenueMemberGrowth": "주문, 매출, 회원 증가",
-  "announcements2": "공지 관리",
   "supportEnquiries": "고객 문의",
-  "replyQuestionsFromUsers": "사용자 문의에 답변",
-  "faqShownHelpCentre": "고객센터의 자주 묻는 질문",
-  "termsPrivacyPolicyAbout": "이용약관, 개인정보 처리방침, 소개",
   "adminAuditLog": "관리 작업 기록",
-  "auditTrailAdminChanges": "관리자 변경 감사 기록",
   "systemOperations": "시스템 운영",
-  "dailyBackupsManualRunsDownloads": "매일 자동 백업, 수동 실행 및 다운로드",
-  "deletionRequestsInsideGracePeriodCancel": "유예 기간 중인 삭제 신청. 취소하거나 즉시 실행할 수 있습니다",
   "members2": "회원 수",
   "todaySOrders": "오늘 주문",
   "openCases": "처리 대기 건",
@@ -1561,7 +1447,6 @@
   "noEnquiriesCategory": "이 분류에 문의가 없습니다",
   "addCoins": "코인 추가",
   "deductCoins": "코인 차감",
-  "amountPositiveWholeNumber": "금액 (양의 정수)",
   "reasonAdjustmentRequired": "조정 사유 (필수)",
   "add2": "추가",
   "deduct": "차감",
@@ -1615,12 +1500,6 @@
       "p0": {}
     }
   },
-  "everyActiveMemberReceivesP0Updated": "활성 회원 전원에게 \"{p0}이(가) 업데이트되었습니다\" 알림이 전송됩니다.",
-  "@everyActiveMemberReceivesP0Updated": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "orderPlaced": "주문 생성",
   "paid": "결제",
   "sellerDroppedOff": "판매자 보관",
@@ -1654,7 +1533,7 @@
       "p0": {}
     }
   },
-  "remindThemChangeSettingsChangePassword": "로그인 후 바로 설정 → 비밀번호 변경에서 바꾸도록 안내하세요.",
+  "remindThemChangeSettingsChangePassword": "로그인 후 바로 설정 › 비밀번호 변경에서 바꾸도록 안내하세요.",
   "temporaryPasswordCopied": "임시 비밀번호를 복사했습니다",
   "copy": "복사",
   "cannotResetAnotherAdminSPassword": "다른 관리자의 비밀번호는 재설정할 수 없습니다",
@@ -1670,7 +1549,6 @@
   "items3": "항목",
   "bookDeleted": "(삭제된 도서)",
   "notAssignedYet2": "미배정",
-  "pickupCodeCopied": "수령 코드를 복사했습니다",
   "walletActivity": "지갑 변동",
   "balanceP02": "잔액 {p0}",
   "@balanceP02": {
@@ -1715,7 +1593,7 @@
   "approved": "승인됨",
   "awaitingRefund": "환불 대기",
   "declined": "환불 거절",
-  "changeOwnPasswordGoSettingsChange": "본인 비밀번호는 설정 → 비밀번호 변경에서 바꾸세요",
+  "changeOwnPasswordGoSettingsChange": "본인 비밀번호는 설정 › 비밀번호 변경에서 바꾸세요",
   "memberNotAdminSoThereNo": "이 회원은 관리자가 아니므로 설정할 관리자 권한이 없습니다. 위에서 역할을 관리자로 먼저 변경하세요.",
   "you": "본인",
   "isbnMust1013DigitsOne": "ISBN은 10자리 또는 13자리여야 합니다. 현재 {p0}자리입니다",
@@ -1769,7 +1647,6 @@
   "sendTestNotification": "테스트 알림 보내기",
   "arrives10SecondsGoHomeScreen": "10초 후 도착합니다. 보낸 뒤 홈 화면으로 가거나 휴대폰을 잠그세요.",
   "systemNotificationSettings": "시스템 알림 설정",
-  "turnNotificationsSoundsLockScreenPreviews": "알림, 소리, 잠금 화면 표시를 켜거나 끕니다",
   "pushNotificationsNotSetUpBuild": "이 빌드에는 푸시 알림이 설정되어 있지 않습니다. Firebase 설정 파일을 추가하고 다시 빌드하세요.",
   "notificationsTurnedOffAllowAppSend": "알림이 꺼져 있습니다. 시스템 설정에서 이 앱의 알림을 허용하세요.",
   "restoreBackup": "이 백업으로 복원할까요?",
@@ -1803,8 +1680,6 @@
       "p0": {}
     }
   },
-  "majorUpdate": "중요한 업데이트인가요?",
-  "majorUpdateNotifiesEveryUserTerms": "중요한 업데이트는 모든 사용자에게 알립니다. 이용약관과 개인정보 처리방침은 다음에 앱을 열 때 다시 읽고 동의해야 합니다.\n\n오타 수정이나 서식 조정이라면 \"사소한 수정\"을 선택하세요.",
   "majorUpdate2": "중요한 업데이트",
   "minorEdit": "사소한 수정",
   "books": "도서",
@@ -1830,15 +1705,12 @@
     }
   },
   "undoAction2": "이 작업 되돌리기",
-  "tapBarSeeDay": "막대를 탭하면 그날의 수치를 봅니다",
   "noAnnouncements": "공지가 없습니다",
-  "tapPhotoNameChange": "사진이나 닉네임을 탭해 변경",
   "canTContinueWithoutAccepting": "동의하지 않으면 계속 사용할 수 없습니다",
-  "needAcceptLatestP0UseP1": "{p0}을(를) 사용하려면 최신 \"{p1}\"에 동의해야 합니다. 동의하지 않으면 로그아웃되며, 언제든 다시 로그인해 동의할 수 있습니다.",
+  "needAcceptLatestP0UseP1": "\"{p0}\"에 동의하지 않으면 로그아웃됩니다.",
   "@needAcceptLatestP0UseP1": {
     "placeholders": {
-      "p0": {},
-      "p1": {}
+      "p0": {}
     }
   },
   "goBack": "돌아가기",
@@ -1848,7 +1720,7 @@
       "p0": {}
     }
   },
-  "readLatestVersionUpdatedP0Accept": "최신 버전({p0} 업데이트)을 읽어 주세요. 동의하면 계속 사용할 수 있습니다.",
+  "readLatestVersionUpdatedP0Accept": "{p0} 업데이트",
   "@readLatestVersionUpdatedP0Accept": {
     "placeholders": {
       "p0": {}
@@ -1858,13 +1730,10 @@
   "iVeReadAccept": "읽었으며 동의합니다",
   "decline": "동의하지 않음",
   "viewDetails": "자세히 보기",
-  "notFoundMayBeenDeletedRemoved": "찾을 수 없습니다. 삭제되었거나 내려갔을 수 있습니다",
-  "salesDropOffsPickupsRefundsDisputes": "판매, 보관, 수령, 환불, 분쟁",
+  "notFoundMayBeenDeletedRemoved": "이 콘텐츠는 더 이상 존재하지 않습니다",
   "chatMessages": "채팅 메시지",
-  "newMessagesFromBuyersSellers": "구매자와 판매자가 보낸 새 메시지",
   "promotions2": "프로모션",
-  "announcementsAboutPromotions": "프로모션 공지",
-  "supportRepliesPasswordResetsPolicyUpdates": "고객센터 답변, 비밀번호 재설정, 약관 업데이트, 점검 공지는 항상 알립니다. 끈 유형도 알림 목록에는 표시되며 푸시만 오지 않습니다.",
+  "supportRepliesPasswordResetsPolicyUpdates": "고객센터 답변, 계정 보안, 시스템 공지 알림은 끌 수 없습니다.",
   "notFilled": "미입력",
   "canTChanged": "변경 불가",
   "voice": "[음성]",
@@ -1962,14 +1831,13 @@
       "p0": {}
     }
   },
-  "ifIsnTSoldByThen": "기한까지 거래되지 않으면 장바구니에 담을 수 있습니다",
   "sellerHoldingUntilP0": "판매자가 {p0}까지 회원님을 위해 보관 중",
   "@sellerHoldingUntilP0": {
     "placeholders": {
       "p0": {}
     }
   },
-  "checkOutBeforeHoldEndsOther": "보관 기한 내에 결제하세요. 기한이 지나면 다른 구매자도 구매할 수 있습니다",
+  "checkOutBeforeHoldEndsOther": "보관 기한 내에 결제를 완료하세요",
   "copyAddress": "주소 복사",
   "p0Away": "{p0} 거리",
   "@p0Away": {
@@ -2002,7 +1870,6 @@
       "p1": {}
     }
   },
-  "swipeQuickActions": "밀어서 빠른 작업",
   "searchTitleAuthorIsbn2": "제목, 저자, ISBN 검색",
   "removedP0": "\"{p0}\"을(를) 삭제했습니다",
   "@removedP0": {
@@ -2081,7 +1948,6 @@
   "accept": "수락",
   "reservationAccepted": "예약을 수락했습니다",
   "declineReservation": "예약을 거절할까요?",
-  "theyLlNotifiedDeclined": "상대방에게 거절 알림이 전송됩니다.",
   "decline2": "거절",
   "reservationDeclined": "예약을 거절했습니다",
   "cancelReservation": "예약을 취소할까요?",
@@ -2096,7 +1962,7 @@
   "notNow2": "나중에",
   "couldnTLoadConversationPleaseTry": "대화를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요",
   "accountCanTReceiveMessagesRight": "상대방 계정은 현재 메시지를 받을 수 없습니다",
-  "holdMicTalkReleaseSend": "마이크를 길게 눌러 말하고, 손을 떼면 전송됩니다",
+  "holdMicTalkReleaseSend": "녹음 시간이 너무 짧습니다",
   "startConversation": "대화가 여기서 시작됩니다",
   "p0New": "새 메시지 {p0}개",
   "@p0New": {
@@ -2109,8 +1975,8 @@
   "stillAvailable": "아직 판매 중인가요?",
   "couldLowerPriceBit": "가격 협의가 가능한가요?",
   "whenCanPutLocker": "보관함 입고 예정일은 언제인가요?",
-  "unsentMessage": "메시지를 보내기 취소했습니다",
-  "theyUnsentMessage": "상대방이 메시지를 보내기 취소했습니다",
+  "unsentMessage": "메시지 전송을 취소했습니다",
+  "theyUnsentMessage": "상대방이 메시지 전송을 취소했습니다",
   "reservationDetailsArenTAvailableRight": "예약 정보를 표시할 수 없습니다",
   "sending": "전송 중",
   "couldNotUploadPhotosPleaseTry": "증빙 사진 업로드에 실패했습니다. 잠시 후 다시 시도해 주세요",
@@ -2131,15 +1997,13 @@
     }
   },
   "picked": "추천 도서",
-  "seeMore": "더 보기",
   "recentlyViewed": "최근 본 책",
   "clear": "지우기",
   "notificationDeleted": "알림을 삭제했습니다",
   "pleasePutBookAssignedLockerSoon": "지정된 보관함에 책을 빨리 넣어 주세요",
   "weLlLetKnowWhenSeller": "판매자가 책을 넣으면 수령 안내를 보내 드립니다",
   "waitingBuyerCollect": "구매자의 수령을 기다리는 중",
-  "bookLockerEnterPickupCodeCollect": "책이 보관함에 있습니다. 수령 코드를 입력해 찾아가세요",
-  "transactionCompleteThank": "거래가 완료되었습니다. 이용해 주셔서 감사합니다",
+  "transactionCompleteThank": "거래 완료",
   "confirmVeTakenBookFromLocker": "보관함에서 책을 꺼냈는지 확인하세요. 확인하면 주문이 완료됩니다.",
   "p0Orders2": "주문 {p0}건",
   "@p0Orders2": {
@@ -2156,7 +2020,6 @@
   "pickUp": "픽업 대기",
   "saved": "찜",
   "accountSecurity": "계정 보안",
-  "sellerHasnTPutBookLocker": "판매자가 아직 책을 보관함에 넣지 않았습니다. 넣으면 알려 드립니다",
   "searchHistoryCleared": "검색 기록을 지웠습니다",
   "trendingBooks": "인기 도서",
   "signOutDevice": "이 기기를 로그아웃할까요?",
@@ -2166,13 +2029,12 @@
       "p0": {}
     }
   },
-  "llNeedSignAgainUseApp": "로그아웃하면 다시 로그인해야 합니다.",
-  "deviceSignedOutRightAwayStop": "해당 기기는 즉시 로그아웃되며 알림도 받지 않습니다.",
+  "deviceSignedOutRightAwayStop": "해당 기기는 즉시 로그아웃됩니다.",
   "deviceSignedOut": "기기를 로그아웃했습니다",
   "signOutAllDevicesIncludingOne": "모든 기기 로그아웃(이 기기 포함)",
   "signOutAllOtherDevices": "다른 모든 기기 로그아웃",
-  "everyDeviceIncludingOneSignedOut": "이 기기를 포함한 모든 기기가 로그아웃되며 다시 로그인해야 합니다.",
-  "everyDeviceExceptOneSignedOut": "이 기기를 제외한 모든 기기가 즉시 로그아웃되며 알림도 받지 않습니다.",
+  "everyDeviceIncludingOneSignedOut": "이 기기를 포함한 모든 기기가 즉시 로그아웃됩니다.",
+  "everyDeviceExceptOneSignedOut": "이 기기를 제외한 모든 기기가 즉시 로그아웃됩니다.",
   "signedOutP0OtherDevices": "다른 기기 {p0}대에서 로그아웃했습니다",
   "@signedOutP0OtherDevices": {
     "placeholders": {
@@ -2181,7 +2043,6 @@
   },
   "unknownDevice": "알 수 없는 기기",
   "couldnTLoadDevices": "기기 목록을 불러오지 못했습니다",
-  "theseDevicesSignedAccountIfDon": "이 기기들이 계정에 로그인되어 있습니다. 모르는 기기가 있으면 즉시 로그아웃하고 비밀번호를 변경하세요.",
   "device": "이 기기",
   "otherDevices": "다른 기기",
   "otherDevicesP0": "다른 기기 ({p0})",
@@ -2213,7 +2074,6 @@
   "pinsDonTMatchStartAgain": "두 번 입력한 비밀번호가 다릅니다. 다시 설정하세요",
   "paymentPinReset": "결제 비밀번호를 재설정했습니다",
   "paymentPinSet": "결제 비밀번호를 설정했습니다",
-  "use6DigitPinConfirmPayments": "앞으로 결제할 때 이 6자리 비밀번호로 결제를 확인합니다.",
   "verifyingIdentity": "본인 확인 중…",
   "enterAgainConfirm": "확인을 위해 한 번 더 입력하세요",
   "set6DigitPaymentPin": "6자리 결제 비밀번호 설정",
@@ -2238,7 +2098,7 @@
       "p0": {}
     }
   },
-  "securitySettingsUnavailableRightNowMay": "보안 설정을 불러올 수 없습니다. 결제 비밀번호와 로그인 기기를 변경하지 못할 수 있습니다.",
+  "securitySettingsUnavailableRightNowMay": "보안 설정을 불러올 수 없습니다",
   "payWithP0": "{p0}(으)로 결제",
   "@payWithP0": {
     "placeholders": {
@@ -2247,27 +2107,22 @@
   },
   "accountWellProtected": "계정이 안전하게 보호되고 있습니다",
   "accountCouldSafer": "계정 보안을 강화할 수 있습니다",
-  "paymentPinBiometricPaymentSetCheck": "결제 비밀번호와 생체 인증 결제가 설정되어 있습니다. 로그인된 기기를 정기적으로 확인하세요.",
-  "setPaymentPinTurnBiometricPayment": "결제 비밀번호를 설정하고 생체 인증 결제를 켜면 더 안전하고 빠르게 결제할 수 있습니다.",
+  "setPaymentPinTurnBiometricPayment": "결제 비밀번호가 설정되지 않았습니다",
   "tooManyAttemptsLockedUntilP0": "시도 횟수 초과. {p0}까지 잠김",
   "@tooManyAttemptsLockedUntilP0": {
     "placeholders": {
       "p0": {}
     }
   },
-  "usedConfirmPaymentsCheckout": "결제할 때 결제 확인에 사용됩니다",
-  "notSetRequiredBeforeCheckout": "설정되지 않았습니다. 결제 전에 설정해야 합니다",
+  "notSetRequiredBeforeCheckout": "설정되지 않음",
   "change": "변경",
   "forgotPaymentPin": "결제 비밀번호를 잊음",
-  "ifFailsCanEnterPaymentPin": "인증에 실패하면 결제 비밀번호를 입력할 수 있습니다",
-  "viewRemotelySignOutDevices": "기기 확인 및 원격 로그아웃",
   "p0Devices": "{p0}대",
   "@p0Devices": {
     "placeholders": {
       "p0": {}
     }
   },
-  "otherDevicesNeedSignAgain": "변경하면 다른 기기는 다시 로그인해야 합니다",
   "restoredUnfinishedListing": "작성 중이던 내용을 불러왔습니다",
   "isbnSCheckDigitInvalidPlease": "ISBN 체크 숫자가 올바르지 않습니다. 다시 확인해 주세요",
   "draftSavedAutomatically": "임시 저장되었습니다",
@@ -2280,9 +2135,7 @@
   },
   "cacheCleared": "캐시를 삭제했습니다",
   "storage": "저장 공간",
-  "paymentPinBiometricPaymentDevices": "결제 비밀번호, 생체 인증 결제, 로그인 기기",
   "clearCache": "캐시 삭제",
-  "removesCachedImagesFilesAccountData": "임시 저장된 이미지와 파일을 삭제합니다. 계정 데이터에는 영향이 없습니다",
   "couldNotLoadNotificationSettings": "알림 설정을 불러올 수 없습니다",
   "month": "이번 달",
   "p0P1": "{p0}년 {p1}월",
@@ -2332,7 +2185,7 @@
       "p0": {}
     }
   },
-  "protectCoinsCheckoutRequires6Digit": "코인을 보호하기 위해 결제할 때 6자리 결제 비밀번호가 필요합니다. 설정 후 Face ID나 지문 결제도 켤 수 있습니다.",
+  "protectCoinsCheckoutRequires6Digit": "결제 전에 6자리 결제 비밀번호를 설정하세요.",
   "confirmPaymentP0Coins": "{p0} 코인 결제 확인",
   "@confirmPaymentP0Coins": {
     "placeholders": {
@@ -2352,7 +2205,7 @@
   "enterPaymentPinContinue": "계속하려면 결제 비밀번호를 입력하세요",
   "paymentPinResetEnterAgain": "결제 비밀번호를 재설정했습니다. 다시 입력하세요",
   "usePasswordInstead": "로그인 비밀번호 사용",
-  "couldnTGetLocationLockersShown": "현재 위치를 가져올 수 없어 보관함을 기본 순서로 표시합니다",
+  "couldnTGetLocationLockersShown": "현재 위치를 가져올 수 없습니다",
   "p0SlotsFree": "빈 칸 {p0}개",
   "@p0SlotsFree": {
     "placeholders": {
@@ -2367,7 +2220,6 @@
   },
   "nearest": "가장 가까움",
   "noFreeSlots": "빈 칸 없음",
-  "sortedByDistance": "가까운 순으로 정렬",
   "turnLocationSortByDistance": "위치를 켜면 거리순으로 정렬됩니다",
   "lockerNoFreeSlotsRightNow": "이 보관함은 현재 빈 칸이 없습니다",
   "turn": "위치 켜기",
@@ -2399,7 +2251,6 @@
     }
   },
   "releaseCancel": "손을 떼면 취소",
-  "slideCancel": "← 밀어서 취소",
   "awaitingReply": "답변 대기",
   "heldUntilP0": "{p0}까지 보류",
   "@heldUntilP0": {
@@ -2417,7 +2268,6 @@
       "p0": {}
     }
   },
-  "onceSellerAcceptsBookHeldNo": "판매자가 수락하면 책이 회원님을 위해 보류되며, 기한까지 다른 사람은 구매할 수 없습니다.",
   "holdPeriod": "보류 기간",
   "messageSellerOptional": "판매자에게 전할 말 (선택)",
   "sendRequest": "예약 보내기",
@@ -2443,8 +2293,8 @@
       "p1": {}
     }
   },
-  "serverNotBeenUpdatedSupportFeature": "서버가 아직 이 기능을 지원하는 버전으로 업데이트되지 않았습니다. 잠시 후 다시 시도하세요.",
-  "someFeaturesTemporarilyUnavailableWhileServer": "서버 업데이트 중이라 일부 기능을 일시적으로 사용할 수 없습니다",
+  "serverNotBeenUpdatedSupportFeature": "이 기능은 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.",
+  "someFeaturesTemporarilyUnavailableWhileServer": "일부 기능을 일시적으로 사용할 수 없습니다",
   "serverRunningOutdatedApiRevisionP0": "서버의 API 버전이 오래되었습니다(현재 {p0}, 앱에 필요한 버전 {p1}). 서버 코드를 업데이트하고 API를 재시작하세요.",
   "@serverRunningOutdatedApiRevisionP0": {
     "placeholders": {
@@ -2486,7 +2336,6 @@
   "rose": "로즈",
   "graphite": "그래파이트",
   "mistBlue": "미스트 블루",
-  "chooseAppSMainColourHeader": "헤더, 버튼, 강조 정보에 적용할 앱의 기본 색상을 선택하세요.",
   "draftRestored": "임시 저장본을 복원했습니다",
   "convertSections": "장 모드로 변환",
   "currentContentDoesNotFullyMatch": "현재 내용이 장 서식과 완전히 일치하지 않습니다. 변환하면 장 번호가 순서대로 다시 생성되어 \"1. 제목\" 형식으로 통일되며, 제목으로 인식되지 않은 단락은 서문 또는 이전 장 본문에 합쳐집니다.\n\n원래 서식을 유지하려면 일반 텍스트 모드에서 계속 편집하고 저장하세요.",
@@ -2633,7 +2482,7 @@
   "notBlockedAnyUsers": "차단한 사용자가 없습니다",
   "blockedUsers": "차단 목록",
   "blockUser": "사용자 차단",
-  "afterBlockP0NeitherCanSend": "\"{p0}\" 님을 차단하면 서로 메시지를 보낼 수 없으며, 상대방에게는 알림이 가지 않습니다. 설정 › 차단 목록에서 언제든지 차단을 해제할 수 있습니다.",
+  "afterBlockP0NeitherCanSend": "\"{p0}\" 님을 차단하면 서로 메시지를 보낼 수 없습니다.",
   "@afterBlockP0NeitherCanSend": {
     "placeholders": {
       "p0": {}
@@ -2649,12 +2498,6 @@
   "reply": "답장",
   "bookLockerScanQrCodeLocker": "책이 보관함에 보관되었습니다. 보관함 기기의 QR 코드를 스캔해 수령하세요.",
   "originalMessageUnavailable": "원본 메시지를 표시할 수 없습니다",
-  "replyingP0": "{p0} 님에게 답장",
-  "@replyingP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "cancelReply": "답장 취소",
   "unreadMessages": "여기부터 읽지 않은 메시지",
   "selectChat": "채팅을 선택하세요",
@@ -2676,11 +2519,10 @@
   "allowed": "허용됨",
   "limited": "일부 허용",
   "notAllowed": "허용 안 됨",
-  "restricted": "제한됨",
+  "restricted": "시스템에 의해 제한됨",
   "denied": "거부됨",
   "allow": "허용",
   "homeRecommendations": "홈 추천 영역",
-  "pickedRecentlyViewed": "추천 도서, 최근 본 도서",
   "leaveGroup": "그룹 나가기",
   "leaveP0": "\"{p0}\"에서 나갈까요?",
   "@leaveP0": {
@@ -2911,7 +2753,7 @@
   "reasonDeletionOptional": "삭제 사유(선택)",
   "bookDeleted2": "도서를 삭제했습니다",
   "rotate": "회전",
-  "mentioned": "[나를 언급함]",
+  "mentioned": "[나를 언급]",
   "saveImage": "이미지 저장",
   "everyone": "모두",
   "mentionMembers": "멤버 언급",
@@ -2941,7 +2783,7 @@
       "p0": {}
     }
   },
-  "photosP02": "[사진] {p0}장",
+  "photosP02": "[사진 {p0}장]",
   "@photosP02": {
     "placeholders": {
       "p0": {}
@@ -2959,30 +2801,26 @@
   "savingImage": "이미지 저장 중",
   "passwordsCanOnlyContainEnglishLetters": "비밀번호에는 영문, 숫자, 반각 기호만 사용할 수 있습니다",
   "aiSupport": "AI 고객센터",
-  "instantReplies": "즉시 답변",
   "howDoIListBook": "책은 어떻게 등록하나요?",
-  "howDoIPickUpFrom": "스마트 보관함에서 어떻게 수령하나요?",
+  "howDoIPickUpFrom": "보관함에서 책을 수령하려면?",
   "howDoIRequestRefund": "환불은 어떻게 신청하나요?",
-  "howDoWalletCoinsWork": "지갑 코인은 어떻게 사용하나요?",
+  "howDoWalletCoinsWork": "코인은 어떻게 사용하나요?",
   "talkPerson": "상담원 연결",
-  "supportRequestCreatedFromConversationOur": "현재 대화 내용으로 문의가 접수되며 상담원이 이어서 처리합니다",
+  "supportRequestCreatedFromConversationOur": "상담원에게 연결되며 현재 대화 내용이 전달됩니다",
   "transfer4": "연결",
-  "creatingSupportRequest": "문의를 접수하는 중",
+  "creatingSupportRequest": "상담원에게 연결하는 중",
   "transferredSupportTeam": "상담원에게 연결되었습니다",
   "newConversation": "새 대화",
   "currentConversationEnd": "현재 대화가 종료됩니다",
   "copied2": "복사했습니다",
-  "aiReplies": "AI 답변",
   "howCanWeHelp": "무엇을 도와드릴까요?",
   "failedSend": "전송 실패",
   "ourSupportTeamCanHelpWith": "이 문의는 상담원의 도움을 받는 것이 좋습니다",
   "contactSupport": "고객센터 문의",
   "typeQuestion": "질문 입력",
   "aiFeatures": "AI 기능",
-  "usageModelsListingReview": "사용량, 모델 설정 및 등록 심사",
   "aiSettingsNotSavedChangesLost": "AI 설정이 저장되지 않았습니다. 나가면 변경 사항이 사라집니다",
   "usage": "사용량",
-  "settings2": "설정 •",
   "reviewP0": "심사 {p0}",
   "@reviewP0": {
     "placeholders": {
@@ -2992,7 +2830,6 @@
   "dailyCost": "일별 비용",
   "noCostPeriod": "이 기간에는 비용이 없습니다",
   "peakDay": "일 최고",
-  "tapBarDetails": "막대를 눌러 상세 보기",
   "p0Requests": "요청 {p0}회",
   "@p0Requests": {
     "placeholders": {
@@ -3210,8 +3047,6 @@
   "aiSuggestions": "AI 제안",
   "noSuggestionsApply": "적용할 제안이 없습니다",
   "bookDetails": "도서 정보",
-  "conditionAppliedNextStep": "상태 (다음 단계에서 적용)",
-  "priceAppliedNextStep": "가격 (다음 단계에서 적용)",
   "suggestedPrice": "추천 가격",
   "rangeP0P1": "추천 범위 ${p0}~${p1}",
   "@rangeP0P1": {
@@ -3226,7 +3061,6 @@
       "p0": {}
     }
   },
-  "sources": "출처",
   "applyP0": "{p0}개 적용",
   "@applyP0": {
     "placeholders": {
@@ -3240,16 +3074,10 @@
     }
   },
   "sameAsCurrent": "현재와 같음",
-  "confidenceP0": "신뢰도 {p0}%",
-  "@confidenceP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "listingNotApproved": "등록 심사를 통과하지 못했습니다",
   "editListing": "내용 수정",
   "submittedReview": "심사 요청됨",
-  "goSaleOnceApprovedNotifiedResult": "승인되면 판매가 시작되며 결과는 알림으로 안내됩니다",
+  "goSaleOnceApprovedNotifiedResult": "승인 후 판매가 시작됩니다",
   "got": "확인",
   "aiFeaturesNotAvailableRightNow": "AI 기능을 현재 사용할 수 없습니다",
   "bookUnderReviewGoSaleOnce": "이 도서는 심사 중이며 승인되면 판매가 시작됩니다",
@@ -3273,12 +3101,6 @@
   "aiDataProcessingEnabled": "AI 데이터 처리에 동의했습니다",
   "aiDataProcessingTurnedOff": "AI 데이터 처리를 중지했습니다",
   "aiDataProcessing": "AI 데이터 처리",
-  "providersP0": "제공업체: {p0}",
-  "@providersP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "messagesEnterStatusOrdersReservations": "입력한 메시지와 본인의 주문 및 예약 상태",
   "isbnTitleConditionNotesPhotosSelect": "ISBN, 도서명, 상태 설명 및 선택한 사진",
   "bookDetailsFromFavoritesPurchaseHistory": "찜 목록과 구매 내역에 포함된 도서 정보",
@@ -3289,7 +3111,7 @@
   "purpose": "이용 목적",
   "usedOnlyGenerateSupportRepliesPrepare": "고객센터 답변 생성, 등록 정보 정리 및 도서 추천에만 사용하며 광고나 추적에는 사용하지 않습니다.",
   "withdrawingConsent": "동의 철회",
-  "canTurnOffAiDataProcessing": "「설정」>「계정 관리」에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않습니다.",
+  "canTurnOffAiDataProcessing": "설정 › 계정 관리에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않습니다.",
   "agreeContinue": "동의",
   "insufficientQuotaPlanNotEnabled": "할당량 부족 또는 요금제 미사용",
   "modelNotFound": "모델 이름이 없습니다",
@@ -3300,20 +3122,16 @@
   "serverProcessingError": "서버 처리 오류",
   "aiBookAdvisor": "AI 도서 어드바이저",
   "requiresDatabaseUpdate013": "데이터베이스 업데이트 013 필요",
-  "mysteryNovelMyCommute": "출퇴근길에 읽을 추리 소설",
+  "mysteryNovelMyCommute": "출퇴근길에 읽기 좋은 추리 소설",
   "programmingBooksBeginners": "입문자를 위한 프로그래밍 책",
   "booksUnder200Coins": "200 코인 이하의 책",
   "popularLiteraryFictionRightNow": "요즘 인기 있는 문학 소설",
-  "tellMeWhatBookLooking": "어떤 책을 찾으시는지 알려주세요",
-  "allRecommendationsComeFromBooksCurrently": "추천 도서는 모두 현재 판매 중인 책입니다",
+  "tellMeWhatBookLooking": "찾으시는 책을 설명해 주세요",
   "describeBookLooking": "찾으시는 책을 설명해 주세요",
-  "tellMeWhatWantReadI": "읽고 싶은 책을 알려주시면 골라 드립니다",
+  "tellMeWhatWantReadI": "원하시는 조건에 맞춰 책을 추천합니다",
   "subtitle": "부제",
   "monthOnly": "월까지만 확인",
   "yearOnly": "연도까지만 확인",
-  "fromBookDatabase": "서지 데이터베이스 출처",
-  "writtenByAi": "AI 작성",
-  "aiTidiedSourceText": "AI가 원문을 정리",
   "msg": "繁體中文",
   "additionalInformation": "추가 정보",
   "readFull": "전문 보기",
@@ -3339,14 +3157,12 @@
   "socialSmsSign": "소셜 및 SMS 로그인",
   "whenOffSignPageHidesThese": "끄면 로그인 화면에 표시되지 않으며, 연결된 계정은 비밀번호로 로그인할 수 있습니다.",
   "notConfigured": "미설정",
-  "allowCreatingNewAccountsWithMethod": "이 방식으로 새 계정 만들기 허용",
-  "serverNoCredentialsChannel": "서버에 이 채널의 자격 증명이 없습니다",
+  "allowCreatingNewAccountsWithMethod": "이 방식으로 신규 가입 허용",
   "unsavedChanges2": "저장하지 않은 변경",
-  "switchesSignupPermissionsSocialSmsSign": "소셜 및 SMS 로그인 스위치와 가입 허용 설정",
-  "taiwan": "대만",
+  "taiwan": "중화민국(대만)",
   "hongKong": "홍콩",
   "macau": "마카오",
-  "china": "중국",
+  "china": "중화인민공화국",
   "japan": "일본",
   "southKorea": "대한민국",
   "singapore": "싱가포르",
@@ -3359,7 +3175,7 @@
   "couldNotSendCodePleaseTry": "인증번호를 보내지 못했습니다. 잠시 후 다시 시도하세요.",
   "linkMobileNumber": "휴대전화 번호 연결",
   "signWithMobileNumber": "휴대전화 번호로 로그인",
-  "k6DigitCodeSentNumberMessage": "이 번호로 6자리 인증번호를 보냅니다. 문자 도착까지 시간이 걸릴 수 있습니다.",
+  "k6DigitCodeSentNumberMessage": "이 번호로 6자리 인증번호를 보냅니다.",
   "mobileNumber": "휴대전화 번호",
   "sendCode": "인증번호 보내기",
   "codeIncorrectPleaseEnterAgain": "인증번호가 올바르지 않습니다. 다시 입력하세요.",
@@ -3380,12 +3196,7 @@
   },
   "resendCode": "인증번호 다시 보내기",
   "completeAccountDetails": "계정 정보 입력",
-  "p0DidNotProvideEmailAddress": "{p0} 에서 이메일 주소를 제공하지 않았습니다. 정보를 입력해 계정을 만드세요.",
-  "@p0DidNotProvideEmailAddress": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
+  "p0DidNotProvideEmailAddress": "가입을 완료하려면 이메일을 입력하세요.",
   "signWithP0": "{p0} (으)로 로그인",
   "@signWithP0": {
     "placeholders": {
@@ -3395,14 +3206,14 @@
   "signWith2": "또는 다음 방법으로 로그인",
   "creatingAccountWithMethodsAboveMeans": "위 방법으로 계정을 만들면 서비스 약관과 개인정보 처리방침에 동의한 것으로 간주됩니다.",
   "emailAlreadyRegistered": "이미 등록된 이메일입니다",
-  "signWithPasswordThenLinkMethod": "비밀번호로 로그인한 뒤 계정 보안의 로그인 방식에서 연결하세요.",
+  "signWithPasswordThenLinkMethod": "비밀번호로 로그인한 뒤 계정 보안 › 로그인 방식에서 연결하세요.",
   "signWithPassword": "비밀번호로 로그인",
   "accountNoPasswordYet": "이 계정은 아직 비밀번호가 없습니다",
   "passwordSet": "비밀번호를 설정했습니다",
-  "canNowSignWithEmailPassword": "이제 이메일과 비밀번호로 로그인할 수 있습니다. 다른 기기는 다시 로그인해야 합니다.",
-  "passwordRequiredBeforeCanUnlinkSign": "로그인 방식을 해제하려면 비밀번호가 필요하며, 기기를 바꿔도 이메일로 로그인할 수 있습니다. 영문과 숫자를 포함해 8자 이상으로 설정하세요.",
-  "changingSignMethodsRequiresIdentityVerification": "로그인 방식을 변경하려면 본인 확인이 필요합니다. 먼저 비밀번호를 설정하세요.",
-  "later": "나중에",
+  "canNowSignWithEmailPassword": "다른 기기는 다시 로그인해야 합니다.",
+  "passwordRequiredBeforeCanUnlinkSign": "영문과 숫자를 포함해 8자 이상 입력하세요.",
+  "changingSignMethodsRequiresIdentityVerification": "로그인 방식을 변경하기 전에 비밀번호를 설정하세요.",
+  "later": "나중에 설정",
   "p0Linked": "{p0} 을(를) 연결했습니다",
   "@p0Linked": {
     "placeholders": {
@@ -3415,7 +3226,7 @@
       "p0": {}
     }
   },
-  "noLongerAbleSignWayCan": "이 방법으로는 로그인할 수 없게 됩니다. 필요하면 다시 연결할 수 있습니다.",
+  "noLongerAbleSignWayCan": "연결을 해제하면 이 방식으로 로그인할 수 없습니다.",
   "unlink": "연결 해제",
   "p0Unlinked": "{p0} 연결을 해제했습니다",
   "@p0Unlinked": {
@@ -3426,7 +3237,6 @@
   "socialSmsSignNotAvailableRight": "소셜 및 SMS 로그인은 현재 이용할 수 없습니다.",
   "noSignMethodAvailableLink": "연결할 수 있는 로그인 방식이 없습니다.",
   "noPasswordSet": "비밀번호 미설정",
-  "requiredBeforeChangingSignMethodsDeleting": "로그인 방식 변경과 계정 삭제에 필요합니다",
   "linkedP0": "{p0} 연결",
   "@linkedP0": {
     "placeholders": {
@@ -3438,25 +3248,114 @@
   "provideEmailAddressCreateAccount": "계정을 만들려면 이메일 주소가 필요합니다",
   "signMethodOnlyExistingAccounts": "이 로그인 방식은 기존 계정 전용입니다",
   "signMethodNotAvailableRightNow": "이 로그인 방식은 현재 이용할 수 없습니다",
-  "credentialDoesNotMatchSelectedSign": "인증 정보가 선택한 로그인 방식과 일치하지 않습니다",
+  "credentialDoesNotMatchSelectedSign": "로그인에 실패했습니다. 다시 시도하세요.",
   "signMethodLinkedAnotherAccount": "이 로그인 방식은 다른 계정에 연결되어 있습니다",
-  "accountAlreadyLinkedSignMethod": "이 계정은 이미 해당 로그인 방식과 연결되어 있습니다",
+  "accountAlreadyLinkedSignMethod": "이 계정은 이미 이 로그인 방식과 연결되어 있습니다",
   "onlySignMethodAccountSetPassword": "이 계정의 유일한 로그인 방식입니다. 먼저 비밀번호를 설정하거나 다른 방식을 연결하세요.",
-  "socialSignUnavailableServerNotFinished": "소셜 로그인을 이용할 수 없습니다. 서버의 데이터베이스 업데이트가 완료되지 않았습니다.",
-  "credentialInvalidExpiredPleaseTryAgain": "인증 정보가 유효하지 않거나 만료되었습니다. 다시 시도하세요.",
+  "socialSignUnavailableServerNotFinished": "소셜 로그인을 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.",
+  "credentialInvalidExpiredPleaseTryAgain": "로그인 시간이 초과되었습니다. 다시 시도하세요.",
   "accountAlreadyPasswordUseChangePassword": "이 계정에는 이미 비밀번호가 있습니다. 비밀번호 변경을 이용하세요.",
   "signLinkExpiredPleaseTryAgain": "로그인 링크가 만료되었습니다. 다시 시도하세요.",
-  "signResultExpiredPleaseTryAgain": "로그인 결과가 만료되었습니다. 다시 시도하세요.",
+  "signResultExpiredPleaseTryAgain": "로그인 시간이 초과되었습니다. 다시 시도하세요.",
   "thirdPartySignServiceUnavailablePlease": "외부 로그인 서비스를 이용할 수 없습니다. 잠시 후 다시 시도하세요.",
   "couldNotCompleteSignPleaseTry": "로그인을 완료하지 못했습니다. 다시 시도하세요.",
-  "accountNotLinkedSignMethod": "이 계정은 해당 로그인 방식과 연결되어 있지 않습니다",
-  "couldNotReachServerCheckConnection2": "서버에 연결할 수 없습니다. 네트워크를 확인하세요.",
+  "accountNotLinkedSignMethod": "이 계정은 이 로그인 방식과 연결되어 있지 않습니다",
   "mobileNumberFormatNotValid": "휴대전화 번호 형식이 올바르지 않습니다",
   "verificationTimedOutRequestNewCode": "인증이 만료되었습니다. 인증번호를 다시 받으세요.",
   "codeExpiredRequestNewOne": "인증번호가 만료되었습니다. 다시 받으세요.",
   "tooManyAttemptsPleaseTryAgain": "시도 횟수가 너무 많습니다. 잠시 후 다시 시도하세요.",
   "smsSendingLimitBeenReachedPlease": "SMS 발송 횟수가 한도에 도달했습니다. 잠시 후 다시 시도하세요.",
-  "smsVerificationNotSetUpDevice": "이 기기에서는 SMS 인증 설정이 완료되지 않았습니다. 다른 로그인 방식을 이용하세요.",
+  "smsVerificationNotSetUpDevice": "이 기기에서는 SMS 인증을 사용할 수 없습니다. 다른 로그인 방식을 이용하세요.",
   "couldNotCompleteSmsVerificationPlease": "SMS 인증을 완료하지 못했습니다. 잠시 후 다시 시도하세요.",
-  "allowSigningLinkingWithMethod": "이 방식으로 로그인 및 연결 허용"
+  "allowSigningLinkingWithMethod": "이 방식으로 로그인 및 연결 허용",
+  "appNeverStoresPasswordUsedOnly": "이 앱은 비밀번호를 저장하지 않으며 이번 인증에만 사용합니다。",
+  "verifyWithBiometricsInstead": "생체 인증으로 확인",
+  "accountWasCreatedWithSocialPhone": "이 계정은 로그인 비밀번호가 없습니다. 먼저 설정하세요.",
+  "setSignPassword": "로그인 비밀번호 설정",
+  "enterSignPasswordRunAdminAction": "관리자 작업을 실행하려면 로그인 비밀번호 또는 패스키로 본인 인증을 진행하세요",
+  "p1P0MethodsEnabled": "전체 {p0}개 중 {p1}개 사용 중",
+  "@p1P0MethodsEnabled": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "masterSwitchOffSoEveryMethod": "전체 스위치가 꺼져 있어 모든 방식이 비활성화됩니다",
+  "signLinkingDirectSignUpAllowed": "로그인, 연결, 신규 가입 가능",
+  "credentialsNotSetPleaseConfigureP0": "자격 증명이 설정되지 않았습니다. 서버에서 {p0} 을(를) 설정하세요",
+  "@credentialsNotSetPleaseConfigureP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "whenOffMethodHiddenFromSign": "끄면 로그인 화면과 계정 보안에 표시되지 않습니다",
+  "whenOffOnlyAccountsAlreadyLinked": "끄면 이미 연결된 계정만 사용할 수 있습니다",
+  "signMethodNotLinkedAccount": "이 로그인 방식은 계정에 연결되어 있지 않습니다",
+  "p0AccountNotLinkedAnySavemybook": "이 {p0} 계정은 SaveMyBook 계정과 연결되어 있지 않습니다.",
+  "@p0AccountNotLinkedAnySavemybook": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iAlreadyAccountSignFirst": "기존 계정에 로그인하여 연결",
+  "createNewAccountWithIdentity": "새 계정 만들기",
+  "signExistingAccountFirstThenLink": "기존 계정으로 먼저 로그인한 뒤 계정 보안 › 로그인 방식에서 {p0}을(를) 연결하세요.",
+  "@signExistingAccountFirstThenLink": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signMethodNotLinkedAnyAccount": "이 로그인 방식은 어떤 계정과도 연결되어 있지 않습니다",
+  "verifyIdentityWithPasskeyContinue": "계속하려면 패스키로 본인 인증을 진행하세요",
+  "verifyWithPasskeyInstead": "패스키로 인증",
+  "passkeys": "패스키",
+  "verifyWithFaceIdFingerprintScreen": "이 기기의 Face ID, 지문 또는 화면 잠금으로 인증합니다. 비밀번호가 필요하지 않습니다.",
+  "verifyWithPasskey": "패스키로 인증",
+  "useSignPasswordInstead": "로그인 비밀번호로 인증",
+  "signWithPasskey": "패스키로 로그인",
+  "passkeyAdded": "패스키가 추가되었습니다",
+  "screenLock": "화면 잠금",
+  "fromNowCanSignVerifyIdentity": "이제 비밀번호를 입력하지 않고 {p0}(으)로 로그인하고 본인 인증을 할 수 있습니다.",
+  "@fromNowCanSignVerifyIdentity": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deletePasskey": "패스키 삭제",
+  "noLongerAbleSignVerifyIdentity": "삭제하면 이 패스키로 로그인하거나 본인 인증을 할 수 없습니다. 기기에 저장된 패스키는 함께 삭제되지 않으며 시스템 비밀번호 설정에서 삭제할 수 있습니다.",
+  "passkeyDeleted": "패스키가 삭제되었습니다",
+  "signVerifyIdentityWithFaceId": "비밀번호 대신 Face ID, 지문 또는 화면 잠금으로 로그인하고 본인 인증을 할 수 있습니다. 패스키는 사용자의 기기와 비밀번호 관리자에만 저장됩니다.",
+  "addPasskey": "패스키 추가",
+  "notUsedYet": "아직 사용하지 않음",
+  "lastUsedFormatdateItemLastusedat": "마지막 사용 {p0}",
+  "@lastUsedFormatdateItemLastusedat": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "createdCreated": "생성일 {p0}",
+  "@createdCreated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noPasskeyAvailableDeviceUsePassword": "이 기기에서 사용할 수 있는 패스키가 없습니다. 비밀번호를 사용해 주세요.",
+  "passkeyAlreadyRegisteredDevice": "이 기기에는 이미 패스키가 등록되어 있습니다.",
+  "signGoogleAccountTurnPasswordManager": "이 기기에서 Google 계정에 로그인하고 비밀번호 관리자를 켜거나 비밀번호를 사용해 주세요.",
+  "setUpScreenLockPasswordManager": "패스키를 만들려면 이 기기에서 화면 잠금 또는 비밀번호 관리자를 설정하세요.",
+  "deviceDoesNotSupportPasskeysUse": "이 기기는 패스키를 지원하지 않습니다. 비밀번호를 사용해 주세요.",
+  "passkeysTemporarilyUnavailableBecauseAppWebsite": "현재 패스키를 사용할 수 없습니다. 비밀번호를 사용하세요.",
+  "requestTimedOutPleaseTryAgain": "작업 시간이 초과되었습니다. 다시 시도해 주세요.",
+  "passkeyRequestFailedUsePasswordInstead": "패스키 작업에 실패했습니다. 비밀번호를 사용해 주세요.",
+  "verifyIdentityBeforeAddingPasskey": "패스키를 추가하기 전에 본인 인증을 진행해 주세요",
+  "couldNotListPleaseTryAgain": "등록에 실패했습니다. 잠시 후 다시 시도하세요.",
+  "downloadLinkValidOnceP0P1": "이 다운로드 링크는 5분 동안 유효하며 한 번만 사용할 수 있습니다. 공유하지 마세요.\n\n{p0}\n\n파일 크기: {p1}",
+  "@downloadLinkValidOnceP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sources": "출처",
+  "unableOpenLink": "링크를 열 수 없습니다."
 }

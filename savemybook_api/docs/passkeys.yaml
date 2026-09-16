@@ -1,0 +1,493 @@
+tags:
+  - name: passkeys
+    x-displayName: 通行密鑰
+    description: |
+      以 Face ID、Touch ID、指紋或裝置螢幕鎖完成登入與身分驗證（WebAuthn／FIDO2）。
+      密碼保留為後備方式。
+
+      ## Relying Party
+
+      | 項目 | 值 | 環境變數 |
+      | --- | --- | --- |
+      | RP ID | `savemybook.today` | `PASSKEY_RP_ID` |
+      | RP 名稱 | `救「舊」我的書` | `PASSKEY_RP_NAME` |
+      | 允許的來源 | `https://savemybook.today`、`https://api.savemybook.today`，Android 另需 `android:apk-key-hash:<簽署金鑰指紋>` | `PASSKEY_ORIGINS`（逗號分隔） |
+
+      RP ID 一經使用不可更換，否則既有的通行密鑰全部失效。iOS 須在
+      `https://savemybook.today/.well-known/apple-app-site-association` 宣告 `webcredentials`，
+      Android 須在 `https://savemybook.today/.well-known/assetlinks.json` 宣告 `get_login_creds`。
+
+      ## 流程
+
+      每個流程皆為兩步：先取得 `options`（WebAuthn 的 `PublicKeyCredentialCreationOptionsJSON`
+      或 `PublicKeyCredentialRequestOptionsJSON`），交給系統的通行密鑰介面，
+      再把系統回傳的憑證（`RegistrationResponseJSON`／`AuthenticationResponseJSON`）送回伺服器驗證。
+
+      | 用途 | 取得 options | 送出結果 |
+      | --- | --- | --- |
+      | 登入 | `POST /api/auth/passkeys/login/options` | `POST /api/auth/passkeys/login` |
+      | 新增通行密鑰 | `POST /api/users/me/passkeys/options` | `POST /api/users/me/passkeys` |
+      | 身分驗證 | `POST /api/security/verify/passkey/options` | `POST /api/security/verify`（`method: passkey`） |
+
+      ## 安全規則
+
+      - 挑戰值 5 分鐘內有效且只能使用一次；無論驗證成功與否，提交後即作廢。
+      - 挑戰值綁定用途（登入、註冊、身分驗證）、驗證範圍與使用者，不能跨用途或跨範圍使用，
+        例如以 `sensitive` 取得的挑戰值無法換發 `admin` 權杖。
+      - 一律要求使用者驗證（`userVerification: required`），並檢查來源與 RP ID。
+      - 驗證器回報的簽章計數倒退時拒絕驗證（400 `PASSKEY_COUNTER_REGRESSED`），
+        記錄於伺服器日誌並以站內通知告知本人。
+      - 以 Email 取得登入 options 時，查無帳號或帳號沒有通行密鑰都回傳一組固定的假憑證，
+        回應形狀與真實帳號相同，無法藉此判斷帳號是否存在。
+      - 通行密鑰與登入密碼視為同等強度：以通行密鑰簽發的 `verify_token` 可用於 `sensitive` 與 `admin` 範圍；
+        付款（`payment`）仍只接受交易密碼與生物辨識付款。
+      - 每個帳號最多 10 組通行密鑰。刪除帳號（匿名化）時一併刪除；個人資料匯出包含 `passkeys` 欄位。
+
+      ## Availability
+
+      伺服器尚未執行 `migrations/016_passkeys.sql`，或未設定 RP ID 與來源時，
+      `GET /api/auth/passkeys/status` 回傳 `enabled: false`，其餘端點回傳 503 `PASSKEY_UNAVAILABLE`，
+      App 不應顯示通行密鑰相關入口。
+
+      | `code` | HTTP | 意義 |
+      | --- | --- | --- |
+      | `PASSKEY_UNAVAILABLE` | 503 | 伺服器尚未完成通行密鑰的設定或資料庫更新 |
+      | `PASSKEY_INVALID_RESPONSE` | 400 | 送出的憑證資料格式不正確 |
+      | `PASSKEY_CHALLENGE_INVALID` | 400 | 挑戰值不存在、已使用，或用途、範圍、使用者不符 |
+      | `PASSKEY_CHALLENGE_EXPIRED` | 400 | 挑戰值已超過 5 分鐘 |
+      | `PASSKEY_VERIFICATION_FAILED` | 400 | 簽章、來源、RP ID 或使用者驗證未通過 |
+      | `PASSKEY_NOT_RECOGNIZED` | 400 | 伺服器沒有這組憑證（可能已刪除），或不屬於目前使用者 |
+      | `PASSKEY_COUNTER_REGRESSED` | 400 | 簽章計數倒退，疑似憑證遭複製 |
+      | `PASSKEY_NOT_REGISTERED` | 400 | 帳號尚未註冊通行密鑰，無法以通行密鑰驗證身分 |
+      | `PASSKEY_ALREADY_REGISTERED` | 409 | 這組憑證已經註冊 |
+      | `PASSKEY_LIMIT` | 400 | 已達 10 組上限 |
+      | `LAST_SIGN_IN_METHOD` | 400 | 刪除後帳號將沒有任何登入方式 |
+
+  - name: well-known
+    x-displayName: 應用程式關聯檔案
+    description: |
+      iOS 與 Android 用來確認 App 可使用 `savemybook.today` 通行密鑰的關聯檔案。
+      正式環境建議由 nginx 直接提供靜態檔案；由本 API 提供時，內容以環境變數組成。
+      兩個路徑都不會轉址，缺少設定時回傳 404。
+
+x-passkey-schemas: &passkeyItem
+  type: object
+  properties:
+    passkey_id: { type: string, description: 加密編號，用於刪除。, example: PK3M7Q2XA }
+    device_label: { type: string, nullable: true, maxLength: 50, example: iPhone 17 Pro }
+    created_at: { type: string, format: date-time }
+    last_used_at: { type: string, format: date-time, nullable: true }
+    backed_up: { type: boolean, description: 是否已同步至雲端鑰匙圈或密碼管理器。, example: true }
+
+paths:
+  /api/auth/passkeys/status:
+    get:
+      summary: 查詢伺服器是否啟用通行密鑰
+      operationId: passkeyStatus
+      tags: [passkeys]
+      description: 登入頁用來決定是否顯示「使用通行密鑰登入」。無須 Token。
+      security: []
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      enabled: { type: boolean, example: true }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/auth/passkeys/login/options:
+    post:
+      summary: 取得通行密鑰登入的 options
+      operationId: passkeyLoginOptions
+      tags: [passkeys]
+      description: |
+        不帶 `email` 時為探索式登入（`allowCredentials` 為空陣列），由系統列出本機可用的通行密鑰。
+        帶 `email` 時只回傳該帳號的憑證；查無帳號或帳號沒有通行密鑰時回傳固定的假憑證，不揭露帳號是否存在。
+
+        同 IP 15 分鐘內最多 60 次。
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email, maxLength: 255 }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      options:
+                        type: object
+                        description: WebAuthn `PublicKeyCredentialRequestOptionsJSON`。
+              example:
+                success: true
+                data:
+                  options:
+                    rpId: savemybook.today
+                    challenge: 3q2-7wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+                    allowCredentials: []
+                    timeout: 300000
+                    userVerification: required
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 伺服器尚未啟用通行密鑰。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: PASSKEY_UNAVAILABLE, message: 通行密鑰暫時無法使用，請改用其他方式 }
+
+  /api/auth/passkeys/login:
+    post:
+      summary: 以通行密鑰登入
+      operationId: passkeyLogin
+      tags: [passkeys]
+      description: |
+        成功時的回應與 `POST /api/auth/login` 完全相同：建立裝置工作階段、寫入登入紀錄
+        （`login_method` 為 `passkey`），新裝置登入時通知本人。
+
+        同 IP 15 分鐘內最多 30 次。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assertion]
+              properties:
+                assertion: { type: object, description: 系統回傳的 `AuthenticationResponseJSON`。 }
+                device_id: { type: string, maxLength: 64 }
+                device_name: { type: string, maxLength: 100 }
+                platform: { type: string, maxLength: 20 }
+                app_version: { type: string, maxLength: 20 }
+      responses:
+        '200':
+          description: 登入成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 登入成功 }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string }
+                      pending_deletion: { type: object, description: 帳號已申請刪除時才有此欄位。 }
+        '400':
+          description: 驗證失敗。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                挑戰值無效:
+                  value: { success: false, code: PASSKEY_CHALLENGE_INVALID, message: 驗證要求已失效，請重新操作 }
+                無法辨識:
+                  value: { success: false, code: PASSKEY_NOT_RECOGNIZED, message: 無法辨識此通行密鑰，可能已從帳號中刪除 }
+                計數倒退:
+                  value: { success: false, code: PASSKEY_COUNTER_REGRESSED, message: 此通行密鑰的驗證紀錄異常，已拒絕本次驗證 }
+        '403':
+          description: 帳號停權或列入黑名單。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已停權，請聯絡客服 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 伺服器尚未啟用通行密鑰。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: PASSKEY_UNAVAILABLE, message: 通行密鑰暫時無法使用，請改用其他方式 }
+
+  /api/users/me/passkeys:
+    get:
+      summary: 取得已註冊的通行密鑰
+      operationId: listPasskeys
+      tags: [passkeys]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功，依建立時間遞增排序。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: *passkeyItem
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/TokenInvalid' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 伺服器尚未啟用通行密鑰。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+    post:
+      summary: 新增通行密鑰
+      operationId: createPasskey
+      tags: [passkeys]
+      description: |
+        需 `sensitive` 範圍的身分驗證。送出 `POST /api/users/me/passkeys/options` 取得的 options
+        經系統建立後的結果，成功時回傳最新清單並以站內通知告知本人。
+
+        每位使用者 15 分鐘內最多 20 次（與取得 options 合計）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/VerifyToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [attestation]
+              properties:
+                attestation: { type: object, description: 系統回傳的 `RegistrationResponseJSON`。 }
+                device_label: { type: string, maxLength: 50, description: 顯示於清單的裝置名稱。, example: iPhone 17 Pro }
+      responses:
+        '201':
+          description: 已新增。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已新增通行密鑰 }
+                  data:
+                    type: array
+                    items: *passkeyItem
+        '400':
+          description: 驗證失敗或已達上限。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                驗證失敗:
+                  value: { success: false, code: PASSKEY_VERIFICATION_FAILED, message: 通行密鑰驗證失敗，請重新操作 }
+                已達上限:
+                  value: { success: false, code: PASSKEY_LIMIT, message: 每個帳號最多註冊 10 組通行密鑰，請先刪除不再使用的裝置 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/VerificationRequired' }
+        '409':
+          description: 此憑證已註冊。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: PASSKEY_ALREADY_REGISTERED, message: 此通行密鑰已經註冊 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 伺服器尚未啟用通行密鑰。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /api/users/me/passkeys/options:
+    post:
+      summary: 取得新增通行密鑰的 options
+      operationId: passkeyRegistrationOptions
+      tags: [passkeys]
+      description: |
+        回傳 WebAuthn `PublicKeyCredentialCreationOptionsJSON`：要求可探索憑證與使用者驗證，
+        並以 `excludeCredentials` 排除已註冊的憑證。`user.id` 為伺服器推導的不透明值，不含會員編號。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      options: { type: object, description: WebAuthn `PublicKeyCredentialCreationOptionsJSON`。 }
+        '400':
+          description: 已達上限。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: PASSKEY_LIMIT, message: 每個帳號最多註冊 10 組通行密鑰，請先刪除不再使用的裝置 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/TokenInvalid' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 伺服器尚未啟用通行密鑰。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /api/users/me/passkeys/{id}:
+    delete:
+      summary: 刪除通行密鑰
+      operationId: deletePasskey
+      tags: [passkeys]
+      description: |
+        需 `sensitive` 範圍的身分驗證。刪除後帳號若沒有任何登入方式（未設定密碼、未綁定社群登入、
+        也沒有其他通行密鑰）則拒絕，回傳 400 `LAST_SIGN_IN_METHOD`。成功時回傳最新清單並以站內通知告知本人。
+
+        系統鑰匙圈中的通行密鑰不會因此刪除，App 應提示使用者自行至系統設定移除。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+          description: 通行密鑰的加密編號（`passkey_id`）。
+          example: PK3M7Q2XA
+        - $ref: '#/components/parameters/VerifyToken'
+      responses:
+        '200':
+          description: 已刪除。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已刪除通行密鑰 }
+                  data:
+                    type: array
+                    items: *passkeyItem
+        '400':
+          description: 這是唯一的登入方式。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: LAST_SIGN_IN_METHOD, message: 這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/VerificationRequired' }
+        '404':
+          description: 通行密鑰不存在或不屬於請求者。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到此通行密鑰，可能已經刪除 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 伺服器尚未啟用通行密鑰。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /api/security/verify/passkey/options:
+    post:
+      summary: 取得以通行密鑰驗證身分的 options
+      operationId: passkeyVerifyOptions
+      tags: [security, passkeys]
+      description: |
+        挑戰值綁定此處指定的 `scope`，之後必須以相同的 `scope` 呼叫 `POST /api/security/verify`。
+        僅 `sensitive` 與 `admin` 範圍可使用通行密鑰。
+
+        與 `POST /api/security/verify` 合計，每位使用者 15 分鐘內最多 30 次。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [scope]
+              properties:
+                scope: { type: string, enum: [sensitive, admin], example: sensitive }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      options: { type: object, description: WebAuthn `PublicKeyCredentialRequestOptionsJSON`，`allowCredentials` 為本人的通行密鑰。 }
+        '400':
+          description: 範圍不支援或尚未註冊通行密鑰。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                範圍不支援:
+                  value: { success: false, message: 'scope 僅接受：sensitive, admin' }
+                尚未註冊:
+                  value: { success: false, code: PASSKEY_NOT_REGISTERED, message: 此帳號尚未註冊通行密鑰 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/TokenInvalid' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 伺服器尚未啟用通行密鑰。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /.well-known/apple-app-site-association:
+    get:
+      summary: iOS 應用程式關聯檔案
+      operationId: appleAppSiteAssociation
+      tags: [well-known]
+      description: |
+        回傳 `webcredentials` 段落，App ID 由 `APPLE_TEAM_ID` 與 `IOS_BUNDLE_ID` 組成。
+        以 `application/json` 回應，路徑沒有副檔名。任一變數未設定時回傳 404。
+      security: []
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              example: { webcredentials: { apps: [ABCDE12345.today.savemybook.app] } }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /.well-known/assetlinks.json:
+    get:
+      summary: Android 數位資產連結
+      operationId: androidAssetLinks
+      tags: [well-known]
+      description: |
+        宣告 `delegate_permission/common.get_login_creds`，套件名稱與簽署金鑰指紋取自
+        `ANDROID_PACKAGE_NAME` 與 `ANDROID_CERT_SHA256`。任一變數未設定時回傳 404。
+      security: []
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              example:
+                - relation: [delegate_permission/common.handle_all_urls, delegate_permission/common.get_login_creds]
+                  target:
+                    namespace: android_app
+                    package_name: today.savemybook.app
+                    sha256_cert_fingerprints: ['AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99']
+        '404': { $ref: '#/components/responses/NotFound' }

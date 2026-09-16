@@ -1,6 +1,12 @@
 part of '../api_service.dart';
 
 extension ChatApi on ApiService {
+  Future<({LinkPreview? preview, bool settled})> fetchLinkPreview(String url) async {
+    final res = await _send('GET', '/chat/link-preview', query: {'url': url});
+    if (res == null || res['success'] != true) return (preview: null, settled: false);
+    return (preview: LinkPreview.tryParse(res['data']), settled: true);
+  }
+
   Future<bool> deleteChatRoom(int roomId) async {
     final res = await _send('DELETE', '/chat/rooms/$roomId');
     return res != null && res['success'] == true;

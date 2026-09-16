@@ -31,7 +31,22 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
   bool _loading = true;
   bool _saving = false;
 
+  /// 展開中的渠道；預設全部收合，一眼只看得到狀態。
+  final Set<String> _expanded = {};
+
   bool get _dirty => _bundle != null && _draft != null && !_draft!.sameAs(_bundle!.settings);
+
+  // 憑證缺少時要指出伺服器該補哪一組環境變數，管理員才知道找誰處理。
+  static String _envVarsOf(String id) => switch (id) {
+        AuthProviders.line => 'LINE_CHANNEL_ID、LINE_CHANNEL_SECRET',
+        AuthProviders.discord => 'DISCORD_CLIENT_ID、DISCORD_CLIENT_SECRET',
+        _ => 'FIREBASE_PROJECT_ID / FCM_SERVICE_ACCOUNT_FILE',
+      };
+
+  void _toggleExpanded(String id) {
+    HapticFeedback.selectionClick();
+    setState(() => _expanded.contains(id) ? _expanded.remove(id) : _expanded.add(id));
+  }
 
   @override
   void initState() {
@@ -132,7 +147,7 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
                                       const SizedBox(height: 22),
                                       SectionHeading(title: S.signChannels),
                                       const SizedBox(height: 10),
-                                      FadeSlideIn(index: 1, child: _channelCards(c, bundle, draft)),
+                                      _channelGrid(c, bundle, draft, frame),
                                     ],
                                   ),
                                 ),
@@ -165,131 +180,254 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
 
   Widget _masterCard(AppColors c, AuthSettings draft) {
     final on = draft.socialEnabled;
+    final total = AuthProviders.ids.length;
+    final active = AuthProviders.ids
+        .where((id) => (_bundle?.isConfigured(id) ?? false) && draft.channelOf(id).enabled)
+        .length;
+
     return AppCard(
-      padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
-      child: Row(
-        children: [
-          AnimatedContainer(
-            duration: Motion.base,
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: (on ? c.accent : c.iconInactive).withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(Icons.login_rounded, color: on ? c.accent : c.iconInactive),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(S.socialSmsSign,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary)),
-                const SizedBox(height: 2),
-                Text(
-                  S.whenOffSignPageHidesThese,
-                  style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary),
-                ),
-              ],
-            ),
-          ),
-          Switch.adaptive(
-            value: on,
-            activeTrackColor: c.accent,
-            onChanged: _saving ? null : (value) => _update(draft.copyWith(socialEnabled: value)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _channelCards(AppColors c, AuthSettingsBundle bundle, AuthSettings draft) {
-    return AppCard(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
-      child: Column(
-        children: [
-          for (final id in AuthProviders.ids) ...[
-            if (id != AuthProviders.ids.first) Divider(color: c.divider, height: 1),
-            _channelRow(c, bundle, draft, id),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _channelRow(AppColors c, AuthSettingsBundle bundle, AuthSettings draft, String id) {
-    final configured = bundle.isConfigured(id);
-    final channel = draft.channelOf(id);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              SizedBox(width: 26, child: Center(child: ProviderGlyph(provider: id, size: 20))),
-              const SizedBox(width: 10),
+              AnimatedContainer(
+                duration: Motion.base,
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: (on ? c.accent : c.iconInactive).withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(Icons.login_rounded, color: on ? c.accent : c.iconInactive),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            AuthProviders.labelOf(id),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
-                          ),
-                        ),
-                        if (!configured) ...[
-                          const SizedBox(width: 8),
-                          StatusBadge(label: S.notConfigured, color: c.warning),
-                        ],
-                      ],
-                    ),
+                    Text(S.socialSmsSign,
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary)),
                     const SizedBox(height: 2),
                     Text(
-                      S.allowSigningLinkingWithMethod,
-                      style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary),
+                      on ? S.p1P0MethodsEnabled(total, active) : S.masterSwitchOffSoEveryMethod,
+                      style: TextStyle(fontSize: 12.5, color: on ? c.textSecondary : c.warning),
                     ),
                   ],
                 ),
               ),
               Switch.adaptive(
-                value: channel.enabled && configured,
+                value: on,
                 activeTrackColor: c.accent,
-                onChanged: !configured || _saving
-                    ? null
-                    : (value) => _update(draft.copyWith(id: id, channel: channel.copyWith(enabled: value))),
+                onChanged: _saving ? null : (value) => _update(draft.copyWith(socialEnabled: value)),
               ),
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 36, top: 2),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    configured ? S.allowCreatingNewAccountsWithMethod : S.serverNoCredentialsChannel,
-                    style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary),
-                  ),
+          const SizedBox(height: 10),
+          Text(
+            S.whenOffSignPageHidesThese,
+            style: TextStyle(fontSize: 12, height: 1.5, color: c.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _channelGrid(AppColors c, AuthSettingsBundle bundle, AuthSettings draft, AdminFrame frame) {
+    final cards = [
+      for (final (i, id) in AuthProviders.ids.indexed)
+        FadeSlideIn(index: i + 1, child: _channelCard(c, bundle, draft, id)),
+    ];
+
+    if (!frame.isWide) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (i, card) in cards.indexed) ...[
+            if (i > 0) const SizedBox(height: 12),
+            card,
+          ],
+        ],
+      );
+    }
+
+    // 寬螢幕分兩欄；奇數張時左欄多一張，右欄不會留下半張卡的空洞。
+    final split = (cards.length + 1) ~/ 2;
+    return AdminColumns(
+      spacing: 12,
+      columns: [cards.sublist(0, split), cards.sublist(split)],
+    );
+  }
+
+  Widget _channelCard(AppColors c, AuthSettingsBundle bundle, AuthSettings draft, String id) {
+    final configured = bundle.isConfigured(id);
+    final channel = draft.channelOf(id);
+    final on = configured && channel.enabled;
+    final expanded = _expanded.contains(id);
+
+    final (label, tone) = !configured
+        ? (S.notConfigured, c.warning)
+        : on
+            ? (S.on, c.success)
+            : (S.disabled, c.iconInactive);
+
+    return Opacity(
+      opacity: configured ? 1 : 0.55,
+      child: AppCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.vertical(
+                top: const Radius.circular(16),
+                bottom: Radius.circular(expanded ? 0 : 16),
+              ),
+              onTap: configured ? () => _toggleExpanded(id) : null,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: ProviderGlyph.colorOf(id, c).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(child: ProviderGlyph(provider: id, size: 22)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AuthProviders.labelOf(id),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: c.textPrimary),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            configured && channel.signup ? S.signLinkingDirectSignUpAllowed : S.allowSigningLinkingWithMethod,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12, color: c.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    StatusBadge(label: label, color: tone),
+                    if (configured)
+                      AnimatedRotation(
+                        turns: expanded ? 0.5 : 0,
+                        duration: Motion.base,
+                        child: Icon(Icons.expand_more_rounded, size: 20, color: c.textHint),
+                      )
+                    else
+                      const SizedBox(width: 8),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Switch.adaptive(
-                  value: channel.signup && configured,
-                  activeTrackColor: c.accent,
-                  onChanged: !configured || _saving
-                      ? null
-                      : (value) => _update(draft.copyWith(id: id, channel: channel.copyWith(signup: value))),
-                ),
-              ],
+              ),
+            ),
+            AnimatedSize(
+              duration: Motion.base,
+              curve: Motion.emphasized,
+              alignment: Alignment.topCenter,
+              child: !configured
+                  ? _credentialHint(c, id)
+                  : expanded
+                      ? _channelOptions(c, draft, id, channel)
+                      : const SizedBox(width: double.infinity),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _credentialHint(AppColors c, String id) {
+    final vars = _envVarsOf(id);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.key_off_rounded, size: 16, color: c.warning),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              S.credentialsNotSetPleaseConfigureP0(vars),
+              style: TextStyle(fontSize: 12, height: 1.5, color: c.textSecondary),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _channelOptions(AppColors c, AuthSettings draft, String id, AuthChannelSetting channel) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Divider(color: c.divider, height: 1),
+        _option(
+          c,
+          title: S.allowSigningLinkingWithMethod,
+          subtitle: S.whenOffMethodHiddenFromSign,
+          value: channel.enabled,
+          onChanged: (value) => _update(draft.copyWith(id: id, channel: channel.copyWith(enabled: value))),
+        ),
+        Divider(color: c.divider, height: 1, indent: 16, endIndent: 16),
+        _option(
+          c,
+          title: S.allowCreatingNewAccountsWithMethod,
+          subtitle: S.whenOffOnlyAccountsAlreadyLinked,
+          value: channel.signup,
+          enabled: channel.enabled,
+          onChanged: (value) => _update(draft.copyWith(id: id, channel: channel.copyWith(signup: value))),
+        ),
+      ],
+    );
+  }
+
+  Widget _option(
+    AppColors c, {
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    bool enabled = true,
+  }) {
+    return Opacity(
+      opacity: enabled ? 1 : 0.5,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: c.textPrimary)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: TextStyle(fontSize: 11.5, height: 1.4, color: c.textSecondary)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Switch.adaptive(
+              value: value,
+              activeTrackColor: c.accent,
+              onChanged: !enabled || _saving ? null : onChanged,
+            ),
+          ],
+        ),
       ),
     );
   }

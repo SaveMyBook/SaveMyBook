@@ -330,7 +330,7 @@ const assist = async ({ userId, isbn, title, conditionNote, files = [] }) => {
     `【書目來源】\n${bibliographyText(structured, candidates)}`,
     `【分類清單】\n${categories.map((c) => `${c.category_id}: ${c.category_name}`).join('\n') || '（無）'}`,
     withSearch
-      ? '【網路搜尋】可使用網路搜尋補齊缺少的書目欄位、查出確切的出版日期（到日）、整理內容簡介，並查詢此書在臺灣的原始定價；請在 sources 列出實際參考的網頁。查不到確切日期時只給到月或年，不要自行補日。'
+      ? '【網路搜尋】可使用網路搜尋補齊缺少的書目欄位、查出確切的出版日期（到日）、整理內容簡介，並查詢此書在中華民國的原始定價（新臺幣）；請在 sources 列出實際參考的網頁。查不到確切日期時只給到月或年，不要自行補日。'
       : '【網路搜尋】未開放，請勿虛構網址，sources 輸出空陣列。'
   ].join('\n\n');
 
@@ -376,7 +376,7 @@ const assist = async ({ userId, isbn, title, conditionNote, files = [] }) => {
       condition: null,
       price: null,
       sources: mergeSources(structuredSources, [], [], []),
-      warnings: [...new Set([...warnings, 'AI 建議暫時無法取得，已帶入書目資料庫查得的資料'])],
+      warnings: [...new Set([...warnings, 'AI 建議暫時無法取得，已帶入書籍資訊'])],
       provider,
       model: settings.providers[provider].model
     };

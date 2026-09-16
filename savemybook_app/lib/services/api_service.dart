@@ -11,6 +11,7 @@ import '../models/cart_item.dart';
 import '../models/order.dart';
 import '../models/app_notification.dart';
 import '../models/chat.dart';
+import '../models/link_preview.dart';
 import '../models/support.dart';
 import '../models/wallet.dart';
 import '../models/member_level.dart';
@@ -19,6 +20,7 @@ import '../models/ai.dart';
 import '../utils/api_helpers.dart';
 import '../models/security.dart';
 import '../models/auth_social.dart';
+import '../models/passkey.dart';
 import '../i18n/strings.dart';
 import 'ai_image_prep.dart';
 import 'device_identity.dart';
@@ -40,6 +42,7 @@ part 'api/favorites_api.dart';
 part 'api/legal_api.dart';
 part 'api/notifications_api.dart';
 part 'api/orders_api.dart';
+part 'api/passkeys_api.dart';
 part 'api/privacy_api.dart';
 part 'api/profile_api.dart';
 part 'api/push_api.dart';
@@ -196,7 +199,7 @@ class ApiService {
     if (status == 403 && code == 'TOKEN_EXPIRED' && sentWithToken && !handled.contains('refresh')) {
       final result = await _refreshToken();
       if (result == _RefreshResult.refreshed) return retry(const {}, {...handled, 'refresh'});
-      if (result == _RefreshResult.offline) return {'success': false, 'code': 'NETWORK', 'message': S.couldNotReachServer};
+      if (result == _RefreshResult.offline) return {'success': false, 'code': 'NETWORK', 'message': S.networkError};
       await _handleUnauthorized(reason: S.sessionExpiredPleaseSignAgain);
       return null;
     }
@@ -226,7 +229,7 @@ class ApiService {
       'status': status,
       'message': code == 'ROUTE_NOT_FOUND'
           ? S.serverNotBeenUpdatedSupportFeature
-          : payload['message'] ?? (status == 503 ? S.serviceTemporarilyUnavailableTryAgainLater : S.requestFailed2(status)),
+          : payload['message'] ?? (status == 503 ? S.serviceTemporarilyUnavailableTryAgainLater : S.somethingWentWrongPleaseTryAgain),
     };
   }
 
@@ -277,7 +280,7 @@ class ApiService {
             query: query, body: body, extraHeaders: {...?extraHeaders, ...extra}, handled: nextHandled),
       );
     } catch (e) {
-      return {'success': false, 'code': 'NETWORK', 'message': S.couldNotReachServer};
+      return {'success': false, 'code': 'NETWORK', 'message': S.networkError};
     }
   }
 
@@ -309,7 +312,7 @@ class ApiService {
             _sendMultipart(path, files, fields: fields, handled: nextHandled, onProgress: onProgress),
       );
     } catch (_) {
-      return {'success': false, 'code': 'NETWORK', 'message': S.couldNotReachServer};
+      return {'success': false, 'code': 'NETWORK', 'message': S.networkError};
     }
   }
 

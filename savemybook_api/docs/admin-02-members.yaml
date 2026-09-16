@@ -204,7 +204,7 @@ paths:
         操作會發送通知予該會員，並寫入稽核紀錄；**臨時密碼不會寫進稽核紀錄**——
         紀錄是給稽核看的，不該留存明文密碼。
 
-        需 `can_manage_members` 權限，以及 `sensitive` 範圍的身分驗證（`X-Verify-Token` 標頭）。
+        需 `can_manage_members` 權限，以及 `admin` 範圍的身分驗證（`X-Verify-Token` 標頭，只接受帳號的登入密碼或通行密鑰）。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -251,8 +251,8 @@ paths:
                   value:
                     success: false
                     code: VERIFICATION_REQUIRED
-                    message: 請先驗證身分
-                    verification: { scope: sensitive, methods: [password, pin, biometric] }
+                    message: 請以登入密碼或通行密鑰驗證身分以執行此後台操作
+                    verification: { scope: admin, methods: [password, passkey] }
         '404':
           description: 找不到這位會員。
           content:
@@ -357,7 +357,7 @@ paths:
         該帳號若尚未建立權限紀錄，系統會自動建立；此時未帶入的欄位
         將採用資料表預設值（`can_manage_system` 為 `false`，其餘為 `true`）。
 
-        需 `sensitive` 範圍的身分驗證（`X-Verify-Token` 標頭）。
+        需 `admin` 範圍的身分驗證（`X-Verify-Token` 標頭，只接受帳號的登入密碼或通行密鑰）。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path

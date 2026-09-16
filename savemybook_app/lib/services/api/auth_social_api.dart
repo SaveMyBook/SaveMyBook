@@ -36,12 +36,14 @@ extension AuthSocialApi on ApiService {
     String? email,
     String? nickname,
     bool acceptLegal = false,
+    bool create = false,
   }) async {
     final device = await DeviceIdentity.describe();
     if (ApiService.currentUser == null) ApiService.authToken = null;
     final res = await _send('POST', '/auth/social', body: {
       'provider': provider,
       'id_token': idToken,
+      if (create) 'create': true,
       if (email != null && email.isNotEmpty) 'email': email,
       if (nickname != null && nickname.isNotEmpty) 'nickname': nickname,
       if (acceptLegal) 'accept_legal': true,
@@ -104,9 +106,22 @@ extension AuthSocialApi on ApiService {
   }
 
   /// 綁定時回傳 provider 代號；登入時回傳 null 並已寫入登入 Token。
-  Future<AuthResult<String?>> exchangeOAuthCode(String code) async {
+  /// 一次性碼在收到 NO_ACCOUNT_FOR_PROVIDER 與 EMAIL_REQUIRED 後仍可重用，
+  /// 使用者決定要建立帳號時帶 create 重送即可，不必再開一次授權頁。
+  Future<AuthResult<String?>> exchangeOAuthCode(
+    String code, {
+    bool create = false,
+    String? email,
+    String? nickname,
+  }) async {
     final device = await DeviceIdentity.describe();
-    final res = await _send('POST', '/auth/oauth/exchange', body: {'code': code, ...device});
+    final res = await _send('POST', '/auth/oauth/exchange', body: {
+      'code': code,
+      if (create) ...{'create': true, 'accept_legal': true},
+      if (email != null && email.isNotEmpty) 'email': email,
+      if (nickname != null && nickname.isNotEmpty) 'nickname': nickname,
+      ...device,
+    });
     if (res == null || res['success'] != true) return _authFail(res);
 
     final data = _authData(res);

@@ -21,7 +21,7 @@ extension AuthApi on ApiService {
     final res = await _send('POST', '/auth/login', body: {'email': email, 'password': password, ...device});
 
     if (res == null) {
-      return LoginOutcome(code: 'NETWORK', message: S.couldNotReachServerCheckConnection);
+      return LoginOutcome(code: 'NETWORK', message: S.networkError);
     }
 
     if (res['success'] != true) {
@@ -46,7 +46,7 @@ extension AuthApi on ApiService {
   Future<String?> register(String email, String password, String nickname) async {
     final res = await _send('POST', '/users',
         body: {'email': email, 'password': password, 'nickname': nickname, 'accept_legal': true});
-    if (res == null) return S.couldNotReachServerCheckConnection;
+    if (res == null) return S.networkError;
     return res['success'] == true ? null : (res['message'] as String? ?? S.signUpFailed);
   }
 

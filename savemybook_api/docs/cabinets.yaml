@@ -77,4 +77,4 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 伺服器發生錯誤，無法取得書櫃列表 }
+              example: { success: false, message: 系統發生錯誤，請稍後再試，無法取得書櫃列表 }

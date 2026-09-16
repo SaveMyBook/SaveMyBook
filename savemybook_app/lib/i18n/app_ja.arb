@@ -94,10 +94,8 @@
   "appearanceLight": "ライト",
   "appearanceDark": "ダーク",
   "appearanceSystem": "システムに合わせる",
-  "appearanceHint": "「システムに合わせる」を選ぶと、端末の設定に従って自動で切り替わります。",
   "language": "言語",
   "languageSystem": "システムに合わせる",
-  "languageHint": "「システムに合わせる」を選ぶと、端末の言語設定に従って表示されます。",
   "verifySignSavemybook": "SaveMyBook にログインするため認証します",
   "maintenance": "メンテナンス",
   "promotions": "キャンペーン",
@@ -142,9 +140,7 @@
   "regenerate": "再生成",
   "newLinkCreatedOldOneNo": "新しいリンクを作成しました。古いリンクは無効です。",
   "deleteAccount": "アカウントを削除",
-  "accountPermanentlyDisabled30DaysSign": "アカウントは 30 日後に完全に無効化されます。それまでに再度ログインすればキャンセルできます。\n\n",
-  "personalDataErasedButCompletedOrders": "無効化後は個人情報が削除されますが、完了した注文と取引履歴は保持されます。",
-  "peopleTradedWithDoNotLose": "取引相手の記録が欠けないようにするためです。",
+  "accountPermanentlyDisabled30DaysSign": "アカウントは 30 日後に削除されます。期間内に再ログインするとキャンセルできます。削除後は個人データが消去されますが、完了した注文と取引記録は保持されます。",
   "actionContinue": "続ける",
   "verify": "本人確認",
   "enterPasswordConfirm": "ご本人の操作であることを確認するため、パスワードを入力してください。",
@@ -155,11 +151,7 @@
   "account": "アカウント設定",
   "data": "あなたのデータ",
   "exportMyData": "データをエクスポート",
-  "profileBooksOrdersTransactionsJson": "プロフィール・書籍・注文・取引履歴を JSON 形式で",
-  "oldLinkQrCodeStopWorking2": "古いリンクと QR コードはすぐに無効になります",
   "cancelAccountDeletion": "アカウント削除をキャンセル",
-  "restoreAccountStopCountdown": "アカウントを復元し、カウントダウンを止めます",
-  "canChangeMindWithin30Days": "30 日以内なら取り消せます",
   "deletionPending": "削除待ち",
   "daysLeftCanCancelAnyTime": "残り {p0} 日です。それまではいつでもキャンセルできますが、期限を過ぎると個人情報は完全に削除されます。",
   "@daysLeftCanCancelAnyTime": {
@@ -197,13 +189,13 @@
   "addedCart": "カートに追加しました",
   "sellerInformationNotFound": "出品者情報が見つかりません",
   "signContactSeller": "出品者に連絡するにはログインしてください",
-  "signStartChat": "チャットを開始するにはログインしてください",
+  "signStartChat": "出品者に連絡するにはログインしてください",
   "signReport": "報告するにはログインしてください",
   "cannotReportOwnListing": "自分の出品は報告できません",
   "reportListing": "この商品を報告",
   "describeProblemLeast5Characters": "問題の内容を記入してください（5 文字以上）",
   "reasonNeedsLeast5Characters": "報告理由は 5 文字以上で入力してください",
-  "reportSubmittedWeLookInto": "報告を送信しました。順次対応します。",
+  "reportSubmittedWeLookInto": "報告を送信しました",
   "publisher": "出版社：",
   "author": "著者：",
   "listed": "出品日：",
@@ -211,19 +203,11 @@
   "share": "共有",
   "report": "報告",
   "about": "紹介：",
-  "pickup": "受け取り場所：{p0}",
-  "@pickup": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "messageSeller": "出品者に相談",
   "listing": "あなたの出品です",
   "addCart": "カートに追加",
-  "bookBeenReportedUnderReviewStays": "この本は報告を受け審査中です。審査中も販売は継続されます。",
-  "violationWasConfirmedBookPleaseCheck": "この本は違反が認定されました。コミュニティガイドラインに沿っているかご確認ください。",
-  "reportDismissed2": "報告は却下されました",
-  "bookWasReportedButNoViolation": "この本は報告されましたが違反は認められませんでした。出品に影響はありません。",
+  "bookBeenReportedUnderReviewStays": "この本は報告を受け、審査中です。",
+  "violationWasConfirmedBookPleaseCheck": "この本は違反が確認されました。出品内容を修正してください。",
   "delist": "出品を取り消す",
   "removedFromShopBuyersNoLonger": "「{p0}」はショップから外され、購入者には表示されなくなります。",
   "@removedFromShopBuyersNoLonger": {
@@ -232,7 +216,6 @@
     }
   },
   "delist2": "出品停止",
-  "delistedRelistFromDelistedTab": "出品を停止しました。「出品停止」タブから再出品できます。",
   "couldNotDelistPleaseTryAgain": "出品停止に失敗しました。しばらくしてからお試しください。",
   "listedAgain": "「{p0}」を再出品しました",
   "@listedAgain": {
@@ -242,18 +225,9 @@
   },
   "notListedAnyBooksYet": "まだ本を出品していません",
   "noBooksCategory": "このカテゴリーに書籍はありません",
-  "listFirstBook": "最初の 1 冊を出品する",
   "relist": "再出品",
-  "removeFromCart": "カートから削除",
-  "removeFromCart2": "「{p0}」をカートから削除しますか？",
-  "@removeFromCart2": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "remove": "削除",
   "couldNotRemoveRestored": "削除できませんでした。元に戻しました。",
-  "couldNotRemovePleaseTryAgain": "削除に失敗しました。しばらくしてからお試しください。",
   "selectBooksWantCheckOut": "お会計する本を選んでください",
   "notEnoughCoinsOrderNeedsBut": "コインが足りません。この注文には {p0} 必要ですが、残高は {p1} です。",
   "@notEnoughCoinsOrderNeedsBut": {
@@ -262,7 +236,6 @@
       "p1": {}
     }
   },
-  "confirmCheckout": "お会計を確定",
   "booksTotal": "{p0} 冊、合計 {p1}。\n",
   "@booksTotal": {
     "placeholders": {
@@ -338,7 +311,7 @@
   "chatUnmuted": "ミュートを解除しました",
   "noUnreadMessages": "未読メッセージはありません",
   "markAllAsRead": "すべて既読にする",
-  "markAllUnreadMessagesAsRead": "未読メッセージ {p0} 件をすべて既読にしますか？元に戻せません。",
+  "markAllUnreadMessagesAsRead": "未読メッセージ {p0} 件をすべて既読にしますか？",
   "@markAllUnreadMessagesAsRead": {
     "placeholders": {
       "p0": {}
@@ -351,7 +324,6 @@
   "noConversationsYet": "まだ会話がありません",
   "unmute": "ミュート解除",
   "mute": "ミュート",
-  "messagesLimited500Characters": "メッセージは 500 文字までです",
   "messageCouldNotSent": "メッセージを送信できませんでした",
   "chat": "チャット",
   "sendFirstMessage": "最初のメッセージを送信してください",
@@ -361,7 +333,7 @@
   "writeMessage": "メッセージを入力…",
   "enterOrderNumberDisputing": "異議を申し立てる注文番号を入力してください",
   "describeDispute": "異議の内容を記入してください",
-  "useLeast10CharactersSoSupport": "サポートが判断できるよう 10 文字以上で記入してください",
+  "useLeast10CharactersSoSupport": "説明は 10 文字以上必要です",
   "submitDispute": "異議を申し立てる",
   "orderEntersDisputeProcessPaymentSeller": "注文は異議申立の手続きに入り、サポートが判断するまで出品者への支払いは保留されます。",
   "paymentHoldRequested": "[支払い保留の申請] {p0}",
@@ -373,27 +345,23 @@
   "disputeSubmittedSupportContact": "異議を申し立てました。サポートからご連絡します。",
   "dispute": "異議申立",
   "requestPaymentHold": "支払い保留を申請",
-  "paymentSellerHeldUntilSupportDecides": "サポートが判断するまで出品者への支払いは保留されます",
   "submitDispute2": "異議を申し立てる",
   "orderNumber": "注文番号",
   "eGSmb20260910123456789": "例：SMB20260910123456789",
   "whatHappened": "異議の内容",
-  "describeProblemEGConditionDoes": "発生した問題を記入してください。例：状態が説明と異なる…",
+  "describeProblemEGConditionDoes": "発生した問題を入力してください",
   "submit": "申請を送信",
   "uploadPhotos": "画像をアップロード",
   "canAttachUp6Photos": "添付できる写真は 6 枚までです",
-  "up5": "5 枚まで",
-  "couldNotReplacePhotoPleaseTry": "写真を差し替えられませんでした。しばらくしてからお試しください。",
   "keepLeastOnePhoto": "写真は 1 枚以上必要です",
   "photoDeleted": "写真を削除しました",
   "couldNotDeletePhotoPleaseTry": "写真を削除できませんでした。しばらくしてからお試しください。",
   "canUp10Photos": "写真は 10 枚までです",
   "deletePhoto": "写真を削除",
   "cannotUndoneContinue": "削除すると元に戻せません。よろしいですか？",
-  "photoMissingDataRefreshTryAgain": "この写真のデータが不完全です。更新してからお試しください。",
+  "photoMissingDataRefreshTryAgain": "この写真を処理できません。更新してからお試しください。",
   "enterPrice": "価格を入力してください",
   "priceMustGreaterThan0": "価格は 0 より大きい必要があります",
-  "priceCannotExceed999999": "価格は 999,999 以下にしてください",
   "chooseLockerLocation": "保管場所を選んでください",
   "missingTheseThreeRequired": "不足しています：{p0}。この 3 枚は必須です。",
   "@missingTheseThreeRequired": {
@@ -422,7 +390,7 @@
   "optional": "任意",
   "publisher2": "出版社",
   "publicationDate": "発行日",
-  "tapPickPublicationDate": "タップして発行日を選択",
+  "tapPickPublicationDate": "発行日を選択",
   "pickPublicationDate": "発行日を選択",
   "pickCategory": "カテゴリーを選択",
   "next": "次へ",
@@ -441,7 +409,7 @@
   "email": "メールアドレス",
   "emailCannotChanged": "メールアドレスは変更できません",
   "dateBirth": "生年月日",
-  "tapPickDateBirth": "タップして生年月日を選択",
+  "tapPickDateBirth": "生年月日を選択",
   "pickDateBirth": "生年月日を選択",
   "savedBooks": "保存した本",
   "notSavedAnyBooksYet": "まだ本を保存していません",
@@ -466,8 +434,7 @@
   "croppingFailedPleaseTryAgain": "トリミングに失敗しました。もう一度お試しください。",
   "adjustPhoto": "写真を調整",
   "reset": "リセット",
-  "usePhoto": "この写真を使う",
-  "documentNotBeenCreatedYet": "この文書はまだ作成されていません",
+  "documentNotBeenCreatedYet": "内容はありません",
   "lastUpdated": "最終更新：{p0}",
   "@lastUpdated": {
     "placeholders": {
@@ -509,7 +476,7 @@
     }
   },
   "noAccountYetSignUp": "アカウントをお持ちでないですか？新規登録",
-  "membershipTiersNotSetUpYet": "会員ランクはまだ設定されていません",
+  "membershipTiersNotSetUpYet": "会員ランクは現在提供されていません",
   "currentTier": "現在のランク",
   "unlocked": "解除済み",
   "locked": "未解除",
@@ -534,7 +501,7 @@
       "p0": {}
     }
   },
-  "noBenefitsBeenDescribedTierYet": "このランクの特典はまだ設定されていません。",
+  "noBenefitsBeenDescribedTierYet": "このランクには追加特典はありません",
   "pointsFromCompletedOrders": "{p1} 件の取引で {p0} ポイント",
   "@pointsFromCompletedOrders": {
     "placeholders": {
@@ -554,7 +521,7 @@
   "allNotificationsCleared": "すべての通知を消去しました",
   "couldNotClearPleaseTryAgain": "消去に失敗しました。しばらくしてからお試しください。",
   "noUnreadNotifications": "未読の通知はありません",
-  "markAllUnreadNotificationsAsRead": "未読の通知 {p0} 件をすべて既読にしますか？元に戻せません。",
+  "markAllUnreadNotificationsAsRead": "未読の通知 {p0} 件をすべて既読にしますか？",
   "@markAllUnreadNotificationsAsRead": {
     "placeholders": {
       "p0": {}
@@ -562,7 +529,6 @@
   },
   "openChat": "チャットを開く",
   "viewOrder": "注文を見る",
-  "openMyBooks": "書籍管理を開く",
   "notifications": "通知",
   "noNotifications": "通知はありません",
   "copied": "{p0} をコピーしました",
@@ -585,7 +551,7 @@
       "p0": {}
     }
   },
-  "orderNoItemDetails": "この注文には商品情報がありません。",
+  "orderNoItemDetails": "商品明細はありません",
   "msg4": "単価 {p0} × {p1}",
   "@msg4": {
     "placeholders": {
@@ -597,7 +563,7 @@
   "pickupDetails": "受け取り情報",
   "notAssigned": "未指定",
   "slot": "ロッカー番号",
-  "notAssignedYet": "まだ割り当てられていません",
+  "notAssignedYet": "ロッカー未割り当て",
   "pickupCode": "受け取りコード",
   "transaction": "取引情報",
   "buyer": "購入者",
@@ -612,14 +578,13 @@
   "pendingPayouts": "保留中の収益",
   "noPendingPayouts": "保留中の収益はありません",
   "pendingAmount": "保留中の金額",
-  "coinsArriveOnceBuyerCollectsBook": "購入者が受け取ると自動的にコインが入金されます",
+  "coinsArriveOnceBuyerCollectsBook": "購入者の受け取り後に自動入金",
   "scanned": "スキャン完了",
   "scanAgain": "もう一度スキャン",
   "collectBook": "本を受け取る",
   "pointPickupQrCode": "受け取り用 QR コードに合わせてください",
   "holdSteady": "手ぶれにご注意ください",
   "bookCollected": "受け取り完了",
-  "thanksUsingSavemybookHappyReading": "ご利用いただきありがとうございます。",
   "collected": "「{p0}」を受け取りました",
   "@collected": {
     "placeholders": {
@@ -634,7 +599,7 @@
   },
   "signingOut": "ログアウト中…",
   "myAccount": "マイページ",
-  "personNotWrittenBioYet": "まだ自己紹介がありません",
+  "personNotWrittenBioYet": "自己紹介は未入力です",
   "topTierReached": "最高ランク達成",
   "morePointsReach": "あと {p0} ポイントで「{p1}」へ",
   "@morePointsReach": {
@@ -643,24 +608,12 @@
       "p1": {}
     }
   },
-  "myCoins": "マイコイン",
-  "shareProfile": "プロフィールを共有",
   "purchases": "購入履歴",
   "sales": "販売履歴",
   "settings": "設定",
   "signOut2": "ログアウトしますか？",
-  "needSignAgainKeepUsingApp": "再度ご利用いただくにはログインが必要です。",
   "cancelOrderBookReturnsShop": "注文 {p0} をキャンセルしますか？本は再びショップに並びます。",
   "@cancelOrderBookReturnsShop": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "pickupCode2": "受け取りコード",
-  "notGeneratedYet": "まだ発行されていません",
-  "enterCodeLockerCollect": "ロッカーでこのコードを入力して受け取ってください",
-  "enterCodeCollect": "「{p0}」でこのコードを入力して受け取ってください",
-  "@enterCodeCollect": {
     "placeholders": {
       "p0": {}
     }
@@ -677,11 +630,9 @@
   "iReadAccept": "同意します：",
   "and": " と ",
   "createAccount": "アカウントを作成",
-  "joinSavemybook": "SaveMyBook に登録",
-  "signUpBuySellUseSmart": "登録すると本の売買とスマートロッカーが使えます",
+  "joinSavemybook": "アカウント登録",
   "displayName": "表示名",
-  "nameOthersSee": "他の人に表示される名前",
-  "emailSignWith": "ログインに使うメールアドレス",
+  "emailSignWith": "メールアドレス",
   "least8CharactersWithLettersNumbers": "8 文字以上、英字と数字を含む",
   "confirmPassword": "パスワード（確認）",
   "enterPasswordAgain2": "パスワードをもう一度",
@@ -690,8 +641,6 @@
   "droppedOff": "預け入れ済み",
   "markedAsDroppedOff": "預け入れ完了にしました",
   "buyerNotifiedBookReturnsShop": "購入者に通知され、本は再びショップに並びます。",
-  "dropOffPickupCode": "預け入れ・受け取りコード",
-  "enterCodeLocker": "ロッカーでこのコードを入力してください",
   "noRecentSearches": "検索履歴はありません",
   "recentSearches": "最近の検索",
   "clearAll2": "すべて消去",
@@ -709,19 +658,11 @@
   "enterOwnPrice": "価格を入力してください。",
   "invalidPrice": "価格が正しくありません",
   "priceMustGreaterThan02": "価格は 0 より大きくしてください。",
-  "priceCannotExceed99999": "価格は 99,999 以下にしてください。",
+  "priceCannotExceed99999": "価格は 99,999 コイン以下にしてください。",
   "chooseLockerLocation2": "保管場所を選んでください。",
   "listed2": "出品しました",
   "unknownError": "不明なエラー",
   "couldNotListBook": "出品に失敗しました",
-  "serverError": "サーバーエラー：{p0}",
-  "@serverError": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "connectionProblem": "接続エラー",
-  "couldNotReachServerUploadTimed": "サーバーに接続できないか、アップロードがタイムアウトしました。通信状況をご確認ください。",
   "listBook": "出品を確定",
   "detailsPhotos": "詳細と写真",
   "loading": "読み込み中...",
@@ -729,10 +670,9 @@
   "enterTitle2": "タイトルを入力してください",
   "chooseCategory2": "カテゴリーを選んでください",
   "bookDetailsFilledAutomatically": "書籍情報を自動入力しました。",
-  "bookDetailsFilledFromBackupSource": "予備のデータベースから書籍情報を取得しました。",
   "noSourceIsbnPleaseEnterDetails": "どのデータベースにもこの ISBN が見つかりません。手動で入力してください。",
   "day": "日",
-  "tapIconRightScan": "右のアイコンをタップしてスキャン",
+  "tapIconRightScan": "ISBN を入力",
   "description": "書籍の紹介",
   "sellBook": "本を売る",
   "myShop": "マイショップ",
@@ -757,15 +697,8 @@
   "helpSupport": "ヘルプとサポート",
   "contactUs": "お問い合わせ",
   "aboutSavemybook": "SaveMyBook について",
-  "settingsPrivacy": "設定とプライバシー",
   "sign3": "{p0} でログイン",
   "@sign3": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "unlockWithWhenOpenApp": "アプリを開くときに {p0} で解除",
-  "@unlockWithWhenOpenApp": {
     "placeholders": {
       "p0": {}
     }
@@ -797,14 +730,14 @@
   "askQuestion": "問い合わせる",
   "noEnquiriesYet": "お問い合わせ履歴はありません",
   "enterSubject": "件名を入力してください",
-  "addMoreDetailSoSupportCan": "サポートが判断できるようもう少し詳しくご記入ください",
+  "addMoreDetailSoSupportCan": "問題の説明を追記してください",
   "sentSupportReplySoon": "送信しました。サポートよりご返信します。",
   "subject": "件名",
   "sumUpOneLine": "問題の概要",
   "whatHappenedIncludeOrderNumberIf": "問題の内容をご記入ください。注文番号がある場合は併せてご記入ください。",
   "close": "クローズ",
   "notAbleReplyAfterClosing": "クローズすると返信できなくなります。",
-  "enquiryClosed": "お問い合わせをクローズしました",
+  "enquiryClosed": "お問い合わせを終了しました",
   "changeStatus": "ステータスを変更",
   "statusUpdated": "ステータスを更新しました",
   "enquiry": "お問い合わせ",
@@ -821,14 +754,6 @@
       "p0": {}
     }
   },
-  "requestFailed2": "リクエストに失敗しました（{p0}）",
-  "@requestFailed2": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "couldNotReachServer": "サーバーに接続できません",
-  "couldNotReachServerCheckConnection": "サーバーに接続できません。通信状況をご確認ください。",
   "signFailed": "ログインに失敗しました",
   "signFailedPleaseTryAgain": "ログインに失敗しました。しばらくしてからお試しください。",
   "signUpFailed": "登録に失敗しました",
@@ -941,7 +866,7 @@
   "announcementDeleted": "お知らせを削除しました",
   "couldNotDeleteTryAgainLater": "削除できませんでした。後でもう一度お試しください。",
   "announcements": "お知らせ",
-  "noAnnouncementsYetTapAddOne": "お知らせはまだありません。右上の＋から追加できます。",
+  "noAnnouncementsYetTapAddOne": "お知らせはありません",
   "published": "公開中",
   "draft": "下書き",
   "audienceEveryone": "対象：全ユーザー",
@@ -959,7 +884,7 @@
     }
   },
   "olderBackupsBeyondCountRemovedAutomatically": "保持件数を超えた古いバックアップは自動的に削除されます。バックアップにはサイト全体の個人情報が含まれるため、ダウンロードしたファイルは厳重に管理してください。ダウンロードはすべて操作ログに記録されます。",
-  "noBackupsYetSchedulerRunsOnce": "バックアップはまだありません。スケジュールが1日1回実行されます。上のボタンですぐに作成することもできます。",
+  "noBackupsYetSchedulerRunsOnce": "バックアップはありません",
   "deleteBackup": "バックアップを削除",
   "p0NNtheFileItsRecord": "{p0}\n\nファイルと記録の両方が削除されます。元に戻せません。",
   "@p0NNtheFileItsRecord": {
@@ -971,13 +896,6 @@
   "scheduled": "スケジュール",
   "download": "ダウンロード",
   "downloadBackup": "バックアップをダウンロード",
-  "fetchBackupComputerWithAuthorisationHeader": "バックアップはパソコンで、認証ヘッダーを付けて取得してください：\n\n{p0}\n\nファイルサイズ {p1}。",
-  "@fetchBackupComputerWithAuthorisationHeader": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "copyLink2": "URLをコピー",
   "downloadLinkCopied": "ダウンロードURLをコピーしました",
   "forceDelist": "強制的に出品停止",
@@ -1123,24 +1041,12 @@
   "documentUnsavedChangesTheyLostIf": "この文書には未保存の変更があります。離れると失われます。",
   "discard": "破棄",
   "keepEditing": "編集を続ける",
-  "bothTitleContentRequired": "タイトルと本文の両方が必要です",
   "sectionP0NoTitleYet": "第{p0}",
   "@sectionP0NoTitleYet": {
     "placeholders": {
       "p0": {}
     }
   },
-  "updateP0": "{p0}？",
-  "@updateP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "documentBindingEveryUserSubmittingReplaces": "この文書は全ユーザーに効力を持ちます。送信すると現在の版が直ちに置き換わります。",
-  "yesUpdate": "更新する",
-  "notifyEveryUser": "全ユーザーに通知しますか？",
-  "updateNotify": "更新して通知",
-  "updateOnly": "更新のみ",
   "sections": "章立て",
   "plainText": "プレーンテキスト",
   "preview": "プレビュー",
@@ -1148,17 +1054,14 @@
   "preamble": "前文",
   "unnumberedOpeningTextLeaveEmptyIf": "番号を付けない冒頭の説明文です。なければ空のままで構いません。",
   "articles": "条文",
-  "numberedAutomatically": "番号は自動で付きます",
-  "noArticlesYetAddFirstOne": "条文がまだありません。下のボタンで最初の章を追加してください。",
+  "noArticlesYetAddFirstOne": "条文はありません",
   "addSection": "章を追加",
   "untitledSection": "無題の章",
   "sectionTitle": "章のタイトル",
   "bodySectionSingleLineBreaksKept": "この章の本文です。単一の改行はそのまま表示され、空行で段落が変わります。",
-  "emptyLineStartsParagraphParagraphWhose": "空行で段落を分けます。1行目が「1. タイトル」の段落は、章立てモードに戻したときに1つの章として認識されます。",
   "howUsersSee": "ユーザーに見える表示",
   "noContentYet": "内容がありません",
   "unsaved": "未保存",
-  "upDate": "最新の状態です",
   "newQuestion": "質問を追加",
   "editQuestion": "質問を編集",
   "question": "質問",
@@ -1177,7 +1080,6 @@
   "deleted": "削除しました",
   "faq": "よくある質問",
   "noQuestionsYet2": "質問がまだありません",
-  "dragHandleRightReorder": "右のハンドルをドラッグで並べ替え",
   "hidden": "非表示",
   "cancelDeletionRequest": "削除申請を取り消す",
   "p0SAccountReturnsNormalCountdown": "{p0}、カウントダウンが止まります。",
@@ -1254,36 +1156,20 @@
   "handle": "対応",
   "transactions2": "取引管理",
   "orders": "注文管理",
-  "lookUpOrdersAdjustStatusBy": "注文の検索と手動でのステータス変更",
-  "disputeListDecisions": "申し立て一覧と裁定",
   "listings": "商品管理",
-  "allBooksForceDelisting": "全書籍、強制的な出品停止",
   "moderation": "コンテンツ審査",
   "handleListingReports": "商品の報告対応",
-  "addReorderDeleteBookCategories": "カテゴリーの追加・並べ替え・削除",
   "members": "会員管理",
   "memberControls": "会員の管理",
-  "memberListSuspensionBlocklist": "会員一覧・利用停止・ブロック",
   "membershipTiers": "会員ランク管理",
-  "tierThresholdsBenefits": "ランクの基準と特典の設定",
   "wallets": "ウォレット管理",
-  "checkBalancesAddDeductCoinsBy": "残高の確認、コインの手動増減",
   "hardwareOperations": "ハードウェアと運用",
-  "lockerSlotStatus": "ロッカーと棚の状態",
   "maintenanceLog": "メンテナンス記録",
-  "lockerOperationHistory": "ロッカー関連の操作履歴",
   "reports": "運用レポート",
   "ordersRevenueMemberGrowth": "注文・売上・会員の推移",
-  "announcements2": "お知らせ管理",
   "supportEnquiries": "お問い合わせ",
-  "replyQuestionsFromUsers": "ユーザーからの質問に回答",
-  "faqShownHelpCentre": "ヘルプセンターのよくある質問",
-  "termsPrivacyPolicyAbout": "利用規約・プライバシーポリシー・運営者情報",
   "adminAuditLog": "管理操作の記録",
-  "auditTrailAdminChanges": "管理者による変更の監査証跡",
   "systemOperations": "システム運用",
-  "dailyBackupsManualRunsDownloads": "毎日の自動バックアップ、手動実行とダウンロード",
-  "deletionRequestsInsideGracePeriodCancel": "猶予期間中の削除申請。取り消しも即時実行もできます",
   "members2": "会員数",
   "todaySOrders": "本日の注文",
   "openCases": "未処理の案件",
@@ -1459,7 +1345,7 @@
   },
   "fullSettingsTierPermissions": "詳細設定（ランク・権限）",
   "members3": "会員一覧",
-  "searchDisplayNameEmail": "表示名・メールで検索",
+  "searchDisplayNameEmail": "表示名・メールアドレスで検索",
   "noMembersMatch": "該当する会員がいません",
   "sales2": "販売",
   "created": "作成日",
@@ -1561,7 +1447,6 @@
   "noEnquiriesCategory": "このカテゴリーにお問い合わせはありません",
   "addCoins": "コインを追加",
   "deductCoins": "コインを差し引く",
-  "amountPositiveWholeNumber": "金額（正の整数）",
   "reasonAdjustmentRequired": "調整の理由（必須）",
   "add2": "追加する",
   "deduct": "差し引く",
@@ -1615,12 +1500,6 @@
       "p0": {}
     }
   },
-  "everyActiveMemberReceivesP0Updated": "有効な会員全員に「{p0}が更新されました」という通知が届きます。",
-  "@everyActiveMemberReceivesP0Updated": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "orderPlaced": "注文成立",
   "paid": "支払い",
   "sellerDroppedOff": "出品者が預け入れ",
@@ -1654,7 +1533,7 @@
       "p0": {}
     }
   },
-  "remindThemChangeSettingsChangePassword": "ログイン後すぐに「設定 → パスワード変更」で変更するよう伝えてください。",
+  "remindThemChangeSettingsChangePassword": "ログイン後すぐに「設定 › パスワード変更」で変更するよう伝えてください。",
   "temporaryPasswordCopied": "仮パスワードをコピーしました",
   "copy": "コピー",
   "cannotResetAnotherAdminSPassword": "他の管理者のパスワードはリセットできません",
@@ -1670,7 +1549,6 @@
   "items3": "商品",
   "bookDeleted": "（書籍は削除済み）",
   "notAssignedYet2": "未割り当て",
-  "pickupCodeCopied": "受け取りコードをコピーしました",
   "walletActivity": "ウォレットの動き",
   "balanceP02": "残高 {p0}",
   "@balanceP02": {
@@ -1715,7 +1593,7 @@
   "approved": "承認済み",
   "awaitingRefund": "返金待ち",
   "declined": "返金不可",
-  "changeOwnPasswordGoSettingsChange": "自分のパスワードは「設定 → パスワード変更」から変更してください",
+  "changeOwnPasswordGoSettingsChange": "自分のパスワードは「設定 › パスワード変更」から変更してください",
   "memberNotAdminSoThereNo": "この会員は管理者ではないため、設定できる管理権限がありません。先に上で役割を管理者に変更してください。",
   "you": "自分",
   "isbnMust1013DigitsOne": "ISBNは10桁か13桁です。現在は{p0}桁です",
@@ -1769,7 +1647,6 @@
   "sendTestNotification": "テスト通知を送信",
   "arrives10SecondsGoHomeScreen": "10秒後に届きます。送信後はホーム画面に戻るか、端末をロックしてください。",
   "systemNotificationSettings": "システムの通知設定",
-  "turnNotificationsSoundsLockScreenPreviews": "通知、サウンド、ロック画面の表示を切り替えます",
   "pushNotificationsNotSetUpBuild": "このビルドではプッシュ通知が設定されていません。Firebaseの設定ファイルを追加して再ビルドしてください。",
   "notificationsTurnedOffAllowAppSend": "通知がオフになっています。システム設定でこのアプリの通知を許可してください。",
   "restoreBackup": "このバックアップに復元しますか？",
@@ -1803,8 +1680,6 @@
       "p0": {}
     }
   },
-  "majorUpdate": "重要な更新ですか？",
-  "majorUpdateNotifiesEveryUserTerms": "重要な更新は全ユーザーに通知されます。利用規約とプライバシーポリシーは、次回アプリを開いたときに再度読んで同意してもらいます。\n\n誤字の修正や書式の調整だけなら「軽微な修正」を選んでください。",
   "majorUpdate2": "重要な更新",
   "minorEdit": "軽微な修正",
   "books": "本",
@@ -1830,15 +1705,12 @@
     }
   },
   "undoAction2": "この操作を取り消す",
-  "tapBarSeeDay": "棒をタップするとその日の数値を表示",
   "noAnnouncements": "お知らせはありません",
-  "tapPhotoNameChange": "写真や名前をタップして変更",
   "canTContinueWithoutAccepting": "同意しないと利用を続けられません",
-  "needAcceptLatestP0UseP1": "{p0} を利用するには最新の「{p1}」への同意が必要です。同意しない場合はログアウトします。いつでも再ログインして同意できます。",
+  "needAcceptLatestP0UseP1": "「{p0}」に同意しない場合はログアウトします。",
   "@needAcceptLatestP0UseP1": {
     "placeholders": {
-      "p0": {},
-      "p1": {}
+      "p0": {}
     }
   },
   "goBack": "戻る",
@@ -1848,7 +1720,7 @@
       "p0": {}
     }
   },
-  "readLatestVersionUpdatedP0Accept": "最新版（{p0} 更新）をお読みください。同意すると利用を続けられます。",
+  "readLatestVersionUpdatedP0Accept": "{p0} 更新",
   "@readLatestVersionUpdatedP0Accept": {
     "placeholders": {
       "p0": {}
@@ -1858,13 +1730,10 @@
   "iVeReadAccept": "読んで同意しました",
   "decline": "同意しない",
   "viewDetails": "詳細を見る",
-  "notFoundMayBeenDeletedRemoved": "見つかりません。削除または取り下げられた可能性があります",
-  "salesDropOffsPickupsRefundsDisputes": "販売、預け入れ、受け取り、返金、申し立て",
+  "notFoundMayBeenDeletedRemoved": "このコンテンツは存在しません",
   "chatMessages": "チャットメッセージ",
-  "newMessagesFromBuyersSellers": "買い手・売り手からの新着メッセージ",
   "promotions2": "キャンペーン",
-  "announcementsAboutPromotions": "キャンペーンのお知らせ",
-  "supportRepliesPasswordResetsPolicyUpdates": "サポートの返信、パスワードのリセット、規約の更新、メンテナンスのお知らせは常に通知されます。オフにした種類も通知一覧には表示され、プッシュ通知だけが届きません。",
+  "supportRepliesPasswordResetsPolicyUpdates": "サポートの返信、アカウントセキュリティ、システムのお知らせはオフにできません。",
   "notFilled": "未入力",
   "canTChanged": "変更不可",
   "voice": "[音声]",
@@ -1962,14 +1831,13 @@
       "p0": {}
     }
   },
-  "ifIsnTSoldByThen": "期限までに売れなければ、カートに追加できるようになります",
   "sellerHoldingUntilP0": "出品者が {p0} まであなたのために取り置き中",
   "@sellerHoldingUntilP0": {
     "placeholders": {
       "p0": {}
     }
   },
-  "checkOutBeforeHoldEndsOther": "期限内に購入手続きを済ませてください。期限を過ぎると他の人も購入できます",
+  "checkOutBeforeHoldEndsOther": "保留期限内に購入手続きを完了してください",
   "copyAddress": "住所をコピー",
   "p0Away": "ここから {p0}",
   "@p0Away": {
@@ -2002,7 +1870,6 @@
       "p1": {}
     }
   },
-  "swipeQuickActions": "スワイプで操作",
   "searchTitleAuthorIsbn2": "書名・著者・ISBN で検索",
   "removedP0": "「{p0}」を削除しました",
   "@removedP0": {
@@ -2081,7 +1948,6 @@
   "accept": "承認",
   "reservationAccepted": "予約を承認しました",
   "declineReservation": "予約をお断りしますか？",
-  "theyLlNotifiedDeclined": "相手にお断りの通知が届きます。",
   "decline2": "お断り",
   "reservationDeclined": "予約をお断りしました",
   "cancelReservation": "予約をキャンセルしますか？",
@@ -2096,7 +1962,7 @@
   "notNow2": "戻る",
   "couldnTLoadConversationPleaseTry": "会話を読み込めません。しばらくしてから再度お試しください",
   "accountCanTReceiveMessagesRight": "相手のアカウントは現在メッセージを受け取れません",
-  "holdMicTalkReleaseSend": "マイクを長押しして話し、指を離すと送信します",
+  "holdMicTalkReleaseSend": "録音が短すぎます",
   "startConversation": "ここから会話が始まります",
   "p0New": "新着 {p0} 件",
   "@p0New": {
@@ -2131,15 +1997,13 @@
     }
   },
   "picked": "あなたへのおすすめ",
-  "seeMore": "もっと見る",
   "recentlyViewed": "最近見た本",
   "clear": "クリア",
   "notificationDeleted": "通知を削除しました",
   "pleasePutBookAssignedLockerSoon": "できるだけ早く指定のロッカーに本を入れてください",
   "weLlLetKnowWhenSeller": "出品者が本を入れたら受け取りをお知らせします",
   "waitingBuyerCollect": "購入者の受け取り待ち",
-  "bookLockerEnterPickupCodeCollect": "本はロッカーにあります。受け取りコードを入力して受け取ってください",
-  "transactionCompleteThank": "取引が完了しました。ご利用ありがとうございます",
+  "transactionCompleteThank": "取引完了",
   "confirmVeTakenBookFromLocker": "ロッカーから本を取り出したことを確認してください。確認すると注文が完了します。",
   "p0Orders2": "注文 {p0} 件",
   "@p0Orders2": {
@@ -2156,7 +2020,6 @@
   "pickUp": "受取待ち",
   "saved": "お気に入り",
   "accountSecurity": "アカウントのセキュリティ",
-  "sellerHasnTPutBookLocker": "出品者はまだ本をロッカーに入れていません。入れたらお知らせします",
   "searchHistoryCleared": "検索履歴を消去しました",
   "trendingBooks": "人気の本",
   "signOutDevice": "この端末をログアウトしますか？",
@@ -2166,13 +2029,12 @@
       "p0": {}
     }
   },
-  "llNeedSignAgainUseApp": "ログアウト後は再ログインが必要です。",
-  "deviceSignedOutRightAwayStop": "その端末はすぐにログアウトし、通知も届かなくなります。",
+  "deviceSignedOutRightAwayStop": "その端末はすぐにログアウトされます。",
   "deviceSignedOut": "この端末をログアウトしました",
   "signOutAllDevicesIncludingOne": "すべての端末からログアウト（この端末を含む）",
   "signOutAllOtherDevices": "ほかのすべての端末からログアウト",
-  "everyDeviceIncludingOneSignedOut": "この端末を含むすべての端末がログアウトし、再ログインが必要になります。",
-  "everyDeviceExceptOneSignedOut": "この端末以外はすぐにログアウトし、通知も届かなくなります。",
+  "everyDeviceIncludingOneSignedOut": "この端末を含むすべての端末がすぐにログアウトされます。",
+  "everyDeviceExceptOneSignedOut": "この端末以外のすべての端末がすぐにログアウトされます。",
   "signedOutP0OtherDevices": "他の {p0} 台の端末からログアウトしました",
   "@signedOutP0OtherDevices": {
     "placeholders": {
@@ -2181,7 +2043,6 @@
   },
   "unknownDevice": "不明な端末",
   "couldnTLoadDevices": "端末を読み込めませんでした",
-  "theseDevicesSignedAccountIfDon": "これらの端末があなたのアカウントにログインしています。心当たりのない端末があれば、すぐにログアウトしてパスワードを変更してください。",
   "device": "この端末",
   "otherDevices": "他の端末",
   "otherDevicesP0": "他の端末（{p0}）",
@@ -2213,7 +2074,6 @@
   "pinsDonTMatchStartAgain": "2 回の入力が一致しません。もう一度設定してください",
   "paymentPinReset": "取引パスワードを再設定しました",
   "paymentPinSet": "取引パスワードを設定しました",
-  "use6DigitPinConfirmPayments": "今後の決済では、この 6 桁のパスワードで支払いを確認します。",
   "verifyingIdentity": "本人確認中…",
   "enterAgainConfirm": "確認のためもう一度入力",
   "set6DigitPaymentPin": "6 桁の取引パスワードを設定",
@@ -2238,7 +2098,7 @@
       "p0": {}
     }
   },
-  "securitySettingsUnavailableRightNowMay": "セキュリティ設定を取得できません。取引パスワードやログイン端末を変更できない場合があります。",
+  "securitySettingsUnavailableRightNowMay": "セキュリティ設定を読み込めません",
   "payWithP0": "{p0} で支払う",
   "@payWithP0": {
     "placeholders": {
@@ -2247,27 +2107,22 @@
   },
   "accountWellProtected": "アカウントはしっかり保護されています",
   "accountCouldSafer": "セキュリティを強化できます",
-  "paymentPinBiometricPaymentSetCheck": "取引パスワードと生体認証での支払いが設定済みです。ログイン中の端末を定期的にご確認ください。",
-  "setPaymentPinTurnBiometricPayment": "取引パスワードを設定し生体認証での支払いをオンにすると、決済がより安全で速くなります。",
+  "setPaymentPinTurnBiometricPayment": "取引パスワードが未設定です",
   "tooManyAttemptsLockedUntilP0": "失敗回数が多すぎます。{p0} までロック中",
   "@tooManyAttemptsLockedUntilP0": {
     "placeholders": {
       "p0": {}
     }
   },
-  "usedConfirmPaymentsCheckout": "決済時の支払い確認に使います",
-  "notSetRequiredBeforeCheckout": "未設定です。決済前に設定が必要です",
+  "notSetRequiredBeforeCheckout": "未設定",
   "change": "変更",
   "forgotPaymentPin": "取引パスワードを忘れた",
-  "ifFailsCanEnterPaymentPin": "認証に失敗したら取引パスワードを入力できます",
-  "viewRemotelySignOutDevices": "端末の確認とリモートログアウト",
   "p0Devices": "{p0} 台",
   "@p0Devices": {
     "placeholders": {
       "p0": {}
     }
   },
-  "otherDevicesNeedSignAgain": "変更後、ほかの端末は再ログインが必要です",
   "restoredUnfinishedListing": "前回の入力内容を復元しました",
   "isbnSCheckDigitInvalidPlease": "ISBN のチェックディジットが正しくありません。もう一度確認してください",
   "draftSavedAutomatically": "下書きを自動保存しました",
@@ -2280,9 +2135,7 @@
   },
   "cacheCleared": "キャッシュを削除しました",
   "storage": "ストレージ",
-  "paymentPinBiometricPaymentDevices": "取引パスワード・生体認証支払い・ログイン端末",
   "clearCache": "キャッシュを削除",
-  "removesCachedImagesFilesAccountData": "一時保存の画像とファイルを削除します。アカウントのデータには影響しません",
   "couldNotLoadNotificationSettings": "通知設定を読み込めません",
   "month": "今月",
   "p0P1": "{p0}年{p1}月",
@@ -2332,7 +2185,7 @@
       "p0": {}
     }
   },
-  "protectCoinsCheckoutRequires6Digit": "コインを守るため、決済時に 6 桁の取引パスワードが必要です。設定後は Face ID や指紋での支払いもオンにできます。",
+  "protectCoinsCheckoutRequires6Digit": "決済の前に 6 桁の取引パスワードを設定してください。",
   "confirmPaymentP0Coins": "{p0} コインの支払いを確認",
   "@confirmPaymentP0Coins": {
     "placeholders": {
@@ -2352,7 +2205,7 @@
   "enterPaymentPinContinue": "続けるには取引パスワードを入力してください",
   "paymentPinResetEnterAgain": "取引パスワードを再設定しました。もう一度入力してください",
   "usePasswordInstead": "ログインパスワードを使う",
-  "couldnTGetLocationLockersShown": "現在地を取得できませんでした。ロッカーは標準の順で表示されます",
+  "couldnTGetLocationLockersShown": "現在地を取得できません",
   "p0SlotsFree": "空き {p0} 区画",
   "@p0SlotsFree": {
     "placeholders": {
@@ -2367,7 +2220,6 @@
   },
   "nearest": "最寄り",
   "noFreeSlots": "空きがありません",
-  "sortedByDistance": "近い順に表示",
   "turnLocationSortByDistance": "位置情報をオンにすると距離順に並びます",
   "lockerNoFreeSlotsRightNow": "このロッカーは現在空きがありません",
   "turn": "オンにする",
@@ -2399,7 +2251,6 @@
     }
   },
   "releaseCancel": "指を離すとキャンセル",
-  "slideCancel": "← スライドでキャンセル",
   "awaitingReply": "返信待ち",
   "heldUntilP0": "{p0}まで取り置き",
   "@heldUntilP0": {
@@ -2417,7 +2268,6 @@
       "p0": {}
     }
   },
-  "onceSellerAcceptsBookHeldNo": "出品者が承認すると本はあなたのために取り置かれ、期限までは他の人が購入できません。",
   "holdPeriod": "取り置き期間",
   "messageSellerOptional": "出品者へのメッセージ（任意）",
   "sendRequest": "予約を送信",
@@ -2443,8 +2293,8 @@
       "p1": {}
     }
   },
-  "serverNotBeenUpdatedSupportFeature": "サーバーはまだこの機能に対応したバージョンに更新されていません。しばらくしてからお試しください。",
-  "someFeaturesTemporarilyUnavailableWhileServer": "サーバー更新中のため、一部の機能は一時的に利用できません",
+  "serverNotBeenUpdatedSupportFeature": "この機能は一時的に利用できません。しばらくしてからお試しください。",
+  "someFeaturesTemporarilyUnavailableWhileServer": "一部の機能は一時的に利用できません",
   "serverRunningOutdatedApiRevisionP0": "サーバーの API バージョンが古すぎます（現在 {p0}、アプリには {p1} が必要）。サーバーのコードを更新し、API を再起動してください。",
   "@serverRunningOutdatedApiRevisionP0": {
     "placeholders": {
@@ -2486,7 +2336,6 @@
   "rose": "ローズ",
   "graphite": "グラファイト",
   "mistBlue": "ミストブルー",
-  "chooseAppSMainColourHeader": "ヘッダー、ボタン、強調表示に使うアプリのメインカラーを選択します。",
   "draftRestored": "下書きを復元しました",
   "convertSections": "章モードに変換",
   "currentContentDoesNotFullyMatch": "現在の内容は章の書式に完全には対応していません。変換すると章番号が順番に振り直され「1. タイトル」形式に統一されます。見出しとして認識されない段落は前文または直前の章の本文に統合されます。\n\n元の書式を保持する場合は、テキストモードで編集・保存してください。",
@@ -2633,7 +2482,7 @@
   "notBlockedAnyUsers": "ブロック中のユーザーはいません",
   "blockedUsers": "ブロックリスト",
   "blockUser": "ユーザーをブロック",
-  "afterBlockP0NeitherCanSend": "「{p0}」をブロックすると、お互いにメッセージを送信できなくなります。相手には通知されません。ブロックは「設定 › ブロックリスト」からいつでも解除できます。",
+  "afterBlockP0NeitherCanSend": "「{p0}」をブロックすると、お互いにメッセージを送信できなくなります。",
   "@afterBlockP0NeitherCanSend": {
     "placeholders": {
       "p0": {}
@@ -2649,12 +2498,6 @@
   "reply": "返信",
   "bookLockerScanQrCodeLocker": "本はロッカーに預けられました。ロッカー本体の QR コードを読み取って受け取ってください。",
   "originalMessageUnavailable": "元のメッセージは表示できません",
-  "replyingP0": "{p0} に返信",
-  "@replyingP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "cancelReply": "返信をキャンセル",
   "unreadMessages": "ここから未読メッセージ",
   "selectChat": "チャットを選択してください",
@@ -2676,11 +2519,10 @@
   "allowed": "許可済み",
   "limited": "一部許可",
   "notAllowed": "未許可",
-  "restricted": "制限あり",
+  "restricted": "システムにより制限",
   "denied": "拒否済み",
   "allow": "許可",
   "homeRecommendations": "ホームのおすすめ",
-  "pickedRecentlyViewed": "おすすめ、最近見た本",
   "leaveGroup": "グループを退会",
   "leaveP0": "「{p0}」を退会しますか？",
   "@leaveP0": {
@@ -2911,7 +2753,7 @@
   "reasonDeletionOptional": "削除理由（任意）",
   "bookDeleted2": "書籍を削除しました",
   "rotate": "回転",
-  "mentioned": "[メンションされました]",
+  "mentioned": "[メンション]",
   "saveImage": "画像を保存",
   "everyone": "全員",
   "mentionMembers": "メンバーをメンション",
@@ -2941,7 +2783,7 @@
       "p0": {}
     }
   },
-  "photosP02": "[写真] {p0} 枚",
+  "photosP02": "[写真 {p0} 枚]",
   "@photosP02": {
     "placeholders": {
       "p0": {}
@@ -2959,30 +2801,26 @@
   "savingImage": "画像を保存中",
   "passwordsCanOnlyContainEnglishLetters": "パスワードには英字、数字、半角記号のみ使用できます",
   "aiSupport": "AI サポート",
-  "instantReplies": "即時回答",
   "howDoIListBook": "本を出品するには？",
-  "howDoIPickUpFrom": "スマートロッカーで受け取るには？",
+  "howDoIPickUpFrom": "ロッカーで本を受け取るには？",
   "howDoIRequestRefund": "返金を申請するには？",
-  "howDoWalletCoinsWork": "ウォレットのコインの使い方は？",
-  "talkPerson": "担当者に切り替え",
-  "supportRequestCreatedFromConversationOur": "この会話内容でお問い合わせを作成し、担当者が引き継ぎます",
+  "howDoWalletCoinsWork": "コインの使い方は？",
+  "talkPerson": "サポート担当者に接続",
+  "supportRequestCreatedFromConversationOur": "サポート担当者に接続し、現在の会話内容を共有します",
   "transfer4": "切り替える",
-  "creatingSupportRequest": "お問い合わせを作成しています",
-  "transferredSupportTeam": "担当者に引き継ぎました",
+  "creatingSupportRequest": "サポートに接続しています",
+  "transferredSupportTeam": "サポート担当者に接続しました",
   "newConversation": "新しい会話",
   "currentConversationEnd": "現在の会話は終了します",
   "copied2": "コピーしました",
-  "aiReplies": "AI による回答",
   "howCanWeHelp": "どのようなご用件でしょうか？",
   "failedSend": "送信できませんでした",
   "ourSupportTeamCanHelpWith": "この件は担当者による対応をおすすめします",
   "contactSupport": "サポートに連絡",
   "typeQuestion": "質問を入力",
   "aiFeatures": "AI 機能",
-  "usageModelsListingReview": "利用状況・モデル設定・出品審査",
   "aiSettingsNotSavedChangesLost": "AI 設定が保存されていません。移動すると変更は失われます",
   "usage": "利用状況",
-  "settings2": "設定 •",
   "reviewP0": "審査 {p0}",
   "@reviewP0": {
     "placeholders": {
@@ -2992,7 +2830,6 @@
   "dailyCost": "日別の費用",
   "noCostPeriod": "この期間の費用はありません",
   "peakDay": "1 日の最高",
-  "tapBarDetails": "バーをタップすると内訳を表示",
   "p0Requests": "リクエスト {p0} 件",
   "@p0Requests": {
     "placeholders": {
@@ -3210,8 +3047,6 @@
   "aiSuggestions": "AI の提案",
   "noSuggestionsApply": "反映できる提案はありません",
   "bookDetails": "書籍情報",
-  "conditionAppliedNextStep": "状態（次のステップで反映）",
-  "priceAppliedNextStep": "価格（次のステップで反映）",
   "suggestedPrice": "推奨価格",
   "rangeP0P1": "推奨範囲 ${p0}〜${p1}",
   "@rangeP0P1": {
@@ -3226,7 +3061,6 @@
       "p0": {}
     }
   },
-  "sources": "情報源",
   "applyP0": "{p0} 件を反映",
   "@applyP0": {
     "placeholders": {
@@ -3240,17 +3074,11 @@
     }
   },
   "sameAsCurrent": "現在と同じ",
-  "confidenceP0": "信頼度 {p0}%",
-  "@confidenceP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "listingNotApproved": "出品審査に通りませんでした",
   "editListing": "内容を修正",
   "submittedReview": "審査に回しました",
-  "goSaleOnceApprovedNotifiedResult": "承認されると販売が開始されます。結果は通知でお知らせします",
-  "got": "わかりました",
+  "goSaleOnceApprovedNotifiedResult": "承認後に販売が開始されます",
+  "got": "OK",
   "aiFeaturesNotAvailableRightNow": "AI 機能は現在ご利用いただけません",
   "bookUnderReviewGoSaleOnce": "この書籍は審査中です。承認されると販売が開始されます",
   "notApproved": "審査不合格",
@@ -3273,12 +3101,6 @@
   "aiDataProcessingEnabled": "AI によるデータ処理に同意しました",
   "aiDataProcessingTurnedOff": "AI によるデータ処理を停止しました",
   "aiDataProcessing": "AI によるデータ処理",
-  "providersP0": "提供先：{p0}",
-  "@providersP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "messagesEnterStatusOrdersReservations": "入力したメッセージ、ご自身の注文と予約の状況",
   "isbnTitleConditionNotesPhotosSelect": "ISBN、書名、状態の説明、選択した写真",
   "bookDetailsFromFavoritesPurchaseHistory": "お気に入りと購入履歴に含まれる書籍情報",
@@ -3289,7 +3111,7 @@
   "purpose": "利用目的",
   "usedOnlyGenerateSupportRepliesPrepare": "サポートの回答、出品情報の整理、書籍のおすすめにのみ使用し、広告やトラッキングには使用しません。",
   "withdrawingConsent": "同意の撤回",
-  "canTurnOffAiDataProcessing": "「設定」>「アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。",
+  "canTurnOffAiDataProcessing": "「設定 › アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。",
   "agreeContinue": "同意する",
   "insufficientQuotaPlanNotEnabled": "クォータ不足またはプラン未有効",
   "modelNotFound": "モデル名が存在しません",
@@ -3304,16 +3126,12 @@
   "programmingBooksBeginners": "入門者向けのプログラミング書",
   "booksUnder200Coins": "200 コイン以内の本",
   "popularLiteraryFictionRightNow": "最近人気の文芸小説",
-  "tellMeWhatBookLooking": "お探しの本をお聞かせください",
-  "allRecommendationsComeFromBooksCurrently": "おすすめはすべて出品中の書籍から選ばれます",
+  "tellMeWhatBookLooking": "お探しの本の内容を入力してください",
   "describeBookLooking": "お探しの本を入力してください",
-  "tellMeWhatWantReadI": "読みたい本をお聞かせください。お選びします",
+  "tellMeWhatWantReadI": "ご希望に合わせて本をおすすめします",
   "subtitle": "サブタイトル",
   "monthOnly": "月まで確認",
   "yearOnly": "年まで確認",
-  "fromBookDatabase": "書誌データベースより",
-  "writtenByAi": "AI が作成",
-  "aiTidiedSourceText": "AI が原文を整理",
   "msg": "繁體中文",
   "additionalInformation": "その他の情報",
   "readFull": "全文を表示",
@@ -3333,20 +3151,18 @@
   "setPasswordFirst": "まずパスワードを設定してください",
   "setPassword": "パスワードを設定",
   "signMethodSettingsSaved": "ログイン方法の設定を保存しました",
-  "signMethodSettingsUnsavedLeavingDiscards": "ログイン方法の設定は未保存です。移動すると変更は失われます。",
+  "signMethodSettingsUnsavedLeavingDiscards": "ログイン方法の設定は保存されていません。移動すると変更は失われます。",
   "serverNotRunDatabaseUpdate014": "サーバーでデータベース更新 014 が未実行のため、設定はまだ反映されません。",
   "signChannels": "ログイン方法の一覧",
   "socialSmsSign": "ソーシャル・SMS ログイン",
   "whenOffSignPageHidesThese": "オフにするとログイン画面に表示されません。連携済みの利用者はパスワードでログインできます。",
   "notConfigured": "未設定",
-  "allowCreatingNewAccountsWithMethod": "この方法での新規アカウント作成を許可",
-  "serverNoCredentialsChannel": "サーバーにこのチャネルの認証情報がありません",
+  "allowCreatingNewAccountsWithMethod": "この方法での新規登録を許可",
   "unsavedChanges2": "未保存の変更",
-  "switchesSignupPermissionsSocialSmsSign": "ソーシャル・SMS ログインの開閉と新規登録の可否",
-  "taiwan": "台湾",
+  "taiwan": "中華民国（台湾）",
   "hongKong": "香港",
   "macau": "マカオ",
-  "china": "中国",
+  "china": "中華人民共和国",
   "japan": "日本",
   "southKorea": "韓国",
   "singapore": "シンガポール",
@@ -3359,7 +3175,7 @@
   "couldNotSendCodePleaseTry": "認証コードを送信できませんでした。しばらくしてからお試しください。",
   "linkMobileNumber": "携帯電話番号を連携",
   "signWithMobileNumber": "携帯電話番号でログイン",
-  "k6DigitCodeSentNumberMessage": "この番号に 6 桁の認証コードを送信します。SMS の到着には時間がかかる場合があります。",
+  "k6DigitCodeSentNumberMessage": "この番号に 6 桁の認証コードを送信します。",
   "mobileNumber": "携帯電話番号",
   "sendCode": "認証コードを送信",
   "codeIncorrectPleaseEnterAgain": "認証コードが正しくありません。もう一度入力してください。",
@@ -3380,12 +3196,7 @@
   },
   "resendCode": "認証コードを再送",
   "completeAccountDetails": "アカウント情報の入力",
-  "p0DidNotProvideEmailAddress": "{p0} からメールアドレスが提供されませんでした。情報を入力してアカウントを作成してください。",
-  "@p0DidNotProvideEmailAddress": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
+  "p0DidNotProvideEmailAddress": "登録を完了するにはメールアドレスを入力してください。",
   "signWithP0": "{p0} でログイン",
   "@signWithP0": {
     "placeholders": {
@@ -3395,14 +3206,14 @@
   "signWith2": "または次の方法でログイン",
   "creatingAccountWithMethodsAboveMeans": "上記の方法でアカウントを作成すると、利用規約とプライバシーポリシーに同意したものとみなされます。",
   "emailAlreadyRegistered": "このメールアドレスは登録済みです",
-  "signWithPasswordThenLinkMethod": "パスワードでログインし、アカウントセキュリティのログイン方法から連携してください。",
+  "signWithPasswordThenLinkMethod": "パスワードでログインし、「アカウントセキュリティ › ログイン方法」で連携してください。",
   "signWithPassword": "パスワードでログイン",
   "accountNoPasswordYet": "このアカウントはパスワード未設定です",
   "passwordSet": "パスワードを設定しました",
-  "canNowSignWithEmailPassword": "今後はメールアドレスとパスワードでログインできます。他の端末は再ログインが必要です。",
-  "passwordRequiredBeforeCanUnlinkSign": "ログイン方法の連携解除にはパスワードが必要です。機種変更時もメールアドレスでログインできます。8 文字以上で英字と数字を含めてください。",
-  "changingSignMethodsRequiresIdentityVerification": "ログイン方法の変更には本人確認が必要です。先にパスワードを設定してください。",
-  "later": "後で",
+  "canNowSignWithEmailPassword": "他の端末は再ログインが必要です。",
+  "passwordRequiredBeforeCanUnlinkSign": "8 文字以上で、英字と数字を含めてください。",
+  "changingSignMethodsRequiresIdentityVerification": "ログイン方法を変更する前に、パスワードを設定してください。",
+  "later": "今は設定しない",
   "p0Linked": "{p0} を連携しました",
   "@p0Linked": {
     "placeholders": {
@@ -3415,7 +3226,7 @@
       "p0": {}
     }
   },
-  "noLongerAbleSignWayCan": "この方法ではログインできなくなります。必要になれば再度連携できます。",
+  "noLongerAbleSignWayCan": "連携を解除すると、この方法ではログインできなくなります。",
   "unlink": "連携を解除",
   "p0Unlinked": "{p0} の連携を解除しました",
   "@p0Unlinked": {
@@ -3426,7 +3237,6 @@
   "socialSmsSignNotAvailableRight": "ソーシャル・SMS ログインは現在利用できません。",
   "noSignMethodAvailableLink": "連携できるログイン方法はありません。",
   "noPasswordSet": "パスワード未設定",
-  "requiredBeforeChangingSignMethodsDeleting": "ログイン方法の変更とアカウント削除に必要です",
   "linkedP0": "{p0} に連携",
   "@linkedP0": {
     "placeholders": {
@@ -3438,25 +3248,114 @@
   "provideEmailAddressCreateAccount": "アカウント作成にはメールアドレスが必要です",
   "signMethodOnlyExistingAccounts": "このログイン方法は既存アカウント専用です",
   "signMethodNotAvailableRightNow": "このログイン方法は現在利用できません",
-  "credentialDoesNotMatchSelectedSign": "認証情報が選択したログイン方法と一致しません",
+  "credentialDoesNotMatchSelectedSign": "ログインに失敗しました。もう一度お試しください。",
   "signMethodLinkedAnotherAccount": "このログイン方法は他のアカウントに連携されています",
   "accountAlreadyLinkedSignMethod": "このアカウントはすでにこのログイン方法と連携しています",
   "onlySignMethodAccountSetPassword": "これはこのアカウント唯一のログイン方法です。先にパスワードを設定するか、他の方法を連携してください。",
-  "socialSignUnavailableServerNotFinished": "ソーシャルログインは利用できません。サーバーのデータベース更新が未完了です。",
-  "credentialInvalidExpiredPleaseTryAgain": "認証情報が無効か期限切れです。もう一度お試しください。",
+  "socialSignUnavailableServerNotFinished": "ソーシャルログインは一時的に利用できません。しばらくしてからお試しください。",
+  "credentialInvalidExpiredPleaseTryAgain": "ログインがタイムアウトしました。もう一度お試しください。",
   "accountAlreadyPasswordUseChangePassword": "このアカウントはパスワード設定済みです。パスワードの変更をご利用ください。",
   "signLinkExpiredPleaseTryAgain": "ログインリンクの有効期限が切れました。もう一度お試しください。",
-  "signResultExpiredPleaseTryAgain": "ログイン結果の有効期限が切れました。もう一度お試しください。",
+  "signResultExpiredPleaseTryAgain": "ログインがタイムアウトしました。もう一度お試しください。",
   "thirdPartySignServiceUnavailablePlease": "外部のログインサービスが利用できません。しばらくしてからお試しください。",
   "couldNotCompleteSignPleaseTry": "ログインを完了できませんでした。もう一度お試しください。",
   "accountNotLinkedSignMethod": "このアカウントはこのログイン方法と連携していません",
-  "couldNotReachServerCheckConnection2": "サーバーに接続できません。ネットワークをご確認ください。",
   "mobileNumberFormatNotValid": "携帯電話番号の形式が正しくありません",
   "verificationTimedOutRequestNewCode": "認証がタイムアウトしました。認証コードを再取得してください。",
   "codeExpiredRequestNewOne": "認証コードの有効期限が切れました。再取得してください。",
   "tooManyAttemptsPleaseTryAgain": "試行回数が多すぎます。しばらくしてからお試しください。",
   "smsSendingLimitBeenReachedPlease": "SMS の送信回数が上限に達しました。しばらくしてからお試しください。",
-  "smsVerificationNotSetUpDevice": "この端末では SMS 認証の設定が完了していません。別のログイン方法をご利用ください。",
+  "smsVerificationNotSetUpDevice": "この端末では SMS 認証を利用できません。別のログイン方法をご利用ください。",
   "couldNotCompleteSmsVerificationPlease": "SMS 認証を完了できませんでした。しばらくしてからお試しください。",
-  "allowSigningLinkingWithMethod": "この方法でのログインと連携を許可"
+  "allowSigningLinkingWithMethod": "この方法でのログインと連携を許可",
+  "appNeverStoresPasswordUsedOnly": "このアプリはパスワードを保存しません。今回の認証にのみ使用します。",
+  "verifyWithBiometricsInstead": "生体認証で確認する",
+  "accountWasCreatedWithSocialPhone": "このアカウントはログインパスワードが未設定です。先に設定してください。",
+  "setSignPassword": "ログインパスワードを設定",
+  "enterSignPasswordRunAdminAction": "この管理操作を実行するには、ログインパスワードまたはパスキーで本人確認を行ってください",
+  "p1P0MethodsEnabled": "全 {p0} 種類のうち {p1} 種類が有効",
+  "@p1P0MethodsEnabled": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "masterSwitchOffSoEveryMethod": "総合スイッチがオフのため、すべての方法が無効です",
+  "signLinkingDirectSignUpAllowed": "ログイン・連携・新規登録が可能",
+  "credentialsNotSetPleaseConfigureP0": "認証情報が未設定です。サーバーで {p0} を設定してください",
+  "@credentialsNotSetPleaseConfigureP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "whenOffMethodHiddenFromSign": "オフにするとログイン画面とアカウントセキュリティに表示されません",
+  "whenOffOnlyAccountsAlreadyLinked": "オフにすると連携済みのアカウントのみ利用できます",
+  "signMethodNotLinkedAccount": "このログイン方法はアカウントに連携されていません",
+  "p0AccountNotLinkedAnySavemybook": "この {p0} アカウントは SaveMyBook アカウントと連携されていません。",
+  "@p0AccountNotLinkedAnySavemybook": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "iAlreadyAccountSignFirst": "既存のアカウントにログインして連携",
+  "createNewAccountWithIdentity": "新しいアカウントを作成",
+  "signExistingAccountFirstThenLink": "先に既存のアカウントでログインし、「アカウントセキュリティ › ログイン方法」で {p0} を連携してください。",
+  "@signExistingAccountFirstThenLink": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signMethodNotLinkedAnyAccount": "このログイン方法はどのアカウントとも連携されていません",
+  "verifyIdentityWithPasskeyContinue": "続行するにはパスキーで本人確認を行ってください",
+  "verifyWithPasskeyInstead": "パスキーで確認する",
+  "passkeys": "パスキー",
+  "verifyWithFaceIdFingerprintScreen": "このデバイスの Face ID、指紋、画面ロックで確認します。パスワードは不要です。",
+  "verifyWithPasskey": "パスキーで確認",
+  "useSignPasswordInstead": "ログインパスワードで確認する",
+  "signWithPasskey": "パスキーでログイン",
+  "passkeyAdded": "パスキーを追加しました",
+  "screenLock": "画面ロック",
+  "fromNowCanSignVerifyIdentity": "今後はパスワードを入力せずに、{p0} でログインと本人確認ができます。",
+  "@fromNowCanSignVerifyIdentity": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "deletePasskey": "パスキーを削除",
+  "noLongerAbleSignVerifyIdentity": "削除すると、このパスキーでログインや本人確認ができなくなります。デバイスに保存されたパスキーは削除されないため、システムのパスワード設定から削除してください。",
+  "passkeyDeleted": "パスキーを削除しました",
+  "signVerifyIdentityWithFaceId": "パスワードの代わりに Face ID、指紋、画面ロックでログインと本人確認ができます。パスキーはお使いのデバイスとパスワード マネージャーにのみ保存されます。",
+  "addPasskey": "パスキーを追加",
+  "notUsedYet": "未使用",
+  "lastUsedFormatdateItemLastusedat": "最終使用 {p0}",
+  "@lastUsedFormatdateItemLastusedat": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "createdCreated": "作成日 {p0}",
+  "@createdCreated": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noPasskeyAvailableDeviceUsePassword": "このデバイスで使用できるパスキーがありません。パスワードをご利用ください。",
+  "passkeyAlreadyRegisteredDevice": "このデバイスには既にパスキーが登録されています。",
+  "signGoogleAccountTurnPasswordManager": "このデバイスで Google アカウントにログインしてパスワード マネージャーを有効にするか、パスワードをご利用ください。",
+  "setUpScreenLockPasswordManager": "パスキーを作成するには、このデバイスで画面ロックまたはパスワード マネージャーを設定してください。",
+  "deviceDoesNotSupportPasskeysUse": "このデバイスはパスキーに対応していません。パスワードをご利用ください。",
+  "passkeysTemporarilyUnavailableBecauseAppWebsite": "現在パスキーは利用できません。パスワードをご利用ください。",
+  "requestTimedOutPleaseTryAgain": "操作がタイムアウトしました。もう一度お試しください。",
+  "passkeyRequestFailedUsePasswordInstead": "パスキーの操作に失敗しました。パスワードをご利用ください。",
+  "verifyIdentityBeforeAddingPasskey": "パスキーを追加する前に本人確認を行ってください",
+  "couldNotListPleaseTryAgain": "出品に失敗しました。しばらくしてからお試しください。",
+  "downloadLinkValidOnceP0P1": "このダウンロードリンクは 5 分間有効で、1 回のみ使用できます。共有しないでください。\n\n{p0}\n\nファイルサイズ：{p1}",
+  "@downloadLinkValidOnceP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "sources": "情報源",
+  "unableOpenLink": "リンクを開けませんでした。"
 }

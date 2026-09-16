@@ -15,7 +15,7 @@ extension PushApi on ApiService {
 
   Future<(String?, String?)> sendTestPush() async {
     final res = await _send('POST', '/push/test');
-    if (res == null) return (null, S.couldNotReachServer);
+    if (res == null) return (null, S.networkError);
     final message = res['message'] as String?;
     return res['success'] == true ? (message ?? '', null) : (null, message ?? S.somethingWentWrongPleaseTryAgain);
   }

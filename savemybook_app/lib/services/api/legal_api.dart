@@ -14,7 +14,7 @@ extension LegalApi on ApiService {
 
   Future<String?> acceptLegalDoc(LegalDoc doc) async {
     final res = await _send('POST', '/users/me/legal-consents', body: {'doc_key': doc.key, 'version': doc.version});
-    if (res == null) return S.couldNotReachServer;
+    if (res == null) return S.networkError;
     return res['success'] == true ? null : (res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
   }
 

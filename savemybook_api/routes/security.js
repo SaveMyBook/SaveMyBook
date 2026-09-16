@@ -5,6 +5,7 @@ const { rateLimit, byUser } = require('../middleware/rateLimit');
 const v = require('../lib/validate');
 const security = require('../services/security');
 const sessions = require('../services/sessions');
+const passkeys = require('../services/passkeys');
 
 const router = express.Router();
 
@@ -22,10 +23,19 @@ router.get('/', async (req, res) => {
   res.status(200).json({ success: true, data });
 });
 
+router.post('/verify/passkey/options', verifyLimiter, async (req, res) => {
+  const scopes = Object.keys(security.SCOPES).filter((id) => security.SCOPES[id].methods.includes('passkey'));
+  const scope = v.oneOf(req.body.scope, scopes, '驗證範圍不正確');
+
+  const options = await passkeys.verifyOptions(req.user.userId, scope);
+  res.status(200).json({ success: true, data: { options } });
+});
+
 router.post('/verify', verifyLimiter, async (req, res) => {
-  const scope = v.oneOf(req.body.scope, Object.keys(security.SCOPES), 'scope 僅接受：payment, sensitive');
+  const scopes = Object.keys(security.SCOPES);
+  const scope = v.oneOf(req.body.scope, scopes, '驗證範圍不正確');
   const allowed = security.SCOPES[scope].methods;
-  const method = v.oneOf(req.body.method, allowed, `method 僅接受：${allowed.join(', ')}`);
+  const method = v.oneOf(req.body.method, allowed, '不支援此驗證方式');
 
   const data = await security.verify({
     userId: req.user.userId,
@@ -34,7 +44,8 @@ router.post('/verify', verifyLimiter, async (req, res) => {
     method,
     plainPassword: req.body.password,
     pin: req.body.pin,
-    key: req.body.key
+    key: req.body.key,
+    assertion: req.body.assertion
   });
   res.status(200).json({ success: true, data });
 });

@@ -34,7 +34,7 @@ const providerError = () => new HttpError(502, '第三方登入服務目前無�
 
 const stateInvalid = () => badRequest('登入連結已失效，請重新操作', 'OAUTH_STATE_INVALID');
 
-const codeInvalid = () => badRequest('登入結果已失效，請重新操作', 'OAUTH_CODE_INVALID');
+const codeInvalid = () => badRequest('登入逾時，請重新操作', 'OAUTH_CODE_INVALID');
 
 const redirectUri = (provider) => `${env.oauthRedirectBase}/api/auth/oauth/${provider}/callback`;
 
@@ -177,6 +177,7 @@ const saveResult = async (payload) => {
 };
 
 // 回呼階段只完成身分判定，Token 於 App 呼叫 exchange 時才簽發，資料庫不保存任何 Token。
+// 尚未綁定任何帳號時只把第三方資料暫存下來，是否建立帳號由使用者在 App 決定。
 const handleCallback = async (provider, code, state) => {
   await settings.assertEnabled(provider);
   if (typeof code !== 'string' || !code || code.length > 512) throw stateInvalid();
@@ -192,36 +193,65 @@ const handleCallback = async (provider, code, state) => {
     return saveResult({ kind: 'link', provider, user_id: userId });
   }
 
+  if (!(await identities.findIdentity(provider, info.subject))) {
+    return saveResult({ kind: 'signup', provider, info });
+  }
+
   const { user } = await identities.resolveSignIn({ provider, info });
   return saveResult({ kind: 'login', provider, user_id: user.user_id });
 };
 
-const takeResult = async (code) => {
+const dropResult = (code) => prisma.$executeRaw`DELETE FROM oauth_results WHERE code = ${code}`;
+
+const readResult = async (code) => {
   if (typeof code !== 'string' || !/^[0-9a-f]{32}$/.test(code)) throw codeInvalid();
 
   const rows = await prisma.$queryRaw`SELECT payload, created_at FROM oauth_results WHERE code = ${code}`;
   const row = rows[0];
-  await prisma.$executeRaw`DELETE FROM oauth_results WHERE code = ${code}`;
   if (!row) throw codeInvalid();
-  if (Date.now() - new Date(row.created_at).getTime() > RESULT_TTL_MS) throw codeInvalid();
+  if (Date.now() - new Date(row.created_at).getTime() > RESULT_TTL_MS) {
+    await dropResult(code);
+    throw codeInvalid();
+  }
 
   try {
     return JSON.parse(String(row.payload));
   } catch {
+    await dropResult(code);
     throw codeInvalid();
   }
 };
 
-const exchangeResult = async (code, device) => {
+// 這兩種結果代表還要問使用者（要不要建立帳號、補電子郵件），一次性碼必須留到下一次呼叫。
+const RETRYABLE_CODES = new Set(['NO_ACCOUNT_FOR_PROVIDER', 'EMAIL_REQUIRED']);
+
+const exchangeResult = async (code, device, { create = false, email = null, nickname = null, acceptLegal = false } = {}) => {
   if (!(await settings.migrationReady())) throw settings.unavailable();
 
-  const payload = await takeResult(code);
-  if (payload.kind === 'link') return { linked: true, provider: payload.provider };
+  const payload = await readResult(code);
+  try {
+    if (payload.kind === 'link') {
+      await dropResult(code);
+      return { linked: true, provider: payload.provider };
+    }
 
-  const user = await identities.loadLoginUser(Number(payload.user_id));
-  if (!user) throw codeInvalid();
-  auth.assertLoginAllowed(user);
-  return auth.issueLogin(user, device, payload.provider);
+    if (payload.kind === 'signup') {
+      const { user } = await identities.resolveSignIn({
+        provider: payload.provider, info: payload.info, email, nickname, acceptLegal, create
+      });
+      await dropResult(code);
+      return auth.issueLogin(user, device, payload.provider);
+    }
+
+    const user = await identities.loadLoginUser(Number(payload.user_id));
+    if (!user) throw codeInvalid();
+    auth.assertLoginAllowed(user);
+    await dropResult(code);
+    return auth.issueLogin(user, device, payload.provider);
+  } catch (err) {
+    if (!RETRYABLE_CODES.has(err?.code)) await dropResult(code);
+    throw err;
+  }
 };
 
 const cleanupExpired = async () => {

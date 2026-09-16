@@ -766,7 +766,7 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
           loading: _loading,
           hint: _loading ? S.loading : S.chooseLocker,
           title: S.lockerLocation,
-          sheetSubtitle: _located ? S.sortedByDistance : S.turnLocationSortByDistance,
+          sheetSubtitle: _located ? null : S.turnLocationSortByDistance,
           emptyText: S.noLockersMatch,
           errorText: widget.errorText,
           leadingIcon: Icons.inventory_2_outlined,

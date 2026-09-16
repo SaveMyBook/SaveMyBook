@@ -22,7 +22,7 @@ const addLog = ({ adminId, action = '變更會員狀態', targetType = 'user', t
   return row;
 };
 
-const verifiedAs = (admin) => ({ 'x-verify-token': h.verifyTokenFor({ user: admin }) });
+const verifiedAs = (admin) => ({ 'x-verify-token': h.verifyTokenFor({ user: admin, scope: 'admin' }) });
 
 module.exports = {
   name: '平台：操作紀錄',

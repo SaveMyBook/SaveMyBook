@@ -249,4 +249,18 @@ UNION ALL
 SELECT '欄位', 'login_logs.login_method',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'login_logs' AND COLUMN_NAME = 'login_method';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'login_logs' AND COLUMN_NAME = 'login_method'
+
+UNION ALL
+
+SELECT '資料表', 'user_passkeys',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_passkeys'
+
+UNION ALL
+
+SELECT '資料表', 'webauthn_challenges',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'webauthn_challenges';

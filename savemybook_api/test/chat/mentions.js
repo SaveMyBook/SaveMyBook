@@ -185,7 +185,7 @@ const tests = [
     });
     assert.strictEqual(res.status, 503);
     assert.strictEqual(res.body.code, 'CHAT_V3_UNAVAILABLE');
-    assert.strictEqual(res.body.message, '伺服器尚未完成資料庫更新，請聯絡管理員');
+    assert.strictEqual(res.body.message, '此功能暫時無法使用，請稍後再試');
     assert.strictEqual(prisma.rows('chat_messages').filter((m) => m.message_type === 'text').length, 0);
   }]
 ];

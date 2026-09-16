@@ -113,7 +113,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 缺少參數:
-                  value: { success: false, message: 請提供 book_id }
+                  value: { success: false, message: 請指定書籍 }
                 本人上架的書籍:
                   value: { success: false, message: 無法將自己上架的書籍加入購物車 }
                 已被買走:

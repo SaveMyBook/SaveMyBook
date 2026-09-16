@@ -58,7 +58,7 @@ const tests = [
 
     const res = await request('POST', '/api/support/tickets', { token: tokenFor(user), body: ticketBody() });
     assert.strictEqual(res.status, 400);
-    assert.strictEqual(res.body.message, '您已有 5 張處理中的工單，請待客服回覆後再建立新工單');
+    assert.strictEqual(res.body.message, '您已有 5 則處理中的提問，請待客服回覆後再提出新問題');
   }],
 
   ['使用者回覆工單會通知客服並讓工單回到待處理', async () => {
@@ -93,7 +93,7 @@ const tests = [
 
     const notice = notificationsOf(user.user_id)[0];
     assert.strictEqual(notice.title, '客服已回覆您的問題');
-    assert.strictEqual(notice.content, '工單「無法登入」有新的回覆。');
+    assert.strictEqual(notice.content, '您的提問「無法登入」有新的回覆。');
     assert.strictEqual(notice.related_type, 'ticket');
   }],
 
@@ -113,7 +113,7 @@ const tests = [
       token, body: { content: '再問一次' }
     });
     assert.strictEqual(res.status, 400);
-    assert.strictEqual(res.body.message, '此工單已結案，請建立新工單');
+    assert.strictEqual(res.body.message, '此提問已結案，請提出新問題');
   }],
 
   ['工單僅限本人與客服檢視', async () => {
@@ -138,7 +138,7 @@ const tests = [
 
     const missing = await request('GET', '/api/support/tickets/9999', { token: tokenFor(user) });
     assert.strictEqual(missing.status, 404);
-    assert.strictEqual(missing.body.message, '找不到此工單');
+    assert.strictEqual(missing.body.message, '找不到此提問');
   }],
 
   ['使用者可自行結案，客服調整狀態會通知使用者並留下紀錄', async () => {
@@ -148,7 +148,7 @@ const tests = [
 
     const closed = await request('PATCH', `/api/support/tickets/${ticket.ticket_id}/close`, { token: tokenFor(user) });
     assert.strictEqual(closed.status, 200);
-    assert.strictEqual(closed.body.message, '工單已結案');
+    assert.strictEqual(closed.body.message, '問題已結案');
     assert.strictEqual(prisma.rows('support_tickets')[0].status, 'closed');
 
     const res = await request('PATCH', `/api/admin/tickets/${ticket.ticket_id}/status`, {
@@ -157,8 +157,8 @@ const tests = [
     assert.strictEqual(res.status, 200);
     assert.strictEqual(prisma.rows('support_tickets')[0].status, 'resolved');
 
-    const notice = notificationsOf(user.user_id).find((n) => n.title === '工單狀態更新');
-    assert.strictEqual(notice.content, '工單「無法登入」已更新為「已解決」。');
+    const notice = notificationsOf(user.user_id).find((n) => n.title === '提問狀態更新');
+    assert.strictEqual(notice.content, '您的提問「無法登入」已更新為「已解決」。');
     assert.strictEqual(logs()[0].action, '調整工單狀態');
   }],
 
@@ -186,11 +186,11 @@ const tests = [
 
     const badType = await request('POST', '/api/reports', { token, body: { target_type: 'order', target_id: 1, reason: 'x' } });
     assert.strictEqual(badType.status, 400);
-    assert.strictEqual(badType.body.message, 'target_type 僅接受：user, book, message');
+    assert.strictEqual(badType.body.message, '檢舉類型不正確');
 
     const noTarget = await request('POST', '/api/reports', { token, body: { target_type: 'book', reason: 'x' } });
     assert.strictEqual(noTarget.status, 400);
-    assert.strictEqual(noTarget.body.message, '請提供 target_id');
+    assert.strictEqual(noTarget.body.message, '請指定檢舉對象');
 
     const noReason = await request('POST', '/api/reports', { token, body: { target_type: 'book', target_id: 1, reason: '' } });
     assert.strictEqual(noReason.status, 400);
@@ -357,6 +357,37 @@ const tests = [
     });
     assert.strictEqual(closed.status, 400);
     assert.strictEqual(closed.body.message, '此訂單已取消或已退款，無法提出爭議');
+  }],
+
+  ['取書後超過 24 小時不可提出爭議，期限內與取書前皆可', async () => {
+    const buyer = addUser({ balance: 500 });
+    const seller = addUser({ balance: 0 });
+    const book = addBook({ sellerId: seller.user_id });
+    const hoursAgo = (h) => new Date(Date.now() - h * 60 * 60 * 1000);
+
+    const late = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'completed' });
+    Object.assign(late, { picked_up_at: hoursAgo(25), completed_at: hoursAgo(25) });
+    const expired = await request('POST', '/api/disputes', {
+      token: tokenFor(buyer), body: { order_id: late.order_id, reason: '書況與描述不符' }
+    });
+    assert.strictEqual(expired.status, 400);
+    assert.strictEqual(expired.body.code, 'DISPUTE_WINDOW_PASSED');
+    assert.strictEqual(expired.body.message, '已超過取書後 24 小時的申訴期限');
+    assert.strictEqual(late.status, 'completed', '被拒絕時不得變更訂單狀態');
+
+    const recent = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'completed' });
+    Object.assign(recent, { picked_up_at: hoursAgo(23), completed_at: hoursAgo(23) });
+    const inTime = await request('POST', '/api/disputes', {
+      token: tokenFor(buyer), body: { order_id: recent.order_id, reason: '書況與描述不符' }
+    });
+    assert.strictEqual(inTime.status, 201);
+
+    // 取書前（例如賣家遲遲未放書）不受 24 小時限制。
+    const waiting = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'pending_deposit' });
+    const beforePickup = await request('POST', '/api/disputes', {
+      token: tokenFor(buyer), body: { order_id: waiting.order_id, reason: '賣家尚未放書' }
+    });
+    assert.strictEqual(beforePickup.status, 201);
   }],
 
   ['提出爭議後訂單暫停並通知對方，重複申請會被擋下', async () => {

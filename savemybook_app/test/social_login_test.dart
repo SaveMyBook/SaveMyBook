@@ -1,10 +1,17 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_secure_storage/test/test_flutter_secure_storage_platform.dart';
+import 'package:flutter_secure_storage_platform_interface/flutter_secure_storage_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:savemybook_app/i18n/app_localizations.dart';
+import 'package:savemybook_app/i18n/strings.dart';
 import 'package:savemybook_app/features/auth/phone_sign_in_screen.dart';
 import 'package:savemybook_app/features/auth/social_sign_in.dart';
 import 'package:savemybook_app/models/auth_social.dart';
@@ -57,9 +64,59 @@ http.Response _fail(int status, String code, String message) => http.Response(
       headers: {'content-type': 'application/json; charset=utf-8'},
     );
 
+BuildContext? _ctx;
+bool? _flowResult;
+
+/// pumpAndSettle 只等到沒有待排的畫面更新，流程尾端的非同步工作要多轉幾圈才會結束。
+Future<void> _settle(WidgetTester tester) async {
+  await tester.pumpAndSettle();
+  for (var i = 0; i < 8; i++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
+
+/// 把流程掛在一個真的有 Navigator 的畫面上，才能按到對話框的按鈕。
+Future<void> _pumpFlow(
+  WidgetTester tester,
+  Future<bool> Function() run, {
+  required MockClient client,
+}) async {
+  _ctx = null;
+  _flowResult = null;
+
+  await tester.pumpWidget(MaterialApp(
+    locale: const Locale('zh'),
+    supportedLocales: const [Locale('zh')],
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    builder: (context, child) {
+      S = AppLocalizations.of(context);
+      return child ?? const SizedBox.shrink();
+    },
+    home: Builder(
+      builder: (context) {
+        _ctx = context;
+        return const Scaffold(body: SizedBox.shrink());
+      },
+    ),
+  ));
+  await tester.pumpAndSettle();
+
+  unawaited(http.runWithClient(() async {
+    _flowResult = await run();
+  }, () => client));
+  await _settle(tester);
+}
+
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    // 未接上原生端時 FlutterSecureStorage 的呼叫不會回來，登入流程會卡在清除付款金鑰。
+    FlutterSecureStoragePlatform.instance = TestFlutterSecureStoragePlatform({});
     ApiService.authToken = null;
     ApiService.currentUser = null;
     DeepLinkService.onOAuthResult = null;
@@ -143,7 +200,7 @@ void main() {
       ApiService.currentUser = User.fromJson({'user_id': 1, 'nickname': 'A', 'email': 'a@x.com', 'role': 'buyer_seller'});
 
       final client = _client({
-        'POST /auth/link': () => _fail(401, AuthCodes.invalidIdToken, '登入憑證無效或已過期，請重新操作'),
+        'POST /auth/link': () => _fail(401, AuthCodes.invalidIdToken, '登入逾時，請重新操作'),
       });
       final result = await http.runWithClient(
         () => ApiService().linkIdentity(provider: AuthProviders.google, idToken: 'bad'),
@@ -182,7 +239,7 @@ void main() {
       ApiService.authToken = 'session-token';
       final client = _client({
         'DELETE /auth/link/line': () => http.Response(
-              jsonEncode({'success': false, 'message': '此帳號未綁定這個登入方式'}),
+              jsonEncode({'success': false, 'message': '此帳號未綁定此登入方式'}),
               404,
               headers: {'content-type': 'application/json; charset=utf-8'},
             ),
@@ -227,7 +284,7 @@ void main() {
       ApiService.authToken = 'session-token';
       final client = _client({
         'GET /users/me/identities': () =>
-            _fail(503, AuthCodes.unavailable, '社群登入目前無法使用，伺服器尚未完成資料庫更新'),
+            _fail(503, AuthCodes.unavailable, '社群登入暫時無法使用，請稍後再試'),
       });
       final result = await http.runWithClient(() => ApiService().fetchIdentities(), () => client);
       expect(result.code, AuthCodes.unavailable);
@@ -235,7 +292,7 @@ void main() {
 
     test('OAuth 交換失敗回 OAUTH_CODE_INVALID', () async {
       final client = _client({
-        'POST /auth/oauth/exchange': () => _fail(400, AuthCodes.codeInvalid, '登入結果已失效，請重新操作'),
+        'POST /auth/oauth/exchange': () => _fail(400, AuthCodes.codeInvalid, '登入逾時，請重新操作'),
       });
       final result = await http.runWithClient(() => ApiService().exchangeOAuthCode('a' * 32), () => client);
       expect(result.code, AuthCodes.codeInvalid);
@@ -368,8 +425,10 @@ void main() {
       expect(DeepLinkService.parseOAuthLink('savemybook://b/0123456789abcdef0123456789abcdef'), isNull);
     });
 
-    test('取得一次性碼後結束等待', () async {
-      SocialAuth.openExternal = (url) async {
+    test('取得一次性碼後結束等待並關掉 App 內瀏覽器', () async {
+      var closed = 0;
+      SocialAuth.closeAuthBrowser = () async => closed++;
+      SocialAuth.openAuthBrowser = (url) async {
         DeepLinkService.onOAuthResult?.call(const OAuthDeepLink(code: 'one-time-code'));
         return true;
       };
@@ -377,10 +436,11 @@ void main() {
       expect(result.isOk, isTrue);
       expect(result.data, 'one-time-code');
       expect(DeepLinkService.onOAuthResult, isNull, reason: '流程結束後要拆掉處理器');
+      expect(closed, 1, reason: '回跳後授權視窗不會自己關');
     });
 
     test('回呼帶錯誤代碼時轉成可顯示的訊息', () async {
-      SocialAuth.openExternal = (url) async {
+      SocialAuth.openAuthBrowser = (url) async {
         DeepLinkService.onOAuthResult?.call(const OAuthDeepLink(error: AuthCodes.stateInvalid));
         return true;
       };
@@ -389,10 +449,155 @@ void main() {
       expect(result.message, AuthCodes.messageOf(AuthCodes.stateInvalid));
     });
 
-    test('無法開啟瀏覽器時回失敗', () async {
-      SocialAuth.openExternal = (url) async => false;
+    test('無法開啟瀏覽器時回失敗且不留下處理器', () async {
+      SocialAuth.openAuthBrowser = (url) async => false;
       final result = await SocialAuth.awaitOAuthCode('https://example.com/authorize');
       expect(result.code, AuthCodes.oauthFailed);
+      expect(DeepLinkService.onOAuthResult, isNull);
+    });
+
+    test('沒有等待中的流程時深層連結直接丟棄，不會留到下一次登入', () async {
+      DeepLinkService.deliver('savemybook://auth/oauth?code=stale-code');
+
+      var opened = 0;
+      SocialAuth.openAuthBrowser = (url) async {
+        opened++;
+        DeepLinkService.onOAuthResult?.call(const OAuthDeepLink(code: 'fresh-code'));
+        return true;
+      };
+      final result = await SocialAuth.awaitOAuthCode('https://example.com/authorize');
+
+      expect(opened, 1, reason: '新的一次登入一定要真的開啟授權頁');
+      expect(result.data, 'fresh-code', reason: '不得以上一次留下的碼結束流程');
+    });
+
+    test('重複開始授權時前一個等待會被取消，不留下背景計時器', () async {
+      SocialAuth.openAuthBrowser = (url) async => true;
+      final first = SocialAuth.awaitOAuthCode('https://example.com/authorize');
+
+      SocialAuth.openAuthBrowser = (url) async {
+        DeepLinkService.onOAuthResult?.call(const OAuthDeepLink(code: 'second-code'));
+        return true;
+      };
+      final second = await SocialAuth.awaitOAuthCode('https://example.com/authorize');
+
+      expect((await first).isCancelled, isTrue, reason: '舊流程要立刻收掉');
+      expect(second.data, 'second-code');
+      expect(DeepLinkService.onOAuthResult, isNull);
+    });
+
+    testWidgets('關閉授權頁回到 App 後逾寬限時間仍無回呼即視為取消', (tester) async {
+      SocialAuth.openAuthBrowser = (url) async => true;
+      AuthResult<String>? result;
+      unawaited(SocialAuth.awaitOAuthCode('https://example.com/authorize').then((r) => result = r));
+      await tester.pump();
+
+      SocialAuth.handleBrowserClosed();
+      await tester.pump(SocialAuth.browserCloseGrace ~/ 2);
+      expect(result, isNull, reason: '寬限時間內仍要等回呼');
+
+      await tester.pump(SocialAuth.browserCloseGrace);
+      expect(result?.isCancelled, isTrue);
+      expect(DeepLinkService.onOAuthResult, isNull);
+    });
+
+    test('取消等待後不再持有深層連結處理器', () async {
+      SocialAuth.openAuthBrowser = (url) async => true;
+      final pending = SocialAuth.awaitOAuthCode('https://example.com/authorize');
+      SocialAuth.cancelOAuthWait();
+
+      expect((await pending).isCancelled, isTrue);
+      expect(DeepLinkService.onOAuthResult, isNull);
+    });
+  });
+
+  group('尚未綁定帳號時不自動建立', () {
+    Map<String, dynamic>? lastSocialBody;
+    Map<String, dynamic>? lastExchangeBody;
+
+    MockClient noAccountClient({required bool createSucceeds}) => MockClient((request) async {
+          final path = request.url.path.replaceFirst('/api', '');
+          final body = request.body.isEmpty
+              ? <String, dynamic>{}
+              : Map<String, dynamic>.from(jsonDecode(request.body) as Map);
+
+          if (path == '/auth/social') lastSocialBody = body;
+          if (path == '/auth/oauth/exchange') lastExchangeBody = body;
+
+          if (path == '/auth/social' || path == '/auth/oauth/exchange') {
+            if (body['create'] != true) {
+              return _fail(404, AuthCodes.noAccountForProvider, '此 LINE 帳號尚未綁定任何帳號');
+            }
+            return createSucceeds
+                ? _ok({'token': 'new-token'})
+                : _fail(403, AuthCodes.signupNotAllowed, '此登入方式僅供既有帳號使用');
+          }
+          if (path == '/auth/oauth/line/start') return _ok({'url': 'https://example.com/authorize'});
+          if (path == '/users/me' || path == '/auth/me') {
+            return _ok({'user_id': 1, 'nickname': 'A', 'email': 'a@x.com', 'role': 'buyer_seller'});
+          }
+          return _ok(<String, Object>{});
+        });
+
+    setUp(() {
+      lastSocialBody = null;
+      lastExchangeBody = null;
+    });
+
+    testWidgets('選擇建立新帳號時才帶 create 重送', (tester) async {
+      await _pumpFlow(tester, () => SocialSignInFlow.signIn(_ctx!, AuthProviders.google),
+          client: noAccountClient(createSucceeds: true));
+
+      expect(find.text(S.createNewAccountWithIdentity), findsOneWidget, reason: '應先詢問使用者');
+      expect(lastSocialBody?['create'], isNull, reason: '第一次呼叫不得要求建立帳號');
+
+      await tester.tap(find.text(S.createNewAccountWithIdentity));
+      await _settle(tester);
+
+      expect(lastSocialBody?['create'], isTrue);
+      expect(_flowResult, isTrue);
+    });
+
+    testWidgets('選擇先登入再綁定時不建立帳號', (tester) async {
+      await _pumpFlow(tester, () => SocialSignInFlow.signIn(_ctx!, AuthProviders.google),
+          client: noAccountClient(createSucceeds: true));
+
+      await tester.tap(find.text(S.iAlreadyAccountSignFirst));
+      await _settle(tester);
+
+      expect(lastSocialBody?['create'], isNull, reason: '不得建立帳號');
+      expect(_flowResult, isFalse);
+    });
+
+    testWidgets('取消時不再呼叫伺服器', (tester) async {
+      await _pumpFlow(tester, () => SocialSignInFlow.signIn(_ctx!, AuthProviders.google),
+          client: noAccountClient(createSucceeds: true));
+
+      await tester.tap(find.text(S.actionCancel));
+      await _settle(tester);
+
+      expect(lastSocialBody?['create'], isNull);
+      expect(_flowResult, isFalse);
+    });
+
+    testWidgets('OAuth 版本以同一組一次性碼重送', (tester) async {
+      SocialAuth.openAuthBrowser = (url) async {
+        DeepLinkService.onOAuthResult?.call(const OAuthDeepLink(code: 'one-time-code'));
+        return true;
+      };
+
+      await _pumpFlow(tester, () => SocialSignInFlow.signIn(_ctx!, AuthProviders.line),
+          client: noAccountClient(createSucceeds: true));
+
+      expect(lastExchangeBody?['code'], 'one-time-code');
+      expect(lastExchangeBody?['create'], isNull);
+
+      await tester.tap(find.text(S.createNewAccountWithIdentity));
+      await _settle(tester);
+
+      expect(lastExchangeBody?['code'], 'one-time-code', reason: '不需要重開授權頁');
+      expect(lastExchangeBody?['create'], isTrue);
+      expect(_flowResult, isTrue);
     });
   });
 

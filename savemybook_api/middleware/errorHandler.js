@@ -27,8 +27,8 @@ const classify = (err) => {
     const [status, message] = MULTER_MESSAGES[err.code] ?? [400, '檔案上傳失敗'];
     return [status, message];
   }
-  if (err?.type === 'entity.parse.failed') return [400, '請求內容不是合法的 JSON'];
-  if (err?.type === 'entity.too.large') return [413, '請求內容過大'];
+  if (err?.type === 'entity.parse.failed') return [400, '資料格式不正確'];
+  if (err?.type === 'entity.too.large') return [413, '資料內容過大'];
   if (err?.code && PRISMA_MESSAGES[err.code]) return PRISMA_MESSAGES[err.code];
   if (err?.name === 'PrismaClientValidationError') return [400, '提供的資料格式錯誤或包含無效的值'];
   return null;
@@ -43,7 +43,7 @@ const errorHandler = (err, req, res, next) => {
   const known = classify(err);
   if (!known) {
     console.error(`[${req.method} ${req.originalUrl}]`, err);
-    return res.status(500).json({ success: false, message: '伺服器發生錯誤' });
+    return res.status(500).json({ success: false, message: '系統發生錯誤，請稍後再試' });
   }
 
   const [status, message, code, extra] = known;

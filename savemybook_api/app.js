@@ -7,6 +7,7 @@ const { env } = require('./config/env');
 const { buildSpec } = require('./config/openapi');
 const { registerRoutes } = require('./routes');
 const { securityHeaders, uploadHeaders, ensureBody } = require('./middleware/security');
+const { uploadsGuard } = require('./middleware/uploads-guard');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 const maintenance = require('./lib/maintenance');
 
@@ -21,6 +22,8 @@ const createApp = () => {
   app.use(cors({ origin: env.corsOrigins }));
   app.use(express.json({ limit: '1mb' }));
   app.use(ensureBody);
+
+  app.use(uploadsGuard);
 
   app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     dotfiles: 'deny',

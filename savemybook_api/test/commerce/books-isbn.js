@@ -32,7 +32,7 @@ const tests = [
 
     const res = await lookup();
     assert.strictEqual(res.status, 404);
-    assert.strictEqual(res.body.message, '外部書庫找不到此 ISBN 的書籍資訊');
+    assert.strictEqual(res.body.message, '找不到此 ISBN 的書籍資訊');
   }],
 
   ['兩個來源都發生錯誤時回 502', async () => {

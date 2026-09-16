@@ -21,7 +21,7 @@ router.get('/wallets/:userId', canManage, async (req, res) => {
   res.status(200).json({ success: true, data: await wallet.adminDetail(v.id(req.params.userId, '會員編號')) });
 });
 
-router.post('/wallets/:userId/adjust', canManage, requireVerification('sensitive'), async (req, res) => {
+router.post('/wallets/:userId/adjust', canManage, requireVerification('admin'), async (req, res) => {
   const userId = v.id(req.params.userId, '會員編號');
   const amount = Number(req.body.amount);
   const description = v.text(req.body.description, { label: '調整原因', max: 200 });

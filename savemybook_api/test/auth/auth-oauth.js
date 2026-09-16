@@ -40,6 +40,8 @@ const startLogin = (provider = 'line') => h.request('POST', `/api/auth/oauth/${p
 const callback = (provider, code, state) =>
   h.request('GET', `/api/auth/oauth/${provider}/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`);
 
+const exchange = (code, extra = {}) => h.request('POST', '/api/auth/oauth/exchange', { body: { code, ...extra } });
+
 const deepLinkParams = (res) => {
   const location = res.headers.get('location');
   assert.ok(location?.startsWith('savemybook://auth/oauth?'), `導向網址不正確：${location}`);
@@ -103,10 +105,16 @@ const tests = [
     assert.strictEqual(params.get('error'), null);
     assert.strictEqual(h.prisma.rows('oauth_states').length, 0, 'state 應一次性消耗');
 
+    // 尚未綁定任何帳號：先問使用者，不建立帳號，且一次性碼要留著給下一步
+    const asked = await exchange(code);
+    assert.strictEqual(asked.status, 404);
+    assert.strictEqual(asked.body.code, 'NO_ACCOUNT_FOR_PROVIDER');
+    assert.ok(asked.body.message.includes('LINE'));
+    assert.strictEqual(h.prisma.rows('users').length, 0, '不得自動建立帳號');
+    assert.strictEqual(h.prisma.rows('oauth_results').length, 1, '一次性碼要保留供使用者決定後再用');
+
     // 交換階段才建立工作階段並簽發 Token
-    const exchanged = await h.request('POST', '/api/auth/oauth/exchange', {
-      body: { code, device_id: 'device-1', platform: 'ios' }
-    });
+    const exchanged = await exchange(code, { create: true, device_id: 'device-1', platform: 'ios' });
     assert.strictEqual(exchanged.status, 200);
     assert.strictEqual(exchanged.body.message, '登入成功');
     assert.ok(exchanged.body.data.token);
@@ -124,10 +132,10 @@ const tests = [
     const cb = await callback('line', 'auth-code-2', started.body.data.state);
     const code = deepLinkParams(cb).get('code');
 
-    const first = await h.request('POST', '/api/auth/oauth/exchange', { body: { code } });
+    const first = await exchange(code, { create: true });
     assert.strictEqual(first.status, 200);
 
-    const second = await h.request('POST', '/api/auth/oauth/exchange', { body: { code } });
+    const second = await exchange(code, { create: true });
     assert.strictEqual(second.status, 400);
     assert.strictEqual(second.body.code, 'OAUTH_CODE_INVALID');
   }],
@@ -139,7 +147,7 @@ const tests = [
     const code = deepLinkParams(cb).get('code');
 
     h.prisma.rows('oauth_results')[0].created_at = new Date(Date.now() - 6 * 60 * 1000);
-    const res = await h.request('POST', '/api/auth/oauth/exchange', { body: { code } });
+    const res = await exchange(code, { create: true });
     assert.strictEqual(res.status, 400);
     assert.strictEqual(res.body.code, 'OAUTH_CODE_INVALID');
   }],
@@ -173,28 +181,60 @@ const tests = [
     assert.strictEqual(deepLinkParams(cb).get('error'), 'OAUTH_STATE_INVALID');
   }],
 
-  ['Email 已註冊時回呼帶 ACCOUNT_EXISTS_LINK_REQUIRED', async () => {
+  ['選擇建立帳號時電子郵件已註冊回 409 ACCOUNT_EXISTS_LINK_REQUIRED', async () => {
     prepare();
     h.addUser({ email: 'line@example.com' });
     const started = await startLogin('line');
     const cb = await callback('line', 'auth-code-7', started.body.data.state);
-    assert.strictEqual(deepLinkParams(cb).get('error'), 'ACCOUNT_EXISTS_LINK_REQUIRED');
+    const code = deepLinkParams(cb).get('code');
+
+    const res = await exchange(code, { create: true });
+    assert.strictEqual(res.status, 409);
+    assert.strictEqual(res.body.code, 'ACCOUNT_EXISTS_LINK_REQUIRED');
+    assert.strictEqual(h.prisma.rows('oauth_results').length, 0, '無法補救的失敗要立刻作廢一次性碼');
   }],
 
-  ['不允許直接註冊時回呼帶 SIGNUP_NOT_ALLOWED', async () => {
+  ['不允許直接註冊時選擇建立帳號回 403 SIGNUP_NOT_ALLOWED', async () => {
     prepare();
     h.setAuthSettings({ social_enabled: true, providers: { line: { enabled: true, signup: false } } });
     const started = await startLogin('line');
     const cb = await callback('line', 'auth-code-8', started.body.data.state);
-    assert.strictEqual(deepLinkParams(cb).get('error'), 'SIGNUP_NOT_ALLOWED');
+    const code = deepLinkParams(cb).get('code');
+
+    const res = await exchange(code, { create: true });
+    assert.strictEqual(res.status, 403);
+    assert.strictEqual(res.body.code, 'SIGNUP_NOT_ALLOWED');
   }],
 
-  ['LINE 未提供 Email 時回呼帶 EMAIL_REQUIRED', async () => {
+  ['LINE 未提供 Email 時回 400 EMAIL_REQUIRED，補送後以同一組碼建立帳號', async () => {
     prepare();
     lineTokenBody = { access_token: 'line-access-token', id_token: '' };
     const started = await startLogin('line');
     const cb = await callback('line', 'auth-code-9', started.body.data.state);
-    assert.strictEqual(deepLinkParams(cb).get('error'), 'EMAIL_REQUIRED');
+    assert.strictEqual(deepLinkParams(cb).get('error'), null, '缺電子郵件不再是回呼階段的錯誤');
+    const code = deepLinkParams(cb).get('code');
+
+    const first = await exchange(code, { create: true });
+    assert.strictEqual(first.status, 400);
+    assert.strictEqual(first.body.code, 'EMAIL_REQUIRED');
+    assert.strictEqual(h.prisma.rows('oauth_results').length, 1, '補資料期間一次性碼要留著');
+
+    const second = await exchange(code, { create: true, email: 'Line-New@Example.com', nickname: '阿線' });
+    assert.strictEqual(second.status, 200);
+    assert.strictEqual(h.prisma.rows('users')[0].email, 'line-new@example.com');
+  }],
+
+  ['未綁定時取消登入不留下任何帳號', async () => {
+    prepare();
+    const started = await startLogin('discord');
+    const cb = await callback('discord', 'auth-code-9b', started.body.data.state);
+    const code = deepLinkParams(cb).get('code');
+
+    const asked = await exchange(code);
+    assert.strictEqual(asked.status, 404);
+    assert.strictEqual(asked.body.code, 'NO_ACCOUNT_FOR_PROVIDER');
+    assert.strictEqual(h.prisma.rows('users').length, 0);
+    assert.strictEqual(h.prisma.rows('user_identities').length, 0);
   }],
 
   ['第三方交換失敗時回呼帶 AUTH_PROVIDER_ERROR', async () => {
@@ -210,7 +250,7 @@ const tests = [
     const started = await startLogin('discord');
     const cb = await callback('discord', 'auth-code-11', started.body.data.state);
     const code = deepLinkParams(cb).get('code');
-    const exchanged = await h.request('POST', '/api/auth/oauth/exchange', { body: { code } });
+    const exchanged = await exchange(code, { create: true });
 
     assert.strictEqual(exchanged.status, 200);
     const user = h.prisma.rows('users')[0];
@@ -230,7 +270,7 @@ const tests = [
     const cb = await callback('line', 'auth-code-12', started.body.data.state);
     const code = deepLinkParams(cb).get('code');
 
-    const exchanged = await h.request('POST', '/api/auth/oauth/exchange', { body: { code } });
+    const exchanged = await exchange(code);
     assert.strictEqual(exchanged.status, 200);
     assert.deepStrictEqual(exchanged.body.data, { linked: true, provider: 'line' });
     assert.strictEqual(h.prisma.rows('user_identities').length, 1);
@@ -258,7 +298,7 @@ const tests = [
     const started = await startLogin('line');
     const cb = await callback('line', 'auth-code-14', started.body.data.state);
     const code = deepLinkParams(cb).get('code');
-    const exchanged = await h.request('POST', '/api/auth/oauth/exchange', { body: { code } });
+    const exchanged = await exchange(code);
 
     assert.strictEqual(exchanged.status, 200);
     assert.strictEqual(h.prisma.rows('users').length, 1);
@@ -274,7 +314,7 @@ const tests = [
     const code = deepLinkParams(cb).get('code');
 
     user.is_active = false;
-    const exchanged = await h.request('POST', '/api/auth/oauth/exchange', { body: { code } });
+    const exchanged = await exchange(code);
     assert.strictEqual(exchanged.status, 403);
     assert.strictEqual(exchanged.body.code, 'ACCOUNT_INACTIVE');
   }],
@@ -302,7 +342,7 @@ const tests = [
     assert.strictEqual(started.status, 503);
     assert.strictEqual(started.body.code, 'AUTH_SOCIAL_UNAVAILABLE');
 
-    const exchanged = await h.request('POST', '/api/auth/oauth/exchange', { body: { code: 'e'.repeat(32) } });
+    const exchanged = await exchange('e'.repeat(32));
     assert.strictEqual(exchanged.status, 503);
     assert.strictEqual(exchanged.body.code, 'AUTH_SOCIAL_UNAVAILABLE');
   }]

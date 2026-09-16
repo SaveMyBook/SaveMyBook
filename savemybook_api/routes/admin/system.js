@@ -4,6 +4,7 @@ const { requireVerification } = require('../../middleware/verification');
 const { rateLimit, byUser } = require('../../middleware/rateLimit');
 const v = require('../../lib/validate');
 const { actorOf } = require('../../lib/request-context');
+const { publicBase } = require('../../lib/public-url');
 const { badRequest } = require('../../lib/errors');
 const backup = require('../../services/backup');
 const account = require('../../services/account');
@@ -40,6 +41,22 @@ router.get('/backups/:id/download', canRunSystem, async (req, res) => {
   res.download(filePath, fileName);
 });
 
+// 網址只含一次性的隨機票證，管理員無須在其他裝置提供自己的登入權杖。
+router.post('/backups/:id/download-link', canRunSystem, requireVerification('admin'), async (req, res) => {
+  const { ticket, expiresAt, expiresIn, record } = await backup.issueDownloadLink(v.id(req.params.id, '備份編號'), actorOf(req));
+  res.set('Cache-Control', 'no-store');
+  res.status(201).json({
+    success: true,
+    data: {
+      url: `${publicBase(req)}/api/backup-downloads/${ticket}`,
+      expires_at: expiresAt,
+      expires_in: expiresIn,
+      file_name: record.file_name,
+      size_bytes: Number(record.size_bytes)
+    }
+  });
+});
+
 router.post('/backups/:id/restore', canRunSystem, restoreLimiter, async (req, res) => {
   const backupId = v.id(req.params.id, '備份編號');
   const plain = typeof req.body.password === 'string' ? req.body.password : '';
@@ -53,7 +70,7 @@ router.post('/backups/:id/restore', canRunSystem, restoreLimiter, async (req, re
   });
 });
 
-router.delete('/backups/:id', canRunSystem, requireVerification('sensitive'), async (req, res) => {
+router.delete('/backups/:id', canRunSystem, requireVerification('admin'), async (req, res) => {
   await backup.removeWithAudit(v.id(req.params.id, '備份編號'), actorOf(req));
   res.status(200).json({ success: true, message: '已刪除備份' });
 });
@@ -67,7 +84,7 @@ router.post('/deletions/:id/cancel', canManageMembers, async (req, res) => {
   res.status(200).json({ success: true, message: '已取消該會員的刪除申請' });
 });
 
-router.post('/deletions/:id/purge', canManageMembers, requireVerification('sensitive'), async (req, res) => {
+router.post('/deletions/:id/purge', canManageMembers, requireVerification('admin'), async (req, res) => {
   await account.anonymizeByAdmin(v.id(req.params.id, '會員編號'), actorOf(req));
   res.status(200).json({ success: true, message: '已完成匿名化' });
 });

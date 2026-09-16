@@ -351,7 +351,7 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
               IconButton(
                 icon: Icon(Icons.download_rounded, size: 20, color: c.accent),
                 tooltip: S.download,
-                onPressed: () => _showDownloadHint(record),
+                onPressed: () => _download(record),
               ),
             ],
           ],
@@ -360,18 +360,23 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
     );
   }
 
-  void _showDownloadHint(BackupRecord record) {
-    showConfirmDialog(
+  Future<void> _download(BackupRecord record) async {
+    final (url, error) = await _api.createBackupDownloadLink(record.backupId);
+    if (!mounted) return;
+    if (url == null) {
+      if (error != null && !_isCancelled(error)) showAppSnackBar(context, error, isError: true);
+      return;
+    }
+    final confirmed = await showConfirmDialog(
       context,
       title: S.downloadBackup,
-      message: S.fetchBackupComputerWithAuthorisationHeader(_api.backupDownloadUrl(record.backupId), record.sizeText),
+      message: S.downloadLinkValidOnceP0P1(url, record.sizeText),
       confirmLabel: S.copyLink2,
       icon: Icons.download_rounded,
-    ).then((confirmed) {
-      if (!confirmed || !mounted) return;
-      Clipboard.setData(ClipboardData(text: _api.backupDownloadUrl(record.backupId)));
-      showAppSnackBar(context, S.downloadLinkCopied);
-    });
+    );
+    if (!confirmed || !mounted) return;
+    await Clipboard.setData(ClipboardData(text: url));
+    if (mounted) showAppSnackBar(context, S.downloadLinkCopied);
   }
 }
 

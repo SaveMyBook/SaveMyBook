@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'app_asset_image.dart';
 import 'app_toast.dart';
 export 'app_toast.dart' show kBottomNavVisible, hideCurrentToast;
 import '../utils/app_colors.dart';
@@ -453,6 +454,7 @@ class _AppNetworkImageState extends State<AppNetworkImage> with WidgetsBindingOb
 
   int _attempt = 0;
   bool _failed = false;
+  bool _permanent = false;
   Timer? _retryTimer;
 
   @override
@@ -464,16 +466,17 @@ class _AppNetworkImageState extends State<AppNetworkImage> with WidgetsBindingOb
   @override
   void didUpdateWidget(covariant AppNetworkImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.url != widget.url) {
+    if (oldWidget.url != widget.url || oldWidget.cacheWidth != widget.cacheWidth) {
       _retryTimer?.cancel();
       _attempt = 0;
       _failed = false;
+      _permanent = false;
     }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _failed) _retry();
+    if (state == AppLifecycleState.resumed && _failed && !_permanent) _retry();
   }
 
   @override
@@ -483,10 +486,19 @@ class _AppNetworkImageState extends State<AppNetworkImage> with WidgetsBindingOb
     super.dispose();
   }
 
-  void _onError(String url) {
+  // cacheWidth 會讓 Image 實際使用 ResizeImage 當快取鍵，
+  // 對 NetworkImage 呼叫 evict() 清不到它，重試就會拿回同一份壞資料。
+  ImageProvider _providerFor(String url) =>
+      ResizeImage.resizeIfNeeded(widget.cacheWidth, null, NetworkImage(url));
+
+  void _onError(String url, Object error) {
     if (!mounted || _failed || widget.url != url) return;
-    setState(() => _failed = true);
-    if (_attempt >= _retryDelays.length) return;
+    final permanent = isPermanentImageError(error);
+    setState(() {
+      _failed = true;
+      _permanent = permanent;
+    });
+    if (permanent || _attempt >= _retryDelays.length) return;
     _retryTimer?.cancel();
     _retryTimer = Timer(_retryDelays[_attempt], () {
       if (mounted && widget.url == url) _retry();
@@ -497,10 +509,11 @@ class _AppNetworkImageState extends State<AppNetworkImage> with WidgetsBindingOb
     final url = widget.url;
     if (url == null || url.isEmpty) return;
     _retryTimer?.cancel();
-    NetworkImage(url).evict();
+    _providerFor(url).evict();
     setState(() {
       _attempt++;
       _failed = false;
+      _permanent = false;
     });
   }
 
@@ -520,7 +533,7 @@ class _AppNetworkImageState extends State<AppNetworkImage> with WidgetsBindingOb
         color: c.iconInactive.withValues(alpha: 0.55),
         size: widget.fallbackIconSize ?? 30,
       );
-      return Container(
+      final box = Container(
         width: widget.width,
         height: widget.height,
         color: base,
@@ -547,20 +560,26 @@ class _AppNetworkImageState extends State<AppNetworkImage> with WidgetsBindingOb
                 },
               ),
       );
+      if (!canRetry) return box;
+      return Semantics(
+        button: true,
+        label: S.retry,
+        child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: _retry, child: box),
+      );
     }
 
     if (url == null || url.isEmpty) return fallback();
-    if (_failed) return fallback(canRetry: true);
+    // 404 等永久性錯誤只顯示替代圖，不再重試也不提供重試入口。
+    if (_failed) return fallback(canRetry: !_permanent);
 
-    return Image.network(
-      url,
+    return Image(
+      image: _providerFor(url),
       key: ValueKey('$url#$_attempt'),
       fit: widget.fit,
       width: widget.width,
       height: widget.height,
-      cacheWidth: widget.cacheWidth,
-      errorBuilder: (_, _, _) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => _onError(url));
+      errorBuilder: (_, error, _) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _onError(url, error));
         return fallback();
       },
       frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {

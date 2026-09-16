@@ -25,11 +25,11 @@ const tests = [
     const { token } = seller();
     const zero = await create(token, { title: '小王子', price: 0 });
     assert.strictEqual(zero.status, 400);
-    assert.strictEqual(zero.body.message, '售價必須大於 0 元');
+    assert.strictEqual(zero.body.message, '售價必須大於 0');
 
     const tooHigh = await create(token, { title: '小王子', price: 100000 });
     assert.strictEqual(tooHigh.status, 400);
-    assert.strictEqual(tooHigh.body.message, '售價不可超過 99999 元');
+    assert.strictEqual(tooHigh.body.message, '售價不可超過 99,999 代幣');
   }],
 
   ['ISBN 只接受數字並正規化為大寫、去除連字號', async () => {

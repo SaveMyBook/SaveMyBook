@@ -38,7 +38,9 @@ const listForUser = async (userId, { role, statuses, skip, limit }) => {
       skip,
       take: limit,
       orderBy: { created_at: 'desc' },
-      include: orderInclude
+      include: orderInclude,
+      // 舊訂單的資料列仍保留取書碼欄位，但取書已改為掃描機台 QR Code，不得再回傳。
+      omit: { pickup_code: true }
     }),
     prisma.orders.count({ where })
   ]);

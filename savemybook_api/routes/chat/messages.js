@@ -55,7 +55,7 @@ const albumOf = (value) => {
 const buildContent = (body) => {
   const type = body.message_type === undefined
     ? 'text'
-    : v.oneOf(body.message_type, CLIENT_TYPES, 'message_type 僅接受：text, image, voice, album');
+    : v.oneOf(body.message_type, CLIENT_TYPES, '不支援此訊息類型');
   if (type !== 'text' && hasMentions(body.mentions)) throw badRequest('僅文字訊息可提及成員');
 
   if (type === 'album') {

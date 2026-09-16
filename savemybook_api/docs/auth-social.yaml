@@ -22,6 +22,12 @@ tags:
       - `enabled`：可用於登入與綁定。伺服器未設定該渠道憑證時一律為 `false`。
       - `signup`：可用該方式直接建立新帳號；為 `false` 時僅限已存在的帳號使用。
 
+      ## 不自動建立帳號
+
+      第三方身分尚未綁定任何帳號時，伺服器不會自動註冊，而是回傳 404
+      `NO_ACCOUNT_FOR_PROVIDER`。App 須詢問使用者要先登入既有帳號再綁定、
+      以此身分建立新帳號，還是取消；選擇建立新帳號時才以 `create: true` 重送。
+
       ## 不自動合併既有帳號
 
       第三方回傳的電子郵件若已有對應帳號，但尚未綁定該登入方式，伺服器回傳 409
@@ -91,12 +97,14 @@ paths:
 
         處理順序：
 
-        1. 已綁定此第三方身分 → 直接登入。
-        2. Token 內含已驗證的電子郵件且已有對應帳號 → 409 `ACCOUNT_EXISTS_LINK_REQUIRED`。
-        3. 該渠道不允許直接註冊 → 403 `SIGNUP_NOT_ALLOWED`。
-        4. Token 未提供已驗證的電子郵件（手機登入）→ 400 `EMAIL_REQUIRED`；
-           App 收集電子郵件與暱稱後以相同的 `id_token` 重送，若該電子郵件已註冊同樣回 409。
-        5. 建立帳號並登入：暱稱取自 Token 的名稱，沒有則自動產生；帳號的 `password_set` 為 `false`；
+        1. 已綁定此第三方身分 → 直接登入，`create` 無作用。
+        2. 尚未綁定且請求未帶 `create: true` → 404 `NO_ACCOUNT_FOR_PROVIDER`，不建立任何資料。
+        3. 帶 `create: true` 後依序檢查：
+           - Token 內含已驗證的電子郵件且已有對應帳號 → 409 `ACCOUNT_EXISTS_LINK_REQUIRED`。
+           - 該渠道不允許直接註冊 → 403 `SIGNUP_NOT_ALLOWED`。
+           - Token 未提供已驗證的電子郵件（手機登入）→ 400 `EMAIL_REQUIRED`；
+             App 收集電子郵件與暱稱後以相同的 `id_token` 重送，若該電子郵件已註冊同樣回 409。
+        4. 建立帳號並登入：暱稱取自 Token 的名稱，沒有則自動產生；帳號的 `password_set` 為 `false`；
            手機登入會在使用者尚未填寫時補上手機號碼。
 
         同 IP 15 分鐘內最多 30 次。
@@ -111,6 +119,11 @@ paths:
               properties:
                 provider: { type: string, enum: [google, apple, phone] }
                 id_token: { type: string, description: Firebase Authentication 取得的 ID Token。 }
+                create:
+                  type: boolean
+                  description: |
+                    使用者已明確選擇「以這個身分建立新帳號」時才送 `true`。
+                    省略或為 `false` 時，尚未綁定的身分一律回 404 `NO_ACCOUNT_FOR_PROVIDER`。
                 email:
                   type: string
                   format: email
@@ -154,7 +167,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 登入方式不符:
-                  value: { success: false, code: PROVIDER_MISMATCH, message: 登入憑證與所選的登入方式不符 }
+                  value: { success: false, code: PROVIDER_MISMATCH, message: 登入失敗，請重新操作 }
                 需要電子郵件:
                   value: { success: false, code: EMAIL_REQUIRED, message: 請提供電子郵件以建立帳號 }
         '401':
@@ -162,7 +175,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: INVALID_ID_TOKEN, message: 登入憑證無效或已過期，請重新登入 }
+              example: { success: false, code: INVALID_ID_TOKEN, message: 登入逾時，請重新操作 }
         '403':
           description: 渠道停用、不允許直接註冊，或帳號已停用。
           content:
@@ -175,6 +188,15 @@ paths:
                   value: { success: false, code: SIGNUP_NOT_ALLOWED, message: 此登入方式僅供既有帳號使用 }
                 帳號已停權:
                   value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已停權，請聯絡客服 }
+        '404':
+          description: '此第三方身分尚未綁定任何帳號，且請求未帶 `create: true`。'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example:
+                success: false
+                code: NO_ACCOUNT_FOR_PROVIDER
+                message: 此 Google 帳號尚未綁定任何帳號
         '409':
           description: 電子郵件已註冊，須改以密碼登入後綁定。
           content:
@@ -232,7 +254,7 @@ paths:
                 已綁在其他帳號:
                   value: { success: false, code: IDENTITY_TAKEN, message: 此登入方式已綁定其他帳號 }
                 本帳號已綁定:
-                  value: { success: false, code: ALREADY_LINKED, message: 此帳號已綁定這個登入方式 }
+                  value: { success: false, code: ALREADY_LINKED, message: 此帳號已綁定此登入方式 }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '503': { $ref: '#/components/responses/AuthSocialUnavailable' }
 
@@ -242,7 +264,7 @@ paths:
       operationId: unlinkSignInMethod
       tags: [auth-social]
       description: |
-        須通過敏感操作驗證。解除後若該帳號既沒有密碼也沒有其他登入方式，
+        須通過敏感操作驗證。解除後若該帳號既沒有密碼、通行密鑰，也沒有其他登入方式，
         回傳 400 `LAST_SIGN_IN_METHOD`，資料不會變更。
       security: [{ bearerAuth: [] }]
       parameters:
@@ -407,15 +429,17 @@ paths:
       description: |
         由 LINE 或 Discord 於使用者完成授權後導向，不由 App 直接呼叫。
 
-        伺服器以自身憑證換取存取權杖並取得使用者資料，接著依 `state` 記錄的模式完成登入、
-        建立帳號或綁定，最後以 302 導向 `savemybook://auth/oauth?code=<一次性碼>`；
+        伺服器以自身憑證換取存取權杖並取得使用者資料，接著依 `state` 記錄的模式完成登入或綁定，
+        最後以 302 導向 `savemybook://auth/oauth?code=<一次性碼>`；
         失敗時導向 `savemybook://auth/oauth?error=<錯誤代碼>`。
+
+        此階段不會建立帳號：第三方身分尚未綁定任何帳號時一樣回傳一次性碼，
+        由 `POST /api/auth/oauth/exchange` 回報 404 `NO_ACCOUNT_FOR_PROVIDER`，讓 App 詢問使用者。
 
         回應內容為純文字，不含任何權杖。一次性碼須於 5 分鐘內以
         `POST /api/auth/oauth/exchange` 兌換。
 
-        可能出現的 `error`：`OAUTH_STATE_INVALID`、`ACCOUNT_EXISTS_LINK_REQUIRED`、
-        `SIGNUP_NOT_ALLOWED`、`SIGN_IN_METHOD_DISABLED`、`EMAIL_REQUIRED`、
+        可能出現的 `error`：`OAUTH_STATE_INVALID`、`SIGN_IN_METHOD_DISABLED`、
         `IDENTITY_TAKEN`、`ALREADY_LINKED`、`ACCOUNT_INACTIVE`、`ACCOUNT_BLACKLISTED`、
         `AUTH_PROVIDER_ERROR`、`AUTH_SOCIAL_UNAVAILABLE`、`OAUTH_FAILED`。
       security: []
@@ -440,10 +464,15 @@ paths:
       operationId: exchangeOauthCode
       tags: [auth-social]
       description: |
-        以回呼深層連結帶回的一次性碼換取登入結果。一次性碼 5 分鐘內有效且用過即失效。
+        以回呼深層連結帶回的一次性碼換取登入結果。一次性碼 5 分鐘內有效且成功後即失效。
 
         登入模式的回應與 `POST /api/auth/login` 相同；綁定模式回傳 `{ linked: true, provider }`。
         建議一併帶入裝置資訊，工作階段與登入紀錄於此步驟建立。
+
+        第三方身分尚未綁定任何帳號時回 404 `NO_ACCOUNT_FOR_PROVIDER`，不建立任何資料；
+        使用者選擇建立新帳號後，以**同一組**一次性碼加上 `create: true` 重送即可。
+        收到 404 `NO_ACCOUNT_FOR_PROVIDER` 或 400 `EMAIL_REQUIRED` 時一次性碼保留待用
+        （仍受 5 分鐘期限限制），其餘失敗會立即作廢。
       security: []
       requestBody:
         required: true
@@ -454,6 +483,17 @@ paths:
               required: [code]
               properties:
                 code: { type: string }
+                create:
+                  type: boolean
+                  description: |
+                    使用者已明確選擇「以這個身分建立新帳號」時才送 `true`。
+                    省略或為 `false` 時，尚未綁定的身分一律回 404 `NO_ACCOUNT_FOR_PROVIDER`。
+                email:
+                  type: string
+                  format: email
+                  description: 僅在收到 `EMAIL_REQUIRED` 後補送（LINE 未開通電子郵件權限時）。
+                nickname: { type: string, minLength: 2, maxLength: 50 }
+                accept_legal: { type: boolean, description: 建立新帳號時是否一併記錄同意目前版本的法律文件。 }
                 device_id: { type: string, maxLength: 64 }
                 device_name: { type: string, maxLength: 100 }
                 platform: { type: string, maxLength: 20 }
@@ -484,13 +524,39 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: OAUTH_CODE_INVALID, message: 登入結果已失效，請重新操作 }
+              examples:
+                一次性碼失效:
+                  value: { success: false, code: OAUTH_CODE_INVALID, message: 登入逾時，請重新操作 }
+                需要電子郵件:
+                  value: { success: false, code: EMAIL_REQUIRED, message: 請提供電子郵件以建立帳號 }
         '403':
-          description: 帳號已停權或列入黑名單。
+          description: 帳號已停權、列入黑名單，或該渠道不允許直接註冊。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已停權，請聯絡客服 }
+              examples:
+                帳號已停權:
+                  value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已停權，請聯絡客服 }
+                不允許註冊:
+                  value: { success: false, code: SIGNUP_NOT_ALLOWED, message: 此登入方式僅供既有帳號使用 }
+        '404':
+          description: '此第三方身分尚未綁定任何帳號，且請求未帶 `create: true`。'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example:
+                success: false
+                code: NO_ACCOUNT_FOR_PROVIDER
+                message: 此 LINE 帳號尚未綁定任何帳號
+        '409':
+          description: 電子郵件已註冊，須改以密碼登入後綁定。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example:
+                success: false
+                code: ACCOUNT_EXISTS_LINK_REQUIRED
+                message: 此電子郵件已註冊，請先以密碼登入後，於帳號安全綁定此登入方式
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '503': { $ref: '#/components/responses/AuthSocialUnavailable' }
 
@@ -534,7 +600,7 @@ components:
           example:
             success: false
             code: AUTH_SOCIAL_UNAVAILABLE
-            message: 社群登入目前無法使用，伺服器尚未完成資料庫更新
+            message: 社群登入暫時無法使用，請稍後再試
 
     AuthProviderError:
       description: 無法連線至第三方登入服務或其回應不正確。

@@ -298,28 +298,9 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
 
   Widget _toolbar(AppColors c) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Flexible(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.auto_awesome_rounded, size: 13, color: c.accent),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(S.aiReplies, maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: c.accent)),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Flexible(
-          flex: 3,
           child: TextButton.icon(
             onPressed: _escalate,
             style: TextButton.styleFrom(foregroundColor: c.accent, visualDensity: VisualDensity.compact),

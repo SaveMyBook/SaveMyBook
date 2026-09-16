@@ -59,6 +59,9 @@ paths:
         於同一資料庫交易內完成。
 
         同一訂單若已存在狀態為 `pending` 或 `processing` 的申請，回傳 409。
+
+        依服務條款，已完成取書的訂單只能在取書後 24 小時內提出（以 `picked_up_at`，缺少時以 `completed_at` 計算），
+        逾期回傳 400 `DISPUTE_WINDOW_PASSED`；取書前各階段不受此限。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -89,15 +92,17 @@ paths:
                   message: { type: string, example: 爭議申請已送出 }
                   data: { $ref: '#/components/schemas/Dispute' }
         '400':
-          description: 欄位缺漏。
+          description: 欄位缺漏，或已超過取書後 24 小時的申訴期限。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 未帶訂單編號:
-                  value: { success: false, message: 請提供 order_id }
+                  value: { success: false, message: 請指定訂單 }
                 未填爭議說明:
                   value: { success: false, message: 請填寫爭議說明 }
+                超過申訴期限:
+                  value: { success: false, code: DISPUTE_WINDOW_PASSED, message: 已超過取書後 24 小時的申訴期限 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
           description: 請求者非該訂單的關係人。

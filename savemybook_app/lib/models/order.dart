@@ -33,7 +33,6 @@ class Order {
   final String orderNo;
   final double totalAmount;
   final String status;
-  final String? pickupCode;
   final int buyerId;
   final int sellerId;
   final String buyerName;
@@ -43,8 +42,13 @@ class Order {
   final String cabinetOpenHours;
   final String slotNumber;
   final DateTime? createdAt;
+  final DateTime? pickedUpAt;
+  final DateTime? completedAt;
   final List<OrderItem> items;
   final bool hasOpenDispute;
+
+  /// 服務條款規定取書後 24 小時內可提出爭議；伺服器也會檢查，這裡只用來決定是否顯示入口。
+  static const disputeWindow = Duration(hours: 24);
 
   Order({
     required this.orderId,
@@ -53,7 +57,6 @@ class Order {
     required this.status,
     required this.buyerId,
     required this.sellerId,
-    this.pickupCode,
     this.buyerName = '',
     this.sellerName = '',
     this.cabinetName = '',
@@ -61,6 +64,8 @@ class Order {
     this.cabinetOpenHours = '',
     this.slotNumber = '',
     this.createdAt,
+    this.pickedUpAt,
+    this.completedAt,
     this.items = const [],
     this.hasOpenDispute = false,
   });
@@ -68,6 +73,14 @@ class Order {
   Book? get firstBook => items.isEmpty ? null : items.first.book;
 
   String get statusText => AppLabels.order(status, asBuyer: true);
+
+  bool canOpenDispute({DateTime? now}) {
+    if (hasOpenDispute || status == 'cancelled' || status == 'refunded') return false;
+    if (status != 'completed') return true;
+    final pickedUp = pickedUpAt ?? completedAt;
+    if (pickedUp == null) return true;
+    return (now ?? DateTime.now()).difference(pickedUp) <= disputeWindow;
+  }
 
   bool get isCancellable =>
       status == 'pending_payment' || status == 'pending_deposit' || status == 'deposited';
@@ -85,7 +98,6 @@ class Order {
       orderNo: json['order_no'] as String? ?? '',
       totalAmount: parseDouble(json['total_amount']),
       status: json['status'] as String? ?? 'pending_payment',
-      pickupCode: json['pickup_code'] as String?,
       buyerId: parseInt(json['buyer_id']),
       sellerId: parseInt(json['seller_id']),
       buyerName: buyer?['nickname'] as String? ?? '',
@@ -95,6 +107,8 @@ class Order {
       cabinetOpenHours: formatTimeRange(cabinet?['open_time'], cabinet?['close_time']),
       slotNumber: slot?['slot_number'] as String? ?? '',
       createdAt: parseDate(json['created_at']),
+      pickedUpAt: parseDate(json['picked_up_at']),
+      completedAt: parseDate(json['completed_at']),
       items: ((json['order_items'] as List?) ?? const [])
           .map((e) => OrderItem.fromJson(Map<String, dynamic>.from(e)))
           .toList(),

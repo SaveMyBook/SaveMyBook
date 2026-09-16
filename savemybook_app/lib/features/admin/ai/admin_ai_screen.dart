@@ -56,7 +56,7 @@ class _AdminAiScreenState extends State<AdminAiScreen> with SingleTickerProvider
                   controller: _tabs,
                   tabs: [
                     S.usage,
-                    _dirty ? S.settings2 : S.settings,
+                    S.settings,
                     pending > 0 ? S.reviewP0(pending) : S.review,
                   ],
                 ),

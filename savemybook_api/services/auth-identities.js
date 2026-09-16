@@ -8,6 +8,7 @@ const auth = require('./auth');
 const sessions = require('./sessions');
 const push = require('./push');
 const legal = require('./legal');
+const { hasTables } = require('../lib/schema-check');
 
 const LOGIN_USER_SELECT = {
   user_id: true, email: true, role: true, password_hash: true,
@@ -17,6 +18,11 @@ const LOGIN_USER_SELECT = {
 const linkRequired = () => conflict(
   '此電子郵件已註冊，請先以密碼登入後，於帳號安全綁定此登入方式',
   'ACCOUNT_EXISTS_LINK_REQUIRED'
+);
+
+const noAccountForProvider = (provider) => notFound(
+  `此 ${settings.PROVIDER_LABELS[provider] ?? provider} 帳號尚未綁定任何帳號`,
+  'NO_ACCOUNT_FOR_PROVIDER'
 );
 
 const maskEmail = (email) => {
@@ -120,7 +126,11 @@ const createAccount = async ({ provider, info, email, nickname, acceptLegal }) =
 };
 
 // 依 identity 決定登入既有帳號或建立新帳號；回傳可直接簽發 Token 的使用者資料。
-const resolveSignIn = async ({ provider, info, email: fallbackEmail = null, nickname: fallbackNickname = null, acceptLegal = false }) => {
+// create 為 false 時絕不建立帳號：使用者必須自己決定要綁定既有帳號還是註冊新帳號。
+const resolveSignIn = async ({
+  provider, info, email: fallbackEmail = null, nickname: fallbackNickname = null,
+  acceptLegal = false, create = false
+}) => {
   const existingIdentity = await findIdentity(provider, info.subject);
   if (existingIdentity) {
     const user = await loadLoginUser(Number(existingIdentity.user_id));
@@ -130,6 +140,8 @@ const resolveSignIn = async ({ provider, info, email: fallbackEmail = null, nick
     if (provider === 'phone') await fillPhone(user.user_id, info.phoneNumber);
     return { user, created: false };
   }
+
+  if (!create) throw noAccountForProvider(provider);
 
   const verifiedEmail = info.emailVerified ? info.email : null;
   if (verifiedEmail && (await prisma.users.findUnique({ where: { email: verifiedEmail }, select: { user_id: true } }))) {
@@ -157,8 +169,8 @@ const resolveSignIn = async ({ provider, info, email: fallbackEmail = null, nick
   }
 };
 
-const signIn = async ({ provider, info, device, email, nickname, acceptLegal }) => {
-  const { user } = await resolveSignIn({ provider, info, email, nickname, acceptLegal });
+const signIn = async ({ provider, info, device, email, nickname, acceptLegal, create }) => {
+  const { user } = await resolveSignIn({ provider, info, email, nickname, acceptLegal, create });
   return auth.issueLogin(user, device, provider);
 };
 
@@ -168,12 +180,12 @@ const link = async (userId, provider, info) => {
   const existing = await findIdentity(provider, info.subject);
   if (existing) {
     throw Number(existing.user_id) === Number(userId)
-      ? conflict('此帳號已綁定這個登入方式', 'ALREADY_LINKED')
+      ? conflict('此帳號已綁定此登入方式', 'ALREADY_LINKED')
       : conflict('此登入方式已綁定其他帳號', 'IDENTITY_TAKEN');
   }
 
   const rows = await identitiesOf(userId);
-  if (rows.some((row) => row.provider === provider)) throw conflict('此帳號已綁定這個登入方式', 'ALREADY_LINKED');
+  if (rows.some((row) => row.provider === provider)) throw conflict('此帳號已綁定此登入方式', 'ALREADY_LINKED');
 
   const now = new Date();
   await prisma.$executeRaw`
@@ -185,12 +197,19 @@ const link = async (userId, provider, info) => {
   return listFor(userId);
 };
 
+// 不可引用 services/passkeys：該模組引用本檔，會形成循環載入。
+const passkeyCountOf = async (userId) => {
+  if (!(await hasTables(['user_passkeys', 'webauthn_challenges']))) return 0;
+  const [row] = await prisma.$queryRaw`SELECT COUNT(*) AS n FROM user_passkeys WHERE user_id = ${userId}`;
+  return Number(row?.n ?? 0);
+};
+
 const unlink = async (userId, provider) => {
   if (!(await settings.migrationReady())) throw settings.unavailable();
 
   const [rows, passwordSet] = await Promise.all([identitiesOf(userId), passwordSetOf(userId)]);
-  if (!rows.some((row) => row.provider === provider)) throw notFound('此帳號未綁定這個登入方式');
-  if (!passwordSet && rows.length <= 1) {
+  if (!rows.some((row) => row.provider === provider)) throw notFound('此帳號未綁定此登入方式');
+  if (!passwordSet && rows.length <= 1 && (await passkeyCountOf(userId)) === 0) {
     throw badRequest('這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式', 'LAST_SIGN_IN_METHOD');
   }
 
@@ -217,5 +236,5 @@ const setPassword = async (userId, sid, plain) => {
 
 module.exports = {
   maskEmail, maskPhone, findIdentity, identitiesOf, passwordSetOf, hasPassword, listFor,
-  resolveSignIn, signIn, link, unlink, setPassword, loadLoginUser
+  resolveSignIn, signIn, link, unlink, setPassword, loadLoginUser, noAccountForProvider
 };

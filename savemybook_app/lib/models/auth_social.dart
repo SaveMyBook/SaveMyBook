@@ -258,6 +258,7 @@ class AuthSettingsBundle {
 class AuthCodes {
   const AuthCodes._();
 
+  static const noAccountForProvider = 'NO_ACCOUNT_FOR_PROVIDER';
   static const accountExists = 'ACCOUNT_EXISTS_LINK_REQUIRED';
   static const emailRequired = 'EMAIL_REQUIRED';
   static const signupNotAllowed = 'SIGNUP_NOT_ALLOWED';
@@ -281,6 +282,7 @@ class AuthCodes {
 
   /// 沒有伺服器訊息可用時的備援文案。
   static String messageOf(String code) => switch (code) {
+        noAccountForProvider => S.signMethodNotLinkedAnyAccount,
         accountExists => S.emailAlreadyRegisteredSignWithPassword,
         emailRequired => S.provideEmailAddressCreateAccount,
         signupNotAllowed => S.signMethodOnlyExistingAccounts,
@@ -298,7 +300,7 @@ class AuthCodes {
         providerError => S.thirdPartySignServiceUnavailablePlease,
         oauthFailed => S.couldNotCompleteSignPleaseTry,
         notLinked => S.accountNotLinkedSignMethod,
-        network => S.couldNotReachServerCheckConnection2,
+        network => S.networkError,
         _ => S.signFailedPleaseTryAgain,
       };
 }

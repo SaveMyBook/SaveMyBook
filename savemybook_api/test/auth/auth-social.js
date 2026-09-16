@@ -35,9 +35,32 @@ const tests = [
     assert.strictEqual(list.body.code, 'AUTH_SOCIAL_UNAVAILABLE');
   }],
 
-  ['有效 Token 且尚無帳號時建立新帳號並登入', async () => {
+  ['未帶 create 時不建立帳號，回 404 NO_ACCOUNT_FOR_PROVIDER', async () => {
     const res = await social({
       provider: 'google',
+      id_token: h.firebaseToken({ sub: 'g-0', email: 'nobody@example.com', name: '小明' })
+    });
+    assert.strictEqual(res.status, 404);
+    assert.strictEqual(res.body.code, 'NO_ACCOUNT_FOR_PROVIDER');
+    assert.ok(res.body.message.includes('Google'), '訊息要指出是哪個渠道');
+    assert.strictEqual(h.prisma.rows('users').length, 0, '不得自動建立帳號');
+    assert.strictEqual(h.prisma.rows('user_identities').length, 0);
+  }],
+
+  ['未帶 create 時即使電子郵件已註冊也先回 NO_ACCOUNT_FOR_PROVIDER', async () => {
+    h.addUser({ email: 'taken-first@example.com' });
+    const res = await social({
+      provider: 'google',
+      id_token: h.firebaseToken({ sub: 'g-0b', email: 'taken-first@example.com' })
+    });
+    assert.strictEqual(res.status, 404);
+    assert.strictEqual(res.body.code, 'NO_ACCOUNT_FOR_PROVIDER');
+  }],
+
+  ['帶 create=true 且尚無帳號時建立新帳號並登入', async () => {
+    const res = await social({
+      provider: 'google',
+      create: true,
       id_token: h.firebaseToken({ sub: 'g-1', email: 'New@Example.com', name: '小明' })
     });
     assert.strictEqual(res.status, 200);
@@ -81,7 +104,11 @@ const tests = [
 
   ['Email 已註冊但未綁定時回 409 ACCOUNT_EXISTS_LINK_REQUIRED', async () => {
     h.addUser({ email: 'exists@example.com' });
-    const res = await social({ provider: 'google', id_token: h.firebaseToken({ sub: 'g-4', email: 'exists@example.com' }) });
+    const res = await social({
+      provider: 'google',
+      create: true,
+      id_token: h.firebaseToken({ sub: 'g-4', email: 'exists@example.com' })
+    });
     assert.strictEqual(res.status, 409);
     assert.strictEqual(res.body.code, 'ACCOUNT_EXISTS_LINK_REQUIRED');
     assert.ok(res.body.message.includes('帳號安全'));
@@ -89,14 +116,18 @@ const tests = [
 
   ['渠道停用時回 403 SIGN_IN_METHOD_DISABLED', async () => {
     h.setAuthSettings({ social_enabled: true, providers: { google: { enabled: false, signup: true } } });
-    const res = await social({ provider: 'google', id_token: h.firebaseToken({ sub: 'g-5', email: 'x@example.com' }) });
+    const res = await social({
+      provider: 'google', create: true, id_token: h.firebaseToken({ sub: 'g-5', email: 'x@example.com' })
+    });
     assert.strictEqual(res.status, 403);
     assert.strictEqual(res.body.code, 'SIGN_IN_METHOD_DISABLED');
   }],
 
   ['總開關關閉時所有渠道停用', async () => {
     h.setAuthSettings({ social_enabled: false, providers: { google: { enabled: true, signup: true } } });
-    const res = await social({ provider: 'google', id_token: h.firebaseToken({ sub: 'g-6', email: 'x@example.com' }) });
+    const res = await social({
+      provider: 'google', create: true, id_token: h.firebaseToken({ sub: 'g-6', email: 'x@example.com' })
+    });
     assert.strictEqual(res.status, 403);
     assert.strictEqual(res.body.code, 'SIGN_IN_METHOD_DISABLED');
 
@@ -107,7 +138,9 @@ const tests = [
   ['不允許註冊時回 403 SIGNUP_NOT_ALLOWED，既有帳號仍可登入', async () => {
     h.setAuthSettings({ social_enabled: true, providers: { google: { enabled: true, signup: false } } });
 
-    const denied = await social({ provider: 'google', id_token: h.firebaseToken({ sub: 'g-7', email: 'fresh@example.com' }) });
+    const denied = await social({
+      provider: 'google', create: true, id_token: h.firebaseToken({ sub: 'g-7', email: 'fresh@example.com' })
+    });
     assert.strictEqual(denied.status, 403);
     assert.strictEqual(denied.body.code, 'SIGNUP_NOT_ALLOWED');
     assert.strictEqual(denied.body.message, '此登入方式僅供既有帳號使用');
@@ -121,11 +154,13 @@ const tests = [
   ['手機登入沒有 Email 時回 400 EMAIL_REQUIRED，補送後建立帳號', async () => {
     const idToken = h.firebaseToken({ provider: 'phone', sub: 'p-1', phoneNumber: '+886912345678' });
 
-    const first = await social({ provider: 'phone', id_token: idToken });
+    const first = await social({ provider: 'phone', create: true, id_token: idToken });
     assert.strictEqual(first.status, 400);
     assert.strictEqual(first.body.code, 'EMAIL_REQUIRED');
 
-    const second = await social({ provider: 'phone', id_token: idToken, email: 'Phone@Example.com', nickname: '阿明' });
+    const second = await social({
+      provider: 'phone', create: true, id_token: idToken, email: 'Phone@Example.com', nickname: '阿明'
+    });
     assert.strictEqual(second.status, 200);
     const user = h.prisma.rows('users')[0];
     assert.strictEqual(user.email, 'phone@example.com');
@@ -136,13 +171,17 @@ const tests = [
   ['手機登入補送的 Email 已註冊時同樣回 409', async () => {
     h.addUser({ email: 'taken@example.com' });
     const idToken = h.firebaseToken({ provider: 'phone', sub: 'p-2', phoneNumber: '+886922222222' });
-    const res = await social({ provider: 'phone', id_token: idToken, email: 'taken@example.com', nickname: '阿華' });
+    const res = await social({
+      provider: 'phone', create: true, id_token: idToken, email: 'taken@example.com', nickname: '阿華'
+    });
     assert.strictEqual(res.status, 409);
     assert.strictEqual(res.body.code, 'ACCOUNT_EXISTS_LINK_REQUIRED');
   }],
 
   ['沒有名稱時自動產生暱稱且不含流水號', async () => {
-    const res = await social({ provider: 'google', id_token: h.firebaseToken({ sub: 'g-9', email: 'noname@example.com' }) });
+    const res = await social({
+      provider: 'google', create: true, id_token: h.firebaseToken({ sub: 'g-9', email: 'noname@example.com' })
+    });
     assert.strictEqual(res.status, 200);
     assert.match(h.prisma.rows('users')[0].nickname, /^使用者\d{4}$/);
   }],

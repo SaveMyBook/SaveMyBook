@@ -139,7 +139,7 @@ const ACTIONS = {
 
 const respond = async (reservationId, userId, action) => {
   const rule = ACTIONS[action];
-  if (!rule) throw badRequest('action 僅接受：accept, decline, cancel');
+  if (!rule) throw badRequest('操作類型不正確');
 
   const row = await prisma.reservations.findUnique({
     where: { reservation_id: reservationId },

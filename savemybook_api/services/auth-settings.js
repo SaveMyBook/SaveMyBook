@@ -26,7 +26,7 @@ const DEFAULTS = Object.freeze({
 });
 
 const unavailable = () =>
-  new HttpError(503, '社群登入目前無法使用，伺服器尚未完成資料庫更新', 'AUTH_SOCIAL_UNAVAILABLE');
+  new HttpError(503, '社群登入暫時無法使用，請稍後再試', 'AUTH_SOCIAL_UNAVAILABLE');
 
 const disabled = (provider) =>
   forbidden(`目前未開放以 ${PROVIDER_LABELS[provider] ?? provider} 登入`, 'SIGN_IN_METHOD_DISABLED');

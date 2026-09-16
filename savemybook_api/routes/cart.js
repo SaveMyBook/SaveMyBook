@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  if (req.body.book_id === undefined) throw badRequest('請提供 book_id');
+  if (req.body.book_id === undefined) throw badRequest('請指定書籍');
   const bookId = v.id(req.body.book_id, '書籍編號');
   const quantity = req.body.quantity === undefined ? 1 : v.int(req.body.quantity, { label: '數量', min: 1, max: 99 });
 
