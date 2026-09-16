@@ -122,10 +122,7 @@ UPDATE legal_documents
 SET title = '隱私權政策', content = @privacy, version = version + 1, requires_consent = 1, updated_at = NOW()
 WHERE doc_key = 'privacy' AND content <> @privacy;
 
-INSERT INTO legal_documents (doc_key, title, content, version, requires_consent)
-SELECT * FROM (SELECT 'terms', '服務條款', @terms, 1, 1) AS t
-WHERE NOT EXISTS (SELECT 1 FROM legal_documents WHERE doc_key = 'terms');
-
-INSERT INTO legal_documents (doc_key, title, content, version, requires_consent)
-SELECT * FROM (SELECT 'privacy', '隱私權政策', @privacy, 1, 1) AS t
-WHERE NOT EXISTS (SELECT 1 FROM legal_documents WHERE doc_key = 'privacy');
+-- 文件不存在時才建立（doc_key 有唯一索引，已存在者由上面的 UPDATE 處理）。
+INSERT IGNORE INTO legal_documents (doc_key, title, content, version, requires_consent) VALUES
+  ('terms', '服務條款', @terms, 1, 1),
+  ('privacy', '隱私權政策', @privacy, 1, 1);
