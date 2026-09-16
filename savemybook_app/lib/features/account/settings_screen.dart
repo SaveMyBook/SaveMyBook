@@ -4,16 +4,11 @@ import 'package:flutter/material.dart';
 import '../../utils/app_palette.dart';
 import 'package:flutter/services.dart';
 import '../../services/app_permissions.dart';
-import '../../services/biometric_service.dart';
 import '../../services/home_preferences.dart';
 import '../../services/theme_provider.dart';
 import '../../utils/app_colors.dart';
-import 'change_password_screen.dart';
-import 'help_center_screen.dart';
 import 'legal_doc_screen.dart';
-import 'support_ticket_screen.dart';
 import '../../widgets/app_header.dart';
-import '../../widgets/biometric_icon.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/motion.dart';
@@ -22,7 +17,6 @@ import '../../widgets/app_dialogs.dart';
 import 'account_privacy_screen.dart';
 import 'app_permissions_screen.dart';
 import '../chat/blocked_users_screen.dart';
-import '../security/security_center_screen.dart';
 import '../../services/locale_provider.dart';
 import '../../services/push_service.dart';
 import '../../services/api_service.dart';
@@ -37,10 +31,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _biometricAvailable = false;
-  bool _togglingBiometric = false;
-  String _biometricLabel = S.biometrics;
-
   bool _sendingTestPush = false;
   bool _clearingCache = false;
   bool get _isAdmin => ApiService.currentUser?.role == 'admin';
@@ -51,33 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _checkBiometric();
     _loadNotificationSettings();
-  }
-
-  Future<void> _checkBiometric() async {
-    final available = await BiometricService.isAvailable();
-    final label = available ? await BiometricService.label() : S.biometrics;
-    if (!mounted) return;
-    setState(() {
-      _biometricAvailable = available;
-      _biometricLabel = label;
-    });
-  }
-
-  Future<void> _toggleBiometric(bool value) async {
-    if (_togglingBiometric) return;
-    setState(() => _togglingBiometric = true);
-    try {
-      if (value && !await BiometricService.authenticate(reason: S.verifyEnableQuickSign)) {
-        return;
-      }
-      await BiometricService.setEnabled(value);
-      if (!mounted) return;
-      showAppSnackBar(context, value ? S.sign2(_biometricLabel) : S.quickSignTurnedOff);
-    } finally {
-      if (mounted) setState(() => _togglingBiometric = false);
-    }
   }
 
   Future<void> _loadNotificationSettings() async {
@@ -177,11 +141,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 final twoColumn = context.screenSize == ScreenSize.expanded && constraints.maxWidth >= 840;
                 var index = 0;
                 final sections = [
-                  _section(c, index++, S.appearance2, _buildAppearanceCard(c)),
-                  _section(c, index++, S.faqCatAccount, _buildAccountCard(c)),
+                  _section(c, index++, S.preferences, _buildAppearanceCard(c)),
                   _section(c, index++, S.alerts, _buildPushCard(c)),
-                  _section(c, index++, S.helpSupport, _buildSupportCard(c)),
-                  _section(c, index++, S.storage, _buildStorageCard(c)),
+                  _section(c, index++, S.privacy, _buildPrivacyCard(c)),
+                  _section(c, index++, S.about2, _buildAboutCard(c)),
                 ];
 
                 return ListView(
@@ -322,35 +285,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildAccountCard(AppColors c) {
-    final rows = <Widget>[
-      _row(
-        c,
-        leading: _icon(c, Icons.verified_user_outlined),
-        title: S.accountSecurity,
-        onTap: () => _push(const SecurityCenterScreen()),
-      ),
-      _row(
-        c,
-        leading: _icon(c, Icons.key_outlined),
-        title: S.changePassword,
-        onTap: () => _push(const ChangePasswordScreen()),
-      ),
-      if (_biometricAvailable)
-        _switchRow(
-          c,
-          leading: _biometricLabel == 'Face ID' ? FaceIdIcon(size: 22, color: c.textPrimary) : _icon(c, Icons.fingerprint_rounded),
-          title: S.sign3(_biometricLabel),
-          value: BiometricService.isEnabled,
-          onChanged: _togglingBiometric ? null : _toggleBiometric,
-        ),
-      if (AppPermissions.isSupportedPlatform)
-        _row(
-          c,
-          leading: _icon(c, Icons.app_settings_alt_outlined),
-          title: S.appPermissions,
-          onTap: () => _push(const AppPermissionsScreen()),
-        ),
+  Widget _buildPrivacyCard(AppColors c) {
+    return _joined(c, [
       _row(
         c,
         leading: _icon(c, Icons.shield_outlined),
@@ -363,20 +299,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: S.blockedUsers,
         onTap: () => _push(const BlockedUsersScreen()),
       ),
-      _row(
-        c,
-        leading: _icon(c, Icons.privacy_tip_outlined),
-        title: S.privacyPolicy,
-        onTap: () => _push(LegalDocScreen(docKey: 'privacy', fallbackTitle: S.privacyPolicy, icon: Icons.privacy_tip_outlined)),
-      ),
-      _row(
-        c,
-        leading: _icon(c, Icons.description_outlined),
-        title: S.termsService,
-        onTap: () => _push(LegalDocScreen(docKey: 'terms', fallbackTitle: S.termsService)),
-      ),
-    ];
-    return _joined(c, rows);
+      if (AppPermissions.isSupportedPlatform)
+        _row(
+          c,
+          leading: _icon(c, Icons.app_settings_alt_outlined),
+          title: S.appPermissions,
+          onTap: () => _push(const AppPermissionsScreen()),
+        ),
+    ]);
   }
 
   Widget _joined(AppColors c, List<Widget> rows) {
@@ -390,29 +320,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSupportCard(AppColors c) {
+  Widget _buildAboutCard(AppColors c) {
     return _joined(c, [
-      _row(c, leading: _icon(c, Icons.quiz_outlined), title: S.helpCentre, onTap: () => _push(const HelpCenterScreen())),
-      _row(c, leading: _icon(c, Icons.support_agent_rounded), title: S.contactUs, onTap: () => _push(const SupportTicketScreen())),
+      _row(
+        c,
+        leading: _icon(c, Icons.description_outlined),
+        title: S.termsService,
+        onTap: () => _push(LegalDocScreen(docKey: 'terms', fallbackTitle: S.termsService)),
+      ),
+      _row(
+        c,
+        leading: _icon(c, Icons.privacy_tip_outlined),
+        title: S.privacyPolicy,
+        onTap: () => _push(LegalDocScreen(docKey: 'privacy', fallbackTitle: S.privacyPolicy, icon: Icons.privacy_tip_outlined)),
+      ),
       _row(
         c,
         leading: _icon(c, Icons.info_outline_rounded),
         title: S.aboutSavemybook,
         onTap: () => _push(LegalDocScreen(docKey: 'about', fallbackTitle: S.aboutUs, icon: Icons.info_outline_rounded)),
       ),
+      _row(
+        c,
+        leading: _icon(c, Icons.cleaning_services_outlined),
+        title: S.clearCache,
+        trailing: _clearingCache
+            ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent))
+            : _chevron(c),
+        onTap: _clearingCache ? null : _clearCache,
+      ),
     ]);
-  }
-
-  Widget _buildStorageCard(AppColors c) {
-    return _row(
-      c,
-      leading: _icon(c, Icons.cleaning_services_outlined),
-      title: S.clearCache,
-      trailing: _clearingCache
-          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent))
-          : _chevron(c),
-      onTap: _clearingCache ? null : _clearCache,
-    );
   }
 
   Widget _buildPushCard(AppColors c) {

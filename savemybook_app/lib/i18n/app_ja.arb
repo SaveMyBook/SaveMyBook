@@ -3357,5 +3357,41 @@
     }
   },
   "sources": "情報源",
-  "unableOpenLink": "リンクを開けませんでした。"
+  "unableOpenLink": "リンクを開けませんでした。",
+  "helpCentre2": "サポートセンター",
+  "preferences": "環境設定",
+  "privacy": "プライバシー",
+  "about2": "概要",
+  "clearP0Notifications": "{p0}の通知を消去",
+  "@clearP0Notifications": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p1NotificationsP0DeletedCannotUndone": "{p0}の通知 {p1} 件を削除します。この操作は元に戻せません。",
+  "@p1NotificationsP0DeletedCannotUndone": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0NotificationsCleared": "{p0}の通知を消去しました",
+  "@p0NotificationsCleared": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "markAllP1UnreadNotificationsP0": "{p0}の未読通知 {p1} 件をすべて既読にしますか？",
+  "@markAllP1UnreadNotificationsP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "offers": "お得情報",
+  "noTransactionNotifications": "取引に関する通知はありません",
+  "noChatNotifications": "チャットに関する通知はありません",
+  "noAccountNotifications": "アカウントに関する通知はありません",
+  "noSupportNotifications": "サポートに関する通知はありません",
+  "noOfferNotifications": "お得情報に関する通知はありません"
 }

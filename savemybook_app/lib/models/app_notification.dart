@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/api_helpers.dart';
+import 'notification_category.dart';
 
 class AppNotification {
   final int notificationId;
@@ -10,6 +11,7 @@ class AppNotification {
   final String? relatedType;
   final bool isRead;
   final DateTime? createdAt;
+  final NotificationCategory category;
 
   AppNotification({
     required this.notificationId,
@@ -20,10 +22,12 @@ class AppNotification {
     this.relatedId,
     this.relatedType,
     this.createdAt,
-  });
+    NotificationCategory? category,
+  }) : category = category ?? NotificationCategory.of(type, relatedType);
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
     return AppNotification(
+      category: NotificationCategory.fromKey(json['category'] as String?),
       notificationId: parseInt(json['notification_id']),
       type: json['type'] as String? ?? 'system',
       title: json['title'] as String? ?? '',
@@ -35,16 +39,19 @@ class AppNotification {
     );
   }
 
-  IconData get icon => iconFor(type);
+  IconData get icon => category.icon;
 
-  static IconData iconFor(String type) {
-    switch (type) {
-      case 'order': return Icons.receipt_long_rounded;
-      case 'message': return Icons.chat_bubble_outline_rounded;
-      case 'promotion': return Icons.local_offer_outlined;
-      case 'reservation': return Icons.event_available_outlined;
-      case 'system':
-      default: return Icons.campaign_outlined;
-    }
-  }
+  AppNotification asRead() => isRead
+      ? this
+      : AppNotification(
+          notificationId: notificationId,
+          type: type,
+          title: title,
+          content: content,
+          relatedId: relatedId,
+          relatedType: relatedType,
+          isRead: true,
+          createdAt: createdAt,
+          category: category,
+        );
 }

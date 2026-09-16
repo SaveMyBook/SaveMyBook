@@ -10,6 +10,7 @@ import '../models/user.dart';
 import '../models/cart_item.dart';
 import '../models/order.dart';
 import '../models/app_notification.dart';
+import '../models/notification_category.dart';
 import '../models/chat.dart';
 import '../models/link_preview.dart';
 import '../models/support.dart';
@@ -84,6 +85,8 @@ class ApiService {
 
   static final ValueNotifier<int> cartCount = ValueNotifier<int>(0);
   static final ValueNotifier<int> unreadNotificationCount = ValueNotifier<int>(0);
+  static final ValueNotifier<Map<NotificationCategory, int>> unreadNotificationsByCategory =
+      ValueNotifier<Map<NotificationCategory, int>>(const {});
   static final ValueNotifier<int> unreadChatCount = ValueNotifier<int>(0);
   static final ValueNotifier<Set<int>> favoriteBookIds = ValueNotifier<Set<int>>(<int>{});
   static final ValueNotifier<Set<int>> cartBookIds = ValueNotifier<Set<int>>(<int>{});
@@ -100,6 +103,7 @@ class ApiService {
   static void resetGlobalState() {
     cartCount.value = 0;
     unreadNotificationCount.value = 0;
+    unreadNotificationsByCategory.value = const {};
     unreadChatCount.value = 0;
     favoriteBookIds.value = <int>{};
     cartBookIds.value = <int>{};

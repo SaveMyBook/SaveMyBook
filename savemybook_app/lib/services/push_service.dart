@@ -5,7 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../firebase_options.dart';
-import '../models/app_notification.dart';
+import '../models/notification_category.dart';
 import '../features/chat/chat_room_screen.dart';
 import '../features/home/notification_screen.dart';
 import '../widgets/in_app_banner.dart';
@@ -199,7 +199,7 @@ class PushService {
       overlay,
       title: title,
       body: body,
-      icon: AppNotification.iconFor('${data['type']}'),
+      icon: NotificationCategory.of('${data['type']}', data['related_type']?.toString()).icon,
       imageUrl: avatar.isEmpty ? null : avatar,
       onTap: () => _open(data),
     );

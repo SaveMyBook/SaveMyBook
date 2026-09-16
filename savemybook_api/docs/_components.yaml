@@ -384,6 +384,11 @@ components:
         created_at: { type: string, format: date-time }
 
     # ---------- 通知 ----------
+    NotificationCategory:
+      type: string
+      enum: [trade, chat, account, service, promotion]
+      description: 通知分類，依 `type` 與 `related_type` 判定：交易、聊天、帳號、客服、優惠。
+      example: trade
     Notification:
       type: object
       properties:
@@ -404,8 +409,9 @@ components:
         related_type:
           type: string
           nullable: true
-          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`legal`、`user`、`wallet`、`security`、`push_test`。`security` 為新裝置登入、交易密碼變更或鎖定等帳號安全通知，無對應的 `related_id`。'
+          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`admin_ticket`、`legal`、`user`、`wallet`、`security`、`password`、`member_level`、`announcement`、`push_test`。`security` 為新裝置登入、交易密碼變更或鎖定等帳號安全通知，無對應的 `related_id`。'
           example: order
+        category: { $ref: '#/components/schemas/NotificationCategory' }
         is_read: { type: boolean, example: false }
         created_at: { type: string, format: date-time }
 

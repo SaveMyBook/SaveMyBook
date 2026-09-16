@@ -1898,6 +1898,20 @@ abstract class AppLocalizations {
   String downloadLinkValidOnceP0P1(Object p0, Object p1);
   String get sources;
   String get unableOpenLink;
+  String get helpCentre2;
+  String get preferences;
+  String get privacy;
+  String get about2;
+  String clearP0Notifications(Object p0);
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1);
+  String p0NotificationsCleared(Object p0);
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1);
+  String get offers;
+  String get noTransactionNotifications;
+  String get noChatNotifications;
+  String get noAccountNotifications;
+  String get noSupportNotifications;
+  String get noOfferNotifications;
 }
 
 class _LEn extends AppLocalizations {
@@ -7527,6 +7541,48 @@ class _LEn extends AppLocalizations {
 
   @override
   String get unableOpenLink => 'Unable to open the link.';
+
+  @override
+  String get helpCentre2 => 'Help centre';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get privacy => 'Privacy';
+
+  @override
+  String get about2 => 'About';
+
+  @override
+  String clearP0Notifications(Object p0) => 'Clear ${p0} notifications';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => 'All ${p0} notifications (${p1}) will be deleted. This cannot be undone.';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '${p0} notifications cleared';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => 'Mark all unread ${p0} notifications (${p1}) as read?';
+
+  @override
+  String get offers => 'Offers';
+
+  @override
+  String get noTransactionNotifications => 'No transaction notifications';
+
+  @override
+  String get noChatNotifications => 'No chat notifications';
+
+  @override
+  String get noAccountNotifications => 'No account notifications';
+
+  @override
+  String get noSupportNotifications => 'No support notifications';
+
+  @override
+  String get noOfferNotifications => 'No offer notifications';
 
 }
 
@@ -13158,6 +13214,48 @@ class _LJa extends AppLocalizations {
   @override
   String get unableOpenLink => 'リンクを開けませんでした。';
 
+  @override
+  String get helpCentre2 => 'サポートセンター';
+
+  @override
+  String get preferences => '環境設定';
+
+  @override
+  String get privacy => 'プライバシー';
+
+  @override
+  String get about2 => '概要';
+
+  @override
+  String clearP0Notifications(Object p0) => '${p0}の通知を消去';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => '${p0}の通知 ${p1} 件を削除します。この操作は元に戻せません。';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '${p0}の通知を消去しました';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => '${p0}の未読通知 ${p1} 件をすべて既読にしますか？';
+
+  @override
+  String get offers => 'お得情報';
+
+  @override
+  String get noTransactionNotifications => '取引に関する通知はありません';
+
+  @override
+  String get noChatNotifications => 'チャットに関する通知はありません';
+
+  @override
+  String get noAccountNotifications => 'アカウントに関する通知はありません';
+
+  @override
+  String get noSupportNotifications => 'サポートに関する通知はありません';
+
+  @override
+  String get noOfferNotifications => 'お得情報に関する通知はありません';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -18787,6 +18885,48 @@ class _LKo extends AppLocalizations {
 
   @override
   String get unableOpenLink => '링크를 열 수 없습니다.';
+
+  @override
+  String get helpCentre2 => '고객센터';
+
+  @override
+  String get preferences => '환경설정';
+
+  @override
+  String get privacy => '개인정보';
+
+  @override
+  String get about2 => '정보';
+
+  @override
+  String clearP0Notifications(Object p0) => '${p0} 알림 지우기';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => '${p0} 알림 ${p1}개가 삭제됩니다. 이 작업은 되돌릴 수 없습니다.';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '${p0} 알림을 지웠습니다';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => '${p0}의 읽지 않은 알림 ${p1}개를 모두 읽음으로 표시할까요?';
+
+  @override
+  String get offers => '혜택';
+
+  @override
+  String get noTransactionNotifications => '거래 알림이 없습니다';
+
+  @override
+  String get noChatNotifications => '채팅 알림이 없습니다';
+
+  @override
+  String get noAccountNotifications => '계정 알림이 없습니다';
+
+  @override
+  String get noSupportNotifications => '고객지원 알림이 없습니다';
+
+  @override
+  String get noOfferNotifications => '혜택 알림이 없습니다';
 
 }
 
@@ -24418,6 +24558,48 @@ class _LZh extends AppLocalizations {
   @override
   String get unableOpenLink => '無法開啟連結';
 
+  @override
+  String get helpCentre2 => '客服中心';
+
+  @override
+  String get preferences => '偏好設定';
+
+  @override
+  String get privacy => '隱私';
+
+  @override
+  String get about2 => '關於';
+
+  @override
+  String clearP0Notifications(Object p0) => '清除${p0}通知';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => '將刪除${p0}類的 ${p1} 則通知，此操作無法復原。';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '已清除${p0}通知';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => '確定要將${p0}類的 ${p1} 則未讀通知全部標為已讀？';
+
+  @override
+  String get offers => '優惠';
+
+  @override
+  String get noTransactionNotifications => '沒有交易通知';
+
+  @override
+  String get noChatNotifications => '沒有聊天通知';
+
+  @override
+  String get noAccountNotifications => '沒有帳號通知';
+
+  @override
+  String get noSupportNotifications => '沒有客服通知';
+
+  @override
+  String get noOfferNotifications => '沒有優惠通知';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -30048,6 +30230,48 @@ class _LZhHans extends AppLocalizations {
   @override
   String get unableOpenLink => '无法打开链接';
 
+  @override
+  String get helpCentre2 => '客服中心';
+
+  @override
+  String get preferences => '偏好设置';
+
+  @override
+  String get privacy => '隐私';
+
+  @override
+  String get about2 => '关于';
+
+  @override
+  String clearP0Notifications(Object p0) => '清除${p0}通知';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => '将删除${p0}类的 ${p1} 条通知，此操作无法复原。';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '已清除${p0}通知';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => '确定要将${p0}类的 ${p1} 条未读通知全部标为已读？';
+
+  @override
+  String get offers => '优惠';
+
+  @override
+  String get noTransactionNotifications => '没有交易通知';
+
+  @override
+  String get noChatNotifications => '没有聊天通知';
+
+  @override
+  String get noAccountNotifications => '没有账号通知';
+
+  @override
+  String get noSupportNotifications => '没有客服通知';
+
+  @override
+  String get noOfferNotifications => '没有优惠通知';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -35677,6 +35901,48 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get unableOpenLink => '無法開啟連結';
+
+  @override
+  String get helpCentre2 => '客服中心';
+
+  @override
+  String get preferences => '偏好設定';
+
+  @override
+  String get privacy => '隱私';
+
+  @override
+  String get about2 => '關於';
+
+  @override
+  String clearP0Notifications(Object p0) => '清除${p0}通知';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => '將刪除${p0}類的 ${p1} 則通知，此操作無法復原。';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '已清除${p0}通知';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => '確定要將${p0}類的 ${p1} 則未讀通知全部標為已讀？';
+
+  @override
+  String get offers => '優惠';
+
+  @override
+  String get noTransactionNotifications => '沒有交易通知';
+
+  @override
+  String get noChatNotifications => '沒有聊天通知';
+
+  @override
+  String get noAccountNotifications => '沒有帳號通知';
+
+  @override
+  String get noSupportNotifications => '沒有客服通知';
+
+  @override
+  String get noOfferNotifications => '沒有優惠通知';
 
 }
 

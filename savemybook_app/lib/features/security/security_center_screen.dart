@@ -42,6 +42,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   String _biometricLabel = S.biometrics;
   int? _deviceCount;
   bool _togglingBiometric = false;
+  bool _togglingBiometricLogin = false;
   bool _passwordSet = true;
   int _identitiesTick = 0;
   bool _passkeySupported = false;
@@ -149,6 +150,21 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     } finally {
       if (mounted) setState(() => _togglingBiometric = false);
       await _load();
+    }
+  }
+
+  Future<void> _toggleBiometricLogin(bool value) async {
+    if (_togglingBiometricLogin) return;
+    setState(() => _togglingBiometricLogin = true);
+    try {
+      if (value && !await BiometricService.authenticate(reason: S.verifyEnableQuickSign)) {
+        return;
+      }
+      await BiometricService.setEnabled(value);
+      if (!mounted) return;
+      showAppSnackBar(context, value ? S.sign2(_biometricLabel) : S.quickSignTurnedOff);
+    } finally {
+      if (mounted) setState(() => _togglingBiometricLogin = false);
     }
   }
 
@@ -436,9 +452,30 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
             iconColor: _passwordSet ? c.accent : c.warning,
             title: _passwordSet ? S.changePassword : S.setPassword,
             subtitle: _passwordSet ? null : S.accountNoPasswordYet,
-            isLast: true,
+            isLast: !_biometricAvailable,
             onTap: _openPasswordScreen,
           ),
+          if (_biometricAvailable)
+            SwitchListTile.adaptive(
+              key: const ValueKey('biometric_login_switch'),
+              secondary: _togglingBiometricLogin
+                  ? SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: Padding(
+                        padding: const EdgeInsets.all(2),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: c.accent),
+                      ),
+                    )
+                  : BiometricGlyph(label: _biometricLabel, color: c.accent),
+              title: Text(
+                S.sign3(_biometricLabel),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.textPrimary),
+              ),
+              value: BiometricService.isEnabled,
+              activeTrackColor: c.accent,
+              onChanged: _togglingBiometricLogin ? null : _toggleBiometricLogin,
+            ),
         ],
       ),
     );
