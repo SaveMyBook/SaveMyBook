@@ -25,7 +25,7 @@
 	<!-- GIDClientID 與 Google 的反轉 client id 取自 Firebase 主控台下載的 GoogleService-Info.plist，
 	     詳見 docs/social-login-setup.md；未替換佔位字串前 Google 登入會失敗。 -->
 	<key>GIDClientID</key>
-	<string>REPLACE_WITH_MACOS_CLIENT_ID.apps.googleusercontent.com</string>
+	<string>385756357856-eu0hh9k4dvcbp534afp43unui1ppmh1s.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -45,7 +45,7 @@
 			<string>com.savemybook.googlesignin</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.REPLACE_WITH_MACOS_CLIENT_ID</string>
+				<string>com.googleusercontent.apps.385756357856-eu0hh9k4dvcbp534afp43unui1ppmh1s</string>
 			</array>
 		</dict>
 	</array>
