@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:local_auth_platform_interface/local_auth_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:savemybook_app/i18n/app_localizations.dart';
@@ -80,6 +81,7 @@ import 'package:savemybook_app/features/security/passkeys_card.dart';
 import 'package:savemybook_app/models/passkey.dart';
 import 'package:savemybook_app/services/passkey_service.dart';
 import 'package:savemybook_app/models/auth_social.dart';
+import 'package:savemybook_app/models/notification_category.dart';
 import 'package:savemybook_app/services/social_auth_service.dart';
 import 'package:savemybook_app/features/account/member_level_screen.dart';
 import 'package:savemybook_app/features/home/notification_screen.dart';
@@ -511,8 +513,8 @@ Object? fakeData(String method, String path) {
     'GET /wallet': () => {'balance': 9876543.5, 'frozen_amount': 123456, 'total_income': 98765432, 'total_expense': 12345678, 'pending_income': 7654321},
     'GET /wallet/transactions': () => many((i) => {'txn_id': i, 'type': ['purchase', 'sale_income', 'transfer_in', 'transfer_out', 'refund', 'admin_adjust'][i % 6], 'amount': i.isEven ? 1234567 : -1234567, 'balance_after': 9876543, 'description': 'Order SMB20260914103000123456 refund', 'created_at': now, 'orders': {'order_id': i, 'order_no': 'SMB20260914103000123456', 'order_items': [{'books': book(i)}]}}),
     'GET /wallet/pending': () => many((i) => order(i, 'deposited')),
-    'GET /notifications': () => many((i) => {'notification_id': i, 'type': ['order', 'message', 'system', 'promotion'][i % 4], 'title': 'Your book "$longTitle" has been sold', 'content': 'Order SMB20260914103000123456 was placed. Please drop the book off at $longCabinet within seven days.', 'related_id': i, 'related_type': 'order', 'is_read': i.isEven, 'created_at': now}),
-    'GET /notifications/unread-count': () => {'unread_count': 999},
+    'GET /notifications': () => many((i) => {'notification_id': i, 'type': ['order', 'message', 'system', 'promotion', 'system'][i % 5], 'title': 'Your book "$longTitle" has been sold', 'content': 'Order SMB20260914103000123456 was placed. Please drop the book off at $longCabinet within seven days.', 'related_id': i, 'related_type': ['order', 'chat_room', 'security', 'book', 'ticket'][i % 5], 'category': ['trade', 'chat', 'account', 'promotion', 'service'][i % 5], 'is_read': i.isEven, 'created_at': now}),
+    'GET /notifications/unread-count': () => {'unread_count': 12345, 'by_category': {'trade': 999, 'chat': 1234, 'account': 5, 'service': 0, 'promotion': 88}},
     'GET /announcements': () => many((i) => {'announcement_id': i, 'title': 'Scheduled maintenance for the smart locker network this weekend', 'content': 'We will upgrade the locker firmware. ' * 5, 'type': ['general', 'maintenance', 'promotion', 'policy'][i % 4], 'is_published': true, 'published_at': now, 'created_at': now, 'users': user(9)}),
     'GET /chat/rooms': () => many(chatRoomRow),
     'GET /chat/rooms/1': () => {'room_id': 1, 'type': 'direct', 'name': '', 'avatar_url': null, 'created_by': 1, 'my_role': 'member', 'members': [chatMember(1), chatMember(2)], 'partner': {...user(2), 'alias': longName}, 'muted': true, 'pinned': true},
@@ -615,7 +617,9 @@ MockClient fakeApi() => MockClient((request) async {
       final path = request.url.path.replaceFirst('/api', '');
       final data = path == '/chat/link-preview'
           ? linkPreviewData(request.url.queryParameters['url'] ?? '')
-          : fakeData(request.method, path);
+          : path == '/notifications' && request.url.queryParameters['category'] == 'service'
+              ? <Object>[]
+              : fakeData(request.method, path);
       final body = <String, Object?>{
         'success': true,
         'message': 'OK',
@@ -660,6 +664,8 @@ Map<String, Widget Function()> get screens => {
       'OrderDetailSeller': () => OrderDetailScreen(order: Order.fromJson(order(7, 'refunding')), asSeller: true),
       'Dispute': () => const DisputeScreen(orderId: 7),
       'Notifications': () => const NotificationScreen(),
+      'NotificationsTrade': () => const NotificationScreen(initialCategory: NotificationCategory.trade),
+      'NotificationsEmptyCategory': () => const NotificationScreen(initialCategory: NotificationCategory.service),
       'AnnouncementDetail': () => AnnouncementDetailScreen(
           announcement: Announcement.fromJson({'announcement_id': 1, 'title': 'Scheduled maintenance for the smart locker network', 'content': 'Content ' * 50, 'type': 'maintenance', 'is_published': true, 'published_at': now})),
       'ChatList': () => const ChatListScreen(),
@@ -682,6 +688,7 @@ Map<String, Widget Function()> get screens => {
       'LegalDoc': () => const LegalDocScreen(docKey: 'terms', fallbackTitle: 'Terms'),
       'LegalConsent': () => LegalConsentScreen(documents: [LegalDoc.fromJson({'doc_id': 1, 'doc_key': 'terms', 'title': 'Terms of Service and Community Guidelines', 'content': 'Article 1. ' * 300, 'version': 3, 'updated_at': now})]),
       'SecurityCenter': () => const SecurityCenterScreen(),
+      'SecurityCenterBiometricLogin': () => const _WithBiometrics(child: SecurityCenterScreen()),
       'SignInMethods': () => const SignInMethodsPreview(),
       'Passkeys': () => const PasskeysPreview(),
       'IdentityVerifyPasskey': () => DialogPreview(
@@ -1050,6 +1057,44 @@ class SignInMethodsPreview extends StatelessWidget {
       ),
     );
   }
+}
+
+class _FakeBiometrics extends LocalAuthPlatform {
+  @override
+  Future<bool> isDeviceSupported() async => true;
+
+  @override
+  Future<bool> deviceSupportsBiometrics() async => true;
+
+  @override
+  Future<List<BiometricType>> getEnrolledBiometrics() async => [BiometricType.face];
+}
+
+class _WithBiometrics extends StatefulWidget {
+  final Widget child;
+  const _WithBiometrics({required this.child});
+
+  @override
+  State<_WithBiometrics> createState() => _WithBiometricsState();
+}
+
+class _WithBiometricsState extends State<_WithBiometrics> {
+  final _previous = LocalAuthPlatform.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    LocalAuthPlatform.instance = _FakeBiometrics();
+  }
+
+  @override
+  void dispose() {
+    LocalAuthPlatform.instance = _previous;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class PhoneSmsCodePreview extends StatefulWidget {

@@ -3357,5 +3357,41 @@
     }
   },
   "sources": "資料來源",
-  "unableOpenLink": "無法開啟連結"
+  "unableOpenLink": "無法開啟連結",
+  "helpCentre2": "客服中心",
+  "preferences": "偏好設定",
+  "privacy": "隱私",
+  "about2": "關於",
+  "clearP0Notifications": "清除{p0}通知",
+  "@clearP0Notifications": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p1NotificationsP0DeletedCannotUndone": "將刪除{p0}類的 {p1} 則通知，此操作無法復原。",
+  "@p1NotificationsP0DeletedCannotUndone": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0NotificationsCleared": "已清除{p0}通知",
+  "@p0NotificationsCleared": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "markAllP1UnreadNotificationsP0": "確定要將{p0}類的 {p1} 則未讀通知全部標為已讀？",
+  "@markAllP1UnreadNotificationsP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "offers": "優惠",
+  "noTransactionNotifications": "沒有交易通知",
+  "noChatNotifications": "沒有聊天通知",
+  "noAccountNotifications": "沒有帳號通知",
+  "noSupportNotifications": "沒有客服通知",
+  "noOfferNotifications": "沒有優惠通知"
 }

@@ -21,6 +21,18 @@ tags:
       | `wallet` | 錢包 |
       | `user` | 個人頁 |
 
+      每則通知依 `type` 與 `related_type` 歸入一個分類（`category`），規則集中於
+      `services/notification-categories.js`。`type` 為 `order`、`reservation`、`message`、`promotion`
+      時依 `type` 判斷，其餘依 `related_type` 判斷：
+
+      | `category` | 名稱 | 涵蓋 |
+      | --- | --- | --- |
+      | `trade` | 交易 | type `order`、`reservation`；related_type `order`、`wallet`、`book`、`reservation` |
+      | `chat` | 聊天 | type `message`；related_type `chat_room` |
+      | `account` | 帳號 | related_type `security`、`password`、`legal`、`member_level`、`user`、`push_test`，以及無 related_type 或未列出的值 |
+      | `service` | 客服 | related_type `ticket`、`report`、`admin_ticket` |
+      | `promotion` | 優惠 | type `promotion`；related_type `announcement` |
+
 paths:
   /api/notifications:
     get:
@@ -30,8 +42,8 @@ paths:
       description: |
         依建立時間遞減排序。
 
-        `unread_count` 統計全部未讀通知，不受 `type` 篩選影響，
-        因此切換分類時未讀計數仍為全站數值。
+        `unread_count` 統計全部未讀通知，不受 `type` 與 `category` 篩選影響。
+        `category` 可與分頁並用，亦可與 `type` 同時指定。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/Page'
@@ -42,6 +54,10 @@ paths:
             type: string
             enum: [system, order, message, promotion, reservation]
           description: 限定通知類型。
+        - in: query
+          name: category
+          schema: { $ref: '#/components/schemas/NotificationCategory' }
+          description: 限定通知分類；不帶時處理全部通知。
       responses:
         '200':
           description: 成功。
@@ -51,7 +67,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  unread_count: { type: integer, description: 全部未讀通知數，不受 type 篩選影響, example: 3 }
+                  unread_count: { type: integer, description: 全部未讀通知數，不受 type 與 category 篩選影響, example: 3 }
                   pagination: { $ref: '#/components/schemas/Pagination' }
                   data:
                     type: array
@@ -64,7 +80,7 @@ paths:
       summary: 取得未讀數
       operationId: getUnreadNotificationCount
       tags: [notifications]
-      description: 僅回傳未讀通知數量，負載極低，適合定期輪詢。
+      description: 回傳未讀通知總數與各分類的未讀數，以單一查詢完成，適合定期輪詢。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -79,6 +95,15 @@ paths:
                     type: object
                     properties:
                       unread_count: { type: integer, example: 3 }
+                      by_category:
+                        type: object
+                        description: 各分類的未讀數，五個分類皆會回傳。
+                        properties:
+                          trade: { type: integer, example: 1 }
+                          chat: { type: integer, example: 2 }
+                          account: { type: integer, example: 0 }
+                          service: { type: integer, example: 0 }
+                          promotion: { type: integer, example: 0 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -88,17 +113,30 @@ paths:
       operationId: markAllNotificationsRead
       tags: [notifications]
       description: |
-        將請求者的全部未讀通知標記為已讀。無未讀通知時仍回傳 200。
+        將請求者的未讀通知標記為已讀；帶 `category` 時僅處理該分類。無未讀通知時仍回傳 200。
 
         此操作不可復原，建議用戶端於執行前確認。
       security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: category
+          schema: { $ref: '#/components/schemas/NotificationCategory' }
+          description: 限定通知分類；不帶時處理全部通知。
       responses:
         '200':
           description: 已全部標為已讀。
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/SuccessMessage' }
-              example: { success: true, message: 已全部標為已讀 }
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已全部標為已讀 }
+                  data:
+                    type: object
+                    properties:
+                      updated: { type: integer, example: 4 }
+        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -108,11 +146,16 @@ paths:
       operationId: deleteAllNotifications
       tags: [notifications]
       description: |
-        永久刪除請求者的全部通知，並非標記已讀。回應包含實際刪除的筆數。
+        永久刪除請求者的通知，並非標記已讀；帶 `category` 時僅刪除該分類。回應包含實際刪除的筆數。
 
         > 路由定義順序須置於 `DELETE /api/notifications/{id}` 之前，
         > 否則 `all` 會被解析為 `{id}` 參數。
       security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: category
+          schema: { $ref: '#/components/schemas/NotificationCategory' }
+          description: 限定通知分類；不帶時處理全部通知。
       responses:
         '200':
           description: 已清除。
@@ -127,6 +170,7 @@ paths:
                     type: object
                     properties:
                       deleted: { type: integer, example: 12 }
+        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 

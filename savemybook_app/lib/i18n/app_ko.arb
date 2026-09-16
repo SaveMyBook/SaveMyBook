@@ -3357,5 +3357,41 @@
     }
   },
   "sources": "출처",
-  "unableOpenLink": "링크를 열 수 없습니다."
+  "unableOpenLink": "링크를 열 수 없습니다.",
+  "helpCentre2": "고객센터",
+  "preferences": "환경설정",
+  "privacy": "개인정보",
+  "about2": "정보",
+  "clearP0Notifications": "{p0} 알림 지우기",
+  "@clearP0Notifications": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p1NotificationsP0DeletedCannotUndone": "{p0} 알림 {p1}개가 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
+  "@p1NotificationsP0DeletedCannotUndone": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "p0NotificationsCleared": "{p0} 알림을 지웠습니다",
+  "@p0NotificationsCleared": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "markAllP1UnreadNotificationsP0": "{p0}의 읽지 않은 알림 {p1}개를 모두 읽음으로 표시할까요?",
+  "@markAllP1UnreadNotificationsP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "offers": "혜택",
+  "noTransactionNotifications": "거래 알림이 없습니다",
+  "noChatNotifications": "채팅 알림이 없습니다",
+  "noAccountNotifications": "계정 알림이 없습니다",
+  "noSupportNotifications": "고객지원 알림이 없습니다",
+  "noOfferNotifications": "혜택 알림이 없습니다"
 }

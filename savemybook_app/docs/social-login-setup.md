@@ -2,8 +2,6 @@
 
 App 端（`lib/features/auth`、`lib/services/social_auth_service.dart`）與 API 端（`routes/auth.js`）的程式碼已完成，但下列項目必須由專案擁有者在各家主控台手動完成。**未完成前，對應渠道在登入頁不會出現，或按下後會失敗。**
 
-本機無法編譯原生程式，iOS／macOS 的 plist 與 entitlement 只放了佔位字串，請依第二節替換。
-
 支援的渠道與驗證方式：
 
 | 渠道 | App 端 | 伺服器驗證 |

@@ -13,6 +13,7 @@ import '../../widgets/state_views.dart';
 import '../admin/admin_home_screen.dart';
 import '../selling/book_manage_screen.dart';
 import 'edit_profile_screen.dart';
+import 'help_center_screen.dart';
 import '../books/favorites_screen.dart';
 import '../auth/login_screen.dart';
 import 'member_level_screen.dart';
@@ -147,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     children: [
                                       FadeSlideIn(child: _buildQuickActions(c)),
                                       const SizedBox(height: 14),
-                                      FadeSlideIn(index: 1, child: _buildMenuCard(_tradeMenuItems(isLast: true))),
+                                      FadeSlideIn(index: 1, child: _buildMenuCard(_tradeMenuItems())),
                                     ],
                                   ),
                                 ),
@@ -167,12 +168,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         : [
                             FadeSlideIn(child: _buildQuickActions(c)),
                             const SizedBox(height: 14),
-                            FadeSlideIn(
-                              index: 1,
-                              child: _buildMenuCard([..._tradeMenuItems(), ..._accountMenuItems()]),
-                            ),
+                            FadeSlideIn(index: 1, child: _buildMenuCard(_tradeMenuItems())),
                             const SizedBox(height: 14),
-                            FadeSlideIn(index: 2, child: _buildLogoutButton(c)),
+                            FadeSlideIn(index: 2, child: _buildMenuCard(_accountMenuItems())),
+                            const SizedBox(height: 14),
+                            FadeSlideIn(index: 3, child: _buildLogoutButton(c)),
                           ],
                   ),
                 ),
@@ -202,9 +202,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               SizedBox(
+                width: double.infinity,
                 height: 32,
                 child: Stack(
                   alignment: Alignment.center,
+                  clipBehavior: Clip.none,
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 44),
@@ -215,45 +217,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ),
+                    Positioned(
+                      right: -8,
+                      top: -8,
+                      bottom: -8,
+                      child: IconButton(
+                        key: const ValueKey('profile_qr_code'),
+                        tooltip: S.myQrCode,
+                        icon: const Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 24),
+                        onPressed: _openShareProfile,
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  UserAvatar(
-                    imageUrl: avatarUrl,
-                    radius: 32,
-                    background: Colors.white24,
-                    enablePreview: true,
-                    previewTitle: nickname,
-                  ),
-                  const SizedBox(width: 14),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          nickname,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 19,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                    child: Semantics(
+                      button: true,
+                      label: S.editProfile,
+                      child: GestureDetector(
+                        key: const ValueKey('profile_edit_area'),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => _openAndRefresh(const EditProfileScreen()),
+                        child: Row(
+                          children: [
+                            UserAvatar(
+                              imageUrl: avatarUrl,
+                              radius: 32,
+                              background: Colors.white24,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    nickname,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    bio.isEmpty ? S.personNotWrittenBioYet : bio,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.8)),
+                                  ),
+                                  const SizedBox(height: 7),
+                                  _buildLevelBadge(),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          bio.isEmpty ? S.personNotWrittenBioYet : bio,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.8)),
-                        ),
-                        const SizedBox(height: 7),
-                        _buildLevelBadge(),
-                      ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -446,20 +472,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SalesHistoryScreen(initialTab: 'pending_deposit'),
             badgeColor: c.danger,
           ),
-          item(Icons.account_balance_wallet_outlined, S.coins, 0, const WalletScreen()),
           item(Icons.bookmark_outline_rounded, S.saved, _stats.favoriteCount, const FavoritesScreen()),
+          item(Icons.library_books_outlined, S.myBooks, 0, const BookManageScreen()),
         ],
       ),
     );
   }
 
-  List<Widget> _tradeMenuItems({bool isLast = false}) => [
-        AppMenuItem(
-          icon: Icons.library_books_outlined,
-          title: S.myBooks,
-          trailingText: _stats.bookCount > 0 ? '${_stats.bookCount}' : null,
-          onTap: () => _openAndRefresh(const BookManageScreen()),
-        ),
+  List<Widget> _tradeMenuItems() => [
         AppMenuItem(
           icon: Icons.shopping_bag_outlined,
           title: S.purchases,
@@ -468,7 +488,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         AppMenuItem(
           icon: Icons.inventory_2_outlined,
           title: S.sales,
-          isLast: isLast,
+          isLast: true,
           onTap: () => _openAndRefresh(const SalesHistoryScreen()),
         ),
       ];
@@ -478,19 +498,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return [
       AppMenuItem(
-        icon: Icons.edit_outlined,
-        title: S.editProfile,
-        onTap: () => _openAndRefresh(const EditProfileScreen()),
-      ),
-      AppMenuItem(
-        icon: Icons.qr_code_2_rounded,
-        title: S.myQrCode,
-        onTap: _openShareProfile,
-      ),
-      AppMenuItem(
         icon: Icons.verified_user_outlined,
         title: S.accountSecurity,
         onTap: () => _openAndRefresh(const SecurityCenterScreen()),
+      ),
+      AppMenuItem(
+        icon: Icons.support_agent_rounded,
+        title: S.helpCentre2,
+        onTap: () => _openAndRefresh(const HelpCenterScreen()),
       ),
       if (isAdmin)
         AppMenuItem(
