@@ -1,5 +1,6 @@
 const prisma = require('../lib/prisma');
 const password = require('../lib/password');
+const { hasColumn } = require('../lib/schema-check');
 const { passwordVersion, signToken, verify } = require('../lib/auth-token');
 const { notFound, unauthorized, forbidden } = require('../lib/errors');
 const sessions = require('./sessions');
@@ -36,24 +37,30 @@ const sessionProblem = async (userId, decoded) => {
   return null;
 };
 
-const login = async (email, plain, device) => {
-  const user = await prisma.users.findUnique({ where: { email } });
-
-  if (!user) throw notFound('此 Email 尚未註冊', 'ACCOUNT_NOT_FOUND');
-  if (!(await password.verify(plain, user.password_hash))) throw unauthorized('密碼錯誤', 'INVALID_PASSWORD');
+const assertLoginAllowed = (user) => {
   if (user.is_blacklisted) throw forbidden('此帳號已被停用，請聯絡客服', 'ACCOUNT_BLACKLISTED');
   if (!user.is_active) throw forbidden('此帳號已停權，請聯絡客服', 'ACCOUNT_INACTIVE');
+};
 
+// login_method 於 014 之後才有，未執行時沿用原本的寫法，只是分不出登入方式。
+const logLogin = async (userId, device, method) => {
+  const ip = device?.ip ? String(device.ip).slice(0, 45) : null;
+  const label = sessions.deviceLabel(device);
+  if (await hasColumn('login_logs', 'login_method')) {
+    await prisma.$executeRaw`
+      INSERT INTO login_logs (user_id, ip_address, device_info, login_at, login_method)
+      VALUES (${userId}, ${ip}, ${label}, ${new Date()}, ${method})`;
+    return;
+  }
+  await prisma.login_logs.create({ data: { user_id: userId, ip_address: ip, device_info: label } });
+};
+
+// 密碼登入與社群登入共用：建立工作階段、簽發 Token、寫登入紀錄、提醒新裝置。
+const issueLogin = async (user, device, method = 'password') => {
   const session = await sessions.create(user.user_id, device);
   const token = signToken(user, session?.sid);
 
-  prisma.login_logs.create({
-    data: {
-      user_id: user.user_id,
-      ip_address: device.ip ? String(device.ip).slice(0, 45) : null,
-      device_info: sessions.deviceLabel(device)
-    }
-  }).catch(() => {});
+  logLogin(user.user_id, device, method).catch(() => {});
 
   if (session?.isNewDevice) {
     await notify(null, {
@@ -67,6 +74,16 @@ const login = async (email, plain, device) => {
   // 申請刪除後仍須可登入，這是取消刪除的唯一入口。
   const deletion = user.deletion_requested_at ? deletionStatus(user.deletion_requested_at) : null;
   return { token, deletion };
+};
+
+const login = async (email, plain, device) => {
+  const user = await prisma.users.findUnique({ where: { email } });
+
+  if (!user) throw notFound('此 Email 尚未註冊', 'ACCOUNT_NOT_FOUND');
+  if (!(await password.verify(plain, user.password_hash))) throw unauthorized('密碼錯誤', 'INVALID_PASSWORD');
+  assertLoginAllowed(user);
+
+  return issueLogin(user, device, 'password');
 };
 
 const refreshFailed = () => unauthorized('登入已失效，請重新登入', 'REFRESH_FAILED');
@@ -98,4 +115,6 @@ const currentUser = async (userId) => {
   return user;
 };
 
-module.exports = { loadUser, accountProblem, sessionProblem, login, refresh, currentUser };
+module.exports = {
+  loadUser, accountProblem, sessionProblem, assertLoginAllowed, logLogin, issueLogin, login, refresh, currentUser
+};

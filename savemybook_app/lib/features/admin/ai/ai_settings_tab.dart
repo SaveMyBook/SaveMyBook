@@ -556,8 +556,8 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
       gap: 14,
       spacing: 14,
       columns: [
-        [cards[0], cards[2]],
-        [cards[1], cards[3]],
+        [for (final (i, card) in cards.indexed) if (i.isEven) card],
+        [for (final (i, card) in cards.indexed) if (i.isOdd) card],
       ],
     );
   }
@@ -634,6 +634,10 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                         ],
                         if (feature == AiFeatures.listingAssist) ..._webSearchOption(c, s, config, effectiveInfo),
                         if (feature == AiFeatures.moderation) ..._moderationOption(c, config),
+                        if (feature == AiFeatures.bookChat) ...[
+                          const SizedBox(height: 8),
+                          _inlineNote(c, Icons.storage_rounded, c.textSecondary, S.requiresDatabaseUpdate013),
+                        ],
                       ],
                     ),
                   ),

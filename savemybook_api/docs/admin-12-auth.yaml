@@ -1,0 +1,132 @@
+tags:
+  - name: admin-auth
+    x-displayName: 後台：登入方式
+    description: |
+      社群登入的總開關、各渠道開關，以及是否允許以該渠道直接建立新帳號。
+      兩個端點都需要 `can_manage_system` 權限，儲存另需通過敏感操作驗證。
+
+      各渠道的憑證只能在伺服器環境變數設定，後台僅能看到 `configured`：
+
+      | 渠道 | 環境變數 |
+      | --- | --- |
+      | `google`、`apple`、`phone` | Firebase 服務帳戶金鑰 `FCM_SERVICE_ACCOUNT_FILE`，或 `FIREBASE_PROJECT_ID` |
+      | `line` | `LINE_CHANNEL_ID`、`LINE_CHANNEL_SECRET` |
+      | `discord` | `DISCORD_CLIENT_ID`、`DISCORD_CLIENT_SECRET` |
+
+      `configured` 為 `false` 的渠道一律無法使用，後台應標示為「未設定」並停用其開關。
+
+      伺服器尚未執行 `migrations/014_auth_identities.sql` 時，讀取回傳預設值且
+      `migration_ready` 為 `false`，儲存回傳 503 `AUTH_SOCIAL_UNAVAILABLE`。
+
+paths:
+  /api/admin/auth/settings:
+    get:
+      summary: 取得登入方式設定
+      operationId: adminGetAuthSettings
+      tags: [admin-auth]
+      description: 資料庫沒有設定時回傳預設值（LINE 與 Discord 預設關閉）。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/AdminAuthSettingsPayload' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    put:
+      summary: 更新登入方式設定
+      operationId: adminUpdateAuthSettings
+      tags: [admin-auth]
+      description: |
+        整份設定覆寫儲存，未送出的欄位回到預設值。布林值以外的內容一律回 400。
+        變更內容會寫入管理員操作紀錄。
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/VerifyToken' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [settings]
+              properties:
+                settings: { $ref: '#/components/schemas/AuthSettings' }
+            example:
+              settings:
+                social_enabled: true
+                providers:
+                  google: { enabled: true, signup: true }
+                  apple: { enabled: true, signup: true }
+                  phone: { enabled: true, signup: true }
+                  line: { enabled: true, signup: false }
+                  discord: { enabled: false, signup: false }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已更新登入方式設定 }
+                  data: { $ref: '#/components/schemas/AdminAuthSettingsPayload' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminVerificationRequired' }
+        '503':
+          description: 伺服器尚未執行資料庫更新 014。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example:
+                success: false
+                code: AUTH_SOCIAL_UNAVAILABLE
+                message: 社群登入目前無法使用，伺服器尚未完成資料庫更新
+
+components:
+  schemas:
+    AuthSettings:
+      type: object
+      description: 社群登入設定。`enabled` 控制是否可用於登入與綁定，`signup` 控制是否可直接建立新帳號。
+      properties:
+        social_enabled: { type: boolean, example: true }
+        providers:
+          type: object
+          properties:
+            google: { $ref: '#/components/schemas/AuthProviderSetting' }
+            apple: { $ref: '#/components/schemas/AuthProviderSetting' }
+            phone: { $ref: '#/components/schemas/AuthProviderSetting' }
+            line: { $ref: '#/components/schemas/AuthProviderSetting' }
+            discord: { $ref: '#/components/schemas/AuthProviderSetting' }
+
+    AuthProviderSetting:
+      type: object
+      properties:
+        enabled: { type: boolean, example: true }
+        signup: { type: boolean, example: true }
+
+    AdminAuthSettingsPayload:
+      type: object
+      properties:
+        settings: { $ref: '#/components/schemas/AuthSettings' }
+        providers:
+          type: array
+          description: 各渠道的顯示名稱與伺服器憑證設定狀態。
+          items:
+            type: object
+            properties:
+              id: { type: string, example: line }
+              name: { type: string, example: LINE }
+              configured: { type: boolean, example: false }
+        migration_ready:
+          type: boolean
+          description: 伺服器是否已執行 `migrations/014_auth_identities.sql`。
+          example: true

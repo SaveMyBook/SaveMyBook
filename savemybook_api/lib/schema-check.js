@@ -73,7 +73,15 @@ const REQUIRED = [
   { migration: '011_ai.sql', table: 'ai_recommendation_cache' },
   { migration: '011_ai.sql', table: 'ai_book_reviews' },
   { migration: '011_ai.sql', table: 'ai_consents' },
-  { migration: '012_ai_error_detail.sql', table: 'ai_usage_logs', column: 'error_detail' }
+  { migration: '012_ai_error_detail.sql', table: 'ai_usage_logs', column: 'error_detail' },
+  { migration: '013_ai_book_chat.sql', table: 'ai_chat_sessions' },
+  { migration: '013_ai_book_chat.sql', table: 'ai_chat_messages' },
+  { migration: '014_auth_identities.sql', table: 'user_identities' },
+  { migration: '014_auth_identities.sql', table: 'auth_settings' },
+  { migration: '014_auth_identities.sql', table: 'oauth_states' },
+  { migration: '014_auth_identities.sql', table: 'oauth_results' },
+  { migration: '014_auth_identities.sql', table: 'users', column: 'password_set' },
+  { migration: '014_auth_identities.sql', table: 'login_logs', column: 'login_method' }
 ];
 
 const missingSchema = async () => {

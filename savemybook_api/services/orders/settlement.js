@@ -62,7 +62,8 @@ const settle = async (tx, order, target) => {
       });
       result.paidOut = due;
     }
-    await tx.books.updateMany({ where: { book_id: { in: bookIds } }, data: { status: 'sold', updated_at: now } });
+    // 加上狀態條件：書若已被管理員強制下架或刪除，完成訂單不應把它改回上架中的售出狀態。
+    await tx.books.updateMany({ where: { book_id: { in: bookIds }, status: 'reserved' }, data: { status: 'sold', updated_at: now } });
     return result;
   }
 

@@ -18,6 +18,7 @@ import '../models/admin_models.dart';
 import '../models/ai.dart';
 import '../utils/api_helpers.dart';
 import '../models/security.dart';
+import '../models/auth_social.dart';
 import '../i18n/strings.dart';
 import 'ai_image_prep.dart';
 import 'device_identity.dart';
@@ -31,6 +32,7 @@ part 'api/admin_system_api.dart';
 part 'api/ai_api.dart';
 part 'api/announcements_api.dart';
 part 'api/auth_api.dart';
+part 'api/auth_social_api.dart';
 part 'api/books_api.dart';
 part 'api/cart_api.dart';
 part 'api/chat_api.dart';
@@ -161,6 +163,9 @@ class ApiService {
     'SESSION_REVOKED',
   };
 
+  // 綁定登入方式時帶的是第三方憑證，它無效不代表本站的登入階段失效，不能因此登出。
+  static const _keepSessionCodes = {'INVALID_ID_TOKEN'};
+
   Future<Map<String, dynamic>?> _interpret(
     int status,
     List<int> bytes, {
@@ -183,7 +188,7 @@ class ApiService {
     }
     final code = payload['code'] as String?;
 
-    if (status == 401 && sentWithToken) {
+    if (status == 401 && sentWithToken && !_keepSessionCodes.contains(code)) {
       await _handleUnauthorized(reason: _signOutCodes.contains(code) ? payload['message'] as String? : null);
       return null;
     }

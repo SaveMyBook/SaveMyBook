@@ -34,9 +34,7 @@ router.post('/checkout', requireVerification('payment'), async (req, res) => {
     }
     cartIds = req.body.cart_ids.map((cid) => v.id(cid, '購物車項目編號'));
   }
-  const paymentMethod = req.body.payment_method === 'bank_transfer' ? 'bank_transfer' : 'wallet';
-
-  const created = await orders.checkout(req.user.userId, { cartIds, paymentMethod });
+  const created = await orders.checkout(req.user.userId, { cartIds, paymentMethod: 'wallet' });
   res.status(201).json({ success: true, message: '結帳成功', data: created });
 });
 

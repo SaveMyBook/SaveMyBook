@@ -3297,5 +3297,166 @@
   "couldNotConnectService": "サービスに接続できません",
   "blockedByProviderSafetySystem": "サービスの安全機能により拒否されました",
   "responseExceededOutputLimit": "応答が出力上限を超えました",
-  "serverProcessingError": "サーバー処理エラー"
+  "serverProcessingError": "サーバー処理エラー",
+  "aiBookAdvisor": "AI ブックアドバイザー",
+  "requiresDatabaseUpdate013": "データベース更新 013 が必要です",
+  "mysteryNovelMyCommute": "通勤中に読めるミステリー小説",
+  "programmingBooksBeginners": "入門者向けのプログラミング書",
+  "booksUnder200Coins": "200 コイン以内の本",
+  "popularLiteraryFictionRightNow": "最近人気の文芸小説",
+  "tellMeWhatBookLooking": "お探しの本をお聞かせください",
+  "allRecommendationsComeFromBooksCurrently": "おすすめはすべて出品中の書籍から選ばれます",
+  "describeBookLooking": "お探しの本を入力してください",
+  "tellMeWhatWantReadI": "読みたい本をお聞かせください。お選びします",
+  "subtitle": "サブタイトル",
+  "monthOnly": "月まで確認",
+  "yearOnly": "年まで確認",
+  "fromBookDatabase": "書誌データベースより",
+  "writtenByAi": "AI が作成",
+  "aiTidiedSourceText": "AI が原文を整理",
+  "msg": "繁體中文",
+  "additionalInformation": "その他の情報",
+  "readFull": "全文を表示",
+  "pages": "ページ数",
+  "simplifiedChinese": "簡体字中国語",
+  "chinese": "中国語",
+  "english": "英語",
+  "japanese": "日本語",
+  "korean": "韓国語",
+  "p0Pages": "{p0} ページ",
+  "@p0Pages": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "collapse": "折りたたむ",
+  "setPasswordFirst": "まずパスワードを設定してください",
+  "setPassword": "パスワードを設定",
+  "signMethodSettingsSaved": "ログイン方法の設定を保存しました",
+  "signMethodSettingsUnsavedLeavingDiscards": "ログイン方法の設定は未保存です。移動すると変更は失われます。",
+  "serverNotRunDatabaseUpdate014": "サーバーでデータベース更新 014 が未実行のため、設定はまだ反映されません。",
+  "signChannels": "ログイン方法の一覧",
+  "socialSmsSign": "ソーシャル・SMS ログイン",
+  "whenOffSignPageHidesThese": "オフにするとログイン画面に表示されません。連携済みの利用者はパスワードでログインできます。",
+  "notConfigured": "未設定",
+  "allowCreatingNewAccountsWithMethod": "この方法での新規アカウント作成を許可",
+  "serverNoCredentialsChannel": "サーバーにこのチャネルの認証情報がありません",
+  "unsavedChanges2": "未保存の変更",
+  "switchesSignupPermissionsSocialSmsSign": "ソーシャル・SMS ログインの開閉と新規登録の可否",
+  "taiwan": "台湾",
+  "hongKong": "香港",
+  "macau": "マカオ",
+  "china": "中国",
+  "japan": "日本",
+  "southKorea": "韓国",
+  "singapore": "シンガポール",
+  "malaysia": "マレーシア",
+  "unitedStatesCanada": "アメリカ／カナダ",
+  "unitedKingdom": "イギリス",
+  "australia": "オーストラリア",
+  "countryCode": "国番号",
+  "enterValidMobileNumber": "正しい携帯電話番号を入力してください",
+  "couldNotSendCodePleaseTry": "認証コードを送信できませんでした。しばらくしてからお試しください。",
+  "linkMobileNumber": "携帯電話番号を連携",
+  "signWithMobileNumber": "携帯電話番号でログイン",
+  "k6DigitCodeSentNumberMessage": "この番号に 6 桁の認証コードを送信します。SMS の到着には時間がかかる場合があります。",
+  "mobileNumber": "携帯電話番号",
+  "sendCode": "認証コードを送信",
+  "codeIncorrectPleaseEnterAgain": "認証コードが正しくありません。もう一度入力してください。",
+  "codeBeenSentAgain": "認証コードを再送しました",
+  "enterCode": "認証コードを入力",
+  "enterSmsCode": "SMS の認証コードを入力",
+  "codeWasSentP0": "認証コードを {p0} に送信しました",
+  "@codeWasSentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "canResendP0S": "{p0} 秒後に再送できます",
+  "@canResendP0S": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "resendCode": "認証コードを再送",
+  "completeAccountDetails": "アカウント情報の入力",
+  "p0DidNotProvideEmailAddress": "{p0} からメールアドレスが提供されませんでした。情報を入力してアカウントを作成してください。",
+  "@p0DidNotProvideEmailAddress": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signWithP0": "{p0} でログイン",
+  "@signWithP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signWith2": "または次の方法でログイン",
+  "creatingAccountWithMethodsAboveMeans": "上記の方法でアカウントを作成すると、利用規約とプライバシーポリシーに同意したものとみなされます。",
+  "emailAlreadyRegistered": "このメールアドレスは登録済みです",
+  "signWithPasswordThenLinkMethod": "パスワードでログインし、アカウントセキュリティのログイン方法から連携してください。",
+  "signWithPassword": "パスワードでログイン",
+  "accountNoPasswordYet": "このアカウントはパスワード未設定です",
+  "passwordSet": "パスワードを設定しました",
+  "canNowSignWithEmailPassword": "今後はメールアドレスとパスワードでログインできます。他の端末は再ログインが必要です。",
+  "passwordRequiredBeforeCanUnlinkSign": "ログイン方法の連携解除にはパスワードが必要です。機種変更時もメールアドレスでログインできます。8 文字以上で英字と数字を含めてください。",
+  "changingSignMethodsRequiresIdentityVerification": "ログイン方法の変更には本人確認が必要です。先にパスワードを設定してください。",
+  "later": "後で",
+  "p0Linked": "{p0} を連携しました",
+  "@p0Linked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unlinkP0": "{p0} の連携を解除",
+  "@unlinkP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noLongerAbleSignWayCan": "この方法ではログインできなくなります。必要になれば再度連携できます。",
+  "unlink": "連携を解除",
+  "p0Unlinked": "{p0} の連携を解除しました",
+  "@p0Unlinked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "socialSmsSignNotAvailableRight": "ソーシャル・SMS ログインは現在利用できません。",
+  "noSignMethodAvailableLink": "連携できるログイン方法はありません。",
+  "noPasswordSet": "パスワード未設定",
+  "requiredBeforeChangingSignMethodsDeleting": "ログイン方法の変更とアカウント削除に必要です",
+  "linkedP0": "{p0} に連携",
+  "@linkedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "link": "連携",
+  "emailAlreadyRegisteredSignWithPassword": "このメールアドレスは登録済みです。パスワードでログインしてから、アカウントセキュリティで連携してください。",
+  "provideEmailAddressCreateAccount": "アカウント作成にはメールアドレスが必要です",
+  "signMethodOnlyExistingAccounts": "このログイン方法は既存アカウント専用です",
+  "signMethodNotAvailableRightNow": "このログイン方法は現在利用できません",
+  "credentialDoesNotMatchSelectedSign": "認証情報が選択したログイン方法と一致しません",
+  "signMethodLinkedAnotherAccount": "このログイン方法は他のアカウントに連携されています",
+  "accountAlreadyLinkedSignMethod": "このアカウントはすでにこのログイン方法と連携しています",
+  "onlySignMethodAccountSetPassword": "これはこのアカウント唯一のログイン方法です。先にパスワードを設定するか、他の方法を連携してください。",
+  "socialSignUnavailableServerNotFinished": "ソーシャルログインは利用できません。サーバーのデータベース更新が未完了です。",
+  "credentialInvalidExpiredPleaseTryAgain": "認証情報が無効か期限切れです。もう一度お試しください。",
+  "accountAlreadyPasswordUseChangePassword": "このアカウントはパスワード設定済みです。パスワードの変更をご利用ください。",
+  "signLinkExpiredPleaseTryAgain": "ログインリンクの有効期限が切れました。もう一度お試しください。",
+  "signResultExpiredPleaseTryAgain": "ログイン結果の有効期限が切れました。もう一度お試しください。",
+  "thirdPartySignServiceUnavailablePlease": "外部のログインサービスが利用できません。しばらくしてからお試しください。",
+  "couldNotCompleteSignPleaseTry": "ログインを完了できませんでした。もう一度お試しください。",
+  "accountNotLinkedSignMethod": "このアカウントはこのログイン方法と連携していません",
+  "couldNotReachServerCheckConnection2": "サーバーに接続できません。ネットワークをご確認ください。",
+  "mobileNumberFormatNotValid": "携帯電話番号の形式が正しくありません",
+  "verificationTimedOutRequestNewCode": "認証がタイムアウトしました。認証コードを再取得してください。",
+  "codeExpiredRequestNewOne": "認証コードの有効期限が切れました。再取得してください。",
+  "tooManyAttemptsPleaseTryAgain": "試行回数が多すぎます。しばらくしてからお試しください。",
+  "smsSendingLimitBeenReachedPlease": "SMS の送信回数が上限に達しました。しばらくしてからお試しください。",
+  "smsVerificationNotSetUpDevice": "この端末では SMS 認証の設定が完了していません。別のログイン方法をご利用ください。",
+  "couldNotCompleteSmsVerificationPlease": "SMS 認証を完了できませんでした。しばらくしてからお試しください。",
+  "allowSigningLinkingWithMethod": "この方法でのログインと連携を許可"
 }

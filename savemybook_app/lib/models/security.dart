@@ -86,7 +86,7 @@ class PushDeviceInfo {
 }
 
 class ServerStatus {
-  static const requiredApiRevision = 11;
+  static const requiredApiRevision = 13;
 
   final bool reachable;
   final int apiRevision;

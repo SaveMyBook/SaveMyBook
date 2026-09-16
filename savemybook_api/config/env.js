@@ -27,7 +27,13 @@ const env = {
   backupDir: process.env.BACKUP_DIR || '',
   backupKeep: int(process.env.BACKUP_KEEP, 14),
   fcmServiceAccountFile: process.env.FCM_SERVICE_ACCOUNT_FILE || process.env.GOOGLE_APPLICATION_CREDENTIALS || '',
-  pushEnabled: process.env.PUSH_ENABLED !== 'false'
+  pushEnabled: process.env.PUSH_ENABLED !== 'false',
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID || '',
+  lineChannelId: process.env.LINE_CHANNEL_ID || '',
+  lineChannelSecret: process.env.LINE_CHANNEL_SECRET || '',
+  discordClientId: process.env.DISCORD_CLIENT_ID || '',
+  discordClientSecret: process.env.DISCORD_CLIENT_SECRET || '',
+  oauthRedirectBase: (process.env.OAUTH_REDIRECT_BASE || process.env.PUBLIC_WEB_URL || '').replace(/\/+$/, '')
 };
 
 const assertEnv = () => {

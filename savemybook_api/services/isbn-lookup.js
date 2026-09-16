@@ -20,23 +20,55 @@ const variantsOf = (isbn) => {
   return [code];
 };
 
+const positiveInt = (value) => {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? String(Math.trunc(n)) : '';
+};
+
 const fromGoogle = (info) => info && {
   title: info.title || '',
+  subtitle: info.subtitle || '',
   author: Array.isArray(info.authors) ? info.authors.join(', ') : '',
   publisher: info.publisher || '',
   publish_date: info.publishedDate || '',
-  description: info.description || ''
+  description: info.description || '',
+  page_count: positiveInt(info.pageCount),
+  language: typeof info.language === 'string' ? info.language : ''
 };
 
 const fromOpenLibrary = (book) => book && {
   title: book.title,
+  subtitle: '',
   author: book.authors.join(', '),
   publisher: book.publisher,
   publish_date: book.publishDate,
-  description: ''
+  description: '',
+  page_count: '',
+  language: ''
 };
 
-const FIELDS = ['title', 'author', 'publisher', 'publish_date', 'description'];
+const fromOpenLibraryDetail = (detail) => detail && {
+  title: '',
+  subtitle: detail.subtitle || '',
+  author: '',
+  publisher: '',
+  publish_date: detail.publishDate || '',
+  description: detail.description || '',
+  page_count: positiveInt(detail.pageCount),
+  language: ''
+};
+
+const FIELDS = ['title', 'subtitle', 'author', 'publisher', 'publish_date', 'description', 'page_count', 'language'];
+
+// 到日的出版日期（例如 2003-08-01）優於只到月或只到年的值，逐欄位取第一個有值的來源會漏掉較精確的那個。
+const DAY_GRAIN = [/\d{4}[-/.年]\s*\d{1,2}[-/.月]\s*\d{1,2}/, /[A-Za-z]{3,}\.?\s+\d{1,2},?\s+\d{4}/, /\d{1,2}\s+[A-Za-z]{3,}\.?\s+\d{4}/];
+const MONTH_GRAIN = [/\d{4}[-/.年]\s*\d{1,2}/, /[A-Za-z]{3,}\.?\s+\d{4}/];
+
+const dateGrain = (value) => {
+  const s = String(value);
+  if (DAY_GRAIN.some((re) => re.test(s))) return 2;
+  return MONTH_GRAIN.some((re) => re.test(s)) ? 1 : 0;
+};
 
 const settle = async (label, task) => {
   try {
@@ -65,11 +97,15 @@ const gather = async (isbn) => {
     throw notFound('外部書庫找不到此 ISBN 的書籍資訊');
   }
 
-  const result = Object.fromEntries(FIELDS.map((field) => [field, sources.find((s) => s[field])?.[field] ?? '']));
-  if (!result.description && library.value) {
-    const extra = await settle('Open Library 簡介', () => openLibrary.fetchDescriptionByIsbn(library.value.isbn));
-    result.description = extra.value || '';
+  if (library.value) {
+    const detail = await settle('Open Library 版本頁', () => openLibrary.fetchEditionDetailByIsbn(library.value.isbn));
+    const extra = fromOpenLibraryDetail(detail.value);
+    if (extra) sources.push(extra);
   }
+
+  const result = Object.fromEntries(FIELDS.map((field) => [field, sources.find((s) => s[field])?.[field] ?? '']));
+  const bestDate = sources.map((s) => s.publish_date).filter(Boolean).sort((a, b) => dateGrain(b) - dateGrain(a))[0];
+  if (bestDate) result.publish_date = bestDate;
 
   const links = [
     google.value && { title: 'Google Books', url: googleInfo?.infoLink || googleInfo?.canonicalVolumeLink || `https://books.google.com/books?vid=ISBN${isbn}` },

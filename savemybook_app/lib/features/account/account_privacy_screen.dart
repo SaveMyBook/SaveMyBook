@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import '../../models/ai.dart';
+import '../../models/auth_social.dart';
 import '../../services/ai_status.dart';
 import '../../services/api_service.dart';
 import '../../services/share_service.dart';
@@ -17,6 +18,7 @@ import '../../widgets/app_tiles.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../auth/login_screen.dart';
+import '../security/set_password_screen.dart';
 import 'ai_consent_sheet.dart';
 import '../../i18n/strings.dart';
 
@@ -158,18 +160,35 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
     if (password == null || password.isEmpty || !mounted) return;
 
     _busy = true;
-    final error = await runBusy(context, () => _api.requestAccountDeletion(password));
+    final result = await runBusy(context, () => _api.requestAccountDeletion(password));
     _busy = false;
-    if (!mounted) return;
+    if (result == null || !mounted) return;
 
-    if (error != null) {
-      showAppSnackBar(context, error, isError: true);
+    if (!result.isOk) {
+      if (result.code == AuthCodes.passwordNotSet) {
+        await _offerSetPassword(result.message);
+        return;
+      }
+      showAppSnackBar(context, result.message, isError: true);
       return;
     }
 
     await _load();
     if (!mounted) return;
     showAppSnackBar(context, S.receivedSignAgainWithin30Days);
+  }
+
+  Future<void> _offerSetPassword(String message) async {
+    final go = await showConfirmDialog(
+      context,
+      title: S.setPasswordFirst,
+      message: message,
+      confirmLabel: S.setPassword,
+      cancelLabel: S.actionClose,
+      icon: Icons.password_rounded,
+    );
+    if (!go || !mounted) return;
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => const SetPasswordScreen()));
   }
 
   Future<void> _cancelDeletion() async {

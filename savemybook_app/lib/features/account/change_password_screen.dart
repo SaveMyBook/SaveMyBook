@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../models/auth_social.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
+import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/guards.dart';
 import '../../widgets/state_views.dart';
+import '../security/set_password_screen.dart';
 import '../../i18n/strings.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -77,12 +80,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     FocusScope.of(context).unfocus();
 
     setState(() => _isSaving = true);
-    final error = await _api.changePassword(_currentController.text, _newController.text);
+    final result = await _api.changePassword(_currentController.text, _newController.text);
     if (!mounted) return;
     setState(() => _isSaving = false);
 
-    if (error != null) {
-      if (error.contains(S.currentPassword)) {
+    if (!result.isOk) {
+      final error = result.message;
+      if (result.code == AuthCodes.passwordNotSet) {
+        await _offerSetPassword(error);
+      } else if (error.contains(S.currentPassword)) {
         setState(() => _currentError = error);
       } else if (error.contains(S.newPassword)) {
         setState(() => _newError = error);
@@ -93,6 +99,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     }
 
     setState(() => _done = true);
+  }
+
+  Future<void> _offerSetPassword(String message) async {
+    final go = await showConfirmDialog(
+      context,
+      title: S.setPasswordFirst,
+      message: message,
+      confirmLabel: S.setPassword,
+      cancelLabel: S.actionClose,
+      icon: Icons.password_rounded,
+    );
+    if (!go || !mounted) return;
+    await Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const SetPasswordScreen()),
+    );
   }
 
   void _close() {

@@ -6,6 +6,7 @@ const maintenance = require('../lib/maintenance');
 const sessions = require('../services/sessions');
 const reservations = require('../services/reservations');
 const transferRecords = require('../services/chat/transfer-records');
+const oauth = require('../services/oauth-providers');
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
@@ -48,6 +49,14 @@ const runDeviceCleanup = async () => {
   }
 };
 
+const runOauthCleanup = async () => {
+  try {
+    await oauth.cleanupExpired();
+  } catch (err) {
+    console.error('[清理社群登入暫存資料失敗]:', err.message);
+  }
+};
+
 const runReservationExpiry = async () => {
   if (maintenance.current().active) return;
   try {
@@ -73,6 +82,7 @@ const startScheduler = () => {
     setInterval(runDeletionSweep, HOUR),
     setInterval(runBackupIfDue, HOUR),
     setInterval(runReservationExpiry, 5 * MINUTE),
+    setInterval(runOauthCleanup, 10 * MINUTE),
     setTimeout(runReservationExpiry, MINUTE),
     setTimeout(runDeletionSweep, 30 * 1000),
     setTimeout(runBackupIfDue, 2 * MINUTE)

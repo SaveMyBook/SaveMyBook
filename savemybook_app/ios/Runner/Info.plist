@@ -22,6 +22,10 @@
 		<string>????</string>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<!-- GIDClientID 與 Google 的反轉 client id 取自 Firebase 主控台下載的 GoogleService-Info.plist，
+		     詳見 docs/social-login-setup.md；未替換佔位字串前 Google 登入會失敗。 -->
+		<key>GIDClientID</key>
+		<string>REPLACE_WITH_IOS_CLIENT_ID.apps.googleusercontent.com</string>
 		<key>CFBundleURLTypes</key>
 		<array>
 			<dict>
@@ -32,6 +36,16 @@
 				<key>CFBundleURLSchemes</key>
 				<array>
 					<string>savemybook</string>
+				</array>
+			</dict>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>com.savemybook.googlesignin</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.REPLACE_WITH_IOS_CLIENT_ID</string>
 				</array>
 			</dict>
 		</array>

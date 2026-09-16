@@ -9,10 +9,14 @@ extension PrivacyApi on ApiService {
     return (data['pending'] == true, purge == null ? null : DateTime.tryParse(purge));
   }
 
-  Future<String?> requestAccountDeletion(String password) async {
+  Future<AuthResult<void>> requestAccountDeletion(String password) async {
     final res = await _send('POST', '/users/me/deletion', body: {'password': password});
-    if (res == null) return S.pleaseSignFirst;
-    return res['success'] == true ? null : (res['message'] as String? ?? S.requestFailed);
+    if (res == null) return AuthResult<void>.fail('SIGNED_OUT', S.pleaseSignFirst);
+    if (res['success'] == true) return const AuthResult.ok();
+    return AuthResult<void>.fail(
+      res['code'] as String? ?? 'UNKNOWN',
+      res['message'] as String? ?? S.requestFailed,
+    );
   }
 
   Future<String?> cancelAccountDeletion() async {

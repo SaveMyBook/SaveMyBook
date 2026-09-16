@@ -3297,5 +3297,166 @@
   "couldNotConnectService": "无法连接至服务",
   "blockedByProviderSafetySystem": "内容遭服务安全机制拒绝",
   "responseExceededOutputLimit": "回应超过输出长度上限",
-  "serverProcessingError": "服务器处理错误"
+  "serverProcessingError": "服务器处理错误",
+  "aiBookAdvisor": "AI 书籍顾问",
+  "requiresDatabaseUpdate013": "需先执行数据库更新 013",
+  "mysteryNovelMyCommute": "想找适合通勤看的推理小说",
+  "programmingBooksBeginners": "适合入门的程序设计书",
+  "booksUnder200Coins": "200 代币以内的书",
+  "popularLiteraryFictionRightNow": "最近热门的文学小说",
+  "tellMeWhatBookLooking": "告诉我您想找什么书",
+  "allRecommendationsComeFromBooksCurrently": "推荐内容均来自站上目前贩售中的书籍",
+  "describeBookLooking": "描述您想找的书籍",
+  "tellMeWhatWantReadI": "说说您想看什么，我来为您挑选",
+  "subtitle": "副标题",
+  "monthOnly": "仅确认到月",
+  "yearOnly": "仅确认到年",
+  "fromBookDatabase": "来自书目数据库",
+  "writtenByAi": "AI 依资料撰写",
+  "aiTidiedSourceText": "AI 整理来源文字",
+  "msg": "繁體中文",
+  "additionalInformation": "其他信息",
+  "readFull": "展开全文",
+  "pages": "页数",
+  "simplifiedChinese": "简体中文",
+  "chinese": "中文",
+  "english": "英文",
+  "japanese": "日文",
+  "korean": "韩文",
+  "p0Pages": "{p0} 页",
+  "@p0Pages": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "collapse": "收合",
+  "setPasswordFirst": "请先设置密码",
+  "setPassword": "设置密码",
+  "signMethodSettingsSaved": "登录方式设置已保存",
+  "signMethodSettingsUnsavedLeavingDiscards": "登录方式设置尚未保存，离开后更改会丢失。",
+  "serverNotRunDatabaseUpdate014": "服务器尚未执行数据库更新 014，设置暂时无法生效。",
+  "signChannels": "各项登录方式",
+  "socialSmsSign": "社交与短信登录",
+  "whenOffSignPageHidesThese": "关闭后登录页不再显示这些方式，已绑定的账号仍可用密码登录。",
+  "notConfigured": "未设置",
+  "allowCreatingNewAccountsWithMethod": "允许以这种方式直接创建新账号",
+  "serverNoCredentialsChannel": "服务器尚未设置这个渠道的凭证",
+  "unsavedChanges2": "尚未保存的更改",
+  "switchesSignupPermissionsSocialSmsSign": "社交与短信登录的开关与注册权限",
+  "taiwan": "台湾",
+  "hongKong": "香港",
+  "macau": "澳门",
+  "china": "中国",
+  "japan": "日本",
+  "southKorea": "韩国",
+  "singapore": "新加坡",
+  "malaysia": "马来西亚",
+  "unitedStatesCanada": "美国／加拿大",
+  "unitedKingdom": "英国",
+  "australia": "澳大利亚",
+  "countryCode": "国码",
+  "enterValidMobileNumber": "请输入正确的手机号码",
+  "couldNotSendCodePleaseTry": "无法发送验证码，请稍后再试",
+  "linkMobileNumber": "绑定手机号码",
+  "signWithMobileNumber": "手机号码登录",
+  "k6DigitCodeSentNumberMessage": "我们会发送一组 6 位数验证码到这个号码，短信可能需要一些时间送达。",
+  "mobileNumber": "手机号码",
+  "sendCode": "发送验证码",
+  "codeIncorrectPleaseEnterAgain": "验证码不正确，请重新输入",
+  "codeBeenSentAgain": "已重新发送验证码",
+  "enterCode": "输入验证码",
+  "enterSmsCode": "输入短信验证码",
+  "codeWasSentP0": "验证码已发送至 {p0}",
+  "@codeWasSentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "canResendP0S": "{p0} 秒后可重新发送",
+  "@canResendP0S": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "resendCode": "重新发送验证码",
+  "completeAccountDetails": "完成账号资料",
+  "p0DidNotProvideEmailAddress": "{p0} 未提供电子邮件，请补齐资料以创建账号。",
+  "@p0DidNotProvideEmailAddress": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signWithP0": "以 {p0} 登录",
+  "@signWithP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signWith2": "或使用以下方式登录",
+  "creatingAccountWithMethodsAboveMeans": "使用上述方式创建账号即表示您同意服务条款与隐私政策",
+  "emailAlreadyRegistered": "此电子邮件已注册",
+  "signWithPasswordThenLinkMethod": "请改以密码登录，再到账号安全的登录方式绑定这个方式。",
+  "signWithPassword": "以密码登录",
+  "accountNoPasswordYet": "此账号尚未设置密码",
+  "passwordSet": "密码已设置",
+  "canNowSignWithEmailPassword": "之后可以电子邮件与密码登录，其他设备需要重新登录。",
+  "passwordRequiredBeforeCanUnlinkSign": "设置密码后才能解除绑定登录方式，也能在换设备时以电子邮件登录。密码至少 8 位并含英文与数字。",
+  "changingSignMethodsRequiresIdentityVerification": "更改登录方式需要验证身份，请先为这个账号设置密码。",
+  "later": "稍后再说",
+  "p0Linked": "已绑定 {p0}",
+  "@p0Linked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unlinkP0": "解除绑定 {p0}",
+  "@unlinkP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noLongerAbleSignWayCan": "解除后将无法再以这种方式登录，需要时可以重新绑定。",
+  "unlink": "解除绑定",
+  "p0Unlinked": "已解除绑定 {p0}",
+  "@p0Unlinked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "socialSmsSignNotAvailableRight": "目前未开放社交与短信登录方式。",
+  "noSignMethodAvailableLink": "目前没有可绑定的登录方式。",
+  "noPasswordSet": "尚未设置密码",
+  "requiredBeforeChangingSignMethodsDeleting": "设置后才能更改登录方式与删除账号",
+  "linkedP0": "{p0} 绑定",
+  "@linkedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "link": "绑定",
+  "emailAlreadyRegisteredSignWithPassword": "此电子邮件已注册，请先以密码登录后，于账号安全绑定此登录方式",
+  "provideEmailAddressCreateAccount": "请提供电子邮件以创建账号",
+  "signMethodOnlyExistingAccounts": "此登录方式仅供既有账号使用",
+  "signMethodNotAvailableRightNow": "目前未开放此登录方式",
+  "credentialDoesNotMatchSelectedSign": "登录凭证与所选的登录方式不符",
+  "signMethodLinkedAnotherAccount": "此登录方式已绑定其他账号",
+  "accountAlreadyLinkedSignMethod": "此账号已绑定这个登录方式",
+  "onlySignMethodAccountSetPassword": "这是此账号唯一的登录方式，请先设置密码或绑定其他登录方式",
+  "socialSignUnavailableServerNotFinished": "社交登录目前无法使用，服务器尚未完成数据库更新",
+  "credentialInvalidExpiredPleaseTryAgain": "登录凭证无效或已过期，请重新操作",
+  "accountAlreadyPasswordUseChangePassword": "此账号已设置密码，请改用更改密码",
+  "signLinkExpiredPleaseTryAgain": "登录链接已失效，请重新操作",
+  "signResultExpiredPleaseTryAgain": "登录结果已失效，请重新操作",
+  "thirdPartySignServiceUnavailablePlease": "第三方登录服务目前无法使用，请稍后再试",
+  "couldNotCompleteSignPleaseTry": "无法完成登录，请重新操作",
+  "accountNotLinkedSignMethod": "此账号未绑定这个登录方式",
+  "couldNotReachServerCheckConnection2": "无法连接到服务器，请确认网络连接",
+  "mobileNumberFormatNotValid": "手机号码格式不正确",
+  "verificationTimedOutRequestNewCode": "验证已超时，请重新获取验证码",
+  "codeExpiredRequestNewOne": "验证码已超时，请重新获取验证码",
+  "tooManyAttemptsPleaseTryAgain": "尝试次数过多，请稍后再试",
+  "smsSendingLimitBeenReachedPlease": "短信发送次数已达上限，请稍后再试",
+  "smsVerificationNotSetUpDevice": "此设备尚未完成短信验证设置，请改用其他登录方式",
+  "couldNotCompleteSmsVerificationPlease": "无法完成短信验证，请稍后再试",
+  "allowSigningLinkingWithMethod": "开放此方式登录与绑定"
 }

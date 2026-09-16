@@ -8,6 +8,7 @@ const runner = require('../services/ai/runner');
 const support = require('../services/ai/support');
 const listingAssist = require('../services/ai/listing-assist');
 const recommend = require('../services/ai/recommend');
+const bookChat = require('../services/ai/book-chat');
 const consent = require('../services/ai/consent');
 
 const router = express.Router();
@@ -76,6 +77,23 @@ router.post('/listing-assist', authenticateToken, aiLimiter, ...photos.array('im
     files
   });
   res.status(200).json({ success: true, data });
+});
+
+router.get('/book-chat/session', authenticateToken, async (req, res) => {
+  res.status(200).json({ success: true, data: await bookChat.currentSession(req.user.userId) });
+});
+
+router.post('/book-chat/messages', authenticateToken, aiLimiter, async (req, res) => {
+  const content = v.text(req.body?.content, { label: '訊息', max: 500 });
+  if (!content) throw badRequest('請輸入訊息內容');
+
+  const data = await bookChat.sendMessage(req.user.userId, content);
+  res.status(201).json({ success: true, data });
+});
+
+router.post('/book-chat/session/close', authenticateToken, async (req, res) => {
+  await bookChat.close(req.user.userId);
+  res.status(200).json({ success: true, message: '已開始新的對話' });
 });
 
 router.get('/recommendations', authenticateToken, async (req, res) => {

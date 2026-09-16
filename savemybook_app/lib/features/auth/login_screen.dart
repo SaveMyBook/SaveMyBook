@@ -14,7 +14,9 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../home/home_screen.dart';
+import '../../models/auth_social.dart';
 import 'register_screen.dart';
+import 'social_sign_in.dart';
 import '../../i18n/strings.dart';
 import '../../utils/app_info.dart';
 
@@ -40,12 +42,37 @@ class _LoginScreenState extends State<LoginScreen> {
   String _biometricLabel = S.biometrics;
   String? _emailError;
   String? _passwordError;
+  AuthProvidersInfo _providers = AuthProvidersInfo.none;
+  String? _socialBusy;
 
   @override
   void initState() {
     super.initState();
     _restoreEmail();
     _checkBiometric();
+    _loadProviders();
+  }
+
+  Future<void> _loadProviders() async {
+    final providers = await _apiService.fetchAuthProviders();
+    if (!mounted) return;
+    setState(() => _providers = providers);
+  }
+
+  Future<void> _handleSocial(String provider) async {
+    if (_isLoading || _socialBusy != null) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _socialBusy = provider);
+
+    final ok = await SocialSignInFlow.signIn(context, provider);
+    if (!mounted) return;
+    setState(() => _socialBusy = null);
+    if (!ok) return;
+
+    unawaited(HomeWidgetService.sync(force: true));
+    await _offerBiometric();
+    if (!mounted) return;
+    _goHome();
   }
 
   Future<void> _restoreEmail() async {
@@ -498,11 +525,23 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ],
+      if (SocialSignInSection.visibleIds(_providers).isNotEmpty) ...[
+        SizedBox(height: keyboardOpen ? 20 : 28),
+        FadeSlideIn(
+          index: 6,
+          child: SocialSignInSection(
+            providers: _providers,
+            busyProvider: _socialBusy,
+            disabled: _isLoading,
+            onSelect: _handleSocial,
+          ),
+        ),
+      ],
       const SizedBox(height: 8),
       FadeSlideIn(
         index: 5,
         child: TextButton(
-          onPressed: _isLoading ? null : () => _openRegister(_emailController.text.trim()),
+          onPressed: _isLoading || _socialBusy != null ? null : () => _openRegister(_emailController.text.trim()),
           child: Text(S.noAccountYetSignUp, style: TextStyle(color: c.accent)),
         ),
       ),

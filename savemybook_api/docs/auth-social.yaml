@@ -1,0 +1,547 @@
+tags:
+  - name: auth-social
+    x-displayName: 社群登入
+    description: |
+      Google、Apple、手機簡訊、LINE 與 Discord 登入，以及帳號的登入方式綁定與解除。
+
+      ## 兩種驗證來源
+
+      | 渠道 | 驗證方式 |
+      | --- | --- |
+      | `google`、`apple`、`phone` | App 以 Firebase Authentication 完成驗證後，把 ID Token 交給伺服器驗證 |
+      | `line`、`discord` | 授權碼流程，由伺服器以自身憑證向服務商換取資料 |
+
+      伺服器自行驗證 Firebase ID Token（RS256、`aud` 為 Firebase 專案編號、
+      `iss` 為 `https://securetoken.google.com/<專案編號>`、檢查 `exp` 與 `auth_time`），
+      並比對 `firebase.sign_in_provider` 與請求的 `provider`。
+
+      ## 開放與停用
+
+      各渠道是否開放由管理後台控制，App 應先呼叫 `GET /api/auth/providers` 決定顯示哪些按鈕：
+
+      - `enabled`：可用於登入與綁定。伺服器未設定該渠道憑證時一律為 `false`。
+      - `signup`：可用該方式直接建立新帳號；為 `false` 時僅限已存在的帳號使用。
+
+      ## 不自動合併既有帳號
+
+      第三方回傳的電子郵件若已有對應帳號，但尚未綁定該登入方式，伺服器回傳 409
+      `ACCOUNT_EXISTS_LINK_REQUIRED`，不會自動合併。使用者須先以密碼登入，
+      再於帳號安全頁綁定該登入方式。
+
+      ## 尚未設定密碼的帳號
+
+      以社群方式建立的帳號 `password_set` 為 `false`：不可使用
+      `PUT /api/users/me/password`（回 400 `PASSWORD_NOT_SET`），
+      也無法以登入密碼通過敏感操作驗證，App 應先引導使用者呼叫
+      `POST /api/auth/password/set` 設定密碼。
+
+      伺服器尚未執行 `migrations/014_auth_identities.sql` 時，
+      `GET /api/auth/providers` 回傳 `social_enabled: false`，其餘端點回傳 503
+      `AUTH_SOCIAL_UNAVAILABLE`。
+
+paths:
+  /api/auth/providers:
+    get:
+      summary: 取得可用的登入方式
+      operationId: listSignInProviders
+      tags: [auth-social]
+      description: |
+        登入頁用來決定顯示哪些第三方登入按鈕。無須 Token。
+
+        `configured` 表示伺服器已設定該渠道所需的憑證；未設定時 `enabled` 必為 `false`。
+      security: []
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      social_enabled:
+                        type: boolean
+                        description: 社群登入總開關。伺服器尚未執行資料庫更新 014 時為 `false`。
+                        example: true
+                      providers:
+                        type: array
+                        items: { $ref: '#/components/schemas/SignInProvider' }
+              example:
+                success: true
+                data:
+                  social_enabled: true
+                  providers:
+                    - { id: google, enabled: true, signup: true, configured: true }
+                    - { id: apple, enabled: true, signup: true, configured: true }
+                    - { id: phone, enabled: true, signup: true, configured: true }
+                    - { id: line, enabled: false, signup: false, configured: false }
+                    - { id: discord, enabled: false, signup: false, configured: false }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/auth/social:
+    post:
+      summary: 以 Firebase ID Token 登入或註冊
+      operationId: socialSignIn
+      tags: [auth-social]
+      description: |
+        適用於 `google`、`apple`、`phone`。成功時的回應與 `POST /api/auth/login` 完全相同。
+
+        處理順序：
+
+        1. 已綁定此第三方身分 → 直接登入。
+        2. Token 內含已驗證的電子郵件且已有對應帳號 → 409 `ACCOUNT_EXISTS_LINK_REQUIRED`。
+        3. 該渠道不允許直接註冊 → 403 `SIGNUP_NOT_ALLOWED`。
+        4. Token 未提供已驗證的電子郵件（手機登入）→ 400 `EMAIL_REQUIRED`；
+           App 收集電子郵件與暱稱後以相同的 `id_token` 重送，若該電子郵件已註冊同樣回 409。
+        5. 建立帳號並登入：暱稱取自 Token 的名稱，沒有則自動產生；帳號的 `password_set` 為 `false`；
+           手機登入會在使用者尚未填寫時補上手機號碼。
+
+        同 IP 15 分鐘內最多 30 次。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, id_token]
+              properties:
+                provider: { type: string, enum: [google, apple, phone] }
+                id_token: { type: string, description: Firebase Authentication 取得的 ID Token。 }
+                email:
+                  type: string
+                  format: email
+                  description: 僅在收到 `EMAIL_REQUIRED` 後補送。Token 已含已驗證的電子郵件時忽略此欄位。
+                nickname: { type: string, minLength: 2, maxLength: 50 }
+                accept_legal: { type: boolean, description: 建立新帳號時是否一併記錄同意目前版本的法律文件。 }
+                device_id: { type: string, maxLength: 64 }
+                device_name: { type: string, maxLength: 100 }
+                platform: { type: string, maxLength: 20 }
+                app_version: { type: string, maxLength: 20 }
+            example:
+              provider: google
+              id_token: eyJhbGciOiJSUzI1NiIsImtpZCI6ImFiYyJ9.eyJzdWIiOiJ1aWQifQ.signature
+              device_id: 6F9619FF-8B86-D011-B42D-00C04FC964FF
+              platform: ios
+      responses:
+        '200':
+          description: 登入成功，格式與密碼登入相同。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 登入成功 }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string }
+                      pending_deletion:
+                        type: object
+                        description: 僅在帳號已申請刪除時出現。
+                        properties:
+                          requested_at: { type: string, format: date-time }
+                          purge_at: { type: string, format: date-time }
+                          grace_days: { type: integer, example: 30 }
+        '400':
+          description: 參數不正確、登入方式不符，或需要補送電子郵件。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                登入方式不符:
+                  value: { success: false, code: PROVIDER_MISMATCH, message: 登入憑證與所選的登入方式不符 }
+                需要電子郵件:
+                  value: { success: false, code: EMAIL_REQUIRED, message: 請提供電子郵件以建立帳號 }
+        '401':
+          description: ID Token 無效、過期或簽章不符。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: INVALID_ID_TOKEN, message: 登入憑證無效或已過期，請重新登入 }
+        '403':
+          description: 渠道停用、不允許直接註冊，或帳號已停用。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                渠道停用:
+                  value: { success: false, code: SIGN_IN_METHOD_DISABLED, message: 目前未開放以 Google 登入 }
+                不允許註冊:
+                  value: { success: false, code: SIGNUP_NOT_ALLOWED, message: 此登入方式僅供既有帳號使用 }
+                帳號已停權:
+                  value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已停權，請聯絡客服 }
+        '409':
+          description: 電子郵件已註冊，須改以密碼登入後綁定。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example:
+                success: false
+                code: ACCOUNT_EXISTS_LINK_REQUIRED
+                message: 此電子郵件已註冊，請先以密碼登入後，於帳號安全綁定此登入方式
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '502': { $ref: '#/components/responses/AuthProviderError' }
+        '503': { $ref: '#/components/responses/AuthSocialUnavailable' }
+
+  /api/auth/link:
+    post:
+      summary: 綁定 Firebase 系列的登入方式
+      operationId: linkSignInMethod
+      tags: [auth-social]
+      description: |
+        為目前登入的帳號新增 `google`、`apple` 或 `phone` 登入方式，須通過敏感操作驗證。
+
+        手機綁定會在使用者尚未填寫時一併補上手機號碼。
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/VerifyToken' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, id_token]
+              properties:
+                provider: { type: string, enum: [google, apple, phone] }
+                id_token: { type: string }
+      responses:
+        '200':
+          description: 已綁定，回傳最新的登入方式列表。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已綁定此登入方式 }
+                  data: { $ref: '#/components/schemas/SignInMethodList' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/TokenInvalid' }
+        '409':
+          description: 此第三方身分已被使用。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                已綁在其他帳號:
+                  value: { success: false, code: IDENTITY_TAKEN, message: 此登入方式已綁定其他帳號 }
+                本帳號已綁定:
+                  value: { success: false, code: ALREADY_LINKED, message: 此帳號已綁定這個登入方式 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/AuthSocialUnavailable' }
+
+  /api/auth/link/{provider}:
+    delete:
+      summary: 解除綁定登入方式
+      operationId: unlinkSignInMethod
+      tags: [auth-social]
+      description: |
+        須通過敏感操作驗證。解除後若該帳號既沒有密碼也沒有其他登入方式，
+        回傳 400 `LAST_SIGN_IN_METHOD`，資料不會變更。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/VerifyToken' }
+        - in: path
+          name: provider
+          required: true
+          schema: { type: string, enum: [google, apple, phone, line, discord] }
+      responses:
+        '200':
+          description: 已解除綁定，回傳最新的登入方式列表。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已解除綁定 }
+                  data: { $ref: '#/components/schemas/SignInMethodList' }
+        '400':
+          description: 這是帳號唯一的登入方式。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example:
+                success: false
+                code: LAST_SIGN_IN_METHOD
+                message: 這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/TokenInvalid' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '503': { $ref: '#/components/responses/AuthSocialUnavailable' }
+
+  /api/auth/password/set:
+    post:
+      summary: 為尚未設定密碼的帳號設定密碼
+      operationId: setAccountPassword
+      tags: [auth-social]
+      description: |
+        僅適用 `password_set` 為 `false` 的帳號（以社群方式建立者）；已有密碼時回 400
+        `PASSWORD_ALREADY_SET`，變更密碼請改用 `PUT /api/users/me/password`。
+
+        密碼規則與註冊相同：至少 8 個字元，須含英文字母與數字，僅可使用半形字元。
+
+        設定成功後密碼版本改變，其他裝置的 Token 立即失效，回應會帶目前裝置的新 Token。
+        帳號已設定交易密碼時，此端點要求敏感操作驗證；尚未設定交易密碼時無從驗證，
+        僅檢查登入 Token 並套用每位使用者 15 分鐘 20 次的限制。
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/VerifyToken' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, format: password, example: my_password123 }
+      responses:
+        '200':
+          description: 已設定密碼。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 密碼已設定，其他裝置須重新登入 }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string, description: 目前裝置可繼續使用的新 Token。 }
+        '400':
+          description: 密碼不符規則，或帳號已有密碼。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: PASSWORD_ALREADY_SET, message: 此帳號已設定密碼，請改用變更密碼 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/TokenInvalid' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/AuthSocialUnavailable' }
+
+  /api/users/me/identities:
+    get:
+      summary: 取得本人的登入方式
+      operationId: listMySignInMethods
+      tags: [auth-social]
+      description: |
+        帳號安全頁使用。電子郵件與手機號碼一律遮罩後回傳，不含任何流水號。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/SignInMethodList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/TokenInvalid' }
+        '503': { $ref: '#/components/responses/AuthSocialUnavailable' }
+
+  /api/auth/oauth/{provider}/start:
+    post:
+      summary: 開始 LINE 或 Discord 授權
+      operationId: startOauth
+      tags: [auth-social]
+      description: |
+        回傳授權網址與一次性的 `state`。App 以外部瀏覽器開啟該網址，
+        使用者完成授權後伺服器會導回深層連結 `savemybook://auth/oauth`。
+
+        `mode` 為 `link` 時須帶登入 Token 並通過敏感操作驗證；`login` 則無須登入。
+        `state` 10 分鐘內有效且僅能使用一次。
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/VerifyToken' }
+        - in: path
+          name: provider
+          required: true
+          schema: { type: string, enum: [line, discord] }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode: { type: string, enum: [login, link], default: login }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      url: { type: string, description: 要開啟的授權網址。 }
+                      state: { type: string, description: 32 個十六進位字元，供 App 核對回呼來源。 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 渠道停用或伺服器未設定該渠道憑證。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: SIGN_IN_METHOD_DISABLED, message: 目前未開放以 LINE 登入 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/AuthSocialUnavailable' }
+
+  /api/auth/oauth/{provider}/callback:
+    get:
+      summary: 第三方授權回呼
+      operationId: oauthCallback
+      tags: [auth-social]
+      description: |
+        由 LINE 或 Discord 於使用者完成授權後導向，不由 App 直接呼叫。
+
+        伺服器以自身憑證換取存取權杖並取得使用者資料，接著依 `state` 記錄的模式完成登入、
+        建立帳號或綁定，最後以 302 導向 `savemybook://auth/oauth?code=<一次性碼>`；
+        失敗時導向 `savemybook://auth/oauth?error=<錯誤代碼>`。
+
+        回應內容為純文字，不含任何權杖。一次性碼須於 5 分鐘內以
+        `POST /api/auth/oauth/exchange` 兌換。
+
+        可能出現的 `error`：`OAUTH_STATE_INVALID`、`ACCOUNT_EXISTS_LINK_REQUIRED`、
+        `SIGNUP_NOT_ALLOWED`、`SIGN_IN_METHOD_DISABLED`、`EMAIL_REQUIRED`、
+        `IDENTITY_TAKEN`、`ALREADY_LINKED`、`ACCOUNT_INACTIVE`、`ACCOUNT_BLACKLISTED`、
+        `AUTH_PROVIDER_ERROR`、`AUTH_SOCIAL_UNAVAILABLE`、`OAUTH_FAILED`。
+      security: []
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema: { type: string, enum: [line, discord] }
+        - { in: query, name: code, required: true, schema: { type: string } }
+        - { in: query, name: state, required: true, schema: { type: string } }
+      responses:
+        '302':
+          description: 導向 App 深層連結。
+          headers:
+            Location:
+              schema: { type: string }
+              example: savemybook://auth/oauth?code=8f14e45fceea167a5a36dedd4bea2543
+
+  /api/auth/oauth/exchange:
+    post:
+      summary: 兌換第三方授權結果
+      operationId: exchangeOauthCode
+      tags: [auth-social]
+      description: |
+        以回呼深層連結帶回的一次性碼換取登入結果。一次性碼 5 分鐘內有效且用過即失效。
+
+        登入模式的回應與 `POST /api/auth/login` 相同；綁定模式回傳 `{ linked: true, provider }`。
+        建議一併帶入裝置資訊，工作階段與登入紀錄於此步驟建立。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string }
+                device_id: { type: string, maxLength: 64 }
+                device_name: { type: string, maxLength: 100 }
+                platform: { type: string, maxLength: 20 }
+                app_version: { type: string, maxLength: 20 }
+      responses:
+        '200':
+          description: 登入成功或綁定成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 登入成功 }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string, description: 登入模式才有。 }
+                      linked: { type: boolean, description: 綁定模式才有。 }
+                      provider: { type: string, description: 綁定模式才有。 }
+              examples:
+                登入:
+                  value: { success: true, message: 登入成功, data: { token: eyJhbGciOiJIUzI1NiJ9.abc.def } }
+                綁定:
+                  value: { success: true, message: 已綁定此登入方式, data: { linked: true, provider: line } }
+        '400':
+          description: 一次性碼不存在、已使用或已逾時。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: OAUTH_CODE_INVALID, message: 登入結果已失效，請重新操作 }
+        '403':
+          description: 帳號已停權或列入黑名單。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已停權，請聯絡客服 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/AuthSocialUnavailable' }
+
+components:
+  schemas:
+    SignInProvider:
+      type: object
+      properties:
+        id: { type: string, enum: [google, apple, phone, line, discord] }
+        enabled: { type: boolean, description: 可用於登入與綁定。 }
+        signup: { type: boolean, description: 可用該方式直接建立新帳號。 }
+        configured: { type: boolean, description: 伺服器已設定該渠道所需的憑證。 }
+
+    SignInMethod:
+      type: object
+      properties:
+        provider: { type: string, enum: [google, apple, phone, line, discord] }
+        display_name: { type: string, nullable: true, example: 小明 }
+        masked_email: { type: string, nullable: true, example: ab***@gmail.com }
+        masked_phone: { type: string, nullable: true, example: 09**-***-678 }
+        created_at: { type: string, format: date-time }
+        last_login_at: { type: string, format: date-time, nullable: true }
+
+    SignInMethodList:
+      type: object
+      properties:
+        password_set:
+          type: boolean
+          description: 為 `false` 時代表帳號尚未設定密碼，App 應顯示「設定密碼」而非「變更密碼」。
+          example: true
+        identities:
+          type: array
+          items: { $ref: '#/components/schemas/SignInMethod' }
+
+  responses:
+    AuthSocialUnavailable:
+      description: 伺服器尚未執行社群登入所需的資料庫更新 014。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example:
+            success: false
+            code: AUTH_SOCIAL_UNAVAILABLE
+            message: 社群登入目前無法使用，伺服器尚未完成資料庫更新
+
+    AuthProviderError:
+      description: 無法連線至第三方登入服務或其回應不正確。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example:
+            success: false
+            code: AUTH_PROVIDER_ERROR
+            message: 目前無法完成第三方登入驗證，請稍後再試

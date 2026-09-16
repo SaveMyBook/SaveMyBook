@@ -14,7 +14,9 @@
 | 定位（使用 App 期間） | `NSLocationWhenInUseUsageDescription`（macOS 另有 `NSLocationUsageDescription`） | 書籍詳情顯示與智慧書櫃的距離（`features/books/book_detail_screen.dart`）、選擇書櫃時依距離排序（`widgets/app_forms.dart`） | iOS、macOS |
 | Face ID | `NSFaceIDUsageDescription` | 開啟 App 解鎖、快速登入、生物辨識付款（`services/biometric_service.dart`） | iOS |
 | 推播通知 | 無用途說明鍵值；`UIBackgroundModes` 含 `remote-notification`，entitlement `aps-environment` | 訂單、聊天、公告推播（`services/push_service.dart`，Firebase Cloud Messaging） | iOS |
-| 深層連結 | `CFBundleURLTypes`（`savemybook://`） | 個人檔案與書籍分享連結（`services/deep_link_service.dart`） | iOS、macOS |
+| 深層連結 | `CFBundleURLTypes`（`savemybook://`） | 個人檔案與書籍分享連結、LINE／Discord 登入回呼（`services/deep_link_service.dart`） | iOS、macOS |
+| 使用 Apple 帳號登入 | entitlement `com.apple.developer.applesignin` | 第三方登入（`services/social_auth_service.dart`） | iOS、macOS |
+| Google 登入回呼 | `CFBundleURLTypes`（反轉 client id）與 `GIDClientID` | 第三方登入（`services/social_auth_service.dart`） | iOS、macOS |
 | App Group | entitlement `com.apple.security.application-groups`（`group.today.savemybook.app`） | 主 App 與桌面小工具共用資料（`services/home_widget_service.dart`、`SaveMyBookWidget`） | iOS |
 
 保留：`NSLocationAlwaysUsageDescription`、`NSLocationAlwaysAndWhenInUseUsageDescription`。App 只在使用期間取得位置，但 geolocator 的 iOS 程式碼會引用「永遠允許」的 API，缺少這兩個鍵值時 App Store Connect 會以 ITMS-90683 退件（本專案曾發生過），因此保留並寫明「不會在背景取得位置」。
@@ -87,6 +89,7 @@ Flutter 引擎、shared_preferences、firebase_messaging、permission_handler �
 
 ## 四、其他審核注意事項
 
+- **第三方登入**：詳見第六節與 `docs/social-login-setup.md`。提供 Sign in with Apple 是採用其他第三方登入時的審核要求（指南 4.8）。
 - **刪除帳號**：「設定 → 帳號管理」可自行申請刪除（`features/account/account_privacy_screen.dart`，驗證密碼後呼叫 `POST /users/me/deletion`），30 天內可登入取消，期滿後由排程匿名化帳號，符合審核指南 5.1.1(v)。同一頁面也提供個人資料匯出。
 - **刪除後保留的資料**：匿名化後仍保留訂單、錢包紀錄、客服工單、檢舉與爭議，以及登入紀錄與工作階段中的 IP 位址。隱私權政策須載明保留範圍與期間。
 - **隱私權政策內容待更新**：後台法律文件（初始內容見 API `migrations/003_restore_legal_content.sql`）仍寫刪除帳號須聯繫客服、提及 Cookie，也未說明 IP／裝置紀錄、推播權杖、語音訊息及 30 天緩衝期。送審前請於後台更新。
@@ -152,3 +155,29 @@ AI 服務商依使用者指示處理資料，視為 App 蒐集的資料，不另
 > 您可隨時於 App「設定 → 帳號管理 → AI 資料處理」撤回同意，撤回後我們將停止提供上述資料，AI 客服、上架輔助與個人化推薦功能將無法使用，其他服務不受影響。
 >
 > 為維護交易安全，本平台會以 AI 服務審核公開刊登的書籍內容（書名、作者、分類、售價、描述與照片），此項審核不包含您的個人資料，不需另行同意。
+
+## 六、第三方登入
+
+App 支援 Google、Apple、手機號碼（Firebase 簡訊驗證）、LINE 與 Discord 登入，各渠道可由後台「系統維運 → 登入方式」個別開關。Google、Apple、手機號碼經由 Firebase Authentication，LINE 與 Discord 由本站伺服器以授權碼流程交換，App 端不保存任何第三方權杖。
+
+### 從第三方取得並保存的資料
+
+| 渠道 | 取得的資料 | 保存位置 |
+| --- | --- | --- |
+| Google | 帳號識別碼、電子郵件、顯示名稱 | `user_identities`（識別碼、信箱、顯示名稱）、`users`（信箱、暱稱） |
+| Apple | 帳號識別碼、電子郵件（可為隱藏轉寄信箱）、首次授權提供的姓名 | 同上 |
+| 手機號碼 | 帳號識別碼、手機號碼 | `user_identities`、`users.phone` |
+| LINE | 帳號識別碼、顯示名稱、通過 LINE 審核後的電子郵件 | 同 Google |
+| Discord | 帳號識別碼、使用者名稱、電子郵件 | 同 Google |
+
+- 上述資料僅用於建立與辨識帳號，不用於廣告或跨平台追蹤，資料類型已涵蓋於第二節的「電子郵件地址」「姓名」「電話號碼」「使用者 ID」，不需新增申報項目。
+- 第三方未提供電子郵件時（例如手機號碼登入、LINE 尚未通過信箱權限審核），App 會顯示「完成帳號資料」畫面，由使用者自行填寫信箱與暱稱並勾選同意服務條款與隱私權政策。
+- 刪除帳號（匿名化）時一併刪除 `user_identities`；個人資料匯出包含已綁定的登入方式。
+- 帳號安全 →「登入方式」可查看已綁定的渠道（信箱與手機號碼以遮罩顯示）並隨時解除綁定；解除前必須至少保留一種登入方式。
+- 以第三方建立的帳號沒有密碼，需先於「設定密碼」建立密碼，才能變更登入方式或申請刪除帳號。
+
+### 隱私權政策建議增訂段落
+
+> **第三方帳號登入**
+>
+> 您可選擇以 Google、Apple、手機號碼、LINE 或 Discord 帳號登入本平台。使用時，我們會向該服務取得您的帳號識別碼、電子郵件（或手機號碼）與顯示名稱，用於建立及辨識您的帳號，不會取得您在該服務的其他資料，也不會代您發布任何內容。使用 Apple 帳號登入時，您可選擇隱藏電子郵件，我們將收到 Apple 提供的轉寄信箱。您可隨時於「設定 → 帳號安全 → 登入方式」解除綁定，但須至少保留一種可用的登入方式。

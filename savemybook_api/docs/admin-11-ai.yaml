@@ -15,7 +15,8 @@ tags:
       是否支援照片辨識與網路搜尋由程式固定。
 
       伺服器尚未執行 `migrations/011_ai.sql` 時，設定讀取回傳預設值且 `migration_ready` 為 false，
-      其他端點回傳 503 `AI_UNAVAILABLE`。
+      其他端點回傳 503 `AI_UNAVAILABLE`。書籍顧問（`features.book_chat`）另需 `migrations/013_ai_book_chat.sql`；
+      未執行時設定仍可儲存，但使用者端的書籍顧問端點回傳 503 `AI_UNAVAILABLE`。
 
 paths:
   /api/admin/ai/settings:
@@ -286,6 +287,11 @@ components:
                   type: string
                   enum: [review, block]
                   description: '`review` 可疑商品一律送人工審核；`block` 明確違規（信心 ≥ 0.85）直接拒絕上架，其餘送審。'
+            book_chat:
+              type: object
+              properties:
+                enabled: { type: boolean }
+                provider: { type: string, nullable: true, enum: [deepseek, gemini, openai] }
         limits:
           type: object
           properties:
@@ -296,6 +302,7 @@ components:
                 support: { type: integer, example: 30 }
                 listing_assist: { type: integer, example: 15 }
                 recommend: { type: integer, example: 5 }
+                book_chat: { type: integer, example: 30 }
 
     AdminAiSettingsPayload:
       type: object
@@ -339,7 +346,7 @@ components:
           items:
             type: object
             properties:
-              feature: { type: string, enum: [support, listing_assist, recommend, moderation, test] }
+              feature: { type: string, enum: [support, listing_assist, recommend, moderation, book_chat, test] }
               requests: { type: integer }
               cost_usd: { type: number }
               input_tokens: { type: integer }

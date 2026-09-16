@@ -3,7 +3,7 @@ const publicId = require('../../lib/public-id');
 const { clip } = require('../../lib/text');
 const { hasColumn } = require('../../lib/schema-check');
 
-const FEATURES = ['support', 'listing_assist', 'recommend', 'moderation', 'test'];
+const FEATURES = ['support', 'listing_assist', 'recommend', 'moderation', 'book_chat', 'test'];
 const PERIODS = ['today', '7d', '30d', 'month'];
 const DAY_MS = 24 * 60 * 60 * 1000;
 

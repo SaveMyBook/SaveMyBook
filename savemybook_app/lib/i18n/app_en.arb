@@ -3297,5 +3297,166 @@
   "couldNotConnectService": "Could not connect to the service",
   "blockedByProviderSafetySystem": "Blocked by the provider safety system",
   "responseExceededOutputLimit": "Response exceeded the output limit",
-  "serverProcessingError": "Server processing error"
+  "serverProcessingError": "Server processing error",
+  "aiBookAdvisor": "AI book advisor",
+  "requiresDatabaseUpdate013": "Requires database update 013",
+  "mysteryNovelMyCommute": "A mystery novel for my commute",
+  "programmingBooksBeginners": "Programming books for beginners",
+  "booksUnder200Coins": "Books under 200 coins",
+  "popularLiteraryFictionRightNow": "Popular literary fiction right now",
+  "tellMeWhatBookLooking": "Tell me what book you are looking for",
+  "allRecommendationsComeFromBooksCurrently": "All recommendations come from books currently on sale here",
+  "describeBookLooking": "Describe the book you are looking for",
+  "tellMeWhatWantReadI": "Tell me what you want to read and I will pick for you",
+  "subtitle": "Subtitle",
+  "monthOnly": "Month only",
+  "yearOnly": "Year only",
+  "fromBookDatabase": "From the book database",
+  "writtenByAi": "Written by AI",
+  "aiTidiedSourceText": "AI tidied the source text",
+  "msg": "繁體中文",
+  "additionalInformation": "Additional information",
+  "readFull": "Read in full",
+  "pages": "Pages",
+  "simplifiedChinese": "Simplified Chinese",
+  "chinese": "Chinese",
+  "english": "English",
+  "japanese": "Japanese",
+  "korean": "Korean",
+  "p0Pages": "{p0} pages",
+  "@p0Pages": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "collapse": "Collapse",
+  "setPasswordFirst": "Set a password first",
+  "setPassword": "Set password",
+  "signMethodSettingsSaved": "Sign-in method settings saved",
+  "signMethodSettingsUnsavedLeavingDiscards": "Sign-in method settings are unsaved; leaving discards the changes.",
+  "serverNotRunDatabaseUpdate014": "The server has not run database update 014, so the settings cannot take effect yet.",
+  "signChannels": "Sign-in channels",
+  "socialSmsSign": "Social and SMS sign-in",
+  "whenOffSignPageHidesThese": "When off, the sign-in page hides these methods; linked accounts can still sign in with a password.",
+  "notConfigured": "Not configured",
+  "allowCreatingNewAccountsWithMethod": "Allow creating new accounts with this method",
+  "serverNoCredentialsChannel": "The server has no credentials for this channel",
+  "unsavedChanges2": "Unsaved changes",
+  "switchesSignupPermissionsSocialSmsSign": "Switches and signup permissions for social and SMS sign-in",
+  "taiwan": "Taiwan",
+  "hongKong": "Hong Kong",
+  "macau": "Macau",
+  "china": "China",
+  "japan": "Japan",
+  "southKorea": "South Korea",
+  "singapore": "Singapore",
+  "malaysia": "Malaysia",
+  "unitedStatesCanada": "United States / Canada",
+  "unitedKingdom": "United Kingdom",
+  "australia": "Australia",
+  "countryCode": "Country code",
+  "enterValidMobileNumber": "Enter a valid mobile number",
+  "couldNotSendCodePleaseTry": "Could not send the code. Please try again later.",
+  "linkMobileNumber": "Link mobile number",
+  "signWithMobileNumber": "Sign in with a mobile number",
+  "k6DigitCodeSentNumberMessage": "A 6-digit code will be sent to this number. The message may take a moment to arrive.",
+  "mobileNumber": "Mobile number",
+  "sendCode": "Send code",
+  "codeIncorrectPleaseEnterAgain": "The code is incorrect. Please enter it again.",
+  "codeBeenSentAgain": "The code has been sent again",
+  "enterCode": "Enter the code",
+  "enterSmsCode": "Enter the SMS code",
+  "codeWasSentP0": "The code was sent to {p0}",
+  "@codeWasSentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "canResendP0S": "You can resend in {p0} s",
+  "@canResendP0S": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "resendCode": "Resend the code",
+  "completeAccountDetails": "Complete your account details",
+  "p0DidNotProvideEmailAddress": "{p0} did not provide an email address. Fill in the details to create an account.",
+  "@p0DidNotProvideEmailAddress": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signWithP0": "Sign in with {p0}",
+  "@signWithP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signWith2": "Or sign in with",
+  "creatingAccountWithMethodsAboveMeans": "Creating an account with the methods above means you accept the Terms of Service and the Privacy Policy.",
+  "emailAlreadyRegistered": "This email is already registered",
+  "signWithPasswordThenLinkMethod": "Sign in with your password, then link this method under Sign-in methods in Account security.",
+  "signWithPassword": "Sign in with a password",
+  "accountNoPasswordYet": "This account has no password yet",
+  "passwordSet": "Password set",
+  "canNowSignWithEmailPassword": "You can now sign in with your email and password. Other devices must sign in again.",
+  "passwordRequiredBeforeCanUnlinkSign": "A password is required before you can unlink a sign-in method, and it lets you sign in by email on a new device. Use at least 8 characters with letters and numbers.",
+  "changingSignMethodsRequiresIdentityVerification": "Changing sign-in methods requires identity verification. Set a password for this account first.",
+  "later": "Later",
+  "p0Linked": "{p0} linked",
+  "@p0Linked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unlinkP0": "Unlink {p0}",
+  "@unlinkP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noLongerAbleSignWayCan": "You will no longer be able to sign in this way. You can link it again whenever you need.",
+  "unlink": "Unlink",
+  "p0Unlinked": "{p0} unlinked",
+  "@p0Unlinked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "socialSmsSignNotAvailableRight": "Social and SMS sign-in are not available right now.",
+  "noSignMethodAvailableLink": "No sign-in method is available to link.",
+  "noPasswordSet": "No password set",
+  "requiredBeforeChangingSignMethodsDeleting": "Required before changing sign-in methods or deleting the account",
+  "linkedP0": "Linked on {p0}",
+  "@linkedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "link": "Link",
+  "emailAlreadyRegisteredSignWithPassword": "This email is already registered. Sign in with your password first, then link this method under Account security.",
+  "provideEmailAddressCreateAccount": "Provide an email address to create an account",
+  "signMethodOnlyExistingAccounts": "This sign-in method is only for existing accounts",
+  "signMethodNotAvailableRightNow": "This sign-in method is not available right now",
+  "credentialDoesNotMatchSelectedSign": "The credential does not match the selected sign-in method",
+  "signMethodLinkedAnotherAccount": "This sign-in method is linked to another account",
+  "accountAlreadyLinkedSignMethod": "This account is already linked to that sign-in method",
+  "onlySignMethodAccountSetPassword": "This is the only sign-in method on the account. Set a password or link another method first.",
+  "socialSignUnavailableServerNotFinished": "Social sign-in is unavailable; the server has not finished the database update.",
+  "credentialInvalidExpiredPleaseTryAgain": "The credential is invalid or expired. Please try again.",
+  "accountAlreadyPasswordUseChangePassword": "This account already has a password. Use Change password instead.",
+  "signLinkExpiredPleaseTryAgain": "The sign-in link has expired. Please try again.",
+  "signResultExpiredPleaseTryAgain": "The sign-in result has expired. Please try again.",
+  "thirdPartySignServiceUnavailablePlease": "The third-party sign-in service is unavailable. Please try again later.",
+  "couldNotCompleteSignPleaseTry": "Could not complete the sign-in. Please try again.",
+  "accountNotLinkedSignMethod": "This account is not linked to that sign-in method",
+  "couldNotReachServerCheckConnection2": "Could not reach the server. Check your connection.",
+  "mobileNumberFormatNotValid": "The mobile number format is not valid",
+  "verificationTimedOutRequestNewCode": "The verification timed out. Request a new code.",
+  "codeExpiredRequestNewOne": "The code has expired. Request a new one.",
+  "tooManyAttemptsPleaseTryAgain": "Too many attempts. Please try again later.",
+  "smsSendingLimitBeenReachedPlease": "The SMS sending limit has been reached. Please try again later.",
+  "smsVerificationNotSetUpDevice": "SMS verification is not set up on this device. Please use another sign-in method.",
+  "couldNotCompleteSmsVerificationPlease": "Could not complete SMS verification. Please try again later.",
+  "allowSigningLinkingWithMethod": "Allow signing in and linking with this method"
 }

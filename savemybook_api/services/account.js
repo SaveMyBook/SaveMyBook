@@ -7,6 +7,7 @@ const sessions = require('./sessions');
 const audit = require('./audit');
 const aiSettings = require('./ai/settings');
 const aiConsent = require('./ai/consent');
+const authSettings = require('./auth-settings');
 const { ORDER_UNSETTLED_STATUSES } = require('../constants/domain');
 
 const GRACE_DAYS = 30;
@@ -17,7 +18,7 @@ const graceDeadline = (requestedAt) =>
 // 匿名化而非 DELETE：訂單與錢包異動屬帳務資料，不可隨單方刪號消失。
 const anonymize = async (userId) => {
   const stamp = Date.now();
-  const aiReady = await aiSettings.migrationReady();
+  const [aiReady, authReady] = await Promise.all([aiSettings.migrationReady(), authSettings.migrationReady()]);
 
   await prisma.$transaction(async (tx) => {
     await tx.users.update({
@@ -48,6 +49,11 @@ const anonymize = async (userId) => {
     await tx.user_qr_codes.deleteMany({ where: { user_id: userId } });
     await tx.notifications.deleteMany({ where: { user_id: userId } });
     if (aiReady) await aiConsent.purgeUser(tx, userId);
+    if (authReady) {
+      await tx.$executeRaw`DELETE FROM user_identities WHERE user_id = ${userId}`;
+      // 密碼雜湊已換成隨機值，登入方式一併回到「僅密碼」的狀態。
+      await tx.$executeRaw`UPDATE users SET password_set = 1 WHERE user_id = ${userId}`;
+    }
 
     await tx.chat_messages.updateMany({
       where: { sender_id: userId },
@@ -92,8 +98,30 @@ const processDueDeletions = async () => {
   return due.length;
 };
 
+// 尚未執行 014 時沒有這些資料表，匯出內容以 null 表示「本站未保存」。
+const exportIdentities = async (userId) => {
+  if (!(await authSettings.migrationReady())) return null;
+  const [rows, user] = await Promise.all([
+    prisma.$queryRaw`
+      SELECT provider, email, phone, display_name, created_at, last_login_at
+      FROM user_identities WHERE user_id = ${userId} ORDER BY created_at ASC`,
+    prisma.$queryRaw`SELECT password_set FROM users WHERE user_id = ${userId}`
+  ]);
+  return {
+    password_set: Number(user[0]?.password_set ?? 1) === 1,
+    items: rows.map((row) => ({
+      provider: row.provider,
+      email: row.email,
+      phone: row.phone,
+      display_name: row.display_name,
+      created_at: row.created_at,
+      last_login_at: row.last_login_at
+    }))
+  };
+};
+
 const exportData = async (userId) => {
-  const [user, books, boughtOrders, soldOrders, wallet, disputes, reports, tickets, ai] =
+  const [user, books, boughtOrders, soldOrders, wallet, disputes, reports, tickets, ai, identities] =
     await Promise.all([
       prisma.users.findUnique({
         where: { user_id: userId },
@@ -124,7 +152,8 @@ const exportData = async (userId) => {
         where: { user_id: userId },
         include: { messages: { orderBy: { created_at: 'asc' } } }
       }),
-      aiConsent.exportUser(userId)
+      aiConsent.exportUser(userId),
+      exportIdentities(userId)
     ]);
 
   return {
@@ -138,7 +167,8 @@ const exportData = async (userId) => {
     disputes,
     reports,
     support_tickets: tickets,
-    ai
+    ai,
+    sign_in_methods: identities
   };
 };
 

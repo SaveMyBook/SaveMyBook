@@ -10,6 +10,7 @@ const { badRequest } = require('../../lib/errors');
 const { GENDERS } = require('../../constants/domain');
 const users = require('../../services/users');
 const account = require('../../services/account');
+const identities = require('../../services/auth-identities');
 const levels = require('../../services/levels');
 const { avatarUrl, profileData } = require('./validators');
 
@@ -61,6 +62,9 @@ router.put('/me/password', authenticateToken, passwordLimiter, async (req, res) 
 
   if (!current || !next) throw badRequest('請填寫目前密碼與新密碼');
   password.assertPolicy(next, '新密碼');
+  if (!(await identities.hasPassword(req.user.userId))) {
+    throw badRequest('此帳號尚未設定密碼，請改用設定密碼', 'PASSWORD_NOT_SET');
+  }
 
   const token = await users.changePassword(req.user.userId, req.user.sid, current, next);
   res.status(200).json({
@@ -68,6 +72,10 @@ router.put('/me/password', authenticateToken, passwordLimiter, async (req, res) 
     message: '密碼已更新，其他裝置須重新登入',
     data: { token }
   });
+});
+
+router.get('/me/identities', authenticateToken, async (req, res) => {
+  res.status(200).json({ success: true, data: await identities.listFor(req.user.userId) });
 });
 
 router.get('/me/qrcode', authenticateToken, async (req, res) => {
@@ -100,6 +108,9 @@ router.get('/me/deletion', authenticateToken, async (req, res) => {
 router.post('/me/deletion', authenticateToken, passwordLimiter, async (req, res) => {
   const plain = typeof req.body.password === 'string' ? req.body.password : '';
   if (!plain) throw badRequest('請輸入密碼以確認身分');
+  if (!(await identities.hasPassword(req.user.userId))) {
+    throw badRequest('此帳號尚未設定密碼，請先設定密碼再申請刪除帳號', 'PASSWORD_NOT_SET');
+  }
 
   const data = await account.requestDeletion(req.user.userId, plain);
   res.status(200).json({

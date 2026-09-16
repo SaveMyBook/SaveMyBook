@@ -91,9 +91,10 @@ const encode = (type, id) => {
 
 const decode = (type, code) => {
   const prefix = prefixOf(type);
-  const text = String(code ?? '').trim().toUpperCase().replace(/[-\s]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
+  const text = String(code ?? '').trim().toUpperCase().replace(/[-\s]/g, '');
   if (!text.startsWith(prefix) || text.length !== prefix.length + LENGTH) return null;
-  const value = fromBase32(text.slice(prefix.length));
+  // 易混淆字元的正規化只能套用在前綴之後：LG、OD、LD、LV、SL 的前綴本身含 O／I／L，一起轉換會讓前綴永遠比對不到。
+  const value = fromBase32(text.slice(prefix.length).replace(/O/g, '0').replace(/[IL]/g, '1'));
   if (value == null || value > 0xffffffff) return null;
   return unpermute(prefix, value);
 };

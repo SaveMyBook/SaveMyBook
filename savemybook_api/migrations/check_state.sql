@@ -193,4 +193,60 @@ UNION ALL
 SELECT '欄位', 'ai_usage_logs.error_detail',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_usage_logs' AND COLUMN_NAME = 'error_detail';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_usage_logs' AND COLUMN_NAME = 'error_detail'
+
+UNION ALL
+
+SELECT '資料表', 'ai_chat_sessions',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_chat_sessions'
+
+UNION ALL
+
+SELECT '資料表', 'ai_chat_messages',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_chat_messages'
+
+UNION ALL
+
+SELECT '資料表', 'user_identities',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_identities'
+
+UNION ALL
+
+SELECT '資料表', 'auth_settings',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'auth_settings'
+
+UNION ALL
+
+SELECT '資料表', 'oauth_states',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'oauth_states'
+
+UNION ALL
+
+SELECT '資料表', 'oauth_results',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'oauth_results'
+
+UNION ALL
+
+SELECT '欄位', 'users.password_set',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'password_set'
+
+UNION ALL
+
+SELECT '欄位', 'login_logs.login_method',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'login_logs' AND COLUMN_NAME = 'login_method';

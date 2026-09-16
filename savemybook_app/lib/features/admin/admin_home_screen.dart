@@ -22,6 +22,7 @@ import 'admin_report_screen.dart';
 import 'admin_stats_screen.dart';
 import 'admin_ticket_screen.dart';
 import 'admin_wallet_screen.dart';
+import 'admin_auth_screen.dart';
 import 'admin_backup_screen.dart';
 import 'admin_deletion_screen.dart';
 import 'ai/admin_ai_screen.dart';
@@ -244,6 +245,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             title: S.aiFeatures,
             subtitle: S.usageModelsListingReview,
             onTap: () => _open(const AdminAiScreen()),
+          ),
+          AppMenuItem(
+            icon: Icons.login_rounded,
+            title: S.signMethod,
+            subtitle: S.switchesSignupPermissionsSocialSmsSign,
+            onTap: () => _open(const AdminAuthScreen()),
           ),
           AppMenuItem(
             icon: Icons.backup_outlined,

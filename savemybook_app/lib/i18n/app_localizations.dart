@@ -1858,6 +1858,122 @@ abstract class AppLocalizations {
   String get blockedByProviderSafetySystem;
   String get responseExceededOutputLimit;
   String get serverProcessingError;
+  String get aiBookAdvisor;
+  String get requiresDatabaseUpdate013;
+  String get mysteryNovelMyCommute;
+  String get programmingBooksBeginners;
+  String get booksUnder200Coins;
+  String get popularLiteraryFictionRightNow;
+  String get tellMeWhatBookLooking;
+  String get allRecommendationsComeFromBooksCurrently;
+  String get describeBookLooking;
+  String get tellMeWhatWantReadI;
+  String get subtitle;
+  String get monthOnly;
+  String get yearOnly;
+  String get fromBookDatabase;
+  String get writtenByAi;
+  String get aiTidiedSourceText;
+  String get msg;
+  String get additionalInformation;
+  String get readFull;
+  String get pages;
+  String get simplifiedChinese;
+  String get chinese;
+  String get english;
+  String get japanese;
+  String get korean;
+  String p0Pages(Object p0);
+  String get collapse;
+  String get setPasswordFirst;
+  String get setPassword;
+  String get signMethodSettingsSaved;
+  String get signMethodSettingsUnsavedLeavingDiscards;
+  String get serverNotRunDatabaseUpdate014;
+  String get signChannels;
+  String get socialSmsSign;
+  String get whenOffSignPageHidesThese;
+  String get notConfigured;
+  String get allowCreatingNewAccountsWithMethod;
+  String get serverNoCredentialsChannel;
+  String get unsavedChanges2;
+  String get switchesSignupPermissionsSocialSmsSign;
+  String get taiwan;
+  String get hongKong;
+  String get macau;
+  String get china;
+  String get japan;
+  String get southKorea;
+  String get singapore;
+  String get malaysia;
+  String get unitedStatesCanada;
+  String get unitedKingdom;
+  String get australia;
+  String get countryCode;
+  String get enterValidMobileNumber;
+  String get couldNotSendCodePleaseTry;
+  String get linkMobileNumber;
+  String get signWithMobileNumber;
+  String get k6DigitCodeSentNumberMessage;
+  String get mobileNumber;
+  String get sendCode;
+  String get codeIncorrectPleaseEnterAgain;
+  String get codeBeenSentAgain;
+  String get enterCode;
+  String get enterSmsCode;
+  String codeWasSentP0(Object p0);
+  String canResendP0S(Object p0);
+  String get resendCode;
+  String get completeAccountDetails;
+  String p0DidNotProvideEmailAddress(Object p0);
+  String signWithP0(Object p0);
+  String get signWith2;
+  String get creatingAccountWithMethodsAboveMeans;
+  String get emailAlreadyRegistered;
+  String get signWithPasswordThenLinkMethod;
+  String get signWithPassword;
+  String get accountNoPasswordYet;
+  String get passwordSet;
+  String get canNowSignWithEmailPassword;
+  String get passwordRequiredBeforeCanUnlinkSign;
+  String get changingSignMethodsRequiresIdentityVerification;
+  String get later;
+  String p0Linked(Object p0);
+  String unlinkP0(Object p0);
+  String get noLongerAbleSignWayCan;
+  String get unlink;
+  String p0Unlinked(Object p0);
+  String get socialSmsSignNotAvailableRight;
+  String get noSignMethodAvailableLink;
+  String get noPasswordSet;
+  String get requiredBeforeChangingSignMethodsDeleting;
+  String linkedP0(Object p0);
+  String get link;
+  String get emailAlreadyRegisteredSignWithPassword;
+  String get provideEmailAddressCreateAccount;
+  String get signMethodOnlyExistingAccounts;
+  String get signMethodNotAvailableRightNow;
+  String get credentialDoesNotMatchSelectedSign;
+  String get signMethodLinkedAnotherAccount;
+  String get accountAlreadyLinkedSignMethod;
+  String get onlySignMethodAccountSetPassword;
+  String get socialSignUnavailableServerNotFinished;
+  String get credentialInvalidExpiredPleaseTryAgain;
+  String get accountAlreadyPasswordUseChangePassword;
+  String get signLinkExpiredPleaseTryAgain;
+  String get signResultExpiredPleaseTryAgain;
+  String get thirdPartySignServiceUnavailablePlease;
+  String get couldNotCompleteSignPleaseTry;
+  String get accountNotLinkedSignMethod;
+  String get couldNotReachServerCheckConnection2;
+  String get mobileNumberFormatNotValid;
+  String get verificationTimedOutRequestNewCode;
+  String get codeExpiredRequestNewOne;
+  String get tooManyAttemptsPleaseTryAgain;
+  String get smsSendingLimitBeenReachedPlease;
+  String get smsVerificationNotSetUpDevice;
+  String get couldNotCompleteSmsVerificationPlease;
+  String get allowSigningLinkingWithMethod;
 }
 
 class _LEn extends AppLocalizations {
@@ -7367,6 +7483,354 @@ class _LEn extends AppLocalizations {
 
   @override
   String get serverProcessingError => 'Server processing error';
+
+  @override
+  String get aiBookAdvisor => 'AI book advisor';
+
+  @override
+  String get requiresDatabaseUpdate013 => 'Requires database update 013';
+
+  @override
+  String get mysteryNovelMyCommute => 'A mystery novel for my commute';
+
+  @override
+  String get programmingBooksBeginners => 'Programming books for beginners';
+
+  @override
+  String get booksUnder200Coins => 'Books under 200 coins';
+
+  @override
+  String get popularLiteraryFictionRightNow => 'Popular literary fiction right now';
+
+  @override
+  String get tellMeWhatBookLooking => 'Tell me what book you are looking for';
+
+  @override
+  String get allRecommendationsComeFromBooksCurrently => 'All recommendations come from books currently on sale here';
+
+  @override
+  String get describeBookLooking => 'Describe the book you are looking for';
+
+  @override
+  String get tellMeWhatWantReadI => 'Tell me what you want to read and I will pick for you';
+
+  @override
+  String get subtitle => 'Subtitle';
+
+  @override
+  String get monthOnly => 'Month only';
+
+  @override
+  String get yearOnly => 'Year only';
+
+  @override
+  String get fromBookDatabase => 'From the book database';
+
+  @override
+  String get writtenByAi => 'Written by AI';
+
+  @override
+  String get aiTidiedSourceText => 'AI tidied the source text';
+
+  @override
+  String get msg => '繁體中文';
+
+  @override
+  String get additionalInformation => 'Additional information';
+
+  @override
+  String get readFull => 'Read in full';
+
+  @override
+  String get pages => 'Pages';
+
+  @override
+  String get simplifiedChinese => 'Simplified Chinese';
+
+  @override
+  String get chinese => 'Chinese';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get japanese => 'Japanese';
+
+  @override
+  String get korean => 'Korean';
+
+  @override
+  String p0Pages(Object p0) => '${p0} pages';
+
+  @override
+  String get collapse => 'Collapse';
+
+  @override
+  String get setPasswordFirst => 'Set a password first';
+
+  @override
+  String get setPassword => 'Set password';
+
+  @override
+  String get signMethodSettingsSaved => 'Sign-in method settings saved';
+
+  @override
+  String get signMethodSettingsUnsavedLeavingDiscards => 'Sign-in method settings are unsaved; leaving discards the changes.';
+
+  @override
+  String get serverNotRunDatabaseUpdate014 => 'The server has not run database update 014, so the settings cannot take effect yet.';
+
+  @override
+  String get signChannels => 'Sign-in channels';
+
+  @override
+  String get socialSmsSign => 'Social and SMS sign-in';
+
+  @override
+  String get whenOffSignPageHidesThese => 'When off, the sign-in page hides these methods; linked accounts can still sign in with a password.';
+
+  @override
+  String get notConfigured => 'Not configured';
+
+  @override
+  String get allowCreatingNewAccountsWithMethod => 'Allow creating new accounts with this method';
+
+  @override
+  String get serverNoCredentialsChannel => 'The server has no credentials for this channel';
+
+  @override
+  String get unsavedChanges2 => 'Unsaved changes';
+
+  @override
+  String get switchesSignupPermissionsSocialSmsSign => 'Switches and signup permissions for social and SMS sign-in';
+
+  @override
+  String get taiwan => 'Taiwan';
+
+  @override
+  String get hongKong => 'Hong Kong';
+
+  @override
+  String get macau => 'Macau';
+
+  @override
+  String get china => 'China';
+
+  @override
+  String get japan => 'Japan';
+
+  @override
+  String get southKorea => 'South Korea';
+
+  @override
+  String get singapore => 'Singapore';
+
+  @override
+  String get malaysia => 'Malaysia';
+
+  @override
+  String get unitedStatesCanada => 'United States / Canada';
+
+  @override
+  String get unitedKingdom => 'United Kingdom';
+
+  @override
+  String get australia => 'Australia';
+
+  @override
+  String get countryCode => 'Country code';
+
+  @override
+  String get enterValidMobileNumber => 'Enter a valid mobile number';
+
+  @override
+  String get couldNotSendCodePleaseTry => 'Could not send the code. Please try again later.';
+
+  @override
+  String get linkMobileNumber => 'Link mobile number';
+
+  @override
+  String get signWithMobileNumber => 'Sign in with a mobile number';
+
+  @override
+  String get k6DigitCodeSentNumberMessage => 'A 6-digit code will be sent to this number. The message may take a moment to arrive.';
+
+  @override
+  String get mobileNumber => 'Mobile number';
+
+  @override
+  String get sendCode => 'Send code';
+
+  @override
+  String get codeIncorrectPleaseEnterAgain => 'The code is incorrect. Please enter it again.';
+
+  @override
+  String get codeBeenSentAgain => 'The code has been sent again';
+
+  @override
+  String get enterCode => 'Enter the code';
+
+  @override
+  String get enterSmsCode => 'Enter the SMS code';
+
+  @override
+  String codeWasSentP0(Object p0) => 'The code was sent to ${p0}';
+
+  @override
+  String canResendP0S(Object p0) => 'You can resend in ${p0} s';
+
+  @override
+  String get resendCode => 'Resend the code';
+
+  @override
+  String get completeAccountDetails => 'Complete your account details';
+
+  @override
+  String p0DidNotProvideEmailAddress(Object p0) => '${p0} did not provide an email address. Fill in the details to create an account.';
+
+  @override
+  String signWithP0(Object p0) => 'Sign in with ${p0}';
+
+  @override
+  String get signWith2 => 'Or sign in with';
+
+  @override
+  String get creatingAccountWithMethodsAboveMeans => 'Creating an account with the methods above means you accept the Terms of Service and the Privacy Policy.';
+
+  @override
+  String get emailAlreadyRegistered => 'This email is already registered';
+
+  @override
+  String get signWithPasswordThenLinkMethod => 'Sign in with your password, then link this method under Sign-in methods in Account security.';
+
+  @override
+  String get signWithPassword => 'Sign in with a password';
+
+  @override
+  String get accountNoPasswordYet => 'This account has no password yet';
+
+  @override
+  String get passwordSet => 'Password set';
+
+  @override
+  String get canNowSignWithEmailPassword => 'You can now sign in with your email and password. Other devices must sign in again.';
+
+  @override
+  String get passwordRequiredBeforeCanUnlinkSign => 'A password is required before you can unlink a sign-in method, and it lets you sign in by email on a new device. Use at least 8 characters with letters and numbers.';
+
+  @override
+  String get changingSignMethodsRequiresIdentityVerification => 'Changing sign-in methods requires identity verification. Set a password for this account first.';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String p0Linked(Object p0) => '${p0} linked';
+
+  @override
+  String unlinkP0(Object p0) => 'Unlink ${p0}';
+
+  @override
+  String get noLongerAbleSignWayCan => 'You will no longer be able to sign in this way. You can link it again whenever you need.';
+
+  @override
+  String get unlink => 'Unlink';
+
+  @override
+  String p0Unlinked(Object p0) => '${p0} unlinked';
+
+  @override
+  String get socialSmsSignNotAvailableRight => 'Social and SMS sign-in are not available right now.';
+
+  @override
+  String get noSignMethodAvailableLink => 'No sign-in method is available to link.';
+
+  @override
+  String get noPasswordSet => 'No password set';
+
+  @override
+  String get requiredBeforeChangingSignMethodsDeleting => 'Required before changing sign-in methods or deleting the account';
+
+  @override
+  String linkedP0(Object p0) => 'Linked on ${p0}';
+
+  @override
+  String get link => 'Link';
+
+  @override
+  String get emailAlreadyRegisteredSignWithPassword => 'This email is already registered. Sign in with your password first, then link this method under Account security.';
+
+  @override
+  String get provideEmailAddressCreateAccount => 'Provide an email address to create an account';
+
+  @override
+  String get signMethodOnlyExistingAccounts => 'This sign-in method is only for existing accounts';
+
+  @override
+  String get signMethodNotAvailableRightNow => 'This sign-in method is not available right now';
+
+  @override
+  String get credentialDoesNotMatchSelectedSign => 'The credential does not match the selected sign-in method';
+
+  @override
+  String get signMethodLinkedAnotherAccount => 'This sign-in method is linked to another account';
+
+  @override
+  String get accountAlreadyLinkedSignMethod => 'This account is already linked to that sign-in method';
+
+  @override
+  String get onlySignMethodAccountSetPassword => 'This is the only sign-in method on the account. Set a password or link another method first.';
+
+  @override
+  String get socialSignUnavailableServerNotFinished => 'Social sign-in is unavailable; the server has not finished the database update.';
+
+  @override
+  String get credentialInvalidExpiredPleaseTryAgain => 'The credential is invalid or expired. Please try again.';
+
+  @override
+  String get accountAlreadyPasswordUseChangePassword => 'This account already has a password. Use Change password instead.';
+
+  @override
+  String get signLinkExpiredPleaseTryAgain => 'The sign-in link has expired. Please try again.';
+
+  @override
+  String get signResultExpiredPleaseTryAgain => 'The sign-in result has expired. Please try again.';
+
+  @override
+  String get thirdPartySignServiceUnavailablePlease => 'The third-party sign-in service is unavailable. Please try again later.';
+
+  @override
+  String get couldNotCompleteSignPleaseTry => 'Could not complete the sign-in. Please try again.';
+
+  @override
+  String get accountNotLinkedSignMethod => 'This account is not linked to that sign-in method';
+
+  @override
+  String get couldNotReachServerCheckConnection2 => 'Could not reach the server. Check your connection.';
+
+  @override
+  String get mobileNumberFormatNotValid => 'The mobile number format is not valid';
+
+  @override
+  String get verificationTimedOutRequestNewCode => 'The verification timed out. Request a new code.';
+
+  @override
+  String get codeExpiredRequestNewOne => 'The code has expired. Request a new one.';
+
+  @override
+  String get tooManyAttemptsPleaseTryAgain => 'Too many attempts. Please try again later.';
+
+  @override
+  String get smsSendingLimitBeenReachedPlease => 'The SMS sending limit has been reached. Please try again later.';
+
+  @override
+  String get smsVerificationNotSetUpDevice => 'SMS verification is not set up on this device. Please use another sign-in method.';
+
+  @override
+  String get couldNotCompleteSmsVerificationPlease => 'Could not complete SMS verification. Please try again later.';
+
+  @override
+  String get allowSigningLinkingWithMethod => 'Allow signing in and linking with this method';
 
 }
 
@@ -12878,6 +13342,354 @@ class _LJa extends AppLocalizations {
   @override
   String get serverProcessingError => 'サーバー処理エラー';
 
+  @override
+  String get aiBookAdvisor => 'AI ブックアドバイザー';
+
+  @override
+  String get requiresDatabaseUpdate013 => 'データベース更新 013 が必要です';
+
+  @override
+  String get mysteryNovelMyCommute => '通勤中に読めるミステリー小説';
+
+  @override
+  String get programmingBooksBeginners => '入門者向けのプログラミング書';
+
+  @override
+  String get booksUnder200Coins => '200 コイン以内の本';
+
+  @override
+  String get popularLiteraryFictionRightNow => '最近人気の文芸小説';
+
+  @override
+  String get tellMeWhatBookLooking => 'お探しの本をお聞かせください';
+
+  @override
+  String get allRecommendationsComeFromBooksCurrently => 'おすすめはすべて出品中の書籍から選ばれます';
+
+  @override
+  String get describeBookLooking => 'お探しの本を入力してください';
+
+  @override
+  String get tellMeWhatWantReadI => '読みたい本をお聞かせください。お選びします';
+
+  @override
+  String get subtitle => 'サブタイトル';
+
+  @override
+  String get monthOnly => '月まで確認';
+
+  @override
+  String get yearOnly => '年まで確認';
+
+  @override
+  String get fromBookDatabase => '書誌データベースより';
+
+  @override
+  String get writtenByAi => 'AI が作成';
+
+  @override
+  String get aiTidiedSourceText => 'AI が原文を整理';
+
+  @override
+  String get msg => '繁體中文';
+
+  @override
+  String get additionalInformation => 'その他の情報';
+
+  @override
+  String get readFull => '全文を表示';
+
+  @override
+  String get pages => 'ページ数';
+
+  @override
+  String get simplifiedChinese => '簡体字中国語';
+
+  @override
+  String get chinese => '中国語';
+
+  @override
+  String get english => '英語';
+
+  @override
+  String get japanese => '日本語';
+
+  @override
+  String get korean => '韓国語';
+
+  @override
+  String p0Pages(Object p0) => '${p0} ページ';
+
+  @override
+  String get collapse => '折りたたむ';
+
+  @override
+  String get setPasswordFirst => 'まずパスワードを設定してください';
+
+  @override
+  String get setPassword => 'パスワードを設定';
+
+  @override
+  String get signMethodSettingsSaved => 'ログイン方法の設定を保存しました';
+
+  @override
+  String get signMethodSettingsUnsavedLeavingDiscards => 'ログイン方法の設定は未保存です。移動すると変更は失われます。';
+
+  @override
+  String get serverNotRunDatabaseUpdate014 => 'サーバーでデータベース更新 014 が未実行のため、設定はまだ反映されません。';
+
+  @override
+  String get signChannels => 'ログイン方法の一覧';
+
+  @override
+  String get socialSmsSign => 'ソーシャル・SMS ログイン';
+
+  @override
+  String get whenOffSignPageHidesThese => 'オフにするとログイン画面に表示されません。連携済みの利用者はパスワードでログインできます。';
+
+  @override
+  String get notConfigured => '未設定';
+
+  @override
+  String get allowCreatingNewAccountsWithMethod => 'この方法での新規アカウント作成を許可';
+
+  @override
+  String get serverNoCredentialsChannel => 'サーバーにこのチャネルの認証情報がありません';
+
+  @override
+  String get unsavedChanges2 => '未保存の変更';
+
+  @override
+  String get switchesSignupPermissionsSocialSmsSign => 'ソーシャル・SMS ログインの開閉と新規登録の可否';
+
+  @override
+  String get taiwan => '台湾';
+
+  @override
+  String get hongKong => '香港';
+
+  @override
+  String get macau => 'マカオ';
+
+  @override
+  String get china => '中国';
+
+  @override
+  String get japan => '日本';
+
+  @override
+  String get southKorea => '韓国';
+
+  @override
+  String get singapore => 'シンガポール';
+
+  @override
+  String get malaysia => 'マレーシア';
+
+  @override
+  String get unitedStatesCanada => 'アメリカ／カナダ';
+
+  @override
+  String get unitedKingdom => 'イギリス';
+
+  @override
+  String get australia => 'オーストラリア';
+
+  @override
+  String get countryCode => '国番号';
+
+  @override
+  String get enterValidMobileNumber => '正しい携帯電話番号を入力してください';
+
+  @override
+  String get couldNotSendCodePleaseTry => '認証コードを送信できませんでした。しばらくしてからお試しください。';
+
+  @override
+  String get linkMobileNumber => '携帯電話番号を連携';
+
+  @override
+  String get signWithMobileNumber => '携帯電話番号でログイン';
+
+  @override
+  String get k6DigitCodeSentNumberMessage => 'この番号に 6 桁の認証コードを送信します。SMS の到着には時間がかかる場合があります。';
+
+  @override
+  String get mobileNumber => '携帯電話番号';
+
+  @override
+  String get sendCode => '認証コードを送信';
+
+  @override
+  String get codeIncorrectPleaseEnterAgain => '認証コードが正しくありません。もう一度入力してください。';
+
+  @override
+  String get codeBeenSentAgain => '認証コードを再送しました';
+
+  @override
+  String get enterCode => '認証コードを入力';
+
+  @override
+  String get enterSmsCode => 'SMS の認証コードを入力';
+
+  @override
+  String codeWasSentP0(Object p0) => '認証コードを ${p0} に送信しました';
+
+  @override
+  String canResendP0S(Object p0) => '${p0} 秒後に再送できます';
+
+  @override
+  String get resendCode => '認証コードを再送';
+
+  @override
+  String get completeAccountDetails => 'アカウント情報の入力';
+
+  @override
+  String p0DidNotProvideEmailAddress(Object p0) => '${p0} からメールアドレスが提供されませんでした。情報を入力してアカウントを作成してください。';
+
+  @override
+  String signWithP0(Object p0) => '${p0} でログイン';
+
+  @override
+  String get signWith2 => 'または次の方法でログイン';
+
+  @override
+  String get creatingAccountWithMethodsAboveMeans => '上記の方法でアカウントを作成すると、利用規約とプライバシーポリシーに同意したものとみなされます。';
+
+  @override
+  String get emailAlreadyRegistered => 'このメールアドレスは登録済みです';
+
+  @override
+  String get signWithPasswordThenLinkMethod => 'パスワードでログインし、アカウントセキュリティのログイン方法から連携してください。';
+
+  @override
+  String get signWithPassword => 'パスワードでログイン';
+
+  @override
+  String get accountNoPasswordYet => 'このアカウントはパスワード未設定です';
+
+  @override
+  String get passwordSet => 'パスワードを設定しました';
+
+  @override
+  String get canNowSignWithEmailPassword => '今後はメールアドレスとパスワードでログインできます。他の端末は再ログインが必要です。';
+
+  @override
+  String get passwordRequiredBeforeCanUnlinkSign => 'ログイン方法の連携解除にはパスワードが必要です。機種変更時もメールアドレスでログインできます。8 文字以上で英字と数字を含めてください。';
+
+  @override
+  String get changingSignMethodsRequiresIdentityVerification => 'ログイン方法の変更には本人確認が必要です。先にパスワードを設定してください。';
+
+  @override
+  String get later => '後で';
+
+  @override
+  String p0Linked(Object p0) => '${p0} を連携しました';
+
+  @override
+  String unlinkP0(Object p0) => '${p0} の連携を解除';
+
+  @override
+  String get noLongerAbleSignWayCan => 'この方法ではログインできなくなります。必要になれば再度連携できます。';
+
+  @override
+  String get unlink => '連携を解除';
+
+  @override
+  String p0Unlinked(Object p0) => '${p0} の連携を解除しました';
+
+  @override
+  String get socialSmsSignNotAvailableRight => 'ソーシャル・SMS ログインは現在利用できません。';
+
+  @override
+  String get noSignMethodAvailableLink => '連携できるログイン方法はありません。';
+
+  @override
+  String get noPasswordSet => 'パスワード未設定';
+
+  @override
+  String get requiredBeforeChangingSignMethodsDeleting => 'ログイン方法の変更とアカウント削除に必要です';
+
+  @override
+  String linkedP0(Object p0) => '${p0} に連携';
+
+  @override
+  String get link => '連携';
+
+  @override
+  String get emailAlreadyRegisteredSignWithPassword => 'このメールアドレスは登録済みです。パスワードでログインしてから、アカウントセキュリティで連携してください。';
+
+  @override
+  String get provideEmailAddressCreateAccount => 'アカウント作成にはメールアドレスが必要です';
+
+  @override
+  String get signMethodOnlyExistingAccounts => 'このログイン方法は既存アカウント専用です';
+
+  @override
+  String get signMethodNotAvailableRightNow => 'このログイン方法は現在利用できません';
+
+  @override
+  String get credentialDoesNotMatchSelectedSign => '認証情報が選択したログイン方法と一致しません';
+
+  @override
+  String get signMethodLinkedAnotherAccount => 'このログイン方法は他のアカウントに連携されています';
+
+  @override
+  String get accountAlreadyLinkedSignMethod => 'このアカウントはすでにこのログイン方法と連携しています';
+
+  @override
+  String get onlySignMethodAccountSetPassword => 'これはこのアカウント唯一のログイン方法です。先にパスワードを設定するか、他の方法を連携してください。';
+
+  @override
+  String get socialSignUnavailableServerNotFinished => 'ソーシャルログインは利用できません。サーバーのデータベース更新が未完了です。';
+
+  @override
+  String get credentialInvalidExpiredPleaseTryAgain => '認証情報が無効か期限切れです。もう一度お試しください。';
+
+  @override
+  String get accountAlreadyPasswordUseChangePassword => 'このアカウントはパスワード設定済みです。パスワードの変更をご利用ください。';
+
+  @override
+  String get signLinkExpiredPleaseTryAgain => 'ログインリンクの有効期限が切れました。もう一度お試しください。';
+
+  @override
+  String get signResultExpiredPleaseTryAgain => 'ログイン結果の有効期限が切れました。もう一度お試しください。';
+
+  @override
+  String get thirdPartySignServiceUnavailablePlease => '外部のログインサービスが利用できません。しばらくしてからお試しください。';
+
+  @override
+  String get couldNotCompleteSignPleaseTry => 'ログインを完了できませんでした。もう一度お試しください。';
+
+  @override
+  String get accountNotLinkedSignMethod => 'このアカウントはこのログイン方法と連携していません';
+
+  @override
+  String get couldNotReachServerCheckConnection2 => 'サーバーに接続できません。ネットワークをご確認ください。';
+
+  @override
+  String get mobileNumberFormatNotValid => '携帯電話番号の形式が正しくありません';
+
+  @override
+  String get verificationTimedOutRequestNewCode => '認証がタイムアウトしました。認証コードを再取得してください。';
+
+  @override
+  String get codeExpiredRequestNewOne => '認証コードの有効期限が切れました。再取得してください。';
+
+  @override
+  String get tooManyAttemptsPleaseTryAgain => '試行回数が多すぎます。しばらくしてからお試しください。';
+
+  @override
+  String get smsSendingLimitBeenReachedPlease => 'SMS の送信回数が上限に達しました。しばらくしてからお試しください。';
+
+  @override
+  String get smsVerificationNotSetUpDevice => 'この端末では SMS 認証の設定が完了していません。別のログイン方法をご利用ください。';
+
+  @override
+  String get couldNotCompleteSmsVerificationPlease => 'SMS 認証を完了できませんでした。しばらくしてからお試しください。';
+
+  @override
+  String get allowSigningLinkingWithMethod => 'この方法でのログインと連携を許可';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -18387,6 +19199,354 @@ class _LKo extends AppLocalizations {
 
   @override
   String get serverProcessingError => '서버 처리 오류';
+
+  @override
+  String get aiBookAdvisor => 'AI 도서 어드바이저';
+
+  @override
+  String get requiresDatabaseUpdate013 => '데이터베이스 업데이트 013 필요';
+
+  @override
+  String get mysteryNovelMyCommute => '출퇴근길에 읽을 추리 소설';
+
+  @override
+  String get programmingBooksBeginners => '입문자를 위한 프로그래밍 책';
+
+  @override
+  String get booksUnder200Coins => '200 코인 이하의 책';
+
+  @override
+  String get popularLiteraryFictionRightNow => '요즘 인기 있는 문학 소설';
+
+  @override
+  String get tellMeWhatBookLooking => '어떤 책을 찾으시는지 알려주세요';
+
+  @override
+  String get allRecommendationsComeFromBooksCurrently => '추천 도서는 모두 현재 판매 중인 책입니다';
+
+  @override
+  String get describeBookLooking => '찾으시는 책을 설명해 주세요';
+
+  @override
+  String get tellMeWhatWantReadI => '읽고 싶은 책을 알려주시면 골라 드립니다';
+
+  @override
+  String get subtitle => '부제';
+
+  @override
+  String get monthOnly => '월까지만 확인';
+
+  @override
+  String get yearOnly => '연도까지만 확인';
+
+  @override
+  String get fromBookDatabase => '서지 데이터베이스 출처';
+
+  @override
+  String get writtenByAi => 'AI 작성';
+
+  @override
+  String get aiTidiedSourceText => 'AI가 원문을 정리';
+
+  @override
+  String get msg => '繁體中文';
+
+  @override
+  String get additionalInformation => '추가 정보';
+
+  @override
+  String get readFull => '전문 보기';
+
+  @override
+  String get pages => '페이지 수';
+
+  @override
+  String get simplifiedChinese => '중국어 간체';
+
+  @override
+  String get chinese => '중국어';
+
+  @override
+  String get english => '영어';
+
+  @override
+  String get japanese => '일본어';
+
+  @override
+  String get korean => '한국어';
+
+  @override
+  String p0Pages(Object p0) => '${p0} 페이지';
+
+  @override
+  String get collapse => '접기';
+
+  @override
+  String get setPasswordFirst => '먼저 비밀번호를 설정하세요';
+
+  @override
+  String get setPassword => '비밀번호 설정';
+
+  @override
+  String get signMethodSettingsSaved => '로그인 방식 설정을 저장했습니다';
+
+  @override
+  String get signMethodSettingsUnsavedLeavingDiscards => '로그인 방식 설정이 저장되지 않았습니다. 나가면 변경 내용이 사라집니다.';
+
+  @override
+  String get serverNotRunDatabaseUpdate014 => '서버에서 데이터베이스 업데이트 014를 실행하지 않아 설정이 아직 적용되지 않습니다.';
+
+  @override
+  String get signChannels => '로그인 방식 목록';
+
+  @override
+  String get socialSmsSign => '소셜 및 SMS 로그인';
+
+  @override
+  String get whenOffSignPageHidesThese => '끄면 로그인 화면에 표시되지 않으며, 연결된 계정은 비밀번호로 로그인할 수 있습니다.';
+
+  @override
+  String get notConfigured => '미설정';
+
+  @override
+  String get allowCreatingNewAccountsWithMethod => '이 방식으로 새 계정 만들기 허용';
+
+  @override
+  String get serverNoCredentialsChannel => '서버에 이 채널의 자격 증명이 없습니다';
+
+  @override
+  String get unsavedChanges2 => '저장하지 않은 변경';
+
+  @override
+  String get switchesSignupPermissionsSocialSmsSign => '소셜 및 SMS 로그인 스위치와 가입 허용 설정';
+
+  @override
+  String get taiwan => '대만';
+
+  @override
+  String get hongKong => '홍콩';
+
+  @override
+  String get macau => '마카오';
+
+  @override
+  String get china => '중국';
+
+  @override
+  String get japan => '일본';
+
+  @override
+  String get southKorea => '대한민국';
+
+  @override
+  String get singapore => '싱가포르';
+
+  @override
+  String get malaysia => '말레이시아';
+
+  @override
+  String get unitedStatesCanada => '미국／캐나다';
+
+  @override
+  String get unitedKingdom => '영국';
+
+  @override
+  String get australia => '호주';
+
+  @override
+  String get countryCode => '국가 번호';
+
+  @override
+  String get enterValidMobileNumber => '올바른 휴대전화 번호를 입력하세요';
+
+  @override
+  String get couldNotSendCodePleaseTry => '인증번호를 보내지 못했습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String get linkMobileNumber => '휴대전화 번호 연결';
+
+  @override
+  String get signWithMobileNumber => '휴대전화 번호로 로그인';
+
+  @override
+  String get k6DigitCodeSentNumberMessage => '이 번호로 6자리 인증번호를 보냅니다. 문자 도착까지 시간이 걸릴 수 있습니다.';
+
+  @override
+  String get mobileNumber => '휴대전화 번호';
+
+  @override
+  String get sendCode => '인증번호 보내기';
+
+  @override
+  String get codeIncorrectPleaseEnterAgain => '인증번호가 올바르지 않습니다. 다시 입력하세요.';
+
+  @override
+  String get codeBeenSentAgain => '인증번호를 다시 보냈습니다';
+
+  @override
+  String get enterCode => '인증번호 입력';
+
+  @override
+  String get enterSmsCode => 'SMS 인증번호 입력';
+
+  @override
+  String codeWasSentP0(Object p0) => '인증번호를 ${p0} 으로 보냈습니다';
+
+  @override
+  String canResendP0S(Object p0) => '${p0} 초 후 다시 보낼 수 있습니다';
+
+  @override
+  String get resendCode => '인증번호 다시 보내기';
+
+  @override
+  String get completeAccountDetails => '계정 정보 입력';
+
+  @override
+  String p0DidNotProvideEmailAddress(Object p0) => '${p0} 에서 이메일 주소를 제공하지 않았습니다. 정보를 입력해 계정을 만드세요.';
+
+  @override
+  String signWithP0(Object p0) => '${p0} (으)로 로그인';
+
+  @override
+  String get signWith2 => '또는 다음 방법으로 로그인';
+
+  @override
+  String get creatingAccountWithMethodsAboveMeans => '위 방법으로 계정을 만들면 서비스 약관과 개인정보 처리방침에 동의한 것으로 간주됩니다.';
+
+  @override
+  String get emailAlreadyRegistered => '이미 등록된 이메일입니다';
+
+  @override
+  String get signWithPasswordThenLinkMethod => '비밀번호로 로그인한 뒤 계정 보안의 로그인 방식에서 연결하세요.';
+
+  @override
+  String get signWithPassword => '비밀번호로 로그인';
+
+  @override
+  String get accountNoPasswordYet => '이 계정은 아직 비밀번호가 없습니다';
+
+  @override
+  String get passwordSet => '비밀번호를 설정했습니다';
+
+  @override
+  String get canNowSignWithEmailPassword => '이제 이메일과 비밀번호로 로그인할 수 있습니다. 다른 기기는 다시 로그인해야 합니다.';
+
+  @override
+  String get passwordRequiredBeforeCanUnlinkSign => '로그인 방식을 해제하려면 비밀번호가 필요하며, 기기를 바꿔도 이메일로 로그인할 수 있습니다. 영문과 숫자를 포함해 8자 이상으로 설정하세요.';
+
+  @override
+  String get changingSignMethodsRequiresIdentityVerification => '로그인 방식을 변경하려면 본인 확인이 필요합니다. 먼저 비밀번호를 설정하세요.';
+
+  @override
+  String get later => '나중에';
+
+  @override
+  String p0Linked(Object p0) => '${p0} 을(를) 연결했습니다';
+
+  @override
+  String unlinkP0(Object p0) => '${p0} 연결 해제';
+
+  @override
+  String get noLongerAbleSignWayCan => '이 방법으로는 로그인할 수 없게 됩니다. 필요하면 다시 연결할 수 있습니다.';
+
+  @override
+  String get unlink => '연결 해제';
+
+  @override
+  String p0Unlinked(Object p0) => '${p0} 연결을 해제했습니다';
+
+  @override
+  String get socialSmsSignNotAvailableRight => '소셜 및 SMS 로그인은 현재 이용할 수 없습니다.';
+
+  @override
+  String get noSignMethodAvailableLink => '연결할 수 있는 로그인 방식이 없습니다.';
+
+  @override
+  String get noPasswordSet => '비밀번호 미설정';
+
+  @override
+  String get requiredBeforeChangingSignMethodsDeleting => '로그인 방식 변경과 계정 삭제에 필요합니다';
+
+  @override
+  String linkedP0(Object p0) => '${p0} 연결';
+
+  @override
+  String get link => '연결';
+
+  @override
+  String get emailAlreadyRegisteredSignWithPassword => '이미 등록된 이메일입니다. 비밀번호로 로그인한 뒤 계정 보안에서 연결하세요.';
+
+  @override
+  String get provideEmailAddressCreateAccount => '계정을 만들려면 이메일 주소가 필요합니다';
+
+  @override
+  String get signMethodOnlyExistingAccounts => '이 로그인 방식은 기존 계정 전용입니다';
+
+  @override
+  String get signMethodNotAvailableRightNow => '이 로그인 방식은 현재 이용할 수 없습니다';
+
+  @override
+  String get credentialDoesNotMatchSelectedSign => '인증 정보가 선택한 로그인 방식과 일치하지 않습니다';
+
+  @override
+  String get signMethodLinkedAnotherAccount => '이 로그인 방식은 다른 계정에 연결되어 있습니다';
+
+  @override
+  String get accountAlreadyLinkedSignMethod => '이 계정은 이미 해당 로그인 방식과 연결되어 있습니다';
+
+  @override
+  String get onlySignMethodAccountSetPassword => '이 계정의 유일한 로그인 방식입니다. 먼저 비밀번호를 설정하거나 다른 방식을 연결하세요.';
+
+  @override
+  String get socialSignUnavailableServerNotFinished => '소셜 로그인을 이용할 수 없습니다. 서버의 데이터베이스 업데이트가 완료되지 않았습니다.';
+
+  @override
+  String get credentialInvalidExpiredPleaseTryAgain => '인증 정보가 유효하지 않거나 만료되었습니다. 다시 시도하세요.';
+
+  @override
+  String get accountAlreadyPasswordUseChangePassword => '이 계정에는 이미 비밀번호가 있습니다. 비밀번호 변경을 이용하세요.';
+
+  @override
+  String get signLinkExpiredPleaseTryAgain => '로그인 링크가 만료되었습니다. 다시 시도하세요.';
+
+  @override
+  String get signResultExpiredPleaseTryAgain => '로그인 결과가 만료되었습니다. 다시 시도하세요.';
+
+  @override
+  String get thirdPartySignServiceUnavailablePlease => '외부 로그인 서비스를 이용할 수 없습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String get couldNotCompleteSignPleaseTry => '로그인을 완료하지 못했습니다. 다시 시도하세요.';
+
+  @override
+  String get accountNotLinkedSignMethod => '이 계정은 해당 로그인 방식과 연결되어 있지 않습니다';
+
+  @override
+  String get couldNotReachServerCheckConnection2 => '서버에 연결할 수 없습니다. 네트워크를 확인하세요.';
+
+  @override
+  String get mobileNumberFormatNotValid => '휴대전화 번호 형식이 올바르지 않습니다';
+
+  @override
+  String get verificationTimedOutRequestNewCode => '인증이 만료되었습니다. 인증번호를 다시 받으세요.';
+
+  @override
+  String get codeExpiredRequestNewOne => '인증번호가 만료되었습니다. 다시 받으세요.';
+
+  @override
+  String get tooManyAttemptsPleaseTryAgain => '시도 횟수가 너무 많습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String get smsSendingLimitBeenReachedPlease => 'SMS 발송 횟수가 한도에 도달했습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String get smsVerificationNotSetUpDevice => '이 기기에서는 SMS 인증 설정이 완료되지 않았습니다. 다른 로그인 방식을 이용하세요.';
+
+  @override
+  String get couldNotCompleteSmsVerificationPlease => 'SMS 인증을 완료하지 못했습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String get allowSigningLinkingWithMethod => '이 방식으로 로그인 및 연결 허용';
 
 }
 
@@ -23898,6 +25058,354 @@ class _LZh extends AppLocalizations {
   @override
   String get serverProcessingError => '伺服器處理錯誤';
 
+  @override
+  String get aiBookAdvisor => 'AI 書籍顧問';
+
+  @override
+  String get requiresDatabaseUpdate013 => '需先執行資料庫更新 013';
+
+  @override
+  String get mysteryNovelMyCommute => '想找適合通勤看的推理小說';
+
+  @override
+  String get programmingBooksBeginners => '適合入門的程式設計書';
+
+  @override
+  String get booksUnder200Coins => '200 代幣以內的書';
+
+  @override
+  String get popularLiteraryFictionRightNow => '最近熱門的文學小說';
+
+  @override
+  String get tellMeWhatBookLooking => '告訴我您想找什麼書';
+
+  @override
+  String get allRecommendationsComeFromBooksCurrently => '推薦內容均來自站上目前販售中的書籍';
+
+  @override
+  String get describeBookLooking => '描述您想找的書籍';
+
+  @override
+  String get tellMeWhatWantReadI => '說說您想看什麼，我來為您挑選';
+
+  @override
+  String get subtitle => '副標題';
+
+  @override
+  String get monthOnly => '僅確認到月';
+
+  @override
+  String get yearOnly => '僅確認到年';
+
+  @override
+  String get fromBookDatabase => '來自書目資料庫';
+
+  @override
+  String get writtenByAi => 'AI 依資料撰寫';
+
+  @override
+  String get aiTidiedSourceText => 'AI 整理來源文字';
+
+  @override
+  String get msg => '繁體中文';
+
+  @override
+  String get additionalInformation => '其他資訊';
+
+  @override
+  String get readFull => '展開全文';
+
+  @override
+  String get pages => '頁數';
+
+  @override
+  String get simplifiedChinese => '簡體中文';
+
+  @override
+  String get chinese => '中文';
+
+  @override
+  String get english => '英文';
+
+  @override
+  String get japanese => '日文';
+
+  @override
+  String get korean => '韓文';
+
+  @override
+  String p0Pages(Object p0) => '${p0} 頁';
+
+  @override
+  String get collapse => '收合';
+
+  @override
+  String get setPasswordFirst => '請先設定密碼';
+
+  @override
+  String get setPassword => '設定密碼';
+
+  @override
+  String get signMethodSettingsSaved => '登入方式設定已儲存';
+
+  @override
+  String get signMethodSettingsUnsavedLeavingDiscards => '登入方式設定尚未儲存，離開後變更會遺失。';
+
+  @override
+  String get serverNotRunDatabaseUpdate014 => '伺服器尚未執行資料庫更新 014，設定暫時無法生效。';
+
+  @override
+  String get signChannels => '各項登入方式';
+
+  @override
+  String get socialSmsSign => '社群與簡訊登入';
+
+  @override
+  String get whenOffSignPageHidesThese => '關閉後登入頁不再顯示這些方式，已綁定的帳號仍可用密碼登入。';
+
+  @override
+  String get notConfigured => '未設定';
+
+  @override
+  String get allowCreatingNewAccountsWithMethod => '允許以這個方式直接建立新帳號';
+
+  @override
+  String get serverNoCredentialsChannel => '伺服器尚未設定這個渠道的憑證';
+
+  @override
+  String get unsavedChanges2 => '尚未儲存的變更';
+
+  @override
+  String get switchesSignupPermissionsSocialSmsSign => '社群與簡訊登入的開關與註冊權限';
+
+  @override
+  String get taiwan => '台灣';
+
+  @override
+  String get hongKong => '香港';
+
+  @override
+  String get macau => '澳門';
+
+  @override
+  String get china => '中國';
+
+  @override
+  String get japan => '日本';
+
+  @override
+  String get southKorea => '韓國';
+
+  @override
+  String get singapore => '新加坡';
+
+  @override
+  String get malaysia => '馬來西亞';
+
+  @override
+  String get unitedStatesCanada => '美國／加拿大';
+
+  @override
+  String get unitedKingdom => '英國';
+
+  @override
+  String get australia => '澳洲';
+
+  @override
+  String get countryCode => '國碼';
+
+  @override
+  String get enterValidMobileNumber => '請輸入正確的手機號碼';
+
+  @override
+  String get couldNotSendCodePleaseTry => '無法傳送驗證碼，請稍後再試';
+
+  @override
+  String get linkMobileNumber => '綁定手機號碼';
+
+  @override
+  String get signWithMobileNumber => '手機號碼登入';
+
+  @override
+  String get k6DigitCodeSentNumberMessage => '我們會傳送一組 6 位數驗證碼到這個號碼，簡訊可能需要一些時間送達。';
+
+  @override
+  String get mobileNumber => '手機號碼';
+
+  @override
+  String get sendCode => '傳送驗證碼';
+
+  @override
+  String get codeIncorrectPleaseEnterAgain => '驗證碼不正確，請重新輸入';
+
+  @override
+  String get codeBeenSentAgain => '已重新傳送驗證碼';
+
+  @override
+  String get enterCode => '輸入驗證碼';
+
+  @override
+  String get enterSmsCode => '輸入簡訊驗證碼';
+
+  @override
+  String codeWasSentP0(Object p0) => '驗證碼已傳送至 ${p0}';
+
+  @override
+  String canResendP0S(Object p0) => '${p0} 秒後可重新傳送';
+
+  @override
+  String get resendCode => '重新傳送驗證碼';
+
+  @override
+  String get completeAccountDetails => '完成帳號資料';
+
+  @override
+  String p0DidNotProvideEmailAddress(Object p0) => '${p0}未提供電子郵件，請補齊資料以建立帳號。';
+
+  @override
+  String signWithP0(Object p0) => '以 ${p0} 登入';
+
+  @override
+  String get signWith2 => '或使用以下方式登入';
+
+  @override
+  String get creatingAccountWithMethodsAboveMeans => '使用上述方式建立帳號即表示您同意服務條款與隱私權政策';
+
+  @override
+  String get emailAlreadyRegistered => '此電子郵件已註冊';
+
+  @override
+  String get signWithPasswordThenLinkMethod => '請改以密碼登入，再到帳號安全的登入方式綁定這個方式。';
+
+  @override
+  String get signWithPassword => '以密碼登入';
+
+  @override
+  String get accountNoPasswordYet => '此帳號尚未設定密碼';
+
+  @override
+  String get passwordSet => '密碼已設定';
+
+  @override
+  String get canNowSignWithEmailPassword => '之後可以電子郵件與密碼登入，其他裝置需要重新登入。';
+
+  @override
+  String get passwordRequiredBeforeCanUnlinkSign => '設定密碼後才能解除綁定登入方式，也能在換裝置時以電子郵件登入。密碼至少 8 碼並含英文與數字。';
+
+  @override
+  String get changingSignMethodsRequiresIdentityVerification => '變更登入方式需要驗證身分，請先為這個帳號設定密碼。';
+
+  @override
+  String get later => '稍後再說';
+
+  @override
+  String p0Linked(Object p0) => '已綁定 ${p0}';
+
+  @override
+  String unlinkP0(Object p0) => '解除綁定 ${p0}';
+
+  @override
+  String get noLongerAbleSignWayCan => '解除後將無法再以這個方式登入，需要時可以重新綁定。';
+
+  @override
+  String get unlink => '解除綁定';
+
+  @override
+  String p0Unlinked(Object p0) => '已解除綁定 ${p0}';
+
+  @override
+  String get socialSmsSignNotAvailableRight => '目前未開放社群與簡訊登入方式。';
+
+  @override
+  String get noSignMethodAvailableLink => '目前沒有可綁定的登入方式。';
+
+  @override
+  String get noPasswordSet => '尚未設定密碼';
+
+  @override
+  String get requiredBeforeChangingSignMethodsDeleting => '設定後才能變更登入方式與刪除帳號';
+
+  @override
+  String linkedP0(Object p0) => '${p0} 綁定';
+
+  @override
+  String get link => '綁定';
+
+  @override
+  String get emailAlreadyRegisteredSignWithPassword => '此電子郵件已註冊，請先以密碼登入後，於帳號安全綁定此登入方式';
+
+  @override
+  String get provideEmailAddressCreateAccount => '請提供電子郵件以建立帳號';
+
+  @override
+  String get signMethodOnlyExistingAccounts => '此登入方式僅供既有帳號使用';
+
+  @override
+  String get signMethodNotAvailableRightNow => '目前未開放此登入方式';
+
+  @override
+  String get credentialDoesNotMatchSelectedSign => '登入憑證與所選的登入方式不符';
+
+  @override
+  String get signMethodLinkedAnotherAccount => '此登入方式已綁定其他帳號';
+
+  @override
+  String get accountAlreadyLinkedSignMethod => '此帳號已綁定這個登入方式';
+
+  @override
+  String get onlySignMethodAccountSetPassword => '這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式';
+
+  @override
+  String get socialSignUnavailableServerNotFinished => '社群登入目前無法使用，伺服器尚未完成資料庫更新';
+
+  @override
+  String get credentialInvalidExpiredPleaseTryAgain => '登入憑證無效或已過期，請重新操作';
+
+  @override
+  String get accountAlreadyPasswordUseChangePassword => '此帳號已設定密碼，請改用變更密碼';
+
+  @override
+  String get signLinkExpiredPleaseTryAgain => '登入連結已失效，請重新操作';
+
+  @override
+  String get signResultExpiredPleaseTryAgain => '登入結果已失效，請重新操作';
+
+  @override
+  String get thirdPartySignServiceUnavailablePlease => '第三方登入服務目前無法使用，請稍後再試';
+
+  @override
+  String get couldNotCompleteSignPleaseTry => '無法完成登入，請重新操作';
+
+  @override
+  String get accountNotLinkedSignMethod => '此帳號未綁定這個登入方式';
+
+  @override
+  String get couldNotReachServerCheckConnection2 => '無法連線到伺服器，請確認網路連線';
+
+  @override
+  String get mobileNumberFormatNotValid => '手機號碼格式不正確';
+
+  @override
+  String get verificationTimedOutRequestNewCode => '驗證已逾時，請重新取得驗證碼';
+
+  @override
+  String get codeExpiredRequestNewOne => '驗證碼已逾時，請重新取得驗證碼';
+
+  @override
+  String get tooManyAttemptsPleaseTryAgain => '嘗試次數過多，請稍後再試';
+
+  @override
+  String get smsSendingLimitBeenReachedPlease => '簡訊發送次數已達上限，請稍後再試';
+
+  @override
+  String get smsVerificationNotSetUpDevice => '此裝置尚未完成簡訊驗證設定，請改用其他登入方式';
+
+  @override
+  String get couldNotCompleteSmsVerificationPlease => '無法完成簡訊驗證，請稍後再試';
+
+  @override
+  String get allowSigningLinkingWithMethod => '開放此方式登入與綁定';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -29408,6 +30916,354 @@ class _LZhHans extends AppLocalizations {
   @override
   String get serverProcessingError => '服务器处理错误';
 
+  @override
+  String get aiBookAdvisor => 'AI 书籍顾问';
+
+  @override
+  String get requiresDatabaseUpdate013 => '需先执行数据库更新 013';
+
+  @override
+  String get mysteryNovelMyCommute => '想找适合通勤看的推理小说';
+
+  @override
+  String get programmingBooksBeginners => '适合入门的程序设计书';
+
+  @override
+  String get booksUnder200Coins => '200 代币以内的书';
+
+  @override
+  String get popularLiteraryFictionRightNow => '最近热门的文学小说';
+
+  @override
+  String get tellMeWhatBookLooking => '告诉我您想找什么书';
+
+  @override
+  String get allRecommendationsComeFromBooksCurrently => '推荐内容均来自站上目前贩售中的书籍';
+
+  @override
+  String get describeBookLooking => '描述您想找的书籍';
+
+  @override
+  String get tellMeWhatWantReadI => '说说您想看什么，我来为您挑选';
+
+  @override
+  String get subtitle => '副标题';
+
+  @override
+  String get monthOnly => '仅确认到月';
+
+  @override
+  String get yearOnly => '仅确认到年';
+
+  @override
+  String get fromBookDatabase => '来自书目数据库';
+
+  @override
+  String get writtenByAi => 'AI 依资料撰写';
+
+  @override
+  String get aiTidiedSourceText => 'AI 整理来源文字';
+
+  @override
+  String get msg => '繁體中文';
+
+  @override
+  String get additionalInformation => '其他信息';
+
+  @override
+  String get readFull => '展开全文';
+
+  @override
+  String get pages => '页数';
+
+  @override
+  String get simplifiedChinese => '简体中文';
+
+  @override
+  String get chinese => '中文';
+
+  @override
+  String get english => '英文';
+
+  @override
+  String get japanese => '日文';
+
+  @override
+  String get korean => '韩文';
+
+  @override
+  String p0Pages(Object p0) => '${p0} 页';
+
+  @override
+  String get collapse => '收合';
+
+  @override
+  String get setPasswordFirst => '请先设置密码';
+
+  @override
+  String get setPassword => '设置密码';
+
+  @override
+  String get signMethodSettingsSaved => '登录方式设置已保存';
+
+  @override
+  String get signMethodSettingsUnsavedLeavingDiscards => '登录方式设置尚未保存，离开后更改会丢失。';
+
+  @override
+  String get serverNotRunDatabaseUpdate014 => '服务器尚未执行数据库更新 014，设置暂时无法生效。';
+
+  @override
+  String get signChannels => '各项登录方式';
+
+  @override
+  String get socialSmsSign => '社交与短信登录';
+
+  @override
+  String get whenOffSignPageHidesThese => '关闭后登录页不再显示这些方式，已绑定的账号仍可用密码登录。';
+
+  @override
+  String get notConfigured => '未设置';
+
+  @override
+  String get allowCreatingNewAccountsWithMethod => '允许以这种方式直接创建新账号';
+
+  @override
+  String get serverNoCredentialsChannel => '服务器尚未设置这个渠道的凭证';
+
+  @override
+  String get unsavedChanges2 => '尚未保存的更改';
+
+  @override
+  String get switchesSignupPermissionsSocialSmsSign => '社交与短信登录的开关与注册权限';
+
+  @override
+  String get taiwan => '台湾';
+
+  @override
+  String get hongKong => '香港';
+
+  @override
+  String get macau => '澳门';
+
+  @override
+  String get china => '中国';
+
+  @override
+  String get japan => '日本';
+
+  @override
+  String get southKorea => '韩国';
+
+  @override
+  String get singapore => '新加坡';
+
+  @override
+  String get malaysia => '马来西亚';
+
+  @override
+  String get unitedStatesCanada => '美国／加拿大';
+
+  @override
+  String get unitedKingdom => '英国';
+
+  @override
+  String get australia => '澳大利亚';
+
+  @override
+  String get countryCode => '国码';
+
+  @override
+  String get enterValidMobileNumber => '请输入正确的手机号码';
+
+  @override
+  String get couldNotSendCodePleaseTry => '无法发送验证码，请稍后再试';
+
+  @override
+  String get linkMobileNumber => '绑定手机号码';
+
+  @override
+  String get signWithMobileNumber => '手机号码登录';
+
+  @override
+  String get k6DigitCodeSentNumberMessage => '我们会发送一组 6 位数验证码到这个号码，短信可能需要一些时间送达。';
+
+  @override
+  String get mobileNumber => '手机号码';
+
+  @override
+  String get sendCode => '发送验证码';
+
+  @override
+  String get codeIncorrectPleaseEnterAgain => '验证码不正确，请重新输入';
+
+  @override
+  String get codeBeenSentAgain => '已重新发送验证码';
+
+  @override
+  String get enterCode => '输入验证码';
+
+  @override
+  String get enterSmsCode => '输入短信验证码';
+
+  @override
+  String codeWasSentP0(Object p0) => '验证码已发送至 ${p0}';
+
+  @override
+  String canResendP0S(Object p0) => '${p0} 秒后可重新发送';
+
+  @override
+  String get resendCode => '重新发送验证码';
+
+  @override
+  String get completeAccountDetails => '完成账号资料';
+
+  @override
+  String p0DidNotProvideEmailAddress(Object p0) => '${p0} 未提供电子邮件，请补齐资料以创建账号。';
+
+  @override
+  String signWithP0(Object p0) => '以 ${p0} 登录';
+
+  @override
+  String get signWith2 => '或使用以下方式登录';
+
+  @override
+  String get creatingAccountWithMethodsAboveMeans => '使用上述方式创建账号即表示您同意服务条款与隐私政策';
+
+  @override
+  String get emailAlreadyRegistered => '此电子邮件已注册';
+
+  @override
+  String get signWithPasswordThenLinkMethod => '请改以密码登录，再到账号安全的登录方式绑定这个方式。';
+
+  @override
+  String get signWithPassword => '以密码登录';
+
+  @override
+  String get accountNoPasswordYet => '此账号尚未设置密码';
+
+  @override
+  String get passwordSet => '密码已设置';
+
+  @override
+  String get canNowSignWithEmailPassword => '之后可以电子邮件与密码登录，其他设备需要重新登录。';
+
+  @override
+  String get passwordRequiredBeforeCanUnlinkSign => '设置密码后才能解除绑定登录方式，也能在换设备时以电子邮件登录。密码至少 8 位并含英文与数字。';
+
+  @override
+  String get changingSignMethodsRequiresIdentityVerification => '更改登录方式需要验证身份，请先为这个账号设置密码。';
+
+  @override
+  String get later => '稍后再说';
+
+  @override
+  String p0Linked(Object p0) => '已绑定 ${p0}';
+
+  @override
+  String unlinkP0(Object p0) => '解除绑定 ${p0}';
+
+  @override
+  String get noLongerAbleSignWayCan => '解除后将无法再以这种方式登录，需要时可以重新绑定。';
+
+  @override
+  String get unlink => '解除绑定';
+
+  @override
+  String p0Unlinked(Object p0) => '已解除绑定 ${p0}';
+
+  @override
+  String get socialSmsSignNotAvailableRight => '目前未开放社交与短信登录方式。';
+
+  @override
+  String get noSignMethodAvailableLink => '目前没有可绑定的登录方式。';
+
+  @override
+  String get noPasswordSet => '尚未设置密码';
+
+  @override
+  String get requiredBeforeChangingSignMethodsDeleting => '设置后才能更改登录方式与删除账号';
+
+  @override
+  String linkedP0(Object p0) => '${p0} 绑定';
+
+  @override
+  String get link => '绑定';
+
+  @override
+  String get emailAlreadyRegisteredSignWithPassword => '此电子邮件已注册，请先以密码登录后，于账号安全绑定此登录方式';
+
+  @override
+  String get provideEmailAddressCreateAccount => '请提供电子邮件以创建账号';
+
+  @override
+  String get signMethodOnlyExistingAccounts => '此登录方式仅供既有账号使用';
+
+  @override
+  String get signMethodNotAvailableRightNow => '目前未开放此登录方式';
+
+  @override
+  String get credentialDoesNotMatchSelectedSign => '登录凭证与所选的登录方式不符';
+
+  @override
+  String get signMethodLinkedAnotherAccount => '此登录方式已绑定其他账号';
+
+  @override
+  String get accountAlreadyLinkedSignMethod => '此账号已绑定这个登录方式';
+
+  @override
+  String get onlySignMethodAccountSetPassword => '这是此账号唯一的登录方式，请先设置密码或绑定其他登录方式';
+
+  @override
+  String get socialSignUnavailableServerNotFinished => '社交登录目前无法使用，服务器尚未完成数据库更新';
+
+  @override
+  String get credentialInvalidExpiredPleaseTryAgain => '登录凭证无效或已过期，请重新操作';
+
+  @override
+  String get accountAlreadyPasswordUseChangePassword => '此账号已设置密码，请改用更改密码';
+
+  @override
+  String get signLinkExpiredPleaseTryAgain => '登录链接已失效，请重新操作';
+
+  @override
+  String get signResultExpiredPleaseTryAgain => '登录结果已失效，请重新操作';
+
+  @override
+  String get thirdPartySignServiceUnavailablePlease => '第三方登录服务目前无法使用，请稍后再试';
+
+  @override
+  String get couldNotCompleteSignPleaseTry => '无法完成登录，请重新操作';
+
+  @override
+  String get accountNotLinkedSignMethod => '此账号未绑定这个登录方式';
+
+  @override
+  String get couldNotReachServerCheckConnection2 => '无法连接到服务器，请确认网络连接';
+
+  @override
+  String get mobileNumberFormatNotValid => '手机号码格式不正确';
+
+  @override
+  String get verificationTimedOutRequestNewCode => '验证已超时，请重新获取验证码';
+
+  @override
+  String get codeExpiredRequestNewOne => '验证码已超时，请重新获取验证码';
+
+  @override
+  String get tooManyAttemptsPleaseTryAgain => '尝试次数过多，请稍后再试';
+
+  @override
+  String get smsSendingLimitBeenReachedPlease => '短信发送次数已达上限，请稍后再试';
+
+  @override
+  String get smsVerificationNotSetUpDevice => '此设备尚未完成短信验证设置，请改用其他登录方式';
+
+  @override
+  String get couldNotCompleteSmsVerificationPlease => '无法完成短信验证，请稍后再试';
+
+  @override
+  String get allowSigningLinkingWithMethod => '开放此方式登录与绑定';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -34917,6 +36773,354 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get serverProcessingError => '伺服器處理錯誤';
+
+  @override
+  String get aiBookAdvisor => 'AI 書籍顧問';
+
+  @override
+  String get requiresDatabaseUpdate013 => '需先執行資料庫更新 013';
+
+  @override
+  String get mysteryNovelMyCommute => '想找適合通勤看的推理小說';
+
+  @override
+  String get programmingBooksBeginners => '適合入門的程式設計書';
+
+  @override
+  String get booksUnder200Coins => '200 代幣以內的書';
+
+  @override
+  String get popularLiteraryFictionRightNow => '最近熱門的文學小說';
+
+  @override
+  String get tellMeWhatBookLooking => '告訴我您想找什麼書';
+
+  @override
+  String get allRecommendationsComeFromBooksCurrently => '推薦內容均來自站上目前販售中的書籍';
+
+  @override
+  String get describeBookLooking => '描述您想找的書籍';
+
+  @override
+  String get tellMeWhatWantReadI => '說說您想看什麼，我來為您挑選';
+
+  @override
+  String get subtitle => '副標題';
+
+  @override
+  String get monthOnly => '僅確認到月';
+
+  @override
+  String get yearOnly => '僅確認到年';
+
+  @override
+  String get fromBookDatabase => '來自書目資料庫';
+
+  @override
+  String get writtenByAi => 'AI 依資料撰寫';
+
+  @override
+  String get aiTidiedSourceText => 'AI 整理來源文字';
+
+  @override
+  String get msg => '繁體中文';
+
+  @override
+  String get additionalInformation => '其他資訊';
+
+  @override
+  String get readFull => '展開全文';
+
+  @override
+  String get pages => '頁數';
+
+  @override
+  String get simplifiedChinese => '簡體中文';
+
+  @override
+  String get chinese => '中文';
+
+  @override
+  String get english => '英文';
+
+  @override
+  String get japanese => '日文';
+
+  @override
+  String get korean => '韓文';
+
+  @override
+  String p0Pages(Object p0) => '${p0} 頁';
+
+  @override
+  String get collapse => '收合';
+
+  @override
+  String get setPasswordFirst => '請先設定密碼';
+
+  @override
+  String get setPassword => '設定密碼';
+
+  @override
+  String get signMethodSettingsSaved => '登入方式設定已儲存';
+
+  @override
+  String get signMethodSettingsUnsavedLeavingDiscards => '登入方式設定尚未儲存，離開後變更會遺失。';
+
+  @override
+  String get serverNotRunDatabaseUpdate014 => '伺服器尚未執行資料庫更新 014，設定暫時無法生效。';
+
+  @override
+  String get signChannels => '各項登入方式';
+
+  @override
+  String get socialSmsSign => '社群與簡訊登入';
+
+  @override
+  String get whenOffSignPageHidesThese => '關閉後登入頁不再顯示這些方式，已綁定的帳號仍可用密碼登入。';
+
+  @override
+  String get notConfigured => '未設定';
+
+  @override
+  String get allowCreatingNewAccountsWithMethod => '允許以這個方式直接建立新帳號';
+
+  @override
+  String get serverNoCredentialsChannel => '伺服器尚未設定這個渠道的憑證';
+
+  @override
+  String get unsavedChanges2 => '尚未儲存的變更';
+
+  @override
+  String get switchesSignupPermissionsSocialSmsSign => '社群與簡訊登入的開關與註冊權限';
+
+  @override
+  String get taiwan => '台灣';
+
+  @override
+  String get hongKong => '香港';
+
+  @override
+  String get macau => '澳門';
+
+  @override
+  String get china => '中國';
+
+  @override
+  String get japan => '日本';
+
+  @override
+  String get southKorea => '韓國';
+
+  @override
+  String get singapore => '新加坡';
+
+  @override
+  String get malaysia => '馬來西亞';
+
+  @override
+  String get unitedStatesCanada => '美國／加拿大';
+
+  @override
+  String get unitedKingdom => '英國';
+
+  @override
+  String get australia => '澳洲';
+
+  @override
+  String get countryCode => '國碼';
+
+  @override
+  String get enterValidMobileNumber => '請輸入正確的手機號碼';
+
+  @override
+  String get couldNotSendCodePleaseTry => '無法傳送驗證碼，請稍後再試';
+
+  @override
+  String get linkMobileNumber => '綁定手機號碼';
+
+  @override
+  String get signWithMobileNumber => '手機號碼登入';
+
+  @override
+  String get k6DigitCodeSentNumberMessage => '我們會傳送一組 6 位數驗證碼到這個號碼，簡訊可能需要一些時間送達。';
+
+  @override
+  String get mobileNumber => '手機號碼';
+
+  @override
+  String get sendCode => '傳送驗證碼';
+
+  @override
+  String get codeIncorrectPleaseEnterAgain => '驗證碼不正確，請重新輸入';
+
+  @override
+  String get codeBeenSentAgain => '已重新傳送驗證碼';
+
+  @override
+  String get enterCode => '輸入驗證碼';
+
+  @override
+  String get enterSmsCode => '輸入簡訊驗證碼';
+
+  @override
+  String codeWasSentP0(Object p0) => '驗證碼已傳送至 ${p0}';
+
+  @override
+  String canResendP0S(Object p0) => '${p0} 秒後可重新傳送';
+
+  @override
+  String get resendCode => '重新傳送驗證碼';
+
+  @override
+  String get completeAccountDetails => '完成帳號資料';
+
+  @override
+  String p0DidNotProvideEmailAddress(Object p0) => '${p0}未提供電子郵件，請補齊資料以建立帳號。';
+
+  @override
+  String signWithP0(Object p0) => '以 ${p0} 登入';
+
+  @override
+  String get signWith2 => '或使用以下方式登入';
+
+  @override
+  String get creatingAccountWithMethodsAboveMeans => '使用上述方式建立帳號即表示您同意服務條款與隱私權政策';
+
+  @override
+  String get emailAlreadyRegistered => '此電子郵件已註冊';
+
+  @override
+  String get signWithPasswordThenLinkMethod => '請改以密碼登入，再到帳號安全的登入方式綁定這個方式。';
+
+  @override
+  String get signWithPassword => '以密碼登入';
+
+  @override
+  String get accountNoPasswordYet => '此帳號尚未設定密碼';
+
+  @override
+  String get passwordSet => '密碼已設定';
+
+  @override
+  String get canNowSignWithEmailPassword => '之後可以電子郵件與密碼登入，其他裝置需要重新登入。';
+
+  @override
+  String get passwordRequiredBeforeCanUnlinkSign => '設定密碼後才能解除綁定登入方式，也能在換裝置時以電子郵件登入。密碼至少 8 碼並含英文與數字。';
+
+  @override
+  String get changingSignMethodsRequiresIdentityVerification => '變更登入方式需要驗證身分，請先為這個帳號設定密碼。';
+
+  @override
+  String get later => '稍後再說';
+
+  @override
+  String p0Linked(Object p0) => '已綁定 ${p0}';
+
+  @override
+  String unlinkP0(Object p0) => '解除綁定 ${p0}';
+
+  @override
+  String get noLongerAbleSignWayCan => '解除後將無法再以這個方式登入，需要時可以重新綁定。';
+
+  @override
+  String get unlink => '解除綁定';
+
+  @override
+  String p0Unlinked(Object p0) => '已解除綁定 ${p0}';
+
+  @override
+  String get socialSmsSignNotAvailableRight => '目前未開放社群與簡訊登入方式。';
+
+  @override
+  String get noSignMethodAvailableLink => '目前沒有可綁定的登入方式。';
+
+  @override
+  String get noPasswordSet => '尚未設定密碼';
+
+  @override
+  String get requiredBeforeChangingSignMethodsDeleting => '設定後才能變更登入方式與刪除帳號';
+
+  @override
+  String linkedP0(Object p0) => '${p0} 綁定';
+
+  @override
+  String get link => '綁定';
+
+  @override
+  String get emailAlreadyRegisteredSignWithPassword => '此電子郵件已註冊，請先以密碼登入後，於帳號安全綁定此登入方式';
+
+  @override
+  String get provideEmailAddressCreateAccount => '請提供電子郵件以建立帳號';
+
+  @override
+  String get signMethodOnlyExistingAccounts => '此登入方式僅供既有帳號使用';
+
+  @override
+  String get signMethodNotAvailableRightNow => '目前未開放此登入方式';
+
+  @override
+  String get credentialDoesNotMatchSelectedSign => '登入憑證與所選的登入方式不符';
+
+  @override
+  String get signMethodLinkedAnotherAccount => '此登入方式已綁定其他帳號';
+
+  @override
+  String get accountAlreadyLinkedSignMethod => '此帳號已綁定這個登入方式';
+
+  @override
+  String get onlySignMethodAccountSetPassword => '這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式';
+
+  @override
+  String get socialSignUnavailableServerNotFinished => '社群登入目前無法使用，伺服器尚未完成資料庫更新';
+
+  @override
+  String get credentialInvalidExpiredPleaseTryAgain => '登入憑證無效或已過期，請重新操作';
+
+  @override
+  String get accountAlreadyPasswordUseChangePassword => '此帳號已設定密碼，請改用變更密碼';
+
+  @override
+  String get signLinkExpiredPleaseTryAgain => '登入連結已失效，請重新操作';
+
+  @override
+  String get signResultExpiredPleaseTryAgain => '登入結果已失效，請重新操作';
+
+  @override
+  String get thirdPartySignServiceUnavailablePlease => '第三方登入服務目前無法使用，請稍後再試';
+
+  @override
+  String get couldNotCompleteSignPleaseTry => '無法完成登入，請重新操作';
+
+  @override
+  String get accountNotLinkedSignMethod => '此帳號未綁定這個登入方式';
+
+  @override
+  String get couldNotReachServerCheckConnection2 => '無法連線到伺服器，請確認網路連線';
+
+  @override
+  String get mobileNumberFormatNotValid => '手機號碼格式不正確';
+
+  @override
+  String get verificationTimedOutRequestNewCode => '驗證已逾時，請重新取得驗證碼';
+
+  @override
+  String get codeExpiredRequestNewOne => '驗證碼已逾時，請重新取得驗證碼';
+
+  @override
+  String get tooManyAttemptsPleaseTryAgain => '嘗試次數過多，請稍後再試';
+
+  @override
+  String get smsSendingLimitBeenReachedPlease => '簡訊發送次數已達上限，請稍後再試';
+
+  @override
+  String get smsVerificationNotSetUpDevice => '此裝置尚未完成簡訊驗證設定，請改用其他登入方式';
+
+  @override
+  String get couldNotCompleteSmsVerificationPlease => '無法完成簡訊驗證，請稍後再試';
+
+  @override
+  String get allowSigningLinkingWithMethod => '開放此方式登入與綁定';
 
 }
 

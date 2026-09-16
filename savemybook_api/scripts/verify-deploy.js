@@ -60,6 +60,19 @@ const main = async () => {
   const anyAiKey = Object.keys(PROVIDERS).some((id) => keyConfigured(id));
   report(true, 'AI 服務商金鑰', `${aiKeys.join('、')}${anyAiKey ? '' : '（AI 功能將維持關閉）'}`);
 
+  const authSettings = require('../services/auth-settings');
+  const authChannels = authSettings.PROVIDER_IDS
+    .map((id) => `${authSettings.PROVIDER_LABELS[id]} ${authSettings.isConfigured(id) ? '已設定' : '未設定'}`);
+  const anyChannel = authSettings.PROVIDER_IDS.some((id) => authSettings.isConfigured(id));
+  report(true, '社群登入渠道憑證', `${authChannels.join('、')}${anyChannel ? '' : '（社群登入將維持關閉）'}`);
+
+  if (authSettings.isConfigured('line') || authSettings.isConfigured('discord')) {
+    const base = env.oauthRedirectBase;
+    report(Boolean(base), 'OAuth 回呼網址前綴', base
+      ? `${base}/api/auth/oauth/<provider>/callback`
+      : '未設定 OAUTH_REDIRECT_BASE 或 PUBLIC_WEB_URL，LINE 與 Discord 無法使用');
+  }
+
   const uploads = path.join(__dirname, '../uploads');
   try {
     fs.mkdirSync(path.join(uploads, 'voice'), { recursive: true });

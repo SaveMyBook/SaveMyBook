@@ -162,12 +162,41 @@ class AiListingTargets {
 
 String aiFieldLabel(String key) => switch (key) {
       'title' => S.title,
+      'subtitle' => S.subtitle,
       'author' => S.author2,
       'publisher' => S.publisher2,
       'publish_date' => S.publicationDate,
       'isbn' => 'ISBN',
+      'page_count' => S.pages,
+      'language' => S.language,
       'description' => S.summary,
       _ => key,
+    };
+
+/// 只做參考、上架表單沒有對應欄位的補充資料。
+const aiReferenceFieldKeys = ['subtitle', 'page_count', 'language'];
+
+String aiPublishDatePrecisionLabel(String precision) => switch (precision) {
+      'month' => S.monthOnly,
+      'year' => S.yearOnly,
+      _ => '',
+    };
+
+String aiDescriptionSourceLabel(String source) => switch (source) {
+      'sources' => S.fromBookDatabase,
+      'ai' => S.writtenByAi,
+      'mixed' => S.aiTidiedSourceText,
+      _ => '',
+    };
+
+String aiLanguageLabel(String tag) => switch (tag) {
+      'zh-Hant' => S.msg,
+      'zh-Hans' => S.simplifiedChinese,
+      'zh' => S.chinese,
+      'en' => S.english,
+      'ja' => S.japanese,
+      'ko' => S.korean,
+      _ => tag,
     };
 
 Future<AiListingAssist?> runAiListingAssist(
@@ -436,6 +465,7 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
   late bool _category;
   late bool _condition;
   late bool _price;
+  bool _descriptionExpanded = false;
 
   AiListingTargets get t => widget.targets;
   AiListingAssist get r => widget.result;
@@ -455,6 +485,11 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
     }
     return null;
   }
+
+  List<String> get _referenceKeys => [
+        for (final key in aiReferenceFieldKeys)
+          if ((r.fields[key] ?? '').trim().isNotEmpty) key,
+      ];
 
   bool get _showCategory => t.supportsCategory && _categoryMatch != null;
   bool get _showCondition => t.supportsCondition && r.condition != null && AppLabels.condition.containsKey(r.condition!.level);
@@ -478,7 +513,8 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final selection = _selection;
-    final hasAny = _fieldKeys.isNotEmpty || _showCategory || _showCondition || _showPrice;
+    final referenceKeys = _referenceKeys;
+    final hasAny = _fieldKeys.isNotEmpty || _showCategory || _showCondition || _showPrice || referenceKeys.isNotEmpty;
 
     return SafeArea(
       child: Column(
@@ -526,6 +562,10 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
                   _section(c, S.bookDetails),
                   for (final (i, key) in _fieldKeys.indexed)
                     FadeSlideIn(index: i, offsetY: 8, child: _fieldTile(c, key)),
+                ],
+                if (referenceKeys.isNotEmpty) ...[
+                  _section(c, S.additionalInformation),
+                  for (final key in referenceKeys) _referenceRow(c, key),
                 ],
                 if (_showCategory) ...[
                   _section(c, S.category),
@@ -722,10 +762,48 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
         child: Text(S.sameAsCurrent, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: c.success)),
       );
 
+  Widget _noteTag(AppColors c, String label, Color color) => Container(
+        margin: const EdgeInsets.only(left: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
+        child: Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
+      );
+
+  Widget _referenceRow(AppColors c, String key) {
+    final value = r.fields[key]!.trim();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 68,
+            child: Text(aiFieldLabel(key), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary)),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              key == 'language' ? aiLanguageLabel(value) : (key == 'page_count' ? S.p0Pages(value) : value),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 13, height: 1.4, color: c.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _fieldTile(AppColors c, String key) {
     final same = _same(key);
     final current = (t.fields[key] ?? '').trim();
     final selected = _fields.contains(key);
+    final value = r.fields[key]!;
+    final isDescription = key == 'description';
+    final precisionNote = key == 'publish_date' && r.publishDateIsApproximate ? aiPublishDatePrecisionLabel(r.publishDatePrecision) : '';
+    final sourceNote = isDescription ? aiDescriptionSourceLabel(r.descriptionSource) : '';
+    final expandable = isDescription && value.length > 90;
+
     return _checkFrame(
       c,
       selected: selected,
@@ -740,15 +818,39 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
             children: [
               Text(aiFieldLabel(key), style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: c.textSecondary)),
               if (same) _sameTag(c),
+              if (precisionNote.isNotEmpty) _noteTag(c, precisionNote, c.warning),
+              if (sourceNote.isNotEmpty) _noteTag(c, sourceNote, c.textSecondary),
             ],
           ),
           const SizedBox(height: 3),
-          Text(
-            r.fields[key]!,
-            maxLines: key == 'description' ? 4 : 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 14, height: 1.4, color: same ? c.textSecondary : c.textPrimary),
+          AnimatedSize(
+            duration: Motion.base,
+            curve: Motion.standard,
+            alignment: Alignment.topLeft,
+            child: Text(
+              value,
+              maxLines: isDescription ? (_descriptionExpanded ? null : 3) : 2,
+              overflow: isDescription && _descriptionExpanded ? TextOverflow.clip : TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 14, height: 1.45, color: same ? c.textSecondary : c.textPrimary),
+            ),
           ),
+          if (expandable)
+            // 勾選框整塊都吃點擊，展開鈕必須自己攔下手勢，否則會連帶切換勾選狀態。
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => _descriptionExpanded = !_descriptionExpanded),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_descriptionExpanded ? S.collapse : S.readFull,
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.accent)),
+                    Icon(_descriptionExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded, size: 16, color: c.accent),
+                  ],
+                ),
+              ),
+            ),
           if (!same && current.isNotEmpty) _currentLine(c, current),
         ],
       ),

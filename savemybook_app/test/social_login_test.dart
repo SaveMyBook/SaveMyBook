@@ -1,0 +1,458 @@
+import 'dart:convert';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:savemybook_app/features/auth/phone_sign_in_screen.dart';
+import 'package:savemybook_app/features/auth/social_sign_in.dart';
+import 'package:savemybook_app/models/auth_social.dart';
+import 'package:savemybook_app/models/user.dart';
+import 'package:savemybook_app/services/api_service.dart';
+import 'package:savemybook_app/services/deep_link_service.dart';
+import 'package:savemybook_app/services/social_auth_service.dart';
+
+import 'fake_auth_gateway.dart';
+
+Map<String, dynamic> _providersPayload({
+  bool socialEnabled = true,
+  Map<String, bool> enabled = const {},
+  Map<String, bool> configured = const {},
+}) =>
+    {
+      'social_enabled': socialEnabled,
+      'providers': [
+        for (final id in AuthProviders.ids)
+          {
+            'id': id,
+            'enabled': enabled[id] ?? true,
+            'signup': true,
+            'configured': configured[id] ?? true,
+          },
+      ],
+    };
+
+MockClient _client(Map<String, http.Response Function()> routes) {
+  return MockClient((request) async {
+    final key = '${request.method} ${request.url.path.replaceFirst('/api', '')}';
+    final build = routes[key];
+    if (build == null) {
+      return http.Response(jsonEncode({'success': true, 'data': <String, Object>{}}), 200,
+          headers: {'content-type': 'application/json; charset=utf-8'});
+    }
+    return build();
+  });
+}
+
+http.Response _ok(Object? data) => http.Response(
+      jsonEncode({'success': true, 'message': 'OK', 'data': data}),
+      200,
+      headers: {'content-type': 'application/json; charset=utf-8'},
+    );
+
+http.Response _fail(int status, String code, String message) => http.Response(
+      jsonEncode({'success': false, 'code': code, 'message': message}),
+      status,
+      headers: {'content-type': 'application/json; charset=utf-8'},
+    );
+
+void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    ApiService.authToken = null;
+    ApiService.currentUser = null;
+    DeepLinkService.onOAuthResult = null;
+    DeepLinkService.reset();
+    SocialAuth.gateway = FakeAuthGateway();
+  });
+
+  group('登入方式清單', () {
+    test('解析伺服器回應', () {
+      final info = AuthProvidersInfo.fromJson(_providersPayload(
+        enabled: {AuthProviders.line: false},
+        configured: {AuthProviders.discord: false},
+      ));
+
+      expect(info.socialEnabled, isTrue);
+      expect(info.isEnabled(AuthProviders.google), isTrue);
+      expect(info.isEnabled(AuthProviders.line), isFalse);
+      expect(info.optionOf(AuthProviders.discord)?.configured, isFalse);
+    });
+
+    test('總開關關閉時不顯示任何按鈕', () {
+      final info = AuthProvidersInfo.fromJson(_providersPayload(socialEnabled: false));
+      expect(info.enabled, isEmpty);
+      expect(SocialSignInSection.visibleIds(info), isEmpty);
+    });
+
+    test('停用的渠道不顯示', () {
+      final info = AuthProvidersInfo.fromJson(_providersPayload(enabled: {AuthProviders.discord: false}));
+      expect(SocialSignInSection.visibleIds(info), isNot(contains(AuthProviders.discord)));
+      expect(SocialSignInSection.visibleIds(info), contains(AuthProviders.google));
+    });
+
+    test('平台不支援 Apple 時隱藏該按鈕', () {
+      SocialAuth.gateway = FakeAuthGateway(supportsApple: false);
+      final info = AuthProvidersInfo.fromJson(_providersPayload());
+      expect(SocialSignInSection.visibleIds(info), isNot(contains(AuthProviders.apple)));
+      expect(SocialSignInSection.visibleIds(info), contains(AuthProviders.line));
+    });
+
+    test('伺服器尚未更新資料庫時回 social_enabled=false', () async {
+      final client = _client({
+        'GET /auth/providers': () => _ok({'social_enabled': false, 'providers': <Object>[]}),
+      });
+      final info = await http.runWithClient(() => ApiService().fetchAuthProviders(), () => client);
+      expect(info.socialEnabled, isFalse);
+      expect(SocialSignInSection.visibleIds(info), isEmpty);
+    });
+  });
+
+  group('錯誤代碼', () {
+    Future<AuthResult<void>> signInWith(int status, String code, String message) {
+      final client = _client({'POST /auth/social': () => _fail(status, code, message)});
+      return http.runWithClient(
+        () => ApiService().socialSignIn(provider: AuthProviders.google, idToken: 't'),
+        () => client,
+      );
+    }
+
+    final cases = <String, (int, String)>{
+      AuthCodes.accountExists: (409, '此電子郵件已註冊'),
+      AuthCodes.emailRequired: (400, '請提供電子郵件'),
+      AuthCodes.signupNotAllowed: (403, '此登入方式僅供既有帳號使用'),
+      AuthCodes.methodDisabled: (403, '目前未開放'),
+      AuthCodes.providerMismatch: (400, '不符'),
+      AuthCodes.unavailable: (503, '尚未完成資料庫更新'),
+      AuthCodes.invalidIdToken: (401, '憑證無效'),
+      AuthCodes.providerError: (502, '服務無法使用'),
+    };
+
+    cases.forEach((code, expected) {
+      test('/auth/social 回 $code', () async {
+        final result = await signInWith(expected.$1, code, expected.$2);
+        expect(result.isOk, isFalse);
+        expect(result.code, code);
+        expect(result.message, expected.$2);
+      });
+    });
+
+    test('綁定收到 INVALID_ID_TOKEN 不會把使用者登出', () async {
+      ApiService.authToken = 'session-token';
+      ApiService.currentUser = User.fromJson({'user_id': 1, 'nickname': 'A', 'email': 'a@x.com', 'role': 'buyer_seller'});
+
+      final client = _client({
+        'POST /auth/link': () => _fail(401, AuthCodes.invalidIdToken, '登入憑證無效或已過期，請重新操作'),
+      });
+      final result = await http.runWithClient(
+        () => ApiService().linkIdentity(provider: AuthProviders.google, idToken: 'bad'),
+        () => client,
+      );
+
+      expect(result.code, AuthCodes.invalidIdToken);
+      expect(ApiService.authToken, 'session-token', reason: '第三方憑證無效不代表本站登入階段失效');
+    });
+
+    test('已綁定其他帳號回 IDENTITY_TAKEN', () async {
+      ApiService.authToken = 'session-token';
+      final client = _client({
+        'POST /auth/link': () => _fail(409, AuthCodes.identityTaken, '此登入方式已綁定其他帳號'),
+      });
+      final result = await http.runWithClient(
+        () => ApiService().linkIdentity(provider: AuthProviders.google, idToken: 't'),
+        () => client,
+      );
+      expect(result.code, AuthCodes.identityTaken);
+    });
+
+    test('解除唯一登入方式回 LAST_SIGN_IN_METHOD', () async {
+      ApiService.authToken = 'session-token';
+      final client = _client({
+        'DELETE /auth/link/google': () => _fail(400, AuthCodes.lastMethod, '這是此帳號唯一的登入方式'),
+      });
+      final result = await http.runWithClient(
+        () => ApiService().unlinkIdentity(AuthProviders.google),
+        () => client,
+      );
+      expect(result.code, AuthCodes.lastMethod);
+    });
+
+    test('解除未綁定的方式回 404 時補上代碼', () async {
+      ApiService.authToken = 'session-token';
+      final client = _client({
+        'DELETE /auth/link/line': () => http.Response(
+              jsonEncode({'success': false, 'message': '此帳號未綁定這個登入方式'}),
+              404,
+              headers: {'content-type': 'application/json; charset=utf-8'},
+            ),
+      });
+      final result = await http.runWithClient(
+        () => ApiService().unlinkIdentity(AuthProviders.line),
+        () => client,
+      );
+      expect(result.code, AuthCodes.notLinked);
+    });
+
+    test('設定密碼回 PASSWORD_ALREADY_SET', () async {
+      ApiService.authToken = 'session-token';
+      final client = _client({
+        'POST /auth/password/set': () => _fail(400, AuthCodes.passwordAlreadySet, '此帳號已設定密碼，請改用變更密碼'),
+      });
+      final result = await http.runWithClient(() => ApiService().setLoginPassword('abcd1234'), () => client);
+      expect(result.code, AuthCodes.passwordAlreadySet);
+    });
+
+    test('變更密碼回 PASSWORD_NOT_SET', () async {
+      ApiService.authToken = 'session-token';
+      final client = _client({
+        'PUT /users/me/password': () => _fail(400, AuthCodes.passwordNotSet, '此帳號尚未設定密碼，請改用設定密碼'),
+      });
+      final result = await http.runWithClient(() => ApiService().changePassword('a', 'b'), () => client);
+      expect(result.code, AuthCodes.passwordNotSet);
+    });
+
+    test('申請刪除帳號回 PASSWORD_NOT_SET', () async {
+      ApiService.authToken = 'session-token';
+      final client = _client({
+        'POST /users/me/deletion': () =>
+            _fail(400, AuthCodes.passwordNotSet, '此帳號尚未設定密碼，請先設定密碼再申請刪除帳號'),
+      });
+      final result = await http.runWithClient(() => ApiService().requestAccountDeletion('x'), () => client);
+      expect(result.code, AuthCodes.passwordNotSet);
+      expect(AuthCodes.messageOf(AuthCodes.passwordNotSet), '請先設定密碼');
+    });
+
+    test('identities 在未執行 014 時回 503', () async {
+      ApiService.authToken = 'session-token';
+      final client = _client({
+        'GET /users/me/identities': () =>
+            _fail(503, AuthCodes.unavailable, '社群登入目前無法使用，伺服器尚未完成資料庫更新'),
+      });
+      final result = await http.runWithClient(() => ApiService().fetchIdentities(), () => client);
+      expect(result.code, AuthCodes.unavailable);
+    });
+
+    test('OAuth 交換失敗回 OAUTH_CODE_INVALID', () async {
+      final client = _client({
+        'POST /auth/oauth/exchange': () => _fail(400, AuthCodes.codeInvalid, '登入結果已失效，請重新操作'),
+      });
+      final result = await http.runWithClient(() => ApiService().exchangeOAuthCode('a' * 32), () => client);
+      expect(result.code, AuthCodes.codeInvalid);
+    });
+
+    test('每個代碼都有可顯示的中文訊息', () {
+      for (final code in [
+        AuthCodes.accountExists,
+        AuthCodes.emailRequired,
+        AuthCodes.signupNotAllowed,
+        AuthCodes.methodDisabled,
+        AuthCodes.providerMismatch,
+        AuthCodes.identityTaken,
+        AuthCodes.alreadyLinked,
+        AuthCodes.lastMethod,
+        AuthCodes.unavailable,
+        AuthCodes.invalidIdToken,
+        AuthCodes.passwordAlreadySet,
+        AuthCodes.passwordNotSet,
+        AuthCodes.stateInvalid,
+        AuthCodes.codeInvalid,
+        AuthCodes.providerError,
+        AuthCodes.oauthFailed,
+        AuthCodes.notLinked,
+        AuthCodes.network,
+      ]) {
+        expect(AuthCodes.messageOf(code), isNotEmpty, reason: code);
+        expect(AuthCodes.messageOf(code), isNot(AuthCodes.messageOf('SOMETHING_ELSE')), reason: code);
+      }
+    });
+  });
+
+  group('簡訊登入流程', () {
+    test('號碼轉換為 E.164', () {
+      expect(toE164('+886', '0912345678'), '+886912345678');
+      expect(toE164('+886', '0912-345-678'), '+886912345678');
+      expect(toE164('+81', '09012345678'), '+819012345678');
+    });
+
+    test('送出號碼後進入輸入驗證碼並開始倒數', () async {
+      final gateway = FakeAuthGateway();
+      final controller = PhoneSignInController(gateway: gateway, resendCooldown: const Duration(seconds: 3));
+      addTearDown(controller.dispose);
+
+      await controller.send('+886912345678');
+
+      expect(controller.stage, PhoneSignInStage.codeSent);
+      expect(gateway.lastPhoneNumber, '+886912345678');
+      expect(controller.resendSeconds, 3);
+      expect(controller.canResend, isFalse);
+    });
+
+    testWidgets('倒數未結束前不重送，倒數結束後帶上 resend token', (tester) async {
+      final gateway = FakeAuthGateway();
+      final controller = PhoneSignInController(gateway: gateway, resendCooldown: const Duration(seconds: 3));
+      addTearDown(controller.dispose);
+
+      await controller.send('+886912345678');
+      await controller.resend();
+      expect(gateway.sendCount, 1, reason: '倒數尚未結束不應重送');
+
+      await tester.pump(const Duration(seconds: 4));
+      expect(controller.canResend, isTrue);
+
+      await controller.resend();
+      expect(gateway.sendCount, 2);
+      expect(gateway.lastResendToken, 1, reason: '重送要帶上前一次的 resend token');
+
+      // 倒數計時器必須在測試結束前跑完，否則框架會判定有未完成的 Timer。
+      await tester.pump(const Duration(seconds: 4));
+    });
+
+    test('驗證碼錯誤時留在輸入畫面並顯示訊息', () async {
+      final gateway = FakeAuthGateway()
+        ..codeFailure = const SocialAuthFailure('invalid-verification-code', '驗證碼不正確，請重新輸入');
+      final controller = PhoneSignInController(gateway: gateway, resendCooldown: const Duration(seconds: 3));
+      addTearDown(controller.dispose);
+
+      await controller.send('+886912345678');
+      final ok = await controller.submitCode('000000');
+
+      expect(ok, isFalse);
+      expect(controller.stage, PhoneSignInStage.codeSent);
+      expect(controller.error, '驗證碼不正確，請重新輸入');
+      expect(controller.idToken, isNull);
+    });
+
+    test('驗證碼正確時取得 ID Token', () async {
+      final gateway = FakeAuthGateway(idToken: 'phone-token');
+      final controller = PhoneSignInController(gateway: gateway, resendCooldown: const Duration(seconds: 3));
+      addTearDown(controller.dispose);
+
+      await controller.send('+886912345678');
+      final ok = await controller.submitCode('123456');
+
+      expect(ok, isTrue);
+      expect(controller.stage, PhoneSignInStage.verified);
+      expect(controller.idToken, 'phone-token');
+      expect(gateway.lastSmsCode, '123456');
+    });
+
+    test('簡訊額度用盡時停在輸入號碼並顯示訊息', () async {
+      final gateway = FakeAuthGateway()
+        ..sendFailure = const SocialAuthFailure('quota-exceeded', '簡訊發送次數已達上限，請稍後再試');
+      final controller = PhoneSignInController(gateway: gateway, resendCooldown: const Duration(seconds: 3));
+      addTearDown(controller.dispose);
+
+      await controller.send('+886912345678');
+
+      expect(controller.stage, PhoneSignInStage.idle);
+      expect(controller.error, '簡訊發送次數已達上限，請稍後再試');
+    });
+
+    test('自動完成驗證時直接取得 ID Token', () async {
+      final gateway = FakeAuthGateway(idToken: 'auto-token')..autoVerify = true;
+      final controller = PhoneSignInController(gateway: gateway, resendCooldown: const Duration(seconds: 3));
+      addTearDown(controller.dispose);
+
+      await controller.send('+886912345678');
+
+      expect(controller.stage, PhoneSignInStage.verified);
+      expect(controller.idToken, 'auto-token');
+    });
+  });
+
+  group('OAuth 深層連結', () {
+    test('解析一次性碼與錯誤代碼', () {
+      expect(DeepLinkService.parseOAuthLink('savemybook://auth/oauth?code=abc')?.code, 'abc');
+      expect(DeepLinkService.parseOAuthLink('savemybook://auth/oauth?error=OAUTH_FAILED')?.error, 'OAUTH_FAILED');
+      expect(DeepLinkService.parseOAuthLink('savemybook://b/0123456789abcdef0123456789abcdef'), isNull);
+    });
+
+    test('取得一次性碼後結束等待', () async {
+      SocialAuth.openExternal = (url) async {
+        DeepLinkService.onOAuthResult?.call(const OAuthDeepLink(code: 'one-time-code'));
+        return true;
+      };
+      final result = await SocialAuth.awaitOAuthCode('https://example.com/authorize');
+      expect(result.isOk, isTrue);
+      expect(result.data, 'one-time-code');
+      expect(DeepLinkService.onOAuthResult, isNull, reason: '流程結束後要拆掉處理器');
+    });
+
+    test('回呼帶錯誤代碼時轉成可顯示的訊息', () async {
+      SocialAuth.openExternal = (url) async {
+        DeepLinkService.onOAuthResult?.call(const OAuthDeepLink(error: AuthCodes.stateInvalid));
+        return true;
+      };
+      final result = await SocialAuth.awaitOAuthCode('https://example.com/authorize');
+      expect(result.code, AuthCodes.stateInvalid);
+      expect(result.message, AuthCodes.messageOf(AuthCodes.stateInvalid));
+    });
+
+    test('無法開啟瀏覽器時回失敗', () async {
+      SocialAuth.openExternal = (url) async => false;
+      final result = await SocialAuth.awaitOAuthCode('https://example.com/authorize');
+      expect(result.code, AuthCodes.oauthFailed);
+    });
+  });
+
+  group('綁定與設定回應', () {
+    test('綁定成功回傳新的登入方式清單', () async {
+      ApiService.authToken = 'session-token';
+      final client = _client({
+        'POST /auth/link': () => _ok({
+              'password_set': false,
+              'identities': [
+                {
+                  'provider': 'google',
+                  'display_name': 'A',
+                  'masked_email': 'ab***@gmail.com',
+                  'masked_phone': null,
+                  'created_at': '2026-09-01T00:00:00.000Z',
+                  'last_login_at': '2026-09-10T00:00:00.000Z',
+                },
+              ],
+            }),
+      });
+      final result = await http.runWithClient(
+        () => ApiService().linkIdentity(provider: AuthProviders.google, idToken: 't'),
+        () => client,
+      );
+
+      expect(result.isOk, isTrue);
+      expect(result.data!.passwordSet, isFalse);
+      expect(result.data!.isLinked(AuthProviders.google), isTrue);
+      expect(result.data!.identityOf(AuthProviders.google)!.account, 'ab***@gmail.com');
+    });
+
+    test('管理端設定序列化含全部渠道', () {
+      final bundle = AuthSettingsBundle.fromJson({
+        'settings': {
+          'social_enabled': true,
+          'providers': {
+            'google': {'enabled': true, 'signup': true},
+            'line': {'enabled': false, 'signup': false},
+          },
+        },
+        'providers': [
+          {'id': 'google', 'name': 'Google', 'configured': true},
+          {'id': 'line', 'name': 'LINE', 'configured': false},
+        ],
+        'migration_ready': true,
+      });
+
+      expect(bundle.isConfigured('line'), isFalse);
+      expect(bundle.settings.channelOf('line').enabled, isFalse);
+
+      final json = bundle.settings.toJson();
+      expect((json['providers'] as Map).keys, containsAll(AuthProviders.ids));
+
+      final changed = bundle.settings.copyWith(
+        id: 'line',
+        channel: const AuthChannelSetting(enabled: true, signup: false),
+      );
+      expect(changed.sameAs(bundle.settings), isFalse);
+      expect(bundle.settings.sameAs(bundle.settings), isTrue);
+    });
+  });
+}

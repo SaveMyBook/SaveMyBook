@@ -5,8 +5,8 @@ const { PROVIDERS, PROVIDER_IDS, keyConfigured } = require('../../lib/ai');
 const audit = require('../audit');
 
 const AI_TABLES = ['ai_settings', 'ai_usage_logs', 'ai_support_sessions', 'ai_support_messages', 'ai_recommendation_cache', 'ai_book_reviews', 'ai_consents'];
-const FEATURES = ['support', 'listing_assist', 'recommend', 'moderation'];
-const LIMITED_FEATURES = ['support', 'listing_assist', 'recommend'];
+const FEATURES = ['support', 'listing_assist', 'recommend', 'moderation', 'book_chat'];
+const LIMITED_FEATURES = ['support', 'listing_assist', 'recommend', 'book_chat'];
 const MODERATION_ACTIONS = ['review', 'block'];
 const MODEL_RE = /^[A-Za-z0-9._:\-/]{1,80}$/;
 const CACHE_MS = 30 * 1000;
@@ -23,15 +23,16 @@ const DEFAULTS = Object.freeze({
     support: { enabled: true, provider: null },
     listing_assist: { enabled: true, provider: 'gemini', web_search: true },
     recommend: { enabled: true, provider: null },
-    moderation: { enabled: true, provider: null, action: 'review' }
+    moderation: { enabled: true, provider: null, action: 'review' },
+    book_chat: { enabled: true, provider: null }
   },
   limits: {
     monthly_budget_usd: 10,
-    daily_per_user: { support: 30, listing_assist: 15, recommend: 5 }
+    daily_per_user: { support: 30, listing_assist: 15, recommend: 5, book_chat: 30 }
   }
 });
 
-const FEATURE_LABELS = { support: 'AI 客服', listing_assist: '上架輔助', recommend: '個人推薦', moderation: '上架審核' };
+const FEATURE_LABELS = { support: 'AI 客服', listing_assist: '上架輔助', recommend: '個人推薦', moderation: '上架審核', book_chat: '書籍顧問' };
 const PRICE_LABELS = {
   model: '模型',
   input_per_m: '輸入單價',

@@ -13,7 +13,8 @@ const SECTIONS = [
   './levels',
   './support',
   './system',
-  './ai'
+  './ai',
+  './auth'
 ];
 
 const router = express.Router();

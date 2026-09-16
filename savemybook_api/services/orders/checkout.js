@@ -15,8 +15,6 @@ const buildOrderNo = () => {
   return `SMB${stamp}${crypto.randomInt(100000, 1000000)}`;
 };
 
-const buildPickupCode = () => String(crypto.randomInt(100000, 1000000));
-
 const itemQuantity = (item) => Math.max(1, Math.min(item.quantity, item.books.quantity || 1));
 
 const checkout = async (buyerId, { cartIds, paymentMethod }) => {
@@ -87,7 +85,6 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
           seller_id: sellerId,
           total_amount: totalAmount,
           cabinet_id: items[0].books.cabinet_id ?? null,
-          pickup_code: buildPickupCode(),
           status: 'pending_deposit',
           payment_method: paymentMethod,
           payment_at: new Date(),

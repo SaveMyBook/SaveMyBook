@@ -139,6 +139,21 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`AI_DAILY_LIMIT\` | 429 | 使用者今日 AI 使用次數已達上限 | 提示明日再試 |
 | \`AI_PROVIDER_ERROR\` | 502 | AI 服務商錯誤、逾時或回應格式不正確 | 提示稍後再試 |
 | \`AI_UNAVAILABLE\` | 503 | 伺服器尚未執行 AI 功能所需的資料庫更新 011 | 隱藏 AI 功能入口 |
+| \`INVALID_ID_TOKEN\` | 401 | 第三方登入憑證無效、過期或簽章不符 | 重新取得登入憑證後再試 |
+| \`PROVIDER_MISMATCH\` | 400 | 登入憑證的實際來源與請求的 \`provider\` 不符 | 檢查 App 的登入流程 |
+| \`ACCOUNT_EXISTS_LINK_REQUIRED\` | 409 | 該電子郵件已有帳號，但尚未綁定此登入方式 | 引導以密碼登入後於帳號安全綁定 |
+| \`EMAIL_REQUIRED\` | 400 | 第三方未提供已驗證的電子郵件，無法建立帳號 | 收集電子郵件與暱稱後以相同憑證重送 |
+| \`SIGN_IN_METHOD_DISABLED\` | 403 | 該登入方式目前未開放，或伺服器未設定其憑證 | 隱藏該登入按鈕 |
+| \`SIGNUP_NOT_ALLOWED\` | 403 | 該登入方式僅供既有帳號使用 | 提示改以既有方式登入後再綁定 |
+| \`IDENTITY_TAKEN\` | 409 | 此第三方身分已綁定其他帳號 | 提示改用該帳號登入 |
+| \`ALREADY_LINKED\` | 409 | 本帳號已綁定此登入方式 | 重新載入登入方式列表 |
+| \`LAST_SIGN_IN_METHOD\` | 400 | 解除後將沒有任何登入方式 | 引導先設定密碼或綁定其他方式 |
+| \`PASSWORD_NOT_SET\` | 400 | 帳號尚未設定密碼，不能使用需輸入目前密碼的流程 | 引導改用 \`POST /api/auth/password/set\` |
+| \`PASSWORD_ALREADY_SET\` | 400 | 帳號已有密碼，不能重複設定 | 改用變更密碼 |
+| \`OAUTH_STATE_INVALID\` | 400 | 授權連結已逾時、已使用或不屬於此渠道 | 重新開始授權流程 |
+| \`OAUTH_CODE_INVALID\` | 400 | 一次性碼不存在、已使用或已逾時 | 重新開始授權流程 |
+| \`AUTH_PROVIDER_ERROR\` | 502 | 無法連線至第三方登入服務或其回應不正確 | 提示稍後再試 |
+| \`AUTH_SOCIAL_UNAVAILABLE\` | 503 | 伺服器尚未執行社群登入所需的資料庫更新 014 | 隱藏社群登入入口 |
 | \`BOOK_IN_TRANSACTION\` | 409 | 管理員刪除書籍時，書籍交易中或有進行中的預約 | 提示先處理交易或預約 |
 | \`BOOK_HAS_ORDERS\` | 409 | 管理員刪除書籍時，書籍已有訂單紀錄 | 改用強制下架 |
 | \`OPEN_ORDERS\` | 400 | 尚有進行中的訂單，無法申請刪除帳號 | 引導使用者完成或取消訂單 |
@@ -162,6 +177,8 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | --- | --- |
 | \`POST /api/auth/login\` | 同 IP 與 Email 組合 15 分鐘 10 次；同 IP 15 分鐘 100 次 |
 | \`POST /api/auth/refresh\` | 同 IP 15 分鐘 60 次 |
+| \`POST /api/auth/social\`、\`POST /api/auth/oauth/{provider}/start\`、\`POST /api/auth/oauth/exchange\` | 同 IP 15 分鐘合計 30 次 |
+| \`POST /api/auth/link\`、\`POST /api/auth/password/set\` | 每位使用者 15 分鐘合計 20 次 |
 | \`POST /api/security/verify\` | 每位使用者 15 分鐘 30 次 |
 | \`POST /api/users\` | 同 IP 每小時 30 次 |
 | \`PUT /api/users/me/password\`、\`POST /api/users/me/deletion\` | 每位使用者 15 分鐘 10 次 |
@@ -314,7 +331,7 @@ const base = {
     }
   },
   'x-tagGroups': [
-    { name: '開始使用', tags: ['auth', 'users', 'account', 'security'] },
+    { name: '開始使用', tags: ['auth', 'auth-social', 'users', 'account', 'security'] },
     { name: '商品', tags: ['books', 'categories', 'favorites', 'cabinets'] },
     { name: '交易', tags: ['cart', 'orders', 'wallet'] },
     { name: '互動', tags: ['chat', 'notifications', 'push', 'announcements'] },
@@ -334,7 +351,8 @@ const base = {
         'admin-levels',
         'admin-support',
         'admin-system',
-        'admin-ai'
+        'admin-ai',
+        'admin-auth'
       ]
     }
   ]

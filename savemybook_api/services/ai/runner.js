@@ -1,10 +1,12 @@
 const { HttpError } = require('../../lib/errors');
+const { hasTables } = require('../../lib/schema-check');
 const ai = require('../../lib/ai');
 const settingsService = require('./settings');
 const usage = require('./usage');
 const consent = require('./consent');
 
 const STATUS_CACHE_MS = 30 * 1000;
+const CHAT_TABLES = ['ai_chat_sessions', 'ai_chat_messages'];
 
 const clipMessage = (err) => ai.redact(err?.message ?? '') || null;
 
@@ -84,16 +86,18 @@ const clearCache = () => {
   settingsService.clearCache();
 };
 
-const USER_FEATURES = ['support', 'listing_assist', 'recommend'];
+const USER_FEATURES = ['support', 'listing_assist', 'recommend', 'book_chat'];
 
 const featureStatus = async () => {
   if (statusCache && Date.now() - statusCache.at < STATUS_CACHE_MS) return statusCache.value;
-  const value = { support: false, listing_assist: false, recommend: false, web_search: false };
+  const value = { support: false, listing_assist: false, recommend: false, book_chat: false, web_search: false };
   const used = new Set();
   if (await settingsService.migrationReady()) {
     const settings = await settingsService.load();
+    // 書籍顧問另有自己的資料表（013），沒建好時不要把入口報成可用，否則使用者點進去只會看到 503。
+    const chatTablesReady = await hasTables(CHAT_TABLES);
     for (const feature of USER_FEATURES) {
-      value[feature] = (await blocker(settings, feature)) === null;
+      value[feature] = (await blocker(settings, feature)) === null && (feature !== 'book_chat' || chatTablesReady);
       if (!value[feature]) continue;
       const base = providerFor(settings, feature);
       used.add(base);

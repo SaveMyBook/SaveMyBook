@@ -35,7 +35,7 @@ void main() {
       expect(s.features['listing_assist']!.webSearch, isTrue);
       expect(s.features['moderation']!.action, 'review');
       expect(s.monthlyBudgetUsd, 10);
-      expect(s.dailyPerUser, {'support': 30, 'listing_assist': 15, 'recommend': 5});
+      expect(s.dailyPerUser, {'support': 30, 'listing_assist': 15, 'recommend': 5, 'book_chat': 30});
     });
 
     test('round-trips through toJson and keeps explicit nulls', () {

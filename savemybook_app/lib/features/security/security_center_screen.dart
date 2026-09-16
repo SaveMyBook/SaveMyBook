@@ -19,6 +19,8 @@ import '../../widgets/state_views.dart';
 import '../account/change_password_screen.dart';
 import 'login_devices_screen.dart';
 import 'payment_pin_screen.dart';
+import 'set_password_screen.dart';
+import 'sign_in_methods_card.dart';
 
 class SecurityCenterScreen extends StatefulWidget {
   const SecurityCenterScreen({super.key});
@@ -37,6 +39,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   String _biometricLabel = S.biometrics;
   int? _deviceCount;
   bool _togglingBiometric = false;
+  bool _passwordSet = true;
   Future<void>? _loadingFuture;
 
   @override
@@ -159,6 +162,18 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                           const SizedBox(height: 24),
                           _sectionTitle(c, S.sign),
                           FadeSlideIn(index: 3, child: _signInCard(c)),
+                          const SizedBox(height: 24),
+                          _sectionTitle(c, S.signMethod),
+                          FadeSlideIn(
+                            index: 4,
+                            child: SignInMethodsCard(
+                              hasPaymentPin: _status.hasPaymentPin,
+                              onLoaded: (identities) {
+                                if (_passwordSet == identities.passwordSet) return;
+                                setState(() => _passwordSet = identities.passwordSet);
+                              },
+                            ),
+                          ),
                         ],
                       )),
                     ),
@@ -393,11 +408,16 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
           ),
           AppMenuItem(
             icon: Icons.lock_reset_rounded,
-            iconColor: c.accent,
-            title: S.changePassword,
-            subtitle: S.otherDevicesNeedSignAgain,
+            iconColor: _passwordSet ? c.accent : c.warning,
+            title: _passwordSet ? S.changePassword : S.setPassword,
+            subtitle: _passwordSet ? S.otherDevicesNeedSignAgain : S.accountNoPasswordYet,
             isLast: true,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => _passwordSet ? const ChangePasswordScreen() : const SetPasswordScreen(),
+              ),
+            ),
           ),
         ],
       ),

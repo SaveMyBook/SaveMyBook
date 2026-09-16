@@ -167,7 +167,6 @@ const shapeAdminOrder = (o) => ({
   completed_at: o.completed_at,
   cancelled_at: o.cancelled_at,
   cancel_reason: o.cancel_reason,
-  pickup_code: o.pickup_code,
   buyer: o.users_orders_buyer_idTousers,
   seller: o.users_orders_seller_idTousers,
   cabinet: o.smart_cabinets,

@@ -54,6 +54,27 @@ extension AiApi on ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.actionFailed);
   }
 
+  Future<AiResult<AiBookChatSession?>> fetchAiBookChatSession() async {
+    final res = await _send('GET', '/ai/book-chat/session');
+    if (res == null || res['success'] != true) return _aiFail(res, S.loadFailed);
+    final data = _dataMap(res);
+    return AiResult.ok(data == null ? null : AiBookChatSession.fromJson(data));
+  }
+
+  Future<AiResult<AiBookChatReply>> sendAiBookChatMessage(String content) async {
+    final res = await _send('POST', '/ai/book-chat/messages', body: {'content': content});
+    if (res == null || res['success'] != true) return _aiFail(res, S.couldNotSend);
+    final data = _dataMap(res);
+    if (data == null) return AiResult.fail(S.couldNotSend);
+    return AiResult.ok(AiBookChatReply.fromJson(data));
+  }
+
+  Future<String?> closeAiBookChatSession() async {
+    final res = await _send('POST', '/ai/book-chat/session/close');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.actionFailed);
+  }
+
   Future<AiResult<AiListingAssist>> requestListingAssist({
     String? isbn,
     String? title,

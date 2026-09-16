@@ -12,6 +12,7 @@ class AiLabels {
         AiFeatures.listingAssist => S.listingAssist,
         AiFeatures.recommend => S.recommendations,
         AiFeatures.moderation => S.listingReview,
+        AiFeatures.bookChat => S.aiBookAdvisor,
         AiFeatures.test => S.connectionTest,
         _ => S.ticketCatOther,
       };
@@ -21,6 +22,7 @@ class AiLabels {
         AiFeatures.listingAssist => Icons.auto_fix_high_rounded,
         AiFeatures.recommend => Icons.recommend_rounded,
         AiFeatures.moderation => Icons.policy_outlined,
+        AiFeatures.bookChat => Icons.auto_stories_rounded,
         AiFeatures.test => Icons.network_check_rounded,
         _ => Icons.more_horiz_rounded,
       };
@@ -30,6 +32,7 @@ class AiLabels {
         AiFeatures.listingAssist => c.isDark ? const Color(0xFF4DD0B8) : const Color(0xFF14A38B),
         AiFeatures.recommend => c.isDark ? const Color(0xFFFFB85C) : const Color(0xFFE38A12),
         AiFeatures.moderation => c.isDark ? const Color(0xFFB79CFF) : const Color(0xFF8157E8),
+        AiFeatures.bookChat => c.isDark ? const Color(0xFFFF9AA8) : const Color(0xFFD4536A),
         AiFeatures.test => c.isDark ? const Color(0xFF9AA5B1) : const Color(0xFF7D8894),
         _ => c.neutral,
       };

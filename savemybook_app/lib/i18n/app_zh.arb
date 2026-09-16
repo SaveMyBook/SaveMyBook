@@ -3297,5 +3297,166 @@
   "couldNotConnectService": "無法連線至服務",
   "blockedByProviderSafetySystem": "內容遭服務安全機制拒絕",
   "responseExceededOutputLimit": "回應超過輸出長度上限",
-  "serverProcessingError": "伺服器處理錯誤"
+  "serverProcessingError": "伺服器處理錯誤",
+  "aiBookAdvisor": "AI 書籍顧問",
+  "requiresDatabaseUpdate013": "需先執行資料庫更新 013",
+  "mysteryNovelMyCommute": "想找適合通勤看的推理小說",
+  "programmingBooksBeginners": "適合入門的程式設計書",
+  "booksUnder200Coins": "200 代幣以內的書",
+  "popularLiteraryFictionRightNow": "最近熱門的文學小說",
+  "tellMeWhatBookLooking": "告訴我您想找什麼書",
+  "allRecommendationsComeFromBooksCurrently": "推薦內容均來自站上目前販售中的書籍",
+  "describeBookLooking": "描述您想找的書籍",
+  "tellMeWhatWantReadI": "說說您想看什麼，我來為您挑選",
+  "subtitle": "副標題",
+  "monthOnly": "僅確認到月",
+  "yearOnly": "僅確認到年",
+  "fromBookDatabase": "來自書目資料庫",
+  "writtenByAi": "AI 依資料撰寫",
+  "aiTidiedSourceText": "AI 整理來源文字",
+  "msg": "繁體中文",
+  "additionalInformation": "其他資訊",
+  "readFull": "展開全文",
+  "pages": "頁數",
+  "simplifiedChinese": "簡體中文",
+  "chinese": "中文",
+  "english": "英文",
+  "japanese": "日文",
+  "korean": "韓文",
+  "p0Pages": "{p0} 頁",
+  "@p0Pages": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "collapse": "收合",
+  "setPasswordFirst": "請先設定密碼",
+  "setPassword": "設定密碼",
+  "signMethodSettingsSaved": "登入方式設定已儲存",
+  "signMethodSettingsUnsavedLeavingDiscards": "登入方式設定尚未儲存，離開後變更會遺失。",
+  "serverNotRunDatabaseUpdate014": "伺服器尚未執行資料庫更新 014，設定暫時無法生效。",
+  "signChannels": "各項登入方式",
+  "socialSmsSign": "社群與簡訊登入",
+  "whenOffSignPageHidesThese": "關閉後登入頁不再顯示這些方式，已綁定的帳號仍可用密碼登入。",
+  "notConfigured": "未設定",
+  "allowCreatingNewAccountsWithMethod": "允許以這個方式直接建立新帳號",
+  "serverNoCredentialsChannel": "伺服器尚未設定這個渠道的憑證",
+  "unsavedChanges2": "尚未儲存的變更",
+  "switchesSignupPermissionsSocialSmsSign": "社群與簡訊登入的開關與註冊權限",
+  "taiwan": "台灣",
+  "hongKong": "香港",
+  "macau": "澳門",
+  "china": "中國",
+  "japan": "日本",
+  "southKorea": "韓國",
+  "singapore": "新加坡",
+  "malaysia": "馬來西亞",
+  "unitedStatesCanada": "美國／加拿大",
+  "unitedKingdom": "英國",
+  "australia": "澳洲",
+  "countryCode": "國碼",
+  "enterValidMobileNumber": "請輸入正確的手機號碼",
+  "couldNotSendCodePleaseTry": "無法傳送驗證碼，請稍後再試",
+  "linkMobileNumber": "綁定手機號碼",
+  "signWithMobileNumber": "手機號碼登入",
+  "k6DigitCodeSentNumberMessage": "我們會傳送一組 6 位數驗證碼到這個號碼，簡訊可能需要一些時間送達。",
+  "mobileNumber": "手機號碼",
+  "sendCode": "傳送驗證碼",
+  "codeIncorrectPleaseEnterAgain": "驗證碼不正確，請重新輸入",
+  "codeBeenSentAgain": "已重新傳送驗證碼",
+  "enterCode": "輸入驗證碼",
+  "enterSmsCode": "輸入簡訊驗證碼",
+  "codeWasSentP0": "驗證碼已傳送至 {p0}",
+  "@codeWasSentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "canResendP0S": "{p0} 秒後可重新傳送",
+  "@canResendP0S": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "resendCode": "重新傳送驗證碼",
+  "completeAccountDetails": "完成帳號資料",
+  "p0DidNotProvideEmailAddress": "{p0}未提供電子郵件，請補齊資料以建立帳號。",
+  "@p0DidNotProvideEmailAddress": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signWithP0": "以 {p0} 登入",
+  "@signWithP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signWith2": "或使用以下方式登入",
+  "creatingAccountWithMethodsAboveMeans": "使用上述方式建立帳號即表示您同意服務條款與隱私權政策",
+  "emailAlreadyRegistered": "此電子郵件已註冊",
+  "signWithPasswordThenLinkMethod": "請改以密碼登入，再到帳號安全的登入方式綁定這個方式。",
+  "signWithPassword": "以密碼登入",
+  "accountNoPasswordYet": "此帳號尚未設定密碼",
+  "passwordSet": "密碼已設定",
+  "canNowSignWithEmailPassword": "之後可以電子郵件與密碼登入，其他裝置需要重新登入。",
+  "passwordRequiredBeforeCanUnlinkSign": "設定密碼後才能解除綁定登入方式，也能在換裝置時以電子郵件登入。密碼至少 8 碼並含英文與數字。",
+  "changingSignMethodsRequiresIdentityVerification": "變更登入方式需要驗證身分，請先為這個帳號設定密碼。",
+  "later": "稍後再說",
+  "p0Linked": "已綁定 {p0}",
+  "@p0Linked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "unlinkP0": "解除綁定 {p0}",
+  "@unlinkP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noLongerAbleSignWayCan": "解除後將無法再以這個方式登入，需要時可以重新綁定。",
+  "unlink": "解除綁定",
+  "p0Unlinked": "已解除綁定 {p0}",
+  "@p0Unlinked": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "socialSmsSignNotAvailableRight": "目前未開放社群與簡訊登入方式。",
+  "noSignMethodAvailableLink": "目前沒有可綁定的登入方式。",
+  "noPasswordSet": "尚未設定密碼",
+  "requiredBeforeChangingSignMethodsDeleting": "設定後才能變更登入方式與刪除帳號",
+  "linkedP0": "{p0} 綁定",
+  "@linkedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "link": "綁定",
+  "emailAlreadyRegisteredSignWithPassword": "此電子郵件已註冊，請先以密碼登入後，於帳號安全綁定此登入方式",
+  "provideEmailAddressCreateAccount": "請提供電子郵件以建立帳號",
+  "signMethodOnlyExistingAccounts": "此登入方式僅供既有帳號使用",
+  "signMethodNotAvailableRightNow": "目前未開放此登入方式",
+  "credentialDoesNotMatchSelectedSign": "登入憑證與所選的登入方式不符",
+  "signMethodLinkedAnotherAccount": "此登入方式已綁定其他帳號",
+  "accountAlreadyLinkedSignMethod": "此帳號已綁定這個登入方式",
+  "onlySignMethodAccountSetPassword": "這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式",
+  "socialSignUnavailableServerNotFinished": "社群登入目前無法使用，伺服器尚未完成資料庫更新",
+  "credentialInvalidExpiredPleaseTryAgain": "登入憑證無效或已過期，請重新操作",
+  "accountAlreadyPasswordUseChangePassword": "此帳號已設定密碼，請改用變更密碼",
+  "signLinkExpiredPleaseTryAgain": "登入連結已失效，請重新操作",
+  "signResultExpiredPleaseTryAgain": "登入結果已失效，請重新操作",
+  "thirdPartySignServiceUnavailablePlease": "第三方登入服務目前無法使用，請稍後再試",
+  "couldNotCompleteSignPleaseTry": "無法完成登入，請重新操作",
+  "accountNotLinkedSignMethod": "此帳號未綁定這個登入方式",
+  "couldNotReachServerCheckConnection2": "無法連線到伺服器，請確認網路連線",
+  "mobileNumberFormatNotValid": "手機號碼格式不正確",
+  "verificationTimedOutRequestNewCode": "驗證已逾時，請重新取得驗證碼",
+  "codeExpiredRequestNewOne": "驗證碼已逾時，請重新取得驗證碼",
+  "tooManyAttemptsPleaseTryAgain": "嘗試次數過多，請稍後再試",
+  "smsSendingLimitBeenReachedPlease": "簡訊發送次數已達上限，請稍後再試",
+  "smsVerificationNotSetUpDevice": "此裝置尚未完成簡訊驗證設定，請改用其他登入方式",
+  "couldNotCompleteSmsVerificationPlease": "無法完成簡訊驗證，請稍後再試",
+  "allowSigningLinkingWithMethod": "開放此方式登入與綁定"
 }

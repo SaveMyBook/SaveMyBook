@@ -49,6 +49,7 @@ import 'package:savemybook_app/features/books/image_crop_screen.dart';
 import 'package:savemybook_app/features/selling/book_manage_screen.dart';
 import 'package:savemybook_app/features/orders/cart_screen.dart';
 import 'package:savemybook_app/features/account/change_password_screen.dart';
+import 'package:savemybook_app/features/chat/ai/ai_book_chat_screen.dart';
 import 'package:savemybook_app/features/chat/chat_list_screen.dart';
 import 'package:savemybook_app/features/chat/chat_room_screen.dart';
 import 'package:savemybook_app/features/chat/groups/create_group_screen.dart';
@@ -69,6 +70,13 @@ import 'package:savemybook_app/features/home/home_screen.dart';
 import 'package:savemybook_app/features/auth/legal_consent_screen.dart';
 import 'package:savemybook_app/features/account/legal_doc_screen.dart';
 import 'package:savemybook_app/features/auth/login_screen.dart';
+import 'package:savemybook_app/features/auth/phone_sign_in_screen.dart';
+import 'package:savemybook_app/features/auth/social_profile_screen.dart';
+import 'package:savemybook_app/features/admin/admin_auth_screen.dart';
+import 'package:savemybook_app/features/security/set_password_screen.dart';
+import 'package:savemybook_app/features/security/sign_in_methods_card.dart';
+import 'package:savemybook_app/models/auth_social.dart';
+import 'package:savemybook_app/services/social_auth_service.dart';
 import 'package:savemybook_app/features/account/member_level_screen.dart';
 import 'package:savemybook_app/features/home/notification_screen.dart';
 import 'package:savemybook_app/features/orders/order_detail_screen.dart';
@@ -88,6 +96,8 @@ import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/services/locale_provider.dart';
 import 'package:savemybook_app/services/theme_provider.dart';
 import 'package:savemybook_app/utils/app_theme.dart';
+
+import 'fake_auth_gateway.dart';
 
 const longName = 'Alexandria Montgomery-Wellington';
 const longTitle = 'The Extraordinarily Long Title of a Second-hand Book About Everything';
@@ -388,8 +398,28 @@ List<AiChatItem> aiSupportItems() => [
       AiChatItem(id: 'f', isUser: true, content: 'One more question', state: AiChatState.failed, error: 'You have reached today\'s AI usage limit. Please try again tomorrow.', blocked: true, animate: false),
     ];
 
+const aiChatReply = 'Here are mystery novels that read well in short bursts, all currently on sale and within your budget.\n\n- Fast paced chapters that finish in one commute\n- No prior reading needed';
+
+List<AiBookChatItem> aiBookChatItems() {
+  final books = [for (var i = 1; i <= 6; i++) Book.fromJson(book(i))];
+  return [
+    AiBookChatItem(id: 'a', isUser: true, content: 'I want a mystery novel I can read on the train, under 300 coins ' * 2, animate: false),
+    AiBookChatItem(
+      id: 'b',
+      isUser: false,
+      content: aiChatReply,
+      books: [for (final b in books) AiBookSuggestion(book: b, reason: longReason)],
+      suggestions: const ['Any Japanese authors?', 'Something even cheaper please', 'Show me hardcovers only'],
+      animate: false,
+    ),
+    AiBookChatItem(id: 'c', isUser: true, content: 'Anything without a cliffhanger?', state: AiBookChatState.failed, error: 'The AI service is temporarily unavailable. Please try again later.', animate: false),
+    AiBookChatItem(id: 'd', isUser: true, content: 'One more question', state: AiBookChatState.failed, error: 'You have reached today\'s AI usage limit. Please try again tomorrow.', blocked: true, animate: false),
+  ];
+}
+
 AiListingAssist aiAssistResult() => AiListingAssist.fromJson({
-      'fields': {'title': longTitle, 'author': 'Johann Wolfgang von Goethe-Schiller', 'publisher': 'Penguin Random House International Publishing', 'publish_date': '2020-05-01', 'isbn': '9789571234567', 'description': 'A long description ' * 20},
+      'fields': {'title': longTitle, 'subtitle': 'An Unabridged Annotated Edition With Extended Commentary', 'author': 'Johann Wolfgang von Goethe-Schiller', 'publisher': 'Penguin Random House International Publishing', 'publish_date': '2020-05', 'publish_date_precision': 'month', 'isbn': '9789571234567', 'page_count': 1248, 'language': 'zh-Hant', 'description': 'A long description ' * 20},
+      'description_source': 'mixed',
       'category': {'category_id': 2, 'name': 'Computer Science & Programming', 'confidence': 0.82},
       'condition': {'level': 'good', 'confidence': 0.45, 'reasons': ['Slight wear on the cover corners and a crease along the spine', 'No visible water damage']},
       'price': {'suggested': 12345, 'min': 10000, 'max': 99999, 'original_price': 99999, 'currency': 'TWD', 'reasons': ['List price 99999, good condition, about half of the list price']},
@@ -419,9 +449,16 @@ Object? fakeData(String method, String path) {
     'GET /users/me/deletion': () => {'pending': false, 'grace_days': 30},
     'GET /users/me/qrcode': () => {'user_id': 1, 'nickname': longName, 'qr_data': 'https://api.savemybook.today/u/0123456789abcdef0123456789abcdef'},
     'GET /books': () => many((i) => {...book(i), 'review_status': i == 2 ? 'pending' : (i == 3 ? 'rejected' : null)}),
-    'GET /ai/status': () => {'support': true, 'listing_assist': true, 'recommend': true, 'web_search': true, 'consented': true, 'providers_in_use': ['DeepSeek', 'Google Gemini', 'OpenAI']},
+    'GET /ai/status': () => {'support': true, 'listing_assist': true, 'recommend': true, 'book_chat': true, 'web_search': true, 'consented': true, 'providers_in_use': ['DeepSeek', 'Google Gemini', 'OpenAI']},
     'GET /ai/support/session': () => {'session_id': 1, 'status': 'open', 'messages': [for (final (i, m) in aiSupportItems().take(4).indexed) {'message_id': i + 1, 'role': m.isUser ? 'user' : 'assistant', 'content': m.content, 'created_at': now}]},
     'GET /ai/recommendations': () => many((i) => {'book': book(i), 'reason': longReason}, 6),
+    'GET /ai/book-chat/session': () => {
+          'session_id': 8,
+          'messages': [
+            {'message_id': 1, 'role': 'user', 'content': 'I want a mystery novel for my commute, under 300 coins', 'books': <Object>[], 'created_at': now},
+            {'message_id': 2, 'role': 'assistant', 'content': aiChatReply, 'books': many((i) => {'book': book(i), 'reason': longReason}, 6), 'created_at': now},
+          ],
+        },
     'GET /admin/ai/settings': aiSettingsData,
     'GET /admin/ai/usage': aiUsageData,
     'GET /admin/ai/reviews': () => many(aiReviewRow, 5),
@@ -447,6 +484,37 @@ Object? fakeData(String method, String path) {
     'GET /chat/unread-count': () => {'unread_count': 999},
     'GET /cart/book-ids': () => [1, 5],
     'GET /cabinets': () => many((i) => {...cabinet(), 'cabinet_id': i, 'available_slots': i == 2 ? 0 : 123, 'latitude': '25.0173000', 'longitude': '121.5398000', 'distance_m': i * 1234}),
+    'GET /auth/providers': () => {
+          'social_enabled': true,
+          'providers': [for (final id in AuthProviders.ids) {'id': id, 'enabled': true, 'signup': true, 'configured': true}],
+        },
+    'GET /users/me/identities': () => {
+          'password_set': false,
+          'identities': [
+            {'provider': 'google', 'display_name': longName, 'masked_email': 'al***@example.com', 'masked_phone': null, 'created_at': now, 'last_login_at': now},
+            {'provider': 'phone', 'display_name': null, 'masked_email': null, 'masked_phone': '09**-***-678', 'created_at': now, 'last_login_at': now},
+          ],
+        },
+    'GET /admin/auth/settings': () => {
+          'settings': {
+            'social_enabled': true,
+            'providers': {
+              'google': {'enabled': true, 'signup': true},
+              'apple': {'enabled': true, 'signup': true},
+              'phone': {'enabled': true, 'signup': false},
+              'line': {'enabled': false, 'signup': false},
+              'discord': {'enabled': false, 'signup': false},
+            },
+          },
+          'providers': [
+            {'id': 'google', 'name': 'Google', 'configured': true},
+            {'id': 'apple', 'name': 'Apple', 'configured': true},
+            {'id': 'phone', 'name': '手機號碼', 'configured': true},
+            {'id': 'line', 'name': 'LINE', 'configured': false},
+            {'id': 'discord', 'name': 'Discord', 'configured': false},
+          ],
+          'migration_ready': true,
+        },
     'GET /security': () => {'available': true, 'has_payment_pin': true, 'pin_locked_until': null, 'biometric_pay_enabled': true},
     'GET /security/sessions': () => many((i) => {'session_id': i, 'device_name': i == 1 ? 'iPhone 17 Pro Max' : 'Samsung Galaxy Z Fold7 Ultra Enterprise Edition', 'platform': i.isOdd ? 'ios' : 'android', 'app_version': '1.0.0', 'ip_address': '2001:0db8:85a3:0000:0000:8a2e:0370:7334', 'created_at': now, 'last_seen_at': now, 'biometric_pay': i == 1, 'is_current': i == 1}),
     'GET /push/devices': () => many((i) => {'device_id': i, 'platform': 'ios', 'token_tail': 'a1b2c3', 'created_at': now, 'last_seen_at': now}, 2),
@@ -574,6 +642,12 @@ Map<String, Widget Function()> get screens => {
       'LegalDoc': () => const LegalDocScreen(docKey: 'terms', fallbackTitle: 'Terms'),
       'LegalConsent': () => LegalConsentScreen(documents: [LegalDoc.fromJson({'doc_id': 1, 'doc_key': 'terms', 'title': 'Terms of Service and Community Guidelines', 'content': 'Article 1. ' * 300, 'version': 3, 'updated_at': now})]),
       'SecurityCenter': () => const SecurityCenterScreen(),
+      'SignInMethods': () => const SignInMethodsPreview(),
+      'SetPassword': () => const SetPasswordScreen(),
+      'PhoneSignIn': () => const PhoneSignInScreen(),
+      'PhoneSmsCode': () => const PhoneSmsCodePreview(),
+      'SocialProfile': () => const SocialProfileScreen(provider: AuthProviders.phone),
+      'AdminAuth': () => const AdminAuthScreen(),
       'LoginDevices': () => const LoginDevicesScreen(),
       'AdminHome': () => const AdminHomeScreen(),
       'AdminStats': () => const AdminStatsScreen(),
@@ -599,6 +673,8 @@ Map<String, Widget Function()> get screens => {
       'AdminAiReview': () => const AdminAiScreen(initialTab: 2),
       'AiSupport': () => const AiSupportScreen(),
       'AiSupportStates': () => AiSupportScreen(initialItems: aiSupportItems()),
+      'AiBookChat': () => const AiBookChatScreen(),
+      'AiBookChatStates': () => AiBookChatScreen(initialItems: aiBookChatItems()),
       'AiListingResultSheet': () => DialogPreview(
           show: (context) => showAiListingResultSheet(context, result: aiAssistResult(), targets: aiAssistTargets())),
       'AiListingResultSheetStep2': () => DialogPreview(
@@ -852,6 +928,60 @@ class _MentionPanelPreviewState extends State<MentionPanelPreview> {
   }
 }
 
+class SignInMethodsPreview extends StatelessWidget {
+  const SignInMethodsPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            SignInMethodsCard(
+              initialProviders: fakeProviders(),
+              initialIdentities: AuthIdentityList.fromJson({
+                'password_set': false,
+                'identities': [
+                  {'provider': 'google', 'display_name': longName, 'masked_email': 'al***@example.com', 'created_at': now, 'last_login_at': now},
+                  {'provider': 'phone', 'masked_phone': '09**-***-678', 'created_at': now, 'last_login_at': now},
+                ],
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PhoneSmsCodePreview extends StatefulWidget {
+  const PhoneSmsCodePreview({super.key});
+
+  @override
+  State<PhoneSmsCodePreview> createState() => _PhoneSmsCodePreviewState();
+}
+
+class _PhoneSmsCodePreviewState extends State<PhoneSmsCodePreview> {
+  late final PhoneSignInController _controller = PhoneSignInController(gateway: FakeAuthGateway());
+
+  @override
+  void initState() {
+    super.initState();
+    // 假的 Firebase 會同步回呼，狀態在第一次 build 之前就已經是「已寄出驗證碼」。
+    _controller.send('+886912345678');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => SmsCodeScreen(controller: _controller);
+}
+
 const locales = [Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'), Locale('en'), Locale('ja'), Locale('ko')];
 const sizes = [Size(360, 740), Size(390, 844)];
 const wideSizes = [Size(768, 1024), Size(1180, 820), Size(1440, 900)];
@@ -862,6 +992,7 @@ void main() {
 
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
+    SocialAuth.gateway = FakeAuthGateway();
     themeProvider = await ThemeProvider.init();
     localeProvider = await LocaleProvider.init();
   });

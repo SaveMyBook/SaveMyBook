@@ -315,6 +315,6 @@ const removeImage = async (bookId, imageId, user) => {
 };
 
 module.exports = {
-  SORTS, allowedStatuses, lookupIsbn, list, recommended, inIdOrder, findByShareToken, shareLink, detail, create, update, remove,
-  addImages, removeImage
+  SORTS, listInclude, allowedStatuses, lookupIsbn, list, recommended, inIdOrder, findByShareToken, shareLink, detail, create,
+  update, remove, addImages, removeImage
 };

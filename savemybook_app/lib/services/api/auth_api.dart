@@ -72,13 +72,18 @@ extension AuthApi on ApiService {
     }
   }
 
-  Future<String?> changePassword(String currentPassword, String newPassword) async {
+  Future<AuthResult<void>> changePassword(String currentPassword, String newPassword) async {
     final res = await _send('PUT', '/users/me/password', body: {
       'current_password': currentPassword,
       'new_password': newPassword,
     });
-    if (res == null) return S.pleaseSignFirst;
-    if (res['success'] != true) return res['message'] as String? ?? S.couldNotChangePassword;
+    if (res == null) return AuthResult<void>.fail('SIGNED_OUT', S.pleaseSignFirst);
+    if (res['success'] != true) {
+      return AuthResult<void>.fail(
+        res['code'] as String? ?? 'UNKNOWN',
+        res['message'] as String? ?? S.couldNotChangePassword,
+      );
+    }
 
     // 伺服器改密碼後換發新 token，不存下來下一個請求就會被登出。
     final token = res['data'] is Map ? res['data']['token'] : null;
@@ -88,6 +93,6 @@ extension AuthApi on ApiService {
       await prefs.setString('auth_token', token);
     }
     unawaited(ApiService.onPasswordChanged?.call());
-    return null;
+    return const AuthResult.ok();
   }
 }

@@ -3,7 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'widgets/chat_preview.dart';
+import 'ai/ai_book_chat_screen.dart';
+import '../account/ai_support_screen.dart' show AiAvatar;
+import '../../models/ai.dart';
 import '../../models/chat.dart';
+import '../../services/ai_status.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
@@ -43,6 +47,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     WidgetsBinding.instance.addObserver(this);
     _load();
     _startPolling();
+    AiStatus.refresh();
   }
 
   @override
@@ -343,51 +348,115 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
   }
 
   Widget _buildList(AppColors c) {
-    if (_rooms.isEmpty) {
-      return ListView(
-        key: const ValueKey('empty'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          const SizedBox(height: 80),
-          EmptyView(icon: Icons.forum_outlined, message: S.noConversationsYet),
-        ],
-      );
-    }
+    return ValueListenableBuilder<AiStatusInfo>(
+      valueListenable: AiStatus.listenable,
+      builder: (context, status, _) {
+        // AI 書籍顧問固定在最上方，搜尋時一併隱藏，避免與搜尋結果混淆。
+        final leading = <Widget>[
+          if (status.bookChat && _query.isEmpty) _buildAdvisorTile(c),
+        ];
 
-    final rooms = _visibleRooms;
-    final showSearch = _rooms.length >= 4 || _query.isNotEmpty;
+        if (_rooms.isEmpty) {
+          return ListView(
+            key: const ValueKey('empty'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            children: [
+              ...leading,
+              const SizedBox(height: 64),
+              EmptyView(icon: Icons.forum_outlined, message: S.noConversationsYet),
+            ],
+          );
+        }
 
-    return ListView.builder(
-      key: const ValueKey('items'),
-      physics: const AlwaysScrollableScrollPhysics(),
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      itemCount: rooms.length + (showSearch ? 1 : 0) + (rooms.isEmpty ? 1 : 0),
-      itemBuilder: (_, i) {
-        if (showSearch && i == 0) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: AppSearchField(
-              controller: _search,
-              hint: S.searchChats,
-              onChanged: (value) => setState(() => _query = value),
+        final rooms = _visibleRooms;
+        final showSearch = _rooms.length >= 4 || _query.isNotEmpty;
+        final header = <Widget>[
+          if (showSearch)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: AppSearchField(
+                controller: _search,
+                hint: S.searchChats,
+                onChanged: (value) => setState(() => _query = value),
+              ),
             ),
-          );
-        }
-        final index = i - (showSearch ? 1 : 0);
-        if (rooms.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 40),
-            child: EmptyView(icon: Icons.search_off_rounded, message: S.noMatchingChats),
-          );
-        }
-        final room = rooms[index];
-        return RevealOnScroll(
-          key: ValueKey('reveal_${room.roomId}'),
-          index: index,
-          child: _buildRoomTile(room, c),
+          ...leading,
+        ];
+
+        return ListView.builder(
+          key: const ValueKey('items'),
+          physics: const AlwaysScrollableScrollPhysics(),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          itemCount: rooms.length + header.length + (rooms.isEmpty ? 1 : 0),
+          itemBuilder: (_, i) {
+            if (i < header.length) return header[i];
+            final index = i - header.length;
+            if (rooms.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 40),
+                child: EmptyView(icon: Icons.search_off_rounded, message: S.noMatchingChats),
+              );
+            }
+            final room = rooms[index];
+            return RevealOnScroll(
+              key: ValueKey('reveal_${room.roomId}'),
+              index: index,
+              child: _buildRoomTile(room, c),
+            );
+          },
         );
       },
+    );
+  }
+
+  Widget _buildAdvisorTile(AppColors c) {
+    return AppCard(
+      key: const ValueKey('ai_book_advisor'),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiBookChatScreen())),
+      child: Row(
+        children: [
+          const AiAvatar(size: 52),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        S.aiBookAdvisor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
+                      child: Text('AI', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: c.accent)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  S.tellMeWhatWantReadI,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13, color: c.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Icon(Icons.chevron_right_rounded, size: 20, color: c.textHint),
+        ],
+      ),
     );
   }
 

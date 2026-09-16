@@ -147,7 +147,7 @@ const removeMember = async (roomId, myId, targetId) => {
   const now = new Date();
   await prisma.$transaction(async (tx) => {
     await members.leave(tx, roomId, targetId, now);
-    await members.unpin(tx, roomId, targetId);
+    await members.clearRoomPreferences(tx, roomId, targetId);
     await notice.post(tx, { roomId, actorId: myId, text: `${actor.nickname} 將 ${target.nickname} 移出群組` });
   });
   typing.clear(roomId, targetId);
@@ -174,7 +174,7 @@ const leave = async (roomId, myId) => {
     if (room.my_role === 'owner' && !others.some((m) => m.role === 'owner')) {
       await members.setRole(tx, roomId, others[0].user_id, 'owner');
     }
-    await members.unpin(tx, roomId, myId);
+    await members.clearRoomPreferences(tx, roomId, myId);
     await notice.post(tx, { roomId, actorId: myId, text: `${actor.nickname} 已退出群組` });
   });
   typing.clear(roomId, myId);

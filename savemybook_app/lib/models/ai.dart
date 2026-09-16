@@ -28,11 +28,12 @@ class AiFeatures {
   static const listingAssist = 'listing_assist';
   static const recommend = 'recommend';
   static const moderation = 'moderation';
+  static const bookChat = 'book_chat';
   static const test = 'test';
 
-  static const configurable = [support, listingAssist, recommend, moderation];
+  static const configurable = [support, listingAssist, recommend, moderation, bookChat];
 
-  static const limited = [support, listingAssist, recommend];
+  static const limited = [support, listingAssist, recommend, bookChat];
 }
 
 double _clampNonNegative(dynamic value) => math.max(0, parseDouble(value));
@@ -114,6 +115,7 @@ class AiFeatureConfig {
     AiFeatures.listingAssist: AiFeatureConfig(provider: AiProviders.gemini, webSearch: true),
     AiFeatures.recommend: AiFeatureConfig(),
     AiFeatures.moderation: AiFeatureConfig(),
+    AiFeatures.bookChat: AiFeatureConfig(),
   };
 
   factory AiFeatureConfig.fromJson(Map<String, dynamic>? json, AiFeatureConfig fallback) {
@@ -159,7 +161,7 @@ class AiSettings {
     required this.dailyPerUser,
   });
 
-  static const _defaultLimits = {AiFeatures.support: 30, AiFeatures.listingAssist: 15, AiFeatures.recommend: 5};
+  static const _defaultLimits = {AiFeatures.support: 30, AiFeatures.listingAssist: 15, AiFeatures.recommend: 5, AiFeatures.bookChat: 30};
 
   static final AiSettings defaults = AiSettings.fromJson(const {});
 
@@ -674,6 +676,7 @@ class AiStatusInfo {
   final bool support;
   final bool listingAssist;
   final bool recommend;
+  final bool bookChat;
   final bool webSearch;
   final bool consented;
   final List<String> providersInUse;
@@ -682,6 +685,7 @@ class AiStatusInfo {
     this.support = false,
     this.listingAssist = false,
     this.recommend = false,
+    this.bookChat = false,
     this.webSearch = false,
     this.consented = false,
     this.providersInUse = const [],
@@ -693,6 +697,7 @@ class AiStatusInfo {
         support: json['support'] == true,
         listingAssist: json['listing_assist'] == true,
         recommend: json['recommend'] == true,
+        bookChat: json['book_chat'] == true,
         webSearch: json['web_search'] == true,
         consented: json['consented'] == true,
         providersInUse: [
@@ -701,12 +706,13 @@ class AiStatusInfo {
         ],
       );
 
-  bool get any => support || listingAssist || recommend;
+  bool get any => support || listingAssist || recommend || bookChat;
 
   AiStatusInfo copyWith({bool? consented}) => AiStatusInfo(
         support: support,
         listingAssist: listingAssist,
         recommend: recommend,
+        bookChat: bookChat,
         webSearch: webSearch,
         consented: consented ?? this.consented,
         providersInUse: providersInUse,
@@ -759,6 +765,85 @@ class AiSupportReply {
       userMessage: user is Map ? AiSupportMessage.fromJson({...Map<String, dynamic>.from(user), 'role': 'user'}) : null,
       reply: AiSupportMessage.fromJson({...(reply is Map ? Map<String, dynamic>.from(reply) : const <String, dynamic>{}), 'role': 'assistant'}),
       suggestHandoff: json['suggest_handoff'] == true,
+    );
+  }
+}
+
+class AiBookSuggestion {
+  final Book book;
+  final String? reason;
+
+  const AiBookSuggestion({required this.book, this.reason});
+
+  static List<AiBookSuggestion> listFrom(Object? raw) {
+    final out = <AiBookSuggestion>[];
+    if (raw is! List) return out;
+    for (final item in raw) {
+      if (item is! Map || item['book'] is! Map) continue;
+      try {
+        final reason = '${item['reason'] ?? ''}'.trim();
+        out.add(AiBookSuggestion(book: Book.fromJson(Map<String, dynamic>.from(item['book'])), reason: reason.isEmpty ? null : reason));
+      } catch (_) {}
+    }
+    return out;
+  }
+}
+
+class AiBookChatMessage {
+  final int messageId;
+  final String role;
+  final String content;
+  final List<AiBookSuggestion> books;
+  final List<String> suggestions;
+  final DateTime? createdAt;
+
+  const AiBookChatMessage({
+    required this.messageId,
+    required this.role,
+    required this.content,
+    this.books = const [],
+    this.suggestions = const [],
+    this.createdAt,
+  });
+
+  bool get isUser => role == 'user';
+
+  factory AiBookChatMessage.fromJson(Map<String, dynamic> json) => AiBookChatMessage(
+        messageId: parseInt(json['message_id']),
+        role: json['role'] == 'user' ? 'user' : 'assistant',
+        content: json['content'] as String? ?? '',
+        books: AiBookSuggestion.listFrom(json['books']),
+        suggestions: _strings(json['suggestions']),
+        createdAt: parseDate(json['created_at']),
+      );
+}
+
+class AiBookChatSession {
+  final int sessionId;
+  final List<AiBookChatMessage> messages;
+
+  const AiBookChatSession({required this.sessionId, this.messages = const []});
+
+  factory AiBookChatSession.fromJson(Map<String, dynamic> json) => AiBookChatSession(
+        sessionId: parseInt(json['session_id']),
+        messages: AiUsageReport._list(json['messages'], AiBookChatMessage.fromJson),
+      );
+}
+
+class AiBookChatReply {
+  final int sessionId;
+  final AiBookChatMessage? userMessage;
+  final AiBookChatMessage reply;
+
+  const AiBookChatReply({required this.sessionId, this.userMessage, required this.reply});
+
+  factory AiBookChatReply.fromJson(Map<String, dynamic> json) {
+    final user = json['user_message'];
+    final reply = json['reply'];
+    return AiBookChatReply(
+      sessionId: parseInt(json['session_id']),
+      userMessage: user is Map ? AiBookChatMessage.fromJson({...Map<String, dynamic>.from(user), 'role': 'user'}) : null,
+      reply: AiBookChatMessage.fromJson({...(reply is Map ? Map<String, dynamic>.from(reply) : const <String, dynamic>{}), 'role': 'assistant'}),
     );
   }
 }
@@ -853,7 +938,13 @@ List<String> _strings(Object? raw) => [
     ];
 
 class AiListingAssist {
-  static const fieldKeys = ['title', 'author', 'publisher', 'publish_date', 'isbn', 'description'];
+  static const fieldKeys = ['title', 'subtitle', 'author', 'publisher', 'publish_date', 'isbn', 'page_count', 'language', 'description'];
+
+  /// 出版日期實際確認到的精度：`day`、`month`、`year`，無法確認時為空字串。
+  final String publishDatePrecision;
+
+  /// 簡介來源：`sources`、`ai`、`mixed`，沒有簡介時為空字串。
+  final String descriptionSource;
 
   final Map<String, String> fields;
   final AiCategoryGuess? category;
@@ -866,6 +957,8 @@ class AiListingAssist {
 
   const AiListingAssist({
     this.fields = const {},
+    this.publishDatePrecision = '',
+    this.descriptionSource = '',
     this.category,
     this.condition,
     this.price,
@@ -874,6 +967,8 @@ class AiListingAssist {
     this.provider = '',
     this.model = '',
   });
+
+  bool get publishDateIsApproximate => publishDatePrecision.isNotEmpty && publishDatePrecision != 'day';
 
   factory AiListingAssist.fromJson(Map<String, dynamic> json) {
     final fields = json['fields'];
@@ -888,6 +983,8 @@ class AiListingAssist {
         for (final key in fieldKeys)
           if (fields is Map && '${fields[key] ?? ''}'.trim().isNotEmpty) key: '${fields[key]}'.trim(),
       },
+      publishDatePrecision: fields is Map ? '${fields['publish_date_precision'] ?? ''}'.trim() : '',
+      descriptionSource: '${json['description_source'] ?? ''}'.trim(),
       category: parsedCategory != null && parsedCategory.categoryId > 0 ? parsedCategory : null,
       condition: parsedCondition != null && parsedCondition.level.isNotEmpty ? parsedCondition : null,
       price: parsedPrice != null && parsedPrice.suggested > 0 ? parsedPrice : null,

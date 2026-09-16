@@ -33,16 +33,27 @@ const fetchEditionByIsbn = async (isbns) => {
   };
 };
 
-const fetchDescriptionByIsbn = async (isbn) => {
+// /api/books 的 jscmd=data 只給年份層級的 publish_date，版本頁 /isbn/{isbn}.json 才可能有到日的日期。
+const fetchEditionDetailByIsbn = async (isbn) => {
   const edition = await getJson(`/isbn/${encodeURIComponent(isbn)}.json`);
-  if (!edition) return '';
-  const own = textOf(edition.description);
-  if (own) return own;
+  if (!edition) return null;
+  let description = textOf(edition.description);
   const workKey = edition.works?.[0]?.key;
-  if (typeof workKey !== 'string' || !/^\/works\/OL\d+W$/.test(workKey)) return '';
-  const work = await getJson(`${workKey}.json`);
-  return textOf(work?.description);
+  if (!description && typeof workKey === 'string' && /^\/works\/OL\d+W$/.test(workKey)) {
+    const work = await getJson(`${workKey}.json`);
+    description = textOf(work?.description);
+  }
+  const pages = Number(edition.number_of_pages);
+  return {
+    description,
+    publishDate: typeof edition.publish_date === 'string' ? edition.publish_date : '',
+    subtitle: typeof edition.subtitle === 'string' ? edition.subtitle : '',
+    pageCount: Number.isFinite(pages) && pages > 0 ? Math.trunc(pages) : null,
+    language: (edition.languages ?? []).map((l) => l?.key).find((k) => typeof k === 'string') ?? ''
+  };
 };
+
+const fetchDescriptionByIsbn = async (isbn) => (await fetchEditionDetailByIsbn(isbn))?.description ?? '';
 
 const searchByTitle = async (title, limit = 3) => {
   const params = new URLSearchParams({
@@ -62,4 +73,4 @@ const searchByTitle = async (title, limit = 3) => {
   }));
 };
 
-module.exports = { fetchEditionByIsbn, fetchDescriptionByIsbn, searchByTitle, BASE };
+module.exports = { fetchEditionByIsbn, fetchEditionDetailByIsbn, fetchDescriptionByIsbn, searchByTitle, BASE };

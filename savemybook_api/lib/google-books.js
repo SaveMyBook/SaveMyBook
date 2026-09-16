@@ -4,7 +4,7 @@ const fetchVolumeByIsbn = async (isbn) => {
   const url = new URL('https://www.googleapis.com/books/v1/volumes');
   url.searchParams.set('q', `isbn:${isbn}`);
   url.searchParams.set('printType', 'books');
-  url.searchParams.set('projection', 'lite');
+  // projection=lite 會少掉 description、subtitle、pageCount 與完整的 publishedDate，因此查完整的 volume。
   if (env.googleBooksApiKey) url.searchParams.set('key', env.googleBooksApiKey);
 
   const response = await fetch(url, { signal: AbortSignal.timeout(8000) });

@@ -272,7 +272,6 @@ components:
         completed_at: { type: string, format: date-time, nullable: true }
         cancelled_at: { type: string, format: date-time, nullable: true }
         cancel_reason: { type: string, nullable: true }
-        pickup_code: { type: string, nullable: true, example: '482913' }
         buyer: { $ref: '#/components/schemas/UserBrief' }
         seller: { $ref: '#/components/schemas/UserBrief' }
         cabinet:
@@ -307,12 +306,11 @@ components:
         total_amount: { type: string, example: '360.00' }
         cabinet_id: { type: integer, nullable: true, example: 2 }
         slot_id: { type: integer, nullable: true }
-        pickup_code: { type: string, nullable: true, deprecated: true, description: 保留欄位。取件改為於書櫃掃描機台上的 QR Code，用戶端不應顯示此值。, example: '482913' }
         status:
           type: string
           enum: [pending_payment, pending_deposit, deposited, pending_pickup, completed, cancelled, refunding, refunded]
           example: pending_deposit
-        payment_method: { type: string, nullable: true, enum: [wallet, bank_transfer], example: wallet }
+        payment_method: { type: string, nullable: true, enum: [wallet, bank_transfer], description: 新訂單一律為 wallet；bank_transfer 只會出現在舊資料。, example: wallet }
         payment_at: { type: string, format: date-time, nullable: true }
         deposited_at: { type: string, format: date-time, nullable: true, description: 賣家完成存書的時間 }
         picked_up_at: { type: string, format: date-time, nullable: true, description: 買家完成取件的時間 }

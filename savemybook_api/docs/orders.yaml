@@ -119,12 +119,7 @@ paths:
                   items: { type: integer }
                   description: 欲結帳的購物車項目編號。未帶入或帶入空陣列時結帳全部項目。
                   example: [55, 56]
-                payment_method:
-                  type: string
-                  enum: [wallet, bank_transfer]
-                  default: wallet
-                  description: 目前扣款一律以站內代幣執行，此欄位僅供記錄。
-            example: { cart_ids: [55, 56], payment_method: wallet }
+            example: { cart_ids: [55, 56] }
       responses:
         '201':
           description: 結帳成功，回傳建立的訂單，筆數可能大於 1。

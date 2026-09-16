@@ -1,4 +1,5 @@
 const prisma = require('../../lib/prisma');
+const { hasTables } = require('../../lib/schema-check');
 
 const shape = (row) => ({
   user_id: Number(row.user_id),
@@ -60,4 +61,11 @@ const markRead = (db, roomId, userId, messageId) => db.$executeRaw`
 const unpin = (db, roomId, userId) => db.$executeRaw`
   DELETE FROM chat_room_pins WHERE user_id = ${userId} AND room_id = ${roomId}`;
 
-module.exports = { active, isActive, join, addDirect, leave, setRole, markRead, unpin };
+// 退出或被移出群組時一併清掉靜音：否則日後被重新邀請回同一群組，舊的靜音會無聲生效。
+const clearRoomPreferences = async (db, roomId, userId) => {
+  await unpin(db, roomId, userId);
+  if (!(await hasTables(['chat_room_mutes']))) return;
+  await db.$executeRaw`DELETE FROM chat_room_mutes WHERE user_id = ${userId} AND room_id = ${roomId}`;
+};
+
+module.exports = { active, isActive, join, addDirect, leave, setRole, markRead, unpin, clearRoomPreferences };

@@ -2,15 +2,15 @@ tags:
   - name: ai
     x-displayName: AI 功能
     description: |
-      AI 客服、上架輔助與個人推薦。上架審核在上架與編輯書籍時於伺服器端執行，使用者端沒有對應端點。
+      AI 客服、書籍顧問、上架輔助與個人推薦。上架審核在上架與編輯書籍時於伺服器端執行，使用者端沒有對應端點。
 
       模型服務商（DeepSeek、Google Gemini、OpenAI）的 API 金鑰只存放於伺服器環境變數，
       不寫入資料庫，也不會回傳給任何用戶端。管理員於「後台：AI 設定」選擇服務商、模型、單價與用量上限。
 
       用戶端應先呼叫 `GET /api/ai/status`，只顯示值為 `true` 的功能入口。
 
-      AI 客服、上架輔助與個人推薦會將使用者的資料提供給外部 AI 服務商處理，須先取得使用者明確同意
-      （`PUT /api/ai/consent`），同意可隨時撤回。未同意時 AI 客服與上架輔助回傳 403 `AI_CONSENT_REQUIRED`，
+      AI 客服、書籍顧問、上架輔助與個人推薦會將使用者的資料提供給外部 AI 服務商處理，須先取得使用者明確同意
+      （`PUT /api/ai/consent`），同意可隨時撤回。未同意時 AI 客服、書籍顧問與上架輔助回傳 403 `AI_CONSENT_REQUIRED`，
       個人推薦改回傳既有推薦。上架審核只處理公開的商品內容，不含賣家個人資料，不需要使用者同意。
       送交服務商的照片會先移除 EXIF、XMP 等中繼資料（含拍攝位置）。
 
@@ -22,7 +22,7 @@ tags:
       | `AI_CONSENT_REQUIRED` | 403 | 使用者尚未同意將資料提供給 AI 服務商處理 |
       | `AI_DAILY_LIMIT` | 429 | 使用者今日使用次數已達上限 |
       | `AI_PROVIDER_ERROR` | 502 | 服務商錯誤、逾時或回應格式不正確 |
-      | `AI_UNAVAILABLE` | 503 | 伺服器尚未執行 `migrations/011_ai.sql` |
+      | `AI_UNAVAILABLE` | 503 | 伺服器尚未執行 `migrations/011_ai.sql`；書籍顧問另需 `migrations/013_ai_book_chat.sql` |
 
       模型輸出一律由伺服器驗證與清理（數值範圍、分類是否存在、書況列舉、網址格式），不會原樣轉交。
 
@@ -35,6 +35,7 @@ paths:
       description: |
         功能可用的條件：總開關與該功能皆開啟、該功能使用的服務商已設定金鑰、本月費用未達預算，
         且伺服器已執行 011。`web_search` 表示上架輔助會以網路搜尋補齊書目與定價。
+        `book_chat` 另須伺服器已執行 013，否則該功能的端點回傳 503 `AI_UNAVAILABLE`。
 
         `consented` 為請求者是否已同意 AI 資料處理；`providers_in_use` 為目前可用的使用者功能實際會使用的服務商顯示名稱
         （含上架輔助辨識照片時改用的服務商），供同意說明列出資料接收者。
@@ -62,6 +63,7 @@ paths:
         `granted: true` 表示使用者同意將下列資料提供給 `providers_in_use` 所列的服務商處理：
 
         - AI 客服：使用者輸入的訊息，以及本人的訂單與預約狀態
+        - 書籍顧問：使用者輸入的訊息與同一對話的歷史紀錄
         - 上架輔助：ISBN、書名、書況說明與使用者選擇的照片
         - 個人推薦：收藏與購買紀錄中的書籍資訊
 
@@ -215,6 +217,99 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '503': { $ref: '#/components/responses/AiUnavailable' }
 
+  /api/ai/book-chat/session:
+    get:
+      summary: 目前的 AI 書籍顧問對話
+      operationId: getAiBookChatSession
+      tags: [ai]
+      description: |
+        回傳進行中（`open`）的對話與最近 30 則訊息；沒有進行中的對話時 `data` 為 null。
+
+        每則助理訊息的 `books` 會在讀取時重新查詢書籍，已售出、下架或未通過審核的書不會出現，
+        因此舊訊息的書卡數量可能少於當初推薦的數量。歷史訊息不含推薦理由與追問建議。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    nullable: true
+                    allOf:
+                      - $ref: '#/components/schemas/AiBookChatSession'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /api/ai/book-chat/messages:
+    post:
+      summary: 傳送訊息給 AI 書籍顧問
+      operationId: sendAiBookChatMessage
+      tags: [ai]
+      description: |
+        附加到進行中的對話，沒有時自動建立。每則訊息最多呼叫模型兩次：
+
+        1. 依最近 10 則對話、分類清單與可用的篩選條件，判斷使用者的需求並產生查詢條件。
+           條件不足時只回覆釐清問題（`books` 為空陣列），且不再呼叫第二次。
+        2. 伺服器以該條件取最多 30 本販售中、已審核、非本人上架的書，再請模型從中挑選最多 6 本並附上推薦理由。
+
+        書籍一律來自伺服器查詢的候選清單，模型回傳的書籍代號不在清單內時直接捨棄，
+        因此不會出現不存在的書籍或價格。查無符合條件的書時改回傳站上熱門書籍；
+        第二次模型呼叫失敗時改以候選清單的前幾本回覆，不會回傳 502（錯誤仍計入用量紀錄）。
+
+        使用者尚未同意 AI 資料處理時回傳 403 `AI_CONSENT_REQUIRED`，不呼叫服務商也不寫入對話。
+        每日次數上限計算成功送出的訊息數；每位使用者每分鐘另有 20 次的請求頻率限制，與 AI 客服、上架輔助共用。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string, minLength: 1, maxLength: 500, example: 想找適合通勤看的推理小說，300 元以內 }
+      responses:
+        '201':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      session_id: { type: integer, example: 8 }
+                      user_message: { $ref: '#/components/schemas/AiBookChatMessage' }
+                      reply: { $ref: '#/components/schemas/AiBookChatReply' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AiConsentRequired' }
+        '429': { $ref: '#/components/responses/AiDailyLimit' }
+        '502': { $ref: '#/components/responses/AiProviderError' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /api/ai/book-chat/session/close:
+    post:
+      summary: 開始新的書籍顧問對話
+      operationId: closeAiBookChatSession
+      tags: [ai]
+      description: 將進行中的對話標記為 `closed`，下一則訊息會建立新對話。沒有進行中的對話時同樣回傳 200。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
   /api/ai/listing-assist:
     post:
       summary: 上架輔助
@@ -230,6 +325,10 @@ paths:
         3. 模型辨識照片中的封面、書背與版權頁，從分類清單選擇分類，依照片與書況說明判斷書況，並估算售價。
 
         使用者尚未同意 AI 資料處理時回傳 403 `AI_CONSENT_REQUIRED`，不查詢外部書庫也不呼叫服務商。
+
+        簡介（`fields.description`）由模型整理成可直接放上架頁的繁體中文內容，並清除 HTML、書店促銷與活動訊息、
+        重複書名、外部網址與電話；`description_source` 說明簡介來自書目來源、模型撰寫或兩者混合。
+        出版日期盡量給到日，`fields.publish_date_precision` 標示實際確認到的精度，精度不足時不會補上未經確認的日或月。
 
         照片只在記憶體中處理，不會儲存；送出前移除 EXIF、XMP 等中繼資料。無法移除中繼資料的格式（HEIC、HEIF、AVIF）不會送出，
         並於 `warnings` 提示；只提供這類照片且沒有 ISBN 與書名時回傳 400。書目欄位以外部書庫為優先；無法確認的欄位為空字串。
@@ -323,6 +422,7 @@ components:
         support: { type: boolean, example: true }
         listing_assist: { type: boolean, example: true }
         recommend: { type: boolean, example: true }
+        book_chat: { type: boolean, example: true }
         web_search: { type: boolean, example: true }
         consented: { type: boolean, example: false }
         providers_in_use:
@@ -347,6 +447,43 @@ components:
           type: array
           items: { $ref: '#/components/schemas/AiSupportMessage' }
 
+    AiBookChatBook:
+      type: object
+      properties:
+        book: { $ref: '#/components/schemas/Book' }
+        reason: { type: string, nullable: true, maxLength: 30, example: 節奏明快，適合通勤閱讀 }
+
+    AiBookChatMessage:
+      type: object
+      properties:
+        message_id: { type: integer, example: 101 }
+        role: { type: string, enum: [user, assistant] }
+        content: { type: string, example: 以下是適合通勤閱讀的推理小說。 }
+        books:
+          type: array
+          items: { $ref: '#/components/schemas/AiBookChatBook' }
+        created_at: { type: string, format: date-time }
+
+    AiBookChatReply:
+      allOf:
+        - $ref: '#/components/schemas/AiBookChatMessage'
+        - type: object
+          properties:
+            suggestions:
+              type: array
+              maxItems: 3
+              items: { type: string, maxLength: 40 }
+              description: 可直接點擊送出的追問建議，僅在本次回覆中提供，不會保存於對話紀錄。
+              example: [有沒有更輕薄好攜帶的, 換成日系作家呢]
+
+    AiBookChatSession:
+      type: object
+      properties:
+        session_id: { type: integer, example: 8 }
+        messages:
+          type: array
+          items: { $ref: '#/components/schemas/AiBookChatMessage' }
+
     AiListingAssist:
       type: object
       properties:
@@ -354,11 +491,27 @@ components:
           type: object
           properties:
             title: { type: string, example: 挪威的森林 }
+            subtitle: { type: string, example: '' }
             author: { type: string, example: 村上春樹 }
             publisher: { type: string, example: 時報出版 }
-            publish_date: { type: string, example: '2003-08-01' }
+            publish_date: { type: string, description: 精度不足時只給到 YYYY-MM 或 YYYY。, example: '2003-08-01' }
+            publish_date_precision:
+              type: string
+              enum: [day, month, year, '']
+              description: 出版日期實際確認到的精度；非 `day` 時用戶端應標示僅確認到月或年。
+              example: day
             isbn: { type: string, example: '9789573317241' }
-            description: { type: string, example: '' }
+            description:
+              type: string
+              description: 已清除 HTML、書店促銷字樣、贈品與活動訊息、外部網址與電話的繁體中文簡介，約 150 至 400 字。
+              example: ''
+            page_count: { type: integer, nullable: true, example: 384 }
+            language: { type: string, description: BCP 47 標記，無法確認時為空字串。, example: zh-Hant }
+        description_source:
+          type: string
+          enum: [sources, ai, mixed, '']
+          description: 簡介的來源：`sources` 為書目來源原文整理、`ai` 為模型依書目資料撰寫、`mixed` 為模型整理來源文字；沒有簡介時為空字串。
+          example: mixed
         category:
           type: object
           nullable: true
