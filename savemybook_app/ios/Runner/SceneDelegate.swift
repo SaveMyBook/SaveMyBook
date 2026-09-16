@@ -11,7 +11,7 @@ import UIKit
   func scene(_ scene: UIScene,
              willConnectTo session: UISceneSession,
              options connectionOptions: UIScene.ConnectionOptions) {
-    sceneLifeCycleDelegate.scene(scene, willConnectToSession: session, options: connectionOptions)
+    sceneLifeCycleDelegate.scene(scene, willConnectTo: session, options: connectionOptions)
     if let url = connectionOptions.urlContexts.first?.url {
       AppDelegate.shared?.receiveDeepLink(url)
     }
@@ -45,14 +45,14 @@ import UIKit
   }
 
   func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
-    sceneLifeCycleDelegate.scene(scene, continueUserActivity: userActivity)
+    sceneLifeCycleDelegate.scene(scene, continue: userActivity)
   }
 
   func windowScene(_ windowScene: UIWindowScene,
                    performActionFor shortcutItem: UIApplicationShortcutItem,
                    completionHandler: @escaping (Bool) -> Void) {
     sceneLifeCycleDelegate.windowScene(windowScene,
-                                       performActionForShortcutItem: shortcutItem,
+                                       performActionFor: shortcutItem,
                                        completionHandler: completionHandler)
   }
 }
