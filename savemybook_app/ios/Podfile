@@ -40,6 +40,11 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
+      # 外掛各自宣告的最低 iOS 版本（9.0～14.0）低於新版 Xcode 允許的下限，一律拉齊到 App 的 15.5。
+      if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 15.5
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.5'
+      end
+
       # permission_handler 只編入 App 實際使用的權限；geolocator 移除「永遠允許」定位的呼叫，避免審核要求 NSLocationAlways* 說明。
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = Array(config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || '$(inherited)') + [
         'PERMISSION_CAMERA=1',
