@@ -3543,5 +3543,9 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "basicSettings": "기본 설정",
+  "eGBirthdayVoucher": "예: 생일 쿠폰",
+  "benefitDetails": "혜택 내용",
+  "addBenefit": "혜택 추가"
 }

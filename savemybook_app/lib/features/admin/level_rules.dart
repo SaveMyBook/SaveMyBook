@@ -31,6 +31,8 @@ class LevelRules {
   static const maxPoints = 100000000;
   static const nameMaxLength = 50;
   static const benefitsMaxLength = 2000;
+  static const maxBenefits = 20;
+  static const benefitMaxLength = 80;
 
   static List<AdminLevel> sorted(Iterable<AdminLevel> levels) =>
       [...levels]..sort((a, b) {

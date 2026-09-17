@@ -194,17 +194,28 @@ void main() {
         final fields = find.byType(TextField);
         await tester.enterText(fields.at(0), '黃金會員');
         await tester.enterText(fields.at(1), '100');
-        await tester.enterText(fields.at(2), '生日禮\n免運');
         await _settle(tester);
-
         expect(find.text(S.tierNamedP0AlreadyExists('黃金會員')), findsOneWidget);
         expect(find.text(S.p0AlreadyUsesP1PtsEach('白銀會員', 100)), findsOneWidget);
-        expect(find.text('生日禮'), findsOneWidget, reason: '預覽即時顯示福利');
+
+        await tester.scrollUntilVisible(find.text(S.addBenefit), 200, scrollable: find.byType(Scrollable).first);
+        await tester.enterText(find.widgetWithText(TextField, S.eGBirthdayVoucher), '生日禮\n免運');
+        await _settle(tester);
+        expect(find.widgetWithText(TextField, '生日禮'), findsOneWidget, reason: '換行拆成多筆福利');
+        expect(find.widgetWithText(TextField, '免運'), findsOneWidget);
+
+        await tester.tap(find.text(S.addBenefit));
+        await _settle(tester);
+        expect(find.byIcon(Icons.remove_circle_outline_rounded), findsNWidgets(3));
+        await tester.tap(find.byIcon(Icons.remove_circle_outline_rounded).last);
+        await _settle(tester);
+        expect(find.byIcon(Icons.remove_circle_outline_rounded), findsNWidgets(2));
 
         await tester.tap(find.text(S.actionSave));
         await _settle(tester);
         expect(requests.where((r) => r.startsWith('POST')), isEmpty);
 
+        await tester.scrollUntilVisible(fields.at(0), -200, scrollable: find.byType(Scrollable).first);
         await tester.enterText(fields.at(0), '鑽石會員');
         await tester.enterText(fields.at(1), '2000');
         await _settle(tester);
@@ -216,7 +227,6 @@ void main() {
         await tester.tap(find.text(S.keepEditing));
         await _settle(tester);
 
-        await tester.ensureVisible(find.text(S.actionSave));
         await tester.tap(find.text(S.actionSave));
         await _settle(tester);
         expect(requests, contains('POST /admin/levels'));

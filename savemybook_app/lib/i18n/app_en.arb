@@ -3543,5 +3543,9 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "basicSettings": "Basic settings",
+  "eGBirthdayVoucher": "e.g. Birthday voucher",
+  "benefitDetails": "Benefit details",
+  "addBenefit": "Add benefit"
 }

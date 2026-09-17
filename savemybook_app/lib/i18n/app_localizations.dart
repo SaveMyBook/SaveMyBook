@@ -1974,6 +1974,10 @@ abstract class AppLocalizations {
   String get addAgain;
   String get codeExpiredPleaseRequestNewOne;
   String codeValidP0(Object p0);
+  String get basicSettings;
+  String get eGBirthdayVoucher;
+  String get benefitDetails;
+  String get addBenefit;
 }
 
 class _LEn extends AppLocalizations {
@@ -7831,6 +7835,18 @@ class _LEn extends AppLocalizations {
 
   @override
   String codeValidP0(Object p0) => 'Code valid for ${p0}';
+
+  @override
+  String get basicSettings => 'Basic settings';
+
+  @override
+  String get eGBirthdayVoucher => 'e.g. Birthday voucher';
+
+  @override
+  String get benefitDetails => 'Benefit details';
+
+  @override
+  String get addBenefit => 'Add benefit';
 
 }
 
@@ -13690,6 +13706,18 @@ class _LJa extends AppLocalizations {
   @override
   String codeValidP0(Object p0) => '認証コードの有効時間 ${p0}';
 
+  @override
+  String get basicSettings => '基本設定';
+
+  @override
+  String get eGBirthdayVoucher => '例：誕生日クーポン';
+
+  @override
+  String get benefitDetails => '特典の内容';
+
+  @override
+  String get addBenefit => '特典を追加';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -19547,6 +19575,18 @@ class _LKo extends AppLocalizations {
 
   @override
   String codeValidP0(Object p0) => '인증 코드 유효 시간 ${p0}';
+
+  @override
+  String get basicSettings => '기본 설정';
+
+  @override
+  String get eGBirthdayVoucher => '예: 생일 쿠폰';
+
+  @override
+  String get benefitDetails => '혜택 내용';
+
+  @override
+  String get addBenefit => '혜택 추가';
 
 }
 
@@ -25406,6 +25446,18 @@ class _LZh extends AppLocalizations {
   @override
   String codeValidP0(Object p0) => '驗證碼有效時間 ${p0}';
 
+  @override
+  String get basicSettings => '基本設定';
+
+  @override
+  String get eGBirthdayVoucher => '例如：生日禮券';
+
+  @override
+  String get benefitDetails => '福利內容';
+
+  @override
+  String get addBenefit => '新增福利';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -31264,6 +31316,18 @@ class _LZhHans extends AppLocalizations {
   @override
   String codeValidP0(Object p0) => '验证码有效时间 ${p0}';
 
+  @override
+  String get basicSettings => '基本设置';
+
+  @override
+  String get eGBirthdayVoucher => '例如：生日礼券';
+
+  @override
+  String get benefitDetails => '福利内容';
+
+  @override
+  String get addBenefit => '新增福利';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -37121,6 +37185,18 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String codeValidP0(Object p0) => '驗證碼有效時間 ${p0}';
+
+  @override
+  String get basicSettings => '基本設定';
+
+  @override
+  String get eGBirthdayVoucher => '例如：生日禮券';
+
+  @override
+  String get benefitDetails => '福利內容';
+
+  @override
+  String get addBenefit => '新增福利';
 
 }
 

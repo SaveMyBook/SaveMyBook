@@ -3543,5 +3543,9 @@
     "placeholders": {
       "p0": {}
     }
-  }
+  },
+  "basicSettings": "基本设置",
+  "eGBirthdayVoucher": "例如：生日礼券",
+  "benefitDetails": "福利内容",
+  "addBenefit": "新增福利"
 }
