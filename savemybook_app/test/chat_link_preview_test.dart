@@ -8,10 +8,12 @@ import 'package:http/testing.dart';
 
 import 'package:savemybook_app/features/chat/media/chat_network_image.dart';
 import 'package:savemybook_app/features/chat/widgets/chat_link_preview.dart';
+import 'package:savemybook_app/models/book.dart';
 import 'package:savemybook_app/models/chat.dart';
 import 'package:savemybook_app/models/link_preview.dart';
 import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/utils/app_theme.dart';
+import 'package:savemybook_app/widgets/animations.dart';
 import 'package:savemybook_app/widgets/state_views.dart';
 
 const bookToken = '0123456789abcdef0123456789abcdef';
@@ -45,19 +47,34 @@ final bookPreview = LinkPreview.tryParse({
 })!;
 
 Widget host(Widget child, {Brightness brightness = Brightness.light}) => MaterialApp(
-      theme: AppTheme.build(brightness),
-      home: Scaffold(body: Center(child: child)),
-    );
+  theme: AppTheme.build(brightness),
+  home: Scaffold(body: Center(child: child)),
+);
+
+final sharedBook = Book.fromJson({
+  'book_id': 7,
+  'title': '深入淺出統計學',
+  'author': '王大明',
+  'price': 350,
+  'status': 'on_sale',
+  'book_images': [
+    {'image_id': 1, 'image_url': '/uploads/books/cover.jpg', 'image_type': 'cover'},
+  ],
+});
 
 void main() {
   setUp(() {
     LinkPreviewStore.clear();
+    SharedBookStore.fetcher = (token) async => (book: sharedBook, settled: true);
     ApiService.authToken = 'test-token';
   });
 
   group('firstUrl', () {
     test('picks the first web link and ignores phone numbers', () {
-      expect(LinkPreviewStore.firstUrl('電話 0912-345-678，網址 https://a.example.com/x 與 https://b.example.com'), 'https://a.example.com/x');
+      expect(
+        LinkPreviewStore.firstUrl('電話 0912-345-678，網址 https://a.example.com/x 與 https://b.example.com'),
+        'https://a.example.com/x',
+      );
       expect(LinkPreviewStore.firstUrl('0912345678'), isNull);
       expect(LinkPreviewStore.firstUrl('沒有連結'), isNull);
     });
@@ -65,14 +82,20 @@ void main() {
     test('adds https to www links and trims trailing punctuation', () {
       expect(LinkPreviewStore.firstUrl('看看 www.example.com/page.'), 'https://www.example.com/page');
       expect(LinkPreviewStore.firstUrl('(https://example.com/a)'), 'https://example.com/a');
-      expect(LinkPreviewStore.firstUrl('https://en.wikipedia.org/wiki/Foo_(bar)'), 'https://en.wikipedia.org/wiki/Foo_(bar)');
+      expect(
+        LinkPreviewStore.firstUrl('https://en.wikipedia.org/wiki/Foo_(bar)'),
+        'https://en.wikipedia.org/wiki/Foo_(bar)',
+      );
       expect(LinkPreviewStore.firstUrl('請看https://example.com/a，謝謝'), 'https://example.com/a');
       expect(LinkPreviewStore.firstUrl('https://example.com/a。'), 'https://example.com/a');
     });
 
     test('skips links inside mentions and hosts without a dot', () {
       const text = '@https://x.example.com hi https://y.example.com';
-      expect(LinkPreviewStore.firstUrl(text, mentions: const [ChatMention(userId: 2, start: 0, length: 22)]), 'https://y.example.com');
+      expect(
+        LinkPreviewStore.firstUrl(text, mentions: const [ChatMention(userId: 2, start: 0, length: 22)]),
+        'https://y.example.com',
+      );
       expect(LinkPreviewStore.firstUrl('http://localhost/abc'), isNull);
     });
   });
@@ -113,15 +136,18 @@ void main() {
 
     test('API client maps responses to settled and unsettled results', () async {
       Future<({LinkPreview? preview, bool settled})> call(int status, Object body) => http.runWithClient(
-            () => ApiService().fetchLinkPreview('https://blog.example.com/pricing'),
-            () => MockClient((request) async {
-              expect(request.url.path, '/api/chat/link-preview');
-              expect(request.url.queryParameters['url'], 'https://blog.example.com/pricing');
-              return http.Response(jsonEncode(body), status, headers: {'content-type': 'application/json'});
-            }),
-          );
+        () => ApiService().fetchLinkPreview('https://blog.example.com/pricing'),
+        () => MockClient((request) async {
+          expect(request.url.path, '/api/chat/link-preview');
+          expect(request.url.queryParameters['url'], 'https://blog.example.com/pricing');
+          return http.Response(jsonEncode(body), status, headers: {'content-type': 'application/json'});
+        }),
+      );
 
-      final ok = await call(200, {'success': true, 'data': {'url': 'https://blog.example.com/pricing', 'site_name': 'x', 'title': 'T', 'kind': 'web'}});
+      final ok = await call(200, {
+        'success': true,
+        'data': {'url': 'https://blog.example.com/pricing', 'site_name': 'x', 'title': 'T', 'kind': 'web'},
+      });
       expect(ok.settled, isTrue);
       expect(ok.preview?.title, 'T');
       final none = await call(200, {'success': true, 'data': null});
@@ -171,7 +197,9 @@ void main() {
 
     testWidgets('null preview renders nothing', (tester) async {
       LinkPreviewStore.fetcher = (url) async => (preview: null, settled: true);
-      await tester.pumpWidget(host(const ChatLinkPreviewCard(url: 'https://none.example.com', isMine: false, width: 260)));
+      await tester.pumpWidget(
+        host(const ChatLinkPreviewCard(url: 'https://none.example.com', isMine: false, width: 260)),
+      );
       await tester.pumpAndSettle();
       expect(find.byType(ChatLinkPreviewView), findsNothing);
       expect(tester.getSize(find.byType(ChatLinkPreviewCard)), Size.zero);
@@ -183,13 +211,17 @@ void main() {
         calls++;
         return (preview: webWithoutImage, settled: true);
       };
-      await tester.pumpWidget(host(const ChatLinkPreviewCard(url: 'https://docs.example.com/notes', isMine: false, width: 260)));
+      await tester.pumpWidget(
+        host(const ChatLinkPreviewCard(url: 'https://docs.example.com/notes', isMine: false, width: 260)),
+      );
       expect(find.byType(ChatLinkPreviewView), findsNothing);
       await tester.pumpAndSettle();
       expect(find.byType(ChatLinkPreviewView), findsOneWidget);
 
       await tester.pumpWidget(host(const SizedBox()));
-      await tester.pumpWidget(host(const ChatLinkPreviewCard(url: 'https://docs.example.com/notes', isMine: false, width: 260)));
+      await tester.pumpWidget(
+        host(const ChatLinkPreviewCard(url: 'https://docs.example.com/notes', isMine: false, width: 260)),
+      );
       expect(find.byType(ChatLinkPreviewView), findsOneWidget, reason: '快取命中時應立即顯示');
       expect(calls, 1);
     });
@@ -201,7 +233,9 @@ void main() {
         opened = uri;
         return true;
       };
-      await tester.pumpWidget(host(const ChatLinkPreviewCard(url: 'https://docs.example.com/notes', isMine: false, width: 260)));
+      await tester.pumpWidget(
+        host(const ChatLinkPreviewCard(url: 'https://docs.example.com/notes', isMine: false, width: 260)),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.byType(ChatLinkPreviewView));
       await tester.pumpAndSettle();
@@ -211,20 +245,67 @@ void main() {
     testWidgets('tapping a removed book shows a notice instead of opening', (tester) async {
       LinkPreviewStore.fetcher = (url) async => (preview: bookPreview, settled: true);
       String? requested;
-      await http.runWithClient(() async {
-        await tester.pumpWidget(host(ChatLinkPreviewCard(url: bookPreview.url, isMine: true, width: 260)));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byType(ChatLinkPreviewView));
-        for (var i = 0; i < 10; i++) {
-          await tester.pump(const Duration(milliseconds: 100));
-        }
-      }, () => MockClient((request) async {
-            requested = request.url.path;
-            return http.Response(jsonEncode({'success': false, 'message': '找不到此書籍'}), 404, headers: {'content-type': 'application/json'});
-          }));
+      await http.runWithClient(
+        () async {
+          await tester.pumpWidget(host(ChatLinkPreviewCard(url: bookPreview.url, isMine: true, width: 260)));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byType(ChatLinkPreviewView));
+          for (var i = 0; i < 10; i++) {
+            await tester.pump(const Duration(milliseconds: 100));
+          }
+        },
+        () => MockClient((request) async {
+          requested = request.url.path;
+          return http.Response(
+            jsonEncode({'success': false, 'message': '找不到此書籍'}),
+            404,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
       expect(requested, '/api/books/share/$bookToken');
       expect(find.byType(ChatLinkPreviewView), findsOneWidget);
       await tester.pump(const Duration(seconds: 5));
+    });
+  });
+
+  group('app share links', () {
+    test('only links on the app domains are treated as shared books', () {
+      expect(LinkPreviewStore.bookTokenOf('https://api.savemybook.today/b/$bookToken'), bookToken);
+      expect(LinkPreviewStore.bookTokenOf('  https://savemybook.today/b/${bookToken.toUpperCase()}/ '), bookToken);
+      expect(LinkPreviewStore.bookTokenOf('https://evil.example.com/b/$bookToken'), isNull);
+      expect(LinkPreviewStore.bookTokenOf('https://api.savemybook.today/u/$bookToken'), isNull);
+      expect(LinkPreviewStore.bookTokenOf('看看 https://api.savemybook.today/b/$bookToken'), isNull);
+    });
+
+    test('previews for app share links come from the book itself, not the web preview endpoint', () async {
+      var webCalls = 0;
+      LinkPreviewStore.fetcher = (url) async {
+        webCalls++;
+        return (preview: null, settled: true);
+      };
+      final preview = await LinkPreviewStore.load('https://api.savemybook.today/b/$bookToken');
+      expect(webCalls, 0);
+      expect(preview?.isBook, isTrue);
+      expect(preview?.title, '深入淺出統計學');
+      expect(preview?.price, 350);
+    });
+
+    testWidgets('shared book card shows the book and a notice once it is gone', (tester) async {
+      await tester.pumpWidget(host(const ChatSharedBookCard(token: bookToken, isMine: true, width: 280)));
+      expect(find.byType(SkeletonBox), findsWidgets);
+      await tester.pumpAndSettle();
+      expect(find.text('深入淺出統計學'), findsOneWidget);
+      expect(find.text('\$350'), findsOneWidget);
+
+      SharedBookStore.clear();
+      SharedBookStore.fetcher = (token) async => (book: null, settled: true);
+      await tester.pumpWidget(
+        host(const ChatSharedBookCard(key: ValueKey('gone'), token: bookToken, isMine: true, width: 280)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('深入淺出統計學'), findsNothing);
+      expect(find.byIcon(Icons.menu_book_outlined), findsOneWidget);
     });
   });
 }

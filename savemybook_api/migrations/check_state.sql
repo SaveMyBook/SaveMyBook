@@ -22,6 +22,7 @@ FROM (
   SELECT 'chat_messages', 'edited_at' UNION ALL
   SELECT 'notifications', 'actor_id' UNION ALL
   SELECT 'chat_room_members', 'history_from_id' UNION ALL
+  SELECT 'chat_room_members', 'group_nickname' UNION ALL
   SELECT 'chat_messages', 'mentions'
 ) t
 LEFT JOIN information_schema.COLUMNS c

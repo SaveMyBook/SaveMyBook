@@ -13,7 +13,7 @@ const BY_RELATED_TYPE = {
   trade: ['order', 'wallet', 'book', 'reservation'],
   chat: ['chat_room'],
   account: ['security', 'password', 'legal', 'member_level', 'user', 'push_test'],
-  service: ['ticket', 'report', 'admin_ticket'],
+  service: ['ticket', 'report', 'admin_ticket', 'book_review'],
   promotion: ['announcement']
 };
 

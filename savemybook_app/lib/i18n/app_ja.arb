@@ -3547,5 +3547,9 @@
   "basicSettings": "基本設定",
   "eGBirthdayVoucher": "例：誕生日クーポン",
   "benefitDetails": "特典の内容",
-  "addBenefit": "特典を追加"
+  "addBenefit": "特典を追加",
+  "bookNoLongerExistsBeenRemoved": "この書籍は存在しないか、出品が取り下げられています。",
+  "myNicknameGroup": "このグループでのニックネーム",
+  "setGroupNickname": "グループ内のニックネームを設定",
+  "allGroupMembersSeeNickname": "このニックネームはグループの全メンバーに表示されます。"
 }

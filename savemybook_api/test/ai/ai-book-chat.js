@@ -161,6 +161,44 @@ module.exports = {
       assert.strictEqual(data.reply.content, '為您搜尋推理小說。');
     }],
 
+    ['搜尋條件清理：關鍵字支援多個同義詞並相容舊的單一 keyword', () => {
+      const out = bookChat.sanitizeSearch({ keywords: ['人工智慧', 'AI', 'AI', '', '機器學習', '深度學習', '神經網路', '資料科學'], keyword: 'AI' }, ids);
+      assert.deepStrictEqual(out.keywords, ['人工智慧', 'AI', '機器學習', '深度學習', '神經網路']);
+      assert.deepStrictEqual(bookChat.sanitizeSearch({ keyword: '推理' }, ids).keywords, ['推理']);
+    }],
+
+    ['回覆含欄位名稱或英文代碼時不直接顯示給使用者', () => {
+      assert.strictEqual(bookChat.cleanReply('請提供預算（min_price, max_price）與書況（like_new、good）', 500), '');
+      assert.strictEqual(bookChat.cleanReply('為您挑選 b2 與 b3', 500), '');
+      assert.strictEqual(bookChat.cleanReply('這幾本適合想入門 AI 的讀者。', 500), '這幾本適合想入門 AI 的讀者。');
+    }],
+
+    ['送出訊息：需求不明確且模型回覆夾帶欄位名稱時，改用預設問句並提供示範需求', async () => {
+      setup();
+      h.queueJson({ reply: '請提供 keywords 與 min_price', search: null, need_more_info: true, suggestions: [] });
+
+      const data = await bookChat.sendMessage(5, '推薦書');
+      assert.strictEqual(data.reply.content, bookChat.CLARIFY_REPLY);
+      assert.strictEqual(data.reply.suggestions.length, 3);
+    }],
+
+    ['送出訊息：關鍵字查無結果時告知模型候選書只是熱門書', async () => {
+      setup();
+      let call = 0;
+      h.onModel('books.findMany', () => {
+        call += 1;
+        return call === 1 ? [] : [book(1), book(2)];
+      });
+      h.queueJson(
+        { reply: '為您尋找 AI 相關書籍。', search: { keywords: ['人工智慧', 'AI'], category_ids: [], max_price: null, min_price: null, condition_levels: [] }, need_more_info: false },
+        { reply: '站上目前沒有直接相關的 AI 書籍。', book_ids: [], reasons: {}, suggestions: [] }
+      );
+
+      const data = await bookChat.sendMessage(5, '我最近想研究 AI，推薦我什麼書');
+      assert.ok(JSON.stringify(h.calls[1]).includes('未找到直接相關的書'));
+      assert.strictEqual(data.reply.content, '站上目前沒有直接相關的 AI 書籍。');
+    }],
+
     ['送出訊息：未同意 AI 資料處理時回 403 AI_CONSENT_REQUIRED', async () => {
       setup();
       h.reset();

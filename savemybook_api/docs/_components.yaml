@@ -409,7 +409,7 @@ components:
         related_type:
           type: string
           nullable: true
-          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`admin_ticket`、`legal`、`user`、`wallet`、`security`、`password`、`member_level`、`announcement`、`push_test`。`security` 為新裝置登入、交易密碼變更或鎖定等帳號安全通知，無對應的 `related_id`。'
+          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`admin_ticket`、`book_review`、`legal`、`user`、`wallet`、`security`、`password`、`member_level`、`announcement`、`push_test`。`security` 為新裝置登入、交易密碼變更或鎖定等帳號安全通知，無對應的 `related_id`。'
           example: order
         category: { $ref: '#/components/schemas/NotificationCategory' }
         is_read: { type: boolean, example: false }
@@ -488,7 +488,8 @@ components:
         user_id: { type: integer, example: 8 }
         nickname: { type: string, example: 小華 }
         avatar_url: { type: string, nullable: true }
-        alias: { type: string, nullable: true, description: 請求者為此成員設定的自訂暱稱。, example: 阿華 }
+        alias: { type: string, nullable: true, description: 顯示用暱稱。群組為所有成員共用的群組暱稱；一對一聊天為請求者為對方設定、只有自己看得到的個人暱稱。, example: 阿華 }
+        group_nickname: { type: string, nullable: true, description: 僅群組成員列表提供，此成員在群組內的暱稱。, example: 讀書會小幫手 }
         role: { type: string, enum: [owner, member], description: '`owner` 為管理員，群組可有多位；一對一的雙方皆為 `member`。', example: member }
         joined_at: { type: string, format: date-time, description: 加入時間；一對一為聊天室建立時間。 }
 

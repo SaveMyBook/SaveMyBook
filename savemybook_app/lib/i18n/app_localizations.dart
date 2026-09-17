@@ -1978,6 +1978,10 @@ abstract class AppLocalizations {
   String get eGBirthdayVoucher;
   String get benefitDetails;
   String get addBenefit;
+  String get bookNoLongerExistsBeenRemoved;
+  String get myNicknameGroup;
+  String get setGroupNickname;
+  String get allGroupMembersSeeNickname;
 }
 
 class _LEn extends AppLocalizations {
@@ -7847,6 +7851,18 @@ class _LEn extends AppLocalizations {
 
   @override
   String get addBenefit => 'Add benefit';
+
+  @override
+  String get bookNoLongerExistsBeenRemoved => 'This book no longer exists or has been removed.';
+
+  @override
+  String get myNicknameGroup => 'My nickname in this group';
+
+  @override
+  String get setGroupNickname => 'Set group nickname';
+
+  @override
+  String get allGroupMembersSeeNickname => 'All group members will see this nickname.';
 
 }
 
@@ -13718,6 +13734,18 @@ class _LJa extends AppLocalizations {
   @override
   String get addBenefit => '特典を追加';
 
+  @override
+  String get bookNoLongerExistsBeenRemoved => 'この書籍は存在しないか、出品が取り下げられています。';
+
+  @override
+  String get myNicknameGroup => 'このグループでのニックネーム';
+
+  @override
+  String get setGroupNickname => 'グループ内のニックネームを設定';
+
+  @override
+  String get allGroupMembersSeeNickname => 'このニックネームはグループの全メンバーに表示されます。';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -19587,6 +19615,18 @@ class _LKo extends AppLocalizations {
 
   @override
   String get addBenefit => '혜택 추가';
+
+  @override
+  String get bookNoLongerExistsBeenRemoved => '이 도서는 존재하지 않거나 판매가 중지되었습니다.';
+
+  @override
+  String get myNicknameGroup => '이 그룹에서의 내 닉네임';
+
+  @override
+  String get setGroupNickname => '그룹 닉네임 설정';
+
+  @override
+  String get allGroupMembersSeeNickname => '그룹의 모든 멤버에게 이 닉네임이 표시됩니다.';
 
 }
 
@@ -25458,6 +25498,18 @@ class _LZh extends AppLocalizations {
   @override
   String get addBenefit => '新增福利';
 
+  @override
+  String get bookNoLongerExistsBeenRemoved => '此書籍已不存在或已下架';
+
+  @override
+  String get myNicknameGroup => '我在群組的暱稱';
+
+  @override
+  String get setGroupNickname => '設定群組暱稱';
+
+  @override
+  String get allGroupMembersSeeNickname => '群組內所有成員皆會看到此暱稱';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -31328,6 +31380,18 @@ class _LZhHans extends AppLocalizations {
   @override
   String get addBenefit => '新增福利';
 
+  @override
+  String get bookNoLongerExistsBeenRemoved => '此书籍已不存在或已下架';
+
+  @override
+  String get myNicknameGroup => '我在群组的昵称';
+
+  @override
+  String get setGroupNickname => '设置群组昵称';
+
+  @override
+  String get allGroupMembersSeeNickname => '群组内所有成员都会看到此昵称';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -37197,6 +37261,18 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get addBenefit => '新增福利';
+
+  @override
+  String get bookNoLongerExistsBeenRemoved => '此書籍已不存在或已下架';
+
+  @override
+  String get myNicknameGroup => '我在群組的暱稱';
+
+  @override
+  String get setGroupNickname => '設定群組暱稱';
+
+  @override
+  String get allGroupMembersSeeNickname => '群組內所有成員皆會看到此暱稱';
 
 }
 

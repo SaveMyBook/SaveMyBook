@@ -116,15 +116,24 @@ paths:
         | `barcode_image` | 1 | `other` |
         | `optional_images` | 最多 7 | `inside` |
 
-        **上架審核**：管理員開啟 AI 上架審核時，伺服器以書名、作者、描述、分類、售價與前 2 張照片判斷是否可上架：
+        **即時規則審核**：不經 AI、在回應前完成，符合任一條件即送交人工審核（書籍照常建立但 `is_approved` 為 false，
+        `review_status` 為 `pending`，回應附帶 `moderation`，並通知賣家與具「內容管理」權限的管理員）：
+
+        | 條件 | 說明 |
+        | --- | --- |
+        | 售價異常 | 站上有同 ISBN 的其他書籍時，售價 ≥ 其售價中位數的 3 倍且高出 300 代幣以上；無同書資料時售價 ≥ 3,000 代幣 |
+        | 非正規來源 | 書名或描述提及圖書館、館藏、借閱、索書號、公播、非賣品、贈閱、樣書、影印本、盜版、電子檔等 |
+
+        **AI 上架審核**：管理員開啟時於回應之後在背景執行，不延長上架等待時間。以書名、作者、描述、分類、售價與前 2 張照片判斷：
 
         | 結果 | 處理 |
         | --- | --- |
-        | 通過 | 正常上架 |
-        | 需人工確認 | 書籍照常建立但 `is_approved` 為 false（不公開），`review_status` 為 `pending`，回應附帶 `moderation`，並通知賣家 |
-        | 明確違規（管理員設定為直接拒絕且信心 ≥ 0.85） | 回傳 422 `LISTING_REJECTED`，書籍與照片都不會儲存 |
+        | 通過 | 維持上架 |
+        | 需人工確認（含照片可見館藏章、索書號標籤等非正規來源跡象） | 書籍改為不公開並送審，通知賣家與管理員 |
+        | 明確違規（管理員設定為直接拒絕且信心 ≥ 0.85） | 書籍下架、審核紀錄為 `rejected`，通知賣家原因 |
 
-        AI 服務失敗、逾時或本月預算用盡時直接放行。伺服器尚未執行 `migrations/011_ai.sql` 時不審核。
+        已由即時規則送審的書籍不再執行 AI 審核。AI 服務失敗、逾時或本月預算用盡時維持上架。
+        伺服器尚未執行 `migrations/011_ai.sql` 時兩種審核都不執行。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -188,7 +197,6 @@ paths:
                 售價過高:
                   value: { success: false, message: 售價不可超過 99,999 代幣 }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '422': { $ref: '#/components/responses/ListingRejected' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/books/recommended:
@@ -233,6 +241,36 @@ paths:
       responses:
         '200':
           description: 成功。依推薦分數排序，不分頁。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Book' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/books/briefs:
+    get:
+      summary: 依編號批次取得書籍現況
+      operationId: listBookBriefs
+      tags: [books]
+      description: |
+        App 以此更新本機保存的書籍資料（例如最近瀏覽）。只回傳仍存在、未下架且 `is_approved` 為 true 的書籍，
+        依 `ids` 的順序排列；未出現在結果中的編號代表書籍已刪除、下架或不公開，用戶端應自本機移除。不需登入。
+      security: []
+      parameters:
+        - in: query
+          name: ids
+          required: true
+          schema: { type: string }
+          description: 書籍編號，多筆以半形逗號分隔，最多採計 50 筆。
+          example: 42,17,8
+      responses:
+        '200':
+          description: 成功。不分頁。
           content:
             application/json:
               schema:
@@ -387,7 +425,8 @@ paths:
         調降售價且書籍狀態為 `on_sale` 時，伺服器以 `promotion` 類型的站內通知告知收藏此書的使用者
         （賣家本人除外），通知的 `related_type` 為 `book`。
 
-        賣家修改書名或描述時執行上架審核（規則同 `POST /api/books`）：明確違規回傳 422 `LISTING_REJECTED` 且不套用任何變更；
+        賣家修改售價、書名或描述時先套用即時規則審核（規則同 `POST /api/books`），符合時送審；
+        修改書名或描述且未觸發規則時，同步執行 AI 上架審核：明確違規回傳 422 `LISTING_REJECTED` 且不套用任何變更；
         需人工確認時書籍改為不公開並送審，回應附帶 `moderation`；審核中的書籍修改後判定通過則恢復公開。
         因違規下架的書籍不會轉為審核中。等待審核（`review_status: pending`）不視為違規，賣家仍可自行下架與重新上架，
         但審核通過前不會公開；審核駁回（`review_status: rejected`）視為違規。管理員編輯不執行審核。
@@ -634,7 +673,7 @@ components:
 
   responses:
     ListingRejected:
-      description: 上架審核判定明確違規，書籍未儲存（編輯時變更未套用）。
+      description: 編輯書籍或新增照片時，上架審核判定明確違規，變更未套用。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }

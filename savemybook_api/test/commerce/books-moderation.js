@@ -1,8 +1,10 @@
 const assert = require('assert');
 const {
   request, addUser, addBook, addImage, tokenFor, bookOf, prisma, reviewOf, notificationsOf, fetchLog,
-  enableModeration, stubModeration, failModeration
+  enableModeration, stubModeration, failModeration, api
 } = require('./harness');
+
+const screening = api('services/listing-screening');
 
 const seller = () => {
   const user = addUser({ nickname: '賣家' });
@@ -35,37 +37,49 @@ const tests = [
     assert.strictEqual(prisma.rows('ai_book_reviews').length, 0);
   }],
 
-  ['判定需人工審核時書籍不公開並送交審核', async () => {
+  ['上架不等待 AI 審核：先回應成功，背景判定需人工審核時撤下並通知賣家與管理員', async () => {
     const { user, token } = seller();
+    const admin = addUser({ nickname: '管理員', role: 'admin' });
     enableModeration();
     stubModeration({ verdict: 'review', confidence: 0.5, reasons: ['書名與描述疑似不符'], categories: ['misleading'] });
 
     const res = await create(token);
     assert.strictEqual(res.status, 201);
-    assert.strictEqual(res.body.message, '書籍已送交審核，審核通過後將公開販售');
-    assert.strictEqual(res.body.data.is_approved, false);
-    assert.strictEqual(res.body.data.review_status, 'pending');
-    assert.deepStrictEqual(res.body.moderation, { status: 'pending_review', reasons: ['書名與描述疑似不符'] });
+    assert.strictEqual(res.body.message, '書籍上架成功');
+    assert.strictEqual(res.body.data.is_approved, true);
+    assert.strictEqual(res.body.moderation, undefined);
 
-    const review = reviewOf(res.body.data.book_id);
+    await screening.settled();
+    const bookId = res.body.data.book_id;
+    assert.strictEqual(bookOf(bookId).is_approved, false);
+    const review = reviewOf(bookId);
     assert.strictEqual(review.status, 'pending');
     assert.strictEqual(review.verdict, 'review');
 
     const notice = notificationsOf(user.user_id)[0];
     assert.strictEqual(notice.title, '書籍已送交審核');
     assert.strictEqual(notice.content, '您的書籍《小王子》已送交審核，審核通過後將公開販售。');
+    const adminNotice = notificationsOf(admin.user_id)[0];
+    assert.strictEqual(adminNotice.related_type, 'book_review');
+    assert.strictEqual(adminNotice.content, '《小王子》需要人工審核：書名與描述疑似不符');
   }],
 
-  ['處理方式為封鎖且信心足夠時直接拒絕上架', async () => {
-    const { token } = seller();
+  ['處理方式為封鎖且信心足夠時，背景審核直接下架並通知賣家', async () => {
+    const { user, token } = seller();
     enableModeration({ action: 'block' });
     stubModeration({ verdict: 'reject', confidence: 0.95, reasons: ['非書籍商品', '疑似盜版'], categories: ['not_book'] });
 
     const res = await create(token);
-    assert.strictEqual(res.status, 422);
-    assert.strictEqual(res.body.code, 'LISTING_REJECTED');
-    assert.strictEqual(res.body.message, '此商品未通過上架審核：非書籍商品、疑似盜版');
-    assert.strictEqual(prisma.rows('books').length, 0);
+    assert.strictEqual(res.status, 201);
+    await screening.settled();
+
+    const book = bookOf(res.body.data.book_id);
+    assert.strictEqual(book.status, 'removed');
+    assert.strictEqual(book.is_approved, false);
+    assert.strictEqual(reviewOf(book.book_id).status, 'rejected');
+    const notice = notificationsOf(user.user_id)[0];
+    assert.strictEqual(notice.title, '書籍未通過上架審核');
+    assert.ok(notice.content.includes('非書籍商品、疑似盜版'));
   }],
 
   ['信心不足時即使判定違規也只送交人工審核', async () => {
@@ -74,19 +88,21 @@ const tests = [
     stubModeration({ verdict: 'reject', confidence: 0.5, reasons: ['疑似非書籍'], categories: ['not_book'] });
 
     const res = await create(token);
-    assert.strictEqual(res.status, 201);
-    assert.strictEqual(res.body.data.is_approved, false);
+    await screening.settled();
+    assert.strictEqual(bookOf(res.body.data.book_id).status, 'on_sale');
+    assert.strictEqual(bookOf(res.body.data.book_id).is_approved, false);
     assert.strictEqual(reviewOf(res.body.data.book_id).status, 'pending');
   }],
 
-  ['處理方式為人工審核時，違規判定不會直接拒絕', async () => {
+  ['處理方式為人工審核時，違規判定不會直接下架', async () => {
     const { token } = seller();
     enableModeration({ action: 'review' });
     stubModeration({ verdict: 'reject', confidence: 1, reasons: ['非書籍商品'], categories: ['not_book'] });
 
     const res = await create(token);
-    assert.strictEqual(res.status, 201);
-    assert.strictEqual(res.body.data.is_approved, false);
+    await screening.settled();
+    assert.strictEqual(bookOf(res.body.data.book_id).status, 'on_sale');
+    assert.strictEqual(bookOf(res.body.data.book_id).is_approved, false);
   }],
 
   ['服務商錯誤時採放行策略，不阻擋上架', async () => {
@@ -95,9 +111,9 @@ const tests = [
     failModeration(401);
 
     const res = await create(token);
+    await screening.settled();
     assert.strictEqual(res.status, 201);
-    assert.strictEqual(res.body.data.is_approved, true);
-    assert.strictEqual(res.body.moderation, undefined);
+    assert.strictEqual(bookOf(res.body.data.book_id).is_approved, true);
     assert.ok(screened() > 0, '應確實呼叫過服務商');
     assert.strictEqual(prisma.rows('ai_book_reviews').length, 0);
   }],
@@ -108,8 +124,54 @@ const tests = [
     stubModeration('不是 JSON');
 
     const res = await create(token);
+    await screening.settled();
+    assert.strictEqual(bookOf(res.body.data.book_id).is_approved, true);
+  }],
+
+  ['售價異常高時即時送審，不需 AI 也會通知管理員', async () => {
+    const { user, token } = seller();
+    const admin = addUser({ nickname: '管理員', role: 'admin' });
+
+    const res = await create(token, { price: 5000 });
     assert.strictEqual(res.status, 201);
-    assert.strictEqual(res.body.data.is_approved, true);
+    assert.strictEqual(res.body.message, '書籍已送交審核，審核通過後將公開販售');
+    assert.strictEqual(res.body.data.is_approved, false);
+    assert.deepStrictEqual(res.body.moderation.reasons, ['售價 5000 代幣明顯高於一般二手書行情']);
+    assert.strictEqual(screened(), 0);
+    assert.strictEqual(reviewOf(res.body.data.book_id).model, 'rules');
+    assert.strictEqual(notificationsOf(user.user_id)[0].title, '書籍已送交審核');
+    assert.strictEqual(notificationsOf(admin.user_id)[0].related_type, 'book_review');
+  }],
+
+  ['售價遠高於站上同 ISBN 書籍時送審，合理範圍內則正常上架', async () => {
+    const { token } = seller();
+    const other = addUser();
+    addBook({ sellerId: other.user_id, isbn: '9789571234567', price: 200 });
+    addBook({ sellerId: other.user_id, isbn: '9789571234567', price: 240 });
+
+    const high = await create(token, { isbn: '9789571234567', price: 900 });
+    assert.strictEqual(high.body.data.is_approved, false);
+    assert.deepStrictEqual(high.body.moderation.reasons, ['售價明顯高於站上同書行情（約 220 代幣）']);
+
+    const fair = await create(token, { isbn: '9789571234567', price: 350 });
+    assert.strictEqual(fair.body.data.is_approved, true);
+    assert.strictEqual(fair.body.moderation, undefined);
+  }],
+
+  ['描述提及圖書館館藏等非正規來源時送審', async () => {
+    const { token } = seller();
+    const res = await create(token, { description: '學校圖書館淘汰書，封底有館藏條碼' });
+    assert.strictEqual(res.body.data.is_approved, false);
+    assert.deepStrictEqual(res.body.moderation.reasons, ['疑似圖書館館藏或非正規來源書籍']);
+  }],
+
+  ['調高售價到異常價格時送審', async () => {
+    const { user, token } = seller();
+    const book = addBook({ sellerId: user.user_id, price: 300 });
+    const res = await request('PUT', `/api/books/${book.book_id}`, { token, body: { price: 8000 } });
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(bookOf(book.book_id).is_approved, false);
+    assert.strictEqual(reviewOf(book.book_id).status, 'pending');
   }],
 
   ['修改書名會重新送審', async () => {

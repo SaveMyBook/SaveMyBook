@@ -138,7 +138,8 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`TRANSFER_STATE_CHANGED\` | 409 | 請款已被付款、婉拒、取消或已到期 | 重新取得訊息以更新轉帳卡片 |
 | \`DISPUTE_WINDOW_PASSED\` | 400 | 訂單已完成取書超過 24 小時，依服務條款不可再提出爭議 | 隱藏申訴入口 |
 | \`BOOK_NOT_APPROVED\` | 403 | 書籍因違規下架，賣家無法自行重新上架 | 引導使用者開立客服工單 |
-| \`LISTING_REJECTED\` | 422 | 上架或編輯的內容未通過 AI 上架審核，資料未儲存 | 顯示 \`message\` 中的原因，引導使用者修改內容 |
+| \`BOOK_NOT_FOUND\` | 404 | 書籍不存在或已被刪除，或尚未公開且請求者不是賣家 | 自本機快取（最近瀏覽、收藏、購物車）移除該書並返回上一頁 |
+| \`LISTING_REJECTED\` | 422 | 編輯書籍或新增照片的內容未通過 AI 上架審核，變更未儲存 | 顯示 \`message\` 中的原因，引導使用者修改內容 |
 | \`AI_DISABLED\` | 503 | AI 功能目前未開放 | 隱藏 AI 功能入口 |
 | \`AI_NOT_CONFIGURED\` | 503 | 此 AI 功能使用的服務商尚未設定 API 金鑰 | 隱藏 AI 功能入口 |
 | \`AI_BUDGET_EXCEEDED\` | 503 | AI 功能本月用量已達上限 | 提示稍後再試 |

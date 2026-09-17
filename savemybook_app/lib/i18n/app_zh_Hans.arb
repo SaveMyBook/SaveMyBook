@@ -3547,5 +3547,9 @@
   "basicSettings": "基本设置",
   "eGBirthdayVoucher": "例如：生日礼券",
   "benefitDetails": "福利内容",
-  "addBenefit": "新增福利"
+  "addBenefit": "新增福利",
+  "bookNoLongerExistsBeenRemoved": "此书籍已不存在或已下架",
+  "myNicknameGroup": "我在群组的昵称",
+  "setGroupNickname": "设置群组昵称",
+  "allGroupMembersSeeNickname": "群组内所有成员都会看到此昵称"
 }

@@ -158,6 +158,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final statusFuture = AiStatus.refresh();
     if (!HomePreferences.showDiscovery.value) return;
     await RecentlyViewed.load();
+    await RecentlyViewed.refresh();
     final status = await statusFuture;
     if (!mounted) return;
     if (status.recommend && status.consented) {

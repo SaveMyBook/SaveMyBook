@@ -3547,5 +3547,9 @@
   "basicSettings": "Basic settings",
   "eGBirthdayVoucher": "e.g. Birthday voucher",
   "benefitDetails": "Benefit details",
-  "addBenefit": "Add benefit"
+  "addBenefit": "Add benefit",
+  "bookNoLongerExistsBeenRemoved": "This book no longer exists or has been removed.",
+  "myNicknameGroup": "My nickname in this group",
+  "setGroupNickname": "Set group nickname",
+  "allGroupMembersSeeNickname": "All group members will see this nickname."
 }

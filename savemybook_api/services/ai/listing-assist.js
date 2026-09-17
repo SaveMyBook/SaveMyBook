@@ -223,9 +223,27 @@ const sanitizePrice = (raw) => {
   };
 };
 
+const CONDITION_ALIASES = {
+  like_new: 'like_new', likenew: 'like_new', new: 'like_new', as_new: 'like_new', near_new: 'like_new', mint: 'like_new',
+  excellent: 'like_new', 近全新: 'like_new', 全新: 'like_new', 九成新: 'like_new',
+  good: 'good', very_good: 'good', 良好: 'good', 良: 'good', 八成新: 'good',
+  fair: 'fair', acceptable: 'fair', average: 'fair', used: 'fair', 普通: 'fair', 尚可: 'fair', 一般: 'fair',
+  poor: 'poor', damaged: 'poor', worn: 'poor', bad: 'poor', 待修補: 'poor', 破損: 'poor', 差: 'poor'
+};
+
+// 模型常把書況寫成中文標籤、大小寫或空白不同的代碼，甚至直接輸出字串，嚴格比對會讓書況整個被丟掉。
+const conditionLevelOf = (value) => {
+  const key = String(value ?? '').trim().toLowerCase().replace(/[（(].*$/, '').replace(/[\s-]+/g, '_');
+  const level = CONDITION_ALIASES[key];
+  return level && CONDITION_LEVELS.includes(level) ? level : null;
+};
+
 const sanitizeCondition = (raw, allowed) => {
-  if (!allowed || !raw || typeof raw !== 'object' || !CONDITION_LEVELS.includes(raw.level)) return null;
-  return { level: raw.level, confidence: clamp01(raw.confidence), reasons: stringList(raw.reasons, { max: 3, maxLength: 80 }) };
+  if (!allowed || !raw) return null;
+  const source = typeof raw === 'string' ? { level: raw } : typeof raw === 'object' ? raw : null;
+  const level = conditionLevelOf(source?.level);
+  if (!level) return null;
+  return { level, confidence: clamp01(source.confidence), reasons: stringList(source.reasons, { max: 3, maxLength: 80 }) };
 };
 
 const sanitizeFields = (raw) => {

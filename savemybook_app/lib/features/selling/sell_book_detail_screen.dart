@@ -158,10 +158,10 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   }
 
   List<String> get _aiImagePaths => [
-        for (final f in _slots)
-          if (f != null) f.path,
-        for (final f in _extra) f.path,
-      ].take(4).toList();
+    for (final f in _slots)
+      if (f != null) f.path,
+    for (final f in _extra) f.path,
+  ].take(4).toList();
 
   Future<void> _onAiAssist() async {
     if (_aiRunning || _isSubmitting) return;
@@ -173,12 +173,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       return;
     }
     setState(() => _aiRunning = true);
-    final result = await runAiListingAssist(
-      context,
-      isbn: widget.isbn,
-      title: widget.title,
-      imagePaths: images,
-    );
+    final result = await runAiListingAssist(context, isbn: widget.isbn, title: widget.title, imagePaths: images);
     if (!mounted) return;
     setState(() => _aiRunning = false);
     if (result == null) return;
@@ -236,7 +231,8 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       final price = '${step2['price'] ?? ''}';
       if (price.isNotEmpty && _priceController.text.isEmpty) _priceController.text = price;
       final condition = step2['condition'];
-      if (condition is String && AppLabels.condition.containsKey(condition)) {
+      // 草稿每次都會存書況（含預設值），只有明確選過才視為已調整，否則上一步帶入的 AI 書況會被忽略。
+      if (condition is String && AppLabels.condition.containsKey(condition) && step2['condition_touched'] == true) {
         _condition = condition;
         _conditionTouched = true;
       }
@@ -267,6 +263,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     SellDraft.saveSection('step2', {
       'price': _priceController.text.trim(),
       'condition': _condition,
+      'condition_touched': _conditionTouched,
       if (_cabinetTouched && _selectedCabinet != null) 'cabinet_id': _selectedCabinet,
       'slots': [for (final f in _slots) f?.path],
       'extra': [for (final f in _extra) f.path],
@@ -393,23 +390,26 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     if (!confirmed || !mounted) return;
     setState(() => _isSubmitting = true);
 
-    final outcome = await ApiService().createBook({
-      'title': widget.title,
-      'author': widget.author,
-      'publisher': widget.publisher,
-      'publish_date': widget.publishDate,
-      'isbn': widget.isbn,
-      'description': widget.description,
-      'category_id': widget.categoryId.toString(),
-      'price': '$price',
-      'condition_level': _condition,
-      'cabinet_id': '$_selectedCabinet',
-    }, [
-      ('cover_image', _slots[0]!.path),
-      ('back_image', _slots[1]!.path),
-      ('barcode_image', _slots[2]!.path),
-      for (final file in _extra) ('optional_images', file.path),
-    ]);
+    final outcome = await ApiService().createBook(
+      {
+        'title': widget.title,
+        'author': widget.author,
+        'publisher': widget.publisher,
+        'publish_date': widget.publishDate,
+        'isbn': widget.isbn,
+        'description': widget.description,
+        'category_id': widget.categoryId.toString(),
+        'price': '$price',
+        'condition_level': _condition,
+        'cabinet_id': '$_selectedCabinet',
+      },
+      [
+        ('cover_image', _slots[0]!.path),
+        ('back_image', _slots[1]!.path),
+        ('barcode_image', _slots[2]!.path),
+        for (final file in _extra) ('optional_images', file.path),
+      ],
+    );
     if (!mounted) return;
 
     if (outcome.isOk) {
@@ -476,49 +476,55 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                           const SizedBox(height: 12),
                           FadeSlideIn(
                             index: 1,
-                            child: AiFlash(trigger: _flash['condition'] ?? 0, child: FormRowCard(
-                              label: S.condition,
-                              labelWidth: 88,
-                              isRequired: true,
-                              child: AppSelect<String>(
-                                value: _condition,
-                                title: S.condition,
-                                options: [
-                                  for (final option in AppLabels.conditionOptions)
-                                    AppSelectOption(
-                                      value: option.value,
-                                      label: option.label,
-                                      icon: Icons.menu_book_rounded,
-                                      iconColor: c.conditionColor(option.value),
-                                    ),
-                                ],
-                                onChanged: (value) {
-                                  setState(() {
-                                    _condition = value;
-                                    _conditionTouched = true;
-                                  });
-                                  _saveDraftNow();
-                                },
+                            child: AiFlash(
+                              trigger: _flash['condition'] ?? 0,
+                              child: FormRowCard(
+                                label: S.condition,
+                                labelWidth: 88,
+                                isRequired: true,
+                                child: AppSelect<String>(
+                                  value: _condition,
+                                  title: S.condition,
+                                  options: [
+                                    for (final option in AppLabels.conditionOptions)
+                                      AppSelectOption(
+                                        value: option.value,
+                                        label: option.label,
+                                        icon: Icons.menu_book_rounded,
+                                        iconColor: c.conditionColor(option.value),
+                                      ),
+                                  ],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _condition = value;
+                                      _conditionTouched = true;
+                                    });
+                                    _saveDraftNow();
+                                  },
+                                ),
                               ),
-                            )),
+                            ),
                           ),
                           FadeSlideIn(
                             index: 2,
-                            child: AiFlash(trigger: _flash['price'] ?? 0, child: FormRowCard(
-                              label: S.customPrice,
-                              labelWidth: 88,
-                              isRequired: true,
-                              child: AppTextField(
-                                controller: _priceController,
-                                hint: S.enterPrice2,
-                                prefixText: '\$ ',
-                                errorText: _priceError,
-                                keyboardType: TextInputType.number,
-                                textInputAction: TextInputAction.done,
-                                inputFormatters: const [PriceInputFormatter(max: _maxPrice)],
-                                onChanged: (_) => setState(() {}),
+                            child: AiFlash(
+                              trigger: _flash['price'] ?? 0,
+                              child: FormRowCard(
+                                label: S.customPrice,
+                                labelWidth: 88,
+                                isRequired: true,
+                                child: AppTextField(
+                                  controller: _priceController,
+                                  hint: S.enterPrice2,
+                                  prefixText: '\$ ',
+                                  errorText: _priceError,
+                                  keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.done,
+                                  inputFormatters: const [PriceInputFormatter(max: _maxPrice)],
+                                  onChanged: (_) => setState(() {}),
+                                ),
                               ),
-                            )),
+                            ),
                           ),
                           FadeSlideIn(
                             index: 3,
@@ -600,7 +606,11 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                 child: Text(
                   '2 / 2',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 12, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.75),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -636,7 +646,10 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                         TextSpan(
                           text: S.bookPhotos,
                           children: [
-                            TextSpan(text: ' *', style: TextStyle(color: c.danger, fontWeight: FontWeight.bold)),
+                            TextSpan(
+                              text: ' *',
+                              style: TextStyle(color: c.danger, fontWeight: FontWeight.bold),
+                            ),
                           ],
                         ),
                         maxLines: 1,
@@ -670,8 +683,13 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                     padding: const EdgeInsets.only(right: 12),
                     child: SwitchIn(
                       child: _slots[i] == null
-                          ? _buildAddImageButton(c, _requiredLabels[i], () => _pickRequired(i),
-                              key: ValueKey('add$i'), isRequired: true)
+                          ? _buildAddImageButton(
+                              c,
+                              _requiredLabels[i],
+                              () => _pickRequired(i),
+                              key: ValueKey('add$i'),
+                              isRequired: true,
+                            )
                           : _buildImageItem(
                               c,
                               _requiredLabels[i],
@@ -836,11 +854,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isRequired ? c.danger : c.textHint,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(color: isRequired ? c.danger : c.textHint, fontSize: 12, fontWeight: FontWeight.w600),
           ),
         ),
       ],

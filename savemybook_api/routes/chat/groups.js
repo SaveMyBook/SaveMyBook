@@ -2,6 +2,7 @@ const express = require('express');
 const v = require('../../lib/validate');
 const { badRequest } = require('../../lib/errors');
 const groups = require('../../services/chat/groups');
+const members = require('../../services/chat/members');
 const { sendLimiter, CHAT_IMAGE_RE } = require('./limits');
 
 const router = express.Router();
@@ -64,6 +65,17 @@ router.patch('/groups/:roomId/members/:userId', async (req, res) => {
 
   const data = await groups.setRole(roomId, req.user.userId, userId, role);
   res.status(200).json({ success: true, message: role === 'owner' ? '已設為管理員' : '已解除管理員身分', data });
+});
+
+router.put('/groups/:roomId/members/:userId/nickname', async (req, res) => {
+  const roomId = v.id(req.params.roomId, '聊天室編號');
+  const userId = v.id(req.params.userId, '使用者編號');
+  const { nickname } = req.body ?? {};
+  if (nickname !== null && nickname !== undefined && typeof nickname !== 'string') throw badRequest('nickname 必須為字串');
+  const value = v.text(nickname ?? '', { label: '群組暱稱', max: members.MAX_GROUP_NICKNAME }) || null;
+
+  const data = await groups.setNickname(roomId, req.user.userId, userId, value);
+  res.status(200).json({ success: true, message: value ? '群組暱稱已更新' : '群組暱稱已移除', data });
 });
 
 router.delete('/groups/:roomId/members/:userId', async (req, res) => {

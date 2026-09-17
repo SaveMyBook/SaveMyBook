@@ -1188,7 +1188,8 @@ paths:
       operationId: setChatAlias
       tags: [chat]
       description: |
-        為指定使用者設定只有請求者看得到的顯示名稱，一對一與群組共用。
+        為指定使用者設定只有請求者看得到的顯示名稱，僅用於一對一聊天。群組內一律顯示群組暱稱
+        （`PUT /api/chat/groups/{roomId}/members/{userId}/nickname`），不套用個人暱稱。
         `alias` 為空字串或 `null` 時移除。前後空白會被去除，上限 30 字。
       security: [{ bearerAuth: [] }]
       parameters:
@@ -1509,6 +1510,78 @@ paths:
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
         '503': { $ref: '#/components/responses/ChatV2Unavailable' }
+
+  /api/chat/groups/{roomId}/members/{userId}/nickname:
+    put:
+      summary: 設定群組暱稱
+      operationId: setChatGroupNickname
+      tags: [chat]
+      description: |
+        設定成員在此群組的暱稱，群組內所有成員看到相同名稱（成員列表的 `alias` 與 `group_nickname`、
+        訊息列表 `meta.aliases`、聊天室列表最後一則訊息的 `sender_name`、新訊息通知的發送者名稱）。
+        成員可設定自己的群組暱稱；設定其他成員需為管理員（`owner`）。
+        `nickname` 為空字串或 `null` 時移除，前後空白會被去除，上限 30 字。成員退出或被移出群組時自動清除。
+        伺服器尚未執行 `migrations/018_chat_group_nickname.sql` 時回傳 503。
+        回傳更新後的聊天室資訊，格式與 `GET /api/chat/rooms/{roomId}` 相同。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema: { type: integer }
+          description: 群組的聊天室編號。
+          example: 21
+        - in: path
+          name: userId
+          required: true
+          schema: { type: integer }
+          description: 要設定暱稱的成員使用者編號，可為自己。
+          example: 31
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nickname]
+              properties:
+                nickname: { type: string, nullable: true, maxLength: 30, example: 讀書會小幫手 }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, enum: [群組暱稱已更新, 群組暱稱已移除], example: 群組暱稱已更新 }
+                  data: { $ref: '#/components/schemas/ChatRoomDetail' }
+        '400':
+          description: 暱稱超過 30 字、格式錯誤，或聊天室不是群組。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 群組暱稱不可超過 30 個字 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 設定其他成員的暱稱但不是管理員。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 僅群組管理員可設定其他成員的群組暱稱 }
+        '404':
+          description: 聊天室不存在，或對象不是現任成員。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 此使用者不是群組成員 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 伺服器尚未執行 018 遷移。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
 
   /api/chat/groups/{roomId}/members/{userId}:
     patch:

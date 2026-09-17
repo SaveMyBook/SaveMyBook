@@ -114,7 +114,7 @@ const memberRooms = (myId, v3) => (v3
       LEFT JOIN chat_room_pins p ON p.user_id = m.user_id AND p.room_id = m.room_id
       WHERE m.user_id = ${myId} AND m.left_at IS NULL`);
 
-const shapeRoom = (room, myId, { meta, muted, blocked, aliasMap, transfers, v3 }) => {
+const shapeRoom = (room, myId, { meta, muted, blocked, aliasMap, groupNicknames, transfers, v3 }) => {
   const group = meta?.room_type === 'group';
   const newest = room.chat_messages[0] ?? null;
   const last = group && !history.isVisible(history.floorOf(meta, v3), newest) ? null : newest;
@@ -141,7 +141,8 @@ const shapeRoom = (room, myId, { meta, muted, blocked, aliasMap, transfers, v3 }
           preview: codec.previewOf(last, { transfers }),
           payload: shaped.payload,
           sender_id: last.sender_id,
-          sender_name: aliasMap.get(last.sender_id) ?? last.users?.nickname ?? null,
+          sender_name: (group ? groupNicknames.get(`${room.room_id}:${last.sender_id}`) : aliasMap.get(last.sender_id))
+            ?? last.users?.nickname ?? null,
           is_read: last.is_read,
           created_at: last.created_at
         }
@@ -184,10 +185,13 @@ const list = async (myId) => {
     .filter((d) => d.kind === 'transfer')
     .map((d) => codec.transferIdOf(d.payload))
     .filter(Number.isSafeInteger);
-  const transfers = await transferRecords.byIds([...new Set(transferIds)]);
+  const [transfers, groupNicknames] = await Promise.all([
+    transferRecords.byIds([...new Set(transferIds)]),
+    members.groupNicknames(metaRows.filter((r) => r.room_type === 'group').map((r) => r.room_id))
+  ]);
 
   return rooms
-    .map((r) => shapeRoom(r, myId, { meta: metaById.get(r.room_id), muted, blocked, aliasMap, transfers, v3 }))
+    .map((r) => shapeRoom(r, myId, { meta: metaById.get(r.room_id), muted, blocked, aliasMap, groupNicknames, transfers, v3 }))
     .sort(byPinThenActivity);
 };
 
@@ -212,9 +216,16 @@ const detail = async (roomId, myId) => {
   ]);
   const aliasOf = (userId) => (userId === myId ? null : aliasMap.get(userId) ?? null);
 
+  // 群組內以群組暱稱為準（所有成員看到相同名稱）；個人暱稱只用於一對一聊天。
   const people = group
     ? memberRows.map((m) => ({
-        user_id: m.user_id, nickname: m.nickname, avatar_url: m.avatar_url, alias: aliasOf(m.user_id), role: m.role, joined_at: m.joined_at
+        user_id: m.user_id,
+        nickname: m.nickname,
+        avatar_url: m.avatar_url,
+        alias: m.group_nickname,
+        group_nickname: m.group_nickname,
+        role: m.role,
+        joined_at: m.joined_at
       }))
     : [room.users_chat_rooms_user_a_idTousers, room.users_chat_rooms_user_b_idTousers].map((u) => ({
         ...u, alias: aliasOf(u.user_id), role: 'member', joined_at: room.created_at

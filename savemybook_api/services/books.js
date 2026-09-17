@@ -9,6 +9,7 @@ const reservations = require('./reservations');
 const { notifyMany } = require('./notify');
 const moderation = require('./ai/moderation');
 const reviews = require('./ai/reviews');
+const screening = require('./listing-screening');
 const aiImages = require('./ai/images');
 
 const MAX_IMAGES_PER_BOOK = 10;
@@ -74,6 +75,8 @@ const recommended = async (viewerId, viewedIds, limit) => {
   return inIdOrder(ids, { status: 'on_sale', is_approved: true });
 };
 
+const briefs = (ids) => inIdOrder(ids, { status: { not: 'removed' }, is_approved: true });
+
 const findByShareToken = async (token, viewerId) => {
   if (!share.TOKEN_RE.test(token)) throw notFound('找不到此書籍');
   const book = await prisma.books.findFirst({
@@ -100,7 +103,7 @@ const shareLink = async (bookId, baseUrl) => {
 
 const detail = async (bookId, { viewerId, viewerKey }) => {
   const book = await prisma.books.findUnique({ where: { book_id: bookId }, include: detailInclude });
-  if (!book || (!book.is_approved && viewerId !== book.seller_id)) throw notFound('找不到該書籍');
+  if (!book || (!book.is_approved && viewerId !== book.seller_id)) throw notFound('找不到該書籍', 'BOOK_NOT_FOUND');
 
   if (viewerId !== book.seller_id && ranking.shouldCountView(bookId, viewerId ?? viewerKey)) {
     prisma.books.update({ where: { book_id: bookId }, data: { view_count: { increment: 1 } } }).catch(() => {});
@@ -127,31 +130,22 @@ const pendingReview = (decision) => ({ status: 'pending_review', reasons: decisi
 const create = async (data, images, { files = [] } = {}) => {
   await assertRefsExist({ categoryId: data.category_id, cabinetId: data.cabinet_id });
 
-  const decision = await moderation.screen({
-    userId: data.seller_id,
-    book: data,
-    loadImages: () => aiImages.fromUploads(files)
-  });
-  moderation.assertNotRejected(decision);
-  const held = decision.action === 'review';
-
+  const ruled = await screening.ruleDecision(data);
   const created = await prisma.$transaction(async (tx) => {
-    const row = await tx.books.create({ data: held ? { ...data, is_approved: false } : data });
+    const row = await tx.books.create({ data: ruled ? { ...data, is_approved: false } : data });
     if (images.length > 0) {
       await tx.book_images.createMany({
         data: images.map((img) => ({ ...img, book_id: row.book_id }))
       });
     }
-    if (held) {
-      await reviews.hold(tx, { bookId: row.book_id, decision });
-      await reviews.notifyHeld(tx, row);
-    }
+    if (ruled) await screening.hold(tx, row, ruled);
     return row;
   });
+  if (!ruled) screening.screenLater(created, files);
 
   return {
-    book: { ...created, review_status: held ? 'pending' : null },
-    moderation: held ? pendingReview(decision) : null
+    book: { ...created, review_status: ruled ? 'pending' : null },
+    moderation: ruled ? pendingReview(ruled) : null
   };
 };
 
@@ -222,13 +216,19 @@ const update = async (bookId, user, data) => {
   const changed = (field) => data[field] !== undefined && data[field] !== book[field];
   let plan = null;
   let decision = null;
-  if (!isAdmin && (changed('title') || changed('description'))) {
+  const textChanged = changed('title') || changed('description');
+  if (!isAdmin && (textChanged || (data.price !== undefined && Number(data.price) !== Number(book.price)))) {
     const merged = Object.fromEntries(Object.keys(book).map((k) => [k, data[k] !== undefined ? data[k] : book[k]]));
-    decision = await moderation.screen({
-      userId: user.userId,
-      book: merged,
-      loadImages: async () => aiImages.fromUrls(await firstImageUrls(bookId))
-    });
+    decision = await screening.ruleDecision(merged);
+    if (!decision && textChanged) {
+      decision = await moderation.screen({
+        userId: user.userId,
+        book: merged,
+        loadImages: async () => aiImages.fromUrls(await firstImageUrls(bookId))
+      });
+    }
+  }
+  if (decision) {
     moderation.assertNotRejected(decision);
     plan = await reviewPlan(book, decision);
     if (plan?.hold) data.is_approved = false;
@@ -243,7 +243,10 @@ const update = async (bookId, user, data) => {
     ? await prisma.$transaction(async (tx) => {
         const row = await write(tx);
         if (plan?.hold) await reviews.hold(tx, { bookId, decision });
-        if (plan?.hold && plan.notify) await reviews.notifyHeld(tx, row);
+        if (plan?.hold && plan.notify) {
+          await reviews.notifyHeld(tx, row);
+          await screening.notifyAdmins(tx, row, decision.reasons);
+        }
         if (plan?.release) await reviews.settle(tx, bookId);
         if (relist) await reviews.settle(tx, bookId, user.userId);
         return row;
@@ -297,7 +300,10 @@ const addImages = async (bookId, user, images, { files = [] } = {}) => {
       await insert(tx);
       await tx.books.update({ where: { book_id: bookId }, data: { is_approved: false, updated_at: new Date() } });
       await reviews.hold(tx, { bookId, decision });
-      if (plan.notify) await reviews.notifyHeld(tx, book);
+      if (plan.notify) {
+        await reviews.notifyHeld(tx, book);
+        await screening.notifyAdmins(tx, book, decision.reasons);
+      }
     });
   } else {
     await insert(prisma);
@@ -315,6 +321,6 @@ const removeImage = async (bookId, imageId, user) => {
 };
 
 module.exports = {
-  SORTS, listInclude, allowedStatuses, lookupIsbn, list, recommended, inIdOrder, findByShareToken, shareLink, detail, create,
+  SORTS, listInclude, allowedStatuses, lookupIsbn, list, recommended, briefs, inIdOrder, findByShareToken, shareLink, detail, create,
   update, remove, addImages, removeImage
 };

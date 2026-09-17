@@ -391,6 +391,24 @@ const tests = [
     const gone = await request('GET', `/api/books/share/${'b'.repeat(32)}`);
     assert.strictEqual(gone.status, 404);
     assert.strictEqual(gone.body.message, '找不到此書籍');
+  }],
+
+  ['批次取得書籍現況：依請求順序回傳，已刪除、下架或不公開的書不回傳', async () => {
+    const owner = addUser();
+    const a = addBook({ sellerId: owner.user_id });
+    const b = addBook({ sellerId: owner.user_id, status: 'sold' });
+    const removed = addBook({ sellerId: owner.user_id, status: 'removed' });
+    const hidden = addBook({ sellerId: owner.user_id, is_approved: false });
+
+    const res = await request('GET', `/api/books/briefs?ids=${b.book_id},999,${removed.book_id},${a.book_id},${hidden.book_id},x`);
+    assert.strictEqual(res.status, 200);
+    assert.deepStrictEqual(res.body.data.map((row) => row.book_id), [b.book_id, a.book_id]);
+  }],
+
+  ['書籍不存在時回傳 BOOK_NOT_FOUND', async () => {
+    const res = await request('GET', '/api/books/999');
+    assert.strictEqual(res.status, 404);
+    assert.strictEqual(res.body.code, 'BOOK_NOT_FOUND');
   }]
 ];
 

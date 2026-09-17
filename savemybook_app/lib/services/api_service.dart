@@ -26,6 +26,7 @@ import '../i18n/strings.dart';
 import 'ai_image_prep.dart';
 import 'device_identity.dart';
 import 'payment_key_store.dart';
+import 'recently_viewed.dart';
 
 part 'api/admin_cabinets_api.dart';
 part 'api/admin_commerce_api.dart';
@@ -98,6 +99,18 @@ class ApiService {
 
   static void _setBadge(ValueNotifier<int> notifier, int value) {
     notifier.value = value < 0 ? 0 : value;
+  }
+
+  // 書籍被刪除或下架後，本機仍保留的收藏、購物車與最近瀏覽紀錄會讓畫面操作到不存在的書。
+  static void forgetBook(int bookId) {
+    if (favoriteBookIds.value.contains(bookId)) {
+      favoriteBookIds.value = {...favoriteBookIds.value}..remove(bookId);
+    }
+    if (cartBookIds.value.contains(bookId)) {
+      cartBookIds.value = {...cartBookIds.value}..remove(bookId);
+      _setCartCount(cartCount.value - 1);
+    }
+    RecentlyViewed.remove(bookId);
   }
 
   static void resetGlobalState() {

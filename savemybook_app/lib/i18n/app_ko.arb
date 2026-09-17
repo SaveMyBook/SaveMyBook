@@ -3547,5 +3547,9 @@
   "basicSettings": "기본 설정",
   "eGBirthdayVoucher": "예: 생일 쿠폰",
   "benefitDetails": "혜택 내용",
-  "addBenefit": "혜택 추가"
+  "addBenefit": "혜택 추가",
+  "bookNoLongerExistsBeenRemoved": "이 도서는 존재하지 않거나 판매가 중지되었습니다.",
+  "myNicknameGroup": "이 그룹에서의 내 닉네임",
+  "setGroupNickname": "그룹 닉네임 설정",
+  "allGroupMembersSeeNickname": "그룹의 모든 멤버에게 이 닉네임이 표시됩니다."
 }

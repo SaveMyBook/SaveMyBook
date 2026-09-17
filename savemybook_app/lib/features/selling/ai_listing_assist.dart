@@ -494,7 +494,7 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
         if ((t.fields[key] ?? '').trim().isEmpty) key,
     };
     _category = _showCategory && t.categoryId == null;
-    _condition = _showCondition && !t.conditionTouched && t.condition != r.condition!.level;
+    _condition = _showCondition && t.condition != r.condition!.level;
     _price = _showPrice && (t.price == null || t.price! <= 0);
   }
 
