@@ -5,6 +5,7 @@ const { TICKET_STATUS_LABELS } = require('../constants/domain');
 const { hasPermission, adminIdsWith } = require('./admin-permissions');
 const { notify, notifyMany } = require('./notify');
 const audit = require('./audit');
+const attachments = require('./support-attachments');
 
 const MAX_OPEN_TICKETS = 5;
 
@@ -18,6 +19,11 @@ const notifySupportStaff = async (actorId, { title, content, ticketId }) => {
   }
 };
 
+// 只附圖片的回覆沒有文字內容，列表摘要改以固定字樣表示。
+const previewOf = (message) => message.content || '[圖片]';
+
+const withImages = (text, count) => (count > 0 ? `${text}，附 ${count} 張圖片。` : `${text}。`);
+
 const shapeTicket = (t) => ({
   ticket_id: t.ticket_id,
   subject: t.subject,
@@ -26,7 +32,7 @@ const shapeTicket = (t) => ({
   created_at: t.created_at,
   updated_at: t.updated_at,
   message_count: t._count?.messages ?? t.messages?.length ?? 0,
-  last_message: t.messages?.length ? t.messages[t.messages.length - 1].content : null,
+  last_message: t.messages?.length ? previewOf(t.messages[t.messages.length - 1]) : null,
   user: t.users
     ? { user_id: t.users.user_id, nickname: t.users.nickname, avatar_url: t.users.avatar_url }
     : null
@@ -65,6 +71,8 @@ const detail = async (ticketId, user) => {
     }
   });
 
+  const files = await attachments.forMessages(ticket.messages.map((m) => m.message_id));
+
   return {
     ...shapeTicket(ticket),
     messages: ticket.messages.map((m) => ({
@@ -72,12 +80,13 @@ const detail = async (ticketId, user) => {
       content: m.content,
       is_staff: m.is_staff,
       created_at: m.created_at,
-      sender: m.users
+      sender: m.users,
+      attachments: files.get(m.message_id) ?? []
     }))
   };
 };
 
-const open = async (userId, { subject, category, content }) => {
+const open = async (userId, { subject, category, content, attachmentUrls = [] }) => {
   const openCount = await prisma.support_tickets.count({
     where: { user_id: userId, status: { in: ['open', 'pending'] } }
   });
@@ -85,31 +94,35 @@ const open = async (userId, { subject, category, content }) => {
     throw badRequest(`您已有 ${MAX_OPEN_TICKETS} 則處理中的提問，請待客服回覆後再提出新問題`);
   }
 
-  const ticket = await prisma.support_tickets.create({
-    data: {
-      user_id: userId,
-      subject,
-      category,
-      messages: { create: { sender_id: userId, is_staff: false, content } }
-    }
+  await attachments.assertClaimable(userId, attachmentUrls);
+
+  const ticket = await prisma.$transaction(async (tx) => {
+    const created = await tx.support_tickets.create({ data: { user_id: userId, subject, category } });
+    const message = await tx.support_ticket_messages.create({
+      data: { ticket_id: created.ticket_id, sender_id: userId, is_staff: false, content }
+    });
+    await attachments.claim(tx, userId, attachmentUrls, message.message_id);
+    return created;
   });
 
   await notifySupportStaff(userId, {
     title: '新的客服工單',
-    content: `「${subject}」等待處理。`,
+    content: withImages(`「${subject}」等待處理`, attachmentUrls.length),
     ticketId: ticket.ticket_id
   });
   return ticket;
 };
 
-const reply = async (ticketId, user, content) => {
+const reply = async (ticketId, user, content, attachmentUrls = []) => {
   const { ticket, isStaff } = await findAccessibleTicket(ticketId, user);
   if (ticket.status === 'closed') throw badRequest('此提問已結案，請提出新問題');
+  await attachments.assertClaimable(user.userId, attachmentUrls);
 
   await prisma.$transaction(async (tx) => {
-    await tx.support_ticket_messages.create({
+    const message = await tx.support_ticket_messages.create({
       data: { ticket_id: ticketId, sender_id: user.userId, is_staff: isStaff, content }
     });
+    await attachments.claim(tx, user.userId, attachmentUrls, message.message_id);
 
     await tx.support_tickets.update({
       where: { ticket_id: ticketId },
@@ -130,7 +143,7 @@ const reply = async (ticketId, user, content) => {
   if (!isStaff) {
     await notifySupportStaff(user.userId, {
       title: '客服工單有新回覆',
-      content: `工單「${ticket.subject}」有新的回覆。`,
+      content: withImages(`工單「${ticket.subject}」有新的回覆`, attachmentUrls.length),
       ticketId
     });
   }
@@ -165,7 +178,7 @@ const adminList = async (status) => {
     created_at: t.created_at,
     updated_at: t.updated_at,
     message_count: t._count.messages,
-    last_message: t.messages[0]?.content ?? null,
+    last_message: t.messages[0] ? previewOf(t.messages[0]) : null,
     user: t.users
   }));
 };

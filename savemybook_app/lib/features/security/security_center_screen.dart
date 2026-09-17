@@ -46,6 +46,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   bool _passwordSet = true;
   int _identitiesTick = 0;
   bool _passkeySupported = false;
+  int _passkeysTick = 0;
   Future<void>? _loadingFuture;
 
   @override
@@ -185,7 +186,10 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                       : const LoadingView.menu()
                   : RefreshIndicator(
                       color: c.accent,
-                      onRefresh: _load,
+                      onRefresh: () {
+                        setState(() => _passkeysTick += 1);
+                        return _load();
+                      },
                       child: LayoutBuilder(builder: (context, constraints) => ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, bottom: 40),
@@ -204,7 +208,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                           const SizedBox(height: 24),
                           if (_status.passkeyAvailable && _passkeySupported) ...[
                             _sectionTitle(c, S.passkeys),
-                            FadeSlideIn(index: 4, child: PasskeysCard(onChanged: _load)),
+                            FadeSlideIn(index: 4, child: PasskeysCard(onChanged: _load, refreshTick: _passkeysTick)),
                             const SizedBox(height: 24),
                           ],
                           _sectionTitle(c, S.signMethod),

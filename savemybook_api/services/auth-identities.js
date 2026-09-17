@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 const passwordLib = require('../lib/password');
 const { signToken } = require('../lib/auth-token');
-const { badRequest, conflict, forbidden, notFound } = require('../lib/errors');
+const { HttpError, badRequest, conflict, forbidden, notFound } = require('../lib/errors');
 const settings = require('./auth-settings');
 const auth = require('./auth');
 const sessions = require('./sessions');
@@ -15,14 +15,20 @@ const LOGIN_USER_SELECT = {
   is_active: true, is_blacklisted: true, phone: true, deletion_requested_at: true
 };
 
-const linkRequired = () => conflict(
-  '此電子郵件已註冊，請先以密碼登入後，於帳號安全綁定此登入方式',
-  'ACCOUNT_EXISTS_LINK_REQUIRED'
+const emailHint = (email) => (email ? { provider_email: email } : undefined);
+
+const linkRequired = (email) => new HttpError(
+  409,
+  '此電子郵件已註冊，請登入該帳號以綁定此登入方式',
+  'ACCOUNT_EXISTS_LINK_REQUIRED',
+  emailHint(email)
 );
 
-const noAccountForProvider = (provider) => notFound(
+const noAccountForProvider = (provider, email = null) => new HttpError(
+  404,
   `此 ${settings.PROVIDER_LABELS[provider] ?? provider} 帳號尚未綁定任何帳號`,
-  'NO_ACCOUNT_FOR_PROVIDER'
+  'NO_ACCOUNT_FOR_PROVIDER',
+  emailHint(email)
 );
 
 const maskEmail = (email) => {
@@ -141,11 +147,11 @@ const resolveSignIn = async ({
     return { user, created: false };
   }
 
-  if (!create) throw noAccountForProvider(provider);
+  if (!create) throw noAccountForProvider(provider, info.email ?? null);
 
   const verifiedEmail = info.emailVerified ? info.email : null;
   if (verifiedEmail && (await prisma.users.findUnique({ where: { email: verifiedEmail }, select: { user_id: true } }))) {
-    throw linkRequired();
+    throw linkRequired(verifiedEmail);
   }
 
   const channel = await settings.channelOf(provider);
@@ -155,7 +161,7 @@ const resolveSignIn = async ({
   if (!email) {
     if (!fallbackEmail) throw badRequest('請提供電子郵件以建立帳號', 'EMAIL_REQUIRED');
     email = fallbackEmail;
-    if (await prisma.users.findUnique({ where: { email }, select: { user_id: true } })) throw linkRequired();
+    if (await prisma.users.findUnique({ where: { email }, select: { user_id: true } })) throw linkRequired(email);
   }
 
   const nickname = info.displayName || fallbackNickname || randomNickname();
@@ -164,7 +170,7 @@ const resolveSignIn = async ({
     return { user, created: true };
   } catch (err) {
     // 同一個 Email 或同一組 identity 併發建立時，改回請使用者以既有方式登入。
-    if (err?.code === 'P2002') throw linkRequired();
+    if (err?.code === 'P2002') throw linkRequired(email);
     throw err;
   }
 };

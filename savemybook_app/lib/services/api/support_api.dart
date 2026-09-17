@@ -21,20 +21,31 @@ extension SupportApi on ApiService {
     required String subject,
     required String category,
     required String content,
+    List<String> attachments = const [],
   }) async {
     final res = await _send('POST', '/support/tickets', body: {
       'subject': subject,
       'category': category,
       'content': content,
+      if (attachments.isNotEmpty) 'attachments': attachments,
     });
     if (res == null) return S.pleaseSignFirst;
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSend);
   }
 
-  Future<String?> replyTicket(int ticketId, String content) async {
-    final res = await _send('POST', '/support/tickets/$ticketId/messages', body: {'content': content});
+  Future<String?> replyTicket(int ticketId, String content, {List<String> attachments = const []}) async {
+    final res = await _send('POST', '/support/tickets/$ticketId/messages', body: {
+      'content': content,
+      if (attachments.isNotEmpty) 'attachments': attachments,
+    });
     if (res == null) return S.pleaseSignFirst;
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSend);
+  }
+
+  Future<(String?, String?)> uploadSupportImage(String filePath, {ValueChanged<double>? onProgress}) async {
+    final res = await _sendMultipart('/uploads/support-image', [('file', filePath)], onProgress: onProgress);
+    final url = res?['data'] is Map ? res!['data']['url'] as String? : null;
+    return url == null ? (null, res?['message'] as String? ?? S.uploadFailedTryAgainLater) : (url, null);
   }
 
   Future<String?> closeTicket(int ticketId) async {

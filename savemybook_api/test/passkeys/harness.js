@@ -3,6 +3,8 @@
 const crypto = require('crypto');
 
 process.env.PASSKEY_RP_ID = 'savemybook.today';
+process.env.LINE_CHANNEL_ID = 'line-channel-id';
+process.env.LINE_CHANNEL_SECRET = 'line-channel-secret';
 process.env.PASSKEY_ORIGINS = 'https://savemybook.today,android:apk-key-hash:47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU';
 
 const server = require('../lib/server');
@@ -66,7 +68,7 @@ const reset = ({ schema = FULL_SCHEMA, tables = {} } = {}) => {
     tables: {
       users: [], login_logs: [], user_sessions: [], user_security: [], user_identities: [], auth_settings: [],
       user_passkeys: [], webauthn_challenges: [], notifications: [], admin_permissions: [], admin_operation_logs: [],
-      push_devices: [], ...tables
+      push_devices: [], oauth_states: [], oauth_results: [], ...tables
     }
   });
 };
@@ -143,7 +145,8 @@ const FLAG_BS = 0x10;
 const FLAG_AT = 0x40;
 
 class Authenticator {
-  constructor({ rpId = RP_ID, origin = ORIGIN, backedUp = true } = {}) {
+  constructor({ rpId = RP_ID, origin = ORIGIN, backedUp = true, aaguid = null } = {}) {
+    this.aaguid = aaguid ? Buffer.from(aaguid.replace(/-/g, ''), 'hex') : Buffer.alloc(16);
     const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' });
     this.privateKey = privateKey;
     this.publicJwk = publicKey.export({ format: 'jwk' });
@@ -177,7 +180,7 @@ class Authenticator {
     if (attested) {
       const idLength = Buffer.alloc(2);
       idLength.writeUInt16BE(this.credentialId.length);
-      parts.push(Buffer.alloc(16), idLength, this.credentialId, Buffer.from(this.coseKey()));
+      parts.push(this.aaguid, idLength, this.credentialId, Buffer.from(this.coseKey()));
     }
     return Buffer.concat(parts);
   }

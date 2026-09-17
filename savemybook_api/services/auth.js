@@ -76,15 +76,16 @@ const issueLogin = async (user, device, method = 'password') => {
   return { token, deletion };
 };
 
-const login = async (email, plain, device) => {
+const verifyPassword = async (email, plain) => {
   const user = await prisma.users.findUnique({ where: { email } });
 
   if (!user) throw notFound('此 Email 尚未註冊', 'ACCOUNT_NOT_FOUND');
   if (!(await password.verify(plain, user.password_hash))) throw unauthorized('密碼錯誤', 'INVALID_PASSWORD');
   assertLoginAllowed(user);
-
-  return issueLogin(user, device, 'password');
+  return user;
 };
+
+const login = async (email, plain, device) => issueLogin(await verifyPassword(email, plain), device, 'password');
 
 const refreshFailed = () => unauthorized('登入已失效，請重新登入', 'REFRESH_FAILED');
 
@@ -116,5 +117,5 @@ const currentUser = async (userId) => {
 };
 
 module.exports = {
-  loadUser, accountProblem, sessionProblem, assertLoginAllowed, logLogin, issueLogin, login, refresh, currentUser
+  loadUser, accountProblem, sessionProblem, assertLoginAllowed, logLogin, issueLogin, verifyPassword, login, refresh, currentUser
 };

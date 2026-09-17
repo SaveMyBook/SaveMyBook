@@ -309,12 +309,14 @@ class AuthResult<T> {
   final T? data;
   final String? code;
   final String? error;
+  final String? providerEmail;
 
   const AuthResult.ok([this.data])
       : code = null,
-        error = null;
+        error = null,
+        providerEmail = null;
 
-  const AuthResult.fail(this.code, this.error) : data = null;
+  const AuthResult.fail(this.code, this.error, {this.providerEmail}) : data = null;
 
   AuthResult.of(String code) : this.fail(code, AuthCodes.messageOf(code));
 

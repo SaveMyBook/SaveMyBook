@@ -32,6 +32,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordFocus = FocusNode();
   final ApiService _apiService = ApiService();
 
   static const _lastEmailKey = 'last_login_email';
@@ -104,6 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
     SocialAuth.cancelOAuthWait();
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -487,6 +489,7 @@ class _LoginScreenState extends State<LoginScreen> {
           trigger: _shake,
           child: AppTextField(
           controller: _passwordController,
+          focusNode: _passwordFocus,
           label: S.password,
           hint: S.enterPassword,
           autofillHints: const [AutofillHints.password],
@@ -543,6 +546,7 @@ class _LoginScreenState extends State<LoginScreen> {
         child: PasskeySignInButton(
           disabled: _isLoading || _socialBusy != null,
           onSignedIn: _handlePasskeySignedIn,
+          onUsePassword: () => _passwordFocus.requestFocus(),
         ),
       ),
       if (SocialSignInSection.visibleIds(_providers).isNotEmpty) ...[

@@ -35,7 +35,8 @@ module.exports = {
       assert.strictEqual(res.status, 201);
       assert.strictEqual(res.body.message, '已新增通行密鑰');
       const [item] = res.body.data;
-      assert.deepStrictEqual(Object.keys(item).sort(), ['backed_up', 'created_at', 'device_label', 'last_used_at', 'passkey_id']);
+      assert.deepStrictEqual(Object.keys(item).sort(), ['authenticator', 'backed_up', 'created_at', 'device_label', 'last_used_at', 'passkey_id']);
+      assert.strictEqual(item.authenticator, null, '無法辨識的驗證器不猜測名稱');
       assert.ok(/^PK[0-9A-Z]{7}$/.test(item.passkey_id));
       assert.strictEqual(item.device_label, 'iPhone 17 Pro');
       assert.strictEqual(item.backed_up, true);
@@ -74,6 +75,78 @@ module.exports = {
       });
       assert.strictEqual(again.status, 409);
       assert.strictEqual(again.body.code, 'PASSKEY_ALREADY_REGISTERED');
+    }],
+
+    ['清單依 AAGUID 標示密碼管理工具，讓使用者分辨同步位置', async () => {
+      const ctx = h.signedIn();
+      await h.registerPasskey(ctx, { authenticator: new h.Authenticator({ aaguid: 'fbfc3007-154e-4ecc-8c0b-6e020557d7bd' }) });
+      await h.registerPasskey(ctx, { authenticator: new h.Authenticator({ aaguid: 'ea9b8d66-4d01-1d21-3ce4-b6b48cb575d4' }) });
+      await h.registerPasskey(ctx, { authenticator: new h.Authenticator({ backedUp: false }) });
+      const list = await request('GET', '/api/users/me/passkeys', { token: ctx.token });
+      assert.deepStrictEqual(list.body.data.map((i) => [i.authenticator, i.backed_up]), [
+        ['icloud_keychain', true], ['google_password_manager', true], [null, false]
+      ]);
+    }],
+
+    ['第三方密碼管理工具回傳帶補位或標準 base64 的編號時仍可註冊與登入', async () => {
+      const ctx = h.signedIn();
+      const authenticator = new h.Authenticator();
+      const options = await optionsFor(ctx);
+      const attestation = authenticator.create(options);
+      const padded = `${Buffer.from(authenticator.credentialId).toString('base64')}`;
+      attestation.id = padded;
+      attestation.rawId = padded;
+      const res = await request('POST', '/api/users/me/passkeys', { token: ctx.token, headers: h.sensitive(ctx), body: { attestation } });
+      assert.strictEqual(res.status, 201, res.text);
+      assert.strictEqual(prisma.rows('user_passkeys')[0].credential_id, authenticator.id);
+
+      const loginOptions = (await request('POST', '/api/auth/passkeys/login/options', { body: {} })).body.data.options;
+      const assertion = authenticator.get(loginOptions);
+      assertion.id = `${authenticator.id}=`;
+      assertion.rawId = padded;
+      assertion.response.userHandle = `${Buffer.from(h.api('lib/webauthn').userHandleFor(ctx.user.user_id)).toString('base64')}`;
+      const login = await request('POST', '/api/auth/passkeys/login', { body: { assertion } });
+      assert.strictEqual(login.status, 200, login.text);
+    }],
+
+    ['寫入失敗但不是重複憑證時不可誤報為「已經註冊」', async () => {
+      const ctx = h.signedIn();
+      const options = await optionsFor(ctx);
+      let fail = true;
+      prisma.onSql(/INSERT INTO user_passkeys/, () => {
+        if (!fail) return undefined;
+        throw Object.assign(new Error("Raw query failed. Code: `1406`. Message: `Data too long for column 'aaguid'`"), { code: 'P2010', meta: { code: '1406' } });
+      });
+      const originalError = console.error;
+      console.error = () => {};
+      try {
+        const res = await request('POST', '/api/users/me/passkeys', {
+          token: ctx.token, headers: h.sensitive(ctx), body: { attestation: new h.Authenticator().create(options) }
+        });
+        assert.strictEqual(res.status, 500);
+        assert.notStrictEqual(res.body.code, 'PASSKEY_ALREADY_REGISTERED');
+      } finally {
+        fail = false;
+        console.error = originalError;
+      }
+    }],
+
+    ['可重新命名通行密鑰，只能改自己的，名稱不可空白或超過 50 字', async () => {
+      const ctx = h.signedIn();
+      await h.registerPasskey(ctx, { label: 'iPhone' });
+      const code = publicId.encode('passkey', prisma.rows('user_passkeys')[0].passkey_id);
+      const rename = (token, body, id = code) => request('PATCH', `/api/users/me/passkeys/${id}`, { token, body });
+
+      const ok = await rename(ctx.token, { device_label: '  工作用 iPhone  ' });
+      assert.strictEqual(ok.status, 200, ok.text);
+      assert.strictEqual(ok.body.data[0].device_label, '工作用 iPhone');
+      assert.strictEqual(prisma.rows('user_passkeys')[0].device_label, '工作用 iPhone');
+
+      assert.strictEqual((await rename(ctx.token, { device_label: '   ' })).status, 400);
+      assert.strictEqual((await rename(ctx.token, { device_label: 'x'.repeat(51) })).status, 400);
+      const other = h.signedIn();
+      assert.strictEqual((await rename(other.token, { device_label: '偷改' })).status, 404);
+      assert.strictEqual((await rename(ctx.token, { device_label: 'A' }, String(prisma.rows('user_passkeys')[0].passkey_id))).status, 404);
     }],
 
     ['來源或 RP ID 不符、未經使用者驗證的 attestation 一律拒絕', async () => {

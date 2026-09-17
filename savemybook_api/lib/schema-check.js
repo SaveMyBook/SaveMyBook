@@ -83,7 +83,8 @@ const REQUIRED = [
   { migration: '014_auth_identities.sql', table: 'users', column: 'password_set' },
   { migration: '014_auth_identities.sql', table: 'login_logs', column: 'login_method' },
   { migration: '016_passkeys.sql', table: 'user_passkeys' },
-  { migration: '016_passkeys.sql', table: 'webauthn_challenges' }
+  { migration: '016_passkeys.sql', table: 'webauthn_challenges' },
+  { migration: '017_support_attachments.sql', table: 'support_ticket_attachments' }
 ];
 
 const missingSchema = async () => {

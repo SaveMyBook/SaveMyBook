@@ -3,7 +3,9 @@ const crypto = require('crypto');
 const { isoBase64URL } = require('@simplewebauthn/server/helpers');
 const { env } = require('../config/env');
 
-const CHALLENGE_TTL_MS = 5 * 60 * 1000;
+const OPTIONS_TIMEOUT_MS = 5 * 60 * 1000;
+// 須長於系統視窗的 timeout：使用者在視窗關閉前一刻完成驗證，加上網路往返仍要有效。
+const CHALLENGE_TTL_MS = 10 * 60 * 1000;
 const RANDOM_BYTES = 32;
 const TAG_BYTES = 16;
 const SUPPORTED_ALGORITHMS = [-7, -257];
@@ -58,10 +60,15 @@ const clientDataOf = (response) => {
   }
 };
 
+// 部分第三方密碼管理工具回傳帶 = 補位或標準 base64 的編號，比對與查詢前一律轉成無補位的 base64url。
+const canonicalBase64URL = (value) => (typeof value === 'string'
+  ? value.trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  : value);
+
 const isBase64URL = (value, max = 4096) =>
   typeof value === 'string' && value.length > 0 && value.length <= max && isoBase64URL.isBase64URL(value);
 
 module.exports = {
-  CHALLENGE_TTL_MS, SUPPORTED_ALGORITHMS, config, isConfigured, createChallenge, challengeMatches,
-  userHandleFor, userHandleText, fakeCredentialId, clientDataOf, isBase64URL
+  OPTIONS_TIMEOUT_MS, CHALLENGE_TTL_MS, SUPPORTED_ALGORITHMS, config, isConfigured, createChallenge, challengeMatches,
+  userHandleFor, userHandleText, fakeCredentialId, clientDataOf, canonicalBase64URL, isBase64URL
 };

@@ -64,6 +64,13 @@ extension PasskeysApi on ApiService {
     return PasskeyOutcome.ok(_mapList(res, PasskeyItem.fromJson));
   }
 
+  Future<PasskeyOutcome<List<PasskeyItem>>> renamePasskey(String passkeyId, String label) async {
+    final res = await _send('PATCH', '/users/me/passkeys/${Uri.encodeComponent(passkeyId)}', body: {'device_label': label});
+    if (res == null) return PasskeyOutcome.fail('SIGNED_OUT', S.pleaseSignFirst);
+    if (res['success'] != true) return _passkeyFailure(res);
+    return PasskeyOutcome.ok(_mapList(res, PasskeyItem.fromJson));
+  }
+
   Future<PasskeyOutcome<List<PasskeyItem>>> deletePasskey(String passkeyId) async {
     final res = await _send('DELETE', '/users/me/passkeys/${Uri.encodeComponent(passkeyId)}');
     if (res == null) return PasskeyOutcome.fail('SIGNED_OUT', S.pleaseSignFirst);

@@ -1,0 +1,21 @@
+# -*- coding: utf-8 -*-
+T = {
+    '登入並綁定': ('Sign in and link', 'ログインして連携', '로그인 후 연결', '登入并绑定'),
+    '登入既有帳號': ('Sign in to your account', '既存のアカウントにログイン', '기존 계정에 로그인', '登入既有账号'),
+    '此電子郵件已註冊，登入後即綁定 $name。': ('This email is already registered. Sign in to link $name.', 'このメールアドレスは登録済みです。ログインすると $name が連携されます。', '이미 등록된 이메일입니다. 로그인하면 $name이(가) 연결됩니다.', '此电子邮件已注册，登入后即绑定 $name。'),
+    '登入後即綁定 $name，之後可直接使用 $name 登入。': ('Sign in to link $name. You can then sign in with $name directly.', 'ログインすると $name が連携され、次回から $name でログインできます。', '로그인하면 $name이(가) 연결되며 이후 $name(으)로 바로 로그인할 수 있습니다.', '登入后即绑定 $name，之后可直接使用 $name 登入。'),
+    '此裝置沒有可用的通行密鑰': ('No passkey on this device', 'このデバイスに使用できるパスキーがありません', '이 기기에 사용할 수 있는 패스키가 없습니다', '此装置没有可用的通行密钥'),
+    '可使用其他裝置上的通行密鑰或安全金鑰登入，或改用密碼。': ('Sign in with a passkey on another device or a security key, or use your password.', '別のデバイスのパスキーまたはセキュリティキーでログインするか、パスワードをご利用ください。', '다른 기기의 패스키 또는 보안 키로 로그인하거나 비밀번호를 사용하세요.', '可使用其他装置上的通行密钥或安全密钥登入，或改用密码。'),
+    '使用其他裝置': ('Use another device', '別のデバイスを使用', '다른 기기 사용', '使用其他装置'),
+    '改用密碼': ('Use password', 'パスワードを使用', '비밀번호 사용', '改用密码'),
+    'iCloud 鑰匙圈': ('iCloud Keychain', 'iCloud キーチェーン', 'iCloud 키체인', 'iCloud 钥匙串'),
+    'Google 密碼管理工具': ('Google Password Manager', 'Google パスワード マネージャー', 'Google 비밀번호 관리자', 'Google 密码管理工具'),
+    '已同步': ('Synced', '同期済み', '동기화됨', '已同步'),
+    '未同步': ('Not synced', '未同期', '동기화되지 않음', '未同步'),
+    '已有可用的通行密鑰': ('You already have a passkey', '使用できるパスキーがあります', '사용 가능한 패스키가 이미 있습니다', '已有可用的通行密钥'),
+    '請輸入名稱': ('Enter a name', '名前を入力してください', '이름을 입력하세요', '请输入名称'),
+    '通行密鑰已儲存在 iCloud 鑰匙圈，登入同一 Apple 帳號的裝置皆可使用，無須重複新增。如需另外建立，請按「再次新增」並在系統視窗改選其他密碼管理工具或安全金鑰。': ('Your passkey is saved in iCloud Keychain and works on every device signed in to the same Apple Account, so there is no need to add it again. To create another one, tap "Add again" and choose a different password manager or a security key in the system window.', 'パスキーは iCloud キーチェーンに保存されており、同じ Apple アカウントでサインインしているすべてのデバイスで使用できるため、再度追加する必要はありません。別のパスキーを作成するには「もう一度追加」をタップし、システムの画面で別のパスワード マネージャーまたはセキュリティキーを選択してください。', '패스키가 iCloud 키체인에 저장되어 있어 같은 Apple 계정으로 로그인한 모든 기기에서 사용할 수 있으므로 다시 추가할 필요가 없습니다. 별도로 만들려면 "다시 추가"를 누른 후 시스템 창에서 다른 비밀번호 관리자나 보안 키를 선택하세요.', '通行密钥已储存在 iCloud 钥匙串，登入同一 Apple 账号的装置皆可使用，无须重复新增。如需另外建立，请按「再次新增」并在系统窗口改选其他密码管理工具或安全密钥。'),
+    '通行密鑰已儲存在 Google 密碼管理工具，登入同一 Google 帳號的裝置皆可使用，無須重複新增。如需另外建立，請按「再次新增」並在系統視窗改選其他密碼管理工具或安全金鑰。': ('Your passkey is saved in Google Password Manager and works on every device signed in to the same Google Account, so there is no need to add it again. To create another one, tap "Add again" and choose a different password manager or a security key in the system window.', 'パスキーは Google パスワード マネージャーに保存されており、同じ Google アカウントでログインしているすべてのデバイスで使用できるため、再度追加する必要はありません。別のパスキーを作成するには「もう一度追加」をタップし、システムの画面で別のパスワード マネージャーまたはセキュリティキーを選択してください。', '패스키가 Google 비밀번호 관리자에 저장되어 있어 같은 Google 계정으로 로그인한 모든 기기에서 사용할 수 있으므로 다시 추가할 필요가 없습니다. 별도로 만들려면 "다시 추가"를 누른 후 시스템 창에서 다른 비밀번호 관리자나 보안 키를 선택하세요.', '通行密钥已储存在 Google 密码管理工具，登入同一 Google 账号的装置皆可使用，无须重复新增。如需另外建立，请按「再次新增」并在系统窗口改选其他密码管理工具或安全密钥。'),
+    '通行密鑰已儲存在此裝置的密碼管理工具，登入同一帳號的裝置皆可使用，無須重複新增。如需另外建立，請按「再次新增」並在系統視窗改選其他密碼管理工具或安全金鑰。': ('Your passkey is saved in this device\'s password manager and works on every device signed in to the same account, so there is no need to add it again. To create another one, tap "Add again" and choose a different password manager or a security key in the system window.', 'パスキーはこのデバイスのパスワード マネージャーに保存されており、同じアカウントでログインしているすべてのデバイスで使用できるため、再度追加する必要はありません。別のパスキーを作成するには「もう一度追加」をタップし、システムの画面で別のパスワード マネージャーまたはセキュリティキーを選択してください。', '패스키가 이 기기의 비밀번호 관리자에 저장되어 있어 같은 계정으로 로그인한 모든 기기에서 사용할 수 있으므로 다시 추가할 필요가 없습니다. 별도로 만들려면 "다시 추가"를 누른 후 시스템 창에서 다른 비밀번호 관리자나 보안 키를 선택하세요.', '通行密钥已储存在此装置的密码管理工具，登入同一账号的装置皆可使用，无须重复新增。如需另外建立，请按「再次新增」并在系统窗口改选其他密码管理工具或安全密钥。'),
+    '再次新增': ('Add again', 'もう一度追加', '다시 추가', '再次新增'),
+}

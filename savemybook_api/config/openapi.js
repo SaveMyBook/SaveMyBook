@@ -148,8 +148,8 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`AI_UNAVAILABLE\` | 503 | 伺服器尚未執行 AI 功能所需的資料庫更新 011 | 隱藏 AI 功能入口 |
 | \`INVALID_ID_TOKEN\` | 401 | 第三方登入憑證無效、過期或簽章不符 | 重新取得登入憑證後再試 |
 | \`PROVIDER_MISMATCH\` | 400 | 登入憑證的實際來源與請求的 \`provider\` 不符 | 檢查 App 的登入流程 |
-| \`NO_ACCOUNT_FOR_PROVIDER\` | 404 | 此第三方帳號尚未綁定任何帳號，且請求未帶 \`create\` | 詢問使用者要先登入綁定、建立新帳號，還是取消 |
-| \`ACCOUNT_EXISTS_LINK_REQUIRED\` | 409 | 該電子郵件已有帳號，但尚未綁定此登入方式 | 引導以密碼登入後於帳號安全綁定 |
+| \`NO_ACCOUNT_FOR_PROVIDER\` | 404 | 此第三方帳號尚未綁定任何帳號，且請求未帶 \`create\`；可能附帶 \`provider_email\` | 詢問使用者要登入既有帳號並綁定（\`POST /api/auth/social/link-login\`）、建立新帳號，還是取消 |
+| \`ACCOUNT_EXISTS_LINK_REQUIRED\` | 409 | 該電子郵件已有帳號，但尚未綁定此登入方式；附帶 \`provider_email\` | 在登入流程中請使用者登入該帳號，以 \`POST /api/auth/social/link-login\` 綁定並登入 |
 | \`EMAIL_REQUIRED\` | 400 | 第三方未提供已驗證的電子郵件，無法建立帳號 | 收集電子郵件與暱稱後以相同憑證重送 |
 | \`SIGN_IN_METHOD_DISABLED\` | 403 | 該登入方式目前未開放，或伺服器未設定其憑證 | 隱藏該登入按鈕 |
 | \`SIGNUP_NOT_ALLOWED\` | 403 | 該登入方式僅供既有帳號使用 | 提示改以既有方式登入後再綁定 |
@@ -168,7 +168,7 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`PASSKEY_NOT_RECOGNIZED\` | 400 | 伺服器沒有這組通行密鑰，可能已刪除 | 提示改用密碼，並請使用者至系統設定移除該通行密鑰 |
 | \`PASSKEY_COUNTER_REGRESSED\` | 400 | 通行密鑰的簽章計數倒退，疑似遭複製 | 提示改用密碼並檢查帳號安全 |
 | \`PASSKEY_NOT_REGISTERED\` | 400 | 帳號尚未註冊通行密鑰 | 改用登入密碼驗證 |
-| \`PASSKEY_ALREADY_REGISTERED\` | 409 | 這組通行密鑰已經註冊 | 重新載入清單 |
+| \`PASSKEY_ALREADY_REGISTERED\` | 409 | 這組通行密鑰已經註冊 | 重新載入清單，並說明同一個密碼管理工具已有通行密鑰 |
 | \`PASSKEY_LIMIT\` | 400 | 通行密鑰已達 10 組上限 | 引導刪除不再使用的裝置 |
 | \`BOOK_IN_TRANSACTION\` | 409 | 管理員刪除書籍時，書籍交易中或有進行中的預約 | 提示先處理交易或預約 |
 | \`BOOK_HAS_ORDERS\` | 409 | 管理員刪除書籍時，書籍已有訂單紀錄 | 改用強制下架 |
@@ -191,14 +191,14 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 
 | 端點 | 上限 |
 | --- | --- |
-| \`POST /api/auth/login\` | 同 IP 與 Email 組合 15 分鐘 10 次；同 IP 15 分鐘 100 次 |
+| \`POST /api/auth/login\`、\`POST /api/auth/social/link-login\` | 同 IP 與 Email 組合 15 分鐘合計 10 次；同 IP 15 分鐘合計 100 次 |
 | \`POST /api/auth/refresh\` | 同 IP 15 分鐘 60 次 |
-| \`POST /api/auth/social\`、\`POST /api/auth/oauth/{provider}/start\`、\`POST /api/auth/oauth/exchange\` | 同 IP 15 分鐘合計 30 次 |
+| \`POST /api/auth/social\`、\`POST /api/auth/social/link-login\`、\`POST /api/auth/oauth/{provider}/start\`、\`POST /api/auth/oauth/exchange\` | 同 IP 15 分鐘合計 30 次 |
 | \`POST /api/auth/link\`、\`POST /api/auth/password/set\` | 每位使用者 15 分鐘合計 20 次 |
 | \`POST /api/security/verify\`、\`POST /api/security/verify/passkey/options\` | 每位使用者 15 分鐘合計 30 次 |
 | \`POST /api/auth/passkeys/login/options\` | 同 IP 15 分鐘 60 次 |
 | \`POST /api/auth/passkeys/login\` | 同 IP 15 分鐘 30 次 |
-| \`POST /api/users/me/passkeys/options\`、\`POST /api/users/me/passkeys\` | 每位使用者 15 分鐘合計 20 次 |
+| \`POST /api/users/me/passkeys/options\`、\`POST /api/users/me/passkeys\`、\`PATCH /api/users/me/passkeys/{id}\` | 每位使用者 15 分鐘合計 20 次 |
 | \`POST /api/users\` | 同 IP 每小時 30 次 |
 | \`PUT /api/users/me/password\`、\`POST /api/users/me/deletion\` | 每位使用者 15 分鐘 10 次 |
 | \`POST /api/uploads\` | 每位使用者 10 分鐘 30 次 |

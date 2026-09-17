@@ -28,10 +28,20 @@ tags:
       | 登入 | `POST /api/auth/passkeys/login/options` | `POST /api/auth/passkeys/login` |
       | 新增通行密鑰 | `POST /api/users/me/passkeys/options` | `POST /api/users/me/passkeys` |
       | 身分驗證 | `POST /api/security/verify/passkey/options` | `POST /api/security/verify`（`method: passkey`） |
+      | 登入既有帳號並綁定社群登入 | `POST /api/auth/passkeys/login/options` | `POST /api/auth/social/link-login`（帶 `assertion`） |
+
+      ## 同一個密碼管理工具只能有一組
+
+      `excludeCredentials` 會列出帳號已註冊的所有憑證。同步型通行密鑰（iCloud 鑰匙圈、Google 密碼管理工具）
+      已可在同一 Apple／Google 帳號的其他裝置使用，因此在同一個密碼管理工具再建立一組時，系統會拒絕
+      （iOS 18 以上為 `ASAuthorizationError` 1006，Android 為 `InvalidStateError`）。
+      使用者仍可在系統視窗選擇其他密碼管理工具或安全金鑰另建一組。
 
       ## 安全規則
 
-      - 挑戰值 5 分鐘內有效且只能使用一次；無論驗證成功與否，提交後即作廢。
+      - options 的 `timeout` 為 5 分鐘；挑戰值 10 分鐘內有效，讓使用者在系統視窗逾時前一刻完成時仍可送出。
+        挑戰值只能使用一次，無論驗證成功與否，提交後即作廢。
+      - 憑證編號、`rawId` 與 `userHandle` 帶有 `=` 補位或為標準 base64 時，伺服器先轉為無補位的 base64url 再比對。
       - 挑戰值綁定用途（登入、註冊、身分驗證）、驗證範圍與使用者，不能跨用途或跨範圍使用，
         例如以 `sensitive` 取得的挑戰值無法換發 `admin` 權杖。
       - 一律要求使用者驗證（`userVerification: required`），並檢查來源與 RP ID。
@@ -54,7 +64,7 @@ tags:
       | `PASSKEY_UNAVAILABLE` | 503 | 伺服器尚未完成通行密鑰的設定或資料庫更新 |
       | `PASSKEY_INVALID_RESPONSE` | 400 | 送出的憑證資料格式不正確 |
       | `PASSKEY_CHALLENGE_INVALID` | 400 | 挑戰值不存在、已使用，或用途、範圍、使用者不符 |
-      | `PASSKEY_CHALLENGE_EXPIRED` | 400 | 挑戰值已超過 5 分鐘 |
+      | `PASSKEY_CHALLENGE_EXPIRED` | 400 | 挑戰值已超過 10 分鐘 |
       | `PASSKEY_VERIFICATION_FAILED` | 400 | 簽章、來源、RP ID 或使用者驗證未通過 |
       | `PASSKEY_NOT_RECOGNIZED` | 400 | 伺服器沒有這組憑證（可能已刪除），或不屬於目前使用者 |
       | `PASSKEY_COUNTER_REGRESSED` | 400 | 簽章計數倒退，疑似憑證遭複製 |
@@ -73,8 +83,14 @@ tags:
 x-passkey-schemas: &passkeyItem
   type: object
   properties:
-    passkey_id: { type: string, description: 加密編號，用於刪除。, example: PK3M7Q2XA }
+    passkey_id: { type: string, description: 加密編號，用於重新命名與刪除。, example: PK3M7Q2XA }
     device_label: { type: string, nullable: true, maxLength: 50, example: iPhone 17 Pro }
+    authenticator:
+      type: string
+      nullable: true
+      description: 依 AAGUID 辨識的密碼管理工具；無法辨識時為 `null`。
+      enum: [icloud_keychain, google_password_manager, samsung_pass, 1password, bitwarden, dashlane, chrome_mac, windows_hello]
+      example: icloud_keychain
     created_at: { type: string, format: date-time }
     last_used_at: { type: string, format: date-time, nullable: true }
     backed_up: { type: boolean, description: 是否已同步至雲端鑰匙圈或密碼管理器。, example: true }
@@ -348,6 +364,64 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
 
   /api/users/me/passkeys/{id}:
+    patch:
+      summary: 重新命名通行密鑰
+      operationId: renamePasskey
+      tags: [passkeys]
+      description: |
+        更新清單中顯示的名稱，不需身分驗證。與新增通行密鑰合計，每位使用者 15 分鐘內最多 20 次。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+          description: 通行密鑰的加密編號（`passkey_id`）。
+          example: PK3M7Q2XA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_label]
+              properties:
+                device_label: { type: string, minLength: 1, maxLength: 50, example: 工作用 iPhone }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已更新名稱 }
+                  data:
+                    type: array
+                    items: *passkeyItem
+        '400':
+          description: 名稱空白或超過 50 字。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 請輸入名稱 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/TokenInvalid' }
+        '404':
+          description: 通行密鑰不存在或不屬於請求者。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到此通行密鑰，可能已經刪除 }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 伺服器尚未啟用通行密鑰。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
     delete:
       summary: 刪除通行密鑰
       operationId: deletePasskey
