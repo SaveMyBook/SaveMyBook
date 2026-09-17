@@ -1,0 +1,47 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 13
+left to right direction
+title 使用個案圖：交易與訂單模組
+
+actor 買家 as Buyer
+actor 賣家 as Seller
+actor 管理員 as Admin
+
+rectangle "SaveMyBook 系統" {
+  usecase "加入購物車" as UC1
+  usecase "結帳(確認訂單)" as UC2
+  usecase "身分驗證(交易密碼/\n生物辨識)" as UC3
+  usecase "查看訂單列表/明細" as UC4
+  usecase "賣家存書至智慧書櫃" as UC5
+  usecase "買家掃碼取書" as UC6
+  usecase "確認取書完成" as UC7
+  usecase "取消訂單" as UC8
+  usecase "提出訂單申訴" as UC9
+  usecase "查看待撥款項/\n銷售紀錄" as UC10
+  usecase "管理員仲裁申訴" as UC11
+  usecase "管理員調整訂單狀態" as UC12
+  usecase "選擇智慧書櫃據點" as UC13
+}
+
+Buyer --> UC1
+Buyer --> UC2
+UC2 ..> UC3 : <<include>>
+UC2 ..> UC13 : <<include>>
+Buyer --> UC4
+Buyer --> UC6
+Buyer --> UC7
+Buyer --> UC8
+Buyer --> UC9
+
+Seller --> UC5
+Seller --> UC4
+Seller --> UC8
+Seller --> UC9
+Seller --> UC10
+
+Admin --> UC11
+Admin --> UC12
+UC11 ..> UC12 : <<include>>（裁決後金流異動）
+@enduml

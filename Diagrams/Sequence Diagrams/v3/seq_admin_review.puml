@@ -1,0 +1,59 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：管理員審核書籍與處理檢舉
+
+actor 管理員 as Admin
+participant "AdminBookScreen /\nAdminReportScreen" as UI
+participant "ApiService\n(AdminCommerceApi)" as ApiSvc
+participant "GET /admin/ai/reviews" as ListRoute
+participant "PATCH /admin/ai/reviews/:id" as DecideRoute
+participant "ai/reviews.js" as ReviewsSvc
+participant "PATCH /admin/content/books/:id" as ReportRoute
+participant "reports.js" as ReportsSvc
+participant "requireAdmin中介層" as Guard
+database "Prisma / MariaDB" as DB
+
+Admin -> UI : 開啟「AI待審書籍」佇列
+UI -> ApiSvc : fetchAiReviews()
+ApiSvc -> Guard : requireAdmin('can_manage_content')
+Guard -> ListRoute : 通過
+ListRoute -> ReviewsSvc : adminList('pending')
+ReviewsSvc -> DB : 查詢 ai_book_reviews + 書籍卡片
+ReviewsSvc --> UI : 待審清單（含AI判定理由）
+
+Admin -> UI : 選擇「核准」或「駁回」
+UI -> ApiSvc : decideAiReview(bookId, decision, note)
+ApiSvc -> DecideRoute : PATCH /admin/ai/reviews/:id
+DecideRoute -> ReviewsSvc : decide(bookId, {decision, note}, admin)
+alt decision = approve
+  ReviewsSvc -> DB : books.update(is_approved=true)\n（若原removed則恢復on_sale）
+  ReviewsSvc -> DB : ai_book_reviews.status='approved'
+else decision = reject
+  ReviewsSvc -> DB : books.update(is_approved=false)\n（若原on_sale則轉removed）
+  ReviewsSvc -> DB : ai_book_reviews.status='rejected'
+end
+ReviewsSvc -> DB : notify 賣家 + audit.record()
+ReviewsSvc --> UI : 200 完成
+
+== 檢舉處理 ==
+Admin -> UI : 開啟檢舉列表
+UI -> ApiSvc : fetchAdminReports()
+ApiSvc -> ReportRoute : GET /admin/moderation/reports
+ReportRoute -> ReportsSvc : list(filter)
+ReportsSvc --> UI : 檢舉案件列表
+
+Admin -> UI : 標記檢舉為「成立」並處置
+UI -> ApiSvc : resolveReport(reportId, status='resolved')
+ApiSvc -> ReportRoute : PATCH /admin/moderation/reports/:id
+ReportRoute -> ReportsSvc : resolve(reportId, admin)
+ReportsSvc -> DB : reports.update(status='resolved')
+note right
+  status='resolved' 之檢舉
+  會使該書進入 violationLocked，
+  賣家無法自行重新上架，
+  須管理員或AI複核處理。
+end note
+ReportsSvc --> UI : 200 完成
+@enduml

@@ -1,0 +1,75 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 13
+skinparam linetype ortho
+hide circle
+hide empty methods
+skinparam ranksep 60
+skinparam nodesep 40
+skinparam class {
+  BackgroundColor White
+  BorderColor #444444
+  ArrowColor #555555
+}
+
+title 錢包與會員成長模組 ER 圖
+
+entity "wallets\n會員錢包表" as wallets {
+  * wallet_id : INT
+  + user_id : INT
+  - balance : DECIMAL(12, 2)
+  - frozen_amount : DECIMAL(12, 2)
+  - total_income : DECIMAL(12, 2)
+  - total_expense : DECIMAL(12, 2)
+  - updated_at : DATETIME
+}
+
+entity "wallet_transactions\n錢包交易紀錄表" as wallet_transactions {
+  * txn_id : INT
+  + wallet_id : INT
+  - type : ENUM
+  - amount : DECIMAL(12, 2)
+  - balance_after : DECIMAL(12, 2)
+  + related_order_id : INT
+  - description : VARCHAR(255)
+  - created_at : DATETIME
+}
+
+entity "member_levels\n會員等級定義表" as member_levels {
+  * level_id : INT
+  - level_name : VARCHAR(50)
+  - min_points : INT
+  - max_points : INT
+  - benefits : TEXT
+}
+
+entity "achievements\n成就定義表" as achievements {
+  * achievement_id : INT
+  - achievement_name : VARCHAR(100)
+  - description : TEXT
+  - icon_url : VARCHAR(500)
+  - condition_type : VARCHAR(50)
+  - condition_value : INT
+  - created_at : DATETIME
+}
+
+entity "user_achievements\n使用者成就紀錄表" as user_achievements {
+  * user_achievement_id : INT
+  + user_id : INT
+  + achievement_id : INT
+  - achieved_at : DATETIME
+}
+
+entity "referral_records\n邀請紀錄表" as referral_records {
+  * referral_id : INT
+  + inviter_id : INT
+  + invitee_id : INT
+  - reward_amount : DECIMAL(10, 2)
+  - status : ENUM
+  - created_at : DATETIME
+}
+
+wallets ||--o{ wallet_transactions : "wallet_id"
+achievements ||--o{ user_achievements : "achievement_id"
+@enduml

@@ -1,0 +1,30 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 13
+title 書籍商品狀態機（books.status）
+
+[*] --> on_sale : 賣家上架\n(books.create)
+
+on_sale --> reserved : 買家結帳成功\n(checkout：鎖定防雙賣)
+reserved --> sold : 買家完成取書\n(訂單轉 completed，settlement.settle)
+reserved --> on_sale : 訂單取消／退款\n(訂單轉 cancelled／refunded，釋放書籍)
+
+on_sale --> removed : 賣家自行下架\n(books.remove)
+removed --> on_sale : 賣家重新上架\n(books.relist，需未被違規鎖定)
+
+on_sale --> removed : AI／規則審核駁回\n(listing-screening.applyLater／ai/reviews.decide)
+removed --> on_sale : AI複核通過\n(ai/reviews.decide('approve'))
+
+on_sale --> removed : 管理員強制下架\n(books-admin.adminSetStatus)
+removed --> on_sale : 管理員恢復上架\n(books-admin.adminSetStatus，同步 is_approved=true)
+
+sold --> [*]
+
+note right of reserved
+  「違規鎖定」書籍（is_approved=false
+  且非待審中，或遭已成立檢舉）
+  不可由賣家自行改回 on_sale，
+  須由管理員或AI複核處理。
+end note
+@enduml

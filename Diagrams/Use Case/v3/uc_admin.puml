@@ -1,0 +1,65 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 13
+left to right direction
+title 使用個案圖：後台管理模組
+
+actor 管理員 as Admin
+
+rectangle "SaveMyBook 系統" {
+  usecase "審核AI上架待審書籍" as UC1
+  usecase "管理書籍/分類" as UC2
+  usecase "處理檢舉案件" as UC3
+  usecase "仲裁交易申訴" as UC4
+  usecase "管理訂單狀態" as UC5
+  usecase "管理會員帳號\n(停權/黑名單/角色)" as UC6
+  usecase "管理會員等級制度" as UC7
+  usecase "管理智慧書櫃據點/格位" as UC8
+  usecase "管理系統公告" as UC9
+  usecase "管理常見問題/\n法律文件" as UC10
+  usecase "管理客服工單" as UC11
+  usecase "管理錢包(手動調整)" as UC12
+  usecase "設定AI功能與用量監控" as UC13
+  usecase "設定登入方式\n(啟用/停用第三方登入)" as UC14
+  usecase "資料庫備份與還原" as UC15
+  usecase "管理待刪除帳號" as UC16
+  usecase "查看後台操作日誌/\n復原(Undo)" as UC17
+  usecase "管理後台管理員權限" as UC18
+  usecase "查看系統統計數據" as UC19
+}
+
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+Admin --> UC4
+Admin --> UC5
+Admin --> UC6
+Admin --> UC7
+Admin --> UC8
+Admin --> UC9
+Admin --> UC10
+Admin --> UC11
+Admin --> UC12
+Admin --> UC13
+Admin --> UC14
+Admin --> UC15
+Admin --> UC16
+Admin --> UC17
+Admin --> UC18
+Admin --> UC19
+
+UC2 ..> UC17 : <<include>>
+UC5 ..> UC17 : <<include>>
+UC6 ..> UC17 : <<include>>
+UC9 ..> UC17 : <<include>>
+UC11 ..> UC17 : <<include>>
+
+note bottom of UC18
+  無權限資料列的管理員
+  預設除「系統設定」外
+  全部權限開啟；
+  can_manage_system
+  須由其他管理員手動授予。
+end note
+@enduml

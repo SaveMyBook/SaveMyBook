@@ -1,0 +1,72 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：註冊與登入（含第三方登入與 Passkey）
+
+actor 使用者 as User
+participant "LoginScreen /\nRegisterScreen" as UI
+participant "ApiService\n(AuthApi/AuthSocialApi/PasskeysApi)" as ApiSvc
+participant "POST /api/auth/*" as Route
+participant "auth.js" as AuthSvc
+participant "auth-identities.js" as IdentitySvc
+participant "Firebase" as Firebase
+participant "passkeys.js" as PasskeySvc
+database "Prisma / MariaDB" as DB
+
+alt 帳號密碼登入
+  User -> UI : 輸入 Email/密碼
+  UI -> ApiSvc : login(email, password)
+  ApiSvc -> Route : POST /api/auth/login
+  Route -> AuthSvc : login(email, password)
+  AuthSvc -> DB : users.findUnique({email})
+  AuthSvc -> AuthSvc : password.verify() / assertLoginAllowed()
+  alt 驗證失敗
+    AuthSvc --> UI : 401 Unauthorized
+  else 成功
+    AuthSvc -> AuthSvc : issueLogin(user, device)
+    AuthSvc -> DB : sessions.create() + login_logs.create()
+    AuthSvc -> AuthSvc : signToken(JWT)
+    AuthSvc --> UI : 200 { token, user }
+  end
+
+else 第三方登入（Google/Apple）
+  User -> UI : 點擊「使用Google/Apple登入」
+  UI -> Firebase : 原生SDK取得 idToken
+  Firebase --> UI : idToken
+  UI -> ApiSvc : socialSignIn(provider, idToken)
+  ApiSvc -> Route : POST /api/auth/social
+  Route -> Firebase : verifyIdToken(idToken, provider)
+  Firebase --> Route : 驗證後之使用者資訊
+  Route -> IdentitySvc : signIn(provider, subject, info)
+  IdentitySvc -> DB : 查詢 user_identities(provider, subject)
+  alt 已有對應帳號
+    IdentitySvc -> DB : touchIdentity()
+    IdentitySvc --> UI : 登入既有帳號
+  else email 已存在但綁定其他登入方式
+    IdentitySvc --> UI : 409 ACCOUNT_EXISTS_LINK_REQUIRED
+    UI -> UI : 顯示「連結既有帳號/建立新帳號」選擇
+  else 無對應帳號
+    IdentitySvc -> DB : users.create() + user_identities.insert()
+    IdentitySvc --> UI : 登入新建立帳號
+    UI -> UI : 導向 SocialProfileScreen（補完暱稱/頭像）
+  end
+  AuthSvc -> AuthSvc : issueLogin(user, device, provider)
+
+else Passkey 登入
+  User -> UI : 點擊 Passkey 登入
+  UI -> ApiSvc : passkeyLoginOptions(email)
+  ApiSvc -> PasskeySvc : loginOptions(email)
+  PasskeySvc --> UI : challenge + allowCredentials
+  UI -> UI : 系統喚起 WebAuthn（Face ID/指紋/裝置金鑰）
+  UI -> ApiSvc : passkeyLogin(assertion)
+  ApiSvc -> PasskeySvc : login(assertion)
+  PasskeySvc -> PasskeySvc : verifyAssertion()\n(比對challenge/簽章/sign_count)
+  alt sign_count 倒退（疑似複製金鑰）
+    PasskeySvc --> UI : 拒絕，通知使用者
+  else 驗證通過
+    PasskeySvc -> AuthSvc : issueLogin(user, device, 'passkey')
+    PasskeySvc --> UI : 200 { token, user }
+  end
+end
+@enduml

@@ -1,0 +1,60 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：敏感操作二次驗證（payment／sensitive／admin）
+
+actor 使用者 as User
+participant "IdentityVerificationSheet" as UI
+participant "VerificationService" as VS
+participant "ApiService(SecurityApi)" as ApiSvc
+participant "POST /api/security/verify" as VerifyRoute
+participant "services/security.js" as SecSvc
+participant "受保護端點\n(如 /orders/checkout)" as ProtectedRoute
+participant "verification中介層" as MW
+
+User -> UI : 觸發敏感操作（付款/綁定第三方/後台設定等）
+UI -> VS : requirePayment() / requireSensitive() / requireAdminPassword()
+VS -> VS : 依範圍決定允許方式：\npayment=交易密碼/生物辨識\nsensitive=登入密碼/通行密鑰/交易密碼/生物辨識\nadmin=登入密碼/通行密鑰
+VS -> UI : 依序嘗試：生物辨識(若可用) → 通行密鑰(若已註冊) → 對應面板
+
+alt 使用交易密碼(PIN)
+  User -> UI : 輸入6碼交易密碼
+  UI -> ApiSvc : verify({scope, method:'pin', pin})
+else 使用登入密碼
+  User -> UI : 輸入登入密碼
+  UI -> ApiSvc : verify({scope, method:'password', password})
+else 使用生物辨識
+  UI -> UI : 本機生物辨識(biometricOnly)+ 已存的pay_key
+  UI -> ApiSvc : verify({scope, method:'key', key})
+else 使用通行密鑰
+  UI -> ApiSvc : verify({scope, method:'passkey', assertion})
+end
+
+ApiSvc -> VerifyRoute : POST /api/security/verify
+VerifyRoute -> SecSvc : 檢查method是否屬於該scope允許清單
+alt 密碼錯誤/PIN錯誤/未設定
+  SecSvc --> UI : 400 INVALID_PASSWORD / INVALID_PIN / 403 PASSWORD_NOT_SET
+else 驗證通過
+  SecSvc -> SecSvc : 簽發verify_token(JWT，含typ:'verify'、\nuid、sid、scope、method、jti)
+  SecSvc --> UI : { verify_token, scope, expires_in }
+end
+
+UI -> ApiSvc : 重送原請求（帶 X-Verify-Token）
+ApiSvc -> ProtectedRoute : 原請求 + header X-Verify-Token
+ProtectedRoute -> MW : requireVerification(scope)
+MW -> MW : 檢查token有效期/使用者/工作階段/scope/method是否吻合
+alt 驗證通過
+  MW --> ProtectedRoute : 放行
+  ProtectedRoute --> UI : 200 完成
+  note right: payment權杖為單次使用；\nsensitive/admin可於有效期內重複使用
+else 驗證缺失或不符
+  MW --> UI : 403 VERIFICATION_REQUIRED { scope, methods }
+end
+
+note right of SecSvc
+  payment權杖使用後才消耗；若受保護請求
+  以4xx/5xx結束，權杖恢復可用，
+  避免使用者因操作失敗而重新驗證一次。
+end note
+@enduml

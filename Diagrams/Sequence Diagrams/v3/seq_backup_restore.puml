@@ -1,0 +1,62 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：資料庫備份、短時效下載連結與還原
+
+actor 管理員 as Admin
+participant "AdminBackupScreen" as UI
+participant "ApiService(AdminSystemApi)" as ApiSvc
+participant "POST /admin/backups/:id/download-link" as LinkRoute
+participant "GET /api/backup-downloads/:ticket" as DownloadRoute
+participant "POST /admin/backups/:id/restore" as RestoreRoute
+participant "services/backup.js" as BackupSvc
+participant "jobs/scheduler.js" as Scheduler
+database "db_backups /\nBACKUP_DIR" as Store
+
+== 排程自動備份（每小時檢查一次）==
+Scheduler -> BackupSvc : 距上次成功備份滿24小時？
+BackupSvc -> BackupSvc : mysqldump（密碼以0600暫存檔傳入,\n不出現在命令列）→ gzip壓縮
+BackupSvc -> Store : 寫入 savemybook-<時間>.sql.gz
+BackupSvc -> Store : db_backups.insert(trigger='schedule')
+BackupSvc -> Store : 僅保留最新14份成功備份
+
+== 產生一次性下載連結 ==
+Admin -> UI : 選擇備份，點擊「取得下載連結」
+UI -> UI : requireAdminPassword()
+UI -> ApiSvc : createBackupDownloadLink(backupId)
+ApiSvc -> LinkRoute : POST /admin/backups/:id/download-link
+LinkRoute -> BackupSvc : issueDownloadTicket(backupId)
+BackupSvc -> BackupSvc : 產生32位元組隨機票證，\n僅存SHA-256雜湊於行程記憶體
+BackupSvc --> UI : { url, expires_at, expires_in:300 }
+UI -> Admin : 顯示「5分鐘內有效且僅能使用一次」提示
+
+Admin -> DownloadRoute : GET /api/backup-downloads/:ticket（不需登入）
+DownloadRoute -> BackupSvc : 驗證票證（先刪除再檢查，僅能用一次）
+alt 逾時/不存在/管理員已停權或失去system權限
+  BackupSvc --> Admin : 410 DOWNLOAD_LINK_EXPIRED
+else 有效
+  BackupSvc -> Store : 讀取備份檔
+  BackupSvc --> Admin : 檔案串流下載
+  BackupSvc -> Store : audit.record("下載資料庫備份（含全站個資）")
+end
+
+== 還原（需管理員登入密碼）==
+Admin -> UI : 選擇備份，點擊「還原」並輸入登入密碼
+UI -> ApiSvc : restoreBackup(backupId, password)
+ApiSvc -> RestoreRoute : POST /admin/backups/:id/restore
+RestoreRoute -> BackupSvc : restore(backupId)
+BackupSvc -> BackupSvc : 先建立pre_restore安全備份
+BackupSvc -> BackupSvc : 進入維護模式（除GET /api/status外\n全部回應503 MAINTENANCE）
+BackupSvc -> Store : 背景匯入備份檔（mysql用戶端）
+BackupSvc -> Store : db_backups.insert(trigger='pre_restore')
+BackupSvc -> BackupSvc : 結束維護模式
+BackupSvc -> Store : audit.record("還原資料庫備份")
+BackupSvc --> UI : 202 Accepted
+UI -> UI : 每2秒輪詢 GET /api/status 顯示進度
+
+note right of BackupSvc
+  備份與還原以單一鎖互斥，
+  衝突時回應409。
+end note
+@enduml

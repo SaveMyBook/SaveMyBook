@@ -1,0 +1,70 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：通行密鑰（Passkey/WebAuthn）註冊與登入
+
+actor 使用者 as User
+participant "PasskeysCard /\nPasskeySignInButton" as UI
+participant "ApiService(PasskeysApi)" as ApiSvc
+participant "POST /api/users/me/passkeys/options" as OptRoute
+participant "POST /api/users/me/passkeys" as RegRoute
+participant "POST /api/auth/passkeys/login" as LoginRoute
+participant "services/passkeys.js" as PasskeySvc
+participant "@simplewebauthn/server" as WebAuthn
+database "user_passkeys /\nwebauthn_challenges" as DB
+
+== 註冊（需登入 + sensitive 驗證）==
+User -> UI : 點擊「新增通行密鑰」
+UI -> UI : VerificationService.requireSensitive()
+UI -> ApiSvc : passkeyRegistrationOptions()
+ApiSvc -> OptRoute : POST .../passkeys/options
+OptRoute -> PasskeySvc : registrationOptions(userId)
+PasskeySvc -> PasskeySvc : 檢查已註冊數 < 10（否則400 PASSKEY_LIMIT）
+PasskeySvc -> WebAuthn : generateRegistrationOptions()\n(residentKey=required, userVerification=required)
+PasskeySvc -> DB : webauthn_challenges.insert(purpose='register')
+PasskeySvc --> UI : 註冊選項(challenge, excludeCredentials)
+UI -> UI : 系統喚起裝置建立金鑰(Face ID/指紋/螢幕鎖)
+UI -> ApiSvc : registerPasskey(attestation, device_label)
+ApiSvc -> RegRoute : POST /api/users/me/passkeys
+RegRoute -> PasskeySvc : register(userId, attestation)
+PasskeySvc -> DB : 消耗挑戰值(先刪除再檢查purpose/user/HMAC)
+PasskeySvc -> WebAuthn : verifyRegistrationResponse()
+alt 驗證失敗或憑證已存在
+  PasskeySvc --> UI : 400/409 錯誤
+else 成功
+  PasskeySvc -> DB : user_passkeys.insert(credential_id, public_key,\nsign_count, aaguid, transports)
+  PasskeySvc -> DB : notify「已新增通行密鑰」
+  PasskeySvc --> UI : 201 最新清單
+end
+
+== 登入（探索式，公開端點）==
+User -> UI : 點擊「使用通行密鑰登入」
+UI -> ApiSvc : passkeyLoginOptions()（不帶email）
+ApiSvc -> LoginRoute : POST /api/auth/passkeys/login/options
+LoginRoute -> PasskeySvc : loginOptions()
+PasskeySvc -> DB : webauthn_challenges.insert(purpose='login')
+PasskeySvc --> UI : 挑戰值(由系統列出本機可用金鑰)
+UI -> UI : 系統喚起生物辨識/螢幕鎖
+UI -> ApiSvc : passkeyLogin(assertion)
+ApiSvc -> LoginRoute : POST /api/auth/passkeys/login
+LoginRoute -> PasskeySvc : login(assertion)
+PasskeySvc -> DB : 消耗挑戰值 → 依credential_id查詢
+PasskeySvc -> WebAuthn : verifyAuthenticationResponse()
+alt 簽章計數倒退（sign_count未增加）
+  PasskeySvc -> DB : 記錄安全事件 + 發送「通行密鑰驗證異常」通知
+  PasskeySvc --> UI : 400 PASSKEY_COUNTER_REGRESSED
+else 驗證成功
+  PasskeySvc -> DB : 更新sign_count/backed_up/last_used_at
+  PasskeySvc -> PasskeySvc : issueLogin(user, device, 'passkey')
+  PasskeySvc --> UI : 200 { token, user }
+end
+
+note right of DB
+  帳號列舉防護：登入選項帶email時，
+  查無帳號一律回傳以該email HMAC
+  推導的固定假憑證，回應結構與
+  真實帳號一致，避免被用來探測
+  帳號是否存在。
+end note
+@enduml

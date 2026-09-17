@@ -1,0 +1,56 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：群組聊天建立、管理與@提及
+
+actor 發起人 as Owner
+actor 群組成員 as Member
+participant "CreateGroupScreen /\nChatRoomSettingsScreen" as UI
+participant "ApiService(ChatApi)" as ApiSvc
+participant "POST /groups" as CreateRoute
+participant "PATCH /groups/:roomId/members/:userId" as RoleRoute
+participant "services/chat/groups.js" as GroupSvc
+participant "services/chat/mentions.js" as MentionSvc
+database "chat_rooms / chat_room_members /\nchat_mentions" as DB
+
+Owner -> UI : 建立群組（名稱、選擇成員≤50人）
+UI -> ApiSvc : createChatGroup(name, memberIds)
+ApiSvc -> CreateRoute : POST /groups
+CreateRoute -> GroupSvc : create(owner, name, members)
+GroupSvc -> DB : chat_rooms.insert(room_type='group', created_by=owner)
+GroupSvc -> DB : chat_room_members.insertMany(role='owner'/'member',\nhistory_from_id=目前最新訊息編號)
+GroupSvc -> DB : 發送「群組已建立」系統訊息
+GroupSvc --> UI : 201 room_id
+
+Owner -> UI : 於群組設定變更成員角色
+UI -> ApiSvc : setChatMemberRole(roomId, userId, 'owner')
+ApiSvc -> RoleRoute : PATCH /groups/:roomId/members/:userId
+RoleRoute -> GroupSvc : setRole(actor, target, role)
+alt 操作者非管理員 或 欲移除唯一管理員
+  GroupSvc --> UI : 403 / 拒絕
+else 成功
+  GroupSvc -> DB : chat_room_members.update(role)
+  GroupSvc -> DB : 發送系統訊息通知全體成員
+end
+
+Member -> UI : 於群組輸入 @ 觸發成員選單
+UI -> UI : chat_mention_controller偵測@並顯示ChatMentionPanel
+Member -> UI : 選擇成員並送出訊息
+UI -> ApiSvc : sendChatMessage(content, mentions=[{user_id,start,length}])
+ApiSvc -> MentionSvc : mentionsOf(content, mentions)
+MentionSvc -> MentionSvc : 檢查每則1~60字、不重疊、\n對象須為有效成員（0=全體）
+MentionSvc -> DB : chat_messages.mentions(JSON) + chat_mentions.insertMany
+MentionSvc -> DB : 被提及者 mention_unread=true，\n通知「暱稱 提及了您：…」
+
+== 最後一位管理員離開 ==
+Owner -> UI : 離開群組
+UI -> ApiSvc : leaveChatGroup(roomId)
+ApiSvc -> GroupSvc : leave(userId, roomId)
+alt 為最後一位管理員且群組尚有其他成員
+  GroupSvc -> DB : 指派加入最久的成員為新管理員
+else 為最後一位成員
+  GroupSvc -> DB : 刪除聊天室與所有訊息
+end
+GroupSvc -> DB : 清除該成員之chat_room_pins/chat_room_mutes設定
+@enduml

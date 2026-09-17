@@ -1,0 +1,43 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：取消(下架)/重新上架書籍
+
+actor 賣家 as Seller
+participant "BookManageScreen /\nSalesHistoryScreen" as UI
+participant "ApiService(BooksApi)" as ApiSvc
+participant "DELETE /api/books/:id" as DelRoute
+participant "PATCH relist" as RelistRoute
+participant "books.js" as BooksSvc
+database "Prisma / MariaDB" as DB
+
+Seller -> UI : 點擊「下架」
+UI -> UI : showConfirmDialog(確認下架)
+UI -> ApiSvc : removeBook(bookId)
+ApiSvc -> DelRoute : DELETE /api/books/:id
+DelRoute -> BooksSvc : remove(bookId, user)
+BooksSvc -> BooksSvc : findOwnedBook(bookId, user)
+alt book.status == 'reserved'
+  BooksSvc --> DelRoute : 409「請先處理訂單再下架」
+  DelRoute --> UI : 顯示錯誤
+else 可下架
+  BooksSvc -> DB : books.update(status='removed')
+  BooksSvc --> DelRoute : 200 OK
+  DelRoute --> UI : 顯示下架成功 + Undo提示
+end
+
+opt 使用者點擊「復原/Undo」
+  Seller -> UI : 點擊 Undo
+  UI -> ApiSvc : relistBook(bookId)
+  ApiSvc -> RelistRoute : PATCH /api/books/:id/relist
+  RelistRoute -> BooksSvc : update(bookId, user, {status:'on_sale'})
+  BooksSvc -> BooksSvc : violationLocked(book)?
+  alt 未被違規鎖定
+    BooksSvc -> DB : books.update(status='on_sale')
+    BooksSvc --> UI : 200 重新上架成功
+  else 違規鎖定中
+    BooksSvc --> UI : 403 BOOK_NOT_APPROVED（須聯絡客服）
+  end
+end
+@enduml

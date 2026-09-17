@@ -1,0 +1,48 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 13
+left to right direction
+title 使用個案圖：書籍與商品管理模組
+
+actor 賣家 as Seller
+actor 買家 as Buyer
+actor "AI 服務" as AI
+actor 管理員 as Admin
+
+rectangle "SaveMyBook 系統" {
+  usecase "掃描ISBN條碼" as UC1
+  usecase "AI輔助帶入書籍資訊" as UC2
+  usecase "上架書籍" as UC3
+  usecase "編輯書籍" as UC4
+  usecase "下架/重新上架書籍" as UC5
+  usecase "瀏覽/搜尋書籍" as UC6
+  usecase "查看書籍詳情" as UC7
+  usecase "收藏書籍" as UC8
+  usecase "檢舉書籍" as UC9
+  usecase "分享書籍連結" as UC10
+  usecase "查看個人化推薦/\n最近瀏覽" as UC11
+  usecase "AI內容自動審核" as UC12
+}
+
+Seller --> UC3
+Seller --> UC4
+Seller --> UC5
+UC3 ..> UC1 : <<extend>>
+UC3 ..> UC2 : <<extend>>
+UC4 ..> UC1 : <<extend>>
+UC2 --> AI
+UC3 ..> UC12 : <<include>>
+UC4 ..> UC12 : <<extend>>（文字/售價變更時）
+UC12 --> AI
+
+Buyer --> UC6
+Buyer --> UC7
+Buyer --> UC8
+Buyer --> UC9
+Buyer --> UC10
+Buyer --> UC11
+UC7 ..> UC6 : <<include>>
+
+Admin --> UC12 : 人工複核佇列
+@enduml

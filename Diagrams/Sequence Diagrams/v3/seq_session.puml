@@ -1,0 +1,50 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：登入裝置管理與工作階段撤銷
+
+actor 使用者 as User
+participant "LoginDevicesScreen" as UI
+participant "ApiService(SecurityApi)" as ApiSvc
+participant "GET /api/security/sessions" as ListRoute
+participant "DELETE /api/security/sessions/:id" as RevokeRoute
+participant "POST /api/security/sessions/revoke-all" as RevokeAllRoute
+participant "services/sessions.js" as SessSvc
+database "user_sessions" as DB
+
+User -> UI : 開啟「登入裝置管理」
+UI -> ApiSvc : fetchLoginSessions()
+ApiSvc -> ListRoute : GET /api/security/sessions
+ListRoute -> SessSvc : listActive(userId)
+SessSvc -> DB : 查詢未撤銷、30天內有活動之工作階段
+SessSvc --> UI : 裝置清單(含is_current、biometric_pay)
+
+alt 登出單一裝置
+  User -> UI : 選擇裝置並確認登出
+  UI -> UI : requireSensitive()
+  UI -> ApiSvc : revokeLoginSession(sessionId)
+  ApiSvc -> RevokeRoute : DELETE /api/security/sessions/:id\n(X-Verify-Token: sensitive)
+  RevokeRoute -> SessSvc : revoke(sessionId)
+  SessSvc -> DB : user_sessions.revoked_at = now
+  SessSvc -> DB : 清除該工作階段之pay_key_hash\n並刪除其推播裝置
+  SessSvc --> UI : 200（若為目前裝置回傳signed_out_current）
+
+else 登出所有裝置（含/不含本機）
+  User -> UI : 選擇「登出所有裝置」
+  UI -> UI : requireSensitive()
+  UI -> ApiSvc : revokeAllLoginSessions(includeCurrent)
+  ApiSvc -> RevokeAllRoute : POST .../revoke-all { include_current }
+  RevokeAllRoute -> SessSvc : revokeAll(userId, includeCurrent)
+  SessSvc -> DB : 批次撤銷所有(或除本機外)工作階段
+  SessSvc -> DB : 更新 user_security.tokens_valid_after\n（使所有舊JWT即刻失效）
+  SessSvc --> UI : 200
+end
+
+note right of SessSvc
+  同一device_id再次登入時，
+  會自動撤銷該裝置先前的工作階段；
+  閒置超過90天的工作階段
+  由每日排程自動清除。
+end note
+@enduml
