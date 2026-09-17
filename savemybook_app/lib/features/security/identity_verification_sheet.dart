@@ -378,12 +378,17 @@ class _IdentityVerificationSheetState extends State<IdentityVerificationSheet> {
         onPressed: _passkey,
       ),
       if (_hasPassword) ...[
-        const SizedBox(height: 4),
-        Center(
-          child: TextButton(
-            onPressed: _submitting ? null : _switchToPassword,
-            child: Text(S.useSignPasswordInstead, style: TextStyle(color: c.accent)),
+        const SizedBox(height: 10),
+        OutlinedButton.icon(
+          onPressed: _submitting ? null : _switchToPassword,
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(46),
+            foregroundColor: c.accent,
+            side: BorderSide(color: c.border),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
+          icon: const Icon(Icons.password_rounded, size: 19),
+          label: Text(S.useSignPasswordInstead, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
       ],
     ];

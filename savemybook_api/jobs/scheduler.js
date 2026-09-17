@@ -9,6 +9,7 @@ const transferRecords = require('../services/chat/transfer-records');
 const oauth = require('../services/oauth-providers');
 const passkeys = require('../services/passkeys');
 const uploadsCleanup = require('../services/uploads-cleanup');
+const supportAttachments = require('../services/support-attachments');
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
@@ -86,6 +87,11 @@ const runUploadsSweep = async () => {
     if (missingCount > 0) console.log(`🖼️  已清除 ${missingCount} 筆找不到檔案的圖片欄位`);
   } catch (err) {
     console.error('[清理失效圖片欄位失敗]:', err.message);
+  }
+  try {
+    await supportAttachments.purgeStale();
+  } catch (err) {
+    console.error('[清理未送出的客服附件失敗]:', err.message);
   }
 };
 

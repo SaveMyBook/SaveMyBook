@@ -6,13 +6,14 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart' show AppLifecycleListener;
+import 'package:flutter/widgets.dart' show AppLifecycleListener, WidgetsBinding;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/auth_social.dart';
 import 'deep_link_service.dart';
+import 'locale_provider.dart';
 import '../i18n/strings.dart';
 
 /// Android 需要 Firebase 專案的 Web 用戶端 ID 才拿得到 Google ID Token。
@@ -67,6 +68,17 @@ String _firebaseFailureMessage(String code) {
   if (message != null) return message;
   debugPrint('[SMS] Unmapped Firebase error code: $code');
   return S.couldNotCompleteSmsVerificationPlease;
+}
+
+String _smsLanguageCode() {
+  final locale = localeProvider.value ?? WidgetsBinding.instance.platformDispatcher.locale;
+  return switch (locale.languageCode) {
+    'en' => 'en',
+    'ja' => 'ja',
+    'ko' => 'ko',
+    'zh' => locale.scriptCode == 'Hans' || locale.countryCode == 'CN' ? 'zh-CN' : 'zh-TW',
+    _ => 'zh-TW',
+  };
 }
 
 class _PluginAuthGateway implements FirebaseAuthGateway {
@@ -153,7 +165,9 @@ class _PluginAuthGateway implements FirebaseAuthGateway {
     required void Function(String idToken) onVerified,
     required void Function(String verificationId, int? resendToken) onCodeSent,
     required void Function(SocialAuthFailure failure) onFailed,
-  }) {
+  }) async {
+    // Firebase 不開放自訂簡訊內容，只能指定範本語系；未設定時會依裝置語言，可能收到英文簡訊。
+    await _auth.setLanguageCode(_smsLanguageCode()).catchError((_) {});
     return _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       forceResendingToken: resendToken,
@@ -314,8 +328,18 @@ class PhoneSignInController extends ChangeNotifier {
   final FirebaseAuthGateway gateway;
   final Duration resendCooldown;
 
-  PhoneSignInController({FirebaseAuthGateway? gateway, this.resendCooldown = const Duration(seconds: 60)})
-      : gateway = gateway ?? SocialAuth.gateway;
+  final Duration codeValidity;
+
+  PhoneSignInController({
+    FirebaseAuthGateway? gateway,
+    this.resendCooldown = const Duration(seconds: 60),
+    this.codeValidity = const Duration(minutes: 5),
+    DateTime Function()? clock,
+  })  : gateway = gateway ?? SocialAuth.gateway,
+        _clock = clock ?? DateTime.now;
+
+  final DateTime Function() _clock;
+  DateTime? _codeSentAt;
 
   PhoneSignInStage stage = PhoneSignInStage.idle;
   String phoneNumber = '';
@@ -330,7 +354,17 @@ class PhoneSignInController extends ChangeNotifier {
 
   bool get isBusy => stage == PhoneSignInStage.sending || stage == PhoneSignInStage.verifying;
 
-  bool get canResend => stage == PhoneSignInStage.codeSent && resendSeconds == 0;
+  bool get canResend => stage == PhoneSignInStage.codeSent && (resendSeconds == 0 || codeExpired);
+
+  /// 服務條款規範驗證碼 5 分鐘內有效。Firebase 無法設定簡訊驗證碼的效期，因此在 App 端強制執行。
+  Duration get codeRemaining {
+    final sentAt = _codeSentAt;
+    if (sentAt == null) return Duration.zero;
+    final left = codeValidity - _clock().difference(sentAt);
+    return left.isNegative ? Duration.zero : left;
+  }
+
+  bool get codeExpired => _codeSentAt != null && codeRemaining == Duration.zero;
 
   @override
   void dispose() {
@@ -347,13 +381,12 @@ class PhoneSignInController extends ChangeNotifier {
   void _startCooldown() {
     _ticker?.cancel();
     resendSeconds = resendCooldown.inSeconds;
+    // 持續計時到驗證碼失效為止，畫面上的剩餘時間與失效狀態才會即時更新。
+    var ticksLeft = codeValidity.inSeconds;
     _ticker = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (resendSeconds <= 1) {
-        resendSeconds = 0;
-        timer.cancel();
-      } else {
-        resendSeconds--;
-      }
+      if (resendSeconds > 0) resendSeconds--;
+      ticksLeft--;
+      if (resendSeconds == 0 && (codeExpired || ticksLeft <= 0)) timer.cancel();
       _emit();
     });
   }
@@ -395,6 +428,7 @@ class PhoneSignInController extends ChangeNotifier {
         onCodeSent: (verificationId, resendToken) {
           _verificationId = verificationId;
           _resendToken = resendToken;
+          _codeSentAt = _clock();
           if (stage == PhoneSignInStage.verified) return;
           stage = PhoneSignInStage.codeSent;
           _startCooldown();
@@ -425,6 +459,11 @@ class PhoneSignInController extends ChangeNotifier {
   Future<bool> submitCode(String code) async {
     final verificationId = _verificationId;
     if (verificationId == null || isBusy) return false;
+    if (codeExpired) {
+      error = S.codeExpiredRequestNewOne;
+      _emit();
+      return false;
+    }
 
     stage = PhoneSignInStage.verifying;
     error = null;

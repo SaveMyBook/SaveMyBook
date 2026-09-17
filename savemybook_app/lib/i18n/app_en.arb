@@ -3393,5 +3393,155 @@
   "noChatNotifications": "No chat notifications",
   "noAccountNotifications": "No account notifications",
   "noSupportNotifications": "No support notifications",
-  "noOfferNotifications": "No offer notifications"
+  "noOfferNotifications": "No offer notifications",
+  "images": "Images",
+  "imagesStillUploadingPleaseWaitBefore": "Images are still uploading. Please wait before sending.",
+  "someImagesFailedUploadRetryRemove": "Some images failed to upload. Retry or remove them before sending.",
+  "attachImages": "Attach images",
+  "imageCouldNotRead": "This image could not be read",
+  "up4ImagesPerMessage": "Up to 4 images per message",
+  "retryUploadingImageP0": "Retry uploading image {p0}",
+  "@retryUploadingImageP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeImageP0": "Remove image {p0}",
+  "@removeImageP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addImages": "Add images",
+  "viewImageP0": "View image {p0}",
+  "@viewImageP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "eGGoldMember": "e.g. Gold member",
+  "pointsThreshold": "Points threshold",
+  "pts": "pts",
+  "tierBenefits": "Tier benefits",
+  "oneBenefitPerLine": "One benefit per line",
+  "newTier2": "New tier",
+  "whatMembersSee": "What members see",
+  "noThresholdSet": "No threshold set",
+  "tierOrder": "Tier order",
+  "noBenefitsSet": "No benefits set",
+  "p0CurrentlyP1MembersAfterDeletion": "“{p0}” currently has {p1} members. After deletion they will move to “{p2}”.",
+  "@p0CurrentlyP1MembersAfterDeletion": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "noMembersCurrentlyP0OtherTiers": "No members are currently in “{p0}”. Other tiers are not affected.",
+  "@noMembersCurrentlyP0OtherTiers": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "tierDeletedP0MembersMovedP1": "Tier deleted. {p0} members moved to “{p1}”",
+  "@tierDeletedP0MembersMovedP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "changeTierOrder": "Change tier order",
+  "thresholdsStayWithTheirPositionThese": "Thresholds stay with their position. These tiers will get new thresholds:",
+  "p0P1P2Pts": "“{p0}” {p1} → {p2} pts",
+  "@p0P1P2Pts": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "tierOrderUpdated": "Tier order updated",
+  "p0Members": "{p0} members",
+  "@p0Members": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "tiers": "tiers",
+  "members4": "members",
+  "memberDistribution": "Member distribution",
+  "moreActions": "More actions",
+  "dragReorder": "Drag to reorder",
+  "p0Pts": "{p0}+ pts",
+  "@p0Pts": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0P1Pts": "{p0}–{p1} pts",
+  "@p0P1Pts": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "tierNamedP0AlreadyExists": "A tier named “{p0}” already exists",
+  "@tierNamedP0AlreadyExists": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterPointsThreshold": "Enter a points threshold",
+  "thresholdMustWholeNumber0More": "The threshold must be a whole number of 0 or more",
+  "thresholdCannotExceedP0": "The threshold cannot exceed {p0}",
+  "@thresholdCannotExceedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0AlreadyUsesP1PtsEach": "“{p0}” already uses {p1} pts. Each tier needs a different threshold",
+  "@p0AlreadyUsesP1PtsEach": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "startingTierMustBegin0Pts": "The starting tier must begin at 0 pts",
+  "startingTierCannotDeletedSetAnother": "The starting tier cannot be deleted. Set another tier’s threshold to 0 pts first",
+  "signLink": "Sign in and link",
+  "signAccount": "Sign in to your account",
+  "emailAlreadyRegisteredSignLinkName": "This email is already registered. Sign in to link {p0}.",
+  "@emailAlreadyRegisteredSignLinkName": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signLinkNameCanThenSign": "Sign in to link {p0}. You can then sign in with {p1} directly.",
+  "@signLinkNameCanThenSign": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noPasskeyDevice": "No passkey on this device",
+  "signWithPasskeyAnotherDeviceSecurity": "Sign in with a passkey on another device or a security key, or use your password.",
+  "useAnotherDevice": "Use another device",
+  "usePassword": "Use password",
+  "icloudKeychain": "iCloud Keychain",
+  "googlePasswordManager": "Google Password Manager",
+  "synced": "Synced",
+  "notSynced": "Not synced",
+  "alreadyPasskey": "You already have a passkey",
+  "enterName": "Enter a name",
+  "passkeySavedIcloudKeychainWorksEvery": "Your passkey is saved in iCloud Keychain and works on every device signed in to the same Apple Account, so there is no need to add it again. To create another one, tap \"Add again\" and choose a different password manager or a security key in the system window.",
+  "passkeySavedGooglePasswordManagerWorks": "Your passkey is saved in Google Password Manager and works on every device signed in to the same Google Account, so there is no need to add it again. To create another one, tap \"Add again\" and choose a different password manager or a security key in the system window.",
+  "passkeySavedDeviceSPasswordManager": "Your passkey is saved in this device's password manager and works on every device signed in to the same account, so there is no need to add it again. To create another one, tap \"Add again\" and choose a different password manager or a security key in the system window.",
+  "addAgain": "Add again",
+  "codeExpiredPleaseRequestNewOne": "This code has expired. Please request a new one.",
+  "codeValidP0": "Code valid for {p0}",
+  "@codeValidP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

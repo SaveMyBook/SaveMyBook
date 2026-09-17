@@ -13,11 +13,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:savemybook_app/i18n/app_localizations.dart';
 import 'package:savemybook_app/i18n/strings.dart';
 import 'package:savemybook_app/features/auth/phone_sign_in_screen.dart';
+import 'package:savemybook_app/features/auth/link_sign_in_sheet.dart';
 import 'package:savemybook_app/features/auth/social_sign_in.dart';
 import 'package:savemybook_app/models/auth_social.dart';
 import 'package:savemybook_app/models/user.dart';
 import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/services/deep_link_service.dart';
+import 'package:savemybook_app/services/passkey_service.dart';
 import 'package:savemybook_app/services/social_auth_service.dart';
 
 import 'fake_auth_gateway.dart';
@@ -122,6 +124,7 @@ void main() {
     DeepLinkService.onOAuthResult = null;
     DeepLinkService.reset();
     SocialAuth.gateway = FakeAuthGateway();
+    SocialSignInFlow.passkeyAvailableOverride = false;
   });
 
   group('登入方式清單', () {
@@ -347,7 +350,11 @@ void main() {
 
     testWidgets('倒數未結束前不重送，倒數結束後帶上 resend token', (tester) async {
       final gateway = FakeAuthGateway();
-      final controller = PhoneSignInController(gateway: gateway, resendCooldown: const Duration(seconds: 3));
+      final controller = PhoneSignInController(
+        gateway: gateway,
+        resendCooldown: const Duration(seconds: 3),
+        codeValidity: const Duration(seconds: 5),
+      );
       addTearDown(controller.dispose);
 
       await controller.send('+886912345678');
@@ -361,8 +368,8 @@ void main() {
       expect(gateway.sendCount, 2);
       expect(gateway.lastResendToken, 1, reason: '重送要帶上前一次的 resend token');
 
-      // 倒數計時器必須在測試結束前跑完，否則框架會判定有未完成的 Timer。
-      await tester.pump(const Duration(seconds: 4));
+      // 計時器會跑到驗證碼失效為止，必須在測試結束前跑完，否則框架會判定有未完成的 Timer。
+      await tester.pump(const Duration(seconds: 6));
     });
 
     test('驗證碼錯誤時留在輸入畫面並顯示訊息', () async {
@@ -558,11 +565,15 @@ void main() {
       expect(_flowResult, isTrue);
     });
 
-    testWidgets('選擇先登入再綁定時不建立帳號', (tester) async {
+    testWidgets('選擇登入既有帳號並綁定時在流程中登入，取消則不建立帳號', (tester) async {
       await _pumpFlow(tester, () => SocialSignInFlow.signIn(_ctx!, AuthProviders.google),
           client: noAccountClient(createSucceeds: true));
 
       await tester.tap(find.text(S.iAlreadyAccountSignFirst));
+      await _settle(tester);
+
+      expect(find.byType(LinkSignInSheet), findsOneWidget, reason: '不再要求使用者先登入再到設定綁定');
+      await tester.tap(find.text(S.actionCancel));
       await _settle(tester);
 
       expect(lastSocialBody?['create'], isNull, reason: '不得建立帳號');
@@ -597,6 +608,149 @@ void main() {
 
       expect(lastExchangeBody?['code'], 'one-time-code', reason: '不需要重開授權頁');
       expect(lastExchangeBody?['create'], isTrue);
+      expect(_flowResult, isTrue);
+    });
+  });
+
+  group('登入既有帳號並綁定', () {
+    final linkBodies = <Map<String, dynamic>>[];
+    late String linkFailure;
+
+    MockClient linkClient({String providerEmail = 'member@gmail.com', String firstCode = 'NO_ACCOUNT_FOR_PROVIDER'}) =>
+        MockClient((request) async {
+          final path = request.url.path.replaceFirst('/api', '');
+          final body = request.body.isEmpty ? <String, dynamic>{} : Map<String, dynamic>.from(jsonDecode(request.body) as Map);
+          switch (path) {
+            case '/auth/social':
+            case '/auth/oauth/exchange':
+              return http.Response(
+                jsonEncode({
+                  'success': false,
+                  'code': firstCode,
+                  'message': firstCode == AuthCodes.accountExists ? '此電子郵件已註冊' : '此帳號尚未綁定任何帳號',
+                  'provider_email': providerEmail,
+                }),
+                firstCode == AuthCodes.accountExists ? 409 : 404,
+                headers: {'content-type': 'application/json; charset=utf-8'},
+              );
+            case '/auth/oauth/line/start':
+              return _ok({'url': 'https://example.com/authorize'});
+            case '/auth/social/link-login':
+              linkBodies.add(body);
+              if (linkFailure.isNotEmpty && linkBodies.length == 1) {
+                return _fail(401, linkFailure, '密碼錯誤');
+              }
+              return _ok({'token': 'linked-token'});
+            case '/auth/passkeys/login/options':
+              return _ok({'options': {'challenge': 'c' * 64, 'rpId': 'savemybook.today'}});
+            case '/auth/me':
+            case '/users/me':
+              return _ok({'user_id': 1, 'nickname': 'A', 'email': 'member@gmail.com', 'role': 'buyer_seller'});
+          }
+          return _ok(<String, Object>{});
+        });
+
+    late MockClient api;
+
+    setUp(() {
+      linkBodies.clear();
+      linkFailure = '';
+    });
+
+    Future<void> tap(WidgetTester tester, Finder finder) async {
+      await http.runWithClient(() async {
+        await tester.tap(finder);
+        await _settle(tester);
+      }, () => api);
+    }
+
+    Future<void> chooseLink(WidgetTester tester) async {
+      await tap(tester, find.text(S.iAlreadyAccountSignFirst));
+      expect(find.byType(LinkSignInSheet), findsOneWidget);
+    }
+
+    testWidgets('以密碼登入並綁定：預填第三方電子郵件，成功後直接完成登入', (tester) async {
+      await _pumpFlow(tester, () => SocialSignInFlow.signIn(_ctx!, AuthProviders.google), client: api = linkClient());
+      await chooseLink(tester);
+
+      expect(find.widgetWithText(TextField, 'member@gmail.com'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).at(1), 'Passw0rd123');
+      await tap(tester, find.text(S.signLink));
+
+      expect(linkBodies.single['provider'], 'google');
+      expect(linkBodies.single['id_token'], 'fake-id-token');
+      expect(linkBodies.single['email'], 'member@gmail.com');
+      expect(linkBodies.single['password'], 'Passw0rd123');
+      expect(linkBodies.single.containsKey('code'), isFalse);
+      expect(_flowResult, isTrue);
+      expect(ApiService.authToken, 'linked-token');
+      expect(find.byType(LinkSignInSheet), findsNothing);
+    });
+
+    testWidgets('密碼錯誤時留在面板並於密碼欄位提示，修正後可再送出', (tester) async {
+      linkFailure = 'INVALID_PASSWORD';
+      await _pumpFlow(tester, () => SocialSignInFlow.signIn(_ctx!, AuthProviders.google), client: api = linkClient());
+      await chooseLink(tester);
+
+      await tester.enterText(find.byType(TextField).at(1), 'wrong-pass');
+      await tap(tester, find.text(S.signLink));
+
+      expect(find.byType(LinkSignInSheet), findsOneWidget);
+      expect(find.text('密碼錯誤'), findsOneWidget);
+      expect(_flowResult, isNull);
+
+      await tester.enterText(find.byType(TextField).at(1), 'Passw0rd123');
+      await tap(tester, find.text(S.signLink));
+      expect(linkBodies.length, 2);
+      expect(_flowResult, isTrue);
+    });
+
+    testWidgets('以通行密鑰登入並綁定', (tester) async {
+      SocialSignInFlow.passkeyAvailableOverride = true;
+      final client = _LinkPasskeyClient();
+      PasskeyService.client = client;
+      await _pumpFlow(tester, () => SocialSignInFlow.signIn(_ctx!, AuthProviders.google), client: api = linkClient());
+      await chooseLink(tester);
+
+      await tap(tester, find.text(S.signWithPasskey));
+
+      expect(client.immediates, [false], reason: '使用者主動選擇通行密鑰，允許使用其他裝置');
+      expect(linkBodies.single['assertion']?['id'], 'cred-1');
+      expect(linkBodies.single.containsKey('password'), isFalse);
+      expect(_flowResult, isTrue);
+    });
+
+    testWidgets('LINE：沿用同一組一次性碼登入並綁定，不重新授權', (tester) async {
+      var starts = 0;
+      SocialAuth.openAuthBrowser = (url) async {
+        starts++;
+        DeepLinkService.onOAuthResult?.call(const OAuthDeepLink(code: 'one-time-code'));
+        return true;
+      };
+      await _pumpFlow(tester, () => SocialSignInFlow.signIn(_ctx!, AuthProviders.line), client: api = linkClient());
+      await chooseLink(tester);
+
+      await tester.enterText(find.byType(TextField).at(1), 'Passw0rd123');
+      await tap(tester, find.text(S.signLink));
+
+      expect(starts, 1);
+      expect(linkBodies.single['code'], 'one-time-code');
+      expect(linkBodies.single.containsKey('id_token'), isFalse);
+      expect(_flowResult, isTrue);
+    });
+
+    testWidgets('建立帳號時電子郵件已註冊（409），直接進入登入並綁定', (tester) async {
+      await _pumpFlow(
+        tester,
+        () => SocialSignInFlow.signIn(_ctx!, AuthProviders.google),
+        client: api = linkClient(firstCode: AuthCodes.accountExists, providerEmail: 'exists@example.com'),
+      );
+
+      expect(find.byType(LinkSignInSheet), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'exists@example.com'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).at(1), 'Passw0rd123');
+      await tap(tester, find.text(S.signLink));
+      expect(linkBodies.single['email'], 'exists@example.com');
       expect(_flowResult, isTrue);
     });
   });
@@ -660,4 +814,28 @@ void main() {
       expect(bundle.settings.sameAs(bundle.settings), isTrue);
     });
   });
+}
+
+class _LinkPasskeyClient implements PasskeyClient {
+  final immediates = <bool>[];
+
+  @override
+  Future<bool> isSupported() async => true;
+
+  @override
+  Future<Map<String, dynamic>> create(Map<String, dynamic> options) async => throw UnimplementedError();
+
+  @override
+  Future<Map<String, dynamic>> get(Map<String, dynamic> options, {bool immediate = true}) async {
+    immediates.add(immediate);
+    return {
+      'id': 'cred-1',
+      'rawId': 'cred-1',
+      'type': 'public-key',
+      'response': {'clientDataJSON': 'e30', 'authenticatorData': 'AAAA', 'signature': 'MEUC'},
+    };
+  }
+
+  @override
+  Future<void> forget({required String rpId, required String credentialId}) async {}
 }

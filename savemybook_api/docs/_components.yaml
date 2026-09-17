@@ -775,8 +775,9 @@ components:
         level_id: { type: integer, example: 3 }
         level_name: { type: string, example: 黃金會員 }
         min_points: { type: integer, description: 進入本等級所需的點數門檻, example: 500 }
-        max_points: { type: integer, nullable: true, description: 值為 null 代表無上限 }
+        max_points: { type: integer, nullable: true, description: 由下一個等級的門檻減 1 推算，最高等級為 null（無上限） }
         benefits: { type: string, nullable: true, example: 每月贈送 50 代幣、專屬客服 }
+        member_count: { type: integer, description: 僅後台 `GET /api/admin/levels` 回傳：目前符合本等級的會員人數（不含管理員與已刪除帳號）, example: 128 }
 
     # ---------- 客服 ----------
     Faq:
@@ -838,6 +839,15 @@ components:
         is_staff: { type: boolean, description: 值為 true 代表此則由客服發送, example: true }
         created_at: { type: string, format: date-time }
         sender: { $ref: '#/components/schemas/UserBrief' }
+        attachments:
+          type: array
+          description: |
+            圖片附件，依上傳順序排列，最多 4 張。`url` 為簽章網址（相對於 API 主機），
+            有效期 6 至 12 小時，過期後重新取得工單內容即可換發。尚未執行遷移 017 時一律為空陣列。
+          items:
+            type: object
+            properties:
+              url: { type: string, example: '/api/support/attachments/1736512345678-9f86d081884c7d65.jpg?exp=1736553600&sig=Qm9vay1zaWduYXR1cmUtZXhhbXBsZQ' }
 
     # ---------- 管理後台 ----------
     AdminPermissions:

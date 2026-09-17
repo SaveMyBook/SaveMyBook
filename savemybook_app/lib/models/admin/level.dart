@@ -6,6 +6,7 @@ class AdminLevel {
   final int minPoints;
   final int? maxPoints;
   final String benefits;
+  final int memberCount;
 
   AdminLevel({
     required this.levelId,
@@ -13,6 +14,7 @@ class AdminLevel {
     required this.minPoints,
     required this.benefits,
     this.maxPoints,
+    this.memberCount = 0,
   });
 
   factory AdminLevel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class AdminLevel {
       minPoints: parseInt(json['min_points']),
       maxPoints: json['max_points'] == null ? null : parseInt(json['max_points']),
       benefits: json['benefits'] as String? ?? '',
+      memberCount: parseInt(json['member_count']),
     );
   }
 }

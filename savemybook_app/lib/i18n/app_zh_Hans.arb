@@ -3393,5 +3393,155 @@
   "noChatNotifications": "没有聊天通知",
   "noAccountNotifications": "没有账号通知",
   "noSupportNotifications": "没有客服通知",
-  "noOfferNotifications": "没有优惠通知"
+  "noOfferNotifications": "没有优惠通知",
+  "images": "图片",
+  "imagesStillUploadingPleaseWaitBefore": "图片上传中，请稍候再发送",
+  "someImagesFailedUploadRetryRemove": "部分图片上传失败，请重试或移除后再发送",
+  "attachImages": "附加图片",
+  "imageCouldNotRead": "无法读取这张图片",
+  "up4ImagesPerMessage": "每条消息最多附加 4 张图片",
+  "retryUploadingImageP0": "重试上传图片 {p0}",
+  "@retryUploadingImageP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "removeImageP0": "移除图片 {p0}",
+  "@removeImageP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "addImages": "添加图片",
+  "viewImageP0": "查看图片 {p0}",
+  "@viewImageP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "eGGoldMember": "例如：黄金会员",
+  "pointsThreshold": "门槛点数",
+  "pts": "点",
+  "tierBenefits": "等级福利",
+  "oneBenefitPerLine": "每行一项福利",
+  "newTier2": "新等级",
+  "whatMembersSee": "会员看到的样式",
+  "noThresholdSet": "尚未设置门槛",
+  "tierOrder": "等级顺序",
+  "noBenefitsSet": "尚未设置福利",
+  "p0CurrentlyP1MembersAfterDeletion": "“{p0}”目前有 {p1} 位会员，删除后将改列“{p2}”。",
+  "@p0CurrentlyP1MembersAfterDeletion": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "noMembersCurrentlyP0OtherTiers": "目前没有会员属于“{p0}”，删除后其他等级不受影响。",
+  "@noMembersCurrentlyP0OtherTiers": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "tierDeletedP0MembersMovedP1": "已删除等级，{p0} 位会员改列“{p1}”",
+  "@tierDeletedP0MembersMovedP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "changeTierOrder": "调整等级顺序",
+  "thresholdsStayWithTheirPositionThese": "门槛点数按位置保留，以下等级的门槛将变更：",
+  "p0P1P2Pts": "“{p0}”{p1} → {p2} 点",
+  "@p0P1P2Pts": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "tierOrderUpdated": "已更新等级顺序",
+  "p0Members": "{p0} 位会员",
+  "@p0Members": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "tiers": "个等级",
+  "members4": "位会员",
+  "memberDistribution": "会员分布",
+  "moreActions": "更多操作",
+  "dragReorder": "拖动调整顺序",
+  "p0Pts": "{p0} 点以上",
+  "@p0Pts": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0P1Pts": "{p0}–{p1} 点",
+  "@p0P1Pts": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "tierNamedP0AlreadyExists": "已有名为“{p0}”的等级",
+  "@tierNamedP0AlreadyExists": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "enterPointsThreshold": "请输入门槛点数",
+  "thresholdMustWholeNumber0More": "门槛点数须为 0 以上的整数",
+  "thresholdCannotExceedP0": "门槛点数不可超过 {p0}",
+  "@thresholdCannotExceedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0AlreadyUsesP1PtsEach": "“{p0}”已使用 {p1} 点，每个等级的门槛须不同",
+  "@p0AlreadyUsesP1PtsEach": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "startingTierMustBegin0Pts": "起始等级的门槛须为 0 点",
+  "startingTierCannotDeletedSetAnother": "起始等级无法删除，请先将其他等级的门槛调整为 0 点",
+  "signLink": "登入并绑定",
+  "signAccount": "登入既有账号",
+  "emailAlreadyRegisteredSignLinkName": "此电子邮件已注册，登入后即绑定 {p0}。",
+  "@emailAlreadyRegisteredSignLinkName": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "signLinkNameCanThenSign": "登入后即绑定 {p0}，之后可直接使用 {p1} 登入。",
+  "@signLinkNameCanThenSign": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noPasskeyDevice": "此装置没有可用的通行密钥",
+  "signWithPasskeyAnotherDeviceSecurity": "可使用其他装置上的通行密钥或安全密钥登入，或改用密码。",
+  "useAnotherDevice": "使用其他装置",
+  "usePassword": "改用密码",
+  "icloudKeychain": "iCloud 钥匙串",
+  "googlePasswordManager": "Google 密码管理工具",
+  "synced": "已同步",
+  "notSynced": "未同步",
+  "alreadyPasskey": "已有可用的通行密钥",
+  "enterName": "请输入名称",
+  "passkeySavedIcloudKeychainWorksEvery": "通行密钥已储存在 iCloud 钥匙串，登入同一 Apple 账号的装置皆可使用，无须重复新增。如需另外建立，请按「再次新增」并在系统窗口改选其他密码管理工具或安全密钥。",
+  "passkeySavedGooglePasswordManagerWorks": "通行密钥已储存在 Google 密码管理工具，登入同一 Google 账号的装置皆可使用，无须重复新增。如需另外建立，请按「再次新增」并在系统窗口改选其他密码管理工具或安全密钥。",
+  "passkeySavedDeviceSPasswordManager": "通行密钥已储存在此装置的密码管理工具，登入同一账号的装置皆可使用，无须重复新增。如需另外建立，请按「再次新增」并在系统窗口改选其他密码管理工具或安全密钥。",
+  "addAgain": "再次新增",
+  "codeExpiredPleaseRequestNewOne": "验证码已失效，请重新发送",
+  "codeValidP0": "验证码有效时间 {p0}",
+  "@codeValidP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  }
 }

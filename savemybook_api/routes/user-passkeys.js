@@ -3,6 +3,7 @@ const authenticateToken = require('../middleware/auth');
 const { requireVerification } = require('../middleware/verification');
 const { rateLimit, byUser } = require('../middleware/rateLimit');
 const { text } = require('../lib/validate');
+const { badRequest } = require('../lib/errors');
 const passkeys = require('../services/passkeys');
 
 const router = express.Router();
@@ -30,6 +31,13 @@ router.post('/', registerLimiter, requireVerification('sensitive'), async (req, 
   const label = text(req.body.device_label, { label: '裝置名稱', max: 50 }) || null;
   const data = await passkeys.register(req.user.userId, req.body.attestation, label);
   res.status(201).json({ success: true, message: '已新增通行密鑰', data });
+});
+
+router.patch('/:id', registerLimiter, async (req, res) => {
+  const label = text(req.body.device_label, { label: '名稱', max: 50 });
+  if (!label) throw badRequest('請輸入名稱');
+  const data = await passkeys.rename(req.user.userId, req.params.id, label);
+  res.status(200).json({ success: true, message: '已更新名稱', data });
 });
 
 router.delete('/:id', requireVerification('sensitive'), async (req, res) => {

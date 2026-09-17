@@ -75,6 +75,27 @@ class PhotoService {
     return results;
   }
 
+  static Future<List<String>> pickImages(BuildContext context, {required int remaining}) async {
+    if (remaining <= 0) return const [];
+
+    final source = await _askSource(context);
+    if (source == null || !context.mounted) return const [];
+
+    if (source == ImageSource.camera) {
+      final shot = await _pick(context, source);
+      return shot == null ? const [] : [shot.path];
+    }
+    try {
+      final picked = remaining == 1
+          ? [?await _picker.pickImage(source: source, maxWidth: 2400, maxHeight: 2400, imageQuality: 90)]
+          : await _picker.pickMultiImage(maxWidth: 2400, maxHeight: 2400, imageQuality: 90, limit: remaining);
+      return [for (final file in picked.take(remaining)) file.path];
+    } catch (_) {
+      if (context.mounted) showAppSnackBar(context, S.couldNotOpenPhotosCheckPermission, isError: true);
+      return const [];
+    }
+  }
+
   static bool get canUseCamera => _picker.supportsImageSource(ImageSource.camera);
 
   static Future<ImageSource?> _askSource(BuildContext context) async {

@@ -111,7 +111,7 @@ const tests = [
     });
     assert.strictEqual(res.status, 409);
     assert.strictEqual(res.body.code, 'ACCOUNT_EXISTS_LINK_REQUIRED');
-    assert.ok(res.body.message.includes('帳號安全'));
+    assert.strictEqual(res.body.provider_email, 'exists@example.com', '供 App 預填登入並綁定的電子郵件');
   }],
 
   ['渠道停用時回 403 SIGN_IN_METHOD_DISABLED', async () => {

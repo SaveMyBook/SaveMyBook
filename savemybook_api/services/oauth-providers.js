@@ -222,8 +222,8 @@ const readResult = async (code) => {
   }
 };
 
-// 這兩種結果代表還要問使用者（要不要建立帳號、補電子郵件），一次性碼必須留到下一次呼叫。
-const RETRYABLE_CODES = new Set(['NO_ACCOUNT_FOR_PROVIDER', 'EMAIL_REQUIRED']);
+// 這些結果代表還要問使用者（建立帳號、補電子郵件、登入既有帳號並綁定），一次性碼必須留到下一次呼叫。
+const RETRYABLE_CODES = new Set(['NO_ACCOUNT_FOR_PROVIDER', 'EMAIL_REQUIRED', 'ACCOUNT_EXISTS_LINK_REQUIRED']);
 
 const exchangeResult = async (code, device, { create = false, email = null, nickname = null, acceptLegal = false } = {}) => {
   if (!(await settings.migrationReady())) throw settings.unavailable();
@@ -262,5 +262,5 @@ const cleanupExpired = async () => {
 
 module.exports = {
   PROVIDERS, STATE_TTL_MS, RESULT_TTL_MS, redirectUri,
-  start, handleCallback, exchangeResult, cleanupExpired, providerError, stateInvalid, codeInvalid
+  start, handleCallback, exchangeResult, readResult, dropResult, cleanupExpired, providerError, stateInvalid, codeInvalid
 };

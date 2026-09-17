@@ -25,6 +25,9 @@ const createApp = () => {
 
   app.use(uploadsGuard);
 
+  // 客服附件只能經由簽章網址 /api/support/attachments 讀取，不可直接以檔名存取。
+  app.use('/uploads/support', (req, res) => res.status(404).end());
+
   app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     dotfiles: 'deny',
     index: false,

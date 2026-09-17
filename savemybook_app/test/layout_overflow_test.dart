@@ -33,6 +33,7 @@ import 'package:savemybook_app/features/admin/admin_category_screen.dart';
 import 'package:savemybook_app/features/admin/admin_deletion_screen.dart';
 import 'package:savemybook_app/features/admin/admin_dispute_screen.dart';
 import 'package:savemybook_app/features/admin/admin_home_screen.dart';
+import 'package:savemybook_app/features/admin/admin_level_edit_screen.dart';
 import 'package:savemybook_app/features/admin/admin_level_screen.dart';
 import 'package:savemybook_app/features/admin/admin_maintenance_log_screen.dart';
 import 'package:savemybook_app/features/admin/admin_member_detail_screen.dart';
@@ -97,6 +98,7 @@ import 'package:savemybook_app/features/selling/sell_book_screen.dart';
 import 'package:savemybook_app/features/account/settings_screen.dart';
 import 'package:savemybook_app/features/account/share_profile_screen.dart';
 import 'package:savemybook_app/features/account/support_ticket_screen.dart';
+import 'package:savemybook_app/features/account/ticket_attachments.dart';
 import 'package:savemybook_app/features/account/wallet_screen.dart';
 import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/services/locale_provider.dart';
@@ -560,7 +562,7 @@ Object? fakeData(String method, String path) {
     'GET /push/devices': () => many((i) => {'device_id': i, 'platform': 'ios', 'token_tail': 'a1b2c3', 'created_at': now, 'last_seen_at': now}, 2),
     'GET /support/faqs': () => many((i) => {'faq_id': i, 'category': ['account', 'trade', 'wallet', 'cabinet'][i % 4], 'question': 'How do I get my coins back if the seller never drops the book off?', 'answer': 'Answer ' * 30, 'sort_order': i, 'is_visible': true}),
     'GET /support/tickets': () => many((i) => {'ticket_id': i, 'subject': 'My order has been stuck in pending deposit for more than a week', 'category': 'trade', 'status': ['open', 'pending', 'resolved', 'closed'][i % 4], 'message_count': 12, 'last_message': 'Could you please check it for me?', 'updated_at': now, 'created_at': now, 'user': user(1)}),
-    'GET /support/tickets/1': () => {'ticket_id': 1, 'subject': 'My order has been stuck in pending deposit for more than a week', 'category': 'trade', 'status': 'pending', 'message_count': 2, 'updated_at': now, 'user': user(1), 'messages': many((i) => {'message_id': i, 'content': 'Message content ' * 8, 'is_staff': i.isEven, 'created_at': now, 'sender': user(i.isEven ? 9 : 1)}, 2)},
+    'GET /support/tickets/1': () => {'ticket_id': 1, 'subject': 'My order has been stuck in pending deposit for more than a week', 'category': 'trade', 'status': 'pending', 'message_count': 2, 'updated_at': now, 'user': user(1), 'messages': [...many((i) => {'message_id': i, 'content': 'Message content ' * 8, 'is_staff': i.isEven, 'created_at': now, 'sender': user(i.isEven ? 9 : 1), 'attachments': [for (var k = 0; k < i; k++) {'url': '/api/support/attachments/$i-$k.jpg?exp=1&sig=x'}]}, 2), {'message_id': 9, 'content': '', 'is_staff': false, 'created_at': now, 'sender': user(1), 'attachments': [for (var k = 0; k < 4; k++) {'url': '/api/support/attachments/9-$k.jpg?exp=1&sig=x'}]}]},
     'GET /support/legal/terms': () => {'doc_id': 1, 'doc_key': 'terms', 'title': 'Terms of Service', 'content': 'Article 1. ' * 200, 'version': 3, 'updated_at': now},
     'GET /reports/against-me': () => <Object>[],
     'GET /admin/overview': () => {'member_count': 1234567, 'pending_report_count': 9999, 'pending_dispute_count': 9999, 'active_cabinet_count': 999, 'today_order_count': 99999, 'open_ticket_count': 9999},
@@ -595,7 +597,7 @@ Object? fakeData(String method, String path) {
     'GET /admin/cabinets': () => many((i) => {...cabinet(), 'cabinet_id': i, 'latitude': 25.0173, 'longitude': 121.5398, 'total_slots': 200, 'available_slots': 123, 'is_active': i != 2, 'slot_summary': {'empty': 123, 'occupied': 45, 'reserved': 22, 'maintenance': 10}, 'cabinet_slots': many((j) => {'slot_id': j, 'slot_number': 'A${j.toString().padLeft(2, '0')}', 'status': 'occupied', 'updated_at': now}, 8)}),
     'GET /admin/maintenance-logs': () => many((i) => {'log_id': i, 'action': 'Changed slot status', 'detail': 'Changed A12 at $longCabinet to maintenance', 'users': user(9), 'created_at': now}),
     'GET /admin/wallets': () => many((i) => {...user(i), 'balance': 9876543.5, 'frozen_amount': 0, 'total_income': 98765432, 'total_expense': 12345678}),
-    'GET /admin/levels': () => many((i) => {'level_id': i, 'level_name': 'Platinum Collector Elite $i', 'min_points': i * 1000000, 'max_points': (i + 1) * 1000000, 'benefits': 'Free delivery, priority support and exclusive early access'}),
+    'GET /admin/levels': () => many((i) => {'level_id': i, 'level_name': 'Platinum Collector Elite $i', 'min_points': (i - 1) * 1000000, 'max_points': i * 1000000 - 1, 'benefits': 'Free delivery, priority support and exclusive early access', 'member_count': 1234567 * i}),
     'GET /admin/faqs': () => many((i) => {'faq_id': i, 'category': 'trade', 'question': 'How do I get my coins back if the seller never drops the book off?', 'answer': 'Answer ' * 20, 'sort_order': i, 'is_visible': i != 2}),
     'GET /admin/legal': () => [{'doc_id': 1, 'doc_key': 'terms', 'title': 'Terms of Service', 'content': 'Article 1. ' * 50, 'version': 3, 'updated_at': now}],
     'GET /admin/tickets': () => many((i) => {'ticket_id': i, 'subject': 'My order has been stuck in pending deposit for more than a week', 'category': 'trade', 'status': ['open', 'pending', 'resolved', 'closed'][i % 4], 'message_count': 12, 'last_message': 'Could you please check it for me?', 'updated_at': now, 'user': user(1)}),
@@ -684,7 +686,9 @@ Map<String, Widget Function()> get screens => {
       'HelpCenter': () => const HelpCenterScreen(),
       'SupportTickets': () => const SupportTicketScreen(),
       'NewTicket': () => const NewTicketScreen(),
+      'NewTicketImages': () => NewTicketScreen(attachments: previewAttachments()),
       'TicketDetail': () => const TicketDetailScreen(ticketId: 1),
+      'TicketDetailComposing': () => TicketDetailScreen(ticketId: 1, attachments: previewAttachments()),
       'LegalDoc': () => const LegalDocScreen(docKey: 'terms', fallbackTitle: 'Terms'),
       'LegalConsent': () => LegalConsentScreen(documents: [LegalDoc.fromJson({'doc_id': 1, 'doc_key': 'terms', 'title': 'Terms of Service and Community Guidelines', 'content': 'Article 1. ' * 300, 'version': 3, 'updated_at': now})]),
       'SecurityCenter': () => const SecurityCenterScreen(),
@@ -719,6 +723,8 @@ Map<String, Widget Function()> get screens => {
       'AdminMaintenanceLog': () => const AdminMaintenanceLogScreen(),
       'AdminWallets': () => const AdminWalletScreen(),
       'AdminLevels': () => const AdminLevelScreen(),
+      'AdminLevelEdit': () => AdminLevelEditScreen(level: previewLevels()[1], levels: previewLevels()),
+      'AdminLevelNew': () => const AdminLevelEditScreen(levels: []),
       'AdminTickets': () => const AdminTicketScreen(),
       'AdminBackups': () => const AdminBackupScreen(),
       'AdminDeletions': () => const AdminDeletionScreen(),
@@ -1006,7 +1012,11 @@ class FakePasskeyClient implements PasskeyClient {
   Future<Map<String, dynamic>> create(Map<String, dynamic> options) async => throw const PasskeyClientException.cancelled();
 
   @override
-  Future<Map<String, dynamic>> get(Map<String, dynamic> options) async => throw const PasskeyClientException.cancelled();
+  Future<Map<String, dynamic>> get(Map<String, dynamic> options, {bool immediate = true}) async =>
+      throw const PasskeyClientException.cancelled();
+
+  @override
+  Future<void> forget({required String rpId, required String credentialId}) async {}
 }
 
 class PasskeysPreview extends StatelessWidget {
@@ -1123,6 +1133,30 @@ class _PhoneSmsCodePreviewState extends State<PhoneSmsCodePreview> {
   @override
   Widget build(BuildContext context) => SmsCodeScreen(controller: _controller);
 }
+
+// 一張上傳中、一張失敗、兩張完成，涵蓋縮圖上所有狀態的疊加層。
+TicketAttachmentController previewAttachments() {
+  final controller = TicketAttachmentController(
+    preparer: (path) async => path,
+    sizeOf: (_) async => 1,
+    uploader: (path, _) => path.endsWith('0.jpg')
+        ? Completer<(String?, String?)>().future
+        : Future.value(path.endsWith('1.jpg') ? (null, 'Upload failed') : ('/uploads/support/$path', null)),
+  );
+  controller.add(['/missing/0.jpg', '/missing/1.jpg', '/missing/2.jpg', '/missing/3.jpg']);
+  return controller;
+}
+
+List<AdminLevel> previewLevels() => [
+      for (var i = 0; i < 6; i++)
+        AdminLevel.fromJson({
+          'level_id': i + 1,
+          'level_name': 'Platinum Collector Elite Membership $i',
+          'min_points': i * 1000000,
+          'benefits': 'Free delivery on every order\nPriority support with a dedicated representative\nExclusive early access',
+          'member_count': 1234567,
+        }),
+    ];
 
 const locales = [Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'), Locale('en'), Locale('ja'), Locale('ko')];
 const sizes = [Size(360, 740), Size(390, 844)];

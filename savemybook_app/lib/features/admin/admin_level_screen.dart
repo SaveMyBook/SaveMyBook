@@ -3,14 +3,16 @@ import 'package:flutter/services.dart';
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/level_style.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
-import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 import 'admin_layout.dart';
+import 'admin_level_edit_screen.dart';
+import 'level_rules.dart';
 
 class AdminLevelScreen extends StatefulWidget {
   const AdminLevelScreen({super.key});
@@ -20,12 +22,13 @@ class AdminLevelScreen extends StatefulWidget {
 }
 
 class _AdminLevelScreenState extends State<AdminLevelScreen> {
-  static const int _maxPointsLimit = 100000000;
+  static const double _twoPaneWidth = 900;
 
   final ApiService _api = ApiService();
   List<AdminLevel> _levels = [];
   bool _isLoading = true;
   bool _isBusy = false;
+  int? _selectedId;
 
   @override
   void initState() {
@@ -36,10 +39,10 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
   Future<void> _load() async {
     final levels = await _api.fetchAdminLevels();
     if (!mounted) return;
-    levels.sort((a, b) => a.minPoints.compareTo(b.minPoints));
     setState(() {
-      _levels = levels;
+      _levels = LevelRules.sorted(levels);
       _isLoading = false;
+      if (!_levels.any((l) => l.levelId == _selectedId)) _selectedId = _levels.firstOrNull?.levelId;
     });
   }
 
@@ -48,235 +51,113 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
     await _load();
   }
 
-  AdminLevel? _overlapping(int min, int? max, {int? exceptId}) {
-    final upper = max ?? _maxPointsLimit * 10;
-    for (final other in _levels) {
-      if (other.levelId == exceptId) continue;
-      final otherUpper = other.maxPoints ?? _maxPointsLimit * 10;
-      if (min <= otherUpper && other.minPoints <= upper) return other;
-    }
-    return null;
-  }
-
-  String _rangeText(AdminLevel level) => level.maxPoints == null
-      ? S.p0PointsUp(level.minPoints)
-      : S.p0P1Points(level.minPoints, level.maxPoints!);
+  AdminLevel? get _selected => _levels.where((l) => l.levelId == _selectedId).firstOrNull;
 
   Future<void> _edit({AdminLevel? level}) async {
     if (_isBusy) return;
-    setState(() => _isBusy = true);
-    try {
-      await _runEdit(level);
-    } finally {
-      if (mounted) setState(() => _isBusy = false);
-    }
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => AdminLevelEditScreen(level: level, levels: _levels)),
+    );
+    if (saved != true || !mounted) return;
+    showAppSnackBar(context, level == null ? S.tierAdded : S.tierUpdated);
+    await _load();
   }
 
-  Future<void> _runEdit(AdminLevel? level) async {
+  Future<void> _showActions(AdminLevel level) async {
     final c = AppColors.of(context);
-    final nameController = TextEditingController(text: level?.name ?? '');
-    final suggestedMin = level?.minPoints ??
-        (_levels.isEmpty ? 0 : ((_levels.last.maxPoints ?? _levels.last.minPoints) + 1));
-    final minController = TextEditingController(text: '$suggestedMin');
-    final maxController = TextEditingController(text: level?.maxPoints?.toString() ?? '');
-    final benefitsController = TextEditingController(text: level?.benefits ?? '');
-    String? nameError;
-    String? rangeError;
-
-    final digits = [
-      FilteringTextInputFormatter.digitsOnly,
-      LengthLimitingTextInputFormatter(9),
-    ];
-
-    final saved = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: c.sheetBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 20,
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  level == null ? S.newTier : S.editTier,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
-                ),
-                const SizedBox(height: 16),
-                AppTextField(
-                  controller: nameController,
-                  hint: S.tierName,
-                  maxLength: 50,
-                  errorText: nameError,
-                  onChanged: (_) {
-                    if (nameError != null) setSheetState(() => nameError = null);
-                  },
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: AppTextField(
-                        controller: minController,
-                        hint: S.minimumPoints,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: digits,
-                        onChanged: (_) {
-                          if (rangeError != null) setSheetState(() => rangeError = null);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: AppTextField(
-                        controller: maxController,
-                        hint: S.maximumPointsLeaveEmptyNoCap,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: digits,
-                        onChanged: (_) {
-                          if (rangeError != null) setSheetState(() => rangeError = null);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                Reveal(
-                  visible: rangeError != null,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 6, left: 4),
-                    child: Text(
-                      rangeError ?? '',
-                      style: TextStyle(fontSize: 12, color: c.danger, height: 1.4),
-                    ),
-                  ),
-                ),
-                if (_levels.any((l) => l.levelId != level?.levelId)) ...[
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      for (final other in _levels)
-                        if (other.levelId != level?.levelId)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: c.inputFill,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              '${other.name}・${_rangeText(other)}',
-                              style: TextStyle(fontSize: 11, color: c.textSecondary),
-                            ),
-                          ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 12),
-                AppTextField(
-                  controller: benefitsController,
-                  hint: S.benefitsSeparatedByCommasLineBreaks,
-                  maxLines: 4,
-                  maxLength: 500,
-                ),
-                const SizedBox(height: 20),
-                PrimaryButton(
-                  label: S.actionSave,
-                  height: 46,
-                  onPressed: () {
-                    final name = nameController.text.trim();
-                    final min = int.tryParse(minController.text.trim());
-                    final maxText = maxController.text.trim();
-                    final max = maxText.isEmpty ? null : int.tryParse(maxText);
-
-                    String? nextNameError;
-                    String? nextRangeError;
-                    if (name.isEmpty) nextNameError = S.enterTierName;
-                    if (min == null) {
-                      nextRangeError = S.enterMinimumPoints;
-                    } else if (max != null && max <= min) {
-                      nextRangeError = S.maximumPointsMustExceedMinimum;
-                    } else {
-                      final clash = _overlapping(min, max, exceptId: level?.levelId);
-                      if (clash != null) {
-                        nextRangeError = S.pointsRangeOverlapsWithP0P1(clash.name, _rangeText(clash));
-                      }
-                    }
-
-                    if (nextNameError != null || nextRangeError != null) {
-                      HapticFeedback.lightImpact();
-                      setSheetState(() {
-                        nameError = nextNameError;
-                        rangeError = nextRangeError;
-                      });
-                      return;
-                    }
-                    Navigator.pop(ctx, true);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    if (saved != true || !mounted) return;
-
-    final maxText = maxController.text.trim();
-    final error = await runBusy(
+    final choice = await showOptionSheet<String>(
       context,
-      () => _api.saveLevel(
-        levelId: level?.levelId,
-        name: nameController.text.trim(),
-        minPoints: int.parse(minController.text.trim()),
-        maxPoints: maxText.isEmpty ? null : int.parse(maxText),
-        benefits: benefitsController.text.trim(),
-      ),
+      title: level.name,
+      options: [
+        SheetOption(value: 'edit', label: S.actionEdit, icon: Icons.edit_outlined),
+        SheetOption(value: 'delete', label: S.actionDelete, icon: Icons.delete_outline_rounded, color: c.danger),
+      ],
     );
-    if (!mounted) return;
-
-    if (error != null) {
-      if (error.isNotEmpty && error != S.verificationCancelled) showAppSnackBar(context, error, isError: true);
-    } else {
-      showAppSnackBar(context, level == null ? S.tierAdded : S.tierUpdated);
-      await _load();
-    }
+    if (!mounted || choice == null) return;
+    if (choice == 'edit') _edit(level: level);
+    if (choice == 'delete') _delete(level);
   }
 
   Future<void> _delete(AdminLevel level) async {
     if (_isBusy) return;
+    final blocked = LevelRules.deleteBlockReason(level, _levels);
+    if (blocked != null) {
+      HapticFeedback.heavyImpact();
+      showAppSnackBar(context, blocked, isError: true);
+      return;
+    }
+
+    final fallback = LevelRules.fallbackAfterDelete(level, _levels);
     final ok = await showConfirmDialog(
       context,
       title: S.deleteTier,
-      message: S.deleteP0MembersTierDropNext(level.name),
+      message: level.memberCount > 0 && fallback != null
+          ? S.p0CurrentlyP1MembersAfterDeletion(level.name, level.memberCount, fallback.name)
+          : S.noMembersCurrentlyP0OtherTiers(level.name),
       confirmLabel: S.actionDelete,
       isDestructive: true,
     );
     if (!ok || !mounted) return;
 
     setState(() => _isBusy = true);
-    final error = await runBusy(context, () => _api.deleteLevel(level.levelId));
+    final result = await runBusy(context, () => _api.deleteLevel(level.levelId));
     if (!mounted) return;
     setState(() => _isBusy = false);
+    if (result == null) return;
 
+    final error = result.error;
     if (error != null) {
       if (error.isNotEmpty && error != S.verificationCancelled) showAppSnackBar(context, error, isError: true);
-    } else {
-      showAppSnackBar(context, S.tierDeleted);
-      await _load();
+      return;
     }
+    final movedTo = result.movedTo;
+    showAppSnackBar(
+      context,
+      result.movedMembers > 0 && movedTo != null ? S.tierDeletedP0MembersMovedP1(result.movedMembers, movedTo) : S.tierDeleted,
+    );
+    await _load();
+  }
+
+  Future<void> _reorder(int oldIndex, int newIndex) async {
+    if (_isBusy) return;
+    final before = _levels;
+    final target = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    if (target == oldIndex) return;
+    final reordered = [...before];
+    reordered.insert(target, reordered.removeAt(oldIndex));
+
+    final changes = LevelRules.reorderChanges(before, reordered);
+    if (changes.isEmpty) return;
+    HapticFeedback.selectionClick();
+    setState(() => _levels = reordered);
+
+    final ok = await showConfirmDialog(
+      context,
+      title: S.changeTierOrder,
+      message: [
+        S.thresholdsStayWithTheirPositionThese,
+        for (final change in changes) S.p0P1P2Pts(change.level.name, change.from, change.to),
+      ].join('\n'),
+      confirmLabel: S.actionSave,
+    );
+    if (!mounted) return;
+    if (!ok) {
+      setState(() => _levels = before);
+      return;
+    }
+
+    setState(() => _isBusy = true);
+    final error = await runBusy(context, () => _api.reorderLevels([for (final l in reordered) l.levelId]));
+    if (!mounted) return;
+    setState(() => _isBusy = false);
+    if (error != null) {
+      setState(() => _levels = before);
+      if (error.isNotEmpty && error != S.verificationCancelled) showAppSnackBar(context, error, isError: true);
+      return;
+    }
+    showAppSnackBar(context, S.tierOrderUpdated);
+    await _load();
   }
 
   @override
@@ -292,47 +173,35 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
               title: S.membershipTiers,
               icon: Icons.workspace_premium_outlined,
               actions: [
-                HeaderIconButton(icon: Icons.add_rounded, onTap: _isBusy ? null : () => _edit()),
+                HeaderIconButton(icon: Icons.add_rounded, onTap: _isBusy || _isLoading ? null : () => _edit()),
               ],
             ),
             Expanded(
               child: SwitchIn(
                 child: _isLoading
                     ? const LoadingView.list()
-                    : RefreshIndicator(
-                        color: c.accent,
-                        onRefresh: _load,
-                        child: SwitchIn(
-                          child: _levels.isEmpty
-                              ? ListView(
-                                  key: const ValueKey('empty'),
-                                  children: [
-                                    const SizedBox(height: 60),
-                                    EmptyView(
-                                      icon: Icons.workspace_premium_outlined,
-                                      message: S.noMembershipTiersSetUp,
-                                      actionLabel: S.newTier,
-                                      onAction: () => _edit(),
-                                    ),
-                                    Center(
-                                      child: TextButton(
-                                        onPressed: _retry,
-                                        child: Text(S.refresh, style: TextStyle(color: c.textSecondary)),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : ListView.builder(
-                                  key: const ValueKey('items'),
-                                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 24)),
-                                  itemCount: _levels.length,
-                                  itemBuilder: (_, i) => RevealOnScroll(
-                                    index: i,
-                                    child: _buildCard(_levels[i], i, c, wide: frame.isWide),
-                                  ),
+                    : _levels.isEmpty
+                        ? ListView(
+                            key: const ValueKey('empty'),
+                            children: [
+                              const SizedBox(height: 60),
+                              EmptyView(
+                                icon: Icons.workspace_premium_outlined,
+                                message: S.noMembershipTiersSetUp,
+                                actionLabel: S.newTier,
+                                onAction: () => _edit(),
+                              ),
+                              Center(
+                                child: TextButton(
+                                  onPressed: _retry,
+                                  child: Text(S.refresh, style: TextStyle(color: c.textSecondary)),
                                 ),
-                        ),
-                      ),
+                              ),
+                            ],
+                          )
+                        : frame.width >= _twoPaneWidth
+                            ? _buildTwoPane(c, frame)
+                            : _buildList(c, frame, twoPane: false),
               ),
             ),
           ],
@@ -341,71 +210,302 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
     );
   }
 
-  Widget _buildCard(AdminLevel level, int index, AppColors c, {bool wide = false}) {
-    final next = index + 1 < _levels.length ? _levels[index + 1] : null;
-    final gap = level.maxPoints != null && next != null && next.minPoints > level.maxPoints! + 1;
+  Widget _buildTwoPane(AppColors c, AdminFrame frame) {
+    final selected = _selected ?? _levels.first;
+    final index = _levels.indexOf(selected);
 
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      onTap: () => _edit(level: level),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.workspace_premium_rounded, size: 20, color: c.accent),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  level.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: c.textPrimary,
-                  ),
+    return Center(
+      key: const ValueKey('two-pane'),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 3, child: _buildList(c, frame, twoPane: true)),
+            Expanded(
+              flex: 2,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(8, 16, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    LevelPreviewCard(
+                      style: LevelStyle.at(index),
+                      name: selected.name,
+                      range: LevelRules.rangeLabel(selected.minPoints, LevelRules.maxPointsOf(_levels, index)),
+                      benefits: LevelRules.benefitsOf(selected.benefits),
+                    ),
+                    const SizedBox(height: 12),
+                    AppCard(
+                      child: Row(
+                        children: [
+                          Icon(Icons.groups_outlined, color: c.textSecondary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              S.p0Members(selected.memberCount),
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            label: S.actionDelete,
+                            icon: Icons.delete_outline_rounded,
+                            color: c.danger,
+                            onPressed: _isBusy ? null : () => _delete(selected),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: PrimaryButton(
+                            label: S.actionEdit,
+                            icon: Icons.edit_outlined,
+                            onPressed: _isBusy ? null : () => _edit(level: selected),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 6),
-              Flexible(
-                flex: wide ? 0 : 1,
-                child: Text(_rangeText(level),
-                    textAlign: TextAlign.end,
-                    maxLines: 2,
-                    style: TextStyle(fontSize: 12, color: c.textSecondary)),
-              ),
-              IconButton(
-                icon: Icon(Icons.delete_outline_rounded, color: c.iconInactive, size: 20),
-                onPressed: _isBusy ? null : () => _delete(level),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            level.benefits.isEmpty ? S.noBenefitsDescribedYet : level.benefits,
-            style: TextStyle(
-              fontSize: 12,
-              height: 1.5,
-              color: level.benefits.isEmpty ? c.textHint : c.textSecondary,
-            ),
-          ),
-          if (gap) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.info_outline_rounded, size: 14, color: c.warning),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    S.noTierCoversP0P1Points(level.maxPoints! + 1, next.minPoints - 1),
-                    style: TextStyle(fontSize: 11, color: c.warning),
-                  ),
-                ),
-              ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildList(AppColors c, AdminFrame frame, {required bool twoPane}) {
+    final padding = twoPane
+        ? const EdgeInsets.fromLTRB(24, 16, 12, 24)
+        : frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 24), maxWidth: 760);
+
+    return RefreshIndicator(
+      key: const ValueKey('items'),
+      color: c.accent,
+      onRefresh: _load,
+      child: ReorderableListView.builder(
+        padding: padding,
+        buildDefaultDragHandles: false,
+        header: _LevelOverview(levels: _levels),
+        itemCount: _levels.length,
+        onReorder: _reorder,
+        proxyDecorator: (child, _, _) => Material(color: Colors.transparent, elevation: 6, child: child),
+        itemBuilder: (context, i) {
+          final level = _levels[i];
+          return Padding(
+            key: ValueKey('level-${level.levelId}'),
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _LevelTile(
+              level: level,
+              index: i,
+              maxPoints: LevelRules.maxPointsOf(_levels, i),
+              selected: twoPane && level.levelId == (_selected ?? _levels.first).levelId,
+              canReorder: _levels.length > 1 && !_isBusy,
+              onTap: twoPane ? () => setState(() => _selectedId = level.levelId) : () => _edit(level: level),
+              onMore: _isBusy ? null : () => _showActions(level),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _LevelOverview extends StatelessWidget {
+  final List<AdminLevel> levels;
+
+  const _LevelOverview({required this.levels});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final total = levels.fold<int>(0, (sum, l) => sum + l.memberCount);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Wrap(
+              spacing: 24,
+              runSpacing: 8,
+              children: [
+                _Figure(value: '${levels.length}', label: S.tiers),
+                _Figure(value: '$total', label: S.members4),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Semantics(
+              label: S.memberDistribution,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: SizedBox(
+                  height: 12,
+                  child: total == 0
+                      ? ColoredBox(color: c.inputFill)
+                      : Row(
+                          children: [
+                            for (final (i, level) in levels.indexed)
+                              if (level.memberCount > 0)
+                                Expanded(
+                                  flex: level.memberCount,
+                                  child: Container(
+                                    margin: EdgeInsets.only(right: i == levels.length - 1 ? 0 : 2),
+                                    color: LevelStyle.at(i).accent,
+                                  ),
+                                ),
+                          ],
+                        ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Figure extends StatelessWidget {
+  final String value;
+  final String label;
+
+  const _Figure({required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: value,
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: c.textPrimary),
+          ),
+          TextSpan(text: ' $label', style: TextStyle(fontSize: 13, color: c.textSecondary)),
         ],
+      ),
+    );
+  }
+}
+
+class _LevelTile extends StatelessWidget {
+  final AdminLevel level;
+  final int index;
+  final int? maxPoints;
+  final bool selected;
+  final bool canReorder;
+  final VoidCallback onTap;
+  final VoidCallback? onMore;
+
+  const _LevelTile({
+    required this.level,
+    required this.index,
+    required this.maxPoints,
+    required this.selected,
+    required this.canReorder,
+    required this.onTap,
+    this.onMore,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final style = LevelStyle.at(index);
+    final benefits = LevelRules.benefitsOf(level.benefits);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: selected ? c.accent : Colors.transparent, width: 1.5),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(colors: [style.gradient[1], style.gradient[0]]),
+                  ),
+                  child: Icon(style.icon, size: 22, color: Colors.white),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        level.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        LevelRules.rangeLabel(level.minPoints, maxPoints),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: c.textSecondary),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        benefits.isEmpty ? S.noBenefitsSet : benefits.join('・'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: benefits.isEmpty ? c.textHint : c.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${level.memberCount}',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.textPrimary),
+                    ),
+                    Text(S.members4, style: TextStyle(fontSize: 11, color: c.textSecondary)),
+                  ],
+                ),
+                IconButton(
+                  tooltip: S.moreActions,
+                  onPressed: onMore,
+                  icon: Icon(Icons.more_horiz_rounded, color: c.textSecondary),
+                ),
+                if (canReorder)
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: Semantics(
+                      label: S.dragReorder,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                        child: Icon(Icons.drag_indicator_rounded, color: c.iconInactive),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

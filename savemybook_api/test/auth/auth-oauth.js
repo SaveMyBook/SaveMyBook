@@ -181,7 +181,7 @@ const tests = [
     assert.strictEqual(deepLinkParams(cb).get('error'), 'OAUTH_STATE_INVALID');
   }],
 
-  ['選擇建立帳號時電子郵件已註冊回 409 ACCOUNT_EXISTS_LINK_REQUIRED', async () => {
+  ['選擇建立帳號時電子郵件已註冊回 409 ACCOUNT_EXISTS_LINK_REQUIRED，一次性碼保留給登入並綁定', async () => {
     prepare();
     h.addUser({ email: 'line@example.com' });
     const started = await startLogin('line');
@@ -191,7 +191,8 @@ const tests = [
     const res = await exchange(code, { create: true });
     assert.strictEqual(res.status, 409);
     assert.strictEqual(res.body.code, 'ACCOUNT_EXISTS_LINK_REQUIRED');
-    assert.strictEqual(h.prisma.rows('oauth_results').length, 0, '無法補救的失敗要立刻作廢一次性碼');
+    assert.strictEqual(res.body.provider_email, 'line@example.com');
+    assert.strictEqual(h.prisma.rows('oauth_results').length, 1, '使用者可改為登入既有帳號並綁定，不必重新授權');
   }],
 
   ['不允許直接註冊時選擇建立帳號回 403 SIGNUP_NOT_ALLOWED', async () => {
