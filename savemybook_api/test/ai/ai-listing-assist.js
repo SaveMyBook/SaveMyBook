@@ -26,6 +26,18 @@ const setup = ({ lookup = null } = {}) => {
 module.exports = {
   name: 'AI 上架輔助',
   tests: [
+    ['書況：接受中文標籤、大小寫與字串格式，無法辨識或無依據時為 null', () => {
+      const { sanitizeCondition } = listingAssist;
+      assert.strictEqual(sanitizeCondition({ level: 'good', confidence: 0.8 }, true).level, 'good');
+      assert.strictEqual(sanitizeCondition({ level: 'Like New', confidence: 0.8 }, true).level, 'like_new');
+      assert.strictEqual(sanitizeCondition({ level: 'like-new' }, true).level, 'like_new');
+      assert.strictEqual(sanitizeCondition({ level: '良好（有輕微摺痕）' }, true).level, 'good');
+      assert.strictEqual(sanitizeCondition({ level: '待修補' }, true).level, 'poor');
+      assert.strictEqual(sanitizeCondition('fair', true).level, 'fair');
+      assert.strictEqual(sanitizeCondition({ level: '很棒' }, true), null);
+      assert.strictEqual(sanitizeCondition({ level: 'good' }, false), null);
+    }],
+
     ['出版日期：ISO 日期保留到日', () => {
       assert.deepStrictEqual(parsePublishDate('2003-08-01'), { date: '2003-08-01', precision: 'day' });
       assert.deepStrictEqual(parsePublishDate('2003/8/1'), { date: '2003-08-01', precision: 'day' });

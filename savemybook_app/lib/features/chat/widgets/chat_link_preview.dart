@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../i18n/strings.dart';
+import '../../../models/book.dart';
 import '../../../models/chat.dart';
 import '../../../models/link_preview.dart';
 import '../../../services/api_service.dart';
 import '../../../utils/api_helpers.dart';
 import '../../../utils/app_colors.dart';
+import '../../../utils/app_info.dart';
 import '../../../utils/motion.dart';
 import '../../../widgets/animations.dart';
 import '../../../widgets/app_dialogs.dart';
@@ -28,6 +30,20 @@ class LinkPreviewStore {
 
   static LinkPreviewFetch fetcher = (url) => ApiService().fetchLinkPreview(url);
 
+  static final Set<String> _appHosts = {
+    for (final base in [kApiHost, ApiService.publicWebUrl]) ?Uri.tryParse(base)?.host.toLowerCase(),
+    'savemybook.today',
+    'www.savemybook.today',
+  };
+
+  /// 本站書籍分享連結（僅限本站網域）的權杖；其他網址回傳 null。
+  static String? bookTokenOf(String url) {
+    final uri = Uri.tryParse(url.trim());
+    if (uri == null || !_appHosts.contains(uri.host.toLowerCase())) return null;
+    final share = ApiService.parseShareLink(url);
+    return share?.kind == 'b' ? share!.token : null;
+  }
+
   static final Map<String, LinkPreview?> _results = {};
   static final Map<String, DateTime> _retryAt = {};
   static final Map<String, Future<LinkPreview?>> _pending = {};
@@ -43,9 +59,28 @@ class LinkPreviewStore {
     return _pending[url] ??= _fetch(url);
   }
 
+  static Future<({LinkPreview? preview, bool settled})> _fetchAppBook(String url, String token) async {
+    final result = await SharedBookStore.load(token);
+    final book = result.book;
+    if (book == null) return (preview: null, settled: result.settled);
+    return (
+      preview: LinkPreview(
+        url: url,
+        siteName: kAppName,
+        title: book.title,
+        description: book.author,
+        imageUrl: book.imageUrls.firstOrNull,
+        kind: 'book',
+        price: book.price,
+      ),
+      settled: true,
+    );
+  }
+
   static Future<LinkPreview?> _fetch(String url) async {
     try {
-      final result = await fetcher(url);
+      final token = bookTokenOf(url);
+      final result = token != null ? await _fetchAppBook(url, token) : await fetcher(url);
       if (result.settled) {
         _retryAt.remove(url);
         _results[url] = result.preview;
@@ -65,6 +100,7 @@ class LinkPreviewStore {
   }
 
   static void clear() {
+    SharedBookStore.clear();
     _results.clear();
     _retryAt.clear();
     _pending.clear();
@@ -261,7 +297,11 @@ class ChatLinkPreviewView extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       '\$${preview.price!.toStringAsFixed(0)}',
-                      style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800, color: mine ? Colors.white : c.accent),
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w800,
+                        color: mine ? Colors.white : c.accent,
+                      ),
                     ),
                   ],
                 ],
@@ -319,6 +359,246 @@ class ChatLinkPreviewView extends StatelessWidget {
           child: ClipRRect(
             borderRadius: radius,
             child: ColoredBox(color: panel, child: body),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+typedef SharedBookFetch = Future<({Book? book, bool settled})> Function(String token);
+
+class SharedBookStore {
+  SharedBookStore._();
+
+  static const _ttl = Duration(minutes: 5);
+
+  static SharedBookFetch fetcher = (token) async {
+    final book = await ApiService().fetchBookByShareToken(token);
+    return (book: book, settled: true);
+  };
+
+  static final Map<String, ({Book? book, DateTime at})> _results = {};
+  static final Map<String, Future<({Book? book, bool settled})>> _pending = {};
+
+  static ({Book? book, bool known}) peek(String token) {
+    final hit = _results[token];
+    return hit == null ? (book: null, known: false) : (book: hit.book, known: true);
+  }
+
+  static Future<({Book? book, bool settled})> load(String token, {bool force = false}) {
+    final hit = _results[token];
+    if (!force && hit != null && DateTime.now().difference(hit.at) < _ttl) {
+      return Future.value((book: hit.book, settled: true));
+    }
+    return _pending[token] ??= _fetch(token);
+  }
+
+  static Future<({Book? book, bool settled})> _fetch(String token) async {
+    try {
+      final result = await fetcher(token);
+      if (result.settled) _results[token] = (book: result.book, at: DateTime.now());
+      return result;
+    } catch (_) {
+      return (book: null, settled: false);
+    } finally {
+      _pending.remove(token);
+    }
+  }
+
+  static void clear() {
+    _results.clear();
+    _pending.clear();
+  }
+}
+
+/// 訊息內容只有本站書籍分享連結時，直接以書籍卡片呈現。
+class ChatSharedBookCard extends StatefulWidget {
+  final String token;
+  final bool isMine;
+  final double width;
+
+  const ChatSharedBookCard({super.key, required this.token, required this.isMine, required this.width});
+
+  @override
+  State<ChatSharedBookCard> createState() => _ChatSharedBookCardState();
+}
+
+class _ChatSharedBookCardState extends State<ChatSharedBookCard> {
+  Book? _book;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolve();
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatSharedBookCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.token != widget.token) _resolve();
+  }
+
+  void _resolve({bool force = false}) {
+    final token = widget.token;
+    final cached = SharedBookStore.peek(token);
+    _book = cached.book;
+    _loading = !cached.known;
+    SharedBookStore.load(token, force: force).then((result) {
+      if (!mounted || widget.token != token) return;
+      setState(() {
+        if (result.settled || result.book != null) _book = result.book;
+        _loading = false;
+      });
+    });
+  }
+
+  Future<void> _open() async {
+    final book = _book;
+    if (book == null) return;
+    final result = await runBusy(context, () => SharedBookStore.load(widget.token, force: true));
+    if (!mounted) return;
+    final fresh = result?.book;
+    if (fresh == null) {
+      final settled = result?.settled ?? false;
+      if (settled) setState(() => _book = null);
+      showAppSnackBar(context, settled ? S.bookNoLongerListed : S.networkError, isError: true);
+      return;
+    }
+    Navigator.push(context, MaterialPageRoute(builder: (_) => BookDetailScreen(book: fresh)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final book = _book;
+    final radius = BorderRadius.circular(18);
+
+    final Widget body;
+    if (_loading && book == null) {
+      body = Row(
+        children: [
+          const SkeletonBox(width: 54, height: 72, radius: 10),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                SkeletonBox(width: 60, height: 10),
+                SizedBox(height: 8),
+                SkeletonBox(height: 14),
+                SizedBox(height: 8),
+                SkeletonBox(width: 48, height: 14),
+              ],
+            ),
+          ),
+        ],
+      );
+    } else if (book == null) {
+      body = Row(
+        children: [
+          Container(
+            width: 54,
+            height: 72,
+            decoration: BoxDecoration(color: c.skeleton, borderRadius: BorderRadius.circular(10)),
+            child: Icon(Icons.menu_book_outlined, color: c.textHint, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              S.bookNoLongerExistsBeenRemoved,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textSecondary, height: 1.3),
+            ),
+          ),
+        ],
+      );
+    } else {
+      final available = book.status == 'on_sale';
+      body = Row(
+        children: [
+          BookThumbnail(imageUrl: book.imageUrls.firstOrNull, width: 54, height: 72, radius: 10),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.menu_book_rounded, size: 12, color: c.accent),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        kAppName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11, color: c.accent, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  book.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.3),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      '\$${book.price.toStringAsFixed(0)}',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: c.accent),
+                    ),
+                    if (!available) ...[
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          book.statusText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right_rounded, color: c.iconInactive, size: 20),
+        ],
+      );
+    }
+
+    return Semantics(
+      button: book != null,
+      label: book?.title,
+      child: PressableScale(
+        onTap: book == null ? null : _open,
+        child: AnimatedSize(
+          duration: Motion.base,
+          curve: Motion.standard,
+          alignment: AlignmentDirectional.topStart,
+          child: Container(
+            width: widget.width,
+            decoration: BoxDecoration(
+              color: c.card,
+              borderRadius: radius,
+              border: Border.all(color: c.border),
+              boxShadow: [
+                BoxShadow(
+                  color: c.shadow.withValues(alpha: c.isDark ? 0.25 : 0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(10),
+            child: body,
           ),
         ),
       ),

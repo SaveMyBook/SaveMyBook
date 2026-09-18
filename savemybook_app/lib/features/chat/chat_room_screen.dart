@@ -2022,6 +2022,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     }
 
     final value = pending?.text ?? m?.text ?? '';
+    final sharedToken = reply == null ? LinkPreviewStore.bookTokenOf(value) : null;
+    if (sharedToken != null) {
+      return ChatSharedBookCard(
+        token: sharedToken,
+        isMine: isMine,
+        width: math.min(math.min(MediaQuery.sizeOf(context).width * 0.7, 420.0), 320.0),
+      );
+    }
     final linkText = ChatLinkText(
       text: value,
       isMine: isMine,

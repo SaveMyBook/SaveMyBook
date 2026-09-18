@@ -14,7 +14,6 @@ const identities = require('./auth-identities');
 
 const TABLES = ['user_passkeys', 'webauthn_challenges'];
 const MAX_PER_USER = 10;
-const OPTIONS_TIMEOUT_MS = 5 * 60 * 1000;
 
 const migrationReady = () => hasTables(TABLES);
 
@@ -30,7 +29,7 @@ const verificationFailed = () => badRequest('通行密鑰驗證失敗，請重�
 const challengeInvalid = () => badRequest('驗證要求已失效，請重新操作', 'PASSKEY_CHALLENGE_INVALID');
 
 const passkeysOf = (userId) => prisma.$queryRaw`
-  SELECT passkey_id, credential_id, transports, device_label, created_at, last_used_at, backed_up
+  SELECT passkey_id, credential_id, transports, aaguid, device_label, created_at, last_used_at, backed_up
   FROM user_passkeys WHERE user_id = ${userId} ORDER BY created_at ASC`;
 
 const countOf = async (userId) => {
@@ -42,9 +41,26 @@ const hasPasskey = async (userId) => (await migrationReady()) && (await countOf(
 
 const transportsOf = (row) => (row.transports ? String(row.transports).split(',').filter(Boolean) : undefined);
 
+const AUTHENTICATORS = {
+  'fbfc3007-154e-4ecc-8c0b-6e020557d7bd': 'icloud_keychain',
+  'dd4ec289-e01d-41c9-bb89-70fa845d4bf2': 'icloud_keychain',
+  'ea9b8d66-4d01-1d21-3ce4-b6b48cb575d4': 'google_password_manager',
+  '53414d53-554e-4700-0000-000000000000': 'samsung_pass',
+  'bada5566-a7aa-401f-bd96-45619a55120d': '1password',
+  'd548826e-79b4-db40-a3d8-11116f7e8349': 'bitwarden',
+  '531126d6-e717-415c-9320-3d9aa6981239': 'dashlane',
+  'adce0002-35bc-c60a-648b-0b25f1f05503': 'chrome_mac',
+  '08987058-cadc-4b81-b6e1-30de50dcbe96': 'windows_hello',
+  '9ddd1817-af5a-4672-a2b9-3e3dd95000a9': 'windows_hello',
+  '6028b017-b1d4-4c02-b4b3-afcdafc96bb2': 'windows_hello'
+};
+
+const authenticatorOf = (aaguid) => AUTHENTICATORS[String(aaguid ?? '').toLowerCase()] ?? null;
+
 const shape = (row) => ({
   passkey_id: publicId.encode('passkey', row.passkey_id),
   device_label: row.device_label ?? null,
+  authenticator: authenticatorOf(row.aaguid),
   created_at: row.created_at,
   last_used_at: row.last_used_at ?? null,
   backed_up: Boolean(Number(row.backed_up))
@@ -112,7 +128,7 @@ const registrationOptions = async (userId) => {
     userDisplayName: user.nickname || user.email,
     userID: webauthn.userHandleFor(userId),
     challenge: challenge.bytes,
-    timeout: OPTIONS_TIMEOUT_MS,
+    timeout: webauthn.OPTIONS_TIMEOUT_MS,
     attestationType: 'none',
     excludeCredentials: existing.map((row) => ({ id: row.credential_id, transports: transportsOf(row) })),
     authenticatorSelection: { residentKey: 'required', requireResidentKey: true, userVerification: 'required' },
@@ -122,20 +138,33 @@ const registrationOptions = async (userId) => {
   return options;
 };
 
-const assertResponseShape = (response, fields) => {
-  const ok = response && typeof response === 'object'
-    && webauthn.isBase64URL(response.id, 1024)
-    && (response.rawId === undefined || response.rawId === response.id)
-    && response.response && typeof response.response === 'object'
-    && fields.every((field) => webauthn.isBase64URL(response.response[field], 16384));
-  if (!ok) throw badRequest('通行密鑰資料格式不正確', 'PASSKEY_INVALID_RESPONSE');
+const normalizedResponse = (response, fields) => {
+  const invalid = () => badRequest('通行密鑰資料格式不正確', 'PASSKEY_INVALID_RESPONSE');
+  if (!response || typeof response !== 'object' || !response.response || typeof response.response !== 'object') throw invalid();
+
+  const canonical = webauthn.canonicalBase64URL;
+  const id = canonical(response.id);
+  const rawId = response.rawId === undefined ? id : canonical(response.rawId);
+  const inner = { ...response.response };
+  for (const field of [...fields, 'userHandle']) {
+    if (typeof inner[field] === 'string') inner[field] = canonical(inner[field]);
+  }
+  const ok = webauthn.isBase64URL(id, 1024)
+    && rawId === id
+    && fields.every((field) => webauthn.isBase64URL(inner[field], 16384));
+  if (!ok) throw invalid();
+  return { ...response, id, rawId: id, response: inner };
 };
+
+const isDuplicateKey = (err) => err?.code === 'P2002'
+  || /Duplicate entry/i.test(err?.message ?? '')
+  || String(err?.meta?.code ?? '') === '1062';
 
 const TRANSPORTS = ['ble', 'cable', 'hybrid', 'internal', 'nfc', 'smart-card', 'usb'];
 
-const register = async (userId, attestation, deviceLabel) => {
+const register = async (userId, input, deviceLabel) => {
   await assertAvailable();
-  assertResponseShape(attestation, ['clientDataJSON', 'attestationObject']);
+  const attestation = normalizedResponse(input, ['clientDataJSON', 'attestationObject']);
   const challenge = await consumeChallenge(attestation, { purpose: 'register', userId });
 
   if ((await countOf(userId)) >= MAX_PER_USER) {
@@ -175,7 +204,7 @@ const register = async (userId, attestation, deviceLabel) => {
         (${userId}, ${credentialId}, ${isoBase64URL.fromBuffer(info.credential.publicKey)}, ${info.credential.counter},
          ${transports}, ${info.aaguid ?? null}, ${info.credentialBackedUp ? 1 : 0}, ${deviceLabel}, ${new Date()})`;
   } catch (err) {
-    if (err?.code === 'P2002' || err?.code === 'P2010' || /Duplicate/i.test(err?.message ?? '')) {
+    if (isDuplicateKey(err)) {
       throw conflict('此通行密鑰已經註冊', 'PASSKEY_ALREADY_REGISTERED');
     }
     throw err;
@@ -222,6 +251,18 @@ const remove = async (userId, code) => {
   return list(userId);
 };
 
+const rename = async (userId, code, deviceLabel) => {
+  await assertAvailable();
+  const passkeyId = publicId.decode('passkey', code);
+  const rows = passkeyId == null ? [] : await prisma.$queryRaw`
+    SELECT passkey_id FROM user_passkeys WHERE passkey_id = ${passkeyId} AND user_id = ${userId}`;
+  if (rows.length === 0) throw notFound('找不到此通行密鑰，可能已經刪除');
+
+  await prisma.$executeRaw`
+    UPDATE user_passkeys SET device_label = ${deviceLabel} WHERE passkey_id = ${passkeyId} AND user_id = ${userId}`;
+  return list(userId);
+};
+
 // ---------- 驗證 ----------
 
 const authenticationOptions = async ({ purpose, scope = '', userId = null, allowCredentials }) => {
@@ -230,7 +271,7 @@ const authenticationOptions = async ({ purpose, scope = '', userId = null, allow
     rpID: webauthn.config().rpId,
     allowCredentials,
     challenge: challenge.bytes,
-    timeout: OPTIONS_TIMEOUT_MS,
+    timeout: webauthn.OPTIONS_TIMEOUT_MS,
     userVerification: 'required'
   });
   await storeChallenge(challenge.text, { purpose, userId });
@@ -275,9 +316,9 @@ const counterRegressed = async (row, received) => {
 };
 
 // 回傳通過驗證的 user_id。userId 有值時憑證必須屬於該使用者。
-const verifyAssertion = async (assertion, { purpose, scope = '', userId = null }) => {
+const verifyAssertion = async (input, { purpose, scope = '', userId = null }) => {
   await assertAvailable();
-  assertResponseShape(assertion, ['clientDataJSON', 'authenticatorData', 'signature']);
+  const assertion = normalizedResponse(input, ['clientDataJSON', 'authenticatorData', 'signature']);
   const challenge = await consumeChallenge(assertion, { purpose, scope, userId });
 
   const rows = await prisma.$queryRaw`
@@ -337,5 +378,5 @@ const login = async (assertion, device) => {
 
 module.exports = {
   MAX_PER_USER, migrationReady, isAvailable, assertAvailable, hasPasskey, list, registrationOptions, register,
-  remove, loginOptions, verifyOptions, verifyAssertion, login, cleanupExpired
+  rename, remove, loginOptions, verifyOptions, verifyAssertion, login, cleanupExpired
 };

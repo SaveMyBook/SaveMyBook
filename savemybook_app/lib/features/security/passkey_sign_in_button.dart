@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
 
+import '../../models/passkey.dart';
 import '../../services/api_service.dart';
 import '../../services/passkey_service.dart';
 import '../../widgets/app_buttons.dart';
+import '../../widgets/app_dialogs.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 
-/// 登入頁的「使用通行密鑰登入」。裝置不支援或伺服器未啟用時不佔任何空間。
 class PasskeySignInButton extends StatefulWidget {
   final bool disabled;
 
-  /// 登入成功（Token 與使用者資料已存好）後呼叫，由登入頁決定後續導向。
   final Future<void> Function() onSignedIn;
+
+  final VoidCallback? onUsePassword;
 
   final double topSpacing;
 
-  /// 測試用：直接指定是否顯示，不再偵測裝置與伺服器。
   final bool? initialVisible;
 
   const PasskeySignInButton({
     super.key,
     required this.onSignedIn,
+    this.onUsePassword,
     this.disabled = false,
     this.topSpacing = 12,
     this.initialVisible,
@@ -50,8 +52,29 @@ class _PasskeySignInButtonState extends State<PasskeySignInButton> {
     if (_busy || widget.disabled) return;
     FocusScope.of(context).unfocus();
     setState(() => _busy = true);
-    final outcome = await PasskeyService.signIn();
+
+    var outcome = await _attempt(immediate: true);
     if (!mounted) return;
+    if (outcome.code == PasskeyOutcome.noCredentialsCode) {
+      setState(() => _busy = false);
+      final other = await showConfirmDialog(
+        context,
+        title: S.noPasskeyDevice,
+        message: S.signWithPasskeyAnotherDeviceSecurity,
+        confirmLabel: S.useAnotherDevice,
+        cancelLabel: S.usePassword,
+        icon: Icons.key_rounded,
+      );
+      if (!mounted) return;
+      if (!other) {
+        widget.onUsePassword?.call();
+        return;
+      }
+      setState(() => _busy = true);
+      outcome = await _attempt(immediate: false);
+      if (!mounted) return;
+    }
+
     if (outcome.isOk) {
       await widget.onSignedIn();
       if (mounted) setState(() => _busy = false);
@@ -59,6 +82,14 @@ class _PasskeySignInButtonState extends State<PasskeySignInButton> {
     }
     setState(() => _busy = false);
     if (!outcome.isCancelled) showAppSnackBar(context, outcome.message, isError: true);
+  }
+
+  Future<PasskeyOutcome<void>> _attempt({required bool immediate}) async {
+    try {
+      return await PasskeyService.signIn(immediate: immediate);
+    } catch (_) {
+      return PasskeyOutcome.fail('UNKNOWN', S.signFailedPleaseTryAgain);
+    }
   }
 
   @override

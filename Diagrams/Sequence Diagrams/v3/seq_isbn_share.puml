@@ -1,0 +1,53 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：ISBN 條碼查詢與書籍/個人分享連結
+
+actor 賣家 as Seller
+actor 訪客 as Guest
+participant "BarcodeScannerScreen /\nSellBookScreen" as UI
+participant "ApiService(BooksApi)" as ApiSvc
+participant "GET /api/books/isbn/:isbn" as IsbnRoute
+participant "services/isbn-lookup.js" as IsbnSvc
+participant "Google Books API" as Google
+participant "Open Library API" as OpenLib
+participant "GET /api/books/:id/share-link" as ShareRoute
+participant "GET /b/:token（公開網頁）" as PublicPage
+database "books.share_token" as DB
+
+== ISBN 查詢 ==
+Seller -> UI : 掃描條碼（EAN-13/EAN-8，978/979開頭）
+UI -> ApiSvc : fetchBookByIsbn(isbn)
+ApiSvc -> IsbnRoute : GET /api/books/isbn/:isbn（需登入，每分鐘30次）
+IsbnRoute -> IsbnSvc : lookup(isbn)
+par 並行查詢
+  IsbnSvc -> Google : volumes?q=isbn:（逾時8秒）
+  IsbnSvc -> OpenLib : /api/books?bibkeys=（逾時8秒）+ /isbn/{isbn}.json補齊簡介
+end
+IsbnSvc -> IsbnSvc : 合併規則：各欄位取Google→OpenLibrary\n→版本詳細資料第一個有值者；\n出版日期取精度最高者
+alt 兩來源皆失敗
+  IsbnSvc --> UI : 502
+else 查無資料
+  IsbnSvc --> UI : 404
+else 成功
+  IsbnSvc --> UI : 書名/作者/出版社/出版日期/簡介/頁數/語言
+end
+
+== 書籍分享 ==
+Seller -> UI : 點擊「分享」
+UI -> ApiSvc : fetchBookShareLink(bookId)
+ApiSvc -> ShareRoute : GET /api/books/:id/share-link
+alt 已下架或未核准
+  ShareRoute --> UI : 409
+else 成功（首次產生後固定不變）
+  ShareRoute -> DB : share_token為空時才寫入\n(crypto.randomBytes(16))
+  ShareRoute --> UI : { url: <base>/b/<token>, title }
+end
+Seller -> Seller : 分享連結給朋友（savemybook://b/<token>\n或 https://<host>/b/<token>）
+
+Guest -> PublicPage : 開啟分享連結（瀏覽器）
+PublicPage -> PublicPage : 依權杖查詢書籍；\n書籍已下架/未核准/賣家停權則404
+PublicPage --> Guest : 顯示書籍公開網頁 + 「在App中開啟」按鈕
+Guest -> Guest : 點擊後嘗試喚起savemybook://b/<token>，\n1.5秒未開啟則顯示提示（引導安裝）
+@enduml

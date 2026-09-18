@@ -1,0 +1,81 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+title 循序圖：上架書籍（含 AI 輔助與內容審核）
+
+actor 賣家 as Seller
+participant "SellBookScreen /\nSellBookDetailScreen" as UI
+participant "ApiService\n(AiApi/BooksApi)" as ApiSvc
+participant "POST /api/ai/listing-assist" as AiRoute
+participant "ai/listing-assist.js" as AiAssist
+participant "isbn-lookup.js" as Isbn
+participant "AI 供應商" as LLM
+participant "POST /api/books" as BookRoute
+participant "books.js" as BooksSvc
+participant "listing-screening.js" as Screen
+participant "ai/moderation.js" as Moderation
+database "Prisma / MariaDB" as DB
+
+Seller -> UI : 掃描ISBN條碼 / 輸入書籍資訊
+UI -> ApiSvc : fetchBookByIsbn(isbn)
+ApiSvc -> BookRoute : GET 查詢書目（Google/Open Library）
+
+alt 使用 AI 輔助上架
+  Seller -> UI : 點擊「AI輔助」
+  UI -> ApiSvc : requestListingAssist(isbn, title, images)
+  ApiSvc -> AiRoute : POST /api/ai/listing-assist
+  AiRoute -> AiAssist : assist(userId, isbn, title, images)
+  AiAssist -> AiAssist : consent.assertGranted(userId)
+  AiAssist -> AiAssist : runner.assertDailyLimit()
+  AiAssist -> Isbn : lookupWithSources(isbn)
+  Isbn --> AiAssist : 書目資料 + 來源
+  AiAssist -> LLM : 組 prompt 呼叫模型
+  LLM --> AiAssist : fields/category/condition/price
+  AiAssist -> AiAssist : sanitizeFields() / mergePrice()
+  AiAssist --> ApiSvc : 建議欄位（不寫入資料庫）
+  ApiSvc --> UI : 回填表單欄位
+end
+
+Seller -> UI : 確認資訊、送出上架
+UI -> ApiSvc : createBook(fields, files)
+ApiSvc -> BookRoute : POST /api/books (multipart)
+BookRoute -> BooksSvc : create(data, images, files)
+BooksSvc -> BooksSvc : assertRefsExist(category, cabinet)
+BooksSvc -> Screen : ruleDecision(data)
+Screen --> BooksSvc : ruled = null 或 {action:'review',...}
+
+alt 規則命中需人工審核
+  BooksSvc -> DB : tx.books.create(is_approved=false)
+  BooksSvc -> DB : tx.book_images.createMany()
+  BooksSvc -> Screen : hold(tx, book, ruled)
+  Screen -> DB : ai_book_reviews.create(status='pending')
+  Screen -> Seller : 通知「書籍已送交審核」
+  Screen -> Screen : notifyAdmins(可管理內容之管理員)
+else 規則未攔截
+  BooksSvc -> DB : tx.books.create(status='on_sale', is_approved=true)
+  BooksSvc -> DB : tx.book_images.createMany()
+  BooksSvc --> BookRoute : 201 書籍上架成功
+  BookRoute --> UI : 顯示上架成功
+
+  par 背景執行（不阻塞回應）
+    BooksSvc -> Screen : screenLater(book, files)
+    Screen -> Moderation : screen(content, images)
+    Moderation -> LLM : 呼叫審核模型
+    LLM --> Moderation : verdict/confidence/categories
+    Moderation --> Screen : action = allow/review/reject
+    alt action = reject
+      Screen -> DB : books.update(is_approved=false, status='removed')
+      Screen -> DB : ai_book_reviews.status='rejected'
+      Screen -> Seller : 通知「未通過上架審核，已下架」
+    else action = review
+      Screen -> DB : books.update(is_approved=false)
+      Screen -> DB : ai_book_reviews.status='pending'
+      Screen -> Seller : 通知「已送交人工複核」
+    else action = allow
+      Screen -> Screen : 不做任何事，維持 on_sale
+    end
+  end
+end
+@enduml

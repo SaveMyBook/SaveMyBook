@@ -1,0 +1,63 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：聊天協商、預約與站內轉帳
+
+actor 買家 as Buyer
+actor 賣家 as Seller
+participant "ChatRoomScreen" as UI
+participant "ApiService(ChatApi)" as ApiSvc
+participant "POST /rooms/:id/messages" as MsgRoute
+participant "messages.js" as MsgSvc
+participant "POST /rooms/:id/reservations" as ResRoute
+participant "reservations.js" as ResSvc
+participant "verification中介層" as Verify
+participant "POST /rooms/:id/transfers" as TxRoute
+participant "chat/transfers.js" as TransferSvc
+participant "wallet.js" as WalletSvc
+database "Prisma / MariaDB" as DB
+
+Buyer -> UI : 傳送文字/圖片議價訊息
+UI -> ApiSvc : sendChatMessage(roomId, content)
+ApiSvc -> MsgRoute : POST /rooms/:roomId/messages
+MsgRoute -> MsgSvc : send(roomId, sender, content, type)
+MsgSvc -> DB : chat_messages.create()
+MsgSvc -> DB : notify 對方（新訊息）
+
+Buyer -> UI : 請求「保留此書」
+UI -> ApiSvc : requestReservation(roomId, bookId, hours)
+ApiSvc -> ResRoute : POST /rooms/:roomId/reservations
+ResRoute -> ResSvc : request(roomId, buyer, book, hours)
+ResSvc -> DB : reservations.create(status='pending')
+ResSvc -> DB : notify 賣家
+
+Seller -> UI : 於聊天室點擊「同意保留」
+UI -> ApiSvc : respondReservation(reservationId, 'accept')
+ApiSvc -> ResSvc : respond(reservationId, 'accept')
+ResSvc -> ResSvc : 再次檢查書況/是否被他人持有
+ResSvc -> DB : reservations.update(status='confirmed')
+ResSvc -> DB : 取消該書其他pending預約
+ResSvc -> DB : notify 買家
+
+== 站內轉帳（議價後付款） ==
+Buyer -> UI : 開啟轉帳，輸入金額
+UI -> ApiSvc : fetchWallet()（檢查餘額）
+alt 餘額不足
+  UI -> UI : 顯示「前往錢包加值」
+else 餘額足夠
+  UI -> Buyer : 要求輸入交易密碼/生物辨識
+  UI -> ApiSvc : sendCoinTransfer(roomId, toUserId, amount)
+  ApiSvc -> Verify : requireVerification('payment')
+  Verify --> TxRoute : 驗證通過
+  ApiSvc -> TxRoute : POST /rooms/:roomId/transfers
+  TxRoute -> TransferSvc : send(roomId, from, to, amount)
+  TransferSvc -> TransferSvc : reachableUser() / assertCanMessage()
+  TransferSvc -> WalletSvc : moveFunds(tx, from, to, amount)\n(依user_id排序避免死結)
+  WalletSvc -> DB : changeBalance(from, -amount, 'transfer_out')
+  WalletSvc -> DB : changeBalance(to, +amount, 'transfer_in')
+  TransferSvc -> DB : chat_transfers.insert(status='completed')
+  TransferSvc -> DB : 貼出系統訊息卡片 + notify 收款人
+  TransferSvc --> UI : 200 OK
+end
+@enduml

@@ -1,0 +1,57 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：LINE／Discord OAuth 登入與帳號連結選擇
+
+actor 使用者 as User
+participant "App內建瀏覽器\n(SFSafariViewController/\nCustom Tabs)" as Browser
+participant "ApiService(AuthSocialApi)" as ApiSvc
+participant "POST /oauth/:provider/start" as StartRoute
+participant "GET /oauth/:provider/callback" as CallbackRoute
+participant "POST /oauth/exchange" as ExchangeRoute
+participant "services/oauth-providers.js" as OAuthSvc
+participant "LINE/Discord 授權伺服器" as Provider
+participant "SocialAccountChoice對話框" as ChoiceUI
+database "oauth_states / oauth_results" as DB
+
+User -> ApiSvc : 點擊「以LINE/Discord登入」
+ApiSvc -> StartRoute : POST /api/auth/oauth/:provider/start\n{ mode: 'login' }
+StartRoute -> OAuthSvc : start(provider, mode)
+OAuthSvc -> DB : oauth_states.insert(state隨機16位元組)
+OAuthSvc --> ApiSvc : 授權網址
+ApiSvc -> Browser : 開啟App內瀏覽器導向授權網址
+Browser -> Provider : 使用者於第三方頁面登入並授權
+Provider -> CallbackRoute : 302導回 .../callback?code=...&state=...
+CallbackRoute -> OAuthSvc : handleCallback(code, state)
+OAuthSvc -> DB : 驗證state單次使用、10分鐘內有效
+OAuthSvc -> Provider : 以client_secret（僅伺服器端）換取token\n（逾時10秒）
+Provider --> OAuthSvc : access_token + id_token
+OAuthSvc -> OAuthSvc : LINE以channel secret驗證id_token(HS256)；\nDiscord需verified===true才採用email
+OAuthSvc -> DB : oauth_results.insert(結果，5分鐘有效)
+OAuthSvc -> Browser : 302導向 savemybook://auth/oauth?code=<32hex>
+Browser -> ApiSvc : 深層連結取得一次性code，關閉瀏覽器
+ApiSvc -> ExchangeRoute : POST /api/auth/oauth/exchange { code }
+ExchangeRoute -> OAuthSvc : exchange(code)
+OAuthSvc -> DB : 依code讀取oauth_results（成功或例外錯誤即刪除代碼）
+
+alt 已有綁定身分
+  OAuthSvc --> ApiSvc : 200 { token, user }（直接登入）
+else 查無帳號（保留代碼供補送）
+  OAuthSvc --> ApiSvc : 404 NO_ACCOUNT_FOR_PROVIDER
+  ApiSvc -> ChoiceUI : 顯示「登入既有帳號並綁定」/「建立新帳號」/取消
+  alt 選擇「建立新帳號」
+    User -> ChoiceUI : 確認
+    ChoiceUI -> ExchangeRoute : 帶同一code + create:true 重送
+    ExchangeRoute -> OAuthSvc : createAccount()
+    OAuthSvc --> ApiSvc : 200 新帳號登入
+  else 選擇「登入既有帳號並綁定」
+    ChoiceUI -> User : 提示「請先登入原帳號，\n再至帳號安全›登入方式綁定」
+  end
+else 電子郵件已屬其他帳號
+  OAuthSvc --> ApiSvc : 409 ACCOUNT_EXISTS_LINK_REQUIRED\n（不自動合併帳號）
+else 缺少已驗證電子郵件
+  OAuthSvc --> ApiSvc : 400 EMAIL_REQUIRED
+  ApiSvc -> User : 導向補充資料頁（輸入email+暱稱）\n帶create:true以同一code重送
+end
+@enduml

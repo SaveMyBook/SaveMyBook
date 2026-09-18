@@ -21,6 +21,7 @@ import '../../utils/app_labels.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
 import 'ai_support_entry.dart';
+import 'ticket_attachments.dart';
 
 class SupportTicketScreen extends StatefulWidget {
   const SupportTicketScreen({super.key});
@@ -178,7 +179,9 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
 }
 
 class NewTicketScreen extends StatefulWidget {
-  const NewTicketScreen({super.key});
+  final TicketAttachmentController? attachments;
+
+  const NewTicketScreen({super.key, @visibleForTesting this.attachments});
 
   @override
   State<NewTicketScreen> createState() => _NewTicketScreenState();
@@ -188,6 +191,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
   final ApiService _api = ApiService();
   final TextEditingController _subjectController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
+  late final TicketAttachmentController _attachments = widget.attachments ?? TicketAttachmentController();
 
   String _category = 'other';
   bool _isSaving = false;
@@ -195,10 +199,22 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
   bool _sent = false;
 
   @override
+  void initState() {
+    super.initState();
+    _attachments.addListener(_onAttachmentsChanged);
+  }
+
+  @override
   void dispose() {
     _subjectController.dispose();
     _contentController.dispose();
+    _attachments.removeListener(_onAttachmentsChanged);
+    if (widget.attachments == null) _attachments.dispose();
     super.dispose();
+  }
+
+  void _onAttachmentsChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _submit() async {
@@ -218,12 +234,14 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
       showAppSnackBar(context, S.addMoreDetailSoSupportCan, isError: true);
       return;
     }
+    if (!_checkAttachments(context, _attachments)) return;
 
     setState(() => _isSaving = true);
     final error = await _api.createTicket(
       subject: subject,
       category: _category,
       content: content,
+      attachments: _attachments.urls,
     );
     if (!mounted) return;
     setState(() => _isSaving = false);
@@ -239,7 +257,10 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
   }
 
   bool get _isDirty =>
-      !_sent && (_subjectController.text.trim().isNotEmpty || _contentController.text.trim().isNotEmpty);
+      !_sent &&
+      (_subjectController.text.trim().isNotEmpty ||
+          _contentController.text.trim().isNotEmpty ||
+          !_attachments.isEmpty);
 
   @override
   Widget build(BuildContext context) {
@@ -321,6 +342,24 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                         ),
                       ),
                     ),
+                    FadeSlideIn(
+                      index: 3,
+                      child: FormRowCard(
+                        label: S.images,
+                        alignTop: true,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: TicketAttachmentStrip(
+                              controller: _attachments,
+                              enabled: !_isSaving,
+                              onAdd: () => pickTicketImages(context, _attachments),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     PrimaryButton(
                       label: S.actionSubmit,
@@ -357,12 +396,32 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
   }
 }
 
+bool _checkAttachments(BuildContext context, TicketAttachmentController attachments) {
+  if (attachments.isUploading) {
+    showAppSnackBar(context, S.imagesStillUploadingPleaseWaitBefore);
+    return false;
+  }
+  if (attachments.hasFailed) {
+    HapticFeedback.heavyImpact();
+    showAppSnackBar(context, S.someImagesFailedUploadRetryRemove, isError: true);
+    return false;
+  }
+  return true;
+}
+
 class TicketDetailScreen extends StatefulWidget {
   final int ticketId;
 
   final bool asAdmin;
 
-  const TicketDetailScreen({super.key, required this.ticketId, this.asAdmin = false});
+  final TicketAttachmentController? attachments;
+
+  const TicketDetailScreen({
+    super.key,
+    required this.ticketId,
+    this.asAdmin = false,
+    @visibleForTesting this.attachments,
+  });
 
   @override
   State<TicketDetailScreen> createState() => _TicketDetailScreenState();
@@ -372,6 +431,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   final ApiService _api = ApiService();
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  late final TicketAttachmentController _attachments = widget.attachments ?? TicketAttachmentController();
 
   SupportTicket? _ticket;
   bool _isLoading = true;
@@ -387,6 +447,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    if (widget.attachments == null) _attachments.dispose();
     super.dispose();
   }
 
@@ -410,10 +471,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   Future<void> _send() async {
     final text = _controller.text.trim();
-    if (text.isEmpty || _isSending) return;
+    if (_isSending || (text.isEmpty && _attachments.isEmpty)) return;
+    if (!_checkAttachments(context, _attachments)) return;
 
     setState(() => _isSending = true);
-    final error = await _api.replyTicket(widget.ticketId, text);
+    final error = await _api.replyTicket(widget.ticketId, text, attachments: _attachments.urls);
     if (!mounted) return;
     setState(() => _isSending = false);
 
@@ -423,6 +485,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     }
     HapticFeedback.lightImpact();
     _controller.clear();
+    _attachments.clear();
     await _load();
   }
 
@@ -556,6 +619,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   Widget _buildMessage(TicketMessage message, AppColors c) {
     final isMine = !message.isStaff;
     final alignRight = widget.asAdmin ? message.isStaff : isMine;
+    final bubbleMaxWidth = math.min(MediaQuery.of(context).size.width, Breakpoints.readingMaxWidth) * 0.7;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -571,30 +635,38 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               ],
               Flexible(
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: math.min(MediaQuery.of(context).size.width, Breakpoints.readingMaxWidth) * 0.7,
-                  ),
-                  child: AnimatedContainer(
-                    duration: Motion.base,
-                    curve: Motion.standard,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: alignRight ? c.accent : c.card,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(14),
-                        topRight: const Radius.circular(14),
-                        bottomLeft: Radius.circular(alignRight ? 14 : 4),
-                        bottomRight: Radius.circular(alignRight ? 4 : 14),
-                      ),
-                    ),
-                    child: Text(
-                      message.content,
-                      style: TextStyle(
-                        fontSize: 14,
-                        height: 1.5,
-                        color: alignRight ? Colors.white : c.textPrimary,
-                      ),
-                    ),
+                  constraints: BoxConstraints(maxWidth: bubbleMaxWidth),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                    children: [
+                      if (message.content.isNotEmpty)
+                        AnimatedContainer(
+                          duration: Motion.base,
+                          curve: Motion.standard,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: alignRight ? c.accent : c.card,
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(14),
+                              topRight: const Radius.circular(14),
+                              bottomLeft: Radius.circular(alignRight ? 14 : 4),
+                              bottomRight: Radius.circular(alignRight ? 4 : 14),
+                            ),
+                          ),
+                          child: Text(
+                            message.content,
+                            style: TextStyle(
+                              fontSize: 14,
+                              height: 1.5,
+                              color: alignRight ? Colors.white : c.textPrimary,
+                            ),
+                          ),
+                        ),
+                      if (message.content.isNotEmpty && message.attachments.isNotEmpty) const SizedBox(height: 6),
+                      if (message.attachments.isNotEmpty)
+                        TicketImageGrid(urls: message.attachments, maxWidth: bubbleMaxWidth, title: _ticket?.subject),
+                    ],
                   ),
                 ),
               ),
@@ -634,43 +706,70 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         color: c.card,
         border: Border(top: BorderSide(color: c.divider)),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: AppTextField(
-              controller: _controller,
-              hint: S.writeReply,
-              maxLines: 4,
-              maxLength: 1000,
-              onSubmitted: (_) => _send(),
-            ),
-          ),
-          const SizedBox(width: 10),
-          ValueListenableBuilder<TextEditingValue>(
-            valueListenable: _controller,
-            builder: (_, value, _) {
-              final ready = value.text.trim().isNotEmpty && !_isSending;
-              return PressableScale(
-                onTap: ready ? _send : null,
-                child: AnimatedContainer(
-                  duration: Motion.micro,
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: ready || _isSending ? c.accent : c.accent.withValues(alpha: 0.4),
-                    shape: BoxShape.circle,
+      child: ListenableBuilder(
+        listenable: Listenable.merge([_controller, _attachments]),
+        builder: (context, _) {
+          final hasContent = _controller.text.trim().isNotEmpty || !_attachments.isEmpty;
+          final ready = hasContent && _attachments.isReady && !_isSending;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Reveal(
+                visible: !_attachments.isEmpty,
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 48, top: 6, bottom: 10),
+                  child: TicketAttachmentStrip(
+                    controller: _attachments,
+                    tileSize: 64,
+                    enabled: !_isSending,
+                    onAdd: () => pickTicketImages(context, _attachments),
                   ),
-                  child: _isSending
-                      ? const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
                 ),
-              );
-            },
-          ),
-        ],
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    tooltip: S.attachImages,
+                    onPressed: _isSending || _attachments.remaining <= 0
+                        ? null
+                        : () => pickTicketImages(context, _attachments),
+                    icon: Icon(Icons.add_photo_alternate_outlined, color: c.textSecondary),
+                  ),
+                  Expanded(
+                    child: AppTextField(
+                      controller: _controller,
+                      hint: S.writeReply,
+                      maxLines: 4,
+                      maxLength: 1000,
+                      onSubmitted: (_) => _send(),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  PressableScale(
+                    onTap: ready ? _send : null,
+                    child: AnimatedContainer(
+                      duration: Motion.micro,
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: ready || _isSending ? c.accent : c.accent.withValues(alpha: 0.4),
+                        shape: BoxShape.circle,
+                      ),
+                      child: _isSending
+                          ? const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }

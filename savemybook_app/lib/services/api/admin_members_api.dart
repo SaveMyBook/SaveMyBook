@@ -69,13 +69,11 @@ extension AdminMembersApi on ApiService {
     int? levelId,
     required String name,
     required int minPoints,
-    int? maxPoints,
     String benefits = '',
   }) async {
     final body = {
       'level_name': name,
       'min_points': minPoints,
-      'max_points': maxPoints,
       'benefits': benefits,
     };
     final res = levelId == null
@@ -85,10 +83,20 @@ extension AdminMembersApi on ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSave2);
   }
 
-  Future<String?> deleteLevel(int levelId) async {
+  Future<({String? error, int movedMembers, String? movedTo})> deleteLevel(int levelId) async {
     final res = await _send('DELETE', '/admin/levels/$levelId');
+    if (res == null) return (error: S.pleaseSignFirst, movedMembers: 0, movedTo: null);
+    if (res['success'] != true) {
+      return (error: res['message'] as String? ?? S.couldNotDelete, movedMembers: 0, movedTo: null);
+    }
+    final data = res['data'] is Map ? res['data'] as Map : const {};
+    return (error: null, movedMembers: parseInt(data['moved_members']), movedTo: data['moved_to'] as String?);
+  }
+
+  Future<String?> reorderLevels(List<int> orderedIds) async {
+    final res = await _send('PUT', '/admin/levels/reorder', body: {'order': orderedIds});
     if (res == null) return S.pleaseSignFirst;
-    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotDelete);
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotReorder);
   }
 
   Future<List<AdminWallet>> fetchAdminWallets({String keyword = ''}) async {

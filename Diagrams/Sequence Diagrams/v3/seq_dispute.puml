@@ -1,0 +1,55 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：訂單申訴與管理員仲裁
+
+actor "買家/賣家" as User
+actor 管理員 as Admin
+participant "DisputeScreen" as UI
+participant "AdminDisputeScreen" as AdminUI
+participant "ApiService(OrdersApi)" as ApiSvc
+participant "POST /api/disputes" as CreateRoute
+participant "disputes.js" as DisputesSvc
+participant "PATCH /admin/moderation/disputes/:id" as ResolveRoute
+participant "orders/settlement.js" as Settlement
+database "Prisma / MariaDB" as DB
+
+User -> UI : 描述問題並上傳證據照片
+UI -> ApiSvc : uploadFiles(evidence) → submitDispute(orderId, reason, evidenceUrls)
+ApiSvc -> CreateRoute : POST /api/disputes
+CreateRoute -> DisputesSvc : create(orderId, applicant, reason)
+DisputesSvc -> DisputesSvc : 檢查訂單狀態非 cancelled/refunded
+DisputesSvc -> DisputesSvc : 檢查申訴時限\n(取書後24小時內)
+alt 已逾時或不可申訴
+  DisputesSvc --> UI : 400 DISPUTE_WINDOW_PASSED
+else 可受理
+  DisputesSvc -> DB : tx.transaction_disputes.create(status='pending')
+  DisputesSvc -> DB : tx.orders.update(status='refunding')
+  DisputesSvc -> DB : notify 交易對方
+  DisputesSvc --> UI : 201 已受理
+end
+
+== 管理員仲裁 ==
+Admin -> AdminUI : 檢視申訴案件與證據
+Admin -> AdminUI : 選擇裁決結果\n(退款/駁回/協調)
+AdminUI -> ApiSvc : arbitrateDispute(disputeId, result, note)
+ApiSvc -> ResolveRoute : PATCH /admin/moderation/disputes/:id
+ResolveRoute -> DisputesSvc : resolve(disputeId, {result, note}, admin)
+DisputesSvc -> DB : tx.transaction_disputes.updateMany\n(where status≠'resolved')
+alt 已被其他客服裁決
+  DisputesSvc --> AdminUI : 409 Conflict
+else 更新成功
+  DisputesSvc -> DisputesSvc : target = isRefund ? 'refunded'\n: restoredStatus(order)
+  DisputesSvc -> Settlement : transition(tx, order, target)
+  alt result = refund_manual / refund_auto
+    Settlement -> DB : 向賣家收回已入帳金額(若有)\n並退款買家已付金額
+    DisputesSvc -> DB : refund_records.create(status='completed')
+  else result = dismissed / mediated
+    Settlement -> DB : 訂單狀態復原（可能觸發補撥款）
+  end
+  DisputesSvc -> DB : notify 買賣雙方裁決結果
+  DisputesSvc -> DB : audit.record('仲裁交易爭議')
+  DisputesSvc --> AdminUI : 200 裁決完成
+end
+@enduml

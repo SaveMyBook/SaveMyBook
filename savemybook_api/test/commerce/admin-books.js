@@ -199,6 +199,8 @@ const tests = [
 
     const notice = notificationsOf(seller.user_id)[0];
     assert.strictEqual(notice.title, '您的書籍已被刪除');
+    assert.strictEqual(notice.related_type, 'book', '刪除通知須歸入交易分類');
+    assert.strictEqual(notice.related_id ?? null, null, '書籍已不存在，通知不可導向');
     assert.strictEqual(notice.content, '您的書籍《小王子》已由管理員刪除。原因：重複上架');
 
     const log = logs()[0];

@@ -1,0 +1,48 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：買家實體書櫃取書與撥款
+
+actor 買家 as Buyer
+actor 賣家 as Seller
+participant "PickupBookScreen" as ScanUI
+participant "OrderDetailScreen" as OrderUI
+participant "ApiService(OrdersApi)" as ApiSvc
+participant "PATCH /api/orders/:id/status" as Route
+participant "orders/index.js" as OrdersSvc
+participant "orders/settlement.js" as Settlement
+participant "wallet.js" as WalletSvc
+database "Prisma / MariaDB" as DB
+
+Buyer -> ScanUI : 開啟「取書」掃描櫃上QR Code
+ScanUI -> ScanUI : 相機掃描並比對\npending_pickup訂單清單
+ScanUI -> OrderUI : 導向對應訂單詳情
+Buyer -> OrderUI : 取出實體書後點擊「我已取貨」
+OrderUI -> OrderUI : showConfirmDialog(確認取貨)
+OrderUI -> ApiSvc : updateOrderStatus(orderId, 'completed')
+ApiSvc -> Route : PATCH /api/orders/:id/status
+Route -> OrdersSvc : advance(orderId, user, 'completed')
+OrdersSvc -> OrdersSvc : 檢查操作者為訂單買家(或admin)
+OrdersSvc -> OrdersSvc : 檢查 order.status ∈\n['deposited','pending_pickup']
+alt 狀態不符
+  OrdersSvc --> OrderUI : 400「賣家尚未存書，無法完成取書」
+else 狀態符合
+  OrdersSvc -> Settlement : transition(tx, order, 'completed')
+  Settlement -> DB : guardedUpdate(status='completed',\npicked_up_at, completed_at)
+  Settlement -> Settlement : phaseOf('completed') == 'paid_out'
+  Settlement -> DB : ledgerOf(tx, order)\n（依wallet_transactions帳本實算已入帳金額）
+  Settlement -> Settlement : due = total_amount - sellerReceived
+  alt due > 0
+    Settlement -> WalletSvc : changeBalance(seller, +due, 'sale_income')
+    WalletSvc -> DB : wallets.update(balance +=due,\ntotal_income += due)
+    WalletSvc -> DB : wallet_transactions.create()
+  end
+  Settlement -> DB : tx.books.updateMany(status='sold'\nwhere status='reserved')
+  Settlement --> OrdersSvc : 完成
+  OrdersSvc -> DB : notify 賣家「買家已取書，\nX代幣已撥入您的錢包」
+  OrdersSvc --> OrderUI : 200 OK
+  OrderUI -> OrderUI : 導向 PickupSuccessScreen
+  DB --> Seller : 推播通知
+end
+@enduml

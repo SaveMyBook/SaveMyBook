@@ -207,7 +207,9 @@ const adminRemove = async (bookId, reason, { adminId, req }) => {
       await notify(tx, {
         userId: book.seller_id,
         title: '您的書籍已被刪除',
-        content: `您的書籍《${book.title}》已由管理員刪除${reason ? `。原因：${reason}` : ''}`
+        content: `您的書籍《${book.title}》已由管理員刪除${reason ? `。原因：${reason}` : ''}`,
+        // 書籍已不存在，不帶 relatedId（點擊不導向）；relatedType 讓通知歸入「交易」分類。
+        relatedType: 'book'
       });
       await audit.record(tx, {
         adminId,

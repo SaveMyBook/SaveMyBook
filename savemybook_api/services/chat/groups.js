@@ -135,6 +135,15 @@ const setRole = async (roomId, myId, targetId, role) => {
   return rooms.detail(roomId, myId);
 };
 
+const setNickname = async (roomId, myId, targetId, nickname) => {
+  const room = await loadGroup(roomId, myId);
+  if (!(await members.nicknameSupported())) throw schema.unavailable();
+  if (targetId !== myId && room.my_role !== 'owner') throw forbidden('僅群組管理員可設定其他成員的群組暱稱');
+  await activeTarget(roomId, targetId);
+  await members.setGroupNickname(prisma, roomId, targetId, nickname);
+  return rooms.detail(roomId, myId);
+};
+
 const removeMember = async (roomId, myId, targetId) => {
   const room = await loadGroup(roomId, myId);
   if (room.my_role !== 'owner') throw forbidden('僅群組管理員可移除成員');
@@ -191,5 +200,5 @@ const removeRoom = async (roomId, myId) => {
 };
 
 module.exports = {
-  MAX_MEMBERS, MAX_INVITE, MAX_NAME_LENGTH, create, update, invite, setRole, removeMember, leave, removeRoom
+  MAX_MEMBERS, MAX_INVITE, MAX_NAME_LENGTH, create, update, invite, setRole, setNickname, removeMember, leave, removeRoom
 };

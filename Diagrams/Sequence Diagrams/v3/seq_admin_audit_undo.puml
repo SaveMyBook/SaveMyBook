@@ -1,0 +1,45 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：後台操作紀錄與一鍵復原（Undo）
+
+actor 管理員 as Admin
+participant "AdminOperationLogScreen" as UI
+participant "ApiService(AdminSystemApi)" as ApiSvc
+participant "任一後台端點\n(如PATCH /admin/members/:id)" as AdminRoute
+participant "services/audit.js" as AuditSvc
+participant "POST /admin/operation-logs/:id/undo" as UndoRoute
+database "admin_operation_logs" as DB
+
+Admin -> AdminRoute : 執行後台操作（如停權會員）
+AdminRoute -> AuditSvc : record(admin, action, targetType,\ntargetId, changes)
+AuditSvc -> DB : admin_operation_logs.insert(\n摘要、欄位層級差異changes、IP)
+note right: 15種目標類型；\ndispute/order/backup類型不可還原\n（涉及金流或不可逆）
+
+Admin -> UI : 開啟「操作紀錄」，以關鍵字/目標類型篩選
+UI -> ApiSvc : fetchAdminOperationLogs(filter)
+ApiSvc --> UI : 分頁清單(每頁50筆)
+
+Admin -> UI : 對某筆紀錄點擊「復原」
+UI -> UI : requireAdminPassword()（admin範圍：\n僅登入密碼或通行密鑰）
+UI -> ApiSvc : undoAdminOperation(logId)
+ApiSvc -> UndoRoute : POST /admin/operation-logs/:id/undo
+UndoRoute -> AuditSvc : undo(logId, actor)
+AuditSvc -> AuditSvc : 檢查目標類型對應權限
+alt 目標類型為dispute/order/backup
+  AuditSvc --> UI : 拒絕（不可還原）
+else 資料在紀錄之後已被修改，或書籍已遭違規鎖定
+  AuditSvc --> UI : 409 UNDO_CONFLICT
+else 可還原
+  AuditSvc -> DB : 以樂觀鎖將白名單欄位還原為\n紀錄中的原值（不含密碼/餘額；\n錢包以反向admin_adjust還原）
+  AuditSvc -> DB : 寫入「還原：…」新紀錄，\n原紀錄標記reverted
+  AuditSvc --> UI : 200 已復原
+end
+
+note right of AuditSvc
+  管理員不可授予自己未擁有的權限，
+  亦不可變更自己的權限、狀態或密碼；
+  臨時密碼不寫入紀錄。
+end note
+@enduml

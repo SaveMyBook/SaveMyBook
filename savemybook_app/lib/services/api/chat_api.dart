@@ -58,17 +58,25 @@ extension ChatApi on ApiService {
     return int.tryParse('${res['data']?['room_id']}');
   }
 
-  Future<ChatFetchResult> fetchChatMessages(int roomId, {int? afterId, int? beforeId, int limit = 50, bool markRead = true}) async {
-    final res = await _send('GET', '/chat/rooms/$roomId/messages', query: {
-      'limit': '$limit',
-      if (!markRead) 'mark_read': 'false',
-      if (afterId != null) 'after_id': '$afterId',
-      if (beforeId != null) 'before_id': '$beforeId',
-    });
-    final messages = _mapList(res, ChatMessage.fromJson);
-    final partner = ChatPartner.fromJson(
-      res?['partner'] is Map ? Map<String, dynamic>.from(res!['partner']) : null,
+  Future<ChatFetchResult> fetchChatMessages(
+    int roomId, {
+    int? afterId,
+    int? beforeId,
+    int limit = 50,
+    bool markRead = true,
+  }) async {
+    final res = await _send(
+      'GET',
+      '/chat/rooms/$roomId/messages',
+      query: {
+        'limit': '$limit',
+        if (!markRead) 'mark_read': 'false',
+        if (afterId != null) 'after_id': '$afterId',
+        if (beforeId != null) 'before_id': '$beforeId',
+      },
     );
+    final messages = _mapList(res, ChatMessage.fromJson);
+    final partner = ChatPartner.fromJson(res?['partner'] is Map ? Map<String, dynamic>.from(res!['partner']) : null);
     final meta = res?['meta'] is Map ? Map<String, dynamic>.from(res!['meta']) : const <String, dynamic>{};
     final reservations = <int, ChatReservation>{};
     for (final item in (meta['reservations'] as List? ?? const [])) {
@@ -139,13 +147,17 @@ extension ChatApi on ApiService {
     int? replyToId,
     List<ChatMention> mentions = const [],
   }) async {
-    Future<Map<String, dynamic>?> post(bool withMentions) => _send('POST', '/chat/rooms/$roomId/messages', body: {
-          'content': content,
-          'message_type': type,
-          'duration': ?durationSeconds,
-          'reply_to_id': ?replyToId,
-          if (withMentions) 'mentions': [for (final m in mentions) m.toJson()],
-        });
+    Future<Map<String, dynamic>?> post(bool withMentions) => _send(
+      'POST',
+      '/chat/rooms/$roomId/messages',
+      body: {
+        'content': content,
+        'message_type': type,
+        'duration': ?durationSeconds,
+        'reply_to_id': ?replyToId,
+        if (withMentions) 'mentions': [for (final m in mentions) m.toJson()],
+      },
+    );
     var res = await post(mentions.isNotEmpty);
     // 伺服器尚未套用 010 遷移時會拒收提及；訊息本身仍須送出。
     if (mentions.isNotEmpty && res?['code'] == _chatV3Unavailable) res = await post(false);
@@ -179,12 +191,21 @@ extension ChatApi on ApiService {
     return (ChatMessage.fromJson(Map<String, dynamic>.from(res['data'])), null);
   }
 
-  Future<(ChatReservation?, String?)> requestReservation(int roomId, {required int bookId, required int hours, String? message}) async {
-    final res = await _send('POST', '/chat/rooms/$roomId/reservations', body: {
-      'book_id': bookId,
-      'hours': hours,
-      if (message != null && message.trim().isNotEmpty) 'message': message.trim(),
-    });
+  Future<(ChatReservation?, String?)> requestReservation(
+    int roomId, {
+    required int bookId,
+    required int hours,
+    String? message,
+  }) async {
+    final res = await _send(
+      'POST',
+      '/chat/rooms/$roomId/reservations',
+      body: {
+        'book_id': bookId,
+        'hours': hours,
+        if (message != null && message.trim().isNotEmpty) 'message': message.trim(),
+      },
+    );
     if (res == null || res['success'] != true || res['data'] is! Map) {
       return (null, res?['message'] as String? ?? S.actionFailed);
     }
@@ -201,12 +222,16 @@ extension ChatApi on ApiService {
 
   String _errorOf(Map<String, dynamic>? res) => res?['message'] as String? ?? S.actionFailed;
 
-  Future<(int?, String?)> createChatGroup({required String name, required List<int> memberIds, String? avatarUrl}) async {
-    final res = await _send('POST', '/chat/groups', body: {
-      'name': name,
-      'member_ids': memberIds,
-      'avatar_url': ?avatarUrl,
-    });
+  Future<(int?, String?)> createChatGroup({
+    required String name,
+    required List<int> memberIds,
+    String? avatarUrl,
+  }) async {
+    final res = await _send(
+      'POST',
+      '/chat/groups',
+      body: {'name': name, 'member_ids': memberIds, 'avatar_url': ?avatarUrl},
+    );
     if (res == null || res['success'] != true) return (null, _errorOf(res));
     return (int.tryParse('${res['data']?['room_id']}'), null);
   }
@@ -228,7 +253,24 @@ extension ChatApi on ApiService {
   }
 
   Future<(ChatRoomInfo?, String?)> setChatMemberRole(int roomId, int userId, {required bool admin}) async {
-    final res = await _send('PATCH', '/chat/groups/$roomId/members/$userId', body: {'role': admin ? 'owner' : 'member'});
+    final res = await _send(
+      'PATCH',
+      '/chat/groups/$roomId/members/$userId',
+      body: {'role': admin ? 'owner' : 'member'},
+    );
+    if (res == null || res['success'] != true) return (null, _errorOf(res));
+    final data = res['data'];
+    if (data is! Map) return (null, null);
+    return (ChatRoomInfo.fromJson(Map<String, dynamic>.from(data)), null);
+  }
+
+  Future<(ChatRoomInfo?, String?)> setChatGroupNickname(int roomId, int userId, String? nickname) async {
+    final value = nickname?.trim() ?? '';
+    final res = await _send(
+      'PUT',
+      '/chat/groups/$roomId/members/$userId/nickname',
+      body: {'nickname': value.isEmpty ? null : value},
+    );
     if (res == null || res['success'] != true) return (null, _errorOf(res));
     final data = res['data'];
     if (data is! Map) return (null, null);
@@ -262,10 +304,14 @@ extension ChatApi on ApiService {
     String content, {
     List<ChatMention> mentions = const [],
   }) async {
-    Future<Map<String, dynamic>?> patch(bool withMentions) => _send('PATCH', '/chat/rooms/$roomId/messages/$messageId', body: {
-          'content': content,
-          if (withMentions) 'mentions': [for (final m in mentions) m.toJson()],
-        });
+    Future<Map<String, dynamic>?> patch(bool withMentions) => _send(
+      'PATCH',
+      '/chat/rooms/$roomId/messages/$messageId',
+      body: {
+        'content': content,
+        if (withMentions) 'mentions': [for (final m in mentions) m.toJson()],
+      },
+    );
     var res = await patch(true);
     if (res?['code'] == _chatV3Unavailable) res = await patch(false);
     if (res == null || res['success'] != true || res['data'] is! Map) return (null, _errorOf(res));
@@ -273,9 +319,9 @@ extension ChatApi on ApiService {
   }
 
   (ChatTransfer?, ChatMessage?) _transferResult(Map<String, dynamic> data) => (
-        data['transfer'] is Map ? ChatTransfer.fromJson(Map<String, dynamic>.from(data['transfer'])) : null,
-        data['message'] is Map ? ChatMessage.fromJson(Map<String, dynamic>.from(data['message'])) : null,
-      );
+    data['transfer'] is Map ? ChatTransfer.fromJson(Map<String, dynamic>.from(data['transfer'])) : null,
+    data['message'] is Map ? ChatMessage.fromJson(Map<String, dynamic>.from(data['message'])) : null,
+  );
 
   Future<(ChatTransfer?, ChatMessage?, String?)> sendCoinTransfer(
     int roomId, {
@@ -283,11 +329,15 @@ extension ChatApi on ApiService {
     required int amount,
     String? note,
   }) async {
-    final res = await _send('POST', '/chat/rooms/$roomId/transfers', body: {
-      'to_user_id': ?toUserId,
-      'amount': amount,
-      if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
-    });
+    final res = await _send(
+      'POST',
+      '/chat/rooms/$roomId/transfers',
+      body: {
+        'to_user_id': ?toUserId,
+        'amount': amount,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
+    );
     if (res == null || res['success'] != true || res['data'] is! Map) return (null, null, _errorOf(res));
     final (transfer, message) = _transferResult(Map<String, dynamic>.from(res['data']));
     return (transfer, message, null);
@@ -299,11 +349,15 @@ extension ChatApi on ApiService {
     required int amount,
     String? note,
   }) async {
-    final res = await _send('POST', '/chat/rooms/$roomId/transfer-requests', body: {
-      'from_user_id': ?fromUserId,
-      'amount': amount,
-      if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
-    });
+    final res = await _send(
+      'POST',
+      '/chat/rooms/$roomId/transfer-requests',
+      body: {
+        'from_user_id': ?fromUserId,
+        'amount': amount,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
+    );
     if (res == null || res['success'] != true || res['data'] is! Map) return (null, null, _errorOf(res));
     final (transfer, message) = _transferResult(Map<String, dynamic>.from(res['data']));
     return (transfer, message, null);

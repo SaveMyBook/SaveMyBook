@@ -13,6 +13,7 @@ const sessions = require('../services/sessions');
 const authSettings = require('../services/auth-settings');
 const identities = require('../services/auth-identities');
 const oauth = require('../services/oauth-providers');
+const linkLogin = require('../services/link-login');
 
 const router = express.Router();
 
@@ -161,6 +162,29 @@ router.post('/social', socialLimiter, async (req, res) => {
     info,
     device: deviceFrom(req),
     ...signup
+  });
+
+  res.status(200).json({
+    success: true,
+    message: '登入成功',
+    data: { token, ...(deletion && { pending_deletion: deletion }) }
+  });
+});
+
+router.post('/social/link-login', socialLimiter, loginBurstLimiter, loginLimiter, async (req, res) => {
+  const code = typeof req.body.code === 'string' ? req.body.code.trim() : '';
+  const provider = code
+    ? (req.body.provider == null ? null : oneOf(req.body.provider, authSettings.PROVIDER_IDS, '不支援此登入方式'))
+    : firebaseProvider(req.body.provider);
+  const idToken = code ? null : idTokenOf(req.body);
+
+  const assertion = req.body.assertion && typeof req.body.assertion === 'object' ? req.body.assertion : null;
+  const email = assertion ? null : text(req.body.email, { max: 255 });
+  const plain = assertion ? '' : typeof req.body.password === 'string' ? req.body.password : '';
+  if (!assertion && (!email || !plain)) throw badRequest('請提供 Email 與密碼');
+
+  const { token, deletion } = await linkLogin.linkAndSignIn({
+    provider, idToken, code: code || null, email, password: plain, assertion, device: deviceFrom(req)
   });
 
   res.status(200).json({

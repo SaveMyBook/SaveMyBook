@@ -41,6 +41,14 @@ const tests = [
     assert.strictEqual(dnsLog.length, 0);
   }],
 
+  ['API 本身的網域產生的分享連結同樣視為站內，不對外連線', async () => {
+    const { token } = addUser();
+    const book = addBook();
+    const data = await previewOf(token, `https://127.0.0.1/b/${book.share_token}`);
+    assert.strictEqual(data?.kind, 'book');
+    assert.strictEqual(connections.length, 0);
+  }],
+
   ['書籍狀態變更後立即反映，不受快取影響', async () => {
     const { token } = addUser();
     const book = addBook();

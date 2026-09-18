@@ -23,7 +23,7 @@ const imageLimiter = rateLimit({
 router.get('/link-preview', previewLimiter, async (req, res) => {
   const url = v.text(req.query.url, { label: '網址', max: linkPreview.MAX_URL_LENGTH });
   if (!url) throw badRequest('請提供網址');
-  const data = await linkPreview.preview(url);
+  const data = await linkPreview.preview(url, { internalHosts: [req.hostname] });
   res.status(200).json({ success: true, data });
 });
 

@@ -1,0 +1,50 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：限流、維護模式與資料庫結構降級
+
+actor 使用者 as User
+participant "App" as App
+participant "middleware/rateLimit.js" as RateLimit
+participant "lib/maintenance.js" as Maint
+participant "任一路由" as Route
+participant "lib/schema-check.js" as SchemaCheck
+participant "services/xxx.js" as Service
+database "information_schema" as InfoSchema
+
+User -> App : 發出API請求
+App -> RateLimit : 依IP或使用者檢查行程內滑動視窗計數
+alt 超過上限（如登入15分鐘10次）
+  RateLimit --> App : 429 RATE_LIMITED + Retry-After
+else 未超過
+  RateLimit -> Maint : 檢查是否處於維護模式
+  alt 維護模式中 且 非 GET /api/status
+    Maint --> App : 503 { code:'MAINTENANCE', message, Retry-After:30 }
+  else 正常
+    Maint -> Route : 放行至業務路由
+    Route -> Service : 呼叫服務層
+    Service -> SchemaCheck : hasTables(['group_chat', ...])\n（結果快取60秒，已存在者永久快取）
+    SchemaCheck -> InfoSchema : 檢查所需資料表/欄位是否存在
+    alt 缺少對應migration
+      SchemaCheck --> Service : false
+      Service --> App : 503 附功能專屬錯誤碼\n(如CHAT_V2_UNAVAILABLE、\nAI_UNAVAILABLE、PASSKEY_UNAVAILABLE)
+      note right: 其他已就緒的功能不受影響，\n僅該功能降級
+    else 結構齊全
+      SchemaCheck --> Service : true
+      Service --> App : 200 正常回應
+    end
+  end
+end
+
+== App 啟動相容性檢查 ==
+App -> Route : 登入後 GET /api/status（不需登入，維護期間仍可存取）
+Route --> App : { maintenance, api_revision, commit,\npending_migrations }
+alt api_revision過舊 或 有未執行的migration
+  alt 一般會員
+    App -> User : 顯示「部分功能暫時無法使用」
+  else 管理員
+    App -> User : 顯示詳細對話框（缺少的migration、\ncommit、建議npm run verify）
+  end
+end
+@enduml

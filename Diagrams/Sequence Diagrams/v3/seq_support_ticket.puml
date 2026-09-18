@@ -1,0 +1,45 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：客服工單
+
+actor 使用者 as User
+actor 客服管理員 as Staff
+participant "SupportTicketScreen" as UI
+participant "AdminTicketScreen" as AdminUI
+participant "ApiService(SupportApi)" as ApiSvc
+participant "POST /api/support/tickets" as CreateRoute
+participant "support.js" as SupportSvc
+participant "support-attachments.js" as AttachSvc
+database "Prisma / MariaDB" as DB
+
+User -> UI : 附上截圖並填寫問題
+UI -> ApiSvc : uploadSupportImage(file)
+ApiSvc -> AttachSvc : 暫存附件，回傳簽章連結
+UI -> ApiSvc : createTicket(subject, category, content, attachments)
+ApiSvc -> CreateRoute : POST /api/support/tickets
+CreateRoute -> SupportSvc : open(userId, subject, content, attachments)
+SupportSvc -> SupportSvc : 檢查同時開啟中工單 < 5 筆
+SupportSvc -> AttachSvc : assertClaimable(attachments)
+SupportSvc -> DB : tx.support_tickets.create(status='open')
+SupportSvc -> DB : tx.support_ticket_messages.create(is_staff=false)
+SupportSvc -> AttachSvc : claim(attachments)
+SupportSvc -> DB : notifySupportStaff(具can_manage_support權限之管理員)
+SupportSvc --> UI : 201 建立成功
+
+Staff -> AdminUI : 開啟工單並回覆
+AdminUI -> ApiSvc : replyTicket(ticketId, content)
+ApiSvc -> SupportSvc : reply(ticketId, staff, content)
+SupportSvc -> SupportSvc : findAccessibleTicket(本人或具權限管理員)
+SupportSvc -> DB : support_ticket_messages.create(is_staff=true)
+SupportSvc -> DB : support_tickets.status='pending'（等待使用者）
+SupportSvc -> DB : notify 使用者
+SupportSvc --> AdminUI : 200 OK
+
+User -> UI : 查看回覆後結案
+UI -> ApiSvc : closeTicket(ticketId)
+ApiSvc -> SupportSvc : close(ticketId)
+SupportSvc -> DB : support_tickets.update(status='closed', closed_at=now)
+SupportSvc --> UI : 200 已結案
+@enduml

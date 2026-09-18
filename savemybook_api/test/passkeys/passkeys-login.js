@@ -87,10 +87,20 @@ module.exports = {
       assert.strictEqual(replay.body.code, 'PASSKEY_CHALLENGE_INVALID');
     }],
 
-    ['挑戰值超過 5 分鐘即失效，且逾時的挑戰值同樣被刪除', async () => {
+    ['系統視窗開到逾時前一刻才完成，挑戰值仍然有效', async () => {
       const { authenticator } = await setup();
       const options = (await loginOptions()).body.data.options;
-      prisma.rows('webauthn_challenges')[0].created_at = new Date(Date.now() - 5 * 60 * 1000 - 1000);
+      assert.strictEqual(options.timeout, 5 * 60 * 1000);
+      prisma.rows('webauthn_challenges')[0].created_at = new Date(Date.now() - options.timeout - 30 * 1000);
+      await h.api('services/passkeys').cleanupExpired();
+      const res = await login(authenticator.get(options));
+      assert.strictEqual(res.status, 200, res.text);
+    }],
+
+    ['挑戰值超過 10 分鐘即失效，且逾時的挑戰值同樣被刪除', async () => {
+      const { authenticator } = await setup();
+      const options = (await loginOptions()).body.data.options;
+      prisma.rows('webauthn_challenges')[0].created_at = new Date(Date.now() - 10 * 60 * 1000 - 1000);
       const res = await login(authenticator.get(options));
       assert.strictEqual(res.status, 400);
       assert.strictEqual(res.body.code, 'PASSKEY_CHALLENGE_EXPIRED');
@@ -100,7 +110,7 @@ module.exports = {
     ['排程清理會刪除逾時的挑戰值', async () => {
       await loginOptions();
       await loginOptions();
-      prisma.rows('webauthn_challenges')[0].created_at = new Date(Date.now() - 10 * 60 * 1000);
+      prisma.rows('webauthn_challenges')[0].created_at = new Date(Date.now() - 11 * 60 * 1000);
       await h.api('services/passkeys').cleanupExpired();
       assert.strictEqual(prisma.rows('webauthn_challenges').length, 1);
     }],

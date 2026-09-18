@@ -116,6 +116,7 @@ const groupState = async (roomId, myId, markRead, messages) => {
   if (markRead && newest > myLastRead) await members.markRead(prisma, roomId, myId, newest);
   return {
     otherIds: others.map((m) => m.user_id),
+    nicknames: new Map(current.filter((m) => m.group_nickname).map((m) => [m.user_id, m.group_nickname])),
     reservationMap: new Map(),
     memberCount: current.length,
     isRead: (m) => m.message_id <= (m.sender_id === myId ? readUpto : myLastRead),
@@ -188,7 +189,9 @@ const list = async (roomId, myId, { limit, beforeId, afterId, before, markRead }
     book: group ? null : room.books,
     meta: {
       ...state.meta,
-      aliases: Object.fromEntries([...aliasMap].filter(([id]) => relevant.has(id)).map(([id, alias]) => [String(id), alias])),
+      aliases: Object.fromEntries([...(group ? state.nicknames : aliasMap)]
+        .filter(([id]) => relevant.has(id) || (group && id === myId))
+        .map(([id, alias]) => [String(id), alias])),
       edited,
       muted: muted.has(roomId),
       recalled_ids: recalled.map((m) => m.message_id),
@@ -234,6 +237,9 @@ const send = async (roomId, myId, { messageType, content, preview, replyToId, me
   const mentionedIds = mentionStore.targetsOf(mentions, recipients);
 
   const me = await prisma.users.findUnique({ where: { user_id: myId }, select: { nickname: true } });
+  const senderName = rooms.isGroup(room)
+    ? (await members.groupNicknames([roomId])).get(`${roomId}:${myId}`) ?? me?.nickname ?? ''
+    : me?.nickname ?? '';
 
   const replyTarget = replyToId && (await replySupported())
     ? await prisma.chat_messages.findUnique({ where: { message_id: replyToId }, include: { users: { select: userBrief } } })
@@ -257,7 +263,7 @@ const send = async (roomId, myId, { messageType, content, preview, replyToId, me
     await tx.chat_rooms.update({ where: { room_id: roomId }, data: { updated_at: new Date() } });
 
     await notice.notifyMembers(tx, {
-      room, actor: { user_id: myId, nickname: me?.nickname ?? '' }, userIds: recipients, preview, mentionedIds
+      room, actor: { user_id: myId, nickname: senderName }, userIds: recipients, preview, mentionedIds
     });
 
     return created;

@@ -409,6 +409,82 @@ const tests = [
     assert.strictEqual(ownerView.meta.read_upto, latest.message_id);
     assert.deepStrictEqual(ownerView.meta.members_read, [{ user_id: member.user_id, last_read_message_id: latest.message_id }]);
     assert.strictEqual(ownerView.meta.room.member_count, 2);
+  }],
+
+  ['群組暱稱所有成員看到相同名稱，一對一的個人暱稱不會出現在群組中', async () => {
+    const owner = addUser({ nickname: '團主' });
+    const a = addUser({ nickname: '甲' });
+    const b = addUser({ nickname: '乙' });
+    const roomId = await createGroup(owner, [a.user_id, b.user_id]);
+
+    ok(await request('PUT', `/api/chat/aliases/${a.user_id}`, { token: b.token, body: { alias: '乙私下取的名字' } }));
+    const res = await request('PUT', `/api/chat/groups/${roomId}/members/${a.user_id}/nickname`, {
+      token: a.token, body: { nickname: '讀書會的甲' }
+    });
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.message, '群組暱稱已更新');
+
+    for (const viewer of [owner, b]) {
+      const detail = ok(await request('GET', `/api/chat/rooms/${roomId}`, { token: viewer.token })).data;
+      const member = detail.members.find((m) => m.user_id === a.user_id);
+      assert.strictEqual(member.alias, '讀書會的甲');
+      assert.strictEqual(member.group_nickname, '讀書會的甲');
+    }
+
+    await say(a, roomId, '大家好');
+    const view = ok(await request('GET', `/api/chat/rooms/${roomId}/messages`, { token: b.token }));
+    assert.strictEqual(view.meta.aliases[String(a.user_id)], '讀書會的甲');
+    const list = ok(await request('GET', '/api/chat/rooms', { token: b.token })).data;
+    assert.strictEqual(list.find((r) => r.room_id === roomId).last_message.sender_name, '讀書會的甲');
+    const inbox = prisma.rows('notifications').filter((n) => n.user_id === owner.user_id);
+    assert.strictEqual(inbox[inbox.length - 1].content, '讀書會的甲：大家好');
+
+    const direct = await openRoom(b, a.user_id);
+    const directDetail = ok(await request('GET', `/api/chat/rooms/${direct}`, { token: b.token })).data;
+    assert.strictEqual(directDetail.partner.alias, '乙私下取的名字');
+    const aView = ok(await request('GET', `/api/chat/rooms/${direct}`, { token: a.token })).data;
+    assert.strictEqual(aView.partner.alias, null);
+  }],
+
+  ['只有管理員可設定其他成員的群組暱稱，清空即移除，退出群組後不保留', async () => {
+    const owner = addUser({ nickname: '團主' });
+    const a = addUser({ nickname: '甲' });
+    const b = addUser({ nickname: '乙' });
+    const roomId = await createGroup(owner, [a.user_id, b.user_id]);
+    const path = (userId) => `/api/chat/groups/${roomId}/members/${userId}/nickname`;
+
+    const denied = await request('PUT', path(b.user_id), { token: a.token, body: { nickname: '亂取' } });
+    assert.strictEqual(denied.status, 403);
+    assert.strictEqual(denied.body.message, '僅群組管理員可設定其他成員的群組暱稱');
+
+    ok(await request('PUT', path(b.user_id), { token: owner.token, body: { nickname: '副團長' } }));
+    assert.strictEqual(memberRow(roomId, b.user_id).group_nickname, '副團長');
+
+    const tooLong = await request('PUT', path(b.user_id), { token: owner.token, body: { nickname: '字'.repeat(31) } });
+    assert.strictEqual(tooLong.status, 400);
+
+    const cleared = ok(await request('PUT', path(b.user_id), { token: owner.token, body: { nickname: '  ' } }));
+    assert.strictEqual(cleared.message, '群組暱稱已移除');
+    assert.strictEqual(memberRow(roomId, b.user_id).group_nickname, null);
+
+    ok(await request('PUT', path(a.user_id), { token: a.token, body: { nickname: '甲甲' } }));
+    ok(await request('POST', `/api/chat/groups/${roomId}/leave`, { token: a.token }));
+    assert.strictEqual(memberRow(roomId, a.user_id).group_nickname, null);
+    const gone = await request('PUT', path(a.user_id), { token: owner.token, body: { nickname: '回來' } });
+    assert.strictEqual(gone.status, 404);
+  }],
+
+  ['尚未執行 018 時設定群組暱稱回 503，其餘群組功能照常', async () => {
+    reset({ schema: SCHEMA.v2 });
+    const owner = addUser();
+    const a = addUser();
+    const roomId = await createGroup(owner, [a.user_id]);
+    const res = await request('PUT', `/api/chat/groups/${roomId}/members/${a.user_id}/nickname`, {
+      token: a.token, body: { nickname: '甲' }
+    });
+    assert.strictEqual(res.status, 503);
+    const detail = ok(await request('GET', `/api/chat/rooms/${roomId}`, { token: owner.token })).data;
+    assert.strictEqual(detail.members.find((m) => m.user_id === a.user_id).alias, null);
   }]
 ];
 

@@ -1,0 +1,41 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：賣家實體書櫃存書
+
+actor 賣家 as Seller
+actor 買家 as Buyer
+participant "SalesHistoryScreen" as UI
+participant "ApiService(OrdersApi)" as ApiSvc
+participant "PATCH /api/orders/:id/status" as Route
+participant "orders/index.js" as OrdersSvc
+participant "orders/settlement.js" as Settlement
+database "Prisma / MariaDB" as DB
+
+Seller -> Seller : 依App顯示格位，\n將書實體放入智慧書櫃
+Seller -> UI : 點擊「已放入書櫃」
+UI -> UI : showConfirmDialog(確認存書)
+UI -> ApiSvc : updateOrderStatus(orderId, 'deposited')
+ApiSvc -> Route : PATCH /api/orders/:id/status
+Route -> OrdersSvc : advance(orderId, user, 'deposited')
+OrdersSvc -> OrdersSvc : 檢查操作者為訂單賣家(或admin)
+OrdersSvc -> OrdersSvc : 檢查 order.status ∈\nTRANSITIONS.deposited.from
+alt 狀態不符
+  OrdersSvc --> UI : 400「此訂單目前非待存書狀態」
+else 狀態符合
+  OrdersSvc -> Settlement : transition(tx, order, 'deposited')
+  Settlement -> DB : guardedUpdate\n(WHERE status=讀取時狀態，\n防併發重複轉態)
+  Settlement -> Settlement : phaseOf('deposited') == 'held'\n（不異動金流）
+  Settlement --> OrdersSvc : 完成
+  OrdersSvc -> DB : notify 買家「書已存入書櫃，\n請至機台掃描QR Code取書」
+  OrdersSvc --> UI : 200 OK
+  DB --> Buyer : 推播通知
+end
+
+note over Seller, DB
+  目前版本中，智慧書櫃並未即時回報
+  格位感測狀態；存書完成與否
+  純由賣家於App端人工確認回報。
+end note
+@enduml

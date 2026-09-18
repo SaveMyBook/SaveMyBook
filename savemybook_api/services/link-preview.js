@@ -98,13 +98,22 @@ const normalize = (raw) => {
   }
 };
 
-const isInternal = (url) => {
-  if (!env.publicWebUrl) return false;
+const hostOf = (value) => {
   try {
-    return new URL(env.publicWebUrl).hostname.toLowerCase() === url.hostname.toLowerCase();
+    return new URL(value).hostname.toLowerCase();
   } catch {
-    return false;
+    return null;
   }
+};
+
+// 分享連結的網域取決於 PUBLIC_WEB_URL；未設定時會用 API 自己的網域產生，因此一併把請求的 Host 視為站內。
+const isInternal = (url, extraHosts = []) => {
+  const hosts = new Set([
+    hostOf(env.publicWebUrl),
+    hostOf(env.oauthRedirectBase),
+    ...extraHosts.map((h) => String(h ?? '').toLowerCase().replace(/:\d+$/, ''))
+  ].filter(Boolean));
+  return hosts.has(url.hostname.toLowerCase());
 };
 
 const bookPreview = async (url) => {
@@ -169,10 +178,10 @@ const webPreview = async (href) => {
   };
 };
 
-const preview = async (raw) => {
+const preview = async (raw, { internalHosts = [] } = {}) => {
   const url = normalize(raw);
   if (!url) return null;
-  if (isInternal(url)) return bookPreview(url);
+  if (isInternal(url, internalHosts)) return bookPreview(url);
 
   const key = url.href;
   const hit = cacheGet(key);

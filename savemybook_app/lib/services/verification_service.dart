@@ -37,10 +37,11 @@ class VerificationService {
   }
 
   // 不可共用 _inFlight：付款驗證流程會開啟設定交易密碼頁，該頁再次要求驗證時若等待同一個 Future 會互相卡死。
-  static Future<String?> requireSensitive(BuildContext context, {String? reason}) {
+  static Future<String?> requireSensitive(BuildContext context, {String? reason, Duration minValidity = Duration.zero}) {
     return _handle(
       VerificationRequest(scope: 'sensitive', methods: const ['password', 'passkey', 'pin', 'biometric'], message: reason ?? ''),
       context: context,
+      minValidity: minValidity,
     );
   }
 
@@ -56,22 +57,28 @@ class VerificationService {
     );
   }
 
-  static String? _cached(String scope) {
+  static String? _cached(String scope, [Duration minValidity = Duration.zero]) {
     final entry = _tokens[scope];
     if (entry == null || entry.owner != ApiService.authToken) return null;
-    return DateTime.now().isBefore(entry.expiresAt) ? entry.token : null;
+    return DateTime.now().add(minValidity).isBefore(entry.expiresAt) ? entry.token : null;
   }
 
   static String? get cachedSensitiveToken => _cached('sensitive');
 
+  static String? cachedSensitiveTokenValidFor(Duration minValidity) => _cached('sensitive', minValidity);
+
   static void rememberSensitive(String token) => _store('sensitive', token);
 
-  static Future<String?> _handle(VerificationRequest request, {BuildContext? context}) async {
+  static Future<String?> _handle(
+    VerificationRequest request, {
+    BuildContext? context,
+    Duration minValidity = Duration.zero,
+  }) async {
     final ctx = context ?? navigatorKey?.currentContext;
     if (ctx == null) return null;
 
     if (!request.isPayment) {
-      final cached = _cached(request.scope);
+      final cached = _cached(request.scope, minValidity);
       if (cached != null) return cached;
     }
 

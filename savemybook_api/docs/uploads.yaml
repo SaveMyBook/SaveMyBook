@@ -9,6 +9,7 @@ tags:
       | 檢舉與爭議佐證 | `POST /api/uploads` | `files`，最多 5 個 | 圖片 | 8 MB | `/uploads/evidence/` |
       | 聊天圖片 | `POST /api/uploads/chat-image` | `file` | 圖片 | 10 MB | `/uploads/chat/` |
       | 聊天語音 | `POST /api/uploads/voice` | `file` | M4A、AAC、MP3 | 5 MB | `/uploads/voice/` |
+      | 客服工單圖片 | `POST /api/uploads/support-image` | `file` | 圖片 | 10 MB | `/uploads/support/`（不開放直接存取） |
 
       書籍照片與個人頭像不使用本組端點，另有專屬端點：`POST /api/books`、
       `POST /api/books/{id}/images` 與 `POST /api/users/me/avatar`。
@@ -127,6 +128,71 @@ paths:
               example: { success: false, message: 檔案太大了 }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/uploads/support-image:
+    post:
+      summary: 上傳客服工單圖片
+      operationId: uploadSupportImage
+      tags: [uploads]
+      description: |
+        上傳開立或回覆工單要附加的圖片，單檔上限 10 MB。僅接受 JPG、PNG、GIF、WebP、HEIC，
+        伺服器會檢查檔頭。
+
+        回傳的 `url` 僅供帶入 `POST /api/support/tickets` 或
+        `POST /api/support/tickets/{id}/messages` 的 `attachments`，只能由上傳者本人使用一次；
+        圖片須透過工單內容回應中的簽章網址讀取。
+
+        未送出的圖片保留 24 小時後自動刪除，每位使用者同時最多 20 張。
+        與佐證檔案上傳合計，10 分鐘內最多 30 次。尚未執行遷移 017 時回傳 503。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 欲上傳的圖片，欄位名稱固定為 `file`，單次一個檔案。
+      responses:
+        '201':
+          description: 上傳成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      url: { type: string, example: /uploads/support/1736512345678-9f86d081884c7d65.jpg }
+        '400':
+          description: 未選擇檔案、格式不符，或未送出的圖片過多。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                未選擇檔案:
+                  value: { success: false, message: 請選擇要上傳的圖片 }
+                待送出過多:
+                  value: { success: false, code: SUPPORT_ATTACHMENTS_PENDING_LIMIT, message: 尚未送出的圖片過多，請先送出或稍後再試 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '413':
+          description: 檔案超過大小上限。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503':
+          description: 伺服器尚未執行遷移 017。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: SUPPORT_ATTACHMENTS_UNAVAILABLE, message: 圖片附件暫時無法使用，請稍後再試 }
 
   /api/uploads/voice:
     post:

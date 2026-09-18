@@ -1,0 +1,63 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：編輯書籍
+
+actor 賣家 as Seller
+participant "EditBookScreen /\nEditBookDetailScreen" as UI
+participant "ApiService(BooksApi)" as ApiSvc
+participant "PUT /api/books/:id" as Route
+participant "books.js" as BooksSvc
+participant "listing-screening.js" as Screen
+participant "ai/moderation.js" as Moderation
+database "Prisma / MariaDB" as DB
+
+Seller -> UI : 修改書名/售價/書況/照片
+UI -> ApiSvc : updateBook(bookId, fields)
+ApiSvc -> Route : PUT /api/books/:id
+Route -> BooksSvc : update(bookId, user, data)
+BooksSvc -> BooksSvc : findOwnedBook(bookId, user)
+
+alt 非本人且非管理員
+  BooksSvc --> Route : 403 Forbidden
+else 擁有權通過
+  alt 欲改回 on_sale 且原本非 on_sale
+    BooksSvc -> BooksSvc : violationLocked(book)
+    alt 違規鎖定中
+      BooksSvc --> Route : 403 BOOK_NOT_APPROVED
+    end
+  end
+  alt 欲變更狀態且原狀態為 reserved/sold（非admin）
+    BooksSvc --> Route : 409 交易中不可變更
+  else 可繼續處理
+    BooksSvc -> BooksSvc : assertRefsExist(分類/書櫃)
+    alt 書名/描述/售價有變更（非admin）
+      BooksSvc -> Screen : ruleDecision(data)
+      alt 規則未命中
+        BooksSvc -> Moderation : screen(content)（同步等待）
+        alt AI 判定 reject
+          Moderation --> BooksSvc : action=reject
+          BooksSvc --> Route : 422 LISTING_REJECTED
+        else action=review/allow
+          Moderation --> BooksSvc : decision
+        end
+      end
+      BooksSvc -> BooksSvc : reviewPlan(book, decision)
+    end
+    BooksSvc -> DB : tx.books.update(data)
+    alt plan.hold
+      BooksSvc -> DB : ai_book_reviews.hold()
+      BooksSvc -> Seller : 通知「已送交審核」
+    else plan.release
+      BooksSvc -> DB : ai_book_reviews.settle(approved)
+    end
+    alt 新價 < 舊價 且仍 on_sale
+      BooksSvc -> DB : 查詢收藏此書之使用者
+      BooksSvc -> DB : notifyPriceDrop()（背景通知）
+    end
+    BooksSvc --> Route : 200 更新後之書籍（含review_status）
+    Route --> UI : 顯示更新成功
+  end
+end
+@enduml

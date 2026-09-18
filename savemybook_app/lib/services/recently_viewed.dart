@@ -47,6 +47,25 @@ class RecentlyViewed {
 
   static Future<void> clear() => _write(const []);
 
+  static DateTime? _refreshedAt;
+
+  static Future<void> refresh({bool force = false}) async {
+    await load();
+    final current = books.value;
+    if (current.isEmpty) return;
+    final now = DateTime.now();
+    if (!force && _refreshedAt != null && now.difference(_refreshedAt!) < const Duration(minutes: 5)) return;
+    final fresh = await ApiService().fetchBookBriefs(current.map((b) => b.bookId));
+    if (fresh == null) return;
+    _refreshedAt = now;
+    final byId = {for (final b in fresh) b.bookId: b};
+    if (_key != _loadedKey) return;
+    await _write([for (final b in books.value) ?byId[b.bookId]]);
+  }
+
+  @visibleForTesting
+  static void resetRefreshThrottle() => _refreshedAt = null;
+
   static Future<void> restore(List<Book> previous) => _write(previous.take(_max).toList());
 
   static Future<void> _write(List<Book> next) async {
@@ -60,29 +79,25 @@ class RecentlyViewed {
   }
 
   static Map<String, dynamic> _snapshot(Book b) => {
-        'book_id': b.bookId,
-        'title': b.title,
-        if (b.author != S.unknownAuthor) 'author': b.author,
-        if (b.publisher != S.unknownPublisher) 'publisher': b.publisher,
-        if (b.isbn != S.noIsbn) 'isbn': b.isbn,
-        if (b.description != S.noDescriptionYet) 'description': b.description,
-        'price': b.price,
-        'condition_level': b.conditionLevel,
-        'status': b.status,
-        'seller_id': b.sellerId,
-        'category_id': b.categoryId,
-        'cabinet_id': b.cabinetId,
-        'book_images': [
-          for (final image in b.images.isNotEmpty ? b.images : const <BookImage>[])
-            {'image_id': image.imageId, 'image_url': image.url, 'image_type': image.type},
-          if (b.images.isEmpty)
-            for (final url in b.imageUrls) {'image_url': url},
-        ],
-        'book_categories': {'category_name': b.categoryName},
-        'users': {
-          'user_id': b.sellerId,
-          'nickname': b.sellerName,
-          'avatar_url': b.sellerAvatarUrl,
-        },
-      };
+    'book_id': b.bookId,
+    'title': b.title,
+    if (b.author != S.unknownAuthor) 'author': b.author,
+    if (b.publisher != S.unknownPublisher) 'publisher': b.publisher,
+    if (b.isbn != S.noIsbn) 'isbn': b.isbn,
+    if (b.description != S.noDescriptionYet) 'description': b.description,
+    'price': b.price,
+    'condition_level': b.conditionLevel,
+    'status': b.status,
+    'seller_id': b.sellerId,
+    'category_id': b.categoryId,
+    'cabinet_id': b.cabinetId,
+    'book_images': [
+      for (final image in b.images.isNotEmpty ? b.images : const <BookImage>[])
+        {'image_id': image.imageId, 'image_url': image.url, 'image_type': image.type},
+      if (b.images.isEmpty)
+        for (final url in b.imageUrls) {'image_url': url},
+    ],
+    'book_categories': {'category_name': b.categoryName},
+    'users': {'user_id': b.sellerId, 'nickname': b.sellerName, 'avatar_url': b.sellerAvatarUrl},
+  };
 }

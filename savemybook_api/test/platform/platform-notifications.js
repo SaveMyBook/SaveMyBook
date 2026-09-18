@@ -3,6 +3,33 @@ const h = require('./harness');
 
 const { prisma, request } = h;
 const { notify, notifyMany, notifyActiveUsers } = h.api('services/notify');
+const categories = h.api('services/notification-categories');
+const { UNREAD_BY_CATEGORY_SQL } = h.api('services/notifications');
+
+// 所有建立通知的呼叫端實際使用的 (type, related_type) 組合；新增通知種類時須一併補上。
+const EMITTED = [
+  ['order', 'order', 'trade'],
+  ['reservation', 'chat_room', 'trade'],
+  ['reservation', 'book', 'trade'],
+  ['reservation', null, 'trade'],
+  ['system', 'wallet', 'trade'],
+  ['system', 'book', 'trade'],
+  ['system', null, 'account'],
+  ['message', 'chat_room', 'chat'],
+  ['system', 'security', 'account'],
+  ['system', 'password', 'account'],
+  ['system', 'legal', 'account'],
+  ['system', 'member_level', 'account'],
+  ['system', 'user', 'account'],
+  ['system', 'push_test', 'account'],
+  ['system', 'ticket', 'service'],
+  ['system', 'report', 'service'],
+  ['system', 'admin_ticket', 'service'],
+  ['system', 'book_review', 'service'],
+  ['promotion', 'book', 'promotion'],
+  ['promotion', 'announcement', 'promotion'],
+  ['system', 'announcement', 'promotion']
+];
 
 const addNotification = (userId, overrides = {}) => {
   const row = {
@@ -130,7 +157,10 @@ module.exports = {
       addNotification(h.addUser().user_id);
 
       const res = await request('GET', '/api/notifications/unread-count', { token: h.tokenFor(user) });
-      assert.deepStrictEqual(res.body.data, { unread_count: 1 });
+      assert.deepStrictEqual(res.body.data, {
+        unread_count: 1,
+        by_category: { trade: 0, chat: 0, account: 1, service: 0, promotion: 0 }
+      });
     }],
 
     ['標為已讀：單筆與全部', async () => {
@@ -181,6 +211,102 @@ module.exports = {
       assert.strictEqual(all.body.message, '已清除 1 則通知');
       assert.deepStrictEqual(all.body.data, { deleted: 1 });
       assert.deepStrictEqual(prisma.rows('notifications').map((n) => n.notification_id), [others.notification_id]);
+    }],
+
+    ['每一種通知組合恰好歸入一個分類', async () => {
+      for (const [type, relatedType, expected] of EMITTED) {
+        assert.strictEqual(categories.categoryOf(type, relatedType), expected, `${type}/${relatedType}`);
+      }
+      const user = h.addUser();
+      const rows = [...EMITTED, ['system', 'unknown', 'account']]
+        .map(([type, related_type]) => addNotification(user.user_id, { type, related_type }));
+      const hits = new Map(rows.map((r) => [r.notification_id, []]));
+      for (const category of categories.CATEGORIES) {
+        const found = await prisma.notifications.findMany({ where: categories.whereOf(category) });
+        for (const r of found) hits.get(r.notification_id).push(category);
+      }
+      for (const r of rows) {
+        assert.deepStrictEqual(hits.get(r.notification_id), [categories.categoryOf(r.type, r.related_type)], `${r.type}/${r.related_type}`);
+      }
+    }],
+
+    ['分類的 SQL 與程式判斷一致，未讀數以單一查詢完成', async () => {
+      const branches = [...categories.caseSql().matchAll(/WHEN (type|related_type) IN \(([^)]*)\) THEN '(\w+)'/g)]
+        .map(([, column, values, category]) => ({ column, values: values.split(', ').map((v) => v.replace(/'/g, '')), category }));
+      const fallback = /ELSE '(\w+)' END/.exec(categories.caseSql())[1];
+      const evaluate = (row) => branches.find((b) => b.values.includes(row[b.column]))?.category ?? fallback;
+      for (const [type, related_type, expected] of [...EMITTED, ['system', 'unknown', 'account']]) {
+        assert.strictEqual(evaluate({ type, related_type }), expected, `${type}/${related_type}`);
+      }
+
+      const user = h.addUser();
+      addNotification(user.user_id, { type: 'order', related_type: 'order' });
+      addNotification(user.user_id, { type: 'message', related_type: 'chat_room' });
+      addNotification(user.user_id, { type: 'message', related_type: 'chat_room' });
+      addNotification(user.user_id, { related_type: 'ticket' });
+      addNotification(user.user_id, { related_type: 'announcement', is_read: true });
+      prisma.sqlLog.length = 0;
+      const res = await request('GET', '/api/notifications/unread-count', { token: h.tokenFor(user) });
+      assert.deepStrictEqual(res.body.data, {
+        unread_count: 4,
+        by_category: { trade: 1, chat: 2, account: 0, service: 1, promotion: 0 }
+      });
+      assert.strictEqual(prisma.sqlLog.filter((q) => String(q.sql ?? q).includes('GROUP BY category')).length, 1);
+      assert.ok(UNREAD_BY_CATEGORY_SQL.includes(categories.caseSql()));
+    }],
+
+    ['通知列表可依分類篩選並分頁，每筆附上分類', async () => {
+      const user = h.addUser();
+      for (let i = 0; i < 23; i += 1) {
+        addNotification(user.user_id, { type: 'order', related_type: 'order', title: `訂單 ${i}`, created_at: new Date(2026, 0, 1, 0, i) });
+      }
+      addNotification(user.user_id, { type: 'promotion', related_type: 'book', title: '降價' });
+      addNotification(user.user_id, { related_type: 'security', title: '新裝置登入' });
+      const token = h.tokenFor(user);
+
+      const trade = await request('GET', '/api/notifications?category=trade&page=2', { token });
+      assert.strictEqual(trade.status, 200);
+      assert.deepStrictEqual(trade.body.pagination, { total: 23, page: 2, limit: 20, total_pages: 2 });
+      assert.strictEqual(trade.body.data.length, 3);
+      assert.ok(trade.body.data.every((n) => n.category === 'trade'));
+      assert.strictEqual(trade.body.unread_count, 25);
+
+      const promotion = await request('GET', '/api/notifications?category=promotion', { token });
+      assert.deepStrictEqual(promotion.body.data.map((n) => n.title), ['降價']);
+
+      const account = await request('GET', '/api/notifications?category=account', { token });
+      assert.deepStrictEqual(account.body.data.map((n) => [n.title, n.category]), [['新裝置登入', 'account']]);
+
+      const bad = await request('GET', '/api/notifications?category=coupon', { token });
+      assert.strictEqual(bad.status, 400);
+      assert.strictEqual(bad.body.message, '不支援的通知分類');
+    }],
+
+    ['全部已讀與清除全部可限定分類', async () => {
+      const user = h.addUser();
+      const order = addNotification(user.user_id, { type: 'order', related_type: 'order' });
+      const chat = addNotification(user.user_id, { type: 'message', related_type: 'chat_room' });
+      const ticket = addNotification(user.user_id, { related_type: 'ticket' });
+      const others = addNotification(h.addUser().user_id, { type: 'order', related_type: 'order' });
+      const token = h.tokenFor(user);
+
+      const read = await request('PATCH', '/api/notifications/read-all?category=trade', { token });
+      assert.strictEqual(read.status, 200);
+      assert.deepStrictEqual(read.body.data, { updated: 1 });
+      assert.deepStrictEqual([order.is_read, chat.is_read, ticket.is_read, others.is_read], [true, false, false, false]);
+
+      const cleared = await request('DELETE', '/api/notifications/all?category=chat', { token });
+      assert.deepStrictEqual(cleared.body.data, { deleted: 1 });
+      assert.deepStrictEqual(
+        prisma.rows('notifications').map((n) => n.notification_id),
+        [order.notification_id, ticket.notification_id, others.notification_id]
+      );
+
+      const badRead = await request('PATCH', '/api/notifications/read-all?category=coupon', { token });
+      assert.strictEqual(badRead.status, 400);
+      const badDelete = await request('DELETE', '/api/notifications/all?category=coupon', { token });
+      assert.strictEqual(badDelete.status, 400);
+      assert.strictEqual(prisma.rows('notifications').length, 3);
     }],
 
     ['通知編號格式不正確時回 400', async () => {

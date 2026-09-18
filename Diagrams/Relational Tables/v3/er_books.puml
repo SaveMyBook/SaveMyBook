@@ -1,0 +1,127 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 13
+skinparam linetype ortho
+hide circle
+hide empty methods
+skinparam ranksep 60
+skinparam nodesep 40
+skinparam class {
+  BackgroundColor White
+  BorderColor #444444
+  ArrowColor #555555
+}
+
+title 書籍與商品模組 ER 圖
+
+entity "books\n書籍商品表" as books {
+  * book_id : INT
+  + seller_id : INT
+  - isbn : VARCHAR(13)
+  - title : VARCHAR(255)
+  - author : VARCHAR(255)
+  - publisher : VARCHAR(255)
+  - publish_date : VARCHAR(20)
+  + category_id : INT
+  - condition_level : ENUM
+  - condition_note : TEXT
+  - price : DECIMAL(10, 2)
+  - quantity : INT
+  - description : TEXT
+  + cabinet_id : INT
+  - status : ENUM
+  - view_count : INT
+  - is_approved : TINYINT(1)
+  - share_token : CHAR(32)
+  - created_at : DATETIME
+  - updated_at : DATETIME
+}
+
+entity "book_categories\n書籍分類表" as book_categories {
+  * category_id : INT
+  - category_name : VARCHAR(50)
+  + parent_id : INT
+  - sort_order : INT
+  - created_at : DATETIME
+}
+
+entity "book_images\n書籍圖片表" as book_images {
+  * image_id : INT
+  + book_id : INT
+  - image_url : VARCHAR(500)
+  - image_type : ENUM
+  - sort_order : INT
+  - created_at : DATETIME
+}
+
+entity "favorites\n收藏清單表" as favorites {
+  * favorite_id : INT
+  + user_id : INT
+  + book_id : INT
+  - created_at : DATETIME
+}
+
+entity "shopping_cart\n購物車" as shopping_cart {
+  * cart_id : INT
+  + user_id : INT
+  + book_id : INT
+  - quantity : INT
+  - added_at : DATETIME
+}
+
+entity "recommendation_logs\n推薦紀錄表" as recommendation_logs {
+  * rec_id : INT
+  + user_id : INT
+  + book_id : INT
+  - rec_type : ENUM
+  - is_clicked : TINYINT(1)
+  - created_at : DATETIME
+}
+
+entity "reports\n檢舉管理表" as reports {
+  * report_id : INT
+  + reporter_id : INT
+  - target_type : ENUM
+  - target_id : INT
+  - reason : TEXT
+  - evidence_urls : TEXT
+  - status : ENUM
+  + admin_id : INT
+  - admin_note : TEXT
+  - created_at : DATETIME
+  - resolved_at : DATETIME
+}
+
+entity "content_reviews\n內容審核表" as content_reviews {
+  * review_id : INT
+  - content_type : ENUM
+  - content_id : INT
+  - status : ENUM
+  + admin_id : INT
+  - review_note : TEXT
+  - created_at : DATETIME
+  - reviewed_at : DATETIME
+}
+
+entity "ai_book_reviews\nAI書籍上架審核表" as ai_book_reviews {
+  * book_id : INT
+  - verdict : VARCHAR(10)
+  - reasons : TEXT
+  - categories : TEXT
+  - status : ENUM
+  - provider : VARCHAR(20)
+  - model : VARCHAR(80)
+  - created_at : DATETIME
+  - reviewed_by : INT
+  - reviewed_at : DATETIME
+}
+
+book_categories ||--o{ books : "category_id"
+book_categories ||--o{ book_categories : "parent_id"
+books ||--o{ book_images : "book_id"
+books ||--o{ favorites : "book_id"
+books ||--o{ shopping_cart : "book_id"
+books ||--o{ recommendation_logs : "book_id"
+books ||--o{ ai_book_reviews : "book_id"
+@enduml

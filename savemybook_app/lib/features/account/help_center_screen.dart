@@ -56,6 +56,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     await _load();
   }
 
+  void _openSupport() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const SupportTicketScreen()));
+  }
+
   List<FaqItem> get _visible {
     if (_keyword.isEmpty) return _faqs;
     final key = _keyword.toLowerCase();
@@ -82,7 +86,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          AppHeader(title: S.helpCentre, icon: Icons.help_outline_rounded),
+          AppHeader(title: S.helpCentre2, icon: Icons.support_agent_rounded),
           ResponsiveListPadding(
             maxWidth: Breakpoints.readingMaxWidth,
             horizontal: 20,
@@ -98,6 +102,40 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
             ),
           ),
           const AiSupportEntry(maxWidth: Breakpoints.readingMaxWidth, horizontal: 20),
+          ResponsiveListPadding(
+            maxWidth: Breakpoints.readingMaxWidth,
+            horizontal: 20,
+            top: 12,
+            bottom: 4,
+            builder: (context, padding) => Padding(
+              padding: padding,
+              child: AppCard(
+                key: const ValueKey('help_contact_support'),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                onTap: _openSupport,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.12), shape: BoxShape.circle),
+                      child: Icon(Icons.support_agent_rounded, size: 20, color: c.accent),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        S.contactSupport,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: c.iconInactive),
+                  ],
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: SwitchIn(
               child: _isLoading
@@ -111,14 +149,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                             message: _keyword.isEmpty
                                 ? S.noQuestionsYet
                                 : S.noMatchingQuestions,
-                            actionLabel: _keyword.isEmpty ? S.retry : S.contactUs,
+                            actionLabel: _keyword.isEmpty ? S.retry : S.contactSupport,
                             actionIcon: _keyword.isEmpty ? Icons.refresh_rounded : Icons.support_agent_rounded,
-                            onAction: _keyword.isEmpty
-                                ? _retry
-                                : () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => const SupportTicketScreen()),
-                                    ),
+                            onAction: _keyword.isEmpty ? _retry : _openSupport,
                           ),
                         )
                       : RefreshIndicator(

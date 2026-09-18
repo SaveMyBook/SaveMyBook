@@ -144,6 +144,18 @@ prisma.onSql(/^INSERT INTO notifications \(user_id, type, title, content, relate
   return values.length / columns.length;
 });
 
+const notificationCategories = api('services/notification-categories');
+
+prisma.onSql(/AS category, COUNT\(\*\) AS n\s+FROM notifications WHERE user_id = \? AND is_read = 0 GROUP BY category/, (sql, [userId]) => {
+  const counts = new Map();
+  for (const n of rowsOf('notifications')) {
+    if (Number(n.user_id) !== Number(userId) || n.is_read) continue;
+    const category = notificationCategories.categoryOf(n.type, n.related_type);
+    counts.set(category, (counts.get(category) ?? 0) + 1);
+  }
+  return [...counts].map(([category, n]) => ({ category, n: BigInt(n) }));
+});
+
 // 推播派送批次：取回視窗內尚未推播的通知。
 prisma.onSql(/FROM notifications n JOIN \(SELECT MAX\(created_at\) AS latest FROM notifications\) m/, (sql, [minutes, now]) => {
   const all = rowsOf('notifications');
@@ -186,7 +198,7 @@ const FULL_SCHEMA = {
     'chat_transfers', 'chat_mentions', 'ai_settings', 'ai_usage_logs', 'ai_support_sessions',
     'ai_support_messages', 'ai_recommendation_cache', 'ai_book_reviews', 'ai_consents',
     'ai_chat_sessions', 'ai_chat_messages', 'user_identities', 'auth_settings', 'oauth_states', 'oauth_results',
-    'user_passkeys', 'webauthn_challenges'
+    'user_passkeys', 'webauthn_challenges', 'support_ticket_attachments'
   ],
   columns: [
     'users.deletion_requested_at', 'users.anonymized_at', 'users.share_token', 'users.password_set',

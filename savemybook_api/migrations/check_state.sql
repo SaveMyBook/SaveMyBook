@@ -22,6 +22,7 @@ FROM (
   SELECT 'chat_messages', 'edited_at' UNION ALL
   SELECT 'notifications', 'actor_id' UNION ALL
   SELECT 'chat_room_members', 'history_from_id' UNION ALL
+  SELECT 'chat_room_members', 'group_nickname' UNION ALL
   SELECT 'chat_messages', 'mentions'
 ) t
 LEFT JOIN information_schema.COLUMNS c
@@ -263,4 +264,11 @@ UNION ALL
 SELECT '資料表', 'webauthn_challenges',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'webauthn_challenges';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'webauthn_challenges'
+
+UNION ALL
+
+SELECT '資料表', 'support_ticket_attachments',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'support_ticket_attachments';

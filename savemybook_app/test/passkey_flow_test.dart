@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:savemybook_app/features/security/identity_verification_sheet.dart';
 import 'package:savemybook_app/features/security/passkey_sign_in_button.dart';
+import 'package:savemybook_app/features/security/passkeys_card.dart';
 import 'package:savemybook_app/i18n/app_localizations.dart';
 import 'package:savemybook_app/i18n/strings.dart';
 import 'package:savemybook_app/models/user.dart';
@@ -36,7 +37,10 @@ class _FakeClient implements PasskeyClient {
   Future<Map<String, dynamic>> create(Map<String, dynamic> options) async => throw UnimplementedError();
 
   @override
-  Future<Map<String, dynamic>> get(Map<String, dynamic> options) async {
+  Future<void> forget({required String rpId, required String credentialId}) async {}
+
+  @override
+  Future<Map<String, dynamic>> get(Map<String, dynamic> options, {bool immediate = true}) async {
     requests.add(options);
     if (cancel) throw const PasskeyClientException.cancelled();
     return Map<String, dynamic>.from(_assertion);
@@ -127,6 +131,7 @@ void main() {
   late _FakeClient client;
 
   setUp(() {
+    PasskeyService.handoffDelay = Duration.zero;
     SharedPreferences.setMockInitialValues({});
     VerificationService.clearCache();
     client = _FakeClient();
@@ -252,4 +257,224 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     }, () => _fakeApi(calls));
   });
+
+  group('新增與管理通行密鑰', () {
+    Map<String, dynamic> row(String id, String label, {String? authenticator, bool backedUp = true}) => {
+          'passkey_id': id,
+          'device_label': label,
+          'authenticator': authenticator,
+          'backed_up': backedUp,
+          'created_at': '2026-09-01T08:00:00Z',
+          'last_used_at': null,
+        };
+
+    MockClient cardApi(List<String> calls, {required List<Map<String, dynamic>> Function() items}) => MockClient((req) async {
+          final path = req.url.path.replaceFirst('/api', '');
+          final body = req.body.isEmpty ? <String, dynamic>{} : jsonDecode(req.body) as Map<String, dynamic>;
+          calls.add('${req.method} $path${body['method'] != null ? ' ${body['scope']}/${body['method']}' : ''}');
+          switch ('${req.method} $path') {
+            case 'GET /security':
+              return _json({
+                'success': true,
+                'data': {'available': true, 'has_password': true, 'has_payment_pin': false, 'passkey_available': true, 'has_passkey': false},
+              });
+            case 'POST /security/verify':
+              return _json({'success': true, 'data': {'verify_token': 'sensitive-token', 'scope': 'sensitive', 'expires_in': 300}});
+            case 'POST /users/me/passkeys/options':
+              return _json({'success': true, 'data': {'options': {'challenge': 'c' * 64, 'rp': {'id': 'savemybook.today'}}}});
+            case 'POST /users/me/passkeys':
+              expect(req.headers['x-verify-token'], 'sensitive-token');
+              return _json({'success': true, 'data': [...items(), row('PK2', 'iPhone 17 Pro', authenticator: 'icloud_keychain')]}, 201);
+            case 'GET /users/me/passkeys':
+              return _json({'success': true, 'data': items()});
+          }
+          if (req.method == 'PATCH' && path.startsWith('/users/me/passkeys/')) {
+            return _json({'success': true, 'data': [row('PK1', body['device_label'] as String, authenticator: 'icloud_keychain')]});
+          }
+          return _json({'success': true});
+        });
+
+    Future<void> pumpCard(WidgetTester tester, GlobalKey<NavigatorState> navKey) async {
+      VerificationService.navigatorKey = navKey;
+      await _pumpHost(tester, navKey, home: const Scaffold(body: SingleChildScrollView(child: PasskeysCard())));
+      await _settle(tester);
+    }
+
+    testWidgets('清單以使用者看得懂的方式標示同步狀態，可重新命名', (tester) async {
+      final calls = <String>[];
+      final navKey = GlobalKey<NavigatorState>();
+      await http.runWithClient(() async {
+        await pumpCard(tester, navKey);
+        expect(find.text('${S.icloudKeychain}・${S.synced}'), findsOneWidget);
+        expect(find.text(S.notSynced), findsOneWidget);
+
+        await tester.tap(find.byTooltip(S.moreOptions).first);
+        await _settle(tester);
+        await tester.tap(find.text(S.rename));
+        await _settle(tester);
+        await tester.enterText(find.byType(TextField), '工作用 iPhone');
+        await tester.tap(find.text(S.actionSave));
+        await _settle(tester);
+
+        expect(calls, contains('PATCH /users/me/passkeys/PK1'));
+        expect(find.text('工作用 iPhone'), findsOneWidget);
+        await tester.pumpWidget(const SizedBox.shrink());
+      }, () => cardApi(calls, items: () => [
+            row('PK1', 'iPhone 16', authenticator: 'icloud_keychain'),
+            row('PK3', 'YubiKey', backedUp: false),
+          ]));
+    });
+
+    testWidgets('同一個密碼管理工具已有通行密鑰時說明原因，改存到其他位置不再重複驗證身分', (tester) async {
+      final calls = <String>[];
+      final navKey = GlobalKey<NavigatorState>();
+      final scripted = _ScriptedClient([
+        const PasskeyClientException('dup', kind: PasskeyFailure.excluded),
+        {'id': 'bmV3', 'rawId': 'bmV3', 'type': 'public-key', 'response': {'clientDataJSON': 'e30', 'attestationObject': 'o2M'}},
+      ]);
+      PasskeyService.client = scripted;
+
+      await http.runWithClient(() async {
+        await pumpCard(tester, navKey);
+        await tester.tap(find.text(S.addPasskey));
+        await _settle(tester);
+
+        expect(find.byType(IdentityVerificationSheet), findsOneWidget);
+        await tester.enterText(find.byType(TextField), 'Passw0rd123');
+        await tester.tap(find.widgetWithText(ElevatedButton, S.verifyS));
+        await _settle(tester);
+
+        expect(scripted.creates, 1);
+        expect(find.text(S.alreadyPasskey), findsOneWidget);
+        expect(find.text(PasskeysCard.alreadyRegisteredMessage()), findsOneWidget);
+        expect(find.byIcon(Icons.error_outline_rounded), findsNothing, reason: '不可顯示成錯誤');
+
+        await tester.tap(find.text(S.addAgain));
+        await _settle(tester);
+
+        expect(scripted.creates, 2);
+        expect(find.byType(IdentityVerificationSheet), findsNothing);
+        expect(calls.where((c) => c.startsWith('POST /security/verify')).length, 1, reason: '沿用剛取得的驗證權杖');
+        expect(find.text('iPhone 17 Pro'), findsOneWidget);
+        await tester.pumpWidget(const SizedBox.shrink());
+      }, () => cardApi(calls, items: () => [row('PK1', 'iPhone 16', authenticator: 'icloud_keychain')]));
+    });
+
+    testWidgets('伺服器回報已註冊時同樣說明，不顯示錯誤', (tester) async {
+      final calls = <String>[];
+      final navKey = GlobalKey<NavigatorState>();
+      PasskeyService.client = _ScriptedClient([
+        {'id': 'b2xk', 'rawId': 'b2xk', 'type': 'public-key', 'response': {'clientDataJSON': 'e30', 'attestationObject': 'o2M'}},
+      ]);
+      VerificationService.rememberSensitive('sensitive-token');
+
+      await http.runWithClient(() async {
+        await pumpCard(tester, navKey);
+        await tester.tap(find.text(S.addPasskey));
+        await _settle(tester);
+        expect(find.text(S.alreadyPasskey), findsOneWidget);
+        await tester.tap(find.text(S.got));
+        await _settle(tester);
+        await tester.pumpWidget(const SizedBox.shrink());
+      }, () => MockClient((req) async {
+            final path = req.url.path.replaceFirst('/api', '');
+            calls.add('${req.method} $path');
+            if (req.method == 'POST' && path == '/users/me/passkeys') {
+              return _json({'success': false, 'code': 'PASSKEY_ALREADY_REGISTERED', 'message': '此通行密鑰已經註冊'}, 409);
+            }
+            if (path == '/users/me/passkeys/options') {
+              return _json({'success': true, 'data': {'options': {'challenge': 'c' * 64}}});
+            }
+            return _json({'success': true, 'data': [row('PK1', 'iPhone 16')]});
+          }));
+      expect(calls.where((c) => c == 'GET /users/me/passkeys').length, 2, reason: '重新載入清單');
+    });
+
+    testWidgets('系統回傳未預期的錯誤時顯示訊息，按鈕不會停在載入中', (tester) async {
+      final calls = <String>[];
+      final navKey = GlobalKey<NavigatorState>();
+      PasskeyService.client = _ScriptedClient([StateError('boom')]);
+      VerificationService.rememberSensitive('sensitive-token');
+
+      await http.runWithClient(() async {
+        await pumpCard(tester, navKey);
+        await tester.tap(find.text(S.addPasskey));
+        await _settle(tester);
+        expect(find.text(S.somethingWentWrongPleaseTryAgain), findsOneWidget);
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        await tester.pumpWidget(const SizedBox.shrink());
+      }, () => cardApi(calls, items: () => [row('PK1', 'iPhone 16')]));
+    });
+  });
+
+  testWidgets('登入頁：此裝置沒有通行密鑰時可改用密碼，或改用其他裝置的通行密鑰', (tester) async {
+    final navKey = GlobalKey<NavigatorState>();
+    final calls = <String>[];
+    ApiService.authToken = null;
+    ApiService.currentUser = null;
+    final scripted = _ScriptedClient(const []);
+    PasskeyService.client = scripted;
+    var usePassword = 0;
+    var signedIn = 0;
+
+    await http.runWithClient(() async {
+      await _pumpHost(
+        tester,
+        navKey,
+        home: Scaffold(
+          body: PasskeySignInButton(
+            initialVisible: true,
+            onSignedIn: () async => signedIn++,
+            onUsePassword: () => usePassword++,
+          ),
+        ),
+      );
+      await _settle(tester);
+
+      await tester.tap(find.text(S.signWithPasskey));
+      await _settle(tester);
+      expect(find.text(S.noPasskeyDevice), findsOneWidget);
+      await tester.tap(find.text(S.usePassword));
+      await _settle(tester);
+      expect(usePassword, 1);
+      expect(signedIn, 0);
+
+      await tester.tap(find.text(S.signWithPasskey));
+      await _settle(tester);
+      await tester.tap(find.text(S.useAnotherDevice));
+      await _settle(tester);
+      expect(signedIn, 1);
+      expect(scripted.immediates, [true, true, false]);
+      await tester.pumpWidget(const SizedBox.shrink());
+    }, () => _fakeApi(calls));
+  });
+}
+
+class _ScriptedClient implements PasskeyClient {
+  final List<Object> _creates;
+  int creates = 0;
+  final immediates = <bool>[];
+
+  _ScriptedClient(List<Object> creates) : _creates = [...creates];
+
+  @override
+  Future<bool> isSupported() async => true;
+
+  @override
+  Future<Map<String, dynamic>> create(Map<String, dynamic> options) async {
+    creates++;
+    final next = _creates.removeAt(0);
+    if (next is Map<String, dynamic>) return next;
+    throw next;
+  }
+
+  @override
+  Future<Map<String, dynamic>> get(Map<String, dynamic> options, {bool immediate = true}) async {
+    immediates.add(immediate);
+    if (immediate) throw const PasskeyClientException('none', kind: PasskeyFailure.noCredentials);
+    return Map<String, dynamic>.from(_assertion);
+  }
+
+  @override
+  Future<void> forget({required String rpId, required String credentialId}) async {}
 }

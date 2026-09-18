@@ -1,0 +1,198 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 13
+skinparam linetype ortho
+hide circle
+hide empty methods
+skinparam ranksep 60
+skinparam nodesep 40
+skinparam class {
+  BackgroundColor White
+  BorderColor #444444
+  ArrowColor #555555
+}
+
+title 使用者帳號與安全模組 ER 圖
+
+entity "users\n使用者管理表" as users {
+  * user_id : INT
+  - email : VARCHAR(255)
+  - password_hash : VARCHAR(255)
+  - nickname : VARCHAR(50)
+  - avatar_url : VARCHAR(500)
+  - bio : TEXT
+  - phone : VARCHAR(20)
+  - birthday : DATE
+  - gender : ENUM
+  - role : ENUM
+  - is_active : TINYINT(1)
+  - is_blacklisted : TINYINT(1)
+  - created_at : DATETIME
+  - updated_at : DATETIME
+  - bonus_points : INT
+  - deletion_requested_at : DATETIME
+  - anonymized_at : DATETIME
+  - share_token : CHAR(32)
+  - password_set : TINYINT(1)
+}
+
+entity "admin_permissions\n後台管理員權限表" as admin_permissions {
+  * admin_perm_id : INT
+  + user_id : INT
+  - can_manage_transactions : TINYINT(1)
+  - can_manage_members : TINYINT(1)
+  - can_manage_content : TINYINT(1)
+  - can_manage_reports : TINYINT(1)
+  - can_manage_announcements : TINYINT(1)
+  - can_manage_cabinets : TINYINT(1)
+  - created_at : DATETIME
+  - can_manage_orders : TINYINT(1)
+  - can_manage_wallets : TINYINT(1)
+  - can_manage_levels : TINYINT(1)
+  - can_view_stats : TINYINT(1)
+  - can_manage_support : TINYINT(1)
+  - can_manage_system : TINYINT(1)
+}
+
+entity "user_security\n使用者安全設定表" as user_security {
+  * user_id : INT
+  - payment_pin_hash : VARCHAR(255)
+  - pin_failed_count : INT
+  - pin_locked_until : DATETIME
+  - pin_updated_at : DATETIME
+  - tokens_valid_after : DATETIME
+}
+
+entity "user_sessions\n使用者登入裝置表" as user_sessions {
+  * session_id : INT
+  + user_id : INT
+  - sid : CHAR(32)
+  - device_id : VARCHAR(64)
+  - device_name : VARCHAR(100)
+  - platform : VARCHAR(20)
+  - app_version : VARCHAR(20)
+  - ip_address : VARCHAR(45)
+  - pay_key_hash : CHAR(64)
+  - created_at : DATETIME
+  - last_seen_at : DATETIME
+  - revoked_at : DATETIME
+}
+
+entity "user_identities\n第三方登入身分表" as user_identities {
+  * identity_id : INT
+  + user_id : INT
+  - provider : ENUM
+  - subject : VARCHAR
+  - email : VARCHAR(255)
+  - phone : VARCHAR(20)
+  - display_name : VARCHAR(100)
+  - created_at : DATETIME
+  - last_login_at : DATETIME
+}
+
+entity "login_logs\n登入紀錄表" as login_logs {
+  * log_id : INT
+  + user_id : INT
+  - login_at : DATETIME
+  - ip_address : VARCHAR(45)
+  - device_info : VARCHAR(255)
+  - login_method : VARCHAR(20)
+}
+
+entity "user_settings\n使用者設定表" as user_settings {
+  * setting_id : INT
+  + user_id : INT
+  - theme : ENUM
+  - notification_order : TINYINT(1)
+  - notification_promo : TINYINT(1)
+  - notification_message : TINYINT(1)
+  - privacy_show_profile : TINYINT(1)
+  - privacy_show_phone : TINYINT(1)
+  - updated_at : DATETIME
+}
+
+entity "user_qr_codes\n使用者QR Code表" as user_qr_codes {
+  * qr_id : INT
+  + user_id : INT
+  - qr_type : ENUM
+  - qr_code_url : VARCHAR(500)
+  - qr_data : VARCHAR(500)
+  - created_at : DATETIME
+}
+
+entity "user_legal_consents\n使用者法律文件同意紀錄表" as user_legal_consents {
+  * user_id : INT
+  * doc_key : VARCHAR(50)
+  - version : INT
+  - accepted_at : DATETIME
+}
+
+entity "legal_documents\n法律文件表" as legal_documents {
+  * doc_id : INT
+  - doc_key : VARCHAR(50)
+  - title : VARCHAR(255)
+  - content : TEXT
+  + updated_by : INT
+  - updated_at : DATETIME
+  - created_at : DATETIME
+  - version : INT
+  - requires_consent : TINYINT(1)
+}
+
+entity "user_blocks\n使用者封鎖表" as user_blocks {
+  * blocker_id : INT
+  * blocked_id : INT
+  - created_at : DATETIME
+}
+
+entity "oauth_states\n第三方登入狀態暫存表" as oauth_states {
+  * state : CHAR(32)
+  - provider : VARCHAR(20)
+  - mode : ENUM
+  - user_id : INT
+  - created_at : DATETIME
+}
+
+entity "oauth_results\n第三方登入結果暫存表" as oauth_results {
+  * code : CHAR(32)
+  - payload : TEXT
+  - created_at : DATETIME
+}
+
+entity "push_devices\n推播裝置表" as push_devices {
+  * device_id : INT
+  + user_id : INT
+  - token : VARCHAR(255)
+  - platform : ENUM
+  - app_version : VARCHAR(20)
+  - created_at : DATETIME
+  - last_seen_at : DATETIME
+  - session_sid : CHAR(32)
+}
+
+entity "bankbooks\n存摺管理表" as bankbooks {
+  * bankbook_id : INT
+  + user_id : INT
+  - bank_name : VARCHAR(100)
+  - account_number : VARCHAR(30)
+  - qr_code_url : VARCHAR(500)
+  - is_verified : TINYINT(1)
+  - created_at : DATETIME
+  - updated_at : DATETIME
+}
+
+users ||--o{ admin_permissions : "user_id"
+users ||--o{ user_security : "user_id"
+users ||--o{ user_sessions : "user_id"
+users ||--o{ user_identities : "user_id"
+users ||--o{ login_logs : "user_id"
+users ||--o{ user_settings : "user_id"
+users ||--o{ user_qr_codes : "user_id"
+users ||--o{ user_legal_consents : "user_id"
+users ||--o{ legal_documents : "updated_by"
+users ||--o{ user_blocks : "blocker_id"
+users ||--o{ user_blocks : "blocked_id"
+users ||--o{ push_devices : "user_id"
+users ||--o{ bankbooks : "user_id"
+@enduml

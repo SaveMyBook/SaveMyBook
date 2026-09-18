@@ -4,7 +4,12 @@ extension AuthSocialApi on ApiService {
   AuthResult<T> _authFail<T>(Map<String, dynamic>? res) {
     if (res == null) return AuthResult<T>.of(AuthCodes.network);
     final code = res['code'] as String? ?? 'UNKNOWN';
-    return AuthResult<T>.fail(code, res['message'] as String? ?? AuthCodes.messageOf(code));
+    final email = res['provider_email'];
+    return AuthResult<T>.fail(
+      code,
+      res['message'] as String? ?? AuthCodes.messageOf(code),
+      providerEmail: email is String && email.isNotEmpty ? email : null,
+    );
   }
 
   Map<String, dynamic>? _authData(Map<String, dynamic>? res) {
@@ -128,7 +133,29 @@ extension AuthSocialApi on ApiService {
     if (data?['linked'] == true) return AuthResult.ok(data?['provider'] as String?);
 
     final outcome = await _finishSocialLogin(res);
-    return outcome.isOk ? const AuthResult.ok(null) : AuthResult.fail(outcome.code, outcome.error);
+    return outcome.isOk
+        ? const AuthResult.ok(null)
+        : AuthResult.fail(outcome.code, outcome.error, providerEmail: outcome.providerEmail);
+  }
+
+  Future<AuthResult<void>> socialLinkLogin({
+    required String provider,
+    String? idToken,
+    String? oauthCode,
+    String? email,
+    String? password,
+    Map<String, dynamic>? assertion,
+  }) async {
+    final device = await DeviceIdentity.describe();
+    if (ApiService.currentUser == null) ApiService.authToken = null;
+    final res = await _send('POST', '/auth/social/link-login', body: {
+      'provider': provider,
+      'id_token': ?idToken,
+      'code': ?oauthCode,
+      if (assertion != null) 'assertion': assertion else ...{'email': ?email, 'password': ?password},
+      ...device,
+    });
+    return _finishSocialLogin(res);
   }
 
   Future<AuthResult<AuthSettingsBundle>> fetchAuthSettings() async {

@@ -1898,6 +1898,90 @@ abstract class AppLocalizations {
   String downloadLinkValidOnceP0P1(Object p0, Object p1);
   String get sources;
   String get unableOpenLink;
+  String get helpCentre2;
+  String get preferences;
+  String get privacy;
+  String get about2;
+  String clearP0Notifications(Object p0);
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1);
+  String p0NotificationsCleared(Object p0);
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1);
+  String get offers;
+  String get noTransactionNotifications;
+  String get noChatNotifications;
+  String get noAccountNotifications;
+  String get noSupportNotifications;
+  String get noOfferNotifications;
+  String get images;
+  String get imagesStillUploadingPleaseWaitBefore;
+  String get someImagesFailedUploadRetryRemove;
+  String get attachImages;
+  String get imageCouldNotRead;
+  String get up4ImagesPerMessage;
+  String retryUploadingImageP0(Object p0);
+  String removeImageP0(Object p0);
+  String get addImages;
+  String viewImageP0(Object p0);
+  String get eGGoldMember;
+  String get pointsThreshold;
+  String get pts;
+  String get tierBenefits;
+  String get oneBenefitPerLine;
+  String get newTier2;
+  String get whatMembersSee;
+  String get noThresholdSet;
+  String get tierOrder;
+  String get noBenefitsSet;
+  String p0CurrentlyP1MembersAfterDeletion(Object p0, Object p1, Object p2);
+  String noMembersCurrentlyP0OtherTiers(Object p0);
+  String tierDeletedP0MembersMovedP1(Object p0, Object p1);
+  String get changeTierOrder;
+  String get thresholdsStayWithTheirPositionThese;
+  String p0P1P2Pts(Object p0, Object p1, Object p2);
+  String get tierOrderUpdated;
+  String p0Members(Object p0);
+  String get tiers;
+  String get members4;
+  String get memberDistribution;
+  String get moreActions;
+  String get dragReorder;
+  String p0Pts(Object p0);
+  String p0P1Pts(Object p0, Object p1);
+  String tierNamedP0AlreadyExists(Object p0);
+  String get enterPointsThreshold;
+  String get thresholdMustWholeNumber0More;
+  String thresholdCannotExceedP0(Object p0);
+  String p0AlreadyUsesP1PtsEach(Object p0, Object p1);
+  String get startingTierMustBegin0Pts;
+  String get startingTierCannotDeletedSetAnother;
+  String get signLink;
+  String get signAccount;
+  String emailAlreadyRegisteredSignLinkName(Object p0);
+  String signLinkNameCanThenSign(Object p0, Object p1);
+  String get noPasskeyDevice;
+  String get signWithPasskeyAnotherDeviceSecurity;
+  String get useAnotherDevice;
+  String get usePassword;
+  String get icloudKeychain;
+  String get googlePasswordManager;
+  String get synced;
+  String get notSynced;
+  String get alreadyPasskey;
+  String get enterName;
+  String get passkeySavedIcloudKeychainWorksEvery;
+  String get passkeySavedGooglePasswordManagerWorks;
+  String get passkeySavedDeviceSPasswordManager;
+  String get addAgain;
+  String get codeExpiredPleaseRequestNewOne;
+  String codeValidP0(Object p0);
+  String get basicSettings;
+  String get eGBirthdayVoucher;
+  String get benefitDetails;
+  String get addBenefit;
+  String get bookNoLongerExistsBeenRemoved;
+  String get myNicknameGroup;
+  String get setGroupNickname;
+  String get allGroupMembersSeeNickname;
 }
 
 class _LEn extends AppLocalizations {
@@ -7527,6 +7611,258 @@ class _LEn extends AppLocalizations {
 
   @override
   String get unableOpenLink => 'Unable to open the link.';
+
+  @override
+  String get helpCentre2 => 'Help centre';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get privacy => 'Privacy';
+
+  @override
+  String get about2 => 'About';
+
+  @override
+  String clearP0Notifications(Object p0) => 'Clear ${p0} notifications';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => 'All ${p0} notifications (${p1}) will be deleted. This cannot be undone.';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '${p0} notifications cleared';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => 'Mark all unread ${p0} notifications (${p1}) as read?';
+
+  @override
+  String get offers => 'Offers';
+
+  @override
+  String get noTransactionNotifications => 'No transaction notifications';
+
+  @override
+  String get noChatNotifications => 'No chat notifications';
+
+  @override
+  String get noAccountNotifications => 'No account notifications';
+
+  @override
+  String get noSupportNotifications => 'No support notifications';
+
+  @override
+  String get noOfferNotifications => 'No offer notifications';
+
+  @override
+  String get images => 'Images';
+
+  @override
+  String get imagesStillUploadingPleaseWaitBefore => 'Images are still uploading. Please wait before sending.';
+
+  @override
+  String get someImagesFailedUploadRetryRemove => 'Some images failed to upload. Retry or remove them before sending.';
+
+  @override
+  String get attachImages => 'Attach images';
+
+  @override
+  String get imageCouldNotRead => 'This image could not be read';
+
+  @override
+  String get up4ImagesPerMessage => 'Up to 4 images per message';
+
+  @override
+  String retryUploadingImageP0(Object p0) => 'Retry uploading image ${p0}';
+
+  @override
+  String removeImageP0(Object p0) => 'Remove image ${p0}';
+
+  @override
+  String get addImages => 'Add images';
+
+  @override
+  String viewImageP0(Object p0) => 'View image ${p0}';
+
+  @override
+  String get eGGoldMember => 'e.g. Gold member';
+
+  @override
+  String get pointsThreshold => 'Points threshold';
+
+  @override
+  String get pts => 'pts';
+
+  @override
+  String get tierBenefits => 'Tier benefits';
+
+  @override
+  String get oneBenefitPerLine => 'One benefit per line';
+
+  @override
+  String get newTier2 => 'New tier';
+
+  @override
+  String get whatMembersSee => 'What members see';
+
+  @override
+  String get noThresholdSet => 'No threshold set';
+
+  @override
+  String get tierOrder => 'Tier order';
+
+  @override
+  String get noBenefitsSet => 'No benefits set';
+
+  @override
+  String p0CurrentlyP1MembersAfterDeletion(Object p0, Object p1, Object p2) => '“${p0}” currently has ${p1} members. After deletion they will move to “${p2}”.';
+
+  @override
+  String noMembersCurrentlyP0OtherTiers(Object p0) => 'No members are currently in “${p0}”. Other tiers are not affected.';
+
+  @override
+  String tierDeletedP0MembersMovedP1(Object p0, Object p1) => 'Tier deleted. ${p0} members moved to “${p1}”';
+
+  @override
+  String get changeTierOrder => 'Change tier order';
+
+  @override
+  String get thresholdsStayWithTheirPositionThese => 'Thresholds stay with their position. These tiers will get new thresholds:';
+
+  @override
+  String p0P1P2Pts(Object p0, Object p1, Object p2) => '“${p0}” ${p1} → ${p2} pts';
+
+  @override
+  String get tierOrderUpdated => 'Tier order updated';
+
+  @override
+  String p0Members(Object p0) => '${p0} members';
+
+  @override
+  String get tiers => 'tiers';
+
+  @override
+  String get members4 => 'members';
+
+  @override
+  String get memberDistribution => 'Member distribution';
+
+  @override
+  String get moreActions => 'More actions';
+
+  @override
+  String get dragReorder => 'Drag to reorder';
+
+  @override
+  String p0Pts(Object p0) => '${p0}+ pts';
+
+  @override
+  String p0P1Pts(Object p0, Object p1) => '${p0}–${p1} pts';
+
+  @override
+  String tierNamedP0AlreadyExists(Object p0) => 'A tier named “${p0}” already exists';
+
+  @override
+  String get enterPointsThreshold => 'Enter a points threshold';
+
+  @override
+  String get thresholdMustWholeNumber0More => 'The threshold must be a whole number of 0 or more';
+
+  @override
+  String thresholdCannotExceedP0(Object p0) => 'The threshold cannot exceed ${p0}';
+
+  @override
+  String p0AlreadyUsesP1PtsEach(Object p0, Object p1) => '“${p0}” already uses ${p1} pts. Each tier needs a different threshold';
+
+  @override
+  String get startingTierMustBegin0Pts => 'The starting tier must begin at 0 pts';
+
+  @override
+  String get startingTierCannotDeletedSetAnother => 'The starting tier cannot be deleted. Set another tier’s threshold to 0 pts first';
+
+  @override
+  String get signLink => 'Sign in and link';
+
+  @override
+  String get signAccount => 'Sign in to your account';
+
+  @override
+  String emailAlreadyRegisteredSignLinkName(Object p0) => 'This email is already registered. Sign in to link ${p0}.';
+
+  @override
+  String signLinkNameCanThenSign(Object p0, Object p1) => 'Sign in to link ${p0}. You can then sign in with ${p1} directly.';
+
+  @override
+  String get noPasskeyDevice => 'No passkey on this device';
+
+  @override
+  String get signWithPasskeyAnotherDeviceSecurity => 'Sign in with a passkey on another device or a security key, or use your password.';
+
+  @override
+  String get useAnotherDevice => 'Use another device';
+
+  @override
+  String get usePassword => 'Use password';
+
+  @override
+  String get icloudKeychain => 'iCloud Keychain';
+
+  @override
+  String get googlePasswordManager => 'Google Password Manager';
+
+  @override
+  String get synced => 'Synced';
+
+  @override
+  String get notSynced => 'Not synced';
+
+  @override
+  String get alreadyPasskey => 'You already have a passkey';
+
+  @override
+  String get enterName => 'Enter a name';
+
+  @override
+  String get passkeySavedIcloudKeychainWorksEvery => 'Your passkey is saved in iCloud Keychain and works on every device signed in to the same Apple Account, so there is no need to add it again. To create another one, tap "Add again" and choose a different password manager or a security key in the system window.';
+
+  @override
+  String get passkeySavedGooglePasswordManagerWorks => 'Your passkey is saved in Google Password Manager and works on every device signed in to the same Google Account, so there is no need to add it again. To create another one, tap "Add again" and choose a different password manager or a security key in the system window.';
+
+  @override
+  String get passkeySavedDeviceSPasswordManager => 'Your passkey is saved in this device\'s password manager and works on every device signed in to the same account, so there is no need to add it again. To create another one, tap "Add again" and choose a different password manager or a security key in the system window.';
+
+  @override
+  String get addAgain => 'Add again';
+
+  @override
+  String get codeExpiredPleaseRequestNewOne => 'This code has expired. Please request a new one.';
+
+  @override
+  String codeValidP0(Object p0) => 'Code valid for ${p0}';
+
+  @override
+  String get basicSettings => 'Basic settings';
+
+  @override
+  String get eGBirthdayVoucher => 'e.g. Birthday voucher';
+
+  @override
+  String get benefitDetails => 'Benefit details';
+
+  @override
+  String get addBenefit => 'Add benefit';
+
+  @override
+  String get bookNoLongerExistsBeenRemoved => 'This book no longer exists or has been removed.';
+
+  @override
+  String get myNicknameGroup => 'My nickname in this group';
+
+  @override
+  String get setGroupNickname => 'Set group nickname';
+
+  @override
+  String get allGroupMembersSeeNickname => 'All group members will see this nickname.';
 
 }
 
@@ -13158,6 +13494,258 @@ class _LJa extends AppLocalizations {
   @override
   String get unableOpenLink => 'リンクを開けませんでした。';
 
+  @override
+  String get helpCentre2 => 'サポートセンター';
+
+  @override
+  String get preferences => '環境設定';
+
+  @override
+  String get privacy => 'プライバシー';
+
+  @override
+  String get about2 => '概要';
+
+  @override
+  String clearP0Notifications(Object p0) => '${p0}の通知を消去';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => '${p0}の通知 ${p1} 件を削除します。この操作は元に戻せません。';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '${p0}の通知を消去しました';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => '${p0}の未読通知 ${p1} 件をすべて既読にしますか？';
+
+  @override
+  String get offers => 'お得情報';
+
+  @override
+  String get noTransactionNotifications => '取引に関する通知はありません';
+
+  @override
+  String get noChatNotifications => 'チャットに関する通知はありません';
+
+  @override
+  String get noAccountNotifications => 'アカウントに関する通知はありません';
+
+  @override
+  String get noSupportNotifications => 'サポートに関する通知はありません';
+
+  @override
+  String get noOfferNotifications => 'お得情報に関する通知はありません';
+
+  @override
+  String get images => '画像';
+
+  @override
+  String get imagesStillUploadingPleaseWaitBefore => '画像をアップロード中です。完了してから送信してください。';
+
+  @override
+  String get someImagesFailedUploadRetryRemove => '一部の画像をアップロードできませんでした。再試行するか削除してから送信してください。';
+
+  @override
+  String get attachImages => '画像を添付';
+
+  @override
+  String get imageCouldNotRead => 'この画像を読み込めません';
+
+  @override
+  String get up4ImagesPerMessage => '1 件のメッセージに添付できる画像は 4 枚までです';
+
+  @override
+  String retryUploadingImageP0(Object p0) => '画像 ${p0} を再アップロード';
+
+  @override
+  String removeImageP0(Object p0) => '画像 ${p0} を削除';
+
+  @override
+  String get addImages => '画像を追加';
+
+  @override
+  String viewImageP0(Object p0) => '画像 ${p0} を表示';
+
+  @override
+  String get eGGoldMember => '例：ゴールド会員';
+
+  @override
+  String get pointsThreshold => '必要ポイント';
+
+  @override
+  String get pts => 'pt';
+
+  @override
+  String get tierBenefits => 'ランク特典';
+
+  @override
+  String get oneBenefitPerLine => '1 行に 1 つの特典';
+
+  @override
+  String get newTier2 => '新しいランク';
+
+  @override
+  String get whatMembersSee => '会員に表示される内容';
+
+  @override
+  String get noThresholdSet => 'しきい値が未設定です';
+
+  @override
+  String get tierOrder => 'ランクの順序';
+
+  @override
+  String get noBenefitsSet => '特典が未設定です';
+
+  @override
+  String p0CurrentlyP1MembersAfterDeletion(Object p0, Object p1, Object p2) => '「${p0}」には現在 ${p1} 人の会員がいます。削除すると「${p2}」に移動します。';
+
+  @override
+  String noMembersCurrentlyP0OtherTiers(Object p0) => '現在「${p0}」に属する会員はいません。削除しても他のランクに影響はありません。';
+
+  @override
+  String tierDeletedP0MembersMovedP1(Object p0, Object p1) => 'ランクを削除しました。${p0} 人の会員が「${p1}」に移動しました';
+
+  @override
+  String get changeTierOrder => 'ランクの順序を変更';
+
+  @override
+  String get thresholdsStayWithTheirPositionThese => 'しきい値は位置ごとに保持されます。次のランクのしきい値が変わります：';
+
+  @override
+  String p0P1P2Pts(Object p0, Object p1, Object p2) => '「${p0}」${p1} → ${p2} pt';
+
+  @override
+  String get tierOrderUpdated => 'ランクの順序を更新しました';
+
+  @override
+  String p0Members(Object p0) => '会員 ${p0} 人';
+
+  @override
+  String get tiers => 'ランク';
+
+  @override
+  String get members4 => '人の会員';
+
+  @override
+  String get memberDistribution => '会員の分布';
+
+  @override
+  String get moreActions => 'その他の操作';
+
+  @override
+  String get dragReorder => 'ドラッグして並べ替え';
+
+  @override
+  String p0Pts(Object p0) => '${p0} pt 以上';
+
+  @override
+  String p0P1Pts(Object p0, Object p1) => '${p0}–${p1} pt';
+
+  @override
+  String tierNamedP0AlreadyExists(Object p0) => '「${p0}」という名前のランクは既にあります';
+
+  @override
+  String get enterPointsThreshold => 'しきい値を入力してください';
+
+  @override
+  String get thresholdMustWholeNumber0More => 'しきい値は 0 以上の整数で入力してください';
+
+  @override
+  String thresholdCannotExceedP0(Object p0) => 'しきい値は ${p0} 以下にしてください';
+
+  @override
+  String p0AlreadyUsesP1PtsEach(Object p0, Object p1) => '「${p0}」が既に ${p1} pt を使用しています。ランクごとに異なるしきい値が必要です';
+
+  @override
+  String get startingTierMustBegin0Pts => '最初のランクのしきい値は 0 pt にしてください';
+
+  @override
+  String get startingTierCannotDeletedSetAnother => '最初のランクは削除できません。先に別のランクのしきい値を 0 pt にしてください';
+
+  @override
+  String get signLink => 'ログインして連携';
+
+  @override
+  String get signAccount => '既存のアカウントにログイン';
+
+  @override
+  String emailAlreadyRegisteredSignLinkName(Object p0) => 'このメールアドレスは登録済みです。ログインすると ${p0} が連携されます。';
+
+  @override
+  String signLinkNameCanThenSign(Object p0, Object p1) => 'ログインすると ${p0} が連携され、次回から ${p1} でログインできます。';
+
+  @override
+  String get noPasskeyDevice => 'このデバイスに使用できるパスキーがありません';
+
+  @override
+  String get signWithPasskeyAnotherDeviceSecurity => '別のデバイスのパスキーまたはセキュリティキーでログインするか、パスワードをご利用ください。';
+
+  @override
+  String get useAnotherDevice => '別のデバイスを使用';
+
+  @override
+  String get usePassword => 'パスワードを使用';
+
+  @override
+  String get icloudKeychain => 'iCloud キーチェーン';
+
+  @override
+  String get googlePasswordManager => 'Google パスワード マネージャー';
+
+  @override
+  String get synced => '同期済み';
+
+  @override
+  String get notSynced => '未同期';
+
+  @override
+  String get alreadyPasskey => '使用できるパスキーがあります';
+
+  @override
+  String get enterName => '名前を入力してください';
+
+  @override
+  String get passkeySavedIcloudKeychainWorksEvery => 'パスキーは iCloud キーチェーンに保存されており、同じ Apple アカウントでサインインしているすべてのデバイスで使用できるため、再度追加する必要はありません。別のパスキーを作成するには「もう一度追加」をタップし、システムの画面で別のパスワード マネージャーまたはセキュリティキーを選択してください。';
+
+  @override
+  String get passkeySavedGooglePasswordManagerWorks => 'パスキーは Google パスワード マネージャーに保存されており、同じ Google アカウントでログインしているすべてのデバイスで使用できるため、再度追加する必要はありません。別のパスキーを作成するには「もう一度追加」をタップし、システムの画面で別のパスワード マネージャーまたはセキュリティキーを選択してください。';
+
+  @override
+  String get passkeySavedDeviceSPasswordManager => 'パスキーはこのデバイスのパスワード マネージャーに保存されており、同じアカウントでログインしているすべてのデバイスで使用できるため、再度追加する必要はありません。別のパスキーを作成するには「もう一度追加」をタップし、システムの画面で別のパスワード マネージャーまたはセキュリティキーを選択してください。';
+
+  @override
+  String get addAgain => 'もう一度追加';
+
+  @override
+  String get codeExpiredPleaseRequestNewOne => '認証コードの有効期限が切れました。再送信してください。';
+
+  @override
+  String codeValidP0(Object p0) => '認証コードの有効時間 ${p0}';
+
+  @override
+  String get basicSettings => '基本設定';
+
+  @override
+  String get eGBirthdayVoucher => '例：誕生日クーポン';
+
+  @override
+  String get benefitDetails => '特典の内容';
+
+  @override
+  String get addBenefit => '特典を追加';
+
+  @override
+  String get bookNoLongerExistsBeenRemoved => 'この書籍は存在しないか、出品が取り下げられています。';
+
+  @override
+  String get myNicknameGroup => 'このグループでのニックネーム';
+
+  @override
+  String get setGroupNickname => 'グループ内のニックネームを設定';
+
+  @override
+  String get allGroupMembersSeeNickname => 'このニックネームはグループの全メンバーに表示されます。';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -18787,6 +19375,258 @@ class _LKo extends AppLocalizations {
 
   @override
   String get unableOpenLink => '링크를 열 수 없습니다.';
+
+  @override
+  String get helpCentre2 => '고객센터';
+
+  @override
+  String get preferences => '환경설정';
+
+  @override
+  String get privacy => '개인정보';
+
+  @override
+  String get about2 => '정보';
+
+  @override
+  String clearP0Notifications(Object p0) => '${p0} 알림 지우기';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => '${p0} 알림 ${p1}개가 삭제됩니다. 이 작업은 되돌릴 수 없습니다.';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '${p0} 알림을 지웠습니다';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => '${p0}의 읽지 않은 알림 ${p1}개를 모두 읽음으로 표시할까요?';
+
+  @override
+  String get offers => '혜택';
+
+  @override
+  String get noTransactionNotifications => '거래 알림이 없습니다';
+
+  @override
+  String get noChatNotifications => '채팅 알림이 없습니다';
+
+  @override
+  String get noAccountNotifications => '계정 알림이 없습니다';
+
+  @override
+  String get noSupportNotifications => '고객지원 알림이 없습니다';
+
+  @override
+  String get noOfferNotifications => '혜택 알림이 없습니다';
+
+  @override
+  String get images => '이미지';
+
+  @override
+  String get imagesStillUploadingPleaseWaitBefore => '이미지를 업로드하는 중입니다. 완료 후 보내 주세요.';
+
+  @override
+  String get someImagesFailedUploadRetryRemove => '일부 이미지 업로드에 실패했습니다. 다시 시도하거나 삭제한 후 보내 주세요.';
+
+  @override
+  String get attachImages => '이미지 첨부';
+
+  @override
+  String get imageCouldNotRead => '이 이미지를 읽을 수 없습니다';
+
+  @override
+  String get up4ImagesPerMessage => '메시지당 이미지는 최대 4장까지 첨부할 수 있습니다';
+
+  @override
+  String retryUploadingImageP0(Object p0) => '이미지 ${p0} 다시 업로드';
+
+  @override
+  String removeImageP0(Object p0) => '이미지 ${p0} 삭제';
+
+  @override
+  String get addImages => '이미지 추가';
+
+  @override
+  String viewImageP0(Object p0) => '이미지 ${p0} 보기';
+
+  @override
+  String get eGGoldMember => '예: 골드 회원';
+
+  @override
+  String get pointsThreshold => '기준 포인트';
+
+  @override
+  String get pts => '포인트';
+
+  @override
+  String get tierBenefits => '등급 혜택';
+
+  @override
+  String get oneBenefitPerLine => '한 줄에 혜택 하나씩';
+
+  @override
+  String get newTier2 => '새 등급';
+
+  @override
+  String get whatMembersSee => '회원에게 표시되는 모습';
+
+  @override
+  String get noThresholdSet => '기준이 설정되지 않았습니다';
+
+  @override
+  String get tierOrder => '등급 순서';
+
+  @override
+  String get noBenefitsSet => '혜택이 설정되지 않았습니다';
+
+  @override
+  String p0CurrentlyP1MembersAfterDeletion(Object p0, Object p1, Object p2) => '“${p0}”에는 현재 회원 ${p1}명이 있습니다. 삭제하면 “${p2}”(으)로 이동합니다.';
+
+  @override
+  String noMembersCurrentlyP0OtherTiers(Object p0) => '현재 “${p0}”에 속한 회원이 없습니다. 삭제해도 다른 등급에는 영향이 없습니다.';
+
+  @override
+  String tierDeletedP0MembersMovedP1(Object p0, Object p1) => '등급을 삭제했습니다. 회원 ${p0}명이 “${p1}”(으)로 이동했습니다';
+
+  @override
+  String get changeTierOrder => '등급 순서 변경';
+
+  @override
+  String get thresholdsStayWithTheirPositionThese => '기준 포인트는 위치에 따라 유지됩니다. 다음 등급의 기준이 변경됩니다:';
+
+  @override
+  String p0P1P2Pts(Object p0, Object p1, Object p2) => '“${p0}” ${p1} → ${p2}포인트';
+
+  @override
+  String get tierOrderUpdated => '등급 순서를 업데이트했습니다';
+
+  @override
+  String p0Members(Object p0) => '회원 ${p0}명';
+
+  @override
+  String get tiers => '개 등급';
+
+  @override
+  String get members4 => '명의 회원';
+
+  @override
+  String get memberDistribution => '회원 분포';
+
+  @override
+  String get moreActions => '더 보기';
+
+  @override
+  String get dragReorder => '드래그하여 순서 변경';
+
+  @override
+  String p0Pts(Object p0) => '${p0}포인트 이상';
+
+  @override
+  String p0P1Pts(Object p0, Object p1) => '${p0}–${p1}포인트';
+
+  @override
+  String tierNamedP0AlreadyExists(Object p0) => '“${p0}” 이름의 등급이 이미 있습니다';
+
+  @override
+  String get enterPointsThreshold => '기준 포인트를 입력하세요';
+
+  @override
+  String get thresholdMustWholeNumber0More => '기준 포인트는 0 이상의 정수여야 합니다';
+
+  @override
+  String thresholdCannotExceedP0(Object p0) => '기준 포인트는 ${p0}을(를) 초과할 수 없습니다';
+
+  @override
+  String p0AlreadyUsesP1PtsEach(Object p0, Object p1) => '“${p0}”이(가) 이미 ${p1}포인트를 사용합니다. 등급마다 기준이 달라야 합니다';
+
+  @override
+  String get startingTierMustBegin0Pts => '시작 등급의 기준은 0포인트여야 합니다';
+
+  @override
+  String get startingTierCannotDeletedSetAnother => '시작 등급은 삭제할 수 없습니다. 먼저 다른 등급의 기준을 0포인트로 변경하세요';
+
+  @override
+  String get signLink => '로그인 후 연결';
+
+  @override
+  String get signAccount => '기존 계정에 로그인';
+
+  @override
+  String emailAlreadyRegisteredSignLinkName(Object p0) => '이미 등록된 이메일입니다. 로그인하면 ${p0}이(가) 연결됩니다.';
+
+  @override
+  String signLinkNameCanThenSign(Object p0, Object p1) => '로그인하면 ${p0}이(가) 연결되며 이후 ${p1}(으)로 바로 로그인할 수 있습니다.';
+
+  @override
+  String get noPasskeyDevice => '이 기기에 사용할 수 있는 패스키가 없습니다';
+
+  @override
+  String get signWithPasskeyAnotherDeviceSecurity => '다른 기기의 패스키 또는 보안 키로 로그인하거나 비밀번호를 사용하세요.';
+
+  @override
+  String get useAnotherDevice => '다른 기기 사용';
+
+  @override
+  String get usePassword => '비밀번호 사용';
+
+  @override
+  String get icloudKeychain => 'iCloud 키체인';
+
+  @override
+  String get googlePasswordManager => 'Google 비밀번호 관리자';
+
+  @override
+  String get synced => '동기화됨';
+
+  @override
+  String get notSynced => '동기화되지 않음';
+
+  @override
+  String get alreadyPasskey => '사용 가능한 패스키가 이미 있습니다';
+
+  @override
+  String get enterName => '이름을 입력하세요';
+
+  @override
+  String get passkeySavedIcloudKeychainWorksEvery => '패스키가 iCloud 키체인에 저장되어 있어 같은 Apple 계정으로 로그인한 모든 기기에서 사용할 수 있으므로 다시 추가할 필요가 없습니다. 별도로 만들려면 "다시 추가"를 누른 후 시스템 창에서 다른 비밀번호 관리자나 보안 키를 선택하세요.';
+
+  @override
+  String get passkeySavedGooglePasswordManagerWorks => '패스키가 Google 비밀번호 관리자에 저장되어 있어 같은 Google 계정으로 로그인한 모든 기기에서 사용할 수 있으므로 다시 추가할 필요가 없습니다. 별도로 만들려면 "다시 추가"를 누른 후 시스템 창에서 다른 비밀번호 관리자나 보안 키를 선택하세요.';
+
+  @override
+  String get passkeySavedDeviceSPasswordManager => '패스키가 이 기기의 비밀번호 관리자에 저장되어 있어 같은 계정으로 로그인한 모든 기기에서 사용할 수 있으므로 다시 추가할 필요가 없습니다. 별도로 만들려면 "다시 추가"를 누른 후 시스템 창에서 다른 비밀번호 관리자나 보안 키를 선택하세요.';
+
+  @override
+  String get addAgain => '다시 추가';
+
+  @override
+  String get codeExpiredPleaseRequestNewOne => '인증 코드가 만료되었습니다. 다시 요청해 주세요.';
+
+  @override
+  String codeValidP0(Object p0) => '인증 코드 유효 시간 ${p0}';
+
+  @override
+  String get basicSettings => '기본 설정';
+
+  @override
+  String get eGBirthdayVoucher => '예: 생일 쿠폰';
+
+  @override
+  String get benefitDetails => '혜택 내용';
+
+  @override
+  String get addBenefit => '혜택 추가';
+
+  @override
+  String get bookNoLongerExistsBeenRemoved => '이 도서는 존재하지 않거나 판매가 중지되었습니다.';
+
+  @override
+  String get myNicknameGroup => '이 그룹에서의 내 닉네임';
+
+  @override
+  String get setGroupNickname => '그룹 닉네임 설정';
+
+  @override
+  String get allGroupMembersSeeNickname => '그룹의 모든 멤버에게 이 닉네임이 표시됩니다.';
 
 }
 
@@ -24418,6 +25258,258 @@ class _LZh extends AppLocalizations {
   @override
   String get unableOpenLink => '無法開啟連結';
 
+  @override
+  String get helpCentre2 => '客服中心';
+
+  @override
+  String get preferences => '偏好設定';
+
+  @override
+  String get privacy => '隱私';
+
+  @override
+  String get about2 => '關於';
+
+  @override
+  String clearP0Notifications(Object p0) => '清除${p0}通知';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => '將刪除${p0}類的 ${p1} 則通知，此操作無法復原。';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '已清除${p0}通知';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => '確定要將${p0}類的 ${p1} 則未讀通知全部標為已讀？';
+
+  @override
+  String get offers => '優惠';
+
+  @override
+  String get noTransactionNotifications => '沒有交易通知';
+
+  @override
+  String get noChatNotifications => '沒有聊天通知';
+
+  @override
+  String get noAccountNotifications => '沒有帳號通知';
+
+  @override
+  String get noSupportNotifications => '沒有客服通知';
+
+  @override
+  String get noOfferNotifications => '沒有優惠通知';
+
+  @override
+  String get images => '圖片';
+
+  @override
+  String get imagesStillUploadingPleaseWaitBefore => '圖片上傳中，請稍候再送出';
+
+  @override
+  String get someImagesFailedUploadRetryRemove => '部分圖片上傳失敗，請重試或移除後再送出';
+
+  @override
+  String get attachImages => '附加圖片';
+
+  @override
+  String get imageCouldNotRead => '無法讀取這張圖片';
+
+  @override
+  String get up4ImagesPerMessage => '每則訊息最多附加 4 張圖片';
+
+  @override
+  String retryUploadingImageP0(Object p0) => '重試上傳圖片 ${p0}';
+
+  @override
+  String removeImageP0(Object p0) => '移除圖片 ${p0}';
+
+  @override
+  String get addImages => '新增圖片';
+
+  @override
+  String viewImageP0(Object p0) => '檢視圖片 ${p0}';
+
+  @override
+  String get eGGoldMember => '例如：黃金會員';
+
+  @override
+  String get pointsThreshold => '門檻點數';
+
+  @override
+  String get pts => '點';
+
+  @override
+  String get tierBenefits => '等級福利';
+
+  @override
+  String get oneBenefitPerLine => '每行一項福利';
+
+  @override
+  String get newTier2 => '新等級';
+
+  @override
+  String get whatMembersSee => '會員看到的樣式';
+
+  @override
+  String get noThresholdSet => '尚未設定門檻';
+
+  @override
+  String get tierOrder => '等級順序';
+
+  @override
+  String get noBenefitsSet => '尚未設定福利';
+
+  @override
+  String p0CurrentlyP1MembersAfterDeletion(Object p0, Object p1, Object p2) => '「${p0}」目前有 ${p1} 位會員，刪除後將改列「${p2}」。';
+
+  @override
+  String noMembersCurrentlyP0OtherTiers(Object p0) => '目前沒有會員屬於「${p0}」，刪除後其他等級不受影響。';
+
+  @override
+  String tierDeletedP0MembersMovedP1(Object p0, Object p1) => '已刪除等級，${p0} 位會員改列「${p1}」';
+
+  @override
+  String get changeTierOrder => '調整等級順序';
+
+  @override
+  String get thresholdsStayWithTheirPositionThese => '門檻點數依位置保留，以下等級的門檻將變更：';
+
+  @override
+  String p0P1P2Pts(Object p0, Object p1, Object p2) => '「${p0}」${p1} → ${p2} 點';
+
+  @override
+  String get tierOrderUpdated => '已更新等級順序';
+
+  @override
+  String p0Members(Object p0) => '${p0} 位會員';
+
+  @override
+  String get tiers => '個等級';
+
+  @override
+  String get members4 => '位會員';
+
+  @override
+  String get memberDistribution => '會員分布';
+
+  @override
+  String get moreActions => '更多操作';
+
+  @override
+  String get dragReorder => '拖曳調整順序';
+
+  @override
+  String p0Pts(Object p0) => '${p0} 點以上';
+
+  @override
+  String p0P1Pts(Object p0, Object p1) => '${p0}–${p1} 點';
+
+  @override
+  String tierNamedP0AlreadyExists(Object p0) => '已有名為「${p0}」的等級';
+
+  @override
+  String get enterPointsThreshold => '請輸入門檻點數';
+
+  @override
+  String get thresholdMustWholeNumber0More => '門檻點數須為 0 以上的整數';
+
+  @override
+  String thresholdCannotExceedP0(Object p0) => '門檻點數不可超過 ${p0}';
+
+  @override
+  String p0AlreadyUsesP1PtsEach(Object p0, Object p1) => '「${p0}」已使用 ${p1} 點，每個等級的門檻須不同';
+
+  @override
+  String get startingTierMustBegin0Pts => '起始等級的門檻須為 0 點';
+
+  @override
+  String get startingTierCannotDeletedSetAnother => '起始等級無法刪除，請先將其他等級的門檻調整為 0 點';
+
+  @override
+  String get signLink => '登入並綁定';
+
+  @override
+  String get signAccount => '登入既有帳號';
+
+  @override
+  String emailAlreadyRegisteredSignLinkName(Object p0) => '此電子郵件已註冊，登入後即綁定 ${p0}。';
+
+  @override
+  String signLinkNameCanThenSign(Object p0, Object p1) => '登入後即綁定 ${p0}，之後可直接使用 ${p1} 登入。';
+
+  @override
+  String get noPasskeyDevice => '此裝置沒有可用的通行密鑰';
+
+  @override
+  String get signWithPasskeyAnotherDeviceSecurity => '可使用其他裝置上的通行密鑰或安全金鑰登入，或改用密碼。';
+
+  @override
+  String get useAnotherDevice => '使用其他裝置';
+
+  @override
+  String get usePassword => '改用密碼';
+
+  @override
+  String get icloudKeychain => 'iCloud 鑰匙圈';
+
+  @override
+  String get googlePasswordManager => 'Google 密碼管理工具';
+
+  @override
+  String get synced => '已同步';
+
+  @override
+  String get notSynced => '未同步';
+
+  @override
+  String get alreadyPasskey => '已有可用的通行密鑰';
+
+  @override
+  String get enterName => '請輸入名稱';
+
+  @override
+  String get passkeySavedIcloudKeychainWorksEvery => '通行密鑰已儲存在 iCloud 鑰匙圈，登入同一 Apple 帳號的裝置皆可使用，無須重複新增。如需另外建立，請按「再次新增」並在系統視窗改選其他密碼管理工具或安全金鑰。';
+
+  @override
+  String get passkeySavedGooglePasswordManagerWorks => '通行密鑰已儲存在 Google 密碼管理工具，登入同一 Google 帳號的裝置皆可使用，無須重複新增。如需另外建立，請按「再次新增」並在系統視窗改選其他密碼管理工具或安全金鑰。';
+
+  @override
+  String get passkeySavedDeviceSPasswordManager => '通行密鑰已儲存在此裝置的密碼管理工具，登入同一帳號的裝置皆可使用，無須重複新增。如需另外建立，請按「再次新增」並在系統視窗改選其他密碼管理工具或安全金鑰。';
+
+  @override
+  String get addAgain => '再次新增';
+
+  @override
+  String get codeExpiredPleaseRequestNewOne => '驗證碼已失效，請重新傳送';
+
+  @override
+  String codeValidP0(Object p0) => '驗證碼有效時間 ${p0}';
+
+  @override
+  String get basicSettings => '基本設定';
+
+  @override
+  String get eGBirthdayVoucher => '例如：生日禮券';
+
+  @override
+  String get benefitDetails => '福利內容';
+
+  @override
+  String get addBenefit => '新增福利';
+
+  @override
+  String get bookNoLongerExistsBeenRemoved => '此書籍已不存在或已下架';
+
+  @override
+  String get myNicknameGroup => '我在群組的暱稱';
+
+  @override
+  String get setGroupNickname => '設定群組暱稱';
+
+  @override
+  String get allGroupMembersSeeNickname => '群組內所有成員皆會看到此暱稱';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -30048,6 +31140,258 @@ class _LZhHans extends AppLocalizations {
   @override
   String get unableOpenLink => '无法打开链接';
 
+  @override
+  String get helpCentre2 => '客服中心';
+
+  @override
+  String get preferences => '偏好设置';
+
+  @override
+  String get privacy => '隐私';
+
+  @override
+  String get about2 => '关于';
+
+  @override
+  String clearP0Notifications(Object p0) => '清除${p0}通知';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => '将删除${p0}类的 ${p1} 条通知，此操作无法复原。';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '已清除${p0}通知';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => '确定要将${p0}类的 ${p1} 条未读通知全部标为已读？';
+
+  @override
+  String get offers => '优惠';
+
+  @override
+  String get noTransactionNotifications => '没有交易通知';
+
+  @override
+  String get noChatNotifications => '没有聊天通知';
+
+  @override
+  String get noAccountNotifications => '没有账号通知';
+
+  @override
+  String get noSupportNotifications => '没有客服通知';
+
+  @override
+  String get noOfferNotifications => '没有优惠通知';
+
+  @override
+  String get images => '图片';
+
+  @override
+  String get imagesStillUploadingPleaseWaitBefore => '图片上传中，请稍候再发送';
+
+  @override
+  String get someImagesFailedUploadRetryRemove => '部分图片上传失败，请重试或移除后再发送';
+
+  @override
+  String get attachImages => '附加图片';
+
+  @override
+  String get imageCouldNotRead => '无法读取这张图片';
+
+  @override
+  String get up4ImagesPerMessage => '每条消息最多附加 4 张图片';
+
+  @override
+  String retryUploadingImageP0(Object p0) => '重试上传图片 ${p0}';
+
+  @override
+  String removeImageP0(Object p0) => '移除图片 ${p0}';
+
+  @override
+  String get addImages => '添加图片';
+
+  @override
+  String viewImageP0(Object p0) => '查看图片 ${p0}';
+
+  @override
+  String get eGGoldMember => '例如：黄金会员';
+
+  @override
+  String get pointsThreshold => '门槛点数';
+
+  @override
+  String get pts => '点';
+
+  @override
+  String get tierBenefits => '等级福利';
+
+  @override
+  String get oneBenefitPerLine => '每行一项福利';
+
+  @override
+  String get newTier2 => '新等级';
+
+  @override
+  String get whatMembersSee => '会员看到的样式';
+
+  @override
+  String get noThresholdSet => '尚未设置门槛';
+
+  @override
+  String get tierOrder => '等级顺序';
+
+  @override
+  String get noBenefitsSet => '尚未设置福利';
+
+  @override
+  String p0CurrentlyP1MembersAfterDeletion(Object p0, Object p1, Object p2) => '“${p0}”目前有 ${p1} 位会员，删除后将改列“${p2}”。';
+
+  @override
+  String noMembersCurrentlyP0OtherTiers(Object p0) => '目前没有会员属于“${p0}”，删除后其他等级不受影响。';
+
+  @override
+  String tierDeletedP0MembersMovedP1(Object p0, Object p1) => '已删除等级，${p0} 位会员改列“${p1}”';
+
+  @override
+  String get changeTierOrder => '调整等级顺序';
+
+  @override
+  String get thresholdsStayWithTheirPositionThese => '门槛点数按位置保留，以下等级的门槛将变更：';
+
+  @override
+  String p0P1P2Pts(Object p0, Object p1, Object p2) => '“${p0}”${p1} → ${p2} 点';
+
+  @override
+  String get tierOrderUpdated => '已更新等级顺序';
+
+  @override
+  String p0Members(Object p0) => '${p0} 位会员';
+
+  @override
+  String get tiers => '个等级';
+
+  @override
+  String get members4 => '位会员';
+
+  @override
+  String get memberDistribution => '会员分布';
+
+  @override
+  String get moreActions => '更多操作';
+
+  @override
+  String get dragReorder => '拖动调整顺序';
+
+  @override
+  String p0Pts(Object p0) => '${p0} 点以上';
+
+  @override
+  String p0P1Pts(Object p0, Object p1) => '${p0}–${p1} 点';
+
+  @override
+  String tierNamedP0AlreadyExists(Object p0) => '已有名为“${p0}”的等级';
+
+  @override
+  String get enterPointsThreshold => '请输入门槛点数';
+
+  @override
+  String get thresholdMustWholeNumber0More => '门槛点数须为 0 以上的整数';
+
+  @override
+  String thresholdCannotExceedP0(Object p0) => '门槛点数不可超过 ${p0}';
+
+  @override
+  String p0AlreadyUsesP1PtsEach(Object p0, Object p1) => '“${p0}”已使用 ${p1} 点，每个等级的门槛须不同';
+
+  @override
+  String get startingTierMustBegin0Pts => '起始等级的门槛须为 0 点';
+
+  @override
+  String get startingTierCannotDeletedSetAnother => '起始等级无法删除，请先将其他等级的门槛调整为 0 点';
+
+  @override
+  String get signLink => '登入并绑定';
+
+  @override
+  String get signAccount => '登入既有账号';
+
+  @override
+  String emailAlreadyRegisteredSignLinkName(Object p0) => '此电子邮件已注册，登入后即绑定 ${p0}。';
+
+  @override
+  String signLinkNameCanThenSign(Object p0, Object p1) => '登入后即绑定 ${p0}，之后可直接使用 ${p1} 登入。';
+
+  @override
+  String get noPasskeyDevice => '此装置没有可用的通行密钥';
+
+  @override
+  String get signWithPasskeyAnotherDeviceSecurity => '可使用其他装置上的通行密钥或安全密钥登入，或改用密码。';
+
+  @override
+  String get useAnotherDevice => '使用其他装置';
+
+  @override
+  String get usePassword => '改用密码';
+
+  @override
+  String get icloudKeychain => 'iCloud 钥匙串';
+
+  @override
+  String get googlePasswordManager => 'Google 密码管理工具';
+
+  @override
+  String get synced => '已同步';
+
+  @override
+  String get notSynced => '未同步';
+
+  @override
+  String get alreadyPasskey => '已有可用的通行密钥';
+
+  @override
+  String get enterName => '请输入名称';
+
+  @override
+  String get passkeySavedIcloudKeychainWorksEvery => '通行密钥已储存在 iCloud 钥匙串，登入同一 Apple 账号的装置皆可使用，无须重复新增。如需另外建立，请按「再次新增」并在系统窗口改选其他密码管理工具或安全密钥。';
+
+  @override
+  String get passkeySavedGooglePasswordManagerWorks => '通行密钥已储存在 Google 密码管理工具，登入同一 Google 账号的装置皆可使用，无须重复新增。如需另外建立，请按「再次新增」并在系统窗口改选其他密码管理工具或安全密钥。';
+
+  @override
+  String get passkeySavedDeviceSPasswordManager => '通行密钥已储存在此装置的密码管理工具，登入同一账号的装置皆可使用，无须重复新增。如需另外建立，请按「再次新增」并在系统窗口改选其他密码管理工具或安全密钥。';
+
+  @override
+  String get addAgain => '再次新增';
+
+  @override
+  String get codeExpiredPleaseRequestNewOne => '验证码已失效，请重新发送';
+
+  @override
+  String codeValidP0(Object p0) => '验证码有效时间 ${p0}';
+
+  @override
+  String get basicSettings => '基本设置';
+
+  @override
+  String get eGBirthdayVoucher => '例如：生日礼券';
+
+  @override
+  String get benefitDetails => '福利内容';
+
+  @override
+  String get addBenefit => '新增福利';
+
+  @override
+  String get bookNoLongerExistsBeenRemoved => '此书籍已不存在或已下架';
+
+  @override
+  String get myNicknameGroup => '我在群组的昵称';
+
+  @override
+  String get setGroupNickname => '设置群组昵称';
+
+  @override
+  String get allGroupMembersSeeNickname => '群组内所有成员都会看到此昵称';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -35677,6 +37021,258 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get unableOpenLink => '無法開啟連結';
+
+  @override
+  String get helpCentre2 => '客服中心';
+
+  @override
+  String get preferences => '偏好設定';
+
+  @override
+  String get privacy => '隱私';
+
+  @override
+  String get about2 => '關於';
+
+  @override
+  String clearP0Notifications(Object p0) => '清除${p0}通知';
+
+  @override
+  String p1NotificationsP0DeletedCannotUndone(Object p0, Object p1) => '將刪除${p0}類的 ${p1} 則通知，此操作無法復原。';
+
+  @override
+  String p0NotificationsCleared(Object p0) => '已清除${p0}通知';
+
+  @override
+  String markAllP1UnreadNotificationsP0(Object p0, Object p1) => '確定要將${p0}類的 ${p1} 則未讀通知全部標為已讀？';
+
+  @override
+  String get offers => '優惠';
+
+  @override
+  String get noTransactionNotifications => '沒有交易通知';
+
+  @override
+  String get noChatNotifications => '沒有聊天通知';
+
+  @override
+  String get noAccountNotifications => '沒有帳號通知';
+
+  @override
+  String get noSupportNotifications => '沒有客服通知';
+
+  @override
+  String get noOfferNotifications => '沒有優惠通知';
+
+  @override
+  String get images => '圖片';
+
+  @override
+  String get imagesStillUploadingPleaseWaitBefore => '圖片上傳中，請稍候再送出';
+
+  @override
+  String get someImagesFailedUploadRetryRemove => '部分圖片上傳失敗，請重試或移除後再送出';
+
+  @override
+  String get attachImages => '附加圖片';
+
+  @override
+  String get imageCouldNotRead => '無法讀取這張圖片';
+
+  @override
+  String get up4ImagesPerMessage => '每則訊息最多附加 4 張圖片';
+
+  @override
+  String retryUploadingImageP0(Object p0) => '重試上傳圖片 ${p0}';
+
+  @override
+  String removeImageP0(Object p0) => '移除圖片 ${p0}';
+
+  @override
+  String get addImages => '新增圖片';
+
+  @override
+  String viewImageP0(Object p0) => '檢視圖片 ${p0}';
+
+  @override
+  String get eGGoldMember => '例如：黃金會員';
+
+  @override
+  String get pointsThreshold => '門檻點數';
+
+  @override
+  String get pts => '點';
+
+  @override
+  String get tierBenefits => '等級福利';
+
+  @override
+  String get oneBenefitPerLine => '每行一項福利';
+
+  @override
+  String get newTier2 => '新等級';
+
+  @override
+  String get whatMembersSee => '會員看到的樣式';
+
+  @override
+  String get noThresholdSet => '尚未設定門檻';
+
+  @override
+  String get tierOrder => '等級順序';
+
+  @override
+  String get noBenefitsSet => '尚未設定福利';
+
+  @override
+  String p0CurrentlyP1MembersAfterDeletion(Object p0, Object p1, Object p2) => '「${p0}」目前有 ${p1} 位會員，刪除後將改列「${p2}」。';
+
+  @override
+  String noMembersCurrentlyP0OtherTiers(Object p0) => '目前沒有會員屬於「${p0}」，刪除後其他等級不受影響。';
+
+  @override
+  String tierDeletedP0MembersMovedP1(Object p0, Object p1) => '已刪除等級，${p0} 位會員改列「${p1}」';
+
+  @override
+  String get changeTierOrder => '調整等級順序';
+
+  @override
+  String get thresholdsStayWithTheirPositionThese => '門檻點數依位置保留，以下等級的門檻將變更：';
+
+  @override
+  String p0P1P2Pts(Object p0, Object p1, Object p2) => '「${p0}」${p1} → ${p2} 點';
+
+  @override
+  String get tierOrderUpdated => '已更新等級順序';
+
+  @override
+  String p0Members(Object p0) => '${p0} 位會員';
+
+  @override
+  String get tiers => '個等級';
+
+  @override
+  String get members4 => '位會員';
+
+  @override
+  String get memberDistribution => '會員分布';
+
+  @override
+  String get moreActions => '更多操作';
+
+  @override
+  String get dragReorder => '拖曳調整順序';
+
+  @override
+  String p0Pts(Object p0) => '${p0} 點以上';
+
+  @override
+  String p0P1Pts(Object p0, Object p1) => '${p0}–${p1} 點';
+
+  @override
+  String tierNamedP0AlreadyExists(Object p0) => '已有名為「${p0}」的等級';
+
+  @override
+  String get enterPointsThreshold => '請輸入門檻點數';
+
+  @override
+  String get thresholdMustWholeNumber0More => '門檻點數須為 0 以上的整數';
+
+  @override
+  String thresholdCannotExceedP0(Object p0) => '門檻點數不可超過 ${p0}';
+
+  @override
+  String p0AlreadyUsesP1PtsEach(Object p0, Object p1) => '「${p0}」已使用 ${p1} 點，每個等級的門檻須不同';
+
+  @override
+  String get startingTierMustBegin0Pts => '起始等級的門檻須為 0 點';
+
+  @override
+  String get startingTierCannotDeletedSetAnother => '起始等級無法刪除，請先將其他等級的門檻調整為 0 點';
+
+  @override
+  String get signLink => '登入並綁定';
+
+  @override
+  String get signAccount => '登入既有帳號';
+
+  @override
+  String emailAlreadyRegisteredSignLinkName(Object p0) => '此電子郵件已註冊，登入後即綁定 ${p0}。';
+
+  @override
+  String signLinkNameCanThenSign(Object p0, Object p1) => '登入後即綁定 ${p0}，之後可直接使用 ${p1} 登入。';
+
+  @override
+  String get noPasskeyDevice => '此裝置沒有可用的通行密鑰';
+
+  @override
+  String get signWithPasskeyAnotherDeviceSecurity => '可使用其他裝置上的通行密鑰或安全金鑰登入，或改用密碼。';
+
+  @override
+  String get useAnotherDevice => '使用其他裝置';
+
+  @override
+  String get usePassword => '改用密碼';
+
+  @override
+  String get icloudKeychain => 'iCloud 鑰匙圈';
+
+  @override
+  String get googlePasswordManager => 'Google 密碼管理工具';
+
+  @override
+  String get synced => '已同步';
+
+  @override
+  String get notSynced => '未同步';
+
+  @override
+  String get alreadyPasskey => '已有可用的通行密鑰';
+
+  @override
+  String get enterName => '請輸入名稱';
+
+  @override
+  String get passkeySavedIcloudKeychainWorksEvery => '通行密鑰已儲存在 iCloud 鑰匙圈，登入同一 Apple 帳號的裝置皆可使用，無須重複新增。如需另外建立，請按「再次新增」並在系統視窗改選其他密碼管理工具或安全金鑰。';
+
+  @override
+  String get passkeySavedGooglePasswordManagerWorks => '通行密鑰已儲存在 Google 密碼管理工具，登入同一 Google 帳號的裝置皆可使用，無須重複新增。如需另外建立，請按「再次新增」並在系統視窗改選其他密碼管理工具或安全金鑰。';
+
+  @override
+  String get passkeySavedDeviceSPasswordManager => '通行密鑰已儲存在此裝置的密碼管理工具，登入同一帳號的裝置皆可使用，無須重複新增。如需另外建立，請按「再次新增」並在系統視窗改選其他密碼管理工具或安全金鑰。';
+
+  @override
+  String get addAgain => '再次新增';
+
+  @override
+  String get codeExpiredPleaseRequestNewOne => '驗證碼已失效，請重新傳送';
+
+  @override
+  String codeValidP0(Object p0) => '驗證碼有效時間 ${p0}';
+
+  @override
+  String get basicSettings => '基本設定';
+
+  @override
+  String get eGBirthdayVoucher => '例如：生日禮券';
+
+  @override
+  String get benefitDetails => '福利內容';
+
+  @override
+  String get addBenefit => '新增福利';
+
+  @override
+  String get bookNoLongerExistsBeenRemoved => '此書籍已不存在或已下架';
+
+  @override
+  String get myNicknameGroup => '我在群組的暱稱';
+
+  @override
+  String get setGroupNickname => '設定群組暱稱';
+
+  @override
+  String get allGroupMembersSeeNickname => '群組內所有成員皆會看到此暱稱';
 
 }
 

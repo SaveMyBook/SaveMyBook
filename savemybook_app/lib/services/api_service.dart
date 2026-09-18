@@ -10,6 +10,7 @@ import '../models/user.dart';
 import '../models/cart_item.dart';
 import '../models/order.dart';
 import '../models/app_notification.dart';
+import '../models/notification_category.dart';
 import '../models/chat.dart';
 import '../models/link_preview.dart';
 import '../models/support.dart';
@@ -25,6 +26,7 @@ import '../i18n/strings.dart';
 import 'ai_image_prep.dart';
 import 'device_identity.dart';
 import 'payment_key_store.dart';
+import 'recently_viewed.dart';
 
 part 'api/admin_cabinets_api.dart';
 part 'api/admin_commerce_api.dart';
@@ -84,6 +86,8 @@ class ApiService {
 
   static final ValueNotifier<int> cartCount = ValueNotifier<int>(0);
   static final ValueNotifier<int> unreadNotificationCount = ValueNotifier<int>(0);
+  static final ValueNotifier<Map<NotificationCategory, int>> unreadNotificationsByCategory =
+      ValueNotifier<Map<NotificationCategory, int>>(const {});
   static final ValueNotifier<int> unreadChatCount = ValueNotifier<int>(0);
   static final ValueNotifier<Set<int>> favoriteBookIds = ValueNotifier<Set<int>>(<int>{});
   static final ValueNotifier<Set<int>> cartBookIds = ValueNotifier<Set<int>>(<int>{});
@@ -97,9 +101,22 @@ class ApiService {
     notifier.value = value < 0 ? 0 : value;
   }
 
+  // 書籍被刪除或下架後，本機仍保留的收藏、購物車與最近瀏覽紀錄會讓畫面操作到不存在的書。
+  static void forgetBook(int bookId) {
+    if (favoriteBookIds.value.contains(bookId)) {
+      favoriteBookIds.value = {...favoriteBookIds.value}..remove(bookId);
+    }
+    if (cartBookIds.value.contains(bookId)) {
+      cartBookIds.value = {...cartBookIds.value}..remove(bookId);
+      _setCartCount(cartCount.value - 1);
+    }
+    RecentlyViewed.remove(bookId);
+  }
+
   static void resetGlobalState() {
     cartCount.value = 0;
     unreadNotificationCount.value = 0;
+    unreadNotificationsByCategory.value = const {};
     unreadChatCount.value = 0;
     favoriteBookIds.value = <int>{};
     cartBookIds.value = <int>{};

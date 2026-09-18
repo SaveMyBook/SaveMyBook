@@ -7,6 +7,7 @@ class PasskeyItem {
   final DateTime? createdAt;
   final DateTime? lastUsedAt;
   final bool backedUp;
+  final String? authenticator;
 
   const PasskeyItem({
     required this.passkeyId,
@@ -14,6 +15,7 @@ class PasskeyItem {
     this.createdAt,
     this.lastUsedAt,
     this.backedUp = false,
+    this.authenticator,
   });
 
   factory PasskeyItem.fromJson(Map<String, dynamic> json) => PasskeyItem(
@@ -22,6 +24,7 @@ class PasskeyItem {
         createdAt: parseDate(json['created_at'])?.toLocal(),
         lastUsedAt: parseDate(json['last_used_at'])?.toLocal(),
         backedUp: json['backed_up'] == true,
+        authenticator: json['authenticator'] as String?,
       );
 }
 
@@ -39,6 +42,10 @@ class PasskeyOutcome<T> {
 
   static const cancelledCode = 'PASSKEY_CANCELLED';
 
+  static const excludedCode = 'PASSKEY_EXCLUDED';
+
+  static const noCredentialsCode = 'PASSKEY_NO_CREDENTIALS';
+
   const PasskeyOutcome.cancelled()
       : data = null,
         code = cancelledCode,
@@ -47,4 +54,6 @@ class PasskeyOutcome<T> {
   bool get isOk => code == 'OK';
 
   bool get isCancelled => code == cancelledCode || code == 'VERIFICATION_CANCELLED';
+
+  bool get isAlreadyRegistered => code == excludedCode || code == 'PASSKEY_ALREADY_REGISTERED';
 }

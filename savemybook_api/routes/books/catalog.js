@@ -65,6 +65,11 @@ router.get('/recommended', async (req, res) => {
   res.status(200).json({ success: true, data });
 });
 
+router.get('/briefs', async (req, res) => {
+  const ids = [...new Set(positiveIds(req.query.ids))].slice(0, 50);
+  res.status(200).json({ success: true, data: await books.briefs(ids) });
+});
+
 router.get('/share/:token', async (req, res) => {
   const data = await books.findByShareToken(String(req.params.token || '').toLowerCase(), peekUserId(req));
   res.status(200).json({ success: true, data });

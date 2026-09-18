@@ -1,0 +1,133 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+skinparam classAttributeIconSize 0
+hide circle
+title 分析類別圖（Analysis Class Diagram，Boundary–Control–Entity）
+
+package "帳號與安全" {
+  class "登入/註冊畫面" as B_Auth <<boundary>>
+  class "安全中心畫面" as B_Security <<boundary>>
+  class "登入控制" as C_Auth <<control>>
+  class "第三方身分控制" as C_Identity <<control>>
+  class "Passkey控制" as C_Passkey <<control>>
+  class "使用者" as E_User <<entity>>
+  class "登入裝置Session" as E_Session <<entity>>
+  class "第三方身分" as E_Identity <<entity>>
+}
+
+package "書籍與商品" {
+  class "上架/編輯書籍畫面" as B_Sell <<boundary>>
+  class "書籍瀏覽畫面" as B_Browse <<boundary>>
+  class "上架控制" as C_Listing <<control>>
+  class "內容審核控制" as C_Screen <<control>>
+  class "書籍" as E_Book <<entity>>
+  class "書籍分類" as E_Category <<entity>>
+  class "收藏" as E_Favorite <<entity>>
+}
+
+package "交易與智慧書櫃" {
+  class "購物車/結帳畫面" as B_Cart <<boundary>>
+  class "訂單/取書畫面" as B_Order <<boundary>>
+  class "結帳控制" as C_Checkout <<control>>
+  class "訂單狀態控制" as C_OrderFlow <<control>>
+  class "撥款/退款控制" as C_Settlement <<control>>
+  class "訂單" as E_Order <<entity>>
+  class "智慧書櫃" as E_Cabinet <<entity>>
+  class "交易申訴" as E_Dispute <<entity>>
+}
+
+package "聊天與社交" {
+  class "聊天室畫面" as B_Chat <<boundary>>
+  class "聊天訊息控制" as C_Message <<control>>
+  class "預約協商控制" as C_Reservation <<control>>
+  class "站內轉帳控制" as C_Transfer <<control>>
+  class "聊天室" as E_Room <<entity>>
+  class "轉帳紀錄" as E_Transfer <<entity>>
+  class "預約" as E_Reservation <<entity>>
+}
+
+package "錢包" {
+  class "錢包畫面" as B_Wallet <<boundary>>
+  class "錢包控制" as C_Wallet <<control>>
+  class "錢包" as E_Wallet <<entity>>
+  class "錢包交易紀錄" as E_WalletTxn <<entity>>
+}
+
+package "AI 服務" {
+  class "AI輔助上架畫面" as B_AiAssist <<boundary>>
+  class "AI客服/問書畫面" as B_AiChat <<boundary>>
+  class "AI審核控制" as C_Moderation <<control>>
+  class "AI輔助控制" as C_Assist <<control>>
+  class "AI對話控制" as C_AiChat <<control>>
+  class "AI審核紀錄" as E_AiReview <<entity>>
+  class "AI對話工作階段" as E_AiSession <<entity>>
+}
+
+package "客服與後台" {
+  class "客服工單畫面" as B_Support <<boundary>>
+  class "後台管理畫面" as B_Admin <<boundary>>
+  class "客服工單控制" as C_Support <<control>>
+  class "後台審核控制" as C_AdminReview <<control>>
+  class "客服工單" as E_Ticket <<entity>>
+  class "後台權限" as E_AdminPerm <<entity>>
+}
+
+B_Auth --> C_Auth
+C_Auth --> E_User
+C_Auth --> E_Session
+B_Auth --> C_Identity
+C_Identity --> E_Identity
+C_Identity --> E_User
+B_Security --> C_Passkey
+C_Passkey --> E_User
+
+B_Sell --> C_Listing
+C_Listing --> E_Book
+C_Listing --> C_Screen
+C_Screen --> E_AiReview
+B_Browse --> E_Book
+E_Book --> E_Category
+E_Book --> E_Favorite
+
+B_Cart --> C_Checkout
+C_Checkout --> E_Order
+C_Checkout --> E_Book
+C_Checkout --> E_Wallet
+B_Order --> C_OrderFlow
+C_OrderFlow --> E_Order
+C_OrderFlow --> C_Settlement
+C_Settlement --> E_Wallet
+C_Settlement --> E_Book
+C_OrderFlow --> E_Dispute
+E_Order --> E_Cabinet
+
+B_Chat --> C_Message
+C_Message --> E_Room
+B_Chat --> C_Reservation
+C_Reservation --> E_Reservation
+C_Reservation --> E_Book
+B_Chat --> C_Transfer
+C_Transfer --> E_Transfer
+C_Transfer --> E_Wallet
+
+B_Wallet --> C_Wallet
+C_Wallet --> E_Wallet
+E_Wallet --> E_WalletTxn
+
+B_AiAssist --> C_Assist
+C_Assist --> E_Book
+B_AiChat --> C_AiChat
+C_AiChat --> E_AiSession
+C_AiChat --> E_Book
+
+B_Support --> C_Support
+C_Support --> E_Ticket
+B_Admin --> C_AdminReview
+C_AdminReview --> E_Book
+C_AdminReview --> E_Dispute
+C_AdminReview --> E_AdminPerm
+C_AdminReview --> E_User
+
+@enduml

@@ -7,6 +7,7 @@ import '../../services/social_auth_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/state_views.dart';
+import 'link_sign_in_sheet.dart';
 import 'phone_sign_in_screen.dart';
 import 'social_account_choice.dart';
 import 'social_profile_screen.dart';
@@ -369,10 +370,12 @@ class SocialSignInFlow {
     if (!context.mounted) return false;
 
     if (outcome.code == AuthCodes.noAccountForProvider && !create) {
-      return switch (await _askAccountChoice(context, provider)) {
+      return switch (await showSocialAccountChoice(context, provider)) {
         SocialAccountChoice.createNew =>
           context.mounted && await _submit(context, provider, idToken, create: true),
-        _ => false,
+        SocialAccountChoice.linkExisting =>
+          context.mounted && await _linkExisting(context, provider, idToken: idToken, email: outcome.providerEmail),
+        null => false,
       };
     }
 
@@ -381,6 +384,11 @@ class SocialSignInFlow {
       if (profile == null || !context.mounted) return false;
       return _submit(context, provider, idToken,
           email: profile.email, nickname: profile.nickname, create: true, retried: true);
+    }
+
+    if (outcome.code == AuthCodes.accountExists) {
+      return _linkExisting(context, provider,
+          idToken: idToken, email: outcome.providerEmail ?? email, emailRegistered: true);
     }
 
     await _report(context, outcome.code, outcome.message);
@@ -408,10 +416,12 @@ class SocialSignInFlow {
     if (!context.mounted) return false;
 
     if (outcome.code == AuthCodes.noAccountForProvider && !create) {
-      return switch (await _askAccountChoice(context, provider)) {
+      return switch (await showSocialAccountChoice(context, provider)) {
         SocialAccountChoice.createNew =>
           context.mounted && await _exchange(context, provider, code, create: true),
-        _ => false,
+        SocialAccountChoice.linkExisting =>
+          context.mounted && await _linkExisting(context, provider, oauthCode: code, email: outcome.providerEmail),
+        null => false,
       };
     }
 
@@ -422,24 +432,48 @@ class SocialSignInFlow {
           email: profile.email, nickname: profile.nickname, create: true, retried: true);
     }
 
+    if (outcome.code == AuthCodes.accountExists) {
+      return _linkExisting(context, provider,
+          oauthCode: code, email: outcome.providerEmail ?? email, emailRegistered: true);
+    }
+
     await _report(context, outcome.code, outcome.message);
     return false;
+  }
+
+  static bool? passkeyAvailableOverride;
+
+  static Future<bool> _linkExisting(
+    BuildContext context,
+    String provider, {
+    String? idToken,
+    String? oauthCode,
+    String? email,
+    bool emailRegistered = false,
+  }) async {
+    final linked = await showLinkSignInSheet(
+      context,
+      provider: provider,
+      initialEmail: email,
+      emailRegistered: emailRegistered,
+      passkeyAvailable: passkeyAvailableOverride,
+      submit: ({email, password, assertion}) => ApiService().socialLinkLogin(
+        provider: provider,
+        idToken: idToken,
+        oauthCode: oauthCode,
+        email: email,
+        password: password,
+        assertion: assertion,
+      ),
+    );
+    if (linked && context.mounted) showAppSnackBar(context, S.p0Linked(AuthProviders.labelOf(provider)));
+    return linked;
   }
 
   static Future<SocialProfile?> _profile(BuildContext context, String provider) => Navigator.push<SocialProfile>(
         context,
         MaterialPageRoute(builder: (_) => SocialProfileScreen(provider: provider)),
       );
-
-  /// 尚未綁定帳號時詢問使用者：先登入再綁定、直接建立新帳號，或取消。
-  static Future<SocialAccountChoice?> _askAccountChoice(BuildContext context, String provider) async {
-    final choice = await showSocialAccountChoice(context, provider);
-    if (choice == SocialAccountChoice.linkExisting && context.mounted) {
-      final name = AuthProviders.labelOf(provider);
-      showAppSnackBar(context, S.signExistingAccountFirstThenLink(name));
-    }
-    return choice;
-  }
 
   static Future<void> _report(BuildContext context, String? code, String message) async {
     if (code == AuthCodes.accountExists) {

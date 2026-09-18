@@ -481,10 +481,25 @@ prisma.onSql('FROM chat_room_members m JOIN users u', (sql, [roomId]) => activeM
       joined_at: m.joined_at,
       last_read_message_id: m.last_read_message_id ?? 0,
       nickname: user?.nickname ?? null,
-      avatar_url: user?.avatar_url ?? null
+      avatar_url: user?.avatar_url ?? null,
+      ...(sql.includes('group_nickname') ? { group_nickname: m.group_nickname ?? null } : {})
     };
   })
   .sort((a, b) => compare(a.joined_at, b.joined_at) || a.user_id - b.user_id));
+
+// services/chat/members.js setGroupNickname / clearRoomPreferences
+prisma.onSql('UPDATE chat_room_members SET group_nickname', (sql, values) => {
+  const [nickname, roomId, userId] = sql.includes('group_nickname = NULL') ? [null, ...values] : values;
+  const member = membershipRow(roomId, userId);
+  if (!member || (!sql.includes('group_nickname = NULL') && member.left_at != null)) return 0;
+  member.group_nickname = nickname;
+  return 1;
+});
+
+// services/chat/members.js groupNicknames
+prisma.onSql('SELECT room_id, user_id, group_nickname FROM chat_room_members', (sql, roomIds) => prisma.rows('chat_room_members')
+  .filter((m) => roomIds.map(Number).includes(Number(m.room_id)) && m.left_at == null && m.group_nickname)
+  .map((m) => ({ room_id: m.room_id, user_id: m.user_id, group_nickname: m.group_nickname })));
 
 // services/chat/members.js markRead
 prisma.onSql('SET last_read_message_id = GREATEST', (sql, [messageId, roomId, userId]) => {
@@ -571,13 +586,14 @@ const TABLES_010 = ['chat_mentions'];
 const COLUMNS_008 = ['chat_messages.reply_to_id'];
 const COLUMNS_009 = ['chat_messages.edited_at', 'notifications.actor_id', 'chat_rooms.room_type'];
 const COLUMNS_010 = ['chat_room_members.history_from_id', 'chat_messages.mentions'];
+const COLUMNS_018 = ['chat_room_members.group_nickname'];
 const BASE_TABLES = ['push_devices', 'notifications'];
 const BASE_COLUMNS = ['notifications.pushed_at'];
 
 const SCHEMA = {
   v3: {
     tables: [...BASE_TABLES, ...TABLES_008, ...TABLES_009, ...TABLES_010],
-    columns: [...BASE_COLUMNS, ...COLUMNS_008, ...COLUMNS_009, ...COLUMNS_010]
+    columns: [...BASE_COLUMNS, ...COLUMNS_008, ...COLUMNS_009, ...COLUMNS_010, ...COLUMNS_018]
   },
   v2: {
     tables: [...BASE_TABLES, ...TABLES_008, ...TABLES_009],

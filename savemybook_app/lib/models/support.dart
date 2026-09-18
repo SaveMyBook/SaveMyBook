@@ -86,6 +86,7 @@ class TicketMessage {
   final String senderName;
   final String? senderAvatar;
   final DateTime? createdAt;
+  final List<String> attachments;
 
   TicketMessage({
     required this.messageId,
@@ -94,6 +95,7 @@ class TicketMessage {
     required this.senderName,
     this.senderAvatar,
     this.createdAt,
+    this.attachments = const [],
   });
 
   factory TicketMessage.fromJson(Map<String, dynamic> json) {
@@ -105,6 +107,10 @@ class TicketMessage {
       senderName: sender?['nickname'] as String? ?? '',
       senderAvatar: resolveAssetUrl(sender?['avatar_url']),
       createdAt: parseDate(json['created_at']),
+      attachments: [
+        for (final item in (json['attachments'] as List?) ?? const [])
+          if (item is Map && resolveAssetUrl(item['url']) != null) resolveAssetUrl(item['url'])!,
+      ],
     );
   }
 }

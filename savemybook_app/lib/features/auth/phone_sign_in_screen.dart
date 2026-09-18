@@ -317,6 +317,9 @@ class _SmsCodeScreenState extends State<SmsCodeScreen> {
     final c = AppColors.of(context);
     final seconds = _controller.resendSeconds;
     final phone = _controller.phoneNumber;
+    final expired = _controller.codeExpired;
+    final remaining = _controller.codeRemaining;
+    final remainingText = '${remaining.inMinutes}:${(remaining.inSeconds % 60).toString().padLeft(2, '0')}';
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -340,6 +343,11 @@ class _SmsCodeScreenState extends State<SmsCodeScreen> {
                         onCompleted: _verify,
                         footer: [
                           const SizedBox(height: 4),
+                          Text(
+                            expired ? S.codeExpiredPleaseRequestNewOne : S.codeValidP0(remainingText),
+                            style: TextStyle(fontSize: 13, color: expired ? c.danger : c.textSecondary),
+                          ),
+                          const SizedBox(height: 2),
                           _resending
                               ? SizedBox(
                                   height: 44,
@@ -354,7 +362,7 @@ class _SmsCodeScreenState extends State<SmsCodeScreen> {
                               : TextButton(
                                   onPressed: _controller.canResend ? _resend : null,
                                   child: Text(
-                                    seconds > 0 ? S.canResendP0S(seconds) : S.resendCode,
+                                    seconds > 0 && !expired ? S.canResendP0S(seconds) : S.resendCode,
                                     style: TextStyle(
                                       color: _controller.canResend ? c.accent : c.textHint,
                                       fontWeight: FontWeight.w600,

@@ -9,6 +9,7 @@ const aiSettings = require('./ai/settings');
 const aiConsent = require('./ai/consent');
 const authSettings = require('./auth-settings');
 const { hasTables } = require('../lib/schema-check');
+const supportAttachments = require('./support-attachments');
 const { ORDER_UNSETTLED_STATUSES } = require('../constants/domain');
 
 const GRACE_DAYS = 30;
@@ -19,9 +20,11 @@ const graceDeadline = (requestedAt) =>
 // 匿名化而非 DELETE：訂單與錢包異動屬帳務資料，不可隨單方刪號消失。
 const anonymize = async (userId) => {
   const stamp = Date.now();
-  const [aiReady, authReady, passkeyReady] = await Promise.all([
-    aiSettings.migrationReady(), authSettings.migrationReady(), hasTables(['user_passkeys', 'webauthn_challenges'])
+  const [aiReady, authReady, passkeyReady, attachmentsReady] = await Promise.all([
+    aiSettings.migrationReady(), authSettings.migrationReady(), hasTables(['user_passkeys', 'webauthn_challenges']),
+    supportAttachments.ready()
   ]);
+  let removedAttachments = [];
 
   await prisma.$transaction(async (tx) => {
     await tx.users.update({
@@ -63,12 +66,16 @@ const anonymize = async (userId) => {
       await tx.$executeRaw`DELETE FROM webauthn_challenges WHERE user_id = ${userId}`;
     }
 
+    if (attachmentsReady) removedAttachments = await supportAttachments.purgeUser(tx, userId);
+
     await tx.chat_messages.updateMany({
       where: { sender_id: userId },
       data: { content: '（使用者已刪除帳號）', message_type: 'system' }
     });
   });
 
+  // 檔案須在交易成功後才刪，否則交易回滾時資料列還在、圖片卻已消失。
+  supportAttachments.unlinkUrls(removedAttachments);
   await push.removeUserDevices(userId);
   await sessions.revokeAll(userId).catch(() => {});
 };
@@ -145,6 +152,22 @@ const exportPasskeys = async (userId) => {
   }));
 };
 
+// 附件以效期七天的簽章網址提供，使用者可在匯出後自行下載；未執行 017 時每則訊息為空陣列。
+const exportTickets = async (userId) => {
+  const tickets = await prisma.support_tickets.findMany({
+    where: { user_id: userId },
+    include: { messages: { orderBy: { created_at: 'asc' } } }
+  });
+  const files = await supportAttachments.forMessages(
+    tickets.flatMap((t) => (t.messages ?? []).map((m) => m.message_id)),
+    { ttl: supportAttachments.EXPORT_LINK_S }
+  );
+  return tickets.map((t) => ({
+    ...t,
+    messages: (t.messages ?? []).map((m) => ({ ...m, attachments: files.get(m.message_id) ?? [] }))
+  }));
+};
+
 const exportData = async (userId) => {
   const [user, books, boughtOrders, soldOrders, wallet, disputes, reports, tickets, ai, identities, passkeys] =
     await Promise.all([
@@ -173,10 +196,7 @@ const exportData = async (userId) => {
       }),
       prisma.transaction_disputes.findMany({ where: { applicant_id: userId } }),
       prisma.reports.findMany({ where: { reporter_id: userId } }),
-      prisma.support_tickets.findMany({
-        where: { user_id: userId },
-        include: { messages: { orderBy: { created_at: 'asc' } } }
-      }),
+      exportTickets(userId),
       aiConsent.exportUser(userId),
       exportIdentities(userId),
       exportPasskeys(userId)

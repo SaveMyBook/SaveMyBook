@@ -1,0 +1,124 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 13
+skinparam linetype ortho
+hide circle
+hide empty methods
+skinparam ranksep 60
+skinparam nodesep 40
+skinparam class {
+  BackgroundColor White
+  BorderColor #444444
+  ArrowColor #555555
+}
+
+title 交易訂單與智慧書櫃模組 ER 圖
+
+entity "orders\n訂單主表" as orders {
+  * order_id : INT
+  - order_no : VARCHAR(30)
+  + buyer_id : INT
+  + seller_id : INT
+  - total_amount : DECIMAL(10, 2)
+  + cabinet_id : INT
+  + slot_id : INT
+  - pickup_code : VARCHAR(20)
+  - pickup_qr_code : VARCHAR(500)
+  - status : ENUM
+  - payment_method : ENUM
+  - payment_at : DATETIME
+  - deposited_at : DATETIME
+  - picked_up_at : DATETIME
+  - completed_at : DATETIME
+  - cancelled_at : DATETIME
+  - cancel_reason : TEXT
+  - note : TEXT
+  - created_at : DATETIME
+  - updated_at : DATETIME
+}
+
+entity "order_items\n訂單明細表" as order_items {
+  * item_id : INT
+  + order_id : INT
+  + book_id : INT
+  - quantity : INT
+  - unit_price : DECIMAL(10, 2)
+  - subtotal : DECIMAL(10, 2)
+}
+
+entity "smart_cabinets\n智慧書櫃據點表" as smart_cabinets {
+  * cabinet_id : INT
+  - cabinet_name : VARCHAR(100)
+  - address : VARCHAR(500)
+  - latitude : DECIMAL(10, 7)
+  - longitude : DECIMAL(10, 7)
+  - total_slots : INT
+  - available_slots : INT
+  - is_active : TINYINT(1)
+  - open_time : TIME
+  - close_time : TIME
+  - created_at : DATETIME
+  - updated_at : DATETIME
+}
+
+entity "cabinet_slots\n書櫃格位表" as cabinet_slots {
+  * slot_id : INT
+  + cabinet_id : INT
+  - slot_number : VARCHAR(10)
+  - status : ENUM
+  - current_book_id : INT
+  - current_order_id : INT
+  - updated_at : DATETIME
+}
+
+entity "reservations\n預約管理表" as reservations {
+  * reservation_id : INT
+  + book_id : INT
+  + buyer_id : INT
+  + seller_id : INT
+  + cabinet_id : INT
+  - status : ENUM
+  - pickup_deadline : DATETIME
+  - qr_code : VARCHAR(500)
+  - note : TEXT
+  - created_at : DATETIME
+  - updated_at : DATETIME
+}
+
+entity "transaction_disputes\n交易仲裁/申訴表" as transaction_disputes {
+  * dispute_id : INT
+  + order_id : INT
+  + applicant_id : INT
+  - reason : TEXT
+  - evidence_urls : TEXT
+  - status : ENUM
+  + admin_id : INT
+  - admin_note : TEXT
+  - result : ENUM
+  - created_at : DATETIME
+  - resolved_at : DATETIME
+}
+
+entity "refund_records\n退款紀錄表" as refund_records {
+  * refund_id : INT
+  + order_id : INT
+  + dispute_id : INT
+  - refund_type : ENUM
+  - amount : DECIMAL(10, 2)
+  - status : ENUM
+  + admin_id : INT
+  - reason : TEXT
+  - created_at : DATETIME
+  - processed_at : DATETIME
+}
+
+smart_cabinets ||--o{ orders : "cabinet_id"
+cabinet_slots ||--o{ orders : "slot_id"
+orders ||--o{ order_items : "order_id"
+smart_cabinets ||--o{ cabinet_slots : "cabinet_id"
+smart_cabinets ||--o{ reservations : "cabinet_id"
+orders ||--o{ transaction_disputes : "order_id"
+orders ||--o{ refund_records : "order_id"
+transaction_disputes ||--o{ refund_records : "dispute_id"
+@enduml

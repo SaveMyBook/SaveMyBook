@@ -47,10 +47,24 @@ extension BooksApi on ApiService {
     return _mapList(res, Book.fromJson);
   }
 
-  Future<Book?> fetchBookDetail(int bookId) async {
+  Future<Book?> fetchBookDetail(int bookId) async => (await fetchBookDetailState(bookId)).book;
+
+  Future<({Book? book, bool gone})> fetchBookDetailState(int bookId) async {
     final res = await _send('GET', '/books/$bookId');
-    if (res == null || res['success'] != true || res['data'] is! Map) return null;
-    return Book.fromJson(Map<String, dynamic>.from(res['data']));
+    if (res != null && res['code'] == 'BOOK_NOT_FOUND') {
+      ApiService.forgetBook(bookId);
+      return (book: null, gone: true);
+    }
+    if (res == null || res['success'] != true || res['data'] is! Map) return (book: null, gone: false);
+    return (book: Book.fromJson(Map<String, dynamic>.from(res['data'])), gone: false);
+  }
+
+  Future<List<Book>?> fetchBookBriefs(Iterable<int> bookIds) async {
+    final ids = bookIds.where((id) => id > 0).toSet().take(50).toList();
+    if (ids.isEmpty) return const [];
+    final res = await _send('GET', '/books/briefs', query: {'ids': ids.join(',')});
+    if (res == null || res['success'] != true || res['data'] is! List) return null;
+    return _mapList(res, Book.fromJson);
   }
 
   Future<List<Book>> fetchMyBooks({String status = 'all'}) async {

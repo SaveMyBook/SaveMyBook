@@ -384,6 +384,11 @@ components:
         created_at: { type: string, format: date-time }
 
     # ---------- 通知 ----------
+    NotificationCategory:
+      type: string
+      enum: [trade, chat, account, service, promotion]
+      description: 通知分類，依 `type` 與 `related_type` 判定：交易、聊天、帳號、客服、優惠。
+      example: trade
     Notification:
       type: object
       properties:
@@ -404,8 +409,9 @@ components:
         related_type:
           type: string
           nullable: true
-          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`legal`、`user`、`wallet`、`security`、`push_test`。`security` 為新裝置登入、交易密碼變更或鎖定等帳號安全通知，無對應的 `related_id`。'
+          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`admin_ticket`、`book_review`、`legal`、`user`、`wallet`、`security`、`password`、`member_level`、`announcement`、`push_test`。`security` 為新裝置登入、交易密碼變更或鎖定等帳號安全通知，無對應的 `related_id`。'
           example: order
+        category: { $ref: '#/components/schemas/NotificationCategory' }
         is_read: { type: boolean, example: false }
         created_at: { type: string, format: date-time }
 
@@ -482,7 +488,8 @@ components:
         user_id: { type: integer, example: 8 }
         nickname: { type: string, example: 小華 }
         avatar_url: { type: string, nullable: true }
-        alias: { type: string, nullable: true, description: 請求者為此成員設定的自訂暱稱。, example: 阿華 }
+        alias: { type: string, nullable: true, description: 顯示用暱稱。群組為所有成員共用的群組暱稱；一對一聊天為請求者為對方設定、只有自己看得到的個人暱稱。, example: 阿華 }
+        group_nickname: { type: string, nullable: true, description: 僅群組成員列表提供，此成員在群組內的暱稱。, example: 讀書會小幫手 }
         role: { type: string, enum: [owner, member], description: '`owner` 為管理員，群組可有多位；一對一的雙方皆為 `member`。', example: member }
         joined_at: { type: string, format: date-time, description: 加入時間；一對一為聊天室建立時間。 }
 
@@ -769,8 +776,9 @@ components:
         level_id: { type: integer, example: 3 }
         level_name: { type: string, example: 黃金會員 }
         min_points: { type: integer, description: 進入本等級所需的點數門檻, example: 500 }
-        max_points: { type: integer, nullable: true, description: 值為 null 代表無上限 }
+        max_points: { type: integer, nullable: true, description: 由下一個等級的門檻減 1 推算，最高等級為 null（無上限） }
         benefits: { type: string, nullable: true, example: 每月贈送 50 代幣、專屬客服 }
+        member_count: { type: integer, description: 僅後台 `GET /api/admin/levels` 回傳：目前符合本等級的會員人數（不含管理員與已刪除帳號）, example: 128 }
 
     # ---------- 客服 ----------
     Faq:
@@ -832,6 +840,15 @@ components:
         is_staff: { type: boolean, description: 值為 true 代表此則由客服發送, example: true }
         created_at: { type: string, format: date-time }
         sender: { $ref: '#/components/schemas/UserBrief' }
+        attachments:
+          type: array
+          description: |
+            圖片附件，依上傳順序排列，最多 4 張。`url` 為簽章網址（相對於 API 主機），
+            有效期 6 至 12 小時，過期後重新取得工單內容即可換發。尚未執行遷移 017 時一律為空陣列。
+          items:
+            type: object
+            properties:
+              url: { type: string, example: '/api/support/attachments/1736512345678-9f86d081884c7d65.jpg?exp=1736553600&sig=Qm9vay1zaWduYXR1cmUtZXhhbXBsZQ' }
 
     # ---------- 管理後台 ----------
     AdminPermissions:

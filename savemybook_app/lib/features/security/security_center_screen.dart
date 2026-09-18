@@ -42,9 +42,11 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   String _biometricLabel = S.biometrics;
   int? _deviceCount;
   bool _togglingBiometric = false;
+  bool _togglingBiometricLogin = false;
   bool _passwordSet = true;
   int _identitiesTick = 0;
   bool _passkeySupported = false;
+  int _passkeysTick = 0;
   Future<void>? _loadingFuture;
 
   @override
@@ -152,6 +154,21 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     }
   }
 
+  Future<void> _toggleBiometricLogin(bool value) async {
+    if (_togglingBiometricLogin) return;
+    setState(() => _togglingBiometricLogin = true);
+    try {
+      if (value && !await BiometricService.authenticate(reason: S.verifyEnableQuickSign)) {
+        return;
+      }
+      await BiometricService.setEnabled(value);
+      if (!mounted) return;
+      showAppSnackBar(context, value ? S.sign2(_biometricLabel) : S.quickSignTurnedOff);
+    } finally {
+      if (mounted) setState(() => _togglingBiometricLogin = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
@@ -169,7 +186,10 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                       : const LoadingView.menu()
                   : RefreshIndicator(
                       color: c.accent,
-                      onRefresh: _load,
+                      onRefresh: () {
+                        setState(() => _passkeysTick += 1);
+                        return _load();
+                      },
                       child: LayoutBuilder(builder: (context, constraints) => ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, bottom: 40),
@@ -188,7 +208,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                           const SizedBox(height: 24),
                           if (_status.passkeyAvailable && _passkeySupported) ...[
                             _sectionTitle(c, S.passkeys),
-                            FadeSlideIn(index: 4, child: PasskeysCard(onChanged: _load)),
+                            FadeSlideIn(index: 4, child: PasskeysCard(onChanged: _load, refreshTick: _passkeysTick)),
                             const SizedBox(height: 24),
                           ],
                           _sectionTitle(c, S.signMethod),
@@ -436,9 +456,30 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
             iconColor: _passwordSet ? c.accent : c.warning,
             title: _passwordSet ? S.changePassword : S.setPassword,
             subtitle: _passwordSet ? null : S.accountNoPasswordYet,
-            isLast: true,
+            isLast: !_biometricAvailable,
             onTap: _openPasswordScreen,
           ),
+          if (_biometricAvailable)
+            SwitchListTile.adaptive(
+              key: const ValueKey('biometric_login_switch'),
+              secondary: _togglingBiometricLogin
+                  ? SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: Padding(
+                        padding: const EdgeInsets.all(2),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: c.accent),
+                      ),
+                    )
+                  : BiometricGlyph(label: _biometricLabel, color: c.accent),
+              title: Text(
+                S.sign3(_biometricLabel),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.textPrimary),
+              ),
+              value: BiometricService.isEnabled,
+              activeTrackColor: c.accent,
+              onChanged: _togglingBiometricLogin ? null : _toggleBiometricLogin,
+            ),
         ],
       ),
     );

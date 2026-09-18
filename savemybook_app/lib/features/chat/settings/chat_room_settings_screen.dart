@@ -138,7 +138,9 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
   void _openProfile({required int userId, required String name, String? avatarUrl}) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => SellerScreen(sellerId: userId, sellerName: name, sellerAvatarUrl: avatarUrl)),
+      MaterialPageRoute(
+        builder: (_) => SellerScreen(sellerId: userId, sellerName: name, sellerAvatarUrl: avatarUrl),
+      ),
     );
   }
 
@@ -262,7 +264,10 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
       maxSelect: remaining < kGroupInviteBatch ? remaining : kGroupInviteBatch,
     );
     if (picked == null || picked.isEmpty || !mounted) return;
-    final error = await runBusy(context, () => _api.addChatGroupMembers(widget.roomId, [for (final p in picked) p.userId]));
+    final error = await runBusy(
+      context,
+      () => _api.addChatGroupMembers(widget.roomId, [for (final p in picked) p.userId]),
+    );
     if (!mounted) return;
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
@@ -272,9 +277,43 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     await _load();
   }
 
+  // 群組暱稱所有成員共用：自己可改自己的，管理員可改所有人的。
+  Future<void> _editGroupNickname(ChatMember member) async {
+    final isMe = member.userId == _myId;
+    final value = await showTextInputDialog(
+      context,
+      title: isMe ? S.myNicknameGroup : S.setGroupNickname,
+      message: S.allGroupMembersSeeNickname,
+      hint: member.nickname,
+      initialValue: member.alias ?? '',
+      maxLength: kChatAliasMax,
+      confirmLabel: S.actionSave,
+    );
+    if (value == null || !mounted) return;
+    if (value.trim() == (member.alias ?? '')) return;
+    final (info, error) =
+        await runBusy(context, () => _api.setChatGroupNickname(widget.roomId, member.userId, value)) ??
+        (null, S.actionFailed);
+    if (!mounted) return;
+    if (error != null) {
+      showAppSnackBar(context, error, isError: true);
+      return;
+    }
+    showAppSnackBar(context, value.trim().isEmpty ? S.nicknameRemoved : S.nicknameUpdated);
+    if (info != null) {
+      setState(() => _info = info);
+    } else {
+      await _load();
+    }
+  }
+
   Future<void> _memberActions(ChatMember member) async {
     final info = _info;
-    if (info == null || member.userId == _myId) return;
+    if (info == null) return;
+    if (member.userId == _myId) {
+      await _editGroupNickname(member);
+      return;
+    }
     final c = AppColors.of(context);
     final manage = info.isOwner;
     final choice = await showOptionSheet<String>(
@@ -284,7 +323,7 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
       options: [
         if (manage && member.isOwner)
           SheetOption(value: 'revoke', label: S.removeAdminRole, icon: Icons.remove_moderator_outlined),
-        SheetOption(value: 'alias', label: S.setNickname, icon: Icons.edit_outlined),
+        if (manage) SheetOption(value: 'nickname', label: S.setGroupNickname, icon: Icons.edit_outlined),
         SheetOption(value: 'profile', label: S.viewProfile, icon: Icons.person_outline_rounded),
         if (manage && !member.isOwner)
           SheetOption(value: 'promote', label: S.makeAdmin, icon: Icons.add_moderator_outlined),
@@ -294,8 +333,8 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     );
     if (choice == null || !mounted) return;
     switch (choice) {
-      case 'alias':
-        await _editAlias(userId: member.userId, nickname: member.nickname, alias: member.alias);
+      case 'nickname':
+        await _editGroupNickname(member);
       case 'profile':
         _openProfile(userId: member.userId, name: member.displayName, avatarUrl: member.avatarUrl);
       case 'promote':
@@ -319,7 +358,8 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     );
     if (!confirmed || !mounted) return;
     final (info, error) =
-        await runBusy(context, () => _api.setChatMemberRole(widget.roomId, member.userId, admin: admin)) ?? (null, S.actionFailed);
+        await runBusy(context, () => _api.setChatMemberRole(widget.roomId, member.userId, admin: admin)) ??
+        (null, S.actionFailed);
     if (!mounted) return;
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
@@ -377,7 +417,13 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
         child: LayoutBuilder(
           builder: (context, constraints) => ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
+            padding: responsiveListPadding(
+              constraints,
+              maxWidth: Breakpoints.formMaxWidth,
+              horizontal: 20,
+              top: 20,
+              bottom: 40,
+            ),
             children: info.isGroup ? _groupSections(c, info) : _directSections(c, info),
           ),
         ),
@@ -405,56 +451,52 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
         index: index++,
         child: _profileHeader(
           c,
-          avatar: UserAvatar(imageUrl: partner.avatarUrl, radius: 44, background: c.card, enablePreview: true, previewTitle: partner.displayName),
+          avatar: UserAvatar(
+            imageUrl: partner.avatarUrl,
+            radius: 44,
+            background: c.card,
+            enablePreview: true,
+            previewTitle: partner.displayName,
+          ),
           title: partner.displayName,
           subtitle: hasAlias ? partner.nickname : null,
         ),
       ),
-      _section(
-        c,
-        index++,
-        null,
-        [
-          _row(
-            c,
-            icon: Icons.edit_outlined,
-            title: S.setNickname,
-            value: partner.alias,
-            onTap: () => _editAlias(userId: partner.userId, nickname: partner.nickname, alias: partner.alias),
-          ),
-          _row(
-            c,
-            icon: Icons.person_outline_rounded,
-            title: S.viewProfile,
-            onTap: () => _openProfile(userId: partner.userId, name: partner.displayName, avatarUrl: partner.avatarUrl),
-          ),
-        ],
-      ),
+      _section(c, index++, null, [
+        _row(
+          c,
+          icon: Icons.edit_outlined,
+          title: S.setNickname,
+          value: partner.alias,
+          onTap: () => _editAlias(userId: partner.userId, nickname: partner.nickname, alias: partner.alias),
+        ),
+        _row(
+          c,
+          icon: Icons.person_outline_rounded,
+          title: S.viewProfile,
+          onTap: () => _openProfile(userId: partner.userId, name: partner.displayName, avatarUrl: partner.avatarUrl),
+        ),
+      ]),
       _section(c, index++, null, _switches(c)),
-      _section(
-        c,
-        index++,
-        null,
-        [
-          _row(
-            c,
-            icon: _blocked ? Icons.lock_open_rounded : Icons.block_rounded,
-            title: _blocked ? S.unblock : S.blockUser,
-            color: _blocked ? null : c.danger,
-            busy: _togglingBlock,
-            chevron: false,
-            onTap: () => _setBlocked(!_blocked),
-          ),
-          _row(
-            c,
-            icon: Icons.delete_outline_rounded,
-            title: S.deleteChat,
-            color: c.danger,
-            chevron: false,
-            onTap: _deleteRoom,
-          ),
-        ],
-      ),
+      _section(c, index++, null, [
+        _row(
+          c,
+          icon: _blocked ? Icons.lock_open_rounded : Icons.block_rounded,
+          title: _blocked ? S.unblock : S.blockUser,
+          color: _blocked ? null : c.danger,
+          busy: _togglingBlock,
+          chevron: false,
+          onTap: () => _setBlocked(!_blocked),
+        ),
+        _row(
+          c,
+          icon: Icons.delete_outline_rounded,
+          title: S.deleteChat,
+          color: c.danger,
+          chevron: false,
+          onTap: _deleteRoom,
+        ),
+      ]),
     ];
   }
 
@@ -501,56 +543,39 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
         ),
       ),
       _section(c, index++, null, _switches(c)),
-      _section(
-        c,
-        index++,
-        S.membersP0(count),
-        [
-          _row(
-            c,
-            icon: Icons.person_add_alt_1_outlined,
-            title: S.inviteMembers,
-            color: c.accent,
-            chevron: false,
-            onTap: _invite,
-          ),
-          for (final member in members) _memberRow(c, member),
-        ],
-      ),
-      _section(
-        c,
-        index++,
-        null,
-        [
-          _row(
-            c,
-            icon: Icons.logout_rounded,
-            title: S.leaveGroup,
-            color: c.danger,
-            chevron: false,
-            onTap: _leaveGroup,
-          ),
-        ],
-      ),
+      _section(c, index++, S.membersP0(count), [
+        _row(
+          c,
+          icon: Icons.person_add_alt_1_outlined,
+          title: S.inviteMembers,
+          color: c.accent,
+          chevron: false,
+          onTap: _invite,
+        ),
+        for (final member in members) _memberRow(c, member),
+      ]),
+      _section(c, index++, null, [
+        _row(c, icon: Icons.logout_rounded, title: S.leaveGroup, color: c.danger, chevron: false, onTap: _leaveGroup),
+      ]),
     ];
   }
 
   List<Widget> _switches(AppColors c) => [
-        _switchRow(
-          c,
-          icon: _muted ? Icons.notifications_off_outlined : Icons.notifications_none_rounded,
-          title: S.muteNotifications,
-          value: _muted,
-          onChanged: _togglingMute ? null : _setMuted,
-        ),
-        _switchRow(
-          c,
-          icon: Icons.push_pin_outlined,
-          title: S.pinChat,
-          value: _pinned,
-          onChanged: _togglingPin ? null : _setPinned,
-        ),
-      ];
+    _switchRow(
+      c,
+      icon: _muted ? Icons.notifications_off_outlined : Icons.notifications_none_rounded,
+      title: S.muteNotifications,
+      value: _muted,
+      onChanged: _togglingMute ? null : _setMuted,
+    ),
+    _switchRow(
+      c,
+      icon: Icons.push_pin_outlined,
+      title: S.pinChat,
+      value: _pinned,
+      onChanged: _togglingPin ? null : _setPinned,
+    ),
+  ];
 
   Widget _profileHeader(
     AppColors c, {
@@ -585,7 +610,10 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
                   ),
                   if (titleSuffix != null) ...[
                     const SizedBox(width: 6),
-                    Text(titleSuffix, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textSecondary)),
+                    Text(
+                      titleSuffix,
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textSecondary),
+                    ),
                   ],
                   if (onEditTitle != null) ...[
                     const SizedBox(width: 6),
@@ -620,7 +648,10 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
             if (title != null)
               Padding(
                 padding: const EdgeInsets.only(left: 4, bottom: 10),
-                child: Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary)),
+                child: Text(
+                  title,
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary),
+                ),
               ),
             AppCard(
               padding: EdgeInsets.zero,
@@ -704,19 +735,14 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
       leadingWidth: 36,
       title: member.displayName,
       subtitle: member.alias != null ? member.nickname : null,
-      onTap: isMe ? null : () => _memberActions(member),
+      onTap: () => _memberActions(member),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (isMe) StatusBadge(label: S.me, color: c.neutral),
-          if (member.isOwner) ...[
-            if (isMe) const SizedBox(width: 6),
-            StatusBadge(label: S.roleAdmin, color: c.accent),
-          ],
-          if (!isMe) ...[
-            const SizedBox(width: 4),
-            Icon(Icons.more_horiz_rounded, size: 20, color: c.iconInactive),
-          ],
+          if (member.isOwner) ...[if (isMe) const SizedBox(width: 6), StatusBadge(label: S.roleAdmin, color: c.accent)],
+          const SizedBox(width: 4),
+          Icon(isMe ? Icons.edit_outlined : Icons.more_horiz_rounded, size: 20, color: c.iconInactive),
         ],
       ),
     );
@@ -760,7 +786,10 @@ class _SettingsTile extends StatelessWidget {
           padding: EdgeInsets.fromLTRB(16, 8, leadingWidth > 24 ? 14 : 12, 8),
           child: Row(
             children: [
-              SizedBox(width: leadingWidth, child: Center(child: leading)),
+              SizedBox(
+                width: leadingWidth,
+                child: Center(child: leading),
+              ),
               SizedBox(width: leadingWidth > 24 ? 12 : 16),
               Expanded(
                 child: Column(

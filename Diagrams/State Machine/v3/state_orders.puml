@@ -1,0 +1,39 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 13
+title 訂單狀態機（orders.status）
+
+[*] --> pending_deposit : 結帳成功\n(checkout：代幣即時扣款，\n略過 pending_payment)
+pending_deposit --> deposited : 賣家確認已存入書櫃\n(PATCH /orders/:id/status)
+deposited --> pending_pickup : 賣家再次確認上架完成\n(PATCH /orders/:id/status，選用)
+pending_pickup --> completed : 買家確認取書\n(settlement.settle：撥款給賣家、\n書籍轉 sold)
+deposited --> completed : 買家確認取書\n(略過 pending_pickup 亦可直接完成)
+
+pending_deposit --> cancelled : 買家／賣家取消訂單\n(orders.cancel：退款買家、\n書籍釋放為 on_sale)
+deposited --> cancelled : 買家／賣家取消訂單
+pending_pickup --> cancelled : 買家／賣家取消訂單
+
+pending_deposit --> refunding : 買家或賣家提出申訴\n(disputes.create)
+deposited --> refunding : 提出申訴（取書前不限時）
+pending_pickup --> refunding : 提出申訴
+completed --> refunding : 取書後24小時內提出申訴
+
+refunding --> refunded : 管理員裁決退款\n(disputes.resolve：\nrefund_manual／refund_auto)
+refunding --> pending_deposit : 管理員裁決駁回／協調\n(disputes.resolve：dismissed／mediated，\n依原狀態復原)
+refunding --> deposited : 管理員裁決駁回／協調（復原）
+refunding --> completed : 管理員裁決駁回／協調（復原）
+
+completed --> [*]
+cancelled --> [*]
+refunded --> [*]
+
+note right of refunding
+  管理員亦可透過後台
+  任意調整訂單狀態
+  (adminChangeStatus)，
+  但已結束(cancelled/refunded)
+  之訂單不可再改回進行中，
+  以防重複撥款。
+end note
+@enduml

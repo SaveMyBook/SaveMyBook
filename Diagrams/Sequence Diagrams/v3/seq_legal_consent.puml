@@ -1,0 +1,52 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName "Microsoft JhengHei"
+skinparam defaultFontSize 12
+title 循序圖：法律文件同意（服務條款/隱私權政策）
+
+actor 使用者 as User
+actor 管理員 as Admin
+participant "LegalConsentScreen\n(全螢幕不可關閉流程)" as UI
+participant "ApiService(LegalApi)" as ApiSvc
+participant "GET .../legal-consents/pending" as PendingRoute
+participant "POST .../legal-consents" as ConsentRoute
+participant "PUT /api/admin/legal/:key" as AdminRoute
+participant "services/legal.js" as LegalSvc
+database "legal_documents /\nuser_legal_consents" as DB
+
+== App啟動/回到前景時檢查 ==
+UI -> ApiSvc : LegalConsentGate.check()
+ApiSvc -> PendingRoute : GET /api/users/me/legal-consents/pending
+PendingRoute -> LegalSvc : pendingFor(userId)
+LegalSvc -> DB : requires_consent=1 且文件版本 > 使用者已同意版本
+LegalSvc --> UI : 待同意文件清單
+
+alt 有待同意文件
+  loop 逐份顯示
+    UI -> User : 全螢幕顯示文件內容(需捲動至文末)
+    User -> UI : 捲動至文末後「同意」
+    UI -> ApiSvc : acceptLegalDoc(doc_key, version)
+    ApiSvc -> ConsentRoute : POST /api/users/me/legal-consents
+    ConsentRoute -> LegalSvc : accept(userId, doc_key, version)
+    alt 文件已在此期間被更新
+      LegalSvc --> UI : 409 LEGAL_VERSION_CHANGED（重新取得最新版）
+    else 成功
+      LegalSvc -> DB : user_legal_consents.upsert(user_id, doc_key, version)
+    end
+  end
+else 使用者拒絕
+  User -> UI : 拒絕並確認
+  UI -> ApiSvc : logout()
+end
+
+== 管理員編輯法律文件 ==
+Admin -> AdminRoute : PUT /api/admin/legal/:key { title, content, major }
+AdminRoute -> LegalSvc : update(key, content, major)
+alt major=true 且內容有變更
+  LegalSvc -> DB : legal_documents.version += 1
+  LegalSvc -> DB : 通知所有有效會員「服務條款已更新」
+else 小幅修正
+  LegalSvc -> DB : 更新內容，不變更版本
+end
+LegalSvc -> DB : audit.record（可還原）
+@enduml
