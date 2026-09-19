@@ -1,23 +1,33 @@
 const prisma = require('../lib/prisma');
+const aiSettings = require('./ai/settings');
 
 const EMPTY_DAY = () => ({ orders: 0, revenue: 0, new_users: 0, new_books: 0 });
+
+// 上架審核（規則或 AI 攔下的書）與檢舉同屬「內容審核」，未執行 011 時視為 0。
+const pendingListingReviews = async () => {
+  if (!(await aiSettings.migrationReady())) return 0;
+  const [row] = await prisma.$queryRaw`SELECT COUNT(*) AS n FROM ai_book_reviews WHERE status = 'pending'`;
+  return Number(row?.n ?? 0);
+};
 
 const overview = async () => {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
-  const [members, pendingReports, pendingDisputes, cabinets, todayOrders, openTickets] = await Promise.all([
+  const [members, pendingReports, pendingDisputes, cabinets, todayOrders, openTickets, pendingReviews] = await Promise.all([
     prisma.users.count(),
     prisma.reports.count({ where: { status: 'pending' } }),
     prisma.transaction_disputes.count({ where: { status: { in: ['pending', 'processing'] } } }),
     prisma.smart_cabinets.count({ where: { is_active: true } }),
     prisma.orders.count({ where: { created_at: { gte: startOfToday } } }),
-    prisma.support_tickets.count({ where: { status: 'open' } })
+    prisma.support_tickets.count({ where: { status: 'open' } }),
+    pendingListingReviews()
   ]);
 
   return {
     member_count: members,
     pending_report_count: pendingReports,
+    pending_listing_review_count: pendingReviews,
     pending_dispute_count: pendingDisputes,
     active_cabinet_count: cabinets,
     today_order_count: todayOrders,

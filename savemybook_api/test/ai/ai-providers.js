@@ -76,6 +76,18 @@ module.exports = {
       assert.deepStrictEqual(result.usage, { input_tokens: 100, cached_tokens: 40, output_tokens: 25, search_calls: 0 });
     }],
 
+    ['Gemini 與 OpenAI：呼叫端可指定較高的推理強度', async () => {
+      enqueue(geminiOk());
+      await realGenerate('gemini', { model: 'gemini-3.1-flash-lite', prompt: '請回覆 JSON', json: true, reasoning: 'low' });
+      assert.strictEqual(requests[0].body.generationConfig.thinkingConfig.thinkingLevel, 'low');
+
+      const openai = h.api('lib/ai/openai');
+      assert.strictEqual(openai.reasoningEffortOf('gpt-5-nano', false), 'minimal');
+      assert.strictEqual(openai.reasoningEffortOf('gpt-5-nano', false, 'low'), 'low');
+      assert.strictEqual(openai.reasoningEffortOf('gpt-5.1', false, 'low'), 'low');
+      assert.strictEqual(openai.reasoningEffortOf('gpt-4.1', false, 'low'), null);
+    }],
+
     ['Gemini：圖片以 inlineData 傳送，思考段落不計入文字', async () => {
       enqueue({
         body: {

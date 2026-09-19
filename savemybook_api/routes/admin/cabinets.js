@@ -71,6 +71,15 @@ router.put('/cabinets/:id', canManage, async (req, res) => {
   res.status(200).json({ success: true, message: '書櫃已更新', data: cabinet });
 });
 
+router.patch('/cabinets/:id/maintenance', canManage, async (req, res) => {
+  const cabinetId = v.id(req.params.id, '書櫃編號');
+  if (req.body.is_maintenance === undefined) throw badRequest('請提供 is_maintenance');
+  const on = v.bool(req.body.is_maintenance);
+
+  const data = await cabinets.setMaintenance(cabinetId, on, actorOf(req));
+  res.status(200).json({ success: true, message: on ? '書櫃已設為維修中' : '書櫃已結束維修', data });
+});
+
 router.patch('/cabinets/:cabinetId/slots/:slotId', canManage, async (req, res) => {
   const cabinetId = v.id(req.params.cabinetId, '書櫃編號');
   const slotId = v.id(req.params.slotId, '櫃位編號');

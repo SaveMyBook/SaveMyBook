@@ -206,7 +206,8 @@ const FULL_SCHEMA = {
     'push_devices.session_sid', 'books.share_token', 'admin_permissions.can_manage_system',
     'legal_documents.version', 'legal_documents.requires_consent', 'chat_messages.reply_to_id',
     'chat_rooms.room_type', 'chat_rooms.name', 'chat_rooms.avatar_url', 'chat_rooms.created_by',
-    'chat_messages.edited_at', 'chat_room_members.history_from_id', 'chat_messages.mentions'
+    'chat_messages.edited_at', 'chat_room_members.history_from_id', 'chat_messages.mentions',
+    'smart_cabinets.is_maintenance'
   ]
 };
 

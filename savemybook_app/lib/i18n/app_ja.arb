@@ -3551,5 +3551,21 @@
   "bookNoLongerExistsBeenRemoved": "この書籍は存在しないか、出品が取り下げられています。",
   "myNicknameGroup": "このグループでのニックネーム",
   "setGroupNickname": "グループ内のニックネームを設定",
-  "allGroupMembersSeeNickname": "このニックネームはグループの全メンバーに表示されます。"
+  "allGroupMembersSeeNickname": "このニックネームはグループの全メンバーに表示されます。",
+  "markLockerMaintenance": "メンテナンス中にする",
+  "endLockerMaintenance": "メンテナンス終了",
+  "maintenanceHidesP0FromSellers": "メンテナンス中は「{p0}」が出品者の預け入れ先一覧に表示されなくなります。既存の注文には影響しません。",
+  "@maintenanceHidesP0FromSellers": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "endingMaintenanceP0AvailableAgain": "メンテナンスを終了すると「{p0}」を出品者が再び選べるようになります。",
+  "@endingMaintenanceP0AvailableAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerMarkedMaintenance": "ロッカーをメンテナンス中にしました",
+  "lockerMaintenanceEnded": "ロッカーのメンテナンスを終了しました"
 }

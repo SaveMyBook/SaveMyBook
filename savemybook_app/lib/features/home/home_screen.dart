@@ -161,8 +161,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     await RecentlyViewed.refresh();
     final status = await statusFuture;
     if (!mounted) return;
+    final viewedIds = RecentlyViewed.books.value.map((b) => b.bookId);
     if (status.recommend && status.consented) {
-      final ai = await _apiService.fetchAiRecommendations();
+      final ai = await _apiService.fetchAiRecommendations(viewedIds: viewedIds);
       if (!mounted) return;
       if (ai != null && ai.books.isNotEmpty) {
         setState(() {
@@ -172,7 +173,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         return;
       }
     }
-    final viewedIds = RecentlyViewed.books.value.map((b) => b.bookId);
     final recommended = await _apiService.fetchRecommendedBooks(viewedIds: viewedIds);
     if (!mounted) return;
     setState(() {

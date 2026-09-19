@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../utils/app_colors.dart';
 import '../../../widgets/app_header.dart';
 import '../../../widgets/guards.dart';
-import 'ai_review_tab.dart';
+import '../admin_report_screen.dart';
 import 'ai_settings_tab.dart';
 import 'ai_usage_tab.dart';
 import '../../../i18n/strings.dart';
@@ -19,10 +19,9 @@ class AdminAiScreen extends StatefulWidget {
 }
 
 class _AdminAiScreenState extends State<AdminAiScreen> with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 3, vsync: this, initialIndex: widget.initialTab.clamp(0, 2));
+  late final TabController _tabs = TabController(length: 2, vsync: this, initialIndex: widget.initialTab.clamp(0, 1));
   final _settingsKey = GlobalKey<AiSettingsTabState>();
   bool _dirty = false;
-  int? _pending;
 
   @override
   void dispose() {
@@ -30,15 +29,17 @@ class _AdminAiScreenState extends State<AdminAiScreen> with SingleTickerProvider
     super.dispose();
   }
 
-  void _setPending(int count) {
-    if (!mounted || _pending == count) return;
-    setState(() => _pending = count);
+  // 上架審核與檢舉同屬內容審核，統一在內容審核頁處理。
+  void _openReviews() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AdminReportScreen(initialTab: AdminReportScreen.listingReviewTab)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final pending = _pending ?? 0;
 
     return UnsavedGuard(
       isDirty: _dirty,
@@ -50,16 +51,9 @@ class _AdminAiScreenState extends State<AdminAiScreen> with SingleTickerProvider
             AppHeader(
               title: S.aiFeatures,
               icon: Icons.auto_awesome_rounded,
-              bottom: AnimatedBuilder(
-                animation: _tabs,
-                builder: (context, _) => AppTabBar(
-                  controller: _tabs,
-                  tabs: [
-                    S.usage,
-                    S.settings,
-                    pending > 0 ? S.reviewP0(pending) : S.review,
-                  ],
-                ),
+              bottom: AppTabBar(
+                controller: _tabs,
+                tabs: [S.usage, S.settings],
               ),
             ),
             Expanded(
@@ -67,10 +61,7 @@ class _AdminAiScreenState extends State<AdminAiScreen> with SingleTickerProvider
                 controller: _tabs,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  AiUsageTab(
-                    onPendingReviews: _setPending,
-                    onOpenReviews: () => _tabs.animateTo(2),
-                  ),
+                  AiUsageTab(onOpenReviews: _openReviews),
                   AiSettingsTab(
                     key: _settingsKey,
                     initialAdvancedOpen: widget.initialAdvancedOpen,
@@ -78,7 +69,6 @@ class _AdminAiScreenState extends State<AdminAiScreen> with SingleTickerProvider
                       if (mounted) setState(() => _dirty = dirty);
                     },
                   ),
-                  AiReviewTab(onCountChanged: _setPending),
                 ],
               ),
             ),

@@ -61,10 +61,11 @@ const parseOutput = (data) => {
 const REASONING_HEADROOM = 2000;
 const SEARCH_REASONING_HEADROOM = 8000;
 
-const reasoningEffortOf = (model, search) => {
+// reasoning 由呼叫端指定最低推理強度（例如客服需要理解上下文），未指定時維持最省的設定。
+const reasoningEffortOf = (model, search, reasoning) => {
   const id = String(model);
-  if (/^gpt-5(-mini|-nano)?(-\d{4}-\d{2}-\d{2})?$/.test(id)) return search ? 'low' : 'minimal';
-  if (/^gpt-5\.\d/.test(id)) return search ? 'low' : 'none';
+  if (/^gpt-5(-mini|-nano)?(-\d{4}-\d{2}-\d{2})?$/.test(id)) return reasoning ?? (search ? 'low' : 'minimal');
+  if (/^gpt-5\.\d/.test(id)) return reasoning ?? (search ? 'low' : 'none');
   if (/^o\d/.test(id)) return 'low';
   return null;
 };
@@ -78,9 +79,9 @@ const promptFor = (prompt, { json, search }) => {
   return prompt;
 };
 
-const generate = async ({ apiKey, model, system, history = [], prompt, images = [], json, schema, search, maxOutputTokens, timeoutMs }) => {
+const generate = async ({ apiKey, model, system, history = [], prompt, images = [], json, schema, search, reasoning, maxOutputTokens, timeoutMs }) => {
   // gpt-5 系列在 reasoning effort 為 minimal 時不支援 web_search 工具；非推理模型不接受 reasoning 參數。
-  const effort = reasoningEffortOf(model, search);
+  const effort = reasoningEffortOf(model, search, reasoning);
   const headroom = effort ? (search ? SEARCH_REASONING_HEADROOM : REASONING_HEADROOM) : 0;
   const body = {
     model,

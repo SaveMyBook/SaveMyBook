@@ -381,16 +381,23 @@ paths:
       operationId: listAiRecommendations
       tags: [ai]
       description: |
-        從最多 60 本販售中、已審核、非本人上架的候選書籍中，依使用者的收藏與購買紀錄排序並附上推薦理由。
-        結果依使用者快取 6 小時，快取期間已售出或下架的書籍會被濾除；只有實際呼叫模型才計入每日次數。
+        從最多 60 本販售中、已審核、非本人上架的候選書籍中，依使用者的收藏、購買、購物車與最近瀏覽紀錄排序並附上推薦理由。
+        候選書籍結合個人化排序、與使用者紀錄內容相似的書（書名、作者、分類、簡介的關鍵字比對）與熱門書；書櫃維修中的書不列入。
+        結果依使用者快取 6 小時；收藏、購買或購物車有變動時提前重新產生，重新產生失敗時沿用舊結果。
+        快取期間已售出或下架的書籍會被濾除；只有實際呼叫模型才計入每日次數。
 
-        AI 無法使用（未開放、預算用盡、今日次數用完、服務商錯誤）、使用者尚未同意 AI 資料處理，或使用者沒有收藏與購買紀錄時，
+        AI 無法使用（未開放、預算用盡、今日次數用完、服務商錯誤）、使用者尚未同意 AI 資料處理，或使用者沒有任何紀錄時，
         改回傳既有推薦（`meta.source` 為 `fallback`，`reason` 為 null），此端點不會因 AI 問題回傳錯誤。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
           name: limit
           schema: { type: integer, default: 10, maximum: 30 }
+        - in: query
+          name: viewed_ids
+          schema: { type: string }
+          description: App 端最近瀏覽的書籍編號，以逗號分隔，最多採用 20 筆，作為較弱的興趣訊號。
+          example: '12,45,7'
       responses:
         '200':
           description: 成功。
@@ -528,7 +535,13 @@ components:
             reasons:
               type: array
               items: { type: string }
+              description: 看到的具體瑕疵與位置；賣家書況說明提到的瑕疵比模型判斷更嚴重時，等級會往下調並在第一點說明。
               example: [封面邊角輕微磨損]
+            unseen:
+              type: array
+              items: { type: string }
+              description: 照片中看不到、無法確認書況的部位，同時會列入 warnings 提醒賣家補拍。
+              example: [內頁, 書口]
         price:
           type: object
           nullable: true

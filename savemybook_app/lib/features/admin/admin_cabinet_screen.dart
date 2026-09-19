@@ -56,7 +56,9 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
     return _cabinets.where((cabinet) {
       if (_status == 'active' && !cabinet.isActive) return false;
       if (_status == 'disabled' && cabinet.isActive) return false;
-      if (_status == 'maintenance' && (cabinet.slotSummary['maintenance'] ?? 0) == 0) return false;
+      if (_status == 'maintenance' && !cabinet.isMaintenance && (cabinet.slotSummary['maintenance'] ?? 0) == 0) {
+        return false;
+      }
       if (keyword.isEmpty) return true;
       return cabinet.cabinetName.toLowerCase().contains(keyword) ||
           cabinet.address.toLowerCase().contains(keyword);
@@ -111,6 +113,32 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
       if (!_isCancelled(error)) showAppSnackBar(context, error, isError: true);
     } else {
       showAppSnackBar(context, cabinet.isActive ? S.lockerDisabled : S.lockerEnabled);
+      await _load();
+    }
+  }
+
+  Future<void> _toggleMaintenance(Cabinet cabinet) async {
+    if (_isBusy) return;
+    final on = !cabinet.isMaintenance;
+    final confirmed = await showConfirmDialog(
+      context,
+      title: on ? S.markLockerMaintenance : S.endLockerMaintenance,
+      message: on
+          ? S.maintenanceHidesP0FromSellers(cabinet.cabinetName)
+          : S.endingMaintenanceP0AvailableAgain(cabinet.cabinetName),
+      confirmLabel: on ? S.markLockerMaintenance : S.endLockerMaintenance,
+      isDestructive: on,
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _isBusy = true);
+    final error = await runBusy(context, () => _api.setCabinetMaintenance(cabinet.cabinetId, on));
+    if (!mounted) return;
+    setState(() => _isBusy = false);
+    if (error != null) {
+      if (!_isCancelled(error)) showAppSnackBar(context, error, isError: true);
+    } else {
+      showAppSnackBar(context, on ? S.lockerMarkedMaintenance : S.lockerMaintenanceEnded);
       await _load();
     }
   }
@@ -326,9 +354,21 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                     ),
                     if (!cabinet.isActive) StatusBadge(label: S.disabled, color: c.warning, fontSize: 10),
+                    if (cabinet.isMaintenance) StatusBadge(label: S.slotMaintenance, color: c.danger, fontSize: 10),
                   ],
                 ),
               ),
+              if (cabinet.maintenanceSupported)
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: cabinet.isMaintenance ? S.endLockerMaintenance : S.markLockerMaintenance,
+                  icon: Icon(
+                    cabinet.isMaintenance ? Icons.build_circle_rounded : Icons.build_outlined,
+                    size: 20,
+                    color: cabinet.isMaintenance ? c.danger : c.iconInactive,
+                  ),
+                  onPressed: _isBusy ? null : () => _toggleMaintenance(cabinet),
+                ),
               IconButton(
                 visualDensity: VisualDensity.compact,
                 tooltip: cabinet.isActive ? S.disable : S.enable,

@@ -58,7 +58,11 @@ const RELATIONS = {
   },
   support_ticket_messages: { users: rel('users', 'sender_id', 'user_id') },
   admin_operation_logs: { users: rel('users', 'admin_id', 'user_id') },
-  chat_rooms: { books: rel('books', 'book_id') }
+  chat_rooms: { books: rel('books', 'book_id') },
+  smart_cabinets: {
+    cabinet_slots: many('cabinet_slots', 'cabinet_id'),
+    orders: many('orders', 'cabinet_id')
+  }
 };
 
 // Prisma 的複合唯一鍵在 where 中是一個物件，需展開成多個欄位條件。

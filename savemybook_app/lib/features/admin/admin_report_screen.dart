@@ -12,9 +12,15 @@ import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 import 'admin_layout.dart';
+import 'ai/ai_review_tab.dart';
 
+/// 內容審核：使用者檢舉（待處理／已處理）與上架審核（規則或 AI 攔下的書籍）。
 class AdminReportScreen extends StatefulWidget {
-  const AdminReportScreen({super.key});
+  static const int listingReviewTab = 2;
+
+  final int initialTab;
+
+  const AdminReportScreen({super.key, this.initialTab = 0});
 
   @override
   State<AdminReportScreen> createState() => _AdminReportScreenState();
@@ -31,15 +37,21 @@ class _AdminReportScreenState extends State<AdminReportScreen>
   bool _isBusy = false;
   int _loadSeq = 0;
   String _type = 'all';
+  int? _reviewCount;
 
   bool get _isPendingTab => _tabController.index == 0;
+  bool get _isReviewTab => _tabController.index == AdminReportScreen.listingReviewTab;
 
   static bool _isOpen(ReportCase r) => r.status == 'pending' || r.status == 'reviewing';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialTab.clamp(0, AdminReportScreen.listingReviewTab),
+    );
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging && mounted) setState(() {});
     });
@@ -62,6 +74,11 @@ class _AdminReportScreenState extends State<AdminReportScreen>
       _all = all;
       _isLoading = false;
     });
+  }
+
+  void _setReviewCount(int count) {
+    if (!mounted || _reviewCount == count) return;
+    setState(() => _reviewCount = count);
   }
 
   List<ReportCase> _visible({required bool pending}) {
@@ -206,6 +223,8 @@ class _AdminReportScreenState extends State<AdminReportScreen>
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final pendingCount = _all.where(_isOpen).length;
+    final reviewCount = _reviewCount ?? 0;
+    final reviewTab = _isReviewTab;
     final types = <String, String>{
       for (final r in _all) r.targetType: r.targetTypeText,
     };
@@ -216,25 +235,27 @@ class _AdminReportScreenState extends State<AdminReportScreen>
         builder: (context, frame) => Column(
           children: [
             AppHeader(
-              title: S.handleListingReports,
+              title: S.moderation,
               icon: Icons.report_gmailerrorred_outlined,
               bottom: AppTabBar(
                 controller: _tabController,
                 tabs: [
                   pendingCount > 0 ? '${S.ticketOpen} $pendingCount' : S.ticketOpen,
                   S.reportResolved,
+                  reviewCount > 0 ? '${S.listingReview} $reviewCount' : S.listingReview,
                 ],
               ),
             ),
-            Padding(
-              padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 0)),
-              child: AppSearchField(
-                controller: _searchController,
-                hint: S.searchReportedItemReporterReason,
-                onChanged: (_) => setState(() {}),
+            if (!reviewTab)
+              Padding(
+                padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 0)),
+                child: AppSearchField(
+                  controller: _searchController,
+                  hint: S.searchReportedItemReporterReason,
+                  onChanged: (_) => setState(() {}),
+                ),
               ),
-            ),
-            if (types.length > 1)
+            if (!reviewTab && types.length > 1)
               SizedBox(
                 height: 42,
                 child: ListView(
@@ -249,10 +270,17 @@ class _AdminReportScreenState extends State<AdminReportScreen>
             Expanded(
               child: SwipeTabs(
                 controller: _tabController,
-                child: SwitchIn(
-                  child: _isLoading
-                      ? const LoadingView.list()
-                      : _buildList(c, frame),
+                // 上架審核分頁常駐在背景，切換分頁時不必重新載入，也能即時更新分頁上的待審數。
+                child: IndexedStack(
+                  index: reviewTab ? 1 : 0,
+                  children: [
+                    SwitchIn(
+                      child: _isLoading
+                          ? const LoadingView.list()
+                          : _buildList(c, frame),
+                    ),
+                    AiReviewTab(onCountChanged: _setReviewCount),
+                  ],
                 ),
               ),
             ),

@@ -3551,5 +3551,21 @@
   "bookNoLongerExistsBeenRemoved": "이 도서는 존재하지 않거나 판매가 중지되었습니다.",
   "myNicknameGroup": "이 그룹에서의 내 닉네임",
   "setGroupNickname": "그룹 닉네임 설정",
-  "allGroupMembersSeeNickname": "그룹의 모든 멤버에게 이 닉네임이 표시됩니다."
+  "allGroupMembersSeeNickname": "그룹의 모든 멤버에게 이 닉네임이 표시됩니다.",
+  "markLockerMaintenance": "점검 중으로 설정",
+  "endLockerMaintenance": "점검 종료",
+  "maintenanceHidesP0FromSellers": "점검 중에는 \"{p0}\"이(가) 판매자의 보관 위치 목록에 표시되지 않습니다. 기존 주문에는 영향이 없습니다.",
+  "@maintenanceHidesP0FromSellers": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "endingMaintenanceP0AvailableAgain": "점검을 종료하면 \"{p0}\"을(를) 판매자가 다시 선택할 수 있습니다.",
+  "@endingMaintenanceP0AvailableAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerMarkedMaintenance": "보관함을 점검 중으로 설정했습니다",
+  "lockerMaintenanceEnded": "보관함 점검을 종료했습니다"
 }

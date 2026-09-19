@@ -38,6 +38,38 @@ module.exports = {
       assert.strictEqual(sanitizeCondition({ level: 'good' }, false), null);
     }],
 
+    ['書況：賣家說明提到的瑕疵會把過高的等級往下調，否定句與輕微字樣另外處理', () => {
+      const { sanitizeCondition, noteCap } = listingAssist;
+      const adjusted = sanitizeCondition({ level: 'like_new', confidence: 0.9, reasons: ['封面乾淨'] }, true, { note: '內頁有螢光筆劃線' });
+      assert.strictEqual(adjusted.level, 'fair');
+      assert.strictEqual(adjusted.adjusted_from, 'like_new');
+      assert.match(adjusted.reasons[0], /螢光筆.*普通/);
+
+      assert.strictEqual(sanitizeCondition({ level: 'poor' }, true, { note: '有劃線' }).level, 'poor', '模型判得更差時不往上調');
+      assert.strictEqual(sanitizeCondition({ level: 'like_new' }, true, { note: '無劃線、無泛黃' }).level, 'like_new');
+      assert.strictEqual(noteCap('書背有輕微摺痕').level, 'good');
+      assert.strictEqual(noteCap('少許泛黃，第 3 章有缺頁').level, 'poor');
+      assert.strictEqual(noteCap('沒有筆記'), null);
+    }],
+
+    ['書況：看不到的部位與低把握度會提醒賣家補拍', () => {
+      const { sanitizeCondition, conditionWarnings } = listingAssist;
+      const unseen = sanitizeCondition({ level: 'good', confidence: 0.9, unseen: ['內頁', '書口'] }, true);
+      assert.deepStrictEqual(conditionWarnings(unseen), ['照片看不到內頁、書口，建議補拍後再確認書況']);
+      assert.deepStrictEqual(conditionWarnings(sanitizeCondition({ level: 'good', confidence: 0.4 }, true)), ['書況判斷把握度較低，建議補拍書背、書口與內頁']);
+      assert.deepStrictEqual(conditionWarnings(sanitizeCondition({ level: 'good', confidence: 0.9 }, true)), []);
+    }],
+
+    ['書況：等級被下調時建議售價等比例下修，並保持 min ≤ suggested ≤ max', () => {
+      const price = listingAssist.rescalePrice(
+        { suggested: 300, min: 250, max: 350, original_price: 500, currency: 'TWD', reasons: [] }, 'like_new', 'fair'
+      );
+      assert.ok(price.suggested < 300 && price.min <= price.suggested && price.suggested <= price.max);
+      assert.strictEqual(price.suggested % 10, 0);
+      assert.match(price.reasons[0], /普通/);
+      assert.strictEqual(listingAssist.rescalePrice(null, 'good', 'fair'), null);
+    }],
+
     ['出版日期：ISO 日期保留到日', () => {
       assert.deepStrictEqual(parsePublishDate('2003-08-01'), { date: '2003-08-01', precision: 'day' });
       assert.deepStrictEqual(parsePublishDate('2003/8/1'), { date: '2003-08-01', precision: 'day' });
@@ -208,6 +240,25 @@ module.exports = {
       assert.strictEqual(data.fields.publish_date, '2003-08');
       assert.strictEqual(data.fields.publish_date_precision, 'month');
       assert.ok(data.warnings.some((w) => w.includes('僅能確認到月或年')));
+    }],
+
+    ['整體流程：書況依賣家說明下調、售價同步下修，並提醒補拍看不到的部位', async () => {
+      setup();
+      h.queueJson({
+        fields: { title: '挪威的森林', description: '本書描述一段青春故事。' },
+        category_id: null,
+        condition: { level: 'like_new', confidence: 0.8, reasons: ['封面乾淨無摺痕'], unseen: ['內頁'] },
+        price: { original_price: 380, suggested: 200, min: 180, max: 220, reasons: [] },
+        sources: [],
+        warnings: []
+      });
+
+      const data = await listingAssist.assist({ userId: 1, isbn: '', title: '挪威的森林', conditionNote: '前兩章有螢光筆劃線', files: [] });
+      assert.strictEqual(data.condition.level, 'fair');
+      assert.deepStrictEqual(data.condition.unseen, ['內頁']);
+      assert.ok(data.price.suggested < 200);
+      assert.ok(data.warnings.includes('照片看不到內頁，建議補拍後再確認書況'));
+      assert.strictEqual(h.calls[0].options.reasoning, undefined, '沒有照片時維持原本的推理設定');
     }],
 
     ['整體流程：模型沒給簡介時退回清理過的來源文字', async () => {

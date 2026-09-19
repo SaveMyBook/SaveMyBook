@@ -146,6 +146,60 @@ module.exports = {
       assert.strictEqual(limited.length, 2);
     }],
 
+    ['推薦：收藏或購買有變動時即使快取未過期也重新產生', async () => {
+      setup({ favorites: [9] });
+      prisma.store.ai_recommendation_cache = [{
+        user_id: 7,
+        payload: JSON.stringify({ items: [{ book_id: 3, reason: '舊的' }], fingerprint: recommend.fingerprintOf([8]) }),
+        created_at: new Date()
+      }];
+      h.queueJson({ items: [{ id: 'b2', reason: '依新收藏產生' }] });
+      const { data } = await recommend.recommendations(7, 10);
+      assert.strictEqual(h.calls.length, 1);
+      assert.strictEqual(data[0].reason, '依新收藏產生');
+      assert.strictEqual(JSON.parse(prisma.rows('ai_recommendation_cache')[0].payload).fingerprint, recommend.fingerprintOf([9]));
+    }],
+
+    ['推薦：紀錄未變動時沿用快取；重新產生失敗時沿用舊結果', async () => {
+      setup({ favorites: [9] });
+      prisma.store.ai_recommendation_cache = [{
+        user_id: 7,
+        payload: JSON.stringify({ items: [{ book_id: 3, reason: '快取' }], fingerprint: recommend.fingerprintOf([9]) }),
+        created_at: new Date()
+      }];
+      assert.strictEqual((await recommend.recommendations(7, 10)).data[0].reason, '快取');
+      assert.strictEqual(h.calls.length, 0);
+
+      prisma.store.ai_recommendation_cache[0].created_at = new Date(Date.now() - recommend.CACHE_TTL_MS - 1000);
+      h.queueJson(h.providerError('TIMEOUT'));
+      const { data, meta } = await recommend.recommendations(7, 10);
+      assert.strictEqual(meta.source, 'ai');
+      assert.strictEqual(data[0].reason, '快取');
+    }],
+
+    ['推薦：候選書納入與收藏內容相似的書，提示詞含閱讀輪廓並提高推理強度', async () => {
+      setup({ favorites: [9] });
+      personalIds = [];
+      popularIds = [4];
+      catalogue = [...catalogue, book(6)];
+      catalogue[5].title = '海邊的卡夫卡';
+      h.onModel('books.findMany', () => [
+        { book_id: 6, seller_id: 2, title: '海邊的卡夫卡', author: '村上春樹', publisher: '時報', description: '', category_id: 1,
+          price: 200, condition_level: 'good', view_count: 1, cabinet_id: null, book_categories: { category_name: '文學小說' } },
+        { book_id: 5, seller_id: 2, title: '程式設計入門', author: '某作者', publisher: '', description: '', category_id: 2,
+          price: 200, condition_level: 'good', view_count: 50, cabinet_id: null, book_categories: { category_name: '電腦資訊' } }
+      ]);
+      h.queueJson({ items: [{ id: 'b1', reason: '與您收藏的作品同為村上春樹所著' }] });
+
+      const { data } = await recommend.recommendations(7, 10);
+      const { prompt, reasoning } = h.calls[0].options;
+      assert.strictEqual(reasoning, 'low');
+      assert.match(prompt, /【閱讀輪廓】\n常看的分類：文學小說\n常看的作者：村上春樹/);
+      assert.match(prompt, /b1｜《海邊的卡夫卡》/, '內容相似的書排在熱門書之前');
+      assert.ok(!/程式設計入門/.test(prompt), '與收藏無關的書不會因相似度被選入');
+      assert.strictEqual(data[0].book.book_id, 6);
+    }],
+
     ['推薦 API：回傳資料與來源標記', async () => {
       const user = h.addUser();
       setup();

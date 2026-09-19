@@ -98,7 +98,11 @@ router.post('/book-chat/session/close', authenticateToken, async (req, res) => {
 
 router.get('/recommendations', authenticateToken, async (req, res) => {
   const { limit } = v.pagination(req.query, { limit: 10, max: 30 });
-  const { data, meta } = await recommend.recommendations(req.user.userId, limit);
+  // 最近瀏覽紀錄只存在 App 端，由查詢參數帶入，當作較弱的興趣訊號。
+  const viewedIds = typeof req.query.viewed_ids === 'string'
+    ? [...new Set(req.query.viewed_ids.split(',').map(v.toInt).filter((n) => Number.isSafeInteger(n) && n > 0))].slice(0, 20)
+    : [];
+  const { data, meta } = await recommend.recommendations(req.user.userId, limit, { viewedIds });
   res.status(200).json({ success: true, data, meta });
 });
 

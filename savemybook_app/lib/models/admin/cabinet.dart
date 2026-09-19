@@ -35,6 +35,10 @@ class Cabinet {
   final int totalSlots;
   final int availableSlots;
   final bool isActive;
+  /// 整台書櫃維修中：暫停開放賣家選擇，與停用不同，既有設定與訂單都保留。
+  final bool isMaintenance;
+  /// 資料庫已執行 019，可以切換維修狀態。
+  final bool maintenanceSupported;
   final String openHours;
   final List<CabinetSlot> slots;
   final Map<String, int> slotSummary;
@@ -48,6 +52,8 @@ class Cabinet {
     required this.totalSlots,
     required this.availableSlots,
     required this.isActive,
+    this.isMaintenance = false,
+    this.maintenanceSupported = false,
     this.openHours = '',
     this.slots = const [],
     this.slotSummary = const {},
@@ -64,6 +70,8 @@ class Cabinet {
       totalSlots: parseInt(json['total_slots']),
       availableSlots: parseInt(json['available_slots']),
       isActive: json['is_active'] != false,
+      isMaintenance: json['is_maintenance'] == true,
+      maintenanceSupported: json['maintenance_supported'] == true,
       openHours: formatTimeRange(json['open_time'], json['close_time']),
       slots: ((json['cabinet_slots'] as List?) ?? const [])
           .map((e) => CabinetSlot.fromJson(Map<String, dynamic>.from(e)))

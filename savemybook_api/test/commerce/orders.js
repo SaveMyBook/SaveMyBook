@@ -43,6 +43,19 @@ const tests = [
     assert.strictEqual(res.body.message, '《小王子》已無法購買，請先移除');
   }],
 
+  ['存放書櫃維修中的書籍無法結帳，也不會扣款', async () => {
+    const cabinet = addCabinet({ isMaintenance: true });
+    const { buyer, buyerToken, book } = scene({ cabinet: cabinet.cabinet_id });
+    addCartItem(buyer.user_id, book.book_id);
+
+    const res = await checkout(buyerToken);
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.body.code, 'CABINET_MAINTENANCE');
+    assert.strictEqual(res.body.message, '《小王子》存放的書櫃維修中，暫時無法購買，請先移除或稍後再試');
+    assert.strictEqual(bookOf(book.book_id).status, 'on_sale');
+    assert.strictEqual(balanceOf(buyer.user_id), 500);
+  }],
+
   ['代幣不足時回 INSUFFICIENT_BALANCE 並附上金額', async () => {
     const { buyer, buyerToken, book } = scene({ balance: 50, price: 100 });
     addCartItem(buyer.user_id, book.book_id);

@@ -11,6 +11,7 @@ const moderation = require('./ai/moderation');
 const reviews = require('./ai/reviews');
 const screening = require('./listing-screening');
 const aiImages = require('./ai/images');
+const cabinets = require('./cabinets');
 
 const MAX_IMAGES_PER_BOOK = 10;
 const SELLER_STATUSES = ['on_sale', 'removed'];
@@ -123,6 +124,7 @@ const assertRefsExist = async ({ categoryId, cabinetId }, current = {}) => {
   ]);
   if (!category) throw badRequest('找不到此分類');
   if (!cabinet) throw badRequest('找不到此書櫃，或書櫃已停用');
+  if (cabinetId && (await cabinets.isUnderMaintenance(cabinetId))) throw badRequest('此書櫃維修中，請選擇其他書櫃');
 };
 
 const pendingReview = (decision) => ({ status: 'pending_review', reasons: decision.reasons });

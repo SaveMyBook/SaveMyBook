@@ -4,6 +4,7 @@ import '../../i18n/strings.dart';
 class AdminOverview {
   final int memberCount;
   final int pendingReportCount;
+  final int pendingListingReviewCount;
   final int pendingDisputeCount;
   final int activeCabinetCount;
   final int todayOrderCount;
@@ -12,6 +13,7 @@ class AdminOverview {
   AdminOverview({
     required this.memberCount,
     required this.pendingReportCount,
+    this.pendingListingReviewCount = 0,
     required this.pendingDisputeCount,
     required this.activeCabinetCount,
     required this.todayOrderCount,
@@ -22,6 +24,7 @@ class AdminOverview {
     return AdminOverview(
       memberCount: parseInt(json['member_count']),
       pendingReportCount: parseInt(json['pending_report_count']),
+      pendingListingReviewCount: parseInt(json['pending_listing_review_count']),
       pendingDisputeCount: parseInt(json['pending_dispute_count']),
       activeCabinetCount: parseInt(json['active_cabinet_count']),
       todayOrderCount: parseInt(json['today_order_count']),
@@ -36,6 +39,9 @@ class AdminOverview {
         activeCabinetCount: 0,
         todayOrderCount: 0,
       );
+
+  /// 內容審核入口的待辦數：檢舉與上架審核。
+  int get pendingModerationCount => pendingReportCount + pendingListingReviewCount;
 }
 
 class AdminStatPoint {

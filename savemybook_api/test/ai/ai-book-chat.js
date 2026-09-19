@@ -185,9 +185,10 @@ module.exports = {
     ['送出訊息：關鍵字查無結果時告知模型候選書只是熱門書', async () => {
       setup();
       let call = 0;
+      // 第 1 次：站內索引、第 2 次：資料庫關鍵字比對，兩者都查無結果才退回熱門書。
       h.onModel('books.findMany', () => {
         call += 1;
-        return call === 1 ? [] : [book(1), book(2)];
+        return call <= 2 ? [] : [book(1), book(2)];
       });
       h.queueJson(
         { reply: '為您尋找 AI 相關書籍。', search: { keywords: ['人工智慧', 'AI'], category_ids: [], max_price: null, min_price: null, condition_levels: [] }, need_more_info: false },
@@ -195,8 +196,58 @@ module.exports = {
       );
 
       const data = await bookChat.sendMessage(5, '我最近想研究 AI，推薦我什麼書');
-      assert.ok(JSON.stringify(h.calls[1]).includes('未找到直接相關的書'));
+      assert.match(h.calls[1].options.prompt, /【比對結果】\n未找到直接相關的書/);
       assert.strictEqual(data.reply.content, '站上目前沒有直接相關的 AI 書籍。');
+    }],
+
+    ['候選書：依關鍵字相關度排序，而不是瀏覽數', async () => {
+      const catalogue = [
+        book(1, { title: '東野圭吾推理精選', author: '東野圭吾', view_count: 999 }),
+        book(2, { title: '機器學習導論', author: '周志華', view_count: 3, category_id: 2, book_categories: { category_name: '電腦資訊' }, description: '從線性模型到神經網路的機器學習入門教材' }),
+        book(3, { title: '深度學習實戰', author: '某作者', view_count: 5, category_id: 2, book_categories: { category_name: '電腦資訊' } })
+      ];
+      setup({ candidateRows: catalogue });
+      const search = bookChat.sanitizeSearch({ keywords: ['機器學習', '人工智慧'], category_ids: [2] }, ids);
+      const { rows, matched } = await bookChat.candidates(5, search, '想入門機器學習');
+      assert.strictEqual(matched, true);
+      assert.strictEqual(rows[0].book_id, 2);
+      assert.ok(!rows.some((b) => b.book_id === 1), '與主題無關的熱門書不列入');
+    }],
+
+    ['候選書：價格與書況條件在站內索引也會套用', async () => {
+      const catalogue = [
+        book(1, { title: '機器學習導論', price: 800 }),
+        book(2, { title: '機器學習入門', price: 200, condition_level: 'fair' }),
+        book(3, { title: '機器學習實務', price: 250, condition_level: 'good' })
+      ];
+      setup({ candidateRows: catalogue });
+      const search = bookChat.sanitizeSearch({ keywords: ['機器學習'], max_price: 300, condition_levels: ['good'] }, ids);
+      const { rows } = await bookChat.candidates(5, search);
+      assert.deepStrictEqual(rows.map((b) => b.book_id), [3]);
+    }],
+
+    ['送出訊息：追問時附上先前推薦的書名並標示已推薦過，兩次呼叫都提高推理強度', async () => {
+      const rows = [book(1, { description: '經典本格推理' }), book(2)];
+      setup({
+        sessionRow: { session_id: 3, created_at: new Date(), updated_at: new Date() },
+        existing: [
+          { message_id: 1, role: 'user', content: '推薦推理小說', book_ids: null, created_at: new Date() },
+          { message_id: 2, role: 'assistant', content: '為您挑選以下推理小說。', book_ids: '1', created_at: new Date() }
+        ],
+        candidateRows: rows
+      });
+      h.queueJson(
+        { reply: '為您再找其他推理小說。', search: { keywords: ['推理'], category_ids: [], max_price: null, min_price: null, condition_levels: [] }, need_more_info: false },
+        { reply: '這本也很適合您。', book_ids: ['b2'], reasons: { b2: '同樣是節奏明快的推理作品' }, suggestions: [] }
+      );
+
+      await bookChat.sendMessage(5, '還有別的嗎');
+      const [plan, pickCall] = h.calls.map((c) => c.options);
+      assert.match(plan.history[1].content, /當時推薦的書：《推理小說 1》/);
+      assert.strictEqual(plan.reasoning, 'low');
+      assert.strictEqual(pickCall.reasoning, 'low');
+      assert.match(pickCall.prompt, /b1｜《推理小說 1》.*簡介：經典本格推理｜先前已推薦/);
+      assert.ok(!/b2｜[^\n]*先前已推薦/.test(pickCall.prompt));
     }],
 
     ['送出訊息：未同意 AI 資料處理時回 403 AI_CONSENT_REQUIRED', async () => {

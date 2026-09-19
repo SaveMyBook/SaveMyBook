@@ -34,6 +34,13 @@ extension AdminCabinetsApi on ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSaveLocker);
   }
 
+  /// 回傳 null 代表成功，否則為錯誤訊息。
+  Future<String?> setCabinetMaintenance(int cabinetId, bool on) async {
+    final res = await _send('PATCH', '/admin/cabinets/$cabinetId/maintenance', body: {'is_maintenance': on});
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSaveLocker);
+  }
+
   Future<bool> updateSlotStatus(int cabinetId, int slotId, String status) async {
     final res = await _send('PATCH', '/admin/cabinets/$cabinetId/slots/$slotId', body: {'status': status});
     return res != null && res['success'] == true;

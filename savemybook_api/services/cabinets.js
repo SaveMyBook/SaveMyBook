@@ -1,5 +1,6 @@
 const prisma = require('../lib/prisma');
-const { notFound } = require('../lib/errors');
+const { notFound, HttpError } = require('../lib/errors');
+const { hasColumn } = require('../lib/schema-check');
 const { SLOT_STATUSES, SLOT_STATUS_LABELS } = require('../constants/domain');
 const audit = require('./audit');
 
@@ -28,8 +29,20 @@ const CABINET_FIELDS = {
 
 const SLOT_FIELDS = { status: { label: '櫃位狀態', format: (s) => SLOT_STATUS_LABELS[s] ?? s } };
 
+// is_maintenance 由 019 新增，不在 Prisma schema 內，一律以原生 SQL 讀寫；未執行 019 時視為沒有書櫃在維修。
+const maintenanceReady = () => hasColumn('smart_cabinets', 'is_maintenance');
+
+const maintenanceIds = async () => {
+  if (!(await maintenanceReady())) return new Set();
+  const rows = await prisma.$queryRaw`SELECT cabinet_id FROM smart_cabinets WHERE is_maintenance = 1`;
+  return new Set(rows.map((r) => Number(r.cabinet_id)));
+};
+
+const isUnderMaintenance = async (cabinetId) => (await maintenanceIds()).has(Number(cabinetId));
+
+// 維修中的書櫃不開放選用，與停用的書櫃一樣不出現在使用者端的清單。
 const listActive = async (point) => {
-  const cabinets = await prisma.smart_cabinets.findMany({
+  const [all, underMaintenance] = await Promise.all([prisma.smart_cabinets.findMany({
     where: { is_active: true },
     select: {
       cabinet_id: true,
@@ -42,7 +55,8 @@ const listActive = async (point) => {
       close_time: true
     },
     orderBy: { cabinet_id: 'asc' }
-  });
+  }), maintenanceIds()]);
+  const cabinets = all.filter((c) => !underMaintenance.has(Number(c.cabinet_id)));
 
   const data = cabinets.map((c) => ({
     ...c,
@@ -53,18 +67,27 @@ const listActive = async (point) => {
 };
 
 const adminList = async () => {
-  const cabinets = await prisma.smart_cabinets.findMany({
-    orderBy: { cabinet_id: 'asc' },
-    include: {
-      cabinet_slots: { select: { slot_id: true, slot_number: true, status: true, updated_at: true } },
-      _count: { select: { orders: true } }
-    }
-  });
+  const [cabinets, underMaintenance, ready] = await Promise.all([
+    prisma.smart_cabinets.findMany({
+      orderBy: { cabinet_id: 'asc' },
+      include: {
+        cabinet_slots: { select: { slot_id: true, slot_number: true, status: true, updated_at: true } },
+        _count: { select: { orders: true } }
+      }
+    }),
+    maintenanceIds(),
+    maintenanceReady()
+  ]);
 
   return cabinets.map((c) => {
     const counts = Object.fromEntries(SLOT_STATUSES.map((s) => [s, 0]));
     for (const slot of c.cabinet_slots) counts[slot.status] = (counts[slot.status] ?? 0) + 1;
-    return { ...c, slot_summary: counts };
+    return {
+      ...c,
+      is_maintenance: underMaintenance.has(Number(c.cabinet_id)),
+      maintenance_supported: ready,
+      slot_summary: counts
+    };
   });
 };
 
@@ -118,6 +141,34 @@ const update = async (cabinetId, data, { adminId, req }) => {
   return cabinet;
 };
 
+const setMaintenance = async (cabinetId, on, { adminId, req }) => {
+  if (!(await maintenanceReady())) {
+    throw new HttpError(503, '尚未執行 019_cabinet_maintenance.sql，無法設定書櫃維修狀態', 'MIGRATION_REQUIRED');
+  }
+  const before = await prisma.smart_cabinets.findUnique({ where: { cabinet_id: cabinetId }, select: { cabinet_name: true } });
+  if (!before) throw notFound('找不到該書櫃');
+
+  const wasOn = await isUnderMaintenance(cabinetId);
+  if (wasOn !== on) {
+    await prisma.$executeRaw`
+      UPDATE smart_cabinets SET is_maintenance = ${on ? 1 : 0}, updated_at = ${new Date()} WHERE cabinet_id = ${cabinetId}`;
+  }
+
+  const label = (v) => (v ? '維修中' : '正常');
+  await audit.record(null, {
+    adminId,
+    action: on ? '書櫃設為維修中' : '書櫃結束維修',
+    targetType: 'cabinet',
+    targetId: cabinetId,
+    summary: wasOn === on
+      ? `重新設定書櫃「${before.cabinet_name}」為${label(on)}（無實際變更）`
+      : `將書櫃「${before.cabinet_name}」${on ? '設為維修中，暫停存書與選用' : '結束維修，恢復開放'}`,
+    changes: wasOn === on ? [] : [{ field: 'is_maintenance', label: '維修狀態', from: label(wasOn), to: label(on) }],
+    req
+  });
+  return { cabinet_id: cabinetId, is_maintenance: on };
+};
+
 const setSlotStatus = async (cabinetId, slotId, status, { adminId, req }) => {
   // 櫃位必須屬於網址上的書櫃，否則可改到別台書櫃的格子。
   const before = await prisma.cabinet_slots.findFirst({
@@ -144,4 +195,4 @@ const setSlotStatus = async (cabinetId, slotId, status, { adminId, req }) => {
   return slot;
 };
 
-module.exports = { listActive, adminList, create, update, setSlotStatus };
+module.exports = { listActive, adminList, create, update, setMaintenance, maintenanceIds, isUnderMaintenance, setSlotStatus };

@@ -26,7 +26,7 @@ const generate = async (options) => {
   }
 };
 
-const generateOnce = async ({ apiKey, model, system, history = [], prompt, images = [], json, search, maxOutputTokens, timeoutMs }, withThinkingLevel) => {
+const generateOnce = async ({ apiKey, model, system, history = [], prompt, images = [], json, search, reasoning, maxOutputTokens, timeoutMs }, withThinkingLevel) => {
   const modelId = String(model).replace(/^models\//, '');
   const thinks = thinkingModel(modelId);
   const levelSupported = levelModel(modelId);
@@ -48,7 +48,7 @@ const generateOnce = async ({ apiKey, model, system, history = [], prompt, image
     generationConfig: {
       ...(maxOutputTokens && { maxOutputTokens: maxOutputTokens + (thinks ? THINKING_HEADROOM : 0) }),
       ...(json && !search && { responseMimeType: 'application/json' }),
-      ...(thinks && withThinkingLevel && { thinkingConfig: { thinkingLevel: search ? 'low' : 'minimal' } })
+      ...(thinks && withThinkingLevel && { thinkingConfig: { thinkingLevel: reasoning ?? (search ? 'low' : 'minimal') } })
     },
     ...(search && { tools: [{ google_search: {} }] })
   };

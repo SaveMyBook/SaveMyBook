@@ -78,7 +78,7 @@ const SCHEMA = {
   ],
   columns: [
     'users.deletion_requested_at', 'users.anonymized_at', 'users.share_token', 'books.share_token',
-    'admin_permissions.can_manage_system'
+    'admin_permissions.can_manage_system', 'smart_cabinets.is_maintenance'
   ]
 };
 
@@ -255,7 +255,7 @@ const addCategory = (name = '文學小說') => {
   return row;
 };
 
-const addCabinet = ({ isActive = true, name = '中正書櫃' } = {}) => {
+const addCabinet = ({ isActive = true, isMaintenance = false, name = '中正書櫃' } = {}) => {
   const row = {
     cabinet_id: prisma.nextId('smart_cabinets'),
     cabinet_name: name,
@@ -264,7 +264,8 @@ const addCabinet = ({ isActive = true, name = '中正書櫃' } = {}) => {
     close_time: '22:00',
     latitude: 25.03,
     longitude: 121.51,
-    is_active: isActive
+    is_active: isActive,
+    is_maintenance: isMaintenance ? 1 : 0
   };
   prisma.rows('smart_cabinets').push(row);
   return row;

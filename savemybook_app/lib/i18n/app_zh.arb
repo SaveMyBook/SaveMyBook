@@ -3551,5 +3551,21 @@
   "bookNoLongerExistsBeenRemoved": "此書籍已不存在或已下架",
   "myNicknameGroup": "我在群組的暱稱",
   "setGroupNickname": "設定群組暱稱",
-  "allGroupMembersSeeNickname": "群組內所有成員皆會看到此暱稱"
+  "allGroupMembersSeeNickname": "群組內所有成員皆會看到此暱稱",
+  "markLockerMaintenance": "設為維修中",
+  "endLockerMaintenance": "結束維修",
+  "maintenanceHidesP0FromSellers": "設為維修中後「{p0}」將不再顯示於賣家的存放區域選單，既有訂單不受影響。",
+  "@maintenanceHidesP0FromSellers": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "endingMaintenanceP0AvailableAgain": "結束維修後「{p0}」將重新開放賣家選擇。",
+  "@endingMaintenanceP0AvailableAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerMarkedMaintenance": "書櫃已設為維修中",
+  "lockerMaintenanceEnded": "書櫃已結束維修"
 }

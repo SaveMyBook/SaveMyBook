@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/app_notification.dart';
-import '../features/admin/ai/admin_ai_screen.dart';
+import '../features/admin/admin_report_screen.dart';
 import '../features/home/announcement_screen.dart';
 import '../features/books/book_detail_screen.dart';
 import '../features/account/change_password_screen.dart';
@@ -55,7 +55,9 @@ class NotificationRouter {
       case 'admin_ticket':
         return TicketDetailScreen(ticketId: id, asAdmin: true);
       case 'book_review':
-        return ApiService.currentUser?.role == 'admin' ? const AdminAiScreen(initialTab: 2) : null;
+        return ApiService.currentUser?.role == 'admin'
+            ? const AdminReportScreen(initialTab: AdminReportScreen.listingReviewTab)
+            : null;
       case 'order':
         final order = await api.fetchOrderDetail(id);
         if (order == null) return null;

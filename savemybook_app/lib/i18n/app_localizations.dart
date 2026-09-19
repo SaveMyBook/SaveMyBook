@@ -1982,6 +1982,12 @@ abstract class AppLocalizations {
   String get myNicknameGroup;
   String get setGroupNickname;
   String get allGroupMembersSeeNickname;
+  String get markLockerMaintenance;
+  String get endLockerMaintenance;
+  String maintenanceHidesP0FromSellers(Object p0);
+  String endingMaintenanceP0AvailableAgain(Object p0);
+  String get lockerMarkedMaintenance;
+  String get lockerMaintenanceEnded;
 }
 
 class _LEn extends AppLocalizations {
@@ -7863,6 +7869,24 @@ class _LEn extends AppLocalizations {
 
   @override
   String get allGroupMembersSeeNickname => 'All group members will see this nickname.';
+
+  @override
+  String get markLockerMaintenance => 'Mark under maintenance';
+
+  @override
+  String get endLockerMaintenance => 'End maintenance';
+
+  @override
+  String maintenanceHidesP0FromSellers(Object p0) => 'While under maintenance, "${p0}" is hidden from the seller drop-off list. Existing orders are not affected.';
+
+  @override
+  String endingMaintenanceP0AvailableAgain(Object p0) => 'Once maintenance ends, "${p0}" is available to sellers again.';
+
+  @override
+  String get lockerMarkedMaintenance => 'Locker marked under maintenance';
+
+  @override
+  String get lockerMaintenanceEnded => 'Locker maintenance ended';
 
 }
 
@@ -13746,6 +13770,24 @@ class _LJa extends AppLocalizations {
   @override
   String get allGroupMembersSeeNickname => 'このニックネームはグループの全メンバーに表示されます。';
 
+  @override
+  String get markLockerMaintenance => 'メンテナンス中にする';
+
+  @override
+  String get endLockerMaintenance => 'メンテナンス終了';
+
+  @override
+  String maintenanceHidesP0FromSellers(Object p0) => 'メンテナンス中は「${p0}」が出品者の預け入れ先一覧に表示されなくなります。既存の注文には影響しません。';
+
+  @override
+  String endingMaintenanceP0AvailableAgain(Object p0) => 'メンテナンスを終了すると「${p0}」を出品者が再び選べるようになります。';
+
+  @override
+  String get lockerMarkedMaintenance => 'ロッカーをメンテナンス中にしました';
+
+  @override
+  String get lockerMaintenanceEnded => 'ロッカーのメンテナンスを終了しました';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -19627,6 +19669,24 @@ class _LKo extends AppLocalizations {
 
   @override
   String get allGroupMembersSeeNickname => '그룹의 모든 멤버에게 이 닉네임이 표시됩니다.';
+
+  @override
+  String get markLockerMaintenance => '점검 중으로 설정';
+
+  @override
+  String get endLockerMaintenance => '점검 종료';
+
+  @override
+  String maintenanceHidesP0FromSellers(Object p0) => '점검 중에는 "${p0}"이(가) 판매자의 보관 위치 목록에 표시되지 않습니다. 기존 주문에는 영향이 없습니다.';
+
+  @override
+  String endingMaintenanceP0AvailableAgain(Object p0) => '점검을 종료하면 "${p0}"을(를) 판매자가 다시 선택할 수 있습니다.';
+
+  @override
+  String get lockerMarkedMaintenance => '보관함을 점검 중으로 설정했습니다';
+
+  @override
+  String get lockerMaintenanceEnded => '보관함 점검을 종료했습니다';
 
 }
 
@@ -25510,6 +25570,24 @@ class _LZh extends AppLocalizations {
   @override
   String get allGroupMembersSeeNickname => '群組內所有成員皆會看到此暱稱';
 
+  @override
+  String get markLockerMaintenance => '設為維修中';
+
+  @override
+  String get endLockerMaintenance => '結束維修';
+
+  @override
+  String maintenanceHidesP0FromSellers(Object p0) => '設為維修中後「${p0}」將不再顯示於賣家的存放區域選單，既有訂單不受影響。';
+
+  @override
+  String endingMaintenanceP0AvailableAgain(Object p0) => '結束維修後「${p0}」將重新開放賣家選擇。';
+
+  @override
+  String get lockerMarkedMaintenance => '書櫃已設為維修中';
+
+  @override
+  String get lockerMaintenanceEnded => '書櫃已結束維修';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -31392,6 +31470,24 @@ class _LZhHans extends AppLocalizations {
   @override
   String get allGroupMembersSeeNickname => '群组内所有成员都会看到此昵称';
 
+  @override
+  String get markLockerMaintenance => '设为维修中';
+
+  @override
+  String get endLockerMaintenance => '结束维修';
+
+  @override
+  String maintenanceHidesP0FromSellers(Object p0) => '设为维修中后“${p0}”将不再显示在卖家的存放区域菜单中，现有订单不受影响。';
+
+  @override
+  String endingMaintenanceP0AvailableAgain(Object p0) => '结束维修后“${p0}”将重新开放卖家选择。';
+
+  @override
+  String get lockerMarkedMaintenance => '书柜已设为维修中';
+
+  @override
+  String get lockerMaintenanceEnded => '书柜已结束维修';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -37273,6 +37369,24 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get allGroupMembersSeeNickname => '群組內所有成員皆會看到此暱稱';
+
+  @override
+  String get markLockerMaintenance => '設為維修中';
+
+  @override
+  String get endLockerMaintenance => '結束維修';
+
+  @override
+  String maintenanceHidesP0FromSellers(Object p0) => '設為維修中後「${p0}」將不再顯示於賣家的存放區域選單，既有訂單不受影響。';
+
+  @override
+  String endingMaintenanceP0AvailableAgain(Object p0) => '結束維修後「${p0}」將重新開放賣家選擇。';
+
+  @override
+  String get lockerMarkedMaintenance => '書櫃已設為維修中';
+
+  @override
+  String get lockerMaintenanceEnded => '書櫃已結束維修';
 
 }
 

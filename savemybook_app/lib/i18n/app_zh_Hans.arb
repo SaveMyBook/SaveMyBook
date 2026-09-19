@@ -3551,5 +3551,21 @@
   "bookNoLongerExistsBeenRemoved": "此书籍已不存在或已下架",
   "myNicknameGroup": "我在群组的昵称",
   "setGroupNickname": "设置群组昵称",
-  "allGroupMembersSeeNickname": "群组内所有成员都会看到此昵称"
+  "allGroupMembersSeeNickname": "群组内所有成员都会看到此昵称",
+  "markLockerMaintenance": "设为维修中",
+  "endLockerMaintenance": "结束维修",
+  "maintenanceHidesP0FromSellers": "设为维修中后“{p0}”将不再显示在卖家的存放区域菜单中，现有订单不受影响。",
+  "@maintenanceHidesP0FromSellers": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "endingMaintenanceP0AvailableAgain": "结束维修后“{p0}”将重新开放卖家选择。",
+  "@endingMaintenanceP0AvailableAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerMarkedMaintenance": "书柜已设为维修中",
+  "lockerMaintenanceEnded": "书柜已结束维修"
 }

@@ -100,8 +100,11 @@ extension AiApi on ApiService {
     return AiResult.ok(AiListingAssist.fromJson(data));
   }
 
-  Future<AiRecommendations?> fetchAiRecommendations({int limit = 12}) async {
-    final res = await _send('GET', '/ai/recommendations', query: {'limit': '$limit'});
+  Future<AiRecommendations?> fetchAiRecommendations({int limit = 12, Iterable<int> viewedIds = const []}) async {
+    final query = <String, String>{'limit': '$limit'};
+    final ids = viewedIds.where((id) => id > 0).take(20);
+    if (ids.isNotEmpty) query['viewed_ids'] = ids.join(',');
+    final res = await _send('GET', '/ai/recommendations', query: query);
     if (res == null || res['success'] != true) return null;
     return AiRecommendations.fromJson(res);
   }

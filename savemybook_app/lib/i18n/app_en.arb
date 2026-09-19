@@ -3551,5 +3551,21 @@
   "bookNoLongerExistsBeenRemoved": "This book no longer exists or has been removed.",
   "myNicknameGroup": "My nickname in this group",
   "setGroupNickname": "Set group nickname",
-  "allGroupMembersSeeNickname": "All group members will see this nickname."
+  "allGroupMembersSeeNickname": "All group members will see this nickname.",
+  "markLockerMaintenance": "Mark under maintenance",
+  "endLockerMaintenance": "End maintenance",
+  "maintenanceHidesP0FromSellers": "While under maintenance, \"{p0}\" is hidden from the seller drop-off list. Existing orders are not affected.",
+  "@maintenanceHidesP0FromSellers": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "endingMaintenanceP0AvailableAgain": "Once maintenance ends, \"{p0}\" is available to sellers again.",
+  "@endingMaintenanceP0AvailableAgain": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerMarkedMaintenance": "Locker marked under maintenance",
+  "lockerMaintenanceEnded": "Locker maintenance ended"
 }

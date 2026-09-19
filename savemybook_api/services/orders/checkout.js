@@ -4,6 +4,7 @@ const { badRequest, conflict } = require('../../lib/errors');
 const { changeBalance } = require('../wallet');
 const { notify } = require('../notify');
 const reservations = require('../reservations');
+const cabinets = require('../cabinets');
 const { orderInclude } = require('./selects');
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -30,6 +31,13 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
 
   const unavailable = cartItems.find((i) => i.books.status !== 'on_sale');
   if (unavailable) throw badRequest(`《${unavailable.books.title}》已無法購買，請先移除`);
+
+  // 書櫃維修中時賣家無法存書，成立訂單只會卡在待存書。
+  const underMaintenance = await cabinets.maintenanceIds();
+  const blocked = cartItems.find((i) => i.books.cabinet_id && underMaintenance.has(Number(i.books.cabinet_id)));
+  if (blocked) {
+    throw badRequest(`《${blocked.books.title}》存放的書櫃維修中，暫時無法購買，請先移除或稍後再試`, 'CABINET_MAINTENANCE');
+  }
 
   await reservations.assertNotHeldByOthers(null, cartItems.map((i) => i.books), buyerId);
 

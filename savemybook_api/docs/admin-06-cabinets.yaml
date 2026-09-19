@@ -40,6 +40,8 @@ paths:
                                   slot_number: { type: string }
                                   status: { type: string, enum: [empty, occupied, reserved, maintenance] }
                                   updated_at: { type: string, format: date-time }
+                            is_maintenance: { type: boolean, description: 整台書櫃維修中；未執行 019 時一律為 false, example: false }
+                            maintenance_supported: { type: boolean, description: 資料庫是否已執行 019（可設定書櫃維修狀態）, example: true }
                             slot_summary:
                               type: object
                               description: 各狀態的櫃位數量統計。
@@ -158,6 +160,59 @@ paths:
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{id}/maintenance:
+    patch:
+      summary: 設定書櫃維修中
+      operationId: adminSetCabinetMaintenance
+      tags: [admin-cabinets]
+      description: |
+        將整台書櫃設為維修中或結束維修。維修中的書櫃不會出現在 `GET /api/cabinets`，
+        賣家上架或編輯時也無法選取；與停用不同，維修中的書櫃仍保留原本設定，既有訂單不受影響。
+        異動會寫入稽核紀錄。需要先執行 `migrations/019_cabinet_maintenance.sql`。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [is_maintenance]
+              properties:
+                is_maintenance: { type: boolean, description: true 設為維修中，false 結束維修。 }
+            example: { is_maintenance: true }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 書櫃已設為維修中 }
+                  data:
+                    type: object
+                    properties:
+                      cabinet_id: { type: integer, example: 2 }
+                      is_maintenance: { type: boolean, example: true }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 資料庫尚未執行 019。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: MIGRATION_REQUIRED, message: 尚未執行 019_cabinet_maintenance.sql，無法設定書櫃維修狀態 }
 
   /api/admin/cabinets/{cabinetId}/slots/{slotId}:
     patch:
