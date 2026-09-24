@@ -252,6 +252,41 @@ module.exports = {
       assert.ok(!/b2｜[^\n]*先前已推薦/.test(pickCall.prompt));
     }],
 
+    ['送出訊息：模型判斷沒有合適的書時不附書卡', async () => {
+      setup({ candidateRows: [book(1, { title: 'C 程式語言教學' })] });
+      h.queueJson(
+        { reply: '為您尋找區塊鏈相關書籍。', search: { keywords: ['區塊鏈'], category_ids: [], max_price: null, min_price: null, condition_levels: [] }, need_more_info: false },
+        { reply: '', book_ids: [], reasons: {}, suggestions: ['有沒有金融科技的書'] }
+      );
+      const data = await bookChat.sendMessage(5, '那區塊鏈呢');
+      assert.strictEqual(data.reply.books.length, 0);
+      assert.strictEqual(data.reply.content, bookChat.NONE_REPLY);
+      assert.match(h.calls[1].options.system, /不得提到「候選」/);
+    }],
+
+    ['送出訊息：相關的書都是自己上架的時，告知模型並如實回覆', async () => {
+      const mine = [
+        book(1, { seller_id: 5, title: '區塊鏈革命', description: '區塊鏈與加密貨幣入門' }),
+        book(2, { seller_id: 5, title: '區塊鏈技術指南' })
+      ];
+      const other = book(3, { title: 'C 程式語言教學' });
+      setup({ candidateRows: [...mine, other] });
+      h.onModel('books.findMany', (args) => {
+        const notSeller = args?.where?.seller_id?.not;
+        return [...mine, other].filter((b) => notSeller == null || b.seller_id !== notSeller);
+      });
+      h.queueJson(
+        { reply: '為您尋找區塊鏈相關書籍。', search: { keywords: ['區塊鏈'], category_ids: [], max_price: null, min_price: null, condition_levels: [] }, need_more_info: false },
+        { reply: '', book_ids: [], reasons: {}, suggestions: [] }
+      );
+      const data = await bookChat.sendMessage(5, '推薦區塊鏈的書');
+      const prompt = h.calls[1].options.prompt;
+      assert.match(prompt, /站上另有 2 本與需求相關的書是使用者本人上架的/);
+      assert.ok(!/區塊鏈革命/.test(prompt), '自己上架的書不會交給模型推薦');
+      assert.strictEqual(data.reply.books.length, 0);
+      assert.strictEqual(data.reply.content, bookChat.OWN_ONLY_REPLY);
+    }],
+
     ['送出訊息：未同意 AI 資料處理時回 403 AI_CONSENT_REQUIRED', async () => {
       setup();
       h.reset();

@@ -114,6 +114,7 @@ const search = async (parts, { filter = null, boost = null, limit = 30, strong =
     .slice(0, limit)
     .map((r) => ({
       book_id: r.doc.book_id,
+      seller_id: r.doc.seller_id,
       score: Math.round(r.score * 1e4) / 1e4,
       similarity: similarity.has(r.doc.book_id) ? Math.round(similarity.get(r.doc.book_id) * 1000) / 1000 : null,
       lexical: lexicalHit.has(r.doc.book_id)
