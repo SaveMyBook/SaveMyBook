@@ -5,6 +5,8 @@ const { actorOf } = require('../../lib/request-context');
 const { REPORT_STATUSES, DISPUTE_STATUSES } = require('../../constants/domain');
 const reports = require('../../services/reports');
 const disputes = require('../../services/disputes');
+const disputeAssist = require('../../services/ai/dispute-assist');
+const { rateLimit, byUser } = require('../../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -26,6 +28,13 @@ router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
 router.get('/disputes', requireAdmin('transactions'), async (req, res) => {
   const status = req.query.status ? v.oneOf(req.query.status, DISPUTE_STATUSES, '不支援的爭議狀態') : null;
   res.status(200).json({ success: true, data: await disputes.adminList(status) });
+});
+
+const assistLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 30, key: byUser, message: 'AI 分析次數過多，請稍後再試' });
+
+router.post('/disputes/:id/ai-analysis', requireAdmin('transactions'), assistLimiter, async (req, res) => {
+  const disputeId = v.id(req.params.id, '爭議編號');
+  res.status(200).json({ success: true, data: await disputeAssist.analyze(disputeId, req.user.userId) });
 });
 
 router.patch('/disputes/:id', requireAdmin('transactions'), async (req, res) => {

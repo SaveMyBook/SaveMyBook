@@ -25,7 +25,7 @@ extension BooksApi on ApiService {
       query['keyword'] = keyword;
     }
     if (sort != null) {
-      const allowed = {'popular', 'price_asc', 'price_desc', 'newest'};
+      const allowed = {'popular', 'price_asc', 'price_desc', 'newest', 'relevance'};
       query['sort'] = allowed.contains(sort) ? sort : 'newest';
     }
 
@@ -57,6 +57,11 @@ extension BooksApi on ApiService {
     }
     if (res == null || res['success'] != true || res['data'] is! Map) return (book: null, gone: false);
     return (book: Book.fromJson(Map<String, dynamic>.from(res['data'])), gone: false);
+  }
+
+  Future<List<Book>> fetchSimilarBooks(int bookId) async {
+    final res = await _send('GET', '/books/$bookId/similar');
+    return _mapList(res, Book.fromJson);
   }
 
   Future<List<Book>?> fetchBookBriefs(Iterable<int> bookIds) async {

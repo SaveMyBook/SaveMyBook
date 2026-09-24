@@ -30,6 +30,8 @@ class AiFeatures {
   static const moderation = 'moderation';
   static const bookChat = 'book_chat';
   static const embedding = 'embedding';
+  static const enrich = 'enrich';
+  static const adminAssist = 'admin_assist';
   static const test = 'test';
 
   static const configurable = [support, listingAssist, recommend, moderation, bookChat];

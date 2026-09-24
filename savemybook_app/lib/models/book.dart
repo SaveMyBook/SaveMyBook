@@ -45,6 +45,10 @@ class Book {
   final bool isApproved;
   final String? reviewStatus;
 
+  /// 系統依 ISBN 自動補齊的欄位（description、author、publisher、publish_date）。
+  final List<String> autoFilledFields;
+  final bool aiWrittenDescription;
+
   Book({
     required this.bookId,
     required this.title,
@@ -78,6 +82,8 @@ class Book {
     this.reservedForMe = false,
     this.isApproved = true,
     this.reviewStatus,
+    this.autoFilledFields = const [],
+    this.aiWrittenDescription = false,
   });
 
   factory Book.fromJson(Map<String, dynamic> json) {
@@ -154,6 +160,10 @@ class Book {
       reviewStatus: json['review_status'] == 'pending' || json['review_status'] == 'rejected'
           ? json['review_status'] as String
           : null,
+      autoFilledFields: json['enrichment'] is Map && json['enrichment']['fields'] is List
+          ? [for (final f in json['enrichment']['fields'] as List) '$f']
+          : const [],
+      aiWrittenDescription: json['enrichment'] is Map && json['enrichment']['ai_written'] == true,
     );
   }
 

@@ -163,6 +163,27 @@ const rank = async (kind, docs, query, { userId = null } = {}) => {
   }
 };
 
+// 以已存的向量找相近文件（例如相似的書），不需要另外呼叫嵌入 API；該文件尚未建立向量時回傳 null。
+const neighbors = async (kind, docs, ref) => {
+  try {
+    const ctx = await context();
+    if (!ctx) return null;
+    const entries = await loadStore(kind, ctx.profile);
+    const target = entries.get(String(ref));
+    if (!target) return null;
+    const out = [];
+    for (const d of docs) {
+      if (d.ref === String(ref)) continue;
+      const entry = entries.get(d.ref);
+      if (entry) out.push({ ref: d.ref, similarity: embeddings.dot(target.vector, entry.vector) });
+    }
+    return out.sort((a, b) => b.similarity - a.similarity);
+  } catch (err) {
+    console.error(`[相似文件查詢失敗：${kind}]:`, err.message);
+    return null;
+  }
+};
+
 // 過濾明顯無關的結果：同時要求高於服務商的最低相似度，且不能離最高分太遠。
 const relevant = (ranked, { minSimilarity, relative = 0.7, limit = 30 } = {}) => {
   if (!ranked || ranked.length === 0) return [];
@@ -203,4 +224,4 @@ const reset = () => {
   failedUntil = 0;
 };
 
-module.exports = { TABLE, hashOf, profile, context, sync, rank, relevant, fuse, status, reset };
+module.exports = { TABLE, hashOf, profile, context, sync, rank, neighbors, relevant, fuse, status, reset };

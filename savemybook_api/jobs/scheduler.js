@@ -13,6 +13,7 @@ const uploadsCleanup = require('../services/uploads-cleanup');
 const supportAttachments = require('../services/support-attachments');
 const catalogSearch = require('../services/ai/catalog-search');
 const knowledge = require('../services/ai/knowledge');
+const enrichment = require('../services/ai/enrich');
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
@@ -122,6 +123,17 @@ const runEmbeddingSync = async () => {
   }
 };
 
+// 既有書籍缺少的簡介、作者、出版社依 ISBN 分批補齊。
+const runEnrichmentBackfill = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const done = await enrichment.backfill();
+    if (done > 0) console.log(`📚 已補齊 ${done} 本書籍的資料`);
+  } catch (err) {
+    console.error('[書籍資料補齊失敗]:', err.message);
+  }
+};
+
 const startScheduler = () => {
   let stopDispatcher = () => {};
   push.init()
@@ -138,6 +150,8 @@ const startScheduler = () => {
     setInterval(runOauthCleanup, 10 * MINUTE),
     setInterval(runUploadsSweep, 24 * HOUR),
     setInterval(runEmbeddingSync, 10 * MINUTE),
+    setInterval(runEnrichmentBackfill, 30 * MINUTE),
+    setTimeout(runEnrichmentBackfill, 5 * MINUTE),
     setTimeout(runEmbeddingSync, MINUTE),
     setTimeout(runUploadsSweep, 3 * MINUTE),
     setTimeout(runReservationExpiry, MINUTE),

@@ -53,10 +53,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _currentPage = 1;
   int _requestId = 0;
   final Set<int> _selectedCategoryIds = {};
-  String _currentSort = 'newest';
   late String _currentKeyword = widget.initialKeyword;
+  // 搜尋時預設依相關程度排序（關鍵字＋語意），清除關鍵字後回到最新上架。
+  late String _currentSort = widget.initialKeyword.isEmpty ? 'newest' : 'relevance';
 
   List<({String code, String label})> get _sortOptions => [
+        if (_currentKeyword.isNotEmpty) (code: 'relevance', label: S.mostRelevant),
         (code: 'newest', label: S.newest),
         (code: 'popular', label: S.popular),
         (code: 'price_asc', label: S.priceLowHigh),
@@ -263,6 +265,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() {
       _selectedCategoryIds.clear();
       _currentKeyword = '';
+      if (_currentSort == 'relevance') _currentSort = 'newest';
     });
     _reloadBooks(showSkeleton: true);
   }
@@ -275,7 +278,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _onSearchChanged(String k) {
-    setState(() => _currentKeyword = k);
+    setState(() {
+      if (k.isNotEmpty && _currentKeyword.isEmpty) _currentSort = 'relevance';
+      if (k.isEmpty && _currentSort == 'relevance') _currentSort = 'newest';
+      _currentKeyword = k;
+    });
     _reloadBooks(showSkeleton: true);
     if (_scrollController.hasClients && _scrollController.offset > 0) {
       _scrollController.jumpTo(0);

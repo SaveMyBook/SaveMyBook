@@ -3608,5 +3608,26 @@
       "p0": {}
     }
   },
-  "buyNow2": "直接购买"
+  "buyNow2": "直接购买",
+  "suggestRefund": "建议退款",
+  "suggestDismissal": "建议驳回",
+  "needsMoreInformation": "需要更多信息",
+  "aiAnalysis": "AI 分析",
+  "analyze": "开始分析",
+  "analyzeAgain": "重新分析",
+  "aiAnalysisReferenceOnlyDecideBased": "AI 分析仅供参考，请依实际证据裁决。",
+  "p0P1Confidence": "{p0}・置信度 {p1}%",
+  "@p0P1Confidence": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "aiSummary": "AI 整理",
+  "autoFilled": "自动补齐",
+  "similarBooks": "相似的书",
+  "doNotPayTransferMoneyOutside": "请勿私下汇款或转账，站外付款不受平台保障",
+  "pleaseCompleteDealAppWeCannot": "请通过平台交易，站外交易发生纠纷时平台无法协助",
+  "personSharedOutsideContactDetailsWatch": "对方提供了站外联系方式，请留意诈骗并通过平台完成交易",
+  "mostRelevant": "最相关"
 }

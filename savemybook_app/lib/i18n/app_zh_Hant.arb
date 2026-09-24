@@ -3608,5 +3608,26 @@
       "p0": {}
     }
   },
-  "buyNow2": "直接購買"
+  "buyNow2": "直接購買",
+  "suggestRefund": "建議退款",
+  "suggestDismissal": "建議駁回",
+  "needsMoreInformation": "需要更多資訊",
+  "aiAnalysis": "AI 分析",
+  "analyze": "開始分析",
+  "analyzeAgain": "重新分析",
+  "aiAnalysisReferenceOnlyDecideBased": "AI 分析僅供參考，請依實際證據裁決。",
+  "p0P1Confidence": "{p0}・信心 {p1}%",
+  "@p0P1Confidence": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "aiSummary": "AI 整理",
+  "autoFilled": "自動補齊",
+  "similarBooks": "相似的書",
+  "doNotPayTransferMoneyOutside": "請勿私下匯款或轉帳，站外付款不受平台保障",
+  "pleaseCompleteDealAppWeCannot": "請透過平台交易，站外交易發生糾紛時平台無法協助",
+  "personSharedOutsideContactDetailsWatch": "對方提供了站外聯絡方式，請留意詐騙並透過平台完成交易",
+  "mostRelevant": "最相關"
 }

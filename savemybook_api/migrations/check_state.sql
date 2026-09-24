@@ -278,4 +278,11 @@ UNION ALL
 SELECT '資料表', 'ai_embeddings',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_embeddings';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_embeddings'
+
+UNION ALL
+
+SELECT '資料表', 'ai_book_enrichments',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_book_enrichments';

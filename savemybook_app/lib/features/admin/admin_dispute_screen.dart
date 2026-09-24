@@ -13,6 +13,7 @@ import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import 'admin_order_detail_screen.dart';
 import '../../i18n/strings.dart';
+import 'dispute_ai_panel.dart';
 import 'admin_layout.dart';
 
 class AdminDisputeScreen extends StatefulWidget {
@@ -142,7 +143,9 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                   const SizedBox(height: 4),
                   Text(S.reasonP0(dispute.reason),
                       style: TextStyle(fontSize: 13, color: c.textSecondary)),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
+                  DisputeAiPanel(disputeId: dispute.disputeId),
+                  const SizedBox(height: 12),
                   RadioGroup<String>(
                     groupValue: selected,
                     onChanged: (value) => setSheetState(() => selected = value ?? selected),

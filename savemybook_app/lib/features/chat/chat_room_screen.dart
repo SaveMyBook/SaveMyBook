@@ -30,6 +30,7 @@ import 'widgets/chat_entry.dart';
 import 'widgets/chat_format.dart';
 import 'widgets/chat_input_accessories.dart';
 import 'widgets/chat_input_bar.dart';
+import 'fraud_guard.dart';
 import 'widgets/chat_link_preview.dart';
 import 'widgets/chat_message_meta.dart';
 import 'widgets/chat_room_header.dart';
@@ -2038,18 +2039,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       onMentionTap: _openProfile,
     );
     final previewUrl = LinkPreviewStore.firstUrl(value, mentions: entry.mentions);
-    final Widget text = previewUrl == null
+    final fraud = isMine ? null : FraudGuard.detect(value);
+    final Widget text = previewUrl == null && fraud == null
         ? linkText
         : Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               linkText,
-              ChatLinkPreviewCard(
-                url: previewUrl,
-                isMine: isMine,
-                width: math.min(math.min(MediaQuery.sizeOf(context).width * 0.7, 420.0) - 26, 300.0),
-              ),
+              if (previewUrl != null)
+                ChatLinkPreviewCard(
+                  url: previewUrl,
+                  isMine: isMine,
+                  width: math.min(math.min(MediaQuery.sizeOf(context).width * 0.7, 420.0) - 26, 300.0),
+                ),
+              if (fraud != null) FraudWarning(signal: fraud),
             ],
           );
     if (reply == null) {

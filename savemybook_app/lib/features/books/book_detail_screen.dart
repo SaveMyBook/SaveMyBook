@@ -20,6 +20,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
+import '../../widgets/buyer/book_strip.dart';
 import '../../widgets/buyer/fly_to_cart.dart';
 import '../orders/cart_screen.dart';
 import '../orders/widgets/sticky_pane.dart';
@@ -52,6 +53,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   int _currentImageIndex = 0;
   bool _isAddingToCart = false;
   bool _isBuying = false;
+  List<Book> _similar = const [];
   bool _isSharing = false;
   double? _distance;
   bool _locating = false;
@@ -74,7 +76,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     }
     RecentlyViewed.add(widget.book);
     _loadDetail();
+    _loadSimilar();
     _resolveDistance(request: false);
+  }
+
+  Future<void> _loadSimilar() async {
+    final books = await _api.fetchSimilarBooks(widget.book.bookId);
+    if (!mounted || books.isEmpty) return;
+    setState(() => _similar = books);
   }
 
   @override
@@ -346,19 +355,46 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       const SizedBox(height: 10),
       _buildPriceAndConditionRow(c),
       const SizedBox(height: 18),
-      _buildInfoRow(Icons.business_outlined, S.publisher, _book.publisher, c),
+      _buildInfoRow(Icons.business_outlined, S.publisher, _book.publisher, c, tag: _autoTag('publisher')),
       const SizedBox(height: 12),
-      _buildInfoRow(Icons.edit_outlined, S.author, _book.author, c),
+      _buildInfoRow(Icons.edit_outlined, S.author, _book.author, c, tag: _autoTag('author')),
       const SizedBox(height: 12),
       _buildInfoRow(Icons.qr_code, 'ISBN：', _book.isbn, c),
       const SizedBox(height: 12),
-      _buildInfoRow(Icons.notes, S.about, _book.description, c),
+      _buildInfoRow(Icons.notes, S.about, _book.description, c, tag: _autoTag('description')),
       const SizedBox(height: 12),
       _buildInfoRow(Icons.calendar_today_outlined, S.listed, _book.createdAt, c),
       const SizedBox(height: 24),
       _buildPickupCard(c),
       if (!_isOwnBook) ...[const SizedBox(height: 20), _buildSellerInfo(c)],
+      if (context.screenSize != ScreenSize.compact) _buildSimilar(inset: false),
     ];
+  }
+
+  // 自動補齊的欄位標示來源：簡介由 AI 依書目整理時標「AI 整理」，其餘標「自動補齊」。
+  String? _autoTag(String field) {
+    if (!_book.autoFilledFields.contains(field)) return null;
+    return field == 'description' && _book.aiWrittenDescription ? S.aiSummary : S.autoFilled;
+  }
+
+  Widget _buildSimilar({required bool inset}) {
+    final books = _similar;
+    return AnimatedSize(
+      duration: Motion.base,
+      curve: Motion.standard,
+      alignment: Alignment.topCenter,
+      child: books.isEmpty
+          ? const SizedBox(width: double.infinity)
+          : Padding(
+              padding: EdgeInsets.only(top: inset ? 0 : 24, bottom: inset ? 20 : 0),
+              child: BookStrip(
+                title: S.similarBooks,
+                icon: Icons.auto_awesome_motion_rounded,
+                books: books,
+                heroPrefix: 'similar_${_book.bookId}',
+              ),
+            ),
+    );
   }
 
   @override
@@ -401,6 +437,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                           padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: _buildDetails(c)),
                         ),
+                        _buildSimilar(inset: true),
                       ],
                     ),
                   ),
@@ -857,7 +894,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, AppColors c) {
+  Widget _buildInfoRow(IconData icon, String label, String value, AppColors c, {String? tag}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -871,6 +908,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   text: label,
                   style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
+                if (tag != null)
+                  WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: StatusBadge(label: tag, color: c.accent),
+                    ),
+                  ),
                 TextSpan(text: value),
               ],
             ),

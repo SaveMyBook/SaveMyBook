@@ -296,6 +296,7 @@ String? chatLinkText(int roomId, int i) => switch ((roomId, i)) {
       (1, 7) => 'This one is still available https://api.savemybook.today/b/0123456789abcdef0123456789abcdef',
       (1, 8) => 'www.example.org/very/long/path/without/any/preview/that/keeps/going/and/going',
       (2, 9) => 'Notes from last week: https://docs.example.com/shared/statistics-study-group-notes',
+      (2, 7) => '加我 LINE ID: bookworm_taipei_2026，可以先匯款給我，郵局帳號 0001234 5678901',
       _ => null,
     };
 
@@ -500,6 +501,7 @@ Object? fakeData(String method, String path) {
           'review_status': i == 2 ? 'pending' : (i == 3 ? 'rejected' : null),
           if (i == 4) 'reservation': {'reserved_until': DateTime.now().add(const Duration(hours: 30)).toIso8601String()},
         }),
+    'GET /books/5/similar': () => many((i) => book(i + 10)),
     'GET /chat/reservations/mine': () => many((i) => {
           'reservation_id': i,
           'book': {'book_id': i, 'title': longName, 'price': 1234567, 'status': 'on_sale', 'image_url': null},
@@ -524,7 +526,7 @@ Object? fakeData(String method, String path) {
     'GET /admin/ai/settings': aiSettingsData,
     'GET /admin/ai/usage': aiUsageData,
     'GET /admin/ai/reviews': () => many(aiReviewRow, 5),
-    'GET /books/5': () => book(5),
+    'GET /books/5': () => {...book(5), 'enrichment': {'fields': ['description', 'author', 'publisher'], 'ai_written': true}},
     'GET /categories': () => [
           {'category_id': 1, 'category_name': 'Literature & Fiction Classics', 'parent_id': null, 'sort_order': 0, 'other_book_categories': <Object>[]},
           {'category_id': 2, 'category_name': 'Computer Science & Programming', 'parent_id': null, 'sort_order': 1, 'other_book_categories': <Object>[]},

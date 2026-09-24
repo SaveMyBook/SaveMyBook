@@ -3608,5 +3608,26 @@
       "p0": {}
     }
   },
-  "buyNow2": "今すぐ購入"
+  "buyNow2": "今すぐ購入",
+  "suggestRefund": "返金を推奨",
+  "suggestDismissal": "却下を推奨",
+  "needsMoreInformation": "追加情報が必要",
+  "aiAnalysis": "AI 分析",
+  "analyze": "分析する",
+  "analyzeAgain": "再分析",
+  "aiAnalysisReferenceOnlyDecideBased": "AI 分析は参考情報です。実際の証拠に基づいて判断してください。",
+  "p0P1Confidence": "{p0}・確信度 {p1}%",
+  "@p0P1Confidence": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "aiSummary": "AI 要約",
+  "autoFilled": "自動入力",
+  "similarBooks": "似ている本",
+  "doNotPayTransferMoneyOutside": "アプリ外での送金・振込はしないでください。プラットフォームの保護対象外です。",
+  "pleaseCompleteDealAppWeCannot": "アプリ内で取引してください。アプリ外の取引トラブルには対応できません。",
+  "personSharedOutsideContactDetailsWatch": "相手がアプリ外の連絡先を送ってきました。詐欺に注意し、アプリ内で取引を完了してください。",
+  "mostRelevant": "関連度順"
 }

@@ -5,6 +5,7 @@ const { stripImageMetadata } = require('../../lib/image-metadata');
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const UPLOAD_URL_RE = /^\/uploads\/books\/[\w.-]+$/;
+const EVIDENCE_URL_RE = /^\/uploads\/(books|evidence)\/[\w.-]+$/;
 
 const fromBuffer = (buffer) => {
   if (!Buffer.isBuffer(buffer) || buffer.length === 0 || buffer.length > MAX_BYTES) return null;
@@ -33,11 +34,13 @@ const fromUploads = async (files, max = 2) => {
   return out;
 };
 
-const fromUrls = async (urls, max = 2) => {
+// allowEvidence：爭議佐證照片存在 uploads/evidence，只有管理員的爭議分析會讀取。
+const fromUrls = async (urls, max = 2, { allowEvidence = false } = {}) => {
+  const pattern = allowEvidence ? EVIDENCE_URL_RE : UPLOAD_URL_RE;
   const out = [];
   for (const url of urls) {
     if (out.length >= max) break;
-    if (typeof url !== 'string' || !UPLOAD_URL_RE.test(url)) continue;
+    if (typeof url !== 'string' || !pattern.test(url)) continue;
     const image = await readFile(path.join(UPLOAD_ROOT, url.slice('/uploads/'.length)));
     if (image) out.push(image);
   }
