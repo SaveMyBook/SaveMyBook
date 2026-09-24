@@ -6,7 +6,6 @@ import '../../models/member_level.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
-import '../../widgets/app_buttons.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/responsive.dart';
@@ -15,6 +14,7 @@ import '../../widgets/swipe_action.dart';
 import '../../widgets/buyer/undo_snackbar.dart';
 import '../books/book_detail_screen.dart';
 import 'purchase_history_screen.dart';
+import 'widgets/payment_success_dialog.dart';
 import 'widgets/sticky_pane.dart';
 import '../books/seller_screen.dart';
 import '../account/wallet_screen.dart';
@@ -90,13 +90,17 @@ class _CartScreenState extends State<CartScreen> {
     });
   }
 
+  // 其他買家預約保留中的書結帳會被伺服器擋下，不讓使用者勾選。
   bool _isAvailable(CartItem item) {
     final myId = ApiService.currentUser?.userId;
-    return item.book.status == 'on_sale' && (myId == null || item.book.sellerId != myId);
+    return item.book.status == 'on_sale' &&
+        !item.book.isReservedByOthers &&
+        (myId == null || item.book.sellerId != myId);
   }
 
   String _unavailableReason(CartItem item) {
     if (item.book.status != 'on_sale') return item.book.statusText;
+    if (item.book.isReservedByOthers) return S.reserved;
     return S.listing;
   }
 
@@ -222,90 +226,13 @@ class _CartScreenState extends State<CartScreen> {
     HapticFeedback.heavyImpact();
     final sellerCount = selected.map((i) => i.book.sellerId).toSet().length;
     _load();
-    final viewOrders = await _showPaymentSuccess(total: total, count: selected.length, sellerCount: sellerCount);
+    final viewOrders = await showPaymentSuccess(context, total: total, count: selected.length, sellerCount: sellerCount);
     if (!mounted) return;
     if (viewOrders == true) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PurchaseHistoryScreen()));
     }
   }
 
-  Future<bool?> _showPaymentSuccess({required double total, required int count, required int sellerCount}) {
-    final c = AppColors.of(context);
-    return showGeneralDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: c.scrim,
-      transitionDuration: Motion.enter,
-      transitionBuilder: (_, animation, _, child) => FadeTransition(
-        opacity: animation,
-        child: ScaleTransition(
-          scale: Tween(begin: 0.9, end: 1.0).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-          child: child,
-        ),
-      ),
-      pageBuilder: (ctx, _, _) => Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: Material(
-            color: c.card,
-            borderRadius: BorderRadius.circular(24),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DrawnCheck(color: c.success, size: 88),
-                  const SizedBox(height: 18),
-                  FadeSlideIn(
-                    index: 3,
-                    child: Text(
-                      S.paymentSuccessful,
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: c.textPrimary),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  FadeSlideIn(
-                    index: 4,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: AnimatedCount(
-                        value: total,
-                        prefix: '-',
-                        style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: c.accent),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  FadeSlideIn(
-                    index: 5,
-                    child: Text(
-                      sellerCount > 1
-                          ? S.p0BooksSplitIntoP1Orders(count, sellerCount)
-                          : S.orderPlacedSellerDropBookOff,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, height: 1.5, color: c.textSecondary),
-                    ),
-                  ),
-                  const SizedBox(height: 22),
-                  PrimaryButton(
-                    label: S.viewOrder,
-                    icon: Icons.receipt_long_rounded,
-                    onPressed: () => Navigator.pop(ctx, true),
-                  ),
-                  const SizedBox(height: 4),
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    style: TextButton.styleFrom(foregroundColor: c.textSecondary),
-                    child: Text(S.keepBrowsing),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {

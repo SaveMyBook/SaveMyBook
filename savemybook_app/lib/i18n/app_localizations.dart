@@ -2006,6 +2006,8 @@ abstract class AppLocalizations {
   String get awaitingBuyerConfirmation;
   String get awaitingCompletion;
   String get libraryCopyUnofficialSource;
+  String p0CannotEdit(Object p0);
+  String get buyNow2;
 }
 
 class _LEn extends AppLocalizations {
@@ -7959,6 +7961,12 @@ class _LEn extends AppLocalizations {
 
   @override
   String get libraryCopyUnofficialSource => 'Library copy or unofficial source';
+
+  @override
+  String p0CannotEdit(Object p0) => '${p0} · Cannot edit';
+
+  @override
+  String get buyNow2 => 'Buy now';
 
 }
 
@@ -13914,6 +13922,12 @@ class _LJa extends AppLocalizations {
   @override
   String get libraryCopyUnofficialSource => '図書館蔵書・非正規入手の疑い';
 
+  @override
+  String p0CannotEdit(Object p0) => '${p0}・編集できません';
+
+  @override
+  String get buyNow2 => '今すぐ購入';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -19867,6 +19881,12 @@ class _LKo extends AppLocalizations {
 
   @override
   String get libraryCopyUnofficialSource => '도서관 소장본 또는 비정상 출처';
+
+  @override
+  String p0CannotEdit(Object p0) => '${p0} · 편집 불가';
+
+  @override
+  String get buyNow2 => '바로 구매';
 
 }
 
@@ -25822,6 +25842,12 @@ class _LZh extends AppLocalizations {
   @override
   String get libraryCopyUnofficialSource => '館藏或非正規來源';
 
+  @override
+  String p0CannotEdit(Object p0) => '${p0}・無法編輯';
+
+  @override
+  String get buyNow2 => '直接購買';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -31776,6 +31802,12 @@ class _LZhHans extends AppLocalizations {
   @override
   String get libraryCopyUnofficialSource => '馆藏或非正规来源';
 
+  @override
+  String p0CannotEdit(Object p0) => '${p0}・无法编辑';
+
+  @override
+  String get buyNow2 => '直接购买';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -37729,6 +37761,12 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get libraryCopyUnofficialSource => '館藏或非正規來源';
+
+  @override
+  String p0CannotEdit(Object p0) => '${p0}・無法編輯';
+
+  @override
+  String get buyNow2 => '直接購買';
 
 }
 

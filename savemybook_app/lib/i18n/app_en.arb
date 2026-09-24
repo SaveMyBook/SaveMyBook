@@ -3601,5 +3601,12 @@
   },
   "awaitingBuyerConfirmation": "Awaiting buyer confirmation",
   "awaitingCompletion": "Awaiting completion",
-  "libraryCopyUnofficialSource": "Library copy or unofficial source"
+  "libraryCopyUnofficialSource": "Library copy or unofficial source",
+  "p0CannotEdit": "{p0} · Cannot edit",
+  "@p0CannotEdit": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyNow2": "Buy now"
 }

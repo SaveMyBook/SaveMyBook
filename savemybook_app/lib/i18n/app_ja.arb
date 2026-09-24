@@ -3601,5 +3601,12 @@
   },
   "awaitingBuyerConfirmation": "購入者の確認待ち",
   "awaitingCompletion": "完了待ち",
-  "libraryCopyUnofficialSource": "図書館蔵書・非正規入手の疑い"
+  "libraryCopyUnofficialSource": "図書館蔵書・非正規入手の疑い",
+  "p0CannotEdit": "{p0}・編集できません",
+  "@p0CannotEdit": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyNow2": "今すぐ購入"
 }

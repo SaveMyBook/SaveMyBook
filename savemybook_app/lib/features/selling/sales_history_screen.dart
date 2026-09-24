@@ -113,12 +113,12 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> with SingleTick
     if (!confirmed || !mounted) return;
 
     _busy = true;
-    final ok = await runBusy(context, () => _api.removeBook(book.bookId));
+    final error = await runBusy(context, () => _api.removeBook(book.bookId));
     _busy = false;
     if (!mounted) return;
 
-    if (ok != true) {
-      showAppSnackBar(context, S.couldNotDelistPleaseTryAgain, isError: true);
+    if (error != null) {
+      showAppSnackBar(context, error, isError: true);
     } else {
       HapticFeedback.lightImpact();
       showAppSnackBar(context, S.p0Delisted(book.title));

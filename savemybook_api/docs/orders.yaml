@@ -168,6 +168,57 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 結帳失敗，請稍後再試 }
 
+  /api/orders/buy-now:
+    post:
+      summary: 直接購買單本書
+      operationId: buyNow
+      tags: [orders]
+      description: |
+        不經購物車直接購買一本書，檢查項目、扣款、書籍狀態與通知皆與 `POST /api/orders/checkout` 相同；
+        該書若也在請求者的購物車中會一併移除。需 `payment` 範圍的身分驗證（方式同結帳）。
+
+        書籍不存在或未公開回傳 404；已被買走、為自己上架的書或售價異常回傳 400；
+        代幣不足回傳 400 `INSUFFICIENT_BALANCE`；由其他買家預約保留中回傳 409 `BOOK_RESERVED`；
+        同時有人結帳同一本書時，其中一方回傳 409。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/VerifyToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [book_id]
+              properties:
+                book_id: { type: integer, example: 101 }
+      responses:
+        '201':
+          description: 購買成功，回傳建立的訂單。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 購買成功 }
+                  data: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: 無法購買。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                已被買走:
+                  value: { success: false, message: 《挪威的森林》已無法購買 }
+                代幣不足:
+                  value: { success: false, code: INSUFFICIENT_BALANCE, message: 代幣不足，此訂單需 180 代幣，目前餘額 50 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/VerificationRequired' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/BookReserved' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/orders/{id}:
     get:
       summary: 取得訂單詳情

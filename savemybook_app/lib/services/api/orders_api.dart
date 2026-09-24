@@ -22,6 +22,16 @@ extension OrdersApi on ApiService {
     return null;
   }
 
+  Future<String?> buyNow(int bookId) async {
+    final res = await _send('POST', '/orders/buy-now', body: {'book_id': bookId});
+    if (res == null) return S.pleaseSignFirst;
+    if (res['success'] != true) {
+      return res['code'] == 'VERIFICATION_CANCELLED' ? '' : (res['message'] as String? ?? S.checkoutFailed);
+    }
+    unawaited(fetchCartBookIds());
+    return null;
+  }
+
   Future<String?> cancelOrder(int orderId, {String? reason}) async {
     final res = await _send('PATCH', '/orders/$orderId/cancel', body: {'reason': reason});
     if (res == null) return S.pleaseSignFirst;

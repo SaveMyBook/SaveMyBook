@@ -20,6 +20,8 @@ const CATEGORY_LABELS = {
 };
 const CATEGORIES = Object.keys(CATEGORY_LABELS);
 const BLOCK_CONFIDENCE = 0.85;
+// 封面、封底、條碼頁與一張內頁：館藏標籤常貼在封底或條碼旁，只看前兩張會漏掉。
+const MAX_IMAGES = 4;
 
 const SYSTEM = `
 你是 SaveMyBook 二手書交易平台的上架內容審核員。平台只允許販售實體二手書籍（含漫畫、雜誌、教科書、考試用書）。
@@ -30,7 +32,9 @@ const SYSTEM = `
 - contact：要求站外交易或留下電話、LINE、Email、社群帳號、匯款帳號等聯絡或付款資訊
 - misleading：書名、照片與描述明顯不符或刻意誤導
 - price：售價明顯不合理（例如一般書籍標價數千元以上，或遠高於該書新書定價）
-- source：疑似圖書館館藏或非正規來源（照片中有圖書館館藏章、索書號標籤、館藏條碼、「非賣品」「贈閱」「樣書」「公播」字樣，或描述提及借閱、館藏）
+- source：疑似圖書館館藏或非正規來源（照片中有圖書館館藏章、索書號標籤、館藏條碼、「非賣品」「贈閱」「樣書」「公播」字樣，或描述提及借閱、館藏）。
+  請逐張仔細檢查封面、封底、書背與條碼附近：只要看得到部分館藏資訊（例如「國立」「大學」「圖書館」等機構名稱的片段、以英數編號開頭的索書號或館藏條碼、白色長方形標籤），即使大部分被遮住也算。
+  若照片中有手指、手掌、貼紙、膠帶、紙片或其他物品刻意壓在標籤、條碼或印章的位置，或該位置有撕除、刮除、塗改的痕跡，視為疑似遮掩來源，判定 review 並列入 source。
 判斷原則：
 1. allow：看起來是正常的二手書上架。書籍內容題材涉及犯罪、戰爭、醫學或性別議題本身不構成違規。
 2. review：有疑慮但無法確定，需要人工審核。
@@ -114,7 +118,7 @@ const screen = async ({ userId, book, loadImages }) => {
     const base = runner.providerFor(settings, 'moderation');
     if (!ai.keyConfigured(base)) return ALLOW;
 
-    const images = loadImages ? await loadImages() : [];
+    const images = loadImages ? await loadImages(MAX_IMAGES) : [];
     const provider = images.length ? runner.visionProvider(base) : base;
     if (await usage.budgetExceeded(settings)) {
       await usage.log({
@@ -142,7 +146,9 @@ const screen = async ({ userId, book, loadImages }) => {
       system: SYSTEM,
       prompt: `請審核以下上架商品，照片共 ${ai.PROVIDERS[provider].vision ? images.length : 0} 張。\n\n<商品資料>\n${text}\n</商品資料>${hint}`,
       images,
+      imageDetail: 'high',
       json: true,
+      reasoning: 'low',
       maxOutputTokens: 400,
       temperature: 0
     });
@@ -163,4 +169,4 @@ const assertNotRejected = (decision) => {
   if (decision.action === 'reject') throw rejected(decision.reasons.map((r) => sanitizeLine(r, 60)));
 };
 
-module.exports = { VERDICTS, CATEGORIES, CATEGORY_LABELS, BLOCK_CONFIDENCE, SYSTEM, ALLOW, screen, sanitizeVerdict, actionFor, assertNotRejected, rejected };
+module.exports = { MAX_IMAGES, VERDICTS, CATEGORIES, CATEGORY_LABELS, BLOCK_CONFIDENCE, SYSTEM, ALLOW, screen, sanitizeVerdict, actionFor, assertNotRejected, rejected };

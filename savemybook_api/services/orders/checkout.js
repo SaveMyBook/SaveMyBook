@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const prisma = require('../../lib/prisma');
-const { badRequest, conflict } = require('../../lib/errors');
+const { badRequest, conflict, notFound } = require('../../lib/errors');
 const { changeBalance } = require('../wallet');
 const { notify } = require('../notify');
 const reservations = require('../reservations');
@@ -28,15 +28,35 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
   });
 
   if (cartItems.length === 0) throw badRequest('購物車沒有可結帳的項目');
+  return placeOrders(buyerId, cartItems, { paymentMethod });
+};
+
+// 直接購買單本書：不經購物車，但檢查與扣款流程和結帳完全相同；書若也在購物車中會一併移除。
+const buyNow = async (buyerId, { bookId, paymentMethod }) => {
+  const book = await prisma.books.findUnique({ where: { book_id: bookId } });
+  if (!book || !book.is_approved) throw notFound('找不到此書籍');
+  const [order] = await placeOrders(buyerId, [{ cart_id: null, book_id: book.book_id, quantity: 1, books: book }], {
+    paymentMethod,
+    alsoRemoveBookIds: [book.book_id]
+  });
+  return order;
+};
+
+const placeOrders = async (buyerId, cartItems, { paymentMethod, alsoRemoveBookIds = [] }) => {
+  const direct = alsoRemoveBookIds.length > 0;
+  const hint = (cart, single) => (direct ? single : cart);
 
   const unavailable = cartItems.find((i) => i.books.status !== 'on_sale');
-  if (unavailable) throw badRequest(`《${unavailable.books.title}》已無法購買，請先移除`);
+  if (unavailable) throw badRequest(`《${unavailable.books.title}》已無法購買${hint('，請先移除', '')}`);
 
   // 書櫃維修中時賣家無法存書，成立訂單只會卡在待存書。
   const underMaintenance = await cabinets.maintenanceIds();
   const blocked = cartItems.find((i) => i.books.cabinet_id && underMaintenance.has(Number(i.books.cabinet_id)));
   if (blocked) {
-    throw badRequest(`《${blocked.books.title}》存放的書櫃維修中，暫時無法購買，請先移除或稍後再試`, 'CABINET_MAINTENANCE');
+    throw badRequest(
+      `《${blocked.books.title}》存放的書櫃維修中，暫時無法購買，${hint('請先移除或稍後再試', '請稍後再試')}`,
+      'CABINET_MAINTENANCE'
+    );
   }
 
   await reservations.assertNotHeldByOthers(null, cartItems.map((i) => i.books), buyerId);
@@ -47,7 +67,7 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
   // 既有資料可能有售價 0 的書，結帳時須再擋一次。
   const invalidPrice = cartItems.find((i) => !(Number(i.books.price) > 0));
   if (invalidPrice) {
-    throw badRequest(`《${invalidPrice.books.title}》的售價異常，請聯絡賣家或先移除`);
+    throw badRequest(`《${invalidPrice.books.title}》的售價異常，${hint('請聯絡賣家或先移除', '請聯絡賣家')}`);
   }
 
   const bySeller = new Map();
@@ -81,7 +101,7 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
         data: { status: 'reserved', updated_at: new Date() }
       });
       if (reserved.count !== bookIds.length) {
-        throw conflict('購物車中有書籍已被其他買家購買，請重新整理後再結帳');
+        throw conflict(hint('購物車中有書籍已被其他買家購買，請重新整理後再結帳', '此書籍已被其他買家購買'));
       }
 
       const totalAmount = items.reduce((sum, i) => sum + lineTotal(i), 0);
@@ -128,9 +148,13 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
       results.push(order);
     }
 
-    await tx.shopping_cart.deleteMany({ where: { cart_id: { in: cartItems.map((i) => i.cart_id) } } });
+    const cartIds = cartItems.map((i) => i.cart_id).filter((id) => id != null);
+    if (cartIds.length > 0) await tx.shopping_cart.deleteMany({ where: { cart_id: { in: cartIds } } });
+    if (alsoRemoveBookIds.length > 0) {
+      await tx.shopping_cart.deleteMany({ where: { user_id: buyerId, book_id: { in: alsoRemoveBookIds } } });
+    }
     return results;
   });
 };
 
-module.exports = { checkout };
+module.exports = { checkout, buyNow };
