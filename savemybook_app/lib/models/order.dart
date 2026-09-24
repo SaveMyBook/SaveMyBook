@@ -1,4 +1,5 @@
 import '../utils/api_helpers.dart';
+import '../i18n/strings.dart';
 import '../utils/app_labels.dart';
 import 'book.dart';
 
@@ -74,16 +75,28 @@ class Order {
 
   String get statusText => AppLabels.order(status, asBuyer: true);
 
+  bool get isInCabinet => status == 'deposited' || status == 'pending_pickup';
+
+  /// 買家已取書、尚未完成訂單：款項仍由平台保管，買家可完成訂單或申請爭議。
+  bool get awaitingConfirmation => isInCabinet && pickedUpAt != null;
+
+  bool get canCollect => isInCabinet && pickedUpAt == null;
+
   bool canOpenDispute({DateTime? now}) {
-    if (hasOpenDispute || status == 'cancelled' || status == 'refunded') return false;
-    if (status != 'completed') return true;
-    final pickedUp = pickedUpAt ?? completedAt;
+    if (hasOpenDispute) return false;
+    if (const ['cancelled', 'refunded', 'refunding', 'completed'].contains(status)) return false;
+    final pickedUp = pickedUpAt;
     if (pickedUp == null) return true;
     return (now ?? DateTime.now()).difference(pickedUp) <= disputeWindow;
   }
 
-  bool get isCancellable =>
-      status == 'pending_payment' || status == 'pending_deposit' || status == 'deposited';
+  /// 賣家存書後雙方都不能自行取消，只能提出申訴。
+  bool get isCancellable => status == 'pending_payment' || status == 'pending_deposit';
+
+  String statusLabel({required bool asSeller}) {
+    if (awaitingConfirmation) return asSeller ? S.awaitingBuyerConfirmation : S.awaitingCompletion;
+    return AppLabels.order(status, asBuyer: !asSeller);
+  }
 
   factory Order.fromJson(Map<String, dynamic> json) {
     final cabinet = json['smart_cabinets'] as Map<String, dynamic>?;

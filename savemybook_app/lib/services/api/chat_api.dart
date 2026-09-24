@@ -212,6 +212,11 @@ extension ChatApi on ApiService {
     return (ChatReservation.fromJson(Map<String, dynamic>.from(res['data'])), null);
   }
 
+  Future<List<ChatReservation>> fetchMyReservations() async {
+    final res = await _send('GET', '/chat/reservations/mine');
+    return _mapList(res, ChatReservation.fromJson);
+  }
+
   Future<(ChatReservation?, String?)> respondReservation(int reservationId, String action) async {
     final res = await _send('PATCH', '/chat/reservations/$reservationId', body: {'action': action});
     if (res == null || res['success'] != true || res['data'] is! Map) {

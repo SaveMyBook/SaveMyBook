@@ -6,14 +6,14 @@
   "orderPendingPickup": "Ready for pickup",
   "orderCompleted": "Completed",
   "orderCancelled": "Cancelled",
-  "orderRefunding": "Refunding",
+  "orderRefunding": "Under review",
   "orderRefunded": "Refunded",
   "orderBuyerPendingDeposit": "Waiting for seller drop-off",
   "orderBuyerDeposited": "Ready for pickup",
   "orderBuyerRefunding": "Under dispute",
   "orderFlowDeposit": "Seller drop-off",
   "orderFlowDeposited": "Placed in locker",
-  "orderFlowPickup": "Buyer pickup",
+  "orderFlowPickup": "Picked up by buyer",
   "orderFlowCompleted": "Transaction complete",
   "bookOnSale": "On sale",
   "bookReserved": "Reserved",
@@ -2004,7 +2004,7 @@
   "weLlLetKnowWhenSeller": "You will be notified when the seller drops off the book",
   "waitingBuyerCollect": "Waiting for the buyer to collect",
   "transactionCompleteThank": "Transaction complete",
-  "confirmVeTakenBookFromLocker": "Confirm you've taken the book from the locker. The order will then be completed.",
+  "confirmVeTakenBookFromLocker": "Confirm that you have taken the book from the locker. After checking its condition, complete the order in Purchases.",
   "p0Orders2": "{p0} orders",
   "@p0Orders2": {
     "placeholders": {
@@ -3580,5 +3580,26 @@
   "noOpenaiGeminiKeyConfiguredOnly": "No OpenAI or Gemini key is configured. Only keyword search is in use.",
   "databaseNotBeenUpdated020Only": "The database has not been updated (020). Only keyword search is in use.",
   "hybridSearchKeywordSemantic": "Hybrid search (keyword + semantic)",
-  "keywordSearchOnly": "Keyword search only"
+  "keywordSearchOnly": "Keyword search only",
+  "paymentReleasedWalletWhenBuyerCompletes": "Payment is released to your wallet when the buyer completes the order or 24 hours after pickup",
+  "completeOrderAfterCheckingBookCompletes": "Complete the order after checking the book. It completes automatically 24 hours after pickup if no dispute is opened",
+  "completeOrder": "Complete order",
+  "onceCompleteOrderPaymentReleasedSeller": "Once you complete the order, the payment is released to the seller and you can no longer open a dispute.",
+  "orderCompleted2": "Order completed",
+  "noReservedBooks": "No reserved books",
+  "heldUntilP02": "Held until {p0}",
+  "@heldUntilP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "heldUntilP03": "Held until {p0}",
+  "@heldUntilP03": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "awaitingBuyerConfirmation": "Awaiting buyer confirmation",
+  "awaitingCompletion": "Awaiting completion",
+  "libraryCopyUnofficialSource": "Library copy or unofficial source"
 }

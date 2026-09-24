@@ -68,7 +68,18 @@ const list = async ({ skip, limit, sort, viewerId, ...filters }) => {
     prisma.books.findMany({ where, skip, take: limit, orderBy: SORTS[sort], include: listInclude }),
     prisma.books.count({ where })
   ]);
-  return { total, books: filters.ownView ? await reviews.withReviewStatus(books) : books };
+  return { total, books: filters.ownView ? await withHolds(await reviews.withReviewStatus(books)) : books };
+};
+
+// 賣家自己的書籍清單附上預約保留資訊，書籍管理據此列入「已預定」。
+const withHolds = async (list) => {
+  const onSale = list.filter((b) => b.status === 'on_sale').map((b) => b.book_id);
+  if (onSale.length === 0) return list;
+  const holds = new Map((await reservations.activeHoldsFor(onSale)).map((h) => [h.book_id, h]));
+  return list.map((b) => {
+    const hold = holds.get(b.book_id);
+    return hold ? { ...b, reservation: { reserved_until: hold.pickup_deadline, reserved_for_me: false } } : b;
+  });
 };
 
 const recommended = async (viewerId, viewedIds, limit) => {
@@ -200,6 +211,7 @@ const allowedStatuses = (user) => (user.role === 'admin' ? BOOK_STATUSES : SELLE
 const update = async (bookId, user, data) => {
   const isAdmin = user.role === 'admin';
   const book = await findOwnedBook(bookId, user, '存取被拒，您無權限修改他人的商品');
+  if (!isAdmin) await reservations.assertNotHeld(bookId);
 
   // 檢舉成立但管理員未勾選下架時 is_approved 仍為 true，須一併查檢舉紀錄，否則賣家自行下架後可再上架。
   if (data.status === 'on_sale' && book.status !== 'on_sale' && !isAdmin && await violationLocked(book)) {
@@ -268,6 +280,7 @@ const update = async (bookId, user, data) => {
 
 const remove = async (bookId, user) => {
   const book = await findOwnedBook(bookId, user, '存取被拒，您無權限刪除他人的書籍');
+  if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
 
   if (book.status === 'reserved') throw conflict('此書籍交易中，請先處理訂單再下架');
 
@@ -279,6 +292,7 @@ const remove = async (bookId, user) => {
 
 const addImages = async (bookId, user, images, { files = [] } = {}) => {
   const book = await findOwnedBook(bookId, user, '存取被拒，您無權限修改他人的商品');
+  if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
   if (images.length === 0) throw badRequest('請選擇要上傳的圖片');
 
   const existing = await prisma.book_images.count({ where: { book_id: bookId } });
@@ -317,6 +331,7 @@ const addImages = async (bookId, user, images, { files = [] } = {}) => {
 
 const removeImage = async (bookId, imageId, user) => {
   await findOwnedBook(bookId, user, '存取被拒，您無權限修改他人的商品');
+  if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
 
   const result = await prisma.book_images.deleteMany({ where: { image_id: imageId, book_id: bookId } });
   if (result.count === 0) throw notFound('找不到該圖片');

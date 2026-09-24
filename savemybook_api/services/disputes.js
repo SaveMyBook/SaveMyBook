@@ -41,8 +41,9 @@ const create = async (userId, { orderId, reason, evidenceUrls }) => {
   if (!order) throw notFound('找不到該訂單');
   if (order.buyer_id !== userId && order.seller_id !== userId) throw forbidden('存取被拒');
   if (NOT_DISPUTABLE.includes(order.status)) throw badRequest('此訂單已取消或已退款，無法提出爭議');
-  const pickedUpAt = order.picked_up_at ?? order.completed_at;
-  if (order.status === 'completed' && pickedUpAt && Date.now() - new Date(pickedUpAt).getTime() > DISPUTE_WINDOW_MS) {
+  // 完成訂單即撥款給賣家，之後不再受理申訴；取書後未完成的訂單以取書時間起算 24 小時。
+  if (order.status === 'completed') throw badRequest('訂單已完成，無法再提出申訴', 'DISPUTE_WINDOW_PASSED');
+  if (order.picked_up_at && Date.now() - new Date(order.picked_up_at).getTime() > DISPUTE_WINDOW_MS) {
     throw badRequest('已超過取書後 24 小時的申訴期限', 'DISPUTE_WINDOW_PASSED');
   }
 
@@ -94,8 +95,9 @@ const adminList = (status) => prisma.transaction_disputes.findMany({
 });
 
 // 依時間欄位推回申訴前狀態，不可一律改成已完成（會替未存書的訂單撥款）。
+// 駁回或調解後：買家已取書的訂單直接完成並撥款；尚未取書的回到原本的進度。
 const restoredStatus = (order) => {
-  if (order.completed_at) return 'completed';
+  if (order.completed_at || order.picked_up_at) return 'completed';
   if (order.deposited_at) return 'deposited';
   return 'pending_deposit';
 };

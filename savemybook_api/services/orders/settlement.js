@@ -40,7 +40,8 @@ const ledgerOf = async (tx, order) => {
 const round2 = (n) => Math.round(n * 100) / 100;
 
 // 必須在 guardedUpdate 之後、同一個交易內呼叫，靠其列鎖避免重複結算。
-const settle = async (tx, order, target) => {
+// restoreBookTo：退款後書籍回到的狀態；逾期未存書或未取書自動取消時改為下架，由賣家確認後自行重新上架。
+const settle = async (tx, order, target, { restoreBookTo = 'on_sale' } = {}) => {
   const phase = phaseOf(target);
   const result = { phase, paidOut: 0, clawedBack: 0, refunded: 0 };
   if (phase === 'held') return result;
@@ -92,12 +93,12 @@ const settle = async (tx, order, target) => {
 
   await tx.books.updateMany({
     where: { book_id: { in: bookIds }, status: 'reserved' },
-    data: { status: 'on_sale', updated_at: now }
+    data: { status: restoreBookTo, updated_at: now }
   });
   return result;
 };
 
-const transition = async (tx, order, target, { cancelReason = null } = {}) => {
+const transition = async (tx, order, target, { cancelReason = null, restoreBookTo } = {}) => {
   const now = new Date();
   const data = { status: target };
   if (target === 'deposited') data.deposited_at = now;
@@ -111,7 +112,7 @@ const transition = async (tx, order, target, { cancelReason = null } = {}) => {
   }
 
   await guardedUpdate(tx, order, data);
-  return settle(tx, order, target);
+  return settle(tx, order, target, { restoreBookTo });
 };
 
 const assertAdminTransition = (from, to) => {
@@ -134,4 +135,4 @@ const describeSettlement = (money) => {
 
 const statusLabel = (status) => ORDER_STATUS_LABELS[status] ?? status;
 
-module.exports = { phaseOf, transition, assertAdminTransition, describeSettlement, statusLabel };
+module.exports = { phaseOf, guardedUpdate, transition, assertAdminTransition, describeSettlement, statusLabel };

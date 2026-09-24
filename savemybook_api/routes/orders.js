@@ -14,10 +14,10 @@ router.get('/', async (req, res) => {
   const tab = req.query.tab;
   const { page, limit, skip } = v.pagination(req.query);
 
-  const statuses = tab ? orders.tabStatuses(role, tab) : null;
-  if (tab && !statuses) throw badRequest(`不支援的 tab：${String(tab).slice(0, 30)}`);
+  const filter = tab ? orders.tabFilter(role, tab) : null;
+  if (tab && !filter) throw badRequest(`不支援的 tab：${String(tab).slice(0, 30)}`);
 
-  const { list, total } = await orders.listForUser(req.user.userId, { role, statuses, skip, limit });
+  const { list, total } = await orders.listForUser(req.user.userId, { role, filter, skip, limit });
   res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: list });
 });
 

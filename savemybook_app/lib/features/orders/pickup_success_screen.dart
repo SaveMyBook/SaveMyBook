@@ -64,7 +64,12 @@ class _PickupSuccessScreenState extends State<PickupSuccessScreen> {
                     const SizedBox(height: 20),
                     FadeSlideIn(
                       index: 5,
-                      child: BookThumbnail(imageUrl: book.hasImage ? book.imageUrl : null, width: 84, height: 112, radius: 12),
+                      child: BookThumbnail(
+                        imageUrl: book.hasImage ? book.imageUrl : null,
+                        width: 84,
+                        height: 112,
+                        radius: 12,
+                      ),
                     ),
                   ],
                   if (order != null) ...[
@@ -78,6 +83,15 @@ class _PickupSuccessScreenState extends State<PickupSuccessScreen> {
                       ),
                     ),
                   ],
+                  const SizedBox(height: 16),
+                  FadeSlideIn(
+                    index: 6,
+                    child: Text(
+                      S.completeOrderAfterCheckingBookCompletes,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.5),
+                    ),
+                  ),
                   const SizedBox(height: 40),
                   FadeSlideIn(
                     index: 6,

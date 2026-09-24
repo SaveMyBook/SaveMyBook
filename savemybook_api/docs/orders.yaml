@@ -4,8 +4,18 @@ tags:
     description: |
       結帳、查詢與訂單狀態流轉。
 
-      結帳時即自買家錢包扣款，賣方款項於訂單狀態轉為 `completed` 後始行入帳，
-      期間於賣家端顯示為待定收益（`GET /api/wallet/pending`）。
+      結帳時即自買家錢包扣款，款項由平台保管；買家取書後點選「完成訂單」（`completed`），
+      或取書滿 24 小時未提出申訴由排程自動完成，款項才撥入賣家錢包，期間於賣家端顯示為待定收益（`GET /api/wallet/pending`）。
+
+      **排程（每 10 分鐘）**
+
+      | 條件 | 處理 |
+      | --- | --- |
+      | 已取書（`picked_up_at` 有值）滿 24 小時，且狀態仍為 `deposited`／`pending_pickup` | 自動完成並撥款，通知買賣雙方 |
+      | `pending_payment`／`pending_deposit` 且訂單成立滿 7 天 | 自動取消、全額退款，書籍改為下架（`removed`），通知雙方 |
+      | `deposited`／`pending_pickup` 未取書且存書滿 7 天 | 自動取消、全額退款，書籍改為下架，通知賣家至書櫃取回書籍 |
+
+      爭議處理中（`refunding`）的訂單不受排程影響。
 
       購物車涵蓋多位賣家時，結帳會依賣家拆分為多筆訂單，
       因此 `POST /api/orders/checkout` 的回應為陣列。
@@ -19,24 +29,25 @@ paths:
       description: |
         購買紀錄與銷售紀錄共用此端點，以 `role` 參數切換。
 
-        `tab` 對應用戶端的頁籤，伺服器會將其展開為一組訂單狀態。
-        買賣雙方的頁籤定義不同：
+        `tab` 對應用戶端的頁籤，伺服器會將其展開為查詢條件。「待確認」指已取書（`picked_up_at` 有值）、
+        狀態仍為 `deposited` 或 `pending_pickup` 的訂單。買賣雙方的頁籤定義不同：
 
         **買家（`role=buyer`）**
 
-        | `tab` | 對應狀態 |
+        | `tab` | 條件 |
         | --- | --- |
-        | `pending_pickup` | `pending_payment`, `pending_deposit`, `deposited`, `pending_pickup` |
-        | `completed` | `completed` |
+        | `pending_pickup` | `pending_payment`, `pending_deposit`, `deposited`, `pending_pickup`，且尚未取書 |
+        | `completed` | `completed`，以及待確認的訂單 |
         | `cancelled` | `cancelled`, `refunded` |
         | `disputing` | `refunding` |
 
         **賣家（`role=seller`）**
 
-        | `tab` | 對應狀態 |
+        | `tab` | 條件 |
         | --- | --- |
         | `pending_deposit` | `pending_payment`, `pending_deposit` |
-        | `on_sale` | `deposited`, `pending_pickup` |
+        | `deposited` | `deposited`, `pending_pickup`（含待確認） |
+        | `on_sale` | 同 `deposited`，保留給舊版 App |
         | `completed` | `completed` |
         | `cancelled` | `cancelled`, `refunded` |
 
@@ -199,18 +210,24 @@ paths:
         | --- | --- | --- |
         | `deposited` | 賣家 | `pending_payment`、`pending_deposit` |
         | `pending_pickup` | 賣家 | `deposited` |
-        | `completed` | 買家 | `deposited`、`pending_pickup` |
+        | `picked_up` | 買家 | `deposited`、`pending_pickup`，且尚未取書 |
+        | `completed` | 買家 | `deposited`、`pending_pickup`，且已取書 |
 
         更新以「狀態仍為讀取時的值」為條件，兩個請求同時送出時只有一個會成功，
         另一個回傳 409，賣家不會重複入帳。
         取消訂單請使用 `PATCH /api/orders/{id}/cancel`。
+
+        `picked_up` 只寫入 `picked_up_at`，訂單狀態維持不變、不撥款，並通知賣家。
+        尚未取書時送出 `completed`（舊版 App 的行為）一律視為 `picked_up`。
 
         狀態設為 `completed` 時，於同一交易內執行下列動作：
 
         - 將書籍狀態更新為 `sold`
         - 將訂單金額匯入賣家錢包並累加 `total_income`
         - 寫入一筆 `sale_income` 錢包交易紀錄
-        - 補寫 `picked_up_at`（若尚未寫入）與 `completed_at`
+        - 寫入 `completed_at`，通知賣家
+
+        完成後不再受理交易申訴。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -228,8 +245,8 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: [deposited, pending_pickup, completed]
-                  description: '`deposited` 賣家已存書、`pending_pickup` 等待取件、`completed` 交易完成。'
+                  enum: [deposited, pending_pickup, picked_up, completed]
+                  description: '`deposited` 賣家已存書、`pending_pickup` 等待取件、`picked_up` 買家已取書、`completed` 完成訂單並撥款。'
             example: { status: completed }
       responses:
         '200':
@@ -249,7 +266,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 狀態值錯誤:
-                  value: { success: false, message: 'status 僅接受：deposited, pending_pickup, completed' }
+                  value: { success: false, message: 訂單狀態不正確 }
                 尚未存書:
                   value: { success: false, message: 賣家還沒把書放進書櫃，無法完成取貨 }
         '401': { $ref: '#/components/responses/Unauthorized' }
@@ -274,7 +291,8 @@ paths:
       operationId: cancelOrder
       tags: [orders]
       description: |
-        買賣雙方皆可取消。狀態已為 `completed`、`cancelled` 或 `refunded`
+        賣家存書前（`pending_payment`、`pending_deposit`）買賣雙方皆可取消；存書後雙方都不能自行取消，
+        回傳 400 `ORDER_NOT_CANCELLABLE`，須改提交易申訴。狀態已為 `completed`、`cancelled` 或 `refunded`
         的訂單不得取消；爭議處理中（`refunding`）的訂單僅管理員可取消。
         同時送出的取消請求只有一個會成功，其餘回傳 409，不會重複退款。
 
@@ -317,7 +335,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 此訂單狀態無法取消 }
+              examples:
+                已結束:
+                  value: { success: false, message: 此訂單狀態無法取消 }
+                已存書:
+                  value: { success: false, code: ORDER_NOT_CANCELLABLE, message: 賣家已存書，無法取消訂單；如有問題請提出申訴 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }

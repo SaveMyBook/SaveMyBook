@@ -16,7 +16,7 @@ const ORDER_STATUS_LABELS = {
   pending_pickup: '待取貨',
   completed: '已完成',
   cancelled: '已取消',
-  refunding: '退款處理中',
+  refunding: '審核中',
   refunded: '已退款'
 };
 

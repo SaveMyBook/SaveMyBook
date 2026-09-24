@@ -359,35 +359,54 @@ const tests = [
     assert.strictEqual(closed.body.message, '此訂單已取消或已退款，無法提出爭議');
   }],
 
-  ['取書後超過 24 小時不可提出爭議，期限內與取書前皆可', async () => {
+  ['取書後超過 24 小時或訂單已完成不可提出爭議，期限內與取書前皆可', async () => {
     const buyer = addUser({ balance: 500 });
     const seller = addUser({ balance: 0 });
     const book = addBook({ sellerId: seller.user_id });
     const hoursAgo = (h) => new Date(Date.now() - h * 60 * 60 * 1000);
-
-    const late = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'completed' });
-    Object.assign(late, { picked_up_at: hoursAgo(25), completed_at: hoursAgo(25) });
-    const expired = await request('POST', '/api/disputes', {
-      token: tokenFor(buyer), body: { order_id: late.order_id, reason: '書況與描述不符' }
+    const dispute = (order, reason = '書況與描述不符') => request('POST', '/api/disputes', {
+      token: tokenFor(buyer), body: { order_id: order.order_id, reason }
     });
+
+    const late = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'deposited' });
+    Object.assign(late, { picked_up_at: hoursAgo(25) });
+    const expired = await dispute(late);
     assert.strictEqual(expired.status, 400);
     assert.strictEqual(expired.body.code, 'DISPUTE_WINDOW_PASSED');
     assert.strictEqual(expired.body.message, '已超過取書後 24 小時的申訴期限');
-    assert.strictEqual(late.status, 'completed', '被拒絕時不得變更訂單狀態');
+    assert.strictEqual(late.status, 'deposited', '被拒絕時不得變更訂單狀態');
 
-    const recent = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'completed' });
-    Object.assign(recent, { picked_up_at: hoursAgo(23), completed_at: hoursAgo(23) });
-    const inTime = await request('POST', '/api/disputes', {
-      token: tokenFor(buyer), body: { order_id: recent.order_id, reason: '書況與描述不符' }
-    });
-    assert.strictEqual(inTime.status, 201);
+    const done = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'completed' });
+    Object.assign(done, { picked_up_at: hoursAgo(1), completed_at: hoursAgo(1) });
+    const completed = await dispute(done);
+    assert.strictEqual(completed.status, 400);
+    assert.strictEqual(completed.body.message, '訂單已完成，無法再提出申訴');
+
+    const recent = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'deposited' });
+    Object.assign(recent, { picked_up_at: hoursAgo(23) });
+    assert.strictEqual((await dispute(recent)).status, 201);
 
     // 取書前（例如賣家遲遲未放書）不受 24 小時限制。
     const waiting = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'pending_deposit' });
-    const beforePickup = await request('POST', '/api/disputes', {
-      token: tokenFor(buyer), body: { order_id: waiting.order_id, reason: '賣家尚未放書' }
+    assert.strictEqual((await dispute(waiting, '賣家尚未放書')).status, 201);
+  }],
+
+  ['已取書的訂單爭議被駁回時直接完成並撥款給賣家', async () => {
+    const buyer = addUser({ balance: 500 });
+    const seller = addUser({ balance: 0 });
+    const admin = addAdmin();
+    const book = addBook({ sellerId: seller.user_id, status: 'reserved' });
+    const order = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'deposited', amount: 120 });
+    Object.assign(order, { deposited_at: new Date(), picked_up_at: new Date() });
+
+    const filed = await request('POST', '/api/disputes', { token: tokenFor(buyer), body: { order_id: order.order_id, reason: '書況與描述不符' } });
+    assert.strictEqual(filed.status, 201);
+    const res = await request('PATCH', `/api/admin/disputes/${filed.body.data.dispute_id}`, {
+      token: tokenFor(admin), body: { result: 'dismissed', admin_note: '書況與照片相符' }
     });
-    assert.strictEqual(beforePickup.status, 201);
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(orderOf(order.order_id).status, 'completed');
+    assert.strictEqual(balanceOf(seller.user_id), 120);
   }],
 
   ['提出爭議後訂單暫停並通知對方，重複申請會被擋下', async () => {

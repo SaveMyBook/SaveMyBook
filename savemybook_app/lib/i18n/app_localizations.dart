@@ -1995,6 +1995,17 @@ abstract class AppLocalizations {
   String get databaseNotBeenUpdated020Only;
   String get hybridSearchKeywordSemantic;
   String get keywordSearchOnly;
+  String get paymentReleasedWalletWhenBuyerCompletes;
+  String get completeOrderAfterCheckingBookCompletes;
+  String get completeOrder;
+  String get onceCompleteOrderPaymentReleasedSeller;
+  String get orderCompleted2;
+  String get noReservedBooks;
+  String heldUntilP02(Object p0);
+  String heldUntilP03(Object p0);
+  String get awaitingBuyerConfirmation;
+  String get awaitingCompletion;
+  String get libraryCopyUnofficialSource;
 }
 
 class _LEn extends AppLocalizations {
@@ -2019,7 +2030,7 @@ class _LEn extends AppLocalizations {
   String get orderCancelled => 'Cancelled';
 
   @override
-  String get orderRefunding => 'Refunding';
+  String get orderRefunding => 'Under review';
 
   @override
   String get orderRefunded => 'Refunded';
@@ -2040,7 +2051,7 @@ class _LEn extends AppLocalizations {
   String get orderFlowDeposited => 'Placed in locker';
 
   @override
-  String get orderFlowPickup => 'Buyer pickup';
+  String get orderFlowPickup => 'Picked up by buyer';
 
   @override
   String get orderFlowCompleted => 'Transaction complete';
@@ -5508,7 +5519,7 @@ class _LEn extends AppLocalizations {
   String get transactionCompleteThank => 'Transaction complete';
 
   @override
-  String get confirmVeTakenBookFromLocker => 'Confirm you\'ve taken the book from the locker. The order will then be completed.';
+  String get confirmVeTakenBookFromLocker => 'Confirm that you have taken the book from the locker. After checking its condition, complete the order in Purchases.';
 
   @override
   String p0Orders2(Object p0) => '${p0} orders';
@@ -7916,6 +7927,39 @@ class _LEn extends AppLocalizations {
   @override
   String get keywordSearchOnly => 'Keyword search only';
 
+  @override
+  String get paymentReleasedWalletWhenBuyerCompletes => 'Payment is released to your wallet when the buyer completes the order or 24 hours after pickup';
+
+  @override
+  String get completeOrderAfterCheckingBookCompletes => 'Complete the order after checking the book. It completes automatically 24 hours after pickup if no dispute is opened';
+
+  @override
+  String get completeOrder => 'Complete order';
+
+  @override
+  String get onceCompleteOrderPaymentReleasedSeller => 'Once you complete the order, the payment is released to the seller and you can no longer open a dispute.';
+
+  @override
+  String get orderCompleted2 => 'Order completed';
+
+  @override
+  String get noReservedBooks => 'No reserved books';
+
+  @override
+  String heldUntilP02(Object p0) => 'Held until ${p0}';
+
+  @override
+  String heldUntilP03(Object p0) => 'Held until ${p0}';
+
+  @override
+  String get awaitingBuyerConfirmation => 'Awaiting buyer confirmation';
+
+  @override
+  String get awaitingCompletion => 'Awaiting completion';
+
+  @override
+  String get libraryCopyUnofficialSource => 'Library copy or unofficial source';
+
 }
 
 class _LJa extends AppLocalizations {
@@ -7940,7 +7984,7 @@ class _LJa extends AppLocalizations {
   String get orderCancelled => 'キャンセル済み';
 
   @override
-  String get orderRefunding => '返金処理中';
+  String get orderRefunding => '審査中';
 
   @override
   String get orderRefunded => '返金済み';
@@ -7961,7 +8005,7 @@ class _LJa extends AppLocalizations {
   String get orderFlowDeposited => 'ロッカーに預け入れ済み';
 
   @override
-  String get orderFlowPickup => '購入者が受け取り';
+  String get orderFlowPickup => '購入者が受け取り済み';
 
   @override
   String get orderFlowCompleted => '取引完了';
@@ -11429,7 +11473,7 @@ class _LJa extends AppLocalizations {
   String get transactionCompleteThank => '取引完了';
 
   @override
-  String get confirmVeTakenBookFromLocker => 'ロッカーから本を取り出したことを確認してください。確認すると注文が完了します。';
+  String get confirmVeTakenBookFromLocker => 'ロッカーから書籍を取り出したことを確認してください。状態に問題がなければ、購入履歴で注文を完了してください。';
 
   @override
   String p0Orders2(Object p0) => '注文 ${p0} 件';
@@ -13837,6 +13881,39 @@ class _LJa extends AppLocalizations {
   @override
   String get keywordSearchOnly => 'キーワード検索のみ';
 
+  @override
+  String get paymentReleasedWalletWhenBuyerCompletes => '購入者が注文を完了するか、受け取りから 24 時間後に代金がウォレットに入金されます';
+
+  @override
+  String get completeOrderAfterCheckingBookCompletes => '書籍の状態を確認したら注文を完了してください。受け取りから 24 時間以内に申し立てがなければ自動的に完了します';
+
+  @override
+  String get completeOrder => '注文を完了';
+
+  @override
+  String get onceCompleteOrderPaymentReleasedSeller => '注文を完了すると代金が出品者に支払われ、以後は紛争を申し立てられません。';
+
+  @override
+  String get orderCompleted2 => '注文が完了しました';
+
+  @override
+  String get noReservedBooks => '予約中の書籍はありません';
+
+  @override
+  String heldUntilP02(Object p0) => '${p0} まで確保中';
+
+  @override
+  String heldUntilP03(Object p0) => '${p0} まで確保中';
+
+  @override
+  String get awaitingBuyerConfirmation => '購入者の確認待ち';
+
+  @override
+  String get awaitingCompletion => '完了待ち';
+
+  @override
+  String get libraryCopyUnofficialSource => '図書館蔵書・非正規入手の疑い';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -13861,7 +13938,7 @@ class _LKo extends AppLocalizations {
   String get orderCancelled => '취소됨';
 
   @override
-  String get orderRefunding => '환불 처리 중';
+  String get orderRefunding => '심사 중';
 
   @override
   String get orderRefunded => '환불 완료';
@@ -13882,7 +13959,7 @@ class _LKo extends AppLocalizations {
   String get orderFlowDeposited => '보관함에 보관됨';
 
   @override
-  String get orderFlowPickup => '구매자 수령';
+  String get orderFlowPickup => '구매자 수령 완료';
 
   @override
   String get orderFlowCompleted => '거래 완료';
@@ -17350,7 +17427,7 @@ class _LKo extends AppLocalizations {
   String get transactionCompleteThank => '거래 완료';
 
   @override
-  String get confirmVeTakenBookFromLocker => '보관함에서 책을 꺼냈는지 확인하세요. 확인하면 주문이 완료됩니다.';
+  String get confirmVeTakenBookFromLocker => '보관함에서 도서를 꺼냈는지 확인해 주세요. 도서 상태를 확인한 후 구매 내역에서 주문을 완료해 주세요.';
 
   @override
   String p0Orders2(Object p0) => '주문 ${p0}건';
@@ -19758,6 +19835,39 @@ class _LKo extends AppLocalizations {
   @override
   String get keywordSearchOnly => '키워드 검색만 사용';
 
+  @override
+  String get paymentReleasedWalletWhenBuyerCompletes => '구매자가 주문을 완료하거나 수령 후 24시간이 지나면 대금이 지갑에 입금됩니다';
+
+  @override
+  String get completeOrderAfterCheckingBookCompletes => '도서 상태를 확인한 후 주문을 완료해 주세요. 수령 후 24시간 내 분쟁이 없으면 자동으로 완료됩니다';
+
+  @override
+  String get completeOrder => '주문 완료';
+
+  @override
+  String get onceCompleteOrderPaymentReleasedSeller => '주문을 완료하면 대금이 판매자에게 지급되며 이후에는 분쟁을 신청할 수 없습니다.';
+
+  @override
+  String get orderCompleted2 => '주문이 완료되었습니다';
+
+  @override
+  String get noReservedBooks => '예약한 도서가 없습니다';
+
+  @override
+  String heldUntilP02(Object p0) => '${p0}까지 보류';
+
+  @override
+  String heldUntilP03(Object p0) => '${p0}까지 보류';
+
+  @override
+  String get awaitingBuyerConfirmation => '구매자 확인 대기';
+
+  @override
+  String get awaitingCompletion => '완료 대기';
+
+  @override
+  String get libraryCopyUnofficialSource => '도서관 소장본 또는 비정상 출처';
+
 }
 
 class _LZh extends AppLocalizations {
@@ -19782,7 +19892,7 @@ class _LZh extends AppLocalizations {
   String get orderCancelled => '已取消';
 
   @override
-  String get orderRefunding => '退款中';
+  String get orderRefunding => '審核中';
 
   @override
   String get orderRefunded => '已退款';
@@ -19803,7 +19913,7 @@ class _LZh extends AppLocalizations {
   String get orderFlowDeposited => '已存入書櫃';
 
   @override
-  String get orderFlowPickup => '待買家取書';
+  String get orderFlowPickup => '買家已取書';
 
   @override
   String get orderFlowCompleted => '交易完成';
@@ -23271,7 +23381,7 @@ class _LZh extends AppLocalizations {
   String get transactionCompleteThank => '交易完成';
 
   @override
-  String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍，確認後訂單即完成。';
+  String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍。確認書況無誤後，請於購買紀錄完成訂單。';
 
   @override
   String p0Orders2(Object p0) => '共 ${p0} 筆訂單';
@@ -25679,6 +25789,39 @@ class _LZh extends AppLocalizations {
   @override
   String get keywordSearchOnly => '僅關鍵字檢索';
 
+  @override
+  String get paymentReleasedWalletWhenBuyerCompletes => '買家完成訂單或取書滿 24 小時後，款項將撥入您的錢包';
+
+  @override
+  String get completeOrderAfterCheckingBookCompletes => '確認書況無誤後請完成訂單，取書滿 24 小時未申訴將自動完成';
+
+  @override
+  String get completeOrder => '完成訂單';
+
+  @override
+  String get onceCompleteOrderPaymentReleasedSeller => '完成訂單後，款項將撥給賣家，且無法再申請爭議。';
+
+  @override
+  String get orderCompleted2 => '訂單已完成';
+
+  @override
+  String get noReservedBooks => '目前沒有預訂的書籍';
+
+  @override
+  String heldUntilP02(Object p0) => '保留至 ${p0}';
+
+  @override
+  String heldUntilP03(Object p0) => '保留至 ${p0}';
+
+  @override
+  String get awaitingBuyerConfirmation => '待買家確認';
+
+  @override
+  String get awaitingCompletion => '待完成訂單';
+
+  @override
+  String get libraryCopyUnofficialSource => '館藏或非正規來源';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -25703,7 +25846,7 @@ class _LZhHans extends AppLocalizations {
   String get orderCancelled => '已取消';
 
   @override
-  String get orderRefunding => '退款中';
+  String get orderRefunding => '审核中';
 
   @override
   String get orderRefunded => '已退款';
@@ -25724,7 +25867,7 @@ class _LZhHans extends AppLocalizations {
   String get orderFlowDeposited => '已存入书柜';
 
   @override
-  String get orderFlowPickup => '待买家取书';
+  String get orderFlowPickup => '买家已取书';
 
   @override
   String get orderFlowCompleted => '交易完成';
@@ -29192,7 +29335,7 @@ class _LZhHans extends AppLocalizations {
   String get transactionCompleteThank => '交易完成';
 
   @override
-  String get confirmVeTakenBookFromLocker => '请确认已从书柜取出书籍，确认后订单即完成。';
+  String get confirmVeTakenBookFromLocker => '请确认已从书柜取出书籍。确认书况无误后，请在购买记录中完成订单。';
 
   @override
   String p0Orders2(Object p0) => '共 ${p0} 笔订单';
@@ -31600,6 +31743,39 @@ class _LZhHans extends AppLocalizations {
   @override
   String get keywordSearchOnly => '仅关键词检索';
 
+  @override
+  String get paymentReleasedWalletWhenBuyerCompletes => '买家完成订单或取书满 24 小时后，款项将拨入您的钱包';
+
+  @override
+  String get completeOrderAfterCheckingBookCompletes => '确认书况无误后请完成订单，取书满 24 小时未申诉将自动完成';
+
+  @override
+  String get completeOrder => '完成订单';
+
+  @override
+  String get onceCompleteOrderPaymentReleasedSeller => '完成订单后，款项将拨给卖家，且无法再申请争议。';
+
+  @override
+  String get orderCompleted2 => '订单已完成';
+
+  @override
+  String get noReservedBooks => '目前没有预订的书籍';
+
+  @override
+  String heldUntilP02(Object p0) => '保留至 ${p0}';
+
+  @override
+  String heldUntilP03(Object p0) => '保留至 ${p0}';
+
+  @override
+  String get awaitingBuyerConfirmation => '待买家确认';
+
+  @override
+  String get awaitingCompletion => '待完成订单';
+
+  @override
+  String get libraryCopyUnofficialSource => '馆藏或非正规来源';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -31624,7 +31800,7 @@ class _LZhHant extends AppLocalizations {
   String get orderCancelled => '已取消';
 
   @override
-  String get orderRefunding => '退款中';
+  String get orderRefunding => '審核中';
 
   @override
   String get orderRefunded => '已退款';
@@ -31645,7 +31821,7 @@ class _LZhHant extends AppLocalizations {
   String get orderFlowDeposited => '已存入書櫃';
 
   @override
-  String get orderFlowPickup => '待買家取書';
+  String get orderFlowPickup => '買家已取書';
 
   @override
   String get orderFlowCompleted => '交易完成';
@@ -35113,7 +35289,7 @@ class _LZhHant extends AppLocalizations {
   String get transactionCompleteThank => '交易完成';
 
   @override
-  String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍，確認後訂單即完成。';
+  String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍。確認書況無誤後，請於購買紀錄完成訂單。';
 
   @override
   String p0Orders2(Object p0) => '共 ${p0} 筆訂單';
@@ -37520,6 +37696,39 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get keywordSearchOnly => '僅關鍵字檢索';
+
+  @override
+  String get paymentReleasedWalletWhenBuyerCompletes => '買家完成訂單或取書滿 24 小時後，款項將撥入您的錢包';
+
+  @override
+  String get completeOrderAfterCheckingBookCompletes => '確認書況無誤後請完成訂單，取書滿 24 小時未申訴將自動完成';
+
+  @override
+  String get completeOrder => '完成訂單';
+
+  @override
+  String get onceCompleteOrderPaymentReleasedSeller => '完成訂單後，款項將撥給賣家，且無法再申請爭議。';
+
+  @override
+  String get orderCompleted2 => '訂單已完成';
+
+  @override
+  String get noReservedBooks => '目前沒有預訂的書籍';
+
+  @override
+  String heldUntilP02(Object p0) => '保留至 ${p0}';
+
+  @override
+  String heldUntilP03(Object p0) => '保留至 ${p0}';
+
+  @override
+  String get awaitingBuyerConfirmation => '待買家確認';
+
+  @override
+  String get awaitingCompletion => '待完成訂單';
+
+  @override
+  String get libraryCopyUnofficialSource => '館藏或非正規來源';
 
 }
 

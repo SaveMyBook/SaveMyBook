@@ -4,7 +4,7 @@ import 'package:savemybook_app/models/order.dart';
 void main() {
   final now = DateTime(2026, 9, 16, 12);
 
-  Order order({String status = 'completed', DateTime? pickedUpAt, bool openDispute = false}) => Order(
+  Order order({String status = 'deposited', DateTime? pickedUpAt, bool openDispute = false}) => Order(
         orderId: 1,
         orderNo: 'SMB1',
         totalAmount: 100,
@@ -12,7 +12,6 @@ void main() {
         buyerId: 1,
         sellerId: 2,
         pickedUpAt: pickedUpAt,
-        completedAt: pickedUpAt,
         hasOpenDispute: openDispute,
       );
 
@@ -25,10 +24,23 @@ void main() {
     expect(order(pickedUpAt: now.subtract(const Duration(hours: 24, minutes: 1))).canOpenDispute(now: now), isFalse);
   });
 
-  test('已有處理中的爭議、已取消或已退款時不可再申訴', () {
+  test('已有處理中的爭議、已完成、已取消或已退款時不可再申訴', () {
     expect(order(pickedUpAt: now, openDispute: true).canOpenDispute(now: now), isFalse);
+    expect(order(status: 'completed', pickedUpAt: now).canOpenDispute(now: now), isFalse);
     expect(order(status: 'cancelled').canOpenDispute(now: now), isFalse);
     expect(order(status: 'refunded').canOpenDispute(now: now), isFalse);
+    expect(order(status: 'refunding').canOpenDispute(now: now), isFalse);
+  });
+
+  test('取書後待完成：可完成訂單，不可再取書或取消；存書前才可取消', () {
+    final awaiting = order(pickedUpAt: now);
+    expect(awaiting.awaitingConfirmation, isTrue);
+    expect(awaiting.canCollect, isFalse);
+    expect(awaiting.isCancellable, isFalse);
+    expect(order().canCollect, isTrue);
+    expect(order().isCancellable, isFalse, reason: '已存書不可取消');
+    expect(order(status: 'pending_deposit').isCancellable, isTrue);
+    expect(order(status: 'completed', pickedUpAt: now).awaitingConfirmation, isFalse);
   });
 
   test('取書前不受時限限制', () {

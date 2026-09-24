@@ -6,14 +6,14 @@
   "orderPendingPickup": "待取书",
   "orderCompleted": "已完成",
   "orderCancelled": "已取消",
-  "orderRefunding": "退款中",
+  "orderRefunding": "审核中",
   "orderRefunded": "已退款",
   "orderBuyerPendingDeposit": "待卖家存书",
   "orderBuyerDeposited": "待取书",
   "orderBuyerRefunding": "申诉中",
   "orderFlowDeposit": "待卖家存书",
   "orderFlowDeposited": "已存入书柜",
-  "orderFlowPickup": "待买家取书",
+  "orderFlowPickup": "买家已取书",
   "orderFlowCompleted": "交易完成",
   "bookOnSale": "销售中",
   "bookReserved": "已预订",
@@ -2004,7 +2004,7 @@
   "weLlLetKnowWhenSeller": "卖家存书后将通知您前往取书",
   "waitingBuyerCollect": "等待买家至书柜取书",
   "transactionCompleteThank": "交易完成",
-  "confirmVeTakenBookFromLocker": "请确认已从书柜取出书籍，确认后订单即完成。",
+  "confirmVeTakenBookFromLocker": "请确认已从书柜取出书籍。确认书况无误后，请在购买记录中完成订单。",
   "p0Orders2": "共 {p0} 笔订单",
   "@p0Orders2": {
     "placeholders": {
@@ -3580,5 +3580,26 @@
   "noOpenaiGeminiKeyConfiguredOnly": "尚未设置 OpenAI 或 Gemini 密钥，目前仅使用关键词检索",
   "databaseNotBeenUpdated020Only": "数据库尚未更新（020），目前仅使用关键词检索",
   "hybridSearchKeywordSemantic": "混合检索（关键词＋语义）",
-  "keywordSearchOnly": "仅关键词检索"
+  "keywordSearchOnly": "仅关键词检索",
+  "paymentReleasedWalletWhenBuyerCompletes": "买家完成订单或取书满 24 小时后，款项将拨入您的钱包",
+  "completeOrderAfterCheckingBookCompletes": "确认书况无误后请完成订单，取书满 24 小时未申诉将自动完成",
+  "completeOrder": "完成订单",
+  "onceCompleteOrderPaymentReleasedSeller": "完成订单后，款项将拨给卖家，且无法再申请争议。",
+  "orderCompleted2": "订单已完成",
+  "noReservedBooks": "目前没有预订的书籍",
+  "heldUntilP02": "保留至 {p0}",
+  "@heldUntilP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "heldUntilP03": "保留至 {p0}",
+  "@heldUntilP03": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "awaitingBuyerConfirmation": "待买家确认",
+  "awaitingCompletion": "待完成订单",
+  "libraryCopyUnofficialSource": "馆藏或非正规来源"
 }

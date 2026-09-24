@@ -17,6 +17,7 @@ import 'edit_book_screen.dart';
 import 'sell_book_screen.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
+import '../../utils/app_labels.dart';
 
 class BookManageScreen extends StatefulWidget {
   const BookManageScreen({super.key});
@@ -28,10 +29,8 @@ class BookManageScreen extends StatefulWidget {
 class _BookManageScreenState extends State<BookManageScreen> {
   List<({String key, String label})> get _filters => [
     (key: 'all', label: S.actionAll),
-    (key: 'on_sale', label: S.bookOnSale),
-    (key: 'reserved', label: S.bookReserved),
-    (key: 'sold', label: S.bookSold),
-    (key: 'removed', label: S.bookRemoved),
+    for (final key in const ['on_sale', 'held', 'reserved', 'sold', 'removed'])
+      (key: key, label: AppLabels.ownerBook(key)),
   ];
 
   final ApiService _api = ApiService();
@@ -57,10 +56,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
   }
 
   Future<void> _load() async {
-    final results = await Future.wait([
-      _api.fetchMyBooks(),
-      _api.fetchReportStatusForMyBooks(),
-    ]);
+    final results = await Future.wait([_api.fetchMyBooks(), _api.fetchReportStatusForMyBooks()]);
     if (!mounted) return;
     setState(() {
       _books = results[0] as List<Book>;
@@ -70,9 +66,11 @@ class _BookManageScreenState extends State<BookManageScreen> {
     });
   }
 
-  String _statusOf(Book book) => _statusOverride[book.bookId] ?? book.status;
+  // held（預約保留中）、reserved（訂單已成立）、sold（訂單已完成）都不能編輯或下架。
+  String _statusOf(Book book) => _statusOverride[book.bookId] ?? book.ownerStatus;
 
-  bool _violationLocked(Book book) => (!book.isApproved && !book.isPendingReview) || _reportStatus[book.bookId] == 'resolved';
+  bool _violationLocked(Book book) =>
+      (!book.isApproved && !book.isPendingReview) || _reportStatus[book.bookId] == 'resolved';
 
   ({String label, Color color, String detail})? _reportBadge(Book book, AppColors c) {
     if (book.isPendingReview) {
@@ -95,18 +93,13 @@ class _BookManageScreenState extends State<BookManageScreen> {
   bool _matchesKeyword(Book b) {
     if (_keyword.isEmpty) return true;
     final key = _keyword.toLowerCase();
-    return b.title.toLowerCase().contains(key) ||
-        b.author.toLowerCase().contains(key) ||
-        b.isbn.contains(key);
+    return b.title.toLowerCase().contains(key) || b.author.toLowerCase().contains(key) || b.isbn.contains(key);
   }
 
-  List<Book> get _visible => _books
-      .where((b) => (_filter == 'all' || _statusOf(b) == _filter) && _matchesKeyword(b))
-      .toList();
+  List<Book> get _visible =>
+      _books.where((b) => (_filter == 'all' || _statusOf(b) == _filter) && _matchesKeyword(b)).toList();
 
-  int _countOf(String key) => _books
-      .where((b) => (key == 'all' || _statusOf(b) == key) && _matchesKeyword(b))
-      .length;
+  int _countOf(String key) => _books.where((b) => (key == 'all' || _statusOf(b) == key) && _matchesKeyword(b)).length;
 
   Future<void> _openSell() async {
     await Navigator.push(context, MaterialPageRoute(builder: (_) => const SellBookScreen()));
@@ -122,7 +115,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
     if (_busyIds.contains(book.bookId)) return;
     final status = _statusOf(book);
     final canUndo = status == 'on_sale' && !_violationLocked(book);
-    if (askFirst || status == 'reserved') {
+    if (askFirst) {
       final confirmed = await showConfirmDialog(
         context,
         title: S.delist,
@@ -197,18 +190,14 @@ class _BookManageScreenState extends State<BookManageScreen> {
           AppHeader(
             title: S.myBooks,
             icon: Icons.library_books_outlined,
-            actions: [
-              HeaderIconButton(icon: Icons.add_rounded, onTap: _openSell),
-            ],
+            actions: [HeaderIconButton(icon: Icons.add_rounded, onTap: _openSell)],
             bottom: _buildFilterBar(c),
           ),
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () => FocusScope.of(context).unfocus(),
-              child: SwitchIn(
-                child: _isLoading ? const LoadingView.list(key: ValueKey('loading')) : _buildBody(c),
-              ),
+              child: SwitchIn(child: _isLoading ? const LoadingView.list(key: ValueKey('loading')) : _buildBody(c)),
             ),
           ),
         ],
@@ -230,8 +219,8 @@ class _BookManageScreenState extends State<BookManageScreen> {
           message: searching
               ? S.noBooksMatchP0(_keyword)
               : noBooks
-                  ? S.notListedAnyBooksYet
-                  : S.noBooksCategory,
+              ? S.notListedAnyBooksYet
+              : S.noBooksCategory,
           actionLabel: searching || !noBooks ? null : S.sellBook,
           actionIcon: Icons.add_rounded,
           onAction: searching || !noBooks ? null : _openSell,
@@ -245,69 +234,69 @@ class _BookManageScreenState extends State<BookManageScreen> {
       key: const ValueKey('list'),
       color: c.accent,
       onRefresh: _load,
-      child: LayoutBuilder(builder: (context, constraints) {
-        final padding = responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth, top: 12, bottom: 32);
-        final columns = context.isWide ? ((constraints.maxWidth - padding.horizontal + 12) / 372).floor().clamp(1, 4) : 1;
-        final rowCount = (visible.length / columns).ceil();
-        return ListView.builder(
-          physics: const AlwaysScrollableScrollPhysics(),
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: padding,
-          itemCount: rowCount + 1,
-          itemBuilder: (_, i) {
-            if (i == 0) {
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        S.p0BooksP1Views(visible.length, totalViews),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final padding = responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth, top: 12, bottom: 32);
+          final columns = context.isWide
+              ? ((constraints.maxWidth - padding.horizontal + 12) / 372).floor().clamp(1, 4)
+              : 1;
+          final rowCount = (visible.length / columns).ceil();
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: padding,
+            itemCount: rowCount + 1,
+            itemBuilder: (_, i) {
+              if (i == 0) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          S.p0BooksP1Views(visible.length, totalViews),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary),
+                        ),
                       ),
+                    ],
+                  ),
+                );
+              }
+              if (columns == 1) {
+                final book = visible[i - 1];
+                return RevealOnScroll(key: ValueKey(book.bookId), index: i - 1, child: _buildSwipeable(book, c));
+              }
+              final first = (i - 1) * columns;
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var j = first; j < first + columns; j++) ...[
+                    if (j > first) const SizedBox(width: 12),
+                    Expanded(
+                      child: j < visible.length
+                          ? RevealOnScroll(
+                              key: ValueKey(visible[j].bookId),
+                              index: j,
+                              child: _buildSwipeable(visible[j], c),
+                            )
+                          : const SizedBox.shrink(),
                     ),
                   ],
-                ),
-              );
-            }
-            if (columns == 1) {
-              final book = visible[i - 1];
-              return RevealOnScroll(
-                key: ValueKey(book.bookId),
-                index: i - 1,
-                child: _buildSwipeable(book, c),
-              );
-            }
-            final first = (i - 1) * columns;
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (var j = first; j < first + columns; j++) ...[
-                  if (j > first) const SizedBox(width: 12),
-                  Expanded(
-                    child: j < visible.length
-                        ? RevealOnScroll(
-                            key: ValueKey(visible[j].bookId),
-                            index: j,
-                            child: _buildSwipeable(visible[j], c),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
                 ],
-              ],
-            );
-          },
-        );
-      }),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
   Widget _buildSwipeable(Book book, AppColors c) {
     final status = _statusOf(book);
     final busy = _busyIds.contains(book.bookId);
-    final canEdit = status != 'sold';
+    final canEdit = status == 'on_sale' || status == 'removed';
 
     SwipeAction? statusAction;
     if (!busy && status == 'removed' && !_violationLocked(book)) {
@@ -320,7 +309,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
           return false;
         },
       );
-    } else if (!busy && (status == 'on_sale' || status == 'reserved')) {
+    } else if (!busy && status == 'on_sale') {
       statusAction = SwipeAction(
         icon: Icons.visibility_off_rounded,
         label: S.delist2,
@@ -346,19 +335,14 @@ class _BookManageScreenState extends State<BookManageScreen> {
               },
             )
           : null,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: _buildCard(book, c),
-      ),
+      child: Padding(padding: const EdgeInsets.only(bottom: 12), child: _buildCard(book, c)),
     );
   }
 
   Widget _buildFilterBar(AppColors c) {
     return LayoutBuilder(
-      builder: (context, constraints) => _buildFilterContent(
-        c,
-        responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth).left,
-      ),
+      builder: (context, constraints) =>
+          _buildFilterContent(c, responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth).left),
     );
   }
 
@@ -432,35 +416,31 @@ class _BookManageScreenState extends State<BookManageScreen> {
   }
 
   Color _statusColor(String status, AppColors c) => switch (status) {
-        'on_sale' => c.success,
-        'reserved' => c.warning,
-        'sold' => c.accent,
-        _ => c.textHint,
-      };
+    'on_sale' => c.success,
+    'held' => c.warning,
+    'reserved' => c.accent,
+    'sold' => c.neutral,
+    _ => c.textHint,
+  };
 
   Widget _buildCard(Book book, AppColors c) {
     final status = _statusOf(book);
     final isRemoved = status == 'removed';
     final isBusy = _busyIds.contains(book.bookId);
     final badge = _reportBadge(book, c);
-    final statusLabel = status == book.status ? book.statusText : _labelFor(status);
+    final statusLabel = AppLabels.ownerBook(status);
+    final heldUntil = status == 'held' ? book.reservedUntil : null;
+    final heldText = heldUntil == null ? '' : _formatDeadline(heldUntil);
 
     return AppCard(
       padding: const EdgeInsets.all(12),
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)),
-      ),
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BookDetailScreen(book: book))),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Stack(
             children: [
-              BookThumbnail(
-                imageUrl: book.hasImage ? book.imageUrl : null,
-                width: 76,
-                height: 102,
-              ),
+              BookThumbnail(imageUrl: book.hasImage ? book.imageUrl : null, width: 76, height: 102),
               Positioned.fill(
                 child: IgnorePointer(
                   child: AnimatedOpacity(
@@ -492,12 +472,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                         book.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.35,
-                          fontWeight: FontWeight.w600,
-                          color: c.textPrimary,
-                        ),
+                        style: TextStyle(fontSize: 14, height: 1.35, fontWeight: FontWeight.w600, color: c.textPrimary),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -547,7 +522,11 @@ class _BookManageScreenState extends State<BookManageScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(book.reviewStatus != null ? Icons.policy_outlined : Icons.flag_rounded, size: 11, color: badge.color),
+                                Icon(
+                                  book.reviewStatus != null ? Icons.policy_outlined : Icons.flag_rounded,
+                                  size: 11,
+                                  color: badge.color,
+                                ),
                                 const SizedBox(width: 3),
                                 Flexible(
                                   child: Text(
@@ -569,6 +548,10 @@ class _BookManageScreenState extends State<BookManageScreen> {
                   const SizedBox(height: 4),
                   InfoLine(icon: Icons.location_on_outlined, value: book.cabinetAddress, maxLines: 1, fontSize: 11),
                 ],
+                if (heldUntil != null) ...[
+                  const SizedBox(height: 4),
+                  InfoLine(icon: Icons.lock_clock_rounded, value: S.heldUntilP03(heldText), maxLines: 1, fontSize: 11),
+                ],
                 const SizedBox(height: 10),
                 Row(
                   children: [
@@ -583,7 +566,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                           : SmallActionButton(
                               label: S.delist2,
                               isLoading: isBusy,
-                              onTap: status == 'sold' ? null : () => _delist(book, askFirst: true),
+                              onTap: status == 'on_sale' ? () => _delist(book, askFirst: true) : null,
                             ),
                     ),
                     const SizedBox(width: 8),
@@ -591,7 +574,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                       child: SmallActionButton(
                         label: S.actionEdit,
                         filled: !isRemoved,
-                        onTap: status == 'sold' || isBusy ? null : () => _openEdit(book),
+                        onTap: status == 'on_sale' && !isBusy ? () => _openEdit(book) : null,
                       ),
                     ),
                   ],
@@ -604,10 +587,8 @@ class _BookManageScreenState extends State<BookManageScreen> {
     );
   }
 
-  String _labelFor(String status) => switch (status) {
-        'on_sale' => S.bookOnSale,
-        'reserved' => S.bookReserved,
-        'sold' => S.bookSold,
-        _ => S.bookRemoved,
-      };
+  String _formatDeadline(DateTime dt) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${two(dt.month)}/${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}';
+  }
 }

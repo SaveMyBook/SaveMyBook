@@ -4,21 +4,20 @@ class AppLabels {
   const AppLabels._();
 
   static Map<String, String> get orderStatus => {
-        'pending_payment': S.orderPendingPayment,
-        'pending_deposit': S.orderPendingDeposit,
-        'deposited': S.orderDeposited,
-        'pending_pickup': S.orderPendingPickup,
-        'completed': S.orderCompleted,
-        'cancelled': S.orderCancelled,
-        'refunding': S.orderRefunding,
-        'refunded': S.orderRefunded,
-      };
+    'pending_payment': S.orderPendingPayment,
+    'pending_deposit': S.orderPendingDeposit,
+    'deposited': S.orderDeposited,
+    'pending_pickup': S.orderPendingPickup,
+    'completed': S.orderCompleted,
+    'cancelled': S.orderCancelled,
+    'refunding': S.orderRefunding,
+    'refunded': S.orderRefunded,
+  };
 
   static Map<String, String> get _buyerOrderStatus => {
-        'pending_deposit': S.orderBuyerPendingDeposit,
-        'deposited': S.orderBuyerDeposited,
-        'refunding': S.orderBuyerRefunding,
-      };
+    'pending_deposit': S.orderBuyerPendingDeposit,
+    'deposited': S.orderBuyerDeposited,
+  };
 
   static String order(String code, {bool asBuyer = false}) {
     if (asBuyer) {
@@ -29,36 +28,48 @@ class AppLabels {
   }
 
   static List<({String status, String label})> get orderFlow => [
-        (status: 'pending_deposit', label: S.orderFlowDeposit),
-        (status: 'deposited', label: S.orderFlowDeposited),
-        (status: 'pending_pickup', label: S.orderFlowPickup),
-        (status: 'completed', label: S.orderFlowCompleted),
-      ];
+    (status: 'pending_deposit', label: S.orderFlowDeposit),
+    (status: 'deposited', label: S.orderFlowDeposited),
+    (status: 'pending_pickup', label: S.orderFlowPickup),
+    (status: 'completed', label: S.orderFlowCompleted),
+  ];
 
+  // 其他使用者看到的書籍狀態：訂單成立（reserved）與已完成（sold）都顯示已售出。
   static Map<String, String> get bookStatus => {
-        'on_sale': S.bookOnSale,
-        'reserved': S.bookReserved,
-        'sold': S.bookSold,
-        'removed': S.bookRemoved,
-      };
+    'on_sale': S.bookOnSale,
+    'reserved': S.bookSold,
+    'sold': S.bookSold,
+    'removed': S.bookRemoved,
+  };
 
   static String book(String code) => bookStatus[code] ?? code;
 
+  // 賣家書籍管理與後台：held 為聊天室預約保留中（書籍本身仍是 on_sale），reserved 為訂單已成立，sold 為訂單已完成。
+  static Map<String, String> get ownerBookStatus => {
+    'on_sale': S.bookOnSale,
+    'held': S.bookReserved,
+    'reserved': S.bookSold,
+    'sold': S.orderCompleted,
+    'removed': S.bookRemoved,
+  };
+
+  static String ownerBook(String code) => ownerBookStatus[code] ?? code;
+
   static Map<String, String> get condition => {
-        'like_new': S.conditionLikeNew,
-        'good': S.conditionGood,
-        'fair': S.conditionFair,
-        'poor': S.conditionPoor,
-      };
+    'like_new': S.conditionLikeNew,
+    'good': S.conditionGood,
+    'fair': S.conditionFair,
+    'poor': S.conditionPoor,
+  };
 
   static String conditionOf(String code) => condition[code] ?? S.conditionUnknown;
 
   static List<({String value, String label})> get conditionOptions => [
-        (value: 'like_new', label: S.conditionLikeNew),
-        (value: 'good', label: S.conditionGood),
-        (value: 'fair', label: S.conditionFair),
-        (value: 'poor', label: S.conditionPoor),
-      ];
+    (value: 'like_new', label: S.conditionLikeNew),
+    (value: 'good', label: S.conditionGood),
+    (value: 'fair', label: S.conditionFair),
+    (value: 'poor', label: S.conditionPoor),
+  ];
 
   static List<String> get photoSlots => [S.photoCover, S.photoBack, S.photoBarcode];
 
@@ -68,92 +79,89 @@ class AppLabels {
     return S.memberNormal;
   }
 
-  static Map<String, String> get role => {
-        'buyer_seller': S.roleBuyerSeller,
-        'admin': S.roleAdmin,
-      };
+  static Map<String, String> get role => {'buyer_seller': S.roleBuyerSeller, 'admin': S.roleAdmin};
 
   static Map<String, String> get reportStatus => {
-        'pending': S.reportPending,
-        'reviewing': S.reportReviewing,
-        'resolved': S.reportResolved,
-        'dismissed': S.reportDismissed,
-      };
+    'pending': S.reportPending,
+    'reviewing': S.reportReviewing,
+    'resolved': S.reportResolved,
+    'dismissed': S.reportDismissed,
+  };
 
   static String report(String code) => reportStatus[code] ?? code;
 
   static Map<String, String> get disputeStatus => {
-        'pending': S.disputePending,
-        'processing': S.disputeProcessing,
-        'resolved': S.disputeResolved,
-      };
+    'pending': S.disputePending,
+    'processing': S.disputeProcessing,
+    'resolved': S.disputeResolved,
+  };
 
   static String dispute(String code) => disputeStatus[code] ?? code;
 
   static Map<String, String> get disputeResult => {
-        'refund_manual': S.disputeRefundManual,
-        'refund_auto': S.disputeRefundAuto,
-        'dismissed': S.disputeDismissed,
-        'mediated': S.disputeMediated,
-      };
+    'refund_manual': S.disputeRefundManual,
+    'refund_auto': S.disputeRefundAuto,
+    'dismissed': S.disputeDismissed,
+    'mediated': S.disputeMediated,
+  };
 
   static Map<String, String> get ticketStatus => {
-        'open': S.ticketOpen,
-        'pending': S.ticketPending,
-        'resolved': S.ticketResolved,
-        'closed': S.ticketClosed,
-      };
+    'open': S.ticketOpen,
+    'pending': S.ticketPending,
+    'resolved': S.ticketResolved,
+    'closed': S.ticketClosed,
+  };
 
   static String ticket(String code) => ticketStatus[code] ?? code;
 
   static Map<String, String> get ticketCategory => {
-        'account': S.ticketCatAccount,
-        'trade': S.ticketCatTrade,
-        'wallet': S.ticketCatWallet,
-        'cabinet': S.ticketCatCabinet,
-        'bug': S.ticketCatBug,
-        'other': S.ticketCatOther,
-      };
+    'account': S.ticketCatAccount,
+    'trade': S.ticketCatTrade,
+    'wallet': S.ticketCatWallet,
+    'cabinet': S.ticketCatCabinet,
+    'bug': S.ticketCatBug,
+    'other': S.ticketCatOther,
+  };
 
   static Map<String, String> get faqCategory => {
-        'general': S.faqCatGeneral,
-        'account': S.faqCatAccount,
-        'trade': S.faqCatTrade,
-        'wallet': S.faqCatWallet,
-        'cabinet': S.faqCatCabinet,
-      };
+    'general': S.faqCatGeneral,
+    'account': S.faqCatAccount,
+    'trade': S.faqCatTrade,
+    'wallet': S.faqCatWallet,
+    'cabinet': S.faqCatCabinet,
+  };
 
   static Map<String, String> get slotStatus => {
-        'empty': S.slotEmpty,
-        'occupied': S.slotOccupied,
-        'reserved': S.slotReserved,
-        'maintenance': S.slotMaintenance,
-      };
+    'empty': S.slotEmpty,
+    'occupied': S.slotOccupied,
+    'reserved': S.slotReserved,
+    'maintenance': S.slotMaintenance,
+  };
 
   static String slot(String code) => slotStatus[code] ?? code;
 
   static Map<String, String> get walletTxnType => {
-        'deposit': S.txnDeposit,
-        'withdrawal': S.txnWithdrawal,
-        'purchase': S.txnPurchase,
-        'sale_income': S.txnSaleIncome,
-        'refund': S.txnRefund,
-        'admin_adjust': S.txnAdminAdjust,
-      };
+    'deposit': S.txnDeposit,
+    'withdrawal': S.txnWithdrawal,
+    'purchase': S.txnPurchase,
+    'sale_income': S.txnSaleIncome,
+    'refund': S.txnRefund,
+    'admin_adjust': S.txnAdminAdjust,
+  };
 
   static Map<String, String> get refundStatus => {
-        'pending': S.awaitingRefund,
-        'approved': S.approved,
-        'rejected': S.declined,
-        'completed': S.orderRefunded,
-      };
+    'pending': S.awaitingRefund,
+    'approved': S.approved,
+    'rejected': S.declined,
+    'completed': S.orderRefunded,
+  };
 
   static Map<String, String> get announcementType => {
-        'general': S.announceGeneral,
-        'maintenance': S.announceMaintenance,
-        'promotion': S.announcePromotion,
-        'policy': S.announcePolicy,
-      };
+    'general': S.announceGeneral,
+    'maintenance': S.announceMaintenance,
+    'promotion': S.announcePromotion,
+    'policy': S.announcePolicy,
+  };
 
   static Map<String, (String, String)> get permission => {
     'can_manage_members': (S.memberControls, S.suspensionBlocklistRoles),

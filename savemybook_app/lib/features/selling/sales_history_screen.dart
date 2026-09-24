@@ -22,10 +22,10 @@ class SalesHistoryScreen extends StatefulWidget {
   State<SalesHistoryScreen> createState() => _SalesHistoryScreenState();
 }
 
-class _SalesHistoryScreenState extends State<SalesHistoryScreen>
-    with SingleTickerProviderStateMixin {
+class _SalesHistoryScreenState extends State<SalesHistoryScreen> with SingleTickerProviderStateMixin {
   List<({String key, String label})> get _tabs => [
     (key: 'pending_deposit', label: S.orderPendingDeposit),
+    (key: 'deposited', label: S.orderDeposited),
     (key: 'on_sale', label: S.bookOnSale),
     (key: 'cancelled', label: S.orderCancelled),
     (key: 'completed', label: S.orderCompleted),
@@ -66,15 +66,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
     final requestId = (_requestIds[tab] ?? 0) + 1;
     _requestIds[tab] = requestId;
     final List<Object> items;
+    // 販售中只放上架中、尚未成立訂單的書；已成立訂單的書在待存書與已存書分頁。
     if (tab == 'on_sale') {
-      final (orders, books) = await (
-        _api.fetchOrders(role: 'seller', tab: tab),
-        _api.fetchMyBooks(),
-      ).wait;
-      items = [
-        ...books.where((b) => b.status == 'on_sale' || b.status == 'reserved'),
-        ...orders,
-      ];
+      items = (await _api.fetchMyBooks()).where((b) => b.status == 'on_sale').toList();
     } else {
       items = await _api.fetchOrders(role: 'seller', tab: tab);
     }
@@ -169,10 +163,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
           AppHeader(
             title: S.sales,
             icon: Icons.inventory_2_outlined,
-            bottom: AppTabBar(
-              controller: _tabController,
-              tabs: _tabs.map((t) => t.label).toList(),
-            ),
+            bottom: AppTabBar(controller: _tabController, tabs: _tabs.map((t) => t.label).toList()),
           ),
           Expanded(
             child: SwipeTabs(
@@ -181,20 +172,20 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
                 child: items == null
                     ? LoadingView.grid(key: ValueKey('loading_$_currentTab'))
                     : items.isEmpty
-                        ? RefreshableCenter(
-                            key: ValueKey('empty_$_currentTab'),
-                            onRefresh: _load,
-                            child: EmptyView(icon: Icons.sell_outlined, message: S.noOrdersTab),
-                          )
-                        : RefreshIndicator(
-                            key: ValueKey('list_$_currentTab'),
-                            color: c.accent,
-                            onRefresh: _load,
-                            child: SaleCardGrid(
-                              itemCount: items.length,
-                              itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(items[i])),
-                            ),
-                          ),
+                    ? RefreshableCenter(
+                        key: ValueKey('empty_$_currentTab'),
+                        onRefresh: _load,
+                        child: EmptyView(icon: Icons.sell_outlined, message: S.noOrdersTab),
+                      )
+                    : RefreshIndicator(
+                        key: ValueKey('list_$_currentTab'),
+                        color: c.accent,
+                        onRefresh: _load,
+                        child: SaleCardGrid(
+                          itemCount: items.length,
+                          itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(items[i])),
+                        ),
+                      ),
               ),
             ),
           ),
@@ -204,10 +195,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
   }
 
   Future<void> _openDetail(Order order) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order, asSeller: true)),
-    );
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order, asSeller: true)));
     _load();
   }
 
@@ -221,7 +209,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
       return ListingCard(
         book: item,
         onTap: () => _openBook(item),
-        actionLabel: S.delist,
+        actionLabel: item.isHeld ? null : S.delist,
         onAction: () => _delist(item),
       );
     }
@@ -235,14 +223,8 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen>
           showPickupWindow: true,
           actionLabel: S.markAsDroppedOff,
           onAction: () => _markDeposited(order),
-        );
-      case 'on_sale':
-        return OrderCard(
-          order: order,
-          asSeller: true,
-          onTap: () => _openDetail(order),
-          actionLabel: order.isCancellable ? S.cancelOrder : null,
-          onAction: () => _cancelOrder(order),
+          secondaryLabel: order.isCancellable ? S.cancelOrder : null,
+          onSecondary: () => _cancelOrder(order),
         );
       default:
         return OrderCard(order: order, asSeller: true, onTap: () => _openDetail(order));

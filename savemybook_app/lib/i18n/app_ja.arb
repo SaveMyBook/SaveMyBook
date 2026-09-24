@@ -6,14 +6,14 @@
   "orderPendingPickup": "受け取り待ち",
   "orderCompleted": "完了",
   "orderCancelled": "キャンセル済み",
-  "orderRefunding": "返金処理中",
+  "orderRefunding": "審査中",
   "orderRefunded": "返金済み",
   "orderBuyerPendingDeposit": "出品者の預け入れ待ち",
   "orderBuyerDeposited": "受け取り待ち",
   "orderBuyerRefunding": "異議申立中",
   "orderFlowDeposit": "出品者が預け入れ",
   "orderFlowDeposited": "ロッカーに預け入れ済み",
-  "orderFlowPickup": "購入者が受け取り",
+  "orderFlowPickup": "購入者が受け取り済み",
   "orderFlowCompleted": "取引完了",
   "bookOnSale": "販売中",
   "bookReserved": "予約済み",
@@ -2004,7 +2004,7 @@
   "weLlLetKnowWhenSeller": "出品者が本を入れたら受け取りをお知らせします",
   "waitingBuyerCollect": "購入者の受け取り待ち",
   "transactionCompleteThank": "取引完了",
-  "confirmVeTakenBookFromLocker": "ロッカーから本を取り出したことを確認してください。確認すると注文が完了します。",
+  "confirmVeTakenBookFromLocker": "ロッカーから書籍を取り出したことを確認してください。状態に問題がなければ、購入履歴で注文を完了してください。",
   "p0Orders2": "注文 {p0} 件",
   "@p0Orders2": {
     "placeholders": {
@@ -3580,5 +3580,26 @@
   "noOpenaiGeminiKeyConfiguredOnly": "OpenAI または Gemini のキーが未設定のため、キーワード検索のみを使用しています。",
   "databaseNotBeenUpdated020Only": "データベースが未更新（020）のため、キーワード検索のみを使用しています。",
   "hybridSearchKeywordSemantic": "ハイブリッド検索（キーワード＋意味）",
-  "keywordSearchOnly": "キーワード検索のみ"
+  "keywordSearchOnly": "キーワード検索のみ",
+  "paymentReleasedWalletWhenBuyerCompletes": "購入者が注文を完了するか、受け取りから 24 時間後に代金がウォレットに入金されます",
+  "completeOrderAfterCheckingBookCompletes": "書籍の状態を確認したら注文を完了してください。受け取りから 24 時間以内に申し立てがなければ自動的に完了します",
+  "completeOrder": "注文を完了",
+  "onceCompleteOrderPaymentReleasedSeller": "注文を完了すると代金が出品者に支払われ、以後は紛争を申し立てられません。",
+  "orderCompleted2": "注文が完了しました",
+  "noReservedBooks": "予約中の書籍はありません",
+  "heldUntilP02": "{p0} まで確保中",
+  "@heldUntilP02": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "heldUntilP03": "{p0} まで確保中",
+  "@heldUntilP03": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "awaitingBuyerConfirmation": "購入者の確認待ち",
+  "awaitingCompletion": "完了待ち",
+  "libraryCopyUnofficialSource": "図書館蔵書・非正規入手の疑い"
 }

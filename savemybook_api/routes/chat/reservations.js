@@ -19,6 +19,10 @@ router.post('/rooms/:roomId/reservations', sendLimiter, async (req, res) => {
   res.status(201).json({ success: true, message: '已送出預約，等待賣家回覆', data });
 });
 
+router.get('/reservations/mine', async (req, res) => {
+  res.status(200).json({ success: true, data: await reservations.mine(req.user.userId) });
+});
+
 router.patch('/reservations/:id', async (req, res) => {
   const reservationId = v.id(req.params.id, '預約編號');
   const action = v.oneOf(req.body.action, ['accept', 'decline', 'cancel'], '操作類型不正確');

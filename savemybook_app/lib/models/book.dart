@@ -97,11 +97,13 @@ class Book {
         final resolved = resolveAssetUrl(img is Map ? img['image_url'] : img);
         if (resolved == null) continue;
         parsedImageUrls.add(resolved);
-        parsedImages.add(BookImage(
-          imageId: img is Map ? parseInt(img['image_id']) : 0,
-          url: resolved,
-          type: img is Map ? (img['image_type'] as String? ?? 'other') : 'other',
-        ));
+        parsedImages.add(
+          BookImage(
+            imageId: img is Map ? parseInt(img['image_id']) : 0,
+            url: resolved,
+            type: img is Map ? (img['image_type'] as String? ?? 'other') : 'other',
+          ),
+        );
       }
       if (parsedImageUrls.isNotEmpty) {
         parsedImageUrl = parsedImageUrls.first;
@@ -149,7 +151,9 @@ class Book {
       reservedUntil: json['reservation'] is Map ? parseDate(json['reservation']['reserved_until'])?.toLocal() : null,
       reservedForMe: json['reservation'] is Map && json['reservation']['reserved_for_me'] == true,
       isApproved: json['is_approved'] != false,
-      reviewStatus: json['review_status'] == 'pending' || json['review_status'] == 'rejected' ? json['review_status'] as String : null,
+      reviewStatus: json['review_status'] == 'pending' || json['review_status'] == 'rejected'
+          ? json['review_status'] as String
+          : null,
     );
   }
 
@@ -161,6 +165,13 @@ class Book {
 
   String get statusText => AppLabels.book(status);
 
+  /// 賣家本人或後台查看時的狀態代碼；預約保留中的書另以 held 表示。
+  String get ownerStatus => status == 'on_sale' && isHeld ? 'held' : status;
+
+  String get ownerStatusText => AppLabels.ownerBook(ownerStatus);
+
+  bool get isHeld => reservedUntil != null && reservedUntil!.isAfter(DateTime.now());
+
   bool get isPendingReview => reviewStatus == 'pending';
 
   bool get isReviewRejected => reviewStatus == 'rejected';
@@ -168,6 +179,6 @@ class Book {
   String get sellerStatusText {
     if (isPendingReview) return S.reportReviewing;
     if (isReviewRejected) return S.notApproved;
-    return statusText;
+    return ownerStatusText;
   }
 }

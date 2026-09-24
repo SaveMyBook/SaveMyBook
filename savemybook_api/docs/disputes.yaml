@@ -4,8 +4,9 @@ tags:
     description: |
       訂單交易爭議的申訴管道，適用書況不符、未收到書籍等情形。
 
-      申請送出後訂單立即轉為 `refunding`，待管理員於「後台：檢舉與爭議」裁決。
-      裁決結果為退款時訂單轉為 `refunded`；駁回或協調結案則轉回 `completed`。
+      申請送出後訂單立即轉為 `refunding`（畫面顯示「審核中」），暫停自動完成與撥款，待管理員於「後台：檢舉與爭議」裁決。
+      裁決結果為退款時訂單轉為 `refunded` 並全額退回買家；駁回或協調結案時，已取書的訂單直接完成並撥款給賣家，
+      尚未取書的訂單回到原本的進度。
 
 paths:
   /api/disputes:
@@ -60,8 +61,8 @@ paths:
 
         同一訂單若已存在狀態為 `pending` 或 `processing` 的申請，回傳 409。
 
-        依服務條款，已完成取書的訂單只能在取書後 24 小時內提出（以 `picked_up_at`，缺少時以 `completed_at` 計算），
-        逾期回傳 400 `DISPUTE_WINDOW_PASSED`；取書前各階段不受此限。
+        依服務條款，已取書的訂單只能在取書後 24 小時內、訂單完成前提出（以 `picked_up_at` 計算）；
+        逾期或訂單已完成（`completed`）回傳 400 `DISPUTE_WINDOW_PASSED`。取書前各階段不受此限。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -103,6 +104,8 @@ paths:
                   value: { success: false, message: 請填寫爭議說明 }
                 超過申訴期限:
                   value: { success: false, code: DISPUTE_WINDOW_PASSED, message: 已超過取書後 24 小時的申訴期限 }
+                訂單已完成:
+                  value: { success: false, code: DISPUTE_WINDOW_PASSED, message: 訂單已完成，無法再提出申訴 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
           description: 請求者非該訂單的關係人。

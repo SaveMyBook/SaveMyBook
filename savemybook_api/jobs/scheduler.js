@@ -5,6 +5,7 @@ const push = require('../services/push');
 const maintenance = require('../lib/maintenance');
 const sessions = require('../services/sessions');
 const reservations = require('../services/reservations');
+const orders = require('../services/orders');
 const transferRecords = require('../services/chat/transfer-records');
 const oauth = require('../services/oauth-providers');
 const passkeys = require('../services/passkeys');
@@ -81,6 +82,19 @@ const runReservationExpiry = async () => {
   }
 };
 
+// 取書滿 24 小時自動完成並撥款、逾期未存書或未取書自動取消退款。
+const runOrderAutomation = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const { completed, undeposited, uncollected } = await orders.runAutomation();
+    if (completed + undeposited + uncollected > 0) {
+      console.log(`📦 訂單自動處理：完成 ${completed} 筆、逾期未存書取消 ${undeposited} 筆、逾期未取書取消 ${uncollected} 筆`);
+    }
+  } catch (err) {
+    console.error('[訂單自動處理失敗]:', err.message);
+  }
+};
+
 // 上傳目錄可能因為部署覆蓋而遺失檔案；每天清一次，避免畫面長期出現破圖。
 const runUploadsSweep = async () => {
   if (maintenance.current().active) return;
@@ -119,6 +133,8 @@ const startScheduler = () => {
     setInterval(runDeletionSweep, HOUR),
     setInterval(runBackupIfDue, HOUR),
     setInterval(runReservationExpiry, 5 * MINUTE),
+    setInterval(runOrderAutomation, 10 * MINUTE),
+    setTimeout(runOrderAutomation, 2 * MINUTE),
     setInterval(runOauthCleanup, 10 * MINUTE),
     setInterval(runUploadsSweep, 24 * HOUR),
     setInterval(runEmbeddingSync, 10 * MINUTE),

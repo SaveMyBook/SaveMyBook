@@ -232,7 +232,7 @@ const tests = [
     assert.strictEqual(res.body.message, '賣家尚未存書，無法改為待取書');
   }],
 
-  ['買家取書後撥款給賣家並將書標為已售出', async () => {
+  ['買家取書後不撥款，完成訂單才撥款給賣家並將書標為已售出', async () => {
     const { buyer, seller, book, buyerToken, sellerToken } = scene({ price: 150 });
     prisma.rows('books')[0].status = 'reserved';
     const order = addPaidOrder({
@@ -240,9 +240,19 @@ const tests = [
     });
 
     await setStatus(sellerToken, order.order_id, 'deposited');
-    const denied = await setStatus(sellerToken, order.order_id, 'completed');
+    const denied = await setStatus(sellerToken, order.order_id, 'picked_up');
     assert.strictEqual(denied.status, 403);
-    assert.strictEqual(denied.body.message, '僅買家可確認取書');
+    assert.strictEqual(denied.body.message, '僅買家可確認取書或完成訂單');
+
+    const picked = await setStatus(buyerToken, order.order_id, 'picked_up');
+    assert.strictEqual(picked.status, 200);
+    assert.strictEqual(picked.body.data.status, 'deposited');
+    assert.ok(orderOf(order.order_id).picked_up_at instanceof Date);
+    assert.strictEqual(balanceOf(seller.user_id), 0, '取書時不撥款');
+    assert.strictEqual(bookOf(book.book_id).status, 'reserved');
+    const pickedNotice = notificationsOf(seller.user_id).find((n) => n.title === '買家已取書');
+    assert.strictEqual(pickedNotice.content, `訂單 ${order.order_no} 的書籍已由買家取走，買家完成訂單或取書滿 24 小時後，款項將撥入您的錢包。`);
+    assert.strictEqual((await setStatus(buyerToken, order.order_id, 'picked_up')).status, 409);
 
     const res = await setStatus(buyerToken, order.order_id, 'completed');
     assert.strictEqual(res.status, 200);
@@ -250,15 +260,41 @@ const tests = [
     assert.strictEqual(balanceOf(seller.user_id), 150);
     assert.strictEqual(bookOf(book.book_id).status, 'sold');
     assert.ok(orderOf(order.order_id).completed_at instanceof Date);
-    assert.ok(orderOf(order.order_id).picked_up_at instanceof Date);
 
     const income = transactionsOf(seller.user_id).find((t) => t.type === 'sale_income');
     assert.strictEqual(Number(income.amount), 150);
     assert.strictEqual(income.description, '賣出');
     assert.strictEqual(Number(walletCounter(seller.user_id, 'total_income')), 150);
 
-    const notice = notificationsOf(seller.user_id).find((n) => n.title === '買家已取書');
+    const notice = notificationsOf(seller.user_id).find((n) => n.title === '訂單已完成');
     assert.strictEqual(notice.content, `訂單 ${order.order_no} 已完成，150 代幣已撥入您的錢包。`);
+  }],
+
+  ['舊版 App 在取書時送出 completed，只記錄取書、不撥款', async () => {
+    const { buyer, seller, book, buyerToken, sellerToken } = scene({ price: 150 });
+    prisma.rows('books')[0].status = 'reserved';
+    const order = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, amount: 150 });
+    await setStatus(sellerToken, order.order_id, 'deposited');
+
+    const res = await setStatus(buyerToken, order.order_id, 'completed');
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.data.status, 'deposited');
+    assert.ok(orderOf(order.order_id).picked_up_at instanceof Date);
+    assert.strictEqual(balanceOf(seller.user_id), 0);
+  }],
+
+  ['賣家存書後買賣雙方都不能自行取消', async () => {
+    const { buyer, seller, book, buyerToken, sellerToken } = scene();
+    prisma.rows('books')[0].status = 'reserved';
+    const order = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id });
+    await setStatus(sellerToken, order.order_id, 'deposited');
+
+    for (const token of [buyerToken, sellerToken]) {
+      const res = await request('PATCH', `/api/orders/${order.order_id}/cancel`, { token, body: {} });
+      assert.strictEqual(res.status, 400);
+      assert.strictEqual(res.body.code, 'ORDER_NOT_CANCELLABLE');
+    }
+    assert.strictEqual(orderOf(order.order_id).status, 'deposited');
   }],
 
   ['取消訂單會退款買家、釋放書籍並通知雙方', async () => {
@@ -308,6 +344,7 @@ const tests = [
       buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, amount: 200
     });
     await setStatus(sellerToken, order.order_id, 'deposited');
+    await setStatus(buyerToken, order.order_id, 'picked_up');
     await setStatus(buyerToken, order.order_id, 'completed');
     assert.strictEqual(balanceOf(seller.user_id), 200);
 
@@ -339,6 +376,7 @@ const tests = [
       buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, amount: 200
     });
     await setStatus(sellerToken, order.order_id, 'deposited');
+    await setStatus(buyerToken, order.order_id, 'picked_up');
     await setStatus(buyerToken, order.order_id, 'completed');
 
     // 已撥款後再改回進行中，不應再撥一次款。

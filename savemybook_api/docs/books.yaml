@@ -26,6 +26,7 @@ paths:
         2. 帶入的 `seller_id` 為請求者本人（須帶 Bearer Token）時不套用 `is_approved` 條件，
            賣家方能查得自身待審核或已下架的書籍；其餘情況僅回傳 `is_approved` 為 true
            且狀態不為 `removed` 的書籍，帶入 `status=removed` 回傳 400。
+           查詢自己的書籍時，預約保留中的書另附 `reservation.reserved_until`，書籍管理據此列入「已預定」。
 
         ## Popular Ranking
 
@@ -413,6 +414,7 @@ paths:
       tags: [books]
       description: |
         僅能異動自身上架的書籍，管理員不受此限。採部分更新，僅須帶入欲異動的欄位。
+        聊天室預約保留中的書籍，賣家不能編輯、下架或增刪照片，回傳 409 `BOOK_HELD`。
 
         書籍若因檢舉成立而下架（`is_approved` 為 false），或有任一檢舉審核結果為 `resolved`，
         將狀態非 `on_sale` 的書籍改為 `on_sale` 的請求會被拒絕，回傳 403 並帶

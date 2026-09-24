@@ -63,7 +63,9 @@ class AiLabels {
     'contact' => S.offPlatformDealContactInfo,
     'misleading' => S.misleadingDescription,
     'price' => S.unusualPrice,
-    _ => id,
+    'source' => S.libraryCopyUnofficialSource,
+    // 伺服器日後新增的類別在 App 更新前不顯示英文代碼。
+    _ => S.ticketCatOther,
   };
 
   static String errorCode(String code) => switch (code) {

@@ -866,6 +866,30 @@ paths:
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/chat/reservations/mine:
+    get:
+      summary: 取得我的預約
+      operationId: listMyReservations
+      tags: [chat]
+      description: |
+        購買紀錄「已預訂」分頁使用。回傳請求者身為買家、等待賣家回覆（`pending`）或保留中（`confirmed` 且未過期限）的預約，
+        依建立時間由新到舊，最多 50 筆；書籍已非販售中者不列入。保留中者 `is_holding` 為 true。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Reservation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/chat/reservations/{id}:
     patch:
       summary: 回覆或取消預約
@@ -880,6 +904,9 @@ paths:
 
         接受時，書籍須仍為 `on_sale` 且未被其他買家保留；同一本書其他 `pending` 的預約會自動取消並通知其買家。
         每個動作皆通知另一方。
+
+        保留期間（`confirmed` 且未過 `pickup_deadline`）其他買家無法加入購物車或結帳，賣家也不能編輯、下架或增刪照片
+        （回傳 409 `BOOK_HELD`）。保留中的預約被取消或到期時，若書籍仍在販售中，會通知收藏此書的使用者（不含該預約的買賣雙方）。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path

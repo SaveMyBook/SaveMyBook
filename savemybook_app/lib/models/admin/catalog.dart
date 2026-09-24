@@ -43,7 +43,7 @@ class AdminBook {
     this.description,
   });
 
-  String get statusText => AppLabels.book(status);
+  String get statusText => AppLabels.ownerBook(status);
 
   factory AdminBook.fromJson(Map<String, dynamic> json) {
     final seller = json['seller'] as Map<String, dynamic>?;

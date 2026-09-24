@@ -311,17 +311,22 @@ class AppTabBar extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
         final scaler = MediaQuery.textScalerOf(context);
         final perTab = constraints.maxWidth / tabs.length;
-        final crowded = tabs.any((t) {
+        // 以實際繪製的字型量測：Tab 預設左右各留 16，放不下時先縮成各 10，仍放不下才改為可橫向捲動。
+        final style = DefaultTextStyle.of(context).style.merge(labelStyle);
+        final widest = tabs.fold<double>(0, (max, t) {
           final painter = TextPainter(
-            text: TextSpan(text: t, style: labelStyle),
+            text: TextSpan(text: t, style: style),
             textDirection: Directionality.of(context),
             textScaler: scaler,
             maxLines: 1,
           )..layout();
-          final tooWide = painter.width + 24 > perTab;
+          final w = painter.width;
           painter.dispose();
-          return tooWide;
+          return w > max ? w : max;
         });
+        final compact = widest + 32 > perTab;
+        final crowded = widest + 20 > perTab;
+        final labelPadding = compact && !crowded ? const EdgeInsets.symmetric(horizontal: 10) : null;
 
         return TabBar(
         controller: controller,
@@ -334,6 +339,7 @@ class AppTabBar extends StatelessWidget {
         labelColor: c.accent,
         unselectedLabelColor: c.textSecondary,
         labelStyle: labelStyle,
+        labelPadding: labelPadding,
         unselectedLabelStyle: const TextStyle(fontSize: 14),
         tabs: tabs.map((t) => Tab(height: 46, text: t)).toList(),
         );
