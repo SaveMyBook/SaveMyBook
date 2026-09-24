@@ -3601,5 +3601,12 @@
   },
   "awaitingBuyerConfirmation": "구매자 확인 대기",
   "awaitingCompletion": "완료 대기",
-  "libraryCopyUnofficialSource": "도서관 소장본 또는 비정상 출처"
+  "libraryCopyUnofficialSource": "도서관 소장본 또는 비정상 출처",
+  "p0CannotEdit": "{p0} · 편집 불가",
+  "@p0CannotEdit": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyNow2": "바로 구매"
 }

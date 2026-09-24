@@ -173,10 +173,10 @@ const findOwnedBook = async (bookId, user, deniedMessage) => {
 const violationLocked = async (book) => (book.is_approved === false && (await reviews.statusOf(book.book_id)) !== 'pending')
   || (await prisma.reports.count({ where: { target_type: 'book', target_id: book.book_id, status: 'resolved' } })) > 0;
 
-const firstImageUrls = async (bookId) => (await prisma.book_images.findMany({
+const firstImageUrls = async (bookId, max = 2) => (await prisma.book_images.findMany({
   where: { book_id: bookId },
   orderBy: { image_id: 'asc' },
-  take: 2,
+  take: max,
   select: { image_url: true }
 })).map((i) => i.image_url);
 
@@ -206,6 +206,12 @@ const notifyPriceDrop = async (book, oldPrice) => {
   });
 };
 
+// 訂單已成立（reserved）或已完成（sold）的書，內容與照片必須維持買家下單時的樣子。
+const assertEditable = (book, user) => {
+  if (user.role === 'admin' || !['reserved', 'sold'].includes(book.status)) return;
+  throw conflict(book.status === 'sold' ? '此書籍已完成交易，無法編輯' : '此書籍已售出，無法編輯', 'BOOK_LOCKED');
+};
+
 const allowedStatuses = (user) => (user.role === 'admin' ? BOOK_STATUSES : SELLER_STATUSES);
 
 const update = async (bookId, user, data) => {
@@ -225,6 +231,8 @@ const update = async (bookId, user, data) => {
     throw conflict(book.status === 'sold' ? '此書籍已售出，無法變更狀態' : '此書籍交易中，無法變更狀態');
   }
 
+  assertEditable(book, user);
+
   await assertRefsExist({ categoryId: data.category_id, cabinetId: data.cabinet_id }, book);
 
   const changed = (field) => data[field] !== undefined && data[field] !== book[field];
@@ -238,7 +246,7 @@ const update = async (bookId, user, data) => {
       decision = await moderation.screen({
         userId: user.userId,
         book: merged,
-        loadImages: async () => aiImages.fromUrls(await firstImageUrls(bookId))
+        loadImages: async (max) => aiImages.fromUrls(await firstImageUrls(bookId, max), max)
       });
     }
   }
@@ -283,6 +291,7 @@ const remove = async (bookId, user) => {
   if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
 
   if (book.status === 'reserved') throw conflict('此書籍交易中，請先處理訂單再下架');
+  if (book.status === 'sold' && user.role !== 'admin') throw conflict('此書籍已完成交易，無法下架', 'BOOK_LOCKED');
 
   await prisma.books.update({
     where: { book_id: bookId },
@@ -292,6 +301,7 @@ const remove = async (bookId, user) => {
 
 const addImages = async (bookId, user, images, { files = [] } = {}) => {
   const book = await findOwnedBook(bookId, user, '存取被拒，您無權限修改他人的商品');
+  assertEditable(book, user);
   if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
   if (images.length === 0) throw badRequest('請選擇要上傳的圖片');
 
@@ -303,7 +313,7 @@ const addImages = async (bookId, user, images, { files = [] } = {}) => {
   let plan = null;
   let decision = null;
   if (user.role !== 'admin') {
-    decision = await moderation.screen({ userId: user.userId, book, loadImages: () => aiImages.fromUploads(files) });
+    decision = await moderation.screen({ userId: user.userId, book, loadImages: (max) => aiImages.fromUploads(files, max) });
     moderation.assertNotRejected(decision);
     plan = decision.action === 'review' ? await reviewPlan(book, decision) : null;
   }
@@ -330,7 +340,7 @@ const addImages = async (bookId, user, images, { files = [] } = {}) => {
 };
 
 const removeImage = async (bookId, imageId, user) => {
-  await findOwnedBook(bookId, user, '存取被拒，您無權限修改他人的商品');
+  assertEditable(await findOwnedBook(bookId, user, '存取被拒，您無權限修改他人的商品'), user);
   if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
 
   const result = await prisma.book_images.deleteMany({ where: { image_id: imageId, book_id: bookId } });

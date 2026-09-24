@@ -130,7 +130,8 @@ class _BookManageScreenState extends State<BookManageScreen> {
       _busyIds.add(book.bookId);
       _statusOverride[book.bookId] = 'removed';
     });
-    final ok = await _api.removeBook(book.bookId);
+    final error = await _api.removeBook(book.bookId);
+    final ok = error == null;
     if (!mounted) return;
     setState(() {
       _busyIds.remove(book.bookId);
@@ -138,7 +139,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
     });
 
     if (!ok) {
-      showAppSnackBar(context, S.couldNotDelistPleaseTryAgain, isError: true);
+      showAppSnackBar(context, error, isError: true);
       return;
     }
     HapticFeedback.lightImpact();

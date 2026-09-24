@@ -15,11 +15,16 @@ const classify = (status, data) => {
 
 const headers = (apiKey) => ({ authorization: `Bearer ${apiKey}` });
 
-const userContent = (prompt, images) => [
+// detail 為 high 時才會以原始解析度判讀，辨識標籤上的小字需要；預設 auto 可能被縮圖。
+const userContent = (prompt, images, detail) => [
   { type: 'input_text', text: prompt },
   ...images
     .filter((img) => IMAGE_TYPES.includes(img.mimeType))
-    .map((img) => ({ type: 'input_image', image_url: `data:${img.mimeType};base64,${img.data}` }))
+    .map((img) => ({
+      type: 'input_image',
+      image_url: `data:${img.mimeType};base64,${img.data}`,
+      ...(detail && { detail })
+    }))
 ];
 
 const textFormat = ({ json, schema }) => {
@@ -79,7 +84,7 @@ const promptFor = (prompt, { json, search }) => {
   return prompt;
 };
 
-const generate = async ({ apiKey, model, system, history = [], prompt, images = [], json, schema, search, reasoning, maxOutputTokens, timeoutMs }) => {
+const generate = async ({ apiKey, model, system, history = [], prompt, images = [], imageDetail, json, schema, search, reasoning, maxOutputTokens, timeoutMs }) => {
   // gpt-5 系列在 reasoning effort 為 minimal 時不支援 web_search 工具；非推理模型不接受 reasoning 參數。
   const effort = reasoningEffortOf(model, search, reasoning);
   const headroom = effort ? (search ? SEARCH_REASONING_HEADROOM : REASONING_HEADROOM) : 0;
@@ -88,7 +93,7 @@ const generate = async ({ apiKey, model, system, history = [], prompt, images = 
     ...(system && { instructions: system }),
     input: [
       ...history.map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
-      { role: 'user', content: userContent(promptFor(prompt, { json, search }), images) }
+      { role: 'user', content: userContent(promptFor(prompt, { json, search }), images, imageDetail) }
     ],
     ...(effort && { reasoning: { effort } }),
     ...(!search && textFormat({ json, schema }) && { text: textFormat({ json, schema }) }),

@@ -3601,5 +3601,12 @@
   },
   "awaitingBuyerConfirmation": "待買家確認",
   "awaitingCompletion": "待完成訂單",
-  "libraryCopyUnofficialSource": "館藏或非正規來源"
+  "libraryCopyUnofficialSource": "館藏或非正規來源",
+  "p0CannotEdit": "{p0}・無法編輯",
+  "@p0CannotEdit": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyNow2": "直接購買"
 }

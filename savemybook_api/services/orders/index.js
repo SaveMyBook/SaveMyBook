@@ -5,7 +5,7 @@ const { notify } = require('../notify');
 const { withTxnNo } = require('../wallet');
 const audit = require('../audit');
 const settlement = require('./settlement');
-const { checkout } = require('./checkout');
+const { checkout, buyNow } = require('./checkout');
 const { orderInclude, adminOrderInclude } = require('./selects');
 
 const { transition, describeSettlement, statusLabel } = settlement;
@@ -428,6 +428,6 @@ const adminChangeStatus = async (orderId, status, note, { adminId, req }) => {
 };
 
 module.exports = {
-  TRANSITIONS, CONFIRM_WINDOW_HOURS, DEPOSIT_DAYS, PICKUP_DAYS, tabFilter, listForUser, detailForParty, checkout, cancel, advance,
+  TRANSITIONS, CONFIRM_WINDOW_HOURS, DEPOSIT_DAYS, PICKUP_DAYS, tabFilter, listForUser, detailForParty, checkout, buyNow, cancel, advance,
   completeDue, cancelUndeposited, cancelUncollected, runAutomation, adminList, adminDetail, adminChangeStatus
 };

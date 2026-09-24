@@ -3601,5 +3601,12 @@
   },
   "awaitingBuyerConfirmation": "待买家确认",
   "awaitingCompletion": "待完成订单",
-  "libraryCopyUnofficialSource": "馆藏或非正规来源"
+  "libraryCopyUnofficialSource": "馆藏或非正规来源",
+  "p0CannotEdit": "{p0}・无法编辑",
+  "@p0CannotEdit": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "buyNow2": "直接购买"
 }

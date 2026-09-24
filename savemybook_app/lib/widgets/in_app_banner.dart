@@ -6,10 +6,31 @@ import 'animations.dart';
 import 'app_asset_image.dart';
 import 'state_views.dart';
 
+class _BannerRequest {
+  final OverlayState overlay;
+  final String title;
+  final String body;
+  final IconData icon;
+  final String? imageUrl;
+  final VoidCallback? onTap;
+  final String? groupKey;
+
+  const _BannerRequest(this.overlay, this.title, this.body, this.icon, this.imageUrl, this.onTap, this.groupKey);
+}
+
+const _displayTime = Duration(seconds: 4);
+const _queuedDisplayTime = Duration(milliseconds: 2500);
+const _maxQueue = 5;
+
 OverlayEntry? _current;
 GlobalKey<_BannerState>? _currentKey;
+_BannerRequest? _currentRequest;
+DateTime? _shownAt;
 Timer? _dismissTimer;
+final List<_BannerRequest> _queue = [];
 
+/// 同時收到多則通知時依序顯示，不會讓前一則瞬間被蓋掉；
+/// 同一個對象（例如同一個聊天室）的新通知直接更新目前的橫幅，不重複排隊。
 void showInAppBanner(
   OverlayState overlay, {
   required String title,
@@ -17,43 +38,96 @@ void showInAppBanner(
   IconData icon = Icons.notifications_rounded,
   String? imageUrl,
   VoidCallback? onTap,
+  String? groupKey,
 }) {
-  _dismiss();
+  final request = _BannerRequest(overlay, title, body, icon, imageUrl, onTap, groupKey);
+  final showing = _currentRequest;
+  if (showing == null) {
+    _present(request);
+    return;
+  }
+  if (groupKey != null && showing.groupKey == groupKey) {
+    _present(request);
+    return;
+  }
+  _queue.removeWhere((q) => groupKey != null && q.groupKey == groupKey);
+  _queue.add(request);
+  if (_queue.length > _maxQueue) _queue.removeAt(0);
+  _scheduleClose();
+}
 
+void _present(_BannerRequest request) {
+  _removeCurrent();
   final key = GlobalKey<_BannerState>();
   late OverlayEntry entry;
   entry = OverlayEntry(
     builder: (context) => _Banner(
       key: key,
-      title: title,
-      body: body,
-      icon: icon,
-      imageUrl: imageUrl,
+      title: request.title,
+      body: request.body,
+      icon: request.icon,
+      imageUrl: request.imageUrl,
       onTap: () {
-        _dismiss();
-        onTap?.call();
+        _queue.clear();
+        _removeCurrent();
+        request.onTap?.call();
       },
-      onDismiss: _dismiss,
+      onDismiss: () {
+        _removeCurrent();
+        _showNext();
+      },
     ),
   );
   _current = entry;
   _currentKey = key;
-  overlay.insert(entry);
-  _dismissTimer = Timer(const Duration(seconds: 4), () => _close(entry));
+  _currentRequest = request;
+  _shownAt = DateTime.now();
+  request.overlay.insert(entry);
+  _scheduleClose();
+}
+
+// 有排隊的通知時縮短停留時間（仍至少顯示 2.5 秒），沒有時顯示 4 秒。
+void _scheduleClose() {
+  final entry = _current;
+  final shownAt = _shownAt;
+  if (entry == null || shownAt == null) return;
+  final wait = (_queue.isEmpty ? _displayTime : _queuedDisplayTime) - DateTime.now().difference(shownAt);
+  _dismissTimer?.cancel();
+  _dismissTimer = Timer(wait.isNegative ? Duration.zero : wait, () => _close(entry));
 }
 
 Future<void> _close(OverlayEntry entry) async {
   if (!identical(_current, entry)) return;
   await _currentKey?.currentState?.close();
-  if (identical(_current, entry)) _dismiss();
+  if (!identical(_current, entry)) return;
+  _removeCurrent();
+  _showNext();
 }
 
-void _dismiss() {
+void _showNext() {
+  if (_queue.isEmpty) return;
+  final next = _queue.removeAt(0);
+  if (!next.overlay.mounted) {
+    _showNext();
+    return;
+  }
+  _present(next);
+}
+
+void _removeCurrent() {
   _dismissTimer?.cancel();
   _dismissTimer = null;
   _current?.remove();
   _current = null;
   _currentKey = null;
+  _currentRequest = null;
+  _shownAt = null;
+}
+
+@visibleForTesting
+void resetInAppBanners() {
+  _queue.clear();
+  _removeCurrent();
 }
 
 class _Banner extends StatefulWidget {
@@ -100,10 +174,7 @@ class _BannerState extends State<_Banner> with SingleTickerProviderStateMixin {
     final iconTile = Container(
       width: 38,
       height: 38,
-      decoration: BoxDecoration(
-        color: c.accent.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(11),
-      ),
+      decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(11)),
       child: Icon(widget.icon, size: 20, color: c.accent),
     );
     final url = widget.imageUrl;
@@ -153,11 +224,7 @@ class _BannerState extends State<_Banner> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final top = MediaQuery.of(context).padding.top + 8;
-    final curved = CurvedAnimation(
-      parent: _controller,
-      curve: Motion.emphasized,
-      reverseCurve: Motion.exitCurve,
-    );
+    final curved = CurvedAnimation(parent: _controller, curve: Motion.emphasized, reverseCurve: Motion.exitCurve);
 
     return Positioned(
       top: top,
@@ -168,7 +235,7 @@ class _BannerState extends State<_Banner> with SingleTickerProviderStateMixin {
         child: FadeTransition(
           opacity: _controller,
           child: Dismissible(
-            key: const ValueKey('in_app_banner'),
+            key: ValueKey('in_app_banner_${identityHashCode(widget)}'),
             direction: DismissDirection.up,
             onDismissed: (_) => widget.onDismiss(),
             child: Material(

@@ -256,6 +256,27 @@ module.exports = {
       assert.strictEqual(h.calls.length, 0);
     }],
 
+    ['審核：最多檢查 4 張照片、以高解析度判讀，並要求留意被遮住的館藏標籤', async () => {
+      h.setSettings({ enabled: true });
+      let requested = null;
+      h.queueJson({ verdict: 'review', confidence: 0.7, categories: ['source'], reasons: ['館藏標籤疑似被手指遮住'] });
+      const decision = await moderation.screen({
+        userId: 1,
+        book: { title: '憲法解題書', price: 650 },
+        loadImages: async (max) => {
+          requested = max;
+          return Array.from({ length: max }, () => ({ mimeType: 'image/jpeg', data: 'AA' }));
+        }
+      });
+      assert.strictEqual(requested, 4);
+      const call = h.calls[0].options;
+      assert.strictEqual(call.images.length, 4);
+      assert.strictEqual(call.imageDetail, 'high');
+      assert.match(call.system, /手指、手掌、貼紙/);
+      assert.deepStrictEqual(decision.categories, ['source']);
+      assert.strictEqual(decision.action, 'review');
+    }],
+
     ['審核：超出預算時放行，但留下 BUDGET_EXCEEDED 的用量紀錄', async () => {
       h.setSettings({ enabled: true, limits: { monthly_budget_usd: 1 } });
       h.addUsageLog({ cost_usd: 2, created_at: new Date() });

@@ -202,6 +202,7 @@ class PushService {
       icon: NotificationCategory.of('${data['type']}', data['related_type']?.toString()).icon,
       imageUrl: avatar.isEmpty ? null : avatar,
       onTap: () => _open(data),
+      groupKey: data['related_type'] == null ? null : '${data['related_type']}:${data['related_id'] ?? ''}',
     );
   }
 

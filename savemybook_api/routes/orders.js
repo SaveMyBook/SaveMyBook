@@ -38,6 +38,12 @@ router.post('/checkout', requireVerification('payment'), async (req, res) => {
   res.status(201).json({ success: true, message: '結帳成功', data: created });
 });
 
+router.post('/buy-now', requireVerification('payment'), async (req, res) => {
+  const bookId = v.id(req.body.book_id, '書籍編號');
+  const order = await orders.buyNow(req.user.userId, { bookId, paymentMethod: 'wallet' });
+  res.status(201).json({ success: true, message: '購買成功', data: order });
+});
+
 router.patch('/:id/cancel', async (req, res) => {
   const orderId = v.id(req.params.id, '訂單編號');
   const reason = v.optionalText(req.body.reason, { label: '取消原因', max: 500 }) ?? null;

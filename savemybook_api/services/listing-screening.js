@@ -106,7 +106,7 @@ const applyLater = async (bookId, decision) => {
 };
 
 const screenLater = (book, files) => {
-  const job = moderation.screen({ userId: book.seller_id, book, loadImages: () => aiImages.fromUploads(files) })
+  const job = moderation.screen({ userId: book.seller_id, book, loadImages: (max) => aiImages.fromUploads(files, max) })
     .then((decision) => applyLater(book.book_id, decision))
     .catch((err) => console.error('[背景上架審核失敗]:', err.message))
     .finally(() => inFlight.delete(job));

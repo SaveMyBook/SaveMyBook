@@ -156,33 +156,36 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     top: 20,
                     bottom: MediaQuery.of(context).padding.bottom + 40,
                   );
-                  final collect = Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Reveal(
-                        visible: canCollect || canComplete,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 20),
-                          child: PrimaryButton(
-                            label: canComplete ? S.completeOrder : S.iCollected,
-                            icon: canComplete ? Icons.task_alt_rounded : Icons.check_rounded,
-                            onPressed: canComplete ? _completeOrder : (canCollect ? _confirmCollected : null),
-                          ),
-                        ),
+                  final hasPrimary = canCollect || canComplete;
+                  // 主要動作與申請爭議並排、等高：次要的申請爭議放左側，避免一大一小上下堆疊。
+                  final collect = Reveal(
+                    visible: hasPrimary || canDispute,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: Row(
+                        children: [
+                          if (canDispute)
+                            Expanded(
+                              flex: hasPrimary ? 2 : 1,
+                              child: SecondaryButton(
+                                label: S.openDispute,
+                                icon: Icons.report_gmailerrorred_rounded,
+                                onPressed: _openDispute,
+                              ),
+                            ),
+                          if (canDispute && hasPrimary) const SizedBox(width: 10),
+                          if (hasPrimary)
+                            Expanded(
+                              flex: 3,
+                              child: PrimaryButton(
+                                label: canComplete ? S.completeOrder : S.iCollected,
+                                icon: canComplete ? Icons.task_alt_rounded : Icons.check_rounded,
+                                onPressed: canComplete ? _completeOrder : _confirmCollected,
+                              ),
+                            ),
+                        ],
                       ),
-                      Reveal(
-                        visible: canDispute,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: SecondaryButton(
-                            label: S.openDispute,
-                            icon: Icons.report_gmailerrorred_rounded,
-                            onPressed: canDispute ? _openDispute : null,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   );
                   return ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -533,21 +536,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(child: SectionHeading(title: S.pickupDetails)),
-              if (_order.cabinetAddress.isNotEmpty)
-                TextButton.icon(
-                  onPressed: () => _copy(address, S.address),
-                  style: TextButton.styleFrom(
-                    foregroundColor: c.accent,
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+          SectionHeading(
+            title: S.pickupDetails,
+            trailing: _order.cabinetAddress.isEmpty
+                ? null
+                : TextButton.icon(
+                    onPressed: () => _copy(address, S.address),
+                    style: TextButton.styleFrom(
+                      foregroundColor: c.accent,
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: const Icon(Icons.copy_rounded, size: 14),
+                    label: Text(S.copyAddress, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
-                  icon: const Icon(Icons.copy_rounded, size: 14),
-                  label: Text(S.copyAddress, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                ),
-            ],
           ),
           const SizedBox(height: 12),
           InfoLine(

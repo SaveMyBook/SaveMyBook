@@ -227,6 +227,16 @@ module.exports = {
       const content = requests[0].body.input[0].content;
       assert.strictEqual(content.length, 2);
       assert.strictEqual(content[1].image_url, 'data:image/png;base64,BB');
+      assert.strictEqual(content[1].detail, undefined, '未指定時沿用預設解析度');
+    }],
+
+    ['OpenAI：指定 imageDetail 時以高解析度判讀照片', async () => {
+      enqueue(openaiOk());
+      await realGenerate('openai', {
+        apiKey: 'sk-test-key', model: 'gpt-5-nano', prompt: '看圖', imageDetail: 'high',
+        images: [{ mimeType: 'image/jpeg', data: 'AA' }]
+      });
+      assert.strictEqual(requests[0].body.input[0].content[1].detail, 'high');
     }],
 
     ['OpenAI：回應未完成時依原因回 INCOMPLETE 或 BLOCKED', async () => {

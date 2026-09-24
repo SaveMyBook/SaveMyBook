@@ -2,6 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../orders/widgets/payment_success_dialog.dart';
+import '../orders/purchase_history_screen.dart';
+import '../../services/verification_service.dart';
+import '../../models/wallet.dart';
 import '../../models/book.dart';
 import '../../services/api_service.dart';
 import '../../services/location_service.dart';
@@ -47,6 +51,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   late Book _book = widget.book;
   int _currentImageIndex = 0;
   bool _isAddingToCart = false;
+  bool _isBuying = false;
   bool _isSharing = false;
   double? _distance;
   bool _locating = false;
@@ -118,7 +123,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
   }
 
-  Future<void> _addToCart({bool thenCheckout = false}) async {
+  Future<void> _addToCart() async {
     if (_isAddingToCart) return;
     if (ApiService.cartBookIds.value.contains(_book.bookId)) {
       _openCart();
@@ -150,10 +155,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     }
 
     HapticFeedback.mediumImpact();
-    if (thenCheckout) {
-      _openCart();
-      return;
-    }
     flyToCart(
       context,
       from: _addButtonKey,
@@ -162,6 +163,69 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       onArrive: CartIconButton.bump,
     );
     showAppSnackBar(context, S.addedCart);
+  }
+
+  bool get _purchasable => _book.status == 'on_sale' && !_book.isReservedByOthers;
+
+  // 直接購買單本書：不經購物車，付款驗證會顯示金額與付款後餘額。
+  Future<void> _buyNow() async {
+    if (_isBuying || _isAddingToCart) return;
+    if (ApiService.authToken == null) {
+      showAppSnackBar(context, S.pleaseSignFirst, isError: true);
+      return;
+    }
+    if (_book.status != 'on_sale') {
+      showAppSnackBar(context, S.bookCannotPurchased(_book.statusText), isError: true);
+      return;
+    }
+    if (_book.isReservedByOthers) {
+      showAppSnackBar(context, S.bookReservedAnotherBuyerCanT, isError: true);
+      return;
+    }
+
+    HapticFeedback.lightImpact();
+    setState(() => _isBuying = true);
+    final price = _book.price;
+    final wallet = await _api.fetchWallet();
+    if (!mounted) return;
+    // 讀不到錢包時交由伺服器判斷餘額，避免誤報代幣不足。
+    final known = !identical(wallet, Wallet.empty);
+    if (known && wallet.balance < price) {
+      setState(() => _isBuying = false);
+      showAppSnackBar(
+        context,
+        S.notEnoughCoinsOrderNeedsBut(price.toStringAsFixed(0), wallet.balance.toStringAsFixed(0)),
+        isError: true,
+      );
+      return;
+    }
+
+    VerificationService.paymentSummary = PaymentSummary(
+      amount: price,
+      detail:
+          S.booksTotal(1, price.toStringAsFixed(0)) +
+          (known ? S.balanceAfterPaymentCoins((wallet.balance - price).toStringAsFixed(0)) : ''),
+    );
+    String? error;
+    try {
+      error = await _api.buyNow(_book.bookId);
+    } finally {
+      VerificationService.paymentSummary = null;
+    }
+    if (!mounted) return;
+    setState(() => _isBuying = false);
+
+    if (error != null) {
+      if (error.isNotEmpty) showAppSnackBar(context, error, isError: true);
+      _loadDetail();
+      return;
+    }
+
+    HapticFeedback.heavyImpact();
+    _loadDetail();
+    final viewOrders = await showPaymentSuccess(context, total: price);
+    if (!mounted || viewOrders != true) return;
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const PurchaseHistoryScreen()));
   }
 
   Future<void> _chatWithSeller() async {
@@ -1017,7 +1081,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     );
 
     if (_isOwnBook) {
-      final canEdit = _book.status != 'sold';
+      // 只有販售中（未被預約保留）與已下架的書可以編輯；已預訂、已售出、已完成的書改顯示目前狀態。
+      final canEdit = _book.status == 'removed' || (_book.status == 'on_sale' && !_book.isHeld);
+      final lockedStatus = _book.ownerStatusText;
       return Container(
         padding: padding,
         decoration: decoration,
@@ -1025,14 +1091,18 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           height: 48,
           child: FilledButton.icon(
             onPressed: canEdit ? _openEdit : null,
-            icon: const Icon(Icons.edit_outlined, size: 18),
-            label: Text(S.editBook, maxLines: 1, overflow: TextOverflow.ellipsis),
+            icon: Icon(canEdit ? Icons.edit_outlined : Icons.lock_outline_rounded, size: 18),
+            label: Text(
+              canEdit ? S.editBook : S.p0CannotEdit(lockedStatus),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             style: FilledButton.styleFrom(
               backgroundColor: c.accent,
               foregroundColor: Colors.white,
               disabledBackgroundColor: c.inputFill,
               disabledForegroundColor: c.textHint,
-              textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 15, fontWeight: FontWeight.w600),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           ),
@@ -1045,31 +1115,59 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       decoration: decoration,
       child: Row(
         children: [
-          Expanded(
-            child: SizedBox(
-              height: 48,
-              child: OutlinedButton.icon(
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: Tooltip(
+              message: S.messageSeller,
+              child: OutlinedButton(
                 onPressed: _chatWithSeller,
-                icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                label: Text(S.messageSeller, maxLines: 1, overflow: TextOverflow.ellipsis),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   side: BorderSide(color: AppColors.primary),
-                  textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
+                child: Semantics(label: S.messageSeller, child: const Icon(Icons.chat_bubble_outline, size: 20)),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: ValueListenableBuilder<Set<int>>(
               valueListenable: ApiService.cartBookIds,
               builder: (context, ids, _) => _buildCartButton(c, ids.contains(_book.bookId)),
             ),
           ),
+          if (_purchasable) ...[const SizedBox(width: 10), Expanded(child: _buildBuyNowButton(c))],
         ],
+      ),
+    );
+  }
+
+  Widget _buildBuyNowButton(AppColors c) {
+    final reservedForMe = _book.reservedForMe && (_book.reservedUntil?.isAfter(DateTime.now()) ?? false);
+    return SizedBox(
+      height: 48,
+      child: FilledButton.icon(
+        onPressed: _isBuying || _isAddingToCart ? null : _buyNow,
+        icon: _isBuying
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              )
+            : const Icon(Icons.bolt_rounded, size: 19),
+        label: Text(S.buyNow2, maxLines: 1, overflow: TextOverflow.ellipsis),
+        style: FilledButton.styleFrom(
+          backgroundColor: reservedForMe ? c.success : c.accent,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: (reservedForMe ? c.success : c.accent).withValues(alpha: 0.6),
+          disabledForegroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 15, fontWeight: FontWeight.w600),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
       ),
     );
   }
@@ -1081,8 +1179,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final bool strong;
     VoidCallback? onTap;
 
-    final reservedForMe = _book.reservedForMe && (_book.reservedUntil?.isAfter(DateTime.now()) ?? false);
-
     if (_book.status != 'on_sale') {
       key = 'unavailable';
       label = _book.statusText;
@@ -1093,37 +1189,24 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       label = S.reserved;
       icon = Icons.lock_clock_rounded;
       strong = false;
-    } else if (inCart && reservedForMe) {
-      key = 'checkout';
-      label = S.goCheckout;
-      icon = Icons.shopping_cart_checkout_rounded;
-      strong = true;
-      onTap = _openCart;
     } else if (inCart) {
       key = 'in_cart';
       label = S.cart2;
       icon = Icons.check_circle_rounded;
       strong = false;
       onTap = _openCart;
-    } else if (reservedForMe) {
-      key = 'buy';
-      label = S.buyNow;
-      icon = Icons.bolt_rounded;
-      strong = true;
-      onTap = () => _addToCart(thenCheckout: true);
     } else {
+      // 可直接購買時，加入購物車改為次要樣式，讓「直接購買」成為主要動作。
       key = 'add';
       label = S.addCart;
       icon = Icons.add_shopping_cart_rounded;
-      strong = true;
+      strong = false;
       onTap = _addToCart;
     }
 
     final enabled = onTap != null && !_isAddingToCart;
     final muted = !strong;
-    final background = muted
-        ? c.accent.withValues(alpha: c.isDark ? 0.16 : 0.1)
-        : (reservedForMe ? c.success : c.accent);
+    final background = muted ? c.accent.withValues(alpha: c.isDark ? 0.16 : 0.1) : c.accent;
     final foreground = muted ? (onTap == null ? c.textHint : c.accent) : Colors.white;
 
     return PressableScale(
