@@ -3608,5 +3608,26 @@
       "p0": {}
     }
   },
-  "buyNow2": "Buy now"
+  "buyNow2": "Buy now",
+  "suggestRefund": "Suggest refund",
+  "suggestDismissal": "Suggest dismissal",
+  "needsMoreInformation": "Needs more information",
+  "aiAnalysis": "AI analysis",
+  "analyze": "Analyze",
+  "analyzeAgain": "Analyze again",
+  "aiAnalysisReferenceOnlyDecideBased": "The AI analysis is for reference only. Decide based on the actual evidence.",
+  "p0P1Confidence": "{p0} · {p1}% confidence",
+  "@p0P1Confidence": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "aiSummary": "AI summary",
+  "autoFilled": "Auto-filled",
+  "similarBooks": "Similar books",
+  "doNotPayTransferMoneyOutside": "Do not pay or transfer money outside the app. Off-platform payments are not protected.",
+  "pleaseCompleteDealAppWeCannot": "Please complete the deal in the app. We cannot help with disputes over off-platform deals.",
+  "personSharedOutsideContactDetailsWatch": "This person shared outside contact details. Watch out for scams and complete the deal in the app.",
+  "mostRelevant": "Most relevant"
 }

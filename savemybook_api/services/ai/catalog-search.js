@@ -121,10 +121,41 @@ const search = async (parts, { filter = null, boost = null, limit = 30, strong =
     }));
 };
 
+// 相似的書：優先用這本書已存的向量找鄰近書籍（不花費嵌入費用）；書不在販售索引或尚未建立向量時，
+// 改以書名、作者、分類與簡介當查詢。關鍵字排名同時參與，語意檢索無法使用時仍有結果。
+const similar = async (book, { filter = null, limit = 10, userId = null } = {}) => {
+  const idx = await index();
+  const docs = idx.entries.map((e) => e.doc);
+  const byRef = new Map(docs.map((d) => [d.embed.ref, d]));
+  const keep = (d) => d && d.book_id !== book.book_id && (!filter || filter(d));
+
+  const parts = [
+    { text: book.title, weight: 1 },
+    { text: book.author ?? '', weight: 0.8 },
+    { text: book.book_categories?.category_name ?? '', weight: 0.5 },
+    { text: clip(String(book.description ?? ''), 200), weight: 0.3 }
+  ];
+  const lexicalRanked = lexical.rank(idx, lexical.queryWeights(parts), { filter: keep, strong: true });
+
+  let semanticRanked = await semantic.neighbors('book', docs.map((d) => d.embed), String(book.book_id));
+  if (!semanticRanked) semanticRanked = await semantic.rank('book', docs.map((d) => d.embed), embedText(book), { userId });
+  const semanticKept = semantic.relevant((semanticRanked ?? []).filter((r) => keep(byRef.get(r.ref))), { limit: limit * 2 });
+
+  const fused = semantic.fuse([
+    { ids: lexicalRanked.map((r) => r.doc.book_id) },
+    { ids: semanticKept.map((r) => byRef.get(r.ref).book_id) }
+  ]);
+  const docById = new Map(docs.map((d) => [d.book_id, d]));
+  return [...fused.entries()]
+    .sort((a, b) => b[1] - a[1] || docById.get(b[0]).view_count - docById.get(a[0]).view_count)
+    .slice(0, limit)
+    .map(([bookId]) => bookId);
+};
+
 // 排程與啟動時預先建立向量，避免第一位使用者等待整批索引。
 const warm = async () => {
   const idx = await index();
   return semantic.sync('book', idx.entries.map((e) => e.doc.embed));
 };
 
-module.exports = { CATALOG_LIMIT, FIELD_WEIGHTS, search, warm, clear };
+module.exports = { CATALOG_LIMIT, FIELD_WEIGHTS, search, similar, warm, clear };

@@ -1,0 +1,20 @@
+# -*- coding: utf-8 -*-
+T = {
+    '最相關': ('Most relevant', '関連度順', '관련도순', '最相关'),
+    '相似的書': ('Similar books', '似ている本', '비슷한 도서', '相似的书'),
+    'AI 整理': ('AI summary', 'AI 要約', 'AI 정리', 'AI 整理'),
+    '自動補齊': ('Auto-filled', '自動入力', '자동 입력', '自动补齐'),
+    'AI 分析': ('AI analysis', 'AI 分析', 'AI 분석', 'AI 分析'),
+    '開始分析': ('Analyze', '分析する', '분석하기', '开始分析'),
+    '重新分析': ('Analyze again', '再分析', '다시 분석', '重新分析'),
+    '建議退款': ('Suggest refund', '返金を推奨', '환불 권장', '建议退款'),
+    '建議駁回': ('Suggest dismissal', '却下を推奨', '기각 권장', '建议驳回'),
+    '需要更多資訊': ('Needs more information', '追加情報が必要', '추가 정보 필요', '需要更多信息'),
+    '$label・信心 $percent%': ('$p0 · $p1% confidence', '$p0・確信度 $p1%', '$p0 · 신뢰도 $p1%', '$p0・置信度 $p1%'),
+    'AI 分析僅供參考，請依實際證據裁決。': ('The AI analysis is for reference only. Decide based on the actual evidence.', 'AI 分析は参考情報です。実際の証拠に基づいて判断してください。', 'AI 분석은 참고용입니다. 실제 증거를 바탕으로 판단해 주세요.', 'AI 分析仅供参考，请依实际证据裁决。'),
+    '請勿私下匯款或轉帳，站外付款不受平台保障': ('Do not pay or transfer money outside the app. Off-platform payments are not protected.', 'アプリ外での送金・振込はしないでください。プラットフォームの保護対象外です。', '앱 밖에서 송금하지 마세요. 플랫폼 외 결제는 보호되지 않습니다.', '请勿私下汇款或转账，站外付款不受平台保障'),
+    '請透過平台交易，站外交易發生糾紛時平台無法協助': ('Please complete the deal in the app. We cannot help with disputes over off-platform deals.', 'アプリ内で取引してください。アプリ外の取引トラブルには対応できません。', '앱에서 거래해 주세요. 앱 밖의 거래 분쟁은 도와드릴 수 없습니다.', '请通过平台交易，站外交易发生纠纷时平台无法协助'),
+    '對方提供了站外聯絡方式，請留意詐騙並透過平台完成交易': ('This person shared outside contact details. Watch out for scams and complete the deal in the app.', '相手がアプリ外の連絡先を送ってきました。詐欺に注意し、アプリ内で取引を完了してください。', '상대방이 외부 연락처를 공유했습니다. 사기에 주의하고 앱에서 거래를 완료하세요.', '对方提供了站外联系方式，请留意诈骗并通过平台完成交易'),
+    '書籍資料補齊': ('Book info auto-fill', '書籍情報の自動補完', '도서 정보 자동 보완', '书籍资料补齐'),
+    '爭議分析': ('Dispute analysis', '紛争分析', '분쟁 분석', '争议分析'),
+}

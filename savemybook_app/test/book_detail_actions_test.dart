@@ -173,4 +173,33 @@ void main() {
     expect(find.text('直接購買'), findsNothing);
     await tester.pump(const Duration(seconds: 4));
   });
+
+  testWidgets('書籍頁顯示相似的書與自動補齊標示', (tester) async {
+    final json = {
+      ..._book(),
+      'description': '依書目整理的簡介',
+      'publisher': '高點文化',
+      'enrichment': {
+        'fields': ['description', 'publisher'],
+        'ai_written': true,
+      },
+    };
+    final similar = [
+      {..._book(), 'book_id': 8, 'title': '行政法解題書'},
+      {..._book(), 'book_id': 9, 'title': '民法總則'},
+    ];
+    await pumpDetail(
+      tester,
+      json,
+      MockClient((request) async {
+        if (request.url.path.endsWith('/books/5/similar')) return _json(similar);
+        return _json(request.url.path.endsWith('/books/5') ? json : <Object>[]);
+      }),
+    );
+    expect(find.text('AI 整理'), findsOneWidget);
+    expect(find.text('自動補齊'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('相似的書'), 300, scrollable: find.byType(Scrollable).first);
+    expect(find.text('行政法解題書'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+  });
 }

@@ -69,9 +69,13 @@ paths:
           name: sort
           schema:
             type: string
-            enum: [newest, price_asc, price_desc, popular]
+            enum: [newest, relevance, price_asc, price_desc, popular]
             default: newest
-          description: '`newest` 依上架時間遞減、`price_asc` 價格遞增、`price_desc` 價格遞減、`popular` 依推薦分數排序（見上方說明）。'
+          description: |
+            `newest` 依上架時間遞減、`price_asc` 價格遞增、`price_desc` 價格遞減、`popular` 依推薦分數排序（見上方說明）。
+            `relevance` 需搭配 `keyword`、未帶 `seller_id` 且狀態為 `on_sale`：以關鍵字（BM25）與語意向量混合檢索排序，
+            再補上書名、作者或出版社字面包含關鍵字的其餘書籍，最多 200 本；AI 關閉或未建立語意索引時只用關鍵字排序。
+            條件不符時同 `newest`。
         - in: query
           name: seller_id
           schema: { type: integer }
@@ -306,6 +310,37 @@ paths:
                 properties:
                   success: { type: boolean, example: true }
                   data: { $ref: '#/components/schemas/Book' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/books/{id}/similar:
+    get:
+      summary: 取得相似的書
+      operationId: listSimilarBooks
+      tags: [books]
+      description: |
+        書籍詳情頁「相似的書」。以該書已建立的語意向量找內容相近的在售書籍（不產生嵌入費用），並與書名、作者、分類的關鍵字比對合併排名；
+        該書尚未建立向量或不在販售中時，改以其書名、作者、分類與簡介查詢。不含該書本身，登入時也不含請求者自己上架的書。最多 10 本。
+        書籍不存在或未公開回傳 404 `BOOK_NOT_FOUND`。不需登入。
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 101
+      responses:
+        '200':
+          description: 成功。依相似程度排序，可能為空陣列。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Book' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 

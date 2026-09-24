@@ -171,6 +171,65 @@ paths:
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/admin/disputes/{id}/ai-analysis:
+    post:
+      summary: AI 分析交易爭議
+      operationId: adminAnalyzeDispute
+      tags: [admin]
+      description: |
+        需 `can_manage_transactions` 權限。AI 比對賣家上架時的書籍資料、書況與前 2 張照片，以及申訴內容與最多 3 張佐證照片，
+        回傳案件摘要、觀察重點與建議（`refund` 退款、`dismiss` 駁回、`need_more_info` 需要更多資訊）。
+        僅供參考，不會變更爭議或訂單；不使用聊天內容。使用上架審核的服務商（需支援照片辨識），費用記入 `admin_assist`。
+        AI 關閉或未設定金鑰回傳 503 `AI_UNAVAILABLE`，本月預算用盡回傳 503 `AI_BUDGET_EXCEEDED`。每位管理員每 10 分鐘最多 30 次。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 9
+      responses:
+        '200':
+          description: 分析結果。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      summary: { type: string, example: 買家取書後表示書中多頁有大量劃線，賣家標示書況為近全新。 }
+                      findings:
+                        type: array
+                        items: { type: string }
+                        example: [佐證照片可見多頁螢光筆劃記, 上架照片僅拍攝封面，無法確認內頁狀況]
+                      suggestion: { type: string, enum: [refund, dismiss, need_more_info], example: refund }
+                      confidence: { type: number, example: 0.78 }
+                      rationale: { type: string, example: 劃記程度與「近全新」的標示明顯不符。 }
+                      images:
+                        type: object
+                        properties:
+                          listing: { type: integer, example: 2 }
+                          evidence: { type: integer, example: 3 }
+                      provider: { type: string, example: openai }
+                      model: { type: string, example: gpt-5.6-terra }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429':
+          description: 分析次數過多。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: AI 未開放、未設定金鑰或本月預算用盡。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
   /api/admin/disputes/{id}:
     patch:
       summary: 仲裁交易爭議

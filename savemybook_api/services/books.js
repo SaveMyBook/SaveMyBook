@@ -12,12 +12,16 @@ const reviews = require('./ai/reviews');
 const screening = require('./listing-screening');
 const aiImages = require('./ai/images');
 const cabinets = require('./cabinets');
+const catalog = require('./ai/catalog-search');
+const enrichment = require('./ai/enrich');
 
 const MAX_IMAGES_PER_BOOK = 10;
 const SELLER_STATUSES = ['on_sale', 'removed'];
 
 const SORTS = {
   newest: { created_at: 'desc' },
+  // 有關鍵字時依相關程度（關鍵字＋語意）排序，沒有關鍵字時同最新上架。
+  relevance: { created_at: 'desc' },
   price_asc: { price: 'asc' },
   price_desc: { price: 'desc' },
   popular: { view_count: 'desc' }
@@ -56,8 +60,38 @@ const inIdOrder = async (ids, where = {}) => {
   return ids.map((bookId) => byId.get(bookId)).filter(Boolean);
 };
 
+const RELEVANCE_LIMIT = 200;
+
+// 相關度排序：先放混合檢索的結果，再補上字面包含關鍵字但未被檢索排進來的書，避免漏掉只有部分字相符的書名。
+const relevanceIds = async (where, { keyword, categoryIds, viewerId }) => {
+  const categories = new Set(categoryIds);
+  const ranked = await catalog.search([{ text: keyword, weight: 1 }], {
+    query: keyword,
+    limit: RELEVANCE_LIMIT,
+    userId: viewerId ?? null,
+    filter: categories.size > 0 ? (doc) => categories.has(doc.category_id) : null
+  });
+  const literal = await prisma.books.findMany({
+    where,
+    orderBy: [{ view_count: 'desc' }, { book_id: 'desc' }],
+    take: RELEVANCE_LIMIT,
+    select: { book_id: true }
+  });
+  const ids = ranked.map((r) => r.book_id);
+  const seen = new Set(ids);
+  for (const { book_id: id } of literal) if (!seen.has(id)) ids.push(id);
+  return ids;
+};
+
 const list = async ({ skip, limit, sort, viewerId, ...filters }) => {
   const where = listWhere(filters);
+
+  if (sort === 'relevance' && filters.keyword && !filters.sellerId && filters.status === 'on_sale') {
+    const baseWhere = listWhere({ ...filters, keyword: null });
+    const ids = await relevanceIds(where, { ...filters, viewerId });
+    const page = await inIdOrder(ids.slice(skip, skip + limit), baseWhere);
+    return { total: ids.length, books: page };
+  }
 
   if (sort === 'popular' && !filters.sellerId) {
     const ranked = await ranking.rankedIds(where, viewerId);
@@ -88,6 +122,25 @@ const recommended = async (viewerId, viewedIds, limit) => {
 };
 
 const briefs = (ids) => inIdOrder(ids, { status: { not: 'removed' }, is_approved: true });
+
+const SIMILAR_LIMIT = 10;
+
+const similar = async (bookId, viewerId) => {
+  const book = await prisma.books.findUnique({
+    where: { book_id: bookId },
+    select: {
+      book_id: true, title: true, author: true, publisher: true, description: true, is_approved: true,
+      book_categories: { select: { category_name: true } }
+    }
+  });
+  if (!book || !book.is_approved) throw notFound('找不到該書籍', 'BOOK_NOT_FOUND');
+  const ids = await catalog.similar(book, {
+    limit: SIMILAR_LIMIT,
+    userId: viewerId ?? null,
+    filter: viewerId ? (doc) => doc.seller_id !== viewerId : null
+  });
+  return inIdOrder(ids, { status: 'on_sale', is_approved: true });
+};
 
 const findByShareToken = async (token, viewerId) => {
   if (!share.TOKEN_RE.test(token)) throw notFound('找不到此書籍');
@@ -120,8 +173,8 @@ const detail = async (bookId, { viewerId, viewerKey }) => {
   if (viewerId !== book.seller_id && ranking.shouldCountView(bookId, viewerId ?? viewerKey)) {
     prisma.books.update({ where: { book_id: bookId }, data: { view_count: { increment: 1 } } }).catch(() => {});
   }
-  const hold = await reservations.holdForViewer(bookId, viewerId);
-  const shaped = { ...book, reservation: hold };
+  const [hold, enriched] = await Promise.all([reservations.holdForViewer(bookId, viewerId), enrichment.infoFor(bookId)]);
+  const shaped = { ...book, reservation: hold, enrichment: enriched };
   return viewerId != null && viewerId === book.seller_id ? reviews.withReviewStatus(shaped) : shaped;
 };
 
@@ -155,6 +208,7 @@ const create = async (data, images, { files = [] } = {}) => {
     return row;
   });
   if (!ruled) screening.screenLater(created, files);
+  if (enrichment.FIELDS.some((f) => !String(created[f] ?? '').trim())) enrichment.later(created.book_id);
 
   return {
     book: { ...created, review_status: ruled ? 'pending' : null },
@@ -275,6 +329,9 @@ const update = async (bookId, user, data) => {
       })
     : await write(prisma);
 
+  const edited = enrichment.FIELDS.filter((f) => data[f] !== undefined && data[f] !== book[f]);
+  if (edited.length > 0) enrichment.forget(bookId, edited).catch((err) => console.error('[更新補齊紀錄失敗]:', err.message));
+
   const oldPrice = Number(book.price);
   if (data.price !== undefined && data.price < oldPrice && updatedBook.status === 'on_sale') {
     notifyPriceDrop(updatedBook, oldPrice).catch((err) => console.error('[降價通知失敗]:', err.message));
@@ -348,6 +405,6 @@ const removeImage = async (bookId, imageId, user) => {
 };
 
 module.exports = {
-  SORTS, listInclude, allowedStatuses, lookupIsbn, list, recommended, briefs, inIdOrder, findByShareToken, shareLink, detail, create,
+  SORTS, listInclude, allowedStatuses, lookupIsbn, list, recommended, similar, briefs, inIdOrder, findByShareToken, shareLink, detail, create,
   update, remove, addImages, removeImage
 };

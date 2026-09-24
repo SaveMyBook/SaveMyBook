@@ -2008,6 +2008,21 @@ abstract class AppLocalizations {
   String get libraryCopyUnofficialSource;
   String p0CannotEdit(Object p0);
   String get buyNow2;
+  String get suggestRefund;
+  String get suggestDismissal;
+  String get needsMoreInformation;
+  String get aiAnalysis;
+  String get analyze;
+  String get analyzeAgain;
+  String get aiAnalysisReferenceOnlyDecideBased;
+  String p0P1Confidence(Object p0, Object p1);
+  String get aiSummary;
+  String get autoFilled;
+  String get similarBooks;
+  String get doNotPayTransferMoneyOutside;
+  String get pleaseCompleteDealAppWeCannot;
+  String get personSharedOutsideContactDetailsWatch;
+  String get mostRelevant;
 }
 
 class _LEn extends AppLocalizations {
@@ -7967,6 +7982,51 @@ class _LEn extends AppLocalizations {
 
   @override
   String get buyNow2 => 'Buy now';
+
+  @override
+  String get suggestRefund => 'Suggest refund';
+
+  @override
+  String get suggestDismissal => 'Suggest dismissal';
+
+  @override
+  String get needsMoreInformation => 'Needs more information';
+
+  @override
+  String get aiAnalysis => 'AI analysis';
+
+  @override
+  String get analyze => 'Analyze';
+
+  @override
+  String get analyzeAgain => 'Analyze again';
+
+  @override
+  String get aiAnalysisReferenceOnlyDecideBased => 'The AI analysis is for reference only. Decide based on the actual evidence.';
+
+  @override
+  String p0P1Confidence(Object p0, Object p1) => '${p0} · ${p1}% confidence';
+
+  @override
+  String get aiSummary => 'AI summary';
+
+  @override
+  String get autoFilled => 'Auto-filled';
+
+  @override
+  String get similarBooks => 'Similar books';
+
+  @override
+  String get doNotPayTransferMoneyOutside => 'Do not pay or transfer money outside the app. Off-platform payments are not protected.';
+
+  @override
+  String get pleaseCompleteDealAppWeCannot => 'Please complete the deal in the app. We cannot help with disputes over off-platform deals.';
+
+  @override
+  String get personSharedOutsideContactDetailsWatch => 'This person shared outside contact details. Watch out for scams and complete the deal in the app.';
+
+  @override
+  String get mostRelevant => 'Most relevant';
 
 }
 
@@ -13928,6 +13988,51 @@ class _LJa extends AppLocalizations {
   @override
   String get buyNow2 => '今すぐ購入';
 
+  @override
+  String get suggestRefund => '返金を推奨';
+
+  @override
+  String get suggestDismissal => '却下を推奨';
+
+  @override
+  String get needsMoreInformation => '追加情報が必要';
+
+  @override
+  String get aiAnalysis => 'AI 分析';
+
+  @override
+  String get analyze => '分析する';
+
+  @override
+  String get analyzeAgain => '再分析';
+
+  @override
+  String get aiAnalysisReferenceOnlyDecideBased => 'AI 分析は参考情報です。実際の証拠に基づいて判断してください。';
+
+  @override
+  String p0P1Confidence(Object p0, Object p1) => '${p0}・確信度 ${p1}%';
+
+  @override
+  String get aiSummary => 'AI 要約';
+
+  @override
+  String get autoFilled => '自動入力';
+
+  @override
+  String get similarBooks => '似ている本';
+
+  @override
+  String get doNotPayTransferMoneyOutside => 'アプリ外での送金・振込はしないでください。プラットフォームの保護対象外です。';
+
+  @override
+  String get pleaseCompleteDealAppWeCannot => 'アプリ内で取引してください。アプリ外の取引トラブルには対応できません。';
+
+  @override
+  String get personSharedOutsideContactDetailsWatch => '相手がアプリ外の連絡先を送ってきました。詐欺に注意し、アプリ内で取引を完了してください。';
+
+  @override
+  String get mostRelevant => '関連度順';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -19887,6 +19992,51 @@ class _LKo extends AppLocalizations {
 
   @override
   String get buyNow2 => '바로 구매';
+
+  @override
+  String get suggestRefund => '환불 권장';
+
+  @override
+  String get suggestDismissal => '기각 권장';
+
+  @override
+  String get needsMoreInformation => '추가 정보 필요';
+
+  @override
+  String get aiAnalysis => 'AI 분석';
+
+  @override
+  String get analyze => '분석하기';
+
+  @override
+  String get analyzeAgain => '다시 분석';
+
+  @override
+  String get aiAnalysisReferenceOnlyDecideBased => 'AI 분석은 참고용입니다. 실제 증거를 바탕으로 판단해 주세요.';
+
+  @override
+  String p0P1Confidence(Object p0, Object p1) => '${p0} · 신뢰도 ${p1}%';
+
+  @override
+  String get aiSummary => 'AI 정리';
+
+  @override
+  String get autoFilled => '자동 입력';
+
+  @override
+  String get similarBooks => '비슷한 도서';
+
+  @override
+  String get doNotPayTransferMoneyOutside => '앱 밖에서 송금하지 마세요. 플랫폼 외 결제는 보호되지 않습니다.';
+
+  @override
+  String get pleaseCompleteDealAppWeCannot => '앱에서 거래해 주세요. 앱 밖의 거래 분쟁은 도와드릴 수 없습니다.';
+
+  @override
+  String get personSharedOutsideContactDetailsWatch => '상대방이 외부 연락처를 공유했습니다. 사기에 주의하고 앱에서 거래를 완료하세요.';
+
+  @override
+  String get mostRelevant => '관련도순';
 
 }
 
@@ -25848,6 +25998,51 @@ class _LZh extends AppLocalizations {
   @override
   String get buyNow2 => '直接購買';
 
+  @override
+  String get suggestRefund => '建議退款';
+
+  @override
+  String get suggestDismissal => '建議駁回';
+
+  @override
+  String get needsMoreInformation => '需要更多資訊';
+
+  @override
+  String get aiAnalysis => 'AI 分析';
+
+  @override
+  String get analyze => '開始分析';
+
+  @override
+  String get analyzeAgain => '重新分析';
+
+  @override
+  String get aiAnalysisReferenceOnlyDecideBased => 'AI 分析僅供參考，請依實際證據裁決。';
+
+  @override
+  String p0P1Confidence(Object p0, Object p1) => '${p0}・信心 ${p1}%';
+
+  @override
+  String get aiSummary => 'AI 整理';
+
+  @override
+  String get autoFilled => '自動補齊';
+
+  @override
+  String get similarBooks => '相似的書';
+
+  @override
+  String get doNotPayTransferMoneyOutside => '請勿私下匯款或轉帳，站外付款不受平台保障';
+
+  @override
+  String get pleaseCompleteDealAppWeCannot => '請透過平台交易，站外交易發生糾紛時平台無法協助';
+
+  @override
+  String get personSharedOutsideContactDetailsWatch => '對方提供了站外聯絡方式，請留意詐騙並透過平台完成交易';
+
+  @override
+  String get mostRelevant => '最相關';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -31808,6 +32003,51 @@ class _LZhHans extends AppLocalizations {
   @override
   String get buyNow2 => '直接购买';
 
+  @override
+  String get suggestRefund => '建议退款';
+
+  @override
+  String get suggestDismissal => '建议驳回';
+
+  @override
+  String get needsMoreInformation => '需要更多信息';
+
+  @override
+  String get aiAnalysis => 'AI 分析';
+
+  @override
+  String get analyze => '开始分析';
+
+  @override
+  String get analyzeAgain => '重新分析';
+
+  @override
+  String get aiAnalysisReferenceOnlyDecideBased => 'AI 分析仅供参考，请依实际证据裁决。';
+
+  @override
+  String p0P1Confidence(Object p0, Object p1) => '${p0}・置信度 ${p1}%';
+
+  @override
+  String get aiSummary => 'AI 整理';
+
+  @override
+  String get autoFilled => '自动补齐';
+
+  @override
+  String get similarBooks => '相似的书';
+
+  @override
+  String get doNotPayTransferMoneyOutside => '请勿私下汇款或转账，站外付款不受平台保障';
+
+  @override
+  String get pleaseCompleteDealAppWeCannot => '请通过平台交易，站外交易发生纠纷时平台无法协助';
+
+  @override
+  String get personSharedOutsideContactDetailsWatch => '对方提供了站外联系方式，请留意诈骗并通过平台完成交易';
+
+  @override
+  String get mostRelevant => '最相关';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -37767,6 +38007,51 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get buyNow2 => '直接購買';
+
+  @override
+  String get suggestRefund => '建議退款';
+
+  @override
+  String get suggestDismissal => '建議駁回';
+
+  @override
+  String get needsMoreInformation => '需要更多資訊';
+
+  @override
+  String get aiAnalysis => 'AI 分析';
+
+  @override
+  String get analyze => '開始分析';
+
+  @override
+  String get analyzeAgain => '重新分析';
+
+  @override
+  String get aiAnalysisReferenceOnlyDecideBased => 'AI 分析僅供參考，請依實際證據裁決。';
+
+  @override
+  String p0P1Confidence(Object p0, Object p1) => '${p0}・信心 ${p1}%';
+
+  @override
+  String get aiSummary => 'AI 整理';
+
+  @override
+  String get autoFilled => '自動補齊';
+
+  @override
+  String get similarBooks => '相似的書';
+
+  @override
+  String get doNotPayTransferMoneyOutside => '請勿私下匯款或轉帳，站外付款不受平台保障';
+
+  @override
+  String get pleaseCompleteDealAppWeCannot => '請透過平台交易，站外交易發生糾紛時平台無法協助';
+
+  @override
+  String get personSharedOutsideContactDetailsWatch => '對方提供了站外聯絡方式，請留意詐騙並透過平台完成交易';
+
+  @override
+  String get mostRelevant => '最相關';
 
 }
 

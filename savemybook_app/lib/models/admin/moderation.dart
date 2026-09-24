@@ -123,3 +123,29 @@ class DisputeCase {
     );
   }
 }
+
+
+/// 管理員裁決前的 AI 爭議分析，僅供參考。
+class DisputeAnalysis {
+  final String summary;
+  final List<String> findings;
+  final String suggestion;
+  final double confidence;
+  final String rationale;
+
+  const DisputeAnalysis({
+    required this.summary,
+    required this.findings,
+    required this.suggestion,
+    required this.confidence,
+    required this.rationale,
+  });
+
+  factory DisputeAnalysis.fromJson(Map<String, dynamic> json) => DisputeAnalysis(
+        summary: json['summary'] as String? ?? '',
+        findings: [for (final f in (json['findings'] as List? ?? const [])) '$f'],
+        suggestion: json['suggestion'] as String? ?? 'need_more_info',
+        confidence: parseDouble(json['confidence']).clamp(0.0, 1.0),
+        rationale: json['rationale'] as String? ?? '',
+      );
+}

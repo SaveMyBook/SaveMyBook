@@ -126,6 +126,18 @@ components:
     Book:
       type: object
       properties:
+        enrichment:
+          type: object
+          nullable: true
+          description: |
+            僅書籍詳情提供。賣家未填、由系統依 ISBN 書目自動補齊的欄位；`ai_written` 為 true 表示簡介由 AI 依書目來源整理。
+            賣家之後修改的欄位會從清單移除。尚未執行 `migrations/022_book_enrichment.sql` 或沒有補齊任何欄位時為 null。
+          properties:
+            fields:
+              type: array
+              items: { type: string, enum: [description, author, publisher, publish_date] }
+              example: [description, publisher]
+            ai_written: { type: boolean, example: true }
         book_id: { type: integer, example: 101 }
         seller_id: { type: integer, example: 12 }
         isbn: { type: string, nullable: true, example: '9789573317249' }

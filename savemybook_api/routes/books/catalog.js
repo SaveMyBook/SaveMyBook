@@ -75,6 +75,11 @@ router.get('/share/:token', async (req, res) => {
   res.status(200).json({ success: true, data });
 });
 
+router.get('/:id/similar', async (req, res) => {
+  const bookId = v.id(req.params.id, '書籍編號');
+  res.status(200).json({ success: true, data: await books.similar(bookId, peekUserId(req)) });
+});
+
 router.get('/:id/share-link', async (req, res) => {
   const data = await books.shareLink(v.id(req.params.id, '書籍編號'), publicBase(req));
   res.status(200).json({ success: true, data });

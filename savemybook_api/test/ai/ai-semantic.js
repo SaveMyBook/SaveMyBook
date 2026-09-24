@@ -6,6 +6,7 @@ const catalog = h.api('services/ai/catalog-search');
 const knowledge = h.api('services/ai/knowledge');
 const embeddings = h.api('lib/ai/embeddings');
 const bookChat = h.api('services/ai/book-chat');
+const books = h.api('services/books');
 
 const DIMS = embeddings.PROFILES.gemini.dimensions;
 const EMBED_URL = /generativelanguage\.googleapis\.com\/v1beta\/models\/gemini-embedding-001:batchEmbedContents/;
@@ -188,6 +189,28 @@ module.exports = {
       const docs = await knowledge.search('東西有問題想拿回錢');
       assert.ok(docs.length > 0);
       assert.ok(docs.some((d) => /退款|爭議|申訴/.test(d.text)), '語意比對到退款相關說明');
+    }],
+
+    ['搜尋：相關度排序先放語意與關鍵字的結果，再補上字面相符的書', async () => {
+      setup({ books: shelf() });
+      const { total, books: page } = await books.list({
+        skip: 0, limit: 10, sort: 'relevance', viewerId: null, status: 'on_sale', keyword: 'AI', categoryIds: []
+      });
+      assert.strictEqual(page[0].book_id, 2, '書名只寫 Gemini 的 AI 書排第一');
+      assert.strictEqual(total, 3);
+    }],
+
+    ['相似的書：用已存的向量找內容相近的書，不含自己，也不再呼叫嵌入 API', async () => {
+      const list = [...shelf(), book(5, { title: 'ChatGPT 提示工程實務' })];
+      setup({ books: list });
+      h.onModel('books.findUnique', () => ({ ...list[1], book_categories: { category_name: '一般' } }));
+      await catalog.search([], { query: 'AI 書' });
+      const before = embedRequests.length;
+
+      const similar = await books.similar(2, null);
+      assert.strictEqual(similar[0].book_id, 5);
+      assert.ok(!similar.some((b) => b.book_id === 2));
+      assert.strictEqual(embedRequests.length, before, '沿用已存向量');
     }],
 
     ['狀態：回報使用的模型與已建立的向量數', async () => {

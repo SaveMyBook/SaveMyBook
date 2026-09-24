@@ -3608,5 +3608,26 @@
       "p0": {}
     }
   },
-  "buyNow2": "바로 구매"
+  "buyNow2": "바로 구매",
+  "suggestRefund": "환불 권장",
+  "suggestDismissal": "기각 권장",
+  "needsMoreInformation": "추가 정보 필요",
+  "aiAnalysis": "AI 분석",
+  "analyze": "분석하기",
+  "analyzeAgain": "다시 분석",
+  "aiAnalysisReferenceOnlyDecideBased": "AI 분석은 참고용입니다. 실제 증거를 바탕으로 판단해 주세요.",
+  "p0P1Confidence": "{p0} · 신뢰도 {p1}%",
+  "@p0P1Confidence": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "aiSummary": "AI 정리",
+  "autoFilled": "자동 입력",
+  "similarBooks": "비슷한 도서",
+  "doNotPayTransferMoneyOutside": "앱 밖에서 송금하지 마세요. 플랫폼 외 결제는 보호되지 않습니다.",
+  "pleaseCompleteDealAppWeCannot": "앱에서 거래해 주세요. 앱 밖의 거래 분쟁은 도와드릴 수 없습니다.",
+  "personSharedOutsideContactDetailsWatch": "상대방이 외부 연락처를 공유했습니다. 사기에 주의하고 앱에서 거래를 완료하세요.",
+  "mostRelevant": "관련도순"
 }
