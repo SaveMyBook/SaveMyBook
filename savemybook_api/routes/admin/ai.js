@@ -11,6 +11,7 @@ const settingsService = require('../../services/ai/settings');
 const runner = require('../../services/ai/runner');
 const usage = require('../../services/ai/usage');
 const reviews = require('../../services/ai/reviews');
+const semantic = require('../../services/ai/semantic');
 
 const router = express.Router();
 const canRunSystem = requireAdmin('system');
@@ -28,7 +29,8 @@ const settingsPayload = async () => {
   return {
     settings: ready ? await settingsService.load() : settingsService.normalize(null),
     providers: settingsService.providerList(),
-    migration_ready: ready
+    migration_ready: ready,
+    retrieval: await semantic.status()
   };
 };
 
@@ -42,6 +44,7 @@ router.put('/ai/settings', canRunSystem, requireVerification('admin'), async (re
 
   await settingsService.save(input, actorOf(req));
   runner.clearCache();
+  semantic.reset();
   res.status(200).json({ success: true, message: '已更新 AI 設定', data: await settingsPayload() });
 });
 

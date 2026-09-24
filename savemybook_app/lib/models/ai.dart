@@ -14,11 +14,11 @@ class AiProviders {
   static const ids = [deepseek, gemini, openai];
 
   static String nameOf(String id) => switch (id) {
-        deepseek => 'DeepSeek',
-        gemini => 'Gemini',
-        openai => 'OpenAI',
-        _ => id,
-      };
+    deepseek => 'DeepSeek',
+    gemini => 'Gemini',
+    openai => 'OpenAI',
+    _ => id,
+  };
 }
 
 class AiFeatures {
@@ -29,6 +29,7 @@ class AiFeatures {
   static const recommend = 'recommend';
   static const moderation = 'moderation';
   static const bookChat = 'book_chat';
+  static const embedding = 'embedding';
   static const test = 'test';
 
   static const configurable = [support, listingAssist, recommend, moderation, bookChat];
@@ -56,10 +57,27 @@ class AiProviderPricing {
   });
 
   static const defaults = <String, AiProviderPricing>{
-    AiProviders.deepseek: AiProviderPricing(model: 'deepseek-flash', inputPerM: 0.14, cachedInputPerM: 0.0028, outputPerM: 0.28),
+    AiProviders.deepseek: AiProviderPricing(
+      model: 'deepseek-flash',
+      inputPerM: 0.14,
+      cachedInputPerM: 0.0028,
+      outputPerM: 0.28,
+    ),
     AiProviders.gemini: AiProviderPricing(
-        model: 'gemini-3.1-flash-lite', inputPerM: 0.25, cachedInputPerM: 0.025, outputPerM: 1.5, searchPricePerK: 14, searchFreePerMonth: 5000),
-    AiProviders.openai: AiProviderPricing(model: 'gpt-5-nano', inputPerM: 0.05, cachedInputPerM: 0.005, outputPerM: 0.4, searchPricePerK: 10),
+      model: 'gemini-3.1-flash-lite',
+      inputPerM: 0.25,
+      cachedInputPerM: 0.025,
+      outputPerM: 1.5,
+      searchPricePerK: 14,
+      searchFreePerMonth: 5000,
+    ),
+    AiProviders.openai: AiProviderPricing(
+      model: 'gpt-5-nano',
+      inputPerM: 0.05,
+      cachedInputPerM: 0.005,
+      outputPerM: 0.4,
+      searchPricePerK: 10,
+    ),
   };
 
   factory AiProviderPricing.fromJson(Map<String, dynamic>? json, AiProviderPricing fallback) {
@@ -68,21 +86,27 @@ class AiProviderPricing {
     return AiProviderPricing(
       model: model == null || model.isEmpty ? fallback.model : model,
       inputPerM: json.containsKey('input_per_m') ? _clampNonNegative(json['input_per_m']) : fallback.inputPerM,
-      cachedInputPerM: json.containsKey('cached_input_per_m') ? _clampNonNegative(json['cached_input_per_m']) : fallback.cachedInputPerM,
+      cachedInputPerM: json.containsKey('cached_input_per_m')
+          ? _clampNonNegative(json['cached_input_per_m'])
+          : fallback.cachedInputPerM,
       outputPerM: json.containsKey('output_per_m') ? _clampNonNegative(json['output_per_m']) : fallback.outputPerM,
-      searchPricePerK: json.containsKey('search_price_per_k') ? _clampNonNegative(json['search_price_per_k']) : fallback.searchPricePerK,
-      searchFreePerMonth: json.containsKey('search_free_per_month') ? math.max(0, parseInt(json['search_free_per_month'])) : fallback.searchFreePerMonth,
+      searchPricePerK: json.containsKey('search_price_per_k')
+          ? _clampNonNegative(json['search_price_per_k'])
+          : fallback.searchPricePerK,
+      searchFreePerMonth: json.containsKey('search_free_per_month')
+          ? math.max(0, parseInt(json['search_free_per_month']))
+          : fallback.searchFreePerMonth,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'model': model,
-        'input_per_m': inputPerM,
-        'cached_input_per_m': cachedInputPerM,
-        'output_per_m': outputPerM,
-        'search_price_per_k': searchPricePerK,
-        'search_free_per_month': searchFreePerMonth,
-      };
+    'model': model,
+    'input_per_m': inputPerM,
+    'cached_input_per_m': cachedInputPerM,
+    'output_per_m': outputPerM,
+    'search_price_per_k': searchPricePerK,
+    'search_free_per_month': searchFreePerMonth,
+  };
 
   AiProviderPricing copyWith({
     String? model,
@@ -91,15 +115,14 @@ class AiProviderPricing {
     double? outputPerM,
     double? searchPricePerK,
     int? searchFreePerMonth,
-  }) =>
-      AiProviderPricing(
-        model: model ?? this.model,
-        inputPerM: inputPerM ?? this.inputPerM,
-        cachedInputPerM: cachedInputPerM ?? this.cachedInputPerM,
-        outputPerM: outputPerM ?? this.outputPerM,
-        searchPricePerK: searchPricePerK ?? this.searchPricePerK,
-        searchFreePerMonth: searchFreePerMonth ?? this.searchFreePerMonth,
-      );
+  }) => AiProviderPricing(
+    model: model ?? this.model,
+    inputPerM: inputPerM ?? this.inputPerM,
+    cachedInputPerM: cachedInputPerM ?? this.cachedInputPerM,
+    outputPerM: outputPerM ?? this.outputPerM,
+    searchPricePerK: searchPricePerK ?? this.searchPricePerK,
+    searchFreePerMonth: searchFreePerMonth ?? this.searchFreePerMonth,
+  );
 }
 
 class AiFeatureConfig {
@@ -123,20 +146,23 @@ class AiFeatureConfig {
     final provider = json['provider'];
     return AiFeatureConfig(
       enabled: json.containsKey('enabled') ? json['enabled'] == true : fallback.enabled,
-      provider: provider is String && AiProviders.ids.contains(provider) ? provider : (json.containsKey('provider') ? null : fallback.provider),
+      provider: provider is String && AiProviders.ids.contains(provider)
+          ? provider
+          : (json.containsKey('provider') ? null : fallback.provider),
       webSearch: json.containsKey('web_search') ? json['web_search'] == true : fallback.webSearch,
       action: json['action'] == 'block' ? 'block' : (json['action'] == 'review' ? 'review' : fallback.action),
     );
   }
 
   Map<String, dynamic> toJson(String feature) => {
-        'enabled': enabled,
-        'provider': provider,
-        if (feature == AiFeatures.listingAssist) 'web_search': webSearch,
-        if (feature == AiFeatures.moderation) 'action': action,
-      };
+    'enabled': enabled,
+    'provider': provider,
+    if (feature == AiFeatures.listingAssist) 'web_search': webSearch,
+    if (feature == AiFeatures.moderation) 'action': action,
+  };
 
-  AiFeatureConfig copyWith({bool? enabled, String? Function()? provider, bool? webSearch, String? action}) => AiFeatureConfig(
+  AiFeatureConfig copyWith({bool? enabled, String? Function()? provider, bool? webSearch, String? action}) =>
+      AiFeatureConfig(
         enabled: enabled ?? this.enabled,
         provider: provider == null ? this.provider : provider(),
         webSearch: webSearch ?? this.webSearch,
@@ -161,7 +187,12 @@ class AiSettings {
     required this.dailyPerUser,
   });
 
-  static const _defaultLimits = {AiFeatures.support: 30, AiFeatures.listingAssist: 15, AiFeatures.recommend: 5, AiFeatures.bookChat: 30};
+  static const _defaultLimits = {
+    AiFeatures.support: 30,
+    AiFeatures.listingAssist: 15,
+    AiFeatures.recommend: 5,
+    AiFeatures.bookChat: 30,
+  };
 
   static final AiSettings defaults = AiSettings.fromJson(const {});
 
@@ -177,7 +208,9 @@ class AiSettings {
 
     return AiSettings(
       enabled: json['enabled'] == true,
-      defaultProvider: defaultProvider is String && AiProviders.ids.contains(defaultProvider) ? defaultProvider : AiProviders.deepseek,
+      defaultProvider: defaultProvider is String && AiProviders.ids.contains(defaultProvider)
+          ? defaultProvider
+          : AiProviders.deepseek,
       providers: {
         for (final id in AiProviders.ids)
           id: AiProviderPricing.fromJson(section(json['providers'], id), AiProviderPricing.defaults[id]!),
@@ -189,21 +222,23 @@ class AiSettings {
       monthlyBudgetUsd: limits.containsKey('monthly_budget_usd') ? _clampNonNegative(limits['monthly_budget_usd']) : 10,
       dailyPerUser: {
         for (final entry in _defaultLimits.entries)
-          entry.key: daily is Map && daily.containsKey(entry.key) ? math.max(0, parseInt(daily[entry.key])) : entry.value,
+          entry.key: daily is Map && daily.containsKey(entry.key)
+              ? math.max(0, parseInt(daily[entry.key]))
+              : entry.value,
       },
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'enabled': enabled,
-        'default_provider': defaultProvider,
-        'providers': {for (final id in AiProviders.ids) id: providers[id]!.toJson()},
-        'features': {for (final f in AiFeatures.configurable) f: features[f]!.toJson(f)},
-        'limits': {
-          'monthly_budget_usd': monthlyBudgetUsd,
-          'daily_per_user': {for (final f in AiFeatures.limited) f: dailyPerUser[f] ?? 0},
-        },
-      };
+    'enabled': enabled,
+    'default_provider': defaultProvider,
+    'providers': {for (final id in AiProviders.ids) id: providers[id]!.toJson()},
+    'features': {for (final f in AiFeatures.configurable) f: features[f]!.toJson(f)},
+    'limits': {
+      'monthly_budget_usd': monthlyBudgetUsd,
+      'daily_per_user': {for (final f in AiFeatures.limited) f: dailyPerUser[f] ?? 0},
+    },
+  };
 
   String get fingerprint => jsonEncode(toJson());
 
@@ -216,15 +251,14 @@ class AiSettings {
     Map<String, AiFeatureConfig>? features,
     double? monthlyBudgetUsd,
     Map<String, int>? dailyPerUser,
-  }) =>
-      AiSettings(
-        enabled: enabled ?? this.enabled,
-        defaultProvider: defaultProvider ?? this.defaultProvider,
-        providers: providers ?? this.providers,
-        features: features ?? this.features,
-        monthlyBudgetUsd: monthlyBudgetUsd ?? this.monthlyBudgetUsd,
-        dailyPerUser: dailyPerUser ?? this.dailyPerUser,
-      );
+  }) => AiSettings(
+    enabled: enabled ?? this.enabled,
+    defaultProvider: defaultProvider ?? this.defaultProvider,
+    providers: providers ?? this.providers,
+    features: features ?? this.features,
+    monthlyBudgetUsd: monthlyBudgetUsd ?? this.monthlyBudgetUsd,
+    dailyPerUser: dailyPerUser ?? this.dailyPerUser,
+  );
 
   AiSettings withProvider(String id, AiProviderPricing pricing) => copyWith(providers: {...providers, id: pricing});
 
@@ -280,12 +314,42 @@ class AiProviderInfo {
   }
 }
 
+class AiRetrievalStatus {
+  final bool ready;
+  final String? provider;
+  final String? model;
+  final int books;
+  final int knowledge;
+
+  const AiRetrievalStatus({this.ready = false, this.provider, this.model, this.books = 0, this.knowledge = 0});
+
+  static const none = AiRetrievalStatus();
+
+  factory AiRetrievalStatus.fromJson(Object? json) {
+    if (json is! Map) return none;
+    final counts = json['counts'] is Map ? json['counts'] as Map : const {};
+    return AiRetrievalStatus(
+      ready: json['ready'] == true,
+      provider: json['provider'] as String?,
+      model: json['model'] as String?,
+      books: parseInt(counts['book']),
+      knowledge: parseInt(counts['knowledge']),
+    );
+  }
+}
+
 class AiSettingsBundle {
   final AiSettings settings;
   final List<AiProviderInfo> providers;
   final bool migrationReady;
+  final AiRetrievalStatus retrieval;
 
-  const AiSettingsBundle({required this.settings, required this.providers, required this.migrationReady});
+  const AiSettingsBundle({
+    required this.settings,
+    required this.providers,
+    required this.migrationReady,
+    this.retrieval = AiRetrievalStatus.none,
+  });
 
   factory AiSettingsBundle.fromJson(Map<String, dynamic> json) {
     final raw = json['providers'];
@@ -312,6 +376,7 @@ class AiSettingsBundle {
           ),
       ],
       migrationReady: json['migration_ready'] != false,
+      retrieval: AiRetrievalStatus.fromJson(json['retrieval']),
     );
   }
 
@@ -326,16 +391,23 @@ class AiTestResult {
   final String? reply;
   final String? error;
 
-  const AiTestResult({required this.ok, required this.provider, required this.model, required this.latencyMs, this.reply, this.error});
+  const AiTestResult({
+    required this.ok,
+    required this.provider,
+    required this.model,
+    required this.latencyMs,
+    this.reply,
+    this.error,
+  });
 
   factory AiTestResult.fromJson(Map<String, dynamic> json) => AiTestResult(
-        ok: json['ok'] == true,
-        provider: json['provider'] as String? ?? '',
-        model: json['model'] as String? ?? '',
-        latencyMs: parseInt(json['latency_ms']),
-        reply: json['reply'] as String?,
-        error: json['error'] as String?,
-      );
+    ok: json['ok'] == true,
+    provider: json['provider'] as String? ?? '',
+    model: json['model'] as String? ?? '',
+    latencyMs: parseInt(json['latency_ms']),
+    reply: json['reply'] as String?,
+    error: json['error'] as String?,
+  );
 }
 
 class AiUsageSummary {
@@ -375,7 +447,9 @@ class AiUsageSummary {
       costUsd: parseDouble(json['cost_usd']),
       monthCostUsd: month,
       monthlyBudgetUsd: budget,
-      budgetUsedRatio: json['budget_used_ratio'] != null ? parseDouble(json['budget_used_ratio']) : (budget > 0 ? month / budget : 0),
+      budgetUsedRatio: json['budget_used_ratio'] != null
+          ? parseDouble(json['budget_used_ratio'])
+          : (budget > 0 ? month / budget : 0),
       projectedMonthCostUsd: parseDouble(json['projected_month_cost_usd']),
     );
   }
@@ -393,16 +467,23 @@ class AiFeatureUsage {
   final int outputTokens;
   final int errors;
 
-  const AiFeatureUsage({required this.feature, this.requests = 0, this.costUsd = 0, this.inputTokens = 0, this.outputTokens = 0, this.errors = 0});
+  const AiFeatureUsage({
+    required this.feature,
+    this.requests = 0,
+    this.costUsd = 0,
+    this.inputTokens = 0,
+    this.outputTokens = 0,
+    this.errors = 0,
+  });
 
   factory AiFeatureUsage.fromJson(Map<String, dynamic> json) => AiFeatureUsage(
-        feature: json['feature'] as String? ?? '',
-        requests: parseInt(json['requests']),
-        costUsd: parseDouble(json['cost_usd']),
-        inputTokens: parseInt(json['input_tokens']),
-        outputTokens: parseInt(json['output_tokens']),
-        errors: parseInt(json['errors']),
-      );
+    feature: json['feature'] as String? ?? '',
+    requests: parseInt(json['requests']),
+    costUsd: parseDouble(json['cost_usd']),
+    inputTokens: parseInt(json['input_tokens']),
+    outputTokens: parseInt(json['output_tokens']),
+    errors: parseInt(json['errors']),
+  );
 }
 
 class AiProviderUsage {
@@ -412,15 +493,21 @@ class AiProviderUsage {
   final double costUsd;
   final int avgLatencyMs;
 
-  const AiProviderUsage({required this.provider, required this.model, this.requests = 0, this.costUsd = 0, this.avgLatencyMs = 0});
+  const AiProviderUsage({
+    required this.provider,
+    required this.model,
+    this.requests = 0,
+    this.costUsd = 0,
+    this.avgLatencyMs = 0,
+  });
 
   factory AiProviderUsage.fromJson(Map<String, dynamic> json) => AiProviderUsage(
-        provider: json['provider'] as String? ?? '',
-        model: json['model'] as String? ?? '',
-        requests: parseInt(json['requests']),
-        costUsd: parseDouble(json['cost_usd']),
-        avgLatencyMs: parseInt(json['avg_latency_ms']),
-      );
+    provider: json['provider'] as String? ?? '',
+    model: json['model'] as String? ?? '',
+    requests: parseInt(json['requests']),
+    costUsd: parseDouble(json['cost_usd']),
+    avgLatencyMs: parseInt(json['avg_latency_ms']),
+  );
 }
 
 class AiDailyUsage {
@@ -451,11 +538,11 @@ class AiTopUser {
   const AiTopUser({required this.publicId, required this.nickname, this.requests = 0, this.costUsd = 0});
 
   factory AiTopUser.fromJson(Map<String, dynamic> json) => AiTopUser(
-        publicId: json['user_public_id'] as String? ?? '',
-        nickname: json['nickname'] as String? ?? '',
-        requests: parseInt(json['requests']),
-        costUsd: parseDouble(json['cost_usd']),
-      );
+    publicId: json['user_public_id'] as String? ?? '',
+    nickname: json['nickname'] as String? ?? '',
+    requests: parseInt(json['requests']),
+    costUsd: parseDouble(json['cost_usd']),
+  );
 }
 
 class AiUsageError {
@@ -476,13 +563,15 @@ class AiUsageError {
   });
 
   factory AiUsageError.fromJson(Map<String, dynamic> json) => AiUsageError(
-        createdAt: parseDate(json['created_at']),
-        feature: json['feature'] as String? ?? '',
-        provider: json['provider'] as String? ?? '',
-        errorCode: json['error_code'] as String? ?? '',
-        model: (json['model'] as String?)?.trim().isEmpty ?? true ? null : json['model'] as String,
-        errorDetail: (json['error_detail'] as String?)?.trim().isEmpty ?? true ? null : (json['error_detail'] as String).trim(),
-      );
+    createdAt: parseDate(json['created_at']),
+    feature: json['feature'] as String? ?? '',
+    provider: json['provider'] as String? ?? '',
+    errorCode: json['error_code'] as String? ?? '',
+    model: (json['model'] as String?)?.trim().isEmpty ?? true ? null : json['model'] as String,
+    errorDetail: (json['error_detail'] as String?)?.trim().isEmpty ?? true
+        ? null
+        : (json['error_detail'] as String).trim(),
+  );
 }
 
 class AiUsageReport {
@@ -507,10 +596,10 @@ class AiUsageReport {
   });
 
   static List<T> _list<T>(Object? raw, T Function(Map<String, dynamic>) build) => [
-        if (raw is List)
-          for (final item in raw)
-            if (item is Map) build(Map<String, dynamic>.from(item)),
-      ];
+    if (raw is List)
+      for (final item in raw)
+        if (item is Map) build(Map<String, dynamic>.from(item)),
+  ];
 
   factory AiUsageReport.fromJson(Map<String, dynamic> json) {
     final summary = json['summary'];
@@ -553,7 +642,13 @@ class AiCostChartData {
 
   bool get isEmpty => peak <= 0;
 
-  static const _featureOrder = [AiFeatures.support, AiFeatures.listingAssist, AiFeatures.recommend, AiFeatures.moderation, AiFeatures.test];
+  static const _featureOrder = [
+    AiFeatures.support,
+    AiFeatures.listingAssist,
+    AiFeatures.recommend,
+    AiFeatures.moderation,
+    AiFeatures.test,
+  ];
 
   factory AiCostChartData.from(List<AiDailyUsage> daily) {
     final present = <String>{};
@@ -694,29 +789,29 @@ class AiStatusInfo {
   static const none = AiStatusInfo();
 
   factory AiStatusInfo.fromJson(Map<String, dynamic> json) => AiStatusInfo(
-        support: json['support'] == true,
-        listingAssist: json['listing_assist'] == true,
-        recommend: json['recommend'] == true,
-        bookChat: json['book_chat'] == true,
-        webSearch: json['web_search'] == true,
-        consented: json['consented'] == true,
-        providersInUse: [
-          for (final p in json['providers_in_use'] is List ? json['providers_in_use'] as List : const [])
-            if (p is String && p.trim().isNotEmpty) p.trim(),
-        ],
-      );
+    support: json['support'] == true,
+    listingAssist: json['listing_assist'] == true,
+    recommend: json['recommend'] == true,
+    bookChat: json['book_chat'] == true,
+    webSearch: json['web_search'] == true,
+    consented: json['consented'] == true,
+    providersInUse: [
+      for (final p in json['providers_in_use'] is List ? json['providers_in_use'] as List : const [])
+        if (p is String && p.trim().isNotEmpty) p.trim(),
+    ],
+  );
 
   bool get any => support || listingAssist || recommend || bookChat;
 
   AiStatusInfo copyWith({bool? consented}) => AiStatusInfo(
-        support: support,
-        listingAssist: listingAssist,
-        recommend: recommend,
-        bookChat: bookChat,
-        webSearch: webSearch,
-        consented: consented ?? this.consented,
-        providersInUse: providersInUse,
-      );
+    support: support,
+    listingAssist: listingAssist,
+    recommend: recommend,
+    bookChat: bookChat,
+    webSearch: webSearch,
+    consented: consented ?? this.consented,
+    providersInUse: providersInUse,
+  );
 }
 
 class AiSupportMessage {
@@ -730,11 +825,11 @@ class AiSupportMessage {
   bool get isUser => role == 'user';
 
   factory AiSupportMessage.fromJson(Map<String, dynamic> json) => AiSupportMessage(
-        messageId: parseInt(json['message_id']),
-        role: json['role'] == 'user' ? 'user' : 'assistant',
-        content: json['content'] as String? ?? '',
-        createdAt: parseDate(json['created_at']),
-      );
+    messageId: parseInt(json['message_id']),
+    role: json['role'] == 'user' ? 'user' : 'assistant',
+    content: json['content'] as String? ?? '',
+    createdAt: parseDate(json['created_at']),
+  );
 }
 
 class AiSupportSession {
@@ -745,10 +840,10 @@ class AiSupportSession {
   const AiSupportSession({required this.sessionId, required this.status, this.messages = const []});
 
   factory AiSupportSession.fromJson(Map<String, dynamic> json) => AiSupportSession(
-        sessionId: parseInt(json['session_id']),
-        status: json['status'] as String? ?? 'open',
-        messages: AiUsageReport._list(json['messages'], AiSupportMessage.fromJson),
-      );
+    sessionId: parseInt(json['session_id']),
+    status: json['status'] as String? ?? 'open',
+    messages: AiUsageReport._list(json['messages'], AiSupportMessage.fromJson),
+  );
 }
 
 class AiSupportReply {
@@ -763,7 +858,10 @@ class AiSupportReply {
     final reply = json['reply'];
     return AiSupportReply(
       userMessage: user is Map ? AiSupportMessage.fromJson({...Map<String, dynamic>.from(user), 'role': 'user'}) : null,
-      reply: AiSupportMessage.fromJson({...(reply is Map ? Map<String, dynamic>.from(reply) : const <String, dynamic>{}), 'role': 'assistant'}),
+      reply: AiSupportMessage.fromJson({
+        ...(reply is Map ? Map<String, dynamic>.from(reply) : const <String, dynamic>{}),
+        'role': 'assistant',
+      }),
       suggestHandoff: json['suggest_handoff'] == true,
     );
   }
@@ -782,7 +880,12 @@ class AiBookSuggestion {
       if (item is! Map || item['book'] is! Map) continue;
       try {
         final reason = '${item['reason'] ?? ''}'.trim();
-        out.add(AiBookSuggestion(book: Book.fromJson(Map<String, dynamic>.from(item['book'])), reason: reason.isEmpty ? null : reason));
+        out.add(
+          AiBookSuggestion(
+            book: Book.fromJson(Map<String, dynamic>.from(item['book'])),
+            reason: reason.isEmpty ? null : reason,
+          ),
+        );
       } catch (_) {}
     }
     return out;
@@ -809,13 +912,13 @@ class AiBookChatMessage {
   bool get isUser => role == 'user';
 
   factory AiBookChatMessage.fromJson(Map<String, dynamic> json) => AiBookChatMessage(
-        messageId: parseInt(json['message_id']),
-        role: json['role'] == 'user' ? 'user' : 'assistant',
-        content: json['content'] as String? ?? '',
-        books: AiBookSuggestion.listFrom(json['books']),
-        suggestions: _strings(json['suggestions']),
-        createdAt: parseDate(json['created_at']),
-      );
+    messageId: parseInt(json['message_id']),
+    role: json['role'] == 'user' ? 'user' : 'assistant',
+    content: json['content'] as String? ?? '',
+    books: AiBookSuggestion.listFrom(json['books']),
+    suggestions: _strings(json['suggestions']),
+    createdAt: parseDate(json['created_at']),
+  );
 }
 
 class AiBookChatSession {
@@ -825,9 +928,9 @@ class AiBookChatSession {
   const AiBookChatSession({required this.sessionId, this.messages = const []});
 
   factory AiBookChatSession.fromJson(Map<String, dynamic> json) => AiBookChatSession(
-        sessionId: parseInt(json['session_id']),
-        messages: AiUsageReport._list(json['messages'], AiBookChatMessage.fromJson),
-      );
+    sessionId: parseInt(json['session_id']),
+    messages: AiUsageReport._list(json['messages'], AiBookChatMessage.fromJson),
+  );
 }
 
 class AiBookChatReply {
@@ -842,8 +945,13 @@ class AiBookChatReply {
     final reply = json['reply'];
     return AiBookChatReply(
       sessionId: parseInt(json['session_id']),
-      userMessage: user is Map ? AiBookChatMessage.fromJson({...Map<String, dynamic>.from(user), 'role': 'user'}) : null,
-      reply: AiBookChatMessage.fromJson({...(reply is Map ? Map<String, dynamic>.from(reply) : const <String, dynamic>{}), 'role': 'assistant'}),
+      userMessage: user is Map
+          ? AiBookChatMessage.fromJson({...Map<String, dynamic>.from(user), 'role': 'user'})
+          : null,
+      reply: AiBookChatMessage.fromJson({
+        ...(reply is Map ? Map<String, dynamic>.from(reply) : const <String, dynamic>{}),
+        'role': 'assistant',
+      }),
     );
   }
 }
@@ -853,9 +961,7 @@ class AiResult<T> {
   final String? error;
   final String? code;
 
-  const AiResult.ok(this.data)
-      : error = null,
-        code = null;
+  const AiResult.ok(this.data) : error = null, code = null;
 
   const AiResult.fail(this.error, {this.code}) : data = null;
 
@@ -863,7 +969,12 @@ class AiResult<T> {
 
   bool get needsConsent => code == 'AI_CONSENT_REQUIRED';
 
-  bool get isQuotaOrDisabled => code == 'AI_DAILY_LIMIT' || code == 'AI_DISABLED' || code == 'AI_BUDGET_EXCEEDED' || code == 'AI_NOT_CONFIGURED' || code == 'AI_UNAVAILABLE';
+  bool get isQuotaOrDisabled =>
+      code == 'AI_DAILY_LIMIT' ||
+      code == 'AI_DISABLED' ||
+      code == 'AI_BUDGET_EXCEEDED' ||
+      code == 'AI_NOT_CONFIGURED' ||
+      code == 'AI_UNAVAILABLE';
 }
 
 class AiCategoryGuess {
@@ -874,10 +985,10 @@ class AiCategoryGuess {
   const AiCategoryGuess({required this.categoryId, required this.name, required this.confidence});
 
   factory AiCategoryGuess.fromJson(Map<String, dynamic> json) => AiCategoryGuess(
-        categoryId: parseInt(json['category_id']),
-        name: json['name'] as String? ?? '',
-        confidence: parseDouble(json['confidence']).clamp(0.0, 1.0),
-      );
+    categoryId: parseInt(json['category_id']),
+    name: json['name'] as String? ?? '',
+    confidence: parseDouble(json['confidence']).clamp(0.0, 1.0),
+  );
 }
 
 class AiConditionGuess {
@@ -888,10 +999,10 @@ class AiConditionGuess {
   const AiConditionGuess({required this.level, required this.confidence, this.reasons = const []});
 
   factory AiConditionGuess.fromJson(Map<String, dynamic> json) => AiConditionGuess(
-        level: json['level'] as String? ?? '',
-        confidence: parseDouble(json['confidence']).clamp(0.0, 1.0),
-        reasons: _strings(json['reasons']),
-      );
+    level: json['level'] as String? ?? '',
+    confidence: parseDouble(json['confidence']).clamp(0.0, 1.0),
+    reasons: _strings(json['reasons']),
+  );
 }
 
 class AiPriceGuess {
@@ -928,17 +1039,28 @@ class AiSource {
 
   String get host => Uri.tryParse(url)?.host.replaceFirst('www.', '') ?? '';
 
-  factory AiSource.fromJson(Map<String, dynamic> json) => AiSource(title: json['title'] as String? ?? '', url: json['url'] as String? ?? '');
+  factory AiSource.fromJson(Map<String, dynamic> json) =>
+      AiSource(title: json['title'] as String? ?? '', url: json['url'] as String? ?? '');
 }
 
 List<String> _strings(Object? raw) => [
-      if (raw is List)
-        for (final item in raw)
-          if ('$item'.trim().isNotEmpty) '$item'.trim(),
-    ];
+  if (raw is List)
+    for (final item in raw)
+      if ('$item'.trim().isNotEmpty) '$item'.trim(),
+];
 
 class AiListingAssist {
-  static const fieldKeys = ['title', 'subtitle', 'author', 'publisher', 'publish_date', 'isbn', 'page_count', 'language', 'description'];
+  static const fieldKeys = [
+    'title',
+    'subtitle',
+    'author',
+    'publisher',
+    'publish_date',
+    'isbn',
+    'page_count',
+    'language',
+    'description',
+  ];
 
   /// 出版日期實際確認到的精度：`day`、`month`、`year`，無法確認時為空字串。
   final String publishDatePrecision;
@@ -1024,7 +1146,11 @@ class AiRecommendations {
       }
     }
     final meta = payload['meta'];
-    return AiRecommendations(books: books, reasons: reasons, source: meta is Map && meta['source'] == 'ai' ? 'ai' : 'fallback');
+    return AiRecommendations(
+      books: books,
+      reasons: reasons,
+      source: meta is Map && meta['source'] == 'ai' ? 'ai' : 'fallback',
+    );
   }
 }
 
@@ -1055,7 +1181,9 @@ class AiReviewItem {
 
   factory AiReviewItem.fromJson(Map<String, dynamic> json) {
     final book = json['book'] is Map ? Map<String, dynamic>.from(json['book']) : json;
-    final seller = json['seller'] is Map ? json['seller'] as Map : (book['seller'] is Map ? book['seller'] as Map : (book['users'] is Map ? book['users'] as Map : null));
+    final seller = json['seller'] is Map
+        ? json['seller'] as Map
+        : (book['seller'] is Map ? book['seller'] as Map : (book['users'] is Map ? book['users'] as Map : null));
     String? image = book['image_url'] as String? ?? book['cover_url'] as String?;
     final images = book['book_images'];
     if (image == null && images is List && images.isNotEmpty) {

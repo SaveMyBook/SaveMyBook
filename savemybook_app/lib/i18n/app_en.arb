@@ -3567,5 +3567,18 @@
     }
   },
   "lockerMarkedMaintenance": "Locker marked under maintenance",
-  "lockerMaintenanceEnded": "Locker maintenance ended"
+  "lockerMaintenanceEnded": "Locker maintenance ended",
+  "semanticIndex": "Semantic index",
+  "semanticSearch": "Semantic search",
+  "p0BooksP1HelpArticlesIndexed": "{p0} books and {p1} help articles indexed",
+  "@p0BooksP1HelpArticlesIndexed": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noOpenaiGeminiKeyConfiguredOnly": "No OpenAI or Gemini key is configured. Only keyword search is in use.",
+  "databaseNotBeenUpdated020Only": "The database has not been updated (020). Only keyword search is in use.",
+  "hybridSearchKeywordSemantic": "Hybrid search (keyword + semantic)",
+  "keywordSearchOnly": "Keyword search only"
 }

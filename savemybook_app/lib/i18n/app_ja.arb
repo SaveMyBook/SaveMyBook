@@ -3567,5 +3567,18 @@
     }
   },
   "lockerMarkedMaintenance": "ロッカーをメンテナンス中にしました",
-  "lockerMaintenanceEnded": "ロッカーのメンテナンスを終了しました"
+  "lockerMaintenanceEnded": "ロッカーのメンテナンスを終了しました",
+  "semanticIndex": "セマンティックインデックス",
+  "semanticSearch": "セマンティック検索",
+  "p0BooksP1HelpArticlesIndexed": "書籍 {p0} 件、サポート情報 {p1} 件を登録済み",
+  "@p0BooksP1HelpArticlesIndexed": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noOpenaiGeminiKeyConfiguredOnly": "OpenAI または Gemini のキーが未設定のため、キーワード検索のみを使用しています。",
+  "databaseNotBeenUpdated020Only": "データベースが未更新（020）のため、キーワード検索のみを使用しています。",
+  "hybridSearchKeywordSemantic": "ハイブリッド検索（キーワード＋意味）",
+  "keywordSearchOnly": "キーワード検索のみ"
 }

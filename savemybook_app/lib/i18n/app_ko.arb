@@ -3567,5 +3567,18 @@
     }
   },
   "lockerMarkedMaintenance": "보관함을 점검 중으로 설정했습니다",
-  "lockerMaintenanceEnded": "보관함 점검을 종료했습니다"
+  "lockerMaintenanceEnded": "보관함 점검을 종료했습니다",
+  "semanticIndex": "의미 색인",
+  "semanticSearch": "의미 검색",
+  "p0BooksP1HelpArticlesIndexed": "도서 {p0}건, 고객지원 정보 {p1}건 색인됨",
+  "@p0BooksP1HelpArticlesIndexed": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noOpenaiGeminiKeyConfiguredOnly": "OpenAI 또는 Gemini 키가 설정되지 않아 키워드 검색만 사용합니다.",
+  "databaseNotBeenUpdated020Only": "데이터베이스가 업데이트되지 않아(020) 키워드 검색만 사용합니다.",
+  "hybridSearchKeywordSemantic": "하이브리드 검색(키워드 + 의미)",
+  "keywordSearchOnly": "키워드 검색만 사용"
 }

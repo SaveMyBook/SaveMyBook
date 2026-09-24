@@ -208,10 +208,12 @@ module.exports = {
       ];
       setup({ candidateRows: catalogue });
       const search = bookChat.sanitizeSearch({ keywords: ['機器學習', '人工智慧'], category_ids: [2] }, ids);
-      const { rows, matched } = await bookChat.candidates(5, search, '想入門機器學習');
+      const { rows, matched, extraIds } = await bookChat.candidates(5, search, '想入門機器學習');
       assert.strictEqual(matched, true);
       assert.strictEqual(rows[0].book_id, 2);
-      assert.ok(!rows.some((b) => b.book_id === 1), '與主題無關的熱門書不列入');
+      const retrieved = rows.filter((b) => !extraIds.has(b.book_id));
+      assert.ok(!retrieved.some((b) => b.book_id === 1), '與主題無關的熱門書不列入檢索結果');
+      assert.deepStrictEqual([...extraIds], [1], '只作為後段的其他在售書供模型判斷');
     }],
 
     ['候選書：價格與書況條件在站內索引也會套用', async () => {
@@ -222,8 +224,8 @@ module.exports = {
       ];
       setup({ candidateRows: catalogue });
       const search = bookChat.sanitizeSearch({ keywords: ['機器學習'], max_price: 300, condition_levels: ['good'] }, ids);
-      const { rows } = await bookChat.candidates(5, search);
-      assert.deepStrictEqual(rows.map((b) => b.book_id), [3]);
+      const { rows, extraIds } = await bookChat.candidates(5, search);
+      assert.deepStrictEqual(rows.filter((b) => !extraIds.has(b.book_id)).map((b) => b.book_id), [3]);
     }],
 
     ['送出訊息：追問時附上先前推薦的書名並標示已推薦過，兩次呼叫都提高推理強度', async () => {

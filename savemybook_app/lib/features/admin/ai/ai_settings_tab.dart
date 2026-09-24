@@ -130,7 +130,10 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
     if (form.hasErrors) {
       HapticFeedback.heavyImpact();
       showAppSnackBar(context, S.pleaseFixHighlightedFields, isError: true);
-      if (!_advancedOpen && AiProviders.ids.any((id) => AiSettingsForm.specs.any((s) => s.key.startsWith('$id.') && form.isInvalid(s.key)))) {
+      if (!_advancedOpen &&
+          AiProviders.ids.any(
+            (id) => AiSettingsForm.specs.any((s) => s.key.startsWith('$id.') && form.isInvalid(s.key)),
+          )) {
         setState(() => _advancedOpen = true);
       }
       return false;
@@ -170,8 +173,8 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
     if (!mounted) return;
     setState(() {
       _testing.remove(provider);
-      _tests[provider] = result.data ??
-          AiTestResult(ok: false, provider: provider, model: '', latencyMs: 0, error: result.error);
+      _tests[provider] =
+          result.data ?? AiTestResult(ok: false, provider: provider, model: '', latencyMs: 0, error: result.error);
     });
     HapticFeedback.selectionClick();
   }
@@ -196,7 +199,10 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
 
     if (_loading && form == null) return const LoadingView.list();
     if (bundle == null || form == null) {
-      return RefreshableCenter(onRefresh: _load, child: ErrorView(message: _error, onRetry: _load));
+      return RefreshableCenter(
+        onRefresh: _load,
+        child: ErrorView(message: _error, onRetry: _load),
+      );
     }
 
     return AdminLayout(
@@ -222,13 +228,19 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                   _heading(c, S.features),
                   FadeSlideIn(index: 2, child: _featureGrid(c, bundle, form.draft, frame)),
                   const SizedBox(height: 22),
+                  _heading(c, S.semanticSearch),
+                  FadeSlideIn(index: 3, child: _retrievalCard(c, bundle.retrieval)),
+                  const SizedBox(height: 22),
                   if (frame.isWide)
                     FadeSlideIn(
-                      index: 3,
-                      child: AdminColumns(gap: 14, columns: [
-                        [_limitsCard(c, form.draft)],
-                        [_advancedCard(c, bundle, frame)],
-                      ]),
+                      index: 4,
+                      child: AdminColumns(
+                        gap: 14,
+                        columns: [
+                          [_limitsCard(c, form.draft)],
+                          [_advancedCard(c, bundle, frame)],
+                        ],
+                      ),
                     )
                   else ...[
                     FadeSlideIn(index: 3, child: _limitsCard(c, form.draft)),
@@ -246,9 +258,12 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
   }
 
   Widget _heading(AppColors c, String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 10),
-        child: Text(text, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary, letterSpacing: 0.5)),
-      );
+    padding: const EdgeInsets.only(left: 4, bottom: 10),
+    child: Text(
+      text,
+      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary, letterSpacing: 0.5),
+    ),
+  );
 
   Widget _notice(AppColors c, IconData icon, Color color, String text) {
     return Container(
@@ -259,7 +274,9 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
         children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 12.5, height: 1.45, color: c.textPrimary))),
+          Expanded(
+            child: Text(text, style: TextStyle(fontSize: 12.5, height: 1.45, color: c.textPrimary)),
+          ),
         ],
       ),
     );
@@ -289,14 +306,21 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(S.aiFeatures, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary)),
+                    Text(
+                      S.aiFeatures,
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
+                    ),
                     const SizedBox(height: 2),
                     AnimatedSwitcher(
                       duration: Motion.micro,
                       child: Text(
                         s.enabled ? S.on : S.disabled,
                         key: ValueKey(s.enabled),
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: s.enabled ? c.success : c.textHint),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: s.enabled ? c.success : c.textHint,
+                        ),
                       ),
                     ),
                   ],
@@ -321,12 +345,59 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
     );
   }
 
+  Widget _retrievalCard(AppColors c, AiRetrievalStatus r) {
+    final color = r.ready ? c.success : c.warning;
+    final String detail;
+    if (r.ready) {
+      final books = r.books;
+      final docs = r.knowledge;
+      final counts = S.p0BooksP1HelpArticlesIndexed(books, docs);
+      detail = '${AiProviders.nameOf(r.provider ?? '')}・${r.model ?? ''}\n$counts';
+    } else if (r.provider == null) {
+      detail = S.noOpenaiGeminiKeyConfiguredOnly;
+    } else {
+      detail = S.databaseNotBeenUpdated020Only;
+    }
+    return AppCard(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(12)),
+            child: Icon(r.ready ? Icons.hub_outlined : Icons.manage_search_rounded, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  r.ready ? S.hybridSearchKeywordSemantic : S.keywordSearchOnly,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                ),
+                const SizedBox(height: 4),
+                Text(detail, style: TextStyle(fontSize: 12.5, height: 1.45, color: c.textSecondary)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _providerCards(AppColors c, AiSettingsBundle bundle, AiSettings s, AdminFrame frame) {
     final cards = [for (final info in bundle.providers) _providerCard(c, info, s, fill: frame.isWide)];
     if (!frame.isWide) {
       return Column(
         children: [
-          for (final (i, card) in cards.indexed) Padding(padding: EdgeInsets.only(top: i == 0 ? 0 : 12), child: card),
+          for (final (i, card) in cards.indexed)
+            Padding(
+              padding: EdgeInsets.only(top: i == 0 ? 0 : 12),
+              child: card,
+            ),
         ],
       );
     }
@@ -334,10 +405,7 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final (i, card) in cards.indexed) ...[
-            if (i > 0) const SizedBox(width: 12),
-            Expanded(child: card),
-          ],
+          for (final (i, card) in cards.indexed) ...[if (i > 0) const SizedBox(width: 12), Expanded(child: card)],
         ],
       ),
     );
@@ -360,7 +428,13 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
           color: c.card,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: selected ? c.accent : c.border, width: selected ? 1.8 : 1),
-          boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: selected ? 0.1 : 0.04), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+              color: c.shadow.withValues(alpha: selected ? 0.1 : 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Material(
           type: MaterialType.transparency,
@@ -389,19 +463,27 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                           !info.keyConfigured
                               ? Icons.lock_outline_rounded
                               : selected
-                                  ? Icons.check_circle_rounded
-                                  : Icons.radio_button_unchecked_rounded,
+                              ? Icons.check_circle_rounded
+                              : Icons.radio_button_unchecked_rounded,
                           key: ValueKey('${info.keyConfigured}$selected'),
                           size: 20,
                           color: selected ? c.accent : c.iconInactive,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Container(width: 8, height: 8, decoration: BoxDecoration(color: tint, shape: BoxShape.circle)),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(color: tint, shape: BoxShape.circle),
+                      ),
                       const SizedBox(width: 6),
                       Expanded(
-                        child: Text(info.name, maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary)),
+                        child: Text(
+                          info.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                        ),
                       ),
                       _keyChip(c, info.keyConfigured),
                     ],
@@ -409,8 +491,16 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                   const SizedBox(height: 4),
                   Padding(
                     padding: const EdgeInsets.only(left: 28),
-                    child: Text(pricing.model, maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: c.textSecondary, fontFeatures: const [FontFeature.tabularFigures()])),
+                    child: Text(
+                      pricing.model,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: c.textSecondary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -421,7 +511,9 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Center(child: Text(S.per1mTokens, style: TextStyle(fontSize: 10.5, color: c.textHint))),
+                  Center(
+                    child: Text(S.per1mTokens, style: TextStyle(fontSize: 10.5, color: c.textHint)),
+                  ),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 6,
@@ -443,14 +535,18 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                               ? Row(
                                   key: const ValueKey('testing'),
                                   children: [
-                                    SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 1.6, color: c.accent)),
+                                    SizedBox(
+                                      width: 12,
+                                      height: 12,
+                                      child: CircularProgressIndicator(strokeWidth: 1.6, color: c.accent),
+                                    ),
                                     const SizedBox(width: 6),
                                     Text(S.testing, style: TextStyle(fontSize: 12, color: c.textSecondary)),
                                   ],
                                 )
                               : test == null
-                                  ? const SizedBox(key: ValueKey('none'), height: 12)
-                                  : _testResult(c, test),
+                              ? const SizedBox(key: ValueKey('none'), height: 12)
+                              : _testResult(c, test),
                         ),
                       ),
                       TextButton.icon(
@@ -476,7 +572,9 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
 
   Widget _testResult(AppColors c, AiTestResult test) {
     final color = test.ok ? c.success : c.danger;
-    final text = test.ok ? S.connectedP0Ms(test.latencyMs) : (test.error?.isNotEmpty == true ? test.error! : S.connectionFailed);
+    final text = test.ok
+        ? S.connectedP0Ms(test.latencyMs)
+        : (test.error?.isNotEmpty == true ? test.error! : S.connectionFailed);
     return GestureDetector(
       key: ValueKey('${test.ok}${test.latencyMs}${test.error}'),
       onTap: test.ok ? null : () => showAppSnackBar(context, text, isError: true),
@@ -485,8 +583,12 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
           Icon(test.ok ? Icons.check_circle_rounded : Icons.error_rounded, size: 14, color: color),
           const SizedBox(width: 4),
           Flexible(
-            child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+            ),
           ),
         ],
       ),
@@ -503,7 +605,10 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
         children: [
           Icon(configured ? Icons.key_rounded : Icons.key_off_rounded, size: 12, color: color),
           const SizedBox(width: 3),
-          Text(configured ? S.keySet : S.noKey, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: color)),
+          Text(
+            configured ? S.keySet : S.noKey,
+            style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: color),
+          ),
         ],
       ),
     );
@@ -516,7 +621,10 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
         const SizedBox(height: 2),
         FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text(formatUsdPrice(price), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary)),
+          child: Text(
+            formatUsdPrice(price),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+          ),
         ),
       ],
     );
@@ -536,8 +644,16 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
         children: [
           Icon(available ? icon : Icons.block_rounded, size: 13, color: color),
           const SizedBox(width: 4),
-          Text(label, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: color,
-              decoration: available ? null : TextDecoration.lineThrough, decorationColor: color)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: color,
+              decoration: available ? null : TextDecoration.lineThrough,
+              decorationColor: color,
+            ),
+          ),
         ],
       ),
     );
@@ -548,7 +664,11 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
     if (!frame.isWide) {
       return Column(
         children: [
-          for (final (i, card) in cards.indexed) Padding(padding: EdgeInsets.only(top: i == 0 ? 0 : 12), child: card),
+          for (final (i, card) in cards.indexed)
+            Padding(
+              padding: EdgeInsets.only(top: i == 0 ? 0 : 12),
+              child: card,
+            ),
         ],
       );
     }
@@ -556,8 +676,14 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
       gap: 14,
       spacing: 14,
       columns: [
-        [for (final (i, card) in cards.indexed) if (i.isEven) card],
-        [for (final (i, card) in cards.indexed) if (i.isOdd) card],
+        [
+          for (final (i, card) in cards.indexed)
+            if (i.isEven) card,
+        ],
+        [
+          for (final (i, card) in cards.indexed)
+            if (i.isOdd) card,
+        ],
       ],
     );
   }
@@ -583,8 +709,12 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(AiLabels.feature(feature), maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary)),
+                child: Text(
+                  AiLabels.feature(feature),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                ),
               ),
               Switch.adaptive(
                 value: config.enabled,
@@ -613,10 +743,7 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                           title: S.model,
                           leadingIcon: Icons.memory_rounded,
                           options: [
-                            AppSelectOption(
-                              value: '',
-                              label: S.defaultP0(AiProviders.nameOf(s.defaultProvider)),
-                            ),
+                            AppSelectOption(value: '', label: S.defaultP0(AiProviders.nameOf(s.defaultProvider))),
                             for (final info in bundle.providers)
                               AppSelectOption(
                                 value: info.id,
@@ -626,7 +753,9 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                                 disabledReason: info.keyConfigured ? null : S.noKey,
                               ),
                           ],
-                          onChanged: (v) => _update((s) => s.withFeature(feature, config.copyWith(provider: () => v.isEmpty ? null : v))),
+                          onChanged: (v) => _update(
+                            (s) => s.withFeature(feature, config.copyWith(provider: () => v.isEmpty ? null : v)),
+                          ),
                         ),
                         if (!effectiveInfo.keyConfigured) ...[
                           const SizedBox(height: 8),
@@ -648,17 +777,25 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
   }
 
   Widget _label(AppColors c, String text) => Padding(
-        padding: const EdgeInsets.only(left: 2, bottom: 6),
-        child: Text(text, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: c.textSecondary)),
-      );
+    padding: const EdgeInsets.only(left: 2, bottom: 6),
+    child: Text(
+      text,
+      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: c.textSecondary),
+    ),
+  );
 
   Widget _inlineNote(AppColors c, IconData icon, Color color, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(padding: const EdgeInsets.only(top: 1), child: Icon(icon, size: 14, color: color)),
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(icon, size: 14, color: color),
+        ),
         const SizedBox(width: 6),
-        Expanded(child: Text(text, style: TextStyle(fontSize: 12, height: 1.4, color: color))),
+        Expanded(
+          child: Text(text, style: TextStyle(fontSize: 12, height: 1.4, color: color)),
+        ),
       ],
     );
   }
@@ -681,7 +818,9 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
         children: [
           Icon(Icons.travel_explore_rounded, size: 18, color: c.textSecondary),
           const SizedBox(width: 8),
-          Expanded(child: Text(S.webSearch, style: TextStyle(fontSize: 14, color: c.textPrimary))),
+          Expanded(
+            child: Text(S.webSearch, style: TextStyle(fontSize: 14, color: c.textPrimary)),
+          ),
           Switch.adaptive(
             value: config.webSearch,
             activeThumbColor: c.accent,
@@ -692,8 +831,12 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
       AnimatedOpacity(
         duration: Motion.micro,
         opacity: config.webSearch ? 1 : 0.5,
-        child: _inlineNote(c, info.webSearch ? Icons.info_outline_rounded : Icons.block_rounded,
-            info.webSearch ? c.textSecondary : c.warning, webSearchCostNote(s, info)),
+        child: _inlineNote(
+          c,
+          info.webSearch ? Icons.info_outline_rounded : Icons.block_rounded,
+          info.webSearch ? c.textSecondary : c.warning,
+          webSearchCostNote(s, info),
+        ),
       ),
     ];
   }
@@ -722,8 +865,16 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
               children: [
                 Icon(icon, size: 18, color: active ? c.accent : c.textSecondary),
                 const SizedBox(height: 4),
-                Text(label, textAlign: TextAlign.center, maxLines: 2,
-                    style: TextStyle(fontSize: 12.5, fontWeight: active ? FontWeight.bold : FontWeight.w500, color: active ? c.accent : c.textPrimary)),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: active ? FontWeight.bold : FontWeight.w500,
+                    color: active ? c.accent : c.textPrimary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -747,7 +898,15 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
     ];
   }
 
-  Widget _field(AppColors c, String key, String label, {String? prefix, bool integer = false, bool text = false, String? hint}) {
+  Widget _field(
+    AppColors c,
+    String key,
+    String label, {
+    String? prefix,
+    bool integer = false,
+    bool text = false,
+    String? hint,
+  }) {
     return AppTextField(
       controller: _controllers[key]!,
       label: label,
@@ -765,15 +924,20 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
   }
 
   Widget _grid(List<Widget> children, {double minWidth = 150, double gap = 12}) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final columns = math.max(1, math.min(children.length, ((constraints.maxWidth + gap) / (minWidth + gap)).floor()));
-      final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
-      return Wrap(
-        spacing: gap,
-        runSpacing: 12,
-        children: [for (final child in children) SizedBox(width: width, child: child)],
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = math.max(
+          1,
+          math.min(children.length, ((constraints.maxWidth + gap) / (minWidth + gap)).floor()),
+        );
+        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
+        return Wrap(
+          spacing: gap,
+          runSpacing: 12,
+          children: [for (final child in children) SizedBox(width: width, child: child)],
+        );
+      },
+    );
   }
 
   Widget _limitsCard(AppColors c, AiSettings s) {
@@ -781,14 +945,18 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(S.budgetLimits, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary)),
+          Text(
+            S.budgetLimits,
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+          ),
           const SizedBox(height: 14),
           _field(c, 'budget', S.monthlyBudgetUsd, prefix: 'US\$ ', hint: S.k0MeansNoCap),
           const SizedBox(height: 16),
           _label(c, S.dailyLimitPerMember),
           const SizedBox(height: 2),
           _grid([
-            for (final f in AiFeatures.limited) _field(c, 'limit.$f', AiLabels.feature(f), integer: true, hint: S.k0MeansUnlimited),
+            for (final f in AiFeatures.limited)
+              _field(c, 'limit.$f', AiLabels.feature(f), integer: true, hint: S.k0MeansUnlimited),
           ], minWidth: 120),
         ],
       ),
@@ -797,7 +965,9 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
 
   Widget _advancedCard(AppColors c, AiSettingsBundle bundle, AdminFrame frame) {
     final form = _form!;
-    final invalidAdvanced = AiSettingsForm.specs.any((spec) => !spec.key.startsWith('budget') && !spec.key.startsWith('limit.') && form.isInvalid(spec.key));
+    final invalidAdvanced = AiSettingsForm.specs.any(
+      (spec) => !spec.key.startsWith('budget') && !spec.key.startsWith('limit.') && form.isInvalid(spec.key),
+    );
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -813,9 +983,16 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                   Icon(Icons.tune_rounded, size: 20, color: c.textSecondary),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(S.advanced, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary)),
+                    child: Text(
+                      S.advanced,
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                    ),
                   ),
-                  if (invalidAdvanced) Padding(padding: const EdgeInsets.only(right: 6), child: Icon(Icons.error_rounded, size: 16, color: c.danger)),
+                  if (invalidAdvanced)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Icon(Icons.error_rounded, size: 16, color: c.danger),
+                    ),
                   AnimatedRotation(
                     turns: _advancedOpen ? 0.5 : 0,
                     duration: Motion.base,
@@ -837,7 +1014,11 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         for (final (i, info) in bundle.providers.indexed) ...[
-                          if (i > 0) Padding(padding: const EdgeInsets.symmetric(vertical: 14), child: Divider(height: 1, color: c.divider)),
+                          if (i > 0)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              child: Divider(height: 1, color: c.divider),
+                            ),
                           _providerPricingEditor(c, info),
                         ],
                       ],
@@ -856,9 +1037,18 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
       children: [
         Row(
           children: [
-            Container(width: 8, height: 8, decoration: BoxDecoration(color: AiLabels.providerColor(c, id), shape: BoxShape.circle)),
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: AiLabels.providerColor(c, id), shape: BoxShape.circle),
+            ),
             const SizedBox(width: 8),
-            Expanded(child: Text(info.name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary))),
+            Expanded(
+              child: Text(
+                info.name,
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary),
+              ),
+            ),
             TextButton(
               onPressed: () {
                 HapticFeedback.selectionClick();
@@ -877,17 +1067,25 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
         _field(c, '$id.model', S.modelId, text: true),
         const SizedBox(height: 12),
         _label(c, S.priceUsPer1mTokens),
-        _grid([
-          _field(c, '$id.input_per_m', S.input),
-          _field(c, '$id.cached_input_per_m', S.cachedInput),
-          _field(c, '$id.output_per_m', S.output),
-        ], minWidth: 96, gap: 10),
+        _grid(
+          [
+            _field(c, '$id.input_per_m', S.input),
+            _field(c, '$id.cached_input_per_m', S.cachedInput),
+            _field(c, '$id.output_per_m', S.output),
+          ],
+          minWidth: 96,
+          gap: 10,
+        ),
         if (info.webSearch) ...[
           const SizedBox(height: 12),
-          _grid([
-            _field(c, '$id.search_price_per_k', S.searchPriceUsPer1000),
-            _field(c, '$id.search_free_per_month', S.freeSearchesPerMonth, integer: true),
-          ], minWidth: 150, gap: 10),
+          _grid(
+            [
+              _field(c, '$id.search_price_per_k', S.searchPriceUsPer1000),
+              _field(c, '$id.search_free_per_month', S.freeSearchesPerMonth, integer: true),
+            ],
+            minWidth: 150,
+            gap: 10,
+          ),
         ],
       ],
     );
@@ -907,7 +1105,9 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
               decoration: BoxDecoration(
                 color: c.card,
                 border: Border(top: BorderSide(color: c.divider)),
-                boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, -2))],
+                boxShadow: [
+                  BoxShadow(color: c.shadow.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, -2)),
+                ],
               ),
               padding: frame.inset(
                 EdgeInsets.fromLTRB(16, 10, 16, MediaQuery.paddingOf(context).bottom + 10),
@@ -915,16 +1115,19 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
               ),
               child: Row(
                 children: [
-                  Icon(form.hasErrors ? Icons.error_outline_rounded : Icons.edit_note_rounded,
-                      size: 20, color: form.hasErrors ? c.danger : c.warning),
+                  Icon(
+                    form.hasErrors ? Icons.error_outline_rounded : Icons.edit_note_rounded,
+                    size: 20,
+                    color: form.hasErrors ? c.danger : c.warning,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       form.hasErrors
                           ? S.p0FieldsInvalid(form.errorCount)
                           : changed > 0
-                              ? S.p0UnsavedChanges(changed)
-                              : S.unsavedChanges,
+                          ? S.p0UnsavedChanges(changed)
+                          : S.unsavedChanges,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),

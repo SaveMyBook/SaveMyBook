@@ -1,10 +1,11 @@
 const prisma = require('../../lib/prisma');
 const { clip } = require('../../lib/text');
 const lexical = require('./lexical');
+const semantic = require('./semantic');
 
 // AI 客服的檢索增強（RAG）：把平台說明、常見問題與條款切成段落建索引，
 // 每次提問只把最相關的段落放進提示詞，避免整包塞入時模型抓錯重點或被截斷的內容誤導。
-// 排序使用 lexical.js 的 BM25。
+// 排序合併 lexical.js 的 BM25 與 semantic.js 的語意相似度；語意檢索無法使用時只用 BM25。
 
 const INDEX_TTL_MS = 2 * 60 * 1000;
 const LEGAL_CHUNK_CHARS = 420;
@@ -199,10 +200,16 @@ const loadDocuments = async () => {
   return docs;
 };
 
-const buildIndex = (docs) => lexical.buildIndex(docs.map((doc) => ({
-  ...doc,
-  fields: [{ text: doc.title }, { text: doc.keywords ?? '' }, { text: doc.text }]
-})));
+// 知識段落以內容雜湊當向量的鍵：條款改版後段落切分會變，用內容比對才不會沿用錯的向量。
+const buildIndex = (docs) => lexical.buildIndex(docs.map((doc) => {
+  const text = `${doc.title}\n${doc.text}`;
+  const hash = semantic.hashOf(text);
+  return {
+    ...doc,
+    embed: { ref: hash, text, hash },
+    fields: [{ text: doc.title }, { text: doc.keywords ?? '' }, { text: doc.text }]
+  };
+}));
 
 let cached = null;
 
@@ -218,30 +225,56 @@ const invalidate = () => {
 };
 
 // query 是本次提問；context 是先前幾則使用者訊息，權重較低，讓「那要多久？」這類追問也能找到前文主題。
-const search = async (query, { context = [], topK = DEFAULT_TOP_K, budget = DEFAULT_BUDGET } = {}) => {
+// 關鍵字與語意兩份排名以 RRF 合併；關鍵字分數過低、語意也不相近的段落不放入提示詞。
+const search = async (query, { context = [], topK = DEFAULT_TOP_K, budget = DEFAULT_BUDGET, userId = null } = {}) => {
   const idx = await index();
   const weights = lexical.queryWeights([
     { text: query, weight: 1 },
     ...context.filter(Boolean).map((text, i) => ({ text, weight: i === context.length - 1 ? 0.5 : 0.3 }))
   ], expandQuery);
-  const ranked = lexical.rank(idx, weights);
-  if (ranked.length === 0) return [];
+  const lexicalRanked = lexical.rank(idx, weights);
+  const lexicalFloor = lexicalRanked.length ? lexicalRanked[0].score * RELATIVE_CUTOFF : Infinity;
+  const lexicalKept = lexicalRanked.filter((r) => r.score >= lexicalFloor);
 
-  const floor = ranked[0].score * RELATIVE_CUTOFF;
+  const docs = idx.entries.map((e) => e.doc);
+  const byRef = new Map(docs.map((d) => [d.embed.ref, d]));
+  const semanticQuery = [context[context.length - 1], query].filter(Boolean).join('\n');
+  const semanticKept = semantic.relevant(
+    await semantic.rank('knowledge', docs.map((d) => d.embed), semanticQuery, { userId }),
+    { relative: 0.8, limit: topK * 2 }
+  );
+  if (lexicalKept.length === 0 && semanticKept.length === 0) return [];
+
+  const lexicalScore = new Map(lexicalRanked.map((r) => [r.doc.id, r.score]));
+  const fused = semantic.fuse([
+    { ids: lexicalKept.map((r) => r.doc.id) },
+    { ids: semanticKept.map((r) => byRef.get(r.ref).id) }
+  ]);
+  const byId = new Map(docs.map((d) => [d.id, d]));
+  const ranked = [...fused.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => byId.get(id));
+
   const picked = [];
   let used = 0;
-  for (const r of ranked) {
-    if (picked.length >= topK || r.score < floor) break;
-    const size = r.doc.title.length + r.doc.text.length;
+  for (const doc of ranked) {
+    if (picked.length >= topK) break;
+    const size = doc.title.length + doc.text.length;
     if (used + size > budget && picked.length > 0) continue;
-    picked.push({ ...r.doc, score: Math.round(r.score * 100) / 100 });
+    const { embed, fields, ...rest } = doc;
+    picked.push({ ...rest, score: Math.round((lexicalScore.get(doc.id) ?? 0) * 100) / 100 });
     used += size;
   }
   return picked;
+};
+
+const warm = async () => {
+  const idx = await index();
+  return semantic.sync('knowledge', idx.entries.map((e) => e.doc.embed));
 };
 
 const format = (docs) => (docs.length
   ? docs.map((d, i) => `[${i + 1}] ${d.title}\n${d.text}`).join('\n\n')
   : '（沒有找到相關資料）');
 
-module.exports = { PLATFORM_TOPICS, SYNONYMS, tokenize: lexical.tokenize, expandQuery, splitLegal, buildIndex, search, format, invalidate };
+module.exports = {
+  PLATFORM_TOPICS, SYNONYMS, tokenize: lexical.tokenize, expandQuery, splitLegal, buildIndex, search, warm, format, invalidate
+};

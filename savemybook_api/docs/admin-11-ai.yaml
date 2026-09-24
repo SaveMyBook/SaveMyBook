@@ -18,6 +18,13 @@ tags:
       其他端點回傳 503 `AI_UNAVAILABLE`。書籍顧問（`features.book_chat`）另需 `migrations/013_ai_book_chat.sql`；
       未執行時設定仍可儲存，但使用者端的書籍顧問端點回傳 503 `AI_UNAVAILABLE`。
 
+      **語意檢索**：書籍顧問、個人推薦與 AI 客服以「關鍵字（BM25）＋語意向量」混合檢索，兩份排名以 RRF 合併。
+      向量模型依序使用 OpenAI `text-embedding-3-small`（512 維）或 Gemini `gemini-embedding-001`（768 維），
+      取決於伺服器設定了哪一把金鑰，不受各功能選用的服務商影響。向量存於 `ai_embeddings`（`migrations/020_ai_embeddings.sql`），
+      伺服器每 10 分鐘在背景補齊新增或變更的書籍與客服知識，少量新書也會在查詢時即時補算；更換向量模型時自動重建。
+      嵌入費用記入用量報表的 `embedding` 功能。AI 總開關關閉、未設定上述金鑰、尚未執行 020 或嵌入服務失敗時，
+      自動改用純關鍵字檢索（失敗後暫停重試 5 分鐘）。
+
 paths:
   /api/admin/ai/settings:
     get:
@@ -321,6 +328,18 @@ components:
               default_model: { type: string, example: gemini-3.1-flash-lite }
               docs_url: { type: string, example: 'https://ai.google.dev/gemini-api/docs' }
         migration_ready: { type: boolean }
+        retrieval:
+          type: object
+          description: 語意檢索狀態。
+          properties:
+            ready: { type: boolean, description: 已設定 OpenAI 或 Gemini 金鑰且已執行 020。 }
+            provider: { type: string, nullable: true, enum: [openai, gemini, null] }
+            model: { type: string, nullable: true, example: text-embedding-3-small }
+            counts:
+              type: object
+              description: 目前向量模型已建立的向量數，依種類區分（`book` 書籍、`knowledge` 客服知識段落）。
+              additionalProperties: { type: integer }
+              example: { book: 1240, knowledge: 86 }
 
     AdminAiUsage:
       type: object
@@ -346,7 +365,7 @@ components:
           items:
             type: object
             properties:
-              feature: { type: string, enum: [support, listing_assist, recommend, moderation, book_chat, test] }
+              feature: { type: string, enum: [support, listing_assist, recommend, moderation, book_chat, embedding, test] }
               requests: { type: integer }
               cost_usd: { type: number }
               input_tokens: { type: integer }

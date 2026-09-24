@@ -173,7 +173,7 @@ const retrievalContext = (history) => history
 
 const buildSystem = async (userId, { question = '', history = [] } = {}) => {
   const [docs, mine] = await Promise.all([
-    knowledge.search(question, { context: retrievalContext(history) }),
+    knowledge.search(question, { context: retrievalContext(history), userId }),
     userContext(userId)
   ]);
   return [

@@ -1988,6 +1988,13 @@ abstract class AppLocalizations {
   String endingMaintenanceP0AvailableAgain(Object p0);
   String get lockerMarkedMaintenance;
   String get lockerMaintenanceEnded;
+  String get semanticIndex;
+  String get semanticSearch;
+  String p0BooksP1HelpArticlesIndexed(Object p0, Object p1);
+  String get noOpenaiGeminiKeyConfiguredOnly;
+  String get databaseNotBeenUpdated020Only;
+  String get hybridSearchKeywordSemantic;
+  String get keywordSearchOnly;
 }
 
 class _LEn extends AppLocalizations {
@@ -7887,6 +7894,27 @@ class _LEn extends AppLocalizations {
 
   @override
   String get lockerMaintenanceEnded => 'Locker maintenance ended';
+
+  @override
+  String get semanticIndex => 'Semantic index';
+
+  @override
+  String get semanticSearch => 'Semantic search';
+
+  @override
+  String p0BooksP1HelpArticlesIndexed(Object p0, Object p1) => '${p0} books and ${p1} help articles indexed';
+
+  @override
+  String get noOpenaiGeminiKeyConfiguredOnly => 'No OpenAI or Gemini key is configured. Only keyword search is in use.';
+
+  @override
+  String get databaseNotBeenUpdated020Only => 'The database has not been updated (020). Only keyword search is in use.';
+
+  @override
+  String get hybridSearchKeywordSemantic => 'Hybrid search (keyword + semantic)';
+
+  @override
+  String get keywordSearchOnly => 'Keyword search only';
 
 }
 
@@ -13788,6 +13816,27 @@ class _LJa extends AppLocalizations {
   @override
   String get lockerMaintenanceEnded => 'ロッカーのメンテナンスを終了しました';
 
+  @override
+  String get semanticIndex => 'セマンティックインデックス';
+
+  @override
+  String get semanticSearch => 'セマンティック検索';
+
+  @override
+  String p0BooksP1HelpArticlesIndexed(Object p0, Object p1) => '書籍 ${p0} 件、サポート情報 ${p1} 件を登録済み';
+
+  @override
+  String get noOpenaiGeminiKeyConfiguredOnly => 'OpenAI または Gemini のキーが未設定のため、キーワード検索のみを使用しています。';
+
+  @override
+  String get databaseNotBeenUpdated020Only => 'データベースが未更新（020）のため、キーワード検索のみを使用しています。';
+
+  @override
+  String get hybridSearchKeywordSemantic => 'ハイブリッド検索（キーワード＋意味）';
+
+  @override
+  String get keywordSearchOnly => 'キーワード検索のみ';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -19687,6 +19736,27 @@ class _LKo extends AppLocalizations {
 
   @override
   String get lockerMaintenanceEnded => '보관함 점검을 종료했습니다';
+
+  @override
+  String get semanticIndex => '의미 색인';
+
+  @override
+  String get semanticSearch => '의미 검색';
+
+  @override
+  String p0BooksP1HelpArticlesIndexed(Object p0, Object p1) => '도서 ${p0}건, 고객지원 정보 ${p1}건 색인됨';
+
+  @override
+  String get noOpenaiGeminiKeyConfiguredOnly => 'OpenAI 또는 Gemini 키가 설정되지 않아 키워드 검색만 사용합니다.';
+
+  @override
+  String get databaseNotBeenUpdated020Only => '데이터베이스가 업데이트되지 않아(020) 키워드 검색만 사용합니다.';
+
+  @override
+  String get hybridSearchKeywordSemantic => '하이브리드 검색(키워드 + 의미)';
+
+  @override
+  String get keywordSearchOnly => '키워드 검색만 사용';
 
 }
 
@@ -25588,6 +25658,27 @@ class _LZh extends AppLocalizations {
   @override
   String get lockerMaintenanceEnded => '書櫃已結束維修';
 
+  @override
+  String get semanticIndex => '語意索引';
+
+  @override
+  String get semanticSearch => '語意檢索';
+
+  @override
+  String p0BooksP1HelpArticlesIndexed(Object p0, Object p1) => '已建立書籍 ${p0} 筆、客服知識 ${p1} 筆';
+
+  @override
+  String get noOpenaiGeminiKeyConfiguredOnly => '尚未設定 OpenAI 或 Gemini 金鑰，目前僅使用關鍵字檢索';
+
+  @override
+  String get databaseNotBeenUpdated020Only => '資料庫尚未更新（020），目前僅使用關鍵字檢索';
+
+  @override
+  String get hybridSearchKeywordSemantic => '混合檢索（關鍵字＋語意）';
+
+  @override
+  String get keywordSearchOnly => '僅關鍵字檢索';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -31488,6 +31579,27 @@ class _LZhHans extends AppLocalizations {
   @override
   String get lockerMaintenanceEnded => '书柜已结束维修';
 
+  @override
+  String get semanticIndex => '语义索引';
+
+  @override
+  String get semanticSearch => '语义检索';
+
+  @override
+  String p0BooksP1HelpArticlesIndexed(Object p0, Object p1) => '已建立书籍 ${p0} 笔、客服知识 ${p1} 笔';
+
+  @override
+  String get noOpenaiGeminiKeyConfiguredOnly => '尚未设置 OpenAI 或 Gemini 密钥，目前仅使用关键词检索';
+
+  @override
+  String get databaseNotBeenUpdated020Only => '数据库尚未更新（020），目前仅使用关键词检索';
+
+  @override
+  String get hybridSearchKeywordSemantic => '混合检索（关键词＋语义）';
+
+  @override
+  String get keywordSearchOnly => '仅关键词检索';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -37387,6 +37499,27 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get lockerMaintenanceEnded => '書櫃已結束維修';
+
+  @override
+  String get semanticIndex => '語意索引';
+
+  @override
+  String get semanticSearch => '語意檢索';
+
+  @override
+  String p0BooksP1HelpArticlesIndexed(Object p0, Object p1) => '已建立書籍 ${p0} 筆、客服知識 ${p1} 筆';
+
+  @override
+  String get noOpenaiGeminiKeyConfiguredOnly => '尚未設定 OpenAI 或 Gemini 金鑰，目前僅使用關鍵字檢索';
+
+  @override
+  String get databaseNotBeenUpdated020Only => '資料庫尚未更新（020），目前僅使用關鍵字檢索';
+
+  @override
+  String get hybridSearchKeywordSemantic => '混合檢索（關鍵字＋語意）';
+
+  @override
+  String get keywordSearchOnly => '僅關鍵字檢索';
 
 }
 

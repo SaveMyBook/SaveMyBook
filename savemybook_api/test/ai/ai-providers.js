@@ -20,8 +20,9 @@ const reply = (url, init) => {
   return h.jsonResponse(next.body, { status: next.status ?? 200, headers: next.headers ?? {} });
 };
 
-h.onFetch('https://generativelanguage.googleapis.com', reply);
-h.onFetch('https://api.openai.com', reply);
+// 嵌入端點由 ai-semantic.js 另外攔截；同一個行程共用攔截清單，這裡要排除以免先被接走。
+h.onFetch(/^https:\/\/generativelanguage\.googleapis\.com\/(?!.*:batchEmbedContents)/, reply);
+h.onFetch(/^https:\/\/api\.openai\.com\/(?!v1\/embeddings)/, reply);
 h.onFetch('https://api.deepseek.com', reply);
 
 const geminiOk = (overrides = {}) => ({

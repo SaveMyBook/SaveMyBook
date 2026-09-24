@@ -72,7 +72,7 @@ class AiImagePrep {
       final height = image.height;
       image.dispose();
       if (rgba == null) return null;
-      return compute(_encodeJpeg, (rgba.buffer.asUint8List(), width, height));
+      return await compute(_encodeJpeg, (rgba.buffer.asUint8List(), width, height));
     } finally {
       descriptor.dispose();
       buffer.dispose();

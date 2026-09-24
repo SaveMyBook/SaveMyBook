@@ -115,7 +115,7 @@ class _PluginAuthGateway implements FirebaseAuthGateway {
       final credential = await _auth.signInWithCredential(
         GoogleAuthProvider.credential(idToken: googleToken),
       );
-      return _idTokenOf(credential);
+      return await _idTokenOf(credential);
     } on GoogleSignInException catch (error) {
       if (error.code == GoogleSignInExceptionCode.canceled ||
           error.code == GoogleSignInExceptionCode.interrupted) {
@@ -147,7 +147,7 @@ class _PluginAuthGateway implements FirebaseAuthGateway {
       if (name.isNotEmpty && (credential.user?.displayName ?? '').isEmpty) {
         await credential.user?.updateDisplayName(name);
       }
-      return _idTokenOf(credential);
+      return await _idTokenOf(credential);
     } on SignInWithAppleAuthorizationException catch (error) {
       if (error.code == AuthorizationErrorCode.canceled) throw SocialAuthFailure(AuthCodes.cancelled, '');
       throw SocialAuthFailure(AuthCodes.providerError, AuthCodes.messageOf(AuthCodes.providerError));
@@ -190,7 +190,7 @@ class _PluginAuthGateway implements FirebaseAuthGateway {
       final credential = await _auth.signInWithCredential(
         PhoneAuthProvider.credential(verificationId: verificationId, smsCode: smsCode),
       );
-      return _idTokenOf(credential);
+      return await _idTokenOf(credential);
     } on FirebaseAuthException catch (error) {
       throw SocialAuthFailure(error.code, _firebaseFailureMessage(error.code));
     }

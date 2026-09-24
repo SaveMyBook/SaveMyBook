@@ -10,6 +10,8 @@ const oauth = require('../services/oauth-providers');
 const passkeys = require('../services/passkeys');
 const uploadsCleanup = require('../services/uploads-cleanup');
 const supportAttachments = require('../services/support-attachments');
+const catalogSearch = require('../services/ai/catalog-search');
+const knowledge = require('../services/ai/knowledge');
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
@@ -95,6 +97,17 @@ const runUploadsSweep = async () => {
   }
 };
 
+// 預先建立語意檢索的向量；未設定金鑰、AI 關閉或尚未執行 020 時不做任何事。
+const runEmbeddingSync = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const [books, docs] = await Promise.all([catalogSearch.warm(), knowledge.warm()]);
+    if (books + docs > 0) console.log(`🧭 已更新語意索引：書籍 ${books} 筆、客服知識 ${docs} 筆`);
+  } catch (err) {
+    console.error('[更新語意索引失敗]:', err.message);
+  }
+};
+
 const startScheduler = () => {
   let stopDispatcher = () => {};
   push.init()
@@ -108,6 +121,8 @@ const startScheduler = () => {
     setInterval(runReservationExpiry, 5 * MINUTE),
     setInterval(runOauthCleanup, 10 * MINUTE),
     setInterval(runUploadsSweep, 24 * HOUR),
+    setInterval(runEmbeddingSync, 10 * MINUTE),
+    setTimeout(runEmbeddingSync, MINUTE),
     setTimeout(runUploadsSweep, 3 * MINUTE),
     setTimeout(runReservationExpiry, MINUTE),
     setTimeout(runDeletionSweep, 30 * 1000),

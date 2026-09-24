@@ -18,7 +18,7 @@ const MESSAGE_LIMIT = 30;
 const CANDIDATE_LIMIT = 30;
 const SQL_CANDIDATE_LIMIT = 200;
 const CATEGORY_BOOST = 1.3;
-const DESCRIPTION_SNIPPET = 70;
+const DESCRIPTION_SNIPPET = 160;
 const PICK_LIMIT = 6;
 const REASON_MAX = 30;
 const REPLY_MAX = 1200;
@@ -50,7 +50,8 @@ const PICK_SYSTEM = `
 1. 只能使用候選清單中的代號（例如 b1），不得自創代號、書名或價格。
 2. 最多挑選 6 本，依符合程度由高到低排序；依書名、作者、分類與簡介判斷內容是否真的符合需求（主題、程度、用途、預算），與需求無關的書不要硬選，沒有合適的書時 book_ids 輸出空陣列。候選清單已依關鍵字相關度排序，但排序只供參考。
    標示「先前已推薦」的書，除非使用者問的正是這本書或要求再看一次，否則優先挑選其他書。
-3. 若【比對結果】標示為「未找到直接相關的書」，代表候選書只是站上的熱門書，除非確實相關否則不要挑選，並在 reply 中誠實說明站上目前沒有直接相關的書。
+   標示「其他在售書」的書不在檢索結果中，但仍要逐本依書名、作者與簡介判斷；確實符合需求就挑選（例如使用者要 AI 書，書名是 Gemini、ChatGPT、提示工程的書都屬於 AI 主題）。
+3. 若【比對結果】標示為「未找到直接相關的書」，代表檢索沒有命中，請逐本判斷候選書，確實符合就挑選；全部都不符合時才在 reply 中誠實說明站上目前沒有相關的書。
 4. reasons 以代號為鍵，每則推薦理由為繁體中文 30 字內，具體說明這本書適合使用者的原因（內容、程度或用途），不得提及賣家或其他使用者，不得只重複書名。
 5. reply 使用繁體中文與「您」稱呼，專業、自然、具體，不使用表情符號，150 字內：先回應使用者的需求，再說明這批書的挑選方向，可以《書名》點出一到兩本最推薦的書與原因，不寫價格；不得出現欄位名稱、英文代碼或程式用語，不要條列編號。
 6. suggestions 為 2 至 3 個使用者可能接著詢問的完整短句，每句 20 字內，例如「有沒有更適合初學者的」。
@@ -182,12 +183,14 @@ const candidates = async (userId, search, content = '') => {
     include: books.listInclude
   });
 
-  if (search.keywords.length > 0) {
+  if (search.keywords.length > 0 || content.trim()) {
     const categories = new Set(search.category_ids);
     const ranked = await catalog.search(
       [{ text: search.keywords.join(' '), weight: 1 }, { text: content, weight: 0.4 }],
       {
         limit: CANDIDATE_LIMIT,
+        query: [content, search.keywords.join('、')].filter(Boolean).join('\n'),
+        userId,
         filter: (doc) => doc.seller_id !== userId
           && priceOk(doc.price, search)
           && (search.condition_levels.length === 0 || search.condition_levels.includes(doc.condition_level)),
@@ -196,18 +199,31 @@ const candidates = async (userId, search, content = '') => {
     );
     if (ranked.length > 0) {
       const rows = await books.inIdOrder(ranked.map((r) => r.book_id), base);
-      if (rows.length > 0) return { rows, matched: true };
+      if (rows.length > 0) return withOthers(rows, base, query);
     }
 
-    const byKeyword = await query({ ...base, ...keywordWhere(search.keywords) }, SQL_CANDIDATE_LIMIT);
-    if (byKeyword.length > 0) return { rows: byKeyword.slice(0, CANDIDATE_LIMIT), matched: true };
+    if (search.keywords.length > 0) {
+      const byKeyword = await query({ ...base, ...keywordWhere(search.keywords) }, SQL_CANDIDATE_LIMIT);
+      if (byKeyword.length > 0) return withOthers(byKeyword.slice(0, CANDIDATE_LIMIT), base, query);
+    }
   }
 
   if (search.category_ids.length > 0) {
     const byCategory = await query({ ...base, ...withCategory });
-    if (byCategory.length > 0) return { rows: byCategory, matched: true };
+    if (byCategory.length > 0) return { rows: byCategory, matched: true, extraIds: new Set() };
   }
-  return { rows: await query(base), matched: false };
+  return { rows: await query(base), matched: false, extraIds: new Set() };
+};
+
+// 相關書不足候選上限時補上其他在售書（標示為後段），站上書不多時模型能看到整個書架自行判斷，
+// 不會因為檢索漏掉書名沒寫主題字的書（例如書名只寫 Gemini 的 AI 書）就回答「沒有」。
+const OTHERS_LIMIT = 12;
+const withOthers = async (rows, base, query) => {
+  const room = Math.min(OTHERS_LIMIT, CANDIDATE_LIMIT - rows.length);
+  if (room <= 0) return { rows, matched: true, extraIds: new Set() };
+  const seen = new Set(rows.map((b) => b.book_id));
+  const others = (await query({ ...base, book_id: { notIn: [...seen] } }, room)).filter((b) => !seen.has(b.book_id));
+  return { rows: [...rows, ...others], matched: true, extraIds: new Set(others.map((b) => b.book_id)) };
 };
 
 const popularFallback = async (userId) => {
@@ -217,7 +233,7 @@ const popularFallback = async (userId) => {
 
 const snippet = (text) => clip(String(text ?? '').replace(/\s+/g, ' ').trim(), DESCRIPTION_SNIPPET);
 
-const candidateText = (keyed, shown = new Set()) => keyed.map(({ key, book }) => [
+const candidateText = (keyed, shown = new Set(), extraIds = new Set()) => keyed.map(({ key, book }) => [
   key,
   `《${clip(String(book.title), 80)}》`,
   book.author ? clip(String(book.author), 40) : '',
@@ -225,6 +241,7 @@ const candidateText = (keyed, shown = new Set()) => keyed.map(({ key, book }) =>
   `${Number(book.price)} 代幣`,
   CONDITION_LABELS[book.condition_level] ?? '',
   book.description ? `簡介：${snippet(book.description)}` : '',
+  extraIds.has(book.book_id) ? '其他在售書' : '',
   shown.has(book.book_id) ? '先前已推薦' : ''
 ].filter(Boolean).join('｜')).join('\n');
 
@@ -247,7 +264,7 @@ const historyText = async (messages) => {
   return { history, shown: new Set(ids) };
 };
 
-const pick = async ({ settings, provider, userId, history, shown, content, rows, matched }) => {
+const pick = async ({ settings, provider, userId, history, shown, content, rows, matched, extraIds }) => {
   const keyed = rows.map((book, i) => ({ key: `b${i + 1}`, book }));
   const byKey = new Map(keyed.map((k) => [k.key, k.book]));
 
@@ -259,8 +276,8 @@ const pick = async ({ settings, provider, userId, history, shown, content, rows,
     history,
     prompt: [
       `【使用者需求】\n${clip(content, 500)}`,
-      `【比對結果】\n${matched ? '已依需求找到相關的書' : '未找到直接相關的書，以下為站上熱門書'}`,
-      `【候選書籍】\n${candidateText(keyed, shown)}`
+      `【比對結果】\n${matched ? '已依需求檢索到相關的書（依相關程度排序）' : '未找到直接相關的書，以下為站上其他在售書'}`,
+      `【候選書籍】\n${candidateText(keyed, shown, extraIds)}`
     ].join('\n\n'),
     json: true,
     reasoning: 'low',
@@ -358,7 +375,8 @@ const sendMessage = async (userId, content) => {
     });
   }
 
-  const { rows, matched } = await candidates(userId, search, content);
+  const { rows, matched, extraIds } = await candidates(userId, search, content);
+  const retrieved = rows.filter((b) => !extraIds.has(b.book_id));
   if (rows.length === 0) {
     const popular = await popularFallback(userId);
     return persist(userId, sessionId, content, {
@@ -371,20 +389,20 @@ const sendMessage = async (userId, content) => {
   // 第二次呼叫失敗時不讓整個聊天室回 502：改以既有的熱門排序出書單，錯誤已由 runner 記錄。
   let chosen = null;
   try {
-    chosen = await pick({ settings, provider, userId, history, shown, content, rows, matched });
+    chosen = await pick({ settings, provider, userId, history, shown, content, rows, matched, extraIds });
   } catch (err) {
     if (!(err instanceof AiProviderError)) throw err;
   }
   if (chosen) {
     return persist(userId, sessionId, content, {
       reply: chosen.reply || (chosen.items.length ? planReply || FALLBACK_REPLY : EMPTY_REPLY),
-      items: chosen.items.length ? chosen.items : rows.slice(0, PICK_LIMIT).map((book) => ({ book, reason: null })),
+      items: chosen.items.length ? chosen.items : retrieved.slice(0, PICK_LIMIT).map((book) => ({ book, reason: null })),
       suggestions: chosen.suggestions
     });
   }
   return persist(userId, sessionId, content, {
     reply: matched ? planReply || FALLBACK_REPLY : EMPTY_REPLY,
-    items: rows.slice(0, PICK_LIMIT).map((book) => ({ book, reason: null })),
+    items: retrieved.slice(0, PICK_LIMIT).map((book) => ({ book, reason: null })),
     suggestions: []
   });
 };

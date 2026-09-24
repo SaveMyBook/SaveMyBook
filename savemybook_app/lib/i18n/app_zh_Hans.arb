@@ -3567,5 +3567,18 @@
     }
   },
   "lockerMarkedMaintenance": "书柜已设为维修中",
-  "lockerMaintenanceEnded": "书柜已结束维修"
+  "lockerMaintenanceEnded": "书柜已结束维修",
+  "semanticIndex": "语义索引",
+  "semanticSearch": "语义检索",
+  "p0BooksP1HelpArticlesIndexed": "已建立书籍 {p0} 笔、客服知识 {p1} 笔",
+  "@p0BooksP1HelpArticlesIndexed": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noOpenaiGeminiKeyConfiguredOnly": "尚未设置 OpenAI 或 Gemini 密钥，目前仅使用关键词检索",
+  "databaseNotBeenUpdated020Only": "数据库尚未更新（020），目前仅使用关键词检索",
+  "hybridSearchKeywordSemantic": "混合检索（关键词＋语义）",
+  "keywordSearchOnly": "仅关键词检索"
 }

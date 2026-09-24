@@ -3567,5 +3567,18 @@
     }
   },
   "lockerMarkedMaintenance": "書櫃已設為維修中",
-  "lockerMaintenanceEnded": "書櫃已結束維修"
+  "lockerMaintenanceEnded": "書櫃已結束維修",
+  "semanticIndex": "語意索引",
+  "semanticSearch": "語意檢索",
+  "p0BooksP1HelpArticlesIndexed": "已建立書籍 {p0} 筆、客服知識 {p1} 筆",
+  "@p0BooksP1HelpArticlesIndexed": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noOpenaiGeminiKeyConfiguredOnly": "尚未設定 OpenAI 或 Gemini 金鑰，目前僅使用關鍵字檢索",
+  "databaseNotBeenUpdated020Only": "資料庫尚未更新（020），目前僅使用關鍵字檢索",
+  "hybridSearchKeywordSemantic": "混合檢索（關鍵字＋語意）",
+  "keywordSearchOnly": "僅關鍵字檢索"
 }

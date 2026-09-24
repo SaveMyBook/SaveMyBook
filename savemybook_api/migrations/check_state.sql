@@ -271,4 +271,11 @@ UNION ALL
 SELECT '資料表', 'support_ticket_attachments',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'support_ticket_attachments';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'support_ticket_attachments'
+
+UNION ALL
+
+SELECT '資料表', 'ai_embeddings',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_embeddings';

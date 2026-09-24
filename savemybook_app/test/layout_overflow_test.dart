@@ -372,6 +372,12 @@ List<Map<String, dynamic>> chatMessages(int roomId) {
 const longReason = 'Because you saved several mystery novels by the same author last week';
 
 Map<String, dynamic> aiSettingsData() => {
+      'retrieval': {
+        'ready': true,
+        'provider': 'openai',
+        'model': 'text-embedding-3-small-extended-preview-2026-09',
+        'counts': {'book': 1234567, 'knowledge': 98765},
+      },
       'settings': {
         'enabled': true,
         'default_provider': 'gemini',

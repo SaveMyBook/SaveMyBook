@@ -188,8 +188,11 @@ const similarIds = async (userId, signals) => {
   add(signals.cart, 0.8);
   add(signals.viewed, 0.6);
   if (parts.length === 0) return [];
+  const query = [...new Set(parts.filter((x) => x.weight >= 0.5).map((x) => x.text))].join('\n').slice(0, 1500);
   const ranked = await catalog.search(parts, {
     limit: SIMILAR_LIMIT,
+    query,
+    userId,
     filter: (doc) => doc.seller_id !== userId && !signals.seen.has(doc.book_id)
   });
   return ranked.map((r) => r.book_id);
