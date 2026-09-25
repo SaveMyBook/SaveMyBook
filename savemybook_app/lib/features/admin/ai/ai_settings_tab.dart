@@ -216,10 +216,6 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 32), maxWidth: 1200),
                 children: [
-                  if (!bundle.migrationReady) ...[
-                    _notice(c, Icons.warning_amber_rounded, c.warning, S.databaseNotBeenUpdatedAiYet),
-                    const SizedBox(height: 12),
-                  ],
                   FadeSlideIn(child: _masterCard(c, bundle, form.draft)),
                   const SizedBox(height: 22),
                   _heading(c, S.defaultModel),
@@ -353,10 +349,8 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
       final docs = r.knowledge;
       final counts = S.p0BooksP1HelpArticlesIndexed(books, docs);
       detail = '${AiProviders.nameOf(r.provider ?? '')}・${r.model ?? ''}\n$counts';
-    } else if (r.provider == null) {
-      detail = S.noOpenaiGeminiKeyConfiguredOnly;
     } else {
-      detail = S.databaseNotBeenUpdated020Only;
+      detail = S.noOpenaiGeminiKeyConfiguredOnly;
     }
     return AppCard(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -763,10 +757,6 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                         ],
                         if (feature == AiFeatures.listingAssist) ..._webSearchOption(c, s, config, effectiveInfo),
                         if (feature == AiFeatures.moderation) ..._moderationOption(c, config),
-                        if (feature == AiFeatures.bookChat) ...[
-                          const SizedBox(height: 8),
-                          _inlineNote(c, Icons.storage_rounded, c.textSecondary, S.requiresDatabaseUpdate013),
-                        ],
                       ],
                     ),
                   ),

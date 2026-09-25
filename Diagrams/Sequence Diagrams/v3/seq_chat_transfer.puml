@@ -1,63 +1,77 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：聊天協商、預約與站內轉帳
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 買家 as Buyer
-actor 賣家 as Seller
-participant "ChatRoomScreen" as UI
-participant "ApiService(ChatApi)" as ApiSvc
-participant "POST /rooms/:id/messages" as MsgRoute
-participant "messages.js" as MsgSvc
-participant "POST /rooms/:id/reservations" as ResRoute
-participant "reservations.js" as ResSvc
-participant "verification中介層" as Verify
-participant "POST /rooms/:id/transfers" as TxRoute
-participant "chat/transfers.js" as TransferSvc
-participant "wallet.js" as WalletSvc
-database "Prisma / MariaDB" as DB
+actor 買家
+actor 賣家
+participant UI
+participant API
+database DB
+participant 排程
 
-Buyer -> UI : 傳送文字/圖片議價訊息
-UI -> ApiSvc : sendChatMessage(roomId, content)
-ApiSvc -> MsgRoute : POST /rooms/:roomId/messages
-MsgRoute -> MsgSvc : send(roomId, sender, content, type)
-MsgSvc -> DB : chat_messages.create()
-MsgSvc -> DB : notify 對方（新訊息）
+買家 -> UI : 傳送議價訊息
+activate UI
+UI -> API : POST /api/chat/rooms/:id/messages
+deactivate UI
+activate API
+API -> 賣家 : 儲存訊息，推播給賣家
+deactivate API
 
-Buyer -> UI : 請求「保留此書」
-UI -> ApiSvc : requestReservation(roomId, bookId, hours)
-ApiSvc -> ResRoute : POST /rooms/:roomId/reservations
-ResRoute -> ResSvc : request(roomId, buyer, book, hours)
-ResSvc -> DB : reservations.create(status='pending')
-ResSvc -> DB : notify 賣家
+買家 -> UI : 申請預約保留（24／48／72 小時）
+activate UI
+UI -> API : POST /api/chat/rooms/:id/reservations
+deactivate UI
+activate API
+API -> DB : 確認書籍可預約，建立申請
+API -> 賣家 : 推播「收到預約申請」
+deactivate API
 
-Seller -> UI : 於聊天室點擊「同意保留」
-UI -> ApiSvc : respondReservation(reservationId, 'accept')
-ApiSvc -> ResSvc : respond(reservationId, 'accept')
-ResSvc -> ResSvc : 再次檢查書況/是否被他人持有
-ResSvc -> DB : reservations.update(status='confirmed')
-ResSvc -> DB : 取消該書其他pending預約
-ResSvc -> DB : notify 買家
+賣家 -> UI : 點擊「接受預約」
+activate UI
+UI -> API : PATCH /api/chat/reservations/:id
+deactivate UI
+activate API
+API -> DB : 預約設為保留中（期間他人無法\n購買，賣家不可編輯或下架）
+API -> 買家 : 推播「賣家已接受預約」
+deactivate API
 
-== 站內轉帳（議價後付款） ==
-Buyer -> UI : 開啟轉帳，輸入金額
-UI -> ApiSvc : fetchWallet()（檢查餘額）
-alt 餘額不足
-  UI -> UI : 顯示「前往錢包加值」
-else 餘額足夠
-  UI -> Buyer : 要求輸入交易密碼/生物辨識
-  UI -> ApiSvc : sendCoinTransfer(roomId, toUserId, amount)
-  ApiSvc -> Verify : requireVerification('payment')
-  Verify --> TxRoute : 驗證通過
-  ApiSvc -> TxRoute : POST /rooms/:roomId/transfers
-  TxRoute -> TransferSvc : send(roomId, from, to, amount)
-  TransferSvc -> TransferSvc : reachableUser() / assertCanMessage()
-  TransferSvc -> WalletSvc : moveFunds(tx, from, to, amount)\n(依user_id排序避免死結)
-  WalletSvc -> DB : changeBalance(from, -amount, 'transfer_out')
-  WalletSvc -> DB : changeBalance(to, +amount, 'transfer_in')
-  TransferSvc -> DB : chat_transfers.insert(status='completed')
-  TransferSvc -> DB : 貼出系統訊息卡片 + notify 收款人
-  TransferSvc --> UI : 200 OK
+alt 保留期滿
+  排程 -> API : 每 5 分鐘檢查到期預約
+  activate API
+  API -> DB : 預約設為「已到期」
+else 買家或賣家取消預約
+  UI -> API : PATCH /api/chat/reservations/:id
+  API -> DB : 預約設為「已取消」
 end
+API -> DB : 通知收藏此書的使用者可購買
+deactivate API
+
+alt 買家直接轉帳
+  買家 -> UI : 輸入金額，點擊「轉帳」
+  UI -> API : POST /api/chat/rooms/:id/transfers
+  activate API
+else 賣家請款後由買家支付
+  賣家 -> UI : 輸入金額，發出請款
+  UI -> API : POST /api/chat/rooms/:id/transfer-requests
+  API -> 買家 : 推播請款通知
+  買家 -> UI : 點擊「支付」
+  UI -> API : POST /api/chat/transfers/:id/pay
+end
+API --> UI : 403 需驗證身分
+deactivate API
+買家 -> UI : 輸入交易密碼或生物辨識
+activate UI
+UI -> API : 取得驗證權杖後重送請求
+deactivate UI
+activate API
+API -> DB : 扣除買家代幣，轉入賣家錢包，\n建立轉帳紀錄
+API -> 賣家 : 推播「收到轉帳」
+API --> UI : 轉帳完成，顯示轉帳卡片
+deactivate API
 @enduml

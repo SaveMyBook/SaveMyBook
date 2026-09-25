@@ -1,59 +1,66 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：管理員審核書籍與處理檢舉
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 管理員 as Admin
-participant "AdminBookScreen /\nAdminReportScreen" as UI
-participant "ApiService\n(AdminCommerceApi)" as ApiSvc
-participant "GET /admin/ai/reviews" as ListRoute
-participant "PATCH /admin/ai/reviews/:id" as DecideRoute
-participant "ai/reviews.js" as ReviewsSvc
-participant "PATCH /admin/content/books/:id" as ReportRoute
-participant "reports.js" as ReportsSvc
-participant "requireAdmin中介層" as Guard
-database "Prisma / MariaDB" as DB
+actor 管理員
+participant UI
+participant API
+database DB
 
-Admin -> UI : 開啟「AI待審書籍」佇列
-UI -> ApiSvc : fetchAiReviews()
-ApiSvc -> Guard : requireAdmin('can_manage_content')
-Guard -> ListRoute : 通過
-ListRoute -> ReviewsSvc : adminList('pending')
-ReviewsSvc -> DB : 查詢 ai_book_reviews + 書籍卡片
-ReviewsSvc --> UI : 待審清單（含AI判定理由）
-
-Admin -> UI : 選擇「核准」或「駁回」
-UI -> ApiSvc : decideAiReview(bookId, decision, note)
-ApiSvc -> DecideRoute : PATCH /admin/ai/reviews/:id
-DecideRoute -> ReviewsSvc : decide(bookId, {decision, note}, admin)
-alt decision = approve
-  ReviewsSvc -> DB : books.update(is_approved=true)\n（若原removed則恢復on_sale）
-  ReviewsSvc -> DB : ai_book_reviews.status='approved'
-else decision = reject
-  ReviewsSvc -> DB : books.update(is_approved=false)\n（若原on_sale則轉removed）
-  ReviewsSvc -> DB : ai_book_reviews.status='rejected'
-end
-ReviewsSvc -> DB : notify 賣家 + audit.record()
-ReviewsSvc --> UI : 200 完成
+activate 管理員
+activate UI
+== 上架審核 ==
+管理員 -> UI : 開啟「上架審核」
+UI -> API : GET /api/admin/ai/reviews
+activate API
+API --> UI : 待審清單與攔下原因
+deactivate API
+管理員 -> UI : 核准或駁回（可附原因）
+UI -> API : PATCH /api/admin/ai/reviews/:bookId
+activate API
+API -> DB : 核准則公開販售，駁回則下架
+API -> DB : 通知賣家並寫入操作紀錄
+API --> UI : 200 OK
+deactivate API
 
 == 檢舉處理 ==
-Admin -> UI : 開啟檢舉列表
-UI -> ApiSvc : fetchAdminReports()
-ApiSvc -> ReportRoute : GET /admin/moderation/reports
-ReportRoute -> ReportsSvc : list(filter)
-ReportsSvc --> UI : 檢舉案件列表
+管理員 -> UI : 開啟「待處理」檢舉
+UI -> API : GET /api/admin/reports
+activate API
+API --> UI : 檢舉清單
+deactivate API
+管理員 -> UI : 判定成立或不成立
+UI -> API : PATCH /api/admin/reports/:id
+activate API
+API -> DB : 更新檢舉結果
+opt 成立且選擇下架
+  API -> DB : 下架被檢舉書籍
+end
+API -> DB : 通知檢舉人與被檢舉人，\n寫入操作紀錄
+API --> UI : 200 OK
+deactivate API
 
-Admin -> UI : 標記檢舉為「成立」並處置
-UI -> ApiSvc : resolveReport(reportId, status='resolved')
-ApiSvc -> ReportRoute : PATCH /admin/moderation/reports/:id
-ReportRoute -> ReportsSvc : resolve(reportId, admin)
-ReportsSvc -> DB : reports.update(status='resolved')
-note right
-  status='resolved' 之檢舉
-  會使該書進入 violationLocked，
-  賣家無法自行重新上架，
-  須管理員或AI複核處理。
-end note
-ReportsSvc --> UI : 200 完成
+== 聊天防詐警示 ==
+管理員 -> UI : 開啟「防詐警示」
+UI -> API : GET /api/admin/chat-risk-alerts
+activate API
+API --> UI : 警示會員、觸發次數\n與最近高風險訊息
+deactivate API
+opt 確認有詐騙行為
+  管理員 -> UI : 至會員管理將該會員停權
+end
+管理員 -> UI : 標示「誤判」或「已處理」
+UI -> API : PATCH /api/admin/chat-risk-alerts/:id
+activate API
+API -> DB : 更新警示狀態與處理人
+API --> UI : 200 OK
+deactivate API
+deactivate UI
+deactivate 管理員
 @enduml

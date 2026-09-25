@@ -2302,12 +2302,6 @@
       "p1": {}
     }
   },
-  "databaseMigrationsNotYetRunP0": "数据库尚未执行：{p0}",
-  "@databaseMigrationsNotYetRunP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "serverVersionP0": "服务器当前版本：{p0}",
   "@serverVersionP0": {
     "placeholders": {
@@ -2874,7 +2868,6 @@
       "p0": {}
     }
   },
-  "databaseNotBeenUpdatedAiYet": "数据库尚未完成 AI 相关更新，设置保存后暂时不会生效",
   "defaultModel": "默认模型",
   "features": "功能",
   "on": "已启用",
@@ -3121,7 +3114,6 @@
   "responseExceededOutputLimit": "回应超过输出长度上限",
   "serverProcessingError": "服务器处理错误",
   "aiBookAdvisor": "AI 书籍顾问",
-  "requiresDatabaseUpdate013": "需先执行数据库更新 013",
   "mysteryNovelMyCommute": "适合通勤阅读的推理小说",
   "programmingBooksBeginners": "适合入门的程序设计书",
   "booksUnder200Coins": "200 代币以内的书籍",
@@ -3152,7 +3144,6 @@
   "setPassword": "设置密码",
   "signMethodSettingsSaved": "登录方式设置已保存",
   "signMethodSettingsUnsavedLeavingDiscards": "登录方式设置尚未保存，离开后更改将丢失。",
-  "serverNotRunDatabaseUpdate014": "服务器尚未执行数据库更新 014，设置暂时无法生效。",
   "signChannels": "各项登录方式",
   "socialSmsSign": "社交与短信登录",
   "whenOffSignPageHidesThese": "关闭后登录页不再显示这些方式，已绑定的账号仍可用密码登录。",
@@ -3578,7 +3569,6 @@
     }
   },
   "noOpenaiGeminiKeyConfiguredOnly": "尚未设置 OpenAI 或 Gemini 密钥，目前仅使用关键词检索",
-  "databaseNotBeenUpdated020Only": "数据库尚未更新（020），目前仅使用关键词检索",
   "hybridSearchKeywordSemantic": "混合检索（关键词＋语义）",
   "keywordSearchOnly": "仅关键词检索",
   "paymentReleasedWalletWhenBuyerCompletes": "买家完成订单或取书满 24 小时后，款项将拨入您的钱包",

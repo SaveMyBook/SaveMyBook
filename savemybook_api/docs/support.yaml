@@ -130,7 +130,7 @@ paths:
         單一使用者同時最多保有 5 張處理中（`open` 或 `pending`）的工單，
         超出上限時回傳 400。
 
-        可附加最多 4 張圖片；任一張無效時整筆不建立。尚未執行遷移 017 時帶入附件回傳 503。
+        可附加最多 4 張圖片；任一張無效時整筆不建立。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true

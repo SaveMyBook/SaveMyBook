@@ -1,6 +1,5 @@
 const prisma = require('../lib/prisma');
 const { clip } = require('../lib/text');
-const { hasColumn } = require('../lib/schema-check');
 
 // title 為 VARCHAR(255)，超長時 MySQL 嚴格模式會讓整個交易失敗。
 const toRow = ({ userId, type = 'system', title, content, relatedId = null, relatedType = null, createdAt }) => ({
@@ -13,13 +12,11 @@ const toRow = ({ userId, type = 'system', title, content, relatedId = null, rela
   ...(createdAt && { created_at: createdAt })
 });
 
-const actorSupported = () => hasColumn('notifications', 'actor_id');
-
-// actor_id 不在 Prisma Client 內，須以原生 SQL 寫入；在交易內補寫，推播派送才不會先讀到缺少 actor_id 的列。
+// actor_id 須與通知在同一交易內補寫，推播派送才不會先讀到缺少 actor_id 的列。
 const notify = async (db, { actorId = null, ...payload }) => {
   const client = db ?? prisma;
   const created = await client.notifications.create({ data: toRow(payload) });
-  if (actorId && created?.notification_id && (await actorSupported())) {
+  if (actorId && created?.notification_id) {
     await client.$executeRaw`UPDATE notifications SET actor_id = ${actorId} WHERE notification_id = ${created.notification_id}`;
   }
   return created;
@@ -33,7 +30,7 @@ const insertWithActor = (client, rows, actorId, createdAt) => client.$executeRaw
 
 const notifyMany = async (db, userIds, { actorId = null, ...payload }, batchSize = 500) => {
   const client = db ?? prisma;
-  const withActor = Boolean(actorId) && (await actorSupported());
+  const withActor = Boolean(actorId);
   const createdAt = payload.createdAt ?? new Date();
   for (let i = 0; i < userIds.length; i += batchSize) {
     const rows = userIds.slice(i, i + batchSize).map((userId) => toRow({ ...payload, userId }));

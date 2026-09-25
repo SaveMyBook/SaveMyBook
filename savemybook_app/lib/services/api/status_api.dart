@@ -13,7 +13,6 @@ extension StatusApi on ApiService {
       reachable: true,
       apiRevision: parseInt(data['api_revision']),
       commit: data['commit'] as String?,
-      pendingMigrations: (data['pending_migrations'] as List? ?? const []).map((e) => '$e').toList(),
     );
   }
 

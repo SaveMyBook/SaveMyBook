@@ -1,13 +1,11 @@
 const prisma = require('../../lib/prisma');
 const { badRequest, conflict, forbidden, notFound } = require('../../lib/errors');
-const { hasColumn } = require('../../lib/schema-check');
 const { placeholders } = require('../../lib/sql');
 const { userBrief, coverImage } = require('../../lib/selects');
 const reservations = require('../reservations');
 const codec = require('./codec');
 const controls = require('./controls');
 const rooms = require('./rooms');
-const schema = require('./schema');
 const members = require('./members');
 const aliases = require('./aliases');
 const notice = require('./notice');
@@ -22,10 +20,8 @@ const realtime = require('../realtime');
 const RECENT_RECALL_MS = codec.RECALL_WINDOW_MS + 10 * 60 * 1000;
 const RECENT_EDIT_MS = 20 * 60 * 1000;
 
-const replySupported = () => hasColumn('chat_messages', 'reply_to_id');
-
 const repliesFor = async (messages, floor) => {
-  if (messages.length === 0 || !(await replySupported())) return new Map();
+  if (messages.length === 0) return new Map();
   const ids = messages.map((m) => m.message_id);
   const links = await prisma.$queryRawUnsafe(
     `SELECT message_id, reply_to_id FROM chat_messages WHERE reply_to_id IS NOT NULL AND message_id IN (${placeholders(ids)})`,
@@ -46,8 +42,8 @@ const repliesFor = async (messages, floor) => {
   }));
 };
 
-const editsFor = async (messages, v2) => {
-  if (messages.length === 0 || !v2) return new Map();
+const editsFor = async (messages) => {
+  if (messages.length === 0) return new Map();
   const ids = messages.map((m) => m.message_id);
   const rows = await prisma.$queryRawUnsafe(
     `SELECT message_id, edited_at FROM chat_messages WHERE edited_at IS NOT NULL AND message_id IN (${placeholders(ids)})`,
@@ -56,15 +52,11 @@ const editsFor = async (messages, v2) => {
   return new Map(rows.map((r) => [Number(r.message_id), r.edited_at]));
 };
 
-const recentEdits = async (roomId, floor, v3) => {
+const recentEdits = async (roomId, floor) => {
   const since = new Date(Date.now() - RECENT_EDIT_MS);
-  const rows = v3
-    ? await prisma.$queryRaw`
-        SELECT message_id, content, edited_at, created_at, mentions FROM chat_messages
-        WHERE room_id = ${roomId} AND message_type = 'text' AND edited_at >= ${since}`
-    : await prisma.$queryRaw`
-        SELECT message_id, content, edited_at, created_at FROM chat_messages
-        WHERE room_id = ${roomId} AND message_type = 'text' AND edited_at >= ${since}`;
+  const rows = await prisma.$queryRaw`
+    SELECT message_id, content, edited_at, created_at, mentions FROM chat_messages
+    WHERE room_id = ${roomId} AND message_type = 'text' AND edited_at >= ${since}`;
   return rows
     .filter((r) => history.isVisible(floor, r))
     .map((r) => ({
@@ -147,8 +139,6 @@ const list = async (roomId, myId, { limit, beforeId, afterId, before, markRead }
   });
   const group = rooms.isGroup(room);
   const floor = room.history;
-  const v2 = await schema.isV2();
-  const v3 = v2 && (await schema.isV3());
   const incremental = afterId != null;
 
   const where = { room_id: roomId };
@@ -179,11 +169,11 @@ const list = async (roomId, myId, { limit, beforeId, afterId, before, markRead }
       : Promise.resolve([]),
     controls.mutedRoomIds(myId),
     repliesFor(messages, floor),
-    editsFor(messages, v2),
-    incremental && v2 ? recentEdits(roomId, floor, v3) : Promise.resolve([]),
+    editsFor(messages),
+    incremental ? recentEdits(roomId, floor) : Promise.resolve([]),
     transferRecords.forRoom(roomId, messages, floor),
     aliases.mine(myId),
-    v3 ? mentionStore.forMessages(messages) : new Map(),
+    mentionStore.forMessages(messages),
     riskService.forMessages(messages, myId)
   ]);
   const riskBanner = await riskService.bannerFor(roomId, myId, risks);
@@ -228,10 +218,7 @@ const list = async (roomId, myId, { limit, beforeId, afterId, before, markRead }
 
 const send = async (roomId, myId, { messageType, content, preview, replyToId, mentions = [], confirmRisk = false }) => {
   const room = await rooms.findMine(roomId, myId);
-  if (mentions.length > 0) {
-    if (!rooms.isGroup(room)) throw mentionStore.directOnly();
-    await schema.requireV3();
-  }
+  if (mentions.length > 0 && !rooms.isGroup(room)) throw mentionStore.directOnly();
 
   let recipients;
   if (rooms.isGroup(room)) {
@@ -253,10 +240,10 @@ const send = async (roomId, myId, { messageType, content, preview, replyToId, me
     ? (await members.groupNicknames([roomId])).get(`${roomId}:${myId}`) ?? me?.nickname ?? ''
     : me?.nickname ?? '';
 
-  const replyTarget = replyToId && (await replySupported())
+  const replyTarget = replyToId
     ? await prisma.chat_messages.findUnique({ where: { message_id: replyToId }, include: { users: { select: userBrief } } })
     : null;
-  if (replyToId && (await replySupported()) && (replyTarget?.room_id !== roomId || !history.isVisible(room.history, replyTarget))) {
+  if (replyToId && (replyTarget?.room_id !== roomId || !history.isVisible(room.history, replyTarget))) {
     throw badRequest('找不到要回覆的訊息');
   }
 
@@ -313,8 +300,8 @@ const ownMessage = async (roomId, messageId, myId, deniedMessage, floor) => {
 };
 
 const recall = async (roomId, messageId, myId) => {
-  const room = (await schema.isV2()) ? await rooms.findMine(roomId, myId) : null;
-  const message = await ownMessage(roomId, messageId, myId, '僅能收回自己傳送的訊息', room?.history);
+  const room = await rooms.findMine(roomId, myId);
+  const message = await ownMessage(roomId, messageId, myId, '僅能收回自己傳送的訊息', room.history);
 
   const { kind } = codec.decode(message);
   if (kind === 'recalled') throw conflict('此訊息已收回');
@@ -323,7 +310,7 @@ const recall = async (roomId, messageId, myId) => {
     throw badRequest('僅能收回 1 小時內傳送的訊息', 'RECALL_WINDOW_PASSED');
   }
 
-  const clearMentions = kind === 'text' && (await schema.isV3());
+  const clearMentions = kind === 'text';
   const updated = await prisma.$transaction(async (tx) => {
     const row = await tx.chat_messages.update({
       where: { message_id: messageId },
@@ -338,7 +325,6 @@ const recall = async (roomId, messageId, myId) => {
 };
 
 const edit = async (roomId, messageId, myId, { content, mentions = [], confirmRisk = false }) => {
-  await schema.requireV2();
   const room = await rooms.findMine(roomId, myId);
   const message = await ownMessage(roomId, messageId, myId, '僅能編輯自己傳送的訊息', room.history);
 
@@ -350,17 +336,13 @@ const edit = async (roomId, messageId, myId, { content, mentions = [], confirmRi
   }
   if (!rooms.isGroup(room)) await controls.assertCanMessage(myId, rooms.partnerIdOf(room, myId));
 
-  if (mentions.length > 0) {
-    if (!rooms.isGroup(room)) throw mentionStore.directOnly();
-    await schema.requireV3();
-  }
+  if (mentions.length > 0 && !rooms.isGroup(room)) throw mentionStore.directOnly();
   const risk = riskService.contentRisk(content);
   if (risk && !confirmRisk && !riskService.contentRisk(message.content)) {
     const pending = riskService.confirmRequired(risk.categories);
     if (pending) throw pending;
   }
 
-  const v3 = await schema.isV3();
   const mentionedIds = mentions.length > 0
     ? mentionStore.targetsOf(mentions, (await members.active(roomId)).map((m) => m.user_id).filter((id) => id !== myId))
     : [];
@@ -368,15 +350,11 @@ const edit = async (roomId, messageId, myId, { content, mentions = [], confirmRi
   const now = new Date();
   const stored = mentions.length > 0 ? JSON.stringify(mentions) : null;
   const updated = await prisma.$transaction(async (tx) => {
-    const changed = v3
-      ? await tx.$executeRaw`
-          UPDATE chat_messages SET content = ${content}, edited_at = ${now}, mentions = ${stored}
-          WHERE message_id = ${messageId} AND sender_id = ${myId} AND message_type = 'text'`
-      : await tx.$executeRaw`
-          UPDATE chat_messages SET content = ${content}, edited_at = ${now}
-          WHERE message_id = ${messageId} AND sender_id = ${myId} AND message_type = 'text'`;
+    const changed = await tx.$executeRaw`
+      UPDATE chat_messages SET content = ${content}, edited_at = ${now}, mentions = ${stored}
+      WHERE message_id = ${messageId} AND sender_id = ${myId} AND message_type = 'text'`;
     if (Number(changed) === 0) throw conflict('此訊息已收回');
-    if (v3) await mentionStore.replaceRows(tx, { messageId, roomId, userIds: mentionedIds });
+    await mentionStore.replaceRows(tx, { messageId, roomId, userIds: mentionedIds });
     return tx.chat_messages.findUnique({
       where: { message_id: messageId },
       include: { users: { select: userBrief } }

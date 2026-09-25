@@ -24,15 +24,11 @@ const canViewUsage = async (req, res, next) => {
 
 const testLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 20, key: byUser, message: '測試次數過多，請稍後再試' });
 
-const settingsPayload = async () => {
-  const ready = await settingsService.migrationReady();
-  return {
-    settings: ready ? await settingsService.load() : settingsService.normalize(null),
-    providers: settingsService.providerList(),
-    migration_ready: ready,
-    retrieval: await semantic.status()
-  };
-};
+const settingsPayload = async () => ({
+  settings: await settingsService.load(),
+  providers: settingsService.providerList(),
+  retrieval: await semantic.status()
+});
 
 router.get('/ai/settings', canRunSystem, async (req, res) => {
   res.status(200).json({ success: true, data: await settingsPayload() });
@@ -50,8 +46,7 @@ router.put('/ai/settings', canRunSystem, requireVerification('admin'), async (re
 
 router.post('/ai/test', canRunSystem, testLimiter, async (req, res) => {
   const provider = v.oneOf(req.body?.provider, ai.PROVIDER_IDS, `provider 僅接受：${ai.PROVIDER_IDS.join(', ')}`);
-  const ready = await settingsService.migrationReady();
-  const settings = ready ? await settingsService.load() : settingsService.normalize(null);
+  const settings = await settingsService.load();
   const model = settings.providers[provider].model;
 
   if (!ai.keyConfigured(provider)) {
@@ -63,9 +58,7 @@ router.post('/ai/test', canRunSystem, testLimiter, async (req, res) => {
 
   const options = { system: '你是連線測試程式。', prompt: '請只回覆「連線成功」四個字。', maxOutputTokens: 256 };
   try {
-    const result = ready
-      ? await runner.call('test', { settings, provider, userId: req.user.userId, ...options })
-      : { ...(await ai.generate(provider, { ...options, model })), model };
+    const result = await runner.call('test', { settings, provider, userId: req.user.userId, ...options });
     res.status(200).json({
       success: true,
       data: { ok: true, provider, model: result.model, latency_ms: result.latency_ms, reply: String(result.text ?? '').trim().slice(0, 200) }
@@ -82,7 +75,6 @@ router.get('/ai/usage', canViewUsage, async (req, res) => {
   const period = req.query.period
     ? v.oneOf(req.query.period, usage.PERIODS, `period 僅接受：${usage.PERIODS.join(', ')}`)
     : 'month';
-  if (!(await settingsService.migrationReady())) throw settingsService.unavailable();
   const settings = await settingsService.load();
   const data = await usage.report(period, { monthlyBudgetUsd: settings.limits.monthly_budget_usd });
   res.status(200).json({ success: true, data });

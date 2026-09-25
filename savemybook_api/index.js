@@ -23,15 +23,6 @@ const socket = realtime.attach(server);
 
 const stopScheduler = startScheduler();
 
-require('./lib/schema-check').missingSchema()
-  .then((missing) => {
-    const files = [...new Set(missing.map((m) => m.migration))];
-    if (files.length > 0) {
-      console.warn(`⚠️  資料庫尚未執行以下 migration，相關功能會停用：${files.join('、')}`);
-    }
-  })
-  .catch((err) => console.error('[檢查資料庫結構失敗]:', err.message));
-
 let shuttingDown = false;
 
 const shutdown = (signal) => {

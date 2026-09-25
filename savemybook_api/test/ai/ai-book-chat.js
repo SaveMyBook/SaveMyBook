@@ -333,27 +333,7 @@ module.exports = {
       assert.ok(h.prisma.sqlLog.some((sql) => /UPDATE ai_chat_sessions SET status = 'closed'/.test(sql)));
     }],
 
-    ['尚未執行 013 時回 503 AI_UNAVAILABLE', async () => {
-      h.reset();
-      h.onSql(/information_schema\.TABLES/, (values) => [{ n: values.includes('ai_chat_sessions') ? 0 : values.length }]);
-      h.onSql(/information_schema\.COLUMNS/, () => [{ n: 1 }]);
-      h.onSql(/FROM ai_settings/, () => []);
-      await assert.rejects(() => bookChat.currentSession(5), (err) => err.code === 'AI_UNAVAILABLE' && err.status === 503);
-    }],
-
-    ['狀態：尚未執行 013 時 status 的 book_chat 為 false', async () => {
-      h.reset();
-      h.installDefaults();
-      h.state.sql.unshift({
-        match: /information_schema\.TABLES/,
-        run: (values) => [{ n: values.includes('ai_chat_sessions') ? 0 : values.length }]
-      });
-      const status = await runner.status(5);
-      assert.strictEqual(status.book_chat, false);
-      assert.strictEqual(status.support, true);
-    }],
-
-    ['狀態：資料表齊備時 status 的 book_chat 為 true', async () => {
+    ['狀態：功能開啟時 status 的 book_chat 為 true', async () => {
       h.reset();
       h.installDefaults();
       const status = await runner.status(5);

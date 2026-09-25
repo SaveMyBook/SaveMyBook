@@ -5,10 +5,7 @@ const { badRequest, forbidden, notFound, conflict } = require('../lib/errors');
 const push = require('./push');
 const sessions = require('./sessions');
 const audit = require('./audit');
-const aiSettings = require('./ai/settings');
 const aiConsent = require('./ai/consent');
-const authSettings = require('./auth-settings');
-const { hasTables } = require('../lib/schema-check');
 const supportAttachments = require('./support-attachments');
 const { ORDER_UNSETTLED_STATUSES } = require('../constants/domain');
 
@@ -20,10 +17,6 @@ const graceDeadline = (requestedAt) =>
 // 匿名化而非 DELETE：訂單與錢包異動屬帳務資料，不可隨單方刪號消失。
 const anonymize = async (userId) => {
   const stamp = Date.now();
-  const [aiReady, authReady, passkeyReady, attachmentsReady] = await Promise.all([
-    aiSettings.migrationReady(), authSettings.migrationReady(), hasTables(['user_passkeys', 'webauthn_challenges']),
-    supportAttachments.ready()
-  ]);
   let removedAttachments = [];
 
   await prisma.$transaction(async (tx) => {
@@ -54,19 +47,13 @@ const anonymize = async (userId) => {
     await tx.favorites.deleteMany({ where: { user_id: userId } });
     await tx.user_qr_codes.deleteMany({ where: { user_id: userId } });
     await tx.notifications.deleteMany({ where: { user_id: userId } });
-    if (aiReady) await aiConsent.purgeUser(tx, userId);
-    if (authReady) {
-      await tx.$executeRaw`DELETE FROM user_identities WHERE user_id = ${userId}`;
-      // 密碼雜湊已換成隨機值，登入方式一併回到「僅密碼」的狀態。
-      await tx.$executeRaw`UPDATE users SET password_set = 1 WHERE user_id = ${userId}`;
-    }
-
-    if (passkeyReady) {
-      await tx.$executeRaw`DELETE FROM user_passkeys WHERE user_id = ${userId}`;
-      await tx.$executeRaw`DELETE FROM webauthn_challenges WHERE user_id = ${userId}`;
-    }
-
-    if (attachmentsReady) removedAttachments = await supportAttachments.purgeUser(tx, userId);
+    await aiConsent.purgeUser(tx, userId);
+    await tx.$executeRaw`DELETE FROM user_identities WHERE user_id = ${userId}`;
+    // 密碼雜湊已換成隨機值，登入方式一併回到「僅密碼」的狀態。
+    await tx.$executeRaw`UPDATE users SET password_set = 1 WHERE user_id = ${userId}`;
+    await tx.$executeRaw`DELETE FROM user_passkeys WHERE user_id = ${userId}`;
+    await tx.$executeRaw`DELETE FROM webauthn_challenges WHERE user_id = ${userId}`;
+    removedAttachments = await supportAttachments.purgeUser(tx, userId);
 
     await tx.chat_messages.updateMany({
       where: { sender_id: userId },
@@ -113,9 +100,7 @@ const processDueDeletions = async () => {
   return due.length;
 };
 
-// 尚未執行 014 時沒有這些資料表，匯出內容以 null 表示「本站未保存」。
 const exportIdentities = async (userId) => {
-  if (!(await authSettings.migrationReady())) return null;
   const [rows, user] = await Promise.all([
     prisma.$queryRaw`
       SELECT provider, email, phone, display_name, created_at, last_login_at
@@ -135,9 +120,8 @@ const exportIdentities = async (userId) => {
   };
 };
 
-// 匯出不含憑證編號與簽章計數；公鑰本身不是秘密，保留供使用者核對。未執行 016 時為 null。
+// 匯出不含憑證編號與簽章計數；公鑰本身不是秘密，保留供使用者核對。
 const exportPasskeys = async (userId) => {
-  if (!(await hasTables(['user_passkeys', 'webauthn_challenges']))) return null;
   const rows = await prisma.$queryRaw`
     SELECT device_label, public_key, transports, aaguid, backed_up, created_at, last_used_at
     FROM user_passkeys WHERE user_id = ${userId} ORDER BY created_at ASC`;
@@ -152,7 +136,7 @@ const exportPasskeys = async (userId) => {
   }));
 };
 
-// 附件以效期七天的簽章網址提供，使用者可在匯出後自行下載；未執行 017 時每則訊息為空陣列。
+// 附件以效期七天的簽章網址提供，使用者可在匯出後自行下載。
 const exportTickets = async (userId) => {
   const tickets = await prisma.support_tickets.findMany({
     where: { user_id: userId },

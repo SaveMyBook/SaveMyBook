@@ -1,21 +1,19 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
-title 客服工單狀態機（support_tickets.status）
+hide empty description
 
-[*] --> open : 使用者建立工單\n(同時開啟中工單上限5張)
-open --> pending : 客服人員回覆\n(通知使用者)
-pending --> open : 使用者再次回覆\n(通知具support權限之管理員)
-open --> closed : 使用者或管理員結案
-pending --> closed : 使用者或管理員結案
-closed --> [*]
-
-note right of closed
-  已結案工單不可再回覆，
-  須另開新工單；
-  resolved 狀態值於enum中定義，
-  但目前程式碼未見寫入路徑，
-  保留供未來後台流程使用。
-end note
+[*] --> 待處理 : 使用者建立工單
+待處理 --> 等待使用者回覆 : 客服回覆
+等待使用者回覆 --> 待處理 : 使用者回覆
+待處理 --> 已解決 : 客服標示已解決
+等待使用者回覆 --> 已解決 : 客服標示已解決
+已解決 --> 待處理 : 使用者再次回覆
+待處理 --> 已結案 : 使用者或客服結案
+等待使用者回覆 --> 已結案 : 使用者或客服結案
+已解決 --> 已結案 : 使用者或客服結案
+已結案 --> [*]
 @enduml

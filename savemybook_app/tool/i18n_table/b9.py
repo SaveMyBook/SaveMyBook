@@ -86,7 +86,6 @@ T = {
     '此功能暫時無法使用，請稍後再試': ('This feature is temporarily unavailable. Please try again later.', 'この機能は一時的に利用できません。しばらくしてからお試しください。', '이 기능은 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.', '此功能暂时无法使用，请稍后再试'),
     '部分功能暫時無法使用': ('Some features are temporarily unavailable', '一部の機能は一時的に利用できません', '일부 기능을 일시적으로 사용할 수 없습니다', '部分功能暂时无法使用'),
     '伺服器執行的 API 版本過舊（目前 $current，App 需要 $needed）。請在伺服器更新程式碼並重新啟動 API。': ('The server is running an outdated API (revision $p0; the app requires $p1). Update the code on the server and restart the API.', 'サーバーの API バージョンが古すぎます（現在 $p0、アプリには $p1 が必要）。サーバーのコードを更新し、API を再起動してください。', '서버의 API 버전이 오래되었습니다(현재 $p0, 앱에 필요한 버전 $p1). 서버 코드를 업데이트하고 API를 재시작하세요.', '服务器运行的 API 版本过旧（当前 $p0，App 需要 $p1）。请在服务器更新代码并重新启动 API。'),
-    '資料庫尚未執行：$pending': ('Database migrations not yet run: $p0', '未実行のデータベース移行：$p0', '아직 실행하지 않은 데이터베이스 마이그레이션: $p0', '数据库尚未执行：$p0'),
     '伺服器目前版本：$commit': ('Server version: $p0', 'サーバーの現在のバージョン：$p0', '서버 현재 버전: $p0', '服务器当前版本：$p0'),
     '在伺服器的 API 目錄執行 npm run verify 可檢查完整的部署狀態。': ('Run npm run verify in the API directory on the server to check the full deployment status.', 'サーバーの API ディレクトリで npm run verify を実行すると、デプロイ状況をすべて確認できます。', '서버의 API 디렉터리에서 npm run verify를 실행하면 전체 배포 상태를 확인할 수 있습니다.', '在服务器的 API 目录执行 npm run verify 可检查完整的部署状态。'),
     '伺服器需要更新': ('Server update required', 'サーバーの更新が必要です', '서버 업데이트 필요', '服务器需要更新'),

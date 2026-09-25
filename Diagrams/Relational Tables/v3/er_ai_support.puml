@@ -1,165 +1,97 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 13
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
 skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
 hide circle
 hide empty methods
-skinparam ranksep 60
-skinparam nodesep 40
-skinparam class {
-  BackgroundColor White
-  BorderColor #444444
-  ArrowColor #555555
+
+entity "ai_chat_sessions" as ai_chat_sessions {
+  {field} <&key> session_id : int
+  --
+  {field} user_id : int
+  {field} status : enum
+  {field} created_at : datetime
+  {field} updated_at : datetime
 }
-
-title AI服務、客服與後台模組 ER 圖
-
-entity "ai_chat_sessions\nAI選書聊天工作階段表" as ai_chat_sessions {
-  * session_id : INT
-  + user_id : INT
-  - status : ENUM
-  - created_at : DATETIME
-  - updated_at : DATETIME
+entity "ai_chat_messages" as ai_chat_messages {
+  {field} <&key> message_id : int
+  --
+  {field} session_id : int
+  {field} role : enum
+  {field} content : text
+  {field} book_ids : varchar(255)
+  {field} created_at : datetime
 }
-
-entity "ai_chat_messages\nAI選書聊天訊息表" as ai_chat_messages {
-  * message_id : INT
-  + session_id : INT
-  - role : ENUM
-  - content : TEXT
-  - book_ids : VARCHAR(255)
-  - created_at : DATETIME
+entity "ai_support_sessions" as ai_support_sessions {
+  {field} <&key> session_id : int
+  --
+  {field} user_id : int
+  {field} status : enum
+  {field} ticket_id : int
+  {field} created_at : datetime
+  {field} updated_at : datetime
 }
-
-entity "ai_support_sessions\nAI客服對話工作階段表" as ai_support_sessions {
-  * session_id : INT
-  + user_id : INT
-  - status : ENUM
-  - ticket_id : INT
-  - created_at : DATETIME
-  - updated_at : DATETIME
+entity "ai_support_messages" as ai_support_messages {
+  {field} <&key> message_id : int
+  --
+  {field} session_id : int
+  {field} role : enum
+  {field} content : text
+  {field} created_at : datetime
 }
-
-entity "ai_support_messages\nAI客服對話訊息表" as ai_support_messages {
-  * message_id : INT
-  + session_id : INT
-  - role : ENUM
-  - content : TEXT
-  - created_at : DATETIME
+entity "ai_consents" as ai_consents {
+  {field} <&key> user_id : int
+  --
+  {field} granted : tinyint(1)
+  {field} updated_at : datetime
 }
-
-entity "ai_consents\nAI功能使用同意表" as ai_consents {
-  * user_id : INT
-  - granted : TINYINT(1)
-  - updated_at : DATETIME
+entity "ai_recommendation_cache" as ai_recommendation_cache {
+  {field} <&key> user_id : int
+  --
+  {field} payload : text
+  {field} created_at : datetime
 }
-
-entity "ai_recommendation_cache\nAI推薦結果快取表" as ai_recommendation_cache {
-  * user_id : INT
-  - payload : TEXT
-  - created_at : DATETIME
+entity "ai_settings" as ai_settings {
+  {field} <&key> id : int
+  --
+  {field} config : text
+  {field} updated_by : int
+  {field} updated_at : datetime
 }
-
-entity "ai_settings\nAI功能全域設定表" as ai_settings {
-  * id : TINYINT
-  - config : TEXT
-  - updated_by : INT
-  - updated_at : DATETIME
+entity "ai_usage_logs" as ai_usage_logs {
+  {field} <&key> usage_id : bigint
+  --
+  {field} feature : varchar(30)
+  {field} provider : varchar(20)
+  {field} model : varchar(80)
+  {field} user_id : int
+  {field} input_tokens : int
+  {field} cached_tokens : int
+  {field} output_tokens : int
+  {field} search_calls : int
+  {field} cost_usd : decimal(12,6)
+  {field} latency_ms : int
+  {field} status : enum
+  {field} error_code : varchar(60)
+  {field} error_detail : varchar(400)
+  {field} created_at : datetime
 }
-
-entity "ai_usage_logs\nAI使用量紀錄表" as ai_usage_logs {
-  * usage_id : BIGINT
-  - feature : VARCHAR(30)
-  - provider : VARCHAR(20)
-  - model : VARCHAR(80)
-  - user_id : INT
-  - input_tokens : INT
-  - cached_tokens : INT
-  - output_tokens : INT
-  - search_calls : INT
-  - cost_usd : DECIMAL(12, 6)
-  - latency_ms : INT
-  - status : ENUM
-  - error_code : VARCHAR(60)
-  - error_detail : VARCHAR(400)
-  - created_at : DATETIME
+entity "ai_embeddings" as ai_embeddings {
+  {field} <&key> kind : varchar(20)
+  {field} <&key> ref_id : varchar(64)
+  --
+  {field} model : varchar(100)
+  {field} content_hash : char(64)
+  {field} vector : mediumtext
+  {field} updated_at : datetime
 }
-
-entity "auth_settings\n登入功能全域設定表" as auth_settings {
-  * id : TINYINT
-  - config : TEXT
-  - updated_by : INT
-  - updated_at : DATETIME
-}
-
-entity "faqs\n常見問題表" as faqs {
-  * faq_id : INT
-  - category : VARCHAR(50)
-  - question : VARCHAR(255)
-  - answer : TEXT
-  - sort_order : INT
-  - is_visible : TINYINT(1)
-  - created_at : DATETIME
-  - updated_at : DATETIME
-}
-
-entity "support_tickets\n客服工單表" as support_tickets {
-  * ticket_id : INT
-  + user_id : INT
-  - subject : VARCHAR(255)
-  - category : VARCHAR(50)
-  - status : ENUM
-  - created_at : DATETIME
-  - updated_at : DATETIME
-  - closed_at : DATETIME
-}
-
-entity "support_ticket_messages\n客服工單訊息表" as support_ticket_messages {
-  * message_id : INT
-  + ticket_id : INT
-  + sender_id : INT
-  - is_staff : TINYINT(1)
-  - content : TEXT
-  - created_at : DATETIME
-}
-
-entity "system_announcements\n系統公告表" as system_announcements {
-  * announcement_id : INT
-  + admin_id : INT
-  - title : VARCHAR(255)
-  - content : TEXT
-  - type : ENUM
-  - is_published : TINYINT(1)
-  - published_at : DATETIME
-  - expires_at : DATETIME
-  - created_at : DATETIME
-  - updated_at : DATETIME
-}
-
-entity "admin_operation_logs\n後台操作日誌表" as admin_operation_logs {
-  * log_id : INT
-  + admin_id : INT
-  - action : VARCHAR(100)
-  - target_type : VARCHAR(50)
-  - target_id : INT
-  - detail : TEXT
-  - ip_address : VARCHAR(45)
-  - created_at : DATETIME
-}
-
-entity "db_backups\n資料庫備份紀錄表" as db_backups {
-  * backup_id : INT
-  - file_name : VARCHAR(255)
-  - size_bytes : BIGINT
-  - trigger_by : VARCHAR(20)
-  + admin_id : INT
-  - status : VARCHAR(20)
-  - detail : TEXT
-  - created_at : DATETIME
-}
-
-ai_chat_sessions ||--o{ ai_chat_messages : "session_id"
-ai_support_sessions ||--o{ ai_support_messages : "session_id"
-support_tickets ||--o{ support_ticket_messages : "ticket_id"
+ai_chat_sessions ||--o{ ai_chat_messages
+ai_support_sessions ||--o{ ai_support_messages
+ai_consents -[hidden]down- ai_usage_logs
+ai_recommendation_cache -[hidden]down- ai_embeddings
 @enduml

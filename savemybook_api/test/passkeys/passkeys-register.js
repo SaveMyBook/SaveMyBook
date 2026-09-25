@@ -290,13 +290,6 @@ module.exports = {
       assert.ok(ctx.user.anonymized_at);
       assert.strictEqual(prisma.rows('user_passkeys').length, 0);
       assert.strictEqual(prisma.rows('webauthn_challenges').length, 0);
-    }],
-
-    ['未執行 016 時資料匯出的 passkeys 為 null', async () => {
-      h.reset({ schema: h.withoutPasskeys() });
-      const ctx = h.signedIn();
-      const data = await h.api('services/account').exportData(ctx.user.user_id);
-      assert.strictEqual(data.passkeys, null);
     }]
   ]
 };

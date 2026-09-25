@@ -71,16 +71,11 @@ module.exports = {
       assert.strictEqual(created.is_read, undefined);
     }],
 
-    ['指定操作者時會補寫 actor_id；欄位不存在時略過', async () => {
+    ['指定操作者時會補寫 actor_id', async () => {
       const user = h.addUser();
       const actor = h.addUser();
       await notify(null, { userId: user.user_id, title: '新訊息', content: '你好', actorId: actor.user_id });
       assert.strictEqual(Number(prisma.rows('notifications')[0].actor_id), actor.user_id);
-
-      h.reset({ schema: h.without(h.FULL_SCHEMA, ['notifications.actor_id']) });
-      const other = h.addUser();
-      await notify(null, { userId: other.user_id, title: '新訊息', content: '你好', actorId: 5 });
-      assert.strictEqual(prisma.rows('notifications')[0].actor_id, undefined);
     }],
 
     ['批次通知可一次寫入多位使用者', async () => {

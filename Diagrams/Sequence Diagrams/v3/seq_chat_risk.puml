@@ -1,0 +1,60 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
+
+actor 買家
+participant UI
+participant API
+database DB
+actor 賣家
+actor 管理員
+
+買家 -> UI : 輸入文字並送出
+activate 買家
+activate UI
+UI -> API : POST /api/chat/rooms/:roomId/messages
+activate API
+API -> DB : 讀取同一人 10 分鐘內\n在此聊天室的前幾則訊息
+API -> API : 依平台規則比對風險類別\n並評分（不使用 AI）
+opt 內容命中風險類別
+  API -> DB : 加計帳號因素（新帳號、\n無完成訂單、短時間多處發言）
+end
+opt 需傳送者確認
+  API --> UI : 409（含聯絡方式、付款資訊\n或平台外交易）
+  UI --> 買家 : 提醒平台外交易\n不受平台保障
+  買家 -> UI : 選擇「仍要傳送」\n（選擇修改則取消送出）
+  UI -> API : 帶確認標記重新送出
+end
+API -> DB : 儲存訊息與風險紀錄
+API -> 賣家 : 推播新訊息
+opt 本則為高風險訊息
+  API -> DB : 統計 24 小時內高風險訊息數
+  opt 達 3 則且無未處理警示
+    API -> DB : 建立防詐警示
+    API -> 管理員 : 通知「聊天防詐警示」
+  end
+end
+API --> UI : 201 Created
+deactivate API
+UI --> 買家 : 顯示已送出
+deactivate UI
+deactivate 買家
+
+賣家 -> UI : 開啟聊天室
+activate 賣家
+activate UI
+UI -> API : GET /api/chat/rooms/:roomId/messages
+activate API
+API -> DB : 讀取訊息與風險紀錄
+API --> UI : 訊息附風險提醒；近 30 天\n有高風險訊息時附橫幅
+deactivate API
+UI --> 賣家 : 訊息下方顯示提醒，\n頂部顯示高風險橫幅
+deactivate UI
+deactivate 賣家
+@enduml

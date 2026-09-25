@@ -141,7 +141,6 @@ paths:
         依最後觸發時間遞減排序，最多 200 筆。需 `can_manage_reports` 權限。
 
         `samples` 為該會員最近 5 則仍存在的高風險文字訊息，供判斷是否停權；已收回或已刪除的訊息不會列出。
-        伺服器尚未執行資料庫更新 023 時回傳空陣列。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
@@ -244,12 +243,6 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, code: ALERT_HANDLED, message: 此警示已處理 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503':
-          description: 伺服器尚未執行資料庫更新 023。
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: MIGRATION_REQUIRED, message: 資料庫尚未更新，請先執行 migrations/023_chat_risk.sql }
 
   /api/admin/disputes:
     get:

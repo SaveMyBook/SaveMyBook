@@ -112,7 +112,6 @@ const categoryNameOf = async (categoryId) => {
 // loadImages 延後到確定要審核時才讀檔，功能關閉時不做多餘的磁碟讀取。
 const screen = async ({ userId, book, loadImages }) => {
   try {
-    if (!(await settingsService.migrationReady())) return ALLOW;
     const settings = await settingsService.load();
     if (!settings.enabled || !settings.features.moderation.enabled) return ALLOW;
     const base = runner.providerFor(settings, 'moderation');

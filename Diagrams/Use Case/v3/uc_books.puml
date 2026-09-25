@@ -1,48 +1,49 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
+skinparam usecase {
+  BackgroundColor white
+}
 left to right direction
-title 使用個案圖：書籍與商品管理模組
 
-actor 賣家 as Seller
-actor 買家 as Buyer
+actor 賣家
+actor 買家
 actor "AI 服務" as AI
-actor 管理員 as Admin
 
-rectangle "SaveMyBook 系統" {
-  usecase "掃描ISBN條碼" as UC1
-  usecase "AI輔助帶入書籍資訊" as UC2
-  usecase "上架書籍" as UC3
-  usecase "編輯書籍" as UC4
-  usecase "下架/重新上架書籍" as UC5
-  usecase "瀏覽/搜尋書籍" as UC6
-  usecase "查看書籍詳情" as UC7
-  usecase "收藏書籍" as UC8
-  usecase "檢舉書籍" as UC9
-  usecase "分享書籍連結" as UC10
-  usecase "查看個人化推薦/\n最近瀏覽" as UC11
-  usecase "AI內容自動審核" as UC12
+rectangle "SaveMyBook - 書籍與商品管理" {
+  usecase "管理書籍" as manage
+  usecase "我要賣書" as sell
+  usecase "掃描 ISBN" as isbn
+  usecase "AI 輔助上架" as assist
+  usecase "上架審核" as review
+  usecase "自動補齊書籍資料" as enrich
+  usecase "編輯書籍" as edit
+  usecase "下架／重新上架" as delist
+  usecase "瀏覽與搜尋書籍" as browse
+  usecase "查看書籍詳情" as detail
+  usecase "查看相似的書" as similar
+  usecase "查看個人化推薦" as recommend
+  usecase "收藏書籍" as fav
+  usecase "檢舉書籍" as report
 }
 
-Seller --> UC3
-Seller --> UC4
-Seller --> UC5
-UC3 ..> UC1 : <<extend>>
-UC3 ..> UC2 : <<extend>>
-UC4 ..> UC1 : <<extend>>
-UC2 --> AI
-UC3 ..> UC12 : <<include>>
-UC4 ..> UC12 : <<extend>>（文字/售價變更時）
-UC12 --> AI
-
-Buyer --> UC6
-Buyer --> UC7
-Buyer --> UC8
-Buyer --> UC9
-Buyer --> UC10
-Buyer --> UC11
-UC7 ..> UC6 : <<include>>
-
-Admin --> UC12 : 人工複核佇列
+賣家 --> manage
+manage <.. sell : <<extend>>
+manage <.. edit : <<extend>>
+manage <.. delist : <<extend>>
+sell <.. isbn : <<extend>>
+sell <.. assist : <<extend>>
+sell ..> review : <<include>>
+sell ..> enrich : <<include>>
+買家 --> browse
+買家 --> recommend
+買家 --> fav
+買家 --> report
+browse ..> detail : <<include>>
+detail <.. similar : <<extend>>
+assist -- AI
+enrich -- AI
 @enduml

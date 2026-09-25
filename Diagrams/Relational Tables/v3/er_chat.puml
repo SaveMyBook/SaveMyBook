@@ -1,99 +1,117 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 13
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
 skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
 hide circle
 hide empty methods
-skinparam ranksep 60
-skinparam nodesep 40
-skinparam class {
-  BackgroundColor White
-  BorderColor #444444
-  ArrowColor #555555
+
+entity "chat_rooms" as chat_rooms {
+  {field} <&key> room_id : int
+  --
+  {field} user_a_id : int
+  {field} user_b_id : int
+  {field} book_id : int
+  {field} created_at : datetime
+  {field} updated_at : datetime
+  {field} room_type : enum
+  {field} name : varchar(50)
+  {field} avatar_url : varchar(500)
+  {field} created_by : int
 }
-
-title 聊天與社交模組 ER 圖
-
-entity "chat_rooms\n聊天室表" as chat_rooms {
-  * room_id : INT
-  + user_a_id : INT
-  + user_b_id : INT
-  + book_id : INT
-  - created_at : DATETIME
-  - updated_at : DATETIME
-  - room_type : ENUM
-  - name : VARCHAR(50)
-  - avatar_url : VARCHAR(500)
-  - created_by : INT
+entity "chat_messages" as chat_messages {
+  {field} <&key> message_id : int
+  --
+  {field} room_id : int
+  {field} sender_id : int
+  {field} content : text
+  {field} message_type : enum
+  {field} is_read : tinyint(1)
+  {field} created_at : datetime
+  {field} reply_to_id : int
+  {field} edited_at : datetime
+  {field} mentions : text
 }
-
-entity "chat_messages\n聊天訊息表" as chat_messages {
-  * message_id : INT
-  + room_id : INT
-  + sender_id : INT
-  - content : TEXT
-  - message_type : ENUM
-  - is_read : TINYINT(1)
-  - created_at : DATETIME
-  - reply_to_id : INT
-  - edited_at : DATETIME
-  - mentions : TEXT
+entity "chat_room_members" as chat_room_members {
+  {field} <&key> room_id : int
+  {field} <&key> user_id : int
+  --
+  {field} role : enum
+  {field} joined_at : datetime
+  {field} left_at : datetime
+  {field} last_read_message_id : int
+  {field} history_from_id : int
+  {field} group_nickname : varchar(30)
 }
-
-entity "chat_room_members\n聊天室成員表" as chat_room_members {
-  * room_id : INT
-  * user_id : INT
-  - role : ENUM
-  - joined_at : DATETIME
-  - left_at : DATETIME
-  - last_read_message_id : INT
-  - history_from_id : INT
+entity "chat_room_mutes" as chat_room_mutes {
+  {field} <&key> user_id : int
+  {field} <&key> room_id : int
+  --
+  {field} created_at : datetime
 }
-
-entity "chat_room_mutes\n聊天室靜音表" as chat_room_mutes {
-  * user_id : INT
-  * room_id : INT
-  - created_at : DATETIME
+entity "chat_room_pins" as chat_room_pins {
+  {field} <&key> user_id : int
+  {field} <&key> room_id : int
+  --
+  {field} pinned_at : datetime
 }
-
-entity "chat_room_pins\n聊天室置頂表" as chat_room_pins {
-  * user_id : INT
-  * room_id : INT
-  - pinned_at : DATETIME
+entity "chat_aliases" as chat_aliases {
+  {field} <&key> owner_id : int
+  {field} <&key> target_user_id : int
+  --
+  {field} alias : varchar(30)
+  {field} updated_at : datetime
 }
-
-entity "chat_aliases\n聊天暱稱別名表" as chat_aliases {
-  * owner_id : INT
-  * target_user_id : INT
-  - alias : VARCHAR(30)
-  - updated_at : DATETIME
+entity "chat_mentions" as chat_mentions {
+  {field} <&key> message_id : int
+  {field} <&key> user_id : int
+  --
+  {field} room_id : int
 }
-
-entity "chat_mentions\n聊天@提及紀錄表" as chat_mentions {
-  * message_id : INT
-  - room_id : INT
-  * user_id : INT
+entity "chat_transfers" as chat_transfers {
+  {field} <&key> transfer_id : int
+  --
+  {field} room_id : int
+  {field} message_id : int
+  {field} kind : enum
+  {field} from_user_id : int
+  {field} to_user_id : int
+  {field} amount : decimal(12,2)
+  {field} note : varchar(100)
+  {field} status : enum
+  {field} created_at : datetime
+  {field} responded_at : datetime
+  {field} expires_at : datetime
 }
-
-entity "chat_transfers\n聊天室轉帳/請款表" as chat_transfers {
-  * transfer_id : INT
-  - room_id : INT
-  - message_id : INT
-  - kind : ENUM
-  + from_user_id : INT
-  + to_user_id : INT
-  - amount : DECIMAL(12, 2)
-  - note : VARCHAR(100)
-  - status : ENUM
-  - created_at : DATETIME
-  - responded_at : DATETIME
-  - expires_at : DATETIME
+entity "chat_message_risks" as chat_message_risks {
+  {field} <&key> message_id : int
+  --
+  {field} room_id : int
+  {field} sender_id : int
+  {field} level : varchar(10)
+  {field} categories : varchar(100)
+  {field} score : tinyint
+  {field} created_at : datetime
 }
-
-chat_rooms ||--o{ chat_messages : "room_id"
-chat_rooms ||--o{ chat_room_members : "room_id"
-chat_rooms ||--o{ chat_room_mutes : "room_id"
-chat_rooms ||--o{ chat_room_pins : "room_id"
-chat_messages ||--o{ chat_mentions : "message_id"
+entity "chat_risk_alerts" as chat_risk_alerts {
+  {field} <&key> alert_id : int
+  --
+  {field} user_id : int
+  {field} status : varchar(10)
+  {field} hit_count : int
+  {field} first_at : datetime
+  {field} last_at : datetime
+  {field} handled_by : int
+  {field} handled_at : datetime
+}
+chat_rooms ||--o{ chat_messages
+chat_rooms ||--o{ chat_room_members
+chat_rooms ||--o{ chat_room_mutes
+chat_rooms ||--o{ chat_room_pins
+chat_messages ||--o{ chat_mentions
+chat_messages ||--o| chat_message_risks
 @enduml

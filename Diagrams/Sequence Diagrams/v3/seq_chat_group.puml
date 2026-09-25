@@ -1,56 +1,61 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：群組聊天建立、管理與@提及
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 發起人 as Owner
-actor 群組成員 as Member
-participant "CreateGroupScreen /\nChatRoomSettingsScreen" as UI
-participant "ApiService(ChatApi)" as ApiSvc
-participant "POST /groups" as CreateRoute
-participant "PATCH /groups/:roomId/members/:userId" as RoleRoute
-participant "services/chat/groups.js" as GroupSvc
-participant "services/chat/mentions.js" as MentionSvc
-database "chat_rooms / chat_room_members /\nchat_mentions" as DB
+actor 使用者
+participant UI
+participant API
+database DB
 
-Owner -> UI : 建立群組（名稱、選擇成員≤50人）
-UI -> ApiSvc : createChatGroup(name, memberIds)
-ApiSvc -> CreateRoute : POST /groups
-CreateRoute -> GroupSvc : create(owner, name, members)
-GroupSvc -> DB : chat_rooms.insert(room_type='group', created_by=owner)
-GroupSvc -> DB : chat_room_members.insertMany(role='owner'/'member',\nhistory_from_id=目前最新訊息編號)
-GroupSvc -> DB : 發送「群組已建立」系統訊息
-GroupSvc --> UI : 201 room_id
+activate 使用者
+activate UI
+== 建立群組 ==
+使用者 -> UI : 輸入群組名稱並選擇成員
+UI -> API : POST /api/chat/groups
+activate API
+API -> DB : 確認成員可加入（一次最多 50 人），\n建立群組並設發起人為管理員
+API -> DB : 發送「建立了群組」系統訊息，\n通知受邀成員
+API --> UI : 201 Created
+deactivate API
+UI --> 使用者 : 進入群組聊天室
 
-Owner -> UI : 於群組設定變更成員角色
-UI -> ApiSvc : setChatMemberRole(roomId, userId, 'owner')
-ApiSvc -> RoleRoute : PATCH /groups/:roomId/members/:userId
-RoleRoute -> GroupSvc : setRole(actor, target, role)
-alt 操作者非管理員 或 欲移除唯一管理員
-  GroupSvc --> UI : 403 / 拒絕
-else 成功
-  GroupSvc -> DB : chat_room_members.update(role)
-  GroupSvc -> DB : 發送系統訊息通知全體成員
+== 邀請成員與設定管理員 ==
+使用者 -> UI : 邀請成員或變更成員角色
+UI -> API : POST /api/chat/groups/:roomId/members\nPATCH /api/chat/groups/:roomId/members/:userId
+activate API
+API -> DB : 邀請：任一成員皆可，總數不超過 100 人\n變更角色：限群組管理員
+API -> DB : 更新成員名單或角色並發送系統訊息\n（新成員只看得到加入後的訊息）
+API --> UI : 200 OK（不符資格時 403／400）
+deactivate API
+
+== 以 @ 提及成員 ==
+使用者 -> UI : 輸入 @ 並選擇成員
+UI -> API : POST /api/chat/rooms/:roomId/messages\n（附提及對象）
+activate API
+API -> DB : 確認提及對象為群組成員，\n儲存訊息與提及紀錄
+API -> DB : 通知被提及者「提及了您」，\n通知其他成員有新訊息
+API --> UI : 201 Created
+deactivate API
+
+== 退出群組 ==
+使用者 -> UI : 點擊「退出群組」
+UI -> API : POST /api/chat/groups/:roomId/leave
+activate API
+API -> DB : 移除成員及其置頂、靜音設定，\n發送「已退出群組」系統訊息
+opt 退出者為唯一管理員
+  API -> DB : 由最早加入的成員接任管理員
 end
-
-Member -> UI : 於群組輸入 @ 觸發成員選單
-UI -> UI : chat_mention_controller偵測@並顯示ChatMentionPanel
-Member -> UI : 選擇成員並送出訊息
-UI -> ApiSvc : sendChatMessage(content, mentions=[{user_id,start,length}])
-ApiSvc -> MentionSvc : mentionsOf(content, mentions)
-MentionSvc -> MentionSvc : 檢查每則1~60字、不重疊、\n對象須為有效成員（0=全體）
-MentionSvc -> DB : chat_messages.mentions(JSON) + chat_mentions.insertMany
-MentionSvc -> DB : 被提及者 mention_unread=true，\n通知「暱稱 提及了您：…」
-
-== 最後一位管理員離開 ==
-Owner -> UI : 離開群組
-UI -> ApiSvc : leaveChatGroup(roomId)
-ApiSvc -> GroupSvc : leave(userId, roomId)
-alt 為最後一位管理員且群組尚有其他成員
-  GroupSvc -> DB : 指派加入最久的成員為新管理員
-else 為最後一位成員
-  GroupSvc -> DB : 刪除聊天室與所有訊息
+opt 群組已無其他成員
+  API -> DB : 刪除群組與全部訊息
 end
-GroupSvc -> DB : 清除該成員之chat_room_pins/chat_room_mutes設定
+API --> UI : 200 OK
+deactivate API
+deactivate UI
+deactivate 使用者
 @enduml

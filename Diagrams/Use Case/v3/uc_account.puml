@@ -1,57 +1,46 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
+skinparam usecase {
+  BackgroundColor white
+}
 left to right direction
-title 使用個案圖：帳號與安全模組
 
-actor 訪客 as Guest
-actor 會員 as Member
-actor 管理員 as Admin
-actor "Google / Apple" as OAuthProvider
-actor "Firebase" as Firebase
+actor 訪客
+actor 會員
+actor "Google／Apple\nLINE／Discord" as Provider
 
-rectangle "SaveMyBook 系統" {
-  usecase "註冊帳號" as UC1
-  usecase "帳號密碼登入" as UC2
-  usecase "第三方登入\n(Google/Apple/手機OTP)" as UC3
-  usecase "Passkey 登入/註冊" as UC4
-  usecase "連結/解除第三方帳號" as UC5
-  usecase "設定登入密碼" as UC6
-  usecase "登出" as UC7
-  usecase "管理登入裝置\n(強制登出)" as UC8
-  usecase "設定交易密碼(PIN)/\n生物辨識付款" as UC9
-  usecase "身分二次驗證" as UC10
-  usecase "查看/編輯個人資料" as UC11
-  usecase "分享個人名片(QR)" as UC12
-  usecase "申請/取消刪除帳號" as UC13
-  usecase "查看會員等級與成就" as UC14
-  usecase "查看/同意服務條款與\n隱私權政策" as UC15
+rectangle "SaveMyBook - 帳號與安全" {
+  usecase "註冊帳號" as reg
+  usecase "登入" as login
+  usecase "密碼登入" as pwd
+  usecase "第三方登入" as social
+  usecase "通行密鑰登入" as pk
+  usecase "同意服務條款\n與隱私權政策" as legal
+  usecase "管理個人資料" as profile
+  usecase "管理登入方式" as methods
+  usecase "設定交易密碼\n與生物辨識" as pin
+  usecase "身分驗證" as verify
+  usecase "管理登入裝置" as sessions
+  usecase "匯出資料或\n申請刪除帳號" as delete
 }
 
-Guest --> UC1
-Guest --> UC2
-Guest --> UC3
-Guest --> UC4
-
-Member --> UC2
-Member --> UC5
-Member --> UC6
-Member --> UC7
-Member --> UC8
-Member --> UC9
-Member --> UC11
-Member --> UC12
-Member --> UC13
-Member --> UC14
-Member --> UC15
-UC9 ..> UC10 : <<include>>
-UC5 ..> UC10 : <<include>>
-
-UC3 --> OAuthProvider
-UC3 --> Firebase
-UC2 ..> UC15 : <<extend>>（首次登入需同意）
-
-Admin --> UC2
-Admin --> UC7
+訪客 --> reg
+訪客 --> login
+會員 --> profile
+會員 --> methods
+會員 --> pin
+會員 --> sessions
+會員 --> delete
+login <.. pwd : <<extend>>
+login <.. social : <<extend>>
+login <.. pk : <<extend>>
+login ..> legal : <<include>>
+methods ..> verify : <<include>>
+pin ..> verify : <<include>>
+delete ..> verify : <<include>>
+social -- Provider
 @enduml

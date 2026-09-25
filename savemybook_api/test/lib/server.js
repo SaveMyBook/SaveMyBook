@@ -63,15 +63,14 @@ global.fetch = async (input, init = {}) => {
 
 const resetHooks = [];
 
-// 測試組以 onReset() 登記自己要清掉的快取（schema-check、各服務的設定快取等）。
+// 測試組以 onReset() 登記自己要清掉的快取（各服務的設定快取等）。
 const onReset = (fn) => resetHooks.push(fn);
 
 let clientIpSeq = 0;
 let clientIp = '10.0.0.1';
 
-const reset = ({ schema, tables = {} } = {}) => {
+const reset = ({ tables = {} } = {}) => {
   prisma.store = { ...tables };
-  if (schema) prisma.schema = schema;
   prisma.sqlLog = [];
   fetchLog.length = 0;
   // 限流以來源 IP 計數，每個測試換一組 IP 才不會互相干擾（trust proxy 為 loopback）。

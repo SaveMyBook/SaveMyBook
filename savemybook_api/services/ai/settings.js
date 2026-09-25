@@ -1,10 +1,8 @@
 const prisma = require('../../lib/prisma');
-const { hasTables } = require('../../lib/schema-check');
-const { badRequest, HttpError } = require('../../lib/errors');
+const { badRequest } = require('../../lib/errors');
 const { PROVIDERS, PROVIDER_IDS, keyConfigured } = require('../../lib/ai');
 const audit = require('../audit');
 
-const AI_TABLES = ['ai_settings', 'ai_usage_logs', 'ai_support_sessions', 'ai_support_messages', 'ai_recommendation_cache', 'ai_book_reviews', 'ai_consents'];
 const FEATURES = ['support', 'listing_assist', 'recommend', 'moderation', 'book_chat'];
 const LIMITED_FEATURES = ['support', 'listing_assist', 'recommend', 'book_chat'];
 const MODERATION_ACTIONS = ['review', 'block'];
@@ -41,8 +39,6 @@ const PRICE_LABELS = {
   search_price_per_k: '搜尋單價',
   search_free_per_month: '每月免費搜尋次數'
 };
-
-const unavailable = () => new HttpError(503, 'AI 功能暫時無法使用，請稍後再試', 'AI_UNAVAILABLE');
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -130,19 +126,15 @@ const clearCache = () => {
   cache = null;
 };
 
-const migrationReady = () => hasTables(AI_TABLES);
-
 const load = async () => {
   if (cache && Date.now() - cache.at < CACHE_MS) return cache.value;
   let value = normalize(null);
-  if (await migrationReady()) {
-    const rows = await prisma.$queryRaw`SELECT config FROM ai_settings WHERE id = 1`;
-    if (rows[0]?.config) {
-      try {
-        value = normalize(JSON.parse(String(rows[0].config)));
-      } catch {
-        value = normalize(null);
-      }
+  const rows = await prisma.$queryRaw`SELECT config FROM ai_settings WHERE id = 1`;
+  if (rows[0]?.config) {
+    try {
+      value = normalize(JSON.parse(String(rows[0].config)));
+    } catch {
+      value = normalize(null);
     }
   }
   cache = { value, at: Date.now() };
@@ -174,7 +166,6 @@ const diffSettings = (before, after) => {
 };
 
 const save = async (input, { adminId, req }) => {
-  if (!(await migrationReady())) throw unavailable();
   const next = normalize(input, { strict: true });
   clearCache();
   const before = await load();
@@ -209,6 +200,6 @@ const providerList = () => PROVIDER_IDS.map((id) => ({
 }));
 
 module.exports = {
-  AI_TABLES, FEATURES, LIMITED_FEATURES, MODERATION_ACTIONS, DEFAULTS, FEATURE_LABELS,
-  normalize, load, save, clearCache, migrationReady, providerList, diffSettings, unavailable
+  FEATURES, LIMITED_FEATURES, MODERATION_ACTIONS, DEFAULTS, FEATURE_LABELS,
+  normalize, load, save, clearCache, providerList, diffSettings
 };

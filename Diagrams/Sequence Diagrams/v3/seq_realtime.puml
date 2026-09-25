@@ -1,0 +1,56 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
+
+actor 買家
+participant UI
+participant API
+database DB
+actor 賣家
+
+== 建立即時連線 ==
+買家 -> UI : 登入或將 App 切回前景
+activate 買家
+activate UI
+UI -> API : 以登入權杖建立 Socket.IO 連線
+activate API
+API -> DB : 驗證權杖、帳號狀態與登入裝置
+API --> UI : 連線成功，加入個人頻道\n（失敗時 30 秒後以新權杖重試）
+deactivate API
+API -> API : 每 5 分鐘重新驗證，\n失效即中斷連線
+
+== 對方傳送訊息 ==
+賣家 -> API : POST /api/chat/rooms/:roomId/messages
+activate API
+API -> DB : 寫入訊息
+API --> 賣家 : 201 Created
+API -> UI : 回應送出後推送「聊天室有更新」
+UI -> API : GET …/messages?after_id=…\n（只取得新訊息）
+API -> DB : 標記為已讀
+API --> UI : 新訊息
+UI --> 買家 : 顯示新訊息
+API -> 賣家 : 推送「聊天室有更新」（已讀）
+deactivate API
+
+== 輸入中狀態 ==
+買家 -> UI : 輸入文字
+UI -> API : 送出輸入中狀態（每秒最多一次）
+activate API
+API -> 賣家 : 推送「對方正在輸入」\n（任一方封鎖時不推送）
+deactivate API
+
+== 斷線備援 ==
+loop App 在前景期間
+  UI -> API : 已連線：聊天室每 15 秒、列表每 30 秒補抓\n未連線：聊天室每 3 秒、列表每 8 秒輪詢
+end
+買家 -> UI : App 進入背景
+UI -> API : 中斷即時連線
+deactivate UI
+deactivate 買家
+@enduml

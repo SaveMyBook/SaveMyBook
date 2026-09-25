@@ -1,6 +1,5 @@
 const prisma = require('../lib/prisma');
-const { notFound, HttpError } = require('../lib/errors');
-const { hasColumn } = require('../lib/schema-check');
+const { notFound } = require('../lib/errors');
 const { SLOT_STATUSES, SLOT_STATUS_LABELS } = require('../constants/domain');
 const audit = require('./audit');
 
@@ -29,11 +28,7 @@ const CABINET_FIELDS = {
 
 const SLOT_FIELDS = { status: { label: '櫃位狀態', format: (s) => SLOT_STATUS_LABELS[s] ?? s } };
 
-// is_maintenance 由 019 新增，不在 Prisma schema 內，一律以原生 SQL 讀寫；未執行 019 時視為沒有書櫃在維修。
-const maintenanceReady = () => hasColumn('smart_cabinets', 'is_maintenance');
-
 const maintenanceIds = async () => {
-  if (!(await maintenanceReady())) return new Set();
   const rows = await prisma.$queryRaw`SELECT cabinet_id FROM smart_cabinets WHERE is_maintenance = 1`;
   return new Set(rows.map((r) => Number(r.cabinet_id)));
 };
@@ -67,7 +62,7 @@ const listActive = async (point) => {
 };
 
 const adminList = async () => {
-  const [cabinets, underMaintenance, ready] = await Promise.all([
+  const [cabinets, underMaintenance] = await Promise.all([
     prisma.smart_cabinets.findMany({
       orderBy: { cabinet_id: 'asc' },
       include: {
@@ -75,8 +70,7 @@ const adminList = async () => {
         _count: { select: { orders: true } }
       }
     }),
-    maintenanceIds(),
-    maintenanceReady()
+    maintenanceIds()
   ]);
 
   return cabinets.map((c) => {
@@ -85,7 +79,6 @@ const adminList = async () => {
     return {
       ...c,
       is_maintenance: underMaintenance.has(Number(c.cabinet_id)),
-      maintenance_supported: ready,
       slot_summary: counts
     };
   });
@@ -142,9 +135,6 @@ const update = async (cabinetId, data, { adminId, req }) => {
 };
 
 const setMaintenance = async (cabinetId, on, { adminId, req }) => {
-  if (!(await maintenanceReady())) {
-    throw new HttpError(503, '尚未執行 019_cabinet_maintenance.sql，無法設定書櫃維修狀態', 'MIGRATION_REQUIRED');
-  }
   const before = await prisma.smart_cabinets.findUnique({ where: { cabinet_id: cabinetId }, select: { cabinet_name: true } });
   if (!before) throw notFound('找不到該書櫃');
 

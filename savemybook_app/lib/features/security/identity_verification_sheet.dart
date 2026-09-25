@@ -14,7 +14,7 @@ typedef BiometricVerify = Future<({String? token, String? message})> Function();
 typedef PasskeyVerify = BiometricVerify;
 
 /// 這些狀況重試也不會過，訊息顯示為整塊警示並停用送出鍵。
-const _blockingCodes = {'RATE_LIMITED', 'PASSWORD_NOT_SET', 'SECURITY_UNAVAILABLE', 'SIGNED_OUT'};
+const _blockingCodes = {'RATE_LIMITED', 'PASSWORD_NOT_SET', 'SIGNED_OUT'};
 
 /// 以登入密碼或通行密鑰驗證身分的專用面板。回傳驗證權杖，使用者取消則回傳 null。
 /// 提供 [onPasskey] 時預設顯示通行密鑰，輸入密碼改為次要選項。

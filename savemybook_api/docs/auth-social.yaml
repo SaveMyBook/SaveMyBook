@@ -45,10 +45,6 @@ tags:
       也無法以登入密碼通過敏感操作驗證，App 應先引導使用者呼叫
       `POST /api/auth/password/set` 設定密碼。
 
-      伺服器尚未執行 `migrations/014_auth_identities.sql` 時，
-      `GET /api/auth/providers` 回傳 `social_enabled: false`，其餘端點回傳 503
-      `AUTH_SOCIAL_UNAVAILABLE`。
-
 paths:
   /api/auth/providers:
     get:
@@ -74,7 +70,7 @@ paths:
                     properties:
                       social_enabled:
                         type: boolean
-                        description: 社群登入總開關。伺服器尚未執行資料庫更新 014 時為 `false`。
+                        description: 社群登入總開關。
                         example: true
                       providers:
                         type: array
@@ -734,7 +730,7 @@ components:
 
   responses:
     AuthSocialUnavailable:
-      description: 伺服器尚未執行社群登入所需的資料庫更新 014。
+      description: 伺服器尚未設定 Firebase 專案參數，Google、Apple 與手機號碼登入暫時無法使用。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }

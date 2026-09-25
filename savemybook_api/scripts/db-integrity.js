@@ -5,7 +5,7 @@
 //   node scripts/db-integrity.js --fix --add-constraints  清理後補建缺少的外鍵
 // 帳務相關資料（錢包、訂單、退款、爭議、轉帳）與必填的非串聯關聯只列出、不自動刪除，須人工確認。
 
-// [資料表, 欄位, 參照資料表, 參照欄位, 可為 NULL, 刪除規則, 外鍵名稱]；依 prisma/schema.prisma 與 migrations 整理。
+// [資料表, 欄位, 參照資料表, 參照欄位, 可為 NULL, 刪除規則, 外鍵名稱]；依 prisma/schema.prisma 整理。
 const RELATIONS = [
   ['admin_operation_logs', 'admin_id', 'users', 'user_id', false, 'NoAction', 'fk_oplog_admin'],
   ['admin_permissions', 'user_id', 'users', 'user_id', false, 'Cascade', 'fk_admin_user'],
@@ -218,7 +218,7 @@ const inspect = async (db) => {
     const result = { ...rel, plan: planFor(rel), orphans: 0, samples: [], issues: [] };
     const missingTable = [rel.table, rel.refTable].find((t) => !schema.engines.has(t));
     if (missingTable) {
-      result.issues.push(`資料表 ${missingTable} 不存在（相關 migration 尚未執行）`);
+      result.issues.push(`資料表 ${missingTable} 不存在（與 prisma/schema.prisma 不一致）`);
       result.skipped = true;
       results.push(result);
       continue;

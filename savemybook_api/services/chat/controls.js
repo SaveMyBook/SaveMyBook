@@ -1,21 +1,11 @@
 const prisma = require('../../lib/prisma');
-const { HttpError, badRequest, forbidden, notFound } = require('../../lib/errors');
-const { hasTables } = require('../../lib/schema-check');
+const { badRequest, forbidden, notFound } = require('../../lib/errors');
 const { placeholders } = require('../../lib/sql');
-
-const isAvailable = () => hasTables(['chat_room_mutes', 'user_blocks']);
-
-const requireAvailable = async () => {
-  if (!(await isAvailable())) {
-    throw new HttpError(503, '此功能暫時無法使用，請稍後再試', 'CHAT_CONTROLS_UNAVAILABLE');
-  }
-};
 
 // 被對方封鎖時與對方帳號停用回傳相同訊息與代碼，避免使用者得知自己被封鎖。
 const recipientUnavailable = () => badRequest('對方帳號目前無法接收訊息', 'RECIPIENT_UNAVAILABLE');
 
 const setMuted = async (userId, roomId, muted) => {
-  await requireAvailable();
   if (muted) {
     await prisma.$executeRaw`
       INSERT IGNORE INTO chat_room_mutes (user_id, room_id, created_at) VALUES (${userId}, ${roomId}, ${new Date()})`;
@@ -25,19 +15,16 @@ const setMuted = async (userId, roomId, muted) => {
 };
 
 const mutedRoomIds = async (userId) => {
-  if (!(await isAvailable())) return new Set();
   const rows = await prisma.$queryRaw`SELECT room_id FROM chat_room_mutes WHERE user_id = ${userId}`;
   return new Set(rows.map((r) => Number(r.room_id)));
 };
 
 const blockedUserIds = async (userId) => {
-  if (!(await isAvailable())) return new Set();
   const rows = await prisma.$queryRaw`SELECT blocked_id FROM user_blocks WHERE blocker_id = ${userId}`;
   return new Set(rows.map((r) => Number(r.blocked_id)));
 };
 
 const relation = async (myId, partnerId) => {
-  if (!(await isAvailable())) return { blocked: false, blockedBy: false };
   const rows = await prisma.$queryRaw`
     SELECT blocker_id FROM user_blocks
     WHERE (blocker_id = ${myId} AND blocked_id = ${partnerId})
@@ -55,7 +42,6 @@ const assertCanMessage = async (myId, partnerId) => {
 };
 
 const block = async (myId, targetId) => {
-  await requireAvailable();
   if (targetId === myId) throw badRequest('無法封鎖自己');
   const target = await prisma.users.findUnique({ where: { user_id: targetId }, select: { user_id: true } });
   if (!target) throw notFound('找不到該使用者');
@@ -64,12 +50,10 @@ const block = async (myId, targetId) => {
 };
 
 const unblock = async (myId, targetId) => {
-  await requireAvailable();
   await prisma.$executeRaw`DELETE FROM user_blocks WHERE blocker_id = ${myId} AND blocked_id = ${targetId}`;
 };
 
 const listBlocks = async (myId) => {
-  await requireAvailable();
   const rows = await prisma.$queryRaw`
     SELECT b.blocked_id AS user_id, u.nickname, u.avatar_url, b.created_at AS blocked_at
     FROM user_blocks b JOIN users u ON u.user_id = b.blocked_id
@@ -84,7 +68,7 @@ const listBlocks = async (myId) => {
 };
 
 const mutedPairs = async (roomIds) => {
-  if (roomIds.length === 0 || !(await isAvailable())) return new Set();
+  if (roomIds.length === 0) return new Set();
   const rows = await prisma.$queryRawUnsafe(
     `SELECT user_id, room_id FROM chat_room_mutes WHERE room_id IN (${placeholders(roomIds)})`,
     ...roomIds

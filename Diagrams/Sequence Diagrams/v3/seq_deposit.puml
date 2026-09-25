@@ -1,41 +1,52 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：賣家實體書櫃存書
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 賣家 as Seller
-actor 買家 as Buyer
-participant "SalesHistoryScreen" as UI
-participant "ApiService(OrdersApi)" as ApiSvc
-participant "PATCH /api/orders/:id/status" as Route
-participant "orders/index.js" as OrdersSvc
-participant "orders/settlement.js" as Settlement
-database "Prisma / MariaDB" as DB
+actor 賣家
+participant UI
+participant API
+database DB
+participant 排程
+actor 買家
 
-Seller -> Seller : 依App顯示格位，\n將書實體放入智慧書櫃
-Seller -> UI : 點擊「已放入書櫃」
-UI -> UI : showConfirmDialog(確認存書)
-UI -> ApiSvc : updateOrderStatus(orderId, 'deposited')
-ApiSvc -> Route : PATCH /api/orders/:id/status
-Route -> OrdersSvc : advance(orderId, user, 'deposited')
-OrdersSvc -> OrdersSvc : 檢查操作者為訂單賣家(或admin)
-OrdersSvc -> OrdersSvc : 檢查 order.status ∈\nTRANSITIONS.deposited.from
-alt 狀態不符
-  OrdersSvc --> UI : 400「此訂單目前非待存書狀態」
-else 狀態符合
-  OrdersSvc -> Settlement : transition(tx, order, 'deposited')
-  Settlement -> DB : guardedUpdate\n(WHERE status=讀取時狀態，\n防併發重複轉態)
-  Settlement -> Settlement : phaseOf('deposited') == 'held'\n（不異動金流）
-  Settlement --> OrdersSvc : 完成
-  OrdersSvc -> DB : notify 買家「書已存入書櫃，\n請至機台掃描QR Code取書」
-  OrdersSvc --> UI : 200 OK
-  DB --> Buyer : 推播通知
+alt 賣家於下單後 7 天內存書
+  賣家 -> 賣家 : 依訂單指定書櫃放入書籍
+  activate 賣家
+  賣家 -> UI : 點擊「已放入書櫃」並確認
+  activate UI
+  UI -> API : PATCH /api/orders/:id/status\n(deposited)
+  activate API
+  API -> DB : 驗證賣家身分與訂單狀態
+  activate DB
+  DB --> API : 回傳驗證結果
+  deactivate DB
+  alt 訂單為「待存書」
+    API -> DB : 訂單設為「已存書」，記錄存書時間
+    API -> 買家 : 推播「書籍已存入書櫃」
+    API --> UI : 200 OK
+    UI --> 賣家 : 顯示「已標記存書」
+  else 狀態不符或已被變更
+    API --> UI : 400／409 錯誤訊息
+    UI --> 賣家 : 顯示錯誤訊息
+  end
+  deactivate API
+  deactivate UI
+  deactivate 賣家
+else 下單滿 7 天仍未存書
+  排程 -> API : 每 10 分鐘檢查逾期訂單
+  activate 排程
+  activate API
+  API -> DB : 訂單設為「已取消」，書籍改為下架
+  API -> DB : 平台保管的款項退回買家錢包
+  API -> 買家 : 推播「訂單已取消並退款」
+  API -> 賣家 : 推播「逾期未存書，訂單已取消」
+  deactivate API
+  deactivate 排程
 end
-
-note over Seller, DB
-  目前版本中，智慧書櫃並未即時回報
-  格位感測狀態；存書完成與否
-  純由賣家於App端人工確認回報。
-end note
 @enduml

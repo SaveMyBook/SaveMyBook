@@ -186,9 +186,8 @@ const evalWhere = (row, whereText, params, start) => {
 };
 
 class FakePrisma {
-  constructor({ tables = {}, schema = { tables: [], columns: [] } } = {}) {
+  constructor({ tables = {} } = {}) {
     this.store = tables;
-    this.schema = schema;
     this.sqlLog = [];
     this.sqlHandlers = [];
     return new Proxy(this, {
@@ -292,15 +291,6 @@ class FakePrisma {
         return { count: removed };
       }
     };
-  }
-
-  informationSchema(sql, values) {
-    if (/information_schema\.TABLES/i.test(sql)) {
-      const wanted = values.filter((v) => typeof v === 'string');
-      return [{ n: BigInt(wanted.filter((name) => this.schema.tables.includes(name)).length) }];
-    }
-    const [table, column] = values;
-    return [{ n: BigInt(this.schema.columns.includes(`${table}.${column}`) ? 1 : 0) }];
   }
 
   runInsert(sql, values) {
@@ -420,7 +410,6 @@ class FakePrisma {
         if (result !== undefined) return result;
       }
     }
-    if (/information_schema/i.test(sql)) return this.informationSchema(sql, values);
     // 本套件只驗證登入方式相關的 SQL，其他模組的關聯查詢一律視為空結果。
     if (/\sJOIN\s/i.test(sql)) return [];
 

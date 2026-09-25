@@ -1,0 +1,116 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "users" as users {
+  {field} <&key> user_id : int
+  --
+  ...
+}
+entity "user_security" as user_security {
+  {field} <&key> user_id : int
+  --
+  {field} payment_pin_hash : varchar(255)
+  {field} pin_failed_count : int
+  {field} pin_locked_until : datetime
+  {field} pin_updated_at : datetime
+  {field} tokens_valid_after : datetime
+}
+entity "user_settings" as user_settings {
+  {field} <&key> setting_id : int
+  --
+  {field} user_id : int
+  {field} theme : enum
+  {field} notification_order : tinyint(1)
+  {field} notification_promo : tinyint(1)
+  {field} notification_message : tinyint(1)
+  {field} privacy_show_profile : tinyint(1)
+  {field} privacy_show_phone : tinyint(1)
+  {field} updated_at : datetime
+}
+entity "admin_permissions" as admin_permissions {
+  {field} <&key> admin_perm_id : int
+  --
+  {field} user_id : int
+  {field} can_manage_transactions : tinyint(1)
+  {field} can_manage_members : tinyint(1)
+  {field} can_manage_content : tinyint(1)
+  {field} can_manage_reports : tinyint(1)
+  {field} can_manage_announcements : tinyint(1)
+  {field} can_manage_cabinets : tinyint(1)
+  {field} created_at : datetime
+  {field} can_manage_orders : tinyint(1)
+  {field} can_manage_wallets : tinyint(1)
+  {field} can_manage_levels : tinyint(1)
+  {field} can_view_stats : tinyint(1)
+  {field} can_manage_support : tinyint(1)
+  {field} can_manage_system : tinyint(1)
+}
+entity "user_legal_consents" as user_legal_consents {
+  {field} <&key> user_id : int
+  {field} <&key> doc_key : varchar(50)
+  --
+  {field} version : int
+  {field} accepted_at : datetime
+}
+entity "legal_documents" as legal_documents {
+  {field} <&key> doc_id : int
+  --
+  {field} doc_key : varchar(50)
+  {field} title : varchar(255)
+  {field} content : text
+  {field} updated_by : int
+  {field} updated_at : datetime
+  {field} created_at : datetime
+  {field} version : int
+  {field} requires_consent : tinyint(1)
+}
+entity "user_blocks" as user_blocks {
+  {field} <&key> blocker_id : int
+  {field} <&key> blocked_id : int
+  --
+  {field} created_at : datetime
+}
+entity "bankbooks" as bankbooks {
+  {field} <&key> bankbook_id : int
+  --
+  {field} user_id : int
+  {field} bank_name : varchar(100)
+  {field} account_number : varchar(30)
+  {field} qr_code_url : varchar(500)
+  {field} is_verified : tinyint(1)
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "user_qr_codes" as user_qr_codes {
+  {field} <&key> qr_id : int
+  --
+  {field} user_id : int
+  {field} qr_type : enum
+  {field} qr_code_url : varchar(500)
+  {field} qr_data : varchar(500)
+  {field} created_at : datetime
+}
+users ||--o| user_security
+users ||--o{ user_settings
+users ||--o{ admin_permissions
+users ||--o{ user_legal_consents
+users ||--o{ legal_documents
+users ||--o{ user_blocks
+users ||--o{ user_blocks
+users ||--o{ bankbooks
+users ||--o{ user_qr_codes
+user_security -[hidden]down- user_legal_consents
+user_settings -[hidden]down- legal_documents
+admin_permissions -[hidden]down- user_blocks
+user_legal_consents -[hidden]down- bankbooks
+legal_documents -[hidden]down- user_qr_codes
+@enduml

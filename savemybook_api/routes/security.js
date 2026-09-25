@@ -72,7 +72,7 @@ router.get('/sessions', async (req, res) => {
 });
 
 router.delete('/sessions/:id', requireVerification('sensitive'), async (req, res) => {
-  await security.assertSessionSupport(req.user.sid);
+  security.assertSessionSupport(req.user.sid);
   const sessionId = v.id(req.params.id, '裝置編號');
   const sid = await security.revokeSession(req.user.userId, sessionId);
 
@@ -84,7 +84,7 @@ router.delete('/sessions/:id', requireVerification('sensitive'), async (req, res
 });
 
 router.post('/sessions/revoke-all', requireVerification('sensitive'), async (req, res) => {
-  await security.assertSessionSupport(req.user.sid);
+  security.assertSessionSupport(req.user.sid);
   const includeCurrent = req.body.include_current === true;
   const count = await sessions.revokeAll(req.user.userId, { exceptSid: includeCurrent ? null : req.user.sid });
 

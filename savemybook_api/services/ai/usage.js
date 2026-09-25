@@ -1,7 +1,6 @@
 const prisma = require('../../lib/prisma');
 const publicId = require('../../lib/public-id');
 const { clip } = require('../../lib/text');
-const { hasColumn } = require('../../lib/schema-check');
 
 const FEATURES = ['support', 'listing_assist', 'recommend', 'moderation', 'book_chat', 'embedding', 'enrich', 'admin_assist', 'test'];
 const PERIODS = ['today', '7d', '30d', 'month'];
@@ -27,21 +26,12 @@ const log = async ({ feature, provider, model, userId = null, usage = {}, costUs
       round6(Math.max(0, num(costUsd))), uint(latencyMs), status === 'ok' ? 'ok' : 'error',
       errorCode ? clip(String(errorCode), 60) : null
     ];
-    if (await hasColumn('ai_usage_logs', 'error_detail')) {
-      await prisma.$executeRawUnsafe(
-        `INSERT INTO ai_usage_logs
-          (feature, provider, model, user_id, input_tokens, cached_tokens, output_tokens, search_calls, cost_usd, latency_ms, status, error_code, error_detail, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        ...values, errorDetail ? clip(String(errorDetail), 400) : null, new Date()
-      );
-    } else {
-      await prisma.$executeRawUnsafe(
-        `INSERT INTO ai_usage_logs
-          (feature, provider, model, user_id, input_tokens, cached_tokens, output_tokens, search_calls, cost_usd, latency_ms, status, error_code, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        ...values, new Date()
-      );
-    }
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO ai_usage_logs
+        (feature, provider, model, user_id, input_tokens, cached_tokens, output_tokens, search_calls, cost_usd, latency_ms, status, error_code, error_detail, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ...values, errorDetail ? clip(String(errorDetail), 400) : null, new Date()
+    );
   } catch (err) {
     console.error('[AI 用量紀錄寫入失敗]:', err.message);
   }
@@ -126,12 +116,10 @@ const report = async (period, { monthlyBudgetUsd = 0, now = new Date() } = {}) =
       FROM ai_usage_logs l JOIN users u ON u.user_id = l.user_id
       WHERE l.user_id IS NOT NULL AND l.created_at >= ${from} AND l.created_at <= ${to}
       GROUP BY l.user_id, u.nickname ORDER BY cost_usd DESC, requests DESC LIMIT 5`,
-    hasColumn('ai_usage_logs', 'error_detail').then((withDetail) => prisma.$queryRawUnsafe(
-      `SELECT created_at, feature, provider, model, error_code${withDetail ? ', error_detail' : ''} FROM ai_usage_logs
-       WHERE status = 'error' AND created_at >= ? AND created_at <= ?
-       ORDER BY created_at DESC LIMIT 10`,
-      from, to
-    )),
+    prisma.$queryRaw`
+      SELECT created_at, feature, provider, model, error_code, error_detail FROM ai_usage_logs
+      WHERE status = 'error' AND created_at >= ${from} AND created_at <= ${to}
+      ORDER BY created_at DESC LIMIT 10`,
     monthCost(now),
     prisma.$queryRaw`SELECT COUNT(*) AS n FROM ai_book_reviews WHERE status = 'pending'`
   ]);

@@ -5,7 +5,6 @@ const { prisma, request } = h;
 const authToken = h.api('lib/auth-token');
 const { buildInfo } = h.api('lib/build-info');
 const maintenance = h.api('lib/maintenance');
-const schemaCheck = h.api('lib/schema-check');
 const security = h.api('middleware/security');
 
 const ME = '/api/notifications/unread-count';
@@ -29,7 +28,7 @@ const fakeRes = () => {
 module.exports = {
   name: '平台：狀態與共用中介層',
   tests: [
-    ['狀態端點回報版本、啟動時間與待執行的資料庫更新', async () => {
+    ['狀態端點回報維護狀態、版本與啟動時間', async () => {
       const res = await request('GET', '/api/status');
       assert.strictEqual(res.status, 200);
       assert.strictEqual(res.headers.get('cache-control'), 'no-store');
@@ -40,29 +39,6 @@ module.exports = {
       assert.strictEqual(data.commit, buildInfo.commit);
       assert.strictEqual(data.started_at, buildInfo.startedAt.toISOString());
       assert.deepStrictEqual(data.restore, { state: 'idle', started_at: null, finished_at: null });
-      assert.deepStrictEqual(data.pending_migrations, []);
-    }],
-
-    ['缺少資料表或欄位時列出對應的 migration 檔名', async () => {
-      h.reset({ schema: h.without(h.FULL_SCHEMA, ['user_sessions', 'ai_chat_sessions', 'users.share_token']) });
-      const missing = await schemaCheck.missingSchema();
-      const migrations = [...new Set(missing.map((m) => m.migration))];
-      assert.deepStrictEqual(migrations.sort(), [
-        '004_account_privacy_and_ops.sql', '007_consent_sessions_payment.sql', '013_ai_book_chat.sql'
-      ]);
-      assert.ok(missing.some((m) => m.table === 'users' && m.column === 'share_token'));
-    }],
-
-    ['資料表檢查結果會被快取，直到手動清除', async () => {
-      h.reset({ schema: h.without(h.FULL_SCHEMA, ['user_sessions']) });
-      assert.strictEqual(await schemaCheck.hasTables(['user_sessions', 'user_security']), false);
-      // 快取只保留「不存在」60 秒，資料表補上後仍會沿用舊結果，直到快取被清掉。
-      prisma.schema = h.FULL_SCHEMA;
-      assert.strictEqual(await schemaCheck.hasTables(['user_sessions', 'user_security']), false);
-      schemaCheck.resetCache();
-      assert.strictEqual(await schemaCheck.hasTables(['user_sessions', 'user_security']), true);
-      assert.strictEqual(await schemaCheck.hasColumn('users', 'share_token'), true);
-      assert.strictEqual(await schemaCheck.hasColumn('users', '沒有這個欄位'), false);
     }],
 
     ['維護模式只放行狀態端點', () => {

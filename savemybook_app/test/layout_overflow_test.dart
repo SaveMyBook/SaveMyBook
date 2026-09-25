@@ -408,7 +408,6 @@ Map<String, dynamic> aiSettingsData() => {
         {'id': 'gemini', 'name': 'Gemini', 'key_configured': true, 'vision': true, 'web_search': true, 'default_model': 'gemini-3.1-flash-lite'},
         {'id': 'openai', 'name': 'OpenAI', 'key_configured': true, 'vision': true, 'web_search': true, 'default_model': 'gpt-5-nano'},
       ],
-      'migration_ready': false,
     };
 
 Map<String, dynamic> aiUsageData() => {
@@ -584,7 +583,6 @@ Object? fakeData(String method, String path) {
             {'id': 'line', 'name': 'LINE', 'configured': false},
             {'id': 'discord', 'name': 'Discord', 'configured': false},
           ],
-          'migration_ready': true,
         },
     'GET /security': () => {'available': true, 'has_payment_pin': true, 'pin_locked_until': null, 'biometric_pay_enabled': true, 'passkey_available': true, 'has_passkey': true},
     'GET /auth/passkeys/status': () => {'enabled': true},

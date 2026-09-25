@@ -22,7 +22,6 @@ tags:
       | `AI_CONSENT_REQUIRED` | 403 | 使用者尚未同意將資料提供給 AI 服務商處理 |
       | `AI_DAILY_LIMIT` | 429 | 使用者今日使用次數已達上限 |
       | `AI_PROVIDER_ERROR` | 502 | 服務商錯誤、逾時或回應格式不正確 |
-      | `AI_UNAVAILABLE` | 503 | 伺服器尚未執行 `migrations/011_ai.sql`；書籍顧問另需 `migrations/013_ai_book_chat.sql` |
 
       模型輸出一律由伺服器驗證與清理（數值範圍、分類是否存在、書況列舉、網址格式），不會原樣轉交。
 
@@ -33,9 +32,8 @@ paths:
       operationId: getAiStatus
       tags: [ai]
       description: |
-        功能可用的條件：總開關與該功能皆開啟、該功能使用的服務商已設定金鑰、本月費用未達預算，
-        且伺服器已執行 011。`web_search` 表示上架輔助會以網路搜尋補齊書目與定價。
-        `book_chat` 另須伺服器已執行 013，否則該功能的端點回傳 503 `AI_UNAVAILABLE`。
+        功能可用的條件：總開關與該功能皆開啟、該功能使用的服務商已設定金鑰、本月費用未達預算。
+        `web_search` 表示上架輔助會以網路搜尋補齊書目與定價。
 
         `consented` 為請求者是否已同意 AI 資料處理；`providers_in_use` 為目前可用的使用者功能實際會使用的服務商顯示名稱
         （含上架輔助辨識照片時改用的服務商），供同意說明列出資料接收者。
@@ -606,7 +604,7 @@ components:
 
   responses:
     AiUnavailable:
-      description: AI 功能無法使用：未開放、未設定金鑰、本月預算用盡，或伺服器尚未執行 011。
+      description: AI 功能無法使用：未開放、未設定金鑰或本月預算用盡。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -617,8 +615,6 @@ components:
               value: { success: false, code: AI_BUDGET_EXCEEDED, message: AI 功能本月用量已達上限，請稍後再試 }
             未設定金鑰:
               value: { success: false, code: AI_NOT_CONFIGURED, message: AI 服務尚未完成設定 }
-            未執行資料庫更新:
-              value: { success: false, code: AI_UNAVAILABLE, message: AI 功能暫時無法使用，請稍後再試 }
 
     AiConsentRequired:
       description: 使用者尚未同意將資料提供給 AI 服務商處理。

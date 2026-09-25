@@ -114,7 +114,7 @@ const runUploadsSweep = async () => {
   }
 };
 
-// 預先建立語意檢索的向量；未設定金鑰、AI 關閉或尚未執行 020 時不做任何事。
+// 預先建立語意檢索的向量；未設定金鑰或 AI 關閉時不做任何事。
 const runEmbeddingSync = async () => {
   if (maintenance.current().active) return;
   try {

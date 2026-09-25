@@ -92,7 +92,7 @@ Flutter 引擎、shared_preferences、firebase_messaging、permission_handler �
 - **第三方登入**：詳見第六節與 `docs/social-login-setup.md`。提供 Sign in with Apple 是採用其他第三方登入時的審核要求（指南 4.8）。
 - **刪除帳號**：「設定 → 帳號管理」可自行申請刪除（`features/account/account_privacy_screen.dart`，驗證密碼後呼叫 `POST /users/me/deletion`），30 天內可登入取消，期滿後由排程匿名化帳號，符合審核指南 5.1.1(v)。同一頁面也提供個人資料匯出。
 - **刪除後保留的資料**：匿名化後仍保留訂單、錢包紀錄、客服工單、檢舉與爭議，以及登入紀錄與工作階段中的 IP 位址。隱私權政策須載明保留範圍與期間。
-- **隱私權政策內容待更新**：後台法律文件（初始內容見 API `migrations/003_restore_legal_content.sql`）仍寫刪除帳號須聯繫客服、提及 Cookie，也未說明 IP／裝置紀錄、推播權杖、語音訊息及 30 天緩衝期。送審前請於後台更新。
+- **隱私權政策內容待更新**：後台法律文件（初始內容見 API `prisma/seed.sql`）已說明 IP／裝置紀錄、推播權杖、語音訊息與自行申請刪除帳號，但尚未載明刪除帳號的 30 天緩衝期。送審前請於後台補上。
 - **IP 位址**：伺服器為帳號安全記錄登入 IP，未用於推算位置，因此未申報為位置資料。若日後用於地區判斷，須改申報「大略位置」。
 - **推播 entitlement**：`Runner.entitlements` 的 `aps-environment` 為 `development`；以 App Store 發佈方式封存時，Xcode 會依描述檔自動改為 production，請於 Archive 後確認。
 - **通知服務擴充功能**：`SaveMyBookNotificationService` 若讀寫 UserDefaults、檔案時間戳等必要理由 API，須在該資料夾另加 `PrivacyInfo.xcprivacy`。

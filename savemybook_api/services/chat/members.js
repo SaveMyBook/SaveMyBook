@@ -1,10 +1,7 @@
 const prisma = require('../../lib/prisma');
-const { hasTables, hasColumn } = require('../../lib/schema-check');
 const { placeholders } = require('../../lib/sql');
 
 const MAX_GROUP_NICKNAME = 30;
-
-const nicknameSupported = () => hasColumn('chat_room_members', 'group_nickname');
 
 const shape = (row) => ({
   user_id: Number(row.user_id),
@@ -17,17 +14,11 @@ const shape = (row) => ({
 });
 
 const active = async (roomId, db = prisma) => {
-  const rows = (await nicknameSupported())
-    ? await db.$queryRaw`
-        SELECT m.user_id, m.role, m.joined_at, m.last_read_message_id, m.group_nickname, u.nickname, u.avatar_url
-        FROM chat_room_members m JOIN users u ON u.user_id = m.user_id
-        WHERE m.room_id = ${roomId} AND m.left_at IS NULL
-        ORDER BY m.joined_at, m.user_id`
-    : await db.$queryRaw`
-        SELECT m.user_id, m.role, m.joined_at, m.last_read_message_id, u.nickname, u.avatar_url
-        FROM chat_room_members m JOIN users u ON u.user_id = m.user_id
-        WHERE m.room_id = ${roomId} AND m.left_at IS NULL
-        ORDER BY m.joined_at, m.user_id`;
+  const rows = await db.$queryRaw`
+    SELECT m.user_id, m.role, m.joined_at, m.last_read_message_id, m.group_nickname, u.nickname, u.avatar_url
+    FROM chat_room_members m JOIN users u ON u.user_id = m.user_id
+    WHERE m.room_id = ${roomId} AND m.left_at IS NULL
+    ORDER BY m.joined_at, m.user_id`;
   return rows.map(shape);
 };
 
@@ -37,7 +28,7 @@ const setGroupNickname = (db, roomId, userId, nickname) => db.$executeRaw`
 // 聊天室列表只需要各群組最後一則訊息發送者的群組暱稱，一次查齊，鍵為 room_id:user_id。
 const groupNicknames = async (roomIds) => {
   const ids = [...new Set(roomIds.map(Number))];
-  if (ids.length === 0 || !(await nicknameSupported())) return new Map();
+  if (ids.length === 0) return new Map();
   const rows = await prisma.$queryRawUnsafe(
     `SELECT room_id, user_id, group_nickname FROM chat_room_members
      WHERE room_id IN (${placeholders(ids)}) AND left_at IS NULL AND group_nickname IS NOT NULL`,
@@ -52,21 +43,13 @@ const isActive = async (roomId, userId) => {
   return rows.length > 0;
 };
 
-const join = (tx, roomId, entries, { joinedAt, lastReadId, historyFromId = null }) => (historyFromId == null
-  ? tx.$executeRawUnsafe(
-      `INSERT INTO chat_room_members (room_id, user_id, role, joined_at, left_at, last_read_message_id)
-       VALUES ${entries.map(() => '(?, ?, ?, ?, NULL, ?)').join(', ')}
-       ON DUPLICATE KEY UPDATE role = VALUES(role), joined_at = VALUES(joined_at), left_at = NULL,
-         last_read_message_id = VALUES(last_read_message_id)`,
-      ...entries.flatMap((e) => [roomId, e.userId, e.role, joinedAt, lastReadId])
-    )
-  : tx.$executeRawUnsafe(
-      `INSERT INTO chat_room_members (room_id, user_id, role, joined_at, left_at, last_read_message_id, history_from_id)
-       VALUES ${entries.map(() => '(?, ?, ?, ?, NULL, ?, ?)').join(', ')}
-       ON DUPLICATE KEY UPDATE role = VALUES(role), joined_at = VALUES(joined_at), left_at = NULL,
-         last_read_message_id = VALUES(last_read_message_id), history_from_id = VALUES(history_from_id)`,
-      ...entries.flatMap((e) => [roomId, e.userId, e.role, joinedAt, lastReadId, historyFromId])
-    ));
+const join = (tx, roomId, entries, { joinedAt, lastReadId, historyFromId }) => tx.$executeRawUnsafe(
+  `INSERT INTO chat_room_members (room_id, user_id, role, joined_at, left_at, last_read_message_id, history_from_id)
+   VALUES ${entries.map(() => '(?, ?, ?, ?, NULL, ?, ?)').join(', ')}
+   ON DUPLICATE KEY UPDATE role = VALUES(role), joined_at = VALUES(joined_at), left_at = NULL,
+     last_read_message_id = VALUES(last_read_message_id), history_from_id = VALUES(history_from_id)`,
+  ...entries.flatMap((e) => [roomId, e.userId, e.role, joinedAt, lastReadId, historyFromId])
+);
 
 const addDirect = (db, roomId, userIds, joinedAt) => db.$executeRawUnsafe(
   `INSERT IGNORE INTO chat_room_members (room_id, user_id, role, joined_at, last_read_message_id)
@@ -91,12 +74,9 @@ const unpin = (db, roomId, userId) => db.$executeRaw`
 // 退出或被移出群組時一併清掉靜音：否則日後被重新邀請回同一群組，舊的靜音會無聲生效。
 const clearRoomPreferences = async (db, roomId, userId) => {
   await unpin(db, roomId, userId);
-  if (await nicknameSupported()) {
-    await db.$executeRaw`UPDATE chat_room_members SET group_nickname = NULL WHERE room_id = ${roomId} AND user_id = ${userId}`;
-  }
-  if (!(await hasTables(['chat_room_mutes']))) return;
+  await db.$executeRaw`UPDATE chat_room_members SET group_nickname = NULL WHERE room_id = ${roomId} AND user_id = ${userId}`;
   await db.$executeRaw`DELETE FROM chat_room_mutes WHERE user_id = ${userId} AND room_id = ${roomId}`;
 };
 
 module.exports = {
-  MAX_GROUP_NICKNAME, nicknameSupported, setGroupNickname, groupNicknames, active, isActive, join, addDirect, leave, setRole, markRead, unpin, clearRoomPreferences };
+  MAX_GROUP_NICKNAME, setGroupNickname, groupNicknames, active, isActive, join, addDirect, leave, setRole, markRead, unpin, clearRoomPreferences };

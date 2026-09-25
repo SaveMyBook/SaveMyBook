@@ -1,6 +1,6 @@
 const assert = require('assert');
 const {
-  request, prisma, reset, SCHEMA, ok, addUser, openRoom, createGroup, notificationsFor
+  request, prisma, ok, addUser, openRoom, createGroup, notificationsFor
 } = require('./harness');
 
 const mentionRows = (roomId) => prisma.rows('chat_mentions').filter((m) => m.room_id === roomId);
@@ -172,21 +172,6 @@ const tests = [
     const res = ok(await request('GET', `/api/chat/rooms/${roomId}/messages?after_id=${afterId}`, { token: target.token }));
     assert.strictEqual(res.data.length, 1);
     assert.deepStrictEqual(res.data[0].mentions, [{ user_id: target.user_id, start: 0, length: 2 }]);
-  }],
-
-  ['尚未執行 010 時提及功能回報資料庫未更新', async () => {
-    reset({ schema: SCHEMA.v2 });
-    const owner = addUser({ nickname: '團主' });
-    const target = addUser({ nickname: '甲' });
-    const roomId = await createGroup(owner, [target.user_id]);
-
-    const res = await post(owner, roomId, {
-      content: '@甲 早安', mentions: [{ user_id: target.user_id, start: 0, length: 2 }]
-    });
-    assert.strictEqual(res.status, 503);
-    assert.strictEqual(res.body.code, 'CHAT_V3_UNAVAILABLE');
-    assert.strictEqual(res.body.message, '此功能暫時無法使用，請稍後再試');
-    assert.strictEqual(prisma.rows('chat_messages').filter((m) => m.message_type === 'text').length, 0);
   }]
 ];
 

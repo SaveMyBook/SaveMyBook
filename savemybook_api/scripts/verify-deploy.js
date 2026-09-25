@@ -4,6 +4,19 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { env } = require('../config/env');
 
+const MODELS = require('@prisma/client').Prisma.dmmf.datamodel.models;
+
+const missingSchema = async (prisma) => {
+  const rows = await prisma.$queryRaw`SELECT TABLE_NAME AS t, COLUMN_NAME AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()`;
+  const columns = new Set(rows.map((r) => `${r.t}.${r.c}`));
+  const tables = new Set(rows.map((r) => String(r.t)));
+  return MODELS.flatMap((m) => {
+    const table = m.dbName ?? m.name;
+    if (!tables.has(table)) return [table];
+    return m.fields.filter((f) => f.kind !== 'object' && !columns.has(`${table}.${f.dbName ?? f.name}`)).map((f) => `${table}.${f.dbName ?? f.name}`);
+  });
+};
+
 const results = [];
 const report = (ok, label, detail = '') => results.push({ ok, label, detail });
 
@@ -34,26 +47,20 @@ const main = async () => {
 
   if (prisma) {
     try {
-      const { missingSchema } = require('../lib/schema-check');
-      const missing = await missingSchema();
-      const files = [...new Set(missing.map((m) => m.migration))];
-      report(files.length === 0, '資料庫結構', files.length
-        ? `尚未執行：${files.join('、')}（缺少 ${missing.map((m) => (m.column ? `${m.table}.${m.column}` : m.table)).join('、')}）`
-        : '所有 migration 都已執行');
+      const missing = await missingSchema(prisma);
+      report(missing.length === 0, '資料庫結構與 prisma/schema.prisma 一致', missing.length
+        ? `缺少 ${missing.join('、')}，請執行 npx prisma db push`
+        : `${MODELS.length} 個資料表皆已建立`);
     } catch (err) {
-      report(false, '資料庫結構', err.message);
+      report(false, '資料庫結構與 prisma/schema.prisma 一致', err.message);
     }
   }
 
-  try {
-    const client = require('@prisma/client');
-    const generated = Object.values(client.$Enums?.wallet_transactions_type ?? {}).includes('transfer_in');
-    report(generated, 'Prisma Client 與 schema 一致', generated
-      ? '已包含 009 的轉帳交易類型'
-      : '缺少 transfer_in／transfer_out，請執行 npx prisma db pull && npx prisma generate 後重新啟動 API');
-  } catch (err) {
-    report(false, 'Prisma Client 與 schema 一致', `${err.message}（請執行 npx prisma db pull && npx prisma generate）`);
-  }
+  const declared = [...fs.readFileSync(path.join(__dirname, '../prisma/schema.prisma'), 'utf8').matchAll(/^model (\w+) \{/gm)].map((m) => m[1]);
+  const stale = declared.filter((name) => !MODELS.some((m) => m.name === name));
+  report(stale.length === 0, 'Prisma Client 與 schema.prisma 一致', stale.length
+    ? `缺少 ${stale.join('、')}，請執行 npx prisma generate 後重新啟動 API`
+    : '');
 
   const { PROVIDERS, keyConfigured } = require('../lib/ai');
   const aiKeys = Object.values(PROVIDERS).map((p) => `${p.name} ${keyConfigured(p.id) ? '已設定' : '未設定'}`);

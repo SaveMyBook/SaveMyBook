@@ -24,7 +24,6 @@ registerModels({
 const { isoCBOR, isoBase64URL } = require('@simplewebauthn/server/helpers');
 const authToken = api('lib/auth-token');
 const bcrypt = api('node_modules/bcrypt');
-const schemaCheck = api('lib/schema-check');
 const authSettings = api('services/auth-settings');
 
 const RP_ID = 'savemybook.today';
@@ -50,21 +49,8 @@ prisma.onSql(/SELECT session_id, user_id, sid, pay_key_hash, last_seen_at FROM u
 
 // ---------- 資料庫狀態 ----------
 
-const BASE_TABLES = [
-  'user_sessions', 'user_security', 'user_identities', 'auth_settings', 'oauth_states', 'oauth_results'
-];
-const PASSKEY_TABLES = ['user_passkeys', 'webauthn_challenges'];
-
-const FULL_SCHEMA = {
-  tables: [...BASE_TABLES, ...PASSKEY_TABLES],
-  columns: ['users.password_set', 'login_logs.login_method', 'users.deletion_requested_at', 'users.anonymized_at']
-};
-
-const withoutPasskeys = () => ({ ...FULL_SCHEMA, tables: BASE_TABLES });
-
-const reset = ({ schema = FULL_SCHEMA, tables = {} } = {}) => {
+const reset = ({ tables = {} } = {}) => {
   server.reset({
-    schema,
     tables: {
       users: [], login_logs: [], user_sessions: [], user_security: [], user_identities: [], auth_settings: [],
       user_passkeys: [], webauthn_challenges: [], notifications: [], admin_permissions: [], admin_operation_logs: [],
@@ -76,7 +62,6 @@ const reset = ({ schema = FULL_SCHEMA, tables = {} } = {}) => {
 server.setDefaultReset(() => reset());
 
 onReset(() => {
-  schemaCheck.resetCache();
   authSettings.clearCache();
 });
 
@@ -245,6 +230,6 @@ const registerPasskey = async (ctx, { label = 'iPhone 17', authenticator = new A
 };
 
 module.exports = {
-  api, prisma, request, runSuite, runFolder, reset, FULL_SCHEMA, withoutPasskeys, addUser, addSession, signedIn,
+  api, prisma, request, runSuite, runFolder, reset, addUser, addSession, signedIn,
   verifyTokenFor, sensitive, Authenticator, registerPasskey, RP_ID, ORIGIN, ANDROID_ORIGIN, authToken
 };

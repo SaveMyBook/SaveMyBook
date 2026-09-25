@@ -179,13 +179,6 @@ const tests = [
     });
     const wrongKind = await linkLogin({ code: 'a'.repeat(32), email: 'member@example.com', password: PASSWORD });
     assert.strictEqual(wrongKind.body.code, 'OAUTH_CODE_INVALID');
-  }],
-
-  ['未執行 014 時回 503', async () => {
-    h.reset({ schema: h.withoutSessions(h.withoutAuthMigration()) });
-    const res = await linkLogin({ provider: 'google', id_token: googleToken(), email: 'member@example.com', password: PASSWORD });
-    assert.strictEqual(res.status, 503);
-    assert.strictEqual(res.body.code, 'AUTH_SOCIAL_UNAVAILABLE');
   }]
 ];
 

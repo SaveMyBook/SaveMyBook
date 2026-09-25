@@ -1,22 +1,17 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
-title 書籍預約狀態機（reservations.status）
+hide empty description
 
-[*] --> pending : 買家於聊天室發起預約\n(hours: 24/48/72)
-pending --> confirmed : 賣家接受(accept)\n設定pickup_deadline=現在+hours，\n自動取消同書其他pending預約
-pending --> cancelled : 賣家拒絕(decline)\n或任一方取消(cancel)
-confirmed --> cancelled : 未到期前任一方取消(cancel)
-pending --> expired : 待回應超過24小時\n(排程每5分鐘處理)
-confirmed --> expired : 已確認但超過pickup_deadline\n(排程每5分鐘處理)
-cancelled --> [*]
-expired --> [*]
-
-note right of confirmed
-  已確認且未到期的預約會阻擋
-  其他買家將該書加入購物車/結帳
-  (409 BOOK_RESERVED)，
-  但不變更 books.status。
-end note
+[*] --> 待回應 : 買家發起預約
+待回應 --> 保留中 : 賣家接受
+待回應 --> 已取消 : 賣家婉拒或買家取消
+待回應 --> 已逾期 : 24 小時未回應
+保留中 --> 已取消 : 任一方取消
+保留中 --> 已逾期 : 保留時間到期
+已取消 --> [*]
+已逾期 --> [*]
 @enduml

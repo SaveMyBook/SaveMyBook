@@ -103,8 +103,6 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 須先於「帳號安全」設定密碼，否則驗證回傳 403 \`PASSWORD_NOT_SET\`。
 
 交易密碼規則、錯誤鎖定與生物辨識付款的運作方式見「帳號安全」一節。
-伺服器尚未執行 \`migrations/007_consent_sessions_payment.sql\` 時略過此驗證，
-帳號安全相關端點回傳 503 \`SECURITY_UNAVAILABLE\`。
 
 ---
 
@@ -124,13 +122,9 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`PIN_LOCKED\` | 423 | 交易密碼連續錯誤 5 次，鎖定 15 分鐘，回應附帶 \`locked_until\` | 顯示解除時間 |
 | \`PIN_FORMAT\`、\`PIN_TOO_WEAK\` | 400 | 設定的交易密碼不是 6 位數字，或過於簡單 | 於輸入欄位提示規則 |
 | \`BIOMETRIC_KEY_INVALID\` | 400 | 這台裝置的生物辨識付款金鑰已失效 | 清除本機金鑰，改用交易密碼 |
-| \`SESSION_REQUIRED\` | 403 | Token 未綁定裝置工作階段（舊版 Token） | 引導重新登入 |
-| \`SECURITY_UNAVAILABLE\` | 503 | 伺服器尚未執行帳號安全所需的資料庫更新 | 隱藏相關功能，稍後再試 |
+| \`SESSION_REQUIRED\` | 403 | Token 未綁定裝置工作階段 | 引導重新登入 |
 | \`CHAT_BLOCKED\` | 403 | 請求者已封鎖對方，無法傳送或編輯訊息、建立預約、轉帳或請款 | 顯示解除封鎖的入口 |
 | \`RECIPIENT_UNAVAILABLE\` | 400 | 對方帳號停用，或對方已封鎖請求者（兩者刻意不區分） | 停用輸入欄位 |
-| \`CHAT_CONTROLS_UNAVAILABLE\` | 503 | 伺服器尚未執行聊天室靜音與封鎖所需的資料庫更新 | 提示稍後再試 |
-| \`CHAT_V2_UNAVAILABLE\` | 503 | 伺服器尚未執行群組、釘選、自訂暱稱、編輯訊息與轉帳所需的資料庫更新 009，或尚未重新產生 Prisma Client | 隱藏相關功能，稍後再試 |
-| \`CHAT_V3_UNAVAILABLE\` | 503 | 伺服器尚未執行提及成員所需的資料庫更新 010，帶有提及的訊息無法送出或編輯 | 改以不含提及的方式送出，稍後再試 |
 | \`PIN_LIMIT\` | 400 | 釘選的聊天室已達 10 個 | 提示先取消其他釘選 |
 | \`EDIT_WINDOW_PASSED\` | 400 | 訊息送出已超過 15 分鐘，無法編輯 | 隱藏編輯選項 |
 | \`RECALL_WINDOW_PASSED\` | 400 | 訊息送出已超過 1 小時，無法收回 | 隱藏收回選項 |
@@ -149,7 +143,7 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`AI_CONSENT_REQUIRED\` | 403 | 使用者尚未同意將資料提供給 AI 服務商處理 | 顯示 AI 資料處理同意說明 |
 | \`AI_DAILY_LIMIT\` | 429 | 使用者今日 AI 使用次數已達上限 | 提示明日再試 |
 | \`AI_PROVIDER_ERROR\` | 502 | AI 服務商錯誤、逾時或回應格式不正確 | 提示稍後再試 |
-| \`AI_UNAVAILABLE\` | 503 | 伺服器尚未執行 AI 功能所需的資料庫更新 011 | 隱藏 AI 功能入口 |
+| \`AI_UNAVAILABLE\` | 503 | AI 功能目前未開放或尚未完成設定（交易申訴分析） | 隱藏 AI 分析入口 |
 | \`INVALID_ID_TOKEN\` | 401 | 第三方登入憑證無效、過期或簽章不符 | 重新取得登入憑證後再試 |
 | \`PROVIDER_MISMATCH\` | 400 | 登入憑證的實際來源與請求的 \`provider\` 不符 | 檢查 App 的登入流程 |
 | \`NO_ACCOUNT_FOR_PROVIDER\` | 404 | 此第三方帳號尚未綁定任何帳號，且請求未帶 \`create\`；可能附帶 \`provider_email\` | 詢問使用者要登入既有帳號並綁定（\`POST /api/auth/social/link-login\`）、建立新帳號，還是取消 |
@@ -165,8 +159,8 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`OAUTH_STATE_INVALID\` | 400 | 授權連結已逾時、已使用或不屬於此渠道 | 重新開始授權流程 |
 | \`OAUTH_CODE_INVALID\` | 400 | 一次性碼不存在、已使用或已逾時 | 重新開始授權流程 |
 | \`AUTH_PROVIDER_ERROR\` | 502 | 無法連線至第三方登入服務或其回應不正確 | 提示稍後再試 |
-| \`AUTH_SOCIAL_UNAVAILABLE\` | 503 | 伺服器尚未執行社群登入所需的資料庫更新 014 | 隱藏社群登入入口 |
-| \`PASSKEY_UNAVAILABLE\` | 503 | 伺服器尚未執行通行密鑰所需的資料庫更新 016，或未設定 RP ID 與來源 | 隱藏通行密鑰入口 |
+| \`AUTH_SOCIAL_UNAVAILABLE\` | 503 | 伺服器尚未設定 Firebase 專案參數 | 隱藏 Google、Apple 與手機號碼登入入口 |
+| \`PASSKEY_UNAVAILABLE\` | 503 | 伺服器未設定通行密鑰的 RP ID 與來源 | 隱藏通行密鑰入口 |
 | \`PASSKEY_CHALLENGE_INVALID\`、\`PASSKEY_CHALLENGE_EXPIRED\` | 400 | 挑戰值已使用、逾時，或用途與範圍不符 | 重新取得 options 後再試 |
 | \`PASSKEY_VERIFICATION_FAILED\`、\`PASSKEY_INVALID_RESPONSE\` | 400 | 通行密鑰的簽章、來源或格式驗證未通過 | 提示改用密碼 |
 | \`PASSKEY_NOT_RECOGNIZED\` | 400 | 伺服器沒有這組通行密鑰，可能已刪除 | 提示改用密碼，並請使用者至系統設定移除該通行密鑰 |

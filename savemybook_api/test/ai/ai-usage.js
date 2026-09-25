@@ -51,13 +51,6 @@ module.exports = {
       assert.strictEqual(row.error_detail.length, 400);
     }],
 
-    ['寫入用量：尚未執行 012 時不寫 error_detail 欄位', async () => {
-      h.reset({ schema: h.without(h.DEFAULT_SCHEMA, ['ai_usage_logs.error_detail']) });
-      await usage.log({ feature: 'support', provider: 'gemini', model: 'm', status: 'error', errorCode: 'SERVER', errorDetail: 'x' });
-      assert.strictEqual('error_detail' in logRow(), false);
-      assert.strictEqual(logRow().error_code, 'SERVER');
-    }],
-
     ['寫入用量失敗不會讓呼叫端拋錯', async () => {
       h.onSql(/INSERT INTO ai_usage_logs/, () => {
         throw new Error('資料表鎖定');

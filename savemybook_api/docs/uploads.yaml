@@ -143,7 +143,7 @@ paths:
         圖片須透過工單內容回應中的簽章網址讀取。
 
         未送出的圖片保留 24 小時後自動刪除，每位使用者同時最多 20 張。
-        與佐證檔案上傳合計，10 分鐘內最多 30 次。尚未執行遷移 017 時回傳 503。
+        與佐證檔案上傳合計，10 分鐘內最多 30 次。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -187,12 +187,6 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
-        '503':
-          description: 伺服器尚未執行遷移 017。
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: SUPPORT_ATTACHMENTS_UNAVAILABLE, message: 圖片附件暫時無法使用，請稍後再試 }
 
   /api/uploads/voice:
     post:

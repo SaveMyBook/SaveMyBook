@@ -1,50 +1,61 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：限流、維護模式與資料庫結構降級
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 使用者 as User
-participant "App" as App
-participant "middleware/rateLimit.js" as RateLimit
-participant "lib/maintenance.js" as Maint
-participant "任一路由" as Route
-participant "lib/schema-check.js" as SchemaCheck
-participant "services/xxx.js" as Service
-database "information_schema" as InfoSchema
+actor 管理員
+actor 使用者
+participant UI
+participant API
+database DB
 
-User -> App : 發出API請求
-App -> RateLimit : 依IP或使用者檢查行程內滑動視窗計數
-alt 超過上限（如登入15分鐘10次）
-  RateLimit --> App : 429 RATE_LIMITED + Retry-After
-else 未超過
-  RateLimit -> Maint : 檢查是否處於維護模式
-  alt 維護模式中 且 非 GET /api/status
-    Maint --> App : 503 { code:'MAINTENANCE', message, Retry-After:30 }
-  else 正常
-    Maint -> Route : 放行至業務路由
-    Route -> Service : 呼叫服務層
-    Service -> SchemaCheck : hasTables(['group_chat', ...])\n（結果快取60秒，已存在者永久快取）
-    SchemaCheck -> InfoSchema : 檢查所需資料表/欄位是否存在
-    alt 缺少對應migration
-      SchemaCheck --> Service : false
-      Service --> App : 503 附功能專屬錯誤碼\n(如CHAT_V2_UNAVAILABLE、\nAI_UNAVAILABLE、PASSKEY_UNAVAILABLE)
-      note right: 其他已就緒的功能不受影響，\n僅該功能降級
-    else 結構齊全
-      SchemaCheck --> Service : true
-      Service --> App : 200 正常回應
-    end
+== 請求限流與維護檢查 ==
+使用者 -> UI : 送出操作（如登入）
+activate 使用者
+activate UI
+UI -> API : 發出 API 請求
+activate API
+API -> API : 檢查是否處於維護模式
+alt 維護模式中（查詢系統狀態除外）
+  API --> UI : 503 Service Unavailable\n（建議 30 秒後重試）
+  UI --> 使用者 : 顯示「系統維護中，請稍後再試」
+else 正常服務
+  API -> API : 依 IP、帳號或使用者累計次數\n（如登入每 15 分鐘 10 次）
+  alt 超過限流上限
+    API --> UI : 429 Too Many Requests\n（附重試等待秒數）
+    UI --> 使用者 : 顯示「嘗試次數過多，請稍後再試」
+  else 未超過上限
+    API -> DB : 處理請求
+    API --> UI : 200 OK
+    UI --> 使用者 : 顯示操作結果
   end
 end
+deactivate API
+deactivate UI
+deactivate 使用者
 
-== App 啟動相容性檢查 ==
-App -> Route : 登入後 GET /api/status（不需登入，維護期間仍可存取）
-Route --> App : { maintenance, api_revision, commit,\npending_migrations }
-alt api_revision過舊 或 有未執行的migration
-  alt 一般會員
-    App -> User : 顯示「部分功能暫時無法使用」
-  else 管理員
-    App -> User : 顯示詳細對話框（缺少的migration、\ncommit、建議npm run verify）
-  end
+== 維護模式的啟動與解除 ==
+管理員 -> UI : 選擇備份並輸入密碼執行還原
+activate 管理員
+activate UI
+UI -> API : POST /api/admin/backups/:id/restore
+activate API
+API -> DB : 先建立還原前安全備份
+API -> API : 進入維護模式
+API --> UI : 200 OK（開始還原）
+API -> DB : 匯入備份資料
+loop 每 2 秒，直到還原結束
+  UI -> API : GET /api/status
+  API --> UI : 回傳維護與還原狀態
 end
+API -> API : 還原結束，解除維護模式
+UI --> 管理員 : 顯示還原結果
+deactivate API
+deactivate UI
+deactivate 管理員
 @enduml

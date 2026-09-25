@@ -124,8 +124,6 @@ Firebase 需要 Service ID 與私密金鑰才能驗證 Apple 憑證：
 
 金鑰只放伺服器環境變數，不進資料庫、不回傳 App。
 
-執行資料庫更新 `migrations/014_auth_identities.sql`。未執行前 `GET /api/auth/providers` 會回 `social_enabled: false`，App 不顯示任何社群登入按鈕，後台設定頁會提示「伺服器尚未執行資料庫更新 014」。
-
 ---
 
 ## 七、後台開關

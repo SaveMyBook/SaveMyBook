@@ -1,7 +1,7 @@
 const assert = require('assert');
 const {
   request, addUser, addAdmin, addBook, addCabinet, addCartItem, addOrder, addPaidOrder, addReservation,
-  tokenFor, bookOf, orderOf, balanceOf, transactionsOf, notificationsOf, logs, prisma
+  tokenFor, verifyHeaders, bookOf, orderOf, balanceOf, transactionsOf, notificationsOf, logs, prisma
 } = require('./harness');
 
 // 買家、賣家與一本上架中的書：多數訂單測試的共同起點。
@@ -12,7 +12,8 @@ const scene = ({ balance = 500, price = 100, cabinet = null } = {}) => {
   return { buyer, seller, book, buyerToken: tokenFor(buyer), sellerToken: tokenFor(seller) };
 };
 
-const checkout = (token, body = {}) => request('POST', '/api/orders/checkout', { token, body });
+const checkout = (token, body = {}) =>
+  request('POST', '/api/orders/checkout', { token, headers: verifyHeaders(token, 'payment'), body });
 const setStatus = (token, orderId, status) =>
   request('PATCH', `/api/orders/${orderId}/status`, { token, body: { status } });
 

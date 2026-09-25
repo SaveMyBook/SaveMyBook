@@ -14,7 +14,7 @@ const rejectsBadRequest = (input, message) => {
 
 const adminToken = (permissions) => {
   const admin = h.addAdmin(permissions);
-  return { admin, token: h.tokenFor(admin) };
+  return { admin, token: h.tokenFor(admin), headers: h.verifyHeaders(admin) };
 };
 
 module.exports = {
@@ -104,16 +104,6 @@ module.exports = {
       assert.strictEqual(list.find((p) => p.id === 'gemini').web_search, true);
     }],
 
-    ['尚未執行 011 時儲存設定回 503 AI_UNAVAILABLE', async () => {
-      h.reset({ schema: h.without(h.DEFAULT_SCHEMA, ['ai_settings']) });
-      await assert.rejects(
-        () => settingsService.save({ enabled: true }, { adminId: 1, req: null }),
-        (err) => err.status === 503
-          && err.code === 'AI_UNAVAILABLE'
-          && err.message === 'AI 功能暫時無法使用，請稍後再試'
-      );
-    }],
-
     ['儲存設定會寫入資料庫並留下操作紀錄', async () => {
       const admin = h.addAdmin({ can_manage_system: true });
       const saved = await settingsService.save(
@@ -163,29 +153,29 @@ module.exports = {
       assert.strictEqual(res.body.message, '權限不足，僅限管理員執行此操作');
     }],
 
-    ['讀取設定：具備權限時回傳設定、服務商清單與資料庫狀態', async () => {
+    ['讀取設定：具備權限時回傳設定與服務商清單', async () => {
       const { token } = adminToken({ can_manage_system: true });
       h.setSettings({ enabled: true });
       const res = await request('GET', '/api/admin/ai/settings', { token });
       assert.strictEqual(res.status, 200);
-      assert.strictEqual(res.body.data.migration_ready, true);
       assert.strictEqual(res.body.data.settings.enabled, true);
       assert.strictEqual(res.body.data.providers.length, 3);
     }],
 
     ['更新設定：settings 不是物件時回 400', async () => {
-      const { token } = adminToken({ can_manage_system: true });
+      const { token, headers } = adminToken({ can_manage_system: true });
       for (const body of [{}, { settings: [] }, { settings: 'on' }]) {
-        const res = await request('PUT', '/api/admin/ai/settings', { token, body });
+        const res = await request('PUT', '/api/admin/ai/settings', { token, headers, body });
         assert.strictEqual(res.status, 400);
         assert.strictEqual(res.body.message, '請提供 settings 設定內容');
       }
     }],
 
     ['更新設定：成功後回傳最新設定', async () => {
-      const { token } = adminToken({ can_manage_system: true });
+      const { token, headers } = adminToken({ can_manage_system: true });
       const res = await request('PUT', '/api/admin/ai/settings', {
         token,
+        headers,
         body: { settings: { enabled: true, features: { recommend: { enabled: false } } } }
       });
       assert.strictEqual(res.status, 200);

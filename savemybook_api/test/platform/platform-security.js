@@ -22,26 +22,9 @@ const sensitiveHeaders = (ctx) => ({ 'x-verify-token': h.verifyTokenFor({ user: 
 module.exports = {
   name: '平台：帳號安全',
   tests: [
-    ['尚未執行 007 時安全設定回報為不可用', async () => {
-      h.reset({ schema: h.without(h.FULL_SCHEMA, ['user_sessions', 'user_security']) });
-      const ctx = signedIn();
-      const res = await request('GET', '/api/security', { token: ctx.token });
-      assert.strictEqual(res.status, 200);
-      assert.deepStrictEqual(res.body.data, {
-        available: false, has_password: true, has_payment_pin: false, pin_locked_until: null, biometric_pay_enabled: false,
-        passkey_available: true, has_passkey: false
-      });
-
-      const set = await request('PUT', '/api/security/payment-pin', { token: ctx.token, body: { pin: PIN } });
-      assert.strictEqual(set.status, 503);
-      assert.strictEqual(set.body.code, 'SECURITY_UNAVAILABLE');
-      assert.strictEqual(set.body.message, '交易密碼功能暫時無法使用，請稍後再試');
-    }],
-
     ['尚未設定交易密碼時的安全設定內容', async () => {
       const ctx = signedIn();
       const res = await request('GET', '/api/security', { token: ctx.token });
-      assert.strictEqual(res.body.data.available, true);
       assert.strictEqual(res.body.data.has_payment_pin, false);
       assert.strictEqual(res.body.data.biometric_pay_enabled, false);
       assert.strictEqual(res.body.data.pin_locked_until, null);

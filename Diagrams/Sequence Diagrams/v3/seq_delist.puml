@@ -1,43 +1,58 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：取消(下架)/重新上架書籍
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 賣家 as Seller
-participant "BookManageScreen /\nSalesHistoryScreen" as UI
-participant "ApiService(BooksApi)" as ApiSvc
-participant "DELETE /api/books/:id" as DelRoute
-participant "PATCH relist" as RelistRoute
-participant "books.js" as BooksSvc
-database "Prisma / MariaDB" as DB
+actor 賣家
+participant UI
+participant API
+database DB
 
-Seller -> UI : 點擊「下架」
-UI -> UI : showConfirmDialog(確認下架)
-UI -> ApiSvc : removeBook(bookId)
-ApiSvc -> DelRoute : DELETE /api/books/:id
-DelRoute -> BooksSvc : remove(bookId, user)
-BooksSvc -> BooksSvc : findOwnedBook(bookId, user)
-alt book.status == 'reserved'
-  BooksSvc --> DelRoute : 409「請先處理訂單再下架」
-  DelRoute --> UI : 顯示錯誤
+賣家 -> UI : 點擊「下架」並確認
+activate 賣家
+activate UI
+UI -> API : DELETE /api/books/:id
+activate API
+API -> DB : 查詢擁有者、預約保留與交易狀態
+activate DB
+DB --> API : 回傳書籍狀態
+deactivate DB
+alt 預約保留期間
+  API --> UI : 409 BOOK_HELD
+  UI --> 賣家 : 顯示「保留期間無法下架」
+else 交易中或已售出
+  API --> UI : 409 請先處理訂單
+  UI --> 賣家 : 顯示錯誤訊息
 else 可下架
-  BooksSvc -> DB : books.update(status='removed')
-  BooksSvc --> DelRoute : 200 OK
-  DelRoute --> UI : 顯示下架成功 + Undo提示
+  API -> DB : 書籍設為「已下架」
+  API --> UI : 200 OK
+  UI --> 賣家 : 顯示下架成功與「復原」
 end
+deactivate API
 
-opt 使用者點擊「復原/Undo」
-  Seller -> UI : 點擊 Undo
-  UI -> ApiSvc : relistBook(bookId)
-  ApiSvc -> RelistRoute : PATCH /api/books/:id/relist
-  RelistRoute -> BooksSvc : update(bookId, user, {status:'on_sale'})
-  BooksSvc -> BooksSvc : violationLocked(book)?
-  alt 未被違規鎖定
-    BooksSvc -> DB : books.update(status='on_sale')
-    BooksSvc --> UI : 200 重新上架成功
-  else 違規鎖定中
-    BooksSvc --> UI : 403 BOOK_NOT_APPROVED（須聯絡客服）
+opt 賣家重新上架已下架的書籍
+  賣家 -> UI : 點擊「復原」或「重新上架」
+  UI -> API : PUT /api/books/:id\n（狀態改為販售中）
+  activate API
+  API -> DB : 查詢審核與檢舉紀錄
+  activate DB
+  DB --> API : 回傳查詢結果
+  deactivate DB
+  alt 違規下架（審核未通過或檢舉成立）
+    API --> UI : 403 須聯絡客服
+    UI --> 賣家 : 顯示「無法自行重新上架」
+  else 可重新上架
+    API -> DB : 書籍設為「販售中」\n（待審核者仍暫不公開）
+    API --> UI : 200 OK
+    UI --> 賣家 : 顯示「已重新上架」
   end
+  deactivate API
 end
+deactivate UI
+deactivate 賣家
 @enduml

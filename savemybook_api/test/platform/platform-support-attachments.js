@@ -39,14 +39,6 @@ module.exports = {
       assert.deepStrictEqual(second.attachments, []);
     }],
 
-    ['資料匯出：尚未執行 017 時附件為空陣列', async () => {
-      h.reset({ schema: h.without(h.FULL_SCHEMA, ['support_ticket_attachments']) });
-      const user = h.addUser();
-      prisma.rows('support_tickets').push({ ticket_id: 1, user_id: user.user_id, messages: [{ message_id: 1 }] });
-      const data = await account.exportData(user.user_id);
-      assert.deepStrictEqual(data.support_tickets[0].messages[0].attachments, []);
-    }],
-
     ['匿名化：移除本人上傳與本人工單內的附件檔案', async () => {
       const user = h.addUser();
       const staff = h.addUser({ role: 'admin' });

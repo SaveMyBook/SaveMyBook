@@ -1,46 +1,40 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
+skinparam usecase {
+  BackgroundColor white
+}
 left to right direction
-title 使用個案圖：錢包、會員成長與客服模組
 
-actor 會員 as Member
-actor "AI 服務" as AI
-actor 管理員 as Admin
+actor 會員
+actor 管理員
 
-rectangle "SaveMyBook 系統" {
-  usecase "查看錢包餘額/\n交易紀錄" as UC1
-  usecase "查看待撥款項" as UC2
-  usecase "查看常見問題(FAQ)" as UC3
-  usecase "建立客服工單" as UC4
-  usecase "回覆/結案客服工單" as UC5
-  usecase "AI客服對話" as UC6
-  usecase "AI客服轉真人\n(升級為工單)" as UC7
-  usecase "查看會員等級與\n成就進度" as UC8
-  usecase "管理員手動調整\n會員錢包餘額" as UC9
-  usecase "管理員處理客服工單" as UC10
+rectangle "SaveMyBook - 錢包、會員與客服" {
+  usecase "管理代幣" as wallet
+  usecase "查看交易紀錄" as txn
+  usecase "查看待撥款項" as pending
+  usecase "查看會員等級與成就" as level
+  usecase "查看常見問題" as faq
+  usecase "AI 客服" as aisupport
+  usecase "轉真人客服" as handoff
+  usecase "建立客服工單" as ticket
+  usecase "回覆與結案工單" as reply
+  usecase "調整會員錢包" as adjust
+  usecase "處理客服工單" as handle
 }
 
-Member --> UC1
-Member --> UC2
-Member --> UC3
-Member --> UC4
-Member --> UC5
-Member --> UC6
-Member --> UC8
-UC6 ..> UC7 : <<extend>>
-UC7 ..> UC4 : <<include>>
-UC6 --> AI
-
-Admin --> UC9
-Admin --> UC10
-UC5 <.. UC10 : <<extend>>
-
-note bottom of UC9
-  目前系統尚未開放使用者
-  自助儲值／提領，
-  相關需求須聯絡客服，
-  由管理員於後台手動調整。
-end note
+會員 --> wallet
+wallet <.. txn : <<extend>>
+wallet <.. pending : <<extend>>
+會員 --> level
+會員 --> faq
+會員 --> aisupport
+會員 --> ticket
+會員 --> reply
+aisupport <.. handoff : <<extend>>
+管理員 --> adjust
+管理員 --> handle
 @enduml

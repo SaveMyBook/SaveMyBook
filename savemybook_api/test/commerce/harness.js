@@ -5,6 +5,7 @@ process.env.GEMINI_API_KEY = '';
 process.env.OPENAI_API_KEY = '';
 process.env.GOOGLE_BOOKS_API_KEY = '';
 
+const crypto = require('crypto');
 const server = require('../lib/server');
 const { install, registerModels } = require('./fake-prisma');
 
@@ -68,30 +69,15 @@ registerModels({
 
 // ---------- 資料庫狀態 ----------
 
-// 只宣告本組需要的遷移：user_sessions／user_security 與聊天室 V2 皆視為未建立，
-// 讓驗證與聊天室權限走簡化路徑，測試聚焦在交易邏輯本身。
-const SCHEMA = {
-  tables: [
-    'db_backups', 'push_devices', 'user_legal_consents',
-    'ai_settings', 'ai_usage_logs', 'ai_support_sessions', 'ai_support_messages',
-    'ai_recommendation_cache', 'ai_book_reviews', 'ai_consents'
-  ],
-  columns: [
-    'users.deletion_requested_at', 'users.anonymized_at', 'users.share_token', 'books.share_token',
-    'admin_permissions.can_manage_system', 'smart_cabinets.is_maintenance'
-  ]
-};
-
 const TABLES = [
   'users', 'admin_permissions', 'admin_operation_logs', 'notifications', 'login_logs',
   'books', 'book_images', 'book_categories', 'smart_cabinets', 'cabinet_slots',
   'orders', 'order_items', 'shopping_cart', 'favorites', 'reservations', 'recommendation_logs',
   'wallets', 'wallet_transactions', 'refund_records', 'transaction_disputes', 'reports',
-  'support_tickets', 'support_ticket_messages', 'chat_rooms', 'chat_messages',
+  'support_tickets', 'support_ticket_messages', 'chat_rooms', 'chat_room_members', 'chat_messages',
   'ai_settings', 'ai_usage_logs', 'ai_book_reviews'
 ];
 
-const schemaCheck = api('lib/schema-check');
 const aiSettings = api('services/ai/settings');
 const aiRunner = api('services/ai/runner');
 const authToken = api('lib/auth-token');
@@ -118,9 +104,26 @@ prisma.onSql(/^INSERT INTO ai_book_reviews/i, (sql, values) => {
   return 1;
 });
 
+// 聊天室權限以 LEFT JOIN 取回成員身分，迷你直譯器不支援。
+prisma.onSql(/LEFT JOIN chat_room_members m ON m\.room_id = r\.room_id/, (sql, [userId, roomId]) => {
+  const room = prisma.rows('chat_rooms').find((r) => Number(r.room_id) === Number(roomId));
+  if (!room) return [];
+  const member = prisma.rows('chat_room_members')
+    .find((m) => Number(m.room_id) === Number(roomId) && Number(m.user_id) === Number(userId));
+  return [{
+    room_type: room.room_type ?? 'direct',
+    name: room.name ?? null,
+    avatar_url: room.avatar_url ?? null,
+    created_by: room.created_by ?? null,
+    role: member?.role ?? null,
+    left_at: member?.left_at ?? null,
+    joined_at: member?.joined_at ?? null,
+    history_from_id: member?.history_from_id ?? null
+  }];
+});
+
 const reset = ({ tables = {} } = {}) => {
   server.reset({
-    schema: SCHEMA,
     tables: Object.fromEntries(TABLES.map((name) => [name, []]))
   });
   for (const [name, rows] of Object.entries(tables)) prisma.store[name] = rows;
@@ -133,7 +136,6 @@ server.setDefaultReset(() => {
 });
 
 onReset(() => {
-  schemaCheck.resetCache();
   aiSettings.clearCache();
   aiRunner.clearCache();
 });
@@ -342,6 +344,11 @@ const addRoom = (a, b, bookId = null) => {
     updated_at: new Date()
   };
   prisma.rows('chat_rooms').push(row);
+  for (const userId of [userA, userB]) {
+    prisma.rows('chat_room_members').push({
+      room_id: row.room_id, user_id: userId, role: 'member', joined_at: row.created_at, left_at: null, history_from_id: null
+    });
+  }
   return row;
 };
 
@@ -436,6 +443,14 @@ const reviewOf = (bookId) => prisma.rows('ai_book_reviews').find((r) => Number(r
 
 const tokenFor = (user) => authToken.signToken(user, undefined);
 
+// 驗證權杖由 services/security 簽發，測試直接以同樣的內容簽一份：付款以交易密碼、其餘以登入密碼驗證。
+const verifyHeaders = (token, scope) => {
+  const { userId, sid = null } = authToken.verify(token);
+  const method = scope === 'payment' ? 'pin' : 'password';
+  const jti = crypto.randomBytes(12).toString('hex');
+  return { 'x-verify-token': authToken.sign({ typ: 'verify', uid: userId, sid, scope, method, jti }, 300) };
+};
+
 // 部分通知刻意不 await（例如降價通知），回應送出後才寫入，測試需先讓出事件迴圈。
 const flush = async (rounds = 5) => {
   for (let i = 0; i < rounds; i += 1) await new Promise((resolve) => setImmediate(resolve));
@@ -446,5 +461,5 @@ module.exports = {
   enableModeration, stubModeration, failModeration, stubGoogleBooks, stubOpenLibrary, GOOGLE_BOOKS, OPEN_LIBRARY,
   addUser, addAdmin, addWallet, addCategory, addCabinet, addBook, addImage, addCartItem, addReservation,
   addRoom, addOrder, addPaidOrder, addTicket,
-  walletOf, balanceOf, bookOf, orderOf, notificationsOf, transactionsOf, logs, reviewOf, tokenFor, flush
+  walletOf, balanceOf, bookOf, orderOf, notificationsOf, transactionsOf, logs, reviewOf, tokenFor, verifyHeaders, flush
 };

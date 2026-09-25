@@ -2302,12 +2302,6 @@
       "p1": {}
     }
   },
-  "databaseMigrationsNotYetRunP0": "資料庫尚未執行：{p0}",
-  "@databaseMigrationsNotYetRunP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "serverVersionP0": "伺服器目前版本：{p0}",
   "@serverVersionP0": {
     "placeholders": {
@@ -2874,7 +2868,6 @@
       "p0": {}
     }
   },
-  "databaseNotBeenUpdatedAiYet": "資料庫尚未完成 AI 相關更新，設定儲存後暫時不會生效",
   "defaultModel": "預設模型",
   "features": "功能",
   "on": "已啟用",
@@ -3121,7 +3114,6 @@
   "responseExceededOutputLimit": "回應超過輸出長度上限",
   "serverProcessingError": "伺服器處理錯誤",
   "aiBookAdvisor": "AI 書籍顧問",
-  "requiresDatabaseUpdate013": "需先執行資料庫更新 013",
   "mysteryNovelMyCommute": "適合通勤閱讀的推理小說",
   "programmingBooksBeginners": "適合入門的程式設計書",
   "booksUnder200Coins": "200 代幣以內的書籍",
@@ -3152,7 +3144,6 @@
   "setPassword": "設定密碼",
   "signMethodSettingsSaved": "登入方式設定已儲存",
   "signMethodSettingsUnsavedLeavingDiscards": "登入方式設定尚未儲存，離開後變更將遺失。",
-  "serverNotRunDatabaseUpdate014": "伺服器尚未執行資料庫更新 014，設定暫時無法生效。",
   "signChannels": "各項登入方式",
   "socialSmsSign": "社群與簡訊登入",
   "whenOffSignPageHidesThese": "關閉後登入頁不再顯示這些方式，已綁定的帳號仍可用密碼登入。",
@@ -3578,7 +3569,6 @@
     }
   },
   "noOpenaiGeminiKeyConfiguredOnly": "尚未設定 OpenAI 或 Gemini 金鑰，目前僅使用關鍵字檢索",
-  "databaseNotBeenUpdated020Only": "資料庫尚未更新（020），目前僅使用關鍵字檢索",
   "hybridSearchKeywordSemantic": "混合檢索（關鍵字＋語意）",
   "keywordSearchOnly": "僅關鍵字檢索",
   "paymentReleasedWalletWhenBuyerCompletes": "買家完成訂單或取書滿 24 小時後，款項將撥入您的錢包",

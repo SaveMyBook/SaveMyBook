@@ -1,57 +1,55 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：LINE／Discord OAuth 登入與帳號連結選擇
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 使用者 as User
-participant "App內建瀏覽器\n(SFSafariViewController/\nCustom Tabs)" as Browser
-participant "ApiService(AuthSocialApi)" as ApiSvc
-participant "POST /oauth/:provider/start" as StartRoute
-participant "GET /oauth/:provider/callback" as CallbackRoute
-participant "POST /oauth/exchange" as ExchangeRoute
-participant "services/oauth-providers.js" as OAuthSvc
-participant "LINE/Discord 授權伺服器" as Provider
-participant "SocialAccountChoice對話框" as ChoiceUI
-database "oauth_states / oauth_results" as DB
+actor 使用者
+participant UI
+participant "LINE／Discord" as P
+participant API
+database DB
 
-User -> ApiSvc : 點擊「以LINE/Discord登入」
-ApiSvc -> StartRoute : POST /api/auth/oauth/:provider/start\n{ mode: 'login' }
-StartRoute -> OAuthSvc : start(provider, mode)
-OAuthSvc -> DB : oauth_states.insert(state隨機16位元組)
-OAuthSvc --> ApiSvc : 授權網址
-ApiSvc -> Browser : 開啟App內瀏覽器導向授權網址
-Browser -> Provider : 使用者於第三方頁面登入並授權
-Provider -> CallbackRoute : 302導回 .../callback?code=...&state=...
-CallbackRoute -> OAuthSvc : handleCallback(code, state)
-OAuthSvc -> DB : 驗證state單次使用、10分鐘內有效
-OAuthSvc -> Provider : 以client_secret（僅伺服器端）換取token\n（逾時10秒）
-Provider --> OAuthSvc : access_token + id_token
-OAuthSvc -> OAuthSvc : LINE以channel secret驗證id_token(HS256)；\nDiscord需verified===true才採用email
-OAuthSvc -> DB : oauth_results.insert(結果，5分鐘有效)
-OAuthSvc -> Browser : 302導向 savemybook://auth/oauth?code=<32hex>
-Browser -> ApiSvc : 深層連結取得一次性code，關閉瀏覽器
-ApiSvc -> ExchangeRoute : POST /api/auth/oauth/exchange { code }
-ExchangeRoute -> OAuthSvc : exchange(code)
-OAuthSvc -> DB : 依code讀取oauth_results（成功或例外錯誤即刪除代碼）
+使用者 -> UI : 點擊「以 LINE／Discord 登入」
+activate 使用者
+activate UI
+UI -> API : POST /api/auth/oauth/:provider/start
+activate API
+API -> DB : 建立一次性狀態碼（10 分鐘有效）
+API --> UI : 回傳授權網址
+UI -> P : 開啟內建瀏覽器\n由使用者登入並同意授權
+P -> API : 導回 GET .../callback（附授權碼）
+API -> DB : 核對並作廢狀態碼
+API -> P : 以授權碼換取身分資料
+P --> API : 回傳使用者身分
+API -> DB : 暫存身分判定結果（5 分鐘有效）
+API --> UI : 導回 App 並附一次性代碼
+UI -> API : POST /api/auth/oauth/exchange
 
-alt 已有綁定身分
-  OAuthSvc --> ApiSvc : 200 { token, user }（直接登入）
-else 查無帳號（保留代碼供補送）
-  OAuthSvc --> ApiSvc : 404 NO_ACCOUNT_FOR_PROVIDER
-  ApiSvc -> ChoiceUI : 顯示「登入既有帳號並綁定」/「建立新帳號」/取消
-  alt 選擇「建立新帳號」
-    User -> ChoiceUI : 確認
-    ChoiceUI -> ExchangeRoute : 帶同一code + create:true 重送
-    ExchangeRoute -> OAuthSvc : createAccount()
-    OAuthSvc --> ApiSvc : 200 新帳號登入
-  else 選擇「登入既有帳號並綁定」
-    ChoiceUI -> User : 提示「請先登入原帳號，\n再至帳號安全›登入方式綁定」
+alt 身分已綁定帳號
+  API -> DB : 建立工作階段
+  API --> UI : 200 OK（登入權杖）
+else 尚未綁定任何帳號
+  API --> UI : 404 Not Found
+  UI --> 使用者 : 詢問綁定既有帳號或建立新帳號
+  alt 建立新帳號
+    使用者 -> UI : 選擇建立新帳號\n（無 Email 時補填 Email 與暱稱）
+    UI -> API : POST /api/auth/oauth/exchange\n（同一代碼，要求建立帳號）
+    API -> DB : 建立帳號與第三方身分\n（Email 已屬他人時回傳 409）
+  else 綁定既有帳號
+    使用者 -> UI : 輸入原帳號密碼或使用通行密鑰
+    UI -> API : POST /api/auth/social/link-login
+    API -> DB : 驗證原帳號並綁定第三方身分
+    API -> DB : 通知「已綁定登入方式」
   end
-else 電子郵件已屬其他帳號
-  OAuthSvc --> ApiSvc : 409 ACCOUNT_EXISTS_LINK_REQUIRED\n（不自動合併帳號）
-else 缺少已驗證電子郵件
-  OAuthSvc --> ApiSvc : 400 EMAIL_REQUIRED
-  ApiSvc -> User : 導向補充資料頁（輸入email+暱稱）\n帶create:true以同一code重送
+  API --> UI : 200 OK（登入權杖）
 end
+UI --> 使用者 : 進入首頁
+deactivate API
+deactivate UI
+deactivate 使用者
 @enduml

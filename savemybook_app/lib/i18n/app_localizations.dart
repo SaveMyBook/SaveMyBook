@@ -1328,7 +1328,6 @@ abstract class AppLocalizations {
   String get serverNotBeenUpdatedSupportFeature;
   String get someFeaturesTemporarilyUnavailableWhileServer;
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1);
-  String databaseMigrationsNotYetRunP0(Object p0);
   String serverVersionP0(Object p0);
   String get runNpmRunVerifyApiDirectory;
   String get serverUpdateRequired;
@@ -1625,7 +1624,6 @@ abstract class AppLocalizations {
   String get aiSettingsSaved;
   String get invalidFormat;
   String enter0P0(Object p0);
-  String get databaseNotBeenUpdatedAiYet;
   String get defaultModel;
   String get features;
   String get on;
@@ -1743,7 +1741,6 @@ abstract class AppLocalizations {
   String get responseExceededOutputLimit;
   String get serverProcessingError;
   String get aiBookAdvisor;
-  String get requiresDatabaseUpdate013;
   String get mysteryNovelMyCommute;
   String get programmingBooksBeginners;
   String get booksUnder200Coins;
@@ -1769,7 +1766,6 @@ abstract class AppLocalizations {
   String get setPassword;
   String get signMethodSettingsSaved;
   String get signMethodSettingsUnsavedLeavingDiscards;
-  String get serverNotRunDatabaseUpdate014;
   String get signChannels;
   String get socialSmsSign;
   String get whenOffSignPageHidesThese;
@@ -1992,7 +1988,6 @@ abstract class AppLocalizations {
   String get semanticSearch;
   String p0BooksP1HelpArticlesIndexed(Object p0, Object p1);
   String get noOpenaiGeminiKeyConfiguredOnly;
-  String get databaseNotBeenUpdated020Only;
   String get hybridSearchKeywordSemantic;
   String get keywordSearchOnly;
   String get paymentReleasedWalletWhenBuyerCompletes;
@@ -5984,9 +5979,6 @@ class _LEn extends AppLocalizations {
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => 'The server is running an outdated API (revision ${p0}; the app requires ${p1}). Update the code on the server and restart the API.';
 
   @override
-  String databaseMigrationsNotYetRunP0(Object p0) => 'Database migrations not yet run: ${p0}';
-
-  @override
   String serverVersionP0(Object p0) => 'Server version: ${p0}';
 
   @override
@@ -6875,9 +6867,6 @@ class _LEn extends AppLocalizations {
   String enter0P0(Object p0) => 'Enter 0 to ${p0}';
 
   @override
-  String get databaseNotBeenUpdatedAiYet => 'The database has not been updated for AI yet. Saved settings will not take effect until it is.';
-
-  @override
   String get defaultModel => 'Default model';
 
   @override
@@ -7229,9 +7218,6 @@ class _LEn extends AppLocalizations {
   String get aiBookAdvisor => 'AI book advisor';
 
   @override
-  String get requiresDatabaseUpdate013 => 'Requires database update 013';
-
-  @override
   String get mysteryNovelMyCommute => 'Mystery novels for commuting';
 
   @override
@@ -7305,9 +7291,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get signMethodSettingsUnsavedLeavingDiscards => 'Sign-in method settings are not saved. Changes will be lost if you leave.';
-
-  @override
-  String get serverNotRunDatabaseUpdate014 => 'The server has not run database update 014, so the settings cannot take effect yet.';
 
   @override
   String get signChannels => 'Sign-in channels';
@@ -7974,9 +7957,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get noOpenaiGeminiKeyConfiguredOnly => 'No OpenAI or Gemini key is configured. Only keyword search is in use.';
-
-  @override
-  String get databaseNotBeenUpdated020Only => 'The database has not been updated (020). Only keyword search is in use.';
 
   @override
   String get hybridSearchKeywordSemantic => 'Hybrid search (keyword + semantic)';
@@ -12109,9 +12089,6 @@ class _LJa extends AppLocalizations {
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => 'サーバーの API バージョンが古すぎます（現在 ${p0}、アプリには ${p1} が必要）。サーバーのコードを更新し、API を再起動してください。';
 
   @override
-  String databaseMigrationsNotYetRunP0(Object p0) => '未実行のデータベース移行：${p0}';
-
-  @override
   String serverVersionP0(Object p0) => 'サーバーの現在のバージョン：${p0}';
 
   @override
@@ -13000,9 +12977,6 @@ class _LJa extends AppLocalizations {
   String enter0P0(Object p0) => '0〜${p0} を入力してください';
 
   @override
-  String get databaseNotBeenUpdatedAiYet => 'データベースの AI 用アップデートが未完了のため、保存した設定はまだ反映されません';
-
-  @override
   String get defaultModel => 'デフォルトモデル';
 
   @override
@@ -13354,9 +13328,6 @@ class _LJa extends AppLocalizations {
   String get aiBookAdvisor => 'AI ブックアドバイザー';
 
   @override
-  String get requiresDatabaseUpdate013 => 'データベース更新 013 が必要です';
-
-  @override
   String get mysteryNovelMyCommute => '通勤中に読めるミステリー小説';
 
   @override
@@ -13430,9 +13401,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get signMethodSettingsUnsavedLeavingDiscards => 'ログイン方法の設定は保存されていません。移動すると変更は失われます。';
-
-  @override
-  String get serverNotRunDatabaseUpdate014 => 'サーバーでデータベース更新 014 が未実行のため、設定はまだ反映されません。';
 
   @override
   String get signChannels => 'ログイン方法の一覧';
@@ -14099,9 +14067,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get noOpenaiGeminiKeyConfiguredOnly => 'OpenAI または Gemini のキーが未設定のため、キーワード検索のみを使用しています。';
-
-  @override
-  String get databaseNotBeenUpdated020Only => 'データベースが未更新（020）のため、キーワード検索のみを使用しています。';
 
   @override
   String get hybridSearchKeywordSemantic => 'ハイブリッド検索（キーワード＋意味）';
@@ -18234,9 +18199,6 @@ class _LKo extends AppLocalizations {
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '서버의 API 버전이 오래되었습니다(현재 ${p0}, 앱에 필요한 버전 ${p1}). 서버 코드를 업데이트하고 API를 재시작하세요.';
 
   @override
-  String databaseMigrationsNotYetRunP0(Object p0) => '아직 실행하지 않은 데이터베이스 마이그레이션: ${p0}';
-
-  @override
   String serverVersionP0(Object p0) => '서버 현재 버전: ${p0}';
 
   @override
@@ -19125,9 +19087,6 @@ class _LKo extends AppLocalizations {
   String enter0P0(Object p0) => '0~${p0} 사이로 입력하세요';
 
   @override
-  String get databaseNotBeenUpdatedAiYet => '데이터베이스의 AI 업데이트가 완료되지 않아 저장한 설정이 아직 적용되지 않습니다';
-
-  @override
   String get defaultModel => '기본 모델';
 
   @override
@@ -19479,9 +19438,6 @@ class _LKo extends AppLocalizations {
   String get aiBookAdvisor => 'AI 도서 어드바이저';
 
   @override
-  String get requiresDatabaseUpdate013 => '데이터베이스 업데이트 013 필요';
-
-  @override
   String get mysteryNovelMyCommute => '출퇴근길에 읽기 좋은 추리 소설';
 
   @override
@@ -19555,9 +19511,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get signMethodSettingsUnsavedLeavingDiscards => '로그인 방식 설정이 저장되지 않았습니다. 나가면 변경 내용이 사라집니다.';
-
-  @override
-  String get serverNotRunDatabaseUpdate014 => '서버에서 데이터베이스 업데이트 014를 실행하지 않아 설정이 아직 적용되지 않습니다.';
 
   @override
   String get signChannels => '로그인 방식 목록';
@@ -20224,9 +20177,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get noOpenaiGeminiKeyConfiguredOnly => 'OpenAI 또는 Gemini 키가 설정되지 않아 키워드 검색만 사용합니다.';
-
-  @override
-  String get databaseNotBeenUpdated020Only => '데이터베이스가 업데이트되지 않아(020) 키워드 검색만 사용합니다.';
 
   @override
   String get hybridSearchKeywordSemantic => '하이브리드 검색(키워드 + 의미)';
@@ -24359,9 +24309,6 @@ class _LZh extends AppLocalizations {
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '伺服器執行的 API 版本過舊（目前 ${p0}，App 需要 ${p1}）。請在伺服器更新程式碼並重新啟動 API。';
 
   @override
-  String databaseMigrationsNotYetRunP0(Object p0) => '資料庫尚未執行：${p0}';
-
-  @override
   String serverVersionP0(Object p0) => '伺服器目前版本：${p0}';
 
   @override
@@ -25250,9 +25197,6 @@ class _LZh extends AppLocalizations {
   String enter0P0(Object p0) => '請輸入 0 至 ${p0}';
 
   @override
-  String get databaseNotBeenUpdatedAiYet => '資料庫尚未完成 AI 相關更新，設定儲存後暫時不會生效';
-
-  @override
   String get defaultModel => '預設模型';
 
   @override
@@ -25604,9 +25548,6 @@ class _LZh extends AppLocalizations {
   String get aiBookAdvisor => 'AI 書籍顧問';
 
   @override
-  String get requiresDatabaseUpdate013 => '需先執行資料庫更新 013';
-
-  @override
   String get mysteryNovelMyCommute => '適合通勤閱讀的推理小說';
 
   @override
@@ -25680,9 +25621,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get signMethodSettingsUnsavedLeavingDiscards => '登入方式設定尚未儲存，離開後變更將遺失。';
-
-  @override
-  String get serverNotRunDatabaseUpdate014 => '伺服器尚未執行資料庫更新 014，設定暫時無法生效。';
 
   @override
   String get signChannels => '各項登入方式';
@@ -26349,9 +26287,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get noOpenaiGeminiKeyConfiguredOnly => '尚未設定 OpenAI 或 Gemini 金鑰，目前僅使用關鍵字檢索';
-
-  @override
-  String get databaseNotBeenUpdated020Only => '資料庫尚未更新（020），目前僅使用關鍵字檢索';
 
   @override
   String get hybridSearchKeywordSemantic => '混合檢索（關鍵字＋語意）';
@@ -30484,9 +30419,6 @@ class _LZhHans extends AppLocalizations {
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '服务器运行的 API 版本过旧（当前 ${p0}，App 需要 ${p1}）。请在服务器更新代码并重新启动 API。';
 
   @override
-  String databaseMigrationsNotYetRunP0(Object p0) => '数据库尚未执行：${p0}';
-
-  @override
   String serverVersionP0(Object p0) => '服务器当前版本：${p0}';
 
   @override
@@ -31375,9 +31307,6 @@ class _LZhHans extends AppLocalizations {
   String enter0P0(Object p0) => '请输入 0 至 ${p0}';
 
   @override
-  String get databaseNotBeenUpdatedAiYet => '数据库尚未完成 AI 相关更新，设置保存后暂时不会生效';
-
-  @override
   String get defaultModel => '默认模型';
 
   @override
@@ -31729,9 +31658,6 @@ class _LZhHans extends AppLocalizations {
   String get aiBookAdvisor => 'AI 书籍顾问';
 
   @override
-  String get requiresDatabaseUpdate013 => '需先执行数据库更新 013';
-
-  @override
   String get mysteryNovelMyCommute => '适合通勤阅读的推理小说';
 
   @override
@@ -31805,9 +31731,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get signMethodSettingsUnsavedLeavingDiscards => '登录方式设置尚未保存，离开后更改将丢失。';
-
-  @override
-  String get serverNotRunDatabaseUpdate014 => '服务器尚未执行数据库更新 014，设置暂时无法生效。';
 
   @override
   String get signChannels => '各项登录方式';
@@ -32474,9 +32397,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get noOpenaiGeminiKeyConfiguredOnly => '尚未设置 OpenAI 或 Gemini 密钥，目前仅使用关键词检索';
-
-  @override
-  String get databaseNotBeenUpdated020Only => '数据库尚未更新（020），目前仅使用关键词检索';
 
   @override
   String get hybridSearchKeywordSemantic => '混合检索（关键词＋语义）';
@@ -36609,9 +36529,6 @@ class _LZhHant extends AppLocalizations {
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '伺服器執行的 API 版本過舊（目前 ${p0}，App 需要 ${p1}）。請在伺服器更新程式碼並重新啟動 API。';
 
   @override
-  String databaseMigrationsNotYetRunP0(Object p0) => '資料庫尚未執行：${p0}';
-
-  @override
   String serverVersionP0(Object p0) => '伺服器目前版本：${p0}';
 
   @override
@@ -37500,9 +37417,6 @@ class _LZhHant extends AppLocalizations {
   String enter0P0(Object p0) => '請輸入 0 至 ${p0}';
 
   @override
-  String get databaseNotBeenUpdatedAiYet => '資料庫尚未完成 AI 相關更新，設定儲存後暫時不會生效';
-
-  @override
   String get defaultModel => '預設模型';
 
   @override
@@ -37854,9 +37768,6 @@ class _LZhHant extends AppLocalizations {
   String get aiBookAdvisor => 'AI 書籍顧問';
 
   @override
-  String get requiresDatabaseUpdate013 => '需先執行資料庫更新 013';
-
-  @override
   String get mysteryNovelMyCommute => '適合通勤閱讀的推理小說';
 
   @override
@@ -37930,9 +37841,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get signMethodSettingsUnsavedLeavingDiscards => '登入方式設定尚未儲存，離開後變更將遺失。';
-
-  @override
-  String get serverNotRunDatabaseUpdate014 => '伺服器尚未執行資料庫更新 014，設定暫時無法生效。';
 
   @override
   String get signChannels => '各項登入方式';
@@ -38599,9 +38507,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get noOpenaiGeminiKeyConfiguredOnly => '尚未設定 OpenAI 或 Gemini 金鑰，目前僅使用關鍵字檢索';
-
-  @override
-  String get databaseNotBeenUpdated020Only => '資料庫尚未更新（020），目前僅使用關鍵字檢索';
 
   @override
   String get hybridSearchKeywordSemantic => '混合檢索（關鍵字＋語意）';

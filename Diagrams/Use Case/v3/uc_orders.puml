@@ -1,47 +1,49 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
+skinparam usecase {
+  BackgroundColor white
+}
 left to right direction
-title 使用個案圖：交易與訂單模組
 
-actor 買家 as Buyer
-actor 賣家 as Seller
-actor 管理員 as Admin
+actor 買家
+actor 賣家
+actor 管理員
 
-rectangle "SaveMyBook 系統" {
-  usecase "加入購物車" as UC1
-  usecase "結帳(確認訂單)" as UC2
-  usecase "身分驗證(交易密碼/\n生物辨識)" as UC3
-  usecase "查看訂單列表/明細" as UC4
-  usecase "賣家存書至智慧書櫃" as UC5
-  usecase "買家掃碼取書" as UC6
-  usecase "確認取書完成" as UC7
-  usecase "取消訂單" as UC8
-  usecase "提出訂單申訴" as UC9
-  usecase "查看待撥款項/\n銷售紀錄" as UC10
-  usecase "管理員仲裁申訴" as UC11
-  usecase "管理員調整訂單狀態" as UC12
-  usecase "選擇智慧書櫃據點" as UC13
+rectangle "SaveMyBook - 交易與訂單" {
+  usecase "加入購物車" as cart
+  usecase "結帳" as checkout
+  usecase "直接購買" as buynow
+  usecase "付款驗證" as verify
+  usecase "查看購買紀錄" as history
+  usecase "我要取書" as pickup
+  usecase "掃描書櫃 QR Code" as scan
+  usecase "完成訂單" as complete
+  usecase "提出申訴" as dispute
+  usecase "查看銷售紀錄" as sales
+  usecase "我要存書" as deposit
+  usecase "取消訂單" as cancel
+  usecase "仲裁申訴" as arbitrate
 }
 
-Buyer --> UC1
-Buyer --> UC2
-UC2 ..> UC3 : <<include>>
-UC2 ..> UC13 : <<include>>
-Buyer --> UC4
-Buyer --> UC6
-Buyer --> UC7
-Buyer --> UC8
-Buyer --> UC9
-
-Seller --> UC5
-Seller --> UC4
-Seller --> UC8
-Seller --> UC9
-Seller --> UC10
-
-Admin --> UC11
-Admin --> UC12
-UC11 ..> UC12 : <<include>>（裁決後金流異動）
+買家 --> cart
+買家 --> checkout
+買家 --> buynow
+買家 --> history
+買家 --> pickup
+買家 --> complete
+買家 --> dispute
+買家 --> cancel
+checkout ..> verify : <<include>>
+buynow ..> verify : <<include>>
+pickup ..> scan : <<include>>
+賣家 --> sales
+賣家 --> deposit
+賣家 --> cancel
+賣家 --> dispute
+deposit ..> scan : <<include>>
+管理員 --> arbitrate
 @enduml

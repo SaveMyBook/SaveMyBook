@@ -105,7 +105,7 @@ const linkModeVerify = whenLinkMode(requireVerification('sensitive'));
 // 否則社群登入的使用者永遠無法設定第一組密碼。
 const sensitiveWhenAvailable = (req, res, next) => {
   security.status(req.user.userId, req.user.sid)
-    .then((state) => (state.available && state.has_payment_pin
+    .then((state) => (state.has_payment_pin
       ? requireVerification('sensitive')(req, res, next)
       : next()))
     .catch(next);

@@ -21,7 +21,7 @@ const SCOPES = {
 };
 
 const passkeyState = async (userId) => {
-  const available = await passkeys.isAvailable();
+  const available = passkeys.isAvailable();
   return { passkey_available: available, has_passkey: available && (await passkeys.hasPasskey(userId)) };
 };
 
@@ -44,16 +44,6 @@ const securityRow = async (userId) => {
 };
 
 const status = async (userId, sid) => {
-  if (!(await sessions.isAvailable())) {
-    return {
-      available: false,
-      has_password: await identities.hasPassword(userId),
-      has_payment_pin: false,
-      pin_locked_until: null,
-      biometric_pay_enabled: false,
-      ...(await passkeyState(userId))
-    };
-  }
   const [row, session, hasPassword, passkey] = await Promise.all([
     securityRow(userId),
     sessions.findActive(sid),
@@ -62,7 +52,6 @@ const status = async (userId, sid) => {
   ]);
   const lockedUntil = row?.pin_locked_until && new Date(row.pin_locked_until) > new Date() ? row.pin_locked_until : null;
   return {
-    available: true,
     has_password: hasPassword,
     has_payment_pin: Boolean(row?.payment_pin_hash),
     pin_updated_at: row?.pin_updated_at ?? null,
@@ -72,14 +61,7 @@ const status = async (userId, sid) => {
   };
 };
 
-const assertAvailable = async () => {
-  if (!(await sessions.isAvailable())) {
-    throw new HttpError(503, '交易密碼功能暫時無法使用，請稍後再試', 'SECURITY_UNAVAILABLE');
-  }
-};
-
 const setPin = async (userId, pin) => {
-  await assertAvailable();
   assertPinPolicy(pin);
   const hashed = await password.hash(pin);
   const now = new Date();
@@ -93,7 +75,6 @@ const setPin = async (userId, pin) => {
 const minutesLeft = (until) => Math.max(1, Math.ceil((new Date(until).getTime() - Date.now()) / 60000));
 
 const verifyPin = async (userId, pin) => {
-  await assertAvailable();
   const row = await securityRow(userId);
   if (!row?.payment_pin_hash) throw forbidden('尚未設定交易密碼', 'PAYMENT_PIN_NOT_SET');
   if (row.pin_locked_until && new Date(row.pin_locked_until) > new Date()) {
@@ -180,10 +161,7 @@ const consumeToken = (raw, user, scope) => {
 
 const releaseToken = (jti) => usedTokens.delete(jti);
 
-const assertSessionSupport = async (sid) => {
-  if (!(await sessions.isAvailable())) {
-    throw new HttpError(503, '此功能暫時無法使用，請稍後再試', 'SECURITY_UNAVAILABLE');
-  }
+const assertSessionSupport = (sid) => {
   if (!sid) throw forbidden('請重新登入後再使用此功能', 'SESSION_REQUIRED');
 };
 
@@ -201,7 +179,7 @@ const verify = async ({ userId, sid, scope, method, plainPassword, pin, key, ass
   if (method === 'pin') await verifyPin(userId, pin);
 
   if (method === 'biometric') {
-    await assertSessionSupport(sid);
+    assertSessionSupport(sid);
     const [session, state] = await Promise.all([sessions.findActive(sid), status(userId, sid)]);
     if (!state.has_payment_pin) throw forbidden('尚未設定交易密碼', 'PAYMENT_PIN_NOT_SET');
     if (!sessions.matchesPayKey(session, key)) {
@@ -233,14 +211,14 @@ const changePin = async (userId, sid, pin) => {
 };
 
 const enableBiometric = async (userId, sid) => {
-  await assertSessionSupport(sid);
+  assertSessionSupport(sid);
   const state = await status(userId, sid);
   if (!state.has_payment_pin) throw forbidden('請先設定交易密碼，作為生物辨識失敗時的替代驗證方式', 'PAYMENT_PIN_NOT_SET');
   return sessions.setPayKey(sid);
 };
 
 const disableBiometric = async (sid) => {
-  if (sid && (await sessions.isAvailable())) await sessions.clearPayKey(sid);
+  if (sid) await sessions.clearPayKey(sid);
 };
 
 const shapeSession = (row, currentSid) => ({

@@ -2,7 +2,6 @@ const prisma = require('../../lib/prisma');
 const publicId = require('../../lib/public-id');
 const { placeholders } = require('../../lib/sql');
 const codec = require('./codec');
-const schema = require('./schema');
 const history = require('./history');
 
 const RECENT_LIMIT = 30;
@@ -49,7 +48,6 @@ const transition = (tx, transferId, status, now) => tx.$executeRaw`
   WHERE transfer_id = ${transferId} AND status = 'pending' AND expires_at > ${now}`;
 
 const forRoom = async (roomId, messages, floor) => {
-  if (!(await schema.isV2())) return { recent: [], byId: new Map() };
   const now = new Date();
   const recent = (await prisma.$queryRawUnsafe(
     `SELECT ${COLUMNS} FROM chat_transfers WHERE room_id = ? ORDER BY transfer_id DESC LIMIT ${RECENT_LIMIT}`,
@@ -75,15 +73,13 @@ const forRoom = async (roomId, messages, floor) => {
 };
 
 const byIds = async (ids) => {
-  if (ids.length === 0 || !(await schema.isV2())) return new Map();
+  if (ids.length === 0) return new Map();
   const rows = await prisma.$queryRawUnsafe(`SELECT ${COLUMNS} FROM chat_transfers WHERE transfer_id IN (${placeholders(ids)})`, ...ids);
   const now = new Date();
   return new Map(rows.map((r) => [Number(r.transfer_id), shape(r, now)]));
 };
 
-const expireDue = async () => {
-  if (!(await schema.isV2())) return 0;
-  return prisma.$executeRaw`UPDATE chat_transfers SET status = 'expired' WHERE status = 'pending' AND expires_at <= ${new Date()}`;
-};
+const expireDue = () =>
+  prisma.$executeRaw`UPDATE chat_transfers SET status = 'expired' WHERE status = 'pending' AND expires_at <= ${new Date()}`;
 
 module.exports = { shape, find, insert, attachMessage, transition, forRoom, byIds, expireDue };

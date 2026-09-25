@@ -1,13 +1,10 @@
 const prisma = require('../../lib/prisma');
 const { HttpError, conflict, notFound } = require('../../lib/errors');
-const { hasTables } = require('../../lib/schema-check');
 const { placeholders } = require('../../lib/sql');
 const { env } = require('../../config/env');
 const { encode } = require('../../lib/public-id');
 const { adminIdsWith } = require('../admin-permissions');
 const { notifyMany } = require('../notify');
-
-const TABLES = ['chat_message_risks', 'chat_risk_alerts'];
 
 const WEIGHTS = { contact: 2, payment: 2, offsite: 2, link: 4, credential: 5, scam: 4 };
 const CATEGORIES = Object.keys(WEIGHTS);
@@ -137,8 +134,6 @@ const contentRisk = (text) => {
   return { level: levelOf(score), categories, score };
 };
 
-const ready = () => hasTables(TABLES);
-
 // 只算本則訊息「新補上」的類別：把前幾則拆開傳的內容接起來比對，但已在前幾則出現過的類別不重算。
 const windowCategories = async (roomId, senderId, text) => {
   const recent = await prisma.chat_messages.findMany({
@@ -214,7 +209,7 @@ const raiseAlert = async (senderId) => {
 };
 
 const record = async ({ messageId, roomId, senderId, risk, replace = false }) => {
-  if ((!risk && !replace) || !(await ready())) return;
+  if (!risk && !replace) return;
   if (replace) await prisma.$executeRaw`DELETE FROM chat_message_risks WHERE message_id = ${messageId}`;
   if (!risk) return;
   await prisma.$executeRaw`
@@ -231,15 +226,12 @@ const forMessages = async (messages, myId) => {
   const result = new Map();
   if (others.length === 0) return result;
 
-  const stored = new Map();
-  if (await ready()) {
-    const ids = others.map((m) => m.message_id);
-    const rows = await prisma.$queryRawUnsafe(
-      `SELECT message_id, level, categories FROM chat_message_risks WHERE message_id IN (${placeholders(ids)})`,
-      ...ids
-    );
-    for (const r of rows) stored.set(Number(r.message_id), { level: r.level, categories: parseCategories(r.categories) });
-  }
+  const ids = others.map((m) => m.message_id);
+  const rows = await prisma.$queryRawUnsafe(
+    `SELECT message_id, level, categories FROM chat_message_risks WHERE message_id IN (${placeholders(ids)})`,
+    ...ids
+  );
+  const stored = new Map(rows.map((r) => [Number(r.message_id), { level: r.level, categories: parseCategories(r.categories) }]));
   for (const m of others) {
     const risk = stored.get(m.message_id) ?? contentRisk(m.content);
     if (risk) result.set(m.message_id, { level: risk.level, categories: risk.categories });
@@ -249,13 +241,11 @@ const forMessages = async (messages, myId) => {
 
 const bannerFor = async (roomId, myId, loaded) => {
   const categories = new Set();
-  if (await ready()) {
-    const since = new Date(Date.now() - BANNER_MS);
-    const rows = await prisma.$queryRaw`
-      SELECT categories FROM chat_message_risks
-      WHERE room_id = ${roomId} AND level = 'high' AND sender_id <> ${myId} AND created_at > ${since}`;
-    for (const r of rows) parseCategories(r.categories).forEach((c) => categories.add(c));
-  }
+  const since = new Date(Date.now() - BANNER_MS);
+  const rows = await prisma.$queryRaw`
+    SELECT categories FROM chat_message_risks
+    WHERE room_id = ${roomId} AND level = 'high' AND sender_id <> ${myId} AND created_at > ${since}`;
+  for (const r of rows) parseCategories(r.categories).forEach((c) => categories.add(c));
   for (const risk of loaded.values()) {
     if (risk.level === 'high') risk.categories.forEach((c) => categories.add(c));
   }
@@ -282,7 +272,6 @@ const shapeAlert = (row, users, samples) => {
 const SAMPLE_LIMIT = 5;
 
 const adminList = async (status) => {
-  if (!(await ready())) return [];
   const rows = status
     ? await prisma.$queryRaw`
         SELECT alert_id, user_id, status, hit_count, first_at, last_at, handled_at FROM chat_risk_alerts
@@ -328,7 +317,6 @@ const adminList = async (status) => {
 const ACTIONS = { dismiss: 'dismissed', resolve: 'resolved' };
 
 const handle = async (alertId, action, adminId) => {
-  if (!(await ready())) throw new HttpError(503, '資料庫尚未更新，請先執行 migrations/023_chat_risk.sql', 'MIGRATION_REQUIRED');
   const [row] = await prisma.$queryRaw`SELECT alert_id, status FROM chat_risk_alerts WHERE alert_id = ${alertId}`;
   if (!row) throw notFound('找不到此警示');
   if (row.status !== 'open') throw conflict('此警示已處理', 'ALERT_HANDLED');
@@ -338,7 +326,6 @@ const handle = async (alertId, action, adminId) => {
 };
 
 const openCount = async () => {
-  if (!(await ready())) return 0;
   const [row] = await prisma.$queryRaw`SELECT COUNT(*) AS n FROM chat_risk_alerts WHERE status = 'open'`;
   return Number(row?.n ?? 0);
 };

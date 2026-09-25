@@ -18,7 +18,7 @@ class ServerCompat {
       _checked = false;
       return;
     }
-    if (!status.isOutdated && !status.needsMigration) return;
+    if (!status.isOutdated) return;
 
     if (ApiService.currentUser?.role != 'admin') {
       showAppSnackBar(context, S.someFeaturesTemporarilyUnavailableWhileServer, isError: true);
@@ -26,14 +26,11 @@ class ServerCompat {
     }
 
     final c = AppColors.of(context);
-    final pending = status.pendingMigrations.join('、');
     final current = status.apiRevision;
     final needed = ServerStatus.requiredApiRevision;
     final commit = status.commit;
     final lines = <String>[
-      if (status.isOutdated)
-        S.serverRunningOutdatedApiRevisionP0(current, needed),
-      if (status.needsMigration) S.databaseMigrationsNotYetRunP0(pending),
+      S.serverRunningOutdatedApiRevisionP0(current, needed),
       if (commit != null) S.serverVersionP0(commit),
       S.runNpmRunVerifyApiDirectory,
     ];

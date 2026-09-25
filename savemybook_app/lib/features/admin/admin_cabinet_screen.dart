@@ -358,17 +358,16 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                   ],
                 ),
               ),
-              if (cabinet.maintenanceSupported)
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  tooltip: cabinet.isMaintenance ? S.endLockerMaintenance : S.markLockerMaintenance,
-                  icon: Icon(
-                    cabinet.isMaintenance ? Icons.build_circle_rounded : Icons.build_outlined,
-                    size: 20,
-                    color: cabinet.isMaintenance ? c.danger : c.iconInactive,
-                  ),
-                  onPressed: _isBusy ? null : () => _toggleMaintenance(cabinet),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                tooltip: cabinet.isMaintenance ? S.endLockerMaintenance : S.markLockerMaintenance,
+                icon: Icon(
+                  cabinet.isMaintenance ? Icons.build_circle_rounded : Icons.build_outlined,
+                  size: 20,
+                  color: cabinet.isMaintenance ? c.danger : c.iconInactive,
                 ),
+                onPressed: _isBusy ? null : () => _toggleMaintenance(cabinet),
+              ),
               IconButton(
                 visualDensity: VisualDensity.compact,
                 tooltip: cabinet.isActive ? S.disable : S.enable,

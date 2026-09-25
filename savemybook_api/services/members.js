@@ -1,5 +1,4 @@
 const prisma = require('../lib/prisma');
-const { hasColumn } = require('../lib/schema-check');
 const password = require('../lib/password');
 const v = require('../lib/validate');
 const { badRequest, forbidden, notFound, conflict } = require('../lib/errors');
@@ -128,9 +127,7 @@ const resetPassword = async (userId, { adminId, req }) => {
       data: { password_hash: hash, updated_at: new Date() }
     });
     // 只用社群或手機登入的帳號原本沒有密碼；重設後必須標記為已設定，否則仍會被當成無密碼而無法通過驗證。
-    if (await hasColumn('users', 'password_set')) {
-      await tx.$executeRaw`UPDATE users SET password_set = 1 WHERE user_id = ${userId}`;
-    }
+    await tx.$executeRaw`UPDATE users SET password_set = 1 WHERE user_id = ${userId}`;
     await notify(tx, {
       userId,
       title: '密碼已被重設',

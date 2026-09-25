@@ -1,64 +1,66 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：帳號刪除申請與資料匯出
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 使用者 as User
-actor 管理員 as Admin
-participant "AccountPrivacyScreen" as UI
-participant "ApiService(PrivacyApi)" as ApiSvc
-participant "POST /api/users/me/deletion" as DelRoute
-participant "GET /api/users/me/export" as ExportRoute
-participant "jobs/scheduler.js" as Scheduler
-participant "services/account.js" as AccountSvc
-database "users / 交易資料" as DB
+actor 管理員
+actor 使用者
+participant UI
+participant API
+database DB
+participant 排程
+
+== 匯出個人資料 ==
+使用者 -> UI : 點擊「匯出我的資料」\n並完成身分驗證
+activate 使用者
+activate UI
+UI -> API : GET /api/users/me/export
+activate API
+API -> DB : 彙整個人資料、書籍、訂單、\n錢包與客服紀錄
+API --> UI : 200 OK（JSON 檔案）
+UI --> 使用者 : 開啟系統分享面板儲存
+deactivate API
 
 == 申請刪除帳號 ==
-User -> UI : 點擊「刪除帳號」→ 二段確認(警告+密碼)
-UI -> ApiSvc : requestAccountDeletion(password)
-ApiSvc -> DelRoute : POST /api/users/me/deletion { password }
-DelRoute -> AccountSvc : requestDeletion(userId, password)
-alt 未設定密碼
-  AccountSvc --> UI : 400 PASSWORD_NOT_SET
-else 有未結清訂單
-  AccountSvc --> UI : 400 OPEN_ORDERS
-else 可申請
-  AccountSvc -> DB : users.deletion_requested_at = now
-  AccountSvc --> UI : 200（30天寬限期）
-  UI -> UI : 顯示剩餘天數與「取消申請」按鈕
+使用者 -> UI : 確認警告並輸入登入密碼
+UI -> API : POST /api/users/me/deletion
+activate API
+API -> DB : 驗證密碼並檢查進行中訂單
+alt 可受理
+  API -> DB : 記錄申請時間（30 天緩衝期）
+  API --> UI : 200 OK
+  UI --> 使用者 : 顯示預定刪除日與取消按鈕
+else 密碼錯誤、未設定密碼或有進行中訂單
+  API --> UI : 400 Bad Request
+  UI --> 使用者 : 顯示原因（未設定密碼時引導設定）
 end
-
-opt 寬限期內取消
-  User -> UI : 點擊「取消刪除」
-  UI -> ApiSvc : cancelAccountDeletion()
-  ApiSvc -> DelRoute : DELETE /api/users/me/deletion
-  DelRoute -> AccountSvc : cancel(userId)
-  AccountSvc -> DB : deletion_requested_at = NULL
+opt 緩衝期內取消
+  使用者 -> UI : 點擊「取消刪除帳號」
+  UI -> API : DELETE /api/users/me/deletion
+  API -> DB : 清除申請時間
 end
+deactivate API
+deactivate UI
+deactivate 使用者
 
-== 排程執行匿名化（每小時）==
-Scheduler -> AccountSvc : 掃描滿30天且無未結清訂單之帳號
-AccountSvc -> DB : email → deleted+<id>@savemybook.invalid\n密碼雜湊改隨機值、暱稱改「已刪除的使用者」
-AccountSvc -> DB : 清除頭像/簡介/電話/生日/分享權杖
-AccountSvc -> DB : 上架中/交易中書籍→removed；\n刪除購物車/收藏/通知/AI資料/第三方身分/通行密鑰
-AccountSvc -> DB : 聊天訊息改為系統訊息「（使用者已刪除帳號）」
-AccountSvc -> DB : 移除推播裝置、撤銷所有工作階段
-note right: 交易與帳務紀錄依法保留，\nusers資料列不刪除
-
-== 管理員提前處理 ==
-Admin -> Admin : 後台「帳號刪除」列表
-Admin -> DelRoute : POST /api/admin/deletions/:id/purge（需admin驗證）
-DelRoute -> AccountSvc : purge(userId)
-note right: 不可對自己、其他管理員\n或有未結清訂單者執行
-
-== 資料匯出 ==
-User -> UI : 點擊「匯出我的資料」
-UI -> UI : requireSensitive()
-UI -> ApiSvc : exportMyData()
-ApiSvc -> ExportRoute : GET /api/users/me/export
-ExportRoute -> AccountSvc : buildExport(userId)
-AccountSvc -> DB : 彙整個人資料/書籍/訂單/錢包/爭議/檢舉/\n客服工單/AI資料/登入方式/通行密鑰
-AccountSvc --> UI : savemybook-YYYY-MM-DD.json（附件下載）
-UI -> UI : 透過系統分享面板儲存
+== 匿名化帳號 ==
+alt 排程每小時檢查
+  排程 -> API : 找出申請已滿 30 天之帳號
+  activate API
+else 管理員提前處理
+  管理員 -> UI : 於後台執行立即匿名化\n並驗證身分
+  activate UI
+  UI -> API : POST /api/admin/deletions/:id/purge
+end
+API -> DB : 確認無進行中訂單
+API -> DB : 清除個資並停用帳號\n（保留訂單與帳務紀錄）
+API -> DB : 下架書籍，刪除收藏、購物車與通知
+API -> DB : 移除第三方身分、通行密鑰\n並撤銷所有工作階段
+deactivate API
+deactivate UI
 @enduml

@@ -5,7 +5,6 @@ const wallet = require('../wallet');
 const codec = require('./codec');
 const controls = require('./controls');
 const rooms = require('./rooms');
-const schema = require('./schema');
 const members = require('./members');
 const notice = require('./notice');
 const records = require('./transfer-records');
@@ -14,21 +13,6 @@ const realtime = require('../realtime');
 const MAX_AMOUNT = 100000;
 const MAX_NOTE_LENGTH = 100;
 const REQUEST_TTL_MS = 72 * 60 * 60 * 1000;
-
-// 資料庫已執行 009 但 Prisma Client 尚未重新產生時，寫入 transfer_in／transfer_out 會失敗。
-const clientReady = () => {
-  try {
-    const client = require('@prisma/client');
-    return Object.values(client.$Enums?.wallet_transactions_type ?? {}).includes('transfer_in');
-  } catch {
-    return false;
-  }
-};
-
-const requireAvailable = async ({ wallet: needsWallet = true } = {}) => {
-  await schema.requireV2();
-  if (needsWallet && !clientReady()) throw schema.unavailable();
-};
 
 const stateChanged = () => conflict('此筆請款狀態已變更，請重新整理', 'TRANSFER_STATE_CHANGED');
 
@@ -96,7 +80,6 @@ const withCard = (message, transfer) => ({
 });
 
 const create = async (roomId, myId, { kind, counterpartId, amount, note }) => {
-  await requireAvailable({ wallet: kind === 'transfer' });
   const room = await rooms.findMine(roomId, myId);
   const isTransfer = kind === 'transfer';
   const otherId = await counterpartIdOf(room, myId, counterpartId, isTransfer ? '無法轉帳給自己' : '無法向自己請款');
@@ -138,8 +121,6 @@ const RESPONSES = {
 
 const respond = async (transferId, myId, action) => {
   const rule = RESPONSES[action];
-  await requireAvailable({ wallet: action === 'pay' });
-
   const row = await records.find(null, transferId);
   if (!row || (Number(row.from_user_id) !== myId && Number(row.to_user_id) !== myId)) throw notFound('找不到此筆請款');
   if (Number(row[rule.actor]) !== myId) throw forbidden(rule.denied);

@@ -1,6 +1,5 @@
 const prisma = require('../../lib/prisma');
 const { badRequest, forbidden, notFound } = require('../../lib/errors');
-const schema = require('./schema');
 const rooms = require('./rooms');
 const members = require('./members');
 const notice = require('./notice');
@@ -27,18 +26,15 @@ const invitableUsers = async (userIds) => {
 };
 
 const loadGroup = async (roomId, myId) => {
-  await schema.requireV2();
   const room = await rooms.findMine(roomId, myId);
   if (!rooms.isGroup(room)) throw badRequest('此操作僅適用於群組聊天室');
   return room;
 };
 
 const create = async (myId, { name, memberIds, avatarUrl }) => {
-  await schema.requireV2();
   if (memberIds.includes(myId)) throw badRequest('成員名單不可包含自己');
   await invitableUsers(memberIds);
   const actor = await actorOf(myId);
-  const v3 = await schema.isV3();
   const now = new Date();
 
   return prisma.$transaction(async (tx) => {
@@ -50,7 +46,7 @@ const create = async (myId, { name, memberIds, avatarUrl }) => {
 
     const text = `${actor.nickname} 建立了群組`;
     const message = await notice.post(tx, { roomId, actorId: myId, text });
-    const historyFromId = v3 ? message.message_id : null;
+    const historyFromId = message.message_id;
     await members.join(tx, roomId, [{ userId: myId, role: 'owner' }], {
       joinedAt: now, lastReadId: message.message_id, historyFromId
     });
@@ -97,14 +93,13 @@ const invite = async (roomId, myId, userIds) => {
 
   const invitees = await invitableUsers(newIds);
   const actor = await actorOf(myId);
-  const v3 = await schema.isV3();
   const now = new Date();
   const text = `${actor.nickname} 邀請 ${invitees.map((u) => u.nickname).join('、')} 加入群組`;
 
   await prisma.$transaction(async (tx) => {
     const message = await notice.post(tx, { roomId, actorId: myId, text });
     await members.join(tx, roomId, newIds.map((userId) => ({ userId, role: 'member' })), {
-      joinedAt: now, lastReadId: message.message_id - 1, historyFromId: v3 ? message.message_id : null
+      joinedAt: now, lastReadId: message.message_id - 1, historyFromId: message.message_id
     });
     await notice.notifyMembers(tx, { room, actor, userIds: newIds, preview: text, withSender: false });
   });
@@ -138,7 +133,6 @@ const setRole = async (roomId, myId, targetId, role) => {
 
 const setNickname = async (roomId, myId, targetId, nickname) => {
   const room = await loadGroup(roomId, myId);
-  if (!(await members.nicknameSupported())) throw schema.unavailable();
   if (targetId !== myId && room.my_role !== 'owner') throw forbidden('僅群組管理員可設定其他成員的群組暱稱');
   await activeTarget(roomId, targetId);
   await members.setGroupNickname(prisma, roomId, targetId, nickname);

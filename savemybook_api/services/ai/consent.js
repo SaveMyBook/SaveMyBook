@@ -1,14 +1,10 @@
 const prisma = require('../../lib/prisma');
 const { HttpError } = require('../../lib/errors');
-const { hasTables } = require('../../lib/schema-check');
-const settingsService = require('./settings');
-
-const CHAT_TABLES = ['ai_chat_sessions', 'ai_chat_messages'];
 
 const required = () => new HttpError(403, '使用 AI 功能前，請先同意將相關資料提供給 AI 服務商處理', 'AI_CONSENT_REQUIRED');
 
 const isGranted = async (userId) => {
-  if (!userId || !(await settingsService.migrationReady())) return false;
+  if (!userId) return false;
   const rows = await prisma.$queryRaw`SELECT granted FROM ai_consents WHERE user_id = ${userId}`;
   return Number(rows[0]?.granted ?? 0) === 1;
 };
@@ -18,7 +14,6 @@ const assertGranted = async (userId) => {
 };
 
 const setGranted = async (userId, granted) => {
-  if (!(await settingsService.migrationReady())) throw settingsService.unavailable();
   const now = new Date();
   await prisma.$executeRaw`
     INSERT INTO ai_consents (user_id, granted, updated_at) VALUES (${userId}, ${granted ? 1 : 0}, ${now})
@@ -26,9 +21,7 @@ const setGranted = async (userId, granted) => {
   if (!granted) await prisma.$executeRaw`DELETE FROM ai_recommendation_cache WHERE user_id = ${userId}`;
 };
 
-// 書籍顧問聊天屬於 013，尚未執行時整段略過，不影響其餘的個人資料匯出。
 const bookChatSessions = async (userId) => {
-  if (!(await hasTables(CHAT_TABLES))) return [];
   const [sessions, messages] = await Promise.all([
     prisma.$queryRaw`
       SELECT session_id, status, created_at, updated_at FROM ai_chat_sessions WHERE user_id = ${userId} ORDER BY session_id ASC`,
@@ -48,7 +41,6 @@ const bookChatSessions = async (userId) => {
 };
 
 const exportUser = async (userId) => {
-  if (!(await settingsService.migrationReady())) return null;
   const [consents, sessions, messages, cache] = await Promise.all([
     prisma.$queryRaw`SELECT granted, updated_at FROM ai_consents WHERE user_id = ${userId}`,
     prisma.$queryRaw`
@@ -85,7 +77,7 @@ const exportUser = async (userId) => {
 };
 
 const purgeUser = async (tx, userId) => {
-  if (await hasTables(CHAT_TABLES)) await tx.$executeRaw`DELETE FROM ai_chat_sessions WHERE user_id = ${userId}`;
+  await tx.$executeRaw`DELETE FROM ai_chat_sessions WHERE user_id = ${userId}`;
   await tx.$executeRaw`DELETE FROM ai_support_sessions WHERE user_id = ${userId}`;
   await tx.$executeRaw`DELETE FROM ai_recommendation_cache WHERE user_id = ${userId}`;
   await tx.$executeRaw`DELETE FROM ai_consents WHERE user_id = ${userId}`;

@@ -7,7 +7,7 @@ class SecurityStatus {
   final DateTime? pinLockedUntil;
   final bool biometricPayEnabled;
 
-  /// 伺服器已執行 016 並完成通行密鑰設定。
+  /// 伺服器已完成通行密鑰設定。
   final bool passkeyAvailable;
   final bool hasPasskey;
 
@@ -103,10 +103,8 @@ class ServerStatus {
   final bool reachable;
   final int apiRevision;
   final String? commit;
-  final List<String> pendingMigrations;
 
-  const ServerStatus({required this.reachable, required this.apiRevision, this.commit, this.pendingMigrations = const []});
+  const ServerStatus({required this.reachable, required this.apiRevision, this.commit});
 
   bool get isOutdated => apiRevision < requiredApiRevision;
-  bool get needsMigration => pendingMigrations.isNotEmpty;
 }
