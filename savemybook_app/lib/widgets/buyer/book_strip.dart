@@ -16,7 +16,6 @@ class BookStrip extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
   final ValueChanged<Book>? onLongPress;
-  final Map<int, String> reasons;
 
   const BookStrip({
     super.key,
@@ -29,7 +28,6 @@ class BookStrip extends StatelessWidget {
     this.onAction,
     this.onLongPress,
     this.showHeader = true,
-    this.reasons = const {},
   });
 
   final bool showHeader;
@@ -37,7 +35,6 @@ class BookStrip extends StatelessWidget {
   static const double _tileWidth = 120;
   static const double _imageHeight = 140;
   static const double _height = 226;
-  static const double _reasonHeight = 18;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +87,7 @@ class BookStrip extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: _height + (reasons.isEmpty ? 0 : _reasonHeight),
+          height: _height,
           child: loading && books.isEmpty
               ? Shimmer(
                   child: ListView.separated(
@@ -194,23 +191,6 @@ class BookStrip extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 13, height: 1.3, fontWeight: FontWeight.w600, color: c.textPrimary),
                     ),
-                    if (reasons.isNotEmpty && reasons[book.bookId] != null) ...[
-                      const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          Icon(Icons.auto_awesome_rounded, size: 11, color: c.accent.withValues(alpha: 0.8)),
-                          const SizedBox(width: 3),
-                          Expanded(
-                            child: Text(
-                              reasons[book.bookId]!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 11, height: 1.3, color: c.textSecondary),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
                     const Spacer(),
                     FittedBox(
                       fit: BoxFit.scaleDown,
@@ -233,6 +213,13 @@ class BookStrip extends StatelessWidget {
 }
 
 
+class DiscoveryGroup {
+  final String? title;
+  final List<Book> books;
+
+  const DiscoveryGroup({required this.books, this.title});
+}
+
 class DiscoveryTab {
   final String id;
   final String title;
@@ -240,7 +227,9 @@ class DiscoveryTab {
   final List<Book> books;
   final String? actionLabel;
   final VoidCallback? onAction;
-  final Map<int, String> reasons;
+
+  /// 有值時以多排呈現，每排上方標示推薦依據；沒有值時單排呈現 [books]。
+  final List<DiscoveryGroup> groups;
 
   const DiscoveryTab({
     required this.id,
@@ -249,7 +238,7 @@ class DiscoveryTab {
     required this.books,
     this.actionLabel,
     this.onAction,
-    this.reasons = const {},
+    this.groups = const [],
   });
 }
 
@@ -325,15 +314,42 @@ class _DiscoveryPanelState extends State<DiscoveryPanel> {
           duration: Motion.base,
           switchInCurve: Motion.enterCurve,
           switchOutCurve: Motion.exitCurve,
-          child: BookStrip(
-            key: ValueKey(current.id),
-            title: current.title,
-            icon: current.icon,
-            books: current.books,
-            heroPrefix: current.id,
-            showHeader: false,
-            reasons: current.reasons,
-          ),
+          child: current.groups.isEmpty
+              ? BookStrip(
+                  key: ValueKey(current.id),
+                  title: current.title,
+                  icon: current.icon,
+                  books: current.books,
+                  heroPrefix: current.id,
+                  showHeader: false,
+                )
+              : Column(
+                  key: ValueKey(current.id),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final (i, group) in current.groups.indexed) ...[
+                      if (i > 0) const SizedBox(height: 14),
+                      if (group.title != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 16, 8),
+                          child: Text(
+                            group.title!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
+                          ),
+                        ),
+                      BookStrip(
+                        title: group.title ?? current.title,
+                        icon: current.icon,
+                        books: group.books,
+                        heroPrefix: '${current.id}$i',
+                        showHeader: false,
+                      ),
+                    ],
+                  ],
+                ),
         ),
       ],
     );

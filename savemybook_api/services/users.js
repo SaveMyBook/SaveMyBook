@@ -8,6 +8,7 @@ const push = require('./push');
 const audit = require('./audit');
 const legal = require('./legal');
 const sessions = require('./sessions');
+const notificationCenter = require('./notifications');
 
 const selfSelect = {
   user_id: true, email: true, nickname: true, avatar_url: true, bio: true,
@@ -29,7 +30,7 @@ const stats = async (userId) => {
     prisma.wallets.findUnique({ where: { user_id: userId }, select: { balance: true } }),
     prisma.books.count({ where: { seller_id: userId, status: { in: ['on_sale', 'reserved'] } } }),
     prisma.favorites.count({ where: { user_id: userId } }),
-    prisma.notifications.count({ where: { user_id: userId, is_read: false } }),
+    notificationCenter.unreadCount(userId),
     prisma.shopping_cart.count({ where: { user_id: userId } })
   ]);
 

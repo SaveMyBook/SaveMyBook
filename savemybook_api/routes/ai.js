@@ -102,8 +102,8 @@ router.get('/recommendations', authenticateToken, async (req, res) => {
   const viewedIds = typeof req.query.viewed_ids === 'string'
     ? [...new Set(req.query.viewed_ids.split(',').map(v.toInt).filter((n) => Number.isSafeInteger(n) && n > 0))].slice(0, 20)
     : [];
-  const { data, meta } = await recommend.recommendations(req.user.userId, limit, { viewedIds });
-  res.status(200).json({ success: true, data, meta });
+  const { data, groups, meta } = await recommend.recommendations(req.user.userId, limit, { viewedIds });
+  res.status(200).json({ success: true, data, groups, meta });
 });
 
 module.exports = router;

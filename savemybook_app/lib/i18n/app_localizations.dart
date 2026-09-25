@@ -2052,6 +2052,17 @@ abstract class AppLocalizations {
   String get sendAnyway;
   String get editMessage2;
   String get suspectedScamMessage;
+  String get listed3;
+  String get someDetailsWereFilledAutomaticallyFrom;
+  String get summarizedByAiFromBookRecords;
+  String get filledFromIsbnRecord;
+  String get aboutBook;
+  String becauseBoughtP0(Object p0);
+  String becauseSavedP0(Object p0);
+  String relatedP0Cart(Object p0);
+  String becauseViewedP0(Object p0);
+  String moreP0CategoryBrowseOften(Object p0);
+  String get morePicks;
 }
 
 class _LEn extends AppLocalizations {
@@ -8143,6 +8154,39 @@ class _LEn extends AppLocalizations {
 
   @override
   String get suspectedScamMessage => 'Suspected scam message';
+
+  @override
+  String get listed3 => 'Listed';
+
+  @override
+  String get someDetailsWereFilledAutomaticallyFrom => 'Some details were filled in automatically from the ISBN record.';
+
+  @override
+  String get summarizedByAiFromBookRecords => 'Summarized by AI from book records';
+
+  @override
+  String get filledFromIsbnRecord => 'Filled in from the ISBN record';
+
+  @override
+  String get aboutBook => 'About this book';
+
+  @override
+  String becauseBoughtP0(Object p0) => 'Because you bought "${p0}"';
+
+  @override
+  String becauseSavedP0(Object p0) => 'Because you saved "${p0}"';
+
+  @override
+  String relatedP0Cart(Object p0) => 'Related to "${p0}" in your cart';
+
+  @override
+  String becauseViewedP0(Object p0) => 'Because you viewed "${p0}"';
+
+  @override
+  String moreP0CategoryBrowseOften(Object p0) => 'More in ${p0}, a category you browse often';
+
+  @override
+  String get morePicks => 'More picks';
 
 }
 
@@ -14236,6 +14280,39 @@ class _LJa extends AppLocalizations {
   @override
   String get suspectedScamMessage => '詐欺の疑いがあるメッセージ';
 
+  @override
+  String get listed3 => '出品日';
+
+  @override
+  String get someDetailsWereFilledAutomaticallyFrom => '一部の情報は ISBN の書誌データから自動入力されています。';
+
+  @override
+  String get summarizedByAiFromBookRecords => 'AI が書誌情報から要約';
+
+  @override
+  String get filledFromIsbnRecord => 'ISBN の書誌データから入力';
+
+  @override
+  String get aboutBook => '内容紹介';
+
+  @override
+  String becauseBoughtP0(Object p0) => '「${p0}」を購入したあなたに';
+
+  @override
+  String becauseSavedP0(Object p0) => '「${p0}」をお気に入りにしたあなたに';
+
+  @override
+  String relatedP0Cart(Object p0) => 'カート内の「${p0}」に関連';
+
+  @override
+  String becauseViewedP0(Object p0) => '「${p0}」を見たあなたに';
+
+  @override
+  String moreP0CategoryBrowseOften(Object p0) => 'よく見る「${p0}」';
+
+  @override
+  String get morePicks => 'その他のおすすめ';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -20327,6 +20404,39 @@ class _LKo extends AppLocalizations {
 
   @override
   String get suspectedScamMessage => '사기 의심 메시지';
+
+  @override
+  String get listed3 => '등록일';
+
+  @override
+  String get someDetailsWereFilledAutomaticallyFrom => '일부 정보는 ISBN 서지 정보로 자동 입력되었습니다.';
+
+  @override
+  String get summarizedByAiFromBookRecords => 'AI가 서지 정보로 정리';
+
+  @override
+  String get filledFromIsbnRecord => 'ISBN 서지 정보로 입력';
+
+  @override
+  String get aboutBook => '책 소개';
+
+  @override
+  String becauseBoughtP0(Object p0) => '《${p0}》을(를) 구매하셨기 때문에';
+
+  @override
+  String becauseSavedP0(Object p0) => '《${p0}》을(를) 저장하셨기 때문에';
+
+  @override
+  String relatedP0Cart(Object p0) => '장바구니의 《${p0}》와(과) 관련';
+
+  @override
+  String becauseViewedP0(Object p0) => '《${p0}》을(를) 보셨기 때문에';
+
+  @override
+  String moreP0CategoryBrowseOften(Object p0) => '자주 보는 「${p0}」';
+
+  @override
+  String get morePicks => '추천 더 보기';
 
 }
 
@@ -26420,6 +26530,39 @@ class _LZh extends AppLocalizations {
   @override
   String get suspectedScamMessage => '疑似詐騙訊息';
 
+  @override
+  String get listed3 => '上架日期';
+
+  @override
+  String get someDetailsWereFilledAutomaticallyFrom => '部分資料依 ISBN 書目自動補齊';
+
+  @override
+  String get summarizedByAiFromBookRecords => '由 AI 依書目整理';
+
+  @override
+  String get filledFromIsbnRecord => '依 ISBN 書目補齊';
+
+  @override
+  String get aboutBook => '內容簡介';
+
+  @override
+  String becauseBoughtP0(Object p0) => '因為您買過《${p0}》';
+
+  @override
+  String becauseSavedP0(Object p0) => '因為您收藏了《${p0}》';
+
+  @override
+  String relatedP0Cart(Object p0) => '與您購物車中的《${p0}》相關';
+
+  @override
+  String becauseViewedP0(Object p0) => '因為您看過《${p0}》';
+
+  @override
+  String moreP0CategoryBrowseOften(Object p0) => '您常看的「${p0}」';
+
+  @override
+  String get morePicks => '更多推薦';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -32512,6 +32655,39 @@ class _LZhHans extends AppLocalizations {
   @override
   String get suspectedScamMessage => '疑似诈骗消息';
 
+  @override
+  String get listed3 => '上架日期';
+
+  @override
+  String get someDetailsWereFilledAutomaticallyFrom => '部分资料依 ISBN 书目自动补齐';
+
+  @override
+  String get summarizedByAiFromBookRecords => '由 AI 依书目整理';
+
+  @override
+  String get filledFromIsbnRecord => '依 ISBN 书目补齐';
+
+  @override
+  String get aboutBook => '内容简介';
+
+  @override
+  String becauseBoughtP0(Object p0) => '因为您买过《${p0}》';
+
+  @override
+  String becauseSavedP0(Object p0) => '因为您收藏了《${p0}》';
+
+  @override
+  String relatedP0Cart(Object p0) => '与您购物车中的《${p0}》相关';
+
+  @override
+  String becauseViewedP0(Object p0) => '因为您看过《${p0}》';
+
+  @override
+  String moreP0CategoryBrowseOften(Object p0) => '您常看的“${p0}”';
+
+  @override
+  String get morePicks => '更多推荐';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -38603,6 +38779,39 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get suspectedScamMessage => '疑似詐騙訊息';
+
+  @override
+  String get listed3 => '上架日期';
+
+  @override
+  String get someDetailsWereFilledAutomaticallyFrom => '部分資料依 ISBN 書目自動補齊';
+
+  @override
+  String get summarizedByAiFromBookRecords => '由 AI 依書目整理';
+
+  @override
+  String get filledFromIsbnRecord => '依 ISBN 書目補齊';
+
+  @override
+  String get aboutBook => '內容簡介';
+
+  @override
+  String becauseBoughtP0(Object p0) => '因為您買過《${p0}》';
+
+  @override
+  String becauseSavedP0(Object p0) => '因為您收藏了《${p0}》';
+
+  @override
+  String relatedP0Cart(Object p0) => '與您購物車中的《${p0}》相關';
+
+  @override
+  String becauseViewedP0(Object p0) => '因為您看過《${p0}》';
+
+  @override
+  String moreP0CategoryBrowseOften(Object p0) => '您常看的「${p0}」';
+
+  @override
+  String get morePicks => '更多推薦';
 
 }
 

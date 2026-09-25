@@ -389,7 +389,12 @@ paths:
         快取期間已售出或下架的書籍會被濾除；只有實際呼叫模型才計入每日次數。
 
         AI 無法使用（未開放、預算用盡、今日次數用完、服務商錯誤）、使用者尚未同意 AI 資料處理，或使用者沒有任何紀錄時，
-        改回傳既有推薦（`meta.source` 為 `fallback`，`reason` 為 null），此端點不會因 AI 問題回傳錯誤。
+        改回傳既有推薦（`meta.source` 為 `fallback`，`reason` 與 `basis` 為 null），此端點不會因 AI 問題回傳錯誤。
+
+        **分組**：模型以代號標出每本書依據的是使用者哪一筆紀錄或哪個常看分類，書名與分類名稱由伺服器依紀錄帶入，
+        不採用模型寫的文字。`groups` 依推薦順序列出：同一依據至少 2 本才成一組，最多 3 組，每組最多 10 本；
+        其餘書籍（含依據不明與熱門補位）歸入 `kind` 為 `more` 的最後一組。App 依 `kind` 與 `relation` 組出標題，
+        例如「因為您收藏了《白夜行》」「您常看的「推理小說」」。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
@@ -416,6 +421,34 @@ paths:
                       properties:
                         book: { $ref: '#/components/schemas/Book' }
                         reason: { type: string, nullable: true, maxLength: 30, example: 與您收藏的《白夜行》同屬推理小說 }
+                        basis:
+                          type: object
+                          nullable: true
+                          description: 推薦依據；依據不明或一般推薦時為 null。
+                          properties:
+                            kind: { type: string, enum: [book, category] }
+                            relation: { type: string, enum: [purchase, favorite, cart, viewed], description: 僅 `book` 提供 }
+                            book_id: { type: integer, nullable: true, description: 僅 `book` 提供 }
+                            title: { type: string, description: 僅 `book` 提供，例如 白夜行 }
+                            name: { type: string, description: 僅 `category` 提供，分類名稱 }
+                  groups:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        kind: { type: string, enum: [book, category, more] }
+                        relation: { type: string, enum: [purchase, favorite, cart, viewed], description: 僅 `book` 提供 }
+                        book_id: { type: integer, nullable: true, description: 僅 `book` 提供，依據的書籍編號 }
+                        title: { type: string, description: 僅 `book` 提供，依據的書名 }
+                        category: { type: string, description: 僅 `category` 提供 }
+                        book_ids:
+                          type: array
+                          items: { type: integer }
+                          description: 此組的書籍，皆在 `data` 中
+                    example:
+                      - { kind: book, relation: favorite, book_id: 12, title: 白夜行, book_ids: [31, 8] }
+                      - { kind: category, category: 考試用書, book_ids: [44, 19, 27] }
+                      - { kind: more, book_ids: [5, 61] }
                   meta:
                     type: object
                     properties:

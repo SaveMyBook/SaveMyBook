@@ -670,6 +670,12 @@ MockClient fakeApi() => MockClient((request) async {
         if (path == '/wallet/pending') 'total_amount': 4938268,
         if (path == '/admin/backups') 'keep': 14,
         if (path == '/ai/recommendations') 'meta': {'source': 'ai', 'generated_at': now},
+        if (path == '/ai/recommendations')
+          'groups': [
+            {'kind': 'book', 'relation': 'favorite', 'book_id': 1, 'title': longTitle, 'book_ids': [1, 2, 3]},
+            {'kind': 'category', 'category': 'Literature & Fiction Classics', 'book_ids': [4, 5]},
+            {'kind': 'more', 'book_ids': [6]},
+          ],
         if (data is List) 'pagination': {'total': data.length, 'page': 1, 'limit': 20, 'total_pages': 1},
       };
       return http.Response(jsonEncode(body), 200, headers: {'content-type': 'application/json; charset=utf-8'});
@@ -836,7 +842,10 @@ class AiRecommendStripPreview extends StatelessWidget {
       body: ListView(
         children: [
           DiscoveryPanel(tabs: [
-            DiscoveryTab(id: 'picked', title: 'Picked for you', icon: Icons.auto_awesome_rounded, books: books, reasons: {for (final b in books) b.bookId: longReason}),
+            DiscoveryTab(id: 'picked', title: 'Picked for you', icon: Icons.auto_awesome_rounded, books: books, groups: [
+              DiscoveryGroup(title: 'Because you saved "$longTitle"', books: books.take(3).toList()),
+              DiscoveryGroup(title: 'More picks', books: books.skip(3).toList()),
+            ]),
           ]),
         ],
       ),

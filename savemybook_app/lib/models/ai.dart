@@ -1125,32 +1125,60 @@ class AiListingAssist {
   bool get isEmpty => fields.isEmpty && category == null && condition == null && price == null;
 }
 
+/// 推薦依據：`book` 為使用者紀錄中的某一本書（relation 為 purchase／favorite／cart／viewed），
+/// `category` 為常看的分類，`more` 為依據不明或熱門補位。
+class RecommendationGroup {
+  final String kind;
+  final String? relation;
+  final String? title;
+  final String? category;
+  final List<Book> books;
+
+  const RecommendationGroup({required this.kind, required this.books, this.relation, this.title, this.category});
+}
+
 class AiRecommendations {
   final List<Book> books;
-  final Map<int, String> reasons;
+  final List<RecommendationGroup> groups;
   final String source;
 
-  const AiRecommendations({this.books = const [], this.reasons = const {}, this.source = 'fallback'});
+  const AiRecommendations({this.books = const [], this.groups = const [], this.source = 'fallback'});
 
   factory AiRecommendations.fromJson(Map<String, dynamic> payload) {
     final books = <Book>[];
-    final reasons = <int, String>{};
     final data = payload['data'];
     if (data is List) {
       for (final item in data) {
         if (item is! Map || item['book'] is! Map) continue;
         try {
-          final book = Book.fromJson(Map<String, dynamic>.from(item['book']));
-          books.add(book);
-          final reason = '${item['reason'] ?? ''}'.trim();
-          if (reason.isNotEmpty) reasons[book.bookId] = reason;
+          books.add(Book.fromJson(Map<String, dynamic>.from(item['book'])));
         } catch (_) {}
       }
     }
+    final byId = {for (final b in books) b.bookId: b};
+    final groups = <RecommendationGroup>[];
+    final rawGroups = payload['groups'];
+    if (rawGroups is List) {
+      for (final g in rawGroups) {
+        if (g is! Map) continue;
+        final ids = g['book_ids'] is List ? (g['book_ids'] as List).map(parseInt) : const <int>[];
+        final members = [for (final id in ids) ?byId[id]];
+        if (members.isEmpty) continue;
+        groups.add(RecommendationGroup(
+          kind: '${g['kind'] ?? 'more'}',
+          relation: g['relation'] as String?,
+          title: g['title'] as String?,
+          category: g['category'] as String?,
+          books: members,
+        ));
+      }
+    }
+    // 舊版伺服器沒有分組時，整批當成一組。
+    if (groups.isEmpty && books.isNotEmpty) groups.add(RecommendationGroup(kind: 'more', books: books));
     final meta = payload['meta'];
     return AiRecommendations(
       books: books,
-      reasons: reasons,
+      groups: groups,
       source: meta is Map && meta['source'] == 'ai' ? 'ai' : 'fallback',
     );
   }

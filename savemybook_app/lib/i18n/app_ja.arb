@@ -3673,5 +3673,41 @@
   "messageIncludesContactPaymentDetailsDeals": "メッセージに連絡先または支払い情報が含まれています。アプリ外の取引や支払いは保護されず、トラブル時にも対応できません。",
   "sendAnyway": "このまま送信",
   "editMessage2": "修正する",
-  "suspectedScamMessage": "詐欺の疑いがあるメッセージ"
+  "suspectedScamMessage": "詐欺の疑いがあるメッセージ",
+  "listed3": "出品日",
+  "someDetailsWereFilledAutomaticallyFrom": "一部の情報は ISBN の書誌データから自動入力されています。",
+  "summarizedByAiFromBookRecords": "AI が書誌情報から要約",
+  "filledFromIsbnRecord": "ISBN の書誌データから入力",
+  "aboutBook": "内容紹介",
+  "becauseBoughtP0": "「{p0}」を購入したあなたに",
+  "@becauseBoughtP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "becauseSavedP0": "「{p0}」をお気に入りにしたあなたに",
+  "@becauseSavedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "relatedP0Cart": "カート内の「{p0}」に関連",
+  "@relatedP0Cart": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "becauseViewedP0": "「{p0}」を見たあなたに",
+  "@becauseViewedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "moreP0CategoryBrowseOften": "よく見る「{p0}」",
+  "@moreP0CategoryBrowseOften": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "morePicks": "その他のおすすめ"
 }

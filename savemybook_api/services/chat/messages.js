@@ -16,6 +16,7 @@ const typing = require('./typing');
 const history = require('./history');
 const mentionStore = require('./mentions');
 const riskService = require('./risk');
+const notificationCenter = require('../notifications');
 const realtime = require('../realtime');
 
 const RECENT_RECALL_MS = codec.RECALL_WINDOW_MS + 10 * 60 * 1000;
@@ -186,6 +187,7 @@ const list = async (roomId, myId, { limit, beforeId, afterId, before, markRead }
     riskService.forMessages(messages, myId)
   ]);
   const riskBanner = await riskService.bannerFor(roomId, myId, risks);
+  if (markRead) await notificationCenter.clearChatRoom(myId, roomId);
 
   const relevant = new Set([...state.otherIds, ...messages.map((m) => m.sender_id)]);
   relevant.delete(myId);

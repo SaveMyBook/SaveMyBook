@@ -355,15 +355,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       const SizedBox(height: 10),
       _buildPriceAndConditionRow(c),
       const SizedBox(height: 18),
-      _buildInfoRow(Icons.business_outlined, S.publisher, _book.publisher, c, tag: _autoTag('publisher')),
-      const SizedBox(height: 12),
-      _buildInfoRow(Icons.edit_outlined, S.author, _book.author, c, tag: _autoTag('author')),
-      const SizedBox(height: 12),
-      _buildInfoRow(Icons.qr_code, 'ISBN：', _book.isbn, c),
-      const SizedBox(height: 12),
-      _buildInfoRow(Icons.notes, S.about, _book.description, c, tag: _autoTag('description')),
-      const SizedBox(height: 12),
-      _buildInfoRow(Icons.calendar_today_outlined, S.listed, _book.createdAt, c),
+      _buildInfoCard(c),
+      if (_book.description.trim().isNotEmpty) ...[const SizedBox(height: 24), _buildDescription(c)],
       const SizedBox(height: 24),
       _buildPickupCard(c),
       if (!_isOwnBook) ...[const SizedBox(height: 20), _buildSellerInfo(c)],
@@ -371,11 +364,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     ];
   }
 
-  // 自動補齊的欄位標示來源：簡介由 AI 依書目整理時標「AI 整理」，其餘標「自動補齊」。
-  String? _autoTag(String field) {
-    if (!_book.autoFilledFields.contains(field)) return null;
-    return field == 'description' && _book.aiWrittenDescription ? S.aiSummary : S.autoFilled;
-  }
 
   Widget _buildSimilar({required bool inset}) {
     final books = _similar;
@@ -894,34 +882,85 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, AppColors c, {String? tag}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 20, color: c.textSecondary),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text.rich(
-            TextSpan(
+  Widget _buildInfoCard(AppColors c) {
+    final publishDate = _book.publishDate.trim().replaceAll('-', '/');
+    final rows = <(String, String, bool)>[
+      (S.author2, _book.author.trim(), false),
+      (S.publisher2, _book.publisher.trim(), false),
+      (S.publicationDate, publishDate, false),
+      ('ISBN', _book.isbn.trim(), true),
+      (S.listed3, _book.createdAt.trim(), false),
+    ].where((r) => r.$2.isNotEmpty).toList();
+    final autoFilled = _book.autoFilledFields.any((f) => f != 'description');
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final (i, (label, value, copyable)) in rows.indexed) ...[
+            if (i > 0) const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextSpan(
-                  text: label,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                SizedBox(
+                  width: 76,
+                  child: Text(label, style: TextStyle(fontSize: 13.5, height: 1.45, color: c.textSecondary)),
                 ),
-                if (tag != null)
-                  WidgetSpan(
-                    alignment: PlaceholderAlignment.middle,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: StatusBadge(label: tag, color: c.accent),
-                    ),
+                Expanded(
+                  child: GestureDetector(
+                    onLongPress: copyable ? () => _copyText(label, value) : null,
+                    child: Text(value, style: TextStyle(fontSize: 14.5, height: 1.4, color: c.textPrimary)),
                   ),
-                TextSpan(text: value),
+                ),
               ],
             ),
-            style: TextStyle(fontSize: 15, height: 1.35, color: c.textPrimary),
-          ),
+          ],
+          if (autoFilled) ...[
+            const SizedBox(height: 12),
+            Text(S.someDetailsWereFilledAutomaticallyFrom, style: TextStyle(fontSize: 12, color: c.textHint)),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _copyText(String label, String value) async {
+    await Clipboard.setData(ClipboardData(text: value));
+    HapticFeedback.selectionClick();
+    if (mounted) showAppSnackBar(context, S.copied(label));
+  }
+
+  Widget _buildDescription(AppColors c) {
+    final source = !_book.autoFilledFields.contains('description')
+        ? null
+        : _book.aiWrittenDescription
+            ? S.summarizedByAiFromBookRecords
+            : S.filledFromIsbnRecord;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(S.aboutBook, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary)),
+            const Spacer(),
+            if (source != null)
+              Flexible(
+                child: Text(
+                  source,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, color: c.textHint),
+                ),
+              ),
+          ],
         ),
+        const SizedBox(height: 8),
+        _CollapsibleText(text: _book.description.trim()),
       ],
     );
   }
@@ -1396,6 +1435,65 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
           );
         },
       ),
+    );
+  }
+}
+
+class _CollapsibleText extends StatefulWidget {
+  final String text;
+
+  const _CollapsibleText({required this.text});
+
+  @override
+  State<_CollapsibleText> createState() => _CollapsibleTextState();
+}
+
+class _CollapsibleTextState extends State<_CollapsibleText> {
+  static const _collapsedLines = 4;
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final style = TextStyle(fontSize: 15, height: 1.6, color: c.textPrimary);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final painter = TextPainter(
+          text: TextSpan(text: widget.text, style: style),
+          maxLines: _collapsedLines,
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout(maxWidth: constraints.maxWidth);
+        final overflows = painter.didExceedMaxLines;
+        painter.dispose();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AnimatedSize(
+              duration: Motion.base,
+              curve: Motion.enterCurve,
+              alignment: Alignment.topCenter,
+              child: Text(
+                widget.text,
+                style: style,
+                maxLines: _expanded ? null : _collapsedLines,
+                overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+              ),
+            ),
+            if (overflows)
+              TextButton(
+                onPressed: () => setState(() => _expanded = !_expanded),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 36),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  foregroundColor: c.accent,
+                ),
+                child: Text(_expanded ? S.collapse : S.readFull, style: const TextStyle(fontWeight: FontWeight.w600)),
+              ),
+          ],
+        );
+      },
     );
   }
 }

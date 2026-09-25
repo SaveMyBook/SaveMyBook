@@ -196,8 +196,10 @@ void main() {
         return _json(request.url.path.endsWith('/books/5') ? json : <Object>[]);
       }),
     );
-    expect(find.text('AI 整理'), findsOneWidget);
-    expect(find.text('自動補齊'), findsOneWidget);
+    expect(find.text('內容簡介'), findsOneWidget);
+    expect(find.text('由 AI 依書目整理'), findsOneWidget);
+    expect(find.text('部分資料依 ISBN 書目自動補齊'), findsOneWidget);
+    expect(find.text('AI 整理'), findsNothing, reason: '來源標示不再夾在欄位文字中');
     await tester.scrollUntilVisible(find.text('相似的書'), 300, scrollable: find.byType(Scrollable).first);
     expect(find.text('行政法解題書'), findsOneWidget);
     await tester.pump(const Duration(seconds: 4));

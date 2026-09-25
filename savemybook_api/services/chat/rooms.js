@@ -9,6 +9,7 @@ const history = require('./history');
 const aliases = require('./aliases');
 const transferRecords = require('./transfer-records');
 const realtime = require('../realtime');
+const notificationCenter = require('../notifications');
 
 const MAX_PINS = 10;
 
@@ -277,6 +278,7 @@ const unreadCount = async (myId) => {
 };
 
 const markAllRead = async (myId) => {
+  await notificationCenter.clearChat(myId);
   if (!(await schema.isV2())) {
     await prisma.chat_messages.updateMany({
       where: { is_read: false, sender_id: { not: myId }, chat_rooms: myRooms(myId) },

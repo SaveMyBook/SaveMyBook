@@ -3673,5 +3673,41 @@
   "messageIncludesContactPaymentDetailsDeals": "Your message includes contact or payment details. Deals and payments outside the app are not protected, and we cannot help with disputes over them.",
   "sendAnyway": "Send anyway",
   "editMessage2": "Edit message",
-  "suspectedScamMessage": "Suspected scam message"
+  "suspectedScamMessage": "Suspected scam message",
+  "listed3": "Listed",
+  "someDetailsWereFilledAutomaticallyFrom": "Some details were filled in automatically from the ISBN record.",
+  "summarizedByAiFromBookRecords": "Summarized by AI from book records",
+  "filledFromIsbnRecord": "Filled in from the ISBN record",
+  "aboutBook": "About this book",
+  "becauseBoughtP0": "Because you bought \"{p0}\"",
+  "@becauseBoughtP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "becauseSavedP0": "Because you saved \"{p0}\"",
+  "@becauseSavedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "relatedP0Cart": "Related to \"{p0}\" in your cart",
+  "@relatedP0Cart": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "becauseViewedP0": "Because you viewed \"{p0}\"",
+  "@becauseViewedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "moreP0CategoryBrowseOften": "More in {p0}, a category you browse often",
+  "@moreP0CategoryBrowseOften": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "morePicks": "More picks"
 }

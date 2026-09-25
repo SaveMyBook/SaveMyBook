@@ -208,9 +208,10 @@ void main() {
       await http.runWithClient(() async {
         await _pump(tester, const NotificationScreen(), server.client(), size: const Size(700, 1000));
 
-        for (final key in ['all', 'trade', 'chat', 'account', 'service', 'promotion']) {
+        for (final key in ['all', 'trade', 'account', 'service', 'promotion']) {
           expect(_chip(key), findsOneWidget);
         }
+        expect(_chip('chat'), findsNothing, reason: '聊天訊息只發推播，不進通知中心');
         expect(find.descendant(of: _chip('all'), matching: find.text('4')), findsOneWidget);
         expect(find.descendant(of: _chip('trade'), matching: find.text('1')), findsOneWidget);
         expect(find.descendant(of: _chip('service'), matching: find.text('0')), findsNothing);
@@ -268,13 +269,13 @@ void main() {
         expect(server.log, contains('PATCH /notifications/read-all?category=trade'));
         expect(find.descendant(of: _chip('trade'), matching: find.text('1')), findsNothing);
 
-        await _tapAndSettle(tester, _chip('chat'));
+        await _tapAndSettle(tester, _chip('account'));
         await _tapAndSettle(tester, find.byIcon(Icons.delete_sweep_outlined));
-        expect(find.text(S.clearP0Notifications(S.chat)), findsOneWidget);
-        expect(find.text(S.p1NotificationsP0DeletedCannotUndone(S.chat, 1)), findsOneWidget);
+        expect(find.text(S.clearP0Notifications(NotificationCategory.account.label)), findsOneWidget);
+        expect(find.text(S.p1NotificationsP0DeletedCannotUndone(NotificationCategory.account.label, 1)), findsOneWidget);
         await _tapAndSettle(tester, find.text(S.clearAll).last);
-        expect(server.log, contains('DELETE /notifications/all?category=chat'), reason: server.log.join('\n'));
-        expect(find.text(S.noChatNotifications), findsOneWidget);
+        expect(server.log, contains('DELETE /notifications/all?category=account'), reason: server.log.join('\n'));
+        expect(find.text(NotificationCategory.account.emptyMessage), findsOneWidget);
 
         await _tapAndSettle(tester, _chip('all'));
         await _tapAndSettle(tester, find.byIcon(Icons.done_all_rounded));

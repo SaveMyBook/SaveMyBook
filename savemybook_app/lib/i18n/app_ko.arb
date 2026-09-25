@@ -3673,5 +3673,41 @@
   "messageIncludesContactPaymentDetailsDeals": "메시지에 연락처 또는 결제 정보가 포함되어 있습니다. 앱 밖의 거래와 결제는 보호되지 않으며 분쟁 시 도와드릴 수 없습니다.",
   "sendAnyway": "그래도 보내기",
   "editMessage2": "수정하기",
-  "suspectedScamMessage": "사기 의심 메시지"
+  "suspectedScamMessage": "사기 의심 메시지",
+  "listed3": "등록일",
+  "someDetailsWereFilledAutomaticallyFrom": "일부 정보는 ISBN 서지 정보로 자동 입력되었습니다.",
+  "summarizedByAiFromBookRecords": "AI가 서지 정보로 정리",
+  "filledFromIsbnRecord": "ISBN 서지 정보로 입력",
+  "aboutBook": "책 소개",
+  "becauseBoughtP0": "《{p0}》을(를) 구매하셨기 때문에",
+  "@becauseBoughtP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "becauseSavedP0": "《{p0}》을(를) 저장하셨기 때문에",
+  "@becauseSavedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "relatedP0Cart": "장바구니의 《{p0}》와(과) 관련",
+  "@relatedP0Cart": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "becauseViewedP0": "《{p0}》을(를) 보셨기 때문에",
+  "@becauseViewedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "moreP0CategoryBrowseOften": "자주 보는 「{p0}」",
+  "@moreP0CategoryBrowseOften": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "morePicks": "추천 더 보기"
 }

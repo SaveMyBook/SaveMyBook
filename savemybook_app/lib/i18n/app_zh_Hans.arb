@@ -3673,5 +3673,41 @@
   "messageIncludesContactPaymentDetailsDeals": "消息包含联系方式或付款信息。在平台外交易或付款不受平台保障，发生纠纷时平台无法协助。",
   "sendAnyway": "仍要发送",
   "editMessage2": "返回修改",
-  "suspectedScamMessage": "疑似诈骗消息"
+  "suspectedScamMessage": "疑似诈骗消息",
+  "listed3": "上架日期",
+  "someDetailsWereFilledAutomaticallyFrom": "部分资料依 ISBN 书目自动补齐",
+  "summarizedByAiFromBookRecords": "由 AI 依书目整理",
+  "filledFromIsbnRecord": "依 ISBN 书目补齐",
+  "aboutBook": "内容简介",
+  "becauseBoughtP0": "因为您买过《{p0}》",
+  "@becauseBoughtP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "becauseSavedP0": "因为您收藏了《{p0}》",
+  "@becauseSavedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "relatedP0Cart": "与您购物车中的《{p0}》相关",
+  "@relatedP0Cart": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "becauseViewedP0": "因为您看过《{p0}》",
+  "@becauseViewedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "moreP0CategoryBrowseOften": "您常看的“{p0}”",
+  "@moreP0CategoryBrowseOften": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "morePicks": "更多推荐"
 }

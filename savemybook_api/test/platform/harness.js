@@ -146,10 +146,10 @@ prisma.onSql(/^INSERT INTO notifications \(user_id, type, title, content, relate
 
 const notificationCategories = api('services/notification-categories');
 
-prisma.onSql(/AS category, COUNT\(\*\) AS n\s+FROM notifications WHERE user_id = \? AND is_read = 0 GROUP BY category/, (sql, [userId]) => {
+prisma.onSql(/AS category, COUNT\(\*\) AS n\s+FROM notifications WHERE user_id = \? AND is_read = 0 AND type <> 'message' GROUP BY category/, (sql, [userId]) => {
   const counts = new Map();
   for (const n of rowsOf('notifications')) {
-    if (Number(n.user_id) !== Number(userId) || n.is_read) continue;
+    if (Number(n.user_id) !== Number(userId) || n.is_read || n.type === 'message') continue;
     const category = notificationCategories.categoryOf(n.type, n.related_type);
     counts.set(category, (counts.get(category) ?? 0) + 1);
   }

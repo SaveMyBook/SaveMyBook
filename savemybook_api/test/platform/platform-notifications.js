@@ -4,7 +4,8 @@ const h = require('./harness');
 const { prisma, request } = h;
 const { notify, notifyMany, notifyActiveUsers } = h.api('services/notify');
 const categories = h.api('services/notification-categories');
-const { UNREAD_BY_CATEGORY_SQL } = h.api('services/notifications');
+const notificationService = h.api('services/notifications');
+const { UNREAD_BY_CATEGORY_SQL } = notificationService;
 
 // 所有建立通知的呼叫端實際使用的 (type, related_type) 組合；新增通知種類時須一併補上。
 const EMITTED = [
@@ -247,9 +248,10 @@ module.exports = {
       addNotification(user.user_id, { related_type: 'announcement', is_read: true });
       prisma.sqlLog.length = 0;
       const res = await request('GET', '/api/notifications/unread-count', { token: h.tokenFor(user) });
+      // 聊天訊息只用於推播，不列入通知中心的未讀數。
       assert.deepStrictEqual(res.body.data, {
-        unread_count: 4,
-        by_category: { trade: 1, chat: 2, account: 0, service: 1, promotion: 0 }
+        unread_count: 2,
+        by_category: { trade: 1, chat: 0, account: 0, service: 1, promotion: 0 }
       });
       assert.strictEqual(prisma.sqlLog.filter((q) => String(q.sql ?? q).includes('GROUP BY category')).length, 1);
       assert.ok(UNREAD_BY_CATEGORY_SQL.includes(categories.caseSql()));
@@ -295,11 +297,11 @@ module.exports = {
       assert.deepStrictEqual(read.body.data, { updated: 1 });
       assert.deepStrictEqual([order.is_read, chat.is_read, ticket.is_read, others.is_read], [true, false, false, false]);
 
-      const cleared = await request('DELETE', '/api/notifications/all?category=chat', { token });
+      const cleared = await request('DELETE', '/api/notifications/all?category=service', { token });
       assert.deepStrictEqual(cleared.body.data, { deleted: 1 });
       assert.deepStrictEqual(
         prisma.rows('notifications').map((n) => n.notification_id),
-        [order.notification_id, ticket.notification_id, others.notification_id]
+        [order.notification_id, chat.notification_id, others.notification_id]
       );
 
       const badRead = await request('PATCH', '/api/notifications/read-all?category=coupon', { token });
@@ -307,6 +309,29 @@ module.exports = {
       const badDelete = await request('DELETE', '/api/notifications/all?category=coupon', { token });
       assert.strictEqual(badDelete.status, 400);
       assert.strictEqual(prisma.rows('notifications').length, 3);
+    }],
+
+    ['聊天訊息不列入通知中心，讀過聊天室後推播的未讀也一併清除', async () => {
+      const user = h.addUser();
+      addNotification(user.user_id, { type: 'order', related_type: 'order' });
+      const inRoom = addNotification(user.user_id, { type: 'message', related_type: 'chat_room', related_id: 7 });
+      const otherRoom = addNotification(user.user_id, { type: 'message', related_type: 'chat_room', related_id: 8 });
+      const token = h.tokenFor(user);
+
+      const list = await request('GET', '/api/notifications', { token });
+      assert.deepStrictEqual(list.body.data.map((n) => n.type), ['order']);
+      assert.strictEqual(list.body.unread_count, 1);
+      const typed = await request('GET', '/api/notifications?type=message', { token });
+      assert.deepStrictEqual(typed.body.data.map((n) => n.type), ['order']);
+
+      await notificationService.clearChatRoom(user.user_id, 7);
+      assert.deepStrictEqual([inRoom.is_read, otherRoom.is_read], [true, false]);
+      await notificationService.clearChat(user.user_id);
+      assert.strictEqual(otherRoom.is_read, true);
+
+      otherRoom.created_at = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000);
+      assert.strictEqual(await notificationService.purgeChat(), 1);
+      assert.ok(!prisma.rows('notifications').includes(otherRoom));
     }],
 
     ['通知編號格式不正確時回 400', async () => {

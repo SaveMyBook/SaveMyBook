@@ -230,18 +230,36 @@ void main() {
       expect(empty.isEmpty, isTrue);
     });
 
-    test('recommendations keep reasons keyed by book', () {
+    test('recommendations are grouped by basis and skip unknown books', () {
       final rec = AiRecommendations.fromJson({
         'data': [
           {'book': lt.book(3), 'reason': 'Same author as a favorite'},
           {'book': lt.book(4), 'reason': null},
+          {'book': lt.book(5), 'reason': null},
           {'reason': 'missing book'},
+        ],
+        'groups': [
+          {'kind': 'book', 'relation': 'favorite', 'book_id': 9, 'title': 'Norwegian Wood', 'book_ids': [3, 4]},
+          {'kind': 'more', 'book_ids': [5, 99]},
         ],
         'meta': {'source': 'ai'},
       });
-      expect(rec.books.map((b) => b.bookId), [3, 4]);
-      expect(rec.reasons, {3: 'Same author as a favorite'});
+      expect(rec.books.map((b) => b.bookId), [3, 4, 5]);
+      expect(rec.groups.map((g) => g.kind), ['book', 'more']);
+      expect(rec.groups.first.relation, 'favorite');
+      expect(rec.groups.first.title, 'Norwegian Wood');
+      expect(rec.groups.last.books.map((b) => b.bookId), [5]);
       expect(rec.source, 'ai');
+    });
+
+    test('recommendations without groups fall back to one group', () {
+      final rec = AiRecommendations.fromJson({
+        'data': [
+          {'book': lt.book(3)},
+        ],
+      });
+      expect(rec.groups.single.kind, 'more');
+      expect(rec.groups.single.books.single.bookId, 3);
     });
   });
 

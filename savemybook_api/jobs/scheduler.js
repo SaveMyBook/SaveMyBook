@@ -14,6 +14,7 @@ const supportAttachments = require('../services/support-attachments');
 const catalogSearch = require('../services/ai/catalog-search');
 const knowledge = require('../services/ai/knowledge');
 const enrichment = require('../services/ai/enrich');
+const notificationCenter = require('../services/notifications');
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
@@ -51,6 +52,7 @@ const runDeviceCleanup = async () => {
   try {
     if (push.isReady()) await push.removeStaleDevices();
     await sessions.removeStale();
+    await notificationCenter.purgeChat();
   } catch (err) {
     console.error('[清理裝置失敗]:', err.message);
   }

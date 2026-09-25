@@ -395,7 +395,7 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
   }
 
   Widget _buildCategoryBar(AppColors c) {
-    final options = <NotificationCategory?>[null, ...NotificationCategory.values];
+    final options = <NotificationCategory?>[null, ...NotificationCategory.center];
     return LayoutBuilder(
       builder: (context, constraints) {
         final side = responsiveListPadding(constraints).left;

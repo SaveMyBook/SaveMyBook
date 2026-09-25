@@ -97,6 +97,36 @@ module.exports = {
       assert.deepStrictEqual(cached.items.map((i) => i.book_id), [2, 1, 3, 4, 5]);
     }],
 
+    ['推薦：依模型標出的依據分組，書名由伺服器帶入，不足 2 本的依據歸入更多推薦', async () => {
+      setup({ favorites: [9, 10], ids: [1, 2, 3, 4, 5] });
+      h.queueJson({
+        items: [
+          { id: 'b1', basis: 'f1', reason: '同一作者' },
+          { id: 'b2', basis: 'k1', reason: '同分類' },
+          { id: 'b3', basis: 'f1', reason: '同一作者' },
+          { id: 'b4', basis: 'k1', reason: '同分類' },
+          { id: 'b5', basis: 'f2', reason: '只有一本' }
+        ]
+      });
+
+      const { data, groups } = await recommend.recommendations(7, 10);
+      assert.deepStrictEqual(data[0].basis, { kind: 'book', relation: 'favorite', book_id: 9, title: '收藏 9' });
+      assert.deepStrictEqual(groups, [
+        { kind: 'book', relation: 'favorite', book_id: 9, title: '收藏 9', book_ids: [1, 3] },
+        { kind: 'category', category: '文學小說', book_ids: [2, 4] },
+        { kind: 'more', book_ids: [5] }
+      ]);
+    }],
+
+    ['推薦：模型給了不存在的依據代號時視為沒有依據', async () => {
+      setup({ favorites: [9] });
+      h.queueJson({ items: [{ id: 'b1', basis: 'f7', reason: 'x' }, { id: 'b2', basis: '《自己編的書》', reason: 'y' }] });
+      const { data, groups } = await recommend.recommendations(7, 10);
+      assert.strictEqual(data[0].basis, null);
+      assert.strictEqual(data[1].basis, null);
+      assert.deepStrictEqual(groups.map((g) => g.kind), ['more']);
+    }],
+
     ['推薦：快取未過期時直接使用，不再呼叫模型', async () => {
       setup({ favorites: [9] });
       prisma.store.ai_recommendation_cache = [{
@@ -194,7 +224,8 @@ module.exports = {
       const { data } = await recommend.recommendations(7, 10);
       const { prompt, reasoning } = h.calls[0].options;
       assert.strictEqual(reasoning, 'low');
-      assert.match(prompt, /【閱讀輪廓】\n常看的分類：文學小說\n常看的作者：村上春樹/);
+      assert.match(prompt, /【閱讀輪廓】\n常看的分類：k1 文學小說\n常看的作者：村上春樹/);
+      assert.match(prompt, /【收藏】\nf1｜《收藏 9》/);
       assert.match(prompt, /b1｜《海邊的卡夫卡》/, '內容相似的書排在熱門書之前');
       assert.ok(!/程式設計入門/.test(prompt), '與收藏無關的書不會因相似度被選入');
       assert.strictEqual(data[0].book.book_id, 6);
@@ -209,6 +240,7 @@ module.exports = {
       assert.strictEqual(res.status, 200);
       assert.strictEqual(res.body.meta.source, 'fallback');
       assert.strictEqual(res.body.data.length, 1);
+      assert.deepStrictEqual(res.body.groups, [{ kind: 'more', book_ids: [4] }]);
     }],
 
     ['審核判定：未知的判定一律視為需人工審核', () => {

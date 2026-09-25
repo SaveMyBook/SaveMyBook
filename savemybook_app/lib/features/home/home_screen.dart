@@ -8,6 +8,7 @@ import '../account/profile_screen.dart';
 import '../selling/sell_book_screen.dart';
 import '../orders/pickup_book_screen.dart';
 import '../../models/category.dart';
+import '../../models/ai.dart';
 import '../../models/book.dart';
 import '../../services/ai_status.dart';
 import '../../services/api_service.dart';
@@ -71,8 +72,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   List<Category> _categories = [];
   List<Book> _books = [];
-  List<Book> _recommended = [];
-  Map<int, String> _recommendReasons = const {};
+  List<RecommendationGroup> _recommendGroups = const [];
 
   final ApiService _apiService = ApiService();
   final ScrollController _scrollController = ScrollController();
@@ -181,22 +181,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     final viewedIds = RecentlyViewed.books.value.map((b) => b.bookId);
     if (status.recommend && status.consented) {
-      final ai = await _apiService.fetchAiRecommendations(viewedIds: viewedIds);
+      final ai = await _apiService.fetchAiRecommendations(limit: 30, viewedIds: viewedIds);
       if (!mounted) return;
       if (ai != null && ai.books.isNotEmpty) {
-        setState(() {
-          _recommended = ai.books;
-          _recommendReasons = ai.reasons;
-        });
+        setState(() => _recommendGroups = ai.groups);
         return;
       }
     }
     final recommended = await _apiService.fetchRecommendedBooks(viewedIds: viewedIds);
     if (!mounted) return;
-    setState(() {
-      _recommended = recommended;
-      _recommendReasons = const {};
-    });
+    setState(() => _recommendGroups = [if (recommended.isNotEmpty) RecommendationGroup(kind: 'more', books: recommended)]);
   }
 
   void _onDiscoveryPreferenceChanged() {
@@ -635,6 +629,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  static String _shortTitle(String title) {
+    final main = title.split(RegExp(r'[:：]')).first.trim();
+    return main.length > 14 ? '${main.substring(0, 13)}…' : main;
+  }
+
+  String? _groupTitle(RecommendationGroup group, {required bool single}) {
+    final title = _shortTitle(group.title ?? '');
+    final category = group.category ?? '';
+    return switch ((group.kind, group.relation)) {
+      ('book', 'purchase') => S.becauseBoughtP0(title),
+      ('book', 'favorite') => S.becauseSavedP0(title),
+      ('book', 'cart') => S.relatedP0Cart(title),
+      ('book', _) => S.becauseViewedP0(title),
+      ('category', _) => S.moreP0CategoryBrowseOften(category),
+      _ => single ? null : S.morePicks,
+    };
+  }
+
   Widget _buildDiscoverySections() {
     return AnimatedSize(
       duration: Motion.enter,
@@ -646,15 +658,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           if (!HomePreferences.showDiscovery.value) return const SizedBox(width: double.infinity);
           final recent = RecentlyViewed.books.value;
           final recentIds = recent.map((b) => b.bookId).toSet();
-          final recommended = _recommended.where((b) => !recentIds.contains(b.bookId)).toList();
+          final groups = [
+            for (final g in _recommendGroups)
+              (group: g, books: g.books.where((b) => !recentIds.contains(b.bookId)).toList()),
+          ].where((g) => g.books.isNotEmpty).toList();
           final tabs = [
-            if (_isBrowsingAll && recommended.isNotEmpty)
+            if (_isBrowsingAll && groups.isNotEmpty)
               DiscoveryTab(
                 id: 'picked',
                 title: S.picked,
                 icon: Icons.auto_awesome_rounded,
-                books: recommended,
-                reasons: _recommendReasons,
+                books: [for (final g in groups) ...g.books],
+                groups: [
+                  for (final g in groups) DiscoveryGroup(title: _groupTitle(g.group, single: groups.length == 1), books: g.books),
+                ],
               ),
             if (_isBrowsingAll && recent.isNotEmpty)
               DiscoveryTab(
