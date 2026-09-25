@@ -1,12 +1,9 @@
 const crypto = require('crypto');
 const prisma = require('../lib/prisma');
-const { hasTables } = require('../lib/schema-check');
 const { placeholders } = require('../lib/sql');
 
 const IDLE_DAYS = 30;
 const TOUCH_EVERY_MS = 5 * 60 * 1000;
-
-const isAvailable = () => hasTables(['user_sessions', 'user_security']);
 
 const clip = (value, max) => {
   if (typeof value !== 'string') return null;
@@ -28,8 +25,6 @@ const hashKey = (key) => crypto.createHash('sha256').update(String(key)).digest(
 const idleCutoff = () => new Date(Date.now() - IDLE_DAYS * 24 * 60 * 60 * 1000);
 
 const create = async (userId, { deviceId, deviceName, platform, appVersion, ip } = {}) => {
-  if (!(await isAvailable())) return null;
-
   const now = new Date();
   const sid = crypto.randomBytes(16).toString('hex');
   const device = clip(deviceId, 64);
@@ -58,14 +53,12 @@ const create = async (userId, { deviceId, deviceName, platform, appVersion, ip }
 };
 
 const lookup = async (userId, sid) => {
-  if (!(await isAvailable())) return { available: false };
   const [row = {}] = await prisma.$queryRaw`
     SELECT s.user_id AS session_user, s.revoked_at, us.tokens_valid_after
     FROM (SELECT 1 AS one) d
     LEFT JOIN user_sessions s ON s.sid = ${sid ?? ''}
     LEFT JOIN user_security us ON us.user_id = ${userId}`;
   return {
-    available: true,
     session: row.session_user == null ? null : { userId: Number(row.session_user), revoked: row.revoked_at != null },
     validAfter: row.tokens_valid_after ? new Date(row.tokens_valid_after) : null
   };
@@ -79,22 +72,20 @@ const touch = (sid, ip) => {
 };
 
 const findActive = async (sid) => {
-  if (!sid || !(await isAvailable())) return null;
+  if (!sid) return null;
   const rows = await prisma.$queryRaw`
     SELECT session_id, user_id, sid, pay_key_hash, last_seen_at FROM user_sessions
     WHERE sid = ${sid} AND revoked_at IS NULL AND last_seen_at >= ${idleCutoff()}`;
   return rows[0] ?? null;
 };
 
-const list = async (userId) => {
-  if (!(await isAvailable())) return [];
-  return prisma.$queryRaw`
+const list = (userId) =>
+  prisma.$queryRaw`
     SELECT session_id, sid, device_name, platform, app_version, ip_address, created_at, last_seen_at,
            pay_key_hash IS NOT NULL AS biometric_pay
     FROM user_sessions
     WHERE user_id = ${userId} AND revoked_at IS NULL AND last_seen_at >= ${idleCutoff()}
     ORDER BY last_seen_at DESC`;
-};
 
 const removePushDevices = async (sids) => {
   if (sids.length === 0) return;
@@ -107,7 +98,6 @@ const removePushDevices = async (sids) => {
 };
 
 const revoke = async (userId, sessionId) => {
-  if (!(await isAvailable())) return null;
   const rows = await prisma.$queryRaw`
     SELECT sid FROM user_sessions WHERE session_id = ${sessionId} AND user_id = ${userId} AND revoked_at IS NULL`;
   if (rows.length === 0) return null;
@@ -118,14 +108,13 @@ const revoke = async (userId, sessionId) => {
 };
 
 const revokeBySid = async (sid) => {
-  if (!sid || !(await isAvailable())) return;
+  if (!sid) return;
   await prisma.$executeRaw`
     UPDATE user_sessions SET revoked_at = ${new Date()}, pay_key_hash = NULL WHERE sid = ${sid} AND revoked_at IS NULL`;
   await removePushDevices([sid]);
 };
 
 const revokeAll = async (userId, { exceptSid = null } = {}) => {
-  if (!(await isAvailable())) return 0;
   const now = new Date();
   const rows = await prisma.$queryRaw`
     SELECT sid FROM user_sessions WHERE user_id = ${userId} AND revoked_at IS NULL AND sid <> ${exceptSid ?? ''}`;
@@ -161,12 +150,11 @@ const matchesPayKey = (session, key) => {
 };
 
 const removeStale = async () => {
-  if (!(await isAvailable())) return;
   const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
   await prisma.$executeRaw`DELETE FROM user_sessions WHERE last_seen_at < ${cutoff}`;
 };
 
 module.exports = {
-  isAvailable, deviceLabel, create, lookup, touch, findActive, list, revoke, revokeBySid, revokeAll,
+  deviceLabel, create, lookup, touch, findActive, list, revoke, revokeBySid, revokeAll,
   setPayKey, clearPayKey, matchesPayKey, removeStale
 };

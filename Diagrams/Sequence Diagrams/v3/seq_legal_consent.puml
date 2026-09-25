@@ -1,52 +1,60 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：法律文件同意（服務條款/隱私權政策）
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 使用者 as User
-actor 管理員 as Admin
-participant "LegalConsentScreen\n(全螢幕不可關閉流程)" as UI
-participant "ApiService(LegalApi)" as ApiSvc
-participant "GET .../legal-consents/pending" as PendingRoute
-participant "POST .../legal-consents" as ConsentRoute
-participant "PUT /api/admin/legal/:key" as AdminRoute
-participant "services/legal.js" as LegalSvc
-database "legal_documents /\nuser_legal_consents" as DB
+actor 管理員
+actor 使用者
+participant UI
+participant API
+database DB
 
-== App啟動/回到前景時檢查 ==
-UI -> ApiSvc : LegalConsentGate.check()
-ApiSvc -> PendingRoute : GET /api/users/me/legal-consents/pending
-PendingRoute -> LegalSvc : pendingFor(userId)
-LegalSvc -> DB : requires_consent=1 且文件版本 > 使用者已同意版本
-LegalSvc --> UI : 待同意文件清單
+== 管理員更新法律文件 ==
+管理員 -> UI : 編輯服務條款或隱私權政策
+activate 管理員
+activate UI
+UI -> API : PUT /api/admin/legal/:key
+activate API
+API -> DB : 儲存文件內容
+opt 標示為重大更新且內容有變更
+  API -> DB : 文件版本號加一
+  API -> DB : 通知全體有效會員重新同意
+end
+API -> DB : 寫入可還原之稽核紀錄
+API --> UI : 200 OK
+UI --> 管理員 : 顯示已通知人數
+deactivate API
+deactivate UI
+deactivate 管理員
 
-alt 有待同意文件
-  loop 逐份顯示
-    UI -> User : 全螢幕顯示文件內容(需捲動至文末)
-    User -> UI : 捲動至文末後「同意」
-    UI -> ApiSvc : acceptLegalDoc(doc_key, version)
-    ApiSvc -> ConsentRoute : POST /api/users/me/legal-consents
-    ConsentRoute -> LegalSvc : accept(userId, doc_key, version)
-    alt 文件已在此期間被更新
-      LegalSvc --> UI : 409 LEGAL_VERSION_CHANGED（重新取得最新版）
-    else 成功
-      LegalSvc -> DB : user_legal_consents.upsert(user_id, doc_key, version)
-    end
+== 使用者同意新版文件 ==
+使用者 -> UI : 開啟 App 或回到前景
+activate 使用者
+activate UI
+UI -> API : GET /api/users/me/legal-consents/pending
+activate API
+API -> DB : 查詢版本高於已同意版本之文件
+API --> UI : 200 OK（待同意文件清單）
+UI --> 使用者 : 全螢幕顯示文件，須捲動至文末
+loop 逐份待同意文件
+  alt 同意
+    使用者 -> UI : 點擊「同意」
+    UI -> API : POST /api/users/me/legal-consents
+    API -> DB : 核對版本並記錄同意
+    API --> UI : 200 OK（版本已更新則回 409 並重新載入）
+  else 拒絕
+    使用者 -> UI : 點擊「拒絕」並確認
+    UI -> API : POST /api/auth/logout
+    UI --> 使用者 : 登出並返回登入頁
   end
-else 使用者拒絕
-  User -> UI : 拒絕並確認
-  UI -> ApiSvc : logout()
 end
-
-== 管理員編輯法律文件 ==
-Admin -> AdminRoute : PUT /api/admin/legal/:key { title, content, major }
-AdminRoute -> LegalSvc : update(key, content, major)
-alt major=true 且內容有變更
-  LegalSvc -> DB : legal_documents.version += 1
-  LegalSvc -> DB : 通知所有有效會員「服務條款已更新」
-else 小幅修正
-  LegalSvc -> DB : 更新內容，不變更版本
-end
-LegalSvc -> DB : audit.record（可還原）
+UI --> 使用者 : 全部同意後返回首頁
+deactivate API
+deactivate UI
+deactivate 使用者
 @enduml

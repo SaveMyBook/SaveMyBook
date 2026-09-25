@@ -6,21 +6,16 @@ const { isoBase64URL } = require('@simplewebauthn/server/helpers');
 const prisma = require('../lib/prisma');
 const webauthn = require('../lib/webauthn');
 const publicId = require('../lib/public-id');
-const { hasTables } = require('../lib/schema-check');
 const { HttpError, badRequest, conflict, notFound } = require('../lib/errors');
 const { notify } = require('./notify');
-const authSettings = require('./auth-settings');
 const identities = require('./auth-identities');
 
-const TABLES = ['user_passkeys', 'webauthn_challenges'];
 const MAX_PER_USER = 10;
 
-const migrationReady = () => hasTables(TABLES);
-
-const isAvailable = async () => webauthn.isConfigured() && (await migrationReady());
+const isAvailable = () => webauthn.isConfigured();
 
 const assertAvailable = async () => {
-  if (!(await isAvailable())) {
+  if (!isAvailable()) {
     throw new HttpError(503, '通行密鑰暫時無法使用，請改用其他方式', 'PASSKEY_UNAVAILABLE');
   }
 };
@@ -37,7 +32,7 @@ const countOf = async (userId) => {
   return Number(row?.n ?? 0);
 };
 
-const hasPasskey = async (userId) => (await migrationReady()) && (await countOf(userId)) > 0;
+const hasPasskey = async (userId) => (await countOf(userId)) > 0;
 
 const transportsOf = (row) => (row.transports ? String(row.transports).split(',').filter(Boolean) : undefined);
 
@@ -101,7 +96,6 @@ const consumeChallenge = async (response, { purpose, scope = '', userId = null }
 };
 
 const cleanupExpired = async () => {
-  if (!(await migrationReady())) return 0;
   const cutoff = new Date(Date.now() - webauthn.CHALLENGE_TTL_MS);
   return prisma.$executeRaw`DELETE FROM webauthn_challenges WHERE created_at < ${cutoff}`;
 };
@@ -225,7 +219,7 @@ const register = async (userId, input, deviceLabel) => {
 const otherSignInMethods = async (userId) => {
   const [passwordSet, linked] = await Promise.all([
     identities.hasPassword(userId),
-    authSettings.migrationReady().then((ready) => (ready ? identities.identitiesOf(userId) : []))
+    identities.identitiesOf(userId)
   ]);
   return (passwordSet ? 1 : 0) + linked.length;
 };
@@ -377,6 +371,6 @@ const login = async (assertion, device) => {
 };
 
 module.exports = {
-  MAX_PER_USER, migrationReady, isAvailable, assertAvailable, hasPasskey, list, registrationOptions, register,
+  MAX_PER_USER, isAvailable, assertAvailable, hasPasskey, list, registrationOptions, register,
   rename, remove, loginOptions, verifyOptions, verifyAssertion, login, cleanupExpired
 };

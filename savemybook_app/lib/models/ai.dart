@@ -343,13 +343,11 @@ class AiRetrievalStatus {
 class AiSettingsBundle {
   final AiSettings settings;
   final List<AiProviderInfo> providers;
-  final bool migrationReady;
   final AiRetrievalStatus retrieval;
 
   const AiSettingsBundle({
     required this.settings,
     required this.providers,
-    required this.migrationReady,
     this.retrieval = AiRetrievalStatus.none,
   });
 
@@ -377,7 +375,6 @@ class AiSettingsBundle {
             ),
           ),
       ],
-      migrationReady: json['migration_ready'] != false,
       retrieval: AiRetrievalStatus.fromJson(json['retrieval']),
     );
   }

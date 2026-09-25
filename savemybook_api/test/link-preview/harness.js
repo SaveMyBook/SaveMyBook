@@ -138,7 +138,7 @@ server.onReset(() => {
   linkPreview.resetCache();
 });
 
-server.setDefaultReset(() => server.reset({ schema: { tables: [], columns: [] }, tables: { users: [], books: [] } }));
+server.setDefaultReset(() => server.reset({ tables: { users: [], books: [] } }));
 
 const previewOf = async (token, url) => {
   const res = await server.request('GET', `/api/chat/link-preview?url=${encodeURIComponent(url)}`, { token });

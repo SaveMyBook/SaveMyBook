@@ -1,6 +1,5 @@
 const prisma = require('../lib/prisma');
 const password = require('../lib/password');
-const { hasColumn } = require('../lib/schema-check');
 const { passwordVersion, signToken, verify } = require('../lib/auth-token');
 const { notFound, unauthorized, forbidden } = require('../lib/errors');
 const sessions = require('./sessions');
@@ -24,7 +23,6 @@ const accountProblem = (user, decoded) => {
 
 const sessionProblem = async (userId, decoded) => {
   const state = await sessions.lookup(userId, decoded.sid);
-  if (!state.available) return null;
   if (decoded.sid) {
     if (!state.session || state.session.userId !== userId || state.session.revoked) {
       return [401, '此裝置已登出，請重新登入', 'SESSION_REVOKED'];
@@ -42,27 +40,22 @@ const assertLoginAllowed = (user) => {
   if (!user.is_active) throw forbidden('此帳號已停權，請聯絡客服', 'ACCOUNT_INACTIVE');
 };
 
-// login_method 於 014 之後才有，未執行時沿用原本的寫法，只是分不出登入方式。
 const logLogin = async (userId, device, method) => {
   const ip = device?.ip ? String(device.ip).slice(0, 45) : null;
   const label = sessions.deviceLabel(device);
-  if (await hasColumn('login_logs', 'login_method')) {
-    await prisma.$executeRaw`
-      INSERT INTO login_logs (user_id, ip_address, device_info, login_at, login_method)
-      VALUES (${userId}, ${ip}, ${label}, ${new Date()}, ${method})`;
-    return;
-  }
-  await prisma.login_logs.create({ data: { user_id: userId, ip_address: ip, device_info: label } });
+  await prisma.$executeRaw`
+    INSERT INTO login_logs (user_id, ip_address, device_info, login_at, login_method)
+    VALUES (${userId}, ${ip}, ${label}, ${new Date()}, ${method})`;
 };
 
 // 密碼登入與社群登入共用：建立工作階段、簽發 Token、寫登入紀錄、提醒新裝置。
 const issueLogin = async (user, device, method = 'password') => {
   const session = await sessions.create(user.user_id, device);
-  const token = signToken(user, session?.sid);
+  const token = signToken(user, session.sid);
 
   logLogin(user.user_id, device, method).catch(() => {});
 
-  if (session?.isNewDevice) {
+  if (session.isNewDevice) {
     await notify(null, {
       userId: user.user_id,
       title: '新裝置登入',

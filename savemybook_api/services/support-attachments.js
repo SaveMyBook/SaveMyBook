@@ -3,13 +3,11 @@ const fs = require('fs');
 const path = require('path');
 const prisma = require('../lib/prisma');
 const { env } = require('../config/env');
-const { hasTables } = require('../lib/schema-check');
 const { placeholders } = require('../lib/sql');
 const { UPLOAD_ROOT } = require('../lib/upload');
-const { badRequest, HttpError } = require('../lib/errors');
+const { badRequest } = require('../lib/errors');
 
 const FOLDER = 'support';
-const TABLE = 'support_ticket_attachments';
 const MAX_PER_MESSAGE = 4;
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_PENDING = 20;
@@ -22,14 +20,6 @@ const FILE_RE = /^[\w-]+\.(jpg|png|gif|webp|heic|heif)$/;
 
 const MIME = {
   jpg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif'
-};
-
-const ready = () => hasTables([TABLE]);
-
-const unavailable = () => new HttpError(503, '圖片附件暫時無法使用，請稍後再試', 'SUPPORT_ATTACHMENTS_UNAVAILABLE');
-
-const assertReady = async () => {
-  if (!(await ready())) throw unavailable();
 };
 
 let cachedKey = null;
@@ -90,7 +80,6 @@ const pendingCount = async (userId) => {
 };
 
 const assertCanUpload = async (userId) => {
-  await assertReady();
   if ((await pendingCount(userId)) >= MAX_PENDING) {
     throw badRequest('尚未送出的圖片過多，請先送出或稍後再試', 'SUPPORT_ATTACHMENTS_PENDING_LIMIT');
   }
@@ -105,7 +94,6 @@ const recordUpload = async (userId, { url, size }) => {
 // 送出前先檢查，避免工單或訊息已建立才發現附件無效。
 const assertClaimable = async (userId, urls) => {
   if (urls.length === 0) return;
-  await assertReady();
   const rows = await prisma.$queryRawUnsafe(
     `SELECT url FROM support_ticket_attachments
      WHERE uploader_id = ? AND message_id IS NULL AND url IN (${placeholders(urls)})`,
@@ -124,10 +112,10 @@ const claim = async (tx, userId, urls, messageId) => {
   }
 };
 
-/** 依訊息編號取得附件，回傳 Map<message_id, [{ url }]>；未執行 017 時為空。 */
+/** 依訊息編號取得附件，回傳 Map<message_id, [{ url }]>。 */
 const forMessages = async (messageIds, { ttl } = {}) => {
   const map = new Map();
-  if (messageIds.length === 0 || !(await ready())) return map;
+  if (messageIds.length === 0) return map;
   const rows = await prisma.$queryRawUnsafe(
     `SELECT message_id, url, sort_order FROM support_ticket_attachments
      WHERE message_id IN (${placeholders(messageIds)}) ORDER BY sort_order`,
@@ -158,7 +146,6 @@ const purgeUser = async (tx, userId) => {
 };
 
 const purgeStale = async () => {
-  if (!(await ready())) return 0;
   const rows = await prisma.$queryRaw`
     SELECT attachment_id, url FROM support_ticket_attachments
     WHERE message_id IS NULL AND created_at < ${new Date(Date.now() - PENDING_TTL_MS)}`;
@@ -174,6 +161,6 @@ const purgeStale = async () => {
 
 module.exports = {
   FOLDER, MAX_PER_MESSAGE, MAX_FILE_BYTES, EXPORT_LINK_S,
-  ready, assertReady, parseUrls, assertCanUpload, recordUpload, assertClaimable, claim,
+  parseUrls, assertCanUpload, recordUpload, assertClaimable, claim,
   forMessages, signedUrl, verifyLink, fileInfo, purgeUser, purgeStale, unlinkUrls
 };

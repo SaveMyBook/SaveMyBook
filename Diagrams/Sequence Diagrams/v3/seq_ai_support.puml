@@ -1,39 +1,60 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：AI 客服對話與升級轉真人客服
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 使用者 as User
-participant "AiSupportScreen" as UI
-participant "ApiService(AiApi)" as ApiSvc
-participant "POST /api/ai/support/messages" as Route
-participant "ai/support.js" as SupportAi
-participant "AI 供應商" as LLM
-participant "support.js" as SupportSvc
-database "Prisma / MariaDB" as DB
+actor 使用者
+participant UI
+participant API
+database DB
+participant "AI 服務" as AI
+actor 管理員
 
-User -> UI : 輸入問題
-UI -> ApiSvc : sendAiSupportMessage(message)
-ApiSvc -> Route : POST /api/ai/support/messages
-Route -> SupportAi : sendMessage(userId, message)
-SupportAi -> SupportAi : runner.access('support')\nconsent.assertGranted()\nassertDailyLimit()
-SupportAi -> DB : 讀取 faqs / legal_documents\n讀取本人最近5筆訂單與預約狀態
-SupportAi -> SupportAi : buildSystem(平台規則+FAQ+使用者情境)
-SupportAi -> LLM : 呼叫模型
-LLM --> SupportAi : { reply, suggest_handoff }
-SupportAi -> DB : ai_support_sessions/ai_support_messages 寫入
-SupportAi --> UI : 顯示AI回覆
+使用者 -> UI : 輸入問題
+activate 使用者
+activate UI
+UI -> API : POST /api/ai/support/messages
+activate API
+API -> DB : 檢查功能開放、AI 使用同意與每日次數
+activate DB
+API -> DB : 讀取近期對話
+API -> DB : 以關鍵字比對平台說明、\n常見問題與條款段落
+DB --> API : 關鍵字排序結果
+deactivate DB
+API -> AI : 將提問轉為語意向量
+activate AI
+AI --> API : 語意向量
+deactivate AI
+API -> API : 合併關鍵字與語意排序，\n取最相關的段落
+API -> DB : 讀取本人近期訂單、預約與書籍
+activate DB
+DB --> API : 使用者資料
+deactivate DB
+API -> AI : 客服規則、參考段落、\n使用者資料與提問
+activate AI
+AI --> API : 回覆內容與是否建議轉真人
+deactivate AI
+API -> DB : 儲存本輪對話
+API --> UI : 200 OK
+deactivate API
+UI --> 使用者 : 顯示 AI 回覆
 
-alt AI建議轉真人 或 使用者主動要求
-  User -> UI : 點擊「轉真人客服」
-  UI -> ApiSvc : escalateAiSupport()
-  ApiSvc -> Route : POST /api/ai/support/session/escalate
-  Route -> SupportAi : escalate(sessionId)
-  SupportAi -> SupportSvc : open(userId, subject, 對話逐字稿)
-  SupportSvc -> DB : support_tickets.create()\n+ support_ticket_messages.create()
-  SupportSvc -> DB : notifySupportStaff(可管理客服之管理員)
-  SupportAi -> DB : ai_support_sessions.status='escalated'\n(記錄ticket_id)
-  SupportAi --> UI : 導向真人客服工單畫面
+opt AI 建議轉真人或使用者主動要求
+  使用者 -> UI : 點擊「轉真人客服」
+  UI -> API : POST /api/ai/support/session/escalate
+  activate API
+  API -> DB : 以對話紀錄建立客服工單
+  API -> DB : 對話標示為「已轉真人」
+  API -> 管理員 : 通知「新的客服工單」
+  API --> UI : 200 OK
+  deactivate API
+  UI --> 使用者 : 導向客服工單頁面
 end
+deactivate UI
+deactivate 使用者
 @enduml

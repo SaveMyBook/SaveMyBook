@@ -1,276 +1,155 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 12
 skinparam classAttributeIconSize 0
+skinparam linetype ortho
 hide circle
-title 設計類別圖（Design Class Diagram）
+hide empty methods
+left to right direction
+skinparam nodesep 25
+skinparam ranksep 45
 
-package "services.books" {
-  class BooksService {
-    +create(data, images, files)
-    +update(bookId, user, data)
-    +remove(bookId, user)
-    +relist(bookId, user)
-    +addImages(bookId, files)
-    -findOwnedBook(bookId, user)
-    -violationLocked(book)
-    -assertRefsExist(data)
-  }
-  class ListingScreeningService {
-    +ruleDecision(data)
-    +screenLater(book, files)
-    +applyLater(bookId, decision)
-    +hold(tx, book, decision)
-    +notifyAdmins(book)
-  }
+class "使用者 users" as users {
+  user_id: Int
+  email: String
+  nickname: String
+  role: enum
+  is_active: Boolean
+  is_blacklisted: Boolean
+  --
+  + register()
+  + login()
+  + updateProfile()
+}
+class "會員錢包 wallets" as wallets {
+  wallet_id: Int
+  balance: Decimal
+  frozen_amount: Decimal
+  total_income: Decimal
+  --
+  + transfer()
+  + settle()
+  + refund()
+}
+class "書籍商品 books" as books {
+  book_id: Int
+  isbn: String?
+  title: String
+  author: String?
+  price: Decimal
+  condition_level: enum
+  status: enum
+  is_approved: Boolean
+  --
+  + list()
+  + edit()
+  + delist()
+  + fillDetails()
+}
+class "購物車 shopping_cart" as cart {
+  cart_id: Int
+  book_id: Int
+  quantity: Int
+  --
+  + addItem()
+  + checkout()
+}
+class "訂單 orders" as orders {
+  order_id: Int
+  order_no: String
+  total_amount: Decimal
+  status: enum
+  deposited_at: DateTime?
+  picked_up_at: DateTime?
+  completed_at: DateTime?
+  --
+  + createOrder()
+  + buyNow()
+  + confirmDeposit()
+  + confirmPickup()
+  + complete()
+  + cancelOrder()
+}
+class "交易仲裁/申訴 transaction_disputes" as disputes {
+  dispute_id: Int
+  reason: String
+  status: enum
+  result: enum
+  --
+  + submitDispute()
+  + analyze()
+  + arbitrate()
+}
+class "預約管理 reservations" as reservations {
+  reservation_id: Int
+  pickup_deadline: DateTime?
+  status: enum
+  --
+  + request()
+  + respond()
+  + expire()
+}
+class "智慧書櫃據點 smart_cabinets" as cabinets {
+  cabinet_id: Int
+  cabinet_name: String
+  address: String
+  is_maintenance: Boolean
+  --
+  + checkAvailability()
+}
+class "書櫃格位 cabinet_slots" as slots {
+  slot_number: String
+  status: enum
+}
+class "聊天室 chat_rooms" as rooms {
+  room_id: Int
+  room_type: enum
+  name: String?
+  --
+  + open()
+  + invite()
+}
+class "聊天訊息 chat_messages" as messages {
+  message_id: Int
+  content: String
+  is_read: Boolean
+  --
+  + sendMessage()
+  + recall()
+  + markAsRead()
+}
+class "訊息風險紀錄 chat_message_risks" as risks {
+  level: enum
+  categories: String
+  --
+  + assess()
+}
+class "推播通知 notifications" as notifications {
+  notification_id: Int
+  type: enum
+  title: String
+  is_read: Boolean
+  --
+  + pushNotification()
+  + markAsRead()
 }
 
-package "entities（Prisma Model）" {
-  class Book <<entity>> {
-    book_id : Int
-    seller_id : Int
-    title : String
-    price : Decimal
-    status : books_status
-    is_approved : Boolean
-    cabinet_id : Int?
-  }
-  class Order <<entity>> {
-    order_id : Int
-    order_no : String
-    buyer_id : Int
-    seller_id : Int
-    total_amount : Decimal
-    status : orders_status
-    cabinet_id : Int?
-    slot_id : Int?
-  }
-  class SmartCabinet <<entity>> {
-    cabinet_id : Int
-    cabinet_name : String
-    available_slots : Int
-  }
-  class Wallet <<entity>> {
-    wallet_id : Int
-    user_id : Int
-    balance : Decimal
-    frozen_amount : Decimal
-  }
-  class TransactionDispute <<entity>> {
-    dispute_id : Int
-    order_id : Int
-    status : transaction_disputes_status
-    result : transaction_disputes_result?
-  }
-  class ChatTransfer <<entity>> {
-    transfer_id : Int
-    room_id : Int
-    kind : chat_transfers_kind
-    amount : Decimal
-    status : chat_transfers_status
-  }
-  class User <<entity>> {
-    user_id : Int
-    email : String
-    role : users_role
-    bonus_points : Int
-  }
-}
-
-package "services.orders" {
-  class CheckoutService {
-    +checkout(userId, cartItemIds)
-    -buildOrderNo()
-  }
-  class SettlementService {
-    +transition(tx, order, target, opts)
-    +settle(tx, order, target)
-    -phaseOf(status)
-    -guardedUpdate(tx, order, data)
-    -ledgerOf(tx, order)
-    +assertAdminTransition(from, to)
-  }
-  class OrdersIndexService {
-    +advance(orderId, user, status)
-    +cancel(orderId, user, reason)
-    +adminChangeStatus(orderId, admin, status)
-    +adminList(filter)
-    +adminDetail(orderId)
-  }
-}
-
-package "services.wallet" {
-  class WalletService {
-    +changeBalance(tx, userId, opts)
-    +summary(userId)
-    +transactions(userId)
-    +pendingIncome(userId)
-    +adjust(userId, amount, admin)
-  }
-}
-
-package "services.chat" {
-  class ChatMessagesService {
-    +send(roomId, sender, content, type)
-    -buildContent(type, payload)
-    -mentionsOf(content)
-  }
-  class ChatTransfersService {
-    +send(roomId, from, to, amount)
-    +request(roomId, from, to, amount)
-    +respond(transferId, action)
-    -moveFunds(tx, from, to, amount)
-  }
-  class ReservationsService {
-    +request(roomId, buyer, book, hours)
-    +respond(reservationId, action)
-    +assertNotHeldByOthers(book)
-    +expireDue()
-  }
-}
-
-package "services.disputes" {
-  class DisputesService {
-    +create(orderId, applicant, reason)
-    +resolve(disputeId, result, actor)
-    -restoredStatus(order)
-  }
-}
-
-package "services.ai" {
-  class ModerationService {
-    +screen(content, images)
-    +actionFor(verdict, confidence, mode)
-    +assertNotRejected(decision)
-  }
-  class ListingAssistService {
-    +assist(userId, isbn, title, images)
-    -sanitizeFields(fields)
-    -mergeSources(sources)
-  }
-  class BookChatService {
-    +plan(userId, message)
-    +candidates(userId, search)
-    +pick(candidates)
-  }
-  class SupportAiService {
-    +sendMessage(userId, message)
-    +escalate(sessionId)
-  }
-}
-
-package "services.admin" {
-  class AdminPermissionsService {
-    +hasPermission(userId, permission)
-    +effectivePermissions(userId)
-    +adminIdsWith(permission)
-  }
-  class SupportService {
-    +open(userId, subject, content)
-    +reply(ticketId, sender, content)
-    +close(ticketId)
-    +setStatus(ticketId, status)
-  }
-  class AuditService {
-    +record(admin, action, targetType, targetId, changes)
-    +undo(logId, actor)
-  }
-  class BackupService {
-    +run(trigger)
-    +issueDownloadTicket(backupId)
-    +restore(backupId)
-  }
-}
-
-package "services.security" {
-  class SecurityService {
-    +verify(userId, scope, method, credential)
-    +consumeToken(header, user, scope)
-    SCOPES: payment/sensitive/admin
-  }
-  class SessionsService {
-    +create(userId, device)
-    +touch(sid)
-    +revoke(sessionId)
-    +revokeAll(userId, includeCurrent)
-  }
-  class PasskeysService {
-    +registrationOptions(userId)
-    +register(userId, attestation)
-    +loginOptions(email)
-    +login(assertion)
-  }
-}
-
-package "lib（共用工具）" {
-  class RateLimit {
-    +byIp(key, windowMs, max)
-    +byUser(key, windowMs, max)
-  }
-  class SchemaCheck {
-    +hasTables(names)
-    +missingSchema()
-  }
-  class PublicId {
-    +encode(prefix, id)
-    +decode(publicId)
-    +decodeAny(publicId)
-  }
-  class SafeFetch {
-    +fetchSafely(url, opts)
-    -assertNotPrivateAddress(ip)
-  }
-}
-
-package "services.push" {
-  class PushDispatcher {
-    +pollAndDispatch()
-    -buildMessage(notification, device, badge)
-  }
-}
-
-BooksService --> Book
-BooksService --> ListingScreeningService
-ListingScreeningService --> ModerationService
-ListingScreeningService --> Book
-
-CheckoutService --> Order
-CheckoutService --> Book
-CheckoutService --> WalletService
-OrdersIndexService --> Order
-OrdersIndexService --> SettlementService
-SettlementService --> Order
-SettlementService --> Book
-SettlementService --> WalletService
-Order --> SmartCabinet
-Order "1" --> "0..1" TransactionDispute
-
-WalletService --> Wallet
-Wallet --> User
-
-ChatMessagesService --> ChatTransfersService
-ChatTransfersService --> ChatTransfer
-ChatTransfersService --> WalletService
-ReservationsService --> Book
-
-DisputesService --> TransactionDispute
-DisputesService --> SettlementService
-
-ListingAssistService --> Book
-BookChatService --> Book
-SupportAiService --> SupportService
-
-AdminPermissionsService --> User
-SupportService --> User
-AuditService --> User
-BackupService --> Order
-
-SecurityService --> User
-SessionsService --> User
-PasskeysService --> User
-CheckoutService ..> SecurityService : requireVerification('payment')
-OrdersIndexService ..> AuditService
-PushDispatcher --> User
-
+users "1" -- "1" wallets : owns
+users "1" -- "0..*" cart : owns
+cart "0..*" --> "1" books : contains
+users "1" -- "0..*" books : lists
+users "1" -- "0..*" orders : places
+orders "1" --> "1..*" books : includes
+orders --> wallets : settleTo
+orders "1" -- "0..1" disputes : mayTrigger
+reservations "0..*" --> "1" books : holds
+orders "0..*" --> "1" cabinets : pickupAt
+cabinets "1" *-- "1..*" slots : contains
+users "2..*" -- "0..*" rooms : participates
+rooms "1" *-- "0..*" messages : contains
+messages "1" -- "0..1" risks : assessedBy
+users "1" --> "0..*" notifications : receive
 @enduml

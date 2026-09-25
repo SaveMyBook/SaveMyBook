@@ -2302,12 +2302,6 @@
       "p1": {}
     }
   },
-  "databaseMigrationsNotYetRunP0": "Database migrations not yet run: {p0}",
-  "@databaseMigrationsNotYetRunP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "serverVersionP0": "Server version: {p0}",
   "@serverVersionP0": {
     "placeholders": {
@@ -2874,7 +2868,6 @@
       "p0": {}
     }
   },
-  "databaseNotBeenUpdatedAiYet": "The database has not been updated for AI yet. Saved settings will not take effect until it is.",
   "defaultModel": "Default model",
   "features": "Features",
   "on": "On",
@@ -3121,7 +3114,6 @@
   "responseExceededOutputLimit": "Response exceeded the output limit",
   "serverProcessingError": "Server processing error",
   "aiBookAdvisor": "AI book advisor",
-  "requiresDatabaseUpdate013": "Requires database update 013",
   "mysteryNovelMyCommute": "Mystery novels for commuting",
   "programmingBooksBeginners": "Programming books for beginners",
   "booksUnder200Coins": "Books under 200 coins",
@@ -3152,7 +3144,6 @@
   "setPassword": "Set password",
   "signMethodSettingsSaved": "Sign-in method settings saved",
   "signMethodSettingsUnsavedLeavingDiscards": "Sign-in method settings are not saved. Changes will be lost if you leave.",
-  "serverNotRunDatabaseUpdate014": "The server has not run database update 014, so the settings cannot take effect yet.",
   "signChannels": "Sign-in channels",
   "socialSmsSign": "Social and SMS sign-in",
   "whenOffSignPageHidesThese": "When off, the sign-in page hides these methods; linked accounts can still sign in with a password.",
@@ -3578,7 +3569,6 @@
     }
   },
   "noOpenaiGeminiKeyConfiguredOnly": "No OpenAI or Gemini key is configured. Only keyword search is in use.",
-  "databaseNotBeenUpdated020Only": "The database has not been updated (020). Only keyword search is in use.",
   "hybridSearchKeywordSemantic": "Hybrid search (keyword + semantic)",
   "keywordSearchOnly": "Keyword search only",
   "paymentReleasedWalletWhenBuyerCompletes": "Payment is released to your wallet when the buyer completes the order or 24 hours after pickup",

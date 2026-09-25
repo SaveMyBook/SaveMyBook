@@ -225,31 +225,37 @@ module.exports = {
       assert.ok(res.body.data.pending_deletion.purge_at);
     }],
 
-    ['未執行 016 時所有通行密鑰端點回 503 PASSKEY_UNAVAILABLE，status 回報停用', async () => {
-      h.reset({ schema: h.withoutPasskeys() });
-      const ctx = h.signedIn();
-      const status = await request('GET', '/api/auth/passkeys/status');
-      assert.strictEqual(status.body.data.enabled, false);
+    ['未設定 RP ID 時所有通行密鑰端點回 503 PASSKEY_UNAVAILABLE，status 回報停用', async () => {
+      const { env } = h.api('config/env');
+      const rpId = env.passkeyRpId;
+      env.passkeyRpId = '';
+      try {
+        const ctx = h.signedIn();
+        const status = await request('GET', '/api/auth/passkeys/status');
+        assert.strictEqual(status.body.data.enabled, false);
 
-      const calls = [
-        request('POST', '/api/auth/passkeys/login/options', { body: {} }),
-        request('POST', '/api/auth/passkeys/login', { body: { assertion: {} } }),
-        request('GET', '/api/users/me/passkeys', { token: ctx.token }),
-        request('POST', '/api/users/me/passkeys/options', { token: ctx.token }),
-        request('POST', '/api/users/me/passkeys', { token: ctx.token, headers: h.sensitive(ctx), body: { attestation: {} } }),
-        request('DELETE', '/api/users/me/passkeys/PK0000000', { token: ctx.token, headers: h.sensitive(ctx) }),
-        request('POST', '/api/security/verify/passkey/options', { token: ctx.token, body: { scope: 'sensitive' } }),
-        request('POST', '/api/security/verify', { token: ctx.token, body: { scope: 'sensitive', method: 'passkey', assertion: {} } })
-      ];
-      for (const res of await Promise.all(calls)) {
-        assert.strictEqual(res.status, 503, res.text);
-        assert.strictEqual(res.body.code, 'PASSKEY_UNAVAILABLE');
+        const calls = [
+          request('POST', '/api/auth/passkeys/login/options', { body: {} }),
+          request('POST', '/api/auth/passkeys/login', { body: { assertion: {} } }),
+          request('GET', '/api/users/me/passkeys', { token: ctx.token }),
+          request('POST', '/api/users/me/passkeys/options', { token: ctx.token }),
+          request('POST', '/api/users/me/passkeys', { token: ctx.token, headers: h.sensitive(ctx), body: { attestation: {} } }),
+          request('DELETE', '/api/users/me/passkeys/PK0000000', { token: ctx.token, headers: h.sensitive(ctx) }),
+          request('POST', '/api/security/verify/passkey/options', { token: ctx.token, body: { scope: 'sensitive' } }),
+          request('POST', '/api/security/verify', { token: ctx.token, body: { scope: 'sensitive', method: 'passkey', assertion: {} } })
+        ];
+        for (const res of await Promise.all(calls)) {
+          assert.strictEqual(res.status, 503, res.text);
+          assert.strictEqual(res.body.code, 'PASSKEY_UNAVAILABLE');
+        }
+        assert.strictEqual(prisma.sqlLog.some((sql) => /user_passkeys|webauthn_challenges/.test(sql)), false);
+
+        const security = await request('GET', '/api/security', { token: ctx.token });
+        assert.strictEqual(security.body.data.passkey_available, false);
+        assert.strictEqual(security.body.data.has_passkey, false);
+      } finally {
+        env.passkeyRpId = rpId;
       }
-      assert.strictEqual(prisma.sqlLog.some((sql) => /user_passkeys|webauthn_challenges/.test(sql)), false);
-
-      const security = await request('GET', '/api/security', { token: ctx.token });
-      assert.strictEqual(security.body.data.passkey_available, false);
-      assert.strictEqual(security.body.data.has_passkey, false);
     }]
   ]
 };

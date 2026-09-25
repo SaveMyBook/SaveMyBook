@@ -1,5 +1,4 @@
 const prisma = require('../lib/prisma');
-const settingsService = require('./ai/settings');
 const moderation = require('./ai/moderation');
 const reviews = require('./ai/reviews');
 const aiImages = require('./ai/images');
@@ -35,7 +34,6 @@ const peerPrice = async (book) => {
 
 // 不經 AI 的即時規則：價格異常與非正規來源一律先送人工審核，AI 關閉或逾時也攔得住。
 const ruleDecision = async (book) => {
-  if (!(await settingsService.migrationReady())) return null;
   const reasons = [];
   const categories = [];
 

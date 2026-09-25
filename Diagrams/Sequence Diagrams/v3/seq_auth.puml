@@ -1,72 +1,65 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：註冊與登入（含第三方登入與 Passkey）
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 使用者 as User
-participant "LoginScreen /\nRegisterScreen" as UI
-participant "ApiService\n(AuthApi/AuthSocialApi/PasskeysApi)" as ApiSvc
-participant "POST /api/auth/*" as Route
-participant "auth.js" as AuthSvc
-participant "auth-identities.js" as IdentitySvc
-participant "Firebase" as Firebase
-participant "passkeys.js" as PasskeySvc
-database "Prisma / MariaDB" as DB
+actor 使用者
+participant UI
+participant Firebase
+participant API
+database DB
 
-alt 帳號密碼登入
-  User -> UI : 輸入 Email/密碼
-  UI -> ApiSvc : login(email, password)
-  ApiSvc -> Route : POST /api/auth/login
-  Route -> AuthSvc : login(email, password)
-  AuthSvc -> DB : users.findUnique({email})
-  AuthSvc -> AuthSvc : password.verify() / assertLoginAllowed()
-  alt 驗證失敗
-    AuthSvc --> UI : 401 Unauthorized
-  else 成功
-    AuthSvc -> AuthSvc : issueLogin(user, device)
-    AuthSvc -> DB : sessions.create() + login_logs.create()
-    AuthSvc -> AuthSvc : signToken(JWT)
-    AuthSvc --> UI : 200 { token, user }
-  end
+== 註冊 ==
+使用者 -> UI : 填寫暱稱、Email、密碼\n並勾選同意條款
+activate 使用者
+activate UI
+UI -> API : POST /api/users
+activate API
+API -> DB : 建立帳號並記錄條款同意
+API --> UI : 201 Created\n（Email 重複或格式錯誤回傳 400）
+UI --> 使用者 : 提示註冊成功，返回登入頁
+deactivate API
+deactivate UI
+deactivate 使用者
 
-else 第三方登入（Google/Apple）
-  User -> UI : 點擊「使用Google/Apple登入」
-  UI -> Firebase : 原生SDK取得 idToken
-  Firebase --> UI : idToken
-  UI -> ApiSvc : socialSignIn(provider, idToken)
-  ApiSvc -> Route : POST /api/auth/social
-  Route -> Firebase : verifyIdToken(idToken, provider)
-  Firebase --> Route : 驗證後之使用者資訊
-  Route -> IdentitySvc : signIn(provider, subject, info)
-  IdentitySvc -> DB : 查詢 user_identities(provider, subject)
-  alt 已有對應帳號
-    IdentitySvc -> DB : touchIdentity()
-    IdentitySvc --> UI : 登入既有帳號
-  else email 已存在但綁定其他登入方式
-    IdentitySvc --> UI : 409 ACCOUNT_EXISTS_LINK_REQUIRED
-    UI -> UI : 顯示「連結既有帳號/建立新帳號」選擇
-  else 無對應帳號
-    IdentitySvc -> DB : users.create() + user_identities.insert()
-    IdentitySvc --> UI : 登入新建立帳號
-    UI -> UI : 導向 SocialProfileScreen（補完暱稱/頭像）
-  end
-  AuthSvc -> AuthSvc : issueLogin(user, device, provider)
-
-else Passkey 登入
-  User -> UI : 點擊 Passkey 登入
-  UI -> ApiSvc : passkeyLoginOptions(email)
-  ApiSvc -> PasskeySvc : loginOptions(email)
-  PasskeySvc --> UI : challenge + allowCredentials
-  UI -> UI : 系統喚起 WebAuthn（Face ID/指紋/裝置金鑰）
-  UI -> ApiSvc : passkeyLogin(assertion)
-  ApiSvc -> PasskeySvc : login(assertion)
-  PasskeySvc -> PasskeySvc : verifyAssertion()\n(比對challenge/簽章/sign_count)
-  alt sign_count 倒退（疑似複製金鑰）
-    PasskeySvc --> UI : 拒絕，通知使用者
-  else 驗證通過
-    PasskeySvc -> AuthSvc : issueLogin(user, device, 'passkey')
-    PasskeySvc --> UI : 200 { token, user }
-  end
+== 登入 ==
+alt 帳號密碼
+  使用者 -> UI : 輸入 Email 與密碼
+  activate 使用者
+  activate UI
+  UI -> API : POST /api/auth/login
+  activate API
+  API -> DB : 查詢帳號並比對密碼
+else Google／Apple
+  使用者 -> UI : 點擊「以 Google／Apple 登入」
+  UI -> Firebase : 登入第三方帳號
+  Firebase --> UI : 回傳身分權杖
+  UI -> API : POST /api/auth/social
+  API -> Firebase : 驗證身分權杖
+  API -> DB : 查詢已綁定之帳號
+else 通行密鑰
+  使用者 -> UI : 以 Face ID／指紋解鎖通行密鑰
+  UI -> API : POST /api/auth/passkeys/login
+  API -> DB : 驗證挑戰值與金鑰簽章
 end
+
+alt 驗證通過
+  API -> DB : 建立工作階段並寫入登入紀錄\n新裝置登入時發送安全通知
+  API --> UI : 200 OK（登入權杖）
+  UI --> 使用者 : 進入首頁
+else 第三方身分尚未綁定帳號
+  API --> UI : 404 Not Found
+  UI --> 使用者 : 詢問綁定既有帳號或建立新帳號
+else 密碼錯誤或帳號停用
+  API --> UI : 401／403 錯誤
+  UI --> 使用者 : 顯示錯誤訊息
+end
+deactivate API
+deactivate UI
+deactivate 使用者
 @enduml

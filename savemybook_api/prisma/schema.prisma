@@ -6,7 +6,6 @@ datasource db {
   provider = "mysql"
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model achievements {
   achievement_id    Int                 @id @default(autoincrement()) @db.UnsignedInt
   achievement_name  String              @db.VarChar(100)
@@ -18,7 +17,6 @@ model achievements {
   user_achievements user_achievements[]
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model admin_operation_logs {
   log_id      Int      @id @default(autoincrement()) @db.UnsignedInt
   admin_id    Int      @db.UnsignedInt
@@ -33,7 +31,6 @@ model admin_operation_logs {
   @@index([admin_id, created_at], map: "idx_admin_time")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model admin_permissions {
   admin_perm_id            Int      @id @default(autoincrement()) @db.UnsignedInt
   user_id                  Int      @unique(map: "uk_admin_user") @db.UnsignedInt
@@ -53,7 +50,6 @@ model admin_permissions {
   users                    users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_admin_user")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model bankbooks {
   bankbook_id    Int      @id @default(autoincrement()) @db.UnsignedInt
   user_id        Int      @db.UnsignedInt
@@ -68,7 +64,6 @@ model bankbooks {
   @@index([user_id], map: "idx_user")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model book_categories {
   category_id           Int               @id @default(autoincrement()) @db.UnsignedInt
   category_name         String            @db.VarChar(50)
@@ -82,7 +77,6 @@ model book_categories {
   @@index([parent_id], map: "idx_parent")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model book_images {
   image_id   Int                    @id @default(autoincrement()) @db.UnsignedInt
   book_id    Int                    @db.UnsignedInt
@@ -95,7 +89,6 @@ model book_images {
   @@index([book_id], map: "idx_book_images")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model books {
   book_id             Int                   @id @default(autoincrement()) @db.UnsignedInt
   seller_id           Int                   @db.UnsignedInt
@@ -118,6 +111,7 @@ model books {
   created_at          DateTime              @default(now()) @db.DateTime(0)
   updated_at          DateTime              @default(now()) @db.DateTime(0)
   ai_book_reviews     ai_book_reviews?
+  ai_book_enrichments ai_book_enrichments?
   book_images         book_images[]
   smart_cabinets      smart_cabinets?       @relation(fields: [cabinet_id], references: [cabinet_id], onUpdate: NoAction, map: "fk_book_cabinet")
   book_categories     book_categories?      @relation(fields: [category_id], references: [category_id], onUpdate: NoAction, map: "fk_book_category")
@@ -138,7 +132,6 @@ model books {
   @@fulltext([title, author, publisher, description], map: "ft_book_search")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model cabinet_slots {
   slot_id          Int                  @id @default(autoincrement()) @db.UnsignedInt
   cabinet_id       Int                  @db.UnsignedInt
@@ -154,28 +147,27 @@ model cabinet_slots {
   @@index([status], map: "idx_status")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model chat_messages {
-  message_id    Int                        @id @default(autoincrement()) @db.UnsignedInt
-  room_id       Int                        @db.UnsignedInt
-  sender_id     Int                        @db.UnsignedInt
-  content       String                     @db.Text
-  message_type  chat_messages_message_type @default(text)
-  is_read       Boolean                    @default(false)
-  created_at    DateTime                   @default(now()) @db.DateTime(0)
-  reply_to_id   Int?                       @db.UnsignedInt
-  edited_at     DateTime?                  @db.DateTime(0)
-  mentions      String?                    @db.Text
-  chat_mentions chat_mentions[]
-  chat_rooms    chat_rooms                 @relation(fields: [room_id], references: [room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_msg_room")
-  users         users                      @relation(fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_msg_sender")
+  message_id         Int                        @id @default(autoincrement()) @db.UnsignedInt
+  room_id            Int                        @db.UnsignedInt
+  sender_id          Int                        @db.UnsignedInt
+  content            String                     @db.Text
+  message_type       chat_messages_message_type @default(text)
+  is_read            Boolean                    @default(false)
+  created_at         DateTime                   @default(now()) @db.DateTime(0)
+  reply_to_id        Int?                       @db.UnsignedInt
+  edited_at          DateTime?                  @db.DateTime(0)
+  mentions           String?                    @db.Text
+  chat_mentions      chat_mentions[]
+  chat_message_risks chat_message_risks?
+  chat_rooms         chat_rooms                 @relation(fields: [room_id], references: [room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_msg_room")
+  users              users                      @relation(fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_msg_sender")
 
   @@index([sender_id], map: "fk_msg_sender")
   @@index([room_id, created_at], map: "idx_room_time")
   @@index([reply_to_id], map: "idx_msg_reply")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model chat_rooms {
   room_id                           Int                  @id @default(autoincrement()) @db.UnsignedInt
   user_a_id                         Int                  @db.UnsignedInt
@@ -200,7 +192,6 @@ model chat_rooms {
   @@index([user_b_id], map: "fk_chat_user_b")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model content_reviews {
   review_id    Int                          @id @default(autoincrement()) @db.UnsignedInt
   content_type content_reviews_content_type
@@ -216,7 +207,6 @@ model content_reviews {
   @@index([status, content_type], map: "idx_status_type")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model favorites {
   favorite_id Int      @id @default(autoincrement()) @db.UnsignedInt
   user_id     Int      @db.UnsignedInt
@@ -229,7 +219,6 @@ model favorites {
   @@index([book_id], map: "fk_fav_book")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model login_logs {
   log_id       Int      @id @default(autoincrement()) @db.UnsignedInt
   user_id      Int      @db.UnsignedInt
@@ -242,7 +231,6 @@ model login_logs {
   @@index([user_id, login_at], map: "idx_user_login")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model member_levels {
   level_id   Int     @id @default(autoincrement()) @db.UnsignedInt
   level_name String  @db.VarChar(50)
@@ -251,7 +239,6 @@ model member_levels {
   benefits   String? @db.Text
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model notifications {
   notification_id Int                @id @default(autoincrement()) @db.UnsignedInt
   user_id         Int                @db.UnsignedInt
@@ -271,7 +258,6 @@ model notifications {
   @@index([pushed_at, notification_id], map: "idx_notification_push_queue")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model order_items {
   item_id    Int     @id @default(autoincrement()) @db.UnsignedInt
   order_id   Int     @db.UnsignedInt
@@ -286,7 +272,6 @@ model order_items {
   @@index([order_id], map: "idx_order")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model orders {
   order_id                      Int                    @id @default(autoincrement()) @db.UnsignedInt
   order_no                      String                 @unique(map: "uk_order_no") @db.VarChar(30)
@@ -325,7 +310,6 @@ model orders {
   @@index([status], map: "idx_status")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model recommendation_logs {
   rec_id     Int                          @id @default(autoincrement()) @db.UnsignedInt
   user_id    Int                          @db.UnsignedInt
@@ -341,7 +325,6 @@ model recommendation_logs {
   @@index([user_id], map: "idx_user")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model referral_records {
   referral_id                              Int                     @id @default(autoincrement()) @db.UnsignedInt
   inviter_id                               Int                     @db.UnsignedInt
@@ -356,7 +339,6 @@ model referral_records {
   @@index([inviter_id], map: "idx_inviter")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model refund_records {
   refund_id            Int                        @id @default(autoincrement()) @db.UnsignedInt
   order_id             Int                        @db.UnsignedInt
@@ -377,7 +359,6 @@ model refund_records {
   @@index([order_id], map: "idx_order")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model reports {
   report_id                        Int                 @id @default(autoincrement()) @db.UnsignedInt
   reporter_id                      Int                 @db.UnsignedInt
@@ -399,7 +380,6 @@ model reports {
   @@index([target_type, target_id], map: "idx_target")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model reservations {
   reservation_id                      Int                 @id @default(autoincrement()) @db.UnsignedInt
   book_id                             Int                 @db.UnsignedInt
@@ -423,7 +403,6 @@ model reservations {
   @@index([seller_id], map: "idx_seller")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model shopping_cart {
   cart_id  Int      @id @default(autoincrement()) @db.UnsignedInt
   user_id  Int      @db.UnsignedInt
@@ -437,7 +416,6 @@ model shopping_cart {
   @@index([book_id], map: "fk_cart_book")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model smart_cabinets {
   cabinet_id      Int             @id @default(autoincrement()) @db.UnsignedInt
   cabinet_name    String          @db.VarChar(100)
@@ -447,6 +425,7 @@ model smart_cabinets {
   total_slots     Int             @default(20) @db.UnsignedInt
   available_slots Int             @default(20) @db.UnsignedInt
   is_active       Boolean         @default(true)
+  is_maintenance  Boolean         @default(false)
   open_time       DateTime?       @db.Time(0)
   close_time      DateTime?       @db.Time(0)
   created_at      DateTime        @default(now()) @db.DateTime(0)
@@ -460,7 +439,6 @@ model smart_cabinets {
   @@index([latitude, longitude], map: "idx_location")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model system_announcements {
   announcement_id Int                       @id @default(autoincrement()) @db.UnsignedInt
   admin_id        Int                       @db.UnsignedInt
@@ -478,7 +456,6 @@ model system_announcements {
   @@index([is_published, published_at], map: "idx_published")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model transaction_disputes {
   dispute_id                                     Int                          @id @default(autoincrement()) @db.UnsignedInt
   order_id                                       Int                          @db.UnsignedInt
@@ -502,7 +479,6 @@ model transaction_disputes {
   @@index([status], map: "idx_status")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model user_achievements {
   user_achievement_id Int          @id @default(autoincrement()) @db.UnsignedInt
   user_id             Int          @db.UnsignedInt
@@ -515,7 +491,6 @@ model user_achievements {
   @@index([achievement_id], map: "fk_ua_achievement")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model user_qr_codes {
   qr_id       Int                   @id @default(autoincrement()) @db.UnsignedInt
   user_id     Int                   @db.UnsignedInt
@@ -528,7 +503,6 @@ model user_qr_codes {
   @@index([user_id, qr_type], map: "idx_user_type")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model user_settings {
   setting_id           Int                 @id @default(autoincrement()) @db.UnsignedInt
   user_id              Int                 @unique(map: "uk_user_setting") @db.UnsignedInt
@@ -542,27 +516,26 @@ model user_settings {
   users                users               @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_setting_user")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model users {
-  user_id                                                       Int                       @id @default(autoincrement()) @db.UnsignedInt
-  email                                                         String                    @unique(map: "uk_email") @db.VarChar(255)
-  password_hash                                                 String                    @db.VarChar(255)
-  nickname                                                      String                    @db.VarChar(50)
-  avatar_url                                                    String?                   @db.VarChar(500)
-  bio                                                           String?                   @db.Text
-  phone                                                         String?                   @db.VarChar(20)
-  birthday                                                      DateTime?                 @db.Date
-  gender                                                        users_gender?             @default(undisclosed)
-  role                                                          users_role                @default(buyer_seller)
-  is_active                                                     Boolean                   @default(true)
-  is_blacklisted                                                Boolean                   @default(false)
-  created_at                                                    DateTime                  @default(now()) @db.DateTime(0)
-  updated_at                                                    DateTime                  @default(now()) @db.DateTime(0)
-  bonus_points                                                  Int                       @default(0)
-  deletion_requested_at                                         DateTime?                 @db.DateTime(0)
-  anonymized_at                                                 DateTime?                 @db.DateTime(0)
-  share_token                                                   String?                   @unique(map: "uk_share_token") @db.Char(32)
-  password_set                                                  Boolean                   @default(true)
+  user_id                                                       Int                          @id @default(autoincrement()) @db.UnsignedInt
+  email                                                         String                       @unique(map: "uk_email") @db.VarChar(255)
+  password_hash                                                 String                       @db.VarChar(255)
+  nickname                                                      String                       @db.VarChar(50)
+  avatar_url                                                    String?                      @db.VarChar(500)
+  bio                                                           String?                      @db.Text
+  phone                                                         String?                      @db.VarChar(20)
+  birthday                                                      DateTime?                    @db.Date
+  gender                                                        users_gender?                @default(undisclosed)
+  role                                                          users_role                   @default(buyer_seller)
+  is_active                                                     Boolean                      @default(true)
+  is_blacklisted                                                Boolean                      @default(false)
+  created_at                                                    DateTime                     @default(now()) @db.DateTime(0)
+  updated_at                                                    DateTime                     @default(now()) @db.DateTime(0)
+  bonus_points                                                  Int                          @default(0)
+  deletion_requested_at                                         DateTime?                    @db.DateTime(0)
+  anonymized_at                                                 DateTime?                    @db.DateTime(0)
+  share_token                                                   String?                      @unique(map: "uk_share_token") @db.Char(32)
+  password_set                                                  Boolean                      @default(true)
   admin_operation_logs                                          admin_operation_logs[]
   admin_permissions                                             admin_permissions?
   ai_chat_sessions                                              ai_chat_sessions[]
@@ -571,44 +544,47 @@ model users {
   ai_support_sessions                                           ai_support_sessions[]
   bankbooks                                                     bankbooks[]
   books                                                         books[]
-  chat_aliases_chat_aliases_owner_idTousers                     chat_aliases[]            @relation("chat_aliases_owner_idTousers")
-  chat_aliases_chat_aliases_target_user_idTousers               chat_aliases[]            @relation("chat_aliases_target_user_idTousers")
+  chat_risk_alerts                                              chat_risk_alerts[]
+  chat_aliases_chat_aliases_owner_idTousers                     chat_aliases[]               @relation("chat_aliases_owner_idTousers")
+  chat_aliases_chat_aliases_target_user_idTousers               chat_aliases[]               @relation("chat_aliases_target_user_idTousers")
   chat_messages                                                 chat_messages[]
   chat_room_members                                             chat_room_members[]
   chat_room_mutes                                               chat_room_mutes[]
   chat_room_pins                                                chat_room_pins[]
-  chat_rooms_chat_rooms_user_a_idTousers                        chat_rooms[]              @relation("chat_rooms_user_a_idTousers")
-  chat_rooms_chat_rooms_user_b_idTousers                        chat_rooms[]              @relation("chat_rooms_user_b_idTousers")
-  chat_transfers_chat_transfers_from_user_idTousers             chat_transfers[]          @relation("chat_transfers_from_user_idTousers")
-  chat_transfers_chat_transfers_to_user_idTousers               chat_transfers[]          @relation("chat_transfers_to_user_idTousers")
+  chat_rooms_chat_rooms_user_a_idTousers                        chat_rooms[]                 @relation("chat_rooms_user_a_idTousers")
+  chat_rooms_chat_rooms_user_b_idTousers                        chat_rooms[]                 @relation("chat_rooms_user_b_idTousers")
+  chat_transfers_chat_transfers_from_user_idTousers             chat_transfers[]             @relation("chat_transfers_from_user_idTousers")
+  chat_transfers_chat_transfers_to_user_idTousers               chat_transfers[]             @relation("chat_transfers_to_user_idTousers")
   content_reviews                                               content_reviews[]
   db_backups                                                    db_backups[]
   favorites                                                     favorites[]
   legal_documents                                               legal_documents[]
   login_logs                                                    login_logs[]
   notifications                                                 notifications[]
-  orders_orders_buyer_idTousers                                 orders[]                  @relation("orders_buyer_idTousers")
-  orders_orders_seller_idTousers                                orders[]                  @relation("orders_seller_idTousers")
+  orders_orders_buyer_idTousers                                 orders[]                     @relation("orders_buyer_idTousers")
+  orders_orders_seller_idTousers                                orders[]                     @relation("orders_seller_idTousers")
   push_devices                                                  push_devices[]
   recommendation_logs                                           recommendation_logs[]
-  referral_records_referral_records_invitee_idTousers           referral_records[]        @relation("referral_records_invitee_idTousers")
-  referral_records_referral_records_inviter_idTousers           referral_records[]        @relation("referral_records_inviter_idTousers")
+  referral_records_referral_records_invitee_idTousers           referral_records[]           @relation("referral_records_invitee_idTousers")
+  referral_records_referral_records_inviter_idTousers           referral_records[]           @relation("referral_records_inviter_idTousers")
   refund_records                                                refund_records[]
-  reports_reports_admin_idTousers                               reports[]                 @relation("reports_admin_idTousers")
-  reports_reports_reporter_idTousers                            reports[]                 @relation("reports_reporter_idTousers")
-  reservations_reservations_buyer_idTousers                     reservations[]            @relation("reservations_buyer_idTousers")
-  reservations_reservations_seller_idTousers                    reservations[]            @relation("reservations_seller_idTousers")
+  reports_reports_admin_idTousers                               reports[]                    @relation("reports_admin_idTousers")
+  reports_reports_reporter_idTousers                            reports[]                    @relation("reports_reporter_idTousers")
+  reservations_reservations_buyer_idTousers                     reservations[]               @relation("reservations_buyer_idTousers")
+  reservations_reservations_seller_idTousers                    reservations[]               @relation("reservations_seller_idTousers")
   shopping_cart                                                 shopping_cart[]
   support_ticket_messages                                       support_ticket_messages[]
   support_tickets                                               support_tickets[]
+  support_ticket_attachments                                    support_ticket_attachments[]
   system_announcements                                          system_announcements[]
-  transaction_disputes_transaction_disputes_admin_idTousers     transaction_disputes[]    @relation("transaction_disputes_admin_idTousers")
-  transaction_disputes_transaction_disputes_applicant_idTousers transaction_disputes[]    @relation("transaction_disputes_applicant_idTousers")
+  transaction_disputes_transaction_disputes_admin_idTousers     transaction_disputes[]       @relation("transaction_disputes_admin_idTousers")
+  transaction_disputes_transaction_disputes_applicant_idTousers transaction_disputes[]       @relation("transaction_disputes_applicant_idTousers")
   user_achievements                                             user_achievements[]
-  user_blocks_user_blocks_blocked_idTousers                     user_blocks[]             @relation("user_blocks_blocked_idTousers")
-  user_blocks_user_blocks_blocker_idTousers                     user_blocks[]             @relation("user_blocks_blocker_idTousers")
+  user_blocks_user_blocks_blocked_idTousers                     user_blocks[]                @relation("user_blocks_blocked_idTousers")
+  user_blocks_user_blocks_blocker_idTousers                     user_blocks[]                @relation("user_blocks_blocker_idTousers")
   user_identities                                               user_identities[]
   user_legal_consents                                           user_legal_consents[]
+  user_passkeys                                                 user_passkeys[]
   user_qr_codes                                                 user_qr_codes[]
   user_security                                                 user_security?
   user_sessions                                                 user_sessions[]
@@ -619,7 +595,6 @@ model users {
   @@index([deletion_requested_at], map: "idx_deletion_requested")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model wallet_transactions {
   txn_id           Int                      @id @default(autoincrement()) @db.UnsignedInt
   wallet_id        Int                      @db.UnsignedInt
@@ -637,7 +612,6 @@ model wallet_transactions {
   @@index([created_at], map: "idx_user_time")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model wallets {
   wallet_id           Int                   @id @default(autoincrement()) @db.UnsignedInt
   user_id             Int                   @unique(map: "uk_wallet_user") @db.UnsignedInt
@@ -698,14 +672,15 @@ model support_tickets {
 }
 
 model support_ticket_messages {
-  message_id Int             @id @default(autoincrement()) @db.UnsignedInt
-  ticket_id  Int             @db.UnsignedInt
-  sender_id  Int             @db.UnsignedInt
-  is_staff   Boolean         @default(false)
-  content    String          @db.Text
-  created_at DateTime        @default(now()) @db.DateTime(0)
-  users      users           @relation(fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tmsg_sender")
-  tickets    support_tickets @relation(fields: [ticket_id], references: [ticket_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tmsg_ticket")
+  message_id  Int                          @id @default(autoincrement()) @db.UnsignedInt
+  ticket_id   Int                          @db.UnsignedInt
+  sender_id   Int                          @db.UnsignedInt
+  is_staff    Boolean                      @default(false)
+  content     String                       @db.Text
+  created_at  DateTime                     @default(now()) @db.DateTime(0)
+  users       users                        @relation(fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tmsg_sender")
+  tickets     support_tickets              @relation(fields: [ticket_id], references: [ticket_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tmsg_ticket")
+  attachments support_ticket_attachments[]
 
   @@index([ticket_id, created_at], map: "idx_tmsg_ticket")
   @@index([sender_id], map: "fk_tmsg_sender")
@@ -731,6 +706,7 @@ model chat_room_members {
   left_at              DateTime?              @db.DateTime(0)
   last_read_message_id Int                    @default(0) @db.UnsignedInt
   history_from_id      Int                    @default(0) @db.UnsignedInt
+  group_nickname       String?                @db.VarChar(30)
   chat_rooms           chat_rooms             @relation(fields: [room_id], references: [room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_member_room")
   users                users                  @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_member_user")
 
@@ -1019,6 +995,99 @@ model user_identities {
   @@index([user_id], map: "idx_identity_user")
 }
 
+model user_passkeys {
+  passkey_id    Int       @id @default(autoincrement()) @db.UnsignedInt
+  user_id       Int       @db.UnsignedInt
+  credential_id String    @unique(map: "uk_credential") @db.VarChar(255)
+  public_key    String    @db.Text
+  sign_count    Int       @default(0) @db.UnsignedInt
+  transports    String?   @db.VarChar(100)
+  aaguid        String?   @db.Char(36)
+  backed_up     Boolean   @default(false)
+  device_label  String?   @db.VarChar(50)
+  created_at    DateTime  @db.DateTime(0)
+  last_used_at  DateTime? @db.DateTime(0)
+  users         users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_passkey_user")
+
+  @@index([user_id], map: "idx_passkey_user")
+}
+
+model webauthn_challenges {
+  challenge  String                      @id @db.Char(64)
+  user_id    Int?                        @db.UnsignedInt
+  purpose    webauthn_challenges_purpose
+  created_at DateTime                    @db.DateTime(0)
+
+  @@index([created_at], map: "idx_challenge_created")
+}
+
+model support_ticket_attachments {
+  attachment_id Int                      @id @default(autoincrement()) @db.UnsignedInt
+  message_id    Int?                     @db.UnsignedInt
+  uploader_id   Int                      @db.UnsignedInt
+  url           String                   @unique(map: "uk_support_attachment_url") @db.VarChar(255)
+  byte_size     Int                      @default(0) @db.UnsignedInt
+  sort_order    Int                      @default(0) @db.UnsignedTinyInt
+  created_at    DateTime                 @db.DateTime(0)
+  message       support_ticket_messages? @relation(fields: [message_id], references: [message_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_support_attachment_message")
+  users         users                    @relation(fields: [uploader_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_support_attachment_uploader")
+
+  @@index([message_id, sort_order], map: "idx_support_attachment_message")
+  @@index([uploader_id, message_id, created_at], map: "idx_support_attachment_pending")
+}
+
+model ai_embeddings {
+  kind         String   @db.VarChar(20)
+  ref_id       String   @db.VarChar(64)
+  model        String   @db.VarChar(100)
+  content_hash String   @db.Char(64)
+  vector       String   @db.MediumText
+  updated_at   DateTime @db.DateTime(0)
+
+  @@id([kind, ref_id])
+  @@index([kind, model], map: "idx_ai_embedding_model")
+}
+
+model ai_book_enrichments {
+  book_id      Int      @id @db.UnsignedInt
+  status       String   @db.VarChar(10)
+  fields       String   @default("") @db.VarChar(200)
+  ai_written   Boolean  @default(false)
+  attempted_at DateTime @db.DateTime(0)
+  books        books    @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_enrichment_book")
+
+  @@index([status, attempted_at], map: "idx_enrichment_status")
+}
+
+model chat_message_risks {
+  message_id    Int           @id @db.UnsignedInt
+  room_id       Int           @db.UnsignedInt
+  sender_id     Int           @db.UnsignedInt
+  level         String        @db.VarChar(10)
+  categories    String        @db.VarChar(100)
+  score         Int           @db.UnsignedTinyInt
+  created_at    DateTime      @db.DateTime(0)
+  chat_messages chat_messages @relation(fields: [message_id], references: [message_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_risk_message")
+
+  @@index([room_id, level], map: "idx_risk_room")
+  @@index([sender_id, level, created_at], map: "idx_risk_sender")
+}
+
+model chat_risk_alerts {
+  alert_id   Int       @id @default(autoincrement()) @db.UnsignedInt
+  user_id    Int       @db.UnsignedInt
+  status     String    @db.VarChar(10)
+  hit_count  Int       @db.UnsignedInt
+  first_at   DateTime  @db.DateTime(0)
+  last_at    DateTime  @db.DateTime(0)
+  handled_by Int?      @db.UnsignedInt
+  handled_at DateTime? @db.DateTime(0)
+  users      users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_alert_user")
+
+  @@index([status, last_at], map: "idx_alert_status")
+  @@index([user_id, status], map: "idx_alert_user")
+}
+
 enum content_reviews_content_type {
   book
   message
@@ -1266,4 +1335,10 @@ enum ai_book_reviews_status {
 enum ai_usage_logs_status {
   ok
   error
+}
+
+enum webauthn_challenges_purpose {
+  register
+  login
+  verify
 }

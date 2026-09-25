@@ -279,11 +279,11 @@ module.exports = {
       assert.strictEqual(moderation.actionFor('reject', moderation.BLOCK_CONFIDENCE, 'block'), 'reject');
     }],
 
-    ['審核：功能關閉或資料表未建立時一律放行', async () => {
+    ['審核：功能關閉或 AI 總開關關閉時一律放行', async () => {
       h.setSettings({ enabled: true, features: { moderation: { enabled: false } } });
       assert.deepStrictEqual(await moderation.screen({ userId: 1, book: { title: '書' } }), moderation.ALLOW);
 
-      h.reset({ schema: h.without(h.DEFAULT_SCHEMA, ['ai_settings']) });
+      h.reset();
       assert.deepStrictEqual(await moderation.screen({ userId: 1, book: { title: '書' } }), moderation.ALLOW);
       assert.strictEqual(h.calls.length, 0);
     }],

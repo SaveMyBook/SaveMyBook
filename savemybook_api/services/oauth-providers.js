@@ -226,8 +226,6 @@ const readResult = async (code) => {
 const RETRYABLE_CODES = new Set(['NO_ACCOUNT_FOR_PROVIDER', 'EMAIL_REQUIRED', 'ACCOUNT_EXISTS_LINK_REQUIRED']);
 
 const exchangeResult = async (code, device, { create = false, email = null, nickname = null, acceptLegal = false } = {}) => {
-  if (!(await settings.migrationReady())) throw settings.unavailable();
-
   const payload = await readResult(code);
   try {
     if (payload.kind === 'link') {
@@ -255,7 +253,6 @@ const exchangeResult = async (code, device, { create = false, email = null, nick
 };
 
 const cleanupExpired = async () => {
-  if (!(await settings.migrationReady())) return;
   await prisma.$executeRaw`DELETE FROM oauth_states WHERE created_at < ${new Date(Date.now() - STATE_TTL_MS)}`;
   await prisma.$executeRaw`DELETE FROM oauth_results WHERE created_at < ${new Date(Date.now() - RESULT_TTL_MS)}`;
 };

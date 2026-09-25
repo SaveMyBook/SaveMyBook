@@ -18,23 +18,6 @@ const tests = [
     assert.strictEqual(line.configured, true);
   }],
 
-  ['未執行 014 時 providers 回 social_enabled=false，其餘端點 503', async () => {
-    h.reset({ schema: h.withoutSessions(h.withoutAuthMigration()) });
-    const res = await h.request('GET', '/api/auth/providers');
-    assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.body.data.social_enabled, false);
-    assert.ok(res.body.data.providers.every((p) => p.enabled === false));
-
-    const login = await social({ provider: 'google', id_token: h.firebaseToken({ email: 'a@example.com' }) });
-    assert.strictEqual(login.status, 503);
-    assert.strictEqual(login.body.code, 'AUTH_SOCIAL_UNAVAILABLE');
-
-    const user = h.addUser({ email: 'has@example.com' });
-    const list = await h.request('GET', '/api/users/me/identities', { token: h.tokenFor(user) });
-    assert.strictEqual(list.status, 503);
-    assert.strictEqual(list.body.code, 'AUTH_SOCIAL_UNAVAILABLE');
-  }],
-
   ['未帶 create 時不建立帳號，回 404 NO_ACCOUNT_FOR_PROVIDER', async () => {
     const res = await social({
       provider: 'google',
@@ -275,6 +258,7 @@ const tests = [
     const user = h.addUser({ email: 'bind@example.com' });
     const res = await h.request('POST', '/api/auth/link', {
       token: h.tokenFor(user),
+      headers: h.verifyHeaders(user),
       body: { provider: 'google', id_token: h.firebaseToken({ sub: 'g-19', email: 'bind@example.com', name: '綁定者' }) }
     });
     assert.strictEqual(res.status, 200);
@@ -289,6 +273,7 @@ const tests = [
 
     const res = await h.request('POST', '/api/auth/link', {
       token: h.tokenFor(other),
+      headers: h.verifyHeaders(other),
       body: { provider: 'google', id_token: h.firebaseToken({ sub: 'g-20' }) }
     });
     assert.strictEqual(res.status, 409);
@@ -301,6 +286,7 @@ const tests = [
 
     const res = await h.request('POST', '/api/auth/link', {
       token: h.tokenFor(user),
+      headers: h.verifyHeaders(user),
       body: { provider: 'google', id_token: h.firebaseToken({ sub: 'g-22' }) }
     });
     assert.strictEqual(res.status, 409);
@@ -311,7 +297,7 @@ const tests = [
     const user = h.addUser({ email: 'only@example.com', passwordSet: 0 });
     h.addIdentity({ userId: user.user_id, provider: 'google', subject: 'g-23' });
 
-    const res = await h.request('DELETE', '/api/auth/link/google', { token: h.tokenFor(user) });
+    const res = await h.request('DELETE', '/api/auth/link/google', { token: h.tokenFor(user), headers: h.verifyHeaders(user) });
     assert.strictEqual(res.status, 400);
     assert.strictEqual(res.body.code, 'LAST_SIGN_IN_METHOD');
     assert.strictEqual(h.prisma.rows('user_identities').length, 1, '不應刪除');
@@ -321,7 +307,7 @@ const tests = [
     const user = h.addUser({ email: 'haspw@example.com', passwordSet: 1 });
     h.addIdentity({ userId: user.user_id, provider: 'google', subject: 'g-24' });
 
-    const res = await h.request('DELETE', '/api/auth/link/google', { token: h.tokenFor(user) });
+    const res = await h.request('DELETE', '/api/auth/link/google', { token: h.tokenFor(user), headers: h.verifyHeaders(user) });
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.data.identities.length, 0);
     assert.strictEqual(h.prisma.rows('user_identities').length, 0);
@@ -332,14 +318,14 @@ const tests = [
     h.addIdentity({ userId: user.user_id, provider: 'google', subject: 'g-25' });
     h.addIdentity({ userId: user.user_id, provider: 'apple', subject: 'a-1' });
 
-    const res = await h.request('DELETE', '/api/auth/link/apple', { token: h.tokenFor(user) });
+    const res = await h.request('DELETE', '/api/auth/link/apple', { token: h.tokenFor(user), headers: h.verifyHeaders(user) });
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.data.identities.length, 1);
   }],
 
   ['未綁定的渠道解除時回 404', async () => {
     const user = h.addUser({ email: 'none@example.com' });
-    const res = await h.request('DELETE', '/api/auth/link/discord', { token: h.tokenFor(user) });
+    const res = await h.request('DELETE', '/api/auth/link/discord', { token: h.tokenFor(user), headers: h.verifyHeaders(user) });
     assert.strictEqual(res.status, 404);
   }],
 
@@ -390,7 +376,6 @@ const tests = [
     h.prisma.rows('admin_permissions').push({ user_id: admin.user_id, can_manage_system: true });
     const ok = await h.request('GET', '/api/admin/auth/settings', { token: h.tokenFor(admin) });
     assert.strictEqual(ok.status, 200);
-    assert.strictEqual(ok.body.data.migration_ready, true);
     assert.strictEqual(ok.body.data.settings.social_enabled, true);
     assert.ok(ok.body.data.providers.every((p) => 'configured' in p && !('secret' in p)));
   }],
@@ -399,22 +384,23 @@ const tests = [
     const admin = h.addUser({ email: 'admin2@example.com', role: 'admin' });
     h.prisma.rows('admin_permissions').push({ user_id: admin.user_id, can_manage_system: true });
     const token = h.tokenFor(admin);
+    const headers = h.verifyHeaders(admin, 'admin');
 
-    const missing = await h.request('PUT', '/api/admin/auth/settings', { token, body: {} });
+    const missing = await h.request('PUT', '/api/admin/auth/settings', { token, headers, body: {} });
     assert.strictEqual(missing.status, 400);
 
     const invalid = await h.request('PUT', '/api/admin/auth/settings', {
-      token, body: { settings: { social_enabled: 'yes' } }
+      token, headers, body: { settings: { social_enabled: 'yes' } }
     });
     assert.strictEqual(invalid.status, 400);
 
     const invalidChannel = await h.request('PUT', '/api/admin/auth/settings', {
-      token, body: { settings: { providers: { line: { enabled: 1 } } } }
+      token, headers, body: { settings: { providers: { line: { enabled: 1 } } } }
     });
     assert.strictEqual(invalidChannel.status, 400);
 
     const ok = await h.request('PUT', '/api/admin/auth/settings', {
-      token, body: { settings: { social_enabled: true, providers: { line: { enabled: true, signup: true } } } }
+      token, headers, body: { settings: { social_enabled: true, providers: { line: { enabled: true, signup: true } } } }
     });
     assert.strictEqual(ok.status, 200);
     assert.strictEqual(ok.body.data.settings.providers.line.enabled, true);
@@ -423,21 +409,6 @@ const tests = [
     assert.strictEqual(h.prisma.rows('admin_operation_logs').length, 1);
     const detail = JSON.parse(h.prisma.rows('admin_operation_logs')[0].detail);
     assert.ok(detail.summary.includes('LINE'));
-  }],
-
-  ['未執行 014 時管理端顯示 migration_ready=false 且不可儲存', async () => {
-    h.reset({ schema: h.withoutSessions(h.withoutAuthMigration()) });
-    const admin = h.addUser({ email: 'admin3@example.com', role: 'admin' });
-    h.prisma.rows('admin_permissions').push({ user_id: admin.user_id, can_manage_system: true });
-    const token = h.tokenFor(admin);
-
-    const read = await h.request('GET', '/api/admin/auth/settings', { token });
-    assert.strictEqual(read.status, 200);
-    assert.strictEqual(read.body.data.migration_ready, false);
-
-    const write = await h.request('PUT', '/api/admin/auth/settings', { token, body: { settings: {} } });
-    assert.strictEqual(write.status, 503);
-    assert.strictEqual(write.body.code, 'AUTH_SOCIAL_UNAVAILABLE');
   }],
 
   ['未設定 Firebase 專案時 Firebase 系列渠道視為未設定', async () => {

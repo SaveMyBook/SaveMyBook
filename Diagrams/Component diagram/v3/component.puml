@@ -1,90 +1,32 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
-title 元件圖（Component Diagram）
+skinparam componentStyle uml2
 
-package "使用者端" {
-  component "[Flutter 行動應用\nsavemybook_app\n(251 個Dart檔／約7萬行)]" as App
-}
+component book
+component order
+component wallet
+component Report
+component user
+component chat
+component notification
+component AI
+component ESP32
+component API
+component APP
 
-package "邊緣與代理層" {
-  component "[Cloudflare\nCDN / WAF / TLS]" as CF
-  component "[NGINX\n反向代理 /\n.well-known 靜態檔案]" as Nginx
-}
-
-package "應用伺服器（savemybook_api，233個端點）" {
-  component "[Express 路由層\nroutes/**（26組掛載）]" as Routes
-  component "[中介層\nauth／requireAdmin／\nverification／security headers]" as MW
-  component "[限流器\nmiddleware/rateLimit.js\n（行程內滑動視窗）]" as RateLimit
-  component "[維護模式\nlib/maintenance.js]" as Maintenance
-  component "[資料庫結構檢查\nlib/schema-check.js\n（功能降級／503）]" as SchemaCheck
-  component "[服務層\nservices/*\n（帳號/書籍/交易/聊天/AI/後台）]" as Services
-  component "[安全與工作階段服務\nservices/security.js／sessions.js\n（驗證範圍、JWT、Passkey）]" as SecurityCore
-  component "[稽核與復原\nservices/audit.js\n（admin_operation_logs）]" as Audit
-  component "[加密編號\nlib/public-id.js\n（Feistel置換）]" as PublicId
-  component "[排程工作\njobs/scheduler.js\n（備份/清理/到期處理）]" as Jobs
-  component "[備份/還原\nservices/backup.js\n（mysqldump）]" as Backup
-  component "[推播派送器\nservices/push/dispatcher.js\n（每3秒輪詢）]" as PushDispatcher
-  component "[SSRF安全抓取\nlib/safe-fetch.js\n（連結預覽/圖片代理）]" as SafeFetch
-  component "[Prisma ORM\nlib/prisma]" as Prisma
-  component "[靜態上傳檔案\n/uploads\n(uploads-guard壞圖清理)]" as Uploads
-  component "[API文件\nScalar /api-docs]" as ApiDocs
-}
-
-database "[MariaDB\n61個資料表]" as DB
-storage "[BACKUP_DIR\n備份檔(.sql.gz)]" as BackupStore
-
-cloud "外部服務" {
-  component "[Firebase\nAuth 驗證 / FCM 推播]" as Firebase
-  component "[AI 供應商\nDeepSeek／Gemini／OpenAI]" as AIProvider
-  component "[Google Books /\nOpen Library\nISBN查詢]" as BookAPI
-  component "[Google/Apple(Firebase)\nLINE/Discord(OAuth)]" as OAuth
-  component "[外部網頁\n(連結預覽對象)]" as ExternalWeb
-}
-
-node "智慧書櫃（實體置物櫃）" as Cabinet {
-  component "[櫃體 QR Code 標籤\n（供買家掃碼比對）]" as QR
-}
-
-App --> CF : HTTPS
-CF --> Nginx
-Nginx --> Routes
-Routes --> MW
-MW --> RateLimit
-MW --> Maintenance
-MW --> Services
-Services --> SchemaCheck : 功能可用性檢查
-Services --> SecurityCore
-Services --> Audit : 關鍵操作寫入/還原
-Services --> PublicId : 對外編號轉換
-Services --> Prisma
-Prisma --> DB
-Services --> Firebase : 驗證 ID Token / 觸發推播
-Services --> AIProvider : 上架審核／AI客服／\n問書機器人／推薦
-Services --> BookAPI : ISBN 查詢
-Services --> SafeFetch : 聊天連結預覽
-SafeFetch --> ExternalWeb
-App ..> OAuth : 第三方登入（原生SDK/App內瀏覽器）
-Jobs --> Services
-Jobs --> Backup
-Jobs --> PushDispatcher
-Backup --> BackupStore
-PushDispatcher --> DB : 輪詢notifications
-PushDispatcher --> Firebase : FCM HTTP v1
-App --> Uploads : 讀取圖片/附件（簽章網址）
-App ..> QR : 買家掃描取書（人工比對，\n非即時API串接）
-Routes --> ApiDocs
-
-note bottom of Cabinet
-  目前 API 層未提供機台回呼介面；
-  存書／取書狀態由使用者於 App
-  端人工回報完成（PATCH /orders/:id/status）。
-end note
-
-note bottom of RateLimit
-  計數保存於單一行程記憶體，
-  多行程部署需改為共用儲存
-  （如 Redis）。
-end note
+book -0)- order
+order -0)- Report
+wallet -0)- order
+user -0)- order
+user -0)- chat
+notification -0)- chat
+notification -0)- order
+AI -0)- book
+AI -0)- chat
+ESP32 -(0- API
+API -0)- APP
 @enduml

@@ -31,7 +31,6 @@ const SYSTEM = `
 const unavailable = () => new HttpError(503, 'AI 功能目前未開放或尚未完成設定', 'AI_UNAVAILABLE');
 
 const context = async () => {
-  if (!(await settingsService.migrationReady())) throw unavailable();
   const settings = await settingsService.load();
   const base = runner.providerFor(settings, 'moderation');
   const provider = runner.visionProvider(base);

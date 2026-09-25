@@ -159,7 +159,7 @@ void main() {
       expect(SocialSignInSection.visibleIds(info), contains(AuthProviders.line));
     });
 
-    test('伺服器尚未更新資料庫時回 social_enabled=false', () async {
+    test('總開關關閉時回 social_enabled=false', () async {
       final client = _client({
         'GET /auth/providers': () => _ok({'social_enabled': false, 'providers': <Object>[]}),
       });
@@ -184,7 +184,7 @@ void main() {
       AuthCodes.signupNotAllowed: (403, '此登入方式僅供既有帳號使用'),
       AuthCodes.methodDisabled: (403, '目前未開放'),
       AuthCodes.providerMismatch: (400, '不符'),
-      AuthCodes.unavailable: (503, '尚未完成資料庫更新'),
+      AuthCodes.unavailable: (503, '社群登入暫時無法使用，請稍後再試'),
       AuthCodes.invalidIdToken: (401, '憑證無效'),
       AuthCodes.providerError: (502, '服務無法使用'),
     };
@@ -281,16 +281,6 @@ void main() {
       final result = await http.runWithClient(() => ApiService().requestAccountDeletion('x'), () => client);
       expect(result.code, AuthCodes.passwordNotSet);
       expect(AuthCodes.messageOf(AuthCodes.passwordNotSet), '請先設定密碼');
-    });
-
-    test('identities 在未執行 014 時回 503', () async {
-      ApiService.authToken = 'session-token';
-      final client = _client({
-        'GET /users/me/identities': () =>
-            _fail(503, AuthCodes.unavailable, '社群登入暫時無法使用，請稍後再試'),
-      });
-      final result = await http.runWithClient(() => ApiService().fetchIdentities(), () => client);
-      expect(result.code, AuthCodes.unavailable);
     });
 
     test('OAuth 交換失敗回 OAUTH_CODE_INVALID', () async {
@@ -797,7 +787,6 @@ void main() {
           {'id': 'google', 'name': 'Google', 'configured': true},
           {'id': 'line', 'name': 'LINE', 'configured': false},
         ],
-        'migration_ready': true,
       });
 
       expect(bundle.isConfigured('line'), isFalse);

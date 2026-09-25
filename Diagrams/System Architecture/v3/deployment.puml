@@ -1,60 +1,40 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 13
-title 佈署圖（Deployment Diagram）
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 14
+skinparam componentStyle rectangle
 
-node "使用者行動裝置\n<<device>>\niOS / Android" as Mobile {
-  artifact "savemybook_app.ipa/.apk\n(Flutter Runtime)" as AppArtifact
+node "一、客戶端與維運環境" {
+  component "<<Mobile>>\n行動裝置 App\n(Flutter)" as app
+  component "<<IoT>>\n智慧書櫃終端\n(ESP32)" as iot
+  component "<<Workstation>>\n開發者電腦" as dev
 }
 
-node "智慧書櫃終端\n<<device>>\nESP32 微控制器" as CabinetNode {
-  artifact "櫃體韌體\n(狀態感測／作動控制)" as Firmware
-  artifact "QR Code 標籤" as QRLabel
+node "二、雲端代理層" {
+  component "<<Proxy>>\nCloudflare 邊緣節點\n(DNS / WAF / SSL)" as cf
 }
 
-cloud "Cloudflare 邊緣網路" as CFNode {
-  artifact "DNS / CDN / WAF /\nTLS 憑證終止" as CFArtifact
+node "三、學校伺服器環境 (Ubuntu 24.04.4)" {
+  component "<<Multiplexer>>\nsslh 多工器\n(Port 80)" as sslh
+  component "<<Service>>\nOpenSSH 服務" as ssh
+  component "<<Web Server>>\nNGINX 網頁伺服器\n(Port 8800)" as nginx
+  component "<<Application>>\nExpress API 服務\n(REST + Socket.IO，Port 3000)" as api
+  component "<<Database>>\nMariaDB 資料庫\n(Port 3306)" as db
 }
 
-node "反向代理伺服器\n<<server>>\nNGINX" as ProxyNode {
-  artifact "反向代理設定" as NginxConf
+cloud "外部雲端服務" as ext {
+  component "Firebase\n(登入驗證 / 推播)\nAI 服務\n書目資料" as fb
 }
 
-node "應用伺服器\n<<server>>\nNode.js 20 + Express 5" as AppServer {
-  artifact "savemybook_api\n(app.js / index.js)" as ApiArtifact
-  artifact "Prisma Client\n(@prisma/client)" as PrismaArtifact
-  artifact "排程工作\n(jobs/scheduler.js)" as SchedulerArtifact
-  artifact "上傳檔案儲存\n(/uploads)" as UploadStore
-}
-
-node "資料庫伺服器\n<<server>>\nMariaDB\n（僅限內部網路連線）" as DBServer {
-  database "savemybook 資料庫\n(61 個資料表)" as DB
-}
-
-cloud "第三方雲端服務" as ExternalCloud {
-  artifact "Firebase\n(Authentication / Cloud Messaging)" as FirebaseSvc
-  artifact "AI 語言模型供應商\n(OpenAI 相容 API)" as AISvc
-  artifact "Google Books /\nOpen Library API" as BookSvc
-  artifact "Google / Apple\nOAuth 授權伺服器" as OAuthSvc
-}
-
-Mobile --> CFNode : HTTPS (RESTful JSON)
-CFNode --> ProxyNode : HTTPS
-ProxyNode --> AppServer : HTTP（內部）
-AppServer --> DBServer : TCP 3306（內部網路，\n僅限API伺服器連線）
-AppServer ..> FirebaseSvc : HTTPS（ID Token 驗證／推播）
-AppServer ..> AISvc : HTTPS（審核／助理／推薦）
-AppServer ..> BookSvc : HTTPS（ISBN 查詢）
-Mobile ..> OAuthSvc : HTTPS（第三方登入）
-Mobile ..> QRLabel : 相機掃描比對\n(取書流程)
-
-note right of CabinetNode
-  目前系統版本中，智慧書櫃
-  尚未與應用伺服器建立即時
-  資料連線；存／取書狀態
-  由使用者於 App 端人工回報，
-  資料庫僅保存據點與格位
-  之靜態管理資訊。
-end note
+app ..> cf : HTTPS / WSS
+iot ..> cf : HTTPS
+dev ..> sslh : 隱蔽連線\n(SSH over 80)
+cf ..> sslh : HTTP 流量
+sslh ..> ssh : SSH 流量
+sslh ..> nginx : HTTP 流量
+nginx ..> api : 轉發 /api 與 /socket.io
+api ..> db : 資料庫讀寫
+api .right.> fb : HTTPS
 @enduml

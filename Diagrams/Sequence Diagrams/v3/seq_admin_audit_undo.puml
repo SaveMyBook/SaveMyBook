@@ -1,45 +1,49 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：後台操作紀錄與一鍵復原（Undo）
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 管理員 as Admin
-participant "AdminOperationLogScreen" as UI
-participant "ApiService(AdminSystemApi)" as ApiSvc
-participant "任一後台端點\n(如PATCH /admin/members/:id)" as AdminRoute
-participant "services/audit.js" as AuditSvc
-participant "POST /admin/operation-logs/:id/undo" as UndoRoute
-database "admin_operation_logs" as DB
+actor 管理員
+participant UI
+participant API
+database DB
 
-Admin -> AdminRoute : 執行後台操作（如停權會員）
-AdminRoute -> AuditSvc : record(admin, action, targetType,\ntargetId, changes)
-AuditSvc -> DB : admin_operation_logs.insert(\n摘要、欄位層級差異changes、IP)
-note right: 15種目標類型；\ndispute/order/backup類型不可還原\n（涉及金流或不可逆）
+activate 管理員
+activate UI
+== 記錄後台操作 ==
+管理員 -> UI : 執行後台操作（例如停權會員）
+UI -> API : 呼叫對應的後台 API
+activate API
+API -> DB : 更新資料
+API -> DB : 寫入操作紀錄\n（摘要、欄位前後差異、還原資料）
+API --> UI : 200 OK
+deactivate API
 
-Admin -> UI : 開啟「操作紀錄」，以關鍵字/目標類型篩選
-UI -> ApiSvc : fetchAdminOperationLogs(filter)
-ApiSvc --> UI : 分頁清單(每頁50筆)
+== 查詢操作紀錄 ==
+管理員 -> UI : 開啟「操作紀錄」並篩選
+UI -> API : GET /api/admin/operation-logs
+activate API
+API -> DB : 依對象類型、管理員與關鍵字查詢
+API --> UI : 紀錄清單（每頁 50 筆）
+deactivate API
 
-Admin -> UI : 對某筆紀錄點擊「復原」
-UI -> UI : requireAdminPassword()（admin範圍：\n僅登入密碼或通行密鑰）
-UI -> ApiSvc : undoAdminOperation(logId)
-ApiSvc -> UndoRoute : POST /admin/operation-logs/:id/undo
-UndoRoute -> AuditSvc : undo(logId, actor)
-AuditSvc -> AuditSvc : 檢查目標類型對應權限
-alt 目標類型為dispute/order/backup
-  AuditSvc --> UI : 拒絕（不可還原）
-else 資料在紀錄之後已被修改，或書籍已遭違規鎖定
-  AuditSvc --> UI : 409 UNDO_CONFLICT
-else 可還原
-  AuditSvc -> DB : 以樂觀鎖將白名單欄位還原為\n紀錄中的原值（不含密碼/餘額；\n錢包以反向admin_adjust還原）
-  AuditSvc -> DB : 寫入「還原：…」新紀錄，\n原紀錄標記reverted
-  AuditSvc --> UI : 200 已復原
-end
-
-note right of AuditSvc
-  管理員不可授予自己未擁有的權限，
-  亦不可變更自己的權限、狀態或密碼；
-  臨時密碼不寫入紀錄。
-end note
+== 一鍵復原 ==
+管理員 -> UI : 點擊「復原」並確認
+UI --> 管理員 : 要求重新驗證身分
+管理員 -> UI : 輸入密碼或使用通行密鑰
+UI -> API : POST /api/admin/operation-logs/:id/undo
+activate API
+API -> DB : 讀取紀錄，檢查權限\n與資料之後是否再被修改
+API -> DB : 欄位還原為紀錄中的原值\n（錢包以反向調整還原）
+API -> DB : 新增「還原」紀錄，\n原紀錄標示為已還原
+API --> UI : 200 已還原（無權限、涉及金流、\n已還原或資料已被修改時回應 403／409）
+deactivate API
+UI --> 管理員 : 顯示處理結果
+deactivate UI
+deactivate 管理員
 @enduml

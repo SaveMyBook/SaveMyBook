@@ -264,7 +264,9 @@ const tests = [
     const user = h.addUser({ email: 'linkme@example.com' });
     const token = h.tokenFor(user);
 
-    const started = await h.request('POST', '/api/auth/oauth/line/start', { token, body: { mode: 'link' } });
+    const started = await h.request('POST', '/api/auth/oauth/line/start', {
+      token, headers: h.verifyHeaders(user), body: { mode: 'link' }
+    });
     assert.strictEqual(started.status, 200);
     assert.strictEqual(h.prisma.rows('oauth_states')[0].mode, 'link');
 
@@ -285,7 +287,7 @@ const tests = [
     const other = h.addUser({ email: 'other-line@example.com' });
 
     const started = await h.request('POST', '/api/auth/oauth/line/start', {
-      token: h.tokenFor(other), body: { mode: 'link' }
+      token: h.tokenFor(other), headers: h.verifyHeaders(other), body: { mode: 'link' }
     });
     const cb = await callback('line', 'auth-code-13', started.body.data.state);
     assert.strictEqual(deepLinkParams(cb).get('error'), 'IDENTITY_TAKEN');
@@ -335,17 +337,6 @@ const tests = [
     await oauth.cleanupExpired();
     assert.deepStrictEqual(h.prisma.rows('oauth_states').map((r) => r.state), ['b'.repeat(32)]);
     assert.deepStrictEqual(h.prisma.rows('oauth_results').map((r) => r.code), ['d'.repeat(32)]);
-  }],
-
-  ['未執行 014 時 OAuth 端點回 503', async () => {
-    h.reset({ schema: h.withoutSessions(h.withoutAuthMigration()) });
-    const started = await startLogin('line');
-    assert.strictEqual(started.status, 503);
-    assert.strictEqual(started.body.code, 'AUTH_SOCIAL_UNAVAILABLE');
-
-    const exchanged = await exchange('e'.repeat(32));
-    assert.strictEqual(exchanged.status, 503);
-    assert.strictEqual(exchanged.body.code, 'AUTH_SOCIAL_UNAVAILABLE');
   }]
 ];
 

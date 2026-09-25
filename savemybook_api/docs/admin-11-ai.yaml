@@ -14,13 +14,9 @@ tags:
       後台僅能看到 `key_configured`。服務商會更改模型名稱與價格，因此模型與單價可由管理員修改；
       是否支援照片辨識與網路搜尋由程式固定。
 
-      伺服器尚未執行 `migrations/011_ai.sql` 時，設定讀取回傳預設值且 `migration_ready` 為 false，
-      其他端點回傳 503 `AI_UNAVAILABLE`。書籍顧問（`features.book_chat`）另需 `migrations/013_ai_book_chat.sql`；
-      未執行時設定仍可儲存，但使用者端的書籍顧問端點回傳 503 `AI_UNAVAILABLE`。
-
       **語意檢索**：書籍顧問、個人推薦與 AI 客服以「關鍵字（BM25）＋語意向量」混合檢索，兩份排名以 RRF 合併。
       向量模型依序使用 OpenAI `text-embedding-3-small`（512 維）或 Gemini `gemini-embedding-001`（768 維），
-      取決於伺服器設定了哪一把金鑰，不受各功能選用的服務商影響。向量存於 `ai_embeddings`（`migrations/020_ai_embeddings.sql`），
+      取決於伺服器設定了哪一把金鑰，不受各功能選用的服務商影響。向量存於 `ai_embeddings`，
       伺服器每 10 分鐘在背景補齊新增或變更的書籍與客服知識，少量新書也會在查詢時即時補算；更換向量模型時自動重建。
       嵌入費用記入用量報表的 `embedding` 功能。
 
@@ -29,9 +25,8 @@ tags:
       Google Books 與 Open Library 查無簡介（或暫時無法查詢）且上架輔助開啟網路搜尋時，改由模型依 ISBN 上網查詢；
       模型須確認網頁上的 ISBN 相符並附上來源網頁才會採用，每本書計一次網路搜尋費用。
       既有書籍由排程每 30 分鐘補齊一批（每批 20 本）；查無資料的書 30 天後再查一次，外部服務暫時無法使用時下一批重試。
-      需 `migrations/022_book_enrichment.sql`。
 
-      **爭議分析**（`admin_assist`）：`POST /api/admin/disputes/{id}/ai-analysis`，見該端點說明。AI 總開關關閉、未設定上述金鑰、尚未執行 020 或嵌入服務失敗時，
+      **爭議分析**（`admin_assist`）：`POST /api/admin/disputes/{id}/ai-analysis`，見該端點說明。AI 總開關關閉、未設定上述金鑰或嵌入服務失敗時，
       自動改用純關鍵字檢索（失敗後暫停重試 5 分鐘）。
 
 paths:
@@ -336,7 +331,6 @@ components:
               web_search: { type: boolean }
               default_model: { type: string, example: gemini-3.1-flash-lite }
               docs_url: { type: string, example: 'https://ai.google.dev/gemini-api/docs' }
-        migration_ready: { type: boolean }
         retrieval:
           type: object
           description: 語意檢索狀態。
@@ -421,7 +415,7 @@ components:
               provider: { type: string }
               model: { type: string, nullable: true }
               error_code: { type: string, example: QUOTA, description: 'AUTH、MODEL_NOT_FOUND、QUOTA、RATE_LIMITED、BAD_REQUEST、SERVER、TIMEOUT、NETWORK、INVALID_OUTPUT、INCOMPLETE、BLOCKED、NOT_CONFIGURED、INTERNAL' }
-              error_detail: { type: string, nullable: true, description: 服務商回傳的錯誤說明（已遮蔽金鑰，最多 400 字）。需執行 012_ai_error_detail.sql，未執行時為 null。 }
+              error_detail: { type: string, nullable: true, description: 服務商回傳的錯誤說明（已遮蔽金鑰，最多 400 字）。 }
         pending_reviews: { type: integer }
 
     AdminAiReview:

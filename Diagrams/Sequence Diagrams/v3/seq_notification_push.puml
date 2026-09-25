@@ -1,38 +1,62 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：站內通知建立與 FCM 推播派送
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-participant "業務服務\n(訂單/聊天/檢舉等任一服務)" as Biz
-database "notifications" as DB
-participant "services/push/dispatcher.js\n（每3秒輪詢）" as Dispatcher
-participant "services/push/devices.js" as DeviceSvc
-database "push_devices" as DevDB
-participant "lib/fcm.js" as FCM
-participant "Firebase Cloud Messaging" as FCMCloud
-actor 使用者裝置 as Device
+actor 使用者
+participant UI
+participant API
+database DB
+participant 排程
+participant FCM
 
-Biz -> DB : notifications.insert(type, title, content,\nactor_id, related_id, related_type)
-note right: 依使用者偏好決定是否推播：\norder/reservation看notification_order、\nmessage看notification_message、\npromotion看notification_promo、\nsystem不可關閉
+activate 使用者
+activate UI
+UI -> API : 登入後註冊裝置\nPOST /api/push/devices
+activate API
+API -> DB : 儲存推播權杖
+deactivate API
 
-loop 每 3 秒輪詢
-  Dispatcher -> DB : 查詢 pushed_at 為空\n且距最新通知15分鐘內之通知（每批200筆）
-  Dispatcher -> DB : 標記 pushed_at = now（避免重複派送）
-  Dispatcher -> DeviceSvc : 取得接收者之推播裝置(最多10台)
-  DeviceSvc -> DevDB : 查詢 push_devices
-  par 並行20筆
-    Dispatcher -> FCM : buildMessage(notification, device, badge)
-    FCM -> FCMCloud : FCM HTTP v1 送出（服務帳戶JWT）
-    FCMCloud --> Device : 系統推播通知 / data-only訊息
-    alt 暫時性失敗(429/5xx/401/網路)
-      FCM -> FCM : 依5/20/60/180秒重試，15分鐘後放棄
-    else 裝置權杖已失效(UNREGISTERED/NOT_FOUND)
-      FCM -> DevDB : 刪除該裝置token
-    end
+== 建立通知與推播 ==
+API -> DB : 各項事件寫入通知\n（含聊天訊息）
+loop 每 3 秒
+  排程 -> DB : 取出 15 分鐘內\n未推播通知並標記
+  activate 排程
+  排程 -> DB : 讀取裝置與偏好
+  排程 -> 排程 : 依偏好與聊天室\n靜音設定過濾
+  排程 -> FCM : 送出推播\n（含圖示未讀數）
+  FCM -> UI : 系統通知或 App 內橫幅
+  alt 權杖失效
+    排程 -> DB : 移除該裝置
+  else 暫時失敗
+    排程 -> 排程 : 5 至 180 秒\n分次重試
   end
+  deactivate 排程
 end
 
-Device -> Device : 前景：App內橫幅(4秒)+更新角標，不響鈴\n背景：系統通知（Android data-only繪製,\niOS走通知服務擴充抓頭像組成通訊通知）
-Device -> Biz : 點擊通知 → PATCH /api/notifications/:id/read\n並依related_type導向對應畫面
+== 通知中心 ==
+使用者 -> UI : 開啟通知中心
+UI -> API : GET /api/notifications?category=…
+activate API
+API -> DB : 依交易、帳號、客服、\n優惠分類查詢\n（不含聊天訊息）
+API --> UI : 通知清單與未讀數
+deactivate API
+使用者 -> UI : 點擊通知
+UI -> API : PATCH /api/notifications/:id/read
+UI --> 使用者 : 導向相關頁面
+
+== 聊天訊息 ==
+使用者 -> UI : 開啟聊天室
+UI -> API : GET /api/chat/rooms/:id/messages
+activate API
+API -> DB : 訊息及其通知\n標為已讀
+API --> UI : 訊息清單
+deactivate API
+deactivate UI
+deactivate 使用者
 @enduml

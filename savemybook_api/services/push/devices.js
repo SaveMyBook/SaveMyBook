@@ -1,5 +1,4 @@
 const prisma = require('../../lib/prisma');
-const { hasColumn } = require('../../lib/schema-check');
 const { isReady } = require('./setup');
 
 const PLATFORMS = ['ios', 'android'];
@@ -7,21 +6,12 @@ const MAX_DEVICES_PER_USER = 10;
 
 const registerDevice = async (userId, { token, platform, appVersion, sessionSid = null }) => {
   // 同一個 token 換帳號登入時須轉給新帳號，否則前帳號的通知會推到這支手機。
-  if (await hasColumn('push_devices', 'session_sid')) {
-    await prisma.$executeRaw`
-      INSERT INTO push_devices (user_id, token, platform, app_version, session_sid, created_at, last_seen_at)
-      VALUES (${userId}, ${token}, ${platform}, ${appVersion}, ${sessionSid}, NOW(), NOW())
-      ON DUPLICATE KEY UPDATE
-        user_id = VALUES(user_id), platform = VALUES(platform), app_version = VALUES(app_version),
-        session_sid = VALUES(session_sid), last_seen_at = NOW()`;
-  } else {
-    await prisma.$executeRaw`
-      INSERT INTO push_devices (user_id, token, platform, app_version, created_at, last_seen_at)
-      VALUES (${userId}, ${token}, ${platform}, ${appVersion}, NOW(), NOW())
-      ON DUPLICATE KEY UPDATE
-        user_id = VALUES(user_id), platform = VALUES(platform),
-        app_version = VALUES(app_version), last_seen_at = NOW()`;
-  }
+  await prisma.$executeRaw`
+    INSERT INTO push_devices (user_id, token, platform, app_version, session_sid, created_at, last_seen_at)
+    VALUES (${userId}, ${token}, ${platform}, ${appVersion}, ${sessionSid}, NOW(), NOW())
+    ON DUPLICATE KEY UPDATE
+      user_id = VALUES(user_id), platform = VALUES(platform), app_version = VALUES(app_version),
+      session_sid = VALUES(session_sid), last_seen_at = NOW()`;
 
   await prisma.$executeRaw`
     DELETE FROM push_devices

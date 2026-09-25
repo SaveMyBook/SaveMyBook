@@ -1,7 +1,7 @@
 const assert = require('assert');
 const {
   request, addUser, addAdmin, addBook, addCartItem, addOrder, addPaidOrder, addReservation,
-  tokenFor, balanceOf, notificationsOf, transactionsOf, logs, prisma
+  tokenFor, verifyHeaders, balanceOf, notificationsOf, transactionsOf, logs, prisma
 } = require('./harness');
 
 const shopper = () => {
@@ -216,19 +216,19 @@ const tests = [
     const token = tokenFor(addAdmin());
     const url = `/api/admin/wallets/${buyer.user_id}/adjust`;
 
-    const zero = await request('POST', url, { token, body: { amount: 0, description: '測試' } });
+    const zero = await request('POST', url, { token, headers: verifyHeaders(token, 'admin'), body: { amount: 0, description: '測試' } });
     assert.strictEqual(zero.status, 400);
     assert.strictEqual(zero.body.message, '請輸入非零的調整金額');
 
-    const tooMuch = await request('POST', url, { token, body: { amount: 1000001, description: '測試' } });
+    const tooMuch = await request('POST', url, { token, headers: verifyHeaders(token, 'admin'), body: { amount: 1000001, description: '測試' } });
     assert.strictEqual(tooMuch.status, 400);
     assert.strictEqual(tooMuch.body.message, '單次調整不可超過 1,000,000');
 
-    const fraction = await request('POST', url, { token, body: { amount: 1.234, description: '測試' } });
+    const fraction = await request('POST', url, { token, headers: verifyHeaders(token, 'admin'), body: { amount: 1.234, description: '測試' } });
     assert.strictEqual(fraction.status, 400);
     assert.strictEqual(fraction.body.message, '金額最多可至小數點後兩位');
 
-    const noReason = await request('POST', url, { token, body: { amount: 10, description: '  ' } });
+    const noReason = await request('POST', url, { token, headers: verifyHeaders(token, 'admin'), body: { amount: 10, description: '  ' } });
     assert.strictEqual(noReason.status, 400);
     assert.strictEqual(noReason.body.message, '請填寫調整原因，此原因將記錄於帳務紀錄');
   }],
@@ -238,7 +238,7 @@ const tests = [
     const admin = addAdmin();
 
     const res = await request('POST', `/api/admin/wallets/${buyer.user_id}/adjust`, {
-      token: tokenFor(admin), body: { amount: 50, description: '活動獎勵' }
+      token: tokenFor(admin), headers: verifyHeaders(tokenFor(admin), 'admin'), body: { amount: 50, description: '活動獎勵' }
     });
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.message, '已調整餘額');
@@ -266,7 +266,7 @@ const tests = [
     const admin = addAdmin();
 
     const res = await request('POST', `/api/admin/wallets/${buyer.user_id}/adjust`, {
-      token: tokenFor(admin), body: { amount: -100, description: '誤入帳回收' }
+      token: tokenFor(admin), headers: verifyHeaders(tokenFor(admin), 'admin'), body: { amount: -100, description: '誤入帳回收' }
     });
     assert.strictEqual(res.status, 400);
     assert.strictEqual(res.body.code, 'INSUFFICIENT_BALANCE');

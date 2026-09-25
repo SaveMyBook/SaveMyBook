@@ -4,32 +4,11 @@ const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const Module = require('module');
 
 const server = require('../lib/server');
 const { registerModels, AUTO_KEYS, UNIQUE_KEYS, MODEL_DEFAULTS } = require('../lib/fake-prisma');
 
-const { prisma, api, request, runSuite, onReset, onFetch, jsonResponse, fetchLog } = server;
-
-// ---------- Prisma Client 列舉 ----------
-
-// services/chat/transfers.js 以 $Enums 判斷 Prisma Client 是否已重新產生；測試需要能切換這個狀態。
-let walletEnumReady = true;
-const setWalletEnumReady = (value) => { walletEnumReady = value; };
-
-const innerLoad = Module._load;
-Module._load = function patched(requestPath, parent, isMain) {
-  const loaded = innerLoad.call(this, requestPath, parent, isMain);
-  if (requestPath === '@prisma/client') {
-    return {
-      ...loaded,
-      $Enums: walletEnumReady
-        ? { wallet_transactions_type: { transfer_in: 'transfer_in', transfer_out: 'transfer_out' } }
-        : { wallet_transactions_type: { recharge: 'recharge' } }
-    };
-  }
-  return loaded;
-};
+const { prisma, api, request, runSuite, onFetch, jsonResponse, fetchLog } = server;
 
 // ---------- 資料表設定 ----------
 
@@ -369,11 +348,7 @@ const membershipRow = (roomId, userId) => prisma.rows('chat_room_members')
 const activeMembers = (roomId) => prisma.rows('chat_room_members')
   .filter((m) => m.room_id === Number(roomId) && m.left_at == null);
 
-const JOIN_MARGIN_MS = 1000;
-
-const visibleToMember = (message, member, v3) => (v3
-  ? Number(message.message_id) >= Number(member.history_from_id ?? 0)
-  : new Date(message.created_at) >= new Date(new Date(member.joined_at).getTime() - JOIN_MARGIN_MS));
+const visibleToMember = (message, member) => Number(message.message_id) >= Number(member.history_from_id ?? 0);
 
 // services/chat/rooms.js membershipOf
 prisma.onSql('FROM chat_rooms r LEFT JOIN chat_room_members m', (sql, [userId, roomId]) => {
@@ -388,14 +363,13 @@ prisma.onSql('FROM chat_rooms r LEFT JOIN chat_room_members m', (sql, [userId, r
     role: member?.role ?? null,
     left_at: member?.left_at ?? null,
     joined_at: member?.joined_at ?? null,
-    ...(sql.includes('history_from_id') ? { history_from_id: member?.history_from_id ?? 0 } : {})
+    history_from_id: member?.history_from_id ?? 0
   }];
 });
 
 // services/chat/rooms.js memberRooms
 prisma.onSql('FROM chat_room_members m JOIN chat_rooms r', (sql, values) => {
   const myId = Number(values[values.length - 1]);
-  const v3 = sql.includes('history_from_id');
   return prisma.rows('chat_room_members')
     .filter((m) => m.user_id === myId && m.left_at == null)
     .map((m) => {
@@ -404,9 +378,9 @@ prisma.onSql('FROM chat_room_members m JOIN chat_rooms r', (sql, values) => {
       const messages = prisma.rows('chat_messages').filter((x) => x.room_id === m.room_id);
       const unread = room?.room_type === 'group'
         ? messages.filter((x) => x.sender_id !== myId
-          && Number(x.message_id) > Number(m.last_read_message_id ?? 0) && visibleToMember(x, m, v3)).length
+          && Number(x.message_id) > Number(m.last_read_message_id ?? 0) && visibleToMember(x, m)).length
         : 0;
-      const mentioned = v3 && prisma.rows('chat_mentions').some((c) => c.user_id === myId && c.room_id === m.room_id
+      const mentioned = prisma.rows('chat_mentions').some((c) => c.user_id === myId && c.room_id === m.room_id
         && Number(c.message_id) > Number(m.last_read_message_id ?? 0) && Number(c.message_id) >= Number(m.history_from_id ?? 0));
       return {
         room_id: m.room_id,
@@ -415,7 +389,7 @@ prisma.onSql('FROM chat_room_members m JOIN chat_rooms r', (sql, values) => {
         avatar_url: room?.avatar_url ?? null,
         pinned_at: pin?.pinned_at ?? null,
         joined_at: m.joined_at,
-        ...(v3 ? { history_from_id: m.history_from_id ?? 0 } : {}),
+        history_from_id: m.history_from_id ?? 0,
         member_count: BigInt(activeMembers(m.room_id).length),
         group_unread: BigInt(unread),
         mention_unread: mentioned ? 1 : 0
@@ -425,14 +399,13 @@ prisma.onSql('FROM chat_room_members m JOIN chat_rooms r', (sql, values) => {
 
 // services/chat/rooms.js unreadCount
 prisma.onSql('SELECT COUNT(*) AS n FROM chat_messages x JOIN chat_room_members m', (sql, [myId]) => {
-  const v3 = sql.includes('history_from_id');
   const total = prisma.rows('chat_messages').filter((x) => {
     if (x.sender_id === Number(myId)) return false;
     const member = membershipRow(x.room_id, myId);
     if (!member || member.left_at != null) return false;
     const room = roomOf(x.room_id);
     if (room?.room_type !== 'group') return x.is_read === false;
-    return Number(x.message_id) > Number(member.last_read_message_id ?? 0) && visibleToMember(x, member, v3);
+    return Number(x.message_id) > Number(member.last_read_message_id ?? 0) && visibleToMember(x, member);
   }).length;
   return [{ n: BigInt(total) }];
 });
@@ -482,7 +455,7 @@ prisma.onSql('FROM chat_room_members m JOIN users u', (sql, [roomId]) => activeM
       last_read_message_id: m.last_read_message_id ?? 0,
       nickname: user?.nickname ?? null,
       avatar_url: user?.avatar_url ?? null,
-      ...(sql.includes('group_nickname') ? { group_nickname: m.group_nickname ?? null } : {})
+      group_nickname: m.group_nickname ?? null
     };
   })
   .sort((a, b) => compare(a.joined_at, b.joined_at) || a.user_id - b.user_id));
@@ -551,10 +524,6 @@ prisma.onSql("UPDATE chat_transfers SET status = 'expired'", (sql, [now]) => {
   return count;
 });
 
-// services/push/setup.js init 以字面值查 information_schema，迷你直譯器無法解析。
-prisma.onSql("TABLE_NAME = 'push_devices'", () => [{ n: BigInt(1) }]);
-prisma.onSql("COLUMN_NAME = 'pushed_at'", () => [{ n: BigInt(1) }]);
-
 // services/push/dispatcher.js claimBatch
 prisma.onSql('FROM notifications n JOIN (SELECT MAX(created_at)', (sql, [minutes, now, limit]) => {
   const rows = prisma.rows('notifications');
@@ -574,34 +543,11 @@ prisma.onSql('FROM notifications n JOIN (SELECT MAX(created_at)', (sql, [minutes
       content: n.content,
       related_id: n.related_id,
       related_type: n.related_type,
-      ...(sql.includes('n.actor_id') ? { actor_id: n.actor_id ?? null } : {})
+      actor_id: n.actor_id ?? null
     }));
 });
 
-// ---------- 資料庫版本 ----------
-
-const TABLES_008 = ['chat_room_mutes', 'user_blocks'];
-const TABLES_009 = ['chat_room_members', 'chat_room_pins', 'chat_aliases', 'chat_transfers'];
-const TABLES_010 = ['chat_mentions'];
-const COLUMNS_008 = ['chat_messages.reply_to_id'];
-const COLUMNS_009 = ['chat_messages.edited_at', 'notifications.actor_id', 'chat_rooms.room_type'];
-const COLUMNS_010 = ['chat_room_members.history_from_id', 'chat_messages.mentions'];
-const COLUMNS_018 = ['chat_room_members.group_nickname'];
-const BASE_TABLES = ['push_devices', 'notifications'];
-const BASE_COLUMNS = ['notifications.pushed_at'];
-
-const SCHEMA = {
-  v3: {
-    tables: [...BASE_TABLES, ...TABLES_008, ...TABLES_009, ...TABLES_010],
-    columns: [...BASE_COLUMNS, ...COLUMNS_008, ...COLUMNS_009, ...COLUMNS_010, ...COLUMNS_018]
-  },
-  v2: {
-    tables: [...BASE_TABLES, ...TABLES_008, ...TABLES_009],
-    columns: [...BASE_COLUMNS, ...COLUMNS_008, ...COLUMNS_009]
-  },
-  v1: { tables: [...BASE_TABLES, ...TABLES_008], columns: [...BASE_COLUMNS, ...COLUMNS_008] },
-  v0: { tables: [...BASE_TABLES], columns: [...BASE_COLUMNS] }
-};
+// ---------- 資料庫狀態 ----------
 
 const EMPTY_TABLES = [
   'users', 'chat_rooms', 'chat_messages', 'chat_room_members', 'chat_room_pins', 'chat_aliases',
@@ -609,22 +555,13 @@ const EMPTY_TABLES = [
   'wallet_transactions', 'books', 'book_images', 'reservations', 'push_devices', 'user_settings', 'login_logs'
 ];
 
-const schemaCheck = api('lib/schema-check');
 const authToken = api('lib/auth-token');
 
-const reset = ({ schema = SCHEMA.v3, tables = {} } = {}) => {
-  server.reset({
-    schema,
-    tables: { ...Object.fromEntries(EMPTY_TABLES.map((t) => [t, []])), ...tables }
-  });
-  walletEnumReady = true;
+const reset = ({ tables = {} } = {}) => {
+  server.reset({ tables: { ...Object.fromEntries(EMPTY_TABLES.map((t) => [t, []])), ...tables } });
 };
 
 server.setDefaultReset(() => reset());
-
-onReset(() => {
-  schemaCheck.resetCache();
-});
 
 // ---------- 測試資料 ----------
 
@@ -665,6 +602,14 @@ const addUser = ({ nickname, isActive = true, isBlacklisted = false, balance = n
   row.token = authToken.signToken(row, undefined);
   return row;
 };
+
+// 轉帳與支付請款須附交易密碼驗證權杖；測試直接以 services/security 相同的內容簽一份。
+const paymentHeaders = (user) => ({
+  'x-verify-token': authToken.sign(
+    { typ: 'verify', uid: user.user_id, sid: null, scope: 'payment', method: 'pin', jti: crypto.randomBytes(12).toString('hex') },
+    180
+  )
+});
 
 const addBook = ({ sellerId, title = '測試書籍', price = 120, imageUrl = '/uploads/books/cover.jpg' } = {}) => {
   const book = {
@@ -777,8 +722,8 @@ const addDevice = (userId, { platform = 'ios', token } = {}) => {
 };
 
 module.exports = {
-  request, runSuite, prisma, api, reset, SCHEMA, ok,
+  request, runSuite, prisma, api, reset, ok,
   addUser, addBook, addDevice, openRoom, createGroup, say, ageMessage,
-  balanceOf, messagesIn, notificationsFor, setWalletEnumReady,
+  balanceOf, messagesIn, notificationsFor, paymentHeaders,
   enablePush, sentPushes, push, fetchLog
 };

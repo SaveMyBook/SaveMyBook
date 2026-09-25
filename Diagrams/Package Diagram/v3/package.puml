@@ -1,92 +1,98 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
 skinparam packageStyle rectangle
-title 套件圖（Package Diagram）
+skinparam nodesep 30
+skinparam ranksep 40
 
-package "savemybook_app（Flutter 行動應用）" as APP {
-  package "features" {
-    package "auth\n（登入/註冊/第三方/Passkey）" as F_auth
-    package "home\n（首頁/搜尋/通知）" as F_home
-    package "books\n（書籍瀏覽/收藏/掃碼）" as F_books
-    package "selling\n（上架/編輯/銷售管理）" as F_selling
-    package "orders\n（購物車/訂單/取書/申訴）" as F_orders
-    package "chat\n（聊天/轉帳/群組）" as F_chat
-    package "account\n（會員中心/錢包/客服）" as F_account
-    package "security\n（安全中心/PIN/裝置）" as F_security
-    package "admin\n（後台管理）" as F_admin
+package "Presentation Layer (Flutter)" as PL {
+  package "Widgets" as W {
+    component "Book Card" as w1
+    component "Search Bar" as w2
+    component "Bottom Navigation" as w3
   }
-  package "models" as M_models
-  package "services" as APP_SVC {
-    package "api\n（extension on ApiService）" as API_EXT
-    component "ApiService\n(核心HTTP/Session)" as ApiService
+  package "State & Theme" as ST {
+    component "Theme Provider" as t1
+    component "Locale Provider" as t2
   }
-  package "widgets" as APP_WIDGETS
-  package "i18n" as APP_I18N
-
-  F_auth ..> API_EXT
-  F_home ..> API_EXT
-  F_books ..> API_EXT
-  F_selling ..> API_EXT
-  F_orders ..> API_EXT
-  F_chat ..> API_EXT
-  F_account ..> API_EXT
-  F_security ..> API_EXT
-  F_admin ..> API_EXT
-  API_EXT --> ApiService
-  F_auth ..> APP_WIDGETS
-  F_home ..> APP_WIDGETS
-  M_models <.. API_EXT
+  package "Screens" as SC {
+    component "Home Screen" as s1
+    component "Login Screen" as s2
+    component "Book Detail Screen" as s3
+    component "Sell Book Screen" as s4
+    component "Order Screen" as s5
+    component "Chat Screen" as s6
+    component "Wallet Screen" as s7
+    component "Admin Console" as s8
+  }
 }
 
-package "savemybook_api（Node.js / Express 後端）" as API {
-  package "routes" as R {
-    package "auth, users, security, passkeys" as R_auth
-    package "books（catalog, listings）" as R_books
-    package "cart, orders, cabinets, disputes" as R_orders
-    package "chat（messages, transfers, rooms, groups）" as R_chat
-    package "wallet, favorites, notifications, reports" as R_misc
-    package "ai" as R_ai
-    package "support, announcements, push, uploads" as R_support
-    package "admin\n（overview/members/content/orders/\nmoderation/cabinets/wallets/levels/\nsupport/system/ai/auth）" as R_admin
-  }
-  package "middleware\n（auth／requireAdmin／verification／\nrateLimit／uploads-guard）" as MW
-  package "services" as S {
-    package "books.js, books-admin.js, listing-screening.js" as S_books
-    package "orders/（checkout, settlement, index）" as S_orders
-    package "cabinets.js, reservations.js" as S_cabinets
-    package "chat/（messages, transfers, rooms, groups）" as S_chat
-    package "wallet.js" as S_wallet
-    package "ai/（moderation, listing-assist, support,\nbook-chat, recommend, runner）" as S_ai
-    package "auth.js, auth-identities.js, passkeys.js,\noauth-providers.js, security.js, sessions.js" as S_auth
-    package "disputes.js, reports.js, support.js" as S_case
-    package "notify.js, push/, notifications.js" as S_notify
-    package "admin-permissions.js, audit.js, backup.js" as S_admin
-    package "security.js, sessions.js, passkeys.js" as S_security
-  }
-  package "lib\n（prisma client, upload, ai provider, maintenance,\nschema-check, rate-limit, public-id, safe-fetch）" as LIB
-  package "config\n（env, openapi）" as CFG
-  package "jobs\n（scheduler：備份/清理/預約到期）" as JOBS
-  database "prisma/schema.prisma\n(MariaDB)" as PRISMA
-
-  R --> MW
-  MW --> S
-  R_books --> S_books
-  R_orders --> S_orders
-  S_orders --> S_cabinets
-  R_chat --> S_chat
-  R_misc --> S_wallet
-  R_ai --> S_ai
-  R_admin --> S_admin
-  R_admin --> S_case
-  R_auth --> S_security
-  MW --> S_security
-  S --> LIB
-  LIB --> PRISMA
-  JOBS --> S
+package "Application Layer (Frontend)" as AL {
+  component "API Service" as apisvc
+  component "Realtime Service" as rtsvc
+  component "Push Service" as pushsvc
 }
 
-ApiService --> R : HTTPS / JSON (REST API)
+package "API Layer (Backend)" as BL {
+  component "Express App" as express
+  component "Socket.IO Server" as sio
+  component "OpenAPI Docs" as docs
+}
 
+package "Middleware Layer" as ML {
+  component "Auth Middleware" as mauth
+  component "Verification Guard" as mver
+  component "Rate Limit" as mrate
+}
+
+package "Service Layer" as SL {
+  component "Auth Service" as a1
+  component "Book Service" as a2
+  component "Order Service" as a3
+  component "Wallet Service" as a4
+  component "Chat Service" as a5
+  component "AI Service" as a6
+  component "Notification Service" as a7
+  component "Scheduler" as a8
+}
+
+package "Data Access Layer" as DL {
+  component "Prisma ORM" as prisma
+}
+
+package "Database Layer" as DB {
+  component "MariaDB" as maria
+}
+
+w1 -[hidden]right- w2
+w2 -[hidden]right- w3
+t1 -[hidden]right- t2
+s1 -[hidden]- s5
+s2 -[hidden]- s6
+s3 -[hidden]- s7
+s4 -[hidden]- s8
+w3 --> s1
+t2 --> s4
+s6 --> apisvc
+s7 --> rtsvc
+apisvc -[hidden]right- rtsvc
+rtsvc -[hidden]right- pushsvc
+apisvc --> express : REST API 呼叫
+rtsvc --> sio : Socket.IO
+express -right-> docs
+express --> mauth
+sio --> mauth
+mauth -[hidden]right- mver
+mver -[hidden]right- mrate
+mauth --> a2
+a1 -[hidden]- a5
+a2 -[hidden]- a6
+a3 -[hidden]- a7
+a4 -[hidden]- a8
+a6 --> prisma
+a7 --> prisma
+prisma -right-> maria
 @enduml

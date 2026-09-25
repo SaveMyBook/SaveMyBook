@@ -55,13 +55,13 @@ tags:
 
       ## Availability
 
-      伺服器尚未執行 `migrations/016_passkeys.sql`，或未設定 RP ID 與來源時，
+      伺服器未設定 RP ID 與來源時，
       `GET /api/auth/passkeys/status` 回傳 `enabled: false`，其餘端點回傳 503 `PASSKEY_UNAVAILABLE`，
       App 不應顯示通行密鑰相關入口。
 
       | `code` | HTTP | 意義 |
       | --- | --- | --- |
-      | `PASSKEY_UNAVAILABLE` | 503 | 伺服器尚未完成通行密鑰的設定或資料庫更新 |
+      | `PASSKEY_UNAVAILABLE` | 503 | 伺服器尚未設定通行密鑰的 RP ID 與來源 |
       | `PASSKEY_INVALID_RESPONSE` | 400 | 送出的憑證資料格式不正確 |
       | `PASSKEY_CHALLENGE_INVALID` | 400 | 挑戰值不存在、已使用，或用途、範圍、使用者不符 |
       | `PASSKEY_CHALLENGE_EXPIRED` | 400 | 挑戰值已超過 10 分鐘 |

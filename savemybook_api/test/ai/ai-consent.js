@@ -35,13 +35,6 @@ module.exports = {
       assert.strictEqual(await consent.isGranted(1), true);
     }],
 
-    ['尚未執行 011 時一律視為未同意，且無法變更同意狀態', async () => {
-      h.reset({ schema: h.without(h.DEFAULT_SCHEMA, ['ai_consents']) });
-      h.setConsent(1, true);
-      assert.strictEqual(await consent.isGranted(1), false);
-      await assert.rejects(() => consent.setGranted(1, true), (err) => err.code === 'AI_UNAVAILABLE' && err.status === 503);
-    }],
-
     ['取消同意會一併刪掉該使用者的推薦快取', async () => {
       prisma.store.ai_recommendation_cache = [
         { user_id: 1, payload: '{"items":[]}', created_at: new Date() },
@@ -123,11 +116,7 @@ module.exports = {
       assert.deepStrictEqual(data.recommendations.items, [{ book_id: 1 }]);
     }],
 
-    ['個資匯出：尚未執行 011 時為 null，快取內容損毀時不致命', async () => {
-      h.reset({ schema: h.without(h.DEFAULT_SCHEMA, ['ai_consents']) });
-      assert.strictEqual(await consent.exportUser(3), null);
-
-      h.reset();
+    ['個資匯出：推薦快取內容損毀時不致命', async () => {
       answerJoins();
       prisma.store.ai_recommendation_cache = [{ user_id: 3, payload: '不是 JSON', created_at: new Date() }];
       const data = await consent.exportUser(3);
@@ -155,12 +144,9 @@ module.exports = {
       assert.strictEqual(h.calls.length, 0);
     }],
 
-    ['客服對話：功能關閉或資料表未建立時分別回 AI_DISABLED 與 AI_UNAVAILABLE', async () => {
+    ['客服對話：功能關閉時回 AI_DISABLED', async () => {
       enable(1, { config: { features: { support: { enabled: false } } } });
       await assert.rejects(() => support.sendMessage(1, '你好'), (err) => err.code === 'AI_DISABLED' && err.status === 503);
-
-      h.reset({ schema: h.without(h.DEFAULT_SCHEMA, ['ai_settings']) });
-      await assert.rejects(() => support.currentSession(1), (err) => err.code === 'AI_UNAVAILABLE');
     }],
 
     ['客服對話：第一次發問會建立對話並存下兩則訊息', async () => {

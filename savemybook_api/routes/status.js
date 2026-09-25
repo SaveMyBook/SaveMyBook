@@ -1,7 +1,6 @@
 const express = require('express');
 const maintenance = require('../lib/maintenance');
 const { buildInfo } = require('../lib/build-info');
-const { pendingMigrations } = require('../lib/schema-check');
 const backup = require('../services/backup');
 
 const router = express.Router();
@@ -10,7 +9,6 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   const m = maintenance.current();
   const r = backup.restoreStatus();
-  const migrations = await pendingMigrations({ cachedOnly: m.active });
   res.set('Cache-Control', 'no-store');
   res.status(200).json({
     success: true,
@@ -20,8 +18,7 @@ router.get('/', async (req, res) => {
       restore: { state: r.state, started_at: r.started_at ?? null, finished_at: r.finished_at ?? null },
       api_revision: buildInfo.apiRevision,
       commit: buildInfo.commit,
-      started_at: buildInfo.startedAt,
-      pending_migrations: migrations
+      started_at: buildInfo.startedAt
     }
   });
 });

@@ -40,8 +40,7 @@ paths:
                                   slot_number: { type: string }
                                   status: { type: string, enum: [empty, occupied, reserved, maintenance] }
                                   updated_at: { type: string, format: date-time }
-                            is_maintenance: { type: boolean, description: 整台書櫃維修中；未執行 019 時一律為 false, example: false }
-                            maintenance_supported: { type: boolean, description: 資料庫是否已執行 019（可設定書櫃維修狀態）, example: true }
+                            is_maintenance: { type: boolean, description: 整台書櫃維修中, example: false }
                             slot_summary:
                               type: object
                               description: 各狀態的櫃位數量統計。
@@ -169,7 +168,7 @@ paths:
       description: |
         將整台書櫃設為維修中或結束維修。維修中的書櫃不會出現在 `GET /api/cabinets`，
         賣家上架或編輯時也無法選取；與停用不同，維修中的書櫃仍保留原本設定，既有訂單不受影響。
-        異動會寫入稽核紀錄。需要先執行 `migrations/019_cabinet_maintenance.sql`。
+        異動會寫入稽核紀錄。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -207,12 +206,6 @@ paths:
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503':
-          description: 資料庫尚未執行 019。
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: MIGRATION_REQUIRED, message: 尚未執行 019_cabinet_maintenance.sql，無法設定書櫃維修狀態 }
 
   /api/admin/cabinets/{cabinetId}/slots/{slotId}:
     patch:

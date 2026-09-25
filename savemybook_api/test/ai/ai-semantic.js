@@ -34,9 +34,9 @@ h.onFetch(EMBED_URL, (url, init) => {
 
 let store = [];
 
-const setup = ({ books = [], embeddingsTable = true } = {}) => {
+const setup = ({ books = [], embeddings: withEmbeddings = true } = {}) => {
   h.reset();
-  h.installDefaults({ embeddings: embeddingsTable });
+  h.installDefaults({ embeddings: withEmbeddings });
   embedRequests = [];
   store = [];
   h.onSql(/SELECT ref_id, content_hash, vector FROM ai_embeddings/, ([kind, model]) =>
@@ -148,12 +148,12 @@ module.exports = {
       assert.ok(logged.every((v) => v[0] === 'embedding' && v[1] === 'gemini' && v[2] === 'gemini-embedding-001'));
     }],
 
-    ['尚未執行 020 時只用關鍵字檢索，不呼叫嵌入 API', async () => {
-      setup({ books: shelf(), embeddingsTable: false });
+    ['未設定嵌入金鑰時只用關鍵字檢索，不呼叫嵌入 API', async () => {
+      setup({ books: shelf(), embeddings: false });
       const ranked = await catalog.search([{ text: 'AI', weight: 1 }], { query: '有沒有推薦的 AI 書籍' });
       assert.deepStrictEqual(ranked, []);
       assert.strictEqual(embedRequests.length, 0);
-      assert.deepStrictEqual(await semantic.status(), { ready: false, provider: 'gemini', model: 'gemini-embedding-001', counts: {} });
+      assert.deepStrictEqual(await semantic.status(), { ready: false, provider: null, model: null, counts: {} });
     }],
 
     ['嵌入 API 失敗時退回關鍵字檢索且暫停重試', async () => {

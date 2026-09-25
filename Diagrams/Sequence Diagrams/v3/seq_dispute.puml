@@ -1,55 +1,72 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：訂單申訴與管理員仲裁
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor "買家/賣家" as User
-actor 管理員 as Admin
-participant "DisputeScreen" as UI
-participant "AdminDisputeScreen" as AdminUI
-participant "ApiService(OrdersApi)" as ApiSvc
-participant "POST /api/disputes" as CreateRoute
-participant "disputes.js" as DisputesSvc
-participant "PATCH /admin/moderation/disputes/:id" as ResolveRoute
-participant "orders/settlement.js" as Settlement
-database "Prisma / MariaDB" as DB
+actor 使用者
+actor 管理員
+participant UI
+participant API
+database DB
+participant "AI 服務" as AI
 
-User -> UI : 描述問題並上傳證據照片
-UI -> ApiSvc : uploadFiles(evidence) → submitDispute(orderId, reason, evidenceUrls)
-ApiSvc -> CreateRoute : POST /api/disputes
-CreateRoute -> DisputesSvc : create(orderId, applicant, reason)
-DisputesSvc -> DisputesSvc : 檢查訂單狀態非 cancelled/refunded
-DisputesSvc -> DisputesSvc : 檢查申訴時限\n(取書後24小時內)
-alt 已逾時或不可申訴
-  DisputesSvc --> UI : 400 DISPUTE_WINDOW_PASSED
-else 可受理
-  DisputesSvc -> DB : tx.transaction_disputes.create(status='pending')
-  DisputesSvc -> DB : tx.orders.update(status='refunding')
-  DisputesSvc -> DB : notify 交易對方
-  DisputesSvc --> UI : 201 已受理
+使用者 -> UI : 填寫申訴說明並附佐證照片
+activate 使用者
+activate UI
+UI -> API : POST /api/disputes
+activate API
+API -> DB : 檢查訂單狀態與申訴期限
+activate DB
+DB --> API : 回傳檢查結果
+deactivate DB
+alt 可受理（訂單未完成；已取書者限 24 小時內）
+  API -> DB : 建立申訴，訂單設為「爭議處理中」\n（暫停自動完成與撥款）
+  API -> DB : 通知交易對方
+  API --> UI : 201 Created
+  UI --> 使用者 : 顯示「申訴已送出」
+else 已完成、已取消或逾申訴期限
+  API --> UI : 400 無法申訴
+  UI --> 使用者 : 顯示原因
 end
+deactivate API
+deactivate UI
+deactivate 使用者
 
-== 管理員仲裁 ==
-Admin -> AdminUI : 檢視申訴案件與證據
-Admin -> AdminUI : 選擇裁決結果\n(退款/駁回/協調)
-AdminUI -> ApiSvc : arbitrateDispute(disputeId, result, note)
-ApiSvc -> ResolveRoute : PATCH /admin/moderation/disputes/:id
-ResolveRoute -> DisputesSvc : resolve(disputeId, {result, note}, admin)
-DisputesSvc -> DB : tx.transaction_disputes.updateMany\n(where status≠'resolved')
-alt 已被其他客服裁決
-  DisputesSvc --> AdminUI : 409 Conflict
-else 更新成功
-  DisputesSvc -> DisputesSvc : target = isRefund ? 'refunded'\n: restoredStatus(order)
-  DisputesSvc -> Settlement : transition(tx, order, target)
-  alt result = refund_manual / refund_auto
-    Settlement -> DB : 向賣家收回已入帳金額(若有)\n並退款買家已付金額
-    DisputesSvc -> DB : refund_records.create(status='completed')
-  else result = dismissed / mediated
-    Settlement -> DB : 訂單狀態復原（可能觸發補撥款）
-  end
-  DisputesSvc -> DB : notify 買賣雙方裁決結果
-  DisputesSvc -> DB : audit.record('仲裁交易爭議')
-  DisputesSvc --> AdminUI : 200 裁決完成
+管理員 -> UI : 開啟申訴案件
+activate 管理員
+activate UI
+opt 參考 AI 分析
+  管理員 -> UI : 點擊「開始分析」
+  UI -> API : POST /api/admin/disputes/\n:id/ai-analysis
+  activate API
+  API -> DB : 讀取上架資料、照片與申訴內容
+  API -> AI : 比對上架描述與申訴證據
+  activate AI
+  AI --> API : 回傳摘要、發現與建議
+  deactivate AI
+  API --> UI : 回傳分析結果
+  deactivate API
+  UI --> 管理員 : 顯示分析（僅供參考）
 end
+管理員 -> UI : 選擇裁決結果並填寫備註
+UI -> API : PATCH /api/admin/disputes/:id
+activate API
+alt 裁決退款
+  API -> DB : 訂單設為「已退款」，款項退回買家
+else 駁回或調解，買家已取書
+  API -> DB : 訂單設為「已完成」並撥款給賣家
+else 駁回或調解，尚未取書
+  API -> DB : 訂單恢復原本進度
+end
+API -> DB : 通知買賣雙方，記錄稽核紀錄
+API --> UI : 200 OK
+deactivate API
+UI --> 管理員 : 顯示裁決完成
+deactivate UI
+deactivate 管理員
 @enduml

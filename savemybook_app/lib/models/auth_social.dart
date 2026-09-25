@@ -224,12 +224,10 @@ class AuthProviderMeta {
 class AuthSettingsBundle {
   final AuthSettings settings;
   final List<AuthProviderMeta> providers;
-  final bool migrationReady;
 
   const AuthSettingsBundle({
     required this.settings,
     required this.providers,
-    required this.migrationReady,
   });
 
   factory AuthSettingsBundle.fromJson(Map<String, dynamic> json) {
@@ -242,7 +240,6 @@ class AuthSettingsBundle {
           for (final item in raw)
             if (item is Map) AuthProviderMeta.fromJson(Map<String, dynamic>.from(item)),
       ],
-      migrationReady: json['migration_ready'] == true,
     );
   }
 

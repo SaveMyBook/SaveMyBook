@@ -1,41 +1,44 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
+skinparam usecase {
+  BackgroundColor white
+}
 left to right direction
-title 使用個案圖：聊天與社交模組
 
-actor 會員 as Member
-actor "AI 服務" as AI
+actor 會員
+actor 管理員
 
-rectangle "SaveMyBook 系統" {
-  usecase "傳送文字/圖片/語音訊息" as UC1
-  usecase "建立/管理群組聊天" as UC2
-  usecase "@提及群組成員" as UC3
-  usecase "封鎖/檢舉使用者" as UC4
-  usecase "預約保留書籍" as UC5
-  usecase "回應預約請求\n(接受/拒絕)" as UC6
-  usecase "身分驗證(交易密碼/\n生物辨識)" as UC7
-  usecase "站內轉帳" as UC8
-  usecase "站內請款" as UC9
-  usecase "回應轉帳請款\n(支付/拒絕/取消)" as UC10
-  usecase "設定聊天室別名/\n靜音/置頂" as UC11
-  usecase "AI問書機器人\n(依需求推薦書籍)" as UC12
+rectangle "SaveMyBook - 聊天與社交" {
+  usecase "傳送訊息" as send
+  usecase "確認傳送聯絡方式\n或付款資訊" as confirm
+  usecase "查看防詐提醒" as warn
+  usecase "檢舉可疑訊息" as reportmsg
+  usecase "@提及成員" as mention
+  usecase "建立與管理群組" as group
+  usecase "預約保留書籍" as reserve
+  usecase "站內轉帳／請款" as transfer
+  usecase "付款驗證" as verify
+  usecase "封鎖／檢舉使用者" as block
+  usecase "設定暱稱、靜音、置頂" as settings
+  usecase "AI 問書" as aichat
+  usecase "處理防詐警示" as alert
 }
 
-Member --> UC1
-Member --> UC2
-UC1 ..> UC3 : <<extend>>
-Member --> UC4
-Member --> UC5
-Member --> UC6
-Member --> UC8
-Member --> UC9
-Member --> UC10
-Member --> UC11
-Member --> UC12
-
-UC8 ..> UC7 : <<include>>
-UC10 ..> UC7 : <<include>>（支付時）
-UC12 --> AI
+會員 --> send
+會員 --> warn
+會員 --> group
+會員 --> reserve
+會員 --> transfer
+會員 --> block
+會員 --> settings
+會員 --> aichat
+send <.. confirm : <<extend>>
+send <.. mention : <<extend>>
+transfer ..> verify : <<include>>
+warn <.. reportmsg : <<extend>>
+管理員 --> alert
 @enduml

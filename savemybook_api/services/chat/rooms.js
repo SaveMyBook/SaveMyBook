@@ -3,7 +3,6 @@ const { badRequest, forbidden, notFound } = require('../../lib/errors');
 const { userBrief, userName, coverImage } = require('../../lib/selects');
 const codec = require('./codec');
 const controls = require('./controls');
-const schema = require('./schema');
 const members = require('./members');
 const history = require('./history');
 const aliases = require('./aliases');
@@ -21,27 +20,17 @@ const partnerIdOf = (room, myId) => (room.user_a_id === myId ? room.user_b_id : 
 
 const isGroup = (room) => room?.room_type === 'group';
 
-const myRooms = (myId) => ({ OR: [{ user_a_id: myId }, { user_b_id: myId }] });
-
 const between = (db, a, b) => {
   const [userA, userB] = a < b ? [a, b] : [b, a];
   return db.chat_rooms.findFirst({ where: { user_a_id: userA, user_b_id: userB }, orderBy: { updated_at: 'desc' } });
 };
 
-const DIRECT = { room_type: 'direct', name: null, avatar_url: null, created_by: null, my_role: null, history: null };
-
-const membershipOf = async (roomId, userId, v3) => {
-  const [row] = v3
-    ? await prisma.$queryRaw`
-        SELECT r.room_type, r.name, r.avatar_url, r.created_by, m.role, m.left_at, m.joined_at, m.history_from_id
-        FROM chat_rooms r
-        LEFT JOIN chat_room_members m ON m.room_id = r.room_id AND m.user_id = ${userId}
-        WHERE r.room_id = ${roomId}`
-    : await prisma.$queryRaw`
-        SELECT r.room_type, r.name, r.avatar_url, r.created_by, m.role, m.left_at, m.joined_at
-        FROM chat_rooms r
-        LEFT JOIN chat_room_members m ON m.room_id = r.room_id AND m.user_id = ${userId}
-        WHERE r.room_id = ${roomId}`;
+const membershipOf = async (roomId, userId) => {
+  const [row] = await prisma.$queryRaw`
+    SELECT r.room_type, r.name, r.avatar_url, r.created_by, m.role, m.left_at, m.joined_at, m.history_from_id
+    FROM chat_rooms r
+    LEFT JOIN chat_room_members m ON m.room_id = r.room_id AND m.user_id = ${userId}
+    WHERE r.room_id = ${roomId}`;
   return row ?? null;
 };
 
@@ -49,13 +38,7 @@ const findMine = async (roomId, myId, include) => {
   const room = await prisma.chat_rooms.findUnique({ where: { room_id: roomId }, include });
   if (!room) throw notFound('找不到該聊天室');
 
-  if (!(await schema.isV2())) {
-    if (room.user_a_id !== myId && room.user_b_id !== myId) throw forbidden('存取被拒');
-    return { ...room, ...DIRECT };
-  }
-
-  const v3 = await schema.isV3();
-  const row = await membershipOf(roomId, myId, v3);
+  const row = await membershipOf(roomId, myId);
   if (!row?.role || row.left_at) throw forbidden('存取被拒');
   const group = row.room_type === 'group';
   return {
@@ -65,7 +48,7 @@ const findMine = async (roomId, myId, include) => {
     avatar_url: group ? row.avatar_url ?? null : null,
     created_by: row.created_by == null ? null : Number(row.created_by),
     my_role: group ? row.role : null,
-    history: group ? history.floorOf(row, v3) : null
+    history: group ? history.floorOf(row) : null
   };
 };
 
@@ -77,7 +60,6 @@ const findMessageable = async (roomId, myId) => {
 };
 
 const typeOf = async (roomId) => {
-  if (!(await schema.isV2())) return 'direct';
   const [row] = await prisma.$queryRaw`SELECT room_type FROM chat_rooms WHERE room_id = ${roomId}`;
   return row?.room_type ?? null;
 };
@@ -87,39 +69,26 @@ const summaryOf = async (roomId) => {
   return row ? { room_id: Number(row.room_id), room_type: row.room_type, name: row.name } : null;
 };
 
-const memberRooms = (myId, v3) => (v3
-  ? prisma.$queryRaw`
-      SELECT r.room_id, r.room_type, r.name, r.avatar_url, p.pinned_at, m.joined_at, m.history_from_id,
-        (SELECT COUNT(*) FROM chat_room_members c WHERE c.room_id = r.room_id AND c.left_at IS NULL) AS member_count,
-        IF(r.room_type = 'group',
-          (SELECT COUNT(*) FROM chat_messages x
-           WHERE x.room_id = r.room_id AND x.message_id > m.last_read_message_id AND x.message_id >= m.history_from_id
-             AND x.sender_id <> ${myId}),
-          0) AS group_unread,
-        EXISTS(SELECT 1 FROM chat_mentions cm
-          WHERE cm.user_id = m.user_id AND cm.room_id = r.room_id
-            AND cm.message_id > m.last_read_message_id AND cm.message_id >= m.history_from_id) AS mention_unread
-      FROM chat_room_members m
-      JOIN chat_rooms r ON r.room_id = m.room_id
-      LEFT JOIN chat_room_pins p ON p.user_id = m.user_id AND p.room_id = m.room_id
-      WHERE m.user_id = ${myId} AND m.left_at IS NULL`
-  : prisma.$queryRaw`
-      SELECT r.room_id, r.room_type, r.name, r.avatar_url, p.pinned_at, m.joined_at,
-        (SELECT COUNT(*) FROM chat_room_members c WHERE c.room_id = r.room_id AND c.left_at IS NULL) AS member_count,
-        IF(r.room_type = 'group',
-          (SELECT COUNT(*) FROM chat_messages x
-           WHERE x.room_id = r.room_id AND x.message_id > m.last_read_message_id
-             AND x.created_at >= m.joined_at - INTERVAL 1 SECOND AND x.sender_id <> ${myId}),
-          0) AS group_unread
-      FROM chat_room_members m
-      JOIN chat_rooms r ON r.room_id = m.room_id
-      LEFT JOIN chat_room_pins p ON p.user_id = m.user_id AND p.room_id = m.room_id
-      WHERE m.user_id = ${myId} AND m.left_at IS NULL`);
+const memberRooms = (myId) => prisma.$queryRaw`
+  SELECT r.room_id, r.room_type, r.name, r.avatar_url, p.pinned_at, m.joined_at, m.history_from_id,
+    (SELECT COUNT(*) FROM chat_room_members c WHERE c.room_id = r.room_id AND c.left_at IS NULL) AS member_count,
+    IF(r.room_type = 'group',
+      (SELECT COUNT(*) FROM chat_messages x
+       WHERE x.room_id = r.room_id AND x.message_id > m.last_read_message_id AND x.message_id >= m.history_from_id
+         AND x.sender_id <> ${myId}),
+      0) AS group_unread,
+    EXISTS(SELECT 1 FROM chat_mentions cm
+      WHERE cm.user_id = m.user_id AND cm.room_id = r.room_id
+        AND cm.message_id > m.last_read_message_id AND cm.message_id >= m.history_from_id) AS mention_unread
+  FROM chat_room_members m
+  JOIN chat_rooms r ON r.room_id = m.room_id
+  LEFT JOIN chat_room_pins p ON p.user_id = m.user_id AND p.room_id = m.room_id
+  WHERE m.user_id = ${myId} AND m.left_at IS NULL`;
 
-const shapeRoom = (room, myId, { meta, muted, blocked, aliasMap, groupNicknames, transfers, v3 }) => {
+const shapeRoom = (room, myId, { meta, muted, blocked, aliasMap, groupNicknames, transfers }) => {
   const group = meta?.room_type === 'group';
   const newest = room.chat_messages[0] ?? null;
-  const last = group && !history.isVisible(history.floorOf(meta, v3), newest) ? null : newest;
+  const last = group && !history.isVisible(history.floorOf(meta), newest) ? null : newest;
   const partner = group ? null : partnerOf(room, myId);
   const alias = partner ? aliasMap.get(partner.user_id) ?? null : null;
   const shaped = last ? codec.shapeMessage(last, { transfers }) : null;
@@ -162,14 +131,12 @@ const byPinThenActivity = (a, b) => {
 };
 
 const list = async (myId) => {
-  const v2 = await schema.isV2();
-  const v3 = v2 && (await schema.isV3());
-  const metaRows = v2 ? await memberRooms(myId, v3) : [];
-  if (v2 && metaRows.length === 0) return [];
+  const metaRows = await memberRooms(myId);
+  if (metaRows.length === 0) return [];
   const metaById = new Map(metaRows.map((r) => [Number(r.room_id), r]));
 
   const [rooms, muted, blocked, aliasMap] = await Promise.all([prisma.chat_rooms.findMany({
-    where: v2 ? { room_id: { in: [...metaById.keys()] } } : myRooms(myId),
+    where: { room_id: { in: [...metaById.keys()] } },
     orderBy: { updated_at: 'desc' },
     include: {
       users_chat_rooms_user_a_idTousers: { select: userBrief },
@@ -193,7 +160,7 @@ const list = async (myId) => {
   ]);
 
   return rooms
-    .map((r) => shapeRoom(r, myId, { meta: metaById.get(r.room_id), muted, blocked, aliasMap, groupNicknames, transfers, v3 }))
+    .map((r) => shapeRoom(r, myId, { meta: metaById.get(r.room_id), muted, blocked, aliasMap, groupNicknames, transfers }))
     .sort(byPinThenActivity);
 };
 
@@ -208,11 +175,10 @@ const detail = async (roomId, myId) => {
     users_chat_rooms_user_b_idTousers: { select: userBrief }
   });
   const group = isGroup(room);
-  const v2 = await schema.isV2();
   const [memberRows, muted, pinnedAt, aliasMap, relation] = await Promise.all([
     group ? members.active(roomId) : [],
     controls.mutedRoomIds(myId),
-    v2 ? pinnedAtOf(myId, roomId) : null,
+    pinnedAtOf(myId, roomId),
     aliases.mine(myId),
     group ? { blocked: false } : controls.relation(myId, partnerIdOf(room, myId))
   ]);
@@ -253,39 +219,18 @@ const detail = async (roomId, myId) => {
 };
 
 const unreadCount = async (myId) => {
-  if (!(await schema.isV2())) {
-    return prisma.chat_messages.count({
-      where: { is_read: false, sender_id: { not: myId }, chat_rooms: myRooms(myId) }
-    });
-  }
-  const [row] = (await schema.isV3())
-    ? await prisma.$queryRaw`
-        SELECT COUNT(*) AS n
-        FROM chat_messages x
-        JOIN chat_room_members m ON m.room_id = x.room_id AND m.user_id = ${myId} AND m.left_at IS NULL
-        JOIN chat_rooms r ON r.room_id = x.room_id
-        WHERE x.sender_id <> ${myId}
-          AND IF(r.room_type = 'group', x.message_id > m.last_read_message_id AND x.message_id >= m.history_from_id, x.is_read = 0)`
-    : await prisma.$queryRaw`
-        SELECT COUNT(*) AS n
-        FROM chat_messages x
-        JOIN chat_room_members m ON m.room_id = x.room_id AND m.user_id = ${myId} AND m.left_at IS NULL
-        JOIN chat_rooms r ON r.room_id = x.room_id
-        WHERE x.sender_id <> ${myId}
-          AND IF(r.room_type = 'group',
-            x.message_id > m.last_read_message_id AND x.created_at >= m.joined_at - INTERVAL 1 SECOND, x.is_read = 0)`;
+  const [row] = await prisma.$queryRaw`
+    SELECT COUNT(*) AS n
+    FROM chat_messages x
+    JOIN chat_room_members m ON m.room_id = x.room_id AND m.user_id = ${myId} AND m.left_at IS NULL
+    JOIN chat_rooms r ON r.room_id = x.room_id
+    WHERE x.sender_id <> ${myId}
+      AND IF(r.room_type = 'group', x.message_id > m.last_read_message_id AND x.message_id >= m.history_from_id, x.is_read = 0)`;
   return Number(row?.n ?? 0);
 };
 
 const markAllRead = async (myId) => {
   await notificationCenter.clearChat(myId);
-  if (!(await schema.isV2())) {
-    await prisma.chat_messages.updateMany({
-      where: { is_read: false, sender_id: { not: myId }, chat_rooms: myRooms(myId) },
-      data: { is_read: true }
-    });
-    return;
-  }
   await prisma.$transaction([
     prisma.$executeRaw`
       UPDATE chat_messages x
@@ -343,9 +288,7 @@ const open = async (myId, partnerId, bookId) => {
     });
   }
 
-  if (await schema.isV2()) {
-    await members.addDirect(prisma, room.room_id, [room.user_a_id, room.user_b_id], room.created_at ?? new Date());
-  }
+  await members.addDirect(prisma, room.room_id, [room.user_a_id, room.user_b_id], room.created_at ?? new Date());
 
   if (book) {
     const card = codec.encodeBook(book);
@@ -378,7 +321,6 @@ const setMuted = async (roomId, myId, muted) => {
 };
 
 const setPinned = async (roomId, myId, pinned) => {
-  await schema.requireV2();
   await findMine(roomId, myId);
 
   if (!pinned) {

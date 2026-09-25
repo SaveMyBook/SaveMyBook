@@ -66,7 +66,6 @@ class _SignInMethodsCardState extends State<SignInMethodsCard> {
       _error = null;
     });
 
-    // 先看總開關：伺服器尚未執行資料庫更新時 identities 會回 503。
     final providers = await _api.fetchAuthProviders();
     if (!mounted) return;
     if (!providers.socialEnabled) {

@@ -1,12 +1,10 @@
 const prisma = require('../lib/prisma');
-const aiSettings = require('./ai/settings');
 const chatRisk = require('./chat/risk');
 
 const EMPTY_DAY = () => ({ orders: 0, revenue: 0, new_users: 0, new_books: 0 });
 
-// 上架審核（規則或 AI 攔下的書）與檢舉同屬「內容審核」，未執行 011 時視為 0。
+// 上架審核（規則或 AI 攔下的書）與檢舉同屬「內容審核」。
 const pendingListingReviews = async () => {
-  if (!(await aiSettings.migrationReady())) return 0;
   const [row] = await prisma.$queryRaw`SELECT COUNT(*) AS n FROM ai_book_reviews WHERE status = 'pending'`;
   return Number(row?.n ?? 0);
 };

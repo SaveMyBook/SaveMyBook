@@ -8,7 +8,6 @@ const auth = require('./auth');
 const sessions = require('./sessions');
 const push = require('./push');
 const legal = require('./legal');
-const { hasTables } = require('../lib/schema-check');
 
 const LOGIN_USER_SELECT = {
   user_id: true, email: true, role: true, password_hash: true,
@@ -61,11 +60,9 @@ const passwordSetOf = async (userId) => {
   return Number(rows[0]?.password_set ?? 1) === 1;
 };
 
-// 未執行 014 時所有帳號都是以密碼註冊的。
-const hasPassword = async (userId) => ((await settings.migrationReady()) ? passwordSetOf(userId) : true);
+const hasPassword = passwordSetOf;
 
 const listFor = async (userId) => {
-  if (!(await settings.migrationReady())) throw settings.unavailable();
   const [rows, passwordSet, user] = await Promise.all([
     identitiesOf(userId),
     passwordSetOf(userId),
@@ -181,8 +178,6 @@ const signIn = async ({ provider, info, device, email, nickname, acceptLegal, cr
 };
 
 const link = async (userId, provider, info) => {
-  if (!(await settings.migrationReady())) throw settings.unavailable();
-
   const existing = await findIdentity(provider, info.subject);
   if (existing) {
     throw Number(existing.user_id) === Number(userId)
@@ -205,14 +200,11 @@ const link = async (userId, provider, info) => {
 
 // 不可引用 services/passkeys：該模組引用本檔，會形成循環載入。
 const passkeyCountOf = async (userId) => {
-  if (!(await hasTables(['user_passkeys', 'webauthn_challenges']))) return 0;
   const [row] = await prisma.$queryRaw`SELECT COUNT(*) AS n FROM user_passkeys WHERE user_id = ${userId}`;
   return Number(row?.n ?? 0);
 };
 
 const unlink = async (userId, provider) => {
-  if (!(await settings.migrationReady())) throw settings.unavailable();
-
   const [rows, passwordSet] = await Promise.all([identitiesOf(userId), passwordSetOf(userId)]);
   if (!rows.some((row) => row.provider === provider)) throw notFound('此帳號未綁定此登入方式');
   if (!passwordSet && rows.length <= 1 && (await passkeyCountOf(userId)) === 0) {
@@ -224,7 +216,6 @@ const unlink = async (userId, provider) => {
 };
 
 const setPassword = async (userId, sid, plain) => {
-  if (!(await settings.migrationReady())) throw settings.unavailable();
   if (await passwordSetOf(userId)) throw badRequest('此帳號已設定密碼，請改用變更密碼', 'PASSWORD_ALREADY_SET');
 
   const updated = await prisma.users.update({

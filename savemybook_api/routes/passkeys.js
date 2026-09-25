@@ -31,7 +31,7 @@ const deviceFrom = (req) => ({
 });
 
 router.get('/status', async (req, res) => {
-  res.status(200).json({ success: true, data: { enabled: await passkeys.isAvailable() } });
+  res.status(200).json({ success: true, data: { enabled: passkeys.isAvailable() } });
 });
 
 router.post('/login/options', optionsLimiter, async (req, res) => {

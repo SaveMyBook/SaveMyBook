@@ -1,30 +1,23 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
-title 書籍商品狀態機（books.status）
+hide empty description
 
-[*] --> on_sale : 賣家上架\n(books.create)
-
-on_sale --> reserved : 買家結帳成功\n(checkout：鎖定防雙賣)
-reserved --> sold : 買家完成取書\n(訂單轉 completed，settlement.settle)
-reserved --> on_sale : 訂單取消／退款\n(訂單轉 cancelled／refunded，釋放書籍)
-
-on_sale --> removed : 賣家自行下架\n(books.remove)
-removed --> on_sale : 賣家重新上架\n(books.relist，需未被違規鎖定)
-
-on_sale --> removed : AI／規則審核駁回\n(listing-screening.applyLater／ai/reviews.decide)
-removed --> on_sale : AI複核通過\n(ai/reviews.decide('approve'))
-
-on_sale --> removed : 管理員強制下架\n(books-admin.adminSetStatus)
-removed --> on_sale : 管理員恢復上架\n(books-admin.adminSetStatus，同步 is_approved=true)
-
-sold --> [*]
-
-note right of reserved
-  「違規鎖定」書籍（is_approved=false
-  且非待審中，或遭已成立檢舉）
-  不可由賣家自行改回 on_sale，
-  須由管理員或AI複核處理。
-end note
+[*] --> 販售中 : 賣家上架
+審核中 --> 販售中 : 管理員核准
+審核中 --> 已下架 : 管理員駁回
+販售中 --> 審核中 : 售價異常、疑似非正規來源\n或 AI 審核需人工確認
+販售中 --> 預約保留中 : 賣家接受預約
+預約保留中 --> 販售中 : 保留到期或取消
+預約保留中 --> 交易中 : 預約買家下單
+販售中 --> 交易中 : 買家下單
+交易中 --> 已售出 : 訂單完成
+交易中 --> 販售中 : 存書前取消訂單
+交易中 --> 已下架 : 逾期未存書或未取書
+販售中 --> 已下架 : 賣家下架或違規下架
+已下架 --> 販售中 : 賣家重新上架
+已售出 --> [*]
 @enduml

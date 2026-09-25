@@ -1,4 +1,5 @@
 // 登入相關測試的共用設定：沿用 test/lib 的假 Prisma 與假 fetch，另外提供 Firebase 權杖與帳號資料的產生器。
+const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -17,8 +18,9 @@ const { registerModels } = require('../lib/fake-prisma');
 const { prisma, api, onFetch, jsonResponse, fetchLog, request, listen, close, runSuite, onReset } = server;
 
 registerModels({
-  autoKeys: { user_identities: 'identity_id' },
+  autoKeys: { user_identities: 'identity_id', user_sessions: 'session_id' },
   uniqueKeys: {
+    user_security: [['user_id']],
     user_identities: [['provider', 'subject']],
     auth_settings: [['id']],
     oauth_states: [['state']],
@@ -91,47 +93,36 @@ const firebaseToken = ({
   return jwt.sign(payload, key, { algorithm: 'RS256', expiresIn, keyid: kid });
 };
 
+// ---------- 迷你 SQL 直譯器不支援的查詢 ----------
+
+const time = (value) => new Date(value).getTime();
+
+prisma.onSql(/LEFT JOIN user_sessions s ON s\.sid/, (sql, [sid, userId]) => {
+  const session = prisma.rows('user_sessions').find((s) => s.sid === sid) ?? null;
+  const security = prisma.rows('user_security').find((s) => Number(s.user_id) === Number(userId)) ?? null;
+  return [{
+    session_user: session ? session.user_id : null,
+    revoked_at: session?.revoked_at ?? null,
+    tokens_valid_after: security?.tokens_valid_after ?? null
+  }];
+});
+
+prisma.onSql(/SELECT session_id, user_id, sid, pay_key_hash, last_seen_at FROM user_sessions/, (sql, [sid, cutoff]) =>
+  prisma.rows('user_sessions').filter((s) => s.sid === sid && s.revoked_at == null && time(s.last_seen_at) >= time(cutoff)));
+
 // ---------- 資料庫狀態 ----------
 
-const FULL_SCHEMA = {
-  tables: [
-    'db_backups', 'push_devices', 'user_legal_consents', 'user_sessions', 'user_security',
-    'chat_room_mutes', 'user_blocks', 'chat_room_members', 'chat_room_pins', 'chat_aliases',
-    'chat_transfers', 'chat_mentions', 'ai_settings', 'ai_usage_logs', 'ai_support_sessions',
-    'ai_support_messages', 'ai_recommendation_cache', 'ai_book_reviews', 'ai_consents',
-    'user_identities', 'auth_settings', 'oauth_states', 'oauth_results'
-  ],
-  columns: [
-    'users.deletion_requested_at', 'users.anonymized_at', 'users.share_token',
-    'users.password_set', 'login_logs.login_method', 'ai_usage_logs.error_detail'
-  ]
-};
-
-const withoutAuthMigration = () => ({
-  tables: FULL_SCHEMA.tables.filter((t) => !['user_identities', 'auth_settings', 'oauth_states', 'oauth_results'].includes(t)),
-  columns: FULL_SCHEMA.columns.filter((c) => !['users.password_set', 'login_logs.login_method'].includes(c))
-});
-
-// user_sessions／user_security 預設視為未建立：requireVerification 會略過，
-// 與尚未執行 007 的伺服器行為一致，測試聚焦在登入方式本身的邏輯。
-const withoutSessions = (schema) => ({
-  ...schema,
-  tables: schema.tables.filter((t) => !['user_sessions', 'user_security'].includes(t))
-});
-
-const schemaCheck = api('lib/schema-check');
 const authSettings = api('services/auth-settings');
 const firebase = api('lib/firebase-token');
 const authToken = api('lib/auth-token');
 const bcrypt = api('node_modules/bcrypt');
 
-const reset = ({ schema = withoutSessions(FULL_SCHEMA), tables = {} } = {}) => {
+const reset = ({ tables = {} } = {}) => {
   server.reset({
-    schema,
     tables: {
       users: [], login_logs: [], user_identities: [], auth_settings: [], oauth_states: [],
       oauth_results: [], admin_permissions: [], admin_operation_logs: [], push_devices: [],
-      notifications: [], ...tables
+      notifications: [], user_sessions: [], user_security: [], ...tables
     }
   });
 };
@@ -139,7 +130,6 @@ const reset = ({ schema = withoutSessions(FULL_SCHEMA), tables = {} } = {}) => {
 server.setDefaultReset(() => reset());
 
 onReset(() => {
-  schemaCheck.resetCache();
   authSettings.clearCache();
   firebase.resetCache();
 });
@@ -199,10 +189,18 @@ const setAuthSettings = (config) => {
 
 const tokenFor = (user) => authToken.signToken(user, undefined);
 
+// 驗證權杖由 services/security 簽發，測試需要時直接以同樣的內容簽一份。
+const verifyHeaders = (user, scope = 'sensitive') => ({
+  'x-verify-token': authToken.sign(
+    { typ: 'verify', uid: user.user_id, sid: null, scope, method: 'password', jti: crypto.randomBytes(12).toString('hex') },
+    300
+  )
+});
+
 module.exports = {
   runSuite, listen, close, request,
-  prisma, api, reset, addUser, addIdentity, setAuthSettings, tokenFor, request, listen, close,
+  prisma, api, reset, addUser, addIdentity, setAuthSettings, tokenFor, verifyHeaders, request, listen, close,
   firebaseToken, signingKey, signingCert, wrongKey, CERT_KID, CERT_URL, PROJECT_ID,
   onFetch, jsonResponse, fetchLog, certRequests: () => certRequests,
-  FULL_SCHEMA, withoutAuthMigration, withoutSessions, schemaCheck, authSettings, jwt, bcrypt
+  authSettings, jwt, bcrypt
 };

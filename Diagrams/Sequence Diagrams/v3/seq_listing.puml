@@ -1,81 +1,79 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
 skinparam sequenceMessageAlign center
-title 循序圖：上架書籍（含 AI 輔助與內容審核）
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 賣家 as Seller
-participant "SellBookScreen /\nSellBookDetailScreen" as UI
-participant "ApiService\n(AiApi/BooksApi)" as ApiSvc
-participant "POST /api/ai/listing-assist" as AiRoute
-participant "ai/listing-assist.js" as AiAssist
-participant "isbn-lookup.js" as Isbn
-participant "AI 供應商" as LLM
-participant "POST /api/books" as BookRoute
-participant "books.js" as BooksSvc
-participant "listing-screening.js" as Screen
-participant "ai/moderation.js" as Moderation
-database "Prisma / MariaDB" as DB
+actor 賣家
+participant UI
+participant API
+database DB
+participant "AI 服務" as AI
+actor 管理員
 
-Seller -> UI : 掃描ISBN條碼 / 輸入書籍資訊
-UI -> ApiSvc : fetchBookByIsbn(isbn)
-ApiSvc -> BookRoute : GET 查詢書目（Google/Open Library）
+賣家 -> UI : 掃描 ISBN 或輸入書籍資訊
+activate 賣家
+activate UI
 
-alt 使用 AI 輔助上架
-  Seller -> UI : 點擊「AI輔助」
-  UI -> ApiSvc : requestListingAssist(isbn, title, images)
-  ApiSvc -> AiRoute : POST /api/ai/listing-assist
-  AiRoute -> AiAssist : assist(userId, isbn, title, images)
-  AiAssist -> AiAssist : consent.assertGranted(userId)
-  AiAssist -> AiAssist : runner.assertDailyLimit()
-  AiAssist -> Isbn : lookupWithSources(isbn)
-  Isbn --> AiAssist : 書目資料 + 來源
-  AiAssist -> LLM : 組 prompt 呼叫模型
-  LLM --> AiAssist : fields/category/condition/price
-  AiAssist -> AiAssist : sanitizeFields() / mergePrice()
-  AiAssist --> ApiSvc : 建議欄位（不寫入資料庫）
-  ApiSvc --> UI : 回填表單欄位
+opt 使用 AI 輔助上架
+  賣家 -> UI : 點擊「AI 輔助」並附書況照片
+  UI -> API : POST /api/ai/listing-assist
+  activate API
+  API -> AI : 依書目與照片判斷書況、\n分類與建議售價
+  activate AI
+  AI --> API : 回傳建議內容
+  deactivate AI
+  API --> UI : 回傳建議欄位，帶入表單
+  deactivate API
 end
 
-Seller -> UI : 確認資訊、送出上架
-UI -> ApiSvc : createBook(fields, files)
-ApiSvc -> BookRoute : POST /api/books (multipart)
-BookRoute -> BooksSvc : create(data, images, files)
-BooksSvc -> BooksSvc : assertRefsExist(category, cabinet)
-BooksSvc -> Screen : ruleDecision(data)
-Screen --> BooksSvc : ruled = null 或 {action:'review',...}
+賣家 -> UI : 確認內容，送出上架
+UI -> API : POST /api/books（含照片）
+deactivate UI
+activate API
+API -> DB : 檢查書櫃可用，比對同書行情
 
-alt 規則命中需人工審核
-  BooksSvc -> DB : tx.books.create(is_approved=false)
-  BooksSvc -> DB : tx.book_images.createMany()
-  BooksSvc -> Screen : hold(tx, book, ruled)
-  Screen -> DB : ai_book_reviews.create(status='pending')
-  Screen -> Seller : 通知「書籍已送交審核」
-  Screen -> Screen : notifyAdmins(可管理內容之管理員)
-else 規則未攔截
-  BooksSvc -> DB : tx.books.create(status='on_sale', is_approved=true)
-  BooksSvc -> DB : tx.book_images.createMany()
-  BooksSvc --> BookRoute : 201 書籍上架成功
-  BookRoute --> UI : 顯示上架成功
+alt 售價異常或疑似非正規來源
+  API -> DB : 建立書籍（暫不公開）與待審紀錄
+  API -> 賣家 : 通知「已送交審核」
+  API -> 管理員 : 通知「有書籍待審核」
+else 未命中規則
+  API -> DB : 建立書籍並立即上架
+end
+API --> UI : 201 Created
+deactivate API
+UI --> 賣家 : 顯示上架結果
+deactivate 賣家
 
-  par 背景執行（不阻塞回應）
-    BooksSvc -> Screen : screenLater(book, files)
-    Screen -> Moderation : screen(content, images)
-    Moderation -> LLM : 呼叫審核模型
-    LLM --> Moderation : verdict/confidence/categories
-    Moderation --> Screen : action = allow/review/reject
-    alt action = reject
-      Screen -> DB : books.update(is_approved=false, status='removed')
-      Screen -> DB : ai_book_reviews.status='rejected'
-      Screen -> Seller : 通知「未通過上架審核，已下架」
-    else action = review
-      Screen -> DB : books.update(is_approved=false)
-      Screen -> DB : ai_book_reviews.status='pending'
-      Screen -> Seller : 通知「已送交人工複核」
-    else action = allow
-      Screen -> Screen : 不做任何事，維持 on_sale
-    end
+opt 背景 AI 審核（未命中規則時）
+  API -> AI : 審核文字與最多 4 張照片
+  activate API
+  alt AI 判定違規
+    API -> DB : 書籍下架，審核設為未通過
+    API -> 賣家 : 通知「未通過上架審核」
+  else AI 判定需人工確認
+    API -> DB : 暫停公開並建立待審紀錄
+    API -> 賣家 : 通知「已送交審核」
+    API -> 管理員 : 通知「有書籍待審核」
   end
+  deactivate API
+end
+
+opt 背景補齊書目（簡介、作者、出版社或出版日期空白）
+  alt 依 ISBN 查公開書目，查無簡介
+    API -> AI : 依 ISBN 上網查詢書目與簡介
+    activate API
+    activate AI
+  else 公開書目有簡介
+    API -> AI : 整理為繁體中文簡介
+  end
+  AI --> API : 回傳補齊內容
+  deactivate AI
+  API -> DB : 僅寫入仍空白的欄位
+  deactivate API
 end
 @enduml

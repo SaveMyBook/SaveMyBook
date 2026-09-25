@@ -1,61 +1,61 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：加入購物車與結帳（確認訂單）
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 買家 as Buyer
-participant "BookDetailScreen /\nCartScreen" as UI
-participant "ApiService\n(CartApi/OrdersApi)" as ApiSvc
-participant "POST /api/cart" as CartRoute
-participant "cart.js" as CartSvc
-participant "verification中介層" as Verify
-participant "POST /api/orders/checkout" as CheckoutRoute
-participant "orders/checkout.js" as CheckoutSvc
-participant "wallet.js" as WalletSvc
-database "Prisma / MariaDB" as DB
+actor 買家
+participant UI
+participant API
+database DB
+actor 賣家
 
-Buyer -> UI : 點擊「加入購物車」
-UI -> ApiSvc : addToCart(bookId)
-ApiSvc -> CartRoute : POST /api/cart
-CartRoute -> CartSvc : add(userId, bookId, qty)
-CartSvc -> CartSvc : 驗證 status=on_sale 且非本人上架
-CartSvc -> CartSvc : reservations.assertNotHeldByOthers(book)
-alt 書籍被他人有效預約中
-  CartSvc --> UI : 409 BOOK_RESERVED
-else 可加入
-  CartSvc -> DB : shopping_cart.upsert()
-  CartSvc --> UI : 200 OK
+activate 買家
+alt 加入購物車後結帳
+  買家 -> UI : 點擊「加入購物車」
+  activate UI
+  UI -> API : POST /api/cart
+  activate API
+  API -> DB : 確認可購買且未被他人預約保留
+  API --> UI : 201 Created
+  deactivate API
+  買家 -> UI : 勾選書籍，點擊「結帳」
+  UI -> API : POST /api/orders/checkout
+  activate API
+else 直接購買單本
+  買家 -> UI : 書籍頁點擊「直接購買」
+  UI -> API : POST /api/orders/buy-now
 end
+API --> UI : 403 需驗證身分
+deactivate API
+UI --> 買家 : 顯示金額，要求驗證
+買家 -> UI : 輸入交易密碼或生物辨識
+UI -> API : POST /api/security/verify
+activate API
+API --> UI : 核發單次付款驗證權杖
+UI -> API : 附驗證權杖重送購買請求
+API -> DB : 檢查可購買、書櫃未維修、\n未被他人預約保留與錢包餘額
+activate DB
+DB --> API : 回傳檢查結果
+deactivate DB
 
-Buyer -> UI : 勾選項目、點擊「結帳」
-UI -> Buyer : 要求輸入交易密碼/生物辨識
-UI -> ApiSvc : checkout(cartItemIds)
-ApiSvc -> CheckoutRoute : POST /api/orders/checkout\n(header x-verify-token)
-CheckoutRoute -> Verify : requireVerification('payment')
-Verify --> CheckoutRoute : 驗證通過
-CheckoutRoute -> CheckoutSvc : checkout(userId, cartItemIds)
-CheckoutSvc -> DB : 取出購物車項目 + 書籍
-CheckoutSvc -> CheckoutSvc : 驗證 on_sale／非自售／未被他人預約
-CheckoutSvc -> DB : 查詢買家錢包餘額
-alt 餘額不足
-  CheckoutSvc --> UI : 400 INSUFFICIENT_BALANCE
-else 餘額足夠
-  CheckoutSvc -> DB : tx.books.updateMany(status='reserved'\nwhere status='on_sale')
-  alt 有書籍已被搶購（更新筆數不符）
-    CheckoutSvc --> UI : 409（整批回滾，請重新選購）
-  else 成功鎖定
-    loop 依賣家分組
-      CheckoutSvc -> DB : tx.orders.create(status='pending_deposit',\npayment_method='wallet')
-      CheckoutSvc -> DB : tx.order_items.createMany()
-      CheckoutSvc -> WalletSvc : changeBalance(buyer, -total, 'purchase')
-      WalletSvc -> DB : wallets.updateMany(balance gte -amount)（原子扣款）
-      WalletSvc -> DB : wallet_transactions.create()
-      CheckoutSvc -> DB : notify 賣家「書已售出，請於七天內存入書櫃」
-    end
-    CheckoutSvc -> DB : 清空已結帳之購物車項目
-    CheckoutSvc --> UI : 201 建立之訂單列表
-    UI -> UI : 導向 PurchaseHistoryScreen
-  end
+alt 檢查通過
+  API -> DB : 書籍設為「交易中」
+  API -> DB : 依賣家建立訂單（待存書）
+  API -> DB : 扣除買家代幣，由平台保管至訂單完成
+  API -> 賣家 : 通知「書已售出，請於 7 天內存書」
+  API -> DB : 移除已購買的購物車項目
+  API --> UI : 201 Created
+  UI --> 買家 : 顯示付款成功
+else 不可購買、餘額不足或已被搶購
+  API --> UI : 400／409 錯誤訊息（不扣款）
+  UI --> 買家 : 顯示失敗原因
 end
+deactivate API
+deactivate UI
+deactivate 買家
 @enduml

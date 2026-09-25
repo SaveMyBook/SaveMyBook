@@ -22,14 +22,8 @@ tags:
       群組的建立、改名、變更頭貼、邀請、移除、退出與管理員變更會插入一則 `notice` 訊息。
       最後一位管理員退出時由加入最早的成員接任。
 
-      伺服器尚未執行 `migrations/010_chat_mentions_albums.sql` 時，帶有提及的訊息回傳 503 `CHAT_V3_UNAVAILABLE`，
-      群組可見範圍改以加入時間判斷；相簿不受影響。
-
       **釘選**與**自訂暱稱**僅影響請求者本人：每人最多釘選 10 個聊天室；自訂暱稱為 1 至 30 字，
       一對一與群組共用，套用於聊天室標題、訊息的 `meta.aliases`、列表的發送者名稱與推播的發送者名稱。
-
-      伺服器尚未執行 `migrations/009_chat_groups_transfers.sql` 時，一對一聊天照常運作（列表的 `pinned` 固定為 false），
-      群組、釘選、自訂暱稱、編輯訊息與轉帳相關端點回傳 503 `CHAT_V2_UNAVAILABLE`。
 
       ## Realtime
 
@@ -535,7 +529,6 @@ paths:
                         nullable: true
                         description: |
                           近 30 天內其他成員傳送過高風險訊息時帶入，供聊天室頂部顯示防詐提醒；否則為 `null`。
-                          伺服器尚未執行資料庫更新 023 時，僅依本頁訊息判斷。
                         allOf: [{ $ref: '#/components/schemas/ChatRisk' }]
                   data:
                     type: array
@@ -569,7 +562,7 @@ paths:
         單張圖片請使用 `image`。`system` 與其他未列出的值一律回傳 400；商品卡片與預約卡片由專屬端點產生。
 
         相簿與語音訊息在資料表中以 `system` 型別儲存，回應的 `kind` 分別為 `album`、`voice`。
-        提及的規則與通知見「Mentions」一節；伺服器尚未執行資料庫更新 010 時，帶有提及的訊息回傳 503 `CHAT_V3_UNAVAILABLE`。
+        提及的規則與通知見「Mentions」一節。
 
         一對一時，對方帳號已停權、列入黑名單或已封鎖請求者時回傳 400 `RECIPIENT_UNAVAILABLE`；
         請求者已封鎖對方時回傳 403 `CHAT_BLOCKED`。群組不檢查封鎖關係。
@@ -612,7 +605,7 @@ paths:
                 reply_to_id:
                   type: integer
                   nullable: true
-                  description: 回覆的訊息編號，必須屬於同一聊天室。伺服器尚未執行資料庫更新 008 時忽略此欄位。
+                  description: 回覆的訊息編號，必須屬於同一聊天室。
                   example: 298
                 confirm_risk:
                   type: boolean
@@ -686,7 +679,6 @@ paths:
         '409': { $ref: '#/components/responses/RiskConfirmRequired' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV3Unavailable' }
 
   /api/chat/rooms/{roomId}/typing:
     post:
@@ -1045,7 +1037,6 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatControlsUnavailable' }
 
   /api/chat/blocks:
     get:
@@ -1073,7 +1064,6 @@ paths:
                             blocked_at: { type: string, format: date-time }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatControlsUnavailable' }
 
   /api/chat/blocks/{userId}:
     parameters:
@@ -1120,7 +1110,6 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 找不到該使用者 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatControlsUnavailable' }
 
     delete:
       summary: 解除封鎖
@@ -1146,7 +1135,6 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatControlsUnavailable' }
 
   /api/chat/rooms/{roomId}:
     get:
@@ -1155,7 +1143,6 @@ paths:
       tags: [chat]
       description: |
         取得聊天室設定頁所需的資訊。群組回傳現任成員與請求者的角色；一對一回傳雙方與對方的自訂暱稱。
-        伺服器尚未執行資料庫更新 009 時仍可取得一對一聊天室資訊（`pinned` 固定為 false）。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -1240,7 +1227,6 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/aliases/{userId}:
     put:
@@ -1301,7 +1287,6 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 找不到該使用者 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/rooms/{roomId}/messages/{messageId}:
     patch:
@@ -1400,7 +1385,6 @@ paths:
                 需要確認:
                   value: { success: false, code: RISK_CONFIRM_REQUIRED, message: 訊息包含聯絡方式或付款資訊，於平台外交易將不受平台保障，請確認後再傳送, categories: [contact] }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV3Unavailable' }
 
   /api/chat/groups:
     post:
@@ -1463,7 +1447,6 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/groups/{roomId}:
     patch:
@@ -1516,7 +1499,6 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/groups/{roomId}/members:
     post:
@@ -1579,7 +1561,6 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/groups/{roomId}/members/{userId}/nickname:
     put:
@@ -1591,7 +1572,6 @@ paths:
         訊息列表 `meta.aliases`、聊天室列表最後一則訊息的 `sender_name`、新訊息通知的發送者名稱）。
         成員可設定自己的群組暱稱；設定其他成員需為管理員（`owner`）。
         `nickname` 為空字串或 `null` 時移除，前後空白會被去除，上限 30 字。成員退出或被移出群組時自動清除。
-        伺服器尚未執行 `migrations/018_chat_group_nickname.sql` 時回傳 503。
         回傳更新後的聊天室資訊，格式與 `GET /api/chat/rooms/{roomId}` 相同。
       security: [{ bearerAuth: [] }]
       parameters:
@@ -1647,11 +1627,6 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 此使用者不是群組成員 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503':
-          description: 伺服器尚未執行 018 遷移。
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
 
   /api/chat/groups/{roomId}/members/{userId}:
     patch:
@@ -1722,7 +1697,6 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 此使用者不是群組成員 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
     delete:
       summary: 移除成員
@@ -1784,7 +1758,6 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 此使用者不是群組成員 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/groups/{roomId}/leave:
     post:
@@ -1823,7 +1796,6 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/rooms/{roomId}/transfers:
     post:
@@ -1906,7 +1878,6 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/rooms/{roomId}/transfer-requests:
     post:
@@ -1967,7 +1938,6 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/transfers/{id}/pay:
     post:
@@ -2031,7 +2001,6 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, code: TRANSFER_STATE_CHANGED, message: 此筆請款狀態已變更，請重新整理 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/transfers/{id}/decline:
     post:
@@ -2077,7 +2046,6 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, code: TRANSFER_STATE_CHANGED, message: 此筆請款狀態已變更，請重新整理 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/transfers/{id}/cancel:
     post:
@@ -2123,7 +2091,6 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, code: TRANSFER_STATE_CHANGED, message: 此筆請款狀態已變更，請重新整理 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/ChatV2Unavailable' }
 
   /api/chat/link-preview:
     get:

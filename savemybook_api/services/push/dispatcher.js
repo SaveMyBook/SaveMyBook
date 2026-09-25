@@ -1,11 +1,9 @@
 const prisma = require('../../lib/prisma');
 const { env } = require('../../config/env');
 const maintenance = require('../../lib/maintenance');
-const { hasColumn } = require('../../lib/schema-check');
 const { placeholders } = require('../../lib/sql');
 const { clip } = require('../../lib/text');
 const chatControls = require('../chat/controls');
-const chatSchema = require('../chat/schema');
 const chatNotice = require('../chat/notice');
 const { isReady, fcm } = require('./setup');
 
@@ -25,25 +23,15 @@ const PREFERENCE_COLUMN = {
 // 回溯視窗以資料表內最新的 created_at 為基準：created_at 由 Prisma 寫入，與 Node／資料庫時區設定無關，避免時區不一致時整批被判定過期。
 const claimBatch = async () => {
   const now = new Date();
-  const rows = (await hasColumn('notifications', 'actor_id'))
-    ? await prisma.$queryRaw`
-        SELECT n.notification_id, n.user_id, n.type, n.title, n.content, n.related_id, n.related_type, n.actor_id
-        FROM notifications n
-        JOIN (SELECT MAX(created_at) AS latest FROM notifications) m
-        WHERE n.pushed_at IS NULL
-          AND n.created_at >= m.latest - INTERVAL ${QUEUE_WINDOW_MINUTES} MINUTE
-          AND n.created_at <= ${now}
-        ORDER BY n.notification_id
-        LIMIT ${BATCH_SIZE}`
-    : await prisma.$queryRaw`
-        SELECT n.notification_id, n.user_id, n.type, n.title, n.content, n.related_id, n.related_type
-        FROM notifications n
-        JOIN (SELECT MAX(created_at) AS latest FROM notifications) m
-        WHERE n.pushed_at IS NULL
-          AND n.created_at >= m.latest - INTERVAL ${QUEUE_WINDOW_MINUTES} MINUTE
-          AND n.created_at <= ${now}
-        ORDER BY n.notification_id
-        LIMIT ${BATCH_SIZE}`;
+  const rows = await prisma.$queryRaw`
+    SELECT n.notification_id, n.user_id, n.type, n.title, n.content, n.related_id, n.related_type, n.actor_id
+    FROM notifications n
+    JOIN (SELECT MAX(created_at) AS latest FROM notifications) m
+    WHERE n.pushed_at IS NULL
+      AND n.created_at >= m.latest - INTERVAL ${QUEUE_WINDOW_MINUTES} MINUTE
+      AND n.created_at <= ${now}
+    ORDER BY n.notification_id
+    LIMIT ${BATCH_SIZE}`;
   if (rows.length === 0) return [];
 
   const ids = rows.map((r) => Number(r.notification_id));
@@ -113,23 +101,18 @@ const chatContextFor = async (rows) => {
   const actorIds = [...new Set(chatRows.map((r) => Number(r.actor_id)))];
   const roomIds = [...new Set(chatRows.map((r) => Number(r.related_id)))];
   const ownerIds = [...new Set(chatRows.map((r) => Number(r.user_id)))];
-  const v2 = await chatSchema.isV2();
   const [actors, rooms, aliases] = await Promise.all([
     prisma.users.findMany({
       where: { user_id: { in: actorIds } },
       select: { user_id: true, nickname: true, avatar_url: true }
     }),
-    v2
-      ? prisma.$queryRawUnsafe(`SELECT room_id, room_type, name FROM chat_rooms WHERE room_id IN (${placeholders(roomIds)})`, ...roomIds)
-      : [],
-    v2
-      ? prisma.$queryRawUnsafe(
-          `SELECT owner_id, target_user_id, alias FROM chat_aliases
-           WHERE owner_id IN (${placeholders(ownerIds)}) AND target_user_id IN (${placeholders(actorIds)})`,
-          ...ownerIds,
-          ...actorIds
-        )
-      : []
+    prisma.$queryRawUnsafe(`SELECT room_id, room_type, name FROM chat_rooms WHERE room_id IN (${placeholders(roomIds)})`, ...roomIds),
+    prisma.$queryRawUnsafe(
+      `SELECT owner_id, target_user_id, alias FROM chat_aliases
+       WHERE owner_id IN (${placeholders(ownerIds)}) AND target_user_id IN (${placeholders(actorIds)})`,
+      ...ownerIds,
+      ...actorIds
+    )
   ]);
   for (const a of actors) context.actors.set(Number(a.user_id), a);
   for (const r of rooms) context.rooms.set(Number(r.room_id), r);

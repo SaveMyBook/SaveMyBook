@@ -1,127 +1,133 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 13
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
 skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
 hide circle
 hide empty methods
-skinparam ranksep 60
-skinparam nodesep 40
-skinparam class {
-  BackgroundColor White
-  BorderColor #444444
-  ArrowColor #555555
+
+entity "books" as books {
+  {field} <&key> book_id : int
+  --
+  {field} seller_id : int
+  {field} isbn : varchar(13)
+  {field} title : varchar(255)
+  {field} author : varchar(255)
+  {field} publisher : varchar(255)
+  {field} publish_date : varchar(20)
+  {field} category_id : int
+  {field} condition_level : enum
+  {field} condition_note : text
+  {field} price : decimal(10,2)
+  {field} quantity : int
+  {field} description : text
+  {field} cabinet_id : int
+  {field} status : enum
+  {field} view_count : int
+  {field} is_approved : tinyint(1)
+  {field} share_token : char(32)
+  {field} created_at : datetime
+  {field} updated_at : datetime
 }
-
-title 書籍與商品模組 ER 圖
-
-entity "books\n書籍商品表" as books {
-  * book_id : INT
-  + seller_id : INT
-  - isbn : VARCHAR(13)
-  - title : VARCHAR(255)
-  - author : VARCHAR(255)
-  - publisher : VARCHAR(255)
-  - publish_date : VARCHAR(20)
-  + category_id : INT
-  - condition_level : ENUM
-  - condition_note : TEXT
-  - price : DECIMAL(10, 2)
-  - quantity : INT
-  - description : TEXT
-  + cabinet_id : INT
-  - status : ENUM
-  - view_count : INT
-  - is_approved : TINYINT(1)
-  - share_token : CHAR(32)
-  - created_at : DATETIME
-  - updated_at : DATETIME
+entity "book_categories" as book_categories {
+  {field} <&key> category_id : int
+  --
+  {field} category_name : varchar(50)
+  {field} parent_id : int
+  {field} sort_order : int
+  {field} created_at : datetime
 }
-
-entity "book_categories\n書籍分類表" as book_categories {
-  * category_id : INT
-  - category_name : VARCHAR(50)
-  + parent_id : INT
-  - sort_order : INT
-  - created_at : DATETIME
+entity "book_images" as book_images {
+  {field} <&key> image_id : int
+  --
+  {field} book_id : int
+  {field} image_url : varchar(500)
+  {field} image_type : enum
+  {field} sort_order : int
+  {field} created_at : datetime
 }
-
-entity "book_images\n書籍圖片表" as book_images {
-  * image_id : INT
-  + book_id : INT
-  - image_url : VARCHAR(500)
-  - image_type : ENUM
-  - sort_order : INT
-  - created_at : DATETIME
+entity "favorites" as favorites {
+  {field} <&key> favorite_id : int
+  --
+  {field} user_id : int
+  {field} book_id : int
+  {field} created_at : datetime
 }
-
-entity "favorites\n收藏清單表" as favorites {
-  * favorite_id : INT
-  + user_id : INT
-  + book_id : INT
-  - created_at : DATETIME
+entity "shopping_cart" as shopping_cart {
+  {field} <&key> cart_id : int
+  --
+  {field} user_id : int
+  {field} book_id : int
+  {field} quantity : int
+  {field} added_at : datetime
 }
-
-entity "shopping_cart\n購物車" as shopping_cart {
-  * cart_id : INT
-  + user_id : INT
-  + book_id : INT
-  - quantity : INT
-  - added_at : DATETIME
+entity "recommendation_logs" as recommendation_logs {
+  {field} <&key> rec_id : int
+  --
+  {field} user_id : int
+  {field} book_id : int
+  {field} rec_type : enum
+  {field} is_clicked : tinyint(1)
+  {field} created_at : datetime
 }
-
-entity "recommendation_logs\n推薦紀錄表" as recommendation_logs {
-  * rec_id : INT
-  + user_id : INT
-  + book_id : INT
-  - rec_type : ENUM
-  - is_clicked : TINYINT(1)
-  - created_at : DATETIME
+entity "reports" as reports {
+  {field} <&key> report_id : int
+  --
+  {field} reporter_id : int
+  {field} target_type : enum
+  {field} target_id : int
+  {field} reason : text
+  {field} evidence_urls : text
+  {field} status : enum
+  {field} admin_id : int
+  {field} admin_note : text
+  {field} created_at : datetime
+  {field} resolved_at : datetime
 }
-
-entity "reports\n檢舉管理表" as reports {
-  * report_id : INT
-  + reporter_id : INT
-  - target_type : ENUM
-  - target_id : INT
-  - reason : TEXT
-  - evidence_urls : TEXT
-  - status : ENUM
-  + admin_id : INT
-  - admin_note : TEXT
-  - created_at : DATETIME
-  - resolved_at : DATETIME
+entity "content_reviews" as content_reviews {
+  {field} <&key> review_id : int
+  --
+  {field} content_type : enum
+  {field} content_id : int
+  {field} status : enum
+  {field} admin_id : int
+  {field} review_note : text
+  {field} created_at : datetime
+  {field} reviewed_at : datetime
 }
-
-entity "content_reviews\n內容審核表" as content_reviews {
-  * review_id : INT
-  - content_type : ENUM
-  - content_id : INT
-  - status : ENUM
-  + admin_id : INT
-  - review_note : TEXT
-  - created_at : DATETIME
-  - reviewed_at : DATETIME
+entity "ai_book_reviews" as ai_book_reviews {
+  {field} <&key> book_id : int
+  --
+  {field} verdict : varchar(10)
+  {field} reasons : text
+  {field} categories : text
+  {field} status : enum
+  {field} provider : varchar(20)
+  {field} model : varchar(80)
+  {field} created_at : datetime
+  {field} reviewed_by : int
+  {field} reviewed_at : datetime
 }
-
-entity "ai_book_reviews\nAI書籍上架審核表" as ai_book_reviews {
-  * book_id : INT
-  - verdict : VARCHAR(10)
-  - reasons : TEXT
-  - categories : TEXT
-  - status : ENUM
-  - provider : VARCHAR(20)
-  - model : VARCHAR(80)
-  - created_at : DATETIME
-  - reviewed_by : INT
-  - reviewed_at : DATETIME
+entity "ai_book_enrichments" as ai_book_enrichments {
+  {field} <&key> book_id : int
+  --
+  {field} status : varchar(10)
+  {field} fields : varchar(200)
+  {field} ai_written : tinyint(1)
+  {field} attempted_at : datetime
 }
-
-book_categories ||--o{ books : "category_id"
-book_categories ||--o{ book_categories : "parent_id"
-books ||--o{ book_images : "book_id"
-books ||--o{ favorites : "book_id"
-books ||--o{ shopping_cart : "book_id"
-books ||--o{ recommendation_logs : "book_id"
-books ||--o{ ai_book_reviews : "book_id"
+book_categories ||--o{ books
+book_categories ||--o{ book_categories
+books ||--o{ book_images
+books ||--o{ favorites
+books ||--o{ shopping_cart
+books ||--o{ recommendation_logs
+books ||--o| ai_book_reviews
+books ||--o| ai_book_enrichments
+book_images -[hidden]down- ai_book_reviews
+favorites -[hidden]down- ai_book_enrichments
 @enduml

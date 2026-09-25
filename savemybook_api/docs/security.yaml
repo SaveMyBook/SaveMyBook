@@ -73,12 +73,6 @@ tags:
       缺少 `sid` 的舊版 Token 無法使用需要裝置工作階段的功能，回傳 403 `SESSION_REQUIRED`，
       App 應引導使用者重新登入。
 
-      ## Availability
-
-      伺服器尚未執行 `migrations/007_consent_sessions_payment.sql` 時，
-      所有端點略過身分驗證（不檢查 `X-Verify-Token`），
-      本組需寫入資料的端點回傳 503 `SECURITY_UNAVAILABLE`。
-
 paths:
   /api/security:
     get:
@@ -87,8 +81,6 @@ paths:
       tags: [security]
       description: |
         回傳交易密碼與目前裝置的生物辨識付款狀態，供設定頁面與付款流程判斷要顯示的選項。
-
-        `available` 為 false 代表伺服器尚未執行資料庫更新 007，此時其餘欄位皆為預設值。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -102,7 +94,6 @@ paths:
                   data:
                     type: object
                     properties:
-                      available: { type: boolean, example: true }
                       has_password:
                         type: boolean
                         description: 帳號是否已設定登入密碼。為 false 時無法通過 `password` 驗證，也無法執行後台高風險操作。
@@ -112,7 +103,7 @@ paths:
                         type: string
                         format: date-time
                         nullable: true
-                        description: 交易密碼最後設定的時間。`available` 為 false 時不含此欄位。
+                        description: 交易密碼最後設定的時間。
                       pin_locked_until:
                         type: string
                         format: date-time
@@ -124,7 +115,7 @@ paths:
                         example: false
                       passkey_available:
                         type: boolean
-                        description: 伺服器是否已啟用通行密鑰（已執行資料庫更新 016 且完成設定）。
+                        description: 伺服器是否已設定通行密鑰。
                         example: true
                       has_passkey:
                         type: boolean
@@ -245,7 +236,6 @@ paths:
               example: { success: false, code: PIN_LOCKED, message: 交易密碼錯誤次數過多，請 15 分鐘後再試, locked_until: '2026-09-14T08:15:00.000Z' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/SecurityUnavailable' }
 
   /api/security/payment-pin:
     put:
@@ -298,7 +288,6 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/VerificationRequired' }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/SecurityUnavailable' }
 
   /api/security/biometric-key:
     post:
@@ -341,7 +330,6 @@ paths:
                 缺少裝置工作階段:
                   value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/SecurityUnavailable' }
 
     delete:
       summary: 關閉這台裝置的生物辨識付款
@@ -350,7 +338,7 @@ paths:
       description: |
         清除目前裝置的付款金鑰，無須身分驗證。App 應同時刪除本機儲存的金鑰。
 
-        目前裝置未啟用、Token 缺少裝置工作階段或伺服器尚未執行資料庫更新時，同樣回傳 200。
+        目前裝置未啟用或 Token 缺少裝置工作階段時，同樣回傳 200。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -369,8 +357,6 @@ paths:
       tags: [security]
       description: |
         回傳未登出且最近 30 天內使用過的裝置。目前裝置排在第一筆，其餘依最近使用時間遞減排序。
-
-        伺服器尚未執行資料庫更新 007 時回傳空陣列。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -439,7 +425,6 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 找不到這台裝置，可能已經登出了 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/SecurityUnavailable' }
 
   /api/security/sessions/revoke-all:
     post:
@@ -493,4 +478,3 @@ paths:
                 缺少裝置工作階段:
                   value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
         '500': { $ref: '#/components/responses/ServerError' }
-        '503': { $ref: '#/components/responses/SecurityUnavailable' }

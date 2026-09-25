@@ -1,18 +1,14 @@
 const prisma = require('../../lib/prisma');
 const { clip } = require('../../lib/text');
-const { hasTables } = require('../../lib/schema-check');
-const { HttpError } = require('../../lib/errors');
 const { CONDITION_LEVELS, CONDITION_LABELS } = require('../../constants/domain');
 const { AiProviderError } = require('../../lib/ai');
 const books = require('../books');
 const ranking = require('../ranking');
-const settingsService = require('./settings');
 const runner = require('./runner');
 const consent = require('./consent');
 const catalog = require('./catalog-search');
 const { sanitizeText, sanitizeLine, stringList } = require('./text');
 
-const CHAT_TABLES = ['ai_chat_sessions', 'ai_chat_messages'];
 const HISTORY_LIMIT = 10;
 const MESSAGE_LIMIT = 30;
 const CANDIDATE_LIMIT = 30;
@@ -69,14 +65,6 @@ const cleanReply = (value, max) => {
   return text && !INTERNAL_TERMS.test(text) ? text : '';
 };
 
-const unavailable = () => new HttpError(503, 'AI 書籍顧問暫時無法使用，請稍後再試', 'AI_UNAVAILABLE');
-
-const migrationReady = async () => (await settingsService.migrationReady()) && (await hasTables(CHAT_TABLES));
-
-const requireReady = async () => {
-  if (!(await migrationReady())) throw unavailable();
-};
-
 const parseBookIds = (raw) => String(raw ?? '')
   .split(',')
   .map((s) => Number(s.trim()))
@@ -114,7 +102,6 @@ const attachBooks = async (messages, userId) => {
 };
 
 const currentSession = async (userId) => {
-  await requireReady();
   const session = await openSession(userId);
   if (!session) return null;
   return {
@@ -124,7 +111,6 @@ const currentSession = async (userId) => {
 };
 
 const close = async (userId) => {
-  await requireReady();
   await prisma.$executeRaw`
     UPDATE ai_chat_sessions SET status = 'closed', updated_at = ${new Date()} WHERE user_id = ${userId} AND status = 'open'`;
 };
@@ -344,7 +330,6 @@ const persist = async (userId, sessionId, content, reply) => prisma.$transaction
 });
 
 const sendMessage = async (userId, content) => {
-  await requireReady();
   const { settings, provider } = await runner.access('book_chat');
   await consent.assertGranted(userId);
   await runner.assertDailyLimit(settings, 'book_chat', userId);
@@ -428,6 +413,6 @@ const sendMessage = async (userId, content) => {
 };
 
 module.exports = {
-  CHAT_TABLES, PLAN_SYSTEM, PICK_SYSTEM, FALLBACK_REPLY, EMPTY_REPLY, NONE_REPLY, OWN_ONLY_REPLY, CLARIFY_REPLY, PICK_LIMIT, migrationReady, currentSession,
+  PLAN_SYSTEM, PICK_SYSTEM, FALLBACK_REPLY, EMPTY_REPLY, NONE_REPLY, OWN_ONLY_REPLY, CLARIFY_REPLY, PICK_LIMIT, currentSession,
   sendMessage, close, sanitizeSearch, parseBookIds, cleanReply, candidates
 };

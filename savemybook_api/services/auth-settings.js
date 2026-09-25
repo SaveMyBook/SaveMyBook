@@ -1,11 +1,9 @@
 const prisma = require('../lib/prisma');
-const { hasTables, hasColumn } = require('../lib/schema-check');
-const { badRequest, forbidden, HttpError } = require('../lib/errors');
+const { badRequest, forbidden } = require('../lib/errors');
 const { env } = require('../config/env');
 const firebase = require('../lib/firebase-token');
 const audit = require('./audit');
 
-const AUTH_TABLES = ['user_identities', 'auth_settings', 'oauth_states', 'oauth_results'];
 const PROVIDER_IDS = ['google', 'apple', 'phone', 'line', 'discord'];
 const FIREBASE_PROVIDERS = ['google', 'apple', 'phone'];
 const OAUTH_PROVIDERS = ['line', 'discord'];
@@ -24,9 +22,6 @@ const DEFAULTS = Object.freeze({
     discord: { enabled: false, signup: false }
   }
 });
-
-const unavailable = () =>
-  new HttpError(503, '社群登入暫時無法使用，請稍後再試', 'AUTH_SOCIAL_UNAVAILABLE');
 
 const disabled = (provider) =>
   forbidden(`目前未開放以 ${PROVIDER_LABELS[provider] ?? provider} 登入`, 'SIGN_IN_METHOD_DISABLED');
@@ -66,9 +61,6 @@ const isConfigured = (provider) => {
   return false;
 };
 
-const migrationReady = async () =>
-  (await hasTables(AUTH_TABLES)) && (await hasColumn('users', 'password_set'));
-
 let cache = null;
 
 const clearCache = () => {
@@ -78,14 +70,12 @@ const clearCache = () => {
 const load = async () => {
   if (cache && Date.now() - cache.at < CACHE_MS) return cache.value;
   let value = normalize(null);
-  if (await migrationReady()) {
-    const rows = await prisma.$queryRaw`SELECT config FROM auth_settings WHERE id = 1`;
-    if (rows[0]?.config) {
-      try {
-        value = normalize(JSON.parse(String(rows[0].config)));
-      } catch {
-        value = normalize(null);
-      }
+  const rows = await prisma.$queryRaw`SELECT config FROM auth_settings WHERE id = 1`;
+  if (rows[0]?.config) {
+    try {
+      value = normalize(JSON.parse(String(rows[0].config)));
+    } catch {
+      value = normalize(null);
     }
   }
   cache = { value, at: Date.now() };
@@ -103,21 +93,19 @@ const channelOf = async (provider) => {
 
 // 登入、綁定都先過這一關；signup 另由呼叫端在確定要建立帳號時檢查。
 const assertEnabled = async (provider) => {
-  if (!(await migrationReady())) throw unavailable();
   const channel = await channelOf(provider);
   if (!channel.enabled) throw disabled(provider);
   return channel;
 };
 
 const publicPayload = async () => {
-  const ready = await migrationReady();
-  const settings = ready ? await load() : normalize(null);
+  const settings = await load();
   return {
-    social_enabled: ready && settings.social_enabled,
+    social_enabled: settings.social_enabled,
     providers: PROVIDER_IDS.map((id) => ({
       id,
-      enabled: Boolean(ready && settings.social_enabled && settings.providers[id].enabled && isConfigured(id)),
-      signup: Boolean(ready && settings.providers[id].signup),
+      enabled: Boolean(settings.social_enabled && settings.providers[id].enabled && isConfigured(id)),
+      signup: Boolean(settings.providers[id].signup),
       configured: isConfigured(id)
     }))
   };
@@ -154,7 +142,6 @@ const changesOf = (before, after) => {
 };
 
 const save = async (input, { adminId, req }) => {
-  if (!(await migrationReady())) throw unavailable();
   const next = normalize(input, { strict: true });
   clearCache();
   const before = await load();
@@ -179,7 +166,7 @@ const save = async (input, { adminId, req }) => {
 };
 
 module.exports = {
-  AUTH_TABLES, PROVIDER_IDS, FIREBASE_PROVIDERS, OAUTH_PROVIDERS, PROVIDER_LABELS, DEFAULTS,
-  normalize, load, save, clearCache, migrationReady, isConfigured, channelOf, assertEnabled,
-  publicPayload, providerList, unavailable, disabled
+  PROVIDER_IDS, FIREBASE_PROVIDERS, OAUTH_PROVIDERS, PROVIDER_LABELS, DEFAULTS,
+  normalize, load, save, clearCache, isConfigured, channelOf, assertEnabled,
+  publicPayload, providerList, disabled
 };

@@ -1,14 +1,12 @@
 const assert = require('assert');
 const {
-  request, prisma, ok, addUser, openRoom, say, messagesIn, SCHEMA, reset
+  request, prisma, ok, addUser, openRoom, say, messagesIn, reset
 } = require('./harness');
 const { registerModels } = require('../lib/fake-prisma');
 
 registerModels({ autoKeys: { chat_risk_alerts: 'alert_id' } });
 
-const RISK_SCHEMA = { tables: [...SCHEMA.v3.tables, 'chat_message_risks', 'chat_risk_alerts'], columns: SCHEMA.v3.columns };
-
-const withRiskTables = () => reset({ schema: RISK_SCHEMA, tables: { chat_message_risks: [], chat_risk_alerts: [], orders: [] } });
+const withRiskTables = () => reset({ tables: { chat_message_risks: [], chat_risk_alerts: [], orders: [] } });
 
 const pair = async () => {
   const me = addUser({ nickname: '賣家' });
@@ -152,15 +150,6 @@ const tests = [
 
     const open = ok(await request('GET', '/api/admin/chat-risk-alerts?status=open', { token: admin.token })).data;
     assert.strictEqual(open.length, 0);
-  }],
-
-  ['未執行 023 時警示列表為空，傳訊照常運作', async () => {
-    const admin = addUser({ nickname: '管理員' });
-    admin.role = 'admin';
-    const { me, roomId } = await pair();
-    for (const text of ['請把簡訊驗證碼傳給我', '驗證碼給我就好', '把信用卡背面末三碼拍給我']) await say(me, roomId, text);
-    const list = ok(await request('GET', '/api/admin/chat-risk-alerts', { token: admin.token })).data;
-    assert.deepStrictEqual(list, []);
   }],
 
   ['編輯後才加入聯絡方式同樣需要確認', async () => {

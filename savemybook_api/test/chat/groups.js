@@ -1,6 +1,6 @@
 const assert = require('assert');
 const {
-  request, prisma, reset, SCHEMA, ok, addUser, addBook, openRoom, createGroup, say, messagesIn
+  request, prisma, ok, addUser, addBook, openRoom, createGroup, say, messagesIn
 } = require('./harness');
 
 const IMAGE = '/uploads/chat/group-avatar.png';
@@ -357,24 +357,6 @@ const tests = [
     assert.strictEqual(reply.body.message, '找不到要回覆的訊息');
   }],
 
-  ['尚未執行 010 時改以加入時間判斷可見範圍', async () => {
-    reset({ schema: SCHEMA.v2 });
-    const owner = addUser({ nickname: '團主' });
-    const first = addUser();
-    const late = addUser({ nickname: '晚到的' });
-    const roomId = await createGroup(owner, [first.user_id]);
-    const early = await say(owner, roomId, '加入前的悄悄話');
-    // DATETIME 不含毫秒，服務保留 1 秒誤差，因此舊訊息要明顯早於邀請時間才會被擋下。
-    prisma.rows('chat_messages').forEach((m) => { m.created_at = new Date(Date.now() - 10 * 60 * 1000); });
-
-    ok(await request('POST', `/api/chat/groups/${roomId}/members`, { token: owner.token, body: { user_ids: [late.user_id] } }));
-    assert.strictEqual(memberRow(roomId, late.user_id).history_from_id, undefined);
-
-    const mine = ok(await request('GET', `/api/chat/rooms/${roomId}/messages`, { token: late.token }));
-    assert.deepStrictEqual(mine.data.map((m) => m.content), ['團主 邀請 晚到的 加入群組']);
-    assert.ok(!mine.data.some((m) => m.message_id === early.message_id));
-  }],
-
   ['新成員的未讀數只算加入之後的訊息', async () => {
     const owner = addUser({ nickname: '團主' });
     const roomId = await createGroup(owner, [addUser().user_id]);
@@ -472,19 +454,6 @@ const tests = [
     assert.strictEqual(memberRow(roomId, a.user_id).group_nickname, null);
     const gone = await request('PUT', path(a.user_id), { token: owner.token, body: { nickname: '回來' } });
     assert.strictEqual(gone.status, 404);
-  }],
-
-  ['尚未執行 018 時設定群組暱稱回 503，其餘群組功能照常', async () => {
-    reset({ schema: SCHEMA.v2 });
-    const owner = addUser();
-    const a = addUser();
-    const roomId = await createGroup(owner, [a.user_id]);
-    const res = await request('PUT', `/api/chat/groups/${roomId}/members/${a.user_id}/nickname`, {
-      token: a.token, body: { nickname: '甲' }
-    });
-    assert.strictEqual(res.status, 503);
-    const detail = ok(await request('GET', `/api/chat/rooms/${roomId}`, { token: owner.token })).data;
-    assert.strictEqual(detail.members.find((m) => m.user_id === a.user_id).alias, null);
   }]
 ];
 

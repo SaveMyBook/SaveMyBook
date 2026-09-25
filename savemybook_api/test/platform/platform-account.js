@@ -71,13 +71,6 @@ module.exports = {
       assert.strictEqual(res.body.code, 'VERIFICATION_REQUIRED');
     }],
 
-    ['資料匯出：尚未執行 014 時登入方式標示為未保存', async () => {
-      h.reset({ schema: h.without(h.FULL_SCHEMA, ['user_identities']) });
-      const ctx = signedIn();
-      const data = await account.exportData(ctx.user.user_id);
-      assert.strictEqual(data.sign_in_methods, null);
-    }],
-
     ['刪除帳號：尚未申請時的狀態', async () => {
       const ctx = signedIn();
       const res = await request('GET', '/api/users/me/deletion', { token: ctx.token });

@@ -1,12 +1,10 @@
 const { HttpError } = require('../../lib/errors');
-const { hasTables } = require('../../lib/schema-check');
 const ai = require('../../lib/ai');
 const settingsService = require('./settings');
 const usage = require('./usage');
 const consent = require('./consent');
 
 const STATUS_CACHE_MS = 30 * 1000;
-const CHAT_TABLES = ['ai_chat_sessions', 'ai_chat_messages'];
 
 const clipMessage = (err) => ai.redact(err?.message ?? '') || null;
 
@@ -14,8 +12,7 @@ const errors = {
   disabled: () => new HttpError(503, 'AI 功能目前未開放', 'AI_DISABLED'),
   budget: () => new HttpError(503, 'AI 功能本月用量已達上限，請稍後再試', 'AI_BUDGET_EXCEEDED'),
   daily: () => new HttpError(429, '今日 AI 使用次數已達上限，請明日再試', 'AI_DAILY_LIMIT'),
-  notConfigured: () => new HttpError(503, 'AI 服務尚未完成設定', 'AI_NOT_CONFIGURED'),
-  unavailable: settingsService.unavailable
+  notConfigured: () => new HttpError(503, 'AI 服務尚未完成設定', 'AI_NOT_CONFIGURED')
 };
 
 const providerFor = (settings, feature) => settings.features[feature]?.provider ?? settings.default_provider;
@@ -34,7 +31,6 @@ const blocker = async (settings, feature) => {
 };
 
 const access = async (feature, { needsVision = false } = {}) => {
-  if (!(await settingsService.migrationReady())) throw errors.unavailable();
   const settings = await settingsService.load();
   const problem = await blocker(settings, feature);
   if (problem) throw errors[problem]();
@@ -92,21 +88,17 @@ const featureStatus = async () => {
   if (statusCache && Date.now() - statusCache.at < STATUS_CACHE_MS) return statusCache.value;
   const value = { support: false, listing_assist: false, recommend: false, book_chat: false, web_search: false };
   const used = new Set();
-  if (await settingsService.migrationReady()) {
-    const settings = await settingsService.load();
-    // 書籍顧問另有自己的資料表（013），沒建好時不要把入口報成可用，否則使用者點進去只會看到 503。
-    const chatTablesReady = await hasTables(CHAT_TABLES);
-    for (const feature of USER_FEATURES) {
-      value[feature] = (await blocker(settings, feature)) === null && (feature !== 'book_chat' || chatTablesReady);
-      if (!value[feature]) continue;
-      const base = providerFor(settings, feature);
-      used.add(base);
-      if (feature === 'listing_assist') used.add(visionProvider(base));
-    }
-    value.web_search = value.listing_assist
-      && settings.features.listing_assist.web_search
-      && ai.PROVIDERS[providerFor(settings, 'listing_assist')].web_search;
+  const settings = await settingsService.load();
+  for (const feature of USER_FEATURES) {
+    value[feature] = (await blocker(settings, feature)) === null;
+    if (!value[feature]) continue;
+    const base = providerFor(settings, feature);
+    used.add(base);
+    if (feature === 'listing_assist') used.add(visionProvider(base));
   }
+  value.web_search = value.listing_assist
+    && settings.features.listing_assist.web_search
+    && ai.PROVIDERS[providerFor(settings, 'listing_assist')].web_search;
   const providers = ai.PROVIDER_IDS.filter((id) => used.has(id)).map((id) => ai.PROVIDERS[id].name);
   statusCache = { value: { ...value, providers_in_use: providers }, at: Date.now() };
   return statusCache.value;

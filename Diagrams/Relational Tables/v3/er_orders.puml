@@ -1,124 +1,121 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 13
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
 skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
 hide circle
 hide empty methods
-skinparam ranksep 60
-skinparam nodesep 40
-skinparam class {
-  BackgroundColor White
-  BorderColor #444444
-  ArrowColor #555555
+left to right direction
+
+entity "orders" as orders {
+  {field} <&key> order_id : int
+  --
+  {field} order_no : varchar(30)
+  {field} buyer_id : int
+  {field} seller_id : int
+  {field} total_amount : decimal(10,2)
+  {field} cabinet_id : int
+  {field} slot_id : int
+  {field} pickup_code : varchar(20)
+  {field} pickup_qr_code : varchar(500)
+  {field} status : enum
+  {field} payment_method : enum
+  {field} payment_at : datetime
+  {field} deposited_at : datetime
+  {field} picked_up_at : datetime
+  {field} completed_at : datetime
+  {field} cancelled_at : datetime
+  {field} cancel_reason : text
+  {field} note : text
+  {field} created_at : datetime
+  {field} updated_at : datetime
 }
-
-title 交易訂單與智慧書櫃模組 ER 圖
-
-entity "orders\n訂單主表" as orders {
-  * order_id : INT
-  - order_no : VARCHAR(30)
-  + buyer_id : INT
-  + seller_id : INT
-  - total_amount : DECIMAL(10, 2)
-  + cabinet_id : INT
-  + slot_id : INT
-  - pickup_code : VARCHAR(20)
-  - pickup_qr_code : VARCHAR(500)
-  - status : ENUM
-  - payment_method : ENUM
-  - payment_at : DATETIME
-  - deposited_at : DATETIME
-  - picked_up_at : DATETIME
-  - completed_at : DATETIME
-  - cancelled_at : DATETIME
-  - cancel_reason : TEXT
-  - note : TEXT
-  - created_at : DATETIME
-  - updated_at : DATETIME
+entity "order_items" as order_items {
+  {field} <&key> item_id : int
+  --
+  {field} order_id : int
+  {field} book_id : int
+  {field} quantity : int
+  {field} unit_price : decimal(10,2)
+  {field} subtotal : decimal(10,2)
 }
-
-entity "order_items\n訂單明細表" as order_items {
-  * item_id : INT
-  + order_id : INT
-  + book_id : INT
-  - quantity : INT
-  - unit_price : DECIMAL(10, 2)
-  - subtotal : DECIMAL(10, 2)
+entity "smart_cabinets" as smart_cabinets {
+  {field} <&key> cabinet_id : int
+  --
+  {field} cabinet_name : varchar(100)
+  {field} address : varchar(500)
+  {field} latitude : decimal(10,7)
+  {field} longitude : decimal(10,7)
+  {field} total_slots : int
+  {field} available_slots : int
+  {field} is_active : tinyint(1)
+  {field} open_time : time
+  {field} close_time : time
+  {field} is_maintenance : tinyint(1)
+  {field} created_at : datetime
+  {field} updated_at : datetime
 }
-
-entity "smart_cabinets\n智慧書櫃據點表" as smart_cabinets {
-  * cabinet_id : INT
-  - cabinet_name : VARCHAR(100)
-  - address : VARCHAR(500)
-  - latitude : DECIMAL(10, 7)
-  - longitude : DECIMAL(10, 7)
-  - total_slots : INT
-  - available_slots : INT
-  - is_active : TINYINT(1)
-  - open_time : TIME
-  - close_time : TIME
-  - created_at : DATETIME
-  - updated_at : DATETIME
+entity "cabinet_slots" as cabinet_slots {
+  {field} <&key> slot_id : int
+  --
+  {field} cabinet_id : int
+  {field} slot_number : varchar(10)
+  {field} status : enum
+  {field} current_book_id : int
+  {field} current_order_id : int
+  {field} updated_at : datetime
 }
-
-entity "cabinet_slots\n書櫃格位表" as cabinet_slots {
-  * slot_id : INT
-  + cabinet_id : INT
-  - slot_number : VARCHAR(10)
-  - status : ENUM
-  - current_book_id : INT
-  - current_order_id : INT
-  - updated_at : DATETIME
+entity "reservations" as reservations {
+  {field} <&key> reservation_id : int
+  --
+  {field} book_id : int
+  {field} buyer_id : int
+  {field} seller_id : int
+  {field} cabinet_id : int
+  {field} status : enum
+  {field} pickup_deadline : datetime
+  {field} qr_code : varchar(500)
+  {field} note : text
+  {field} created_at : datetime
+  {field} updated_at : datetime
 }
-
-entity "reservations\n預約管理表" as reservations {
-  * reservation_id : INT
-  + book_id : INT
-  + buyer_id : INT
-  + seller_id : INT
-  + cabinet_id : INT
-  - status : ENUM
-  - pickup_deadline : DATETIME
-  - qr_code : VARCHAR(500)
-  - note : TEXT
-  - created_at : DATETIME
-  - updated_at : DATETIME
+entity "transaction_disputes" as transaction_disputes {
+  {field} <&key> dispute_id : int
+  --
+  {field} order_id : int
+  {field} applicant_id : int
+  {field} reason : text
+  {field} evidence_urls : text
+  {field} status : enum
+  {field} admin_id : int
+  {field} admin_note : text
+  {field} result : enum
+  {field} created_at : datetime
+  {field} resolved_at : datetime
 }
-
-entity "transaction_disputes\n交易仲裁/申訴表" as transaction_disputes {
-  * dispute_id : INT
-  + order_id : INT
-  + applicant_id : INT
-  - reason : TEXT
-  - evidence_urls : TEXT
-  - status : ENUM
-  + admin_id : INT
-  - admin_note : TEXT
-  - result : ENUM
-  - created_at : DATETIME
-  - resolved_at : DATETIME
+entity "refund_records" as refund_records {
+  {field} <&key> refund_id : int
+  --
+  {field} order_id : int
+  {field} dispute_id : int
+  {field} refund_type : enum
+  {field} amount : decimal(10,2)
+  {field} status : enum
+  {field} admin_id : int
+  {field} reason : text
+  {field} created_at : datetime
+  {field} processed_at : datetime
 }
-
-entity "refund_records\n退款紀錄表" as refund_records {
-  * refund_id : INT
-  + order_id : INT
-  + dispute_id : INT
-  - refund_type : ENUM
-  - amount : DECIMAL(10, 2)
-  - status : ENUM
-  + admin_id : INT
-  - reason : TEXT
-  - created_at : DATETIME
-  - processed_at : DATETIME
-}
-
-smart_cabinets ||--o{ orders : "cabinet_id"
-cabinet_slots ||--o{ orders : "slot_id"
-orders ||--o{ order_items : "order_id"
-smart_cabinets ||--o{ cabinet_slots : "cabinet_id"
-smart_cabinets ||--o{ reservations : "cabinet_id"
-orders ||--o{ transaction_disputes : "order_id"
-orders ||--o{ refund_records : "order_id"
-transaction_disputes ||--o{ refund_records : "dispute_id"
+smart_cabinets ||--o{ orders
+cabinet_slots ||--o{ orders
+orders ||--o{ order_items
+smart_cabinets ||--o{ cabinet_slots
+smart_cabinets ||--o{ reservations
+orders ||--o{ transaction_disputes
+transaction_disputes ||--o{ refund_records
+orders ||--o{ refund_records
 @enduml

@@ -138,7 +138,6 @@ paths:
         | 明確違規（管理員設定為直接拒絕且信心 ≥ 0.85） | 書籍下架、審核紀錄為 `rejected`，通知賣家原因 |
 
         已由即時規則送審的書籍不再執行 AI 審核。AI 服務失敗、逾時或本月預算用盡時維持上架。
-        伺服器尚未執行 `migrations/011_ai.sql` 時兩種審核都不執行。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true

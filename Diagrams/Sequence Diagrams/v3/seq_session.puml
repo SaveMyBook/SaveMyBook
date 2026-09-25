@@ -1,50 +1,57 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：登入裝置管理與工作階段撤銷
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 使用者 as User
-participant "LoginDevicesScreen" as UI
-participant "ApiService(SecurityApi)" as ApiSvc
-participant "GET /api/security/sessions" as ListRoute
-participant "DELETE /api/security/sessions/:id" as RevokeRoute
-participant "POST /api/security/sessions/revoke-all" as RevokeAllRoute
-participant "services/sessions.js" as SessSvc
-database "user_sessions" as DB
+actor 使用者
+participant UI
+participant API
+database DB
 
-User -> UI : 開啟「登入裝置管理」
-UI -> ApiSvc : fetchLoginSessions()
-ApiSvc -> ListRoute : GET /api/security/sessions
-ListRoute -> SessSvc : listActive(userId)
-SessSvc -> DB : 查詢未撤銷、30天內有活動之工作階段
-SessSvc --> UI : 裝置清單(含is_current、biometric_pay)
+== 檢視登入裝置 ==
+使用者 -> UI : 開啟「登入裝置管理」
+activate 使用者
+activate UI
+UI -> API : GET /api/security/sessions
+activate API
+API -> DB : 查詢 30 天內有活動且未登出之裝置
+API --> UI : 200 OK（裝置清單）
+UI --> 使用者 : 列出裝置，標示本機
+deactivate API
 
+== 登出裝置 ==
 alt 登出單一裝置
-  User -> UI : 選擇裝置並確認登出
-  UI -> UI : requireSensitive()
-  UI -> ApiSvc : revokeLoginSession(sessionId)
-  ApiSvc -> RevokeRoute : DELETE /api/security/sessions/:id\n(X-Verify-Token: sensitive)
-  RevokeRoute -> SessSvc : revoke(sessionId)
-  SessSvc -> DB : user_sessions.revoked_at = now
-  SessSvc -> DB : 清除該工作階段之pay_key_hash\n並刪除其推播裝置
-  SessSvc --> UI : 200（若為目前裝置回傳signed_out_current）
-
-else 登出所有裝置（含/不含本機）
-  User -> UI : 選擇「登出所有裝置」
-  UI -> UI : requireSensitive()
-  UI -> ApiSvc : revokeAllLoginSessions(includeCurrent)
-  ApiSvc -> RevokeAllRoute : POST .../revoke-all { include_current }
-  RevokeAllRoute -> SessSvc : revokeAll(userId, includeCurrent)
-  SessSvc -> DB : 批次撤銷所有(或除本機外)工作階段
-  SessSvc -> DB : 更新 user_security.tokens_valid_after\n（使所有舊JWT即刻失效）
-  SessSvc --> UI : 200
+  使用者 -> UI : 選擇裝置並確認登出
+  UI -> API : DELETE /api/security/sessions/:id\n（附身分驗證權杖）
+  activate API
+  API -> DB : 撤銷該裝置工作階段\n清除生物辨識付款金鑰與推播裝置
+else 登出所有裝置
+  使用者 -> UI : 選擇「登出所有裝置」\n（可選是否包含本機）
+  UI -> API : POST /api/security/sessions/revoke-all\n（附身分驗證權杖）
+  API -> DB : 批次撤銷工作階段\n並使先前簽發的權杖全數失效
 end
+API --> UI : 200 OK
+alt 登出對象包含本機
+  UI --> 使用者 : 清除登入狀態並返回登入頁
+else 僅其他裝置
+  UI --> 使用者 : 更新裝置清單
+end
+deactivate API
+deactivate UI
+deactivate 使用者
 
-note right of SessSvc
-  同一device_id再次登入時，
-  會自動撤銷該裝置先前的工作階段；
-  閒置超過90天的工作階段
-  由每日排程自動清除。
-end note
+== 被登出裝置再次連線 ==
+UI -> API : 任一請求（原登入權杖）
+activate UI
+activate API
+API -> DB : 查核工作階段狀態
+API --> UI : 401 此裝置已登出
+UI --> 使用者 : 清除登入狀態並返回登入頁
+deactivate API
+deactivate UI
 @enduml

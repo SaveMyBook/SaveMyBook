@@ -1,39 +1,42 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：個人化推薦（AI 與非AI後備）
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 買家 as Buyer
-participant "HomeScreen（為你精選）" as UI
-participant "ApiService(AiApi)" as ApiSvc
-participant "GET /api/ai/recommendations" as Route
-participant "services/ai/recommend.js" as RecSvc
-participant "services/ranking.js" as RankSvc
-participant "AI 供應商" as LLM
-database "ai_recommendation_cache" as Cache
-database "favorites / orders / books" as DB
+actor 買家
+participant UI
+participant API
+database DB
+participant "AI 服務" as AI
 
-Buyer -> UI : 開啟首頁「為你精選」
-UI -> ApiSvc : fetchAiRecommendations(limit=12)
-ApiSvc -> Route : GET /api/ai/recommendations?limit=12
-Route -> RecSvc : recommend(userId, limit)
-RecSvc -> Cache : 查詢快取（6小時內有效）
-alt 快取命中
-  Cache --> RecSvc : 直接回傳快取結果
-else 快取未命中
-  RecSvc -> RecSvc : consent.assertGranted(userId)
-  alt 未同意AI功能 或 AI未啟用/預算超支/發生錯誤
-    RecSvc -> RankSvc : 退回非AI熱門/個人化排序
-    RankSvc -> DB : 依互動×品質×新鮮度×需求×個人化計分
-    RankSvc --> RecSvc : 候選清單（meta.source='fallback'）
-  else AI可用
-    RecSvc -> DB : 取最近10筆收藏、10筆購買、\n最多60本候選（以臨時編號b1…傳遞，\n不外洩資料庫真實編號）
-    RecSvc -> LLM : 呼叫模型排序並生成推薦理由\n(maxOutputTokens 1500)
-    LLM --> RecSvc : 最多30筆 {book_ref, reason}
+買家 -> UI : 開啟首頁
+activate 買家
+activate UI
+UI -> API : GET /api/ai/recommendations\n（附最近瀏覽的書）
+activate API
+opt AI 可用且已同意 AI 資料處理
+  API -> DB : 讀取購買、收藏、購物車紀錄\n與推薦快取
+  opt 快取已超過 6 小時或紀錄有變動
+    API -> DB : 取個人化排序、內容相似的書\n與熱門書，合併為候選
+    API -> AI : 使用者紀錄、常看分類與候選書
+    activate AI
+    AI --> API : 挑選書籍，標出依據的\n紀錄或分類與推薦理由
+    deactivate AI
+    API -> DB : 寫入推薦快取
   end
-  RecSvc -> Cache : 寫入快取（6小時）
 end
-RecSvc --> UI : 推薦書籍清單（含理由）
-UI -> Buyer : 顯示「為你精選」書籍卡片
+opt AI 不可用或產生失敗
+  API -> DB : 改用一般推薦排序
+end
+API -> API : 依推薦依據分組\n（同一依據至少 2 本，最多 3 組）
+API --> UI : 推薦書籍與分組
+deactivate API
+UI --> 買家 : 分排顯示「因為您收藏了《…》」\n「您常看的「考試用書」」「更多推薦」
+deactivate UI
+deactivate 買家
 @enduml

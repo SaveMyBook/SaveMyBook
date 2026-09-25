@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 const prisma = require('../../lib/prisma');
-const { hasTables } = require('../../lib/schema-check');
 const ai = require('../../lib/ai');
 const embeddings = require('../../lib/ai/embeddings');
 const settingsService = require('./settings');
@@ -10,7 +9,6 @@ const usage = require('./usage');
 // 補足關鍵字比對找不到換句話說、上下位概念（例如「AI 書」對上書名只寫 Gemini 的書）的問題。
 // 目前資料量（數千筆）直接在記憶體比對即可，不需要向量資料庫。
 
-const TABLE = 'ai_embeddings';
 const STORE_TTL_MS = 30 * 60 * 1000;
 const SYNC_LIMIT = 1000;
 const INLINE_SYNC_MAX = 30;
@@ -25,10 +23,10 @@ const profile = () => {
   return id ? embeddings.PROFILES[id] : null;
 };
 
-// AI 總開關關閉、未設定 OpenAI／Gemini 金鑰或尚未執行 020 時回傳 null，呼叫端改用純關鍵字檢索。
+// AI 總開關關閉或未設定 OpenAI／Gemini 金鑰時回傳 null，呼叫端改用純關鍵字檢索。
 const context = async () => {
   const p = profile();
-  if (!p || !(await settingsService.migrationReady()) || !(await hasTables([TABLE]))) return null;
+  if (!p) return null;
   const settings = await settingsService.load();
   if (!settings.enabled) return null;
   return { profile: p, settings };
@@ -205,8 +203,7 @@ const fuse = (lists) => {
 
 const status = async () => {
   const p = profile();
-  const ready = Boolean(p) && (await settingsService.migrationReady()) && (await hasTables([TABLE]));
-  if (!ready) return { ready: false, provider: p?.provider ?? null, model: p?.model ?? null, counts: {} };
+  if (!p) return { ready: false, provider: null, model: null, counts: {} };
   const rows = await prisma.$queryRaw`
     SELECT kind, COUNT(*) AS n FROM ai_embeddings WHERE model = ${p.id} GROUP BY kind`;
   return {
@@ -224,4 +221,4 @@ const reset = () => {
   failedUntil = 0;
 };
 
-module.exports = { TABLE, hashOf, profile, context, sync, rank, neighbors, relevant, fuse, status, reset };
+module.exports = { hashOf, profile, context, sync, rank, neighbors, relevant, fuse, status, reset };

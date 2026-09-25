@@ -1,70 +1,63 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：通行密鑰（Passkey/WebAuthn）註冊與登入
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 使用者 as User
-participant "PasskeysCard /\nPasskeySignInButton" as UI
-participant "ApiService(PasskeysApi)" as ApiSvc
-participant "POST /api/users/me/passkeys/options" as OptRoute
-participant "POST /api/users/me/passkeys" as RegRoute
-participant "POST /api/auth/passkeys/login" as LoginRoute
-participant "services/passkeys.js" as PasskeySvc
-participant "@simplewebauthn/server" as WebAuthn
-database "user_passkeys /\nwebauthn_challenges" as DB
+actor 使用者
+participant UI
+participant API
+database DB
 
-== 註冊（需登入 + sensitive 驗證）==
-User -> UI : 點擊「新增通行密鑰」
-UI -> UI : VerificationService.requireSensitive()
-UI -> ApiSvc : passkeyRegistrationOptions()
-ApiSvc -> OptRoute : POST .../passkeys/options
-OptRoute -> PasskeySvc : registrationOptions(userId)
-PasskeySvc -> PasskeySvc : 檢查已註冊數 < 10（否則400 PASSKEY_LIMIT）
-PasskeySvc -> WebAuthn : generateRegistrationOptions()\n(residentKey=required, userVerification=required)
-PasskeySvc -> DB : webauthn_challenges.insert(purpose='register')
-PasskeySvc --> UI : 註冊選項(challenge, excludeCredentials)
-UI -> UI : 系統喚起裝置建立金鑰(Face ID/指紋/螢幕鎖)
-UI -> ApiSvc : registerPasskey(attestation, device_label)
-ApiSvc -> RegRoute : POST /api/users/me/passkeys
-RegRoute -> PasskeySvc : register(userId, attestation)
-PasskeySvc -> DB : 消耗挑戰值(先刪除再檢查purpose/user/HMAC)
-PasskeySvc -> WebAuthn : verifyRegistrationResponse()
-alt 驗證失敗或憑證已存在
-  PasskeySvc --> UI : 400/409 錯誤
-else 成功
-  PasskeySvc -> DB : user_passkeys.insert(credential_id, public_key,\nsign_count, aaguid, transports)
-  PasskeySvc -> DB : notify「已新增通行密鑰」
-  PasskeySvc --> UI : 201 最新清單
+== 新增通行密鑰 ==
+使用者 -> UI : 點擊「新增通行密鑰」\n並完成身分驗證
+activate 使用者
+activate UI
+UI -> API : POST /api/users/me/passkeys/options
+activate API
+API -> DB : 檢查已註冊數量（上限 10 組）\n並儲存挑戰值
+API --> UI : 回傳註冊選項
+使用者 -> UI : 以 Face ID／指紋建立金鑰
+UI -> API : POST /api/users/me/passkeys\n（附驗證權杖）
+API -> DB : 核銷挑戰值並驗證金鑰
+alt 驗證通過
+  API -> DB : 儲存公鑰並通知「已新增通行密鑰」
+  API --> UI : 201 Created
+  UI --> 使用者 : 顯示更新後的金鑰清單
+else 驗證失敗或金鑰已註冊
+  API --> UI : 400／409 錯誤
+  UI --> 使用者 : 顯示錯誤訊息
 end
+deactivate API
+deactivate UI
+deactivate 使用者
 
-== 登入（探索式，公開端點）==
-User -> UI : 點擊「使用通行密鑰登入」
-UI -> ApiSvc : passkeyLoginOptions()（不帶email）
-ApiSvc -> LoginRoute : POST /api/auth/passkeys/login/options
-LoginRoute -> PasskeySvc : loginOptions()
-PasskeySvc -> DB : webauthn_challenges.insert(purpose='login')
-PasskeySvc --> UI : 挑戰值(由系統列出本機可用金鑰)
-UI -> UI : 系統喚起生物辨識/螢幕鎖
-UI -> ApiSvc : passkeyLogin(assertion)
-ApiSvc -> LoginRoute : POST /api/auth/passkeys/login
-LoginRoute -> PasskeySvc : login(assertion)
-PasskeySvc -> DB : 消耗挑戰值 → 依credential_id查詢
-PasskeySvc -> WebAuthn : verifyAuthenticationResponse()
-alt 簽章計數倒退（sign_count未增加）
-  PasskeySvc -> DB : 記錄安全事件 + 發送「通行密鑰驗證異常」通知
-  PasskeySvc --> UI : 400 PASSKEY_COUNTER_REGRESSED
-else 驗證成功
-  PasskeySvc -> DB : 更新sign_count/backed_up/last_used_at
-  PasskeySvc -> PasskeySvc : issueLogin(user, device, 'passkey')
-  PasskeySvc --> UI : 200 { token, user }
+== 使用通行密鑰登入 ==
+使用者 -> UI : 點擊「使用通行密鑰登入」
+activate 使用者
+activate UI
+UI -> API : POST /api/auth/passkeys/login/options
+activate API
+API -> DB : 儲存登入挑戰值
+API --> UI : 回傳挑戰值
+使用者 -> UI : 選擇金鑰並以生物辨識解鎖
+UI -> API : POST /api/auth/passkeys/login
+API -> DB : 核銷挑戰值並查詢對應金鑰
+API -> API : 驗證簽章與使用計數
+alt 驗證通過
+  API -> DB : 更新使用紀錄並建立工作階段
+  API --> UI : 200 OK（登入權杖）
+  UI --> 使用者 : 進入首頁
+else 簽章無效或使用計數倒退
+  API -> DB : 計數倒退時通知「通行密鑰驗證異常」
+  API --> UI : 400 拒絕登入
+  UI --> 使用者 : 顯示錯誤，請改用其他登入方式
 end
-
-note right of DB
-  帳號列舉防護：登入選項帶email時，
-  查無帳號一律回傳以該email HMAC
-  推導的固定假憑證，回應結構與
-  真實帳號一致，避免被用來探測
-  帳號是否存在。
-end note
+deactivate API
+deactivate UI
+deactivate 使用者
 @enduml

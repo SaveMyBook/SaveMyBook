@@ -8,14 +8,10 @@ const authSettings = require('../../services/auth-settings');
 const router = express.Router();
 const canRunSystem = requireAdmin('system');
 
-const settingsPayload = async () => {
-  const ready = await authSettings.migrationReady();
-  return {
-    settings: ready ? await authSettings.load() : authSettings.normalize(null),
-    providers: authSettings.providerList(),
-    migration_ready: ready
-  };
-};
+const settingsPayload = async () => ({
+  settings: await authSettings.load(),
+  providers: authSettings.providerList()
+});
 
 router.get('/auth/settings', canRunSystem, async (req, res) => {
   res.status(200).json({ success: true, data: await settingsPayload() });

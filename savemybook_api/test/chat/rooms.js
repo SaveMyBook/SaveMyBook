@@ -8,6 +8,20 @@ const setUpdatedAt = (roomId, iso) => {
 };
 
 const tests = [
+  ['未登入時所有聊天端點都回 401', async () => {
+    for (const [method, url] of [
+      ['GET', '/api/chat/rooms'],
+      ['GET', '/api/chat/unread-count'],
+      ['POST', '/api/chat/rooms'],
+      ['GET', '/api/chat/blocks'],
+      ['POST', '/api/chat/groups']
+    ]) {
+      const res = await request(method, url);
+      assert.strictEqual(res.status, 401, `${url} 應回 401，實際 ${res.status}`);
+      assert.strictEqual(res.body.message, '請先登入');
+    }
+  }],
+
   ['建立一對一聊天室後再次呼叫會回到同一間', async () => {
     const me = addUser();
     const partner = addUser();

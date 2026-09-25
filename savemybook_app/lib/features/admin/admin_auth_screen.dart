@@ -139,10 +139,6 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
                                   child: ListView(
                                     padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 32), maxWidth: 900),
                                     children: [
-                                      if (!bundle.migrationReady) ...[
-                                        _notice(c, S.serverNotRunDatabaseUpdate014),
-                                        const SizedBox(height: 12),
-                                      ],
                                       FadeSlideIn(child: _masterCard(c, draft)),
                                       const SizedBox(height: 22),
                                       SectionHeading(title: S.signChannels),
@@ -159,21 +155,6 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _notice(AppColors c, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: c.warning.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.warning_amber_rounded, size: 18, color: c.warning),
-          const SizedBox(width: 8),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 12.5, height: 1.45, color: c.textPrimary))),
-        ],
       ),
     );
   }

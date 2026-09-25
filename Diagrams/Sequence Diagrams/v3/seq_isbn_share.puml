@@ -1,53 +1,66 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：ISBN 條碼查詢與書籍/個人分享連結
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 賣家 as Seller
-actor 訪客 as Guest
-participant "BarcodeScannerScreen /\nSellBookScreen" as UI
-participant "ApiService(BooksApi)" as ApiSvc
-participant "GET /api/books/isbn/:isbn" as IsbnRoute
-participant "services/isbn-lookup.js" as IsbnSvc
-participant "Google Books API" as Google
-participant "Open Library API" as OpenLib
-participant "GET /api/books/:id/share-link" as ShareRoute
-participant "GET /b/:token（公開網頁）" as PublicPage
-database "books.share_token" as DB
+actor 使用者
+actor 訪客
+participant UI
+participant API
+database DB
 
-== ISBN 查詢 ==
-Seller -> UI : 掃描條碼（EAN-13/EAN-8，978/979開頭）
-UI -> ApiSvc : fetchBookByIsbn(isbn)
-ApiSvc -> IsbnRoute : GET /api/books/isbn/:isbn（需登入，每分鐘30次）
-IsbnRoute -> IsbnSvc : lookup(isbn)
-par 並行查詢
-  IsbnSvc -> Google : volumes?q=isbn:（逾時8秒）
-  IsbnSvc -> OpenLib : /api/books?bibkeys=（逾時8秒）+ /isbn/{isbn}.json補齊簡介
-end
-IsbnSvc -> IsbnSvc : 合併規則：各欄位取Google→OpenLibrary\n→版本詳細資料第一個有值者；\n出版日期取精度最高者
-alt 兩來源皆失敗
-  IsbnSvc --> UI : 502
+使用者 -> UI : 掃描書籍 ISBN 條碼
+activate UI
+UI -> API : GET /api/books/isbn/:isbn
+activate API
+API -> API : 同時查詢 Google Books\n與 Open Library 並合併
+alt 查得書目
+  API --> UI : 200 書名、作者、出版社等
+  UI --> 使用者 : 帶入上架表單
 else 查無資料
-  IsbnSvc --> UI : 404
-else 成功
-  IsbnSvc --> UI : 書名/作者/出版社/出版日期/簡介/頁數/語言
+  API --> UI : 404 查無此 ISBN
+  UI --> 使用者 : 提示手動輸入
+else 外部服務暫時無法連線
+  API --> UI : 502 請稍後再試
+  UI --> 使用者 : 提示稍後再試
 end
+deactivate API
+deactivate UI
 
-== 書籍分享 ==
-Seller -> UI : 點擊「分享」
-UI -> ApiSvc : fetchBookShareLink(bookId)
-ApiSvc -> ShareRoute : GET /api/books/:id/share-link
-alt 已下架或未核准
-  ShareRoute --> UI : 409
-else 成功（首次產生後固定不變）
-  ShareRoute -> DB : share_token為空時才寫入\n(crypto.randomBytes(16))
-  ShareRoute --> UI : { url: <base>/b/<token>, title }
+使用者 -> UI : 點擊書籍或個人檔案「分享」
+activate UI
+alt 分享書籍
+  UI -> API : GET /api/books/:id/share-link
+  activate API
+  API -> DB : 確認書籍公開中，\n首次分享時產生隨機權杖
+else 分享個人檔案
+  UI -> API : GET /api/users/me/qrcode
+  API -> DB : 取得或產生個人隨機權杖
 end
-Seller -> Seller : 分享連結給朋友（savemybook://b/<token>\n或 https://<host>/b/<token>）
+API --> UI : 回傳 /b/:token 或 /u/:token 連結
+deactivate API
+UI --> 使用者 : 以系統分享或 QR Code 傳送
+deactivate UI
 
-Guest -> PublicPage : 開啟分享連結（瀏覽器）
-PublicPage -> PublicPage : 依權杖查詢書籍；\n書籍已下架/未核准/賣家停權則404
-PublicPage --> Guest : 顯示書籍公開網頁 + 「在App中開啟」按鈕
-Guest -> Guest : 點擊後嘗試喚起savemybook://b/<token>，\n1.5秒未開啟則顯示提示（引導安裝）
+訪客 -> API : 開啟分享連結（瀏覽器）
+activate 訪客
+activate API
+API -> DB : 依權杖查詢書籍或個人檔案
+alt 可公開
+  API --> 訪客 : 顯示公開網頁與「在 App 中開啟」
+  訪客 -> UI : 點擊後由 App 開啟對應頁面
+  activate UI
+  UI -> API : 依權杖取得書籍或個人檔案
+  API --> UI : 200 OK
+  deactivate UI
+else 已下架、未核准或帳號停用
+  API --> 訪客 : 404 找不到頁面
+end
+deactivate API
+deactivate 訪客
 @enduml

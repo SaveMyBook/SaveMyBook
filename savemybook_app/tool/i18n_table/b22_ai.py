@@ -59,7 +59,6 @@ T = {
     'AI 設定已儲存': ('AI settings saved', 'AI 設定を保存しました', 'AI 설정을 저장했습니다', 'AI 设置已保存'),
     '格式不正確': ('Invalid format', '形式が正しくありません', '형식이 올바르지 않습니다', '格式不正确'),
     '請輸入 0 至 ${AiSettingsForm.formatNumber(max)}': ('Enter 0 to $p0', '0〜$p0 を入力してください', '0~$p0 사이로 입력하세요', '请输入 0 至 $p0'),
-    '資料庫尚未完成 AI 相關更新，設定儲存後暫時不會生效': ('The database has not been updated for AI yet. Saved settings will not take effect until it is.', 'データベースの AI 用アップデートが未完了のため、保存した設定はまだ反映されません', '데이터베이스의 AI 업데이트가 완료되지 않아 저장한 설정이 아직 적용되지 않습니다', '数据库尚未完成 AI 相关更新，设置保存后暂时不会生效'),
     '預設模型': ('Default model', 'デフォルトモデル', '기본 모델', '默认模型'),
     '功能': ('Features', '機能', '기능', '功能'),
     '已啟用': ('On', 'オン', '사용 중', '已启用'),

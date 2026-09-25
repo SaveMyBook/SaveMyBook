@@ -1,26 +1,18 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
-title 交易仲裁/申訴狀態機（transaction_disputes.status）
+hide empty description
 
-[*] --> pending : 買家／賣家提出申訴\n(disputes.create，同步將訂單轉 refunding)
-pending --> resolved : 管理員裁決\n(disputes.resolve)
-resolved --> [*]
+[*] --> 待處理 : 買家或賣家提出申訴
+待處理 --> 已結案 : 管理員裁決
 
-state resolved {
-  [*] --> refund_manual : result = refund_manual\n(客服判斷應退款)
-  [*] --> refund_auto : result = refund_auto\n(規則判定應退款)
-  [*] --> dismissed : result = dismissed\n(駁回，訂單狀態復原)
-  [*] --> mediated : result = mediated\n(協調結案，訂單狀態復原)
+state 已結案 {
+  [*] --> 退款 : 判定退款
+  [*] --> 駁回 : 判定駁回
+  [*] --> 調解 : 協調結案
 }
-
-note right of pending
-  processing 狀態值於資料庫
-  enum 中已定義，但目前程式碼
-  尚未有任何寫入路徑會將
-  案件轉為 processing，
-  保留供未來「客服受理中」
-  流程使用。
-end note
+已結案 --> [*]
 @enduml

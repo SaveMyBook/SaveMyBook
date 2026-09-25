@@ -1,0 +1,115 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "auth_settings" as auth_settings {
+  {field} <&key> id : int
+  --
+  {field} config : text
+  {field} updated_by : int
+  {field} updated_at : datetime
+}
+entity "faqs" as faqs {
+  {field} <&key> faq_id : int
+  --
+  {field} category : varchar(50)
+  {field} question : varchar(255)
+  {field} answer : text
+  {field} sort_order : int
+  {field} is_visible : tinyint(1)
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "support_tickets" as support_tickets {
+  {field} <&key> ticket_id : int
+  --
+  {field} user_id : int
+  {field} subject : varchar(255)
+  {field} category : varchar(50)
+  {field} status : enum
+  {field} created_at : datetime
+  {field} updated_at : datetime
+  {field} closed_at : datetime
+}
+entity "support_ticket_messages" as support_ticket_messages {
+  {field} <&key> message_id : int
+  --
+  {field} ticket_id : int
+  {field} sender_id : int
+  {field} is_staff : tinyint(1)
+  {field} content : text
+  {field} created_at : datetime
+}
+entity "support_ticket_attachments" as support_ticket_attachments {
+  {field} <&key> attachment_id : int
+  --
+  {field} message_id : int
+  {field} uploader_id : int
+  {field} url : varchar(255)
+  {field} byte_size : int
+  {field} sort_order : tinyint
+  {field} created_at : datetime
+}
+entity "system_announcements" as system_announcements {
+  {field} <&key> announcement_id : int
+  --
+  {field} admin_id : int
+  {field} title : varchar(255)
+  {field} content : text
+  {field} type : enum
+  {field} is_published : tinyint(1)
+  {field} published_at : datetime
+  {field} expires_at : datetime
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "admin_operation_logs" as admin_operation_logs {
+  {field} <&key> log_id : int
+  --
+  {field} admin_id : int
+  {field} action : varchar(100)
+  {field} target_type : varchar(50)
+  {field} target_id : int
+  {field} detail : text
+  {field} ip_address : varchar(45)
+  {field} created_at : datetime
+}
+entity "db_backups" as db_backups {
+  {field} <&key> backup_id : int
+  --
+  {field} file_name : varchar(255)
+  {field} size_bytes : bigint
+  {field} trigger_by : varchar(20)
+  {field} admin_id : int
+  {field} status : varchar(20)
+  {field} detail : text
+  {field} created_at : datetime
+}
+entity "notifications" as notifications {
+  {field} <&key> notification_id : int
+  --
+  {field} user_id : int
+  {field} type : enum
+  {field} title : varchar(255)
+  {field} content : text
+  {field} related_id : int
+  {field} related_type : varchar(50)
+  {field} is_read : tinyint(1)
+  {field} created_at : datetime
+  {field} pushed_at : datetime
+  {field} actor_id : int
+}
+support_tickets ||--o{ support_ticket_messages
+support_ticket_messages ||--o{ support_ticket_attachments
+auth_settings -[hidden]down- admin_operation_logs
+faqs -[hidden]down- db_backups
+system_announcements -[hidden]down- notifications
+@enduml

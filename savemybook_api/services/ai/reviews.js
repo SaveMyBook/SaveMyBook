@@ -4,7 +4,6 @@ const { notFound, conflict } = require('../../lib/errors');
 const { userBrief, bookImageFields, categoryName } = require('../../lib/selects');
 const { notify } = require('../notify');
 const audit = require('../audit');
-const settingsService = require('./settings');
 
 const STATUSES = ['pending', 'approved', 'rejected'];
 const DECISIONS = ['approve', 'reject'];
@@ -20,7 +19,7 @@ const parseList = (value) => {
 
 const statusMap = async (bookIds) => {
   const ids = [...new Set(bookIds.map(Number).filter((n) => Number.isSafeInteger(n) && n > 0))];
-  if (ids.length === 0 || !(await settingsService.migrationReady())) return new Map();
+  if (ids.length === 0) return new Map();
   const rows = await prisma.$queryRawUnsafe(
     `SELECT book_id, status FROM ai_book_reviews WHERE book_id IN (${placeholders(ids)})`,
     ...ids
@@ -48,7 +47,6 @@ const hold = (db, { bookId, decision }) => db.$executeRaw`
 
 // 管理員恢復上架或編輯通過時，未結的 AI 審核一併結案，否則賣家端仍會顯示審核中。
 const settle = async (db, bookId, adminId = null) => {
-  if (!(await settingsService.migrationReady())) return;
   await db.$executeRaw`
     UPDATE ai_book_reviews SET status = 'approved', reviewed_by = ${adminId}, reviewed_at = ${new Date()}
     WHERE book_id = ${bookId} AND status IN ('pending', 'rejected')`;
@@ -63,7 +61,6 @@ const notifyHeld = (db, book) => notify(db, {
 });
 
 const adminList = async (status) => {
-  if (!(await settingsService.migrationReady())) throw settingsService.unavailable();
   const rows = status
     ? await prisma.$queryRaw`
         SELECT book_id, verdict, reasons, categories, status, provider, model, created_at, reviewed_by, reviewed_at
@@ -105,7 +102,6 @@ const adminList = async (status) => {
 };
 
 const decide = async (bookId, { decision, note }, { adminId, req }) => {
-  if (!(await settingsService.migrationReady())) throw settingsService.unavailable();
   const [review] = await prisma.$queryRaw`SELECT book_id, status FROM ai_book_reviews WHERE book_id = ${bookId}`;
   if (!review) throw notFound('找不到此審核紀錄');
   const book = await prisma.books.findUnique({ where: { book_id: bookId } });

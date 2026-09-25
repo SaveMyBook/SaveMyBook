@@ -38,8 +38,6 @@ const authenticate = async ({ email, password, assertion }) => {
 };
 
 const linkAndSignIn = async ({ provider, idToken, code, email, password, assertion, device }) => {
-  if (!(await settings.migrationReady())) throw settings.unavailable();
-
   const pending = await pendingIdentity({ provider, idToken, code });
   const { user, method } = await authenticate({ email, password, assertion });
 

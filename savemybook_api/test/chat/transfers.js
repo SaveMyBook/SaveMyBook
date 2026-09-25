@@ -1,7 +1,14 @@
 const assert = require('assert');
 const {
-  request, prisma, api, ok, addUser, openRoom, createGroup, balanceOf, notificationsFor, setWalletEnumReady
+  request: send, prisma, api, ok, addUser, openRoom, createGroup, balanceOf, notificationsFor, paymentHeaders
 } = require('./harness');
+
+const PAYMENT_PATH = /\/transfers(\/\d+\/pay)?$/;
+
+const request = (method, url, options = {}) => {
+  const user = options.token && PAYMENT_PATH.test(url) ? prisma.rows('users').find((u) => u.token === options.token) : null;
+  return send(method, url, user ? { ...options, headers: { ...paymentHeaders(user), ...options.headers } } : options);
+};
 
 const transferRecords = api('services/chat/transfer-records');
 
@@ -267,29 +274,6 @@ const tests = [
     assert.strictEqual(unavailable.status, 400);
     assert.strictEqual(unavailable.body.code, 'RECIPIENT_UNAVAILABLE');
     assert.strictEqual(balanceOf(payer.user_id), 500);
-  }],
-
-  ['Prisma Client 尚未重新產生時轉帳停用，請款仍可使用', async () => {
-    const { payer, payee, roomId } = await pair();
-    setWalletEnumReady(false);
-
-    const res = await request('POST', `/api/chat/rooms/${roomId}/transfers`, {
-      token: payer.token, body: { to_user_id: payee.user_id, amount: 10 }
-    });
-    assert.strictEqual(res.status, 503);
-    assert.strictEqual(res.body.code, 'CHAT_V2_UNAVAILABLE');
-    assert.strictEqual(res.body.message, '此功能暫時無法使用，請稍後再試');
-
-    const requested = await request('POST', `/api/chat/rooms/${roomId}/transfer-requests`, {
-      token: payee.token, body: { from_user_id: payer.user_id, amount: 10 }
-    });
-    assert.strictEqual(requested.status, 201);
-
-    const pay = await request('POST', `/api/chat/transfers/${requested.body.data.transfer.transfer_id}/pay`, {
-      token: payer.token
-    });
-    assert.strictEqual(pay.status, 503);
-    assert.strictEqual(pay.body.code, 'CHAT_V2_UNAVAILABLE');
   }]
 ];
 

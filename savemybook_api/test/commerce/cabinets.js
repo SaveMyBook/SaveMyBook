@@ -23,7 +23,6 @@ const tests = [
     const byId = new Map(list.body.data.map((c) => [c.cabinet_id, c]));
     assert.strictEqual(byId.get(cabinet.cabinet_id).is_maintenance, true);
     assert.strictEqual(byId.get(other.cabinet_id).is_maintenance, false);
-    assert.strictEqual(byId.get(cabinet.cabinet_id).maintenance_supported, true);
 
     const user = addUser();
     const publicList = await request('GET', '/api/cabinets', { token: tokenFor(user) });

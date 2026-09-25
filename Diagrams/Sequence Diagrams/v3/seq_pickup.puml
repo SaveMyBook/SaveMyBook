@@ -1,48 +1,51 @@
 @startuml
-!pragma layout smetana
-skinparam defaultFontName "Microsoft JhengHei"
-skinparam defaultFontSize 12
-title 循序圖：買家實體書櫃取書與撥款
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
 
-actor 買家 as Buyer
-actor 賣家 as Seller
-participant "PickupBookScreen" as ScanUI
-participant "OrderDetailScreen" as OrderUI
-participant "ApiService(OrdersApi)" as ApiSvc
-participant "PATCH /api/orders/:id/status" as Route
-participant "orders/index.js" as OrdersSvc
-participant "orders/settlement.js" as Settlement
-participant "wallet.js" as WalletSvc
-database "Prisma / MariaDB" as DB
+actor 買家
+participant UI
+participant API
+database DB
+actor 賣家
 
-Buyer -> ScanUI : 開啟「取書」掃描櫃上QR Code
-ScanUI -> ScanUI : 相機掃描並比對\npending_pickup訂單清單
-ScanUI -> OrderUI : 導向對應訂單詳情
-Buyer -> OrderUI : 取出實體書後點擊「我已取貨」
-OrderUI -> OrderUI : showConfirmDialog(確認取貨)
-OrderUI -> ApiSvc : updateOrderStatus(orderId, 'completed')
-ApiSvc -> Route : PATCH /api/orders/:id/status
-Route -> OrdersSvc : advance(orderId, user, 'completed')
-OrdersSvc -> OrdersSvc : 檢查操作者為訂單買家(或admin)
-OrdersSvc -> OrdersSvc : 檢查 order.status ∈\n['deposited','pending_pickup']
-alt 狀態不符
-  OrdersSvc --> OrderUI : 400「賣家尚未存書，無法完成取書」
-else 狀態符合
-  OrdersSvc -> Settlement : transition(tx, order, 'completed')
-  Settlement -> DB : guardedUpdate(status='completed',\npicked_up_at, completed_at)
-  Settlement -> Settlement : phaseOf('completed') == 'paid_out'
-  Settlement -> DB : ledgerOf(tx, order)\n（依wallet_transactions帳本實算已入帳金額）
-  Settlement -> Settlement : due = total_amount - sellerReceived
-  alt due > 0
-    Settlement -> WalletSvc : changeBalance(seller, +due, 'sale_income')
-    WalletSvc -> DB : wallets.update(balance +=due,\ntotal_income += due)
-    WalletSvc -> DB : wallet_transactions.create()
+買家 -> UI : 掃描書櫃 QR Code，取出書籍
+activate 買家
+activate UI
+UI -> API : PATCH /api/orders/:id/status\n(picked_up)
+activate API
+API -> DB : 驗證訂單狀態與取書權限
+activate DB
+DB --> API : 回傳驗證結果
+deactivate DB
+
+alt 驗證成功
+  API -> DB : 記錄取書時間
+  API -> 賣家 : 推播「買家已取書」
+  API --> UI : 200 OK
+  UI --> 買家 : 顯示「待確認完成」
+
+  alt 買家確認書況無誤
+    買家 -> UI : 點擊「完成訂單」
+    UI -> API : PATCH /api/orders/:id/status\n(completed)
+  else 取書滿 24 小時未申訴
+    API -> API : 排程自動完成訂單
   end
-  Settlement -> DB : tx.books.updateMany(status='sold'\nwhere status='reserved')
-  Settlement --> OrdersSvc : 完成
-  OrdersSvc -> DB : notify 賣家「買家已取書，\nX代幣已撥入您的錢包」
-  OrdersSvc --> OrderUI : 200 OK
-  OrderUI -> OrderUI : 導向 PickupSuccessScreen
-  DB --> Seller : 推播通知
+  API -> DB : 訂單設為「已完成」\n書籍設為「已售出」
+  API -> DB : 款項撥入賣家錢包
+  API -> 賣家 : 推播「款項已入帳」
+  API --> UI : 200 OK
+  UI --> 買家 : 提示交易完成
+else 驗證失敗
+  API --> UI : 回傳錯誤訊息
+  UI --> 買家 : 顯示錯誤訊息
 end
+deactivate API
+deactivate UI
+deactivate 買家
 @enduml

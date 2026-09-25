@@ -12,7 +12,7 @@ const server = require('../lib/server');
 const { registerModels } = require('../lib/fake-prisma');
 
 const {
-  API_ROOT, prisma, api, request, runSuite, runFolder, onReset, onFetch, jsonResponse, fetchLog
+  API_ROOT, prisma, api, request, runSuite, runFolder, onFetch, jsonResponse, fetchLog
 } = server;
 
 registerModels({
@@ -34,7 +34,6 @@ registerModels({
 const { env } = api('config/env');
 const authToken = api('lib/auth-token');
 const bcrypt = api('node_modules/bcrypt');
-const schemaCheck = api('lib/schema-check');
 const maintenance = api('lib/maintenance');
 const sessions = api('services/sessions');
 const push = api('services/push');
@@ -71,9 +70,6 @@ onFetch('https://fcm.googleapis.com/', (url, init) => {
 });
 
 // ---------- 迷你 SQL 直譯器不支援的查詢 ----------
-
-// 011 之前就存在的資料表，schema 設定只列出各次 migration 新增的部分。
-const BASE_TABLES = ['users', 'books', 'orders', 'notifications', 'login_logs', 'admin_permissions', 'legal_documents', 'chat_messages', 'chat_rooms'];
 
 const num = (value) => Number(value ?? 0) || 0;
 const rowsOf = (table) => prisma.rows(table);
@@ -178,44 +174,7 @@ prisma.onSql(/FROM notifications n JOIN \(SELECT MAX\(created_at\) AS latest FRO
     }));
 });
 
-// lib/schema-check 的 missingSchema() 直接列出所有資料表與欄位。
-prisma.onSql(/SELECT TABLE_NAME AS t FROM information_schema\.TABLES/, () =>
-  [...BASE_TABLES, ...prisma.schema.tables].map((t) => ({ t })));
-
-prisma.onSql(/SELECT TABLE_NAME AS t, COLUMN_NAME AS c FROM information_schema\.COLUMNS/, () =>
-  prisma.schema.columns.map((entry) => ({ t: entry.split('.')[0], c: entry.split('.')[1] })));
-
-// push.init() 以固定的資料表名稱查詢 information_schema，沒有參數可比對。
-prisma.onSql(/TABLE_NAME = 'push_devices'/, () => [{ n: BigInt(1) }]);
-prisma.onSql(/COLUMN_NAME = 'pushed_at'/, () => [{ n: BigInt(1) }]);
-
 // ---------- 資料庫狀態 ----------
-
-const FULL_SCHEMA = {
-  tables: [
-    'db_backups', 'push_devices', 'user_legal_consents', 'user_sessions', 'user_security',
-    'chat_room_mutes', 'user_blocks', 'chat_room_members', 'chat_room_pins', 'chat_aliases',
-    'chat_transfers', 'chat_mentions', 'ai_settings', 'ai_usage_logs', 'ai_support_sessions',
-    'ai_support_messages', 'ai_recommendation_cache', 'ai_book_reviews', 'ai_consents',
-    'ai_chat_sessions', 'ai_chat_messages', 'user_identities', 'auth_settings', 'oauth_states', 'oauth_results',
-    'user_passkeys', 'webauthn_challenges', 'support_ticket_attachments', 'ai_embeddings', 'ai_book_enrichments',
-    'chat_message_risks', 'chat_risk_alerts'
-  ],
-  columns: [
-    'users.deletion_requested_at', 'users.anonymized_at', 'users.share_token', 'users.password_set',
-    'login_logs.login_method', 'ai_usage_logs.error_detail', 'notifications.pushed_at', 'notifications.actor_id',
-    'push_devices.session_sid', 'books.share_token', 'admin_permissions.can_manage_system',
-    'legal_documents.version', 'legal_documents.requires_consent', 'chat_messages.reply_to_id',
-    'chat_rooms.room_type', 'chat_rooms.name', 'chat_rooms.avatar_url', 'chat_rooms.created_by',
-    'chat_messages.edited_at', 'chat_room_members.history_from_id', 'chat_messages.mentions',
-    'smart_cabinets.is_maintenance'
-  ]
-};
-
-const without = (schema, names) => ({
-  tables: schema.tables.filter((t) => !names.includes(t)),
-  columns: schema.columns.filter((c) => !names.includes(c))
-});
 
 const EMPTY_TABLES = [
   'users', 'login_logs', 'admin_permissions', 'admin_operation_logs', 'notifications', 'user_settings',
@@ -226,21 +185,16 @@ const EMPTY_TABLES = [
   'ai_chat_sessions', 'user_identities', 'user_passkeys', 'webauthn_challenges'
 ];
 
-const reset = ({ schema = FULL_SCHEMA, tables = {} } = {}) => {
+const reset = ({ tables = {} } = {}) => {
   pushMessages.length = 0;
   pushResponses = [];
   maintenance.leave();
   server.reset({
-    schema,
     tables: { ...Object.fromEntries(EMPTY_TABLES.map((t) => [t, []])), ...tables }
   });
 };
 
 server.setDefaultReset(() => reset());
-
-onReset(() => {
-  schemaCheck.resetCache();
-});
 
 // ---------- 使用者與工作階段 ----------
 
@@ -357,7 +311,7 @@ const enablePush = async () => {
 
 module.exports = {
   API_ROOT, api, prisma, request, runSuite, runFolder, onFetch, jsonResponse, fetchLog, env,
-  reset, without, FULL_SCHEMA, tempDir, schemaCheck, maintenance, sessions, push,
+  reset, tempDir, maintenance, sessions, push,
   addUser, addAdmin, addSession, addDevice, setPin, tokenFor, verifyTokenFor, verified,
   enablePush, queuePush, pushMessages, tokenRequests: () => tokenRequests
 };

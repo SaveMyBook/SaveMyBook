@@ -184,14 +184,7 @@ curl -s 'https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.
    cd savemybook_api && npm install
    ```
 
-2. 執行資料庫更新 016（可重複執行）：
-
-   ```bash
-   mysql -u <帳號> -p <資料庫名稱> < migrations/016_passkeys.sql
-   mysql -u <帳號> -p <資料庫名稱> < migrations/check_state.sql   # 確認 user_passkeys、webauthn_challenges 為「已存在」
-   ```
-
-3. 在 `.env` 加入：
+2. 在 `.env` 加入：
 
    ```bash
    PASSKEY_RP_ID="savemybook.today"
@@ -206,7 +199,7 @@ curl -s 'https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.
    ANDROID_CERT_SHA256="<AA:BB:CC:... 格式，多組以逗號分隔>"
    ```
 
-4. 檢查並重啟：
+3. 檢查並重啟：
 
    ```bash
    npm run verify      # 「資料庫結構」與「通行密鑰 RP ID 與來源」皆須通過

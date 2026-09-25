@@ -10,14 +10,7 @@ registerModels({ autoKeys: { support_ticket_attachments: 'attachment_id' } });
 
 const { UPLOAD_ROOT } = api('lib/upload');
 const attachments = api('services/support-attachments');
-const schemaCheck = api('lib/schema-check');
 const SUPPORT_DIR = path.join(UPLOAD_ROOT, 'support');
-
-const enable = () => {
-  prisma.schema = { ...prisma.schema, tables: [...prisma.schema.tables, 'support_ticket_attachments'] };
-  prisma.store.support_ticket_attachments = [];
-  schemaCheck.resetCache();
-};
 
 let seq = 0;
 const pending = (uploader, overrides = {}) => {
@@ -39,23 +32,13 @@ const pending = (uploader, overrides = {}) => {
 const JPEG = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(64, 1)]);
 
 const tests = [
-  ['上傳客服圖片：記錄上傳者，未執行 017 時拒收且不寫入檔案', async () => {
+  ['上傳客服圖片：記錄上傳者', async () => {
     const user = addUser();
     const token = tokenFor(user);
-    const form = () => {
-      const data = new FormData();
-      data.append('file', new Blob([JPEG], { type: 'image/jpeg' }), 'photo.jpg');
-      return data;
-    };
-    const before = fs.existsSync(SUPPORT_DIR) ? fs.readdirSync(SUPPORT_DIR).length : 0;
+    const form = new FormData();
+    form.append('file', new Blob([JPEG], { type: 'image/jpeg' }), 'photo.jpg');
 
-    const off = await request('POST', '/api/uploads/support-image', { token, raw: form() });
-    assert.strictEqual(off.status, 503);
-    assert.strictEqual(off.body.code, 'SUPPORT_ATTACHMENTS_UNAVAILABLE');
-    assert.strictEqual(fs.existsSync(SUPPORT_DIR) ? fs.readdirSync(SUPPORT_DIR).length : 0, before);
-
-    enable();
-    const res = await request('POST', '/api/uploads/support-image', { token, raw: form() });
+    const res = await request('POST', '/api/uploads/support-image', { token, raw: form });
     try {
       assert.strictEqual(res.status, 201);
       assert.match(res.body.data.url, /^\/uploads\/support\/[\w-]+\.jpg$/);
@@ -69,7 +52,6 @@ const tests = [
   }],
 
   ['上傳客服圖片：未送出的圖片達上限時拒收', async () => {
-    enable();
     const user = addUser();
     for (let i = 0; i < 20; i += 1) pending(user);
     const data = new FormData();
@@ -81,7 +63,6 @@ const tests = [
   }],
 
   ['開立工單可附加圖片，通知客服時註明張數', async () => {
-    enable();
     const user = addUser();
     const staff = addAdmin();
     const [a, b] = [pending(user), pending(user)];
@@ -100,7 +81,6 @@ const tests = [
   }],
 
   ['附件驗證：格式、數量、重複、他人上傳與已使用的圖片皆拒收', async () => {
-    enable();
     const user = addUser();
     const other = addUser();
     const token = tokenFor(user);
@@ -136,7 +116,6 @@ const tests = [
   }],
 
   ['回覆可只附圖片；客服也能附加自己上傳的圖片', async () => {
-    enable();
     const user = addUser();
     const staff = addAdmin();
     const ticket = addTicket({ userId: user.user_id });
@@ -161,7 +140,6 @@ const tests = [
   }],
 
   ['工單內容回傳簽章網址，僅本人與客服可取得；網址可讀取圖片且無法竄改', async () => {
-    enable();
     const user = addUser();
     const stranger = addUser();
     const staff = addAdmin();
@@ -204,31 +182,7 @@ const tests = [
     }
   }],
 
-  ['尚未執行 017 時工單照常運作，附件為空，帶附件則回 503', async () => {
-    const user = addUser();
-    const ticket = addTicket({ userId: user.user_id });
-    prisma.rows('support_ticket_messages').push({
-      message_id: 1, ticket_id: ticket.ticket_id, sender_id: user.user_id, is_staff: false, content: '內容', created_at: new Date()
-    });
-
-    const detail = await request('GET', `/api/support/tickets/${ticket.ticket_id}`, { token: tokenFor(user) });
-    assert.strictEqual(detail.status, 200);
-    assert.deepStrictEqual(detail.body.data.messages[0].attachments, []);
-
-    const plain = await request('POST', `/api/support/tickets/${ticket.ticket_id}/messages`, {
-      token: tokenFor(user), body: { content: '補充說明' }
-    });
-    assert.strictEqual(plain.status, 201);
-
-    const withImage = await request('POST', `/api/support/tickets/${ticket.ticket_id}/messages`, {
-      token: tokenFor(user), body: { content: '補充說明', attachments: ['/uploads/support/1-abcdef.jpg'] }
-    });
-    assert.strictEqual(withImage.status, 503);
-    assert.strictEqual(withImage.body.code, 'SUPPORT_ATTACHMENTS_UNAVAILABLE');
-  }],
-
   ['排程清理超過 24 小時未送出的圖片，已送出的保留', async () => {
-    enable();
     const user = addUser();
     const stale = pending(user, { created_at: new Date(Date.now() - 25 * 3600 * 1000) });
     const fresh = pending(user);

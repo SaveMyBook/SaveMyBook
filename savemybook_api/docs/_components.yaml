@@ -24,7 +24,6 @@ components:
       description: |
         由 `POST /api/security/verify` 取得的 `verify_token`。未帶入或已失效時回傳 403
         `VERIFICATION_REQUIRED`，回應中的 `verification` 指出需要的範圍與可用的驗證方式。
-        伺服器尚未執行資料庫更新 007 時不檢查此標頭。
       example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXAiOiJ2ZXJpZnkifQ.abc123
 
   schemas:
@@ -131,7 +130,7 @@ components:
           nullable: true
           description: |
             僅書籍詳情提供。賣家未填、由系統依 ISBN 書目自動補齊的欄位；`ai_written` 為 true 表示簡介由 AI 依書目來源整理。
-            賣家之後修改的欄位會從清單移除。尚未執行 `migrations/022_book_enrichment.sql` 或沒有補齊任何欄位時為 null。
+            賣家之後修改的欄位會從清單移除。沒有補齊任何欄位時為 null。
           properties:
             fields:
               type: array
@@ -584,7 +583,7 @@ components:
         | `scam` | 解除分期、帳戶凍結、金流認證、遊戲點數、冒充客服等常見話術 | 4 |
 
         分數為類別權重加總；傳送者帳號未滿 7 天、沒有完成過訂單各加 1，1 小時內在 5 個以上聊天室發言再加 2
-        （帳號因素僅在內容已命中時計入，且需要資料庫更新 023）。分數 5 以上為 `high`，其餘為 `notice`。
+        （帳號因素僅在內容已命中時計入）。分數 5 以上為 `high`，其餘為 `notice`。
         內容會先正規化（全形轉半形、去除空白與標點、國字數字轉阿拉伯數字）再比對，以涵蓋拆字與插入符號的寫法。
       properties:
         level: { type: string, enum: [notice, high], example: high }
@@ -884,7 +883,7 @@ components:
           type: array
           description: |
             圖片附件，依上傳順序排列，最多 4 張。`url` 為簽章網址（相對於 API 主機），
-            有效期 6 至 12 小時，過期後重新取得工單內容即可換發。尚未執行遷移 017 時一律為空陣列。
+            有效期 6 至 12 小時，過期後重新取得工單內容即可換發。
           items:
             type: object
             properties:
@@ -1037,29 +1036,6 @@ components:
             尚未設定登入密碼:
               value: { success: false, code: PASSWORD_NOT_SET, message: 此帳號尚未設定登入密碼，請先於「帳號安全」設定密碼 }
 
-    SecurityUnavailable:
-      description: 伺服器尚未執行資料庫更新 007（`user_sessions`、`user_security` 資料表），帳號安全功能暫不可用。
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, code: SECURITY_UNAVAILABLE, message: 此功能暫時無法使用，請稍後再試 }
-
-    ChatControlsUnavailable:
-      description: 伺服器尚未執行資料庫更新 008（`chat_room_mutes`、`user_blocks` 資料表），靜音與封鎖功能暫不可用。
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, code: CHAT_CONTROLS_UNAVAILABLE, message: 此功能暫時無法使用，請稍後再試 }
-
-    ChatV2Unavailable:
-      description: |
-        伺服器尚未執行資料庫更新 009（群組、釘選、自訂暱稱、編輯訊息、代幣轉帳），
-        或執行後尚未重新產生 Prisma Client（僅影響轉帳與付款），相關功能暫不可用。
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, code: CHAT_V2_UNAVAILABLE, message: 此功能暫時無法使用，請稍後再試 }
-
     RiskConfirmRequired:
       description: |
         訊息新出現聯絡方式、付款資訊或平台外交易，須由使用者確認後帶 `confirm_risk: true` 重送。`categories` 為觸發的類別。
@@ -1074,19 +1050,6 @@ components:
                     type: array
                     items: { type: string, enum: [contact, payment, offsite] }
           example: { success: false, code: RISK_CONFIRM_REQUIRED, message: 訊息包含聯絡方式或付款資訊，於平台外交易將不受平台保障，請確認後再傳送, categories: [contact] }
-
-    ChatV3Unavailable:
-      description: |
-        伺服器尚未執行資料庫更新 010（提及成員），帶有提及的訊息暫不可用，回傳 `CHAT_V3_UNAVAILABLE`。
-        編輯訊息於尚未執行 009 時回傳 `CHAT_V2_UNAVAILABLE`。
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
-          examples:
-            未執行010:
-              value: { success: false, code: CHAT_V3_UNAVAILABLE, message: 此功能暫時無法使用，請稍後再試 }
-            未執行009:
-              value: { success: false, code: CHAT_V2_UNAVAILABLE, message: 此功能暫時無法使用，請稍後再試 }
 
     BookReserved:
       description: 書籍已由其他買家預約並保留中，保留期限內僅該買家可加入購物車或結帳。
