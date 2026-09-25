@@ -421,7 +421,7 @@ components:
         related_type:
           type: string
           nullable: true
-          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`admin_ticket`、`book_review`、`legal`、`user`、`wallet`、`security`、`password`、`member_level`、`announcement`、`push_test`。`security` 為新裝置登入、交易密碼變更或鎖定等帳號安全通知，無對應的 `related_id`。'
+          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`admin_ticket`、`book_review`、`risk_alert`、`legal`、`user`、`wallet`、`security`、`password`、`member_level`、`announcement`、`push_test`。`security` 為新裝置登入、交易密碼變更或鎖定等帳號安全通知，無對應的 `related_id`。'
           example: order
         category: { $ref: '#/components/schemas/NotificationCategory' }
         is_read: { type: boolean, example: false }
@@ -569,6 +569,30 @@ components:
         kind: { type: string, enum: [web, book], example: web }
         price: { type: number, description: 僅 `kind` 為 `book` 時提供, example: 350 }
 
+    ChatRisk:
+      type: object
+      description: |
+        聊天訊息的防詐檢查結果。檢查只使用平台規則，不使用 AI 服務。
+
+        | `categories` 值 | 說明 | 權重 |
+        | --- | --- | --- |
+        | `contact` | 通訊軟體帳號、手機號碼、電子郵件等聯絡方式 | 2 |
+        | `payment` | 匯款帳號、先付訂金等付款資訊 | 2 |
+        | `offsite` | 私下交易、面交、不透過平台 | 2 |
+        | `link` | 短網址、IP 位址或可疑網域的連結 | 4 |
+        | `credential` | 索取驗證碼、密碼或卡片資料 | 5 |
+        | `scam` | 解除分期、帳戶凍結、金流認證、遊戲點數、冒充客服等常見話術 | 4 |
+
+        分數為類別權重加總；傳送者帳號未滿 7 天、沒有完成過訂單各加 1，1 小時內在 5 個以上聊天室發言再加 2
+        （帳號因素僅在內容已命中時計入，且需要資料庫更新 023）。分數 5 以上為 `high`，其餘為 `notice`。
+        內容會先正規化（全形轉半形、去除空白與標點、國字數字轉阿拉伯數字）再比對，以涵蓋拆字與插入符號的寫法。
+      properties:
+        level: { type: string, enum: [notice, high], example: high }
+        categories:
+          type: array
+          items: { type: string, enum: [contact, payment, offsite, link, credential, scam] }
+          example: [contact, payment]
+
     ChatMessage:
       type: object
       description: |
@@ -625,6 +649,10 @@ components:
           example: true
         created_at: { type: string, format: date-time }
         edited_at: { type: string, format: date-time, nullable: true, description: 最後編輯時間；未編輯為 `null`。 }
+        risk:
+          nullable: true
+          description: 其他成員傳送的文字訊息經防詐檢查有風險時帶入；請求者自己的訊息、其他類型與無風險時為 `null`。僅於取得訊息時提供。
+          allOf: [{ $ref: '#/components/schemas/ChatRisk' }]
         mentions:
           type: array
           description: |
@@ -1031,6 +1059,21 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           example: { success: false, code: CHAT_V2_UNAVAILABLE, message: 此功能暫時無法使用，請稍後再試 }
+
+    RiskConfirmRequired:
+      description: |
+        訊息新出現聯絡方式、付款資訊或平台外交易，須由使用者確認後帶 `confirm_risk: true` 重送。`categories` 為觸發的類別。
+      content:
+        application/json:
+          schema:
+            allOf:
+              - { $ref: '#/components/schemas/ErrorResponse' }
+              - type: object
+                properties:
+                  categories:
+                    type: array
+                    items: { type: string, enum: [contact, payment, offsite] }
+          example: { success: false, code: RISK_CONFIRM_REQUIRED, message: 訊息包含聯絡方式或付款資訊，於平台外交易將不受平台保障，請確認後再傳送, categories: [contact] }
 
     ChatV3Unavailable:
       description: |

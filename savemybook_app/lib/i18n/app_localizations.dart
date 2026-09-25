@@ -2023,6 +2023,35 @@ abstract class AppLocalizations {
   String get pleaseCompleteDealAppWeCannot;
   String get personSharedOutsideContactDetailsWatch;
   String get mostRelevant;
+  String get scamAlerts;
+  String get contactDetails;
+  String get paymentDetails;
+  String get offPlatformDeal;
+  String get suspiciousLink;
+  String get asksVerificationDetails;
+  String get scamWording;
+  String get markedAsFalseAlarm;
+  String get markedAsHandled;
+  String get noOpenScamAlerts;
+  String p0HighRisk(Object p0);
+  String firstP0(Object p0);
+  String latestP0(Object p0);
+  String get falseAlarm;
+  String get neverShareVerificationCodesPasswordsCard;
+  String get messageContainsCommonScamWordingWe;
+  String get messageContainsSuspiciousLinkDoNot;
+  String get scamSafetyTips;
+  String get chatHighRiskMessagesDoNot;
+  String get payEveryDealAppUseSmart;
+  String get weOurSupportTeamNeverAsk;
+  String get doNotOpenUnknownShortLinks;
+  String get cancelInstallmentsAccountFrozenPaymentVerification;
+  String get ifSeeSuspiciousMessageReportAdministrator;
+  String get confirmSending;
+  String get messageIncludesContactPaymentDetailsDeals;
+  String get sendAnyway;
+  String get editMessage2;
+  String get suspectedScamMessage;
 }
 
 class _LEn extends AppLocalizations {
@@ -8027,6 +8056,93 @@ class _LEn extends AppLocalizations {
 
   @override
   String get mostRelevant => 'Most relevant';
+
+  @override
+  String get scamAlerts => 'Scam alerts';
+
+  @override
+  String get contactDetails => 'Contact details';
+
+  @override
+  String get paymentDetails => 'Payment details';
+
+  @override
+  String get offPlatformDeal => 'Off-platform deal';
+
+  @override
+  String get suspiciousLink => 'Suspicious link';
+
+  @override
+  String get asksVerificationDetails => 'Asks for verification details';
+
+  @override
+  String get scamWording => 'Scam wording';
+
+  @override
+  String get markedAsFalseAlarm => 'Marked as a false alarm';
+
+  @override
+  String get markedAsHandled => 'Marked as handled';
+
+  @override
+  String get noOpenScamAlerts => 'No open scam alerts';
+
+  @override
+  String p0HighRisk(Object p0) => '${p0} high-risk';
+
+  @override
+  String firstP0(Object p0) => 'First ${p0}';
+
+  @override
+  String latestP0(Object p0) => 'Latest ${p0}';
+
+  @override
+  String get falseAlarm => 'False alarm';
+
+  @override
+  String get neverShareVerificationCodesPasswordsCard => 'Never share verification codes, passwords, or card details with anyone.';
+
+  @override
+  String get messageContainsCommonScamWordingWe => 'This message contains common scam wording. We never ask you to cancel installments or verify accounts through chat.';
+
+  @override
+  String get messageContainsSuspiciousLinkDoNot => 'This message contains a suspicious link. Do not open it or enter personal information.';
+
+  @override
+  String get scamSafetyTips => 'Scam safety tips';
+
+  @override
+  String get chatHighRiskMessagesDoNot => 'This chat has high-risk messages. Do not share verification codes or pay outside the app.';
+
+  @override
+  String get payEveryDealAppUseSmart => 'Pay for every deal in the app and use the smart lockers to drop off and pick up books.';
+
+  @override
+  String get weOurSupportTeamNeverAsk => 'We and our support team will never ask for verification codes, passwords, or card details in chat.';
+
+  @override
+  String get doNotOpenUnknownShortLinks => 'Do not open unknown short links, and never follow instructions to use online banking or an ATM.';
+
+  @override
+  String get cancelInstallmentsAccountFrozenPaymentVerification => '"Cancel installments", "account frozen", "payment verification" and "buy game points" are common scam phrases.';
+
+  @override
+  String get ifSeeSuspiciousMessageReportAdministrator => 'If you see a suspicious message, report it and an administrator will follow up.';
+
+  @override
+  String get confirmSending => 'Confirm sending';
+
+  @override
+  String get messageIncludesContactPaymentDetailsDeals => 'Your message includes contact or payment details. Deals and payments outside the app are not protected, and we cannot help with disputes over them.';
+
+  @override
+  String get sendAnyway => 'Send anyway';
+
+  @override
+  String get editMessage2 => 'Edit message';
+
+  @override
+  String get suspectedScamMessage => 'Suspected scam message';
 
 }
 
@@ -14033,6 +14149,93 @@ class _LJa extends AppLocalizations {
   @override
   String get mostRelevant => '関連度順';
 
+  @override
+  String get scamAlerts => '詐欺アラート';
+
+  @override
+  String get contactDetails => '連絡先';
+
+  @override
+  String get paymentDetails => '支払い情報';
+
+  @override
+  String get offPlatformDeal => 'アプリ外取引';
+
+  @override
+  String get suspiciousLink => '不審なリンク';
+
+  @override
+  String get asksVerificationDetails => '認証情報の要求';
+
+  @override
+  String get scamWording => '詐欺の文言';
+
+  @override
+  String get markedAsFalseAlarm => '誤検知として記録しました';
+
+  @override
+  String get markedAsHandled => '対応済みとして記録しました';
+
+  @override
+  String get noOpenScamAlerts => '未対応の詐欺アラートはありません';
+
+  @override
+  String p0HighRisk(Object p0) => '高リスク ${p0} 件';
+
+  @override
+  String firstP0(Object p0) => '初回 ${p0}';
+
+  @override
+  String latestP0(Object p0) => '最新 ${p0}';
+
+  @override
+  String get falseAlarm => '誤検知';
+
+  @override
+  String get neverShareVerificationCodesPasswordsCard => '認証コード、パスワード、カード情報は誰にも教えないでください。';
+
+  @override
+  String get messageContainsCommonScamWordingWe => 'よくある詐欺の文言が含まれています。当サービスがチャットで分割払いの解除や認証を求めることはありません。';
+
+  @override
+  String get messageContainsSuspiciousLinkDoNot => '不審なリンクが含まれています。開いたり個人情報を入力したりしないでください。';
+
+  @override
+  String get scamSafetyTips => '詐欺防止のヒント';
+
+  @override
+  String get chatHighRiskMessagesDoNot => 'このチャットには高リスクのメッセージがあります。認証コードを教えたり、アプリ外で支払ったりしないでください。';
+
+  @override
+  String get payEveryDealAppUseSmart => '取引の支払いはすべてアプリ内で行い、本の受け渡しはスマートロッカーを利用してください。';
+
+  @override
+  String get weOurSupportTeamNeverAsk => '当サービスとサポートがチャットで認証コード、パスワード、カード情報を求めることはありません。';
+
+  @override
+  String get doNotOpenUnknownShortLinks => '不明な短縮 URL は開かず、相手の指示でネットバンキングや ATM を操作しないでください。';
+
+  @override
+  String get cancelInstallmentsAccountFrozenPaymentVerification => '「分割払いの解除」「口座凍結」「決済認証」「ゲームポイントの購入」はよくある詐欺の文言です。';
+
+  @override
+  String get ifSeeSuspiciousMessageReportAdministrator => '不審なメッセージは報告してください。管理者が対応します。';
+
+  @override
+  String get confirmSending => '送信の確認';
+
+  @override
+  String get messageIncludesContactPaymentDetailsDeals => 'メッセージに連絡先または支払い情報が含まれています。アプリ外の取引や支払いは保護されず、トラブル時にも対応できません。';
+
+  @override
+  String get sendAnyway => 'このまま送信';
+
+  @override
+  String get editMessage2 => '修正する';
+
+  @override
+  String get suspectedScamMessage => '詐欺の疑いがあるメッセージ';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -20037,6 +20240,93 @@ class _LKo extends AppLocalizations {
 
   @override
   String get mostRelevant => '관련도순';
+
+  @override
+  String get scamAlerts => '사기 경보';
+
+  @override
+  String get contactDetails => '연락처';
+
+  @override
+  String get paymentDetails => '결제 정보';
+
+  @override
+  String get offPlatformDeal => '앱 외부 거래';
+
+  @override
+  String get suspiciousLink => '의심스러운 링크';
+
+  @override
+  String get asksVerificationDetails => '인증 정보 요구';
+
+  @override
+  String get scamWording => '사기 문구';
+
+  @override
+  String get markedAsFalseAlarm => '오탐으로 표시했습니다';
+
+  @override
+  String get markedAsHandled => '처리 완료로 표시했습니다';
+
+  @override
+  String get noOpenScamAlerts => '처리할 사기 경보가 없습니다';
+
+  @override
+  String p0HighRisk(Object p0) => '고위험 ${p0}건';
+
+  @override
+  String firstP0(Object p0) => '최초 ${p0}';
+
+  @override
+  String latestP0(Object p0) => '최근 ${p0}';
+
+  @override
+  String get falseAlarm => '오탐';
+
+  @override
+  String get neverShareVerificationCodesPasswordsCard => '인증번호, 비밀번호, 카드 정보를 누구에게도 알려 주지 마세요.';
+
+  @override
+  String get messageContainsCommonScamWordingWe => '흔한 사기 문구가 포함되어 있습니다. 플랫폼은 채팅으로 할부 해제나 인증을 요구하지 않습니다.';
+
+  @override
+  String get messageContainsSuspiciousLinkDoNot => '의심스러운 링크가 포함되어 있습니다. 열거나 개인 정보를 입력하지 마세요.';
+
+  @override
+  String get scamSafetyTips => '사기 예방 안내';
+
+  @override
+  String get chatHighRiskMessagesDoNot => '이 채팅에 고위험 메시지가 있습니다. 인증번호를 알려 주거나 앱 밖에서 결제하지 마세요.';
+
+  @override
+  String get payEveryDealAppUseSmart => '모든 거래는 앱에서 결제하고 스마트 보관함으로 책을 주고받으세요.';
+
+  @override
+  String get weOurSupportTeamNeverAsk => '플랫폼과 고객센터는 채팅으로 인증번호, 비밀번호, 카드 정보를 요구하지 않습니다.';
+
+  @override
+  String get doNotOpenUnknownShortLinks => '출처를 알 수 없는 단축 URL을 열지 말고, 상대방의 지시에 따라 인터넷 뱅킹이나 ATM을 조작하지 마세요.';
+
+  @override
+  String get cancelInstallmentsAccountFrozenPaymentVerification => '"할부 해제", "계좌 동결", "결제 인증", "게임 포인트 구매"는 흔한 사기 문구입니다.';
+
+  @override
+  String get ifSeeSuspiciousMessageReportAdministrator => '의심스러운 메시지는 신고해 주세요. 관리자가 처리합니다.';
+
+  @override
+  String get confirmSending => '전송 확인';
+
+  @override
+  String get messageIncludesContactPaymentDetailsDeals => '메시지에 연락처 또는 결제 정보가 포함되어 있습니다. 앱 밖의 거래와 결제는 보호되지 않으며 분쟁 시 도와드릴 수 없습니다.';
+
+  @override
+  String get sendAnyway => '그래도 보내기';
+
+  @override
+  String get editMessage2 => '수정하기';
+
+  @override
+  String get suspectedScamMessage => '사기 의심 메시지';
 
 }
 
@@ -26043,6 +26333,93 @@ class _LZh extends AppLocalizations {
   @override
   String get mostRelevant => '最相關';
 
+  @override
+  String get scamAlerts => '防詐警示';
+
+  @override
+  String get contactDetails => '聯絡方式';
+
+  @override
+  String get paymentDetails => '付款資訊';
+
+  @override
+  String get offPlatformDeal => '平台外交易';
+
+  @override
+  String get suspiciousLink => '可疑連結';
+
+  @override
+  String get asksVerificationDetails => '索取驗證資料';
+
+  @override
+  String get scamWording => '詐騙話術';
+
+  @override
+  String get markedAsFalseAlarm => '已標示為誤判';
+
+  @override
+  String get markedAsHandled => '已標示為已處理';
+
+  @override
+  String get noOpenScamAlerts => '目前沒有待處理的防詐警示';
+
+  @override
+  String p0HighRisk(Object p0) => '${p0} 則高風險';
+
+  @override
+  String firstP0(Object p0) => '首次 ${p0}';
+
+  @override
+  String latestP0(Object p0) => '最近 ${p0}';
+
+  @override
+  String get falseAlarm => '誤判';
+
+  @override
+  String get neverShareVerificationCodesPasswordsCard => '請勿將驗證碼、密碼或卡片資料提供給任何人';
+
+  @override
+  String get messageContainsCommonScamWordingWe => '此訊息含常見詐騙話術，平台不會透過聊天要求解除分期或認證';
+
+  @override
+  String get messageContainsSuspiciousLinkDoNot => '此訊息含可疑連結，請勿點擊或輸入個人資料';
+
+  @override
+  String get scamSafetyTips => '防詐須知';
+
+  @override
+  String get chatHighRiskMessagesDoNot => '此聊天室有高風險訊息，請勿提供驗證碼或私下付款';
+
+  @override
+  String get payEveryDealAppUseSmart => '所有交易請在平台內付款，並透過智慧書櫃取放書';
+
+  @override
+  String get weOurSupportTeamNeverAsk => '平台與客服不會透過聊天要求您提供驗證碼、密碼或卡片資料';
+
+  @override
+  String get doNotOpenUnknownShortLinks => '請勿點擊來路不明的短網址，也不要依對方指示操作網路銀行或 ATM';
+
+  @override
+  String get cancelInstallmentsAccountFrozenPaymentVerification => '「解除分期」「帳戶凍結」「金流認證」「購買遊戲點數」皆為常見詐騙話術';
+
+  @override
+  String get ifSeeSuspiciousMessageReportAdministrator => '發現可疑訊息請按檢舉，管理員將協助處理';
+
+  @override
+  String get confirmSending => '確認傳送';
+
+  @override
+  String get messageIncludesContactPaymentDetailsDeals => '訊息包含聯絡方式或付款資訊。在平台外交易或付款不受平台保障，發生糾紛時平台無法協助。';
+
+  @override
+  String get sendAnyway => '仍要傳送';
+
+  @override
+  String get editMessage2 => '返回修改';
+
+  @override
+  String get suspectedScamMessage => '疑似詐騙訊息';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -32048,6 +32425,93 @@ class _LZhHans extends AppLocalizations {
   @override
   String get mostRelevant => '最相关';
 
+  @override
+  String get scamAlerts => '防诈警示';
+
+  @override
+  String get contactDetails => '联系方式';
+
+  @override
+  String get paymentDetails => '付款信息';
+
+  @override
+  String get offPlatformDeal => '平台外交易';
+
+  @override
+  String get suspiciousLink => '可疑链接';
+
+  @override
+  String get asksVerificationDetails => '索取验证资料';
+
+  @override
+  String get scamWording => '诈骗话术';
+
+  @override
+  String get markedAsFalseAlarm => '已标示为误判';
+
+  @override
+  String get markedAsHandled => '已标示为已处理';
+
+  @override
+  String get noOpenScamAlerts => '目前没有待处理的防诈警示';
+
+  @override
+  String p0HighRisk(Object p0) => '${p0} 条高风险';
+
+  @override
+  String firstP0(Object p0) => '首次 ${p0}';
+
+  @override
+  String latestP0(Object p0) => '最近 ${p0}';
+
+  @override
+  String get falseAlarm => '误判';
+
+  @override
+  String get neverShareVerificationCodesPasswordsCard => '请勿将验证码、密码或卡片资料提供给任何人';
+
+  @override
+  String get messageContainsCommonScamWordingWe => '此消息含常见诈骗话术，平台不会通过聊天要求解除分期或认证';
+
+  @override
+  String get messageContainsSuspiciousLinkDoNot => '此消息含可疑链接，请勿点击或输入个人资料';
+
+  @override
+  String get scamSafetyTips => '防诈须知';
+
+  @override
+  String get chatHighRiskMessagesDoNot => '此聊天室有高风险消息，请勿提供验证码或私下付款';
+
+  @override
+  String get payEveryDealAppUseSmart => '所有交易请在平台内付款，并通过智能书柜取放书';
+
+  @override
+  String get weOurSupportTeamNeverAsk => '平台与客服不会通过聊天要求您提供验证码、密码或卡片资料';
+
+  @override
+  String get doNotOpenUnknownShortLinks => '请勿点击来路不明的短网址，也不要依对方指示操作网上银行或 ATM';
+
+  @override
+  String get cancelInstallmentsAccountFrozenPaymentVerification => '“解除分期”“账户冻结”“金流认证”“购买游戏点数”皆为常见诈骗话术';
+
+  @override
+  String get ifSeeSuspiciousMessageReportAdministrator => '发现可疑消息请按举报，管理员将协助处理';
+
+  @override
+  String get confirmSending => '确认发送';
+
+  @override
+  String get messageIncludesContactPaymentDetailsDeals => '消息包含联系方式或付款信息。在平台外交易或付款不受平台保障，发生纠纷时平台无法协助。';
+
+  @override
+  String get sendAnyway => '仍要发送';
+
+  @override
+  String get editMessage2 => '返回修改';
+
+  @override
+  String get suspectedScamMessage => '疑似诈骗消息';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -38052,6 +38516,93 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get mostRelevant => '最相關';
+
+  @override
+  String get scamAlerts => '防詐警示';
+
+  @override
+  String get contactDetails => '聯絡方式';
+
+  @override
+  String get paymentDetails => '付款資訊';
+
+  @override
+  String get offPlatformDeal => '平台外交易';
+
+  @override
+  String get suspiciousLink => '可疑連結';
+
+  @override
+  String get asksVerificationDetails => '索取驗證資料';
+
+  @override
+  String get scamWording => '詐騙話術';
+
+  @override
+  String get markedAsFalseAlarm => '已標示為誤判';
+
+  @override
+  String get markedAsHandled => '已標示為已處理';
+
+  @override
+  String get noOpenScamAlerts => '目前沒有待處理的防詐警示';
+
+  @override
+  String p0HighRisk(Object p0) => '${p0} 則高風險';
+
+  @override
+  String firstP0(Object p0) => '首次 ${p0}';
+
+  @override
+  String latestP0(Object p0) => '最近 ${p0}';
+
+  @override
+  String get falseAlarm => '誤判';
+
+  @override
+  String get neverShareVerificationCodesPasswordsCard => '請勿將驗證碼、密碼或卡片資料提供給任何人';
+
+  @override
+  String get messageContainsCommonScamWordingWe => '此訊息含常見詐騙話術，平台不會透過聊天要求解除分期或認證';
+
+  @override
+  String get messageContainsSuspiciousLinkDoNot => '此訊息含可疑連結，請勿點擊或輸入個人資料';
+
+  @override
+  String get scamSafetyTips => '防詐須知';
+
+  @override
+  String get chatHighRiskMessagesDoNot => '此聊天室有高風險訊息，請勿提供驗證碼或私下付款';
+
+  @override
+  String get payEveryDealAppUseSmart => '所有交易請在平台內付款，並透過智慧書櫃取放書';
+
+  @override
+  String get weOurSupportTeamNeverAsk => '平台與客服不會透過聊天要求您提供驗證碼、密碼或卡片資料';
+
+  @override
+  String get doNotOpenUnknownShortLinks => '請勿點擊來路不明的短網址，也不要依對方指示操作網路銀行或 ATM';
+
+  @override
+  String get cancelInstallmentsAccountFrozenPaymentVerification => '「解除分期」「帳戶凍結」「金流認證」「購買遊戲點數」皆為常見詐騙話術';
+
+  @override
+  String get ifSeeSuspiciousMessageReportAdministrator => '發現可疑訊息請按檢舉，管理員將協助處理';
+
+  @override
+  String get confirmSending => '確認傳送';
+
+  @override
+  String get messageIncludesContactPaymentDetailsDeals => '訊息包含聯絡方式或付款資訊。在平台外交易或付款不受平台保障，發生糾紛時平台無法協助。';
+
+  @override
+  String get sendAnyway => '仍要傳送';
+
+  @override
+  String get editMessage2 => '返回修改';
+
+  @override
+  String get suspectedScamMessage => '疑似詐騙訊息';
 
 }
 

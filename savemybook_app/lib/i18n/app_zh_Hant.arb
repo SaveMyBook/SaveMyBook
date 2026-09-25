@@ -3629,5 +3629,49 @@
   "doNotPayTransferMoneyOutside": "請勿私下匯款或轉帳，站外付款不受平台保障",
   "pleaseCompleteDealAppWeCannot": "請透過平台交易，站外交易發生糾紛時平台無法協助",
   "personSharedOutsideContactDetailsWatch": "對方提供了站外聯絡方式，請留意詐騙並透過平台完成交易",
-  "mostRelevant": "最相關"
+  "mostRelevant": "最相關",
+  "scamAlerts": "防詐警示",
+  "contactDetails": "聯絡方式",
+  "paymentDetails": "付款資訊",
+  "offPlatformDeal": "平台外交易",
+  "suspiciousLink": "可疑連結",
+  "asksVerificationDetails": "索取驗證資料",
+  "scamWording": "詐騙話術",
+  "markedAsFalseAlarm": "已標示為誤判",
+  "markedAsHandled": "已標示為已處理",
+  "noOpenScamAlerts": "目前沒有待處理的防詐警示",
+  "p0HighRisk": "{p0} 則高風險",
+  "@p0HighRisk": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "firstP0": "首次 {p0}",
+  "@firstP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "latestP0": "最近 {p0}",
+  "@latestP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "falseAlarm": "誤判",
+  "neverShareVerificationCodesPasswordsCard": "請勿將驗證碼、密碼或卡片資料提供給任何人",
+  "messageContainsCommonScamWordingWe": "此訊息含常見詐騙話術，平台不會透過聊天要求解除分期或認證",
+  "messageContainsSuspiciousLinkDoNot": "此訊息含可疑連結，請勿點擊或輸入個人資料",
+  "scamSafetyTips": "防詐須知",
+  "chatHighRiskMessagesDoNot": "此聊天室有高風險訊息，請勿提供驗證碼或私下付款",
+  "payEveryDealAppUseSmart": "所有交易請在平台內付款，並透過智慧書櫃取放書",
+  "weOurSupportTeamNeverAsk": "平台與客服不會透過聊天要求您提供驗證碼、密碼或卡片資料",
+  "doNotOpenUnknownShortLinks": "請勿點擊來路不明的短網址，也不要依對方指示操作網路銀行或 ATM",
+  "cancelInstallmentsAccountFrozenPaymentVerification": "「解除分期」「帳戶凍結」「金流認證」「購買遊戲點數」皆為常見詐騙話術",
+  "ifSeeSuspiciousMessageReportAdministrator": "發現可疑訊息請按檢舉，管理員將協助處理",
+  "confirmSending": "確認傳送",
+  "messageIncludesContactPaymentDetailsDeals": "訊息包含聯絡方式或付款資訊。在平台外交易或付款不受平台保障，發生糾紛時平台無法協助。",
+  "sendAnyway": "仍要傳送",
+  "editMessage2": "返回修改",
+  "suspectedScamMessage": "疑似詐騙訊息"
 }

@@ -18,6 +18,7 @@ import 'services/home_preferences.dart';
 import 'services/home_widget_service.dart';
 import 'services/locale_provider.dart';
 import 'services/push_service.dart';
+import 'services/realtime_service.dart';
 import 'services/theme_provider.dart';
 import 'services/verification_service.dart';
 import 'utils/app_info.dart';
@@ -60,6 +61,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
 
     PushService.navigatorKey = navigatorKey;
     ApiService.onSigningOut = ({required bool canReachServer}) async {
+      RealtimeService.instance.stop();
       unawaited(HomeWidgetService.clear());
       await PushService.onSigningOut(canReachServer: canReachServer);
     };

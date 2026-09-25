@@ -187,5 +187,5 @@ const runFolder = async (dir, { skip = [] } = {}) => {
 
 module.exports = {
   API_ROOT, prisma, api, reset, onReset, setDefaultReset, onFetch, jsonResponse, fetchLog, realFetch,
-  request, listen, close, runSuite, runFolder, clientIp: () => clientIp
+  request, listen, close, runSuite, runFolder, clientIp: () => clientIp, httpServer: server, baseUrl: () => baseUrl
 };

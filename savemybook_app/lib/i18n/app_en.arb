@@ -3629,5 +3629,49 @@
   "doNotPayTransferMoneyOutside": "Do not pay or transfer money outside the app. Off-platform payments are not protected.",
   "pleaseCompleteDealAppWeCannot": "Please complete the deal in the app. We cannot help with disputes over off-platform deals.",
   "personSharedOutsideContactDetailsWatch": "This person shared outside contact details. Watch out for scams and complete the deal in the app.",
-  "mostRelevant": "Most relevant"
+  "mostRelevant": "Most relevant",
+  "scamAlerts": "Scam alerts",
+  "contactDetails": "Contact details",
+  "paymentDetails": "Payment details",
+  "offPlatformDeal": "Off-platform deal",
+  "suspiciousLink": "Suspicious link",
+  "asksVerificationDetails": "Asks for verification details",
+  "scamWording": "Scam wording",
+  "markedAsFalseAlarm": "Marked as a false alarm",
+  "markedAsHandled": "Marked as handled",
+  "noOpenScamAlerts": "No open scam alerts",
+  "p0HighRisk": "{p0} high-risk",
+  "@p0HighRisk": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "firstP0": "First {p0}",
+  "@firstP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "latestP0": "Latest {p0}",
+  "@latestP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "falseAlarm": "False alarm",
+  "neverShareVerificationCodesPasswordsCard": "Never share verification codes, passwords, or card details with anyone.",
+  "messageContainsCommonScamWordingWe": "This message contains common scam wording. We never ask you to cancel installments or verify accounts through chat.",
+  "messageContainsSuspiciousLinkDoNot": "This message contains a suspicious link. Do not open it or enter personal information.",
+  "scamSafetyTips": "Scam safety tips",
+  "chatHighRiskMessagesDoNot": "This chat has high-risk messages. Do not share verification codes or pay outside the app.",
+  "payEveryDealAppUseSmart": "Pay for every deal in the app and use the smart lockers to drop off and pick up books.",
+  "weOurSupportTeamNeverAsk": "We and our support team will never ask for verification codes, passwords, or card details in chat.",
+  "doNotOpenUnknownShortLinks": "Do not open unknown short links, and never follow instructions to use online banking or an ATM.",
+  "cancelInstallmentsAccountFrozenPaymentVerification": "\"Cancel installments\", \"account frozen\", \"payment verification\" and \"buy game points\" are common scam phrases.",
+  "ifSeeSuspiciousMessageReportAdministrator": "If you see a suspicious message, report it and an administrator will follow up.",
+  "confirmSending": "Confirm sending",
+  "messageIncludesContactPaymentDetailsDeals": "Your message includes contact or payment details. Deals and payments outside the app are not protected, and we cannot help with disputes over them.",
+  "sendAnyway": "Send anyway",
+  "editMessage2": "Edit message",
+  "suspectedScamMessage": "Suspected scam message"
 }

@@ -130,6 +130,7 @@ extension ChatApi on ApiService {
       muted: meta['muted'] == true,
       blocked: meta['blocked'] == true,
       canSend: meta['can_send'] != false,
+      riskBanner: ChatRisk.fromJson(meta['risk_banner']),
       ok: res != null && res['success'] == true,
       error: res == null || res['success'] == true ? null : res['message'] as String?,
       code: res?['code'] as String?,
@@ -139,6 +140,9 @@ extension ChatApi on ApiService {
 
   static const _chatV3Unavailable = 'CHAT_V3_UNAVAILABLE';
 
+  /// 送出或編輯時回傳此值代表內容含聯絡方式或付款資訊，須經使用者確認後帶 confirmRisk 重送。
+  static const riskConfirmRequired = 'RISK_CONFIRM_REQUIRED';
+
   Future<(ChatMessage?, String?)> sendChatMessage(
     int roomId,
     Object content, {
@@ -146,6 +150,7 @@ extension ChatApi on ApiService {
     int? durationSeconds,
     int? replyToId,
     List<ChatMention> mentions = const [],
+    bool confirmRisk = false,
   }) async {
     Future<Map<String, dynamic>?> post(bool withMentions) => _send(
       'POST',
@@ -156,11 +161,13 @@ extension ChatApi on ApiService {
         'duration': ?durationSeconds,
         'reply_to_id': ?replyToId,
         if (withMentions) 'mentions': [for (final m in mentions) m.toJson()],
+        if (confirmRisk) 'confirm_risk': true,
       },
     );
     var res = await post(mentions.isNotEmpty);
     // 伺服器尚未套用 010 遷移時會拒收提及；訊息本身仍須送出。
     if (mentions.isNotEmpty && res?['code'] == _chatV3Unavailable) res = await post(false);
+    if (res?['code'] == riskConfirmRequired) return (null, riskConfirmRequired);
     if (res == null || res['success'] != true || res['data'] is! Map) {
       return (null, res?['message'] as String? ?? S.messageCouldNotSent);
     }
@@ -308,6 +315,7 @@ extension ChatApi on ApiService {
     int messageId,
     String content, {
     List<ChatMention> mentions = const [],
+    bool confirmRisk = false,
   }) async {
     Future<Map<String, dynamic>?> patch(bool withMentions) => _send(
       'PATCH',
@@ -315,10 +323,12 @@ extension ChatApi on ApiService {
       body: {
         'content': content,
         if (withMentions) 'mentions': [for (final m in mentions) m.toJson()],
+        if (confirmRisk) 'confirm_risk': true,
       },
     );
     var res = await patch(true);
     if (res?['code'] == _chatV3Unavailable) res = await patch(false);
+    if (res?['code'] == riskConfirmRequired) return (null, riskConfirmRequired);
     if (res == null || res['success'] != true || res['data'] is! Map) return (null, _errorOf(res));
     return (ChatMessage.fromJson(Map<String, dynamic>.from(res['data'])), null);
   }

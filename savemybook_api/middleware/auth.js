@@ -5,23 +5,29 @@ const sessions = require('../services/sessions');
 const deny = (res, status, message, code) =>
   res.status(status).json({ success: false, ...(code && { code }), message });
 
-const authenticateToken = async (req, res, next) => {
-  const token = readToken(req);
-  if (!token) return deny(res, 401, '請先登入');
+// HTTP 與 WebSocket 共用：回傳 { user, decoded }，或 { problem: [status, message, code] }。
+const authenticate = async (token) => {
+  if (!token) return { problem: [401, '請先登入'] };
 
   let decoded;
   try {
     decoded = verify(token);
   } catch (err) {
-    if (err.name === 'TokenExpiredError') return deny(res, 403, '登入已逾時', 'TOKEN_EXPIRED');
-    return deny(res, 403, '登入已失效，請重新登入');
+    if (err.name === 'TokenExpiredError') return { problem: [403, '登入已逾時', 'TOKEN_EXPIRED'] };
+    return { problem: [403, '登入已失效，請重新登入'] };
   }
 
   const userId = Number(decoded?.userId);
-  if (decoded?.typ || !Number.isSafeInteger(userId) || userId < 1) return deny(res, 403, '登入已失效，請重新登入');
+  if (decoded?.typ || !Number.isSafeInteger(userId) || userId < 1) return { problem: [403, '登入已失效，請重新登入'] };
 
   const [user, revoked] = await Promise.all([auth.loadUser(userId), auth.sessionProblem(userId, decoded)]);
   const problem = auth.accountProblem(user, decoded) ?? revoked;
+  if (problem) return { problem };
+  return { user, decoded };
+};
+
+const authenticateToken = async (req, res, next) => {
+  const { user, decoded, problem } = await authenticate(readToken(req));
   if (problem) return deny(res, ...problem);
 
   if (decoded.sid) sessions.touch(decoded.sid, req.ip);
@@ -44,3 +50,4 @@ const peekUserId = (req) => {
 
 module.exports = authenticateToken;
 module.exports.peekUserId = peekUserId;
+module.exports.authenticate = authenticate;

@@ -34,6 +34,8 @@ enum NotificationCategory {
     'ticket': service,
     'report': service,
     'admin_ticket': service,
+    'book_review': service,
+    'risk_alert': service,
     'announcement': promotion,
   };
 

@@ -31,6 +31,21 @@ tags:
       伺服器尚未執行 `migrations/009_chat_groups_transfers.sql` 時，一對一聊天照常運作（列表的 `pinned` 固定為 false），
       群組、釘選、自訂暱稱、編輯訊息與轉帳相關端點回傳 503 `CHAT_V2_UNAVAILABLE`。
 
+      ## Realtime
+
+      聊天室的變動以 Socket.IO（v4）即時推送，路徑為 `/socket.io`，連線時於 `auth.token` 帶入與 HTTP 相同的登入權杖。
+      權杖無效、已過期或帳號停權時連線被拒，`connect_error` 的 `data` 為 `{ status, code }`；
+      連線期間每 5 分鐘重新驗證一次，失效時伺服器主動斷線，App 應以新的權杖重新連線。
+
+      | 事件 | 方向 | 內容 | 說明 |
+      | --- | --- | --- | --- |
+      | `chat:room` | 伺服器 → App | `{ room_id }` | 聊天室有新訊息、收回、編輯、已讀、卡片狀態或群組成員變動；觸發操作的使用者本人不會收到。App 收到後以 `after_id` 增量取得訊息，並重新整理聊天列表 |
+      | `chat:typing` | 伺服器 → App | `{ room_id, user_id, typing }` | 其他成員開始或停止輸入。一對一任一方封鎖另一方時不推送 |
+      | `typing` | App → 伺服器 | `{ room_id, typing }` | 回報輸入中，效果同 `POST /api/chat/rooms/{roomId}/typing`；每條連線每秒最多一次，非成員時忽略 |
+
+      推送只是「有變動」的提示，內容仍以 HTTP 端點為準。推送在回應送出後才發出；連線中斷期間的變動不會補送，
+      App 重新連線後應重新取得一次，並保留低頻率輪詢作為備援。伺服器以單一行程保存連線，多行程部署須另加 Redis adapter。
+
       ## Message Kinds
 
       每則訊息除資料表原始欄位外，另帶伺服器解析後的 `kind`、`body`、`payload`，
@@ -516,6 +531,12 @@ paths:
                         type: array
                         description: 一對一雙方之間最近 30 筆預約（不論哪一方為買家），依建立時間遞減排序；群組為空陣列。
                         items: { $ref: '#/components/schemas/Reservation' }
+                      risk_banner:
+                        nullable: true
+                        description: |
+                          近 30 天內其他成員傳送過高風險訊息時帶入，供聊天室頂部顯示防詐提醒；否則為 `null`。
+                          伺服器尚未執行資料庫更新 023 時，僅依本頁訊息判斷。
+                        allOf: [{ $ref: '#/components/schemas/ChatRisk' }]
                   data:
                     type: array
                     description: 訊息清單，由舊至新排序。
@@ -552,6 +573,12 @@ paths:
 
         一對一時，對方帳號已停權、列入黑名單或已封鎖請求者時回傳 400 `RECIPIENT_UNAVAILABLE`；
         請求者已封鎖對方時回傳 403 `CHAT_BLOCKED`。群組不檢查封鎖關係。
+
+        文字訊息會經過防詐檢查（見 `ChatRisk`）。本則訊息（連同同一人 10 分鐘內在此聊天室的前 5 則文字訊息）新出現聯絡方式、
+        付款資訊或平台外交易時，未帶 `confirm_risk: true` 回傳 409 `RISK_CONFIRM_REQUIRED`，`categories` 列出觸發的類別；
+        App 應提醒使用者平台外交易不受保障，確認後帶 `confirm_risk: true` 重送。
+        同一人 24 小時內累積 3 則高風險訊息時，建立管理員防詐警示並通知具檢舉管理權限的管理員（`related_type` 為 `risk_alert`）。
+
         每位使用者每分鐘最多 60 次，與建立預約、轉帳、請款、建立群組與邀請成員共用計數。
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -587,6 +614,10 @@ paths:
                   nullable: true
                   description: 回覆的訊息編號，必須屬於同一聊天室。伺服器尚未執行資料庫更新 008 時忽略此欄位。
                   example: 298
+                confirm_risk:
+                  type: boolean
+                  default: false
+                  description: 使用者已確認傳送含聯絡方式或付款資訊的訊息，收到 409 `RISK_CONFIRM_REQUIRED` 後重送時帶入。
                 duration:
                   type: integer
                   minimum: 1
@@ -652,6 +683,7 @@ paths:
                 已封鎖對方:
                   value: { success: false, code: CHAT_BLOCKED, message: 您已封鎖此使用者，解除封鎖後才能傳送訊息 }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/RiskConfirmRequired' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
         '503': { $ref: '#/components/responses/ChatV3Unavailable' }
@@ -666,7 +698,8 @@ paths:
         一對一另以 `meta.partner_typing` 表示。
 
         使用者持續輸入時建議每 3 至 4 秒呼叫一次；清空輸入框或離開畫面時帶入
-        `typing: false` 立即清除。送出訊息時伺服器會自動清除。
+        `typing: false` 立即清除。送出訊息時伺服器會自動清除。已建立即時連線時建議改送 `typing` 事件（見「Realtime」）。
+        其他成員會即時收到 `chat:typing` 事件。
 
         狀態保存在伺服器行程內，重啟後歸零。每位使用者每分鐘最多 40 次。
       security: [{ bearerAuth: [] }]
@@ -1281,6 +1314,8 @@ paths:
 
         群組可一併帶入 `mentions`，規則與送出訊息相同；未帶入或為空陣列時清除原有的提及。
         編輯不會再次發送提及通知。
+
+        原內容沒有、編輯後才加入聯絡方式、付款資訊或平台外交易時，未帶 `confirm_risk: true` 回傳 409 `RISK_CONFIRM_REQUIRED`。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -1310,6 +1345,10 @@ paths:
                   description: 編輯後的提及成員，僅限群組；未帶入時清除。
                   items: { $ref: '#/components/schemas/ChatMention' }
                   example: [{ user_id: 8, start: 0, length: 3 }]
+                confirm_risk:
+                  type: boolean
+                  default: false
+                  description: 使用者已確認傳送含聯絡方式或付款資訊的內容。
       responses:
         '200':
           description: 已編輯，回傳更新後的訊息。
@@ -1351,11 +1390,15 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 找不到此訊息 }
         '409':
-          description: 訊息已收回。
+          description: 訊息已收回，或新內容需要使用者確認。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 此訊息已收回 }
+              examples:
+                已收回:
+                  value: { success: false, message: 此訊息已收回 }
+                需要確認:
+                  value: { success: false, code: RISK_CONFIRM_REQUIRED, message: 訊息包含聯絡方式或付款資訊，於平台外交易將不受平台保障，請確認後再傳送, categories: [contact] }
         '500': { $ref: '#/components/responses/ServerError' }
         '503': { $ref: '#/components/responses/ChatV3Unavailable' }
 

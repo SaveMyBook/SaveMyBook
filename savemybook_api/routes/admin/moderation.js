@@ -6,6 +6,7 @@ const { REPORT_STATUSES, DISPUTE_STATUSES } = require('../../constants/domain');
 const reports = require('../../services/reports');
 const disputes = require('../../services/disputes');
 const disputeAssist = require('../../services/ai/dispute-assist');
+const chatRisk = require('../../services/chat/risk');
 const { rateLimit, byUser } = require('../../middleware/rateLimit');
 
 const router = express.Router();
@@ -23,6 +24,19 @@ router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
 
   const updated = await reports.review(reportId, { status, adminNote, removeTarget }, actorOf(req));
   res.status(200).json({ success: true, message: '檢舉已處理', data: updated });
+});
+
+router.get('/chat-risk-alerts', requireAdmin('reports'), async (req, res) => {
+  const status = req.query.status ? v.oneOf(req.query.status, chatRisk.ALERT_STATUSES, '不支援的警示狀態') : null;
+  res.status(200).json({ success: true, data: await chatRisk.adminList(status) });
+});
+
+router.patch('/chat-risk-alerts/:id', requireAdmin('reports'), async (req, res) => {
+  const alertId = v.id(req.params.id, '警示編號');
+  const actions = Object.keys(chatRisk.ACTIONS);
+  const action = v.oneOf(req.body.action, actions, `action 僅接受：${actions.join(', ')}`);
+  const data = await chatRisk.handle(alertId, action, req.user.userId);
+  res.status(200).json({ success: true, message: '警示已處理', data });
 });
 
 router.get('/disputes', requireAdmin('transactions'), async (req, res) => {

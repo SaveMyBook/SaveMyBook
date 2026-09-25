@@ -85,7 +85,11 @@ const REQUIRED = [
   { migration: '016_passkeys.sql', table: 'user_passkeys' },
   { migration: '016_passkeys.sql', table: 'webauthn_challenges' },
   { migration: '017_support_attachments.sql', table: 'support_ticket_attachments' },
-  { migration: '019_cabinet_maintenance.sql', table: 'smart_cabinets', column: 'is_maintenance' }
+  { migration: '019_cabinet_maintenance.sql', table: 'smart_cabinets', column: 'is_maintenance' },
+  { migration: '020_ai_embeddings.sql', table: 'ai_embeddings' },
+  { migration: '022_book_enrichment.sql', table: 'ai_book_enrichments' },
+  { migration: '023_chat_risk.sql', table: 'chat_message_risks' },
+  { migration: '023_chat_risk.sql', table: 'chat_risk_alerts' }
 ];
 
 const missingSchema = async () => {

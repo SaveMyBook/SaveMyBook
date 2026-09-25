@@ -2,6 +2,7 @@ const prisma = require('../lib/prisma');
 const { badRequest, conflict, forbidden, notFound } = require('../lib/errors');
 const { coverImage } = require('../lib/selects');
 const { notify, notifyMany } = require('./notify');
+const realtime = require('./realtime');
 const codec = require('./chat/codec');
 const rooms = require('./chat/rooms');
 
@@ -104,6 +105,7 @@ const postCard = async (tx, { roomId, senderId, reservationId }) => {
     data: { room_id: roomId, sender_id: senderId, content: codec.encodeReservation(reservationId), message_type: 'system' }
   });
   await tx.chat_rooms.update({ where: { room_id: roomId }, data: { updated_at: new Date() } });
+  realtime.touchRoom(roomId, { exceptUserId: senderId });
 };
 
 const request = async ({ room, buyerId, bookId, hours, message }) => {
@@ -226,7 +228,10 @@ const respond = async (reservationId, userId, action) => {
     }
 
     const room = await rooms.between(tx, row.buyer_id, row.seller_id);
-    if (room) await tx.chat_rooms.update({ where: { room_id: room.room_id }, data: { updated_at: now } });
+    if (room) {
+      await tx.chat_rooms.update({ where: { room_id: room.room_id }, data: { updated_at: now } });
+      realtime.touchRoom(room.room_id);
+    }
 
     if (action === 'cancel' && row.status === 'confirmed') await notifyAvailable(tx, row);
 

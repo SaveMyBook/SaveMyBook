@@ -276,23 +276,30 @@ class _ChatInputBarState extends State<ChatInputBar> with WidgetsBindingObserver
                 filled: true,
                 fillColor: c.inputFill,
                 contentPadding: const EdgeInsets.fromLTRB(16, 12, 4, 12),
-                suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 44),
+                // 右側區塊固定 40×44：快速回覆按鈕只淡入淡出，輸入框高度不隨有沒有文字改變，輸入列才不會跳動。
+                suffixIconConstraints: const BoxConstraints.tightFor(width: 40, height: 44),
                 suffixIcon: ValueListenableBuilder<TextEditingValue>(
                   valueListenable: widget.controller,
-                  builder: (_, value, _) => AnimatedSwitcher(
-                    duration: Motion.micro,
-                    child: value.text.isEmpty && widget.enabled
-                        ? IconButton(
-                            key: const ValueKey('quick'),
-                            onPressed: widget.onToggleQuickReplies,
-                            icon: Icon(
-                              widget.quickRepliesOpen ? Icons.keyboard_arrow_down_rounded : Icons.bolt_rounded,
-                              size: 22,
-                              color: widget.quickRepliesOpen ? c.accent : c.iconInactive,
-                            ),
-                          )
-                        : const SizedBox(key: ValueKey('none'), width: 12),
-                  ),
+                  builder: (_, value, _) {
+                    final showQuick = value.text.isEmpty && widget.enabled;
+                    return AnimatedOpacity(
+                      duration: Motion.micro,
+                      opacity: showQuick ? 1 : 0,
+                      child: IgnorePointer(
+                        ignoring: !showQuick,
+                        child: IconButton(
+                          onPressed: widget.onToggleQuickReplies,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints.tightFor(width: 40, height: 44),
+                          icon: Icon(
+                            widget.quickRepliesOpen ? Icons.keyboard_arrow_down_rounded : Icons.bolt_rounded,
+                            size: 22,
+                            color: widget.quickRepliesOpen ? c.accent : c.iconInactive,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
               ),

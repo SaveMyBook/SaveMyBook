@@ -3629,5 +3629,49 @@
   "doNotPayTransferMoneyOutside": "アプリ外での送金・振込はしないでください。プラットフォームの保護対象外です。",
   "pleaseCompleteDealAppWeCannot": "アプリ内で取引してください。アプリ外の取引トラブルには対応できません。",
   "personSharedOutsideContactDetailsWatch": "相手がアプリ外の連絡先を送ってきました。詐欺に注意し、アプリ内で取引を完了してください。",
-  "mostRelevant": "関連度順"
+  "mostRelevant": "関連度順",
+  "scamAlerts": "詐欺アラート",
+  "contactDetails": "連絡先",
+  "paymentDetails": "支払い情報",
+  "offPlatformDeal": "アプリ外取引",
+  "suspiciousLink": "不審なリンク",
+  "asksVerificationDetails": "認証情報の要求",
+  "scamWording": "詐欺の文言",
+  "markedAsFalseAlarm": "誤検知として記録しました",
+  "markedAsHandled": "対応済みとして記録しました",
+  "noOpenScamAlerts": "未対応の詐欺アラートはありません",
+  "p0HighRisk": "高リスク {p0} 件",
+  "@p0HighRisk": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "firstP0": "初回 {p0}",
+  "@firstP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "latestP0": "最新 {p0}",
+  "@latestP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "falseAlarm": "誤検知",
+  "neverShareVerificationCodesPasswordsCard": "認証コード、パスワード、カード情報は誰にも教えないでください。",
+  "messageContainsCommonScamWordingWe": "よくある詐欺の文言が含まれています。当サービスがチャットで分割払いの解除や認証を求めることはありません。",
+  "messageContainsSuspiciousLinkDoNot": "不審なリンクが含まれています。開いたり個人情報を入力したりしないでください。",
+  "scamSafetyTips": "詐欺防止のヒント",
+  "chatHighRiskMessagesDoNot": "このチャットには高リスクのメッセージがあります。認証コードを教えたり、アプリ外で支払ったりしないでください。",
+  "payEveryDealAppUseSmart": "取引の支払いはすべてアプリ内で行い、本の受け渡しはスマートロッカーを利用してください。",
+  "weOurSupportTeamNeverAsk": "当サービスとサポートがチャットで認証コード、パスワード、カード情報を求めることはありません。",
+  "doNotOpenUnknownShortLinks": "不明な短縮 URL は開かず、相手の指示でネットバンキングや ATM を操作しないでください。",
+  "cancelInstallmentsAccountFrozenPaymentVerification": "「分割払いの解除」「口座凍結」「決済認証」「ゲームポイントの購入」はよくある詐欺の文言です。",
+  "ifSeeSuspiciousMessageReportAdministrator": "不審なメッセージは報告してください。管理者が対応します。",
+  "confirmSending": "送信の確認",
+  "messageIncludesContactPaymentDetailsDeals": "メッセージに連絡先または支払い情報が含まれています。アプリ外の取引や支払いは保護されず、トラブル時にも対応できません。",
+  "sendAnyway": "このまま送信",
+  "editMessage2": "修正する",
+  "suspectedScamMessage": "詐欺の疑いがあるメッセージ"
 }

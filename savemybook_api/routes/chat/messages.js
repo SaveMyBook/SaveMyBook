@@ -101,7 +101,9 @@ router.post('/rooms/:roomId/messages', sendLimiter, async (req, res) => {
   const outgoing = buildContent(req.body);
   const replyToId = v.optionalId(req.body.reply_to_id, '回覆的訊息編號');
 
-  const data = await messages.send(roomId, req.user.userId, { ...outgoing, replyToId });
+  const confirmRisk = v.bool(req.body.confirm_risk);
+
+  const data = await messages.send(roomId, req.user.userId, { ...outgoing, replyToId, confirmRisk });
   res.status(201).json({ success: true, data });
 });
 
@@ -112,7 +114,9 @@ router.patch('/rooms/:roomId/messages/:messageId', async (req, res) => {
   if (!content) throw badRequest('訊息內容不可為空');
   const mentions = mentionsOf(req.body.mentions, req.body.content, content);
 
-  const data = await messages.edit(roomId, messageId, req.user.userId, { content, mentions });
+  const confirmRisk = v.bool(req.body.confirm_risk);
+
+  const data = await messages.edit(roomId, messageId, req.user.userId, { content, mentions, confirmRisk });
   res.status(200).json({ success: true, message: '訊息已編輯', data });
 });
 

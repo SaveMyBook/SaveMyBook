@@ -274,6 +274,7 @@ Map<String, dynamic> chatMeta(int roomId) => roomId == 2
         'reservations': <Object>[],
         'transfers': [chatTransfer(1, room: 2, to: 3), chatTransfer(2, kind: 'request', status: 'pending', from: 1, to: 4, room: 2)],
         'muted': true,
+        'risk_banner': {'level': 'high', 'categories': ['credential', 'payment']},
         'room': {'type': 'group', 'title': 'Second-hand Textbook Exchange Group for Engineering Students', 'avatar_url': null, 'member_count': 100},
       }
     : {
@@ -367,6 +368,12 @@ List<Map<String, dynamic>> chatMessages(int roomId) {
           ? {'message_id': 2, 'sender_id': group ? 2 : 1, 'sender_nickname': longName, 'kind': group ? 'text' : 'image', 'preview': long, 'image_url': group ? null : '/uploads/chat/a.jpg'}
           : null,
       'users': {'user_id': sender, 'nickname': longName, 'avatar_url': null},
+      'risk': switch ((roomId, i)) {
+        (2, 7) => {'level': 'high', 'categories': ['contact', 'payment']},
+        (1, 1) => {'level': 'notice', 'categories': ['link']},
+        (1, 7) => {'level': 'notice', 'categories': ['offsite']},
+        _ => null,
+      },
     };
   });
 }
@@ -617,6 +624,11 @@ Object? fakeData(String method, String path) {
     'GET /admin/books': () => many((i) => {'book_id': i, 'title': longTitle, 'isbn': '9789571234567', 'price': 123456, 'status': ['on_sale', 'reserved', 'sold', 'removed'][i % 4], 'condition_level': 'fair', 'category_id': 1, 'category_name': 'Literature & Fiction Classics', 'seller': user(2), 'view_count': 987654, 'pending_report_count': 99, 'image_url': null, 'created_at': now}),
     'GET /admin/categories': () => many((i) => {'category_id': i, 'category_name': 'Computer Science & Programming $i', 'sort_order': i, 'book_count': 123456}),
     'GET /admin/reports': () => many((i) => {'report_id': i, 'target_type': 'book', 'target_id': i, 'reason': 'Counterfeit copy with missing pages ' * 3, 'status': ['pending', 'reviewing', 'resolved', 'dismissed'][i % 4], 'created_at': now, 'users_reports_reporter_idTousers': user(1), 'target': {'title': longTitle, 'book_images': <Object>[]}}),
+    'GET /admin/chat-risk-alerts': () => many((i) => {
+          'alert_id': i, 'status': 'open', 'hit_count': 123, 'first_at': now, 'last_at': now,
+          'user': {...user(i), 'user_no': 'MB3KER74B', 'is_active': i != 2, 'is_blacklisted': i == 3, 'created_at': now},
+          'samples': many((j) => {'content': 'Please send me the verification code from your text message so I can finish the payment for you. ' * 2, 'categories': ['credential', 'scam', 'link', 'payment', 'offsite', 'contact'], 'created_at': now}, 3),
+        }),
     'GET /admin/disputes': () => many((i) => {'dispute_id': i, 'order_id': i, 'reason': 'The book has water damage ' * 3, 'status': i.isEven ? 'resolved' : 'pending', 'result': i.isEven ? 'refund_manual' : null, 'created_at': now, 'users_transaction_disputes_applicant_idTousers': user(1), 'orders': {'order_id': i, 'order_no': 'SMB20260914103000123456', 'total_amount': 1234567, 'users_orders_buyer_idTousers': user(1), 'users_orders_seller_idTousers': user(2), 'order_items': [{'books': book(i)}]}}),
     'GET /admin/cabinets': () => many((i) => {...cabinet(), 'cabinet_id': i, 'latitude': 25.0173, 'longitude': 121.5398, 'total_slots': 200, 'available_slots': 123, 'is_active': i != 2, 'slot_summary': {'empty': 123, 'occupied': 45, 'reserved': 22, 'maintenance': 10}, 'cabinet_slots': many((j) => {'slot_id': j, 'slot_number': 'A${j.toString().padLeft(2, '0')}', 'status': 'occupied', 'updated_at': now}, 8)}),
     'GET /admin/maintenance-logs': () => many((i) => {'log_id': i, 'action': 'Changed slot status', 'detail': 'Changed A12 at $longCabinet to maintenance', 'users': user(9), 'created_at': now}),
@@ -742,6 +754,7 @@ Map<String, Widget Function()> get screens => {
       'AdminBooks': () => const AdminBookScreen(),
       'AdminCategories': () => const AdminCategoryScreen(),
       'AdminReports': () => const AdminReportScreen(),
+      'AdminRiskAlerts': () => const AdminReportScreen(initialTab: AdminReportScreen.riskAlertTab),
       'AdminDisputes': () => const AdminDisputeScreen(),
       'AdminCabinets': () => const AdminCabinetScreen(),
       'AdminMaintenanceLog': () => const AdminMaintenanceLogScreen(),

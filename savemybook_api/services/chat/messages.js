@@ -15,6 +15,8 @@ const transferRecords = require('./transfer-records');
 const typing = require('./typing');
 const history = require('./history');
 const mentionStore = require('./mentions');
+const riskService = require('./risk');
+const realtime = require('../realtime');
 
 const RECENT_RECALL_MS = codec.RECALL_WINDOW_MS + 10 * 60 * 1000;
 const RECENT_EDIT_MS = 20 * 60 * 1000;
@@ -71,7 +73,7 @@ const recentEdits = async (roomId, floor, v3) => {
 
 const directState = async (room, roomId, myId, markRead) => {
   const partnerId = rooms.partnerIdOf(room, myId);
-  const [, lastRead, reservationMap, relation, partnerStatus] = await Promise.all([
+  const [marked, lastRead, reservationMap, relation, partnerStatus] = await Promise.all([
     markRead
       ? prisma.chat_messages.updateMany({
           where: { room_id: roomId, sender_id: { not: myId }, is_read: false },
@@ -87,6 +89,7 @@ const directState = async (room, roomId, myId, markRead) => {
     controls.relation(myId, partnerId),
     prisma.users.findUnique({ where: { user_id: partnerId }, select: { is_active: true, is_blacklisted: true } })
   ]);
+  if (marked?.count > 0) realtime.touchRoom(roomId, { exceptUserId: myId });
   const readUpto = lastRead?.message_id ?? 0;
   const visible = !relation.blocked && !relation.blockedBy;
   const partnerTyping = visible && typing.isTyping(roomId, partnerId);
@@ -113,7 +116,10 @@ const groupState = async (roomId, myId, markRead, messages) => {
   const others = current.filter((m) => m.user_id !== myId);
   const readUpto = others.reduce((max, m) => Math.max(max, m.last_read_message_id), 0);
   const newest = messages.reduce((max, m) => Math.max(max, m.message_id), 0);
-  if (markRead && newest > myLastRead) await members.markRead(prisma, roomId, myId, newest);
+  if (markRead && newest > myLastRead) {
+    await members.markRead(prisma, roomId, myId, newest);
+    realtime.touchRoom(roomId, { exceptUserId: myId });
+  }
   return {
     otherIds: others.map((m) => m.user_id),
     nicknames: new Map(current.filter((m) => m.group_nickname).map((m) => [m.user_id, m.group_nickname])),
@@ -157,7 +163,7 @@ const list = async (roomId, myId, { limit, beforeId, afterId, before, markRead }
   });
   if (!incremental) messages.reverse();
 
-  const [state, recalled, muted, replies, edits, edited, transfers, aliasMap, mentionMap] = await Promise.all([
+  const [state, recalled, muted, replies, edits, edited, transfers, aliasMap, mentionMap, risks] = await Promise.all([
     group ? groupState(roomId, myId, markRead, messages) : directState(room, roomId, myId, markRead),
     incremental
       ? prisma.chat_messages.findMany({
@@ -176,8 +182,10 @@ const list = async (roomId, myId, { limit, beforeId, afterId, before, markRead }
     incremental && v2 ? recentEdits(roomId, floor, v3) : Promise.resolve([]),
     transferRecords.forRoom(roomId, messages, floor),
     aliases.mine(myId),
-    v3 ? mentionStore.forMessages(messages) : new Map()
+    v3 ? mentionStore.forMessages(messages) : new Map(),
+    riskService.forMessages(messages, myId)
   ]);
+  const riskBanner = await riskService.bannerFor(roomId, myId, risks);
 
   const relevant = new Set([...state.otherIds, ...messages.map((m) => m.sender_id)]);
   relevant.delete(myId);
@@ -195,6 +203,7 @@ const list = async (roomId, myId, { limit, beforeId, afterId, before, markRead }
       edited,
       muted: muted.has(roomId),
       recalled_ids: recalled.map((m) => m.message_id),
+      risk_banner: riskBanner,
       has_more: !incremental && messages.length === limit,
       reservations: [...state.reservationMap.values()],
       transfers: transfers.recent,
@@ -209,12 +218,13 @@ const list = async (roomId, myId, { limit, beforeId, afterId, before, markRead }
       ),
       is_read: state.isRead(m),
       edited_at: edits.get(m.message_id) ?? null,
-      reply_to: replies.get(m.message_id) ?? null
+      reply_to: replies.get(m.message_id) ?? null,
+      risk: risks.get(m.message_id) ?? null
     }))
   };
 };
 
-const send = async (roomId, myId, { messageType, content, preview, replyToId, mentions = [] }) => {
+const send = async (roomId, myId, { messageType, content, preview, replyToId, mentions = [], confirmRisk = false }) => {
   const room = await rooms.findMine(roomId, myId);
   if (mentions.length > 0) {
     if (!rooms.isGroup(room)) throw mentionStore.directOnly();
@@ -248,6 +258,12 @@ const send = async (roomId, myId, { messageType, content, preview, replyToId, me
     throw badRequest('找不到要回覆的訊息');
   }
 
+  const risk = messageType === 'text' ? await riskService.assess({ roomId, senderId: myId, text: content }) : null;
+  if (risk && !confirmRisk) {
+    const pending = riskService.confirmRequired(risk.categories);
+    if (pending) throw pending;
+  }
+
   const message = await prisma.$transaction(async (tx) => {
     const created = await tx.chat_messages.create({
       data: { room_id: roomId, sender_id: myId, content, message_type: messageType },
@@ -261,6 +277,7 @@ const send = async (roomId, myId, { messageType, content, preview, replyToId, me
     }
 
     await tx.chat_rooms.update({ where: { room_id: roomId }, data: { updated_at: new Date() } });
+    realtime.touchRoom(roomId, { exceptUserId: myId });
 
     await notice.notifyMembers(tx, {
       room, actor: { user_id: myId, nickname: senderName }, userIds: recipients, preview, mentionedIds
@@ -270,6 +287,8 @@ const send = async (roomId, myId, { messageType, content, preview, replyToId, me
   });
 
   typing.clear(roomId, myId);
+  await riskService.record({ messageId: message.message_id, roomId, senderId: myId, risk })
+    .catch((err) => console.error('[聊天風險紀錄失敗]:', err.message));
   return {
     ...codec.shapeMessage({ ...message, mentions }),
     edited_at: null,
@@ -281,6 +300,7 @@ const setTyping = async (roomId, myId, isTyping) => {
   await rooms.findMine(roomId, myId);
   if (isTyping) typing.set(roomId, myId);
   else typing.clear(roomId, myId);
+  realtime.emitTyping(roomId, myId, isTyping).catch(() => {});
 };
 
 const ownMessage = async (roomId, messageId, myId, deniedMessage, floor) => {
@@ -311,10 +331,11 @@ const recall = async (roomId, messageId, myId) => {
     if (clearMentions) await mentionStore.clear(tx, messageId);
     return row;
   });
+  realtime.touchRoom(roomId, { exceptUserId: myId });
   return codec.shapeMessage(updated);
 };
 
-const edit = async (roomId, messageId, myId, { content, mentions = [] }) => {
+const edit = async (roomId, messageId, myId, { content, mentions = [], confirmRisk = false }) => {
   await schema.requireV2();
   const room = await rooms.findMine(roomId, myId);
   const message = await ownMessage(roomId, messageId, myId, '僅能編輯自己傳送的訊息', room.history);
@@ -331,6 +352,12 @@ const edit = async (roomId, messageId, myId, { content, mentions = [] }) => {
     if (!rooms.isGroup(room)) throw mentionStore.directOnly();
     await schema.requireV3();
   }
+  const risk = riskService.contentRisk(content);
+  if (risk && !confirmRisk && !riskService.contentRisk(message.content)) {
+    const pending = riskService.confirmRequired(risk.categories);
+    if (pending) throw pending;
+  }
+
   const v3 = await schema.isV3();
   const mentionedIds = mentions.length > 0
     ? mentionStore.targetsOf(mentions, (await members.active(roomId)).map((m) => m.user_id).filter((id) => id !== myId))
@@ -353,6 +380,9 @@ const edit = async (roomId, messageId, myId, { content, mentions = [] }) => {
       include: { users: { select: userBrief } }
     });
   });
+  realtime.touchRoom(roomId, { exceptUserId: myId });
+  await riskService.record({ messageId, roomId, senderId: myId, risk, replace: true })
+    .catch((err) => console.error('[聊天風險紀錄失敗]:', err.message));
   const replies = await repliesFor([updated], room.history);
   return { ...codec.shapeMessage({ ...updated, mentions }), edited_at: now, reply_to: replies.get(messageId) ?? null };
 };

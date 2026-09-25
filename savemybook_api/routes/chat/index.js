@@ -1,5 +1,6 @@
 const express = require('express');
 const authenticateToken = require('../../middleware/auth');
+const realtime = require('../../services/realtime');
 
 const SECTIONS = [
   './rooms',
@@ -14,6 +15,7 @@ const SECTIONS = [
 const router = express.Router();
 
 router.use(authenticateToken);
+router.use(realtime.collect);
 
 for (const section of SECTIONS) {
   router.use(require(section));

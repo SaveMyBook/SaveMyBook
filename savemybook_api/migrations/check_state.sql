@@ -285,4 +285,18 @@ UNION ALL
 SELECT '資料表', 'ai_book_enrichments',
        IF(COUNT(*) = 0, '缺少', '已存在')
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_book_enrichments';
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ai_book_enrichments'
+
+UNION ALL
+
+SELECT '資料表', 'chat_message_risks',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_message_risks'
+
+UNION ALL
+
+SELECT '資料表', 'chat_risk_alerts',
+       IF(COUNT(*) = 0, '缺少', '已存在')
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chat_risk_alerts';

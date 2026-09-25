@@ -2,8 +2,8 @@ tags:
   - name: admin-moderation
     x-displayName: 後台：檢舉與爭議
     description: |
-      檢舉審核與交易爭議仲裁，分別需 `can_manage_reports` 與
-      `can_manage_transactions` 權限，兩者獨立。
+      檢舉審核、聊天防詐警示與交易爭議仲裁；前兩者需 `can_manage_reports`，
+      爭議需 `can_manage_transactions` 權限，兩者獨立。
 
       爭議裁決為系統中唯一會寫入退款紀錄的操作，將建立 `refund_records`
       並將訂單狀態更新為 `refunded`。
@@ -130,6 +130,126 @@ paths:
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/chat-risk-alerts:
+    get:
+      summary: 聊天防詐警示列表
+      operationId: adminListChatRiskAlerts
+      tags: [admin-moderation]
+      description: |
+        會員 24 小時內累積 3 則高風險聊天訊息（見 `ChatRisk`）時建立一筆警示；同一會員已有未處理警示時只累加 `hit_count`。
+        依最後觸發時間遞減排序，最多 200 筆。需 `can_manage_reports` 權限。
+
+        `samples` 為該會員最近 5 則仍存在的高風險文字訊息，供判斷是否停權；已收回或已刪除的訊息不會列出。
+        伺服器尚未執行資料庫更新 023 時回傳空陣列。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [open, dismissed, resolved] }
+          description: 僅列出指定狀態；未帶入時列出全部。
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        alert_id: { type: integer, example: 4 }
+                        status: { type: string, enum: [open, dismissed, resolved] }
+                        hit_count: { type: integer, description: 觸發時累積的高風險訊息數，之後每則再加 1, example: 3 }
+                        first_at: { type: string, format: date-time }
+                        last_at: { type: string, format: date-time }
+                        handled_at: { type: string, format: date-time, nullable: true }
+                        user:
+                          type: object
+                          nullable: true
+                          properties:
+                            user_id: { type: integer, example: 52 }
+                            user_no: { type: string, description: 會員加密編號，供畫面顯示, example: MB3KER74B }
+                            nickname: { type: string }
+                            avatar_url: { type: string, nullable: true }
+                            is_active: { type: boolean }
+                            is_blacklisted: { type: boolean }
+                            created_at: { type: string, format: date-time }
+                        samples:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              content: { type: string, example: 請把簡訊驗證碼傳給我 }
+                              categories:
+                                type: array
+                                items: { type: string, enum: [contact, payment, offsite, link, credential, scam] }
+                              created_at: { type: string, format: date-time }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/chat-risk-alerts/{id}:
+    patch:
+      summary: 處理聊天防詐警示
+      operationId: adminHandleChatRiskAlert
+      tags: [admin-moderation]
+      description: |
+        `dismiss` 標示為誤判、`resolve` 標示為已處理（例如已停權）。停權請另至會員管理操作。需 `can_manage_reports` 權限。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [dismiss, resolve] }
+            example: { action: resolve }
+      responses:
+        '200':
+          description: 已處理。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 警示已處理 }
+                  data:
+                    type: object
+                    properties:
+                      alert_id: { type: integer, example: 4 }
+                      status: { type: string, enum: [dismissed, resolved] }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 警示已處理過。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: ALERT_HANDLED, message: 此警示已處理 }
+        '500': { $ref: '#/components/responses/ServerError' }
+        '503':
+          description: 伺服器尚未執行資料庫更新 023。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: MIGRATION_REQUIRED, message: 資料庫尚未更新，請先執行 migrations/023_chat_risk.sql }
 
   /api/admin/disputes:
     get:

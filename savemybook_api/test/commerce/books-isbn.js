@@ -44,6 +44,14 @@ const tests = [
     assert.strictEqual(res.body.message, '查詢外部書籍資訊發生錯誤');
   }],
 
+  ['Google Books 限流且 Open Library 查無資料時回 502，不當成查無此書', async () => {
+    stubGoogleBooks(() => jsonResponse({ error: 'rate limited' }, { status: 429 }));
+    stubOpenLibrary(() => jsonResponse({}));
+
+    const res = await lookup();
+    assert.strictEqual(res.status, 502);
+  }],
+
   ['只有 Google Books 有資料時仍可回傳', async () => {
     stubGoogleBooks(() => googleVolume({
       title: '射鵰英雄傳',

@@ -13,10 +13,19 @@ import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 import 'admin_layout.dart';
 import 'ai/ai_review_tab.dart';
+import 'chat_risk_tab.dart';
 
-/// 內容審核：使用者檢舉（待處理／已處理）與上架審核（規則或 AI 攔下的書籍）。
+/// 內容審核：使用者檢舉（待處理／已處理）、上架審核（規則或 AI 攔下的書籍）與聊天防詐警示。
 class AdminReportScreen extends StatefulWidget {
   static const int listingReviewTab = 2;
+  static const int riskAlertTab = 3;
+
+  static int initialTabFor(AdminOverview overview) {
+    if (overview.pendingReportCount > 0) return 0;
+    if (overview.pendingListingReviewCount > 0) return listingReviewTab;
+    if (overview.openRiskAlertCount > 0) return riskAlertTab;
+    return 0;
+  }
 
   final int initialTab;
 
@@ -38,9 +47,11 @@ class _AdminReportScreenState extends State<AdminReportScreen>
   int _loadSeq = 0;
   String _type = 'all';
   int? _reviewCount;
+  int? _riskCount;
 
   bool get _isPendingTab => _tabController.index == 0;
   bool get _isReviewTab => _tabController.index == AdminReportScreen.listingReviewTab;
+  bool get _isRiskTab => _tabController.index == AdminReportScreen.riskAlertTab;
 
   static bool _isOpen(ReportCase r) => r.status == 'pending' || r.status == 'reviewing';
 
@@ -48,9 +59,9 @@ class _AdminReportScreenState extends State<AdminReportScreen>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 3,
+      length: 4,
       vsync: this,
-      initialIndex: widget.initialTab.clamp(0, AdminReportScreen.listingReviewTab),
+      initialIndex: widget.initialTab.clamp(0, AdminReportScreen.riskAlertTab),
     );
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging && mounted) setState(() {});
@@ -79,6 +90,11 @@ class _AdminReportScreenState extends State<AdminReportScreen>
   void _setReviewCount(int count) {
     if (!mounted || _reviewCount == count) return;
     setState(() => _reviewCount = count);
+  }
+
+  void _setRiskCount(int count) {
+    if (!mounted || _riskCount == count) return;
+    setState(() => _riskCount = count);
   }
 
   List<ReportCase> _visible({required bool pending}) {
@@ -224,7 +240,11 @@ class _AdminReportScreenState extends State<AdminReportScreen>
     final c = AppColors.of(context);
     final pendingCount = _all.where(_isOpen).length;
     final reviewCount = _reviewCount ?? 0;
+    final riskCount = _riskCount ?? 0;
+    final riskLabel = S.scamAlerts;
     final reviewTab = _isReviewTab;
+    final riskTab = _isRiskTab;
+    final reportTab = !reviewTab && !riskTab;
     final types = <String, String>{
       for (final r in _all) r.targetType: r.targetTypeText,
     };
@@ -243,10 +263,11 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                   pendingCount > 0 ? '${S.ticketOpen} $pendingCount' : S.ticketOpen,
                   S.reportResolved,
                   reviewCount > 0 ? '${S.listingReview} $reviewCount' : S.listingReview,
+                  riskCount > 0 ? '$riskLabel $riskCount' : riskLabel,
                 ],
               ),
             ),
-            if (!reviewTab)
+            if (reportTab)
               Padding(
                 padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 0)),
                 child: AppSearchField(
@@ -255,7 +276,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                   onChanged: (_) => setState(() {}),
                 ),
               ),
-            if (!reviewTab && types.length > 1)
+            if (reportTab && types.length > 1)
               SizedBox(
                 height: 42,
                 child: ListView(
@@ -270,9 +291,9 @@ class _AdminReportScreenState extends State<AdminReportScreen>
             Expanded(
               child: SwipeTabs(
                 controller: _tabController,
-                // 上架審核分頁常駐在背景，切換分頁時不必重新載入，也能即時更新分頁上的待審數。
+                // 上架審核與防詐警示分頁常駐在背景，切換分頁時不必重新載入，也能即時更新分頁上的待處理數。
                 child: IndexedStack(
-                  index: reviewTab ? 1 : 0,
+                  index: reviewTab ? 1 : riskTab ? 2 : 0,
                   children: [
                     SwitchIn(
                       child: _isLoading
@@ -280,6 +301,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                           : _buildList(c, frame),
                     ),
                     AiReviewTab(onCountChanged: _setReviewCount),
+                    ChatRiskTab(onCountChanged: _setRiskCount),
                   ],
                 ),
               ),

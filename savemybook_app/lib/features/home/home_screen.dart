@@ -17,6 +17,7 @@ import '../../services/server_compat.dart';
 import '../../widgets/app_toast.dart';
 import '../../widgets/app_select.dart';
 import '../../services/push_service.dart';
+import '../../services/realtime_service.dart';
 import '../../services/recently_viewed.dart';
 import '../../services/search_history.dart';
 import '../auth/legal_consent_screen.dart';
@@ -81,6 +82,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isGridView = true;
 
   Timer? _badgeTimer;
+  Timer? _chatBadgeDebounce;
+  StreamSubscription<int>? _roomChanges;
 
   bool get _isBrowsingAll => _currentKeyword.isEmpty && _selectedCategoryIds.isEmpty;
 
@@ -92,6 +95,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ToastRouteTracker.notifyNavVisibility();
     _badgeTimer = Timer.periodic(const Duration(seconds: 20), (_) => _loadBadges());
     PushService.onSignedIn();
+    RealtimeService.instance.start();
+    _roomChanges = RealtimeService.instance.roomChanges.listen((_) => _scheduleChatBadge());
     RecentlyViewed.load();
     SearchHistory.load();
     HomePreferences.showDiscovery.addListener(_onDiscoveryPreferenceChanged);
@@ -109,6 +114,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     kBottomNavVisible = false;
     ToastRouteTracker.notifyNavVisibility();
     _badgeTimer?.cancel();
+    _chatBadgeDebounce?.cancel();
+    _roomChanges?.cancel();
     HomePreferences.showDiscovery.removeListener(_onDiscoveryPreferenceChanged);
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
@@ -120,10 +127,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && mounted) {
+      RealtimeService.instance.start();
       _loadBadges();
       AiStatus.refresh();
       LegalConsentGate.check(context);
     } else if (state == AppLifecycleState.paused) {
+      RealtimeService.instance.stop();
       unawaited(HomeWidgetService.sync());
     }
   }
@@ -139,6 +148,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final maxScroll = _categoryScrollController.position.maxScrollExtent;
     _categoryScrollProgress.value =
         maxScroll > 0 ? (_categoryScrollController.offset / maxScroll).clamp(0.0, 1.0) : 0;
+  }
+
+  void _scheduleChatBadge() {
+    _chatBadgeDebounce?.cancel();
+    _chatBadgeDebounce = Timer(const Duration(milliseconds: 600), () {
+      if (mounted) _apiService.fetchUnreadChatCount();
+    });
   }
 
   Future<void> _loadBadges() {

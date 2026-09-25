@@ -1,5 +1,6 @@
 const prisma = require('../lib/prisma');
 const aiSettings = require('./ai/settings');
+const chatRisk = require('./chat/risk');
 
 const EMPTY_DAY = () => ({ orders: 0, revenue: 0, new_users: 0, new_books: 0 });
 
@@ -14,20 +15,22 @@ const overview = async () => {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
-  const [members, pendingReports, pendingDisputes, cabinets, todayOrders, openTickets, pendingReviews] = await Promise.all([
+  const [members, pendingReports, pendingDisputes, cabinets, todayOrders, openTickets, pendingReviews, riskAlerts] = await Promise.all([
     prisma.users.count(),
     prisma.reports.count({ where: { status: 'pending' } }),
     prisma.transaction_disputes.count({ where: { status: { in: ['pending', 'processing'] } } }),
     prisma.smart_cabinets.count({ where: { is_active: true } }),
     prisma.orders.count({ where: { created_at: { gte: startOfToday } } }),
     prisma.support_tickets.count({ where: { status: 'open' } }),
-    pendingListingReviews()
+    pendingListingReviews(),
+    chatRisk.openCount()
   ]);
 
   return {
     member_count: members,
     pending_report_count: pendingReports,
     pending_listing_review_count: pendingReviews,
+    open_risk_alert_count: riskAlerts,
     pending_dispute_count: pendingDisputes,
     active_cabinet_count: cabinets,
     today_order_count: todayOrders,

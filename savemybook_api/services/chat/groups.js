@@ -5,6 +5,7 @@ const rooms = require('./rooms');
 const members = require('./members');
 const notice = require('./notice');
 const typing = require('./typing');
+const realtime = require('../realtime');
 
 const MAX_MEMBERS = 100;
 const MAX_INVITE = 50;
@@ -141,6 +142,7 @@ const setNickname = async (roomId, myId, targetId, nickname) => {
   if (targetId !== myId && room.my_role !== 'owner') throw forbidden('僅群組管理員可設定其他成員的群組暱稱');
   await activeTarget(roomId, targetId);
   await members.setGroupNickname(prisma, roomId, targetId, nickname);
+  realtime.touchRoom(roomId, { exceptUserId: myId });
   return rooms.detail(roomId, myId);
 };
 
@@ -160,6 +162,7 @@ const removeMember = async (roomId, myId, targetId) => {
     await notice.post(tx, { roomId, actorId: myId, text: `${actor.nickname} 將 ${target.nickname} 移出群組` });
   });
   typing.clear(roomId, targetId);
+  realtime.touchRoom(roomId, { extraUserIds: [targetId] });
   return { room_id: roomId, user_id: targetId };
 };
 

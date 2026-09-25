@@ -1,4 +1,5 @@
 import '../../utils/api_helpers.dart';
+import '../chat.dart';
 import '../../utils/app_labels.dart';
 import '../../i18n/strings.dart';
 
@@ -148,4 +149,69 @@ class DisputeAnalysis {
         confidence: parseDouble(json['confidence']).clamp(0.0, 1.0),
         rationale: json['rationale'] as String? ?? '',
       );
+}
+
+class ChatRiskSample {
+  final String content;
+  final List<ChatRiskCategory> categories;
+  final DateTime? createdAt;
+
+  const ChatRiskSample({required this.content, required this.categories, this.createdAt});
+
+  factory ChatRiskSample.fromJson(Map<String, dynamic> json) => ChatRiskSample(
+        content: json['content'] as String? ?? '',
+        categories: ChatRisk.fromJson({'categories': json['categories']})?.categories ?? const [],
+        createdAt: parseDate(json['created_at']),
+      );
+}
+
+class ChatRiskAlert {
+  final int alertId;
+  final String status;
+  final int hitCount;
+  final DateTime? firstAt;
+  final DateTime? lastAt;
+  final int userId;
+  final String userNo;
+  final String nickname;
+  final String? avatarUrl;
+  final bool isActive;
+  final bool isBlacklisted;
+  final List<ChatRiskSample> samples;
+
+  const ChatRiskAlert({
+    required this.alertId,
+    required this.status,
+    required this.hitCount,
+    required this.userId,
+    required this.userNo,
+    required this.nickname,
+    this.firstAt,
+    this.lastAt,
+    this.avatarUrl,
+    this.isActive = true,
+    this.isBlacklisted = false,
+    this.samples = const [],
+  });
+
+  factory ChatRiskAlert.fromJson(Map<String, dynamic> json) {
+    final user = json['user'] is Map ? Map<String, dynamic>.from(json['user']) : const <String, dynamic>{};
+    return ChatRiskAlert(
+      alertId: parseInt(json['alert_id']),
+      status: json['status'] as String? ?? 'open',
+      hitCount: parseInt(json['hit_count']),
+      firstAt: parseDate(json['first_at']),
+      lastAt: parseDate(json['last_at']),
+      userId: parseInt(user['user_id']),
+      userNo: user['user_no'] as String? ?? '',
+      nickname: user['nickname'] as String? ?? '',
+      avatarUrl: resolveAssetUrl(user['avatar_url']),
+      isActive: user['is_active'] != false,
+      isBlacklisted: user['is_blacklisted'] == true,
+      samples: [
+        for (final s in json['samples'] as List? ?? const [])
+          if (s is Map) ChatRiskSample.fromJson(Map<String, dynamic>.from(s)),
+      ],
+    );
+  }
 }

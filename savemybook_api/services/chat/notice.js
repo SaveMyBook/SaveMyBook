@@ -1,5 +1,6 @@
 const { userBrief } = require('../../lib/selects');
 const { notify, notifyMany } = require('../notify');
+const realtime = require('../realtime');
 
 const MENTION_SEPARATOR = ' 提及了您：';
 
@@ -9,6 +10,7 @@ const post = async (tx, { roomId, actorId, text }) => {
     include: { users: { select: userBrief } }
   });
   await tx.chat_rooms.update({ where: { room_id: roomId }, data: { updated_at: new Date() } });
+  realtime.touchRoom(roomId);
   return message;
 };
 

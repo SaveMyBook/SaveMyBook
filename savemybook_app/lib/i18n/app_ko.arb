@@ -3629,5 +3629,49 @@
   "doNotPayTransferMoneyOutside": "앱 밖에서 송금하지 마세요. 플랫폼 외 결제는 보호되지 않습니다.",
   "pleaseCompleteDealAppWeCannot": "앱에서 거래해 주세요. 앱 밖의 거래 분쟁은 도와드릴 수 없습니다.",
   "personSharedOutsideContactDetailsWatch": "상대방이 외부 연락처를 공유했습니다. 사기에 주의하고 앱에서 거래를 완료하세요.",
-  "mostRelevant": "관련도순"
+  "mostRelevant": "관련도순",
+  "scamAlerts": "사기 경보",
+  "contactDetails": "연락처",
+  "paymentDetails": "결제 정보",
+  "offPlatformDeal": "앱 외부 거래",
+  "suspiciousLink": "의심스러운 링크",
+  "asksVerificationDetails": "인증 정보 요구",
+  "scamWording": "사기 문구",
+  "markedAsFalseAlarm": "오탐으로 표시했습니다",
+  "markedAsHandled": "처리 완료로 표시했습니다",
+  "noOpenScamAlerts": "처리할 사기 경보가 없습니다",
+  "p0HighRisk": "고위험 {p0}건",
+  "@p0HighRisk": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "firstP0": "최초 {p0}",
+  "@firstP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "latestP0": "최근 {p0}",
+  "@latestP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "falseAlarm": "오탐",
+  "neverShareVerificationCodesPasswordsCard": "인증번호, 비밀번호, 카드 정보를 누구에게도 알려 주지 마세요.",
+  "messageContainsCommonScamWordingWe": "흔한 사기 문구가 포함되어 있습니다. 플랫폼은 채팅으로 할부 해제나 인증을 요구하지 않습니다.",
+  "messageContainsSuspiciousLinkDoNot": "의심스러운 링크가 포함되어 있습니다. 열거나 개인 정보를 입력하지 마세요.",
+  "scamSafetyTips": "사기 예방 안내",
+  "chatHighRiskMessagesDoNot": "이 채팅에 고위험 메시지가 있습니다. 인증번호를 알려 주거나 앱 밖에서 결제하지 마세요.",
+  "payEveryDealAppUseSmart": "모든 거래는 앱에서 결제하고 스마트 보관함으로 책을 주고받으세요.",
+  "weOurSupportTeamNeverAsk": "플랫폼과 고객센터는 채팅으로 인증번호, 비밀번호, 카드 정보를 요구하지 않습니다.",
+  "doNotOpenUnknownShortLinks": "출처를 알 수 없는 단축 URL을 열지 말고, 상대방의 지시에 따라 인터넷 뱅킹이나 ATM을 조작하지 마세요.",
+  "cancelInstallmentsAccountFrozenPaymentVerification": "\"할부 해제\", \"계좌 동결\", \"결제 인증\", \"게임 포인트 구매\"는 흔한 사기 문구입니다.",
+  "ifSeeSuspiciousMessageReportAdministrator": "의심스러운 메시지는 신고해 주세요. 관리자가 처리합니다.",
+  "confirmSending": "전송 확인",
+  "messageIncludesContactPaymentDetailsDeals": "메시지에 연락처 또는 결제 정보가 포함되어 있습니다. 앱 밖의 거래와 결제는 보호되지 않으며 분쟁 시 도와드릴 수 없습니다.",
+  "sendAnyway": "그래도 보내기",
+  "editMessage2": "수정하기",
+  "suspectedScamMessage": "사기 의심 메시지"
 }

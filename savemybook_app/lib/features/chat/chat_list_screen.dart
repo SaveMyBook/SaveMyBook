@@ -9,6 +9,7 @@ import '../../models/ai.dart';
 import '../../models/chat.dart';
 import '../../services/ai_status.dart';
 import '../../services/api_service.dart';
+import '../../services/realtime_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
@@ -34,7 +35,13 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
   final ApiService _api = ApiService();
   final TextEditingController _search = TextEditingController();
   List<ChatRoom> _rooms = [];
+  static const _pollInterval = Duration(seconds: 8);
+  static const _fallbackInterval = Duration(seconds: 30);
+
   Timer? _pollTimer;
+  Timer? _pushDebounce;
+  StreamSubscription<int>? _roomChanges;
+  DateTime _loadedAt = DateTime(0);
   bool _isLoading = true;
   bool _refreshing = false;
   String _query = '';
@@ -47,6 +54,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     WidgetsBinding.instance.addObserver(this);
     _load();
     _startPolling();
+    _roomChanges = RealtimeService.instance.roomChanges.listen((_) => _onPushed());
     AiStatus.refresh();
   }
 
@@ -54,6 +62,8 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _pollTimer?.cancel();
+    _pushDebounce?.cancel();
+    _roomChanges?.cancel();
     _search.dispose();
     super.dispose();
   }
@@ -71,7 +81,16 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
 
   void _startPolling() {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(seconds: 8), (_) {
+    _pollTimer = Timer.periodic(_pollInterval, (_) {
+      final pushed = RealtimeService.instance.connected.value;
+      if (pushed && DateTime.now().difference(_loadedAt) < _fallbackInterval) return;
+      if (mounted && ModalRoute.isCurrentOf(context) != false) _load();
+    });
+  }
+
+  void _onPushed() {
+    _pushDebounce?.cancel();
+    _pushDebounce = Timer(const Duration(milliseconds: 400), () {
       if (mounted && ModalRoute.isCurrentOf(context) != false) _load();
     });
   }
@@ -79,6 +98,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
   Future<void> _load() async {
     if (_refreshing) return;
     _refreshing = true;
+    _loadedAt = DateTime.now();
     try {
       final rooms = await _api.fetchChatRooms();
       if (!mounted) return;

@@ -485,6 +485,27 @@ class ChatReply {
       );
 }
 
+enum ChatRiskCategory { credential, scam, link, payment, offsite, contact }
+
+class ChatRisk {
+  final bool high;
+
+  /// 依危險程度排序，第一個即為提醒文字採用的類別。
+  final List<ChatRiskCategory> categories;
+
+  const ChatRisk({required this.high, required this.categories});
+
+  ChatRiskCategory get primary => categories.first;
+
+  static ChatRisk? fromJson(Object? json) {
+    if (json is! Map) return null;
+    final names = json['categories'] is List ? (json['categories'] as List).map((e) => '$e').toSet() : const <String>{};
+    final categories = [for (final c in ChatRiskCategory.values) if (names.contains(c.name)) c];
+    if (categories.isEmpty) return null;
+    return ChatRisk(high: json['level'] == 'high', categories: categories);
+  }
+}
+
 class ChatMessage {
   final int messageId;
   final int senderId;
@@ -500,6 +521,7 @@ class ChatMessage {
   final String senderName;
   final String? senderAvatarUrl;
   final List<ChatMention> mentions;
+  final ChatRisk? risk;
 
   ChatMessage({
     required this.messageId,
@@ -516,6 +538,7 @@ class ChatMessage {
     this.senderName = '',
     this.senderAvatarUrl,
     this.mentions = const [],
+    this.risk,
   }) : kind = kind ?? _legacyKind(messageType, content);
 
   static const albumPrefix = '[album]';
@@ -612,6 +635,7 @@ class ChatMessage {
         senderName: senderName,
         senderAvatarUrl: senderAvatarUrl,
         mentions: mentions ?? this.mentions,
+        risk: risk,
       );
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -631,6 +655,7 @@ class ChatMessage {
       senderName: json['users'] is Map ? json['users']['nickname'] as String? ?? '' : '',
       senderAvatarUrl: json['users'] is Map ? resolveAssetUrl(json['users']['avatar_url']) : null,
       mentions: ChatMention.listFrom(json['mentions']),
+      risk: ChatRisk.fromJson(json['risk']),
     );
   }
 }
@@ -655,6 +680,7 @@ class ChatFetchResult {
   final bool muted;
   final bool blocked;
   final bool canSend;
+  final ChatRisk? riskBanner;
   final bool ok;
   final String? error;
   final String? code;
@@ -680,6 +706,7 @@ class ChatFetchResult {
     this.muted = false,
     this.blocked = false,
     this.canSend = true,
+    this.riskBanner,
     this.ok = true,
     this.error,
     this.code,

@@ -16,6 +16,17 @@ extension AdminCommerceApi on ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotProcessReport);
   }
 
+  Future<List<ChatRiskAlert>> fetchChatRiskAlerts({String status = 'open'}) async {
+    final res = await _send('GET', '/admin/chat-risk-alerts', query: {'status': status});
+    return _mapList(res, ChatRiskAlert.fromJson);
+  }
+
+  Future<String?> handleChatRiskAlert(int alertId, {required bool dismiss}) async {
+    final res = await _send('PATCH', '/admin/chat-risk-alerts/$alertId', body: {'action': dismiss ? 'dismiss' : 'resolve'});
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.actionFailed);
+  }
+
   Future<List<DisputeCase>> fetchAdminDisputes({String? status}) async {
     final res = await _send('GET', '/admin/disputes', query: {'status': ?status});
     return _mapList(res, DisputeCase.fromJson);

@@ -58,6 +58,10 @@ class NotificationRouter {
         return ApiService.currentUser?.role == 'admin'
             ? const AdminReportScreen(initialTab: AdminReportScreen.listingReviewTab)
             : null;
+      case 'risk_alert':
+        return ApiService.currentUser?.role == 'admin'
+            ? const AdminReportScreen(initialTab: AdminReportScreen.riskAlertTab)
+            : null;
       case 'order':
         final order = await api.fetchOrderDetail(id);
         if (order == null) return null;

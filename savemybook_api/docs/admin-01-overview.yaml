@@ -34,6 +34,7 @@ paths:
                       member_count: { type: integer, description: 會員總數，含已停權帳號, example: 1284 }
                       pending_report_count: { type: integer, description: 待處理檢舉數, example: 3 }
                       pending_listing_review_count: { type: integer, description: 待人工審核的上架書籍數（規則或 AI 攔下）；未執行 011 時為 0, example: 2 }
+                      open_risk_alert_count: { type: integer, description: 未處理的聊天防詐警示數；未執行 023 時為 0, example: 1 }
                       pending_dispute_count: { type: integer, description: 待處理與處理中的爭議數, example: 1 }
                       active_cabinet_count: { type: integer, description: 啟用中的書櫃數, example: 8 }
                       today_order_count: { type: integer, description: 今日建立的訂單數, example: 27 }

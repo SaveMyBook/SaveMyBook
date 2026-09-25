@@ -9,6 +9,7 @@ const schema = require('./schema');
 const members = require('./members');
 const notice = require('./notice');
 const records = require('./transfer-records');
+const realtime = require('../realtime');
 
 const MAX_AMOUNT = 100000;
 const MAX_NOTE_LENGTH = 100;
@@ -84,6 +85,7 @@ const postCard = async (tx, { roomId, senderId, transferId }) => {
   });
   await records.attachMessage(tx, transferId, message.message_id);
   await tx.chat_rooms.update({ where: { room_id: roomId }, data: { updated_at: new Date() } });
+  realtime.touchRoom(roomId, { exceptUserId: senderId });
   return message;
 };
 
@@ -159,6 +161,7 @@ const respond = async (transferId, myId, action) => {
     if (Number(changed) === 0) throw stateChanged();
     if (payee) await moveFunds(tx, { payer: me, payee, amount });
     await tx.chat_rooms.updateMany({ where: { room_id: room.room_id }, data: { updated_at: now } });
+    realtime.touchRoom(room.room_id);
     if (rule.preview) {
       await notice.notifyMembers(tx, { room, actor: me, userIds: [requesterId], preview: `${rule.preview} ${amount} 代幣` });
     }

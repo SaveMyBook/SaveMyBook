@@ -93,7 +93,8 @@ const gather = async (isbn) => {
 
   const sources = [google.value, fromOpenLibrary(library.value)].filter(Boolean);
   if (sources.length === 0) {
-    if (google.failed && library.failed) throw new HttpError(502, '查詢外部書籍資訊發生錯誤');
+    // Open Library 幾乎沒有中文書，Google Books 被限流（429）時不能當成查無此書，否則背景補齊會永久略過。
+    if (google.failed || library.failed) throw new HttpError(502, '查詢外部書籍資訊發生錯誤');
     throw notFound('找不到此 ISBN 的書籍資訊');
   }
 

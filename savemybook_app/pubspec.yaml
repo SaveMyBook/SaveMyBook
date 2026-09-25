@@ -67,6 +67,7 @@ dependencies:
   # 通行密鑰：iOS 走 ASAuthorizationPlatformPublicKeyCredentialProvider，Android 走 Credential Manager。
   passkeys: ^2.23.1
   passkeys_platform_interface: ^2.10.0
+  socket_io_client: ^3.1.6
 
 dev_dependencies:
   flutter_test:

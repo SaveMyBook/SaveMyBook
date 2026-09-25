@@ -690,8 +690,8 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 找不到此 ISBN 的書籍資訊 }
-        '500':
-          description: 兩個外部書庫皆連線失敗。
+        '502':
+          description: 查不到資料且有外部書庫連線失敗或被限流（例如 Google Books 回 429），無法確定是否真的查無此書，稍後可再試。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }

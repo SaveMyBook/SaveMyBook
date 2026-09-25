@@ -17,6 +17,7 @@ tags:
       | `ticket` | 客服工單（使用者端） |
       | `admin_ticket` | 客服工單（管理後台）；使用者建立工單或回覆時，通知所有具客服權限的管理員 |
       | `book_review` | 書籍上架審核（管理後台）；書籍因價格異常、非正規來源或 AI 判定送交人工審核時，通知所有具內容管理權限的管理員，`related_id` 為書籍編號 |
+      | `risk_alert` | 聊天防詐警示（管理後台）；會員 24 小時內累積 3 則高風險訊息時，通知所有具檢舉管理權限的管理員，`related_id` 為該會員編號 |
       | `report` | 檢舉紀錄 |
       | `legal` | 服務條款／隱私權政策 |
       | `wallet` | 錢包 |
@@ -31,7 +32,7 @@ tags:
       | `trade` | 交易 | type `order`、`reservation`；related_type `order`、`wallet`、`book`、`reservation` |
       | `chat` | 聊天 | type `message`；related_type `chat_room` |
       | `account` | 帳號 | related_type `security`、`password`、`legal`、`member_level`、`user`、`push_test`，以及無 related_type 或未列出的值 |
-      | `service` | 客服 | related_type `ticket`、`report`、`admin_ticket`、`book_review` |
+      | `service` | 客服 | related_type `ticket`、`report`、`admin_ticket`、`book_review`、`risk_alert` |
       | `promotion` | 優惠 | type `promotion`；related_type `announcement` |
 
 paths:

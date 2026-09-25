@@ -11,6 +11,7 @@ import '../../i18n/strings.dart';
 import '../../models/book.dart';
 import '../../models/chat.dart';
 import '../../services/api_service.dart';
+import '../../services/realtime_service.dart';
 import '../../services/voice_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
@@ -30,7 +31,7 @@ import 'widgets/chat_entry.dart';
 import 'widgets/chat_format.dart';
 import 'widgets/chat_input_accessories.dart';
 import 'widgets/chat_input_bar.dart';
-import 'fraud_guard.dart';
+import 'chat_risk.dart';
 import 'widgets/chat_link_preview.dart';
 import 'widgets/chat_message_meta.dart';
 import 'widgets/chat_room_header.dart';
@@ -73,7 +74,9 @@ class ChatRoomScreen extends StatefulWidget {
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObserver {
   static const _pollInterval = Duration(seconds: 3);
+  static const _fallbackInterval = Duration(seconds: 15);
   static const _typingInterval = Duration(seconds: 3);
+  static const _typingExpiry = Duration(seconds: 7);
   static const _editWindow = Duration(minutes: 15);
   static const _recallWindow = Duration(hours: 1);
   static const _pageSize = 40;
@@ -150,6 +153,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   bool _quickRepliesOpen = false;
 
   Timer? _pollTimer;
+  bool _pollAgain = false;
+  DateTime _polledAt = DateTime(0);
+  StreamSubscription<int>? _roomChanges;
+  StreamSubscription<ChatTypingEvent>? _typingChanges;
+  final Map<int, Timer> _typingTimers = {};
+  Map<int, ChatRisk> _riskNotes = const {};
+  ChatRisk? _riskBanner;
+  static final Set<int> _dismissedRiskBanners = {};
+  bool _riskAcknowledged = false;
   Future<void> _sendQueue = Future.value();
   int _pendingSeq = 0;
   DateTime _lastTypingPing = DateTime(0);
@@ -166,6 +178,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     _scroll.addListener(_onScroll);
     _load();
     _startPolling();
+    _roomChanges = RealtimeService.instance.roomChanges.where((id) => id == widget.roomId).listen((_) => _poll());
+    _typingChanges = RealtimeService.instance.typingChanges.where((e) => e.roomId == widget.roomId).listen(_onTypingEvent);
   }
 
   @override
@@ -173,6 +187,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     ChatRoomScreen._mounted.remove(this);
     WidgetsBinding.instance.removeObserver(this);
     _pollTimer?.cancel();
+    _roomChanges?.cancel();
+    _typingChanges?.cancel();
+    for (final timer in _typingTimers.values) {
+      timer.cancel();
+    }
     _stopTyping();
     VoicePlayback.instance.stop();
     _api.fetchUnreadChatCount();
@@ -210,7 +229,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
 
   void _startPolling() {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(_pollInterval, (_) => _poll());
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _poll(scheduled: true));
   }
 
   bool get _isAtBottom {
@@ -250,6 +269,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       _mergeMessages(result.messages);
       if (result.partner.userId != 0) _partner = result.partner;
       _applyRoom(result);
+      _riskBanner = result.riskBanner;
       _readUpto = result.readUpto;
       _hasMore = result.hasMore;
       _reservations
@@ -507,7 +527,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       _rebuildEntries();
     });
 
-    final (updated, error) = await _api.editChatMessage(widget.roomId, target.messageId, text, mentions: mentions);
+    Future<(ChatMessage?, String?)> save(bool confirmRisk) =>
+        _api.editChatMessage(widget.roomId, target.messageId, text, mentions: mentions, confirmRisk: confirmRisk);
+    var result = await save(_riskAcknowledged);
+    if (result.$1 == null && result.$2 == ChatApi.riskConfirmRequired && mounted && await confirmRiskySend(context)) {
+      _riskAcknowledged = true;
+      result = await save(true);
+    }
+    final (updated, error) = result;
     if (!mounted) return;
     final i = _messages.indexWhere((m) => m.messageId == target.messageId);
     if (i < 0) return;
@@ -518,7 +545,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
           _rebuildEntries();
         });
       }
-      showAppSnackBar(context, error ?? S.actionFailed, isError: true);
+      if (error != ChatApi.riskConfirmRequired) showAppSnackBar(context, error ?? S.actionFailed, isError: true);
       if (_editing == null && _replyTo == null && _controller.text.trim().isEmpty && _canEdit(original)) {
         _startEdit(original);
         _controller.value = TextEditingValue(text: text, selection: TextSelection.collapsed(offset: text.length));
@@ -551,10 +578,19 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     onClose != null ? onClose() : Navigator.of(context).maybePop();
   }
 
-  Future<void> _poll({bool force = false}) async {
-    if (_polling || _loading || _loadError || !mounted) return;
+  // 已有即時連線時，定時輪詢只作為備援；推送通知與使用者操作一律立即取得。
+  Future<void> _poll({bool force = false, bool scheduled = false}) async {
+    if (scheduled && RealtimeService.instance.connected.value && DateTime.now().difference(_polledAt) < _fallbackInterval) {
+      return;
+    }
+    if (_polling) {
+      if (!scheduled) _pollAgain = true;
+      return;
+    }
+    if (_loading || _loadError || !mounted) return;
     if (!force && ModalRoute.isCurrentOf(context) == false) return;
     _polling = true;
+    _polledAt = DateTime.now();
 
     try {
       final afterId = _messages.isEmpty ? 0 : _messages.last.messageId;
@@ -576,6 +612,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       _applyIncoming(result);
     } finally {
       _polling = false;
+      if (_pollAgain && mounted) {
+        _pollAgain = false;
+        unawaited(_poll());
+      }
     }
   }
 
@@ -630,6 +670,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     }
 
     if (_applyRoom(result)) changed = true;
+    if (_riskBanner?.high != result.riskBanner?.high) {
+      _riskBanner = result.riskBanner;
+      changed = true;
+    }
     if (!_updatingControls && _applyControls(result)) changed = true;
 
     for (final id in result.recalledIds) {
@@ -700,6 +744,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   void _setTyping(List<int> ids) {
     if (!listEquals(_typingIds.value, ids)) _typingIds.value = ids;
     _syncTypingRow();
+  }
+
+  // 對方可能直接關閉 App 而沒有送出停止輸入，超過時間沒有再收到就視為停止。
+  void _onTypingEvent(ChatTypingEvent event) {
+    if (!mounted || event.userId == _myId || _blocked || _partnerUnavailable) return;
+    _typingTimers.remove(event.userId)?.cancel();
+    final ids = _typingIds.value.where((id) => id != event.userId).toList();
+    if (event.typing) {
+      ids.add(event.userId);
+      _typingTimers[event.userId] = Timer(_typingExpiry, () {
+        _typingTimers.remove(event.userId);
+        if (mounted) _setTyping(_typingIds.value.where((id) => id != event.userId).toList());
+      });
+    }
+    _setTyping(ids);
   }
 
   void _syncTypingRow() {
@@ -847,6 +906,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   }
 
   void _rebuildEntries() {
+    _riskNotes = chatRiskNotes(_messages, _myId);
     final entries = <ChatEntry>[
       for (final m in _messages) ChatEntry.message(_keyFor(m), m),
       for (final p in _pending) ChatEntry.pending(p),
@@ -918,14 +978,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (now.difference(_lastTypingPing) < _typingInterval) return;
     _lastTypingPing = now;
     _typingSent = true;
-    _api.sendTyping(widget.roomId);
+    if (!RealtimeService.instance.sendTyping(widget.roomId)) _api.sendTyping(widget.roomId);
   }
 
   void _stopTyping() {
     if (!_typingSent) return;
     _typingSent = false;
     _lastTypingPing = DateTime(0);
-    _api.sendTyping(widget.roomId, typing: false);
+    if (!RealtimeService.instance.sendTyping(widget.roomId, typing: false)) _api.sendTyping(widget.roomId, typing: false);
   }
 
   Future<void> _refreshReservable() async {
@@ -1029,14 +1089,23 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       content = url;
     }
 
-    final (message, error) = await _api.sendChatMessage(
+    Future<(ChatMessage?, String?)> send(bool confirmRisk) => _api.sendChatMessage(
       widget.roomId,
       content,
       type: p.kind,
       durationSeconds: p.kind == 'voice' ? p.seconds : null,
       replyToId: p.replyTo?.messageId,
       mentions: p.mentions,
+      confirmRisk: confirmRisk,
     );
+    var result = await send(_riskAcknowledged);
+    if (result.$1 == null && result.$2 == ChatApi.riskConfirmRequired) {
+      if (!mounted) return;
+      if (!await confirmRiskySend(context)) return _withdrawPending(p);
+      _riskAcknowledged = true;
+      result = await send(true);
+    }
+    final (message, error) = result;
     if (message == null) return _failPending(p, error);
 
     _clientKeys[message.messageId] = p.key;
@@ -1089,6 +1158,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       _rebuildEntries();
     });
     _enqueue(p);
+  }
+
+  void _withdrawPending(ChatPendingMessage p) {
+    if (!mounted || !_pending.contains(p)) return;
+    setState(() {
+      _pending.remove(p);
+      _rebuildEntries();
+    });
+    if (_editing != null || _controller.text.trim().isNotEmpty) return;
+    _controller.value = TextEditingValue(text: p.text, selection: TextSelection.collapsed(offset: p.text.length));
+    if (p.mentions.isNotEmpty) _mentions.setMentions(p.mentions);
+    _focus.requestFocus();
   }
 
   void _discardPending(ChatPendingMessage p) {
@@ -1282,10 +1363,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     });
   }
 
-  Future<void> _report(ChatMessage m) async {
+  Future<void> _report(ChatMessage m, {bool suspectedFraud = false}) async {
     final reason = await showTextInputDialog(
       context,
       title: S.reportMessage,
+      initialValue: suspectedFraud ? S.suspectedScamMessage : '',
       hint: S.describeProblemLeast5Characters,
       maxLines: 3,
       confirmLabel: S.actionSubmit,
@@ -1499,6 +1581,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             showBack: !widget.embedded,
             onOpenSettings: _loading ? null : _openSettings,
           ),
+          AnimatedSize(
+            duration: Motion.base,
+            curve: Motion.enterCurve,
+            alignment: Alignment.topCenter,
+            child: _showRiskBanner
+                ? ChatRiskBanner(
+                    onTips: () => showFraudTipsSheet(context),
+                    onReport: _latestHighRisk == null ? null : () => _report(_latestHighRisk!, suspectedFraud: true),
+                    onDismiss: () => setState(() => _dismissedRiskBanners.add(widget.roomId)),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
           Expanded(
             child: SwitchIn(
               child: _loading
@@ -1536,6 +1630,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         ],
       ),
     );
+  }
+
+  bool get _showRiskBanner =>
+      _riskBanner?.high == true && !_loading && !_loadError && !_dismissedRiskBanners.contains(widget.roomId);
+
+  ChatMessage? get _latestHighRisk {
+    for (final m in _messages.reversed) {
+      if (m.senderId != _myId && !m.isRecalled && (m.risk?.high ?? false)) return m;
+    }
+    return null;
   }
 
   Widget _buildConversation() {
@@ -1790,6 +1894,22 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             ],
     );
 
+    final risk = message == null ? null : _riskNotes[message.messageId];
+    if (risk != null) {
+      line = Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          line,
+          ChatRiskNote(
+            risk: risk,
+            onTips: () => showFraudTipsSheet(context),
+            onReport: risk.high ? () => _report(message!, suspectedFraud: true) : null,
+          ),
+        ],
+      );
+    }
+
     final showName = !isMine && _isGroup && groupStart;
     if (showName) {
       line = Column(
@@ -2039,21 +2159,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       onMentionTap: _openProfile,
     );
     final previewUrl = LinkPreviewStore.firstUrl(value, mentions: entry.mentions);
-    final fraud = isMine ? null : FraudGuard.detect(value);
-    final Widget text = previewUrl == null && fraud == null
+    final Widget text = previewUrl == null
         ? linkText
         : Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               linkText,
-              if (previewUrl != null)
-                ChatLinkPreviewCard(
-                  url: previewUrl,
-                  isMine: isMine,
-                  width: math.min(math.min(MediaQuery.sizeOf(context).width * 0.7, 420.0) - 26, 300.0),
-                ),
-              if (fraud != null) FraudWarning(signal: fraud),
+              ChatLinkPreviewCard(
+                url: previewUrl,
+                isMine: isMine,
+                width: math.min(math.min(MediaQuery.sizeOf(context).width * 0.7, 420.0) - 26, 300.0),
+              ),
             ],
           );
     if (reply == null) {

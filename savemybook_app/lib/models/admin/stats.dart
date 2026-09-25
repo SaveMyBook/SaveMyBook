@@ -5,6 +5,7 @@ class AdminOverview {
   final int memberCount;
   final int pendingReportCount;
   final int pendingListingReviewCount;
+  final int openRiskAlertCount;
   final int pendingDisputeCount;
   final int activeCabinetCount;
   final int todayOrderCount;
@@ -14,6 +15,7 @@ class AdminOverview {
     required this.memberCount,
     required this.pendingReportCount,
     this.pendingListingReviewCount = 0,
+    this.openRiskAlertCount = 0,
     required this.pendingDisputeCount,
     required this.activeCabinetCount,
     required this.todayOrderCount,
@@ -25,6 +27,7 @@ class AdminOverview {
       memberCount: parseInt(json['member_count']),
       pendingReportCount: parseInt(json['pending_report_count']),
       pendingListingReviewCount: parseInt(json['pending_listing_review_count']),
+      openRiskAlertCount: parseInt(json['open_risk_alert_count']),
       pendingDisputeCount: parseInt(json['pending_dispute_count']),
       activeCabinetCount: parseInt(json['active_cabinet_count']),
       todayOrderCount: parseInt(json['today_order_count']),
@@ -40,8 +43,8 @@ class AdminOverview {
         todayOrderCount: 0,
       );
 
-  /// 內容審核入口的待辦數：檢舉與上架審核。
-  int get pendingModerationCount => pendingReportCount + pendingListingReviewCount;
+  /// 內容審核入口的待辦數：檢舉、上架審核與聊天防詐警示。
+  int get pendingModerationCount => pendingReportCount + pendingListingReviewCount + openRiskAlertCount;
 }
 
 class AdminStatPoint {

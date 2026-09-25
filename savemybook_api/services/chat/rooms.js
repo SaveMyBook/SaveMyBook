@@ -8,6 +8,7 @@ const members = require('./members');
 const history = require('./history');
 const aliases = require('./aliases');
 const transferRecords = require('./transfer-records');
+const realtime = require('../realtime');
 
 const MAX_PINS = 10;
 
@@ -362,6 +363,7 @@ const open = async (myId, partnerId, bookId) => {
           data: { book_id: book.book_id, updated_at: new Date() }
         })
       ]);
+      realtime.touchRoom(room.room_id, { exceptUserId: myId });
     }
   }
 

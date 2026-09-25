@@ -152,11 +152,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             icon: Icons.report_gmailerrorred_outlined,
             title: S.moderation,
             badge: _overview.pendingModerationCount,
-            onTap: () => _open(AdminReportScreen(
-              initialTab: _overview.pendingReportCount == 0 && _overview.pendingListingReviewCount > 0
-                  ? AdminReportScreen.listingReviewTab
-                  : 0,
-            )),
+            onTap: () => _open(AdminReportScreen(initialTab: AdminReportScreen.initialTabFor(_overview))),
           ),
           AppMenuItem(
             icon: Icons.category_outlined,
@@ -316,9 +312,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               alert: true,
               onTap: () => _open(_overview.pendingDisputeCount > 0 || _overview.pendingModerationCount == 0
                   ? const AdminDisputeScreen()
-                  : AdminReportScreen(
-                      initialTab: _overview.pendingReportCount == 0 ? AdminReportScreen.listingReviewTab : 0,
-                    )),
+                  : AdminReportScreen(initialTab: AdminReportScreen.initialTabFor(_overview))),
             ),
           ),
           const VerticalDivider1(),
