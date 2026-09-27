@@ -39,7 +39,7 @@ SaveMyBook/
 
 <div align="center">
 
-![Contributors](https://img.shields.io/badge/Contributors-4-blue?style=for-the-badge&logo=github) ![Commits](https://img.shields.io/badge/Commits-472-green?style=for-the-badge&logo=git) ![Additions](https://img.shields.io/badge/Additions-649,339-success?style=for-the-badge) ![Deletions](https://img.shields.io/badge/Deletions-287,897-critical?style=for-the-badge)
+![Contributors](https://img.shields.io/badge/Contributors-4-blue?style=for-the-badge&logo=github) ![Commits](https://img.shields.io/badge/Commits-473-green?style=for-the-badge&logo=git) ![Additions](https://img.shields.io/badge/Additions-649,339-success?style=for-the-badge) ![Deletions](https://img.shields.io/badge/Deletions-287,897-critical?style=for-the-badge)
 
 </div>
 
@@ -61,7 +61,7 @@ SaveMyBook/
       <td align="center" valign="middle"><b>245</b></td>
       <td align="center" valign="middle"><code>+346,673</code></td>
       <td align="center" valign="middle"><code>-122,173</code></td>
-      <td align="center" valign="middle"><img src="https://progress-bar.xyz/52/?width=120" alt="51.9%"></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/52/?width=120" alt="51.8%"></td>
     </tr>
     <tr>
       <td align="center" valign="middle"><h3>🥈</h3></td>
@@ -69,7 +69,7 @@ SaveMyBook/
       <td align="center" valign="middle"><b>123</b></td>
       <td align="center" valign="middle"><code>+302,625</code></td>
       <td align="center" valign="middle"><code>-165,716</code></td>
-      <td align="center" valign="middle"><img src="https://progress-bar.xyz/26/?width=120" alt="26.1%"></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/26/?width=120" alt="26.0%"></td>
     </tr>
     <tr>
       <td align="center" valign="middle"><h3>🥉</h3></td>
@@ -82,17 +82,17 @@ SaveMyBook/
     <tr>
       <td align="center" valign="middle"><h3>#4</h3></td>
       <td align="left" valign="middle"><a href="https://github.com/Shelly9457"><b>Shelly9457</b></a></td>
-      <td align="center" valign="middle"><b>46</b></td>
+      <td align="center" valign="middle"><b>47</b></td>
       <td align="center" valign="middle"><code>+8</code></td>
       <td align="center" valign="middle"><code>-8</code></td>
-      <td align="center" valign="middle"><img src="https://progress-bar.xyz/10/?width=120" alt="9.7%"></td>
+      <td align="center" valign="middle"><img src="https://progress-bar.xyz/10/?width=120" alt="9.9%"></td>
     </tr>
   </tbody>
 </table>
 
 <div align="center">
 
-<sub>📅 最後更新：2026-09-27 02:53:55 (UTC+8)</sub>
+<sub>📅 最後更新：2026-09-28 03:26:20 (UTC+8)</sub>
 
 </div>
 
