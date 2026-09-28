@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'api_service.dart';
+import 'cabinet_code.dart';
 
 /// savemybook://auth/oauth?code=… 或 ?error=… 的解析結果。
 class OAuthDeepLink {
@@ -15,8 +16,10 @@ class DeepLinkService {
   static void Function(String token)? onProfileLink;
   static void Function(String token)? onBookLink;
   static void Function(OAuthDeepLink result)? onOAuthResult;
+  static void Function()? onCabinetLink;
 
   static String? _pending;
+  static bool _pendingCabinet = false;
 
   static Future<void> init() async {
     _channel.setMethodCallHandler((call) async {
@@ -49,6 +52,17 @@ class DeepLinkService {
       return;
     }
 
+    // 系統相機掃到的書櫃連結可能是轉傳的，連結中的碼一律丟棄，只開啟 App 的掃描頁重新掃描書櫃螢幕。
+    if (isCabinetCode(link)) {
+      final handler = onCabinetLink;
+      if (handler == null) {
+        _pendingCabinet = true;
+      } else {
+        handler();
+      }
+      return;
+    }
+
     final parsed = ApiService.parseShareLink(link);
     if (parsed == null) return;
 
@@ -61,6 +75,10 @@ class DeepLinkService {
   }
 
   static void flushPending() {
+    if (_pendingCabinet && onCabinetLink != null) {
+      _pendingCabinet = false;
+      onCabinetLink!();
+    }
     final link = _pending;
     if (link == null) return;
     _pending = null;
@@ -73,5 +91,6 @@ class DeepLinkService {
   /// 測試用：清掉尚未派送的連結。
   static void reset() {
     _pending = null;
+    _pendingCabinet = false;
   }
 }

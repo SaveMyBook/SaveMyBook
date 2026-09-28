@@ -2,6 +2,7 @@ const prisma = require('../lib/prisma');
 const { badRequest, forbidden, notFound, conflict } = require('../lib/errors');
 const { userBrief, userName, orderItemsWithCover } = require('../lib/selects');
 const { DISPUTE_RESULT_LABELS } = require('../constants/domain');
+const { DISPUTE_WINDOW_HOURS } = require('../constants/policy');
 const { notify } = require('./notify');
 const audit = require('./audit');
 const settlement = require('./orders/settlement');
@@ -11,8 +12,8 @@ const RESULTS = ['refund_manual', 'refund_auto', 'dismissed', 'mediated'];
 // 已取消或已退款的訂單不可申訴，否則裁決退款會退第二次。
 const NOT_DISPUTABLE = ['cancelled', 'refunded'];
 
-// 服務條款：取書後 24 小時內可提出申訴；取書前（放書、待取書等階段）不受此限。
-const DISPUTE_WINDOW_MS = 24 * 60 * 60 * 1000;
+// 服務條款：取書後限時提出申訴；取書前（放書、待取書等階段）不受此限。
+const DISPUTE_WINDOW_MS = DISPUTE_WINDOW_HOURS * 60 * 60 * 1000;
 
 const disputeInclude = {
   orders: {
@@ -41,10 +42,10 @@ const create = async (userId, { orderId, reason, evidenceUrls }) => {
   if (!order) throw notFound('找不到該訂單');
   if (order.buyer_id !== userId && order.seller_id !== userId) throw forbidden('存取被拒');
   if (NOT_DISPUTABLE.includes(order.status)) throw badRequest('此訂單已取消或已退款，無法提出爭議');
-  // 完成訂單即撥款給賣家，之後不再受理申訴；取書後未完成的訂單以取書時間起算 24 小時。
+  // 完成訂單即撥款給賣家，之後不再受理申訴；取書後未完成的訂單以取書時間起算。
   if (order.status === 'completed') throw badRequest('訂單已完成，無法再提出申訴', 'DISPUTE_WINDOW_PASSED');
   if (order.picked_up_at && Date.now() - new Date(order.picked_up_at).getTime() > DISPUTE_WINDOW_MS) {
-    throw badRequest('已超過取書後 24 小時的申訴期限', 'DISPUTE_WINDOW_PASSED');
+    throw badRequest(`已超過取書後 ${DISPUTE_WINDOW_HOURS} 小時的申訴期限`, 'DISPUTE_WINDOW_PASSED');
   }
 
   const existing = await prisma.transaction_disputes.findFirst({
@@ -52,6 +53,8 @@ const create = async (userId, { orderId, reason, evidenceUrls }) => {
     select: { dispute_id: true }
   });
   if (existing) throw conflict('此訂單已有處理中的爭議申請');
+  // 開門後改為退款處理中會使取書提交失敗，書在買家手上卻仍記錄在櫃內，裁決退款時又會重建存書登記。
+  await require('./cabinet-release').assertNotInSession(orderId);
 
   return prisma.$transaction(async (tx) => {
     const created = await tx.transaction_disputes.create({
@@ -165,9 +168,9 @@ const resolve = async (disputeId, { result, adminNote }, { adminId, req }) => {
       await notice(order.buyer_id, settled.refunded > 0
         ? `訂單 ${order.order_no} 裁決退款，${settled.refunded} 代幣已退回您的錢包。`
         : `訂單 ${order.order_no} 裁決退款，款項先前已退回您的錢包。`);
-      await notice(order.seller_id, settled.clawedBack > 0
+      await notice(order.seller_id, (settled.clawedBack > 0
         ? `訂單 ${order.order_no} 裁決退款給買家，已從您的錢包收回 ${settled.clawedBack} 代幣。`
-        : `訂單 ${order.order_no} 裁決退款給買家，交易已取消。`);
+        : `訂單 ${order.order_no} 裁決退款給買家，交易已取消。`) + settlement.storedNotice(settled));
     } else {
       const content = `訂單 ${order.order_no} 經審核維持原交易，訂單恢復為「${settlement.statusLabel(target)}」。`
         + (settled.paidOut > 0 ? `貨款 ${settled.paidOut} 代幣已撥入賣家錢包。` : '');

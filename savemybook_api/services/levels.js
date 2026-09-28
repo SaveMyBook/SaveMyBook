@@ -1,8 +1,7 @@
 const prisma = require('../lib/prisma');
 const { badRequest, conflict, notFound } = require('../lib/errors');
 const audit = require('./audit');
-
-const POINTS_PER_ORDER = 10;
+const { LEVEL_POINTS_PER_ORDER: POINTS_PER_ORDER } = require('../constants/policy');
 
 const basePointsOf = (completedOrders) => completedOrders * POINTS_PER_ORDER;
 

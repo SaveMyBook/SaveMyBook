@@ -150,6 +150,8 @@ const compare = (a, b, op) => {
   if (op === '=') return String(left) === String(right);
   if (op === '<') return left < right;
   if (op === '>') return left > right;
+  if (op === '<=') return left != null && left <= right;
+  if (op === '>=') return left != null && left >= right;
   return false;
 };
 
@@ -162,7 +164,7 @@ const evalCondition = (row, text, params) => {
   if (m) return row[m[1]] !== null && row[m[1]] !== undefined;
   m = /^(\w+)\s+IS\s+NULL$/i.exec(trimmed);
   if (m) return row[m[1]] === null || row[m[1]] === undefined;
-  m = /^(\w+)\s*(=|<|>)\s*\?$/.exec(trimmed);
+  m = /^(\w+)\s*(<=|>=|=|<|>)\s*\?$/.exec(trimmed);
   if (m) return compare(row[m[1]], params.next(), m[2]);
   m = /^(\w+)\s*<>\s*\?$/.exec(trimmed);
   if (m) return !compare(row[m[1]], params.next(), '=');
@@ -365,7 +367,8 @@ class FakePrisma {
   }
 
   runSelect(sql, values) {
-    const m = /^SELECT\s+(.+?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.+?))?(?:\s+ORDER BY\s+(.+?))?$/i.exec(sql);
+    // FOR UPDATE 在此只接受語法、不模擬鎖定；需要驗證鎖定順序的測試組自行包裝 $transaction。
+    const m = /^SELECT\s+(.+?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.+?))?(?:\s+ORDER BY\s+(.+?))?(?:\s+FOR UPDATE)?$/i.exec(sql);
     if (!m) return null;
 
     const [, columnText, table, whereText, orderText] = m;

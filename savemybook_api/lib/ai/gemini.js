@@ -1,4 +1,4 @@
-const { AiProviderError, postJson, baseClassify, errorText, quotaExhausted } = require('./http');
+const { AiProviderError, postJson, baseClassify, errorText, quotaExhausted, withUsage } = require('./http');
 
 const BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -14,6 +14,7 @@ const classify = (status, data) => {
 const THINKING_HEADROOM = 2048;
 const thinkingModel = (modelId) => /^gemini-(2\.5|[3-9])/.test(modelId);
 const levelModel = (modelId) => /^gemini-[3-9]/.test(modelId);
+const BLOCK_FINISH = new Set(['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'IMAGE_SAFETY']);
 
 const generate = async (options) => {
   try {
@@ -62,36 +63,36 @@ const generateOnce = async ({ apiKey, model, system, history = [], prompt, image
   });
 
   const candidate = data?.candidates?.[0];
-  if (!candidate && data?.promptFeedback?.blockReason) throw new AiProviderError('BLOCKED', { provider: 'gemini' });
-  if (candidate?.finishReason === 'SAFETY' || candidate?.finishReason === 'PROHIBITED_CONTENT') {
-    throw new AiProviderError('BLOCKED', { provider: 'gemini' });
+  const finish = candidate?.finishReason ?? '';
+  const grounding = candidate?.groundingMetadata ?? {};
+  const queries = Array.isArray(grounding.webSearchQueries) ? grounding.webSearchQueries.filter((q) => String(q ?? '').trim()) : [];
+  const meta = data?.usageMetadata ?? {};
+  const usage = {
+    input_tokens: Number(meta.promptTokenCount) || 0,
+    cached_tokens: Number(meta.cachedContentTokenCount) || 0,
+    output_tokens: (Number(meta.candidatesTokenCount) || 0) + (Number(meta.thoughtsTokenCount) || 0),
+    search_calls: search ? queries.length : 0
+  };
+
+  if (!candidate && data?.promptFeedback?.blockReason) {
+    throw withUsage(new AiProviderError('BLOCKED', { provider: 'gemini', providerMessage: `blockReason ${data.promptFeedback.blockReason}` }), usage);
+  }
+  if (BLOCK_FINISH.has(finish)) {
+    throw withUsage(new AiProviderError('BLOCKED', { provider: 'gemini', providerMessage: `finishReason ${finish}` }), usage);
   }
   const text = (candidate?.content?.parts ?? [])
     .filter((p) => typeof p?.text === 'string' && !p.thought)
     .map((p) => p.text)
     .join('');
-  if (!text.trim() && candidate?.finishReason === 'MAX_TOKENS') {
-    throw new AiProviderError('INCOMPLETE', { provider: 'gemini', providerMessage: 'finishReason MAX_TOKENS' });
+  if (!text.trim() && finish === 'MAX_TOKENS') {
+    throw withUsage(new AiProviderError('INCOMPLETE', { provider: 'gemini', providerMessage: 'finishReason MAX_TOKENS' }), usage);
   }
-  const grounding = candidate?.groundingMetadata ?? {};
   const sources = (grounding.groundingChunks ?? [])
     .map((c) => c?.web)
     .filter((w) => w && typeof w.uri === 'string')
     .map((w) => ({ title: w.title ?? '', url: w.uri }));
-  const queries = Array.isArray(grounding.webSearchQueries) ? grounding.webSearchQueries.filter((q) => String(q ?? '').trim()) : [];
-  const usage = data?.usageMetadata ?? {};
 
-  return {
-    text,
-    sources,
-    model: modelId,
-    usage: {
-      input_tokens: Number(usage.promptTokenCount) || 0,
-      cached_tokens: Number(usage.cachedContentTokenCount) || 0,
-      output_tokens: (Number(usage.candidatesTokenCount) || 0) + (Number(usage.thoughtsTokenCount) || 0),
-      search_calls: search ? queries.length : 0
-    }
-  };
+  return { text, sources, model: modelId, usage, finish_reason: finish, truncated: finish === 'MAX_TOKENS' };
 };
 
 module.exports = { generate, classify };

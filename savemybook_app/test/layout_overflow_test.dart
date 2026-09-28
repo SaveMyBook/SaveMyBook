@@ -28,6 +28,7 @@ import 'package:savemybook_app/models/category.dart';
 import 'package:savemybook_app/features/admin/admin_announcement_screen.dart';
 import 'package:savemybook_app/features/admin/admin_backup_screen.dart';
 import 'package:savemybook_app/features/admin/admin_book_screen.dart';
+import 'package:savemybook_app/features/admin/admin_cabinet_deposit_screen.dart';
 import 'package:savemybook_app/features/admin/admin_cabinet_screen.dart';
 import 'package:savemybook_app/features/admin/admin_category_screen.dart';
 import 'package:savemybook_app/features/admin/admin_deletion_screen.dart';
@@ -48,7 +49,9 @@ import 'package:savemybook_app/features/admin/admin_wallet_screen.dart';
 import 'package:savemybook_app/features/home/announcement_screen.dart';
 import 'package:savemybook_app/features/books/book_detail_screen.dart';
 import 'package:savemybook_app/features/books/image_crop_screen.dart';
+import 'package:savemybook_app/features/selling/book_deposit_actions.dart';
 import 'package:savemybook_app/features/selling/book_manage_screen.dart';
+import 'package:savemybook_app/features/selling/edit_book_detail_screen.dart';
 import 'package:savemybook_app/features/orders/cart_screen.dart';
 import 'package:savemybook_app/features/account/change_password_screen.dart';
 import 'package:savemybook_app/features/chat/ai/ai_book_chat_screen.dart';
@@ -154,6 +157,8 @@ Map<String, dynamic> book(int id, {String status = 'on_sale'}) => {
       'book_categories': {'category_name': 'Literature & Fiction Classics'},
       'smart_cabinets': cabinet(),
     };
+
+Map<String, dynamic> deposit(int days, {bool paused = false}) => {'deposited_at': now, 'paused': paused, 'days_stored': days};
 
 Map<String, dynamic> order(int id, String status) => {
       'order_id': id,
@@ -386,6 +391,13 @@ Map<String, dynamic> aiSettingsData() => {
         'provider': 'openai',
         'model': 'text-embedding-3-small-extended-preview-2026-09',
         'counts': {'book': 1234567, 'knowledge': 98765},
+        'coverage': {
+          'book': {'indexed': 1234560, 'total': 1234567},
+          'knowledge': {'indexed': 98765, 'total': 98765},
+        },
+        'last_sync_at': now,
+        'last_error': {'at': now, 'purpose': 'query', 'code': 'SOME_VERY_LONG_UNMAPPED_PROVIDER_ERROR_CODE_FROM_UPSTREAM', 'detail': '連線逾時' * 20},
+        'cooldown_until': {'sync': now, 'query': now},
       },
       'settings': {
         'enabled': true,
@@ -414,19 +426,19 @@ Map<String, dynamic> aiUsageData() => {
       'period': 'month',
       'summary': {'requests': 1234567, 'errors': 98765, 'input_tokens': 9876543210, 'output_tokens': 123456789, 'search_calls': 45678, 'cost_usd': 9876.54321, 'month_cost_usd': 11111.2, 'monthly_budget_usd': 12345, 'budget_used_ratio': 0.9, 'projected_month_cost_usd': 23456.78},
       'by_feature': [
-        for (final f in ['support', 'listing_assist', 'recommend', 'moderation', 'test'])
+        for (final f in ['support', 'listing_assist', 'recommend', 'moderation', 'book_chat', 'book_chat_pick', 'embedding', 'enrich', 'admin_assist', 'test'])
           {'feature': f, 'requests': 123456, 'cost_usd': f == 'test' ? 0.0042 : 1234.5678, 'input_tokens': 1, 'output_tokens': 1, 'errors': 9999},
       ],
       'by_provider': [
-        {'provider': 'deepseek', 'model': 'deepseek-flash-extended-context-preview-2026-09', 'requests': 999999, 'cost_usd': 4321.1234, 'avg_latency_ms': 12345},
-        {'provider': 'gemini', 'model': 'gemini-3.1-flash-lite', 'requests': 12, 'cost_usd': 0.00042, 'avg_latency_ms': 840},
+        {'provider': 'deepseek', 'model': 'deepseek-flash-extended-context-preview-2026-09', 'requests': 999999, 'cost_usd': 4321.1234, 'avg_latency_ms': 12345, 'p95_latency_ms': 123456},
+        {'provider': 'gemini', 'model': 'gemini-3.1-flash-lite', 'requests': 12, 'cost_usd': 0.00042, 'avg_latency_ms': 840, 'p95_latency_ms': 1900},
       ],
       'daily': [
         for (var i = 1; i <= 30; i++)
-          {'date': '2026-09-${i.toString().padLeft(2, '0')}', 'requests': 1234 * i, 'cost_usd': i * 12.5, 'by_feature': {'support': i * 5.0, 'listing_assist': i * 4.0, 'recommend': i * 2.5, 'moderation': i * 1.0}},
+          {'date': '2026-09-${i.toString().padLeft(2, '0')}', 'requests': 1234 * i, 'cost_usd': i * 14.5, 'by_feature': {'support': i * 5.0, 'listing_assist': i * 4.0, 'recommend': i * 2.5, 'moderation': i * 1.0, 'book_chat_pick': i * 1.0, 'enrich': i * 0.5, 'admin_assist': i * 0.5}},
       ],
       'top_users': many((i) => {'user_public_id': '0123456789abcdef0123456789abcde$i', 'nickname': longName, 'requests': 1234567, 'cost_usd': 12345.6789}, 5),
-      'recent_errors': many((i) => {'created_at': now, 'feature': 'listing_assist', 'provider': 'openai', 'model': 'gpt-5-nano-2025-08-07-very-long-model-identifier', 'error_code': i.isEven ? 'QUOTA' : 'SOME_VERY_LONG_UNMAPPED_PROVIDER_ERROR_CODE_FROM_UPSTREAM', if (i.isEven) 'error_detail': 'You exceeded your current quota. Quota exceeded for metric: generate_content_free_tier_requests, limit: 0, model: gemini-3.1-flash-lite ' * 3}, 6),
+      'recent_errors': many((i) => {'created_at': now, 'feature': 'listing_assist', 'provider': 'openai', 'model': 'gpt-5-nano-2025-08-07-very-long-model-identifier', 'error_code': i.isEven ? 'QUOTA' : (i == 3 ? 'BUDGET_EXCEEDED' : 'SOME_VERY_LONG_UNMAPPED_PROVIDER_ERROR_CODE_FROM_UPSTREAM'), if (i.isEven) 'error_detail': 'You exceeded your current quota. Quota exceeded for metric: generate_content_free_tier_requests, limit: 0, model: gemini-3.1-flash-lite ' * 3}, 6),
       'pending_reviews': 9999,
     };
 
@@ -503,10 +515,12 @@ Object? fakeData(String method, String path) {
     'GET /users/me/deletion': () => {'pending': false, 'grace_days': 30},
     'GET /users/me/qrcode': () => {'user_id': 1, 'nickname': longName, 'qr_data': 'https://api.savemybook.today/u/0123456789abcdef0123456789abcdef'},
     'GET /books': () => many((i) => {
-          ...book(i),
+          ...book(i, status: const {5: 'reserved', 6: 'removed'}[i] ?? 'on_sale'),
           'review_status': i == 2 ? 'pending' : (i == 3 ? 'rejected' : null),
           if (i == 4) 'reservation': {'reserved_until': DateTime.now().add(const Duration(hours: 30)).toIso8601String()},
-        }),
+          'in_cabinet': i == 1,
+          'deposit': i == 1 ? deposit(3) : (i == 6 ? deposit(12, paused: true) : null),
+        }, 6),
     'GET /books/5/similar': () => many((i) => book(i + 10)),
     'GET /chat/reservations/mine': () => many((i) => {
           'reservation_id': i,
@@ -532,7 +546,24 @@ Object? fakeData(String method, String path) {
     'GET /admin/ai/settings': aiSettingsData,
     'GET /admin/ai/usage': aiUsageData,
     'GET /admin/ai/reviews': () => many(aiReviewRow, 5),
-    'GET /books/5': () => {...book(5), 'enrichment': {'fields': ['description', 'author', 'publisher'], 'ai_written': true}},
+    'GET /books/5': () => {...book(5), 'in_cabinet': true, 'enrichment': {'fields': ['description', 'author', 'publisher'], 'ai_written': true}},
+    'GET /admin/cabinets/deposits': () => many((i) => {
+          'book_id': i,
+          'book_no': 'BK3KER74$i',
+          'title': longTitle,
+          'book_status': i.isEven ? 'removed' : 'on_sale',
+          'image_url': null,
+          'seller': {'user_id': 2, 'user_no': 'MB7Q2XK9D', 'nickname': longName, 'avatar_url': null, 'deleted': i == 3},
+          'cabinet': cabinet(),
+          'deposited_at': now,
+          'days_stored': [2, 9, 15, 123][i % 4],
+          'paused': i == 2 || i == 3,
+          'paused_at': i == 2 || i == 3 ? now : null,
+          'reminded_at': i == 2 || i == 3 ? now : null,
+          'escalated': i >= 3,
+          'escalated_at': i >= 3 ? now : null,
+          'overdue': i >= 3,
+        }),
     'GET /categories': () => [
           {'category_id': 1, 'category_name': 'Literature & Fiction Classics', 'parent_id': null, 'sort_order': 0, 'other_book_categories': <Object>[]},
           {'category_id': 2, 'category_name': 'Computer Science & Programming', 'parent_id': null, 'sort_order': 1, 'other_book_categories': <Object>[]},
@@ -699,9 +730,39 @@ Map<String, Widget Function()> get screens => {
       'Favorites': () => const FavoritesScreen(),
       'BookDetail': () => BookDetailScreen(book: Book.fromJson(book(5))),
       'BookManage': () => const BookManageScreen(),
+      'BookManageSeller': () => const AsSeller(child: BookManageScreen()),
+      'BookManageSellerSold': () => const AsSeller(child: BookManageScreen(initialFilter: 'reserved')),
+      'BookManageSellerRetrieval': () => const AsSeller(child: BookManageScreen(initialFilter: 'pending_retrieval')),
+      'BookDetailSellerPaused': () => AsSeller(
+          child: BookDetailScreen(book: Book.fromJson({...book(8, status: 'removed'), 'deposit': deposit(12, paused: true)}))),
+      'BookDetailSellerDeposited': () => AsSeller(child: BookDetailScreen(book: Book.fromJson({...book(9), 'deposit': deposit(0)}))),
+      'BookDetailSellerDropOff': () => AsSeller(child: BookDetailScreen(book: Book.fromJson({...book(9), 'deposit': null}))),
+      'DropOffConfirm': () => DialogPreview(show: (context) => confirmBookDeposit(context, Book.fromJson(book(9)))),
+      'OrderDropOffConfirm': () => DialogPreview(
+          show: (context) => confirmOrderDeposit(
+              context,
+              Order.fromJson({
+                ...order(7, 'pending_deposit'),
+                'order_items': [
+                  for (final id in [5, 6, 7]) {'item_id': id, 'book_id': id, 'quantity': 1, 'unit_price': 123456, 'subtotal': 123456, 'books': book(id)},
+                ],
+              }))),
+      'RetrievalConfirm': () => DialogPreview(
+          show: (context) => confirmBookRetrieval(context, Book.fromJson({...book(9), 'deposit': deposit(3)}))),
+      'EditBookDetailDeposited': () => EditBookDetailScreen(
+          book: Book.fromJson({...book(9), 'deposit': deposit(3)}),
+          isbn: '9789571234567',
+          title: longTitle,
+          author: '',
+          publisher: '',
+          publishDate: '',
+          categoryId: 1),
+      'InCabinetBuyNowConfirm': () => DialogPreview(show: (context) => confirmInCabinetPurchase(context)),
+      'InCabinetCheckoutConfirm': () => DialogPreview(show: (context) => confirmInCabinetPurchase(context, fromCart: true)),
       'SellBook': () => const SellBookScreen(),
       'PurchaseHistory': () => const PurchaseHistoryScreen(),
       'SalesHistory': () => const SalesHistoryScreen(),
+      'SalesHistoryOnSale': () => const AsSeller(child: SalesHistoryScreen(initialTab: 'on_sale')),
       'OrderDetail': () => OrderDetailScreen(order: Order.fromJson(order(7, 'deposited'))),
       'OrderDetailSeller': () => OrderDetailScreen(order: Order.fromJson(order(7, 'refunding')), asSeller: true),
       'Dispute': () => const DisputeScreen(orderId: 7),
@@ -761,6 +822,11 @@ Map<String, Widget Function()> get screens => {
       'AdminRiskAlerts': () => const AdminReportScreen(initialTab: AdminReportScreen.riskAlertTab),
       'AdminDisputes': () => const AdminDisputeScreen(),
       'AdminCabinets': () => const AdminCabinetScreen(),
+      'AdminCabinetDeposits': () => const AdminCabinetDepositScreen(),
+      'AdminCabinetDepositsOverdue': () => const AdminCabinetDepositScreen(initialOverdue: true),
+      'DepositRemovalConfirm': () => DialogPreview(
+          show: (context) => confirmDepositRemoval(
+              context, CabinetDeposit.fromJson({'book_id': 1, 'title': longTitle, 'cabinet': cabinet(), 'days_stored': 15}))),
       'AdminMaintenanceLog': () => const AdminMaintenanceLogScreen(),
       'AdminWallets': () => const AdminWalletScreen(),
       'AdminLevels': () => const AdminLevelScreen(),
@@ -794,7 +860,14 @@ Map<String, Widget Function()> get screens => {
       'AiRecommendStrip': () => const AiRecommendStripPreview(),
       'AiConsentSheet': () => DialogPreview(
           show: (context) => showAiConsentSheet(context,
-              status: const AiStatusInfo(support: true, listingAssist: true, recommend: true, providersInUse: ['DeepSeek', 'Google Gemini', 'OpenAI']))),
+              status: const AiStatusInfo(
+                  support: true,
+                  listingAssist: true,
+                  recommend: true,
+                  bookChat: true,
+                  consentOutdated: true,
+                  providersInUse: ['DeepSeek', 'Google Gemini', 'OpenAI'],
+                  embeddingProvider: 'OpenAI'))),
       'AiConsentSheetSingle': () => DialogPreview(
           show: (context) => showAiConsentSheet(context, status: const AiStatusInfo(listingAssist: true, providersInUse: ['Google Gemini']))),
       'AdminDeleteBookDialog': () => DialogPreview(
@@ -1122,6 +1195,25 @@ class _FakeBiometrics extends LocalAuthPlatform {
 
   @override
   Future<List<BiometricType>> getEnrolledBiometrics() async => [BiometricType.face];
+}
+
+class AsSeller extends StatefulWidget {
+  final Widget child;
+  const AsSeller({super.key, required this.child});
+
+  @override
+  State<AsSeller> createState() => _AsSellerState();
+}
+
+class _AsSellerState extends State<AsSeller> {
+  @override
+  void initState() {
+    super.initState();
+    ApiService.currentUser = User.fromJson(user(2));
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class _WithBiometrics extends StatefulWidget {

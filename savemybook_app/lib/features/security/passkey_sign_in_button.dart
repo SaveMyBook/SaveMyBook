@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../models/passkey.dart';
-import '../../services/api_service.dart';
 import '../../services/passkey_service.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
@@ -19,6 +18,8 @@ class PasskeySignInButton extends StatefulWidget {
 
   final bool? initialVisible;
 
+  final ValueChanged<bool>? onBusyChanged;
+
   const PasskeySignInButton({
     super.key,
     required this.onSignedIn,
@@ -26,6 +27,7 @@ class PasskeySignInButton extends StatefulWidget {
     this.disabled = false,
     this.topSpacing = 12,
     this.initialVisible,
+    this.onBusyChanged,
   });
 
   @override
@@ -35,28 +37,48 @@ class PasskeySignInButton extends StatefulWidget {
 class _PasskeySignInButtonState extends State<PasskeySignInButton> {
   late bool _visible = widget.initialVisible ?? false;
   bool _busy = false;
+  AppLifecycleListener? _lifecycle;
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialVisible == null) _detect();
+    if (widget.initialVisible == null) {
+      _detect();
+      _lifecycle = AppLifecycleListener(onResume: () {
+        if (!_visible) _detect();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _lifecycle?.dispose();
+    super.dispose();
   }
 
   Future<void> _detect() async {
-    if (!await PasskeyService.isSupported()) return;
-    final enabled = await ApiService().fetchPasskeyServerEnabled();
-    if (mounted && enabled) setState(() => _visible = true);
+    final usable = await PasskeyService.isUsable();
+    if (mounted && usable && !_visible) setState(() => _visible = true);
   }
 
+  // 登入頁切換寬窄版面時會重建此按鈕：原 State 卸載後流程仍須走完，登入成功與忙碌狀態才會回報給登入頁。
   Future<void> _signIn() async {
-    if (_busy || widget.disabled) return;
+    final host = widget;
+    if (_busy || host.disabled) return;
     FocusScope.of(context).unfocus();
-    setState(() => _busy = true);
 
+    void setBusy(bool value) {
+      if (_busy == value) return;
+      _busy = value;
+      if (mounted) setState(() {});
+      host.onBusyChanged?.call(value);
+    }
+
+    setBusy(true);
     var outcome = await _attempt(immediate: true);
-    if (!mounted) return;
     if (outcome.code == PasskeyOutcome.noCredentialsCode) {
-      setState(() => _busy = false);
+      setBusy(false);
+      if (!mounted) return;
       final other = await showConfirmDialog(
         context,
         title: S.noPasskeyDevice,
@@ -67,21 +89,20 @@ class _PasskeySignInButtonState extends State<PasskeySignInButton> {
       );
       if (!mounted) return;
       if (!other) {
-        widget.onUsePassword?.call();
+        host.onUsePassword?.call();
         return;
       }
-      setState(() => _busy = true);
+      setBusy(true);
       outcome = await _attempt(immediate: false);
-      if (!mounted) return;
     }
 
     if (outcome.isOk) {
-      await widget.onSignedIn();
-      if (mounted) setState(() => _busy = false);
+      await host.onSignedIn();
+      setBusy(false);
       return;
     }
-    setState(() => _busy = false);
-    if (!outcome.isCancelled) showAppSnackBar(context, outcome.message, isError: true);
+    setBusy(false);
+    if (mounted && !outcome.isCancelled) showAppSnackBar(context, outcome.message, isError: true);
   }
 
   Future<PasskeyOutcome<void>> _attempt({required bool immediate}) async {

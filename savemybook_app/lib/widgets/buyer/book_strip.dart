@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../models/book.dart';
@@ -16,6 +18,7 @@ class BookStrip extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
   final ValueChanged<Book>? onLongPress;
+  final double inset;
 
   const BookStrip({
     super.key,
@@ -28,6 +31,7 @@ class BookStrip extends StatelessWidget {
     this.onAction,
     this.onLongPress,
     this.showHeader = true,
+    this.inset = 16,
   });
 
   final bool showHeader;
@@ -35,6 +39,19 @@ class BookStrip extends StatelessWidget {
   static const double _tileWidth = 120;
   static const double _imageHeight = 140;
   static const double _height = 226;
+
+  static const double _titleFontSize = 13;
+
+  static const double _titleLineHeight = 1.3;
+
+  static const double _priceFontSize = 15;
+
+  static double _heightOf(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final title = (scaler.scale(_titleFontSize) - _titleFontSize) * _titleLineHeight * 2;
+    final price = (scaler.scale(_priceFontSize) - _priceFontSize) * 1.5;
+    return _height + math.max(0.0, title + price);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +62,7 @@ class BookStrip extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (showHeader) Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 8, 10),
+          padding: EdgeInsets.fromLTRB(inset, 0, math.max(0, inset - 8), 10),
           child: Row(
             children: [
               Icon(icon, size: 18, color: c.accent),
@@ -87,13 +104,13 @@ class BookStrip extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: _height,
+          height: _heightOf(context),
           child: loading && books.isEmpty
               ? Shimmer(
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                    padding: EdgeInsets.fromLTRB(inset, 0, inset, 6),
                     itemCount: 4,
                     separatorBuilder: (_, _) => const SizedBox(width: 12),
                     itemBuilder: (_, _) => const SizedBox(
@@ -114,7 +131,7 @@ class BookStrip extends StatelessWidget {
               : ListView.separated(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                  padding: EdgeInsets.fromLTRB(inset, 0, inset, 6),
                   itemCount: books.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 12),
                   itemBuilder: (context, i) => FadeSlideIn(
@@ -189,7 +206,7 @@ class BookStrip extends StatelessWidget {
                       book.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 13, height: 1.3, fontWeight: FontWeight.w600, color: c.textPrimary),
+                      style: TextStyle(fontSize: _titleFontSize, height: _titleLineHeight, fontWeight: FontWeight.w600, color: c.textPrimary),
                     ),
                     const Spacer(),
                     FittedBox(
@@ -198,7 +215,7 @@ class BookStrip extends StatelessWidget {
                       child: Text(
                         '\$${book.price.toInt()}',
                         maxLines: 1,
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: c.accent),
+                        style: TextStyle(fontSize: _priceFontSize, fontWeight: FontWeight.w800, color: c.accent),
                       ),
                     ),
                   ],
@@ -314,6 +331,10 @@ class _DiscoveryPanelState extends State<DiscoveryPanel> {
           duration: Motion.base,
           switchInCurve: Motion.enterCurve,
           switchOutCurve: Motion.exitCurve,
+          layoutBuilder: (current, previous) => Stack(
+            alignment: Alignment.topLeft,
+            children: [...previous, ?current],
+          ),
           child: current.groups.isEmpty
               ? BookStrip(
                   key: ValueKey(current.id),
@@ -332,7 +353,7 @@ class _DiscoveryPanelState extends State<DiscoveryPanel> {
                       if (i > 0) const SizedBox(height: 14),
                       if (group.title != null)
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 16, 8),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                           child: Text(
                             group.title!,
                             maxLines: 1,

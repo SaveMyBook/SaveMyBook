@@ -29,6 +29,7 @@ class AiFeatures {
   static const recommend = 'recommend';
   static const moderation = 'moderation';
   static const bookChat = 'book_chat';
+  static const bookChatPick = 'book_chat_pick';
   static const embedding = 'embedding';
   static const enrich = 'enrich';
   static const adminAssist = 'admin_assist';
@@ -193,7 +194,7 @@ class AiSettings {
     AiFeatures.support: 30,
     AiFeatures.listingAssist: 15,
     AiFeatures.recommend: 5,
-    AiFeatures.bookChat: 30,
+    AiFeatures.bookChat: 20,
   };
 
   static final AiSettings defaults = AiSettings.fromJson(const {});
@@ -316,26 +317,86 @@ class AiProviderInfo {
   }
 }
 
+class AiRetrievalCoverage {
+  final int indexed;
+  final int total;
+
+  const AiRetrievalCoverage({this.indexed = 0, this.total = 0});
+
+  double get ratio => total <= 0 ? 1 : (indexed / total).clamp(0.0, 1.0);
+
+  static AiRetrievalCoverage? fromJson(Object? json) {
+    if (json is! Map) return null;
+    return AiRetrievalCoverage(indexed: parseInt(json['indexed']), total: parseInt(json['total']));
+  }
+}
+
+class AiRetrievalError {
+  final DateTime? at;
+  final String purpose;
+  final String code;
+  final String? detail;
+
+  const AiRetrievalError({this.at, this.purpose = '', this.code = '', this.detail});
+
+  static AiRetrievalError? fromJson(Object? json) {
+    if (json is! Map) return null;
+    final detail = (json['detail'] as String?)?.trim();
+    return AiRetrievalError(
+      at: parseDate(json['at']),
+      purpose: json['purpose'] as String? ?? '',
+      code: json['code'] as String? ?? '',
+      detail: detail == null || detail.isEmpty ? null : detail,
+    );
+  }
+}
+
 class AiRetrievalStatus {
   final bool ready;
   final String? provider;
   final String? model;
   final int books;
   final int knowledge;
+  final AiRetrievalCoverage? bookCoverage;
+  final AiRetrievalCoverage? knowledgeCoverage;
+  final DateTime? lastSyncAt;
+  final AiRetrievalError? lastError;
+  final DateTime? syncPausedUntil;
+  final DateTime? queryPausedUntil;
 
-  const AiRetrievalStatus({this.ready = false, this.provider, this.model, this.books = 0, this.knowledge = 0});
+  const AiRetrievalStatus({
+    this.ready = false,
+    this.provider,
+    this.model,
+    this.books = 0,
+    this.knowledge = 0,
+    this.bookCoverage,
+    this.knowledgeCoverage,
+    this.lastSyncAt,
+    this.lastError,
+    this.syncPausedUntil,
+    this.queryPausedUntil,
+  });
 
   static const none = AiRetrievalStatus();
 
   factory AiRetrievalStatus.fromJson(Object? json) {
     if (json is! Map) return none;
     final counts = json['counts'] is Map ? json['counts'] as Map : const {};
+    final coverage = json['coverage'] is Map ? json['coverage'] as Map : const {};
+    final cooldown = json['cooldown_until'] is Map ? json['cooldown_until'] as Map : const {};
     return AiRetrievalStatus(
       ready: json['ready'] == true,
       provider: json['provider'] as String?,
       model: json['model'] as String?,
       books: parseInt(counts['book']),
       knowledge: parseInt(counts['knowledge']),
+      bookCoverage: AiRetrievalCoverage.fromJson(coverage['book']),
+      knowledgeCoverage: AiRetrievalCoverage.fromJson(coverage['knowledge']),
+      lastSyncAt: parseDate(json['last_sync_at']),
+      lastError: AiRetrievalError.fromJson(json['last_error']),
+      syncPausedUntil: parseDate(cooldown['sync']),
+      queryPausedUntil: parseDate(cooldown['query']),
     );
   }
 }
@@ -382,6 +443,30 @@ class AiSettingsBundle {
   AiProviderInfo provider(String id) => providers.firstWhere((p) => p.id == id);
 }
 
+class AiTestCheck {
+  static const text = 'text';
+  static const json = 'json';
+  static const image = 'image';
+
+  final String name;
+  final String status;
+  final int latencyMs;
+  final String? error;
+
+  const AiTestCheck({required this.name, required this.status, this.latencyMs = 0, this.error});
+
+  bool get ok => status == 'ok';
+
+  bool get skipped => status == 'skipped';
+
+  factory AiTestCheck.fromJson(Map<String, dynamic> json) => AiTestCheck(
+    name: json['name'] as String? ?? '',
+    status: json['status'] as String? ?? 'failed',
+    latencyMs: parseInt(json['latency_ms']),
+    error: (json['error'] as String?)?.trim().isEmpty ?? true ? null : (json['error'] as String).trim(),
+  );
+}
+
 class AiTestResult {
   final bool ok;
   final String provider;
@@ -389,6 +474,7 @@ class AiTestResult {
   final int latencyMs;
   final String? reply;
   final String? error;
+  final List<AiTestCheck> checks;
 
   const AiTestResult({
     required this.ok,
@@ -397,6 +483,7 @@ class AiTestResult {
     required this.latencyMs,
     this.reply,
     this.error,
+    this.checks = const [],
   });
 
   factory AiTestResult.fromJson(Map<String, dynamic> json) => AiTestResult(
@@ -406,6 +493,11 @@ class AiTestResult {
     latencyMs: parseInt(json['latency_ms']),
     reply: json['reply'] as String?,
     error: json['error'] as String?,
+    checks: [
+      if (json['checks'] is List)
+        for (final item in json['checks'] as List)
+          if (item is Map) AiTestCheck.fromJson(Map<String, dynamic>.from(item)),
+    ],
   );
 }
 
@@ -490,14 +582,16 @@ class AiProviderUsage {
   final String model;
   final int requests;
   final double costUsd;
-  final int avgLatencyMs;
+  final int? avgLatencyMs;
+  final int? p95LatencyMs;
 
   const AiProviderUsage({
     required this.provider,
     required this.model,
     this.requests = 0,
     this.costUsd = 0,
-    this.avgLatencyMs = 0,
+    this.avgLatencyMs,
+    this.p95LatencyMs,
   });
 
   factory AiProviderUsage.fromJson(Map<String, dynamic> json) => AiProviderUsage(
@@ -505,7 +599,8 @@ class AiProviderUsage {
     model: json['model'] as String? ?? '',
     requests: parseInt(json['requests']),
     costUsd: parseDouble(json['cost_usd']),
-    avgLatencyMs: parseInt(json['avg_latency_ms']),
+    avgLatencyMs: json['avg_latency_ms'] == null ? null : parseInt(json['avg_latency_ms']),
+    p95LatencyMs: json['p95_latency_ms'] == null ? null : parseInt(json['p95_latency_ms']),
   );
 }
 
@@ -646,6 +741,11 @@ class AiCostChartData {
     AiFeatures.listingAssist,
     AiFeatures.recommend,
     AiFeatures.moderation,
+    AiFeatures.bookChat,
+    AiFeatures.bookChatPick,
+    AiFeatures.embedding,
+    AiFeatures.enrich,
+    AiFeatures.adminAssist,
     AiFeatures.test,
   ];
 
@@ -766,6 +866,9 @@ String formatTokens(int value) {
 
 String formatCount(int value) => _group('$value');
 
+// 同意畫面的說明內容變更時加一，並與 API 的 NOTICE_VERSION 一致，否則伺服器會拒絕同意。
+const aiConsentNoticeVersion = 2;
+
 class AiStatusInfo {
   final bool support;
   final bool listingAssist;
@@ -773,7 +876,9 @@ class AiStatusInfo {
   final bool bookChat;
   final bool webSearch;
   final bool consented;
+  final bool consentOutdated;
   final List<String> providersInUse;
+  final String? embeddingProvider;
 
   const AiStatusInfo({
     this.support = false,
@@ -782,34 +887,43 @@ class AiStatusInfo {
     this.bookChat = false,
     this.webSearch = false,
     this.consented = false,
+    this.consentOutdated = false,
     this.providersInUse = const [],
+    this.embeddingProvider,
   });
 
   static const none = AiStatusInfo();
 
-  factory AiStatusInfo.fromJson(Map<String, dynamic> json) => AiStatusInfo(
-    support: json['support'] == true,
-    listingAssist: json['listing_assist'] == true,
-    recommend: json['recommend'] == true,
-    bookChat: json['book_chat'] == true,
-    webSearch: json['web_search'] == true,
-    consented: json['consented'] == true,
-    providersInUse: [
-      for (final p in json['providers_in_use'] is List ? json['providers_in_use'] as List : const [])
-        if (p is String && p.trim().isNotEmpty) p.trim(),
-    ],
-  );
+  factory AiStatusInfo.fromJson(Map<String, dynamic> json) {
+    final embedding = json['embedding_provider'];
+    return AiStatusInfo(
+      support: json['support'] == true,
+      listingAssist: json['listing_assist'] == true,
+      recommend: json['recommend'] == true,
+      bookChat: json['book_chat'] == true,
+      webSearch: json['web_search'] == true,
+      consented: json['consented'] == true,
+      consentOutdated: json['consent_outdated'] == true,
+      providersInUse: [
+        for (final p in json['providers_in_use'] is List ? json['providers_in_use'] as List : const [])
+          if (p is String && p.trim().isNotEmpty) p.trim(),
+      ],
+      embeddingProvider: embedding is String && embedding.trim().isNotEmpty ? embedding.trim() : null,
+    );
+  }
 
   bool get any => support || listingAssist || recommend || bookChat;
 
-  AiStatusInfo copyWith({bool? consented}) => AiStatusInfo(
+  AiStatusInfo copyWith({bool? consented, bool? consentOutdated}) => AiStatusInfo(
     support: support,
     listingAssist: listingAssist,
     recommend: recommend,
     bookChat: bookChat,
     webSearch: webSearch,
     consented: consented ?? this.consented,
+    consentOutdated: consentOutdated ?? (consented == true ? false : this.consentOutdated),
     providersInUse: providersInUse,
+    embeddingProvider: embeddingProvider,
   );
 }
 
@@ -974,6 +1088,10 @@ class AiResult<T> {
       code == 'AI_BUDGET_EXCEEDED' ||
       code == 'AI_NOT_CONFIGURED' ||
       code == 'AI_UNAVAILABLE';
+
+  bool get isContentBlocked => code == 'AI_CONTENT_BLOCKED';
+
+  bool get canRetry => !isQuotaOrDisabled && !isContentBlocked;
 }
 
 class AiCategoryGuess {

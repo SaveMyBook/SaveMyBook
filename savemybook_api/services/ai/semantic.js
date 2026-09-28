@@ -15,6 +15,8 @@ const INLINE_SYNC_MAX = 30;
 const QUERY_CACHE_SIZE = 500;
 const QUERY_TTL_MS = 60 * 60 * 1000;
 const FAILURE_COOLDOWN_MS = 5 * 60 * 1000;
+const FAILURE_STREAK = 3;
+const FAILED_DOC_MS = 30 * 60 * 1000;
 
 const hashOf = (text) => crypto.createHash('sha256').update(String(text)).digest('hex');
 
@@ -51,31 +53,68 @@ const loadStore = async (kind, p) => {
   return entries;
 };
 
-let failedUntil = 0;
+// 同步與查詢分開冷卻。系統性錯誤立即冷卻，其他錯誤（金鑰過期的 400 也屬此類）連續 FAILURE_STREAK 次才冷卻；
+// 同步失敗的那批文件另外暫停重送，否則每次查詢觸發同步都會重送同一批、重複計費。
+const COOLDOWN_REASONS = new Set(['AUTH', 'QUOTA', 'SERVER', 'TIMEOUT', 'NETWORK', 'RATE_LIMITED', 'MODEL_NOT_FOUND']);
+const PURPOSES = ['sync', 'query'];
+
+const health = { until: { sync: 0, query: 0 }, streak: { sync: 0, query: 0 }, lastSyncAt: null, lastError: null, coverage: new Map() };
+const failedDocs = new Map();
+
+const coolingDown = (purpose) => Date.now() < health.until[purpose];
+
+const skipFailed = (docs) => {
+  const now = Date.now();
+  return docs.filter((d) => {
+    const until = failedDocs.get(d.hash);
+    if (until === undefined) return true;
+    if (until > now) return false;
+    failedDocs.delete(d.hash);
+    return true;
+  });
+};
+
+const systemic = (err) => err instanceof ai.AiProviderError
+  && (COOLDOWN_REASONS.has(err.reason) || (err.reason === 'INVALID_OUTPUT' && err.systemic === true));
 
 const logCall = (p, { result, userId = null, error = null }) => usage.log({
   feature: 'embedding',
   provider: p.provider,
   model: p.model,
   userId,
-  usage: { input_tokens: result?.tokens ?? 0 },
-  costUsd: result?.cost_usd ?? 0,
+  usage: { input_tokens: result?.tokens ?? error?.usage?.input_tokens ?? 0 },
+  costUsd: result?.cost_usd ?? error?.cost_usd ?? 0,
   latencyMs: result?.latency_ms ?? error?.latency_ms ?? 0,
   ...(error && { status: 'error', errorCode: error.reason ?? 'INTERNAL', errorDetail: error.fullDetail ?? error.detail ?? null })
 });
 
-const embedTexts = async (p, texts, options = {}) => {
-  if (Date.now() < failedUntil) throw new ai.AiProviderError('SERVER', { provider: p.provider });
+const embedTexts = async (p, texts, { purpose, ...options }) => {
+  if (coolingDown(purpose)) throw new ai.AiProviderError('SERVER', { provider: p.provider });
   try {
     const result = await embeddings.embed(p, ai.apiKeyOf(p.provider), texts, options);
+    health.streak[purpose] = 0;
     await logCall(p, { result, userId: options.userId });
     return result.vectors;
   } catch (err) {
-    // 金鑰錯誤或服務中斷時暫停一段時間，避免每次搜尋都重試而拖慢回應。
-    failedUntil = Date.now() + FAILURE_COOLDOWN_MS;
+    health.streak[purpose] += 1;
+    if (systemic(err) || health.streak[purpose] >= FAILURE_STREAK) {
+      health.until[purpose] = Date.now() + FAILURE_COOLDOWN_MS;
+      health.streak[purpose] = 0;
+    }
+    health.lastError = {
+      at: new Date(),
+      purpose,
+      code: err?.reason ?? 'INTERNAL',
+      detail: err?.fullDetail ?? err?.detail ?? (ai.redact(err?.message ?? '') || null)
+    };
     await logCall(p, { error: err, userId: options.userId });
     throw err;
   }
+};
+
+const recordCoverage = (kind, entries, docs) => {
+  const indexed = docs.filter((d) => entries.get(d.ref)?.hash === d.hash).length;
+  health.coverage.set(kind, { indexed, total: docs.length });
 };
 
 const upsert = (kind, p, rows) => prisma.$executeRawUnsafe(
@@ -100,16 +139,28 @@ const sync = (kind, docs, { limit = SYNC_LIMIT } = {}) => {
     const ctx = await context();
     if (!ctx || (await usage.budgetExceeded(ctx.settings))) return 0;
     const entries = await loadStore(kind, p);
-    const todo = staleDocs(entries, docs).slice(0, limit);
+    const todo = skipFailed(staleDocs(entries, docs)).slice(0, limit);
     let done = 0;
-    for (let i = 0; i < todo.length; i += p.batch) {
-      const batch = todo.slice(i, i + p.batch);
-      const vectors = await embedTexts(p, batch.map((d) => d.text));
-      const rows = batch.map((d, j) => ({ ...d, vector: vectors[j] }));
-      await upsert(kind, p, rows);
-      for (const r of rows) entries.set(r.ref, { hash: r.hash, vector: r.vector });
-      done += rows.length;
+    try {
+      for (let i = 0; i < todo.length; i += p.batch) {
+        const batch = todo.slice(i, i + p.batch);
+        let vectors;
+        try {
+          vectors = await embedTexts(p, batch.map((d) => d.text), { purpose: 'sync' });
+        } catch (err) {
+          if (!(err instanceof ai.AiProviderError) || coolingDown('sync')) throw err;
+          for (const d of batch) failedDocs.set(d.hash, Date.now() + FAILED_DOC_MS);
+          continue;
+        }
+        const rows = batch.map((d, j) => ({ ...d, vector: vectors[j] }));
+        await upsert(kind, p, rows);
+        for (const r of rows) entries.set(r.ref, { hash: r.hash, vector: r.vector });
+        done += rows.length;
+      }
+    } finally {
+      recordCoverage(kind, entries, docs);
     }
+    health.lastSyncAt = new Date();
     return done;
   })()
     .catch((err) => {
@@ -127,7 +178,7 @@ const queryVector = async (p, text, userId) => {
   const key = `${p.id}|${text}`;
   const hit = queryCache.get(key);
   if (hit && Date.now() - hit.at < QUERY_TTL_MS) return hit.vector;
-  const [vector] = await embedTexts(p, [text], { task: 'query', userId });
+  const [vector] = await embedTexts(p, [text], { purpose: 'query', task: 'query', userId });
   queryCache.set(key, { vector, at: Date.now() });
   while (queryCache.size > QUERY_CACHE_SIZE) queryCache.delete(queryCache.keys().next().value);
   return vector;
@@ -144,9 +195,11 @@ const rank = async (kind, docs, query, { userId = null } = {}) => {
     const p = ctx.profile;
     const entries = await loadStore(kind, p);
     const stale = staleDocs(entries, docs);
-    if (stale.length > 0) {
+    health.coverage.set(kind, { indexed: docs.length - stale.length, total: docs.length });
+    const todo = coolingDown('sync') ? [] : skipFailed(stale);
+    if (todo.length > 0) {
       const job = sync(kind, docs);
-      if (stale.length <= INLINE_SYNC_MAX) await job;
+      if (todo.length <= INLINE_SYNC_MAX) await job;
     }
     const q = await queryVector(p, text.slice(0, 2000), userId);
     const out = [];
@@ -201,16 +254,27 @@ const fuse = (lists) => {
   return scores;
 };
 
+const healthStatus = () => {
+  const now = Date.now();
+  return {
+    cooldown_until: Object.fromEntries(PURPOSES.map((k) => [k, health.until[k] > now ? new Date(health.until[k]) : null])),
+    last_sync_at: health.lastSyncAt,
+    last_error: health.lastError,
+    coverage: Object.fromEntries(health.coverage)
+  };
+};
+
 const status = async () => {
   const p = profile();
-  if (!p) return { ready: false, provider: null, model: null, counts: {} };
+  if (!p) return { ready: false, provider: null, model: null, counts: {}, ...healthStatus() };
   const rows = await prisma.$queryRaw`
     SELECT kind, COUNT(*) AS n FROM ai_embeddings WHERE model = ${p.id} GROUP BY kind`;
   return {
     ready: true,
     provider: p.provider,
     model: p.model,
-    counts: Object.fromEntries(rows.map((r) => [r.kind, Number(r.n)]))
+    counts: Object.fromEntries(rows.map((r) => [r.kind, Number(r.n)])),
+    ...healthStatus()
   };
 };
 
@@ -218,7 +282,12 @@ const reset = () => {
   stores.clear();
   pending.clear();
   queryCache.clear();
-  failedUntil = 0;
+  health.until = { sync: 0, query: 0 };
+  health.streak = { sync: 0, query: 0 };
+  failedDocs.clear();
+  health.lastSyncAt = null;
+  health.lastError = null;
+  health.coverage.clear();
 };
 
 module.exports = { hashOf, profile, context, sync, rank, neighbors, relevant, fuse, status, reset };

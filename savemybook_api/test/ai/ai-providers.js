@@ -24,6 +24,8 @@ const reply = (url, init) => {
 h.onFetch(/^https:\/\/generativelanguage\.googleapis\.com\/(?!.*:batchEmbedContents)/, reply);
 h.onFetch(/^https:\/\/api\.openai\.com\/(?!v1\/embeddings)/, reply);
 h.onFetch('https://api.deepseek.com', reply);
+// ai-semantic.js 只用 Gemini 的嵌入端點，OpenAI 的嵌入端點由這裡接手。
+h.onFetch(/^https:\/\/api\.openai\.com\/v1\/embeddings/, reply);
 
 const geminiOk = (overrides = {}) => ({
   body: {
@@ -125,19 +127,40 @@ module.exports = {
       assert.strictEqual(result.usage.search_calls, 1);
     }],
 
-    ['Gemini：安全機制擋下時回 BLOCKED', async () => {
-      enqueue({ body: { candidates: [{ finishReason: 'SAFETY' }] } });
+    ['Gemini：安全機制擋下時回 BLOCKED，對外為 422 AI_CONTENT_BLOCKED 並附上已計費的用量', async () => {
+      enqueue({ body: { candidates: [{ finishReason: 'SAFETY' }], usageMetadata: { promptTokenCount: 120, thoughtsTokenCount: 30 } } });
       await assert.rejects(
         () => realGenerate('gemini', { model: 'gemini-3.1-flash-lite', prompt: 'x' }),
-        (err) => err.reason === 'BLOCKED' && err.detail === '內容遭服務安全機制拒絕' && err.status === 502
+        (err) => err.reason === 'BLOCKED'
+          && err.detail === '內容遭服務安全機制拒絕'
+          && err.status === 422
+          && err.code === 'AI_CONTENT_BLOCKED'
+          && err.message === '此內容無法由 AI 處理，請調整內容後再試'
+          && err.usage.input_tokens === 120
+          && err.usage.output_tokens === 30
+          && err.latency_ms >= 0
+      );
+      enqueue({ body: { promptFeedback: { blockReason: 'PROHIBITED_CONTENT' }, usageMetadata: { promptTokenCount: 80 } } });
+      await assert.rejects(
+        () => realGenerate('gemini', { model: 'gemini-3.1-flash-lite', prompt: 'x' }),
+        (err) => err.code === 'AI_CONTENT_BLOCKED' && err.usage.input_tokens === 80 && err.providerMessage === 'blockReason PROHIBITED_CONTENT'
       );
     }],
 
-    ['Gemini：輸出長度耗盡且沒有文字時回 INCOMPLETE', async () => {
-      enqueue({ body: { candidates: [{ finishReason: 'MAX_TOKENS', content: { parts: [] } }] } });
+    ['Gemini：輸出長度耗盡且沒有文字時回 INCOMPLETE 並附上用量', async () => {
+      enqueue({ body: { candidates: [{ finishReason: 'MAX_TOKENS', content: { parts: [] } }], usageMetadata: { promptTokenCount: 50, thoughtsTokenCount: 2048 } } });
       await assert.rejects(
         () => realGenerate('gemini', { model: 'gemini-3.1-flash-lite', prompt: 'x' }),
-        (err) => err.reason === 'INCOMPLETE' && err.detail === '回應超過輸出長度上限'
+        (err) => err.reason === 'INCOMPLETE' && err.detail === '回應超過輸出長度上限' && err.status === 502
+          && err.usage.output_tokens === 2048
+      );
+    }],
+
+    ['Gemini：JSON 被截斷時回 INCOMPLETE，不誤判為格式錯誤', async () => {
+      enqueue({ body: { candidates: [{ finishReason: 'MAX_TOKENS', content: { parts: [{ text: '{"reply":"未完' }] } }], usageMetadata: { promptTokenCount: 10 } } });
+      await assert.rejects(
+        () => realGenerate('gemini', { model: 'gemini-3.1-flash-lite', prompt: '請回覆 JSON', json: true }),
+        (err) => err.reason === 'INCOMPLETE' && err.usage.input_tokens === 10 && err.providerMessage === '輸出 12 字，結束原因 MAX_TOKENS'
       );
     }],
 
@@ -254,11 +277,23 @@ module.exports = {
       );
     }],
 
-    ['OpenAI：模型拒答時回 BLOCKED，額度不足時回 QUOTA', async () => {
+    ['OpenAI：已產生部分文字後才被內容過濾，仍回 BLOCKED 並附上用量', async () => {
+      enqueue(openaiOk({
+        status: 'incomplete',
+        output: [{ type: 'message', content: [{ type: 'output_text', text: '{"reply":"部分' }] }],
+        incomplete_details: { reason: 'content_filter' }
+      }));
+      await assert.rejects(
+        () => realGenerate('openai', { apiKey: 'sk-test-key', model: 'gpt-5-nano', prompt: 'x', json: true }),
+        (err) => err.reason === 'BLOCKED' && err.code === 'AI_CONTENT_BLOCKED' && err.status === 422 && err.usage.output_tokens === 10
+      );
+    }],
+
+    ['OpenAI：模型拒答時回 BLOCKED 並附上用量，額度不足時回 QUOTA', async () => {
       enqueue(openaiOk({ output: [{ type: 'message', content: [{ type: 'refusal', refusal: '不予回答' }] }] }));
       await assert.rejects(
         () => realGenerate('openai', { apiKey: 'sk-test-key', model: 'gpt-5-nano', prompt: 'x' }),
-        (err) => err.reason === 'BLOCKED'
+        (err) => err.reason === 'BLOCKED' && err.code === 'AI_CONTENT_BLOCKED' && err.usage.input_tokens === 80 && err.usage.output_tokens === 10
       );
       enqueue({ status: 429, body: errorBody('You exceeded your current quota', { type: 'insufficient_quota' }) });
       await assert.rejects(
@@ -289,6 +324,27 @@ module.exports = {
       assert.strictEqual(requests[0].body.messages[0].content, '請輸出 json 結果');
     }],
 
+    ['DeepSeek：輸出被截斷時回 INCOMPLETE，被內容過濾時回 BLOCKED，兩者都附上用量', async () => {
+      enqueue(deepseekOk({ choices: [{ message: { content: '{"reply":"被截' }, finish_reason: 'length' }] }));
+      await assert.rejects(
+        () => realGenerate('deepseek', { model: 'deepseek-flash', prompt: 'x', json: true }),
+        (err) => err.reason === 'INCOMPLETE' && err.usage.output_tokens === 8 && err.providerMessage === '輸出 12 字，結束原因 length'
+      );
+      enqueue(deepseekOk({ choices: [{ message: { content: '' }, finish_reason: 'length' }] }));
+      await assert.rejects(
+        () => realGenerate('deepseek', { model: 'deepseek-flash', prompt: 'x' }),
+        (err) => err.reason === 'INCOMPLETE' && err.usage.input_tokens === 60
+      );
+      enqueue(deepseekOk({ choices: [{ message: { content: '部分內容' }, finish_reason: 'content_filter' }] }));
+      await assert.rejects(
+        () => realGenerate('deepseek', { model: 'deepseek-flash', prompt: 'x' }),
+        (err) => err.reason === 'BLOCKED' && err.status === 422 && err.usage.input_tokens === 60
+      );
+      enqueue(deepseekOk({ choices: [{ message: { content: '未超過 JSON 以外的純文字' }, finish_reason: 'length' }] }));
+      const partial = await realGenerate('deepseek', { model: 'deepseek-flash', prompt: 'x' });
+      assert.strictEqual(partial.truncated, true, '純文字請求保留已產生的內容');
+    }],
+
     ['DeepSeek：餘額不足判為 QUOTA', async () => {
       enqueue({ status: 402, body: errorBody('Insufficient Balance') });
       await assert.rejects(
@@ -313,13 +369,13 @@ module.exports = {
       assert.strictEqual(requests.length, 1);
     }],
 
-    ['逾時會中止請求並回 TIMEOUT', async () => {
+    ['逾時會中止請求並回 TIMEOUT，且記下實際等待的時間', async () => {
       enqueue((url, init) => new Promise((resolve, reject) => {
         init.signal.addEventListener('abort', () => reject(init.signal.reason ?? new Error('aborted')), { once: true });
       }));
       await assert.rejects(
         () => realGenerate('deepseek', { model: 'deepseek-flash', prompt: 'x', timeoutMs: 30 }),
-        (err) => err.reason === 'TIMEOUT' && err.detail === '連線逾時'
+        (err) => err.reason === 'TIMEOUT' && err.detail === '連線逾時' && err.latency_ms >= 25
       );
     }],
 
@@ -352,11 +408,32 @@ module.exports = {
       assert.strictEqual(requests.length, 0);
     }],
 
-    ['要求 JSON 但輸出不是物件時回 INVALID_OUTPUT', async () => {
-      enqueue(deepseekOk({ choices: [{ message: { content: '我不知道' } }] }));
+    ['要求 JSON 但輸出不是物件時回 INVALID_OUTPUT，錯誤細節只含輸出長度與結束原因', async () => {
+      enqueue(deepseekOk({ choices: [{ message: { content: '使用者的電話是 0912345678' }, finish_reason: 'stop' }] }));
       await assert.rejects(
         () => realGenerate('deepseek', { model: 'deepseek-flash', prompt: 'x', json: true }),
-        (err) => err.reason === 'INVALID_OUTPUT' && err.detail === '回應格式不正確'
+        (err) => err.reason === 'INVALID_OUTPUT'
+          && err.detail === '回應格式不正確'
+          && err.status === 502
+          && err.providerMessage === '輸出 18 字，結束原因 stop'
+          && !err.fullDetail.includes('0912345678')
+          && err.usage.input_tokens === 60
+      );
+    }],
+
+    ['嵌入：筆數或維度不符視為系統性錯誤，零向量只影響該批，兩者都記下已計費的 token', async () => {
+      const embeddings = h.api('lib/ai/embeddings');
+      const profile = { ...embeddings.PROFILES.openai, dimensions: 3 };
+      enqueue({ body: { data: [{ index: 0, embedding: [1, 0] }], usage: { total_tokens: 1000000 } } });
+      await assert.rejects(
+        () => embeddings.embed(profile, 'sk-test-key', ['一']),
+        (err) => err.reason === 'INVALID_OUTPUT' && err.systemic === true && err.usage.input_tokens === 1000000
+          && err.cost_usd === 0.02 && err.providerMessage === '向量維度 2，預期 3'
+      );
+      enqueue({ body: { data: [{ index: 0, embedding: [0, 0, 0] }], usage: { total_tokens: 5 } } });
+      await assert.rejects(
+        () => embeddings.embed(profile, 'sk-test-key', ['二']),
+        (err) => err.reason === 'INVALID_OUTPUT' && err.systemic === false && err.usage.input_tokens === 5
       );
     }],
 

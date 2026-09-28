@@ -96,10 +96,17 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
     if (_consentBusy) return;
     _consentBusy = true;
     try {
-      if (enable) {
-        final agreed = await showAiConsentSheet(context);
-        if (!agreed || !mounted) return;
-      }
+      final confirmed = enable
+          ? await showAiConsentSheet(context)
+          : await showConfirmDialog(
+              context,
+              title: S.turnOffAiDataProcessing,
+              message: S.aiFeaturesStopAiSupportBook,
+              confirmLabel: S.turnOff,
+              isDestructive: true,
+              icon: Icons.auto_awesome_outlined,
+            );
+      if (!confirmed || !mounted) return;
       final result = await runBusy(context, () => AiStatus.setConsent(enable));
       if (!mounted) return;
       if (result == null || !result.isOk) {
@@ -225,9 +232,7 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
           Expanded(
             child: SwitchIn(
               child: _isLoading
-                  ? context.isWide
-                      ? const ResponsiveCenter(maxWidth: Breakpoints.formMaxWidth, child: LoadingView.menu())
-                      : const LoadingView.menu()
+                  ? const LoadingView.menu()
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
@@ -249,10 +254,10 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                               AppMenuItem(
                                 icon: Icons.link_off_rounded,
                                 title: S.regenerateShareLink,
-                                isLast: !status.any,
+                                isLast: !_showsAiConsent(status),
                                 onTap: _rotateShareLink,
                               ),
-                              if (status.any) _buildAiConsentItem(c, status),
+                              if (_showsAiConsent(status)) _buildAiConsentItem(c, status),
                             ]),
                           ),
                         ),
@@ -277,15 +282,19 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
     );
   }
 
+  static bool _showsAiConsent(AiStatusInfo status) => status.any || status.consented || status.consentOutdated;
+
   Widget _buildAiConsentItem(AppColors c, AiStatusInfo status) {
+    final on = status.consented || status.consentOutdated;
     return AppMenuItem(
       icon: Icons.auto_awesome_outlined,
       title: S.aiDataProcessing,
+      subtitle: status.consentOutdated ? S.consentRequiredAgain : null,
       isLast: true,
       showChevron: false,
-      onTap: () => _toggleAiConsent(!status.consented),
+      onTap: () => _toggleAiConsent(status.consentOutdated || !on),
       trailing: Switch.adaptive(
-        value: status.consented,
+        value: on,
         activeThumbColor: c.accent,
         onChanged: _toggleAiConsent,
       ),

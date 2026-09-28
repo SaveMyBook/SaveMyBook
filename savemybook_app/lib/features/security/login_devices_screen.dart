@@ -142,9 +142,7 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
 
     final Widget body;
     if (_loading) {
-      body = context.isWide
-          ? const ResponsiveCenter(key: ValueKey('loading'), child: LoadingView.menu())
-          : const LoadingView.menu(key: ValueKey('loading'));
+      body = const LoadingView.menu(key: ValueKey('loading'));
     } else if (sessions == null) {
       body = RefreshableCenter(
         key: const ValueKey('error'),
@@ -162,7 +160,7 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
         onRefresh: _load,
         child: LayoutBuilder(builder: (context, constraints) => ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: responsiveListPadding(constraints, bottom: 40),
+          padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
           children: [
             if (current.isNotEmpty) ...[
               _sectionTitle(c, S.device),

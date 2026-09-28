@@ -12,24 +12,24 @@ extension OrdersApi on ApiService {
     return Order.fromJson(Map<String, dynamic>.from(res['data']));
   }
 
-  Future<String?> checkout(List<int> cartIds) async {
-    final res = await _send('POST', '/orders/checkout', body: {'cart_ids': cartIds});
-    if (res == null) return S.pleaseSignFirst;
-    if (res['success'] != true) {
-      return res['code'] == 'VERIFICATION_CANCELLED' ? '' : (res['message'] as String? ?? S.checkoutFailed);
-    }
-    unawaited(fetchCartBookIds());
-    return null;
-  }
+  Future<({String? error, bool readyForPickup})> checkout(List<int> cartIds) =>
+      _placeOrder('/orders/checkout', {'cart_ids': cartIds});
 
-  Future<String?> buyNow(int bookId) async {
-    final res = await _send('POST', '/orders/buy-now', body: {'book_id': bookId});
-    if (res == null) return S.pleaseSignFirst;
+  Future<({String? error, bool readyForPickup})> buyNow(int bookId) =>
+      _placeOrder('/orders/buy-now', {'book_id': bookId});
+
+  Future<({String? error, bool readyForPickup})> _placeOrder(String path, Map<String, Object?> body) async {
+    final res = await _send('POST', path, body: body);
+    if (res == null) return (error: S.pleaseSignFirst, readyForPickup: false);
     if (res['success'] != true) {
-      return res['code'] == 'VERIFICATION_CANCELLED' ? '' : (res['message'] as String? ?? S.checkoutFailed);
+      final error = res['code'] == 'VERIFICATION_CANCELLED' ? '' : (res['message'] as String? ?? S.checkoutFailed);
+      return (error: error, readyForPickup: false);
     }
     unawaited(fetchCartBookIds());
-    return null;
+    final data = res['data'];
+    final orders = data is List ? data : [data];
+    final ready = orders.isNotEmpty && orders.every((o) => o is Map && o['status'] == 'deposited');
+    return (error: null, readyForPickup: ready);
   }
 
   Future<String?> cancelOrder(int orderId, {String? reason}) async {

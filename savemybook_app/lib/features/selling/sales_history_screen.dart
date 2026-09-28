@@ -12,6 +12,7 @@ import '../../widgets/state_views.dart';
 import '../books/book_detail_screen.dart';
 import '../orders/order_detail_screen.dart';
 import '../../i18n/strings.dart';
+import 'book_deposit_actions.dart';
 
 class SalesHistoryScreen extends StatefulWidget {
   final String? initialTab;
@@ -66,9 +67,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> with SingleTick
     final requestId = (_requestIds[tab] ?? 0) + 1;
     _requestIds[tab] = requestId;
     final List<Object> items;
-    // 販售中只放上架中、尚未成立訂單的書；已成立訂單的書在待存書與已存書分頁。
+    // 販售中只放上架中、尚未成立訂單的書，以及仍登記存放於書櫃（含逾期暫停販售）的書；已成立訂單的書在待存書與已存書分頁。
     if (tab == 'on_sale') {
-      items = (await _api.fetchMyBooks()).where((b) => b.status == 'on_sale').toList();
+      items = (await _api.fetchMyBooks()).where((b) => b.status == 'on_sale' || b.isDeposited).toList();
     } else {
       items = await _api.fetchOrders(role: 'seller', tab: tab);
     }
@@ -80,25 +81,10 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> with SingleTick
 
   Future<void> _markDeposited(Order order) async {
     if (_busy) return;
-    final confirmed = await showConfirmDialog(
-      context,
-      title: S.markAsDroppedOff,
-      message: S.confirmPutLocker(order.firstBook?.title ?? S.untitled),
-      confirmLabel: S.droppedOff,
-    );
-    if (!confirmed || !mounted) return;
-
     _busy = true;
-    final error = await runBusy(context, () => _api.updateOrderStatus(order.orderId, 'deposited'));
+    final sent = await confirmOrderDeposit(context, order);
     _busy = false;
-    if (!mounted) return;
-
-    if (error != null) {
-      showAppSnackBar(context, error, isError: true);
-    } else {
-      showAppSnackBar(context, S.markedAsDroppedOff);
-      _load();
-    }
+    if (sent && mounted) _load();
   }
 
   Future<void> _delist(Book book) async {
@@ -106,8 +92,8 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> with SingleTick
     final confirmed = await showConfirmDialog(
       context,
       title: S.delist,
-      message: S.removedFromShopBuyersNoLonger(book.title),
-      confirmLabel: S.delist2,
+      message: delistMessage(book),
+      confirmLabel: S.delist,
       isDestructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -124,6 +110,22 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> with SingleTick
       showAppSnackBar(context, S.p0Delisted(book.title));
     }
     _load();
+  }
+
+  Future<void> _deposit(Book book) async {
+    if (_busy) return;
+    _busy = true;
+    final sent = await confirmBookDeposit(context, book);
+    _busy = false;
+    if (sent && mounted) _load();
+  }
+
+  Future<void> _retrieve(Book book) async {
+    if (_busy) return;
+    _busy = true;
+    final sent = await confirmBookRetrieval(context, book);
+    _busy = false;
+    if (sent && mounted) _load();
   }
 
   Future<void> _cancelOrder(Order order) async {
@@ -206,11 +208,23 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> with SingleTick
 
   Widget _buildCard(Object item) {
     if (item is Book) {
+      final deposit = item.deposit;
+      final paused = deposit?.paused == true;
+      final canDelist = item.status == 'on_sale' && !item.isHeld;
+      final String? delistLabel = canDelist ? S.delist : null;
+      final String? depositLabel = deposit != null ? S.retrieve : (item.canRegisterDeposit ? S.dropOff : null);
+      final VoidCallback onDeposit = deposit != null ? () => _retrieve(item) : () => _deposit(item);
+      final depositFirst = depositLabel != null;
       return ListingCard(
         book: item,
+        status: paused ? S.salesPaused : null,
+        statusColor: paused ? AppColors.of(context).warning : null,
+        depositNote: deposit == null ? null : storedDaysText(deposit.daysStored),
         onTap: () => _openBook(item),
-        actionLabel: item.isHeld ? null : S.delist,
-        onAction: () => _delist(item),
+        actionLabel: depositFirst ? depositLabel : delistLabel,
+        onAction: depositFirst ? onDeposit : () => _delist(item),
+        secondaryLabel: depositFirst ? delistLabel : null,
+        onSecondary: () => _delist(item),
       );
     }
     final order = item as Order;

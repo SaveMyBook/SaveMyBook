@@ -208,25 +208,28 @@ class _AppPickerSheetState<T> extends State<_AppPickerSheet<T>> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary),
-                        ),
-                        if (widget.subtitle != null) ...[
-                          const SizedBox(height: 2),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            widget.subtitle!,
-                            maxLines: 8,
+                            widget.title,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 12, color: c.textSecondary),
+                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary),
                           ),
+                          if (widget.subtitle != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.subtitle!,
+                              maxLines: 8,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 12, color: c.textSecondary),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                   IconButton(
@@ -417,6 +420,7 @@ class _PickerTile<T> extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Flexible(
               child: option.labelWidget ??
@@ -433,15 +437,18 @@ class _PickerTile<T> extends StatelessWidget {
             ),
             if (option.badge != null) ...[
               const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: badgeColor.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  option.badge!,
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: badgeColor),
+              Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: badgeColor.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    option.badge!,
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: badgeColor),
+                  ),
                 ),
               ),
             ],
@@ -492,6 +499,7 @@ class AppSelect<T> extends StatefulWidget {
   final bool? searchable;
   final String? emptyText;
   final Widget? sheetHeader;
+  final bool locked;
 
   const AppSelect({
     super.key,
@@ -507,6 +515,7 @@ class AppSelect<T> extends StatefulWidget {
     this.searchable,
     this.emptyText,
     this.sheetHeader,
+    this.locked = false,
   });
 
   @override
@@ -614,6 +623,11 @@ class _AppSelectState<T> extends State<AppSelect<T>> {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2, color: c.iconInactive),
                     )
+                  else if (widget.locked)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: Icon(Icons.lock_outline_rounded, size: 16, color: c.iconInactive),
+                    )
                   else
                     AnimatedRotation(
                       turns: _open ? 0.5 : 0,
@@ -636,7 +650,7 @@ class _AppSelectState<T> extends State<AppSelect<T>> {
           alignment: Alignment.topLeft,
           child: hasError
               ? Padding(
-                  padding: const EdgeInsets.only(top: 5, left: 4),
+                  padding: const EdgeInsets.only(top: 4, left: 16),
                   child: Text(
                     widget.errorText!,
                     style: TextStyle(fontSize: 12, color: c.danger),
@@ -710,8 +724,8 @@ class _AppSelectChipState<T> extends State<AppSelectChip<T>> {
         child: AnimatedContainer(
           duration: Motion.base,
           curve: Motion.standard,
-          height: 44,
-          constraints: const BoxConstraints(minWidth: 44, maxWidth: 160),
+          height: 48,
+          constraints: const BoxConstraints(minWidth: 48, maxWidth: 160),
           padding: EdgeInsets.symmetric(horizontal: widget.iconOnly ? 0 : 12),
           decoration: BoxDecoration(
             color: active ? c.accent : c.card,

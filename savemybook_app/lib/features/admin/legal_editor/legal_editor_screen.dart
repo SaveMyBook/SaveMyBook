@@ -507,6 +507,7 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
         currentVersion: _doc?.version,
         requiresConsent: widget.requiresConsent,
         contentChanged: contentChanged,
+        resetsAiConsent: widget.docKey == 'privacy',
         diff: LegalText.diff(
           oldTitle: _baseTitle,
           oldContent: _baseContent,

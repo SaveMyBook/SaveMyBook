@@ -2,6 +2,7 @@ const { conflict, badRequest } = require('../lib/errors');
 const { ADMIN_PERMISSIONS } = require('../constants/domain');
 const { decode, sameValue, display } = require('./audit');
 const { changeBalance } = require('./wallet');
+const deposits = require('./book-deposits');
 
 // 白名單限制還原可碰的欄位，紀錄被竄改也改不到密碼或餘額。
 const MODELS = {
@@ -10,7 +11,9 @@ const MODELS = {
   books: {
     pk: 'book_id',
     fields: ['title', 'author', 'publisher', 'publish_date', 'isbn', 'category_id', 'condition_level',
-      'condition_note', 'price', 'description', 'status', 'is_approved']
+      'condition_note', 'price', 'description', 'status', 'is_approved'],
+    // 還原上下架須與管理員變更狀態同步存書紀錄，否則恢復上架後仍會被當成逾期存書提醒取回。
+    afterUpdate: (tx, id, data) => (data.status === undefined ? null : deposits.syncAdminStatus(tx, id, data.status))
   },
   book_categories: { pk: 'category_id', fields: ['category_name', 'sort_order', 'parent_id'], creatable: true },
   member_levels: { pk: 'level_id', fields: ['level_name', 'min_points', 'max_points', 'benefits'], creatable: true },
@@ -128,7 +131,9 @@ const applyStep = async (tx, step, { adminId, label }) => {
       return;
     }
     assertFields(spec, step.before);
-    await tx[step.model].update({ where: { [spec.pk]: step.id }, data: decodeAll(step.before) });
+    const data = decodeAll(step.before);
+    await tx[step.model].update({ where: { [spec.pk]: step.id }, data });
+    await spec.afterUpdate?.(tx, step.id, data);
     return;
   }
 

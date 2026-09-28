@@ -29,6 +29,7 @@ router.get('/status', authenticateToken, async (req, res) => {
 router.put('/consent', authenticateToken, async (req, res) => {
   const granted = req.body?.granted;
   if (typeof granted !== 'boolean') throw badRequest('granted 必須是 true 或 false');
+  if (granted && req.body?.notice_version !== consent.NOTICE_VERSION) throw consent.noticeOutdated();
   await consent.setGranted(req.user.userId, granted);
   res.status(200).json({
     success: true,

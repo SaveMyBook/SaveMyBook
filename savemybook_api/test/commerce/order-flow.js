@@ -87,7 +87,7 @@ const tests = [
     assert.strictEqual(result.uncollected, 1);
     assert.strictEqual(orderOf(order.order_id).status, 'cancelled');
     assert.strictEqual(orderOf(recent.order_id).status, 'deposited');
-    assert.ok(notificationsOf(seller.user_id).some((n) => n.content.includes('請至書櫃取回書籍')));
+    assert.ok(notificationsOf(seller.user_id).some((n) => n.content.includes('請至書櫃以 App 掃描 QR Code 取回書籍')));
   }],
 
   ['預約保留中的書賣家不可編輯或下架', async () => {

@@ -57,7 +57,7 @@ entity "ai_recommendation_cache" as ai_recommendation_cache {
   {field} created_at : datetime
 }
 entity "ai_settings" as ai_settings {
-  {field} <&key> id : int
+  {field} <&key> id : tinyint
   --
   {field} config : text
   {field} updated_by : int

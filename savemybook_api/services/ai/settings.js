@@ -26,7 +26,7 @@ const DEFAULTS = Object.freeze({
   },
   limits: {
     monthly_budget_usd: 10,
-    daily_per_user: { support: 30, listing_assist: 15, recommend: 5, book_chat: 30 }
+    daily_per_user: { support: 30, listing_assist: 15, recommend: 5, book_chat: 20 }
   }
 });
 
@@ -41,6 +41,8 @@ const PRICE_LABELS = {
 };
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
+
+const isModelName = (value) => typeof value === 'string' && MODEL_RE.test(value.trim());
 
 const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 
@@ -82,7 +84,7 @@ const normalize = (raw, { strict = false } = {}) => {
     const target = out.providers[id];
     const name = PROVIDERS[id].name;
     if (p.model !== undefined) {
-      if (typeof p.model === 'string' && MODEL_RE.test(p.model.trim())) target.model = p.model.trim();
+      if (isModelName(p.model)) target.model = p.model.trim();
       else fail(`${name} 模型名稱格式不正確`);
     }
     for (const field of ['input_per_m', 'cached_input_per_m', 'output_per_m', 'search_price_per_k']) {
@@ -201,5 +203,5 @@ const providerList = () => PROVIDER_IDS.map((id) => ({
 
 module.exports = {
   FEATURES, LIMITED_FEATURES, MODERATION_ACTIONS, DEFAULTS, FEATURE_LABELS,
-  normalize, load, save, clearCache, providerList, diffSettings
+  isModelName, normalize, load, save, clearCache, providerList, diffSettings
 };

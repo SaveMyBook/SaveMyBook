@@ -466,7 +466,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             padding: const EdgeInsets.only(top: 8.0, bottom: 20.0),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(children: [
                   Expanded(
                     child: Text(
@@ -493,7 +493,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 20),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: Breakpoints.readingMaxWidth),
                   child: SearchBarWidget(currentKeyword: _currentKeyword, onSearch: _onSearchChanged),
@@ -798,7 +798,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         padding: padding,
         sliver: _isGridView
             ? SliverGrid(
-                gridDelegate: BookCard.gridDelegate,
+                gridDelegate: BookCard.gridDelegateOf(context),
                 delegate: SliverChildBuilderDelegate((_, _) => _skeletonCard(c, true), childCount: 4),
               )
             : SliverList(
@@ -825,7 +825,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return SliverPadding(
         padding: padding,
         sliver: SliverGrid(
-          gridDelegate: BookCard.gridDelegate,
+          gridDelegate: BookCard.gridDelegateOf(context),
           delegate: SliverChildBuilderDelegate(
             (_, i) => RevealOnScroll(
               key: ValueKey('grid_${_books[i].bookId}'),
@@ -843,7 +843,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return SliverPadding(
         padding: padding,
         sliver: SliverGrid(
-          gridDelegate: BookCard.listDelegate,
+          gridDelegate: BookCard.listDelegateOf(context),
           delegate: SliverChildBuilderDelegate(
             (_, i) => RevealOnScroll(
               key: ValueKey('list_${_books[i].bookId}'),
@@ -886,7 +886,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget _skeletonCard(AppColors c, bool grid) {
     return Shimmer(
       child: Container(
-        height: grid ? BookCard.gridHeight : 140,
+        height: grid ? BookCard.gridHeightOf(context) : BookCard.listHeightOf(context),
         decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(16)),
         child: grid
             ? const Column(
@@ -908,11 +908,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ],
               )
-            : const Row(
+            : Row(
                 children: [
-                  SkeletonBox(width: 110, height: 140, radius: 16),
-                  SizedBox(width: 14),
-                  Expanded(
+                  SkeletonBox(width: 110, height: BookCard.listHeightOf(context), radius: 16),
+                  const SizedBox(width: 14),
+                  const Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -925,7 +925,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ],
                     ),
                   ),
-                  SizedBox(width: 14),
+                  const SizedBox(width: 14),
                 ],
               ),
       ),

@@ -4,13 +4,17 @@ const v = require('../../lib/validate');
 const { imageUpload } = require('../../lib/upload');
 const { badRequest } = require('../../lib/errors');
 const { CONDITION_LEVELS } = require('../../constants/domain');
+const { LISTING_MAX_PRICE: MAX_PRICE } = require('../../constants/policy');
 const books = require('../../services/books');
+const deposits = require('../../services/book-deposits');
+const cabinetManual = require('../../services/cabinet-manual');
+
+const PENDING_MESSAGE = '已送出手動回報，待客服確認後生效';
 
 const router = express.Router();
 
 const photos = imageUpload({ folder: 'books', maxFileSize: 10 * 1024 * 1024 });
 
-const MAX_PRICE = 99999;
 const IMAGE_TYPES = ['cover', 'back', 'inside', 'other'];
 
 const IMAGE_FIELDS = [
@@ -118,6 +122,22 @@ router.put('/:id', authenticateToken, async (req, res) => {
 router.delete('/:id', authenticateToken, async (req, res) => {
   await books.remove(v.id(req.params.id, '書籍編號'), req.user);
   res.status(200).json({ success: true, message: '書籍已成功下架' });
+});
+
+router.post('/:id/deposit', authenticateToken, async (req, res) => {
+  const data = await deposits.deposit(v.id(req.params.id, '書籍編號'), req.user);
+  if (cabinetManual.isPending(data)) return res.status(202).json({ success: true, message: PENDING_MESSAGE, data });
+  res.status(201).json({ success: true, message: '已登記存書，買家下單後可直接至書櫃取書', data });
+});
+
+router.post('/:id/retrieve', authenticateToken, async (req, res) => {
+  const data = await deposits.retrieve(v.id(req.params.id, '書籍編號'), req.user);
+  if (cabinetManual.isPending(data)) return res.status(202).json({ success: true, message: PENDING_MESSAGE, data });
+  res.status(200).json({
+    success: true,
+    message: data.restored ? '已回報取回書籍，書籍已恢復上架' : '已回報取回書籍',
+    data
+  });
 });
 
 router.post('/:id/images', authenticateToken, ...photos.array('images', 8), async (req, res) => {

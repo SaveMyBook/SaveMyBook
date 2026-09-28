@@ -50,11 +50,27 @@ class OrderCard extends StatelessWidget {
 
 class ListingCard extends StatelessWidget {
   final Book book;
+  final String? status;
+  final Color? statusColor;
+  final String? depositNote;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final String? secondaryLabel;
+  final VoidCallback? onSecondary;
   final VoidCallback? onTap;
 
-  const ListingCard({super.key, required this.book, this.actionLabel, this.onAction, this.onTap});
+  const ListingCard({
+    super.key,
+    required this.book,
+    this.status,
+    this.statusColor,
+    this.depositNote,
+    this.actionLabel,
+    this.onAction,
+    this.secondaryLabel,
+    this.onSecondary,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -62,12 +78,16 @@ class ListingCard extends StatelessWidget {
       imageUrl: book.hasImage ? book.imageUrl : null,
       title: book.title,
       price: book.price,
-      status: book.sellerStatusText,
+      status: status ?? book.sellerStatusText,
+      statusColor: statusColor,
       address: book.cabinetAddress,
       openHours: book.cabinetOpenHours,
       slotNumber: '',
+      depositNote: depositNote,
       actionLabel: actionLabel,
       onAction: onAction,
+      secondaryLabel: secondaryLabel,
+      onSecondary: onSecondary,
       onTap: onTap,
     );
   }
@@ -78,9 +98,11 @@ class SaleCardFrame extends StatelessWidget {
   final String title;
   final double price;
   final String status;
+  final Color? statusColor;
   final String address;
   final String openHours;
   final String slotNumber;
+  final String? depositNote;
   final String? actionLabel;
   final VoidCallback? onAction;
   final String? secondaryLabel;
@@ -93,9 +115,11 @@ class SaleCardFrame extends StatelessWidget {
     required this.title,
     required this.price,
     required this.status,
+    this.statusColor,
     required this.address,
     required this.openHours,
     required this.slotNumber,
+    this.depositNote,
     this.actionLabel,
     this.onAction,
     this.secondaryLabel,
@@ -132,6 +156,7 @@ class SaleCardFrame extends StatelessWidget {
     }
 
     final buttonText = Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 13, fontWeight: FontWeight.w600);
+    final priceStyle = DefaultTextStyle.of(context).style.merge(TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.accent));
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -159,24 +184,23 @@ class SaleCardFrame extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Flexible(
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 96),
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
-                          child: Text(
-                            '\$${price.toStringAsFixed(0)}',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.accent),
-                          ),
+                          child: Text('\$${price.toStringAsFixed(0)}', style: priceStyle),
                         ),
                       ),
                       const SizedBox(width: 6),
-                      Flexible(
+                      Expanded(
                         child: Text(
                           status,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.end,
-                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: c.textHint),
+                          strutStyle: StrutStyle.fromTextStyle(priceStyle, forceStrutHeight: true),
+                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: statusColor ?? c.textHint),
                         ),
                       ),
                     ],
@@ -184,46 +208,43 @@ class SaleCardFrame extends StatelessWidget {
                   if (address.isNotEmpty) infoRow(Icons.location_on_outlined, address, maxLines: 2),
                   if (openHours.isNotEmpty) infoRow(Icons.schedule_rounded, openHours),
                   if (slotNumber.isNotEmpty) infoRow(Icons.grid_view_rounded, S.slot2(slotNumber)),
+                  if (depositNote != null) infoRow(Icons.inventory_2_outlined, depositNote!),
                   const Spacer(),
-                  if (actionLabel != null || secondaryLabel != null) ...[
+                  if (actionLabel != null) ...[
                     const SizedBox(height: 10),
                     SizedBox(
+                      width: double.infinity,
                       height: 34,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (secondaryLabel != null)
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: onSecondary,
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: c.accent,
-                                  side: BorderSide(color: c.accent.withValues(alpha: 0.5)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  textStyle: buttonText,
-                                ),
-                                child: Text(secondaryLabel!, maxLines: 1, overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                          if (secondaryLabel != null && actionLabel != null) const SizedBox(width: 6),
-                          if (actionLabel != null)
-                            Expanded(
-                              child: FilledButton(
-                                onPressed: onAction,
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: c.accent,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  textStyle: buttonText,
-                                ),
-                                child: Text(actionLabel!, maxLines: 1, overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                        ],
+                      child: FilledButton(
+                        onPressed: onAction,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: c.accent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          textStyle: buttonText,
+                        ),
+                        child: Text(actionLabel!, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                    ),
+                  ],
+                  if (secondaryLabel != null) ...[
+                    SizedBox(height: actionLabel != null ? 6 : 10),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 34,
+                      child: OutlinedButton(
+                        onPressed: onSecondary,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: c.accent,
+                          side: BorderSide(color: c.accent.withValues(alpha: 0.5)),
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          textStyle: buttonText,
+                        ),
+                        child: Text(secondaryLabel!, maxLines: 1, overflow: TextOverflow.ellipsis),
                       ),
                     ),
                   ],

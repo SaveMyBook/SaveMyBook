@@ -172,10 +172,7 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
                             final record = _backups[i - 1];
                             return RevealOnScroll(
                               index: i,
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildRow(record, c),
-                              ),
+                              child: _buildRow(record, c),
                             );
                           },
                         ),
@@ -274,7 +271,6 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
 
     return SwipeActionTile(
       itemKey: ValueKey(record.backupId),
-      backgroundMargin: EdgeInsets.zero,
       endToStart: SwipeAction(
         icon: Icons.delete_outline_rounded,
         label: S.actionDelete,
@@ -289,72 +285,75 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
         ),
         onDismissed: () => _delete(record),
       ),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: c.card,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: [
-            BoxShadow(color: c.shadow.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: tint.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppRadius.control),
-              ),
-              child: Icon(
-                record.isSuccess ? Icons.inventory_2_outlined : Icons.error_outline_rounded,
-                size: 20,
-                color: tint,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    formatDateTime(record.createdAt),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
-                  ),
-                  if (formatRelative(record.createdAt) != formatDate(record.createdAt))
-                    Text(
-                      formatRelative(record.createdAt),
-                      style: TextStyle(fontSize: 11, color: c.textHint),
-                    ),
-                  const SizedBox(height: 3),
-                  Text(
-                    record.isSuccess
-                        ? '${record.sizeText}・${record.isPreRestore ? S.autoBackupBeforeRestore : record.isManual ? S.manual : S.scheduled}'
-                            '${record.adminName.isEmpty ? '' : '・${record.adminName}'}'
-                        : (record.detail ?? S.backupFailed),
-                    style: TextStyle(fontSize: 12, color: c.textSecondary),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            if (record.isSuccess && record.available) ...[
-              IconButton(
-                icon: Icon(Icons.settings_backup_restore_rounded, size: 20, color: c.danger),
-                tooltip: S.restoreBackup2,
-                onPressed: _isBusy ? null : () => _restore(record),
-              ),
-              IconButton(
-                icon: Icon(Icons.download_rounded, size: 20, color: c.accent),
-                tooltip: S.download,
-                onPressed: () => _download(record),
-              ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: c.card,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            boxShadow: [
+              BoxShadow(color: c.shadow.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
             ],
-          ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: tint.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.control),
+                ),
+                child: Icon(
+                  record.isSuccess ? Icons.inventory_2_outlined : Icons.error_outline_rounded,
+                  size: 20,
+                  color: tint,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      formatDateTime(record.createdAt),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
+                    ),
+                    if (formatRelative(record.createdAt) != formatDate(record.createdAt))
+                      Text(
+                        formatRelative(record.createdAt),
+                        style: TextStyle(fontSize: 11, color: c.textHint),
+                      ),
+                    const SizedBox(height: 3),
+                    Text(
+                      record.isSuccess
+                          ? '${record.sizeText}・${record.isPreRestore ? S.autoBackupBeforeRestore : record.isManual ? S.manual : S.scheduled}'
+                              '${record.adminName.isEmpty ? '' : '・${record.adminName}'}'
+                          : (record.detail ?? S.backupFailed),
+                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              if (record.isSuccess && record.available) ...[
+                IconButton(
+                  icon: Icon(Icons.settings_backup_restore_rounded, size: 20, color: c.danger),
+                  tooltip: S.restoreBackup2,
+                  onPressed: _isBusy ? null : () => _restore(record),
+                ),
+                IconButton(
+                  icon: Icon(Icons.download_rounded, size: 20, color: c.accent),
+                  tooltip: S.download,
+                  onPressed: () => _download(record),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

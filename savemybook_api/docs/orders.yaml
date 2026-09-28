@@ -12,10 +12,19 @@ tags:
       | 條件 | 處理 |
       | --- | --- |
       | 已取書（`picked_up_at` 有值）滿 24 小時，且狀態仍為 `deposited`／`pending_pickup` | 自動完成並撥款，通知買賣雙方 |
-      | `pending_payment`／`pending_deposit` 且訂單成立滿 7 天 | 自動取消、全額退款，書籍改為下架（`removed`），通知雙方 |
-      | `deposited`／`pending_pickup` 未取書且存書滿 7 天 | 自動取消、全額退款，書籍改為下架，通知賣家至書櫃取回書籍 |
+      | `pending_payment`／`pending_deposit` 且訂單成立滿 7 天 | 自動取消、全額退款，書籍改為下架（`removed`），通知雙方；下單前已存書的書恢復存書登記，通知賣家取回並於 App 中回報 |
+      | `deposited`／`pending_pickup` 未取書且存書滿 7 天 | 自動取消、全額退款，書籍改為下架，通知賣家至書櫃取回書籍；訂單的每本書都恢復存書登記，須於 App 中回報取回 |
 
       爭議處理中（`refunding`）的訂單不受排程影響。
+
+      賣家可在訂單成立前先將書存入書櫃（`POST /api/books/{id}/deposit`）。訂單中每本書都已存於該訂單的書櫃時，
+      訂單直接成立為 `deposited`，`deposited_at` 為下單時間，買家取書期限自下單起算 7 天，且買賣雙方即無法自行取消，
+      如有問題須提出交易申訴；其餘訂單照常以 `pending_deposit` 成立，由賣家存書後回報。
+      訂單項目的 `pre_deposited` 標示下單時已在櫃中的書。訂單在買家取書前取消或退款時，仍在櫃中的書恢復存書登記
+      （存書時間自取消時重新起算），逾期提醒與後台存書列表照常追蹤：訂單已存書（`deposited`、`pending_pickup`，
+      申訴中則為已有 `deposited_at`）時訂單的每本書都恢復登記於訂單書櫃，書籍的書櫃一併改為訂單書櫃；
+      尚未存書時僅 `pre_deposited` 的書恢復登記。訂單原為爭議處理中（`refunding`）時，因無法確認書是否仍在櫃中，
+      恢復登記的書改為下架，待賣家取回並回報後自行重新上架。已取消或已退款的訂單再調整狀態時不再恢復存書登記。
 
       購物車涵蓋多位賣家時，結帳會依賣家拆分為多筆訂單，
       因此 `POST /api/orders/checkout` 的回應為陣列。
@@ -100,13 +109,15 @@ paths:
         1. 取出購物車項目；帶入 `cart_ids` 時僅取指定項目
         2. 確認每本書籍狀態為 `on_sale` 且售價大於 0
         3. 確認買家代幣餘額足夠；交易內會再次檢查，以防併發請求重複扣款
-        4. 依賣家分組，各建立一筆訂單，產生訂單編號
-        5. 自買家錢包扣款並寫入一筆 `purchase` 交易紀錄
-        6. 將書籍狀態更新為 `reserved`
-        7. 發送存書通知予賣家
+        4. 依賣家分組，將書籍狀態更新為 `reserved`
+        5. 移除這些書的存書登記並以 `pre_deposited` 標示；該組每本書都已存於訂單書櫃時，訂單直接成立為 `deposited`（`deposited_at` 為下單時間），否則為 `pending_deposit`
+        6. 建立訂單並產生訂單編號，自買家錢包扣款並寫入一筆 `purchase` 交易紀錄
+        7. 通知賣家訂單成立：`pending_deposit` 請賣家於七天內存書（部分書已在櫃中時請存入其餘書籍，存於其他書櫃時請移至訂單書櫃）；`deposited` 不需再存書，並通知買家即可前往書櫃取書
         8. 移除已結帳的購物車項目
 
         因跨賣家會拆分訂單，回應為訂單陣列。
+
+        成立即為 `deposited` 的訂單（書已預先存入書櫃）買家無法自行取消，App 應於結帳前提示；如有問題須提出交易申訴。
 
         ## Payment Verification
 
@@ -174,7 +185,7 @@ paths:
       operationId: buyNow
       tags: [orders]
       description: |
-        不經購物車直接購買一本書，檢查項目、扣款、書籍狀態與通知皆與 `POST /api/orders/checkout` 相同；
+        不經購物車直接購買一本書，檢查項目、扣款、書籍狀態、訂單初始狀態（書已存入書櫃時為 `deposited`，買家即無法自行取消）與通知皆與 `POST /api/orders/checkout` 相同；
         該書若也在請求者的購物車中會一併移除。需 `payment` 範圍的身分驗證（方式同結帳）。
 
         書籍不存在或未公開回傳 404；已被買走、為自己上架的書或售價異常回傳 400；
@@ -268,6 +279,12 @@ paths:
         另一個回傳 409，賣家不會重複入帳。
         取消訂單請使用 `PATCH /api/orders/{id}/cancel`。
 
+        **書櫃掃碼存取**：書櫃已配對裝置時，`deposited`、`picked_up`（以及尚未取書時的 `completed`）須至書櫃以 App 掃描 QR Code 辦理（見「書櫃作業」），
+        一般使用者呼叫本端點回 409 `CABINET_SCAN_REQUIRED`；已配對裝置的書櫃停用或維修中時回 409 `CABINET_UNAVAILABLE`、`CABINET_MAINTENANCE`。
+        裝置離線或故障持續 2 分鐘以上，或書櫃曾配對裝置而目前沒有有效裝置時，本端點改為建立待客服確認的手動回報，
+        回 202 並附 `manual_report`，管理員確認後才生效；同一項目已有待確認的回報時回 409 `MANUAL_REPORT_PENDING`。
+        具書櫃管理權限、且不是當事人的管理員不受上述限制。從未配對裝置的書櫃維持原有行為。
+
         `picked_up` 只寫入 `picked_up_at`，訂單狀態維持不變、不撥款，並通知賣家。
         尚未取書時送出 `completed`（舊版 App 的行為）一律視為 `picked_up`。
 
@@ -310,6 +327,21 @@ paths:
                   success: { type: boolean, example: true }
                   message: { type: string, example: 訂單狀態已更新 }
                   data: { $ref: '#/components/schemas/Order' }
+        '202':
+          description: 已送出待客服確認的手動回報，狀態尚未變更。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已送出手動回報，待客服確認後生效 }
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Order'
+                      - type: object
+                        properties:
+                          manual_report: { $ref: '#/components/schemas/CabinetManualReport' }
         '400':
           description: 狀態值未列於允許清單，或目前狀態不能推進到目標狀態。
           content:
@@ -329,11 +361,17 @@ paths:
               example: { success: false, message: 只有買家可以確認取貨 }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
-          description: 訂單已是目標狀態，或在處理期間被其他請求變更。
+          description: 訂單已是目標狀態、在處理期間被其他請求變更，或書櫃須掃碼辦理。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 訂單狀態已經變更，請重新整理後再試 }
+              examples:
+                狀態已變更:
+                  value: { success: false, message: 訂單狀態已經變更，請重新整理後再試 }
+                須掃碼辦理:
+                  value: { success: false, code: CABINET_SCAN_REQUIRED, message: 此書櫃已啟用掃碼存取，請至書櫃以 App 掃描 QR Code 辦理, cabinet_id: 3 }
+                已有待確認回報:
+                  value: { success: false, code: MANUAL_REPORT_PENDING, message: 此項目已有待客服確認的手動回報 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/orders/{id}/cancel:
@@ -343,7 +381,8 @@ paths:
       tags: [orders]
       description: |
         賣家存書前（`pending_payment`、`pending_deposit`）買賣雙方皆可取消；存書後雙方都不能自行取消，
-        回傳 400 `ORDER_NOT_CANCELLABLE`，須改提交易申訴。狀態已為 `completed`、`cancelled` 或 `refunded`
+        回傳 400 `ORDER_NOT_CANCELLABLE`，須改提交易申訴。書已預先存入書櫃的訂單成立即為 `deposited`，
+        因此自下單起即無法自行取消。狀態已為 `completed`、`cancelled` 或 `refunded`
         的訂單不得取消；爭議處理中（`refunding`）的訂單僅管理員可取消。
         同時送出的取消請求只有一個會成功，其餘回傳 409，不會重複退款。
 
@@ -351,8 +390,11 @@ paths:
 
         - 將訂單狀態更新為 `cancelled`，並記錄時間與原因
         - 將保留中的書籍改回 `on_sale`，重新開放購買
+        - 仍在櫃中的書恢復存書登記（買家可再下單直接取書）：管理員取消已存書的訂單時為訂單的每本書，
+          其餘為 `pre_deposited` 的書；爭議處理中的訂單由管理員取消時，恢復登記的書改為下架
         - 依錢包帳本退回買家實際支付的代幣，寫入一筆 `refund` 交易紀錄並發送通知
-        - 通知交易對象訂單已取消
+        - 通知交易對象訂單已取消；管理員取消時通知買家。有書恢復存書登記時（買家或管理員取消）一併通知賣家書籍維持存書登記，
+          書籍公開販售中者告知可繼續販售，未公開販售者請賣家至書櫃取回並於 App 中回報
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path

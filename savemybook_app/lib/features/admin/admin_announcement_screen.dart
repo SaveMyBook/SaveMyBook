@@ -248,7 +248,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
                     style: TextStyle(fontSize: 11, color: c.textHint)),
               ),
               const SizedBox(width: 8),
-              Flexible(
+              Expanded(
                 flex: 2,
                 child: Text(
                   _when(announcement.publishedAt ?? announcement.createdAt),

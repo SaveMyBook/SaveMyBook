@@ -131,17 +131,28 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`GROUP_MEMBER_LIMIT\` | 400 | 群組成員將超過 100 人 | 提示減少邀請人數 |
 | \`TRANSFER_STATE_CHANGED\` | 409 | 請款已被付款、婉拒、取消或已到期 | 重新取得訊息以更新轉帳卡片 |
 | \`DISPUTE_WINDOW_PASSED\` | 400 | 取書已超過 24 小時或訂單已完成，依服務條款不可再提出爭議 | 隱藏申訴入口 |
-| \`ORDER_NOT_CANCELLABLE\` | 400 | 賣家已存書，買賣雙方都不能自行取消訂單 | 隱藏取消按鈕，引導提出交易申訴 |
+| \`ORDER_NOT_CANCELLABLE\` | 400 | 賣家已存書（含下單前書已存入書櫃、成立即為 \`deposited\` 的訂單），買賣雙方都不能自行取消訂單 | 隱藏取消按鈕，引導提出交易申訴 |
 | \`BOOK_HELD\` | 409 | 書籍預約保留中，賣家不能編輯或下架 | 顯示保留到期時間，停用編輯與下架 |
 | \`BOOK_LOCKED\` | 409 | 書籍訂單已成立或已完成，賣家不能編輯內容、照片或下架已完成的書 | 停用編輯與下架 |
 | \`BOOK_NOT_APPROVED\` | 403 | 書籍因違規下架，賣家無法自行重新上架 | 引導使用者開立客服工單 |
+| \`BOOK_DEPOSITED\` | 409 | 書籍已登記存放於書櫃：重複登記存書、存書期間變更書櫃、管理員刪除仍在櫃中的書籍，或永久刪除仍有書籍在櫃中的使用者 | 重新載入書籍；變更書櫃前引導賣家先取回並回報，管理員先登記取出 |
+| \`RETRIEVAL_REQUIRED\` | 409 | 書籍仍登記存放於書櫃（不論是否已滿 7 天、是否由系統暫停販售），賣家須先回報取回才能重新上架 | 引導賣家至書櫃取回並呼叫 \`POST /api/books/{id}/retrieve\`；\`restored\` 為 false 時再自行上架 |
+| \`NOT_DEPOSITED\` | 409 | 回報取回時書籍未登記存書（已回報取回，或從未存書） | 重新載入書籍 |
+| \`BOOK_SOLD_IN_CABINET\` | 409 | 回報取回時書籍已售出並轉入進行中的訂單，買家將至書櫃取書，或須由賣家於訂單中回報存書（書存放於其他書櫃時須先移至訂單書櫃） | 顯示 \`message\`，停用取回按鈕並引導至該筆訂單 |
+| \`CABINET_HAS_DEPOSITS\` | 409 | 管理員停用書櫃時，書櫃仍有訂單成立前存放的書籍 | 引導至存書列表登記取出後再停用 |
+| \`DEPOSIT_NOT_ALLOWED\` | 409 | 書籍未上架、未公開，或已有進行中的訂單，無法於訂單成立前存書 | 隱藏存書按鈕；已有訂單時改依訂單流程存書 |
+| \`CABINET_REQUIRED\` | 400 | 書籍尚未指定存放的書櫃 | 引導編輯書籍選擇書櫃 |
+| \`CABINET_UNAVAILABLE\` | 400 | 書籍指定的書櫃已停用 | 引導編輯書籍改選其他書櫃 |
+| \`CABINET_MAINTENANCE\` | 400 | 書櫃維修中，暫停存書；結帳時則為購物車中的書籍存放於維修中的書櫃 | 提示稍後再試或移除該書 |
 | \`BOOK_NOT_FOUND\` | 404 | 書籍不存在或已被刪除，或尚未公開且請求者不是賣家 | 自本機快取（最近瀏覽、收藏、購物車）移除該書並返回上一頁 |
 | \`LISTING_REJECTED\` | 422 | 編輯書籍或新增照片的內容未通過 AI 上架審核，變更未儲存 | 顯示 \`message\` 中的原因，引導使用者修改內容 |
 | \`AI_DISABLED\` | 503 | AI 功能目前未開放 | 隱藏 AI 功能入口 |
 | \`AI_NOT_CONFIGURED\` | 503 | 此 AI 功能使用的服務商尚未設定 API 金鑰 | 隱藏 AI 功能入口 |
 | \`AI_BUDGET_EXCEEDED\` | 503 | AI 功能本月用量已達上限 | 提示稍後再試 |
-| \`AI_CONSENT_REQUIRED\` | 403 | 使用者尚未同意將資料提供給 AI 服務商處理 | 顯示 AI 資料處理同意說明 |
-| \`AI_DAILY_LIMIT\` | 429 | 使用者今日 AI 使用次數已達上限 | 提示明日再試 |
+| \`AI_CONSENT_REQUIRED\` | 403 | 使用者尚未同意將資料提供給 AI 服務商處理，或隱私權政策重大更新後尚未重新同意 | 顯示 AI 資料處理同意說明 |
+| \`AI_CONSENT_NOTICE_OUTDATED\` | 409 | 同意 AI 資料處理時未附上目前的說明版本（\`notice_version\`） | 提示更新 App |
+| \`AI_DAILY_LIMIT\` | 429 | 使用者今日 AI 使用次數已達上限，或已計費但失敗的呼叫已達每日上限 | 提示明日再試 |
+| \`AI_CONTENT_BLOCKED\` | 422 | 內容遭 AI 服務商的安全機制拒絕，重送相同內容仍會失敗 | 顯示 \`message\`，不提供重試；內容可由使用者修改時引導調整 |
 | \`AI_PROVIDER_ERROR\` | 502 | AI 服務商錯誤、逾時或回應格式不正確 | 提示稍後再試 |
 | \`AI_UNAVAILABLE\` | 503 | AI 功能目前未開放或尚未完成設定（交易申訴分析） | 隱藏 AI 分析入口 |
 | \`INVALID_ID_TOKEN\` | 401 | 第三方登入憑證無效、過期或簽章不符 | 重新取得登入憑證後再試 |
@@ -162,8 +173,9 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`AUTH_SOCIAL_UNAVAILABLE\` | 503 | 伺服器尚未設定 Firebase 專案參數 | 隱藏 Google、Apple 與手機號碼登入入口 |
 | \`PASSKEY_UNAVAILABLE\` | 503 | 伺服器未設定通行密鑰的 RP ID 與來源 | 隱藏通行密鑰入口 |
 | \`PASSKEY_CHALLENGE_INVALID\`、\`PASSKEY_CHALLENGE_EXPIRED\` | 400 | 挑戰值已使用、逾時，或用途與範圍不符 | 重新取得 options 後再試 |
-| \`PASSKEY_VERIFICATION_FAILED\`、\`PASSKEY_INVALID_RESPONSE\` | 400 | 通行密鑰的簽章、來源或格式驗證未通過 | 提示改用密碼 |
-| \`PASSKEY_NOT_RECOGNIZED\` | 400 | 伺服器沒有這組通行密鑰，可能已刪除 | 提示改用密碼，並請使用者至系統設定移除該通行密鑰 |
+| \`PASSKEY_VERIFICATION_FAILED\`、\`PASSKEY_INVALID_RESPONSE\` | 400 | 通行密鑰的簽章、RP ID、使用者驗證或格式驗證未通過 | 提示改用密碼 |
+| \`PASSKEY_ORIGIN_NOT_ALLOWED\` | 400 | 請求來源不在伺服器允許的通行密鑰來源（通常是 Android 簽署金鑰指紋未加入 \`PASSKEY_ORIGINS\`），重試不會成功 | 顯示 \`message\`，提示改用其他方式 |
+| \`PASSKEY_NOT_RECOGNIZED\` | 400 | 伺服器查無這組通行密鑰（已刪除，或帳號已不存在）；身分驗證時憑證不屬於目前帳號亦回此代碼 | 提示改用密碼；登入時可透過系統的 Signal API 通知移除該通行密鑰 |
 | \`PASSKEY_COUNTER_REGRESSED\` | 400 | 通行密鑰的簽章計數倒退，疑似遭複製 | 提示改用密碼並檢查帳號安全 |
 | \`PASSKEY_NOT_REGISTERED\` | 400 | 帳號尚未註冊通行密鑰 | 改用登入密碼驗證 |
 | \`PASSKEY_ALREADY_REGISTERED\` | 409 | 這組通行密鑰已經註冊 | 重新載入清單，並說明同一個密碼管理工具已有通行密鑰 |
@@ -171,6 +183,7 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`BOOK_IN_TRANSACTION\` | 409 | 管理員刪除書籍時，書籍交易中或有進行中的預約 | 提示先處理交易或預約 |
 | \`BOOK_HAS_ORDERS\` | 409 | 管理員刪除書籍時，書籍已有訂單紀錄 | 改用強制下架 |
 | \`OPEN_ORDERS\` | 400 | 尚有進行中的訂單，無法申請刪除帳號 | 引導使用者完成或取消訂單 |
+| \`BOOKS_IN_CABINET\` | 400 | 尚有書籍登記存放於書櫃（訂單成立前存書），無法申請刪除帳號 | 引導使用者至書櫃取回並回報取回 |
 | \`RATE_LIMITED\` | 429 | 短時間內嘗試次數過多 | 依 \`Retry-After\` 標頭等待後再試 |
 | \`ROUTE_NOT_FOUND\` | 404 | 端點不存在 | 檢查路徑與 HTTP 方法 |
 | \`MAINTENANCE\` | 503 | 資料庫還原中，暫停服務 | 顯示維護訊息，稍後以 \`GET /api/status\` 確認 |
@@ -193,10 +206,12 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`POST /api/auth/refresh\` | 同 IP 15 分鐘 60 次 |
 | \`POST /api/auth/social\`、\`POST /api/auth/social/link-login\`、\`POST /api/auth/oauth/{provider}/start\`、\`POST /api/auth/oauth/exchange\` | 同 IP 15 分鐘合計 30 次 |
 | \`POST /api/auth/link\`、\`POST /api/auth/password/set\` | 每位使用者 15 分鐘合計 20 次 |
-| \`POST /api/security/verify\`、\`POST /api/security/verify/passkey/options\` | 每位使用者 15 分鐘合計 30 次 |
+| \`POST /api/security/verify\` | 每位使用者每種驗證方式（\`method\`）15 分鐘各 30 次 |
+| \`POST /api/security/verify/passkey/options\` | 每位使用者 15 分鐘 30 次 |
 | \`POST /api/auth/passkeys/login/options\` | 同 IP 15 分鐘 60 次 |
 | \`POST /api/auth/passkeys/login\` | 同 IP 15 分鐘 30 次 |
-| \`POST /api/users/me/passkeys/options\`、\`POST /api/users/me/passkeys\`、\`PATCH /api/users/me/passkeys/{id}\` | 每位使用者 15 分鐘合計 20 次 |
+| \`POST /api/users/me/passkeys/options\` | 每位使用者 15 分鐘 20 次（\`POST /api/users/me/passkeys\` 不另外限流） |
+| \`PATCH /api/users/me/passkeys/{id}\` | 每位使用者 15 分鐘 30 次 |
 | \`POST /api/users\` | 同 IP 每小時 30 次 |
 | \`PUT /api/users/me/password\`、\`POST /api/users/me/deletion\` | 每位使用者 15 分鐘 10 次 |
 | \`POST /api/uploads\` | 每位使用者 10 分鐘 30 次 |
@@ -269,7 +284,7 @@ pending_payment → pending_deposit → deposited → pending_pickup → complet
 | --- | --- |
 | \`pending_payment\` | 訂單已建立，尚未付款 |
 | \`pending_deposit\` | 已付款，等待賣家存入書櫃 |
-| \`deposited\` | 賣家已完成存書 |
+| \`deposited\` | 賣家已完成存書，或下單時書已存放於書櫃 |
 | \`pending_pickup\` | 等待買家取件 |
 | \`completed\` | 買家已取件，款項匯入賣家錢包 |
 | \`cancelled\` | 已取消，代幣退回買家 |
@@ -277,6 +292,11 @@ pending_payment → pending_deposit → deposited → pending_pickup → complet
 | \`refunded\` | 仲裁結果為退款並已完成 |
 
 單次結帳若涵蓋多位賣家的商品，將依賣家拆分為多筆訂單，回應為陣列。
+
+賣家可在上架後、訂單成立前先將書存入書櫃（\`POST /api/books/{id}/deposit\`）。訂單中每本書都已存於該訂單的書櫃時，
+訂單直接以 \`deposited\` 成立，買家即可取書，且雙方即無法自行取消；其餘訂單以 \`pending_deposit\` 成立。
+訂單在買家取書前取消或退款時，仍在櫃中的書恢復存書登記（已存書的訂單為每本書，尚未存書的為先前預先存書的書）。
+存書滿 7 天仍未售出即暫停販售並提醒賣家取回，細節見「書籍」的 Pre-order Deposit。
 
 每一步只能由對應的一方推進：賣家設為 \`deposited\`，買家設為 \`completed\`。
 所有涉及金額的狀態變更都以「狀態仍為讀取時的值」作為更新條件，扣款以「餘額足夠」作為更新條件，
@@ -352,10 +372,11 @@ const base = {
   'x-tagGroups': [
     { name: '開始使用', tags: ['auth', 'auth-social', 'passkeys', 'users', 'account', 'security'] },
     { name: '商品', tags: ['books', 'categories', 'favorites', 'cabinets'] },
-    { name: '交易', tags: ['cart', 'orders', 'wallet'] },
+    { name: '交易', tags: ['cart', 'orders', 'cabinet-sessions', 'wallet'] },
     { name: '互動', tags: ['chat', 'notifications', 'push', 'announcements'] },
     { name: '客服與申訴', tags: ['support', 'reports', 'disputes'] },
     { name: 'AI', tags: ['ai'] },
+    { name: '書櫃裝置', tags: ['device'] },
     { name: '共用工具', tags: ['uploads', 'public', 'well-known', 'status'] },
     {
       name: '管理後台',

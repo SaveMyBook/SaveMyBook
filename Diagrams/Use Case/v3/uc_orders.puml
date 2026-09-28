@@ -25,8 +25,11 @@ rectangle "SaveMyBook - 交易與訂單" {
   usecase "提出申訴" as dispute
   usecase "查看銷售紀錄" as sales
   usecase "我要存書" as deposit
+  usecase "上架後先行存書" as predeposit
+  usecase "回報取回" as retrieve
   usecase "取消訂單" as cancel
   usecase "仲裁申訴" as arbitrate
+  usecase "登記取出書櫃書籍" as clear
 }
 
 買家 --> cart
@@ -42,8 +45,10 @@ buynow ..> verify : <<include>>
 pickup ..> scan : <<include>>
 賣家 --> sales
 賣家 --> deposit
+deposit <.. predeposit : <<extend>>
+賣家 --> retrieve
 賣家 --> cancel
 賣家 --> dispute
-deposit ..> scan : <<include>>
 管理員 --> arbitrate
+管理員 --> clear
 @enduml

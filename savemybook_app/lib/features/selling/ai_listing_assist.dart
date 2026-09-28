@@ -225,7 +225,8 @@ Future<AiListingAssist?> runAiListingAssist(
     ),
   );
   if (!needsConsent || retried || !context.mounted) return result;
-  AiStatus.markConsentRevoked();
+  await AiStatus.markConsentRevoked();
+  if (!context.mounted) return result;
   return runAiListingAssist(context, isbn: isbn, title: title, conditionNote: conditionNote, imagePaths: imagePaths, retried: true);
 }
 
@@ -243,6 +244,7 @@ class _AiAssistProgressSheetState extends State<AiAssistProgressSheet> {
   int _step = 0;
   bool _done = false;
   String? _error;
+  bool _canRetry = true;
   Timer? _ticker;
   int _attempt = 0;
 
@@ -278,7 +280,10 @@ class _AiAssistProgressSheetState extends State<AiAssistProgressSheet> {
     }
     if (!result.isOk || result.data == null) {
       HapticFeedback.heavyImpact();
-      setState(() => _error = result.error);
+      setState(() {
+        _error = result.error;
+        _canRetry = result.canRetry;
+      });
       return;
     }
     setState(() {
@@ -348,7 +353,7 @@ class _AiAssistProgressSheetState extends State<AiAssistProgressSheet> {
                     child: Text(_error != null ? S.actionClose : S.actionCancel, style: const TextStyle(fontWeight: FontWeight.w600)),
                   ),
                 ),
-                if (_error != null) ...[
+                if (_error != null && _canRetry) ...[
                   const SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton(
@@ -694,7 +699,7 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
         ),
       );
 
-  Widget _checkFrame(AppColors c, {required bool selected, required bool enabled, required ValueChanged<bool> onChanged, required Widget child}) {
+  Widget _checkFrame(AppColors c, {required bool selected, required bool enabled, required ValueChanged<bool> onChanged, required Widget child, double childTop = 8}) {
     return AnimatedContainer(
       duration: Motion.micro,
       margin: const EdgeInsets.only(bottom: 8),
@@ -725,7 +730,7 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
                   onChanged: enabled ? (v) => onChanged(v ?? false) : null,
                 ),
                 const SizedBox(width: 2),
-                Expanded(child: Padding(padding: const EdgeInsets.only(top: 8), child: child)),
+                Expanded(child: Padding(padding: EdgeInsets.only(top: childTop), child: child)),
               ],
             ),
           ),
@@ -797,6 +802,7 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
       selected: selected,
       enabled: !same,
       onChanged: (v) => setState(() => v ? _fields.add(key) : _fields.remove(key)),
+      childTop: 12,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

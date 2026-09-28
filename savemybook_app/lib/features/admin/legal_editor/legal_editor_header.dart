@@ -26,7 +26,7 @@ class LegalEditorHeaderBar extends StatelessWidget {
     final c = AppColors.of(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       child: Row(
         children: [
           Expanded(

@@ -162,7 +162,8 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
     final result = await _api.sendAiSupportMessage(item.content);
     if (!mounted) return;
     if (result.needsConsent) {
-      AiStatus.markConsentRevoked();
+      await AiStatus.markConsentRevoked();
+      if (!mounted) return;
       setState(() {
         _waiting = false;
         item.state = AiChatState.failed;
@@ -176,7 +177,7 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
       if (!result.isOk || result.data == null) {
         item.state = AiChatState.failed;
         item.error = result.error;
-        item.blocked = result.isQuotaOrDisabled;
+        item.blocked = !result.canRetry;
         return;
       }
       item.state = AiChatState.sent;
@@ -271,9 +272,10 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
           ),
           ResponsiveListPadding(
             maxWidth: Breakpoints.readingMaxWidth,
+            horizontal: 14,
             top: 8,
             bottom: 0,
-            builder: (context, padding) => Padding(padding: padding, child: _toolbar(c)),
+            builder: (context, padding) => Padding(padding: padding.copyWith(right: padding.right - 8), child: _toolbar(c)),
           ),
           Expanded(
             child: GestureDetector(
@@ -303,7 +305,11 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
         Flexible(
           child: TextButton.icon(
             onPressed: _escalate,
-            style: TextButton.styleFrom(foregroundColor: c.accent, visualDensity: VisualDensity.compact),
+            style: TextButton.styleFrom(
+              foregroundColor: c.accent,
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
             icon: const Icon(Icons.support_agent_rounded, size: 18),
             label: Text(S.talkPerson, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
@@ -448,7 +454,7 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
         ),
         if (failed)
           Padding(
-            padding: const EdgeInsets.only(top: 4, right: 4),
+            padding: EdgeInsets.only(top: 4, right: item.blocked ? 0 : 4),
             child: item.blocked
                 ? _inlineNotice(c, item.error ?? '', icon: Icons.block_rounded, color: c.warning, maxWidth: maxWidth)
                 : Text(item.error?.isNotEmpty == true ? item.error! : S.failedSend,
@@ -543,9 +549,9 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 15, color: color),
+            Padding(padding: const EdgeInsets.only(top: 2), child: Icon(icon, size: 15, color: color)),
             const SizedBox(width: 6),
-            Flexible(child: Text(text, style: TextStyle(fontSize: 12.5, height: 1.4, color: c.textPrimary))),
+            Flexible(child: Text(text, textWidthBasis: TextWidthBasis.longestLine, style: TextStyle(fontSize: 12.5, height: 1.4, color: c.textPrimary))),
           ],
         ),
       ),
@@ -690,8 +696,9 @@ class AiMarkdownText extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                width: numbered != null ? 20 : 14,
-                child: Text(numbered != null ? '${numbered.group(1)}.' : '•', style: style),
+                width: 22,
+                child: Text(numbered != null ? '${numbered.group(1)}.' : '•',
+                    style: style, textAlign: numbered != null ? TextAlign.start : TextAlign.center),
               ),
               Expanded(child: Text.rich(TextSpan(children: _inline(body, style)), style: style)),
             ],

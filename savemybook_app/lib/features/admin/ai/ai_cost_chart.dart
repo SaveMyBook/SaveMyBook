@@ -155,15 +155,18 @@ class _AiCostChartState extends State<AiCostChart> {
   }
 
   Widget _summaryLine(AppColors c, double total, double peak, {Key? key}) {
-    return Wrap(
+    return SizedBox(
       key: key,
-      spacing: 14,
-      runSpacing: 4,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        _metric(c, S.total, formatUsd(total)),
-        _metric(c, S.peakDay, formatUsd(peak)),
-      ],
+      width: double.infinity,
+      child: Wrap(
+        spacing: 14,
+        runSpacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          _metric(c, S.total, formatUsd(total)),
+          _metric(c, S.peakDay, formatUsd(peak)),
+        ],
+      ),
     );
   }
 

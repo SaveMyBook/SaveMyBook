@@ -1,12 +1,11 @@
 const prisma = require('../../lib/prisma');
 const { HttpError } = require('../../lib/errors');
-const { clip } = require('../../lib/text');
 const ai = require('../../lib/ai');
 const { MODERATION_MODEL } = require('../../lib/ai/openai');
 const settingsService = require('./settings');
 const runner = require('./runner');
 const usage = require('./usage');
-const { stringList, clamp01, sanitizeLine } = require('./text');
+const { stringList, clamp01, sanitizeLine, promptText } = require('./text');
 
 const VERDICTS = ['allow', 'review', 'reject'];
 const CATEGORY_LABELS = {
@@ -53,11 +52,11 @@ const rejected = (reasons) => new HttpError(
 );
 
 const describe = ({ title, author, description, price, categoryName }) => [
-  `書名：${clip(String(title ?? ''), 255)}`,
-  `作者：${clip(String(author ?? ''), 255) || '（未填）'}`,
-  `分類：${categoryName || '（未選擇）'}`,
+  `書名：${promptText(title ?? '', 255)}`,
+  `作者：${promptText(author ?? '', 255) || '（未填）'}`,
+  `分類：${promptText(categoryName ?? '', 40) || '（未選擇）'}`,
   `售價：${Number(price) || 0} 代幣（1 代幣等值新臺幣 1 元）`,
-  `描述：${clip(String(description ?? ''), 3000) || '（未填）'}`
+  `描述：${promptText(description ?? '', 3000) || '（未填）'}`
 ].join('\n');
 
 const sanitizeVerdict = (json) => {

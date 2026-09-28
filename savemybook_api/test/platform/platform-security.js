@@ -1,5 +1,6 @@
 const assert = require('assert');
 const h = require('./harness');
+const { gate, concurrently } = require('../lib/gate');
 
 const { prisma, request } = h;
 const security = h.api('services/security');
@@ -18,6 +19,23 @@ const signedIn = ({ pin = null } = {}) => {
 const verify = (ctx, body) => request('POST', '/api/security/verify', { token: ctx.token, body });
 
 const sensitiveHeaders = (ctx) => ({ 'x-verify-token': h.verifyTokenFor({ user: ctx.user, sid: ctx.session.sid }) });
+
+const passwordLib = h.api('lib/password');
+
+const holdPinChecks = (n, { first = null } = {}) => {
+  const original = passwordLib.verify;
+  const arrived = gate(n);
+  passwordLib.verify = async (plain, hashed) => {
+    const ok = await original(plain, hashed);
+    await arrived.wait();
+    if (first && ok !== (first === 'match')) await new Promise((resolve) => setTimeout(resolve, 50));
+    return ok;
+  };
+  return () => {
+    arrived.open();
+    passwordLib.verify = original;
+  };
+};
 
 module.exports = {
   name: '平台：帳號安全',
@@ -171,6 +189,60 @@ module.exports = {
       assert.strictEqual(res.status, 200);
       const status = await request('GET', '/api/security', { token: ctx.token });
       assert.strictEqual(status.body.data.pin_locked_until, null);
+    }],
+
+    ['併發送出錯誤的交易密碼時最多只記錄 5 次錯誤，且只鎖定並通知一次', async () => {
+      const ctx = signedIn({ pin: PIN });
+      const results = await concurrently(
+        holdPinChecks(8),
+        Array.from({ length: 8 }, () => verify(ctx, { scope: 'payment', method: 'pin', pin: '246813' }))
+      );
+
+      const invalid = results.filter((r) => r.status === 400 && r.body.code === 'INVALID_PIN');
+      assert.deepStrictEqual(invalid.map((r) => r.body.remaining_attempts).sort(), [1, 2, 3, 4]);
+      const locked = results.filter((r) => r.status === 423 && r.body.code === 'PIN_LOCKED');
+      assert.strictEqual(locked.length, 4);
+      assert.ok(locked.every((r) => r.body.locked_until));
+
+      const [row] = prisma.rows('user_security');
+      assert.strictEqual(Number(row.pin_failed_count), 0);
+      assert.ok(new Date(row.pin_locked_until) > new Date());
+      assert.strictEqual(prisma.rows('notifications').filter((n) => n.title === '交易密碼已暫時鎖定').length, 1);
+    }],
+
+    ['第 5 次錯誤與正確的交易密碼併發時，較晚完成的正確密碼不得通過，也不得解除鎖定', async () => {
+      const ctx = signedIn({ pin: PIN });
+      prisma.rows('user_security')[0].pin_failed_count = 4;
+      const [wrong, right] = await concurrently(holdPinChecks(2, { first: 'mismatch' }), [
+        verify(ctx, { scope: 'payment', method: 'pin', pin: '246813' }),
+        verify(ctx, { scope: 'payment', method: 'pin', pin: PIN })
+      ]);
+
+      assert.strictEqual(wrong.status, 423);
+      assert.strictEqual(wrong.body.code, 'PIN_LOCKED');
+      assert.strictEqual(right.status, 423);
+      assert.strictEqual(right.body.code, 'PIN_LOCKED');
+      assert.strictEqual(right.body.data, undefined);
+
+      const [row] = prisma.rows('user_security');
+      assert.ok(new Date(row.pin_locked_until) > new Date());
+      assert.strictEqual(Number(row.pin_failed_count), 0);
+    }],
+
+    ['併發時先完成的正確交易密碼會歸零，其後的錯誤依最新次數計算剩餘次數', async () => {
+      const ctx = signedIn({ pin: PIN });
+      prisma.rows('user_security')[0].pin_failed_count = 3;
+      const [ok, ...wrong] = await concurrently(holdPinChecks(3, { first: 'match' }), [
+        verify(ctx, { scope: 'payment', method: 'pin', pin: PIN }),
+        verify(ctx, { scope: 'payment', method: 'pin', pin: '246813' }),
+        verify(ctx, { scope: 'payment', method: 'pin', pin: '246813' })
+      ]);
+
+      assert.strictEqual(ok.status, 200);
+      assert.ok(ok.body.data.verify_token);
+      assert.deepStrictEqual(wrong.map((r) => r.body.remaining_attempts).sort(), [3, 4]);
+      assert.strictEqual(Number(prisma.rows('user_security')[0].pin_failed_count), 2);
+      assert.strictEqual(prisma.rows('user_security')[0].pin_locked_until, null);
     }],
 
     ['交易用的驗證權杖只能使用一次', async () => {

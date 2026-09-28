@@ -9,7 +9,7 @@ const isbnLookup = require('../isbn-lookup');
 const aiImages = require('./images');
 const runner = require('./runner');
 const consent = require('./consent');
-const { sanitizeText, sanitizeLine, stringList, clamp01, safeUrl } = require('./text');
+const { sanitizeText, sanitizeLine, sourceText, stringList, clamp01, safeUrl } = require('./text');
 
 const MAX_PRICE = 99999;
 const MAX_PAGE_COUNT = 20000;
@@ -187,18 +187,22 @@ const titleCandidates = async (title) => {
   ];
 };
 
+const oneLine = (value, max) => sourceText(String(value), max, { multiline: false });
+
 const bibliographyText = (structured, candidates) => {
   if (structured) {
     return Object.entries(structured)
       .filter(([, v]) => v)
-      .map(([k, v]) => `${k}: ${clip(String(v), k === 'description' ? 800 : 200)}`)
+      .map(([k, v]) => `${k}: ${oneLine(v, k === 'description' ? 800 : 200)}`)
       .join('\n');
   }
   if (candidates.length) {
     return candidates.map((c, i) => `候選 ${i + 1}（${c.source}，未必是同一本書，請比對書名後採用）：`
       + ['title', 'author', 'publisher', 'publish_date', 'isbn', 'description']
         .filter((k) => c[k])
-        .map((k) => `${k}: ${k === 'description' ? cleanDescription(c[k], { title: c.title, max: 600 }) : clip(String(c[k]), 200)}`)
+        .map((k) => (k === 'description'
+          ? `${k}: ${oneLine(cleanDescription(c[k], { title: c.title, max: 600 }), 600)}`
+          : `${k}: ${oneLine(c[k], 200)}`))
         .join('；')).join('\n');
   }
   return '（無）';
@@ -209,19 +213,30 @@ const toPrice = (value) => {
   return Number.isFinite(n) && n >= 1 && n <= MAX_PRICE ? n : null;
 };
 
+const PRICE_STEP = 10;
+const PRICE_FLOOR = 20;
+
+// 建議售價以 10 元為單位、最低 20 元，但不得高於定價：進位後超過定價時改取定價以下最近的 10 元，定價低於 20 元時直接用定價。
+const stepPrice = (value, cap = MAX_PRICE) => {
+  if (cap < PRICE_FLOOR) return cap;
+  const stepped = Math.max(PRICE_FLOOR, Math.round(value / PRICE_STEP) * PRICE_STEP);
+  return stepped <= cap ? stepped : Math.max(PRICE_FLOOR, Math.floor(cap / PRICE_STEP) * PRICE_STEP);
+};
+
 const sanitizePrice = (raw) => {
   if (!raw || typeof raw !== 'object') return null;
   const original = toPrice(raw.original_price);
   let suggested = toPrice(raw.suggested);
   if (suggested == null) return null;
   const cap = original ?? MAX_PRICE;
-  suggested = Math.min(suggested, cap);
-  let min = toPrice(raw.min) ?? Math.max(1, Math.round(suggested * 0.8));
-  let max = toPrice(raw.max) ?? Math.round(suggested * 1.2);
+  // 預設區間要以不高於定價的建議價推算，否則建議價遠高於定價時 min、max 會一起被壓成定價。
+  const base = Math.min(suggested, cap);
+  let min = toPrice(raw.min) ?? base * 0.8;
+  let max = toPrice(raw.max) ?? base * 1.2;
   if (min > max) [min, max] = [max, min];
-  max = Math.min(max, cap);
-  min = Math.min(min, max);
-  suggested = Math.min(Math.max(suggested, min), max);
+  min = stepPrice(min, cap);
+  max = stepPrice(max, cap);
+  suggested = Math.min(Math.max(stepPrice(suggested, cap), min), max);
   return {
     suggested,
     min,
@@ -270,12 +285,11 @@ const worse = (a, b) => (LEVEL_ORDER.indexOf(a) >= LEVEL_ORDER.indexOf(b) ? a : 
 
 // 各書況的建議售價比例中位數，等級被下修時據此等比例調整售價。
 const PRICE_RATIO = { like_new: 0.575, good: 0.425, fair: 0.275, poor: 0.15 };
-const round10 = (n) => Math.max(20, Math.round(n / 10) * 10);
 
 const rescalePrice = (price, from, to) => {
   if (!price || from === to) return price;
   const factor = PRICE_RATIO[to] / PRICE_RATIO[from];
-  const scale = (v) => (v == null ? v : round10(v * factor));
+  const scale = (v) => (v == null ? v : stepPrice(v * factor, price.original_price ?? MAX_PRICE));
   const min = scale(price.min);
   const max = Math.max(min, scale(price.max));
   return {
@@ -530,5 +544,5 @@ const assist = async ({ userId, isbn, title, conditionNote, files = [] }) => {
 
 module.exports = {
   SYSTEM, FIELD_LIMITS, assist, normalizeIsbn, normalizeDate, parsePublishDate, cleanDescription, normalizeLanguage,
-  toPageCount, sanitizePrice, sanitizeCondition, sanitizeFields, mergeFields, mergeSources, noteCap, rescalePrice, conditionWarnings
+  toPageCount, stepPrice, sanitizePrice, sanitizeCondition, sanitizeFields, mergeFields, mergeSources, noteCap, rescalePrice, conditionWarnings
 };

@@ -11,7 +11,7 @@ hide circle
 hide empty methods
 
 entity "auth_settings" as auth_settings {
-  {field} <&key> id : int
+  {field} <&key> id : tinyint
   --
   {field} config : text
   {field} updated_by : int

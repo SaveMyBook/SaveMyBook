@@ -26,12 +26,13 @@ const categoryDemand = async (since) => {
 
 const RECOMMEND_LIMIT = 30;
 const SIGNAL_TAKE = 200;
+const VOID_ORDER_STATUSES = Object.freeze(['cancelled', 'refunded']);
 const signalSelect = { book_id: true, books: { select: { category_id: true, author: true } } };
 
 const normAuthor = (author) => String(author ?? '').trim().toLowerCase();
 
 const viewerSignals = async (viewerId, viewedIds = []) => {
-  const [favorites, cart, purchases, viewed] = await Promise.all([
+  const [favorites, cart, purchases, viewed, voided] = await Promise.all([
     viewerId
       ? prisma.favorites.findMany({ where: { user_id: viewerId }, orderBy: { created_at: 'desc' }, take: SIGNAL_TAKE, select: signalSelect })
       : [],
@@ -39,10 +40,25 @@ const viewerSignals = async (viewerId, viewedIds = []) => {
       ? prisma.shopping_cart.findMany({ where: { user_id: viewerId }, take: SIGNAL_TAKE, select: signalSelect })
       : [],
     viewerId
-      ? prisma.order_items.findMany({ where: { orders: { buyer_id: viewerId } }, orderBy: { item_id: 'desc' }, take: SIGNAL_TAKE, select: signalSelect })
+      ? prisma.order_items.findMany({
+          where: { orders: { buyer_id: viewerId, status: { notIn: VOID_ORDER_STATUSES } } },
+          orderBy: { item_id: 'desc' },
+          take: SIGNAL_TAKE,
+          select: signalSelect
+        })
       : [],
     viewedIds.length > 0
-      ? prisma.books.findMany({ where: { book_id: { in: viewedIds } }, select: { book_id: true, category_id: true, author: true } })
+      ? prisma.books.findMany({
+          where: { book_id: { in: viewedIds }, is_approved: true, status: { not: 'removed' } },
+          select: { book_id: true, category_id: true, author: true }
+        })
+      : [],
+    viewerId
+      ? prisma.order_items.findMany({
+          where: { orders: { buyer_id: viewerId, status: { in: VOID_ORDER_STATUSES } } },
+          take: SIGNAL_TAKE,
+          select: { book_id: true }
+        })
       : []
   ]);
 
@@ -63,6 +79,8 @@ const viewerSignals = async (viewerId, viewedIds = []) => {
   purchases.forEach((p) => add(p.book_id, p.books, 3));
   cart.forEach((c) => add(c.book_id, c.books, 1));
   viewed.forEach((b) => add(b.book_id, b, 1));
+  // 取消或退款的訂單不算興趣，但書也不再推薦回給同一位買家。
+  voided.forEach((o) => seen.add(Number(o.book_id)));
 
   const total = [...categories.values()].reduce((sum, n) => sum + n, 0);
   const affinity = new Map([...categories].map(([id, n]) => [id, total > 0 ? n / total : 0]));
@@ -189,4 +207,4 @@ setInterval(() => {
   for (const [key, at] of viewSeen) if (now - at > VIEW_WINDOW_MS) viewSeen.delete(key);
 }, 10 * 60 * 1000).unref();
 
-module.exports = { rankedIds, recommendedIds, scoreBook, diversify, shouldCountView, RECOMMEND_LIMIT };
+module.exports = { rankedIds, recommendedIds, scoreBook, diversify, shouldCountView, RECOMMEND_LIMIT, SIGNAL_TAKE, VOID_ORDER_STATUSES };

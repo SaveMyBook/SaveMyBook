@@ -694,7 +694,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
   Widget _buildBottomBar(AdminOrderDetail detail, AppColors c, AdminFrame frame) {
     return Container(
       padding: frame.inset(
-        EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
+        EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
         maxWidth: frame.isExpanded ? 1120 : Breakpoints.readingMaxWidth,
       ),
       decoration: BoxDecoration(

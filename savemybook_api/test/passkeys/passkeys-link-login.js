@@ -49,8 +49,11 @@ module.exports = {
       const code = pendingLineCode();
 
       const options = (await request('POST', '/api/auth/passkeys/login/options', { body: {} })).body.data.options;
-      const res = await request('POST', '/api/auth/social/link-login', {
-        body: { code, assertion: authenticator.get(options, { signWith: new h.Authenticator().privateKey }) }
+      let res;
+      await h.captureWarnings(async () => {
+        res = await request('POST', '/api/auth/social/link-login', {
+          body: { code, assertion: authenticator.get(options, { signWith: new h.Authenticator().privateKey }) }
+        });
       });
       assert.strictEqual(res.body.code, 'PASSKEY_VERIFICATION_FAILED');
       assert.strictEqual(prisma.rows('user_identities').length, 0);

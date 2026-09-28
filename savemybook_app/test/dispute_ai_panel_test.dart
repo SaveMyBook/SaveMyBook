@@ -73,4 +73,33 @@ void main() {
     expect(find.text('重新分析'), findsOneWidget);
     expect(find.text('AI 分析僅供參考，請依實際證據裁決。'), findsOneWidget);
   });
+
+  testWidgets('案件內容遭服務商阻擋時顯示說明並停用分析按鈕，不再重送', (tester) async {
+    final requests = <String>[];
+    await http.runWithClient(
+      () async {
+        await tester.pumpWidget(_host(const DisputeAiPanel(disputeId: 3)));
+        await tester.pump();
+        await tester.tap(find.text('開始分析'));
+        for (var i = 0; i < 10; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        await tester.tap(find.text('開始分析'));
+        await tester.pump(const Duration(milliseconds: 300));
+      },
+      () => MockClient((request) async {
+        requests.add('${request.method} ${request.url.path}');
+        return http.Response(
+          jsonEncode({'success': false, 'code': 'AI_CONTENT_BLOCKED', 'message': '此內容無法由 AI 處理，請調整內容後再試'}),
+          422,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      }),
+    );
+
+    expect(requests, ['POST /api/admin/disputes/3/ai-analysis']);
+    expect(find.text('此內容無法由 AI 處理，請調整內容後再試'), findsOneWidget);
+    final button = tester.widget<TextButton>(find.ancestor(of: find.text('開始分析'), matching: find.byType(TextButton)));
+    expect(button.onPressed, isNull);
+  });
 }

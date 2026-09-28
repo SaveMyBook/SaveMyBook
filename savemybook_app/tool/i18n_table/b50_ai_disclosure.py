@@ -1,0 +1,16 @@
+# -*- coding: utf-8 -*-
+T = {
+    '您輸入的訊息與對話內容，以及您本人的訂單、預約、上架書籍（含審核原因）、錢包餘額與最近的客服工單': ('Messages and conversation history you enter, plus your own orders, reservations, listings (including review reasons), wallet balance and recent support enquiries', '入力したメッセージと会話の内容、ご自身の注文、予約、出品（審査理由を含む）、ウォレット残高、最近のお問い合わせ', '입력한 메시지와 대화 내용, 본인의 주문, 예약, 등록 도서(심사 사유 포함), 지갑 잔액 및 최근 고객 문의', '您输入的消息与对话内容，以及您本人的订单、预约、上架书籍（含审核原因）、钱包余额与最近的客服工单'),
+    '您輸入的需求與對話內容': ('The requests and conversation history you enter', '入力したご希望と会話の内容', '입력한 요청과 대화 내용', '您输入的需求与对话内容'),
+    '您的收藏、購買紀錄、購物車與最近瀏覽中的書籍資訊': ('Book details from your saved items, purchase history, cart and recently viewed books', 'お気に入り、購入履歴、カート、最近見た本に含まれる書籍情報', '찜 목록, 구매 내역, 장바구니, 최근 본 책에 포함된 도서 정보', '您的收藏、购买记录、购物车与最近浏览中的书籍信息'),
+    'AI 資料處理說明已更新，請重新閱讀並同意。': ('The AI data processing notice has been updated. Please review it and agree again.', 'AI によるデータ処理についての説明が更新されました。内容をご確認のうえ、改めて同意してください。', 'AI 데이터 처리 안내가 업데이트되었습니다. 내용을 확인한 후 다시 동의해 주세요.', 'AI 数据处理说明已更新，请重新阅读并同意。'),
+    '其中提問、需求與書籍資訊另由 $embedding 轉換為語意向量，以檢索相關內容。': ('Questions, requests and book details are also converted into semantic vectors by $p0 to find relevant content.', '質問、ご希望、書籍情報は、関連する内容を検索するため $p0 によってセマンティックベクトルにも変換されます。', '질문, 요청 및 도서 정보는 관련 내용을 검색하기 위해 $p0에서 의미 벡터로도 변환됩니다.', '其中提问、需求与书籍信息另由 $p0 转换为语义向量，以检索相关内容。'),
+    '僅用於產生客服回覆、推薦與檢索書籍、整理上架資料，不會用於廣告或追蹤。': ('Used only to generate support replies, recommend and search for books, and prepare listing details. Never used for advertising or tracking.', 'サポートの回答、書籍のおすすめと検索、出品情報の整理にのみ使用し、広告やトラッキングには使用しません。', '고객센터 답변 생성, 도서 추천 및 검색, 등록 정보 정리에만 사용하며 광고나 추적에는 사용하지 않습니다.', '仅用于生成客服回复、推荐与检索书籍、整理上架数据，不会用于广告或追踪。'),
+    '保存期限': ('Retention period', '保存期間', '보관 기간', '保存期限'),
+    'AI 客服與書籍顧問的對話紀錄自最後一次對話起保存 90 天，期滿自動刪除。': ('AI support and book advisor conversations are kept for 90 days after the last message and then deleted automatically.', 'AI サポートとブックアドバイザーの会話履歴は、最後の会話から 90 日間保存され、その後自動的に削除されます。', 'AI 고객센터와 도서 어드바이저의 대화 기록은 마지막 대화로부터 90일간 보관된 후 자동으로 삭제됩니다.', 'AI 客服与书籍顾问的对话记录自最后一次对话起保存 90 天，期满自动删除。'),
+    '您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料，並刪除 AI 客服與書籍顧問的對話紀錄。': ('You can turn off "AI data processing" at any time in Settings › Account. Once it is turned off, the data above will no longer be shared and your AI support and book advisor conversations will be deleted.', '「設定 › アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなり、AI サポートとブックアドバイザーの会話履歴は削除されます。', '설정 › 계정 관리에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않고 AI 고객센터와 도서 어드바이저의 대화 기록이 삭제됩니다.', '您可随时于「设置 › 账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据，并删除 AI 客服与书籍顾问的对话记录。'),
+    '關閉 AI 資料處理': ('Turn off AI data processing', 'AI によるデータ処理をオフにする', 'AI 데이터 처리 끄기', '关闭 AI 数据处理'),
+    '關閉後將停止使用 AI 功能，並刪除您的 AI 客服與書籍顧問對話紀錄，且無法復原。': ('AI features will stop, and your AI support and book advisor conversations will be permanently deleted.', 'AI 機能の利用が停止され、AI サポートとブックアドバイザーの会話履歴が削除されます。この操作は元に戻せません。', 'AI 기능 사용이 중지되고 AI 고객센터와 도서 어드바이저의 대화 기록이 삭제되며 복구할 수 없습니다.', '关闭后将停止使用 AI 功能，并删除您的 AI 客服与书籍顾问对话记录，且无法恢复。'),
+    '確認關閉': ('Turn off', 'オフにする', '끄기', '确认关闭'),
+    '使用者亦須重新同意 AI 資料處理，才能繼續使用 AI 功能。': ('Users must also agree to AI data processing again before they can keep using AI features.', 'ユーザーは AI 機能を引き続き利用するため、AI によるデータ処理に改めて同意する必要があります。', '사용자는 AI 기능을 계속 사용하려면 AI 데이터 처리에 다시 동의해야 합니다.', '用户亦须重新同意 AI 数据处理，才能继续使用 AI 功能。'),
+}

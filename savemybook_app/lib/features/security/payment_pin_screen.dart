@@ -81,7 +81,7 @@ class _PaymentPinScreenState extends State<PaymentPinScreen> {
       );
       if (!mounted) return;
       if (!status.available) {
-        setState(() => _loadError = S.networkError);
+        setState(() => _loadError = status.failureMessage ?? S.networkError);
         return;
       }
       if (status.hasPaymentPin) {

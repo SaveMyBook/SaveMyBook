@@ -343,10 +343,8 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
             alignment: Alignment.centerLeft,
             child: Text(value, maxLines: 1, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary)),
           ),
-          if (detail != null) ...[
-            const SizedBox(height: 2),
-            Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: c.textHint)),
-          ],
+          const SizedBox(height: 2),
+          Text(detail ?? ' ', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: c.textHint)),
         ],
       ),
     );
@@ -407,6 +405,7 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
     required Color color,
     required String value,
     String? valueDetail,
+    double detailWidth = 64,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -452,9 +451,15 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
               ),
               if (valueDetail != null) ...[
                 const SizedBox(width: 10),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 64),
-                  child: Text(valueDetail, textAlign: TextAlign.end, style: TextStyle(fontSize: 11, color: c.textSecondary)),
+                SizedBox(
+                  width: detailWidth,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(valueDetail, maxLines: 1, style: TextStyle(fontSize: 11, color: c.textSecondary)),
+                    ),
+                  ),
                 ),
               ],
             ],
@@ -522,11 +527,20 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
               ratio: maxCost > 0 ? p.costUsd / maxCost : (maxRequests > 0 ? p.requests / maxRequests : 0),
               color: AiLabels.providerColor(c, p.provider),
               value: formatUsd(p.costUsd),
-              valueDetail: S.p0CallsP1Ms(formatCount(p.requests), p.avgLatencyMs),
+              valueDetail: _latencyDetail(p),
+              detailWidth: 168,
             ),
         ],
       ),
     );
+  }
+
+  static String _latencyDetail(AiProviderUsage p) {
+    final calls = formatCount(p.requests);
+    final avg = p.avgLatencyMs;
+    final p95 = p.p95LatencyMs;
+    if (avg == null || p95 == null) return S.p0Calls(calls);
+    return S.p0CallsAvgP1MsP95(calls, avg, p95);
   }
 
   Widget _topUsersCard(AppColors c, AiUsageReport report) {

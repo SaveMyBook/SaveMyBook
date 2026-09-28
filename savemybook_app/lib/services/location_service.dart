@@ -1,6 +1,30 @@
 import 'package:geolocator/geolocator.dart';
 import '../i18n/strings.dart';
 
+class FreshLocation {
+  static const granted = 'granted';
+  static const denied = 'denied';
+  static const unavailable = 'unavailable';
+
+  final String status;
+  final double? lat;
+  final double? lng;
+  final double? accuracyM;
+  final int? ageMs;
+
+  const FreshLocation({required this.status, this.lat, this.lng, this.accuracyM, this.ageMs});
+
+  const FreshLocation.denied() : this(status: denied);
+
+  const FreshLocation.unavailable() : this(status: unavailable);
+
+  bool get isGranted => status == granted && lat != null && lng != null;
+
+  Map<String, dynamic> toJson() => {
+    'location_status': isGranted ? granted : (status == granted ? unavailable : status),
+    if (isGranted) 'location': {'lat': lat, 'lng': lng, 'accuracy_m': accuracyM ?? 0, 'age_ms': ageMs ?? 0},
+  };
+}
 
 class LocationService {
   static Position? _last;
@@ -34,6 +58,36 @@ class LocationService {
       return position;
     } catch (_) {
       return null;
+    }
+  }
+
+  // 書櫃距離檢查只能用當次取得的座標：current() 會回傳 5 分鐘內的快取並退回 getLastKnownPosition()，
+  // 剛走到書櫃的人會因舊座標被判定距離過遠。
+  static Future<FreshLocation> fresh({DateTime Function()? clock}) async {
+    try {
+      // geolocator 對從未詢問過的權限也回傳 denied，只有 request 才會跳出系統詢問。
+      final allowed = await permission(request: true);
+      if (allowed == null) return const FreshLocation.unavailable();
+      if (allowed == LocationPermission.denied || allowed == LocationPermission.deniedForever) {
+        return const FreshLocation.denied();
+      }
+      if (!await Geolocator.isLocationServiceEnabled()) return const FreshLocation.unavailable();
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 5)),
+      );
+      final now = (clock ?? DateTime.now)();
+      final age = now.difference(position.timestamp).inMilliseconds;
+      _last = position;
+      _lastAt = now;
+      return FreshLocation(
+        status: FreshLocation.granted,
+        lat: position.latitude,
+        lng: position.longitude,
+        accuracyM: position.accuracy,
+        ageMs: age < 0 ? 0 : age,
+      );
+    } catch (_) {
+      return const FreshLocation.unavailable();
     }
   }
 

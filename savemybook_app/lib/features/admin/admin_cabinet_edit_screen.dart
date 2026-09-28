@@ -288,7 +288,7 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
   }) {
     return FormRowCard(
       label: label,
-      alignTop: maxLines > 1 || _errors.containsKey(errorKey),
+      alignTop: maxLines > 1,
       child: AppTextField(
         controller: controller,
         maxLines: maxLines,
@@ -311,7 +311,6 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
   }) {
     return FormRowCard(
       label: label,
-      alignTop: _errors.containsKey(errorKey),
       child: AppTextField(
         controller: controller,
         hint: hint,

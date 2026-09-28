@@ -3,8 +3,11 @@ const ai = require('../../lib/ai');
 const settingsService = require('./settings');
 const usage = require('./usage');
 const consent = require('./consent');
+const semantic = require('./semantic');
+const { EMBEDDING_FEATURES } = require('./disclosures');
 
 const STATUS_CACHE_MS = 30 * 1000;
+const BILLED_FAILURE_LIMIT = 10;
 
 const clipMessage = (err) => ai.redact(err?.message ?? '') || null;
 
@@ -39,24 +42,28 @@ const access = async (feature, { needsVision = false } = {}) => {
   return { settings, provider };
 };
 
+// 每日次數只計成功的呼叫；已計費的失敗另設上限，避免反覆觸發失敗而無限制地產生費用。
 const assertDailyLimit = async (settings, feature, userId) => {
   const limit = Number(settings.limits.daily_per_user[feature] ?? 0);
   if (!limit || !userId) return;
   if ((await usage.dailyCount(userId, feature)) >= limit) throw errors.daily();
+  if ((await usage.billedFailureCount(userId, feature)) >= BILLED_FAILURE_LIMIT) throw errors.daily();
 };
 
 const call = async (feature, { settings, provider, userId = null, ...options }) => {
   const prices = settings.providers[provider];
   const model = prices.model;
   const search = Boolean(options.search) && ai.PROVIDERS[provider].web_search;
+  const started = Date.now();
+  let searchUsedThisMonth = 0;
   try {
-    const searchUsedThisMonth = search && prices.search_free_per_month > 0 ? await usage.monthSearchCalls(provider) : 0;
+    searchUsedThisMonth = search && prices.search_free_per_month > 0 ? await usage.monthSearchCalls(provider) : 0;
     const result = await ai.generate(provider, { ...options, search, model });
     const costUsd = ai.costOf(result.usage, prices, { searchUsedThisMonth });
     await usage.log({ feature, provider, model, userId, usage: result.usage, costUsd, latencyMs: result.latency_ms });
     return { ...result, provider, model, cost_usd: costUsd };
   } catch (err) {
-    const partial = err.usage ? ai.costOf(err.usage, prices) : 0;
+    const partial = err.usage ? ai.costOf(err.usage, prices, { searchUsedThisMonth }) : 0;
     await usage.log({
       feature,
       provider,
@@ -64,7 +71,7 @@ const call = async (feature, { settings, provider, userId = null, ...options }) 
       userId,
       usage: err.usage ?? {},
       costUsd: partial,
-      latencyMs: err.latency_ms ?? 0,
+      latencyMs: err.latency_ms ?? Date.now() - started,
       status: 'error',
       errorCode: err instanceof ai.AiProviderError ? err.reason : 'INTERNAL',
       errorDetail: err instanceof ai.AiProviderError ? err.providerMessage || null : clipMessage(err)
@@ -99,14 +106,21 @@ const featureStatus = async () => {
   value.web_search = value.listing_assist
     && settings.features.listing_assist.web_search
     && ai.PROVIDERS[providerFor(settings, 'listing_assist')].web_search;
+  const embedding = EMBEDDING_FEATURES.some((f) => value[f]) ? semantic.profile() : null;
+  if (embedding) used.add(embedding.provider);
   const providers = ai.PROVIDER_IDS.filter((id) => used.has(id)).map((id) => ai.PROVIDERS[id].name);
-  statusCache = { value: { ...value, providers_in_use: providers }, at: Date.now() };
+  statusCache = {
+    value: { ...value, providers_in_use: providers, embedding_provider: embedding ? ai.PROVIDERS[embedding.provider].name : null },
+    at: Date.now()
+  };
   return statusCache.value;
 };
 
-const status = async (userId) => ({
-  ...(await featureStatus()),
-  consented: await consent.isGranted(userId)
-});
+const status = async (userId) => {
+  const { granted, outdated } = await consent.stateOf(userId);
+  return { ...(await featureStatus()), consented: granted, consent_outdated: outdated };
+};
 
-module.exports = { USER_FEATURES, errors, providerFor, visionProvider, blocker, access, assertDailyLimit, call, status, clearCache };
+module.exports = {
+  USER_FEATURES, BILLED_FAILURE_LIMIT, errors, providerFor, visionProvider, blocker, access, assertDailyLimit, call, status, clearCache
+};

@@ -1,0 +1,66 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "smart_cabinets" as smart_cabinets {
+  {field} <&key> cabinet_id : int
+  --
+  {field} cabinet_name : varchar(100)
+  {field} address : varchar(500)
+  {field} latitude : decimal(10,7)
+  {field} longitude : decimal(10,7)
+  {field} total_slots : int
+  {field} available_slots : int
+  {field} is_active : tinyint(1)
+  {field} is_maintenance : tinyint(1)
+  {field} open_time : time
+  {field} close_time : time
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "cabinet_slots" as cabinet_slots {
+  {field} <&key> slot_id : int
+  --
+  {field} cabinet_id : int
+  {field} slot_number : varchar(10)
+  {field} status : enum
+  {field} current_book_id : int
+  {field} current_order_id : int
+  {field} updated_at : datetime
+}
+entity "book_deposits" as book_deposits {
+  {field} <&key> book_id : int
+  --
+  {field} cabinet_id : int
+  {field} deposited_at : datetime
+  {field} paused_at : datetime
+  {field} auto_paused : tinyint(1)
+  {field} reminded_at : datetime
+  {field} escalated_at : datetime
+}
+entity "reservations" as reservations {
+  {field} <&key> reservation_id : int
+  --
+  {field} book_id : int
+  {field} buyer_id : int
+  {field} seller_id : int
+  {field} cabinet_id : int
+  {field} status : enum
+  {field} pickup_deadline : datetime
+  {field} qr_code : varchar(500)
+  {field} note : text
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+smart_cabinets ||--o{ cabinet_slots
+smart_cabinets ||--o{ book_deposits
+smart_cabinets ||--o{ reservations
+@enduml

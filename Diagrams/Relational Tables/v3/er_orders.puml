@@ -11,6 +11,16 @@ hide circle
 hide empty methods
 left to right direction
 
+entity "smart_cabinets" as smart_cabinets {
+  {field} <&key> cabinet_id : int
+  --
+  ...
+}
+entity "cabinet_slots" as cabinet_slots {
+  {field} <&key> slot_id : int
+  --
+  ...
+}
 entity "orders" as orders {
   {field} <&key> order_id : int
   --
@@ -42,46 +52,7 @@ entity "order_items" as order_items {
   {field} quantity : int
   {field} unit_price : decimal(10,2)
   {field} subtotal : decimal(10,2)
-}
-entity "smart_cabinets" as smart_cabinets {
-  {field} <&key> cabinet_id : int
-  --
-  {field} cabinet_name : varchar(100)
-  {field} address : varchar(500)
-  {field} latitude : decimal(10,7)
-  {field} longitude : decimal(10,7)
-  {field} total_slots : int
-  {field} available_slots : int
-  {field} is_active : tinyint(1)
-  {field} open_time : time
-  {field} close_time : time
-  {field} is_maintenance : tinyint(1)
-  {field} created_at : datetime
-  {field} updated_at : datetime
-}
-entity "cabinet_slots" as cabinet_slots {
-  {field} <&key> slot_id : int
-  --
-  {field} cabinet_id : int
-  {field} slot_number : varchar(10)
-  {field} status : enum
-  {field} current_book_id : int
-  {field} current_order_id : int
-  {field} updated_at : datetime
-}
-entity "reservations" as reservations {
-  {field} <&key> reservation_id : int
-  --
-  {field} book_id : int
-  {field} buyer_id : int
-  {field} seller_id : int
-  {field} cabinet_id : int
-  {field} status : enum
-  {field} pickup_deadline : datetime
-  {field} qr_code : varchar(500)
-  {field} note : text
-  {field} created_at : datetime
-  {field} updated_at : datetime
+  {field} pre_deposited : tinyint(1)
 }
 entity "transaction_disputes" as transaction_disputes {
   {field} <&key> dispute_id : int
@@ -110,11 +81,10 @@ entity "refund_records" as refund_records {
   {field} created_at : datetime
   {field} processed_at : datetime
 }
+smart_cabinets ||--o{ cabinet_slots
 smart_cabinets ||--o{ orders
 cabinet_slots ||--o{ orders
 orders ||--o{ order_items
-smart_cabinets ||--o{ cabinet_slots
-smart_cabinets ||--o{ reservations
 orders ||--o{ transaction_disputes
 transaction_disputes ||--o{ refund_records
 orders ||--o{ refund_records

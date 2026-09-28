@@ -102,6 +102,7 @@ class AdminOrderDetail {
   final String? paymentMethod;
   final String? note;
   final String? slotNumber;
+  final List<String> doors;
   final String buyerAvatarUrl;
   final String sellerAvatarUrl;
   final String cabinetAddress;
@@ -122,7 +123,10 @@ class AdminOrderDetail {
     this.paymentMethod,
     this.note,
     this.slotNumber,
+    this.doors = const [],
   });
+
+  String? get doorLabel => doors.isNotEmpty ? doors.join('、') : slotNumber;
 
   factory AdminOrderDetail.fromJson(Map<String, dynamic> json) {
     final time = (json['timeline'] as Map?)?.cast<String, dynamic>() ?? const {};
@@ -141,6 +145,7 @@ class AdminOrderDetail {
       paymentMethod: json['payment_method'] as String?,
       note: json['note'] as String?,
       slotNumber: slot?['slot_number'] as String?,
+      doors: [for (final d in (json['doors'] as List?) ?? const []) if (d != null) '$d'],
       buyerAvatarUrl: resolveAssetUrl(buyer?['avatar_url']) ?? '',
       sellerAvatarUrl: resolveAssetUrl(seller?['avatar_url']) ?? '',
       cabinetAddress: cabinet?['address'] as String? ?? '',

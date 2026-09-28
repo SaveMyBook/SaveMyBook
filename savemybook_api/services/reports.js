@@ -4,6 +4,7 @@ const { userBrief, userName, coverImage } = require('../lib/selects');
 const { REPORT_STATUS_LABELS } = require('../constants/domain');
 const { notify } = require('./notify');
 const audit = require('./audit');
+const deposits = require('./book-deposits');
 const publicId = require('../lib/public-id');
 
 const RESULTS = ['reviewing', 'resolved', 'dismissed'];
@@ -169,6 +170,7 @@ const review = async (reportId, { status, adminNote, removeTarget }, { adminId, 
           where: { book_id: report.target_id },
           data: { status: 'removed', is_approved: false, updated_at: new Date() }
         });
+        await deposits.releaseAutoPause(tx, report.target_id);
       }
     } else if (report.target_type === 'user') {
       ownerId = report.target_id;

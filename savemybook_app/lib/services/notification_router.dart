@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/app_notification.dart';
+import '../features/admin/admin_cabinet_deposit_screen.dart';
 import '../features/admin/admin_report_screen.dart';
 import '../features/home/announcement_screen.dart';
 import '../features/books/book_detail_screen.dart';
@@ -62,6 +63,8 @@ class NotificationRouter {
         return ApiService.currentUser?.role == 'admin'
             ? const AdminReportScreen(initialTab: AdminReportScreen.riskAlertTab)
             : null;
+      case 'cabinet_deposit':
+        return ApiService.currentUser?.role == 'admin' ? const AdminCabinetDepositScreen(initialOverdue: true) : null;
       case 'order':
         final order = await api.fetchOrderDetail(id);
         if (order == null) return null;

@@ -209,13 +209,12 @@
   "bookBeenReportedUnderReviewStays": "이 책은 신고되어 검토 중입니다.",
   "violationWasConfirmedBookPleaseCheck": "이 책은 위반이 확인되었습니다. 상품 내용을 수정하세요.",
   "delist": "판매 중단",
-  "removedFromShopBuyersNoLonger": "“{p0}”이(가) 상점에서 내려가 구매자에게 더 이상 표시되지 않습니다.",
+  "removedFromShopBuyersNoLonger": "판매를 중단하면 “{p0}”이(가) 상점에 더 이상 표시되지 않으며 구매자가 볼 수 없습니다.",
   "@removedFromShopBuyersNoLonger": {
     "placeholders": {
       "p0": {}
     }
   },
-  "delist2": "내리기",
   "couldNotDelistPleaseTryAgain": "판매 중단에 실패했습니다. 잠시 후 다시 시도해 주세요.",
   "listedAgain": "“{p0}”을(를) 다시 등록했습니다",
   "@listedAgain": {
@@ -1851,7 +1850,7 @@
   "goCheckout": "결제하러 가기",
   "cart2": "장바구니에 있음",
   "buyNow": "지금 구매",
-  "p0Delisted": "《{p0}》 판매를 중지했습니다",
+  "p0Delisted": "“{p0}”의 판매를 중단했습니다",
   "@p0Delisted": {
     "placeholders": {
       "p0": {}
@@ -3012,13 +3011,6 @@
     }
   },
   "byModel": "모델별",
-  "p0CallsP1Ms": "{p0}회・{p1} ms",
-  "@p0CallsP1Ms": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "topMembers": "사용량 상위 회원",
   "p0Uses": "{p0}회 사용",
   "@p0Uses": {
@@ -3094,17 +3086,13 @@
   "aiDataProcessingEnabled": "AI 데이터 처리에 동의했습니다",
   "aiDataProcessingTurnedOff": "AI 데이터 처리를 중지했습니다",
   "aiDataProcessing": "AI 데이터 처리",
-  "messagesEnterStatusOrdersReservations": "입력한 메시지와 본인의 주문 및 예약 상태",
   "isbnTitleConditionNotesPhotosSelect": "ISBN, 도서명, 상태 설명 및 선택한 사진",
-  "bookDetailsFromFavoritesPurchaseHistory": "찜 목록과 구매 내역에 포함된 도서 정보",
   "aiDataProcessing2": "AI 데이터 처리 안내",
   "whenUseAiFeaturesWeShare": "AI 기능을 사용할 때 아래 데이터를 제3자 AI 서비스 제공업체에 제공하여 처리합니다.",
   "dataShared": "제공하는 데이터",
   "recipients": "데이터 수신자",
   "purpose": "이용 목적",
-  "usedOnlyGenerateSupportRepliesPrepare": "고객센터 답변 생성, 등록 정보 정리 및 도서 추천에만 사용하며 광고나 추적에는 사용하지 않습니다.",
   "withdrawingConsent": "동의 철회",
-  "canTurnOffAiDataProcessing": "설정 › 계정 관리에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않습니다.",
   "agreeContinue": "동의",
   "insufficientQuotaPlanNotEnabled": "할당량 부족 또는 요금제 미사용",
   "modelNotFound": "모델 이름이 없습니다",
@@ -3313,7 +3301,7 @@
     }
   },
   "deletePasskey": "패스키 삭제",
-  "noLongerAbleSignVerifyIdentity": "삭제하면 이 패스키로 로그인하거나 본인 인증을 할 수 없습니다. 기기에 저장된 패스키는 함께 삭제되지 않으며 시스템 비밀번호 설정에서 삭제할 수 있습니다.",
+  "noLongerAbleSignVerifyIdentity": "삭제하면 이 패스키로 로그인하거나 본인 인증을 할 수 없습니다. 기기에 패스키가 남아 있으면 시스템 비밀번호 설정에서 삭제할 수 있습니다.",
   "passkeyDeleted": "패스키가 삭제되었습니다",
   "signVerifyIdentityWithFaceId": "비밀번호 대신 Face ID, 지문 또는 화면 잠금으로 로그인하고 본인 인증을 할 수 있습니다. 패스키는 사용자의 기기와 비밀번호 관리자에만 저장됩니다.",
   "addPasskey": "패스키 추가",
@@ -3699,5 +3687,144 @@
       "p0": {}
     }
   },
-  "morePicks": "추천 더 보기"
+  "morePicks": "추천 더 보기",
+  "passkeyRequestWasInterruptedPleaseTry": "패스키 작업이 중단되었습니다. 다시 시도해 주세요.",
+  "couldNotVerifyWithPasskeyDevice": "이 기기의 패스키로 인증하지 못했습니다. 다른 방법을 사용해 주세요.",
+  "iosVersionAddingPasskeyAgainReplaces": "이 iOS 버전에서 다시 추가하면 iCloud 키체인의 기존 패스키가 대체됩니다. 추가가 완료되지 않으면 기존 패스키를 복구할 수 없습니다. 먼저 iOS 17.4 이상으로 업데이트하는 것을 권장합니다.",
+  "cannotAddPasskeyDevice": "현재 이 기기에서는 패스키를 추가할 수 없습니다.",
+  "recordRemoval": "꺼냄 등록",
+  "confirmStaffRemovedP1FromP0": "담당자가 「{p0}」에서 “{p1}”을(를) 꺼냈는지 확인해 주세요. 등록 후 책은 판매 중지됩니다.",
+  "@confirmStaffRemovedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "removalRecorded": "꺼냄을 등록했습니다",
+  "booksLockers": "보관함 보관 도서",
+  "overdue": "기한 초과",
+  "noOverdueBooks": "기한이 지난 책이 없습니다",
+  "noBooksCurrentlyStoredLockers": "현재 보관함에 보관 중인 책이 없습니다",
+  "salesPaused": "판매 일시 중지",
+  "adminsNotified": "관리자 알림 완료",
+  "confirmPurchase": "구매 확인",
+  "bookAlreadyLockerOrderReadyPickup": "이 책은 이미 보관함에 있습니다. 주문 즉시 수령할 수 있으며 주문을 취소할 수 없습니다.",
+  "salesPausedPleaseRetrieveBookFrom": "판매가 일시 중지되었습니다. 보관함에서 책을 회수해 주세요.",
+  "bookLockerCanCollectedRightAfter": "이 책은 보관함에 있어 주문 후 바로 수령할 수 있습니다.",
+  "notYetLocker": "아직 보관함에 보관하지 않음",
+  "retrieve": "회수 보고",
+  "dropOff": "보관 등록",
+  "ordersBooksAlreadyLockerReadyPickup": "보관함에 이미 있는 책의 주문은 즉시 수령할 수 있으며 취소할 수 없습니다.",
+  "placedLockerToday": "오늘 보관함에 보관",
+  "lockerP0Days": "보관 기간 {p0}일",
+  "@lockerP0Days": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmP0BeenPlacedP1Once": "“{p0}”을(를) 「{p1}」에 넣었는지 확인해 주세요. 등록 후 구매자는 주문 즉시 수령할 수 있습니다.",
+  "@confirmP0BeenPlacedP1Once": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "dropOffRegistered": "보관을 등록했습니다",
+  "confirmRetrievedP1FromP0": "「{p0}」에서 “{p1}”을(를) 회수했는지 확인해 주세요.",
+  "@confirmRetrievedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "retrievalReportedBookBackSale": "회수를 보고했습니다. 책 판매가 재개되었습니다.",
+  "retrievalReported": "회수를 보고했습니다",
+  "allLockers": "전체 보관함",
+  "lockerCannotChangedWhileBookStored": "보관 중에는 보관함을 변경할 수 없습니다.",
+  "removedFromShopDepositedRetrieveBeforeRelisting": "판매를 중단하면 “{p0}”이(가) 상점에 더 이상 표시되지 않으며 구매자가 볼 수 없습니다. 보관 중에 판매를 중단하면 책을 회수하고 회수 보고를 한 후에 다시 판매할 수 있습니다.",
+  "@removedFromShopDepositedRetrieveBeforeRelisting": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderPlacedBookLockerReadyPickup": "주문이 완료되었습니다. 책이 보관함에 있어 바로 수령할 수 있습니다.",
+  "confirmStaffRemovedBookFromLocker": "담당자가 「{p0}」에서 “{p1}”을(를) 꺼냈는지 확인해 주세요.",
+  "@confirmStaffRemovedBookFromLocker": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "inLocker": "보관함에 있음",
+  "inAnotherLocker": "다른 보관함에 있음",
+  "confirmPutAllP0BooksOrder": "이 주문의 책 {p0}권을 모두 보관함에 넣으셨나요?",
+  "@confirmPutAllP0BooksOrder": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "awaitingRetrieval": "회수 대기",
+  "bookAdvisorSelection": "도서 어드바이저 도서 선정",
+  "bookInfoAutoFill": "도서 정보 자동 보완",
+  "disputeAnalysis": "분쟁 분석",
+  "monthlyBudgetUsedUp": "이번 달 예산 소진",
+  "coverageBooksP0HelpArticlesP1": "적용 범위: 도서 {p0}, 고객지원 정보 {p1}",
+  "@coverageBooksP0HelpArticlesP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "lastSyncP0": "마지막 동기화: {p0}",
+  "@lastSyncP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "backgroundSyncPausedUntilP0": "백그라운드 동기화가 {p0}까지 일시 중지됨",
+  "@backgroundSyncPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "semanticQueriesPausedUntilP0": "의미 검색이 {p0}까지 일시 중지됨",
+  "@semanticQueriesPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lastErrorP0": "최근 오류: {p0}",
+  "@lastErrorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0CallsAvgP1MsP95": "{p0}회・평균 {p1} ms・p95 {p2} ms",
+  "@p0CallsAvgP1MsP95": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "turnOffAiDataProcessing": "AI 데이터 처리 끄기",
+  "aiFeaturesStopAiSupportBook": "AI 기능 사용이 중지되고 AI 고객센터와 도서 어드바이저의 대화 기록이 삭제되며 복구할 수 없습니다.",
+  "turnOff": "끄기",
+  "messagesConversationHistoryEnterPlusOwn": "입력한 메시지와 대화 내용, 본인의 주문, 예약, 등록 도서(심사 사유 포함), 지갑 잔액 및 최근 고객 문의",
+  "requestsConversationHistoryEnter": "입력한 요청과 대화 내용",
+  "bookDetailsFromSavedItemsPurchase": "찜 목록, 구매 내역, 장바구니, 최근 본 책에 포함된 도서 정보",
+  "aiDataProcessingNoticeBeenUpdated": "AI 데이터 처리 안내가 업데이트되었습니다. 내용을 확인한 후 다시 동의해 주세요.",
+  "questionsRequestsBookDetailsAlsoConverted": "질문, 요청 및 도서 정보는 관련 내용을 검색하기 위해 {p0}에서 의미 벡터로도 변환됩니다.",
+  "@questionsRequestsBookDetailsAlsoConverted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "usedOnlyGenerateSupportRepliesRecommend": "고객센터 답변 생성, 도서 추천 및 검색, 등록 정보 정리에만 사용하며 광고나 추적에는 사용하지 않습니다.",
+  "retentionPeriod": "보관 기간",
+  "aiSupportBookAdvisorConversationsKept": "AI 고객센터와 도서 어드바이저의 대화 기록은 마지막 대화로부터 90일간 보관된 후 자동으로 삭제됩니다.",
+  "canTurnOffAiDataProcessing": "설정 › 계정 관리에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않고 AI 고객센터와 도서 어드바이저의 대화 기록이 삭제됩니다.",
+  "usersMustAlsoAgreeAiData": "사용자는 AI 기능을 계속 사용하려면 AI 데이터 처리에 다시 동의해야 합니다.",
+  "consentRequiredAgain": "다시 동의 필요",
+  "aiBookAdvisorUsageCountedBy": "AI 도서 어드바이저 횟수는 사용자가 보낸 메시지 수로 계산합니다."
 }

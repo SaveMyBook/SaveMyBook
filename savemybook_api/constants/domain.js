@@ -20,6 +20,14 @@ const ORDER_STATUS_LABELS = {
   refunded: '已退款'
 };
 
+// App 依買賣方身分與取書進度另有顯示名稱，AI 客服檢索須認得這些說法。
+const ORDER_STATUS_ALIASES = {
+  pending_deposit: ['待賣家存書'],
+  deposited: ['待取書', '待完成訂單', '待買家確認'],
+  pending_pickup: ['待取書'],
+  refunding: ['申訴中']
+};
+
 const BOOK_STATUSES = ['on_sale', 'reserved', 'sold', 'removed'];
 const BOOK_STATUS_LABELS = { on_sale: '上架中', reserved: '交易中', sold: '已售出', removed: '已下架' };
 const CONDITION_LEVELS = ['like_new', 'good', 'fair', 'poor'];
@@ -75,7 +83,7 @@ const ADMIN_PERMISSION_LABELS = {
 };
 
 module.exports = {
-  ORDER_STATUSES, ORDER_OPEN_STATUSES, ORDER_UNSETTLED_STATUSES, ORDER_FINAL_STATUSES, ORDER_STATUS_LABELS,
+  ORDER_STATUSES, ORDER_OPEN_STATUSES, ORDER_UNSETTLED_STATUSES, ORDER_FINAL_STATUSES, ORDER_STATUS_LABELS, ORDER_STATUS_ALIASES,
   BOOK_STATUSES, BOOK_STATUS_LABELS, CONDITION_LEVELS, CONDITION_LABELS, GENDERS, USER_ROLES, USER_ROLE_LABELS,
   REPORT_TARGET_TYPES, ANNOUNCEMENT_TYPES, ANNOUNCEMENT_TYPE_LABELS, TICKET_CATEGORIES, TICKET_STATUSES, TICKET_STATUS_LABELS,
   SLOT_STATUSES, SLOT_STATUS_LABELS, NOTIFICATION_TYPES, REPORT_STATUSES, REPORT_STATUS_LABELS,

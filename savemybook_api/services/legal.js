@@ -19,6 +19,8 @@ const withMeta = async (docs) => {
   }));
 };
 
+const versionOf = async (docKey) => (await metaByKey()).get(docKey)?.version || 1;
+
 const bumpVersion = async (docKey) => {
   await prisma.$executeRaw`UPDATE legal_documents SET version = version + 1 WHERE doc_key = ${docKey}`;
   return (await metaByKey()).get(docKey)?.version ?? null;
@@ -132,5 +134,5 @@ const save = async (key, { title, content, major }, { adminId, req }) => {
 };
 
 module.exports = {
-  KEY_RE, pendingDocs, acceptVersion, acceptAllCurrent, listSummaries, listFull, findByKey, publishedDocs, save
+  KEY_RE, versionOf, pendingDocs, acceptVersion, acceptAllCurrent, listSummaries, listFull, findByKey, publishedDocs, save
 };

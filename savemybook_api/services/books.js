@@ -2,6 +2,7 @@ const prisma = require('../lib/prisma');
 const { badRequest, forbidden, notFound, conflict } = require('../lib/errors');
 const { bookCard, cabinetLocation, categoryName } = require('../lib/selects');
 const { BOOK_STATUSES } = require('../constants/domain');
+const { LISTING_MAX_IMAGES } = require('../constants/policy');
 const share = require('./share');
 const isbnLookup = require('./isbn-lookup');
 const ranking = require('./ranking');
@@ -14,8 +15,10 @@ const aiImages = require('./ai/images');
 const cabinets = require('./cabinets');
 const catalog = require('./ai/catalog-search');
 const enrichment = require('./ai/enrich');
+const deposits = require('./book-deposits');
+const { violationLocked } = require('./book-violations');
 
-const MAX_IMAGES_PER_BOOK = 10;
+const MAX_IMAGES_PER_BOOK = LISTING_MAX_IMAGES;
 const SELLER_STATUSES = ['on_sale', 'removed'];
 
 const SORTS = {
@@ -38,18 +41,25 @@ const detailInclude = {
 
 const lookupIsbn = (isbn) => isbnLookup.lookup(isbn);
 
+// 上架時 ISBN 已存成不含連字號的半形數字；關鍵字中的 ISBN 正規化後以 10 碼與 13 碼兩種寫法比對。
+const keywordWhere = (keyword) => {
+  const isbn = catalog.isbnOf(keyword);
+  return {
+    OR: [
+      { title: { contains: keyword } },
+      { author: { contains: keyword } },
+      { publisher: { contains: keyword } },
+      ...(isbn ? [{ isbn: { in: catalog.isbnForms(isbn) } }] : [])
+    ]
+  };
+};
+
 const listWhere = ({ status, sellerId, ownView, categoryIds, keyword }) => ({
   ...(status !== 'all' ? { status } : !ownView && { status: { not: 'removed' } }),
   ...(sellerId && { seller_id: sellerId }),
   ...(!ownView && { is_approved: true }),
   ...(categoryIds.length > 0 && { category_id: { in: categoryIds } }),
-  ...(keyword && {
-    OR: [
-      { title: { contains: keyword } },
-      { author: { contains: keyword } },
-      { publisher: { contains: keyword } }
-    ]
-  })
+  ...(keyword && keywordWhere(keyword))
 });
 
 const inIdOrder = async (ids, where = {}) => {
@@ -57,7 +67,7 @@ const inIdOrder = async (ids, where = {}) => {
     ? await prisma.books.findMany({ where: { book_id: { in: ids }, ...where }, include: listInclude })
     : [];
   const byId = new Map(rows.map((b) => [b.book_id, b]));
-  return ids.map((bookId) => byId.get(bookId)).filter(Boolean);
+  return deposits.withCabinetFlag(ids.map((bookId) => byId.get(bookId)).filter(Boolean));
 };
 
 const RELEVANCE_LIMIT = 200;
@@ -102,7 +112,8 @@ const list = async ({ skip, limit, sort, viewerId, ...filters }) => {
     prisma.books.findMany({ where, skip, take: limit, orderBy: SORTS[sort], include: listInclude }),
     prisma.books.count({ where })
   ]);
-  return { total, books: filters.ownView ? await withHolds(await reviews.withReviewStatus(books)) : books };
+  const shaped = filters.ownView ? await withHolds(await reviews.withReviewStatus(books)) : books;
+  return { total, books: await deposits.withCabinetFlag(shaped, { owner: filters.ownView }) };
 };
 
 // 賣家自己的書籍清單附上預約保留資訊，書籍管理據此列入「已預定」。
@@ -150,7 +161,7 @@ const findByShareToken = async (token, viewerId) => {
   });
   if (!book) throw notFound('找不到此書籍');
   const hold = await reservations.holdForViewer(book.book_id, viewerId);
-  return { ...book, reservation: hold };
+  return deposits.decorate({ ...book, reservation: hold });
 };
 
 const shareLink = async (bookId, baseUrl) => {
@@ -174,8 +185,9 @@ const detail = async (bookId, { viewerId, viewerKey }) => {
     prisma.books.update({ where: { book_id: bookId }, data: { view_count: { increment: 1 } } }).catch(() => {});
   }
   const [hold, enriched] = await Promise.all([reservations.holdForViewer(bookId, viewerId), enrichment.infoFor(bookId)]);
-  const shaped = { ...book, reservation: hold, enrichment: enriched };
-  return viewerId != null && viewerId === book.seller_id ? reviews.withReviewStatus(shaped) : shaped;
+  const owner = viewerId != null && viewerId === book.seller_id;
+  const shaped = await deposits.decorate({ ...book, reservation: hold, enrichment: enriched }, { owner });
+  return owner ? reviews.withReviewStatus(shaped) : shaped;
 };
 
 // 只檢查有變更的關聯，否則書櫃停用後賣家送回舊 cabinet_id 會被擋。
@@ -211,7 +223,7 @@ const create = async (data, images, { files = [] } = {}) => {
   if (enrichment.FIELDS.some((f) => !String(created[f] ?? '').trim())) enrichment.later(created.book_id);
 
   return {
-    book: { ...created, review_status: ruled ? 'pending' : null },
+    book: { ...created, review_status: ruled ? 'pending' : null, in_cabinet: false, deposit: null },
     moderation: ruled ? pendingReview(ruled) : null
   };
 };
@@ -222,10 +234,6 @@ const findOwnedBook = async (bookId, user, deniedMessage) => {
   if (book.seller_id !== user.userId && user.role !== 'admin') throw forbidden(deniedMessage);
   return book;
 };
-
-// 等待 AI 審核的書 is_approved 也是 false，但不屬於違規，賣家仍可自行下架後再上架（上架後依舊不公開）。
-const violationLocked = async (book) => (book.is_approved === false && (await reviews.statusOf(book.book_id)) !== 'pending')
-  || (await prisma.reports.count({ where: { target_type: 'book', target_id: book.book_id, status: 'resolved' } })) > 0;
 
 const firstImageUrls = async (bookId, max = 2) => (await prisma.book_images.findMany({
   where: { book_id: bookId },
@@ -273,12 +281,13 @@ const update = async (bookId, user, data) => {
   const book = await findOwnedBook(bookId, user, '存取被拒，您無權限修改他人的商品');
   if (!isAdmin) await reservations.assertNotHeld(bookId);
 
-  // 檢舉成立但管理員未勾選下架時 is_approved 仍為 true，須一併查檢舉紀錄，否則賣家自行下架後可再上架。
-  if (data.status === 'on_sale' && book.status !== 'on_sale' && !isAdmin && await violationLocked(book)) {
-    throw forbidden('此書籍因違規遭下架，無法自行重新上架，請聯絡客服', 'BOOK_NOT_APPROVED');
+  if (data.status === 'on_sale' && book.status !== 'on_sale' && !isAdmin) {
+    if (await violationLocked(book)) throw forbidden('此書籍因違規遭下架，無法自行重新上架，請聯絡客服', 'BOOK_NOT_APPROVED');
+    await deposits.assertRelistable(bookId);
   }
   const relist = isAdmin && data.status === 'on_sale';
   if (relist) data.is_approved = true;
+  const adminStatus = isAdmin && data.status !== undefined;
 
   // 保留中的書已有人付款，改回上架會被第二人買走。
   if (data.status && data.status !== book.status && ['reserved', 'sold'].includes(book.status) && !isAdmin) {
@@ -287,6 +296,7 @@ const update = async (bookId, user, data) => {
 
   assertEditable(book, user);
 
+  if (data.cabinet_id !== undefined && data.cabinet_id !== book.cabinet_id) await deposits.assertCabinetUnchanged(bookId);
   await assertRefsExist({ categoryId: data.category_id, cabinetId: data.cabinet_id }, book);
 
   const changed = (field) => data[field] !== undefined && data[field] !== book[field];
@@ -315,9 +325,10 @@ const update = async (bookId, user, data) => {
     where: { book_id: bookId },
     data: { ...data, updated_at: new Date() }
   });
-  const updatedBook = plan || relist
+  const updatedBook = plan || adminStatus
     ? await prisma.$transaction(async (tx) => {
         const row = await write(tx);
+        if (adminStatus) await deposits.syncAdminStatus(tx, bookId, data.status);
         if (plan?.hold) await reviews.hold(tx, { bookId, decision });
         if (plan?.hold && plan.notify) {
           await reviews.notifyHeld(tx, row);
@@ -337,7 +348,7 @@ const update = async (bookId, user, data) => {
     notifyPriceDrop(updatedBook, oldPrice).catch((err) => console.error('[降價通知失敗]:', err.message));
   }
   if (updatedBook.seller_id === user.userId) {
-    const shaped = await reviews.withReviewStatus(updatedBook);
+    const shaped = await deposits.decorate(await reviews.withReviewStatus(updatedBook), { owner: true });
     return { book: shaped, moderation: plan?.hold ? pendingReview(decision) : null };
   }
   return { book: updatedBook, moderation: null };

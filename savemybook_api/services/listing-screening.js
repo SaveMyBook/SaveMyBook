@@ -2,13 +2,18 @@ const prisma = require('../lib/prisma');
 const moderation = require('./ai/moderation');
 const reviews = require('./ai/reviews');
 const aiImages = require('./ai/images');
+const { risksIn } = require('./ai/text');
 const { adminIdsWith } = require('./admin-permissions');
 const { notify, notifyMany } = require('./notify');
+const deposits = require('./book-deposits');
+const { LISTING_REVIEW_PRICE } = require('../constants/policy');
 
-const PRICE_CEILING = 3000;
+const PRICE_CEILING = LISTING_REVIEW_PRICE;
 const PEER_RATIO = 3;
 const PEER_MARGIN = 300;
 const SOURCE_PATTERN = /圖書館|館藏|借閱|索書號|公播|非賣品|贈閱|樣書|試讀本|公關書|影印本|盜版|翻印|掃描檔|電子檔|\bpdf\b/i;
+// 詐騙與驗證碼類別不列入，聯絡方式與付款只認實際的識別字串：理財、資安、行銷書的書名常出現「高報酬」「存款帳戶」「IG 帳號」等字詞。
+const CONTACT_RISKS = { categories: ['contact', 'payment', 'offsite', 'link'], identifiersOnly: true, bareDomains: 'strong' };
 
 const median = (values) => {
   const sorted = [...values].sort((a, b) => a - b);
@@ -47,9 +52,15 @@ const ruleDecision = async (book) => {
     categories.push('price');
   }
 
-  if (SOURCE_PATTERN.test([book.title, book.description].filter(Boolean).join('\n'))) {
+  const text = [book.title, book.description].filter(Boolean).join('\n');
+  if (SOURCE_PATTERN.test(text)) {
     reasons.push(moderation.CATEGORY_LABELS.source);
     categories.push('source');
+  }
+
+  if (risksIn(text, CONTACT_RISKS).length > 0) {
+    reasons.push(moderation.CATEGORY_LABELS.contact);
+    categories.push('contact');
   }
 
   if (reasons.length === 0) return null;
@@ -91,6 +102,7 @@ const applyLater = async (bookId, decision) => {
       await hold(tx, row, decision);
       return;
     }
+    await deposits.releaseAutoPause(tx, bookId);
     await reviews.hold(tx, { bookId, decision });
     await tx.$executeRaw`UPDATE ai_book_reviews SET status = 'rejected', reviewed_at = ${new Date()} WHERE book_id = ${bookId}`;
     await notify(tx, {

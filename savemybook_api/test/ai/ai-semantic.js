@@ -153,23 +153,160 @@ module.exports = {
       const ranked = await catalog.search([{ text: 'AI', weight: 1 }], { query: '有沒有推薦的 AI 書籍' });
       assert.deepStrictEqual(ranked, []);
       assert.strictEqual(embedRequests.length, 0);
-      assert.deepStrictEqual(await semantic.status(), { ready: false, provider: null, model: null, counts: {} });
+      assert.deepStrictEqual(await semantic.status(), {
+        ready: false,
+        provider: null,
+        model: null,
+        counts: {},
+        cooldown_until: { sync: null, query: null },
+        last_sync_at: null,
+        last_error: null,
+        coverage: {}
+      });
     }],
 
-    ['嵌入 API 失敗時退回關鍵字檢索且暫停重試', async () => {
+    ['嵌入 API 系統性失敗時退回關鍵字檢索，同步與查詢各自暫停重試', async () => {
       setup({ books: shelf() });
       const original = embeddings.embed;
-      let attempts = 0;
-      embeddings.embed = async () => {
-        attempts += 1;
+      const tasks = [];
+      embeddings.embed = async (p, key, texts, options = {}) => {
+        tasks.push(options.task ?? 'document');
         throw new h.ai.AiProviderError('AUTH', { provider: 'gemini' });
       };
       try {
         const ranked = await catalog.search([{ text: '推理', weight: 1 }], { query: '推理小說' });
         assert.deepStrictEqual(ranked.map((r) => r.book_id), [1]);
+        assert.deepStrictEqual(tasks, ['document', 'query'], '同步失敗不影響查詢，查詢仍會嘗試一次');
         catalog.clear();
         await catalog.search([{ text: '推理', weight: 1 }], { query: '推理小說' });
-        assert.strictEqual(attempts, 1, '冷卻期間不再呼叫');
+        assert.strictEqual(tasks.length, 2, '冷卻期間不再呼叫');
+        const status = await semantic.status();
+        assert.ok(status.cooldown_until.sync > new Date());
+        assert.ok(status.cooldown_until.query > new Date());
+        assert.strictEqual(status.last_error.code, 'AUTH');
+        assert.strictEqual(status.last_error.purpose, 'query');
+        assert.strictEqual(status.last_sync_at, null);
+      } finally {
+        embeddings.embed = original;
+      }
+    }],
+
+    ['查詢端個別請求錯誤（例如 BAD_REQUEST）不觸發冷卻，下次查詢照常使用語意檢索', async () => {
+      setup({ books: shelf() });
+      const original = embeddings.embed;
+      let failNext = true;
+      embeddings.embed = async (p, key, texts, options = {}) => {
+        if (failNext && options.task === 'query') {
+          failNext = false;
+          throw new h.ai.AiProviderError('BAD_REQUEST', { provider: 'gemini' });
+        }
+        return original(p, key, texts, options);
+      };
+      try {
+        await catalog.search([], { query: 'AI 書' });
+        const status = await semantic.status();
+        assert.deepStrictEqual(status.cooldown_until, { sync: null, query: null });
+        assert.strictEqual(status.last_error.code, 'BAD_REQUEST');
+
+        catalog.clear();
+        const ranked = await catalog.search([{ text: 'AI 人工智慧', weight: 1 }], { query: '有沒有推薦的 AI 書籍' });
+        assert.strictEqual(ranked[0].book_id, 2, '語意檢索恢復');
+      } finally {
+        embeddings.embed = original;
+      }
+    }],
+
+    ['同步端同一批文件固定失敗（BAD_REQUEST 或零向量）時，之後的搜尋不再重送這批文件', async () => {
+      for (const failure of ['BAD_REQUEST', 'ZERO_VECTOR']) {
+        setup({ books: shelf() });
+        const original = embeddings.embed;
+        const originalLog = h.usageService.log;
+        const tasks = [];
+        const errorLogs = [];
+        h.usageService.log = async (entry) => {
+          if (entry.feature === 'embedding' && entry.status === 'error') errorLogs.push(entry);
+          return originalLog(entry);
+        };
+        embeddings.embed = async (p, key, texts, options = {}) => {
+          tasks.push(options.task ?? 'document');
+          if (options.task === 'query') return original(p, key, texts, options);
+          if (failure === 'BAD_REQUEST') throw new h.ai.AiProviderError('BAD_REQUEST', { provider: 'gemini' });
+          const err = new h.ai.AiProviderError('INVALID_OUTPUT', { provider: 'gemini', providerMessage: '第 2 筆為零向量' });
+          err.systemic = false;
+          err.cost_usd = 0.0001;
+          throw err;
+        };
+        try {
+          for (let i = 0; i < 4; i += 1) {
+            catalog.clear();
+            await catalog.search([{ text: '推理', weight: 1 }], { query: `推理小說 ${i}` });
+          }
+          assert.strictEqual(tasks.filter((t) => t === 'document').length, 1, `${failure}：失敗的文件只送一次`);
+          assert.strictEqual(tasks.filter((t) => t === 'query').length, 4, `${failure}：查詢照常使用語意檢索`);
+          assert.strictEqual(errorLogs.length, 1, `${failure}：錯誤只記錄一次`);
+          const status = await semantic.status();
+          assert.deepStrictEqual(status.cooldown_until, { sync: null, query: null });
+          assert.deepStrictEqual(status.coverage.book, { indexed: 0, total: 3 });
+        } finally {
+          embeddings.embed = original;
+          h.usageService.log = originalLog;
+        }
+      }
+    }],
+
+    ['查詢端連續 3 次非系統性錯誤（例如金鑰過期回 400）後暫停呼叫', async () => {
+      setup({ books: shelf() });
+      await catalog.search([], { query: 'AI 書' });
+      const original = embeddings.embed;
+      let queries = 0;
+      embeddings.embed = async () => {
+        queries += 1;
+        throw new h.ai.AiProviderError('BAD_REQUEST', { provider: 'gemini', providerMessage: 'API key expired' });
+      };
+      try {
+        for (let i = 0; i < 5; i += 1) {
+          catalog.clear();
+          const ranked = await catalog.search([{ text: '推理', weight: 1 }], { query: `推理小說 ${i}` });
+          assert.deepStrictEqual(ranked.map((r) => r.book_id), [1], '退回關鍵字檢索');
+        }
+        assert.strictEqual(queries, 3);
+        const status = await semantic.status();
+        assert.ok(status.cooldown_until.query > new Date());
+        assert.strictEqual(status.cooldown_until.sync, null);
+      } finally {
+        embeddings.embed = original;
+      }
+    }],
+
+    ['查詢冷卻中仍會在背景同步書籍向量；向量維度不符屬系統性錯誤，會觸發冷卻', async () => {
+      setup({ books: shelf() });
+      const original = embeddings.embed;
+      embeddings.embed = async (p, key, texts, options = {}) => {
+        if (options.task === 'query') {
+          const err = new h.ai.AiProviderError('INVALID_OUTPUT', { provider: 'gemini', providerMessage: '向量維度 3072，預期 768' });
+          err.systemic = true;
+          throw err;
+        }
+        return original(p, key, texts, options);
+      };
+      try {
+        const ranked = await catalog.search([{ text: '推理', weight: 1 }], { query: '推理小說' });
+        assert.deepStrictEqual(ranked.map((r) => r.book_id), [1]);
+        let status = await semantic.status();
+        assert.ok(status.cooldown_until.query > new Date());
+        assert.strictEqual(status.cooldown_until.sync, null);
+        assert.strictEqual(status.last_error.detail, '回應格式不正確（向量維度 3072，預期 768）');
+
+        const changed = shelf();
+        changed[2].title = '生成式 AI 料理食譜';
+        h.onModel('books.findMany', () => changed);
+        catalog.clear();
+        const before = embedRequests.length;
+        assert.strictEqual(await catalog.warm(), 1);
+        assert.strictEqual(embedRequests.length, before + 1);
+        status = await semantic.status();
+        assert.ok(status.last_sync_at instanceof Date);
+        assert.deepStrictEqual(status.coverage.book, { indexed: 3, total: 3 });
       } finally {
         embeddings.embed = original;
       }
@@ -213,13 +350,17 @@ module.exports = {
       assert.strictEqual(embedRequests.length, before, '沿用已存向量');
     }],
 
-    ['狀態：回報使用的模型與已建立的向量數', async () => {
+    ['狀態：回報使用的模型、已建立的向量數、涵蓋率與最近同步時間', async () => {
       setup({ books: shelf() });
       await catalog.search([], { query: 'AI 書' });
       const status = await semantic.status();
       assert.strictEqual(status.ready, true);
       assert.strictEqual(status.provider, 'gemini');
       assert.strictEqual(status.counts.book, 3);
+      assert.deepStrictEqual(status.coverage.book, { indexed: 3, total: 3 });
+      assert.ok(status.last_sync_at instanceof Date);
+      assert.deepStrictEqual(status.cooldown_until, { sync: null, query: null });
+      assert.strictEqual(status.last_error, null);
     }]
   ]
 };

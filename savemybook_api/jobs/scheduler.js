@@ -6,6 +6,7 @@ const maintenance = require('../lib/maintenance');
 const sessions = require('../services/sessions');
 const reservations = require('../services/reservations');
 const orders = require('../services/orders');
+const bookDeposits = require('../services/book-deposits');
 const transferRecords = require('../services/chat/transfer-records');
 const oauth = require('../services/oauth-providers');
 const passkeys = require('../services/passkeys');
@@ -14,7 +15,9 @@ const supportAttachments = require('../services/support-attachments');
 const catalogSearch = require('../services/ai/catalog-search');
 const knowledge = require('../services/ai/knowledge');
 const enrichment = require('../services/ai/enrich');
+const aiConsent = require('../services/ai/consent');
 const notificationCenter = require('../services/notifications');
+const cabinetDevices = require('../services/cabinet-devices');
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
@@ -98,6 +101,18 @@ const runOrderAutomation = async () => {
   }
 };
 
+const runDepositAutomation = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const { notified, paused, reminded, escalated } = await bookDeposits.runAutomation();
+    if (notified + reminded + escalated > 0) {
+      console.log(`📚 書櫃存書：逾期通知取回 ${notified} 本（其中暫停販售 ${paused} 本）、提醒取回 ${reminded} 本、通知管理員 ${escalated} 本`);
+    }
+  } catch (err) {
+    console.error('[書櫃存書自動處理失敗]:', err.message);
+  }
+};
+
 // 上傳目錄可能因為部署覆蓋而遺失檔案；每天清一次，避免畫面長期出現破圖。
 const runUploadsSweep = async () => {
   if (maintenance.current().active) return;
@@ -136,6 +151,44 @@ const runEnrichmentBackfill = async () => {
   }
 };
 
+const runAiConversationCleanup = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const { support, book_chat: bookChat } = await aiConsent.purgeExpired();
+    if (support + bookChat > 0) console.log(`🧹 已刪除逾期的 AI 對話：客服 ${support} 筆、書籍顧問 ${bookChat} 筆`);
+  } catch (err) {
+    console.error('[刪除逾期 AI 對話失敗]:', err.message);
+  }
+};
+
+const runCabinetSessionSweep = async () => {
+  if (maintenance.current().active) return;
+  try {
+    await cabinetDevices.runSessionSweep(new Date());
+  } catch (err) {
+    console.error('[書櫃作業逾時處理失敗]:', err.message);
+  }
+};
+
+const runCabinetDeviceSweep = async () => {
+  if (maintenance.current().active) return;
+  try {
+    await cabinetDevices.sweep(new Date());
+  } catch (err) {
+    console.error('[書櫃裝置連線檢查失敗]:', err.message);
+  }
+};
+
+const runCabinetPurge = async ({ daily = false } = {}) => {
+  if (maintenance.current().active) return;
+  try {
+    const { events, pending } = await cabinetDevices.purge(new Date(), { daily });
+    if (events + pending > 0) console.log(`🗄️  書櫃資料清理：事件紀錄 ${events} 筆、逾期配對碼 ${pending} 筆`);
+  } catch (err) {
+    console.error('[書櫃資料清理失敗]:', err.message);
+  }
+};
+
 const startScheduler = () => {
   let stopDispatcher = () => {};
   push.init()
@@ -149,8 +202,12 @@ const startScheduler = () => {
     setInterval(runReservationExpiry, 5 * MINUTE),
     setInterval(runOrderAutomation, 10 * MINUTE),
     setTimeout(runOrderAutomation, 2 * MINUTE),
+    setInterval(runDepositAutomation, 10 * MINUTE),
+    setTimeout(runDepositAutomation, 3 * MINUTE),
     setInterval(runOauthCleanup, 10 * MINUTE),
     setInterval(runUploadsSweep, 24 * HOUR),
+    setInterval(runAiConversationCleanup, 24 * HOUR),
+    setTimeout(runAiConversationCleanup, 4 * MINUTE),
     setInterval(runEmbeddingSync, 10 * MINUTE),
     setInterval(runEnrichmentBackfill, 30 * MINUTE),
     setTimeout(runEnrichmentBackfill, 5 * MINUTE),
@@ -158,7 +215,13 @@ const startScheduler = () => {
     setTimeout(runUploadsSweep, 3 * MINUTE),
     setTimeout(runReservationExpiry, MINUTE),
     setTimeout(runDeletionSweep, 30 * 1000),
-    setTimeout(runBackupIfDue, 2 * MINUTE)
+    setTimeout(runBackupIfDue, 2 * MINUTE),
+    setInterval(runCabinetSessionSweep, 15 * 1000),
+    setTimeout(runCabinetSessionSweep, 20 * 1000),
+    setInterval(runCabinetDeviceSweep, MINUTE),
+    setInterval(runCabinetPurge, 10 * MINUTE),
+    setInterval(() => runCabinetPurge({ daily: true }), 24 * HOUR),
+    setTimeout(() => runCabinetPurge({ daily: true }), 6 * MINUTE)
   ];
 
   if (env.backupEnabled) {
@@ -174,4 +237,4 @@ const startScheduler = () => {
   };
 };
 
-module.exports = { startScheduler, runBackupIfDue };
+module.exports = { startScheduler, runBackupIfDue, runCabinetSessionSweep, runCabinetDeviceSweep, runCabinetPurge };

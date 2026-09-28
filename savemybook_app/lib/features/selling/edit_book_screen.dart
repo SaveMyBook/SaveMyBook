@@ -291,6 +291,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                         FadeSlideIn(
                           child: _flashed('isbn', FormRowCard(
                             label: 'ISBN',
+                            labelWidth: 88,
                             child: Row(
                               children: [
                                 Expanded(
@@ -331,6 +332,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                           index: 1,
                           child: _flashed('title', FormRowCard(
                             label: S.title,
+                            labelWidth: 88,
                             isRequired: true,
                             child: AppTextField(
                               controller: _titleController,
@@ -346,6 +348,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                           index: 2,
                           child: _flashed('author', FormRowCard(
                             label: S.author2,
+                            labelWidth: 88,
                             child: AppTextField(
                               controller: _authorController,
                               hint: S.optional,
@@ -359,6 +362,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                           index: 3,
                           child: _flashed('publisher', FormRowCard(
                             label: S.publisher2,
+                            labelWidth: 88,
                             child: AppTextField(
                               controller: _publisherController,
                               hint: S.optional,
@@ -372,6 +376,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                           index: 4,
                           child: _flashed('publish_date', FormRowCard(
                             label: S.publicationDate,
+                            labelWidth: 88,
                             child: AppDateField(
                               value: _publishDate,
                               hint: S.tapPickPublicationDate,
@@ -384,6 +389,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                           index: 5,
                           child: _flashed('category', FormRowCard(
                             label: S.pickCategory,
+                            labelWidth: 88,
                             isRequired: true,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,

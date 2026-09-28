@@ -334,12 +334,14 @@ class Reveal extends StatelessWidget {
 class Breathe extends StatefulWidget {
   final Widget child;
   final double amount;
+  final double lift;
   final Duration period;
 
   const Breathe({
     super.key,
     required this.child,
     this.amount = 0.035,
+    this.lift = 3,
     this.period = const Duration(milliseconds: 2800),
   });
 
@@ -365,7 +367,7 @@ class _BreatheState extends State<Breathe> with SingleTickerProviderStateMixin {
       builder: (context, child) => Transform.scale(
         scale: 1 + widget.amount * curved.value,
         child: Transform.translate(
-          offset: Offset(0, -3 * curved.value),
+          offset: Offset(0, -widget.lift * curved.value),
           child: child,
         ),
       ),
@@ -642,8 +644,14 @@ class AnimatedCount extends StatelessWidget {
 class SwitchIn extends StatelessWidget {
   final Widget child;
   final Duration duration;
+  final AlignmentGeometry alignment;
 
-  const SwitchIn({super.key, required this.child, this.duration = const Duration(milliseconds: 280)});
+  const SwitchIn({
+    super.key,
+    required this.child,
+    this.duration = const Duration(milliseconds: 280),
+    this.alignment = Alignment.topCenter,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -659,7 +667,7 @@ class SwitchIn extends StatelessWidget {
         ),
       ),
       layoutBuilder: (current, previous) => Stack(
-        alignment: Alignment.topCenter,
+        alignment: alignment,
         children: [...previous, ?current],
       ),
       child: child,

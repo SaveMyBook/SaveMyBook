@@ -152,6 +152,29 @@ const tests = [
     assert.strictEqual(res.body.code, 'OAUTH_CODE_INVALID');
   }],
 
+  ['一次性碼在處理途中跨過到期時間，帳號已建立的請求仍完成登入', async () => {
+    prepare();
+    const started = await startLogin('line');
+    const cb = await callback('line', 'auth-code-3b', started.body.data.state);
+    const code = deepLinkParams(cb).get('code');
+
+    const restore = h.expireOAuthResultsDuring(h.api('services/auth-identities'), 'resolveSignIn');
+    try {
+      const res = await exchange(code, { create: true, device_id: 'device-late', platform: 'ios' });
+      assert.strictEqual(res.status, 200, res.text);
+      assert.ok(res.body.data.token);
+    } finally {
+      restore();
+    }
+    assert.strictEqual(h.prisma.rows('users').length, 1);
+    assert.strictEqual(h.prisma.rows('user_identities').length, 1);
+    assert.strictEqual(h.prisma.rows('user_sessions').length, 1);
+    assert.strictEqual(h.prisma.rows('oauth_results').length, 0);
+
+    const replay = await exchange(code, { create: true });
+    assert.strictEqual(replay.body.code, 'OAUTH_CODE_INVALID');
+  }],
+
   ['state 超過 10 分鐘即失效', async () => {
     prepare();
     const started = await startLogin('line');
@@ -179,6 +202,24 @@ const tests = [
     const started = await startLogin('line');
     const cb = await callback('discord', 'auth-code-6', started.body.data.state);
     assert.strictEqual(deepLinkParams(cb).get('error'), 'OAUTH_STATE_INVALID');
+    assert.strictEqual(h.prisma.rows('oauth_states').length, 0, '被拒絕的 state 也要作廢');
+  }],
+
+  ['同一組 state 併發回呼時只有一個請求能換取一次性碼', async () => {
+    prepare();
+    const started = await startLogin('line');
+    const state = started.body.data.state;
+
+    const results = await h.concurrently(
+      h.holdOAuthReads(5),
+      Array.from({ length: 5 }, (_, i) => callback('line', `auth-code-race-${i}`, state))
+    );
+    const params = results.map(deepLinkParams);
+    assert.strictEqual(params.filter((p) => p.get('code')).length, 1);
+    assert.deepStrictEqual(params.filter((p) => !p.get('code')).map((p) => p.get('error')), Array(4).fill('OAUTH_STATE_INVALID'));
+    assert.strictEqual(h.fetchLog.filter((f) => f.url === 'https://api.line.me/oauth2/v2.1/token').length, 1);
+    assert.strictEqual(h.prisma.rows('oauth_states').length, 0);
+    assert.strictEqual(h.prisma.rows('oauth_results').length, 1);
   }],
 
   ['選擇建立帳號時電子郵件已註冊回 409 ACCOUNT_EXISTS_LINK_REQUIRED，一次性碼保留給登入並綁定', async () => {
@@ -305,6 +346,27 @@ const tests = [
 
     assert.strictEqual(exchanged.status, 200);
     assert.strictEqual(h.prisma.rows('users').length, 1);
+  }],
+
+  ['同一組一次性碼併發交換時只會簽發一次登入', async () => {
+    prepare();
+    const user = h.addUser({ email: 'line-race@example.com' });
+    h.addIdentity({ userId: user.user_id, provider: 'line', subject: LINE_PROFILE.userId });
+
+    const started = await startLogin('line');
+    const cb = await callback('line', 'auth-code-14b', started.body.data.state);
+    const code = deepLinkParams(cb).get('code');
+
+    const results = await h.concurrently(
+      h.holdOAuthReads(5),
+      Array.from({ length: 5 }, (_, i) => exchange(code, { device_id: `device-race-${i}`, platform: 'ios' }))
+    );
+    assert.strictEqual(results.filter((r) => r.status === 200 && r.body.data?.token).length, 1);
+    const rejected = results.filter((r) => r.status !== 200);
+    assert.deepStrictEqual(rejected.map((r) => [r.status, r.body.code]), Array(4).fill([400, 'OAUTH_CODE_INVALID']));
+    assert.strictEqual(rejected[0].body.message, '登入逾時，請重新操作');
+    assert.strictEqual(h.prisma.rows('user_sessions').length, 1);
+    assert.strictEqual(h.prisma.rows('oauth_results').length, 0);
   }],
 
   ['交換時帳號已停權則拒絕登入', async () => {

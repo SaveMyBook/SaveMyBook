@@ -564,30 +564,66 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Flexible(
-                      child: Text(
-                        room.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: unread ? FontWeight.w800 : FontWeight.bold,
-                          color: c.textPrimary,
-                        ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              room.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: unread ? FontWeight.w800 : FontWeight.bold,
+                                color: c.textPrimary,
+                              ),
+                            ),
+                          ),
+                          if (room.isGroup) ...[
+                            const SizedBox(width: 4),
+                            Text(
+                              '(${room.memberCount})',
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: c.textSecondary),
+                            ),
+                          ],
+                          if (muted) ...[
+                            const SizedBox(width: 6),
+                            Icon(Icons.notifications_off_rounded, size: 14, color: c.textHint),
+                          ],
+                        ],
                       ),
                     ),
-                    if (room.isGroup) ...[
-                      const SizedBox(width: 4),
-                      Text(
-                        '(${room.memberCount})',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: c.textSecondary),
-                      ),
-                    ],
-                    if (muted) ...[
-                      const SizedBox(width: 6),
-                      Icon(Icons.notifications_off_rounded, size: 14, color: c.textHint),
-                    ],
+                    const SizedBox(width: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedSwitcher(
+                          duration: Motion.base,
+                          transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+                          child: room.pinned
+                              ? Padding(
+                                  key: const ValueKey('pinned'),
+                                  padding: const EdgeInsets.only(right: 4),
+                                  child: Transform.rotate(
+                                    angle: 0.6,
+                                    child: Icon(Icons.push_pin_rounded, size: 13, color: c.accent),
+                                  ),
+                                )
+                              : const SizedBox(key: ValueKey('unpinned')),
+                        ),
+                        Text(
+                          formatRelative(room.updatedAt),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: unread ? c.accent : c.textHint,
+                            fontWeight: unread ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -641,64 +677,31 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
                         ),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    AnimatedSwitcher(
+                      duration: Motion.base,
+                      transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+                      child: unread
+                          ? Container(
+                              key: ValueKey(room.unreadCount),
+                              constraints: const BoxConstraints(minWidth: 20),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: c.danger,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                room.unreadCount > 99 ? '99+' : '${room.unreadCount}',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            )
+                          : const SizedBox.shrink(key: ValueKey('none')),
+                    ),
                   ],
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedSwitcher(
-                    duration: Motion.base,
-                    transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
-                    child: room.pinned
-                        ? Padding(
-                            key: const ValueKey('pinned'),
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Transform.rotate(
-                              angle: 0.6,
-                              child: Icon(Icons.push_pin_rounded, size: 13, color: c.accent),
-                            ),
-                          )
-                        : const SizedBox(key: ValueKey('unpinned')),
-                  ),
-                  Text(
-                    formatRelative(room.updatedAt),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: unread ? c.accent : c.textHint,
-                      fontWeight: unread ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              AnimatedSwitcher(
-                duration: Motion.base,
-                transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
-                child: unread
-                    ? Container(
-                        key: ValueKey(room.unreadCount),
-                        constraints: const BoxConstraints(minWidth: 20),
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: c.danger,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          room.unreadCount > 99 ? '99+' : '${room.unreadCount}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                        ),
-                      )
-                    : const SizedBox(key: ValueKey('none'), height: 18),
-              ),
-            ],
           ),
         ],
       ),

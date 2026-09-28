@@ -309,7 +309,7 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
                         child: Icon(Icons.expand_more_rounded, size: 20, color: c.textHint),
                       )
                     else
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 20),
                   ],
                 ),
               ),

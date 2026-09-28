@@ -17,7 +17,16 @@ const RELATIONS = {
     favorites: many('favorites', 'book_id'),
     shopping_cart: many('shopping_cart', 'book_id'),
     chat_rooms: many('chat_rooms', 'book_id'),
-    reports: many('reports', 'book_id', 'target_id')
+    reports: many('reports', 'book_id', 'target_id'),
+    reservations: many('reservations', 'book_id'),
+    book_deposits: rel('book_deposits', 'book_id'),
+    cabinet_slot_items: rel('cabinet_slot_items', 'book_id'),
+    cabinet_session_items: many('cabinet_session_items', 'book_id'),
+    cabinet_manual_reports: many('cabinet_manual_reports', 'book_id')
+  },
+  book_deposits: {
+    books: rel('books', 'book_id'),
+    smart_cabinets: rel('smart_cabinets', 'cabinet_id')
   },
   users: {
     wallets: rel('wallets', 'user_id'),
@@ -61,7 +70,8 @@ const RELATIONS = {
   chat_rooms: { books: rel('books', 'book_id') },
   smart_cabinets: {
     cabinet_slots: many('cabinet_slots', 'cabinet_id'),
-    orders: many('orders', 'cabinet_id')
+    orders: many('orders', 'cabinet_id'),
+    book_deposits: many('book_deposits', 'cabinet_id')
   }
 };
 
@@ -71,6 +81,8 @@ const COMPOUND_KEYS = {
   favorites: ['user_id_book_id'],
   chat_room_members: ['room_id_user_id']
 };
+
+const LIST_FILTERS = ['some', 'none', 'every'];
 
 const conflictError = () => Object.assign(new Error('Unique constraint failed'), { code: 'P2002' });
 const missingError = () => Object.assign(new Error('Record not found'), { code: 'P2025' });
@@ -133,6 +145,15 @@ class Store {
       const spec = RELATIONS[table]?.[key];
       if (spec && isPlainObject(expected) && !(key in row)) {
         const rows = this.related(spec, row);
+        if (spec.type === 'many' && Object.keys(expected).some((k) => LIST_FILTERS.includes(k))) {
+          return Object.entries(expected).every(([k, w]) => {
+            const hits = rows.filter((other) => this.match(spec.table, other, w)).length;
+            if (k === 'some') return hits > 0;
+            if (k === 'none') return hits === 0;
+            if (k === 'every') return hits === rows.length;
+            throw new Error(`測試假 Prisma 未支援的關聯條件：${table}.${key}.${k}`);
+          });
+        }
         return spec.type === 'one'
           ? rows.length > 0 && this.match(spec.table, rows[0], expected)
           : rows.some((other) => this.match(spec.table, other, expected));

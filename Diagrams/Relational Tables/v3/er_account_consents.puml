@@ -1,0 +1,61 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "users" as users {
+  {field} <&key> user_id : int
+  --
+  ...
+}
+entity "user_legal_consents" as user_legal_consents {
+  {field} <&key> user_id : int
+  {field} <&key> doc_key : varchar(50)
+  --
+  {field} version : int
+  {field} accepted_at : datetime
+}
+entity "legal_documents" as legal_documents {
+  {field} <&key> doc_id : int
+  --
+  {field} doc_key : varchar(50)
+  {field} title : varchar(255)
+  {field} content : text
+  {field} updated_by : int
+  {field} updated_at : datetime
+  {field} created_at : datetime
+  {field} version : int
+  {field} requires_consent : tinyint(1)
+}
+entity "bankbooks" as bankbooks {
+  {field} <&key> bankbook_id : int
+  --
+  {field} user_id : int
+  {field} bank_name : varchar(100)
+  {field} account_number : varchar(30)
+  {field} qr_code_url : varchar(500)
+  {field} is_verified : tinyint(1)
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "user_qr_codes" as user_qr_codes {
+  {field} <&key> qr_id : int
+  --
+  {field} user_id : int
+  {field} qr_type : enum
+  {field} qr_code_url : varchar(500)
+  {field} qr_data : varchar(500)
+  {field} created_at : datetime
+}
+users ||--o{ user_legal_consents
+users ||--o{ legal_documents
+users ||--o{ bankbooks
+users ||--o{ user_qr_codes
+@enduml

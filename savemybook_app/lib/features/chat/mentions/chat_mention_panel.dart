@@ -77,25 +77,36 @@ class _MentionRow extends StatelessWidget {
                     )
                   : UserAvatar(imageUrl: candidate.avatarUrl, radius: 16),
               const SizedBox(width: 12),
-              Flexible(
-                child: Text(
-                  candidate.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600, color: c.textPrimary),
-                ),
-              ),
-              if (showNickname) ...[
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    nickname,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, box) => Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          candidate.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600, color: c.textPrimary),
+                        ),
+                      ),
+                      if (showNickname) ...[
+                        const SizedBox(width: 6),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: box.maxWidth * 0.4),
+                          child: Text(
+                            nickname,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-              ],
+              ),
             ],
           ),
         ),

@@ -550,10 +550,11 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
           title: S.inviteMembers,
           color: c.accent,
           chevron: false,
+          leadingWidth: 36,
           onTap: _invite,
         ),
         for (final member in members) _memberRow(c, member),
-      ]),
+      ], indent: 64),
       _section(c, index++, null, [
         _row(c, icon: Icons.logout_rounded, title: S.leaveGroup, color: c.danger, chevron: false, onTap: _leaveGroup),
       ]),
@@ -598,6 +599,8 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
                 children: [
                   Flexible(
                     child: Text(
@@ -637,7 +640,7 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     );
   }
 
-  Widget _section(AppColors c, int index, String? title, List<Widget> rows) {
+  Widget _section(AppColors c, int index, String? title, List<Widget> rows, {double indent = 56}) {
     return FadeSlideIn(
       index: index,
       child: Padding(
@@ -660,7 +663,7 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
                 child: Column(
                   children: [
                     for (var i = 0; i < rows.length; i++) ...[
-                      if (i > 0) Divider(height: 1, thickness: 1, indent: 56, color: c.divider),
+                      if (i > 0) Divider(height: 1, thickness: 1, indent: indent, color: c.divider),
                       rows[i],
                     ],
                   ],
@@ -681,10 +684,12 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     Color? color,
     bool chevron = true,
     bool busy = false,
+    double leadingWidth = 24,
     VoidCallback? onTap,
   }) {
     return _SettingsTile(
       leading: Icon(icon, size: 22, color: color ?? c.textPrimary),
+      leadingWidth: leadingWidth,
       title: title,
       titleColor: color,
       onTap: busy ? null : onTap,

@@ -209,14 +209,13 @@
   "bookBeenReportedUnderReviewStays": "此書籍已遭檢舉，審核中。",
   "violationWasConfirmedBookPleaseCheck": "此書籍經審核確認違規，請修改商品內容。",
   "delist": "取消上架",
-  "removedFromShopBuyersNoLonger": "《{p0}》將從商城下架，買家將無法瀏覽。",
+  "removedFromShopBuyersNoLonger": "取消上架後，《{p0}》將不再於商城顯示，買家將無法瀏覽。",
   "@removedFromShopBuyersNoLonger": {
     "placeholders": {
       "p0": {}
     }
   },
-  "delist2": "下架",
-  "couldNotDelistPleaseTryAgain": "下架失敗，請稍後再試",
+  "couldNotDelistPleaseTryAgain": "取消上架失敗，請稍後再試",
   "listedAgain": "《{p0}》已重新上架",
   "@listedAgain": {
     "placeholders": {
@@ -1851,7 +1850,7 @@
   "goCheckout": "前往結帳",
   "cart2": "已在購物車",
   "buyNow": "立即購買",
-  "p0Delisted": "《{p0}》已下架",
+  "p0Delisted": "《{p0}》已取消上架",
   "@p0Delisted": {
     "placeholders": {
       "p0": {}
@@ -3012,13 +3011,6 @@
     }
   },
   "byModel": "依模型",
-  "p0CallsP1Ms": "{p0} 次・{p1} ms",
-  "@p0CallsP1Ms": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "topMembers": "用量最高的會員",
   "p0Uses": "{p0} 次",
   "@p0Uses": {
@@ -3094,17 +3086,13 @@
   "aiDataProcessingEnabled": "已同意 AI 資料處理",
   "aiDataProcessingTurnedOff": "已停止 AI 資料處理",
   "aiDataProcessing": "AI 資料處理",
-  "messagesEnterStatusOrdersReservations": "您輸入的訊息與您的訂單、預約狀態",
   "isbnTitleConditionNotesPhotosSelect": "ISBN、書名、書況說明與您選擇的照片",
-  "bookDetailsFromFavoritesPurchaseHistory": "您的收藏與購買紀錄中的書籍資訊",
   "aiDataProcessing2": "AI 資料處理說明",
   "whenUseAiFeaturesWeShare": "使用 AI 功能時，我們會將下列資料提供給第三方 AI 服務商處理。",
   "dataShared": "提供的資料",
   "recipients": "資料接收者",
   "purpose": "使用目的",
-  "usedOnlyGenerateSupportRepliesPrepare": "僅用於產生客服回覆、整理上架資料與推薦書籍，不會用於廣告或追蹤。",
   "withdrawingConsent": "撤回同意",
-  "canTurnOffAiDataProcessing": "您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。",
   "agreeContinue": "同意並繼續",
   "insufficientQuotaPlanNotEnabled": "額度不足或方案未開通",
   "modelNotFound": "模型名稱不存在",
@@ -3313,7 +3301,7 @@
     }
   },
   "deletePasskey": "刪除通行密鑰",
-  "noLongerAbleSignVerifyIdentity": "刪除後將無法以此通行密鑰登入或驗證身分。裝置中儲存的通行密鑰不會一併移除，可至系統的密碼設定中刪除。",
+  "noLongerAbleSignVerifyIdentity": "刪除後將無法以此通行密鑰登入或驗證身分。若裝置中仍保留此通行密鑰，可至系統的密碼設定中刪除。",
   "passkeyDeleted": "已刪除通行密鑰",
   "signVerifyIdentityWithFaceId": "以 Face ID、指紋或螢幕鎖定登入與驗證身分，不必輸入密碼。通行密鑰只儲存在您的裝置與密碼管理工具中。",
   "addPasskey": "新增通行密鑰",
@@ -3699,5 +3687,144 @@
       "p0": {}
     }
   },
-  "morePicks": "更多推薦"
+  "morePicks": "更多推薦",
+  "passkeyRequestWasInterruptedPleaseTry": "通行密鑰操作已中斷，請再試一次",
+  "couldNotVerifyWithPasskeyDevice": "未能以此裝置的通行密鑰完成驗證，請改用其他方式",
+  "iosVersionAddingPasskeyAgainReplaces": "在此 iOS 版本重新新增，會取代 iCloud 鑰匙圈中原有的通行密鑰；若新增未完成，原有通行密鑰將無法復原。建議先更新至 iOS 17.4 以上版本。",
+  "cannotAddPasskeyDevice": "此裝置目前無法新增通行密鑰",
+  "recordRemoval": "登記取出",
+  "confirmStaffRemovedP1FromP0": "請確認人員已自「{p0}」取出《{p1}》。登記後書籍將下架。",
+  "@confirmStaffRemovedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "removalRecorded": "已登記取出",
+  "booksLockers": "存書列表",
+  "overdue": "逾期",
+  "noOverdueBooks": "沒有逾期的存書",
+  "noBooksCurrentlyStoredLockers": "目前沒有存放於書櫃的書籍",
+  "salesPaused": "暫停販售",
+  "adminsNotified": "已通知管理員",
+  "confirmPurchase": "確認購買",
+  "bookAlreadyLockerOrderReadyPickup": "此書已存放於書櫃，訂單成立後即可取書，且無法取消訂單。",
+  "salesPausedPleaseRetrieveBookFrom": "已暫停販售，請至書櫃取回書籍",
+  "bookLockerCanCollectedRightAfter": "書籍已存放於書櫃，下單後即可取書",
+  "notYetLocker": "尚未存入書櫃",
+  "retrieve": "回報取回",
+  "dropOff": "登記存書",
+  "ordersBooksAlreadyLockerReadyPickup": "已存放於書櫃的書籍，訂單成立後即可取書，且無法取消訂單。",
+  "placedLockerToday": "今日存入書櫃",
+  "lockerP0Days": "已存放 {p0} 天",
+  "@lockerP0Days": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmP0BeenPlacedP1Once": "請確認已將《{p0}》放入「{p1}」。登記後，買家下單即可直接取書。",
+  "@confirmP0BeenPlacedP1Once": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "dropOffRegistered": "已登記存書",
+  "confirmRetrievedP1FromP0": "請確認已自「{p0}」取回《{p1}》。",
+  "@confirmRetrievedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "retrievalReportedBookBackSale": "已回報取回，書籍已恢復上架",
+  "retrievalReported": "已回報取回",
+  "allLockers": "全部書櫃",
+  "lockerCannotChangedWhileBookStored": "存書期間無法變更書櫃",
+  "removedFromShopDepositedRetrieveBeforeRelisting": "取消上架後，《{p0}》將不再於商城顯示，買家將無法瀏覽。由於此書存放於書櫃中，須先取回書籍並回報，才能重新上架。",
+  "@removedFromShopDepositedRetrieveBeforeRelisting": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderPlacedBookLockerReadyPickup": "結帳成功，書籍已在書櫃，可立即取書",
+  "confirmStaffRemovedBookFromLocker": "請確認人員已自「{p0}」取出《{p1}》。",
+  "@confirmStaffRemovedBookFromLocker": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "inLocker": "已在書櫃",
+  "inAnotherLocker": "存放於其他書櫃",
+  "confirmPutAllP0BooksOrder": "確認已將此訂單的 {p0} 本書全部放入書櫃？",
+  "@confirmPutAllP0BooksOrder": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "awaitingRetrieval": "待取回",
+  "bookAdvisorSelection": "書籍顧問選書",
+  "bookInfoAutoFill": "書籍資料補齊",
+  "disputeAnalysis": "爭議分析",
+  "monthlyBudgetUsedUp": "本月預算已用盡",
+  "coverageBooksP0HelpArticlesP1": "涵蓋率：書籍 {p0}、客服知識 {p1}",
+  "@coverageBooksP0HelpArticlesP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "lastSyncP0": "最近同步：{p0}",
+  "@lastSyncP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "backgroundSyncPausedUntilP0": "背景同步暫停至 {p0}",
+  "@backgroundSyncPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "semanticQueriesPausedUntilP0": "語意查詢暫停至 {p0}",
+  "@semanticQueriesPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lastErrorP0": "最近錯誤：{p0}",
+  "@lastErrorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0CallsAvgP1MsP95": "{p0} 次・平均 {p1} ms・p95 {p2} ms",
+  "@p0CallsAvgP1MsP95": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "turnOffAiDataProcessing": "關閉 AI 資料處理",
+  "aiFeaturesStopAiSupportBook": "關閉後將停止使用 AI 功能，並刪除您的 AI 客服與書籍顧問對話紀錄，且無法復原。",
+  "turnOff": "確認關閉",
+  "messagesConversationHistoryEnterPlusOwn": "您輸入的訊息與對話內容，以及您本人的訂單、預約、上架書籍（含審核原因）、錢包餘額與最近的客服工單",
+  "requestsConversationHistoryEnter": "您輸入的需求與對話內容",
+  "bookDetailsFromSavedItemsPurchase": "您的收藏、購買紀錄、購物車與最近瀏覽中的書籍資訊",
+  "aiDataProcessingNoticeBeenUpdated": "AI 資料處理說明已更新，請重新閱讀並同意。",
+  "questionsRequestsBookDetailsAlsoConverted": "其中提問、需求與書籍資訊另由 {p0} 轉換為語意向量，以檢索相關內容。",
+  "@questionsRequestsBookDetailsAlsoConverted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "usedOnlyGenerateSupportRepliesRecommend": "僅用於產生客服回覆、推薦與檢索書籍、整理上架資料，不會用於廣告或追蹤。",
+  "retentionPeriod": "保存期限",
+  "aiSupportBookAdvisorConversationsKept": "AI 客服與書籍顧問的對話紀錄自最後一次對話起保存 90 天，期滿自動刪除。",
+  "canTurnOffAiDataProcessing": "您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料，並刪除 AI 客服與書籍顧問的對話紀錄。",
+  "usersMustAlsoAgreeAiData": "使用者亦須重新同意 AI 資料處理，才能繼續使用 AI 功能。",
+  "consentRequiredAgain": "須重新同意",
+  "aiBookAdvisorUsageCountedBy": "AI 書籍顧問的次數以使用者傳送的訊息數計算。"
 }

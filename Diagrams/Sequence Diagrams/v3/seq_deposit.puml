@@ -15,7 +15,32 @@ database DB
 participant 排程
 actor 買家
 
-alt 賣家於下單後 7 天內存書
+alt 上架後先行存書
+  賣家 -> UI : 書籍放入書櫃後點擊「登記存書」
+  activate 賣家
+  activate UI
+  UI -> API : POST /api/books/:id/deposit
+  activate API
+  API -> DB : 驗證書籍與書櫃後新增存書登記
+  API --> UI : 201 Created
+  deactivate API
+  UI --> 賣家 : 顯示「已登記存書」
+  deactivate UI
+  deactivate 賣家
+  買家 -> API : 下單購買此書
+  activate 買家
+  activate API
+  alt 訂單書籍皆已存於書櫃
+    API -> DB : 訂單直接設為「已存書」
+    API -> 買家 : 推播「書籍已存入書櫃」，可立即取書
+    API -> 賣家 : 推播「書已售出，待買家取書」
+  else 尚有書籍未存入
+    API -> DB : 訂單設為「待存書」
+    API -> 賣家 : 推播「請於七天內存入其餘書籍」
+  end
+  deactivate API
+  deactivate 買家
+else 下單後 7 天內存書
   賣家 -> 賣家 : 依訂單指定書櫃放入書籍
   activate 賣家
   賣家 -> UI : 點擊「已放入書櫃」並確認
@@ -42,7 +67,7 @@ else 下單滿 7 天仍未存書
   排程 -> API : 每 10 分鐘檢查逾期訂單
   activate 排程
   activate API
-  API -> DB : 訂單設為「已取消」，書籍改為下架
+  API -> DB : 訂單設為「已取消」，書籍改為下架\n已在書櫃的書籍保留存書登記
   API -> DB : 平台保管的款項退回買家錢包
   API -> 買家 : 推播「訂單已取消並退款」
   API -> 賣家 : 推播「逾期未存書，訂單已取消」

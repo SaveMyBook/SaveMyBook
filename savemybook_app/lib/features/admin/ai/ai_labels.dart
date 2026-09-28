@@ -13,7 +13,10 @@ class AiLabels {
     AiFeatures.recommend => S.recommendations,
     AiFeatures.moderation => S.listingReview,
     AiFeatures.bookChat => S.aiBookAdvisor,
+    AiFeatures.bookChatPick => S.bookAdvisorSelection,
     AiFeatures.embedding => S.semanticIndex,
+    AiFeatures.enrich => S.bookInfoAutoFill,
+    AiFeatures.adminAssist => S.disputeAnalysis,
     AiFeatures.test => S.connectionTest,
     _ => S.ticketCatOther,
   };
@@ -24,7 +27,10 @@ class AiLabels {
     AiFeatures.recommend => Icons.recommend_rounded,
     AiFeatures.moderation => Icons.policy_outlined,
     AiFeatures.bookChat => Icons.auto_stories_rounded,
+    AiFeatures.bookChatPick => Icons.checklist_rounded,
     AiFeatures.embedding => Icons.hub_outlined,
+    AiFeatures.enrich => Icons.library_add_check_outlined,
+    AiFeatures.adminAssist => Icons.gavel_rounded,
     AiFeatures.test => Icons.network_check_rounded,
     _ => Icons.more_horiz_rounded,
   };
@@ -35,7 +41,10 @@ class AiLabels {
     AiFeatures.recommend => c.isDark ? const Color(0xFFFFB85C) : const Color(0xFFE38A12),
     AiFeatures.moderation => c.isDark ? const Color(0xFFB79CFF) : const Color(0xFF8157E8),
     AiFeatures.bookChat => c.isDark ? const Color(0xFFFF9AA8) : const Color(0xFFD4536A),
+    AiFeatures.bookChatPick => c.isDark ? const Color(0xFFFFC2CB) : const Color(0xFFE88A9B),
     AiFeatures.embedding => c.isDark ? const Color(0xFF7FD4E8) : const Color(0xFF1B8FA8),
+    AiFeatures.enrich => c.isDark ? const Color(0xFFB5D98A) : const Color(0xFF5E9A2C),
+    AiFeatures.adminAssist => c.isDark ? const Color(0xFFE0B98A) : const Color(0xFFA86A2C),
     AiFeatures.test => c.isDark ? const Color(0xFF9AA5B1) : const Color(0xFF7D8894),
     _ => c.neutral,
   };
@@ -68,6 +77,13 @@ class AiLabels {
     _ => S.ticketCatOther,
   };
 
+  static String testCheck(String name) => switch (name) {
+    AiTestCheck.text => S.plainText,
+    AiTestCheck.json => 'JSON',
+    AiTestCheck.image => S.vision,
+    _ => name,
+  };
+
   static String errorCode(String code) => switch (code) {
     'AI_PROVIDER_ERROR' || 'SERVER' => S.providerError,
     'AI_TIMEOUT' || 'TIMEOUT' => S.timedOut,
@@ -79,7 +95,8 @@ class AiLabels {
     'MODEL_NOT_FOUND' => S.modelNotFound,
     'BAD_REQUEST' => S.invalidRequestParameters,
     'NETWORK' => S.couldNotConnectService,
-    'BLOCKED' => S.blockedByProviderSafetySystem,
+    'AI_CONTENT_BLOCKED' || 'BLOCKED' => S.blockedByProviderSafetySystem,
+    'BUDGET_EXCEEDED' => S.monthlyBudgetUsedUp,
     'INCOMPLETE' => S.responseExceededOutputLimit,
     'INTERNAL' => S.serverProcessingError,
     _ => code.isEmpty ? S.unknownError : code,

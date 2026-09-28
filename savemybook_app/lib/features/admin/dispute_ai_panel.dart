@@ -22,19 +22,21 @@ class _DisputeAiPanelState extends State<DisputeAiPanel> {
   DisputeAnalysis? _result;
   String? _error;
   bool _loading = false;
+  bool _blocked = false;
 
   Future<void> _analyze() async {
-    if (_loading) return;
+    if (_loading || _blocked) return;
     setState(() {
       _loading = true;
       _error = null;
     });
-    final (result, error) = await _api.analyzeDispute(widget.disputeId);
+    final (result, error, code) = await _api.analyzeDispute(widget.disputeId);
     if (!mounted) return;
     setState(() {
       _loading = false;
       _result = result;
       _error = error;
+      _blocked = code == 'AI_CONTENT_BLOCKED';
     });
   }
 
@@ -76,7 +78,7 @@ class _DisputeAiPanelState extends State<DisputeAiPanel> {
                   ),
                 ),
                 TextButton(
-                  onPressed: _loading ? null : _analyze,
+                  onPressed: _loading || _blocked ? null : _analyze,
                   style: TextButton.styleFrom(
                     foregroundColor: c.accent,
                     visualDensity: VisualDensity.compact,

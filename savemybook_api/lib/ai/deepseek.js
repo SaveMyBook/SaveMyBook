@@ -1,4 +1,4 @@
-const { postJson, baseClassify, errorText, quotaExhausted } = require('./http');
+const { AiProviderError, postJson, baseClassify, errorText, quotaExhausted, withUsage } = require('./http');
 
 const BASE = 'https://api.deepseek.com';
 
@@ -32,18 +32,23 @@ const generate = async ({ apiKey, model, system, history = [], prompt, json, max
     classify,
     provider: 'deepseek'
   });
-  const usage = data?.usage ?? {};
-  return {
-    text: typeof data?.choices?.[0]?.message?.content === 'string' ? data.choices[0].message.content : '',
-    sources: [],
-    model,
-    usage: {
-      input_tokens: Number(usage.prompt_tokens) || 0,
-      cached_tokens: Number(usage.prompt_cache_hit_tokens) || 0,
-      output_tokens: Number(usage.completion_tokens) || 0,
-      search_calls: 0
-    }
+  const meta = data?.usage ?? {};
+  const usage = {
+    input_tokens: Number(meta.prompt_tokens) || 0,
+    cached_tokens: Number(meta.prompt_cache_hit_tokens) || 0,
+    output_tokens: Number(meta.completion_tokens) || 0,
+    search_calls: 0
   };
+  const choice = data?.choices?.[0];
+  const finish = String(choice?.finish_reason ?? '');
+  const text = typeof choice?.message?.content === 'string' ? choice.message.content : '';
+  if (finish === 'content_filter') {
+    throw withUsage(new AiProviderError('BLOCKED', { provider: 'deepseek', providerMessage: 'finish_reason content_filter' }), usage);
+  }
+  if (finish === 'length' && !text.trim()) {
+    throw withUsage(new AiProviderError('INCOMPLETE', { provider: 'deepseek', providerMessage: 'finish_reason length' }), usage);
+  }
+  return { text, sources: [], model, usage, finish_reason: finish, truncated: finish === 'length' };
 };
 
 module.exports = { generate, classify };

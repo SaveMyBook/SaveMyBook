@@ -8,6 +8,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import 'admin_cabinet_deposit_screen.dart';
 import 'admin_cabinet_edit_screen.dart';
 import '../../utils/app_labels.dart';
 import '../../i18n/strings.dart';
@@ -79,6 +80,16 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
       _navigating = false;
     }
     if (mounted) _load();
+  }
+
+  Future<void> _openDeposits() async {
+    if (_navigating) return;
+    _navigating = true;
+    try {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminCabinetDepositScreen()));
+    } finally {
+      _navigating = false;
+    }
   }
 
   Future<void> _toggleActive(Cabinet cabinet) async {
@@ -237,6 +248,10 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
               icon: Icons.storage_rounded,
               actions: [
                 HeaderIconButton(
+                  icon: Icons.inventory_2_outlined,
+                  onTap: _openDeposits,
+                ),
+                HeaderIconButton(
                   icon: Icons.add_rounded,
                   onTap: () => _openEditor(),
                 ),
@@ -342,20 +357,11 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
           Row(
             children: [
               Expanded(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      cabinet.cabinetName,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
-                    ),
-                    if (!cabinet.isActive) StatusBadge(label: S.disabled, color: c.warning, fontSize: 10),
-                    if (cabinet.isMaintenance) StatusBadge(label: S.slotMaintenance, color: c.danger, fontSize: 10),
-                  ],
+                child: Text(
+                  cabinet.cabinetName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
               ),
               IconButton(
@@ -385,6 +391,18 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
               ),
             ],
           ),
+          if (!cabinet.isActive || cabinet.isMaintenance)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  if (!cabinet.isActive) StatusBadge(label: S.disabled, color: c.warning, fontSize: 10),
+                  if (cabinet.isMaintenance) StatusBadge(label: S.slotMaintenance, color: c.danger, fontSize: 10),
+                ],
+              ),
+            ),
           const SizedBox(height: 4),
           Row(
             children: [

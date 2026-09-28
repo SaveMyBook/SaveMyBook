@@ -4,11 +4,10 @@ const { clip } = require('../../lib/text');
 const { CONDITION_LABELS } = require('../../constants/domain');
 const books = require('../books');
 const ranking = require('../ranking');
-const cabinets = require('../cabinets');
 const runner = require('./runner');
 const consent = require('./consent');
 const catalog = require('./catalog-search');
-const { sanitizeLine } = require('./text');
+const { sanitizeLine, promptText, risksIn } = require('./text');
 
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 const CANDIDATE_LIMIT = 60;
@@ -21,6 +20,8 @@ const DESCRIPTION_SNIPPET = 50;
 const GROUP_LIMIT = 3;
 const GROUP_MIN_BOOKS = 2;
 const GROUP_MAX_BOOKS = 10;
+// 只由熱門排行補進候選的書與使用者紀錄無關；不設上限時，書名或簡介夾帶指令的書可被模型排到第一名。
+const FILLER_MAX_RISE = 3;
 
 const RELATIONS = { p: 'purchase', f: 'favorite', c: 'cart', v: 'viewed' };
 
@@ -74,16 +75,23 @@ const writeCache = (userId, items, fingerprint, createdAt) => prisma.$executeRaw
   VALUES (${userId}, ${JSON.stringify({ items, fingerprint })}, ${createdAt})
   ON DUPLICATE KEY UPDATE payload = VALUES(payload), created_at = VALUES(created_at)`;
 
-// 書櫃維修中的書暫時無法結帳，不推薦。
-const withoutMaintenance = async (rows) => {
-  const blocked = await cabinets.maintenanceIds();
-  return blocked.size === 0 ? rows : rows.filter((b) => !b.cabinet_id || !blocked.has(Number(b.cabinet_id)));
-};
+// 扣掉書櫃維修中或他人保留中的書之後，一般推薦仍要湊滿 limit 本。
+const FALLBACK_SPARE = 10;
 
 const validBasis = (basis) => {
   if (basis?.kind === 'book' && Object.values(RELATIONS).includes(basis.relation) && basis.title) return basis;
   if (basis?.kind === 'category' && basis.name) return basis;
   return null;
+};
+
+const listedWhere = { is_approved: true, status: { not: 'removed' } };
+
+// 快取內的依據書名寫入後，書可能被下架或退回審核，分組標題不可再顯示。
+const listedBasisIds = async (bases) => {
+  const ids = [...new Set(bases.filter((b) => b?.kind === 'book' && b.book_id).map((b) => b.book_id))];
+  if (ids.length === 0) return new Set();
+  const rows = await prisma.books.findMany({ where: { book_id: { in: ids }, ...listedWhere }, select: { book_id: true } });
+  return new Set(rows.map((b) => b.book_id));
 };
 
 const serve = async (userId, items, limit) => {
@@ -93,8 +101,10 @@ const serve = async (userId, items, limit) => {
     if (!Number.isSafeInteger(id) || id < 1 || byId.has(id)) continue;
     byId.set(id, { reason: typeof item.reason === 'string' ? item.reason : null, basis: validBasis(item.basis) });
   }
-  const rows = await withoutMaintenance(await books.inIdOrder([...byId.keys()], onSaleWhere(userId)));
-  return rows.slice(0, limit).map((book) => ({ book, reason: byId.get(book.book_id).reason || null, basis: byId.get(book.book_id).basis }));
+  const rows = (await catalog.available(await books.inIdOrder([...byId.keys()], onSaleWhere(userId)), userId)).slice(0, limit);
+  const listed = await listedBasisIds(rows.map((book) => byId.get(book.book_id).basis));
+  const basisOf = (basis) => (basis?.kind === 'book' && basis.book_id && !listed.has(basis.book_id) ? null : basis);
+  return rows.map((book) => ({ book, reason: byId.get(book.book_id).reason || null, basis: basisOf(byId.get(book.book_id).basis) }));
 };
 
 const basisKey = (basis) => (basis.kind === 'book' ? `book:${basis.book_id ?? basis.title}` : `category:${basis.name}`);
@@ -125,25 +135,25 @@ const groupsOf = (data) => {
 };
 
 const fallback = async (userId, limit, viewedIds = []) => {
-  let rows = await books.recommended(userId, viewedIds, limit);
+  const usable = await catalog.availability(userId);
+  let rows = (await books.recommended(userId, viewedIds, limit + FALLBACK_SPARE)).filter(usable);
   if (rows.length === 0) {
     const ranked = await ranking.rankedIds({ status: 'on_sale', is_approved: true }, userId);
-    rows = await books.inIdOrder(ranked.slice(0, limit), onSaleWhere(userId));
+    rows = (await books.inIdOrder(ranked.slice(0, limit + FALLBACK_SPARE), onSaleWhere(userId))).filter(usable);
   }
-  rows = await withoutMaintenance(rows);
-  const data = rows.map((book) => ({ book, reason: null, basis: null }));
+  const data = rows.slice(0, limit).map((book) => ({ book, reason: null, basis: null }));
   return { data, groups: groupsOf(data), meta: { source: 'fallback', generated_at: new Date() } };
 };
 
 const signalBook = {
-  title: true, author: true, description: true, book_categories: { select: { category_name: true } }
+  title: true, author: true, description: true, is_approved: true, status: true, book_categories: { select: { category_name: true } }
 };
 
 // 單一來源查詢失敗（例如測試或舊資料庫缺表）時當作沒有這類紀錄。
 const orEmpty = (promise) => Promise.resolve(promise).catch(() => []);
 
 const userSignals = async (userId, viewedIds = []) => {
-  const [favorites, purchases, cart, viewed] = await Promise.all([
+  const [favorites, purchases, cart, viewed, voided] = await Promise.all([
     orEmpty(prisma.favorites.findMany({
       where: { user_id: userId },
       orderBy: { created_at: 'desc' },
@@ -151,7 +161,7 @@ const userSignals = async (userId, viewedIds = []) => {
       select: { book_id: true, books: { select: signalBook } }
     })),
     orEmpty(prisma.order_items.findMany({
-      where: { orders: { buyer_id: userId, status: { notIn: ['cancelled', 'refunded'] } } },
+      where: { orders: { buyer_id: userId, status: { notIn: ranking.VOID_ORDER_STATUSES } } },
       orderBy: { item_id: 'desc' },
       take: SIGNAL_LIMIT,
       select: { book_id: true, books: { select: signalBook } }
@@ -163,13 +173,19 @@ const userSignals = async (userId, viewedIds = []) => {
     })),
     viewedIds.length > 0
       ? orEmpty(prisma.books.findMany({
-          where: { book_id: { in: viewedIds.slice(0, VIEWED_LIMIT) } },
+          where: { book_id: { in: viewedIds.slice(0, VIEWED_LIMIT) }, ...listedWhere },
           select: { book_id: true, ...signalBook }
         }).then((rows) => rows.map((b) => ({ book_id: b.book_id, books: b }))))
-      : []
+      : [],
+    orEmpty(prisma.order_items.findMany({
+      where: { orders: { buyer_id: userId, status: { in: ranking.VOID_ORDER_STATUSES } } },
+      take: ranking.SIGNAL_TAKE,
+      select: { book_id: true }
+    }))
   ]);
 
-  const valid = (list) => list.filter((x) => x.books);
+  // 已下架或未核准的書不當作興趣訊號，否則書名會出現在推薦分組的標題裡。
+  const valid = (list) => list.filter((x) => x.books?.is_approved && x.books.status !== 'removed');
   const groups = {
     purchases: valid(purchases),
     favorites: valid(favorites),
@@ -177,18 +193,19 @@ const userSignals = async (userId, viewedIds = []) => {
     viewed: valid(viewed)
   };
   const strongIds = [...groups.purchases, ...groups.favorites, ...groups.cart].map((x) => Number(x.book_id));
+  // 取消或退款訂單的書不算興趣，但也不再推薦回給同一位買家。
   return {
     ...groups,
-    seen: new Set([...strongIds, ...groups.viewed.map((x) => Number(x.book_id))]),
+    seen: new Set([...strongIds, ...groups.viewed.map((x) => Number(x.book_id)), ...voided.map((x) => Number(x.book_id))]),
     fingerprint: fingerprintOf(strongIds),
     empty: Object.values(groups).every((g) => g.length === 0)
   };
 };
 
 const signalLine = (b) => [
-  `《${clip(String(b?.title ?? ''), 60)}》`,
-  b?.author ? clip(String(b.author), 40) : '',
-  b?.book_categories?.category_name ?? ''
+  `《${promptText(b?.title ?? '', 60)}》`,
+  b?.author ? promptText(b.author, 40) : '',
+  promptText(b?.book_categories?.category_name ?? '', 40)
 ].filter(Boolean).join('／');
 
 // 紀錄與常看分類都給代號，模型以代號標出推薦依據，書名與分類名稱一律由伺服器帶入，不採用模型寫的文字。
@@ -221,9 +238,9 @@ const tallyOf = (signals, pickKey) => {
 // 統計最常出現的分類與作者，讓模型先抓到整體興趣，而不是只看單一本書。
 const profileSummary = (signals) => {
   const categories = topCategories(signals);
-  const authors = tallyOf(signals, (b) => (b.author ? clip(String(b.author).trim(), 40) : ''));
+  const authors = tallyOf(signals, (b) => (b.author ? promptText(b.author, 40) : ''));
   return [
-    `常看的分類：${categories.map((name, i) => `k${i + 1} ${name}`).join('、') || '（無）'}`,
+    `常看的分類：${categories.map((name, i) => `k${i + 1} ${promptText(name, 40)}`).join('、') || '（無）'}`,
     `常看的作者：${authors.join('、') || '（無）'}`
   ].join('\n');
 };
@@ -271,18 +288,42 @@ const candidateIds = async (userId, signals, viewedIds) => {
     if (personal[i] != null) push(personal[i]);
     if (similar[i] != null) push(similar[i]);
   }
+  const related = ids.length;
   popular.forEach(push);
-  return ids;
+  return { ids, fillers: new Set(ids.slice(related)) };
 };
 
-const snippet = (text) => clip(String(text ?? '').replace(/\s+/g, ' ').trim(), DESCRIPTION_SNIPPET);
+const capRise = (items, floorOf) => {
+  const out = [];
+  const waiting = [];
+  const ready = (item) => floorOf(item) <= out.length;
+  const release = () => {
+    let i = waiting.findIndex(ready);
+    while (i >= 0) {
+      out.push(...waiting.splice(i, 1));
+      i = waiting.findIndex(ready);
+    }
+  };
+  for (const item of items) {
+    release();
+    if (ready(item)) out.push(item);
+    else waiting.push(item);
+  }
+  release();
+  return [...out, ...waiting];
+};
+
+const safeReason = (value) => {
+  const text = sanitizeLine(value);
+  return text && risksIn(text).length === 0 ? clip(text, REASON_MAX) : null;
+};
 
 const generate = async (userId, { settings, provider }, signals, viewedIds) => {
   if (signals.empty) return null;
 
-  const ids = await candidateIds(userId, signals, viewedIds);
+  const { ids, fillers } = await candidateIds(userId, signals, viewedIds);
   if (ids.length === 0) return null;
-  const candidates = await withoutMaintenance(await books.inIdOrder(ids, onSaleWhere(userId)));
+  const candidates = await catalog.available(await books.inIdOrder(ids, onSaleWhere(userId)), userId);
   if (candidates.length === 0) return null;
 
   // 以臨時代號取代資料庫編號，模型輸出的代號必須在對照表內才採用。
@@ -290,11 +331,11 @@ const generate = async (userId, { settings, provider }, signals, viewedIds) => {
   const byKey = new Map(keyed.map((k) => [k.key, k.book]));
   const candidateText = keyed.map(({ key, book }) => [
     key,
-    `《${clip(String(book.title), 80)}》`,
-    book.author ? clip(String(book.author), 40) : '',
-    book.book_categories?.category_name ?? '',
+    `《${promptText(book.title, 80)}》`,
+    book.author ? promptText(book.author, 40) : '',
+    promptText(book.book_categories?.category_name ?? '', 40),
     CONDITION_LABELS[book.condition_level] ?? '',
-    book.description ? `簡介：${snippet(book.description)}` : ''
+    book.description ? `簡介：${promptText(book.description, DESCRIPTION_SNIPPET)}` : ''
   ].filter(Boolean).join('｜')).join('\n');
 
   const list = (items, prefix) => items.map((x, i) => `${prefix}${i + 1}｜${signalLine(x.books)}`).join('\n') || '（無）';
@@ -320,18 +361,19 @@ const generate = async (userId, { settings, provider }, signals, viewedIds) => {
     if (!book || used.has(book.book_id)) continue;
     used.add(book.book_id);
     const basis = bases.get(typeof item?.basis === 'string' ? item.basis.trim() : '') ?? null;
-    picked.push({ book_id: book.book_id, reason: sanitizeLine(item.reason, REASON_MAX) || null, basis });
-    if (picked.length >= STORE_LIMIT) break;
+    picked.push({ book_id: book.book_id, reason: safeReason(item.reason), basis });
   }
   if (picked.length === 0) return null;
   for (const { book } of keyed) {
-    if (picked.length >= STORE_LIMIT) break;
     if (!used.has(book.book_id)) picked.push({ book_id: book.book_id, reason: null, basis: null });
   }
+  const position = new Map(keyed.map(({ book }, i) => [book.book_id, i]));
+  const floorOf = (item) => (fillers.has(item.book_id) ? Math.max(0, position.get(item.book_id) - FILLER_MAX_RISE) : 0);
+  const items = capRise(picked, floorOf).slice(0, STORE_LIMIT);
 
   const createdAt = new Date();
-  await writeCache(userId, picked, signals.fingerprint, createdAt);
-  return { items: picked, generated_at: createdAt };
+  await writeCache(userId, items, signals.fingerprint, createdAt);
+  return { items, generated_at: createdAt };
 };
 
 const recommendations = async (userId, limit, { viewedIds = [] } = {}) => {
@@ -367,4 +409,4 @@ const recommendations = async (userId, limit, { viewedIds = [] } = {}) => {
   }
 };
 
-module.exports = { SYSTEM, CACHE_TTL_MS, recommendations, readCache, serve, groupsOf, fallback, fingerprintOf, userSignals };
+module.exports = { SYSTEM, CACHE_TTL_MS, FILLER_MAX_RISE, recommendations, capRise, readCache, serve, groupsOf, fallback, fingerprintOf, userSignals };

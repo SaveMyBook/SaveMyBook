@@ -209,13 +209,12 @@
   "bookBeenReportedUnderReviewStays": "This book has been reported and is under review.",
   "violationWasConfirmedBookPleaseCheck": "A violation was confirmed for this book. Please edit the listing.",
   "delist": "Delist",
-  "removedFromShopBuyersNoLonger": "“{p0}” will be removed from the shop and buyers will no longer see it.",
+  "removedFromShopBuyersNoLonger": "Once delisted, “{p0}” will no longer appear in the shop and buyers will not be able to view it.",
   "@removedFromShopBuyersNoLonger": {
     "placeholders": {
       "p0": {}
     }
   },
-  "delist2": "Delist",
   "couldNotDelistPleaseTryAgain": "Could not delist. Please try again.",
   "listedAgain": "“{p0}” is listed again",
   "@listedAgain": {
@@ -1851,7 +1850,7 @@
   "goCheckout": "Go to checkout",
   "cart2": "In cart",
   "buyNow": "Buy now",
-  "p0Delisted": "\"{p0}\" delisted",
+  "p0Delisted": "“{p0}” has been delisted",
   "@p0Delisted": {
     "placeholders": {
       "p0": {}
@@ -3012,13 +3011,6 @@
     }
   },
   "byModel": "By model",
-  "p0CallsP1Ms": "{p0} calls・{p1} ms",
-  "@p0CallsP1Ms": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "topMembers": "Top members",
   "p0Uses": "{p0} uses",
   "@p0Uses": {
@@ -3094,17 +3086,13 @@
   "aiDataProcessingEnabled": "AI data processing enabled",
   "aiDataProcessingTurnedOff": "AI data processing turned off",
   "aiDataProcessing": "AI data processing",
-  "messagesEnterStatusOrdersReservations": "Messages you enter and the status of your orders and reservations",
   "isbnTitleConditionNotesPhotosSelect": "ISBN, title, condition notes and the photos you select",
-  "bookDetailsFromFavoritesPurchaseHistory": "Book details from your favorites and purchase history",
   "aiDataProcessing2": "AI data processing",
   "whenUseAiFeaturesWeShare": "When you use AI features, we share the following data with third-party AI providers for processing.",
   "dataShared": "Data shared",
   "recipients": "Recipients",
   "purpose": "Purpose",
-  "usedOnlyGenerateSupportRepliesPrepare": "Used only to generate support replies, prepare listing details and recommend books. Never used for advertising or tracking.",
   "withdrawingConsent": "Withdrawing consent",
-  "canTurnOffAiDataProcessing": "You can turn off \"AI data processing\" at any time in Settings › Account. The data above will no longer be shared once it is turned off.",
   "agreeContinue": "Agree",
   "insufficientQuotaPlanNotEnabled": "Insufficient quota or plan not enabled",
   "modelNotFound": "Model not found",
@@ -3313,7 +3301,7 @@
     }
   },
   "deletePasskey": "Delete passkey",
-  "noLongerAbleSignVerifyIdentity": "You will no longer be able to sign in or verify your identity with this passkey. The passkey saved on your device is not removed; you can delete it in the system password settings.",
+  "noLongerAbleSignVerifyIdentity": "You will no longer be able to sign in or verify your identity with this passkey. If it remains on your device, you can delete it in the system password settings.",
   "passkeyDeleted": "Passkey deleted",
   "signVerifyIdentityWithFaceId": "Sign in and verify your identity with Face ID, fingerprint or screen lock instead of a password. Passkeys are stored only on your devices and in your password manager.",
   "addPasskey": "Add a passkey",
@@ -3699,5 +3687,144 @@
       "p0": {}
     }
   },
-  "morePicks": "More picks"
+  "morePicks": "More picks",
+  "passkeyRequestWasInterruptedPleaseTry": "The passkey request was interrupted. Please try again.",
+  "couldNotVerifyWithPasskeyDevice": "Could not verify with a passkey on this device. Use another method.",
+  "iosVersionAddingPasskeyAgainReplaces": "On this iOS version, adding a passkey again replaces the existing one in iCloud Keychain. If the process does not complete, the existing passkey cannot be restored. We recommend updating to iOS 17.4 or later first.",
+  "cannotAddPasskeyDevice": "Passkeys cannot be added on this device at this time.",
+  "recordRemoval": "Record removal",
+  "confirmStaffRemovedP1FromP0": "Confirm that staff have removed \"{p1}\" from {p0}. The book will be delisted.",
+  "@confirmStaffRemovedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "removalRecorded": "Removal recorded",
+  "booksLockers": "Books in lockers",
+  "overdue": "Overdue",
+  "noOverdueBooks": "No overdue books",
+  "noBooksCurrentlyStoredLockers": "No books are currently stored in lockers",
+  "salesPaused": "Sales paused",
+  "adminsNotified": "Admins notified",
+  "confirmPurchase": "Confirm purchase",
+  "bookAlreadyLockerOrderReadyPickup": "This book is already in the locker. The order will be ready for pickup immediately and cannot be cancelled.",
+  "salesPausedPleaseRetrieveBookFrom": "Sales paused. Please retrieve the book from the locker.",
+  "bookLockerCanCollectedRightAfter": "This book is in the locker and can be collected right after ordering.",
+  "notYetLocker": "Not yet in the locker",
+  "retrieve": "Report retrieval",
+  "dropOff": "Register drop-off",
+  "ordersBooksAlreadyLockerReadyPickup": "Orders for books already in the locker are ready for pickup immediately and cannot be cancelled.",
+  "placedLockerToday": "Stored today",
+  "lockerP0Days": "{p0}d in locker",
+  "@lockerP0Days": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmP0BeenPlacedP1Once": "Confirm that \"{p0}\" has been placed in {p1}. Once registered, buyers can collect it right after ordering.",
+  "@confirmP0BeenPlacedP1Once": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "dropOffRegistered": "Drop-off registered",
+  "confirmRetrievedP1FromP0": "Confirm that you have retrieved \"{p1}\" from {p0}.",
+  "@confirmRetrievedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "retrievalReportedBookBackSale": "Retrieval reported. The book is back on sale.",
+  "retrievalReported": "Retrieval reported",
+  "allLockers": "All lockers",
+  "lockerCannotChangedWhileBookStored": "The locker cannot be changed while the book is stored in it.",
+  "removedFromShopDepositedRetrieveBeforeRelisting": "Once delisted, “{p0}” will no longer appear in the shop and buyers will not be able to view it. Because the book is stored in a locker, you will need to retrieve it and report the retrieval before relisting it.",
+  "@removedFromShopDepositedRetrieveBeforeRelisting": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderPlacedBookLockerReadyPickup": "Order placed. The book is in the locker and ready for pickup.",
+  "confirmStaffRemovedBookFromLocker": "Confirm that staff have removed \"{p1}\" from {p0}.",
+  "@confirmStaffRemovedBookFromLocker": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "inLocker": "In locker",
+  "inAnotherLocker": "In another locker",
+  "confirmPutAllP0BooksOrder": "Confirm you have put all {p0} books in this order in the locker?",
+  "@confirmPutAllP0BooksOrder": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "awaitingRetrieval": "Awaiting retrieval",
+  "bookAdvisorSelection": "Book advisor selection",
+  "bookInfoAutoFill": "Book info auto-fill",
+  "disputeAnalysis": "Dispute analysis",
+  "monthlyBudgetUsedUp": "Monthly budget used up",
+  "coverageBooksP0HelpArticlesP1": "Coverage: books {p0}, help articles {p1}",
+  "@coverageBooksP0HelpArticlesP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "lastSyncP0": "Last sync: {p0}",
+  "@lastSyncP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "backgroundSyncPausedUntilP0": "Background sync paused until {p0}",
+  "@backgroundSyncPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "semanticQueriesPausedUntilP0": "Semantic queries paused until {p0}",
+  "@semanticQueriesPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lastErrorP0": "Last error: {p0}",
+  "@lastErrorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0CallsAvgP1MsP95": "{p0} calls・avg {p1} ms・p95 {p2} ms",
+  "@p0CallsAvgP1MsP95": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "turnOffAiDataProcessing": "Turn off AI data processing",
+  "aiFeaturesStopAiSupportBook": "AI features will stop, and your AI support and book advisor conversations will be permanently deleted.",
+  "turnOff": "Turn off",
+  "messagesConversationHistoryEnterPlusOwn": "Messages and conversation history you enter, plus your own orders, reservations, listings (including review reasons), wallet balance and recent support enquiries",
+  "requestsConversationHistoryEnter": "The requests and conversation history you enter",
+  "bookDetailsFromSavedItemsPurchase": "Book details from your saved items, purchase history, cart and recently viewed books",
+  "aiDataProcessingNoticeBeenUpdated": "The AI data processing notice has been updated. Please review it and agree again.",
+  "questionsRequestsBookDetailsAlsoConverted": "Questions, requests and book details are also converted into semantic vectors by {p0} to find relevant content.",
+  "@questionsRequestsBookDetailsAlsoConverted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "usedOnlyGenerateSupportRepliesRecommend": "Used only to generate support replies, recommend and search for books, and prepare listing details. Never used for advertising or tracking.",
+  "retentionPeriod": "Retention period",
+  "aiSupportBookAdvisorConversationsKept": "AI support and book advisor conversations are kept for 90 days after the last message and then deleted automatically.",
+  "canTurnOffAiDataProcessing": "You can turn off \"AI data processing\" at any time in Settings › Account. Once it is turned off, the data above will no longer be shared and your AI support and book advisor conversations will be deleted.",
+  "usersMustAlsoAgreeAiData": "Users must also agree to AI data processing again before they can keep using AI features.",
+  "consentRequiredAgain": "Consent required again",
+  "aiBookAdvisorUsageCountedBy": "AI book advisor usage is counted by the number of messages users send."
 }

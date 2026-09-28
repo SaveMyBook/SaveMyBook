@@ -79,7 +79,7 @@ class _SellerScreenState extends State<SellerScreen> {
           Expanded(
             child: SwitchIn(
               child: _isLoading
-                  ? const LoadingView.grid()
+                  ? const LoadingView.grid(top: 4)
                   : Stack(
                       key: const ValueKey('content'),
                       children: [
@@ -110,7 +110,7 @@ class _SellerScreenState extends State<SellerScreen> {
                                         top: 4,
                                         bottom: MediaQuery.of(context).padding.bottom + 24,
                                       ),
-                                      gridDelegate: BookCard.gridDelegate,
+                                      gridDelegate: BookCard.gridDelegateOf(context),
                                       itemCount: _books.length,
                                       itemBuilder: (_, i) => RevealOnScroll(
                                         key: ValueKey(_books[i].bookId),
@@ -172,6 +172,7 @@ class _SellerScreenState extends State<SellerScreen> {
                 ),
                 const SizedBox(height: 4),
                 SwitchIn(
+                  alignment: AlignmentDirectional.topStart,
                   child: Text(
                     _isLoading ? S.loading2 : S.sale2(_books.length),
                     key: ValueKey(_isLoading ? -1 : _books.length),

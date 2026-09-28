@@ -213,7 +213,6 @@ abstract class AppLocalizations {
   String get violationWasConfirmedBookPleaseCheck;
   String get delist;
   String removedFromShopBuyersNoLonger(Object p0);
-  String get delist2;
   String get couldNotDelistPleaseTryAgain;
   String listedAgain(Object p0);
   String get notListedAnyBooksYet;
@@ -1681,7 +1680,6 @@ abstract class AppLocalizations {
   String errorsP0(Object p0);
   String p0Calls(Object p0);
   String get byModel;
-  String p0CallsP1Ms(Object p0, Object p1);
   String get topMembers;
   String p0Uses(Object p0);
   String get recentErrors;
@@ -1721,17 +1719,13 @@ abstract class AppLocalizations {
   String get aiDataProcessingEnabled;
   String get aiDataProcessingTurnedOff;
   String get aiDataProcessing;
-  String get messagesEnterStatusOrdersReservations;
   String get isbnTitleConditionNotesPhotosSelect;
-  String get bookDetailsFromFavoritesPurchaseHistory;
   String get aiDataProcessing2;
   String get whenUseAiFeaturesWeShare;
   String get dataShared;
   String get recipients;
   String get purpose;
-  String get usedOnlyGenerateSupportRepliesPrepare;
   String get withdrawingConsent;
-  String get canTurnOffAiDataProcessing;
   String get agreeContinue;
   String get insufficientQuotaPlanNotEnabled;
   String get modelNotFound;
@@ -2058,6 +2052,68 @@ abstract class AppLocalizations {
   String becauseViewedP0(Object p0);
   String moreP0CategoryBrowseOften(Object p0);
   String get morePicks;
+  String get passkeyRequestWasInterruptedPleaseTry;
+  String get couldNotVerifyWithPasskeyDevice;
+  String get iosVersionAddingPasskeyAgainReplaces;
+  String get cannotAddPasskeyDevice;
+  String get recordRemoval;
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1);
+  String get removalRecorded;
+  String get booksLockers;
+  String get overdue;
+  String get noOverdueBooks;
+  String get noBooksCurrentlyStoredLockers;
+  String get salesPaused;
+  String get adminsNotified;
+  String get confirmPurchase;
+  String get bookAlreadyLockerOrderReadyPickup;
+  String get salesPausedPleaseRetrieveBookFrom;
+  String get bookLockerCanCollectedRightAfter;
+  String get notYetLocker;
+  String get retrieve;
+  String get dropOff;
+  String get ordersBooksAlreadyLockerReadyPickup;
+  String get placedLockerToday;
+  String lockerP0Days(Object p0);
+  String confirmP0BeenPlacedP1Once(Object p0, Object p1);
+  String get dropOffRegistered;
+  String confirmRetrievedP1FromP0(Object p0, Object p1);
+  String get retrievalReportedBookBackSale;
+  String get retrievalReported;
+  String get allLockers;
+  String get lockerCannotChangedWhileBookStored;
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0);
+  String get orderPlacedBookLockerReadyPickup;
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1);
+  String get inLocker;
+  String get inAnotherLocker;
+  String confirmPutAllP0BooksOrder(Object p0);
+  String get awaitingRetrieval;
+  String get bookAdvisorSelection;
+  String get bookInfoAutoFill;
+  String get disputeAnalysis;
+  String get monthlyBudgetUsedUp;
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1);
+  String lastSyncP0(Object p0);
+  String backgroundSyncPausedUntilP0(Object p0);
+  String semanticQueriesPausedUntilP0(Object p0);
+  String lastErrorP0(Object p0);
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2);
+  String get turnOffAiDataProcessing;
+  String get aiFeaturesStopAiSupportBook;
+  String get turnOff;
+  String get messagesConversationHistoryEnterPlusOwn;
+  String get requestsConversationHistoryEnter;
+  String get bookDetailsFromSavedItemsPurchase;
+  String get aiDataProcessingNoticeBeenUpdated;
+  String questionsRequestsBookDetailsAlsoConverted(Object p0);
+  String get usedOnlyGenerateSupportRepliesRecommend;
+  String get retentionPeriod;
+  String get aiSupportBookAdvisorConversationsKept;
+  String get canTurnOffAiDataProcessing;
+  String get usersMustAlsoAgreeAiData;
+  String get consentRequiredAgain;
+  String get aiBookAdvisorUsageCountedBy;
 }
 
 class _LEn extends AppLocalizations {
@@ -2631,10 +2687,7 @@ class _LEn extends AppLocalizations {
   String get delist => 'Delist';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '“${p0}” will be removed from the shop and buyers will no longer see it.';
-
-  @override
-  String get delist2 => 'Delist';
+  String removedFromShopBuyersNoLonger(Object p0) => 'Once delisted, “${p0}” will no longer appear in the shop and buyers will not be able to view it.';
 
   @override
   String get couldNotDelistPleaseTryAgain => 'Could not delist. Please try again.';
@@ -5334,7 +5387,7 @@ class _LEn extends AppLocalizations {
   String get buyNow => 'Buy now';
 
   @override
-  String p0Delisted(Object p0) => '"${p0}" delisted';
+  String p0Delisted(Object p0) => '“${p0}” has been delisted';
 
   @override
   String noBooksMatchP0(Object p0) => 'No books match "${p0}"';
@@ -7038,9 +7091,6 @@ class _LEn extends AppLocalizations {
   String get byModel => 'By model';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0} calls・${p1} ms';
-
-  @override
   String get topMembers => 'Top members';
 
   @override
@@ -7158,13 +7208,7 @@ class _LEn extends AppLocalizations {
   String get aiDataProcessing => 'AI data processing';
 
   @override
-  String get messagesEnterStatusOrdersReservations => 'Messages you enter and the status of your orders and reservations';
-
-  @override
   String get isbnTitleConditionNotesPhotosSelect => 'ISBN, title, condition notes and the photos you select';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => 'Book details from your favorites and purchase history';
 
   @override
   String get aiDataProcessing2 => 'AI data processing';
@@ -7182,13 +7226,7 @@ class _LEn extends AppLocalizations {
   String get purpose => 'Purpose';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => 'Used only to generate support replies, prepare listing details and recommend books. Never used for advertising or tracking.';
-
-  @override
   String get withdrawingConsent => 'Withdrawing consent';
-
-  @override
-  String get canTurnOffAiDataProcessing => 'You can turn off "AI data processing" at any time in Settings › Account. The data above will no longer be shared once it is turned off.';
 
   @override
   String get agreeContinue => 'Agree';
@@ -7617,7 +7655,7 @@ class _LEn extends AppLocalizations {
   String get deletePasskey => 'Delete passkey';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => 'You will no longer be able to sign in or verify your identity with this passkey. The passkey saved on your device is not removed; you can delete it in the system password settings.';
+  String get noLongerAbleSignVerifyIdentity => 'You will no longer be able to sign in or verify your identity with this passkey. If it remains on your device, you can delete it in the system password settings.';
 
   @override
   String get passkeyDeleted => 'Passkey deleted';
@@ -8167,6 +8205,192 @@ class _LEn extends AppLocalizations {
 
   @override
   String get morePicks => 'More picks';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => 'The passkey request was interrupted. Please try again.';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => 'Could not verify with a passkey on this device. Use another method.';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => 'On this iOS version, adding a passkey again replaces the existing one in iCloud Keychain. If the process does not complete, the existing passkey cannot be restored. We recommend updating to iOS 17.4 or later first.';
+
+  @override
+  String get cannotAddPasskeyDevice => 'Passkeys cannot be added on this device at this time.';
+
+  @override
+  String get recordRemoval => 'Record removal';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => 'Confirm that staff have removed "${p1}" from ${p0}. The book will be delisted.';
+
+  @override
+  String get removalRecorded => 'Removal recorded';
+
+  @override
+  String get booksLockers => 'Books in lockers';
+
+  @override
+  String get overdue => 'Overdue';
+
+  @override
+  String get noOverdueBooks => 'No overdue books';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => 'No books are currently stored in lockers';
+
+  @override
+  String get salesPaused => 'Sales paused';
+
+  @override
+  String get adminsNotified => 'Admins notified';
+
+  @override
+  String get confirmPurchase => 'Confirm purchase';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => 'This book is already in the locker. The order will be ready for pickup immediately and cannot be cancelled.';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => 'Sales paused. Please retrieve the book from the locker.';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => 'This book is in the locker and can be collected right after ordering.';
+
+  @override
+  String get notYetLocker => 'Not yet in the locker';
+
+  @override
+  String get retrieve => 'Report retrieval';
+
+  @override
+  String get dropOff => 'Register drop-off';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => 'Orders for books already in the locker are ready for pickup immediately and cannot be cancelled.';
+
+  @override
+  String get placedLockerToday => 'Stored today';
+
+  @override
+  String lockerP0Days(Object p0) => '${p0}d in locker';
+
+  @override
+  String confirmP0BeenPlacedP1Once(Object p0, Object p1) => 'Confirm that "${p0}" has been placed in ${p1}. Once registered, buyers can collect it right after ordering.';
+
+  @override
+  String get dropOffRegistered => 'Drop-off registered';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => 'Confirm that you have retrieved "${p1}" from ${p0}.';
+
+  @override
+  String get retrievalReportedBookBackSale => 'Retrieval reported. The book is back on sale.';
+
+  @override
+  String get retrievalReported => 'Retrieval reported';
+
+  @override
+  String get allLockers => 'All lockers';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => 'The locker cannot be changed while the book is stored in it.';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => 'Once delisted, “${p0}” will no longer appear in the shop and buyers will not be able to view it. Because the book is stored in a locker, you will need to retrieve it and report the retrieval before relisting it.';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => 'Order placed. The book is in the locker and ready for pickup.';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => 'Confirm that staff have removed "${p1}" from ${p0}.';
+
+  @override
+  String get inLocker => 'In locker';
+
+  @override
+  String get inAnotherLocker => 'In another locker';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => 'Confirm you have put all ${p0} books in this order in the locker?';
+
+  @override
+  String get awaitingRetrieval => 'Awaiting retrieval';
+
+  @override
+  String get bookAdvisorSelection => 'Book advisor selection';
+
+  @override
+  String get bookInfoAutoFill => 'Book info auto-fill';
+
+  @override
+  String get disputeAnalysis => 'Dispute analysis';
+
+  @override
+  String get monthlyBudgetUsedUp => 'Monthly budget used up';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => 'Coverage: books ${p0}, help articles ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => 'Last sync: ${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => 'Background sync paused until ${p0}';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => 'Semantic queries paused until ${p0}';
+
+  @override
+  String lastErrorP0(Object p0) => 'Last error: ${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0} calls・avg ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => 'Turn off AI data processing';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => 'AI features will stop, and your AI support and book advisor conversations will be permanently deleted.';
+
+  @override
+  String get turnOff => 'Turn off';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => 'Messages and conversation history you enter, plus your own orders, reservations, listings (including review reasons), wallet balance and recent support enquiries';
+
+  @override
+  String get requestsConversationHistoryEnter => 'The requests and conversation history you enter';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => 'Book details from your saved items, purchase history, cart and recently viewed books';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'The AI data processing notice has been updated. Please review it and agree again.';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => 'Questions, requests and book details are also converted into semantic vectors by ${p0} to find relevant content.';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => 'Used only to generate support replies, recommend and search for books, and prepare listing details. Never used for advertising or tracking.';
+
+  @override
+  String get retentionPeriod => 'Retention period';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI support and book advisor conversations are kept for 90 days after the last message and then deleted automatically.';
+
+  @override
+  String get canTurnOffAiDataProcessing => 'You can turn off "AI data processing" at any time in Settings › Account. Once it is turned off, the data above will no longer be shared and your AI support and book advisor conversations will be deleted.';
+
+  @override
+  String get usersMustAlsoAgreeAiData => 'Users must also agree to AI data processing again before they can keep using AI features.';
+
+  @override
+  String get consentRequiredAgain => 'Consent required again';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI book advisor usage is counted by the number of messages users send.';
 
 }
 
@@ -8738,16 +8962,13 @@ class _LJa extends AppLocalizations {
   String get violationWasConfirmedBookPleaseCheck => 'この本は違反が確認されました。出品内容を修正してください。';
 
   @override
-  String get delist => '出品を取り消す';
+  String get delist => '出品取消';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '「${p0}」はショップから外され、購入者には表示されなくなります。';
+  String removedFromShopBuyersNoLonger(Object p0) => '出品を取り消すと、「${p0}」はショップに表示されなくなり、購入者は閲覧できなくなります。';
 
   @override
-  String get delist2 => '出品停止';
-
-  @override
-  String get couldNotDelistPleaseTryAgain => '出品停止に失敗しました。しばらくしてからお試しください。';
+  String get couldNotDelistPleaseTryAgain => '出品の取り消しに失敗しました。しばらくしてからお試しください。';
 
   @override
   String listedAgain(Object p0) => '「${p0}」を再出品しました';
@@ -11444,7 +11665,7 @@ class _LJa extends AppLocalizations {
   String get buyNow => '今すぐ購入';
 
   @override
-  String p0Delisted(Object p0) => '『${p0}』を出品停止しました';
+  String p0Delisted(Object p0) => '「${p0}」の出品を取り消しました';
 
   @override
   String noBooksMatchP0(Object p0) => '「${p0}」に一致する本はありません';
@@ -13148,9 +13369,6 @@ class _LJa extends AppLocalizations {
   String get byModel => 'モデル別';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 回・${p1} ms';
-
-  @override
   String get topMembers => '利用の多い会員';
 
   @override
@@ -13268,13 +13486,7 @@ class _LJa extends AppLocalizations {
   String get aiDataProcessing => 'AI によるデータ処理';
 
   @override
-  String get messagesEnterStatusOrdersReservations => '入力したメッセージ、ご自身の注文と予約の状況';
-
-  @override
   String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、状態の説明、選択した写真';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => 'お気に入りと購入履歴に含まれる書籍情報';
 
   @override
   String get aiDataProcessing2 => 'AI によるデータ処理について';
@@ -13292,13 +13504,7 @@ class _LJa extends AppLocalizations {
   String get purpose => '利用目的';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => 'サポートの回答、出品情報の整理、書籍のおすすめにのみ使用し、広告やトラッキングには使用しません。';
-
-  @override
   String get withdrawingConsent => '同意の撤回';
-
-  @override
-  String get canTurnOffAiDataProcessing => '「設定 › アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。';
 
   @override
   String get agreeContinue => '同意する';
@@ -13727,7 +13933,7 @@ class _LJa extends AppLocalizations {
   String get deletePasskey => 'パスキーを削除';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => '削除すると、このパスキーでログインや本人確認ができなくなります。デバイスに保存されたパスキーは削除されないため、システムのパスワード設定から削除してください。';
+  String get noLongerAbleSignVerifyIdentity => '削除すると、このパスキーでログインや本人確認ができなくなります。デバイスにパスキーが残っている場合は、システムのパスワード設定から削除してください。';
 
   @override
   String get passkeyDeleted => 'パスキーを削除しました';
@@ -14277,6 +14483,192 @@ class _LJa extends AppLocalizations {
 
   @override
   String get morePicks => 'その他のおすすめ';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => 'パスキーの操作が中断されました。もう一度お試しください。';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => 'このデバイスのパスキーで確認できませんでした。別の方法をご利用ください。';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => 'この iOS バージョンで再度追加すると、iCloud キーチェーン内の既存のパスキーが置き換えられます。追加が完了しなかった場合、既存のパスキーは復元できません。事前に iOS 17.4 以降へのアップデートをおすすめします。';
+
+  @override
+  String get cannotAddPasskeyDevice => '現在、このデバイスではパスキーを追加できません。';
+
+  @override
+  String get recordRemoval => '取り出しを登録';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => '担当者が「${p0}」から「${p1}」を取り出したことを確認してください。登録後、本は出品停止になります。';
+
+  @override
+  String get removalRecorded => '取り出しを登録しました';
+
+  @override
+  String get booksLockers => 'ロッカー保管中の本';
+
+  @override
+  String get overdue => '期限超過';
+
+  @override
+  String get noOverdueBooks => '期限超過の本はありません';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => '現在ロッカーに保管中の本はありません';
+
+  @override
+  String get salesPaused => '販売一時停止';
+
+  @override
+  String get adminsNotified => '管理者に通知済み';
+
+  @override
+  String get confirmPurchase => '購入の確認';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => 'この本はすでにロッカーに保管されています。注文成立後すぐに受け取れますが、注文はキャンセルできません。';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => '販売を一時停止しました。ロッカーから本を回収してください。';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => 'この本はロッカーに保管済みで、注文後すぐに受け取れます。';
+
+  @override
+  String get notYetLocker => 'まだロッカーに預け入れていません';
+
+  @override
+  String get retrieve => '回収報告';
+
+  @override
+  String get dropOff => '預け入れ';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => 'ロッカーに保管済みの本の注文は、成立後すぐに受け取れますが、キャンセルできません。';
+
+  @override
+  String get placedLockerToday => '本日ロッカーに預け入れ';
+
+  @override
+  String lockerP0Days(Object p0) => '保管期間 ${p0} 日';
+
+  @override
+  String confirmP0BeenPlacedP1Once(Object p0, Object p1) => '「${p0}」を「${p1}」に預け入れたことを確認してください。登録後、購入者は注文後すぐに受け取れます。';
+
+  @override
+  String get dropOffRegistered => '預け入れを登録しました';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => '「${p0}」から「${p1}」を回収したことを確認してください。';
+
+  @override
+  String get retrievalReportedBookBackSale => '回収を報告しました。本の販売を再開しました。';
+
+  @override
+  String get retrievalReported => '回収を報告しました';
+
+  @override
+  String get allLockers => 'すべてのロッカー';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => '保管中はロッカーを変更できません。';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => '出品を取り消すと、「${p0}」はショップに表示されなくなり、購入者は閲覧できなくなります。ロッカー保管中に出品を取り消した場合、再出品するには本を回収して回収報告を行う必要があります。';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => 'ご注文が完了しました。本はロッカーに保管済みで、すぐに受け取れます。';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => '担当者が「${p0}」から「${p1}」を取り出したことを確認してください。';
+
+  @override
+  String get inLocker => 'ロッカー保管済み';
+
+  @override
+  String get inAnotherLocker => '別のロッカーに保管中';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => 'この注文の本 ${p0} 冊をすべてロッカーに預け入れましたか？';
+
+  @override
+  String get awaitingRetrieval => '回収待ち';
+
+  @override
+  String get bookAdvisorSelection => 'ブックアドバイザーの選書';
+
+  @override
+  String get bookInfoAutoFill => '書籍情報の自動補完';
+
+  @override
+  String get disputeAnalysis => '紛争分析';
+
+  @override
+  String get monthlyBudgetUsedUp => '今月の予算を使い切りました';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => 'カバー率：書籍 ${p0}、サポート情報 ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => '最終同期：${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => 'バックグラウンド同期は ${p0} まで停止中';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => 'セマンティック検索は ${p0} まで停止中';
+
+  @override
+  String lastErrorP0(Object p0) => '直近のエラー：${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0} 回・平均 ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => 'AI によるデータ処理をオフにする';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => 'AI 機能の利用が停止され、AI サポートとブックアドバイザーの会話履歴が削除されます。この操作は元に戻せません。';
+
+  @override
+  String get turnOff => 'オフにする';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => '入力したメッセージと会話の内容、ご自身の注文、予約、出品（審査理由を含む）、ウォレット残高、最近のお問い合わせ';
+
+  @override
+  String get requestsConversationHistoryEnter => '入力したご希望と会話の内容';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => 'お気に入り、購入履歴、カート、最近見た本に含まれる書籍情報';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'AI によるデータ処理についての説明が更新されました。内容をご確認のうえ、改めて同意してください。';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => '質問、ご希望、書籍情報は、関連する内容を検索するため ${p0} によってセマンティックベクトルにも変換されます。';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => 'サポートの回答、書籍のおすすめと検索、出品情報の整理にのみ使用し、広告やトラッキングには使用しません。';
+
+  @override
+  String get retentionPeriod => '保存期間';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI サポートとブックアドバイザーの会話履歴は、最後の会話から 90 日間保存され、その後自動的に削除されます。';
+
+  @override
+  String get canTurnOffAiDataProcessing => '「設定 › アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなり、AI サポートとブックアドバイザーの会話履歴は削除されます。';
+
+  @override
+  String get usersMustAlsoAgreeAiData => 'ユーザーは AI 機能を引き続き利用するため、AI によるデータ処理に改めて同意する必要があります。';
+
+  @override
+  String get consentRequiredAgain => '再同意が必要です';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI ブックアドバイザーの回数は、ユーザーが送信したメッセージ数で数えます。';
 
 }
 
@@ -14851,10 +15243,7 @@ class _LKo extends AppLocalizations {
   String get delist => '판매 중단';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '“${p0}”이(가) 상점에서 내려가 구매자에게 더 이상 표시되지 않습니다.';
-
-  @override
-  String get delist2 => '내리기';
+  String removedFromShopBuyersNoLonger(Object p0) => '판매를 중단하면 “${p0}”이(가) 상점에 더 이상 표시되지 않으며 구매자가 볼 수 없습니다.';
 
   @override
   String get couldNotDelistPleaseTryAgain => '판매 중단에 실패했습니다. 잠시 후 다시 시도해 주세요.';
@@ -17554,7 +17943,7 @@ class _LKo extends AppLocalizations {
   String get buyNow => '지금 구매';
 
   @override
-  String p0Delisted(Object p0) => '《${p0}》 판매를 중지했습니다';
+  String p0Delisted(Object p0) => '“${p0}”의 판매를 중단했습니다';
 
   @override
   String noBooksMatchP0(Object p0) => '"${p0}"과(와) 일치하는 책이 없습니다';
@@ -19258,9 +19647,6 @@ class _LKo extends AppLocalizations {
   String get byModel => '모델별';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0}회・${p1} ms';
-
-  @override
   String get topMembers => '사용량 상위 회원';
 
   @override
@@ -19378,13 +19764,7 @@ class _LKo extends AppLocalizations {
   String get aiDataProcessing => 'AI 데이터 처리';
 
   @override
-  String get messagesEnterStatusOrdersReservations => '입력한 메시지와 본인의 주문 및 예약 상태';
-
-  @override
   String get isbnTitleConditionNotesPhotosSelect => 'ISBN, 도서명, 상태 설명 및 선택한 사진';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => '찜 목록과 구매 내역에 포함된 도서 정보';
 
   @override
   String get aiDataProcessing2 => 'AI 데이터 처리 안내';
@@ -19402,13 +19782,7 @@ class _LKo extends AppLocalizations {
   String get purpose => '이용 목적';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => '고객센터 답변 생성, 등록 정보 정리 및 도서 추천에만 사용하며 광고나 추적에는 사용하지 않습니다.';
-
-  @override
   String get withdrawingConsent => '동의 철회';
-
-  @override
-  String get canTurnOffAiDataProcessing => '설정 › 계정 관리에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않습니다.';
 
   @override
   String get agreeContinue => '동의';
@@ -19837,7 +20211,7 @@ class _LKo extends AppLocalizations {
   String get deletePasskey => '패스키 삭제';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => '삭제하면 이 패스키로 로그인하거나 본인 인증을 할 수 없습니다. 기기에 저장된 패스키는 함께 삭제되지 않으며 시스템 비밀번호 설정에서 삭제할 수 있습니다.';
+  String get noLongerAbleSignVerifyIdentity => '삭제하면 이 패스키로 로그인하거나 본인 인증을 할 수 없습니다. 기기에 패스키가 남아 있으면 시스템 비밀번호 설정에서 삭제할 수 있습니다.';
 
   @override
   String get passkeyDeleted => '패스키가 삭제되었습니다';
@@ -20387,6 +20761,192 @@ class _LKo extends AppLocalizations {
 
   @override
   String get morePicks => '추천 더 보기';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => '패스키 작업이 중단되었습니다. 다시 시도해 주세요.';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => '이 기기의 패스키로 인증하지 못했습니다. 다른 방법을 사용해 주세요.';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => '이 iOS 버전에서 다시 추가하면 iCloud 키체인의 기존 패스키가 대체됩니다. 추가가 완료되지 않으면 기존 패스키를 복구할 수 없습니다. 먼저 iOS 17.4 이상으로 업데이트하는 것을 권장합니다.';
+
+  @override
+  String get cannotAddPasskeyDevice => '현재 이 기기에서는 패스키를 추가할 수 없습니다.';
+
+  @override
+  String get recordRemoval => '꺼냄 등록';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => '담당자가 「${p0}」에서 “${p1}”을(를) 꺼냈는지 확인해 주세요. 등록 후 책은 판매 중지됩니다.';
+
+  @override
+  String get removalRecorded => '꺼냄을 등록했습니다';
+
+  @override
+  String get booksLockers => '보관함 보관 도서';
+
+  @override
+  String get overdue => '기한 초과';
+
+  @override
+  String get noOverdueBooks => '기한이 지난 책이 없습니다';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => '현재 보관함에 보관 중인 책이 없습니다';
+
+  @override
+  String get salesPaused => '판매 일시 중지';
+
+  @override
+  String get adminsNotified => '관리자 알림 완료';
+
+  @override
+  String get confirmPurchase => '구매 확인';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => '이 책은 이미 보관함에 있습니다. 주문 즉시 수령할 수 있으며 주문을 취소할 수 없습니다.';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => '판매가 일시 중지되었습니다. 보관함에서 책을 회수해 주세요.';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => '이 책은 보관함에 있어 주문 후 바로 수령할 수 있습니다.';
+
+  @override
+  String get notYetLocker => '아직 보관함에 보관하지 않음';
+
+  @override
+  String get retrieve => '회수 보고';
+
+  @override
+  String get dropOff => '보관 등록';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => '보관함에 이미 있는 책의 주문은 즉시 수령할 수 있으며 취소할 수 없습니다.';
+
+  @override
+  String get placedLockerToday => '오늘 보관함에 보관';
+
+  @override
+  String lockerP0Days(Object p0) => '보관 기간 ${p0}일';
+
+  @override
+  String confirmP0BeenPlacedP1Once(Object p0, Object p1) => '“${p0}”을(를) 「${p1}」에 넣었는지 확인해 주세요. 등록 후 구매자는 주문 즉시 수령할 수 있습니다.';
+
+  @override
+  String get dropOffRegistered => '보관을 등록했습니다';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => '「${p0}」에서 “${p1}”을(를) 회수했는지 확인해 주세요.';
+
+  @override
+  String get retrievalReportedBookBackSale => '회수를 보고했습니다. 책 판매가 재개되었습니다.';
+
+  @override
+  String get retrievalReported => '회수를 보고했습니다';
+
+  @override
+  String get allLockers => '전체 보관함';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => '보관 중에는 보관함을 변경할 수 없습니다.';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => '판매를 중단하면 “${p0}”이(가) 상점에 더 이상 표시되지 않으며 구매자가 볼 수 없습니다. 보관 중에 판매를 중단하면 책을 회수하고 회수 보고를 한 후에 다시 판매할 수 있습니다.';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => '주문이 완료되었습니다. 책이 보관함에 있어 바로 수령할 수 있습니다.';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => '담당자가 「${p0}」에서 “${p1}”을(를) 꺼냈는지 확인해 주세요.';
+
+  @override
+  String get inLocker => '보관함에 있음';
+
+  @override
+  String get inAnotherLocker => '다른 보관함에 있음';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => '이 주문의 책 ${p0}권을 모두 보관함에 넣으셨나요?';
+
+  @override
+  String get awaitingRetrieval => '회수 대기';
+
+  @override
+  String get bookAdvisorSelection => '도서 어드바이저 도서 선정';
+
+  @override
+  String get bookInfoAutoFill => '도서 정보 자동 보완';
+
+  @override
+  String get disputeAnalysis => '분쟁 분석';
+
+  @override
+  String get monthlyBudgetUsedUp => '이번 달 예산 소진';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => '적용 범위: 도서 ${p0}, 고객지원 정보 ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => '마지막 동기화: ${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => '백그라운드 동기화가 ${p0}까지 일시 중지됨';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => '의미 검색이 ${p0}까지 일시 중지됨';
+
+  @override
+  String lastErrorP0(Object p0) => '최근 오류: ${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0}회・평균 ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => 'AI 데이터 처리 끄기';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => 'AI 기능 사용이 중지되고 AI 고객센터와 도서 어드바이저의 대화 기록이 삭제되며 복구할 수 없습니다.';
+
+  @override
+  String get turnOff => '끄기';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => '입력한 메시지와 대화 내용, 본인의 주문, 예약, 등록 도서(심사 사유 포함), 지갑 잔액 및 최근 고객 문의';
+
+  @override
+  String get requestsConversationHistoryEnter => '입력한 요청과 대화 내용';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => '찜 목록, 구매 내역, 장바구니, 최근 본 책에 포함된 도서 정보';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'AI 데이터 처리 안내가 업데이트되었습니다. 내용을 확인한 후 다시 동의해 주세요.';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => '질문, 요청 및 도서 정보는 관련 내용을 검색하기 위해 ${p0}에서 의미 벡터로도 변환됩니다.';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => '고객센터 답변 생성, 도서 추천 및 검색, 등록 정보 정리에만 사용하며 광고나 추적에는 사용하지 않습니다.';
+
+  @override
+  String get retentionPeriod => '보관 기간';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI 고객센터와 도서 어드바이저의 대화 기록은 마지막 대화로부터 90일간 보관된 후 자동으로 삭제됩니다.';
+
+  @override
+  String get canTurnOffAiDataProcessing => '설정 › 계정 관리에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않고 AI 고객센터와 도서 어드바이저의 대화 기록이 삭제됩니다.';
+
+  @override
+  String get usersMustAlsoAgreeAiData => '사용자는 AI 기능을 계속 사용하려면 AI 데이터 처리에 다시 동의해야 합니다.';
+
+  @override
+  String get consentRequiredAgain => '다시 동의 필요';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI 도서 어드바이저 횟수는 사용자가 보낸 메시지 수로 계산합니다.';
 
 }
 
@@ -20961,13 +21521,10 @@ class _LZh extends AppLocalizations {
   String get delist => '取消上架';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》將從商城下架，買家將無法瀏覽。';
+  String removedFromShopBuyersNoLonger(Object p0) => '取消上架後，《${p0}》將不再於商城顯示，買家將無法瀏覽。';
 
   @override
-  String get delist2 => '下架';
-
-  @override
-  String get couldNotDelistPleaseTryAgain => '下架失敗，請稍後再試';
+  String get couldNotDelistPleaseTryAgain => '取消上架失敗，請稍後再試';
 
   @override
   String listedAgain(Object p0) => '《${p0}》已重新上架';
@@ -23664,7 +24221,7 @@ class _LZh extends AppLocalizations {
   String get buyNow => '立即購買';
 
   @override
-  String p0Delisted(Object p0) => '《${p0}》已下架';
+  String p0Delisted(Object p0) => '《${p0}》已取消上架';
 
   @override
   String noBooksMatchP0(Object p0) => '找不到符合「${p0}」的書籍';
@@ -25368,9 +25925,6 @@ class _LZh extends AppLocalizations {
   String get byModel => '依模型';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 次・${p1} ms';
-
-  @override
   String get topMembers => '用量最高的會員';
 
   @override
@@ -25488,13 +26042,7 @@ class _LZh extends AppLocalizations {
   String get aiDataProcessing => 'AI 資料處理';
 
   @override
-  String get messagesEnterStatusOrdersReservations => '您輸入的訊息與您的訂單、預約狀態';
-
-  @override
   String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、書況說明與您選擇的照片';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => '您的收藏與購買紀錄中的書籍資訊';
 
   @override
   String get aiDataProcessing2 => 'AI 資料處理說明';
@@ -25512,13 +26060,7 @@ class _LZh extends AppLocalizations {
   String get purpose => '使用目的';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => '僅用於產生客服回覆、整理上架資料與推薦書籍，不會用於廣告或追蹤。';
-
-  @override
   String get withdrawingConsent => '撤回同意';
-
-  @override
-  String get canTurnOffAiDataProcessing => '您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。';
 
   @override
   String get agreeContinue => '同意並繼續';
@@ -25947,7 +26489,7 @@ class _LZh extends AppLocalizations {
   String get deletePasskey => '刪除通行密鑰';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => '刪除後將無法以此通行密鑰登入或驗證身分。裝置中儲存的通行密鑰不會一併移除，可至系統的密碼設定中刪除。';
+  String get noLongerAbleSignVerifyIdentity => '刪除後將無法以此通行密鑰登入或驗證身分。若裝置中仍保留此通行密鑰，可至系統的密碼設定中刪除。';
 
   @override
   String get passkeyDeleted => '已刪除通行密鑰';
@@ -26497,6 +27039,192 @@ class _LZh extends AppLocalizations {
 
   @override
   String get morePicks => '更多推薦';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => '通行密鑰操作已中斷，請再試一次';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => '未能以此裝置的通行密鑰完成驗證，請改用其他方式';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => '在此 iOS 版本重新新增，會取代 iCloud 鑰匙圈中原有的通行密鑰；若新增未完成，原有通行密鑰將無法復原。建議先更新至 iOS 17.4 以上版本。';
+
+  @override
+  String get cannotAddPasskeyDevice => '此裝置目前無法新增通行密鑰';
+
+  @override
+  String get recordRemoval => '登記取出';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => '請確認人員已自「${p0}」取出《${p1}》。登記後書籍將下架。';
+
+  @override
+  String get removalRecorded => '已登記取出';
+
+  @override
+  String get booksLockers => '存書列表';
+
+  @override
+  String get overdue => '逾期';
+
+  @override
+  String get noOverdueBooks => '沒有逾期的存書';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => '目前沒有存放於書櫃的書籍';
+
+  @override
+  String get salesPaused => '暫停販售';
+
+  @override
+  String get adminsNotified => '已通知管理員';
+
+  @override
+  String get confirmPurchase => '確認購買';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => '此書已存放於書櫃，訂單成立後即可取書，且無法取消訂單。';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => '已暫停販售，請至書櫃取回書籍';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => '書籍已存放於書櫃，下單後即可取書';
+
+  @override
+  String get notYetLocker => '尚未存入書櫃';
+
+  @override
+  String get retrieve => '回報取回';
+
+  @override
+  String get dropOff => '登記存書';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => '已存放於書櫃的書籍，訂單成立後即可取書，且無法取消訂單。';
+
+  @override
+  String get placedLockerToday => '今日存入書櫃';
+
+  @override
+  String lockerP0Days(Object p0) => '已存放 ${p0} 天';
+
+  @override
+  String confirmP0BeenPlacedP1Once(Object p0, Object p1) => '請確認已將《${p0}》放入「${p1}」。登記後，買家下單即可直接取書。';
+
+  @override
+  String get dropOffRegistered => '已登記存書';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => '請確認已自「${p0}」取回《${p1}》。';
+
+  @override
+  String get retrievalReportedBookBackSale => '已回報取回，書籍已恢復上架';
+
+  @override
+  String get retrievalReported => '已回報取回';
+
+  @override
+  String get allLockers => '全部書櫃';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => '存書期間無法變更書櫃';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => '取消上架後，《${p0}》將不再於商城顯示，買家將無法瀏覽。由於此書存放於書櫃中，須先取回書籍並回報，才能重新上架。';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => '結帳成功，書籍已在書櫃，可立即取書';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => '請確認人員已自「${p0}」取出《${p1}》。';
+
+  @override
+  String get inLocker => '已在書櫃';
+
+  @override
+  String get inAnotherLocker => '存放於其他書櫃';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => '確認已將此訂單的 ${p0} 本書全部放入書櫃？';
+
+  @override
+  String get awaitingRetrieval => '待取回';
+
+  @override
+  String get bookAdvisorSelection => '書籍顧問選書';
+
+  @override
+  String get bookInfoAutoFill => '書籍資料補齊';
+
+  @override
+  String get disputeAnalysis => '爭議分析';
+
+  @override
+  String get monthlyBudgetUsedUp => '本月預算已用盡';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => '涵蓋率：書籍 ${p0}、客服知識 ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => '最近同步：${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => '背景同步暫停至 ${p0}';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => '語意查詢暫停至 ${p0}';
+
+  @override
+  String lastErrorP0(Object p0) => '最近錯誤：${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0} 次・平均 ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => '關閉 AI 資料處理';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => '關閉後將停止使用 AI 功能，並刪除您的 AI 客服與書籍顧問對話紀錄，且無法復原。';
+
+  @override
+  String get turnOff => '確認關閉';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => '您輸入的訊息與對話內容，以及您本人的訂單、預約、上架書籍（含審核原因）、錢包餘額與最近的客服工單';
+
+  @override
+  String get requestsConversationHistoryEnter => '您輸入的需求與對話內容';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => '您的收藏、購買紀錄、購物車與最近瀏覽中的書籍資訊';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'AI 資料處理說明已更新，請重新閱讀並同意。';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => '其中提問、需求與書籍資訊另由 ${p0} 轉換為語意向量，以檢索相關內容。';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => '僅用於產生客服回覆、推薦與檢索書籍、整理上架資料，不會用於廣告或追蹤。';
+
+  @override
+  String get retentionPeriod => '保存期限';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI 客服與書籍顧問的對話紀錄自最後一次對話起保存 90 天，期滿自動刪除。';
+
+  @override
+  String get canTurnOffAiDataProcessing => '您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料，並刪除 AI 客服與書籍顧問的對話紀錄。';
+
+  @override
+  String get usersMustAlsoAgreeAiData => '使用者亦須重新同意 AI 資料處理，才能繼續使用 AI 功能。';
+
+  @override
+  String get consentRequiredAgain => '須重新同意';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI 書籍顧問的次數以使用者傳送的訊息數計算。';
 
 }
 
@@ -27071,13 +27799,10 @@ class _LZhHans extends AppLocalizations {
   String get delist => '取消上架';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》将从商城下架，买家将无法浏览。';
+  String removedFromShopBuyersNoLonger(Object p0) => '取消上架后，《${p0}》将不再在商城显示，买家将无法浏览。';
 
   @override
-  String get delist2 => '下架';
-
-  @override
-  String get couldNotDelistPleaseTryAgain => '下架失败，请稍后再试';
+  String get couldNotDelistPleaseTryAgain => '取消上架失败，请稍后再试';
 
   @override
   String listedAgain(Object p0) => '《${p0}》已重新上架';
@@ -29774,7 +30499,7 @@ class _LZhHans extends AppLocalizations {
   String get buyNow => '立即购买';
 
   @override
-  String p0Delisted(Object p0) => '《${p0}》已下架';
+  String p0Delisted(Object p0) => '《${p0}》已取消上架';
 
   @override
   String noBooksMatchP0(Object p0) => '找不到符合“${p0}”的书籍';
@@ -31478,9 +32203,6 @@ class _LZhHans extends AppLocalizations {
   String get byModel => '按模型';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 次・${p1} ms';
-
-  @override
   String get topMembers => '用量最高的会员';
 
   @override
@@ -31598,13 +32320,7 @@ class _LZhHans extends AppLocalizations {
   String get aiDataProcessing => 'AI 数据处理';
 
   @override
-  String get messagesEnterStatusOrdersReservations => '您输入的消息与您的订单、预约状态';
-
-  @override
   String get isbnTitleConditionNotesPhotosSelect => 'ISBN、书名、书况说明与您选择的照片';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => '您的收藏与购买记录中的书籍信息';
 
   @override
   String get aiDataProcessing2 => 'AI 数据处理说明';
@@ -31622,13 +32338,7 @@ class _LZhHans extends AppLocalizations {
   String get purpose => '使用目的';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => '仅用于生成客服回复、整理上架数据与推荐书籍，不会用于广告或追踪。';
-
-  @override
   String get withdrawingConsent => '撤回同意';
-
-  @override
-  String get canTurnOffAiDataProcessing => '您可随时于「设置 › 账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据。';
 
   @override
   String get agreeContinue => '同意并继续';
@@ -32057,7 +32767,7 @@ class _LZhHans extends AppLocalizations {
   String get deletePasskey => '删除通行密钥';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => '删除后将无法以此通行密钥登入或验证身分。装置中储存的通行密钥不会一并移除，可至系统的密码设定中删除。';
+  String get noLongerAbleSignVerifyIdentity => '删除后将无法以此通行密钥登入或验证身分。若装置中仍保留此通行密钥，可至系统的密码设定中删除。';
 
   @override
   String get passkeyDeleted => '已删除通行密钥';
@@ -32607,6 +33317,192 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get morePicks => '更多推荐';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => '通行密钥操作已中断，请再试一次';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => '未能以此装置的通行密钥完成验证，请改用其他方式';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => '在此 iOS 版本重新新增，会取代 iCloud 钥匙串中原有的通行密钥；若新增未完成，原有通行密钥将无法恢复。建议先更新至 iOS 17.4 以上版本。';
+
+  @override
+  String get cannotAddPasskeyDevice => '此装置目前无法新增通行密钥';
+
+  @override
+  String get recordRemoval => '登记取出';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => '请确认人员已自“${p0}”取出《${p1}》。登记后书籍将下架。';
+
+  @override
+  String get removalRecorded => '已登记取出';
+
+  @override
+  String get booksLockers => '存书列表';
+
+  @override
+  String get overdue => '逾期';
+
+  @override
+  String get noOverdueBooks => '没有逾期的存书';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => '目前没有存放于书柜的书籍';
+
+  @override
+  String get salesPaused => '暂停销售';
+
+  @override
+  String get adminsNotified => '已通知管理员';
+
+  @override
+  String get confirmPurchase => '确认购买';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => '此书已存放于书柜，订单成立后即可取书，且无法取消订单。';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => '已暂停销售，请至书柜取回书籍';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => '书籍已存放于书柜，下单后即可取书';
+
+  @override
+  String get notYetLocker => '尚未存入书柜';
+
+  @override
+  String get retrieve => '回报取回';
+
+  @override
+  String get dropOff => '登记存书';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => '已存放于书柜的书籍，订单成立后即可取书，且无法取消订单。';
+
+  @override
+  String get placedLockerToday => '今日存入书柜';
+
+  @override
+  String lockerP0Days(Object p0) => '已存放 ${p0} 天';
+
+  @override
+  String confirmP0BeenPlacedP1Once(Object p0, Object p1) => '请确认已将《${p0}》放入“${p1}”。登记后，买家下单即可直接取书。';
+
+  @override
+  String get dropOffRegistered => '已登记存书';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => '请确认已自“${p0}”取回《${p1}》。';
+
+  @override
+  String get retrievalReportedBookBackSale => '已回报取回，书籍已恢复上架';
+
+  @override
+  String get retrievalReported => '已回报取回';
+
+  @override
+  String get allLockers => '全部书柜';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => '存书期间无法变更书柜';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => '取消上架后，《${p0}》将不再在商城显示，买家将无法浏览。由于此书存放于书柜中，须先取回书籍并回报，才能重新上架。';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => '结算成功，书籍已在书柜，可立即取书';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => '请确认人员已自“${p0}”取出《${p1}》。';
+
+  @override
+  String get inLocker => '已在书柜';
+
+  @override
+  String get inAnotherLocker => '存放于其他书柜';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => '确认已将此订单的 ${p0} 本书全部放入书柜？';
+
+  @override
+  String get awaitingRetrieval => '待取回';
+
+  @override
+  String get bookAdvisorSelection => '书籍顾问选书';
+
+  @override
+  String get bookInfoAutoFill => '书籍资料补齐';
+
+  @override
+  String get disputeAnalysis => '争议分析';
+
+  @override
+  String get monthlyBudgetUsedUp => '本月预算已用尽';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => '覆盖率：书籍 ${p0}、客服知识 ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => '最近同步：${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => '后台同步暂停至 ${p0}';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => '语义查询暂停至 ${p0}';
+
+  @override
+  String lastErrorP0(Object p0) => '最近错误：${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0} 次・平均 ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => '关闭 AI 数据处理';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => '关闭后将停止使用 AI 功能，并删除您的 AI 客服与书籍顾问对话记录，且无法恢复。';
+
+  @override
+  String get turnOff => '确认关闭';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => '您输入的消息与对话内容，以及您本人的订单、预约、上架书籍（含审核原因）、钱包余额与最近的客服工单';
+
+  @override
+  String get requestsConversationHistoryEnter => '您输入的需求与对话内容';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => '您的收藏、购买记录、购物车与最近浏览中的书籍信息';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'AI 数据处理说明已更新，请重新阅读并同意。';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => '其中提问、需求与书籍信息另由 ${p0} 转换为语义向量，以检索相关内容。';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => '仅用于生成客服回复、推荐与检索书籍、整理上架数据，不会用于广告或追踪。';
+
+  @override
+  String get retentionPeriod => '保存期限';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI 客服与书籍顾问的对话记录自最后一次对话起保存 90 天，期满自动删除。';
+
+  @override
+  String get canTurnOffAiDataProcessing => '您可随时于「设置 › 账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据，并删除 AI 客服与书籍顾问的对话记录。';
+
+  @override
+  String get usersMustAlsoAgreeAiData => '用户亦须重新同意 AI 数据处理，才能继续使用 AI 功能。';
+
+  @override
+  String get consentRequiredAgain => '须重新同意';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI 书籍顾问的次数以用户发送的消息数计算。';
 
 }
 
@@ -33181,13 +34077,10 @@ class _LZhHant extends AppLocalizations {
   String get delist => '取消上架';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》將從商城下架，買家將無法瀏覽。';
+  String removedFromShopBuyersNoLonger(Object p0) => '取消上架後，《${p0}》將不再於商城顯示，買家將無法瀏覽。';
 
   @override
-  String get delist2 => '下架';
-
-  @override
-  String get couldNotDelistPleaseTryAgain => '下架失敗，請稍後再試';
+  String get couldNotDelistPleaseTryAgain => '取消上架失敗，請稍後再試';
 
   @override
   String listedAgain(Object p0) => '《${p0}》已重新上架';
@@ -35884,7 +36777,7 @@ class _LZhHant extends AppLocalizations {
   String get buyNow => '立即購買';
 
   @override
-  String p0Delisted(Object p0) => '《${p0}》已下架';
+  String p0Delisted(Object p0) => '《${p0}》已取消上架';
 
   @override
   String noBooksMatchP0(Object p0) => '找不到符合「${p0}」的書籍';
@@ -37588,9 +38481,6 @@ class _LZhHant extends AppLocalizations {
   String get byModel => '依模型';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 次・${p1} ms';
-
-  @override
   String get topMembers => '用量最高的會員';
 
   @override
@@ -37708,13 +38598,7 @@ class _LZhHant extends AppLocalizations {
   String get aiDataProcessing => 'AI 資料處理';
 
   @override
-  String get messagesEnterStatusOrdersReservations => '您輸入的訊息與您的訂單、預約狀態';
-
-  @override
   String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、書況說明與您選擇的照片';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => '您的收藏與購買紀錄中的書籍資訊';
 
   @override
   String get aiDataProcessing2 => 'AI 資料處理說明';
@@ -37732,13 +38616,7 @@ class _LZhHant extends AppLocalizations {
   String get purpose => '使用目的';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => '僅用於產生客服回覆、整理上架資料與推薦書籍，不會用於廣告或追蹤。';
-
-  @override
   String get withdrawingConsent => '撤回同意';
-
-  @override
-  String get canTurnOffAiDataProcessing => '您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。';
 
   @override
   String get agreeContinue => '同意並繼續';
@@ -38167,7 +39045,7 @@ class _LZhHant extends AppLocalizations {
   String get deletePasskey => '刪除通行密鑰';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => '刪除後將無法以此通行密鑰登入或驗證身分。裝置中儲存的通行密鑰不會一併移除，可至系統的密碼設定中刪除。';
+  String get noLongerAbleSignVerifyIdentity => '刪除後將無法以此通行密鑰登入或驗證身分。若裝置中仍保留此通行密鑰，可至系統的密碼設定中刪除。';
 
   @override
   String get passkeyDeleted => '已刪除通行密鑰';
@@ -38717,6 +39595,192 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get morePicks => '更多推薦';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => '通行密鑰操作已中斷，請再試一次';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => '未能以此裝置的通行密鑰完成驗證，請改用其他方式';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => '在此 iOS 版本重新新增，會取代 iCloud 鑰匙圈中原有的通行密鑰；若新增未完成，原有通行密鑰將無法復原。建議先更新至 iOS 17.4 以上版本。';
+
+  @override
+  String get cannotAddPasskeyDevice => '此裝置目前無法新增通行密鑰';
+
+  @override
+  String get recordRemoval => '登記取出';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => '請確認人員已自「${p0}」取出《${p1}》。登記後書籍將下架。';
+
+  @override
+  String get removalRecorded => '已登記取出';
+
+  @override
+  String get booksLockers => '存書列表';
+
+  @override
+  String get overdue => '逾期';
+
+  @override
+  String get noOverdueBooks => '沒有逾期的存書';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => '目前沒有存放於書櫃的書籍';
+
+  @override
+  String get salesPaused => '暫停販售';
+
+  @override
+  String get adminsNotified => '已通知管理員';
+
+  @override
+  String get confirmPurchase => '確認購買';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => '此書已存放於書櫃，訂單成立後即可取書，且無法取消訂單。';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => '已暫停販售，請至書櫃取回書籍';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => '書籍已存放於書櫃，下單後即可取書';
+
+  @override
+  String get notYetLocker => '尚未存入書櫃';
+
+  @override
+  String get retrieve => '回報取回';
+
+  @override
+  String get dropOff => '登記存書';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => '已存放於書櫃的書籍，訂單成立後即可取書，且無法取消訂單。';
+
+  @override
+  String get placedLockerToday => '今日存入書櫃';
+
+  @override
+  String lockerP0Days(Object p0) => '已存放 ${p0} 天';
+
+  @override
+  String confirmP0BeenPlacedP1Once(Object p0, Object p1) => '請確認已將《${p0}》放入「${p1}」。登記後，買家下單即可直接取書。';
+
+  @override
+  String get dropOffRegistered => '已登記存書';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => '請確認已自「${p0}」取回《${p1}》。';
+
+  @override
+  String get retrievalReportedBookBackSale => '已回報取回，書籍已恢復上架';
+
+  @override
+  String get retrievalReported => '已回報取回';
+
+  @override
+  String get allLockers => '全部書櫃';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => '存書期間無法變更書櫃';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => '取消上架後，《${p0}》將不再於商城顯示，買家將無法瀏覽。由於此書存放於書櫃中，須先取回書籍並回報，才能重新上架。';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => '結帳成功，書籍已在書櫃，可立即取書';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => '請確認人員已自「${p0}」取出《${p1}》。';
+
+  @override
+  String get inLocker => '已在書櫃';
+
+  @override
+  String get inAnotherLocker => '存放於其他書櫃';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => '確認已將此訂單的 ${p0} 本書全部放入書櫃？';
+
+  @override
+  String get awaitingRetrieval => '待取回';
+
+  @override
+  String get bookAdvisorSelection => '書籍顧問選書';
+
+  @override
+  String get bookInfoAutoFill => '書籍資料補齊';
+
+  @override
+  String get disputeAnalysis => '爭議分析';
+
+  @override
+  String get monthlyBudgetUsedUp => '本月預算已用盡';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => '涵蓋率：書籍 ${p0}、客服知識 ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => '最近同步：${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => '背景同步暫停至 ${p0}';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => '語意查詢暫停至 ${p0}';
+
+  @override
+  String lastErrorP0(Object p0) => '最近錯誤：${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0} 次・平均 ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => '關閉 AI 資料處理';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => '關閉後將停止使用 AI 功能，並刪除您的 AI 客服與書籍顧問對話紀錄，且無法復原。';
+
+  @override
+  String get turnOff => '確認關閉';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => '您輸入的訊息與對話內容，以及您本人的訂單、預約、上架書籍（含審核原因）、錢包餘額與最近的客服工單';
+
+  @override
+  String get requestsConversationHistoryEnter => '您輸入的需求與對話內容';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => '您的收藏、購買紀錄、購物車與最近瀏覽中的書籍資訊';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'AI 資料處理說明已更新，請重新閱讀並同意。';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => '其中提問、需求與書籍資訊另由 ${p0} 轉換為語意向量，以檢索相關內容。';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => '僅用於產生客服回覆、推薦與檢索書籍、整理上架資料，不會用於廣告或追蹤。';
+
+  @override
+  String get retentionPeriod => '保存期限';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI 客服與書籍顧問的對話紀錄自最後一次對話起保存 90 天，期滿自動刪除。';
+
+  @override
+  String get canTurnOffAiDataProcessing => '您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料，並刪除 AI 客服與書籍顧問的對話紀錄。';
+
+  @override
+  String get usersMustAlsoAgreeAiData => '使用者亦須重新同意 AI 資料處理，才能繼續使用 AI 功能。';
+
+  @override
+  String get consentRequiredAgain => '須重新同意';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI 書籍顧問的次數以使用者傳送的訊息數計算。';
 
 }
 

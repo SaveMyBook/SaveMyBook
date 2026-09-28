@@ -16,6 +16,37 @@ const buildOrderNo = () => {
   return `SMB${stamp}${crypto.randomInt(100000, 1000000)}`;
 };
 
+const sellerContent = (orderNo, { inCabinet, stored, missing, elsewhere, cabinet }) => {
+  if (inCabinet) return `訂單 ${orderNo} 已成立，書籍已存放於書櫃，待買家取書。`;
+  const target = cabinet ? `「${cabinet}」` : '訂單指定的書櫃';
+  if (elsewhere > 0 && missing === 0) {
+    return `訂單 ${orderNo} 已成立，請於七天內至原存放的書櫃以 App 掃描 QR Code 取回書籍，再存入${target}。`;
+  }
+  if (elsewhere > 0) {
+    return `訂單 ${orderNo} 已成立，請於七天內將其餘書籍存入${target}；存放於其他書櫃的書籍，請先至該書櫃以 App 掃描 QR Code 取回後一併存入。`;
+  }
+  if (stored > 0 && missing > 0) return `訂單 ${orderNo} 已成立，請於七天內至書櫃以 App 掃描 QR Code，存入其餘書籍。`;
+  return `訂單 ${orderNo} 已成立，請於七天內至書櫃存書。`;
+};
+
+// 逐本以刪除筆數判斷存書位置：刪除讀取的是最新資料，快照讀取會漏看結帳期間才完成的存書或取回。
+const releaseDeposits = async (tx, bookIds, cabinetId) => {
+  const placement = new Map();
+  for (const bookId of bookIds) {
+    const same = cabinetId != null
+      ? await tx.book_deposits.deleteMany({ where: { book_id: bookId, cabinet_id: cabinetId } })
+      : { count: 0 };
+    if (same.count > 0) {
+      placement.set(bookId, 'same');
+      continue;
+    }
+    const other = await tx.book_deposits.deleteMany({ where: { book_id: bookId } });
+    if (other.count > 0) placement.set(bookId, 'elsewhere');
+  }
+  const elsewhere = [...placement.values()].filter((p) => p === 'elsewhere').length;
+  return { placement, stored: placement.size, missing: bookIds.length - placement.size, elsewhere };
+};
+
 const itemQuantity = (item) => Math.max(1, Math.min(item.quantity, item.books.quantity || 1));
 
 const checkout = async (buyerId, { cartIds, paymentMethod }) => {
@@ -105,6 +136,12 @@ const placeOrders = async (buyerId, cartItems, { paymentMethod, alsoRemoveBookId
       }
 
       const totalAmount = items.reduce((sum, i) => sum + lineTotal(i), 0);
+      const cabinetId = items[0].books.cabinet_id ?? null;
+
+      const released = await releaseDeposits(tx, bookIds, cabinetId);
+      const inCabinet = released.missing === 0 && released.elsewhere === 0
+        && (await tx.smart_cabinets.count({ where: { cabinet_id: cabinetId, is_active: true } })) > 0;
+      const now = new Date();
 
       const order = await tx.orders.create({
         data: {
@@ -112,16 +149,18 @@ const placeOrders = async (buyerId, cartItems, { paymentMethod, alsoRemoveBookId
           buyer_id: buyerId,
           seller_id: sellerId,
           total_amount: totalAmount,
-          cabinet_id: items[0].books.cabinet_id ?? null,
-          status: 'pending_deposit',
+          cabinet_id: cabinetId,
+          status: inCabinet ? 'deposited' : 'pending_deposit',
+          ...(inCabinet && { deposited_at: now }),
           payment_method: paymentMethod,
-          payment_at: new Date(),
+          payment_at: now,
           order_items: {
             create: items.map((i) => ({
               book_id: i.book_id,
               quantity: itemQuantity(i),
               unit_price: i.books.price,
-              subtotal: lineTotal(i)
+              subtotal: lineTotal(i),
+              pre_deposited: released.placement.has(i.book_id)
             }))
           }
         },
@@ -140,10 +179,22 @@ const placeOrders = async (buyerId, cartItems, { paymentMethod, alsoRemoveBookId
         userId: sellerId,
         type: 'order',
         title: '您的書已售出',
-        content: `訂單 ${order.order_no} 已成立，請於七天內至書櫃存書。`,
+        content: sellerContent(order.order_no, { inCabinet, ...released, cabinet: order.smart_cabinets?.cabinet_name }),
         relatedId: order.order_id,
         relatedType: 'order'
       });
+
+      if (inCabinet) {
+        const cabinet = order.smart_cabinets?.cabinet_name;
+        await notify(tx, {
+          userId: buyerId,
+          type: 'order',
+          title: '書籍已存入書櫃',
+          content: `訂單 ${order.order_no} 的書籍已存放於${cabinet ? `「${cabinet}」` : ''}書櫃，即日起可於營業時間內至書櫃以 App 掃描 QR Code 取書。`,
+          relatedId: order.order_id,
+          relatedType: 'order'
+        });
+      }
 
       results.push(order);
     }

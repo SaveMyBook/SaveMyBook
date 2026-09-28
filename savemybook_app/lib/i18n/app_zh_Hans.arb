@@ -209,14 +209,13 @@
   "bookBeenReportedUnderReviewStays": "此书籍已被举报，审核中。",
   "violationWasConfirmedBookPleaseCheck": "此书籍经审核确认违规，请修改商品内容。",
   "delist": "取消上架",
-  "removedFromShopBuyersNoLonger": "《{p0}》将从商城下架，买家将无法浏览。",
+  "removedFromShopBuyersNoLonger": "取消上架后，《{p0}》将不再在商城显示，买家将无法浏览。",
   "@removedFromShopBuyersNoLonger": {
     "placeholders": {
       "p0": {}
     }
   },
-  "delist2": "下架",
-  "couldNotDelistPleaseTryAgain": "下架失败，请稍后再试",
+  "couldNotDelistPleaseTryAgain": "取消上架失败，请稍后再试",
   "listedAgain": "《{p0}》已重新上架",
   "@listedAgain": {
     "placeholders": {
@@ -1851,7 +1850,7 @@
   "goCheckout": "前往结账",
   "cart2": "已在购物车",
   "buyNow": "立即购买",
-  "p0Delisted": "《{p0}》已下架",
+  "p0Delisted": "《{p0}》已取消上架",
   "@p0Delisted": {
     "placeholders": {
       "p0": {}
@@ -3012,13 +3011,6 @@
     }
   },
   "byModel": "按模型",
-  "p0CallsP1Ms": "{p0} 次・{p1} ms",
-  "@p0CallsP1Ms": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "topMembers": "用量最高的会员",
   "p0Uses": "{p0} 次使用",
   "@p0Uses": {
@@ -3094,17 +3086,13 @@
   "aiDataProcessingEnabled": "已同意 AI 数据处理",
   "aiDataProcessingTurnedOff": "已停止 AI 数据处理",
   "aiDataProcessing": "AI 数据处理",
-  "messagesEnterStatusOrdersReservations": "您输入的消息与您的订单、预约状态",
   "isbnTitleConditionNotesPhotosSelect": "ISBN、书名、书况说明与您选择的照片",
-  "bookDetailsFromFavoritesPurchaseHistory": "您的收藏与购买记录中的书籍信息",
   "aiDataProcessing2": "AI 数据处理说明",
   "whenUseAiFeaturesWeShare": "使用 AI 功能时，我们会将下列数据提供给第三方 AI 服务商处理。",
   "dataShared": "提供的数据",
   "recipients": "数据接收方",
   "purpose": "使用目的",
-  "usedOnlyGenerateSupportRepliesPrepare": "仅用于生成客服回复、整理上架数据与推荐书籍，不会用于广告或追踪。",
   "withdrawingConsent": "撤回同意",
-  "canTurnOffAiDataProcessing": "您可随时于「设置 › 账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据。",
   "agreeContinue": "同意并继续",
   "insufficientQuotaPlanNotEnabled": "额度不足或方案未开通",
   "modelNotFound": "模型名称不存在",
@@ -3313,7 +3301,7 @@
     }
   },
   "deletePasskey": "删除通行密钥",
-  "noLongerAbleSignVerifyIdentity": "删除后将无法以此通行密钥登入或验证身分。装置中储存的通行密钥不会一并移除，可至系统的密码设定中删除。",
+  "noLongerAbleSignVerifyIdentity": "删除后将无法以此通行密钥登入或验证身分。若装置中仍保留此通行密钥，可至系统的密码设定中删除。",
   "passkeyDeleted": "已删除通行密钥",
   "signVerifyIdentityWithFaceId": "以 Face ID、指纹或屏幕锁定登入与验证身分，不必输入密码。通行密钥只储存在您的装置与密码管理工具中。",
   "addPasskey": "新增通行密钥",
@@ -3699,5 +3687,144 @@
       "p0": {}
     }
   },
-  "morePicks": "更多推荐"
+  "morePicks": "更多推荐",
+  "passkeyRequestWasInterruptedPleaseTry": "通行密钥操作已中断，请再试一次",
+  "couldNotVerifyWithPasskeyDevice": "未能以此装置的通行密钥完成验证，请改用其他方式",
+  "iosVersionAddingPasskeyAgainReplaces": "在此 iOS 版本重新新增，会取代 iCloud 钥匙串中原有的通行密钥；若新增未完成，原有通行密钥将无法恢复。建议先更新至 iOS 17.4 以上版本。",
+  "cannotAddPasskeyDevice": "此装置目前无法新增通行密钥",
+  "recordRemoval": "登记取出",
+  "confirmStaffRemovedP1FromP0": "请确认人员已自“{p0}”取出《{p1}》。登记后书籍将下架。",
+  "@confirmStaffRemovedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "removalRecorded": "已登记取出",
+  "booksLockers": "存书列表",
+  "overdue": "逾期",
+  "noOverdueBooks": "没有逾期的存书",
+  "noBooksCurrentlyStoredLockers": "目前没有存放于书柜的书籍",
+  "salesPaused": "暂停销售",
+  "adminsNotified": "已通知管理员",
+  "confirmPurchase": "确认购买",
+  "bookAlreadyLockerOrderReadyPickup": "此书已存放于书柜，订单成立后即可取书，且无法取消订单。",
+  "salesPausedPleaseRetrieveBookFrom": "已暂停销售，请至书柜取回书籍",
+  "bookLockerCanCollectedRightAfter": "书籍已存放于书柜，下单后即可取书",
+  "notYetLocker": "尚未存入书柜",
+  "retrieve": "回报取回",
+  "dropOff": "登记存书",
+  "ordersBooksAlreadyLockerReadyPickup": "已存放于书柜的书籍，订单成立后即可取书，且无法取消订单。",
+  "placedLockerToday": "今日存入书柜",
+  "lockerP0Days": "已存放 {p0} 天",
+  "@lockerP0Days": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmP0BeenPlacedP1Once": "请确认已将《{p0}》放入“{p1}”。登记后，买家下单即可直接取书。",
+  "@confirmP0BeenPlacedP1Once": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "dropOffRegistered": "已登记存书",
+  "confirmRetrievedP1FromP0": "请确认已自“{p0}”取回《{p1}》。",
+  "@confirmRetrievedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "retrievalReportedBookBackSale": "已回报取回，书籍已恢复上架",
+  "retrievalReported": "已回报取回",
+  "allLockers": "全部书柜",
+  "lockerCannotChangedWhileBookStored": "存书期间无法变更书柜",
+  "removedFromShopDepositedRetrieveBeforeRelisting": "取消上架后，《{p0}》将不再在商城显示，买家将无法浏览。由于此书存放于书柜中，须先取回书籍并回报，才能重新上架。",
+  "@removedFromShopDepositedRetrieveBeforeRelisting": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderPlacedBookLockerReadyPickup": "结算成功，书籍已在书柜，可立即取书",
+  "confirmStaffRemovedBookFromLocker": "请确认人员已自“{p0}”取出《{p1}》。",
+  "@confirmStaffRemovedBookFromLocker": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "inLocker": "已在书柜",
+  "inAnotherLocker": "存放于其他书柜",
+  "confirmPutAllP0BooksOrder": "确认已将此订单的 {p0} 本书全部放入书柜？",
+  "@confirmPutAllP0BooksOrder": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "awaitingRetrieval": "待取回",
+  "bookAdvisorSelection": "书籍顾问选书",
+  "bookInfoAutoFill": "书籍资料补齐",
+  "disputeAnalysis": "争议分析",
+  "monthlyBudgetUsedUp": "本月预算已用尽",
+  "coverageBooksP0HelpArticlesP1": "覆盖率：书籍 {p0}、客服知识 {p1}",
+  "@coverageBooksP0HelpArticlesP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "lastSyncP0": "最近同步：{p0}",
+  "@lastSyncP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "backgroundSyncPausedUntilP0": "后台同步暂停至 {p0}",
+  "@backgroundSyncPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "semanticQueriesPausedUntilP0": "语义查询暂停至 {p0}",
+  "@semanticQueriesPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lastErrorP0": "最近错误：{p0}",
+  "@lastErrorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0CallsAvgP1MsP95": "{p0} 次・平均 {p1} ms・p95 {p2} ms",
+  "@p0CallsAvgP1MsP95": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "turnOffAiDataProcessing": "关闭 AI 数据处理",
+  "aiFeaturesStopAiSupportBook": "关闭后将停止使用 AI 功能，并删除您的 AI 客服与书籍顾问对话记录，且无法恢复。",
+  "turnOff": "确认关闭",
+  "messagesConversationHistoryEnterPlusOwn": "您输入的消息与对话内容，以及您本人的订单、预约、上架书籍（含审核原因）、钱包余额与最近的客服工单",
+  "requestsConversationHistoryEnter": "您输入的需求与对话内容",
+  "bookDetailsFromSavedItemsPurchase": "您的收藏、购买记录、购物车与最近浏览中的书籍信息",
+  "aiDataProcessingNoticeBeenUpdated": "AI 数据处理说明已更新，请重新阅读并同意。",
+  "questionsRequestsBookDetailsAlsoConverted": "其中提问、需求与书籍信息另由 {p0} 转换为语义向量，以检索相关内容。",
+  "@questionsRequestsBookDetailsAlsoConverted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "usedOnlyGenerateSupportRepliesRecommend": "仅用于生成客服回复、推荐与检索书籍、整理上架数据，不会用于广告或追踪。",
+  "retentionPeriod": "保存期限",
+  "aiSupportBookAdvisorConversationsKept": "AI 客服与书籍顾问的对话记录自最后一次对话起保存 90 天，期满自动删除。",
+  "canTurnOffAiDataProcessing": "您可随时于「设置 › 账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据，并删除 AI 客服与书籍顾问的对话记录。",
+  "usersMustAlsoAgreeAiData": "用户亦须重新同意 AI 数据处理，才能继续使用 AI 功能。",
+  "consentRequiredAgain": "须重新同意",
+  "aiBookAdvisorUsageCountedBy": "AI 书籍顾问的次数以用户发送的消息数计算。"
 }

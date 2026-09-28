@@ -7,9 +7,9 @@ const sessions = require('./sessions');
 const audit = require('./audit');
 const aiConsent = require('./ai/consent');
 const supportAttachments = require('./support-attachments');
+const deposits = require('./book-deposits');
 const { ORDER_UNSETTLED_STATUSES } = require('../constants/domain');
-
-const GRACE_DAYS = 30;
+const { ACCOUNT_DELETION_GRACE_DAYS: GRACE_DAYS } = require('../constants/policy');
 
 const graceDeadline = (requestedAt) =>
   new Date(new Date(requestedAt).getTime() + GRACE_DAYS * 86400000);
@@ -42,6 +42,7 @@ const anonymize = async (userId) => {
       where: { seller_id: userId, status: { in: ['on_sale', 'reserved'] } },
       data: { status: 'removed', updated_at: new Date() }
     });
+    await deposits.retainForDeletedSeller(tx, userId);
 
     await tx.shopping_cart.deleteMany({ where: { user_id: userId } });
     await tx.favorites.deleteMany({ where: { user_id: userId } });
@@ -234,6 +235,10 @@ const requestDeletion = async (userId, plain) => {
   const openOrders = await unsettledOrderCount(user.user_id);
   if (openOrders > 0) {
     throw badRequest(`尚有 ${openOrders} 筆進行中的訂單，請先完成或取消後再申請刪除`, 'OPEN_ORDERS');
+  }
+  const stored = await deposits.countForSeller(prisma, user.user_id);
+  if (stored > 0) {
+    throw badRequest(`尚有 ${stored} 本書籍存放於書櫃，請先至書櫃以 App 掃描 QR Code 取回後再申請刪除`, 'BOOKS_IN_CABINET');
   }
 
   // 重複申請沿用第一次的時間，否則緩衝期會被重新計算。

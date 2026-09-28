@@ -316,6 +316,7 @@ class _IdentityVerificationSheetState extends State<IdentityVerificationSheet> {
           onPressed: _submitting ? null : _biometric,
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(46),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             foregroundColor: c.accent,
             side: BorderSide(color: c.border),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -329,6 +330,7 @@ class _IdentityVerificationSheetState extends State<IdentityVerificationSheet> {
         Center(
           child: TextButton.icon(
             onPressed: _submitting ? null : _switchToPasskey,
+            style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8)),
             icon: Icon(Icons.key_rounded, size: 18, color: c.accent),
             label: Text(S.verifyWithPasskeyInstead, style: TextStyle(color: c.accent)),
           ),
@@ -383,6 +385,7 @@ class _IdentityVerificationSheetState extends State<IdentityVerificationSheet> {
           onPressed: _submitting ? null : _switchToPassword,
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(46),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             foregroundColor: c.accent,
             side: BorderSide(color: c.border),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

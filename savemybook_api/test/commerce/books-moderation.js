@@ -165,6 +165,66 @@ const tests = [
     assert.deepStrictEqual(res.body.moderation.reasons, ['疑似圖書館館藏或非正規來源書籍']);
   }],
 
+  ['書名或描述含站外聯絡方式時即時送審，不需 AI；拆字與全形寫法同樣攔得住', async () => {
+    const { token } = seller();
+    const cases = [
+      { description: '九成新，欲購請加 LINE ID：book123' },
+      { description: '可議價，電話 ０９１２－３４５－６７８' },
+      { title: '小王子（可面交）' },
+      { description: '詳見 https://shop.example.com/item/1' }
+    ];
+    for (const body of cases) {
+      const res = await create(token, body);
+      assert.strictEqual(res.body.data.is_approved, false, JSON.stringify(body));
+      assert.deepStrictEqual(res.body.moderation.reasons, ['站外交易或聯絡資訊']);
+      assert.strictEqual(reviewOf(res.body.data.book_id).model, 'rules');
+    }
+    assert.strictEqual(screened(), 0);
+
+    const normal = await create(token, { description: '九成新，第 3 章有少量鉛筆筆記，共 320 頁。' });
+    assert.strictEqual(normal.body.data.is_approved, true);
+  }],
+
+  ['常見的通訊軟體帳號寫法與繞過寫法都會送審', async () => {
+    const { token } = seller();
+    const cases = [
+      '官方 LINE：@seller88', '加入官方賴 @seller88', 'IG：book_lover', 'Telegram: @book88', 'wechat: book88',
+      '賣家LINE帳號綁定：seller88，歡迎詢問', '請先綁定 LINE 帳號 seller88 再私訊', '有問題請連結LINE帳號 seller88',
+      '聯絡 abc (at) proton.me', '洽 0912—345—678', '讀者專線 (02)2500-7718', '請至 shopee.tw/seller88 購買'
+    ];
+    for (const description of cases) {
+      const res = await create(token, { description });
+      assert.strictEqual(res.body.data.is_approved, false, description);
+      assert.deepStrictEqual(res.body.moderation.reasons, ['站外交易或聯絡資訊'], description);
+    }
+  }],
+
+  ['銀行、會計、行銷類教科書的書名不會因「帳戶」「IG 帳號」等字詞送審', async () => {
+    const { token } = seller();
+    const titles = [
+      '銀行實務：存款帳戶與放款管理', '存款銀行的經營與風險', '中級會計學：預付款項、應收帳款', '貨幣銀行學（附轉帳帳戶練習）',
+      'Instagram 帳號經營術', '網路行銷：FB 帳號、IG 帳號與 LINE 官方帳號經營', 'Outlook.com 使用手冊',
+      'Python 程式設計：從 Gmail.com API 到自動化'
+    ];
+    for (const title of titles) {
+      const res = await create(token, { title });
+      assert.strictEqual(res.body.data.is_approved, true, title);
+      assert.strictEqual(res.body.moderation ?? null, null, title);
+    }
+    const course = await create(token, { description: '大學用書，課程代碼 101，原文書 ISBN 0-596-00712-4' });
+    assert.strictEqual(course.body.data.is_approved, true);
+  }],
+
+  ['修改描述加入站外聯絡方式時送審', async () => {
+    const { user, token } = seller();
+    const book = addBook({ sellerId: user.user_id, description: '九成新' });
+    const res = await request('PUT', `/api/books/${book.book_id}`, { token, body: { description: '九成新\n私下交易可再便宜 50 元' } });
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(bookOf(book.book_id).is_approved, false);
+    assert.strictEqual(reviewOf(book.book_id).status, 'pending');
+    assert.strictEqual(screened(), 0);
+  }],
+
   ['調高售價到異常價格時送審', async () => {
     const { user, token } = seller();
     const book = addBook({ sellerId: user.user_id, price: 300 });

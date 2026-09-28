@@ -1,0 +1,67 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "users" as users {
+  {field} <&key> user_id : int
+  --
+  ...
+}
+entity "user_identities" as user_identities {
+  {field} <&key> identity_id : int
+  --
+  {field} user_id : int
+  {field} provider : enum
+  {field} subject : varchar
+  {field} email : varchar(255)
+  {field} phone : varchar(20)
+  {field} display_name : varchar(100)
+  {field} created_at : datetime
+  {field} last_login_at : datetime
+}
+entity "user_passkeys" as user_passkeys {
+  {field} <&key> passkey_id : int
+  --
+  {field} user_id : int
+  {field} credential_id : varchar(255)
+  {field} public_key : text
+  {field} sign_count : int
+  {field} transports : varchar(100)
+  {field} aaguid : char(36)
+  {field} backed_up : tinyint(1)
+  {field} device_label : varchar(50)
+  {field} created_at : datetime
+  {field} last_used_at : datetime
+}
+entity "webauthn_challenges" as webauthn_challenges {
+  {field} <&key> challenge : char(64)
+  --
+  {field} user_id : int
+  {field} purpose : enum
+  {field} created_at : datetime
+}
+entity "oauth_states" as oauth_states {
+  {field} <&key> state : char(32)
+  --
+  {field} provider : varchar(20)
+  {field} mode : enum
+  {field} user_id : int
+  {field} created_at : datetime
+}
+entity "oauth_results" as oauth_results {
+  {field} <&key> code : char(32)
+  --
+  {field} payload : text
+  {field} created_at : datetime
+}
+users ||--o{ user_identities
+users ||--o{ user_passkeys
+@enduml

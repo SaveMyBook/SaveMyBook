@@ -61,7 +61,7 @@ const linkAndSignIn = async ({ provider, idToken, code, email, password, asserti
     }).catch(() => {});
   }
 
-  if (code) await oauth.dropResult(code);
+  if (code) await oauth.consumeResult(code);
   return auth.issueLogin(user, device, method);
 };
 

@@ -99,6 +99,26 @@ module.exports = {
       await runner.assertDailyLimit(h.settings({ limits: { daily_per_user: { support: 0 } } }), 'support', 5);
     }],
 
+    ['已計費的失敗另設上限：只計今日同一功能且費用大於 0 的錯誤', async () => {
+      const settings = h.settings({ limits: { monthly_budget_usd: 10, daily_per_user: { support: 30, listing_assist: 15, recommend: 5, book_chat: 20 } } });
+      for (let i = 0; i < runner.BILLED_FAILURE_LIMIT - 1; i += 1) {
+        h.addUsageLog({ user_id: 5, feature: 'book_chat', status: 'error', error_code: 'INVALID_OUTPUT', cost_usd: 0.0004, created_at: new Date() });
+      }
+      h.addUsageLog({ user_id: 5, feature: 'book_chat', status: 'error', error_code: 'TIMEOUT', cost_usd: 0, created_at: new Date() });
+      h.addUsageLog({ user_id: 5, feature: 'book_chat_pick', status: 'error', error_code: 'INVALID_OUTPUT', cost_usd: 0.0004, created_at: new Date() });
+      h.addUsageLog({ user_id: 5, feature: 'book_chat', status: 'error', cost_usd: 0.0004, created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) });
+      await runner.assertDailyLimit(settings, 'book_chat', 5);
+
+      h.addUsageLog({ user_id: 5, feature: 'book_chat', status: 'error', error_code: 'BLOCKED', cost_usd: 0.0001, created_at: new Date() });
+      await assert.rejects(
+        () => runner.assertDailyLimit(settings, 'book_chat', 5),
+        (err) => err.status === 429 && err.code === 'AI_DAILY_LIMIT'
+      );
+      await runner.assertDailyLimit(settings, 'support', 5);
+      // 每日上限為 0（不限制）時，已計費失敗也不設限。
+      await runner.assertDailyLimit(h.settings({ limits: { daily_per_user: { book_chat: 0 } } }), 'book_chat', 5);
+    }],
+
     ['本月花費達到預算時整組 AI 功能停用', async () => {
       h.setSettings({ enabled: true, limits: { monthly_budget_usd: 5 } });
       h.addUsageLog({ cost_usd: 4.999999, created_at: new Date() });
@@ -176,9 +196,10 @@ module.exports = {
       assert.ok(row.error_detail.includes('[redacted]'));
     }],
 
-    ['非服務商錯誤一律轉成 502 並記為 INTERNAL', async () => {
+    ['非服務商錯誤一律轉成 502 並記為 INTERNAL，延遲以實際經過的時間記錄', async () => {
       const settings = h.settings();
-      h.queueJson(() => {
+      h.queueJson(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20));
         throw new Error('資料庫連線中斷');
       });
       await assert.rejects(
@@ -187,6 +208,23 @@ module.exports = {
       );
       assert.strictEqual(logRow().error_code, 'INTERNAL');
       assert.strictEqual(logRow().error_detail, '資料庫連線中斷');
+      assert.ok(logRow().latency_ms >= 15, `latency_ms=${logRow().latency_ms}`);
+    }],
+
+    ['內容遭阻擋但已計費時，錯誤列記下用量與費用，並以 422 AI_CONTENT_BLOCKED 拋出', async () => {
+      const settings = h.settings();
+      const err = new ai.AiProviderError('BLOCKED', { provider: 'gemini' });
+      err.usage = { input_tokens: 1000000, output_tokens: 0 };
+      err.latency_ms = 640;
+      h.queueJson(err);
+      await assert.rejects(
+        () => runner.call('support', { settings, provider: 'gemini', userId: 8, prompt: 'x' }),
+        (thrown) => thrown.status === 422 && thrown.code === 'AI_CONTENT_BLOCKED' && thrown.message === '此內容無法由 AI 處理，請調整內容後再試'
+      );
+      const row = logRow();
+      assert.strictEqual(row.error_code, 'BLOCKED');
+      assert.strictEqual(row.cost_usd, 0.25);
+      assert.strictEqual(row.latency_ms, 640);
     }],
 
     ['期間換算：today、7d、30d 與 month 的起點', () => {
@@ -235,12 +273,31 @@ module.exports = {
       assert.strictEqual(report.by_feature[1].errors, 1);
       assert.strictEqual(report.by_provider[0].provider, 'gemini');
       assert.strictEqual(report.by_provider[0].avg_latency_ms, 200);
+      assert.strictEqual(report.by_provider[0].p95_latency_ms, 300);
+      assert.strictEqual(report.by_provider[1].avg_latency_ms, null, '只有錯誤的呼叫時延遲為 null，不顯示成 0 毫秒');
+      assert.strictEqual(report.by_provider[1].p95_latency_ms, null);
 
       const days = Object.fromEntries(report.daily.map((d) => [d.date, d]));
       assert.strictEqual(days['2026-05-09'].requests, 1);
       assert.strictEqual(days['2026-05-10'].requests, 2);
       assert.strictEqual(days['2026-05-10'].by_feature.support, 2);
       assert.strictEqual(days['2026-05-08'].requests, 0);
+    }],
+
+    ['報表：平均延遲只計算成功的呼叫，p95 以最近排名法計算', async () => {
+      for (const ms of [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000]) {
+        h.addUsageLog({ provider: 'openai', model: 'gpt-5-nano', latency_ms: ms, created_at: at(10) });
+      }
+      h.addUsageLog({ provider: 'openai', model: 'gpt-5-nano', latency_ms: 20000, status: 'error', error_code: 'TIMEOUT', created_at: at(10) });
+      h.addUsageLog({ provider: 'openai', model: 'gpt-5-nano', latency_ms: 0, status: 'error', error_code: 'AUTH', created_at: at(10) });
+
+      const report = await usage.report('today', { monthlyBudgetUsd: 0, now: NOW });
+      const [row] = report.by_provider;
+      assert.strictEqual(row.requests, 22);
+      assert.strictEqual(row.avg_latency_ms, 1050);
+      assert.strictEqual(row.p95_latency_ms, 1900);
+      assert.strictEqual(usage.percentile([], 0.95), null);
+      assert.strictEqual(usage.percentile([7], 0.95), 7);
     }],
 
     ['報表：用量最高的使用者只以加密編號呈現', async () => {

@@ -532,7 +532,6 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                               label: S.lockerLocation,
                               labelWidth: 88,
                               isRequired: true,
-                              alignTop: true,
                               child: CabinetSelectField(
                                 value: _selectedCabinet,
                                 autoSelectNearest: !_cabinetTouched,

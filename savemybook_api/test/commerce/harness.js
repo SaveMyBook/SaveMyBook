@@ -34,14 +34,18 @@ registerModels({
     support_ticket_messages: 'message_id',
     chat_rooms: 'room_id',
     chat_messages: 'message_id',
-    recommendation_logs: 'log_id'
+    recommendation_logs: 'log_id',
+    book_deposits: 'book_id',
+    cabinet_manual_reports: 'report_id',
+    cabinet_events: 'event_id'
   },
   uniqueKeys: {
     books: [['book_id']],
     orders: [['order_id'], ['order_no']],
     wallets: [['user_id']],
     shopping_cart: [['user_id', 'book_id']],
-    favorites: [['user_id', 'book_id']]
+    favorites: [['user_id', 'book_id']],
+    book_deposits: [['book_id']]
   },
   defaults: {
     books: {
@@ -63,7 +67,16 @@ registerModels({
     support_tickets: { status: 'open', closed_at: null },
     support_ticket_messages: { is_staff: false },
     notifications: { is_read: false, related_id: null, related_type: null },
-    chat_rooms: { book_id: null, room_type: 'direct' }
+    chat_rooms: { book_id: null, room_type: 'direct' },
+    book_deposits: { paused_at: null, auto_paused: false, reminded_at: null, escalated_at: null },
+    cabinet_manual_reports: {
+      order_id: null, book_id: null, target_status: null, reason: null, status: 'pending', pending_key: null,
+      held_on_sale: false, reviewed_by: null, reviewed_at: null, review_note: null
+    },
+    cabinet_events: {
+      device_id: null, session_id: null, order_id: null, book_id: null, event_key: null, lock_channel: null,
+      actor_id: null, detail: null, result: null, claimed_at: null, processed_at: null
+    }
   }
 });
 
@@ -75,7 +88,7 @@ const TABLES = [
   'orders', 'order_items', 'shopping_cart', 'favorites', 'reservations', 'recommendation_logs',
   'wallets', 'wallet_transactions', 'refund_records', 'transaction_disputes', 'reports',
   'support_tickets', 'support_ticket_messages', 'chat_rooms', 'chat_room_members', 'chat_messages',
-  'ai_settings', 'ai_usage_logs', 'ai_book_reviews'
+  'ai_settings', 'ai_usage_logs', 'ai_book_reviews', 'book_deposits', 'cabinet_manual_reports', 'cabinet_events'
 ];
 
 const aiSettings = api('services/ai/settings');
@@ -234,6 +247,15 @@ const addAdmin = (permissions = null) => {
   const admin = addUser({ nickname: '客服人員', role: 'admin' });
   if (permissions) prisma.rows('admin_permissions').push({ user_id: admin.user_id, ...permissions });
   return admin;
+};
+
+// 故障備援的手動回報一律待客服確認（業主決策）；以另一位管理員確認，取得確認後的結果。
+const confirmManual = async (res, { slotId = null } = {}) => {
+  if (res.status !== 202) throw new Error(`預期為待確認的手動回報：${res.status} ${res.text}`);
+  const admin = addAdmin();
+  return request('POST', `/api/admin/cabinet-manual-reports/${res.body.data.manual_report.report_no}/confirm`, {
+    token: tokenFor(admin), body: slotId ? { slot_id: slotId } : {}
+  });
 };
 
 const addWallet = (userId, balance = 0) => {
@@ -461,5 +483,6 @@ module.exports = {
   enableModeration, stubModeration, failModeration, stubGoogleBooks, stubOpenLibrary, GOOGLE_BOOKS, OPEN_LIBRARY,
   addUser, addAdmin, addWallet, addCategory, addCabinet, addBook, addImage, addCartItem, addReservation,
   addRoom, addOrder, addPaidOrder, addTicket,
-  walletOf, balanceOf, bookOf, orderOf, notificationsOf, transactionsOf, logs, reviewOf, tokenFor, verifyHeaders, flush
+  walletOf, balanceOf, bookOf, orderOf, notificationsOf, transactionsOf, logs, reviewOf, tokenFor, verifyHeaders, flush,
+  confirmManual
 };

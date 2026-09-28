@@ -11,17 +11,26 @@ tags:
 
       AI 客服、書籍顧問、上架輔助與個人推薦會將使用者的資料提供給外部 AI 服務商處理，須先取得使用者明確同意
       （`PUT /api/ai/consent`），同意可隨時撤回。未同意時 AI 客服、書籍顧問與上架輔助回傳 403 `AI_CONSENT_REQUIRED`，
-      個人推薦改回傳既有推薦。上架審核只處理公開的商品內容，不含賣家個人資料，不需要使用者同意。
-      送交服務商的照片會先移除 EXIF、XMP 等中繼資料（含拍攝位置）。
+      個人推薦改回傳既有推薦。同意以當時的隱私權政策版本記錄：隱私權政策經後台發布重大更新（版本加一）後，
+      先前的同意即失效，須重新同意。
+      上架審核只處理公開的商品內容，交易爭議分析為處理爭議所必要，一般書籍搜尋的關鍵字會送往嵌入服務商計算語意向量，
+      這三項已揭露於隱私權政策，不以使用者同意為前提。送交服務商的照片會先移除 EXIF、XMP 等中繼資料（含拍攝位置）。
+
+      AI 客服與書籍顧問的對話在最後一則訊息滿 90 天後由排程刪除（結束或轉接對話不會重新起算）；使用者撤回同意時立即刪除。
 
       | `code` | HTTP | 意義 |
       | --- | --- | --- |
       | `AI_DISABLED` | 503 | 管理員未開放此功能 |
       | `AI_NOT_CONFIGURED` | 503 | 此功能使用的服務商尚未設定 API 金鑰 |
       | `AI_BUDGET_EXCEEDED` | 503 | 本月 AI 費用已達管理員設定的預算 |
-      | `AI_CONSENT_REQUIRED` | 403 | 使用者尚未同意將資料提供給 AI 服務商處理 |
+      | `AI_CONSENT_REQUIRED` | 403 | 使用者尚未同意將資料提供給 AI 服務商處理，或隱私權政策重大更新後尚未重新同意 |
+      | `AI_CONSENT_NOTICE_OUTDATED` | 409 | 同意請求未附上目前的說明版本（舊版 App），須更新 App 後再同意 |
       | `AI_DAILY_LIMIT` | 429 | 使用者今日使用次數已達上限 |
+      | `AI_CONTENT_BLOCKED` | 422 | 服務商的安全機制拒絕處理這段內容，重送相同內容仍會失敗，用戶端不應提供重試 |
       | `AI_PROVIDER_ERROR` | 502 | 服務商錯誤、逾時或回應格式不正確 |
+
+      每日次數只計成功的呼叫。已計費但失敗的呼叫（例如內容遭阻擋、輸出被截斷或格式不正確）每人每日每項功能另有 10 次上限，
+      達上限同樣回傳 429 `AI_DAILY_LIMIT`；管理員將該功能的每日次數設為 0 時兩者都不限制。
 
       模型輸出一律由伺服器驗證與清理（數值範圍、分類是否存在、書況列舉、網址格式），不會原樣轉交。
 
@@ -35,10 +44,14 @@ paths:
         功能可用的條件：總開關與該功能皆開啟、該功能使用的服務商已設定金鑰、本月費用未達預算。
         `web_search` 表示上架輔助會以網路搜尋補齊書目與定價。
 
-        `consented` 為請求者是否已同意 AI 資料處理；`providers_in_use` 為目前可用的使用者功能實際會使用的服務商顯示名稱
-        （含上架輔助辨識照片時改用的服務商），供同意說明列出資料接收者。
+        `consented` 為請求者是否已同意目前版本的 AI 資料處理說明；`consent_outdated` 為 true 表示曾經同意，
+        但隱私權政策已有重大更新，須重新同意（此時 `consented` 為 false）。
 
-        功能狀態與服務商於伺服器快取約 30 秒，`consented` 每次即時查詢。每日次數上限因人而異，不反映在此端點。
+        `providers_in_use` 為目前可用的使用者功能實際會使用的服務商顯示名稱（含上架輔助辨識照片時改用的服務商，
+        以及 AI 客服、書籍顧問或個人推薦可用時的嵌入服務商），供同意說明列出資料接收者。
+        `embedding_provider` 為語意檢索使用的嵌入服務商；上述三項功能皆不可用或未設定嵌入金鑰時為 null。
+
+        功能狀態與服務商於伺服器快取約 30 秒，`consented` 與 `consent_outdated` 每次即時查詢。每日次數上限因人而異，不反映在此端點。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -58,14 +71,21 @@ paths:
       operationId: setAiConsent
       tags: [ai]
       description: |
-        `granted: true` 表示使用者同意將下列資料提供給 `providers_in_use` 所列的服務商處理：
+        `granted: true` 表示使用者同意將下列資料提供給 `providers_in_use` 所列的服務商處理，並記錄目前的隱私權政策版本：
 
-        - AI 客服：使用者輸入的訊息，以及本人的訂單與預約狀態
-        - 書籍顧問：使用者輸入的訊息與同一對話的歷史紀錄
+        - AI 客服：使用者輸入的訊息與同一對話的歷史紀錄，以及本人的訂單、預約、上架書籍（含審核狀態與審核原因）、
+          錢包餘額與最近 3 張客服工單的主旨及狀態
+        - 書籍顧問：使用者輸入的需求與同一對話的歷史紀錄
         - 上架輔助：ISBN、書名、書況說明與使用者選擇的照片
-        - 個人推薦：收藏與購買紀錄中的書籍資訊
+        - 個人推薦：收藏、購買紀錄、購物車與最近瀏覽中的書籍資訊
 
-        `granted: false` 撤回同意，並刪除該使用者的 AI 推薦快取；之後的 AI 客服與上架輔助請求回傳 403 `AI_CONSENT_REQUIRED`。
+        AI 客服的提問、書籍顧問的需求與個人推薦依據的書籍資訊另會送往 `embedding_provider` 計算語意向量。
+
+        同意時須以 `notice_version` 附上用戶端顯示的同意說明版本（目前為 2）；未附上或不相符時回傳 409
+        `AI_CONSENT_NOTICE_OUTDATED`，不記錄同意，避免舊版 App 以未列出上述資料的舊說明取得新版政策的同意。
+
+        `granted: false` 撤回同意（不檢查 `notice_version`），並刪除該使用者的 AI 客服對話、書籍顧問對話與 AI 推薦快取；
+        之後的 AI 客服、書籍顧問與上架輔助請求回傳 403 `AI_CONSENT_REQUIRED`，個人推薦改回傳既有推薦。
         回應為更新後的 `GET /api/ai/status` 內容。
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -77,6 +97,7 @@ paths:
               required: [granted]
               properties:
                 granted: { type: boolean, example: true }
+                notice_version: { type: integer, description: 用戶端顯示的同意說明版本，同意時必填, example: 2 }
       responses:
         '200':
           description: 成功。
@@ -90,6 +111,12 @@ paths:
                   data: { $ref: '#/components/schemas/AiStatus' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: 同意說明版本不符，須更新 App。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: AI_CONSENT_NOTICE_OUTDATED, message: 請更新 App 後再同意 AI 資料處理 }
         '503': { $ref: '#/components/responses/AiUnavailable' }
 
   /api/ai/support/session:
@@ -122,13 +149,19 @@ paths:
       tags: [ai]
       description: |
         附加到進行中的對話，沒有時自動建立。模型參考平台知識、常見問題、法律文件摘要，
-        以及請求者本人最近 5 筆訂單與預約狀態（不含交易對象的個人資料），並帶入最近 12 則對話紀錄。
+        以及請求者本人的資料（不含交易對象的個人資料）：最近各 5 筆購買與售出訂單、5 筆預約、8 本上架書籍（含審核狀態與審核原因）、
+        錢包餘額與最近 3 張客服工單的主旨及狀態，並帶入最近 12 則對話紀錄。
 
         模型只回答 SaveMyBook 相關問題，不自行編造政策。無法解決時 `suggest_handoff` 為 true，
         用戶端可提示使用者以 `POST /api/ai/support/session/escalate` 轉由客服人員處理。
 
+        書名、書櫃名稱等他人撰寫的文字放入提示詞前會攤平成單行並替換分隔符號，提問紀錄只提供主旨與狀態、不含編號。
+        回覆含電話、電子郵件、通訊軟體帳號或站外網址（含不帶 http 的網域）時刪除該句。本站主網域與子網域的網址與信箱，
+        以及未附帳號字串的 LINE／Discord 帳號登入說明除外；網址以解析後的主機比對，含帳密或內嵌其他網址時視為站外網址。
+        刪除後保留的內容不到原文一半時改為固定說明，且 `suggest_handoff` 為 true。
+
         使用者尚未同意 AI 資料處理時回傳 403 `AI_CONSENT_REQUIRED`，不呼叫服務商也不寫入對話。
-        服務商失敗時回傳 502，這則訊息不會寫入對話。每日次數上限計算成功送出的訊息數。
+        服務商失敗時回傳 502，內容遭服務商阻擋時回傳 422 `AI_CONTENT_BLOCKED`，這則訊息都不會寫入對話。每日次數上限計算成功送出的訊息數。
         每位使用者每分鐘另有 20 次的請求頻率限制，與上架輔助、轉接共用。
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -159,6 +192,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AiConsentRequired' }
+        '422': { $ref: '#/components/responses/AiContentBlocked' }
         '429': { $ref: '#/components/responses/AiDailyLimit' }
         '502': { $ref: '#/components/responses/AiProviderError' }
         '503': { $ref: '#/components/responses/AiUnavailable' }
@@ -172,7 +206,8 @@ paths:
         以一般客服工單流程建立工單（通知具客服權限的管理員），第一則訊息為 AI 客服對話紀錄，
         並將對話標記為 `escalated`。未提供主旨時以第一個問題產生。
 
-        沒有進行中的對話、或處理中的工單已達 5 張時回傳 400。此端點不呼叫模型，AI 功能關閉或使用者撤回 AI 資料處理同意時仍可使用。
+        沒有進行中的對話、或處理中的工單已達 5 張時回傳 400。此端點不呼叫模型，AI 功能關閉時仍可使用；
+        使用者撤回 AI 資料處理同意時對話已刪除，回傳 400。
       security: [{ bearerAuth: [] }]
       requestBody:
         content:
@@ -223,7 +258,7 @@ paths:
       description: |
         回傳進行中（`open`）的對話與最近 30 則訊息；沒有進行中的對話時 `data` 為 null。
 
-        每則助理訊息的 `books` 會在讀取時重新查詢書籍，已售出、下架或未通過審核的書不會出現，
+        每則助理訊息的 `books` 會在讀取時重新查詢書籍，已售出、下架、未通過審核、書櫃維修中或由其他買家預約保留中的書不會出現，
         因此舊訊息的書卡數量可能少於當初推薦的數量。歷史訊息不含推薦理由與追問建議。
       security: [{ bearerAuth: [] }]
       responses:
@@ -253,15 +288,22 @@ paths:
         1. 依最近 10 則對話、分類清單與可用的篩選條件，判斷使用者的需求並產生查詢條件。
            條件不足時只回覆釐清問題（`books` 為空陣列），且不再呼叫第二次。
         2. 伺服器以關鍵字與語意混合檢索取最多 30 本販售中、已審核、非本人上架的書（相關的書不足時補上其他在售書），
-           再請模型從中挑選最多 6 本並附上推薦理由。
+           再請模型從中挑選最多 6 本並附上推薦理由。需求含 ISBN（可含連字號、全形數字或「ISBN」前綴，10 碼與 13 碼互通）時，ISBN 相符的書排在最前面。
+
+        書櫃維修中與其他買家預約保留中的書結帳時會被擋下，每個步驟（含補位、熱門書退路與書卡）都不列入；
+        請求者本人預約保留的書照常列出。
 
         書籍一律來自伺服器查詢的候選清單，模型回傳的書籍代號不在清單內時直接捨棄，
-        因此不會出現不存在的書籍或價格。模型判斷沒有合適的書時 `books` 為空陣列；
+        因此不會出現不存在的書籍或價格。書名、作者、簡介等賣家撰寫的文字放入提示詞前會攤平成單行並替換分隔符號；
+        回覆含電話、電子郵件、通訊軟體帳號或站外網址時刪除該句，推薦理由含這類內容時改為 null，追問建議含這類內容時不列出。
+        模型明確回傳空的書單時 `books` 為空陣列；
         相關的書全是請求者自己上架時，回覆會說明此情況。完全查無在售書時改回傳站上熱門書籍；
-        第二次模型呼叫失敗，或回傳的代號全部無效時，改以檢索結果的前幾本回覆，不會回傳 502（錯誤仍計入用量紀錄）。
+        第二次模型呼叫失敗（含內容遭阻擋），或書單格式不正確、代號全部無效時，改以檢索結果的前幾本回覆並附上中性說明，
+        不會回傳錯誤（錯誤仍計入用量紀錄）。第一次呼叫的內容遭服務商阻擋時回傳 422 `AI_CONTENT_BLOCKED`。
 
         使用者尚未同意 AI 資料處理時回傳 403 `AI_CONSENT_REQUIRED`，不呼叫服務商也不寫入對話。
-        每日次數上限計算成功送出的訊息數；每位使用者每分鐘另有 20 次的請求頻率限制，與 AI 客服、上架輔助共用。
+        每日次數上限計算成功送出的訊息數：第二次呼叫在用量報表記為 `book_chat_pick`，不計入每日次數。
+        每位使用者每分鐘另有 20 次的請求頻率限制，與 AI 客服、上架輔助共用。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -290,6 +332,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AiConsentRequired' }
+        '422': { $ref: '#/components/responses/AiContentBlocked' }
         '429': { $ref: '#/components/responses/AiDailyLimit' }
         '502': { $ref: '#/components/responses/AiProviderError' }
         '503': { $ref: '#/components/responses/AiUnavailable' }
@@ -332,10 +375,12 @@ paths:
 
         照片只在記憶體中處理，不會儲存；送出前移除 EXIF、XMP 等中繼資料。無法移除中繼資料的格式（HEIC、HEIF、AVIF）不會送出，
         並於 `warnings` 提示；只提供這類照片且沒有 ISBN 與書名時回傳 400。書目欄位以外部書庫為優先；無法確認的欄位為空字串。
-        售價為整數（代幣，等值新臺幣），`suggested` 介於 `min` 與 `max` 之間，且不高於已知的定價。
+        售價以 10 代幣為單位（代幣等值新臺幣），最低 20 代幣，`suggested` 介於 `min` 與 `max` 之間，且不高於已知的定價；
+        定價低於 20 時以定價為準。書況依賣家說明下修時，調整後的售價依相同規則處理。
         未提供照片與書況說明時 `condition` 為 null。
 
         指定的服務商不支援照片辨識時，改用已設定金鑰的 Gemini 或 OpenAI；皆未設定時僅依文字判斷並於 `warnings` 提示。
+        內容遭服務商阻擋且沒有可用的書目資料時回傳 422 `AI_CONTENT_BLOCKED`；有書目資料時改回傳書目資料並於 `warnings` 提示。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -371,6 +416,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 檔案大小超過上限 }
+        '422': { $ref: '#/components/responses/AiContentBlocked' }
         '429': { $ref: '#/components/responses/AiDailyLimit' }
         '502': { $ref: '#/components/responses/AiProviderError' }
         '503': { $ref: '#/components/responses/AiUnavailable' }
@@ -382,17 +428,22 @@ paths:
       tags: [ai]
       description: |
         從最多 60 本販售中、已審核、非本人上架的候選書籍中，依使用者的收藏、購買、購物車與最近瀏覽紀錄排序並附上推薦理由。
-        候選書籍結合個人化排序、與使用者紀錄內容相似的書（書名、作者、分類、簡介的關鍵字比對）與熱門書；書櫃維修中的書不列入。
+        候選書籍結合個人化排序、與使用者紀錄內容相似的書（書名、作者、分類、簡介的關鍵字比對）與熱門書。
+        只由熱門書補進候選的書（未出現在個人化排序與內容相似中）最多只能比其候選順序往前移 3 名，
+        避免書名或簡介夾帶指令的書被排到最前面；書名、作者、簡介放入提示詞前也會攤平成單行並替換分隔符號。
+        推薦理由含電話、電子郵件、通訊軟體帳號或站外網址時改為 null。
+        書櫃維修中與其他買家預約保留中的書結帳時會被擋下，AI 推薦與改回傳的既有推薦都不列入；請求者本人預約保留的書照常列出。
+        購買紀錄不含已取消或已退款的訂單，但這些訂單中的書不會再推薦給同一位買家；收藏、購物車與最近瀏覽只採用已核准且未下架的書。
         結果依使用者快取 6 小時；收藏、購買或購物車有變動時提前重新產生，重新產生失敗時沿用舊結果。
-        快取期間已售出或下架的書籍會被濾除；只有實際呼叫模型才計入每日次數。
+        快取期間已售出、下架、書櫃維修中或被其他買家保留的書籍會被濾除；只有實際呼叫模型才計入每日次數。
 
         AI 無法使用（未開放、預算用盡、今日次數用完、服務商錯誤）、使用者尚未同意 AI 資料處理，或使用者沒有任何紀錄時，
         改回傳既有推薦（`meta.source` 為 `fallback`，`reason` 與 `basis` 為 null），此端點不會因 AI 問題回傳錯誤。
 
         **分組**：模型以代號標出每本書依據的是使用者哪一筆紀錄或哪個常看分類，書名與分類名稱由伺服器依紀錄帶入，
         不採用模型寫的文字。`groups` 依推薦順序列出：同一依據至少 2 本才成一組，最多 3 組，每組最多 10 本；
-        其餘書籍（含依據不明與熱門補位）歸入 `kind` 為 `more` 的最後一組。App 依 `kind` 與 `relation` 組出標題，
-        例如「因為您收藏了《白夜行》」「您常看的「推理小說」」。
+        其餘書籍（含依據不明與熱門補位）歸入 `kind` 為 `more` 的最後一組。依據的書籍已下架或退回審核時，該書的 `basis` 改為 null。
+        App 依 `kind` 與 `relation` 組出標題，例如「因為您收藏了《白夜行》」「您常看的「推理小說」」。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
@@ -401,7 +452,7 @@ paths:
         - in: query
           name: viewed_ids
           schema: { type: string }
-          description: App 端最近瀏覽的書籍編號，以逗號分隔，最多採用 20 筆，作為較弱的興趣訊號。
+          description: App 端最近瀏覽的書籍編號，以逗號分隔，最多採用 20 筆，作為較弱的興趣訊號；已下架或未核准的書不採用。
           example: '12,45,7'
       responses:
         '200':
@@ -465,10 +516,16 @@ components:
         book_chat: { type: boolean, example: true }
         web_search: { type: boolean, example: true }
         consented: { type: boolean, example: false }
+        consent_outdated: { type: boolean, example: false }
         providers_in_use:
           type: array
           items: { type: string, enum: [DeepSeek, Google Gemini, OpenAI] }
-          example: [DeepSeek, Google Gemini]
+          example: [DeepSeek, OpenAI]
+        embedding_provider:
+          type: string
+          nullable: true
+          enum: [Google Gemini, OpenAI]
+          example: OpenAI
 
     AiSupportMessage:
       type: object
@@ -629,6 +686,13 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
           example: { success: false, code: AI_DAILY_LIMIT, message: 今日 AI 使用次數已達上限，請明日再試 }
+
+    AiContentBlocked:
+      description: 服務商的安全機制拒絕處理這段內容，重送相同內容仍會失敗。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: AI_CONTENT_BLOCKED, message: 此內容無法由 AI 處理，請調整內容後再試 }
 
     AiProviderError:
       description: 服務商錯誤、逾時或回應格式不正確。

@@ -2,7 +2,9 @@ const prisma = require('../../lib/prisma');
 const publicId = require('../../lib/public-id');
 const { clip } = require('../../lib/text');
 
-const FEATURES = ['support', 'listing_assist', 'recommend', 'moderation', 'book_chat', 'embedding', 'enrich', 'admin_assist', 'test'];
+const FEATURES = [
+  'support', 'listing_assist', 'recommend', 'moderation', 'book_chat', 'book_chat_pick', 'embedding', 'enrich', 'admin_assist', 'test'
+];
 const PERIODS = ['today', '7d', '30d', 'month'];
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -63,6 +65,19 @@ const dailyCount = async (userId, feature, now = new Date()) => {
   return num(rows[0]?.n);
 };
 
+const billedFailureCount = async (userId, feature, now = new Date()) => {
+  const rows = await prisma.$queryRaw`
+    SELECT COUNT(*) AS n FROM ai_usage_logs
+    WHERE user_id = ${userId} AND feature = ${feature} AND status = 'error' AND cost_usd > 0 AND created_at >= ${startOfDay(now)}`;
+  return num(rows[0]?.n);
+};
+
+const percentile = (values, p) => {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  return Math.round(sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(p * sorted.length) - 1))]);
+};
+
 const periodRange = (period, now = new Date()) => {
   const today = startOfDay(now);
   const from = {
@@ -105,12 +120,15 @@ const report = async (period, { monthlyBudgetUsd = 0, now = new Date() } = {}) =
       FROM ai_usage_logs WHERE created_at >= ${from} AND created_at <= ${to}
       GROUP BY feature ORDER BY cost_usd DESC`,
     prisma.$queryRaw`
-      SELECT provider, model, COUNT(*) AS requests, COALESCE(SUM(cost_usd), 0) AS cost_usd, COALESCE(AVG(latency_ms), 0) AS avg_latency_ms
+      SELECT provider, model, COUNT(*) AS requests, COALESCE(SUM(cost_usd), 0) AS cost_usd,
+        AVG(CASE WHEN status = 'ok' THEN latency_ms END) AS avg_latency_ms
       FROM ai_usage_logs WHERE created_at >= ${from} AND created_at <= ${to}
       GROUP BY provider, model ORDER BY cost_usd DESC`,
     // 逐筆取回再依伺服器當地日期分組：資料庫時區可能與伺服器不同，DATE() 會切錯日期。
+    // p95 也在這裡計算，MySQL 沒有百分位數函式。
     prisma.$queryRaw`
-      SELECT feature, cost_usd, created_at FROM ai_usage_logs WHERE created_at >= ${from} AND created_at <= ${to}`,
+      SELECT feature, provider, model, status, latency_ms, cost_usd, created_at FROM ai_usage_logs
+      WHERE created_at >= ${from} AND created_at <= ${to}`,
     prisma.$queryRaw`
       SELECT l.user_id, u.nickname, COUNT(*) AS requests, COALESCE(SUM(l.cost_usd), 0) AS cost_usd
       FROM ai_usage_logs l JOIN users u ON u.user_id = l.user_id
@@ -126,6 +144,14 @@ const report = async (period, { monthlyBudgetUsd = 0, now = new Date() } = {}) =
 
   const t = totals[0] ?? {};
   const budget = num(monthlyBudgetUsd);
+
+  const okLatencies = new Map();
+  for (const row of dailyRows) {
+    if (row.status !== 'ok') continue;
+    const key = `${row.provider}|${row.model}`;
+    if (!okLatencies.has(key)) okLatencies.set(key, []);
+    okLatencies.get(key).push(num(row.latency_ms));
+  }
 
   const days = daysBetween(from, to);
   const daily = new Map(days.map((date) => [date, { date, requests: 0, cost_usd: 0, by_feature: {} }]));
@@ -167,7 +193,8 @@ const report = async (period, { monthlyBudgetUsd = 0, now = new Date() } = {}) =
       model: r.model,
       requests: num(r.requests),
       cost_usd: round6(num(r.cost_usd)),
-      avg_latency_ms: Math.round(num(r.avg_latency_ms))
+      avg_latency_ms: r.avg_latency_ms == null ? null : Math.round(num(r.avg_latency_ms)),
+      p95_latency_ms: percentile(okLatencies.get(`${r.provider}|${r.model}`) ?? [], 0.95)
     })),
     daily: [...daily.values()].map((d) => ({
       ...d,
@@ -194,5 +221,5 @@ const report = async (period, { monthlyBudgetUsd = 0, now = new Date() } = {}) =
 
 module.exports = {
   FEATURES, PERIODS, startOfDay, startOfMonth, localDate, log, monthCost, monthSearchCalls, budgetExceeded, dailyCount,
-  periodRange, daysBetween, projectMonth, report
+  billedFailureCount, percentile, periodRange, daysBetween, projectMonth, report
 };

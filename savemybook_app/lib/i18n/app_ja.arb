@@ -208,15 +208,14 @@
   "addCart": "カートに追加",
   "bookBeenReportedUnderReviewStays": "この本は報告を受け、審査中です。",
   "violationWasConfirmedBookPleaseCheck": "この本は違反が確認されました。出品内容を修正してください。",
-  "delist": "出品を取り消す",
-  "removedFromShopBuyersNoLonger": "「{p0}」はショップから外され、購入者には表示されなくなります。",
+  "delist": "出品取消",
+  "removedFromShopBuyersNoLonger": "出品を取り消すと、「{p0}」はショップに表示されなくなり、購入者は閲覧できなくなります。",
   "@removedFromShopBuyersNoLonger": {
     "placeholders": {
       "p0": {}
     }
   },
-  "delist2": "出品停止",
-  "couldNotDelistPleaseTryAgain": "出品停止に失敗しました。しばらくしてからお試しください。",
+  "couldNotDelistPleaseTryAgain": "出品の取り消しに失敗しました。しばらくしてからお試しください。",
   "listedAgain": "「{p0}」を再出品しました",
   "@listedAgain": {
     "placeholders": {
@@ -1851,7 +1850,7 @@
   "goCheckout": "購入手続きへ",
   "cart2": "カートに追加済み",
   "buyNow": "今すぐ購入",
-  "p0Delisted": "『{p0}』を出品停止しました",
+  "p0Delisted": "「{p0}」の出品を取り消しました",
   "@p0Delisted": {
     "placeholders": {
       "p0": {}
@@ -3012,13 +3011,6 @@
     }
   },
   "byModel": "モデル別",
-  "p0CallsP1Ms": "{p0} 回・{p1} ms",
-  "@p0CallsP1Ms": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "topMembers": "利用の多い会員",
   "p0Uses": "{p0} 回利用",
   "@p0Uses": {
@@ -3094,17 +3086,13 @@
   "aiDataProcessingEnabled": "AI によるデータ処理に同意しました",
   "aiDataProcessingTurnedOff": "AI によるデータ処理を停止しました",
   "aiDataProcessing": "AI によるデータ処理",
-  "messagesEnterStatusOrdersReservations": "入力したメッセージ、ご自身の注文と予約の状況",
   "isbnTitleConditionNotesPhotosSelect": "ISBN、書名、状態の説明、選択した写真",
-  "bookDetailsFromFavoritesPurchaseHistory": "お気に入りと購入履歴に含まれる書籍情報",
   "aiDataProcessing2": "AI によるデータ処理について",
   "whenUseAiFeaturesWeShare": "AI 機能をご利用の際、以下のデータを第三者の AI サービス事業者に提供して処理します。",
   "dataShared": "提供するデータ",
   "recipients": "提供先",
   "purpose": "利用目的",
-  "usedOnlyGenerateSupportRepliesPrepare": "サポートの回答、出品情報の整理、書籍のおすすめにのみ使用し、広告やトラッキングには使用しません。",
   "withdrawingConsent": "同意の撤回",
-  "canTurnOffAiDataProcessing": "「設定 › アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。",
   "agreeContinue": "同意する",
   "insufficientQuotaPlanNotEnabled": "クォータ不足またはプラン未有効",
   "modelNotFound": "モデル名が存在しません",
@@ -3313,7 +3301,7 @@
     }
   },
   "deletePasskey": "パスキーを削除",
-  "noLongerAbleSignVerifyIdentity": "削除すると、このパスキーでログインや本人確認ができなくなります。デバイスに保存されたパスキーは削除されないため、システムのパスワード設定から削除してください。",
+  "noLongerAbleSignVerifyIdentity": "削除すると、このパスキーでログインや本人確認ができなくなります。デバイスにパスキーが残っている場合は、システムのパスワード設定から削除してください。",
   "passkeyDeleted": "パスキーを削除しました",
   "signVerifyIdentityWithFaceId": "パスワードの代わりに Face ID、指紋、画面ロックでログインと本人確認ができます。パスキーはお使いのデバイスとパスワード マネージャーにのみ保存されます。",
   "addPasskey": "パスキーを追加",
@@ -3699,5 +3687,144 @@
       "p0": {}
     }
   },
-  "morePicks": "その他のおすすめ"
+  "morePicks": "その他のおすすめ",
+  "passkeyRequestWasInterruptedPleaseTry": "パスキーの操作が中断されました。もう一度お試しください。",
+  "couldNotVerifyWithPasskeyDevice": "このデバイスのパスキーで確認できませんでした。別の方法をご利用ください。",
+  "iosVersionAddingPasskeyAgainReplaces": "この iOS バージョンで再度追加すると、iCloud キーチェーン内の既存のパスキーが置き換えられます。追加が完了しなかった場合、既存のパスキーは復元できません。事前に iOS 17.4 以降へのアップデートをおすすめします。",
+  "cannotAddPasskeyDevice": "現在、このデバイスではパスキーを追加できません。",
+  "recordRemoval": "取り出しを登録",
+  "confirmStaffRemovedP1FromP0": "担当者が「{p0}」から「{p1}」を取り出したことを確認してください。登録後、本は出品停止になります。",
+  "@confirmStaffRemovedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "removalRecorded": "取り出しを登録しました",
+  "booksLockers": "ロッカー保管中の本",
+  "overdue": "期限超過",
+  "noOverdueBooks": "期限超過の本はありません",
+  "noBooksCurrentlyStoredLockers": "現在ロッカーに保管中の本はありません",
+  "salesPaused": "販売一時停止",
+  "adminsNotified": "管理者に通知済み",
+  "confirmPurchase": "購入の確認",
+  "bookAlreadyLockerOrderReadyPickup": "この本はすでにロッカーに保管されています。注文成立後すぐに受け取れますが、注文はキャンセルできません。",
+  "salesPausedPleaseRetrieveBookFrom": "販売を一時停止しました。ロッカーから本を回収してください。",
+  "bookLockerCanCollectedRightAfter": "この本はロッカーに保管済みで、注文後すぐに受け取れます。",
+  "notYetLocker": "まだロッカーに預け入れていません",
+  "retrieve": "回収報告",
+  "dropOff": "預け入れ",
+  "ordersBooksAlreadyLockerReadyPickup": "ロッカーに保管済みの本の注文は、成立後すぐに受け取れますが、キャンセルできません。",
+  "placedLockerToday": "本日ロッカーに預け入れ",
+  "lockerP0Days": "保管期間 {p0} 日",
+  "@lockerP0Days": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmP0BeenPlacedP1Once": "「{p0}」を「{p1}」に預け入れたことを確認してください。登録後、購入者は注文後すぐに受け取れます。",
+  "@confirmP0BeenPlacedP1Once": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "dropOffRegistered": "預け入れを登録しました",
+  "confirmRetrievedP1FromP0": "「{p0}」から「{p1}」を回収したことを確認してください。",
+  "@confirmRetrievedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "retrievalReportedBookBackSale": "回収を報告しました。本の販売を再開しました。",
+  "retrievalReported": "回収を報告しました",
+  "allLockers": "すべてのロッカー",
+  "lockerCannotChangedWhileBookStored": "保管中はロッカーを変更できません。",
+  "removedFromShopDepositedRetrieveBeforeRelisting": "出品を取り消すと、「{p0}」はショップに表示されなくなり、購入者は閲覧できなくなります。ロッカー保管中に出品を取り消した場合、再出品するには本を回収して回収報告を行う必要があります。",
+  "@removedFromShopDepositedRetrieveBeforeRelisting": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderPlacedBookLockerReadyPickup": "ご注文が完了しました。本はロッカーに保管済みで、すぐに受け取れます。",
+  "confirmStaffRemovedBookFromLocker": "担当者が「{p0}」から「{p1}」を取り出したことを確認してください。",
+  "@confirmStaffRemovedBookFromLocker": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "inLocker": "ロッカー保管済み",
+  "inAnotherLocker": "別のロッカーに保管中",
+  "confirmPutAllP0BooksOrder": "この注文の本 {p0} 冊をすべてロッカーに預け入れましたか？",
+  "@confirmPutAllP0BooksOrder": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "awaitingRetrieval": "回収待ち",
+  "bookAdvisorSelection": "ブックアドバイザーの選書",
+  "bookInfoAutoFill": "書籍情報の自動補完",
+  "disputeAnalysis": "紛争分析",
+  "monthlyBudgetUsedUp": "今月の予算を使い切りました",
+  "coverageBooksP0HelpArticlesP1": "カバー率：書籍 {p0}、サポート情報 {p1}",
+  "@coverageBooksP0HelpArticlesP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "lastSyncP0": "最終同期：{p0}",
+  "@lastSyncP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "backgroundSyncPausedUntilP0": "バックグラウンド同期は {p0} まで停止中",
+  "@backgroundSyncPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "semanticQueriesPausedUntilP0": "セマンティック検索は {p0} まで停止中",
+  "@semanticQueriesPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lastErrorP0": "直近のエラー：{p0}",
+  "@lastErrorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0CallsAvgP1MsP95": "{p0} 回・平均 {p1} ms・p95 {p2} ms",
+  "@p0CallsAvgP1MsP95": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "turnOffAiDataProcessing": "AI によるデータ処理をオフにする",
+  "aiFeaturesStopAiSupportBook": "AI 機能の利用が停止され、AI サポートとブックアドバイザーの会話履歴が削除されます。この操作は元に戻せません。",
+  "turnOff": "オフにする",
+  "messagesConversationHistoryEnterPlusOwn": "入力したメッセージと会話の内容、ご自身の注文、予約、出品（審査理由を含む）、ウォレット残高、最近のお問い合わせ",
+  "requestsConversationHistoryEnter": "入力したご希望と会話の内容",
+  "bookDetailsFromSavedItemsPurchase": "お気に入り、購入履歴、カート、最近見た本に含まれる書籍情報",
+  "aiDataProcessingNoticeBeenUpdated": "AI によるデータ処理についての説明が更新されました。内容をご確認のうえ、改めて同意してください。",
+  "questionsRequestsBookDetailsAlsoConverted": "質問、ご希望、書籍情報は、関連する内容を検索するため {p0} によってセマンティックベクトルにも変換されます。",
+  "@questionsRequestsBookDetailsAlsoConverted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "usedOnlyGenerateSupportRepliesRecommend": "サポートの回答、書籍のおすすめと検索、出品情報の整理にのみ使用し、広告やトラッキングには使用しません。",
+  "retentionPeriod": "保存期間",
+  "aiSupportBookAdvisorConversationsKept": "AI サポートとブックアドバイザーの会話履歴は、最後の会話から 90 日間保存され、その後自動的に削除されます。",
+  "canTurnOffAiDataProcessing": "「設定 › アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなり、AI サポートとブックアドバイザーの会話履歴は削除されます。",
+  "usersMustAlsoAgreeAiData": "ユーザーは AI 機能を引き続き利用するため、AI によるデータ処理に改めて同意する必要があります。",
+  "consentRequiredAgain": "再同意が必要です",
+  "aiBookAdvisorUsageCountedBy": "AI ブックアドバイザーの回数は、ユーザーが送信したメッセージ数で数えます。"
 }

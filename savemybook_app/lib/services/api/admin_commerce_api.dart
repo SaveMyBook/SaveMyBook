@@ -32,11 +32,13 @@ extension AdminCommerceApi on ApiService {
     return _mapList(res, DisputeCase.fromJson);
   }
 
-  Future<(DisputeAnalysis?, String?)> analyzeDispute(int disputeId) async {
+  Future<(DisputeAnalysis?, String?, String?)> analyzeDispute(int disputeId) async {
     final res = await _send('POST', '/admin/disputes/$disputeId/ai-analysis');
-    if (res == null) return (null, S.pleaseSignFirst);
-    if (res['success'] != true || res['data'] is! Map) return (null, res['message'] as String? ?? S.loadFailed);
-    return (DisputeAnalysis.fromJson(Map<String, dynamic>.from(res['data'])), null);
+    if (res == null) return (null, S.pleaseSignFirst, null);
+    if (res['success'] != true || res['data'] is! Map) {
+      return (null, res['message'] as String? ?? S.loadFailed, res['code'] as String?);
+    }
+    return (DisputeAnalysis.fromJson(Map<String, dynamic>.from(res['data'])), null, null);
   }
 
   Future<String?> arbitrateDispute(int disputeId, {required String result, String? adminNote}) async {

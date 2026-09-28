@@ -78,7 +78,10 @@ const PREFIX = {
   backup: 'BU',
   reservation: 'RS',
   transfer: 'TF',
-  passkey: 'PK'
+  passkey: 'PK',
+  cabinet_device: 'DV',
+  cabinet_session: 'CS',
+  cabinet_manual_report: 'MR'
 };
 
 const prefixOf = (type) => PREFIX[type] ?? 'ID';

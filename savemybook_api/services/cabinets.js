@@ -1,5 +1,5 @@
 const prisma = require('../lib/prisma');
-const { notFound } = require('../lib/errors');
+const { HttpError, conflict, notFound } = require('../lib/errors');
 const { SLOT_STATUSES, SLOT_STATUS_LABELS } = require('../constants/domain');
 const audit = require('./audit');
 
@@ -61,24 +61,62 @@ const listActive = async (point) => {
   return data;
 };
 
+const deviceBriefs = async (cabinetIds) => {
+  const access = require('./cabinet-access');
+  const publicId = require('../lib/public-id');
+  const rows = cabinetIds.length
+    ? await prisma.cabinet_devices.findMany({
+        where: { cabinet_id: { in: cabinetIds }, status: { in: ['active', 'pending'] } },
+        orderBy: { device_id: 'desc' }
+      })
+    : [];
+  const now = new Date();
+  const map = new Map();
+  for (const id of cabinetIds) {
+    const own = rows.filter((d) => Number(d.cabinet_id) === Number(id));
+    const device = own.find(access.isUsableDevice) ?? own.find((d) => d.status === 'pending') ?? null;
+    map.set(Number(id), device
+      ? {
+          device_no: publicId.encode('cabinet_device', device.device_id),
+          kind: device.kind,
+          status: device.status,
+          online: device.status === 'active' && access.isOnline(device, now),
+          last_seen_at: device.last_seen_at ?? null,
+          usable: access.isUsableDevice(device)
+        }
+      : null);
+  }
+  return map;
+};
+
 const adminList = async () => {
   const [cabinets, underMaintenance] = await Promise.all([
     prisma.smart_cabinets.findMany({
       orderBy: { cabinet_id: 'asc' },
       include: {
-        cabinet_slots: { select: { slot_id: true, slot_number: true, status: true, updated_at: true } },
+        cabinet_slots: {
+          select: {
+            slot_id: true, slot_number: true, status: true, updated_at: true,
+            lock_channel: true, fault_code: true, check_required_at: true
+          }
+        },
         _count: { select: { orders: true } }
       }
     }),
     maintenanceIds()
   ]);
+  const devices = await deviceBriefs(cabinets.map((c) => Number(c.cabinet_id)));
 
   return cabinets.map((c) => {
+    const brief = devices.get(Number(c.cabinet_id));
+    const { usable, ...device } = brief ?? {};
+    const counted = usable ? c.cabinet_slots.filter((slot) => slot.lock_channel !== null && slot.lock_channel !== undefined) : c.cabinet_slots;
     const counts = Object.fromEntries(SLOT_STATUSES.map((s) => [s, 0]));
-    for (const slot of c.cabinet_slots) counts[slot.status] = (counts[slot.status] ?? 0) + 1;
+    for (const slot of counted) counts[slot.status] = (counts[slot.status] ?? 0) + 1;
     return {
       ...c,
       is_maintenance: underMaintenance.has(Number(c.cabinet_id)),
+      device: brief ? device : null,
       slot_summary: counts
     };
   });
@@ -112,6 +150,12 @@ const create = async (data, { adminId, req }) => {
 const update = async (cabinetId, data, { adminId, req }) => {
   const before = await prisma.smart_cabinets.findUnique({ where: { cabinet_id: cabinetId } });
   if (!before) throw notFound('找不到該書櫃');
+  if (data.is_active === false && before.is_active) {
+    const stored = await prisma.book_deposits.count({ where: { cabinet_id: cabinetId } });
+    if (stored > 0) {
+      throw conflict(`此書櫃仍有 ${stored} 本訂單成立前存放的書籍，請先於存書列表登記取出後再停用`, 'CABINET_HAS_DEPOSITS');
+    }
+  }
 
   const cabinet = await prisma.smart_cabinets.update({
     where: { cabinet_id: cabinetId },
@@ -167,10 +211,25 @@ const setSlotStatus = async (cabinetId, slotId, status, { adminId, req }) => {
   });
   if (!before) throw notFound('找不到該櫃位');
 
-  const slot = await prisma.cabinet_slots.update({
+  let derived = false;
+  if (before.lock_channel !== null && before.lock_channel !== undefined) {
+    const devices = require('./cabinet-devices');
+    derived = Boolean(await devices.activeDeviceOf(cabinetId));
+  }
+  if (derived && !(status === 'maintenance' || (before.status === 'maintenance' && status === 'empty'))) {
+    throw new HttpError(409, '此櫃門狀態由系統依存放內容判定，僅可設定或結束維修', 'SLOT_STATUS_DERIVED');
+  }
+
+  let slot = await prisma.cabinet_slots.update({
     where: { slot_id: slotId },
     data: { status, updated_at: new Date() }
   });
+  if (derived) {
+    const doors = require('./cabinet-doors');
+    await doors.refresh(prisma, [slotId]);
+    await doors.recountAvailable(prisma, cabinetId);
+    slot = await prisma.cabinet_slots.findUnique({ where: { slot_id: slotId } });
+  }
 
   await audit.record(null, {
     adminId,
@@ -185,4 +244,6 @@ const setSlotStatus = async (cabinetId, slotId, status, { adminId, req }) => {
   return slot;
 };
 
-module.exports = { listActive, adminList, create, update, setMaintenance, maintenanceIds, isUnderMaintenance, setSlotStatus };
+module.exports = {
+  listActive, adminList, create, update, setMaintenance, maintenanceIds, isUnderMaintenance, setSlotStatus, distanceMeters
+};

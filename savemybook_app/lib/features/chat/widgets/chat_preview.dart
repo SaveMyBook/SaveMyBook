@@ -154,10 +154,13 @@ class _ChatPreviewState extends State<_ChatPreview> {
             ),
           ),
           if (room.pinned) ...[
-            Transform.rotate(angle: 0.6, child: Icon(Icons.push_pin_rounded, size: 15, color: c.accent)),
             const SizedBox(width: 6),
+            Transform.rotate(angle: 0.6, child: Icon(Icons.push_pin_rounded, size: 15, color: c.accent)),
           ],
-          if (widget.muted) Icon(Icons.notifications_off_rounded, size: 16, color: c.textHint),
+          if (widget.muted) ...[
+            const SizedBox(width: 6),
+            Icon(Icons.notifications_off_rounded, size: 16, color: c.textHint),
+          ],
         ],
       ),
     );

@@ -9,10 +9,11 @@ const members = require('./members');
 const notice = require('./notice');
 const records = require('./transfer-records');
 const realtime = require('../realtime');
+const policy = require('../../constants/policy');
 
-const MAX_AMOUNT = 100000;
+const MAX_AMOUNT = policy.CHAT_TRANSFER_MAX_AMOUNT;
 const MAX_NOTE_LENGTH = 100;
-const REQUEST_TTL_MS = 72 * 60 * 60 * 1000;
+const REQUEST_TTL_MS = policy.CHAT_REQUEST_TTL_HOURS * 60 * 60 * 1000;
 
 const stateChanged = () => conflict('此筆請款狀態已變更，請重新整理', 'TRANSFER_STATE_CHANGED');
 

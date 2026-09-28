@@ -201,11 +201,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        const SizedBox(width: 22),
                         Flexible(
                           child: Text(
                             _nicknameController.text.isEmpty ? S.user : _nicknameController.text,
                             maxLines: 2,
                             textAlign: TextAlign.center,
+                            textWidthBasis: TextWidthBasis.longestLine,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
                           ),

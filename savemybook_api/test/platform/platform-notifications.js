@@ -27,6 +27,9 @@ const EMITTED = [
   ['system', 'report', 'service'],
   ['system', 'admin_ticket', 'service'],
   ['system', 'book_review', 'service'],
+  ['system', 'cabinet_deposit', 'service'],
+  ['system', 'cabinet', 'service'],
+  ['order', 'book', 'trade'],
   ['promotion', 'book', 'promotion'],
   ['promotion', 'announcement', 'promotion'],
   ['system', 'announcement', 'promotion']

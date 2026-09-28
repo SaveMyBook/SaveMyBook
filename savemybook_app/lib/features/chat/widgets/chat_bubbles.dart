@@ -61,21 +61,20 @@ class ChatSystemLine extends StatelessWidget {
             color: c.isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 13, color: c.textHint),
-                const SizedBox(width: 5),
-              ],
-              Flexible(
-                child: Text(
-                  text,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.4),
+          child: Text.rich(
+            TextSpan(children: [
+              if (icon != null)
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.middle,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 5),
+                    child: Icon(icon, size: 13, color: c.textHint),
+                  ),
                 ),
-              ),
-            ],
+              TextSpan(text: text),
+            ]),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.4),
           ),
         ),
       ),

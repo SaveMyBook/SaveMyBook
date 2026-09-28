@@ -5,7 +5,7 @@ const settingsService = require('./settings');
 const runner = require('./runner');
 const usage = require('./usage');
 const listingAssist = require('./listing-assist');
-const { sanitizeText } = require('./text');
+const { sanitizeText, promptText, sourceText, risksIn, maskRisks } = require('./text');
 
 // 賣家上架時常跳過簡介、作者、出版社。依 ISBN 查書目補上缺漏的欄位，
 // 簡介在 AI 開啟時由模型依書目來源改寫成繁體中文（只能根據來源內容，不得自行杜撰），否則使用清理過的來源文字。
@@ -74,7 +74,7 @@ const searchOnline = async (ctx, book, isbn) => {
     provider: ctx.provider,
     userId: null,
     system: SEARCH_SYSTEM,
-    prompt: `【ISBN】${isbn}\n【書名】${book.title}`,
+    prompt: `【ISBN】${isbn}\n【書名】${promptText(book.title, 255)}`,
     json: true,
     search: true,
     maxOutputTokens: 1200,
@@ -99,7 +99,7 @@ const rewrite = async (book, source) => {
       provider: ctx.provider,
       userId: null,
       system: SYSTEM,
-      prompt: `【書名】${book.title}\n\n【書目來源】\n${source.slice(0, 3000)}`,
+      prompt: `【書名】${promptText(book.title, 255)}\n\n【書目來源】\n${sourceText(source, 3000)}`,
       json: true,
       reasoning: 'low',
       maxOutputTokens: 900,
@@ -109,6 +109,17 @@ const rewrite = async (book, source) => {
     return text || null;
   } catch {
     return null;
+  }
+};
+
+const guardPublic = (data) => {
+  if (data.description) {
+    const masked = maskRisks(data.description, { feature: 'enrich' });
+    if (masked) data.description = masked;
+    else delete data.description;
+  }
+  for (const field of ['author', 'publisher']) {
+    if (data[field] && risksIn(data[field]).length > 0) delete data[field];
   }
 };
 
@@ -174,6 +185,7 @@ const enrich = async (bookId) => {
     }
   }
 
+  guardPublic(data);
   const fields = Object.keys(data);
   if (fields.length === 0) {
     if (unavailable && !ctx) return null;

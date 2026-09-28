@@ -138,7 +138,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                         maxWidth: Breakpoints.pageMaxWidth,
                                         bottom: MediaQuery.of(context).padding.bottom + 24,
                                       ),
-                                      gridDelegate: BookCard.gridDelegate,
+                                      gridDelegate: BookCard.gridDelegateOf(context),
                                       itemCount: books.length,
                                       itemBuilder: (_, i) => RevealOnScroll(
                                         key: ValueKey(books[i].bookId),

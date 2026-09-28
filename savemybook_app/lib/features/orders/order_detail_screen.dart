@@ -157,6 +157,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     bottom: MediaQuery.of(context).padding.bottom + 40,
                   );
                   final hasPrimary = canCollect || canComplete;
+                  final labelWidth = _infoLabelWidth(context);
                   // 主要動作與申請爭議並排、等高：次要的申請爭議放左側，避免一大一小上下堆疊。
                   final collect = Reveal(
                     visible: hasPrimary || canDispute,
@@ -202,7 +203,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 children: [
                                   FadeSlideIn(child: _buildItemsCard(c)),
                                   const SizedBox(height: 14),
-                                  FadeSlideIn(index: 1, child: _buildPickupCard(c)),
+                                  FadeSlideIn(index: 1, child: _buildPickupCard(c, labelWidth)),
                                 ],
                               ),
                             ),
@@ -216,7 +217,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                   const SizedBox(height: 14),
                                   FadeSlideIn(index: 3, child: _buildFlowCard(c)),
                                   const SizedBox(height: 14),
-                                  FadeSlideIn(index: 4, child: _buildInfoCard(c)),
+                                  FadeSlideIn(index: 4, child: _buildInfoCard(c, labelWidth)),
                                   collect,
                                 ],
                               ),
@@ -230,9 +231,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         const SizedBox(height: 14),
                         FadeSlideIn(index: 2, child: _buildItemsCard(c)),
                         const SizedBox(height: 14),
-                        FadeSlideIn(index: 3, child: _buildPickupCard(c)),
+                        FadeSlideIn(index: 3, child: _buildPickupCard(c, labelWidth)),
                         const SizedBox(height: 14),
-                        FadeSlideIn(index: 4, child: _buildInfoCard(c)),
+                        FadeSlideIn(index: 4, child: _buildInfoCard(c, labelWidth)),
                         collect,
                       ],
                       if (_isLoading) ...[
@@ -283,6 +284,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SwitchIn(
+                  alignment: AlignmentDirectional.topStart,
                   child: Text(
                     label,
                     key: ValueKey(label),
@@ -395,7 +397,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             child: Column(
               children: [
                 step.active && !step.failed
-                    ? Breathe(amount: 0.08, period: const Duration(milliseconds: 1800), child: dot)
+                    ? Breathe(amount: 0.08, lift: 0, period: const Duration(milliseconds: 1800), child: dot)
                     : dot,
                 if (!isLast)
                   Expanded(
@@ -412,7 +414,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(top: step.active ? 2 : 0, bottom: isLast ? 0 : 14),
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -439,6 +441,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildItemsCard(AppColors c) {
+    final showStored = widget.asSeller && _order.status == 'pending_deposit';
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -494,6 +497,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               S.msg4(item.unitPrice.toStringAsFixed(0), item.quantity),
                               style: TextStyle(fontSize: 12, color: c.textSecondary),
                             ),
+                            if (showStored && item.preDeposited) ...[
+                              const SizedBox(height: 4),
+                              StatusBadge(
+                                label: _order.storedElsewhere(item) ? S.inAnotherLocker : S.inLocker,
+                                color: _order.storedElsewhere(item) ? c.warning : c.success,
+                                fontSize: 10,
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -529,7 +540,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  Widget _buildPickupCard(AppColors c) {
+  double _infoLabelWidth(BuildContext context) => InfoLine.labelWidthOf(
+        context,
+        [S.faqCatCabinet, S.address, S.openingHours, S.slot, widget.asSeller ? S.buyer : S.seller, S.placed, S.dispute2],
+        fontSize: 13,
+      );
+
+  Widget _buildPickupCard(AppColors c, double labelWidth) {
     final address = [_order.cabinetName, _order.cabinetAddress].where((s) => s.isNotEmpty).join(' ');
 
     return AppCard(
@@ -544,8 +561,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     onPressed: () => _copy(address, S.address),
                     style: TextButton.styleFrom(
                       foregroundColor: c.accent,
-                      visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      padding: const EdgeInsets.fromLTRB(8, 3, 0, 3),
+                      minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     icon: const Icon(Icons.copy_rounded, size: 14),
@@ -558,6 +575,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             label: S.faqCatCabinet,
             value: _order.cabinetName.isEmpty ? S.notAssigned : _order.cabinetName,
             fontSize: 13,
+            maxLines: 3,
+            labelMinWidth: labelWidth,
           ),
           const SizedBox(height: 6),
           InfoLine(
@@ -565,6 +584,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             label: S.address,
             value: _order.cabinetAddress.isEmpty ? S.notAssigned : _order.cabinetAddress,
             fontSize: 13,
+            maxLines: 3,
+            labelMinWidth: labelWidth,
           ),
           const SizedBox(height: 6),
           InfoLine(
@@ -572,6 +593,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             label: S.openingHours,
             value: _order.cabinetOpenHours.isEmpty ? S.notProvided : _order.cabinetOpenHours,
             fontSize: 13,
+            labelMinWidth: labelWidth,
           ),
           const SizedBox(height: 6),
           InfoLine(
@@ -579,13 +601,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             label: S.slot,
             value: _order.slotNumber.isEmpty ? S.notAssignedYet : _order.slotNumber,
             fontSize: 13,
+            labelMinWidth: labelWidth,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildInfoCard(AppColors c) {
+  Widget _buildInfoCard(AppColors c, double labelWidth) {
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -599,6 +622,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ? (_order.buyerName.isEmpty ? '—' : _order.buyerName)
                 : (_order.sellerName.isEmpty ? '—' : _order.sellerName),
             fontSize: 13,
+            labelMinWidth: labelWidth,
           ),
           const SizedBox(height: 6),
           InfoLine(
@@ -606,12 +630,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             label: S.placed,
             value: formatDateTime(_order.createdAt?.toLocal()),
             fontSize: 13,
+            labelMinWidth: labelWidth,
           ),
           Reveal(
             visible: _order.hasOpenDispute,
             child: Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: InfoLine(icon: Icons.gavel_rounded, label: S.dispute2, value: S.orderOpenDispute, fontSize: 13),
+              child: InfoLine(icon: Icons.gavel_rounded, label: S.dispute2, value: S.orderOpenDispute, fontSize: 13, labelMinWidth: labelWidth),
             ),
           ),
         ],

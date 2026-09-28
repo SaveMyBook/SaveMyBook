@@ -24,7 +24,9 @@ class PasskeysCard extends StatefulWidget {
 
   final int refreshTick;
 
-  const PasskeysCard({super.key, this.onChanged, this.initialItems, this.refreshTick = 0});
+  final bool canAdd;
+
+  const PasskeysCard({super.key, this.onChanged, this.initialItems, this.refreshTick = 0, this.canAdd = true});
 
   static String? authenticatorName(String? id) => switch (id) {
         'icloud_keychain' => S.icloudKeychain,
@@ -105,7 +107,7 @@ class _PasskeysCardState extends State<PasskeysCard> {
     widget.onChanged?.call();
   }
 
-  Future<void> _add() async {
+  Future<void> _add({bool replaceConfirmed = false}) async {
     if (_busy) return;
     final first = _items.isEmpty;
     setState(() {
@@ -114,7 +116,7 @@ class _PasskeysCardState extends State<PasskeysCard> {
     });
     PasskeyOutcome<List<PasskeyItem>> result;
     try {
-      result = await PasskeyService.register(context);
+      result = await PasskeyService.register(context, existing: _items, replaceConfirmed: replaceConfirmed);
     } catch (_) {
       result = PasskeyOutcome.fail('UNKNOWN', S.somethingWentWrongPleaseTryAgain);
     }
@@ -124,7 +126,7 @@ class _PasskeysCardState extends State<PasskeysCard> {
     if (result.isCancelled) return;
     if (result.isAlreadyRegistered) {
       if (result.code == 'PASSKEY_ALREADY_REGISTERED') unawaited(_load(silent: true));
-      await _explainAlreadyRegistered();
+      await _explainAlreadyRegistered(replacing: result.needsReplaceConfirmation);
       return;
     }
     if (!result.isOk) {
@@ -149,16 +151,18 @@ class _PasskeysCardState extends State<PasskeysCard> {
     );
   }
 
-  Future<void> _explainAlreadyRegistered() async {
+  Future<void> _explainAlreadyRegistered({bool replacing = false}) async {
+    final message = PasskeysCard.alreadyRegisteredMessage();
     final retry = await showConfirmDialog(
       context,
       title: S.alreadyPasskey,
-      message: PasskeysCard.alreadyRegisteredMessage(),
+      message: replacing ? '$message\n\n${S.iosVersionAddingPasskeyAgainReplaces}' : message,
       confirmLabel: S.addAgain,
       cancelLabel: S.got,
-      icon: Icons.cloud_done_outlined,
+      isDestructive: replacing,
+      icon: replacing ? Icons.warning_amber_rounded : Icons.cloud_done_outlined,
     );
-    if (retry && mounted) await _add();
+    if (retry && mounted) await _add(replaceConfirmed: replacing);
   }
 
   Future<void> _openActions(PasskeyItem item) async {
@@ -237,6 +241,7 @@ class _PasskeysCardState extends State<PasskeysCard> {
       return;
     }
     _apply(result.data!);
+    unawaited(PasskeyService.forgetDeleted(item.credentialId));
     showAppSnackBar(context, S.passkeyDeleted);
   }
 
@@ -286,13 +291,20 @@ class _PasskeysCardState extends State<PasskeysCard> {
             _alert(c, _actionError!),
             const SizedBox(height: 10),
           ],
-          SecondaryButton(
-            label: S.addPasskey,
-            icon: Icons.add_rounded,
-            height: 44,
-            isLoading: _adding,
-            onPressed: _busyId != null ? null : _add,
-          ),
+          if (widget.canAdd)
+            SecondaryButton(
+              label: S.addPasskey,
+              icon: Icons.add_rounded,
+              height: 44,
+              isLoading: _adding,
+              onPressed: _busyId != null ? null : _add,
+            )
+          else
+            Text(
+              S.cannotAddPasskeyDevice,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12.5, height: 1.5, color: c.textSecondary),
+            ),
         ],
       ),
     );
@@ -301,7 +313,6 @@ class _PasskeysCardState extends State<PasskeysCard> {
   Widget _row(AppColors c, PasskeyItem item) {
     final created = formatDate(item.createdAt);
     final lastUsed = item.lastUsedAt == null ? S.notUsedYet : S.lastUsedFormatdateItemLastusedat(formatDate(item.lastUsedAt));
-    final dates = [if (created.isNotEmpty) S.createdCreated(created), lastUsed].join('　');
     final busy = _busyId == item.passkeyId;
 
     return InkWell(
@@ -335,11 +346,25 @@ class _PasskeysCardState extends State<PasskeysCard> {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 12, height: 1.35, color: item.backedUp ? c.success : c.textSecondary),
                   ),
-                  Text(
-                    dates,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, height: 1.35, color: c.textSecondary),
+                  Wrap(
+                    spacing: 12,
+                    children: [
+                      if (created.isNotEmpty)
+                        Text(
+                          S.createdCreated(created),
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, height: 1.35, color: c.textSecondary),
+                        ),
+                      Text(
+                        lastUsed,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, height: 1.35, color: c.textSecondary),
+                      ),
+                    ],
                   ),
                 ],
               ),

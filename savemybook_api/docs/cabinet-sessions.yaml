@@ -1,0 +1,503 @@
+tags:
+  - name: cabinet-sessions
+    x-displayName: 書櫃作業
+    description: |
+      取書、依訂單存書、先行存書與取回，都在書櫃前以 App 掃描書櫃螢幕上的 QR Code 辦理。一次「掃碼到關門」為一個書櫃作業，
+      作業編號為 `CS` 開頭的加密編號（`session_no`）。櫃門關閉、書櫃回報後才登記存書或取書，並沿用既有通知告知對方。
+
+      ## 流程
+
+      1. **掃碼**：`POST /api/cabinet-sessions` 送出 QR Code 內容、定位狀態與（選填）作業情境 `context`。伺服器驗證挑戰碼、
+         書櫃狀態、營業時間與距離後，列出本人在這台書櫃可辦理的項目，作業狀態為 `selecting`，須於 60 秒內確認。
+      2. **確認項目並開門**：`POST /api/cabinet-sessions/{sessionNo}/start` 送出所選單位的 `key`。伺服器分配存書櫃門、
+         產生兩位數的比對數字（`match.code`），狀態轉為 `matching`。App 只顯示這個數字，書櫃螢幕顯示 9 個數字。
+      3. **數字比對**：使用者於 60 秒內在書櫃螢幕點選相同數字（只有一次機會），書櫃隨即開鎖，狀態依序為 `opening`、`open`。
+      4. **關門**：使用者放入或取出書籍後，在書櫃螢幕按「完成並關門」，或等待倒數結束自動完成；按「取消並關門」不會變更任何狀態。
+         書櫃回報關門後，伺服器依各項目逐一提交，作業結束為 `completed`、`partial` 或 `cancelled`。
+
+      App 以 Socket.IO 事件 `cabinet:session`（內容 `{ session: <CabinetSession> }`）接收狀態變更，並輪詢 `GET /api/cabinet-sessions/{sessionNo}`
+      作為備援；以 `version` 判斷新舊，較舊的內容直接忽略。App 啟動或回到前景時，以 `GET /api/cabinet-sessions/active` 接續未完成的作業。
+
+      ## 狀態
+
+      | `status` | 說明 |
+      | --- | --- |
+      | `selecting` | 確認項目中（60 秒） |
+      | `matching` | 數字比對中（60 秒） |
+      | `opening` | 已送出開鎖指令，等待櫃門開啟 |
+      | `open` | 櫃門已開啟，倒數中 |
+      | `completed` | 全部完成 |
+      | `partial` | 部分或全部項目未能完成，見各項目的 `error` |
+      | `cancelled` | 已取消，狀態未變更 |
+      | `failed` | 數字不符或書櫃未回應 |
+      | `expired` | 逾時 |
+      | `needs_review` | 未收到書櫃的開門或關門回報，待客服確認；確認後通知作業發起人 |
+
+      ## 項目與單位
+
+      取書與依訂單存書以訂單為一個單位（`key` 為 `order:<order_id>`），先行存書與取回以一本書為一個單位（`key` 為 `book:<book_id>`）。
+      同一扇櫃門內的書須屬於同一個保管單位，因此取回時會連同同一扇櫃門內本人的其他書一起取回。
+      `context` 只決定預設勾選哪些單位；本人不是該訂單或書籍的當事人時視同未帶。
+
+      | `kind` | 條件 | 預設勾選 |
+      | --- | --- | --- |
+      | `pickup` | 本人為買家、訂單已存書且尚未取書 | 是 |
+      | `order_deposit` | 本人為賣家、訂單待存書 | 是 |
+      | `pre_deposit` | 本人上架中、指定此書櫃、尚未存書且沒有進行中訂單的書 | 否 |
+      | `retrieval` | 本人存放於此書櫃的書（已售出、等待買家取書或爭議處理中的書除外） | 否 |
+
+      櫃門容量：可用櫃門只剩 1 扇時不再接受先行存書，保留給依訂單存書；每位賣家在同一台書櫃最多占用 1 扇先行存書櫃門。
+      取回開始後，上架中的書暫停販售至作業結束，以免取回期間被買走。
+
+      ## 定位
+
+      `location_status` 為 `granted` 時須帶當次新取得的 `location`。精度超過 500 公尺或定位超過 60 秒時改記為無法取得定位；
+      無法取得或拒絕定位時仍可辦理，數字比對照常進行。距離書櫃超過 200 公尺（扣除精度，最多扣 100 公尺）時拒絕。
+      作業只保存距離與精度，不保存座標。
+
+      ## 冷卻
+
+      同一使用者在同一台書櫃最近 2 個作業都在開門前結束（逾時、數字不符、取消）時，10 分鐘內不能再建立作業（429 `CABINET_COOLDOWN`）。
+
+      ## 限流
+
+      | 端點 | 上限 |
+      | --- | --- |
+      | `POST /api/cabinet-sessions` | 每位使用者每分鐘 10 次 |
+      | `POST …/start`、`POST …/cancel` | 合計每位使用者每分鐘 20 次 |
+      | `GET /api/cabinet-sessions/active`、`GET /api/cabinet-sessions/{sessionNo}` | 合計每位使用者每分鐘 120 次 |
+
+      ## 錯誤代碼
+
+      | `code` | HTTP | `message` | 附帶欄位 |
+      | --- | --- | --- | --- |
+      | `CABINET_CODE_INVALID` | 400 | 此 QR Code 並非 SaveMyBook 書櫃 QR Code | – |
+      | `CABINET_CODE_EXPIRED` | 410 | 書櫃 QR Code 已更新，請重新掃描書櫃螢幕上的 QR Code | – |
+      | `CABINET_BUSY` | 409 | 書櫃使用中，請稍候再掃描 | – |
+      | `CABINET_OFFLINE` | 409 | 書櫃目前連線中斷，暫時無法使用 | `manual_allowed` |
+      | `CABINET_MAINTENANCE` | 409 | 此書櫃維修中，暫停服務 | – |
+      | `CABINET_UNAVAILABLE` | 409 | 此書櫃暫停服務 | – |
+      | `CABINET_CLOSED` | 409 | 目前非書櫃營業時間，營業時間為 {open}–{close} | `open_time`、`close_time` |
+      | `CABINET_TOO_FAR` | 403 | 您目前的位置距離書櫃約 {n} 公尺，請於書櫃旁操作 | `distance_m` |
+      | `CABINET_WRONG_CABINET` | 409 | 此{訂單／書籍}的指定書櫃為「{name}」，請至該書櫃辦理 | `cabinet` |
+      | `CABINET_CONTEXT_CHANGED` | 409 | 訂單狀態已變更，請重新整理後再試（書籍為「書籍狀態已變更，請重新整理後再試」） | – |
+      | `CABINET_NOTHING_TO_DO` | 404 | 您在此書櫃沒有待辦理的項目 | `other_cabinets` |
+      | `CABINET_ITEM_BLOCKED` | 409 | 第一個不可辦理項目的原因 | `items` |
+      | `CABINET_ACTIVE_SESSION` | 409 | 您有進行中的書櫃作業，請先完成或取消 | `session_no` |
+      | `CABINET_NO_SELECTION` | 400 | 請至少選擇一個項目 | – |
+      | `CABINET_FULL` | 409 | 此書櫃可用的櫃門不足，請減少存書項目或稍後再試 | `available_doors`、`required_doors` |
+      | `PREDEPOSIT_LIMIT` | 409 | 您在此書櫃的先行存書已達上限，請待售出或取回後再存入 | – |
+      | `CABINET_ITEMS_CHANGED` | 409 | 部分項目狀態已變更，請重新確認 | `session` |
+      | `CABINET_SESSION_NOT_FOUND` | 404 | 找不到此書櫃作業 | – |
+      | `CABINET_SESSION_STATE` | 409 | 櫃門已開啟，請於書櫃螢幕操作（非開門狀態時為「目前無法執行此操作」） | `session` |
+      | `CABINET_COOLDOWN` | 429 | 您在此書櫃的作業多次未完成，請於 {n} 分鐘後再試 | `retry_after_s` |
+      | `RATE_LIMITED` | 429 | 操作過於頻繁，請稍後再試 | – |
+
+      不可辦理的原因（`items[].blocked.code`）：`DOOR_UNKNOWN` 無法確認櫃門、`DOOR_FAULT` 櫃門故障、`DOOR_CHECK` 櫃門待客服確認、
+      `DOOR_SHARED` 櫃門存放其他項目、`CABINET_FULL` 沒有可用的櫃門、`PREDEPOSIT_LIMIT` 先行存書已達上限。
+      項目錯誤（`items[].error.code`）：`ITEM_CHANGED` 項目狀態已變更、`DOOR_FAILED` 櫃門未能開啟、`DOOR_UNCONFIRMED` 未收到櫃門開啟回報、
+      `DOOR_CONFLICT` 櫃門內有其他項目。
+
+      ## 故障備援
+
+      書櫃已配對裝置且在線時，一般使用者不能以 `PATCH /api/orders/{id}/status`、`POST /api/books/{id}/deposit`、
+      `POST /api/books/{id}/retrieve` 回報存書、取書或取回（409 `CABINET_SCAN_REQUIRED`）。裝置離線或故障持續 2 分鐘以上，
+      或書櫃曾配對裝置而目前沒有有效裝置時，這些端點改為建立**待客服確認的手動回報**（HTTP 202，回應附 `manual_report`），
+      管理員確認後才變更訂單或存書狀態並通知對方。從未配對裝置的書櫃維持原有的手動回報。
+
+paths:
+  /api/cabinet-sessions:
+    post:
+      summary: 掃描書櫃 QR Code 建立作業
+      operationId: createCabinetSession
+      tags: [cabinet-sessions]
+      description: |
+        依序檢查：挑戰碼、書櫃停用或維修中、營業時間、裝置連線、進行中的作業、冷卻、定位距離，最後列出可辦理的項目。
+        任一步驟被拒絕時挑戰碼都不會被用掉，其他人仍可掃描同一組碼。
+
+        本人剛兌換過同一組碼（例如回應遺失後重送）且作業仍在進行中時，回 200 與同一個作業，不重複建立。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, location_status]
+              properties:
+                code: { type: string, description: 書櫃螢幕 QR Code 的內容。, example: 'savemybook://k/3f9c0a5e1d2b4c6a8e0f1a2b3c4d5e6f' }
+                context:
+                  type: object
+                  nullable: true
+                  description: 由訂單或書籍頁面進入時帶入，只決定預設勾選的單位。
+                  properties:
+                    type: { type: string, enum: [order, book], example: order }
+                    id: { type: integer, example: 128 }
+                location_status: { type: string, enum: [granted, denied, unavailable], example: granted }
+                location:
+                  type: object
+                  nullable: true
+                  description: '`location_status` 為 `granted` 時必填。只送當次新取得的定位，不送快取。'
+                  properties:
+                    lat: { type: number, example: 25.0421 }
+                    lng: { type: number, example: 121.5254 }
+                    accuracy_m: { type: number, example: 18 }
+                    age_ms: { type: integer, description: 定位取得至送出請求經過的毫秒數。, example: 1200 }
+      responses:
+        '201':
+          description: 已建立作業。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/CabinetSession' }
+        '200':
+          description: 本人重送同一組碼，回傳進行中的同一個作業。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/CabinetSession' }
+        '400':
+          description: QR Code 或定位資料格式不正確。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                非書櫃 QR Code:
+                  value: { success: false, code: CABINET_CODE_INVALID, message: 此 QR Code 並非 SaveMyBook 書櫃 QR Code }
+                定位格式錯誤:
+                  value: { success: false, message: 定位資料格式不正確 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 距離書櫃過遠。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: CABINET_TOO_FAR, message: 您目前的位置距離書櫃約 850 公尺，請於書櫃旁操作, distance_m: 850 }
+        '404':
+          description: 在此書櫃沒有可辦理的項目，`other_cabinets` 列出本人在其他書櫃的待辦項目（最多 3 筆）。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example:
+                success: false
+                code: CABINET_NOTHING_TO_DO
+                message: 您在此書櫃沒有待辦理的項目
+                other_cabinets: [{ cabinet_id: 5, cabinet_name: 師大書櫃, address: 臺北市大安區和平東路一段 162 號, kinds: [pickup] }]
+        '409':
+          description: 書櫃狀態、作業或項目不允許建立作業。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                書櫃使用中:
+                  value: { success: false, code: CABINET_BUSY, message: 書櫃使用中，請稍候再掃描 }
+                連線中斷:
+                  value: { success: false, code: CABINET_OFFLINE, message: 書櫃目前連線中斷，暫時無法使用, manual_allowed: false }
+                非營業時間:
+                  value: { success: false, code: CABINET_CLOSED, message: 目前非書櫃營業時間，營業時間為 08:00–22:00, open_time: '08:00', close_time: '22:00' }
+                掃錯書櫃:
+                  value:
+                    success: false
+                    code: CABINET_WRONG_CABINET
+                    message: 此訂單的指定書櫃為「北商大書櫃」，請至該書櫃辦理
+                    cabinet: { cabinet_id: 3, cabinet_name: 北商大書櫃, address: 臺北市中正區濟南路一段 321 號, latitude: 25.0421, longitude: 121.5254 }
+                已有進行中作業:
+                  value: { success: false, code: CABINET_ACTIVE_SESSION, message: 您有進行中的書櫃作業，請先完成或取消, session_no: CS8MZQ41K }
+                項目皆無法辦理:
+                  value: { success: false, code: CABINET_ITEM_BLOCKED, message: 無法確認此項目的櫃門，請聯絡客服, items: [] }
+        '410':
+          description: QR Code 已更新、已使用或已過期。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: CABINET_CODE_EXPIRED, message: 書櫃 QR Code 已更新，請重新掃描書櫃螢幕上的 QR Code }
+        '429':
+          description: 操作過於頻繁，或作業多次未完成而進入冷卻。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                冷卻中:
+                  value: { success: false, code: CABINET_COOLDOWN, message: 您在此書櫃的作業多次未完成，請於 8 分鐘後再試, retry_after_s: 452 }
+                限流:
+                  value: { success: false, code: RATE_LIMITED, message: 操作過於頻繁，請稍後再試 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/cabinet-sessions/active:
+    get:
+      summary: 取得進行中的書櫃作業
+      operationId: getActiveCabinetSession
+      tags: [cabinet-sessions]
+      description: 回傳本人最新一筆尚未結束（含 `needs_review`）的作業；沒有時 `data` 為 `null`。管理員遠端開櫃的作業不會出現在這裡。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    allOf: [{ $ref: '#/components/schemas/CabinetSession' }]
+                    nullable: true
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/cabinet-sessions/{sessionNo}:
+    get:
+      summary: 取得書櫃作業
+      operationId: getCabinetSession
+      tags: [cabinet-sessions]
+      description: 先處理已逾時的階段，再回傳最新狀態。作業不屬於本人時回 404（管理員也一樣）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetSessionNo'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/CabinetSession' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/CabinetSessionNotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/cabinet-sessions/{sessionNo}/start:
+    post:
+      summary: 確認項目並開啟櫃門
+      operationId: startCabinetSession
+      tags: [cabinet-sessions]
+      description: |
+        只能在 `selecting` 狀態呼叫。取回的單位會自動擴充為整扇櫃門。所選單位的狀態已變更時回 409 `CABINET_ITEMS_CHANGED`，
+        並附最新的作業，作業維持 `selecting`、期限不重算。櫃門不足時回 409 `CABINET_FULL` 或 `PREDEPOSIT_LIMIT`，作業同樣維持 `selecting`。
+
+        成功時分配存書櫃門、暫停取回書籍的販售，並產生比對數字，狀態轉為 `matching`；回應中的 `match.code` 請使用者在書櫃螢幕點選，
+        並提醒不得告知他人。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetSessionNo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [keys]
+              properties:
+                keys:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  items: { type: string }
+                  example: ['order:128', 'book:55']
+      responses:
+        '200':
+          description: 已進入數字比對。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/CabinetSession' }
+        '400':
+          description: 未選擇項目，或所選的 `key` 不屬於本作業。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: CABINET_NO_SELECTION, message: 請至少選擇一個項目 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/CabinetSessionNotFound' }
+        '409':
+          description: 作業狀態不符、項目已變更或櫃門不足。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                項目已變更:
+                  value: { success: false, code: CABINET_ITEMS_CHANGED, message: 部分項目狀態已變更，請重新確認, session: {} }
+                櫃門不足:
+                  value: { success: false, code: CABINET_FULL, message: 此書櫃可用的櫃門不足，請減少存書項目或稍後再試, available_doors: 1, required_doors: 2 }
+                先行存書上限:
+                  value: { success: false, code: PREDEPOSIT_LIMIT, message: 您在此書櫃的先行存書已達上限，請待售出或取回後再存入 }
+                狀態不符:
+                  value: { success: false, code: CABINET_SESSION_STATE, message: 目前無法執行此操作, session: {} }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/cabinet-sessions/{sessionNo}/cancel:
+    post:
+      summary: 取消書櫃作業
+      operationId: cancelCabinetSession
+      tags: [cabinet-sessions]
+      description: |
+        只能在 `selecting`、`matching` 取消，結果為 `cancelled`／`CANCELLED_BY_USER`；已結束的作業直接回傳現況。
+        櫃門開啟後不能從 App 取消，請於書櫃螢幕按「取消並關門」。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetSessionNo'
+      responses:
+        '200':
+          description: 已取消，或作業已結束。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/CabinetSession' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/CabinetSessionNotFound' }
+        '409':
+          description: 櫃門已開啟或正在開啟。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: CABINET_SESSION_STATE, message: 櫃門已開啟，請於書櫃螢幕操作, session: {} }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+components:
+  parameters:
+    CabinetSessionNo:
+      in: path
+      name: sessionNo
+      required: true
+      schema: { type: string }
+      description: 書櫃作業編號（`CS` 開頭）。
+      example: CS8MZQ41K
+
+  responses:
+    CabinetSessionNotFound:
+      description: 查無此作業、編號格式錯誤，或作業不屬於本人。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: CABINET_SESSION_NOT_FOUND, message: 找不到此書櫃作業 }
+
+  schemas:
+    CabinetSessionItem:
+      type: object
+      description: 一個可辦理的單位。
+      properties:
+        key: { type: string, description: '`order:<order_id>` 或 `book:<book_id>`。', example: 'order:128' }
+        kind: { type: string, enum: [pickup, order_deposit, pre_deposit, retrieval], example: order_deposit }
+        order_id: { type: integer, nullable: true, description: 取書與依訂單存書才有。, example: 128 }
+        order_no: { type: string, nullable: true, example: SMB20260928143015123456 }
+        books:
+          type: array
+          items:
+            type: object
+            properties:
+              book_id: { type: integer, example: 55 }
+              title: { type: string, example: 資料庫系統概論 }
+              image_url: { type: string, nullable: true, example: /uploads/books/55.jpg }
+              door: { type: string, nullable: true, description: 櫃門標籤；開始前的存書項目為 null。, example: A02 }
+        doors: { type: array, items: { type: string }, example: [A02] }
+        paused: { type: boolean, description: 取回的書目前暫停販售。, example: false }
+        note:
+          type: object
+          nullable: true
+          properties:
+            code: { type: string, enum: [MOVE_TO_ORDER_CABINET], example: MOVE_TO_ORDER_CABINET }
+            message: { type: string, example: 此書籍已售出，取回後請存入訂單指定的書櫃「北商大書櫃」 }
+        selected: { type: boolean, example: true }
+        blocked:
+          type: object
+          nullable: true
+          description: 不可辦理（不能勾選）的原因。
+          properties:
+            code: { type: string, enum: [DOOR_UNKNOWN, DOOR_FAULT, DOOR_CHECK, DOOR_SHARED, CABINET_FULL, PREDEPOSIT_LIMIT], example: DOOR_UNKNOWN }
+            message: { type: string, example: 無法確認此項目的櫃門，請聯絡客服 }
+        result: { type: string, enum: [pending, done, failed, skipped], example: pending }
+        error:
+          type: object
+          nullable: true
+          properties:
+            code: { type: string, enum: [ITEM_CHANGED, DOOR_FAILED, DOOR_UNCONFIRMED, DOOR_CONFLICT], example: ITEM_CHANGED }
+            message: { type: string, example: 項目狀態已變更，本項目未完成 }
+
+    CabinetSession:
+      type: object
+      properties:
+        session_no: { type: string, example: CS8MZQ41K }
+        status:
+          type: string
+          enum: [selecting, matching, opening, open, completed, partial, cancelled, failed, expired, needs_review]
+          example: open
+        version: { type: integer, description: 每次狀態變更遞增；App 以此忽略較舊的推播。, example: 6 }
+        cabinet:
+          type: object
+          properties:
+            cabinet_id: { type: integer, example: 3 }
+            cabinet_name: { type: string, example: 北商大書櫃 }
+            address: { type: string, example: 臺北市中正區濟南路一段 321 號 }
+            latitude: { type: number, nullable: true, example: 25.0421 }
+            longitude: { type: number, nullable: true, example: 121.5254 }
+            open_time: { type: string, nullable: true, example: '08:00' }
+            close_time: { type: string, nullable: true, example: '22:00' }
+            available_doors: { type: integer, nullable: true, example: 2 }
+        location_status: { type: string, nullable: true, enum: [granted, denied, unavailable, null], example: granted }
+        distance_m: { type: integer, nullable: true, example: 35 }
+        items:
+          type: array
+          description: 依取書、依訂單存書、先行存書、取回排序。
+          items: { $ref: '#/components/schemas/CabinetSessionItem' }
+        match:
+          type: object
+          nullable: true
+          description: 只在 `matching` 時有值，為請使用者在書櫃螢幕點選的兩位數。
+          properties:
+            code: { type: integer, example: 37 }
+        doors:
+          type: array
+          description: 開始後的櫃門與狀態。
+          items:
+            type: object
+            properties:
+              label: { type: string, example: A02 }
+              state: { type: string, enum: [pending, open, closed, failed], example: open }
+        remaining_ms: { type: integer, nullable: true, description: 目前階段的剩餘時間；開門後為倒數剩餘時間；已結束為 null。, example: 24300 }
+        open_ms: { type: integer, nullable: true, description: 開門倒數的總長度。, example: 30000 }
+        result:
+          type: object
+          nullable: true
+          description: 已結束或待確認時的結果；`outcome` 等於 `status`。
+          properties:
+            outcome: { type: string, example: completed }
+            code:
+              type: string
+              enum: [COMPLETED, PARTIAL, ITEMS_FAILED, MATCH_FAILED, MATCH_TIMEOUT, SELECT_TIMEOUT, DEVICE_NO_RESPONSE, CANCELLED_BY_USER, CANCELLED_AT_CABINET, DEVICE_NO_ACK, DEVICE_LOST, DEVICE_INTERRUPTED, ADMIN_RESOLVED_COMMIT, ADMIN_RESOLVED_DISCARD, ADMIN_CANCELLED]
+              example: COMPLETED
+            message: { type: string, example: 作業完成 }
+        created_at: { type: string, format: date-time }
+        finished_at: { type: string, format: date-time, nullable: true }
+
+    CabinetManualReport:
+      type: object
+      description: |
+        待客服確認的手動回報（故障備援）。書櫃裝置離線或故障時，一般使用者的存書、取書、取回回報先成為待確認，
+        管理員確認後才變更訂單或存書狀態並通知對方；駁回時狀態不變，並通知回報者。
+      properties:
+        report_no: { type: string, description: 手動回報編號（`MR` 開頭）。, example: MR4K2Q8ZT }
+        kind: { type: string, enum: [deposit, pickup, retrieve], example: pickup }
+        status: { type: string, enum: [pending, confirmed, rejected, cancelled], example: pending }
+        target_status: { type: string, nullable: true, description: 訂單回報時要求的狀態。, example: picked_up }
+        reason: { type: string, nullable: true, enum: [offline, fault, no_device, null], description: 開放手動回報的原因。, example: offline }
+        created_at: { type: string, format: date-time }
+        reviewed_at: { type: string, format: date-time, nullable: true }
+        review_note: { type: string, nullable: true }

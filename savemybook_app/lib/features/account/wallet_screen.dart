@@ -565,40 +565,53 @@ class _WalletScreenState extends State<WalletScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  isTransfer ? t.typeText : t.bookTitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        isTransfer ? t.typeText : t.bookTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 110),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '${t.isIncome ? '+' : '-'}\$${_money(t.amount)}',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: tint),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 5),
-                Text(
-                  t.description.isEmpty ? t.typeText : t.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, height: 1.35, color: c.textSecondary),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 110),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    '${t.isIncome ? '+' : '-'}\$${_money(t.amount)}',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: tint),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  formatDate(t.createdAt?.toLocal()),
-                  maxLines: 1,
-                  style: TextStyle(fontSize: 11, color: c.textHint),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        t.description.isEmpty ? t.typeText : t.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, height: 1.35, color: c.textSecondary),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 1),
+                      child: Text(
+                        formatDate(t.createdAt?.toLocal()),
+                        maxLines: 1,
+                        style: TextStyle(fontSize: 11, color: c.textHint),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

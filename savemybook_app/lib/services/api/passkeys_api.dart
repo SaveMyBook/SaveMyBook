@@ -1,10 +1,14 @@
 part of '../api_service.dart';
 
 extension PasskeysApi on ApiService {
-  Future<bool> fetchPasskeyServerEnabled() async {
+  Future<PasskeyServerStatus?> fetchPasskeyStatus() async {
     final res = await _send('GET', '/auth/passkeys/status');
-    return res != null && res['success'] == true && res['data'] is Map && res['data']['enabled'] == true;
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return PasskeyServerStatus.fromJson(Map<String, dynamic>.from(res['data'] as Map));
   }
+
+  /// 只有伺服器明確停用或未設定本平台的來源時為 false；離線、維護、限流或逾時為 null，不可當成停用。
+  Future<bool?> fetchPasskeyServerEnabled() async => (await fetchPasskeyStatus())?.usableOn(defaultTargetPlatform);
 
   PasskeyOutcome<Map<String, dynamic>> _optionsOf(Map<String, dynamic>? res) {
     if (res == null) return PasskeyOutcome.fail('SIGNED_OUT', S.pleaseSignFirst);

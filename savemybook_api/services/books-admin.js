@@ -6,6 +6,7 @@ const { BOOK_STATUS_LABELS, CONDITION_LABELS } = require('../constants/domain');
 const { notify } = require('./notify');
 const audit = require('./audit');
 const reviews = require('./ai/reviews');
+const deposits = require('./book-deposits');
 
 const ADMIN_FIELDS = {
   title: '書名',
@@ -149,6 +150,7 @@ const adminSetStatus = async (bookId, status, reason, { adminId, req }) => {
       data: { ...statusData, updated_at: new Date() }
     });
     if (status === 'on_sale') await reviews.settle(tx, bookId, adminId);
+    await deposits.syncAdminStatus(tx, bookId, status);
     await notify(tx, {
       userId: book.seller_id,
       title: status === 'removed' ? '您的書籍已被下架' : '您的書籍已恢復上架',
@@ -188,6 +190,7 @@ const assertDeletable = async (tx, book) => {
   ]);
   if (book.status === 'reserved' || activeReservations > 0) throw inTransaction();
   if (orderItems > 0) throw hasOrders();
+  await deposits.assertDeletable(tx, book.book_id);
 };
 
 const adminRemove = async (bookId, reason, { adminId, req }) => {

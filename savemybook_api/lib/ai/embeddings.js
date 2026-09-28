@@ -55,21 +55,37 @@ const embedGemini = async (profile, apiKey, texts, task) => {
   return { raw: rows.map((r) => r?.values), tokens: texts.reduce((sum, t) => sum + t.length, 0) };
 };
 
+const costOf = (profile, tokens) => Math.round((tokens * profile.price_per_m) / 1e6 * 1e6) / 1e6;
+
 const embed = async (profile, apiKey, texts, { task = 'document' } = {}) => {
   if (!apiKey) throw new AiProviderError('NOT_CONFIGURED', { provider: profile.provider });
   const run = profile.provider === 'openai' ? embedOpenai : embedGemini;
   const started = Date.now();
-  const { raw, tokens } = await run(profile, apiKey, texts, task);
-  const vectors = raw.map((values) => (Array.isArray(values) && values.length === profile.dimensions ? normalize(values) : null));
-  if (vectors.length !== texts.length || vectors.some((v) => !v)) {
-    throw new AiProviderError('INVALID_OUTPUT', { provider: profile.provider });
+  let response;
+  try {
+    response = await run(profile, apiKey, texts, task);
+  } catch (err) {
+    if (err && typeof err === 'object' && err.latency_ms == null) err.latency_ms = Date.now() - started;
+    throw err;
   }
-  return {
-    vectors,
-    tokens,
-    cost_usd: Math.round((tokens * profile.price_per_m) / 1e6 * 1e6) / 1e6,
-    latency_ms: Date.now() - started
-  };
+  const { raw, tokens } = response;
+  const latencyMs = Date.now() - started;
+  // 筆數或維度不符代表模型或 API 格式改變，每次呼叫都會失敗（systemic）；個別文件得到零向量則只影響該批。
+  const wrongAt = raw.findIndex((values) => !Array.isArray(values) || values.length !== profile.dimensions);
+  const malformed = raw.length !== texts.length || wrongAt >= 0;
+  const vectors = malformed ? [] : raw.map((values) => normalize(values));
+  if (malformed || vectors.some((v) => !v)) {
+    let detail = '回傳零向量';
+    if (raw.length !== texts.length) detail = `回傳 ${raw.length} 筆向量，預期 ${texts.length} 筆`;
+    else if (malformed) detail = `向量維度 ${Array.isArray(raw[wrongAt]) ? raw[wrongAt].length : '不明'}，預期 ${profile.dimensions}`;
+    const err = new AiProviderError('INVALID_OUTPUT', { provider: profile.provider, providerMessage: detail });
+    err.systemic = malformed;
+    err.usage = { input_tokens: tokens };
+    err.cost_usd = costOf(profile, tokens);
+    err.latency_ms = latencyMs;
+    throw err;
+  }
+  return { vectors, tokens, cost_usd: costOf(profile, tokens), latency_ms: latencyMs };
 };
 
 const dot = (a, b) => {

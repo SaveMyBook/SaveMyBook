@@ -606,11 +606,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             child: Text(ticket.categoryText, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 12, color: c.textSecondary)),
           ),
-          if (widget.asAdmin && ticket.userName.isNotEmpty)
-            Flexible(
+          if (widget.asAdmin && ticket.userName.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Expanded(
               child: Text(ticket.userName, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
                   style: TextStyle(fontSize: 12, color: c.textSecondary)),
             ),
+          ],
         ],
       ),
     );
@@ -627,6 +630,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         crossAxisAlignment: alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: alignRight ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: [
               if (!alignRight) ...[
@@ -729,6 +733,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 ),
               ),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   IconButton(
                     tooltip: S.attachImages,
@@ -741,6 +746,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     child: AppTextField(
                       controller: _controller,
                       hint: S.writeReply,
+                      minLines: 1,
                       maxLines: 4,
                       maxLength: 1000,
                       onSubmitted: (_) => _send(),

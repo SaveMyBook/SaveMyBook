@@ -68,14 +68,18 @@ const start = async (provider, mode, userId) => {
 const takeState = async (provider, state) => {
   if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state)) throw stateInvalid();
 
-  const rows = await prisma.$queryRaw`
+  const [row] = await prisma.$queryRaw`
     SELECT state, provider, mode, user_id, created_at FROM oauth_states WHERE state = ${state}`;
-  const row = rows[0];
-  // 一次性：不論後續是否成功都先刪除，避免重放。
-  await prisma.$executeRaw`DELETE FROM oauth_states WHERE state = ${state}`;
+  if (!row) throw stateInvalid();
 
-  if (!row || row.provider !== provider) throw stateInvalid();
-  if (Date.now() - new Date(row.created_at).getTime() > STATE_TTL_MS) throw stateInvalid();
+  // 以刪除筆數判定是否取得：併發的重放請求都讀得到同一列，只有實際刪除成功的一方可以繼續。
+  const taken = await prisma.$executeRaw`
+    DELETE FROM oauth_states
+    WHERE state = ${state} AND provider = ${provider} AND created_at >= ${new Date(Date.now() - STATE_TTL_MS)}`;
+  if (Number(taken) === 0) {
+    await prisma.$executeRaw`DELETE FROM oauth_states WHERE state = ${state}`;
+    throw stateInvalid();
+  }
   return row;
 };
 
@@ -203,6 +207,12 @@ const handleCallback = async (provider, code, state) => {
 
 const dropResult = (code) => prisma.$executeRaw`DELETE FROM oauth_results WHERE code = ${code}`;
 
+// 到期只在 readResult 判定；這裡若再以當下時間判定，處理途中跨過到期會在帳號或綁定已寫入後才拒絕。
+const consumeResult = async (code) => {
+  const taken = await prisma.$executeRaw`DELETE FROM oauth_results WHERE code = ${code}`;
+  if (Number(taken) === 0) throw codeInvalid();
+};
+
 const readResult = async (code) => {
   if (typeof code !== 'string' || !/^[0-9a-f]{32}$/.test(code)) throw codeInvalid();
 
@@ -229,7 +239,7 @@ const exchangeResult = async (code, device, { create = false, email = null, nick
   const payload = await readResult(code);
   try {
     if (payload.kind === 'link') {
-      await dropResult(code);
+      await consumeResult(code);
       return { linked: true, provider: payload.provider };
     }
 
@@ -237,14 +247,14 @@ const exchangeResult = async (code, device, { create = false, email = null, nick
       const { user } = await identities.resolveSignIn({
         provider: payload.provider, info: payload.info, email, nickname, acceptLegal, create
       });
-      await dropResult(code);
+      await consumeResult(code);
       return auth.issueLogin(user, device, payload.provider);
     }
 
     const user = await identities.loadLoginUser(Number(payload.user_id));
     if (!user) throw codeInvalid();
     auth.assertLoginAllowed(user);
-    await dropResult(code);
+    await consumeResult(code);
     return auth.issueLogin(user, device, payload.provider);
   } catch (err) {
     if (!RETRYABLE_CODES.has(err?.code)) await dropResult(code);
@@ -259,5 +269,6 @@ const cleanupExpired = async () => {
 
 module.exports = {
   PROVIDERS, STATE_TTL_MS, RESULT_TTL_MS, redirectUri,
-  start, handleCallback, exchangeResult, readResult, dropResult, cleanupExpired, providerError, stateInvalid, codeInvalid
+  start, handleCallback, exchangeResult, readResult, dropResult, consumeResult, cleanupExpired, providerError, stateInvalid,
+  codeInvalid
 };

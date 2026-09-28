@@ -97,14 +97,24 @@ const generate = async (provider, options) => {
   const timeoutMs = options.timeoutMs ?? (search ? SEARCH_TIMEOUT_MS : DEFAULT_TIMEOUT_MS);
 
   const started = Date.now();
-  const result = await spec.adapter.generate({ ...options, apiKey, search, images, timeoutMs });
+  let result;
+  try {
+    result = await spec.adapter.generate({ ...options, apiKey, search, images, timeoutMs });
+  } catch (err) {
+    if (err && typeof err === 'object' && err.latency_ms == null) err.latency_ms = Date.now() - started;
+    throw err;
+  }
   const latencyMs = Date.now() - started;
 
   let json;
   if (options.json) {
     json = extractJson(result.text);
     if (!json || typeof json !== 'object' || Array.isArray(json)) {
-      const err = new AiProviderError('INVALID_OUTPUT', { provider });
+      // 只記長度與結束原因：輸出可能夾帶使用者內容，錯誤細節會顯示在後台。
+      const err = new AiProviderError(result.truncated ? 'INCOMPLETE' : 'INVALID_OUTPUT', {
+        provider,
+        providerMessage: `輸出 ${String(result.text ?? '').length} 字，結束原因 ${result.finish_reason || '未提供'}`
+      });
       err.usage = result.usage;
       err.latency_ms = latencyMs;
       throw err;

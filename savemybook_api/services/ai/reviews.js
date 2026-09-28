@@ -114,8 +114,12 @@ const decide = async (bookId, { decision, note }, { adminId, req }) => {
     ? { is_approved: true, ...(review.status === 'rejected' && book.status === 'removed' && { status: 'on_sale' }) }
     : { is_approved: false, ...(book.status === 'on_sale' && { status: 'removed' }) };
 
+  // 延後載入：book-deposits → book-violations → ai/reviews 的載入鏈若在模組頂端引用會形成循環。
+  const deposits = require('../book-deposits');
   await prisma.$transaction(async (tx) => {
     await tx.books.update({ where: { book_id: bookId }, data: { ...bookData, updated_at: new Date() } });
+    if (!approve) await deposits.releaseAutoPause(tx, bookId);
+    else if (bookData.status === 'on_sale') await deposits.syncAdminStatus(tx, bookId, 'on_sale');
     await tx.$executeRaw`
       UPDATE ai_book_reviews SET status = ${approve ? 'approved' : 'rejected'}, reviewed_by = ${adminId}, reviewed_at = ${new Date()}
       WHERE book_id = ${bookId}`;

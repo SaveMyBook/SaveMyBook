@@ -6,6 +6,8 @@ skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
 hide empty description
 
+state "暫停販售（待取回）" as 暫停販售
+
 [*] --> 販售中 : 賣家上架
 審核中 --> 販售中 : 管理員核准
 審核中 --> 已下架 : 管理員駁回
@@ -18,6 +20,9 @@ hide empty description
 交易中 --> 販售中 : 存書前取消訂單
 交易中 --> 已下架 : 逾期未存書或未取書
 販售中 --> 已下架 : 賣家下架或違規下架
+販售中 --> 暫停販售 : 存書滿 7 天仍無訂單
+暫停販售 --> 販售中 : 賣家回報取回
+暫停販售 --> 已下架 : 管理員登記取出
 已下架 --> 販售中 : 賣家重新上架
 已售出 --> [*]
 @enduml

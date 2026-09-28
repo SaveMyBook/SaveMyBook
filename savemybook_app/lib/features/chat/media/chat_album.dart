@@ -57,7 +57,7 @@ class ChatAlbumView extends StatelessWidget {
         );
       }
 
-      final tile = math.min(stripTile, math.max(88.0, (maxWidth - 2 * gap) / 2.4)).floorToDouble();
+      final tile = math.min(stripTile, math.max(88.0, (maxWidth - 2 * gap) / 2.3)).floorToDouble();
       final width = math.min(maxWidth, n * tile + (n - 1) * gap);
       return SizedBox(
         key: const ValueKey('chat_album_strip'),
@@ -81,7 +81,7 @@ class ChatAlbumView extends StatelessWidget {
             ),
             Positioned(
               top: 8,
-              right: 8,
+              left: 8,
               child: IgnorePointer(child: _CountBadge(count: n)),
             ),
           ],

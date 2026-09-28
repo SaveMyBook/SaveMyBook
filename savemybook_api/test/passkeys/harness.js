@@ -10,7 +10,7 @@ process.env.PASSKEY_ORIGINS = 'https://savemybook.today,android:apk-key-hash:47D
 const server = require('../lib/server');
 const { registerModels } = require('../lib/fake-prisma');
 
-const { prisma, api, request, runSuite, runFolder, onReset } = server;
+const { prisma, api, request, runSuite, runFolder, onReset, onFetch, jsonResponse } = server;
 
 registerModels({
   autoKeys: { user_passkeys: 'passkey_id', user_sessions: 'session_id' },
@@ -175,7 +175,8 @@ class Authenticator {
   }
 
   // options 為伺服器回傳的 PublicKeyCredentialCreationOptionsJSON。
-  create(options, { origin, rpId, userVerified = true } = {}) {
+  // transports 給空陣列時比照 iOS：passkeys 套件遇到空陣列不輸出 transports 鍵。
+  create(options, { origin, rpId, userVerified = true, transports = ['internal', 'hybrid'] } = {}) {
     this.userHandle = options.user.id;
     const attestationObject = isoCBOR.encode(new Map([
       ['fmt', 'none'],
@@ -189,7 +190,7 @@ class Authenticator {
       response: {
         clientDataJSON: b64url(this.clientData('webauthn.create', options.challenge, origin)),
         attestationObject: b64url(attestationObject),
-        transports: ['internal', 'hybrid']
+        ...(transports.length && { transports })
       },
       clientExtensionResults: {}
     };
@@ -229,7 +230,72 @@ const registerPasskey = async (ctx, { label = 'iPhone 17', authenticator = new A
   return authenticator;
 };
 
+// ---------- 日誌與併發 ----------
+
+// 驗證失敗會寫 console.warn，測試收下來比對內容，也避免輸出雜訊。
+const captureWarnings = async (fn) => {
+  const warnings = [];
+  const original = console.warn;
+  console.warn = (...args) => warnings.push(args.join(' '));
+  try {
+    await fn();
+  } finally {
+    console.warn = original;
+  }
+  return warnings;
+};
+
+// 讓併發請求真的交錯執行：寫入遠比讀取慢，沒有鎖時兩個請求一定都先讀完、通過檢查才寫入。
+// 另模擬 InnoDB 的列鎖：交易內的 SELECT ... FOR UPDATE 會等到持有同一列鎖的交易結束。
+const withRowLocks = async (fn, { readDelayMs = 1, writeDelayMs = 40 } = {}) => {
+  const target = { $queryRaw: prisma.$queryRaw, $executeRaw: prisma.$executeRaw, $transaction: prisma.$transaction };
+  const locks = new Map();
+  const slow = (method, ms) => async (strings, ...values) => {
+    await new Promise((resolve) => { setTimeout(resolve, ms); });
+    return target[method].call(prisma, strings, ...values);
+  };
+  prisma.$queryRaw = slow('$queryRaw', readDelayMs);
+  prisma.$executeRaw = slow('$executeRaw', writeDelayMs);
+  prisma.$transaction = async (work) => {
+    if (Array.isArray(work)) return Promise.all(work);
+    const held = [];
+    const tx = new Proxy(prisma, {
+      get: (db, prop) => (prop !== '$queryRaw' ? db[prop] : async (strings, ...values) => {
+        const sql = strings.join('?');
+        const table = /\sFROM\s+(\w+)\s.*\sFOR UPDATE$/is.exec(sql.trim())?.[1];
+        if (table) {
+          const key = `${table}:${values.join(',')}`;
+          while (locks.has(key) && !held.includes(key)) await locks.get(key).released;
+          if (!held.includes(key)) {
+            let release;
+            locks.set(key, { released: new Promise((resolve) => { release = resolve; }), release: () => release() });
+            held.push(key);
+          }
+        }
+        return db.$queryRaw(strings, ...values);
+      })
+    });
+    try {
+      return await work(tx);
+    } finally {
+      for (const key of held) {
+        const lock = locks.get(key);
+        locks.delete(key);
+        lock.release();
+      }
+    }
+  };
+  try {
+    return await fn();
+  } finally {
+    delete prisma.$queryRaw;
+    delete prisma.$executeRaw;
+    delete prisma.$transaction;
+  }
+};
+
 module.exports = {
-  api, prisma, request, runSuite, runFolder, reset, addUser, addSession, signedIn,
-  verifyTokenFor, sensitive, Authenticator, registerPasskey, RP_ID, ORIGIN, ANDROID_ORIGIN, authToken
+  api, prisma, request, runSuite, runFolder, reset, addUser, addSession, signedIn, onFetch, jsonResponse,
+  verifyTokenFor, sensitive, Authenticator, registerPasskey, RP_ID, ORIGIN, ANDROID_ORIGIN, authToken,
+  captureWarnings, withRowLocks
 };

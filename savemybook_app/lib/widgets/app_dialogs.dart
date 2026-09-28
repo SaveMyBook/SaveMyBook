@@ -40,6 +40,7 @@ Future<bool> showConfirmDialog(
   BuildContext context, {
   required String title,
   String? message,
+  List<String> items = const [],
   String? confirmLabel,
   String? cancelLabel,
   bool isDestructive = false,
@@ -47,6 +48,7 @@ Future<bool> showConfirmDialog(
 }) async {
   final c = AppColors.of(context);
   final tint = isDestructive ? c.danger : c.accent;
+  final bodyStyle = TextStyle(color: c.textSecondary, fontSize: 13.5, height: 1.6);
 
   final result = await _showAnimatedDialog<bool>(
     context,
@@ -82,10 +84,25 @@ Future<bool> showConfirmDialog(
           ),
           if (message != null) ...[
             const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: c.textSecondary, fontSize: 13.5, height: 1.6),
+            Text(message, textAlign: TextAlign.center, style: bodyStyle),
+          ],
+          if (items.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final item in items)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('・', style: bodyStyle),
+                        Expanded(child: Text(item, style: bodyStyle)),
+                      ],
+                    ),
+                ],
+              ),
             ),
           ],
         ],
@@ -321,6 +338,7 @@ Future<T?> showOptionSheet<T>(
   required List<SheetOption<T>> options,
 }) {
   final c = AppColors.of(context);
+  final reserveLeading = options.any((o) => o.icon != null);
 
   return showModalBottomSheet<T>(
     context: context,
@@ -371,7 +389,9 @@ Future<T?> showOptionSheet<T>(
               children: options
                   .map(
                     (o) => ListTile(
-                      leading: o.icon == null ? null : Icon(o.icon, color: o.color ?? c.textPrimary),
+                      leading: o.icon != null
+                          ? Icon(o.icon, color: o.color ?? c.textPrimary)
+                          : (reserveLeading ? const SizedBox(width: 24) : null),
                       title: Text(o.label, style: TextStyle(color: o.color ?? c.textPrimary)),
                       trailing: o.selected ? Icon(Icons.check_rounded, color: c.accent) : null,
                       onTap: () => Navigator.pop(ctx, o.value),

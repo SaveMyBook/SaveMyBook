@@ -21,6 +21,7 @@ class RealtimeService {
   final ValueNotifier<bool> connected = ValueNotifier(false);
   final StreamController<int> _rooms = StreamController<int>.broadcast();
   final StreamController<ChatTypingEvent> _typing = StreamController<ChatTypingEvent>.broadcast();
+  final StreamController<Map<String, dynamic>> _cabinetSessions = StreamController<Map<String, dynamic>>.broadcast();
 
   io.Socket? _socket;
   Timer? _retry;
@@ -28,6 +29,8 @@ class RealtimeService {
   Stream<int> get roomChanges => _rooms.stream;
 
   Stream<ChatTypingEvent> get typingChanges => _typing.stream;
+
+  Stream<Map<String, dynamic>> get cabinetSessionChanges => _cabinetSessions.stream;
 
   void start() {
     if (!enabled || ApiService.authToken == null) return;
@@ -85,7 +88,21 @@ class RealtimeService {
       if (roomId == null || userId == null) return;
       _typing.add((roomId: roomId, userId: userId, typing: data is Map && data['typing'] != false));
     });
+    socket.on('cabinet:session', handleCabinetSession);
     return socket;
+  }
+
+  @visibleForTesting
+  void handleCabinetSession(Object? data) {
+    final session = cabinetSessionOf(data);
+    if (session != null) _cabinetSessions.add(session);
+  }
+
+  static Map<String, dynamic>? cabinetSessionOf(Object? data) {
+    if (data is! Map) return null;
+    final session = data['session'];
+    if (session is! Map || session['session_no'] is! String) return null;
+    return Map<String, dynamic>.from(session);
   }
 
   static int? _intOf(Object? data, String key) {

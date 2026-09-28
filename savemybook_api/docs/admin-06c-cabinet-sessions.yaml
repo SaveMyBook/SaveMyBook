@@ -1,0 +1,480 @@
+paths:
+  /api/admin/cabinets/{id}/doors/{slotId}/open:
+    post:
+      summary: 遠端開啟櫃門
+      operationId: adminOpenCabinetDoor
+      tags: [admin-cabinets]
+      description: |
+        建立管理員書櫃作業，只開啟這一扇門，倒數 120 秒，不受營業時間限制。書櫃位於公共場所，預設須由現場人員完成數字比對：
+        回應中的 `match.code` 由管理員告知現場人員，在書櫃螢幕的 9 個數字中點選。
+
+        `force: true` 直接送出開門指令、不做比對，只允許用在門內沒有存放紀錄的櫃門（例如測試電磁鎖）。
+        作業結束時，曾開啟或已送出指令而未確認的櫃門一律設為待確認（`ADMIN_OPEN`），請確認內容後解除。
+        進度以 `GET /api/admin/cabinet-sessions/{sessionNo}` 查詢。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+        - $ref: '#/components/parameters/DoorSlotIdPath'
+        - $ref: '#/components/parameters/VerifyToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, maxLength: 255, example: 協助賣家取回書籍 }
+                force: { type: boolean, default: false, description: 不經現場數字比對直接開啟；限門內沒有存放紀錄的櫃門。 }
+      responses:
+        '201':
+          description: 已建立遠端開櫃作業。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 請由現場人員於書櫃螢幕點選數字 }
+                  data:
+                    type: object
+                    properties:
+                      session_no: { type: string, example: CS8MZQ41K }
+                      match:
+                        type: object
+                        nullable: true
+                        properties:
+                          code: { type: integer, example: 37 }
+                      remaining_ms: { type: integer, nullable: true, example: 60000 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminVerificationRequired' }
+        '404': { $ref: '#/components/responses/DoorNotFound' }
+        '409':
+          description: 書櫃未配對裝置、裝置離線、書櫃使用中，或門內有存放紀錄而要求直接開啟。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                未配對裝置:
+                  value: { success: false, code: DEVICE_NOT_PAIRED, message: 此書櫃尚未配對裝置 }
+                裝置離線:
+                  value: { success: false, code: DEVICE_OFFLINE, message: 書櫃裝置目前離線，無法遠端開啟櫃門 }
+                書櫃使用中:
+                  value: { success: false, code: CABINET_BUSY, message: 書櫃使用中，請待目前作業結束後再試 }
+                門內有書:
+                  value: { success: false, code: DOOR_NOT_EMPTY, message: 櫃門內有存放紀錄，須由現場人員完成數字確認後開啟 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{id}/doors/{slotId}/clear:
+    post:
+      summary: 清空櫃門存放紀錄
+      operationId: adminClearCabinetDoor
+      tags: [admin-cabinets]
+      description: |
+        刪除此門的所有櫃內紀錄並解除待確認，兩種模式都記錄 `door_cleared` 事件與操作紀錄。
+
+        | `mode` | 用途 | 處理 |
+        | --- | --- | --- |
+        | `removed` | 書籍已由人員取出 | 有存書登記的書刪除登記；上架中的書改為下架；通知賣家「書櫃中的書籍已由客服取出」。門內有進行中訂單的書時回 409 `DOOR_HAS_ORDER`，須先於訂單管理調整訂單狀態 |
+        | `correct` | 紀錄有誤，書其實不在門內 | 只刪除櫃內紀錄，不改變訂單或存書狀態 |
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+        - $ref: '#/components/parameters/DoorSlotIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mode, reason]
+              properties:
+                mode: { type: string, enum: [removed, correct], example: removed }
+                reason: { type: string, maxLength: 255, example: 人員已至現場取出 }
+      responses:
+        '200':
+          description: 已清空，回傳更新後的櫃門。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已清空櫃門存放紀錄 }
+                  data: { $ref: '#/components/schemas/AdminCabinetDoor' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/DoorNotFound' }
+        '409':
+          description: 門內有進行中訂單的書。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: DOOR_HAS_ORDER, message: 此櫃門存放進行中訂單的書籍，請先於訂單管理調整訂單狀態 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{id}/sessions:
+    get:
+      summary: 書櫃作業列表
+      operationId: adminListCabinetSessions
+      tags: [admin-cabinets]
+      description: 依建立時間由新到舊。`status` 可為單一狀態，或 `review`（等於 `needs_review`，待客服確認的作業）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [review, selecting, matching, opening, open, completed, partial, cancelled, failed, expired, needs_review]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminCabinetSessionRow' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinet-sessions/{sessionNo}:
+    get:
+      summary: 書櫃作業詳情
+      operationId: adminGetCabinetSession
+      tags: [admin-cabinets]
+      description: |
+        含一般使用者與管理員的作業，後台以此輪詢遠端開櫃的進度。`match` 只在管理員作業的比對階段有值；
+        一般使用者作業的比對數字一律不提供。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetSessionNo'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/AdminCabinetSessionDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/CabinetSessionNotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinet-sessions/{sessionNo}/resolve:
+    post:
+      summary: 處理待確認的書櫃作業
+      operationId: adminResolveCabinetSession
+      tags: [admin-cabinets]
+      description: |
+        | 作業狀態 | `commit` | `discard` |
+        | --- | --- | --- |
+        | `needs_review` | 依開門紀錄提交各項目（結果代碼 `ADMIN_RESOLVED_COMMIT`）；已送出開門指令而未收到開門回報的櫃門視為已開啟 | 不變更任何狀態（`ADMIN_RESOLVED_DISCARD`），曾開啟的存書櫃門設為待確認 |
+        | `selecting`、`matching`、`opening` | 409 | 強制結束（`ADMIN_CANCELLED`），已送出指令的櫃門設為待確認 |
+        | 其他（包括 `open`） | 409 | 409 |
+
+        處理結果通知作業發起人。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetSessionNo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, note]
+              properties:
+                action: { type: string, enum: [commit, discard], example: commit }
+                note: { type: string, maxLength: 500, example: 已至現場確認書籍已放入 A02 }
+      responses:
+        '200':
+          description: 已處理，回傳作業詳情。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 書櫃作業已處理 }
+                  data: { $ref: '#/components/schemas/AdminCabinetSessionDetail' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/CabinetSessionNotFound' }
+        '409':
+          description: 作業目前的狀態無法由客服處理。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: SESSION_NOT_REVIEWABLE, message: 此作業目前無法由客服處理 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{id}/manual-reports:
+    get:
+      summary: 書櫃手動回報列表
+      operationId: adminListCabinetManualReports
+      tags: [admin-cabinets]
+      description: |
+        書櫃裝置離線或故障期間，一般使用者送出的存書、取書、取回手動回報。回報不會立即生效，須由管理員確認或駁回。
+        `status` 預設為 `pending`，`all` 為全部。依建立時間由新到舊。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, confirmed, rejected, cancelled, all], default: pending }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminCabinetManualReport' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinet-manual-reports/{reportNo}/confirm:
+    post:
+      summary: 確認手動回報
+      operationId: adminConfirmCabinetManualReport
+      tags: [admin-cabinets]
+      description: |
+        確認後才套用回報的內容，並沿用既有通知告知對方與回報者：
+
+        | `kind` | 確認後 |
+        | --- | --- |
+        | `deposit`（訂單） | 訂單改為已存書，通知買家取書 |
+        | `deposit`（書籍） | 登記先行存書 |
+        | `pickup` | 記錄取書時間，通知賣家；刪除櫃內紀錄並把原櫃門設為待確認 |
+        | `retrieve` | 刪除存書登記（符合條件時恢復上架）；刪除櫃內紀錄並把原櫃門設為待確認 |
+
+        手動存書不知道放在哪一扇門，確認後請以「登記存放內容」補登櫃門。項目狀態已變更而無法套用時，回報改為 `cancelled`，
+        並回 409 `MANUAL_REPORT_STALE`。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ManualReportNo'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note: { type: string, maxLength: 500, example: 已與現場人員確認 }
+      responses:
+        '200':
+          description: 已確認。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已確認手動回報 }
+                  data: { $ref: '#/components/schemas/AdminCabinetManualReport' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/ManualReportNotFound' }
+        '409': { $ref: '#/components/responses/ManualReportConflict' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinet-manual-reports/{reportNo}/reject:
+    post:
+      summary: 駁回手動回報
+      operationId: adminRejectCabinetManualReport
+      tags: [admin-cabinets]
+      description: 不變更訂單或存書狀態，並通知回報者（附處理說明）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ManualReportNo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [note]
+              properties:
+                note: { type: string, maxLength: 500, example: 現場確認書籍仍在櫃內 }
+      responses:
+        '200':
+          description: 已駁回。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已駁回手動回報 }
+                  data: { $ref: '#/components/schemas/AdminCabinetManualReport' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/ManualReportNotFound' }
+        '409': { $ref: '#/components/responses/ManualReportConflict' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+components:
+  parameters:
+    ManualReportNo:
+      in: path
+      name: reportNo
+      required: true
+      schema: { type: string }
+      description: 手動回報編號（`MR` 開頭）。
+      example: MR4K2Q8ZT
+
+  responses:
+    ManualReportNotFound:
+      description: 查無此手動回報。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: MANUAL_REPORT_NOT_FOUND, message: 找不到此手動回報 }
+    ManualReportConflict:
+      description: 回報已處理，或項目狀態已變更而回報已失效。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            已處理:
+              value: { success: false, code: MANUAL_REPORT_NOT_PENDING, message: 此手動回報已處理 }
+            已失效:
+              value: { success: false, code: MANUAL_REPORT_STALE, message: 項目狀態已變更，此手動回報已失效 }
+
+  schemas:
+    AdminCabinetSessionRow:
+      type: object
+      properties:
+        session_no: { type: string, example: CS8MZQ41K }
+        kind: { type: string, enum: [user, admin], example: user }
+        status: { type: string, example: needs_review }
+        result_code: { type: string, nullable: true, example: DEVICE_LOST }
+        user:
+          type: object
+          nullable: true
+          properties:
+            user_no: { type: string, example: MB3K9QX2M }
+            nickname: { type: string, example: 小明 }
+        item_kinds: { type: array, items: { type: string, enum: [pickup, order_deposit, pre_deposit, retrieval] }, example: [pickup] }
+        doors: { type: array, items: { type: string }, example: [A02] }
+        location_status: { type: string, nullable: true, example: denied }
+        distance_m: { type: integer, nullable: true, example: null }
+        close_reason: { type: string, nullable: true, example: null }
+        created_at: { type: string, format: date-time }
+        opened_at: { type: string, format: date-time, nullable: true }
+        finished_at: { type: string, format: date-time, nullable: true }
+
+    AdminCabinetSessionDetail:
+      allOf:
+        - $ref: '#/components/schemas/CabinetSession'
+        - type: object
+          properties:
+            kind: { type: string, enum: [user, admin], example: admin }
+            result_code: { type: string, nullable: true, example: null }
+            user:
+              type: object
+              nullable: true
+              properties:
+                user_no: { type: string, example: MB3K9QX2M }
+                nickname: { type: string, example: 客服人員 }
+            items:
+              type: array
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/CabinetSessionItem'
+                  - type: object
+                    properties:
+                      seller_nickname: { type: string, nullable: true, example: 小明 }
+                      buyer_nickname: { type: string, nullable: true, example: 小華 }
+            close_reason: { type: string, nullable: true, description: '`button`、`timeout`、`sensor`、`cancel_button`、`admin`、`admin_discard`。', example: button }
+            started_at: { type: string, format: date-time, nullable: true }
+            matched_at: { type: string, format: date-time, nullable: true }
+            opened_at: { type: string, format: date-time, nullable: true }
+            closed_at: { type: string, format: date-time, nullable: true }
+            accuracy_m: { type: integer, nullable: true, example: 18 }
+            admin_reason: { type: string, nullable: true, example: 協助賣家取回書籍 }
+            admin_force: { type: boolean, example: false }
+            doors_timeline:
+              type: array
+              items:
+                type: object
+                properties:
+                  label: { type: string, example: A02 }
+                  state: { type: string, enum: [pending, open, closed, failed], example: closed }
+                  command_served_at: { type: string, format: date-time, nullable: true }
+                  opened_at: { type: string, format: date-time, nullable: true }
+                  closed_at: { type: string, format: date-time, nullable: true }
+                  close_reason: { type: string, nullable: true, example: button }
+            events:
+              type: array
+              items:
+                type: object
+                properties:
+                  type: { type: string, example: door_opened }
+                  source: { type: string, enum: [device, server, admin], example: device }
+                  label: { type: string, nullable: true, example: A02 }
+                  detail: { type: object, nullable: true }
+                  result: { type: string, nullable: true, example: ok }
+                  occurred_at: { type: string, format: date-time }
+            review:
+              type: object
+              nullable: true
+              properties:
+                note: { type: string, example: 已至現場確認 }
+                reviewed_at: { type: string, format: date-time }
+                reviewer_nickname: { type: string, nullable: true, example: 客服人員 }
+
+    AdminCabinetManualReport:
+      allOf:
+        - $ref: '#/components/schemas/CabinetManualReport'
+        - type: object
+          properties:
+            user:
+              type: object
+              nullable: true
+              properties:
+                user_no: { type: string, example: MB3K9QX2M }
+                nickname: { type: string, example: 小明 }
+            order:
+              type: object
+              nullable: true
+              properties:
+                order_id: { type: integer, example: 128 }
+                order_no: { type: string, example: SMB20260928143015123456 }
+                status: { type: string, example: deposited }
+            book:
+              type: object
+              nullable: true
+              properties:
+                book_id: { type: integer, example: 55 }
+                book_no: { type: string, example: BK7Q2M8ZK }
+                title: { type: string, example: 資料庫系統概論 }
+            titles: { type: array, items: { type: string }, example: [資料庫系統概論] }
+            reviewer_nickname: { type: string, nullable: true, example: null }

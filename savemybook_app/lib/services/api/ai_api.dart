@@ -20,7 +20,7 @@ extension AiApi on ApiService {
   }
 
   Future<AiResult<AiStatusInfo>> setAiConsent(bool granted) async {
-    final res = await _send('PUT', '/ai/consent', body: {'granted': granted});
+    final res = await _send('PUT', '/ai/consent', body: {'granted': granted, if (granted) 'notice_version': aiConsentNoticeVersion});
     if (res == null || res['success'] != true) return _aiFail(res, S.actionFailed);
     final data = _dataMap(res);
     return AiResult.ok(data == null ? AiStatusInfo.none : AiStatusInfo.fromJson(data));
@@ -124,8 +124,11 @@ extension AiApi on ApiService {
     return AiResult.ok(data == null ? null : AiSettingsBundle.fromJson(data));
   }
 
-  Future<AiResult<AiTestResult>> testAiProvider(String provider) async {
-    final res = await _send('POST', '/admin/ai/test', body: {'provider': provider});
+  Future<AiResult<AiTestResult>> testAiProvider(String provider, {String? model}) async {
+    final res = await _send('POST', '/admin/ai/test', body: {
+      'provider': provider,
+      if (model != null && model.trim().isNotEmpty) 'model': model.trim(),
+    });
     if (res == null || res['success'] != true) return _aiFail(res, S.somethingWentWrongPleaseTryAgain);
     final data = _dataMap(res);
     if (data == null) return AiResult.fail(S.somethingWentWrongPleaseTryAgain);

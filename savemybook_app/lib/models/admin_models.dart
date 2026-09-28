@@ -1,6 +1,7 @@
 export 'admin/announcement.dart';
 export 'admin/backup.dart';
 export 'admin/cabinet.dart';
+export 'admin/cabinet_device.dart';
 export 'admin/catalog.dart';
 export 'admin/level.dart';
 export 'admin/member.dart';

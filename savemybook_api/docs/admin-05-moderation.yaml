@@ -290,10 +290,15 @@ paths:
       operationId: adminAnalyzeDispute
       tags: [admin]
       description: |
-        需 `can_manage_transactions` 權限。AI 比對賣家上架時的書籍資料、書況與前 2 張照片，以及申訴內容與最多 3 張佐證照片，
+        需 `can_manage_transactions` 權限。AI 比對賣家上架時的書籍資料、書況與前 2 張照片、訂單狀態與成立、存書、取書時間，
+        以及申訴內容（含提出者為買家或賣家與提出時間）與最多 3 張佐證照片，
         回傳案件摘要、觀察重點與建議（`refund` 退款、`dismiss` 駁回、`need_more_info` 需要更多資訊）。
-        僅供參考，不會變更爭議或訂單；不使用聊天內容。使用上架審核的服務商（需支援照片辨識），費用記入 `admin_assist`。
-        AI 關閉或未設定金鑰回傳 503 `AI_UNAVAILABLE`，本月預算用盡回傳 503 `AI_BUDGET_EXCEEDED`。每位管理員每 10 分鐘最多 30 次。
+        僅供參考，不會變更爭議或訂單；不使用聊天內容。申訴內容送出前，含聯絡方式、連結、付款帳號或驗證碼的句子會以
+        「〔已隱藏個人或付款資訊〕」取代，並與書名、描述一併攤平成單行、替換分隔符號，避免偽造其他段落。
+        使用上架審核的服務商（需支援照片辨識），費用記入 `admin_assist`。
+        此處理為處理爭議所必要並已揭露於隱私權政策，不以申訴人的 AI 資料處理同意為前提。
+        AI 關閉或未設定金鑰回傳 503 `AI_UNAVAILABLE`，本月預算用盡回傳 503 `AI_BUDGET_EXCEEDED`，
+        案件內容遭服務商阻擋時回傳 422 `AI_CONTENT_BLOCKED`（管理員無法修改申訴內容，訊息不要求調整後重試）。每位管理員每 10 分鐘最多 30 次。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -331,6 +336,12 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '422':
+          description: 案件內容遭服務商的安全機制拒絕，重送相同內容仍會失敗。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: AI_CONTENT_BLOCKED, message: 案件內容遭 AI 服務商拒絕處理，無法進行分析 }
         '429':
           description: 分析次數過多。
           content:
@@ -359,6 +370,10 @@ paths:
 
         「申訴前的狀態」由時間欄位推回：有 `completed_at` 回到 `completed`，
         有 `deposited_at` 回到 `deposited`，否則回到 `pending_deposit`。
+
+        裁決退款且買家尚未取書時，仍在櫃中的書（訂單已有 `deposited_at` 時為訂單的每本書，其餘為 `pre_deposited` 的書）
+        恢復存書登記於書櫃，但因無法確認書是否仍在櫃中，書籍改為下架（`removed`）；賣家的裁決通知一併說明，
+        請賣家至書櫃取回並於 App 中回報，回報後再自行重新上架。
 
         爭議期間訂單若已被客服取消或退款，只結案不再異動訂單。
         已裁決的案件再送出回傳 409。退款紀錄的 `amount` 為實際退回的金額。

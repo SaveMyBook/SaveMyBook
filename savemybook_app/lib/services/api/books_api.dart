@@ -129,6 +129,21 @@ extension BooksApi on ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotRelist);
   }
 
+  Future<String?> depositBook(int bookId) async {
+    final res = await _send('POST', '/books/$bookId/deposit');
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
+  }
+
+  Future<({String? error, bool restored})> retrieveBook(int bookId) async {
+    final res = await _send('POST', '/books/$bookId/retrieve');
+    if (res == null) return (error: S.pleaseSignFirst, restored: false);
+    if (res['success'] != true) {
+      return (error: res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain, restored: false);
+    }
+    return (error: null, restored: res['data'] is Map && res['data']['restored'] == true);
+  }
+
   Future<(String? url, String? error)> fetchBookShareLink(int bookId) async {
     final res = await _send('GET', '/books/$bookId/share-link');
     if (res == null) return (null, S.networkError);

@@ -171,6 +171,10 @@ paths:
 
         操作會發送通知予賣家，下架時 `reason` 將包含於通知內容中，
         並寫入稽核紀錄。
+
+        書籍登記存放於書櫃（訂單成立前存書）時：下架後賣家回報取回不會自動恢復上架；
+        恢復上架已滿 7 天的存書時，存書天數自恢復上架時重新起算，不再提醒賣家取回。
+        還原本操作（`POST /api/admin/operation-logs/{id}/undo`）時比照反向操作處理存書紀錄。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -219,6 +223,8 @@ paths:
 
         - 書籍狀態為 `reserved`，或有 `pending`、保留期限內 `confirmed` 的預約時回傳 409 `BOOK_IN_TRANSACTION`
         - 已有訂單紀錄時回傳 409 `BOOK_HAS_ORDERS`；為保留交易資料，此類書籍請改用 `PATCH` 強制下架
+        - 書籍仍登記存放於書櫃（訂單成立前存書）時回傳 409 `BOOK_DEPOSITED`；請先由人員取出並以
+          `POST /api/admin/cabinets/deposits/{bookId}/clear` 登記後再刪除
 
         刪除時一併移除已結束的預約、購物車項目、收藏、推薦紀錄與書籍照片資料，
         關聯此書籍的聊天室保留並解除關聯。完成後通知賣家（附上 `reason`）並寫入稽核紀錄。
@@ -268,7 +274,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 找不到此書籍 }
         '409':
-          description: 書籍交易或預約進行中，或已有訂單紀錄。
+          description: 書籍交易或預約進行中、已有訂單紀錄，或書籍仍存放於書櫃。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -277,6 +283,8 @@ paths:
                   value: { success: false, code: BOOK_IN_TRANSACTION, message: 此書籍交易或預約進行中，請先處理後再刪除 }
                 已有訂單:
                   value: { success: false, code: BOOK_HAS_ORDERS, message: 此書籍已有訂單紀錄，為保留交易資料無法刪除，如需停止販售請使用強制下架 }
+                仍存放於書櫃:
+                  value: { success: false, code: BOOK_DEPOSITED, message: 此書籍仍存放於書櫃，請先於書櫃管理登記取出後再刪除 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/categories:

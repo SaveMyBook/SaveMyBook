@@ -2,10 +2,10 @@ const { badRequest, conflict } = require('../../lib/errors');
 const { ORDER_STATUS_LABELS } = require('../../constants/domain');
 const { changeBalance, ensureWallet } = require('../wallet');
 
-// 以讀取時的狀態為更新條件，避免並行請求重複退款或重複撥款。
+// 以讀取時的狀態與取書時間為更新條件：避免並行請求重複結算，也避免買家取書（只寫入取書時間）後訂單仍被取消退款。
 const guardedUpdate = async (tx, order, data) => {
   const result = await tx.orders.updateMany({
-    where: { order_id: order.order_id, status: order.status },
+    where: { order_id: order.order_id, status: order.status, picked_up_at: order.picked_up_at ?? null },
     data: { ...data, updated_at: new Date() }
   });
   if (result.count === 0) throw conflict('訂單狀態已變更，請重新整理後再試');
@@ -39,11 +39,58 @@ const ledgerOf = async (tx, order) => {
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
+const IN_CABINET = ['deposited', 'pending_pickup'];
+
+// 申訴中的訂單看不出原本進度，改依存書時間判斷書是否已放進訂單書櫃（與申訴裁決推回狀態的規則一致）。
+const wasInCabinet = (order) => order.cabinet_id != null
+  && (IN_CABINET.includes(order.status) || (order.status === 'refunding' && order.deposited_at != null));
+
+const keptInCabinet = (order, item) => !order.picked_up_at && (wasInCabinet(order) || Boolean(item.pre_deposited));
+
+const redeposit = async (tx, order, now) => {
+  const result = { count: 0, forSale: 0 };
+  // 款項已退回或已完成的訂單再調整狀態時不可重建存書登記，書可能早已取回或售出。
+  if (phaseOf(order.status) !== 'held') return result;
+  const whole = wasInCabinet(order);
+  const ids = order.order_items.filter((i) => keptInCabinet(order, i)).map((i) => i.book_id);
+  if (ids.length === 0) return result;
+  // 申訴中的訂單無法確認書是否仍在櫃中，恢復登記但改為下架，避免下一位買家直接前往書櫃卻取不到書。
+  const delist = order.status === 'refunding';
+  const books = await tx.books.findMany({
+    where: { book_id: { in: ids }, status: { in: ['on_sale', 'removed'] } },
+    select: { book_id: true, cabinet_id: true, status: true, is_approved: true }
+  });
+  const restored = [];
+  const forSale = new Set();
+  for (const book of books) {
+    const cabinetId = whole ? order.cabinet_id : book.cabinet_id;
+    if (!cabinetId) continue;
+    const row = await tx.book_deposits.upsert({
+      where: { book_id: book.book_id },
+      create: { book_id: book.book_id, cabinet_id: cabinetId, deposited_at: now },
+      update: {}
+    });
+    const data = {};
+    // 書籍的書櫃須與實際存放處一致：刊登的取書地點、下次結帳是否已在訂單書櫃、取回時的提示都以它判斷。
+    if (row.cabinet_id !== book.cabinet_id) data.cabinet_id = row.cabinet_id;
+    if (delist && book.status === 'on_sale') data.status = 'removed';
+    if (Object.keys(data).length > 0) {
+      await tx.books.update({ where: { book_id: book.book_id }, data: { ...data, updated_at: now } });
+    }
+    restored.push(Number(book.book_id));
+    if ((data.status ?? book.status) === 'on_sale' && book.is_approved) forSale.add(Number(book.book_id));
+  }
+  const paused = await require('../cabinet-release').splitSharedDoors(tx, order, restored, now);
+  result.count = restored.length;
+  result.forSale = [...forSale].filter((id) => !paused.has(id)).length;
+  return result;
+};
+
 // 必須在 guardedUpdate 之後、同一個交易內呼叫，靠其列鎖避免重複結算。
 // restoreBookTo：退款後書籍回到的狀態；逾期未存書或未取書自動取消時改為下架，由賣家確認後自行重新上架。
 const settle = async (tx, order, target, { restoreBookTo = 'on_sale' } = {}) => {
   const phase = phaseOf(target);
-  const result = { phase, paidOut: 0, clawedBack: 0, refunded: 0 };
+  const result = { phase, paidOut: 0, clawedBack: 0, refunded: 0, redeposited: 0, redepositedForSale: 0 };
   if (phase === 'held') return result;
 
   const amount = Number(order.total_amount);
@@ -95,6 +142,9 @@ const settle = async (tx, order, target, { restoreBookTo = 'on_sale' } = {}) => 
     where: { book_id: { in: bookIds }, status: 'reserved' },
     data: { status: restoreBookTo, updated_at: now }
   });
+  const stored = await redeposit(tx, order, now);
+  result.redeposited = stored.count;
+  result.redepositedForSale = stored.forSale;
   return result;
 };
 
@@ -133,6 +183,17 @@ const describeSettlement = (money) => {
   return parts.join('，');
 };
 
+const storedNotice = ({ redeposited = 0, redepositedForSale = 0 }) => {
+  if (redeposited === 0) return '';
+  if (redepositedForSale === redeposited) return '已存放於書櫃的書籍維持存書登記，可繼續販售。';
+  const retrieve = '請至書櫃以 App 掃描 QR Code 取回。';
+  return redepositedForSale > 0
+    ? `已存放於書櫃的書籍維持存書登記，其中公開販售中的書籍可繼續販售；未公開販售的書籍${retrieve}`
+    : `已存放於書櫃的書籍維持存書登記；書籍目前未公開販售，${retrieve}`;
+};
+
 const statusLabel = (status) => ORDER_STATUS_LABELS[status] ?? status;
 
-module.exports = { phaseOf, guardedUpdate, transition, assertAdminTransition, describeSettlement, statusLabel };
+module.exports = {
+  phaseOf, guardedUpdate, keptInCabinet, transition, assertAdminTransition, describeSettlement, storedNotice, statusLabel
+};

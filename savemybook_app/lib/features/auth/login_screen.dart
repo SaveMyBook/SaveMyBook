@@ -47,6 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _passwordError;
   AuthProvidersInfo _providers = AuthProvidersInfo.none;
   String? _socialBusy;
+  bool _passkeyBusy = false;
 
   @override
   void initState() {
@@ -72,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleSocial(String provider) async {
-    if (_isLoading || _socialBusy != null) return;
+    if (_isLoading || _socialBusy != null || _passkeyBusy) return;
     FocusScope.of(context).unfocus();
     setState(() => _socialBusy = provider);
 
@@ -127,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _biometricLogin() async {
-    if (_isLoading || _biometricBusy) return;
+    if (_isLoading || _biometricBusy || _passkeyBusy) return;
 
     _biometricBusy = true;
     final ok = await BiometricService.authenticate(reason: S.verifySignSavemybook);
@@ -220,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (_isLoading) return;
+    if (_isLoading || _passkeyBusy) return;
     if (!_validate()) {
       setState(() => _shake++);
       return;
@@ -521,7 +522,7 @@ class _LoginScreenState extends State<LoginScreen> {
           label: S.sign,
           height: 50,
           isLoading: _isLoading,
-          onPressed: _handleLogin,
+          onPressed: _passkeyBusy ? null : _handleLogin,
         ),
       ),
       if (_canUseBiometric) ...[
@@ -537,7 +538,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ? null
                 : Icons.fingerprint_rounded,
             height: 50,
-            onPressed: _isLoading || _biometricBusy ? null : _biometricLogin,
+            onPressed: _isLoading || _biometricBusy || _passkeyBusy ? null : _biometricLogin,
           ),
         ),
       ],
@@ -547,6 +548,9 @@ class _LoginScreenState extends State<LoginScreen> {
           disabled: _isLoading || _socialBusy != null,
           onSignedIn: _handlePasskeySignedIn,
           onUsePassword: () => _passwordFocus.requestFocus(),
+          onBusyChanged: (busy) {
+            if (mounted) setState(() => _passkeyBusy = busy);
+          },
         ),
       ),
       if (SocialSignInSection.visibleIds(_providers).isNotEmpty) ...[
@@ -556,7 +560,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SocialSignInSection(
             providers: _providers,
             busyProvider: _socialBusy,
-            disabled: _isLoading,
+            disabled: _isLoading || _passkeyBusy,
             onSelect: _handleSocial,
             // iOS 的 App 內瀏覽器被使用者關閉時不會通知 App，須讓使用者能自行結束等待。
             onCancel: _socialBusy != null && AuthProviders.isOauth(_socialBusy!) ? SocialAuth.cancelOAuthWait : null,
@@ -567,7 +571,7 @@ class _LoginScreenState extends State<LoginScreen> {
       FadeSlideIn(
         index: 5,
         child: TextButton(
-          onPressed: _isLoading || _socialBusy != null ? null : () => _openRegister(_emailController.text.trim()),
+          onPressed: _isLoading || _socialBusy != null || _passkeyBusy ? null : () => _openRegister(_emailController.text.trim()),
           child: Text(S.noAccountYetSignUp, style: TextStyle(color: c.accent)),
         ),
       ),

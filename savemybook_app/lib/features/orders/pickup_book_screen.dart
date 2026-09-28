@@ -140,22 +140,25 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
           Column(
             children: [
               Container(
-                padding: EdgeInsets.only(top: media.padding.top + 8, bottom: 12, left: 16, right: 16),
+                padding: EdgeInsets.only(top: media.padding.top, left: 16, right: 16),
                 decoration: BoxDecoration(color: c.headerBg),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        S.collectBook,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                child: SizedBox(
+                  height: 56,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          S.collectBook,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               Expanded(

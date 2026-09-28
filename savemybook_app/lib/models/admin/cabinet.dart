@@ -1,20 +1,31 @@
 import '../../utils/api_helpers.dart';
 import '../../utils/app_labels.dart';
+import 'cabinet_device.dart';
 
 class CabinetSlot {
   final int slotId;
   final String slotNumber;
   final String status;
   final DateTime? updatedAt;
+  final int? lockChannel;
+  final String? faultCode;
+  final DateTime? checkRequiredAt;
 
   CabinetSlot({
     required this.slotId,
     required this.slotNumber,
     required this.status,
     this.updatedAt,
+    this.lockChannel,
+    this.faultCode,
+    this.checkRequiredAt,
   });
 
   String get statusText => AppLabels.slot(status);
+
+  bool get isDoor => lockChannel != null;
+
+  bool get needsCheck => checkRequiredAt != null;
 
   factory CabinetSlot.fromJson(Map<String, dynamic> json) {
     return CabinetSlot(
@@ -22,6 +33,9 @@ class CabinetSlot {
       slotNumber: json['slot_number'] as String? ?? '',
       status: json['status'] as String? ?? 'empty',
       updatedAt: parseDate(json['updated_at']),
+      lockChannel: json['lock_channel'] == null ? null : parseInt(json['lock_channel']),
+      faultCode: json['fault_code'] as String?,
+      checkRequiredAt: parseDate(json['check_required_at']),
     );
   }
 }
@@ -40,6 +54,7 @@ class Cabinet {
   final String openHours;
   final List<CabinetSlot> slots;
   final Map<String, int> slotSummary;
+  final AdminCabinetDeviceBrief? device;
 
   Cabinet({
     required this.cabinetId,
@@ -54,7 +69,10 @@ class Cabinet {
     this.openHours = '',
     this.slots = const [],
     this.slotSummary = const {},
+    this.device,
   });
+
+  List<CabinetSlot> get doors => [for (final slot in slots) if (slot.isDoor) slot];
 
   factory Cabinet.fromJson(Map<String, dynamic> json) {
     final summary = (json['slot_summary'] as Map<String, dynamic>?) ?? const {};
@@ -73,6 +91,7 @@ class Cabinet {
           .map((e) => CabinetSlot.fromJson(Map<String, dynamic>.from(e)))
           .toList(),
       slotSummary: summary.map((k, v) => MapEntry(k, parseInt(v))),
+      device: AdminCabinetDeviceBrief.fromJson(json['device']),
     );
   }
 }
@@ -102,6 +121,65 @@ class MaintenanceLog {
       detail: json['detail'] as String?,
       adminName: (json['users'] as Map<String, dynamic>?)?['nickname'] as String? ?? '',
       createdAt: parseDate(json['created_at']),
+    );
+  }
+}
+
+class CabinetDeposit {
+  final int bookId;
+  final String title;
+  final String bookStatus;
+  final String? imageUrl;
+  final String sellerName;
+  final bool sellerDeleted;
+  final int? cabinetId;
+  final String cabinetName;
+  final DateTime? depositedAt;
+  final int daysStored;
+  final bool paused;
+  final bool escalated;
+  final bool overdue;
+  final int? doorSlotId;
+  final String? doorLabel;
+
+  CabinetDeposit({
+    required this.bookId,
+    required this.title,
+    this.bookStatus = 'on_sale',
+    this.imageUrl,
+    this.sellerName = '',
+    this.sellerDeleted = false,
+    this.cabinetId,
+    this.cabinetName = '',
+    this.depositedAt,
+    this.daysStored = 0,
+    this.paused = false,
+    this.escalated = false,
+    this.overdue = false,
+    this.doorSlotId,
+    this.doorLabel,
+  });
+
+  factory CabinetDeposit.fromJson(Map<String, dynamic> json) {
+    final seller = json['seller'] as Map<String, dynamic>?;
+    final cabinet = json['cabinet'] as Map<String, dynamic>?;
+    final door = json['door'] is Map ? Map<String, dynamic>.from(json['door'] as Map) : null;
+    return CabinetDeposit(
+      bookId: parseInt(json['book_id']),
+      title: json['title'] as String? ?? '',
+      bookStatus: json['book_status'] as String? ?? 'on_sale',
+      imageUrl: resolveAssetUrl(json['image_url']),
+      sellerName: seller?['nickname'] as String? ?? '',
+      sellerDeleted: seller?['deleted'] == true,
+      cabinetId: cabinet?['cabinet_id'] == null ? null : parseInt(cabinet!['cabinet_id']),
+      cabinetName: cabinet?['cabinet_name'] as String? ?? '',
+      depositedAt: parseDate(json['deposited_at'])?.toLocal(),
+      daysStored: parseInt(json['days_stored']),
+      paused: json['paused'] == true,
+      escalated: json['escalated'] == true,
+      overdue: json['overdue'] == true,
+      doorSlotId: door?['slot_id'] == null ? null : parseInt(door!['slot_id']),
+      doorLabel: door?['label'] as String?,
     );
   }
 }

@@ -321,6 +321,21 @@ const tests = [
     assert.strictEqual(byAuthor.body.data[0].title, '小王子');
   }],
 
+  ['關鍵字含 ISBN 時各種排序都找得到，連字號、空白、全形數字、ISBN 前綴與 10 碼寫法皆可', async () => {
+    const owner = addUser();
+    const target = addBook({ sellerId: owner.user_id, title: '深度學習', isbn: '9789863125501' });
+    addBook({ sellerId: owner.user_id, title: '小王子', isbn: '9789571234567' });
+
+    const keywords = ['978-986-312-550-1', '978 986 312 550 1', '９７８９８６３１２５５０１', 'ISBN 9789863125501', 'isbn:978-986-312-550-1', '986-312-550-4'];
+    for (const sort of ['newest', 'price_asc', 'price_desc', 'popular', 'relevance']) {
+      for (const keyword of keywords) {
+        const res = await request('GET', `/api/books?sort=${sort}&keyword=${encodeURIComponent(keyword)}`);
+        assert.strictEqual(res.status, 200);
+        assert.deepStrictEqual(res.body.data.map((b) => b.book_id), [target.book_id], `${sort}：${keyword}`);
+      }
+    }
+  }],
+
   ['未審核的書籍只有賣家本人看得到詳情', async () => {
     const owner = addUser();
     const other = addUser();

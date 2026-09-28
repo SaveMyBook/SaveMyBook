@@ -5,10 +5,11 @@ const { notify, notifyMany } = require('./notify');
 const realtime = require('./realtime');
 const codec = require('./chat/codec');
 const rooms = require('./chat/rooms');
+const policy = require('../constants/policy');
 
-const HOURS = [24, 48, 72];
-const PENDING_TTL_MS = 24 * 60 * 60 * 1000;
-const MAX_ACTIVE_PER_BUYER = 5;
+const HOURS = policy.RESERVATION_HOLD_HOURS;
+const PENDING_TTL_MS = policy.RESERVATION_RESPONSE_HOURS * 60 * 60 * 1000;
+const MAX_ACTIVE_PER_BUYER = policy.RESERVATION_MAX_ACTIVE;
 
 const bookSelect = {
   book_id: true, title: true, price: true, status: true, seller_id: true, is_approved: true,
@@ -61,6 +62,15 @@ const activeHoldsFor = (bookIds, now = new Date()) => prisma.reservations.findMa
   where: { book_id: { in: bookIds }, status: 'confirmed', pickup_deadline: { gt: now } },
   select: { book_id: true, buyer_id: true, pickup_deadline: true }
 });
+
+// 由其他買家保留中的書：結帳會被 assertNotHeldByOthers 擋下，AI 推薦與書籍顧問據此排除。
+const heldByOthers = async (viewerId = null, now = new Date()) => {
+  const rows = await prisma.reservations.findMany({
+    where: { status: 'confirmed', pickup_deadline: { gt: now }, ...(viewerId != null && { buyer_id: { not: viewerId } }) },
+    select: { book_id: true }
+  });
+  return new Set(rows.map((r) => Number(r.book_id)));
+};
 
 const deadlineFormat = new Intl.DateTimeFormat('zh-TW', {
   timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false
@@ -316,7 +326,7 @@ const expireDue = async () => {
       userId: row.buyer_id,
       type: 'reservation',
       title: wasPending ? '預約未獲回覆' : '預約已到期',
-      content: wasPending ? `賣家未於 24 小時內回覆《${title}》的預約。` : `《${title}》的保留期限已屆滿，其他買家現已可購買。`,
+      content: wasPending ? `賣家未於 ${policy.RESERVATION_RESPONSE_HOURS} 小時內回覆《${title}》的預約。` : `《${title}》的保留期限已屆滿，其他買家現已可購買。`,
       relatedId: row.book_id,
       relatedType: 'book'
     }).catch(() => {});
@@ -325,5 +335,5 @@ const expireDue = async () => {
 };
 
 module.exports = {
-  activeHoldsFor, assertNotHeldByOthers, assertNotHeld, notifyAvailable, request, respond, forUsers, mine, holdForViewer, expireDue
+  activeHoldsFor, heldByOthers, assertNotHeldByOthers, assertNotHeld, notifyAvailable, request, respond, forUsers, mine, holdForViewer, expireDue
 };

@@ -1,6 +1,7 @@
 import '../utils/app_labels.dart';
 import '../utils/api_helpers.dart';
 import '../i18n/strings.dart';
+import 'cabinet.dart';
 
 class BookImage {
   final int imageId;
@@ -8,6 +9,22 @@ class BookImage {
   final String type;
 
   BookImage({required this.imageId, required this.url, required this.type});
+}
+
+class BookDeposit {
+  final DateTime? depositedAt;
+  final bool paused;
+  final int daysStored;
+  final String? door;
+
+  const BookDeposit({this.depositedAt, this.paused = false, this.daysStored = 0, this.door});
+
+  factory BookDeposit.fromJson(Map<String, dynamic> json) => BookDeposit(
+    depositedAt: parseDate(json['deposited_at'])?.toLocal(),
+    paused: json['paused'] == true,
+    daysStored: parseInt(json['days_stored']),
+    door: json['door'] as String?,
+  );
 }
 
 class Book {
@@ -44,6 +61,12 @@ class Book {
   final bool reservedForMe;
   final bool isApproved;
   final String? reviewStatus;
+  final bool inCabinet;
+  final BookDeposit? deposit;
+  final bool depositKnown;
+  final CabinetAccess? cabinetAccess;
+  final CabinetLocation? cabinetLocation;
+  final CabinetManualReport? manualReport;
 
   /// 系統依 ISBN 自動補齊的欄位（description、author、publisher、publish_date）。
   final List<String> autoFilledFields;
@@ -82,6 +105,12 @@ class Book {
     this.reservedForMe = false,
     this.isApproved = true,
     this.reviewStatus,
+    this.inCabinet = false,
+    this.deposit,
+    this.depositKnown = false,
+    this.cabinetAccess,
+    this.cabinetLocation,
+    this.manualReport,
     this.autoFilledFields = const [],
     this.aiWrittenDescription = false,
   });
@@ -160,6 +189,12 @@ class Book {
       reviewStatus: json['review_status'] == 'pending' || json['review_status'] == 'rejected'
           ? json['review_status'] as String
           : null,
+      inCabinet: json['in_cabinet'] == true,
+      deposit: json['deposit'] is Map ? BookDeposit.fromJson(Map<String, dynamic>.from(json['deposit'])) : null,
+      depositKnown: json.containsKey('deposit'),
+      cabinetAccess: CabinetAccess.fromJson(json['cabinet_access']),
+      cabinetLocation: CabinetLocation.fromJson(json['location']),
+      manualReport: CabinetManualReport.fromJson(json['manual_report']),
       autoFilledFields: json['enrichment'] is Map && json['enrichment']['fields'] is List
           ? [for (final f in json['enrichment']['fields'] as List) '$f']
           : const [],
@@ -185,6 +220,19 @@ class Book {
   bool get isPendingReview => reviewStatus == 'pending';
 
   bool get isReviewRejected => reviewStatus == 'rejected';
+
+  // 只有賣家本人的回應帶 deposit；公開列表沒有此欄位，不能當成未存書。
+  bool get isDeposited => deposit != null || inCabinet;
+
+  bool get isDepositPaused => deposit?.paused == true;
+
+  bool get canRegisterDeposit => depositKnown && !isDeposited && status == 'on_sale' && isApproved && cabinetId != null;
+
+  bool get canRetrieve => deposit != null || cabinetLocation?.retrievable == true;
+
+  CabinetAccess? get retrievalAccess => cabinetLocation?.access ?? cabinetAccess;
+
+  bool get hasPendingManualReport => manualReport?.isPending == true;
 
   String get sellerStatusText {
     if (isPendingReview) return S.reportReviewing;

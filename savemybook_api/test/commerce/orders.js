@@ -1,7 +1,7 @@
 const assert = require('assert');
 const {
   request, addUser, addAdmin, addBook, addCabinet, addCartItem, addOrder, addPaidOrder, addReservation,
-  tokenFor, verifyHeaders, bookOf, orderOf, balanceOf, transactionsOf, notificationsOf, logs, prisma
+  tokenFor, verifyHeaders, bookOf, orderOf, balanceOf, transactionsOf, notificationsOf, logs, prisma, confirmManual
 } = require('./harness');
 
 // 買家、賣家與一本上架中的書：多數訂單測試的共同起點。
@@ -208,15 +208,19 @@ const tests = [
     assert.strictEqual(denied.body.message, '僅賣家可執行此操作');
 
     const res = await setStatus(sellerToken, order.order_id, 'deposited');
-    assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.body.data.status, 'deposited');
+    assert.strictEqual(res.status, 202, res.text);
+    assert.strictEqual(res.body.data.status, 'pending_deposit');
+    assert.strictEqual(res.body.data.manual_report.status, 'pending');
+    assert.strictEqual(notificationsOf(buyer.user_id).length, 0, '客服確認前不通知買家');
+    assert.strictEqual((await confirmManual(res)).status, 200);
+    assert.strictEqual(orderOf(order.order_id).status, 'deposited');
     assert.ok(orderOf(order.order_id).deposited_at instanceof Date);
 
     const notice = notificationsOf(buyer.user_id)[0];
     assert.strictEqual(notice.title, '書籍已存入書櫃');
     assert.strictEqual(
       notice.content,
-      `訂單 ${order.order_no} 的書籍已存入「中正書櫃」書櫃，請前往書櫃掃描機台上的 QR Code 取書。`
+      `訂單 ${order.order_no} 的書籍已存入「中正書櫃」書櫃，請於營業時間內至書櫃以 App 掃描 QR Code 取書。`
     );
 
     const again = await setStatus(sellerToken, order.order_id, 'deposited');

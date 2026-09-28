@@ -148,6 +148,7 @@ class _LegalConsentScreenState extends State<LegalConsentScreen> {
                       ),
                     const SizedBox(height: 4),
                     SwitchIn(
+                      alignment: AlignmentDirectional.topStart,
                       child: Text(
                       S.p0BeenUpdated(doc.title),
                       key: ValueKey(doc.key),
@@ -164,7 +165,7 @@ class _LegalConsentScreenState extends State<LegalConsentScreen> {
               ),
               Expanded(
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
                     color: c.card,
                     borderRadius: BorderRadius.circular(16),

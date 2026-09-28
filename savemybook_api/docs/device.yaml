@@ -1,0 +1,497 @@
+tags:
+  - name: device
+    x-displayName: 書櫃裝置
+    description: |
+      智慧書櫃（ESP32 或模擬書櫃網頁）與伺服器之間的協定。裝置以 HTTPS 定時查詢狀態並回報事件，
+      不使用 Socket.IO。本組端點與使用者 API 完全分開：裝置以 `Authorization: Device <token>` 驗證，
+      使用者 Token 不能呼叫本組端點，裝置憑證也不能呼叫使用者 API。
+
+      ## 配對
+
+      1. 管理員於後台選擇裝置種類（`simulator` 或 `esp32`）與櫃門數後產生配對碼
+         （`POST /api/admin/cabinets/{id}/device/pairing-code`，或伺服器上執行
+         `node scripts/cabinet-device.js pair <cabinet_id> --kind <simulator|esp32> --doors <n>`）。
+         配對碼為 8 位數字，顯示為 `1234-5678`，10 分鐘內有效，只能使用一次。
+      2. 裝置以 `POST /api/device/v1/pair` 送出配對碼，取得裝置憑證（`smbd_` 開頭，共 48 字元）。
+         憑證只回傳這一次，伺服器只保存雜湊。
+      3. 同一台書櫃同時只有一台有效裝置；新裝置配對成功時，原有裝置隨即撤銷。每次配對都會通知具書櫃管理權限的管理員，內容含來源 IP。
+
+      ## 開機代碼與憑證複製偵測
+
+      每個請求（含配對）都須帶 `X-Device-Boot`，為裝置每次開機產生的 6 至 16 字元小寫英數字。
+      已配對的裝置開機後，**第一個請求必須是 `POST /events`，且第一筆事件為 `boot`、`data.boot_id` 等於本次的
+      `X-Device-Boot`**，之後才能呼叫 `GET /state`。
+
+      | 情況 | 結果 |
+      | --- | --- |
+      | 與目前的開機代碼相同 | 通過 |
+      | 開機後第一批事件以 `boot` 開頭 | 切換為新的開機代碼後通過 |
+      | 為前一個開機代碼，且切換未滿 30 秒 | 409 `DEVICE_STALE_BOOT`，裝置略過該回應 |
+      | 其他 | 視為憑證被兩個來源使用：撤銷裝置、記錄 `device_cloned`、通知管理員，回 401 `DEVICE_REVOKED` |
+
+      ## 時間
+
+      伺服器一律以「剩餘毫秒」傳遞效期，裝置不需要校時，也不得以本機時鐘判斷效期。
+      事件以 `age_ms`（事件發生至送出經過的毫秒數，以單調時鐘計算）回報，前一次開機留下、無法計算時送 `null`。
+
+      ## 裝置端行為（ESP32 韌體與模擬書櫃相同）
+
+      1. **開機**：所有電磁鎖維持上鎖；產生新的開機代碼（ESP32 須在 Wi-Fi 或藍牙啟動後以 `esp_random()` 產生）。
+         本機有「開門中」紀錄時，佇列 `session_closed { outcome: 'interrupted', reason: 'reboot' }` 並清除該紀錄。
+      2. **輪詢**：依回應的 `poll_ms` 輪詢（閒置 2 秒、作業中 1 秒）。連續 3 次網路失敗時顯示連線中斷，
+         並以 2、4、8、15 秒退避重試。每個請求都以單調時鐘量測往返時間。
+      3. **事件佇列**：持久化保存（ESP32 用 NVS，模擬書櫃用 localStorage）。收到 `ok`、`duplicate`、`rejected` 才刪除；
+         `retry` 與 HTTP 失敗（網路錯誤或 5xx）時保留並以原本的 `id` 重送。事件序號跨開機持續遞增、不歸零。
+      4. **開鎖**：只在收到回應的當下檢查一次：本次往返不超過 3000 毫秒，且指令的 `expires_in_ms > 0`；不符合時忽略整批指令。
+         同一個指令 `id` 只執行一次，一批開始後即使逾時或離線也全部執行完。通電前先寫入「開門中」紀錄
+         `{ session_id, command_ids }`。依指令順序逐扇開鎖：通電 `release_ms` 後斷電，**斷電後再等 300 毫秒才對下一扇通電**，
+         確保同時只有一個鎖通電。每扇門斷電後（有門磁時為門磁顯示開啟時）送出 `door_opened`；
+         電磁鎖回報異常或門磁 3 秒內未顯示開啟時送出 `fault { code: 'LOCK_NO_RELEASE' }`，不送 `door_opened`。
+      5. **倒數與本機開門模式**：第一扇門開啟時開始倒數 `open_ms`，畫面只依本機狀態繪製，不採用伺服器回應的畫面；
+         離線時照常倒數並接受按鈕，事件存入佇列。
+         - 「完成並關門」：送出每扇門的 `door_closed(button)`，再送出 `session_closed(completed, button)`。
+         - 「取消並關門」：送出 `session_closed(cancelled, cancel_button)`。
+         - 倒數歸零：沒有門磁時每扇門送出 `door_closed(timeout)`，再送出 `session_closed(completed, timeout)`；
+           有門磁時仍開著的門送出 `fault { code: 'DOOR_LEFT_OPEN' }`，關上後再送 `fault_cleared`。
+         - 有門磁時，全部門關上即送出 `session_closed(completed, sensor)`；未收到指令卻被開啟時送出 `door_forced`。
+      6. **憑證失效**：任何請求回 401 `DEVICE_REVOKED` 時清除憑證並回到配對畫面。
+      7. **ESP32 補充**：使用 HTTPS 長連線，以 ESP-IDF 內建憑證套件（`esp_crt_bundle_attach`）驗證伺服器憑證；
+         啟用 Flash Encryption、NVS 加密與看門狗；QR Code 以版本 4、錯誤修正等級 M、靜區 4 格繪製；
+         配對碼以觸控 10 鍵鍵盤輸入；螢幕不顯示書櫃名稱等任意文字。
+
+      ## 電磁鎖與門磁
+
+      協定以脈衝開鎖設計，對應斷電上鎖、通電開鎖、門板有彈簧會自動彈開的櫃門；通電時間由裝置回報
+      （`unlock_pulse_ms`，預設 800 毫秒）。門磁為選配：裝置以 `has_door_sensor` 回報，事件可附 `data.sensor`
+      （`open` 或 `closed`），伺服器只記錄最近一次的狀態供後台顯示，未回報時為 `null`，不影響任何流程。
+
+      ## 限流
+
+      | 端點 | 上限 |
+      | --- | --- |
+      | `POST /api/device/v1/pair` | 同 IP 每 10 分鐘 10 次；全站每分鐘 30 次 |
+      | `GET /api/device/v1/state` | 每台裝置每分鐘 240 次 |
+      | `POST /api/device/v1/events` | 每台裝置每分鐘 120 次 |
+      | `POST /api/device/v1/unpair` | 每台裝置每分鐘 10 次 |
+
+      ## 錯誤代碼
+
+      | `code` | HTTP | `message` |
+      | --- | --- | --- |
+      | `DEVICE_AUTH_REQUIRED` | 401 | 缺少裝置憑證 |
+      | `DEVICE_REVOKED` | 401 | 裝置憑證已失效，請重新配對 |
+      | `DEVICE_DISABLED` | 403 | 模擬書櫃目前未開放 |
+      | `PAIRING_CODE_INVALID` | 400 | 配對碼無效或已逾時 |
+      | `DEVICE_PAYLOAD_INVALID` | 400 | 資料格式不正確 |
+      | `DEVICE_STALE_BOOT` | 409 | 此請求來自裝置重新啟動前，已略過 |
+      | `RATE_LIMITED` | 429 | 操作過於頻繁，請稍後再試 |
+      | `MAINTENANCE` | 503 | 系統維護中，請稍後再試 |
+
+      `CABINET_SIMULATOR` 未開啟時，模擬書櫃（`kind: simulator`）的配對與所有請求一律回 403 `DEVICE_DISABLED`。
+
+paths:
+  /api/device/v1/pair:
+    post:
+      summary: 以配對碼換取裝置憑證
+      operationId: devicePair
+      tags: [device]
+      description: |
+        不需要驗證。配對碼須與管理員產生時選定的 `kind`、`door_count` 相符，否則一律回 400 `PAIRING_CODE_INVALID`，
+        不區分原因。配對成功時：撤銷同一台書櫃原有的有效裝置、依 `door_count` 將 A01 起的櫃門對應電磁鎖通道 1 至 n、
+        記錄 `paired` 事件並通知管理員。
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/DeviceBoot'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, kind, door_count, unlock_pulse_ms, firmware]
+              properties:
+                code: { type: string, description: 8 位數字，可含連字號或空白。, example: 1234-5678 }
+                kind: { type: string, enum: [simulator, esp32], example: esp32 }
+                door_count: { type: integer, minimum: 1, maximum: 8, example: 4 }
+                has_door_sensor: { type: boolean, default: false }
+                unlock_pulse_ms: { type: integer, minimum: 100, maximum: 10000, description: 電磁鎖每次通電的毫秒數。, example: 800 }
+                firmware: { type: string, minLength: 1, maxLength: 40, description: 可列印 ASCII。, example: esp-1.0.0 }
+      responses:
+        '201':
+          description: 配對成功。`token` 只回傳這一次。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string, example: smbd_Q2xhc3NpY0FlczI1NktleUZvckRldmljZTAwMDAwMA }
+                      device_no: { type: string, example: DV3K9QX2M }
+                      cabinet:
+                        type: object
+                        properties:
+                          cabinet_name: { type: string, example: 北商大書櫃 }
+                      doors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            channel: { type: integer, example: 1 }
+                            label: { type: string, example: A01 }
+                      poll_ms: { type: integer, example: 2000 }
+        '400':
+          description: 配對碼無效、已逾時、已使用、與指定的種類或門數不符，或欄位格式不正確。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                配對碼無效:
+                  value: { success: false, code: PAIRING_CODE_INVALID, message: 配對碼無效或已逾時 }
+                格式不正確:
+                  value: { success: false, code: DEVICE_PAYLOAD_INVALID, message: 資料格式不正確 }
+        '403': { $ref: '#/components/responses/DeviceDisabled' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/device/v1/unpair:
+    post:
+      summary: 裝置自行解除配對
+      operationId: deviceUnpair
+      tags: [device]
+      description: |
+        撤銷本裝置（`revoke_reason` 為 `device`）並通知管理員。解除後 2 分鐘內，書櫃仍不開放一般使用者手動回報，
+        避免有人以解除配對規避掃碼。
+      security: [{ deviceAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/DeviceBoot'
+      responses:
+        '200':
+          description: 已解除配對。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+        '400': { $ref: '#/components/responses/DevicePayloadInvalid' }
+        '401': { $ref: '#/components/responses/DeviceUnauthorized' }
+        '403': { $ref: '#/components/responses/DeviceDisabled' }
+        '409': { $ref: '#/components/responses/DeviceStaleBoot' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/device/v1/state:
+    get:
+      summary: 取得書櫃畫面與開鎖指令
+      operationId: deviceState
+      tags: [device]
+      description: |
+        閒置時每 2 秒、作業中每 1 秒呼叫一次，以回應的 `poll_ms` 為準。回應會依情況建立挑戰碼，也會處理逾期的作業，
+        這兩種副作用都是刻意設計的。
+
+        `screen` 的判斷順序：
+        1. 有進行中或 4 秒內剛結束的作業時，採用作業的畫面（`select`、`match`、`opening`、`open`、`admin`、`result`），`qr` 為 `null`。
+        2. 書櫃停用：`disabled`。
+        3. 書櫃維修中、裝置回報故障，或所有櫃門都維修中、故障或待確認：`maintenance`。
+        4. 非營業時間：`closed_hours`，不顯示 QR Code。
+        5. 其他：`idle`，附上 QR Code。挑戰碼每 30 秒更換，每組有效 45 秒，只能使用一次；伺服器只保存雜湊。
+
+        `message.code` 由裝置依本機字串表顯示，參數以 `{name}` 代入：
+
+        | code | 畫面 | 顯示文字 | params |
+        | --- | --- | --- | --- |
+        | `IDLE_SCAN` | idle | 請使用 SaveMyBook App 掃描 | – |
+        | `CLOSED_HOURS` | closed_hours | 目前非營業時間｜營業時間 {open}–{close} | open, close |
+        | `MAINTENANCE` | maintenance | 書櫃維修中，暫停服務 | – |
+        | `DISABLED` | disabled | 書櫃暫停服務 | – |
+        | `SELECT_ON_PHONE` | select | 書櫃使用中｜請於手機確認項目 | – |
+        | `MATCH_PROMPT` | match | 請點選手機上顯示的數字 | – |
+        | `OPENING` | opening | 櫃門開啟中 | doors |
+        | `OPEN_PICKUP` | open | 請取出 {doors} 內的書籍後關上櫃門 | doors |
+        | `OPEN_DEPOSIT` | open | 請將書籍放入 {doors} 後關上櫃門 | doors |
+        | `OPEN_RETRIEVE` | open | 請取回 {doors} 內的書籍後關上櫃門 | doors |
+        | `OPEN_MIXED` | open | 請依手機指示操作 {doors} 後關上櫃門 | doors |
+        | `OPEN_ADMIN` | admin | 管理人員作業中 | doors |
+        | `RESULT_DONE` | result | 作業完成 | – |
+        | `RESULT_PARTIAL` | result | 部分項目未完成，請查看手機 | – |
+        | `RESULT_CANCELLED` | result | 本次作業已取消 | – |
+        | `RESULT_MATCH_FAILED` | result | 數字不符，本次作業已取消 | – |
+        | `RESULT_TIMEOUT` | result | 操作逾時，本次作業已取消 | – |
+        | `RESULT_DEVICE_ERROR` | result | 櫃門未能開啟，請聯絡客服 | – |
+        | `RESULT_REVIEW` | result | 本次作業待客服確認 | – |
+
+        `doors` 參數為以「、」連接的櫃門標籤，例如 `A02、A03`。
+      security: [{ deviceAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/DeviceBoot'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/DeviceState' }
+        '400': { $ref: '#/components/responses/DevicePayloadInvalid' }
+        '401': { $ref: '#/components/responses/DeviceUnauthorized' }
+        '403': { $ref: '#/components/responses/DeviceDisabled' }
+        '409': { $ref: '#/components/responses/DeviceStaleBoot' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/device/v1/events:
+    post:
+      summary: 回報事件
+      operationId: deviceEvents
+      tags: [device]
+      description: |
+        一次最多 20 筆，依序處理。`id` 為冪等鍵：同一個 `id` 重送時回 `duplicate`，不重複生效；
+        `id` 相同但 `type`、`session_id`、`channel` 不同時回 `rejected`／`EVENT_ID_REUSED`。
+
+        | `status` | 意義 | 裝置處理 |
+        | --- | --- | --- |
+        | `ok` | 已處理 | 自佇列移除 |
+        | `duplicate` | 先前已處理完成，附當時的 `result` | 自佇列移除 |
+        | `rejected` | 格式或狀態不符，附 `code`（`EVENT_INVALID`、`SESSION_MISMATCH`、`SESSION_UNAVAILABLE`、`STALE`、`EVENT_ID_REUSED` 等） | 自佇列移除 |
+        | `retry` | 同一事件正由另一個請求處理中；同一批次中前一筆為 `retry` 時，後續同一作業的事件也回 `retry` | 保留，下次重送 |
+
+        處理時發生非預期錯誤時整個請求回 500，該事件可重送。回應中的 `state` 為處理完所有事件後的最新狀態，
+        格式與 `GET /api/device/v1/state` 相同，讓「點選數字後開門」不必等下一次輪詢。
+
+        | `type` | 其他欄位 | 伺服器處理 |
+        | --- | --- | --- |
+        | `boot` | `data: { firmware, door_count, has_door_sensor, unlock_pulse_ms, reset_reason, boot_id }` | 更新韌體版本、門磁設定與開鎖時間（100 至 10000 毫秒）；`door_count` 與配對時不同時只記錄，不改變通道對應 |
+        | `match_selected` | `session_id`，`data.value` | 數字比對 |
+        | `session_cancel` | `session_id` | 開門前於書櫃取消作業 |
+        | `door_opened` | `session_id`、`channel`，`data.command_id` | 記錄櫃門開啟；作業轉為開門倒數 |
+        | `door_closed` | `session_id`、`channel`，`data.reason`（`button`、`timeout`、`sensor`） | 僅供紀錄 |
+        | `session_closed` | `session_id`，`data: { outcome, reason }`；`outcome` 為 `completed`、`cancelled` 或 `interrupted` | 關門後提交作業 |
+        | `fault` | 可有 `channel`、`session_id`，`data: { code, detail? }` | 記錄櫃門或裝置故障並通知管理員；裝置故障持續 2 分鐘以上時開放手動回報 |
+        | `fault_cleared` | 可有 `channel`，`data.code` | 只在目前的故障代碼相同時清除；不影響待確認櫃門 |
+        | `door_forced` | `channel` | 記錄並通知管理員 |
+        | `connection_restored` | `data: { offline_ms, queued }` | 僅記錄 |
+
+        故障代碼：`LOCK_NO_RELEASE` 電磁鎖未釋放、`DOOR_LEFT_OPEN` 櫃門未關閉、`DOOR_FORCED` 櫃門遭強制開啟、
+        `SENSOR_ERROR` 感測器異常、`POWER` 電源異常、`SCREEN` 螢幕異常。
+
+        未列出的 `type`、`channel` 不在 1 至櫃門數之間，或缺少必要欄位時回 `rejected`／`EVENT_INVALID`；
+        `session_id` 不屬於本裝置時回 `rejected`／`SESSION_MISMATCH`。
+      security: [{ deviceAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/DeviceBoot'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [events]
+              properties:
+                events:
+                  type: array
+                  minItems: 1
+                  maxItems: 20
+                  items: { $ref: '#/components/schemas/DeviceEvent' }
+            example:
+              events:
+                - { id: k3v9aa-000041, type: match_selected, age_ms: 150, session_id: CS8MZQ41K, data: { value: 37 } }
+                - { id: k3v9aa-000042, type: door_opened, age_ms: 40, session_id: CS8MZQ41K, channel: 2, data: { command_id: 'CS8MZQ41K:2:1' } }
+      responses:
+        '200':
+          description: 已處理。各事件的結果見 `results`。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      results:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: { type: string, example: k3v9aa-000041 }
+                            status: { type: string, enum: [ok, duplicate, rejected, retry] }
+                            code: { type: string, nullable: true, description: '`rejected` 時的原因。', example: SESSION_MISMATCH }
+                            result: { type: string, nullable: true, description: '`duplicate` 時為當時的處理結果。', example: ok }
+                      state: { $ref: '#/components/schemas/DeviceState' }
+        '400': { $ref: '#/components/responses/DevicePayloadInvalid' }
+        '401': { $ref: '#/components/responses/DeviceUnauthorized' }
+        '403': { $ref: '#/components/responses/DeviceDisabled' }
+        '409': { $ref: '#/components/responses/DeviceStaleBoot' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+components:
+  securitySchemes:
+    deviceAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        書櫃裝置專用，值為 `Device <token>`，`token` 由 `POST /api/device/v1/pair` 取得。
+        與使用者的 Bearer Token 互不通用。
+
+  parameters:
+    DeviceBoot:
+      in: header
+      name: X-Device-Boot
+      required: true
+      schema: { type: string, pattern: '^[a-z0-9]{6,16}$' }
+      description: 裝置本次開機產生的代碼，每個請求都須帶入。
+      example: k3v9aa01
+
+  responses:
+    DeviceUnauthorized:
+      description: 未帶 `Device` 憑證，或憑證已撤銷、已被新裝置取代、疑遭複製。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            缺少憑證:
+              value: { success: false, code: DEVICE_AUTH_REQUIRED, message: 缺少裝置憑證 }
+            憑證失效:
+              value: { success: false, code: DEVICE_REVOKED, message: 裝置憑證已失效，請重新配對 }
+    DeviceDisabled:
+      description: 模擬書櫃目前未開放（`CABINET_SIMULATOR` 未開啟）。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: DEVICE_DISABLED, message: 模擬書櫃目前未開放 }
+    DevicePayloadInvalid:
+      description: 缺少或格式錯誤的 `X-Device-Boot`，或請求內容格式不正確。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: DEVICE_PAYLOAD_INVALID, message: 資料格式不正確 }
+    DeviceStaleBoot:
+      description: 請求來自裝置重新啟動前的開機代碼（切換後 30 秒內），伺服器未做任何處理，裝置略過此回應即可。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: DEVICE_STALE_BOOT, message: 此請求來自裝置重新啟動前，已略過 }
+
+  schemas:
+    CabinetAccess:
+      type: object
+      nullable: true
+      description: |
+        書櫃目前的存取方式，供 App 決定顯示「掃描書櫃」或「手動回報」。實際能否辦理以建立書櫃作業時的判斷為準。
+
+        | `mode` | `reason` | 意義 |
+        | --- | --- | --- |
+        | `scan` | `null` | 一般情況，須至書櫃以 App 掃描 QR Code；包括離線或故障未滿 2 分鐘 |
+        | `scan` | `no_device` | 裝置自行解除配對或疑遭複製而撤銷，2 分鐘內仍須掃碼 |
+        | `manual` | `no_device` | 書櫃未配對裝置，維持手動回報 |
+        | `manual` | `offline` | 裝置離線超過 2 分鐘，開放手動回報（故障備援） |
+        | `manual` | `fault` | 裝置故障超過 2 分鐘，開放手動回報（故障備援） |
+        | `unavailable` | `inactive` | 已配對裝置的書櫃停用 |
+        | `unavailable` | `maintenance` | 已配對裝置的書櫃維修中 |
+      properties:
+        mode: { type: string, enum: [scan, manual, unavailable], example: scan }
+        reason: { type: string, nullable: true, enum: [no_device, offline, fault, inactive, maintenance, null], example: null }
+        open_now: { type: boolean, description: 目前是否為營業時間。, example: true }
+        open_time: { type: string, nullable: true, description: 'HH:MM；未設定時為 null，表示全天營業。', example: '08:00' }
+        close_time: { type: string, nullable: true, example: '22:00' }
+        available_doors: { type: integer, nullable: true, description: 目前可分配的空櫃門數；沒有有效裝置時為 null。, example: 2 }
+        pre_deposit_doors: { type: integer, nullable: true, description: 可用於先行存書的櫃門數（保留 1 扇給依訂單存書）；沒有有效裝置時為 null。, example: 1 }
+
+    DeviceState:
+      type: object
+      properties:
+        device_no: { type: string, example: DV3K9QX2M }
+        cabinet_name: { type: string, description: 只供模擬書櫃的控制台顯示，書櫃螢幕不顯示。, example: 北商大書櫃 }
+        screen:
+          type: string
+          enum: [idle, closed_hours, maintenance, disabled, select, match, opening, open, admin, result]
+          example: idle
+        message:
+          type: object
+          properties:
+            code: { type: string, example: IDLE_SCAN }
+            params: { type: object, additionalProperties: { type: string }, example: {} }
+        poll_ms: { type: integer, example: 2000 }
+        qr:
+          type: object
+          nullable: true
+          properties:
+            payload: { type: string, description: '`savemybook://k/` 加 32 碼十六進位，共 47 字元。', example: 'savemybook://k/3f9c0a5e1d2b4c6a8e0f1a2b3c4d5e6f' }
+            refresh_in_ms: { type: integer, description: 距離更換的毫秒數。, example: 21400 }
+            expires_in_ms: { type: integer, description: 距離失效的毫秒數。, example: 36400 }
+        session:
+          type: object
+          nullable: true
+          description: 進行中或 4 秒內剛結束的作業。
+          properties:
+            id: { type: string, description: 作業編號（`CS` 開頭）。, example: CS8MZQ41K }
+            phase: { type: string, enum: [select, match, opening, open, result, admin], example: open }
+            action: { type: string, enum: [pickup, deposit, retrieve, mixed, admin], example: deposit }
+            remaining_ms: { type: integer, nullable: true, description: 目前階段的剩餘時間；開門後為倒數剩餘時間。, example: 24300 }
+            open_ms: { type: integer, nullable: true, example: 30000 }
+            choices:
+              type: array
+              nullable: true
+              description: 只在 `match` 階段有值，為 9 個兩位數。
+              items: { type: integer }
+              example: null
+            doors:
+              type: array
+              items:
+                type: object
+                properties:
+                  channel: { type: integer, example: 2 }
+                  label: { type: string, example: A02 }
+                  state: { type: string, enum: [pending, open, closed, failed], example: open }
+            result:
+              type: object
+              nullable: true
+              properties:
+                outcome: { type: string, example: completed }
+                code: { type: string, example: RESULT_DONE }
+        commands:
+          type: array
+          description: |
+            開鎖指令，只在 `opening` 階段列出。裝置只在本次請求往返不超過 3000 毫秒、且 `expires_in_ms > 0` 時執行，
+            同一個 `id` 只執行一次。伺服器在回應中列出指令即視為已送出。
+          items:
+            type: object
+            properties:
+              id: { type: string, description: '`<session_no>:<channel>:<attempt>`', example: 'CS8MZQ41K:2:1' }
+              type: { type: string, enum: [unlock], example: unlock }
+              channel: { type: integer, example: 2 }
+              release_ms: { type: integer, description: 通電毫秒數，等於裝置回報的 `unlock_pulse_ms`。, example: 800 }
+              expires_in_ms: { type: integer, example: 6200 }
+        doors:
+          type: array
+          items:
+            type: object
+            properties:
+              channel: { type: integer, example: 1 }
+              label: { type: string, example: A01 }
+              enabled: { type: boolean, description: false 表示該門維修中、故障或待確認，只供模擬書櫃顯示。, example: true }
+              sensor: { type: string, nullable: true, enum: [open, closed, null], description: 門磁最近一次回報的狀態；沒有門磁時為 null。, example: null }
+
+    DeviceEvent:
+      type: object
+      required: [id, type]
+      properties:
+        id: { type: string, pattern: '^[A-Za-z0-9_-]{8,64}$', description: '冪等鍵，為 `<boot_id>-<序號>`。', example: k3v9aa-000042 }
+        type:
+          type: string
+          enum: [boot, match_selected, session_cancel, door_opened, door_closed, session_closed, fault, fault_cleared, door_forced, connection_restored]
+          example: door_opened
+        age_ms: { type: integer, nullable: true, description: 事件發生至送出經過的毫秒數；無法計算時為 null。, example: 40 }
+        session_id: { type: string, nullable: true, description: 作業編號（`CS` 開頭）。, example: CS8MZQ41K }
+        channel: { type: integer, nullable: true, minimum: 1, maximum: 8, example: 2 }
+        data:
+          type: object
+          description: 依事件種類而定；可附 `sensor`（`open` 或 `closed`）回報門磁狀態。
+          example: { command_id: 'CS8MZQ41K:2:1' }

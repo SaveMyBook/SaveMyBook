@@ -740,21 +740,24 @@ class _SellBookScreenState extends State<SellBookScreen> {
               ],
             ),
             const SizedBox(height: 4),
-            Wrap(
-              alignment: WrapAlignment.end,
-              spacing: 4,
-              children: [
-                TextButton(
-                  onPressed: _discardDraft,
-                  style: TextButton.styleFrom(foregroundColor: c.textSecondary),
-                  child: Text(S.discard),
-                ),
-                TextButton(
-                  onPressed: _resumeDraft,
-                  style: TextButton.styleFrom(foregroundColor: c.accent),
-                  child: Text(S.actionContinue, style: const TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ],
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 4,
+                children: [
+                  TextButton(
+                    onPressed: _discardDraft,
+                    style: TextButton.styleFrom(foregroundColor: c.textSecondary),
+                    child: Text(S.discard),
+                  ),
+                  TextButton(
+                    onPressed: _resumeDraft,
+                    style: TextButton.styleFrom(foregroundColor: c.accent),
+                    child: Text(S.actionContinue, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

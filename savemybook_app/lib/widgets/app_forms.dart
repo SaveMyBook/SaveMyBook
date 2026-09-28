@@ -97,7 +97,12 @@ class FormRowCard extends StatelessWidget {
             );
           }
           return Row(
-            crossAxisAlignment: alignTop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+            crossAxisAlignment: alignTop
+                ? CrossAxisAlignment.start
+                : note == null
+                    ? CrossAxisAlignment.baseline
+                    : CrossAxisAlignment.center,
+            textBaseline: TextBaseline.alphabetic,
             children: [
               SizedBox(
                 width: labelWidth,
@@ -563,6 +568,9 @@ class CabinetSelectField extends StatefulWidget {
   final bool autoSelectNearest;
   final int? keepSelectableId;
   final String? errorText;
+  final bool enabled;
+  final String? hint;
+  final String? disabledReason;
 
   const CabinetSelectField({
     super.key,
@@ -571,6 +579,9 @@ class CabinetSelectField extends StatefulWidget {
     this.autoSelectNearest = false,
     this.keepSelectableId,
     this.errorText,
+    this.enabled = true,
+    this.hint,
+    this.disabledReason,
   });
 
   static int? idOf(Map<String, dynamic> cabinet) => (cabinet['cabinet_id'] as num?)?.toInt();
@@ -603,7 +614,7 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _load(requestLocation: true);
+    _load(requestLocation: widget.enabled);
   }
 
   @override
@@ -685,7 +696,7 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
   }
 
   void _reconcile() {
-    if (_cabinets.isEmpty) return;
+    if (_cabinets.isEmpty || !widget.enabled) return;
     final value = widget.value;
     final current = value == null
         ? null
@@ -764,13 +775,14 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
           value: widget.value,
           options: _options(),
           loading: _loading,
-          hint: _loading ? S.loading : S.chooseLocker,
+          hint: _loading ? S.loading : widget.hint ?? S.chooseLocker,
           title: S.lockerLocation,
           sheetSubtitle: _located ? null : S.turnLocationSortByDistance,
           emptyText: S.noLockersMatch,
           errorText: widget.errorText,
           leadingIcon: Icons.inventory_2_outlined,
-          onChanged: _cabinets.isEmpty
+          locked: !widget.enabled,
+          onChanged: _cabinets.isEmpty || !widget.enabled
               ? null
               : (id) {
                   final cab = _cabinets.firstWhere((e) => CabinetSelectField.idOf(e) == id);
@@ -787,8 +799,9 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (selected != null) _buildSelectedInfo(c, selected),
-              if (!_loading && _cabinets.isEmpty) _buildEmpty(c),
-              if (!_loading && _cabinets.isNotEmpty && !_located) _buildLocationHint(c),
+              if (!widget.enabled && widget.disabledReason != null) _buildDisabledReason(c, widget.disabledReason!),
+              if (widget.enabled && !_loading && _cabinets.isEmpty) _buildEmpty(c),
+              if (widget.enabled && !_loading && _cabinets.isNotEmpty && !_located) _buildLocationHint(c),
             ],
           ),
         ),
@@ -799,18 +812,18 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
   Widget _buildSelectedInfo(AppColors c, Map<String, dynamic> cab) {
     final distance = CabinetSelectField.distanceOf(cab);
     final address = '${cab['address'] ?? ''}'.trim();
-    final slots = CabinetSelectField.slotsOf(cab);
+    final full = widget.enabled && CabinetSelectField.slotsOf(cab) == 0;
     final parts = [
       if (distance != null) LocationService.formatDistance(distance),
       if (address.isNotEmpty) address,
     ];
-    if (parts.isEmpty && slots != 0) return const SizedBox.shrink();
+    if (parts.isEmpty && !full) return const SizedBox.shrink();
 
     return FadeSlideIn(
       key: ValueKey(CabinetSelectField.idOf(cab)),
       offsetY: 6,
       child: Padding(
-        padding: const EdgeInsets.only(top: 6, left: 2),
+        padding: const EdgeInsets.only(top: 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -833,7 +846,7 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
                   ),
                 ],
               ),
-            if (slots == 0) ...[
+            if (full) ...[
               const SizedBox(height: 3),
               Text(
                 S.lockerNoFreeSlotsRightNow,
@@ -842,6 +855,28 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDisabledReason(AppColors c, String reason) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Icon(Icons.lock_outline_rounded, size: 13, color: c.textHint),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              reason,
+              style: TextStyle(fontSize: 12, height: 1.35, color: c.textSecondary),
+            ),
+          ),
+        ],
       ),
     );
   }

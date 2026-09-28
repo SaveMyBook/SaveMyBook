@@ -198,20 +198,20 @@ const link = async (userId, provider, info) => {
   return listFor(userId);
 };
 
-// 不可引用 services/passkeys：該模組引用本檔，會形成循環載入。
-const passkeyCountOf = async (userId) => {
-  const [row] = await prisma.$queryRaw`SELECT COUNT(*) AS n FROM user_passkeys WHERE user_id = ${userId}`;
-  return Number(row?.n ?? 0);
-};
-
+// 與 services/passkeys 的刪除共用同一把 users 列鎖，兩邊同時移除最後兩種登入方式時才會有一邊被擋下。
+// 不可改為引用 services/passkeys：該模組引用本檔，會形成循環載入。鎖定前也不可在交易內做一般讀取（理由同該檔 lockUser）。
 const unlink = async (userId, provider) => {
-  const [rows, passwordSet] = await Promise.all([identitiesOf(userId), passwordSetOf(userId)]);
-  if (!rows.some((row) => row.provider === provider)) throw notFound('此帳號未綁定此登入方式');
-  if (!passwordSet && rows.length <= 1 && (await passkeyCountOf(userId)) === 0) {
-    throw badRequest('這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式', 'LAST_SIGN_IN_METHOD');
-  }
-
-  await prisma.$executeRaw`DELETE FROM user_identities WHERE user_id = ${userId} AND provider = ${provider}`;
+  await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT user_id FROM users WHERE user_id = ${userId} FOR UPDATE`;
+    const rows = await tx.$queryRaw`SELECT provider FROM user_identities WHERE user_id = ${userId}`;
+    if (!rows.some((row) => row.provider === provider)) throw notFound('此帳號未綁定此登入方式');
+    const [user] = await tx.$queryRaw`SELECT password_set FROM users WHERE user_id = ${userId}`;
+    const [passkeys] = await tx.$queryRaw`SELECT COUNT(*) AS n FROM user_passkeys WHERE user_id = ${userId}`;
+    if (Number(user?.password_set ?? 1) !== 1 && rows.length <= 1 && Number(passkeys?.n ?? 0) === 0) {
+      throw badRequest('這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式', 'LAST_SIGN_IN_METHOD');
+    }
+    await tx.$executeRaw`DELETE FROM user_identities WHERE user_id = ${userId} AND provider = ${provider}`;
+  });
   return listFor(userId);
 };
 

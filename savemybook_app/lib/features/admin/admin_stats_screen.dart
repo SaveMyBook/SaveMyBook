@@ -241,13 +241,10 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                S.p0Orders(_stats.completedOrderCount),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 13, color: c.textSecondary),
-              ),
+            Text(
+              S.p0Orders(_stats.completedOrderCount),
+              maxLines: 1,
+              style: TextStyle(fontSize: 13, color: c.textSecondary),
             ),
           ],
         ),

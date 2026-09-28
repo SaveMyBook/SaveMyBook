@@ -1,0 +1,27 @@
+{
+  "description": "個人化推薦的使用者人設：favorites、cart 為書籍 id；purchases 為 [書籍 id, 訂單狀態]；viewed 為 App 帶入的最近瀏覽。expect 為應排在前面的書（catalog.json 的 id），source 為預期走 AI（ai）或一般推薦（fallback）。consent 為 false 表示未同意 AI 資料處理；cache 為既有的推薦快取。must_show 為依規則可購買、必須出現在推薦中的書（已過期或待回覆的預約、本人的保留），只檢查沒有被過度排除，不計入命中率。",
+  "personas": [
+    { "id": "r01", "user": 101, "label": "東野圭吾讀者", "favorites": [11, 7], "expect": [12, 17], "source": "ai", "tags": ["author", "availability"] },
+    { "id": "r02", "user": 102, "label": "Python 自學者", "purchases": [[35, "completed"]], "expect": [36], "source": "ai", "tags": ["topic", "availability"] },
+    { "id": "r03", "user": 103, "label": "多益考生", "cart": [47], "expect": [48], "source": "ai", "tags": ["topic", "availability"] },
+    { "id": "r04", "user": 104, "label": "只瀏覽過村上春樹", "viewed": [1], "expect": [2, 3], "source": "ai", "tags": ["author", "viewed"] },
+    { "id": "r05", "user": 105, "label": "理財新手", "favorites": [28], "expect": [30, 31, 32], "source": "ai", "tags": ["topic"] },
+    { "id": "r06", "user": 106, "label": "料理愛好者", "favorites": [73], "expect": [74], "source": "ai", "tags": ["topic"] },
+    { "id": "r07", "user": 107, "label": "哈利波特讀者", "purchases": [[21, "completed"]], "expect": [22], "source": "ai", "tags": ["series", "availability"] },
+    { "id": "r08", "user": 108, "label": "歷史讀者", "favorites": [61], "expect": [62, 64, 63], "source": "ai", "tags": ["topic"] },
+    { "id": "r09", "user": 109, "label": "阿德勒心理學讀者", "favorites": [56], "expect": [57], "source": "ai", "tags": ["series"] },
+    { "id": "r10", "user": 110, "label": "新使用者（沒有任何紀錄）", "expect": [], "source": "fallback", "tags": ["cold-start"] },
+    { "id": "r11", "user": 111, "label": "心理勵志讀者（本人有保留中的預約）", "favorites": [60], "expect": [56, 57, 59], "must_show": [29, 56, 58], "source": "ai", "tags": ["topic", "availability"] },
+    { "id": "r12", "user": 112, "label": "AI 主題讀者", "favorites": [44], "expect": [38, 39, 40], "source": "ai", "tags": ["topic", "availability"] },
+    { "id": "r13", "user": 113, "label": "同時是推理書賣家", "favorites": [12], "expect": [11, 17], "source": "ai", "tags": ["own"] },
+    { "id": "r14", "user": 114, "label": "唯一的訂單已取消", "purchases": [[21, "cancelled"]], "expect": [], "source": "fallback", "tags": ["cold-start"] },
+    { "id": "r15", "user": 115, "label": "只瀏覽過已下架的書", "viewed": [84], "expect": [], "source": "fallback", "tags": ["cold-start", "viewed"] },
+    { "id": "r16", "user": 116, "label": "快取內含已被保留與維修中的書", "favorites": [11], "cache": [13, 81, 12, 17], "expect": [12, 17], "source": "ai", "tags": ["availability", "cache"] },
+    { "id": "r17", "user": 117, "label": "未同意 AI 資料處理的科幻讀者", "favorites": [25], "consent": false, "expect": [24, 26, 27], "source": "fallback", "tags": ["topic"] },
+    { "id": "r18", "user": 118, "label": "日語學習者", "favorites": [49], "expect": [50], "source": "ai", "tags": ["topic"] },
+    { "id": "r19", "user": 119, "label": "天文與物理讀者", "favorites": [65], "expect": [66, 69], "source": "ai", "tags": ["topic"] },
+    { "id": "r20", "user": 120, "label": "幼兒家長", "purchases": [[77, "completed"]], "expect": [78, 79], "source": "ai", "tags": ["topic"] },
+    { "id": "r21", "user": 121, "label": "推理與程式雙興趣", "favorites": [11, 35], "expect": [12, 36], "source": "ai", "tags": ["mixed"] },
+    { "id": "r22", "user": 122, "label": "漫畫讀者", "favorites": [20], "expect": [80], "source": "ai", "tags": ["topic", "availability"] }
+  ]
+}

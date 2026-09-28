@@ -327,6 +327,7 @@ class _LevelOverview extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final total = levels.fold<int>(0, (sum, l) => sum + l.memberCount);
+    final lastShown = levels.lastIndexWhere((l) => l.memberCount > 0);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -358,7 +359,7 @@ class _LevelOverview extends StatelessWidget {
                                 Expanded(
                                   flex: level.memberCount,
                                   child: Container(
-                                    margin: EdgeInsets.only(right: i == levels.length - 1 ? 0 : 2),
+                                    margin: EdgeInsets.only(right: i == lastShown ? 0 : 2),
                                     color: LevelStyle.at(i).accent,
                                   ),
                                 ),

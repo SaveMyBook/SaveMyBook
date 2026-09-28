@@ -86,8 +86,9 @@ class VerificationService {
     final status = await api.fetchSecurityStatus().timeout(const Duration(seconds: 15), onTimeout: () => SecurityStatus.unknown);
     if (!ctx.mounted) return null;
 
-    if (request.isPayment && !status.available) {
-      showAppSnackBar(ctx, S.networkError, isError: true);
+    // 狀態未知時開出的面板會預設為密碼模式，只有通行密鑰或社群登入的帳號將無法完成驗證。
+    if (!status.available) {
+      showAppSnackBar(ctx, status.failureMessage ?? S.networkError, isError: true);
       return null;
     }
 
@@ -132,13 +133,13 @@ class VerificationService {
     final usePin = hasPin && request.methods.contains('pin') && !usePasskey;
     final pending = usePin
         ? _pinSheet(ctx, request, status: status, payKey: payKey)
-        : _passwordSheet(ctx, request, status: status, payKey: payKey);
+        : _passwordSheet(ctx, request, status: status, payKey: payKey, passkey: usePasskey);
     final token = await pending;
     return token == null ? null : _remember(request, token);
   }
 
   static Future<bool> _canUsePasskey(VerificationRequest request, SecurityStatus status) async =>
-      !request.isPayment && request.methods.contains('passkey') && status.hasPasskey && await PasskeyService.isSupported();
+      !request.isPayment && request.methods.contains('passkey') && status.hasPasskey && await PasskeyService.isUsable();
 
   static void _store(String scope, String token) {
     _tokens[scope] = (token: token, expiresAt: DateTime.now().add(const Duration(minutes: 4)), owner: ApiService.authToken);
@@ -164,10 +165,11 @@ class VerificationService {
     VerificationRequest request, {
     required SecurityStatus status,
     String? payKey,
+    bool? passkey,
   }) async {
     final key = request.methods.contains('biometric') && status.biometricPayEnabled ? payKey : null;
     final label = key == null ? null : await BiometricService.label();
-    final passkey = await _canUsePasskey(request, status);
+    final usePasskey = passkey ?? await _canUsePasskey(request, status);
     if (!context.mounted) return null;
 
     return showIdentityVerificationSheet(
@@ -177,7 +179,7 @@ class VerificationService {
       hasPassword: status.hasPassword,
       biometricLabel: label,
       onBiometric: key == null ? null : () => _biometricVerify(request, key),
-      onPasskey: passkey ? () => PasskeyService.verify(request.scope) : null,
+      onPasskey: usePasskey ? () => PasskeyService.verify(request.scope) : null,
     );
   }
 

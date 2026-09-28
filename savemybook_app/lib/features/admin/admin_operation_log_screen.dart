@@ -326,32 +326,43 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                       ),
                     ],
                     const SizedBox(height: 6),
-                    Row(
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Icon(Icons.person_outline_rounded, size: 12, color: c.textHint),
-                        const SizedBox(width: 3),
-                        Flexible(
-                          child: Text(
-                            log.adminName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 11, color: c.textHint),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Icon(Icons.schedule_rounded, size: 12, color: c.textHint),
-                        const SizedBox(width: 3),
-                        Flexible(
-                          flex: 2,
-                          child: Tooltip(
-                            message: formatDateTime(log.createdAt),
-                            child: Text(
-                              _when(log.createdAt),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 11, color: c.textHint),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.person_outline_rounded, size: 12, color: c.textHint),
+                            const SizedBox(width: 3),
+                            Flexible(
+                              child: Text(
+                                log.adminName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 11, color: c.textHint),
+                              ),
                             ),
-                          ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.schedule_rounded, size: 12, color: c.textHint),
+                            const SizedBox(width: 3),
+                            Flexible(
+                              child: Tooltip(
+                                message: formatDateTime(log.createdAt),
+                                child: Text(
+                                  _when(log.createdAt),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 11, color: c.textHint),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
