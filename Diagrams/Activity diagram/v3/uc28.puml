@@ -1,0 +1,34 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+start
+:登入或將App切回前景;
+|系統|
+repeat
+  :以登入權杖建立即時連線\n並驗證帳號狀態;
+  backward:換發新權杖後重試;
+repeat while (驗證通過？) is ([否]) not ([是])
+:將連線加入\n會員專屬頻道;
+|使用者（其他成員）|
+:傳送、收回、編輯、讀取\n訊息或輸入文字;
+|系統|
+:資料寫入後通知\n聊天室其他成員;
+if (App位於前景？) then ([否])
+  :改由手機推播通知;
+  stop
+else ([是])
+endif
+if (即時連線正常？) then ([是])
+  :以增量方式\n取得新資料;
+else ([否])
+  :改以定時輪詢取得\n（聊天室3秒、列表8秒）;
+endif
+|使用者（會員）|
+:看到新訊息、已讀\n與「輸入中」狀態;
+stop
+@enduml

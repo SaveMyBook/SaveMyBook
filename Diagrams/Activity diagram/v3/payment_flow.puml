@@ -1,0 +1,25 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+start
+:買家於App結帳;
+:自買家錢包扣除代幣（款項由平台暫管）;
+if (賣家7日內存書，且買家7日內取書？) then (否)
+  :訂單取消，代幣全額退回買家;
+else (是)
+  if (取書後24小時內申請爭議？) then (否)
+    :訂單完成，代幣撥入賣家錢包;
+  else (是)
+    :暫停撥款，由管理員仲裁;
+    if (裁決結果) then (退款)
+      :代幣退回買家錢包;
+    else (駁回或協調結案)
+      :依裁決撥款予賣家;
+    endif
+  endif
+endif
+stop
+@enduml

@@ -1,0 +1,38 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+start
+:於「帳號安全」點擊\n「新增通行密鑰」;
+:完成敏感操作驗證;
+|系統|
+if (已達10組上限？) then ([是])
+  :拒絕註冊並提示上限;
+  stop
+else ([否])
+endif
+:產生一次性註冊挑戰值\n（5分鐘內有效）;
+|使用者（會員）|
+:以生物辨識或螢幕鎖\n建立通行密鑰;
+|系統|
+:驗證簽章與挑戰值，\n儲存公鑰與簽章計數;
+|使用者（會員）|
+:日後於登入頁點擊\n「使用通行密鑰登入」;
+|系統|
+:以探索式流程列出\n裝置上可用之通行密鑰;
+|使用者（會員）|
+:選擇通行密鑰並\n以生物辨識確認;
+|系統|
+:驗證簽章與簽章計數;
+if (簽章計數遞增？) then ([否])
+  :拒絕登入並發送安全通知;
+  stop
+else ([是])
+endif
+:完成登入;
+stop
+@enduml

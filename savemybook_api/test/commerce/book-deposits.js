@@ -525,7 +525,7 @@ const tests = [
     assert.strictEqual(bookOf(book.book_id).status, 'removed');
 
     const notice = notificationsOf(seller.user_id).find((n) => n.title === '書櫃中的書籍已由客服取出');
-    assert.strictEqual(notice.content, '《小王子》已由客服人員自「台大書櫃」取出，書籍已下架。如需領回書籍，請聯絡客服。');
+    assert.strictEqual(notice.content, '《小王子》已由客服人員自「台大書櫃」取出並下架，本平台將代為保管 30 日。請於期限內聯絡客服，至指定地點免費領回或申請寄回（運費由您負擔，貨到付款）；逾期未領回者視為拋棄。');
     const [log] = logs();
     assert.strictEqual(log.action, '登記書櫃書籍取出');
     assert.strictEqual(log.target_type, 'book');

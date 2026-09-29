@@ -1,0 +1,43 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|管理員|
+start
+:選擇「遠端開啟櫃門」，\n輸入原因並完成身分驗證;
+|系統|
+if (裝置連線中且書櫃\n無進行中作業？) then ([否])
+  :拒絕開啟;
+  stop
+else ([是])
+endif
+:建立管理員作業\n並保留該櫃門;
+|實體書櫃|
+:螢幕顯示比對數字;
+|管理員|
+:依現場人員告知\n於App輸入數字;
+|系統|
+if (數字相符？) then ([否])
+  :取消本次作業;
+  stop
+else ([是])
+endif
+|實體書櫃|
+:開啟櫃門並倒數120秒;
+|管理員|
+:待人員處理並關門後\n點擊「完成」;
+|系統|
+:結束作業並記錄書櫃事件，\n將櫃門設為待確認;
+|管理員|
+if (存放內容與紀錄相符？) then ([是])
+  :點擊「確認內容無誤」;
+else ([否])
+  :點擊「登記存放內容」\n或「清空存放紀錄」;
+endif
+|系統|
+:解除待確認;
+stop
+@enduml

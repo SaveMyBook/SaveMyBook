@@ -1,0 +1,38 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（傳送者）|
+start
+:輸入文字訊息並送出;
+|系統|
+:正規化並合併10分鐘內\n訊息後比對防詐規則;
+if (命中規則？) then ([否])
+  :送出訊息;
+  stop
+else ([是])
+endif
+:依帳號年資、完成訂單數\n與私訊量判定風險等級;
+if (新出現聯絡或付款資訊\n且本聊天室未確認過？) then ([是])
+  :提示平台外交易或\n付款不受平台保障;
+  if (傳送者仍要傳送？) then ([否])
+    :不送出訊息並將\n文字放回輸入框;
+    stop
+  else ([是])
+  endif
+else ([否])
+endif
+:送出訊息並保存判定結果;
+|使用者（收訊者）|
+:開啟聊天室查看訊息;
+|系統|
+:於訊息下方顯示提醒\n（同類別只顯示一次）;
+if (高風險？) then ([是])
+  :於頂部顯示警示橫幅\n可查看防詐須知或檢舉;
+else ([否])
+endif
+stop
+@enduml

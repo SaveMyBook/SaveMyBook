@@ -1,0 +1,35 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|管理員|
+start
+:於「內容審核」開啟\n「上架審核」;
+:檢視攔截原因與書籍內容;
+:點擊「核准上架」或「拒絕」;
+|系統|
+:更新書籍審核狀態\n並通知賣家;
+|管理員|
+:開啟「待處理」檢舉案件;
+:點擊「違規成立」或\n「駁回檢舉」;
+|系統|
+if (違規成立？) then ([是])
+  :書籍轉為違規鎖定，\n勾選下架者一併下架;
+else ([否])
+  :維持書籍原狀態;
+endif
+:通知檢舉人與被檢舉人;
+|管理員|
+:開啟「防詐警示」，檢視\n高風險訊息與風險類別;
+if (需停權會員？) then ([是])
+  :至會員管理停權;
+else ([否])
+endif
+:標示「誤判」或「已處理」;
+|系統|
+:記錄後台操作日誌;
+stop
+@enduml

@@ -1,0 +1,39 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+start
+:於「AI 客服」頁面輸入問題;
+|系統|
+if (已同意AI使用同意書？) then ([否])
+  :顯示AI使用同意書;
+  |使用者（會員）|
+  :閱讀並同意同意書;
+  |系統|
+else ([是])
+endif
+if (今日次數已達上限？) then ([是])
+  :提示改由真人客服協助;
+  stop
+else ([否])
+endif
+:檢索平台說明與常見問題\n並附上近期訂單狀態;
+|AI服務|
+:產生回覆並判斷\n是否建議轉接;
+|系統|
+:顯示回覆並記錄對話;
+|使用者（會員）|
+if (需要真人協助？) then ([是])
+  :點擊「轉接客服人員」;
+  |系統|
+  :將對話逐字稿轉為\n客服工單並通知客服;
+  :對話標記為「已升級」;
+else ([否])
+endif
+|使用者（會員）|
+stop
+@enduml

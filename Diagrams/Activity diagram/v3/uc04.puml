@@ -1,0 +1,38 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（買家）|
+start
+:將書籍「加入購物車」後結帳，\n或點擊「直接購買」;
+|系統|
+if (錢包餘額足夠？) then ([否])
+  :提示前往錢包加值;
+  stop
+else ([是])
+endif
+if (書籍已存放於書櫃？) then ([是])
+  :提示成立後即可取書\n且無法取消訂單;
+else ([否])
+endif
+:要求交易密碼\n或生物辨識驗證;
+|使用者（買家）|
+:完成身分驗證;
+|系統|
+if (書籍仍可購買？) then ([否])
+  :整批回滾並提示\n重新選購;
+  stop
+else ([是])
+endif
+:鎖定書籍為「交易中」，\n建立訂單並扣款;
+if (書籍皆已存放於\n訂單指定書櫃？) then ([是])
+  :訂單成立為「已存書」\n並通知雙方可取書;
+else ([否])
+  :訂單成立為「待存書」\n並通知賣家七天內存書;
+endif
+:移除購物車項目並顯示\n「付款成功」;
+stop
+@enduml

@@ -1,0 +1,41 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（訪客）|
+start
+:點擊以LINE或\nDiscord登入;
+|系統|
+:以App內瀏覽器\n開啟第三方授權頁;
+|使用者（訪客）|
+:完成登入並同意授權;
+|第三方登入服務|
+:導回並帶回\n一次性授權碼;
+|系統|
+:以授權碼換取存取權杖\n並取得電子郵件等資料;
+if (已綁定此身分？) then ([否])
+  if (使用者之選擇？) then ([登入既有帳號並綁定])
+    |使用者（訪客）|
+    :登入既有帳號;
+    |系統|
+    :綁定第三方身分;
+  else ([建立新帳號])
+    if (電子郵件已屬\n其他帳號？) then ([是])
+      :拒絕自動合併，要求\n改以既有帳號綁定;
+      stop
+    else ([否])
+    endif
+    if (具已驗證之\n電子郵件？) then ([否])
+      :導向補充資料頁\n輸入後以同一代碼重送;
+    else ([是])
+    endif
+    :建立新帳號;
+  endif
+else ([是])
+endif
+:完成登入;
+stop
+@enduml

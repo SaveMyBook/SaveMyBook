@@ -1,0 +1,41 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+start
+:建立群組，輸入名稱\n並選擇最多50位成員;
+|系統|
+:建立聊天室與成員名單，\n發起人預設為管理員;
+|使用者（會員）|
+:修改群組名稱、頭像\n或邀請新成員;
+|系統|
+:更新群組並通知成員;
+if (操作者為管理員？) then ([是])
+  |使用者（會員）|
+  :變更成員角色或移除成員;
+  |系統|
+  if (移除對象為管理員？) then ([是])
+    :提示先解除其管理員身分;
+  else ([否])
+    :更新成員角色或名單;
+  endif
+else ([否])
+endif
+|使用者（會員）|
+:於訊息中輸入「@」\n選擇提及對象;
+|系統|
+:通知被提及之成員;
+if (有成員退出群組？) then ([是])
+  if (為最後一位成員？) then ([是])
+    :刪除聊天室與所有訊息;
+  else ([否])
+    :無管理員時由加入最久\n之成員接任管理員;
+  endif
+else ([否])
+endif
+stop
+@enduml

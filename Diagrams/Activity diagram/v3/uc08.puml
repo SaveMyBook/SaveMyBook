@@ -1,0 +1,41 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（訪客）|
+start
+:於登入頁選擇登入方式;
+|系統|
+if (第三方或手機登入？) then ([否])
+  |使用者（訪客）|
+  :輸入密碼，或以生物辨識\n使用通行密鑰;
+  |系統|
+  :比對密碼，或驗證通行\n密鑰簽章與簽章計數;
+else ([是])
+  |第三方登入服務|
+  :驗證身分並核發憑證;
+  |系統|
+  :驗證憑證並查找綁定帳號;
+  if (已綁定帳號？) then ([否])
+    |使用者（訪客）|
+    :選擇「建立新帳號」或\n「登入既有帳號並綁定」;
+    |系統|
+    :建立新帳號，或驗證\n既有帳號後完成綁定;
+  else ([是])
+  endif
+endif
+|系統|
+if (驗證通過且\n帳號未停權？) then ([否])
+  :拒絕登入並顯示原因;
+  stop
+else ([是])
+endif
+:建立工作階段並簽發權杖;
+:記錄登入日誌，新裝置\n則通知使用者;
+|使用者（訪客）|
+:進入首頁;
+stop
+@enduml

@@ -1,0 +1,37 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（賣家）|
+start
+:於「書籍管理」選擇書籍\n並點擊「取消上架」;
+|系統|
+:顯示確認對話框;
+|使用者（賣家）|
+:確認取消上架;
+|系統|
+if (書籍交易中？) then ([是])
+  :提示「請先處理訂單再下架」;
+  stop
+else ([否])
+endif
+:書籍改為「已下架」;
+:顯示成功訊息與「還原」選項;
+|使用者（賣家）|
+if (重新上架？) then ([否])
+  stop
+else ([是])
+endif
+:點擊「還原」或「重新上架」;
+|系統|
+if (違規下架未復核或\n書籍仍存放於書櫃？) then ([是])
+  :拒絕重新上架並提示聯絡\n客服或至書櫃取回書籍;
+  stop
+else ([否])
+endif
+:書籍改回「上架中」;
+stop
+@enduml

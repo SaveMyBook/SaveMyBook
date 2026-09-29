@@ -1,0 +1,44 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|管理員|
+|系統|
+start
+:依每日排程或管理員\n「立即備份」啟動備份;
+if (已有備份或\n還原進行中？) then ([是])
+  :拒絕本次請求;
+  stop
+else ([否])
+endif
+:執行備份並保留\n最新14份;
+|管理員|
+:於「資料庫備份」\n選擇備份;
+if (選擇之操作？) then ([還原至此備份])
+  :輸入登入密碼\n並點擊「開始還原」;
+  |系統|
+  if (密碼正確？) then ([否])
+    :顯示「密碼錯誤」;
+    stop
+  else ([是])
+  endif
+  :建立還原前備份;
+  :進入維護模式;
+  :匯入指定備份;
+  :結束維護模式\n並記錄操作紀錄;
+  stop
+else ([下載備份])
+  |系統|
+  :產生5分鐘內限用\n一次之下載連結;
+  if (開啟時連結\n仍有效？) then ([否])
+    :顯示「下載連結已失效，\n請重新產生」;
+    stop
+  else ([是])
+  endif
+  :提供備份檔下載\n並記錄操作紀錄;
+  stop
+endif
+@enduml

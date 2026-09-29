@@ -1,0 +1,33 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|管理員|
+|系統|
+start
+:偵測會員24小時內累積\n3則高風險訊息;
+if (已有未處理警示？) then ([是])
+  :累加觸發次數;
+  stop
+else ([否])
+endif
+:建立警示並通知具\n檢舉處理權限之管理員;
+|管理員|
+:於「內容審核」之\n「防詐警示」分頁檢視;
+if (須處置會員？) then ([是])
+  :於會員管理停權\n或列入黑名單;
+else ([否])
+endif
+:標示「誤判」或「已處理」;
+|系統|
+if (警示已被其他\n管理員處理？) then ([是])
+  :回傳衝突錯誤;
+  stop
+else ([否])
+endif
+:將警示標示為\n誤判或已處理;
+stop
+@enduml

@@ -1,0 +1,37 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+start
+:開啟「登入裝置」頁;
+|系統|
+:列出有效之登入裝置\n（名稱、平台、本機）;
+|使用者（會員）|
+:選擇登出單一裝置、\n其他裝置或全部裝置;
+:確認登出;
+|系統|
+:要求完成身分驗證;
+|使用者（會員）|
+:完成身分驗證;
+|系統|
+if (驗證通過？) then ([否])
+  :取消本次登出;
+  stop
+else ([是])
+endif
+if (登出其他或\n全部裝置？) then ([是])
+  :更新權杖生效基準時間;
+else ([否])
+endif
+:撤銷工作階段並清除生物\n辨識付款金鑰與推播裝置;
+if (包含本機？) then ([是])
+  :本機登出並返回登入頁;
+else ([否])
+  :更新登入裝置清單;
+endif
+stop
+@enduml

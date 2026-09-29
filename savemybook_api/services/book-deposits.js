@@ -490,7 +490,7 @@ const notifyTakenOut = (tx, { sellerId, bookId, title, cabinet }) => notify(tx, 
   userId: sellerId,
   type: 'order',
   title: '書櫃中的書籍已由客服取出',
-  content: `《${title}》已由客服人員自「${cabinet}」取出，書籍已下架。如需領回書籍，請聯絡客服。`,
+  content: `《${title}》已由客服人員自「${cabinet}」取出並下架，本平台將代為保管 ${policy.DEPOSIT_REMOVED_KEEP_DAYS} 日。請於期限內聯絡客服，至指定地點免費領回或申請寄回（運費由您負擔，貨到付款）；逾期未領回者視為拋棄。`,
   relatedId: bookId,
   relatedType: 'book'
 });

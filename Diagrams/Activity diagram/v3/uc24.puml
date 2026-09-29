@@ -1,0 +1,43 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（賣家）|
+start
+:於上架表單掃描\n或輸入ISBN;
+|系統|
+:並行查詢Google Books\n與Open Library;
+if (查得書目資料？) then ([否])
+  :顯示「查無此ISBN之\n書籍資訊，請手動輸入」;
+  |使用者（賣家）|
+  :手動輸入書籍資料;
+else ([是])
+  |系統|
+  :依來源優先順序合併\n並帶入上架表單;
+endif
+|使用者（賣家）|
+:於書籍詳情頁\n點擊「分享」;
+|系統|
+:產生或沿用分享權杖\n組成公開連結;
+|使用者（訪客）|
+:開啟分享連結;
+|系統|
+if (書籍或使用者\n可公開瀏覽？) then ([否])
+  :顯示找不到此書籍\n或使用者之頁面;
+  stop
+else ([是])
+  :公開網頁顯示\n書籍或個人檔案;
+endif
+|使用者（訪客）|
+:點擊「在App中開啟」;
+|系統|
+if (已安裝App？) then ([是])
+  :喚起App並開啟\n對應頁面;
+else ([否])
+  :顯示安裝App提示;
+endif
+stop
+@enduml
