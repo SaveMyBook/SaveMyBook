@@ -48,7 +48,6 @@ module.exports = {
       assert.strictEqual(backup.filePathOf('savemybook-x.sql.gz/../../etc/passwd'), null);
       assert.strictEqual(backup.filePathOf('other.sql.gz'), null);
       assert.strictEqual(backup.filePathOf(null), null);
-      // mustExist 為 false 時只檢查檔名格式。
       assert.ok(backup.filePathOf('savemybook-2026-01-01T00-00-00.sql.gz', { mustExist: false }));
     }],
 

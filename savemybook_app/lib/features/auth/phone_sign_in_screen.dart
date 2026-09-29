@@ -34,7 +34,7 @@ List<DialCode> dialCodes() => [
       DialCode('+61', S.australia),
     ];
 
-/// 撥號碼 + 使用者輸入組成 E.164；多數地區的市內表示法會多一個前導 0。
+/// 市內表示法的前導 0 不屬於 E.164 號碼，必須去除。
 String toE164(String dialCode, String local) {
   var digits = local.replaceAll(RegExp(r'\D'), '');
   while (digits.startsWith('0')) {
@@ -44,7 +44,6 @@ String toE164(String dialCode, String local) {
 }
 
 class PhoneSignInScreen extends StatefulWidget {
-  /// 綁定流程用的標題與說明。
   final bool linking;
   final PhoneSignInController? controller;
 
@@ -140,32 +139,6 @@ class _PhoneSignInScreenState extends State<PhoneSignInScreen> {
                   children: [
                     FadeSlideIn(
                       child: AppCard(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: c.accent.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(Icons.sms_outlined, color: c.accent),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Text(
-                                S.k6DigitCodeSentNumberMessage,
-                                style: TextStyle(fontSize: 12, height: 1.5, color: c.textSecondary),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    FadeSlideIn(
-                      index: 1,
-                      child: AppCard(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +201,7 @@ class _PhoneSignInScreenState extends State<PhoneSignInScreen> {
                     ),
                     const SizedBox(height: 24),
                     FadeSlideIn(
-                      index: 2,
+                      index: 1,
                       child: PrimaryButton(
                         label: S.sendCode,
                         height: 50,
@@ -338,7 +311,6 @@ class _SmsCodeScreenState extends State<SmsCodeScreen> {
                     children: [
                       PinEntryPanel(
                         key: _panelKey,
-                        title: S.enterSmsCode,
                         subtitle: S.codeWasSentP0(phone),
                         onCompleted: _verify,
                         footer: [

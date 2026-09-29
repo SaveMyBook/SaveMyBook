@@ -5,6 +5,7 @@ import '../../../utils/app_colors.dart';
 import '../../../widgets/responsive.dart';
 import '../../../widgets/state_views.dart';
 import '../../../i18n/strings.dart';
+import '../../cabinet/cabinet_messages.dart';
 
 class OrderCard extends StatelessWidget {
   final Order order;
@@ -38,7 +39,8 @@ class OrderCard extends StatelessWidget {
       status: order.statusLabel(asSeller: asSeller),
       address: order.cabinetAddress,
       openHours: showPickupWindow ? order.cabinetOpenHours : '',
-      slotNumber: order.slotNumber,
+      placement: CabinetMessages.orderPlacement(order),
+      depositNote: order.hasPendingManualReport ? S.manualReportAwaitingConfirmation : null,
       actionLabel: actionLabel,
       onAction: onAction,
       secondaryLabel: secondaryLabel,
@@ -82,7 +84,7 @@ class ListingCard extends StatelessWidget {
       statusColor: statusColor,
       address: book.cabinetAddress,
       openHours: book.cabinetOpenHours,
-      slotNumber: '',
+      placement: '',
       depositNote: depositNote,
       actionLabel: actionLabel,
       onAction: onAction,
@@ -101,7 +103,7 @@ class SaleCardFrame extends StatelessWidget {
   final Color? statusColor;
   final String address;
   final String openHours;
-  final String slotNumber;
+  final String placement;
   final String? depositNote;
   final String? actionLabel;
   final VoidCallback? onAction;
@@ -118,7 +120,7 @@ class SaleCardFrame extends StatelessWidget {
     this.statusColor,
     required this.address,
     required this.openHours,
-    required this.slotNumber,
+    required this.placement,
     this.depositNote,
     this.actionLabel,
     this.onAction,
@@ -207,25 +209,25 @@ class SaleCardFrame extends StatelessWidget {
                   ),
                   if (address.isNotEmpty) infoRow(Icons.location_on_outlined, address, maxLines: 2),
                   if (openHours.isNotEmpty) infoRow(Icons.schedule_rounded, openHours),
-                  if (slotNumber.isNotEmpty) infoRow(Icons.grid_view_rounded, S.slot2(slotNumber)),
+                  if (placement.isNotEmpty) infoRow(Icons.grid_view_rounded, placement),
                   if (depositNote != null) infoRow(Icons.inventory_2_outlined, depositNote!),
                   const Spacer(),
                   if (actionLabel != null) ...[
                     const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
-                      height: 34,
                       child: FilledButton(
                         onPressed: onAction,
                         style: FilledButton.styleFrom(
                           backgroundColor: c.accent,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          minimumSize: const Size(0, 34),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           textStyle: buttonText,
                         ),
-                        child: Text(actionLabel!, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        child: Text(actionLabel!, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
                       ),
                     ),
                   ],
@@ -233,18 +235,18 @@ class SaleCardFrame extends StatelessWidget {
                     SizedBox(height: actionLabel != null ? 6 : 10),
                     SizedBox(
                       width: double.infinity,
-                      height: 34,
                       child: OutlinedButton(
                         onPressed: onSecondary,
                         style: OutlinedButton.styleFrom(
                           foregroundColor: c.accent,
                           side: BorderSide(color: c.accent.withValues(alpha: 0.5)),
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          minimumSize: const Size(0, 34),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           textStyle: buttonText,
                         ),
-                        child: Text(secondaryLabel!, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        child: Text(secondaryLabel!, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
                       ),
                     ),
                   ],

@@ -119,9 +119,9 @@ module.exports = {
       await runner.assertDailyLimit(h.settings({ limits: { daily_per_user: { book_chat: 0 } } }), 'book_chat', 5);
     }],
 
-    ['本月花費達到預算時整組 AI 功能停用', async () => {
-      h.setSettings({ enabled: true, limits: { monthly_budget_usd: 5 } });
-      h.addUsageLog({ cost_usd: 4.999999, created_at: new Date() });
+    ['會員使用的功能在預算扣除保留比例後停用，審核與管理輔助可用到完整預算', async () => {
+      h.setSettings({ enabled: true, limits: { monthly_budget_usd: 5, reserve_ratio: 0.2 } });
+      h.addUsageLog({ cost_usd: 3.999999, created_at: new Date() });
       assert.strictEqual(await runner.blocker(await h.settingsService.load(), 'support'), null);
       h.addUsageLog({ cost_usd: 0.000001, created_at: new Date() });
       assert.strictEqual(await runner.blocker(await h.settingsService.load(), 'support'), 'budget');
@@ -129,6 +129,20 @@ module.exports = {
         () => runner.access('support'),
         (err) => err.status === 503 && err.code === 'AI_BUDGET_EXCEEDED' && err.message === 'AI 功能本月用量已達上限，請稍後再試'
       );
+      const settings = await h.settingsService.load();
+      assert.strictEqual(await usage.budgetExceeded(settings, 'moderation'), false);
+      assert.strictEqual(await usage.budgetExceeded(settings, 'admin_assist'), false);
+      assert.strictEqual(await usage.budgetExceeded(settings, 'embedding'), true);
+      h.addUsageLog({ cost_usd: 1, created_at: new Date() });
+      assert.strictEqual(await usage.budgetExceeded(settings, 'moderation'), true);
+    }],
+
+    ['保留比例為 0 時所有功能共用完整預算，預設保留 20%', async () => {
+      assert.strictEqual(h.settingsService.normalize(null).limits.reserve_ratio, 0.2);
+      assert.strictEqual(usage.budgetCap(h.settings({ limits: { monthly_budget_usd: 10, reserve_ratio: 0.2 } }), 'support'), 8);
+      assert.strictEqual(usage.budgetCap(h.settings({ limits: { monthly_budget_usd: 10, reserve_ratio: 0.2 } }), 'moderation'), 10);
+      assert.strictEqual(usage.budgetCap(h.settings({ limits: { monthly_budget_usd: 10, reserve_ratio: 0 } }), 'support'), 10);
+      assert.strictEqual(usage.budgetCap(h.settings({ limits: { monthly_budget_usd: 0, reserve_ratio: 0.2 } }), 'support'), 0);
     }],
 
     ['未設定金鑰的服務商會回 AI_NOT_CONFIGURED', async () => {
@@ -332,10 +346,34 @@ module.exports = {
 
     ['報表：待審核書籍數量一併回報', async () => {
       prisma.store.ai_book_reviews = [
-        { book_id: 1, status: 'pending' }, { book_id: 2, status: 'pending' }, { book_id: 3, status: 'approved' }
+        { book_id: 1, status: 'pending' }, { book_id: 2, status: 'pending' }, { book_id: 3, status: 'approved' },
+        { book_id: 4, status: 'passed' }, { book_id: 5, status: 'skipped' }
       ];
       const report = await usage.report('today', { monthlyBudgetUsd: 0, now: NOW });
       assert.strictEqual(report.pending_reviews, 2);
+    }],
+
+    ['報表：回報保留比例、會員功能可用額度與在售超過 1 小時仍未完成審核的書籍數', async () => {
+      let where = null;
+      h.onModel('books.count', (args) => {
+        where = args.where;
+        return 3;
+      });
+      const report = await usage.report('today', { monthlyBudgetUsd: 10, reserveRatio: 0.2, now: NOW });
+      assert.strictEqual(report.summary.reserve_ratio, 0.2);
+      assert.strictEqual(report.summary.member_budget_usd, 8);
+      assert.strictEqual(report.unreviewed_listings, 3);
+      assert.strictEqual(where.status, 'on_sale');
+      assert.strictEqual(where.is_approved, true);
+      const [unmarked, skipped] = where.OR;
+      assert.deepStrictEqual(unmarked.ai_book_reviews, { is: null });
+      assert.strictEqual(unmarked.created_at.lte.getTime(), NOW.getTime() - 60 * 60 * 1000);
+      assert.strictEqual(unmarked.created_at.gte.getTime(), NOW.getTime() - 7 * 24 * 60 * 60 * 1000);
+      assert.deepStrictEqual(skipped.ai_book_reviews, { is: { status: 'skipped' } });
+
+      const unlimited = await usage.report('today', { monthlyBudgetUsd: 0, reserveRatio: 0.2, now: NOW });
+      assert.strictEqual(unlimited.summary.reserve_ratio, 0);
+      assert.strictEqual(unlimited.summary.member_budget_usd, 0);
     }]
   ]
 };

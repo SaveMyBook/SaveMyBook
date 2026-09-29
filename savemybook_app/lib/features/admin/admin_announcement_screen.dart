@@ -241,24 +241,14 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
             style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.4),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Text(S.audienceEveryone, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 11, color: c.textHint)),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  _when(announcement.publishedAt ?? announcement.createdAt),
-                  textAlign: TextAlign.end,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: c.textHint),
-                ),
-              ),
-            ],
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Text(
+              _when(announcement.publishedAt ?? announcement.createdAt),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 11, color: c.textHint),
+            ),
           ),
         ],
       ),

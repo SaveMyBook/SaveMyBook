@@ -189,23 +189,12 @@ const registerInTx = async (tx, { bookId, cabinetId, now = new Date() }) => {
   }
 };
 
+// 只有賣家本人能呼叫，不會是「非當事人的管理員」，所以手動模式下一律成為待客服確認的回報（業主決策）。
 const deposit = async (bookId, user) => {
   const book = await ownBook(bookId, user, '僅賣家本人可登記存書');
   const cabinet = await assertDepositAllowed(book);
   const manual = await cabinetAccess.assertManualAllowed(cabinet.cabinet_id, user, { sellerId: book.seller_id });
-  if (manual.audited) {
-    return cabinetManual().submit({ kind: 'deposit', book, user, reason: manual.reason, cabinetId: cabinet.cabinet_id });
-  }
-
-  const now = new Date();
-  await prisma.$transaction((tx) => registerInTx(tx, { bookId, cabinetId: cabinet.cabinet_id, now }));
-
-  return {
-    book_id: bookId,
-    in_cabinet: true,
-    cabinet: { cabinet_id: cabinet.cabinet_id, cabinet_name: cabinet.cabinet_name, address: cabinet.address },
-    deposit: summary({ deposited_at: now, paused_at: null }, now)
-  };
+  return cabinetManual().submit({ kind: 'deposit', book, user, reason: manual.reason, cabinetId: cabinet.cabinet_id });
 };
 
 const restorable = async (row, book) => Boolean(row.paused_at) && Boolean(row.auto_paused)
@@ -267,20 +256,7 @@ const retrieve = async (bookId, user) => {
   if (!row) throw await missingDeposit(book);
 
   const manual = await cabinetAccess.assertManualAllowed(row.cabinet_id ?? book.cabinet_id, user, { sellerId: book.seller_id });
-  if (manual.audited) {
-    return cabinetManual().submit({ kind: 'retrieve', book, user, reason: manual.reason, cabinetId: row.cabinet_id });
-  }
-
-  const restore = await restorable(row, book);
-  const now = new Date();
-  const { status, restored } = await prisma.$transaction(async (tx) => {
-    const result = await retrieveInTx(tx, { book, row, restore, now });
-    const slotIds = await doors.removeBooks(tx, [bookId]);
-    if (slotIds.length) await doors.markCheck(tx, slotIds, { reason: 'MANUAL_REPORT', now });
-    return result;
-  });
-
-  return { book_id: bookId, status, restored };
+  return cabinetManual().submit({ kind: 'retrieve', book, user, reason: manual.reason, cabinetId: row.cabinet_id });
 };
 
 const dueInclude = {

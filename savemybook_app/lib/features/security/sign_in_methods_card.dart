@@ -14,15 +14,12 @@ import '../auth/social_sign_in.dart';
 import 'set_password_screen.dart';
 import '../../i18n/strings.dart';
 
-/// 帳號安全的「登入方式」：列出已綁定項目並提供綁定／解除綁定與設定密碼。
 class SignInMethodsCard extends StatefulWidget {
   final bool hasPaymentPin;
   final ValueChanged<AuthIdentityList>? onLoaded;
 
-  /// 外層畫面改變這個值即可要求重新載入（例如在別處設定完密碼）。
   final int refreshTick;
 
-  /// 測試用：直接帶入資料，不再呼叫伺服器。
   final AuthProvidersInfo? initialProviders;
   final AuthIdentityList? initialIdentities;
 

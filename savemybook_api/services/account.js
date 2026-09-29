@@ -6,6 +6,8 @@ const push = require('./push');
 const sessions = require('./sessions');
 const audit = require('./audit');
 const aiConsent = require('./ai/consent');
+const listingAdoption = require('./ai/listing-adoption');
+const recommendationEvents = require('./recommendation-events');
 const supportAttachments = require('./support-attachments');
 const deposits = require('./book-deposits');
 const { ORDER_UNSETTLED_STATUSES } = require('../constants/domain');
@@ -49,6 +51,8 @@ const anonymize = async (userId) => {
     await tx.user_qr_codes.deleteMany({ where: { user_id: userId } });
     await tx.notifications.deleteMany({ where: { user_id: userId } });
     await aiConsent.purgeUser(tx, userId);
+    await recommendationEvents.purgeUser(tx, userId);
+    await listingAdoption.purgeUser(tx, userId);
     await tx.$executeRaw`DELETE FROM user_identities WHERE user_id = ${userId}`;
     // 密碼雜湊已換成隨機值，登入方式一併回到「僅密碼」的狀態。
     await tx.$executeRaw`UPDATE users SET password_set = 1 WHERE user_id = ${userId}`;
@@ -137,7 +141,6 @@ const exportPasskeys = async (userId) => {
   }));
 };
 
-// 附件以效期七天的簽章網址提供，使用者可在匯出後自行下載。
 const exportTickets = async (userId) => {
   const tickets = await prisma.support_tickets.findMany({
     where: { user_id: userId },
@@ -154,7 +157,7 @@ const exportTickets = async (userId) => {
 };
 
 const exportData = async (userId) => {
-  const [user, books, boughtOrders, soldOrders, wallet, disputes, reports, tickets, ai, identities, passkeys] =
+  const [user, books, boughtOrders, soldOrders, wallet, disputes, reports, tickets, ai, recommendations, listingAssist, identities, passkeys] =
     await Promise.all([
       prisma.users.findUnique({
         where: { user_id: userId },
@@ -183,6 +186,8 @@ const exportData = async (userId) => {
       prisma.reports.findMany({ where: { reporter_id: userId } }),
       exportTickets(userId),
       aiConsent.exportUser(userId),
+      recommendationEvents.exportUser(userId),
+      listingAdoption.exportUser(userId),
       exportIdentities(userId),
       exportPasskeys(userId)
     ]);
@@ -199,6 +204,8 @@ const exportData = async (userId) => {
     reports,
     support_tickets: tickets,
     ai,
+    recommendations,
+    listing_assist: listingAssist,
     sign_in_methods: identities,
     passkeys
   };

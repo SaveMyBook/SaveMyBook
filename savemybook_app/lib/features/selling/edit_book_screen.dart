@@ -212,10 +212,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
       return;
     }
 
-    final date = _publishDate;
-    final publishDate = date == null
-        ? ''
-        : '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    // 書目補齊的出版日期常只到年或月（2003、2003-08），日期欄無法顯示；沒有改動時送回原值，否則會被清空。
+    final publishDate = _publishDate == _initialDate ? widget.book.publishDate : _formatDate(_publishDate);
 
     _navigating = true;
     final saved = await Navigator.push<bool>(
@@ -336,7 +334,6 @@ class _EditBookScreenState extends State<EditBookScreen> {
                             isRequired: true,
                             child: AppTextField(
                               controller: _titleController,
-                              hint: S.actionRequired,
                               maxLength: 255,
                               textInputAction: TextInputAction.next,
                               errorText: _showErrors && _titleController.text.trim().isEmpty ? S.enterTitle : null,
@@ -351,7 +348,6 @@ class _EditBookScreenState extends State<EditBookScreen> {
                             labelWidth: 88,
                             child: AppTextField(
                               controller: _authorController,
-                              hint: S.optional,
                               maxLength: 255,
                               textInputAction: TextInputAction.next,
                               onChanged: (_) => setState(() {}),
@@ -365,7 +361,6 @@ class _EditBookScreenState extends State<EditBookScreen> {
                             labelWidth: 88,
                             child: AppTextField(
                               controller: _publisherController,
-                              hint: S.optional,
                               maxLength: 255,
                               textInputAction: TextInputAction.done,
                               onChanged: (_) => setState(() {}),
@@ -388,7 +383,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                         FadeSlideIn(
                           index: 5,
                           child: _flashed('category', FormRowCard(
-                            label: S.pickCategory,
+                            label: S.category,
                             labelWidth: 88,
                             isRequired: true,
                             child: Column(

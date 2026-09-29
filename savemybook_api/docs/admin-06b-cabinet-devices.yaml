@@ -5,10 +5,10 @@ paths:
       operationId: adminGetCabinetDevice
       tags: [admin-cabinets]
       description: |
-        書櫃的裝置、配對碼、存取模式與各櫃門的存放內容。
+        書櫃的裝置、待完成的配對、存取模式與各櫃門的存放內容。
 
         - `device`：有效裝置；沒有時為 null（模擬器關閉時，模擬書櫃不算有效裝置）。
-        - `pairing`：尚未使用且仍在效期內的配對碼；沒有時為 null。配對碼本身只在產生時回傳一次。
+        - `pairing`：管理員已輸入配對碼、裝置尚未領取憑證且仍在效期內的配對；沒有時為 null。回應不含配對碼。
         - `kiosk_url`：模擬書櫃網頁的網址，`simulator_enabled` 為 false 時為 null。
         - `doors[].check`：待確認櫃門（門內實際內容可能與紀錄不符）。`candidates` 為造成待確認的作業中指派到此門、
           目前沒有櫃門紀錄的書，可直接以「登記存放內容」補登。
@@ -38,7 +38,7 @@ paths:
       operationId: adminRevokeCabinetDevice
       tags: [admin-cabinets]
       description: |
-        撤銷有效裝置（`revoke_reason` 為 `admin`）並作廢未使用的配對碼，裝置須重新配對才能使用。
+        撤銷有效裝置（`revoke_reason` 為 `admin`）並作廢裝置尚未領取憑證的配對，裝置須重新配對才能使用。
         撤銷後書櫃立即回到手動回報模式。書櫃裝置故障而需緊急改為手動處理時，也以此撤銷。
       security: [{ bearerAuth: [] }]
       parameters:
@@ -71,22 +71,28 @@ paths:
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
-          description: 此書櫃沒有有效裝置，也沒有未使用的配對碼。
+          description: 此書櫃沒有有效裝置，也沒有尚未完成的配對。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, code: DEVICE_NOT_PAIRED, message: 此書櫃尚未配對裝置 }
         '500': { $ref: '#/components/responses/ServerError' }
 
-  /api/admin/cabinets/{id}/device/pairing-code:
+  /api/admin/cabinets/{id}/device/pair:
     post:
-      summary: 產生裝置配對碼
-      operationId: adminCreateCabinetPairingCode
+      summary: 以配對碼綁定書櫃裝置
+      operationId: adminPairCabinetDevice
       tags: [admin-cabinets]
       description: |
-        需 `admin` 範圍的身分驗證。由管理員選定裝置種類與櫃門數，配對時不得變更。配對碼為 8 位數字，10 分鐘內有效，
-        只能使用一次；同一台書櫃先前未使用的配對碼一併作廢。操作紀錄只記錄種類與櫃門數，不記錄配對碼。
-        模擬器關閉時無法產生模擬書櫃的配對碼。
+        需 `admin` 範圍的身分驗證。輸入書櫃裝置螢幕顯示的 8 位數配對碼（可含連字號或空白），將該裝置綁定到此書櫃；
+        管理員不需在書櫃上操作。裝置種類、櫃門數、門磁與韌體版本由裝置申請配對碼時回報，回應中列出供管理員核對。
+
+        綁定後建立待配對的裝置紀錄，裝置下次輪詢 `POST /api/device/v1/pair/poll`（約 3 秒內）即取得裝置憑證並完成配對；
+        此時才撤銷同一台書櫃原有的有效裝置、將 A01 起的櫃門對應電磁鎖通道，並記錄 `paired` 事件、通知管理員。
+        配對碼剩餘效期不足 30 秒時延長為 30 秒，供裝置領取憑證。
+
+        配對碼格式不符、查無、已逾時或已綁定時一律回 400 `PAIRING_CODE_INVALID`，不區分原因。每位管理員每 10 分鐘最多 10 次。
+        操作紀錄只記錄裝置種類、櫃門數與韌體版本，不記錄配對碼。模擬器關閉時無法綁定模擬書櫃。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/CabinetIdPath'
@@ -97,33 +103,39 @@ paths:
           application/json:
             schema:
               type: object
-              required: [kind]
+              required: [code]
               properties:
-                kind: { type: string, enum: [simulator, esp32], example: esp32 }
-                door_count: { type: integer, minimum: 1, maximum: 8, default: 4 }
+                code: { type: string, description: 書櫃螢幕顯示的 8 位數配對碼，可含連字號或空白。, example: 1234-5678 }
       responses:
         '201':
-          description: 已產生。
+          description: 已綁定，等待裝置領取憑證。
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: 配對碼已產生 }
+                  message: { type: string, example: 已送出配對，裝置連線後即完成 }
                   data:
                     type: object
                     properties:
-                      code: { type: string, example: 1234-5678 }
                       kind: { type: string, enum: [simulator, esp32], example: esp32 }
                       door_count: { type: integer, example: 4 }
-                      expires_at: { type: string, format: date-time }
-        '400': { $ref: '#/components/responses/BadRequest' }
+                      has_door_sensor: { type: boolean, example: false }
+                      firmware: { type: string, example: esp-1.0.0 }
+                      summary:
+                        $ref: '#/components/schemas/AdminCabinetDevice'
+        '400':
+          description: 配對碼無效、已逾時或已綁定，或書櫃編號格式錯誤。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: PAIRING_CODE_INVALID, message: 配對碼無效或已逾時 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
           description: |
             請求者非管理員、缺少書櫃管理權限、尚未完成 `admin` 範圍的身分驗證（`VERIFICATION_REQUIRED`），
-            或模擬器未開啟時要求產生模擬書櫃的配對碼（`DEVICE_DISABLED`）。
+            或模擬器未開啟時要求綁定模擬書櫃（`DEVICE_DISABLED`）。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -137,6 +149,7 @@ paths:
                 模擬器未開啟:
                   value: { success: false, code: DEVICE_DISABLED, message: 模擬書櫃目前未開放 }
         '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/cabinets/{id}/device/fault-clear:
@@ -181,10 +194,10 @@ paths:
       operationId: adminListCabinetEvents
       tags: [admin-cabinets]
       description: |
-        裝置回報與伺服器記錄的事件，依發生時間由新到舊排序。`source` 為 `device`（裝置回報）、`server`（系統記錄）
-        或 `admin`（管理員操作）。常見的 `type`：`paired`、`revoked`、`device_cloned`、`ip_changed`、`connection_lost`、
+        裝置回報與伺服器記錄的事件，依發生時間由新到舊排序。`source` 為 `device`（裝置回報）、`server`（系統記錄）、
+        `admin`（管理員操作）或 `user`（使用者於 App 操作）。常見的 `type`：`paired`、`revoked`、`device_cloned`、`ip_changed`、`connection_lost`、
         `connection_restored`、`fault`、`fault_cleared`、`door_forced`、`door_placed`、`door_check_required`、
-        `door_check_cleared`，以及書櫃作業的 `session_created`、`door_opened`、`session_closed`、`session_finished` 等。
+        `door_check_cleared`，以及書櫃作業的 `session_created`、`match_entered`、`door_opened`、`close_refused`、`session_closed`、`session_finished` 等。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/CabinetIdPath'
@@ -370,7 +383,8 @@ components:
             at: { type: string, format: date-time }
             reason:
               type: string
-              enum: [CANCELLED_AFTER_OPEN, DISCARDED_AFTER_OPEN, DOOR_CONFLICT, DOOR_UNCONFIRMED, LATE_OPEN, MANUAL_REPORT, ADMIN_OPEN, ADMIN_COMPLETED]
+              enum: [CANCELLED_AFTER_OPEN, DISCARDED_AFTER_OPEN, DOOR_CONFLICT, DOOR_UNCONFIRMED, LATE_OPEN, MANUAL_REPORT, ADMIN_OPEN, ADMIN_COMPLETED, ITEM_FAILED_AFTER_OPEN]
+              description: '`ITEM_FAILED_AFTER_OPEN`：取書或取回項目未能提交，但櫃門曾開啟，書可能已被取走。'
               example: CANCELLED_AFTER_OPEN
             session_no: { type: string, nullable: true, example: CS8MZQ41K }
             candidates:
@@ -439,7 +453,9 @@ components:
           properties:
             kind: { type: string, enum: [simulator, esp32], example: esp32 }
             door_count: { type: integer, example: 4 }
-            expires_at: { type: string, format: date-time }
+            has_door_sensor: { type: boolean, example: false }
+            firmware: { type: string, example: esp-1.0.0 }
+            expires_at: { type: string, format: date-time, description: 裝置須於此時間前領取憑證。 }
         active_session_no: { type: string, nullable: true, description: 裝置目前占用中的書櫃作業。, example: null }
         doors:
           type: array
@@ -460,7 +476,7 @@ components:
       type: object
       properties:
         type: { type: string, example: fault }
-        source: { type: string, enum: [device, server, admin], example: device }
+        source: { type: string, enum: [device, server, admin, user], example: device }
         channel: { type: integer, nullable: true, example: 2 }
         label: { type: string, nullable: true, example: A02 }
         device_no: { type: string, nullable: true, example: DV3K9QX2M }

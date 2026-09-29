@@ -67,7 +67,6 @@ const parseOutput = (data) => {
 const REASONING_HEADROOM = 2000;
 const SEARCH_REASONING_HEADROOM = 8000;
 
-// reasoning 由呼叫端指定最低推理強度（例如客服需要理解上下文），未指定時維持最省的設定。
 const reasoningEffortOf = (model, search, reasoning) => {
   const id = String(model);
   if (/^gpt-5(-mini|-nano)?(-\d{4}-\d{2}-\d{2})?$/.test(id)) return reasoning ?? (search ? 'low' : 'minimal');

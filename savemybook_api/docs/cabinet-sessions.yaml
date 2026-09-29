@@ -4,16 +4,21 @@ tags:
     description: |
       取書、依訂單存書、先行存書與取回，都在書櫃前以 App 掃描書櫃螢幕上的 QR Code 辦理。一次「掃碼到關門」為一個書櫃作業，
       作業編號為 `CS` 開頭的加密編號（`session_no`）。櫃門關閉、書櫃回報後才登記存書或取書，並沿用既有通知告知對方。
+      書櫃螢幕只負責顯示，所有操作都在 App 進行。
 
       ## 流程
 
-      1. **掃碼**：`POST /api/cabinet-sessions` 送出 QR Code 內容、定位狀態與（選填）作業情境 `context`。伺服器驗證挑戰碼、
-         書櫃狀態、營業時間與距離後，列出本人在這台書櫃可辦理的項目，作業狀態為 `selecting`，須於 60 秒內確認。
+      1. **掃碼**：`POST /api/cabinet-sessions` 送出 QR Code 內容、定位與（選填）作業情境 `context`。伺服器驗證挑戰碼、
+         書櫃狀態、營業時間、定位與距離後，列出本人在這台書櫃可辦理的項目，作業狀態為 `selecting`，須於 60 秒內確認。
       2. **確認項目並開門**：`POST /api/cabinet-sessions/{sessionNo}/start` 送出所選單位的 `key`。伺服器分配存書櫃門、
-         產生兩位數的比對數字（`match.code`），狀態轉為 `matching`。App 只顯示這個數字，書櫃螢幕顯示 9 個數字。
-      3. **數字比對**：使用者於 60 秒內在書櫃螢幕點選相同數字（只有一次機會），書櫃隨即開鎖，狀態依序為 `opening`、`open`。
-      4. **關門**：使用者放入或取出書籍後，在書櫃螢幕按「完成並關門」，或等待倒數結束自動完成；按「取消並關門」不會變更任何狀態。
-         書櫃回報關門後，伺服器依各項目逐一提交，作業結束為 `completed`、`partial` 或 `cancelled`。
+         產生兩位數的比對碼，狀態轉為 `matching`。比對碼只顯示於書櫃螢幕，App 不會收到。
+      3. **數字比對**：使用者於 60 秒內在 App 輸入書櫃螢幕上顯示的兩位數字（`POST …/match`，只有一次機會）。
+         正確時書櫃隨即開鎖，狀態依序為 `opening`、`open`；錯誤時作業結束為 `failed`／`MATCH_FAILED`。
+      4. **關門**：使用者放入或取出書籍並關上櫃門後，在 App 按「完成」（`POST …/close`，`outcome: completed`），
+         或等待倒數結束自動完成；按「取消」（`outcome: cancelled`）不會變更任何狀態。書櫃收到指令後回報關門，
+         伺服器依各項目逐一提交，作業結束為 `completed`、`partial` 或 `cancelled`。書櫃有門磁且櫃門仍開著時會拒絕此指令，
+         作業的 `notice` 改為 `CLOSE_DOOR_FIRST`，App 應提示使用者關上櫃門；櫃門全部關上後，書櫃依最後一次被拒絕的要求結束作業
+         （取消時為 `cancelled`，完成時以門磁完成）。
 
       App 以 Socket.IO 事件 `cabinet:session`（內容 `{ session: <CabinetSession> }`）接收狀態變更，並輪詢 `GET /api/cabinet-sessions/{sessionNo}`
       作為備援；以 `version` 判斷新舊，較舊的內容直接忽略。App 啟動或回到前景時，以 `GET /api/cabinet-sessions/active` 接續未完成的作業。
@@ -46,14 +51,18 @@ tags:
       | `pre_deposit` | 本人上架中、指定此書櫃、尚未存書且沒有進行中訂單的書 | 否 |
       | `retrieval` | 本人存放於此書櫃的書（已售出、等待買家取書或爭議處理中的書除外） | 否 |
 
-      櫃門容量：可用櫃門只剩 1 扇時不再接受先行存書，保留給依訂單存書；每位賣家在同一台書櫃最多占用 1 扇先行存書櫃門。
+      櫃門容量：可用櫃門只剩 1 扇時不再接受先行存書，保留給依訂單存書；每位賣家在同一台書櫃最多 1 本先行存書，
+      計入櫃門內的先行存書、沒有櫃門紀錄的存書登記、待客服確認的先行存書手動回報（同一本書改以掃碼存入時不計入自己的回報）
+      與進行中作業已分配的櫃門。
+      一次勾選的先行存書超過剩餘額度時，`start` 回 409 `CABINET_FULL`，作業維持 `selecting`，請使用者減少項目後再開始。
       取回開始後，上架中的書暫停販售至作業結束，以免取回期間被買走。
 
       ## 定位
 
-      `location_status` 為 `granted` 時須帶當次新取得的 `location`。精度超過 500 公尺或定位超過 60 秒時改記為無法取得定位；
-      無法取得或拒絕定位時仍可辦理，數字比對照常進行。距離書櫃超過 200 公尺（扣除精度，最多扣 100 公尺）時拒絕。
-      作業只保存距離與精度，不保存座標。
+      定位為必要條件。`location_status` 為 `granted` 時須帶當次新取得的 `location`。
+      拒絕定位權限時回 403 `CABINET_LOCATION_REQUIRED`；無法取得定位，或精度超過 500 公尺、定位超過 60 秒時回 403
+      `CABINET_LOCATION_UNAVAILABLE`；距離書櫃超過 200 公尺（扣除精度，最多扣 100 公尺）時回 403 `CABINET_TOO_FAR`。
+      以上拒絕都會留下紀錄，挑戰碼不會被用掉。作業只保存距離與精度，不保存座標。管理員遠端開櫃與手動回報不需定位。
 
       ## 冷卻
 
@@ -64,7 +73,7 @@ tags:
       | 端點 | 上限 |
       | --- | --- |
       | `POST /api/cabinet-sessions` | 每位使用者每分鐘 10 次 |
-      | `POST …/start`、`POST …/cancel` | 合計每位使用者每分鐘 20 次 |
+      | `POST …/start`、`POST …/cancel`、`POST …/match`、`POST …/close` | 合計每位使用者每分鐘 20 次 |
       | `GET /api/cabinet-sessions/active`、`GET /api/cabinet-sessions/{sessionNo}` | 合計每位使用者每分鐘 120 次 |
 
       ## 錯誤代碼
@@ -78,6 +87,8 @@ tags:
       | `CABINET_MAINTENANCE` | 409 | 此書櫃維修中，暫停服務 | – |
       | `CABINET_UNAVAILABLE` | 409 | 此書櫃暫停服務 | – |
       | `CABINET_CLOSED` | 409 | 目前非書櫃營業時間，營業時間為 {open}–{close} | `open_time`、`close_time` |
+      | `CABINET_LOCATION_REQUIRED` | 403 | 使用書櫃須允許存取位置資訊，請於系統設定中開啟後再試 | – |
+      | `CABINET_LOCATION_UNAVAILABLE` | 403 | 目前無法確認您的位置，請開啟定位服務後再試 | – |
       | `CABINET_TOO_FAR` | 403 | 您目前的位置距離書櫃約 {n} 公尺，請於書櫃旁操作 | `distance_m` |
       | `CABINET_WRONG_CABINET` | 409 | 此{訂單／書籍}的指定書櫃為「{name}」，請至該書櫃辦理 | `cabinet` |
       | `CABINET_CONTEXT_CHANGED` | 409 | 訂單狀態已變更，請重新整理後再試（書籍為「書籍狀態已變更，請重新整理後再試」） | – |
@@ -85,11 +96,11 @@ tags:
       | `CABINET_ITEM_BLOCKED` | 409 | 第一個不可辦理項目的原因 | `items` |
       | `CABINET_ACTIVE_SESSION` | 409 | 您有進行中的書櫃作業，請先完成或取消 | `session_no` |
       | `CABINET_NO_SELECTION` | 400 | 請至少選擇一個項目 | – |
-      | `CABINET_FULL` | 409 | 此書櫃可用的櫃門不足，請減少存書項目或稍後再試 | `available_doors`、`required_doors` |
-      | `PREDEPOSIT_LIMIT` | 409 | 您在此書櫃的先行存書已達上限，請待售出或取回後再存入 | – |
-      | `CABINET_ITEMS_CHANGED` | 409 | 部分項目狀態已變更，請重新確認 | `session` |
+      | `CABINET_FULL` | 409 | 此書櫃可用的櫃門不足，請減少存書項目或稍後再試（一次勾選的先行存書超過賣家剩餘額度時亦同） | `available_doors`、`required_doors` |
+      | `CABINET_ITEMS_CHANGED` | 409 | 部分項目狀態已變更，請重新確認（包括確認期間先行存書額度已用完，項目改標示 `PREDEPOSIT_LIMIT`） | `session` |
       | `CABINET_SESSION_NOT_FOUND` | 404 | 找不到此書櫃作業 | – |
-      | `CABINET_SESSION_STATE` | 409 | 櫃門已開啟，請於書櫃螢幕操作（非開門狀態時為「目前無法執行此操作」） | `session` |
+      | `CABINET_SESSION_STATE` | 409 | 目前無法執行此操作（開門狀態時為「櫃門已開啟，無法執行此操作」；書櫃已回報關門而正在提交時為「本次作業處理中，請稍候」） | `session` |
+      | `MATCH_CODE_INVALID` | 400 | 請輸入兩位數字 | – |
       | `CABINET_COOLDOWN` | 429 | 您在此書櫃的作業多次未完成，請於 {n} 分鐘後再試 | `retry_after_s` |
       | `RATE_LIMITED` | 429 | 操作過於頻繁，請稍後再試 | – |
 
@@ -100,10 +111,15 @@ tags:
 
       ## 故障備援
 
-      書櫃已配對裝置且在線時，一般使用者不能以 `PATCH /api/orders/{id}/status`、`POST /api/books/{id}/deposit`、
-      `POST /api/books/{id}/retrieve` 回報存書、取書或取回（409 `CABINET_SCAN_REQUIRED`）。裝置離線或故障持續 2 分鐘以上，
-      或書櫃曾配對裝置而目前沒有有效裝置時，這些端點改為建立**待客服確認的手動回報**（HTTP 202，回應附 `manual_report`），
-      管理員確認後才變更訂單或存書狀態並通知對方。從未配對裝置的書櫃維持原有的手動回報。
+      書櫃為掃碼模式時（含裝置離線或故障未滿 2 分鐘，及裝置自行解除配對或疑遭複製而撤銷後 2 分鐘內），一般使用者不能以
+      `PATCH /api/orders/{id}/status`、`POST /api/books/{id}/deposit`、`POST /api/books/{id}/retrieve` 回報存書、取書或取回
+      （409 `CABINET_SCAN_REQUIRED`）。書櫃沒有有效裝置（含從未配對），或裝置離線、故障持續 2 分鐘以上時，這些端點一律建立**待客服確認的手動回報**（HTTP 202，回應附 `manual_report`），
+      不立即生效；管理員確認後才變更訂單或存書狀態並通知對方，駁回時狀態不變並通知回報者。
+      - 同一項目已有待確認的回報時回 409 `MANUAL_REPORT_PENDING`。
+      - 取回回報待確認期間，上架中的書暫停販售（`status` 為 `removed`），駁回或回報失效時恢復上架。
+      - 先行存書的手動回報同樣受每位賣家上限（409 `PREDEPOSIT_LIMIT`）與保留櫃門（409 `CABINET_FULL`）限制。
+      - 身為訂單或書籍當事人的管理員只能以本人身分操作，其回報同樣待其他管理員確認。
+      - 具 `cabinets` 權限、且不是當事人的管理員不受上述限制，立即生效。
 
 paths:
   /api/cabinet-sessions:
@@ -112,7 +128,7 @@ paths:
       operationId: createCabinetSession
       tags: [cabinet-sessions]
       description: |
-        依序檢查：挑戰碼、書櫃停用或維修中、營業時間、裝置連線、進行中的作業、冷卻、定位距離，最後列出可辦理的項目。
+        依序檢查：挑戰碼、書櫃停用或維修中、營業時間、裝置連線、進行中的作業、冷卻、定位與距離，最後列出可辦理的項目。
         任一步驟被拒絕時挑戰碼都不會被用掉，其他人仍可掃描同一組碼。
 
         本人剛兌換過同一組碼（例如回應遺失後重送）且作業仍在進行中時，回 200 與同一個作業，不重複建立。
@@ -133,7 +149,11 @@ paths:
                   properties:
                     type: { type: string, enum: [order, book], example: order }
                     id: { type: integer, example: 128 }
-                location_status: { type: string, enum: [granted, denied, unavailable], example: granted }
+                location_status:
+                  type: string
+                  enum: [granted, denied, unavailable]
+                  description: '`denied`、`unavailable` 可通過格式檢查，但建立作業時一律拒絕。'
+                  example: granted
                 location:
                   type: object
                   nullable: true
@@ -174,11 +194,17 @@ paths:
                   value: { success: false, message: 定位資料格式不正確 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
-          description: 距離書櫃過遠。
+          description: 未允許定位、無法確認位置，或距離書櫃過遠。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: CABINET_TOO_FAR, message: 您目前的位置距離書櫃約 850 公尺，請於書櫃旁操作, distance_m: 850 }
+              examples:
+                未允許定位:
+                  value: { success: false, code: CABINET_LOCATION_REQUIRED, message: 使用書櫃須允許存取位置資訊，請於系統設定中開啟後再試 }
+                無法確認位置:
+                  value: { success: false, code: CABINET_LOCATION_UNAVAILABLE, message: 目前無法確認您的位置，請開啟定位服務後再試 }
+                距離過遠:
+                  value: { success: false, code: CABINET_TOO_FAR, message: 您目前的位置距離書櫃約 850 公尺，請於書櫃旁操作, distance_m: 850 }
         '404':
           description: 在此書櫃沒有可辦理的項目，`other_cabinets` 列出本人在其他書櫃的待辦項目（最多 3 筆）。
           content:
@@ -283,10 +309,11 @@ paths:
       tags: [cabinet-sessions]
       description: |
         只能在 `selecting` 狀態呼叫。取回的單位會自動擴充為整扇櫃門。所選單位的狀態已變更時回 409 `CABINET_ITEMS_CHANGED`，
-        並附最新的作業，作業維持 `selecting`、期限不重算。櫃門不足時回 409 `CABINET_FULL` 或 `PREDEPOSIT_LIMIT`，作業同樣維持 `selecting`。
+        並附最新的作業（例如取回的書在確認期間被買走、存書櫃門故障或待確認、先行存書額度已用完），作業維持 `selecting`、期限不重算，
+        App 應以附帶的作業回到確認步驟。櫃門不足，或一次勾選的先行存書超過賣家剩餘額度時回 409 `CABINET_FULL`，作業同樣維持 `selecting`。
 
-        成功時分配存書櫃門、暫停取回書籍的販售，並產生比對數字，狀態轉為 `matching`；回應中的 `match.code` 請使用者在書櫃螢幕點選，
-        並提醒不得告知他人。
+        成功時分配存書櫃門、暫停取回書籍的販售，並產生比對碼，狀態轉為 `matching`。比對碼只顯示於書櫃螢幕，
+        App 應顯示輸入畫面，請使用者輸入書櫃螢幕上的兩位數字（`POST …/match`）。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/CabinetSessionNo'
@@ -332,8 +359,6 @@ paths:
                   value: { success: false, code: CABINET_ITEMS_CHANGED, message: 部分項目狀態已變更，請重新確認, session: {} }
                 櫃門不足:
                   value: { success: false, code: CABINET_FULL, message: 此書櫃可用的櫃門不足，請減少存書項目或稍後再試, available_doors: 1, required_doors: 2 }
-                先行存書上限:
-                  value: { success: false, code: PREDEPOSIT_LIMIT, message: 您在此書櫃的先行存書已達上限，請待售出或取回後再存入 }
                 狀態不符:
                   value: { success: false, code: CABINET_SESSION_STATE, message: 目前無法執行此操作, session: {} }
         '429': { $ref: '#/components/responses/TooManyRequests' }
@@ -346,7 +371,7 @@ paths:
       tags: [cabinet-sessions]
       description: |
         只能在 `selecting`、`matching` 取消，結果為 `cancelled`／`CANCELLED_BY_USER`；已結束的作業直接回傳現況。
-        櫃門開啟後不能從 App 取消，請於書櫃螢幕按「取消並關門」。
+        櫃門開啟後改以 `POST …/close`（`outcome: cancelled`）結束。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/CabinetSessionNo'
@@ -367,7 +392,107 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: CABINET_SESSION_STATE, message: 櫃門已開啟，請於書櫃螢幕操作, session: {} }
+              example: { success: false, code: CABINET_SESSION_STATE, message: 櫃門已開啟，無法執行此操作, session: {} }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/cabinet-sessions/{sessionNo}/match:
+    post:
+      summary: 輸入比對碼
+      operationId: matchCabinetSession
+      tags: [cabinet-sessions]
+      description: |
+        輸入書櫃螢幕上顯示的兩位數字。只能在 `matching` 呼叫（先處理已逾時的階段），每個作業只有一次機會：
+        - 正確：狀態轉為 `opening`，書櫃隨即開鎖。
+        - 錯誤：作業結束為 `failed`／`MATCH_FAILED`，須重新掃碼。
+        - `code` 不是兩個半形數字（10 至 99）時回 400 `MATCH_CODE_INVALID`，不消耗比對機會。
+        - 時限已過時作業改為 `expired`／`MATCH_TIMEOUT`，回 409 `CABINET_SESSION_STATE` 並附作業。
+        同時送出多次時只有一次生效，其餘回 409 `CABINET_SESSION_STATE`。伺服器不記錄輸入的數字。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetSessionNo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string, pattern: '^[1-9][0-9]$', description: 兩個半形數字。, example: '37' }
+      responses:
+        '200':
+          description: 已比對。正確時 `status` 為 `opening`；錯誤時 `status` 為 `failed`、`result.code` 為 `MATCH_FAILED`。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/CabinetSession' }
+        '400':
+          description: 比對碼格式不符。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: MATCH_CODE_INVALID, message: 請輸入兩位數字 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/CabinetSessionNotFound' }
+        '409':
+          description: 作業不在比對階段（含已逾時或已比對）。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: CABINET_SESSION_STATE, message: 目前無法執行此操作, session: {} }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/cabinet-sessions/{sessionNo}/close:
+    post:
+      summary: 開門後完成或取消
+      operationId: closeCabinetSession
+      tags: [cabinet-sessions]
+      description: |
+        櫃門開啟後（`open`），請書櫃結束作業：`completed` 依各項目提交，`cancelled` 不變更任何狀態（`CANCELLED_AFTER_OPEN`）。
+        伺服器記下請求後由書櫃於下次輪詢執行，回應中的作業仍為 `open`，結果以推播或輪詢取得。
+        書櫃有門磁且櫃門仍開著時會拒絕，作業的 `notice` 改為 `CLOSE_DOOR_FIRST`；櫃門全部關上後，書櫃依最後一次被拒絕的要求
+        結束作業（取消時為 `cancelled`／`CANCELLED_AFTER_OPEN`，完成時以門磁完成），使用者不需再按一次。
+        作業已結束時直接回傳現況；其他狀態回 409 `CABINET_SESSION_STATE`。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetSessionNo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [outcome]
+              properties:
+                outcome: { type: string, enum: [completed, cancelled], example: completed }
+      responses:
+        '200':
+          description: 已送出請求，或作業已結束。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/CabinetSession' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/CabinetSessionNotFound' }
+        '409':
+          description: 櫃門尚未開啟，或書櫃已回報關門而正在提交（訊息為「本次作業處理中，請稍候」）。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                櫃門尚未開啟:
+                  value: { success: false, code: CABINET_SESSION_STATE, message: 目前無法執行此操作, session: {} }
+                正在提交:
+                  value: { success: false, code: CABINET_SESSION_STATE, message: 本次作業處理中，請稍候, session: {} }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -457,12 +582,6 @@ components:
           type: array
           description: 依取書、依訂單存書、先行存書、取回排序。
           items: { $ref: '#/components/schemas/CabinetSessionItem' }
-        match:
-          type: object
-          nullable: true
-          description: 只在 `matching` 時有值，為請使用者在書櫃螢幕點選的兩位數。
-          properties:
-            code: { type: integer, example: 37 }
         doors:
           type: array
           description: 開始後的櫃門與狀態。
@@ -473,6 +592,12 @@ components:
               state: { type: string, enum: [pending, open, closed, failed], example: open }
         remaining_ms: { type: integer, nullable: true, description: 目前階段的剩餘時間；開門後為倒數剩餘時間；已結束為 null。, example: 24300 }
         open_ms: { type: integer, nullable: true, description: 開門倒數的總長度。, example: 30000 }
+        notice:
+          type: string
+          nullable: true
+          enum: [CLOSE_DOOR_FIRST, null]
+          description: '`CLOSE_DOOR_FIRST`：書櫃因櫃門仍開著而拒絕完成或取消，請使用者關上櫃門；櫃門全部關上後，書櫃依被拒絕的要求結束作業。書櫃回報關門後即為 null。'
+          example: null
         result:
           type: object
           nullable: true
@@ -481,7 +606,7 @@ components:
             outcome: { type: string, example: completed }
             code:
               type: string
-              enum: [COMPLETED, PARTIAL, ITEMS_FAILED, MATCH_FAILED, MATCH_TIMEOUT, SELECT_TIMEOUT, DEVICE_NO_RESPONSE, CANCELLED_BY_USER, CANCELLED_AT_CABINET, DEVICE_NO_ACK, DEVICE_LOST, DEVICE_INTERRUPTED, ADMIN_RESOLVED_COMMIT, ADMIN_RESOLVED_DISCARD, ADMIN_CANCELLED]
+              enum: [COMPLETED, PARTIAL, ITEMS_FAILED, MATCH_FAILED, MATCH_TIMEOUT, SELECT_TIMEOUT, DEVICE_NO_RESPONSE, CANCELLED_BY_USER, CANCELLED_AFTER_OPEN, DEVICE_NO_ACK, DEVICE_LOST, DEVICE_INTERRUPTED, ADMIN_RESOLVED_COMMIT, ADMIN_RESOLVED_DISCARD, ADMIN_CANCELLED]
               example: COMPLETED
             message: { type: string, example: 作業完成 }
         created_at: { type: string, format: date-time }
@@ -490,8 +615,8 @@ components:
     CabinetManualReport:
       type: object
       description: |
-        待客服確認的手動回報（故障備援）。書櫃裝置離線或故障時，一般使用者的存書、取書、取回回報先成為待確認，
-        管理員確認後才變更訂單或存書狀態並通知對方；駁回時狀態不變，並通知回報者。
+        待客服確認的手動回報（故障備援）。書櫃沒有有效裝置，或裝置離線、故障持續 2 分鐘以上時，一般使用者的存書、取書、取回回報先成為待確認，
+        管理員確認後才變更訂單或存書狀態並通知對方；駁回時狀態不變，並通知回報者。App 應顯示為「待客服確認」，不得視為已完成。
       properties:
         report_no: { type: string, description: 手動回報編號（`MR` 開頭）。, example: MR4K2Q8ZT }
         kind: { type: string, enum: [deposit, pickup, retrieve], example: pickup }

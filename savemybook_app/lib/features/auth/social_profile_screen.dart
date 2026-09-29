@@ -19,7 +19,6 @@ class SocialProfile {
   const SocialProfile({required this.email, required this.nickname});
 }
 
-/// 伺服器回 EMAIL_REQUIRED 時補齊建立帳號所需的資料。
 class SocialProfileScreen extends StatefulWidget {
   final String provider;
 
@@ -101,32 +100,6 @@ class _SocialProfileScreenState extends State<SocialProfileScreen> {
                       maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
                   children: [
                     FadeSlideIn(
-                      child: AppCard(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: c.accent.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(Icons.badge_outlined, color: c.accent),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Text(
-                                S.p0DidNotProvideEmailAddress,
-                                style: TextStyle(fontSize: 12, height: 1.5, color: c.textSecondary),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    FadeSlideIn(
-                      index: 1,
                       child: _field(
                         c,
                         icon: Icons.alternate_email_rounded,

@@ -196,7 +196,8 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
                 ),
               ),
-              StatusBadge(label: ticket.statusText, color: c.ticketStatusColor(ticket.status)),
+              if (_loadedTab >= 0 && _tabs[_loadedTab].key == 'all')
+                StatusBadge(label: ticket.statusText, color: c.ticketStatusColor(ticket.status)),
             ],
           ),
           const SizedBox(height: 10),

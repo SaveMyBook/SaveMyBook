@@ -52,7 +52,7 @@ const tests = [
       [{ name: '群', member_ids: [owner.user_id] }, '成員名單不可包含自己'],
       [{ name: '群', member_ids: [inactive.user_id] }, '成員名單包含無法加入群組的帳號'],
       [{ name: '群', member_ids: [999999] }, '成員名單包含無法加入群組的帳號'],
-      [{ name: '群', member_ids: [other.user_id], avatar_url: 'https://example.com/a.png' }, '群組頭貼請先透過 /api/uploads/chat-image 上傳']
+      [{ name: '群', member_ids: [other.user_id], avatar_url: 'https://example.com/a.png' }, '群組頭貼無效，請重新上傳']
     ];
 
     for (const [body, message] of cases) {
@@ -113,7 +113,6 @@ const tests = [
     assert.strictEqual(avatar.data.avatar_url, IMAGE);
     assert.strictEqual(notices(roomId).at(-1), '團主 變更了群組頭貼');
 
-    // 名稱沒變時不會重複貼系統訊息。
     ok(await request('PATCH', `/api/chat/groups/${roomId}`, { token: owner.token, body: { name: '新名字' } }));
     assert.strictEqual(notices(roomId).length, 3);
 
@@ -190,7 +189,7 @@ const tests = [
 
     const denied = await request('GET', `/api/chat/rooms/${roomId}/messages`, { token: member.token });
     assert.strictEqual(denied.status, 403);
-    assert.strictEqual(denied.body.message, '存取被拒');
+    assert.strictEqual(denied.body.message, '無權限執行此操作');
 
     const list = ok(await request('GET', '/api/chat/rooms', { token: member.token }));
     assert.strictEqual(list.data.length, 0);
@@ -211,7 +210,6 @@ const tests = [
     ok(await request('DELETE', `/api/chat/groups/${roomId}/members/${removedMember.user_id}`, { token: owner.token }));
     ok(await request('POST', `/api/chat/groups/${roomId}/leave`, { token: leaver.token }));
 
-    // 重新加入同一群組時不該沿用舊的靜音，否則使用者會在不知情的狀況下收不到通知。
     assert.strictEqual(prisma.rows('chat_room_mutes').length, 0);
     assert.strictEqual(prisma.rows('chat_room_pins').length, 0);
 
@@ -322,7 +320,7 @@ const tests = [
     ]) {
       const res = await request(method, url, { token: outsider.token, ...(body ? { body } : {}) });
       assert.strictEqual(res.status, 403, `${url} 應回 403，實際 ${res.status}`);
-      assert.strictEqual(res.body.message, '存取被拒');
+      assert.strictEqual(res.body.message, '無權限執行此操作');
     }
   }],
 
@@ -342,11 +340,9 @@ const tests = [
     assert.deepStrictEqual(bodies, ['團主 邀請 晚到的 加入群組', '歡迎晚到的']);
     assert.strictEqual(memberRow(roomId, late.user_id).history_from_id, mine.data[0].message_id);
 
-    // 舊成員仍看得到完整紀錄。
     const owners = ok(await request('GET', `/api/chat/rooms/${roomId}/messages`, { token: owner.token }));
     assert.ok(owners.data.some((m) => m.message_id === early.message_id));
 
-    // 看不到的訊息也不能被收回或回覆。
     const recall = await request('POST', `/api/chat/rooms/${roomId}/messages/${early.message_id}/recall`, { token: late.token });
     assert.strictEqual(recall.status, 404);
     assert.strictEqual(recall.body.message, '找不到此訊息');
@@ -368,7 +364,6 @@ const tests = [
     await say(owner, roomId, '新訊息');
 
     const list = ok(await request('GET', '/api/chat/rooms', { token: late.token }));
-    // 邀請的系統訊息 + 之後的一則。
     assert.strictEqual(list.data[0].unread_count, 2);
     const total = ok(await request('GET', '/api/chat/unread-count', { token: late.token }));
     assert.strictEqual(total.data.unread_count, 2);

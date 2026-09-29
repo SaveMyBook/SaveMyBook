@@ -152,7 +152,7 @@ class NumberPad extends StatelessWidget {
                 HapticFeedback.selectionClick();
                 onDelete();
               },
-              semantic: 'delete',
+              semantic: S.actionDelete,
               onLongPress: onClear == null
                   ? null
                   : () {
@@ -168,8 +168,9 @@ class NumberPad extends StatelessWidget {
 }
 
 class PinEntryPanel extends StatefulWidget {
-  final String title;
+  final String? title;
   final String? subtitle;
+  final bool subtitleHidden;
   final Widget? header;
   final Future<String?> Function(String pin) onCompleted;
   final List<Widget> footer;
@@ -178,8 +179,9 @@ class PinEntryPanel extends StatefulWidget {
 
   const PinEntryPanel({
     super.key,
-    required this.title,
+    this.title,
     this.subtitle,
+    this.subtitleHidden = false,
     this.header,
     required this.onCompleted,
     this.footer = const [],
@@ -254,10 +256,17 @@ class PinEntryPanelState extends State<PinEntryPanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         ?widget.header,
-        Text(widget.title, textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary)),
+        if (widget.title != null)
+          Text(widget.title!, textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary)),
         if (widget.subtitle != null) ...[
-          const SizedBox(height: 6),
-          Text(widget.subtitle!, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: c.textSecondary)),
+          if (widget.title != null) const SizedBox(height: 6),
+          Visibility(
+            visible: !widget.subtitleHidden,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: Text(widget.subtitle!, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: c.textSecondary)),
+          ),
         ],
         const SizedBox(height: 24),
         ShakeOnError(trigger: _shake, child: PinDots(filled: _pin.length, error: _error != null)),

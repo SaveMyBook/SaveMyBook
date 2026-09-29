@@ -116,7 +116,6 @@ extension BooksApi on ApiService {
     return res != null && res['success'] == true;
   }
 
-  /// 下架書籍；失敗時回傳伺服器說明（例如預約保留中或已完成交易），讓畫面顯示實際原因。
   Future<String?> removeBook(int bookId) async {
     final res = await _send('DELETE', '/books/$bookId');
     if (res == null) return S.pleaseSignFirst;
@@ -127,21 +126,6 @@ extension BooksApi on ApiService {
     final res = await _send('PUT', '/books/$bookId', body: {'status': 'on_sale'});
     if (res == null) return S.pleaseSignFirst;
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotRelist);
-  }
-
-  Future<String?> depositBook(int bookId) async {
-    final res = await _send('POST', '/books/$bookId/deposit');
-    if (res == null) return S.pleaseSignFirst;
-    return res['success'] == true ? null : (res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain);
-  }
-
-  Future<({String? error, bool restored})> retrieveBook(int bookId) async {
-    final res = await _send('POST', '/books/$bookId/retrieve');
-    if (res == null) return (error: S.pleaseSignFirst, restored: false);
-    if (res['success'] != true) {
-      return (error: res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain, restored: false);
-    }
-    return (error: null, restored: res['data'] is Map && res['data']['restored'] == true);
   }
 
   Future<(String? url, String? error)> fetchBookShareLink(int bookId) async {

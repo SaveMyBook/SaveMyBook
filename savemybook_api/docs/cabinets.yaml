@@ -14,7 +14,7 @@ paths:
       operationId: listCabinets
       tags: [cabinets]
       description: |
-        僅回傳 `is_active` 為 true 的書櫃，供上架時選擇取貨點與地圖標示使用。
+        僅回傳啟用中（`is_active` 為 true）且未維修的書櫃，供上架時選擇取貨點與地圖標示使用。
 
         帶入 `lat` 與 `lng` 時，每筆資料的 `distance_m` 為與該座標的直線距離（公尺），
         並依距離由近至遠排序；未帶入時 `distance_m` 為 null，依編號排序。
@@ -77,4 +77,4 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 系統發生錯誤，請稍後再試，無法取得書櫃列表 }
+              example: { success: false, message: 系統發生錯誤，請稍後再試 }

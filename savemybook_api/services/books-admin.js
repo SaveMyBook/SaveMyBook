@@ -6,6 +6,7 @@ const { BOOK_STATUS_LABELS, CONDITION_LABELS } = require('../constants/domain');
 const { notify } = require('./notify');
 const audit = require('./audit');
 const reviews = require('./ai/reviews');
+const enrichment = require('./ai/enrich');
 const deposits = require('./book-deposits');
 
 const ADMIN_FIELDS = {
@@ -101,6 +102,8 @@ const assertCategoryExists = async (categoryId) => {
 };
 
 const adminEdit = async (bookId, book, data, { adminId, req }) => {
+  const enrichPlan = enrichment.editPlan(book, data);
+  await enrichment.clearAutoFields(bookId, data, enrichPlan);
   const changes = [];
   if (data.title !== undefined && data.title !== book.title) changes.push(`書名改為《${data.title}》`);
   if (data.price !== undefined && data.price !== Number(book.price)) changes.push(`售價改為 ${data.price.toFixed(0)} 代幣`);
@@ -117,6 +120,7 @@ const adminEdit = async (bookId, book, data, { adminId, req }) => {
       relatedType: 'book'
     });
   });
+  enrichment.afterEdit(bookId, enrichPlan);
 
   const logged = audit.diff(book, data, ADMIN_FIELDS);
   await audit.record(null, {
@@ -204,6 +208,7 @@ const adminRemove = async (bookId, reason, { adminId, req }) => {
       await tx.shopping_cart.deleteMany({ where: { book_id: bookId } });
       await tx.favorites.deleteMany({ where: { book_id: bookId } });
       await tx.recommendation_logs.deleteMany({ where: { book_id: bookId } });
+      await tx.recommendation_dismissals.deleteMany({ where: { book_id: bookId } });
       await tx.chat_rooms.updateMany({ where: { book_id: bookId }, data: { book_id: null } });
       await tx.books.delete({ where: { book_id: bookId } });
 

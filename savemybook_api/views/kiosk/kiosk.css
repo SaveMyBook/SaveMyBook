@@ -8,8 +8,6 @@
   --faint: #8a969f;
   --border: #dde3e8;
   --accent: #627d8d;
-  --accent-strong: #4f6877;
-  --accent-text: #ffffff;
   --ok: #2e9e6f;
   --warn: #c98a12;
   --danger: #c0473c;
@@ -31,8 +29,6 @@
     --faint: #7a858c;
     --border: #2d353b;
     --accent: #7f9cad;
-    --accent-strong: #97b3c3;
-    --accent-text: #0f1418;
     --ok: #45c08b;
     --warn: #e0a83a;
     --danger: #e0685c;
@@ -94,8 +90,6 @@ body {
   font-size: 15px;
 }
 
-/* ---------- 書櫃螢幕 ---------- */
-
 .device {
   flex: none;
   display: flex;
@@ -118,21 +112,14 @@ body {
   aspect-ratio: 3 / 4;
   border-radius: 6px;
   background: #0e1318;
-  touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
 }
-
-.screen:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
 
 .device-caption {
   color: var(--faint);
   font-size: 12px;
 }
-
-/* ---------- 控制台 ---------- */
 
 .panel {
   flex: 1 1 360px;
@@ -167,6 +154,8 @@ body {
   letter-spacing: 0.04em;
 }
 
+.card-text { margin: 0; color: var(--muted); font-size: 13px; }
+
 .info {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -188,8 +177,6 @@ body {
 }
 
 .status-dot.is-online { background: var(--ok); }
-
-/* 櫃門圖塊 */
 
 .doors {
   display: grid;
@@ -278,8 +265,6 @@ body {
 
 .door-actions .btn { flex: 1; padding: 4px 0; font-size: 12px; min-height: 28px; }
 
-/* 表單元件 */
-
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -309,19 +294,11 @@ body {
 
 .btn:hover:not(:disabled) { border-color: var(--accent); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn:focus-visible, .select:focus-visible, .input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-.btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-text);
-}
-
-.btn-primary:hover:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); }
+.btn:focus-visible, .select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .btn-danger { color: var(--danger); }
 
-.select, .input {
+.select {
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
@@ -330,8 +307,6 @@ body {
   min-height: 34px;
   font: inherit;
 }
-
-.input { flex: 1 1 140px; min-width: 0; font-family: var(--mono); letter-spacing: 0.08em; }
 
 .switch {
   position: relative;
@@ -380,8 +355,6 @@ body {
 .feedback { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
 .feedback:empty { display: none; }
 .feedback.is-error { color: var(--danger); }
-
-/* 事件紀錄 */
 
 .log {
   list-style: none;

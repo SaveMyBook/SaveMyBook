@@ -11,14 +11,13 @@ const addDeposit = (ctx, book, channel = null) => {
   if (channel) h.addPlaced(book.book_id, h.doorOf(ctx.cabinet.cabinet_id, channel).slot_id);
 };
 
-// 開到櫃門開啟、尚未關門的狀態。
 const openSession = async (ctx, token, keys) => {
   const created = await h.createSession(ctx, token);
   assert.strictEqual(created.status, 201, created.text);
   const no = created.body.data.session_no;
   const started = await h.startSession(token, no, keys ?? created.body.data.items.filter((i) => i.selected).map((i) => i.key));
   assert.strictEqual(started.status, 200, started.text);
-  await h.selectNumber(ctx, no);
+  await h.enterCode(no);
   const { commands } = await h.openDoors(ctx, no);
   return { no, channels: commands.map((c) => c.channel) };
 };
@@ -40,7 +39,7 @@ const resolve = (token, no, action = 'commit') => h.request('POST', `/api/admin/
 module.exports = {
   name: '書櫃作業：並行、異常與職責分離的防護',
   tests: [
-    ['作業開門期間雙方都不能提出申訴；取書提交失敗而櫃門曾開啟時，櫃門設為待確認並通知管理員', async () => {
+    ['作業開門期間雙方都不能申請爭議；取書提交失敗而櫃門曾開啟時，櫃門設為待確認並通知管理員', async () => {
       const ctx = h.scene();
       const book = h.listedBook(ctx);
       const order = h.orderFor(ctx, book.book_id, { status: 'deposited' });
@@ -57,7 +56,7 @@ module.exports = {
       assert.strictEqual(h.orderOf(order.order_id).status, 'deposited');
       assert.strictEqual(prisma.rows('transaction_disputes').length, 0);
 
-      // 申訴在檢查之後、開門之前的空檔成立：取書無法提交，書可能已被取走而紀錄仍在門內。
+      // 爭議在檢查之後、開門之前的空檔成立：取書無法提交，書可能已被取走而紀錄仍在門內。
       h.orderOf(order.order_id).status = 'refunding';
       await h.closeSession(ctx, no, { channels });
       const final = (await h.getSession(ctx.buyerToken, no)).body.data;
@@ -190,17 +189,20 @@ module.exports = {
       const ctx = h.scene();
       const books = [h.listedBook(ctx), h.listedBook(ctx)];
       const keys = books.map((b) => `book:${b.book_id}`);
+      const sold = h.listedBook(ctx);
+      const order = h.orderFor(ctx, sold.book_id);
       const created = await h.createSession(ctx, ctx.sellerToken);
       assert.strictEqual(created.status, 201, created.text);
-      assert.ok(created.body.data.items.every((i) => i.kind === 'pre_deposit' && i.blocked === null));
+      assert.ok(created.body.data.items.filter((i) => i.kind === 'pre_deposit').every((i) => i.blocked === null));
       const no = created.body.data.session_no;
 
-      const tooMany = await h.startSession(ctx.sellerToken, no, keys);
+      const tooMany = await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`, ...keys]);
       assert.strictEqual(tooMany.status, 409, tooMany.text);
       assert.strictEqual(tooMany.body.code, 'CABINET_FULL');
       assert.strictEqual(tooMany.body.message, '此書櫃可用的櫃門不足，請減少存書項目或稍後再試');
-      assert.strictEqual(tooMany.body.available_doors, 1);
-      assert.strictEqual(tooMany.body.required_doors, 2);
+      assert.strictEqual(tooMany.body.available_doors, 2);
+      assert.strictEqual(tooMany.body.required_doors, 3);
+      assert.strictEqual(h.adminNotices(ctx, '書櫃項目無法辦理').length, 0, '先行存書的容量政策不通知管理員');
       assert.strictEqual(h.sessionOf(no).status, 'selecting');
       assert.ok(h.doorsOf(no).length === 0 && prisma.rows('cabinet_slots').every((s) => s.status === 'empty'));
 
@@ -234,18 +236,18 @@ module.exports = {
       const wrong = code === 99 ? 98 : code + 1;
 
       h.sessionOf(no).matched_at = new Date();
-      const claimed = await h.selectNumber(ctx, no, code);
-      assert.strictEqual(claimed.body.data.results[0].status, 'rejected');
-      assert.strictEqual(claimed.body.data.results[0].code, 'STALE');
+      const claimed = await h.enterCode(no, code);
+      assert.strictEqual(claimed.status, 409, claimed.text);
+      assert.strictEqual(claimed.body.code, 'CABINET_SESSION_STATE');
       assert.strictEqual(h.sessionOf(no).status, 'matching');
       h.sessionOf(no).matched_at = null;
 
-      const responses = await Promise.all([h.selectNumber(ctx, no, wrong), h.selectNumber(ctx, no, code)]);
-      const results = responses.map((r) => r.body.data.results[0]);
-      assert.strictEqual(results.filter((r) => r.status === 'ok').length, 1, JSON.stringify(results));
-      assert.strictEqual(results.filter((r) => r.status === 'rejected' && r.code === 'STALE').length, 1);
+      const responses = await Promise.all([h.enterCode(no, wrong), h.enterCode(no, code)]);
+      assert.strictEqual(responses.filter((r) => r.status === 200).length, 1, responses.map((r) => r.text).join('\n'));
+      assert.strictEqual(responses.filter((r) => r.status === 409 && r.body.code === 'CABINET_SESSION_STATE').length, 1);
+      assert.strictEqual(h.eventsOf('match_entered').length, 1);
       const row = h.sessionOf(no);
-      if (results[0].status === 'ok') {
+      if (responses[0].status === 200) {
         assert.strictEqual(row.status, 'failed');
         assert.strictEqual(row.result_code, 'MATCH_FAILED');
         assert.strictEqual(row.matched_at, null);
@@ -274,13 +276,13 @@ module.exports = {
         const res = await adminOpen(ctx, slot, { force: true });
         assert.strictEqual(res.status, 409, res.text);
         assert.strictEqual(res.body.code, 'DOOR_NOT_EMPTY');
-        assert.strictEqual(res.body.message, '櫃門內有存放紀錄或待確認，須由現場人員完成數字確認後開啟');
+        assert.strictEqual(res.body.message, '櫃門內有存放紀錄或待確認，須完成數字確認後開啟');
       }
       assert.strictEqual(prisma.rows('cabinet_sessions').filter((s) => s.kind === 'admin').length, 0);
       assert.strictEqual(h.deviceRow(ctx.device.device_id).active_session_id, null);
 
       const matched = await adminOpen(ctx, checked);
-      assert.strictEqual(matched.status, 201, '經現場數字確認時仍可開啟');
+      assert.strictEqual(matched.status, 201, '經數字確認時仍可開啟');
     }],
 
     ['遠端開櫃的櫃門在作業期間為保留；轉為待確認後仍保留，不分配給其他存書', async () => {

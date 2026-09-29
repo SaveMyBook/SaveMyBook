@@ -33,10 +33,13 @@ const TERMINAL = ['completed', 'partial', 'cancelled', 'failed', 'expired'];
 const CLOSABLE = ['opening', 'open', 'needs_review'];
 const STATUSES = [...ACTIVE, 'needs_review', ...TERMINAL];
 const COOLDOWN_CODES = ['SELECT_TIMEOUT', 'MATCH_TIMEOUT', 'MATCH_FAILED', 'CANCELLED_BY_USER'];
+const ADMIN_COOLDOWN_CODES = ['MATCH_TIMEOUT', 'MATCH_FAILED'];
 const DEPOSIT_KINDS = candidates.DEPOSIT_KINDS;
 const ORDER_KINDS = ['pickup', 'order_deposit'];
-const CLOSE_REASONS = ['button', 'timeout', 'sensor', 'cancel_button', 'reboot'];
-const DOOR_CLOSE_REASONS = ['button', 'timeout', 'sensor'];
+const CLOSE_REASONS = ['user_done', 'timeout', 'sensor', 'user_cancel', 'reboot'];
+const DOOR_CLOSE_REASONS = ['user_done', 'timeout', 'sensor'];
+const CLOSE_OUTCOMES = ['completed', 'cancelled'];
+const MATCH_CODE_RE = /^[0-9]{2}$/;
 
 const RESULT_MESSAGES = {
   COMPLETED: '作業完成',
@@ -47,7 +50,7 @@ const RESULT_MESSAGES = {
   SELECT_TIMEOUT: '未於時限內確認項目，本次作業已取消',
   DEVICE_NO_RESPONSE: '書櫃未回應，櫃門未開啟，請稍後再試',
   CANCELLED_BY_USER: '本次作業已取消',
-  CANCELLED_AT_CABINET: '已於書櫃取消，狀態未變更',
+  CANCELLED_AFTER_OPEN: '本次作業已取消，狀態未變更',
   DEVICE_NO_ACK: '未收到書櫃的開門回報，本次作業待客服確認',
   DEVICE_LOST: '書櫃連線異常，本次作業待客服確認',
   DEVICE_INTERRUPTED: '書櫃重新啟動，本次作業待客服確認',
@@ -76,7 +79,11 @@ const noSelection = () => badRequest('請至少選擇一個項目', 'CABINET_NO_
 const codeExpired = () => new HttpError(410, '書櫃 QR Code 已更新，請重新掃描書櫃螢幕上的 QR Code', 'CABINET_CODE_EXPIRED');
 const restartSelection = () => Object.assign(new Error('所選項目已變更'), { code: 'CABINET_SELECTION_STALE' });
 const sessionSelfReview = () => new HttpError(403, '此書櫃作業與您本人相關，須由其他管理員處理', 'SESSION_SELF_REVIEW');
-const doorNotEmpty = () => new HttpError(409, '櫃門內有存放紀錄或待確認，須由現場人員完成數字確認後開啟', 'DOOR_NOT_EMPTY');
+const doorNotEmpty = () => new HttpError(409, '櫃門內有存放紀錄或待確認，須完成數字確認後開啟', 'DOOR_NOT_EMPTY');
+const matchCodeInvalid = () => badRequest('請輸入兩位數字', 'MATCH_CODE_INVALID');
+const closeOutcomeInvalid = () => badRequest('作業結果不正確');
+const locationRequired = () => new HttpError(403, '使用書櫃須允許存取位置資訊，請於系統設定中開啟後再試', 'CABINET_LOCATION_REQUIRED');
+const locationUnavailable = () => new HttpError(403, '目前無法確認您的位置，請開啟定位服務後再試', 'CABINET_LOCATION_UNAVAILABLE');
 
 // ---------- 讀取與格式 ----------
 
@@ -252,11 +259,14 @@ const resultOf = (session) => ((TERMINAL.includes(session.status) || session.sta
   ? { outcome: session.status, code: session.result_code, message: RESULT_MESSAGES[session.result_code] ?? '' }
   : null);
 
+const noticeOf = (session) => (session.status === 'open' && !session.closed_at && !session.close_request && session.close_refused_at
+  ? 'CLOSE_DOOR_FIRST'
+  : null);
+
 const shapeSession = async (session, { now = new Date(), admin = false } = {}) => {
   const doorList = sessionDoors(session);
   const labels = new Map(doorList.map((d) => [d.slot_id, d.label]));
   const units = await presentUnits(await sessionUnits(session), { admin, labels });
-  const showMatch = session.status === 'matching' && (!admin || session.kind === 'admin');
   return {
     session_no: sessionNo(session.session_id),
     status: session.status,
@@ -265,10 +275,10 @@ const shapeSession = async (session, { now = new Date(), admin = false } = {}) =
     location_status: session.location_status ?? null,
     distance_m: session.distance_m ?? null,
     items: units,
-    match: showMatch ? { code: Number(session.match_code) } : null,
     doors: doorList.map((d) => ({ label: d.label, state: d.state })),
     remaining_ms: remainingOf(session, now),
     open_ms: session.open_ms ?? null,
+    notice: noticeOf(session),
     result: resultOf(session),
     created_at: session.created_at,
     finished_at: session.finished_at ?? null
@@ -412,13 +422,20 @@ const deviceResultCode = (session) => {
 
 const message = (code, params = {}) => ({ code, params });
 
-const deviceSession = (session, { phase, remaining, choices = null, result = null }) => ({
+const closeCommandId = (session) => `${sessionNo(session.session_id)}:close:${new Date(session.close_requested_at).getTime()}`;
+
+// 裝置以 id 去重，因此每次輪詢都列出，直到裝置關閉作業或回報拒絕。
+const closeCommands = (session) => (session.close_request && session.close_requested_at && !session.closed_at
+  ? [{ type: 'close', id: closeCommandId(session), outcome: session.close_request }]
+  : []);
+
+const deviceSession = (session, { phase, remaining, code = null, result = null }) => ({
   id: sessionNo(session.session_id),
   phase,
   action: actionOf(session),
   remaining_ms: remaining,
   open_ms: session.open_ms ?? null,
-  choices,
+  code,
   doors: sessionDoors(session).map((d) => ({ channel: d.channel, label: d.label, state: d.state })),
   result
 });
@@ -433,8 +450,8 @@ const activeView = async (device, session, now) => {
     return { screen: 'select', message: message('SELECT_ON_PHONE'), poll_ms: poll, session: deviceSession(session, { phase: 'select', remaining }), commands: [] };
   }
   if (session.status === 'matching') {
-    const choices = String(session.match_choices ?? '').split(',').filter(Boolean).map(Number);
-    return { screen: 'match', message: message('MATCH_PROMPT'), poll_ms: poll, session: deviceSession(session, { phase: 'match', remaining, choices }), commands: [] };
+    const code = Number(session.match_code);
+    return { screen: 'match', message: message('MATCH_PROMPT'), poll_ms: poll, session: deviceSession(session, { phase: 'match', remaining, code }), commands: [] };
   }
   if (session.status === 'opening') {
     const list = sessionDoors(session);
@@ -461,7 +478,7 @@ const activeView = async (device, session, now) => {
     message: message(OPEN_CODES[actionOf(session)], { doors: labelText }),
     poll_ms: poll,
     session: deviceSession(session, { phase: 'open', remaining }),
-    commands: []
+    commands: closeCommands(session)
   };
 };
 
@@ -495,43 +512,6 @@ const ok = () => ({ status: 'ok' });
 const rejected = (code) => ({ status: 'rejected', code });
 
 const doorForChannel = (session, channel) => sessionDoors(session).find((d) => d.channel === channel) ?? null;
-
-const onMatch = async (device, session, event, now) => {
-  if (session.status !== 'matching') return rejected('STALE');
-  if (await applyDeadline(session, now)) return rejected('STALE');
-  // 比對只有一次機會：並行送出多個數字時，先以同一個條件更新認領，再依數值決定結果；
-  // 若正確與錯誤各走不同的寫入路徑，步驟較少的正確路徑通常先搶到列鎖，猜中率會高於九分之一。
-  const claimed = await prisma.cabinet_sessions.updateMany({
-    where: { session_id: Number(session.session_id), status: 'matching', version: Number(session.version), matched_at: null },
-    data: { matched_at: now, version: { increment: 1 } }
-  });
-  if (claimed.count === 0) return rejected('STALE');
-  const current = { ...session, version: Number(session.version) + 1, matched_at: now };
-  if (Number(event.data?.value) === Number(session.match_code)) {
-    const count = Math.max(1, sessionDoors(session).length);
-    const deadline = new Date(now.getTime() + devices.openingAckMs(count, Number(device.unlock_pulse_ms)));
-    const moved = await move(prisma, current, 'matching', { status: 'opening', phase_deadline: deadline });
-    if (moved.count === 0) return rejected('STALE');
-  } else {
-    const done = await prisma.$transaction((tx) => finalize(tx, current, {
-      from: 'matching', status: 'failed', resultCode: 'MATCH_FAILED', now, data: { matched_at: null }
-    }));
-    if (!done) return rejected('STALE');
-  }
-  await publish(session.session_id);
-  return ok();
-};
-
-const onCabinetCancel = async (session, now) => {
-  if (TERMINAL.includes(session.status)) return ok();
-  if (!['selecting', 'matching'].includes(session.status)) return rejected('STALE');
-  const done = await prisma.$transaction((tx) => finalize(tx, session, {
-    from: session.status, status: 'cancelled', resultCode: 'CANCELLED_AT_CABINET', now
-  }));
-  if (!done) return rejected('STALE');
-  await publish(session.session_id);
-  return ok();
-};
 
 const lateOpen = async (session, door, at, now) => {
   const no = sessionNo(session.session_id);
@@ -621,6 +601,20 @@ const onSessionClosed = async (session, event, now) => {
   return commit.commitSession(session.session_id, { outcome, reason, source: 'device', now });
 };
 
+const onCloseRefused = async (session, event, now) => {
+  if (session.status !== 'open' || !session.close_request || session.closed_at) return ok();
+  if (event.data?.command_id !== closeCommandId(session)) return ok();
+  const cleared = await prisma.cabinet_sessions.updateMany({
+    where: {
+      session_id: Number(session.session_id), status: 'open', closed_at: null,
+      close_request: session.close_request, close_requested_at: session.close_requested_at
+    },
+    data: { close_request: null, close_refused_at: now, version: { increment: 1 } }
+  });
+  if (cleared.count > 0) await publish(session.session_id);
+  return ok();
+};
+
 const onDoorFault = async (session, event, now) => {
   const door = doorForChannel(session, event.channel);
   if (!door || TERMINAL.includes(session.status)) return ok();
@@ -644,11 +638,10 @@ const handleEvent = async (device, event, now = new Date()) => {
   const session = await loadSession(event.session_id);
   if (!session || Number(session.device_id) !== Number(device.device_id)) return rejected('SESSION_MISMATCH');
   switch (event.type) {
-    case 'match_selected': return onMatch(device, session, event, now);
-    case 'session_cancel': return onCabinetCancel(session, now);
     case 'door_opened': return onDoorOpened(session, event, now);
     case 'door_closed': return onDoorClosed(session, event, now);
     case 'session_closed': return onSessionClosed(session, event, now);
+    case 'close_refused': return onCloseRefused(session, event, now);
     case 'fault': return onDoorFault(session, event, now);
     default: return rejected('EVENT_INVALID');
   }
@@ -697,20 +690,22 @@ devices.registerSessionHandler({ deviceView, handleEvent, sweep });
 
 // ---------- 使用者 API（第 5 節） ----------
 
+const stateMessage = (session) => {
+  if (session.closed_at && CLOSABLE.includes(session.status)) return '本次作業處理中，請稍候';
+  return session.status === 'open' ? '櫃門已開啟，無法執行此操作' : '目前無法執行此操作';
+};
+
 const sessionStateError = async (session, now) => new HttpError(
-  409,
-  session.status === 'open' ? '櫃門已開啟，請於書櫃螢幕操作' : '目前無法執行此操作',
-  'CABINET_SESSION_STATE',
-  { session: await shapeSession(session, { now }) }
+  409, stateMessage(session), 'CABINET_SESSION_STATE', { session: await shapeSession(session, { now }) }
 );
 
-const ownSession = async (no, user) => {
+const ownSession = async (no, user, { kind = null } = {}) => {
   const session = await loadByNo(no);
-  if (!session || Number(session.user_id) !== Number(user.userId)) throw sessionNotFound();
+  if (!session || Number(session.user_id) !== Number(user.userId) || (kind && session.kind !== kind)) throw sessionNotFound();
   return session;
 };
 
-// 定位格式錯誤時拋出 400；這裡只驗證格式，距離在建立作業時判斷。
+// 定位格式錯誤時拋出 400；這裡只驗證格式，拒絕或無法取得定位也會通過，於建立作業時才拒絕並留下拒絕紀錄。
 const validateLocation = (body) => access.checkDistance({ latitude: 0, longitude: 0 }, body);
 
 const recordRejection = async ({ cabinet, device, user, code, now }) => {
@@ -756,11 +751,10 @@ const cooldownLeft = async (userId, cabinetId, now) => {
     where: { user_id: Number(userId), cabinet_id: Number(cabinetId), kind: 'user' },
     orderBy: [{ created_at: 'desc' }, { session_id: 'desc' }],
     take: policy.CABINET_COOLDOWN_STRIKES,
-    select: { status: true, result_code: true, opened_at: true, finished_at: true }
+    select: { status: true, result_code: true, finished_at: true }
   });
   if (recent.length < policy.CABINET_COOLDOWN_STRIKES) return 0;
-  const strike = (s) => TERMINAL.includes(s.status)
-    && (COOLDOWN_CODES.includes(s.result_code) || (s.result_code === 'CANCELLED_AT_CABINET' && !s.opened_at));
+  const strike = (s) => TERMINAL.includes(s.status) && COOLDOWN_CODES.includes(s.result_code);
   if (!recent.every(strike) || !recent[0].finished_at) return 0;
   const until = new Date(recent[0].finished_at).getTime() + policy.CABINET_COOLDOWN_MINUTES * 60000;
   return Math.max(0, Math.ceil((until - now.getTime()) / 1000));
@@ -807,6 +801,8 @@ const screen = async ({ user, device, cabinet, context, location, now }) => {
   }
 
   const place = access.checkDistance(cabinet, location);
+  if (place.status === 'denied') throw locationRequired();
+  if (place.status === 'unavailable') throw locationUnavailable();
   if (!place.ok) {
     throw new HttpError(403, `您目前的位置距離書櫃約 ${place.distance_m} 公尺，請於書櫃旁操作`, 'CABINET_TOO_FAR', { distance_m: place.distance_m });
   }
@@ -896,17 +892,6 @@ const active = async (user, now = new Date()) => {
 };
 
 const get = async (no, user, now = new Date()) => shapeSession(await fresh(await ownSession(no, user), now), { now });
-
-const randomChoices = (code) => {
-  const pool = new Set([code]);
-  while (pool.size < policy.CABINET_MATCH_CHOICES) pool.add(crypto.randomInt(10, 100));
-  const list = [...pool];
-  for (let i = list.length - 1; i > 0; i -= 1) {
-    const j = crypto.randomInt(0, i + 1);
-    [list[i], list[j]] = [list[j], list[i]];
-  }
-  return list;
-};
 
 const openMsFor = (doorCount) => Math.min(
   policy.CABINET_DOOR_OPEN_MAX_SECONDS,
@@ -1047,7 +1032,6 @@ const start = async (no, user, keys, now = new Date()) => {
         status: 'matching',
         started_at: now,
         match_code: matchCode,
-        match_choices: randomChoices(matchCode).join(','),
         open_ms: openMsFor(slots.length),
         phase_deadline: new Date(now.getTime() + policy.CABINET_MATCH_SECONDS * 1000)
       });
@@ -1055,7 +1039,7 @@ const start = async (no, user, keys, now = new Date()) => {
       await doors.refresh(tx, slotIds);
     });
   } catch (err) {
-    if (err?.code === 'CABINET_FULL') {
+    if (err?.code === 'CABINET_FULL' && err.orderShortage) {
       const blocked = [...units.values()].filter((u) => chosen.has(u.key) && u.kind === 'order_deposit').map((u) => ({
         key: u.key, kind: u.kind, order_id: u.order_id, blocked: 'CABINET_FULL', notify: true,
         books: u.items.map((i) => ({ book_id: Number(i.book_id) }))
@@ -1085,6 +1069,79 @@ const cancel = async (no, user, now = new Date()) => {
   if (!done && !TERMINAL.includes(current.status)) throw await sessionStateError(current, now);
   if (done) await publish(session.session_id);
   return shapeSession(current, { now });
+};
+
+const readMatchCode = (value) => {
+  if (typeof value !== 'string' || !MATCH_CODE_RE.test(value) || Number(value) < 10) throw matchCodeInvalid();
+  return Number(value);
+};
+
+const readCloseOutcome = (value) => {
+  if (!CLOSE_OUTCOMES.includes(value)) throw closeOutcomeInvalid();
+  return value;
+};
+
+// 呼叫端須先以 fresh() 套用逾時；比對碼與輸入值都不得寫入事件、日誌或回應。
+const enterMatch = async (session, value, { source, actorId, now }) => {
+  if (session.status !== 'matching') throw await sessionStateError(session, now);
+  const id = Number(session.session_id);
+  // 比對只有一次機會：並行送出多組數字時，先以同一個條件更新認領，再依數值決定結果；
+  // 若正確與錯誤各走不同的寫入路徑，步驟較少的正確路徑通常先搶到列鎖，猜中率會高於九十分之一。
+  const claimed = await prisma.cabinet_sessions.updateMany({
+    where: { session_id: id, status: 'matching', version: Number(session.version), matched_at: null },
+    data: { matched_at: now, version: { increment: 1 } }
+  });
+  if (claimed.count === 0) throw await sessionStateError(await loadSession(id), now);
+  const current = { ...session, version: Number(session.version) + 1, matched_at: now };
+  const matched = value === Number(session.match_code);
+  const done = await prisma.$transaction(async (tx) => {
+    if (matched) {
+      const count = Math.max(1, sessionDoors(session).length);
+      const device = await tx.cabinet_devices.findUnique({ where: { device_id: Number(session.device_id) }, select: { unlock_pulse_ms: true } });
+      const deadline = new Date(now.getTime() + devices.openingAckMs(count, Number(device.unlock_pulse_ms)));
+      if ((await move(tx, current, 'matching', { status: 'opening', phase_deadline: deadline })).count === 0) return false;
+    } else if (!(await finalize(tx, current, { from: 'matching', status: 'failed', resultCode: 'MATCH_FAILED', now, data: { matched_at: null } }))) {
+      return false;
+    }
+    await recordEvent(tx, {
+      cabinetId: session.cabinet_id, deviceId: session.device_id, sessionId: id, type: 'match_entered',
+      actorId, detail: { matched }, source, occurredAt: now
+    });
+    return true;
+  });
+  const latest = await loadSession(id);
+  if (!done) throw await sessionStateError(latest, now);
+  await publish(id);
+  return latest;
+};
+
+const match = async (no, user, code, now = new Date()) => {
+  const value = readMatchCode(code);
+  const session = await fresh(await ownSession(no, user, { kind: 'user' }), now);
+  return shapeSession(await enterMatch(session, value, { source: 'user', actorId: user.userId, now }), { now });
+};
+
+const requestClose = async (session, outcome, now) => {
+  if (TERMINAL.includes(session.status)) return { session, requested: false };
+  if (session.status !== 'open' || session.closed_at) throw await sessionStateError(session, now);
+  const id = Number(session.session_id);
+  const done = await prisma.cabinet_sessions.updateMany({
+    where: { session_id: id, status: 'open', closed_at: null },
+    data: { close_request: outcome, close_requested_at: now, close_refused_at: null, version: { increment: 1 } }
+  });
+  const current = await loadSession(id);
+  if (done.count === 0) {
+    if (TERMINAL.includes(current.status)) return { session: current, requested: false };
+    throw await sessionStateError(current, now);
+  }
+  await publish(id);
+  return { session: current, requested: true };
+};
+
+const close = async (no, user, outcome, now = new Date()) => {
+  const wanted = readCloseOutcome(outcome);
+  const session = await fresh(await ownSession(no, user, { kind: 'user' }), now);
+  return shapeSession((await requestClose(session, wanted, now)).session, { now });
 };
 
 // ---------- 後台（7.2） ----------
@@ -1119,6 +1176,24 @@ const assertForceable = async (db, slotId) => {
   if (!slot || slot.check_required_at || items > 0 || held > 0) throw doorNotEmpty();
 };
 
+// 比對碼只顯示於書櫃螢幕，現場無人時只能猜；每個作業雖只有一次機會，仍須限制同一位管理員重新發起的次數。
+// 以時間窗內的次數計算，不看最近幾筆是否連續，否則穿插一筆強制結束的作業就能重新累計。
+const adminCooldownLeft = async (adminId, now) => {
+  const windowMs = policy.CABINET_COOLDOWN_MINUTES * 60000;
+  const strikes = await prisma.cabinet_sessions.findMany({
+    where: {
+      user_id: Number(adminId), kind: 'admin', result_code: { in: ADMIN_COOLDOWN_CODES },
+      finished_at: { gte: new Date(now.getTime() - windowMs) }
+    },
+    orderBy: [{ finished_at: 'desc' }, { session_id: 'desc' }],
+    take: policy.CABINET_COOLDOWN_STRIKES,
+    select: { finished_at: true }
+  });
+  if (strikes.length < policy.CABINET_COOLDOWN_STRIKES) return 0;
+  const until = new Date(strikes[strikes.length - 1].finished_at).getTime() + windowMs;
+  return Math.max(0, Math.ceil((until - now.getTime()) / 1000));
+};
+
 const adminOpen = async (cabinetId, slotId, { reason, force = false }, { adminId, req }) => {
   const cabinet = await cabinetOf(cabinetId);
   const device = await devices.activeDeviceOf(cabinet.cabinet_id);
@@ -1126,6 +1201,10 @@ const adminOpen = async (cabinetId, slotId, { reason, force = false }, { adminId
   const slot = await doorOf(cabinet.cabinet_id, slotId);
   const now = new Date();
   if (!access.isOnline(device, now)) throw new HttpError(409, '書櫃裝置目前離線，無法遠端開啟櫃門', 'DEVICE_OFFLINE');
+  const wait = force ? 0 : await adminCooldownLeft(adminId, now);
+  if (wait > 0) {
+    throw new HttpError(429, `數字確認多次未完成，請於 ${Math.ceil(wait / 60)} 分鐘後再試`, 'CABINET_COOLDOWN', { retry_after_s: wait });
+  }
 
   const matchCode = force ? null : crypto.randomInt(10, 100);
   const label = doors.labelOf(slot);
@@ -1148,7 +1227,6 @@ const adminOpen = async (cabinetId, slotId, { reason, force = false }, { adminId
           ? { matched_at: now, phase_deadline: new Date(now.getTime() + devices.openingAckMs(1, Number(device.unlock_pulse_ms))) }
           : {
               match_code: matchCode,
-              match_choices: randomChoices(matchCode).join(','),
               phase_deadline: new Date(now.getTime() + policy.CABINET_MATCH_SECONDS * 1000)
             })
       }
@@ -1167,7 +1245,7 @@ const adminOpen = async (cabinetId, slotId, { reason, force = false }, { adminId
       action: '遠端開啟書櫃櫃門',
       targetType: 'cabinet',
       targetId: Number(cabinet.cabinet_id),
-      summary: `遠端開啟「${cabinet.cabinet_name}」櫃門 ${label}${force ? '（未經現場數字確認）' : ''}，原因：${reason}`,
+      summary: `遠端開啟「${cabinet.cabinet_name}」櫃門 ${label}${force ? '（未經數字確認）' : ''}，原因：${reason}`,
       req
     });
     return row;
@@ -1177,9 +1255,22 @@ const adminOpen = async (cabinetId, slotId, { reason, force = false }, { adminId
   const session = await loadSession(created.session_id);
   return {
     session_no: sessionNo(created.session_id),
-    match: force ? null : { code: matchCode },
+    status: session.status,
     remaining_ms: remainingOf(session, new Date())
   };
+};
+
+const adminMatch = async (no, code, { adminId }, now = new Date()) => {
+  const value = readMatchCode(code);
+  const session = await fresh(await ownSession(no, { userId: adminId }, { kind: 'admin' }), now);
+  await enterMatch(session, value, { source: 'admin', actorId: adminId, now });
+  return adminDetail(no, now);
+};
+
+const adminClose = async (no, { adminId }, now = new Date()) => {
+  const session = await fresh(await ownSession(no, { userId: adminId }, { kind: 'admin' }), now);
+  const { requested } = await requestClose(session, 'completed', now);
+  return { requested, detail: await adminDetail(no, now) };
 };
 
 const clearDoor = async (cabinetId, slotId, { mode, reason }, { adminId, req }) => {
@@ -1360,6 +1451,10 @@ const resolve = async (no, { action, note }, { adminId, req }) => {
         cabinetId: session.cabinet_id, deviceId: session.device_id, sessionId: session.session_id, type: 'review_resolved',
         actorId: adminId, detail: { action, note }, source: 'admin', occurredAt: now
       });
+      await notifyInitiator(tx, session, {
+        title: '書櫃作業已由客服結束',
+        content: `您於「${name}」的書櫃作業 ${label} 已由客服結束，訂單與書籍狀態未變更。`
+      });
       return true;
     });
     if (!done) throw notReviewable();
@@ -1384,5 +1479,5 @@ module.exports = {
   ACTIVE, TERMINAL, CLOSABLE, STATUSES, RESULT_MESSAGES, ITEM_ERRORS,
   sessionNo, loadSession, sessionDoors, groupItems, unitKeyOf, shapeSession, publish, finalize, notifyInitiator,
   applyDeadline, deviceView, handleEvent, sweep, validateLocation,
-  create, active, get, start, cancel, adminOpen, clearDoor, listSessions, adminDetail, resolve
+  create, active, get, start, cancel, match, close, adminOpen, adminMatch, adminClose, clearDoor, listSessions, adminDetail, resolve
 };

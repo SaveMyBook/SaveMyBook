@@ -140,7 +140,6 @@ const imageMimeOf = (buf) => {
   return ['mif1', 'msf1', 'heif'].includes(brand) ? 'image/heif' : 'image/heic';
 };
 
-// 僅在記憶體中處理、不寫入磁碟，供 AI 辨識等不需保存照片的用途。
 const memoryImageUpload = ({ maxFileSize = 5 * 1024 * 1024, maxFiles = 4 } = {}) => {
   const rule = KINDS.image;
   const upload = multer({

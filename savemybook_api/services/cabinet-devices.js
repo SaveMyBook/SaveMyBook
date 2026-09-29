@@ -12,6 +12,8 @@ const TOUCH_THROTTLE_MS = 5000;
 const CONNECTION_LOST_MS = 60000;
 const OFFLINE_ALERT_MS = 300000;
 const PAIRING_TTL_MS = 600000;
+const PAIR_POLL_MS = 3000;
+const PAIR_CLAIM_GRACE_MS = 30000;
 const BOOT_GRACE_MS = 30000;
 const EVENT_CLAIM_MS = 30000;
 const UNLOCK_SERVE_MS = 8000;
@@ -29,10 +31,10 @@ const MAX_DETAIL_LENGTH = 2000;
 const KINDS = ['simulator', 'esp32'];
 const KIND_LABELS = { simulator: '模擬書櫃', esp32: '實體書櫃' };
 const EVENT_TYPES = [
-  'boot', 'match_selected', 'session_cancel', 'door_opened', 'door_closed', 'session_closed',
+  'boot', 'door_opened', 'door_closed', 'session_closed', 'close_refused',
   'fault', 'fault_cleared', 'door_forced', 'connection_restored'
 ];
-const SESSION_EVENTS = ['match_selected', 'session_cancel', 'door_opened', 'door_closed', 'session_closed'];
+const SESSION_EVENTS = ['door_opened', 'door_closed', 'session_closed', 'close_refused'];
 const CHANNEL_EVENTS = ['door_opened', 'door_closed', 'door_forced'];
 const SENSOR_STATES = ['open', 'closed'];
 const EVENT_ID_RE = /^[A-Za-z0-9_-]{8,64}$/;
@@ -56,12 +58,14 @@ const authRequired = () => deviceError(401, 'DEVICE_AUTH_REQUIRED', '缺少裝�
 const revokedError = () => deviceError(401, 'DEVICE_REVOKED', '裝置憑證已失效，請重新配對');
 const disabledError = () => deviceError(403, 'DEVICE_DISABLED', '模擬書櫃目前未開放');
 const pairingInvalid = () => deviceError(400, 'PAIRING_CODE_INVALID', '配對碼無效或已逾時');
+const pairingExpired = () => deviceError(410, 'PAIRING_EXPIRED', '配對碼已逾時，請重新取得');
 const payloadInvalid = () => deviceError(400, 'DEVICE_PAYLOAD_INVALID', '資料格式不正確');
 const staleBoot = () => deviceError(409, 'DEVICE_STALE_BOOT', '此請求來自裝置重新啟動前，已略過');
 const cabinetBusy = () => deviceError(409, 'CABINET_BUSY', '書櫃使用中，請待目前作業結束後再試');
 
 const sha256 = (text) => crypto.createHash('sha256').update(String(text)).digest('hex');
 const newToken = () => `smbd_${crypto.randomBytes(32).toString('base64url')}`;
+const isPollToken = (value) => typeof value === 'string' && /^[A-Za-z0-9_-]{43}$/.test(value);
 const deviceNo = (device) => publicId.encode('cabinet_device', device.device_id);
 const isValidBootId = (value) => typeof value === 'string' && BOOT_ID_RE.test(value);
 
@@ -87,8 +91,6 @@ const markCommandsServed = (db, sessionId, slotIds, now = new Date()) => (db ?? 
   data: { command_served_at: now }
 });
 
-// ---------- 作業處理器 ----------
-
 let handler = null;
 
 const registerSessionHandler = (next) => {
@@ -100,8 +102,6 @@ const sessionHandler = () => handler;
 const runSessionSweep = async (now = new Date()) => {
   if (handler?.sweep) await handler.sweep(now);
 };
-
-// ---------- 裝置查詢與占用 ----------
 
 const activeDeviceOf = async (cabinetId, { tx } = {}) => {
   const device = await (tx ?? prisma).cabinet_devices.findFirst({
@@ -127,8 +127,6 @@ const cabinetNameOf = async (db, cabinetId) =>
   (await db.smart_cabinets.findUnique({ where: { cabinet_id: Number(cabinetId) }, select: { cabinet_name: true } }))
     ?.cabinet_name ?? '';
 
-// ---------- 撤銷 ----------
-
 const revoke = async (db, device, { reason, actorId = null, note = null, now = new Date(), source = 'server' }) => {
   const client = db ?? prisma;
   const done = await client.cabinet_devices.updateMany({
@@ -146,8 +144,6 @@ const revoke = async (db, device, { reason, actorId = null, note = null, now = n
   return true;
 };
 
-// ---------- 配對 ----------
-
 const displayCode = (digits) => `${digits.slice(0, 4)}-${digits.slice(4)}`;
 
 const normalizePairingCode = (value) => {
@@ -155,87 +151,117 @@ const normalizePairingCode = (value) => {
   return /^\d{8}$/.test(digits) ? digits : null;
 };
 
-const createPairingCode = async ({ cabinetId, kind, doorCount = 4, adminId = null, now = new Date() }) => {
+const requestPairing = async ({
+  kind, doorCount, hasDoorSensor = false, unlockPulseMs = 800, firmware, bootId, ip = null, now = new Date()
+}) => {
   if (kind === 'simulator' && !access.isSimulatorEnabled()) throw disabledError();
-  const cabinet = await prisma.smart_cabinets.findUnique({ where: { cabinet_id: Number(cabinetId) } });
-  if (!cabinet) throw notFound('找不到該書櫃');
-
-  let digits;
-  let hash;
+  const pollToken = crypto.randomBytes(32).toString('base64url');
+  const data = {
+    poll_token_hash: sha256(pollToken), kind, door_count: doorCount, has_door_sensor: Boolean(hasDoorSensor),
+    unlock_pulse_ms: unlockPulseMs, firmware, boot_id: bootId, ip, expires_at: new Date(now.getTime() + PAIRING_TTL_MS),
+    created_at: now
+  };
   for (let attempt = 0; attempt < 10; attempt += 1) {
-    digits = String(crypto.randomInt(0, 100000000)).padStart(8, '0');
-    hash = sha256(digits);
-    const clash = await prisma.cabinet_devices.count({ where: { pairing_code_hash: hash } });
-    if (clash === 0) break;
+    const digits = String(crypto.randomInt(0, 100000000)).padStart(8, '0');
+    const codeHash = sha256(digits);
+    if (await prisma.cabinet_pair_requests.count({ where: { code_hash: codeHash } }) > 0) continue;
+    try {
+      await prisma.cabinet_pair_requests.create({ data: { ...data, code_hash: codeHash } });
+    } catch (err) {
+      if (err?.code === 'P2002') continue;
+      throw err;
+    }
+    return { code: displayCode(digits), poll_token: pollToken, expires_in_ms: PAIRING_TTL_MS, poll_ms: PAIR_POLL_MS };
   }
-
-  const expiresAt = new Date(now.getTime() + PAIRING_TTL_MS);
-  const device = await prisma.$transaction(async (tx) => {
-    await tx.cabinet_devices.deleteMany({ where: { cabinet_id: cabinet.cabinet_id, status: 'pending' } });
-    return tx.cabinet_devices.create({
-      data: {
-        cabinet_id: cabinet.cabinet_id, kind, door_count: doorCount, status: 'pending', pairing_code_hash: hash,
-        pairing_expires_at: expiresAt, created_by: adminId, created_at: now, updated_at: now
-      }
-    });
-  });
-  return { code: displayCode(digits), kind, door_count: doorCount, expires_at: expiresAt, device, cabinet };
+  throw new Error('無法產生不重複的配對碼');
 };
 
-const pair = async ({
-  code, kind, doorCount, hasDoorSensor = false, unlockPulseMs = 800, firmware = null, bootId, ip = null, now = new Date()
-}) => {
+const claimPairing = async ({ cabinetId, code, adminId = null, now = new Date() }) => {
+  const cabinet = await prisma.smart_cabinets.findUnique({ where: { cabinet_id: Number(cabinetId) } });
+  if (!cabinet) throw notFound('找不到該書櫃');
   const digits = normalizePairingCode(code);
-  if (!digits) throw pairingInvalid();
-  const hash = sha256(digits);
-  const row = await prisma.cabinet_devices.findFirst({
-    where: { pairing_code_hash: hash, status: 'pending', pairing_expires_at: { gt: now } }
-  });
-  if (!row || row.kind !== kind || Number(row.door_count) !== Number(doorCount)) throw pairingInvalid();
+  const row = digits ? await prisma.cabinet_pair_requests.findUnique({ where: { code_hash: sha256(digits) } }) : null;
+  if (!row || row.claimed_at || new Date(row.expires_at) <= now) throw pairingInvalid();
   if (row.kind === 'simulator' && !access.isSimulatorEnabled()) throw disabledError();
+
+  // 管理員在效期將屆時才送出，裝置仍需一次輪詢才能領取憑證。
+  const expiresAt = new Date(Math.max(new Date(row.expires_at).getTime(), now.getTime() + PAIR_CLAIM_GRACE_MS));
+  const device = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.cabinet_pair_requests.updateMany({
+      where: { request_id: row.request_id, claimed_at: null, expires_at: { gt: now } },
+      data: { cabinet_id: cabinet.cabinet_id, claimed_by: adminId, claimed_at: now, expires_at: expiresAt }
+    });
+    if (claimed.count === 0) throw pairingInvalid();
+    const created = await tx.cabinet_devices.create({
+      data: {
+        cabinet_id: cabinet.cabinet_id, kind: row.kind, status: 'pending', door_count: row.door_count,
+        has_door_sensor: Boolean(row.has_door_sensor), unlock_pulse_ms: row.unlock_pulse_ms, firmware: row.firmware,
+        created_by: adminId, created_at: now, updated_at: now
+      }
+    });
+    await tx.cabinet_pair_requests.updateMany({ where: { request_id: row.request_id }, data: { device_id: created.device_id } });
+    return created;
+  });
+  return { cabinet, device };
+};
+
+const deliverPairing = async (row, { ip, now }) => {
+  const pending = await prisma.cabinet_devices.findFirst({ where: { device_id: Number(row.device_id), status: 'pending' } });
+  if (!pending) throw pairingExpired();
 
   const token = newToken();
   const result = await prisma.$transaction(async (tx) => {
-    const claimed = await tx.cabinet_devices.updateMany({
-      where: { device_id: row.device_id, status: 'pending', pairing_code_hash: hash, pairing_expires_at: { gt: now } },
-      data: { pairing_code_hash: null, pairing_expires_at: null, updated_at: now }
+    const claimed = await tx.cabinet_pair_requests.updateMany({
+      where: { request_id: row.request_id, delivered_at: null, expires_at: { gt: now } },
+      data: { delivered_at: now }
     });
-    if (claimed.count === 0) throw pairingInvalid();
+    if (claimed.count === 0) throw pairingExpired();
 
-    const previous = await tx.cabinet_devices.findMany({ where: { cabinet_id: row.cabinet_id, status: 'active' } });
+    const previous = await tx.cabinet_devices.findMany({ where: { cabinet_id: pending.cabinet_id, status: 'active' } });
     let replaced = false;
     for (const old of previous) replaced = (await revoke(tx, old, { reason: 'replaced', now })) || replaced;
 
-    await tx.cabinet_devices.updateMany({
-      where: { device_id: row.device_id },
+    const activated = await tx.cabinet_devices.updateMany({
+      where: { device_id: pending.device_id, status: 'pending' },
       data: {
-        status: 'active', active_cabinet_id: row.cabinet_id, token_hash: sha256(token), has_door_sensor: Boolean(hasDoorSensor),
-        unlock_pulse_ms: unlockPulseMs, firmware, current_boot_id: bootId, previous_boot_id: null, boot_switched_at: null,
-        paired_at: now, last_seen_at: now, last_ip: ip, offline_since: null, offline_notified: false,
-        fault_code: null, fault_since: null, updated_at: now
+        status: 'active', active_cabinet_id: pending.cabinet_id, token_hash: sha256(token), current_boot_id: row.boot_id,
+        previous_boot_id: null, boot_switched_at: null, paired_at: now, last_seen_at: now, last_ip: ip, offline_since: null,
+        offline_notified: false, fault_code: null, fault_since: null, updated_at: now
       }
     });
-    await doors.syncChannels(tx, row.cabinet_id, Number(row.door_count));
+    if (activated.count === 0) throw pairingExpired();
+    await doors.syncChannels(tx, pending.cabinet_id, Number(pending.door_count));
     await recordEvent(tx, {
-      cabinetId: row.cabinet_id, deviceId: row.device_id, type: 'paired', source: 'server',
-      detail: { kind: row.kind, ip, replaced }, occurredAt: now
+      cabinetId: pending.cabinet_id, deviceId: pending.device_id, type: 'paired', source: 'server', actorId: row.claimed_by ?? null,
+      detail: { kind: pending.kind, ip, replaced }, occurredAt: now
     });
 
-    const cabinetName = await cabinetNameOf(tx, row.cabinet_id);
-    await notifyAdmins(tx, row.cabinet_id, {
+    const cabinetName = await cabinetNameOf(tx, pending.cabinet_id);
+    await notifyAdmins(tx, pending.cabinet_id, {
       title: '書櫃裝置已配對',
-      content: `「${cabinetName}」已完成${KIND_LABELS[row.kind]}裝置配對（來源 IP：${ip ?? '不明'}）。${replaced ? '原有的有效裝置已撤銷。' : ''}`
+      content: `「${cabinetName}」已完成${KIND_LABELS[pending.kind]}裝置配對（來源 IP：${ip ?? '不明'}）。${replaced ? '原有的有效裝置已撤銷。' : ''}`
     });
-    return { cabinetName, doorList: await doors.doorsOf(row.cabinet_id, { tx }) };
+    return { cabinetName, doorList: await doors.doorsOf(pending.cabinet_id, { tx }) };
   });
 
   return {
+    status: 'paired',
     token,
-    device_no: deviceNo(row),
+    device_no: deviceNo(pending),
     cabinet: { cabinet_name: result.cabinetName },
     doors: result.doorList.map((d) => ({ channel: d.lock_channel, label: doors.doorLabel(d.lock_channel) })),
     poll_ms: IDLE_POLL_MS
   };
+};
+
+const pollPairing = async ({ pollToken, ip = null, now = new Date() }) => {
+  const row = await prisma.cabinet_pair_requests.findUnique({ where: { poll_token_hash: sha256(pollToken) } });
+  if (!row || row.delivered_at || new Date(row.expires_at) <= now) throw pairingExpired();
+  if (row.kind === 'simulator' && !access.isSimulatorEnabled()) throw disabledError();
+  if (!row.device_id) {
+    return { status: 'pending', expires_in_ms: new Date(row.expires_at).getTime() - now.getTime(), poll_ms: PAIR_POLL_MS };
+  }
+  return deliverPairing(row, { ip, now });
 };
 
 const unpair = async (device, now = new Date()) => {
@@ -248,8 +274,6 @@ const unpair = async (device, now = new Date()) => {
     });
   });
 };
-
-// ---------- 驗證（middleware/device-auth.js 使用） ----------
 
 const findByToken = (token) => prisma.cabinet_devices.findUnique({ where: { token_hash: sha256(token) } });
 
@@ -322,8 +346,6 @@ const touch = async (device, ip, now = new Date()) => {
   return { ...device, ...data };
 };
 
-// ---------- 狀態 ----------
-
 const message = (code, params = {}) => ({ code, params });
 
 const stateFor = async (device, now = new Date()) => {
@@ -370,8 +392,6 @@ const stateFor = async (device, now = new Date()) => {
   }
   return idleState('idle', message('IDLE_SCAN'), await challenges.issue(device, now));
 };
-
-// ---------- 事件 ----------
 
 const reject = (id, code) => ({ id, status: 'rejected', code });
 
@@ -637,8 +657,6 @@ const handleEvents = async (device, events, now = new Date()) => {
   return results;
 };
 
-// ---------- 排程 ----------
-
 // 關閉模擬器必須撤銷模擬書櫃的憑證，而非只是暫停：憑證可能已隨同源的外部腳本外洩，日後為測試重新開啟時不得恢復效力。
 const revokeDisabledSimulators = async (now) => {
   if (access.isSimulatorEnabled()) return 0;
@@ -707,24 +725,28 @@ const sweep = async (now = new Date()) => {
 const purge = async (now = new Date(), { daily = false } = {}) => {
   const { count: challengesRemoved } = await challenges.purge(now);
   if (!daily) return { challenges: challengesRemoved, events: 0, pending: 0 };
+  const pairingBefore = new Date(now.getTime() - PENDING_RETENTION_MS);
   const [{ count: events }, { count: pending }] = await Promise.all([
     prisma.cabinet_events.deleteMany({ where: { occurred_at: { lt: new Date(now.getTime() - EVENT_RETENTION_MS) } } }),
+    prisma.cabinet_pair_requests.deleteMany({ where: { expires_at: { lt: pairingBefore } } }),
+    // 待配對裝置列於管理員綁定時建立，其配對請求最晚在建立後 PAIRING_TTL_MS 逾時。
     prisma.cabinet_devices.deleteMany({
-      where: { status: 'pending', pairing_expires_at: { lt: new Date(now.getTime() - PENDING_RETENTION_MS) } }
+      where: { status: 'pending', created_at: { lt: new Date(pairingBefore.getTime() - PAIRING_TTL_MS) } }
     })
   ]);
   return { challenges: challengesRemoved, events, pending };
 };
 
 module.exports = {
-  TOUCH_THROTTLE_MS, CONNECTION_LOST_MS, OFFLINE_ALERT_MS, PAIRING_TTL_MS, BOOT_GRACE_MS, EVENT_CLAIM_MS,
-  UNLOCK_SERVE_MS, ROUNDTRIP_MAX_MS, LOCK_GAP_MS, ACK_GRACE_MS, IDLE_POLL_MS, SESSION_POLL_MS, MAX_EVENTS,
+  TOUCH_THROTTLE_MS, CONNECTION_LOST_MS, OFFLINE_ALERT_MS, PAIRING_TTL_MS, PAIR_POLL_MS, PAIR_CLAIM_GRACE_MS,
+  BOOT_GRACE_MS, EVENT_CLAIM_MS, UNLOCK_SERVE_MS, ROUNDTRIP_MAX_MS, LOCK_GAP_MS, ACK_GRACE_MS, IDLE_POLL_MS,
+  SESSION_POLL_MS, MAX_EVENTS,
   KINDS, KIND_LABELS, EVENT_TYPES, FAULT_LABELS,
-  sha256, newToken, deviceNo, isValidBootId, openingAckMs, faultLabel, unlockCommands, markCommandsServed,
-  authRequired, revokedError, disabledError, pairingInvalid, payloadInvalid, staleBoot, cabinetBusy,
+  sha256, newToken, isPollToken, deviceNo, isValidBootId, openingAckMs, faultLabel, unlockCommands, markCommandsServed,
+  authRequired, revokedError, disabledError, pairingInvalid, pairingExpired, payloadInvalid, staleBoot, cabinetBusy,
   registerSessionHandler, sessionHandler, runSessionSweep,
   activeDeviceOf, lockForSession, releaseSession, revoke,
-  normalizePairingCode, createPairingCode, pair, unpair,
+  normalizePairingCode, requestPairing, claimPairing, pollPairing, unpair,
   findByToken, verifyBoot, touch, stateFor, handleEvents, sweep, purge,
   recordEvent, notifyAdmins
 };

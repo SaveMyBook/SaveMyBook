@@ -305,7 +305,7 @@ class PasskeyService {
   static Future<PasskeyOutcome<List<PasskeyItem>>> rename(String passkeyId, String label) =>
       ApiService().renamePasskey(passkeyId, label);
 
-  /// 伺服器刪除成功後才呼叫；不支援 Signal API 的系統會略過。
+  /// 須在伺服器刪除成功後才呼叫。
   static Future<void> forgetDeleted(String? credentialId) async {
     if (credentialId == null || credentialId.isEmpty) return;
     final rpId = (await ApiService().fetchPasskeyStatus())?.rpId;

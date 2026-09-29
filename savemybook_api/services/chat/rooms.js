@@ -39,7 +39,7 @@ const findMine = async (roomId, myId, include) => {
   if (!room) throw notFound('找不到該聊天室');
 
   const row = await membershipOf(roomId, myId);
-  if (!row?.role || row.left_at) throw forbidden('存取被拒');
+  if (!row?.role || row.left_at) throw forbidden();
   const group = row.room_type === 'group';
   return {
     ...room,
@@ -184,7 +184,6 @@ const detail = async (roomId, myId) => {
   ]);
   const aliasOf = (userId) => (userId === myId ? null : aliasMap.get(userId) ?? null);
 
-  // 群組內以群組暱稱為準（所有成員看到相同名稱）；個人暱稱只用於一對一聊天。
   const people = group
     ? memberRows.map((m) => ({
         user_id: m.user_id,

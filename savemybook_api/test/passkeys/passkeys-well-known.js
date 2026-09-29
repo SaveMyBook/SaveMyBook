@@ -17,7 +17,6 @@ const withEnv = async (values, fn) => {
 const FINGERPRINT = 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99';
 const APK_KEY_HASH = `android:apk-key-hash:${Buffer.from(FINGERPRINT.replace(/:/g, ''), 'hex').toString('base64url')}`;
 
-// 部署檢查向 https://savemybook.today/.well-known/* 發出的請求由此回應。
 const served = {};
 h.onFetch('https://savemybook.today/.well-known/', (url) => {
   const file = served[url.split('/.well-known/')[1]];

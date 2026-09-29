@@ -2,6 +2,8 @@ part of '../api_service.dart';
 
 typedef AdminCabinetPage<T> = ({List<T> items, bool hasMore, bool ok});
 
+typedef AdminCabinetSessionAction = ({AdminCabinetSessionDetail? detail, CabinetApiError? error});
+
 extension AdminCabinetDevicesApi on ApiService {
   static const cabinetAdminPageSize = 20;
 
@@ -11,6 +13,18 @@ extension AdminCabinetDevicesApi on ApiService {
     if (res['code'] == 'VERIFICATION_CANCELLED') return '';
     return res['message'] as String? ?? S.somethingWentWrongPleaseTryAgain;
   }
+
+  CabinetApiError? _adminCabinetFailure(Map<String, dynamic>? res) {
+    if (res == null) return CabinetApiError(code: CabinetApiError.signedOut, message: S.pleaseSignFirst);
+    if (res['success'] == true) return null;
+    if (res['code'] == CabinetApiError.network) return CabinetApiError(code: CabinetApiError.network, message: S.networkError);
+    return CabinetApiError.fromResponse(res);
+  }
+
+  CabinetApiError get _adminCabinetMalformed => CabinetApiError(code: '', message: S.somethingWentWrongPleaseTryAgain);
+
+  Map<String, dynamic>? _adminCabinetData(Map<String, dynamic>? res) =>
+      res?['data'] is Map ? Map<String, dynamic>.from(res!['data'] as Map) : null;
 
   AdminCabinetPage<T> _adminCabinetPage<T>(Map<String, dynamic>? res, int page, T Function(Map<String, dynamic>) build) {
     if (res == null || res['success'] != true) return (items: <T>[], hasMore: false, ok: false);
@@ -27,16 +41,22 @@ extension AdminCabinetDevicesApi on ApiService {
     return AdminCabinetDeviceSummary.fromJson(Map<String, dynamic>.from(res['data'] as Map));
   }
 
-  Future<({String? code, DateTime? expiresAt, String? error})> createCabinetPairingCode(
-    int cabinetId, {
-    required String kind,
-    int doorCount = 4,
+  Future<({AdminCabinetPairResult? paired, CabinetApiError? error})> pairCabinetDevice(
+    int cabinetId,
+    String code, {
+    String? verifyToken,
   }) async {
-    final res = await _send('POST', '/admin/cabinets/$cabinetId/device/pairing-code', body: {'kind': kind, 'door_count': doorCount});
-    final error = _adminCabinetError(res);
-    if (error != null) return (code: null, expiresAt: null, error: error);
-    final data = res!['data'] is Map ? res['data'] as Map : const {};
-    return (code: data['code'] as String?, expiresAt: parseDate(data['expires_at']), error: null);
+    final res = await _send(
+      'POST',
+      '/admin/cabinets/$cabinetId/device/pair',
+      body: {'code': AdminCabinetPairing.codeOf(code) ?? code.trim()},
+      extraHeaders: verifyToken == null ? null : {'X-Verify-Token': verifyToken},
+    );
+    final error = _adminCabinetFailure(res);
+    if (error != null) return (paired: null, error: error);
+    final data = _adminCabinetData(res);
+    if (data == null) return (paired: null, error: _adminCabinetMalformed);
+    return (paired: AdminCabinetPairResult.fromJson(data), error: null);
   }
 
   Future<String?> revokeCabinetDevice(int cabinetId, {String? reason}) async {
@@ -46,24 +66,39 @@ extension AdminCabinetDevicesApi on ApiService {
     return _adminCabinetError(res);
   }
 
-  Future<({String? sessionNo, int? matchCode, int? remainingMs, String? error})> openCabinetDoor(
+  Future<({AdminCabinetRemoteOpen? opened, CabinetApiError? error})> openCabinetDoor(
     int cabinetId,
     int slotId,
     String reason, {
     bool force = false,
   }) async {
     final res = await _send('POST', '${_cabinetDoorPath(cabinetId, slotId)}/open', body: {'reason': reason.trim(), 'force': force});
-    final error = _adminCabinetError(res);
-    if (error != null) return (sessionNo: null, matchCode: null, remainingMs: null, error: error);
-    final data = res!['data'] is Map ? res['data'] as Map : const {};
-    final match = data['match'];
-    return (
-      sessionNo: data['session_no'] as String?,
-      matchCode: match is Map && match['code'] != null ? parseInt(match['code']) : null,
-      remainingMs: data['remaining_ms'] == null ? null : parseInt(data['remaining_ms']),
-      error: null,
-    );
+    final error = _adminCabinetFailure(res);
+    if (error != null) return (opened: null, error: error);
+    final opened = AdminCabinetRemoteOpen.fromJson(res!['data']);
+    if (opened == null) return (opened: null, error: _adminCabinetMalformed);
+    return (opened: opened, error: null);
   }
+
+  String _adminSessionPath(String sessionNo) => '/admin/cabinet-sessions/${Uri.encodeComponent(sessionNo)}';
+
+  AdminCabinetSessionAction _adminSessionAction(Map<String, dynamic>? res) {
+    final error = _adminCabinetFailure(res);
+    if (error != null) return (detail: null, error: error);
+    final data = _adminCabinetData(res);
+    if (data == null) return (detail: null, error: _adminCabinetMalformed);
+    return (detail: AdminCabinetSessionDetail.fromJson(data), error: null);
+  }
+
+  Future<AdminCabinetSessionAction> matchRemoteCabinetSession(String sessionNo, String code) async {
+    if (!CabinetSession.isMatchCode(code)) {
+      return (detail: null, error: CabinetApiError(code: CabinetApiError.matchCodeInvalid, message: S.enterTwoDigits));
+    }
+    return _adminSessionAction(await _send('POST', '${_adminSessionPath(sessionNo)}/match', body: {'code': code}));
+  }
+
+  Future<AdminCabinetSessionAction> closeRemoteCabinetSession(String sessionNo) async =>
+      _adminSessionAction(await _send('POST', '${_adminSessionPath(sessionNo)}/close'));
 
   Future<String?> placeCabinetDoorItems(int cabinetId, int slotId, {int? orderId, List<int>? bookIds}) async {
     final res = await _send('POST', '${_cabinetDoorPath(cabinetId, slotId)}/place', body: {
@@ -103,13 +138,13 @@ extension AdminCabinetDevicesApi on ApiService {
   }
 
   Future<AdminCabinetSessionDetail?> fetchCabinetSessionDetail(String sessionNo) async {
-    final res = await _send('GET', '/admin/cabinet-sessions/${Uri.encodeComponent(sessionNo)}');
+    final res = await _send('GET', _adminSessionPath(sessionNo));
     if (res == null || res['success'] != true || res['data'] is! Map) return null;
     return AdminCabinetSessionDetail.fromJson(Map<String, dynamic>.from(res['data'] as Map));
   }
 
   Future<String?> resolveCabinetSession(String sessionNo, {required bool commit, required String note}) async {
-    final res = await _send('POST', '/admin/cabinet-sessions/${Uri.encodeComponent(sessionNo)}/resolve', body: {
+    final res = await _send('POST', '${_adminSessionPath(sessionNo)}/resolve', body: {
       'action': commit ? 'commit' : 'discard',
       'note': note.trim(),
     });
@@ -138,9 +173,10 @@ extension AdminCabinetDevicesApi on ApiService {
     return _adminCabinetPage(res, page, AdminCabinetManualReport.fromJson);
   }
 
-  Future<String?> confirmCabinetManualReport(String reportNo, {String? note}) async {
+  Future<String?> confirmCabinetManualReport(String reportNo, {String? note, int? slotId}) async {
     final res = await _send('POST', '/admin/cabinet-manual-reports/${Uri.encodeComponent(reportNo)}/confirm', body: {
       if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      'slot_id': ?slotId,
     });
     return _adminCabinetError(res);
   }

@@ -6,7 +6,6 @@ import '../../../utils/motion.dart';
 import '../../../widgets/animations.dart';
 import '../../../widgets/app_buttons.dart';
 
-/// 付款成功：結帳與直接購買共用。回傳 true 表示使用者選擇查看訂單。
 Future<bool?> showPaymentSuccess(
   BuildContext context, {
   required double total,

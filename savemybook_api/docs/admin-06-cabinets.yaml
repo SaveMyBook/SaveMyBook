@@ -16,8 +16,9 @@ paths:
       operationId: adminListCabinets
       tags: [admin-cabinets]
       description: |
-        回傳全部書櫃，含已停用者。各筆包含櫃位清單、累計訂單數，
-        以及各狀態櫃位的數量統計 `slot_summary`。
+        回傳全部書櫃，含已停用者。各筆包含櫃位清單、累計訂單數、書櫃裝置摘要 `device`，
+        以及各狀態櫃位的數量統計 `slot_summary`。書櫃有可用裝置時，`slot_summary` 只統計有電磁鎖通道（`lock_channel`）的櫃門；
+        沒有可用裝置時統計全部櫃位。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -44,10 +45,23 @@ paths:
                                   slot_number: { type: string }
                                   status: { type: string, enum: [empty, occupied, reserved, maintenance] }
                                   updated_at: { type: string, format: date-time }
+                                  lock_channel: { type: integer, nullable: true, description: 電磁鎖通道；未對應裝置櫃門時為 null, example: 1 }
+                                  fault_code: { type: string, nullable: true, description: 櫃門故障代碼, example: null }
+                                  check_required_at: { type: string, format: date-time, nullable: true, description: 櫃門設為待確認的時間 }
                             is_maintenance: { type: boolean, description: 整台書櫃維修中, example: false }
+                            device:
+                              type: object
+                              nullable: true
+                              description: 書櫃目前的裝置：優先為可用的有效裝置，其次為待配對裝置；都沒有時為 null。
+                              properties:
+                                device_no: { type: string, example: DV3K9QX2M }
+                                kind: { type: string, enum: [simulator, esp32], example: esp32 }
+                                status: { type: string, enum: [active, pending], example: active }
+                                online: { type: boolean, description: 有效裝置最近 15 秒內有連線, example: true }
+                                last_seen_at: { type: string, format: date-time, nullable: true }
                             slot_summary:
                               type: object
-                              description: 各狀態的櫃位數量統計。
+                              description: 各狀態的櫃位數量統計；書櫃有可用裝置時只統計有 `lock_channel` 的櫃門。
                               properties:
                                 empty: { type: integer, example: 17 }
                                 occupied: { type: integer, example: 2 }
@@ -353,7 +367,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 'status 僅接受：empty, occupied, reserved, maintenance' }
+              example: { success: false, message: '櫃位狀態不正確' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -379,7 +393,7 @@ components:
             avatar_url: { type: string, nullable: true }
             deleted: { type: boolean, description: 賣家帳號已刪除（匿名化）, example: false }
         cabinet: { $ref: '#/components/schemas/CabinetBrief' }
-        deposited_at: { type: string, format: date-time, description: 賣家回報存書的時間 }
+        deposited_at: { type: string, format: date-time, description: 存書登記生效的時間 }
         days_stored: { type: integer, description: 已存放的完整天數, example: 15 }
         paused: { type: boolean, description: 已滿 7 天並通知賣家取回, example: true }
         paused_at: { type: string, format: date-time, nullable: true }

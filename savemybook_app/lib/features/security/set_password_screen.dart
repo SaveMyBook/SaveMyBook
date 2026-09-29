@@ -11,7 +11,6 @@ import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 
-/// 給以社群或簡訊建立、尚未設定密碼的帳號使用；不需要輸入舊密碼。
 class SetPasswordScreen extends StatefulWidget {
   const SetPasswordScreen({super.key});
 

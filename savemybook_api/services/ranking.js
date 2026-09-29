@@ -79,7 +79,6 @@ const viewerSignals = async (viewerId, viewedIds = []) => {
   purchases.forEach((p) => add(p.book_id, p.books, 3));
   cart.forEach((c) => add(c.book_id, c.books, 1));
   viewed.forEach((b) => add(b.book_id, b, 1));
-  // 取消或退款的訂單不算興趣，但書也不再推薦回給同一位買家。
   voided.forEach((o) => seen.add(Number(o.book_id)));
 
   const total = [...categories.values()].reduce((sum, n) => sum + n, 0);
@@ -207,4 +206,4 @@ setInterval(() => {
   for (const [key, at] of viewSeen) if (now - at > VIEW_WINDOW_MS) viewSeen.delete(key);
 }, 10 * 60 * 1000).unref();
 
-module.exports = { rankedIds, recommendedIds, scoreBook, diversify, shouldCountView, RECOMMEND_LIMIT, SIGNAL_TAKE, VOID_ORDER_STATUSES };
+module.exports = { rankedIds, recommendedIds, scoreBook, diversify, shouldCountView, normAuthor, RECOMMEND_LIMIT, SIGNAL_TAKE, VOID_ORDER_STATUSES };

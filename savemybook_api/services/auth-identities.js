@@ -93,7 +93,6 @@ const touchIdentity = (provider, subject, info) => prisma.$executeRaw`
       display_name = COALESCE(${info.displayName ?? null}, display_name)
   WHERE provider = ${provider} AND subject = ${subject}`;
 
-// 手機號碼只在使用者尚未填寫時補上，不覆寫本人自行維護的資料。
 const fillPhone = (userId, phoneNumber) => (phoneNumber
   ? prisma.$executeRaw`
       UPDATE users SET phone = ${phoneNumber.slice(0, 20)}, updated_at = ${new Date()}
@@ -106,7 +105,6 @@ const createAccount = async ({ provider, info, email, nickname, acceptLegal }) =
     const created = await tx.users.create({
       data: {
         email,
-        // 未設定密碼的帳號存入無法比對成功的隨機值，並以 password_set = 0 標記。
         password_hash: crypto.randomBytes(32).toString('hex'),
         nickname,
         role: 'buyer_seller',
@@ -128,7 +126,6 @@ const createAccount = async ({ provider, info, email, nickname, acceptLegal }) =
   return user;
 };
 
-// 依 identity 決定登入既有帳號或建立新帳號；回傳可直接簽發 Token 的使用者資料。
 // create 為 false 時絕不建立帳號：使用者必須自己決定要綁定既有帳號還是註冊新帳號。
 const resolveSignIn = async ({
   provider, info, email: fallbackEmail = null, nickname: fallbackNickname = null,

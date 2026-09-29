@@ -10,13 +10,13 @@
   "orderRefunded": "已退款",
   "orderBuyerPendingDeposit": "待卖家存书",
   "orderBuyerDeposited": "待取书",
-  "orderBuyerRefunding": "申诉中",
+  "orderBuyerRefunding": "争议处理中",
   "orderFlowDeposit": "待卖家存书",
   "orderFlowDeposited": "已存入书柜",
   "orderFlowPickup": "买家已取书",
   "orderFlowCompleted": "交易完成",
   "bookOnSale": "销售中",
-  "bookReserved": "已预订",
+  "bookReserved": "已预约",
   "bookSold": "已售出",
   "bookRemoved": "已下架",
   "conditionLikeNew": "全新",
@@ -42,7 +42,7 @@
   "disputeResolved": "已裁决",
   "disputeRefundManual": "人工退款",
   "disputeRefundAuto": "自动退款",
-  "disputeDismissed": "驳回申诉",
+  "disputeDismissed": "驳回争议",
   "disputeMediated": "协调结案",
   "ticketOpen": "待处理",
   "ticketPending": "客服已回复",
@@ -136,7 +136,7 @@
   "exportedChooseWhereSave": "已导出，请选择保存位置",
   "exportedButSharingCouldNotOpen": "导出完成，但无法打开分享",
   "regenerateShareLink": "重新生成分享链接",
-  "oldLinkQrCodeStopWorking": "旧的链接与二维码将立即失效，已分享的链接将无法打开。确定要重新生成吗？",
+  "oldLinkQrCodeStopWorking": "现有链接与二维码将立即失效。",
   "regenerate": "重新生成",
   "newLinkCreatedOldOneNo": "已生成新链接，旧链接已失效",
   "deleteAccount": "删除账号",
@@ -189,7 +189,6 @@
   "addedCart": "已加入购物车",
   "sellerInformationNotFound": "找不到卖家信息",
   "signContactSeller": "请先登录才能联系卖家",
-  "signStartChat": "请先登录才能联系卖家",
   "signReport": "请先登录才能举报",
   "cannotReportOwnListing": "无法举报自己上架的商品",
   "reportListing": "举报此商品",
@@ -209,7 +208,7 @@
   "bookBeenReportedUnderReviewStays": "此书籍已被举报，审核中。",
   "violationWasConfirmedBookPleaseCheck": "此书籍经审核确认违规，请修改商品内容。",
   "delist": "取消上架",
-  "removedFromShopBuyersNoLonger": "取消上架后，《{p0}》将不再在商城显示，买家将无法浏览。",
+  "removedFromShopBuyersNoLonger": "取消上架后，《{p0}》将不再在商城显示。",
   "@removedFromShopBuyersNoLonger": {
     "placeholders": {
       "p0": {}
@@ -235,7 +234,7 @@
       "p1": {}
     }
   },
-  "booksTotal": "共 {p0} 本书，总金额 {p1}。\n",
+  "booksTotal": "共 {p0} 本书，总金额 {p1} 代币。\n",
   "@booksTotal": {
     "placeholders": {
       "p0": {},
@@ -248,7 +247,7 @@
       "p0": {}
     }
   },
-  "orderPlacedSellerDropBookOff": "结算成功，请等待卖家存书",
+  "orderPlacedSellerDropBookOff": "请等待卖家存书",
   "cart": "购物车",
   "cartEmpty": "购物车内没有商品",
   "selectAll": "全选",
@@ -330,23 +329,15 @@
   "iQuestionAboutBook": "咨询书籍",
   "bookNoLongerListed": "此书籍已下架",
   "writeMessage": "输入消息…",
-  "enterOrderNumberDisputing": "请填写要申诉的订单编号",
+  "enterOrderNumberDisputing": "请填写要申请争议的订单编号",
   "describeDispute": "请填写争议说明",
   "useLeast10CharactersSoSupport": "争议说明至少需 10 个字",
   "submitDispute": "提交争议申请",
-  "orderEntersDisputeProcessPaymentSeller": "提交后此订单将进入申诉流程，款项将暂停拨付给卖家，直至客服裁决。",
-  "paymentHoldRequested": "[申请冻结款项] {p0}",
-  "@paymentHoldRequested": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
+  "orderEntersDisputeProcessPaymentSeller": "提交后此订单将进入争议处理流程，款项将暂停拨付给卖家，直至客服裁决。",
   "disputeSubmittedSupportContact": "争议申请已提交，客服将尽快与您联系",
   "dispute": "争议处理",
-  "requestPaymentHold": "申请冻结款项",
-  "submitDispute2": "提交争议申请",
   "orderNumber": "订单编号",
-  "eGSmb20260910123456789": "例如 SMB20260910123456789",
+  "eGSmb20260910123456789": "例如 SMB20260910143015123456",
   "whatHappened": "争议说明",
   "describeProblemEGConditionDoes": "请描述发生的问题",
   "submit": "提交申请",
@@ -371,7 +362,7 @@
   "bookUpdated": "书籍已更新",
   "editBook": "编辑书籍",
   "condition": "书况",
-  "customPrice": "自定价格",
+  "customPrice": "售价",
   "enterPrice2": "请输入售价",
   "lockerLocation": "存放区域",
   "chooseLocker": "请选择书柜",
@@ -399,7 +390,7 @@
   "changeDisplayName": "修改昵称",
   "enterDisplayName": "请输入昵称",
   "displayNameCannotBlank": "昵称不可空白",
-  "displayNames250Characters": "昵称长度需介于 2 ~ 50 个字符",
+  "displayNames250Characters": "昵称长度须为 2 至 50 个字符",
   "invalidPhoneNumberEG0912345678": "电话格式不正确，例：0912345678",
   "profileUpdated": "个人资料已更新",
   "editProfile": "编辑个人资料",
@@ -420,7 +411,6 @@
   "popular": "热门推荐",
   "priceLowHigh": "价格由低到高",
   "priceHighLow": "价格由高到低",
-  "reachedEnd": "已显示全部内容",
   "guest": "访客",
   "hi": "您好，{p0}",
   "@hi": {
@@ -459,7 +449,7 @@
   "emailAddressNotValid": "电子邮件格式不正确",
   "enterPassword": "请输入密码",
   "noAccountWithEmail": "此账号尚未注册",
-  "noAccountCreateOneNow": "找不到账号“{p0}”，是否立即注册？",
+  "noAccountCreateOneNow": "是否以“{p0}”注册新账号？",
   "@noAccountCreateOneNow": {
     "placeholders": {
       "p0": {}
@@ -569,22 +559,19 @@
   "seller": "卖家",
   "placed": "成立时间",
   "dispute2": "争议",
-  "orderOpenDispute": "此订单有进行中的申诉案件",
+  "orderOpenDispute": "此订单有处理中的争议案件",
   "cancelOrder": "取消订单",
-  "pendingPayoutDisappearsBuyerNotified": "取消后此笔待定收益将一并取消，并通知买家。",
+  "pendingPayoutDisappearsBuyerNotified": "取消后此笔待拨款项将一并取消，并通知买家。",
   "cancelledBySeller": "卖家取消",
   "orderCancelled2": "订单已取消",
-  "pendingPayouts": "待定收益",
+  "pendingPayouts": "待拨款项",
   "noPendingPayouts": "目前没有待拨款的订单",
-  "pendingAmount": "待定收益金额",
-  "coinsArriveOnceBuyerCollectsBook": "买家取书后自动拨款",
-  "scanned": "扫描成功",
-  "scanAgain": "继续扫描",
+  "pendingAmount": "待拨款金额",
+  "coinsArriveOnceBuyerCollectsBook": "买家完成订单或取书满 24 小时后拨款",
   "collectBook": "取书",
   "pointPickupQrCode": "请对准取书二维码",
-  "holdSteady": "请保持设备稳定",
   "bookCollected": "取书完成",
-  "collected": "《{p0}》已完成取书",
+  "collected": "《{p0}》",
   "@collected": {
     "placeholders": {
       "p0": {}
@@ -598,7 +585,6 @@
   },
   "signingOut": "退出登录中…",
   "myAccount": "会员中心",
-  "personNotWrittenBioYet": "尚未填写个人简介",
   "topTierReached": "已达最高等级",
   "morePointsReach": "再 {p0} 点升级为“{p1}”",
   "@morePointsReach": {
@@ -629,13 +615,10 @@
   "iReadAccept": "我已阅读并同意 ",
   "and": " 与 ",
   "createAccount": "创建账号",
-  "joinSavemybook": "注册账号",
   "displayName": "昵称",
-  "emailSignWith": "电子邮件",
   "least8CharactersWithLettersNumbers": "至少 8 位，需含英文与数字",
   "confirmPassword": "确认密码",
   "enterPasswordAgain2": "请再次输入密码",
-  "alreadyAccountGoBackSign": "已有账号？返回登录",
   "markAsDroppedOff": "完成存书",
   "droppedOff": "已放入书柜",
   "markedAsDroppedOff": "已标记为完成存书",
@@ -654,7 +637,7 @@
     }
   },
   "missingInformation": "资料不齐全",
-  "enterOwnPrice": "请输入自定价格。",
+  "enterOwnPrice": "请输入售价。",
   "invalidPrice": "价格不正确",
   "priceMustGreaterThan02": "售价必须大于 0。",
   "priceCannotExceed99999": "售价不可超过 99,999 代币。",
@@ -705,7 +688,7 @@
   "scanProfileQrCode": "扫描个人二维码",
   "lineUpTheirQrCodeWith": "将对方的二维码放入框内",
   "notSavemybookProfileQrCode": "此二维码并非救「舊」我的書的个人二维码",
-  "ownQrCode": "这是您的个人二维码",
+  "ownQrCode": "此为您本人的二维码",
   "couldNotStartChatPleaseTry": "无法创建聊天室，请稍后再试",
   "linkCopied": "已复制链接",
   "addMeSavemybook": "我的救「舊」我的書个人档案：{p0}",
@@ -722,7 +705,7 @@
     }
   },
   "sharingCouldNotOpenSoLink": "无法打开分享，已复制链接",
-  "savedPhotos": "已保存到相册",
+  "savedPhotos": "已保存至相册",
   "couldNotSaveCheckPhotoLibrary": "保存失败，请确认已允许相册权限",
   "scanTheirQrCode": "扫描对方的二维码",
   "copyLink": "复制链接",
@@ -790,7 +773,7 @@
   "takePhoto": "拍照",
   "chooseFromPhotos": "从相册选择",
   "couldNotOpenCameraCheckPermission": "无法打开相机，请确认已授权",
-  "justNow": "刚刚",
+  "justNow": "1 分钟内",
   "minAgo": "{p0} 分钟前",
   "@minAgo": {
     "placeholders": {
@@ -853,7 +836,6 @@
   "announcementTitle": "公告标题",
   "writeAnnouncement": "输入公告内容",
   "publishNow": "立即发布",
-  "leaveOffSaveAsDraft": "关闭时仅保存为草稿",
   "saveDraft": "保存草稿",
   "deleteAnnouncement": "删除公告",
   "deleteP0CannotUndone": "确定要删除“{p0}”吗？此操作无法撤销。",
@@ -868,7 +850,6 @@
   "noAnnouncementsYetTapAddOne": "暂无公告",
   "published": "已发布",
   "draft": "草稿",
-  "audienceEveryone": "对象：全体用户",
   "backUpNow": "立即备份",
   "wholeDatabaseExportedCompressedWithLot": "将导出整个数据库并压缩保存。数据量大时可能需要数十秒，期间请勿离开此界面。",
   "startBackup": "开始备份",
@@ -882,7 +863,7 @@
       "p0": {}
     }
   },
-  "olderBackupsBeyondCountRemovedAutomatically": "超出份数的旧备份将自动清除。备份文件含全站个人资料，下载后请妥善保管，每次下载均会记入操作记录。",
+  "olderBackupsBeyondCountRemovedAutomatically": "备份文件含全站个人资料，下载后请妥善保管，每次下载均会记入操作记录。",
   "noBackupsYetSchedulerRunsOnce": "暂无备份记录",
   "deleteBackup": "删除备份",
   "p0NNtheFileItsRecord": "{p0}\n\n文件与记录将一并移除，此操作无法恢复。",
@@ -1122,7 +1103,7 @@
       "p1": {}
     }
   },
-  "reasonP0": "申诉理由：{p0}",
+  "reasonP0": "争议说明：{p0}",
   "@reasonP0": {
     "placeholders": {
       "p0": {}
@@ -1131,8 +1112,8 @@
   "decisionNoteOptional": "裁决说明（选填）",
   "submitDecision": "提交裁决",
   "decisionRecorded": "已完成裁决",
-  "resolveDispute": "仲裁交易",
-  "noDisputesKind": "目前没有此类申诉案件",
+  "resolveDispute": "交易仲裁",
+  "noDisputesKind": "目前没有此类争议案件",
   "orderNumberP0": "订单编号：{p0}",
   "@orderNumberP0": {
     "placeholders": {
@@ -1146,7 +1127,7 @@
       "p1": {}
     }
   },
-  "filedByP0": "申诉人：{p0}",
+  "filedByP0": "申请人：{p0}",
   "@filedByP0": {
     "placeholders": {
       "p0": {}
@@ -1243,7 +1224,7 @@
       "p0": {}
     }
   },
-  "p0GainsAccessAdminAreaWith": "{p0} 将可进入管理后台，默认拥有全部权限，并可逐项调整。",
+  "p0GainsAccessAdminAreaWith": "{p0} 将可进入管理后台，默认开放“系统运维”以外的全部权限，并可逐项调整。",
   "@p0GainsAccessAdminAreaWith": {
     "placeholders": {
       "p0": {}
@@ -1311,8 +1292,7 @@
   "canSignUseAppNormally": "可正常登录使用",
   "suspendedSignedOutImmediatelyAfterSigning": "已停权，登录后将立即登出",
   "blocked": "列入黑名单",
-  "blockedNoFeaturesAvailable": "已封锁，无法使用任何功能",
-  "notBlocked": "未封锁",
+  "blockedNoFeaturesAvailable": "已列入黑名单，无法使用任何功能",
   "role": "身份",
   "p0PointsAutomaticP1P2": "{p0} 点（自动 {p1}{p2}）",
   "@p0PointsAutomaticP1P2": {
@@ -1322,14 +1302,13 @@
       "p2": {}
     }
   },
-  "memberSTierBeenAdjustedBy": "此会员的等级经人工调整，不完全按交易自动计算。",
   "adjustTier": "调整等级",
   "adminPermissions": "后台权限",
-  "all": "全开",
-  "allOff": "全关",
+  "all": "全部开放",
+  "allOff": "全部收回",
   "reinstateAccount2": "恢复账号",
   "suspendAccount2": "停权账号",
-  "runP1P0": "确定要对“{p0}”执行“{p1}”吗？",
+  "runP1P0": "确定要对“{p0}”执行“{p1}”？",
   "@runP1P0": {
     "placeholders": {
       "p0": {},
@@ -1342,7 +1321,6 @@
       "p0": {}
     }
   },
-  "fullSettingsTierPermissions": "完整设置（等级、权限）",
   "members3": "会员列表",
   "searchDisplayNameEmail": "搜索昵称或电子邮件",
   "noMembersMatch": "找不到符合条件的会员",
@@ -1396,7 +1374,7 @@
       "p1": {}
     }
   },
-  "reasonP02": "违规原因：{p0}",
+  "reasonP02": "检举原因：{p0}",
   "@reasonP02": {
     "placeholders": {
       "p0": {}
@@ -1473,7 +1451,7 @@
   "hold2": "冻结中",
   "total2": "累计收入",
   "totalOut": "累计支出",
-  "balanceP0": "余 {p0}",
+  "balanceP0": "余额 {p0}",
   "@balanceP0": {
     "placeholders": {
       "p0": {}
@@ -1485,14 +1463,14 @@
   "reportReview": "举报审核",
   "handleListingReports2": "处理商品举报",
   "lookUpChangeOrderStatus": "查询与调整订单状态",
-  "decideDisputeCases": "申诉案件裁决",
+  "decideDisputeCases": "争议案件裁决",
   "checkAdjustCoinBalances": "查询与增减代币",
   "hardware": "硬件维护",
   "lockersSlots": "书柜与柜位",
   "announcementsDocuments": "公告与文件",
   "announcementsFaqLegalDocuments": "公告、常见问题、法律文件",
   "replyUserQuestions": "回复用户问题",
-  "databaseBackupDownloadOffByDefault": "数据库备份与下载，默认关闭",
+  "databaseBackupDownloadOffByDefault": "数据库备份与下载",
   "p0Locker": "{p0}书柜",
   "@p0Locker": {
     "placeholders": {
@@ -1518,7 +1496,7 @@
   "titleRequired": "书名必填",
   "nothingChanged": "没有变更",
   "resetPassword": "重置密码",
-  "p0SCurrentPasswordStopsWorking": "{p0} 当前的密码将立即失效，须改用系统生成的临时密码登录。\n\n临时密码由系统生成，无法自行指定。",
+  "p0SCurrentPasswordStopsWorking": "{p0} 当前的密码将立即失效，须改用系统生成的临时密码登录。",
   "@p0SCurrentPasswordStopsWorking": {
     "placeholders": {
       "p0": {}
@@ -1532,11 +1510,11 @@
       "p0": {}
     }
   },
-  "remindThemChangeSettingsChangePassword": "请提醒对方登录后立即至「设置 › 更改密码」修改密码。",
+  "remindThemChangeSettingsChangePassword": "请通知该会员登录后立即至「设置 › 更改密码」修改密码。",
   "temporaryPasswordCopied": "已复制临时密码",
   "copy": "复制",
   "cannotResetAnotherAdminSPassword": "无法重置其他管理员的密码",
-  "generateTemporaryPasswordHandOver": "生成一组临时密码交给用户",
+  "generateTemporaryPasswordHandOver": "生成临时密码供该会员登录",
   "orderNumberCopied": "已复制订单编号",
   "orderNotFound": "找不到此订单",
   "paidWithCoins": "代币支付",
@@ -1549,7 +1527,7 @@
   "bookDeleted": "（书籍已删除）",
   "notAssignedYet2": "尚未指派",
   "walletActivity": "钱包变动",
-  "balanceP02": "余 {p0}",
+  "balanceP02": "余额 {p0}",
   "@balanceP02": {
     "placeholders": {
       "p0": {}
@@ -1568,7 +1546,7 @@
       "p0": {}
     }
   },
-  "disputes": "申诉",
+  "disputes": "争议",
   "filedP0": "申请于 {p0}",
   "@filedP0": {
     "placeholders": {
@@ -1577,12 +1555,6 @@
   },
   "decidedP0": "裁决于 {p0}",
   "@decidedP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "createdP0": "创建于 {p0}",
-  "@createdP0": {
     "placeholders": {
       "p0": {}
     }
@@ -1618,9 +1590,9 @@
   "lookingUpBook": "正在查询书籍资料",
   "scan": "扫描",
   "buyerSPaymentGoesBackTheir": "买家支付的款项将退回钱包；若卖家已收到货款，将先行收回。",
-  "orderReturnsWhereWasBeforeDispute": "订单将恢复至申诉前的状态并继续交易；若先前已完成取书，货款将拨付给卖家。",
+  "orderReturnsWhereWasBeforeDispute": "订单将恢复至申请争议前的状态并继续交易；若先前已完成取书，货款将拨付给卖家。",
   "orderWasAlreadyRefundedBuyerCannot": "此订单款项已退回买家，无法改回进行中或已完成",
-  "completedOrderCanOnlyChangedRefund": "已完成的订单只能改为“退款处理中”或“已退款”",
+  "completedOrderCanOnlyChangedRefund": "已完成的订单仅能改为“审核中”或“已退款”",
   "confirmingPaysP0TokensSellerMarks": "确认后将拨付 {p0} 代币给卖家，并将书籍标记为已售出。",
   "@confirmingPaysP0TokensSellerMarks": {
     "placeholders": {
@@ -1646,7 +1618,7 @@
   "sendTestNotification": "发送测试通知",
   "arrives10SecondsGoHomeScreen": "将于 10 秒后送达，发送后请返回主屏幕或锁定手机",
   "systemNotificationSettings": "系统通知设置",
-  "pushNotificationsNotSetUpBuild": "此版本的 App 尚未设置推送，请加入 Firebase 配置文件后重新编译。",
+  "pushNotificationsNotSetUpBuild": "此版本的 App 未启用推送通知。",
   "notificationsTurnedOffAllowAppSend": "通知权限已关闭，请前往系统设置允许此 App 发送通知。",
   "restoreBackup": "确定要还原至此备份？",
   "wholeDatabaseGoBackP0Orders": "整个数据库将还原至 {p0} 的状态，此时间点之后的订单、消息、会员资料与操作记录将全部清除。\n\n还原前系统将自动备份当前状态，如有需要可再还原该备份。还原期间全站暂停服务，通常需要数十秒至数分钟。\n\n请输入您的登录密码以确认：",
@@ -1696,7 +1668,6 @@
   },
   "undo": "还原",
   "undone": "已还原",
-  "searchActionsEGNicknameBook": "搜索操作内容，例如会员昵称或书名",
   "viewP0Changes": "查看 {p0} 项变更",
   "@viewP0Changes": {
     "placeholders": {
@@ -1805,7 +1776,6 @@
       "p0": {}
     }
   },
-  "amountUp2Decimals": "金额（最多两位小数）",
   "p0NbalanceAfterP1": "{p0}\n调整后余额 {p1}",
   "@p0NbalanceAfterP1": {
     "placeholders": {
@@ -1836,7 +1806,6 @@
       "p0": {}
     }
   },
-  "checkOutBeforeHoldEndsOther": "请于保留期限内完成结账",
   "copyAddress": "复制地址",
   "p0Away": "距离 {p0}",
   "@p0Away": {
@@ -1893,12 +1862,6 @@
   "keepBrowsing": "继续浏览",
   "reload": "重新加载",
   "browseBooks": "浏览书籍",
-  "p0Sellers": "{p0} 位卖家",
-  "@p0Sellers": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "unavailableP0": "无法购买（{p0}）",
   "@unavailableP0": {
     "placeholders": {
@@ -1962,7 +1925,6 @@
   "couldnTLoadConversationPleaseTry": "无法加载对话，请稍后再试",
   "accountCanTReceiveMessagesRight": "对方账号目前无法接收消息",
   "holdMicTalkReleaseSend": "录音时间过短",
-  "startConversation": "对话开始",
   "p0New": "{p0} 条新消息",
   "@p0New": {
     "placeholders": {
@@ -2002,7 +1964,6 @@
   "pleasePutBookAssignedLockerSoon": "请尽快将书籍存入指定书柜",
   "weLlLetKnowWhenSeller": "卖家存书后将通知您前往取书",
   "waitingBuyerCollect": "等待买家至书柜取书",
-  "transactionCompleteThank": "交易完成",
   "confirmVeTakenBookFromLocker": "请确认已从书柜取出书籍。确认书况无误后，请在购买记录中完成订单。",
   "p0Orders2": "共 {p0} 笔订单",
   "@p0Orders2": {
@@ -2050,7 +2011,7 @@
       "p0": {}
     }
   },
-  "noOtherDevicesSigned": "没有其他设备登录您的账号",
+  "noOtherDevicesSigned": "目前无其他设备登录",
   "signedDevices": "登录设备",
   "activeNow": "当前使用中",
   "lastActiveP0": "最后使用 {p0}",
@@ -2076,16 +2037,9 @@
   "verifyingIdentity": "正在确认身份…",
   "enterAgainConfirm": "请再次输入以确认",
   "set6DigitPaymentPin": "设置 6 位数交易密码",
-  "enterSamePinAgain": "请再次输入相同密码",
   "avoidRepeatedSequentialPatternedDigits": "不可使用相同、连续或重复的数字",
   "resetPaymentPin": "重设交易密码",
   "paymentPin": "交易密码",
-  "stepP02": "步骤 {p0} / 2",
-  "@stepP02": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "setPaymentPinFirst": "请先设置交易密码",
   "setPaymentPinFirstSoFallback": "请先设置交易密码，作为识别失败时的备用验证方式",
   "setUpNow": "立即设置",
@@ -2106,7 +2060,6 @@
   },
   "accountWellProtected": "账号安全状态良好",
   "accountCouldSafer": "账号安全性有待加强",
-  "setPaymentPinTurnBiometricPayment": "尚未设置交易密码",
   "tooManyAttemptsLockedUntilP0": "错误次数过多，已锁定至 {p0}",
   "@tooManyAttemptsLockedUntilP0": {
     "placeholders": {
@@ -2125,7 +2078,7 @@
   "restoredUnfinishedListing": "已带入上次未完成的内容",
   "isbnSCheckDigitInvalidPlease": "此 ISBN 校验码不正确，请再次确认",
   "draftSavedAutomatically": "已自动保存草稿",
-  "continueUnfinishedListing": "继续上次未完成的刊登",
+  "continueUnfinishedListing": "继续上次未完成的上架",
   "clearedP0MbCache": "已清除 {p0} MB 缓存",
   "@clearedP0MbCache": {
     "placeholders": {
@@ -2166,20 +2119,6 @@
   },
   "p0Km": "{p0} 公里",
   "@p0Km": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "iphoneDidnTReceiveApnsToken": "设备未取得 Apple 推送凭证（APNs token）。请确认 Xcode 的 Signing & Capabilities 已加入 Push Notifications，并使用同一个 Apple 开发者账号重新安装 App。",
-  "firebaseDidnTIssuePushToken": "Firebase 未签发推送 token，请确认 GoogleService-Info.plist 与 App 的 Bundle ID 一致",
-  "couldnTGetPushTokenP0": "获取推送 token 失败：{p0}",
-  "@couldnTGetPushTokenP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "couldnTRegisterPushTokenWith": "推送 token 上传服务器失败：{p0}",
-  "@couldnTRegisterPushTokenWith": {
     "placeholders": {
       "p0": {}
     }
@@ -2283,31 +2222,15 @@
       "p1": {}
     }
   },
-  "buildSProvisioningProfileDoesnT": "此安装版本的签名描述文件未包含推送权限。请在 Xcode 的 Runner › Signing & Capabilities 确认已加入 Push Notifications，并删除 App 后重新安装。",
-  "checkPhoneOnlinePushNotificationsAdded": "请确认设备已连接网络，并在 Xcode 的 Runner › Signing & Capabilities 确认已加入 Push Notifications。",
-  "iphoneFailedRegisterPushNotificationsWith": "iPhone 向 Apple 注册推送失败：{p0}\n{p1}",
-  "@iphoneFailedRegisterPushNotificationsWith": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "serverNotBeenUpdatedSupportFeature": "此功能暂时无法使用，请稍后再试",
   "someFeaturesTemporarilyUnavailableWhileServer": "部分功能暂时无法使用",
-  "serverRunningOutdatedApiRevisionP0": "服务器运行的 API 版本过旧（当前 {p0}，App 需要 {p1}）。请在服务器更新代码并重新启动 API。",
+  "serverRunningOutdatedApiRevisionP0": "服务器 API 版本过旧（当前 {p0}，需要 {p1}）。",
   "@serverRunningOutdatedApiRevisionP0": {
     "placeholders": {
       "p0": {},
       "p1": {}
     }
   },
-  "serverVersionP0": "服务器当前版本：{p0}",
-  "@serverVersionP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "runNpmRunVerifyApiDirectory": "在服务器的 API 目录执行 npm run verify 可检查完整的部署状态。",
   "serverUpdateRequired": "服务器需要更新",
   "versionP0": "第 {p0} 版",
   "@versionP0": {
@@ -2495,7 +2418,7 @@
   "unreadMessages": "以下为未读消息",
   "selectChat": "请选择聊天室",
   "appPermissions": "App 权限",
-  "noPermissionsRequiredDevice": "此设备没有需要授权的项目",
+  "noPermissionsRequiredDevice": "此设备无须授权任何项目",
   "allowAll": "全部允许",
   "camera": "相机",
   "photosRead": "相册（读取）",
@@ -3023,7 +2946,7 @@
   "fillWithAi": "AI 带入",
   "summary": "简介",
   "lookingUpBookDetails": "查询书籍资料",
-  "searchingWeb": "联网搜索补充资料",
+  "searchingWeb": "搜索网络资料",
   "analyzingPhotos": "分析照片",
   "suggestingCategoryConditionPrice": "判断分类、书况与售价",
   "couldNotGetAiSuggestions": "无法获取 AI 建议",
@@ -3086,7 +3009,7 @@
   "aiDataProcessingEnabled": "已同意 AI 数据处理",
   "aiDataProcessingTurnedOff": "已停止 AI 数据处理",
   "aiDataProcessing": "AI 数据处理",
-  "isbnTitleConditionNotesPhotosSelect": "ISBN、书名、书况说明与您选择的照片",
+  "isbnTitleConditionNotesPhotosSelect": "ISBN、书名、书况说明、您选择的照片，以及您填写的作者、出版社、出版日期、分类与定价",
   "aiDataProcessing2": "AI 数据处理说明",
   "whenUseAiFeaturesWeShare": "使用 AI 功能时，我们会将下列数据提供给第三方 AI 服务商处理。",
   "dataShared": "提供的数据",
@@ -3106,12 +3029,10 @@
   "programmingBooksBeginners": "适合入门的程序设计书",
   "booksUnder200Coins": "200 代币以内的书籍",
   "popularLiteraryFictionRightNow": "最近热门的文学小说",
-  "tellMeWhatBookLooking": "请描述您想找的书籍",
   "describeBookLooking": "描述您想找的书籍",
-  "tellMeWhatWantReadI": "依您的需求推荐书籍",
   "subtitle": "副标题",
-  "monthOnly": "仅确认到月",
-  "yearOnly": "仅确认到年",
+  "monthOnly": "仅精确至月",
+  "yearOnly": "仅精确至年",
   "msg": "繁體中文",
   "additionalInformation": "其他信息",
   "readFull": "展开全文",
@@ -3154,13 +3075,11 @@
   "couldNotSendCodePleaseTry": "无法发送验证码，请稍后再试",
   "linkMobileNumber": "绑定手机号码",
   "signWithMobileNumber": "手机号码登录",
-  "k6DigitCodeSentNumberMessage": "将发送 6 位数验证码至此手机号码。",
   "mobileNumber": "手机号码",
   "sendCode": "发送验证码",
   "codeIncorrectPleaseEnterAgain": "验证码不正确，请重新输入",
   "codeBeenSentAgain": "已重新发送验证码",
   "enterCode": "输入验证码",
-  "enterSmsCode": "输入短信验证码",
   "codeWasSentP0": "验证码已发送至 {p0}",
   "@codeWasSentP0": {
     "placeholders": {
@@ -3175,7 +3094,6 @@
   },
   "resendCode": "重新发送验证码",
   "completeAccountDetails": "完成账号资料",
-  "p0DidNotProvideEmailAddress": "请填写电子邮件以完成注册。",
   "signWithP0": "以 {p0} 登录",
   "@signWithP0": {
     "placeholders": {
@@ -3214,7 +3132,7 @@
     }
   },
   "socialSmsSignNotAvailableRight": "目前未开放社交与短信登录方式。",
-  "noSignMethodAvailableLink": "目前没有可绑定的登录方式。",
+  "noSignMethodAvailableLink": "目前无可绑定的登录方式。",
   "noPasswordSet": "尚未设置密码",
   "linkedP0": "{p0} 绑定",
   "@linkedP0": {
@@ -3247,7 +3165,6 @@
   "smsVerificationNotSetUpDevice": "此设备目前无法使用短信验证，请改用其他登录方式",
   "couldNotCompleteSmsVerificationPlease": "无法完成短信验证，请稍后再试",
   "allowSigningLinkingWithMethod": "开放此方式登录与绑定",
-  "appNeverStoresPasswordUsedOnly": "本 App 不会储存您的密码，仅用于本次验证。",
   "verifyWithBiometricsInstead": "改用生物识别验证",
   "accountWasCreatedWithSocialPhone": "此账号尚未设置登录密码，请先完成设置。",
   "setSignPassword": "前往设定登入密码",
@@ -3260,22 +3177,9 @@
     }
   },
   "masterSwitchOffSoEveryMethod": "总开关关闭，所有方式一律停用",
-  "signLinkingDirectSignUpAllowed": "可登录、绑定与直接注册",
-  "credentialsNotSetPleaseConfigureP0": "尚未设置凭证，请于服务器设置 {p0}",
-  "@credentialsNotSetPleaseConfigureP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "whenOffMethodHiddenFromSign": "关闭后登录页与账号安全将不显示此方式",
   "whenOffOnlyAccountsAlreadyLinked": "关闭后仅限已绑定的账号使用此方式",
   "signMethodNotLinkedAccount": "此登录方式尚未绑定账号",
-  "p0AccountNotLinkedAnySavemybook": "{p0} 账号尚未绑定救「舊」我的書账号。",
-  "@p0AccountNotLinkedAnySavemybook": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "iAlreadyAccountSignFirst": "登录已有账号并绑定",
   "createNewAccountWithIdentity": "创建新账号",
   "signExistingAccountFirstThenLink": "请先登录原有账号，再至「账号安全 › 登录方式」绑定 {p0}。",
@@ -3288,13 +3192,12 @@
   "verifyIdentityWithPasskeyContinue": "请使用通行密钥验证身分以继续",
   "verifyWithPasskeyInstead": "改用通行密钥验证",
   "passkeys": "通行密钥",
-  "verifyWithFaceIdFingerprintScreen": "以此装置的 Face ID、指纹或屏幕锁定完成验证，不必输入密码。",
   "verifyWithPasskey": "使用通行密钥验证",
   "useSignPasswordInstead": "改用登入密码验证",
   "signWithPasskey": "使用通行密钥登入",
   "passkeyAdded": "已新增通行密钥",
   "screenLock": "屏幕锁定",
-  "fromNowCanSignVerifyIdentity": "之后登入与验证身分可改用 {p0}，不必再输入密码。",
+  "fromNowCanSignVerifyIdentity": "日后登入与验证身分可使用 {p0}，无须输入密码。",
   "@fromNowCanSignVerifyIdentity": {
     "placeholders": {
       "p0": {}
@@ -3303,7 +3206,7 @@
   "deletePasskey": "删除通行密钥",
   "noLongerAbleSignVerifyIdentity": "删除后将无法以此通行密钥登入或验证身分。若装置中仍保留此通行密钥，可至系统的密码设定中删除。",
   "passkeyDeleted": "已删除通行密钥",
-  "signVerifyIdentityWithFaceId": "以 Face ID、指纹或屏幕锁定登入与验证身分，不必输入密码。通行密钥只储存在您的装置与密码管理工具中。",
+  "signVerifyIdentityWithFaceId": "以 Face ID、指纹或屏幕锁定登入与验证身分，无须输入密码。",
   "addPasskey": "新增通行密钥",
   "notUsedYet": "尚未使用",
   "lastUsedFormatdateItemLastusedat": "最后使用 {p0}",
@@ -3377,7 +3280,7 @@
   "imagesStillUploadingPleaseWaitBefore": "图片上传中，请稍候再发送",
   "someImagesFailedUploadRetryRemove": "部分图片上传失败，请重试或移除后再发送",
   "attachImages": "附加图片",
-  "imageCouldNotRead": "无法读取这张图片",
+  "imageCouldNotRead": "无法读取此图片",
   "up4ImagesPerMessage": "每条消息最多附加 4 张图片",
   "retryUploadingImageP0": "重试上传图片 {p0}",
   "@retryUploadingImageP0": {
@@ -3404,7 +3307,7 @@
   "tierBenefits": "等级福利",
   "oneBenefitPerLine": "每行一项福利",
   "newTier2": "新等级",
-  "whatMembersSee": "会员看到的样式",
+  "whatMembersSee": "会员端预览",
   "noThresholdSet": "尚未设置门槛",
   "tierOrder": "等级顺序",
   "noBenefitsSet": "尚未设置福利",
@@ -3440,12 +3343,6 @@
     }
   },
   "tierOrderUpdated": "已更新等级顺序",
-  "p0Members": "{p0} 位会员",
-  "@p0Members": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "tiers": "个等级",
   "members4": "位会员",
   "memberDistribution": "会员分布",
@@ -3495,14 +3392,14 @@
       "p0": {}
     }
   },
-  "signLinkNameCanThenSign": "登入后即绑定 {p0}，之后可直接使用 {p1} 登入。",
+  "signLinkNameCanThenSign": "登入后即绑定 {p0}，日后可使用 {p1} 登入。",
   "@signLinkNameCanThenSign": {
     "placeholders": {
       "p0": {},
       "p1": {}
     }
   },
-  "noPasskeyDevice": "此装置没有可用的通行密钥",
+  "noPasskeyDevice": "此装置无可用的通行密钥",
   "signWithPasskeyAnotherDeviceSecurity": "可使用其他装置上的通行密钥或安全密钥登入，或改用密码。",
   "useAnotherDevice": "使用其他装置",
   "usePassword": "改用密码",
@@ -3560,11 +3457,11 @@
   "hybridSearchKeywordSemantic": "混合检索（关键词＋语义）",
   "keywordSearchOnly": "仅关键词检索",
   "paymentReleasedWalletWhenBuyerCompletes": "买家完成订单或取书满 24 小时后，款项将拨入您的钱包",
-  "completeOrderAfterCheckingBookCompletes": "确认书况无误后请完成订单，取书满 24 小时未申诉将自动完成",
+  "completeOrderAfterCheckingBookCompletes": "确认书况无误后请完成订单，取书满 24 小时未申请争议将自动完成",
   "completeOrder": "完成订单",
   "onceCompleteOrderPaymentReleasedSeller": "完成订单后，款项将拨给卖家，且无法再申请争议。",
   "orderCompleted2": "订单已完成",
-  "noReservedBooks": "目前没有预订的书籍",
+  "noReservedBooks": "目前没有预约的书籍",
   "heldUntilP02": "保留至 {p0}",
   "@heldUntilP02": {
     "placeholders": {
@@ -3603,7 +3500,7 @@
   },
   "aiSummary": "AI 整理",
   "autoFilled": "自动补齐",
-  "similarBooks": "相似的书",
+  "similarBooks": "相似书籍",
   "doNotPayTransferMoneyOutside": "请勿私下汇款或转账，站外付款不受平台保障",
   "pleaseCompleteDealAppWeCannot": "请通过平台交易，站外交易发生纠纷时平台无法协助",
   "personSharedOutsideContactDetailsWatch": "对方提供了站外联系方式，请留意诈骗并通过平台完成交易",
@@ -3644,7 +3541,7 @@
   "chatHighRiskMessagesDoNot": "此聊天室有高风险消息，请勿提供验证码或私下付款",
   "payEveryDealAppUseSmart": "所有交易请在平台内付款，并通过智能书柜取放书",
   "weOurSupportTeamNeverAsk": "平台与客服不会通过聊天要求您提供验证码、密码或卡片资料",
-  "doNotOpenUnknownShortLinks": "请勿点击来路不明的短网址，也不要依对方指示操作网上银行或 ATM",
+  "doNotOpenUnknownShortLinks": "请勿点击来源不明的短网址，亦勿依对方指示操作网上银行或 ATM",
   "cancelInstallmentsAccountFrozenPaymentVerification": "“解除分期”“账户冻结”“金流认证”“购买游戏点数”皆为常见诈骗话术",
   "ifSeeSuspiciousMessageReportAdministrator": "发现可疑消息请按举报，管理员将协助处理",
   "confirmSending": "确认发送",
@@ -3653,17 +3550,16 @@
   "editMessage2": "返回修改",
   "suspectedScamMessage": "疑似诈骗消息",
   "listed3": "上架日期",
-  "someDetailsWereFilledAutomaticallyFrom": "部分资料依 ISBN 书目自动补齐",
   "summarizedByAiFromBookRecords": "由 AI 依书目整理",
   "filledFromIsbnRecord": "依 ISBN 书目补齐",
   "aboutBook": "内容简介",
-  "becauseBoughtP0": "因为您买过《{p0}》",
+  "becauseBoughtP0": "与已购买的《{p0}》相关",
   "@becauseBoughtP0": {
     "placeholders": {
       "p0": {}
     }
   },
-  "becauseSavedP0": "因为您收藏了《{p0}》",
+  "becauseSavedP0": "与已收藏的《{p0}》相关",
   "@becauseSavedP0": {
     "placeholders": {
       "p0": {}
@@ -3675,13 +3571,13 @@
       "p0": {}
     }
   },
-  "becauseViewedP0": "因为您看过《{p0}》",
+  "becauseViewedP0": "与浏览过的《{p0}》相关",
   "@becauseViewedP0": {
     "placeholders": {
       "p0": {}
     }
   },
-  "moreP0CategoryBrowseOften": "您常看的“{p0}”",
+  "moreP0CategoryBrowseOften": "“{p0}”类别推荐",
   "@moreP0CategoryBrowseOften": {
     "placeholders": {
       "p0": {}
@@ -3722,14 +3618,6 @@
       "p0": {}
     }
   },
-  "confirmP0BeenPlacedP1Once": "请确认已将《{p0}》放入“{p1}”。登记后，买家下单即可直接取书。",
-  "@confirmP0BeenPlacedP1Once": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
-  "dropOffRegistered": "已登记存书",
   "confirmRetrievedP1FromP0": "请确认已自“{p0}”取回《{p1}》。",
   "@confirmRetrievedP1FromP0": {
     "placeholders": {
@@ -3737,8 +3625,6 @@
       "p1": {}
     }
   },
-  "retrievalReportedBookBackSale": "已回报取回，书籍已恢复上架",
-  "retrievalReported": "已回报取回",
   "allLockers": "全部书柜",
   "lockerCannotChangedWhileBookStored": "存书期间无法变更书柜",
   "removedFromShopDepositedRetrieveBeforeRelisting": "取消上架后，《{p0}》将不再在商城显示，买家将无法浏览。由于此书存放于书柜中，须先取回书籍并回报，才能重新上架。",
@@ -3747,7 +3633,7 @@
       "p0": {}
     }
   },
-  "orderPlacedBookLockerReadyPickup": "结算成功，书籍已在书柜，可立即取书",
+  "orderPlacedBookLockerReadyPickup": "书籍已在书柜，可立即取书",
   "confirmStaffRemovedBookFromLocker": "请确认人员已自“{p0}”取出《{p1}》。",
   "@confirmStaffRemovedBookFromLocker": {
     "placeholders": {
@@ -3810,7 +3696,7 @@
   "turnOffAiDataProcessing": "关闭 AI 数据处理",
   "aiFeaturesStopAiSupportBook": "关闭后将停止使用 AI 功能，并删除您的 AI 客服与书籍顾问对话记录，且无法恢复。",
   "turnOff": "确认关闭",
-  "messagesConversationHistoryEnterPlusOwn": "您输入的消息与对话内容，以及您本人的订单、预约、上架书籍（含审核原因）、钱包余额与最近的客服工单",
+  "messagesConversationHistoryEnterPlusOwn": "您输入的消息与对话内容，以及您本人的订单（含存书、取书与完成时间）、预约、上架书籍（含审核原因）、交易争议的处理状态与结果、钱包余额与最近收支、最近的客服工单",
   "requestsConversationHistoryEnter": "您输入的需求与对话内容",
   "bookDetailsFromSavedItemsPurchase": "您的收藏、购买记录、购物车与最近浏览中的书籍信息",
   "aiDataProcessingNoticeBeenUpdated": "AI 数据处理说明已更新，请重新阅读并同意。",
@@ -3822,9 +3708,632 @@
   },
   "usedOnlyGenerateSupportRepliesRecommend": "仅用于生成客服回复、推荐与检索书籍、整理上架数据，不会用于广告或追踪。",
   "retentionPeriod": "保存期限",
-  "aiSupportBookAdvisorConversationsKept": "AI 客服与书籍顾问的对话记录自最后一次对话起保存 90 天，期满自动删除。",
+  "aiSupportBookAdvisorConversationsKept": "AI 客服与书籍顾问的对话记录（含您对回复的评价）自最后一次对话起保存 90 天，期满自动删除；AI 功能的处理记录保存 90 天，不含对话内容与照片。",
   "canTurnOffAiDataProcessing": "您可随时于「设置 › 账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据，并删除 AI 客服与书籍顾问的对话记录。",
   "usersMustAlsoAgreeAiData": "用户亦须重新同意 AI 数据处理，才能继续使用 AI 功能。",
   "consentRequiredAgain": "须重新同意",
-  "aiBookAdvisorUsageCountedBy": "AI 书籍顾问的次数以用户发送的消息数计算。"
+  "aiBookAdvisorUsageCountedBy": "AI 书籍顾问的次数以用户发送的消息数计算。",
+  "noObviousIssuesFound": "未发现明显问题",
+  "aiAssessmentP0": "AI 判定：{p0}",
+  "@aiAssessmentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reservedModerationAdminTools": "审核与管理辅助保留（%）",
+  "memberFeaturesCanUseP0Budget": "会员功能可用预算的 {p0}%",
+  "@memberFeaturesCanUseP0Budget": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "memberFeatureCapP0": "会员功能上限 {p0}",
+  "@memberFeatureCapP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ListingsSaleNotReviewedOver": "{p0} 本在售书籍超过 1 小时未完成审核",
+  "@p0ListingsSaleNotReviewedOver": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "backupProvider": "备援服务商",
+  "none": "不使用",
+  "sameAsCurrentProvider": "与目前使用的服务商相同",
+  "sameAsCurrentProviderSoNo": "与目前使用的服务商相同，不会启用备援",
+  "outcomes": "处理结果",
+  "processingPaths": "处理路径",
+  "indicators": "指标",
+  "promptVersions": "提示词版本",
+  "embeddingCostsBySource": "向量费用归属",
+  "succeeded": "成功",
+  "repaired": "修复后采用",
+  "degraded": "降级处理",
+  "emptyAfterCleanup": "清理后为空",
+  "refusedByProvider": "遭服务商拒绝",
+  "scanLockerQrCode": "扫描书柜 QR Code",
+  "flashlight": "手电筒",
+  "pasteQrContent": "粘贴 QR 内容",
+  "pointQrCodeLockerScreen": "请对准书柜屏幕上的 QR Code",
+  "checkingLocker": "正在确认书柜",
+  "confirmLockerTask": "确认书柜作业",
+  "retrieveBooks": "取回书籍",
+  "booksSameDoorRetrievedTogether": "同一柜门的书籍将一并取回",
+  "confirmWithinP0": "请于 {p0} 内确认",
+  "@confirmWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "openDoor": "开启柜门",
+  "openingDoor": "柜门开启中",
+  "placeTheseBooksDoorP0": "请将下列书籍放入柜门 {p0}",
+  "@placeTheseBooksDoorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "takeBooksFromDoorP0": "请取出柜门 {p0} 内的书籍",
+  "@takeBooksFromDoorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "retrieveBooksFromDoorP0": "请取回柜门 {p0} 内的书籍",
+  "@retrieveBooksFromDoorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "rescan": "重新扫描",
+  "openMap": "打开地图",
+  "reportManually": "改为手动回报",
+  "continueTask": "继续作业",
+  "cancelTask": "取消作业",
+  "reportSubmittedTakesEffectAfterSupport": "已提交手动回报，待客服确认后生效",
+  "manualReportAwaitingConfirmation": "手动回报待客服确认",
+  "onceDelistedP0NoLongerAppear": "取消上架后，《{p0}》将不再在商城显示。此书存放于书柜中，须先至书柜以 App 扫描 QR Code 取回书籍，方可重新上架。",
+  "@onceDelistedP0NoLongerAppear": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerDevice": "书柜装置",
+  "deviceId": "装置编号",
+  "deviceType": "装置种类",
+  "firmware": "固件版本",
+  "lastSeen": "最后连线",
+  "pairingTime": "配对时间",
+  "doorSensors": "门磁传感器",
+  "installed": "已安装",
+  "notInstalled": "未安装",
+  "numberDoors": "柜门数",
+  "simulatorUrl": "模拟书柜网址",
+  "revokeDevice": "撤销装置",
+  "onceRevokedDeviceCanNoLonger": "撤销后，此装置将无法再操作“{p0}”，书柜将改为手动回报。",
+  "@onceRevokedDeviceCanNoLonger": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "faultP0": "故障：{p0}",
+  "@faultP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "clearFault": "清除故障",
+  "faultCleared": "已清除故障",
+  "doors": "柜门",
+  "noContentsRecorded": "无存放记录",
+  "openDoorRemotely": "远程开启柜门",
+  "openingReason": "开启原因",
+  "describeReasonRecordedOperationLog": "请说明开启原因，将记录于操作记录",
+  "openCommandSent": "已发送开门指令",
+  "staffRetrievalOverdueBooks": "派员取出逾期存放的书籍",
+  "openWithoutNumberConfirmation": "不经数字确认直接开启",
+  "onlyDoorsWithNoRecordedContents": "仅限无存放记录的柜门，供测试电磁锁使用。柜门将在无人确认的情况下开启。",
+  "contentsNeedChecking": "待确认存放内容",
+  "confirmContents": "确认内容无误",
+  "contentsConfirmed": "已确认存放内容",
+  "booksMayInside": "可能存放的书籍",
+  "recordContents": "登记存放内容",
+  "selectItemsActuallyStoredDoor": "请选择实际存放于此柜门的项目",
+  "clearContentsRecord": "清空存放记录",
+  "booksRemoved": "书籍已取出",
+  "correctRecordOnly": "仅更正记录",
+  "confirmStaffRemovedBooksFromDoor": "请确认已由人员自柜门 {p0} 取出书籍。存书登记将删除，书籍改为下架，并通知卖家。",
+  "@confirmStaffRemovedBooksFromDoor": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmTheseBooksNotActuallyDoor": "请确认柜门 {p0} 内实际没有这些书籍。仅删除柜门记录，不变更订单或存书状态。",
+  "@confirmTheseBooksNotActuallyDoor": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "describeReasonClearing": "请说明清空原因",
+  "itemsWithoutDoorRecord": "未登记柜门的项目",
+  "tasksConfirm": "待确认作业",
+  "markAsCompleted": "确认已完成",
+  "markAsNotCompleted": "确认未完成",
+  "resolutionNote": "处理说明",
+  "ordersDropOffsUpdatedAccordingTask": "将依作业内容更新订单与存书状态",
+  "ordersDropOffsStayUnchanged": "订单与存书状态维持不变",
+  "recentTasks": "最近作业",
+  "taskDetails": "作业详情",
+  "noTasksYet": "尚无作业记录",
+  "eventLog": "事件记录",
+  "noEventsYet": "尚无事件记录",
+  "closedBy": "关门方式",
+  "itemsConfirmed": "确认项目",
+  "taskItems": "作业项目",
+  "resolutionRecord": "处理记录",
+  "taskProgressP0": "进行中作业：{p0}",
+  "@taskProgressP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "checkContentsDoorP0": "请确认柜门 {p0} 的存放内容",
+  "@checkContentsDoorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "manualReportsConfirm": "待确认手动回报",
+  "confirmReport": "确认回报",
+  "rejectReport": "驳回回报",
+  "manualReportConfirmed": "已确认手动回报",
+  "manualReportRejected": "已驳回手动回报",
+  "ordersDropOffsUpdatedAsReported": "确认后将依回报内容更新订单或存书状态，并通知相关用户。",
+  "statusStaysUnchangedReporterNotified": "驳回后状态维持不变，并通知回报者。",
+  "noManualReportsConfirm": "尚无待确认的手动回报",
+  "reporter": "回报者",
+  "scanLockerCollect": "扫描书柜取书",
+  "scanLockerDropOff": "扫描书柜存书",
+  "scanLockerRetrieve": "扫描书柜取回",
+  "lockerClosedNowOpeningHoursP0": "目前非书柜营业时间，营业时间为 {p0}",
+  "@lockerClosedNowOpeningHoursP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerUnderMaintenance": "此书柜维修中，暂停服务",
+  "lockerOutService": "此书柜暂停服务",
+  "noDoorsAvailableMoment": "书柜目前没有可用的柜门",
+  "lockerOfflineSoDoorCannotOpened": "书柜目前连线中断，无法以扫码开启柜门。请依客服指示放入或取出书籍后再回报，回报经客服确认后生效。",
+  "lockerOutOrderSoDoorCannot": "书柜目前故障，无法以扫码开启柜门。请依客服指示放入或取出书籍后再回报，回报经客服确认后生效。",
+  "manualReportsTakeEffectAfterSupport": "手动回报经客服确认后生效。",
+  "notSavemybookLockerQrCode": "此 QR Code 并非本平台书柜之 QR Code",
+  "lockerQrCodeChangedScanCode": "书柜 QR Code 已更新，请重新扫描书柜屏幕上的 QR Code",
+  "lockerUsePleaseWaitScanAgain": "书柜使用中，请稍候再扫描",
+  "lockerOfflineTemporarilyUnavailable": "书柜目前连线中断，暂时无法使用",
+  "itemChangedRefreshTryAgain": "项目状态已变更，请刷新后再试",
+  "noItemsHandleLocker": "您在此书柜没有待办理的项目",
+  "lockerTaskProgressFinishCancelFirst": "您有进行中的书柜作业，请先完成或取消",
+  "selectLeastOneItem": "请至少选择一个项目",
+  "notEnoughDoorsAvailableSelectFewer": "此书柜可用的柜门不足，请减少存书项目或稍后再试",
+  "someItemsChangedPleaseConfirmAgain": "部分项目状态已变更，请重新确认",
+  "lockerTaskWasNotFound": "找不到此书柜作业",
+  "actionNotAvailableRightNow": "目前无法执行此操作",
+  "lockerRequiresScanningScanQrCode": "此书柜已启用扫码存取，请至书柜扫描 QR Code 办理",
+  "orderBeingHandledLockerPleaseTry": "此订单正于书柜办理中，请稍后再试",
+  "manualReportItemAlreadyAwaitingConfirmation": "此项目已有待客服确认的手动回报",
+  "aboutP0FromLockerPleaseUse": "您目前的位置距离书柜约 {p0}，请于书柜旁操作",
+  "@aboutP0FromLockerPleaseUse": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "itemAssignedP0PleaseUseLocker": "此项目的指定书柜为“{p0}”，请至该书柜办理",
+  "@itemAssignedP0PleaseUseLocker": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "severalTasksLockerWereNotCompleted": "您在此书柜的作业多次未完成，请于 {p0} 分钟后再试",
+  "@severalTasksLockerWereNotCompleted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "itemsP0": "您的待办项目位于：{p0}",
+  "@itemsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "taskComplete": "作业完成",
+  "someItemsWereNotCompleted": "部分项目未完成",
+  "numberDidNotMatchTaskBeen": "数字不符，本次作业已取消",
+  "numberWasNotConfirmedTimeTask": "未于时限内完成数字确认，本次作业已取消",
+  "itemsWereNotConfirmedTimeTask": "未于时限内确认项目，本次作业已取消",
+  "lockerDidNotRespondDoorWas": "书柜未响应，柜门未开启，请稍后再试",
+  "taskBeenCancelled": "本次作业已取消",
+  "lockerDidNotConfirmDoorOpened": "未收到书柜的开门回报，本次作业待客服确认",
+  "thereWasLockerConnectionProblemSupport": "书柜连线异常，本次作业待客服确认",
+  "lockerRestartedSupportConfirmTask": "书柜重新启动，本次作业待客服确认",
+  "supportConfirmedTaskComplete": "客服已确认本次作业完成",
+  "supportConfirmedTaskWasNotCompleted": "客服已确认本次作业未完成，状态未变更",
+  "supportEndedTask": "客服已结束本次作业",
+  "dropOffCompleteBuyerBeenNotified": "存书完成，已通知买家取书",
+  "dropOffComplete": "存书完成",
+  "retrievalComplete": "取回完成",
+  "doorCouldNotIdentifiedPleaseContact": "无法确认柜门，请联系客服",
+  "doorFaultyPleaseContactSupport": "柜门故障，请联系客服",
+  "doorAwaitingCheckBySupportPlease": "柜门待客服确认，请联系客服",
+  "reachedPreSaleDropOffLimit": "您在此书柜的先行存书已达上限，请待售出或取回后再存入",
+  "itemChanged": "项目状态已变更",
+  "doorDidNotOpen": "柜门未能开启",
+  "doorOpeningNotConfirmedSupportCheck": "未收到柜门开启回报，待客服确认",
+  "anotherItemDoorSupportCheck": "柜门内有其他项目，待客服确认",
+  "notCompletedP0": "未完成：{p0}",
+  "@notCompletedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "bookBeenSoldAfterRetrievingDrop": "此书籍已售出，取回后请存入“{p0}”",
+  "@bookBeenSoldAfterRetrievingDrop": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "doorP0": "柜门 {p0}",
+  "@doorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmingItems": "确认项目中",
+  "confirmingNumber": "数字确认中",
+  "opening": "开门中",
+  "doorOpened": "柜门已开启",
+  "partlyCompleted": "部分完成",
+  "failed": "失败",
+  "modelAnswer": "模型回答",
+  "replacedWithStandardNotice": "改用固定说明",
+  "clarifyingQuestion": "厘清需求",
+  "noSuitableBooks": "无合适书籍",
+  "fellBackSearchRanking": "改用检索排序",
+  "fellBackPopularBooks": "改列热门书籍",
+  "recommendationsGenerated": "已产生推荐",
+  "noSuitableCandidates": "无合适候选书",
+  "noCandidates": "无候选书",
+  "modelSuggestionsUsed": "采用模型建议",
+  "bibliographicDataOnly": "仅带入书目资料",
+  "handoffSuggested": "建议转接",
+  "insufficientGrounding": "依据不足",
+  "continuedPreviousCriteria": "延续前一轮条件",
+  "reusedPreviousTopic": "沿用前一轮主题",
+  "noSearchMatch": "未命中检索",
+  "invalidBookCodesReturned": "书单含无效代号",
+  "webSearchUsed": "使用网络搜索",
+  "retriedWithoutSearch": "改为不搜索重试",
+  "backupProviderUsed": "改用备援服务商",
+  "conditionAdjustedFromNotes": "依说明调整书况",
+  "avgPassagesRetrieved": "平均检索段落数",
+  "avgCandidates": "平均候选书数",
+  "avgFillerBooks": "平均补位书数",
+  "avgBooksRecommended": "平均推荐书数",
+  "avgBooksSelected": "平均采用书数",
+  "avgInvalidCodes": "平均无效代号数",
+  "avgPhotos": "平均照片数",
+  "avgSources": "平均参考来源数",
+  "bookSearch": "书籍搜索",
+  "fellBackReferencePassage": "改用说明原文",
+  "booksSelectedByModel": "模型选书",
+  "indexUpdates": "索引更新",
+  "sourceNotRecorded": "未标示来源",
+  "outputFormatErrors": "输出格式错误",
+  "suggestMediation": "建议协调处理",
+  "handoffEnforcedBySystem": "由系统强制转接",
+  "followUpSuggestionsProvided": "附有追问建议",
+  "replyTitleNotBookCards": "回复书名与书卡不符",
+  "replyMentionsPrice": "回复提及价格",
+  "replyDeniesResultsDespiteBookCards": "有书卡但回复称无相关书籍",
+  "completeItemsKeptAfterTruncation": "输出截断后保留完整项目",
+  "somePhotosNotSent": "部分照片未送出",
+  "noEvidencePhotosSent": "佐证照片皆未送出",
+  "findingsCitePhotos": "观察重点引用照片",
+  "avgPassagesCited": "平均引用段落数",
+  "avgInvalidRecommendationBases": "平均无效推荐依据数",
+  "avgSystemGeneratedReasons": "平均系统产生理由数",
+  "avgInvalidPhotoReferences": "平均无效照片编号数",
+  "favorsBuyer": "有利买家",
+  "favorsSeller": "有利卖家",
+  "insidePage": "内页",
+  "photoP0Evidence": "照片 {p0}（佐证）",
+  "@photoP0Evidence": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "photoP0P1P2": "照片 {p0}（《{p1}》{p2}）",
+  "@photoP0P1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "photoP0P1": "照片 {p0}（{p1}）",
+  "@photoP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "aiReviewedP0ListingP1Evidence": "AI 参考：上架 {p0} 张、佐证 {p1} 张，另有 {p2} 张未送出",
+  "@aiReviewedP0ListingP1Evidence": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "aiReviewedP0ListingP1Evidence2": "AI 参考：上架 {p0} 张、佐证 {p1} 张",
+  "@aiReviewedP0ListingP1Evidence2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "someItemsMalformedP0": "部分项目格式不符 {p0}",
+  "@someItemsMalformedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fieldsDefaultedP0": "字段改用默认值 {p0}",
+  "@fieldsDefaultedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "highConfidence": "可信度：高",
+  "mediumConfidence": "可信度：中",
+  "lowConfidence": "可信度：低",
+  "writtenByAi": "AI 撰写",
+  "clearBibliographyCache": "清除书目缓存",
+  "bookDetailsLookedUpAgainNext": "其他卖家上架此 ISBN 时将重新查询书目资料。",
+  "bibliographyCacheIsbnCleared": "已清除此 ISBN 的书目缓存",
+  "noBibliographyCacheIsbn": "此 ISBN 无书目缓存",
+  "lookUpListPrice": "查询定价",
+  "assessConditionPrice": "判断书况与售价",
+  "aiRepliesReferenceOnlyOrderPage": "AI 回复仅供参考，实际以订单页面与客服人员说明为准",
+  "preFilledFromSupportEnquiryReview": "已依客服工单预填，请确认内容后再保存。",
+  "noData": "无数据",
+  "sellingPrice": "售价",
+  "aiQuality": "AI 质量",
+  "overturnedByAdmins": "管理员推翻比例",
+  "flaggedByInstantRules": "即时规则送审",
+  "flaggedByAi": "AI 送审",
+  "transferredSupportAgents": "转由客服人员处理",
+  "ratedNotHelpful": "评为没有帮助",
+  "repliesWithoutBooks": "未附书籍的回复",
+  "disputeAnalysis2": "交易争议分析",
+  "suggestionMatchedDecision": "建议与裁决一致",
+  "ratedHelpful": "评为有帮助",
+  "bookRecommendations": "书籍推荐",
+  "aiRecommendationClickThroughRate": "AI 推荐点击率",
+  "standardRecommendationClickThroughRate": "一般推荐点击率",
+  "markedNotInterested": "标示不感兴趣",
+  "listingAssistantAdoptionRate": "上架辅助采用率",
+  "listingsUsingAssistant": "使用上架辅助的书籍",
+  "createdFromSupportEnquiries": "由客服工单建立",
+  "rejectionReason": "驳回原因类别",
+  "sourceInstantRules": "来源：即时规则",
+  "sourceAiAssessment": "来源：AI 判定",
+  "confidenceP0": "可信度 {p0}",
+  "@confidenceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "aiAssessmentConfidenceP0": "AI 判定可信度 {p0}",
+  "@aiAssessmentConfidenceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "assessment": "判定",
+  "description3": "描述",
+  "markReviewReasonAsUnfoundedWhen": "核准时标示送审原因不成立",
+  "showPhotosFullDetails": "显示照片与完整内容",
+  "analysedP0": "分析时间：{p0}",
+  "@analysedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "wasAnalysisHelpful": "此分析是否有帮助",
+  "helpful": "有帮助",
+  "notHelpful": "没有帮助",
+  "recommendedBooksDoNotMatchMy": "推荐书籍不符合需求",
+  "inaccurateInformation": "内容不正确",
+  "didNotAnswerQuestion": "未回答问题",
+  "insufficientInformation": "信息不足",
+  "selectReason": "请选择原因",
+  "notInterested": "不感兴趣",
+  "bookNoLongerRecommended": "已不再推荐此书",
+  "cachedBibliographicDataUsed": "沿用缓存书目",
+  "cachedDescriptionUsed": "沿用缓存简介",
+  "isbnTitleDoNotMatch": "ISBN 与书名不一致",
+  "awaitingReview": "待确认",
+  "orderDropOff": "按订单存书",
+  "preSaleDropOff": "先行存书",
+  "retrieval": "取回",
+  "adminOpening": "管理员开柜",
+  "countdownEnded": "倒计时结束",
+  "doorSensor": "门磁感测",
+  "deviceRestarted": "装置重新启动",
+  "resolvedBySupport": "客服处理",
+  "deviceStarted": "装置启动",
+  "doorClosed": "柜门已关闭",
+  "taskCloseReported": "作业结束回报",
+  "fault": "故障",
+  "faultResolved": "故障排除",
+  "unexpectedDoorOpening": "柜门异常开启",
+  "connectionLost": "连线中断",
+  "connectionRestored": "恢复连线",
+  "paired": "完成配对",
+  "deviceRevoked": "已撤销装置",
+  "taskCreated": "建立作业",
+  "taskFinished": "作业结束",
+  "scanRejected": "扫码遭拒",
+  "remoteOpening": "远程开柜",
+  "contentsRecorded": "已登记存放内容",
+  "contentsRecordCleared": "已清空存放记录",
+  "credentialPossiblyCopied": "凭证疑遭复制",
+  "sourceIpChanged": "来源 IP 变更",
+  "doorNeedsChecking": "柜门待确认",
+  "doorChecked": "柜门确认完成",
+  "itemBlocked": "项目无法办理",
+  "manualReport": "手动回报",
+  "manualReportReviewed": "手动回报处理",
+  "overdueOrderHeld": "逾期订单待处理",
+  "doorOpenedAfterTask": "作业结束后开门",
+  "lockDidNotRelease": "电磁锁未释放",
+  "doorLeftOpen": "柜门未关闭",
+  "doorForcedOpen": "柜门遭强制开启",
+  "sensorError": "传感器异常",
+  "powerProblem": "电源异常",
+  "screenProblem": "屏幕异常",
+  "dropOffCancelledAfterDoorOpened": "存书作业开门后取消",
+  "dropOffMarkedAsNotCompleted": "客服确认未完成的存书作业",
+  "anotherItemWasAlreadyDoor": "存书时门内已有其他项目",
+  "doorOpeningNotReported": "未收到开门回报",
+  "doorReportedOpenAfterTaskEnded": "作业结束后回报开门",
+  "manualReportDuringFault": "故障期间的手动回报",
+  "openedByStaff": "管理人员开启过此柜门",
+  "orderCompletedBySupportBeforePickup": "客服将未取书的订单改为完成",
+  "noDevice": "未配对装置",
+  "deviceOffline": "装置离线",
+  "deviceFault": "装置故障",
+  "underMaintenance": "书柜维修中",
+  "scanningRequired": "用户须扫码存取",
+  "manualReportingAllowedP0": "开放手动回报（{p0}）",
+  "@manualReportingAllowedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "userAccessSuspendedP0": "暂停用户存取（{p0}）",
+  "@userAccessSuspendedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "simulator": "模拟书柜",
+  "physicalLocker": "实体书柜",
+  "noDevicePaired": "尚未配对装置",
+  "awaitingPairing": "等待配对",
+  "online": "连线中",
+  "offline": "离线",
+  "locationNotPermitted": "未授权定位",
+  "locationUnavailable": "无法取得定位",
+  "aboutP0Away": "距离约 {p0}",
+  "@aboutP0Away": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dropOffReport": "存书回报",
+  "pickupReport": "取书回报",
+  "retrievalReport": "取回回报",
+  "confirmed": "已确认",
+  "noLongerValid": "已失效",
+  "lockerInactive": "书柜停用",
+  "selectDoorWhereBooksActuallyStored": "请选择书籍实际存放的柜门",
+  "offlineP0": "离线时间 {p0}",
+  "@offlineP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "collectionRetrievalNotCompletedAfterDoor": "取书或取回开门后未能完成",
+  "unpairedByDevice": "装置解除配对",
+  "replacedByNewDevice": "由新装置取代",
+  "revokedByAdministrator": "管理员撤销",
+  "simulatorTurnedOff": "模拟书柜功能关闭",
+  "tooManyRequestsPleaseTryAgain": "操作过于频繁，请稍后再试",
+  "viewPurchases": "查看购买记录",
+  "viewSales": "查看销售记录",
+  "retrievalNotAvailableLockerRightNow": "此书柜目前无法办理取回，请联系客服",
+  "itemsCouldNotCompleted": "项目未能完成",
+  "onceDelistedP0NoLongerAppear2": "取消上架后，《{p0}》将不再在商城显示。此书存放于书柜中，须先取回书籍，方可重新上架。",
+  "@onceDelistedP0NoLongerAppear2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmP0BeenPlacedP1": "请确认已将《{p0}》放入“{p1}”。",
+  "@confirmP0BeenPlacedP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmTakenBookFromLocker": "请确认已从书柜取出书籍。",
+  "finish": "完成",
+  "door": "柜门",
+  "enterNumberShownLockerScreen": "请输入书柜屏幕上显示的数字",
+  "ifSomeoneTellsNumberAsksEnter": "若有他人告知数字并要求您输入，请勿操作。",
+  "enterTwoDigits": "请输入两位数字",
+  "closeDoorFirst": "请先关上柜门",
+  "onceDoorClosedTaskEndAutomatically": "柜门关上后，将依您的选择自动结束本次作业。",
+  "taskCompleteAutomaticallyOnceDoorClosed": "柜门关上后将自动完成本次作业。",
+  "taskBeenCancelledNothingChanged": "本次作业已取消，状态未变更",
+  "locationAccessRequiredUseLockerTurn": "使用书柜须允许访问位置信息，请在系统设置中开启后再试",
+  "locationCouldNotConfirmedTurnLocation": "目前无法确认您的位置，请开启定位服务后再试",
+  "doorOpenActionNotAvailable": "柜门已开启，无法执行此操作",
+  "taskBeingProcessedPleaseWait": "本次作业处理中，请稍候",
+  "numberConfirmationWasNotCompletedSeveral": "数字确认多次未完成，请于 {p0} 分钟后再试",
+  "@numberConfirmationWasNotCompletedSeveral": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "doorRecordedContentsAwaitingCheckComplete": "柜门内有存放记录或待确认，须完成数字确认后开启",
+  "lockerBeenAskedEndTask": "已要求书柜结束作业",
+  "endTask": "结束作业",
+  "pairDevice": "配对装置",
+  "enterPairingCodeShownLockerScreen": "请输入书柜屏幕上显示的配对码",
+  "enter8DigitPairingCode": "请输入 8 位数配对码",
+  "pairingCodeInvalidExpired": "配对码无效或已过期",
+  "waitingDeviceConnect": "等待装置连接",
+  "pairingWasNotCompletedEnterNew": "配对未完成，请输入书柜屏幕上的新配对码",
+  "donePhone": "手机完成",
+  "cancelledPhone": "手机取消",
+  "matchCodeEntered": "输入比对码",
+  "lockerRefusedEndDoorOpen": "书柜拒绝结束（柜门未关）",
+  "numberMatched": "数字相符",
+  "numberDidNotMatch": "数字不符",
+  "cancelTapCancelBeforeClosingDoor": "如需取消，请于关上柜门前按「取消」。倒计时结束时将自动完成。",
+  "preciseLocationRequiredUseLockerTurn": "使用书柜须开启精确位置，请在系统设置中开启后再试",
+  "enterTitle3": "请输入标题",
+  "credentialsNotSet": "尚未设置凭证",
+  "searchActions": "搜索操作内容",
+  "undoneP0": "还原于 {p0}",
+  "@undoneP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "delistListing": "下架商品",
+  "amount2": "金额",
+  "couldNotOpenChatPleaseTry": "无法开启对话，请稍后再试",
+  "publishedP0": "发布日期：{p0}",
+  "@publishedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pushNotificationRegistrationFailedPleaseTry": "推送注册失败，请稍后再试。"
 }

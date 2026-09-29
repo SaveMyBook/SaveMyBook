@@ -49,7 +49,6 @@ class Cabinet {
   final int totalSlots;
   final int availableSlots;
   final bool isActive;
-  /// 整台書櫃維修中：暫停開放賣家選擇，與停用不同，既有設定與訂單都保留。
   final bool isMaintenance;
   final String openHours;
   final List<CabinetSlot> slots;

@@ -13,7 +13,7 @@ const canManage = [authenticateToken, requireAdmin('announcements')];
 
 const title = (value) => v.text(value, { label: '標題', max: 255 });
 const content = (value) => v.text(value, { label: '內容', max: 20000 });
-const type = (value) => v.oneOf(value, ANNOUNCEMENT_TYPES, `type 僅接受：${ANNOUNCEMENT_TYPES.join(', ')}`);
+const type = (value) => v.oneOf(value, ANNOUNCEMENT_TYPES, '公告類型不正確');
 
 router.get('/', async (req, res) => {
   res.status(200).json({ success: true, data: await announcements.listVisible() });

@@ -16,6 +16,7 @@ import '../../services/home_preferences.dart';
 import '../../services/home_widget_service.dart';
 import '../../services/server_compat.dart';
 import '../../widgets/app_toast.dart';
+import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_select.dart';
 import '../../services/push_service.dart';
 import '../../services/realtime_service.dart';
@@ -56,7 +57,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _requestId = 0;
   final Set<int> _selectedCategoryIds = {};
   late String _currentKeyword = widget.initialKeyword;
-  // 搜尋時預設依相關程度排序（關鍵字＋語意），清除關鍵字後回到最新上架。
   late String _currentSort = widget.initialKeyword.isEmpty ? 'newest' : 'relevance';
 
   List<({String code, String label})> get _sortOptions => [
@@ -73,6 +73,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<Category> _categories = [];
   List<Book> _books = [];
   List<RecommendationGroup> _recommendGroups = const [];
+  // 標示不感興趣的書在畫面上隱藏；伺服器在復原期限結束後才得知，期間重新讀取的推薦仍可能含這本書。
+  final Set<int> _hiddenRecommendations = {};
 
   final ApiService _apiService = ApiService();
   final ScrollController _scrollController = ScrollController();
@@ -83,6 +85,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Timer? _badgeTimer;
   Timer? _chatBadgeDebounce;
+  Timer? _recommendRefresh;
+  int _recommendRefreshes = 0;
   StreamSubscription<int>? _roomChanges;
 
   bool get _isBrowsingAll => _currentKeyword.isEmpty && _selectedCategoryIds.isEmpty;
@@ -115,6 +119,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ToastRouteTracker.notifyNavVisibility();
     _badgeTimer?.cancel();
     _chatBadgeDebounce?.cancel();
+    _recommendRefresh?.cancel();
     _roomChanges?.cancel();
     HomePreferences.showDiscovery.removeListener(_onDiscoveryPreferenceChanged);
     WidgetsBinding.instance.removeObserver(this);
@@ -181,8 +186,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     final viewedIds = RecentlyViewed.books.value.map((b) => b.bookId);
     if (status.recommend && status.consented) {
+      _recommendRefreshes = 0;
       final ai = await _apiService.fetchAiRecommendations(limit: 30, viewedIds: viewedIds);
       if (!mounted) return;
+      _scheduleRecommendRefresh(ai?.refreshing ?? false);
       if (ai != null && ai.books.isNotEmpty) {
         setState(() => _recommendGroups = ai.groups);
         return;
@@ -191,6 +198,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final recommended = await _apiService.fetchRecommendedBooks(viewedIds: viewedIds);
     if (!mounted) return;
     setState(() => _recommendGroups = [if (recommended.isNotEmpty) RecommendationGroup(kind: 'more', books: recommended)]);
+  }
+
+  // 伺服器在背景產生 AI 推薦時先回傳舊推薦或一般推薦；稍後重新讀取，第一次使用的人當次就能看到 AI 推薦。
+  static const _recommendRefreshDelays = [Duration(seconds: 8), Duration(seconds: 20)];
+
+  void _scheduleRecommendRefresh(bool refreshing) {
+    _recommendRefresh?.cancel();
+    if (!refreshing || _recommendRefreshes >= _recommendRefreshDelays.length) return;
+    _recommendRefresh = Timer(_recommendRefreshDelays[_recommendRefreshes++], _refreshRecommendations);
+  }
+
+  Future<void> _refreshRecommendations() async {
+    if (!mounted || !HomePreferences.showDiscovery.value) return;
+    final viewedIds = RecentlyViewed.books.value.map((b) => b.bookId);
+    final ai = await _apiService.fetchAiRecommendations(limit: 30, viewedIds: viewedIds);
+    if (!mounted || ai == null) return;
+    if (ai.books.isNotEmpty) setState(() => _recommendGroups = ai.groups);
+    _scheduleRecommendRefresh(ai.refreshing);
   }
 
   void _onDiscoveryPreferenceChanged() {
@@ -308,6 +333,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (undo) await RecentlyViewed.restore(previous);
   }
 
+  Future<void> _onRecommendationLongPress(Book book) async {
+    if (ApiService.authToken == null) return;
+    HapticFeedback.mediumImpact();
+    final action = await showOptionSheet<String>(
+      context,
+      title: book.title,
+      options: [SheetOption(value: 'dismiss', label: S.notInterested, icon: Icons.visibility_off_outlined)],
+    );
+    if (action != 'dismiss' || !mounted) return;
+    setState(() => _hiddenRecommendations.add(book.bookId));
+    final undo = await showUndoSnackBar(context, S.bookNoLongerRecommended, icon: Icons.visibility_off_outlined);
+    if (undo) {
+      if (mounted) setState(() => _hiddenRecommendations.remove(book.bookId));
+      return;
+    }
+    final error = await _apiService.dismissRecommendation(book.bookId);
+    if (error == null || !mounted) return;
+    setState(() => _hiddenRecommendations.remove(book.bookId));
+    showAppSnackBar(context, error, isError: true);
+  }
+
   void _onNavSelected(int i) {
     if (i == _selectedIndex) {
       if (i == 0) _onHomeReselected();
@@ -420,17 +466,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 24.0),
                           child: Center(child: CircularProgressIndicator(color: c.accent)),
-                        ),
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Reveal(
-                        visible: !_hasMoreData && _books.isNotEmpty && !_isLoadingInitial,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 24.0),
-                          child: Center(
-                            child: Text(S.reachedEnd, style: TextStyle(color: c.textHint, fontSize: 13)),
-                          ),
                         ),
                       ),
                     ),
@@ -658,9 +693,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           if (!HomePreferences.showDiscovery.value) return const SizedBox(width: double.infinity);
           final recent = RecentlyViewed.books.value;
           final recentIds = recent.map((b) => b.bookId).toSet();
+          final hidden = {...recentIds, ..._hiddenRecommendations};
           final groups = [
             for (final g in _recommendGroups)
-              (group: g, books: g.books.where((b) => !recentIds.contains(b.bookId)).toList()),
+              (group: g, books: g.books.where((b) => !hidden.contains(b.bookId)).toList()),
           ].where((g) => g.books.isNotEmpty).toList();
           final tabs = [
             if (_isBrowsingAll && groups.isNotEmpty)
@@ -669,8 +705,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 title: S.picked,
                 icon: Icons.auto_awesome_rounded,
                 books: [for (final g in groups) ...g.books],
+                onOpen: (book) => unawaited(_apiService.logRecommendationClick(book.bookId)),
+                onLongPress: _onRecommendationLongPress,
                 groups: [
-                  for (final g in groups) DiscoveryGroup(title: _groupTitle(g.group, single: groups.length == 1), books: g.books),
+                  for (final g in groups)
+                    DiscoveryGroup(title: _groupTitle(g.group, single: groups.length == 1), books: g.books, reasons: g.group.reasons),
                 ],
               ),
             if (_isBrowsingAll && recent.isNotEmpty)

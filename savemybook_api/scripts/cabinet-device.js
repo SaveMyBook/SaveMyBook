@@ -1,25 +1,16 @@
 #!/usr/bin/env node
-// 用法：
-//   node scripts/cabinet-device.js pair <cabinet_id> --kind <simulator|esp32> [--doors <n>]
-//   node scripts/cabinet-device.js list
-//   node scripts/cabinet-device.js revoke <cabinet_id> --yes
 const prisma = require('../lib/prisma');
 const devices = require('../services/cabinet-devices');
 const access = require('../services/cabinet-access');
 
 const USAGE = [
   '用法：',
-  '  node scripts/cabinet-device.js pair <書櫃編號> --kind <simulator|esp32> [--doors <櫃門數，預設 4>]',
+  '  node scripts/cabinet-device.js pair <書櫃編號> <書櫃螢幕顯示的配對碼>',
   '  node scripts/cabinet-device.js list',
   '  node scripts/cabinet-device.js revoke <書櫃編號> --yes'
 ].join('\n');
 
 const STATUS_LABELS = { active: '使用中', pending: '待配對', revoked: '已撤銷' };
-
-const option = (args, name) => {
-  const index = args.indexOf(name);
-  return index >= 0 ? args[index + 1] : undefined;
-};
 
 const cabinetIdOf = (value) => {
   const id = Number(value);
@@ -28,16 +19,13 @@ const cabinetIdOf = (value) => {
 
 const pair = async (args) => {
   const cabinetId = cabinetIdOf(args[0]);
-  const kind = option(args, '--kind');
-  const doors = option(args, '--doors') === undefined ? 4 : Number(option(args, '--doors'));
-  if (!cabinetId || !devices.KINDS.includes(kind) || !Number.isInteger(doors) || doors < 1 || doors > 8) {
+  if (!cabinetId || !devices.normalizePairingCode(args[1])) {
     console.log(USAGE);
     return 1;
   }
-  const result = await devices.createPairingCode({ cabinetId, kind, doorCount: doors });
-  console.log(`✅ 已為「${result.cabinet.cabinet_name}」產生${devices.KIND_LABELS[kind]}（${doors} 扇櫃門）的配對碼`);
-  console.log(`   配對碼：${result.code}`);
-  console.log(`   有效期限：${result.expires_at.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false })}（僅能使用一次）`);
+  const { cabinet, device } = await devices.claimPairing({ cabinetId, code: args[1] });
+  console.log(`✅ 已為「${cabinet.cabinet_name}」配對${devices.KIND_LABELS[device.kind]}（${device.door_count} 扇櫃門，韌體 ${device.firmware}）`);
+  console.log('   裝置連線後即完成配對。');
   return 0;
 };
 
@@ -91,6 +79,7 @@ const revoke = async (args) => {
       await devices.revoke(tx, device, { reason: 'admin', note: '伺服器端執行 scripts/cabinet-device.js', now });
     }
     await tx.cabinet_devices.deleteMany({ where: { cabinet_id: cabinetId, status: 'pending' } });
+    await tx.cabinet_pair_requests.deleteMany({ where: { cabinet_id: cabinetId, delivered_at: null } });
   });
   console.log(`✅ 已撤銷書櫃 ${cabinetId} 的裝置，裝置須重新配對後才能使用。`);
   return 0;

@@ -371,7 +371,6 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     return ValueListenableBuilder<AiStatusInfo>(
       valueListenable: AiStatus.listenable,
       builder: (context, status, _) {
-        // AI 書籍顧問固定在最上方，搜尋時一併隱藏，避免與搜尋結果混淆。
         final leading = <Widget>[
           if (status.bookChat && _query.isEmpty) _buildAdvisorTile(c),
         ];
@@ -442,35 +441,11 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
           const AiAvatar(size: 52),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        S.aiBookAdvisor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
-                      child: Text('AI', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: c.accent)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  S.tellMeWhatWantReadI,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13, color: c.textSecondary),
-                ),
-              ],
+            child: Text(
+              S.aiBookAdvisor,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
             ),
           ),
           const SizedBox(width: 8),
@@ -634,15 +609,9 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
                         room.lastIsRead ? Icons.done_all_rounded : Icons.check_rounded,
                         size: 15,
                         color: room.lastIsRead ? c.accent : c.textHint,
+                        semanticLabel: room.lastIsRead ? S.read : null,
                       ),
                       const SizedBox(width: 3),
-                      if (room.lastIsRead) ...[
-                        Text(
-                          S.read,
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.accent),
-                        ),
-                        const SizedBox(width: 6),
-                      ],
                     ],
                     if (kindIcon != null && !mentioned) ...[
                       Icon(kindIcon, size: 15, color: previewColor),

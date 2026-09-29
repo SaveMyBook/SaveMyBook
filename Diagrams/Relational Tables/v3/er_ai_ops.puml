@@ -1,0 +1,96 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "transaction_disputes" as transaction_disputes {
+  {field} <&key> dispute_id : int
+  --
+  ...
+}
+entity "ai_dispute_analyses" as ai_dispute_analyses {
+  {field} <&key> analysis_id : int
+  --
+  {field} dispute_id : int
+  {field} admin_id : int
+  {field} result : text
+  {field} suggestion : varchar(20)
+  {field} listing_images : tinyint
+  {field} evidence_images : tinyint
+  {field} provider : varchar(20)
+  {field} model : varchar(80)
+  {field} prompt_version : char(12)
+  {field} helpful : tinyint(1)
+  {field} resolved_result : varchar(20)
+  {field} agreed : tinyint(1)
+  {field} resolved_at : datetime
+  {field} created_at : datetime
+}
+entity "ai_settings" as ai_settings {
+  {field} <&key> id : tinyint
+  --
+  {field} config : text
+  {field} updated_by : int
+  {field} updated_at : datetime
+}
+entity "ai_usage_logs" as ai_usage_logs {
+  {field} <&key> usage_id : bigint
+  --
+  {field} feature : varchar(30)
+  {field} provider : varchar(20)
+  {field} model : varchar(80)
+  {field} user_id : int
+  {field} input_tokens : int
+  {field} cached_tokens : int
+  {field} output_tokens : int
+  {field} search_calls : int
+  {field} cost_usd : decimal(12,6)
+  {field} latency_ms : int
+  {field} status : enum
+  {field} error_code : varchar(60)
+  {field} error_detail : varchar(400)
+  {field} request_id : varchar(32)
+  {field} prompt_version : varchar(16)
+  {field} outcome : varchar(20)
+  {field} origin : varchar(30)
+  {field} format_dropped : smallint
+  {field} format_defaulted : smallint
+  {field} created_at : datetime
+}
+entity "ai_decision_logs" as ai_decision_logs {
+  {field} <&key> log_id : bigint
+  --
+  {field} request_id : varchar(32)
+  {field} feature : varchar(30)
+  {field} user_id : int
+  {field} outcome : varchar(20)
+  {field} path : varchar(30)
+  {field} stats : text
+  {field} created_at : datetime
+}
+entity "ai_budget_alerts" as ai_budget_alerts {
+  {field} <&key> month : char(7)
+  {field} <&key> threshold : tinyint
+  --
+  {field} cost_usd : decimal(12,6)
+  {field} created_at : datetime
+}
+entity "ai_embeddings" as ai_embeddings {
+  {field} <&key> kind : varchar(20)
+  {field} <&key> ref_id : varchar(64)
+  --
+  {field} model : varchar(100)
+  {field} content_hash : char(64)
+  {field} vector : mediumtext
+  {field} updated_at : datetime
+}
+transaction_disputes ||--o{ ai_dispute_analyses
+ai_settings -[hidden]down- ai_embeddings
+@enduml

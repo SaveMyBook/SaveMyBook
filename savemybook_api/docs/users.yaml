@@ -60,15 +60,15 @@ paths:
                   message: { type: string, example: 使用者建立成功 }
                   data: { $ref: '#/components/schemas/User' }
         '400':
-          description: 欄位缺漏、格式錯誤，或 Email 已被註冊。
+          description: 欄位缺漏、格式錯誤，或電子郵件已註冊。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 欄位缺漏:
-                  value: { success: false, message: '缺少必要欄位：email, password或 nickname' }
+                  value: { success: false, message: 請填寫電子郵件、密碼與暱稱 }
                 Email 重複:
-                  value: { success: false, message: 該 Email 已經被註冊過了 }
+                  value: { success: false, message: 此電子郵件已註冊 }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -299,7 +299,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: 密碼已更新，其他裝置需要重新登入 }
+                  message: { type: string, example: 密碼已更新，其他裝置須重新登入 }
                   data:
                     type: object
                     properties:
@@ -453,7 +453,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 存取被拒，您無權限修改他人的資料 }
+              example: { success: false, message: 無權限修改此使用者的資料 }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 

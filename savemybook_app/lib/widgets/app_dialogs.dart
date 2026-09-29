@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_radius.dart';
 import '../utils/motion.dart';
@@ -172,6 +173,8 @@ Future<String?> showTextInputDialog(
   bool isDestructive = false,
   String? Function(String value)? validator,
   TextInputType? keyboardType,
+  List<TextInputFormatter>? inputFormatters,
+  bool showCounter = true,
 }) {
   return _showAnimatedDialog<String>(
     context,
@@ -187,6 +190,8 @@ Future<String?> showTextInputDialog(
       isDestructive: isDestructive,
       validator: validator,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      showCounter: showCounter,
     ),
   );
 }
@@ -203,6 +208,8 @@ class _TextInputDialog extends StatefulWidget {
   final bool isDestructive;
   final String? Function(String value)? validator;
   final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+  final bool showCounter;
 
   const _TextInputDialog({
     required this.title,
@@ -216,6 +223,8 @@ class _TextInputDialog extends StatefulWidget {
     required this.isDestructive,
     required this.validator,
     required this.keyboardType,
+    required this.inputFormatters,
+    required this.showCounter,
   });
 
   @override
@@ -278,6 +287,7 @@ class _TextInputDialogState extends State<_TextInputDialog> {
               enableSuggestions: !widget.obscure,
               autocorrect: !widget.obscure,
               keyboardType: widget.keyboardType,
+              inputFormatters: widget.inputFormatters,
               maxLines: singleLine ? 1 : widget.maxLines,
               maxLength: widget.obscure ? null : widget.maxLength,
               textInputAction: singleLine ? TextInputAction.done : TextInputAction.newline,
@@ -289,6 +299,7 @@ class _TextInputDialogState extends State<_TextInputDialog> {
               decoration: InputDecoration(
                 hintText: widget.hint,
                 hintStyle: TextStyle(color: c.textHint),
+                counterText: widget.showCounter ? null : '',
                 errorText: _error,
                 filled: true,
                 fillColor: c.inputFill,

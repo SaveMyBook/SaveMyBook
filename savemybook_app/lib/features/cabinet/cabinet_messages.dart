@@ -1,5 +1,6 @@
 import '../../i18n/strings.dart';
 import '../../models/cabinet.dart';
+import '../../models/order.dart';
 import '../../services/location_service.dart';
 import '../../utils/api_helpers.dart';
 
@@ -15,9 +16,9 @@ String cabinetActionLabel(CabinetAccess? access, CabinetAction action) {
     };
   }
   return switch (action) {
-    CabinetAction.pickup => '掃描書櫃取書',
-    CabinetAction.orderDeposit || CabinetAction.preDeposit => '掃描書櫃存書',
-    CabinetAction.retrieve => '掃描書櫃取回',
+    CabinetAction.pickup => S.scanLockerCollect,
+    CabinetAction.orderDeposit || CabinetAction.preDeposit => S.scanLockerDropOff,
+    CabinetAction.retrieve => S.scanLockerRetrieve,
   };
 }
 
@@ -26,9 +27,11 @@ class CabinetMessages {
 
   static final _quotedName = RegExp(r'「([^」]+)」');
 
-  static String closedHours(String hours) => '目前非書櫃營業時間，營業時間為 $hours';
+  static const capacityCodes = {'PREDEPOSIT_LIMIT', 'CABINET_FULL'};
 
-  static String doorUnavailable(String? reason) => reason == 'maintenance' ? '此書櫃維修中，暫停服務' : '此書櫃暫停服務';
+  static String closedHours(String hours) => S.lockerClosedNowOpeningHoursP0(hours);
+
+  static String doorUnavailable(String? reason) => reason == 'maintenance' ? S.lockerUnderMaintenance : S.lockerOutService;
 
   static String? precheck(CabinetAccess? access, CabinetAction action, {List<String> orderDoors = const []}) {
     if (access == null) return null;
@@ -40,13 +43,16 @@ class CabinetMessages {
       CabinetAction.preDeposit => access.preDepositDoors == 0,
       _ => false,
     };
-    return noDoor ? '書櫃目前沒有可用的櫃門' : null;
+    return noDoor ? S.noDoorsAvailableMoment : null;
   }
 
+  static String retrievalUnavailable(CabinetAccess? access) =>
+      access?.reason == 'offline' ? S.lockerOfflineTemporarilyUnavailable : S.retrievalNotAvailableLockerRightNow;
+
   static String manualNotice(CabinetAccess? access) => switch (access?.reason) {
-    'offline' => '書櫃目前連線中斷，無法以掃碼開啟櫃門。請依客服指示放入或取出書籍後再回報，回報經客服確認後生效。',
-    'fault' => '書櫃目前故障，無法以掃碼開啟櫃門。請依客服指示放入或取出書籍後再回報，回報經客服確認後生效。',
-    _ => '手動回報經客服確認後生效。',
+    'offline' => S.lockerOfflineSoDoorCannotOpened,
+    'fault' => S.lockerOutOrderSoDoorCannot,
+    _ => S.manualReportsTakeEffectAfterSupport,
   };
 
   static String error(CabinetApiError error) {
@@ -56,13 +62,13 @@ class CabinetMessages {
       case CabinetApiError.signedOut:
         return S.pleaseSignFirst;
       case 'CABINET_CODE_INVALID':
-        return '此 QR Code 並非 SaveMyBook 書櫃 QR Code';
+        return S.notSavemybookLockerQrCode;
       case 'CABINET_CODE_EXPIRED':
-        return '書櫃 QR Code 已更新，請重新掃描書櫃螢幕上的 QR Code';
+        return S.lockerQrCodeChangedScanCode;
       case 'CABINET_BUSY':
-        return '書櫃使用中，請稍候再掃描';
+        return S.lockerUsePleaseWaitScanAgain;
       case 'CABINET_OFFLINE':
-        return '書櫃目前連線中斷，暫時無法使用';
+        return S.lockerOfflineTemporarilyUnavailable;
       case 'CABINET_MAINTENANCE':
         return doorUnavailable('maintenance');
       case 'CABINET_UNAVAILABLE':
@@ -70,6 +76,12 @@ class CabinetMessages {
       case 'CABINET_CLOSED':
         final hours = formatTimeRange(error.openTime, error.closeTime);
         if (hours.isNotEmpty) return closedHours(hours);
+      case CabinetApiError.locationRequired:
+        return S.locationAccessRequiredUseLockerTurn;
+      case CabinetApiError.locationUnavailable:
+        return S.locationCouldNotConfirmedTurnLocation;
+      case CabinetApiError.locationImprecise:
+        return S.preciseLocationRequiredUseLockerTurn;
       case 'CABINET_TOO_FAR':
         final meters = error.distanceM;
         if (meters != null) return tooFar(LocationService.formatDistance(meters));
@@ -77,47 +89,93 @@ class CabinetMessages {
         final name = error.cabinet?.cabinetName;
         if (name != null && name.isNotEmpty) return wrongCabinet(name);
       case 'CABINET_CONTEXT_CHANGED':
-        return '項目狀態已變更，請重新整理後再試';
+        return S.itemChangedRefreshTryAgain;
       case 'CABINET_NOTHING_TO_DO':
-        return '您在此書櫃沒有待辦理的項目';
+        return S.noItemsHandleLocker;
       case 'CABINET_ITEM_BLOCKED':
         for (final item in error.items) {
           final blocked = item.blocked;
           if (blocked != null) return CabinetMessages.blocked(blocked);
         }
       case 'CABINET_ACTIVE_SESSION':
-        return '您有進行中的書櫃作業，請先完成或取消';
+        return S.lockerTaskProgressFinishCancelFirst;
       case 'CABINET_NO_SELECTION':
-        return '請至少選擇一個項目';
+        return S.selectLeastOneItem;
       case 'CABINET_FULL':
-        return '此書櫃可用的櫃門不足，請減少存書項目或稍後再試';
+        return S.notEnoughDoorsAvailableSelectFewer;
       case 'PREDEPOSIT_LIMIT':
         return blocked(const CabinetNotice(code: 'PREDEPOSIT_LIMIT'));
       case 'CABINET_ITEMS_CHANGED':
-        return '部分項目狀態已變更，請重新確認';
+        return S.someItemsChangedPleaseConfirmAgain;
       case 'CABINET_SESSION_NOT_FOUND':
-        return '找不到此書櫃作業';
+        return S.lockerTaskWasNotFound;
       case 'CABINET_SESSION_STATE':
-        final status = error.session?.status;
-        return status == CabinetSession.opening || status == CabinetSession.open ? '櫃門已開啟，請於書櫃螢幕操作' : '目前無法執行此操作';
+        return sessionState(error);
+      case CabinetApiError.matchCodeInvalid:
+        return S.enterTwoDigits;
       case 'CABINET_SCAN_REQUIRED':
-        return '此書櫃已啟用掃碼存取，請至書櫃掃描 QR Code 辦理';
+        return S.lockerRequiresScanningScanQrCode;
       case 'CABINET_COOLDOWN':
-        final seconds = error.retryAfterS ?? 60;
-        return cooldown(seconds <= 60 ? 1 : (seconds / 60).ceil());
+        return cooldown(_minutes(error.retryAfterS));
       case 'ORDER_IN_CABINET_SESSION':
-        return '此訂單正於書櫃辦理中，請稍後再試';
+        return S.orderBeingHandledLockerPleaseTry;
       case 'MANUAL_REPORT_PENDING':
-        return '此項目已有待客服確認的手動回報';
+        return S.manualReportItemAlreadyAwaitingConfirmation;
+      case 'RATE_LIMITED':
+        return S.tooManyRequestsPleaseTryAgain;
     }
     return error.message.isNotEmpty ? error.message : S.somethingWentWrongPleaseTryAgain;
   }
 
-  static String tooFar(String distance) => '您目前的位置距離書櫃約 $distance，請於書櫃旁操作';
+  static String manualError(CabinetApiError error) => error.code == 'CABINET_FULL' ? S.noDoorsAvailableMoment : CabinetMessages.error(error);
 
-  static String wrongCabinet(String name) => '此項目的指定書櫃為「$name」，請至該書櫃辦理';
+  static int _minutes(int? seconds) {
+    final value = seconds ?? 60;
+    return value <= 60 ? 1 : (value / 60).ceil();
+  }
 
-  static String cooldown(int minutes) => '您在此書櫃的作業多次未完成，請於 $minutes 分鐘後再試';
+  // 作業詳情不含關門時間：開門狀態下 close 被拒只會是書櫃已回報關門，其他操作被拒則是櫃門仍開著。
+  static String sessionState(CabinetApiError error, {bool closing = false}) {
+    if (error.session?.status != CabinetSession.open) return S.actionNotAvailableRightNow;
+    return closing ? S.taskBeingProcessedPleaseWait : S.doorOpenActionNotAvailable;
+  }
+
+  static String closeError(CabinetApiError error) =>
+      error.code == 'CABINET_SESSION_STATE' ? sessionState(error, closing: true) : CabinetMessages.error(error);
+
+  static String admin(CabinetApiError error, {bool closing = false}) {
+    switch (error.code) {
+      case CabinetApiError.network:
+        return S.networkError;
+      case CabinetApiError.signedOut:
+        return S.pleaseSignFirst;
+      case 'CABINET_COOLDOWN':
+        return adminCooldown(_minutes(error.retryAfterS));
+      case 'DOOR_NOT_EMPTY':
+        return S.doorRecordedContentsAwaitingCheckComplete;
+      case CabinetApiError.matchCodeInvalid:
+        return S.enterTwoDigits;
+      case 'CABINET_SESSION_STATE':
+        return sessionState(error, closing: closing);
+      case 'CABINET_SESSION_NOT_FOUND':
+        return S.lockerTaskWasNotFound;
+      case 'PAIRING_CODE_INVALID':
+        return S.pairingCodeInvalidExpired;
+      case 'RATE_LIMITED':
+        return S.tooManyRequestsPleaseTryAgain;
+    }
+    return error.message.isNotEmpty ? error.message : S.somethingWentWrongPleaseTryAgain;
+  }
+
+  static String pairError(CabinetApiError error) => error.code == 'RATE_LIMITED' ? S.tooManyAttemptsPleaseTryAgain : admin(error);
+
+  static String adminCooldown(int minutes) => S.numberConfirmationWasNotCompletedSeveral(minutes);
+
+  static String tooFar(String distance) => S.aboutP0FromLockerPleaseUse(distance);
+
+  static String wrongCabinet(String name) => S.itemAssignedP0PleaseUseLocker(name);
+
+  static String cooldown(int minutes) => S.severalTasksLockerWereNotCompleted(minutes);
 
   static String? otherCabinets(CabinetApiError error) {
     final names = [for (final c in error.otherCabinets) if (c.cabinetName.isNotEmpty) c.cabinetName];
@@ -125,64 +183,68 @@ class CabinetMessages {
     return otherCabinetsAt(names.join('、'));
   }
 
-  static String otherCabinetsAt(String names) => '您的待辦項目位於：$names';
+  static String otherCabinetsAt(String names) => S.itemsP0(names);
 
   static String result(CabinetSessionResult? result) {
     if (result == null) return '';
     return switch (result.code) {
-      'COMPLETED' => '作業完成',
-      'PARTIAL' || 'ITEMS_FAILED' => '部分項目未完成',
-      'MATCH_FAILED' => '數字不符，本次作業已取消',
-      'MATCH_TIMEOUT' => '未於時限內完成數字確認，本次作業已取消',
-      'SELECT_TIMEOUT' => '未於時限內確認項目，本次作業已取消',
-      'DEVICE_NO_RESPONSE' => '書櫃未回應，櫃門未開啟，請稍後再試',
-      'CANCELLED_BY_USER' => '本次作業已取消',
-      'CANCELLED_AT_CABINET' => '已於書櫃取消，狀態未變更',
-      'DEVICE_NO_ACK' => '未收到書櫃的開門回報，本次作業待客服確認',
-      'DEVICE_LOST' => '書櫃連線異常，本次作業待客服確認',
-      'DEVICE_INTERRUPTED' => '書櫃重新啟動，本次作業待客服確認',
-      'ADMIN_RESOLVED_COMMIT' => result.outcome == CabinetSession.partial ? '部分項目未完成' : '客服已確認本次作業完成',
-      'ADMIN_RESOLVED_DISCARD' => '客服已確認本次作業未完成，狀態未變更',
-      'ADMIN_CANCELLED' => '客服已結束本次作業',
+      'COMPLETED' => S.taskComplete,
+      'PARTIAL' => S.someItemsWereNotCompleted,
+      'ITEMS_FAILED' => S.itemsCouldNotCompleted,
+      'MATCH_FAILED' => S.numberDidNotMatchTaskBeen,
+      'MATCH_TIMEOUT' => S.numberWasNotConfirmedTimeTask,
+      'SELECT_TIMEOUT' => S.itemsWereNotConfirmedTimeTask,
+      'DEVICE_NO_RESPONSE' => S.lockerDidNotRespondDoorWas,
+      'CANCELLED_BY_USER' => S.taskBeenCancelled,
+      'CANCELLED_AFTER_OPEN' => S.taskBeenCancelledNothingChanged,
+      'DEVICE_NO_ACK' => S.lockerDidNotConfirmDoorOpened,
+      'DEVICE_LOST' => S.thereWasLockerConnectionProblemSupport,
+      'DEVICE_INTERRUPTED' => S.lockerRestartedSupportConfirmTask,
+      'ADMIN_RESOLVED_COMMIT' => result.outcome == CabinetSession.partial ? S.someItemsWereNotCompleted : S.supportConfirmedTaskComplete,
+      'ADMIN_RESOLVED_DISCARD' => S.supportConfirmedTaskWasNotCompleted,
+      'ADMIN_CANCELLED' => S.supportEndedTask,
       _ => result.message,
     };
   }
+
+  static String partialTitle(CabinetSession session) =>
+      session.result?.code == 'ITEMS_FAILED' ? S.itemsCouldNotCompleted : S.someItemsWereNotCompleted;
 
   static String completedTitle(CabinetSession session) {
     final kinds = {for (final item in session.selectedItems) item.kind};
     if (kinds.length == 1) {
       switch (kinds.first) {
         case CabinetItemKind.orderDeposit:
-          return '存書完成，已通知買家取書';
+          return S.dropOffCompleteBuyerBeenNotified;
         case CabinetItemKind.preDeposit:
-          return '存書完成';
+          return S.dropOffComplete;
         case CabinetItemKind.retrieval:
-          return '取回完成';
+          return S.retrievalComplete;
         default:
           break;
       }
     }
-    return '作業完成';
+    return S.taskComplete;
   }
 
   static String blocked(CabinetNotice notice) => switch (notice.code) {
-    'DOOR_UNKNOWN' || 'DOOR_SHARED' => '無法確認櫃門，請聯絡客服',
-    'DOOR_FAULT' => '櫃門故障，請聯絡客服',
-    'DOOR_CHECK' => '櫃門待客服確認，請聯絡客服',
-    'CABINET_FULL' => '書櫃目前沒有可用的櫃門',
-    'PREDEPOSIT_LIMIT' => '您在此書櫃的先行存書已達上限，請待售出或取回後再存入',
+    'DOOR_UNKNOWN' || 'DOOR_SHARED' => S.doorCouldNotIdentifiedPleaseContact,
+    'DOOR_FAULT' => S.doorFaultyPleaseContactSupport,
+    'DOOR_CHECK' => S.doorAwaitingCheckBySupportPlease,
+    'CABINET_FULL' => S.noDoorsAvailableMoment,
+    'PREDEPOSIT_LIMIT' => S.reachedPreSaleDropOffLimit,
     _ => notice.message,
   };
 
   static String itemError(CabinetNotice notice) => switch (notice.code) {
-    'ITEM_CHANGED' => '項目狀態已變更',
-    'DOOR_FAILED' => '櫃門未能開啟',
-    'DOOR_UNCONFIRMED' => '未收到櫃門開啟回報，待客服確認',
-    'DOOR_CONFLICT' => '櫃門內有其他項目，待客服確認',
+    'ITEM_CHANGED' => S.itemChanged,
+    'DOOR_FAILED' => S.doorDidNotOpen,
+    'DOOR_UNCONFIRMED' => S.doorOpeningNotConfirmedSupportCheck,
+    'DOOR_CONFLICT' => S.anotherItemDoorSupportCheck,
     _ => notice.message,
   };
 
-  static String itemNotDone(String reason) => '未完成：$reason';
+  static String itemNotDone(String reason) => S.notCompletedP0(reason);
 
   static String note(CabinetNotice notice) {
     if (notice.code != 'MOVE_TO_ORDER_CABINET') return notice.message;
@@ -190,7 +252,14 @@ class CabinetMessages {
     return name == null ? notice.message : moveTo(name);
   }
 
-  static String moveTo(String name) => '此書籍已售出，取回後請存入「$name」';
+  static String moveTo(String name) => S.bookBeenSoldAfterRetrievingDrop(name);
 
-  static String door(String label) => '櫃門 $label';
+  static String door(String label) => S.doorP0(label);
+
+  static String placementLabel(Order order) => order.doors.isNotEmpty ? S.door : S.slot;
+
+  static String orderPlacement(Order order) {
+    if (order.doors.isNotEmpty) return door(order.doorLabel);
+    return order.slotNumber.isEmpty ? '' : S.slot2(order.slotNumber);
+  }
 }

@@ -100,7 +100,7 @@ router.patch('/cabinets/:id/maintenance', canManage, async (req, res) => {
 router.patch('/cabinets/:cabinetId/slots/:slotId', canManage, async (req, res) => {
   const cabinetId = v.id(req.params.cabinetId, '書櫃編號');
   const slotId = v.id(req.params.slotId, '櫃位編號');
-  const status = v.oneOf(req.body.status, SLOT_STATUSES, `status 僅接受：${SLOT_STATUSES.join(', ')}`);
+  const status = v.oneOf(req.body.status, SLOT_STATUSES, '櫃位狀態不正確');
 
   const slot = await cabinets.setSlotStatus(cabinetId, slotId, status, actorOf(req));
   res.status(200).json({ success: true, message: '櫃位狀態已更新', data: slot });

@@ -41,7 +41,6 @@ router.get('/backups/:id/download', canRunSystem, async (req, res) => {
   res.download(filePath, fileName);
 });
 
-// 網址只含一次性的隨機票證，管理員無須在其他裝置提供自己的登入權杖。
 router.post('/backups/:id/download-link', canRunSystem, requireVerification('admin'), async (req, res) => {
   const { ticket, expiresAt, expiresIn, record } = await backup.issueDownloadLink(v.id(req.params.id, '備份編號'), actorOf(req));
   res.set('Cache-Control', 'no-store');

@@ -320,7 +320,6 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                   _sheetLabel(S.title, c),
                   AppTextField(
                     controller: title,
-                    hint: S.title,
                     maxLength: 255,
                     errorText: titleError,
                     textInputAction: TextInputAction.next,
@@ -339,7 +338,6 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                             _sheetLabel(S.author2, c),
                             AppTextField(
                               controller: author,
-                              hint: S.author2,
                               maxLength: 255,
                               textInputAction: TextInputAction.next,
                             ),
@@ -354,7 +352,6 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                             _sheetLabel(S.publisher2, c),
                             AppTextField(
                               controller: publisher,
-                              hint: S.publisher2,
                               maxLength: 255,
                               textInputAction: TextInputAction.next,
                             ),
@@ -442,12 +439,23 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                   _sheetLabel(S.description2, c),
                   AppTextField(
                     controller: description,
-                    hint: S.description2,
                     minLines: 3,
                     maxLines: 6,
                     maxLength: 2000,
                     keyboardType: TextInputType.multiline,
                   ),
+                  if (_cacheIsbn(book) != null) ...[
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () => _clearIsbnCache(_cacheIsbn(book)!),
+                        style: TextButton.styleFrom(foregroundColor: c.textSecondary, padding: const EdgeInsets.symmetric(horizontal: 4)),
+                        icon: const Icon(Icons.cached_rounded, size: 18),
+                        label: Text(S.clearBibliographyCache, style: const TextStyle(fontSize: 13)),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 18),
                   PrimaryButton(
                     label: S.actionSave,
@@ -521,6 +529,31 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
       showAppSnackBar(context, S.updated);
       _load();
     }
+  }
+
+  static String? _cacheIsbn(AdminBook book) {
+    final isbn = normalizeIsbn(book.isbn ?? '');
+    return isbn != null && isbnChecksumValid(isbn) ? isbn : null;
+  }
+
+  // 自動補齊或上架輔助帶入了別本書的資料時，清除共用快取，其他賣家之後上架同一個 ISBN 才會重新查詢。
+  Future<void> _clearIsbnCache(String isbn) async {
+    final ok = await showConfirmDialog(
+      context,
+      title: S.clearBibliographyCache,
+      message: S.bookDetailsLookedUpAgainNext,
+      confirmLabel: S.clear,
+      icon: Icons.cached_rounded,
+    );
+    if (!ok || !mounted) return;
+    final result = await runBusy(context, () => _api.clearIsbnCache(isbn));
+    if (!mounted || result == null) return;
+    if (!result.isOk) {
+      showAppSnackBar(context, result.error ?? S.actionFailed, isError: true);
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    showAppSnackBar(context, result.data == true ? S.bibliographyCacheIsbnCleared : S.noBibliographyCacheIsbn);
   }
 
   Widget _sheetLabel(String text, AppColors c) => Padding(

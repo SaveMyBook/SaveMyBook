@@ -104,8 +104,6 @@ const status = () => {
   };
 };
 
-// ---------- 挑戰值 ----------
-
 const storeChallenge = async (text, { purpose, userId = null }) => {
   await prisma.$executeRaw`
     INSERT INTO webauthn_challenges (challenge, user_id, purpose, created_at)
@@ -137,8 +135,6 @@ const cleanupExpired = async () => {
   const cutoff = new Date(Date.now() - webauthn.CHALLENGE_TTL_MS);
   return prisma.$executeRaw`DELETE FROM webauthn_challenges WHERE created_at < ${cutoff}`;
 };
-
-// ---------- 註冊 ----------
 
 const registrationOptions = async (userId) => {
   await assertAvailable();
@@ -259,8 +255,6 @@ const register = async (userId, input, deviceLabel) => {
   return list(userId);
 };
 
-// ---------- 刪除 ----------
-
 const otherSignInMethods = async (tx, userId) => {
   const [user] = await tx.$queryRaw`SELECT password_set FROM users WHERE user_id = ${userId}`;
   const [linked] = await tx.$queryRaw`SELECT COUNT(*) AS n FROM user_identities WHERE user_id = ${userId}`;
@@ -270,13 +264,13 @@ const otherSignInMethods = async (tx, userId) => {
 const remove = async (userId, code) => {
   await assertAvailable();
   const passkeyId = publicId.decode('passkey', code);
-  if (passkeyId == null) throw notFound('找不到此通行密鑰，可能已經刪除');
+  if (passkeyId == null) throw notFound('找不到此通行密鑰，可能已刪除');
 
   const removed = await prisma.$transaction(async (tx) => {
     await lockUser(tx, userId);
     const rows = await tx.$queryRaw`
       SELECT passkey_id, device_label FROM user_passkeys WHERE passkey_id = ${passkeyId} AND user_id = ${userId}`;
-    if (rows.length === 0) throw notFound('找不到此通行密鑰，可能已經刪除');
+    if (rows.length === 0) throw notFound('找不到此通行密鑰，可能已刪除');
     if ((await countOf(userId, tx)) <= 1 && (await otherSignInMethods(tx, userId)) === 0) {
       throw badRequest('這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式', 'LAST_SIGN_IN_METHOD');
     }
@@ -298,14 +292,12 @@ const rename = async (userId, code, deviceLabel) => {
   const passkeyId = publicId.decode('passkey', code);
   const rows = passkeyId == null ? [] : await prisma.$queryRaw`
     SELECT passkey_id FROM user_passkeys WHERE passkey_id = ${passkeyId} AND user_id = ${userId}`;
-  if (rows.length === 0) throw notFound('找不到此通行密鑰，可能已經刪除');
+  if (rows.length === 0) throw notFound('找不到此通行密鑰，可能已刪除');
 
   await prisma.$executeRaw`
     UPDATE user_passkeys SET device_label = ${deviceLabel} WHERE passkey_id = ${passkeyId} AND user_id = ${userId}`;
   return list(userId);
 };
-
-// ---------- 驗證 ----------
 
 const authenticationOptions = async ({ purpose, scope = '', userId = null, allowCredentials }) => {
   const challenge = webauthn.createChallenge({ purpose, scope, userId: userId ?? '' });
@@ -357,7 +349,6 @@ const counterRegressed = async (row, received) => {
   return badRequest('此通行密鑰的驗證紀錄異常，已拒絕本次驗證', 'PASSKEY_COUNTER_REGRESSED');
 };
 
-// 回傳通過驗證的 user_id。userId 有值時憑證必須屬於該使用者。
 const verifyAssertion = async (input, { purpose, scope = '', userId = null }) => {
   await assertAvailable();
   const assertion = normalizedResponse(input, ['clientDataJSON', 'authenticatorData', 'signature']);

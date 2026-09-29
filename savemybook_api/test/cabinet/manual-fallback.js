@@ -86,6 +86,7 @@ module.exports = {
 
       const done = await confirm({ adminToken: h.tokenFor(admin) }, res.body.data.manual_report.report_no);
       assert.strictEqual(done.status, 200, done.text);
+      assert.strictEqual(done.body.data.requires_door, false);
       assert.strictEqual(h.orderOf(order.order_id).status, 'deposited');
       assert.ok(h.notificationsOf(buyer.user_id).some((n) => n.title === '書籍已存入書櫃'));
     }],
@@ -131,6 +132,7 @@ module.exports = {
       assert.strictEqual(listed.body.data[0].report_no, pending.report_no);
       assert.strictEqual(listed.body.data[0].order.order_no, order.order_no);
       assert.strictEqual(listed.body.data[0].user.nickname, '賣家');
+      assert.strictEqual(listed.body.data[0].requires_door, true);
 
       const noDoor = await confirm(ctx, pending.report_no, '已與現場人員確認');
       assert.strictEqual(noDoor.status, 400);
@@ -391,9 +393,11 @@ module.exports = {
 
       h.deviceRow(ctx.device.device_id).last_seen_at = new Date();
       const scanned = await h.createSession(ctx, ctx.sellerToken);
-      assert.strictEqual(scanned.status, 409, scanned.text);
-      assert.strictEqual(scanned.body.code, 'CABINET_ITEM_BLOCKED');
-      assert.ok(scanned.body.items.length >= 2 && scanned.body.items.every((i) => i.blocked.code === 'PREDEPOSIT_LIMIT'), JSON.stringify(scanned.body.items));
+      assert.strictEqual(scanned.status, 201, scanned.text);
+      for (const item of scanned.body.data.items) {
+        assert.strictEqual(item.blocked?.code ?? null, item.key === `book:${first.book_id}` ? null : 'PREDEPOSIT_LIMIT', item.key);
+      }
+      await h.cancelSession(ctx.sellerToken, scanned.body.data.session_no);
       goOffline(ctx);
 
       // 並行送出造成兩筆待確認時，第二筆於確認時仍受上限限制，回報維持待確認由管理員駁回。
@@ -430,6 +434,29 @@ module.exports = {
       const order = h.orderFor(ctx, sold.book_id);
       const orderDeposit = await patchStatus(ctx.sellerToken, order.order_id, 'deposited');
       assert.strictEqual(orderDeposit.status, 202, '依訂單存書不受保留櫃門限制');
+    }],
+
+    ['先行存書回報待確認時裝置恢復：同一本書可改以掃碼存入（回報隨之失效），其他書仍受上限限制', async () => {
+      const ctx = h.scene();
+      goOffline(ctx);
+      const reported = h.listedBook(ctx);
+      const other = h.listedBook(ctx);
+      const res = await depositBook(ctx.sellerToken, reported.book_id);
+      assert.strictEqual(res.status, 202, res.text);
+
+      h.deviceRow(ctx.device.device_id).last_seen_at = new Date();
+      const created = await h.createSession(ctx, ctx.sellerToken);
+      assert.strictEqual(created.status, 201, created.text);
+      const blockedOf = (bookId) => created.body.data.items.find((i) => i.key === `book:${bookId}`).blocked;
+      assert.strictEqual(blockedOf(reported.book_id), null);
+      assert.strictEqual(blockedOf(other.book_id).code, 'PREDEPOSIT_LIMIT');
+      await h.cancelSession(ctx.sellerToken, created.body.data.session_no);
+
+      const { final } = await h.runSession(ctx, ctx.sellerToken, { keys: [`book:${reported.book_id}`] });
+      assert.strictEqual(final.status, 'completed', JSON.stringify(final));
+      assert.ok(h.depositOf(reported.book_id));
+      assert.ok(h.slotItemOf(reported.book_id));
+      assert.strictEqual(reports()[0].status, 'cancelled');
     }],
 
     ['取回回報待確認期間暫停販售；恢復連線後以掃碼完成取回時回報失效，書籍恢復上架', async () => {

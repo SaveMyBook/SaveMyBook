@@ -166,7 +166,7 @@ module.exports = {
             screen: 'match',
             message: { code: 'MATCH_PROMPT', params: {} },
             poll_ms: 1000,
-            session: { id: 'CS0000000', phase: 'match', choices: [11, 22] },
+            session: { id: 'CS0000000', phase: 'match', code: 37 },
             commands: []
           };
         },
@@ -178,7 +178,7 @@ module.exports = {
       assert.strictEqual(res.body.data.screen, 'match');
       assert.strictEqual(res.body.data.poll_ms, 1000);
       assert.strictEqual(res.body.data.qr, null);
-      assert.deepStrictEqual(res.body.data.session.choices, [11, 22]);
+      assert.strictEqual(res.body.data.session.code, 37);
       assert.strictEqual(prisma.rows('cabinet_challenges').length, 0);
     }],
 

@@ -8,7 +8,8 @@ skinparam componentStyle rectangle
 
 node "一、客戶端與維運環境" {
   component "<<Mobile>>\n行動裝置 App\n(Flutter)" as app
-  component "<<IoT>>\n智慧書櫃終端\n(ESP32)" as iot
+  component "<<IoT>>\n智慧書櫃終端\n(ESP32、顯示螢幕、\n4 組電磁鎖)" as iot
+  component "<<Browser>>\n模擬書櫃網頁\n(/kiosk，測試用)" as kiosk
   component "<<Workstation>>\n開發者電腦" as dev
 }
 
@@ -29,12 +30,13 @@ cloud "外部雲端服務" as ext {
 }
 
 app ..> cf : HTTPS / WSS
-iot ..> cf : HTTPS
+iot ..> cf : HTTPS 輪詢
+kiosk ..> cf : HTTPS 輪詢
 dev ..> sslh : 隱蔽連線\n(SSH over 80)
 cf ..> sslh : HTTP 流量
 sslh ..> ssh : SSH 流量
 sslh ..> nginx : HTTP 流量
-nginx ..> api : 轉發 /api 與 /socket.io
+nginx ..> api : 轉發 /api、\n/socket.io 與\n/kiosk
 api ..> db : 資料庫讀寫
 api .right.> fb : HTTPS
 @enduml

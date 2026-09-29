@@ -17,11 +17,18 @@ router.get('/', async (req, res) => {
   const { page, limit, skip } = v.pagination(req.query);
 
   const filter = tab ? orders.tabFilter(role, tab) : null;
-  if (tab && !filter) throw badRequest(`不支援的 tab：${String(tab).slice(0, 30)}`);
+  if (tab && !filter) throw badRequest('請求內容不正確');
 
   const { list, total } = await orders.listForUser(req.user.userId, { role, filter, skip, limit });
   const data = await cabinetManual.decorateOrders(await cabinetAccess.decorateOrders(list));
   res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data });
+});
+
+router.get('/by-no/:orderNo', async (req, res) => {
+  const orderNo = String(req.params.orderNo ?? '').trim().toUpperCase();
+  if (!orders.ORDER_NO_PATTERN.test(orderNo)) throw badRequest('訂單編號格式不正確');
+  const order = await orders.detailForPartyByNo(orderNo, req.user);
+  res.status(200).json({ success: true, data: await cabinetManual.decorateOrders(await cabinetAccess.decorateOrders(order)) });
 });
 
 router.get('/:id', async (req, res) => {

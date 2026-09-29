@@ -65,6 +65,7 @@ module.exports = {
       assert.deepStrictEqual(prisma.rows('ai_support_sessions').map((r) => r.user_id), [2]);
       assert.deepStrictEqual(prisma.rows('ai_chat_sessions').map((r) => r.user_id), [2]);
       assert.strictEqual(Number(prisma.rows('ai_consents')[0].granted), 0);
+      assert.strictEqual(await consent.noticeVersionOf(1), 0);
     }],
 
     ['同意時記錄當時的隱私權政策版本；政策重大更新後原同意失效，重新同意後恢復', async () => {
@@ -77,6 +78,8 @@ module.exports = {
       assert.strictEqual(on.body.data.consented, true);
       assert.strictEqual(on.body.data.consent_outdated, false);
       assert.strictEqual(Number(prisma.rows('ai_consents')[0].policy_version), 2);
+      assert.strictEqual(Number(prisma.rows('ai_consents')[0].notice_version), consent.NOTICE_VERSION);
+      assert.strictEqual(await consent.noticeVersionOf(user.user_id), consent.NOTICE_VERSION);
 
       prisma.store.legal_documents[0].version = 3;
       const stale = await request('GET', '/api/ai/status', { token });
@@ -177,8 +180,8 @@ module.exports = {
       const user = h.addUser();
       const token = h.tokenFor(user);
       h.setSettings({ enabled: true });
-      assert.strictEqual(consent.NOTICE_VERSION, 2);
-      for (const body of [{ granted: true }, { granted: true, notice_version: 1 }, { granted: true, notice_version: '2' }]) {
+      assert.strictEqual(consent.NOTICE_VERSION, 4);
+      for (const body of [{ granted: true }, { granted: true, notice_version: 3 }, { granted: true, notice_version: '4' }]) {
         const res = await request('PUT', '/api/ai/consent', { token, body });
         assert.strictEqual(res.status, 409, JSON.stringify(body));
         assert.strictEqual(res.body.code, 'AI_CONSENT_NOTICE_OUTDATED');
@@ -196,7 +199,7 @@ module.exports = {
       const token = h.tokenFor(user);
       const res = await request('PUT', '/api/ai/consent', { token, body: { granted: 'yes' } });
       assert.strictEqual(res.status, 400);
-      assert.strictEqual(res.body.message, 'granted 必須是 true 或 false');
+      assert.strictEqual(res.body.message, '設定值不正確');
     }],
 
     ['同意狀態 API：更新後回傳最新的功能狀態', async () => {
@@ -244,6 +247,7 @@ module.exports = {
       const data = await consent.exportUser(3);
       assert.strictEqual(data.consent.granted, true);
       assert.strictEqual(data.consent.policy_version, 1);
+      assert.strictEqual(data.consent.notice_version, consent.NOTICE_VERSION);
       assert.strictEqual(data.support_sessions.length, 1);
       assert.deepStrictEqual(data.support_sessions[0].messages.map((m) => m.role), ['user', 'assistant']);
       assert.strictEqual(data.support_sessions[0].messages[0].content, '我要退款');
@@ -318,17 +322,27 @@ module.exports = {
       assert.strictEqual(second.suggest_handoff, true);
     }],
 
-    ['客服對話：模型輸出會被清掉 HTML 與控制字元；空白回覆視為格式錯誤', async () => {
+    ['客服對話：模型輸出會被清掉 HTML 與控制字元；空白回覆附上說明重試一次，仍為空白時記為格式錯誤且不計次數', async () => {
       enable(1);
-      h.queueJson({ reply: '<b>請</b>​稍候 。', suggest_handoff: false }, { reply: '   ', suggest_handoff: false });
+      h.queueJson({ reply: '<b>請</b>​稍候 。', suggest_handoff: false }, { reply: '   ', suggest_handoff: false }, { reply: '', suggest_handoff: false });
 
       const data = await support.sendMessage(1, '問題一');
       assert.strictEqual(data.reply.content, '請稍候。');
 
+      // 檢索不到任何說明時沒有可降級的內容，照舊回錯誤且不寫入對話。新對話才不會以前一題檢索。
+      await support.close(1);
       await assert.rejects(
-        () => support.sendMessage(1, '問題二'),
+        () => support.sendMessage(1, '？？？'),
         (err) => err.code === 'AI_PROVIDER_ERROR' && err.reason === 'INVALID_OUTPUT'
       );
+      assert.strictEqual(prisma.rows('ai_support_messages').length, 2);
+      const log = prisma.rows('ai_usage_logs').at(-1);
+      assert.strictEqual(log.status, 'error');
+      assert.strictEqual(log.error_code, 'INVALID_OUTPUT');
+      assert.strictEqual(log.error_detail, '回覆清理後為空');
+      assert.strictEqual(prisma.rows('ai_usage_logs').filter((r) => r.status === 'ok').length, 1);
+      assert.strictEqual(h.calls.length, 3);
+      assert.ok(h.calls[2].options.prompt.startsWith('？？？\n\n【格式修正】'), '重試時附上格式錯誤說明');
     }],
 
     ['客服對話：超過每日次數時不會呼叫模型', async () => {
@@ -376,7 +390,7 @@ module.exports = {
       const ticket = prisma.rows('support_tickets')[0];
       assert.strictEqual(Number(ticketId), Number(ticket.ticket_id));
       assert.strictEqual(ticket.subject, 'AI 客服轉接：款項沒有入帳');
-      assert.strictEqual(ticket.category, 'other');
+      assert.strictEqual(ticket.category, 'trade');
       assert.strictEqual(prisma.rows('ai_support_sessions')[0].status, 'escalated');
       assert.strictEqual(Number(prisma.rows('ai_support_sessions')[0].ticket_id), Number(ticketId));
     }],

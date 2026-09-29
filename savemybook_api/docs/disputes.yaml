@@ -2,9 +2,9 @@ tags:
   - name: disputes
     x-displayName: 交易爭議
     description: |
-      訂單交易爭議的申訴管道，適用書況不符、未收到書籍等情形。
+      訂單交易爭議的申請管道，適用書況不符、未收到書籍等情形。
 
-      申請送出後訂單立即轉為 `refunding`（畫面顯示「審核中」），暫停自動完成與撥款，待管理員於「後台：檢舉與爭議」裁決。
+      申請送出後訂單立即轉為 `refunding`（畫面顯示「審核中」，買家購買紀錄的分頁名稱為「爭議處理中」），暫停自動完成與撥款，待管理員於「後台：檢舉與爭議」裁決。
       裁決結果為退款時訂單轉為 `refunded` 並全額退回買家；駁回或協調結案時，已取書的訂單直接完成並撥款給賣家，
       尚未取書的訂單回到原本的進度。
 
@@ -50,19 +50,24 @@ paths:
         '500': { $ref: '#/components/responses/ServerError' }
 
     post:
-      summary: 提出爭議申請
+      summary: 申請爭議
       operationId: createDispute
       tags: [disputes]
       description: |
-        買賣雙方皆可對自身參與的訂單提出爭議。
+        買賣雙方皆可對自身參與的訂單申請爭議。
 
         送出後訂單狀態立即轉為 `refunding`。建立申請與更新訂單狀態
         於同一資料庫交易內完成。
 
-        同一訂單若已存在狀態為 `pending` 或 `processing` 的申請，回傳 409。
+        同一訂單已有狀態為 `pending` 或 `processing` 的申請時回傳 409；不論由買家或賣家申請，另一方都不能再申請。
+        訂單正於書櫃辦理中（書櫃作業在數字比對、開門中或櫃門已開啟）時，雙方都不能申請，回傳 409 `ORDER_IN_CABINET_SESSION`，
+        待作業結束後再申請。
 
-        依服務條款，已取書的訂單只能在取書後 24 小時內、訂單完成前提出（以 `picked_up_at` 計算）；
+        依服務條款，已取書的訂單只能在取書後 24 小時內、訂單完成前申請（以 `picked_up_at` 計算）；
         逾期或訂單已完成（`completed`）回傳 400 `DISPUTE_WINDOW_PASSED`。取書前各階段不受此限。
+
+        以 `order_no` 指定訂單（不分大小寫，忽略空白）；`order_no` 與 `order_id` 皆未提供時回傳 400。
+        `order_id` 僅供舊版 App 相容，同時提供時以 `order_no` 為準。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -70,9 +75,10 @@ paths:
           application/json:
             schema:
               type: object
-              required: [order_id, reason]
+              required: [reason]
               properties:
-                order_id: { type: integer, example: 40 }
+                order_no: { type: string, description: 訂單編號（畫面顯示的 SMB 編號）。, example: SMB20260910143015123456 }
+                order_id: { type: integer, deprecated: true, description: 舊版 App 使用的訂單內部編號。, example: 40 }
                 reason: { type: string, description: 爭議說明，不可為空白。, example: 書況與描述不符，有大量畫線 }
                 evidence_urls:
                   oneOf:
@@ -91,9 +97,26 @@ paths:
                 properties:
                   success: { type: boolean, example: true }
                   message: { type: string, example: 爭議申請已送出 }
-                  data: { $ref: '#/components/schemas/Dispute' }
+                  data:
+                    description: 與 `GET /api/disputes` 的單筆項目相同，包含關聯訂單與申請人。
+                    allOf:
+                      - $ref: '#/components/schemas/Dispute'
+                      - type: object
+                        properties:
+                          orders:
+                            type: object
+                            properties:
+                              order_id: { type: integer }
+                              order_no: { type: string }
+                              total_amount: { type: string }
+                              status: { type: string, description: 建立申請前讀取的訂單狀態；建立後訂單實際已轉為 `refunding`。 }
+                              order_items:
+                                type: array
+                                items: { $ref: '#/components/schemas/OrderItem' }
+                          users_transaction_disputes_applicant_idTousers:
+                            $ref: '#/components/schemas/UserBrief'
         '400':
-          description: 欄位缺漏，或已超過取書後 24 小時的申訴期限。
+          description: 欄位缺漏、訂單已取消或已退款，或已超過取書後 24 小時的爭議申請期限。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -102,22 +125,30 @@ paths:
                   value: { success: false, message: 請指定訂單 }
                 未填爭議說明:
                   value: { success: false, message: 請填寫爭議說明 }
-                超過申訴期限:
-                  value: { success: false, code: DISPUTE_WINDOW_PASSED, message: 已超過取書後 24 小時的申訴期限 }
+                訂單已取消或已退款:
+                  value: { success: false, message: 此訂單已取消或已退款，無法申請爭議 }
+                超過爭議申請期限:
+                  value: { success: false, code: DISPUTE_WINDOW_PASSED, message: 已超過取書後 24 小時的爭議申請期限 }
                 訂單已完成:
-                  value: { success: false, code: DISPUTE_WINDOW_PASSED, message: 訂單已完成，無法再提出申訴 }
+                  value: { success: false, code: DISPUTE_WINDOW_PASSED, message: 訂單已完成，無法再申請爭議 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
           description: 請求者非該訂單的關係人。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 存取被拒 }
+              example: { success: false, message: 無權限執行此操作 }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
-          description: 該訂單已有處理中的爭議申請。
+          description: 該訂單已有處理中的爭議申請、正於書櫃辦理中，或在處理期間被其他請求變更（例如雙方同時申請）。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 此訂單已有處理中的爭議申請 }
+              examples:
+                已有申請:
+                  value: { success: false, message: 此訂單已有處理中的爭議申請 }
+                書櫃辦理中:
+                  value: { success: false, code: ORDER_IN_CABINET_SESSION, message: 此訂單正於書櫃辦理中，請稍後再試 }
+                狀態已變更:
+                  value: { success: false, message: 訂單狀態已變更，請重新整理後再試 }
         '500': { $ref: '#/components/responses/ServerError' }

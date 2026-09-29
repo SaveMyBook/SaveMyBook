@@ -25,6 +25,10 @@ entity "ai_chat_messages" as ai_chat_messages {
   {field} role : enum
   {field} content : text
   {field} book_ids : varchar(255)
+  {field} meta : text
+  {field} feedback : varchar(10)
+  {field} feedback_reason : varchar(20)
+  {field} feedback_at : datetime
   {field} created_at : datetime
 }
 entity "ai_support_sessions" as ai_support_sessions {
@@ -42,12 +46,31 @@ entity "ai_support_messages" as ai_support_messages {
   {field} session_id : int
   {field} role : enum
   {field} content : text
+  {field} meta : text
+  {field} feedback : varchar(10)
+  {field} feedback_reason : varchar(20)
+  {field} feedback_at : datetime
   {field} created_at : datetime
+}
+entity "ai_message_requests" as ai_message_requests {
+  {field} <&key> request_id : int
+  --
+  {field} user_id : int
+  {field} feature : varchar(20)
+  {field} client_id : varchar(64)
+  {field} status : enum
+  {field} user_message_id : int
+  {field} reply_message_id : int
+  {field} meta : text
+  {field} created_at : datetime
+  {field} updated_at : datetime
 }
 entity "ai_consents" as ai_consents {
   {field} <&key> user_id : int
   --
   {field} granted : tinyint(1)
+  {field} policy_version : int
+  {field} notice_version : tinyint
   {field} updated_at : datetime
 }
 entity "ai_recommendation_cache" as ai_recommendation_cache {
@@ -56,42 +79,6 @@ entity "ai_recommendation_cache" as ai_recommendation_cache {
   {field} payload : text
   {field} created_at : datetime
 }
-entity "ai_settings" as ai_settings {
-  {field} <&key> id : tinyint
-  --
-  {field} config : text
-  {field} updated_by : int
-  {field} updated_at : datetime
-}
-entity "ai_usage_logs" as ai_usage_logs {
-  {field} <&key> usage_id : bigint
-  --
-  {field} feature : varchar(30)
-  {field} provider : varchar(20)
-  {field} model : varchar(80)
-  {field} user_id : int
-  {field} input_tokens : int
-  {field} cached_tokens : int
-  {field} output_tokens : int
-  {field} search_calls : int
-  {field} cost_usd : decimal(12,6)
-  {field} latency_ms : int
-  {field} status : enum
-  {field} error_code : varchar(60)
-  {field} error_detail : varchar(400)
-  {field} created_at : datetime
-}
-entity "ai_embeddings" as ai_embeddings {
-  {field} <&key> kind : varchar(20)
-  {field} <&key> ref_id : varchar(64)
-  --
-  {field} model : varchar(100)
-  {field} content_hash : char(64)
-  {field} vector : mediumtext
-  {field} updated_at : datetime
-}
 ai_chat_sessions ||--o{ ai_chat_messages
 ai_support_sessions ||--o{ ai_support_messages
-ai_consents -[hidden]down- ai_usage_logs
-ai_recommendation_cache -[hidden]down- ai_embeddings
 @enduml

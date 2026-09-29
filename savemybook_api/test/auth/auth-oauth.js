@@ -105,7 +105,6 @@ const tests = [
     assert.strictEqual(params.get('error'), null);
     assert.strictEqual(h.prisma.rows('oauth_states').length, 0, 'state 應一次性消耗');
 
-    // 尚未綁定任何帳號：先問使用者，不建立帳號，且一次性碼要留著給下一步
     const asked = await exchange(code);
     assert.strictEqual(asked.status, 404);
     assert.strictEqual(asked.body.code, 'NO_ACCOUNT_FOR_PROVIDER');
@@ -113,7 +112,6 @@ const tests = [
     assert.strictEqual(h.prisma.rows('users').length, 0, '不得自動建立帳號');
     assert.strictEqual(h.prisma.rows('oauth_results').length, 1, '一次性碼要保留供使用者決定後再用');
 
-    // 交換階段才建立工作階段並簽發 Token
     const exchanged = await exchange(code, { create: true, device_id: 'device-1', platform: 'ios' });
     assert.strictEqual(exchanged.status, 200);
     assert.strictEqual(exchanged.body.message, '登入成功');

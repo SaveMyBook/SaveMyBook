@@ -321,7 +321,6 @@ module.exports = {
         assert.strictEqual(res.status, 200, `第 ${i + 1} 次改名：${res.text}`);
       }
 
-      // registerPasskey 已用掉 1 次 options，再取 19 次恰好用完 20 次額度。
       let options;
       for (let i = 0; i < 19; i += 1) {
         const res = await request('POST', '/api/users/me/passkeys/options', { token: ctx.token });

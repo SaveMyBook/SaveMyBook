@@ -63,7 +63,6 @@ const activeHoldsFor = (bookIds, now = new Date()) => prisma.reservations.findMa
   select: { book_id: true, buyer_id: true, pickup_deadline: true }
 });
 
-// 由其他買家保留中的書：結帳會被 assertNotHeldByOthers 擋下，AI 推薦與書籍顧問據此排除。
 const heldByOthers = async (viewerId = null, now = new Date()) => {
   const rows = await prisma.reservations.findMany({
     where: { status: 'confirmed', pickup_deadline: { gt: now }, ...(viewerId != null && { buyer_id: { not: viewerId } }) },
@@ -80,12 +79,10 @@ const formatDeadline = (date) => deadlineFormat.format(new Date(date));
 
 const heldError = () => conflict('此書籍預約保留中，保留期間無法編輯或下架', 'BOOK_HELD');
 
-// 賣家同意預約後到保留期滿前，書籍不可編輯或下架，避免買家看到的內容或售價被改動。
 const assertNotHeld = async (bookId) => {
   if (await activeHold(null, bookId)) throw heldError();
 };
 
-// 保留結束且書仍在販售中時，通知收藏此書的人（不含預約的買家與賣家）。
 const notifyAvailable = async (db, row) => {
   if (row.books?.status !== 'on_sale' || !row.books?.is_approved) return 0;
   const fans = await (db ?? prisma).favorites.findMany({
@@ -95,7 +92,7 @@ const notifyAvailable = async (db, row) => {
   if (fans.length === 0) return 0;
   return notifyMany(db, fans.map((f) => f.user_id), {
     title: '收藏的書籍已可購買',
-    content: `《${row.books.title}》的預約保留已結束，現在可以購買。`,
+    content: `《${row.books.title}》的預約保留已結束，現已開放購買。`,
     relatedId: row.book_id,
     relatedType: 'book'
   });
@@ -158,7 +155,7 @@ const request = async ({ room, buyerId, bookId, hours, message }) => {
       userId: sellerId,
       type: 'reservation',
       title: '您的書籍收到預約申請',
-      content: `對方申請預約《${book.title}》，保留 ${hours} 小時。請至聊天室回覆。`,
+      content: `買家申請預約《${book.title}》，保留 ${hours} 小時，請至聊天室回覆。`,
       relatedId: room.room_id,
       relatedType: 'chat_room'
     });
@@ -278,7 +275,6 @@ const forUsers = async (a, b) => {
   return new Map(rows.map((r) => [r.reservation_id, shape(r)]));
 };
 
-// 購買紀錄「已預訂」：等待賣家回覆與保留中的預約。
 const mine = async (buyerId, now = new Date()) => {
   const rows = await prisma.reservations.findMany({
     where: {

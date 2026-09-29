@@ -839,6 +839,34 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                           const SizedBox(height: 8),
                           _inlineNote(c, Icons.key_off_rounded, c.warning, S.p0NoApiKey(effectiveInfo.name)),
                         ],
+                        const SizedBox(height: 12),
+                        _label(c, S.backupProvider),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: AppSelect<String>(
+                            value: config.fallbackProvider ?? '',
+                            title: S.backupProvider,
+                            leadingIcon: Icons.swap_horiz_rounded,
+                            options: [
+                              AppSelectOption(value: '', label: S.none),
+                              for (final info in bundle.providers)
+                                AppSelectOption(
+                                  value: info.id,
+                                  label: info.name,
+                                  subtitle: s.providers[info.id]!.model,
+                                  enabled: info.keyConfigured && info.id != effective,
+                                  disabledReason: info.id == effective ? S.sameAsCurrentProvider : (info.keyConfigured ? null : S.noKey),
+                                ),
+                            ],
+                            onChanged: (v) => _update(
+                              (s) => s.withFeature(feature, config.copyWith(fallbackProvider: () => v.isEmpty ? null : v)),
+                            ),
+                          ),
+                        ),
+                        if (config.fallbackProvider == effective) ...[
+                          const SizedBox(height: 8),
+                          _inlineNote(c, Icons.info_outline_rounded, c.warning, S.sameAsCurrentProviderSoNo),
+                        ],
                         if (feature == AiFeatures.listingAssist) ..._webSearchOption(c, s, config, effectiveInfo),
                         if (feature == AiFeatures.moderation) ..._moderationOption(c, config),
                       ],
@@ -1018,6 +1046,7 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
   }
 
   Widget _limitsCard(AppColors c, AiSettings s) {
+    final memberPercent = 100 - (s.reserveRatio * 100).round();
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1027,7 +1056,10 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
           ),
           const SizedBox(height: 14),
-          _field(c, 'budget', S.monthlyBudgetUsd, prefix: 'US\$ ', hint: S.k0MeansNoCap),
+          _grid([
+            _field(c, 'budget', S.monthlyBudgetUsd, prefix: 'US\$ ', hint: S.k0MeansNoCap),
+            _field(c, 'reserve', S.reservedModerationAdminTools, integer: true, hint: S.memberFeaturesCanUseP0Budget(memberPercent)),
+          ], minWidth: 180),
           const SizedBox(height: 16),
           _label(c, S.dailyLimitPerMember),
           const SizedBox(height: 2),
@@ -1045,7 +1077,7 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
   Widget _advancedCard(AppColors c, AiSettingsBundle bundle, AdminFrame frame) {
     final form = _form!;
     final invalidAdvanced = AiSettingsForm.specs.any(
-      (spec) => !spec.key.startsWith('budget') && !spec.key.startsWith('limit.') && form.isInvalid(spec.key),
+      (spec) => !const {'budget', 'reserve'}.contains(spec.key) && !spec.key.startsWith('limit.') && form.isInvalid(spec.key),
     );
     return AppCard(
       padding: EdgeInsets.zero,

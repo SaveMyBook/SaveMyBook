@@ -315,16 +315,6 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'SAVEMYBOOK',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.75),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 10),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 280),
                 transitionBuilder: (child, animation) => FadeTransition(
@@ -682,34 +672,8 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(text: S.benefits(level.levelName)),
-              if (benefits.isNotEmpty)
-                WidgetSpan(
-                  alignment: PlaceholderAlignment.middle,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: style.accent.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '×${benefits.length}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: style.accent,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+        Text(
+          S.benefits(level.levelName),
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
         ),
         const SizedBox(height: 16),

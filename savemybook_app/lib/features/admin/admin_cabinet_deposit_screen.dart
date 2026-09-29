@@ -14,8 +14,10 @@ import '../../widgets/app_header.dart';
 import '../../widgets/app_select.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import '../cabinet/cabinet_messages.dart';
 import '../selling/book_deposit_actions.dart';
 import '../../i18n/strings.dart';
+import 'admin_cabinet_open_sheet.dart';
 import 'admin_layout.dart';
 
 String _cabinetOf(CabinetDeposit item) => item.cabinetName.isEmpty ? S.faqCatCabinet : item.cabinetName;
@@ -166,6 +168,28 @@ class _AdminCabinetDepositScreenState extends State<AdminCabinetDepositScreen> {
       HapticFeedback.mediumImpact();
       showAppSnackBar(context, S.removalRecorded);
       if (_items.isEmpty && _hasMore) _load();
+    }
+  }
+
+  Future<void> _openDoor(CabinetDeposit item) async {
+    final cabinetId = item.cabinetId;
+    final slotId = item.doorSlotId;
+    final label = item.doorLabel;
+    if (_busyBookId != null || cabinetId == null || slotId == null || label == null) return;
+    final result = await showAdminCabinetOpenSheet(
+      context,
+      cabinetId: cabinetId,
+      slotId: slotId,
+      label: label,
+      cabinetName: _cabinetOf(item),
+      initialReason: S.staffRetrievalOverdueBooks,
+    );
+    final finished = result.finished;
+    if (!mounted || finished == null) return;
+    if (finished.status == 'completed') {
+      showAppSnackBar(context, S.checkContentsDoorP0(label));
+    } else {
+      showAppSnackBar(context, CabinetMessages.result(finished.result), isError: true);
     }
   }
 
@@ -333,6 +357,8 @@ class _AdminCabinetDepositScreenState extends State<AdminCabinetDepositScreen> {
   Widget _buildCard(CabinetDeposit item, AppColors c) {
     final seller = item.sellerDeleted || item.sellerName.isEmpty ? S.deletedUser : item.sellerName;
     final cabinet = _cabinetOf(item);
+    final door = item.doorLabel;
+    final canOpen = item.cabinetId != null && item.doorSlotId != null && door != null;
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -363,6 +389,10 @@ class _AdminCabinetDepositScreenState extends State<AdminCabinetDepositScreen> {
                     ),
                     const SizedBox(height: 2),
                     InfoLine(icon: Icons.storage_rounded, value: cabinet, maxLines: 1, fontSize: 12),
+                    if (door != null) ...[
+                      const SizedBox(height: 2),
+                      InfoLine(icon: Icons.sensor_door_outlined, value: S.doorP0(door), maxLines: 1, fontSize: 12),
+                    ],
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 6,
@@ -387,6 +417,13 @@ class _AdminCabinetDepositScreenState extends State<AdminCabinetDepositScreen> {
                   ],
                 ),
               ),
+              if (canOpen)
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: S.openDoorRemotely,
+                  icon: Icon(Icons.lock_open_rounded, size: 20, color: c.accent),
+                  onPressed: _busyBookId != null ? null : () => _openDoor(item),
+                ),
             ],
           ),
           const SizedBox(height: 10),

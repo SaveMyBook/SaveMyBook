@@ -5,16 +5,14 @@ const embeddings = require('../../lib/ai/embeddings');
 const settingsService = require('./settings');
 const usage = require('./usage');
 
-// 語意檢索：書籍與客服知識先轉成向量存進 ai_embeddings，查詢時以餘弦相似度找意思相近的內容，
-// 補足關鍵字比對找不到換句話說、上下位概念（例如「AI 書」對上書名只寫 Gemini 的書）的問題。
-// 目前資料量（數千筆）直接在記憶體比對即可，不需要向量資料庫。
-
 const STORE_TTL_MS = 30 * 60 * 1000;
 const SYNC_LIMIT = 1000;
 const INLINE_SYNC_MAX = 30;
 const QUERY_CACHE_SIZE = 500;
 const QUERY_TTL_MS = 60 * 60 * 1000;
 const FAILURE_COOLDOWN_MS = 5 * 60 * 1000;
+// 查詢向量只是加分項，等不到就只用關鍵字檢索，不拖慢互動功能的整體時限。
+const QUERY_TIMEOUT_MS = 2500;
 const FAILURE_STREAK = 3;
 const FAILED_DOC_MS = 30 * 60 * 1000;
 
@@ -25,7 +23,6 @@ const profile = () => {
   return id ? embeddings.PROFILES[id] : null;
 };
 
-// AI 總開關關閉或未設定 OpenAI／Gemini 金鑰時回傳 null，呼叫端改用純關鍵字檢索。
 const context = async () => {
   const p = profile();
   if (!p) return null;
@@ -77,29 +74,40 @@ const skipFailed = (docs) => {
 const systemic = (err) => err instanceof ai.AiProviderError
   && (COOLDOWN_REASONS.has(err.reason) || (err.reason === 'INVALID_OUTPUT' && err.systemic === true));
 
-const logCall = (p, { result, userId = null, error = null }) => usage.log({
+// 文件向量不論在背景或在請求中當場補算，都是維護索引的費用，記為 index，不歸給觸發的功能。
+const INDEX_ORIGIN = 'index';
+
+const logCall = (p, { result, userId = null, error = null, trace = null, origin = null }) => usage.log({
   feature: 'embedding',
   provider: p.provider,
   model: p.model,
   userId,
+  requestId: trace?.id ?? null,
+  origin,
   usage: { input_tokens: result?.tokens ?? error?.usage?.input_tokens ?? 0 },
   costUsd: result?.cost_usd ?? error?.cost_usd ?? 0,
   latencyMs: result?.latency_ms ?? error?.latency_ms ?? 0,
   ...(error && { status: 'error', errorCode: error.reason ?? 'INTERNAL', errorDetail: error.fullDetail ?? error.detail ?? null })
 });
 
-const embedTexts = async (p, texts, { purpose, ...options }) => {
+// 查詢的逾時很短，偶發逾時只代表這次來不及，不計入冷卻。
+const countsTowardCooldown = (purpose, err) => !(purpose === 'query' && err?.reason === 'TIMEOUT');
+
+const embedTexts = async (p, texts, { purpose, trace = null, ...options }) => {
   if (coolingDown(purpose)) throw new ai.AiProviderError('SERVER', { provider: p.provider });
+  const origin = purpose === 'sync' ? INDEX_ORIGIN : trace?.feature ?? null;
   try {
     const result = await embeddings.embed(p, ai.apiKeyOf(p.provider), texts, options);
     health.streak[purpose] = 0;
-    await logCall(p, { result, userId: options.userId });
+    await logCall(p, { result, userId: options.userId, trace, origin });
     return result.vectors;
   } catch (err) {
-    health.streak[purpose] += 1;
-    if (systemic(err) || health.streak[purpose] >= FAILURE_STREAK) {
-      health.until[purpose] = Date.now() + FAILURE_COOLDOWN_MS;
-      health.streak[purpose] = 0;
+    if (countsTowardCooldown(purpose, err)) {
+      health.streak[purpose] += 1;
+      if (systemic(err) || health.streak[purpose] >= FAILURE_STREAK) {
+        health.until[purpose] = Date.now() + FAILURE_COOLDOWN_MS;
+        health.streak[purpose] = 0;
+      }
     }
     health.lastError = {
       at: new Date(),
@@ -107,7 +115,7 @@ const embedTexts = async (p, texts, { purpose, ...options }) => {
       code: err?.reason ?? 'INTERNAL',
       detail: err?.fullDetail ?? err?.detail ?? (ai.redact(err?.message ?? '') || null)
     };
-    await logCall(p, { error: err, userId: options.userId });
+    await logCall(p, { error: err, userId: options.userId, trace, origin });
     throw err;
   }
 };
@@ -129,7 +137,6 @@ const pending = new Map();
 
 const staleDocs = (entries, docs) => docs.filter((d) => entries.get(d.ref)?.hash !== d.hash);
 
-// docs 為 [{ ref, text, hash }]；只重算新增或內容變更的項目，同一種類同時只跑一次。
 const sync = (kind, docs, { limit = SYNC_LIMIT } = {}) => {
   const p = profile();
   if (!p) return Promise.resolve(0);
@@ -174,19 +181,19 @@ const sync = (kind, docs, { limit = SYNC_LIMIT } = {}) => {
 
 const queryCache = new Map();
 
-const queryVector = async (p, text, userId) => {
+const queryVector = async (p, text, userId, trace) => {
   const key = `${p.id}|${text}`;
   const hit = queryCache.get(key);
   if (hit && Date.now() - hit.at < QUERY_TTL_MS) return hit.vector;
-  const [vector] = await embedTexts(p, [text], { purpose: 'query', task: 'query', userId });
+  const [vector] = await embedTexts(p, [text], { purpose: 'query', task: 'query', userId, trace, timeoutMs: QUERY_TIMEOUT_MS });
   queryCache.set(key, { vector, at: Date.now() });
   while (queryCache.size > QUERY_CACHE_SIZE) queryCache.delete(queryCache.keys().next().value);
   return vector;
 };
 
-// 回傳 [{ ref, similarity }]（由高到低）；語意檢索無法使用時回傳 null。
 // 少量新文件（例如剛上架的書）當場補算，大量缺漏則在背景補齊，這次先用已有的向量。
-const rank = async (kind, docs, query, { userId = null } = {}) => {
+// inlineSync 為 false 時一律在背景補算：有整體時限的互動功能不等待同步。
+const rank = async (kind, docs, query, { userId = null, inlineSync = true, trace = null } = {}) => {
   const text = String(query ?? '').trim();
   if (!text || docs.length === 0) return null;
   try {
@@ -199,9 +206,9 @@ const rank = async (kind, docs, query, { userId = null } = {}) => {
     const todo = coolingDown('sync') ? [] : skipFailed(stale);
     if (todo.length > 0) {
       const job = sync(kind, docs);
-      if (todo.length <= INLINE_SYNC_MAX) await job;
+      if (inlineSync && todo.length <= INLINE_SYNC_MAX) await job;
     }
-    const q = await queryVector(p, text.slice(0, 2000), userId);
+    const q = await queryVector(p, text.slice(0, 2000), userId, trace);
     const out = [];
     for (const d of docs) {
       const entry = entries.get(d.ref);
@@ -214,7 +221,6 @@ const rank = async (kind, docs, query, { userId = null } = {}) => {
   }
 };
 
-// 以已存的向量找相近文件（例如相似的書），不需要另外呼叫嵌入 API；該文件尚未建立向量時回傳 null。
 const neighbors = async (kind, docs, ref) => {
   try {
     const ctx = await context();
@@ -235,7 +241,6 @@ const neighbors = async (kind, docs, ref) => {
   }
 };
 
-// 過濾明顯無關的結果：同時要求高於服務商的最低相似度，且不能離最高分太遠。
 const relevant = (ranked, { minSimilarity, relative = 0.7, limit = 30 } = {}) => {
   if (!ranked || ranked.length === 0) return [];
   const p = profile();
@@ -244,7 +249,6 @@ const relevant = (ranked, { minSimilarity, relative = 0.7, limit = 30 } = {}) =>
   return ranked.filter((r) => r.similarity >= floor).slice(0, limit);
 };
 
-// Reciprocal Rank Fusion：只看名次合併關鍵字與語意兩份排名，不必校正兩種分數的尺度。
 const RRF_K = 60;
 const fuse = (lists) => {
   const scores = new Map();
@@ -290,4 +294,4 @@ const reset = () => {
   health.coverage.clear();
 };
 
-module.exports = { hashOf, profile, context, sync, rank, neighbors, relevant, fuse, status, reset };
+module.exports = { QUERY_TIMEOUT_MS, hashOf, profile, context, sync, rank, neighbors, relevant, fuse, status, reset };

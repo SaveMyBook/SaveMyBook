@@ -131,10 +131,17 @@ class AiProviderPricing {
 class AiFeatureConfig {
   final bool enabled;
   final String? provider;
+  final String? fallbackProvider;
   final bool webSearch;
   final String action;
 
-  const AiFeatureConfig({this.enabled = true, this.provider, this.webSearch = false, this.action = 'review'});
+  const AiFeatureConfig({
+    this.enabled = true,
+    this.provider,
+    this.fallbackProvider,
+    this.webSearch = false,
+    this.action = 'review',
+  });
 
   static const defaults = <String, AiFeatureConfig>{
     AiFeatures.support: AiFeatureConfig(),
@@ -147,11 +154,13 @@ class AiFeatureConfig {
   factory AiFeatureConfig.fromJson(Map<String, dynamic>? json, AiFeatureConfig fallback) {
     if (json == null) return fallback;
     final provider = json['provider'];
+    final backup = json['fallback_provider'];
     return AiFeatureConfig(
       enabled: json.containsKey('enabled') ? json['enabled'] == true : fallback.enabled,
       provider: provider is String && AiProviders.ids.contains(provider)
           ? provider
           : (json.containsKey('provider') ? null : fallback.provider),
+      fallbackProvider: backup is String && AiProviders.ids.contains(backup) ? backup : null,
       webSearch: json.containsKey('web_search') ? json['web_search'] == true : fallback.webSearch,
       action: json['action'] == 'block' ? 'block' : (json['action'] == 'review' ? 'review' : fallback.action),
     );
@@ -160,14 +169,22 @@ class AiFeatureConfig {
   Map<String, dynamic> toJson(String feature) => {
     'enabled': enabled,
     'provider': provider,
+    'fallback_provider': fallbackProvider,
     if (feature == AiFeatures.listingAssist) 'web_search': webSearch,
     if (feature == AiFeatures.moderation) 'action': action,
   };
 
-  AiFeatureConfig copyWith({bool? enabled, String? Function()? provider, bool? webSearch, String? action}) =>
+  AiFeatureConfig copyWith({
+    bool? enabled,
+    String? Function()? provider,
+    String? Function()? fallbackProvider,
+    bool? webSearch,
+    String? action,
+  }) =>
       AiFeatureConfig(
         enabled: enabled ?? this.enabled,
         provider: provider == null ? this.provider : provider(),
+        fallbackProvider: fallbackProvider == null ? this.fallbackProvider : fallbackProvider(),
         webSearch: webSearch ?? this.webSearch,
         action: action ?? this.action,
       );
@@ -179,6 +196,7 @@ class AiSettings {
   final Map<String, AiProviderPricing> providers;
   final Map<String, AiFeatureConfig> features;
   final double monthlyBudgetUsd;
+  final double reserveRatio;
   final Map<String, int> dailyPerUser;
 
   const AiSettings({
@@ -187,8 +205,12 @@ class AiSettings {
     required this.providers,
     required this.features,
     required this.monthlyBudgetUsd,
+    this.reserveRatio = defaultReserveRatio,
     required this.dailyPerUser,
   });
+
+  static const defaultReserveRatio = 0.2;
+  static const maxReserveRatio = 0.9;
 
   static const _defaultLimits = {
     AiFeatures.support: 30,
@@ -223,6 +245,9 @@ class AiSettings {
           f: AiFeatureConfig.fromJson(section(json['features'], f), AiFeatureConfig.defaults[f]!),
       },
       monthlyBudgetUsd: limits.containsKey('monthly_budget_usd') ? _clampNonNegative(limits['monthly_budget_usd']) : 10,
+      reserveRatio: limits.containsKey('reserve_ratio')
+          ? math.min(maxReserveRatio, _clampNonNegative(limits['reserve_ratio']))
+          : defaultReserveRatio,
       dailyPerUser: {
         for (final entry in _defaultLimits.entries)
           entry.key: daily is Map && daily.containsKey(entry.key)
@@ -239,6 +264,7 @@ class AiSettings {
     'features': {for (final f in AiFeatures.configurable) f: features[f]!.toJson(f)},
     'limits': {
       'monthly_budget_usd': monthlyBudgetUsd,
+      'reserve_ratio': reserveRatio,
       'daily_per_user': {for (final f in AiFeatures.limited) f: dailyPerUser[f] ?? 0},
     },
   };
@@ -253,6 +279,7 @@ class AiSettings {
     Map<String, AiProviderPricing>? providers,
     Map<String, AiFeatureConfig>? features,
     double? monthlyBudgetUsd,
+    double? reserveRatio,
     Map<String, int>? dailyPerUser,
   }) => AiSettings(
     enabled: enabled ?? this.enabled,
@@ -260,6 +287,7 @@ class AiSettings {
     providers: providers ?? this.providers,
     features: features ?? this.features,
     monthlyBudgetUsd: monthlyBudgetUsd ?? this.monthlyBudgetUsd,
+    reserveRatio: reserveRatio ?? this.reserveRatio,
     dailyPerUser: dailyPerUser ?? this.dailyPerUser,
   );
 
@@ -510,6 +538,7 @@ class AiUsageSummary {
   final double costUsd;
   final double monthCostUsd;
   final double monthlyBudgetUsd;
+  final double memberBudgetUsd;
   final double budgetUsedRatio;
   final double projectedMonthCostUsd;
 
@@ -522,6 +551,7 @@ class AiUsageSummary {
     this.costUsd = 0,
     this.monthCostUsd = 0,
     this.monthlyBudgetUsd = 0,
+    this.memberBudgetUsd = 0,
     this.budgetUsedRatio = 0,
     this.projectedMonthCostUsd = 0,
   });
@@ -538,6 +568,7 @@ class AiUsageSummary {
       costUsd: parseDouble(json['cost_usd']),
       monthCostUsd: month,
       monthlyBudgetUsd: budget,
+      memberBudgetUsd: json['member_budget_usd'] != null ? parseDouble(json['member_budget_usd']) : budget,
       budgetUsedRatio: json['budget_used_ratio'] != null
           ? parseDouble(json['budget_used_ratio'])
           : (budget > 0 ? month / budget : 0),
@@ -546,6 +577,8 @@ class AiUsageSummary {
   }
 
   int get totalTokens => inputTokens + outputTokens;
+
+  bool get hasReserve => monthlyBudgetUsd > 0 && memberBudgetUsd < monthlyBudgetUsd;
 
   double get errorRate => requests == 0 ? 0 : errors / requests;
 }
@@ -677,6 +710,7 @@ class AiUsageReport {
   final List<AiTopUser> topUsers;
   final List<AiUsageError> recentErrors;
   final int pendingReviews;
+  final int unreviewedListings;
 
   const AiUsageReport({
     required this.period,
@@ -687,6 +721,7 @@ class AiUsageReport {
     this.topUsers = const [],
     this.recentErrors = const [],
     this.pendingReviews = 0,
+    this.unreviewedListings = 0,
   });
 
   static List<T> _list<T>(Object? raw, T Function(Map<String, dynamic>) build) => [
@@ -706,8 +741,160 @@ class AiUsageReport {
       topUsers: _list(json['top_users'], AiTopUser.fromJson),
       recentErrors: _list(json['recent_errors'], AiUsageError.fromJson),
       pendingReviews: parseInt(json['pending_reviews']),
+      unreviewedListings: parseInt(json['unreviewed_listings']),
     );
   }
+}
+
+class AiOutcomes {
+  const AiOutcomes._();
+
+  static const ok = 'ok';
+  static const repaired = 'repaired';
+  static const degraded = 'degraded';
+  static const empty = 'empty';
+  static const refused = 'refused';
+  static const failed = 'failed';
+
+  static const all = [ok, repaired, degraded, empty, refused, failed];
+}
+
+Map<String, int> _countMap(Object? raw, {bool keepZero = false}) => {
+  if (raw is Map)
+    for (final e in raw.entries)
+      if (keepZero || parseInt(e.value) > 0) '${e.key}': parseInt(e.value),
+};
+
+class AiFeatureDecisions {
+  final String feature;
+  final int total;
+  final Map<String, int> outcomes;
+  final Map<String, int> paths;
+  final Map<String, int> flags;
+  final Map<String, double> averages;
+
+  const AiFeatureDecisions({
+    required this.feature,
+    this.total = 0,
+    this.outcomes = const {},
+    this.paths = const {},
+    this.flags = const {},
+    this.averages = const {},
+  });
+
+  double rateOf(int count) => total > 0 ? count / total : 0;
+
+  factory AiFeatureDecisions.fromJson(Map<String, dynamic> json) {
+    final averages = json['averages'];
+    return AiFeatureDecisions(
+      feature: json['feature'] as String? ?? '',
+      total: parseInt(json['total']),
+      outcomes: _countMap(json['outcomes']),
+      paths: _countMap(json['paths']),
+      // 旗標為 0 次代表比例為 0%，仍要顯示；沒有這項統計時伺服器不會回傳該鍵。
+      flags: _countMap(json['flags'], keepZero: true),
+      averages: averages is Map ? {for (final e in averages.entries) '${e.key}': parseDouble(e.value)} : const {},
+    );
+  }
+}
+
+class AiPromptVersionStat {
+  final String feature;
+  final String version;
+  final int requests;
+  final int errors;
+  final int degraded;
+  final DateTime? lastAt;
+
+  const AiPromptVersionStat({required this.feature, required this.version, this.requests = 0, this.errors = 0, this.degraded = 0, this.lastAt});
+
+  double get errorRate => requests > 0 ? errors / requests : 0;
+
+  factory AiPromptVersionStat.fromJson(Map<String, dynamic> json) => AiPromptVersionStat(
+    feature: json['feature'] as String? ?? '',
+    version: json['prompt_version'] as String? ?? '',
+    requests: parseInt(json['requests']),
+    errors: parseInt(json['errors']),
+    degraded: parseInt(json['degraded']),
+    lastAt: parseDate(json['last_at']),
+  );
+}
+
+class AiEmbeddingOrigin {
+  static const index = 'index';
+  static const unknown = 'unknown';
+
+  final String origin;
+  final int requests;
+  final double costUsd;
+
+  const AiEmbeddingOrigin({required this.origin, this.requests = 0, this.costUsd = 0});
+
+  factory AiEmbeddingOrigin.fromJson(Map<String, dynamic> json) => AiEmbeddingOrigin(
+    origin: json['origin'] as String? ?? unknown,
+    requests: parseInt(json['requests']),
+    costUsd: parseDouble(json['cost_usd']),
+  );
+}
+
+class AiFormatErrorStat {
+  final String feature;
+  final String provider;
+  final int requests;
+  final int invalidOutput;
+  final int incomplete;
+  final int repaired;
+  final int dropped;
+  final int defaulted;
+
+  const AiFormatErrorStat({
+    required this.feature,
+    required this.provider,
+    this.requests = 0,
+    this.invalidOutput = 0,
+    this.incomplete = 0,
+    this.repaired = 0,
+    this.dropped = 0,
+    this.defaulted = 0,
+  });
+
+  int get errors => invalidOutput + incomplete;
+  double get errorRate => requests > 0 ? errors / requests : 0;
+
+  factory AiFormatErrorStat.fromJson(Map<String, dynamic> json) => AiFormatErrorStat(
+    feature: json['feature'] as String? ?? '',
+    provider: json['provider'] as String? ?? '',
+    requests: parseInt(json['requests']),
+    invalidOutput: parseInt(json['invalid_output']),
+    incomplete: parseInt(json['incomplete']),
+    repaired: parseInt(json['repaired']),
+    dropped: parseInt(json['dropped']),
+    defaulted: parseInt(json['defaulted']),
+  );
+}
+
+class AiDecisionReport {
+  final String period;
+  final List<AiFeatureDecisions> features;
+  final List<AiPromptVersionStat> promptVersions;
+  final List<AiEmbeddingOrigin> embeddingByOrigin;
+  final List<AiFormatErrorStat> formatErrors;
+
+  const AiDecisionReport({
+    required this.period,
+    this.features = const [],
+    this.promptVersions = const [],
+    this.embeddingByOrigin = const [],
+    this.formatErrors = const [],
+  });
+
+  factory AiDecisionReport.fromJson(Map<String, dynamic> json) => AiDecisionReport(
+    period: json['period'] as String? ?? 'month',
+    features: AiUsageReport._list(json['features'], AiFeatureDecisions.fromJson),
+    promptVersions: AiUsageReport._list(json['prompt_versions'], AiPromptVersionStat.fromJson),
+    embeddingByOrigin: AiUsageReport._list(json['embedding_by_origin'], AiEmbeddingOrigin.fromJson),
+    formatErrors: AiUsageReport._list(json['format_errors'], AiFormatErrorStat.fromJson),
+  );
 }
 
 class AiChartSegment {
@@ -867,7 +1054,10 @@ String formatTokens(int value) {
 String formatCount(int value) => _group('$value');
 
 // 同意畫面的說明內容變更時加一，並與 API 的 NOTICE_VERSION 一致，否則伺服器會拒絕同意。
-const aiConsentNoticeVersion = 2;
+const aiConsentNoticeVersion = 4;
+
+// 與 API 的 SESSION_WINDOW_HOURS 一致：閒置超過此時間的客服對話已由伺服器結束，畫面須重新載入。
+const aiSupportIdleLimit = Duration(hours: 6);
 
 class AiStatusInfo {
   final bool support;
@@ -927,22 +1117,78 @@ class AiStatusInfo {
   );
 }
 
+String newAiClientId() {
+  final random = math.Random.secure();
+  return List.generate(16, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
+}
+
+String? _clientId(Object? raw) => raw is String && raw.isNotEmpty ? raw : null;
+
+class AiMessageFeedback {
+  final String rating;
+  final String? reason;
+
+  const AiMessageFeedback({required this.rating, this.reason});
+
+  bool get helpful => rating == 'helpful';
+
+  static AiMessageFeedback? fromJson(Object? raw) {
+    if (raw is! Map || (raw['rating'] != 'helpful' && raw['rating'] != 'unhelpful')) return null;
+    final reason = raw['reason'];
+    return AiMessageFeedback(rating: raw['rating'] as String, reason: reason is String && reason.isNotEmpty ? reason : null);
+  }
+}
+
 class AiSupportMessage {
   final int messageId;
   final String role;
   final String content;
+  final String? clientId;
+  final bool suggestHandoff;
+  final bool degraded;
+  final List<String> suggestions;
   final DateTime? createdAt;
+  final List<String> orderNos;
+  final String? messageNo;
+  final AiMessageFeedback? feedback;
 
-  const AiSupportMessage({required this.messageId, required this.role, required this.content, this.createdAt});
+  const AiSupportMessage({
+    required this.messageId,
+    required this.role,
+    required this.content,
+    this.clientId,
+    this.suggestHandoff = false,
+    this.degraded = false,
+    this.suggestions = const [],
+    this.createdAt,
+    this.orderNos = const [],
+    this.messageNo,
+    this.feedback,
+  });
 
   bool get isUser => role == 'user';
 
-  factory AiSupportMessage.fromJson(Map<String, dynamic> json) => AiSupportMessage(
-    messageId: parseInt(json['message_id']),
-    role: json['role'] == 'user' ? 'user' : 'assistant',
-    content: json['content'] as String? ?? '',
-    createdAt: parseDate(json['created_at']),
-  );
+  static final _orderNo = RegExp(r'^SMB\d{17}(?:\d{3})?$');
+
+  factory AiSupportMessage.fromJson(Map<String, dynamic> json) {
+    final isUser = json['role'] == 'user';
+    final raw = json['order_nos'];
+    return AiSupportMessage(
+      messageId: parseInt(json['message_id']),
+      role: isUser ? 'user' : 'assistant',
+      content: json['content'] as String? ?? '',
+      clientId: _clientId(json['client_id']),
+      suggestHandoff: json['suggest_handoff'] == true,
+      degraded: json['degraded'] == true,
+      suggestions: _strings(json['suggestions']),
+      createdAt: parseDate(json['created_at']),
+      orderNos: isUser || raw is! List
+          ? const []
+          : raw.map((e) => '$e'.trim().toUpperCase()).where(_orderNo.hasMatch).toSet().take(3).toList(),
+      messageNo: isUser ? null : _messageNo(json['message_no']),
+      feedback: isUser ? null : AiMessageFeedback.fromJson(json['feedback']),
+    );
+  }
 }
 
 class AiSupportSession {
@@ -975,7 +1221,7 @@ class AiSupportReply {
         ...(reply is Map ? Map<String, dynamic>.from(reply) : const <String, dynamic>{}),
         'role': 'assistant',
       }),
-      suggestHandoff: json['suggest_handoff'] == true,
+      suggestHandoff: json['suggest_handoff'] == true || (reply is Map && reply['suggest_handoff'] == true),
     );
   }
 }
@@ -1009,17 +1255,25 @@ class AiBookChatMessage {
   final int messageId;
   final String role;
   final String content;
+  final String? clientId;
   final List<AiBookSuggestion> books;
   final List<String> suggestions;
+  final bool degraded;
   final DateTime? createdAt;
+  final String? messageNo;
+  final AiMessageFeedback? feedback;
 
   const AiBookChatMessage({
     required this.messageId,
     required this.role,
     required this.content,
+    this.clientId,
     this.books = const [],
     this.suggestions = const [],
+    this.degraded = false,
     this.createdAt,
+    this.messageNo,
+    this.feedback,
   });
 
   bool get isUser => role == 'user';
@@ -1028,10 +1282,19 @@ class AiBookChatMessage {
     messageId: parseInt(json['message_id']),
     role: json['role'] == 'user' ? 'user' : 'assistant',
     content: json['content'] as String? ?? '',
+    clientId: _clientId(json['client_id']),
     books: AiBookSuggestion.listFrom(json['books']),
     suggestions: _strings(json['suggestions']),
+    degraded: json['degraded'] == true,
     createdAt: parseDate(json['created_at']),
+    messageNo: json['role'] == 'user' ? null : _messageNo(json['message_no']),
+    feedback: json['role'] == 'user' ? null : AiMessageFeedback.fromJson(json['feedback']),
   );
+}
+
+String? _messageNo(Object? raw) {
+  final value = raw is String ? raw.trim() : '';
+  return value.isEmpty ? null : value;
 }
 
 class AiBookChatSession {
@@ -1073,12 +1336,15 @@ class AiResult<T> {
   final T? data;
   final String? error;
   final String? code;
+  final bool timedOut;
 
-  const AiResult.ok(this.data) : error = null, code = null;
+  const AiResult.ok(this.data) : error = null, code = null, timedOut = false;
 
-  const AiResult.fail(this.error, {this.code}) : data = null;
+  const AiResult.fail(this.error, {this.code, this.timedOut = false}) : data = null;
 
   bool get isOk => error == null;
+
+  bool get inProgress => code == 'AI_REQUEST_IN_PROGRESS';
 
   bool get needsConsent => code == 'AI_CONSENT_REQUIRED';
 
@@ -1122,42 +1388,110 @@ class AiConditionGuess {
   );
 }
 
+int? _positiveInt(Object? v) {
+  if (v == null) return null;
+  final n = parseDouble(v).round();
+  return n > 0 ? n : null;
+}
+
 class AiPriceGuess {
   final int suggested;
   final int? min;
   final int? max;
   final int? originalPrice;
+  final bool originalPriceVerified;
   final List<String> reasons;
+  final Map<String, int> byCondition;
 
-  const AiPriceGuess({required this.suggested, this.min, this.max, this.originalPrice, this.reasons = const []});
+  const AiPriceGuess({
+    required this.suggested,
+    this.min,
+    this.max,
+    this.originalPrice,
+    this.originalPriceVerified = false,
+    this.reasons = const [],
+    this.byCondition = const {},
+  });
+
+  int suggestedFor(String? condition) => (condition == null ? null : byCondition[condition]) ?? suggested;
 
   factory AiPriceGuess.fromJson(Map<String, dynamic> json) {
-    int? optional(Object? v) {
-      if (v == null) return null;
-      final n = parseDouble(v).round();
-      return n > 0 ? n : null;
-    }
-
+    final table = json['by_condition'];
     return AiPriceGuess(
       suggested: parseDouble(json['suggested']).round(),
-      min: optional(json['min']),
-      max: optional(json['max']),
-      originalPrice: optional(json['original_price']),
+      min: _positiveInt(json['min']),
+      max: _positiveInt(json['max']),
+      originalPrice: _positiveInt(json['original_price']),
+      originalPriceVerified: json['original_price_verified'] == true,
       reasons: _strings(json['reasons']),
+      byCondition: {
+        if (table is Map)
+          for (final entry in table.entries)
+            if (entry.value is Map && _positiveInt((entry.value as Map)['suggested']) != null)
+              '${entry.key}': _positiveInt((entry.value as Map)['suggested'])!,
+      },
     );
   }
+}
+
+class AiConditionRequest {
+  final String author;
+  final String publisher;
+  final String publishDate;
+  final int? categoryId;
+  final int? originalPrice;
+  final String? followupToken;
+
+  const AiConditionRequest({
+    this.author = '',
+    this.publisher = '',
+    this.publishDate = '',
+    this.categoryId,
+    this.originalPrice,
+    this.followupToken,
+  });
+}
+
+class AiListingCarry {
+  final int? originalPrice;
+  final Map<String, int> priceTable;
+  final String? followupToken;
+
+  const AiListingCarry({this.originalPrice, this.priceTable = const {}, this.followupToken});
+
+  // 未經查證的定價若當成已知定價帶入，第二步會直接依它換算且不再搜尋。
+  factory AiListingCarry.applied(AiListingAssist result, {String? followupToken}) {
+    final price = result.price;
+    return AiListingCarry(
+      originalPrice: !result.isbnMismatch && price != null && price.originalPriceVerified ? price.originalPrice : null,
+      priceTable: price?.byCondition ?? const {},
+      followupToken: followupToken,
+    );
+  }
+
+  AiListingCarry renewed({required bool sameBook, String? followupToken}) => AiListingCarry(
+        originalPrice: sameBook ? originalPrice : null,
+        priceTable: sameBook ? priceTable : const {},
+        followupToken: followupToken ?? this.followupToken,
+      );
+
+  AiListingCarry withoutBook() => AiListingCarry(followupToken: followupToken);
 }
 
 class AiSource {
   final String title;
   final String url;
+  final String domain;
 
-  const AiSource({required this.title, required this.url});
+  const AiSource({required this.title, required this.url, this.domain = ''});
 
-  String get host => Uri.tryParse(url)?.host.replaceFirst('www.', '') ?? '';
+  String get host => domain.isNotEmpty ? domain : Uri.tryParse(url)?.host.replaceFirst('www.', '') ?? '';
 
-  factory AiSource.fromJson(Map<String, dynamic> json) =>
-      AiSource(title: json['title'] as String? ?? '', url: json['url'] as String? ?? '');
+  factory AiSource.fromJson(Map<String, dynamic> json) => AiSource(
+        title: json['title'] as String? ?? '',
+        url: json['url'] as String? ?? '',
+        domain: '${json['domain'] ?? ''}'.trim(),
+      );
 }
 
 List<String> _strings(Object? raw) => [
@@ -1179,12 +1513,9 @@ class AiListingAssist {
     'description',
   ];
 
-  /// 出版日期實際確認到的精度：`day`、`month`、`year`，無法確認時為空字串。
   final String publishDatePrecision;
-
-  /// 簡介來源：`sources`、`ai`、`mixed`，沒有簡介時為空字串。
   final String descriptionSource;
-
+  final bool isbnMismatch;
   final Map<String, String> fields;
   final AiCategoryGuess? category;
   final AiConditionGuess? condition;
@@ -1193,11 +1524,17 @@ class AiListingAssist {
   final List<String> warnings;
   final String provider;
   final String model;
+  final String mode;
+  final String? followupToken;
+  final String? suggestionToken;
 
   const AiListingAssist({
+    this.mode = 'full',
+    this.followupToken,
     this.fields = const {},
     this.publishDatePrecision = '',
     this.descriptionSource = '',
+    this.isbnMismatch = false,
     this.category,
     this.condition,
     this.price,
@@ -1205,9 +1542,12 @@ class AiListingAssist {
     this.warnings = const [],
     this.provider = '',
     this.model = '',
+    this.suggestionToken,
   });
 
   bool get publishDateIsApproximate => publishDatePrecision.isNotEmpty && publishDatePrecision != 'day';
+
+  bool get descriptionWrittenByAi => descriptionSource == 'ai';
 
   factory AiListingAssist.fromJson(Map<String, dynamic> json) {
     final fields = json['fields'];
@@ -1217,13 +1557,17 @@ class AiListingAssist {
     final parsedCategory = category is Map ? AiCategoryGuess.fromJson(Map<String, dynamic>.from(category)) : null;
     final parsedCondition = condition is Map ? AiConditionGuess.fromJson(Map<String, dynamic>.from(condition)) : null;
     final parsedPrice = price is Map ? AiPriceGuess.fromJson(Map<String, dynamic>.from(price)) : null;
+    final token = '${json['followup_token'] ?? ''}'.trim();
     return AiListingAssist(
+      mode: '${json['mode'] ?? 'full'}',
+      followupToken: token.isEmpty ? null : token,
       fields: {
         for (final key in fieldKeys)
           if (fields is Map && '${fields[key] ?? ''}'.trim().isNotEmpty) key: '${fields[key]}'.trim(),
       },
       publishDatePrecision: fields is Map ? '${fields['publish_date_precision'] ?? ''}'.trim() : '',
       descriptionSource: '${json['description_source'] ?? ''}'.trim(),
+      isbnMismatch: json['isbn_mismatch'] == true,
       category: parsedCategory != null && parsedCategory.categoryId > 0 ? parsedCategory : null,
       condition: parsedCondition != null && parsedCondition.level.isNotEmpty ? parsedCondition : null,
       price: parsedPrice != null && parsedPrice.suggested > 0 ? parsedPrice : null,
@@ -1234,43 +1578,59 @@ class AiListingAssist {
       warnings: _strings(json['warnings']),
       provider: json['provider'] as String? ?? '',
       model: json['model'] as String? ?? '',
+      suggestionToken: _messageNo(json['suggestion_token']),
     );
   }
 
   bool get isEmpty => fields.isEmpty && category == null && condition == null && price == null;
 }
 
-/// 推薦依據：`book` 為使用者紀錄中的某一本書（relation 為 purchase／favorite／cart／viewed），
-/// `category` 為常看的分類，`more` 為依據不明或熱門補位。
 class RecommendationGroup {
   final String kind;
   final String? relation;
   final String? title;
   final String? category;
   final List<Book> books;
+  final Map<int, String> reasons;
 
-  const RecommendationGroup({required this.kind, required this.books, this.relation, this.title, this.category});
+  const RecommendationGroup({
+    required this.kind,
+    required this.books,
+    this.relation,
+    this.title,
+    this.category,
+    this.reasons = const {},
+  });
 }
 
 class AiRecommendations {
   final List<Book> books;
   final List<RecommendationGroup> groups;
   final String source;
+  final bool refreshing;
 
-  const AiRecommendations({this.books = const [], this.groups = const [], this.source = 'fallback'});
+  const AiRecommendations({this.books = const [], this.groups = const [], this.source = 'fallback', this.refreshing = false});
 
   factory AiRecommendations.fromJson(Map<String, dynamic> payload) {
     final books = <Book>[];
+    final reasons = <int, String>{};
     final data = payload['data'];
     if (data is List) {
       for (final item in data) {
         if (item is! Map || item['book'] is! Map) continue;
         try {
-          books.add(Book.fromJson(Map<String, dynamic>.from(item['book'])));
+          final book = Book.fromJson(Map<String, dynamic>.from(item['book']));
+          books.add(book);
+          final reason = '${item['reason'] ?? ''}'.trim();
+          if (reason.isNotEmpty) reasons[book.bookId] = reason;
         } catch (_) {}
       }
     }
     final byId = {for (final b in books) b.bookId: b};
+    Map<int, String> reasonsOf(List<Book> members) => {
+          for (final b in members)
+            if (reasons.containsKey(b.bookId)) b.bookId: reasons[b.bookId]!,
+        };
     final groups = <RecommendationGroup>[];
     final rawGroups = payload['groups'];
     if (rawGroups is List) {
@@ -1285,16 +1645,38 @@ class AiRecommendations {
           title: g['title'] as String?,
           category: g['category'] as String?,
           books: members,
+          reasons: reasonsOf(members),
         ));
       }
     }
-    // 舊版伺服器沒有分組時，整批當成一組。
-    if (groups.isEmpty && books.isNotEmpty) groups.add(RecommendationGroup(kind: 'more', books: books));
+    if (groups.isEmpty && books.isNotEmpty) groups.add(RecommendationGroup(kind: 'more', books: books, reasons: reasonsOf(books)));
     final meta = payload['meta'];
     return AiRecommendations(
       books: books,
       groups: groups,
       source: meta is Map && meta['source'] == 'ai' ? 'ai' : 'fallback',
+      refreshing: meta is Map && meta['refreshing'] == true,
+    );
+  }
+}
+
+class AiReviewOpinion {
+  final String verdict;
+  final List<String> reasons;
+  final List<String> categories;
+  final double? confidence;
+
+  const AiReviewOpinion({required this.verdict, this.reasons = const [], this.categories = const [], this.confidence});
+
+  static AiReviewOpinion? fromJson(Object? raw) {
+    if (raw is! Map || raw['verdict'] is! String) return null;
+    final verdict = raw['verdict'] as String;
+    if (!const ['allow', 'review', 'reject'].contains(verdict)) return null;
+    return AiReviewOpinion(
+      verdict: verdict,
+      reasons: _strings(raw['reasons']),
+      categories: _strings(raw['categories']),
+      confidence: raw['confidence'] == null ? null : parseDouble(raw['confidence']).clamp(0.0, 1.0),
     );
   }
 }
@@ -1310,6 +1692,13 @@ class AiReviewItem {
   final List<String> categories;
   final String status;
   final DateTime? createdAt;
+  final bool byRules;
+  final AiReviewOpinion? aiOpinion;
+  final List<String> imageUrls;
+  final String description;
+  final String conditionNote;
+  final String conditionLevel;
+  final double? confidence;
 
   const AiReviewItem({
     required this.bookId,
@@ -1322,6 +1711,13 @@ class AiReviewItem {
     this.categories = const [],
     this.status = 'pending',
     this.createdAt,
+    this.byRules = false,
+    this.aiOpinion,
+    this.imageUrls = const [],
+    this.description = '',
+    this.conditionNote = '',
+    this.conditionLevel = '',
+    this.confidence,
   });
 
   factory AiReviewItem.fromJson(Map<String, dynamic> json) {
@@ -1331,10 +1727,12 @@ class AiReviewItem {
         : (book['seller'] is Map ? book['seller'] as Map : (book['users'] is Map ? book['users'] as Map : null));
     String? image = book['image_url'] as String? ?? book['cover_url'] as String?;
     final images = book['book_images'];
-    if (image == null && images is List && images.isNotEmpty) {
-      final first = images.first;
-      image = first is Map ? first['image_url'] as String? : '$first';
-    }
+    final urls = <String>[
+      if (images is List)
+        for (final item in images)
+          if ((item is Map ? item['image_url'] : item) case final String url when url.isNotEmpty) ?resolveAssetUrl(url),
+    ];
+    if (image == null && urls.isNotEmpty) image = urls.first;
     return AiReviewItem(
       bookId: parseInt(json['book_id'] ?? book['book_id']),
       title: book['title'] as String? ?? '',
@@ -1346,6 +1744,13 @@ class AiReviewItem {
       categories: _decodeList(json['categories']),
       status: json['status'] as String? ?? 'pending',
       createdAt: parseDate(json['created_at']),
+      byRules: json['origin'] == 'rules' || json['model'] == 'rules',
+      aiOpinion: AiReviewOpinion.fromJson(json['ai_opinion']),
+      imageUrls: urls,
+      description: '${book['description'] ?? ''}'.trim(),
+      conditionNote: '${book['condition_note'] ?? ''}'.trim(),
+      conditionLevel: '${book['condition_level'] ?? ''}',
+      confidence: json['confidence'] == null ? null : parseDouble(json['confidence']).clamp(0.0, 1.0),
     );
   }
 

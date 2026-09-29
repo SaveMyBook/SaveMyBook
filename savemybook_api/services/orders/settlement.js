@@ -41,7 +41,7 @@ const round2 = (n) => Math.round(n * 100) / 100;
 
 const IN_CABINET = ['deposited', 'pending_pickup'];
 
-// 申訴中的訂單看不出原本進度，改依存書時間判斷書是否已放進訂單書櫃（與申訴裁決推回狀態的規則一致）。
+// 爭議處理中的訂單看不出原本進度，改依存書時間判斷書是否已放進訂單書櫃（與爭議裁決推回狀態的規則一致）。
 const wasInCabinet = (order) => order.cabinet_id != null
   && (IN_CABINET.includes(order.status) || (order.status === 'refunding' && order.deposited_at != null));
 
@@ -54,7 +54,7 @@ const redeposit = async (tx, order, now) => {
   const whole = wasInCabinet(order);
   const ids = order.order_items.filter((i) => keptInCabinet(order, i)).map((i) => i.book_id);
   if (ids.length === 0) return result;
-  // 申訴中的訂單無法確認書是否仍在櫃中，恢復登記但改為下架，避免下一位買家直接前往書櫃卻取不到書。
+  // 爭議處理中的訂單無法確認書是否仍在櫃中，恢復登記但改為下架，避免下一位買家直接前往書櫃卻取不到書。
   const delist = order.status === 'refunding';
   const books = await tx.books.findMany({
     where: { book_id: { in: ids }, status: { in: ['on_sale', 'removed'] } },
@@ -87,7 +87,6 @@ const redeposit = async (tx, order, now) => {
 };
 
 // 必須在 guardedUpdate 之後、同一個交易內呼叫，靠其列鎖避免重複結算。
-// restoreBookTo：退款後書籍回到的狀態；逾期未存書或未取書自動取消時改為下架，由賣家確認後自行重新上架。
 const settle = async (tx, order, target, { restoreBookTo = 'on_sale' } = {}) => {
   const phase = phaseOf(target);
   const result = { phase, paidOut: 0, clawedBack: 0, refunded: 0, redeposited: 0, redepositedForSale: 0 };
@@ -171,7 +170,7 @@ const assertAdminTransition = (from, to) => {
     throw badRequest('此訂單款項已退回買家，無法改回進行中或已完成');
   }
   if (from === 'completed' && !['refunding', 'refunded'].includes(to)) {
-    throw badRequest('已完成的訂單只能改為「退款處理中」或「已退款」');
+    throw badRequest('已完成的訂單僅能改為「審核中」或「已退款」');
   }
 };
 
@@ -185,11 +184,11 @@ const describeSettlement = (money) => {
 
 const storedNotice = ({ redeposited = 0, redepositedForSale = 0 }) => {
   if (redeposited === 0) return '';
-  if (redepositedForSale === redeposited) return '已存放於書櫃的書籍維持存書登記，可繼續販售。';
+  if (redepositedForSale === redeposited) return '書櫃中的書籍將繼續販售。';
   const retrieve = '請至書櫃以 App 掃描 QR Code 取回。';
   return redepositedForSale > 0
-    ? `已存放於書櫃的書籍維持存書登記，其中公開販售中的書籍可繼續販售；未公開販售的書籍${retrieve}`
-    : `已存放於書櫃的書籍維持存書登記；書籍目前未公開販售，${retrieve}`;
+    ? `書櫃中公開販售的書籍將繼續販售；其餘書籍${retrieve}`
+    : `書櫃中的書籍目前未公開販售，${retrieve}`;
 };
 
 const statusLabel = (status) => ORDER_STATUS_LABELS[status] ?? status;

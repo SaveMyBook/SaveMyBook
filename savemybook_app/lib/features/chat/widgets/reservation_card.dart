@@ -167,7 +167,7 @@ class ReservationCardView extends StatelessWidget {
                 ),
               ),
             ),
-            if (r.hours > 0) ...[
+            if (r.hours > 0 && r.isPending && !_pendingExpired) ...[
               const SizedBox(height: 8),
               Row(
                 children: [

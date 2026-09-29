@@ -8,7 +8,6 @@ const sessions = h.api('services/sessions');
 
 const PIN = '135790';
 
-// 建立一位已登入的使用者，回傳連線所需的權杖與裝置。
 const signedIn = ({ pin = null } = {}) => {
   const user = h.addUser();
   const session = h.addSession(user);
@@ -61,7 +60,6 @@ module.exports = {
       const sensitive = await verify(ctx, { scope: 'sensitive', method: 'face' });
       assert.strictEqual(sensitive.body.message, '不支援此驗證方式');
 
-      // 後台範圍只收登入密碼，交易密碼與生物辨識連簽發都不允許。
       const admin = await verify(ctx, { scope: 'admin', method: 'pin', pin: PIN });
       assert.strictEqual(admin.status, 400);
       assert.strictEqual(admin.body.message, '不支援此驗證方式');
@@ -172,7 +170,6 @@ module.exports = {
       assert.strictEqual(notice.title, '交易密碼已暫時鎖定');
       assert.ok(notice.content.includes('連續輸入錯誤 5 次'));
 
-      // 鎖定期間即使輸入正確也會被擋下。
       const locked = await verify(ctx, { scope: 'payment', method: 'pin', pin: PIN });
       assert.strictEqual(locked.status, 423);
       assert.strictEqual(locked.body.code, 'PIN_LOCKED');
@@ -259,7 +256,6 @@ module.exports = {
         (err) => err.code === 'VERIFICATION_REQUIRED' && err.message === '此驗證已使用，請重新驗證'
       );
 
-      // 呼叫失敗時會把權杖釋放回去，讓使用者不必重新驗證。
       security.releaseToken(decoded.jti);
       assert.strictEqual(security.consumeToken(raw, user, 'payment').jti, decoded.jti);
     }],
@@ -301,7 +297,6 @@ module.exports = {
       assert.strictEqual(byPassword.body.data.scope, 'admin');
       assert.strictEqual(security.consumeToken(byPassword.body.data.verify_token, user, 'admin').method, 'password');
 
-      // sensitive 與 admin 是不同範圍：兩邊的權杖都不能互相頂替。
       const sensitive = await verify(ctx, { scope: 'sensitive', method: 'password', password: 'Passw0rd123' });
       assert.throws(
         () => security.consumeToken(sensitive.body.data.verify_token, user, 'admin'),
@@ -312,7 +307,6 @@ module.exports = {
         (err) => err.code === 'VERIFICATION_REQUIRED'
       );
 
-      // 直接偽造一份以交易密碼簽發的 admin 權杖，仍不得通行。
       const forged = h.verifyTokenFor({ user: ctx.user, sid: ctx.session.sid, scope: 'admin', method: 'pin' });
       assert.throws(() => security.consumeToken(forged, user, 'admin'), (err) => err.code === 'VERIFICATION_REQUIRED');
     }],
@@ -415,7 +409,6 @@ module.exports = {
       assert.strictEqual(res.body.data.revoked, 2);
       assert.strictEqual(res.body.data.signed_out_current, false);
       assert.strictEqual(prisma.rows('user_sessions').filter((s) => s.revoked_at == null).length, 1);
-      // 沒有裝置代碼的舊 Token 以時間點一併作廢。
       assert.ok(prisma.rows('user_security')[0].tokens_valid_after);
     }],
 

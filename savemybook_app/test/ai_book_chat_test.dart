@@ -65,7 +65,7 @@ void main() {
       final s = AiSettings.fromJson(const {});
       expect(s.features[AiFeatures.bookChat]!.enabled, isTrue);
       expect(s.dailyPerUser[AiFeatures.bookChat], 20);
-      expect((s.toJson()['features'] as Map)[AiFeatures.bookChat], {'enabled': true, 'provider': null});
+      expect((s.toJson()['features'] as Map)[AiFeatures.bookChat], {'enabled': true, 'provider': null, 'fallback_provider': null});
       expect(((s.toJson()['limits'] as Map)['daily_per_user'] as Map)[AiFeatures.bookChat], 20);
     });
   });

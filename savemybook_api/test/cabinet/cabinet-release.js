@@ -71,7 +71,7 @@ module.exports = {
       assert.strictEqual(h.depositOf(single.book_id).paused_at, null);
       assert.strictEqual(h.bookOf(single.book_id).status, 'on_sale');
       const cancelNotice = h.notificationsOf(ctx.seller.user_id).find((n) => n.title === '訂單已取消' && n.content.includes(shared.order_no));
-      assert.ok(!cancelNotice.content.includes('可繼續販售。'), cancelNotice.content);
+      assert.ok(!cancelNotice.content.includes('將繼續販售'), cancelNotice.content);
 
       const created = await h.createSession(ctx, ctx.sellerToken, { context: { type: 'book', id: a.book_id } });
       assert.strictEqual(created.status, 201, created.text);
@@ -168,7 +168,7 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.buyerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.buyerToken, no, [`order:${order.order_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       await h.openDoors(ctx, no);
 
       await orders().cancelUncollected(new Date());
@@ -176,6 +176,25 @@ module.exports = {
       await h.closeSession(ctx, no, { channels: [2] });
       assert.ok(h.orderOf(order.order_id).picked_up_at);
       assert.strictEqual(h.slotItemOf(book.book_id), null);
+    }],
+
+    ['逾期保留的訂單超過一批時，較新的逾期訂單仍會被處理', async () => {
+      const ctx = h.scene();
+      const held = [];
+      for (let i = 0; i < 101; i += 1) {
+        const { order } = overdueOrder(ctx, { channel: null });
+        prisma.rows('cabinet_events').push({
+          event_id: prisma.nextId('cabinet_events'), cabinet_id: ctx.cabinet.cabinet_id, order_id: order.order_id, type: 'item_blocked',
+          source: 'server', detail: null, occurred_at: new Date(), received_at: new Date()
+        });
+        held.push(order);
+      }
+      const { order: due } = overdueOrder(ctx, { channel: null });
+
+      assert.strictEqual(await orders().cancelUncollected(new Date()), 1);
+      assert.strictEqual(h.orderOf(due.order_id).status, 'cancelled');
+      assert.ok(held.every((o) => h.orderOf(o.order_id).status === 'deposited'));
+      assert.strictEqual(h.eventsOf('overdue_review').length, 101);
     }]
   ]
 };

@@ -36,7 +36,6 @@ class LinkPreviewStore {
     'www.savemybook.today',
   };
 
-  /// 本站書籍分享連結（僅限本站網域）的權杖；其他網址回傳 null。
   static String? bookTokenOf(String url) {
     final uri = Uri.tryParse(url.trim());
     if (uri == null || !_appHosts.contains(uri.host.toLowerCase())) return null;
@@ -412,7 +411,6 @@ class SharedBookStore {
   }
 }
 
-/// 訊息內容只有本站書籍分享連結時，直接以書籍卡片呈現。
 class ChatSharedBookCard extends StatefulWidget {
   final String token;
   final bool isMine;
@@ -486,8 +484,6 @@ class _ChatSharedBookCardState extends State<ChatSharedBookCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: const [
-                SkeletonBox(width: 60, height: 10),
-                SizedBox(height: 8),
                 SkeletonBox(height: 14),
                 SizedBox(height: 8),
                 SkeletonBox(width: 48, height: 14),
@@ -525,21 +521,6 @@ class _ChatSharedBookCardState extends State<ChatSharedBookCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.menu_book_rounded, size: 12, color: c.accent),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        kAppName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 11, color: c.accent, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
                 Text(
                   book.title,
                   maxLines: 2,

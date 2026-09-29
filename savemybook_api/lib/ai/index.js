@@ -10,6 +10,8 @@ const PROVIDERS = {
     name: 'DeepSeek',
     vision: false,
     web_search: false,
+    image_types: [],
+    strict_schema: false,
     default_model: 'deepseek-flash',
     docs_url: 'https://api-docs.deepseek.com',
     envKey: 'deepseekApiKey',
@@ -20,6 +22,8 @@ const PROVIDERS = {
     name: 'Google Gemini',
     vision: true,
     web_search: true,
+    image_types: ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'],
+    strict_schema: false,
     default_model: 'gemini-3.1-flash-lite',
     docs_url: 'https://ai.google.dev/gemini-api/docs',
     envKey: 'geminiApiKey',
@@ -30,6 +34,8 @@ const PROVIDERS = {
     name: 'OpenAI',
     vision: true,
     web_search: true,
+    image_types: openai.IMAGE_TYPES,
+    strict_schema: true,
     default_model: 'gpt-5-nano',
     docs_url: 'https://developers.openai.com/api/docs',
     envKey: 'openaiApiKey',
@@ -69,21 +75,81 @@ const costOf = (usage, prices, { searchUsedThisMonth = 0 } = {}) => {
   return round6(tokenCost(usage, prices) + searchCost);
 };
 
-const extractJson = (text) => {
-  if (typeof text !== 'string') return null;
+// repaired：JSON 前後夾帶其他文字，截取大括號範圍後才解析成功。只去除 BOM 或程式碼區塊標記不算修復。
+const parseJson = (text) => {
+  if (typeof text !== 'string') return { json: null, repaired: false };
   const cleaned = text.replace(/^\uFEFF/, '').replace(/```(?:json)?/gi, '').trim();
   try {
-    return JSON.parse(cleaned);
+    return { json: JSON.parse(cleaned), repaired: false };
   } catch {
     const start = cleaned.indexOf('{');
     const end = cleaned.lastIndexOf('}');
-    if (start < 0 || end <= start) return null;
+    if (start < 0 || end <= start) return { json: null, repaired: false };
     try {
-      return JSON.parse(cleaned.slice(start, end + 1));
+      return { json: JSON.parse(cleaned.slice(start, end + 1)), repaired: true };
     } catch {
-      return null;
+      return { json: null, repaired: false };
     }
   }
+};
+
+const extractJson = (text) => parseJson(text).json;
+
+// 輸出被截斷時，找出最後一個完整的清單項目並補上結尾括號；只保留完整的項目，未寫完的欄位與項目一律捨棄。
+// 清單指最外層的陣列：項目內還有陣列（例如標籤）時，只在清單本身的項目結束處切，寫到一半的項目不會因內層陣列完整而被保留。
+const SALVAGE_TRIES = 50;
+const CLOSERS = { '{': '}', '[': ']' };
+const salvageJson = (text) => {
+  if (typeof text !== 'string') return null;
+  const cleaned = text.replace(/^\uFEFF/, '').replace(/```(?:json)?/gi, '');
+  const start = cleaned.indexOf('{');
+  if (start < 0) return null;
+  const s = cleaned.slice(start);
+  const stack = [];
+  const cuts = [];
+  let inString = false;
+  let escaped = false;
+  const mark = (end) => {
+    if (stack[stack.length - 1] === '[' && stack.indexOf('[') === stack.length - 1) {
+      cuts.push({ end, closers: stack.map((c) => CLOSERS[c]).reverse().join('') });
+    }
+  };
+  for (let i = 0; i < s.length; i += 1) {
+    const ch = s[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') {
+        inString = false;
+        mark(i + 1);
+      }
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === '{' || ch === '[') stack.push(ch);
+    else if (ch === '}' || ch === ']') {
+      stack.pop();
+      if (stack.length === 0) return null;
+      mark(i + 1);
+    }
+  }
+  for (const cut of cuts.slice(-SALVAGE_TRIES).reverse()) {
+    try {
+      const json = JSON.parse(`${s.slice(0, cut.end)}${cut.closers}`);
+      if (json && typeof json === 'object' && !Array.isArray(json)) return json;
+    } catch {
+    }
+  }
+  return null;
+};
+
+// 依服務商能接受的圖片格式分成實際送出與略過兩組；提示詞中的張數必須以 sent 計算。
+const imagesFor = (provider, images = []) => {
+  const types = PROVIDERS[provider]?.vision ? PROVIDERS[provider].image_types : [];
+  const sent = [];
+  const skipped = [];
+  for (const img of images) (types.includes(img?.mimeType) ? sent : skipped).push(img);
+  return { sent, skipped };
 };
 
 const generate = async (provider, options) => {
@@ -93,7 +159,7 @@ const generate = async (provider, options) => {
   if (!apiKey) throw new AiProviderError('NOT_CONFIGURED', { provider });
 
   const search = Boolean(options.search) && spec.web_search;
-  const images = spec.vision ? options.images ?? [] : [];
+  const { sent: images } = imagesFor(provider, options.images ?? []);
   const timeoutMs = options.timeoutMs ?? (search ? SEARCH_TIMEOUT_MS : DEFAULT_TIMEOUT_MS);
 
   const started = Date.now();
@@ -107,8 +173,15 @@ const generate = async (provider, options) => {
   const latencyMs = Date.now() - started;
 
   let json;
+  let repaired = false;
+  let salvaged = false;
   if (options.json) {
-    json = extractJson(result.text);
+    ({ json, repaired } = parseJson(result.text));
+    // salvage：呼叫端的輸出是可截短的清單（例如推薦），截斷時保留完整的項目。
+    if (!json && result.truncated && options.salvage) {
+      json = salvageJson(result.text);
+      salvaged = Boolean(json);
+    }
     if (!json || typeof json !== 'object' || Array.isArray(json)) {
       // 只記長度與結束原因：輸出可能夾帶使用者內容，錯誤細節會顯示在後台。
       const err = new AiProviderError(result.truncated ? 'INCOMPLETE' : 'INVALID_OUTPUT', {
@@ -120,12 +193,14 @@ const generate = async (provider, options) => {
       throw err;
     }
   }
-  return { ...result, ...(options.json && { json }), latency_ms: latencyMs };
+  return {
+    ...result, ...(options.json && { json }), ...((repaired || salvaged) && { repaired: true }), ...(salvaged && { salvaged: true }), latency_ms: latencyMs
+  };
 };
 
 const moderate = (options) => openai.moderate({ ...options, apiKey: options.apiKey ?? apiKeyOf('openai') });
 
 module.exports = {
   PROVIDERS, PROVIDER_IDS, VISION_ORDER, DEFAULT_TIMEOUT_MS, SEARCH_TIMEOUT_MS, REASON_DETAILS, AiProviderError,
-  redact, apiKeyOf, keyConfigured, tokenCost, billableSearchCalls, costOf, extractJson, generate, moderate
+  redact, apiKeyOf, keyConfigured, tokenCost, billableSearchCalls, costOf, extractJson, salvageJson, imagesFor, generate, moderate
 };

@@ -1,5 +1,3 @@
-// 通行密鑰測試的共用設定：沿用 test/lib 的假 Prisma 與 Express 應用，
-// 另以 node:crypto 模擬真實的驗證器（P-256 金鑰、CBOR 編碼的 attestationObject、ECDSA 簽章）。
 const crypto = require('crypto');
 
 process.env.PASSKEY_RP_ID = 'savemybook.today';
@@ -30,8 +28,6 @@ const RP_ID = 'savemybook.today';
 const ORIGIN = 'https://savemybook.today';
 const ANDROID_ORIGIN = 'android:apk-key-hash:47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU';
 
-// ---------- 迷你 SQL 直譯器不支援的查詢 ----------
-
 const time = (value) => new Date(value).getTime();
 
 prisma.onSql(/LEFT JOIN user_sessions s ON s\.sid/, (sql, [sid, userId]) => {
@@ -46,8 +42,6 @@ prisma.onSql(/LEFT JOIN user_sessions s ON s\.sid/, (sql, [sid, userId]) => {
 
 prisma.onSql(/SELECT session_id, user_id, sid, pay_key_hash, last_seen_at FROM user_sessions/, (sql, [sid, cutoff]) =>
   prisma.rows('user_sessions').filter((s) => s.sid === sid && s.revoked_at == null && time(s.last_seen_at) >= time(cutoff)));
-
-// ---------- 資料庫狀態 ----------
 
 const reset = ({ tables = {} } = {}) => {
   server.reset({
@@ -64,8 +58,6 @@ server.setDefaultReset(() => reset());
 onReset(() => {
   authSettings.clearCache();
 });
-
-// ---------- 使用者 ----------
 
 let userSeq = 0;
 
@@ -117,8 +109,6 @@ const verifyTokenFor = ({ user, sid, scope = 'sensitive', method = 'password' })
   authToken.sign({ typ: 'verify', uid: user.user_id, sid, scope, method, jti: crypto.randomBytes(12).toString('hex') }, 300);
 
 const sensitive = (ctx) => ({ 'x-verify-token': verifyTokenFor({ user: ctx.user, sid: ctx.session.sid }) });
-
-// ---------- 模擬驗證器 ----------
 
 const b64url = (bytes) => isoBase64URL.fromBuffer(new Uint8Array(bytes));
 const sha256 = (data) => crypto.createHash('sha256').update(data).digest();
@@ -174,7 +164,6 @@ class Authenticator {
     return Buffer.from(JSON.stringify({ type, challenge, origin, crossOrigin: false }));
   }
 
-  // options 為伺服器回傳的 PublicKeyCredentialCreationOptionsJSON。
   // transports 給空陣列時比照 iOS：passkeys 套件遇到空陣列不輸出 transports 鍵。
   create(options, { origin, rpId, userVerified = true, transports = ['internal', 'hybrid'] } = {}) {
     this.userHandle = options.user.id;
@@ -196,7 +185,6 @@ class Authenticator {
     };
   }
 
-  // options 為伺服器回傳的 PublicKeyCredentialRequestOptionsJSON；counter 不給時自動遞增。
   get(options, { origin, rpId, counter, userVerified = true, userHandle = this.userHandle, signWith } = {}) {
     this.counter = counter ?? this.counter + 1;
     const authData = this.authData({ rpId, counter: this.counter, userVerified });
@@ -217,7 +205,6 @@ class Authenticator {
   }
 }
 
-// 走完整的 API 流程註冊一組通行密鑰，回傳驗證器。
 const registerPasskey = async (ctx, { label = 'iPhone 17', authenticator = new Authenticator() } = {}) => {
   const options = await request('POST', '/api/users/me/passkeys/options', { token: ctx.token });
   if (options.status !== 200) throw new Error(`取得註冊 options 失敗：${options.status} ${options.text}`);
@@ -230,9 +217,6 @@ const registerPasskey = async (ctx, { label = 'iPhone 17', authenticator = new A
   return authenticator;
 };
 
-// ---------- 日誌與併發 ----------
-
-// 驗證失敗會寫 console.warn，測試收下來比對內容，也避免輸出雜訊。
 const captureWarnings = async (fn) => {
   const warnings = [];
   const original = console.warn;

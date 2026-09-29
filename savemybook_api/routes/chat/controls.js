@@ -25,8 +25,8 @@ router.delete('/blocks/:userId', async (req, res) => {
 router.put('/aliases/:userId', async (req, res) => {
   const targetId = v.id(req.params.userId, '使用者編號');
   const { alias } = req.body;
-  if (alias === undefined) throw badRequest('請提供 alias');
-  if (alias !== null && typeof alias !== 'string') throw badRequest('alias 必須為字串');
+  if (alias === undefined) throw badRequest('請輸入暱稱');
+  if (alias !== null && typeof alias !== 'string') throw badRequest('暱稱格式不正確');
   const value = v.text(alias ?? '', { label: '暱稱', max: aliases.MAX_ALIAS_LENGTH }) || null;
 
   const saved = await aliases.set(req.user.userId, targetId, value);

@@ -93,7 +93,6 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     if (changed == true) _load();
   }
 
-  // 設定或變更密碼後要立刻反映在本頁與「登入方式」卡片，不能等使用者離開再回來。
   Future<void> _openPasswordScreen() async {
     final done = await Navigator.push<bool>(
       context,
@@ -327,21 +326,9 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      good ? S.accountWellProtected : S.accountCouldSafer,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
-                    ),
-                    if (!good) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        S.setPaymentPinTurnBiometricPayment,
-                        style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.45),
-                      ),
-                    ],
-                  ],
+                child: Text(
+                  good ? S.accountWellProtected : S.accountCouldSafer,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
               ),
             ],

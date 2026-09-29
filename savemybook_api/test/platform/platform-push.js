@@ -178,7 +178,6 @@ module.exports = {
       assert.strictEqual(message.apns.payload.aps.category, undefined);
       assert.strictEqual(message.android.notification.channel_id, 'savemybook_default');
 
-      // 送出前就先標記已推播，重啟後不會重複推。
       assert.ok(prisma.rows('notifications')[0].pushed_at);
       assert.strictEqual(await push.dispatchOnce(), 0);
     }],

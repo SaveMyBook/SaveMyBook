@@ -312,6 +312,41 @@ module.exports = {
       }
     }],
 
+    ['查詢向量 2.5 秒逾時；逾時只退回關鍵字檢索，不觸發冷卻', async () => {
+      setup({ books: shelf() });
+      await catalog.warm();
+      const original = embeddings.embed;
+      const timeouts = [];
+      embeddings.embed = async (p, key, texts, options = {}) => {
+        if (options.task !== 'query') return original(p, key, texts, options);
+        timeouts.push(options.timeoutMs);
+        throw new h.ai.AiProviderError('TIMEOUT', { provider: 'gemini' });
+      };
+      try {
+        for (let i = 0; i < 4; i += 1) {
+          catalog.clear();
+          const ranked = await catalog.search([{ text: '推理', weight: 1 }], { query: `推理小說 ${i}` });
+          assert.deepStrictEqual(ranked.map((r) => r.book_id), [1], '退回關鍵字檢索');
+        }
+        assert.deepStrictEqual(timeouts, [semantic.QUERY_TIMEOUT_MS, semantic.QUERY_TIMEOUT_MS, semantic.QUERY_TIMEOUT_MS, semantic.QUERY_TIMEOUT_MS]);
+        assert.ok(semantic.QUERY_TIMEOUT_MS >= 2000 && semantic.QUERY_TIMEOUT_MS <= 3000);
+        const status = await semantic.status();
+        assert.deepStrictEqual(status.cooldown_until, { sync: null, query: null });
+        assert.strictEqual(status.last_error.code, 'TIMEOUT');
+      } finally {
+        embeddings.embed = original;
+      }
+    }],
+
+    ['不當場補算時（書籍顧問、客服）先用已有的向量，缺少的在背景補齊', async () => {
+      setup();
+      const docs = shelf().map((b) => ({ ref: String(b.book_id), text: b.title, hash: semantic.hashOf(b.title) }));
+      assert.deepStrictEqual(await semantic.rank('book', docs, '有沒有 AI 書', { inlineSync: false }), []);
+      await semantic.sync('book', docs);
+      const ranked = await semantic.rank('book', docs, '有沒有 AI 書', { inlineSync: false });
+      assert.strictEqual(ranked[0].ref, '2');
+    }],
+
     ['書籍顧問：語意找到的書會進入候選並標示為檢索結果', async () => {
       setup({ books: shelf() });
       const search = bookChat.sanitizeSearch({ keywords: ['人工智慧', 'AI'] }, new Set());

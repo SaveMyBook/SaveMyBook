@@ -7,7 +7,6 @@ class SecurityStatus {
   final DateTime? pinLockedUntil;
   final bool biometricPayEnabled;
 
-  /// 伺服器已完成通行密鑰設定。
   final bool passkeyAvailable;
   final bool hasPasskey;
   final String? failureMessage;
@@ -103,7 +102,7 @@ class PushDeviceInfo {
 }
 
 class ServerStatus {
-  static const requiredApiRevision = 14;
+  static const requiredApiRevision = 15;
 
   final bool reachable;
   final int apiRevision;

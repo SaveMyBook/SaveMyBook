@@ -158,7 +158,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  S.lastUpdated(formatDate(a.publishedAt?.toLocal())),
+                  S.publishedP0(formatDate(a.publishedAt?.toLocal())),
                   style: TextStyle(fontSize: 12, color: c.textHint),
                 ),
                 const SizedBox(height: 16),

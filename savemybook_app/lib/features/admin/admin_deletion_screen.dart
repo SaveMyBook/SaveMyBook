@@ -137,7 +137,7 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
     if (item.email.isEmpty) return;
     Clipboard.setData(ClipboardData(text: item.email));
     HapticFeedback.selectionClick();
-    showAppSnackBar(context, S.copied('Email'));
+    showAppSnackBar(context, S.copied(S.email));
   }
 
   @override

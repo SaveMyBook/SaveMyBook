@@ -1,7 +1,3 @@
-// 商務測試的資料層：在 test/lib 共用的 FakePrisma 之上補齊本組需要的 Prisma 功能
-// （關聯 include/select、orderBy/skip/take、upsert、createMany、aggregate、groupBy、
-//  以及 increment/decrement 等更新運算子）。以覆寫 prisma.model 的方式安裝，
-//  不改動其他測試組共用的 test/lib/fake-prisma.js。
 const { registerModels, AUTO_KEYS, UNIQUE_KEYS, MODEL_DEFAULTS } = require('../lib/fake-prisma');
 
 // one：外鍵在自己身上，取第一筆；many：外鍵在對方身上，取全部。
@@ -22,12 +18,14 @@ const RELATIONS = {
     book_deposits: rel('book_deposits', 'book_id'),
     cabinet_slot_items: rel('cabinet_slot_items', 'book_id'),
     cabinet_session_items: many('cabinet_session_items', 'book_id'),
-    cabinet_manual_reports: many('cabinet_manual_reports', 'book_id')
+    cabinet_manual_reports: many('cabinet_manual_reports', 'book_id'),
+    ai_book_reviews: rel('ai_book_reviews', 'book_id')
   },
   book_deposits: {
     books: rel('books', 'book_id'),
     smart_cabinets: rel('smart_cabinets', 'cabinet_id')
   },
+  ai_book_reviews: { books: rel('books', 'book_id') },
   users: {
     wallets: rel('wallets', 'user_id'),
     admin_permissions: rel('admin_permissions', 'user_id'),
@@ -83,6 +81,7 @@ const COMPOUND_KEYS = {
 };
 
 const LIST_FILTERS = ['some', 'none', 'every'];
+const ONE_FILTERS = ['is', 'isNot'];
 
 const conflictError = () => Object.assign(new Error('Unique constraint failed'), { code: 'P2002' });
 const missingError = () => Object.assign(new Error('Record not found'), { code: 'P2025' });
@@ -154,6 +153,15 @@ class Store {
             throw new Error(`測試假 Prisma 未支援的關聯條件：${table}.${key}.${k}`);
           });
         }
+        if (spec.type === 'one' && Object.keys(expected).some((k) => ONE_FILTERS.includes(k))) {
+          const target = rows[0] ?? null;
+          return Object.entries(expected).every(([k, w]) => {
+            const hit = w === null ? target === null : target !== null && this.match(spec.table, target, w);
+            if (k === 'is') return hit;
+            if (k === 'isNot') return !hit;
+            throw new Error(`測試假 Prisma 未支援的關聯條件：${table}.${key}.${k}`);
+          });
+        }
         return spec.type === 'one'
           ? rows.length > 0 && this.match(spec.table, rows[0], expected)
           : rows.some((other) => this.match(spec.table, other, expected));
@@ -195,7 +203,6 @@ class Store {
     }));
   }
 
-  // select 與 include 都可能帶關聯，關聯本身又可再帶 where／orderBy／take。
   expand(table, row, key, spec) {
     const relation = RELATIONS[table]?.[key];
     if (!relation) throw new Error(`測試假 Prisma 未登記的關聯：${table}.${key}`);

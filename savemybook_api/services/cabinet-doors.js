@@ -272,7 +272,7 @@ const clearCheck = async (tx, slotId, { actorId = null, note = null, mode = 'con
 
 // 每位賣家的先行存書上限計入所有管道：門內的非訂單單位、沒有櫃門紀錄的存書登記（手動存書、配對前的存書）、
 // 待確認的先行存書手動回報，以及進行中作業已分配的先行存書櫃門；漏算任一種都能繞過上限。
-const sellerPreDepositDoors = async (db, cabinetId, sellerId, { excludeSessionId = null, includeReports = true } = {}) => {
+const sellerPreDepositDoors = async (db, cabinetId, sellerId, { excludeSessionId = null, includeReports = true, excludeBookIds = [] } = {}) => {
   if (!sellerId) return 0;
   const cabinet = Number(cabinetId);
   const seller = Number(sellerId);
@@ -309,7 +309,8 @@ const sellerPreDepositDoors = async (db, cabinetId, sellerId, { excludeSessionId
       .map((p) => Number(p.book_id)));
     for (const id of depositIds) if (!placed.has(id)) units.add(`book:${id}`);
   }
-  for (const report of reports) units.add(`book:${Number(report.book_id)}`);
+  const own = new Set(unique(excludeBookIds));
+  for (const report of reports) if (!own.has(Number(report.book_id))) units.add(`book:${Number(report.book_id)}`);
   for (const item of pending) units.add(`slot:${item.slot_id}`);
   return units.size;
 };
@@ -391,9 +392,13 @@ const allocate = async (tx, { cabinetId, sessionId = null, sellerId = null, unit
   const orderDoorsNeeded = plans.reduce((sum, p) => sum + p.chunks.length, 0);
   const required = orderDoorsNeeded + preUnits.length;
 
-  if (orderDoorsNeeded > candidates.length) throw cabinetFull(candidates.length, required);
+  // orderShortage：依訂單存書本身放不下（須通知管理員），有別於先行存書的容量政策。
+  const orderFull = () => Object.assign(cabinetFull(candidates.length, required), { orderShortage: true });
+  if (orderDoorsNeeded > candidates.length) throw orderFull();
   if (preUnits.length > 0) {
-    const quota = await predepositQuota(db, cabinetId, sellerId, { excludeSessionId: sessionId });
+    const quota = await predepositQuota(db, cabinetId, sellerId, {
+      excludeSessionId: sessionId, excludeBookIds: preUnits.flatMap((u) => u.bookIds ?? [])
+    });
     if (quota === 0) throw predepositLimit();
     if (candidates.length - orderDoorsNeeded - preUnits.length < policy.CABINET_ORDER_RESERVED_DOORS) {
       throw cabinetFull(candidates.length, required + policy.CABINET_ORDER_RESERVED_DOORS);
@@ -404,7 +409,7 @@ const allocate = async (tx, { cabinetId, sessionId = null, sellerId = null, unit
 
   const pool = [...candidates];
   const now = new Date();
-  const reserve = async () => {
+  const reserve = async (forOrder) => {
     while (pool.length > 0) {
       const door = pool.shift();
       const taken = await db.cabinet_slots.updateMany({
@@ -413,17 +418,17 @@ const allocate = async (tx, { cabinetId, sessionId = null, sellerId = null, unit
       });
       if (taken.count > 0) return door;
     }
-    throw cabinetFull(candidates.length, required);
+    throw forOrder ? orderFull() : cabinetFull(candidates.length, required);
   };
   const entryOf = (door, bookIds) => ({ slot_id: Number(door.slot_id), lock_channel: door.lock_channel, book_ids: bookIds });
 
   const result = new Map();
   for (const plan of plans) {
     const list = plan.entries.map((e) => entryOf(e.door, e.bookIds));
-    for (const chunk of plan.chunks) list.push(entryOf(await reserve(), chunk));
+    for (const chunk of plan.chunks) list.push(entryOf(await reserve(true), chunk));
     result.set(plan.unit.key, list);
   }
-  for (const unit of preUnits) result.set(unit.key, [entryOf(await reserve(), unique(unit.bookIds ?? []))]);
+  for (const unit of preUnits) result.set(unit.key, [entryOf(await reserve(false), unique(unit.bookIds ?? []))]);
 
   if (required > 0) await recountAvailable(db, cabinetId);
   return result;

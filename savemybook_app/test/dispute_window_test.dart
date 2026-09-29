@@ -20,11 +20,11 @@ void main() {
     expect(order(pickedUpAt: now.subtract(const Duration(hours: 24))).canOpenDispute(now: now), isTrue);
   });
 
-  test('超過 24 小時不顯示申訴入口', () {
+  test('超過 24 小時不顯示爭議入口', () {
     expect(order(pickedUpAt: now.subtract(const Duration(hours: 24, minutes: 1))).canOpenDispute(now: now), isFalse);
   });
 
-  test('已有處理中的爭議、已完成、已取消或已退款時不可再申訴', () {
+  test('已有處理中的爭議、已完成、已取消或已退款時不可再申請爭議', () {
     expect(order(pickedUpAt: now, openDispute: true).canOpenDispute(now: now), isFalse);
     expect(order(status: 'completed', pickedUpAt: now).canOpenDispute(now: now), isFalse);
     expect(order(status: 'cancelled').canOpenDispute(now: now), isFalse);

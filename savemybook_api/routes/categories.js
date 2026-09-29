@@ -12,7 +12,7 @@ const canManage = [authenticateToken, requireAdmin('content')];
 
 const categoryName = (value) => {
   const name = v.text(value, { label: '分類名稱', max: 50 });
-  if (!name) throw badRequest('缺少必要欄位：分類名稱(category_name)');
+  if (!name) throw badRequest('請輸入分類名稱');
   return name;
 };
 

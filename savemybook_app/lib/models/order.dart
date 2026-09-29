@@ -56,7 +56,7 @@ class Order {
   final CabinetAccess? cabinetAccess;
   final CabinetManualReport? manualReport;
 
-  /// 服務條款規定取書後 24 小時內可提出爭議；伺服器也會檢查，這裡只用來決定是否顯示入口。
+  /// 服務條款規定取書後 24 小時內可提出爭議，修改時須同步條款與伺服器。
   static const disputeWindow = Duration(hours: 24);
 
   Order({
@@ -93,7 +93,6 @@ class Order {
 
   bool get isInCabinet => status == 'deposited' || status == 'pending_pickup';
 
-  /// 買家已取書、尚未完成訂單：款項仍由平台保管，買家可完成訂單或申請爭議。
   bool get awaitingConfirmation => isInCabinet && pickedUpAt != null;
 
   bool get canCollect => isInCabinet && pickedUpAt == null;
@@ -108,7 +107,6 @@ class Order {
 
   bool storedElsewhere(OrderItem item) => item.preDeposited && item.book.cabinetId != cabinetId;
 
-  /// 賣家存書後雙方都不能自行取消，只能提出申訴。
   bool get isCancellable => status == 'pending_payment' || status == 'pending_deposit';
 
   String statusLabel({required bool asSeller}) {

@@ -18,7 +18,9 @@ class BookStrip extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
   final ValueChanged<Book>? onLongPress;
+  final ValueChanged<Book>? onOpen;
   final double inset;
+  final Map<int, String> reasons;
 
   const BookStrip({
     super.key,
@@ -30,8 +32,10 @@ class BookStrip extends StatelessWidget {
     this.actionLabel,
     this.onAction,
     this.onLongPress,
+    this.onOpen,
     this.showHeader = true,
     this.inset = 16,
+    this.reasons = const {},
   });
 
   final bool showHeader;
@@ -46,11 +50,20 @@ class BookStrip extends StatelessWidget {
 
   static const double _priceFontSize = 15;
 
-  static double _heightOf(BuildContext context) {
+  static const double _reasonFontSize = 11.5;
+
+  static const double _reasonLineHeight = 1.35;
+
+  static const int _reasonLines = 3;
+
+  static const double _reasonGap = 4;
+
+  static double _heightOf(BuildContext context, {bool withReasons = false}) {
     final scaler = MediaQuery.textScalerOf(context);
     final title = (scaler.scale(_titleFontSize) - _titleFontSize) * _titleLineHeight * 2;
     final price = (scaler.scale(_priceFontSize) - _priceFontSize) * 1.5;
-    return _height + math.max(0.0, title + price);
+    final reason = withReasons ? _reasonGap + scaler.scale(_reasonFontSize) * _reasonLineHeight * _reasonLines : 0.0;
+    return _height + math.max(0.0, title + price) + reason;
   }
 
   @override
@@ -104,7 +117,7 @@ class BookStrip extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: _heightOf(context),
+          height: _heightOf(context, withReasons: books.any((b) => reasons.containsKey(b.bookId))),
           child: loading && books.isEmpty
               ? Shimmer(
                   child: ListView.separated(
@@ -148,13 +161,17 @@ class BookStrip extends StatelessWidget {
   Widget _tile(BuildContext context, AppColors c, Book book) {
     final heroTag = '${heroPrefix}_${book.bookId}';
     final unavailable = book.status != 'on_sale';
+    final reason = reasons[book.bookId];
 
     return PressableScale(
       scale: 0.95,
-      onTap: () => Navigator.push(
-        context,
-        CupertinoPageRoute(builder: (_) => BookDetailScreen(book: book, heroTag: heroTag)),
-      ),
+      onTap: () {
+        onOpen?.call(book);
+        Navigator.push(
+          context,
+          CupertinoPageRoute(builder: (_) => BookDetailScreen(book: book, heroTag: heroTag)),
+        );
+      },
       onLongPress: onLongPress == null ? null : () => onLongPress!(book),
       child: Container(
         width: _tileWidth,
@@ -208,6 +225,15 @@ class BookStrip extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: _titleFontSize, height: _titleLineHeight, fontWeight: FontWeight.w600, color: c.textPrimary),
                     ),
+                    if (reason != null) ...[
+                      const SizedBox(height: _reasonGap),
+                      Text(
+                        reason,
+                        maxLines: _reasonLines,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: _reasonFontSize, height: _reasonLineHeight, color: c.textSecondary),
+                      ),
+                    ],
                     const Spacer(),
                     FittedBox(
                       fit: BoxFit.scaleDown,
@@ -233,8 +259,9 @@ class BookStrip extends StatelessWidget {
 class DiscoveryGroup {
   final String? title;
   final List<Book> books;
+  final Map<int, String> reasons;
 
-  const DiscoveryGroup({required this.books, this.title});
+  const DiscoveryGroup({required this.books, this.title, this.reasons = const {}});
 }
 
 class DiscoveryTab {
@@ -244,8 +271,8 @@ class DiscoveryTab {
   final List<Book> books;
   final String? actionLabel;
   final VoidCallback? onAction;
-
-  /// 有值時以多排呈現，每排上方標示推薦依據；沒有值時單排呈現 [books]。
+  final ValueChanged<Book>? onOpen;
+  final ValueChanged<Book>? onLongPress;
   final List<DiscoveryGroup> groups;
 
   const DiscoveryTab({
@@ -255,6 +282,8 @@ class DiscoveryTab {
     required this.books,
     this.actionLabel,
     this.onAction,
+    this.onOpen,
+    this.onLongPress,
     this.groups = const [],
   });
 }
@@ -343,6 +372,8 @@ class _DiscoveryPanelState extends State<DiscoveryPanel> {
                   books: current.books,
                   heroPrefix: current.id,
                   showHeader: false,
+                  onOpen: current.onOpen,
+                  onLongPress: current.onLongPress,
                 )
               : Column(
                   key: ValueKey(current.id),
@@ -367,6 +398,9 @@ class _DiscoveryPanelState extends State<DiscoveryPanel> {
                         books: group.books,
                         heroPrefix: '${current.id}$i',
                         showHeader: false,
+                        reasons: group.reasons,
+                        onOpen: current.onOpen,
+                        onLongPress: current.onLongPress,
                       ),
                     ],
                   ],

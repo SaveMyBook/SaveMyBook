@@ -71,7 +71,7 @@ module.exports = {
 
       const passed = await request('PUT', '/api/admin/auth/settings', { token: ctx.token, body: {}, headers: { 'x-verify-token': token } });
       assert.strictEqual(passed.status, 400, '通過身分驗證後才會檢查內容');
-      assert.strictEqual(passed.body.message, '請提供 settings 設定內容');
+      assert.strictEqual(passed.body.message, '請提供設定內容');
 
       const pin = h.verifyTokenFor({ user: ctx.user, sid: ctx.session.sid, scope: 'admin', method: 'pin' });
       const denied = await request('PUT', '/api/admin/auth/settings', { token: ctx.token, body: {}, headers: { 'x-verify-token': pin } });

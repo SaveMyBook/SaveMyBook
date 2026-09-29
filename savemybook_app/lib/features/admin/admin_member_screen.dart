@@ -150,7 +150,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             ),
             ListTile(
               leading: Icon(Icons.manage_accounts_outlined, color: c.accent),
-              title: Text(S.fullSettingsTierPermissions, style: TextStyle(color: c.textPrimary)),
+              title: Text(S.memberSettings, style: TextStyle(color: c.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 _openDetail(member);
@@ -263,12 +263,10 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        _tag(
-                          member.role == 'admin' ? S.roleAdmin : S.roleBuyerSeller,
-                          member.role == 'admin' ? c.warning : c.accent,
-                          icon: member.role == 'admin' ? Icons.shield_outlined : null,
-                        ),
+                        if (member.role == 'admin') ...[
+                          const SizedBox(width: 6),
+                          _tag(S.roleAdmin, c.warning, icon: Icons.shield_outlined),
+                        ],
                         if (_isSelf(member)) ...[
                           const SizedBox(width: 4),
                           _tag(S.you, c.textHint),

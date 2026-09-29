@@ -5,7 +5,9 @@ const {
 
 const ISBN = '9789573317249';
 
-const googleVolume = (info) => jsonResponse({ items: [{ volumeInfo: info }] });
+const volume = (info, isbn = ISBN, type = 'ISBN_13') => ({ volumeInfo: { industryIdentifiers: [{ type, identifier: isbn }], ...info } });
+
+const googleVolume = (info) => jsonResponse({ items: [volume(info)] });
 
 const openLibraryData = (isbn, book) => jsonResponse({ [`ISBN:${isbn}`]: book });
 
@@ -111,7 +113,6 @@ const tests = [
 
     const res = await lookup();
     assert.strictEqual(res.status, 200);
-    // 書名以 Google Books 為先，缺少的出版社與頁數改由 Open Library 補上。
     assert.strictEqual(res.body.data.title, '射鵰英雄傳');
     assert.strictEqual(res.body.data.publisher, '遠流');
     assert.strictEqual(res.body.data.page_count, '480');
@@ -126,6 +127,44 @@ const tests = [
     const res = await lookup();
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.data.publish_date, '2003-08-01');
+  }],
+
+  ['Google Books 的第一筆不是這個 ISBN 時略過，改用 ISBN 相符的結果', async () => {
+    stubGoogleBooks(() => jsonResponse({
+      items: [
+        volume({ title: '神鵰俠侶', authors: ['金庸'] }, '9789861371955'),
+        { volumeInfo: { title: '沒有 ISBN 的版本', authors: ['某人'] } },
+        volume({ title: '射鵰英雄傳', authors: ['金庸'], publisher: '遠流' })
+      ]
+    }));
+    stubOpenLibrary(() => jsonResponse({}));
+
+    const res = await lookup();
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.data.title, '射鵰英雄傳');
+    assert.strictEqual(res.body.data.publisher, '遠流');
+  }],
+
+  ['Google Books 只登錄 10 碼 ISBN 的書視為相符；沒有任何相符的結果時視為查無資料', async () => {
+    stubGoogleBooks(() => jsonResponse({ items: [volume({ title: '射鵰英雄傳' }, '9573317249', 'ISBN_10')] }));
+    stubOpenLibrary(() => jsonResponse({}));
+    const res = await lookup('9789573317241');
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.data.title, '射鵰英雄傳');
+
+    stubGoogleBooks(() => jsonResponse({ items: [volume({ title: '神鵰俠侶' }, '9789861371955')] }));
+    const missing = await lookup();
+    assert.strictEqual(missing.status, 404);
+  }],
+
+  ['Open Library 登錄的 ISBN 都不屬於這本書時不採用', async () => {
+    stubGoogleBooks(() => jsonResponse({ items: [] }));
+    stubOpenLibrary((url) => (url.includes('/api/books')
+      ? openLibraryData(ISBN, { title: '神鵰俠侶', authors: [], publishers: [], identifiers: { isbn_13: ['9789861371955'] } })
+      : jsonResponse({})));
+
+    const res = await lookup();
+    assert.strictEqual(res.status, 404);
   }],
 
   ['10 碼 ISBN 會同時以 13 碼向 Open Library 查詢', async () => {

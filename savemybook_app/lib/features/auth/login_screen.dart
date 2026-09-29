@@ -102,7 +102,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    // 離開登入頁時不留下等待中的 LINE／Discord 授權。
     SocialAuth.cancelOAuthWait();
     _emailController.dispose();
     _passwordController.dispose();

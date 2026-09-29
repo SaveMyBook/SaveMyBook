@@ -5,10 +5,18 @@ paths:
       operationId: adminOpenCabinetDoor
       tags: [admin-cabinets]
       description: |
-        建立管理員書櫃作業，只開啟這一扇門，倒數 120 秒，不受營業時間限制。書櫃位於公共場所，預設須由現場人員完成數字比對：
-        回應中的 `match.code` 由管理員告知現場人員，在書櫃螢幕的 9 個數字中點選。
+        建立管理員書櫃作業，只開啟這一扇門，倒數 120 秒，不受營業時間與定位限制。書櫃位於公共場所，預設須完成數字比對：
+        書櫃螢幕顯示兩位數比對碼，發起的管理員於 60 秒內以 `POST /api/admin/cabinet-sessions/{sessionNo}/match` 輸入
+        （只有一次機會）。比對碼不會出現在任何回應中。開門後以 `POST /api/admin/cabinet-sessions/{sessionNo}/close` 結束，
+        或等待倒數結束自動完成。
 
-        `force: true` 直接送出開門指令、不做比對，只允許用在門內沒有存放紀錄的櫃門（例如測試電磁鎖）。
+        同一位管理員 10 分鐘內有 2 個遠端開櫃作業因比對逾時或數字不符而結束時，暫停發起需比對的遠端開櫃，
+        回 429 `CABINET_COOLDOWN`（附 `retry_after_s`，以秒計），直到時間窗內少於 2 次；`force: true` 不受影響。
+        另外每位管理員每 10 分鐘最多呼叫本端點 10 次（429 `RATE_LIMITED`）。
+
+        `force: true` 直接送出開門指令、不做比對，只允許用在確定是空的櫃門（例如測試電磁鎖）：門內沒有存放紀錄、
+        不在待確認（`check` 為 null），也沒有未結束的作業（含待確認作業）保留此門；否則回 409 `DOOR_NOT_EMPTY`。
+        作業期間此門為保留狀態（`reserved`），不分配給其他存書。
         作業結束時，曾開啟或已送出指令而未確認的櫃門一律設為待確認（`ADMIN_OPEN`），請確認內容後解除。
         進度以 `GET /api/admin/cabinet-sessions/{sessionNo}` 查詢。
       security: [{ bearerAuth: [] }]
@@ -25,7 +33,7 @@ paths:
               required: [reason]
               properties:
                 reason: { type: string, maxLength: 255, example: 協助賣家取回書籍 }
-                force: { type: boolean, default: false, description: 不經現場數字比對直接開啟；限門內沒有存放紀錄的櫃門。 }
+                force: { type: boolean, default: false, description: 不經數字比對直接開啟；限沒有存放紀錄、不在待確認、也未被作業保留的櫃門。 }
       responses:
         '201':
           description: 已建立遠端開櫃作業。
@@ -35,23 +43,19 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: 請由現場人員於書櫃螢幕點選數字 }
+                  message: { type: string, description: '`force` 時為「已送出開門指令」。', example: 請輸入書櫃螢幕上顯示的數字 }
                   data:
                     type: object
                     properties:
                       session_no: { type: string, example: CS8MZQ41K }
-                      match:
-                        type: object
-                        nullable: true
-                        properties:
-                          code: { type: integer, example: 37 }
+                      status: { type: string, enum: [matching, opening], description: '`force` 時為 `opening`。', example: matching }
                       remaining_ms: { type: integer, nullable: true, example: 60000 }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminVerificationRequired' }
         '404': { $ref: '#/components/responses/DoorNotFound' }
         '409':
-          description: 書櫃未配對裝置、裝置離線、書櫃使用中，或門內有存放紀錄而要求直接開啟。
+          description: 書櫃未配對裝置、裝置離線、書櫃使用中，或要求直接開啟的櫃門不是空門。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -62,8 +66,18 @@ paths:
                   value: { success: false, code: DEVICE_OFFLINE, message: 書櫃裝置目前離線，無法遠端開啟櫃門 }
                 書櫃使用中:
                   value: { success: false, code: CABINET_BUSY, message: 書櫃使用中，請待目前作業結束後再試 }
-                門內有書:
-                  value: { success: false, code: DOOR_NOT_EMPTY, message: 櫃門內有存放紀錄，須由現場人員完成數字確認後開啟 }
+                門內有書或待確認:
+                  value: { success: false, code: DOOR_NOT_EMPTY, message: 櫃門內有存放紀錄或待確認，須完成數字確認後開啟 }
+        '429':
+          description: 數字確認多次未完成而暫停，或請求過於頻繁。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                暫停遠端開櫃:
+                  value: { success: false, code: CABINET_COOLDOWN, message: 數字確認多次未完成，請於 8 分鐘後再試, retry_after_s: 452 }
+                請求過於頻繁:
+                  value: { success: false, code: RATE_LIMITED, message: 操作過於頻繁，請稍後再試 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/cabinets/{id}/doors/{slotId}/clear:
@@ -155,8 +169,7 @@ paths:
       operationId: adminGetCabinetSession
       tags: [admin-cabinets]
       description: |
-        含一般使用者與管理員的作業，後台以此輪詢遠端開櫃的進度。`match` 只在管理員作業的比對階段有值；
-        一般使用者作業的比對數字一律不提供。
+        含一般使用者與管理員的作業，後台以此輪詢遠端開櫃的進度。比對碼一律不提供（只顯示於書櫃螢幕）。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/CabinetSessionNo'
@@ -175,6 +188,88 @@ paths:
         '404': { $ref: '#/components/responses/CabinetSessionNotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/admin/cabinet-sessions/{sessionNo}/match:
+    post:
+      summary: 遠端開櫃輸入比對碼
+      operationId: adminMatchCabinetSession
+      tags: [admin-cabinets]
+      description: |
+        輸入書櫃螢幕上顯示的兩位數字，規則與 `POST /api/cabinet-sessions/{sessionNo}/match` 相同：只能在 `matching` 呼叫，
+        只有一次機會，正確時轉為 `opening`，錯誤時結束為 `failed`／`MATCH_FAILED`；格式不符回 400 `MATCH_CODE_INVALID`，
+        不消耗比對機會。只限發起此遠端開櫃作業的管理員本人，其他作業（含一般使用者作業）一律回 404。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetSessionNo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string, pattern: '^[1-9][0-9]$', description: 兩個半形數字。, example: '37' }
+      responses:
+        '200':
+          description: 已比對，回傳作業詳情。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/AdminCabinetSessionDetail' }
+        '400':
+          description: 比對碼格式不符。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: MATCH_CODE_INVALID, message: 請輸入兩位數字 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/CabinetSessionNotFound' }
+        '409':
+          description: 作業不在比對階段（含已逾時或已比對）。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: CABINET_SESSION_STATE, message: 目前無法執行此操作, session: {} }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinet-sessions/{sessionNo}/close:
+    post:
+      summary: 遠端開櫃結束作業
+      operationId: adminCloseCabinetSession
+      tags: [admin-cabinets]
+      description: |
+        櫃門開啟後（`open`）請書櫃結束作業，等同開門後按「完成」。書櫃有門磁且櫃門仍開著時會拒絕，作業的 `notice` 改為
+        `CLOSE_DOOR_FIRST`，櫃門全部關上後書櫃即以門磁完成作業。作業已結束時不送出要求，直接回傳現況；其他狀態回 409。
+        只限發起此遠端開櫃作業的管理員本人，其他作業一律回 404。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetSessionNo'
+      responses:
+        '200':
+          description: 已送出請求，或作業已結束。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, description: 已送出請求時為「已要求書櫃結束作業」；作業已結束時為「此作業已結束」。, example: 已要求書櫃結束作業 }
+                  data: { $ref: '#/components/schemas/AdminCabinetSessionDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/CabinetSessionNotFound' }
+        '409':
+          description: 櫃門尚未開啟，或書櫃已回報關門而正在提交（訊息為「本次作業處理中，請稍候」）。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: CABINET_SESSION_STATE, message: 目前無法執行此操作, session: {} }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/admin/cabinet-sessions/{sessionNo}/resolve:
     post:
       summary: 處理待確認的書櫃作業
@@ -187,7 +282,8 @@ paths:
         | `selecting`、`matching`、`opening` | 409 | 強制結束（`ADMIN_CANCELLED`），已送出指令的櫃門設為待確認 |
         | 其他（包括 `open`） | 409 | 409 |
 
-        處理結果通知作業發起人。
+        `commit`、`discard` 與強制結束的處理結果都會通知使用者作業的發起人（遠端開櫃作業不通知）。使用者作業的發起人，或所選項目中訂單的買家、賣家與書籍的賣家不得處理該作業
+        （403 `SESSION_SELF_REVIEW`），須由其他管理員處理。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/CabinetSessionNo'
@@ -214,7 +310,12 @@ paths:
                   data: { $ref: '#/components/schemas/AdminCabinetSessionDetail' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '403':
+          description: 沒有書櫃管理權限，或此作業與管理員本人相關。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: SESSION_SELF_REVIEW, message: 此書櫃作業與您本人相關，須由其他管理員處理 }
         '404': { $ref: '#/components/responses/CabinetSessionNotFound' }
         '409':
           description: 作業目前的狀態無法由客服處理。
@@ -230,7 +331,8 @@ paths:
       operationId: adminListCabinetManualReports
       tags: [admin-cabinets]
       description: |
-        書櫃裝置離線或故障期間，一般使用者送出的存書、取書、取回手動回報。回報不會立即生效，須由管理員確認或駁回。
+        書櫃沒有有效裝置（含從未配對），或裝置離線、故障持續 2 分鐘以上時，一般使用者送出的存書、取書、取回手動回報。
+        回報不會立即生效，須由管理員確認或駁回。
         `status` 預設為 `pending`，`all` 為全部。依建立時間由新到舊。
       security: [{ bearerAuth: [] }]
       parameters:
@@ -268,13 +370,20 @@ paths:
 
         | `kind` | 確認後 |
         | --- | --- |
-        | `deposit`（訂單） | 訂單改為已存書，通知買家取書 |
-        | `deposit`（書籍） | 登記先行存書 |
+        | `deposit`（訂單） | 訂單改為已存書，通知買家取書；書登記於 `slot_id` 指定的櫃門，訂單的主要櫃門為此門 |
+        | `deposit`（書籍） | 登記先行存書，並登記於 `slot_id` 指定的櫃門 |
         | `pickup` | 記錄取書時間，通知賣家；刪除櫃內紀錄並把原櫃門設為待確認 |
-        | `retrieve` | 刪除存書登記（符合條件時恢復上架）；刪除櫃內紀錄並把原櫃門設為待確認 |
+        | `retrieve` | 刪除存書登記；刪除櫃內紀錄並把原櫃門設為待確認。回報期間暫停販售的書恢復上架（違規下架者除外），逾期暫停販售的書依規則恢復上架 |
 
-        手動存書不知道放在哪一扇門，確認後請以「登記存放內容」補登櫃門。項目狀態已變更而無法套用時，回報改為 `cancelled`，
-        並回 409 `MANUAL_REPORT_STALE`。
+        **存書須指定櫃門**：書櫃已有櫃門（曾配對裝置）時，確認 `deposit` 回報須帶 `slot_id`（櫃門的 `slot_id`，見書櫃裝置摘要的 `doors`），
+        缺少時回 400 `DOOR_REQUIRED`；櫃門不屬於此書櫃時回 404 `DOOR_NOT_FOUND`；門內已有其他訂單或書籍、或被進行中的作業保留時
+        回 409 `DOOR_ASSIGN_INVALID`。從未配對裝置的書櫃沒有櫃門，不需指定。`pickup`、`retrieve` 回報忽略 `slot_id`。
+
+        先行存書確認時，賣家在此書櫃已生效的先行存書已達上限時回 409 `PREDEPOSIT_LIMIT`。
+        上述錯誤發生時回報維持待確認，可修正後重試或駁回。
+
+        回報者本人，或該訂單的買家、賣家與該書的賣家不得確認或駁回（403 `MANUAL_REPORT_SELF_REVIEW`），須由其他管理員處理。
+        項目狀態已變更而無法套用時，回報改為 `cancelled`，並回 409 `MANUAL_REPORT_STALE`。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ManualReportNo'
@@ -286,6 +395,7 @@ paths:
               type: object
               properties:
                 note: { type: string, maxLength: 500, example: 已與現場人員確認 }
+                slot_id: { type: integer, description: 存書回報的書籍實際放入的櫃門；書櫃有櫃門時必填。, example: 41 }
       responses:
         '200':
           description: 已確認。
@@ -297,11 +407,38 @@ paths:
                   success: { type: boolean, example: true }
                   message: { type: string, example: 已確認手動回報 }
                   data: { $ref: '#/components/schemas/AdminCabinetManualReport' }
-        '400': { $ref: '#/components/responses/BadRequest' }
+        '400':
+          description: 格式錯誤，或存書回報未指定櫃門。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: DOOR_REQUIRED, message: 請指定書籍存放的櫃門 }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/AdminForbidden' }
-        '404': { $ref: '#/components/responses/ManualReportNotFound' }
-        '409': { $ref: '#/components/responses/ManualReportConflict' }
+        '403': { $ref: '#/components/responses/ManualReportForbidden' }
+        '404':
+          description: 查無此手動回報，或指定的櫃門不屬於此書櫃。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                查無回報:
+                  value: { success: false, code: MANUAL_REPORT_NOT_FOUND, message: 找不到此手動回報 }
+                查無櫃門:
+                  value: { success: false, code: DOOR_NOT_FOUND, message: 找不到此櫃門 }
+        '409':
+          description: 回報已處理或已失效、櫃門不能存放此項目，或已達先行存書上限。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                已處理:
+                  value: { success: false, code: MANUAL_REPORT_NOT_PENDING, message: 此手動回報已處理 }
+                已失效:
+                  value: { success: false, code: MANUAL_REPORT_STALE, message: 項目狀態已變更，此手動回報已失效 }
+                櫃門不符:
+                  value: { success: false, code: DOOR_ASSIGN_INVALID, message: 此項目不在本書櫃、已有櫃門紀錄，或與櫃內其他項目不屬於同一筆訂單或同一本書 }
+                先行存書上限:
+                  value: { success: false, code: PREDEPOSIT_LIMIT, message: 您在此書櫃的先行存書已達上限，請待售出或取回後再存入 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/cabinet-manual-reports/{reportNo}/reject:
@@ -309,7 +446,9 @@ paths:
       summary: 駁回手動回報
       operationId: adminRejectCabinetManualReport
       tags: [admin-cabinets]
-      description: 不變更訂單或存書狀態，並通知回報者（附處理說明）。
+      description: |
+        不變更訂單或存書狀態，並通知回報者（附處理說明）；取回回報期間暫停販售的書恢復上架（違規下架者除外）。
+        回報者本人或該訂單、書籍的當事人不得駁回（403 `MANUAL_REPORT_SELF_REVIEW`）。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ManualReportNo'
@@ -335,7 +474,7 @@ paths:
                   data: { $ref: '#/components/schemas/AdminCabinetManualReport' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '403': { $ref: '#/components/responses/ManualReportForbidden' }
         '404': { $ref: '#/components/responses/ManualReportNotFound' }
         '409': { $ref: '#/components/responses/ManualReportConflict' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -351,6 +490,12 @@ components:
       example: MR4K2Q8ZT
 
   responses:
+    ManualReportForbidden:
+      description: 沒有書櫃管理權限，或此回報與管理員本人相關。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: MANUAL_REPORT_SELF_REVIEW, message: 此手動回報與您本人相關，須由其他管理員處理 }
     ManualReportNotFound:
       description: 查無此手動回報。
       content:
@@ -413,7 +558,7 @@ components:
                     properties:
                       seller_nickname: { type: string, nullable: true, example: 小明 }
                       buyer_nickname: { type: string, nullable: true, example: 小華 }
-            close_reason: { type: string, nullable: true, description: '`button`、`timeout`、`sensor`、`cancel_button`、`admin`、`admin_discard`。', example: button }
+            close_reason: { type: string, nullable: true, description: '`user_done`（手機按完成）、`timeout`、`sensor`、`user_cancel`（手機按取消）、`admin`、`admin_discard`。', example: user_done }
             started_at: { type: string, format: date-time, nullable: true }
             matched_at: { type: string, format: date-time, nullable: true }
             opened_at: { type: string, format: date-time, nullable: true }
@@ -431,14 +576,14 @@ components:
                   command_served_at: { type: string, format: date-time, nullable: true }
                   opened_at: { type: string, format: date-time, nullable: true }
                   closed_at: { type: string, format: date-time, nullable: true }
-                  close_reason: { type: string, nullable: true, example: button }
+                  close_reason: { type: string, nullable: true, description: '`user_done`、`timeout`、`sensor`。', example: user_done }
             events:
               type: array
               items:
                 type: object
                 properties:
-                  type: { type: string, example: door_opened }
-                  source: { type: string, enum: [device, server, admin], example: device }
+                  type: { type: string, description: '例如 `match_entered`（輸入比對碼，`detail` 只記錄 `matched`）、`door_opened`、`close_refused`。', example: door_opened }
+                  source: { type: string, enum: [device, server, admin, user], example: device }
                   label: { type: string, nullable: true, example: A02 }
                   detail: { type: object, nullable: true }
                   result: { type: string, nullable: true, example: ok }
@@ -477,4 +622,5 @@ components:
                 book_no: { type: string, example: BK7Q2M8ZK }
                 title: { type: string, example: 資料庫系統概論 }
             titles: { type: array, items: { type: string }, example: [資料庫系統概論] }
+            requires_door: { type: boolean, description: 待確認的存書回報，且書櫃有櫃門時為 true：確認時須以 `slot_id` 指定櫃門。, example: true }
             reviewer_nickname: { type: string, nullable: true, example: null }

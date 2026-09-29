@@ -127,6 +127,20 @@ const tests = [
     assert.match(qr, /Licensed under the MIT license/);
   }],
 
+  ['模擬書櫃螢幕沒有可點擊或可聚焦的元素，開發控制只在螢幕外的控制台', () => {
+    const src = fs.readFileSync(path.join(API_ROOT, 'views/kiosk/kiosk.js'), 'utf8');
+    const screen = src.slice(src.indexOf('const createScreen'), src.indexOf('const createPanel'));
+    assert.ok(screen.length > 0);
+    assert.doesNotMatch(screen, /canvas\.addEventListener/);
+    assert.doesNotMatch(screen, /addEventListener\(\s*['"](?:pointer|mouse|touch|click|key)/);
+    assert.doesNotMatch(screen, /tabIndex|core\.(?:tap|pair)\b/);
+    assert.doesNotMatch(src, /core\.(?:tap|pair)\(/);
+    const css = fs.readFileSync(path.join(API_ROOT, 'views/kiosk/kiosk.css'), 'utf8');
+    const rules = [...css.matchAll(/\.screen[^{]*\{([^}]*)\}/g)].map((m) => m[1]).join('\n');
+    assert.ok(rules);
+    assert.doesNotMatch(rules, /cursor:\s*pointer|touch-action/);
+  }],
+
   ['OpenAPI 記錄 /kiosk 與 /kiosk/assets/{file}', () => {
     const spec = buildSpec();
     assert.deepStrictEqual(spec.paths['/kiosk'].get.tags, ['public']);

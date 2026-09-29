@@ -12,6 +12,12 @@ extension OrdersApi on ApiService {
     return Order.fromJson(Map<String, dynamic>.from(res['data']));
   }
 
+  Future<Order?> fetchOrderDetailByNo(String orderNo) async {
+    final res = await _send('GET', '/orders/by-no/${Uri.encodeComponent(orderNo)}');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return Order.fromJson(Map<String, dynamic>.from(res['data']));
+  }
+
   Future<({String? error, bool readyForPickup})> checkout(List<int> cartIds) =>
       _placeOrder('/orders/checkout', {'cart_ids': cartIds});
 
@@ -35,7 +41,9 @@ extension OrdersApi on ApiService {
   Future<String?> cancelOrder(int orderId, {String? reason}) async {
     final res = await _send('PATCH', '/orders/$orderId/cancel', body: {'reason': reason});
     if (res == null) return S.pleaseSignFirst;
-    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotCancelOrder);
+    if (res['success'] == true) return null;
+    if (res['code'] == 'ORDER_IN_CABINET_SESSION') return S.orderBeingHandledLockerPleaseTry;
+    return res['message'] as String? ?? S.couldNotCancelOrder;
   }
 
   Future<String?> updateOrderStatus(int orderId, String status) async {
@@ -62,13 +70,15 @@ extension OrdersApi on ApiService {
     return urls.map((e) => e.toString()).toList();
   }
 
-  Future<String?> submitDispute({required int orderId, required String reason, List<String>? evidenceUrls}) async {
+  Future<String?> submitDispute({required String orderNo, required String reason, List<String>? evidenceUrls}) async {
     final res = await _send('POST', '/disputes', body: {
-      'order_id': orderId,
+      'order_no': orderNo,
       'reason': reason,
       'evidence_urls': evidenceUrls,
     });
     if (res == null) return S.pleaseSignFirst;
-    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSubmitDispute);
+    if (res['success'] == true) return null;
+    if (res['code'] == 'ORDER_IN_CABINET_SESSION') return S.orderBeingHandledLockerPleaseTry;
+    return res['message'] as String? ?? S.couldNotSubmitDispute;
   }
 }

@@ -277,7 +277,6 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     await _load();
   }
 
-  // 群組暱稱所有成員共用：自己可改自己的，管理員可改所有人的。
   Future<void> _editGroupNickname(ChatMember member) async {
     final isMe = member.userId == _myId;
     final value = await showTextInputDialog(
@@ -538,7 +537,6 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
             ],
           ),
           title: info.name,
-          titleSuffix: '($count)',
           onEditTitle: _renameGroup,
         ),
       ),
@@ -582,7 +580,6 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     AppColors c, {
     required Widget avatar,
     required String title,
-    String? titleSuffix,
     String? subtitle,
     VoidCallback? onEditTitle,
   }) {
@@ -611,13 +608,6 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.3),
                     ),
                   ),
-                  if (titleSuffix != null) ...[
-                    const SizedBox(width: 6),
-                    Text(
-                      titleSuffix,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textSecondary),
-                    ),
-                  ],
                   if (onEditTitle != null) ...[
                     const SizedBox(width: 6),
                     Icon(Icons.edit_outlined, size: 18, color: c.iconInactive),

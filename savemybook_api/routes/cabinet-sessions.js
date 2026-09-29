@@ -53,4 +53,14 @@ router.post('/:sessionNo/cancel', actionLimit, async (req, res) => {
   res.status(200).json({ success: true, data });
 });
 
+router.post('/:sessionNo/match', actionLimit, async (req, res) => {
+  const data = await sessions.match(req.params.sessionNo, req.user, req.body.code);
+  res.status(200).json({ success: true, data });
+});
+
+router.post('/:sessionNo/close', actionLimit, async (req, res) => {
+  const data = await sessions.close(req.params.sessionNo, req.user, req.body.outcome);
+  res.status(200).json({ success: true, data });
+});
+
 module.exports = router;

@@ -62,7 +62,6 @@ const checkout = async (buyerId, { cartIds, paymentMethod }) => {
   return placeOrders(buyerId, cartItems, { paymentMethod });
 };
 
-// 直接購買單本書：不經購物車，但檢查與扣款流程和結帳完全相同；書若也在購物車中會一併移除。
 const buyNow = async (buyerId, { bookId, paymentMethod }) => {
   const book = await prisma.books.findUnique({ where: { book_id: bookId } });
   if (!book || !book.is_approved) throw notFound('找不到此書籍');
@@ -178,7 +177,7 @@ const placeOrders = async (buyerId, cartItems, { paymentMethod, alsoRemoveBookId
       await notify(tx, {
         userId: sellerId,
         type: 'order',
-        title: '您的書已售出',
+        title: '書籍已售出',
         content: sellerContent(order.order_no, { inCabinet, ...released, cabinet: order.smart_cabinets?.cabinet_name }),
         relatedId: order.order_id,
         relatedType: 'order'

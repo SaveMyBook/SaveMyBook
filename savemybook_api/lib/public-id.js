@@ -81,7 +81,10 @@ const PREFIX = {
   passkey: 'PK',
   cabinet_device: 'DV',
   cabinet_session: 'CS',
-  cabinet_manual_report: 'MR'
+  cabinet_manual_report: 'MR',
+  ai_support_message: 'AS',
+  ai_chat_message: 'AC',
+  ai_dispute_analysis: 'DA'
 };
 
 const prefixOf = (type) => PREFIX[type] ?? 'ID';

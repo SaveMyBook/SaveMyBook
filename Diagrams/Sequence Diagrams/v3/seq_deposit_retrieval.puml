@@ -31,43 +31,36 @@ end
 deactivate API
 deactivate 排程
 
-alt 賣家取回書籍
-  賣家 -> UI : 取回書籍後點擊「回報取回」
+alt 賣家掃碼取回
+  賣家 -> UI : 掃描書櫃 QR Code，確認取回項目
   activate 賣家
   activate UI
-  UI -> API : POST /api/books/:id/retrieve
+  UI -> API : POST /api/cabinet-sessions\n及 /api/cabinet-sessions/:no/start
   activate API
-  API -> DB : 查詢存書登記與訂單狀態
-  activate DB
-  DB --> API : 回傳查詢結果
-  deactivate DB
-  alt 書籍尚未售出
-    API -> DB : 移除存書登記
-    API -> DB : 書籍如為自動暫停則恢復上架
-    API --> UI : 200 OK
-    UI --> 賣家 : 顯示「已回報取回」
-  else 書籍已售出，待買家取書
-    API --> UI : 409 請勿取回書籍
-    UI --> 賣家 : 顯示提示並引導至訂單
+  API -> DB : 同櫃門書籍一併列入，暫停販售
+  ref over 賣家, UI, API : 數字比對與開關櫃門（同掃碼存書流程）
+  alt 取出書籍並完成
+    API -> DB : 移除存書登記與櫃內紀錄，釋放櫃門
+    API -> DB : 因逾期暫停之書籍恢復上架
+  else 作業未完成
+    API -> DB : 取回期間暫停販售之書籍恢復上架
   end
+  API --> UI : 推送作業結果
   deactivate API
+  UI --> 賣家 : 顯示作業結果
   deactivate UI
   deactivate 賣家
 else 人員代為取出
-  管理員 -> UI : 於存書列表點擊「登記取出」
+  管理員 -> UI : 遠端開啟櫃門，派員取出書籍
   activate 管理員
   activate UI
+  管理員 -> UI : 於存書列表點擊「登記取出」
   UI -> API : POST /api/admin/cabinets/\ndeposits/:bookId/clear
   activate API
   API -> DB : 移除存書登記，書籍改為下架
-  API -> DB : 記錄管理員操作
-  API --> UI : 200 OK
+  API -> 賣家 : 推播「書櫃中的書籍已由客服取出」
   deactivate API
-  UI --> 管理員 : 顯示「已登記取出」
   deactivate UI
   deactivate 管理員
-  activate API
-  API -> 賣家 : 推播「書籍已由客服取出」
-  deactivate API
 end
 @enduml

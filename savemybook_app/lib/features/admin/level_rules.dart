@@ -53,7 +53,6 @@ class LevelRules {
   static List<AdminLevel> _others(List<AdminLevel> levels, int? editingId) =>
       levels.where((l) => l.levelId != editingId).toList();
 
-  /// 起始等級（唯一門檻為 0 點者）的門檻不可調整，否則會有會員沒有對應等級。
   static bool isThresholdLocked(List<AdminLevel> levels, {int? editingId}) {
     final others = _others(levels, editingId);
     if (others.isEmpty) return true;
@@ -85,7 +84,6 @@ class LevelRules {
     return null;
   }
 
-  /// 依門檻排序後的完整階梯，包含正在編輯的草稿，供預覽位置與點數區間。
   static List<LevelSlot> ladder(List<AdminLevel> levels, {int? editingId, required String name, int? points}) {
     final entries = [
       for (final l in _others(levels, editingId)) (id: l.levelId, name: l.name, points: l.minPoints, draft: false),
@@ -117,14 +115,12 @@ class LevelRules {
     return null;
   }
 
-  /// 刪除後原屬此等級的會員會改列的等級。
   static AdminLevel? fallbackAfterDelete(AdminLevel level, List<AdminLevel> levels) {
     final others = sorted(_others(levels, level.levelId));
     if (others.isEmpty) return null;
     return others.lastWhere((l) => l.minPoints <= level.minPoints, orElse: () => others.first);
   }
 
-  /// 門檻依位置保留：新順序中第 i 個等級取得原本由低到高第 i 個門檻。
   static List<LevelThresholdChange> reorderChanges(List<AdminLevel> current, List<AdminLevel> reordered) {
     final thresholds = sorted(current).map((l) => l.minPoints).toList();
     return [

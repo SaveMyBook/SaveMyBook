@@ -75,7 +75,6 @@ const normalize = (text) => String(text ?? '').normalize('NFKC').toLowerCase();
 
 const PUNCTUATION = /[\u200b-\u200d\ufeff\u2010-\u2015\u2212._\-+=~*|·•、,，。:：;；'"「」『』()（）[\]【】<>《》/\\!！?？#＃]/g;
 
-// 拆字、插入空白或標點是最常見的規避手法，比對前先全部去除。
 const compact = (text) => normalize(text).replace(PUNCTUATION, '').replace(/\s/g, '');
 
 const spaced = (text) => normalize(text).replace(PUNCTUATION, ' ').replace(/\s+/g, ' ')
@@ -270,7 +269,6 @@ const record = async ({ messageId, roomId, senderId, risk, replace = false }) =>
 
 const parseCategories = (value) => String(value ?? '').split(',').filter((c) => CATEGORIES.includes(c));
 
-// 對方傳的文字訊息才附上提醒；有紀錄者以傳送當下的評分為準（含帳號因素），其餘依內容即時判斷。
 const forMessages = async (messages, myId) => {
   const others = messages.filter((m) => m.sender_id !== myId && m.message_type === 'text');
   const result = new Map();

@@ -1,11 +1,12 @@
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 const integrity = require('../../scripts/db-integrity');
 
 const { RELATIONS, SOFT, planFor, orphanWhere, constraintSql } = integrity;
 
 const rel = (table, column) => RELATIONS.find((r) => r.table === table && r.column === column);
 
-// 以查詢字串比對回應的假資料庫；orphans 以「資料表.欄位」為鍵，fixes 模擬每次清理後剩下的筆數。
 const fakeDb = ({ tables, engines = {}, fks = [], orphans = {}, failOn = [] }) => {
   const executed = [];
   const state = { ...orphans };
@@ -42,6 +43,29 @@ const fakeDb = ({ tables, engines = {}, fks = [], orphans = {}, failOn = [] }) =
 };
 
 const tests = [
+  ['關聯清單與 prisma/schema.prisma 的外鍵一致：名稱、欄位、可否為空與刪除規則', () => {
+    const schema = fs.readFileSync(path.join(__dirname, '../../prisma/schema.prisma'), 'utf8');
+    const expected = [];
+    for (const [, model, body] of schema.matchAll(/^model (\w+) \{\n([\s\S]*?)\n\}/gm)) {
+      for (const [, column, refColumn, onDelete, name] of body.matchAll(
+        /@relation\(fields: \[(\w+)\], references: \[(\w+)\](?:, onDelete: (\w+))?.*?map: "(fk_\w+)"/g
+      )) {
+        const [, type, optional] = new RegExp(`^\\s+${column}\\s+(\\w+)(\\??)`, 'm').exec(body);
+        assert.ok(type);
+        const refTable = new RegExp(`^\\s+\\w+\\s+(\\w+)\\??\\s+@relation\\(fields: \\[${column}\\]`, 'm').exec(body)[1];
+        expected.push({ table: model, column, refTable, refColumn, nullable: optional === '?', onDelete: onDelete ?? 'NoAction', name });
+      }
+    }
+    const byName = new Map(RELATIONS.map((r) => [r.name, r]));
+    const missing = expected.filter((e) => !byName.has(e.name)).map((e) => e.name);
+    assert.deepStrictEqual(missing, [], '健檢清單缺少外鍵');
+    for (const e of expected) {
+      const r = byName.get(e.name);
+      assert.deepStrictEqual([r.table, r.column, r.refTable, r.refColumn, r.nullable], [e.table, e.column, e.refTable, e.refColumn, e.nullable], e.name);
+      if (e.onDelete !== 'NoAction') assert.strictEqual(r.onDelete, e.onDelete, e.name);
+    }
+  }],
+
   ['處理方式：串聯刪除的刪除、可為空的清空，帳務資料與必填關聯只列出', () => {
     assert.strictEqual(planFor(rel('book_images', 'book_id')), 'delete');
     assert.strictEqual(planFor(rel('books', 'cabinet_id')), 'null');

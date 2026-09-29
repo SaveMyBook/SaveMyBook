@@ -80,8 +80,8 @@ const tests = [
     const outsider = addUser();
 
     const cases = [
-      [{ to_user_id: payee.user_id, amount: 0 }, '金額必須是 1 ~ 100000 之間的整數'],
-      [{ to_user_id: payee.user_id, amount: 100001 }, '金額必須是 1 ~ 100000 之間的整數'],
+      [{ to_user_id: payee.user_id, amount: 0 }, '金額須為 1 至 100000 之間的整數'],
+      [{ to_user_id: payee.user_id, amount: 100001 }, '金額須為 1 至 100000 之間的整數'],
       [{ to_user_id: payee.user_id, amount: 10, note: 'a'.repeat(101) }, '備註不可超過 100 個字'],
       [{ to_user_id: payer.user_id, amount: 10 }, '無法轉帳給自己'],
       [{ to_user_id: outsider.user_id, amount: 10 }, '對象不是此聊天室的成員']
@@ -218,7 +218,6 @@ const tests = [
     assert.strictEqual(res.body.code, 'TRANSFER_STATE_CHANGED');
     assert.strictEqual(balanceOf(payer.user_id), 500);
 
-    // 已結案的紀錄不會被排程重複處理。
     assert.strictEqual(await transferRecords.expireDue(), 0);
   }],
 

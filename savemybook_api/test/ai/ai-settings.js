@@ -28,6 +28,7 @@ module.exports = {
       assert.strictEqual(value.features.listing_assist.web_search, true);
       assert.strictEqual(value.features.moderation.action, 'review');
       assert.strictEqual(value.limits.monthly_budget_usd, 10);
+      assert.strictEqual(value.limits.reserve_ratio, 0.2);
       assert.strictEqual(value.limits.daily_per_user.listing_assist, 15);
       assert.strictEqual(value.limits.daily_per_user.book_chat, 20, '書籍顧問改以訊息數計次後的預設值');
     }],
@@ -51,22 +52,23 @@ module.exports = {
     }],
 
     ['管理員送出不合法的值時逐項回報原因', () => {
-      rejectsBadRequest({ enabled: 'yes' }, 'enabled 必須是 true 或 false');
-      rejectsBadRequest({ default_provider: 'claude' }, '預設服務商僅接受：deepseek, gemini, openai');
+      rejectsBadRequest({ enabled: 'yes' }, 'AI 功能開關設定不正確');
+      rejectsBadRequest({ default_provider: 'claude' }, '預設服務商不正確');
       rejectsBadRequest({ providers: { gemini: { model: '模型 名稱' } } }, 'Google Gemini 模型名稱格式不正確');
-      rejectsBadRequest({ providers: { deepseek: { input_per_m: 1001 } } }, 'DeepSeek 輸入單價必須是 0 ~ 1000 之間的數值');
+      rejectsBadRequest({ providers: { deepseek: { input_per_m: 1001 } } }, 'DeepSeek 輸入單價須為 0 至 1000 之間的數值');
       rejectsBadRequest(
         { providers: { gemini: { search_free_per_month: 1.5 } } },
-        'Google Gemini 每月免費搜尋次數必須是 0 ~ 1000000 之間的整數'
+        'Google Gemini 每月免費搜尋次數須為 0 至 1000000 之間的整數'
       );
-      rejectsBadRequest({ features: { support: { enabled: 1 } } }, 'AI 客服的 enabled 必須是 true 或 false');
+      rejectsBadRequest({ features: { support: { enabled: 1 } } }, 'AI 客服的開關設定不正確');
       rejectsBadRequest(
         { features: { listing_assist: { provider: 'claude' } } },
-        '上架輔助的服務商僅接受：deepseek, gemini, openai 或 null'
+        '上架輔助的服務商不正確'
       );
-      rejectsBadRequest({ features: { moderation: { action: 'delete' } } }, '上架審核的處理方式僅接受：review, block');
-      rejectsBadRequest({ limits: { monthly_budget_usd: -1 } }, '每月預算必須是 0 ~ 100000 之間的數值');
-      rejectsBadRequest({ limits: { daily_per_user: { book_chat: 20000 } } }, '書籍顧問每人每日次數必須是 0 ~ 10000 之間的整數');
+      rejectsBadRequest({ features: { moderation: { action: 'delete' } } }, '上架審核的處理方式不正確');
+      rejectsBadRequest({ limits: { monthly_budget_usd: -1 } }, '每月預算須為 0 至 100000 之間的數值');
+      rejectsBadRequest({ limits: { reserve_ratio: 0.95 } }, '審核與管理輔助保留比例須為 0 至 0.9 之間的數值');
+      rejectsBadRequest({ limits: { daily_per_user: { book_chat: 20000 } } }, '書籍顧問每人每日次數須為 0 至 10000 之間的整數');
     }],
 
     ['功能的服務商可以是 null，代表沿用預設服務商', () => {
@@ -84,7 +86,7 @@ module.exports = {
         enabled: true,
         providers: { gemini: { model: 'gemini-3.1-pro' } },
         features: { support: { enabled: false } },
-        limits: { monthly_budget_usd: 25, daily_per_user: { support: 5 } }
+        limits: { monthly_budget_usd: 25, reserve_ratio: 0.3, daily_per_user: { support: 5 } }
       });
       const changes = settingsService.diffSettings(before, after);
       const byField = Object.fromEntries(changes.map((c) => [c.field, c]));
@@ -92,6 +94,7 @@ module.exports = {
       assert.strictEqual(byField['providers.gemini.model'].label, 'Google Gemini 模型');
       assert.strictEqual(byField['features.support.enabled'].label, 'AI 客服開關');
       assert.strictEqual(byField['limits.monthly_budget_usd'].label, '每月預算（美元）');
+      assert.strictEqual(byField['limits.reserve_ratio'].label, '審核與管理輔助保留比例');
       assert.strictEqual(byField['limits.daily_per_user.support'].label, 'AI 客服每人每日次數');
       assert.strictEqual(settingsService.diffSettings(before, before).length, 0);
     }],
@@ -168,7 +171,7 @@ module.exports = {
       for (const body of [{}, { settings: [] }, { settings: 'on' }]) {
         const res = await request('PUT', '/api/admin/ai/settings', { token, headers, body });
         assert.strictEqual(res.status, 400);
-        assert.strictEqual(res.body.message, '請提供 settings 設定內容');
+        assert.strictEqual(res.body.message, '請提供設定內容');
       }
     }],
 
@@ -203,7 +206,7 @@ module.exports = {
       const { token } = adminToken({ can_view_stats: true });
       const res = await request('GET', '/api/admin/ai/usage?period=year', { token });
       assert.strictEqual(res.status, 400);
-      assert.strictEqual(res.body.message, 'period 僅接受：today, 7d, 30d, month');
+      assert.strictEqual(res.body.message, '統計期間不正確');
     }],
 
     ['連線測試：使用尚未儲存的模型名稱，分別檢查文字、JSON 與影像', async () => {

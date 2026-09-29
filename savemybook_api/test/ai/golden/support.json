@@ -1,5 +1,5 @@
 {
-  "description": "AI 客服檢索題：expect 為可接受的知識段落，平台主題寫主題代號（例如 pickup），常見問題寫 faq:編號；排在越前面的可接受段落越好。max_rank 為政策關鍵題的名次上限，任一題超過或未找到即判定失敗，不受整體平均影響。索引內容為 services/ai/knowledge.js 的平台主題，加上 prisma/seed.sql 的常見問題與法律文件。",
+  "description": "AI 客服檢索題：expect 為可接受的知識段落，平台主題寫主題代號（例如 pickup），常見問題寫 faq:編號；排在越前面的可接受段落越好。max_rank 為政策關鍵題的名次上限，任一題超過或未找到即判定失敗，不受整體平均影響。索引內容為 services/ai/knowledge.js 的平台主題，加上 prisma/seed.sql 的常見問題與法律文件。tags 含 held-out 的英文題未用於挑選 knowledge.js 的英文關鍵字，用來確認英文檢索不是只對評測題有效，不可為了這些題目調整關鍵字。",
   "questions": [
     { "id": "s01", "q": "我的訂單一直顯示待存書是什麼意思", "expect": ["order-flow"], "max_rank": 3, "tags": ["colloquial"] },
     { "id": "s02", "q": "訂單狀態寫待買家確認，我要做什麼", "expect": ["order-flow"], "tags": ["colloquial"] },
@@ -25,7 +25,7 @@
     { "id": "s22", "q": "How to list a book for sale", "expect": ["listing"], "tags": ["english"] },
     { "id": "s23", "q": "Can I top up my wallet?", "expect": ["wallet", "faq:3"], "tags": ["english", "handoff"] },
     { "id": "s24", "q": "I forgot my password", "expect": ["account", "faq:4"], "tags": ["english"] },
-    { "id": "s25", "q": "Where do I scan the QR code to pick up?", "expect": ["cabinet"], "tags": ["english"] },
+    { "id": "s25", "q": "Where do I scan the QR code to pick up?", "expect": ["cabinet", "cabinet-steps"], "tags": ["english"] },
     { "id": "s26", "q": "How do I set up a passkey?", "expect": ["account"], "tags": ["english"] },
     { "id": "s27", "q": "Can I cancel my order?", "expect": ["cancel"], "tags": ["english"] },
     { "id": "s28", "q": "The locker won't open", "expect": ["cabinet"], "tags": ["english", "handoff"] },
@@ -93,6 +93,27 @@
     { "id": "s90", "q": "那要等多久", "context": ["我的書一直在審核中"], "expect": ["review"], "tags": ["follow-up"] },
     { "id": "s91", "q": "最多可以保留幾個小時", "context": ["我想預約一本書"], "expect": ["reservation"], "tags": ["follow-up"] },
     { "id": "s92", "q": "上限是多少", "context": ["聊天室可以轉帳嗎"], "expect": ["chat-transfer"], "tags": ["follow-up"] },
-    { "id": "s93", "q": "那如果已經取書了呢", "context": ["訂單可以取消嗎"], "expect": ["cancel", "dispute"], "tags": ["follow-up"] }
+    { "id": "s93", "q": "那如果已經取書了呢", "context": ["訂單可以取消嗎"], "expect": ["cancel", "dispute"], "tags": ["follow-up"] },
+    { "id": "s94", "q": "How long does a refund take?", "expect": ["cancel", "dispute"], "tags": ["english", "held-out"] },
+    { "id": "s95", "q": "The seller still hasn't dropped off my book", "expect": ["pickup", "order-flow"], "tags": ["english", "held-out"] },
+    { "id": "s96", "q": "How do I delete my account?", "expect": ["account"], "tags": ["english", "held-out"] },
+    { "id": "s97", "q": "When will I get paid for a book I sold?", "expect": ["order-flow", "pickup"], "tags": ["english", "held-out"] },
+    { "id": "s98", "q": "The book I received has missing pages", "expect": ["dispute"], "tags": ["english", "held-out"] },
+    { "id": "s99", "q": "Why isn't my book showing up in search results?", "expect": ["review"], "tags": ["english", "held-out"] },
+    { "id": "s100", "q": "How many hours can a seller hold a book for me?", "expect": ["reservation"], "tags": ["english", "held-out"] },
+    { "id": "s101", "q": "Can I send coins to a friend in a chat?", "expect": ["chat-transfer"], "tags": ["english", "held-out"] },
+    { "id": "s102", "q": "Someone keeps harassing me in messages", "expect": ["report"], "tags": ["english", "held-out"] },
+    { "id": "s103", "q": "What are the benefits of each membership level?", "expect": ["level"], "tags": ["english", "held-out"] },
+    { "id": "s104", "q": "Where is the nearest locker?", "expect": ["cabinet"], "tags": ["english", "held-out"] },
+    { "id": "s105", "q": "My order got cancelled automatically, why?", "expect": ["pickup", "cancel"], "tags": ["english", "held-out"] },
+    { "id": "s106", "q": "書櫃螢幕上的數字輸錯了怎麼辦", "expect": ["cabinet-steps"], "max_rank": 3, "tags": ["colloquial"] },
+    { "id": "s107", "q": "為什麼開書櫃一定要開定位", "expect": ["cabinet-steps"], "tags": ["colloquial"] },
+    { "id": "s108", "q": "有人叫我輸入書櫃上的數字", "expect": ["cabinet-steps"], "max_rank": 3, "tags": ["confusable"] },
+    { "id": "s109", "q": "書櫃說我作業多次未完成要等多久", "expect": ["cabinet-steps"], "tags": ["colloquial"] },
+    { "id": "s110", "q": "櫃門打開後有多少時間可以放書", "expect": ["cabinet-door"], "tags": ["colloquial"] },
+    { "id": "s111", "q": "書放進去以後忘記按完成會怎樣", "expect": ["cabinet-door"], "tags": ["colloquial"] },
+    { "id": "s112", "q": "同一個書櫃可以先放幾本書", "expect": ["cabinet-capacity"], "tags": ["colloquial"] },
+    { "id": "s113", "q": "書櫃離線的時候要怎麼存書", "expect": ["cabinet"], "tags": ["handoff"] },
+    { "id": "s114", "q": "The locker screen shows two digits, what do I enter?", "expect": ["cabinet-steps"], "tags": ["english"] }
   ]
 }

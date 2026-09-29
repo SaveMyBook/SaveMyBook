@@ -26,7 +26,7 @@ const addOrder = (userId, status) => prisma.rows('orders').push({
 module.exports = {
   name: '平台：帳號隱私',
   tests: [
-    ['資料匯出：涵蓋個人檔案、書籍、訂單、錢包、申訴與登入方式', async () => {
+    ['資料匯出：涵蓋個人檔案、書籍、訂單、錢包、爭議與登入方式', async () => {
       const ctx = signedIn();
       const userId = ctx.user.user_id;
       prisma.rows('books').push({ book_id: 1, seller_id: userId, title: '我的書', status: 'on_sale' });
@@ -50,7 +50,6 @@ module.exports = {
       assert.strictEqual(data.format_version, 1);
       assert.ok(data.exported_at);
       assert.strictEqual(data.profile.email, ctx.user.email);
-      // 匯出內容不得包含密碼雜湊。
       assert.strictEqual('password_hash' in data.profile, false);
       assert.strictEqual(data.books.length, 1);
       assert.strictEqual(data.orders_as_buyer.length, 1);
@@ -282,7 +281,6 @@ module.exports = {
       assert.strictEqual(ctx.session.revoked_at, null);
       assert.deepStrictEqual(prisma.rows('push_devices'), []);
 
-      // 新的 Token 可用，舊的立即失效。
       assert.strictEqual((await request('GET', '/api/security', { token: res.body.data.token })).status, 200);
       assert.strictEqual((await request('GET', '/api/security', { token: ctx.token })).body.code, 'TOKEN_REVOKED');
     }],
@@ -308,7 +306,7 @@ module.exports = {
       const ctx = signedIn();
       const bad = await request('PUT', '/api/users/me/notification-settings', { token: ctx.token, body: { order: 'off' } });
       assert.strictEqual(bad.status, 400);
-      assert.strictEqual(bad.body.message, 'order 必須是 true 或 false');
+      assert.strictEqual(bad.body.message, '設定值不正確');
 
       const empty = await request('PUT', '/api/users/me/notification-settings', { token: ctx.token, body: {} });
       assert.strictEqual(empty.status, 400);
@@ -330,7 +328,6 @@ module.exports = {
       assert.strictEqual(ok.status, 200);
       assert.strictEqual(ok.body.data.nickname, '小明');
       assert.strictEqual(ok.body.data.gender, 'male');
-      // 回傳的個人檔案不得包含密碼雜湊。
       assert.strictEqual('password_hash' in ok.body.data, false);
     }]
   ]

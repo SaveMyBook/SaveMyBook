@@ -5,26 +5,27 @@ tags:
       結帳、查詢與訂單狀態流轉。
 
       結帳時即自買家錢包扣款，款項由平台保管；買家取書後點選「完成訂單」（`completed`），
-      或取書滿 24 小時未提出申訴由排程自動完成，款項才撥入賣家錢包，期間於賣家端顯示為待定收益（`GET /api/wallet/pending`）。
+      或取書滿 24 小時未申請爭議由排程自動完成，款項才撥入賣家錢包，期間於賣家端顯示為待撥款項（`GET /api/wallet/pending`）。
 
       **排程（每 10 分鐘）**
 
       | 條件 | 處理 |
       | --- | --- |
       | 已取書（`picked_up_at` 有值）滿 24 小時，且狀態仍為 `deposited`／`pending_pickup` | 自動完成並撥款，通知買賣雙方 |
-      | `pending_payment`／`pending_deposit` 且訂單成立滿 7 天 | 自動取消、全額退款，書籍改為下架（`removed`），通知雙方；下單前已存書的書恢復存書登記，通知賣家取回並於 App 中回報 |
-      | `deposited`／`pending_pickup` 未取書且存書滿 7 天 | 自動取消、全額退款，書籍改為下架，通知賣家至書櫃取回書籍；訂單的每本書都恢復存書登記，須於 App 中回報取回 |
+      | `pending_payment`／`pending_deposit` 且訂單成立滿 7 天 | 自動取消、全額退款，書籍改為下架（`removed`），通知雙方；下單前已存書的書恢復存書登記，通知賣家至書櫃以 App 掃描 QR Code 取回（書櫃無法掃碼時改以手動回報，經客服確認後生效） |
+      | `deposited`／`pending_pickup` 未取書且存書滿 7 天 | 自動取消、全額退款，書籍改為下架，通知賣家至書櫃取回書籍；訂單的每本書都恢復存書登記，須至書櫃以 App 掃描 QR Code 取回（書櫃無法掃碼時改以手動回報，經客服確認後生效） |
 
       爭議處理中（`refunding`）的訂單不受排程影響。
 
-      賣家可在訂單成立前先將書存入書櫃（`POST /api/books/{id}/deposit`）。訂單中每本書都已存於該訂單的書櫃時，
+      賣家可在訂單成立前至書櫃以 App 掃描 QR Code 先行存書（見「書櫃作業」；書櫃無法掃碼時改以 `POST /api/books/{id}/deposit`
+      手動回報，經客服確認後生效）。訂單中每本書都已存於該訂單的書櫃時，
       訂單直接成立為 `deposited`，`deposited_at` 為下單時間，買家取書期限自下單起算 7 天，且買賣雙方即無法自行取消，
-      如有問題須提出交易申訴；其餘訂單照常以 `pending_deposit` 成立，由賣家存書後回報。
+      如有問題須申請交易爭議；其餘訂單照常以 `pending_deposit` 成立，由賣家依書櫃作業存書。
       訂單項目的 `pre_deposited` 標示下單時已在櫃中的書。訂單在買家取書前取消或退款時，仍在櫃中的書恢復存書登記
       （存書時間自取消時重新起算），逾期提醒與後台存書列表照常追蹤：訂單已存書（`deposited`、`pending_pickup`，
-      申訴中則為已有 `deposited_at`）時訂單的每本書都恢復登記於訂單書櫃，書籍的書櫃一併改為訂單書櫃；
+      爭議處理中則為已有 `deposited_at`）時訂單的每本書都恢復登記於訂單書櫃，書籍的書櫃一併改為訂單書櫃；
       尚未存書時僅 `pre_deposited` 的書恢復登記。訂單原為爭議處理中（`refunding`）時，因無法確認書是否仍在櫃中，
-      恢復登記的書改為下架，待賣家取回並回報後自行重新上架。已取消或已退款的訂單再調整狀態時不再恢復存書登記。
+      恢復登記的書改為下架，待賣家至書櫃以 App 掃描 QR Code 取回後自行重新上架。已取消或已退款的訂單再調整狀態時不再恢復存書登記。
 
       購物車涵蓋多位賣家時，結帳會依賣家拆分為多筆訂單，
       因此 `POST /api/orders/checkout` 的回應為陣列。
@@ -92,7 +93,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: '不支援的 tab：foo' }
+              example: { success: false, message: 請求內容不正確 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -117,7 +118,7 @@ paths:
 
         因跨賣家會拆分訂單，回應為訂單陣列。
 
-        成立即為 `deposited` 的訂單（書已預先存入書櫃）買家無法自行取消，App 應於結帳前提示；如有問題須提出交易申訴。
+        成立即為 `deposited` 的訂單（書已先行存書）買家無法自行取消，App 應於結帳前提示；如有問題須申請交易爭議。
 
         ## Payment Verification
 
@@ -168,7 +169,7 @@ paths:
                 售價異常:
                   value: { success: false, message: 《挪威的森林》的售價異常，請聯絡賣家或先移除 }
                 代幣不足:
-                  value: { success: false, code: INSUFFICIENT_BALANCE, message: 代幣不足，這筆訂單需要 540 代幣，目前只有 200 }
+                  value: { success: false, code: INSUFFICIENT_BALANCE, message: 代幣不足，此訂單需 540 代幣，目前餘額 200 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/VerificationRequired' }
         '409': { $ref: '#/components/responses/BookReserved' }
@@ -177,7 +178,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 結帳失敗，請稍後再試 }
+              example: { success: false, message: 系統發生錯誤，請稍後再試 }
 
   /api/orders/buy-now:
     post:
@@ -230,6 +231,37 @@ paths:
         '409': { $ref: '#/components/responses/BookReserved' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/orders/by-no/{orderNo}:
+    get:
+      summary: 以訂單編號取得訂單詳情
+      operationId: getOrderByNo
+      tags: [orders]
+      description: |
+        以使用者看得到的訂單編號（`SMB` 加 20 位數字，早期訂單為 17 位，大小寫不拘）查詢，供 AI 客服回覆中的訂單連結使用。
+        僅該訂單的買家、賣家或管理員可查詢；訂單不存在或請求者不是當事人時一律回傳 404，不透露訂單是否存在。
+        回應內容與 `GET /api/orders/{id}` 相同。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: orderNo
+          required: true
+          schema: { type: string, pattern: '^[Ss][Mm][Bb][0-9]{17}([0-9]{3})?$' }
+          example: SMB20260928143015123456
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/Order' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/orders/{id}:
     get:
       summary: 取得訂單詳情
@@ -279,11 +311,13 @@ paths:
         另一個回傳 409，賣家不會重複入帳。
         取消訂單請使用 `PATCH /api/orders/{id}/cancel`。
 
-        **書櫃掃碼存取**：書櫃已配對裝置時，`deposited`、`picked_up`（以及尚未取書時的 `completed`）須至書櫃以 App 掃描 QR Code 辦理（見「書櫃作業」），
+        **書櫃掃碼存取**：書櫃為掃碼模式時（含裝置離線或故障未滿 2 分鐘，及裝置自行解除配對或疑遭複製而撤銷後 2 分鐘內），
+        `deposited`、`picked_up`（以及尚未取書時的 `completed`）須至書櫃以 App 掃描 QR Code 辦理（見「書櫃作業」），
         一般使用者呼叫本端點回 409 `CABINET_SCAN_REQUIRED`；已配對裝置的書櫃停用或維修中時回 409 `CABINET_UNAVAILABLE`、`CABINET_MAINTENANCE`。
-        裝置離線或故障持續 2 分鐘以上，或書櫃曾配對裝置而目前沒有有效裝置時，本端點改為建立待客服確認的手動回報，
-        回 202 並附 `manual_report`，管理員確認後才生效；同一項目已有待確認的回報時回 409 `MANUAL_REPORT_PENDING`。
-        具書櫃管理權限、且不是當事人的管理員不受上述限制。從未配對裝置的書櫃維持原有行為。
+        書櫃沒有有效裝置（含從未配對），或裝置離線、故障持續 2 分鐘以上時，本端點一律建立待客服確認的手動回報，
+        回 202 並附 `manual_report`，訂單狀態不變；管理員確認後才生效並通知對方，駁回時通知回報者。
+        同一項目已有待確認的回報時回 409 `MANUAL_REPORT_PENDING`。App 須把 202 顯示為「待客服確認」，不得視為已完成。
+        具書櫃管理權限、且不是當事人的管理員不受上述限制，立即生效；身為當事人的管理員只能以本人的身分（買家或賣家）操作。
 
         `picked_up` 只寫入 `picked_up_at`，訂單狀態維持不變、不撥款，並通知賣家。
         尚未取書時送出 `completed`（舊版 App 的行為）一律視為 `picked_up`。
@@ -295,7 +329,7 @@ paths:
         - 寫入一筆 `sale_income` 錢包交易紀錄
         - 寫入 `completed_at`，通知賣家
 
-        完成後不再受理交易申訴。
+        完成後不再受理交易爭議。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -351,14 +385,20 @@ paths:
                 狀態值錯誤:
                   value: { success: false, message: 訂單狀態不正確 }
                 尚未存書:
-                  value: { success: false, message: 賣家還沒把書放進書櫃，無法完成取貨 }
+                  value: { success: false, message: 賣家尚未存書，無法確認取書 }
+                尚未存書時完成訂單:
+                  value: { success: false, message: 賣家尚未存書，無法完成訂單 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
-          description: 呼叫者不是該步驟的執行方（例如賣家嘗試設為 completed）。
+          description: 呼叫者不是該步驟的執行方（例如賣家嘗試設為 completed；身為當事人的管理員亦同）。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 只有買家可以確認取貨 }
+              examples:
+                非買家:
+                  value: { success: false, message: 僅買家可確認取書或完成訂單 }
+                非賣家:
+                  value: { success: false, message: 僅賣家可執行此操作 }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
           description: 訂單已是目標狀態、在處理期間被其他請求變更，或書櫃須掃碼辦理。
@@ -367,7 +407,11 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 狀態已變更:
-                  value: { success: false, message: 訂單狀態已經變更，請重新整理後再試 }
+                  value: { success: false, message: 訂單狀態已變更，請重新整理後再試 }
+                已是目標狀態:
+                  value: { success: false, message: 訂單已是此狀態 }
+                已確認取書:
+                  value: { success: false, message: 已確認取書 }
                 須掃碼辦理:
                   value: { success: false, code: CABINET_SCAN_REQUIRED, message: 此書櫃已啟用掃碼存取，請至書櫃以 App 掃描 QR Code 辦理, cabinet_id: 3 }
                 已有待確認回報:
@@ -381,10 +425,11 @@ paths:
       tags: [orders]
       description: |
         賣家存書前（`pending_payment`、`pending_deposit`）買賣雙方皆可取消；存書後雙方都不能自行取消，
-        回傳 400 `ORDER_NOT_CANCELLABLE`，須改提交易申訴。書已預先存入書櫃的訂單成立即為 `deposited`，
+        回傳 400 `ORDER_NOT_CANCELLABLE`，須改為申請交易爭議。書已先行存書的訂單成立即為 `deposited`，
         因此自下單起即無法自行取消。狀態已為 `completed`、`cancelled` 或 `refunded`
         的訂單不得取消；爭議處理中（`refunding`）的訂單僅管理員可取消。
-        同時送出的取消請求只有一個會成功，其餘回傳 409，不會重複退款。
+        訂單正於書櫃辦理中（書櫃作業在數字比對、開門中或櫃門已開啟）時雙方都不能取消，回傳 409 `ORDER_IN_CABINET_SESSION`，
+        管理員不受此限。同時送出的取消請求只有一個會成功，其餘回傳 409，不會重複退款。
 
         取消時於同一交易內執行下列動作：
 
@@ -393,8 +438,8 @@ paths:
         - 仍在櫃中的書恢復存書登記（買家可再下單直接取書）：管理員取消已存書的訂單時為訂單的每本書，
           其餘為 `pre_deposited` 的書；爭議處理中的訂單由管理員取消時，恢復登記的書改為下架
         - 依錢包帳本退回買家實際支付的代幣，寫入一筆 `refund` 交易紀錄並發送通知
-        - 通知交易對象訂單已取消；管理員取消時通知買家。有書恢復存書登記時（買家或管理員取消）一併通知賣家書籍維持存書登記，
-          書籍公開販售中者告知可繼續販售，未公開販售者請賣家至書櫃取回並於 App 中回報
+        - 通知交易對象訂單已取消；管理員取消時通知買家。有書恢復存書登記時（買家或管理員取消）一併通知賣家：
+          公開販售中的書將繼續販售，未公開販售的書請賣家至書櫃以 App 掃描 QR Code 取回
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -432,8 +477,20 @@ paths:
                 已結束:
                   value: { success: false, message: 此訂單狀態無法取消 }
                 已存書:
-                  value: { success: false, code: ORDER_NOT_CANCELLABLE, message: 賣家已存書，無法取消訂單；如有問題請提出申訴 }
+                  value: { success: false, code: ORDER_NOT_CANCELLABLE, message: 賣家已存書，無法取消訂單；如有問題請申請爭議 }
+                爭議處理中:
+                  value: { success: false, message: 此訂單爭議處理中，無法自行取消，請等候客服裁決 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 訂單正於書櫃辦理中，或在處理期間被其他請求變更。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                書櫃辦理中:
+                  value: { success: false, code: ORDER_IN_CABINET_SESSION, message: 此訂單正於書櫃辦理中，請稍後再試 }
+                狀態已變更:
+                  value: { success: false, message: 訂單狀態已變更，請重新整理後再試 }
         '500': { $ref: '#/components/responses/ServerError' }

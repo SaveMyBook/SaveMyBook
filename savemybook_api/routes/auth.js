@@ -73,7 +73,6 @@ const idTokenOf = (body) => {
 const firebaseProvider = (value) =>
   oneOf(value, authSettings.FIREBASE_PROVIDERS, '不支援此登入方式');
 
-// 建立帳號時才需要的補充資料；App 在使用者選擇「建立新帳號」後才會帶上。
 const signupInputOf = (body) => {
   const email = text(body.email, { label: '電子郵件', max: 255 }).toLowerCase();
   if (email && !EMAIL_RE.test(email)) throw badRequest('電子郵件格式不正確');
@@ -94,7 +93,6 @@ const verifiedInfo = async (provider, idToken) => {
   return info;
 };
 
-// mode 為 link 時才需要登入與敏感操作驗證，login 是未登入狀態下的流程。
 const whenLinkMode = (middleware) => (req, res, next) =>
   (req.body?.mode === 'link' ? middleware(req, res, next) : next());
 
@@ -115,7 +113,7 @@ router.post('/login', loginBurstLimiter, loginLimiter, async (req, res) => {
   const email = text(req.body.email, { max: 255 });
   const plain = typeof req.body.password === 'string' ? req.body.password : '';
 
-  if (!email || !plain) throw badRequest('請提供 Email 與密碼');
+  if (!email || !plain) throw badRequest('請輸入電子郵件與密碼');
 
   const { token, deletion } = await auth.login(email, plain, deviceFrom(req));
 
@@ -181,7 +179,7 @@ router.post('/social/link-login', socialLimiter, loginBurstLimiter, loginLimiter
   const assertion = req.body.assertion && typeof req.body.assertion === 'object' ? req.body.assertion : null;
   const email = assertion ? null : text(req.body.email, { max: 255 });
   const plain = assertion ? '' : typeof req.body.password === 'string' ? req.body.password : '';
-  if (!assertion && (!email || !plain)) throw badRequest('請提供 Email 與密碼');
+  if (!assertion && (!email || !plain)) throw badRequest('請輸入電子郵件與密碼');
 
   const { token, deletion } = await linkLogin.linkAndSignIn({
     provider, idToken, code: code || null, email, password: plain, assertion, device: deviceFrom(req)

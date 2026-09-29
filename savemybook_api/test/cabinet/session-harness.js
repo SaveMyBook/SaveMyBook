@@ -1,4 +1,3 @@
-// 書櫃作業（工作包 B）測試的共用設定：在 harness 之上補交易回復，並提供掃碼、比對、開門、關門的輔助函式。
 const assert = require('assert');
 const { AsyncLocalStorage } = require('async_hooks');
 const h = require('./harness');
@@ -6,8 +5,6 @@ const h = require('./harness');
 const { prisma, api, request } = h;
 
 const ago = (ms) => new Date(Date.now() - ms);
-
-// ---------- 交易回復 ----------
 
 // 共用的假 Prisma 不會回復交易；提交中斷與兌換競爭的測試需要真正的回復語意，否則半套寫入會留在記憶體中。
 const journals = new AsyncLocalStorage();
@@ -84,8 +81,6 @@ const installJournal = () => {
 
 installJournal();
 
-// ---------- 情境 ----------
-
 const sessionsService = api('services/cabinet-sessions');
 const realtime = api('services/realtime');
 
@@ -112,7 +107,6 @@ const scene = ({ doorCount = 4, kind = 'esp32', unlockPulseMs = 800, cabinet: ca
 
 const listedBook = (ctx, overrides = {}) => h.addBook({ sellerId: ctx.seller.user_id, cabinet_id: ctx.cabinet.cabinet_id, ...overrides });
 
-// 買家已付款、訂單在此書櫃待存書（或已存書）。
 const orderFor = (ctx, bookIds, { status = 'pending_deposit', amount = 100, buyer = ctx.buyer, ...rest } = {}) => {
   const ids = [bookIds].flat();
   const order = h.addPaidOrder({
@@ -140,7 +134,10 @@ const scan = (ctx) => {
   return h.scanCode(ctx.token, ctx.bootId);
 };
 
-const createSession = async (ctx, token, { code, context, location_status = 'denied', location } = {}) => request('POST', '/api/cabinet-sessions', {
+// 須與 commerce 的 addCabinet 座標 (25.03, 121.51) 相符；建立作業須有書櫃旁的新鮮定位。
+const NEARBY = { lat: 25.0301, lng: 121.5101, accuracy_m: 10, age_ms: 500 };
+
+const createSession = async (ctx, token, { code, context, location_status = 'granted', location = NEARBY } = {}) => request('POST', '/api/cabinet-sessions', {
   token,
   body: { code: code ?? await scan(ctx), ...(context ? { context } : {}), location_status, ...(location ? { location } : {}) }
 });
@@ -155,9 +152,20 @@ const matchCodeOf = (no) => Number(h.sessionOf(no).match_code);
 
 const events = (ctx, list) => h.postEvents(ctx.token, ctx.bootId, list);
 
-const selectNumber = (ctx, no, value = matchCodeOf(no)) => events(ctx, [{ type: 'match_selected', session_id: no, data: { value } }]);
+const tokenOfSession = (no) => {
+  const row = h.sessionOf(no);
+  return h.tokenFor(prisma.rows('users').find((u) => Number(u.user_id) === Number(row.user_id)));
+};
+const sessionPath = (no, action) => `${h.sessionOf(no).kind === 'admin' ? '/api/admin/cabinet-sessions' : '/api/cabinet-sessions'}/${no}/${action}`;
 
-// 讀取 /state 取得開鎖指令（會記錄 command_served_at），再逐扇回報開門。
+const enterCode = (no, code = matchCodeOf(no), { token = tokenOfSession(no) } = {}) =>
+  request('POST', sessionPath(no, 'match'), { token, body: { code: String(code) } });
+
+const requestClose = (no, outcome = 'completed', { token = tokenOfSession(no) } = {}) =>
+  request('POST', sessionPath(no, 'close'), { token, body: { outcome } });
+
+const wrongCodeOf = (no) => (matchCodeOf(no) === 99 ? 98 : matchCodeOf(no) + 1);
+
 const openDoors = async (ctx, no) => {
   const state = await h.deviceState(ctx.token, ctx.bootId);
   const commands = state.body.data.commands ?? [];
@@ -168,12 +176,11 @@ const openDoors = async (ctx, no) => {
   return { commands, res };
 };
 
-const closeSession = (ctx, no, { outcome = 'completed', reason = 'button', channels = [] } = {}) => events(ctx, [
+const closeSession = (ctx, no, { outcome = 'completed', reason = 'user_done', channels = [] } = {}) => events(ctx, [
   ...(outcome === 'completed' ? channels.map((channel) => ({ type: 'door_closed', session_id: no, channel, data: { reason } })) : []),
-  { type: 'session_closed', session_id: no, data: { outcome, reason: outcome === 'cancelled' ? 'cancel_button' : reason } }
+  { type: 'session_closed', session_id: no, data: { outcome, reason: outcome === 'cancelled' ? 'user_cancel' : reason } }
 ]);
 
-// 掃碼到關門的完整流程；回傳最後一次讀取的作業。
 const runSession = async (ctx, token, { context, keys, outcome = 'completed' } = {}) => {
   const created = await createSession(ctx, token, { context });
   assert.strictEqual(created.status, 201, created.text);
@@ -181,8 +188,9 @@ const runSession = async (ctx, token, { context, keys, outcome = 'completed' } =
   const chosen = keys ?? created.body.data.items.filter((i) => i.selected).map((i) => i.key);
   const started = await startSession(token, no, chosen);
   assert.strictEqual(started.status, 200, started.text);
-  const matched = await selectNumber(ctx, no);
-  assert.strictEqual(matched.body.data.results[0].status, 'ok', matched.text);
+  const matched = await enterCode(no);
+  assert.strictEqual(matched.status, 200, matched.text);
+  assert.strictEqual(matched.body.data.status, 'opening', matched.text);
   const { commands } = await openDoors(ctx, no);
   const closed = await closeSession(ctx, no, { outcome, channels: commands.map((c) => c.channel) });
   assert.ok(closed.body.data.results.every((r) => r.status === 'ok'), closed.text);
@@ -190,7 +198,6 @@ const runSession = async (ctx, token, { context, keys, outcome = 'completed' } =
   return { no, created, started, final: final.body.data };
 };
 
-// 攔截推播；每個測試前還原。
 const originalEmit = realtime.emitToUser;
 require('../lib/server').onReset(() => { realtime.emitToUser = originalEmit; });
 
@@ -217,6 +224,6 @@ const adminNotices = (ctx, title) => h.notificationsOf(ctx.admin.user_id).filter
 
 module.exports = {
   ...h, sessionsService, realtime,
-  uniqueDeviceId, scene, listedBook, orderFor, scan, createSession, startSession, getSession, cancelSession, matchCodeOf, events,
-  selectNumber, openDoors, closeSession, runSession, captureEmits, itemsOf, doorsOf, slotItemOf, depositOf, adminNotices, ago
+  NEARBY, uniqueDeviceId, scene, listedBook, orderFor, scan, createSession, startSession, getSession, cancelSession, matchCodeOf,
+  wrongCodeOf, events, enterCode, requestClose, openDoors, closeSession, runSession, captureEmits, itemsOf, doorsOf, slotItemOf, depositOf, adminNotices, ago
 };

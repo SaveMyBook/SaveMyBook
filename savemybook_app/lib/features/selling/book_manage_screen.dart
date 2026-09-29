@@ -14,6 +14,7 @@ import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../widgets/swipe_action.dart';
 import '../books/book_detail_screen.dart';
+import '../cabinet/cabinet_entry.dart';
 import 'book_deposit_actions.dart';
 import 'edit_book_screen.dart';
 import 'sell_book_screen.dart';
@@ -83,7 +84,6 @@ class _BookManageScreenState extends State<BookManageScreen> {
     });
   }
 
-  // held（預約保留中）、reserved（訂單已成立）、sold（訂單已完成）都不能編輯或下架。
   String _statusOf(Book book) => _statusOverride[book.bookId] ?? book.ownerStatus;
 
   bool _violationLocked(Book book) =>
@@ -115,7 +115,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
 
   bool _inFilter(Book b, String key) => switch (key) {
     'all' => true,
-    _retrievalFilter => b.isDepositPaused,
+    _retrievalFilter => b.isDepositPaused || (b.deposit == null && b.canRetrieve),
     _ => _statusOf(b) == key,
   };
 
@@ -141,7 +141,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
   Future<void> _delist(Book book, {required bool askFirst}) async {
     if (_busyIds.contains(book.bookId)) return;
     final status = _statusOf(book);
-    final canUndo = status == 'on_sale' && !_violationLocked(book) && !book.isDeposited;
+    final canUndo = status == 'on_sale' && !_violationLocked(book) && !book.isDeposited && !book.canRetrieve;
     if (askFirst) {
       final confirmed = await showConfirmDialog(
         context,
@@ -342,7 +342,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
     final canEdit = status == 'on_sale' || status == 'removed';
 
     SwipeAction? statusAction;
-    if (!busy && status == 'removed' && !_violationLocked(book) && !book.isDeposited) {
+    if (!busy && status == 'removed' && !_violationLocked(book) && !book.isDeposited && !book.canRetrieve) {
       statusAction = SwipeAction(
         icon: Icons.publish_rounded,
         label: S.relist,
@@ -358,7 +358,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
         label: S.delist,
         color: c.danger,
         onTrigger: () async {
-          _delist(book, askFirst: book.isDeposited);
+          _delist(book, askFirst: book.isDeposited || book.canRetrieve);
           return false;
         },
       );
@@ -476,19 +476,31 @@ class _BookManageScreenState extends State<BookManageScreen> {
     final heldUntil = status == 'held' ? book.reservedUntil : null;
     final heldText = heldUntil == null ? '' : _formatDeadline(heldUntil);
     final deposit = book.deposit;
+    final location = book.cabinetLocation;
+    final retrievable = book.canRetrieve;
+    final reportPending = book.hasPendingManualReport;
     final canDeposit = !isRemoved && book.canRegisterDeposit;
     final pendingOrder = status == 'reserved' ? _pendingOrders[book.bookId] : null;
+    final retrieveLabel = cabinetActionLabel(book.retrievalAccess, CabinetAction.retrieve);
+    final VoidCallback? onRetrieve = isBusy || reportPending ? null : () => _runDepositAction(book, confirmBookRetrieval);
+    final storedLine = [
+      if (deposit != null) storedDaysText(deposit.daysStored) else if (location != null && location.cabinetName.isNotEmpty) location.cabinetName,
+      if (location != null && location.door.isNotEmpty) CabinetMessages.door(location.door) else if (deposit?.door case final door?) CabinetMessages.door(door),
+    ].join('・');
     final cabinetLine = [
       if (pendingOrder != null) ...[pendingOrder.cabinetAddress, pendingOrder.cabinetName],
       book.cabinetAddress,
       book.cabinetName,
     ].firstWhere((line) => line.isNotEmpty, orElse: () => '');
-    final Widget? cabinetAction = canDeposit
-        ? SmallActionButton(label: S.dropOff, onTap: isBusy ? null : () => _runDepositAction(book, confirmBookDeposit))
+    final SmallActionButton? cabinetAction = canDeposit
+        ? SmallActionButton(
+            label: cabinetActionLabel(book.cabinetAccess, CabinetAction.preDeposit),
+            onTap: isBusy || reportPending ? null : () => _runDepositAction(book, confirmBookDeposit),
+          )
         : pendingOrder != null
         ? SmallActionButton(
-            label: S.markAsDroppedOff,
-            onTap: () => _runDeposit(() => confirmOrderDeposit(context, pendingOrder)),
+            label: cabinetActionLabel(pendingOrder.cabinetAccess, CabinetAction.orderDeposit),
+            onTap: pendingOrder.hasPendingManualReport ? null : () => _runDeposit(() => confirmOrderDeposit(context, pendingOrder)),
           )
         : null;
 
@@ -611,22 +623,16 @@ class _BookManageScreenState extends State<BookManageScreen> {
                     cabinetAction,
                   ),
                 ],
-                if (deposit != null) ...[
+                if (deposit != null || retrievable) ...[
                   const SizedBox(height: 4),
                   _lineWithAction(
-                    InfoLine(
-                      icon: Icons.inventory_2_outlined,
-                      value: storedDaysText(deposit.daysStored),
-                      maxLines: 1,
-                      fontSize: 11,
-                    ),
-                    isRemoved
-                        ? null
-                        : SmallActionButton(
-                            label: S.retrieve,
-                            onTap: isBusy ? null : () => _runDepositAction(book, confirmBookRetrieval),
-                          ),
+                    InfoLine(icon: Icons.inventory_2_outlined, value: storedLine, maxLines: 1, fontSize: 11),
+                    isRemoved || !retrievable ? null : SmallActionButton(label: retrieveLabel, onTap: onRetrieve),
                   ),
+                ],
+                if (reportPending || pendingOrder?.hasPendingManualReport == true) ...[
+                  const SizedBox(height: 4),
+                  InfoLine(icon: Icons.hourglass_top_rounded, value: S.manualReportAwaitingConfirmation, maxLines: 1, fontSize: 11),
                 ],
                 if (heldUntil != null) ...[
                   const SizedBox(height: 4),
@@ -637,12 +643,12 @@ class _BookManageScreenState extends State<BookManageScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: isRemoved && deposit != null
+                      child: isRemoved && retrievable
                           ? SmallActionButton(
-                              label: S.retrieve,
+                              label: retrieveLabel,
                               filled: true,
                               isLoading: isBusy,
-                              onTap: () => _runDepositAction(book, confirmBookRetrieval),
+                              onTap: reportPending ? null : () => _runDepositAction(book, confirmBookRetrieval),
                             )
                           : isRemoved
                           ? SmallActionButton(
@@ -675,8 +681,15 @@ class _BookManageScreenState extends State<BookManageScreen> {
     );
   }
 
-  Widget _lineWithAction(Widget line, Widget? action) {
+  Widget _lineWithAction(Widget line, SmallActionButton? action) {
     if (action == null) return line;
+    // 卡片在寬螢幕的格狀排版中位於 IntrinsicHeight 內，不能改用 LayoutBuilder 判斷寬度。
+    if (SmallActionButton.widthOf(context, action.label) > 140) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [line, const SizedBox(height: 6), IntrinsicWidth(child: action)],
+      );
+    }
     return Row(
       children: [
         Expanded(child: line),

@@ -2,7 +2,6 @@ import 'package:flutter/services.dart';
 import 'api_service.dart';
 import 'cabinet_code.dart';
 
-/// savemybook://auth/oauth?code=… 或 ?error=… 的解析結果。
 class OAuthDeepLink {
   final String? code;
   final String? error;
@@ -36,7 +35,6 @@ class DeepLinkService {
   static OAuthDeepLink? parseOAuthLink(String raw) {
     final uri = Uri.tryParse(raw.trim());
     if (uri == null || uri.scheme != 'savemybook') return null;
-    // savemybook://auth/oauth 的 host 是 auth、path 是 /oauth。
     if (uri.host != 'auth' || uri.path.replaceAll('/', '') != 'oauth') return null;
     return OAuthDeepLink(code: uri.queryParameters['code'], error: uri.queryParameters['error']);
   }
@@ -85,10 +83,8 @@ class DeepLinkService {
     _handle(link);
   }
 
-  /// 測試用：模擬原生端送進來的深層連結。
   static void deliver(String link) => _handle(link);
 
-  /// 測試用：清掉尚未派送的連結。
   static void reset() {
     _pending = null;
     _pendingCabinet = false;

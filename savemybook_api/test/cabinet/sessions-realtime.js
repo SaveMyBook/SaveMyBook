@@ -54,7 +54,7 @@ module.exports = {
       const adminPush = cabinetEvents(calls).at(-1);
       assert.strictEqual(adminPush.userId, ctx.admin.user_id);
       assert.strictEqual(adminPush.payload.session.status, 'matching');
-      assert.ok(adminPush.payload.session.match.code >= 10);
+      assert.ok(!('match' in adminPush.payload.session));
     }],
 
     ['部分完成時通知發起人；待確認時通知發起人，確認後再通知一次', async () => {
@@ -65,7 +65,7 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${first.order_id}`, `order:${second.order_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       await h.openDoors(ctx, no);
       h.orderOf(second.order_id).status = 'cancelled';
       await h.closeSession(ctx, no, { channels: [1, 2] });
@@ -83,7 +83,7 @@ module.exports = {
       const second2 = await h.createSession(ctx2, ctx2.buyerToken);
       const two = second2.body.data.session_no;
       await h.startSession(ctx2.buyerToken, two, second2.body.data.items.map((i) => i.key));
-      await h.selectNumber(ctx2, two);
+      await h.enterCode(two);
       await h.openDoors(ctx2, two);
       h.expireSession(two);
       await h.sessionsService.sweep(new Date());

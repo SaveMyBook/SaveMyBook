@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
@@ -265,10 +266,13 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
     return Column(children: [cards[0], const SizedBox(height: 12), cards[1]]);
   }
 
-  static String _compact(double value) {
-    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(value >= 10000000 ? 0 : 1)}M';
-    if (value >= 1000) return '${(value / 1000).toStringAsFixed(value >= 10000 ? 0 : 1)}k';
-    return value.toStringAsFixed(0);
+  String _compact(double value) {
+    final locale = Localizations.localeOf(context);
+    final tag = switch (locale.languageCode) {
+      'zh' => locale.scriptCode == 'Hans' ? 'zh' : 'zh_TW',
+      final code => code,
+    };
+    return NumberFormat.compact(locale: tag).format(value);
   }
 
   Widget _buildChart(

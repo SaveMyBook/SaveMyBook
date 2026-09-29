@@ -126,29 +126,125 @@ class DisputeCase {
 }
 
 
-/// 管理員裁決前的 AI 爭議分析，僅供參考。
+/// AI 爭議分析的觀察重點；photos 為分析時送出的照片編號，對應 [DisputeAnalysisPhoto.no]。
+class DisputeFinding {
+  final String content;
+  final String? basis;
+  final List<int> photos;
+  final String favors;
+
+  const DisputeFinding({required this.content, this.basis, this.photos = const [], this.favors = 'neutral'});
+
+  factory DisputeFinding.fromJson(Map<String, dynamic> json) => DisputeFinding(
+        content: json['content'] as String? ?? '',
+        basis: json['basis'] as String?,
+        photos: [for (final n in (json['photos'] as List? ?? const [])) parseInt(n)],
+        favors: json['favors'] as String? ?? 'neutral',
+      );
+}
+
+class DisputeAnalysisPhoto {
+  final int no;
+  final String source;
+  final String? type;
+  final String title;
+
+  const DisputeAnalysisPhoto({required this.no, required this.source, this.type, this.title = ''});
+
+  bool get isListing => source == 'listing';
+
+  factory DisputeAnalysisPhoto.fromJson(Map<String, dynamic> json) => DisputeAnalysisPhoto(
+        no: parseInt(json['no']),
+        source: json['source'] as String? ?? 'evidence',
+        type: json['type'] as String?,
+        title: json['title'] as String? ?? '',
+      );
+}
+
 class DisputeAnalysis {
+  /// 評價時帶回，確保評價記在畫面上這一次分析。
+  final String analysisNo;
   final String summary;
-  final List<String> findings;
+  final List<DisputeFinding> findings;
   final String suggestion;
-  final double confidence;
+  final String confidenceLevel;
   final String rationale;
+  final int listingPhotos;
+  final int evidencePhotos;
+  final int skippedPhotos;
+  final List<DisputeAnalysisPhoto> photos;
+
+  /// 管理員評價是否有幫助；尚未評價時為 null。
+  final bool? helpful;
+  final DateTime? createdAt;
 
   const DisputeAnalysis({
+    this.analysisNo = '',
     required this.summary,
     required this.findings,
     required this.suggestion,
-    required this.confidence,
+    required this.confidenceLevel,
     required this.rationale,
+    this.listingPhotos = 0,
+    this.evidencePhotos = 0,
+    this.skippedPhotos = 0,
+    this.photos = const [],
+    this.helpful,
+    this.createdAt,
   });
 
-  factory DisputeAnalysis.fromJson(Map<String, dynamic> json) => DisputeAnalysis(
-        summary: json['summary'] as String? ?? '',
-        findings: [for (final f in (json['findings'] as List? ?? const [])) '$f'],
-        suggestion: json['suggestion'] as String? ?? 'need_more_info',
-        confidence: parseDouble(json['confidence']).clamp(0.0, 1.0),
-        rationale: json['rationale'] as String? ?? '',
+  DisputeAnalysisPhoto? photo(int no) {
+    for (final p in photos) {
+      if (p.no == no) return p;
+    }
+    return null;
+  }
+
+  DisputeAnalysis withHelpful(bool value) => DisputeAnalysis(
+        analysisNo: analysisNo,
+        summary: summary,
+        findings: findings,
+        suggestion: suggestion,
+        confidenceLevel: confidenceLevel,
+        rationale: rationale,
+        listingPhotos: listingPhotos,
+        evidencePhotos: evidencePhotos,
+        skippedPhotos: skippedPhotos,
+        photos: photos,
+        helpful: value,
+        createdAt: createdAt,
       );
+
+  // 舊版伺服器只回傳字串陣列的 findings 與 0 到 1 的 confidence。
+  static String _levelOf(Object? level, Object? legacy) {
+    if (level is String && const ['low', 'medium', 'high'].contains(level)) return level;
+    final n = parseDouble(legacy);
+    return n >= 0.75 ? 'high' : (n >= 0.4 ? 'medium' : 'low');
+  }
+
+  factory DisputeAnalysis.fromJson(Map<String, dynamic> json) {
+    final details = json['finding_details'];
+    final images = json['images'] is Map ? Map<String, dynamic>.from(json['images']) : const <String, dynamic>{};
+    return DisputeAnalysis(
+      analysisNo: json['analysis_no'] as String? ?? '',
+      summary: json['summary'] as String? ?? '',
+      findings: details is List
+          ? [for (final f in details) if (f is Map) DisputeFinding.fromJson(Map<String, dynamic>.from(f))]
+          : [for (final f in (json['findings'] as List? ?? const [])) DisputeFinding(content: '$f')],
+      suggestion: json['suggestion'] as String? ?? 'need_more_info',
+      confidenceLevel: _levelOf(json['confidence_level'], json['confidence']),
+      rationale: json['rationale'] as String? ?? '',
+      listingPhotos: parseInt(images['listing']),
+      evidencePhotos: parseInt(images['evidence']),
+      skippedPhotos: parseInt(images['skipped']),
+      photos: [
+        for (final p in (json['photos'] as List? ?? const []))
+          if (p is Map) DisputeAnalysisPhoto.fromJson(Map<String, dynamic>.from(p)),
+      ],
+      helpful: json['helpful'] is bool ? json['helpful'] as bool : null,
+      createdAt: parseDate(json['created_at']),
+    );
+  }
 }
 
 class ChatRiskSample {

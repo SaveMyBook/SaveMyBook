@@ -85,6 +85,10 @@ class SellBookDetailScreen extends StatefulWidget {
   final int categoryId;
   final String? aiCondition;
   final int? aiPrice;
+  final AiListingCarry? aiCarry;
+
+  /// 第一步上架輔助的權杖，建立書籍時一併帶回，供伺服器統計採用率。
+  final List<String> aiSuggestionTokens;
 
   const SellBookDetailScreen({
     super.key,
@@ -97,6 +101,8 @@ class SellBookDetailScreen extends StatefulWidget {
     required this.categoryId,
     this.aiCondition,
     this.aiPrice,
+    this.aiCarry,
+    this.aiSuggestionTokens = const [],
   });
 
   @override
@@ -120,7 +126,14 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   Timer? _saveTimer;
   bool _conditionTouched = false;
   bool _aiRunning = false;
+  String? _aiSuggestionToken;
   final Map<String, int> _flash = {};
+  late Map<String, int> _priceTable = widget.aiCarry?.priceTable ?? const {};
+  late int? _originalPrice = widget.aiCarry?.originalPrice;
+  late String? _followupToken = widget.aiCarry?.followupToken;
+
+  /// 最近一次由 AI 自動帶入的售價；目前售價仍是這個值時，切換書況會依各書況的建議價換價。
+  int? _autoPrice;
 
   List<String> get _requiredLabels => AppLabels.photoSlots;
   late final List<XFile?> _slots = List<XFile?>.filled(_requiredLabels.length, null, growable: false);
@@ -146,9 +159,11 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         _condition = condition;
         flashed.add('condition');
       }
-      final price = widget.aiPrice;
+      final carried = widget.aiPrice;
+      final price = carried == null ? null : _priceTable[_condition] ?? carried;
       if (price != null && price > 0 && _priceController.text.trim().isEmpty) {
-        _priceController.text = '${price.clamp(1, _maxPrice)}';
+        _autoPrice = price.clamp(1, _maxPrice);
+        _priceController.text = '$_autoPrice';
         flashed.add('price');
       }
       for (final key in flashed) {
@@ -163,6 +178,26 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     for (final f in _extra) f.path,
   ].take(4).toList();
 
+  /// 售價仍是 AI 自動帶入的值時，改依目前書況的建議價；回傳是否有換價。
+  bool _syncPriceToCondition() {
+    final next = _priceTable[_condition];
+    if (next == null || _autoPrice == null || _price != _autoPrice || next == _autoPrice) return false;
+    _autoPrice = next.clamp(1, _maxPrice);
+    _priceController.text = '$_autoPrice';
+    return true;
+  }
+
+  void _onConditionChanged(String value) {
+    setState(() {
+      _condition = value;
+      _conditionTouched = true;
+      if (_syncPriceToCondition()) _flash['price'] = (_flash['price'] ?? 0) + 1;
+    });
+    _saveDraftNow();
+  }
+
+  List<String> get _aiTokens => [...widget.aiSuggestionTokens, ?_aiSuggestionToken];
+
   Future<void> _onAiAssist() async {
     if (_aiRunning || _isSubmitting) return;
     FocusScope.of(context).unfocus();
@@ -173,10 +208,28 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       return;
     }
     setState(() => _aiRunning = true);
-    final result = await runAiListingAssist(context, isbn: widget.isbn, title: widget.title, imagePaths: images);
+    final result = await runAiListingAssist(
+      context,
+      isbn: widget.isbn,
+      title: widget.title,
+      imagePaths: images,
+      condition: AiConditionRequest(
+        author: widget.author,
+        publisher: widget.publisher,
+        publishDate: widget.publishDate,
+        categoryId: widget.categoryId,
+        originalPrice: _originalPrice,
+        followupToken: _followupToken,
+      ),
+    );
     if (!mounted) return;
     setState(() => _aiRunning = false);
     if (result == null) return;
+    _followupToken = null;
+    final price = result.price;
+    if (price != null && price.originalPriceVerified && price.originalPrice != null) _originalPrice = price.originalPrice;
+    if (price != null && price.byCondition.isNotEmpty) _priceTable = price.byCondition;
+    _aiSuggestionToken = result.suggestionToken ?? _aiSuggestionToken;
     final selection = await showAiListingResultSheet(
       context,
       result: result,
@@ -196,8 +249,11 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         _conditionTouched = true;
         flashed.add('condition');
       }
-      if (selection.price && result.price != null) {
-        _priceController.text = '${result.price!.suggested.clamp(1, _maxPrice)}';
+      if (selection.price && price != null) {
+        _autoPrice = price.suggestedFor(_condition).clamp(1, _maxPrice);
+        _priceController.text = '$_autoPrice';
+        flashed.add('price');
+      } else if (selection.condition && _syncPriceToCondition()) {
         flashed.add('price');
       }
       for (final key in flashed) {
@@ -236,6 +292,15 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         _condition = condition;
         _conditionTouched = true;
       }
+      final prices = step2['ai_prices'];
+      if (_priceTable.isEmpty && prices is Map) {
+        _priceTable = {
+          for (final entry in prices.entries)
+            if (entry.value is num && (entry.value as num) > 0) '${entry.key}': (entry.value as num).toInt(),
+        };
+      }
+      final autoPrice = step2['ai_auto_price'];
+      if (autoPrice is num && '${autoPrice.toInt()}' == _priceController.text.trim()) _autoPrice = autoPrice.toInt();
       final cabinetId = step2['cabinet_id'];
       if (cabinetId is num) {
         _selectedCabinet = cabinetId.toInt();
@@ -264,6 +329,8 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
       'price': _priceController.text.trim(),
       'condition': _condition,
       'condition_touched': _conditionTouched,
+      if (_priceTable.isNotEmpty) 'ai_prices': _priceTable,
+      if (_autoPrice != null) 'ai_auto_price': _autoPrice,
       if (_cabinetTouched && _selectedCabinet != null) 'cabinet_id': _selectedCabinet,
       'slots': [for (final f in _slots) f?.path],
       'extra': [for (final f in _extra) f.path],
@@ -402,6 +469,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         'price': '$price',
         'condition_level': _condition,
         'cabinet_id': '$_selectedCabinet',
+        if (_aiTokens.isNotEmpty) 'ai_suggestion_tokens': _aiTokens.join(','),
       },
       [
         ('cover_image', _slots[0]!.path),
@@ -494,13 +562,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                                         iconColor: c.conditionColor(option.value),
                                       ),
                                   ],
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _condition = value;
-                                      _conditionTouched = true;
-                                    });
-                                    _saveDraftNow();
-                                  },
+                                  onChanged: _onConditionChanged,
                                 ),
                               ),
                             ),

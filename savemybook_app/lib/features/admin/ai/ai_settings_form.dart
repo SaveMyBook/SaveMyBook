@@ -18,6 +18,7 @@ class AiSettingsForm {
 
   static List<AiFieldSpec> get specs => [
         const AiFieldSpec('budget', AiFieldKind.decimal, 100000),
+        const AiFieldSpec('reserve', AiFieldKind.integer, 90),
         for (final f in AiFeatures.limited) AiFieldSpec('limit.$f', AiFieldKind.integer, 10000),
         for (final id in AiProviders.ids) ...[
           AiFieldSpec('$id.model', AiFieldKind.model, 0),
@@ -69,6 +70,7 @@ class AiSettingsForm {
   String textFor(String key) {
     final s = _draft;
     if (key == 'budget') return formatNumber(s.monthlyBudgetUsd);
+    if (key == 'reserve') return '${(s.reserveRatio * 100).round()}';
     if (key.startsWith('limit.')) return '${s.dailyPerUser[key.substring(6)] ?? 0}';
     final dot = key.indexOf('.');
     final pricing = s.providers[key.substring(0, dot)]!;
@@ -135,6 +137,10 @@ class AiSettingsForm {
     final s = _draft;
     if (key == 'budget') {
       _draft = s.copyWith(monthlyBudgetUsd: number!.toDouble());
+      return;
+    }
+    if (key == 'reserve') {
+      _draft = s.copyWith(reserveRatio: number! / 100);
       return;
     }
     if (key.startsWith('limit.')) {

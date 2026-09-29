@@ -43,7 +43,6 @@ class AdminOverview {
         todayOrderCount: 0,
       );
 
-  /// 內容審核入口的待辦數：檢舉、上架審核與聊天防詐警示。
   int get pendingModerationCount => pendingReportCount + pendingListingReviewCount + openRiskAlertCount;
 }
 

@@ -570,7 +570,6 @@ class _AppNetworkImageState extends State<AppNetworkImage> with WidgetsBindingOb
     }
 
     if (url == null || url.isEmpty) return fallback();
-    // 404 等永久性錯誤只顯示替代圖，不再重試也不提供重試入口。
     if (_failed) return fallback(canRetry: !_permanent);
 
     return Image(

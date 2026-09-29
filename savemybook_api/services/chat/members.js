@@ -25,7 +25,6 @@ const active = async (roomId, db = prisma) => {
 const setGroupNickname = (db, roomId, userId, nickname) => db.$executeRaw`
   UPDATE chat_room_members SET group_nickname = ${nickname} WHERE room_id = ${roomId} AND user_id = ${userId} AND left_at IS NULL`;
 
-// 聊天室列表只需要各群組最後一則訊息發送者的群組暱稱，一次查齊，鍵為 room_id:user_id。
 const groupNicknames = async (roomIds) => {
   const ids = [...new Set(roomIds.map(Number))];
   if (ids.length === 0) return new Map();

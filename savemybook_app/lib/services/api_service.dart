@@ -18,6 +18,7 @@ import '../models/wallet.dart';
 import '../models/member_level.dart';
 import '../models/admin_models.dart';
 import '../models/ai.dart';
+import '../models/ai_quality.dart';
 import '../utils/api_helpers.dart';
 import '../models/security.dart';
 import '../models/auth_social.dart';
@@ -106,7 +107,6 @@ class ApiService {
     notifier.value = value < 0 ? 0 : value;
   }
 
-  // 書籍被刪除或下架後，本機仍保留的收藏、購物車與最近瀏覽紀錄會讓畫面操作到不存在的書。
   static void forgetBook(int bookId) {
     if (favoriteBookIds.value.contains(bookId)) {
       favoriteBookIds.value = {...favoriteBookIds.value}..remove(bookId);
@@ -301,6 +301,9 @@ class ApiService {
         retry: (extra, nextHandled) => _send(method, path,
             query: query, body: body, extraHeaders: {...?extraHeaders, ...extra}, handled: nextHandled),
       );
+    } on TimeoutException {
+      // 逾時與連不上伺服器不同：請求可能已送達並仍在處理，呼叫端須先確認結果再決定是否重送。
+      return {'success': false, 'code': 'NETWORK', 'timeout': true, 'message': S.networkError};
     } catch (e) {
       return {'success': false, 'code': 'NETWORK', 'message': S.networkError};
     }

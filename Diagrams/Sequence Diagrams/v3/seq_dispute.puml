@@ -15,37 +15,37 @@ participant API
 database DB
 participant "AI 服務" as AI
 
-使用者 -> UI : 填寫申訴說明並附佐證照片
+使用者 -> UI : 點擊「申請爭議」，填寫爭議說明\n並附佐證照片
 activate 使用者
 activate UI
 UI -> API : POST /api/disputes
 activate API
-API -> DB : 檢查訂單狀態與申訴期限
+API -> DB : 依訂單編號檢查訂單狀態\n與爭議申請期限
 activate DB
 DB --> API : 回傳檢查結果
 deactivate DB
 alt 可受理（訂單未完成；已取書者限 24 小時內）
-  API -> DB : 建立申訴，訂單設為「爭議處理中」\n（暫停自動完成與撥款）
+  API -> DB : 建立爭議案件，訂單設為「爭議處理中」\n（暫停自動完成與撥款）
   API -> DB : 通知交易對方
   API --> UI : 201 Created
-  UI --> 使用者 : 顯示「申訴已送出」
-else 已完成、已取消或逾申訴期限
-  API --> UI : 400 無法申訴
+  UI --> 使用者 : 顯示「爭議申請已送出」
+else 已完成、已取消或逾申請期限
+  API --> UI : 400 無法申請爭議
   UI --> 使用者 : 顯示原因
 end
 deactivate API
 deactivate UI
 deactivate 使用者
 
-管理員 -> UI : 開啟申訴案件
+管理員 -> UI : 開啟爭議案件
 activate 管理員
 activate UI
 opt 參考 AI 分析
   管理員 -> UI : 點擊「開始分析」
   UI -> API : POST /api/admin/disputes/\n:id/ai-analysis
   activate API
-  API -> DB : 讀取上架資料、照片與申訴內容
-  API -> AI : 比對上架描述與申訴證據
+  API -> DB : 讀取上架資料、照片與爭議說明
+  API -> AI : 比對上架描述與爭議證據
   activate AI
   AI --> API : 回傳摘要、發現與建議
   deactivate AI

@@ -1,4 +1,3 @@
-// 書櫃掃碼存取的測試共用設定：沿用 commerce 的假 Prisma 與資料建構函式，另補上書櫃相關資料表、裝置與事件的輔助函式。
 process.env.CABINET_SIMULATOR = 'true';
 
 const crypto = require('crypto');
@@ -13,8 +12,6 @@ const publicId = api('lib/public-id');
 const devices = api('services/cabinet-devices');
 const doors = api('services/cabinet-doors');
 
-// ---------- 資料表設定 ----------
-
 const rel = (table, from, to = from) => ({ table, from, to, type: 'one' });
 const many = (table, from, to = from) => ({ table, from, to, type: 'many' });
 
@@ -25,6 +22,7 @@ Object.assign(RELATIONS, {
     cabinet_sessions: many('cabinet_sessions', 'device_id')
   },
   cabinet_challenges: { cabinet_devices: rel('cabinet_devices', 'device_id') },
+  cabinet_pair_requests: { smart_cabinets: rel('smart_cabinets', 'cabinet_id') },
   cabinet_sessions: {
     smart_cabinets: rel('smart_cabinets', 'cabinet_id'),
     cabinet_devices: rel('cabinet_devices', 'device_id'),
@@ -65,6 +63,7 @@ Object.assign(RELATIONS, {
 });
 Object.assign(RELATIONS.smart_cabinets, {
   cabinet_devices: many('cabinet_devices', 'cabinet_id'),
+  cabinet_pair_requests: many('cabinet_pair_requests', 'cabinet_id'),
   cabinet_sessions: many('cabinet_sessions', 'cabinet_id'),
   cabinet_manual_reports: many('cabinet_manual_reports', 'cabinet_id')
 });
@@ -87,6 +86,7 @@ registerModels({
   autoKeys: {
     cabinet_devices: 'device_id',
     cabinet_challenges: 'challenge_id',
+    cabinet_pair_requests: 'request_id',
     cabinet_sessions: 'session_id',
     cabinet_session_items: 'item_id',
     cabinet_session_doors: 'slot_id',
@@ -98,6 +98,7 @@ registerModels({
     cabinet_slots: [['slot_id'], ['cabinet_id', 'slot_number']],
     cabinet_devices: [['device_id']],
     cabinet_challenges: [['challenge_id'], ['token_hash'], ['device_id', 'qr_seq', 'epoch']],
+    cabinet_pair_requests: [['request_id'], ['code_hash'], ['poll_token_hash']],
     cabinet_sessions: [['session_id']],
     cabinet_session_items: [['item_id']],
     cabinet_session_doors: [['session_id', 'slot_id']],
@@ -113,18 +114,21 @@ registerModels({
     },
     cabinet_devices: {
       active_cabinet_id: null, active_session_id: null, kind: 'esp32', status: 'pending', token_hash: null,
-      pairing_code_hash: null, pairing_expires_at: null, door_count: 4, has_door_sensor: false, unlock_pulse_ms: 800,
+      door_count: 4, has_door_sensor: false, unlock_pulse_ms: 800,
       firmware: null, fault_code: null, fault_since: null, qr_seq: 0, current_boot_id: null, previous_boot_id: null,
       boot_switched_at: null, last_seen_at: null, last_ip: null, offline_since: null, offline_notified: false,
       created_by: null, paired_at: null, revoked_at: null, revoked_by: null, revoke_reason: null
     },
     cabinet_challenges: { used_at: null, used_by: null },
+    cabinet_pair_requests: {
+      has_door_sensor: false, ip: null, cabinet_id: null, device_id: null, claimed_by: null, claimed_at: null, delivered_at: null
+    },
     cabinet_sessions: {
       kind: 'user', status: 'selecting', version: 1, challenge_id: null, result_code: null, context_type: null,
-      context_id: null, location_status: null, distance_m: null, accuracy_m: null, match_code: null, match_choices: null,
+      context_id: null, location_status: null, distance_m: null, accuracy_m: null, match_code: null,
       open_ms: null, phase_deadline: null, admin_reason: null, admin_force: false, close_outcome: null, close_reason: null,
-      started_at: null, matched_at: null, opened_at: null, closed_at: null, finished_at: null, reviewed_by: null,
-      reviewed_at: null, review_note: null
+      close_request: null, close_requested_at: null, close_refused_at: null, started_at: null, matched_at: null, opened_at: null,
+      closed_at: null, finished_at: null, reviewed_by: null, reviewed_at: null, review_note: null
     },
     cabinet_session_items: {
       order_id: null, slot_id: null, selected: false, held_on_sale: false, blocked_code: null, note_code: null,
@@ -145,7 +149,7 @@ registerModels({
 
 // MySQL 的唯一索引允許多個 NULL；共用的假 Prisma 會把 NULL 視為相同，這些欄位改由下方包裝檢查。
 const NULLABLE_UNIQUE = {
-  cabinet_devices: [['active_cabinet_id'], ['active_session_id'], ['token_hash'], ['pairing_code_hash']],
+  cabinet_devices: [['active_cabinet_id'], ['active_session_id'], ['token_hash']],
   cabinet_sessions: [['challenge_id']],
   cabinet_events: [['device_id', 'event_key']],
   cabinet_slots: [['cabinet_id', 'lock_channel']],
@@ -230,11 +234,9 @@ prisma.model = (table) => {
   };
 };
 
-// ---------- 重設 ----------
-
 const CABINET_TABLES = [
-  'cabinet_devices', 'cabinet_challenges', 'cabinet_sessions', 'cabinet_session_items', 'cabinet_session_doors',
-  'cabinet_slot_items', 'cabinet_events', 'cabinet_manual_reports'
+  'cabinet_devices', 'cabinet_challenges', 'cabinet_pair_requests', 'cabinet_sessions', 'cabinet_session_items',
+  'cabinet_session_doors', 'cabinet_slot_items', 'cabinet_events', 'cabinet_manual_reports'
 ];
 
 // 工作包 B 的作業處理器在載入路由時註冊；測試換成替身後，每個測試前都還原。
@@ -251,8 +253,6 @@ const reset = () => {
 };
 
 server.setDefaultReset(reset);
-
-// ---------- 資料建構 ----------
 
 let eventSeq = 0;
 
@@ -307,8 +307,6 @@ const addDevice = ({
     kind,
     status,
     token_hash: devices.sha256(token),
-    pairing_code_hash: null,
-    pairing_expires_at: null,
     door_count: doorCount,
     has_door_sensor: hasDoorSensor,
     unlock_pulse_ms: unlockPulseMs,
@@ -335,6 +333,22 @@ const addDevice = ({
   syncDoors(cabinetId, doorCount);
   return { device, token, bootId };
 };
+
+const PAIR_BODY = { kind: 'esp32', door_count: 4, has_door_sensor: false, unlock_pulse_ms: 800, firmware: 'esp-1.0.0' };
+
+const requestPairing = (body = {}, { boot = 'k3v9aa01' } = {}) => request('POST', '/api/device/v1/pair/request', {
+  headers: boot ? { 'x-device-boot': boot } : {}, body: { ...PAIR_BODY, ...body }
+});
+
+const pollPairing = (pollToken) => request('POST', '/api/device/v1/pair/poll', { body: { poll_token: pollToken } });
+
+const claimPairing = (adminToken, cabinetId, code, { verified = true } = {}) =>
+  request('POST', `/api/admin/cabinets/${cabinetId}/device/pair`, {
+    token: adminToken, body: { code }, headers: verified ? commerce.verifyHeaders(adminToken, 'admin') : {}
+  });
+
+const pairRequestOf = (code) =>
+  prisma.rows('cabinet_pair_requests').find((r) => r.code_hash === devices.sha256(String(code).replace(/[-\s]/g, ''))) ?? null;
 
 const deviceHeaders = (token, bootId) => ({ authorization: `Device ${token}`, 'x-device-boot': bootId });
 
@@ -407,5 +421,6 @@ module.exports = {
   ...commerce,
   env, publicId, devices, doors, reset, clientIp: server.clientIp,
   addCabinet, cabinetRow, addDevice, syncDoors, deviceHeaders, deviceState, postEvents, scanCode, addPlaced, doorOf,
+  requestPairing, pollPairing, claimPairing, pairRequestOf,
   sessionOf, expireSession, failNext, setSessionHandler, adminVerifyHeaders, eventsOf, deviceRow, nextEventId
 };

@@ -32,6 +32,23 @@ class FaqItem {
   }
 }
 
+/// 由 AI 客服轉接的工單預填的常見問題，已去識別化，仍須管理員確認後儲存。
+class FaqDraft {
+  final String category;
+  final String question;
+  final String answer;
+  final int sourceTicketId;
+
+  const FaqDraft({required this.category, required this.question, required this.answer, required this.sourceTicketId});
+
+  factory FaqDraft.fromJson(Map<String, dynamic> json) => FaqDraft(
+        category: json['category'] as String? ?? 'general',
+        question: json['question'] as String? ?? '',
+        answer: json['answer'] as String? ?? '',
+        sourceTicketId: parseInt(json['source_ticket_id']),
+      );
+}
+
 class LegalDoc {
   final int docId;
   final String key;
@@ -127,6 +144,9 @@ class SupportTicket {
   final DateTime? updatedAt;
   final List<TicketMessage> messages;
 
+  /// 由 AI 客服轉接的工單（僅客服人員查詢時提供），可據此建立常見問題。
+  final bool fromAiSupport;
+
   SupportTicket({
     required this.ticketId,
     required this.subject,
@@ -138,6 +158,7 @@ class SupportTicket {
     this.userAvatar,
     this.updatedAt,
     this.messages = const [],
+    this.fromAiSupport = false,
   });
 
   String get categoryText => AppLabels.ticketCategory[category] ?? category;
@@ -159,6 +180,7 @@ class SupportTicket {
       messages: ((json['messages'] as List?) ?? const [])
           .map((e) => TicketMessage.fromJson(Map<String, dynamic>.from(e)))
           .toList(),
+      fromAiSupport: json['from_ai_support'] == true,
     );
   }
 }

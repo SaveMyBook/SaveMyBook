@@ -1,4 +1,3 @@
-// 登入相關測試的共用設定：沿用 test/lib 的假 Prisma 與假 fetch，另外提供 Firebase 權杖與帳號資料的產生器。
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
@@ -29,8 +28,6 @@ registerModels({
   },
   defaults: { users: { password_set: 1 } }
 });
-
-// ---------- 測試用 RSA 金鑰與 x509 憑證 ----------
 
 const certDir = fs.mkdtempSync(path.join(os.tmpdir(), 'smb-cert-'));
 const keyFile = path.join(certDir, 'key.pem');
@@ -94,8 +91,6 @@ const firebaseToken = ({
   return jwt.sign(payload, key, { algorithm: 'RS256', expiresIn, keyid: kid });
 };
 
-// ---------- 迷你 SQL 直譯器不支援的查詢 ----------
-
 const time = (value) => new Date(value).getTime();
 
 prisma.onSql(/LEFT JOIN user_sessions s ON s\.sid/, (sql, [sid, userId]) => {
@@ -134,8 +129,6 @@ const expireOAuthResultsDuring = (mod, name) => {
   };
   return () => { mod[name] = original; };
 };
-
-// ---------- 資料庫狀態 ----------
 
 const authSettings = api('services/auth-settings');
 const firebase = api('lib/firebase-token');
@@ -214,7 +207,6 @@ const setAuthSettings = (config) => {
 
 const tokenFor = (user) => authToken.signToken(user, undefined);
 
-// 驗證權杖由 services/security 簽發，測試需要時直接以同樣的內容簽一份。
 const verifyHeaders = (user, scope = 'sensitive') => ({
   'x-verify-token': authToken.sign(
     { typ: 'verify', uid: user.user_id, sid: null, scope, method: 'password', jti: crypto.randomBytes(12).toString('hex') },

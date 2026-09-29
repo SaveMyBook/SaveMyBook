@@ -98,7 +98,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: '缺少必要欄位：分類名稱(category_name)' }
+              example: { success: false, message: 請輸入分類名稱 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -172,7 +172,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 父分類不能設定為自己 }
+              example: { success: false, message: 父分類不可設定為自身 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -198,7 +198,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 無法刪除！此分類下可能還有子分類或書籍，請先轉移或刪除關聯資料 }
+              example: { success: false, message: 無法刪除，此分類下可能仍有子分類或書籍，請先轉移或刪除關聯資料 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }

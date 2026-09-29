@@ -176,7 +176,7 @@ class _ChatPreviewState extends State<_ChatPreview> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
-            _failed ? S.somethingWentWrongPleaseTryAgain : S.noMessagesYet,
+            _failed ? S.loadFailed : S.noMessagesYet,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: c.textSecondary),
           ),

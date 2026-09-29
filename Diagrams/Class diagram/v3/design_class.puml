@@ -73,7 +73,7 @@ class "訂單 orders" as orders {
   + complete()
   + cancelOrder()
 }
-class "交易仲裁/申訴 transaction_disputes" as disputes {
+class "交易爭議 transaction_disputes" as disputes {
   dispute_id: Int
   reason: String
   status: enum
@@ -100,7 +100,7 @@ class "智慧書櫃據點 smart_cabinets" as cabinets {
   --
   + checkAvailability()
 }
-class "書櫃格位 cabinet_slots" as slots {
+class "書櫃櫃門 cabinet_slots" as slots {
   slot_number: String
   status: enum
 }

@@ -116,17 +116,71 @@ class AdminCabinetDeviceInfo {
 }
 
 class AdminCabinetPairing {
+  static final _codeSeparators = RegExp(r'[-\s]');
+  static final _codeDigits = RegExp(r'^[0-9]{8}$');
+
   final String kind;
   final int doorCount;
+  final bool hasDoorSensor;
+  final String? firmware;
   final DateTime? expiresAt;
 
-  const AdminCabinetPairing({required this.kind, this.doorCount = 4, this.expiresAt});
+  const AdminCabinetPairing({required this.kind, this.doorCount = 4, this.hasDoorSensor = false, this.firmware, this.expiresAt});
+
+  static String? codeOf(String raw) {
+    final digits = raw.replaceAll(_codeSeparators, '');
+    return _codeDigits.hasMatch(digits) ? digits : null;
+  }
 
   factory AdminCabinetPairing.fromJson(Map<String, dynamic> json) => AdminCabinetPairing(
     kind: json['kind'] as String? ?? '',
     doorCount: _intOrNull(json['door_count']) ?? 4,
+    hasDoorSensor: json['has_door_sensor'] == true,
+    firmware: _textOrNull(json['firmware']),
     expiresAt: parseDate(json['expires_at']),
   );
+}
+
+class AdminCabinetPairResult {
+  final String kind;
+  final int doorCount;
+  final bool hasDoorSensor;
+  final String? firmware;
+  final AdminCabinetDeviceSummary? summary;
+
+  const AdminCabinetPairResult({required this.kind, this.doorCount = 4, this.hasDoorSensor = false, this.firmware, this.summary});
+
+  factory AdminCabinetPairResult.fromJson(Map<String, dynamic> json) {
+    final summary = _mapOf(json['summary']);
+    return AdminCabinetPairResult(
+      kind: json['kind'] as String? ?? '',
+      doorCount: _intOrNull(json['door_count']) ?? 4,
+      hasDoorSensor: json['has_door_sensor'] == true,
+      firmware: _textOrNull(json['firmware']),
+      summary: summary == null ? null : AdminCabinetDeviceSummary.fromJson(summary),
+    );
+  }
+}
+
+class AdminCabinetRemoteOpen {
+  final String sessionNo;
+  final String status;
+  final int? remainingMs;
+
+  const AdminCabinetRemoteOpen({required this.sessionNo, required this.status, this.remainingMs});
+
+  bool get needsMatch => status == CabinetSession.matching;
+
+  static AdminCabinetRemoteOpen? fromJson(Object? json) {
+    final map = _mapOf(json);
+    final sessionNo = _textOrNull(map?['session_no']);
+    if (map == null || sessionNo == null) return null;
+    return AdminCabinetRemoteOpen(
+      sessionNo: sessionNo,
+      status: map['status'] as String? ?? CabinetSession.matching,
+      remainingMs: _intOrNull(map['remaining_ms']),
+    );
+  }
 }
 
 class AdminCabinetCheckCandidate {
@@ -535,10 +589,10 @@ class AdminCabinetSessionDetail {
   final AdminCabinetUserBrief? user;
   final CabinetBrief cabinet;
   final List<AdminCabinetSessionItem> items;
-  final int? matchCode;
   final List<CabinetSessionDoor> doors;
   final int? remainingMs;
   final int? openMs;
+  final String? notice;
   final String? locationStatus;
   final int? distanceM;
   final int? accuracyM;
@@ -565,10 +619,10 @@ class AdminCabinetSessionDetail {
     this.user,
     required this.cabinet,
     this.items = const [],
-    this.matchCode,
     this.doors = const [],
     this.remainingMs,
     this.openMs,
+    this.notice,
     this.locationStatus,
     this.distanceM,
     this.accuracyM,
@@ -594,6 +648,8 @@ class AdminCabinetSessionDetail {
 
   bool get isSettled => CabinetSession.terminalStatuses.contains(status) || needsReview;
 
+  bool get closeDoorFirst => notice == CabinetSession.noticeCloseDoorFirst;
+
   bool get canCommit => needsReview;
 
   bool get canDiscard => needsReview || const {CabinetSession.selecting, CabinetSession.matching, CabinetSession.opening}.contains(status);
@@ -608,10 +664,10 @@ class AdminCabinetSessionDetail {
     user: AdminCabinetUserBrief.fromJson(json['user']),
     cabinet: CabinetBrief.fromJson(_mapOf(json['cabinet']) ?? const {}),
     items: _mapsOf(json['items']).map(AdminCabinetSessionItem.fromJson).toList(),
-    matchCode: _intOrNull(_mapOf(json['match'])?['code']),
     doors: _mapsOf(json['doors']).map(CabinetSessionDoor.fromJson).toList(),
     remainingMs: _intOrNull(json['remaining_ms']),
     openMs: _intOrNull(json['open_ms']),
+    notice: _textOrNull(json['notice']),
     locationStatus: _textOrNull(json['location_status']),
     distanceM: _intOrNull(json['distance_m']),
     accuracyM: _intOrNull(json['accuracy_m']),
@@ -701,6 +757,7 @@ class AdminCabinetManualReport {
   final String? bookNo;
   final String? bookTitle;
   final List<String> titles;
+  final bool requiresDoor;
   final String? reviewerNickname;
 
   const AdminCabinetManualReport({
@@ -720,6 +777,7 @@ class AdminCabinetManualReport {
     this.bookNo,
     this.bookTitle,
     this.titles = const [],
+    this.requiresDoor = false,
     this.reviewerNickname,
   });
 
@@ -745,6 +803,7 @@ class AdminCabinetManualReport {
       bookNo: _textOrNull(book?['book_no']),
       bookTitle: _textOrNull(book?['title']),
       titles: _strings(json['titles']),
+      requiresDoor: json['requires_door'] == true,
       reviewerNickname: _textOrNull(json['reviewer_nickname']),
     );
   }

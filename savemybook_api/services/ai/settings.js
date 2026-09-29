@@ -18,14 +18,15 @@ const DEFAULTS = Object.freeze({
     openai: { model: 'gpt-5-nano', input_per_m: 0.05, cached_input_per_m: 0.005, output_per_m: 0.4, search_price_per_k: 10, search_free_per_month: 0 }
   },
   features: {
-    support: { enabled: true, provider: null },
-    listing_assist: { enabled: true, provider: 'gemini', web_search: true },
-    recommend: { enabled: true, provider: null },
-    moderation: { enabled: true, provider: null, action: 'review' },
-    book_chat: { enabled: true, provider: null }
+    support: { enabled: true, provider: null, fallback_provider: null },
+    listing_assist: { enabled: true, provider: 'gemini', fallback_provider: null, web_search: true },
+    recommend: { enabled: true, provider: null, fallback_provider: null },
+    moderation: { enabled: true, provider: null, fallback_provider: null, action: 'review' },
+    book_chat: { enabled: true, provider: null, fallback_provider: null }
   },
   limits: {
     monthly_budget_usd: 10,
+    reserve_ratio: 0.2,
     daily_per_user: { support: 30, listing_assist: 15, recommend: 5, book_chat: 20 }
   }
 });
@@ -56,26 +57,26 @@ const normalize = (raw, { strict = false } = {}) => {
   const bool = (value, fallback, label) => {
     if (value === undefined) return fallback;
     if (typeof value === 'boolean') return value;
-    fail(`${label}必須是 true 或 false`);
+    fail(`${label}設定不正確`);
     return fallback;
   };
   const numberIn = (value, fallback, { min, max, integer = false, label }) => {
     if (value === undefined) return fallback;
     const n = typeof value === 'number' ? value : NaN;
     if (Number.isFinite(n) && n >= min && n <= max && (!integer || Number.isInteger(n))) return n;
-    fail(`${label}必須是 ${min} ~ ${max} 之間的${integer ? '整數' : '數值'}`);
+    fail(`${label}須為 ${min} 至 ${max} 之間的${integer ? '整數' : '數值'}`);
     return fallback;
   };
   const providerRef = (value, fallback, label, { nullable }) => {
     if (value === undefined) return fallback;
     if (value === null && nullable) return null;
     if (PROVIDER_IDS.includes(value)) return value;
-    fail(`${label}僅接受：${PROVIDER_IDS.join(', ')}${nullable ? ' 或 null' : ''}`);
+    fail(`${label}不正確`);
     return fallback;
   };
 
   const out = clone(DEFAULTS);
-  out.enabled = bool(src.enabled, out.enabled, 'enabled ');
+  out.enabled = bool(src.enabled, out.enabled, 'AI 功能開關');
   out.default_provider = providerRef(src.default_provider, out.default_provider, '預設服務商', { nullable: false });
 
   const providers = isObject(src.providers) ? src.providers : {};
@@ -100,18 +101,22 @@ const normalize = (raw, { strict = false } = {}) => {
     const f = isObject(features[feature]) ? features[feature] : {};
     const target = out.features[feature];
     const label = FEATURE_LABELS[feature];
-    target.enabled = bool(f.enabled, target.enabled, `${label}的 enabled `);
+    target.enabled = bool(f.enabled, target.enabled, `${label}的開關`);
     target.provider = providerRef(f.provider, target.provider, `${label}的服務商`, { nullable: true });
-    if (feature === 'listing_assist') target.web_search = bool(f.web_search, target.web_search, `${label}的 web_search `);
+    target.fallback_provider = providerRef(f.fallback_provider, target.fallback_provider, `${label}的備援服務商`, { nullable: true });
+    if (feature === 'listing_assist') target.web_search = bool(f.web_search, target.web_search, `${label}的網路搜尋`);
     if (feature === 'moderation' && f.action !== undefined) {
       if (MODERATION_ACTIONS.includes(f.action)) target.action = f.action;
-      else fail(`${label}的處理方式僅接受：${MODERATION_ACTIONS.join(', ')}`);
+      else fail(`${label}的處理方式不正確`);
     }
   }
 
   const limits = isObject(src.limits) ? src.limits : {};
   out.limits.monthly_budget_usd = numberIn(limits.monthly_budget_usd, out.limits.monthly_budget_usd, {
     min: 0, max: 100000, label: '每月預算'
+  });
+  out.limits.reserve_ratio = numberIn(limits.reserve_ratio, out.limits.reserve_ratio, {
+    min: 0, max: 0.9, label: '審核與管理輔助保留比例'
   });
   const daily = isObject(limits.daily_per_user) ? limits.daily_per_user : {};
   for (const feature of LIMITED_FEATURES) {
@@ -153,10 +158,13 @@ const labelOf = (path) => {
   if (parts[0] === 'default_provider') return '預設服務商';
   if (parts[0] === 'providers') return `${PROVIDERS[parts[1]]?.name ?? parts[1]} ${PRICE_LABELS[parts[2]] ?? parts[2]}`;
   if (parts[0] === 'features') {
-    const field = { enabled: '開關', provider: '服務商', web_search: '網路搜尋', action: '處理方式' }[parts[2]] ?? parts[2];
+    const field = {
+      enabled: '開關', provider: '服務商', fallback_provider: '備援服務商', web_search: '網路搜尋', action: '處理方式'
+    }[parts[2]] ?? parts[2];
     return `${FEATURE_LABELS[parts[1]] ?? parts[1]}${field}`;
   }
   if (parts[1] === 'monthly_budget_usd') return '每月預算（美元）';
+  if (parts[1] === 'reserve_ratio') return '審核與管理輔助保留比例';
   return `${FEATURE_LABELS[parts[2]] ?? parts[2]}每人每日次數`;
 };
 

@@ -98,7 +98,6 @@ class _ChatNetworkImageState extends State<ChatNetworkImage> {
       height: widget.height,
       fit: widget.fit,
       gaplessPlayback: true,
-      // 404 代表檔案已不在伺服器上，只顯示替代圖，不提供會再打一次的重試入口。
       errorBuilder: (_, error, _) {
         WidgetsBinding.instance.addPostFrameCallback((_) => _onError(error));
         return fallback(onTap: widget.url == null || _permanent || isPermanentImageError(error) ? null : _retry);

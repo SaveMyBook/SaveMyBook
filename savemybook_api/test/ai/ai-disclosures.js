@@ -50,6 +50,8 @@ const bulletOf = (policy, label) => {
 // 客服【使用者資料】各區塊對應的揭露資料類別。
 const SUPPORT_SECTIONS = {
   錢包餘額: '電子錢包餘額',
+  錢包收支: '收支紀錄',
+  交易爭議: '交易爭議',
   訂單: '訂單',
   上架的書籍: '上架書籍',
   預約: '預約',
@@ -111,16 +113,19 @@ module.exports = {
 
     ['客服提示詞帶入的每一類使用者資料都已揭露', async () => {
       h.setSettings({ enabled: true });
+      h.setConsent(1, true);
       h.onModel('orders.findMany', () => [{ order_no: 'SMB001', status: 'completed', total_amount: 90, created_at: new Date(), order_items: [] }]);
       h.onModel('reservations.findMany', () => [{ status: 'confirmed', created_at: new Date(), books: { title: '白夜行' } }]);
       h.onModel('books.findMany', () => [{
         title: '畫冊', price: 900, status: 'on_sale', is_approved: false, created_at: new Date(),
         ai_book_reviews: { status: 'rejected', reasons: JSON.stringify(['疑似非書籍']) }
       }]);
-      h.onModel('wallets.findUnique', () => ({ balance: 50 }));
+      h.onModel('wallets.findUnique', () => ({ wallet_id: 1, balance: 50 }));
+      h.onModel('wallet_transactions.findMany', () => [{ type: 'purchase', amount: -90, created_at: new Date(), orders: { order_no: 'SMB001' } }]);
+      h.onModel('transaction_disputes.findMany', () => [{ applicant_id: 1, status: 'pending', result: null, created_at: new Date(), orders: { order_no: 'SMB001' } }]);
       h.onModel('support_tickets.findMany', () => [{ subject: '退款', status: 'open', updated_at: new Date() }]);
 
-      const system = await support.buildSystem(1, { question: '我的書' });
+      const system = await support.buildSystem(1, { question: '我的書 SMB20260920100000000001' });
       const userData = system.slice(system.lastIndexOf('【使用者資料】\n'));
       const titles = [...userData.matchAll(/^([^\s\-【][^：\n]*)：/gm)].map((m) => m[1]);
       for (const title of titles) {
@@ -146,11 +151,11 @@ module.exports = {
       h.queueJson({ summary: '摘要', findings: [], suggestion: 'dismiss', confidence: 0.5, rationale: '理由' });
       await h.api('services/ai/dispute-assist').analyze(1, 99);
       const { prompt } = h.calls[h.calls.length - 1].options;
-      const DISPUTE_SECTIONS = { 上架資料: ['上架資料'], 訂單經過: ['訂單的狀態', '取書時間'], 申訴內容: ['申訴內容', '提出者', '提出時間'], 照片: ['佐證照片'] };
+      const DISPUTE_SECTIONS = { 上架資料: ['上架資料'], 訂單經過: ['訂單的狀態', '取書時間'], 爭議說明: ['爭議說明', '申請人', '申請時間'], 照片: ['佐證照片'] };
       const headings = [...prompt.matchAll(/^【([^】]+)】/gm)].map((m) => m[1]);
       assert.deepStrictEqual(headings.sort(), Object.keys(DISPUTE_SECTIONS).sort(), '爭議分析提示詞新增了未揭露的段落');
       assert.match(prompt, /【訂單經過】狀態：[^；]+；成立 [^；]+；存書 [^；]+；取書 /);
-      assert.match(prompt, /【申訴內容】提出者：買家；時間 /);
+      assert.match(prompt, /【爭議說明】申請人：買家；時間 /);
       const line = bulletOf(privacyPolicy(), '交易爭議分析');
       for (const items of Object.values(DISPUTE_SECTIONS)) {
         for (const item of items) {

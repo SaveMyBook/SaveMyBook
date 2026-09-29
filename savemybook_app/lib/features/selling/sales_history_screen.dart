@@ -12,6 +12,7 @@ import '../../widgets/state_views.dart';
 import '../books/book_detail_screen.dart';
 import '../orders/order_detail_screen.dart';
 import '../../i18n/strings.dart';
+import '../cabinet/cabinet_entry.dart';
 import 'book_deposit_actions.dart';
 
 class SalesHistoryScreen extends StatefulWidget {
@@ -67,9 +68,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> with SingleTick
     final requestId = (_requestIds[tab] ?? 0) + 1;
     _requestIds[tab] = requestId;
     final List<Object> items;
-    // 販售中只放上架中、尚未成立訂單的書，以及仍登記存放於書櫃（含逾期暫停販售）的書；已成立訂單的書在待存書與已存書分頁。
+    // 仍登記存放於書櫃的書（含逾期暫停販售）也須列在販售中。
     if (tab == 'on_sale') {
-      items = (await _api.fetchMyBooks()).where((b) => b.status == 'on_sale' || b.isDeposited).toList();
+      items = (await _api.fetchMyBooks()).where((b) => b.status == 'on_sale' || b.isDeposited || b.canRetrieve).toList();
     } else {
       items = await _api.fetchOrders(role: 'seller', tab: tab);
     }
@@ -212,14 +213,28 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> with SingleTick
       final paused = deposit?.paused == true;
       final canDelist = item.status == 'on_sale' && !item.isHeld;
       final String? delistLabel = canDelist ? S.delist : null;
-      final String? depositLabel = deposit != null ? S.retrieve : (item.canRegisterDeposit ? S.dropOff : null);
-      final VoidCallback onDeposit = deposit != null ? () => _retrieve(item) : () => _deposit(item);
+      final retrievable = item.canRetrieve;
+      final String? depositLabel = retrievable
+          ? cabinetActionLabel(item.retrievalAccess, CabinetAction.retrieve)
+          : (item.canRegisterDeposit ? cabinetActionLabel(item.cabinetAccess, CabinetAction.preDeposit) : null);
+      final VoidCallback? onDeposit = item.hasPendingManualReport
+          ? null
+          : retrievable
+          ? () => _retrieve(item)
+          : () => _deposit(item);
       final depositFirst = depositLabel != null;
+      final location = item.cabinetLocation;
       return ListingCard(
         book: item,
         status: paused ? S.salesPaused : null,
         statusColor: paused ? AppColors.of(context).warning : null,
-        depositNote: deposit == null ? null : storedDaysText(deposit.daysStored),
+        depositNote: item.hasPendingManualReport
+            ? S.manualReportAwaitingConfirmation
+            : deposit != null
+            ? storedDaysText(deposit.daysStored)
+            : location != null && location.retrievable
+            ? CabinetMessages.door(location.door)
+            : null,
         onTap: () => _openBook(item),
         actionLabel: depositFirst ? depositLabel : delistLabel,
         onAction: depositFirst ? onDeposit : () => _delist(item),
@@ -235,8 +250,8 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> with SingleTick
           asSeller: true,
           onTap: () => _openDetail(order),
           showPickupWindow: true,
-          actionLabel: S.markAsDroppedOff,
-          onAction: () => _markDeposited(order),
+          actionLabel: cabinetActionLabel(order.cabinetAccess, CabinetAction.orderDeposit),
+          onAction: order.hasPendingManualReport ? null : () => _markDeposited(order),
           secondaryLabel: order.isCancellable ? S.cancelOrder : null,
           onSecondary: () => _cancelOrder(order),
         );

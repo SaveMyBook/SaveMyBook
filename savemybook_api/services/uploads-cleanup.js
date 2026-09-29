@@ -3,7 +3,6 @@ const { exists, forget } = require('../lib/uploads-fs');
 
 const BATCH = 500;
 
-// 逐批掃描，避免一次把整張表讀進記憶體。
 const scanColumn = async ({ table, idColumn, column, apply, onMissing }) => {
   let lastId = 0;
   let checked = 0;
@@ -52,14 +51,12 @@ const TARGETS = [
   }
 ];
 
-/** 掃描資料庫中指向 /uploads 的欄位，找出檔案已不存在者；apply 為真時一併清除。 */
 const sweep = async ({ apply = false } = {}) => {
   const results = [];
   for (const target of TARGETS) {
     try {
       results.push(await scanColumn({ ...target, apply }));
     } catch (err) {
-      // 資料表尚未建立（例如聊天功能未啟用）時略過，不影響其他項目。
       results.push({ table: target.table, column: target.column, checked: 0, missing: [], error: err.message });
     }
   }

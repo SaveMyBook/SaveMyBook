@@ -175,9 +175,9 @@ paths:
                 超過上限:
                   value: { success: false, message: "單次調整不可超過 1,000,000" }
                 未填原因:
-                  value: { success: false, message: 請填寫調整原因，這會寫進帳務紀錄 }
+                  value: { success: false, message: 請填寫調整原因，此原因將記錄於帳務紀錄 }
                 餘額將為負數:
-                  value: { success: false, message: 調整後餘額會變成負數，請確認金額 }
+                  value: { success: false, message: 調整後餘額將為負數，請確認金額 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminVerificationRequired' }
         '404': { $ref: '#/components/responses/NotFound' }

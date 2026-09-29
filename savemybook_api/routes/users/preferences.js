@@ -15,7 +15,7 @@ router.put('/me/notification-settings', authenticateToken, async (req, res) => {
   const data = {};
   for (const [key, column] of Object.entries(users.NOTIFICATION_SETTINGS)) {
     if (req.body[key] !== undefined) {
-      if (typeof req.body[key] !== 'boolean') throw badRequest(`${key} 必須是 true 或 false`);
+      if (typeof req.body[key] !== 'boolean') throw badRequest('設定值不正確');
       data[column] = req.body[key];
     }
   }

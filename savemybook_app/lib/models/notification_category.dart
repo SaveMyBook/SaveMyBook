@@ -12,7 +12,6 @@ enum NotificationCategory {
   final String key;
   const NotificationCategory(this.key);
 
-  /// 聊天訊息只發推播、不進通知中心，聊天的未讀改由聊天列表呈現。
   static List<NotificationCategory> get center => values.where((c) => c != chat).toList();
 
   static const _byType = {
@@ -41,6 +40,7 @@ enum NotificationCategory {
     'risk_alert': service,
     'cabinet_deposit': service,
     'cabinet': service,
+    'ai_budget': service,
     'announcement': promotion,
   };
 

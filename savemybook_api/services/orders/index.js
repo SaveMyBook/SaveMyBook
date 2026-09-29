@@ -1,6 +1,6 @@
 const prisma = require('../../lib/prisma');
 const { badRequest, forbidden, notFound, conflict } = require('../../lib/errors');
-const { ORDER_FINAL_STATUSES } = require('../../constants/domain');
+const { ORDER_FINAL_STATUSES, ORDER_NO_SOURCE } = require('../../constants/domain');
 const policy = require('../../constants/policy');
 const { notify } = require('../notify');
 const { withTxnNo } = require('../wallet');
@@ -68,11 +68,23 @@ const isParty = (order, user) =>
 const findForParty = async (orderId, user, include, omit) => {
   const order = await prisma.orders.findUnique({ where: { order_id: orderId }, include, ...(omit && { omit }) });
   if (!order) throw notFound('找不到該訂單');
-  if (!isParty(order, user)) throw forbidden('存取被拒');
+  if (!isParty(order, user)) throw forbidden();
   return order;
 };
 
 const detailForParty = (orderId, user) => findForParty(orderId, user, orderInclude, { pickup_code: true });
+
+const ORDER_NO_PATTERN = new RegExp(`^${ORDER_NO_SOURCE}$`);
+
+// 非當事人與不存在一律回 404，避免以編號探測他人的訂單是否存在。
+const detailForPartyByNo = async (orderNo, user) => {
+  const found = await prisma.orders.findUnique({
+    where: { order_no: orderNo },
+    select: { order_id: true, buyer_id: true, seller_id: true }
+  });
+  if (!found || !isParty(found, user)) throw notFound('找不到該訂單');
+  return detailForParty(found.order_id, user);
+};
 
 const cancel = async (orderId, user, reason) => {
   const order = await findForParty(orderId, user, { order_items: true });
@@ -83,9 +95,9 @@ const cancel = async (orderId, user, reason) => {
   if (order.status === 'refunding' && !isAdmin) {
     throw badRequest('此訂單爭議處理中，無法自行取消，請等候客服裁決');
   }
-  // 書已放進書櫃後雙方都不能自行取消，有問題須提出申訴，避免書在買家手上卻被退款。
+  // 書已放進書櫃後雙方都不能自行取消，有問題須申請爭議，避免書在買家手上卻被退款。
   if (!isAdmin && !policy.ORDER_CANCELLABLE_STATUSES.includes(order.status)) {
-    throw badRequest('賣家已存書，無法取消訂單；如有問題請提出申訴', 'ORDER_NOT_CANCELLABLE');
+    throw badRequest('賣家已存書，無法取消訂單；如有問題請申請爭議', 'ORDER_NOT_CANCELLABLE');
   }
   if (!isAdmin) await cabinetRelease().assertNotInSession(orderId);
 
@@ -97,7 +109,7 @@ const cancel = async (orderId, user, reason) => {
         userId: order.buyer_id,
         type: 'order',
         title: '訂單已退款',
-        content: `訂單 ${order.order_no} 已取消，${money.refunded} 代幣已退回您的帳戶。`,
+        content: `訂單 ${order.order_no} 已取消，${money.refunded} 代幣已退回您的錢包。`,
         relatedId: orderId,
         relatedType: 'order'
       });
@@ -173,7 +185,7 @@ const notifyCompleted = (tx, order, money, { auto = false } = {}) => Promise.all
     userId: order.buyer_id,
     type: 'order',
     title: '訂單已自動完成',
-    content: `訂單 ${order.order_no} 取書已滿 ${CONFIRM_WINDOW_HOURS} 小時且未提出申訴，已自動完成。`,
+    content: `訂單 ${order.order_no} 取書已滿 ${CONFIRM_WINDOW_HOURS} 小時且未申請爭議，已自動完成。`,
     relatedId: order.order_id,
     relatedType: 'order'
   })
@@ -260,8 +272,6 @@ const advance = async (orderId, status, user) => {
     return updated;
   });
 };
-
-// ---------- 排程：自動完成與逾期取消 ----------
 
 const DEPOSIT_DAYS = policy.ORDER_DEPOSIT_DAYS;
 const PICKUP_DAYS = policy.ORDER_PICKUP_DAYS;
@@ -490,7 +500,8 @@ const adminChangeStatus = async (orderId, status, note, { adminId, req }) => {
 };
 
 module.exports = {
-  TRANSITIONS, CONFIRM_WINDOW_HOURS, DEPOSIT_DAYS, PICKUP_DAYS, tabFilter, listForUser, detailForParty, checkout, buyNow, cancel, advance,
+  TRANSITIONS, CONFIRM_WINDOW_HOURS, DEPOSIT_DAYS, PICKUP_DAYS, ORDER_NO_PATTERN, tabFilter, listForUser, detailForParty, detailForPartyByNo,
+  checkout, buyNow, cancel, advance,
   markPickedUpInTx, markDepositedInTx, notifyDeposited,
   completeDue, cancelUndeposited, cancelUncollected, runAutomation, adminList, adminDetail, adminChangeStatus
 };

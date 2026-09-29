@@ -10,6 +10,7 @@
   const LOG_LIMIT = 100;
   const FONT = '-apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif';
   const ANIMATED = new Set(['booting', 'processing', 'offline', 'opening']);
+  const CODE_FONT = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
   const C = {
     bg: '#0e1318',
@@ -17,18 +18,11 @@
     text: '#eef2f5',
     muted: '#93a2ad',
     track: '#2a3540',
-    button: '#26323d',
-    buttonPressed: '#3a4957',
-    primary: '#2e8b75',
-    primaryPressed: '#26735f',
-    disabled: '#1a232b',
-    disabledText: '#51606b',
     online: '#3ccf8e',
     offline: '#66737d',
     accent: '#46b59c',
     warn: '#f0b429',
     danger: '#e0685c',
-    slot: '#1d2730',
     white: '#ffffff',
     black: '#000000'
   };
@@ -45,10 +39,10 @@
       try { return window.localStorage.getItem(key); } catch (err) { return null; }
     },
     set(key, value) {
-      try { window.localStorage.setItem(key, value); } catch (err) { /* 無法寫入時僅在本次開啟期間有效 */ }
+      try { window.localStorage.setItem(key, value); } catch (err) {}
     },
     remove(key) {
-      try { window.localStorage.removeItem(key); } catch (err) { /* 同上 */ }
+      try { window.localStorage.removeItem(key); } catch (err) {}
     }
   };
 
@@ -86,19 +80,16 @@
     root.appendChild(el('p', 'layout-message', text));
   };
 
-  // ---------- 書櫃螢幕（canvas） ----------
-
   const createScreen = (core) => {
-    const { LAYOUT, MESSAGES } = Core;
+    const { LAYOUT, format } = Core;
     const canvas = el('canvas', 'screen');
     canvas.width = LAYOUT.WIDTH;
     canvas.height = LAYOUT.HEIGHT;
-    canvas.tabIndex = 0;
     canvas.setAttribute('role', 'img');
     const ctx = canvas.getContext('2d');
-    const state = { view: core.view, ratio: 1, dirty: true, pressed: null, qrCache: { payload: null, matrix: null } };
+    const state = { view: core.view, ratio: 1, dirty: true, qrCache: { payload: null, matrix: null } };
 
-    const font = (size, bold) => `${bold ? '700' : '400'} ${size}px ${FONT}`;
+    const font = (size, bold, family = FONT) => `${bold ? '700' : '400'} ${size}px ${family}`;
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -112,16 +103,6 @@
       }
       state.ratio = ratio;
       state.dirty = true;
-    };
-
-    const roundRect = (x, y, w, h, r) => {
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.arcTo(x + w, y, x + w, y + h, r);
-      ctx.arcTo(x + w, y + h, x, y + h, r);
-      ctx.arcTo(x, y + h, x, y, r);
-      ctx.arcTo(x, y, x + w, y, r);
-      ctx.closePath();
     };
 
     const wrap = (text, maxWidth, maxLines) => {
@@ -141,8 +122,8 @@
       return lines.slice(0, maxLines);
     };
 
-    const text = (value, x, y, { size = 14, bold = false, color = C.text, align = 'center', baseline = 'top' } = {}) => {
-      ctx.font = font(size, bold);
+    const text = (value, x, y, { size = 14, bold = false, color = C.text, align = 'center', baseline = 'top', family = FONT } = {}) => {
+      ctx.font = font(size, bold, family);
       ctx.fillStyle = color;
       ctx.textAlign = align;
       ctx.textBaseline = baseline;
@@ -224,25 +205,6 @@
       }
     };
 
-    const drawButton = (b) => {
-      const [x, y, w, h] = b.rect;
-      const pressed = state.pressed === b.id;
-      let fill = b.primary ? C.primary : C.button;
-      if (pressed) fill = b.primary ? C.primaryPressed : C.buttonPressed;
-      if (!b.enabled) fill = C.disabled;
-      roundRect(x, y, w, h, 8);
-      ctx.fillStyle = fill;
-      ctx.fill();
-      const isNumber = /^\d+$/.test(b.label);
-      const size = isNumber && state.view.screen === 'match' ? 20 : 14;
-      text(b.label, x + w / 2, y + h / 2 + 1, {
-        size,
-        bold: isNumber || b.primary,
-        color: b.enabled ? C.text : C.disabledText,
-        baseline: 'middle'
-      });
-    };
-
     const drawQr = (qr) => {
       const [bx, by, bw, bh] = LAYOUT.IDLE.QR;
       ctx.fillStyle = C.white;
@@ -278,24 +240,31 @@
       ctx.fillRect(x, y, Math.max(0, Math.min(1, ratio)) * w, h);
     };
 
-    const drawPairing = (view) => {
+    const ratioOf = (countdown) => (countdown && countdown.totalMs > 0 ? countdown.remainingMs / countdown.totalMs : 0);
+
+    const drawPairing = (view, t) => {
       const P = LAYOUT.PAIRING;
-      text(view.lines[0], LAYOUT.WIDTH / 2, P.PROMPT_Y, { size: 16, bold: true });
-      const digits = view.pairing.digits;
-      P.SLOTS.forEach(([x, y, w, h], i) => {
-        roundRect(x, y, w, h, 4);
-        ctx.fillStyle = C.slot;
-        ctx.fill();
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = i === digits.length ? C.accent : C.track;
-        ctx.stroke();
-        if (digits[i]) text(digits[i], x + w / 2, y + h / 2 + 1, { size: 16, bold: true, baseline: 'middle' });
-      });
-      text('-', P.DASH_X, P.SLOTS[0][1] + P.SLOTS[0][3] / 2, { size: 16, color: C.muted, baseline: 'middle' });
-      if (view.pairing.error) {
-        text(MESSAGES[view.pairing.error] || MESSAGES.PAIRING_FAILED, LAYOUT.WIDTH / 2, P.ERROR_Y, { size: 12, color: C.danger });
-      } else if (view.pairing.busy) {
-        text(MESSAGES.PROCESSING, LAYOUT.WIDTH / 2, P.ERROR_Y, { size: 12, color: C.muted });
+      const W = LAYOUT.WIDTH;
+      text(view.lines[0], W / 2, P.TITLE_Y, { size: 16, bold: true, color: C.muted });
+      if (!view.pairing.code) {
+        if (!view.pairing.error) spinner(W / 2, P.CODE_Y, 20, t);
+        paragraph(view.lines[1] || '', P.STATUS_Y, { size: 14, color: view.pairing.error ? C.warn : C.text, maxLines: 2 });
+        return;
+      }
+      text(view.pairing.code, W / 2, P.CODE_Y, { size: 36, bold: true, baseline: 'middle', family: CODE_FONT });
+      paragraph(view.lines[2], P.PROMPT_Y, { size: 14, maxLines: 1 });
+      text(view.lines[3], W / 2, P.REMAINING_Y, { size: 12, color: C.muted });
+      drawBar(P.BAR, ratioOf(view.pairing), C.accent);
+    };
+
+    const drawMatch = (view) => {
+      const M = LAYOUT.MATCH;
+      const W = LAYOUT.WIDTH;
+      text(view.lines[0], W / 2, M.TITLE_Y, { size: 16, bold: true });
+      if (view.code) text(view.code, W / 2, M.CODE_Y, { size: 72, bold: true, baseline: 'middle', family: CODE_FONT });
+      if (view.countdown) {
+        text(format('REMAINING_SECONDS', { seconds: Math.ceil(view.countdown.remainingMs / 1000) }), W / 2, M.REMAINING_Y, { size: 14, color: C.muted });
+        drawBar(M.BAR, ratioOf(view.countdown), C.accent);
       }
     };
 
@@ -303,8 +272,8 @@
       const [, y, w, h] = LAYOUT.OPEN.COUNTDOWN;
       const cx = w / 2;
       const cy = y + h / 2;
-      const r = 28;
-      const ratio = countdown.totalMs > 0 ? countdown.remainingMs / countdown.totalMs : 0;
+      const r = 34;
+      const ratio = ratioOf(countdown);
       ctx.lineWidth = 4;
       ctx.lineCap = 'round';
       ctx.strokeStyle = C.track;
@@ -352,7 +321,7 @@
 
       switch (view.screen) {
         case 'pairing':
-          drawPairing(view);
+          drawPairing(view, t);
           break;
         case 'idle':
           if (view.qr) {
@@ -378,14 +347,9 @@
           text(view.lines[1] || '', W / 2, LAYOUT.SELECT.TEXT_Y, { size: 14, color: C.muted });
           if (view.lines[2]) text(view.lines[2], W / 2, LAYOUT.SELECT.REMAINING_Y, { size: 12, color: C.muted });
           break;
-        case 'match': {
-          const [tx, ty, tw, th] = LAYOUT.MATCH.TITLE;
-          text(view.lines[0], tx + tw / 2, ty + th / 2, { size: 14, bold: true, baseline: 'middle' });
-          if (view.countdown) {
-            drawBar(LAYOUT.MATCH.BAR, view.countdown.totalMs ? view.countdown.remainingMs / view.countdown.totalMs : 0, C.accent);
-          }
+        case 'match':
+          drawMatch(view);
           break;
-        }
         case 'opening':
           spinner(W / 2, 130, 24, t);
           text(view.lines[0], W / 2, 180, { size: 16, bold: true });
@@ -405,57 +369,16 @@
         }
       }
 
-      for (const b of view.buttons) drawButton(b);
       state.dirty = false;
     };
 
+    const spinning = (view) => ANIMATED.has(view.screen) || (view.screen === 'idle' && !view.qr)
+      || (view.screen === 'pairing' && !view.pairing.code && !view.pairing.error);
+
     const frame = (t) => {
-      if (state.dirty || ANIMATED.has(state.view.screen) || (state.view.screen === 'idle' && !state.view.qr)) draw(t);
+      if (state.dirty || spinning(state.view)) draw(t);
       window.requestAnimationFrame(frame);
     };
-
-    const toLogical = (event) => {
-      const rect = canvas.getBoundingClientRect();
-      return [
-        ((event.clientX - rect.left) * LAYOUT.WIDTH) / rect.width,
-        ((event.clientY - rect.top) * LAYOUT.HEIGHT) / rect.height
-      ];
-    };
-
-    const hit = (event) => {
-      const [px, py] = toLogical(event);
-      const b = state.view.buttons.find(({ rect: [x, y, w, h], enabled }) => enabled && px >= x && px <= x + w && py >= y && py <= y + h);
-      return b ? b.id : null;
-    };
-
-    canvas.addEventListener('pointerdown', (event) => {
-      state.pressed = hit(event);
-      if (state.pressed) {
-        try { canvas.setPointerCapture(event.pointerId); } catch (err) { /* 部分瀏覽器不支援時略過 */ }
-        state.dirty = true;
-      }
-    });
-    canvas.addEventListener('pointerup', (event) => {
-      const pressed = state.pressed;
-      state.pressed = null;
-      state.dirty = true;
-      if (pressed && hit(event) === pressed) core.tap(pressed);
-    });
-    canvas.addEventListener('pointercancel', () => {
-      state.pressed = null;
-      state.dirty = true;
-    });
-    canvas.addEventListener('keydown', (event) => {
-      if (state.view.screen !== 'pairing') return;
-      let id = null;
-      if (/^\d$/.test(event.key)) id = `key:${event.key}`;
-      else if (event.key === 'Backspace') id = 'key:del';
-      else if (event.key === 'Enter') id = 'key:pair';
-      if (id) {
-        event.preventDefault();
-        core.tap(id);
-      }
-    });
 
     if (window.ResizeObserver) new window.ResizeObserver(resize).observe(canvas);
     window.addEventListener('resize', resize);
@@ -474,8 +397,6 @@
       }
     };
   };
-
-  // ---------- 控制台 ----------
 
   const createPanel = (core, options) => {
     const panel = el('section', 'panel');
@@ -514,7 +435,6 @@
       return b;
     };
 
-    // 裝置資訊
     const info = card('裝置資訊');
     const dl = el('dl', 'info');
     const infoField = (label) => {
@@ -529,44 +449,9 @@
     const fSync = infoField('最後同步時間');
     info.appendChild(dl);
 
-    // 配對
     const pairCard = card('配對');
-    const pairRow = el('div', 'row');
-    const pairInput = el('input', 'input');
-    pairInput.type = 'text';
-    pairInput.inputMode = 'numeric';
-    pairInput.autocomplete = 'off';
-    pairInput.maxLength = 9;
-    pairInput.placeholder = '1234-5678';
-    pairInput.setAttribute('aria-label', '配對碼');
-    const pairButton = button('配對', 'btn-primary');
-    pairRow.appendChild(pairInput);
-    pairRow.appendChild(pairButton);
-    pairCard.appendChild(el('p', 'row-hint', '請輸入管理員產生的 8 位數配對碼，亦可使用書櫃螢幕上的鍵盤輸入。'));
-    pairCard.appendChild(pairRow);
-    const pairFeedback = el('p', 'feedback');
-    pairCard.appendChild(pairFeedback);
+    pairCard.appendChild(el('p', 'card-text', '書櫃螢幕顯示 8 位數配對碼，請於管理後台的書櫃裝置頁面輸入；配對碼逾時後將自動重新取得。'));
 
-    const submitPair = async () => {
-      pairButton.disabled = true;
-      pairFeedback.classList.remove('is-error');
-      pairFeedback.textContent = Core.MESSAGES.PROCESSING;
-      const result = await core.pair(pairInput.value);
-      pairButton.disabled = false;
-      if (result.ok) {
-        pairInput.value = '';
-        pairFeedback.textContent = '';
-      } else {
-        pairFeedback.classList.add('is-error');
-        pairFeedback.textContent = Core.MESSAGES[core.view.pairing && core.view.pairing.error] || Core.MESSAGES.PAIRING_FAILED;
-      }
-    };
-    pairButton.addEventListener('click', submitPair);
-    pairInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') submitPair();
-    });
-
-    // 櫃門
     const doorsCard = card('櫃門');
     const doorsGrid = el('div', 'doors');
     doorsCard.appendChild(doorsGrid);
@@ -593,7 +478,6 @@
       tiles.set(door.channel, { tile, stateText, note, actions, openBtn, closeBtn });
     }
 
-    // 設定
     const settings = card('設定');
     const autoClose = switchControl(options.autoClose);
     row(settings, '倒數結束自動關門', '關閉後可測試伺服器的待確認流程').appendChild(autoClose.wrap);
@@ -613,7 +497,6 @@
       saveOptions(options);
     });
 
-    // 操作
     const actionsCard = card('操作');
     const offline = switchControl(false);
     row(actionsCard, '模擬離線', '所有請求視為網路失敗，事件保留於佇列').appendChild(offline.wrap);
@@ -678,14 +561,13 @@
     const unpairRow = row(actionsCard, '解除配對', '通知伺服器解除配對並清除本機資料');
     const unpairButton = button('解除配對', 'btn-danger');
     unpairButton.addEventListener('click', async () => {
-      if (!window.confirm('確定要解除此模擬書櫃的配對？解除後須由管理員重新產生配對碼。')) return;
+      if (!window.confirm('確定要解除此模擬書櫃的配對？解除後書櫃螢幕將顯示新的配對碼，須由管理員重新輸入。')) return;
       unpairButton.disabled = true;
       await core.unpair();
       unpairButton.disabled = false;
     });
     unpairRow.appendChild(unpairButton);
 
-    // 事件紀錄
     const logCard = card('事件紀錄');
     const logList = el('ol', 'log');
     logList.setAttribute('aria-live', 'off');
@@ -742,7 +624,7 @@
       fCabinet.textContent = view.cabinetName || '－';
       fDevice.textContent = view.deviceNo || '－';
       fConnection.textContent = '';
-      const dot = el('span', `status-dot${view.connection === 'online' ? ' is-online' : ''}`);
+      const dot = el('span', `status-dot${paired && view.connection === 'online' ? ' is-online' : ''}`);
       fConnection.appendChild(dot);
       fConnection.appendChild(document.createTextNode(paired ? (view.connection === 'online' ? '連線中' : '未連線') : '尚未配對'));
 
@@ -772,8 +654,6 @@
     renderLog();
     return { node: panel, refresh, addLog };
   };
-
-  // ---------- 啟動 ----------
 
   const startKiosk = () => {
     const options = loadOptions();
@@ -809,7 +689,7 @@
     screen = createScreen(core);
     bezel.appendChild(screen.canvas);
     device.appendChild(bezel);
-    device.appendChild(el('p', 'device-caption', '240 × 320 觸控螢幕'));
+    device.appendChild(el('p', 'device-caption', '240 × 320 顯示螢幕（無觸控）'));
     panel = createPanel(core, options);
     root.appendChild(device);
     root.appendChild(panel.node);

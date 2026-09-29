@@ -199,15 +199,15 @@ paths:
                       remaining_attempts: { type: integer, description: 僅 `INVALID_PIN` 帶此欄位。, example: 3 }
               examples:
                 範圍不支援此方式:
-                  value: { success: false, message: 'method 僅接受：pin, biometric' }
+                  value: { success: false, message: 不支援此驗證方式 }
                 通行密鑰驗證失敗:
-                  value: { success: false, code: PASSKEY_VERIFICATION_FAILED, message: 通行密鑰驗證失敗，請重新操作 }
+                  value: { success: false, code: PASSKEY_VERIFICATION_FAILED, message: 通行密鑰驗證失敗，請重新操作或改用其他方式 }
                 登入密碼錯誤:
                   value: { success: false, code: INVALID_PASSWORD, message: 密碼錯誤 }
                 交易密碼錯誤:
-                  value: { success: false, code: INVALID_PIN, message: 交易密碼錯誤，還可以再試 3 次, remaining_attempts: 3 }
+                  value: { success: false, code: INVALID_PIN, message: 交易密碼錯誤，剩餘嘗試次數 3 次, remaining_attempts: 3 }
                 生物辨識金鑰失效:
-                  value: { success: false, code: BIOMETRIC_KEY_INVALID, message: 這台裝置的生物辨識付款已失效，請改用交易密碼 }
+                  value: { success: false, code: BIOMETRIC_KEY_INVALID, message: 此裝置的生物辨識付款已失效，請改用交易密碼 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
           description: 尚未設定交易密碼或登入密碼、Token 缺少裝置工作階段，或 Token 無效。
@@ -220,7 +220,7 @@ paths:
                 尚未設定登入密碼:
                   value: { success: false, code: PASSWORD_NOT_SET, message: 此帳號尚未設定登入密碼，請先於「帳號安全」設定密碼 }
                 缺少裝置工作階段:
-                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
+                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用此功能 }
                 Token 過期:
                   value: { success: false, code: TOKEN_EXPIRED, message: 登入已逾時 }
         '423':
@@ -280,11 +280,11 @@ paths:
                 格式錯誤:
                   value: { success: false, code: PIN_FORMAT, message: 交易密碼必須是 6 位數字 }
                 相同數字:
-                  value: { success: false, code: PIN_TOO_WEAK, message: 交易密碼不能是 6 個相同的數字 }
+                  value: { success: false, code: PIN_TOO_WEAK, message: 交易密碼不可為 6 個相同的數字 }
                 連續數字:
-                  value: { success: false, code: PIN_TOO_WEAK, message: 交易密碼不能是連續的數字 }
+                  value: { success: false, code: PIN_TOO_WEAK, message: 交易密碼不可為連續的數字 }
                 重複組合:
-                  value: { success: false, code: PIN_TOO_WEAK, message: 交易密碼不能是重複的數字組合 }
+                  value: { success: false, code: PIN_TOO_WEAK, message: 交易密碼不可為重複的數字組合 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/VerificationRequired' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -311,7 +311,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: 已在這台裝置啟用生物辨識付款 }
+                  message: { type: string, example: 已於此裝置啟用生物辨識付款 }
                   data:
                     type: object
                     properties:
@@ -326,9 +326,9 @@ paths:
                 需要驗證:
                   value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, passkey, pin, biometric] } }
                 尚未設定交易密碼:
-                  value: { success: false, code: PAYMENT_PIN_NOT_SET, message: 請先設定交易密碼，生物辨識失敗時才有替代方式 }
+                  value: { success: false, code: PAYMENT_PIN_NOT_SET, message: 請先設定交易密碼，作為生物辨識失敗時的替代驗證方式 }
                 缺少裝置工作階段:
-                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
+                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用此功能 }
         '500': { $ref: '#/components/responses/ServerError' }
 
     delete:
@@ -346,7 +346,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/SuccessMessage' }
-              example: { success: true, message: 已關閉這台裝置的生物辨識付款 }
+              example: { success: true, message: 已關閉此裝置的生物辨識付款 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -401,7 +401,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: 已登出這台裝置 }
+                  message: { type: string, example: 已登出此裝置 }
                   data:
                     type: object
                     properties:
@@ -417,13 +417,13 @@ paths:
                 需要驗證:
                   value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, passkey, pin, biometric] } }
                 缺少裝置工作階段:
-                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
+                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用此功能 }
         '404':
           description: 裝置不存在、不屬於請求者，或已經登出。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到這台裝置，可能已經登出了 }
+              example: { success: false, message: 找不到此裝置，可能已登出 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/security/sessions/revoke-all:
@@ -476,5 +476,5 @@ paths:
                 需要驗證:
                   value: { success: false, code: VERIFICATION_REQUIRED, message: 請先驗證身分, verification: { scope: sensitive, methods: [password, passkey, pin, biometric] } }
                 缺少裝置工作階段:
-                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用這項功能 }
+                  value: { success: false, code: SESSION_REQUIRED, message: 請重新登入後再使用此功能 }
         '500': { $ref: '#/components/responses/ServerError' }

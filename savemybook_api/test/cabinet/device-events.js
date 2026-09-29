@@ -199,7 +199,7 @@ module.exports = {
       const ctx = setup();
       h.setSessionHandler(null);
       const { no } = addSession(ctx.device);
-      const res = await post(ctx, [{ type: 'match_selected', session_id: no, data: { value: 37 } }]);
+      const res = await post(ctx, [{ type: 'close_refused', session_id: no, data: { command_id: `${no}:close:1`, code: 'DOOR_OPEN' } }]);
       assert.deepStrictEqual(res.body.data.results.map((r) => [r.status, r.code]), [['rejected', 'SESSION_UNAVAILABLE']]);
 
       const other = setup();
@@ -207,9 +207,12 @@ module.exports = {
       const mismatch = await post(ctx, [
         { type: 'door_opened', session_id: foreign.no, channel: 1, data: {} },
         { type: 'door_opened', session_id: 'CS9999999', channel: 1, data: {} },
-        { type: 'match_selected', data: { value: 37 } }
+        { type: 'close_refused', data: { code: 'DOOR_OPEN' } },
+        { type: 'match_selected', session_id: no, data: { value: 37 } },
+        { type: 'session_cancel', session_id: no }
       ]);
-      assert.deepStrictEqual(mismatch.body.data.results.map((r) => r.code), ['SESSION_MISMATCH', 'SESSION_MISMATCH', 'EVENT_INVALID']);
+      assert.deepStrictEqual(mismatch.body.data.results.map((r) => r.code),
+        ['SESSION_MISMATCH', 'SESSION_MISMATCH', 'EVENT_INVALID', 'EVENT_INVALID', 'EVENT_INVALID']);
     }],
 
     ['作業事件轉交作業處理器，session_id 以數字編號提供', async () => {
@@ -217,7 +220,7 @@ module.exports = {
       const calls = stubHandler();
       const { row, no } = addSession(ctx.device);
       const res = await post(ctx, [
-        { type: 'match_selected', session_id: no, data: { value: 37 } },
+        { type: 'close_refused', session_id: no, data: { command_id: `${no}:close:1`, code: 'DOOR_OPEN' } },
         { type: 'door_opened', session_id: no.toLowerCase(), channel: 2, data: { command_id: `${no}:2:1` }, age_ms: 40 }
       ]);
       assert.deepStrictEqual(res.body.data.results.map((r) => r.status), ['ok', 'ok']);
@@ -239,8 +242,8 @@ module.exports = {
       const other = addSession(ctx.device, { status: 'completed' });
       const res = await post(ctx, [
         { type: 'door_opened', session_id: no, channel: 1, data: {} },
-        { type: 'door_closed', session_id: no, channel: 1, data: { reason: 'button' } },
-        { type: 'session_closed', session_id: other.no, data: { outcome: 'completed', reason: 'button' } }
+        { type: 'door_closed', session_id: no, channel: 1, data: { reason: 'user_done' } },
+        { type: 'session_closed', session_id: other.no, data: { outcome: 'completed', reason: 'user_done' } }
       ]);
       assert.deepStrictEqual(res.body.data.results.map((r) => r.status), ['retry', 'retry', 'ok']);
       assert.strictEqual(calls.length, 2);
@@ -334,7 +337,7 @@ module.exports = {
       assert.strictEqual(sensor(2), 'closed');
       await post(ctx, [{ type: 'door_opened', channel: 2, session_id: no, age_ms: 60000, data: {} }]);
       assert.strictEqual(sensor(2), 'closed', '離線期間累積的較早事件不覆蓋目前狀態');
-      await post(ctx, [{ type: 'door_closed', channel: 3, session_id: no, data: { reason: 'button', sensor: 'open' } }]);
+      await post(ctx, [{ type: 'door_closed', channel: 3, session_id: no, data: { reason: 'user_done', sensor: 'open' } }]);
       assert.strictEqual(sensor(3), 'open', '明確回報的 data.sensor 優先');
 
       const state = await h.deviceState(ctx.token, ctx.bootId);

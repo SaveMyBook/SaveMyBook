@@ -106,14 +106,53 @@ module.exports = {
       assert.strictEqual(result.text, '結論');
     }],
 
-    ['Gemini：搜尋時改掛 google_search 工具且不要求 JSON 格式', async () => {
+    ['Gemini：要求高解析度判讀時以 mediaResolution 傳送，沒有圖片或未指定時不帶', async () => {
+      const image = { mimeType: 'image/jpeg', data: 'AAAA' };
+      enqueue(geminiOk(), geminiOk(), geminiOk());
+      await realGenerate('gemini', { model: 'gemini-3.1-flash-lite', prompt: '看圖', images: [image], imageDetail: 'high' });
+      await realGenerate('gemini', { model: 'gemini-3.1-flash-lite', prompt: '看圖', images: [image] });
+      await realGenerate('gemini', { model: 'gemini-3.1-flash-lite', prompt: '純文字', imageDetail: 'high' });
+      assert.strictEqual(requests[0].body.generationConfig.mediaResolution, 'MEDIA_RESOLUTION_HIGH');
+      assert.strictEqual(requests[1].body.generationConfig.mediaResolution, undefined);
+      assert.strictEqual(requests[2].body.generationConfig.mediaResolution, undefined);
+      assert.strictEqual(requests[0].body.generationConfig.temperature, undefined, 'Gemini 刻意不傳 temperature');
+    }],
+
+    ['Gemini：模型不接受解析度或思考等級參數時，逐一拿掉後重送', async () => {
+      enqueue(
+        { status: 400, body: errorBody('Invalid value at generation_config.media_resolution') },
+        { status: 400, body: errorBody('Thinking level is not supported for this model.') },
+        geminiOk()
+      );
+      const result = await realGenerate('gemini', {
+        model: 'gemini-3.1-flash-lite', prompt: '看圖', images: [{ mimeType: 'image/jpeg', data: 'AAAA' }], imageDetail: 'high'
+      });
+      assert.strictEqual(result.text, '{"ok":true}');
+      assert.strictEqual(requests.length, 3);
+      assert.strictEqual(requests[1].body.generationConfig.mediaResolution, undefined);
+      assert.ok(requests[1].body.generationConfig.thinkingConfig);
+      assert.strictEqual(requests[2].body.generationConfig.thinkingConfig, undefined);
+
+      enqueue({ status: 400, body: errorBody('Invalid argument: contents') });
+      await assert.rejects(
+        () => realGenerate('gemini', { model: 'gemini-3.1-flash-lite', prompt: 'x', imageDetail: 'high' }),
+        (err) => err.reason === 'BAD_REQUEST'
+      );
+      assert.strictEqual(requests.length, 4);
+    }],
+
+    ['Gemini：搜尋時改掛 google_search 工具且不要求 JSON 格式，引用網域取自標題欄位', async () => {
       enqueue({
         body: {
           candidates: [{
             content: { parts: [{ text: '{"ok":true}' }] },
             groundingMetadata: {
               webSearchQueries: ['挪威的森林 ISBN', ''],
-              groundingChunks: [{ web: { title: '博客來', uri: 'https://example.test/book' } }, { web: {} }]
+              groundingChunks: [
+                { web: { title: 'books.com.tw', uri: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc' } },
+                { web: { title: '博客來', uri: 'https://example.test/book' } },
+                { web: {} }
+              ]
             }
           }],
           usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5 }
@@ -123,7 +162,10 @@ module.exports = {
       assert.deepStrictEqual(requests[0].body.tools, [{ google_search: {} }]);
       assert.strictEqual(requests[0].body.generationConfig.responseMimeType, undefined);
       assert.strictEqual(requests[0].body.generationConfig.thinkingConfig.thinkingLevel, 'low');
-      assert.deepStrictEqual(result.sources, [{ title: '博客來', url: 'https://example.test/book' }]);
+      assert.deepStrictEqual(result.sources, [
+        { title: 'books.com.tw', url: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc', domain: 'books.com.tw' },
+        { title: '博客來', url: 'https://example.test/book', domain: '' }
+      ]);
       assert.strictEqual(result.usage.search_calls, 1);
     }],
 

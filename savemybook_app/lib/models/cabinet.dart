@@ -322,6 +322,8 @@ class CabinetSessionResult {
   }
 }
 
+enum CabinetCloseOutcome { completed, cancelled }
+
 class CabinetSession {
   static const selecting = 'selecting';
   static const matching = 'matching';
@@ -337,6 +339,10 @@ class CabinetSession {
   static const activeStatuses = {selecting, matching, opening, open};
   static const terminalStatuses = {completed, partial, cancelled, failed, expired};
 
+  static const noticeCloseDoorFirst = 'CLOSE_DOOR_FIRST';
+
+  static final _matchCode = RegExp(r'^[1-9][0-9]$');
+
   final String sessionNo;
   final String status;
   final int version;
@@ -344,10 +350,10 @@ class CabinetSession {
   final String? locationStatus;
   final int? distanceM;
   final List<CabinetSessionItem> items;
-  final int? matchCode;
   final List<CabinetSessionDoor> doors;
   final int? remainingMs;
   final int? openMs;
+  final String? notice;
   final CabinetSessionResult? result;
   final DateTime? createdAt;
   final DateTime? finishedAt;
@@ -360,14 +366,16 @@ class CabinetSession {
     this.locationStatus,
     this.distanceM,
     this.items = const [],
-    this.matchCode,
     this.doors = const [],
     this.remainingMs,
     this.openMs,
+    this.notice,
     this.result,
     this.createdAt,
     this.finishedAt,
   });
+
+  static bool isMatchCode(String code) => _matchCode.hasMatch(code);
 
   bool get isActive => activeStatuses.contains(status);
 
@@ -377,7 +385,7 @@ class CabinetSession {
 
   bool get isSettled => isTerminal || needsReview;
 
-  bool get locationGranted => locationStatus == 'granted';
+  bool get closeDoorFirst => notice == noticeCloseDoorFirst;
 
   List<String> get selectedKeys => [for (final item in items) if (item.selected && !item.isBlocked) item.key];
 
@@ -394,10 +402,10 @@ class CabinetSession {
     locationStatus: _textOrNull(json['location_status']),
     distanceM: _intOrNull(json['distance_m']),
     items: _mapsOf(json['items']).map(CabinetSessionItem.fromJson).toList(),
-    matchCode: _intOrNull(_mapOf(json['match'])?['code']),
     doors: _mapsOf(json['doors']).map(CabinetSessionDoor.fromJson).toList(),
     remainingMs: _intOrNull(json['remaining_ms']),
     openMs: _intOrNull(json['open_ms']),
+    notice: _textOrNull(json['notice']),
     result: CabinetSessionResult.fromJson(json['result']),
     createdAt: parseDate(json['created_at']),
     finishedAt: parseDate(json['finished_at']),
@@ -417,6 +425,11 @@ class CabinetSession {
 class CabinetApiError {
   static const network = 'NETWORK';
   static const signedOut = 'SIGNED_OUT';
+  static const verificationCancelled = 'VERIFICATION_CANCELLED';
+  static const locationRequired = 'CABINET_LOCATION_REQUIRED';
+  static const locationUnavailable = 'CABINET_LOCATION_UNAVAILABLE';
+  static const locationImprecise = 'CABINET_LOCATION_IMPRECISE';
+  static const matchCodeInvalid = 'MATCH_CODE_INVALID';
 
   final String code;
   final String message;
@@ -437,6 +450,8 @@ class CabinetApiError {
   }
 
   bool get isNetwork => code == network;
+
+  bool get isVerificationCancelled => code == verificationCancelled;
 
   bool get manualAllowed => extra['manual_allowed'] == true;
 

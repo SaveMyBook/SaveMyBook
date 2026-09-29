@@ -77,7 +77,7 @@ module.exports = {
       assert.deepStrictEqual(prisma.rows('cabinet_session_doors').map((d) => d.command_served_at), [now, matchedAt], '只記錄第一次送出的時間');
     }],
 
-    ['每 10 分鐘清除過期挑戰碼，每天清除一年前的事件與逾期的配對碼', async () => {
+    ['每 10 分鐘清除過期挑戰碼，每天清除一年前的事件、逾期超過一天的配對碼與無法啟用的待配對裝置', async () => {
       const cabinet = h.addCabinet();
       const { device } = h.addDevice({ cabinetId: cabinet.cabinet_id });
       const now = new Date();
@@ -88,13 +88,23 @@ module.exports = {
       await h.devices.recordEvent(prisma, { cabinetId: cabinet.cabinet_id, type: 'paired', occurredAt: new Date(now - 400 * 24 * 3600 * SECOND) });
       await h.devices.recordEvent(prisma, { cabinetId: cabinet.cabinet_id, type: 'paired', occurredAt: now });
       prisma.rows('cabinet_devices').push(
-        { device_id: 50, cabinet_id: cabinet.cabinet_id, status: 'pending', pairing_expires_at: new Date(now - 2 * 24 * 3600 * SECOND) },
-        { device_id: 51, cabinet_id: cabinet.cabinet_id, status: 'pending', pairing_expires_at: new Date(now - 3600 * SECOND) }
+        { device_id: 50, cabinet_id: cabinet.cabinet_id, status: 'pending', created_at: new Date(now - 2 * 24 * 3600 * SECOND) },
+        { device_id: 51, cabinet_id: cabinet.cabinet_id, status: 'pending', created_at: new Date(now - 3600 * SECOND) }
+      );
+      const pairRequest = (id, expiresAgoMs, extra = {}) => ({
+        request_id: id, code_hash: String(id).repeat(64).slice(0, 64), poll_token_hash: String(id + 5).repeat(64).slice(0, 64),
+        expires_at: new Date(now - expiresAgoMs), delivered_at: null, ...extra
+      });
+      prisma.rows('cabinet_pair_requests').push(
+        pairRequest(1, 2 * 24 * 3600 * SECOND, { cabinet_id: cabinet.cabinet_id, device_id: 50 }),
+        pairRequest(2, 25 * 3600 * SECOND, { delivered_at: new Date(now - 26 * 3600 * SECOND) }),
+        pairRequest(3, 3600 * SECOND, { cabinet_id: cabinet.cabinet_id, device_id: 51 })
       );
 
       assert.deepStrictEqual(await h.devices.purge(now), { challenges: 1, events: 0, pending: 0 });
-      assert.deepStrictEqual(await h.devices.purge(now, { daily: true }), { challenges: 0, events: 1, pending: 1 });
+      assert.deepStrictEqual(await h.devices.purge(now, { daily: true }), { challenges: 0, events: 1, pending: 2 });
       assert.deepStrictEqual(prisma.rows('cabinet_devices').map((d) => d.device_id).sort(), [device.device_id, 51].sort());
+      assert.deepStrictEqual(prisma.rows('cabinet_pair_requests').map((r) => r.request_id), [3]);
     }],
 
     ['維護模式期間排程全部跳過', async () => {

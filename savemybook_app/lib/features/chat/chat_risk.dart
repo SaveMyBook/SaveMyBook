@@ -14,7 +14,6 @@ String chatRiskNote(ChatRiskCategory category) => switch (category) {
   ChatRiskCategory.contact => S.personSharedOutsideContactDetailsWatch,
 };
 
-/// 同一聊天室每種類別只在最早出現的那則訊息下提醒一次；高風險訊息則每則都提醒。
 Map<int, ChatRisk> chatRiskNotes(Iterable<ChatMessage> messages, int myId) {
   final shown = <ChatRiskCategory>{};
   final notes = <int, ChatRisk>{};
@@ -136,7 +135,7 @@ class ChatRiskBanner extends StatelessWidget {
                   height: 24,
                   child: IconButton(
                     onPressed: onDismiss,
-                    tooltip: S.close,
+                    tooltip: S.actionClose,
                     padding: EdgeInsets.zero,
                     icon: Icon(Icons.close_rounded, size: 18, color: c.textSecondary),
                   ),

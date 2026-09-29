@@ -35,7 +35,6 @@ const maintenanceIds = async () => {
 
 const isUnderMaintenance = async (cabinetId) => (await maintenanceIds()).has(Number(cabinetId));
 
-// 維修中的書櫃不開放選用，與停用的書櫃一樣不出現在使用者端的清單。
 const listActive = async (point) => {
   const [all, underMaintenance] = await Promise.all([prisma.smart_cabinets.findMany({
     where: { is_active: true },

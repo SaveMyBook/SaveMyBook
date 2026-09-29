@@ -15,9 +15,8 @@ class CabinetManualResult {
   final String? error;
   final String? code;
   final CabinetManualReport? report;
-  final bool restored;
 
-  const CabinetManualResult({this.error, this.code, this.report, this.restored = false});
+  const CabinetManualResult({this.error, this.code, this.report});
 
   bool get ok => error == null;
 
@@ -53,7 +52,7 @@ extension CabinetApi on ApiService {
   }) async {
     final token = parseCabinetCode(code);
     if (token == null) {
-      return CabinetResult.failure(CabinetApiError(code: 'CABINET_CODE_INVALID', message: '此 QR Code 並非 SaveMyBook 書櫃 QR Code'));
+      return CabinetResult.failure(CabinetApiError(code: 'CABINET_CODE_INVALID', message: S.notSavemybookLockerQrCode));
     }
     final res = await _send('POST', '/cabinet-sessions', body: {
       'code': '$cabinetPayloadPrefix$token',
@@ -78,6 +77,19 @@ extension CabinetApi on ApiService {
     return _cabinetResult(res);
   }
 
+  Future<CabinetResult> matchCabinetSession(String sessionNo, String code) async {
+    if (!CabinetSession.isMatchCode(code)) {
+      return CabinetResult.failure(CabinetApiError(code: CabinetApiError.matchCodeInvalid, message: S.enterTwoDigits));
+    }
+    final res = await _send('POST', '${_sessionPath(sessionNo)}/match', body: {'code': code});
+    return _cabinetResult(res);
+  }
+
+  Future<CabinetResult> closeCabinetSession(String sessionNo, CabinetCloseOutcome outcome) async {
+    final res = await _send('POST', '${_sessionPath(sessionNo)}/close', body: {'outcome': outcome.name});
+    return _cabinetResult(res);
+  }
+
   Future<CabinetSession?> fetchActiveCabinetSession() async {
     final res = await _send('GET', '/cabinet-sessions/active');
     if (res == null || res['success'] != true) return null;
@@ -94,7 +106,7 @@ extension CabinetApi on ApiService {
     }
     final data = res['data'] is Map ? Map<String, dynamic>.from(res['data'] as Map) : const <String, dynamic>{};
     final report = CabinetManualReport.fromJson(data['manual_report']);
-    return CabinetManualResult(report: report?.isPending == true ? report : null, restored: data['restored'] == true);
+    return CabinetManualResult(report: report?.isPending == true ? report : null);
   }
 
   Future<CabinetManualResult> reportOrderManually(int orderId, String status) async {

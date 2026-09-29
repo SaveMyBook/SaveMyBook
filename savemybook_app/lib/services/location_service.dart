@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import '../i18n/strings.dart';
 
 class FreshLocation {
   static const granted = 'granted';
   static const denied = 'denied';
+  static const imprecise = 'imprecise';
   static const unavailable = 'unavailable';
 
   final String status;
@@ -14,19 +16,23 @@ class FreshLocation {
 
   const FreshLocation({required this.status, this.lat, this.lng, this.accuracyM, this.ageMs});
 
-  const FreshLocation.denied() : this(status: denied);
-
-  const FreshLocation.unavailable() : this(status: unavailable);
-
   bool get isGranted => status == granted && lat != null && lng != null;
 
+  bool get isDenied => status == denied;
+
+  bool get isImprecise => status == imprecise;
+
   Map<String, dynamic> toJson() => {
-    'location_status': isGranted ? granted : (status == granted ? unavailable : status),
+    'location_status': isGranted ? granted : (isDenied ? denied : unavailable),
     if (isGranted) 'location': {'lat': lat, 'lng': lng, 'accuracy_m': accuracyM ?? 0, 'age_ms': ageMs ?? 0},
   };
 }
 
+enum LocationAccess { granted, denied, imprecise, unavailable }
+
 class LocationService {
+  static const precisePurposeKey = 'CabinetUse';
+
   static Position? _last;
   static DateTime? _lastAt;
   static Future<Position?>? _pending;
@@ -65,13 +71,16 @@ class LocationService {
   // 剛走到書櫃的人會因舊座標被判定距離過遠。
   static Future<FreshLocation> fresh({DateTime Function()? clock}) async {
     try {
-      // geolocator 對從未詢問過的權限也回傳 denied，只有 request 才會跳出系統詢問。
-      final allowed = await permission(request: true);
-      if (allowed == null) return const FreshLocation.unavailable();
-      if (allowed == LocationPermission.denied || allowed == LocationPermission.deniedForever) {
-        return const FreshLocation.denied();
+      final allowed = await access();
+      if (allowed != LocationAccess.granted) {
+        return FreshLocation(
+          status: switch (allowed) {
+            LocationAccess.denied => FreshLocation.denied,
+            LocationAccess.imprecise => FreshLocation.imprecise,
+            _ => FreshLocation.unavailable,
+          },
+        );
       }
-      if (!await Geolocator.isLocationServiceEnabled()) return const FreshLocation.unavailable();
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 5)),
       );
@@ -87,7 +96,33 @@ class LocationService {
         ageMs: age < 0 ? 0 : age,
       );
     } catch (_) {
-      return const FreshLocation.unavailable();
+      return const FreshLocation(status: FreshLocation.unavailable);
+    }
+  }
+
+  static Future<LocationAccess?> access() async {
+    // geolocator 對從未詢問過的權限也回傳 denied，只有 request 才會跳出系統詢問。
+    final allowed = await permission(request: true);
+    if (allowed == null) return null;
+    if (allowed == LocationPermission.denied || allowed == LocationPermission.deniedForever) return LocationAccess.denied;
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) return LocationAccess.unavailable;
+    } catch (_) {
+      return null;
+    }
+    return await _precise() ? LocationAccess.granted : LocationAccess.imprecise;
+  }
+
+  // 只允許「大約位置」時座標誤差約 1–3 公里，伺服器一律以精度不足拒絕，重試不會改善。
+  static Future<bool> _precise() async {
+    try {
+      if (await Geolocator.getLocationAccuracy() != LocationAccuracyStatus.reduced) return true;
+      final upgraded = defaultTargetPlatform == TargetPlatform.iOS
+          ? await Geolocator.requestTemporaryFullAccuracy(purposeKey: precisePurposeKey)
+          : await Geolocator.requestPermission().then((_) => Geolocator.getLocationAccuracy());
+      return upgraded != LocationAccuracyStatus.reduced;
+    } catch (_) {
+      return true;
     }
   }
 
@@ -99,6 +134,16 @@ class LocationService {
     } catch (_) {
       return null;
     }
+  }
+
+  static Future<void> openSettings() async {
+    try {
+      if (await Geolocator.isLocationServiceEnabled()) {
+        await Geolocator.openAppSettings();
+      } else {
+        await Geolocator.openLocationSettings();
+      }
+    } catch (_) {}
   }
 
   static double? distanceTo(double latitude, double longitude) {

@@ -194,6 +194,31 @@ module.exports = {
       assert.strictEqual(ok.get('b').length, 1);
     }],
 
+    ['賣家上限也計入沒有櫃門紀錄的存書登記與待確認的先行存書手動回報', async () => {
+      const ctx = setup();
+      const count = (options) => doors.sellerPreDepositDoors(prisma, ctx.cabinet.cabinet_id, ctx.seller.user_id, options);
+      const legacy = h.addBook({ sellerId: ctx.seller.user_id, cabinet_id: ctx.cabinet.cabinet_id });
+      addDeposit(legacy, ctx.cabinet);
+      assert.strictEqual(await count(), 1, '配對前或手動存書、沒有櫃門紀錄的存書登記');
+      h.addPlaced(legacy.book_id, ctx.door(2).slot_id);
+      assert.strictEqual(await count(), 1, '有櫃門紀錄後以櫃門計，不重複計算');
+
+      const reported = h.addBook({ sellerId: ctx.seller.user_id, cabinet_id: ctx.cabinet.cabinet_id });
+      prisma.rows('cabinet_manual_reports').push({
+        report_id: prisma.nextId('cabinet_manual_reports'), cabinet_id: ctx.cabinet.cabinet_id, user_id: ctx.seller.user_id,
+        kind: 'deposit', order_id: null, book_id: reported.book_id, status: 'pending', pending_key: `deposit:book:${reported.book_id}`
+      });
+      assert.strictEqual(await count(), 2);
+      assert.strictEqual(await count({ includeReports: false }), 1, '確認手動回報時只計入已生效的存書');
+      assert.strictEqual(await doors.predepositQuota(prisma, ctx.cabinet.cabinet_id, ctx.seller.user_id), 0);
+
+      const next = h.addBook({ sellerId: ctx.seller.user_id, cabinet_id: ctx.cabinet.cabinet_id });
+      await rejects(doors.allocate(prisma, {
+        cabinetId: ctx.cabinet.cabinet_id, sellerId: ctx.seller.user_id,
+        units: [{ key: 'b', kind: 'pre_deposit', bookIds: [next.book_id] }]
+      }), 409, 'PREDEPOSIT_LIMIT');
+    }],
+
     ['placeBooks 寫入實體位置並搬移既有紀錄；removeBooks 回傳受影響的櫃門', async () => {
       const ctx = setup();
       const book = h.addBook({ sellerId: ctx.seller.user_id, cabinet_id: ctx.cabinet.cabinet_id });

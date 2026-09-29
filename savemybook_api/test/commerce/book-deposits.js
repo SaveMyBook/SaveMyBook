@@ -41,7 +41,6 @@ const checkout = (token, body = {}) =>
 
 const titlesOf = (userId) => notificationsOf(userId).map((n) => n.title);
 
-// 故障備援的手動回報須經客服確認才生效；回傳確認的回應。
 const reportAndConfirm = async (send) => {
   const pending = await send();
   assert.strictEqual(pending.status, 202, pending.text);
@@ -136,7 +135,6 @@ const tests = [
     assert.strictEqual(inOrder.body.code, 'DEPOSIT_NOT_ALLOWED');
     assert.strictEqual(inOrder.body.message, '此書籍已有進行中的訂單，請依訂單流程存書');
 
-    // 每位賣家在同一書櫃最多一本先行存書，另一本放在其他書櫃。
     const relisted = addBook({ sellerId: seller.user_id, cabinet_id: addCabinet({ name: '公館書櫃' }).cabinet_id });
     addOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: relisted.book_id, status: 'cancelled' });
     assert.strictEqual((await reportAndConfirm(() => depositBook(sellerToken, relisted.book_id))).status, 200);
@@ -260,7 +258,7 @@ const tests = [
 
     const pickup = notificationsOf(buyer.user_id).find((n) => n.title === '書籍已存入書櫃');
     assert.strictEqual(pickup.content, `訂單 ${order.order_no} 的書籍已存放於「台大書櫃」書櫃，即日起可於營業時間內至書櫃以 App 掃描 QR Code 取書。`);
-    const sold = notificationsOf(seller.user_id).find((n) => n.title === '您的書已售出');
+    const sold = notificationsOf(seller.user_id).find((n) => n.title === '書籍已售出');
     assert.strictEqual(sold.content, `訂單 ${order.order_no} 已成立，書籍已存放於書櫃，待買家取書。`);
     assert.ok(!sold.content.includes('七天'));
 
@@ -298,7 +296,7 @@ const tests = [
     assert.strictEqual(orderOf(order.order_id).deposited_at, null);
     assert.strictEqual(prisma.rows('book_deposits').length, 0);
     assert.ok(!titlesOf(buyer.user_id).includes('書籍已存入書櫃'));
-    const sold = notificationsOf(seller.user_id).find((n) => n.title === '您的書已售出');
+    const sold = notificationsOf(seller.user_id).find((n) => n.title === '書籍已售出');
     assert.strictEqual(sold.content, `訂單 ${order.order_no} 已成立，請於七天內至書櫃以 App 掃描 QR Code，存入其餘書籍。`);
 
     const confirm = await reportAndConfirm(() => request('PATCH', `/api/orders/${order.order_id}/status`, {
@@ -314,7 +312,7 @@ const tests = [
 
     const res = await checkout(buyerToken);
     assert.strictEqual(res.body.data[0].status, 'pending_deposit');
-    const sold = notificationsOf(seller.user_id).find((n) => n.title === '您的書已售出');
+    const sold = notificationsOf(seller.user_id).find((n) => n.title === '書籍已售出');
     assert.strictEqual(sold.content, `訂單 ${res.body.data[0].order_no} 已成立，請於七天內至書櫃存書。`);
   }],
 
@@ -775,7 +773,7 @@ const tests = [
 
     const pickups = notificationsOf(buyer.user_id).filter((n) => n.title === '書籍已存入書櫃');
     assert.deepStrictEqual(pickups.map((n) => n.related_id), [stored.order_id]);
-    const soldTo = (userId) => notificationsOf(userId).find((n) => n.title === '您的書已售出').content;
+    const soldTo = (userId) => notificationsOf(userId).find((n) => n.title === '書籍已售出').content;
     assert.strictEqual(soldTo(seller.user_id), `訂單 ${stored.order_no} 已成立，書籍已存放於書櫃，待買家取書。`);
     assert.strictEqual(soldTo(other.user_id), `訂單 ${waiting.order_no} 已成立，請於七天內至書櫃存書。`);
   }],
@@ -795,7 +793,7 @@ const tests = [
     assert.strictEqual(prisma.rows('book_deposits').length, 0);
     assert.deepStrictEqual(prisma.rows('order_items').filter((i) => i.order_id === order.order_id).map((i) => i.pre_deposited), [true, true]);
     assert.ok(!titlesOf(buyer.user_id).includes('書籍已存入書櫃'));
-    assert.strictEqual(notificationsOf(seller.user_id).find((n) => n.title === '您的書已售出').content,
+    assert.strictEqual(notificationsOf(seller.user_id).find((n) => n.title === '書籍已售出').content,
       `訂單 ${order.order_no} 已成立，請於七天內至原存放的書櫃以 App 掃描 QR Code 取回書籍，再存入「台大書櫃」。`);
 
     const single = addBook({ sellerId: seller.user_id, title: '風沙星辰', cabinet_id: cabinet.cabinet_id });
@@ -841,7 +839,7 @@ const tests = [
     const detail = await request('GET', `/api/books/${book.book_id}`, { token: buyerToken });
     assert.strictEqual(detail.body.data.in_cabinet, true);
     const notice = notificationsOf(seller.user_id).find((n) => n.title === '訂單已取消');
-    assert.strictEqual(notice.content, `訂單 ${order.order_no} 已取消。已存放於書櫃的書籍維持存書登記，可繼續販售。原因：買錯了`);
+    assert.strictEqual(notice.content, `訂單 ${order.order_no} 已取消。書櫃中的書籍將繼續販售。原因：買錯了`);
   }],
 
   ['取消：逾期未存書自動取消時恢復存書登記，要求賣家取回並回報後才能重新上架', async () => {
@@ -1102,14 +1100,14 @@ const tests = [
     const admin = addAdmin();
     const token = tokenFor(admin);
     const sellerNotice = (order) => notificationsOf(seller.user_id)
-      .find((n) => n.related_type === 'order' && n.related_id === order.order_id && n.title !== '您的書已售出');
+      .find((n) => n.related_type === 'order' && n.related_id === order.order_id && n.title !== '書籍已售出');
 
     addDeposit(book, { days: 1 });
     addCartItem(buyer.user_id, book.book_id);
     const [open] = (await checkout(buyerToken)).body.data;
     const cancelled = await request('PATCH', `/api/orders/${open.order_id}/cancel`, { token, body: { reason: '系統異常' } });
     assert.strictEqual(cancelled.status, 200, cancelled.text);
-    assert.strictEqual(sellerNotice(open).content, `訂單 ${open.order_no} 已取消。已存放於書櫃的書籍維持存書登記，可繼續販售。原因：系統異常`);
+    assert.strictEqual(sellerNotice(open).content, `訂單 ${open.order_no} 已取消。書櫃中的書籍將繼續販售。原因：系統異常`);
     const buyerNotice = notificationsOf(buyer.user_id).find((n) => n.title === '訂單已取消' && n.related_id === open.order_id);
     assert.strictEqual(buyerNotice.content, `訂單 ${open.order_no} 已取消。原因：系統異常`);
 
@@ -1124,7 +1122,7 @@ const tests = [
     assert.strictEqual(bookOf(pair[1].book_id).status, 'removed');
     assert.ok(depositOf(pair[1].book_id));
     assert.strictEqual(sellerNotice(mixed).content,
-      `訂單 ${mixed.order_no} 已取消。已存放於書櫃的書籍維持存書登記，其中公開販售中的書籍可繼續販售；未公開販售的書籍請至書櫃以 App 掃描 QR Code 取回。`);
+      `訂單 ${mixed.order_no} 已取消。書櫃中公開販售的書籍將繼續販售；其餘書籍請至書櫃以 App 掃描 QR Code 取回。`);
 
     const single = addBook({ sellerId: seller.user_id, title: '人類大地', price: 70, cabinet_id: cabinet.cabinet_id });
     addDeposit(single, { days: 1 });
@@ -1135,11 +1133,11 @@ const tests = [
     assert.strictEqual(changed.status, 200, changed.text);
     const notice = sellerNotice(delisted);
     assert.strictEqual(notice.title, '訂單狀態已更新');
-    assert.ok(!notice.content.includes('可繼續販售'), notice.content);
-    assert.ok(notice.content.includes('已存放於書櫃的書籍維持存書登記；書籍目前未公開販售，請至書櫃以 App 掃描 QR Code 取回。說明：賣家來電取消'),
+    assert.ok(!notice.content.includes('繼續販售'), notice.content);
+    assert.ok(notice.content.includes('書櫃中的書籍目前未公開販售，請至書櫃以 App 掃描 QR Code 取回。說明：賣家來電取消'),
       notice.content);
     const buyerUpdate = notificationsOf(buyer.user_id).find((n) => n.related_id === delisted.order_id && n.title === '訂單狀態已更新');
-    assert.ok(!buyerUpdate.content.includes('存書登記'));
+    assert.ok(!buyerUpdate.content.includes('書櫃中'));
   }],
   ['取消：已取消的訂單再改為已退款時，不為已取回的書重建存書登記', async () => {
     const { buyer, seller, buyerToken, sellerToken, book } = scene();
@@ -1187,7 +1185,7 @@ const tests = [
     assert.strictEqual(balanceOf(buyer.user_id), 400);
   }],
 
-  ['申訴：已存書未取書的訂單裁決退款後，書恢復存書登記但改為下架，通知賣家取回', async () => {
+  ['爭議：已存書未取書的訂單裁決退款後，書恢復存書登記但改為下架，通知賣家取回', async () => {
     const { buyer, seller, buyerToken, sellerToken, book, cabinet } = scene();
     addCartItem(buyer.user_id, book.book_id);
     const [order] = (await checkout(buyerToken)).body.data;
@@ -1207,7 +1205,7 @@ const tests = [
     assert.strictEqual(detail.body.data.in_cabinet, false);
     const notice = notificationsOf(seller.user_id).find((n) => n.title === '爭議案件已裁決');
     assert.strictEqual(notice.content,
-      `訂單 ${order.order_no} 裁決退款給買家，交易已取消。已存放於書櫃的書籍維持存書登記；書籍目前未公開販售，請至書櫃以 App 掃描 QR Code 取回。`);
+      `訂單 ${order.order_no} 裁決退款給買家，交易已取消。書櫃中的書籍目前未公開販售，請至書櫃以 App 掃描 QR Code 取回。`);
 
     const relist = await request('PUT', `/api/books/${book.book_id}`, { token: sellerToken, body: { status: 'on_sale' } });
     assert.strictEqual(relist.body.code, 'RETRIEVAL_REQUIRED');
@@ -1217,7 +1215,7 @@ const tests = [
     assert.strictEqual(depositOf(book.book_id), undefined);
   }],
 
-  ['取回：申訴中的訂單書仍在書櫃時提示請勿取回，未存書者維持未登記', async () => {
+  ['取回：爭議處理中的訂單書仍在書櫃時提示請勿取回，未存書者維持未登記', async () => {
     const { buyer, seller, buyerToken, sellerToken, book } = scene();
     const other = addCabinet({ name: '公館書櫃' });
     const elsewhere = addBook({ sellerId: seller.user_id, title: '夜間飛行', price: 80, cabinet_id: other.cabinet_id });
@@ -1258,7 +1256,7 @@ const tests = [
     assert.strictEqual(bookOf(book.book_id).status, 'on_sale');
     assert.ok(depositOf(book.book_id));
     assert.strictEqual(notificationsOf(seller.user_id).find((n) => n.title === '訂單已取消').content,
-      `訂單 ${order.order_no} 已取消。已存放於書櫃的書籍維持存書登記；書籍目前未公開販售，請至書櫃以 App 掃描 QR Code 取回。`);
+      `訂單 ${order.order_no} 已取消。書櫃中的書籍目前未公開販售，請至書櫃以 App 掃描 QR Code 取回。`);
   }]
 ];
 

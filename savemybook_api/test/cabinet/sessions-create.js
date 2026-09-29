@@ -114,7 +114,7 @@ module.exports = {
       assert.strictEqual((await h.createSession(ctx, ctx.buyerToken, { code })).body.code, 'CABINET_UNAVAILABLE');
     }],
 
-    ['距離過遠被拒；精度超過 500 公尺或定位超過 60 秒改記為無法取得定位並放行；拒絕定位權限時放行並記錄', async () => {
+    ['距離過遠被拒；書櫃旁的新鮮定位可建立作業且不保存座標', async () => {
       const ctx = pickupScene();
       const far = await h.createSession(ctx, ctx.buyerToken, {
         location_status: 'granted', location: { lat: 25.0377, lng: 121.51, accuracy_m: 20, age_ms: 500 }
@@ -123,21 +123,6 @@ module.exports = {
       assert.strictEqual(far.body.code, 'CABINET_TOO_FAR');
       assert.ok(far.body.distance_m > 800);
       assert.strictEqual(far.body.message, `您目前的位置距離書櫃約 ${far.body.distance_m} 公尺，請於書櫃旁操作`);
-
-      const coarse = await h.createSession(ctx, ctx.buyerToken, {
-        location_status: 'granted', location: { lat: 25.0377, lng: 121.51, accuracy_m: 800, age_ms: 500 }
-      });
-      assert.strictEqual(coarse.status, 201, coarse.text);
-      assert.strictEqual(coarse.body.data.location_status, 'unavailable');
-      assert.strictEqual(h.sessionOf(coarse.body.data.session_no).accuracy_m, 800);
-      await h.cancelSession(ctx.buyerToken, coarse.body.data.session_no);
-
-      const stale = await h.createSession(ctx, ctx.buyerToken, {
-        location_status: 'granted', location: { ...HERE, accuracy_m: 10, age_ms: 70000 }
-      });
-      assert.strictEqual(stale.body.data.location_status, 'unavailable');
-      await h.cancelSession(ctx.buyerToken, stale.body.data.session_no);
-      prisma.store.cabinet_sessions.forEach((s) => { s.finished_at = h.ago(3600000); });
 
       const near = await h.createSession(ctx, ctx.buyerToken, { location_status: 'granted', location: { ...HERE, accuracy_m: 12, age_ms: 800 } });
       assert.strictEqual(near.status, 201, near.text);
@@ -148,12 +133,37 @@ module.exports = {
       assert.ok(!('lat' in row) && !('latitude' in row));
     }],
 
-    ['拒絕定位權限時放行，作業記錄 denied', async () => {
+    ['定位為必要條件：拒絕權限、無法取得、精度超過 500 公尺、定位超過 60 秒都拒絕，留下拒絕紀錄且挑戰碼未被用掉', async () => {
       const ctx = pickupScene();
-      const res = await h.createSession(ctx, ctx.buyerToken, { location_status: 'denied' });
+      const code = await h.scan(ctx);
+      const cases = [
+        [{ location_status: 'denied', location: null }, 'CABINET_LOCATION_REQUIRED', '使用書櫃須允許存取位置資訊，請於系統設定中開啟後再試'],
+        [{ location_status: 'unavailable', location: null }, 'CABINET_LOCATION_UNAVAILABLE', '目前無法確認您的位置，請開啟定位服務後再試'],
+        [{ location_status: 'granted', location: { ...HERE, accuracy_m: 800, age_ms: 500 } }, 'CABINET_LOCATION_UNAVAILABLE', null],
+        [{ location_status: 'granted', location: { ...HERE, accuracy_m: 10, age_ms: 70000 } }, 'CABINET_LOCATION_UNAVAILABLE', null]
+      ];
+      for (const [place, errorCode, message] of cases) {
+        const res = await h.createSession(ctx, ctx.buyerToken, { code, ...place });
+        assert.strictEqual(res.status, 403, res.text);
+        assert.strictEqual(res.body.code, errorCode);
+        if (message) assert.strictEqual(res.body.message, message);
+      }
+      const rejected = h.eventsOf('scan_rejected').map((e) => JSON.parse(e.detail).code);
+      assert.deepStrictEqual(rejected, cases.map(([, errorCode]) => errorCode));
+      assert.strictEqual(prisma.rows('cabinet_sessions').length, 0);
+      assert.strictEqual(prisma.rows('cabinet_challenges').filter((c) => c.used_at).length, 0);
+
+      const ok = await h.createSession(ctx, ctx.buyerToken, { code });
+      assert.strictEqual(ok.status, 201, ok.text);
+    }],
+
+    ['管理員遠端開櫃不需定位', async () => {
+      const ctx = pickupScene();
+      const res = await h.request('POST', `/api/admin/cabinets/${ctx.cabinet.cabinet_id}/doors/${h.doorOf(ctx.cabinet.cabinet_id, 2).slot_id}/open`, {
+        token: ctx.adminToken, headers: h.adminVerifyHeaders(ctx.adminToken), body: { reason: '測試' }
+      });
       assert.strictEqual(res.status, 201, res.text);
-      assert.strictEqual(res.body.data.location_status, 'denied');
-      assert.strictEqual(res.body.data.distance_m, null);
+      assert.strictEqual(h.sessionOf(res.body.data.session_no).location_status, null);
     }],
 
     ['掃錯書櫃：訂單情境回 CABINET_WRONG_CABINET 並附訂單的書櫃', async () => {

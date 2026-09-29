@@ -33,6 +33,12 @@ paths:
                           state: { type: string, enum: [idle, running, done, failed] }
                           started_at: { type: string, format: date-time, nullable: true }
                           finished_at: { type: string, format: date-time, nullable: true }
-                      api_revision: { type: integer, description: API 功能版本號，App 可據此判斷伺服器是否已更新。, example: 7 }
+                      api_revision:
+                        type: integer
+                        description: |
+                          API 功能版本號，App 可據此判斷伺服器是否已更新；目前 App 要求 15 以上。
+                          版本 15 新增書櫃掃碼作業（`/api/cabinet-sessions`）與故障備援的手動回報、書櫃裝置配對碼、
+                          以訂單編號（`order_no`）申請爭議，以及 AI 回覆評價、推薦點擊與不感興趣。
+                        example: 15
                       commit: { type: string, nullable: true, description: 伺服器目前執行的 git commit。, example: 41dc4cf }
                       started_at: { type: string, format: date-time, description: API 行程啟動時間。 }

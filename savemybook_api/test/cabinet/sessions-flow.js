@@ -9,7 +9,7 @@ const doorLabels = (session) => session.doors.map((d) => d.label);
 module.exports = {
   name: '書櫃作業：比對、開門與提交',
   tests: [
-    ['開始後進入數字比對：9 個互不相同的兩位數含正確數字，書櫃顯示比對畫面', async () => {
+    ['開始後進入數字比對：書櫃畫面顯示兩位數比對碼，App 與作業內容都不含比對碼', async () => {
       const ctx = h.scene();
       const book = h.listedBook(ctx);
       const order = h.orderFor(ctx, book.book_id, { status: 'deposited' });
@@ -21,12 +21,15 @@ module.exports = {
       assert.strictEqual(session.status, 'selecting');
       assert.strictEqual(session.items[0].key, `order:${order.order_id}`);
       assert.deepStrictEqual(session.items[0].books.map((b) => b.door), ['A02']);
-      assert.strictEqual(session.match, null);
+      assert.ok(!('match' in session));
+      assert.strictEqual(session.notice, null);
 
       const started = await h.startSession(ctx.buyerToken, session.session_no, [`order:${order.order_id}`]);
       assert.strictEqual(started.status, 200, started.text);
-      const code = started.body.data.match.code;
+      const code = h.matchCodeOf(session.session_no);
       assert.ok(code >= 10 && code <= 99);
+      assert.ok(!('match' in started.body.data));
+      assert.ok(!JSON.stringify(started.body.data).includes(`:${code},`));
       assert.strictEqual(started.body.data.status, 'matching');
       assert.deepStrictEqual(doorLabels(started.body.data), ['A02']);
       assert.strictEqual(started.body.data.open_ms, 30000);
@@ -35,14 +38,13 @@ module.exports = {
       const view = state.body.data;
       assert.strictEqual(view.screen, 'match');
       assert.strictEqual(view.qr, null);
-      assert.strictEqual(view.session.choices.length, 9);
-      assert.strictEqual(new Set(view.session.choices).size, 9);
-      assert.ok(view.session.choices.includes(code));
-      assert.ok(view.session.choices.every((n) => n >= 10 && n <= 99));
+      assert.deepStrictEqual(view.message, { code: 'MATCH_PROMPT', params: {} });
+      assert.strictEqual(view.session.code, code);
+      assert.ok(!('choices' in view.session));
       assert.strictEqual(view.session.action, 'pickup');
     }],
 
-    ['點錯數字：作業為 failed／MATCH_FAILED，並釋放書櫃', async () => {
+    ['輸入錯誤數字：回 200，作業為 failed／MATCH_FAILED 並釋放書櫃；事件不記錄輸入值', async () => {
       const ctx = h.scene();
       const book = h.listedBook(ctx);
       h.orderFor(ctx, book.book_id, { status: 'deposited' });
@@ -50,12 +52,21 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.buyerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.buyerToken, no, created.body.data.items.map((i) => i.key));
-      const wrong = h.matchCodeOf(no) === 99 ? 98 : h.matchCodeOf(no) + 1;
+      const code = h.matchCodeOf(no);
+      const wrong = h.wrongCodeOf(no);
 
-      const res = await h.selectNumber(ctx, no, wrong);
-      assert.strictEqual(res.body.data.results[0].status, 'ok');
-      assert.strictEqual(res.body.data.state.screen, 'result');
-      assert.strictEqual(res.body.data.state.message.code, 'RESULT_MATCH_FAILED');
+      const res = await h.enterCode(no, wrong);
+      assert.strictEqual(res.status, 200, res.text);
+      assert.strictEqual(res.body.data.status, 'failed');
+      assert.deepStrictEqual(res.body.data.result, { outcome: 'failed', code: 'MATCH_FAILED', message: '數字不符，本次作業已取消' });
+      const state = await h.deviceState(ctx.token, ctx.bootId);
+      assert.strictEqual(state.body.data.screen, 'result');
+      assert.strictEqual(state.body.data.message.code, 'RESULT_MATCH_FAILED');
+      const [entered] = h.eventsOf('match_entered');
+      assert.strictEqual(entered.source, 'user');
+      assert.deepStrictEqual(JSON.parse(entered.detail), { matched: false });
+      const digits = new RegExp(`"?(${code}|${wrong})"?[,}]`);
+      assert.ok(prisma.rows('cabinet_events').every((e) => !digits.test(e.detail ?? '')), '事件不記錄比對碼或輸入值');
       const row = h.sessionOf(no);
       assert.strictEqual(row.status, 'failed');
       assert.strictEqual(row.result_code, 'MATCH_FAILED');
@@ -63,7 +74,7 @@ module.exports = {
       assert.strictEqual(h.orderOf(prisma.rows('orders')[0].order_id).picked_up_at, null);
     }],
 
-    ['點對數字後產生開鎖指令並記錄送出時間；第一扇門開啟即進入倒數，opened_at 為該門的時間', async () => {
+    ['輸入正確數字後產生開鎖指令並記錄送出時間；第一扇門開啟即進入倒數，opened_at 為該門的時間', async () => {
       const ctx = h.scene();
       const book = h.listedBook(ctx);
       h.orderFor(ctx, book.book_id, { status: 'deposited' });
@@ -72,8 +83,11 @@ module.exports = {
       const no = created.body.data.session_no;
       await h.startSession(ctx.buyerToken, no, created.body.data.items.map((i) => i.key));
 
-      const matched = await h.selectNumber(ctx, no);
-      const state = matched.body.data.state;
+      const matched = await h.enterCode(no);
+      assert.strictEqual(matched.status, 200, matched.text);
+      assert.strictEqual(matched.body.data.status, 'opening');
+      assert.deepStrictEqual(JSON.parse(h.eventsOf('match_entered')[0].detail), { matched: true });
+      const state = (await h.deviceState(ctx.token, ctx.bootId)).body.data;
       assert.strictEqual(state.screen, 'opening');
       assert.strictEqual(state.commands.length, 1);
       assert.strictEqual(state.commands[0].channel, 3);
@@ -118,8 +132,8 @@ module.exports = {
       assert.strictEqual(h.cabinetRow(ctx.cabinet.cabinet_id).available_slots, 4);
       assert.strictEqual(h.deviceRow(ctx.device.device_id).active_session_id, null);
       assert.strictEqual(h.doorsOf(no)[0].state, 'closed');
-      assert.strictEqual(h.doorsOf(no)[0].close_reason, 'button');
-      assert.strictEqual(h.sessionOf(no).close_reason, 'button');
+      assert.strictEqual(h.doorsOf(no)[0].close_reason, 'user_done');
+      assert.strictEqual(h.sessionOf(no).close_reason, 'user_done');
       assert.strictEqual(h.eventsOf('session_finished').length, 1);
     }],
 
@@ -140,7 +154,7 @@ module.exports = {
       assert.deepStrictEqual(started.body.data.items[0].books.map((b) => b.door), ['A01', 'A01', 'A02', 'A02']);
       assert.strictEqual(h.doorOf(ctx.cabinet.cabinet_id, 1).status, 'reserved');
 
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       const { commands } = await h.openDoors(ctx, no);
       assert.deepStrictEqual(commands.map((c) => c.channel), [1, 2]);
       await h.closeSession(ctx, no, { channels: [1, 2] });
@@ -250,13 +264,14 @@ module.exports = {
       assert.strictEqual(h.depositOf(book.book_id), null);
     }],
 
-    ['「取消並關門」不變更狀態；存書櫃門開啟後取消時通知管理員並設為待確認', async () => {
+    ['開門後取消不變更狀態（CANCELLED_AFTER_OPEN）；存書櫃門開啟後取消時通知管理員並設為待確認', async () => {
       const ctx = h.scene();
       const book = h.listedBook(ctx);
       const order = h.orderFor(ctx, book.book_id);
       const { final, no } = await h.runSession(ctx, ctx.sellerToken, { keys: [`order:${order.order_id}`], outcome: 'cancelled' });
       assert.strictEqual(final.status, 'cancelled');
-      assert.strictEqual(final.result.code, 'CANCELLED_AT_CABINET');
+      assert.deepStrictEqual(final.result, { outcome: 'cancelled', code: 'CANCELLED_AFTER_OPEN', message: '本次作業已取消，狀態未變更' });
+      assert.strictEqual(h.sessionOf(no).close_reason, 'user_cancel');
       assert.strictEqual(final.items[0].result, 'skipped');
       assert.strictEqual(h.orderOf(order.order_id).status, 'pending_deposit');
       assert.strictEqual(h.slotItemOf(book.book_id), null);
@@ -277,9 +292,9 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       await h.openDoors(ctx, no);
-      const event = { id: `${ctx.bootId}-900001`, type: 'session_closed', session_id: no, age_ms: 0, data: { outcome: 'completed', reason: 'button' } };
+      const event = { id: `${ctx.bootId}-900001`, type: 'session_closed', session_id: no, age_ms: 0, data: { outcome: 'completed', reason: 'user_done' } };
       const first = await h.request('POST', '/api/device/v1/events', { headers: h.deviceHeaders(ctx.token, ctx.bootId), body: { events: [event] } });
       assert.strictEqual(first.body.data.results[0].status, 'ok');
       const again = await h.request('POST', '/api/device/v1/events', { headers: h.deviceHeaders(ctx.token, ctx.bootId), body: { events: [event] } });
@@ -297,7 +312,7 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       await h.openDoors(ctx, no);
 
       const party = await h.request('PATCH', `/api/orders/${order.order_id}/cancel`, { token: ctx.buyerToken, body: {} });
@@ -333,7 +348,7 @@ module.exports = {
       prisma.rows('cabinet_slot_items').push({
         book_id: other.book_id, slot_id: slot.slot_id, cabinet_id: ctx.cabinet.cabinet_id, session_id: null, placed_by: 'admin', placed_at: new Date()
       });
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       await h.openDoors(ctx, no);
       await h.closeSession(ctx, no, { channels: [1] });
 
@@ -364,8 +379,10 @@ module.exports = {
       await h.sessionsService.sweep(new Date());
       assert.strictEqual(h.sessionOf(no).status, 'expired');
       assert.strictEqual(h.sessionOf(no).result_code, 'MATCH_TIMEOUT');
-      const late = await h.selectNumber(ctx, no);
-      assert.strictEqual(late.body.data.results[0].status, 'rejected');
+      const late = await h.enterCode(no);
+      assert.strictEqual(late.status, 409, late.text);
+      assert.strictEqual(late.body.code, 'CABINET_SESSION_STATE');
+      assert.strictEqual(late.body.session.result.code, 'MATCH_TIMEOUT');
     }],
 
     ['開門中逾時：指令未送出為 DEVICE_NO_RESPONSE；已送出為 DEVICE_NO_ACK，保留櫃門並通知', async () => {
@@ -376,7 +393,7 @@ module.exports = {
       const first = await h.createSession(ctx, ctx.sellerToken);
       const one = first.body.data.session_no;
       await h.startSession(ctx.sellerToken, one, [`order:${order.order_id}`]);
-      await h.sessionsService.handleEvent(ctx.device, { type: 'match_selected', session_id: h.sessionOf(one).session_id, data: { value: h.matchCodeOf(one) } }, new Date());
+      await h.enterCode(one);
       assert.strictEqual(h.sessionOf(one).status, 'opening');
       h.expireSession(one);
       await h.sessionsService.sweep(new Date());
@@ -387,7 +404,8 @@ module.exports = {
       const second = await h.createSession(ctx, ctx.sellerToken);
       const two = second.body.data.session_no;
       await h.startSession(ctx.sellerToken, two, [`order:${order.order_id}`]);
-      await h.selectNumber(ctx, two);
+      await h.enterCode(two);
+      await h.deviceState(ctx.token, ctx.bootId);
       assert.ok(h.doorsOf(two)[0].command_served_at);
       h.expireSession(two);
       const state = await h.deviceState(ctx.token, ctx.bootId);
@@ -410,7 +428,7 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       await h.openDoors(ctx, no);
       h.expireSession(no);
       await h.sessionsService.sweep(new Date());
@@ -433,7 +451,8 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
+      await h.deviceState(ctx.token, ctx.bootId);
       h.expireSession(no);
       await h.sessionsService.sweep(new Date());
       assert.strictEqual(h.sessionOf(no).status, 'needs_review');
@@ -454,7 +473,7 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
-      await h.sessionsService.handleEvent(ctx.device, { type: 'match_selected', session_id: h.sessionOf(no).session_id, data: { value: h.matchCodeOf(no) } }, new Date());
+      await h.enterCode(no);
       h.expireSession(no);
       await h.sessionsService.sweep(new Date());
       assert.strictEqual(h.sessionOf(no).status, 'failed');
@@ -474,7 +493,7 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       await h.openDoors(ctx, no);
       const res = await h.events(ctx, [{ type: 'session_closed', session_id: no, data: { outcome: 'interrupted', reason: 'reboot' } }]);
       assert.strictEqual(res.body.data.results[0].status, 'ok');
@@ -495,7 +514,7 @@ module.exports = {
         const created = await h.createSession(ctx, ctx.sellerToken);
         const no = created.body.data.session_no;
         await h.startSession(ctx.sellerToken, no, [`order:${orderId}`]);
-        await h.selectNumber(ctx, no);
+        await h.enterCode(no);
         await h.openDoors(ctx, no);
         await h.events(ctx, [{ type: 'session_closed', session_id: no, data: { outcome: 'interrupted', reason: 'reboot' } }]);
         return no;
@@ -537,11 +556,11 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       await h.openDoors(ctx, no);
 
       h.failNext('services/orders#markDepositedInTx');
-      const event = { id: `${ctx.bootId}-900100`, type: 'session_closed', session_id: no, age_ms: 0, data: { outcome: 'completed', reason: 'button' } };
+      const event = { id: `${ctx.bootId}-900100`, type: 'session_closed', session_id: no, age_ms: 0, data: { outcome: 'completed', reason: 'user_done' } };
       const failed = await h.request('POST', '/api/device/v1/events', { headers: h.deviceHeaders(ctx.token, ctx.bootId), body: { events: [event] } });
       assert.strictEqual(failed.status, 500);
       const row = h.sessionOf(no);
@@ -570,7 +589,7 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`book:${book.book_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       await h.openDoors(ctx, no);
 
       h.failNext('services/cabinet-commit#commitUnit');
@@ -597,7 +616,7 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       const res = await h.events(ctx, [{ type: 'fault', session_id: no, channel: 1, data: { code: 'LOCK_NO_RELEASE' } }]);
       assert.strictEqual(res.body.data.results[0].status, 'ok');
       assert.strictEqual(h.sessionOf(no).status, 'failed');
@@ -606,19 +625,21 @@ module.exports = {
       assert.strictEqual(res.body.data.state.message.code, 'RESULT_DEVICE_ERROR');
     }],
 
-    ['書櫃取消：比對畫面按取消為 CANCELLED_AT_CABINET，開門後才送出則回 STALE', async () => {
+    ['書櫃不再接受 match_selected 與 session_cancel：回 EVENT_INVALID，作業維持比對中', async () => {
       const ctx = h.scene();
       const book = h.listedBook(ctx);
       const order = h.orderFor(ctx, book.book_id);
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
-      const res = await h.events(ctx, [{ type: 'session_cancel', session_id: no }]);
-      assert.strictEqual(res.body.data.results[0].status, 'ok');
-      assert.strictEqual(h.sessionOf(no).status, 'cancelled');
-      assert.strictEqual(h.sessionOf(no).result_code, 'CANCELLED_AT_CABINET');
-      assert.strictEqual(h.doorOf(ctx.cabinet.cabinet_id, 1).status, 'empty');
-      assert.strictEqual(h.cabinetRow(ctx.cabinet.cabinet_id).available_slots, 4);
+      const res = await h.events(ctx, [
+        { type: 'match_selected', session_id: no, data: { value: h.matchCodeOf(no) } },
+        { type: 'session_cancel', session_id: no }
+      ]);
+      assert.deepStrictEqual(res.body.data.results.map((r) => [r.status, r.code]), [['rejected', 'EVENT_INVALID'], ['rejected', 'EVENT_INVALID']]);
+      assert.strictEqual(h.sessionOf(no).status, 'matching');
+      assert.strictEqual(h.sessionOf(no).matched_at, null);
+      assert.strictEqual(h.eventsOf('match_selected').length, 0);
     }],
 
     ['開始前項目已變更：回 CABINET_ITEMS_CHANGED 並附最新作業，作業維持確認項目；重複開始回 CABINET_SESSION_STATE', async () => {
@@ -695,7 +716,8 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
+      await h.deviceState(ctx.token, ctx.bootId);
       h.expireSession(no);
       await h.sessionsService.sweep(new Date());
       assert.strictEqual(h.sessionOf(no).result_code, 'DEVICE_NO_ACK');
@@ -716,12 +738,12 @@ module.exports = {
       const created = await h.createSession(ctx, ctx.sellerToken);
       const no = created.body.data.session_no;
       await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
-      await h.selectNumber(ctx, no);
+      await h.enterCode(no);
       await h.openDoors(ctx, no);
       const res = await h.cancelSession(ctx.sellerToken, no);
       assert.strictEqual(res.status, 409);
       assert.strictEqual(res.body.code, 'CABINET_SESSION_STATE');
-      assert.strictEqual(res.body.message, '櫃門已開啟，請於書櫃螢幕操作');
+      assert.strictEqual(res.body.message, '櫃門已開啟，無法執行此操作');
       assert.strictEqual(res.body.session.status, 'open');
     }]
   ]

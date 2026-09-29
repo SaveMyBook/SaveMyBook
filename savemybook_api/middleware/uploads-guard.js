@@ -11,7 +11,6 @@ const sanitize = (value, budget) => {
     const out = [];
     for (const item of value) {
       budget.count += 1;
-      // 圖片清單中的失效項目直接移除，前端就不會出現空白格子。
       if (item && typeof item === 'object' && !Array.isArray(item)
           && isUploadUrl(item.image_url) && usableUrl(item.image_url) === null) {
         continue;
@@ -32,7 +31,6 @@ const sanitize = (value, budget) => {
   return value;
 };
 
-// 讀取時若檔案已不存在（例如伺服器上的 uploads 被刪除），回傳 null 並在背景清掉資料庫欄位。
 const uploadsGuard = (req, res, next) => {
   const json = res.json.bind(res);
   res.json = (body) => json(body && typeof body === 'object' ? sanitize(body, { count: 0 }) : body);

@@ -6,8 +6,8 @@ const { badRequest } = require('../../lib/errors');
 const { CONDITION_LEVELS } = require('../../constants/domain');
 const { LISTING_MAX_PRICE: MAX_PRICE } = require('../../constants/policy');
 const books = require('../../services/books');
+const listingAdoption = require('../../services/ai/listing-adoption');
 const deposits = require('../../services/book-deposits');
-const cabinetManual = require('../../services/cabinet-manual');
 
 const PENDING_MESSAGE = '已送出手動回報，待客服確認後生效';
 
@@ -52,7 +52,7 @@ router.post('/', authenticateToken, ...photos.fields(IMAGE_FIELDS.map(({ name, m
 
     const title = v.text(body.title, { label: '書名', max: 255 });
     if (!title || body.price === undefined) {
-      throw badRequest('缺少必要欄位：書名(title) 或 價格(price)');
+      throw badRequest('請填寫書名與售價');
     }
 
     const data = {
@@ -79,6 +79,7 @@ router.post('/', authenticateToken, ...photos.fields(IMAGE_FIELDS.map(({ name, m
 
     const files = IMAGE_FIELDS.flatMap(({ name }) => req.files?.[name] ?? []);
     const { book, moderation } = await books.create(data, images, { files });
+    if (body.ai_suggestion_tokens) listingAdoption.recordSafely(req.user.userId, body.ai_suggestion_tokens, book);
     res.status(201).json({
       success: true,
       message: moderation ? '書籍已送交審核，審核通過後將公開販售' : '書籍上架成功',
@@ -126,18 +127,12 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
 router.post('/:id/deposit', authenticateToken, async (req, res) => {
   const data = await deposits.deposit(v.id(req.params.id, '書籍編號'), req.user);
-  if (cabinetManual.isPending(data)) return res.status(202).json({ success: true, message: PENDING_MESSAGE, data });
-  res.status(201).json({ success: true, message: '已登記存書，買家下單後可直接至書櫃取書', data });
+  res.status(202).json({ success: true, message: PENDING_MESSAGE, data });
 });
 
 router.post('/:id/retrieve', authenticateToken, async (req, res) => {
   const data = await deposits.retrieve(v.id(req.params.id, '書籍編號'), req.user);
-  if (cabinetManual.isPending(data)) return res.status(202).json({ success: true, message: PENDING_MESSAGE, data });
-  res.status(200).json({
-    success: true,
-    message: data.restored ? '已回報取回書籍，書籍已恢復上架' : '已回報取回書籍',
-    data
-  });
+  res.status(202).json({ success: true, message: PENDING_MESSAGE, data });
 });
 
 router.post('/:id/images', authenticateToken, ...photos.array('images', 8), async (req, res) => {

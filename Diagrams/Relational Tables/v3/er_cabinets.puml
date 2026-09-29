@@ -9,7 +9,18 @@ skinparam nodesep 30
 skinparam ranksep 40
 hide circle
 hide empty methods
+left to right direction
 
+entity "books" as books {
+  {field} <&key> book_id : int
+  --
+  ...
+}
+entity "cabinet_sessions" as cabinet_sessions {
+  {field} <&key> session_id : int
+  --
+  ...
+}
 entity "smart_cabinets" as smart_cabinets {
   {field} <&key> cabinet_id : int
   --
@@ -35,6 +46,22 @@ entity "cabinet_slots" as cabinet_slots {
   {field} current_book_id : int
   {field} current_order_id : int
   {field} updated_at : datetime
+  {field} lock_channel : tinyint
+  {field} fault_code : varchar(40)
+  {field} check_required_at : datetime
+  {field} check_session_id : int
+  {field} check_reason : varchar(40)
+  {field} sensor_state : varchar(10)
+  {field} sensor_at : datetime
+}
+entity "cabinet_slot_items" as cabinet_slot_items {
+  {field} <&key> book_id : int
+  --
+  {field} slot_id : int
+  {field} cabinet_id : int
+  {field} session_id : int
+  {field} placed_by : enum
+  {field} placed_at : datetime
 }
 entity "book_deposits" as book_deposits {
   {field} <&key> book_id : int
@@ -61,6 +88,11 @@ entity "reservations" as reservations {
   {field} updated_at : datetime
 }
 smart_cabinets ||--o{ cabinet_slots
-smart_cabinets ||--o{ book_deposits
-smart_cabinets ||--o{ reservations
+books ||--o| cabinet_slot_items
+cabinet_slots ||--o{ cabinet_slot_items
+cabinet_sessions ||--o{ cabinet_slot_items
+books ||--o| book_deposits
+book_deposits }o--|| smart_cabinets
+books ||--o{ reservations
+reservations }o--|| smart_cabinets
 @enduml

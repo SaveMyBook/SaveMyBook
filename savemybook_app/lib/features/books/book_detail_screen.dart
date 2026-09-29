@@ -27,6 +27,7 @@ import '../orders/cart_screen.dart';
 import '../orders/widgets/sticky_pane.dart';
 import '../chat/chat_room_screen.dart';
 import '../selling/book_deposit_actions.dart';
+import '../cabinet/cabinet_entry.dart';
 import '../selling/edit_book_screen.dart';
 import '../home/home_screen.dart';
 import '../home/search_screen.dart';
@@ -179,7 +180,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   bool get _purchasable => _book.status == 'on_sale' && !_book.isReservedByOthers;
 
-  // 直接購買單本書：不經購物車，付款驗證會顯示金額與付款後餘額。
   Future<void> _buyNow() async {
     if (_isBuying || _isAddingToCart) return;
     if (ApiService.authToken == null) {
@@ -263,7 +263,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final roomId = await runBusy(context, () => _api.openChatRoom(userId: _book.sellerId, bookId: _book.bookId));
     if (!mounted) return;
     if (roomId == null) {
-      showAppSnackBar(context, S.signStartChat, isError: true);
+      showAppSnackBar(context, S.couldNotOpenChatPleaseTry, isError: true);
       return;
     }
     Navigator.push(
@@ -761,7 +761,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         color: c.success,
         icon: Icons.verified_rounded,
         title: S.sellerHoldingUntilP0(_formatDeadline(until)),
-        subtitle: S.checkOutBeforeHoldEndsOther,
       );
     }
 
@@ -781,7 +780,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     required Color color,
     required IconData icon,
     required String title,
-    String? subtitle,
   }) {
     return Container(
       key: ValueKey(key),
@@ -799,19 +797,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           Icon(icon, size: 20, color: color),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.3),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.35)),
-                ],
-              ],
+            child: Text(
+              title,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.3),
             ),
           ),
         ],
@@ -918,7 +906,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       ('ISBN', _book.isbn.trim(), true),
       (S.listed3, _book.createdAt.trim(), false),
     ].where((r) => r.$2.isNotEmpty).toList();
-    final autoFilled = _book.autoFilledFields.any((f) => f != 'description');
     if (rows.isEmpty) return const SizedBox.shrink();
 
     return Container(
@@ -946,10 +933,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               ],
             ),
           ],
-          if (autoFilled) ...[
-            const SizedBox(height: 12),
-            Text(S.someDetailsWereFilledAutomaticallyFrom, style: TextStyle(fontSize: 12, color: c.textHint)),
-          ],
         ],
       ),
     );
@@ -962,11 +945,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   Widget _buildDescription(AppColors c) {
-    final source = !_book.autoFilledFields.contains('description')
-        ? null
-        : _book.aiWrittenDescription
-            ? S.summarizedByAiFromBookRecords
-            : S.filledFromIsbnRecord;
+    final source = _book.autoFilledFields.contains('description') && _book.aiWrittenDescription
+        ? S.summarizedByAiFromBookRecords
+        : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1103,7 +1084,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               ],
             ),
           ],
-          if (_isOwnBook && _book.depositKnown && (_book.isDeposited || _book.canRegisterDeposit)) _buildDepositRow(c),
+          if (_isOwnBook && _book.depositKnown && (_book.isDeposited || _book.canRetrieve || _book.canRegisterDeposit)) _buildDepositRow(c),
         ],
       ),
     );
@@ -1111,31 +1092,55 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Widget _buildDepositRow(AppColors c) {
     final deposit = _book.deposit;
+    final location = _book.cabinetLocation;
+    final retrieving = _book.isDeposited || _book.canRetrieve;
+    final pending = _book.hasPendingManualReport;
+    final door = location != null && location.door.isNotEmpty ? location.door : deposit?.door;
+    final stored = [
+      if (deposit != null) storedDaysText(deposit.daysStored) else if (location != null && location.cabinetName.isNotEmpty) location.cabinetName,
+      if (door != null && door.isNotEmpty) CabinetMessages.door(door),
+    ].join('・');
+    final text = pending ? S.manualReportAwaitingConfirmation : (stored.isNotEmpty ? stored : S.notYetLocker);
+    final label = retrieving
+        ? cabinetActionLabel(_book.retrievalAccess, CabinetAction.retrieve)
+        : cabinetActionLabel(_book.cabinetAccess, CabinetAction.preDeposit);
+    final button = SmallActionButton(label: label, filled: true, onTap: pending ? null : _depositAction);
+    final info = [
+      Icon(
+        pending ? Icons.hourglass_top_rounded : Icons.inventory_2_outlined,
+        size: 16,
+        color: pending ? c.warning : (retrieving ? c.accent : c.iconInactive),
+      ),
+      const SizedBox(width: 6),
+      Expanded(
+        child: Text(
+          text,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 13, height: 1.4, color: c.textSecondary),
+        ),
+      ),
+    ];
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Column(
         children: [
           Divider(height: 1, color: c.divider),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Icon(Icons.inventory_2_outlined, size: 16, color: deposit != null ? c.accent : c.iconInactive),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  deposit != null ? storedDaysText(deposit.daysStored) : S.notYetLocker,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13, height: 1.4, color: c.textSecondary),
-                ),
-              ),
-              const SizedBox(width: 8),
-              SmallActionButton(
-                label: deposit != null ? S.retrieve : S.dropOff,
-                filled: true,
-                onTap: _depositAction,
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (SmallActionButton.widthOf(context, label) <= constraints.maxWidth * 0.45) {
+                return Row(children: [...info, const SizedBox(width: 8), button]);
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(children: info),
+                  const SizedBox(height: 8),
+                  Align(alignment: AlignmentDirectional.centerEnd, child: IntrinsicWidth(child: button)),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -1145,7 +1150,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   Future<void> _depositAction() async {
     if (_depositing) return;
     _depositing = true;
-    final sent = _book.isDeposited
+    final sent = _book.isDeposited || _book.canRetrieve
         ? await confirmBookRetrieval(context, _book)
         : await confirmBookDeposit(context, _book);
     _depositing = false;
@@ -1282,7 +1287,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     );
 
     if (_isOwnBook) {
-      // 只有販售中（未被預約保留）與已下架的書可以編輯；已預訂、已售出、已完成的書改顯示目前狀態。
       final canEdit = _book.status == 'removed' || (_book.status == 'on_sale' && !_book.isHeld);
       final lockedStatus = _book.ownerStatusText;
       return Container(
@@ -1397,7 +1401,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       strong = false;
       onTap = _openCart;
     } else {
-      // 可直接購買時，加入購物車改為次要樣式，讓「直接購買」成為主要動作。
       key = 'add';
       label = S.addCart;
       icon = Icons.add_shopping_cart_rounded;

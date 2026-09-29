@@ -91,7 +91,6 @@ class _CartScreenState extends State<CartScreen> {
     });
   }
 
-  // 其他買家預約保留中的書結帳會被伺服器擋下，不讓使用者勾選。
   bool _isAvailable(CartItem item) {
     final myId = ApiService.currentUser?.userId;
     return item.book.status == 'on_sale' &&
@@ -182,7 +181,7 @@ class _CartScreenState extends State<CartScreen> {
     if (mounted) _load();
   }
 
-  // 結帳依賣家拆單，同一筆訂單的每本書都已存於同一書櫃時，訂單才會直接成立為可取書且無法取消。
+  // 伺服器依賣家拆單；同一賣家的書全存於同一書櫃時，該訂單成立後即可取書且無法取消。
   bool _hasImmediatePickup(List<CartItem> items) {
     final groups = <int, List<CartItem>>{};
     for (final item in items) {
@@ -416,8 +415,6 @@ class _CartScreenState extends State<CartScreen> {
 
   Widget _buildSelectAllRow(AppColors c, {required EdgeInsets padding}) {
     final available = _availableItems;
-    final sellers = available.map((i) => i.book.sellerId).toSet().length;
-    final sellersLabel = S.p0Sellers(sellers);
 
     return Padding(
       padding: padding,
@@ -440,7 +437,7 @@ class _CartScreenState extends State<CartScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              sellers > 1 ? '${S.items(available.length)} · $sellersLabel' : S.items(available.length),
+              S.items(available.length),
               textAlign: TextAlign.end,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

@@ -3,7 +3,6 @@ const {
   request, addUser, addBook, addRoom, addReservation, tokenFor, notificationsOf, prisma
 } = require('./harness');
 
-// 預約在買賣雙方的聊天室中提出，因此每個情境都需要一間聊天室。
 const scene = ({ status = 'on_sale', isApproved = true } = {}) => {
   const buyer = addUser({ nickname: '買家' });
   const seller = addUser({ nickname: '賣家' });
@@ -69,7 +68,7 @@ const tests = [
     const notice = notificationsOf(seller.user_id)[0];
     assert.strictEqual(notice.type, 'reservation');
     assert.strictEqual(notice.title, '您的書籍收到預約申請');
-    assert.strictEqual(notice.content, '對方申請預約《小王子》，保留 48 小時。請至聊天室回覆。');
+    assert.strictEqual(notice.content, '買家申請預約《小王子》，保留 48 小時，請至聊天室回覆。');
   }],
 
   ['重複送出預約會被擋下', async () => {

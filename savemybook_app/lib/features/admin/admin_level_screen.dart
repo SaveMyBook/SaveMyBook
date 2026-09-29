@@ -235,21 +235,6 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
                       range: LevelRules.rangeLabel(selected.minPoints, LevelRules.maxPointsOf(_levels, index)),
                       benefits: LevelRules.benefitsOf(selected.benefits),
                     ),
-                    const SizedBox(height: 12),
-                    AppCard(
-                      child: Row(
-                        children: [
-                          Icon(Icons.groups_outlined, color: c.textSecondary),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              S.p0Members(selected.memberCount),
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 16),
                     Row(
                       children: [

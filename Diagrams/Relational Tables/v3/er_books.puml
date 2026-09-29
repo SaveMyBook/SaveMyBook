@@ -71,7 +71,15 @@ entity "recommendation_logs" as recommendation_logs {
   {field} user_id : int
   {field} book_id : int
   {field} rec_type : enum
+  {field} source : varchar(10)
   {field} is_clicked : tinyint(1)
+  {field} clicked_at : datetime
+  {field} created_at : datetime
+}
+entity "recommendation_dismissals" as recommendation_dismissals {
+  {field} <&key> user_id : int
+  {field} <&key> book_id : int
+  --
   {field} created_at : datetime
 }
 entity "reports" as reports {
@@ -99,35 +107,12 @@ entity "content_reviews" as content_reviews {
   {field} created_at : datetime
   {field} reviewed_at : datetime
 }
-entity "ai_book_reviews" as ai_book_reviews {
-  {field} <&key> book_id : int
-  --
-  {field} verdict : varchar(10)
-  {field} reasons : text
-  {field} categories : text
-  {field} status : enum
-  {field} provider : varchar(20)
-  {field} model : varchar(80)
-  {field} created_at : datetime
-  {field} reviewed_by : int
-  {field} reviewed_at : datetime
-}
-entity "ai_book_enrichments" as ai_book_enrichments {
-  {field} <&key> book_id : int
-  --
-  {field} status : varchar(10)
-  {field} fields : varchar(200)
-  {field} ai_written : tinyint(1)
-  {field} attempted_at : datetime
-}
 book_categories ||--o{ books
 book_categories ||--o{ book_categories
 books ||--o{ book_images
 books ||--o{ favorites
 books ||--o{ shopping_cart
 books ||--o{ recommendation_logs
-books ||--o| ai_book_reviews
-books ||--o| ai_book_enrichments
-book_images -[hidden]down- ai_book_reviews
-favorites -[hidden]down- ai_book_enrichments
+books ||--o{ recommendation_dismissals
+book_images -[hidden]down- recommendation_dismissals
 @enduml

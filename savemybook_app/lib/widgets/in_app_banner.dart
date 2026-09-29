@@ -29,8 +29,6 @@ DateTime? _shownAt;
 Timer? _dismissTimer;
 final List<_BannerRequest> _queue = [];
 
-/// 同時收到多則通知時依序顯示，不會讓前一則瞬間被蓋掉；
-/// 同一個對象（例如同一個聊天室）的新通知直接更新目前的橫幅，不重複排隊。
 void showInAppBanner(
   OverlayState overlay, {
   required String title,
@@ -86,7 +84,6 @@ void _present(_BannerRequest request) {
   _scheduleClose();
 }
 
-// 有排隊的通知時縮短停留時間（仍至少顯示 2.5 秒），沒有時顯示 4 秒。
 void _scheduleClose() {
   final entry = _current;
   final shownAt = _shownAt;

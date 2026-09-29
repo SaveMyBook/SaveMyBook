@@ -15,7 +15,6 @@ import 'admin_layout.dart';
 import 'ai/ai_review_tab.dart';
 import 'chat_risk_tab.dart';
 
-/// 內容審核：使用者檢舉（待處理／已處理）、上架審核（規則或 AI 攔下的書籍）與聊天防詐警示。
 class AdminReportScreen extends StatefulWidget {
   static const int listingReviewTab = 2;
   static const int riskAlertTab = 3;
@@ -205,7 +204,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
       if (delist) {
         final ok = await showConfirmDialog(
           context,
-          title: S.delistListingAsWell,
+          title: S.delistListing,
           message: S.p0TakenDownRightAwayOther(report.targetTitle),
           confirmLabel: S.violationConfirmed,
           isDestructive: true,
@@ -291,7 +290,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
             Expanded(
               child: SwipeTabs(
                 controller: _tabController,
-                // 上架審核與防詐警示分頁常駐在背景，切換分頁時不必重新載入，也能即時更新分頁上的待處理數。
+                // 分頁須常駐，分頁上的待處理數由各分頁的 onCountChanged 回報。
                 child: IndexedStack(
                   index: reviewTab ? 1 : riskTab ? 2 : 0,
                   children: [

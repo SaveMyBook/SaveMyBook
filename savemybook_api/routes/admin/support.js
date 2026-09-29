@@ -53,7 +53,8 @@ router.get('/faqs', canEditDocs, async (req, res) => {
 });
 
 router.post('/faqs', canEditDocs, async (req, res) => {
-  const created = await faqs.create(parseFaq(req.body), actorOf(req));
+  const sourceTicketId = v.optionalId(req.body.source_ticket_id, '來源工單編號');
+  const created = await faqs.create({ ...parseFaq(req.body), source_ticket_id: sourceTicketId }, actorOf(req));
   res.status(201).json({ success: true, data: { faq_id: created.faq_id } });
 });
 
@@ -79,6 +80,11 @@ router.get('/tickets', canHandleTickets, async (req, res) => {
   const status = req.query.status;
   if (status && status !== 'all') v.oneOf(status, TICKET_STATUSES, '不支援的工單狀態');
   res.status(200).json({ success: true, data: await support.adminList(status) });
+});
+
+router.get('/tickets/:id/faq-draft', canHandleTickets, async (req, res) => {
+  const ticketId = v.id(req.params.id, '工單編號');
+  res.status(200).json({ success: true, data: await faqs.draftFromTicket(ticketId) });
 });
 
 router.patch('/tickets/:id/status', canHandleTickets, async (req, res) => {

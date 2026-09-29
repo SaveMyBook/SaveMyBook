@@ -410,7 +410,6 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                                 labelWidth: 88,
                                 child: CabinetSelectField(
                                   value: _cabinetId,
-                                  keepSelectableId: widget.book.cabinetId,
                                   enabled: !widget.book.isDeposited,
                                   hint: widget.book.isDeposited && widget.book.cabinetName.isNotEmpty ? widget.book.cabinetName : null,
                                   disabledReason: S.lockerCannotChangedWhileBookStored,

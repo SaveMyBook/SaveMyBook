@@ -19,7 +19,6 @@ const notifySupportStaff = async (actorId, { title, content, ticketId }) => {
   }
 };
 
-// 只附圖片的回覆沒有文字內容，列表摘要改以固定字樣表示。
 const previewOf = (message) => message.content || '[圖片]';
 
 const withImages = (text, count) => (count > 0 ? `${text}，附 ${count} 張圖片。` : `${text}。`);
@@ -45,7 +44,7 @@ const findAccessibleTicket = async (ticketId, user, include) => {
 
   const isOwner = ticket.user_id === user.userId;
   const isStaff = !isOwner && (await hasPermission(user, 'support'));
-  if (!isOwner && !isStaff) throw forbidden('存取被拒');
+  if (!isOwner && !isStaff) throw forbidden();
 
   return { ticket, isStaff };
 };
@@ -62,8 +61,12 @@ const listMine = async (userId) => {
   return tickets.map(shapeTicket);
 };
 
+// 欄位上線前轉接的工單沒有標記，以仍保存的 AI 客服對話判斷。
+const fromAiSupport = async (ticket) => ticket.from_ai_support === true
+  || (await prisma.ai_support_sessions.count({ where: { ticket_id: ticket.ticket_id } })) > 0;
+
 const detail = async (ticketId, user) => {
-  const { ticket } = await findAccessibleTicket(ticketId, user, {
+  const { ticket, isStaff } = await findAccessibleTicket(ticketId, user, {
     users: { select: userBrief },
     messages: {
       orderBy: { created_at: 'asc' },
@@ -72,9 +75,11 @@ const detail = async (ticketId, user) => {
   });
 
   const files = await attachments.forMessages(ticket.messages.map((m) => m.message_id));
+  const fromAi = isStaff ? await fromAiSupport(ticket) : undefined;
 
   return {
     ...shapeTicket(ticket),
+    ...(isStaff && { from_ai_support: fromAi }),
     messages: ticket.messages.map((m) => ({
       message_id: m.message_id,
       content: m.content,
@@ -86,7 +91,7 @@ const detail = async (ticketId, user) => {
   };
 };
 
-const open = async (userId, { subject, category, content, attachmentUrls = [] }) => {
+const open = async (userId, { subject, category, content, attachmentUrls = [], fromAiSupport: aiHandoff = false }) => {
   const openCount = await prisma.support_tickets.count({
     where: { user_id: userId, status: { in: ['open', 'pending'] } }
   });
@@ -97,7 +102,7 @@ const open = async (userId, { subject, category, content, attachmentUrls = [] })
   await attachments.assertClaimable(userId, attachmentUrls);
 
   const ticket = await prisma.$transaction(async (tx) => {
-    const created = await tx.support_tickets.create({ data: { user_id: userId, subject, category } });
+    const created = await tx.support_tickets.create({ data: { user_id: userId, subject, category, from_ai_support: aiHandoff } });
     const message = await tx.support_ticket_messages.create({
       data: { ticket_id: created.ticket_id, sender_id: userId, is_staff: false, content }
     });

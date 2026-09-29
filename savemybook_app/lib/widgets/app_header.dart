@@ -311,7 +311,6 @@ class AppTabBar extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
         final scaler = MediaQuery.textScalerOf(context);
         final perTab = constraints.maxWidth / tabs.length;
-        // 以實際繪製的字型量測：Tab 預設左右各留 16，放不下時先縮成各 10，仍放不下才改為可橫向捲動。
         final style = DefaultTextStyle.of(context).style.merge(labelStyle);
         final widest = tabs.fold<double>(0, (max, t) {
           final painter = TextPainter(

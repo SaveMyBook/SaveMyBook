@@ -17,7 +17,7 @@ const avatarOf = (value) => {
   if (value === undefined) return undefined;
   if (value === null || value === '') return null;
   const url = v.text(value, { label: '群組頭貼網址', max: 500 });
-  if (!CHAT_IMAGE_RE.test(url)) throw badRequest('群組頭貼請先透過 /api/uploads/chat-image 上傳');
+  if (!CHAT_IMAGE_RE.test(url)) throw badRequest('群組頭貼無效，請重新上傳');
   return url;
 };
 
@@ -71,7 +71,7 @@ router.put('/groups/:roomId/members/:userId/nickname', async (req, res) => {
   const roomId = v.id(req.params.roomId, '聊天室編號');
   const userId = v.id(req.params.userId, '使用者編號');
   const { nickname } = req.body ?? {};
-  if (nickname !== null && nickname !== undefined && typeof nickname !== 'string') throw badRequest('nickname 必須為字串');
+  if (nickname !== null && nickname !== undefined && typeof nickname !== 'string') throw badRequest('暱稱格式不正確');
   const value = v.text(nickname ?? '', { label: '群組暱稱', max: members.MAX_GROUP_NICKNAME }) || null;
 
   const data = await groups.setNickname(roomId, req.user.userId, userId, value);

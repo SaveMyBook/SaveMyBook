@@ -140,7 +140,6 @@ class _AdminLevelEditScreenState extends State<AdminLevelEditScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => row.dispose());
   }
 
-  // 換行或貼上多行文字時拆成多筆福利，讓 Enter 直接成為「新增下一筆」。
   void _onBenefitChanged(_BenefitRow row, String value) {
     if (!value.contains(RegExp(r'[\r\n]'))) return;
     final parts = value.split(RegExp(r'\r?\n|\r')).map((e) => e.trim()).toList();

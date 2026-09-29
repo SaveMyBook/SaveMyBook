@@ -1,6 +1,3 @@
-// AI 功能共用的關鍵字檢索：中文沒有空白分詞，採「單字＋相鄰雙字」的 BM25，
-// 不需要向量資料庫或額外的嵌入費用。客服知識庫、書籍顧問與個人化推薦都用這一套排序。
-
 const BM25_K1 = 1.4;
 const BM25_B = 0.6;
 
@@ -23,7 +20,6 @@ const normalize = (text) => String(text ?? '')
 
 const isCjkChar = (token) => token.length === 1 && CJK.test(token);
 
-// 中文取單字與雙字，英數取整個詞。
 const tokenize = (text) => {
   const tokens = [];
   for (const part of normalize(text).split(CJK_SPLIT)) {
@@ -44,7 +40,6 @@ const tokenize = (text) => {
 // 單字權重較低，避免「書」「錢」這類字壓過整個詞。
 const tokenWeight = (token) => (isCjkChar(token) ? 0.35 : 1);
 
-// fields 為 [{ text, weight }]，權重高的欄位（例如書名）等同重複出現數次。
 const termFrequencies = (fields) => {
   const tf = new Map();
   let length = 0;
@@ -57,7 +52,6 @@ const termFrequencies = (fields) => {
   return { tf, length };
 };
 
-// docs 為 [{ id, fields: [{ text, weight }], ...任意資料 }]。
 const buildIndex = (docs) => {
   const entries = docs.map((doc) => ({ doc, ...termFrequencies(doc.fields) }));
   const df = new Map();
@@ -66,7 +60,6 @@ const buildIndex = (docs) => {
   return { entries, df, avgLength: avgLength || 1, size: entries.length };
 };
 
-// parts 為 [{ text, weight }]；同一詞取最高權重，較不重要的部分（例如前文）給較低權重。
 const queryWeights = (parts, expand = (t) => t) => {
   const weights = new Map();
   for (const { text, weight } of parts) {
@@ -92,7 +85,6 @@ const score = (index, entry, weights) => {
   return total;
 };
 
-// 至少要有一個多字詞（雙字或英數詞）命中才算相關，只有零星單字相同的文件不列入。
 const hasStrongMatch = (entry, weights) => {
   for (const token of weights.keys()) if (!isCjkChar(token) && entry.tf.has(token)) return true;
   return false;

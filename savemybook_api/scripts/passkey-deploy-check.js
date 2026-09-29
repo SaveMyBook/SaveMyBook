@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// 通行密鑰的部署檢查：由 verify-deploy.js 呼叫，也可單獨執行 node scripts/passkey-deploy-check.js。
 // 關聯檔一律向正式網域實際抓取：只看環境變數無法發現 nginx 上的佔位內容或轉址。
 const ANDROID_PREFIX = 'android:apk-key-hash:';
 const FINGERPRINT_RE = /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/;

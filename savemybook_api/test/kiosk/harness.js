@@ -1,4 +1,3 @@
-// 模擬書櫃的測試設定：device-core 以假時鐘與假 fetch 驅動，不經過伺服器；路由測試沿用 test/lib 的 Express 應用。
 process.env.CABINET_SIMULATOR = 'true';
 
 const server = require('../lib/server');
@@ -6,10 +5,12 @@ const server = require('../lib/server');
 const { DeviceCore, STORAGE_KEYS } = server.api('views/kiosk/device-core');
 
 const TOKEN = 'smbd_kioskTestToken0000000000000000000000000000';
-const PAIR_CODE = '12345678';
+const PAIR_CODE = '1234-5678';
+const POLL_TOKEN = 'kioskPollToken000000000000000000000000000';
+const PAIR_TTL_MS = 10 * 60 * 1000;
+const PAIR_CLAIM_GRACE_MS = 30000;
+const MATCH_CODE = 37;
 const QR_PAYLOAD = `savemybook://k/${'3f9c0a1b'.repeat(4)}`;
-
-// ---------- 假時鐘 ----------
 
 // fetch 與 res.text() 會經過數次 microtask，以 setImmediate 讓它們全部跑完再推進時間。
 const settle = async () => {
@@ -55,8 +56,6 @@ class FakeClock {
   }
 }
 
-// ---------- 本機儲存 ----------
-
 const memoryStorage = (initial = {}) => {
   const map = new Map(Object.entries(initial));
   return {
@@ -67,8 +66,6 @@ const memoryStorage = (initial = {}) => {
     json: (key) => (map.has(key) ? JSON.parse(map.get(key)) : null)
   };
 };
-
-// ---------- 伺服器畫面 ----------
 
 const doorList = () => [1, 2, 3, 4].map((channel) => ({ channel, label: `A0${channel}`, enabled: true }));
 
@@ -89,17 +86,15 @@ const sessionState = (screen, session, extra = {}) => idleState({
   screen,
   poll_ms: 1000,
   qr: null,
-  session: { phase: screen, action: 'pickup', remaining_ms: 60000, open_ms: 30000, choices: null, doors: [], result: null, ...session },
+  session: { phase: screen, action: 'pickup', remaining_ms: 60000, open_ms: 30000, doors: [], result: null, ...session },
   ...extra
 });
-
-const CHOICES = [37, 12, 85, 41, 66, 90, 23, 58, 74];
 
 const selectState = (id = 'CSKIOSK01', extra = {}) =>
   sessionState('select', { id, remaining_ms: 60000 }, { message: { code: 'SELECT_ON_PHONE', params: {} }, ...extra });
 
-const matchState = (id = 'CSKIOSK01', extra = {}) =>
-  sessionState('match', { id, remaining_ms: 60000, choices: CHOICES }, { message: { code: 'MATCH_PROMPT', params: {} }, ...extra });
+const matchState = (id = 'CSKIOSK01', code = MATCH_CODE) =>
+  sessionState('match', { id, remaining_ms: 60000, code }, { message: { code: 'MATCH_PROMPT', params: {} } });
 
 const openingState = ({ id = 'CSKIOSK01', channels = [2], action = 'pickup', openMs = 30000, expiresInMs = 6000, releaseMs = 800 } = {}) => {
   const labels = channels.map((ch) => `A0${ch}`).join('、');
@@ -115,10 +110,19 @@ const openingState = ({ id = 'CSKIOSK01', channels = [2], action = 'pickup', ope
   });
 };
 
+const openState = ({ id = 'CSKIOSK01', action = 'pickup', openMs = 30000, commands = [] } = {}) => {
+  const screen = action === 'admin' ? 'admin' : 'open';
+  return sessionState(screen, { id, action, remaining_ms: openMs, open_ms: openMs }, {
+    message: { code: action === 'admin' ? 'OPEN_ADMIN' : 'OPEN_PICKUP', params: {} },
+    commands
+  });
+};
+
+const closeCommand = (outcome = 'completed', { id = 'CSKIOSK01', at = 1760000000000 } = {}) =>
+  ({ type: 'close', id: `${id}:close:${at}`, outcome });
+
 const resultState = ({ id = 'CSKIOSK01', code = 'RESULT_DONE', outcome = 'completed' } = {}) =>
   sessionState('result', { id, remaining_ms: 4000, result: { outcome, code } }, { message: { code, params: {} } });
-
-// ---------- 假裝置 API ----------
 
 class FakeDeviceApi {
   constructor(clock) {
@@ -130,7 +134,23 @@ class FakeDeviceApi {
     this.overrides = [];
     this.resultFor = () => ({ status: 'ok' });
     this.onEvents = null;
+    this.pairTtlMs = PAIR_TTL_MS;
+    this.pairIssued = 0;
+    this.pairing = null;
     this.fetch = this.fetch.bind(this);
+  }
+
+  bindPairing() {
+    this.pairing.bound = true;
+    this.pairing.expiresAt = Math.max(this.pairing.expiresAt, this.clock.now() + PAIR_CLAIM_GRACE_MS);
+  }
+
+  expirePairing() {
+    this.pairing.expired = true;
+  }
+
+  pairPaths() {
+    return this.requests.filter((r) => r.path.startsWith('/api/device/v1/pair/')).map((r) => r.path.slice('/api/device/v1/'.length));
   }
 
   respondOnce(match, respond) {
@@ -163,12 +183,31 @@ class FakeDeviceApi {
       return override.respond(req);
     }
 
-    if (req.path === '/api/device/v1/pair') {
-      const code = String(body?.code ?? '').replace(/[-\s]/g, '');
-      if (code !== PAIR_CODE) return json(400, { success: false, code: 'PAIRING_CODE_INVALID', message: '配對碼無效或已逾時' });
-      return json(201, {
+    if (req.path === '/api/device/v1/pair/request' && req.method === 'POST') {
+      this.pairIssued += 1;
+      const digits = String(12345677 + this.pairIssued);
+      this.pairing = {
+        code: `${digits.slice(0, 4)}-${digits.slice(4)}`,
+        pollToken: `${POLL_TOKEN}${this.pairIssued}`,
+        expiresAt: req.at + this.pairTtlMs,
+        bound: false,
+        delivered: false,
+        expired: false
+      };
+      return json(201, { success: true, data: { code: this.pairing.code, poll_token: this.pairing.pollToken, expires_in_ms: this.pairTtlMs, poll_ms: 3000 } });
+    }
+    if (req.path === '/api/device/v1/pair/poll' && req.method === 'POST') {
+      const pairing = this.pairing;
+      const left = pairing ? pairing.expiresAt - req.at : 0;
+      if (!pairing || body?.poll_token !== pairing.pollToken || pairing.delivered || pairing.expired || left <= 0) {
+        return json(410, { success: false, code: 'PAIRING_EXPIRED', message: '配對碼已逾時，請重新取得' });
+      }
+      if (!pairing.bound) return json(200, { success: true, data: { status: 'pending', expires_in_ms: left, poll_ms: 3000 } });
+      pairing.delivered = true;
+      return json(200, {
         success: true,
         data: {
+          status: 'paired',
           token: TOKEN,
           device_no: 'DVKIOSK01',
           cabinet: { cabinet_name: '測試書櫃' },
@@ -229,23 +268,17 @@ const makeDevice = ({ paired = true, storage = memoryStorage(), clock = new Fake
 };
 
 const openDoors = async (device, { channels = [2], action = 'pickup', openMs = 30000, id = 'CSKIOSK01' } = {}) => {
-  const { core, api, clock } = device;
-  api.state = matchState(id);
+  const { api, clock } = device;
+  api.state = openingState({ id, channels, action, openMs });
   await clock.advance(2000);
-  api.onEvents = (events) => {
-    if (events.some((e) => e.type === 'match_selected')) api.state = openingState({ id, channels, action, openMs });
-  };
-  if (!core.tap('match:37')) throw new Error('比對按鈕無法點選');
-  await clock.advance(0);
-  api.onEvents = null;
   await clock.advance(channels.length * 1100);
-  api.state = sessionState('open', { id, action, remaining_ms: openMs, open_ms: openMs }, { message: { code: 'OPEN_PICKUP', params: {} } });
+  api.state = openState({ id, action, openMs });
 };
 
 module.exports = {
   ...server,
-  DeviceCore, STORAGE_KEYS, TOKEN, PAIR_CODE, QR_PAYLOAD, CHOICES,
+  DeviceCore, STORAGE_KEYS, TOKEN, PAIR_CODE, POLL_TOKEN, PAIR_TTL_MS, QR_PAYLOAD, MATCH_CODE,
   FakeClock, FakeDeviceApi, memoryStorage, seededRandom, settle, json,
-  idleState, sessionState, selectState, matchState, openingState, resultState,
+  idleState, sessionState, selectState, matchState, openingState, openState, closeCommand, resultState,
   makeDevice, openDoors
 };

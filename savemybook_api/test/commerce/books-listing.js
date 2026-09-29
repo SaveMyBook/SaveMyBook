@@ -15,7 +15,7 @@ const tests = [
     const { token } = seller();
     const noTitle = await create(token, { price: 100 });
     assert.strictEqual(noTitle.status, 400);
-    assert.strictEqual(noTitle.body.message, '缺少必要欄位：書名(title) 或 價格(price)');
+    assert.strictEqual(noTitle.body.message, '請填寫書名與售價');
 
     const noPrice = await create(token, { title: '小王子' });
     assert.strictEqual(noPrice.status, 400);
@@ -85,7 +85,6 @@ const tests = [
     assert.strictEqual(res.body.data.is_approved, true);
     assert.strictEqual(res.body.data.seller_id, user.user_id);
     assert.strictEqual(res.body.data.quantity, 1);
-    // 只到年份的出版日期會被送成 "2020-"，須去掉尾端的連字號。
     assert.strictEqual(res.body.data.publish_date, '2020');
     assert.strictEqual(res.body.moderation, undefined);
   }],
@@ -104,7 +103,7 @@ const tests = [
       token: tokenFor(other), body: { price: 50 }
     });
     assert.strictEqual(res.status, 403);
-    assert.strictEqual(res.body.message, '存取被拒，您無權限修改他人的商品');
+    assert.strictEqual(res.body.message, '無權限修改此書籍');
   }],
 
   ['書名不可改為空字串', async () => {
@@ -175,7 +174,6 @@ const tests = [
     const res = await request('PUT', `/api/books/${book.book_id}`, { token, body: { status: 'on_sale' } });
     assert.strictEqual(res.status, 200);
     assert.strictEqual(bookOf(book.book_id).status, 'on_sale');
-    // 重新上架不代表通過審核，仍不公開。
     assert.strictEqual(bookOf(book.book_id).is_approved, false);
     assert.strictEqual(res.body.data.review_status, 'pending');
   }],
@@ -200,7 +198,6 @@ const tests = [
     assert.strictEqual(notice.type, 'promotion');
     assert.strictEqual(notice.title, '收藏的書籍已降價');
     assert.strictEqual(notice.content, '《追風箏的孩子》從 200 降至 150 代幣。');
-    // 賣家自己不會收到自己書籍的降價通知。
     assert.strictEqual(notificationsOf(user.user_id).length, 0);
   }],
 
@@ -238,7 +235,7 @@ const tests = [
 
     const forbidden = await request('DELETE', `/api/books/${book.book_id}`, { token: tokenFor(other) });
     assert.strictEqual(forbidden.status, 403);
-    assert.strictEqual(forbidden.body.message, '存取被拒，您無權限刪除他人的書籍');
+    assert.strictEqual(forbidden.body.message, '無權限刪除此書籍');
   }],
 
   ['新增圖片需附檔案，且僅限賣家本人', async () => {
@@ -252,7 +249,7 @@ const tests = [
 
     const forbidden = await request('POST', `/api/books/${book.book_id}/images`, { token: tokenFor(other), body: {} });
     assert.strictEqual(forbidden.status, 403);
-    assert.strictEqual(forbidden.body.message, '存取被拒，您無權限修改他人的商品');
+    assert.strictEqual(forbidden.body.message, '無權限修改此書籍');
   }],
 
   ['刪除圖片', async () => {

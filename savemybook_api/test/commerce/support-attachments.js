@@ -93,7 +93,7 @@ const tests = [
 
     const foreignFolder = await create(['/uploads/chat/1-abc.jpg']);
     assert.strictEqual(foreignFolder.status, 400);
-    assert.strictEqual(foreignFolder.body.message, '圖片請先透過 /api/uploads/support-image 上傳');
+    assert.strictEqual(foreignFolder.body.message, '圖片無效，請重新上傳');
 
     const tooMany = await create([1, 2, 3, 4, 5].map(() => pending(user).url));
     assert.strictEqual(tooMany.body.message, '每則訊息最多附加 4 張圖片');

@@ -34,7 +34,6 @@ const pointsOfMembers = async () => {
   return members.map((m) => effectivePoints(orders.get(m.user_id) ?? 0, m.bonus_points));
 };
 
-/** 後台用：各等級附上目前符合的會員人數。 */
 const listWithMembers = async () => {
   const [levels, points] = await Promise.all([listLevels(), pointsOfMembers()]);
   const counts = new Map(levels.map((l) => [l.level_id, 0]));

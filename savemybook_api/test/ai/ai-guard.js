@@ -144,7 +144,7 @@ module.exports = {
       assert.strictEqual(text.maskRisks('內容豐富！請至 shop.example.com/item?id=3!看看。值得一讀。'), '內容豐富！值得一讀。');
     }],
 
-    ['遮蔽：可指定類別，爭議申訴另遮蔽付款帳號與驗證碼', () => {
+    ['遮蔽：可指定類別，爭議說明另遮蔽付款帳號與驗證碼', () => {
       const categories = ['contact', 'link', 'payment', 'credential'];
       assert.deepStrictEqual(text.risksIn('我的帳戶是 12345678901', { categories }), ['payment']);
       assert.deepStrictEqual(text.risksIn('賣家說：請給我你的驗證碼', { categories }), ['credential']);

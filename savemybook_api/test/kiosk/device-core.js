@@ -2,8 +2,8 @@ const assert = require('assert');
 const h = require('./harness');
 
 const {
-  api, STORAGE_KEYS, TOKEN, QR_PAYLOAD, CHOICES, FakeClock, memoryStorage,
-  idleState, sessionState, selectState, matchState, openingState, resultState, makeDevice, openDoors
+  api, STORAGE_KEYS, TOKEN, POLL_TOKEN, QR_PAYLOAD, FakeClock, memoryStorage,
+  idleState, selectState, matchState, openingState, openState, closeCommand, resultState, makeDevice, openDoors
 } = h;
 
 const { DeviceCore, MESSAGES, LAYOUT, TIMING } = api('views/kiosk/device-core');
@@ -18,7 +18,6 @@ const started = async (opts) => {
   return device;
 };
 
-const types = (events) => events.map((e) => e.type);
 const eventsAfter = (api, index) => api.requests.slice(index).filter((r) => r.path.endsWith('/events')).flatMap((r) => r.body.events);
 
 const unlockTimeline = (views) => {
@@ -81,7 +80,6 @@ const tests = [
     assert.strictEqual(core.view.qr.payload, QR_PAYLOAD);
     assert.ok(Math.abs(core.view.qr.refreshRatio - 20000 / 30000) < 0.01);
     assert.deepStrictEqual(core.view.lines, [MESSAGES.IDLE_SCAN]);
-    assert.deepStrictEqual(core.view.buttons, []);
 
     await clock.advance(1000);
     assert.ok(Math.abs(core.view.qr.refreshRatio - 19000 / 30000) < 0.02);
@@ -114,122 +112,211 @@ const tests = [
     core.stop();
   }],
 
-  ['未配對時以書櫃螢幕的 10 鍵鍵盤配對，成功後直接輪詢 state', async () => {
-    const { api: server, clock, core, storage } = await started({ paired: false });
+  ['未配對時申請配對碼並顯示於螢幕，管理員綁定後以輪詢取得憑證並直接輪詢 state', async () => {
+    const { api: server, clock, core, storage, logs } = await started({ paired: false });
+    const [request] = server.requests;
+    assert.strictEqual(`${request.method} ${request.path}`, 'POST /api/device/v1/pair/request');
+    assert.strictEqual(request.headers.authorization, undefined);
+    assert.match(request.headers['x-device-boot'], BOOT_RE);
+    assert.deepStrictEqual(request.body, { kind: 'simulator', door_count: 4, has_door_sensor: false, unlock_pulse_ms: 800, firmware: 'sim-1.0.0' });
     assert.strictEqual(core.view.screen, 'pairing');
-    assert.strictEqual(server.requests.length, 0);
-    const pairKey = () => core.view.buttons.find((b) => b.id === 'key:pair');
-    assert.strictEqual(pairKey().enabled, false);
-    assert.deepStrictEqual(pairKey().rect, [162, 266, 72, 44]);
+    assert.deepStrictEqual(core.view.lines, ['配對碼', '1234-5678', '請於管理後台輸入此配對碼', '剩餘時間 10:00']);
+    assert.strictEqual(core.view.pairing.code, '1234-5678');
+    assert.strictEqual(core.view.connection, 'online');
 
-    for (const d of '1234567') assert.strictEqual(core.tap(`key:${d}`), true);
-    assert.strictEqual(pairKey().enabled, false);
-    core.tap('key:9');
-    core.tap('key:del');
-    core.tap('key:8');
-    assert.strictEqual(core.view.pairing.digits, '12345678');
-    assert.strictEqual(core.tap('key:0'), false, '滿 8 碼後不再接受輸入');
-    assert.strictEqual(pairKey().enabled, true);
+    await clock.advance(3000);
+    const poll = server.requests[1];
+    assert.strictEqual(`${poll.method} ${poll.path}`, 'POST /api/device/v1/pair/poll');
+    assert.deepStrictEqual(poll.body, { poll_token: `${POLL_TOKEN}1` });
+    assert.strictEqual(poll.headers.authorization, undefined);
+    assert.strictEqual(poll.headers['x-device-boot'], request.headers['x-device-boot']);
+    assert.strictEqual(core.view.lines[3], '剩餘時間 9:57');
+    assert.strictEqual(storage.get(STORAGE_KEYS.token), null);
 
-    core.tap('key:pair');
-    await clock.advance(0);
-    const pair = server.requests[0];
-    assert.strictEqual(pair.path, '/api/device/v1/pair');
-    assert.strictEqual(pair.headers.authorization, undefined);
-    assert.match(pair.headers['x-device-boot'], BOOT_RE);
-    assert.deepStrictEqual(pair.body, {
-      code: '1234-5678', kind: 'simulator', door_count: 4, has_door_sensor: false, unlock_pulse_ms: 800, firmware: 'sim-1.0.0'
-    });
+    server.bindPairing();
+    await clock.advance(3000);
+    assert.deepStrictEqual(server.pairPaths(), ['pair/request', 'pair/poll', 'pair/poll']);
     assert.strictEqual(storage.get(STORAGE_KEYS.token), TOKEN);
     assert.strictEqual(storage.get(STORAGE_KEYS.no), 'DVKIOSK01');
     assert.strictEqual(storage.get(STORAGE_KEYS.cabinet), '測試書櫃');
-
-    const next = server.requests[1];
+    const next = server.requests[3];
     assert.strictEqual(`${next.method} ${next.path}`, 'GET /api/device/v1/state');
-    assert.strictEqual(next.headers['x-device-boot'], pair.headers['x-device-boot']);
+    assert.strictEqual(next.headers['x-device-boot'], request.headers['x-device-boot'], '沿用申請配對碼時的開機代碼');
     assert.strictEqual(next.headers.authorization, `Device ${TOKEN}`);
     assert.strictEqual(core.view.screen, 'idle');
     assert.strictEqual(core.view.deviceNo, 'DVKIOSK01');
     assert.strictEqual(core.view.cabinetName, '測試書櫃');
+
+    await clock.advance(10000);
+    assert.strictEqual(server.pairPaths().length, 3, '取得憑證後不再輪詢配對');
+    const summaries = logs.map((l) => String(l.summary)).join('\n');
+    for (const secret of ['1234', POLL_TOKEN, TOKEN]) assert.ok(!summaries.includes(secret), `紀錄不得含 ${secret}`);
     core.stop();
   }],
 
-  ['配對碼錯誤時顯示配對失敗並清除輸入；pair() 接受含連字號的碼，格式不符時不送出請求', async () => {
-    const { api: server, clock, core } = await started({ paired: false });
-    for (const d of '87654321') core.tap(`key:${d}`);
-    core.tap('key:pair');
+  ['配對碼到期時以原輪詢權杖再查詢一次，回 410 才重新申請；輪詢回 410 時也重新申請', async () => {
+    const { api: server, clock, core } = makeDevice({ paired: false });
+    server.pairTtlMs = 7000;
+    core.start();
     await clock.advance(0);
-    assert.strictEqual(server.requests.length, 1);
+    assert.strictEqual(core.view.lines[3], '剩餘時間 0:07');
+    await clock.advance(6000);
+    assert.deepStrictEqual(server.pairPaths(), ['pair/request', 'pair/poll', 'pair/poll']);
+    assert.strictEqual(core.view.pairing.code, '1234-5678');
+
+    await clock.advance(1000);
+    assert.deepStrictEqual(server.pairPaths().slice(3), ['pair/poll', 'pair/request'], '到期當下先查詢舊碼，回 410 才重新申請');
+    assert.strictEqual(core.view.pairing.code, '1234-5679');
+    assert.strictEqual(server.requests.at(-1).at - server.requests[0].at, 7000);
+
+    server.expirePairing();
+    await clock.advance(3000);
+    assert.deepStrictEqual(server.pairPaths().slice(5), ['pair/poll', 'pair/request']);
+    assert.strictEqual(core.view.pairing.code, '1234-5680');
     assert.strictEqual(core.view.screen, 'pairing');
-    assert.strictEqual(core.view.pairing.error, 'PAIRING_FAILED');
-    assert.strictEqual(core.view.pairing.digits, '');
-
-    const invalid = await core.pair('1234-56');
-    assert.deepStrictEqual(invalid, { ok: false, status: 0, code: 'PAIRING_CODE_INVALID' });
-    assert.strictEqual(server.requests.length, 1);
-
-    const ok = await core.pair(' 1234-5678 ');
-    assert.strictEqual(ok.ok, true);
-    assert.strictEqual(ok.deviceNo, 'DVKIOSK01');
-    assert.strictEqual(server.requests[1].body.code, '1234-5678');
     core.stop();
   }],
 
-  ['比對畫面：9 個數字排成 3×3，點選後送出 match_selected 並顯示處理中直到伺服器回應', async () => {
-    const { api: server, clock, core } = await started();
+  ['管理員於配對碼到期前最後一刻綁定：到期後的查詢仍取得憑證，不重新申請', async () => {
+    const { api: server, clock, core, storage } = makeDevice({ paired: false });
+    server.pairTtlMs = 7000;
+    core.start();
+    await clock.advance(6500);
+    assert.deepStrictEqual(server.pairPaths(), ['pair/request', 'pair/poll', 'pair/poll']);
+    server.bindPairing();
+    await clock.advance(500);
+    assert.deepStrictEqual(server.pairPaths(), ['pair/request', 'pair/poll', 'pair/poll', 'pair/poll']);
+    assert.strictEqual(storage.get(STORAGE_KEYS.token), TOKEN);
+    assert.strictEqual(core.view.screen, 'idle');
+    await clock.advance(10000);
+    assert.strictEqual(server.pairPaths().length, 4);
+    core.stop();
+  }],
+
+  ['配對碼到期後查詢遇到網路失敗時依退避重試舊碼，不連續送出請求', async () => {
+    const { api: server, clock, core } = makeDevice({ paired: false });
+    server.pairTtlMs = 7000;
+    core.start();
+    await clock.advance(6000);
+    server.failures = 2;
+    await clock.advance(1000);
+    assert.deepStrictEqual(server.pairPaths().slice(3), ['pair/poll']);
+    await clock.advance(2000);
+    assert.deepStrictEqual(server.pairPaths().slice(3), ['pair/poll', 'pair/poll']);
+    await clock.advance(4000);
+    assert.deepStrictEqual(server.pairPaths().slice(3), ['pair/poll', 'pair/poll', 'pair/poll', 'pair/request']);
+    assert.strictEqual(core.view.pairing.code, '1234-5679');
+    core.stop();
+  }],
+
+  ['申請或輪詢配對失敗時依原因顯示並重試：模擬器停用、系統維護、連線中斷', async () => {
+    const { api: server, clock, core } = makeDevice({ paired: false });
+    server.respondOnce((r) => r.path.endsWith('/pair/request'), () => h.json(403, { success: false, code: 'DEVICE_DISABLED', message: '模擬書櫃目前未開放' }));
+    core.start();
+    await clock.advance(0);
+    assert.deepStrictEqual(core.view.lines, ['配對碼', '模擬書櫃目前未開放']);
+    assert.strictEqual(core.view.pairing.code, null);
+    await clock.advance(59000);
+    assert.strictEqual(server.pairPaths().length, 1);
+    await clock.advance(1000);
+    assert.strictEqual(server.pairPaths().length, 2);
+    assert.strictEqual(core.view.pairing.code, '1234-5678');
+
+    server.respondOnce((r) => r.path.endsWith('/pair/poll'), () => h.json(503, { success: false, code: 'MAINTENANCE', message: '系統維護中，請稍後再試' }));
+    await clock.advance(3000);
+    assert.deepStrictEqual(core.view.lines, ['配對碼', '系統維護中，請稍後再試']);
+    await clock.advance(5000);
+    assert.strictEqual(core.view.pairing.code, '1234-5678', '恢復後沿用未逾時的配對碼');
+
+    server.failures = 3;
+    await clock.advance(3000 + 2000);
+    assert.strictEqual(core.view.pairing.code, '1234-5678', '連續失敗未達 3 次時仍顯示配對碼');
+    await clock.advance(4000);
+    assert.deepStrictEqual(core.view.lines, ['配對碼', '連線中斷，重新連線中']);
+    assert.strictEqual(core.view.connection, 'offline');
+    await clock.advance(8000);
+    assert.strictEqual(core.view.pairing.code, '1234-5678');
+    assert.strictEqual(core.view.connection, 'online');
+    core.stop();
+  }],
+
+  ['申請配對碼遇到限流時依 Retry-After 重試；配對前切換門磁設定時以新設定重新申請', async () => {
+    const { api: server, clock, core } = makeDevice({ paired: false });
+    server.respondOnce((r) => r.path.endsWith('/pair/request'),
+      () => h.json(429, { success: false, code: 'RATE_LIMITED', message: '操作過於頻繁，請稍後再試' }, { 'retry-after': '20' }));
+    core.start();
+    await clock.advance(0);
+    assert.deepStrictEqual(core.view.lines, ['配對碼', '暫時無法取得配對碼，稍後自動重試']);
+    await clock.advance(19000);
+    assert.strictEqual(server.pairPaths().length, 1);
+    await clock.advance(1000);
+    assert.strictEqual(core.view.pairing.code, '1234-5678');
+
+    core.setOptions({ hasDoorSensor: true });
+    await clock.advance(0);
+    const last = server.requests.at(-1);
+    assert.strictEqual(last.path, '/api/device/v1/pair/request');
+    assert.strictEqual(last.body.has_door_sensor, true);
+    assert.strictEqual(core.view.pairing.code, '1234-5679');
+    core.stop();
+  }],
+
+  ['比對畫面置中顯示伺服器給的兩位數比對碼與倒數，裝置不送出任何比對事件，紀錄不含比對碼', async () => {
+    const { api: server, clock, core, logs } = await started();
     server.state = matchState();
     await clock.advance(2000);
     assert.strictEqual(core.view.screen, 'match');
-    assert.deepStrictEqual(core.view.lines, [MESSAGES.MATCH_PROMPT]);
-    const numbers = core.view.buttons.filter((b) => b.id.startsWith('match:'));
-    assert.deepStrictEqual(numbers.map((b) => b.label), CHOICES.map(String));
-    assert.deepStrictEqual(numbers.map((b) => b.rect), LAYOUT.MATCH.KEYS);
-    assert.deepStrictEqual(core.view.buttons.at(-1), { id: 'abort', label: '取消', primary: false, enabled: true, rect: LAYOUT.MATCH.ABORT });
+    assert.strictEqual(core.view.code, '37');
+    assert.deepStrictEqual(core.view.lines, ['請於手機輸入下列數字', '37', '剩餘 60 秒']);
     assert.strictEqual(core.view.countdown.totalMs, 60000);
 
-    core.setLatency(500);
-    const from = server.requests.length;
-    assert.strictEqual(core.tap('match:37'), true);
-    assert.strictEqual(core.view.screen, 'processing');
-    assert.strictEqual(core.tap('match:12'), false, '只能點選一次');
-    server.onEvents = () => { server.state = resultState({ code: 'RESULT_MATCH_FAILED', outcome: 'failed' }); };
-    await clock.advance(0);
-    assert.strictEqual(core.view.screen, 'processing');
-    const [selected] = eventsAfter(server, from);
-    assert.strictEqual(selected.type, 'match_selected');
-    assert.strictEqual(selected.session_id, 'CSKIOSK01');
-    assert.deepStrictEqual(selected.data, { value: 37 });
+    server.state = matchState('CSKIOSK01', 7);
+    await clock.advance(1000);
+    assert.strictEqual(core.view.code, null, '不是兩位數時不顯示');
+    assert.deepStrictEqual(core.view.lines, ['請於手機輸入下列數字', '剩餘 60 秒']);
 
-    await clock.advance(500);
-    assert.strictEqual(core.view.screen, 'result');
-    assert.deepStrictEqual(core.view.lines, ['數字不符，本次作業已取消']);
-    assert.strictEqual(server.eventsOf('match_selected').length, 1);
+    assert.deepStrictEqual(server.events().map((e) => e.type), ['boot']);
+    assert.ok(logs.every((l) => !String(l.summary).includes('37')));
     core.stop();
   }],
 
-  ['確認項目與比對畫面的「取消」送出 session_cancel', async () => {
+  ['確認項目畫面顯示「書櫃使用中｜請於手機確認項目」與倒數', async () => {
     const { api: server, clock, core } = await started();
     server.state = selectState('CSSELECT1', { poll_ms: 5000 });
     await clock.advance(2000);
     assert.strictEqual(core.view.screen, 'select');
     assert.deepStrictEqual(core.view.lines, ['書櫃使用中', '請於手機確認項目', '剩餘 60 秒']);
-    assert.deepStrictEqual(core.view.buttons.map((b) => [b.id, b.rect]), [['abort', LAYOUT.SELECT.ABORT]]);
     await clock.advance(900);
     assert.strictEqual(core.view.lines[2], '剩餘 60 秒');
     await clock.advance(100);
     assert.strictEqual(core.view.lines[2], '剩餘 59 秒');
+    assert.deepStrictEqual(server.events().map((e) => e.type), ['boot']);
+    core.stop();
+  }],
 
-    core.tap('abort');
+  ['書櫃螢幕只負責顯示：配對至結果的每個畫面都沒有按鈕，裝置不送出比對或取消事件', async () => {
+    const device = makeDevice({ paired: false });
+    const { api: server, clock, core, views } = device;
+    core.start();
     await clock.advance(0);
-    const [cancel] = server.eventsOf('session_cancel');
-    assert.strictEqual(cancel.session_id, 'CSSELECT1');
+    server.bindPairing();
+    await clock.advance(3000);
+    server.state = selectState();
+    await clock.advance(2000);
+    server.state = matchState();
+    await clock.advance(1000);
+    await openDoors(device, { channels: [1] });
+    server.onEvents = (events) => {
+      if (events.some((e) => e.type === 'session_closed')) server.state = resultState();
+    };
+    server.state = openState({ commands: [closeCommand('completed')] });
+    await clock.advance(1000);
 
-    server.state = matchState('CSMATCH01');
-    await clock.advance(5000);
-    assert.strictEqual(core.view.screen, 'match');
-    core.tap('abort');
-    await clock.advance(0);
-    assert.deepStrictEqual(server.eventsOf('session_cancel').map((e) => e.session_id), ['CSSELECT1', 'CSMATCH01']);
+    const screens = new Set(views.map(({ view }) => view.screen));
+    for (const screen of ['pairing', 'idle', 'select', 'match', 'opening', 'open', 'result']) assert.ok(screens.has(screen), screen);
+    assert.ok(views.every(({ view }) => !('buttons' in view)));
+    for (const removed of ['tap', 'tapKey', 'pair']) assert.strictEqual(core[removed], undefined, removed);
+    assert.deepStrictEqual(server.events().filter((e) => e.type === 'match_selected' || e.type === 'session_cancel'), []);
     core.stop();
   }],
 
@@ -243,19 +330,15 @@ const tests = [
       origin(view);
     };
 
-    server.state = matchState();
+    server.state = openingState({ channels: [2, 3], openMs: 45000 });
     await clock.advance(2000);
-    server.onEvents = (events) => {
-      if (events.some((e) => e.type === 'match_selected')) server.state = openingState({ channels: [2, 3], openMs: 45000 });
-    };
-    core.tap('match:37');
-    const tapAt = clock.now();
+    const commandAt = server.requests.at(-1).at;
     await clock.advance(3000);
 
     assert.deepStrictEqual(recordAtFirstPower[0], {
       session_id: 'CSKIOSK01', command_ids: ['CSKIOSK01:2:1', 'CSKIOSK01:3:1'], action: 'pickup', open_ms: 45000
     });
-    const timeline = unlockTimeline(views).map(({ at, channel, on }) => [at - tapAt, channel, on]);
+    const timeline = unlockTimeline(views).map(({ at, channel, on }) => [at - commandAt, channel, on]);
     assert.deepStrictEqual(timeline, [[0, 2, true], [800, 2, false], [1100, 3, true], [1900, 3, false]]);
 
     const opened = server.eventsOf('door_opened');
@@ -265,10 +348,7 @@ const tests = [
     assert.strictEqual(core.view.screen, 'open');
     assert.deepStrictEqual(core.view.lines, ['A02　A03', '請取出 A02、A03 內的書籍後關上櫃門']);
     assert.strictEqual(core.view.countdown.totalMs, 45000);
-    assert.deepStrictEqual(core.view.buttons.map((b) => [b.id, b.label, b.enabled, b.rect]), [
-      ['done', '完成並關門', true, LAYOUT.OPEN.DONE],
-      ['cancel_close', '取消並關門', true, LAYOUT.OPEN.CANCEL]
-    ]);
+    assert.strictEqual(core.view.notice, null);
     assert.deepStrictEqual(core.view.doors.filter((d) => d.open).map((d) => d.channel), [2, 3]);
     core.stop();
   }],
@@ -361,57 +441,99 @@ const tests = [
     const device = await started();
     const { api: server, clock, core } = device;
     await openDoors(device);
+    server.state = openState({ commands: [closeCommand('completed')] });
+    await clock.advance(1000);
+    const closedAt = server.requests.find((r) => r.path.endsWith('/events') && r.body.events.some((e) => e.type === 'session_closed')).at;
+    assert.strictEqual(core.view.screen, 'processing');
     server.state = idleState();
-    core.tap('done');
+    await clock.advance(closedAt + 3900 - clock.now());
     assert.strictEqual(core.view.screen, 'processing');
-    await clock.advance(3900);
-    assert.strictEqual(core.view.screen, 'processing');
-    await clock.advance(200);
+    await clock.advance(400);
     assert.strictEqual(core.view.screen, 'idle');
     core.stop();
   }],
 
-  ['關閉自動關門時倒數結束不回報，按「完成並關門」送出 button', async () => {
+  ['手機按完成：收到 close(completed) 指令時送出各門 door_closed 與 session_closed，原因為 user_done', async () => {
     const device = await started({ options: { autoCloseOnTimeout: false } });
     const { api: server, clock, core } = device;
-    await openDoors(device, { channels: [2] });
+    await openDoors(device, { channels: [2, 3] });
     const from = server.requests.length;
     await clock.advance(31000);
-    assert.deepStrictEqual(eventsAfter(server, from), []);
+    assert.deepStrictEqual(eventsAfter(server, from), [], '關閉自動關門時倒數結束不回報');
     assert.strictEqual(core.view.screen, 'open');
     assert.strictEqual(core.view.countdown.remainingMs, 0);
-    assert.ok(core.view.buttons.every((b) => b.enabled));
 
-    core.tap('done');
-    await clock.advance(0);
-    assert.deepStrictEqual(eventsAfter(server, from).map((e) => [e.type, e.data]), [
-      ['door_closed', { reason: 'button' }],
-      ['session_closed', { outcome: 'completed', reason: 'button' }]
-    ]);
+    server.state = openState({ commands: [closeCommand('completed')] });
+    await clock.advance(3000);
+    assert.deepStrictEqual(eventsAfter(server, from).map((e) => [e.type, e.channel ?? null, e.session_id, e.data]), [
+      ['door_closed', 2, 'CSKIOSK01', { reason: 'user_done' }],
+      ['door_closed', 3, 'CSKIOSK01', { reason: 'user_done' }],
+      ['session_closed', null, 'CSKIOSK01', { outcome: 'completed', reason: 'user_done' }]
+    ], '指令於每次輪詢重送，只執行一次');
+    assert.ok(core.view.doors.every((d) => d.locked && !d.open));
     core.stop();
   }],
 
-  ['「取消並關門」只送出 session_closed(cancelled)', async () => {
+  ['手機按取消：收到 close(cancelled) 指令只送出 session_closed(cancelled, user_cancel)', async () => {
     const device = await started();
-    const { api: server, clock, core } = device;
+    const { api: server, clock } = device;
     await openDoors(device, { channels: [1, 4] });
     const from = server.requests.length;
-    core.tap('cancel_close');
-    await clock.advance(0);
+    server.state = openState({ commands: [closeCommand('cancelled')] });
+    await clock.advance(1000);
     assert.deepStrictEqual(eventsAfter(server, from).map((e) => [e.type, e.session_id, e.data]), [
-      ['session_closed', 'CSKIOSK01', { outcome: 'cancelled', reason: 'cancel_button' }]
+      ['session_closed', 'CSKIOSK01', { outcome: 'cancelled', reason: 'user_cancel' }]
     ]);
+    device.core.stop();
+  }],
+
+  ['close 指令不屬於本機開門中的作業、或本機沒有開門中的作業時忽略', async () => {
+    const device = await started();
+    const { api: server, clock, core } = device;
+    server.state = openState({ commands: [closeCommand('completed')] });
+    await clock.advance(2000);
+    assert.deepStrictEqual(server.events().map((e) => e.type), ['boot']);
+
+    await openDoors(device, { channels: [2] });
+    server.state = openState({ commands: [closeCommand('completed', { id: 'CSOTHER01' }), { type: 'close', id: 'CSKIOSK01:close:1', outcome: 'done' }] });
+    await clock.advance(2000);
+    assert.strictEqual(core.view.screen, 'open');
+    assert.deepStrictEqual(server.eventsOf('session_closed'), []);
     core.stop();
   }],
 
-  ['管理員作業顯示「管理人員作業中」且只有「完成並關門」', async () => {
+  ['開鎖尚未全部完成時收到 close 指令，待全部櫃門處理完才關閉', async () => {
+    const { api: server, clock, core } = await started();
+    server.state = openingState({ channels: [2, 3], releaseMs: 2500 });
+    await clock.advance(5000);
+    assert.strictEqual(core.view.doors[1].open, true);
+    server.state = openState({ commands: [closeCommand('completed')] });
+    await clock.advance(1000);
+    assert.strictEqual(core.view.doors[2].unlocking, true);
+    assert.deepStrictEqual(server.eventsOf('session_closed'), []);
+    assert.strictEqual(core.view.screen, 'open');
+
+    await clock.advance(2000);
+    assert.deepStrictEqual(server.eventsOf('door_opened').map((e) => e.channel), [2, 3]);
+    assert.deepStrictEqual(server.eventsOf('door_closed').map((e) => [e.channel, e.data.reason]), [[2, 'user_done'], [3, 'user_done']]);
+    assert.deepStrictEqual(server.eventsOf('session_closed').map((e) => e.data), [{ outcome: 'completed', reason: 'user_done' }]);
+    core.stop();
+  }],
+
+  ['管理員作業顯示「管理人員作業中」，由後台完成時以 user_done 關閉', async () => {
     const device = await started();
-    const { core } = device;
+    const { api: server, clock, core } = device;
     await openDoors(device, { channels: [3], action: 'admin', openMs: 120000 });
     assert.strictEqual(core.view.screen, 'admin');
     assert.deepStrictEqual(core.view.lines, ['A03', '管理人員作業中']);
-    assert.deepStrictEqual(core.view.buttons.map((b) => b.id), ['done']);
     assert.strictEqual(core.view.countdown.totalMs, 120000);
+    const from = server.requests.length;
+    server.state = openState({ action: 'admin', openMs: 120000, commands: [closeCommand('completed')] });
+    await clock.advance(1000);
+    assert.deepStrictEqual(eventsAfter(server, from).map((e) => [e.type, e.channel ?? null, e.data]), [
+      ['door_closed', 3, { reason: 'user_done' }],
+      ['session_closed', null, { outcome: 'completed', reason: 'user_done' }]
+    ]);
     core.stop();
   }],
 
@@ -426,7 +548,6 @@ const tests = [
     await clock.advance(3000);
     assert.strictEqual(core.view.screen, 'open');
     assert.ok(core.view.countdown.remainingMs <= 24000);
-    assert.strictEqual(core.tap('done'), true);
     core.stop();
   }],
 
@@ -452,28 +573,54 @@ const tests = [
     core.stop();
   }],
 
-  ['門磁模式：門未關時按完成顯示「請先關上櫃門」，全部關上即回報完成', async () => {
+  ['門磁模式：門未關時收到 close 指令顯示「請先關上櫃門」並對每個指令只送一次 close_refused，全部關上後依最後被拒絕的要求結束', async () => {
     const device = await started({ options: { hasDoorSensor: true } });
     const { api: server, clock, core } = device;
     await openDoors(device, { channels: [2, 3] });
     const from = server.requests.length;
-    core.tap('done');
+    server.state = openState({ commands: [closeCommand('completed', { at: 1 })] });
+    await clock.advance(1000);
+    assert.strictEqual(core.view.screen, 'open');
     assert.strictEqual(core.view.notice, '請先關上櫃門');
-    await clock.advance(0);
-    assert.deepStrictEqual(eventsAfter(server, from), []);
+    await clock.advance(3000);
+    assert.strictEqual(core.view.notice, '請先關上櫃門', '門未關上前持續顯示');
+    assert.deepStrictEqual(server.eventsOf('close_refused').map((e) => [e.session_id, e.data]), [
+      ['CSKIOSK01', { command_id: 'CSKIOSK01:close:1', code: 'DOOR_OPEN' }]
+    ]);
 
+    server.state = openState();
     core.setDoorPhysical(2, 'closed');
     await clock.advance(0);
-    assert.strictEqual(core.view.screen, 'open');
+    assert.strictEqual(core.view.notice, '請先關上櫃門');
+    server.state = openState({ commands: [closeCommand('cancelled', { at: 2 })] });
+    await clock.advance(1000);
+    server.state = openState();
     core.setDoorPhysical(3, 'closed');
     await clock.advance(0);
     assert.deepStrictEqual(eventsAfter(server, from).map((e) => [e.type, e.channel ?? null, e.data]), [
+      ['close_refused', null, { command_id: 'CSKIOSK01:close:1', code: 'DOOR_OPEN' }],
       ['door_closed', 2, { reason: 'sensor' }],
+      ['close_refused', null, { command_id: 'CSKIOSK01:close:2', code: 'DOOR_OPEN' }],
       ['door_closed', 3, { reason: 'sensor' }],
-      ['session_closed', null, { outcome: 'completed', reason: 'sensor' }]
+      ['session_closed', null, { outcome: 'cancelled', reason: 'user_cancel' }]
     ]);
-    await clock.advance(3000);
     assert.strictEqual(core.view.notice, null);
+    core.stop();
+  }],
+
+  ['門磁模式：完成被拒絕後關上櫃門以 sensor 完成；取消被拒絕後又要求完成時，以最後的要求為準', async () => {
+    const device = await started({ options: { hasDoorSensor: true } });
+    const { api: server, clock, core } = device;
+    await openDoors(device, { channels: [2] });
+    server.state = openState({ commands: [closeCommand('cancelled', { at: 1 })] });
+    await clock.advance(1000);
+    server.state = openState({ commands: [closeCommand('completed', { at: 2 })] });
+    await clock.advance(1000);
+    assert.deepStrictEqual(server.eventsOf('close_refused').map((e) => e.data.command_id), ['CSKIOSK01:close:1', 'CSKIOSK01:close:2']);
+    server.state = openState();
+    core.setDoorPhysical(2, 'closed');
+    await clock.advance(0);
+    assert.deepStrictEqual(server.eventsOf('session_closed').map((e) => e.data), [{ outcome: 'completed', reason: 'sensor' }]);
     core.stop();
   }],
 
@@ -515,7 +662,8 @@ const tests = [
     assert.deepStrictEqual(server.eventsOf('door_opened').map((e) => e.channel), [3]);
     assert.deepStrictEqual(core.view.lines[0], 'A03');
 
-    core.tap('done');
+    server.state = openState({ commands: [closeCommand('completed')] });
+    await clock.advance(1000);
     core.clearFault(2, 'LOCK_NO_RELEASE');
     await clock.advance(0);
     const cleared = server.eventsOf('fault_cleared');
@@ -564,10 +712,9 @@ const tests = [
     core.setOffline(true);
     await clock.advance(20000);
     assert.strictEqual(core.view.screen, 'open');
-    core.tap('done');
-    await clock.advance(20000);
+    await clock.advance(30000);
     const queued = storage.json(STORAGE_KEYS.queue);
-    assert.deepStrictEqual(queued.map((e) => e.type), ['door_closed', 'session_closed']);
+    assert.deepStrictEqual(queued.map((e) => [e.type, e.data.reason]), [['door_closed', 'timeout'], ['session_closed', 'timeout']]);
     assert.strictEqual(core.view.screen, 'offline');
 
     const from = server.requests.length;
@@ -668,20 +815,26 @@ const tests = [
     await clock.advance(2000);
     assert.strictEqual(core.view.screen, 'pairing');
     for (const key of Object.values(STORAGE_KEYS)) assert.strictEqual(storage.get(key), null, key);
+    assert.strictEqual(core.view.pairing.code, '1234-5678', '回到配對畫面後自動申請新的配對碼');
     const count = server.requests.length;
     await clock.advance(10000);
-    assert.strictEqual(server.requests.length, count);
+    const later = server.requests.slice(count);
+    assert.ok(later.length > 0);
+    assert.ok(later.every((r) => r.path === '/api/device/v1/pair/poll'), '憑證失效後不再輪詢 state');
     core.stop();
   }],
 
-  ['解除配對呼叫 /unpair 並清除本機資料', async () => {
-    const { api: server, core, storage } = await started();
+  ['解除配對呼叫 /unpair、清除本機資料並申請新的配對碼', async () => {
+    const { api: server, clock, core, storage } = await started();
     const result = await core.unpair();
     assert.deepStrictEqual(result, { ok: true, status: 200 });
     assert.strictEqual(server.requests.at(-1).path, '/api/device/v1/unpair');
     assert.strictEqual(server.requests.at(-1).headers.authorization, `Device ${TOKEN}`);
     assert.strictEqual(storage.get(STORAGE_KEYS.token), null);
     assert.strictEqual(core.view.screen, 'pairing');
+    await clock.advance(0);
+    assert.strictEqual(server.requests.at(-1).path, '/api/device/v1/pair/request');
+    assert.strictEqual(core.view.pairing.code, '1234-5678');
     core.stop();
   }],
 
@@ -709,26 +862,26 @@ const tests = [
     core.stop();
   }],
 
-  ['LAYOUT：鍵盤與按鈕矩形落在 240×320 內且互不重疊', () => {
+  ['LAYOUT：畫面元素落在 240×320 內，且沒有任何按鍵或按鈕配置', () => {
     const inside = ([x, y, w, h]) => x >= 0 && y >= LAYOUT.HEADER_HEIGHT && x + w <= LAYOUT.WIDTH && y + h <= LAYOUT.HEIGHT;
-    const overlap = (a, b) => a[0] < b[0] + b[2] && b[0] < a[0] + a[2] && a[1] < b[1] + b[3] && b[1] < a[1] + a[3];
-    const groups = {
-      pairing: LAYOUT.PAIRING.KEYS.map((k) => k.rect).concat(LAYOUT.PAIRING.SLOTS),
-      match: LAYOUT.MATCH.KEYS.concat([LAYOUT.MATCH.ABORT]),
-      open: [LAYOUT.OPEN.DONE, LAYOUT.OPEN.CANCEL]
-    };
-    for (const [name, rects] of Object.entries(groups)) {
-      for (const r of rects) assert.ok(inside(r), `${name} ${r}`);
-      rects.forEach((a, i) => rects.slice(i + 1).forEach((b) => assert.ok(!overlap(a, b), `${name} ${a} / ${b}`)));
+    for (const r of [LAYOUT.PAIRING.BAR, LAYOUT.IDLE.QR, LAYOUT.IDLE.BAR, LAYOUT.MATCH.BAR, LAYOUT.OPEN.MESSAGE, LAYOUT.OPEN.COUNTDOWN]) {
+      assert.ok(inside(r), String(r));
     }
-    assert.deepStrictEqual(LAYOUT.MATCH.KEYS.map(([x, y]) => [x, y]), [
-      [6, 70], [84, 70], [162, 70], [6, 134], [84, 134], [162, 134], [6, 198], [84, 198], [162, 198]
-    ]);
-    assert.deepStrictEqual(LAYOUT.PAIRING.KEYS.map((k) => k.id), [
-      'key:1', 'key:2', 'key:3', 'key:4', 'key:5', 'key:6', 'key:7', 'key:8', 'key:9', 'key:del', 'key:0', 'key:pair'
-    ]);
-    const s = LAYOUT.PAIRING.SLOTS;
-    assert.strictEqual(s[4][0] - (s[3][0] + s[3][2]), 12, '第 4、5 格之間留 12px');
+    const keys = [];
+    const collect = (node) => {
+      if (!node || typeof node !== 'object' || Array.isArray(node)) return;
+      for (const [key, value] of Object.entries(node)) {
+        keys.push(key);
+        collect(value);
+      }
+    };
+    collect(LAYOUT);
+    assert.deepStrictEqual(keys.filter((k) => /KEY|SLOT|ABORT|DONE|CANCEL|BUTTON/.test(k)), []);
+    const P = LAYOUT.PAIRING;
+    assert.ok(P.TITLE_Y < P.CODE_Y && P.CODE_Y < P.PROMPT_Y && P.PROMPT_Y < P.REMAINING_Y && P.REMAINING_Y < P.BAR[1]);
+    const M = LAYOUT.MATCH;
+    assert.ok(M.TITLE_Y < M.CODE_Y && M.CODE_Y < M.REMAINING_Y && M.REMAINING_Y < M.BAR[1]);
+    for (const size of [36, 72]) assert.ok(LAYOUT.FONT_SIZES.includes(size), size);
     assert.deepStrictEqual(TIMING, { ROUNDTRIP_MAX_MS: 3000, LOCK_GAP_MS: 300 });
   }],
 
@@ -736,12 +889,15 @@ const tests = [
     const required = [
       'IDLE_SCAN', 'CLOSED_HOURS', 'MAINTENANCE', 'DISABLED', 'SELECT_ON_PHONE', 'MATCH_PROMPT', 'OPENING', 'OPEN_PICKUP',
       'OPEN_DEPOSIT', 'OPEN_RETRIEVE', 'OPEN_MIXED', 'OPEN_ADMIN', 'RESULT_DONE', 'RESULT_PARTIAL', 'RESULT_CANCELLED',
-      'RESULT_MATCH_FAILED', 'RESULT_TIMEOUT', 'RESULT_DEVICE_ERROR', 'RESULT_REVIEW', 'TITLE', 'PAIRING_PROMPT',
-      'PAIRING_FAILED', 'BTN_DELETE', 'BTN_PAIR', 'OFFLINE', 'SYSTEM_MAINTENANCE', 'DEVICE_DISABLED', 'BOOTING', 'PROCESSING',
-      'CLOSE_DOOR_FIRST', 'BTN_DONE', 'BTN_CANCEL_CLOSE', 'BTN_ABORT'
+      'RESULT_MATCH_FAILED', 'RESULT_TIMEOUT', 'RESULT_DEVICE_ERROR', 'RESULT_REVIEW', 'TITLE', 'PAIRING_TITLE', 'PAIRING_PROMPT',
+      'PAIRING_REMAINING', 'PAIRING_REQUESTING', 'PAIRING_RETRY', 'OFFLINE', 'SYSTEM_MAINTENANCE', 'DEVICE_DISABLED', 'BOOTING',
+      'PROCESSING', 'CLOSE_DOOR_FIRST', 'REMAINING_SECONDS'
     ];
     for (const code of required) assert.ok(MESSAGES[code], code);
+    assert.deepStrictEqual(Object.keys(MESSAGES).filter((k) => k.startsWith('BTN_')), []);
     assert.strictEqual(MESSAGES.TITLE, '智慧書櫃');
+    assert.strictEqual(MESSAGES.MATCH_PROMPT, '請於手機輸入下列數字');
+    assert.strictEqual(MESSAGES.PAIRING_PROMPT, '請於管理後台輸入此配對碼');
     assert.strictEqual(MESSAGES.OPEN_DEPOSIT, '請將書籍放入 {doors} 後關上櫃門');
   }],
 
@@ -779,13 +935,14 @@ const tests = [
     const src = require('fs').readFileSync(require('path').join(h.API_ROOT, 'views/kiosk/device-core.js'), 'utf8');
     assert.match(src, /root\.SmbDeviceCore = factory\(\)/);
     const core = new DeviceCore({ fetch: async () => { throw new Error('unused'); }, storage: memoryStorage(), clock: new FakeClock() });
-    for (const method of ['start', 'stop', 'pair', 'tap', 'setOffline', 'setLatency', 'reboot', 'setDoorPhysical', 'injectFault', 'clearFault', 'setOptions', 'unpair']) {
+    for (const method of ['start', 'stop', 'setOffline', 'setLatency', 'reboot', 'setDoorPhysical', 'injectFault', 'clearFault', 'setOptions', 'unpair']) {
       assert.strictEqual(typeof core[method], 'function', method);
     }
     const view = core.view;
-    for (const key of ['screen', 'header', 'lines', 'qr', 'pairing', 'countdown', 'buttons', 'doors', 'connection', 'deviceNo', 'cabinetName']) {
+    for (const key of ['screen', 'header', 'lines', 'qr', 'pairing', 'code', 'countdown', 'notice', 'doors', 'connection', 'deviceNo', 'cabinetName']) {
       assert.ok(key in view, key);
     }
+    assert.ok(!('buttons' in view));
     assert.deepStrictEqual(Object.keys(view.doors[0]).filter((k) => ['channel', 'label', 'locked', 'open', 'fault'].includes(k)).sort(),
       ['channel', 'fault', 'label', 'locked', 'open']);
   }]

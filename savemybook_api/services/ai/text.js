@@ -99,7 +99,7 @@ const withoutSiteRefs = (text) => text
   .replace(HOST_TOKEN, (m) => (isOfficialUrl(m) ? ' ' : m))
   .replace(LOGIN_ACCOUNT, ' 登入帳號 ');
 
-// allowSiteRefs 會放行本站網址與登入方式說明，只能用於客服回覆：套用在賣家或申訴人撰寫的文字上等於開了繞過的後門。
+// allowSiteRefs 會放行本站網址與登入方式說明，只能用於客服回覆：套用在賣家或爭議申請人撰寫的文字上等於開了繞過的後門。
 const risksIn = (value, { categories = OUTPUT_RISKS, allowSiteRefs = false, identifiersOnly = false, bareDomains = 'all' } = {}) => {
   const normalized = String(value ?? '').normalize('NFKC');
   const text = allowSiteRefs ? withoutSiteRefs(normalized) : normalized;

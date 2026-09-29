@@ -31,17 +31,9 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
   bool _loading = true;
   bool _saving = false;
 
-  /// 展開中的渠道；預設全部收合，一眼只看得到狀態。
   final Set<String> _expanded = {};
 
   bool get _dirty => _bundle != null && _draft != null && !_draft!.sameAs(_bundle!.settings);
-
-  // 憑證缺少時要指出伺服器該補哪一組環境變數，管理員才知道找誰處理。
-  static String _envVarsOf(String id) => switch (id) {
-        AuthProviders.line => 'LINE_CHANNEL_ID、LINE_CHANNEL_SECRET',
-        AuthProviders.discord => 'DISCORD_CLIENT_ID、DISCORD_CLIENT_SECRET',
-        _ => 'FIREBASE_PROJECT_ID / FCM_SERVICE_ACCOUNT_FILE',
-      };
 
   void _toggleExpanded(String id) {
     HapticFeedback.selectionClick();
@@ -233,7 +225,6 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
       );
     }
 
-    // 寬螢幕分兩欄；奇數張時左欄多一張，右欄不會留下半張卡的空洞。
     final split = (cards.length + 1) ~/ 2;
     return AdminColumns(
       spacing: 12,
@@ -281,23 +272,11 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            AuthProviders.labelOf(id),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: c.textPrimary),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            configured && channel.signup ? S.signLinkingDirectSignUpAllowed : S.allowSigningLinkingWithMethod,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 12, color: c.textSecondary),
-                          ),
-                        ],
+                      child: Text(
+                        AuthProviders.labelOf(id),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: c.textPrimary),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -319,7 +298,7 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
               curve: Motion.emphasized,
               alignment: Alignment.topCenter,
               child: !configured
-                  ? _credentialHint(c, id)
+                  ? _credentialHint(c)
                   : expanded
                       ? _channelOptions(c, draft, id, channel)
                       : const SizedBox(width: double.infinity),
@@ -330,9 +309,7 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
     );
   }
 
-  Widget _credentialHint(AppColors c, String id) {
-    final vars = _envVarsOf(id);
-
+  Widget _credentialHint(AppColors c) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
@@ -343,7 +320,7 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              S.credentialsNotSetPleaseConfigureP0(vars),
+              S.credentialsNotSet,
               style: TextStyle(fontSize: 12, height: 1.5, color: c.textSecondary),
             ),
           ),

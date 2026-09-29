@@ -27,7 +27,6 @@ extension PasskeysApi on ApiService {
     return _optionsOf(res);
   }
 
-  /// 成功時與密碼登入相同：存下 Token 並載入使用者資料。
   Future<PasskeyOutcome<void>> passkeyLogin(Map<String, dynamic> assertion) async {
     final device = await DeviceIdentity.describe();
     final res = await _send('POST', '/auth/passkeys/login', body: {'assertion': assertion, ...device});

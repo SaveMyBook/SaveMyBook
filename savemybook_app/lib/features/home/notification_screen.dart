@@ -364,7 +364,7 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
                     HeaderIconButton(icon: Icons.delete_sweep_outlined, onTap: _clearAll),
                   ]
                 : const [],
-            bottom: AppTabBar(controller: _tabs, tabs: [S.alerts, S.announcement]),
+            bottom: AppTabBar(controller: _tabs, tabs: [S.alerts, S.announcements3]),
           ),
           Expanded(
             child: TabBarView(

@@ -88,7 +88,6 @@ const openOrderOf = async (db, bookIds) => {
   return map;
 };
 
-// 放在 cabinetId 書櫃的書能否由賣家掃碼取回（3.8.1 取回細則）；回傳 null 表示不列出。
 const retrievalRule = (book, item, cabinetId) => {
   if (book.status === 'sold') return null;
   const order = item?.orders;
@@ -282,10 +281,16 @@ const buildUnits = async (db, userId, cabinet) => {
   }
   if (preBooks.length > 0) {
     const capacity = await doors.previewCapacity(cabinetId, { sellerId: userId, tx: db });
-    let blocked = null;
-    if (capacity.seller_pre_deposit_doors >= policy.CABINET_PREDEPOSIT_MAX_PER_SELLER) blocked = 'PREDEPOSIT_LIMIT';
-    else if (capacity.pre_deposit_doors < 1) blocked = 'CABINET_FULL';
+    // 本書自己的待確認手動回報不佔用它的額度，賣家才能在裝置恢復後改以掃碼完成同一本書的存書。
+    const reported = new Set((await db.cabinet_manual_reports.findMany({
+      where: { cabinet_id: cabinetId, user_id: Number(userId), kind: 'deposit', status: 'pending', book_id: { in: preBooks.map((b) => Number(b.book_id)) } },
+      select: { book_id: true }
+    })).map((r) => Number(r.book_id)));
     for (const book of preBooks) {
+      const used = capacity.seller_pre_deposit_doors - (reported.has(Number(book.book_id)) ? 1 : 0);
+      let blocked = null;
+      if (used >= policy.CABINET_PREDEPOSIT_MAX_PER_SELLER) blocked = 'PREDEPOSIT_LIMIT';
+      else if (capacity.pre_deposit_doors < 1) blocked = 'CABINET_FULL';
       units.push({
         key: `book:${book.book_id}`, kind: 'pre_deposit', order_id: null, order_no: null, books: [bookEntry(book)],
         blocked, note: null, paused: false
@@ -347,7 +352,7 @@ const resolveContext = async (db, { userId, cabinet, context, units }) => {
   return { effective, keys: sameDoorKeys(units, unit) };
 };
 
-// 依「本人」與「這台書櫃」列出可辦理的單位。context 只決定預設勾選，本人無權時視同未帶（3.8.1）。
+// context 只決定預設勾選，本人無權時視同未帶（3.8.1）。
 const list = async ({ userId, cabinet, context = null, db = prisma, strictContext = true }) => {
   const units = await buildUnits(db, Number(userId), cabinet);
   let resolved = null;

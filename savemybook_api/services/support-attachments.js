@@ -61,13 +61,12 @@ const unlinkUrls = (urls) => {
   }
 };
 
-/** 解析請求中的 attachments 欄位；未帶或空陣列回傳空陣列。 */
 const parseUrls = (value) => {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) throw badRequest('附件格式不正確');
   if (value.length > MAX_PER_MESSAGE) throw badRequest(`每則訊息最多附加 ${MAX_PER_MESSAGE} 張圖片`);
   const urls = value.map((item) => (typeof item === 'string' ? item.trim() : ''));
-  if (urls.some((url) => !URL_RE.test(url))) throw badRequest('圖片請先透過 /api/uploads/support-image 上傳');
+  if (urls.some((url) => !URL_RE.test(url))) throw badRequest('圖片無效，請重新上傳');
   if (new Set(urls).size !== urls.length) throw badRequest('附件不可重複');
   return urls;
 };
@@ -112,7 +111,6 @@ const claim = async (tx, userId, urls, messageId) => {
   }
 };
 
-/** 依訊息編號取得附件，回傳 Map<message_id, [{ url }]>。 */
 const forMessages = async (messageIds, { ttl } = {}) => {
   const map = new Map();
   if (messageIds.length === 0) return map;
@@ -131,7 +129,6 @@ const forMessages = async (messageIds, { ttl } = {}) => {
   return map;
 };
 
-// 本人上傳的附件，以及本人工單內的所有附件（含客服回覆的截圖）一併移除。
 const purgeUser = async (tx, userId) => {
   const rows = await tx.$queryRaw`
     SELECT a.url AS url FROM support_ticket_attachments a

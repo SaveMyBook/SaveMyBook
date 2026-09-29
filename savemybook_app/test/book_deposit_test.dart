@@ -232,7 +232,7 @@ void main() {
       for (final entry in expected.entries) {
         final l = await AppLocalizations.delegate.load(entry.key);
         final messages = [
-          l.confirmP0BeenPlacedP1Once('T', 'C'),
+          l.confirmP0BeenPlacedP1('T', 'C'),
           l.confirmRetrievedP1FromP0('C', 'T'),
           l.confirmStaffRemovedP1FromP0('C', 'T'),
         ];
@@ -244,40 +244,6 @@ void main() {
   });
 
   group('API', () {
-    test('登記存書與回報取回', () async {
-      final sent = <String>[];
-      await http.runWithClient(() async {
-        final api = ApiService();
-        expect(await api.depositBook(5), isNull);
-        expect(await api.depositBook(6), '此書籍已登記存放於書櫃');
-        final restored = await api.retrieveBook(5);
-        expect(restored.error, isNull);
-        expect(restored.restored, isTrue);
-        final sold = await api.retrieveBook(6);
-        expect(sold.error, contains('買家將至書櫃取書'));
-        expect(sold.restored, isFalse);
-      }, () => MockClient((request) async {
-        sent.add('${request.method} ${request.url.path}');
-        if (request.url.path.endsWith('/books/6/deposit')) {
-          return _json(null, status: 409, extra: {'code': 'BOOK_DEPOSITED', 'message': '此書籍已登記存放於書櫃'});
-        }
-        if (request.url.path.endsWith('/books/6/retrieve')) {
-          return _json(null, status: 409, extra: {
-            'code': 'BOOK_SOLD_IN_CABINET',
-            'message': '此書籍已售出（訂單 SMB1），買家將至書櫃取書，請勿取回；如已取出，請儘速放回書櫃',
-          });
-        }
-        if (request.url.path.endsWith('/retrieve')) return _json({'book_id': 5, 'status': 'on_sale', 'restored': true});
-        return _json({'book_id': 5, 'in_cabinet': true}, status: 201);
-      }));
-      expect(sent, [
-        'POST /api/books/5/deposit',
-        'POST /api/books/6/deposit',
-        'POST /api/books/5/retrieve',
-        'POST /api/books/6/retrieve',
-      ]);
-    });
-
     test('結帳與直接購買依伺服器回傳的訂單狀態判斷是否已可取書', () async {
       await http.runWithClient(() async {
         final api = ApiService();
@@ -341,7 +307,18 @@ void main() {
     late List<String> sent;
     late List<String> loads;
 
-    MockClient server({bool restored = true}) => MockClient((request) async {
+    Map<String, dynamic> pendingReport(String kind) => {
+      'report_no': 'MR4K2Q8ZT',
+      'kind': kind,
+      'status': 'pending',
+      'target_status': null,
+      'reason': 'no_device',
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+      'reviewed_at': null,
+      'review_note': null,
+    };
+
+    MockClient server() => MockClient((request) async {
       final path = request.url.path;
       if (const ['POST', 'DELETE', 'PATCH'].contains(request.method)) sent.add('${request.method} $path');
       final orderStatus = RegExp(r'/orders/(\d+)/status$').firstMatch(path);
@@ -366,15 +343,23 @@ void main() {
       if (deposit != null) {
         final id = int.parse(deposit.group(1)!);
         final i = books.indexWhere((b) => b['book_id'] == id);
-        books[i] = {...books[i], 'deposit': _deposit(0), 'in_cabinet': true};
-        return _json({'book_id': id, 'in_cabinet': true}, status: 201);
+        books[i] = {...books[i], 'manual_report': pendingReport('deposit')};
+        return _json(
+          {'book_id': id, 'in_cabinet': false, 'deposit': null, 'manual_report': pendingReport('deposit')},
+          status: 202,
+          extra: {'message': '已送出手動回報，待客服確認後生效'},
+        );
       }
       final retrieve = RegExp(r'/books/(\d+)/retrieve$').firstMatch(path);
       if (retrieve != null) {
         final id = int.parse(retrieve.group(1)!);
         final i = books.indexWhere((b) => b['book_id'] == id);
-        books[i] = {...books[i], 'deposit': null, 'in_cabinet': false, if (restored) 'status': 'on_sale'};
-        return _json({'book_id': id, 'status': books[i]['status'], 'restored': restored});
+        books[i] = {...books[i], 'manual_report': pendingReport('retrieve'), if (books[i]['status'] == 'on_sale') 'status': 'removed'};
+        return _json(
+          {'book_id': id, 'status': books[i]['status'], 'restored': false, 'manual_report': pendingReport('retrieve')},
+          status: 202,
+          extra: {'message': '已送出手動回報，待客服確認後生效'},
+        );
       }
       final detail = RegExp(r'/books/(\d+)$').firstMatch(path);
       if (detail != null) return _json(books.firstWhere((b) => b['book_id'] == int.parse(detail.group(1)!)));
@@ -397,7 +382,7 @@ void main() {
       ];
     });
 
-    testWidgets('銷售紀錄：販售中可登記存書，確認視窗指明書櫃，登記後顯示存放天數與回報取回', (tester) async {
+    testWidgets('銷售紀錄：販售中可回報存書，確認視窗指明書櫃，送出後待客服確認並停用同一動作', (tester) async {
       await http.runWithClient(() async {
         await _pumpScreen(tester, const SalesHistoryScreen(initialTab: 'on_sale'));
         expect(find.text('已售出的書'), findsNothing);
@@ -407,20 +392,20 @@ void main() {
 
         await tester.tap(find.text(S.dropOff).first);
         await _settle(tester);
-        expect(find.text('請確認已將《小王子》放入「台大書櫃」。登記後，買家下單即可直接取書。'), findsOneWidget);
+        expect(find.text('請確認已將《小王子》放入「台大書櫃」。'), findsOneWidget);
         await tester.tap(find.text(S.dropOff).last);
         await _settle(tester);
 
         expect(sent, ['POST /api/books/1/deposit']);
-        expect(find.text(S.dropOffRegistered), findsOneWidget);
-        expect(find.text('今日存入書櫃'), findsOneWidget);
-        expect(find.text(S.dropOff), findsNothing);
-        expect(find.text(S.retrieve), findsNWidgets(3));
+        expect(find.text(S.reportSubmittedTakesEffectAfterSupport), findsOneWidget);
+        final card = find.ancestor(of: find.text('小王子'), matching: find.byType(SaleCardFrame));
+        expect(find.descendant(of: card, matching: find.text(S.manualReportAwaitingConfirmation)), findsOneWidget);
+        expect(tester.widget<FilledButton>(find.descendant(of: card, matching: find.byType(FilledButton))).onPressed, isNull);
         await tester.pump(const Duration(seconds: 4));
       }, server);
     });
 
-    testWidgets('銷售紀錄：逾期暫停販售的書回報取回後恢復上架', (tester) async {
+    testWidgets('銷售紀錄：逾期暫停販售的書回報取回後待客服確認', (tester) async {
       await http.runWithClient(() async {
         await _pumpScreen(tester, const SalesHistoryScreen(initialTab: 'on_sale'));
         final card = find.ancestor(of: find.text('夜間飛行'), matching: find.byType(SaleCardFrame));
@@ -433,8 +418,8 @@ void main() {
         await _settle(tester);
 
         expect(sent, ['POST /api/books/2/retrieve']);
-        expect(find.text(S.retrievalReportedBookBackSale), findsOneWidget);
-        expect(find.text(S.salesPaused), findsNothing);
+        expect(find.text(S.reportSubmittedTakesEffectAfterSupport), findsOneWidget);
+        expect(find.descendant(of: card, matching: find.text(S.manualReportAwaitingConfirmation)), findsOneWidget);
         await tester.pump(const Duration(seconds: 4));
       }, server);
     });
@@ -470,17 +455,18 @@ void main() {
       }, server);
     });
 
-    testWidgets('我的商品：取回後未自動上架時改為可重新上架', (tester) async {
+    testWidgets('我的商品：回報取回後待客服確認，不提供重新上架', (tester) async {
       await http.runWithClient(() async {
         await _pumpScreen(tester, const BookManageScreen(), size: const Size(390, 1400));
         await tester.tap(find.text(S.retrieve).first);
         await _settle(tester);
         await tester.tap(find.text(S.retrieve).last);
         await _settle(tester);
-        expect(find.text(S.retrievalReported), findsOneWidget);
-        expect(find.text(S.relist), findsOneWidget);
+        expect(find.text(S.reportSubmittedTakesEffectAfterSupport), findsOneWidget);
+        expect(find.text(S.manualReportAwaitingConfirmation), findsOneWidget);
+        expect(find.text(S.relist), findsNothing);
         await tester.pump(const Duration(seconds: 4));
-      }, () => server(restored: false));
+      }, server);
     });
 
     testWidgets('書籍頁（賣家）：暫停販售顯示提示並可回報取回', (tester) async {
@@ -493,8 +479,8 @@ void main() {
         await tester.tap(find.text(S.retrieve).last);
         await _settle(tester);
         expect(sent, ['POST /api/books/2/retrieve']);
-        expect(find.text(S.salesPausedPleaseRetrieveBookFrom), findsNothing);
-        expect(find.text(S.dropOff), findsOneWidget, reason: '恢復上架後可再次登記存書');
+        expect(find.text(S.manualReportAwaitingConfirmation), findsOneWidget);
+        expect(tester.widget<SmallActionButton>(find.widgetWithText(SmallActionButton, S.retrieve)).onTap, isNull);
         await tester.pump(const Duration(seconds: 4));
       }, server);
     });
@@ -555,7 +541,7 @@ void main() {
       ]));
     });
 
-    testWidgets('書籍頁（賣家）：未存書的上架書籍可登記存書', (tester) async {
+    testWidgets('書籍頁（賣家）：未存書的上架書籍可回報存書，送出後待客服確認', (tester) async {
       await http.runWithClient(() async {
         await _pumpScreen(tester, BookDetailScreen(book: Book.fromJson(books[0])), size: const Size(390, 1600));
         expect(find.text(S.notYetLocker), findsOneWidget);
@@ -565,8 +551,8 @@ void main() {
         await tester.tap(find.text(S.dropOff).last);
         await _settle(tester);
         expect(sent, ['POST /api/books/1/deposit']);
-        expect(find.text('今日存入書櫃'), findsOneWidget);
-        expect(find.text(S.retrieve), findsOneWidget);
+        expect(find.text(S.manualReportAwaitingConfirmation), findsOneWidget);
+        expect(tester.widget<SmallActionButton>(find.widgetWithText(SmallActionButton, S.dropOff)).onTap, isNull);
         await tester.pump(const Duration(seconds: 4));
       }, server);
     });
@@ -604,7 +590,7 @@ void main() {
         )
         .endToStart!;
 
-    testWidgets('我的商品：存書中的上架書籍左滑取消上架須先確認，並說明須取回回報後才能重新上架', (tester) async {
+    testWidgets('我的商品：存書中的上架書籍左滑取消上架須先確認，並說明須取回後才能重新上架', (tester) async {
       await http.runWithClient(() async {
         await _pumpScreen(tester, const BookManageScreen(), size: const Size(390, 1400));
         final swipe = delistSwipe(tester, 3);
@@ -612,8 +598,8 @@ void main() {
         expect(swipe.label, '取消上架');
         await swipe.onTrigger();
         await _settle(tester);
-        expect(find.text(S.removedFromShopDepositedRetrieveBeforeRelisting('異鄉人')), findsOneWidget);
-        expect(find.textContaining('須先取回書籍並回報，才能重新上架'), findsOneWidget);
+        expect(find.text(S.onceDelistedP0NoLongerAppear2('異鄉人')), findsOneWidget);
+        expect(find.textContaining('須先取回書籍，方可重新上架'), findsOneWidget);
         await tester.tap(find.text(S.actionCancel));
         await _settle(tester);
         expect(sent, isEmpty);
@@ -635,7 +621,7 @@ void main() {
         await _settle(tester);
         final dialog = find.byType(AlertDialog);
         expect(find.descendant(of: dialog, matching: find.text('取消上架')), findsNWidgets(2), reason: '標題與確認按鈕皆為取消上架');
-        expect(find.text(S.removedFromShopDepositedRetrieveBeforeRelisting('異鄉人')), findsOneWidget);
+        expect(find.text(S.onceDelistedP0NoLongerAppear2('異鄉人')), findsOneWidget);
         await tester.tap(find.descendant(of: dialog, matching: find.byType(ElevatedButton)));
         await _settle(tester);
         expect(sent, ['DELETE /api/books/3']);
@@ -645,7 +631,7 @@ void main() {
       }, server);
     });
 
-    testWidgets('我的商品：自書籍頁登記存書後返回，列表重新載入', (tester) async {
+    testWidgets('我的商品：自書籍頁回報存書後返回，列表重新載入', (tester) async {
       await http.runWithClient(() async {
         await _pumpScreen(tester, const BookManageScreen(), size: const Size(390, 1400));
         expect(find.text(S.dropOff), findsOneWidget);
@@ -662,9 +648,7 @@ void main() {
         Navigator.of(tester.element(find.byType(BookDetailScreen))).pop();
         await _settle(tester);
         expect(find.byType(BookDetailScreen), findsNothing);
-        expect(find.text(S.dropOff), findsNothing, reason: '返回後重新載入，已存書的書不再提供登記存書');
-        expect(find.text('今日存入書櫃'), findsOneWidget);
-        expect(find.text(S.retrieve), findsNWidgets(3));
+        expect(find.text(S.manualReportAwaitingConfirmation), findsOneWidget, reason: '返回後重新載入，顯示待客服確認');
         await tester.pump(const Duration(seconds: 4));
       }, server);
     });
@@ -721,7 +705,7 @@ void main() {
 
     Finder manageCard(String title) => find.ancestor(of: find.text(title), matching: find.byType(SwipeActionTile));
 
-    testWidgets('我的商品：已預訂且未存書的書可登記存書', (tester) async {
+    testWidgets('我的商品：已預訂且未存書的書可回報存書', (tester) async {
       books.add(held(5, '預約保留的書'));
       await http.runWithClient(() async {
         await _pumpScreen(tester, const BookManageScreen(), size: const Size(390, 1400));
@@ -732,18 +716,17 @@ void main() {
         final card = manageCard('預約保留的書');
         await tester.tap(find.descendant(of: card, matching: find.text(S.dropOff)));
         await _settle(tester);
-        expect(find.text('請確認已將《預約保留的書》放入「台大書櫃」。登記後，買家下單即可直接取書。'), findsOneWidget);
+        expect(find.text('請確認已將《預約保留的書》放入「台大書櫃」。'), findsOneWidget);
         await tester.tap(find.text(S.dropOff).last);
         await _settle(tester);
 
         expect(sent, ['POST /api/books/5/deposit']);
-        expect(find.descendant(of: card, matching: find.text(S.dropOff)), findsNothing);
-        expect(find.descendant(of: card, matching: find.text('今日存入書櫃')), findsOneWidget);
+        expect(find.descendant(of: card, matching: find.text(S.manualReportAwaitingConfirmation)), findsOneWidget);
         await tester.pump(const Duration(seconds: 4));
       }, server);
     });
 
-    testWidgets('銷售紀錄：預約保留中的上架書籍同樣可登記存書', (tester) async {
+    testWidgets('銷售紀錄：預約保留中的上架書籍同樣可回報存書', (tester) async {
       books.add(held(5, '預約保留的書'));
       await http.runWithClient(() async {
         await _pumpScreen(tester, const SalesHistoryScreen(initialTab: 'on_sale'), size: const Size(390, 1600));
@@ -754,7 +737,7 @@ void main() {
         await tester.tap(find.text(S.dropOff).last);
         await _settle(tester);
         expect(sent, ['POST /api/books/5/deposit']);
-        expect(find.descendant(of: card, matching: find.text(S.retrieve)), findsOneWidget);
+        expect(find.descendant(of: card, matching: find.text(S.manualReportAwaitingConfirmation)), findsOneWidget);
         await tester.pump(const Duration(seconds: 4));
       }, server);
     });
@@ -899,8 +882,8 @@ void main() {
         await tester.tap(find.text(S.retrieve).last);
         await _settle(tester);
         expect(sent, ['POST /api/books/2/retrieve']);
-        expect(find.text('夜間飛行'), findsNothing);
-        expect(filterChip('${S.awaitingRetrieval} 1'), findsOneWidget);
+        expect(find.descendant(of: manageCard('夜間飛行'), matching: find.text(S.manualReportAwaitingConfirmation)), findsOneWidget);
+        expect(filterChip('${S.awaitingRetrieval} 2'), findsOneWidget, reason: '待客服確認前仍列於待取回');
 
         await selectFilter(tester, S.actionAll, delta: -80);
         expect(find.text('自行下架的書'), findsOneWidget);
@@ -936,7 +919,7 @@ void main() {
         await _settle(tester);
         final dialog = find.byType(AlertDialog);
         expect(find.descendant(of: dialog, matching: find.text('取消上架')), findsNWidgets(2), reason: '標題與確認按鈕皆為取消上架');
-        expect(find.text(S.removedFromShopDepositedRetrieveBeforeRelisting('異鄉人')), findsOneWidget);
+        expect(find.text(S.onceDelistedP0NoLongerAppear2('異鄉人')), findsOneWidget);
         await tester.tap(find.descendant(of: dialog, matching: find.byType(ElevatedButton)));
         await _settle(tester);
         expect(sent, ['DELETE /api/books/3']);

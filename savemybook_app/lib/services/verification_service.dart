@@ -125,7 +125,6 @@ class VerificationService {
         }
       }
     }
-    // 已註冊通行密鑰時預設使用通行密鑰，交易密碼面板只留給付款。
     final usePasskey = await _canUsePasskey(request, status);
     if (!ctx.mounted) return null;
 

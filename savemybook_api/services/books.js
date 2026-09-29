@@ -6,6 +6,7 @@ const { LISTING_MAX_IMAGES } = require('../constants/policy');
 const share = require('./share');
 const isbnLookup = require('./isbn-lookup');
 const ranking = require('./ranking');
+const recommendationEvents = require('./recommendation-events');
 const reservations = require('./reservations');
 const { notifyMany } = require('./notify');
 const moderation = require('./ai/moderation');
@@ -14,12 +15,15 @@ const screening = require('./listing-screening');
 const aiImages = require('./ai/images');
 const cabinets = require('./cabinets');
 const catalog = require('./ai/catalog-search');
+const traces = require('./ai/trace');
 const enrichment = require('./ai/enrich');
 const deposits = require('./book-deposits');
 const { violationLocked } = require('./book-violations');
 
 const MAX_IMAGES_PER_BOOK = LISTING_MAX_IMAGES;
 const SELLER_STATUSES = ['on_sale', 'removed'];
+// 書況說明只能在編輯時填寫，同樣會公開在書籍頁，須一併重新審核。
+const MODERATED_FIELDS = ['title', 'author', 'publisher', 'description', 'condition_note'];
 
 const SORTS = {
   newest: { created_at: 'desc' },
@@ -41,7 +45,6 @@ const detailInclude = {
 
 const lookupIsbn = (isbn) => isbnLookup.lookup(isbn);
 
-// 上架時 ISBN 已存成不含連字號的半形數字；關鍵字中的 ISBN 正規化後以 10 碼與 13 碼兩種寫法比對。
 const keywordWhere = (keyword) => {
   const isbn = catalog.isbnOf(keyword);
   return {
@@ -71,6 +74,8 @@ const inIdOrder = async (ids, where = {}) => {
 };
 
 const RELEVANCE_LIMIT = 200;
+const SEARCH_ORIGIN = traces.origin('book_search');
+const SIMILAR_ORIGIN = traces.origin('similar_books');
 
 // 相關度排序：先放混合檢索的結果，再補上字面包含關鍵字但未被檢索排進來的書，避免漏掉只有部分字相符的書名。
 const relevanceIds = async (where, { keyword, categoryIds, viewerId }) => {
@@ -79,6 +84,7 @@ const relevanceIds = async (where, { keyword, categoryIds, viewerId }) => {
     query: keyword,
     limit: RELEVANCE_LIMIT,
     userId: viewerId ?? null,
+    trace: SEARCH_ORIGIN,
     filter: categories.size > 0 ? (doc) => categories.has(doc.category_id) : null
   });
   const literal = await prisma.books.findMany({
@@ -116,7 +122,6 @@ const list = async ({ skip, limit, sort, viewerId, ...filters }) => {
   return { total, books: await deposits.withCabinetFlag(shaped, { owner: filters.ownView }) };
 };
 
-// 賣家自己的書籍清單附上預約保留資訊，書籍管理據此列入「已預定」。
 const withHolds = async (list) => {
   const onSale = list.filter((b) => b.status === 'on_sale').map((b) => b.book_id);
   if (onSale.length === 0) return list;
@@ -128,7 +133,8 @@ const withHolds = async (list) => {
 };
 
 const recommended = async (viewerId, viewedIds, limit) => {
-  const ids = (await ranking.recommendedIds(viewerId, viewedIds)).slice(0, limit);
+  const [ranked, dismissed] = await Promise.all([ranking.recommendedIds(viewerId, viewedIds), recommendationEvents.dismissedIds(viewerId)]);
+  const ids = ranked.filter((id) => !dismissed.has(Number(id))).slice(0, limit);
   return inIdOrder(ids, { status: 'on_sale', is_approved: true });
 };
 
@@ -148,6 +154,7 @@ const similar = async (bookId, viewerId) => {
   const ids = await catalog.similar(book, {
     limit: SIMILAR_LIMIT,
     userId: viewerId ?? null,
+    trace: SIMILAR_ORIGIN,
     filter: viewerId ? (doc) => doc.seller_id !== viewerId : null
   });
   return inIdOrder(ids, { status: 'on_sale', is_approved: true });
@@ -205,10 +212,14 @@ const assertRefsExist = async ({ categoryId, cabinetId }, current = {}) => {
 
 const pendingReview = (decision) => ({ status: 'pending_review', reasons: decision.reasons });
 
+// 書籍與照片已寫入，審核紀錄寫入失敗不能讓請求回 500：App 重送會重複新增照片、重複審核與計費。
+const markSafely = (bookId, decision, options) => reviews.mark(prisma, bookId, decision, options)
+  .catch((err) => console.error('[寫入上架審核紀錄失敗]:', err.message));
+
 const create = async (data, images, { files = [] } = {}) => {
   await assertRefsExist({ categoryId: data.category_id, cabinetId: data.cabinet_id });
 
-  const ruled = await screening.ruleDecision(data);
+  const { decision: ruled, hint, peer } = await screening.ruleDecision(data);
   const created = await prisma.$transaction(async (tx) => {
     const row = await tx.books.create({ data: ruled ? { ...data, is_approved: false } : data });
     if (images.length > 0) {
@@ -219,7 +230,7 @@ const create = async (data, images, { files = [] } = {}) => {
     if (ruled) await screening.hold(tx, row, ruled);
     return row;
   });
-  if (!ruled) screening.screenLater(created, files);
+  screening.screenLater(created, files, { hint, peer, held: Boolean(ruled) });
   if (enrichment.FIELDS.some((f) => !String(created[f] ?? '').trim())) enrichment.later(created.book_id);
 
   return {
@@ -234,13 +245,6 @@ const findOwnedBook = async (bookId, user, deniedMessage) => {
   if (book.seller_id !== user.userId && user.role !== 'admin') throw forbidden(deniedMessage);
   return book;
 };
-
-const firstImageUrls = async (bookId, max = 2) => (await prisma.book_images.findMany({
-  where: { book_id: bookId },
-  orderBy: { image_id: 'asc' },
-  take: max,
-  select: { image_url: true }
-})).map((i) => i.image_url);
 
 // 已違規下架的書不可轉為待審核：待審核不算違規鎖定，會讓賣家得以自行重新上架。
 const reviewPlan = async (book, decision) => {
@@ -278,7 +282,7 @@ const allowedStatuses = (user) => (user.role === 'admin' ? BOOK_STATUSES : SELLE
 
 const update = async (bookId, user, data) => {
   const isAdmin = user.role === 'admin';
-  const book = await findOwnedBook(bookId, user, '存取被拒，您無權限修改他人的商品');
+  const book = await findOwnedBook(bookId, user, '無權限修改此書籍');
   if (!isAdmin) await reservations.assertNotHeld(bookId);
 
   if (data.status === 'on_sale' && book.status !== 'on_sale' && !isAdmin) {
@@ -300,17 +304,23 @@ const update = async (bookId, user, data) => {
   await assertRefsExist({ categoryId: data.category_id, cabinetId: data.cabinet_id }, book);
 
   const changed = (field) => data[field] !== undefined && data[field] !== book[field];
+  const enrichPlan = enrichment.editPlan(book, data);
   let plan = null;
   let decision = null;
-  const textChanged = changed('title') || changed('description');
+  let rules = null;
+  const textChanged = MODERATED_FIELDS.some(changed);
   if (!isAdmin && (textChanged || (data.price !== undefined && Number(data.price) !== Number(book.price)))) {
     const merged = Object.fromEntries(Object.keys(book).map((k) => [k, data[k] !== undefined ? data[k] : book[k]]));
-    decision = await screening.ruleDecision(merged);
+    rules = await screening.ruleDecision(merged);
+    decision = rules.decision;
     if (!decision && textChanged) {
       decision = await moderation.screen({
         userId: user.userId,
         book: merged,
-        loadImages: async (max) => aiImages.fromUrls(await firstImageUrls(bookId, max), max)
+        hint: rules.hint,
+        peer: rules.peer,
+        loadImages: (max) => screening.storedImages(bookId, max),
+        interactive: true
       });
     }
   }
@@ -321,6 +331,8 @@ const update = async (bookId, user, data) => {
     if (plan?.release) data.is_approved = true;
   }
 
+  await enrichment.clearAutoFields(bookId, data, enrichPlan);
+
   const write = async (db) => db.books.update({
     where: { book_id: bookId },
     data: { ...data, updated_at: new Date() }
@@ -329,7 +341,7 @@ const update = async (bookId, user, data) => {
     ? await prisma.$transaction(async (tx) => {
         const row = await write(tx);
         if (adminStatus) await deposits.syncAdminStatus(tx, bookId, data.status);
-        if (plan?.hold) await reviews.hold(tx, { bookId, decision });
+        if (plan?.hold) await reviews.hold(tx, { bookId, decision, actor: 'seller_edit' });
         if (plan?.hold && plan.notify) {
           await reviews.notifyHeld(tx, row);
           await screening.notifyAdmins(tx, row, decision.reasons);
@@ -340,8 +352,12 @@ const update = async (bookId, user, data) => {
       })
     : await write(prisma);
 
-  const edited = enrichment.FIELDS.filter((f) => data[f] !== undefined && data[f] !== book[f]);
-  if (edited.length > 0) enrichment.forget(bookId, edited).catch((err) => console.error('[更新補齊紀錄失敗]:', err.message));
+  if (decision) await markSafely(bookId, decision);
+  if (plan?.hold && decision.model === 'rules') {
+    screening.screenLater(updatedBook, [], { hint: rules.hint, peer: rules.peer, held: true });
+  }
+
+  enrichment.afterEdit(bookId, enrichPlan);
 
   const oldPrice = Number(book.price);
   if (data.price !== undefined && data.price < oldPrice && updatedBook.status === 'on_sale') {
@@ -355,7 +371,7 @@ const update = async (bookId, user, data) => {
 };
 
 const remove = async (bookId, user) => {
-  const book = await findOwnedBook(bookId, user, '存取被拒，您無權限刪除他人的書籍');
+  const book = await findOwnedBook(bookId, user, '無權限刪除此書籍');
   if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
 
   if (book.status === 'reserved') throw conflict('此書籍交易中，請先處理訂單再下架');
@@ -368,7 +384,7 @@ const remove = async (bookId, user) => {
 };
 
 const addImages = async (bookId, user, images, { files = [] } = {}) => {
-  const book = await findOwnedBook(bookId, user, '存取被拒，您無權限修改他人的商品');
+  const book = await findOwnedBook(bookId, user, '無權限修改此書籍');
   assertEditable(book, user);
   if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
   if (images.length === 0) throw badRequest('請選擇要上傳的圖片');
@@ -381,7 +397,13 @@ const addImages = async (bookId, user, images, { files = [] } = {}) => {
   let plan = null;
   let decision = null;
   if (user.role !== 'admin') {
-    decision = await moderation.screen({ userId: user.userId, book, loadImages: (max) => aiImages.fromUploads(files, max) });
+    decision = await moderation.screen({
+      userId: user.userId,
+      book,
+      hint: screening.sourceHint(book),
+      loadImages: (max) => aiImages.fromUploads(files, max),
+      interactive: true
+    });
     moderation.assertNotRejected(decision);
     plan = decision.action === 'review' ? await reviewPlan(book, decision) : null;
   }
@@ -393,7 +415,7 @@ const addImages = async (bookId, user, images, { files = [] } = {}) => {
     await prisma.$transaction(async (tx) => {
       await insert(tx);
       await tx.books.update({ where: { book_id: bookId }, data: { is_approved: false, updated_at: new Date() } });
-      await reviews.hold(tx, { bookId, decision });
+      await reviews.hold(tx, { bookId, decision, actor: 'seller_edit' });
       if (plan.notify) {
         await reviews.notifyHeld(tx, book);
         await screening.notifyAdmins(tx, book, decision.reasons);
@@ -402,13 +424,14 @@ const addImages = async (bookId, user, images, { files = [] } = {}) => {
   } else {
     await insert(prisma);
   }
+  if (decision) await markSafely(bookId, decision, { partial: true });
 
   const rows = await prisma.book_images.findMany({ where: { book_id: bookId } });
   return { images: rows, moderation: plan?.hold ? pendingReview(decision) : null };
 };
 
 const removeImage = async (bookId, imageId, user) => {
-  assertEditable(await findOwnedBook(bookId, user, '存取被拒，您無權限修改他人的商品'), user);
+  assertEditable(await findOwnedBook(bookId, user, '無權限修改此書籍'), user);
   if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
 
   const result = await prisma.book_images.deleteMany({ where: { image_id: imageId, book_id: bookId } });

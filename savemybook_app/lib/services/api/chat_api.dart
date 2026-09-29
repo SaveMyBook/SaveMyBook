@@ -138,7 +138,6 @@ extension ChatApi on ApiService {
     );
   }
 
-  /// 送出或編輯時回傳此值代表內容含聯絡方式或付款資訊，須經使用者確認後帶 confirmRisk 重送。
   static const riskConfirmRequired = 'RISK_CONFIRM_REQUIRED';
 
   Future<(ChatMessage?, String?)> sendChatMessage(

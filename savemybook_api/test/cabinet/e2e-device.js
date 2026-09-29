@@ -1,5 +1,3 @@
-// 端對端：以模擬書櫃的 device-core（與 ESP32 韌體相同的邏輯）搭配使用者 API 跑完整流程。device-core 使用假時鐘，
-// HTTP 請求則實際送到測試伺服器。
 const assert = require('assert');
 const server = require('../lib/server');
 const h = require('./session-harness');
@@ -60,7 +58,6 @@ const createKiosk = () => {
     random: Math.random
   });
 
-  // 等待進行中的 HTTP 請求與其後續處理全部完成，才推進假時鐘。
   const idle = async () => {
     let quiet = 0;
     for (let i = 0; i < 5000 && quiet < 4; i += 1) {
@@ -103,14 +100,12 @@ const createKiosk = () => {
 
 const pairKiosk = async (ctx) => {
   const kiosk = createKiosk();
-  const code = await h.request('POST', `/api/admin/cabinets/${ctx.cabinet.cabinet_id}/device/pairing-code`, {
-    token: ctx.adminToken, headers: h.adminVerifyHeaders(ctx.adminToken), body: { kind: 'simulator', door_count: 4 }
-  });
-  assert.strictEqual(code.status, 201, code.text);
-  h.uniqueDeviceId(prisma.rows('cabinet_devices').find((d) => d.status === 'pending'));
   kiosk.core.start();
-  const paired = await kiosk.core.pair(code.body.data.code);
-  assert.strictEqual(paired.ok, true, JSON.stringify(paired));
+  await kiosk.until(() => kiosk.core.view.pairing?.code, { label: '書櫃顯示配對碼' });
+  const code = kiosk.core.view.pairing.code;
+  const claimed = await h.claimPairing(ctx.adminToken, ctx.cabinet.cabinet_id, code);
+  assert.strictEqual(claimed.status, 201, claimed.text);
+  h.pairRequestOf(code).device_id = h.uniqueDeviceId(prisma.rows('cabinet_devices').find((d) => d.status === 'pending')).device_id;
   await kiosk.until(() => kiosk.core.view.screen === 'idle' && kiosk.core.view.qr, { label: '閒置畫面與 QR Code' });
   return kiosk;
 };
@@ -126,8 +121,7 @@ const setup = () => {
   };
 };
 
-// 掃碼、選取、在書櫃螢幕點選數字、開門、關門。close 為 'done'、'cancel_close' 或 null（等待倒數自動關門）。
-const visit = async (kiosk, token, { context, keys, close = 'done' } = {}) => {
+const openVisit = async (kiosk, token, { context, keys } = {}) => {
   // 假時鐘推進得比伺服器的真實時間快，結果畫面的 4 秒改以調整結束時間略過。
   for (const row of prisma.rows('cabinet_sessions')) {
     if (row.finished_at) row.finished_at = h.ago(h.sessionsService.RESULT_HOLD_MS + 1000);
@@ -135,7 +129,7 @@ const visit = async (kiosk, token, { context, keys, close = 'done' } = {}) => {
   await kiosk.until(() => kiosk.core.view.screen === 'idle' && kiosk.core.view.qr, { label: '閒置畫面與 QR Code' });
   const code = kiosk.core.view.qr.payload;
   const created = await h.request('POST', '/api/cabinet-sessions', {
-    token, body: { code, location_status: 'unavailable', ...(context ? { context } : {}) }
+    token, body: { code, location_status: 'granted', location: h.NEARBY, ...(context ? { context } : {}) }
   });
   assert.strictEqual(created.status, 201, created.text);
   const no = created.body.data.session_no;
@@ -144,20 +138,26 @@ const visit = async (kiosk, token, { context, keys, close = 'done' } = {}) => {
   const chosen = keys ?? created.body.data.items.filter((i) => i.selected).map((i) => i.key);
   const started = await h.request('POST', `/api/cabinet-sessions/${no}/start`, { token, body: { keys: chosen } });
   assert.strictEqual(started.status, 200, started.text);
-  const match = started.body.data.match.code;
-  await kiosk.until(() => kiosk.core.view.buttons.some((b) => b.id === `match:${match}`), { label: '書櫃顯示比對數字' });
-  assert.strictEqual(kiosk.core.view.buttons.filter((b) => b.id.startsWith('match:')).length, 9);
-  kiosk.core.tap(`match:${match}`);
-  await kiosk.until(() => ['open', 'admin'].includes(kiosk.core.view.screen) && kiosk.core.view.buttons.some((b) => b.id === 'done' && b.enabled),
-    { label: '櫃門開啟' });
+  await kiosk.until(() => kiosk.core.view.screen === 'match' && kiosk.core.view.code, { label: '書櫃顯示比對碼' });
+  const matched = await h.request('POST', `/api/cabinet-sessions/${no}/match`, { token, body: { code: kiosk.core.view.code } });
+  assert.strictEqual(matched.status, 200, matched.text);
+  assert.strictEqual(matched.body.data.status, 'opening');
+  await kiosk.until(() => ['open', 'admin'].includes(kiosk.core.view.screen) && kiosk.core.view.countdown, { label: '櫃門開啟' });
   await kiosk.until(() => h.sessionOf(no).status === 'open', { label: '伺服器記錄開門' });
   const opened = (await h.request('GET', `/api/cabinet-sessions/${no}`, { token })).body.data;
+  return { no, created: created.body.data, opened };
+};
 
-  if (close) kiosk.core.tap(close);
+const visit = async (kiosk, token, { context, keys, close = 'completed' } = {}) => {
+  const { no, created, opened } = await openVisit(kiosk, token, { context, keys });
+  if (close) {
+    const requested = await h.request('POST', `/api/cabinet-sessions/${no}/close`, { token, body: { outcome: close } });
+    assert.strictEqual(requested.status, 200, requested.text);
+  }
   await kiosk.until(() => TERMINAL.includes(h.sessionOf(no).status), { within: 60000, label: '作業結束' });
   await kiosk.until(() => kiosk.core.view.screen === 'result' || kiosk.core.view.screen === 'idle', { label: '結果畫面' });
   const final = (await h.request('GET', `/api/cabinet-sessions/${no}`, { token })).body.data;
-  return { no, created: created.body.data, opened, final };
+  return { no, created, opened, final };
 };
 
 module.exports = {
@@ -177,6 +177,7 @@ module.exports = {
         const deposit = await visit(kiosk, ctx.sellerToken, { context: { type: 'order', id: order.order_id } });
         assert.strictEqual(deposit.opened.doors[0].label, 'A01');
         assert.strictEqual(deposit.final.status, 'completed', JSON.stringify(deposit.final));
+        assert.strictEqual(h.sessionOf(deposit.no).close_reason, 'user_done');
         assert.strictEqual(h.orderOf(order.order_id).status, 'deposited');
         assert.ok(h.notificationsOf(ctx.buyer.user_id).some((n) => n.title === '書籍已存入書櫃'));
         assert.deepStrictEqual(kiosk.core.view.doors.map((d) => d.locked), [true, true, true, true]);
@@ -207,14 +208,15 @@ module.exports = {
       }
     }],
 
-    ['「取消並關門」不變更狀態並設為待確認；倒數結束自動關門並完成', async () => {
+    ['手機取消不變更狀態並設為待確認；倒數結束自動關門並完成', async () => {
       const ctx = setup();
       const kiosk = await pairKiosk(ctx);
       try {
         const book = h.addBook({ sellerId: ctx.seller.user_id, cabinet_id: ctx.cabinet.cabinet_id });
-        const cancelled = await visit(kiosk, ctx.sellerToken, { context: { type: 'book', id: book.book_id }, keys: [`book:${book.book_id}`], close: 'cancel_close' });
+        const cancelled = await visit(kiosk, ctx.sellerToken, { context: { type: 'book', id: book.book_id }, keys: [`book:${book.book_id}`], close: 'cancelled' });
         assert.strictEqual(cancelled.final.status, 'cancelled');
-        assert.strictEqual(cancelled.final.result.code, 'CANCELLED_AT_CABINET');
+        assert.strictEqual(cancelled.final.result.code, 'CANCELLED_AFTER_OPEN');
+        assert.strictEqual(h.sessionOf(cancelled.no).close_reason, 'user_cancel');
         assert.strictEqual(h.depositOf(book.book_id), null);
         const door = h.doorOf(ctx.cabinet.cabinet_id, 1);
         assert.strictEqual(door.check_reason, 'CANCELLED_AFTER_OPEN');
@@ -306,6 +308,60 @@ module.exports = {
 
         const summary = await h.request('GET', `/api/admin/cabinets/${ctx.cabinet.cabinet_id}/device`, { token: ctx.adminToken });
         assert.strictEqual(summary.body.data.doors[0].sensor, 'closed');
+      } finally {
+        kiosk.core.stop();
+      }
+    }],
+
+    ['門磁：櫃門未關時手機按完成，書櫃拒絕並提示先關門；關上櫃門後作業完成', async () => {
+      const ctx = setup();
+      const kiosk = await pairKiosk(ctx);
+      try {
+        assert.strictEqual(kiosk.core.setOptions({ hasDoorSensor: true }), true);
+        await kiosk.until(() => prisma.rows('cabinet_devices').find((d) => d.status === 'active').has_door_sensor === true, { label: '門磁設定' });
+        const book = h.addBook({ sellerId: ctx.seller.user_id, cabinet_id: ctx.cabinet.cabinet_id });
+        const { no } = await openVisit(kiosk, ctx.sellerToken, { context: { type: 'book', id: book.book_id }, keys: [`book:${book.book_id}`] });
+
+        const requested = await h.request('POST', `/api/cabinet-sessions/${no}/close`, { token: ctx.sellerToken, body: { outcome: 'completed' } });
+        assert.strictEqual(requested.status, 200, requested.text);
+        await kiosk.until(() => h.sessionOf(no).close_refused_at, { label: '書櫃拒絕關閉' });
+        const refused = (await h.request('GET', `/api/cabinet-sessions/${no}`, { token: ctx.sellerToken })).body.data;
+        assert.strictEqual(refused.status, 'open');
+        assert.strictEqual(refused.notice, 'CLOSE_DOOR_FIRST');
+        assert.ok(kiosk.core.view.notice);
+        assert.strictEqual(h.eventsOf('close_refused').length, 1);
+
+        kiosk.core.setDoorPhysical(1, 'closed');
+        await kiosk.until(() => TERMINAL.includes(h.sessionOf(no).status), { label: '作業結束' });
+        assert.strictEqual(h.sessionOf(no).status, 'completed');
+        assert.strictEqual(h.sessionOf(no).close_reason, 'sensor');
+        assert.ok(h.depositOf(book.book_id));
+      } finally {
+        kiosk.core.stop();
+      }
+    }],
+
+    ['門磁：櫃門未關時手機按取消，書櫃拒絕；關上櫃門後作業以取消結束，不登記存書', async () => {
+      const ctx = setup();
+      const kiosk = await pairKiosk(ctx);
+      try {
+        assert.strictEqual(kiosk.core.setOptions({ hasDoorSensor: true }), true);
+        await kiosk.until(() => prisma.rows('cabinet_devices').find((d) => d.status === 'active').has_door_sensor === true, { label: '門磁設定' });
+        const book = h.addBook({ sellerId: ctx.seller.user_id, cabinet_id: ctx.cabinet.cabinet_id });
+        const { no } = await openVisit(kiosk, ctx.sellerToken, { context: { type: 'book', id: book.book_id }, keys: [`book:${book.book_id}`] });
+
+        const requested = await h.request('POST', `/api/cabinet-sessions/${no}/close`, { token: ctx.sellerToken, body: { outcome: 'cancelled' } });
+        assert.strictEqual(requested.status, 200, requested.text);
+        await kiosk.until(() => h.sessionOf(no).close_refused_at, { label: '書櫃拒絕關閉' });
+        assert.strictEqual(h.sessionOf(no).close_request, null);
+
+        kiosk.core.setDoorPhysical(1, 'closed');
+        await kiosk.until(() => TERMINAL.includes(h.sessionOf(no).status), { label: '作業結束' });
+        const final = (await h.request('GET', `/api/cabinet-sessions/${no}`, { token: ctx.sellerToken })).body.data;
+        assert.strictEqual(final.status, 'cancelled');
+        assert.strictEqual(final.result.code, 'CANCELLED_AFTER_OPEN');
+        assert.strictEqual(h.sessionOf(no).close_reason, 'user_cancel');
+        assert.strictEqual(h.depositOf(book.book_id), null);
       } finally {
         kiosk.core.stop();
       }

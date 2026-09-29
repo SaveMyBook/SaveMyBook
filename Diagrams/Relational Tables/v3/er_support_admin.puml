@@ -25,6 +25,7 @@ entity "faqs" as faqs {
   {field} answer : text
   {field} sort_order : int
   {field} is_visible : tinyint(1)
+  {field} source_ticket_id : int
   {field} created_at : datetime
   {field} updated_at : datetime
 }
@@ -35,6 +36,7 @@ entity "support_tickets" as support_tickets {
   {field} subject : varchar(255)
   {field} category : varchar(50)
   {field} status : enum
+  {field} from_ai_support : tinyint(1)
   {field} created_at : datetime
   {field} updated_at : datetime
   {field} closed_at : datetime

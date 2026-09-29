@@ -13,6 +13,7 @@ const byDevice = (req) => `d:${req.device.device_id}`;
 
 const pairPerIp = rateLimit({ windowMs: 10 * MINUTE, max: 10, key: byIp });
 const pairGlobal = rateLimit({ windowMs: MINUTE, max: 30, key: () => 'pair' });
+const pairPollLimit = rateLimit({ windowMs: MINUTE, max: 60, key: byIp });
 const stateLimit = rateLimit({ windowMs: MINUTE, max: 240, key: byDevice });
 const eventsLimit = rateLimit({ windowMs: MINUTE, max: 120, key: byDevice });
 const unpairLimit = rateLimit({ windowMs: MINUTE, max: 10, key: byDevice });
@@ -24,7 +25,6 @@ const readPairing = (req) => {
   const body = req.body;
   const bootId = req.get('x-device-boot');
   const valid = devices.isValidBootId(bootId)
-    && typeof body.code === 'string'
     && devices.KINDS.includes(body.kind)
     && Number.isInteger(body.door_count) && body.door_count >= 1 && body.door_count <= 8
     && (body.has_door_sensor === undefined || typeof body.has_door_sensor === 'boolean')
@@ -32,7 +32,6 @@ const readPairing = (req) => {
     && typeof body.firmware === 'string' && FIRMWARE_RE.test(body.firmware);
   if (!valid) throw devices.payloadInvalid();
   return {
-    code: body.code,
     kind: body.kind,
     doorCount: body.door_count,
     hasDoorSensor: body.has_door_sensor === true,
@@ -42,9 +41,18 @@ const readPairing = (req) => {
   };
 };
 
-router.post('/pair', pairPerIp, pairGlobal, async (req, res) => {
-  const data = await devices.pair({ ...readPairing(req), ip: req.ip, now: new Date() });
+router.post('/pair/request', pairPerIp, pairGlobal, async (req, res) => {
+  const data = await devices.requestPairing({ ...readPairing(req), ip: req.ip, now: new Date() });
+  res.set('Cache-Control', 'no-store');
   res.status(201).json({ success: true, data });
+});
+
+router.post('/pair/poll', pairPollLimit, async (req, res) => {
+  const pollToken = req.body.poll_token;
+  if (!devices.isPollToken(pollToken)) throw devices.payloadInvalid();
+  const data = await devices.pollPairing({ pollToken, ip: req.ip, now: new Date() });
+  res.set('Cache-Control', 'no-store');
+  res.status(200).json({ success: true, data });
 });
 
 router.post('/unpair', deviceAuth, unpairLimit, async (req, res) => {

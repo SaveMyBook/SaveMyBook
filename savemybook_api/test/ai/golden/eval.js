@@ -266,7 +266,11 @@ const evaluateRecommend = async (h) => {
   h.ai.generate = echoModel;
   try {
     for (const p of personas) {
-      const { data, meta } = await recommend.recommendations(p.user, RECOMMEND_LIMIT, { viewedIds: p.viewed ?? [] });
+      // 推薦在背景產生：第一次請求觸發產生，等背景工作結束後再量測產生後的結果。
+      const options = { viewedIds: p.viewed ?? [] };
+      await recommend.recommendations(p.user, RECOMMEND_LIMIT, options);
+      await recommend.idle(p.user);
+      const { data, meta } = await recommend.recommendations(p.user, RECOMMEND_LIMIT, options);
       const ids = data.map((d) => d.book.book_id);
       if (meta.source !== p.source) violations.push(`${p.id} 預期走 ${p.source}，實際為 ${meta.source}`);
       const unavailable = blocked(p.user);

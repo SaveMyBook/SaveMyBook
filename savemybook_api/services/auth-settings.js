@@ -30,13 +30,12 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 
-// strict 為 true 時（管理員送出）不合法的值直接回 400；讀取資料庫時則靜默改回預設值。
 const normalize = (raw, { strict = false } = {}) => {
   const src = isObject(raw) ? raw : {};
   const bool = (value, fallback, label) => {
     if (value === undefined) return fallback;
     if (typeof value === 'boolean') return value;
-    if (strict) throw badRequest(`${label}必須是 true 或 false`);
+    if (strict) throw badRequest(`${label}不正確`);
     return fallback;
   };
 
@@ -53,7 +52,6 @@ const normalize = (raw, { strict = false } = {}) => {
   return out;
 };
 
-// 憑證缺少時一律視為不可用，不論管理員把開關設成什麼。
 const isConfigured = (provider) => {
   if (FIREBASE_PROVIDERS.includes(provider)) return firebase.isConfigured();
   if (provider === 'line') return Boolean(env.lineChannelId && env.lineChannelSecret);

@@ -77,7 +77,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: 這本書已經在購物車裡了 }
+                  message: { type: string, example: 此書籍已在購物車中 }
                   already_in_cart: { type: boolean, description: 值為 true 代表已達上限、本次未寫入, example: true }
                   data:
                     type: object
@@ -87,7 +87,7 @@ paths:
                       quantity: { type: integer, example: 1 }
               examples:
                 已達上限:
-                  value: { success: true, message: 這本書已經在購物車裡了, already_in_cart: true, data: { quantity: 1, book_id: 101 } }
+                  value: { success: true, message: 此書籍已在購物車中, already_in_cart: true, data: { quantity: 1, book_id: 101 } }
         '201':
           description: 已加入。
           content:
@@ -119,7 +119,7 @@ paths:
                 已被買走:
                   value: { success: false, message: 此書籍目前無法購買 }
                 購物車已滿:
-                  value: { success: false, message: 購物車最多放 100 項商品 }
+                  value: { success: false, message: 購物車最多可放入 100 項商品 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/BookReserved' }
@@ -194,7 +194,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: quantity 必須大於 0 }
+              example: { success: false, message: 數量必須大於 0 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }

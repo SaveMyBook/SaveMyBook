@@ -301,6 +301,7 @@ class _WalletScreenState extends State<WalletScreen> {
             child: Center(
               child: Text(
                 '\$',
+                textScaler: TextScaler.noScaling,
                 style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: c.accent),
               ),
             ),

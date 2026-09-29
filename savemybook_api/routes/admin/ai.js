@@ -12,6 +12,11 @@ const runner = require('../../services/ai/runner');
 const usage = require('../../services/ai/usage');
 const reviews = require('../../services/ai/reviews');
 const semantic = require('../../services/ai/semantic');
+const decisions = require('../../services/ai/decisions');
+const isbnCache = require('../../services/ai/isbn-cache');
+const audit = require('../../services/audit');
+const quality = require('../../services/ai/quality');
+const moderation = require('../../services/ai/moderation');
 
 const router = express.Router();
 const canRunSystem = requireAdmin('system');
@@ -36,7 +41,7 @@ router.get('/ai/settings', canRunSystem, async (req, res) => {
 
 router.put('/ai/settings', canRunSystem, requireVerification('admin'), async (req, res) => {
   const input = req.body?.settings;
-  if (!input || typeof input !== 'object' || Array.isArray(input)) throw badRequest('請提供 settings 設定內容');
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw badRequest('請提供設定內容');
 
   await settingsService.save(input, actorOf(req));
   runner.clearCache();
@@ -92,7 +97,7 @@ const runCheck = async (check, { settings, provider, userId }) => {
 };
 
 router.post('/ai/test', canRunSystem, testLimiter, async (req, res) => {
-  const provider = v.oneOf(req.body?.provider, ai.PROVIDER_IDS, `provider 僅接受：${ai.PROVIDER_IDS.join(', ')}`);
+  const provider = v.oneOf(req.body?.provider, ai.PROVIDER_IDS, '服務商不正確');
   const saved = await settingsService.load();
   const requested = req.body?.model;
   if (requested !== undefined && requested !== null && !settingsService.isModelName(requested)) {
@@ -127,27 +132,72 @@ router.post('/ai/test', canRunSystem, testLimiter, async (req, res) => {
 
 router.get('/ai/usage', canViewUsage, async (req, res) => {
   const period = req.query.period
-    ? v.oneOf(req.query.period, usage.PERIODS, `period 僅接受：${usage.PERIODS.join(', ')}`)
+    ? v.oneOf(req.query.period, usage.PERIODS, '統計期間不正確')
     : 'month';
   const settings = await settingsService.load();
-  const data = await usage.report(period, { monthlyBudgetUsd: settings.limits.monthly_budget_usd });
+  const data = await usage.report(period, {
+    monthlyBudgetUsd: settings.limits.monthly_budget_usd,
+    reserveRatio: settings.limits.reserve_ratio
+  });
   res.status(200).json({ success: true, data });
+});
+
+router.get('/ai/decisions', canViewUsage, async (req, res) => {
+  const period = req.query.period
+    ? v.oneOf(req.query.period, usage.PERIODS, '統計期間不正確')
+    : 'month';
+  res.status(200).json({ success: true, data: await decisions.report(period) });
+});
+
+router.get('/ai/quality', canViewUsage, async (req, res) => {
+  const period = req.query.period
+    ? v.oneOf(req.query.period, usage.PERIODS, '統計期間不正確')
+    : 'month';
+  res.status(200).json({ success: true, data: await quality.report(period) });
 });
 
 router.get('/ai/reviews', canManageContent, async (req, res) => {
   const status = req.query.status === 'all'
     ? null
-    : v.oneOf(req.query.status ?? 'pending', reviews.STATUSES, `status 僅接受：${reviews.STATUSES.join(', ')}, all`);
+    : v.oneOf(req.query.status ?? 'pending', reviews.STATUSES, '審核狀態不正確');
   res.status(200).json({ success: true, data: await reviews.adminList(status) });
 });
 
 router.patch('/ai/reviews/:bookId', canManageContent, async (req, res) => {
   const bookId = v.id(req.params.bookId, '書籍編號');
-  const decision = v.oneOf(req.body?.decision, reviews.DECISIONS, 'decision 僅接受：approve, reject');
+  const decision = v.oneOf(req.body?.decision, reviews.DECISIONS, '審核結果不正確');
   const note = v.optionalText(req.body?.note, { label: '備註', max: 500 }) ?? null;
+  const categories = [...moderation.CATEGORIES, 'other'];
+  const category = decision === 'reject' && req.body?.category != null
+    ? v.oneOf(req.body.category, categories, '違規類別不正確')
+    : null;
+  const unfounded = decision === 'approve' && req.body?.unfounded === true;
 
-  const data = await reviews.decide(bookId, { decision, note }, actorOf(req));
+  const data = await reviews.decide(bookId, { decision, note, category, unfounded }, actorOf(req));
   res.status(200).json({ success: true, message: decision === 'approve' ? '已核准上架' : '已駁回並下架', data });
+});
+
+const cacheIsbn = (value) => {
+  const key = isbnCache.keyOf(value);
+  if (!key) throw badRequest('ISBN 格式或檢查碼不正確');
+  return key;
+};
+
+router.get('/ai/isbn-cache/:isbn', canManageContent, async (req, res) => {
+  res.status(200).json({ success: true, data: await isbnCache.find(cacheIsbn(req.params.isbn)) });
+});
+
+router.delete('/ai/isbn-cache/:isbn', canManageContent, async (req, res) => {
+  const isbn = cacheIsbn(req.params.isbn);
+  const removed = (await isbnCache.clear(isbn)) > 0;
+  if (removed) {
+    await audit.record(null, { ...actorOf(req), action: '清除 ISBN 書目快取', summary: `清除 ISBN ${isbn} 的書目快取` });
+  }
+  res.status(200).json({
+    success: true,
+    message: removed ? '已清除此 ISBN 的書目快取' : '此 ISBN 沒有書目快取',
+    data: { isbn, removed }
+  });
 });
 
 module.exports = router;

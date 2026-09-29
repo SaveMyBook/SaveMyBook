@@ -168,7 +168,6 @@ const pendingForBooks = async (bookIds) => {
   return map;
 };
 
-// 取回回報暫停販售的書，在回報駁回或失效時恢復上架（違規下架者除外）。
 const releaseHeld = async (tx, report, now) => {
   if (!report.held_on_sale || !report.book_id) return;
   const book = await tx.books.findUnique({ where: { book_id: Number(report.book_id) } });
@@ -178,7 +177,6 @@ const releaseHeld = async (tx, report, now) => {
   await tx.cabinet_manual_reports.updateMany({ where: { report_id: report.report_id }, data: { held_on_sale: false } });
 };
 
-// 項目已由掃碼完成時，同一項目的待確認回報隨之失效。
 const cancelPending = async (tx, { orderId = null, bookId = null, kinds = KINDS, note = '已於書櫃掃碼完成', now = new Date() }) => {
   const db = tx ?? prisma;
   const where = {
@@ -380,7 +378,7 @@ const reject = async (no, { note }, { adminId, req }) => {
   return detailOf(report.report_id);
 };
 
-const shapeAdmin = (report, { users = new Map(), ordersById = new Map(), books = new Map() } = {}) => {
+const shapeAdmin = (report, { users = new Map(), ordersById = new Map(), books = new Map(), withDoors = new Set() } = {}) => {
   const user = users.get(Number(report.user_id));
   const reviewer = report.reviewed_by ? users.get(Number(report.reviewed_by)) : null;
   const order = report.order_id ? ordersById.get(Number(report.order_id)) : null;
@@ -391,6 +389,7 @@ const shapeAdmin = (report, { users = new Map(), ordersById = new Map(), books =
     order: order ? { order_id: Number(order.order_id), order_no: order.order_no, status: order.status } : null,
     book: book ? { book_id: Number(book.book_id), book_no: publicId.encode('book', book.book_id), title: book.title } : null,
     titles: order ? (order.order_items ?? []).map((i) => i.books?.title ?? '') : book ? [book.title] : [],
+    requires_door: report.status === 'pending' && report.kind === 'deposit' && withDoors.has(Number(report.cabinet_id)),
     reviewer_nickname: reviewer?.nickname ?? null
   };
 };
@@ -399,7 +398,8 @@ const shapeRows = async (rows) => {
   const userIds = [...new Set(rows.flatMap((r) => [r.user_id, r.reviewed_by]).filter(Boolean).map(Number))];
   const orderIds = [...new Set(rows.map((r) => r.order_id).filter(Boolean).map(Number))];
   const bookIds = [...new Set(rows.map((r) => r.book_id).filter(Boolean).map(Number))];
-  const [users, orderRows, bookRows] = await Promise.all([
+  const cabinetIds = [...new Set(rows.map((r) => Number(r.cabinet_id)))];
+  const [users, orderRows, bookRows, doorRows] = await Promise.all([
     userIds.length ? prisma.users.findMany({ where: { user_id: { in: userIds } }, select: { user_id: true, nickname: true } }) : [],
     orderIds.length
       ? prisma.orders.findMany({
@@ -407,12 +407,14 @@ const shapeRows = async (rows) => {
           select: { order_id: true, order_no: true, status: true, order_items: { select: { books: { select: { title: true } } } } }
         })
       : [],
-    bookIds.length ? prisma.books.findMany({ where: { book_id: { in: bookIds } }, select: { book_id: true, title: true } }) : []
+    bookIds.length ? prisma.books.findMany({ where: { book_id: { in: bookIds } }, select: { book_id: true, title: true } }) : [],
+    prisma.cabinet_slots.findMany({ where: { cabinet_id: { in: cabinetIds }, lock_channel: { not: null } }, select: { cabinet_id: true } })
   ]);
   const maps = {
     users: new Map(users.map((u) => [Number(u.user_id), u])),
     ordersById: new Map(orderRows.map((o) => [Number(o.order_id), o])),
-    books: new Map(bookRows.map((b) => [Number(b.book_id), b]))
+    books: new Map(bookRows.map((b) => [Number(b.book_id), b])),
+    withDoors: new Set(doorRows.map((d) => Number(d.cabinet_id)))
   };
   return rows.map((r) => shapeAdmin(r, maps));
 };

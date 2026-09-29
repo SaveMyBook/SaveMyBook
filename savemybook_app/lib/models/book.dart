@@ -68,7 +68,6 @@ class Book {
   final CabinetLocation? cabinetLocation;
   final CabinetManualReport? manualReport;
 
-  /// 系統依 ISBN 自動補齊的欄位（description、author、publisher、publish_date）。
   final List<String> autoFilledFields;
   final bool aiWrittenDescription;
 
@@ -210,7 +209,6 @@ class Book {
 
   String get statusText => AppLabels.book(status);
 
-  /// 賣家本人或後台查看時的狀態代碼；預約保留中的書另以 held 表示。
   String get ownerStatus => status == 'on_sale' && isHeld ? 'held' : status;
 
   String get ownerStatusText => AppLabels.ownerBook(ownerStatus);

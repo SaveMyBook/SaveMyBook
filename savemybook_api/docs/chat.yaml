@@ -347,14 +347,14 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 請提供聊天室編號 }
+              example: { success: false, message: 聊天室編號格式不正確 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
           description: 請求者非該聊天室的成員。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 你沒有權限刪除這個聊天室 }
+              example: { success: false, message: 您沒有權限刪除此聊天室 }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -649,7 +649,7 @@ paths:
                 型別不支援:
                   value: { success: false, message: '不支援此訊息類型' }
                 圖片未經上傳端點:
-                  value: { success: false, message: 圖片請先透過 /api/uploads/chat-image 上傳 }
+                  value: { success: false, message: 圖片無效，請重新上傳 }
                 相簿張數不正確:
                   value: { success: false, message: 相簿須包含 2 至 20 張圖片 }
                 提及不正確:
@@ -672,7 +672,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 非成員:
-                  value: { success: false, message: 存取被拒 }
+                  value: { success: false, message: 無權限執行此操作 }
                 已封鎖對方:
                   value: { success: false, code: CHAT_BLOCKED, message: 您已封鎖此使用者，解除封鎖後才能傳送訊息 }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -859,13 +859,13 @@ paths:
                 保留時數不支援:
                   value: { success: false, message: 保留時間僅接受：24、48、72 小時 }
                 預約自己的書:
-                  value: { success: false, message: 不能預約自己上架的書 }
+                  value: { success: false, message: 無法預約自己上架的書籍 }
                 賣家不在聊天室:
-                  value: { success: false, message: 只能在和這本書的賣家的聊天室裡預約 }
+                  value: { success: false, message: 僅能於與該書賣家的聊天室中預約 }
                 書籍無法預約:
-                  value: { success: false, message: 這本書目前無法預約 }
+                  value: { success: false, message: 此書籍目前無法預約 }
                 超過上限:
-                  value: { success: false, message: 同時最多只能有 5 筆進行中的預約 }
+                  value: { success: false, message: 同時最多僅能有 5 筆進行中的預約 }
                 群組聊天室:
                   value: { success: false, message: 群組聊天室不支援預約 }
         '401': { $ref: '#/components/responses/Unauthorized' }
@@ -875,7 +875,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到這本書 }
+              example: { success: false, message: 找不到此書籍 }
         '409':
           description: 書籍已被其他買家保留，或已有自己的進行中預約。
           content:
@@ -883,11 +883,11 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 已被其他買家保留:
-                  value: { success: false, code: BOOK_RESERVED, message: 《挪威的森林》已經被其他買家預約，保留到 9/16 18:30 }
+                  value: { success: false, code: BOOK_RESERVED, message: 《挪威的森林》已由其他買家預約，保留至 9/16 18:30 }
                 等待回覆中:
-                  value: { success: false, message: 你已經送出預約，正在等賣家回覆 }
+                  value: { success: false, message: 您已送出預約，正在等待賣家回覆 }
                 已保留:
-                  value: { success: false, message: 你已經預約了這本書 }
+                  value: { success: false, message: 您已預約此書籍 }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -969,15 +969,15 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 非當事人:
-                  value: { success: false, message: 這不是你的預約 }
+                  value: { success: false, message: 此預約不屬於您 }
                 非賣家:
-                  value: { success: false, message: 只有賣家可以回覆預約 }
+                  value: { success: false, message: 僅賣家可回覆預約 }
         '404':
           description: 預約不存在。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到這筆預約 }
+              example: { success: false, message: 找不到此預約 }
         '409':
           description: 預約狀態已變更，或書籍已無法保留。
           content:
@@ -985,11 +985,11 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 狀態已變更:
-                  value: { success: false, message: 這筆預約的狀態已經變更，請重新整理 }
+                  value: { success: false, message: 此預約狀態已變更，請重新整理 }
                 書籍已下架或售出:
-                  value: { success: false, message: 這本書已經不在架上，無法接受預約 }
+                  value: { success: false, message: 此書籍已下架，無法接受預約 }
                 已被其他買家保留:
-                  value: { success: false, code: BOOK_RESERVED, message: 《挪威的森林》已經被其他買家預約，保留到 9/16 18:30 }
+                  value: { success: false, code: BOOK_RESERVED, message: 《挪威的森林》已由其他買家預約，保留至 9/16 18:30 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/chat/rooms/{roomId}/mute:
@@ -1168,7 +1168,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 存取被拒 }
+              example: { success: false, message: 無權限執行此操作 }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -1220,7 +1220,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 參數錯誤:
-                  value: { success: false, message: pinned 必須為布林值 }
+                  value: { success: false, message: 設定值不正確 }
                 超過上限:
                   value: { success: false, code: PIN_LIMIT, message: 最多僅能釘選 10 個聊天室 }
         '401': { $ref: '#/components/responses/Unauthorized' }
@@ -1443,7 +1443,7 @@ paths:
                 成員無效:
                   value: { success: false, message: 成員名單包含無法加入群組的帳號 }
                 頭貼未經上傳端點:
-                  value: { success: false, message: 群組頭貼請先透過 /api/uploads/chat-image 上傳 }
+                  value: { success: false, message: 群組頭貼無效，請重新上傳 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -1853,7 +1853,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 金額錯誤:
-                  value: { success: false, message: 金額必須是 1 ~ 100000 之間的整數 }
+                  value: { success: false, message: 金額須為 1 至 100000 之間的整數 }
                 對象為自己:
                   value: { success: false, message: 無法轉帳給自己 }
                 未指定對象:

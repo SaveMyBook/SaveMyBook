@@ -16,6 +16,14 @@ const catalogSearch = require('../services/ai/catalog-search');
 const knowledge = require('../services/ai/knowledge');
 const enrichment = require('../services/ai/enrich');
 const aiConsent = require('../services/ai/consent');
+const aiBudgetAlerts = require('../services/ai/budget-alerts');
+const aiRequests = require('../services/ai/requests');
+const aiDecisions = require('../services/ai/decisions');
+const isbnCache = require('../services/ai/isbn-cache');
+const listingTokens = require('../services/ai/listing-tokens');
+const listingAdoption = require('../services/ai/listing-adoption');
+const recommendationEvents = require('../services/recommendation-events');
+const listingScreening = require('../services/listing-screening');
 const notificationCenter = require('../services/notifications');
 const cabinetDevices = require('../services/cabinet-devices');
 
@@ -88,7 +96,6 @@ const runReservationExpiry = async () => {
   }
 };
 
-// 取書滿 24 小時自動完成並撥款、逾期未存書或未取書自動取消退款。
 const runOrderAutomation = async () => {
   if (maintenance.current().active) return;
   try {
@@ -113,7 +120,6 @@ const runDepositAutomation = async () => {
   }
 };
 
-// 上傳目錄可能因為部署覆蓋而遺失檔案；每天清一次，避免畫面長期出現破圖。
 const runUploadsSweep = async () => {
   if (maintenance.current().active) return;
   try {
@@ -129,7 +135,6 @@ const runUploadsSweep = async () => {
   }
 };
 
-// 預先建立語意檢索的向量；未設定金鑰或 AI 關閉時不做任何事。
 const runEmbeddingSync = async () => {
   if (maintenance.current().active) return;
   try {
@@ -140,7 +145,6 @@ const runEmbeddingSync = async () => {
   }
 };
 
-// 既有書籍缺少的簡介、作者、出版社依 ISBN 分批補齊。
 const runEnrichmentBackfill = async () => {
   if (maintenance.current().active) return;
   try {
@@ -151,6 +155,25 @@ const runEnrichmentBackfill = async () => {
   }
 };
 
+const runListingRecheck = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const done = await listingScreening.recheckDue();
+    if (done > 0) console.log(`🛡️  已補審 ${done} 本上架書籍`);
+  } catch (err) {
+    console.error('[上架補審失敗]:', err.message);
+  }
+};
+
+const runAiBudgetAlerts = async () => {
+  if (maintenance.current().active) return;
+  try {
+    await aiBudgetAlerts.check();
+  } catch (err) {
+    console.error('[AI 預算通知失敗]:', err.message);
+  }
+};
+
 const runAiConversationCleanup = async () => {
   if (maintenance.current().active) return;
   try {
@@ -158,6 +181,33 @@ const runAiConversationCleanup = async () => {
     if (support + bookChat > 0) console.log(`🧹 已刪除逾期的 AI 對話：客服 ${support} 筆、書籍顧問 ${bookChat} 筆`);
   } catch (err) {
     console.error('[刪除逾期 AI 對話失敗]:', err.message);
+  }
+  try {
+    await aiRequests.purgeExpired();
+  } catch (err) {
+    console.error('[刪除逾期 AI 訊息登記失敗]:', err.message);
+  }
+  try {
+    const { logs, meta } = await aiDecisions.purgeExpired();
+    if (logs + meta > 0) console.log(`🧹 已刪除逾期的 AI 決策紀錄：${logs} 筆，清除訊息附加資料 ${meta} 則`);
+  } catch (err) {
+    console.error('[刪除逾期 AI 決策紀錄失敗]:', err.message);
+  }
+  try {
+    const [cache, tokens] = await Promise.all([isbnCache.purgeExpired(), listingTokens.purgeExpired()]);
+    if (cache + tokens > 0) console.log(`🧹 已刪除過期的 ISBN 快取 ${cache} 筆、上架輔助權杖 ${tokens} 筆`);
+  } catch (err) {
+    console.error('[刪除過期 AI 快取失敗]:', err.message);
+  }
+};
+
+const runRecommendationCleanup = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const [impressions, suggestions] = await Promise.all([recommendationEvents.purgeExpired(), listingAdoption.purgeExpired()]);
+    if (impressions + suggestions > 0) console.log(`🧹 已刪除逾期的推薦曝光紀錄 ${impressions} 筆、上架輔助建議紀錄 ${suggestions} 筆`);
+  } catch (err) {
+    console.error('[刪除逾期推薦與上架輔助紀錄失敗]:', err.message);
   }
 };
 
@@ -208,7 +258,13 @@ const startScheduler = () => {
     setInterval(runUploadsSweep, 24 * HOUR),
     setInterval(runAiConversationCleanup, 24 * HOUR),
     setTimeout(runAiConversationCleanup, 4 * MINUTE),
+    setInterval(runRecommendationCleanup, 24 * HOUR),
+    setTimeout(runRecommendationCleanup, 8 * MINUTE),
     setInterval(runEmbeddingSync, 10 * MINUTE),
+    setInterval(runListingRecheck, 10 * MINUTE),
+    setTimeout(runListingRecheck, 7 * MINUTE),
+    setInterval(runAiBudgetAlerts, 10 * MINUTE),
+    setTimeout(runAiBudgetAlerts, 2 * MINUTE),
     setInterval(runEnrichmentBackfill, 30 * MINUTE),
     setTimeout(runEnrichmentBackfill, 5 * MINUTE),
     setTimeout(runEmbeddingSync, MINUTE),
@@ -237,4 +293,7 @@ const startScheduler = () => {
   };
 };
 
-module.exports = { startScheduler, runBackupIfDue, runCabinetSessionSweep, runCabinetDeviceSweep, runCabinetPurge };
+module.exports = {
+  startScheduler, runBackupIfDue, runCabinetSessionSweep, runCabinetDeviceSweep, runCabinetPurge, runListingRecheck, runAiBudgetAlerts,
+  runAiConversationCleanup
+};

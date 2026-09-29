@@ -46,7 +46,6 @@ class _SellBookScreenState extends State<SellBookScreen> {
   bool _navigating = false;
 
   Map<String, dynamic>? _draftOffer;
-  DateTime? _draftSavedAt;
   Timer? _saveTimer;
   final int _epoch = SellDraft.epoch;
   bool _touched = false;
@@ -54,6 +53,9 @@ class _SellBookScreenState extends State<SellBookScreen> {
   bool _aiRunning = false;
   String? _aiCondition;
   int? _aiPrice;
+  AiListingCarry? _aiCarry;
+  String? _aiCarryKey;
+  String? _aiSuggestionToken;
   final Map<String, int> _flash = {};
 
   List<TextEditingController> get _controllers =>
@@ -73,7 +75,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
   @override
   void dispose() {
     _saveTimer?.cancel();
-    if (_draftOffer == null) _saveDraftNow(disposing: true);
+    if (_draftOffer == null) _saveDraftNow();
     for (final ctl in _controllers) {
       ctl.dispose();
     }
@@ -143,12 +145,11 @@ class _SellBookScreenState extends State<SellBookScreen> {
     _saveTimer = Timer(const Duration(milliseconds: 600), _saveDraftNow);
   }
 
-  void _saveDraftNow({bool disposing = false}) {
+  void _saveDraftNow() {
     _saveTimer?.cancel();
     if (!_touched || _draftOffer != null || _epoch != SellDraft.epoch) return;
     if (!_isDirty) {
       SellDraft.saveSection('step1', null);
-      if (!disposing && _draftSavedAt != null) setState(() => _draftSavedAt = null);
       return;
     }
     SellDraft.saveSection('step1', {
@@ -160,7 +161,6 @@ class _SellBookScreenState extends State<SellBookScreen> {
       'publish_date': _selectedDate == null ? null : _formatDate(_selectedDate!),
       'category_id': _categoryId,
     });
-    if (!disposing && mounted) setState(() => _draftSavedAt = DateTime.now());
   }
 
   static String _formatDate(DateTime date) =>
@@ -217,7 +217,9 @@ class _SellBookScreenState extends State<SellBookScreen> {
           description: _descriptionController.text.trim(),
           categoryId: _categoryId!,
           aiCondition: _aiCondition,
-          aiPrice: _aiPrice,
+          aiPrice: _aiCarryKey == _bookKey ? _aiPrice : null,
+          aiCarry: _carryForNext,
+          aiSuggestionTokens: _aiCarryKey == _bookKey ? [?_aiSuggestionToken] : const [],
         ),
       ),
     );
@@ -225,6 +227,15 @@ class _SellBookScreenState extends State<SellBookScreen> {
   }
 
   void _showError(String msg) => showAppSnackBar(context, msg, isError: true);
+
+  /// AI 查到的定價屬於當時的 ISBN 與書名；之後改了書目就不再帶到下一步。
+  String get _bookKey => '${normalizeIsbn(_isbnController.text.trim()) ?? ''}|${_titleController.text.trim()}';
+
+  AiListingCarry? get _carryForNext {
+    final carry = _aiCarry;
+    if (carry == null) return null;
+    return _aiCarryKey == _bookKey ? carry : carry.withoutBook();
+  }
 
   Future<void> _onScanISBN() async {
     FocusScope.of(context).unfocus();
@@ -318,6 +329,11 @@ class _SellBookScreenState extends State<SellBookScreen> {
     final result = await runAiListingAssist(context, isbn: isbn, title: title);
     _aiRunning = false;
     if (result == null || !mounted) return;
+    final sameBook = _aiCarryKey == _bookKey;
+    _aiCarry = (_aiCarry ?? const AiListingCarry()).renewed(sameBook: sameBook, followupToken: result.followupToken);
+    if (!sameBook) _aiPrice = null;
+    _aiCarryKey = _bookKey;
+    _aiSuggestionToken = result.suggestionToken ?? (sameBook ? _aiSuggestionToken : null);
     if (result.isEmpty) {
       _showError(S.nothingFoundFillCheckIsbnTitle);
       return;
@@ -380,7 +396,11 @@ class _SellBookScreenState extends State<SellBookScreen> {
         flashed.add('category');
       }
       if (selection.condition && result.condition != null) _aiCondition = result.condition!.level;
-      if (selection.price && result.price != null) _aiPrice = result.price!.suggested;
+      if (selection.price && result.price != null) {
+        _aiPrice = result.price!.suggestedFor(_aiCondition);
+        _aiCarry = AiListingCarry.applied(result, followupToken: _aiCarry?.followupToken);
+      }
+      _aiCarryKey = _bookKey;
       for (final key in flashed) {
         _flash[key] = (_flash[key] ?? 0) + 1;
       }
@@ -607,7 +627,7 @@ class _SellBookScreenState extends State<SellBookScreen> {
           ),
         )),
         _flashed('category', FormRowCard(
-          label: S.pickCategory,
+          label: S.category,
           labelWidth: 88,
           isRequired: true,
           child: Column(
@@ -661,28 +681,6 @@ class _SellBookScreenState extends State<SellBookScreen> {
         const SizedBox(height: 12),
         MissingHint(missing: _missing),
         PrimaryButton(label: S.next, height: 50, icon: Icons.arrow_forward_rounded, onPressed: _onNext),
-        AnimatedOpacity(
-          opacity: _draftSavedAt == null ? 0 : 1,
-          duration: Motion.base,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.cloud_done_outlined, size: 14, color: c.textHint),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    S.draftSavedAutomatically,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: c.textHint),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
         SizedBox(height: context.usesSideNavigation ? 24 : 120),
       ],
     );

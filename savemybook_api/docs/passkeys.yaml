@@ -451,7 +451,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到此通行密鑰，可能已經刪除 }
+              example: { success: false, message: 找不到此通行密鑰，可能已刪除 }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
         '503':
@@ -506,7 +506,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到此通行密鑰，可能已經刪除 }
+              example: { success: false, message: 找不到此通行密鑰，可能已刪除 }
         '500': { $ref: '#/components/responses/ServerError' }
         '503':
           description: 伺服器尚未啟用通行密鑰。
@@ -554,7 +554,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 範圍不支援:
-                  value: { success: false, message: 'scope 僅接受：sensitive, admin' }
+                  value: { success: false, message: 驗證範圍不正確 }
                 尚未註冊:
                   value: { success: false, code: PASSKEY_NOT_REGISTERED, message: 此帳號尚未註冊通行密鑰 }
         '401': { $ref: '#/components/responses/Unauthorized' }

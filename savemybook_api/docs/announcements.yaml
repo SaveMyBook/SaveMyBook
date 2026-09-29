@@ -84,7 +84,7 @@ paths:
                 欄位缺漏:
                   value: { success: false, message: 請填寫標題與內容 }
                 類型錯誤:
-                  value: { success: false, message: 'type 僅接受：general, maintenance, promotion, policy' }
+                  value: { success: false, message: 公告類型不正確 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }

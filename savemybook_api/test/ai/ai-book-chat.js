@@ -254,24 +254,48 @@ module.exports = {
       assert.deepStrictEqual(numeric.reply.books.map((b) => b.book.book_id), [3]);
     }],
 
-    ['送出訊息：書單缺欄位時記錄為格式錯誤，改附檢索結果並使用中性說明', async () => {
+    ['送出訊息：書單缺欄位時附上說明重試一次，重試成功即採用', async () => {
       setup({ candidateRows: [book(1), book(2)] });
       h.queueJson(
         { reply: '為您搜尋推理小說。', search: { keywords: ['推理'] }, need_more_info: false },
-        { reply: '站上目前沒有相關的書。', reasons: {}, suggestions: ['有沒有其他作者'] }
+        { reply: '站上目前沒有相關的書。', reasons: {}, suggestions: ['有沒有其他作者'] },
+        { reply: '以下兩本都是推理小說。', book_ids: ['b2', 'b1'], reasons: [{ id: 'b2', reason: '節奏明快' }], suggestions: [] }
       );
-      const warnings = [];
-      const warn = console.warn;
-      console.warn = (message) => warnings.push(String(message));
+      const logs = [];
+      const log = h.usageService.log;
+      h.usageService.log = async (entry) => {
+        logs.push(entry);
+        return log(entry);
+      };
+      let data;
       try {
-        const data = await bookChat.sendMessage(5, '推薦推理小說');
-        assert.strictEqual(data.reply.content, bookChat.FOUND_REPLY);
-        assert.deepStrictEqual(data.reply.books.map((b) => b.book.book_id), [1, 2]);
-        assert.deepStrictEqual(data.reply.suggestions, ['有沒有其他作者']);
+        data = await bookChat.sendMessage(5, '推薦推理小說');
       } finally {
-        console.warn = warn;
+        h.usageService.log = log;
       }
-      assert.ok(warnings.some((w) => /AI 輸出格式錯誤：book_chat/.test(w) && /undefined/.test(w)));
+      assert.strictEqual(data.reply.content, '以下兩本都是推理小說。');
+      assert.deepStrictEqual(data.reply.books.map((b) => [b.book.book_id, b.reason]), [[2, '節奏明快'], [1, null]]);
+      assert.strictEqual(data.reply.degraded, false);
+      const retry = h.calls[2].options;
+      assert.strictEqual(retry.system, bookChat.PICK_SYSTEM);
+      assert.match(retry.prompt, /【格式修正】上一次的輸出不符合規定的格式：缺少 book_ids。/);
+      const picks = logs.filter((r) => r.feature === 'book_chat_pick');
+      assert.deepStrictEqual(picks.map((r) => [r.status ?? 'ok', r.errorCode ?? null, r.outcome]), [['error', 'INVALID_OUTPUT', 'failed'], ['ok', null, 'repaired']]);
+      assert.strictEqual(picks[0].errorDetail, '格式不符：缺少 book_ids');
+    }],
+
+    ['送出訊息：重試後書單仍缺欄位時記錄為格式錯誤，改附檢索結果並使用第一段的說明', async () => {
+      setup({ candidateRows: [book(1), book(2)] });
+      h.queueJson(
+        { reply: '為您搜尋推理小說。', search: { keywords: ['推理'] }, need_more_info: false },
+        { reply: '站上目前沒有相關的書。', reasons: {}, suggestions: ['有沒有其他作者'] },
+        { reply: '站上目前沒有相關的書。', book_ids: { b1: true }, suggestions: [] }
+      );
+      const data = await bookChat.sendMessage(5, '推薦推理小說');
+      assert.strictEqual(data.reply.content, '為您搜尋推理小說。');
+      assert.deepStrictEqual(data.reply.books.map((b) => b.book.book_id), [1, 2]);
+      assert.strictEqual(data.reply.degraded, true);
+      assert.strictEqual(h.calls.length, 3);
     }],
 
     ['送出訊息：挑書回覆被清掉時退回中性說明，不稱為熱門書', async () => {
@@ -513,7 +537,7 @@ module.exports = {
       );
       const data = await bookChat.sendMessage(5, '推薦區塊鏈的書');
       const prompt = h.calls[1].options.prompt;
-      assert.match(prompt, /站上另有 2 本與需求相關的書是使用者本人上架的/);
+      assert.match(prompt, /本平台另有 2 本與需求相關的書是使用者本人上架的/);
       assert.ok(!/區塊鏈革命/.test(prompt), '自己上架的書不會交給模型推薦');
       assert.strictEqual(data.reply.books.length, 0);
       assert.strictEqual(data.reply.content, bookChat.OWN_ONLY_REPLY);
@@ -570,6 +594,51 @@ module.exports = {
       const reasons = new Map(data.reply.books.map((b) => [b.book.book_id, b.reason]));
       assert.strictEqual(reasons.get(1), null);
       assert.strictEqual(reasons.get(2), '節奏明快，適合通勤');
+    }],
+
+    ['候選書：語意檢索可用且相關的書有 5 本以上時不補位；否則最多補 6 本其他在售書，補位的書不附簡介', async () => {
+      const shelf = Array.from({ length: 16 }, (_, i) => book(i + 1, { description: `第 ${i + 1} 本書的內容簡介` }));
+      setup({ candidateRows: shelf });
+      h.onModel('books.findMany', ({ where = {}, take } = {}) => shelf
+        .filter((b) => (!where.book_id?.in || where.book_id.in.includes(b.book_id)) && !(where.book_id?.notIn ?? []).includes(b.book_id))
+        .slice(0, take ?? undefined));
+      const catalog = h.api('services/ai/catalog-search');
+      const { searchDetailed } = catalog;
+      const found = (count, semantic) => {
+        catalog.searchDetailed = async () => ({
+          results: shelf.slice(0, count).map((b) => ({ book_id: b.book_id, seller_id: b.seller_id, score: 1, similarity: 0.5, lexical: true })),
+          semantic
+        });
+      };
+      const search = bookChat.sanitizeSearch({ keywords: ['推理'] }, ids);
+      try {
+        found(5, true);
+        let result = await bookChat.candidates(5, search, '推理小說');
+        assert.deepStrictEqual([result.rows.length, result.extraIds.size], [5, 0]);
+
+        found(3, true);
+        result = await bookChat.candidates(5, search, '推理小說');
+        assert.deepStrictEqual([result.rows.length, result.extraIds.size], [9, 6], '相關的書少於 5 本時補位，最多 6 本');
+
+        found(8, false);
+        result = await bookChat.candidates(5, search, '推理小說');
+        assert.deepStrictEqual([result.rows.length, result.extraIds.size], [14, 6], '語意檢索無法使用時照常補位');
+
+        found(2, true);
+        h.queueJson(
+          { reply: '', search: { keywords: ['推理'] }, need_more_info: false },
+          { reply: '', book_ids: ['b1'], reasons: {}, suggestions: [] }
+        );
+        await bookChat.sendMessage(5, '推理小說');
+      } finally {
+        catalog.searchDetailed = searchDetailed;
+      }
+      const lines = h.calls[1].options.prompt.split('【候選書籍】\n')[1].split('\n');
+      assert.strictEqual(lines.length, 8);
+      assert.deepStrictEqual(lines.map((line) => line.includes('簡介：')), [true, true, false, false, false, false, false, false]);
+      assert.ok(lines.slice(2).every((line) => line.endsWith('｜其他在售書')));
+      assert.match(h.calls[0].options.system, /^【分類清單】\n1: 文學小說\n2: 電腦資訊$/m, '分類清單接在固定規則之後');
+      assert.strictEqual(h.calls[0].options.prompt, '【使用者訊息】\n推理小說');
     }],
 
     ['讀取對話：沒有進行中的對話時回傳 null', async () => {

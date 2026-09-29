@@ -109,8 +109,8 @@ const save = async (key, { title, content, major }, { adminId, req }) => {
     notified = await notifyActiveUsers({
       title: `${title}已更新`,
       content: requiresConsent
-        ? `我們已更新${title}，下次開啟 App 時須重新閱讀並同意才能繼續使用。`
-        : `我們已更新${title}，歡迎查看最新內容。`,
+        ? `${title}已更新，下次開啟 App 時須重新閱讀並同意後方可繼續使用。`
+        : '請查閱最新內容。',
       relatedId: saved.doc_id,
       relatedType: 'legal'
     });

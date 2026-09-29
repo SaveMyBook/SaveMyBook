@@ -77,7 +77,6 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
-/// 把流程掛在一個真的有 Navigator 的畫面上，才能按到對話框的按鈕。
 Future<void> _pumpFlow(
   WidgetTester tester,
   Future<bool> Function() run, {

@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/ai.dart';
 import '../../models/category.dart';
@@ -171,7 +174,6 @@ String aiFieldLabel(String key) => switch (key) {
       _ => key,
     };
 
-/// 只做參考、上架表單沒有對應欄位的補充資料。
 const aiReferenceFieldKeys = ['subtitle', 'page_count', 'language'];
 
 String aiPublishDatePrecisionLabel(String precision) => switch (precision) {
@@ -196,16 +198,23 @@ Future<AiListingAssist?> runAiListingAssist(
   String? title,
   String? conditionNote,
   List<String> imagePaths = const [],
+  AiConditionRequest? condition,
   bool retried = false,
 }) async {
   if (!await ensureAiConsent(context) || !context.mounted) return null;
   final status = AiStatus.value;
-  final steps = <String>[
-    S.lookingUpBookDetails,
-    if (status.webSearch) S.searchingWeb,
-    if (imagePaths.isNotEmpty) S.analyzingPhotos,
-    S.suggestingCategoryConditionPrice,
-  ];
+  final steps = condition != null
+      ? <String>[
+          if (condition.originalPrice == null && status.webSearch) S.lookUpListPrice,
+          if (imagePaths.isNotEmpty) S.analyzingPhotos,
+          S.assessConditionPrice,
+        ]
+      : <String>[
+          S.lookingUpBookDetails,
+          if (status.webSearch) S.searchingWeb,
+          if (imagePaths.isNotEmpty) S.analyzingPhotos,
+          S.suggestingCategoryConditionPrice,
+        ];
   final c = AppColors.of(context);
   var needsConsent = false;
   final result = await showModalBottomSheet<AiListingAssist>(
@@ -218,7 +227,13 @@ Future<AiListingAssist?> runAiListingAssist(
     builder: (_) => AiAssistProgressSheet(
       steps: steps,
       run: () async {
-        final response = await ApiService().requestListingAssist(isbn: isbn, title: title, conditionNote: conditionNote, imagePaths: imagePaths);
+        final response = await ApiService().requestListingAssist(
+          isbn: isbn,
+          title: title,
+          conditionNote: conditionNote,
+          imagePaths: imagePaths,
+          condition: condition,
+        );
         needsConsent = response.needsConsent;
         return response;
       },
@@ -227,7 +242,15 @@ Future<AiListingAssist?> runAiListingAssist(
   if (!needsConsent || retried || !context.mounted) return result;
   await AiStatus.markConsentRevoked();
   if (!context.mounted) return result;
-  return runAiListingAssist(context, isbn: isbn, title: title, conditionNote: conditionNote, imagePaths: imagePaths, retried: true);
+  return runAiListingAssist(
+    context,
+    isbn: isbn,
+    title: title,
+    conditionNote: conditionNote,
+    imagePaths: imagePaths,
+    condition: condition,
+    retried: true,
+  );
 }
 
 class AiAssistProgressSheet extends StatefulWidget {
@@ -452,6 +475,11 @@ class AiListingResultSheet extends StatefulWidget {
 
   const AiListingResultSheet({super.key, required this.result, required this.targets});
 
+  static Future<bool> Function(Uri uri) openSource = (uri) {
+    final inApp = !kIsWeb && (Platform.isIOS || Platform.isAndroid);
+    return launchUrl(uri, mode: inApp ? LaunchMode.inAppBrowserView : LaunchMode.externalApplication);
+  };
+
   @override
   State<AiListingResultSheet> createState() => _AiListingResultSheetState();
 }
@@ -491,12 +519,16 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
   bool get _showCondition => t.supportsCondition && r.condition != null && AppLabels.condition.containsKey(r.condition!.level);
   bool get _showPrice => t.supportsPrice && r.price != null;
 
+  /// 與套用時的換價一致：勾選 AI 書況時顯示該書況的建議價，否則顯示目前書況的建議價。
+  int get _shownPrice => r.price!.suggestedFor(_showCondition && _condition ? r.condition!.level : t.condition);
+
   @override
   void initState() {
     super.initState();
     _fields = {
-      for (final key in _fieldKeys)
-        if ((t.fields[key] ?? '').trim().isEmpty) key,
+      if (!r.isbnMismatch)
+        for (final key in _fieldKeys)
+          if ((t.fields[key] ?? '').trim().isEmpty && !(key == 'description' && r.descriptionWrittenByAi)) key,
     };
     _category = _showCategory && t.categoryId == null;
     _condition = _showCondition && t.condition != r.condition!.level;
@@ -530,16 +562,6 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
                 Expanded(
                   child: Text(S.aiSuggestions, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary)),
                 ),
-                if (r.provider.isNotEmpty)
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 120),
-                    child: Text(
-                      AiProviders.nameOf(r.provider),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11, color: c.textHint),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -595,39 +617,20 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
                     c,
                     selected: _price,
                     onChanged: (v) => setState(() => _price = v),
-                    title: '\$${r.price!.suggested}',
+                    title: '\$$_shownPrice',
                     detail: [
-                      if (r.price!.min != null && r.price!.max != null) S.rangeP0P1(r.price!.min!, r.price!.max!),
+                      if (r.price!.min != null && r.price!.max != null && _shownPrice == r.price!.suggested)
+                        S.rangeP0P1(r.price!.min!, r.price!.max!),
                       if (r.price!.originalPrice != null) S.listPriceP0(r.price!.originalPrice!),
                     ].join('・'),
                     reasons: r.price!.reasons,
-                    current: t.price != null && t.price! > 0 && t.price != r.price!.suggested ? '\$${t.price}' : null,
-                    same: t.price == r.price!.suggested,
+                    current: t.price != null && t.price! > 0 && t.price != _shownPrice ? '\$${t.price}' : null,
+                    same: t.price == _shownPrice,
                   ),
                 ],
                 if (r.sources.isNotEmpty) ...[
                   _section(c, S.sources),
-                  for (final s in r.sources.take(5))
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                      child: Row(
-                        children: [
-                          Icon(Icons.link_rounded, size: 15, color: c.textHint),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text.rich(
-                              TextSpan(children: [
-                                TextSpan(text: s.title.isEmpty ? s.host : s.title, style: TextStyle(color: c.textPrimary)),
-                                if (s.title.isNotEmpty && s.host.isNotEmpty) TextSpan(text: '  ${s.host}', style: TextStyle(color: c.textHint)),
-                              ]),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  for (final s in r.sources.take(5)) _sourceRow(c, s),
                 ],
               ],
             ),
@@ -763,6 +766,60 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
         child: Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
       );
 
+  Widget _sourceRow(AppColors c, AiSource source) {
+    final host = source.host;
+    final title = source.title.isEmpty || source.title == host ? host : source.title;
+    return Semantics(
+      link: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => _openSource(source),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
+          child: Row(
+            children: [
+              Icon(Icons.link_rounded, size: 15, color: c.textHint),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(children: [
+                    TextSpan(text: title, style: TextStyle(color: c.textPrimary)),
+                    if (title != host && host.isNotEmpty) TextSpan(text: '  $host', style: TextStyle(color: c.textHint)),
+                  ]),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12.5),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.open_in_new_rounded, size: 14, color: c.textHint),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openSource(AiSource source) async {
+    final uri = Uri.tryParse(source.url);
+    var opened = false;
+    if (uri != null && (uri.scheme == 'https' || uri.scheme == 'http')) {
+      try {
+        opened = await AiListingResultSheet.openSource(uri);
+      } catch (_) {
+        opened = false;
+      }
+    }
+    if (!opened && mounted) showAppSnackBar(context, S.unableOpenLink, isError: true);
+  }
+
+  (String, Color)? _descriptionSourceTag(AppColors c) => switch (r.descriptionSource) {
+        'sources' => (S.filledFromIsbnRecord, c.textSecondary),
+        'mixed' => (S.summarizedByAiFromBookRecords, c.textSecondary),
+        'ai' => (S.writtenByAi, c.warning),
+        _ => null,
+      };
+
   Widget _referenceRow(AppColors c, String key) {
     final value = r.fields[key]!.trim();
     return Padding(
@@ -795,6 +852,7 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
     final value = r.fields[key]!;
     final isDescription = key == 'description';
     final precisionNote = key == 'publish_date' && r.publishDateIsApproximate ? aiPublishDatePrecisionLabel(r.publishDatePrecision) : '';
+    final sourceTag = isDescription ? _descriptionSourceTag(c) : null;
     final expandable = isDescription && value.length > 90;
 
     return _checkFrame(
@@ -813,6 +871,7 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
               Text(aiFieldLabel(key), style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: c.textSecondary)),
               if (same) _sameTag(c),
               if (precisionNote.isNotEmpty) _noteTag(c, precisionNote, c.warning),
+              if (sourceTag != null) _noteTag(c, sourceTag.$1, sourceTag.$2),
             ],
           ),
           const SizedBox(height: 3),

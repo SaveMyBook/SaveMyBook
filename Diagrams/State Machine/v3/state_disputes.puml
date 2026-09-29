@@ -6,7 +6,7 @@ skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
 hide empty description
 
-[*] --> 待處理 : 買家或賣家提出申訴
+[*] --> 待處理 : 買家或賣家申請爭議
 待處理 --> 已結案 : 管理員裁決
 
 state 已結案 {

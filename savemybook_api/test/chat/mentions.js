@@ -68,21 +68,13 @@ const tests = [
     const roomId = await createGroup(owner, [target.user_id]);
 
     const cases = [
-      // 起點不是 @
       ['早安 @甲', [{ user_id: target.user_id, start: 0, length: 2 }]],
-      // 超出訊息長度
       ['@甲', [{ user_id: target.user_id, start: 0, length: 5 }]],
-      // 長度為 0
       ['@甲 早安', [{ user_id: target.user_id, start: 0, length: 0 }]],
-      // 標記區間重疊
       ['@甲@甲 早安', [{ user_id: target.user_id, start: 0, length: 3 }, { user_id: target.user_id, start: 2, length: 2 }]],
-      // 非整數
       ['@甲 早安', [{ user_id: target.user_id, start: 0.5, length: 2 }]],
-      // 不是物件
       ['@甲 早安', ['甲']],
-      // 超過 20 個
       ['@'.repeat(40), Array.from({ length: 21 }, (_, i) => ({ user_id: target.user_id, start: i * 2, length: 1 }))],
-      // 不是群組成員
       ['@路人 早安', [{ user_id: outsider.user_id, start: 0, length: 3 }]]
     ];
 

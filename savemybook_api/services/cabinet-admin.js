@@ -158,16 +158,18 @@ const kioskUrl = (req) => {
 const summary = async (cabinetId, { req = null, now = new Date() } = {}) => {
   const cabinet = await cabinetOf(cabinetId);
   const id = Number(cabinet.cabinet_id);
-  const [maintenance, accessMap, rows, slots, unplaced] = await Promise.all([
+  const [maintenance, accessMap, rows, slots, unplaced, pending] = await Promise.all([
     cabinets.isUnderMaintenance(id),
     access.accessFor([id], now),
-    prisma.cabinet_devices.findMany({ where: { cabinet_id: id, status: { in: ['active', 'pending'] } } }),
+    prisma.cabinet_devices.findMany({ where: { cabinet_id: id, status: 'active' } }),
     doors.doorsOf(id),
-    unplacedOf(id)
+    unplacedOf(id),
+    prisma.cabinet_pair_requests.findFirst({
+      where: { cabinet_id: id, delivered_at: null, expires_at: { gt: now } }, orderBy: { claimed_at: 'desc' }
+    })
   ]);
   const state = accessMap.get(id);
   const active = rows.find(access.isUsableDevice) ?? null;
-  const pending = rows.find((d) => d.status === 'pending' && d.pairing_code_hash && new Date(d.pairing_expires_at) > now) ?? null;
   const hours = access.hoursOf(cabinet);
 
   return {
@@ -197,7 +199,15 @@ const summary = async (cabinetId, { req = null, now = new Date() } = {}) => {
           fault_code: active.fault_code ?? null
         }
       : null,
-    pairing: pending ? { kind: pending.kind, door_count: Number(pending.door_count), expires_at: pending.pairing_expires_at } : null,
+    pairing: pending
+      ? {
+          kind: pending.kind,
+          door_count: Number(pending.door_count),
+          has_door_sensor: Boolean(pending.has_door_sensor),
+          firmware: pending.firmware,
+          expires_at: pending.expires_at
+        }
+      : null,
     active_session_no: active?.active_session_id ? publicId.encode('cabinet_session', active.active_session_id) : null,
     doors: await shapeDoors(slots),
     unplaced
@@ -209,17 +219,23 @@ const doorSummary = async (slotId) => {
   return (await shapeDoors([slot]))[0];
 };
 
-const createPairingCode = async (cabinetId, { kind, doorCount }, { adminId, req }) => {
-  const result = await devices.createPairingCode({ cabinetId, kind, doorCount, adminId });
+const pairDevice = async (cabinetId, { code }, { adminId, req }) => {
+  const { cabinet, device } = await devices.claimPairing({ cabinetId, code, adminId });
   await audit.record(null, {
     adminId,
-    action: '產生書櫃裝置配對碼',
+    action: '配對書櫃裝置',
     targetType: 'cabinet',
-    targetId: Number(cabinetId),
-    summary: `為「${result.cabinet.cabinet_name}」產生${devices.KIND_LABELS[kind]}（${doorCount} 扇櫃門）的裝置配對碼`,
+    targetId: Number(cabinet.cabinet_id),
+    summary: `為「${cabinet.cabinet_name}」配對${devices.KIND_LABELS[device.kind]}（${device.door_count} 扇櫃門，韌體 ${device.firmware}）`,
     req
   });
-  return { code: result.code, kind: result.kind, door_count: result.door_count, expires_at: result.expires_at };
+  return {
+    kind: device.kind,
+    door_count: Number(device.door_count),
+    has_door_sensor: Boolean(device.has_door_sensor),
+    firmware: device.firmware,
+    summary: await summary(cabinet.cabinet_id, { req })
+  };
 };
 
 const revokeDevice = async (cabinetId, { reason = null }, { adminId, req }) => {
@@ -237,12 +253,13 @@ const revokeDevice = async (cabinetId, { reason = null }, { adminId, req }) => {
       }
     }
     await tx.cabinet_devices.deleteMany({ where: { cabinet_id: id, status: 'pending' } });
+    await tx.cabinet_pair_requests.deleteMany({ where: { cabinet_id: id, delivered_at: null } });
     await audit.record(tx, {
       adminId,
       action: '撤銷書櫃裝置',
       targetType: 'cabinet',
       targetId: id,
-      summary: `撤銷「${cabinet.cabinet_name}」的${done.length ? `裝置 ${done.join('、')}` : '配對碼'}${reason ? `，原因：${reason}` : ''}`,
+      summary: `撤銷「${cabinet.cabinet_name}」的${done.length ? `裝置 ${done.join('、')}` : '待完成的配對'}${reason ? `，原因：${reason}` : ''}`,
       req
     });
     return done;
@@ -430,6 +447,6 @@ const clearDeviceFault = async (cabinetId, { adminId, req }) => {
 };
 
 module.exports = {
-  summary, createPairingCode, revokeDevice, listEvents, place, checkClear, clearDoorFault, clearDeviceFault,
+  summary, pairDevice, revokeDevice, listEvents, place, checkClear, clearDoorFault, clearDeviceFault,
   unplacedOf, shapeDoors
 };

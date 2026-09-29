@@ -3,9 +3,15 @@ const openai = require('./openai');
 const gemini = require('./gemini');
 
 // 向量只能和同一個模型、同一維度產生的向量比較；換模型時整批重建，因此 id 同時帶模型與維度。
+// min_similarity 用於短查詢對文件；neighbor_min_similarity 用於書對書（推薦的「內容相近」），
+// 兩份完整書目即使主題無關也常高於查詢門檻，須另設較高的絕對門檻。兩者皆為初始值，須依實際資料校準。
 const PROFILES = {
-  openai: { provider: 'openai', model: 'text-embedding-3-small', dimensions: 512, price_per_m: 0.02, batch: 100, min_similarity: 0.2 },
-  gemini: { provider: 'gemini', model: 'gemini-embedding-001', dimensions: 768, price_per_m: 0.15, batch: 100, min_similarity: 0.45 }
+  openai: {
+    provider: 'openai', model: 'text-embedding-3-small', dimensions: 512, price_per_m: 0.02, batch: 100, min_similarity: 0.2, neighbor_min_similarity: 0.45
+  },
+  gemini: {
+    provider: 'gemini', model: 'gemini-embedding-001', dimensions: 768, price_per_m: 0.15, batch: 100, min_similarity: 0.45, neighbor_min_similarity: 0.7
+  }
 };
 PROFILES.openai.id = `openai:${PROFILES.openai.model}@${PROFILES.openai.dimensions}`;
 PROFILES.gemini.id = `gemini:${PROFILES.gemini.model}@${PROFILES.gemini.dimensions}`;
@@ -23,11 +29,11 @@ const normalize = (values) => {
   return v;
 };
 
-const embedOpenai = async (profile, apiKey, texts) => {
+const embedOpenai = async (profile, apiKey, texts, task, timeoutMs) => {
   const data = await postJson('https://api.openai.com/v1/embeddings', {
     headers: { authorization: `Bearer ${apiKey}` },
     body: { model: profile.model, input: texts, dimensions: profile.dimensions },
-    timeoutMs: TIMEOUT_MS,
+    timeoutMs,
     classify: openai.classify,
     provider: 'openai'
   });
@@ -36,7 +42,7 @@ const embedOpenai = async (profile, apiKey, texts) => {
 };
 
 // Gemini 的批次嵌入不回傳 token 數，以字數估算（中文約一字一 token）。
-const embedGemini = async (profile, apiKey, texts, task) => {
+const embedGemini = async (profile, apiKey, texts, task, timeoutMs) => {
   const data = await postJson(`https://generativelanguage.googleapis.com/v1beta/models/${profile.model}:batchEmbedContents`, {
     headers: { 'x-goog-api-key': apiKey },
     body: {
@@ -47,7 +53,7 @@ const embedGemini = async (profile, apiKey, texts, task) => {
         outputDimensionality: profile.dimensions
       }))
     },
-    timeoutMs: TIMEOUT_MS,
+    timeoutMs,
     classify: gemini.classify,
     provider: 'gemini'
   });
@@ -57,13 +63,13 @@ const embedGemini = async (profile, apiKey, texts, task) => {
 
 const costOf = (profile, tokens) => Math.round((tokens * profile.price_per_m) / 1e6 * 1e6) / 1e6;
 
-const embed = async (profile, apiKey, texts, { task = 'document' } = {}) => {
+const embed = async (profile, apiKey, texts, { task = 'document', timeoutMs = TIMEOUT_MS } = {}) => {
   if (!apiKey) throw new AiProviderError('NOT_CONFIGURED', { provider: profile.provider });
   const run = profile.provider === 'openai' ? embedOpenai : embedGemini;
   const started = Date.now();
   let response;
   try {
-    response = await run(profile, apiKey, texts, task);
+    response = await run(profile, apiKey, texts, task, timeoutMs);
   } catch (err) {
     if (err && typeof err === 'object' && err.latency_ms == null) err.latency_ms = Date.now() - started;
     throw err;

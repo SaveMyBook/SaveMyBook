@@ -4,6 +4,7 @@ import '../../../utils/app_colors.dart';
 import '../../../widgets/app_header.dart';
 import '../../../widgets/guards.dart';
 import '../admin_report_screen.dart';
+import 'ai_decisions_tab.dart';
 import 'ai_settings_tab.dart';
 import 'ai_usage_tab.dart';
 import '../../../i18n/strings.dart';
@@ -19,7 +20,7 @@ class AdminAiScreen extends StatefulWidget {
 }
 
 class _AdminAiScreenState extends State<AdminAiScreen> with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 2, vsync: this, initialIndex: widget.initialTab.clamp(0, 1));
+  late final TabController _tabs = TabController(length: 3, vsync: this, initialIndex: widget.initialTab.clamp(0, 2));
   final _settingsKey = GlobalKey<AiSettingsTabState>();
   bool _dirty = false;
 
@@ -29,7 +30,6 @@ class _AdminAiScreenState extends State<AdminAiScreen> with SingleTickerProvider
     super.dispose();
   }
 
-  // 上架審核與檢舉同屬內容審核，統一在內容審核頁處理。
   void _openReviews() {
     Navigator.push(
       context,
@@ -53,7 +53,7 @@ class _AdminAiScreenState extends State<AdminAiScreen> with SingleTickerProvider
               icon: Icons.auto_awesome_rounded,
               bottom: AppTabBar(
                 controller: _tabs,
-                tabs: [S.usage, S.settings],
+                tabs: [S.usage, S.settings, S.outcomes],
               ),
             ),
             Expanded(
@@ -69,6 +69,7 @@ class _AdminAiScreenState extends State<AdminAiScreen> with SingleTickerProvider
                       if (mounted) setState(() => _dirty = dirty);
                     },
                   ),
+                  const AiDecisionsTab(),
                 ],
               ),
             ),

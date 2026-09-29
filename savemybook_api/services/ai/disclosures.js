@@ -5,18 +5,23 @@ const DISCLOSURES = {
     privacy: 'AI 客服',
     consent: true,
     embedding: true,
-    data: ['訊息', '訂單', '預約', '上架書籍', '審核原因', '電子錢包餘額', '客服工單']
+    data: ['訊息', '訂單', '預約', '上架書籍', '審核原因', '交易爭議', '電子錢包餘額', '收支紀錄', '客服工單']
   },
   book_chat: { privacy: 'AI 書籍顧問', consent: true, embedding: true, data: ['需求描述', '對話', '在售書籍'] },
   book_chat_pick: { privacy: 'AI 書籍顧問', consent: true, embedding: false, data: ['需求描述', '對話', '在售書籍'] },
-  listing_assist: { privacy: '上架輔助', consent: true, embedding: false, data: ['ISBN', '書名', '書況說明', '照片'] },
+  listing_assist: {
+    privacy: '上架輔助',
+    consent: true,
+    embedding: false,
+    data: ['ISBN', '書名', '書況說明', '照片', '作者', '出版社', '出版日期', '分類', '定價']
+  },
   recommend: { privacy: '書籍推薦', consent: true, embedding: true, data: ['收藏', '購買紀錄', '購物車', '最近瀏覽'] },
   moderation: { privacy: '上架審核', consent: false, embedding: false, data: ['書籍內容', '照片'] },
   admin_assist: {
     privacy: '交易爭議分析',
     consent: false,
     embedding: false,
-    data: ['申訴內容', '提出者', '提出時間', '佐證照片', '訂單的狀態', '取書時間', '上架資料']
+    data: ['爭議說明', '申請人', '申請時間', '佐證照片', '訂單的狀態', '取書時間', '上架資料']
   },
   embedding: { privacy: '語意檢索', consent: false, embedding: false, data: ['一般書籍搜尋', 'AI 客服', 'AI 書籍顧問', '書籍推薦'] },
   enrich: { privacy: null, consent: false, embedding: false, data: [], exempt: '僅送出公開書籍的 ISBN 與書名，不含個人資料' },

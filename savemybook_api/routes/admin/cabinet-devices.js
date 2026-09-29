@@ -1,14 +1,15 @@
 const express = require('express');
 const requireAdmin = require('../../middleware/requireAdmin');
 const { requireVerification } = require('../../middleware/verification');
+const { rateLimit, byUser } = require('../../middleware/rateLimit');
 const v = require('../../lib/validate');
 const { actorOf } = require('../../lib/request-context');
 const { badRequest } = require('../../lib/errors');
-const devices = require('../../services/cabinet-devices');
 const admin = require('../../services/cabinet-admin');
 
 const router = express.Router();
 const canManage = requireAdmin('cabinets');
+const pairLimit = rateLimit({ windowMs: 10 * 60 * 1000, max: 10, key: byUser, message: '嘗試次數過多，請稍後再試' });
 
 const MAX_PLACE_BOOKS = 50;
 
@@ -19,12 +20,9 @@ router.get('/cabinets/:id/device', canManage, async (req, res) => {
   res.status(200).json({ success: true, data: await admin.summary(cabinetIdOf(req), { req }) });
 });
 
-router.post('/cabinets/:id/device/pairing-code', canManage, requireVerification('admin'), async (req, res) => {
-  const cabinetId = cabinetIdOf(req);
-  const kind = v.oneOf(req.body.kind, devices.KINDS, `kind 僅接受：${devices.KINDS.join(', ')}`);
-  const doorCount = v.isBlank(req.body.door_count) ? 4 : v.int(req.body.door_count, { label: '櫃門數', min: 1, max: 8 });
-  const data = await admin.createPairingCode(cabinetId, { kind, doorCount }, actorOf(req));
-  res.status(201).json({ success: true, message: '配對碼已產生', data });
+router.post('/cabinets/:id/device/pair', canManage, pairLimit, requireVerification('admin'), async (req, res) => {
+  const data = await admin.pairDevice(cabinetIdOf(req), { code: req.body.code }, actorOf(req));
+  res.status(201).json({ success: true, message: '已送出配對，裝置連線後即完成', data });
 });
 
 router.delete('/cabinets/:id/device', canManage, async (req, res) => {

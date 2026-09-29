@@ -3,6 +3,7 @@ import '../../../i18n/strings.dart';
 import '../../../models/order.dart';
 import '../../../utils/app_colors.dart';
 import '../../../widgets/state_views.dart';
+import '../../cabinet/cabinet_messages.dart';
 
 class PickupReadyCard extends StatelessWidget {
   final Order order;
@@ -13,6 +14,12 @@ class PickupReadyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final book = order.firstBook;
+    final door = CabinetMessages.orderPlacement(order);
+    final place = [
+      if (door.isNotEmpty) door,
+      if (order.cabinetName.isNotEmpty) order.cabinetName,
+    ].join('・');
+    final pending = order.hasPendingManualReport;
 
     return Container(
       width: double.infinity,
@@ -29,17 +36,17 @@ class PickupReadyCard extends StatelessWidget {
               children: [
                 Text(
                   book?.title ?? order.orderNo,
-                  maxLines: 2,
+                  maxLines: pending ? 1 : 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: c.textPrimary, height: 1.3),
                 ),
-                if (order.cabinetName.isNotEmpty) ...[
+                if (place.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  _line(c, Icons.storage_rounded, order.cabinetName),
+                  _line(c, Icons.storage_rounded, place),
                 ],
-                if (order.slotNumber.isNotEmpty) ...[
+                if (pending) ...[
                   const SizedBox(height: 4),
-                  _line(c, Icons.grid_view_rounded, S.slot2(order.slotNumber)),
+                  _line(c, Icons.hourglass_top_rounded, S.manualReportAwaitingConfirmation),
                 ],
               ],
             ),

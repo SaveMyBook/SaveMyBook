@@ -224,7 +224,7 @@ const commitUnits = async (session, units, now) => {
 const outcomeOf = (session, items) => {
   const byAdmin = ADMIN_REASONS.includes(session.close_reason);
   if (session.close_outcome === 'cancelled') {
-    return { status: 'cancelled', code: byAdmin ? 'ADMIN_RESOLVED_DISCARD' : 'CANCELLED_AT_CABINET' };
+    return { status: 'cancelled', code: byAdmin ? 'ADMIN_RESOLVED_DISCARD' : 'CANCELLED_AFTER_OPEN' };
   }
   const selected = items.filter((i) => i.selected);
   const done = selected.filter((i) => i.result === 'done').length;

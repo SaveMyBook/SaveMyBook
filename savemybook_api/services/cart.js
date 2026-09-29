@@ -79,7 +79,7 @@ const setQuantity = async (userId, cartId, quantity) => {
     include: { books: { select: { quantity: true } } }
   });
   if (!item) throw notFound('找不到該購物車項目');
-  if (item.user_id !== userId) throw forbidden('存取被拒');
+  if (item.user_id !== userId) throw forbidden();
 
   const max = Math.max(item.books.quantity, 1);
   if (quantity > max) throw badRequest(`此書籍數量僅 ${max} 本`);

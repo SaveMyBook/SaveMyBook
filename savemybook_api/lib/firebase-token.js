@@ -7,7 +7,6 @@ const CERT_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@
 const FETCH_TIMEOUT_MS = 10 * 1000;
 const FALLBACK_TTL_MS = 60 * 60 * 1000;
 
-// Firebase 的 sign_in_provider 值與本站的 provider 代號不同名。
 const SIGN_IN_PROVIDERS = { google: 'google.com', apple: 'apple.com', phone: 'phone' };
 
 const invalidToken = () => new HttpError(401, '登入逾時，請重新操作', 'INVALID_ID_TOKEN');
@@ -73,7 +72,6 @@ const nonEmpty = (value, max) => {
   return text ? text.slice(0, max) : null;
 };
 
-// provider 為本站代號（google／apple／phone）；不相符時交由呼叫端回 PROVIDER_MISMATCH。
 const verifyIdToken = async (idToken, provider) => {
   const expected = SIGN_IN_PROVIDERS[provider];
   if (!expected) throw invalidToken();

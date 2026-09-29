@@ -8,6 +8,7 @@ const { badRequest } = require('../../lib/errors');
 const { BOOK_STATUSES } = require('../../constants/domain');
 const books = require('../../services/books');
 const ranking = require('../../services/ranking');
+const recommendationEvents = require('../../services/recommendation-events');
 
 const router = express.Router();
 
@@ -61,7 +62,9 @@ router.get('/recommended', async (req, res) => {
   const { limit } = v.pagination(req.query, { limit: 12, max: ranking.RECOMMEND_LIMIT });
   const viewedIds = [...new Set(positiveIds(req.query.viewed_ids))].slice(0, 20);
 
-  const data = await books.recommended(peekUserId(req), viewedIds, limit);
+  const userId = peekUserId(req);
+  const data = await books.recommended(userId, viewedIds, limit);
+  if (userId) recommendationEvents.logImpressionsSafely(userId, data.map((b) => b.book_id), 'rules');
   res.status(200).json({ success: true, data });
 });
 

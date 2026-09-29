@@ -201,9 +201,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: EdgeInsets.fromLTRB(sidePadding, 6, sidePadding, 18),
           child: Column(
             children: [
-              SizedBox(
-                width: double.infinity,
-                height: 32,
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: double.infinity, minHeight: 32),
                 child: Stack(
                   alignment: Alignment.center,
                   clipBehavior: Clip.none,
@@ -232,98 +231,140 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: Semantics(
-                      button: true,
-                      label: S.editProfile,
-                      child: GestureDetector(
-                        key: const ValueKey('profile_edit_area'),
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _openAndRefresh(const EditProfileScreen()),
-                        child: Row(
-                          children: [
-                            UserAvatar(
-                              imageUrl: avatarUrl,
-                              radius: 32,
-                              background: Colors.white24,
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    nickname,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 19,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final identity = Semantics(
+                    button: true,
+                    label: S.editProfile,
+                    child: GestureDetector(
+                      key: const ValueKey('profile_edit_area'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _openAndRefresh(const EditProfileScreen()),
+                      child: Row(
+                        children: [
+                          UserAvatar(
+                            imageUrl: avatarUrl,
+                            radius: 32,
+                            background: Colors.white24,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  nickname,
+                                  maxLines: _enlargedTextLines,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
+                                ),
+                                if (bio.isNotEmpty) ...[
                                   const SizedBox(height: 4),
                                   Text(
-                                    bio.isEmpty ? S.personNotWrittenBioYet : bio,
+                                    bio,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.8)),
                                   ),
-                                  const SizedBox(height: 7),
-                                  _buildLevelBadge(),
                                 ],
-                              ),
+                                const SizedBox(height: 7),
+                                _buildLevelBadge(),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  PressableScale(
-                    onTap: () => _openAndRefresh(const WalletScreen()),
-                    child: Container(
-                      height: 40,
-                      padding: const EdgeInsets.fromLTRB(10, 0, 14, 0),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.16),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
-                      ),
-                      child: Semantics(
-                        label: S.faqCatWallet,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.monetization_on_rounded, color: Colors.amber, size: 20),
-                            const SizedBox(width: 6),
-                            AnimatedCount(
-                              value: _stats.balance,
-                              thousands: true,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                height: 1,
-                                leadingDistribution: TextLeadingDistribution.even,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  );
+                  final wallet = _buildWalletPill(constraints.maxWidth);
+                  if (_walletFitsBeside(context, constraints.maxWidth)) {
+                    return Row(
+                      children: [
+                        Expanded(child: identity),
+                        const SizedBox(width: 8),
+                        wallet,
+                      ],
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [identity, const SizedBox(height: 12), wallet],
+                  );
+                },
               ),
               _buildLevelProgress(),
             ],
           ),
         ),
       ),
+      ),
+    );
+  }
+
+  int get _enlargedTextLines => MediaQuery.textScalerOf(context).scale(1) > 1 ? 2 : 1;
+
+  static const _balanceStyle = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+    height: 1,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
+
+  bool _walletFitsBeside(BuildContext context, double width) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final painter = TextPainter(
+      text: TextSpan(
+        text: AnimatedCount.group(_stats.balance.toStringAsFixed(0)),
+        style: DefaultTextStyle.of(context).style.merge(_balanceStyle),
+      ),
+      textDirection: Directionality.of(context),
+      locale: Localizations.maybeLocaleOf(context),
+      textScaler: scaler,
+      maxLines: 1,
+    )..layout();
+    final walletWidth = painter.width + 10 + 20 + 6 + 14 + 2;
+    painter.dispose();
+    final identityMinWidth = 32 * 2 + 14 + scaler.scale(19) * 4;
+    return width - 8 - walletWidth >= identityMinWidth;
+  }
+
+  Widget _buildWalletPill(double maxWidth) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child: PressableScale(
+        onTap: () => _openAndRefresh(const WalletScreen()),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 40),
+          padding: const EdgeInsets.fromLTRB(10, 0, 14, 0),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.16),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+          ),
+          child: Semantics(
+            label: S.faqCatWallet,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(Icons.monetization_on_rounded, color: Colors.amber, size: 20),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: AnimatedCount(value: _stats.balance, thousands: true, style: _balanceStyle),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -399,7 +440,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     progress.isMax
                         ? S.topTierReached
                         : S.morePointsReach(progress.remaining, nextName ?? ''),
-                    maxLines: 1,
+                    maxLines: _enlargedTextLines,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Colors.white,
@@ -447,34 +488,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildQuickActions(AppColors c) {
-    Widget item(IconData icon, String label, int badge, Widget screen, {Color? badgeColor}) {
-      return Expanded(
-        child: QuickActionButton(
-          icon: icon,
-          label: label,
-          badge: badge,
-          badgeColor: badgeColor,
-          onTap: () => _openAndRefresh(screen),
-        ),
-      );
-    }
+    final actions = [
+      QuickActionButton(
+        icon: Icons.shopping_bag_outlined,
+        label: S.pickUp,
+        badge: _pendingPickup,
+        badgeColor: c.danger,
+        onTap: () => _openAndRefresh(const PurchaseHistoryScreen()),
+      ),
+      QuickActionButton(
+        icon: Icons.move_to_inbox_outlined,
+        label: S.orderPendingDeposit,
+        badge: _pendingDeposit,
+        badgeColor: c.danger,
+        onTap: () => _openAndRefresh(const SalesHistoryScreen(initialTab: 'pending_deposit')),
+      ),
+      QuickActionButton(
+        icon: Icons.bookmark_outline_rounded,
+        label: S.saved,
+        badge: _stats.favoriteCount,
+        onTap: () => _openAndRefresh(const FavoritesScreen()),
+      ),
+      QuickActionButton(
+        icon: Icons.library_books_outlined,
+        label: S.myBooks,
+        onTap: () => _openAndRefresh(const BookManageScreen()),
+      ),
+    ];
 
     return AppCard(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          item(Icons.shopping_bag_outlined, S.pickUp, _pendingPickup, const PurchaseHistoryScreen(), badgeColor: c.danger),
-          item(
-            Icons.move_to_inbox_outlined,
-            S.orderPendingDeposit,
-            _pendingDeposit,
-            const SalesHistoryScreen(initialTab: 'pending_deposit'),
-            badgeColor: c.danger,
-          ),
-          item(Icons.bookmark_outline_rounded, S.saved, _stats.favoriteCount, const FavoritesScreen()),
-          item(Icons.library_books_outlined, S.myBooks, 0, const BookManageScreen()),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final labels = actions.map((a) => a.label);
+          final columns = [actions.length, 2].firstWhere(
+            (n) => QuickActionButton.labelsFit(context, labels, constraints.maxWidth / n),
+            orElse: () => 1,
+          );
+          Widget row(Iterable<QuickActionButton> items) => Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [for (final item in items) Expanded(child: item)],
+              );
+          if (columns == actions.length) return row(actions);
+          return Column(
+            children: [
+              for (var i = 0; i < actions.length; i += columns) ...[
+                if (i > 0) const SizedBox(height: 14),
+                row(actions.skip(i).take(columns)),
+              ],
+            ],
+          );
+        },
       ),
     );
   }

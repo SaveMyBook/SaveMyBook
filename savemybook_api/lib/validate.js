@@ -22,7 +22,7 @@ const optionalId = (value, label) => (isBlank(value) ? null : id(value, label));
 const int = (value, { label = '數值', min = -INT_MAX, max = INT_MAX } = {}) => {
   const n = toInt(value);
   if (!Number.isSafeInteger(n) || n < min || n > max) {
-    throw badRequest(`${label}必須是 ${min} ~ ${max} 之間的整數`);
+    throw badRequest(`${label}須為 ${min} 至 ${max} 之間的整數`);
   }
   return n;
 };

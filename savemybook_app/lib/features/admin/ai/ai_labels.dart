@@ -73,8 +73,13 @@ class AiLabels {
     'misleading' => S.misleadingDescription,
     'price' => S.unusualPrice,
     'source' => S.libraryCopyUnofficialSource,
-    // 伺服器日後新增的類別在 App 更新前不顯示英文代碼。
     _ => S.ticketCatOther,
+  };
+
+  static String opinion(String verdict) => switch (verdict) {
+    'allow' => S.noObviousIssuesFound,
+    'reject' => S.likelyViolation,
+    _ => S.needsReview,
   };
 
   static String testCheck(String name) => switch (name) {
@@ -82,6 +87,97 @@ class AiLabels {
     AiTestCheck.json => 'JSON',
     AiTestCheck.image => S.vision,
     _ => name,
+  };
+
+  static String outcome(String id) => switch (id) {
+    AiOutcomes.ok => S.succeeded,
+    AiOutcomes.repaired => S.repaired,
+    AiOutcomes.degraded => S.degraded,
+    AiOutcomes.empty => S.emptyAfterCleanup,
+    AiOutcomes.refused => S.refusedByProvider,
+    _ => S.failed,
+  };
+
+  static Color outcomeColor(AppColors c, String id) => switch (id) {
+    AiOutcomes.ok => c.success,
+    AiOutcomes.repaired => c.isDark ? const Color(0xFF7FA6FF) : const Color(0xFF3F6FE0),
+    AiOutcomes.degraded => c.warning,
+    AiOutcomes.empty => c.neutral,
+    AiOutcomes.refused => c.isDark ? const Color(0xFFB79CFF) : const Color(0xFF8157E8),
+    _ => c.danger,
+  };
+
+  static String? path(String feature, String id) => switch ((feature, id)) {
+    (AiFeatures.support, 'answer') => S.modelAnswer,
+    (AiFeatures.support, 'guarded') => S.replacedWithStandardNotice,
+    (AiFeatures.support, 'passage') => S.fellBackReferencePassage,
+    (AiFeatures.bookChat, 'clarify') => S.clarifyingQuestion,
+    (AiFeatures.bookChat, 'picked') => S.booksSelectedByModel,
+    (AiFeatures.bookChat, 'declined') => S.noSuitableBooks,
+    (AiFeatures.bookChat, 'retrieval') => S.fellBackSearchRanking,
+    (AiFeatures.bookChat, 'popular') => S.fellBackPopularBooks,
+    (AiFeatures.recommend, 'generated') => S.recommendationsGenerated,
+    (AiFeatures.recommend, 'none') => S.noSuitableCandidates,
+    (AiFeatures.recommend, 'no_candidates') => S.noCandidates,
+    (AiFeatures.listingAssist, 'model') => S.modelSuggestionsUsed,
+    (AiFeatures.listingAssist, 'bibliographic') => S.bibliographicDataOnly,
+    (AiFeatures.listingAssist, 'condition') => S.assessConditionPrice,
+    (AiFeatures.listingAssist, 'price') => S.lookUpListPrice,
+    (AiFeatures.adminAssist, 'refund') => S.suggestRefund,
+    (AiFeatures.adminAssist, 'dismiss') => S.suggestDismissal,
+    (AiFeatures.adminAssist, 'mediate') => S.suggestMediation,
+    (AiFeatures.adminAssist, 'need_more_info') => S.needsMoreInformation,
+    _ => null,
+  };
+
+  static String? flag(String feature, String key) => switch ((feature, key)) {
+    (AiFeatures.support, 'handoff') => S.handoffSuggested,
+    (AiFeatures.support, 'handoff_forced') => S.handoffEnforcedBySystem,
+    (AiFeatures.support, 'insufficient') => S.insufficientGrounding,
+    (AiFeatures.support, 'follow_ups') => S.followUpSuggestionsProvided,
+    (AiFeatures.bookChat, 'continued') => S.continuedPreviousCriteria,
+    (AiFeatures.bookChat, 'inherited') => S.reusedPreviousTopic,
+    (AiFeatures.bookChat, 'unmatched') => S.noSearchMatch,
+    (AiFeatures.bookChat, 'invalid_picks') => S.invalidBookCodesReturned,
+    (AiFeatures.bookChat, 'reply_unknown_title') => S.replyTitleNotBookCards,
+    (AiFeatures.bookChat, 'reply_price') => S.replyMentionsPrice,
+    (AiFeatures.bookChat, 'reply_denies_books') => S.replyDeniesResultsDespiteBookCards,
+    (AiFeatures.recommend, 'salvaged') => S.completeItemsKeptAfterTruncation,
+    (AiFeatures.adminAssist, 'photos_skipped') => S.somePhotosNotSent,
+    (AiFeatures.adminAssist, 'evidence_unseen') => S.noEvidencePhotosSent,
+    (AiFeatures.adminAssist, 'photo_refs') => S.findingsCitePhotos,
+    (AiFeatures.listingAssist, 'used_search') => S.webSearchUsed,
+    (AiFeatures.listingAssist, 'search_retry') => S.retriedWithoutSearch,
+    (AiFeatures.listingAssist, 'backup') => S.backupProviderUsed,
+    (AiFeatures.listingAssist, 'condition_adjusted') => S.conditionAdjustedFromNotes,
+    (AiFeatures.listingAssist, 'cache_fields') => S.cachedBibliographicDataUsed,
+    (AiFeatures.listingAssist, 'cache_description') => S.cachedDescriptionUsed,
+    (AiFeatures.listingAssist, 'isbn_mismatch') => S.isbnTitleDoNotMatch,
+    _ => null,
+  };
+
+  static String? average(String feature, String key) => switch ((feature, key)) {
+    (AiFeatures.support, 'docs') => S.avgPassagesRetrieved,
+    (AiFeatures.bookChat, 'candidates') || (AiFeatures.recommend, 'candidates') => S.avgCandidates,
+    (AiFeatures.bookChat, 'fillers') || (AiFeatures.recommend, 'fillers') => S.avgFillerBooks,
+    (AiFeatures.bookChat, 'books') => S.avgBooksRecommended,
+    (AiFeatures.recommend, 'picked') => S.avgBooksSelected,
+    (AiFeatures.recommend, 'invalid') => S.avgInvalidCodes,
+    (AiFeatures.support, 'cited') => S.avgPassagesCited,
+    (AiFeatures.recommend, 'basis_dropped') => S.avgInvalidRecommendationBases,
+    (AiFeatures.recommend, 'templated') => S.avgSystemGeneratedReasons,
+    (AiFeatures.adminAssist, 'invalid_photo_refs') => S.avgInvalidPhotoReferences,
+    (AiFeatures.listingAssist, 'photos') => S.avgPhotos,
+    (AiFeatures.listingAssist, 'sources') => S.avgSources,
+    _ => null,
+  };
+
+  static String origin(String id) => switch (id) {
+    'book_search' => S.bookSearch,
+    'similar_books' => S.similarBooks,
+    AiEmbeddingOrigin.index => S.indexUpdates,
+    AiEmbeddingOrigin.unknown => S.sourceNotRecorded,
+    _ => feature(id),
   };
 
   static String errorCode(String code) => switch (code) {

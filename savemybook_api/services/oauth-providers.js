@@ -181,7 +181,6 @@ const saveResult = async (payload) => {
 };
 
 // 回呼階段只完成身分判定，Token 於 App 呼叫 exchange 時才簽發，資料庫不保存任何 Token。
-// 尚未綁定任何帳號時只把第三方資料暫存下來，是否建立帳號由使用者在 App 決定。
 const handleCallback = async (provider, code, state) => {
   await settings.assertEnabled(provider);
   if (typeof code !== 'string' || !code || code.length > 512) throw stateInvalid();

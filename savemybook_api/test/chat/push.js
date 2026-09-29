@@ -31,7 +31,6 @@ const tests = [
     assert.strictEqual(message.data.mentioned, '');
     assert.strictEqual(message.apns.payload.aps.category, 'CHAT_MESSAGE');
 
-    // 已推播過的通知不會再送第二次。
     assert.strictEqual(await push.dispatchOnce(), 0);
     assert.strictEqual(pushesFor(device).length, 1);
   }],

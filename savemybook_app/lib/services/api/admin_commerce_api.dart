@@ -32,6 +32,21 @@ extension AdminCommerceApi on ApiService {
     return _mapList(res, DisputeCase.fromJson);
   }
 
+  /// 最近一次保存的分析結果，不呼叫模型；尚未分析時結果為 null。
+  Future<(DisputeAnalysis?, String?)> fetchDisputeAnalysis(int disputeId) async {
+    final res = await _send('GET', '/admin/disputes/$disputeId/ai-analysis');
+    if (res == null) return (null, S.pleaseSignFirst);
+    if (res['success'] != true) return (null, res['message'] as String? ?? S.loadFailed);
+    final data = res['data'];
+    return (data is Map ? DisputeAnalysis.fromJson(Map<String, dynamic>.from(data)) : null, null);
+  }
+
+  Future<String?> rateDisputeAnalysis(int disputeId, {required String analysisNo, required bool helpful}) async {
+    final res = await _send('PATCH', '/admin/disputes/$disputeId/ai-analysis', body: {'analysis_no': analysisNo, 'helpful': helpful});
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.actionFailed);
+  }
+
   Future<(DisputeAnalysis?, String?, String?)> analyzeDispute(int disputeId) async {
     final res = await _send('POST', '/admin/disputes/$disputeId/ai-analysis');
     if (res == null) return (null, S.pleaseSignFirst, null);

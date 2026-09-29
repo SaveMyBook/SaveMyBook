@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart' show TargetPlatform;
 import '../utils/api_helpers.dart';
 
 class PasskeyItem {
-  /// 伺服器回傳的加密編號，不是流水號。
   final String passkeyId;
   final String? credentialId;
   final String? deviceLabel;
@@ -33,7 +32,7 @@ class PasskeyItem {
       );
 }
 
-/// GET /auth/passkeys/status。舊版伺服器沒有 platforms，缺少的平台一律視為可用。
+/// 舊版伺服器沒有 platforms，缺少的平台一律視為可用。
 class PasskeyServerStatus {
   final bool enabled;
   final String? rpId;
@@ -65,7 +64,6 @@ class PasskeyServerStatus {
   }
 }
 
-/// 通行密鑰流程的結果：[cancelled] 為使用者自行取消，不應顯示錯誤。
 class PasskeyOutcome<T> {
   final T? data;
   final String code;
@@ -83,7 +81,6 @@ class PasskeyOutcome<T> {
 
   static const noCredentialsCode = 'PASSKEY_NO_CREDENTIALS';
 
-  /// iOS 17.4 以下再次新增會覆蓋 iCloud 鑰匙圈中的通行密鑰，須先經使用者確認。
   static const replaceCode = 'PASSKEY_REPLACE_UNCONFIRMED';
 
   const PasskeyOutcome.cancelled()

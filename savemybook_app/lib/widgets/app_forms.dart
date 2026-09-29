@@ -566,7 +566,6 @@ class CabinetSelectField extends StatefulWidget {
   final int? value;
   final void Function(Map<String, dynamic>? cabinet, bool byUser) onChanged;
   final bool autoSelectNearest;
-  final int? keepSelectableId;
   final String? errorText;
   final bool enabled;
   final String? hint;
@@ -577,7 +576,6 @@ class CabinetSelectField extends StatefulWidget {
     required this.value,
     required this.onChanged,
     this.autoSelectNearest = false,
-    this.keepSelectableId,
     this.errorText,
     this.enabled = true,
     this.hint,
@@ -690,11 +688,6 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
     }
   }
 
-  bool _selectable(Map<String, dynamic> cabinet) {
-    final slots = CabinetSelectField.slotsOf(cabinet);
-    return slots == null || slots > 0 || CabinetSelectField.idOf(cabinet) == widget.keepSelectableId;
-  }
-
   void _reconcile() {
     if (_cabinets.isEmpty || !widget.enabled) return;
     final value = widget.value;
@@ -707,7 +700,7 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
 
     final canAutoPick = widget.autoSelectNearest && (value == null || value == _autoPickedId);
     if (canAutoPick) {
-      final nearest = _cabinets.where(_selectable).firstOrNull;
+      final nearest = _cabinets.firstOrNull;
       if (nearest != null) {
         next = nearest;
         _autoPickedId = CabinetSelectField.idOf(nearest);
@@ -725,7 +718,7 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
 
   List<AppSelectOption<int>> _options() {
     final nearestId = _located
-        ? _cabinets.where(_selectable).map(CabinetSelectField.idOf).firstOrNull
+        ? _cabinets.map(CabinetSelectField.idOf).firstOrNull
         : null;
 
     return [
@@ -741,7 +734,6 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
     final distance = CabinetSelectField.distanceOf(cab);
     final hours = formatTimeRange(cab['open_time'], cab['close_time']);
     final address = '${cab['address'] ?? ''}'.trim();
-    final selectable = _selectable(cab);
 
     return AppSelectOption<int>(
       value: CabinetSelectField.idOf(cab)!,
@@ -755,8 +747,6 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
       iconColor: slots == 0 ? c.danger : null,
       trailing: distance == null ? null : LocationService.formatDistance(distance),
       badge: nearest ? S.nearest : null,
-      enabled: selectable,
-      disabledReason: selectable ? null : S.noFreeSlots,
     );
   }
 
@@ -777,7 +767,6 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
           loading: _loading,
           hint: _loading ? S.loading : widget.hint ?? S.chooseLocker,
           title: S.lockerLocation,
-          sheetSubtitle: _located ? null : S.turnLocationSortByDistance,
           emptyText: S.noLockersMatch,
           errorText: widget.errorText,
           leadingIcon: Icons.inventory_2_outlined,

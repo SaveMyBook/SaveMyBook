@@ -125,7 +125,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 'status 僅接受：reviewing, resolved, dismissed' }
+              example: { success: false, message: 處理結果不正確 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -285,20 +285,101 @@ paths:
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/disputes/{id}/ai-analysis:
+    get:
+      summary: 最近一次 AI 爭議分析
+      operationId: adminGetDisputeAnalysis
+      tags: [admin-moderation]
+      description: |
+        需 `can_manage_transactions` 權限。回傳這個爭議最近一次的分析結果，不呼叫模型；尚未分析時 `data` 為 null。
+        開啟分析面板時直接顯示，按「重新分析」才呼叫 `POST`，避免重複付費。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 9
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    nullable: true
+                    allOf:
+                      - $ref: '#/components/schemas/AdminDisputeAnalysis'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      summary: 評價 AI 爭議分析
+      operationId: adminRateDisputeAnalysis
+      tags: [admin-moderation]
+      description: |
+        需 `can_manage_transactions` 權限。記錄 `analysis_no` 指定的那一次分析是否有幫助，可重複送出覆寫；
+        其他管理員之後重新分析也不影響評價對象。分析編號不屬於此爭議或不存在時回傳 404。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 9
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [analysis_no, helpful]
+              properties:
+                analysis_no: { type: string, description: 分析結果的 `analysis_no`, example: DA7K2M9QX }
+                helpful: { type: boolean, example: true }
+      responses:
+        '200':
+          description: 已記錄。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已記錄評價 }
+                  data: { $ref: '#/components/schemas/AdminDisputeAnalysis' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
     post:
       summary: AI 分析交易爭議
       operationId: adminAnalyzeDispute
-      tags: [admin]
+      tags: [admin-moderation]
       description: |
-        需 `can_manage_transactions` 權限。AI 比對賣家上架時的書籍資料、書況與前 2 張照片、訂單狀態與成立、存書、取書時間，
-        以及申訴內容（含提出者為買家或賣家與提出時間）與最多 3 張佐證照片，
-        回傳案件摘要、觀察重點與建議（`refund` 退款、`dismiss` 駁回、`need_more_info` 需要更多資訊）。
-        僅供參考，不會變更爭議或訂單；不使用聊天內容。申訴內容送出前，含聯絡方式、連結、付款帳號或驗證碼的句子會以
+        需 `can_manage_transactions` 權限。AI 比對賣家上架時的書籍資料、書況與照片、訂單狀態與成立、存書、取書時間，
+        以及爭議說明（含申請人為買家或賣家與申請時間）與最多 3 張佐證照片，
+        回傳案件摘要、觀察重點與建議（`refund` 退款、`dismiss` 駁回、`mediate` 協調處理、`need_more_info` 需要更多資訊）。
+        提示詞分別列出買家與賣家申請爭議時的判斷標準。僅供參考，不會變更爭議或訂單；不使用聊天內容。
+
+        **照片**：上架照片最多 4 張，依書輪流挑選，讓訂單中的每本書都有照片；同一本書依內頁、封面、封底、其他的順序。
+        照片先依服務商能接受的格式過濾（無法清除中繼資料的 HEIC 等格式一律不送），提示詞以實際送出的照片逐張編號並標註來源與類型，
+        未送出的張數（格式不支援、檔案遺失或超過張數上限）另外註明。爭議附有佐證照片卻一張都沒有送出時，
+        `suggestion` 固定為 `need_more_info`、`confidence_level` 為 `low`，`rationale` 改為固定說明。
+
+        **輸出**：模型依固定規格輸出，支援嚴格模式的服務商（OpenAI）由服務商保證格式，所有輸出都經伺服器驗證。
+        每個觀察重點包含內容、依據、照片編號與有利於哪一方；照片編號只保留實際送出、且與依據來源相符的照片。
+        信心以 `low`、`medium`、`high` 三級表示證據是否充分。爭議說明送出前，含聯絡方式、連結、付款帳號或驗證碼的句子會以
         「〔已隱藏個人或付款資訊〕」取代，並與書名、描述一併攤平成單行、替換分隔符號，避免偽造其他段落。
         使用上架審核的服務商（需支援照片辨識），費用記入 `admin_assist`。
-        此處理為處理爭議所必要並已揭露於隱私權政策，不以申訴人的 AI 資料處理同意為前提。
-        AI 關閉或未設定金鑰回傳 503 `AI_UNAVAILABLE`，本月預算用盡回傳 503 `AI_BUDGET_EXCEEDED`，
-        案件內容遭服務商阻擋時回傳 422 `AI_CONTENT_BLOCKED`（管理員無法修改申訴內容，訊息不要求調整後重試）。每位管理員每 10 分鐘最多 30 次。
+        此處理為處理爭議所必要並已揭露於隱私權政策，不以爭議申請人的 AI 資料處理同意為前提。
+        AI 關閉或未設定金鑰回傳 503 `AI_UNAVAILABLE`，本月費用達完整預算（可使用保留額度）時回傳 503 `AI_BUDGET_EXCEEDED`，
+        案件內容遭服務商阻擋時回傳 422 `AI_CONTENT_BLOCKED`（管理員無法修改爭議說明，訊息不要求調整後重試）。每位管理員每 10 分鐘最多 30 次。
+
+        每次成功的分析都會保存輸出、實際送出的照片數、服務商、模型與提示詞版本（系統提示詞的雜湊），
+        供 `GET` 直接讀取與品質報表統計；裁決時記錄最後一次分析的建議是否與裁決結果一致。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -315,26 +396,9 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  data:
-                    type: object
-                    properties:
-                      summary: { type: string, example: 買家取書後表示書中多頁有大量劃線，賣家標示書況為近全新。 }
-                      findings:
-                        type: array
-                        items: { type: string }
-                        example: [佐證照片可見多頁螢光筆劃記, 上架照片僅拍攝封面，無法確認內頁狀況]
-                      suggestion: { type: string, enum: [refund, dismiss, need_more_info], example: refund }
-                      confidence: { type: number, example: 0.78 }
-                      rationale: { type: string, example: 劃記程度與「近全新」的標示明顯不符。 }
-                      images:
-                        type: object
-                        properties:
-                          listing: { type: integer, example: 2 }
-                          evidence: { type: integer, example: 3 }
-                      provider: { type: string, example: openai }
-                      model: { type: string, example: gpt-5.6-terra }
+                  data: { $ref: '#/components/schemas/AdminDisputeAnalysis' }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '422':
           description: 案件內容遭服務商的安全機制拒絕，重送相同內容仍會失敗。
@@ -366,19 +430,20 @@ paths:
         | `result` | 訂單結果 | 金流 |
         | --- | --- | --- |
         | `refund_manual`、`refund_auto` | `refunded` | 賣家已收到的貨款先收回，買家實付金額退回錢包；建立退款紀錄 |
-        | `dismissed`、`mediated` | 回到申訴前的狀態 | 回到 `completed` 時才撥款給賣家 |
+        | `dismissed`、`mediated` | 回到申請爭議前的狀態 | 回到 `completed` 時才撥款給賣家 |
 
-        「申訴前的狀態」由時間欄位推回：有 `completed_at` 回到 `completed`，
-        有 `deposited_at` 回到 `deposited`，否則回到 `pending_deposit`。
+        「申請爭議前的狀態」由時間欄位推回：有 `completed_at` 或 `picked_up_at`（已取書）時回到 `completed` 並撥款給賣家；
+        有 `deposited_at` 回到 `deposited`；否則回到 `pending_deposit`。
 
         裁決退款且買家尚未取書時，仍在櫃中的書（訂單已有 `deposited_at` 時為訂單的每本書，其餘為 `pre_deposited` 的書）
         恢復存書登記於書櫃，但因無法確認書是否仍在櫃中，書籍改為下架（`removed`）；賣家的裁決通知一併說明，
-        請賣家至書櫃取回並於 App 中回報，回報後再自行重新上架。
+        請賣家至書櫃以 App 掃描 QR Code 取回（書櫃無法掃碼時改以手動回報，經客服確認後生效），取回後再自行重新上架。
 
         爭議期間訂單若已被客服取消或退款，只結案不再異動訂單。
         已裁決的案件再送出回傳 409。退款紀錄的 `amount` 為實際退回的金額。
 
         爭議狀態設為 `resolved` 並寫入處理時間，買賣雙方都會收到裁決通知，並寫入稽核紀錄。
+        案件做過 AI 分析時，最後一次分析的建議是否與裁決結果一致會一併記錄，用於品質報表。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -419,8 +484,64 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 'result 僅接受：refund_manual, refund_auto, dismissed, mediated' }
+              example: { success: false, message: 裁決結果不正確 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
+
+components:
+  schemas:
+    AdminDisputeAnalysis:
+      type: object
+      properties:
+        analysis_no: { type: string, description: 分析結果的加密編號，評價時帶回, example: DA7K2M9QX }
+        summary: { type: string, example: 買家取書後表示書中多頁有大量劃線，賣家標示書況為近全新。 }
+        findings:
+          type: array
+          items: { type: string }
+          description: 觀察重點的內容文字，與 `finding_details[].content` 相同，保留給舊版 App。
+          example: [佐證照片可見多頁螢光筆劃記, 上架照片僅拍攝封面，無法確認內頁狀況]
+        finding_details:
+          type: array
+          maxItems: 4
+          items:
+            type: object
+            properties:
+              content: { type: string, maxLength: 80, example: 佐證照片可見多頁螢光筆劃記 }
+              basis:
+                type: string
+                nullable: true
+                enum: [listing_text, listing_photo, complaint, evidence_photo, order_timeline, null]
+                description: 依據的資料：上架文字、上架照片、爭議說明、佐證照片、訂單經過；模型未標示時為 null。
+              photos:
+                type: array
+                items: { type: integer }
+                description: 依據的照片編號，對應 `photos[].no`。
+                example: [5, 6]
+              favors: { type: string, enum: [buyer, seller, neutral], description: 這一點有利於買家、賣家或中立 }
+        suggestion: { type: string, enum: [refund, dismiss, mediate, need_more_info], example: refund }
+        confidence_level: { type: string, enum: [low, medium, high], example: high, description: 證據是否充分，不是勝訴的機率 }
+        confidence: { type: number, enum: [0.3, 0.6, 0.9], example: 0.9, description: 已由 `confidence_level` 取代，依等級換算的代表值，保留給舊版 App。 }
+        rationale: { type: string, example: 劃記程度與「近全新」的標示明顯不符。 }
+        images:
+          type: object
+          description: 實際送交 AI 判讀的照片張數與未送出的張數。
+          properties:
+            listing: { type: integer, example: 2 }
+            evidence: { type: integer, example: 3 }
+            skipped: { type: integer, example: 1 }
+        photos:
+          type: array
+          description: 實際送出的照片，依提示詞中的編號排列。
+          items:
+            type: object
+            properties:
+              no: { type: integer, example: 1 }
+              source: { type: string, enum: [listing, evidence] }
+              type: { type: string, enum: [cover, back, inside, other], description: 僅上架照片提供 }
+              title: { type: string, description: 僅上架照片提供，照片所屬的書名 }
+        provider: { type: string, example: openai }
+        model: { type: string, example: gpt-5.6-terra }
+        helpful: { type: boolean, nullable: true, description: 管理員評價是否有幫助；未評價時為 null。 }
+        created_at: { type: string, format: date-time, description: 分析時間 }

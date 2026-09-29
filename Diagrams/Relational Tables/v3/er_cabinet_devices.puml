@@ -1,0 +1,84 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "smart_cabinets" as smart_cabinets {
+  {field} <&key> cabinet_id : int
+  --
+  ...
+}
+entity "cabinet_devices" as cabinet_devices {
+  {field} <&key> device_id : int
+  --
+  {field} cabinet_id : int
+  {field} active_cabinet_id : int
+  {field} active_session_id : int
+  {field} kind : enum
+  {field} status : enum
+  {field} token_hash : char(64)
+  {field} door_count : tinyint
+  {field} has_door_sensor : tinyint(1)
+  {field} unlock_pulse_ms : smallint
+  {field} firmware : varchar(40)
+  {field} fault_code : varchar(40)
+  {field} fault_since : datetime
+  {field} qr_seq : int
+  {field} current_boot_id : varchar(16)
+  {field} previous_boot_id : varchar(16)
+  {field} boot_switched_at : datetime
+  {field} last_seen_at : datetime
+  {field} last_ip : varchar(45)
+  {field} offline_since : datetime
+  {field} offline_notified : tinyint(1)
+  {field} created_by : int
+  {field} paired_at : datetime
+  {field} revoked_at : datetime
+  {field} revoked_by : int
+  {field} revoke_reason : varchar(20)
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "cabinet_pair_requests" as cabinet_pair_requests {
+  {field} <&key> request_id : int
+  --
+  {field} code_hash : char(64)
+  {field} poll_token_hash : char(64)
+  {field} kind : enum
+  {field} door_count : tinyint
+  {field} has_door_sensor : tinyint(1)
+  {field} unlock_pulse_ms : smallint
+  {field} firmware : varchar(40)
+  {field} boot_id : varchar(16)
+  {field} ip : varchar(45)
+  {field} cabinet_id : int
+  {field} device_id : int
+  {field} claimed_by : int
+  {field} claimed_at : datetime
+  {field} delivered_at : datetime
+  {field} expires_at : datetime
+  {field} created_at : datetime
+}
+entity "cabinet_challenges" as cabinet_challenges {
+  {field} <&key> challenge_id : int
+  --
+  {field} device_id : int
+  {field} token_hash : char(64)
+  {field} qr_seq : int
+  {field} epoch : int
+  {field} expires_at : datetime
+  {field} used_at : datetime
+  {field} used_by : int
+  {field} created_at : datetime
+}
+smart_cabinets ||--o{ cabinet_devices
+smart_cabinets ||--o{ cabinet_pair_requests
+cabinet_devices ||--o{ cabinet_challenges
+@enduml

@@ -26,14 +26,7 @@ class ServerCompat {
     }
 
     final c = AppColors.of(context);
-    final current = status.apiRevision;
-    final needed = ServerStatus.requiredApiRevision;
-    final commit = status.commit;
-    final lines = <String>[
-      S.serverRunningOutdatedApiRevisionP0(current, needed),
-      if (commit != null) S.serverVersionP0(commit),
-      S.runNpmRunVerifyApiDirectory,
-    ];
+    final message = S.serverRunningOutdatedApiRevisionP0(status.apiRevision, ServerStatus.requiredApiRevision);
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -41,7 +34,7 @@ class ServerCompat {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(S.serverUpdateRequired, style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary, fontSize: 17)),
         content: SingleChildScrollView(
-          child: Text(lines.join('\n\n'), style: TextStyle(fontSize: 14, height: 1.6, color: c.textSecondary)),
+          child: Text(message, style: TextStyle(fontSize: 14, height: 1.6, color: c.textSecondary)),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.actionConfirm, style: TextStyle(color: c.accent))),

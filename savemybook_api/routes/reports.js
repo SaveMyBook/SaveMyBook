@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
   if (!reason) throw badRequest('請填寫檢舉原因');
 
   const report = await reports.create(req.user.userId, { targetType, targetId, reason, evidenceUrls });
-  res.status(201).json({ success: true, message: '檢舉已送出，我們將盡快處理', data: report });
+  res.status(201).json({ success: true, message: '檢舉已送出', data: report });
 });
 
 router.get('/against-me', async (req, res) => {
