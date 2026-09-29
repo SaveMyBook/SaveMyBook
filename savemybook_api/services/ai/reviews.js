@@ -198,6 +198,18 @@ const settle = async (db, bookId, adminId = null) => {
   });
 };
 
+// 待審不算違規鎖定：管理員或檢舉成立下架時須一併結案，否則賣家仍可自行重新上架。不代表 AI 判定正確與否，不計入誤判統計。
+const closeForTakedown = async (db, bookId, adminId) => {
+  const review = await db.ai_book_reviews.findUnique({ where: { book_id: bookId } });
+  if (review?.status !== 'pending') return false;
+  const closed = await db.$executeRaw`
+    UPDATE ai_book_reviews SET status = 'rejected', reviewed_by = ${adminId}, reviewed_at = ${new Date()}
+    WHERE book_id = ${bookId} AND status = 'pending'`;
+  if (Number(closed) === 0) return false;
+  await recordEvent(db, { bookId, actor: 'admin', prior: 'pending', status: 'rejected', source: review, misjudged: null });
+  return true;
+};
+
 const notifyHeld = (db, book) => notify(db, {
   userId: book.seller_id,
   title: '書籍已送交審核',
@@ -286,18 +298,28 @@ const decide = async (bookId, { decision, note, category = null, unfounded = fal
   if (!book) throw notFound('找不到此書籍');
 
   const approve = decision === 'approve';
-  if (review.status === (approve ? 'approved' : 'rejected')) throw conflict(approve ? '此書籍已通過審核' : '此書籍已駁回');
-
-  const bookData = approve
-    ? { is_approved: true, ...(review.status === 'rejected' && book.status === 'removed' && { status: 'on_sale' }) }
-    : { is_approved: false, ...(book.status === 'on_sale' && { status: 'removed' }) };
+  if (review.status === (approve ? 'approved' : 'rejected')) throw conflict(approve ? '此書籍已通過審核' : '此書籍已拒絕上架');
 
   // 延後載入：book-deposits → book-violations → ai/reviews 的載入鏈若在模組頂端引用會形成循環。
   const deposits = require('../book-deposits');
+  const reservations = require('../reservations');
+  const takedown = require('../book-takedown');
+
+  let bookData = approve
+    ? { is_approved: true, ...(review.status === 'rejected' && book.status === 'removed' && { status: 'on_sale' }) }
+    : null;
+  if (bookData?.status === 'on_sale') await takedown.assertNoOpenOrder(prisma, bookId);
+  let taken = null;
+
   await prisma.$transaction(async (tx) => {
-    await tx.books.update({ where: { book_id: bookId }, data: { ...bookData, updated_at: new Date() } });
-    if (!approve) await deposits.releaseAutoPause(tx, bookId);
-    else if (bookData.status === 'on_sale') await deposits.syncAdminStatus(tx, bookId, 'on_sale');
+    if (!approve) {
+      taken = await takedown.apply(tx, book);
+      bookData = taken.data;
+    } else {
+      await tx.books.update({ where: { book_id: bookId }, data: { ...bookData, updated_at: new Date() } });
+      if (bookData.status === 'on_sale') await deposits.syncAdminStatus(tx, bookId, 'on_sale');
+      if (!reservations.isListed(book)) await reservations.notifyRelisted(tx, bookId);
+    }
     await tx.$executeRaw`
       UPDATE ai_book_reviews SET status = ${approve ? 'approved' : 'rejected'}, reviewed_by = ${adminId}, reviewed_at = ${new Date()},
         decision_reason = ${approve ? null : category}
@@ -316,19 +338,22 @@ const decide = async (bookId, { decision, note, category = null, unfounded = fal
       title: approve ? '書籍已通過審核' : '書籍未通過審核',
       content: approve
         ? `您的書籍《${book.title}》已通過審核${(bookData.status ?? book.status) === 'on_sale' ? '，現已公開販售' : ''}。`
-        : `您的書籍《${book.title}》未通過上架審核，已下架。${note ? `原因：${note}` : ''}如有疑問請聯絡客服。`,
+        : `您的書籍《${book.title}》未通過上架審核，已${takedown.actionLabel(taken)}。${note ? `原因：${note}` : ''}如有疑問請聯絡客服。`,
       relatedId: bookId,
       relatedType: 'book'
     });
   });
 
+  const orderResult = approve ? null : await takedown.cancelOrders(bookId);
+
   await audit.record(null, {
     adminId,
-    action: approve ? '核准 AI 審核書籍' : '駁回 AI 審核書籍',
+    action: approve ? '核准 AI 審核書籍' : '拒絕 AI 審核書籍',
     targetType: 'book',
     targetId: bookId,
-    summary: `${approve ? '核准' : '駁回'}《${book.title}》的上架審核，並通知賣家`
-      + `${!approve && category ? `，類別：${reasonLabel(category)}` : ''}${!approve && note ? `，原因：${note}` : ''}`,
+    summary: `${approve ? `核准《${book.title}》的上架審核` : `拒絕《${book.title}》上架`}，並通知賣家`
+      + `${!approve && category ? `，類別：${reasonLabel(category)}` : ''}${!approve && note ? `，原因：${note}` : ''}`
+      + `${orderResult ? takedown.describe(orderResult) : ''}`,
     changes: audit.diff(book, bookData, {
       status: '狀態',
       is_approved: { label: '審核通過', format: (v) => (v ? '是' : '否') }
@@ -340,5 +365,5 @@ const decide = async (bookId, { decision, note, category = null, unfounded = fal
 
 module.exports = {
   STATUSES, DECISIONS, statusMap, statusOf, reviewStatusOf, withReviewStatus, hold, recordEvent, mark, markerOf, attachOpinion,
-  dueForRecheck, unreviewedCount, settle, notifyHeld, adminList, decide
+  dueForRecheck, unreviewedCount, settle, closeForTakedown, notifyHeld, adminList, decide
 };

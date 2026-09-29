@@ -62,6 +62,10 @@ paths:
                         isbn: { type: string, nullable: true }
                         price: { type: string, example: '180.00' }
                         status: { type: string, enum: [on_sale, reserved, sold, removed] }
+                        is_approved:
+                          type: boolean
+                          description: false 表示不公開顯示（違規下架、停止公開顯示或等待上架審核）；`reserved`、`sold` 且為 false 即為經審核停止公開顯示。
+                          example: true
                         condition_level: { type: string, enum: [like_new, good, fair, poor] }
                         view_count: { type: integer, example: 42 }
                         created_at: { type: string, format: date-time }
@@ -176,9 +180,31 @@ paths:
         並寫入稽核紀錄。恢復上架時未結的上架審核一併標記為通過；恢復的是背景審核直接駁回的書時，
         計入 AI 品質報表的推翻比例。
 
+        強制下架與檢舉成立、上架審核拒絕一致，一併將 `is_approved` 設為 false：賣家不可自行重新上架
+        （`PUT /api/books/{id}` 回 403 `BOOK_NOT_APPROVED`），須由管理員以本端點恢復上架，恢復時 `is_approved` 改回 true。
+        書籍的上架審核仍在待審時一併結案為 `rejected`（`reviewed_by` 為執行的管理員，不計入 AI 誤判統計），
+        否則待審不視為違規，賣家仍可自行重新上架；管理員恢復上架時審核改為通過。
+        管理員以 `PUT /api/books/{id}`（`status: removed`）或 `DELETE /api/books/{id}` 下架時同樣套用本端點的下架流程。
+
         書籍登記存放於書櫃（訂單成立前存書）時：下架後賣家取回不會自動恢復上架；
         恢復上架已滿 7 天的存書時，存書天數自恢復上架時重新起算，不再提醒賣家取回。
         還原本操作（`POST /api/admin/operation-logs/{id}/undo`）時比照反向操作處理存書紀錄。
+
+        **下架時的交易處理**（與檢舉成立並下架、上架審核拒絕相同）：
+
+        - 待回覆與保留中的預約一律取消，通知買家。
+        - 買家尚未取書的訂單（`pending_payment`、`pending_deposit`、未取書的 `deposited`／`pending_pickup`）自動取消並全額退款，
+          通知買賣雙方；訂單內其他書籍依一般取消流程恢復販售或留在書櫃，下架的書維持 `removed`，
+          仍在櫃中者恢復存書登記、不公開販售，待賣家取回，取回後不自動恢復上架。
+          訂單正於書櫃作業中或有待確認的書櫃紀錄時暫不取消，由排程接續或交由管理員處理（見「訂單」說明）。
+        - 買家已取書（待完成訂單，以及已取書而爭議處理中）的書比照已完成交易的書：不改狀態，只設為不公開顯示（`is_approved` 為 false），
+          訂單照常進行，完成時正常轉為 `sold`；通知賣家「您的書籍已停止公開顯示」，操作紀錄記為「停止公開顯示」，回應訊息為「已停止公開顯示」。
+        - 尚未取書而爭議處理中的訂單不自動取消，書籍改為 `removed`；裁決後訂單恢復進行時由排程取消。已完成的訂單不受影響。
+        - 已完成交易（`sold`）的書不可下架，回傳 409。
+        - 下架時書籍有進行中訂單（`reserved`）者，操作紀錄不提供還原。
+
+        恢復上架時書籍仍有未結束的訂單回傳 409 `BOOK_HAS_OPEN_ORDER`。書籍由無法購買轉為販售中且公開時，
+        通知收藏此書的會員（不含賣家；書籍仍有他人保留中的預約時不通知）。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -202,11 +228,25 @@ paths:
             example: { status: removed, reason: 商品描述與實物不符 }
       responses:
         '200':
-          description: 已更新。
+          description: 已更新。`data` 為處理後的結果，App 可直接更新列表，不必重新查詢。
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/SuccessMessage' }
-              example: { success: true, message: 已下架 }
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已下架 }
+                  data:
+                    type: object
+                    properties:
+                      book_id: { type: integer, example: 101 }
+                      hidden: { type: boolean, description: 為 true 時書籍狀態不變，只停止公開顯示（買家已取書的書）。, example: false }
+                      status: { type: string, enum: [on_sale, reserved, removed], description: 處理後的書籍狀態, example: removed }
+                      is_approved: { type: boolean, description: 處理後是否公開顯示, example: false }
+              examples:
+                下架: { value: { success: true, message: 已下架, data: { book_id: 101, hidden: false, status: removed, is_approved: false } } }
+                買家已取書而只停止公開顯示: { value: { success: true, message: 已停止公開顯示, data: { book_id: 101, hidden: true, status: reserved, is_approved: false } } }
+                恢復上架: { value: { success: true, message: 已恢復上架, data: { book_id: 101, hidden: false, status: on_sale, is_approved: true } } }
         '400':
           description: 狀態值不合法。
           content:
@@ -216,6 +256,16 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 書籍交易狀態不允許此操作。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                已完成交易不可下架: { value: { success: false, message: 此書籍已完成交易，無法下架 } }
+                交易中不可恢復上架: { value: { success: false, message: 此書籍已售出（訂單進行中），無法恢復上架 } }
+                已完成交易不可恢復上架: { value: { success: false, message: 此書籍已完成交易，無法恢復上架 } }
+                訂單未結束: { value: { success: false, code: BOOK_HAS_OPEN_ORDER, message: 此書籍尚有進行中的訂單，無法重新上架 } }
         '500': { $ref: '#/components/responses/ServerError' }
 
     delete:
@@ -288,7 +338,7 @@ paths:
                 已有訂單:
                   value: { success: false, code: BOOK_HAS_ORDERS, message: 此書籍已有訂單紀錄，為保留交易資料無法刪除，如需停止販售請使用強制下架 }
                 仍存放於書櫃:
-                  value: { success: false, code: BOOK_DEPOSITED, message: 此書籍仍存放於書櫃，請先於書櫃管理登記取出後再刪除 }
+                  value: { success: false, code: BOOK_DEPOSITED, message: 此書籍仍存放於書櫃，請先於存書列表登記取出後再刪除 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/categories:

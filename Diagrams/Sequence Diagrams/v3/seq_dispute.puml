@@ -15,7 +15,7 @@ participant API
 database DB
 participant "AI 服務" as AI
 
-使用者 -> UI : 點擊「申請爭議」，填寫爭議說明\n並附佐證照片
+使用者 -> UI : 點擊「申請爭議」或「爭議處理」，填寫爭議說明\n並可附佐證照片
 activate 使用者
 activate UI
 UI -> API : POST /api/disputes
@@ -53,15 +53,15 @@ opt 參考 AI 分析
   deactivate API
   UI --> 管理員 : 顯示分析（僅供參考）
 end
-管理員 -> UI : 選擇裁決結果並填寫備註
+管理員 -> UI : 選擇裁決結果並填寫裁決說明
 UI -> API : PATCH /api/admin/disputes/:id
 activate API
 alt 裁決退款
   API -> DB : 訂單設為「已退款」，款項退回買家
-else 駁回或調解，買家已取書
+else 駁回爭議或協調結案，買家已取書
   API -> DB : 訂單設為「已完成」並撥款給賣家
-else 駁回或調解，尚未取書
-  API -> DB : 訂單恢復原本進度
+else 駁回爭議或協調結案，尚未取書
+  API -> DB : 訂單恢還原本進度
 end
 API -> DB : 通知買賣雙方，記錄稽核紀錄
 API --> UI : 200 OK

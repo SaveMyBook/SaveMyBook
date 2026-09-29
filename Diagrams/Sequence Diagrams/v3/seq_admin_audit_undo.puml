@@ -25,15 +25,15 @@ API --> UI : 200 OK
 deactivate API
 
 == 查詢操作紀錄 ==
-管理員 -> UI : 開啟「操作紀錄」並篩選
+管理員 -> UI : 開啟「管理操作紀錄」並篩選
 UI -> API : GET /api/admin/operation-logs
 activate API
-API -> DB : 依對象類型、管理員與關鍵字查詢
-API --> UI : 紀錄清單（每頁 50 筆）
+API -> DB : 依對象類型與關鍵字查詢
+API --> UI : 紀錄清單（最新 100 筆）
 deactivate API
 
-== 一鍵復原 ==
-管理員 -> UI : 點擊「復原」並確認
+== 一鍵還原 ==
+管理員 -> UI : 點擊「還原此操作」並確認
 UI --> 管理員 : 要求重新驗證身分
 管理員 -> UI : 輸入密碼或使用通行密鑰
 UI -> API : POST /api/admin/operation-logs/:id/undo

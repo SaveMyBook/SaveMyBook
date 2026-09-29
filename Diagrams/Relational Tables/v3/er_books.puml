@@ -96,17 +96,6 @@ entity "reports" as reports {
   {field} created_at : datetime
   {field} resolved_at : datetime
 }
-entity "content_reviews" as content_reviews {
-  {field} <&key> review_id : int
-  --
-  {field} content_type : enum
-  {field} content_id : int
-  {field} status : enum
-  {field} admin_id : int
-  {field} review_note : text
-  {field} created_at : datetime
-  {field} reviewed_at : datetime
-}
 book_categories ||--o{ books
 book_categories ||--o{ book_categories
 books ||--o{ book_images

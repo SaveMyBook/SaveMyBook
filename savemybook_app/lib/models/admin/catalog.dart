@@ -7,6 +7,7 @@ class AdminBook {
   final String? isbn;
   final double price;
   final String status;
+  final bool isApproved;
   final String conditionLevel;
   final int? categoryId;
   final String categoryName;
@@ -27,6 +28,7 @@ class AdminBook {
     required this.title,
     required this.price,
     required this.status,
+    this.isApproved = true,
     required this.conditionLevel,
     required this.categoryName,
     required this.sellerName,
@@ -45,6 +47,31 @@ class AdminBook {
 
   String get statusText => AppLabels.ownerBook(status);
 
+  // 已售出或已完成的書下架時不改狀態，只停止公開顯示。
+  bool get isHidden => !isApproved && (status == 'reserved' || status == 'sold');
+
+  AdminBook withStatus(String status, {required bool isApproved}) => AdminBook(
+        bookId: bookId,
+        title: title,
+        price: price,
+        status: status,
+        isApproved: isApproved,
+        conditionLevel: conditionLevel,
+        categoryName: categoryName,
+        sellerName: sellerName,
+        viewCount: viewCount,
+        pendingReportCount: pendingReportCount,
+        categoryId: categoryId,
+        isbn: isbn,
+        imageUrl: imageUrl,
+        createdAt: createdAt,
+        author: author,
+        publisher: publisher,
+        publishDate: publishDate,
+        conditionNote: conditionNote,
+        description: description,
+      );
+
   factory AdminBook.fromJson(Map<String, dynamic> json) {
     final seller = json['seller'] as Map<String, dynamic>?;
 
@@ -54,6 +81,7 @@ class AdminBook {
       isbn: json['isbn'] as String?,
       price: parseDouble(json['price']),
       status: json['status'] as String? ?? '',
+      isApproved: json['is_approved'] != false,
       conditionLevel: json['condition_level'] as String? ?? 'good',
       categoryId: json['category_id'] == null ? null : parseInt(json['category_id']),
       categoryName: json['category_name'] as String? ?? '',

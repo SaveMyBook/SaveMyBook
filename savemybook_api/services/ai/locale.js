@@ -20,7 +20,7 @@ const APP_TERMS = [
   ['orderPendingPickup', '待取書', { en: 'Ready for pickup', ja: '受け取り待ち', ko: '수령 대기', 'zh-Hans': '待取书' }],
   ['orderCompleted', '已完成', { en: 'Completed', ja: '完了', ko: '완료', 'zh-Hans': '已完成' }],
   ['orderCancelled', '已取消', { en: 'Cancelled', ja: 'キャンセル済み', ko: '취소됨', 'zh-Hans': '已取消' }],
-  ['orderRefunding', '審核中', { en: 'Under review', ja: '審査中', ko: '심사 중', 'zh-Hans': '审核中' }],
+  ['orderRefunding', '爭議處理中', { en: 'Under dispute', ja: '異議申立中', ko: '이의 제기 중', 'zh-Hans': '争议处理中' }],
   ['orderRefunded', '已退款', { en: 'Refunded', ja: '返金済み', ko: '환불 완료', 'zh-Hans': '已退款' }],
   ['orderBuyerPendingDeposit', '待賣家存書', { en: 'Waiting for seller drop-off', ja: '出品者の預け入れ待ち', ko: '판매자 보관 대기', 'zh-Hans': '待卖家存书' }],
   ['orderBuyerRefunding', '爭議處理中', { en: 'Under dispute', ja: '異議申立中', ko: '이의 제기 중', 'zh-Hans': '争议处理中' }],

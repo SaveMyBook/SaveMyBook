@@ -17,12 +17,11 @@ const ORDER_NO = new RegExp(`(?<![A-Za-z0-9])${ORDER_NO_SOURCE}(?!\\d)`, 'gi');
 const ANY_ORDER_NO = /(?<![A-Za-z0-9])SMB\d+/gi;
 
 const IN_CABINET = ['deposited', 'pending_pickup'];
-// 與 App 訂單詳情頁的狀態名稱一致（lib/utils/app_labels.dart）；買家的「爭議處理中」只是購買紀錄的分頁名稱。
-const DISPUTING_TEXT = `${ORDER_STATUS_LABELS.refunding}（交易爭議處理中）`;
-const BUYER_STATUS = { pending_deposit: '待賣家存書', deposited: '待取書', pending_pickup: '待取書', refunding: DISPUTING_TEXT };
-const SELLER_STATUS = { pending_pickup: '待取書', refunding: DISPUTING_TEXT };
-const RESERVATION_LABELS = { pending: '待賣家回覆', confirmed: '已保留', cancelled: '已取消', expired: '已逾期' };
-const DISPUTE_STATUS_LABELS = { pending: '待處理', processing: '處理中', resolved: '已裁決' };
+// 與 App 訂單詳情頁的狀態名稱一致（lib/utils/app_labels.dart）。
+const BUYER_STATUS = { pending_deposit: '待賣家存書', deposited: '待取書', pending_pickup: '待取書' };
+const SELLER_STATUS = { pending_pickup: '待取書' };
+const RESERVATION_LABELS = { pending: '待賣家回覆', confirmed: '已保留', cancelled: '已取消', expired: '已過期' };
+const DISPUTE_STATUS_LABELS = { pending: '待受理', processing: '處理中', resolved: '已裁決' };
 const WALLET_TYPE_LABELS = {
   deposit: '儲值', withdrawal: '提領', purchase: '購買', sale_income: '賣出',
   refund: '退款', admin_adjust: '系統調整', transfer_in: '轉入', transfer_out: '轉出'

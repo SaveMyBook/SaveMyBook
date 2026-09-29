@@ -233,12 +233,13 @@ paths:
       operationId: adminPlaceCabinetDoor
       tags: [admin-cabinets]
       description: |
-        把書登記到此櫃門，擇一提供：
-        - `order_id`：登記該訂單尚未有櫃門紀錄的全部書籍。
-        - `book_ids`：只登記指定的書。
+        把一本書登記到此櫃門，擇一提供：
+        - `order_id`：登記該訂單尚未有櫃門紀錄的書，僅限剩一本時使用。
+        - `book_ids`：只登記指定的書，僅可帶一本。
 
         可登記的書限於摘要中 `unplaced` 屬於本書櫃的書，或此櫃門 `check.candidates` 中的書，且目前沒有櫃門紀錄。
-        登記後同一扇櫃門內只能有一個保管單位：同一筆進行中訂單的書、單一一本先行存書，或同一位賣家待取回的書。
+        每扇櫃門僅能存放一本書：同一訂單的多本書須逐本登記到不同櫃門；`book_ids` 超過一本、`order_id` 尚有兩本以上未登記，
+        或此櫃門已登記其他書籍時回 409 `DOOR_SINGLE_BOOK`。舊資料中已有多本書的櫃門仍可檢視、取出與清空紀錄，但不可再登記其他書。
         成功時記錄 `door_placed` 事件，並解除此櫃門的待確認。
       security: [{ bearerAuth: [] }]
       parameters:
@@ -252,7 +253,7 @@ paths:
               type: object
               properties:
                 order_id: { type: integer, example: 128 }
-                book_ids: { type: array, maxItems: 50, items: { type: integer }, example: [55] }
+                book_ids: { type: array, maxItems: 1, items: { type: integer }, example: [55] }
       responses:
         '200':
           description: 已登記，回傳此櫃門的最新內容。
@@ -269,11 +270,15 @@ paths:
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/DoorNotFound' }
         '409':
-          description: 此項目不在本書櫃、已有櫃門紀錄，或與櫃內其他項目不屬於同一個保管單位。
+          description: 此項目不在本書櫃或已有櫃門紀錄，或登記後此櫃門會有兩本以上的書。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: DOOR_ASSIGN_INVALID, message: 此項目不在本書櫃、已有櫃門紀錄，或與櫃內其他項目不屬於同一筆訂單或同一本書 }
+              examples:
+                項目不符:
+                  value: { success: false, code: DOOR_ASSIGN_INVALID, message: 此項目不在本書櫃，或已有櫃門紀錄 }
+                每扇櫃門一本書:
+                  value: { success: false, code: DOOR_SINGLE_BOOK, message: 每扇櫃門僅能存放一本書，請為每本書選擇不同櫃門 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/cabinets/{id}/doors/{slotId}/check-clear:

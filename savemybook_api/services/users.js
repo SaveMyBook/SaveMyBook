@@ -162,7 +162,7 @@ const hardDelete = async (userId, { adminId, req }) => {
   if ((await account.unsettledOrderCount(userId)) > 0) throw conflict('此使用者尚有進行中的訂單，無法刪除');
   // 刪除使用者會連帶刪除書籍與存書紀錄，書仍在櫃中卻從後台存書列表消失。
   if ((await deposits.countForSeller(prisma, userId)) > 0) {
-    throw conflict('此使用者仍有書籍存放於書櫃，請先於書櫃管理登記取出，或改用匿名化', 'BOOK_DEPOSITED');
+    throw conflict('此使用者仍有書籍存放於書櫃，請先於存書列表登記取出，或改用匿名化', 'BOOK_DEPOSITED');
   }
 
   try {

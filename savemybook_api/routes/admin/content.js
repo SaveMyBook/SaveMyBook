@@ -69,8 +69,9 @@ router.patch('/books/:id', canManage, async (req, res) => {
   const status = v.oneOf(req.body.status, ['on_sale', 'removed'], '僅可設定為上架或下架');
   const reason = v.optionalText(req.body.reason, { label: '原因', max: 500 }) ?? null;
 
-  await booksAdmin.setStatus(bookId, status, reason, actorOf(req));
-  res.status(200).json({ success: true, message: status === 'removed' ? '已下架' : '已恢復上架' });
+  const result = await booksAdmin.setStatus(bookId, status, reason, actorOf(req));
+  const message = status === 'removed' ? (result.hidden ? '已停止公開顯示' : '已下架') : '已恢復上架';
+  res.status(200).json({ success: true, message, data: { book_id: bookId, ...result } });
 });
 
 router.delete('/books/:id', canManage, async (req, res) => {

@@ -20,8 +20,8 @@ extension CartApi on ApiService {
     ApiService._setCartCount(stats.cartCount);
   }
 
-  Future<String?> addToCart(int bookId, {int quantity = 1}) async {
-    final res = await _send('POST', '/cart', body: {'book_id': bookId, 'quantity': quantity});
+  Future<String?> addToCart(int bookId) async {
+    final res = await _send('POST', '/cart', body: {'book_id': bookId});
     if (res == null) return S.pleaseSignFirst;
     if (res['success'] != true) return res['message'] as String? ?? S.couldNotAddCart;
     if (!ApiService.cartBookIds.value.contains(bookId)) {
@@ -38,11 +38,6 @@ extension CartApi on ApiService {
     ApiService.cartBookIds.value = ids;
     ApiService._setCartCount(ids.length);
     return ids;
-  }
-
-  Future<bool> updateCartQuantity(int cartId, int quantity) async {
-    final res = await _send('PATCH', '/cart/$cartId', body: {'quantity': quantity});
-    return res != null && res['success'] == true;
   }
 
   Future<bool> removeCartItem(int cartId, {int? bookId}) async {

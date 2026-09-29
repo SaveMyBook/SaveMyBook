@@ -124,7 +124,7 @@ module.exports = {
       const second = await request('GET', pathname);
       assert.strictEqual(second.status, 410);
       assert.strictEqual(second.body.code, 'DOWNLOAD_LINK_EXPIRED');
-      assert.strictEqual(second.body.message, '下載連結已失效，請重新產生');
+      assert.strictEqual(second.body.message, '下載網址已失效，請重新產生');
 
       const forged = await request('GET', '/api/backup-downloads/not-a-ticket');
       assert.strictEqual(forged.status, 410);

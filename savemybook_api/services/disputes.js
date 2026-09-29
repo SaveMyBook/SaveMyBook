@@ -15,6 +15,13 @@ const NOT_DISPUTABLE = ['cancelled', 'refunded'];
 
 const DISPUTE_WINDOW_MS = DISPUTE_WINDOW_HOURS * 60 * 60 * 1000;
 
+const EVIDENCE_IMAGE = /^\/uploads\/(evidence|books)\/\w[\w.-]*$/;
+
+const evidenceImagesOf = (value) => String(value ?? '')
+  .split(',')
+  .map((url) => url.trim())
+  .filter((url) => EVIDENCE_IMAGE.test(url));
+
 const disputeInclude = {
   orders: {
     select: {
@@ -85,21 +92,24 @@ const create = async (userId, { orderId: givenId, orderNo, reason, evidenceUrls 
   });
 };
 
-const adminList = (status) => prisma.transaction_disputes.findMany({
-  where: { ...(status && { status }) },
-  orderBy: { created_at: 'desc' },
-  include: {
-    users_transaction_disputes_applicant_idTousers: { select: userBrief },
-    orders: {
-      select: {
-        order_id: true, order_no: true, total_amount: true, status: true,
-        users_orders_buyer_idTousers: { select: userName },
-        users_orders_seller_idTousers: { select: userName },
-        order_items: orderItemsWithCover
+const adminList = async (status) => {
+  const rows = await prisma.transaction_disputes.findMany({
+    where: { ...(status && { status }) },
+    orderBy: { created_at: 'desc' },
+    include: {
+      users_transaction_disputes_applicant_idTousers: { select: userBrief },
+      orders: {
+        select: {
+          order_id: true, order_no: true, total_amount: true, status: true,
+          users_orders_buyer_idTousers: { select: userName },
+          users_orders_seller_idTousers: { select: userName },
+          order_items: orderItemsWithCover
+        }
       }
     }
-  }
-});
+  });
+  return rows.map((d) => ({ ...d, evidence_images: evidenceImagesOf(d.evidence_urls) }));
+};
 
 // 依時間欄位推回申請爭議前的狀態，不可一律改成已完成（會替未存書的訂單撥款）。
 const restoredStatus = (order) => {
@@ -191,7 +201,7 @@ const resolve = async (disputeId, { result, adminNote }, { adminId, req }) => {
   const effect = settlement.describeSettlement(money);
   await audit.record(null, {
     adminId,
-    action: '仲裁交易爭議',
+    action: '裁決交易爭議',
     targetType: 'dispute',
     targetId: disputeId,
     summary: `裁決訂單 ${order.order_no} 的爭議：${DISPUTE_RESULT_LABELS[result]}`

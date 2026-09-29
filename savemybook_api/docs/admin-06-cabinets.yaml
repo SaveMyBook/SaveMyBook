@@ -137,7 +137,7 @@ paths:
       description: |
         列出目前存放於書櫃、尚未成立訂單的書籍，依存書時間由舊到新排序。
         書籍售出後存書紀錄即移除，改由訂單追蹤，不會出現在本列表；訂單在買家取書前取消或退款時，
-        下單前已存書的書重新列入（存書時間自取消時起算）。
+        已在櫃中（`pre_deposited`）的書重新列入（存書時間自取消時起算）。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/Page'

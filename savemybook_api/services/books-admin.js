@@ -8,6 +8,8 @@ const audit = require('./audit');
 const reviews = require('./ai/reviews');
 const enrichment = require('./ai/enrich');
 const deposits = require('./book-deposits');
+const reservations = require('./reservations');
+const takedown = require('./book-takedown');
 
 const ADMIN_FIELDS = {
   title: '書名',
@@ -78,6 +80,7 @@ const adminList = async ({ keyword, status, skip, limit }) => {
       isbn: b.isbn,
       price: b.price,
       status: b.status,
+      is_approved: b.is_approved,
       condition_level: b.condition_level,
       view_count: b.view_count,
       created_at: b.created_at,
@@ -142,40 +145,56 @@ const adminSetStatus = async (bookId, status, reason, { adminId, req }) => {
 
   // 已售出或交易中的書改回上架會被第二個買家買走。
   if (status === 'on_sale' && ['reserved', 'sold'].includes(book.status)) {
-    throw conflict(book.status === 'sold' ? '此書籍已售出，無法恢復上架' : '此書籍交易中，無法恢復上架');
+    throw conflict(book.status === 'sold' ? '此書籍已完成交易，無法恢復上架' : '此書籍已售出（訂單進行中），無法恢復上架');
   }
 
+  if (status === 'removed' && book.status === 'sold') throw conflict('此書籍已完成交易，無法下架');
+  if (status === 'on_sale' && book.status !== 'on_sale') await takedown.assertNoOpenOrder(prisma, bookId);
+
   // 恢復上架須一併解除違規標記，否則 is_approved=false 仍會被公開列表濾掉。
-  const statusData = { status, ...(status === 'on_sale' && { is_approved: true }) };
+  let statusData = { status, ...(status === 'on_sale' && { is_approved: true }) };
+  let taken = null;
+  let reviewClosed = false;
 
   await prisma.$transaction(async (tx) => {
-    await tx.books.update({
-      where: { book_id: bookId },
-      data: { ...statusData, updated_at: new Date() }
-    });
-    if (status === 'on_sale') await reviews.settle(tx, bookId, adminId);
-    await deposits.syncAdminStatus(tx, bookId, status);
+    if (status === 'removed') {
+      taken = await takedown.apply(tx, book);
+      statusData = taken.data;
+      reviewClosed = await reviews.closeForTakedown(tx, bookId, adminId);
+    } else {
+      await tx.books.update({
+        where: { book_id: bookId },
+        data: { ...statusData, updated_at: new Date() }
+      });
+      await reviews.settle(tx, bookId, adminId);
+      await deposits.syncAdminStatus(tx, bookId, status);
+      if (!reservations.isListed(book)) await reservations.notifyRelisted(tx, bookId);
+    }
+    const label = taken ? takedown.actionLabel(taken) : '恢復上架';
     await notify(tx, {
       userId: book.seller_id,
-      title: status === 'removed' ? '您的書籍已被下架' : '您的書籍已恢復上架',
-      content: status === 'removed'
-        ? `《${book.title}》已由管理員下架。${reason ? `原因：${reason}` : ''}`
-        : `《${book.title}》已由管理員恢復上架。`,
+      title: taken ? (taken.hidden ? '您的書籍已停止公開顯示' : '您的書籍已被下架') : '您的書籍已恢復上架',
+      content: `《${book.title}》已由管理員${label}。${taken && reason ? `原因：${reason}` : ''}`,
       relatedId: bookId,
       relatedType: 'book'
     });
   });
 
+  const orderResult = taken ? await takedown.cancelOrders(bookId) : null;
+
   await audit.record(null, {
     adminId,
-    action: status === 'removed' ? '強制下架書籍' : '恢復書籍上架',
+    action: taken ? '強制下架書籍' : '恢復書籍上架',
     targetType: 'book',
     targetId: bookId,
-    summary: `${status === 'removed' ? '下架' : '恢復上架'}《${book.title}》${reason ? `，原因：${reason}` : ''}`,
+    summary: `${taken ? takedown.actionLabel(taken) : '恢復上架'}《${book.title}》${reason ? `，原因：${reason}` : ''}`
+      + `${reviewClosed ? '，待審的上架審核一併結案' : ''}${orderResult ? takedown.describe(orderResult) : ''}`,
     changes: audit.diff(book, statusData, ADMIN_STATUS_FIELDS),
-    undo: [audit.undoUpdate('books', bookId, book, statusData, ADMIN_STATUS_FIELDS)],
+    undo: book.status === 'reserved' ? null : [audit.undoUpdate('books', bookId, book, statusData, ADMIN_STATUS_FIELDS)],
     req
   });
+  const hidden = Boolean(taken?.hidden);
+  return { hidden, status: hidden ? book.status : status, is_approved: status === 'on_sale' };
 };
 
 const inTransaction = () => conflict('此書籍交易或預約進行中，請先處理後再刪除', 'BOOK_IN_TRANSACTION');

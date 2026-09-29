@@ -15,6 +15,7 @@ class ReportCase {
   final String reporterName;
   final String targetTitle;
   final String? targetImageUrl;
+  final ReportedMessage? message;
 
   ReportCase({
     required this.reportId,
@@ -28,6 +29,7 @@ class ReportCase {
     this.reporterName = '',
     this.targetTitle = '',
     this.targetImageUrl,
+    this.message,
   });
 
   String get targetTypeText {
@@ -44,10 +46,12 @@ class ReportCase {
   factory ReportCase.fromJson(Map<String, dynamic> json) {
     final target = json['target'] as Map<String, dynamic>?;
     final images = (target?['book_images'] as List?) ?? const [];
+    final targetType = json['target_type'] as String? ?? 'book';
+    final message = targetType == 'message' && target != null ? ReportedMessage.fromJson(target) : null;
 
     return ReportCase(
       reportId: parseInt(json['report_id']),
-      targetType: json['target_type'] as String? ?? 'book',
+      targetType: targetType,
       targetId: parseInt(json['target_id']),
       reason: json['reason'] as String? ?? '',
       status: json['status'] as String? ?? 'pending',
@@ -56,10 +60,25 @@ class ReportCase {
       resolvedAt: parseDate(json['resolved_at']),
       reporterName:
           (json['users_reports_reporter_idTousers'] as Map<String, dynamic>?)?['nickname'] as String? ?? '',
-      targetTitle: (target?['title'] ?? target?['nickname']) as String? ?? S.noLongerExists,
-      targetImageUrl: images.isEmpty ? null : resolveAssetUrl((images.first as Map)['image_url']),
+      targetTitle: message?.message.preview ?? (target?['title'] ?? target?['nickname']) as String? ?? S.noLongerExists,
+      targetImageUrl: message != null
+          ? message.message.imageUrls.firstOrNull
+          : images.isEmpty ? null : resolveAssetUrl((images.first as Map)['image_url']),
+      message: message,
     );
   }
+}
+
+class ReportedMessage {
+  final ChatMessage message;
+  final String senderNo;
+
+  const ReportedMessage({required this.message, this.senderNo = ''});
+
+  factory ReportedMessage.fromJson(Map<String, dynamic> json) => ReportedMessage(
+        message: ChatMessage.fromJson(json),
+        senderNo: json['sender_no'] as String? ?? '',
+      );
 }
 
 class DisputeCase {
@@ -77,6 +96,7 @@ class DisputeCase {
   final String sellerName;
   final String bookTitle;
   final String? bookImageUrl;
+  final List<String> evidenceImages;
 
   DisputeCase({
     required this.disputeId,
@@ -93,6 +113,7 @@ class DisputeCase {
     this.sellerName = '',
     this.bookTitle = '',
     this.bookImageUrl,
+    this.evidenceImages = const [],
   });
 
   String get statusText => AppLabels.dispute(status);
@@ -121,6 +142,7 @@ class DisputeCase {
       sellerName: (order?['users_orders_seller_idTousers'] as Map?)?['nickname'] as String? ?? '',
       bookTitle: book?['title'] as String? ?? '',
       bookImageUrl: images.isEmpty ? null : resolveAssetUrl((images.first as Map)['image_url']),
+      evidenceImages: [for (final url in json['evidence_images'] as List? ?? const []) ?resolveAssetUrl(url)],
     );
   }
 }

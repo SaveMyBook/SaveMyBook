@@ -68,7 +68,7 @@ module.exports = {
       rejectsBadRequest({ features: { moderation: { action: 'delete' } } }, '上架審核的處理方式不正確');
       rejectsBadRequest({ limits: { monthly_budget_usd: -1 } }, '每月預算須為 0 至 100000 之間的數值');
       rejectsBadRequest({ limits: { reserve_ratio: 0.95 } }, '審核與管理輔助保留比例須為 0 至 0.9 之間的數值');
-      rejectsBadRequest({ limits: { daily_per_user: { book_chat: 20000 } } }, '書籍顧問每人每日次數須為 0 至 10000 之間的整數');
+      rejectsBadRequest({ limits: { daily_per_user: { book_chat: 20000 } } }, 'AI 書籍顧問每人每日次數須為 0 至 10000 之間的整數');
     }],
 
     ['功能的服務商可以是 null，代表沿用預設服務商', () => {
@@ -308,7 +308,7 @@ module.exports = {
       const denied = adminToken({ can_manage_content: false });
       const res = await request('GET', '/api/admin/ai/reviews', { token: denied.token });
       assert.strictEqual(res.status, 403);
-      assert.strictEqual(res.body.message, '您沒有「內容管理」的權限');
+      assert.strictEqual(res.body.message, '您沒有「商品管理」的權限');
     }]
   ]
 };

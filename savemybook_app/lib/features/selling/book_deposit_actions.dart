@@ -73,7 +73,7 @@ Future<bool> confirmOrderDeposit(BuildContext context, Order order) {
     action: CabinetAction.orderDeposit,
     access: order.cabinetAccess,
     target: CabinetContext.order(order.orderId),
-    orderDoors: order.doors,
+    orderDoors: order.items.every((item) => item.preDeposited) ? order.doors : const [],
     manual: (notice) => reportCabinetManually(
       context,
       title: S.markAsDroppedOff,

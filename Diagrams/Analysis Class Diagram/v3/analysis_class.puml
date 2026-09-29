@@ -21,8 +21,7 @@ class "使用者 users" as users {
 class "會員錢包 wallets" as wallets {
   wallet_id
   balance
-  frozen_amount
-}
+  }
 class "書籍商品 books" as books {
   book_id
   isbn

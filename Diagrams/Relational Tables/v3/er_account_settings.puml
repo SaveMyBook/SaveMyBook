@@ -28,12 +28,9 @@ entity "user_settings" as user_settings {
   {field} <&key> setting_id : int
   --
   {field} user_id : int
-  {field} theme : enum
   {field} notification_order : tinyint(1)
   {field} notification_promo : tinyint(1)
   {field} notification_message : tinyint(1)
-  {field} privacy_show_profile : tinyint(1)
-  {field} privacy_show_phone : tinyint(1)
   {field} updated_at : datetime
 }
 entity "admin_permissions" as admin_permissions {

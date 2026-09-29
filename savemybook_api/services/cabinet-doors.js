@@ -24,6 +24,9 @@ const cabinetFull = (available, required) => new HttpError(
 const predepositLimit = () =>
   new HttpError(409, '您在此書櫃的先行存書已達上限，請待售出或取回後再存入', 'PREDEPOSIT_LIMIT');
 
+const singleBookDoor = () =>
+  new HttpError(409, '每扇櫃門僅能存放一本書，請為每本書選擇不同櫃門', 'DOOR_SINGLE_BOOK');
+
 const doorsOf = (cabinetId, { tx } = {}) => (tx ?? prisma).cabinet_slots.findMany({
   where: { cabinet_id: Number(cabinetId), lock_channel: { not: null } },
   orderBy: { lock_channel: 'asc' }
@@ -328,19 +331,6 @@ const previewCapacity = async (cabinetId, { sellerId = null, tx } = {}) => {
   };
 };
 
-const split = (list, parts) => {
-  const base = Math.floor(list.length / parts);
-  const extra = list.length % parts;
-  const chunks = [];
-  let start = 0;
-  for (let i = 0; i < parts; i += 1) {
-    const size = base + (i < extra ? 1 : 0);
-    chunks.push(list.slice(start, start + size));
-    start += size;
-  }
-  return chunks;
-};
-
 const planOrderUnit = async (db, { cabinetId, doors, unit }) => {
   const orderItems = await db.order_items.findMany({
     where: { order_id: Number(unit.orderId) }, select: { book_id: true }, orderBy: { item_id: 'asc' }
@@ -348,36 +338,13 @@ const planOrderUnit = async (db, { cabinetId, doors, unit }) => {
   const sequence = orderItems.map((i) => Number(i.book_id));
   const rank = (id) => (sequence.includes(id) ? sequence.indexOf(id) : sequence.length + id);
   const wanted = unique(unit.bookIds ?? []).sort((a, b) => rank(a) - rank(b));
+  if (wanted.length > 0 || sequence.length === 0) return { reopen: [], wanted };
 
-  const placed = sequence.length
-    ? await db.cabinet_slot_items.findMany({
-        where: { book_id: { in: sequence }, cabinet_id: Number(cabinetId) },
-        select: { book_id: true, slot_id: true }
-      })
-    : [];
-  const perSlot = new Map();
-  for (const row of placed) {
-    if (wanted.includes(Number(row.book_id))) continue;
-    perSlot.set(Number(row.slot_id), (perSlot.get(Number(row.slot_id)) ?? 0) + 1);
-  }
-
-  const total = unique([...placed.map((p) => p.book_id), ...wanted]).length;
-  const perDoor = Math.max(policy.CABINET_DOOR_MAX_BOOKS, Math.ceil(total / Math.max(1, doors.length)));
-  const ownDoors = doors.filter((d) => perSlot.has(Number(d.slot_id)) && !d.fault_code && !d.check_required_at);
-
-  if (wanted.length === 0) {
-    return { entries: ownDoors.map((d) => ({ door: d, bookIds: [] })), chunks: [] };
-  }
-
-  const remaining = [...wanted];
-  const entries = [];
-  for (const door of ownDoors) {
-    const space = perDoor - perSlot.get(Number(door.slot_id));
-    if (space <= 0 || remaining.length === 0) continue;
-    entries.push({ door, bookIds: remaining.splice(0, space) });
-  }
-  const chunks = remaining.length ? split(remaining, Math.ceil(remaining.length / perDoor)) : [];
-  return { entries, chunks };
+  const placed = await db.cabinet_slot_items.findMany({
+    where: { book_id: { in: sequence }, cabinet_id: Number(cabinetId) }, select: { slot_id: true }
+  });
+  const own = new Set(placed.map((p) => Number(p.slot_id)));
+  return { reopen: doors.filter((d) => own.has(Number(d.slot_id)) && !d.fault_code && !d.check_required_at), wanted };
 };
 
 const allocate = async (tx, { cabinetId, sessionId = null, sellerId = null, units = [] }) => {
@@ -389,12 +356,19 @@ const allocate = async (tx, { cabinetId, sessionId = null, sellerId = null, unit
 
   const plans = [];
   for (const unit of orderUnits) plans.push({ unit, ...(await planOrderUnit(db, { cabinetId, doors, unit })) });
-  const orderDoorsNeeded = plans.reduce((sum, p) => sum + p.chunks.length, 0);
-  const required = orderDoorsNeeded + preUnits.length;
+  const required = plans.reduce((sum, p) => sum + p.wanted.length, 0) + preUnits.length;
+
+  // 一扇櫃門只放一本書；空門不足時依訂單順序先存入部分書籍，某筆訂單一扇門都分不到時才視為櫃門不足。
+  let left = candidates.length;
+  for (const plan of plans) {
+    plan.take = Math.min(plan.wanted.length, left);
+    left -= plan.take;
+  }
+  const orderDoorsNeeded = plans.reduce((sum, p) => sum + p.take, 0);
 
   // orderShortage：依訂單存書本身放不下（須通知管理員），有別於先行存書的容量政策。
   const orderFull = () => Object.assign(cabinetFull(candidates.length, required), { orderShortage: true });
-  if (orderDoorsNeeded > candidates.length) throw orderFull();
+  if (plans.some((p) => p.wanted.length > 0 && p.take === 0)) throw orderFull();
   if (preUnits.length > 0) {
     const quota = await predepositQuota(db, cabinetId, sellerId, {
       excludeSessionId: sessionId, excludeBookIds: preUnits.flatMap((u) => u.bookIds ?? [])
@@ -424,18 +398,18 @@ const allocate = async (tx, { cabinetId, sessionId = null, sellerId = null, unit
 
   const result = new Map();
   for (const plan of plans) {
-    const list = plan.entries.map((e) => entryOf(e.door, e.bookIds));
-    for (const chunk of plan.chunks) list.push(entryOf(await reserve(true), chunk));
+    const list = plan.reopen.map((door) => entryOf(door, []));
+    for (const bookId of plan.wanted.slice(0, plan.take)) list.push(entryOf(await reserve(true), [bookId]));
     result.set(plan.unit.key, list);
   }
   for (const unit of preUnits) result.set(unit.key, [entryOf(await reserve(false), unique(unit.bookIds ?? []))]);
 
-  if (required > 0) await recountAvailable(db, cabinetId);
+  if (orderDoorsNeeded + preUnits.length > 0) await recountAvailable(db, cabinetId);
   return result;
 };
 
 module.exports = {
   OPEN_SESSION_STATUSES, doorLabel, labelOf, isFree, isUsable, doorsOf, syncChannels, allocate, previewCapacity,
   placeBooks, removeBooks, markCheck, clearCheck, bookDoors, orderDoors, booksInSlot, custodyUnits,
-  sellerPreDepositDoors, predepositQuota, cabinetFull, predepositLimit, refresh, recountAvailable
+  sellerPreDepositDoors, predepositQuota, cabinetFull, predepositLimit, singleBookDoor, refresh, recountAvailable
 };

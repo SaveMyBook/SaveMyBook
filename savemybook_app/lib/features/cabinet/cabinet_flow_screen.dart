@@ -495,13 +495,22 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
             SizedBox(
               width: 32,
               height: 60,
-              child: Checkbox(
-                value: selected,
-                onChanged: selectable ? (_) => _flow.toggle(item.key) : null,
-                activeColor: c.accent,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-              ),
+              child: (item.kind?.isSingleChoice ?? false)
+                  ? Radio<String>(
+                      value: item.key,
+                      toggleable: true,
+                      enabled: selectable,
+                      activeColor: c.accent,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    )
+                  : Checkbox(
+                      value: selected,
+                      onChanged: selectable ? (_) => _flow.toggle(item.key) : null,
+                      activeColor: c.accent,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
             ),
             const SizedBox(width: 6),
             Opacity(
@@ -548,9 +557,9 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
                   ],
                   if (note != null) ...[
                     const SizedBox(height: 4),
-                    Text(CabinetMessages.note(note), style: TextStyle(fontSize: 12, height: 1.4, color: c.warning)),
+                    Text(CabinetMessages.note(note, item: item), style: TextStyle(fontSize: 12, height: 1.4, color: c.warning)),
                   ],
-                  if (blocked != null) ...[
+                  if (blocked != null && !CabinetMessages.isSharedBlock(item)) ...[
                     const SizedBox(height: 4),
                     Text(CabinetMessages.blocked(blocked), style: TextStyle(fontSize: 12, height: 1.4, color: c.danger)),
                   ],
@@ -560,6 +569,41 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
           ],
         ),
       ),
+    );
+  }
+
+  Widget _itemRows(AppColors c, CabinetItemKind kind, List<CabinetSessionItem> items) {
+    final rows = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < items.length; i++) ...[if (i > 0) Divider(height: 1, color: c.divider), _itemRow(c, items[i])],
+      ],
+    );
+    if (!kind.isSingleChoice) return rows;
+    final selected = _flow.selectedOf(kind);
+    return RadioGroup<String>(
+      groupValue: selected,
+      onChanged: (key) {
+        final target = key ?? selected;
+        if (target != null) _flow.toggle(target);
+      },
+      child: rows,
+    );
+  }
+
+  Widget _singleChoiceNote(AppColors c, List<CabinetSessionItem> items) {
+    final blocks = CabinetMessages.sharedBlocks(items);
+    if (blocks.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Text(S.preSaleDropOffLimitedOne, style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary)),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final message in blocks) Padding(padding: const EdgeInsets.only(bottom: 8), child: _notice(c, message)),
+      ],
     );
   }
 
@@ -583,7 +627,8 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SectionHeading(title: _sectionTitle(kind)),
-                  for (var i = 0; i < items.length; i++) ...[if (i > 0) Divider(height: 1, color: c.divider), _itemRow(c, items[i])],
+                  if (kind.isSingleChoice) _singleChoiceNote(c, items),
+                  _itemRows(c, kind, items),
                   if (kind == CabinetItemKind.retrieval) ...[
                     const SizedBox(height: 4),
                     Text(S.booksSameDoorRetrievedTogether, style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary)),
@@ -662,7 +707,7 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
     return [
       for (final item in session.selectedItems)
         for (final book in item.books)
-          if ((book.door ?? (item.doors.length == 1 ? item.doors.first : null)) == label) book,
+          if ((book.door ?? (item.doors.length == 1 && item.booksWithDoor == 0 ? item.doors.first : null)) == label) book,
     ];
   }
 
@@ -796,7 +841,10 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
 
   Widget _resultRow(AppColors c, CabinetSessionItem item) {
     final error = item.error;
-    final (String? status, Color color) = item.isDone
+    final partial = item.isPartialDeposit ? item.note : null;
+    final (String? status, Color color) = item.isDone && partial != null
+        ? (CabinetMessages.note(partial, item: item), c.warning)
+        : item.isDone
         ? (S.orderCompleted, c.success)
         : error != null
         ? (CabinetMessages.itemNotDone(CabinetMessages.itemError(error)), c.warning)

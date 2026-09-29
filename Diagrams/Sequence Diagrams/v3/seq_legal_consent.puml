@@ -43,12 +43,12 @@ API --> UI : 200 OK（待同意文件清單）
 UI --> 使用者 : 全螢幕顯示文件，須捲動至文末
 loop 逐份待同意文件
   alt 同意
-    使用者 -> UI : 點擊「同意」
+    使用者 -> UI : 點擊「我已閱讀並同意」
     UI -> API : POST /api/users/me/legal-consents
     API -> DB : 核對版本並記錄同意
     API --> UI : 200 OK（版本已更新則回 409 並重新載入）
   else 拒絕
-    使用者 -> UI : 點擊「拒絕」並確認
+    使用者 -> UI : 點擊「不同意」並確認「登出」
     UI -> API : POST /api/auth/logout
     UI --> 使用者 : 登出並返回登入頁
   end

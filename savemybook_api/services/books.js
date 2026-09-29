@@ -18,6 +18,7 @@ const catalog = require('./ai/catalog-search');
 const traces = require('./ai/trace');
 const enrichment = require('./ai/enrich');
 const deposits = require('./book-deposits');
+const takedown = require('./book-takedown');
 const { violationLocked } = require('./book-violations');
 
 const MAX_IMAGES_PER_BOOK = LISTING_MAX_IMAGES;
@@ -278,16 +279,38 @@ const assertEditable = (book, user) => {
   throw conflict(book.status === 'sold' ? '此書籍已完成交易，無法編輯' : '此書籍已售出，無法編輯', 'BOOK_LOCKED');
 };
 
+// 存放於書櫃中的書，內容須與櫃內實體書一致；只改狀態（重新上架）不在此限，另由存書流程把關。
+const assertNotStored = async (book, user, data) => {
+  if (user.role === 'admin' || !Object.keys(data).some((k) => k !== 'status')) return;
+  if (await deposits.rowOf(book.book_id)) {
+    throw conflict('此書籍存放於書櫃中，無法編輯；如需修改，請先至書櫃取回書籍', 'BOOK_DEPOSITED');
+  }
+};
+
 const allowedStatuses = (user) => (user.role === 'admin' ? BOOK_STATUSES : SELLER_STATUSES);
 
-const update = async (bookId, user, data) => {
+const booksAdmin = () => require('./books-admin');
+
+const soldTakedown = () => conflict('此書籍已完成交易，無法下架', 'BOOK_LOCKED');
+
+const update = async (bookId, user, data, { req = null } = {}) => {
   const isAdmin = user.role === 'admin';
   const book = await findOwnedBook(bookId, user, '無權限修改此書籍');
   if (!isAdmin) await reservations.assertNotHeld(bookId);
 
-  if (data.status === 'on_sale' && book.status !== 'on_sale' && !isAdmin) {
-    if (await violationLocked(book)) throw forbidden('此書籍因違規遭下架，無法自行重新上架，請聯絡客服', 'BOOK_NOT_APPROVED');
-    await deposits.assertRelistable(bookId);
+  // 管理員下架與後台強制下架同一流程（鎖定、取消訂單與預約），不可只改狀態等排程處理。
+  const adminTakedown = isAdmin && data.status === 'removed' && book.status !== 'removed';
+  if (adminTakedown) {
+    if (book.status === 'sold') throw soldTakedown();
+    data.status = undefined;
+  }
+
+  if (data.status === 'on_sale' && book.status !== 'on_sale') {
+    if (!isAdmin) {
+      if (await violationLocked(book)) throw forbidden('此書籍因違規遭下架，無法自行重新上架，請聯絡客服', 'BOOK_NOT_APPROVED');
+      await deposits.assertRelistable(bookId);
+    }
+    await takedown.assertNoOpenOrder(prisma, bookId);
   }
   const relist = isAdmin && data.status === 'on_sale';
   if (relist) data.is_approved = true;
@@ -295,10 +318,11 @@ const update = async (bookId, user, data) => {
 
   // 保留中的書已有人付款，改回上架會被第二人買走。
   if (data.status && data.status !== book.status && ['reserved', 'sold'].includes(book.status) && !isAdmin) {
-    throw conflict(book.status === 'sold' ? '此書籍已售出，無法變更狀態' : '此書籍交易中，無法變更狀態');
+    throw conflict(book.status === 'sold' ? '此書籍已完成交易，無法變更狀態' : '此書籍已售出（訂單進行中），無法變更狀態');
   }
 
   assertEditable(book, user);
+  await assertNotStored(book, user, data);
 
   if (data.cabinet_id !== undefined && data.cabinet_id !== book.cabinet_id) await deposits.assertCabinetUnchanged(bookId);
   await assertRefsExist({ categoryId: data.category_id, cabinetId: data.cabinet_id }, book);
@@ -337,7 +361,7 @@ const update = async (bookId, user, data) => {
     where: { book_id: bookId },
     data: { ...data, updated_at: new Date() }
   });
-  const updatedBook = plan || adminStatus
+  let updatedBook = plan || adminStatus
     ? await prisma.$transaction(async (tx) => {
         const row = await write(tx);
         if (adminStatus) await deposits.syncAdminStatus(tx, bookId, data.status);
@@ -359,6 +383,15 @@ const update = async (bookId, user, data) => {
 
   enrichment.afterEdit(bookId, enrichPlan);
 
+  if (adminTakedown) {
+    await booksAdmin().setStatus(bookId, 'removed', null, { adminId: user.userId, req });
+    updatedBook = await prisma.books.findUnique({ where: { book_id: bookId } });
+  }
+
+  if (!reservations.isListed(book) && reservations.isListed(updatedBook)) {
+    await reservations.notifyRelisted(null, bookId).catch((err) => console.error('[重新上架通知失敗]:', err.message));
+  }
+
   const oldPrice = Number(book.price);
   if (data.price !== undefined && data.price < oldPrice && updatedBook.status === 'on_sale') {
     notifyPriceDrop(updatedBook, oldPrice).catch((err) => console.error('[降價通知失敗]:', err.message));
@@ -370,12 +403,15 @@ const update = async (bookId, user, data) => {
   return { book: updatedBook, moderation: null };
 };
 
-const remove = async (bookId, user) => {
+const remove = async (bookId, user, { req = null } = {}) => {
   const book = await findOwnedBook(bookId, user, '無權限刪除此書籍');
-  if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
+  if (book.status === 'sold') {
+    throw user.role === 'admin' ? soldTakedown() : conflict('此書籍已完成交易，無法取消上架', 'BOOK_LOCKED');
+  }
+  if (user.role === 'admin') return booksAdmin().setStatus(bookId, 'removed', null, { adminId: user.userId, req });
+  await reservations.assertNotHeld(bookId);
 
-  if (book.status === 'reserved') throw conflict('此書籍交易中，請先處理訂單再下架');
-  if (book.status === 'sold' && user.role !== 'admin') throw conflict('此書籍已完成交易，無法下架', 'BOOK_LOCKED');
+  if (book.status === 'reserved') throw conflict('此書籍已售出（訂單進行中），請先處理訂單再取消上架');
 
   await prisma.books.update({
     where: { book_id: bookId },
@@ -386,6 +422,7 @@ const remove = async (bookId, user) => {
 const addImages = async (bookId, user, images, { files = [] } = {}) => {
   const book = await findOwnedBook(bookId, user, '無權限修改此書籍');
   assertEditable(book, user);
+  await assertNotStored(book, user, { images });
   if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
   if (images.length === 0) throw badRequest('請選擇要上傳的圖片');
 
@@ -431,7 +468,9 @@ const addImages = async (bookId, user, images, { files = [] } = {}) => {
 };
 
 const removeImage = async (bookId, imageId, user) => {
-  assertEditable(await findOwnedBook(bookId, user, '無權限修改此書籍'), user);
+  const book = await findOwnedBook(bookId, user, '無權限修改此書籍');
+  assertEditable(book, user);
+  await assertNotStored(book, user, { imageId });
   if (user.role !== 'admin') await reservations.assertNotHeld(bookId);
 
   const result = await prisma.book_images.deleteMany({ where: { image_id: imageId, book_id: bookId } });

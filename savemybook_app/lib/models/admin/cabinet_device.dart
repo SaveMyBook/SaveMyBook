@@ -740,6 +740,8 @@ class AdminCabinetEventRow {
   );
 }
 
+typedef AdminCabinetDoorBook = ({int bookId, String title});
+
 class AdminCabinetManualReport {
   final String reportNo;
   final String kind;
@@ -758,6 +760,7 @@ class AdminCabinetManualReport {
   final String? bookTitle;
   final List<String> titles;
   final bool requiresDoor;
+  final List<AdminCabinetDoorBook> doorBooks;
   final String? reviewerNickname;
 
   const AdminCabinetManualReport({
@@ -778,6 +781,7 @@ class AdminCabinetManualReport {
     this.bookTitle,
     this.titles = const [],
     this.requiresDoor = false,
+    this.doorBooks = const [],
     this.reviewerNickname,
   });
 
@@ -804,6 +808,10 @@ class AdminCabinetManualReport {
       bookTitle: _textOrNull(book?['title']),
       titles: _strings(json['titles']),
       requiresDoor: json['requires_door'] == true,
+      doorBooks: [
+        for (final book in _mapsOf(json['door_books']))
+          if (parseInt(book['book_id']) > 0) (bookId: parseInt(book['book_id']), title: book['title'] as String? ?? ''),
+      ],
       reviewerNickname: _textOrNull(json['reviewer_nickname']),
     );
   }

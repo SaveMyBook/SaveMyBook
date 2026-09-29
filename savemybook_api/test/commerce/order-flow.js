@@ -74,7 +74,10 @@ const tests = [
     assert.strictEqual(orderOf(order.order_id).cancel_reason, '賣家逾 7 天未存書');
     assert.strictEqual(balanceOf(buyer.user_id), before + 120);
     assert.strictEqual(bookOf(book.book_id).status, 'removed');
-    assert.ok(notificationsOf(seller.user_id).some((n) => n.content.includes('已自動取消，書籍已改為下架')));
+    assert.ok(notificationsOf(seller.user_id).some((n) => n.content
+      === `訂單 ${order.order_no} 逾 7 天未存書，已自動取消，書籍已改為下架，如需販售請重新上架。`));
+    assert.ok(notificationsOf(buyer.user_id).some((n) => n.content
+      === `訂單 ${order.order_no} 的賣家逾 7 天未存書，訂單已自動取消，120 代幣已退回您的錢包。`));
   }],
 
   ['排程：存書後買家逾 7 天未取書自動取消，通知賣家取回書籍', async () => {

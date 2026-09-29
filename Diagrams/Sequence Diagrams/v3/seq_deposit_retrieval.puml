@@ -26,7 +26,7 @@ opt 暫停販售後每滿 3 天
   API -> 賣家 : 再次推播取回提醒
 end
 opt 存書滿 14 天仍未取回
-  API -> 管理員 : 通知書櫃管理員安排處理
+  API -> 管理員 : 通知具硬體維護權限之\n管理員安排處理
 end
 deactivate API
 deactivate 排程
@@ -38,10 +38,10 @@ alt 賣家掃碼取回
   UI -> API : POST /api/cabinet-sessions\n及 /api/cabinet-sessions/:no/start
   activate API
   API -> DB : 同櫃門書籍一併列入，暫停販售
-  ref over 賣家, UI, API : 數字比對與開關櫃門（同掃碼存書流程）
+  ref over 賣家, UI, API : 數字確認與開關櫃門（同掃碼存書流程）
   alt 取出書籍並完成
     API -> DB : 移除存書登記與櫃內紀錄，釋放櫃門
-    API -> DB : 因逾期暫停之書籍恢復上架
+    API -> DB : 因逾期或取回而暫停之書籍恢復上架
   else 作業未完成
     API -> DB : 取回期間暫停販售之書籍恢復上架
   end

@@ -2,7 +2,8 @@ tags:
   - name: cart
     x-displayName: 購物車
     description: |
-      購物車。重複加入同一本書將累加數量，不會新增資料列，且數量不會超過書籍庫存。
+      購物車。二手書一筆商品即一本實體書，每個項目的數量固定為 1；重複加入同一本書不會新增資料列，也不會累加數量。
+      舊資料的數量若大於 1，列表、合計與結帳一律以 1 本計算。
 
       結帳端點為 `POST /api/orders/checkout`，支援僅結帳部分選取的項目。
 
@@ -14,12 +15,13 @@ paths:
       tags: [cart]
       description: |
         回傳購物車項目及全部項目的合計金額。各項目包含完整書籍資料
-        （含賣家與取貨書櫃），可直接依賣家分組呈現。
+        （含賣家與取貨書櫃），可直接依賣家分組呈現。結帳依「賣家＋書籍指定的書櫃」拆單，
+        同一賣家於同一書櫃的書籍每筆訂單最多 2 本，超過時結帳回 400 `ORDER_BOOK_LIMIT`，App 可於購物車事先提示。
 
         書籍目前被保留時，`books.reservation` 帶 `reserved_until` 與 `reserved_for_me`；
         被其他買家保留的書結帳時會回 409 `BOOK_RESERVED`。
 
-        `total_amount` 為購物車全部項目的總額。使用者僅選取部分項目時，
+        `total_amount` 為購物車全部項目的總額（每個項目以 1 本計價），各項目的 `quantity` 一律為 1。使用者僅選取部分項目時，
         小計須由用戶端自行計算。
       security: [{ bearerAuth: [] }]
       responses:
@@ -43,16 +45,16 @@ paths:
       operationId: addToCart
       tags: [cart]
       description: |
-        購物車中已存在的書籍將累加數量，上限為書籍的庫存數量。
+        `quantity` 可省略，省略時視為 1；帶入 1 以外的值回 400 `QUANTITY_FIXED`。
 
         | 狀況 | HTTP | 說明 |
         | --- | --- | --- |
         | 新加入 | 201 | `already_in_cart` 為 false |
-        | 已在購物車且未達上限 | 200 | 數量累加，`already_in_cart` 為 false |
-        | 已在購物車且已達上限 | 200 | 不寫入資料，`already_in_cart` 為 true，`data` 僅含 `book_id` 與 `quantity` |
+        | 已在購物車 | 200 | 不寫入資料，`already_in_cart` 為 true，`data` 僅含 `book_id` 與 `quantity` |
 
         下列情形會被拒絕：
 
+        - 數量不是 1（400 `QUANTITY_FIXED`）
         - 加入本人上架的書籍（400）
         - 書籍狀態非 `on_sale`，即已下單保留、已售出或已下架（400）
         - 購物車已有 100 項商品（400）
@@ -67,10 +69,10 @@ paths:
               required: [book_id]
               properties:
                 book_id: { type: integer, example: 101 }
-                quantity: { type: integer, minimum: 1, default: 1, example: 1 }
+                quantity: { type: integer, enum: [1], default: 1, description: 固定為 1，可省略。, example: 1 }
       responses:
         '200':
-          description: 書籍已在購物車中。數量已累加，或已達上限而未寫入。
+          description: 書籍已在購物車中，本次未寫入。
           content:
             application/json:
               schema:
@@ -78,7 +80,7 @@ paths:
                 properties:
                   success: { type: boolean, example: true }
                   message: { type: string, example: 此書籍已在購物車中 }
-                  already_in_cart: { type: boolean, description: 值為 true 代表已達上限、本次未寫入, example: true }
+                  already_in_cart: { type: boolean, description: 值為 true 代表書籍已在購物車中、本次未寫入, example: true }
                   data:
                     type: object
                     properties:
@@ -86,8 +88,8 @@ paths:
                       book_id: { type: integer, example: 101 }
                       quantity: { type: integer, example: 1 }
               examples:
-                已達上限:
-                  value: { success: true, message: 此書籍已在購物車中, already_in_cart: true, data: { quantity: 1, book_id: 101 } }
+                已在購物車:
+                  value: { success: true, message: 此書籍已在購物車中, already_in_cart: true, data: { book_id: 101, quantity: 1 } }
         '201':
           description: 已加入。
           content:
@@ -114,6 +116,8 @@ paths:
               examples:
                 缺少參數:
                   value: { success: false, message: 請指定書籍 }
+                數量不是 1:
+                  value: { success: false, code: QUANTITY_FIXED, message: 每筆書籍僅有一本，數量僅能為 1 }
                 本人上架的書籍:
                   value: { success: false, message: 無法將自己上架的書籍加入購物車 }
                 已被買走:
@@ -163,17 +167,18 @@ paths:
       summary: 調整數量
       operationId: updateCartItem
       tags: [cart]
-      description: 將數量設為指定值，非增減操作。數量帶入 0 會被拒絕，移除項目請使用 DELETE。
+      description: |
+        書籍數量固定為 1，此端點僅保留供舊版 App 相容：`quantity` 可省略（視為 1），帶入 1 以外的值回 400 `QUANTITY_FIXED`。
+        成功時將該項目的數量設為 1（可用於修正舊資料）。移除項目請使用 DELETE。
       security: [{ bearerAuth: [] }]
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
               type: object
-              required: [quantity]
               properties:
-                quantity: { type: integer, minimum: 1, example: 2 }
+                quantity: { type: integer, enum: [1], default: 1, example: 1 }
       responses:
         '200':
           description: 已更新。
@@ -188,13 +193,13 @@ paths:
                     type: object
                     properties:
                       cart_id: { type: integer }
-                      quantity: { type: integer }
+                      quantity: { type: integer, example: 1 }
         '400':
-          description: 數量小於 1。
+          description: 數量不是 1。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 數量必須大於 0 }
+              example: { success: false, code: QUANTITY_FIXED, message: 每筆書籍僅有一本，數量僅能為 1 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }

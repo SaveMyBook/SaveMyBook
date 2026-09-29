@@ -6,8 +6,8 @@ const { prisma } = h;
 const patchStatus = (token, orderId, status) => h.request('PATCH', `/api/orders/${orderId}/status`, { token, body: { status } });
 const depositBook = (token, bookId) => h.request('POST', `/api/books/${bookId}/deposit`, { token });
 const retrieveBook = (token, bookId) => h.request('POST', `/api/books/${bookId}/retrieve`, { token });
-const confirm = (ctx, no, note, { slotId, token = ctx.adminToken } = {}) => h.request('POST', `/api/admin/cabinet-manual-reports/${no}/confirm`, {
-  token, body: { ...(note ? { note } : {}), ...(slotId ? { slot_id: slotId } : {}) }
+const confirm = (ctx, no, note, { slotId, doors, token = ctx.adminToken } = {}) => h.request('POST', `/api/admin/cabinet-manual-reports/${no}/confirm`, {
+  token, body: { ...(note ? { note } : {}), ...(slotId ? { slot_id: slotId } : {}), ...(doors ? { doors } : {}) }
 });
 const reject = (ctx, no, note, { token = ctx.adminToken } = {}) => h.request('POST', `/api/admin/cabinet-manual-reports/${no}/reject`, { token, body: { note } });
 const buyNow = (token, bookId) => h.request('POST', '/api/orders/buy-now', {
@@ -133,6 +133,7 @@ module.exports = {
       assert.strictEqual(listed.body.data[0].order.order_no, order.order_no);
       assert.strictEqual(listed.body.data[0].user.nickname, '賣家');
       assert.strictEqual(listed.body.data[0].requires_door, true);
+      assert.deepStrictEqual(listed.body.data[0].door_books, [{ book_id: book.book_id, title: book.title }]);
 
       const noDoor = await confirm(ctx, pending.report_no, '已與現場人員確認');
       assert.strictEqual(noDoor.status, 400);
@@ -358,7 +359,8 @@ module.exports = {
 
       const shared = await confirm(ctx, no, null, { slotId: h.doorOf(ctx.cabinet.cabinet_id, 2).slot_id });
       assert.strictEqual(shared.status, 409, shared.text);
-      assert.strictEqual(shared.body.code, 'DOOR_ASSIGN_INVALID');
+      assert.strictEqual(shared.body.code, 'DOOR_SINGLE_BOOK');
+      assert.strictEqual(shared.body.message, '每扇櫃門僅能存放一本書，請為每本書選擇不同櫃門');
       assert.strictEqual(reports()[0].status, 'pending');
       assert.strictEqual(h.orderOf(order.order_id).status, 'pending_deposit');
       assert.strictEqual(h.slotItemOf(book.book_id), null);
@@ -367,6 +369,47 @@ module.exports = {
       assert.strictEqual(ok.status, 200, ok.text);
       assert.strictEqual(h.slotItemOf(book.book_id).slot_id, h.doorOf(ctx.cabinet.cabinet_id, 4).slot_id);
       assert.ok(h.logs().some((l) => l.action === '確認書櫃手動回報' && JSON.parse(l.detail).summary.includes('存放於櫃門 A04')));
+    }],
+
+    ['確認多本書訂單的存書須逐本指定不同櫃門；已在櫃中的書不需指定，不符時回報維持待確認', async () => {
+      const ctx = h.scene();
+      const [first, second, third] = [h.listedBook(ctx, { title: '甲' }), h.listedBook(ctx, { title: '乙' }), h.listedBook(ctx, { title: '丙' })];
+      const order = h.orderFor(ctx, [first.book_id, second.book_id, third.book_id]);
+      h.addPlaced(third.book_id, h.doorOf(ctx.cabinet.cabinet_id, 4).slot_id);
+      goOffline(ctx);
+      const res = await patchStatus(ctx.sellerToken, order.order_id, 'deposited');
+      const no = res.body.data.manual_report.report_no;
+      const door = (channel) => h.doorOf(ctx.cabinet.cabinet_id, channel).slot_id;
+
+      const listed = await h.request('GET', `/api/admin/cabinets/${ctx.cabinet.cabinet_id}/manual-reports`, { token: ctx.adminToken });
+      assert.deepStrictEqual(listed.body.data[0].door_books, [{ book_id: first.book_id, title: '甲' }, { book_id: second.book_id, title: '乙' }]);
+
+      const expectSingle = async (options) => {
+        const r = await confirm(ctx, no, null, options);
+        assert.strictEqual(r.status, 409, r.text);
+        assert.strictEqual(r.body.code, 'DOOR_SINGLE_BOOK');
+        assert.strictEqual(r.body.message, '每扇櫃門僅能存放一本書，請為每本書選擇不同櫃門');
+      };
+      await expectSingle({ slotId: door(1) });
+      await expectSingle({ doors: [{ book_id: first.book_id, slot_id: door(1) }, { book_id: second.book_id, slot_id: door(1) }] });
+      await expectSingle({ doors: [{ book_id: first.book_id, slot_id: door(1) }] });
+      await expectSingle({ doors: [{ book_id: first.book_id, slot_id: door(1) }, { book_id: second.book_id, slot_id: door(4) }] });
+      const extra = await confirm(ctx, no, null, { doors: [
+        { book_id: first.book_id, slot_id: door(1) }, { book_id: second.book_id, slot_id: door(2) }, { book_id: third.book_id, slot_id: door(3) }
+      ] });
+      assert.strictEqual(extra.body.code, 'DOOR_ASSIGN_INVALID', '已登記櫃門的書不可重複指定');
+      const both = await confirm(ctx, no, null, { slotId: door(1), doors: [{ book_id: first.book_id, slot_id: door(1) }] });
+      assert.strictEqual(both.status, 400);
+      assert.strictEqual(reports()[0].status, 'pending');
+      assert.strictEqual(h.orderOf(order.order_id).status, 'pending_deposit');
+      assert.strictEqual(h.slotItemOf(first.book_id), null);
+
+      const ok = await confirm(ctx, no, null, { doors: [{ book_id: second.book_id, slot_id: door(3) }, { book_id: first.book_id, slot_id: door(1) }] });
+      assert.strictEqual(ok.status, 200, ok.text);
+      assert.strictEqual(h.orderOf(order.order_id).status, 'deposited');
+      assert.deepStrictEqual([first, second, third].map((b) => h.slotItemOf(b.book_id).slot_id), [door(1), door(3), door(4)]);
+      assert.strictEqual(h.orderOf(order.order_id).slot_id, door(3));
+      assert.ok(h.logs().some((l) => l.action === '確認書櫃手動回報' && JSON.parse(l.detail).summary.includes('存放於櫃門 A03、A01')));
     }],
 
     ['手動先行存書同樣受每位賣家上限與保留櫃門限制，待確認的回報與沒有櫃門紀錄的存書都計入', async () => {

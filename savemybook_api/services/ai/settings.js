@@ -31,7 +31,7 @@ const DEFAULTS = Object.freeze({
   }
 });
 
-const FEATURE_LABELS = { support: 'AI 客服', listing_assist: '上架輔助', recommend: '個人推薦', moderation: '上架審核', book_chat: '書籍顧問' };
+const FEATURE_LABELS = { support: 'AI 客服', listing_assist: '上架輔助', recommend: '推薦書籍', moderation: '上架審核', book_chat: 'AI 書籍顧問' };
 const PRICE_LABELS = {
   model: '模型',
   input_per_m: '輸入單價',

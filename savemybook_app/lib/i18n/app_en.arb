@@ -6,7 +6,7 @@
   "orderPendingPickup": "Ready for pickup",
   "orderCompleted": "Completed",
   "orderCancelled": "Cancelled",
-  "orderRefunding": "Under review",
+  "orderRefunding": "Under dispute",
   "orderRefunded": "Refunded",
   "orderBuyerPendingDeposit": "Waiting for seller drop-off",
   "orderBuyerDeposited": "Ready for pickup",
@@ -541,13 +541,6 @@
     }
   },
   "orderNoItemDetails": "No item details",
-  "msg4": "{p0} × {p1}",
-  "@msg4": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "orderTotal": "Order total",
   "pickupDetails": "Pickup details",
   "notAssigned": "Not assigned",
@@ -1095,7 +1088,7 @@
       "p1": {}
     }
   },
-  "disputeResolution": "Dispute resolution",
+  "disputeResolution": "Transaction disputes",
   "orderP0P1": "Order {p0} | ${p1}",
   "@orderP0P1": {
     "placeholders": {
@@ -1112,7 +1105,7 @@
   "decisionNoteOptional": "Decision note (optional)",
   "submitDecision": "Submit decision",
   "decisionRecorded": "Decision recorded",
-  "resolveDispute": "Resolve dispute",
+  "resolveDispute": "Transaction disputes",
   "noDisputesKind": "No disputes of this kind",
   "orderNumberP0": "Order number: {p0}",
   "@orderNumberP0": {
@@ -1592,7 +1585,7 @@
   "buyerSPaymentGoesBackTheir": "The buyer's payment goes back to their wallet. If the seller was already paid, that amount is taken back first.",
   "orderReturnsWhereWasBeforeDispute": "The order returns to where it was before the dispute. If it was already picked up, the seller is paid.",
   "orderWasAlreadyRefundedBuyerCannot": "This order was already refunded to the buyer and cannot go back to in progress or completed",
-  "completedOrderCanOnlyChangedRefund": "A completed order can only be changed to \"Under review\" or \"Refunded\"",
+  "completedOrderCanOnlyChangedRefund": "A completed order can only be changed to \"Under dispute\" or \"Refunded\"",
   "confirmingPaysP0TokensSellerMarks": "Confirming pays {p0} tokens to the seller and marks the books as sold.",
   "@confirmingPaysP0TokensSellerMarks": {
     "placeholders": {
@@ -1852,7 +1845,7 @@
     }
   },
   "paymentSuccessful": "Payment successful",
-  "p0BooksSplitIntoP1Orders": "{p0} books, split into {p1} orders by seller",
+  "p0BooksSplitIntoP1Orders": "{p0} books, split into {p1} orders by seller and locker",
   "@p0BooksSplitIntoP1Orders": {
     "placeholders": {
       "p0": {},
@@ -1870,7 +1863,7 @@
   },
   "removeAll": "Remove all",
   "goWallet": "Go to wallet",
-  "fromP0SellersCheckoutCreatesP1": "From {p0} sellers; checkout creates {p1} separate orders",
+  "fromP0SellersCheckoutCreatesP1": "Items from {p0} seller(s); checkout creates {p1} separate orders",
   "@fromP0SellersCheckoutCreatesP1": {
     "placeholders": {
       "p0": {},
@@ -3968,6 +3961,7 @@
   "doorFaultyPleaseContactSupport": "The door is faulty. Please contact support.",
   "doorAwaitingCheckBySupportPlease": "The door is awaiting a check by support. Please contact support.",
   "reachedPreSaleDropOffLimit": "You have reached the pre-sale drop-off limit at this locker. Drop off another book after one sells or is retrieved.",
+  "preSaleDropOffLimitedOne": "Pre-sale drop-off is limited to one book per seller at this locker.",
   "itemChanged": "The item has changed",
   "doorDidNotOpen": "The door did not open",
   "doorOpeningNotConfirmedSupportCheck": "Door opening not confirmed. Support will check.",
@@ -4198,6 +4192,7 @@
   "manualReport": "Manual report",
   "manualReportReviewed": "Manual report reviewed",
   "overdueOrderHeld": "Overdue order held",
+  "delistedOrderHeld": "Order for delisted book held",
   "doorOpenedAfterTask": "Door opened after task",
   "lockDidNotRelease": "Lock did not release",
   "doorLeftOpen": "Door left open",
@@ -4335,5 +4330,28 @@
       "p0": {}
     }
   },
-  "pushNotificationRegistrationFailedPleaseTry": "Push notification registration failed. Please try again later."
+  "pushNotificationRegistrationFailedPleaseTry": "Push notification registration failed. Please try again later.",
+  "evidencePhotos": "Evidence photos",
+  "reportedMessage": "Reported message",
+  "orderBookLimitP0": "Up to {p0} books per order from the same seller and locker. Please check out separately.",
+  "@orderBookLimitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "depositPartialNotice": "Not enough doors are available. Only some books can be dropped off now; drop off the rest when a door becomes available.",
+  "depositedP0RemainingLater": "{p0} dropped off. Drop off the remaining books when a door becomes available.",
+  "@depositedP0RemainingLater": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "alreadySelected": "Selected",
+  "notEnoughAvailableDoorsChooseDifferent": "Not enough available doors to choose a different door for each book.",
+  "noEmptyDoorCurrentlyAvailableRecord": "No empty door is currently available to record.",
+  "eachDoorCanHoldOnlyOne": "Each door can hold only one book.",
+  "removedFromPublicView": "Removed from public view",
+  "hiddenFromPublic": "Hidden from public",
+  "afterReviewBookNoLongerShown": "After review, this book is no longer shown publicly. Its order is not affected.",
+  "bookWasConfirmedViolateRulesAfter": "This book was confirmed to violate the rules after review. Its order is not affected."
 }

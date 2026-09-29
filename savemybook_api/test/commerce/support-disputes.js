@@ -323,7 +323,7 @@ const tests = [
     assert.strictEqual(res.status, 200);
     assert.strictEqual(bookOf(book.book_id).status, 'on_sale');
     assert.strictEqual(notificationsOf(reporter.user_id)[0].content, '經審核未違反社群規範。');
-    assert.strictEqual(notificationsOf(seller.user_id)[0].title, '檢舉審核結果：未違規');
+    assert.strictEqual(notificationsOf(seller.user_id)[0].title, '檢舉審核結果：已駁回');
     assert.strictEqual(notificationsOf(seller.user_id)[0].content, '經審核未違反社群規範，此商品不受影響。');
 
     const list = await request('GET', '/api/admin/reports?status=dismissed', { token: tokenFor(admin) });
@@ -349,7 +349,7 @@ const tests = [
       token: tokenFor(admin), body: { status: 'dismissed' }
     });
     assert.strictEqual(reviewed.status, 200);
-    const dismissed = notificationsOf(target.user_id).find((n) => n.title === '檢舉審核結果：未違規');
+    const dismissed = notificationsOf(target.user_id).find((n) => n.title === '檢舉審核結果：已駁回');
     assert.strictEqual(dismissed.content, '經審核未違反社群規範，此帳號不受影響。');
   }],
 
@@ -532,7 +532,7 @@ const tests = [
     const sellerNotice = notificationsOf(seller.user_id).find((n) => n.title === '爭議案件已裁決');
     assert.strictEqual(sellerNotice.content, `訂單 ${order.order_no} 裁決退款給買家，交易已取消。`);
 
-    assert.strictEqual(logs()[0].action, '仲裁交易爭議');
+    assert.strictEqual(logs()[0].action, '裁決交易爭議');
 
     const again = await request('PATCH', '/api/admin/disputes/1', {
       token: tokenFor(admin), body: { result: 'refund_auto' }

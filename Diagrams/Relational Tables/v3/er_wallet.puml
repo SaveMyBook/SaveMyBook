@@ -15,7 +15,6 @@ entity "wallets" as wallets {
   --
   {field} user_id : int
   {field} balance : decimal(12,2)
-  {field} frozen_amount : decimal(12,2)
   {field} total_income : decimal(12,2)
   {field} total_expense : decimal(12,2)
   {field} updated_at : datetime
@@ -36,35 +35,7 @@ entity "member_levels" as member_levels {
   --
   {field} level_name : varchar(50)
   {field} min_points : int
-  {field} max_points : int
   {field} benefits : text
 }
-entity "achievements" as achievements {
-  {field} <&key> achievement_id : int
-  --
-  {field} achievement_name : varchar(100)
-  {field} description : text
-  {field} icon_url : varchar(500)
-  {field} condition_type : varchar(50)
-  {field} condition_value : int
-  {field} created_at : datetime
-}
-entity "user_achievements" as user_achievements {
-  {field} <&key> user_achievement_id : int
-  --
-  {field} user_id : int
-  {field} achievement_id : int
-  {field} achieved_at : datetime
-}
-entity "referral_records" as referral_records {
-  {field} <&key> referral_id : int
-  --
-  {field} inviter_id : int
-  {field} invitee_id : int
-  {field} reward_amount : decimal(10,2)
-  {field} status : enum
-  {field} created_at : datetime
-}
 wallets ||--o{ wallet_transactions
-achievements ||--o{ user_achievements
 @enduml

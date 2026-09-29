@@ -16,10 +16,10 @@ rectangle "SaveMyBook - 錢包、會員與客服" {
   usecase "管理代幣" as wallet
   usecase "查看交易紀錄" as txn
   usecase "查看待撥款項" as pending
-  usecase "查看會員等級與成就" as level
+  usecase "查看會員等級與權益" as level
   usecase "查看常見問題" as faq
   usecase "AI 客服" as aisupport
-  usecase "轉真人客服" as handoff
+  usecase "轉接客服人員" as handoff
   usecase "建立客服工單" as ticket
   usecase "回覆與結案工單" as reply
   usecase "調整會員錢包" as adjust

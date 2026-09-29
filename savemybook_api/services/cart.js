@@ -20,24 +20,26 @@ const list = async (userId) => {
   const holds = items.length > 0 ? await reservations.activeHoldsFor(items.map((i) => i.book_id)) : [];
   const holdOf = new Map(holds.map((h) => [h.book_id, h]));
   const books = await deposits.withCabinetFlag(items.map((i) => i.books));
+  // 舊資料的購物車數量可能大於 1，一律以 1 本回傳與計價，與結帳一致。
   const data = items.map((i, index) => {
     const hold = holdOf.get(i.book_id);
     return {
       ...i,
+      quantity: 1,
       books: hold
         ? { ...books[index], reservation: { reserved_until: hold.pickup_deadline, reserved_for_me: hold.buyer_id === userId } }
         : books[index]
     };
   });
 
-  const total = items.reduce((sum, i) => sum + Number(i.books.price) * i.quantity, 0);
+  const total = items.reduce((sum, i) => sum + Number(i.books.price), 0);
   return { items: data, total };
 };
 
-const add = async (userId, bookId, quantity) => {
+const add = async (userId, bookId) => {
   const book = await prisma.books.findUnique({
     where: { book_id: bookId },
-    select: { book_id: true, title: true, seller_id: true, status: true, is_approved: true, quantity: true }
+    select: { book_id: true, title: true, seller_id: true, status: true, is_approved: true }
   });
   if (!book) throw notFound('找不到該書籍');
   if (book.seller_id === userId) throw badRequest('無法將自己上架的書籍加入購物車');
@@ -46,26 +48,19 @@ const add = async (userId, bookId, quantity) => {
 
   const existing = await prisma.shopping_cart.findUnique({
     where: { user_id_book_id: { user_id: userId, book_id: bookId } },
-    select: { quantity: true }
+    select: { cart_id: true }
   });
-  if (!existing && (await prisma.shopping_cart.count({ where: { user_id: userId } })) >= MAX_CART_ITEMS) {
+  if (existing) return { alreadyInCart: true, item: { book_id: bookId, quantity: 1 } };
+  if ((await prisma.shopping_cart.count({ where: { user_id: userId } })) >= MAX_CART_ITEMS) {
     throw badRequest(`購物車最多可放入 ${MAX_CART_ITEMS} 項商品`);
   }
 
-  const max = Math.max(book.quantity, 1);
-  if (existing && existing.quantity >= max) {
-    return { alreadyInCart: true, item: { ...existing, book_id: bookId } };
-  }
-
-  // 重複加入不可累加數量，否則結帳會對同一本書重複收費。
-  const capped = Math.min((existing?.quantity ?? 0) + quantity, max);
-
   const item = await prisma.shopping_cart.upsert({
     where: { user_id_book_id: { user_id: userId, book_id: bookId } },
-    update: { quantity: capped },
-    create: { user_id: userId, book_id: bookId, quantity: capped }
+    update: { quantity: 1 },
+    create: { user_id: userId, book_id: bookId, quantity: 1 }
   });
-  return { alreadyInCart: false, created: !existing, item };
+  return { alreadyInCart: false, created: true, item };
 };
 
 const bookIds = async (userId) => {
@@ -73,18 +68,12 @@ const bookIds = async (userId) => {
   return items.map((i) => i.book_id);
 };
 
-const setQuantity = async (userId, cartId, quantity) => {
-  const item = await prisma.shopping_cart.findUnique({
-    where: { cart_id: cartId },
-    include: { books: { select: { quantity: true } } }
-  });
+const setQuantity = async (userId, cartId) => {
+  const item = await prisma.shopping_cart.findUnique({ where: { cart_id: cartId } });
   if (!item) throw notFound('找不到該購物車項目');
   if (item.user_id !== userId) throw forbidden();
 
-  const max = Math.max(item.books.quantity, 1);
-  if (quantity > max) throw badRequest(`此書籍數量僅 ${max} 本`);
-
-  return prisma.shopping_cart.update({ where: { cart_id: cartId }, data: { quantity } });
+  return prisma.shopping_cart.update({ where: { cart_id: cartId }, data: { quantity: 1 } });
 };
 
 const remove = async (userId, cartId) => {

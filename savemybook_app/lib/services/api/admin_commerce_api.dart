@@ -16,6 +16,17 @@ extension AdminCommerceApi on ApiService {
     return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotProcessReport);
   }
 
+  Future<({List<ReportedMessage> before, List<ReportedMessage> after})?> fetchReportMessageContext(int reportId) async {
+    final res = await _send('GET', '/admin/reports/$reportId/message-context');
+    final data = res?['success'] == true ? res!['data'] : null;
+    if (data is! Map) return null;
+    List<ReportedMessage> list(Object? raw) => [
+          for (final item in raw is List ? raw : const [])
+            if (item is Map) ReportedMessage.fromJson(Map<String, dynamic>.from(item)),
+        ];
+    return (before: list(data['before']), after: list(data['after']));
+  }
+
   Future<List<ChatRiskAlert>> fetchChatRiskAlerts({String status = 'open'}) async {
     final res = await _send('GET', '/admin/chat-risk-alerts', query: {'status': status});
     return _mapList(res, ChatRiskAlert.fromJson);
@@ -104,13 +115,26 @@ extension AdminCommerceApi on ApiService {
     return _mapList(res, AdminBook.fromJson);
   }
 
-  Future<String?> setBookStatusAsAdmin(int bookId, String status, {String? reason}) async {
+  Future<({String? error, bool hidden, String? status, bool? isApproved})> setBookStatusAsAdmin(
+    int bookId,
+    String status, {
+    String? reason,
+  }) async {
     final res = await _send('PATCH', '/admin/books/$bookId', body: {
       'status': status,
       'reason': reason,
     });
-    if (res == null) return S.pleaseSignFirst;
-    return res['success'] == true ? null : (res['message'] as String? ?? S.actionFailed);
+    if (res == null) return (error: S.pleaseSignFirst, hidden: false, status: null, isApproved: null);
+    if (res['success'] != true) {
+      return (error: res['message'] as String? ?? S.actionFailed, hidden: false, status: null, isApproved: null);
+    }
+    final data = res['data'] is Map ? Map<String, dynamic>.from(res['data'] as Map) : const <String, dynamic>{};
+    return (
+      error: null,
+      hidden: data['hidden'] == true,
+      status: data['status'] as String?,
+      isApproved: data['is_approved'] is bool ? data['is_approved'] as bool : null,
+    );
   }
 
   Future<String?> deleteBookAsAdmin(int bookId, {String? reason}) async {

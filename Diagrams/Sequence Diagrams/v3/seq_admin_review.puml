@@ -21,10 +21,10 @@ UI -> API : GET /api/admin/ai/reviews
 activate API
 API --> UI : 待審清單與攔下原因
 deactivate API
-管理員 -> UI : 核准或駁回（可附原因）
+管理員 -> UI : 「核准上架」或「拒絕」（拒絕時須選擇原因類別，可附說明）
 UI -> API : PATCH /api/admin/ai/reviews/:bookId
 activate API
-API -> DB : 核准則公開販售，駁回則下架
+API -> DB : 核准則公開販售並通知收藏者；\n拒絕則下架並取消其訂單與預約
 API -> DB : 通知賣家並寫入操作紀錄
 API --> UI : 200 OK
 deactivate API
@@ -35,12 +35,12 @@ UI -> API : GET /api/admin/reports
 activate API
 API --> UI : 檢舉清單
 deactivate API
-管理員 -> UI : 判定成立或不成立
+管理員 -> UI : 選擇「違規成立」或「駁回檢舉」
 UI -> API : PATCH /api/admin/reports/:id
 activate API
 API -> DB : 更新檢舉結果
 opt 成立且選擇下架
-  API -> DB : 下架被檢舉書籍
+  API -> DB : 下架被檢舉書籍，取消其待存書\n與已存書之訂單並退款、取消預約
 end
 API -> DB : 通知檢舉人與被檢舉人，\n寫入操作紀錄
 API --> UI : 200 OK

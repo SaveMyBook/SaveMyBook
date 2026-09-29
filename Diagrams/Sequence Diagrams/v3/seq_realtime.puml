@@ -40,7 +40,7 @@ deactivate API
 
 == 輸入中狀態 ==
 買家 -> UI : 輸入文字
-UI -> API : 送出輸入中狀態（每秒最多一次）
+UI -> API : 送出輸入中狀態（每 3 秒最多一次）
 activate API
 API -> 賣家 : 推送「對方正在輸入」\n（任一方封鎖時不推送）
 deactivate API

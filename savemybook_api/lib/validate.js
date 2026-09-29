@@ -96,7 +96,14 @@ const sortOrder = (order, emptyMessage) => {
   return ids;
 };
 
+// 二手書一筆商品即一本實體書：未帶數量視為 1，其他數量一律拒絕。
+const bookQuantity = (value) => {
+  if (value === undefined || value === null || value === '') return 1;
+  if (toInt(value) !== 1) throw badRequest('每筆書籍僅有一本，數量僅能為 1', 'QUANTITY_FIXED');
+  return 1;
+};
+
 module.exports = {
   toInt, isBlank, id, optionalId, int, number, text, optionalText, oneOf, bool, date,
-  pagination, pageMeta, evidenceUrls, sortOrder
+  pagination, pageMeta, evidenceUrls, sortOrder, bookQuantity
 };

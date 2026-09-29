@@ -173,10 +173,12 @@ extension AdminCabinetDevicesApi on ApiService {
     return _adminCabinetPage(res, page, AdminCabinetManualReport.fromJson);
   }
 
-  Future<String?> confirmCabinetManualReport(String reportNo, {String? note, int? slotId}) async {
+  Future<String?> confirmCabinetManualReport(String reportNo, {String? note, int? slotId, Map<int, int>? doors}) async {
     final res = await _send('POST', '/admin/cabinet-manual-reports/${Uri.encodeComponent(reportNo)}/confirm', body: {
       if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
       'slot_id': ?slotId,
+      if (doors != null && doors.isNotEmpty)
+        'doors': [for (final entry in doors.entries) {'book_id': entry.key, 'slot_id': entry.value}],
     });
     return _adminCabinetError(res);
   }

@@ -456,7 +456,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '\$${items[i].unitPrice.toStringAsFixed(0)} × ${items[i].quantity}',
+                        '\$${items[i].unitPrice.toStringAsFixed(0)}',
                         style: TextStyle(fontSize: 11, color: c.textHint),
                       ),
                     ],

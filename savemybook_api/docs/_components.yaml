@@ -157,7 +157,7 @@ components:
           type: string
           description: Decimal(10,2)，序列化為字串以避免浮點誤差。須大於 0 且不超過 99999。
           example: '180.00'
-        quantity: { type: integer, example: 1 }
+        quantity: { type: integer, description: 二手書一筆商品即一本實體書，固定為 1（舊資料可能大於 1，交易一律以 1 本計算）。, example: 1 }
         description: { type: string, nullable: true, example: 只翻過一次，內頁乾淨 }
         cabinet_id: { type: integer, nullable: true, description: 賣家指定的取貨書櫃, example: 2 }
         status:
@@ -299,7 +299,7 @@ components:
         cart_id: { type: integer, example: 55 }
         user_id: { type: integer, example: 12 }
         book_id: { type: integer, example: 101 }
-        quantity: { type: integer, example: 1 }
+        quantity: { type: integer, description: 固定為 1。, example: 1 }
         added_at: { type: string, format: date-time }
         books: { $ref: '#/components/schemas/Book' }
 
@@ -310,12 +310,12 @@ components:
         item_id: { type: integer, example: 71 }
         order_id: { type: integer, example: 40 }
         book_id: { type: integer, example: 101 }
-        quantity: { type: integer, example: 1 }
+        quantity: { type: integer, description: 新訂單固定為 1；舊訂單可能大於 1。, example: 1 }
         unit_price: { type: string, description: 下單當時的單價。賣家後續調價不影響已成立的訂單, example: '180.00' }
         subtotal: { type: string, example: '180.00' }
         pre_deposited:
           type: boolean
-          description: 下單時此書已由賣家先行存書；訂單尚未存書即在取書前取消或退款時，此書恢復存書登記（訂單已存書時則訂單的每本書都恢復登記）。
+          description: 此書已在訂單書櫃中：下單時已由賣家先行存書，或訂單部分存書時已存入；訂單尚未存書即在取書前取消或退款時，此書恢復存書登記（訂單已存書時則訂單的每本書都恢復登記）。
           example: false
         books: { $ref: '#/components/schemas/Book' }
 
@@ -779,8 +779,14 @@ components:
         closed_by:
           type: string
           nullable: true
-          enum: [seller, buyer]
-          description: 狀態為 `cancelled` 時，執行婉拒或取消的一方。
+          enum: [seller, buyer, system]
+          description: 狀態為 `cancelled` 時，執行婉拒或取消的一方；`system` 為書籍經審核下架而由系統取消。
+          example: null
+        closed_action:
+          type: string
+          nullable: true
+          enum: [decline, cancel, delisted]
+          description: 狀態為 `cancelled` 時的原因：賣家婉拒、買家或賣家取消，或書籍經審核下架。
           example: null
         pickup_deadline:
           type: string
@@ -1029,7 +1035,7 @@ components:
             帳號已停權:
               value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已被停權，如有疑問請聯絡客服 }
             帳號在黑名單:
-              value: { success: false, code: ACCOUNT_BLACKLISTED, message: 此帳號已停用，如有疑問請聯絡客服 }
+              value: { success: false, code: ACCOUNT_BLACKLISTED, message: 此帳號已列入黑名單，如有疑問請聯絡客服 }
             裝置已登出:
               value: { success: false, code: SESSION_REVOKED, message: 此裝置已登出，請重新登入 }
 
@@ -1093,7 +1099,7 @@ components:
             不是管理員:
               value: { success: false, message: 權限不足，僅限管理員執行此操作 }
             缺少細部權限:
-              value: { success: false, code: ADMIN_PERMISSION_REQUIRED, message: 您沒有「會員管理」的權限 }
+              value: { success: false, code: ADMIN_PERMISSION_REQUIRED, message: 您沒有「會員管控」的權限 }
             需要驗證:
               value:
                 success: false
@@ -1141,7 +1147,7 @@ components:
             不是管理員:
               value: { success: false, message: 權限不足，僅限管理員執行此操作 }
             缺少細部權限:
-              value: { success: false, code: ADMIN_PERMISSION_REQUIRED, message: 您沒有「會員管理」的權限 }
+              value: { success: false, code: ADMIN_PERMISSION_REQUIRED, message: 您沒有「會員管控」的權限 }
 
     NotFound:
       description: 指定的資源不存在。

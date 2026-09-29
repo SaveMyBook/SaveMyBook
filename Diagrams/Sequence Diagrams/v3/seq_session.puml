@@ -14,7 +14,7 @@ participant API
 database DB
 
 == 檢視登入裝置 ==
-使用者 -> UI : 開啟「登入裝置管理」
+使用者 -> UI : 開啟「登入裝置」
 activate 使用者
 activate UI
 UI -> API : GET /api/security/sessions
@@ -31,9 +31,9 @@ alt 登出單一裝置
   activate API
   API -> DB : 撤銷該裝置工作階段\n清除生物辨識付款金鑰與推播裝置
 else 登出所有裝置
-  使用者 -> UI : 選擇「登出所有裝置」\n（可選是否包含本機）
+  使用者 -> UI : 選擇「登出其他所有裝置」\n或「登出所有裝置（含本機）」
   UI -> API : POST /api/security/sessions/revoke-all\n（附身分驗證權杖）
-  API -> DB : 批次撤銷工作階段\n並使先前簽發的權杖全數失效
+  API -> DB : 批次撤銷工作階段\n並使被登出裝置的權杖失效
 end
 API --> UI : 200 OK
 alt 登出對象包含本機

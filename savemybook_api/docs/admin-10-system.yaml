@@ -234,7 +234,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: DOWNLOAD_LINK_EXPIRED, message: 下載連結已失效，請重新產生 }
+              example: { success: false, code: DOWNLOAD_LINK_EXPIRED, message: 下載網址已失效，請重新產生 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/backups/{id}/restore:

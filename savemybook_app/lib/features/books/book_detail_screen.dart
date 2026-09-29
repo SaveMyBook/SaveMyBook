@@ -1287,8 +1287,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     );
 
     if (_isOwnBook) {
-      final canEdit = _book.status == 'removed' || (_book.status == 'on_sale' && !_book.isHeld);
-      final lockedStatus = _book.ownerStatusText;
+      final canEdit = !_book.isDeposited && (_book.status == 'removed' || (_book.status == 'on_sale' && !_book.isHeld));
+      final lockedStatus = _book.isDeposited ? S.inLocker : _book.ownerStatusText;
       return Container(
         padding: padding,
         decoration: decoration,

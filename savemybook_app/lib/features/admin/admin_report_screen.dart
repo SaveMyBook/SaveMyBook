@@ -14,6 +14,7 @@ import '../../i18n/strings.dart';
 import 'admin_layout.dart';
 import 'ai/ai_review_tab.dart';
 import 'chat_risk_tab.dart';
+import 'reported_message_panel.dart';
 
 class AdminReportScreen extends StatefulWidget {
   static const int listingReviewTab = 2;
@@ -139,11 +140,17 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                   Text(S.reviewReport,
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary)),
                   const SizedBox(height: 6),
-                  Text(S.reportedP0P1(report.targetTypeText, report.targetTitle),
-                      style: TextStyle(fontSize: 13, color: c.textSecondary)),
-                  const SizedBox(height: 4),
+                  if (report.message == null) ...[
+                    Text(S.reportedP0P1(report.targetTypeText, report.targetTitle),
+                        style: TextStyle(fontSize: 13, color: c.textSecondary)),
+                    const SizedBox(height: 4),
+                  ],
                   Text(S.reasonP02(report.reason),
                       style: TextStyle(fontSize: 13, color: c.textSecondary)),
+                  if (report.message != null) ...[
+                    const SizedBox(height: 12),
+                    ReportedMessagePanel(reportId: report.reportId, message: report.message!),
+                  ],
                   const SizedBox(height: 16),
                   AppTextField(
                     controller: noteController,

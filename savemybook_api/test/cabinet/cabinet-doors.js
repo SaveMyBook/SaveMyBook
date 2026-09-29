@@ -81,40 +81,46 @@ module.exports = {
       }), 409, 'CABINET_FULL');
     }],
 
-    ['依訂單存書：先補進同一訂單未滿的櫃門，再以最少的門數平均分配', async () => {
+    ['依訂單存書：一扇門只放一本書，同一訂單已存入的櫃門不再補書', async () => {
       const ctx = setup();
-      const { order, ids } = addOrderWith({ ...ctx, count: 6 });
+      const { order, ids } = addOrderWith({ ...ctx, count: 3 });
       h.addPlaced(ids[0], ctx.door(3).slot_id);
 
       const result = await doors.allocate(prisma, {
         cabinetId: ctx.cabinet.cabinet_id, sellerId: ctx.seller.user_id,
-        units: [{ key: 'order', kind: 'order_deposit', bookIds: [ids[5], ids[1], ids[2], ids[3], ids[4]], orderId: order.order_id }]
+        units: [{ key: 'order', kind: 'order_deposit', bookIds: [ids[2], ids[1]], orderId: order.order_id }]
       });
-      assert.deepStrictEqual(summary(result.get('order')), [
-        ['A03', [ids[1], ids[2]]],
-        ['A01', [ids[3], ids[4], ids[5]]]
-      ]);
+      assert.deepStrictEqual(summary(result.get('order')), [['A01', [ids[1]]], ['A02', [ids[2]]]]);
       assert.strictEqual(ctx.door(3).status, 'occupied', '既有的門不改變狀態');
-      assert.strictEqual(ctx.door(1).status, 'reserved');
-
-      const seven = setup();
-      const big = addOrderWith({ ...seven, count: 7 });
-      const split = await doors.allocate(prisma, {
-        cabinetId: seven.cabinet.cabinet_id, sellerId: seven.seller.user_id,
-        units: [{ key: 'o', kind: 'order_deposit', bookIds: big.ids, orderId: big.order.order_id }]
-      });
-      assert.deepStrictEqual(split.get('o').map((e) => e.book_ids.length), [3, 2, 2]);
+      assert.deepStrictEqual([1, 2, 4].map((c) => ctx.door(c).status), ['reserved', 'reserved', 'empty']);
     }],
 
-    ['本數超過門數 × 3 時放寬每門本數；書都已在書櫃時改為開啟現有的櫃門', async () => {
-      const ctx = setup();
-      const { order, ids } = addOrderWith({ ...ctx, count: 13 });
+    ['空門不足時依訂單順序只分配放得下的書；某筆訂單分不到櫃門時為 CABINET_FULL；書都已在書櫃時改為開啟現有的櫃門', async () => {
+      const ctx = setup({ doorCount: 2 });
+      const { order, ids } = addOrderWith({ ...ctx, count: 3 });
       const result = await doors.allocate(prisma, {
         cabinetId: ctx.cabinet.cabinet_id, sellerId: ctx.seller.user_id,
         units: [{ key: 'o', kind: 'order_deposit', bookIds: ids, orderId: order.order_id }]
       });
-      assert.deepStrictEqual(result.get('o').map((e) => [doors.doorLabel(e.lock_channel), e.book_ids.length]),
-        [['A01', 4], ['A02', 3], ['A03', 3], ['A04', 3]]);
+      assert.deepStrictEqual(summary(result.get('o')), [['A01', [ids[0]]], ['A02', [ids[1]]]]);
+      assert.strictEqual(h.cabinetRow(ctx.cabinet.cabinet_id).available_slots, 0);
+
+      const two = setup({ doorCount: 2 });
+      const first = addOrderWith({ ...two, count: 2 });
+      const second = addOrderWith({ ...two, count: 1 });
+      await assert.rejects(doors.allocate(prisma, {
+        cabinetId: two.cabinet.cabinet_id, sellerId: two.seller.user_id,
+        units: [
+          { key: 'a', kind: 'order_deposit', bookIds: first.ids, orderId: first.order.order_id },
+          { key: 'b', kind: 'order_deposit', bookIds: second.ids, orderId: second.order.order_id }
+        ]
+      }), (err) => {
+        assert.strictEqual(err.code, 'CABINET_FULL');
+        assert.strictEqual(err.orderShortage, true);
+        assert.deepStrictEqual(err.extra, { available_doors: 2, required_doors: 3 });
+        return true;
+      });
+      assert.deepStrictEqual([1, 2].map((c) => two.door(c).status), ['empty', 'empty'], '櫃門未被占用');
 
       const again = setup();
       const placed = addOrderWith({ ...again, count: 2 });
@@ -320,12 +326,13 @@ module.exports = {
       assert.strictEqual(h.cabinetRow(ctx.cabinet.cabinet_id).available_slots, 3);
     }],
 
-    ['後台登記存放內容：只能登記本書櫃未登記的書，且同一扇門只能有一個保管單位', async () => {
+    ['後台登記存放內容：只能登記本書櫃未登記的書，且每扇門只能登記一本書', async () => {
       const admin = h.addAdmin();
       const token = h.tokenFor(admin);
       const ctx = setup();
       const url = (slotId, cabinetId = ctx.cabinet.cabinet_id) => `/api/admin/cabinets/${cabinetId}/doors/${slotId}/place`;
       const { order, ids } = addOrderWith({ ...ctx, count: 2, status: 'deposited' });
+      const single = addOrderWith({ ...ctx, count: 1, status: 'deposited' });
       const stored = h.addBook({ sellerId: ctx.seller.user_id, cabinet_id: ctx.cabinet.cabinet_id, title: '存書 A' });
       const stored2 = h.addBook({ sellerId: ctx.seller.user_id, cabinet_id: ctx.cabinet.cabinet_id, title: '存書 B' });
       addDeposit(stored, ctx.cabinet);
@@ -336,7 +343,8 @@ module.exports = {
 
       const before = await request('GET', `/api/admin/cabinets/${ctx.cabinet.cabinet_id}/device`, { token });
       assert.deepStrictEqual(before.body.data.unplaced.map((u) => [u.kind, u.book_id, u.order_no]).sort(), [
-        ['deposit', stored.book_id, null], ['deposit', stored2.book_id, null], ['order', ids[0], order.order_no], ['order', ids[1], order.order_no]
+        ['deposit', stored.book_id, null], ['deposit', stored2.book_id, null], ['order', ids[0], order.order_no], ['order', ids[1], order.order_no],
+        ['order', single.ids[0], single.order.order_no]
       ].sort());
 
       const both = await request('POST', url(ctx.door(1).slot_id), { token, body: { order_id: order.order_id, book_ids: [stored.book_id] } });
@@ -344,34 +352,72 @@ module.exports = {
       const neither = await request('POST', url(ctx.door(1).slot_id), { token, body: {} });
       assert.strictEqual(neither.status, 400);
 
-      const res = await request('POST', url(ctx.door(1).slot_id), { token, body: { order_id: order.order_id } });
+      const single1 = async (slotId, body) => {
+        const r = await request('POST', url(slotId), { token, body });
+        assert.strictEqual(r.status, 409, JSON.stringify(body));
+        assert.strictEqual(r.body.code, 'DOOR_SINGLE_BOOK');
+        assert.strictEqual(r.body.message, '每扇櫃門僅能存放一本書，請為每本書選擇不同櫃門');
+      };
+      await single1(ctx.door(1).slot_id, { order_id: order.order_id });
+      await single1(ctx.door(1).slot_id, { book_ids: ids });
+      assert.strictEqual(prisma.rows('cabinet_slot_items').length, 0);
+
+      const res = await request('POST', url(ctx.door(1).slot_id), { token, body: { book_ids: [ids[0]] } });
       assert.strictEqual(res.status, 200, JSON.stringify(res.body));
       assert.deepStrictEqual(res.body.data.items.map((i) => [i.kind, i.book_id, i.order_no, i.seller_nickname]),
-        [['order', ids[0], order.order_no, '小明'], ['order', ids[1], order.order_no, '小明']]);
+        [['order', ids[0], order.order_no, '小明']]);
       assert.ok(prisma.rows('cabinet_slot_items').every((i) => i.placed_by === 'admin'));
       const [placed] = h.eventsOf('door_placed');
-      assert.deepStrictEqual([placed.source, placed.actor_id, placed.lock_channel, placed.order_id], ['admin', admin.user_id, 1, order.order_id]);
+      assert.deepStrictEqual([placed.source, placed.actor_id, placed.lock_channel, placed.book_id], ['admin', admin.user_id, 1, ids[0]]);
+      await single1(ctx.door(1).slot_id, { book_ids: [ids[1]] });
+
+      const second = await request('POST', url(ctx.door(3).slot_id), { token, body: { order_id: order.order_id } });
+      assert.strictEqual(second.status, 200, '訂單只剩一本未登記時可依訂單登記');
+      assert.deepStrictEqual(second.body.data.items.map((i) => i.book_id), [ids[1]]);
 
       const invalid = async (slotId, body, cabinetId) => {
         const r = await request('POST', url(slotId, cabinetId), { token, body });
         assert.strictEqual(r.status, 409, JSON.stringify(body));
         assert.strictEqual(r.body.code, 'DOOR_ASSIGN_INVALID');
-        assert.strictEqual(r.body.message, '此項目不在本書櫃、已有櫃門紀錄，或與櫃內其他項目不屬於同一筆訂單或同一本書');
+        assert.strictEqual(r.body.message, '此項目不在本書櫃，或已有櫃門紀錄');
       };
-      await invalid(ctx.door(1).slot_id, { book_ids: [stored.book_id] });
       await invalid(ctx.door(2).slot_id, { book_ids: [ids[0]] });
       await invalid(ctx.door(2).slot_id, { book_ids: [foreign.book_id] });
-      await invalid(ctx.door(2).slot_id, { book_ids: [stored.book_id, stored2.book_id] });
       await invalid(ctx.door(2).slot_id, { order_id: order.order_id });
 
       const ok = await request('POST', url(ctx.door(2).slot_id), { token, body: { book_ids: [stored.book_id] } });
       assert.strictEqual(ok.status, 200);
       assert.deepStrictEqual(ok.body.data.items.map((i) => i.kind), ['deposit']);
-      await invalid(ctx.door(2).slot_id, { book_ids: [stored2.book_id] });
+      await single1(ctx.door(2).slot_id, { book_ids: [stored2.book_id] });
+      await single1(ctx.door(2).slot_id, { order_id: single.order.order_id });
 
       const missing = await request('POST', url(h.doorOf(elsewhere.cabinet_id, 1)?.slot_id ?? 9999), { token, body: { book_ids: [stored2.book_id] } });
       assert.strictEqual(missing.status, 404);
       assert.strictEqual(missing.body.code, 'DOOR_NOT_FOUND');
+    }],
+
+    ['舊資料一扇門有多本書時照常檢視與取出，但不可再登記其他書', async () => {
+      const admin = h.addAdmin();
+      const token = h.tokenFor(admin);
+      const ctx = setup();
+      const { order, ids } = addOrderWith({ ...ctx, count: 2, status: 'deposited' });
+      for (const id of ids) h.addPlaced(id, ctx.door(1).slot_id);
+      await doors.refresh(prisma, [ctx.door(1).slot_id]);
+
+      const view = await request('GET', `/api/admin/cabinets/${ctx.cabinet.cabinet_id}/device`, { token });
+      assert.strictEqual(view.status, 200, view.text);
+      assert.deepStrictEqual(view.body.data.doors[0].items.map((i) => [i.book_id, i.order_no]), [[ids[0], order.order_no], [ids[1], order.order_no]]);
+      assert.deepStrictEqual((await doors.orderDoors([order.order_id])).get(order.order_id).map((d) => d.label), ['A01']);
+
+      const extra = h.addBook({ sellerId: ctx.seller.user_id, cabinet_id: ctx.cabinet.cabinet_id });
+      addDeposit(extra, ctx.cabinet);
+      const blocked = await request('POST', `/api/admin/cabinets/${ctx.cabinet.cabinet_id}/doors/${ctx.door(1).slot_id}/place`, {
+        token, body: { book_ids: [extra.book_id] }
+      });
+      assert.strictEqual(blocked.body.code, 'DOOR_SINGLE_BOOK');
+
+      assert.deepStrictEqual(await doors.removeBooks(prisma, ids), [ctx.door(1).slot_id]);
+      assert.strictEqual(ctx.door(1).status, 'empty');
     }],
 
     ['待確認櫃門列出可能存放的書籍，並可直接登記', async () => {

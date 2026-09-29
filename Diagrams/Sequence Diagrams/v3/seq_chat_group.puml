@@ -47,7 +47,7 @@ deactivate API
 使用者 -> UI : 點擊「退出群組」
 UI -> API : POST /api/chat/groups/:roomId/leave
 activate API
-API -> DB : 移除成員及其置頂、靜音設定，\n發送「已退出群組」系統訊息
+API -> DB : 移除成員及其釘選、靜音設定，\n發送「已退出群組」系統訊息
 opt 退出者為唯一管理員
   API -> DB : 由最早加入的成員接任管理員
 end

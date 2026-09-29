@@ -394,6 +394,34 @@ module.exports = {
       assert.strictEqual(h.adminNotices(ctx, '書櫃項目無法辦理').length, 0);
     }],
 
+    ['依訂單存書沒有空門時為 CABINET_FULL 並通知管理員；空門少於待存書籍時標示 DEPOSIT_PARTIAL，可先存入部分書籍', async () => {
+      const ctx = h.scene({ doorCount: 2 });
+      const stranger = h.addUser();
+      const fillers = [1, 2].map((channel) => {
+        const book = h.addBook({ sellerId: stranger.user_id, cabinet_id: ctx.cabinet.cabinet_id });
+        h.addPlaced(book.book_id, h.doorOf(ctx.cabinet.cabinet_id, channel).slot_id);
+        return book;
+      });
+      const [a, b] = [h.listedBook(ctx), h.listedBook(ctx)];
+      const order = h.orderFor(ctx, [a.book_id, b.book_id]);
+      const code = await h.scan(ctx);
+      const full = await h.createSession(ctx, ctx.sellerToken, { code });
+      assert.strictEqual(full.status, 409);
+      assert.strictEqual(full.body.code, 'CABINET_ITEM_BLOCKED');
+      assert.strictEqual(full.body.items[0].blocked.code, 'CABINET_FULL');
+      assert.strictEqual(full.body.items[0].note, null);
+      assert.strictEqual(h.adminNotices(ctx, '書櫃項目無法辦理')[0].content,
+        `「北商大書櫃」有使用者無法辦理訂單 ${order.order_no}（可用櫃門不足），請協助處理。`);
+
+      await api('services/cabinet-doors').removeBooks(prisma, [fillers[0].book_id]);
+      const partial = await h.createSession(ctx, ctx.sellerToken, { code });
+      assert.strictEqual(partial.status, 201, partial.text);
+      const unit = partial.body.data.items[0];
+      assert.strictEqual(unit.blocked, null);
+      assert.strictEqual(unit.selected, true);
+      assert.strictEqual(unit.note.code, 'DEPOSIT_PARTIAL');
+    }],
+
     ['被拒絕時挑戰碼沒有被用掉，其他人仍可使用', async () => {
       const ctx = pickupScene();
       const code = await h.scan(ctx);

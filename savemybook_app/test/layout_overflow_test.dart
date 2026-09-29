@@ -38,6 +38,7 @@ import 'package:savemybook_app/features/admin/admin_cabinet_session_sheet.dart';
 import 'package:savemybook_app/features/admin/admin_category_screen.dart';
 import 'package:savemybook_app/features/admin/admin_deletion_screen.dart';
 import 'package:savemybook_app/features/admin/admin_dispute_screen.dart';
+import 'package:savemybook_app/features/admin/reported_message_panel.dart';
 import 'package:savemybook_app/features/admin/admin_home_screen.dart';
 import 'package:savemybook_app/features/admin/admin_level_edit_screen.dart';
 import 'package:savemybook_app/features/admin/admin_level_screen.dart';
@@ -133,6 +134,19 @@ Map<String, dynamic> user(int id) => {
       'bio': 'I read everything from classic literature to programming books.',
       'phone': '0912345678',
       'created_at': now,
+    };
+
+Map<String, dynamic> reportedMessage(int id, {String kind = 'text'}) => {
+      'message_id': id,
+      'sender_id': 2,
+      'content': kind == 'recalled' ? '[recalled]' : 'Please pay me directly by bank transfer. ' * 3,
+      'message_type': kind == 'text' ? 'text' : (kind == 'image' ? 'image' : 'system'),
+      'kind': kind,
+      'body': kind == 'text' ? 'Please pay me directly by bank transfer. ' * 3 : (kind == 'image' ? '/uploads/chat/$id.jpg' : null),
+      'created_at': now,
+      'edited_at': kind == 'text' ? now : null,
+      'users': user(2),
+      'sender_no': 'MB3KER74B',
     };
 
 Map<String, dynamic> cabinet() => {
@@ -792,13 +806,17 @@ Object? fakeData(String method, String path) {
         },
     'GET /admin/books': () => many((i) => {'book_id': i, 'title': longTitle, 'isbn': '9789571234567', 'price': 123456, 'status': ['on_sale', 'reserved', 'sold', 'removed'][i % 4], 'condition_level': 'fair', 'category_id': 1, 'category_name': 'Literature & Fiction Classics', 'seller': user(2), 'view_count': 987654, 'pending_report_count': 99, 'image_url': null, 'created_at': now}),
     'GET /admin/categories': () => many((i) => {'category_id': i, 'category_name': 'Computer Science & Programming $i', 'sort_order': i, 'book_count': 123456}),
-    'GET /admin/reports': () => many((i) => {'report_id': i, 'target_type': 'book', 'target_id': i, 'reason': 'Counterfeit copy with missing pages ' * 3, 'status': ['pending', 'reviewing', 'resolved', 'dismissed'][i % 4], 'created_at': now, 'users_reports_reporter_idTousers': user(1), 'target': {'title': longTitle, 'book_images': <Object>[]}}),
+    'GET /admin/reports': () => many((i) => {'report_id': i, 'target_type': i == 1 ? 'message' : 'book', 'target_id': i, 'reason': 'Counterfeit copy with missing pages ' * 3, 'status': ['pending', 'reviewing', 'resolved', 'dismissed'][i % 4], 'created_at': now, 'users_reports_reporter_idTousers': user(1), 'target': i == 1 ? {'message_id': 1, 'sender_id': 2, 'content': 'Please pay me directly by bank transfer. ' * 3, 'message_type': 'text', 'kind': 'text', 'body': 'Please pay me directly by bank transfer. ' * 3, 'created_at': now, 'users': user(2), 'sender_no': 'MB3KER74B'} : {'title': longTitle, 'book_images': <Object>[]}}),
+    'GET /admin/reports/1/message-context': () => {
+          'before': [reportedMessage(2), reportedMessage(3, kind: 'recalled'), reportedMessage(4, kind: 'image')],
+          'after': [reportedMessage(6), reportedMessage(7, kind: 'image')],
+        },
     'GET /admin/chat-risk-alerts': () => many((i) => {
           'alert_id': i, 'status': 'open', 'hit_count': 123, 'first_at': now, 'last_at': now,
           'user': {...user(i), 'user_no': 'MB3KER74B', 'is_active': i != 2, 'is_blacklisted': i == 3, 'created_at': now},
           'samples': many((j) => {'content': 'Please send me the verification code from your text message so I can finish the payment for you. ' * 2, 'categories': ['credential', 'scam', 'link', 'payment', 'offsite', 'contact'], 'created_at': now}, 3),
         }),
-    'GET /admin/disputes': () => many((i) => {'dispute_id': i, 'order_id': i, 'reason': 'The book has water damage ' * 3, 'status': i.isEven ? 'resolved' : 'pending', 'result': i.isEven ? 'refund_manual' : null, 'created_at': now, 'users_transaction_disputes_applicant_idTousers': user(1), 'orders': {'order_id': i, 'order_no': 'SMB20260914103000123456', 'total_amount': 1234567, 'users_orders_buyer_idTousers': user(1), 'users_orders_seller_idTousers': user(2), 'order_items': [{'books': book(i)}]}}),
+    'GET /admin/disputes': () => many((i) => {'dispute_id': i, 'order_id': i, 'reason': 'The book has water damage ' * 3, 'status': i.isEven ? 'resolved' : 'pending', 'result': i.isEven ? 'refund_manual' : null, 'created_at': now, 'users_transaction_disputes_applicant_idTousers': user(1), 'orders': {'order_id': i, 'order_no': 'SMB20260914103000123456', 'total_amount': 1234567, 'users_orders_buyer_idTousers': user(1), 'users_orders_seller_idTousers': user(2), 'order_items': [{'books': book(i)}]}, 'evidence_images': [for (var k = 0; k < i; k++) '/uploads/evidence/$i-$k.jpg']}),
     'GET /admin/cabinets': () => many((i) => {...cabinet(), 'cabinet_id': i, 'latitude': 25.0173, 'longitude': 121.5398, 'total_slots': 200, 'available_slots': 123, 'is_active': i != 2, 'slot_summary': {'empty': 123, 'occupied': 45, 'reserved': 22, 'maintenance': 10}, 'cabinet_slots': many((j) => {'slot_id': j, 'slot_number': 'A${j.toString().padLeft(2, '0')}', 'status': 'occupied', 'updated_at': now, 'lock_channel': i == 1 && j <= 4 ? j : null, 'check_required_at': i == 1 && j == 2 ? now : null}, 8), 'device': i == 1 ? {'device_no': 'DV3K9QX2M', 'kind': 'esp32', 'status': 'active', 'online': false, 'last_seen_at': now} : (i == 3 ? {'device_no': 'DV7Q2M4XA', 'kind': 'simulator', 'status': 'pending', 'online': false} : null)}),
     'GET /admin/maintenance-logs': () => many((i) => {'log_id': i, 'action': 'Changed slot status', 'detail': 'Changed A12 at $longCabinet to maintenance', 'users': user(9), 'created_at': now}),
     'GET /admin/wallets': () => many((i) => {...user(i), 'balance': 9876543.5, 'frozen_amount': 0, 'total_income': 98765432, 'total_expense': 12345678}),
@@ -1014,6 +1032,12 @@ Map<String, Widget Function()> get screens => {
       'AdminReports': () => const AdminReportScreen(),
       'AdminRiskAlerts': () => const AdminReportScreen(initialTab: AdminReportScreen.riskAlertTab),
       'AdminDisputes': () => const AdminDisputeScreen(),
+      'AdminReportedMessage': () => Scaffold(
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: ReportedMessagePanel(reportId: 1, message: ReportedMessage.fromJson(reportedMessage(5))),
+            ),
+          ),
       'AdminCabinets': () => const AdminCabinetScreen(),
       'AdminCabinetDeposits': () => const AdminCabinetDepositScreen(),
       'AdminCabinetDepositsOverdue': () => const AdminCabinetDepositScreen(initialOverdue: true),

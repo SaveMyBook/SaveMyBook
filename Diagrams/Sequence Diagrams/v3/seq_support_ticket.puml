@@ -29,14 +29,14 @@ API -> DB : 確認處理中工單未達 5 筆，\n建立工單並綁定附件
 API -> 管理員 : 通知「新的客服工單」
 API --> UI : 201 Created
 deactivate API
-UI --> 使用者 : 顯示工單內容
+UI --> 使用者 : 顯示「已送出，客服將盡快回覆」\n並返回「聯絡我們」列表
 
 管理員 -> UI : 開啟工單並回覆
 UI -> API : POST /api/support/tickets/:id/messages
 activate API
-API -> DB : 確認客服權限後新增回覆，\n狀態設為「等待使用者回覆」
-API -> 使用者 : 通知「客服已回覆」
-API --> UI : 200 OK
+API -> DB : 確認客服權限後新增回覆，\n狀態設為「客服已回覆」
+API -> 使用者 : 通知「客服已回覆您的問題」
+API --> UI : 201 Created
 deactivate API
 
 opt 使用者補充說明
@@ -45,7 +45,7 @@ opt 使用者補充說明
   activate API
   API -> DB : 新增訊息，狀態設為「待處理」
   API -> 管理員 : 通知「客服工單有新回覆」
-  API --> UI : 200 OK
+  API --> UI : 201 Created
   deactivate API
 end
 

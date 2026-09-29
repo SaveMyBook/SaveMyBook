@@ -270,7 +270,7 @@ void main() {
 
         await tester.tap(find.text(S.reject).first);
         await _pumps(tester, 4);
-        expect(find.text('駁回原因類別'), findsOneWidget);
+        expect(find.text('拒絕原因類別'), findsOneWidget);
         await tester.tap(find.text(S.offPlatformDealContactInfo));
         await _pumps(tester, 4);
         await tester.enterText(find.byType(TextField).last, '描述留有電話');

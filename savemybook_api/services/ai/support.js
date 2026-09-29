@@ -39,7 +39,7 @@ const PLATFORM_KNOWLEDGE = `
 SaveMyBook 是結合智慧書櫃的二手書交易平台，站內以代幣結算（1 代幣等值新臺幣 1 元）。
 賣家上架書籍並把書存入智慧書櫃，買家在 App 付款後到書櫃取書；存書與取書皆在書櫃旁以 App 掃描書櫃螢幕上的 QR Code 辦理。
 訂單完成時款項才撥給賣家：買家取書後按下「完成訂單」，或取書滿 ${ORDER_AUTO_COMPLETE_HOURS} 小時且未申請爭議時自動完成。
-訂單狀態「${ORDER_STATUS_LABELS.refunding}」（買家端顯示「爭議處理中」）表示該訂單有處理中的交易爭議；書籍的「審核中」才是上架審核。
+訂單狀態「${ORDER_STATUS_LABELS.refunding}」表示該訂單有處理中的交易爭議（舊版 App 顯示為「審核中」）；書籍的「審核中」則是上架審核。
 App 目前沒有自助儲值與提領功能；平台沒有取件碼。`.trim();
 
 const SYSTEM_RULES = `

@@ -328,6 +328,9 @@ class CabinetFlowController extends ChangeNotifier {
 
   bool isSelected(String key) => _selected.contains(key);
 
+  String? selectedOf(CabinetItemKind kind) =>
+      session?.items.where((item) => item.kind == kind && _selected.contains(item.key)).firstOrNull?.key;
+
   void toggle(String key) {
     final s = session;
     if (s == null || _step != CabinetFlowStep.confirm || _busy) return;
@@ -341,6 +344,8 @@ class CabinetFlowController extends ChangeNotifier {
       }
     }
     if (select) {
+      final kind = item.kind;
+      if (kind != null && kind.isSingleChoice) _selected.removeAll([for (final other in s.items) if (other.kind == kind) other.key]);
       _selected.addAll(keys);
     } else {
       _selected.removeAll(keys);
@@ -527,6 +532,11 @@ class CabinetFlowController extends ChangeNotifier {
       _selected = {...s.selectedKeys};
     } else {
       _selected = _selected.where(allowed.contains).toSet();
+    }
+    final kept = <CabinetItemKind>{};
+    for (final item in s.items) {
+      final kind = item.kind;
+      if (kind != null && kind.isSingleChoice && _selected.contains(item.key) && !kept.add(kind)) _selected.remove(item.key);
     }
     _selectionFor = s.sessionNo;
     _selectionVersion = s.version;

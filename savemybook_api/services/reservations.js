@@ -77,24 +77,45 @@ const deadlineFormat = new Intl.DateTimeFormat('zh-TW', {
 
 const formatDeadline = (date) => deadlineFormat.format(new Date(date));
 
-const heldError = () => conflict('此書籍預約保留中，保留期間無法編輯或下架', 'BOOK_HELD');
+const heldError = () => conflict('此書籍已預約，保留期間無法編輯或取消上架', 'BOOK_HELD');
 
 const assertNotHeld = async (bookId) => {
   if (await activeHold(null, bookId)) throw heldError();
 };
 
-const notifyAvailable = async (db, row) => {
-  if (row.books?.status !== 'on_sale' || !row.books?.is_approved) return 0;
+const isListed = (book) => book?.status === 'on_sale' && Boolean(book?.is_approved);
+
+const notifyFans = async (db, { bookId, excludeIds, content }) => {
   const fans = await (db ?? prisma).favorites.findMany({
-    where: { book_id: row.book_id, user_id: { notIn: [row.buyer_id, row.seller_id] } },
+    where: { book_id: bookId, user_id: { notIn: excludeIds } },
     select: { user_id: true }
   });
   if (fans.length === 0) return 0;
   return notifyMany(db, fans.map((f) => f.user_id), {
     title: '收藏的書籍已可購買',
-    content: `《${row.books.title}》的預約保留已結束，現已開放購買。`,
-    relatedId: row.book_id,
+    content,
+    relatedId: bookId,
     relatedType: 'book'
+  });
+};
+
+const notifyAvailable = async (db, row) => {
+  if (!isListed(row.books)) return 0;
+  return notifyFans(db, {
+    bookId: row.book_id,
+    excludeIds: [row.buyer_id, row.seller_id],
+    content: `《${row.books.title}》的預約保留已結束，現已開放購買。`
+  });
+};
+
+// 呼叫端須確認書籍確實由無法購買轉為販售中且公開，同一次轉換只呼叫一次。
+const notifyRelisted = async (db, bookId) => {
+  const book = await (db ?? prisma).books.findUnique({ where: { book_id: bookId }, select: bookSelect });
+  if (!isListed(book) || (await activeHold(db, bookId))) return 0;
+  return notifyFans(db, {
+    bookId: book.book_id,
+    excludeIds: [book.seller_id],
+    content: `《${book.title}》已重新上架，現已開放購買。`
   });
 };
 
@@ -321,7 +342,7 @@ const expireDue = async () => {
     await notify(null, {
       userId: row.buyer_id,
       type: 'reservation',
-      title: wasPending ? '預約未獲回覆' : '預約已到期',
+      title: wasPending ? '預約未獲回覆' : '預約已過期',
       content: wasPending ? `賣家未於 ${policy.RESERVATION_RESPONSE_HOURS} 小時內回覆《${title}》的預約。` : `《${title}》的保留期限已屆滿，其他買家現已可購買。`,
       relatedId: row.book_id,
       relatedType: 'book'
@@ -330,6 +351,36 @@ const expireDue = async () => {
   return due.length;
 };
 
+const cancelForDelisted = async (tx, book, now = new Date()) => {
+  const rows = await tx.reservations.findMany({
+    where: { book_id: book.book_id, OR: [{ status: 'pending' }, { status: 'confirmed', pickup_deadline: { gt: now } }] }
+  });
+  let cancelled = 0;
+  for (const row of rows) {
+    const result = await tx.reservations.updateMany({
+      where: { reservation_id: row.reservation_id, status: row.status },
+      data: { status: 'cancelled', note: JSON.stringify({ ...noteOf(row), closed_by: 'system', action: 'delisted' }), updated_at: now }
+    });
+    if (result.count === 0) continue;
+    cancelled += 1;
+    const room = await rooms.between(tx, row.buyer_id, row.seller_id);
+    if (room) {
+      await tx.chat_rooms.update({ where: { room_id: room.room_id }, data: { updated_at: now } });
+      realtime.touchRoom(room.room_id);
+    }
+    await notify(tx, {
+      userId: row.buyer_id,
+      type: 'reservation',
+      title: '預約已取消',
+      content: `《${book.title}》已下架，您的預約已取消。`,
+      relatedId: room?.room_id ?? null,
+      relatedType: room ? 'chat_room' : null
+    });
+  }
+  return cancelled;
+};
+
 module.exports = {
-  activeHoldsFor, heldByOthers, assertNotHeldByOthers, assertNotHeld, notifyAvailable, request, respond, forUsers, mine, holdForViewer, expireDue
+  isListed, activeHoldsFor, heldByOthers, assertNotHeldByOthers, assertNotHeld, notifyAvailable, notifyRelisted, cancelForDelisted,
+  request, respond, forUsers, mine, holdForViewer, expireDue
 };

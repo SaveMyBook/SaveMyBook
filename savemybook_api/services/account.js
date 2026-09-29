@@ -316,7 +316,7 @@ const anonymizeByAdmin = async (userId, { adminId, req }) => {
   await anonymize(userId);
   await audit.record(null, {
     adminId,
-    action: '立即匿名化會員',
+    action: '立即執行匿名化',
     targetType: 'user',
     targetId: userId,
     summary: `提前匿名化 ${who.nickname}（${who.email}）的帳號，個資已清除，無法復原`,

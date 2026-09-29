@@ -5,7 +5,7 @@ const aiImages = require('./ai/images');
 const { risksIn } = require('./ai/text');
 const { adminIdsWith } = require('./admin-permissions');
 const { notify, notifyMany } = require('./notify');
-const deposits = require('./book-deposits');
+const takedown = require('./book-takedown');
 const { LISTING_REVIEW_PRICE } = require('../constants/policy');
 
 const PRICE_CEILING = LISTING_REVIEW_PRICE;
@@ -83,7 +83,7 @@ const notifyAdmins = async (db, book, reasons) => {
   const adminIds = (await adminIdsWith('content')).filter((id) => id !== book.seller_id);
   if (adminIds.length === 0) return;
   await notifyMany(db, adminIds, {
-    title: '有書籍待審核',
+    title: '有書籍需上架審核',
     content: `《${book.title}》需要人工審核：${reasons.join('、')}`,
     relatedId: book.book_id,
     relatedType: 'book_review'
@@ -117,24 +117,22 @@ const applyLater = async (bookId, decision, { onSaleOnly = false } = {}) => {
 
   const reject = decision.action === 'reject';
   await prisma.$transaction(async (tx) => {
-    const row = await tx.books.update({
-      where: { book_id: bookId },
-      data: { is_approved: false, ...(reject && book.status === 'on_sale' && { status: 'removed' }), updated_at: new Date() }
-    });
     if (!reject) {
+      const row = await tx.books.update({ where: { book_id: bookId }, data: { is_approved: false, updated_at: new Date() } });
       await hold(tx, row, decision);
       return;
     }
-    await deposits.releaseAutoPause(tx, bookId);
+    const taken = await takedown.apply(tx, book);
     await reviews.hold(tx, { bookId, decision, status: 'rejected' });
     await notify(tx, {
-      userId: row.seller_id,
+      userId: book.seller_id,
       title: '書籍未通過上架審核',
-      content: `您的書籍《${row.title}》未通過上架審核，已下架。原因：${decision.reasons.join('、')}。如有疑問請聯絡客服。`,
+      content: `您的書籍《${book.title}》未通過上架審核，已${takedown.actionLabel(taken)}。原因：${decision.reasons.join('、')}。如有疑問請聯絡客服。`,
       relatedId: bookId,
       relatedType: 'book'
     });
   });
+  if (reject) await takedown.cancelOrders(bookId);
 };
 
 // 同一本書一再因本身的原因無法完成（輸出無法解析、服務商不接受請求），可能是內容刻意干擾審核，改送人工而不是無限重試。

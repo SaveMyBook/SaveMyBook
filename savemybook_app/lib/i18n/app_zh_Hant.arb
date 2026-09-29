@@ -6,7 +6,7 @@
   "orderPendingPickup": "待取書",
   "orderCompleted": "已完成",
   "orderCancelled": "已取消",
-  "orderRefunding": "審核中",
+  "orderRefunding": "爭議處理中",
   "orderRefunded": "已退款",
   "orderBuyerPendingDeposit": "待賣家存書",
   "orderBuyerDeposited": "待取書",
@@ -541,13 +541,6 @@
     }
   },
   "orderNoItemDetails": "無商品明細",
-  "msg4": "單價 ${p0} × {p1}",
-  "@msg4": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "orderTotal": "訂單金額",
   "pickupDetails": "取書資訊",
   "notAssigned": "尚未指定",
@@ -1046,7 +1039,7 @@
   "editQuestion": "編輯問題",
   "question": "問題",
   "answer": "答案",
-  "showHelpCentre": "顯示在幫助中心",
+  "showHelpCentre": "顯示在客服中心",
   "bothQuestionAnswerRequired": "請填寫問題與答案",
   "added": "已新增",
   "updated": "已更新",
@@ -1095,7 +1088,7 @@
       "p1": {}
     }
   },
-  "disputeResolution": "交易仲裁",
+  "disputeResolution": "交易爭議",
   "orderP0P1": "訂單 {p0}｜${p1}",
   "@orderP0P1": {
     "placeholders": {
@@ -1112,7 +1105,7 @@
   "decisionNoteOptional": "裁決說明（選填）",
   "submitDecision": "送出裁決",
   "decisionRecorded": "已完成裁決",
-  "resolveDispute": "交易仲裁",
+  "resolveDispute": "交易爭議",
   "noDisputesKind": "目前沒有此類爭議案件",
   "orderNumberP0": "訂單編號：{p0}",
   "@orderNumberP0": {
@@ -1592,7 +1585,7 @@
   "buyerSPaymentGoesBackTheir": "買家支付的款項將退回錢包；若賣家已收到貨款，將先行收回。",
   "orderReturnsWhereWasBeforeDispute": "訂單將恢復至申請爭議前的狀態並繼續交易；若先前已完成取書，貨款將撥付給賣家。",
   "orderWasAlreadyRefundedBuyerCannot": "此訂單款項已退回買家，無法改回進行中或已完成",
-  "completedOrderCanOnlyChangedRefund": "已完成的訂單僅能改為「審核中」或「已退款」",
+  "completedOrderCanOnlyChangedRefund": "已完成的訂單僅能改為「爭議處理中」或「已退款」",
   "confirmingPaysP0TokensSellerMarks": "確認後將撥付 {p0} 代幣給賣家，並將書籍標記為已售出。",
   "@confirmingPaysP0TokensSellerMarks": {
     "placeholders": {
@@ -1852,7 +1845,7 @@
     }
   },
   "paymentSuccessful": "付款成功",
-  "p0BooksSplitIntoP1Orders": "共 {p0} 本書，已依賣家拆分為 {p1} 筆訂單",
+  "p0BooksSplitIntoP1Orders": "共 {p0} 本書，已依賣家與書櫃拆分為 {p1} 筆訂單",
   "@p0BooksSplitIntoP1Orders": {
     "placeholders": {
       "p0": {},
@@ -2776,7 +2769,7 @@
   "reject": "拒絕",
   "listingApproved": "已核准上架",
   "listingRejected": "已拒絕上架",
-  "noListingsAwaitingReview": "目前沒有待審核的上架",
+  "noListingsAwaitingReview": "目前沒有需上架審核的書籍",
   "likelyViolation": "疑似違規",
   "needsReview": "需人工確認",
   "rejected": "已拒絕",
@@ -2913,7 +2906,7 @@
       "p0": {}
     }
   },
-  "p0ListingsAwaitingReview": "{p0} 筆上架待審核",
+  "p0ListingsAwaitingReview": "{p0} 本書籍需上架審核",
   "@p0ListingsAwaitingReview": {
     "placeholders": {
       "p0": {}
@@ -3502,7 +3495,7 @@
   "autoFilled": "自動補齊",
   "similarBooks": "相似書籍",
   "doNotPayTransferMoneyOutside": "請勿私下匯款或轉帳，站外付款不受平台保障",
-  "pleaseCompleteDealAppWeCannot": "請透過平台交易，站外交易發生糾紛時平台無法協助",
+  "pleaseCompleteDealAppWeCannot": "請透過平台交易，站外交易發生爭議時平台無法協助",
   "personSharedOutsideContactDetailsWatch": "對方提供了站外聯絡方式，請留意詐騙並透過平台完成交易",
   "mostRelevant": "最相關",
   "scamAlerts": "防詐警示",
@@ -3545,7 +3538,7 @@
   "cancelInstallmentsAccountFrozenPaymentVerification": "「解除分期」「帳戶凍結」「金流認證」「購買遊戲點數」皆為常見詐騙話術",
   "ifSeeSuspiciousMessageReportAdministrator": "發現可疑訊息請按檢舉，管理員將協助處理",
   "confirmSending": "確認傳送",
-  "messageIncludesContactPaymentDetailsDeals": "訊息包含聯絡方式或付款資訊。在平台外交易或付款不受平台保障，發生糾紛時平台無法協助。",
+  "messageIncludesContactPaymentDetailsDeals": "訊息包含聯絡方式或付款資訊。在平台外交易或付款不受平台保障，發生爭議時平台無法協助。",
   "sendAnyway": "仍要傳送",
   "editMessage2": "返回修改",
   "suspectedScamMessage": "疑似詐騙訊息",
@@ -3968,6 +3961,7 @@
   "doorFaultyPleaseContactSupport": "櫃門故障，請聯絡客服",
   "doorAwaitingCheckBySupportPlease": "櫃門待客服確認，請聯絡客服",
   "reachedPreSaleDropOffLimit": "您在此書櫃的先行存書已達上限，請待售出或取回後再存入",
+  "preSaleDropOffLimitedOne": "每位賣家在此書櫃限先行存書一本",
   "itemChanged": "項目狀態已變更",
   "doorDidNotOpen": "櫃門未能開啟",
   "doorOpeningNotConfirmedSupportCheck": "未收到櫃門開啟回報，待客服確認",
@@ -4127,7 +4121,7 @@
   "listingAssistantAdoptionRate": "上架輔助採用率",
   "listingsUsingAssistant": "使用上架輔助的書籍",
   "createdFromSupportEnquiries": "由客服工單建立",
-  "rejectionReason": "駁回原因類別",
+  "rejectionReason": "拒絕原因類別",
   "sourceInstantRules": "來源：即時規則",
   "sourceAiAssessment": "來源：AI 判定",
   "confidenceP0": "可信度 {p0}",
@@ -4198,6 +4192,7 @@
   "manualReport": "手動回報",
   "manualReportReviewed": "手動回報處理",
   "overdueOrderHeld": "逾期訂單待處理",
+  "delistedOrderHeld": "下架書籍訂單待處理",
   "doorOpenedAfterTask": "作業結束後開門",
   "lockDidNotRelease": "電磁鎖未釋放",
   "doorLeftOpen": "櫃門未關閉",
@@ -4335,5 +4330,28 @@
       "p0": {}
     }
   },
-  "pushNotificationRegistrationFailedPleaseTry": "推播註冊失敗，請稍後再試。"
+  "pushNotificationRegistrationFailedPleaseTry": "推播註冊失敗，請稍後再試。",
+  "evidencePhotos": "佐證照片",
+  "reportedMessage": "被檢舉訊息",
+  "orderBookLimitP0": "同一賣家同一書櫃每筆訂單最多 {p0} 本，請分次結帳",
+  "@orderBookLimitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "depositPartialNotice": "可用櫃門不足，本次僅能存入部分書籍，其餘書籍待有空櫃門時再存入",
+  "depositedP0RemainingLater": "已存入 {p0} 本，其餘書籍待有空櫃門時再存入",
+  "@depositedP0RemainingLater": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "alreadySelected": "已選擇",
+  "notEnoughAvailableDoorsChooseDifferent": "可用櫃門不足，無法為每本書選擇不同櫃門",
+  "noEmptyDoorCurrentlyAvailableRecord": "目前沒有可登記的空櫃門",
+  "eachDoorCanHoldOnlyOne": "每扇櫃門僅能存放一本書",
+  "removedFromPublicView": "已停止公開顯示",
+  "hiddenFromPublic": "停止公開顯示",
+  "afterReviewBookNoLongerShown": "此書籍經審核後停止公開顯示，訂單不受影響。",
+  "bookWasConfirmedViolateRulesAfter": "此書籍經審核確認違規，訂單不受影響。"
 }

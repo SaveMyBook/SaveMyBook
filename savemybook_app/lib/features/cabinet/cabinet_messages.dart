@@ -215,7 +215,7 @@ class CabinetMessages {
     if (kinds.length == 1) {
       switch (kinds.first) {
         case CabinetItemKind.orderDeposit:
-          return S.dropOffCompleteBuyerBeenNotified;
+          return session.selectedItems.any((item) => item.isPartialDeposit) ? S.dropOffComplete : S.dropOffCompleteBuyerBeenNotified;
         case CabinetItemKind.preDeposit:
           return S.dropOffComplete;
         case CabinetItemKind.retrieval:
@@ -225,6 +225,15 @@ class CabinetMessages {
       }
     }
     return S.taskComplete;
+  }
+
+  // 先行存書的上限與可用櫃門不足是整組共同的限制，於群組上方說明一次，不逐筆重複。
+  static bool isSharedBlock(CabinetSessionItem item) =>
+      item.kind == CabinetItemKind.preDeposit && capacityCodes.contains(item.blocked?.code);
+
+  static List<String> sharedBlocks(List<CabinetSessionItem> items) {
+    if (items.any((item) => !item.isBlocked)) return const [];
+    return {for (final item in items) if (isSharedBlock(item)) blocked(item.blocked!)}.toList();
   }
 
   static String blocked(CabinetNotice notice) => switch (notice.code) {
@@ -246,7 +255,11 @@ class CabinetMessages {
 
   static String itemNotDone(String reason) => S.notCompletedP0(reason);
 
-  static String note(CabinetNotice notice) {
+  static String note(CabinetNotice notice, {CabinetSessionItem? item}) {
+    if (notice.code == CabinetSessionItem.notePartialDeposit) {
+      final stored = item?.booksWithDoor ?? 0;
+      return item != null && item.isDone && stored > 0 ? S.depositedP0RemainingLater(stored) : S.depositPartialNotice;
+    }
     if (notice.code != 'MOVE_TO_ORDER_CABINET') return notice.message;
     final name = _quotedName.firstMatch(notice.message)?.group(1);
     return name == null ? notice.message : moveTo(name);

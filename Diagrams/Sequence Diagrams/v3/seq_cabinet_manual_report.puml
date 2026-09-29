@@ -14,7 +14,7 @@ participant API
 database DB
 actor 管理員
 
-使用者 -> UI : 放入或取出書籍後\n點擊「改為手動回報」
+使用者 -> UI : 放入或取出書籍後\n點擊「完成存書」、「登記存書」、\n「確認取書」或「回報取回」
 activate 使用者
 activate UI
 UI -> API : PATCH /api/orders/:id/status\n或 POST /api/books/:id/deposit、retrieve

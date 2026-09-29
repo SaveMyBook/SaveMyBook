@@ -38,24 +38,24 @@ UI -> API : POST /api/security/verify
 activate API
 API --> UI : 核發單次付款驗證權杖
 UI -> API : 附驗證權杖重送購買請求
-API -> DB : 檢查可購買、書櫃未維修、\n未被他人預約保留與錢包餘額
+API -> DB : 檢查可購買、書櫃未維修、未被他人\n預約保留、每單至多 2 本與錢包餘額
 activate DB
 DB --> API : 回傳檢查結果
 deactivate DB
 
 alt 檢查通過
-  API -> DB : 書籍設為「交易中」
+  API -> DB : 書籍設為「已售出」
   alt 訂單書籍皆已存於訂單書櫃
-    API -> DB : 依賣家建立訂單（已存書）
+    API -> DB : 依賣家與書櫃拆單建立訂單（已存書）
   else 尚有書籍未存入
-    API -> DB : 依賣家建立訂單（待存書）
+    API -> DB : 依賣家與書櫃拆單建立訂單（待存書）
   end
   API -> DB : 扣除買家代幣，由平台保管至訂單完成
   API -> 賣家 : 通知書已售出\n（待存書者請於 7 天內存書）
   API -> DB : 移除已購買的購物車項目
   API --> UI : 201 Created
   UI --> 買家 : 顯示付款成功\n（已存書時可立即取書）
-else 不可購買、餘額不足或已被搶購
+else 不可購買、超過本數、餘額不足或已被搶購
   API --> UI : 400／409 錯誤訊息（不扣款）
   UI --> 買家 : 顯示失敗原因
 end

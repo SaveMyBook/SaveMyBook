@@ -11,6 +11,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import 'admin_image_strip.dart';
 import 'admin_order_detail_screen.dart';
 import '../../i18n/strings.dart';
 import 'dispute_ai_panel.dart';
@@ -143,6 +144,12 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                   const SizedBox(height: 4),
                   Text(S.reasonP0(dispute.reason),
                       style: TextStyle(fontSize: 13, color: c.textSecondary)),
+                  if (dispute.evidenceImages.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _evidenceLabel(c),
+                    const SizedBox(height: 6),
+                    AdminImageStrip(urls: dispute.evidenceImages, size: 88, title: S.evidencePhotos),
+                  ],
                   const SizedBox(height: 14),
                   DisputeAiPanel(disputeId: dispute.disputeId),
                   const SizedBox(height: 12),
@@ -259,7 +266,7 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                 controller: _tabController,
                 tabs: [
                   openCount > 0 ? '${S.disputeProcessing} $openCount' : S.disputeProcessing,
-                  S.ticketClosed,
+                  S.disputeResolved,
                 ],
               ),
             ),
@@ -404,6 +411,12 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.4)),
+          if (dispute.evidenceImages.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _evidenceLabel(c),
+            const SizedBox(height: 6),
+            AdminImageStrip(urls: dispute.evidenceImages, size: 52, title: S.evidencePhotos),
+          ],
           const SizedBox(height: 10),
           Row(
             children: [
@@ -436,6 +449,11 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
       ),
     );
   }
+
+  Widget _evidenceLabel(AppColors c) => Text(
+        S.evidencePhotos,
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary),
+      );
 
   static String _when(DateTime? dt) {
     if (dt == null) return '';

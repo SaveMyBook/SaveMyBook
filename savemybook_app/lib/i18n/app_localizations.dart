@@ -405,7 +405,6 @@ abstract class AppLocalizations {
   String get orderProgress;
   String items2(Object p0);
   String get orderNoItemDetails;
-  String msg4(Object p0, Object p1);
   String get orderTotal;
   String get pickupDetails;
   String get notAssigned;
@@ -2217,6 +2216,7 @@ abstract class AppLocalizations {
   String get doorFaultyPleaseContactSupport;
   String get doorAwaitingCheckBySupportPlease;
   String get reachedPreSaleDropOffLimit;
+  String get preSaleDropOffLimitedOne;
   String get itemChanged;
   String get doorDidNotOpen;
   String get doorOpeningNotConfirmedSupportCheck;
@@ -2376,6 +2376,7 @@ abstract class AppLocalizations {
   String get manualReport;
   String get manualReportReviewed;
   String get overdueOrderHeld;
+  String get delistedOrderHeld;
   String get doorOpenedAfterTask;
   String get lockDidNotRelease;
   String get doorLeftOpen;
@@ -2468,6 +2469,19 @@ abstract class AppLocalizations {
   String get couldNotOpenChatPleaseTry;
   String publishedP0(Object p0);
   String get pushNotificationRegistrationFailedPleaseTry;
+  String get evidencePhotos;
+  String get reportedMessage;
+  String orderBookLimitP0(Object p0);
+  String get depositPartialNotice;
+  String depositedP0RemainingLater(Object p0);
+  String get alreadySelected;
+  String get notEnoughAvailableDoorsChooseDifferent;
+  String get noEmptyDoorCurrentlyAvailableRecord;
+  String get eachDoorCanHoldOnlyOne;
+  String get removedFromPublicView;
+  String get hiddenFromPublic;
+  String get afterReviewBookNoLongerShown;
+  String get bookWasConfirmedViolateRulesAfter;
 }
 
 class _LEn extends AppLocalizations {
@@ -2492,7 +2506,7 @@ class _LEn extends AppLocalizations {
   String get orderCancelled => 'Cancelled';
 
   @override
-  String get orderRefunding => 'Under review';
+  String get orderRefunding => 'Under dispute';
 
   @override
   String get orderRefunded => 'Refunded';
@@ -3620,9 +3634,6 @@ class _LEn extends AppLocalizations {
   String get orderNoItemDetails => 'No item details';
 
   @override
-  String msg4(Object p0, Object p1) => '${p0} × ${p1}';
-
-  @override
   String get orderTotal => 'Order total';
 
   @override
@@ -4622,7 +4633,7 @@ class _LEn extends AppLocalizations {
   String requestedP0ScheduledP1(Object p0, Object p1) => 'Requested ${p0}, scheduled for ${p1}';
 
   @override
-  String get disputeResolution => 'Dispute resolution';
+  String get disputeResolution => 'Transaction disputes';
 
   @override
   String orderP0P1(Object p0, Object p1) => 'Order ${p0} | \$${p1}';
@@ -4640,7 +4651,7 @@ class _LEn extends AppLocalizations {
   String get decisionRecorded => 'Decision recorded';
 
   @override
-  String get resolveDispute => 'Resolve dispute';
+  String get resolveDispute => 'Transaction disputes';
 
   @override
   String get noDisputesKind => 'No disputes of this kind';
@@ -5378,7 +5389,7 @@ class _LEn extends AppLocalizations {
   String get orderWasAlreadyRefundedBuyerCannot => 'This order was already refunded to the buyer and cannot go back to in progress or completed';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => 'A completed order can only be changed to "Under review" or "Refunded"';
+  String get completedOrderCanOnlyChangedRefund => 'A completed order can only be changed to "Under dispute" or "Refunded"';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => 'Confirming pays ${p0} tokens to the seller and marks the books as sold.';
@@ -5699,7 +5710,7 @@ class _LEn extends AppLocalizations {
   String get paymentSuccessful => 'Payment successful';
 
   @override
-  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '${p0} books, split into ${p1} orders by seller';
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '${p0} books, split into ${p1} orders by seller and locker';
 
   @override
   String get keepBrowsing => 'Keep browsing';
@@ -5720,7 +5731,7 @@ class _LEn extends AppLocalizations {
   String get goWallet => 'Go to wallet';
 
   @override
-  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => 'From ${p0} sellers; checkout creates ${p1} separate orders';
+  String fromP0SellersCheckoutCreatesP1(Object p0, Object p1) => 'Items from ${p0} seller(s); checkout creates ${p1} separate orders';
 
   @override
   String get otherDevicesNeedSignAgainWith => 'Your other devices will need to sign in again with the new password.';
@@ -9056,6 +9067,9 @@ class _LEn extends AppLocalizations {
   String get reachedPreSaleDropOffLimit => 'You have reached the pre-sale drop-off limit at this locker. Drop off another book after one sells or is retrieved.';
 
   @override
+  String get preSaleDropOffLimitedOne => 'Pre-sale drop-off is limited to one book per seller at this locker.';
+
+  @override
   String get itemChanged => 'The item has changed';
 
   @override
@@ -9533,6 +9547,9 @@ class _LEn extends AppLocalizations {
   String get overdueOrderHeld => 'Overdue order held';
 
   @override
+  String get delistedOrderHeld => 'Order for delisted book held';
+
+  @override
   String get doorOpenedAfterTask => 'Door opened after task';
 
   @override
@@ -9808,6 +9825,45 @@ class _LEn extends AppLocalizations {
   @override
   String get pushNotificationRegistrationFailedPleaseTry => 'Push notification registration failed. Please try again later.';
 
+  @override
+  String get evidencePhotos => 'Evidence photos';
+
+  @override
+  String get reportedMessage => 'Reported message';
+
+  @override
+  String orderBookLimitP0(Object p0) => 'Up to ${p0} books per order from the same seller and locker. Please check out separately.';
+
+  @override
+  String get depositPartialNotice => 'Not enough doors are available. Only some books can be dropped off now; drop off the rest when a door becomes available.';
+
+  @override
+  String depositedP0RemainingLater(Object p0) => '${p0} dropped off. Drop off the remaining books when a door becomes available.';
+
+  @override
+  String get alreadySelected => 'Selected';
+
+  @override
+  String get notEnoughAvailableDoorsChooseDifferent => 'Not enough available doors to choose a different door for each book.';
+
+  @override
+  String get noEmptyDoorCurrentlyAvailableRecord => 'No empty door is currently available to record.';
+
+  @override
+  String get eachDoorCanHoldOnlyOne => 'Each door can hold only one book.';
+
+  @override
+  String get removedFromPublicView => 'Removed from public view';
+
+  @override
+  String get hiddenFromPublic => 'Hidden from public';
+
+  @override
+  String get afterReviewBookNoLongerShown => 'After review, this book is no longer shown publicly. Its order is not affected.';
+
+  @override
+  String get bookWasConfirmedViolateRulesAfter => 'This book was confirmed to violate the rules after review. Its order is not affected.';
+
 }
 
 class _LJa extends AppLocalizations {
@@ -9832,7 +9888,7 @@ class _LJa extends AppLocalizations {
   String get orderCancelled => 'キャンセル済み';
 
   @override
-  String get orderRefunding => '審査中';
+  String get orderRefunding => '異議申立中';
 
   @override
   String get orderRefunded => '返金済み';
@@ -10960,9 +11016,6 @@ class _LJa extends AppLocalizations {
   String get orderNoItemDetails => '商品明細はありません';
 
   @override
-  String msg4(Object p0, Object p1) => '単価 ${p0} × ${p1}';
-
-  @override
   String get orderTotal => '注文金額';
 
   @override
@@ -11893,7 +11946,7 @@ class _LJa extends AppLocalizations {
   String get answer => '回答';
 
   @override
-  String get showHelpCentre => 'ヘルプセンターに表示';
+  String get showHelpCentre => 'サポートセンターに表示';
 
   @override
   String get bothQuestionAnswerRequired => '質問と回答の両方が必要です';
@@ -11962,7 +12015,7 @@ class _LJa extends AppLocalizations {
   String requestedP0ScheduledP1(Object p0, Object p1) => '${p0}、${p1}';
 
   @override
-  String get disputeResolution => '取引の裁定';
+  String get disputeResolution => '取引の異議申立';
 
   @override
   String orderP0P1(Object p0, Object p1) => '注文 ${p0}｜\$${p1}';
@@ -11980,7 +12033,7 @@ class _LJa extends AppLocalizations {
   String get decisionRecorded => '裁定を記録しました';
 
   @override
-  String get resolveDispute => '取引を裁定';
+  String get resolveDispute => '取引の異議申立';
 
   @override
   String get noDisputesKind => 'この種類の異議申立はありません';
@@ -12718,7 +12771,7 @@ class _LJa extends AppLocalizations {
   String get orderWasAlreadyRefundedBuyerCannot => 'この注文は買い手に返金済みのため、進行中や完了には戻せません';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => '完了した注文は「審査中」か「返金済み」にしか変更できません';
+  String get completedOrderCanOnlyChangedRefund => '完了した注文は「異議申立中」か「返金済み」にしか変更できません';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => '確定すると売り手に ${p0} トークンを支払い、本を売却済みにします。';
@@ -13039,7 +13092,7 @@ class _LJa extends AppLocalizations {
   String get paymentSuccessful => '支払いが完了しました';
 
   @override
-  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '計 ${p0} 冊、出品者ごとに ${p1} 件の注文に分けました';
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '計 ${p0} 冊、出品者とロッカーごとに ${p1} 件の注文に分けました';
 
   @override
   String get keepBrowsing => '買い物を続ける';
@@ -15631,7 +15684,7 @@ class _LJa extends AppLocalizations {
   String get doNotPayTransferMoneyOutside => 'アプリ外での送金・振込はしないでください。プラットフォームの保護対象外です。';
 
   @override
-  String get pleaseCompleteDealAppWeCannot => 'アプリ内で取引してください。アプリ外の取引トラブルには対応できません。';
+  String get pleaseCompleteDealAppWeCannot => 'アプリ内で取引してください。アプリ外の取引で紛争が生じても対応できません。';
 
   @override
   String get personSharedOutsideContactDetailsWatch => '相手がアプリ外の連絡先を送ってきました。詐欺に注意し、アプリ内で取引を完了してください。';
@@ -15715,7 +15768,7 @@ class _LJa extends AppLocalizations {
   String get confirmSending => '送信の確認';
 
   @override
-  String get messageIncludesContactPaymentDetailsDeals => 'メッセージに連絡先または支払い情報が含まれています。アプリ外の取引や支払いは保護されず、トラブル時にも対応できません。';
+  String get messageIncludesContactPaymentDetailsDeals => 'メッセージに連絡先または支払い情報が含まれています。アプリ外の取引や支払いは保護されず、紛争が生じても対応できません。';
 
   @override
   String get sendAnyway => 'このまま送信';
@@ -16396,6 +16449,9 @@ class _LJa extends AppLocalizations {
   String get reachedPreSaleDropOffLimit => 'このロッカーでの販売前の預け入れが上限に達しました。売却または回収後に預け入れてください。';
 
   @override
+  String get preSaleDropOffLimitedOne => 'このロッカーでの販売前の預け入れは、出品者 1 人につき 1 冊までです。';
+
+  @override
   String get itemChanged => '項目の状態が変更されました';
 
   @override
@@ -16873,6 +16929,9 @@ class _LJa extends AppLocalizations {
   String get overdueOrderHeld => '期限切れ注文の対応待ち';
 
   @override
+  String get delistedOrderHeld => '出品停止書籍の注文の対応待ち';
+
+  @override
   String get doorOpenedAfterTask => '手続き終了後の開扉';
 
   @override
@@ -17148,6 +17207,45 @@ class _LJa extends AppLocalizations {
   @override
   String get pushNotificationRegistrationFailedPleaseTry => 'プッシュ通知の登録に失敗しました。しばらくしてからもう一度お試しください。';
 
+  @override
+  String get evidencePhotos => '証拠写真';
+
+  @override
+  String get reportedMessage => '報告されたメッセージ';
+
+  @override
+  String orderBookLimitP0(Object p0) => '同じ出品者・同じロッカーの本は1件の注文につき最大 ${p0} 冊です。分けて購入してください。';
+
+  @override
+  String get depositPartialNotice => '利用できる扉が不足しているため、今回は一部の本のみ預け入れできます。残りの本は扉が空き次第預け入れてください。';
+
+  @override
+  String depositedP0RemainingLater(Object p0) => '${p0} 冊を預け入れました。残りの本は扉が空き次第預け入れてください。';
+
+  @override
+  String get alreadySelected => '選択済み';
+
+  @override
+  String get notEnoughAvailableDoorsChooseDifferent => '空いている扉が不足しているため、本ごとに異なる扉を選択できません。';
+
+  @override
+  String get noEmptyDoorCurrentlyAvailableRecord => '現在、登録できる空の扉はありません。';
+
+  @override
+  String get eachDoorCanHoldOnlyOne => '各扉に保管できる本は 1 冊のみです。';
+
+  @override
+  String get removedFromPublicView => '公開を停止しました';
+
+  @override
+  String get hiddenFromPublic => '非公開';
+
+  @override
+  String get afterReviewBookNoLongerShown => '審査の結果、この本は公開を停止しました。注文には影響しません。';
+
+  @override
+  String get bookWasConfirmedViolateRulesAfter => '審査の結果、この本の違反が確認されました。注文には影響しません。';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -17172,7 +17270,7 @@ class _LKo extends AppLocalizations {
   String get orderCancelled => '취소됨';
 
   @override
-  String get orderRefunding => '심사 중';
+  String get orderRefunding => '이의 제기 중';
 
   @override
   String get orderRefunded => '환불 완료';
@@ -18300,9 +18398,6 @@ class _LKo extends AppLocalizations {
   String get orderNoItemDetails => '상품 내역 없음';
 
   @override
-  String msg4(Object p0, Object p1) => '단가 ${p0} × ${p1}';
-
-  @override
   String get orderTotal => '주문 금액';
 
   @override
@@ -19302,7 +19397,7 @@ class _LKo extends AppLocalizations {
   String requestedP0ScheduledP1(Object p0, Object p1) => '${p0} 신청, ${p1} 실행 예정';
 
   @override
-  String get disputeResolution => '거래 중재';
+  String get disputeResolution => '거래 이의 제기';
 
   @override
   String orderP0P1(Object p0, Object p1) => '주문 ${p0} | \$${p1}';
@@ -19320,7 +19415,7 @@ class _LKo extends AppLocalizations {
   String get decisionRecorded => '판정을 기록했습니다';
 
   @override
-  String get resolveDispute => '거래 중재';
+  String get resolveDispute => '거래 이의 제기';
 
   @override
   String get noDisputesKind => '해당 유형의 이의가 없습니다';
@@ -20058,7 +20153,7 @@ class _LKo extends AppLocalizations {
   String get orderWasAlreadyRefundedBuyerCannot => '이 주문은 이미 구매자에게 환불되어 진행 중이나 완료로 되돌릴 수 없습니다';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => '완료된 주문은 "심사 중" 또는 "환불 완료"로만 변경할 수 있습니다';
+  String get completedOrderCanOnlyChangedRefund => '완료된 주문은 "이의 제기 중" 또는 "환불 완료"로만 변경할 수 있습니다';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => '확인하면 판매자에게 ${p0} 토큰을 지급하고 책을 판매 완료로 표시합니다.';
@@ -20379,7 +20474,7 @@ class _LKo extends AppLocalizations {
   String get paymentSuccessful => '결제 완료';
 
   @override
-  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '총 ${p0}권, 판매자별로 ${p1}건의 주문으로 나눴습니다';
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '총 ${p0}권, 판매자와 보관함별로 ${p1}건의 주문으로 나눴습니다';
 
   @override
   String get keepBrowsing => '계속 둘러보기';
@@ -23736,6 +23831,9 @@ class _LKo extends AppLocalizations {
   String get reachedPreSaleDropOffLimit => '이 보관함의 판매 전 보관 한도에 도달했습니다. 판매 또는 회수 후 보관해 주세요.';
 
   @override
+  String get preSaleDropOffLimitedOne => '이 보관함의 판매 전 보관은 판매자당 1권까지입니다.';
+
+  @override
   String get itemChanged => '항목 상태가 변경되었습니다';
 
   @override
@@ -24045,7 +24143,7 @@ class _LKo extends AppLocalizations {
   String get createdFromSupportEnquiries => '고객 문의에서 작성';
 
   @override
-  String get rejectionReason => '반려 사유 유형';
+  String get rejectionReason => '거절 사유 유형';
 
   @override
   String get sourceInstantRules => '출처: 즉시 규칙';
@@ -24211,6 +24309,9 @@ class _LKo extends AppLocalizations {
 
   @override
   String get overdueOrderHeld => '기한 초과 주문 처리 대기';
+
+  @override
+  String get delistedOrderHeld => '판매 중지 도서 주문 처리 대기';
 
   @override
   String get doorOpenedAfterTask => '작업 종료 후 문 열림';
@@ -24488,6 +24589,45 @@ class _LKo extends AppLocalizations {
   @override
   String get pushNotificationRegistrationFailedPleaseTry => '푸시 알림 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 
+  @override
+  String get evidencePhotos => '증빙 사진';
+
+  @override
+  String get reportedMessage => '신고된 메시지';
+
+  @override
+  String orderBookLimitP0(Object p0) => '같은 판매자·같은 보관함의 도서는 주문당 최대 ${p0}권입니다. 나누어 결제해 주세요.';
+
+  @override
+  String get depositPartialNotice => '사용 가능한 문이 부족하여 이번에는 일부 도서만 보관할 수 있습니다. 나머지 도서는 빈 문이 생기면 보관해 주세요.';
+
+  @override
+  String depositedP0RemainingLater(Object p0) => '${p0}권을 보관했습니다. 나머지 도서는 빈 문이 생기면 보관해 주세요.';
+
+  @override
+  String get alreadySelected => '선택됨';
+
+  @override
+  String get notEnoughAvailableDoorsChooseDifferent => '사용 가능한 문이 부족하여 책마다 다른 문을 선택할 수 없습니다.';
+
+  @override
+  String get noEmptyDoorCurrentlyAvailableRecord => '현재 등록할 수 있는 빈 문이 없습니다.';
+
+  @override
+  String get eachDoorCanHoldOnlyOne => '각 문에는 책을 한 권만 보관할 수 있습니다.';
+
+  @override
+  String get removedFromPublicView => '공개를 중지했습니다';
+
+  @override
+  String get hiddenFromPublic => '비공개';
+
+  @override
+  String get afterReviewBookNoLongerShown => '검토 결과 이 책은 공개가 중지되었습니다. 주문에는 영향이 없습니다.';
+
+  @override
+  String get bookWasConfirmedViolateRulesAfter => '검토 결과 이 책의 위반이 확인되었습니다. 주문에는 영향이 없습니다.';
+
 }
 
 class _LZh extends AppLocalizations {
@@ -24512,7 +24652,7 @@ class _LZh extends AppLocalizations {
   String get orderCancelled => '已取消';
 
   @override
-  String get orderRefunding => '審核中';
+  String get orderRefunding => '爭議處理中';
 
   @override
   String get orderRefunded => '已退款';
@@ -25640,9 +25780,6 @@ class _LZh extends AppLocalizations {
   String get orderNoItemDetails => '無商品明細';
 
   @override
-  String msg4(Object p0, Object p1) => '單價 \$${p0} × ${p1}';
-
-  @override
   String get orderTotal => '訂單金額';
 
   @override
@@ -26573,7 +26710,7 @@ class _LZh extends AppLocalizations {
   String get answer => '答案';
 
   @override
-  String get showHelpCentre => '顯示在幫助中心';
+  String get showHelpCentre => '顯示在客服中心';
 
   @override
   String get bothQuestionAnswerRequired => '請填寫問題與答案';
@@ -26642,7 +26779,7 @@ class _LZh extends AppLocalizations {
   String requestedP0ScheduledP1(Object p0, Object p1) => '申請於 ${p0}，預計 ${p1} 執行';
 
   @override
-  String get disputeResolution => '交易仲裁';
+  String get disputeResolution => '交易爭議';
 
   @override
   String orderP0P1(Object p0, Object p1) => '訂單 ${p0}｜\$${p1}';
@@ -26660,7 +26797,7 @@ class _LZh extends AppLocalizations {
   String get decisionRecorded => '已完成裁決';
 
   @override
-  String get resolveDispute => '交易仲裁';
+  String get resolveDispute => '交易爭議';
 
   @override
   String get noDisputesKind => '目前沒有此類爭議案件';
@@ -27398,7 +27535,7 @@ class _LZh extends AppLocalizations {
   String get orderWasAlreadyRefundedBuyerCannot => '此訂單款項已退回買家，無法改回進行中或已完成';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => '已完成的訂單僅能改為「審核中」或「已退款」';
+  String get completedOrderCanOnlyChangedRefund => '已完成的訂單僅能改為「爭議處理中」或「已退款」';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => '確認後將撥付 ${p0} 代幣給賣家，並將書籍標記為已售出。';
@@ -27719,7 +27856,7 @@ class _LZh extends AppLocalizations {
   String get paymentSuccessful => '付款成功';
 
   @override
-  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本書，已依賣家拆分為 ${p1} 筆訂單';
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本書，已依賣家與書櫃拆分為 ${p1} 筆訂單';
 
   @override
   String get keepBrowsing => '繼續瀏覽';
@@ -29159,7 +29296,7 @@ class _LZh extends AppLocalizations {
   String get listingRejected => '已拒絕上架';
 
   @override
-  String get noListingsAwaitingReview => '目前沒有待審核的上架';
+  String get noListingsAwaitingReview => '目前沒有需上架審核的書籍';
 
   @override
   String get likelyViolation => '疑似違規';
@@ -29339,7 +29476,7 @@ class _LZh extends AppLocalizations {
   String errorRateP0(Object p0) => '錯誤率 ${p0}%';
 
   @override
-  String p0ListingsAwaitingReview(Object p0) => '${p0} 筆上架待審核';
+  String p0ListingsAwaitingReview(Object p0) => '${p0} 本書籍需上架審核';
 
   @override
   String get byFeature => '依功能';
@@ -30311,7 +30448,7 @@ class _LZh extends AppLocalizations {
   String get doNotPayTransferMoneyOutside => '請勿私下匯款或轉帳，站外付款不受平台保障';
 
   @override
-  String get pleaseCompleteDealAppWeCannot => '請透過平台交易，站外交易發生糾紛時平台無法協助';
+  String get pleaseCompleteDealAppWeCannot => '請透過平台交易，站外交易發生爭議時平台無法協助';
 
   @override
   String get personSharedOutsideContactDetailsWatch => '對方提供了站外聯絡方式，請留意詐騙並透過平台完成交易';
@@ -30395,7 +30532,7 @@ class _LZh extends AppLocalizations {
   String get confirmSending => '確認傳送';
 
   @override
-  String get messageIncludesContactPaymentDetailsDeals => '訊息包含聯絡方式或付款資訊。在平台外交易或付款不受平台保障，發生糾紛時平台無法協助。';
+  String get messageIncludesContactPaymentDetailsDeals => '訊息包含聯絡方式或付款資訊。在平台外交易或付款不受平台保障，發生爭議時平台無法協助。';
 
   @override
   String get sendAnyway => '仍要傳送';
@@ -31076,6 +31213,9 @@ class _LZh extends AppLocalizations {
   String get reachedPreSaleDropOffLimit => '您在此書櫃的先行存書已達上限，請待售出或取回後再存入';
 
   @override
+  String get preSaleDropOffLimitedOne => '每位賣家在此書櫃限先行存書一本';
+
+  @override
   String get itemChanged => '項目狀態已變更';
 
   @override
@@ -31385,7 +31525,7 @@ class _LZh extends AppLocalizations {
   String get createdFromSupportEnquiries => '由客服工單建立';
 
   @override
-  String get rejectionReason => '駁回原因類別';
+  String get rejectionReason => '拒絕原因類別';
 
   @override
   String get sourceInstantRules => '來源：即時規則';
@@ -31551,6 +31691,9 @@ class _LZh extends AppLocalizations {
 
   @override
   String get overdueOrderHeld => '逾期訂單待處理';
+
+  @override
+  String get delistedOrderHeld => '下架書籍訂單待處理';
 
   @override
   String get doorOpenedAfterTask => '作業結束後開門';
@@ -31828,6 +31971,45 @@ class _LZh extends AppLocalizations {
   @override
   String get pushNotificationRegistrationFailedPleaseTry => '推播註冊失敗，請稍後再試。';
 
+  @override
+  String get evidencePhotos => '佐證照片';
+
+  @override
+  String get reportedMessage => '被檢舉訊息';
+
+  @override
+  String orderBookLimitP0(Object p0) => '同一賣家同一書櫃每筆訂單最多 ${p0} 本，請分次結帳';
+
+  @override
+  String get depositPartialNotice => '可用櫃門不足，本次僅能存入部分書籍，其餘書籍待有空櫃門時再存入';
+
+  @override
+  String depositedP0RemainingLater(Object p0) => '已存入 ${p0} 本，其餘書籍待有空櫃門時再存入';
+
+  @override
+  String get alreadySelected => '已選擇';
+
+  @override
+  String get notEnoughAvailableDoorsChooseDifferent => '可用櫃門不足，無法為每本書選擇不同櫃門';
+
+  @override
+  String get noEmptyDoorCurrentlyAvailableRecord => '目前沒有可登記的空櫃門';
+
+  @override
+  String get eachDoorCanHoldOnlyOne => '每扇櫃門僅能存放一本書';
+
+  @override
+  String get removedFromPublicView => '已停止公開顯示';
+
+  @override
+  String get hiddenFromPublic => '停止公開顯示';
+
+  @override
+  String get afterReviewBookNoLongerShown => '此書籍經審核後停止公開顯示，訂單不受影響。';
+
+  @override
+  String get bookWasConfirmedViolateRulesAfter => '此書籍經審核確認違規，訂單不受影響。';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -31852,7 +32034,7 @@ class _LZhHans extends AppLocalizations {
   String get orderCancelled => '已取消';
 
   @override
-  String get orderRefunding => '审核中';
+  String get orderRefunding => '争议处理中';
 
   @override
   String get orderRefunded => '已退款';
@@ -32980,9 +33162,6 @@ class _LZhHans extends AppLocalizations {
   String get orderNoItemDetails => '无商品明细';
 
   @override
-  String msg4(Object p0, Object p1) => '单价 ${p0} × ${p1}';
-
-  @override
   String get orderTotal => '订单金额';
 
   @override
@@ -33913,7 +34092,7 @@ class _LZhHans extends AppLocalizations {
   String get answer => '答案';
 
   @override
-  String get showHelpCentre => '显示在帮助中心';
+  String get showHelpCentre => '显示在客服中心';
 
   @override
   String get bothQuestionAnswerRequired => '请填写问题与答案';
@@ -33982,7 +34161,7 @@ class _LZhHans extends AppLocalizations {
   String requestedP0ScheduledP1(Object p0, Object p1) => '申请于 ${p0}，预计 ${p1} 执行';
 
   @override
-  String get disputeResolution => '交易仲裁';
+  String get disputeResolution => '交易争议';
 
   @override
   String orderP0P1(Object p0, Object p1) => '订单 ${p0}｜\$${p1}';
@@ -34000,7 +34179,7 @@ class _LZhHans extends AppLocalizations {
   String get decisionRecorded => '已完成裁决';
 
   @override
-  String get resolveDispute => '交易仲裁';
+  String get resolveDispute => '交易争议';
 
   @override
   String get noDisputesKind => '目前没有此类争议案件';
@@ -34738,7 +34917,7 @@ class _LZhHans extends AppLocalizations {
   String get orderWasAlreadyRefundedBuyerCannot => '此订单款项已退回买家，无法改回进行中或已完成';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => '已完成的订单仅能改为“审核中”或“已退款”';
+  String get completedOrderCanOnlyChangedRefund => '已完成的订单仅能改为“争议处理中”或“已退款”';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => '确认后将拨付 ${p0} 代币给卖家，并将书籍标记为已售出。';
@@ -35059,7 +35238,7 @@ class _LZhHans extends AppLocalizations {
   String get paymentSuccessful => '付款成功';
 
   @override
-  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本书，已按卖家拆分为 ${p1} 笔订单';
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本书，已按卖家与书柜拆分为 ${p1} 笔订单';
 
   @override
   String get keepBrowsing => '继续浏览';
@@ -36499,7 +36678,7 @@ class _LZhHans extends AppLocalizations {
   String get listingRejected => '已拒绝上架';
 
   @override
-  String get noListingsAwaitingReview => '目前没有待审核的上架';
+  String get noListingsAwaitingReview => '目前没有需上架审核的书籍';
 
   @override
   String get likelyViolation => '疑似违规';
@@ -36679,7 +36858,7 @@ class _LZhHans extends AppLocalizations {
   String errorRateP0(Object p0) => '错误率 ${p0}%';
 
   @override
-  String p0ListingsAwaitingReview(Object p0) => '${p0} 笔上架待审核';
+  String p0ListingsAwaitingReview(Object p0) => '${p0} 本书籍需上架审核';
 
   @override
   String get byFeature => '按功能';
@@ -37651,7 +37830,7 @@ class _LZhHans extends AppLocalizations {
   String get doNotPayTransferMoneyOutside => '请勿私下汇款或转账，站外付款不受平台保障';
 
   @override
-  String get pleaseCompleteDealAppWeCannot => '请通过平台交易，站外交易发生纠纷时平台无法协助';
+  String get pleaseCompleteDealAppWeCannot => '请通过平台交易，站外交易发生争议时平台无法协助';
 
   @override
   String get personSharedOutsideContactDetailsWatch => '对方提供了站外联系方式，请留意诈骗并通过平台完成交易';
@@ -37735,7 +37914,7 @@ class _LZhHans extends AppLocalizations {
   String get confirmSending => '确认发送';
 
   @override
-  String get messageIncludesContactPaymentDetailsDeals => '消息包含联系方式或付款信息。在平台外交易或付款不受平台保障，发生纠纷时平台无法协助。';
+  String get messageIncludesContactPaymentDetailsDeals => '消息包含联系方式或付款信息。在平台外交易或付款不受平台保障，发生争议时平台无法协助。';
 
   @override
   String get sendAnyway => '仍要发送';
@@ -38416,6 +38595,9 @@ class _LZhHans extends AppLocalizations {
   String get reachedPreSaleDropOffLimit => '您在此书柜的先行存书已达上限，请待售出或取回后再存入';
 
   @override
+  String get preSaleDropOffLimitedOne => '每位卖家在此书柜限先行存书一本';
+
+  @override
   String get itemChanged => '项目状态已变更';
 
   @override
@@ -38725,7 +38907,7 @@ class _LZhHans extends AppLocalizations {
   String get createdFromSupportEnquiries => '由客服工单建立';
 
   @override
-  String get rejectionReason => '驳回原因类别';
+  String get rejectionReason => '拒绝原因类别';
 
   @override
   String get sourceInstantRules => '来源：即时规则';
@@ -38891,6 +39073,9 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get overdueOrderHeld => '逾期订单待处理';
+
+  @override
+  String get delistedOrderHeld => '下架书籍订单待处理';
 
   @override
   String get doorOpenedAfterTask => '作业结束后开门';
@@ -39168,6 +39353,45 @@ class _LZhHans extends AppLocalizations {
   @override
   String get pushNotificationRegistrationFailedPleaseTry => '推送注册失败，请稍后再试。';
 
+  @override
+  String get evidencePhotos => '佐证照片';
+
+  @override
+  String get reportedMessage => '被举报消息';
+
+  @override
+  String orderBookLimitP0(Object p0) => '同一卖家同一书柜每笔订单最多 ${p0} 本，请分次结账';
+
+  @override
+  String get depositPartialNotice => '可用柜门不足，本次仅能存入部分书籍，其余书籍待有空柜门时再存入';
+
+  @override
+  String depositedP0RemainingLater(Object p0) => '已存入 ${p0} 本，其余书籍待有空柜门时再存入';
+
+  @override
+  String get alreadySelected => '已选择';
+
+  @override
+  String get notEnoughAvailableDoorsChooseDifferent => '可用柜门不足，无法为每本书选择不同柜门';
+
+  @override
+  String get noEmptyDoorCurrentlyAvailableRecord => '目前没有可登记的空柜门';
+
+  @override
+  String get eachDoorCanHoldOnlyOne => '每扇柜门仅能存放一本书';
+
+  @override
+  String get removedFromPublicView => '已停止公开显示';
+
+  @override
+  String get hiddenFromPublic => '停止公开显示';
+
+  @override
+  String get afterReviewBookNoLongerShown => '此书籍经审核后停止公开显示，订单不受影响。';
+
+  @override
+  String get bookWasConfirmedViolateRulesAfter => '此书籍经审核确认违规，订单不受影响。';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -39192,7 +39416,7 @@ class _LZhHant extends AppLocalizations {
   String get orderCancelled => '已取消';
 
   @override
-  String get orderRefunding => '審核中';
+  String get orderRefunding => '爭議處理中';
 
   @override
   String get orderRefunded => '已退款';
@@ -40320,9 +40544,6 @@ class _LZhHant extends AppLocalizations {
   String get orderNoItemDetails => '無商品明細';
 
   @override
-  String msg4(Object p0, Object p1) => '單價 \$${p0} × ${p1}';
-
-  @override
   String get orderTotal => '訂單金額';
 
   @override
@@ -41253,7 +41474,7 @@ class _LZhHant extends AppLocalizations {
   String get answer => '答案';
 
   @override
-  String get showHelpCentre => '顯示在幫助中心';
+  String get showHelpCentre => '顯示在客服中心';
 
   @override
   String get bothQuestionAnswerRequired => '請填寫問題與答案';
@@ -41322,7 +41543,7 @@ class _LZhHant extends AppLocalizations {
   String requestedP0ScheduledP1(Object p0, Object p1) => '申請於 ${p0}，預計 ${p1} 執行';
 
   @override
-  String get disputeResolution => '交易仲裁';
+  String get disputeResolution => '交易爭議';
 
   @override
   String orderP0P1(Object p0, Object p1) => '訂單 ${p0}｜\$${p1}';
@@ -41340,7 +41561,7 @@ class _LZhHant extends AppLocalizations {
   String get decisionRecorded => '已完成裁決';
 
   @override
-  String get resolveDispute => '交易仲裁';
+  String get resolveDispute => '交易爭議';
 
   @override
   String get noDisputesKind => '目前沒有此類爭議案件';
@@ -42078,7 +42299,7 @@ class _LZhHant extends AppLocalizations {
   String get orderWasAlreadyRefundedBuyerCannot => '此訂單款項已退回買家，無法改回進行中或已完成';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => '已完成的訂單僅能改為「審核中」或「已退款」';
+  String get completedOrderCanOnlyChangedRefund => '已完成的訂單僅能改為「爭議處理中」或「已退款」';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => '確認後將撥付 ${p0} 代幣給賣家，並將書籍標記為已售出。';
@@ -42399,7 +42620,7 @@ class _LZhHant extends AppLocalizations {
   String get paymentSuccessful => '付款成功';
 
   @override
-  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本書，已依賣家拆分為 ${p1} 筆訂單';
+  String p0BooksSplitIntoP1Orders(Object p0, Object p1) => '共 ${p0} 本書，已依賣家與書櫃拆分為 ${p1} 筆訂單';
 
   @override
   String get keepBrowsing => '繼續瀏覽';
@@ -43839,7 +44060,7 @@ class _LZhHant extends AppLocalizations {
   String get listingRejected => '已拒絕上架';
 
   @override
-  String get noListingsAwaitingReview => '目前沒有待審核的上架';
+  String get noListingsAwaitingReview => '目前沒有需上架審核的書籍';
 
   @override
   String get likelyViolation => '疑似違規';
@@ -44019,7 +44240,7 @@ class _LZhHant extends AppLocalizations {
   String errorRateP0(Object p0) => '錯誤率 ${p0}%';
 
   @override
-  String p0ListingsAwaitingReview(Object p0) => '${p0} 筆上架待審核';
+  String p0ListingsAwaitingReview(Object p0) => '${p0} 本書籍需上架審核';
 
   @override
   String get byFeature => '依功能';
@@ -44991,7 +45212,7 @@ class _LZhHant extends AppLocalizations {
   String get doNotPayTransferMoneyOutside => '請勿私下匯款或轉帳，站外付款不受平台保障';
 
   @override
-  String get pleaseCompleteDealAppWeCannot => '請透過平台交易，站外交易發生糾紛時平台無法協助';
+  String get pleaseCompleteDealAppWeCannot => '請透過平台交易，站外交易發生爭議時平台無法協助';
 
   @override
   String get personSharedOutsideContactDetailsWatch => '對方提供了站外聯絡方式，請留意詐騙並透過平台完成交易';
@@ -45075,7 +45296,7 @@ class _LZhHant extends AppLocalizations {
   String get confirmSending => '確認傳送';
 
   @override
-  String get messageIncludesContactPaymentDetailsDeals => '訊息包含聯絡方式或付款資訊。在平台外交易或付款不受平台保障，發生糾紛時平台無法協助。';
+  String get messageIncludesContactPaymentDetailsDeals => '訊息包含聯絡方式或付款資訊。在平台外交易或付款不受平台保障，發生爭議時平台無法協助。';
 
   @override
   String get sendAnyway => '仍要傳送';
@@ -45756,6 +45977,9 @@ class _LZhHant extends AppLocalizations {
   String get reachedPreSaleDropOffLimit => '您在此書櫃的先行存書已達上限，請待售出或取回後再存入';
 
   @override
+  String get preSaleDropOffLimitedOne => '每位賣家在此書櫃限先行存書一本';
+
+  @override
   String get itemChanged => '項目狀態已變更';
 
   @override
@@ -46065,7 +46289,7 @@ class _LZhHant extends AppLocalizations {
   String get createdFromSupportEnquiries => '由客服工單建立';
 
   @override
-  String get rejectionReason => '駁回原因類別';
+  String get rejectionReason => '拒絕原因類別';
 
   @override
   String get sourceInstantRules => '來源：即時規則';
@@ -46231,6 +46455,9 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get overdueOrderHeld => '逾期訂單待處理';
+
+  @override
+  String get delistedOrderHeld => '下架書籍訂單待處理';
 
   @override
   String get doorOpenedAfterTask => '作業結束後開門';
@@ -46507,6 +46734,45 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get pushNotificationRegistrationFailedPleaseTry => '推播註冊失敗，請稍後再試。';
+
+  @override
+  String get evidencePhotos => '佐證照片';
+
+  @override
+  String get reportedMessage => '被檢舉訊息';
+
+  @override
+  String orderBookLimitP0(Object p0) => '同一賣家同一書櫃每筆訂單最多 ${p0} 本，請分次結帳';
+
+  @override
+  String get depositPartialNotice => '可用櫃門不足，本次僅能存入部分書籍，其餘書籍待有空櫃門時再存入';
+
+  @override
+  String depositedP0RemainingLater(Object p0) => '已存入 ${p0} 本，其餘書籍待有空櫃門時再存入';
+
+  @override
+  String get alreadySelected => '已選擇';
+
+  @override
+  String get notEnoughAvailableDoorsChooseDifferent => '可用櫃門不足，無法為每本書選擇不同櫃門';
+
+  @override
+  String get noEmptyDoorCurrentlyAvailableRecord => '目前沒有可登記的空櫃門';
+
+  @override
+  String get eachDoorCanHoldOnlyOne => '每扇櫃門僅能存放一本書';
+
+  @override
+  String get removedFromPublicView => '已停止公開顯示';
+
+  @override
+  String get hiddenFromPublic => '停止公開顯示';
+
+  @override
+  String get afterReviewBookNoLongerShown => '此書籍經審核後停止公開顯示，訂單不受影響。';
+
+  @override
+  String get bookWasConfirmedViolateRulesAfter => '此書籍經審核確認違規，訂單不受影響。';
 
 }
 

@@ -16,7 +16,7 @@ const accountProblem = (user, decoded) => {
   if (decoded.pwv !== undefined && decoded.pwv !== passwordVersion(user.password_hash)) {
     return [401, '密碼已變更，請重新登入', 'TOKEN_REVOKED'];
   }
-  if (user.is_blacklisted) return [401, '此帳號已停用，如有疑問請聯絡客服', 'ACCOUNT_BLACKLISTED'];
+  if (user.is_blacklisted) return [401, '此帳號已列入黑名單，如有疑問請聯絡客服', 'ACCOUNT_BLACKLISTED'];
   if (!user.is_active) return [401, '此帳號已被停權，如有疑問請聯絡客服', 'ACCOUNT_INACTIVE'];
   return null;
 };
@@ -36,7 +36,7 @@ const sessionProblem = async (userId, decoded) => {
 };
 
 const assertLoginAllowed = (user) => {
-  if (user.is_blacklisted) throw forbidden('此帳號已被停用，請聯絡客服', 'ACCOUNT_BLACKLISTED');
+  if (user.is_blacklisted) throw forbidden('此帳號已列入黑名單，請聯絡客服', 'ACCOUNT_BLACKLISTED');
   if (!user.is_active) throw forbidden('此帳號已停權，請聯絡客服', 'ACCOUNT_INACTIVE');
 };
 

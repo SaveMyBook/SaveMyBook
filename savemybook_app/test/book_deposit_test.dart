@@ -1218,15 +1218,62 @@ void main() {
       expect(requests, contains('POST /api/orders/checkout'));
     });
 
-    testWidgets('購物車：同一賣家的書分放不同書櫃時不會直接成立，不需確認', (tester) async {
+    testWidgets('購物車：同一賣家同一書櫃超過 2 本時事先提示並停用結帳；分屬不同書櫃時不受限', (tester) async {
+      final requests = <String>[];
+      final cart = [
+        for (var i = 0; i < 3; i++) {'cart_id': i + 1, 'quantity': 1, 'books': _book(5 + i, '書籍${i + 1}', sellerId: 2)},
+        {'cart_id': 4, 'quantity': 1, 'books': _book(9, '另一書櫃', sellerId: 2, cabinetId: 4)},
+      ];
+      await http.runWithClient(() async {
+        await _pumpScreen(tester, const CartScreen());
+        expect(find.text(S.orderBookLimitP0(2)), findsOneWidget);
+        await tester.tap(find.text(S.checkOut));
+        await _settle(tester);
+        expect(requests, isNot(contains('POST /api/orders/checkout')));
+        await tester.pump(const Duration(seconds: 4));
+      }, () => MockClient((request) async {
+        requests.add('${request.method} ${request.url.path}');
+        if (request.url.path.endsWith('/users/me/stats')) return _json({'balance': 5000, 'cart_count': cart.length});
+        if (request.url.path.endsWith('/cart')) return _json(cart);
+        return _json(<Object>[]);
+      }));
+    });
+
+    testWidgets('購物車：伺服器回 ORDER_BOOK_LIMIT 時顯示本數上限訊息', (tester) async {
+      await http.runWithClient(() async {
+        await _pumpScreen(tester, const CartScreen());
+        expect(find.text(S.orderBookLimitP0(2)), findsNothing);
+        await tester.tap(find.text(S.checkOut));
+        await _settle(tester);
+        expect(find.text(S.orderBookLimitP0(2)), findsOneWidget);
+        await tester.pump(const Duration(seconds: 4));
+      }, () => MockClient((request) async {
+        if (request.url.path.endsWith('/users/me/stats')) return _json({'balance': 5000, 'cart_count': 2});
+        if (request.url.path.endsWith('/cart')) {
+          return _json([
+            {'cart_id': 1, 'quantity': 1, 'books': _book(5, '小王子', sellerId: 2)},
+            {'cart_id': 2, 'quantity': 1, 'books': _book(6, '夜間飛行', sellerId: 2)},
+          ]);
+        }
+        if (request.url.path.endsWith('/orders/checkout')) {
+          return _json(null, status: 400, extra: {
+            'code': 'ORDER_BOOK_LIMIT', 'message': '同一賣家於同一書櫃之書籍，每筆訂單最多 2 本，請分次結帳', 'max_books': 2,
+          });
+        }
+        return _json(<Object>[]);
+      }));
+    });
+
+    testWidgets('購物車：同一賣家的書分放不同書櫃時依書櫃拆單，已在書櫃者可直接取書，需先確認', (tester) async {
       final requests = await checkout(
         tester,
         [
           {'cart_id': 1, 'quantity': 1, 'books': _book(5, '小王子', sellerId: 2, inCabinet: true)},
           {'cart_id': 2, 'quantity': 1, 'books': _book(6, '夜間飛行', sellerId: 2, inCabinet: true, cabinetId: 4)},
         ],
-        expectDialog: false,
-        expectSuccess: S.orderPlacedSellerDropBookOff,
+        pay: true,
+        statuses: ['deposited', 'deposited'],
+        expectSuccess: S.p0BooksSplitIntoP1Orders(2, 2),
       );
       expect(requests, contains('POST /api/orders/checkout'));
     });

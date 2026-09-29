@@ -310,7 +310,7 @@ module.exports = {
       });
       const system = await support.buildSystem(7, { question: '我的錢包紀錄', now: NOW });
       assert.match(system, new RegExp(`- 訂單 ${orderNo(9)}：本人申請，已裁決，結果：駁回爭議，`));
-      assert.match(system, new RegExp(`- 訂單 ${orderNo(10)}：交易對象申請，待處理，`));
+      assert.match(system, new RegExp(`- 訂單 ${orderNo(10)}：交易對象申請，待受理，`));
       assert.match(system, /：轉出，-50 代幣\n/);
       assert.ok(system.includes(`：賣出，+90 代幣（訂單 ${orderNo(8)}）`));
       assert.ok(!system.includes('王小明'), '收支不帶說明文字，避免送出交易對象的暱稱');
@@ -412,7 +412,7 @@ module.exports = {
       const old = await support.buildSystem(7, { question, now: NOW });
       assert.ok(!old.includes('最近的錢包收支') && !old.includes('最近的交易爭議') && !old.includes('訊息中提到的訂單'));
       assert.ok(!old.includes(orderNo(20)));
-      assert.match(old, new RegExp(`- 訂單 ${orderNo(1)}：審核中（交易爭議處理中），`));
+      assert.match(old, new RegExp(`- 訂單 ${orderNo(1)}：爭議處理中，`));
       assert.match(old, /錢包餘額：120 代幣/);
       assert.deepStrictEqual(queries.filter((q) => ['transaction_disputes.findMany', 'wallet_transactions.findMany'].includes(q.key)), []);
       assert.ok(!queries.some((q) => q.key === 'orders.findMany' && q.args.where.order_no));

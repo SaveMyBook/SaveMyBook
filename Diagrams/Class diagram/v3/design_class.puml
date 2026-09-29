@@ -27,7 +27,6 @@ class "使用者 users" as users {
 class "會員錢包 wallets" as wallets {
   wallet_id: Int
   balance: Decimal
-  frozen_amount: Decimal
   total_income: Decimal
   --
   + transfer()
@@ -149,7 +148,7 @@ users "1" --- "0..*" books : lists
 orders -right-> wallets : settleTo
 users "1" --- "1" wallets : owns
 reservations "0..*" -up-> "1" books : holds
-orders "1" -- "0..1" disputes : mayTrigger
+orders "1" -- "0..*" disputes : mayTrigger
 orders "0..*" --> "1" cabinets : pickupAt
 wallets -[hidden]- cabinets
 cabinets "1" *-right- "1..*" slots : contains

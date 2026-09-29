@@ -35,7 +35,7 @@ alt 帳號密碼
   UI -> API : POST /api/auth/login
   activate API
   API -> DB : 查詢帳號並比對密碼
-else Google／Apple
+else Google／Apple／手機號碼
   使用者 -> UI : 點擊「以 Google／Apple 登入」
   UI -> Firebase : 登入第三方帳號
   Firebase --> UI : 回傳身分權杖
@@ -55,7 +55,7 @@ alt 驗證通過
 else 第三方身分尚未綁定帳號
   API --> UI : 404 Not Found
   UI --> 使用者 : 詢問綁定既有帳號或建立新帳號
-else 密碼錯誤或帳號停用
+else 密碼錯誤、帳號停權或列入黑名單
   API --> UI : 401／403 錯誤
   UI --> 使用者 : 顯示錯誤訊息
 end

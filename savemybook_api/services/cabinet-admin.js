@@ -13,9 +13,7 @@ const IN_CABINET_ORDER = ['deposited', 'pending_pickup'];
 
 const notPaired = () => new HttpError(409, '此書櫃尚未配對裝置', 'DEVICE_NOT_PAIRED');
 const doorNotFound = () => new HttpError(404, '找不到此櫃門', 'DOOR_NOT_FOUND');
-const assignInvalid = () => new HttpError(
-  409, '此項目不在本書櫃、已有櫃門紀錄，或與櫃內其他項目不屬於同一筆訂單或同一本書', 'DOOR_ASSIGN_INVALID'
-);
+const assignInvalid = () => new HttpError(409, '此項目不在本書櫃，或已有櫃門紀錄', 'DOOR_ASSIGN_INVALID');
 
 const cabinetOf = async (cabinetId, db = prisma) => {
   const cabinet = await db.smart_cabinets.findUnique({ where: { cabinet_id: Number(cabinetId) } });
@@ -333,9 +331,7 @@ const place = async (cabinetId, slotId, { orderId = null, bookIds = [] }, { admi
   const targets = await placeTargets(cabinet.cabinet_id, slot, { orderId, bookIds });
 
   const existing = await doors.booksInSlot(prisma, slot.slot_id);
-  const units = await doors.custodyUnits([...existing, ...targets]);
-  const keys = new Set([...existing, ...targets].map((id) => units.get(Number(id))?.key ?? `missing:${id}`));
-  if (keys.size !== 1) throw assignInvalid();
+  if (targets.length > 1 || existing.some((id) => !targets.includes(id))) throw doors.singleBookDoor();
 
   const now = new Date();
   const label = doors.labelOf(slot);

@@ -28,7 +28,7 @@ const as = (admin) => ({ token: h.tokenFor(admin), headers: verifiedAs(admin) })
 module.exports = {
   name: '平台：會員等級管理',
   tests: [
-    ['等級清單附上推算的點數上限與各等級會員人數', async () => {
+    ['等級清單附上推算的點數上限與各等級會員人數（含管理員帳號，不含已刪除帳號）', async () => {
       seedLevels();
       const admin = h.addUser({ role: 'admin' });
       h.addUser();
@@ -44,7 +44,7 @@ module.exports = {
       assert.strictEqual(res.status, 200);
       assert.deepStrictEqual(
         res.body.data.map((l) => [l.level_name, l.min_points, l.max_points, l.member_count]),
-        [['一般會員', 0, 99, 1], ['白銀會員', 100, 499, 1], ['黃金會員', 500, null, 1]]
+        [['一般會員', 0, 99, 2], ['白銀會員', 100, 499, 1], ['黃金會員', 500, null, 1]]
       );
     }],
 

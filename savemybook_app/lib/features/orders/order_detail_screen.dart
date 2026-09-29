@@ -505,11 +505,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 height: 1.3,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              S.msg4(item.unitPrice.toStringAsFixed(0), item.quantity),
-                              style: TextStyle(fontSize: 12, color: c.textSecondary),
-                            ),
                             if (showStored && item.preDeposited) ...[
                               const SizedBox(height: 4),
                               StatusBadge(

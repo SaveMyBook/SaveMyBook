@@ -41,7 +41,7 @@ tags:
       ## 項目與單位
 
       取書與依訂單存書以訂單為一個單位（`key` 為 `order:<order_id>`），先行存書與取回以一本書為一個單位（`key` 為 `book:<book_id>`）。
-      同一扇櫃門內的書須屬於同一個保管單位，因此取回時會連同同一扇櫃門內本人的其他書一起取回。
+      一扇櫃門只存放一本書；既有資料中同一扇櫃門存放多本書時，取回會連同同一扇櫃門內本人的其他書一起取回。
       `context` 只決定預設勾選哪些單位；本人不是該訂單或書籍的當事人時視同未帶。
 
       | `kind` | 條件 | 預設勾選 |
@@ -51,10 +51,19 @@ tags:
       | `pre_deposit` | 本人上架中、指定此書櫃、尚未存書且沒有進行中訂單的書 | 否 |
       | `retrieval` | 本人存放於此書櫃的書（已售出、等待買家取書或爭議處理中的書除外） | 否 |
 
-      櫃門容量：可用櫃門只剩 1 扇時不再接受先行存書，保留給依訂單存書；每位賣家在同一台書櫃最多 1 本先行存書，
+      櫃門容量：每扇櫃門只存放 1 本書，依訂單存書與先行存書都由伺服器逐本分配櫃門，不會把第二本書分配到同一扇門。
+      可用櫃門只剩 1 扇時不再接受先行存書，保留給依訂單存書；每位賣家在同一台書櫃最多 1 本先行存書，
       計入櫃門內的先行存書、沒有櫃門紀錄的存書登記、待客服確認的先行存書手動回報（同一本書改以掃碼存入時不計入自己的回報）
       與進行中作業已分配的櫃門。
       一次勾選的先行存書超過剩餘額度時，`start` 回 409 `CABINET_FULL`，作業維持 `selecting`，請使用者減少項目後再開始。
+
+      依訂單存書可部分存入：空門少於訂單尚未存入的本數時，項目的 `note.code` 為 `DEPOSIT_PARTIAL`
+      （「可用櫃門不足，本次僅能存入部分書籍，其餘書籍待有空櫃門時再存入」），仍可勾選。`start` 依訂單項目順序為放得下的書各分配一扇門，
+      其餘書籍的 `door` 為 `null`，不在本次作業中；勾選多筆訂單時依序分配，任一筆訂單一扇門都分不到時回 409 `CABINET_FULL`。
+      提交後訂單在全部書籍存入訂單書櫃前維持 `pending_deposit`，已存入的書於訂單項目標示 `pre_deposited`，並通知賣家其餘本數與存書期限；
+      作業結果為 `completed`，該項目 `result` 為 `done`，`note.message` 改為「已存入 {n} 本，其餘書籍待有空櫃門時再存入」（{n} 為已在書櫃中的本數）。
+      其餘書籍於之後的作業存入後，訂單才轉為 `deposited` 並通知買家取書；訂單成立滿 7 天仍未存齊時依逾期規則自動取消並全額退款，
+      已存入的書恢復存書登記並通知賣家取回。沒有任何空門時該項目為 `blocked.code` `CABINET_FULL`。
       取回開始後，上架中的書暫停販售至作業結束，以免取回期間被買走。
 
       ## 定位
@@ -531,14 +540,14 @@ components:
               book_id: { type: integer, example: 55 }
               title: { type: string, example: 資料庫系統概論 }
               image_url: { type: string, nullable: true, example: /uploads/books/55.jpg }
-              door: { type: string, nullable: true, description: 櫃門標籤；開始前的存書項目為 null。, example: A02 }
+              door: { type: string, nullable: true, description: 櫃門標籤；開始前的存書項目，以及部分存書時本次未分配櫃門的書為 null。, example: A02 }
         doors: { type: array, items: { type: string }, example: [A02] }
         paused: { type: boolean, description: 取回的書目前暫停販售。, example: false }
         note:
           type: object
           nullable: true
           properties:
-            code: { type: string, enum: [MOVE_TO_ORDER_CABINET], example: MOVE_TO_ORDER_CABINET }
+            code: { type: string, enum: [MOVE_TO_ORDER_CABINET, DEPOSIT_PARTIAL], example: MOVE_TO_ORDER_CABINET }
             message: { type: string, example: 此書籍已售出，取回後請存入訂單指定的書櫃「北商大書櫃」 }
         selected: { type: boolean, example: true }
         blocked:

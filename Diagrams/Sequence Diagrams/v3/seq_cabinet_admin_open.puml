@@ -30,17 +30,17 @@ alt 一般開啟
   管理員 -> UI : 輸入現場書櫃顯示之數字
   UI -> API : POST /api/admin/cabinet-\nsessions/:no/match
   API -> DB : 比對數字
-else 強制開啟（限無存放紀錄之空櫃門）
+else 不經數字確認直接開啟（限無存放紀錄之櫃門）
   API -> DB : 確認櫃門為空，建立作業與操作紀錄
   API --> UI : 201 櫃門開啟中
 end
-alt 數字相符或強制開啟
+alt 數字相符或不經數字確認開啟
   IoT -> API : 輪詢取得開鎖指令
   activate IoT
   IoT -> API : 開門後回報 POST /api/device/v1/events
   API --> UI : 推送櫃門開啟與倒數 120 秒
-  alt 點擊「完成」
-    管理員 -> UI : 點擊「完成」
+  alt 點擊「結束作業」
+    管理員 -> UI : 點擊「結束作業」
     UI -> API : POST /api/admin/cabinet-\nsessions/:no/close
     IoT -> API : 輪詢取得結束指令
     IoT -> API : 回報作業結束

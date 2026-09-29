@@ -22,9 +22,9 @@ rectangle "SaveMyBook - 聊天與社交" {
   usecase "預約保留書籍" as reserve
   usecase "站內轉帳／請款" as transfer
   usecase "付款驗證" as verify
-  usecase "封鎖／檢舉使用者" as block
-  usecase "設定暱稱、靜音、置頂" as settings
-  usecase "AI 問書" as aichat
+  usecase "封鎖使用者" as block
+  usecase "設定暱稱、靜音、釘選" as settings
+  usecase "AI 書籍顧問" as aichat
   usecase "處理防詐警示" as alert
 }
 

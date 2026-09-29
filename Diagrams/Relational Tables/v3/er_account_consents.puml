@@ -34,17 +34,6 @@ entity "legal_documents" as legal_documents {
   {field} version : int
   {field} requires_consent : tinyint(1)
 }
-entity "bankbooks" as bankbooks {
-  {field} <&key> bankbook_id : int
-  --
-  {field} user_id : int
-  {field} bank_name : varchar(100)
-  {field} account_number : varchar(30)
-  {field} qr_code_url : varchar(500)
-  {field} is_verified : tinyint(1)
-  {field} created_at : datetime
-  {field} updated_at : datetime
-}
 entity "user_qr_codes" as user_qr_codes {
   {field} <&key> qr_id : int
   --
@@ -56,6 +45,5 @@ entity "user_qr_codes" as user_qr_codes {
 }
 users ||--o{ user_legal_consents
 users ||--o{ legal_documents
-users ||--o{ bankbooks
 users ||--o{ user_qr_codes
 @enduml

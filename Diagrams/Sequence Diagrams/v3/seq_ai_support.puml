@@ -20,7 +20,7 @@ activate 使用者
 activate UI
 UI -> API : POST /api/ai/support/messages
 activate API
-API -> DB : 檢查功能開放、AI 使用同意與每日次數
+API -> DB : 檢查功能開放、AI 資料處理\n同意與每日次數
 activate DB
 API -> DB : 讀取近期對話
 API -> DB : 以關鍵字比對平台說明、\n常見問題與條款段落
@@ -37,21 +37,21 @@ DB --> API : 使用者資料
 deactivate DB
 API -> AI : 客服規則、參考段落、\n使用者資料與提問
 activate AI
-AI --> API : 回覆內容與是否建議轉真人
+AI --> API : 回覆內容與是否建議轉接客服人員
 deactivate AI
 API -> DB : 儲存本輪對話
-API --> UI : 200 OK
+API --> UI : 201 Created
 deactivate API
 UI --> 使用者 : 顯示 AI 回覆
 
-opt AI 建議轉真人或使用者主動要求
-  使用者 -> UI : 點擊「轉真人客服」
+opt AI 建議轉接或使用者主動要求
+  使用者 -> UI : 點擊「轉接客服人員」\n並確認「轉接」
   UI -> API : POST /api/ai/support/session/escalate
   activate API
   API -> DB : 以對話紀錄建立客服工單
-  API -> DB : 對話標示為「已轉真人」
+  API -> DB : 對話標示為已轉接客服人員
   API -> 管理員 : 通知「新的客服工單」
-  API --> UI : 200 OK
+  API --> UI : 201 Created
   deactivate API
   UI --> 使用者 : 導向客服工單頁面
 end

@@ -119,6 +119,7 @@ module.exports = {
         ['GET', '/api/admin/tickets', 'support'],
         ['GET', '/api/admin/backups', 'system'],
         ['GET', '/api/admin/reports', 'reports'],
+        ['GET', '/api/admin/reports/1/message-context', 'reports'],
         ['GET', '/api/admin/disputes', 'transactions'],
         ['GET', '/api/admin/levels', 'levels'],
         ['GET', '/api/admin/categories', 'content'],
@@ -333,8 +334,8 @@ module.exports = {
       const log = prisma.rows('admin_operation_logs').at(-1);
       assert.strictEqual(log.action, '調整管理員權限');
       const detail = JSON.parse(log.detail);
-      assert.ok(detail.summary.includes('內容管理關閉'));
-      assert.deepStrictEqual(detail.changes.map((c) => [c.label, c.from, c.to]), [['內容管理', '開啟', '關閉']]);
+      assert.ok(detail.summary.includes('商品管理關閉'));
+      assert.deepStrictEqual(detail.changes.map((c) => [c.label, c.from, c.to]), [['商品管理', '開啟', '關閉']]);
     }],
 
     ['錢包調整：金額與原因的檢查都在寫入前完成', async () => {

@@ -308,6 +308,24 @@ void main() {
       expect(CabinetMessages.door('A02'), S.doorP0('A02'));
     });
 
+    test('先行存書的上限與櫃門不足只在群組說明一次；其他種類與櫃門問題仍逐筆說明', () {
+      CabinetSessionItem item(String kind, String key, [String? code]) =>
+          CabinetSessionItem(key: key, kindCode: kind, blocked: code == null ? null : CabinetNotice(code: code));
+      final limit = item('pre_deposit', 'book:60', 'PREDEPOSIT_LIMIT');
+      final full = item('pre_deposit', 'book:61', 'CABINET_FULL');
+      expect(CabinetMessages.isSharedBlock(limit), isTrue);
+      expect(CabinetMessages.isSharedBlock(full), isTrue);
+      expect(CabinetMessages.isSharedBlock(item('pre_deposit', 'book:62')), isFalse);
+      expect(CabinetMessages.isSharedBlock(item('order_deposit', 'order:1', 'CABINET_FULL')), isFalse);
+      expect(CabinetMessages.isSharedBlock(item('retrieval', 'book:63', 'DOOR_FAULT')), isFalse);
+
+      expect(CabinetMessages.sharedBlocks([limit, item('pre_deposit', 'book:64', 'PREDEPOSIT_LIMIT')]), [S.reachedPreSaleDropOffLimit]);
+      expect(CabinetMessages.sharedBlocks([limit, full]), [S.reachedPreSaleDropOffLimit, S.noDoorsAvailableMoment]);
+      expect(CabinetMessages.sharedBlocks([limit, item('pre_deposit', 'book:62')]), isEmpty, reason: '仍有可選的書時只顯示限一本的說明');
+      expect(CabinetItemKind.preDeposit.isSingleChoice, isTrue);
+      expect(CabinetItemKind.values.where((kind) => kind.isSingleChoice), [CabinetItemKind.preDeposit]);
+    });
+
     test('部分完成的標題依結果代碼區分', () {
       CabinetSession of(String code) => CabinetSession(
         sessionNo: 'CS1',

@@ -32,12 +32,10 @@ const staleReport = () => new HttpError(409, '項目狀態已變更，此手動�
 const selfReview = () => new HttpError(403, '此手動回報與您本人相關，須由其他管理員處理', 'MANUAL_REPORT_SELF_REVIEW');
 const doorRequired = () => badRequest('請指定書籍存放的櫃門', 'DOOR_REQUIRED');
 const doorNotFound = () => new HttpError(404, '找不到此櫃門', 'DOOR_NOT_FOUND');
-const assignInvalid = () => new HttpError(
-  409, '此項目不在本書櫃、已有櫃門紀錄，或與櫃內其他項目不屬於同一筆訂單或同一本書', 'DOOR_ASSIGN_INVALID'
-);
+const assignInvalid = () => new HttpError(409, '此項目不在本書櫃、已有櫃門紀錄，或櫃門作業進行中', 'DOOR_ASSIGN_INVALID');
 
 // 這些錯誤代表管理員的輸入或政策限制，回報維持待確認，不可當成「項目狀態已變更」而作廢。
-const KEEP_PENDING = ['MANUAL_REPORT_NOT_PENDING', 'DOOR_ASSIGN_INVALID', 'PREDEPOSIT_LIMIT'];
+const KEEP_PENDING = ['MANUAL_REPORT_NOT_PENDING', 'DOOR_ASSIGN_INVALID', 'DOOR_SINGLE_BOOK', 'DOOR_REQUIRED', 'PREDEPOSIT_LIMIT'];
 
 const shape = (report) => ({
   report_no: reportNo(report.report_id),
@@ -213,15 +211,33 @@ const assertNotParty = async (report, adminId) => {
   }
 };
 
-// 已配對過裝置的書櫃有櫃門；確認存書時須指定書實際放入的櫃門，否則這扇門仍被視為空門而分配給其他人。
-const doorForDeposit = async (report, slotId) => {
+// 已配對過裝置的書櫃有櫃門；確認存書時須逐本指定書實際放入的櫃門，否則這扇門仍被視為空門而分配給其他人。
+// 回傳 null 表示書櫃沒有櫃門；bookId 為 null 的項目是只帶 slot_id 的舊格式，僅適用於一本書。
+const doorsForDeposit = async (report, { slotId = null, assignments = [] }) => {
   if (report.kind !== 'deposit') return null;
   const doorList = await doors.doorsOf(report.cabinet_id);
   if (doorList.length === 0) return null;
-  if (!slotId) throw doorRequired();
-  const slot = doorList.find((d) => Number(d.slot_id) === Number(slotId));
-  if (!slot) throw doorNotFound();
-  return slot;
+  const entries = assignments.length > 0 ? assignments : slotId ? [{ bookId: null, slotId }] : [];
+  const slotIds = entries.map((e) => Number(e.slotId));
+  const bookIds = entries.map((e) => e.bookId).filter((id) => id != null).map(Number);
+  if (new Set(slotIds).size !== slotIds.length || new Set(bookIds).size !== bookIds.length) throw doors.singleBookDoor();
+  return entries.map((e) => {
+    const slot = doorList.find((d) => Number(d.slot_id) === Number(e.slotId));
+    if (!slot) throw doorNotFound();
+    return { bookId: e.bookId == null ? null : Number(e.bookId), slot };
+  });
+};
+
+const matchDoors = (assignments, targets) => {
+  if (!assignments || targets.length === 0) return [];
+  if (assignments.length === 0) throw doorRequired();
+  if (assignments.length === 1 && assignments[0].bookId == null) {
+    if (targets.length > 1) throw doors.singleBookDoor();
+    return [{ bookId: targets[0], slot: assignments[0].slot }];
+  }
+  if (assignments.some((a) => a.bookId == null || !targets.includes(a.bookId))) throw assignInvalid();
+  if (targets.some((id) => !assignments.some((a) => a.bookId === id))) throw doors.singleBookDoor();
+  return assignments;
 };
 
 const changed = () => conflict('項目狀態已變更');
@@ -231,41 +247,36 @@ const removeAndCheck = async (tx, bookIds, now) => {
   if (slotIds.length) await doors.markCheck(tx, slotIds, { reason: 'MANUAL_REPORT', now });
 };
 
-const placeInDoor = async (tx, report, slot, bookIds, { adminId, now }) => {
-  if (!slot || bookIds.length === 0) return;
+const placeInDoor = async (tx, report, { bookId, slot }, { adminId, now }) => {
   const current = await tx.cabinet_slots.findUnique({ where: { slot_id: Number(slot.slot_id) } });
   const reserved = await tx.cabinet_session_doors.count({
     where: { slot_id: Number(slot.slot_id), state: { not: 'failed' }, cabinet_sessions: { status: { in: doors.OPEN_SESSION_STATUSES } } }
   });
   if (!current || reserved > 0) throw assignInvalid();
-  const existing = await doors.booksInSlot(tx, slot.slot_id);
-  const units = await doors.custodyUnits([...existing, ...bookIds], { tx });
-  const keys = new Set([...existing, ...bookIds].map((id) => units.get(Number(id))?.key ?? `missing:${id}`));
-  if (keys.size !== 1) throw assignInvalid();
+  if ((await doors.booksInSlot(tx, slot.slot_id)).some((id) => id !== bookId)) throw doors.singleBookDoor();
   await doors.placeBooks(tx, {
-    cabinetId: Number(report.cabinet_id), slotId: Number(slot.slot_id), bookIds, sessionId: null, source: 'admin', now
+    cabinetId: Number(report.cabinet_id), slotId: Number(slot.slot_id), bookIds: [bookId], sessionId: null, source: 'admin', now
   });
   await recordEvent(tx, {
     cabinetId: report.cabinet_id, type: 'door_placed', channel: current.lock_channel ?? null, orderId: report.order_id ?? null,
-    bookId: bookIds.length === 1 ? bookIds[0] : null, source: 'admin', actorId: adminId,
-    detail: { label: doors.labelOf(current), book_ids: bookIds, report_no: reportNo(report.report_id) }, occurredAt: now
+    bookId, source: 'admin', actorId: adminId,
+    detail: { label: doors.labelOf(current), book_ids: [bookId], report_no: reportNo(report.report_id) }, occurredAt: now
   });
 };
 
-const apply = async (tx, report, { slot = null, adminId = null, now }) => {
+const apply = async (tx, report, { assignments = null, adminId = null, now }) => {
   if (report.order_id) {
     const order = await tx.orders.findUnique({ where: { order_id: Number(report.order_id) }, include: { order_items: true } });
     if (!order) throw changed();
     const bookIds = order.order_items.map((i) => Number(i.book_id));
     if (report.kind === 'deposit') {
       if (!PRE_DEPOSIT.includes(order.status)) throw changed();
+      const placed = await doors.bookDoors(bookIds, { tx });
+      const plan = matchDoors(assignments, bookIds.filter((id) => placed.get(id)?.cabinet_id !== Number(report.cabinet_id)));
       await orders().markDepositedInTx(tx, order);
-      if (slot) {
-        const placed = await doors.bookDoors(bookIds, { tx });
-        const targets = bookIds.filter((id) => placed.get(id)?.cabinet_id !== Number(report.cabinet_id));
-        if (targets.length === 0) return;
-        await placeInDoor(tx, report, slot, targets, { adminId, now });
-        await tx.orders.updateMany({ where: { order_id: order.order_id, slot_id: null }, data: { slot_id: Number(slot.slot_id) } });
+      for (const entry of plan) await placeInDoor(tx, report, entry, { adminId, now });
+      if (plan.length > 0) {
+        await tx.orders.updateMany({ where: { order_id: order.order_id, slot_id: null }, data: { slot_id: Number(plan[0].slot.slot_id) } });
       }
       return;
     }
@@ -282,9 +293,10 @@ const apply = async (tx, report, { slot = null, adminId = null, now }) => {
     if (Number(book.cabinet_id) !== Number(report.cabinet_id)) throw changed();
     const open = await tx.order_items.count({ where: { book_id: bookId, orders: { status: { notIn: ORDER_FINAL_STATUSES } } } });
     if (open > 0) throw changed();
+    const plan = matchDoors(assignments, [bookId]);
     await assertPreDepositRoom(tx, { cabinetId: report.cabinet_id, sellerId: book.seller_id, confirming: true });
     await deposits().registerInTx(tx, { bookId, cabinetId: Number(report.cabinet_id), now });
-    await placeInDoor(tx, report, slot, [bookId], { adminId, now });
+    for (const entry of plan) await placeInDoor(tx, report, entry, { adminId, now });
     return;
   }
   const row = await tx.book_deposits.findUnique({ where: { book_id: bookId } });
@@ -312,7 +324,7 @@ const notifyReporter = (tx, report, { title, content }) => notify(tx, {
   relatedType: report.order_id ? 'order' : 'book'
 });
 
-const review = async (report, { status, note, adminId, req, now, slot = null }) => {
+const review = async (report, { status, note, adminId, req, now, assignments = null }) => {
   await prisma.$transaction(async (tx) => {
     const claimed = await tx.cabinet_manual_reports.updateMany({
       where: { report_id: report.report_id, status: 'pending' },
@@ -320,7 +332,7 @@ const review = async (report, { status, note, adminId, req, now, slot = null }) 
     });
     if (claimed.count === 0) throw notPending();
     const current = await tx.cabinet_manual_reports.findUnique({ where: { report_id: report.report_id } });
-    if (status === 'confirmed') await apply(tx, current, { slot, adminId, now });
+    if (status === 'confirmed') await apply(tx, current, { assignments, adminId, now });
     else await releaseHeld(tx, current, now);
 
     const { cabinetName, target } = await reviewContext(tx, report);
@@ -336,7 +348,8 @@ const review = async (report, { status, note, adminId, req, now, slot = null }) 
       type: 'manual_report_reviewed', source: 'admin', actorId: adminId,
       detail: { report_no: reportNo(report.report_id), status, note: note || null }, occurredAt: now
     });
-    const doorText = slot ? `，存放於櫃門 ${doors.labelOf(slot)}` : '';
+    const labels = (assignments ?? []).map((a) => doors.labelOf(a.slot));
+    const doorText = labels.length > 0 ? `，存放於櫃門 ${labels.join('、')}` : '';
     await audit.record(tx, {
       adminId,
       action: status === 'confirmed' ? '確認書櫃手動回報' : '駁回書櫃手動回報',
@@ -348,14 +361,14 @@ const review = async (report, { status, note, adminId, req, now, slot = null }) 
   });
 };
 
-const confirm = async (no, { note = null, slotId = null }, { adminId, req }) => {
+const confirm = async (no, { note = null, slotId = null, doors: assigned = [] }, { adminId, req }) => {
   const report = await loadReport(no);
   if (report.status !== 'pending') throw notPending();
   await assertNotParty(report, adminId);
-  const slot = await doorForDeposit(report, slotId);
+  const assignments = await doorsForDeposit(report, { slotId, assignments: assigned });
   const now = new Date();
   try {
-    await review(report, { status: 'confirmed', note, adminId, req, now, slot });
+    await review(report, { status: 'confirmed', note, adminId, req, now, assignments });
   } catch (err) {
     if (!(err instanceof HttpError) || err.status >= 500 || KEEP_PENDING.includes(err.code)) throw err;
     await prisma.$transaction(async (tx) => {
@@ -378,18 +391,28 @@ const reject = async (no, { note }, { adminId, req }) => {
   return detailOf(report.report_id);
 };
 
-const shapeAdmin = (report, { users = new Map(), ordersById = new Map(), books = new Map(), withDoors = new Set() } = {}) => {
+const doorBooksOf = (report, { order, book, withDoors, placedIn }) => {
+  if (report.status !== 'pending' || report.kind !== 'deposit' || !withDoors.has(Number(report.cabinet_id))) return [];
+  const items = order
+    ? (order.order_items ?? []).map((i) => ({ book_id: Number(i.book_id), title: i.books?.title ?? '' }))
+    : book ? [{ book_id: Number(book.book_id), title: book.title }] : [];
+  return items.filter((i) => placedIn.get(i.book_id) !== Number(report.cabinet_id));
+};
+
+const shapeAdmin = (report, { users = new Map(), ordersById = new Map(), books = new Map(), withDoors = new Set(), placedIn = new Map() } = {}) => {
   const user = users.get(Number(report.user_id));
   const reviewer = report.reviewed_by ? users.get(Number(report.reviewed_by)) : null;
   const order = report.order_id ? ordersById.get(Number(report.order_id)) : null;
   const book = report.book_id ? books.get(Number(report.book_id)) : null;
+  const doorBooks = doorBooksOf(report, { order, book, withDoors, placedIn });
   return {
     ...shape(report),
     user: user ? { user_no: publicId.encode('user', user.user_id), nickname: user.nickname } : null,
     order: order ? { order_id: Number(order.order_id), order_no: order.order_no, status: order.status } : null,
     book: book ? { book_id: Number(book.book_id), book_no: publicId.encode('book', book.book_id), title: book.title } : null,
     titles: order ? (order.order_items ?? []).map((i) => i.books?.title ?? '') : book ? [book.title] : [],
-    requires_door: report.status === 'pending' && report.kind === 'deposit' && withDoors.has(Number(report.cabinet_id)),
+    requires_door: doorBooks.length > 0,
+    door_books: doorBooks,
     reviewer_nickname: reviewer?.nickname ?? null
   };
 };
@@ -404,17 +427,24 @@ const shapeRows = async (rows) => {
     orderIds.length
       ? prisma.orders.findMany({
           where: { order_id: { in: orderIds } },
-          select: { order_id: true, order_no: true, status: true, order_items: { select: { books: { select: { title: true } } } } }
+          select: {
+            order_id: true, order_no: true, status: true, order_items: { select: { book_id: true, books: { select: { title: true } } } }
+          }
         })
       : [],
     bookIds.length ? prisma.books.findMany({ where: { book_id: { in: bookIds } }, select: { book_id: true, title: true } }) : [],
     prisma.cabinet_slots.findMany({ where: { cabinet_id: { in: cabinetIds }, lock_channel: { not: null } }, select: { cabinet_id: true } })
   ]);
+  const itemBookIds = [...new Set([...bookIds, ...orderRows.flatMap((o) => o.order_items.map((i) => Number(i.book_id)))])];
+  const placed = itemBookIds.length
+    ? await prisma.cabinet_slot_items.findMany({ where: { book_id: { in: itemBookIds } }, select: { book_id: true, cabinet_id: true } })
+    : [];
   const maps = {
     users: new Map(users.map((u) => [Number(u.user_id), u])),
     ordersById: new Map(orderRows.map((o) => [Number(o.order_id), o])),
     books: new Map(bookRows.map((b) => [Number(b.book_id), b])),
-    withDoors: new Set(doorRows.map((d) => Number(d.cabinet_id)))
+    withDoors: new Set(doorRows.map((d) => Number(d.cabinet_id))),
+    placedIn: new Map(placed.map((p) => [Number(p.book_id), Number(p.cabinet_id)]))
   };
   return rows.map((r) => shapeAdmin(r, maps));
 };

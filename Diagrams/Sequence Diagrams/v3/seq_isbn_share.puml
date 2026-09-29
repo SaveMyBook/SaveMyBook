@@ -24,15 +24,15 @@ alt 查得書目
   UI --> 使用者 : 帶入上架表單
 else 查無資料
   API --> UI : 404 查無此 ISBN
-  UI --> 使用者 : 提示手動輸入
+  UI --> 使用者 : 改由 App 直接查詢 Open Library，\n仍查無資料則提示手動輸入
 else 外部服務暫時無法連線
   API --> UI : 502 請稍後再試
-  UI --> 使用者 : 提示稍後再試
+  UI --> 使用者 : 改由 App 直接查詢 Open Library，\n仍查無資料則提示手動輸入
 end
 deactivate API
 deactivate UI
 
-使用者 -> UI : 點擊書籍或個人檔案「分享」
+使用者 -> UI : 點擊書籍「分享」或個人檔案「我的 QR Code」
 activate UI
 alt 分享書籍
   UI -> API : GET /api/books/:id/share-link
@@ -59,7 +59,7 @@ alt 可公開
   API --> UI : 200 OK
   deactivate UI
 else 已下架、未核准或帳號停用
-  API --> 訪客 : 404 找不到頁面
+  API --> 訪客 : 404「找不到此書籍」或「找不到此使用者」
 end
 deactivate API
 deactivate 訪客

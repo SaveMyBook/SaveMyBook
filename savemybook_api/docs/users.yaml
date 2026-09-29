@@ -494,5 +494,5 @@ paths:
                 關聯資料:
                   value: { success: false, message: 此使用者仍有訂單等關聯資料，請改用停權或匿名化 }
                 書籍仍在書櫃:
-                  value: { success: false, code: BOOK_DEPOSITED, message: 此使用者仍有書籍存放於書櫃，請先於書櫃管理登記取出，或改用匿名化 }
+                  value: { success: false, code: BOOK_DEPOSITED, message: 此使用者仍有書籍存放於書櫃，請先於存書列表登記取出，或改用匿名化 }
         '500': { $ref: '#/components/responses/ServerError' }

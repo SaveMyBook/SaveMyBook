@@ -164,6 +164,9 @@ enum CabinetItemKind {
 
   bool get isDeposit => this == orderDeposit || this == preDeposit;
 
+  // 每位賣家在同一書櫃限先行存書一本（API CABINET_PREDEPOSIT_MAX_PER_SELLER），一次作業選多本會被 API 拒絕。
+  bool get isSingleChoice => this == preDeposit;
+
   static CabinetItemKind? of(String? code) {
     for (final kind in values) {
       if (kind.code == code) return kind;
@@ -202,6 +205,8 @@ class CabinetSessionBook {
 }
 
 class CabinetSessionItem {
+  static const notePartialDeposit = 'DEPOSIT_PARTIAL';
+
   final String key;
   final String kindCode;
   final int? orderId;
@@ -237,6 +242,10 @@ class CabinetSessionItem {
   bool get isDone => result == 'done';
 
   bool get isFailed => result == 'failed';
+
+  bool get isPartialDeposit => note?.code == notePartialDeposit;
+
+  int get booksWithDoor => books.where((book) => book.door != null).length;
 
   factory CabinetSessionItem.fromJson(Map<String, dynamic> json) => CabinetSessionItem(
     key: json['key'] as String? ?? '',

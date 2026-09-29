@@ -13,6 +13,7 @@ const DEPOSIT_KINDS = ['order_deposit', 'pre_deposit'];
 const IN_CABINET = ['deposited', 'pending_pickup'];
 const PRE_DEPOSIT = ['pending_payment', 'pending_deposit'];
 const DOOR_CODES = ['DOOR_UNKNOWN', 'DOOR_FAULT', 'DOOR_CHECK', 'DOOR_SHARED'];
+const PARTIAL_NOTE = 'DEPOSIT_PARTIAL';
 
 const BLOCKED_MESSAGES = {
   DOOR_UNKNOWN: '無法確認此項目的櫃門，請聯絡客服',
@@ -147,21 +148,11 @@ const doorProblem = (slotIds, placedBySlot, contents, allowed) => {
   return null;
 };
 
-const orderDepositFull = (order, cabinetId, placed, doorList) => {
-  const bookIds = order.order_items.map((i) => Number(i.book_id));
-  const here = bookIds.filter((id) => placed.get(id)?.cabinet_id === Number(cabinetId));
-  const needed = bookIds.length - here.length;
-  if (needed === 0) return false;
-  const perDoor = Math.max(policy.CABINET_DOOR_MAX_BOOKS, Math.ceil(bookIds.length / Math.max(1, doorList.length)));
-  const counts = new Map();
-  for (const id of here) {
-    const door = placed.get(id);
-    if (door.fault_code || door.check_required_at) continue;
-    counts.set(door.slot_id, (counts.get(door.slot_id) ?? 0) + 1);
-  }
-  const space = [...counts.values()].reduce((sum, n) => sum + Math.max(0, perDoor - n), 0);
-  const required = Math.ceil(Math.max(0, needed - space) / perDoor);
-  return required > doorList.filter(doors.isFree).length;
+const orderDepositRoom = (order, cabinetId, placed, doorList) => {
+  const needed = order.order_items.filter((i) => placed.get(Number(i.book_id))?.cabinet_id !== Number(cabinetId)).length;
+  const free = doorList.filter(doors.isFree).length;
+  if (needed === 0 || free >= needed) return null;
+  return free === 0 ? 'CABINET_FULL' : PARTIAL_NOTE;
 };
 
 const loadRaw = async (db, userId, cabinetId) => {
@@ -228,15 +219,18 @@ const buildUnits = async (db, userId, cabinet) => {
     // 書已全部在本書櫃時只會開啟既有的櫃門；這些門故障或待確認時作業將沒有可開的門，須在列項時就標示受阻。
     const allHere = order.order_items.length > 0 && order.order_items.every((i) => here(i.book_id));
     let blocked = null;
+    let note = null;
     if (allHere) {
       const hereSlots = unique(order.order_items.map((i) => here(i.book_id).slot_id));
       blocked = doorProblem(hereSlots, placedBySlot, contents, (entry) => entry.unit?.key === key);
-    } else if (orderDepositFull(order, cabinetId, placed, doorList)) {
-      blocked = 'CABINET_FULL';
+    } else {
+      const room = orderDepositRoom(order, cabinetId, placed, doorList);
+      if (room === 'CABINET_FULL') blocked = room;
+      else note = room;
     }
     units.push({
       key, kind: 'order_deposit', order_id: Number(order.order_id), order_no: order.order_no,
-      books, blocked, note: null, paused: false
+      books, blocked, note, paused: false
     });
   }
 
@@ -301,6 +295,7 @@ const buildUnits = async (db, userId, cabinet) => {
   return units.sort(byKind);
 };
 
+// 新存書一門一本，但舊資料仍可能一門多本，取回時須連同同一扇門內的書一併取回。
 const sameDoorKeys = (units, unit) => {
   if (unit.kind !== 'retrieval') return [unit.key];
   const slots = new Set(unit.books.map((b) => b.slot_id).filter(Boolean));
@@ -415,6 +410,6 @@ const otherCabinets = async (userId, cabinetId, db = prisma) => {
 };
 
 module.exports = {
-  KIND_ORDER, DEPOSIT_KINDS, BLOCKED_MESSAGES, BLOCKED_LABELS, DOOR_CODES,
+  KIND_ORDER, DEPOSIT_KINDS, BLOCKED_MESSAGES, BLOCKED_LABELS, DOOR_CODES, PARTIAL_NOTE,
   list, signature, sameDoorKeys, retrievableBooks, retrievalRule, openOrderOf, otherCabinets, wrongCabinet, contextChanged
 };

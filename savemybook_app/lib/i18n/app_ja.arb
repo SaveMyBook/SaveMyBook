@@ -6,7 +6,7 @@
   "orderPendingPickup": "受け取り待ち",
   "orderCompleted": "完了",
   "orderCancelled": "キャンセル済み",
-  "orderRefunding": "審査中",
+  "orderRefunding": "異議申立中",
   "orderRefunded": "返金済み",
   "orderBuyerPendingDeposit": "出品者の預け入れ待ち",
   "orderBuyerDeposited": "受け取り待ち",
@@ -541,13 +541,6 @@
     }
   },
   "orderNoItemDetails": "商品明細はありません",
-  "msg4": "単価 {p0} × {p1}",
-  "@msg4": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "orderTotal": "注文金額",
   "pickupDetails": "受け取り情報",
   "notAssigned": "未指定",
@@ -1046,7 +1039,7 @@
   "editQuestion": "質問を編集",
   "question": "質問",
   "answer": "回答",
-  "showHelpCentre": "ヘルプセンターに表示",
+  "showHelpCentre": "サポートセンターに表示",
   "bothQuestionAnswerRequired": "質問と回答の両方が必要です",
   "added": "追加しました",
   "updated": "更新しました",
@@ -1095,7 +1088,7 @@
       "p1": {}
     }
   },
-  "disputeResolution": "取引の裁定",
+  "disputeResolution": "取引の異議申立",
   "orderP0P1": "注文 {p0}｜${p1}",
   "@orderP0P1": {
     "placeholders": {
@@ -1112,7 +1105,7 @@
   "decisionNoteOptional": "裁定の説明（任意）",
   "submitDecision": "裁定を送信",
   "decisionRecorded": "裁定を記録しました",
-  "resolveDispute": "取引を裁定",
+  "resolveDispute": "取引の異議申立",
   "noDisputesKind": "この種類の異議申立はありません",
   "orderNumberP0": "注文番号：{p0}",
   "@orderNumberP0": {
@@ -1592,7 +1585,7 @@
   "buyerSPaymentGoesBackTheir": "買い手の支払いはウォレットに返金されます。売り手に代金が支払い済みの場合は先に回収します。",
   "orderReturnsWhereWasBeforeDispute": "注文は異議申立前の状態に戻り、取引を続けます。受け取り済みだった場合は売り手に代金を支払います。",
   "orderWasAlreadyRefundedBuyerCannot": "この注文は買い手に返金済みのため、進行中や完了には戻せません",
-  "completedOrderCanOnlyChangedRefund": "完了した注文は「審査中」か「返金済み」にしか変更できません",
+  "completedOrderCanOnlyChangedRefund": "完了した注文は「異議申立中」か「返金済み」にしか変更できません",
   "confirmingPaysP0TokensSellerMarks": "確定すると売り手に {p0} トークンを支払い、本を売却済みにします。",
   "@confirmingPaysP0TokensSellerMarks": {
     "placeholders": {
@@ -1852,7 +1845,7 @@
     }
   },
   "paymentSuccessful": "支払いが完了しました",
-  "p0BooksSplitIntoP1Orders": "計 {p0} 冊、出品者ごとに {p1} 件の注文に分けました",
+  "p0BooksSplitIntoP1Orders": "計 {p0} 冊、出品者とロッカーごとに {p1} 件の注文に分けました",
   "@p0BooksSplitIntoP1Orders": {
     "placeholders": {
       "p0": {},
@@ -3502,7 +3495,7 @@
   "autoFilled": "自動入力",
   "similarBooks": "似ている本",
   "doNotPayTransferMoneyOutside": "アプリ外での送金・振込はしないでください。プラットフォームの保護対象外です。",
-  "pleaseCompleteDealAppWeCannot": "アプリ内で取引してください。アプリ外の取引トラブルには対応できません。",
+  "pleaseCompleteDealAppWeCannot": "アプリ内で取引してください。アプリ外の取引で紛争が生じても対応できません。",
   "personSharedOutsideContactDetailsWatch": "相手がアプリ外の連絡先を送ってきました。詐欺に注意し、アプリ内で取引を完了してください。",
   "mostRelevant": "関連度順",
   "scamAlerts": "詐欺アラート",
@@ -3545,7 +3538,7 @@
   "cancelInstallmentsAccountFrozenPaymentVerification": "「分割払いの解除」「口座凍結」「決済認証」「ゲームポイントの購入」はよくある詐欺の文言です。",
   "ifSeeSuspiciousMessageReportAdministrator": "不審なメッセージは報告してください。管理者が対応します。",
   "confirmSending": "送信の確認",
-  "messageIncludesContactPaymentDetailsDeals": "メッセージに連絡先または支払い情報が含まれています。アプリ外の取引や支払いは保護されず、トラブル時にも対応できません。",
+  "messageIncludesContactPaymentDetailsDeals": "メッセージに連絡先または支払い情報が含まれています。アプリ外の取引や支払いは保護されず、紛争が生じても対応できません。",
   "sendAnyway": "このまま送信",
   "editMessage2": "修正する",
   "suspectedScamMessage": "詐欺の疑いがあるメッセージ",
@@ -3968,6 +3961,7 @@
   "doorFaultyPleaseContactSupport": "扉が故障しています。サポートにお問い合わせください。",
   "doorAwaitingCheckBySupportPlease": "扉はサポートの確認待ちです。サポートにお問い合わせください。",
   "reachedPreSaleDropOffLimit": "このロッカーでの販売前の預け入れが上限に達しました。売却または回収後に預け入れてください。",
+  "preSaleDropOffLimitedOne": "このロッカーでの販売前の預け入れは、出品者 1 人につき 1 冊までです。",
   "itemChanged": "項目の状態が変更されました",
   "doorDidNotOpen": "扉が開きませんでした",
   "doorOpeningNotConfirmedSupportCheck": "扉が開いた報告がないため、サポートの確認待ちです",
@@ -4198,6 +4192,7 @@
   "manualReport": "手動報告",
   "manualReportReviewed": "手動報告の対応",
   "overdueOrderHeld": "期限切れ注文の対応待ち",
+  "delistedOrderHeld": "出品停止書籍の注文の対応待ち",
   "doorOpenedAfterTask": "手続き終了後の開扉",
   "lockDidNotRelease": "電磁ロックが解除されない",
   "doorLeftOpen": "扉が閉まっていない",
@@ -4335,5 +4330,28 @@
       "p0": {}
     }
   },
-  "pushNotificationRegistrationFailedPleaseTry": "プッシュ通知の登録に失敗しました。しばらくしてからもう一度お試しください。"
+  "pushNotificationRegistrationFailedPleaseTry": "プッシュ通知の登録に失敗しました。しばらくしてからもう一度お試しください。",
+  "evidencePhotos": "証拠写真",
+  "reportedMessage": "報告されたメッセージ",
+  "orderBookLimitP0": "同じ出品者・同じロッカーの本は1件の注文につき最大 {p0} 冊です。分けて購入してください。",
+  "@orderBookLimitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "depositPartialNotice": "利用できる扉が不足しているため、今回は一部の本のみ預け入れできます。残りの本は扉が空き次第預け入れてください。",
+  "depositedP0RemainingLater": "{p0} 冊を預け入れました。残りの本は扉が空き次第預け入れてください。",
+  "@depositedP0RemainingLater": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "alreadySelected": "選択済み",
+  "notEnoughAvailableDoorsChooseDifferent": "空いている扉が不足しているため、本ごとに異なる扉を選択できません。",
+  "noEmptyDoorCurrentlyAvailableRecord": "現在、登録できる空の扉はありません。",
+  "eachDoorCanHoldOnlyOne": "各扉に保管できる本は 1 冊のみです。",
+  "removedFromPublicView": "公開を停止しました",
+  "hiddenFromPublic": "非公開",
+  "afterReviewBookNoLongerShown": "審査の結果、この本は公開を停止しました。注文には影響しません。",
+  "bookWasConfirmedViolateRulesAfter": "審査の結果、この本の違反が確認されました。注文には影響しません。"
 }

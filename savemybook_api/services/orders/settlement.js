@@ -86,6 +86,22 @@ const redeposit = async (tx, order, now) => {
   return result;
 };
 
+// 買家取書後才經審核下架的書維持 reserved 且不公開；訂單改為退款時須維持下架，不可恢復販售。
+// 等待上架審核的書同樣不公開，但不屬於下架，照一般流程恢復。
+const delistHidden = async (tx, order, bookIds, now) => {
+  if (!order.picked_up_at) return;
+  const hidden = await tx.books.findMany({
+    where: { book_id: { in: bookIds }, status: 'reserved', is_approved: false }, select: { book_id: true }
+  });
+  if (hidden.length === 0) return;
+  const pending = new Set((await tx.ai_book_reviews.findMany({
+    where: { book_id: { in: hidden.map((b) => b.book_id) }, status: 'pending' }, select: { book_id: true }
+  })).map((r) => Number(r.book_id)));
+  const ids = hidden.map((b) => Number(b.book_id)).filter((id) => !pending.has(id));
+  if (ids.length === 0) return;
+  await tx.books.updateMany({ where: { book_id: { in: ids }, status: 'reserved' }, data: { status: 'removed', updated_at: now } });
+};
+
 // 必須在 guardedUpdate 之後、同一個交易內呼叫，靠其列鎖避免重複結算。
 const settle = async (tx, order, target, { restoreBookTo = 'on_sale' } = {}) => {
   const phase = phaseOf(target);
@@ -111,6 +127,10 @@ const settle = async (tx, order, target, { restoreBookTo = 'on_sale' } = {}) => 
     }
     // 加上狀態條件：書若已被管理員強制下架或刪除，完成訂單不應把它改回上架中的售出狀態。
     await tx.books.updateMany({ where: { book_id: { in: bookIds }, status: 'reserved' }, data: { status: 'sold', updated_at: now } });
+    // 買家取書作業進行中才下架的書已是 removed（不公開），取書後訂單完成仍須記為成交，維持不公開。
+    await tx.books.updateMany({
+      where: { book_id: { in: bookIds }, status: 'removed', is_approved: false }, data: { status: 'sold', updated_at: now }
+    });
     return result;
   }
 
@@ -137,6 +157,7 @@ const settle = async (tx, order, target, { restoreBookTo = 'on_sale' } = {}) => 
     result.refunded = buyerPaid;
   }
 
+  await delistHidden(tx, order, bookIds, now);
   await tx.books.updateMany({
     where: { book_id: { in: bookIds }, status: 'reserved' },
     data: { status: restoreBookTo, updated_at: now }
@@ -170,7 +191,7 @@ const assertAdminTransition = (from, to) => {
     throw badRequest('此訂單款項已退回買家，無法改回進行中或已完成');
   }
   if (from === 'completed' && !['refunding', 'refunded'].includes(to)) {
-    throw badRequest('已完成的訂單僅能改為「審核中」或「已退款」');
+    throw badRequest('已完成的訂單僅能改為「爭議處理中」或「已退款」');
   }
 };
 

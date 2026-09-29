@@ -332,13 +332,16 @@ const cancelOverdue = async (tx, order, { reason, buyerContent, sellerContent },
 
 const cancelUndeposited = (now = new Date()) => eachOrder(
   { status: { in: PRE_DEPOSIT }, created_at: { lte: hoursAgo(DEPOSIT_DAYS * 24, now) } },
-  (tx, order) => cancelOverdue(tx, order, {
-    reason: `賣家逾 ${DEPOSIT_DAYS} 天未存書`,
-    buyerContent: `訂單 ${order.order_no} 的賣家逾 ${DEPOSIT_DAYS} 天未存書，訂單已自動取消，`,
-    sellerContent: (stored) => (stored
-      ? `訂單 ${order.order_no} 逾 ${DEPOSIT_DAYS} 天未存書，已自動取消，書籍已改為下架。已存放於書櫃的書籍請至書櫃以 App 掃描 QR Code 取回；如需販售請重新上架。`
-      : `訂單 ${order.order_no} 逾 ${DEPOSIT_DAYS} 天未存書，已自動取消，書籍已改為下架，如需販售請重新上架。`)
-  }, now)
+  (tx, order) => {
+    const missed = (order.order_items ?? []).some((i) => i.pre_deposited) ? '未存齊書籍' : '未存書';
+    return cancelOverdue(tx, order, {
+      reason: `賣家逾 ${DEPOSIT_DAYS} 天${missed}`,
+      buyerContent: `訂單 ${order.order_no} 的賣家逾 ${DEPOSIT_DAYS} 天${missed}，訂單已自動取消，`,
+      sellerContent: (stored) => (stored
+        ? `訂單 ${order.order_no} 逾 ${DEPOSIT_DAYS} 天${missed}，已自動取消，書籍已改為下架。已存放於書櫃的書籍請至書櫃以 App 掃描 QR Code 取回；如需販售請重新上架。`
+        : `訂單 ${order.order_no} 逾 ${DEPOSIT_DAYS} 天${missed}，已自動取消，書籍已改為下架，如需販售請重新上架。`)
+    }, now);
+  }
 );
 
 const cancelUncollected = (now = new Date()) => eachOrder(
@@ -351,7 +354,59 @@ const cancelUncollected = (now = new Date()) => eachOrder(
   }, now)
 );
 
+const DELISTED_REASON = '書籍經審核下架';
+
+// 交易中的書只會因檢舉、管理員或上架審核下架而成為 removed，買家尚未取書的訂單以此判斷須取消。
+const delistedWhere = (bookIds) => ({
+  status: { in: [...PRE_DEPOSIT, ...IN_CABINET] },
+  picked_up_at: null,
+  order_items: { some: { ...(bookIds && { book_id: { in: bookIds } }), books: { status: 'removed' } } }
+});
+
+// 下架的書須在取消前已是 removed：結算只把 reserved 的書改回上架，其他書籍因此照一般取消流程處理。
+const cancelDelistedInTx = async (tx, order, now) => {
+  const removed = await tx.order_items.findMany({
+    where: { order_id: order.order_id, books: { status: 'removed' } },
+    select: { books: { select: { title: true } } }
+  });
+  if (removed.length === 0) return false;
+  if (await cabinetRelease().overdueHold(tx, order, now, { type: 'delist_review' })) return false;
+
+  const titles = removed.map((i) => `《${i.books?.title ?? ''}》`).join('、');
+  const money = await transition(tx, order, 'cancelled', { cancelReason: DELISTED_REASON });
+  await notify(tx, {
+    userId: order.buyer_id,
+    type: 'order',
+    title: '訂單已取消',
+    content: `訂單 ${order.order_no} 的${titles}經審核下架，訂單已自動取消`
+      + `${money.refunded > 0 ? `，${money.refunded} 代幣已全額退回您的錢包` : ''}。`,
+    relatedId: order.order_id,
+    relatedType: 'order'
+  });
+  await notify(tx, {
+    userId: order.seller_id,
+    type: 'order',
+    title: '訂單已取消',
+    content: `訂單 ${order.order_no} 的${titles}經審核下架，訂單已自動取消${money.refunded > 0 ? '，款項已全額退還買家' : ''}。`
+      + storedNotice(money),
+    relatedId: order.order_id,
+    relatedType: 'order'
+  });
+  return true;
+};
+
+const cancelDelisted = async (now = new Date(), { bookIds = null } = {}) => {
+  const result = { cancelled: [], held: [] };
+  await eachOrder(delistedWhere(bookIds), async (tx, order) => {
+    const done = await cancelDelistedInTx(tx, order, now);
+    (done ? result.cancelled : result.held).push(order.order_no);
+    return done;
+  });
+  return result;
+};
+
 const runAutomation = async (now = new Date()) => ({
+  delisted: (await cancelDelisted(now)).cancelled.length,
   completed: await completeDue(now),
   undeposited: await cancelUndeposited(now),
   uncollected: await cancelUncollected(now)
@@ -503,5 +558,5 @@ module.exports = {
   TRANSITIONS, CONFIRM_WINDOW_HOURS, DEPOSIT_DAYS, PICKUP_DAYS, ORDER_NO_PATTERN, tabFilter, listForUser, detailForParty, detailForPartyByNo,
   checkout, buyNow, cancel, advance,
   markPickedUpInTx, markDepositedInTx, notifyDeposited,
-  completeDue, cancelUndeposited, cancelUncollected, runAutomation, adminList, adminDetail, adminChangeStatus
+  completeDue, cancelUndeposited, cancelUncollected, cancelDelisted, runAutomation, adminList, adminDetail, adminChangeStatus
 };

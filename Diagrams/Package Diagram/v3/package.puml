@@ -80,7 +80,7 @@ s4 -[hidden]- s8
 w3 --> s1
 t2 --> s4
 s6 --> apisvc
-s7 --> rtsvc
+s6 --> rtsvc
 apisvc -[hidden]right- pushsvc
 pushsvc -[hidden]right- rtsvc
 apisvc --> express : REST API 呼叫

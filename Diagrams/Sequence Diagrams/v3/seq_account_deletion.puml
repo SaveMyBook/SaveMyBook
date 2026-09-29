@@ -5,7 +5,7 @@ skinparam dpi 220
 skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
 skinparam sequenceMessageAlign center
-skinparam ParticipantPadding 18
+skinparam ParticipantPadding 12
 hide footbox
 
 actor 管理員
@@ -30,12 +30,12 @@ deactivate API
 使用者 -> UI : 確認警告並輸入登入密碼
 UI -> API : POST /api/users/me/deletion
 activate API
-API -> DB : 驗證密碼並檢查進行中訂單
+API -> DB : 驗證密碼並檢查進行中訂單與書櫃存書
 alt 可受理
   API -> DB : 記錄申請時間（30 天緩衝期）
   API --> UI : 200 OK
-  UI --> 使用者 : 顯示預定刪除日與取消按鈕
-else 密碼錯誤、未設定密碼或有進行中訂單
+  UI --> 使用者 : 顯示「待刪除」、剩餘天數\n與「取消刪除帳號」
+else 密碼錯誤、未設定密碼、有進行中訂單或書櫃仍有存書
   API --> UI : 400 Bad Request
   UI --> 使用者 : 顯示原因（未設定密碼時引導設定）
 end
@@ -53,7 +53,7 @@ alt 排程每小時檢查
   排程 -> API : 找出申請已滿 30 天之帳號
   activate API
 else 管理員提前處理
-  管理員 -> UI : 於後台執行立即匿名化\n並驗證身分
+  管理員 -> UI : 於「待刪除帳號」點擊「立即執行」\n並驗證身分
   activate UI
   UI -> API : POST /api/admin/deletions/:id/purge
 end

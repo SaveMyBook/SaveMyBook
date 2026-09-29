@@ -174,7 +174,7 @@ router.patch('/ai/reviews/:bookId', canManageContent, async (req, res) => {
   const unfounded = decision === 'approve' && req.body?.unfounded === true;
 
   const data = await reviews.decide(bookId, { decision, note, category, unfounded }, actorOf(req));
-  res.status(200).json({ success: true, message: decision === 'approve' ? '已核准上架' : '已駁回並下架', data });
+  res.status(200).json({ success: true, message: decision === 'approve' ? '已核准上架' : '已拒絕上架', data });
 });
 
 const cacheIsbn = (value) => {

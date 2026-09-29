@@ -89,6 +89,27 @@ const tests = [
     assert.strictEqual(res.body.moderation, undefined);
   }],
 
+  ['書籍數量固定為 1：上架與編輯未帶數量時為 1，其他數量回 400', async () => {
+    const { user, token } = seller();
+    for (const quantity of [2, 0]) {
+      const res = await create(token, { title: '小王子', price: 100, quantity });
+      assert.strictEqual(res.status, 400, String(quantity));
+      assert.strictEqual(res.body.code, 'QUANTITY_FIXED');
+      assert.strictEqual(res.body.message, '每筆書籍僅有一本，數量僅能為 1');
+    }
+    assert.strictEqual((await create(token, { title: '小王子', price: 100, quantity: '1' })).body.data.quantity, 1);
+
+    const book = addBook({ sellerId: user.user_id, quantity: 3 });
+    const edit = (body) => request('PUT', `/api/books/${book.book_id}`, { token, body });
+    const tooMany = await edit({ quantity: 5 });
+    assert.strictEqual(tooMany.status, 400);
+    assert.strictEqual(tooMany.body.code, 'QUANTITY_FIXED');
+    assert.strictEqual((await edit({ price: 120 })).status, 200);
+    assert.strictEqual(bookOf(book.book_id).quantity, 3, '未帶數量時不變更');
+    assert.strictEqual((await edit({ quantity: 1 })).status, 200);
+    assert.strictEqual(bookOf(book.book_id).quantity, 1);
+  }],
+
   ['未登入無法上架', async () => {
     const res = await request('POST', '/api/books', { body: { title: '小王子', price: 100 } });
     assert.strictEqual(res.status, 401);
@@ -135,11 +156,11 @@ const tests = [
 
     const one = await request('PUT', `/api/books/${reserved.book_id}`, { token, body: { status: 'removed' } });
     assert.strictEqual(one.status, 409);
-    assert.strictEqual(one.body.message, '此書籍交易中，無法變更狀態');
+    assert.strictEqual(one.body.message, '此書籍已售出（訂單進行中），無法變更狀態');
 
     const two = await request('PUT', `/api/books/${sold.book_id}`, { token, body: { status: 'removed' } });
     assert.strictEqual(two.status, 409);
-    assert.strictEqual(two.body.message, '此書籍已售出，無法變更狀態');
+    assert.strictEqual(two.body.message, '此書籍已完成交易，無法變更狀態');
   }],
 
   ['違規下架的書籍不可自行重新上架', async () => {
@@ -220,7 +241,7 @@ const tests = [
 
     const res = await request('DELETE', `/api/books/${book.book_id}`, { token });
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.body.message, '書籍已成功下架');
+    assert.strictEqual(res.body.message, '書籍已取消上架');
     assert.strictEqual(bookOf(book.book_id).status, 'removed');
   }],
 
@@ -231,7 +252,7 @@ const tests = [
 
     const conflict = await request('DELETE', `/api/books/${book.book_id}`, { token });
     assert.strictEqual(conflict.status, 409);
-    assert.strictEqual(conflict.body.message, '此書籍交易中，請先處理訂單再下架');
+    assert.strictEqual(conflict.body.message, '此書籍已售出（訂單進行中），請先處理訂單再取消上架');
 
     const forbidden = await request('DELETE', `/api/books/${book.book_id}`, { token: tokenFor(other) });
     assert.strictEqual(forbidden.status, 403);

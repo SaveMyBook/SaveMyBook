@@ -6,7 +6,7 @@
   "orderPendingPickup": "수령 대기",
   "orderCompleted": "완료",
   "orderCancelled": "취소됨",
-  "orderRefunding": "심사 중",
+  "orderRefunding": "이의 제기 중",
   "orderRefunded": "환불 완료",
   "orderBuyerPendingDeposit": "판매자 보관 대기",
   "orderBuyerDeposited": "수령 대기",
@@ -541,13 +541,6 @@
     }
   },
   "orderNoItemDetails": "상품 내역 없음",
-  "msg4": "단가 {p0} × {p1}",
-  "@msg4": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "orderTotal": "주문 금액",
   "pickupDetails": "수령 정보",
   "notAssigned": "미지정",
@@ -1095,7 +1088,7 @@
       "p1": {}
     }
   },
-  "disputeResolution": "거래 중재",
+  "disputeResolution": "거래 이의 제기",
   "orderP0P1": "주문 {p0} | ${p1}",
   "@orderP0P1": {
     "placeholders": {
@@ -1112,7 +1105,7 @@
   "decisionNoteOptional": "판정 설명 (선택)",
   "submitDecision": "판정 제출",
   "decisionRecorded": "판정을 기록했습니다",
-  "resolveDispute": "거래 중재",
+  "resolveDispute": "거래 이의 제기",
   "noDisputesKind": "해당 유형의 이의가 없습니다",
   "orderNumberP0": "주문 번호: {p0}",
   "@orderNumberP0": {
@@ -1592,7 +1585,7 @@
   "buyerSPaymentGoesBackTheir": "구매자의 결제 금액이 지갑으로 환불됩니다. 판매자에게 이미 대금이 지급됐다면 먼저 회수합니다.",
   "orderReturnsWhereWasBeforeDispute": "주문이 이의 제기 전 상태로 돌아가 거래를 계속합니다. 이미 수령했다면 판매자에게 대금을 지급합니다.",
   "orderWasAlreadyRefundedBuyerCannot": "이 주문은 이미 구매자에게 환불되어 진행 중이나 완료로 되돌릴 수 없습니다",
-  "completedOrderCanOnlyChangedRefund": "완료된 주문은 \"심사 중\" 또는 \"환불 완료\"로만 변경할 수 있습니다",
+  "completedOrderCanOnlyChangedRefund": "완료된 주문은 \"이의 제기 중\" 또는 \"환불 완료\"로만 변경할 수 있습니다",
   "confirmingPaysP0TokensSellerMarks": "확인하면 판매자에게 {p0} 토큰을 지급하고 책을 판매 완료로 표시합니다.",
   "@confirmingPaysP0TokensSellerMarks": {
     "placeholders": {
@@ -1852,7 +1845,7 @@
     }
   },
   "paymentSuccessful": "결제 완료",
-  "p0BooksSplitIntoP1Orders": "총 {p0}권, 판매자별로 {p1}건의 주문으로 나눴습니다",
+  "p0BooksSplitIntoP1Orders": "총 {p0}권, 판매자와 보관함별로 {p1}건의 주문으로 나눴습니다",
   "@p0BooksSplitIntoP1Orders": {
     "placeholders": {
       "p0": {},
@@ -3968,6 +3961,7 @@
   "doorFaultyPleaseContactSupport": "문이 고장 났습니다. 고객센터에 문의해 주세요.",
   "doorAwaitingCheckBySupportPlease": "문이 고객센터 확인 대기 중입니다. 고객센터에 문의해 주세요.",
   "reachedPreSaleDropOffLimit": "이 보관함의 판매 전 보관 한도에 도달했습니다. 판매 또는 회수 후 보관해 주세요.",
+  "preSaleDropOffLimitedOne": "이 보관함의 판매 전 보관은 판매자당 1권까지입니다.",
   "itemChanged": "항목 상태가 변경되었습니다",
   "doorDidNotOpen": "문이 열리지 않았습니다",
   "doorOpeningNotConfirmedSupportCheck": "문 열림 보고를 받지 못해 고객센터 확인 대기 중입니다",
@@ -4127,7 +4121,7 @@
   "listingAssistantAdoptionRate": "등록 도우미 채택률",
   "listingsUsingAssistant": "등록 도우미를 사용한 도서",
   "createdFromSupportEnquiries": "고객 문의에서 작성",
-  "rejectionReason": "반려 사유 유형",
+  "rejectionReason": "거절 사유 유형",
   "sourceInstantRules": "출처: 즉시 규칙",
   "sourceAiAssessment": "출처: AI 판정",
   "confidenceP0": "신뢰도 {p0}",
@@ -4198,6 +4192,7 @@
   "manualReport": "수동 보고",
   "manualReportReviewed": "수동 보고 처리",
   "overdueOrderHeld": "기한 초과 주문 처리 대기",
+  "delistedOrderHeld": "판매 중지 도서 주문 처리 대기",
   "doorOpenedAfterTask": "작업 종료 후 문 열림",
   "lockDidNotRelease": "잠금 해제 안 됨",
   "doorLeftOpen": "문이 닫히지 않음",
@@ -4335,5 +4330,28 @@
       "p0": {}
     }
   },
-  "pushNotificationRegistrationFailedPleaseTry": "푸시 알림 등록에 실패했습니다. 잠시 후 다시 시도해 주세요."
+  "pushNotificationRegistrationFailedPleaseTry": "푸시 알림 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+  "evidencePhotos": "증빙 사진",
+  "reportedMessage": "신고된 메시지",
+  "orderBookLimitP0": "같은 판매자·같은 보관함의 도서는 주문당 최대 {p0}권입니다. 나누어 결제해 주세요.",
+  "@orderBookLimitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "depositPartialNotice": "사용 가능한 문이 부족하여 이번에는 일부 도서만 보관할 수 있습니다. 나머지 도서는 빈 문이 생기면 보관해 주세요.",
+  "depositedP0RemainingLater": "{p0}권을 보관했습니다. 나머지 도서는 빈 문이 생기면 보관해 주세요.",
+  "@depositedP0RemainingLater": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "alreadySelected": "선택됨",
+  "notEnoughAvailableDoorsChooseDifferent": "사용 가능한 문이 부족하여 책마다 다른 문을 선택할 수 없습니다.",
+  "noEmptyDoorCurrentlyAvailableRecord": "현재 등록할 수 있는 빈 문이 없습니다.",
+  "eachDoorCanHoldOnlyOne": "각 문에는 책을 한 권만 보관할 수 있습니다.",
+  "removedFromPublicView": "공개를 중지했습니다",
+  "hiddenFromPublic": "비공개",
+  "afterReviewBookNoLongerShown": "검토 결과 이 책은 공개가 중지되었습니다. 주문에는 영향이 없습니다.",
+  "bookWasConfirmedViolateRulesAfter": "검토 결과 이 책의 위반이 확인되었습니다. 주문에는 영향이 없습니다."
 }

@@ -49,12 +49,36 @@ const tests = [
     assert.strictEqual(first.body.message, '已加入購物車');
     assert.strictEqual(first.body.already_in_cart, false);
 
-    const second = await request('POST', '/api/cart', { token, body: { book_id: book.book_id, quantity: 3 } });
+    const second = await request('POST', '/api/cart', { token, body: { book_id: book.book_id, quantity: 1 } });
     assert.strictEqual(second.status, 200);
     assert.strictEqual(second.body.already_in_cart, true);
     assert.strictEqual(second.body.message, '此書籍已在購物車中');
     assert.strictEqual(prisma.rows('shopping_cart').length, 1);
     assert.strictEqual(prisma.rows('shopping_cart')[0].quantity, 1);
+  }],
+
+  ['加入購物車：二手書數量固定為 1，未帶數量視為 1，其他數量回 400', async () => {
+    const { book, token } = shopper();
+    for (const quantity of [3, 0, 'abc']) {
+      const res = await request('POST', '/api/cart', { token, body: { book_id: book.book_id, quantity } });
+      assert.strictEqual(res.status, 400, String(quantity));
+      assert.strictEqual(res.body.code, 'QUANTITY_FIXED');
+      assert.strictEqual(res.body.message, '每筆書籍僅有一本，數量僅能為 1');
+    }
+    assert.strictEqual(prisma.rows('shopping_cart').length, 0);
+    const ok = await request('POST', '/api/cart', { token, body: { book_id: book.book_id, quantity: '1' } });
+    assert.strictEqual(ok.status, 201, ok.text);
+    assert.strictEqual(prisma.rows('shopping_cart')[0].quantity, 1);
+  }],
+
+  ['購物車：舊資料數量大於 1 時一律以 1 本回傳與計價', async () => {
+    const { buyer, book, token } = shopper();
+    addCartItem(buyer.user_id, book.book_id).quantity = 3;
+
+    const res = await request('GET', '/api/cart', { token });
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.data[0].quantity, 1);
+    assert.strictEqual(res.body.total_amount, 150);
   }],
 
   ['購物車最多 100 項商品', async () => {
@@ -91,13 +115,12 @@ const tests = [
     const other = addUser();
     const item = addCartItem(buyer.user_id, book.book_id);
 
-    const zero = await request('PATCH', `/api/cart/${item.cart_id}`, { token, body: { quantity: 0 } });
-    assert.strictEqual(zero.status, 400);
-    assert.strictEqual(zero.body.message, '數量必須大於 0');
-
-    const tooMany = await request('PATCH', `/api/cart/${item.cart_id}`, { token, body: { quantity: 2 } });
-    assert.strictEqual(tooMany.status, 400);
-    assert.strictEqual(tooMany.body.message, '此書籍數量僅 1 本');
+    for (const quantity of [0, 2]) {
+      const res = await request('PATCH', `/api/cart/${item.cart_id}`, { token, body: { quantity } });
+      assert.strictEqual(res.status, 400);
+      assert.strictEqual(res.body.code, 'QUANTITY_FIXED');
+      assert.strictEqual(res.body.message, '每筆書籍僅有一本，數量僅能為 1');
+    }
 
     const denied = await request('PATCH', `/api/cart/${item.cart_id}`, {
       token: tokenFor(other), body: { quantity: 1 }
@@ -105,9 +128,11 @@ const tests = [
     assert.strictEqual(denied.status, 403);
     assert.strictEqual(denied.body.message, '無權限執行此操作');
 
-    const ok = await request('PATCH', `/api/cart/${item.cart_id}`, { token, body: { quantity: 1 } });
+    item.quantity = 3;
+    const ok = await request('PATCH', `/api/cart/${item.cart_id}`, { token, body: {} });
     assert.strictEqual(ok.status, 200);
     assert.strictEqual(ok.body.message, '已更新數量');
+    assert.strictEqual(item.quantity, 1);
   }],
 
   ['移除購物車項目', async () => {

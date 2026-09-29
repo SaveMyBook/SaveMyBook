@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../services/verification_service.dart';
 import '../../models/cart_item.dart';
 import '../../models/member_level.dart';
+import '../../models/order.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
@@ -181,22 +182,29 @@ class _CartScreenState extends State<CartScreen> {
     if (mounted) _load();
   }
 
-  // 伺服器依賣家拆單；同一賣家的書全存於同一書櫃時，該訂單成立後即可取書且無法取消。
-  bool _hasImmediatePickup(List<CartItem> items) {
-    final groups = <int, List<CartItem>>{};
+  // 須與伺服器的拆單規則一致：依賣家與書籍指定的書櫃分組，每組一筆訂單。
+  Iterable<List<CartItem>> _orderGroups(List<CartItem> items) {
+    final groups = <String, List<CartItem>>{};
     for (final item in items) {
-      groups.putIfAbsent(item.book.sellerId, () => []).add(item);
+      groups.putIfAbsent('${item.book.sellerId}:${item.book.cabinetId}', () => []).add(item);
     }
-    return groups.values.any(
-      (group) => group.every((i) => i.book.inCabinet && i.book.cabinetId == group.first.book.cabinetId),
-    );
+    return groups.values;
   }
+
+  bool _hasImmediatePickup(List<CartItem> items) => _orderGroups(items).any((group) => group.every((i) => i.book.inCabinet));
+
+  bool _overBookLimit(List<CartItem> items) =>
+      _orderGroups(items).any((group) => group.length > Order.maxBooks);
 
   Future<void> _checkout() async {
     if (_isCheckingOut) return;
     final selected = _selectedItems;
     if (selected.isEmpty) {
       showAppSnackBar(context, S.selectBooksWantCheckOut, isError: true);
+      return;
+    }
+    if (_overBookLimit(selected)) {
+      showAppSnackBar(context, S.orderBookLimitP0(Order.maxBooks), isError: true);
       return;
     }
 
@@ -243,13 +251,13 @@ class _CartScreenState extends State<CartScreen> {
     }
 
     HapticFeedback.heavyImpact();
-    final sellerCount = selected.map((i) => i.book.sellerId).toSet().length;
+    final orderCount = _orderGroups(selected).length;
     _load();
     final viewOrders = await showPaymentSuccess(
       context,
       total: total,
       count: selected.length,
-      sellerCount: sellerCount,
+      orderCount: orderCount,
       readyForPickup: result.readyForPickup,
     );
     if (!mounted) return;
@@ -734,7 +742,9 @@ class _CartScreenState extends State<CartScreen> {
     final selected = _selectedItems;
     final shortfall = _total - _balance;
     final sellerCount = selected.map((i) => i.book.sellerId).toSet().length;
-    final canPay = !_isCheckingOut && selected.isNotEmpty && _canAfford;
+    final orderCount = _orderGroups(selected).length;
+    final overLimit = _overBookLimit(selected);
+    final canPay = !_isCheckingOut && selected.isNotEmpty && _canAfford && !overLimit;
 
     final totals = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -877,7 +887,33 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ),
         Reveal(
-          visible: sellerCount > 1,
+          visible: overLimit,
+          child: Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: c.warning.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline_rounded, size: 16, color: c.warning),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    S.orderBookLimitP0(Order.maxBooks),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textPrimary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Reveal(
+          visible: orderCount > 1,
           child: Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
@@ -886,7 +922,7 @@ class _CartScreenState extends State<CartScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    S.fromP0SellersCheckoutCreatesP1(sellerCount, sellerCount),
+                    S.fromP0SellersCheckoutCreatesP1(sellerCount, orderCount),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 11, color: c.textHint),

@@ -1,15 +1,17 @@
 @startuml
+' 以 render_class.py 輸出 PNG：轉換標籤會自動移離連線，直接用 PlantUML 產圖會有文字壓線
 skinparam monochrome true
 skinparam shadowing false
 skinparam dpi 220
 skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
 hide empty description
-skinparam nodesep 70
+skinparam nodesep 55
+skinparam ranksep 40
 
 state 待存書
 state 已存書
-state 待確認完成
+state 待完成訂單
 state 已完成
 state 已取消
 state 爭議處理中
@@ -21,19 +23,21 @@ state 退款終點 <<end>>
 
 [*] --> 待存書 : 買家付款\n（尚有書籍未存入）
 [*] --> 已存書 : 買家付款\n（書籍皆已存於書櫃）
-待存書 --> 已存書 : 賣家掃碼存書\n並關上櫃門
-已存書 --> 待確認完成 : 買家掃碼取書\n並關上櫃門
-待確認完成 --> 已完成 : 買家完成訂單\n或取書滿 24 小時
+待存書 --> 已存書 : 賣家掃碼存入\n全部書籍
+已存書 --> 待完成訂單 : 買家掃碼取書\n並關上櫃門
+待完成訂單 --> 已完成 : 買家完成訂單\n或取書滿 24 小時
 已完成 --> 完成終點
 
-待存書 --> 已取消 : 存書前取消\n或賣家逾期七天未存書
-已存書 -right-> 已取消 : 買家逾期七天未取書
+待存書 --> 已取消 : 存書前取消、賣家逾期七天\n未存書或書籍經審核下架
+已存書 -right-> 已取消 : 買家逾期七天未取書\n或書籍經審核下架
 已取消 --> 取消終點
 
 待存書 --> 爭議處理中 : 申請爭議
 已存書 --> 爭議處理中 : 申請爭議
-待確認完成 --> 爭議處理中 : 取書後 24 小時內\n申請爭議
+待完成訂單 --> 爭議處理中 : 取書後 24 小時內\n申請爭議
 爭議處理中 --> 已退款 : 判定退款
-爭議處理中 --> 已完成 : 判定駁回（已取書）
+爭議處理中 --> 已完成 : 駁回爭議或協調結案\n（已取書）
+已存書 <-- 爭議處理中 : 駁回爭議或協調結案\n（已存書、未取書）
+待存書 <-- 爭議處理中 : 駁回爭議或協調結案\n（尚未存書）
 已退款 --> 退款終點
 @enduml

@@ -70,8 +70,8 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() => _isLoading = true);
+  Future<void> _load({bool silent = false}) async {
+    if (!silent) setState(() => _isLoading = true);
     final books = await _api.fetchAdminBooks(
       keyword: _searchController.text.trim(),
       status: _filter,
@@ -107,20 +107,28 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
     }
 
     setState(() => _busyBookId = book.bookId);
-    final error = await _api.setBookStatusAsAdmin(
+    final result = await _api.setBookStatusAsAdmin(
       book.bookId,
       removing ? 'removed' : 'on_sale',
       reason: reason,
     );
     if (!mounted) return;
-    setState(() => _busyBookId = null);
-
+    final error = result.error;
     if (error != null) {
+      setState(() => _busyBookId = null);
       showAppSnackBar(context, error, isError: true);
-    } else {
-      showAppSnackBar(context, removing ? S.bookRemoved : S.relisted);
-      _load();
+      return;
     }
+    final status = result.status ?? (removing ? 'removed' : 'on_sale');
+    setState(() {
+      _busyBookId = null;
+      _books = [
+        for (final b in _books)
+          b.bookId == book.bookId ? b.withStatus(status, isApproved: result.isApproved ?? !removing) : b,
+      ];
+    });
+    showAppSnackBar(context, result.hidden ? S.removedFromPublicView : (removing ? S.bookRemoved : S.relisted));
+    _load(silent: true);
   }
 
   Future<void> _deleteBook(AdminBook book) async {
@@ -608,6 +616,10 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                           label: book.statusText,
                           color: removed ? c.danger : c.success,
                         ),
+                        if (book.isHidden) ...[
+                          const SizedBox(width: 6),
+                          StatusBadge(label: S.hiddenFromPublic, color: c.danger),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -688,7 +700,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                     filled: true,
                     color: removed ? c.success : c.danger,
                     isLoading: _busyBookId == book.bookId,
-                    onTap: () => _toggleStatus(book),
+                    onTap: book.isHidden ? null : () => _toggleStatus(book),
                   ),
                 ),
               ],
@@ -721,7 +733,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                     filled: true,
                     color: removed ? c.success : c.danger,
                     isLoading: _busyBookId == book.bookId,
-                    onTap: () => _toggleStatus(book),
+                    onTap: book.isHidden ? null : () => _toggleStatus(book),
                   ),
                 ),
               ],

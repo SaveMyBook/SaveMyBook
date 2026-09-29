@@ -370,14 +370,18 @@ paths:
 
         | `kind` | 確認後 |
         | --- | --- |
-        | `deposit`（訂單） | 訂單改為已存書，通知買家取書；書登記於 `slot_id` 指定的櫃門，訂單的主要櫃門為此門 |
-        | `deposit`（書籍） | 登記先行存書，並登記於 `slot_id` 指定的櫃門 |
+        | `deposit`（訂單） | 訂單改為已存書，通知買家取書；每本書登記於指定的櫃門，訂單的主要櫃門為第一個指定的櫃門 |
+        | `deposit`（書籍） | 登記先行存書，並登記於指定的櫃門 |
         | `pickup` | 記錄取書時間，通知賣家；刪除櫃內紀錄並把原櫃門設為待確認 |
         | `retrieve` | 刪除存書登記；刪除櫃內紀錄並把原櫃門設為待確認。回報期間暫停販售的書恢復上架（違規下架者除外），逾期暫停販售的書依規則恢復上架 |
 
-        **存書須指定櫃門**：書櫃已有櫃門（曾配對裝置）時，確認 `deposit` 回報須帶 `slot_id`（櫃門的 `slot_id`，見書櫃裝置摘要的 `doors`），
-        缺少時回 400 `DOOR_REQUIRED`；櫃門不屬於此書櫃時回 404 `DOOR_NOT_FOUND`；門內已有其他訂單或書籍、或被進行中的作業保留時
-        回 409 `DOOR_ASSIGN_INVALID`。從未配對裝置的書櫃沒有櫃門，不需指定。`pickup`、`retrieve` 回報忽略 `slot_id`。
+        **存書須逐本指定櫃門**：書櫃已有櫃門（曾配對裝置）時，確認 `deposit` 回報須為回報列表 `door_books` 中的每本書各指定一扇櫃門
+        （櫃門的 `slot_id`，見書櫃裝置摘要的 `doors`）：以 `doors` 逐本帶入 `{ book_id, slot_id }`；只有一本書時也可只帶 `slot_id`。
+        每扇櫃門僅能存放一本書，下列情形回 409 `DOOR_SINGLE_BOOK`「每扇櫃門僅能存放一本書，請為每本書選擇不同櫃門」：
+        兩本書指定同一扇櫃門、只帶 `slot_id` 但有兩本以上須指定、`doors` 未涵蓋每本須指定的書，或指定的櫃門已登記其他書籍。
+        未指定任何櫃門時回 400 `DOOR_REQUIRED`；櫃門不屬於此書櫃時回 404 `DOOR_NOT_FOUND`；
+        指定的書不屬於此回報或已有櫃門紀錄、或櫃門被進行中的作業保留時回 409 `DOOR_ASSIGN_INVALID`。
+        已登記於本書櫃櫃門的書（例如先行存書）不需指定；從未配對裝置的書櫃沒有櫃門，不需指定。`pickup`、`retrieve` 回報忽略櫃門欄位。
 
         先行存書確認時，賣家在此書櫃已生效的先行存書已達上限時回 409 `PREDEPOSIT_LIMIT`。
         上述錯誤發生時回報維持待確認，可修正後重試或駁回。
@@ -395,7 +399,18 @@ paths:
               type: object
               properties:
                 note: { type: string, maxLength: 500, example: 已與現場人員確認 }
-                slot_id: { type: integer, description: 存書回報的書籍實際放入的櫃門；書櫃有櫃門時必填。, example: 41 }
+                slot_id: { type: integer, description: 只有一本書須指定櫃門時可使用；與 `doors` 擇一提供。, example: 41 }
+                doors:
+                  type: array
+                  maxItems: 50
+                  description: 逐本指定書籍實際放入的櫃門，每本書一扇、不可重複；與 `slot_id` 擇一提供。
+                  items:
+                    type: object
+                    required: [book_id, slot_id]
+                    properties:
+                      book_id: { type: integer, example: 101 }
+                      slot_id: { type: integer, example: 41 }
+                  example: [{ book_id: 101, slot_id: 41 }, { book_id: 102, slot_id: 42 }]
       responses:
         '200':
           description: 已確認。
@@ -412,7 +427,13 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: DOOR_REQUIRED, message: 請指定書籍存放的櫃門 }
+              examples:
+                未指定櫃門:
+                  value: { success: false, code: DOOR_REQUIRED, message: 請指定書籍存放的櫃門 }
+                同時帶入兩種格式:
+                  value: { success: false, message: 請擇一提供櫃門編號或逐本櫃門指定 }
+                格式錯誤:
+                  value: { success: false, message: 櫃門指定格式不正確 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/ManualReportForbidden' }
         '404':
@@ -436,7 +457,9 @@ paths:
                 已失效:
                   value: { success: false, code: MANUAL_REPORT_STALE, message: 項目狀態已變更，此手動回報已失效 }
                 櫃門不符:
-                  value: { success: false, code: DOOR_ASSIGN_INVALID, message: 此項目不在本書櫃、已有櫃門紀錄，或與櫃內其他項目不屬於同一筆訂單或同一本書 }
+                  value: { success: false, code: DOOR_ASSIGN_INVALID, message: 此項目不在本書櫃、已有櫃門紀錄，或櫃門作業進行中 }
+                每扇櫃門一本書:
+                  value: { success: false, code: DOOR_SINGLE_BOOK, message: 每扇櫃門僅能存放一本書，請為每本書選擇不同櫃門 }
                 先行存書上限:
                   value: { success: false, code: PREDEPOSIT_LIMIT, message: 您在此書櫃的先行存書已達上限，請待售出或取回後再存入 }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -622,5 +645,13 @@ components:
                 book_no: { type: string, example: BK7Q2M8ZK }
                 title: { type: string, example: 資料庫系統概論 }
             titles: { type: array, items: { type: string }, example: [資料庫系統概論] }
-            requires_door: { type: boolean, description: 待確認的存書回報，且書櫃有櫃門時為 true：確認時須以 `slot_id` 指定櫃門。, example: true }
+            requires_door: { type: boolean, description: 待確認的存書回報、書櫃有櫃門，且有書須指定櫃門（`door_books` 不為空）時為 true。, example: true }
+            door_books:
+              type: array
+              description: 確認存書時須逐本指定櫃門的書：訂單中尚未登記於本書櫃櫃門的書，或先行存書的那一本；每本書須選不同櫃門。其餘情形為空陣列。
+              items:
+                type: object
+                properties:
+                  book_id: { type: integer, example: 101 }
+                  title: { type: string, example: 資料庫系統概論 }
             reviewer_nickname: { type: string, nullable: true, example: null }

@@ -22,10 +22,11 @@ const withRanges = (rows) => rows.map((level, i) => ({
 const listLevels = async () =>
   withRanges(await prisma.member_levels.findMany({ orderBy: [{ min_points: 'asc' }, { level_id: 'asc' }] }));
 
+// 管理員帳號同樣有等級且可被調整點數，須一併計入；已刪除（匿名化）的帳號不計。
 const pointsOfMembers = async () => {
   const [members, completed] = await Promise.all([
     prisma.users.findMany({
-      where: { anonymized_at: null, role: { not: 'admin' } },
+      where: { anonymized_at: null },
       select: { user_id: true, bonus_points: true }
     }),
     prisma.orders.groupBy({ by: ['buyer_id'], where: { status: 'completed' }, _count: { _all: true } })

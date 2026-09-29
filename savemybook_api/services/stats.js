@@ -13,7 +13,7 @@ const overview = async () => {
   startOfToday.setHours(0, 0, 0, 0);
 
   const [members, pendingReports, pendingDisputes, cabinets, todayOrders, openTickets, pendingReviews, riskAlerts] = await Promise.all([
-    prisma.users.count(),
+    prisma.users.count({ where: { anonymized_at: null } }),
     prisma.reports.count({ where: { status: 'pending' } }),
     prisma.transaction_disputes.count({ where: { status: { in: ['pending', 'processing'] } } }),
     prisma.smart_cabinets.count({ where: { is_active: true } }),

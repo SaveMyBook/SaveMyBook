@@ -20,7 +20,7 @@ activate 賣家
 activate UI
 UI -> API : PUT /api/books/:id
 activate API
-API -> DB : 查詢書籍、預約保留與交易狀態
+API -> DB : 查詢書籍、預約保留、交易與存書狀態
 activate DB
 DB --> API : 回傳書籍狀態
 deactivate DB
@@ -28,16 +28,19 @@ deactivate DB
 alt 預約保留期間
   API --> UI : 409 BOOK_HELD
   UI --> 賣家 : 顯示「保留期間無法編輯」
-else 交易中或已售出
+else 已售出或已完成
   API --> UI : 409 BOOK_LOCKED
   UI --> 賣家 : 顯示「已售出，無法編輯」
 else 違規下架後欲自行上架
   API --> UI : 403 須聯絡客服
   UI --> 賣家 : 顯示「無法自行重新上架」
+else 書籍存放於書櫃中
+  API --> UI : 409 BOOK_DEPOSITED
+  UI --> 賣家 : 顯示「存放於書櫃中，無法編輯」
 else 可編輯
-  opt 書名、簡介或售價有變更
-    API -> DB : 重新執行規則審核（行情、來源）
-    API -> AI : 書名或簡介變更時進行 AI 審核
+  opt 書名、作者、出版社或售價有變更
+    API -> DB : 重新執行規則審核（行情、來源、站外聯絡資訊）
+    API -> AI : 書名、作者或出版社變更時進行 AI 審核
     activate AI
     AI --> API : 回傳審核結果
     deactivate AI
@@ -46,7 +49,7 @@ else 可編輯
     API --> UI : 422 未通過審核，不予儲存
   else 需人工審核或通過
     API -> DB : 儲存修改\n（需人工審核時暫停公開）
-    API -> 管理員 : 需人工審核時通知「有書籍待審核」
+    API -> 管理員 : 需人工審核時通知「有書籍需上架審核」
     API -> DB : 降價時通知收藏此書的使用者
     API --> UI : 200 OK（附審核狀態）
   end

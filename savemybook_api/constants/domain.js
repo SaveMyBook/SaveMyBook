@@ -19,20 +19,20 @@ const ORDER_STATUS_LABELS = {
   pending_pickup: '待取書',
   completed: '已完成',
   cancelled: '已取消',
-  refunding: '審核中',
+  refunding: '爭議處理中',
   refunded: '已退款'
 };
 
-// App 依買賣方身分與取書進度另有顯示名稱，AI 客服檢索須認得這些說法。
+// App 依買賣方身分與取書進度另有顯示名稱，舊版 App 另有已改名的說法，AI 客服檢索須認得這些說法。
 const ORDER_STATUS_ALIASES = {
   pending_deposit: ['待賣家存書'],
   deposited: ['待取書', '待完成訂單', '待買家確認'],
   pending_pickup: ['待取書'],
-  refunding: ['爭議處理中', '申訴中']
+  refunding: ['審核中', '申訴中']
 };
 
 const BOOK_STATUSES = ['on_sale', 'reserved', 'sold', 'removed'];
-const BOOK_STATUS_LABELS = { on_sale: '上架中', reserved: '交易中', sold: '已售出', removed: '已下架' };
+const BOOK_STATUS_LABELS = { on_sale: '販售中', reserved: '已售出', sold: '已完成', removed: '已下架' };
 const CONDITION_LEVELS = ['like_new', 'good', 'fair', 'poor'];
 const CONDITION_LABELS = { like_new: '近全新', good: '良好', fair: '普通', poor: '待修補' };
 const GENDERS = ['male', 'female', 'other', 'undisclosed'];
@@ -44,12 +44,12 @@ const ANNOUNCEMENT_TYPES = ['general', 'maintenance', 'promotion', 'policy'];
 const ANNOUNCEMENT_TYPE_LABELS = { general: '一般公告', maintenance: '系統維護', promotion: '優惠活動', policy: '政策更新' };
 const TICKET_CATEGORIES = ['account', 'trade', 'wallet', 'cabinet', 'bug', 'other'];
 const TICKET_STATUSES = ['open', 'pending', 'resolved', 'closed'];
-const TICKET_STATUS_LABELS = { open: '待處理', pending: '等待使用者回覆', resolved: '已解決', closed: '已結案' };
+const TICKET_STATUS_LABELS = { open: '待處理', pending: '客服已回覆', resolved: '已解決', closed: '已結案' };
 const SLOT_STATUSES = ['empty', 'occupied', 'reserved', 'maintenance'];
-const SLOT_STATUS_LABELS = { empty: '空櫃', occupied: '使用中', reserved: '已預約', maintenance: '維修中' };
+const SLOT_STATUS_LABELS = { empty: '空置', occupied: '使用中', reserved: '已預約', maintenance: '維修中' };
 const NOTIFICATION_TYPES = ['system', 'order', 'message', 'promotion', 'reservation'];
 const REPORT_STATUSES = ['pending', 'reviewing', 'resolved', 'dismissed'];
-const REPORT_STATUS_LABELS = { pending: '待處理', reviewing: '審核中', resolved: '違規成立', dismissed: '未違規' };
+const REPORT_STATUS_LABELS = { pending: '待處理', reviewing: '審核中', resolved: '已處理', dismissed: '已駁回' };
 const DISPUTE_STATUSES = ['pending', 'processing', 'resolved'];
 const DISPUTE_RESULT_LABELS = {
   refund_manual: '人工退款', refund_auto: '自動退款', dismissed: '駁回爭議', mediated: '協調結案'
@@ -71,14 +71,14 @@ const ADMIN_PERMISSIONS = {
 };
 
 const ADMIN_PERMISSION_LABELS = {
-  members: '會員管理',
+  members: '會員管控',
   levels: '會員等級',
-  content: '內容管理',
+  content: '商品管理',
   reports: '檢舉審核',
   orders: '訂單管理',
   transactions: '交易爭議',
   wallets: '錢包管理',
-  cabinets: '書櫃管理',
+  cabinets: '硬體維護',
   announcements: '公告與文件',
   support: '客服工單',
   stats: '營運報表',

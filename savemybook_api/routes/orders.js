@@ -50,6 +50,7 @@ router.post('/checkout', requireVerification('payment'), async (req, res) => {
 
 router.post('/buy-now', requireVerification('payment'), async (req, res) => {
   const bookId = v.id(req.body.book_id, '書籍編號');
+  v.bookQuantity(req.body.quantity);
   const order = await orders.buyNow(req.user.userId, { bookId, paymentMethod: 'wallet' });
   res.status(201).json({ success: true, message: '購買成功', data: order });
 });

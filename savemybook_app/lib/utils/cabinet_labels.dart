@@ -71,6 +71,7 @@ class CabinetLabels {
     'manual_report': S.manualReport,
     'manual_report_reviewed': S.manualReportReviewed,
     'overdue_review': S.overdueOrderHeld,
+    'delist_review': S.delistedOrderHeld,
     'late_door_opened': S.doorOpenedAfterTask,
   };
 

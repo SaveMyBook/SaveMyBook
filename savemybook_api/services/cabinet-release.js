@@ -49,8 +49,13 @@ const reviewReason = async (db, order, items) => {
   return manual > 0 ? 'MANUAL' : null;
 };
 
-// 逾期自動取消前呼叫：'wait' 表示作業進行中，下次排程再判斷；'review' 表示交由管理員處理，不取消也不退款。
-const overdueHold = async (tx, order, now = new Date()) => {
+const HOLD_NOTICES = {
+  overdue_review: { title: '逾期訂單待人工處理', lead: '已逾期' },
+  delist_review: { title: '下架書籍訂單待人工處理', lead: '的書籍已經審核下架' }
+};
+
+// 逾期或書籍下架自動取消前呼叫：'wait' 表示作業進行中，下次排程再判斷；'review' 表示交由管理員處理，不取消也不退款。
+const overdueHold = async (tx, order, now = new Date(), { type = 'overdue_review' } = {}) => {
   if (order.cabinet_id === null || order.cabinet_id === undefined) return null;
   const db = tx ?? prisma;
   const items = await db.cabinet_session_items.findMany({
@@ -62,21 +67,21 @@ const overdueHold = async (tx, order, now = new Date()) => {
   const reason = await reviewReason(db, order, items);
   if (!reason) return null;
 
-  const reported = await db.cabinet_events.count({ where: { order_id: Number(order.order_id), type: 'overdue_review' } });
+  const reported = await db.cabinet_events.count({ where: { order_id: Number(order.order_id), type } });
   if (reported === 0) {
     await recordEvent(db, {
-      cabinetId: order.cabinet_id, orderId: Number(order.order_id), type: 'overdue_review', source: 'server',
+      cabinetId: order.cabinet_id, orderId: Number(order.order_id), type, source: 'server',
       detail: { reason }, occurredAt: now
     });
     await notifyAdmins(db, order.cabinet_id, {
-      title: '逾期訂單待人工處理',
-      content: `訂單 ${order.order_no} 已逾期，但書櫃紀錄顯示${REVIEW_REASONS[reason]}，系統未自動取消，請確認後處理。`
+      title: HOLD_NOTICES[type].title,
+      content: `訂單 ${order.order_no} ${HOLD_NOTICES[type].lead}，但書櫃紀錄顯示${REVIEW_REASONS[reason]}，系統未自動取消，請確認後處理。`
     });
   }
   return 'review';
 };
 
-// 一扇門只能有一個保管單位：同門的多本書各自恢復為先行存書時，須暫停販售並請賣家整扇取回。回傳被暫停的書籍編號。
+// 新存書一門一本，但舊資料仍可能一門多本：同門的多本書各自恢復為先行存書時，須暫停販售並請賣家整扇取回。回傳被暫停的書籍編號。
 const splitSharedDoors = async (tx, order, bookIds, now = new Date()) => {
   const db = tx ?? prisma;
   const paused = new Set();

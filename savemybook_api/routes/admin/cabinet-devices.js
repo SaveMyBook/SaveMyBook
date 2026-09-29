@@ -6,12 +6,11 @@ const v = require('../../lib/validate');
 const { actorOf } = require('../../lib/request-context');
 const { badRequest } = require('../../lib/errors');
 const admin = require('../../services/cabinet-admin');
+const doors = require('../../services/cabinet-doors');
 
 const router = express.Router();
 const canManage = requireAdmin('cabinets');
 const pairLimit = rateLimit({ windowMs: 10 * 60 * 1000, max: 10, key: byUser, message: '嘗試次數過多，請稍後再試' });
-
-const MAX_PLACE_BOOKS = 50;
 
 const cabinetIdOf = (req) => v.id(req.params.id, '書櫃編號');
 const slotIdOf = (req) => v.id(req.params.slotId, '櫃門編號');
@@ -50,7 +49,7 @@ router.post('/cabinets/:id/doors/:slotId/place', canManage, async (req, res) => 
   const hasOrder = !v.isBlank(orderIdRaw);
   const hasBooks = Array.isArray(bookIdsRaw) && bookIdsRaw.length > 0;
   if (hasOrder === hasBooks) throw badRequest('請擇一提供訂單編號或書籍編號');
-  if (hasBooks && bookIdsRaw.length > MAX_PLACE_BOOKS) throw badRequest(`書籍最多 ${MAX_PLACE_BOOKS} 本`);
+  if (hasBooks && bookIdsRaw.length > 1) throw doors.singleBookDoor();
 
   const data = await admin.place(cabinetId, slotId, {
     orderId: hasOrder ? v.id(orderIdRaw, '訂單編號') : null,

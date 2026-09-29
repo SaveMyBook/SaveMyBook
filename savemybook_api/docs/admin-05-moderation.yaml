@@ -18,8 +18,8 @@ paths:
         依建立時間遞減排序，無分頁機制。需 `can_manage_reports` 權限。
 
         由於 `reports` 採 `target_type` 搭配 `target_id` 的多型設計，未建立指向
-        books 或 users 的外鍵，被檢舉對象由獨立查詢取得後填入 `target` 欄位。
-        `target_type` 為 `message` 時 `target` 為 `null`，不另行查詢訊息內容。
+        books、users 或 chat_messages 的外鍵，被檢舉對象由獨立查詢取得後填入 `target` 欄位。
+        對象已不存在（例如訊息所在的聊天室已刪除）時 `target` 為 `null`。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
@@ -48,7 +48,9 @@ paths:
                               description: |
                                 被檢舉對象。`target_type` 為 `book` 時為書籍資料
                                 （含書名、售價、狀態、封面）；為 `user` 時為使用者資料；
-                                為 `message` 時為 `null`。
+                                為 `message` 時為 `ChatMessage`（`users` 為傳送者），另含
+                                `sender_no`（傳送者的會員加密編號，供畫面顯示）。
+                                訊息已收回時 `kind` 為 `recalled`，不含原文；訊息已刪除時為 `null`。
                             users_reports_reporter_idTousers:
                               allOf: [{ $ref: '#/components/schemas/UserBrief' }]
                               description: 檢舉人。
@@ -63,6 +65,64 @@ paths:
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/admin/reports/{id}/message-context:
+    get:
+      summary: 被檢舉訊息的前後文
+      operationId: adminGetReportMessageContext
+      tags: [admin-moderation]
+      description: |
+        取得被檢舉訊息所在聊天室中，該訊息之前與之後各最多 3 則訊息，依時間先後排列，
+        不含被檢舉訊息本身（見檢舉列表的 `target`）。需 `can_manage_reports` 權限。
+
+        訊息已刪除時 `before` 與 `after` 皆為空陣列；已收回的訊息 `kind` 為 `recalled`，不含原文。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 18
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      before:
+                        type: array
+                        description: 被檢舉訊息之前的訊息，由舊到新。
+                        items:
+                          allOf:
+                            - $ref: '#/components/schemas/ChatMessage'
+                            - type: object
+                              properties:
+                                sender_no: { type: string, description: 傳送者的會員加密編號, example: MB3KER74B }
+                      after:
+                        type: array
+                        description: 被檢舉訊息之後的訊息，由舊到新。
+                        items:
+                          allOf:
+                            - $ref: '#/components/schemas/ChatMessage'
+                            - type: object
+                              properties:
+                                sender_no: { type: string, description: 傳送者的會員加密編號, example: MB3KER74B }
+        '400':
+          description: 檢舉對象不是聊天訊息。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 此檢舉的對象不是聊天訊息 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/admin/reports/{id}:
     patch:
       summary: 審核檢舉
@@ -74,7 +134,13 @@ paths:
         `remove_target` 僅對 `target_type` 為 `book` 的檢舉生效，
         會將書籍設為 `removed` 並將 `is_approved` 設為 false。
         後者使賣家無法自行將該書籍改回 `on_sale`，嘗試時會收到
-        403 `BOOK_NOT_APPROVED`。
+        403 `BOOK_NOT_APPROVED`；書籍的上架審核仍在待審時一併結案為 `rejected`（不計入 AI 誤判統計），避免檢舉狀態之後變更時失去鎖定。
+        已完成交易（`sold`）的書維持 `sold`，買家已取書（待完成訂單，以及已取書而爭議處理中）的書維持原狀態，
+        兩者都只將 `is_approved` 設為 false 停止公開顯示，訂單照常進行、完成時轉為 `sold`；通知與操作紀錄記為「停止公開顯示」。
+
+        下架時比照強制下架（`PATCH /api/admin/books/{id}`）處理交易：進行中的預約取消，
+        買家尚未取書的訂單自動取消並全額退款、通知買賣雙方；書櫃作業中或有待確認紀錄的訂單由排程接續或交由管理員處理。
+        下架時書籍有進行中訂單者，操作紀錄只提供還原檢舉狀態，不還原書籍狀態。
 
         通知於同一交易內發送：
 
@@ -251,7 +317,7 @@ paths:
       tags: [admin-moderation]
       description: |
         依建立時間遞減排序，無分頁機制。需 `can_manage_transactions` 權限。
-        各筆包含申請人與完整訂單資料，含買賣雙方、書名與封面。
+        各筆包含申請人與完整訂單資料，含買賣雙方、書名與封面，以及申請方上傳的佐證照片 `evidence_images`。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
@@ -277,6 +343,13 @@ paths:
                             users_transaction_disputes_applicant_idTousers:
                               allOf: [{ $ref: '#/components/schemas/UserBrief' }]
                               description: 申請人。
+                            evidence_images:
+                              type: array
+                              items: { type: string }
+                              description: |
+                                由 `evidence_urls` 解析出的站內佐證照片相對路徑（`/uploads/evidence/` 或
+                                `/uploads/books/`），依上傳順序排列；站外連結不列入。未附照片時為空陣列。
+                              example: [/uploads/evidence/1700000000000-3f2a9c1d.jpg]
                             orders:
                               type: object
                               description: 關聯訂單，包含買賣雙方與書籍資料。
@@ -438,6 +511,9 @@ paths:
         裁決退款且買家尚未取書時，仍在櫃中的書（訂單已有 `deposited_at` 時為訂單的每本書，其餘為 `pre_deposited` 的書）
         恢復存書登記於書櫃，但因無法確認書是否仍在櫃中，書籍改為下架（`removed`）；賣家的裁決通知一併說明，
         請賣家至書櫃以 App 掃描 QR Code 取回（書櫃無法掃碼時改以手動回報，經客服確認後生效），取回後再自行重新上架。
+
+        爭議處理中而買家已取書的書經審核下架時只停止公開顯示（見 `PATCH /api/admin/reports/{id}`）：
+        裁決回到 `completed` 時轉為 `sold` 並維持不公開；裁決退款時改為下架（`removed`），不恢復販售。
 
         爭議期間訂單若已被客服取消或退款，只結案不再異動訂單。
         已裁決的案件再送出回傳 409。退款紀錄的 `amount` 為實際退回的金額。

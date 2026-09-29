@@ -187,6 +187,14 @@ const presentUnits = async (units, { admin = false, labels = new Map() } = {}) =
     if (unit.note === 'MOVE_TO_ORDER_CABINET') {
       const target = unit.books.map((b) => openOrders.get(b.book_id)?.orders?.smart_cabinets?.cabinet_name).find(Boolean);
       note = { code: unit.note, message: `此書籍已售出，取回後請存入訂單指定的書櫃「${target ?? ''}」` };
+    } else if (unit.note === candidates.PARTIAL_NOTE) {
+      const stored = unit.books.filter((b) => b.slot_id).length;
+      note = {
+        code: unit.note,
+        message: unit.result === 'done'
+          ? `已存入 ${stored} 本，其餘書籍待有空櫃門時再存入`
+          : '可用櫃門不足，本次僅能存入部分書籍，其餘書籍待有空櫃門時再存入'
+      };
     }
     return {
       key: unit.key,
@@ -230,6 +238,8 @@ const sessionUnits = async (session) => {
 
   return [...groupItems(items).values()].map((unit) => {
     const first = unit.items[0];
+    const chosen = unit.items.filter((i) => i.selected);
+    const pool = chosen.length ? chosen : unit.items;
     return {
       key: unit.key,
       kind: unit.kind,
@@ -248,7 +258,7 @@ const sessionUnits = async (session) => {
       note: first.note_code ?? null,
       selected: unit.items.some((i) => i.selected),
       blocked: first.blocked_code ?? null,
-      result: unit.items.find((i) => i.result !== 'done')?.result ?? first.result,
+      result: pool.find((i) => i.result !== 'done')?.result ?? pool[0].result,
       error: unit.items.find((i) => i.error_code)?.error_code ?? null
     };
   }).sort((a, b) => candidates.KIND_ORDER.indexOf(a.kind) - candidates.KIND_ORDER.indexOf(b.kind)
@@ -1000,9 +1010,20 @@ const start = async (no, user, keys, now = new Date()) => {
         if (DEPOSIT_KINDS.includes(unit.kind)) {
           const entries = allocation.get(unit.key) ?? [];
           for (const entry of entries) doorSlots.set(entry.slot_id, entry.lock_channel);
+          const deferred = [];
           for (const item of unit.items) {
             const entry = entries.find((e) => e.book_ids.includes(Number(item.book_id)));
-            await assign(item, entry ? entry.slot_id : placed.get(Number(item.book_id))?.slot_id ?? entries[0]?.slot_id ?? null);
+            const here = placed.get(Number(item.book_id));
+            const slotId = entry?.slot_id ?? (here?.cabinet_id === Number(session.cabinet_id) ? here.slot_id : null);
+            if (slotId) await assign(item, slotId);
+            else deferred.push(item.item_id);
+          }
+          if (deferred.length) {
+            await tx.cabinet_session_items.updateMany({ where: { item_id: { in: deferred } }, data: { selected: false, slot_id: null } });
+          }
+          const note = deferred.length ? candidates.PARTIAL_NOTE : null;
+          if ((unit.items[0].note_code ?? null) !== note) {
+            await tx.cabinet_session_items.updateMany({ where: { item_id: { in: unit.items.map((i) => i.item_id) } }, data: { note_code: note } });
           }
           continue;
         }

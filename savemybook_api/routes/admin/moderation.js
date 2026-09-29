@@ -17,6 +17,11 @@ router.get('/reports', requireAdmin('reports'), async (req, res) => {
   res.status(200).json({ success: true, data: await reports.adminList(status) });
 });
 
+router.get('/reports/:id/message-context', requireAdmin('reports'), async (req, res) => {
+  const reportId = v.id(req.params.id, '檢舉編號');
+  res.status(200).json({ success: true, data: await reports.messageContext(reportId) });
+});
+
 router.patch('/reports/:id', requireAdmin('reports'), async (req, res) => {
   const reportId = v.id(req.params.id, '檢舉編號');
   const status = v.oneOf(req.body.status, reports.RESULTS, '處理結果不正確');

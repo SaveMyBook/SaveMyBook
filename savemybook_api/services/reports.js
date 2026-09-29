@@ -4,11 +4,21 @@ const { userBrief, userName, coverImage } = require('../lib/selects');
 const { REPORT_STATUS_LABELS } = require('../constants/domain');
 const { notify } = require('./notify');
 const audit = require('./audit');
-const deposits = require('./book-deposits');
+const takedown = require('./book-takedown');
+const reviews = require('./ai/reviews');
+const codec = require('./chat/codec');
 const publicId = require('../lib/public-id');
 
 const RESULTS = ['reviewing', 'resolved', 'dismissed'];
 const FINAL = ['resolved', 'dismissed'];
+const CONTEXT_SIZE = 3;
+
+const messageInclude = { users: { select: userBrief } };
+
+const shapeMessage = (message) => ({
+  ...codec.shapeMessage(message),
+  sender_no: publicId.encode('user', message.sender_id)
+});
 
 const REPORT_FIELDS = {
   status: { label: '檢舉狀態', format: (s) => REPORT_STATUS_LABELS[s] ?? s },
@@ -112,10 +122,12 @@ const adminList = async (status) => {
     }
   });
 
-  const bookIds = reports.filter((r) => r.target_type === 'book').map((r) => r.target_id);
-  const userIds = reports.filter((r) => r.target_type === 'user').map((r) => r.target_id);
+  const idsOf = (type) => [...new Set(reports.filter((r) => r.target_type === type).map((r) => r.target_id))];
+  const bookIds = idsOf('book');
+  const userIds = idsOf('user');
+  const messageIds = idsOf('message');
 
-  const [books, users] = await Promise.all([
+  const [books, users, messages] = await Promise.all([
     bookIds.length
       ? prisma.books.findMany({
           where: { book_id: { in: bookIds } },
@@ -127,18 +139,46 @@ const adminList = async (status) => {
           where: { user_id: { in: userIds } },
           select: userBrief
         })
+      : [],
+    messageIds.length
+      ? prisma.chat_messages.findMany({
+          where: { message_id: { in: messageIds } },
+          include: messageInclude
+        })
       : []
   ]);
 
-  const bookMap = new Map(books.map((b) => [b.book_id, b]));
-  const userMap = new Map(users.map((u) => [u.user_id, u]));
+  const targets = {
+    book: new Map(books.map((b) => [b.book_id, b])),
+    user: new Map(users.map((u) => [u.user_id, u])),
+    message: new Map(messages.map((m) => [m.message_id, shapeMessage(m)]))
+  };
 
-  return reports.map((r) => ({
-    ...r,
-    target: r.target_type === 'book' ? bookMap.get(r.target_id) ?? null
-      : r.target_type === 'user' ? userMap.get(r.target_id) ?? null
-        : null
-  }));
+  return reports.map((r) => ({ ...r, target: targets[r.target_type]?.get(r.target_id) ?? null }));
+};
+
+const messageContext = async (reportId) => {
+  const report = await prisma.reports.findUnique({
+    where: { report_id: reportId },
+    select: { target_type: true, target_id: true }
+  });
+  if (!report) throw notFound('找不到該檢舉');
+  if (report.target_type !== 'message') throw badRequest('此檢舉的對象不是聊天訊息');
+
+  const target = await prisma.chat_messages.findUnique({
+    where: { message_id: report.target_id },
+    select: { room_id: true }
+  });
+  if (!target) return { before: [], after: [] };
+
+  const around = (op, direction) => prisma.chat_messages.findMany({
+    where: { room_id: target.room_id, message_id: { [op]: report.target_id } },
+    orderBy: { message_id: direction },
+    take: CONTEXT_SIZE,
+    include: messageInclude
+  });
+  const [before, after] = await Promise.all([around('lt', 'desc'), around('gt', 'asc')]);
+  return { before: before.reverse().map(shapeMessage), after: after.map(shapeMessage) };
 };
 
 const review = async (reportId, { status, adminNote, removeTarget }, { adminId, req }) => {
@@ -148,6 +188,8 @@ const review = async (reportId, { status, adminNote, removeTarget }, { adminId, 
 
   let bookBefore = null;
   let bookAfter = null;
+  let taken = null;
+  let reviewClosed = false;
 
   const updated = await prisma.$transaction(async (tx) => {
     const r = await tx.reports.update({
@@ -167,12 +209,9 @@ const review = async (reportId, { status, adminNote, removeTarget }, { adminId, 
 
       if (removeTarget && book) {
         bookBefore = book;
-        bookAfter = { status: 'removed', is_approved: false };
-        await tx.books.update({
-          where: { book_id: report.target_id },
-          data: { status: 'removed', is_approved: false, updated_at: new Date() }
-        });
-        await deposits.releaseAutoPause(tx, report.target_id);
+        taken = await takedown.apply(tx, book);
+        bookAfter = taken.data;
+        reviewClosed = await reviews.closeForTakedown(tx, book.book_id, adminId);
       }
     } else if (report.target_type === 'user') {
       ownerId = report.target_id;
@@ -190,10 +229,10 @@ const review = async (reportId, { status, adminNote, removeTarget }, { adminId, 
       const resolved = status === 'resolved';
       await notify(tx, {
         userId: ownerId,
-        title: resolved ? '檢舉審核結果：違規成立' : '檢舉審核結果：未違規',
+        title: resolved ? '檢舉審核結果：違規成立' : '檢舉審核結果：已駁回',
         content: resolved
-          ? (removeTarget && report.target_type === 'book'
-              ? '經審核違規成立，該商品已下架。如有疑問請聯絡客服。'
+          ? (bookBefore
+              ? `經審核違規成立，該商品已${takedown.actionLabel(taken)}。如有疑問請聯絡客服。`
               : '經審核違規成立，請留意社群規範，重複違規將影響帳號權益。')
           : `經審核未違反社群規範，此${report.target_type === 'book' ? '商品' : '帳號'}不受影響。`,
         relatedId: report.target_id,
@@ -204,24 +243,30 @@ const review = async (reportId, { status, adminNote, removeTarget }, { adminId, 
     return r;
   });
 
+  const orderResult = bookBefore ? await takedown.cancelOrders(bookBefore.book_id) : null;
+  // 下架時有訂單的書不提供還原：訂單已取消，改回交易中會留下沒有訂單的保留書籍。
+  const bookUndo = bookBefore && bookBefore.status !== 'reserved';
+
   await audit.record(null, {
     adminId,
     action: '處理檢舉',
     targetType: 'report',
     targetId: reportId,
     summary: `將檢舉 ${publicId.encode('report', reportId)} 標為「${REPORT_STATUS_LABELS[status]}」`
-      + `${bookBefore ? `，並下架《${bookBefore.title}》` : ''}。已通知檢舉人與被檢舉人（通知無法收回）`,
+      + `${bookBefore ? `，並${takedown.actionLabel(taken)}《${bookBefore.title}》` : ''}`
+      + `${reviewClosed ? '，待審的上架審核一併結案' : ''}`
+      + `${orderResult ? takedown.describe(orderResult) : ''}。已通知檢舉人與被檢舉人（通知無法收回）`,
     changes: [
       ...audit.diff(report, updated, REPORT_FIELDS),
       ...(bookBefore ? audit.diff(bookBefore, bookAfter, BOOK_FIELDS) : [])
     ],
     undo: [
       audit.undoUpdate('reports', reportId, report, updated, ['status', 'admin_id', 'admin_note', 'resolved_at']),
-      ...(bookBefore ? [audit.undoUpdate('books', bookBefore.book_id, bookBefore, bookAfter, BOOK_FIELDS)] : [])
+      ...(bookUndo ? [audit.undoUpdate('books', bookBefore.book_id, bookBefore, bookAfter, BOOK_FIELDS)] : [])
     ],
     req
   });
   return updated;
 };
 
-module.exports = { RESULTS, listMine, create, againstSeller, adminList, review };
+module.exports = { RESULTS, listMine, create, againstSeller, adminList, messageContext, review };

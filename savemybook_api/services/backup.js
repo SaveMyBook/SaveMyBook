@@ -300,7 +300,7 @@ const issueDownloadLink = async (backupId, { adminId }) => {
 };
 
 const redeemDownloadTicket = async (ticket, req) => {
-  const invalid = () => new HttpError(410, '下載連結已失效，請重新產生', 'DOWNLOAD_LINK_EXPIRED');
+  const invalid = () => new HttpError(410, '下載網址已失效，請重新產生', 'DOWNLOAD_LINK_EXPIRED');
   if (typeof ticket !== 'string' || !/^[\w-]{43}$/.test(ticket)) throw invalid();
 
   const key = hashTicket(ticket);

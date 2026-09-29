@@ -175,7 +175,7 @@ module.exports = {
         prisma.rows('order_items').push({ item_id: prisma.nextId('order_items'), order_id: order.order_id, book_id: b.book_id, quantity: 1, unit_price: 100, subtotal: 100 });
 
         const deposit = await visit(kiosk, ctx.sellerToken, { context: { type: 'order', id: order.order_id } });
-        assert.strictEqual(deposit.opened.doors[0].label, 'A01');
+        assert.deepStrictEqual(deposit.opened.doors.map((d) => d.label), ['A01', 'A02']);
         assert.strictEqual(deposit.final.status, 'completed', JSON.stringify(deposit.final));
         assert.strictEqual(h.sessionOf(deposit.no).close_reason, 'user_done');
         assert.strictEqual(h.orderOf(order.order_id).status, 'deposited');
@@ -184,7 +184,7 @@ module.exports = {
 
         const pickup = await visit(kiosk, ctx.buyerToken, { context: { type: 'order', id: order.order_id } });
         assert.strictEqual(pickup.created.items[0].kind, 'pickup');
-        assert.deepStrictEqual(pickup.created.items[0].doors, ['A01']);
+        assert.deepStrictEqual(pickup.created.items[0].doors, ['A01', 'A02']);
         assert.strictEqual(pickup.final.status, 'completed');
         assert.ok(h.orderOf(order.order_id).picked_up_at);
         assert.strictEqual(prisma.rows('cabinet_slot_items').length, 0);

@@ -71,10 +71,23 @@ router.get('/cabinets/:id/manual-reports', canManage, async (req, res) => {
   res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: rows });
 });
 
+const MAX_DOOR_ASSIGNMENTS = 50;
+
+const doorAssignments = (value) => {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value) || value.length > MAX_DOOR_ASSIGNMENTS) throw badRequest('櫃門指定格式不正確');
+  return value.map((entry) => {
+    if (!entry || typeof entry !== 'object') throw badRequest('櫃門指定格式不正確');
+    return { bookId: v.id(entry.book_id, '書籍編號'), slotId: v.id(entry.slot_id, '櫃門編號') };
+  });
+};
+
 router.post('/cabinet-manual-reports/:reportNo/confirm', canManage, async (req, res) => {
   const note = v.optionalText(req.body.note, { label: '處理說明', max: 500 }) ?? null;
   const slotId = req.body.slot_id === undefined || req.body.slot_id === null ? null : v.id(req.body.slot_id, '櫃門編號');
-  const data = await manual.confirm(req.params.reportNo, { note, slotId }, actorOf(req));
+  const doors = doorAssignments(req.body.doors);
+  if (slotId && doors.length > 0) throw badRequest('請擇一提供櫃門編號或逐本櫃門指定');
+  const data = await manual.confirm(req.params.reportNo, { note, slotId, doors }, actorOf(req));
   res.status(200).json({ success: true, message: '已確認手動回報', data });
 });
 

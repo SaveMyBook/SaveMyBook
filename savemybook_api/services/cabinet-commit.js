@@ -1,9 +1,11 @@
 const prisma = require('../lib/prisma');
 const { HttpError, conflict } = require('../lib/errors');
 const { ORDER_FINAL_STATUSES } = require('../constants/domain');
+const policy = require('../constants/policy');
 const orders = require('./orders');
 const deposits = require('./book-deposits');
 const doors = require('./cabinet-doors');
+const { notify } = require('./notify');
 const { recordEvent, notifyAdmins } = require('./cabinet-events');
 
 const sessions = () => require('./cabinet-sessions');
@@ -60,12 +62,32 @@ const commitPickup = async (tx, session, unit, now) => {
   await manual().cancelPending(tx, { orderId: order.order_id, kinds: ['pickup'], now });
 };
 
+// 部分存書時訂單維持待存書；已存入的書標示 pre_deposited，訂單取消時才會恢復存書登記並請賣家取回。
+const keepPartial = async (tx, order, storedIds, now) => {
+  const touched = await tx.orders.updateMany({ where: { order_id: order.order_id, status: order.status }, data: { updated_at: now } });
+  if (touched.count === 0) throw itemChanged();
+  await tx.order_items.updateMany({ where: { order_id: order.order_id, book_id: { in: storedIds } }, data: { pre_deposited: true } });
+  await notify(tx, {
+    userId: order.seller_id,
+    type: 'order',
+    title: '訂單書籍已部分存入',
+    content: `訂單 ${order.order_no} 已存入 ${storedIds.length} 本，其餘 ${order.order_items.length - storedIds.length} 本待有空櫃門時再存入；`
+      + `須於訂單成立後 ${policy.ORDER_DEPOSIT_DAYS} 天內全部存入，逾期訂單將自動取消。`,
+    relatedId: order.order_id,
+    relatedType: 'order'
+  });
+};
+
 const commitOrderDeposit = async (tx, session, unit, now) => {
   const order = await tx.orders.findUnique({ where: { order_id: Number(unit.order_id) }, include: { order_items: true } });
   if (!order || Number(order.seller_id) !== Number(session.user_id) || Number(order.cabinet_id) !== Number(session.cabinet_id)
     || !PRE_DEPOSIT.includes(order.status)) {
     throw itemChanged();
   }
+  const bookIds = order.order_items.map((i) => Number(i.book_id));
+  const placed = await doors.bookDoors(bookIds, { tx });
+  const stored = bookIds.filter((id) => placed.get(id)?.cabinet_id === Number(order.cabinet_id));
+  if (stored.length < bookIds.length) return keepPartial(tx, order, stored, now);
   await orders.markDepositedInTx(tx, order);
   if (!order.slot_id) {
     const slotIds = [...new Set(unit.items.map((i) => i.slot_id).filter(Boolean).map(Number))];

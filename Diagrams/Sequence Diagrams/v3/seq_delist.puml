@@ -13,7 +13,7 @@ participant UI
 participant API
 database DB
 
-賣家 -> UI : 點擊「下架」並確認
+賣家 -> UI : 點擊「取消上架」並確認
 activate 賣家
 activate UI
 UI -> API : DELETE /api/books/:id
@@ -25,29 +25,32 @@ deactivate DB
 alt 預約保留期間
   API --> UI : 409 BOOK_HELD
   UI --> 賣家 : 顯示「保留期間無法下架」
-else 交易中或已售出
-  API --> UI : 409 請先處理訂單
+else 已售出或已完成
+  API --> UI : 409 請先處理訂單／已完成交易無法下架
   UI --> 賣家 : 顯示錯誤訊息
 else 可下架
   API -> DB : 書籍設為「已下架」
   API --> UI : 200 OK
-  UI --> 賣家 : 顯示下架成功與「復原」
+  UI --> 賣家 : 顯示「已取消上架」與「還原」
 end
 deactivate API
 
 opt 賣家重新上架已下架的書籍
-  賣家 -> UI : 點擊「復原」或「重新上架」
+  賣家 -> UI : 點擊「還原」或「重新上架」
   UI -> API : PUT /api/books/:id\n（狀態改為販售中）
   activate API
-  API -> DB : 查詢審核與檢舉紀錄
+  API -> DB : 查詢審核、檢舉與存書紀錄
   activate DB
   DB --> API : 回傳查詢結果
   deactivate DB
   alt 違規下架（審核未通過或檢舉成立）
     API --> UI : 403 須聯絡客服
     UI --> 賣家 : 顯示「無法自行重新上架」
+  else 書籍仍存放於書櫃
+    API --> UI : 409 須先至書櫃取回
+    UI --> 賣家 : 顯示「請先至書櫃取回後再重新上架」
   else 可重新上架
-    API -> DB : 書籍設為「販售中」\n（待審核者仍暫不公開）
+    API -> DB : 書籍設為「販售中」\n（審核中者仍暫不公開）
     API --> UI : 200 OK
     UI --> 賣家 : 顯示「已重新上架」
   end

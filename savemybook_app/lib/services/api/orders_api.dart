@@ -28,7 +28,11 @@ extension OrdersApi on ApiService {
     final res = await _send('POST', path, body: body);
     if (res == null) return (error: S.pleaseSignFirst, readyForPickup: false);
     if (res['success'] != true) {
-      final error = res['code'] == 'VERIFICATION_CANCELLED' ? '' : (res['message'] as String? ?? S.checkoutFailed);
+      final error = switch (res['code']) {
+        'VERIFICATION_CANCELLED' => '',
+        'ORDER_BOOK_LIMIT' => S.orderBookLimitP0(res['max_books'] ?? Order.maxBooks),
+        _ => res['message'] as String? ?? S.checkoutFailed,
+      };
       return (error: error, readyForPickup: false);
     }
     unawaited(fetchCartBookIds());

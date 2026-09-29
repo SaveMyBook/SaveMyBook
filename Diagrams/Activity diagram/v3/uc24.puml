@@ -11,7 +11,7 @@ start
 |系統|
 :並行查詢Google Books\n與Open Library;
 if (查得書目資料？) then ([否])
-  :顯示「查無此ISBN之\n書籍資訊，請手動輸入」;
+  :顯示「查無此ISBN的\n書籍資訊，請手動輸入」;
   |使用者（賣家）|
   :手動輸入書籍資料;
 else ([是])

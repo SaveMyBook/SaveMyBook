@@ -10,7 +10,7 @@ skinparam swimlaneWidth same
 |管理員|
 start
 :於後台編輯法律文件;
-if (勾選「重大更新」？) then ([是])
+if (選擇「重大更新」？) then ([是])
   |系統|
   :版本號遞增並通知\n全體會員重新同意;
 else ([否])

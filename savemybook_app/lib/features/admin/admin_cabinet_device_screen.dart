@@ -293,17 +293,40 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
     );
   }
 
-  Future<AdminCabinetDoor?> _pickDoor(String subtitle) async {
+  static bool _doorTaken(AdminCabinetDoor door) => door.hasContents || door.status == 'occupied' || door.status == 'reserved';
+
+  List<AdminCabinetDoor> get _freeDoors => [for (final door in _summary?.doors ?? const <AdminCabinetDoor>[]) if (!_doorTaken(door)) door];
+
+  Future<AdminCabinetDoor?> _pickDoor(String subtitle, {Set<int> chosen = const {}}) async {
     final doors = _summary?.doors ?? const <AdminCabinetDoor>[];
     final slotId = await _menu<int>(
       title: S.selectDoorWhereBooksActuallyStored,
       subtitle: subtitle,
       entries: [
         for (final door in doors)
-          _MenuEntry(door.slotId, '${S.doorP0(door.label)}・${AppLabels.slot(door.status)}', Icons.sensor_door_outlined),
+          _MenuEntry(
+            door.slotId,
+            '${S.doorP0(door.label)}・${chosen.contains(door.slotId) ? S.alreadySelected : AppLabels.slot(door.status)}',
+            Icons.sensor_door_outlined,
+            enabled: !_doorTaken(door) && !chosen.contains(door.slotId),
+          ),
       ],
     );
     return doors.where((d) => d.slotId == slotId).firstOrNull;
+  }
+
+  Future<Map<int, int>?> _pickDoors(List<AdminCabinetDoorBook> books) async {
+    if (_freeDoors.length < books.length) {
+      showAppSnackBar(context, books.length > 1 ? S.notEnoughAvailableDoorsChooseDifferent : S.noEmptyDoorCurrentlyAvailableRecord, isError: true);
+      return null;
+    }
+    final picked = <int, int>{};
+    for (final book in books) {
+      final door = await _pickDoor(book.title, chosen: picked.values.toSet());
+      if (door == null || !mounted) return null;
+      picked[book.bookId] = door.slotId;
+    }
+    return picked;
   }
 
   Future<void> _pair() async {
@@ -399,7 +422,7 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
       entries: [
         _MenuEntry(_DoorAction.open, S.openDoorRemotely, Icons.lock_open_rounded, enabled: summary.device?.online ?? false),
         if (door.needsCheck) _MenuEntry(_DoorAction.confirm, S.confirmContents, Icons.fact_check_outlined),
-        _MenuEntry(_DoorAction.place, S.recordContents, Icons.playlist_add_rounded, enabled: placeable.isNotEmpty),
+        _MenuEntry(_DoorAction.place, S.recordContents, Icons.playlist_add_rounded, enabled: placeable.isNotEmpty && !_doorTaken(door)),
         if (door.hasContents) _MenuEntry(_DoorAction.clear, S.clearContentsRecord, Icons.delete_sweep_outlined, color: c.danger),
         if (door.isUnderMaintenance)
           _MenuEntry(_DoorAction.endMaintenance, S.endLockerMaintenance, Icons.build_circle_outlined)
@@ -446,7 +469,7 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
     final options = _placeOptions(summary, door);
     if (options.isEmpty) return;
     final c = AppColors.of(context);
-    final picked = await showModalBottomSheet<List<int>>(
+    final picked = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -455,8 +478,8 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => _PlaceSheet(label: door.label, options: options),
     );
-    if (picked == null || picked.isEmpty || !mounted) return;
-    await _run(() => _api.placeCabinetDoorItems(_cabinetId, door.slotId, bookIds: picked), S.contentsRecorded);
+    if (picked == null || !mounted) return;
+    await _run(() => _api.placeCabinetDoorItems(_cabinetId, door.slotId, bookIds: [picked]), S.contentsRecorded);
   }
 
   static List<_PlaceOption> _placeOptions(AdminCabinetDeviceSummary summary, AdminCabinetDoor door) {
@@ -472,9 +495,10 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
 
   Future<void> _placeUnplaced(AdminCabinetUnplacedItem item) async {
     if (_busy) return;
-    final door = await _pickDoor(item.title);
-    if (door == null || !mounted) return;
-    await _run(() => _api.placeCabinetDoorItems(_cabinetId, door.slotId, bookIds: [item.bookId]), S.contentsRecorded);
+    final picked = await _pickDoors([(bookId: item.bookId, title: item.title)]);
+    final slotId = picked?[item.bookId];
+    if (slotId == null || !mounted) return;
+    await _run(() => _api.placeCabinetDoorItems(_cabinetId, slotId, bookIds: [item.bookId]), S.contentsRecorded);
   }
 
   Future<void> _clearDoor(AdminCabinetDoor door) async {
@@ -525,7 +549,11 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
   Future<void> _confirmReport(AdminCabinetManualReport report) async {
     if (_busy) return;
     int? slotId;
-    if (report.requiresDoor) {
+    Map<int, int>? doors;
+    if (report.requiresDoor && report.doorBooks.isNotEmpty) {
+      doors = await _pickDoors(report.doorBooks);
+      if (doors == null || !mounted) return;
+    } else if (report.requiresDoor) {
       final door = await _pickDoor(_reportSubject(report));
       if (door == null || !mounted) return;
       slotId = door.slotId;
@@ -540,7 +568,7 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
       confirmLabel: S.confirmReport,
     );
     if (note == null || !mounted) return;
-    await _run(() => _api.confirmCabinetManualReport(report.reportNo, note: note, slotId: slotId), S.manualReportConfirmed);
+    await _run(() => _api.confirmCabinetManualReport(report.reportNo, note: note, slotId: slotId, doors: doors), S.manualReportConfirmed);
   }
 
   Future<void> _rejectReport(AdminCabinetManualReport report) async {
@@ -1286,7 +1314,7 @@ class _PlaceSheet extends StatefulWidget {
 }
 
 class _PlaceSheetState extends State<_PlaceSheet> {
-  final Set<int> _selected = {};
+  int? _selected;
 
   @override
   Widget build(BuildContext context) {
@@ -1316,6 +1344,7 @@ class _PlaceSheetState extends State<_PlaceSheet> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary)),
                 const SizedBox(height: 4),
                 Text(S.selectItemsActuallyStoredDoor, style: TextStyle(fontSize: 12, color: c.textHint)),
+                Text(S.eachDoorCanHoldOnlyOne, style: TextStyle(fontSize: 12, color: c.textHint)),
               ],
             ),
           ),
@@ -1326,17 +1355,14 @@ class _PlaceSheetState extends State<_PlaceSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               children: [
                 for (final option in widget.options)
-                  CheckboxListTile(
-                    value: _selected.contains(option.bookId),
-                    activeColor: c.accent,
-                    controlAffinity: ListTileControlAffinity.leading,
-                    onChanged: (value) => setState(() {
-                      if (value ?? false) {
-                        _selected.add(option.bookId);
-                      } else {
-                        _selected.remove(option.bookId);
-                      }
-                    }),
+                  ListTile(
+                    selected: _selected == option.bookId,
+                    selectedColor: c.accent,
+                    leading: Icon(
+                      _selected == option.bookId ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
+                      color: _selected == option.bookId ? c.accent : c.iconInactive,
+                    ),
+                    onTap: () => setState(() => _selected = option.bookId),
                     title: Text(option.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, color: c.textPrimary)),
                     subtitle: option.note.isEmpty ? null : Text(option.note, style: TextStyle(fontSize: 12, color: c.textHint)),
                   ),
@@ -1347,7 +1373,7 @@ class _PlaceSheetState extends State<_PlaceSheet> {
             padding: EdgeInsets.fromLTRB(20, 8, 20, 16 + MediaQuery.of(context).padding.bottom),
             child: PrimaryButton(
               label: S.recordContents,
-              onPressed: _selected.isEmpty ? null : () => Navigator.pop(context, [for (final o in widget.options) if (_selected.contains(o.bookId)) o.bookId]),
+              onPressed: _selected == null ? null : () => Navigator.pop(context, _selected),
             ),
           ),
         ],

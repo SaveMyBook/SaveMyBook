@@ -137,21 +137,22 @@ module.exports = {
       assert.strictEqual(h.eventsOf('session_finished').length, 1);
     }],
 
-    ['依訂單存書：4 本書分到兩扇門，關門後改為已存書並通知買家，slot_id 為主要櫃門', async () => {
+    ['依訂單存書：每本書各分配一扇櫃門，關門後改為已存書並通知買家，slot_id 為主要櫃門', async () => {
       const ctx = h.scene();
-      const books = [1, 2, 3, 4].map((i) => h.listedBook(ctx, { title: `書籍${i}` }));
+      const books = [1, 2].map((i) => h.listedBook(ctx, { title: `書籍${i}` }));
       const order = h.orderFor(ctx, books.map((b) => b.book_id));
 
       const created = await h.createSession(ctx, ctx.sellerToken);
       assert.strictEqual(created.status, 201, created.text);
       assert.strictEqual(created.body.data.items[0].kind, 'order_deposit');
+      assert.strictEqual(created.body.data.items[0].note, null);
       assert.ok(created.body.data.items[0].books.every((b) => b.door === null));
       const no = created.body.data.session_no;
       const started = await h.startSession(ctx.sellerToken, no, [`order:${order.order_id}`]);
       assert.strictEqual(started.status, 200, started.text);
       assert.deepStrictEqual(doorLabels(started.body.data), ['A01', 'A02']);
       assert.strictEqual(started.body.data.open_ms, 45000);
-      assert.deepStrictEqual(started.body.data.items[0].books.map((b) => b.door), ['A01', 'A01', 'A02', 'A02']);
+      assert.deepStrictEqual(started.body.data.items[0].books.map((b) => b.door), ['A01', 'A02']);
       assert.strictEqual(h.doorOf(ctx.cabinet.cabinet_id, 1).status, 'reserved');
 
       await h.enterCode(no);
@@ -161,20 +162,18 @@ module.exports = {
 
       const final = (await h.getSession(ctx.sellerToken, no)).body.data;
       assert.strictEqual(final.status, 'completed');
+      assert.strictEqual(final.items[0].note, null);
       const current = h.orderOf(order.order_id);
       assert.strictEqual(current.status, 'deposited');
       assert.strictEqual(current.slot_id, h.doorOf(ctx.cabinet.cabinet_id, 1).slot_id);
       assert.ok(h.notificationsOf(ctx.buyer.user_id).some((n) => n.title === '書籍已存入書櫃'
         && n.content.includes('請於營業時間內至書櫃以 App 掃描 QR Code 取書')));
-      assert.deepStrictEqual(books.map((b) => h.slotItemOf(b.book_id).slot_id), [
-        h.doorOf(ctx.cabinet.cabinet_id, 1).slot_id, h.doorOf(ctx.cabinet.cabinet_id, 1).slot_id,
-        h.doorOf(ctx.cabinet.cabinet_id, 2).slot_id, h.doorOf(ctx.cabinet.cabinet_id, 2).slot_id
-      ]);
+      assert.deepStrictEqual(books.map((b) => h.slotItemOf(b.book_id).slot_id), [1, 2].map((c) => h.doorOf(ctx.cabinet.cabinet_id, c).slot_id));
       assert.strictEqual(h.doorOf(ctx.cabinet.cabinet_id, 1).status, 'occupied');
       assert.strictEqual(h.cabinetRow(ctx.cabinet.cabinet_id).available_slots, 2);
     }],
 
-    ['依訂單存書：書已先存在此書櫃時補進原櫃門，不另開新門', async () => {
+    ['依訂單存書：書已先存在此書櫃時，其餘書籍分配新的櫃門，原櫃門不重新開啟', async () => {
       const ctx = h.scene();
       const first = h.listedBook(ctx, { title: '先存的書' });
       const second = h.listedBook(ctx, { title: '後存的書' });
@@ -183,9 +182,81 @@ module.exports = {
 
       const { final } = await h.runSession(ctx, ctx.sellerToken, { keys: [`order:${order.order_id}`] });
       assert.strictEqual(final.status, 'completed', JSON.stringify(final));
-      assert.deepStrictEqual(doorLabels(final), ['A03']);
-      assert.strictEqual(h.slotItemOf(second.book_id).slot_id, h.doorOf(ctx.cabinet.cabinet_id, 3).slot_id);
+      assert.deepStrictEqual(doorLabels(final), ['A01']);
+      assert.deepStrictEqual(final.items[0].books.map((b) => b.door), ['A03', 'A01']);
+      assert.strictEqual(h.slotItemOf(first.book_id).slot_id, h.doorOf(ctx.cabinet.cabinet_id, 3).slot_id);
+      assert.strictEqual(h.slotItemOf(second.book_id).slot_id, h.doorOf(ctx.cabinet.cabinet_id, 1).slot_id);
       assert.strictEqual(h.orderOf(order.order_id).status, 'deposited');
+    }],
+
+    ['依訂單存書：空門不足時先存入部分書籍，訂單維持待存書；其餘書籍存入後才改為已存書並通知買家', async () => {
+      const ctx = h.scene({ doorCount: 2 });
+      const other = h.addBook({ sellerId: h.addUser().user_id, cabinet_id: ctx.cabinet.cabinet_id });
+      h.addPlaced(other.book_id, h.doorOf(ctx.cabinet.cabinet_id, 1).slot_id);
+      const [a, b] = [h.listedBook(ctx, { title: '甲' }), h.listedBook(ctx, { title: '乙' })];
+      const order = h.orderFor(ctx, [a.book_id, b.book_id]);
+
+      const { no, created, started, final } = await h.runSession(ctx, ctx.sellerToken);
+      const unit = created.body.data.items[0];
+      assert.strictEqual(unit.blocked, null);
+      assert.strictEqual(unit.selected, true);
+      assert.deepStrictEqual(unit.note, {
+        code: 'DEPOSIT_PARTIAL', message: '可用櫃門不足，本次僅能存入部分書籍，其餘書籍待有空櫃門時再存入'
+      });
+      assert.deepStrictEqual(doorLabels(started.body.data), ['A02']);
+      assert.strictEqual(started.body.data.open_ms, 30000);
+      assert.strictEqual(final.status, 'completed', JSON.stringify(final));
+      assert.strictEqual(final.items[0].result, 'done');
+      assert.deepStrictEqual(final.items[0].books.map((x) => x.door), ['A02', null]);
+      assert.deepStrictEqual(final.items[0].note, { code: 'DEPOSIT_PARTIAL', message: '已存入 1 本，其餘書籍待有空櫃門時再存入' });
+      assert.deepStrictEqual(h.itemsOf(no).map((i) => [i.selected, i.result]), [[true, 'done'], [false, 'skipped']]);
+
+      const pending = h.orderOf(order.order_id);
+      assert.strictEqual(pending.status, 'pending_deposit');
+      assert.strictEqual(pending.deposited_at ?? null, null);
+      assert.strictEqual(h.slotItemOf(a.book_id).slot_id, h.doorOf(ctx.cabinet.cabinet_id, 2).slot_id);
+      assert.strictEqual(h.slotItemOf(b.book_id), null);
+      assert.deepStrictEqual(prisma.rows('order_items').filter((i) => i.order_id === order.order_id).map((i) => Boolean(i.pre_deposited)), [true, false]);
+      assert.ok(!h.notificationsOf(ctx.buyer.user_id).some((n) => n.title === '書籍已存入書櫃'));
+      assert.strictEqual(h.notificationsOf(ctx.seller.user_id).find((n) => n.title === '訂單書籍已部分存入').content,
+        `訂單 ${order.order_no} 已存入 1 本，其餘 1 本待有空櫃門時再存入；須於訂單成立後 7 天內全部存入，逾期訂單將自動取消。`);
+
+      await api('services/cabinet-doors').removeBooks(prisma, [other.book_id]);
+      const rest = await h.runSession(ctx, ctx.sellerToken, { keys: [`order:${order.order_id}`] });
+      assert.strictEqual(rest.created.body.data.items[0].note, null);
+      assert.deepStrictEqual(doorLabels(rest.final), ['A01']);
+      assert.deepStrictEqual(rest.final.items[0].books.map((x) => x.door), ['A02', 'A01']);
+      assert.strictEqual(rest.final.items[0].note, null);
+      assert.strictEqual(h.orderOf(order.order_id).status, 'deposited');
+      assert.strictEqual(h.slotItemOf(b.book_id).slot_id, h.doorOf(ctx.cabinet.cabinet_id, 1).slot_id);
+      assert.ok(h.notificationsOf(ctx.buyer.user_id).some((n) => n.title === '書籍已存入書櫃'));
+    }],
+
+    ['部分存書後逾期未存齊：訂單自動取消並全額退款，已存入的書恢復存書登記、改為下架並請賣家取回', async () => {
+      const ctx = h.scene({ doorCount: 2 });
+      const other = h.addBook({ sellerId: h.addUser().user_id, cabinet_id: ctx.cabinet.cabinet_id });
+      h.addPlaced(other.book_id, h.doorOf(ctx.cabinet.cabinet_id, 1).slot_id);
+      const [a, b] = [h.listedBook(ctx, { title: '甲' }), h.listedBook(ctx, { title: '乙' })];
+      const order = h.orderFor(ctx, [a.book_id, b.book_id], { amount: 150 });
+      await h.runSession(ctx, ctx.sellerToken, { keys: [`order:${order.order_id}`] });
+      assert.strictEqual(h.orderOf(order.order_id).status, 'pending_deposit');
+
+      h.orderOf(order.order_id).created_at = h.ago(8 * 24 * 60 * 60 * 1000);
+      const balance = Number(prisma.rows('wallets').find((w) => w.user_id === ctx.buyer.user_id).balance);
+      assert.strictEqual(await orders().cancelUndeposited(), 1);
+      assert.strictEqual(h.orderOf(order.order_id).status, 'cancelled');
+      assert.strictEqual(Number(prisma.rows('wallets').find((w) => w.user_id === ctx.buyer.user_id).balance), balance + 150);
+      assert.strictEqual(h.depositOf(a.book_id).cabinet_id, ctx.cabinet.cabinet_id);
+      assert.strictEqual(h.depositOf(b.book_id), null);
+      assert.deepStrictEqual([a, b].map((x) => h.bookOf(x.book_id).status), ['removed', 'removed']);
+      const notice = h.notificationsOf(ctx.seller.user_id).find((n) => n.title === '訂單已取消');
+      assert.match(notice.content, /已存放於書櫃的書籍請至書櫃以 App 掃描 QR Code 取回/);
+
+      const back = await h.createSession(ctx, ctx.sellerToken, { context: { type: 'book', id: a.book_id } });
+      assert.strictEqual(back.status, 201, back.text);
+      const unit = back.body.data.items.find((i) => i.key === `book:${a.book_id}`);
+      assert.strictEqual(unit.kind, 'retrieval');
+      assert.strictEqual(unit.selected, true);
     }],
 
     ['先行存書：關門後建立存書登記與櫃內紀錄', async () => {

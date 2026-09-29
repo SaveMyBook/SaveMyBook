@@ -10,7 +10,7 @@ Future<bool?> showPaymentSuccess(
   BuildContext context, {
   required double total,
   int count = 1,
-  int sellerCount = 1,
+  int orderCount = 1,
   bool readyForPickup = false,
 }) {
   final c = AppColors.of(context);
@@ -62,8 +62,8 @@ Future<bool?> showPaymentSuccess(
                 FadeSlideIn(
                   index: 5,
                   child: Text(
-                    sellerCount > 1
-                        ? S.p0BooksSplitIntoP1Orders(count, sellerCount)
+                    orderCount > 1
+                        ? S.p0BooksSplitIntoP1Orders(count, orderCount)
                         : readyForPickup
                         ? S.orderPlacedBookLockerReadyPickup
                         : S.orderPlacedSellerDropBookOff,

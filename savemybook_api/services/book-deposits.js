@@ -15,6 +15,7 @@ const doors = require('./cabinet-doors');
 
 const cabinetManual = () => require('./cabinet-manual');
 const candidates = () => require('./cabinet-candidates');
+const reservations = () => require('./reservations');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PAUSE_DAYS = policy.DEPOSIT_PAUSE_DAYS;
@@ -127,7 +128,7 @@ const assertRelistable = async (bookId) => {
 
 const assertDeletable = async (db, bookId) => {
   if (await db.book_deposits.count({ where: { book_id: bookId } })) {
-    throw conflict('此書籍仍存放於書櫃，請先於書櫃管理登記取出後再刪除', 'BOOK_DEPOSITED');
+    throw conflict('此書籍仍存放於書櫃，請先於存書列表登記取出後再刪除', 'BOOK_DEPOSITED');
   }
 };
 
@@ -158,7 +159,7 @@ const ownBook = async (bookId, user, deniedMessage) => {
 // book 須含 smart_cabinets（cabinetBrief 與 is_active）。
 const assertDepositAllowed = async (book) => {
   if (book.status !== 'on_sale' || !book.is_approved) {
-    throw conflict('書籍須為上架中且已公開販售，才能存入書櫃', 'DEPOSIT_NOT_ALLOWED');
+    throw conflict('書籍須為販售中且已公開，才能存入書櫃', 'DEPOSIT_NOT_ALLOWED');
   }
   const cabinet = book.smart_cabinets;
   if (!cabinet) throw badRequest('請先於書籍資料中指定存放的書櫃', 'CABINET_REQUIRED');
@@ -246,6 +247,8 @@ const retrieveInTx = async (tx, { book, row, restore, now = new Date() }) => {
   const relisted = restore
     ? await tx.books.updateMany({ where: { book_id: bookId, status: 'removed' }, data: { status: 'on_sale', updated_at: now } })
     : { count: 0 };
+  // 書櫃作業或手動回報期間暫時停售的書只是回到原狀，不算重新上架。
+  if (relisted.count > 0 && row.auto_paused) await reservations().notifyRelisted(tx, bookId);
   const current = await tx.books.findUnique({ where: { book_id: bookId }, select: { status: true } });
   return { status: current?.status ?? book.status, restored: relisted.count > 0 };
 };

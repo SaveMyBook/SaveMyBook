@@ -30,8 +30,6 @@ entity "orders" as orders {
   {field} total_amount : decimal(10,2)
   {field} cabinet_id : int
   {field} slot_id : int
-  {field} pickup_code : varchar(20)
-  {field} pickup_qr_code : varchar(500)
   {field} status : enum
   {field} payment_method : enum
   {field} payment_at : datetime

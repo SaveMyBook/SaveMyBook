@@ -5,6 +5,7 @@ const { changeBalance } = require('../wallet');
 const { notify } = require('../notify');
 const reservations = require('../reservations');
 const cabinets = require('../cabinets');
+const policy = require('../../constants/policy');
 const { orderInclude } = require('./selects');
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -16,38 +17,26 @@ const buildOrderNo = () => {
   return `SMB${stamp}${crypto.randomInt(100000, 1000000)}`;
 };
 
-const sellerContent = (orderNo, { inCabinet, stored, missing, elsewhere, cabinet }) => {
+const sellerContent = (orderNo, { inCabinet, stored }) => {
   if (inCabinet) return `訂單 ${orderNo} 已成立，書籍已存放於書櫃，待買家取書。`;
-  const target = cabinet ? `「${cabinet}」` : '訂單指定的書櫃';
-  if (elsewhere > 0 && missing === 0) {
-    return `訂單 ${orderNo} 已成立，請於七天內至原存放的書櫃以 App 掃描 QR Code 取回書籍，再存入${target}。`;
-  }
-  if (elsewhere > 0) {
-    return `訂單 ${orderNo} 已成立，請於七天內將其餘書籍存入${target}；存放於其他書櫃的書籍，請先至該書櫃以 App 掃描 QR Code 取回後一併存入。`;
-  }
-  if (stored > 0 && missing > 0) return `訂單 ${orderNo} 已成立，請於七天內至書櫃以 App 掃描 QR Code，存入其餘書籍。`;
+  if (stored > 0) return `訂單 ${orderNo} 已成立，請於七天內至書櫃以 App 掃描 QR Code，存入其餘書籍。`;
   return `訂單 ${orderNo} 已成立，請於七天內至書櫃存書。`;
 };
 
 // 逐本以刪除筆數判斷存書位置：刪除讀取的是最新資料，快照讀取會漏看結帳期間才完成的存書或取回。
+// 存書登記的書櫃與書籍的書櫃不一致（資料異常）時，該書不視為已在訂單書櫃，但仍須刪除登記，以免已售出的書留有存書紀錄。
 const releaseDeposits = async (tx, bookIds, cabinetId) => {
-  const placement = new Map();
+  const stored = new Set();
   for (const bookId of bookIds) {
     const same = cabinetId != null
       ? await tx.book_deposits.deleteMany({ where: { book_id: bookId, cabinet_id: cabinetId } })
       : { count: 0 };
-    if (same.count > 0) {
-      placement.set(bookId, 'same');
-      continue;
-    }
-    const other = await tx.book_deposits.deleteMany({ where: { book_id: bookId } });
-    if (other.count > 0) placement.set(bookId, 'elsewhere');
+    if (same.count > 0) stored.add(bookId);
+    else await tx.book_deposits.deleteMany({ where: { book_id: bookId } });
   }
-  const elsewhere = [...placement.values()].filter((p) => p === 'elsewhere').length;
-  return { placement, stored: placement.size, missing: bookIds.length - placement.size, elsewhere };
+  return { stored, missing: bookIds.length - stored.size };
 };
 
-const itemQuantity = (item) => Math.max(1, Math.min(item.quantity, item.books.quantity || 1));
 
 const checkout = async (buyerId, { cartIds, paymentMethod }) => {
   const cartItems = await prisma.shopping_cart.findMany({
@@ -100,14 +89,23 @@ const placeOrders = async (buyerId, cartItems, { paymentMethod, alsoRemoveBookId
     throw badRequest(`《${invalidPrice.books.title}》的售價異常，${hint('請聯絡賣家或先移除', '請聯絡賣家')}`);
   }
 
-  const bySeller = new Map();
+  const groups = new Map();
   for (const item of cartItems) {
-    const sellerId = item.books.seller_id;
-    if (!bySeller.has(sellerId)) bySeller.set(sellerId, []);
-    bySeller.get(sellerId).push(item);
+    const key = `${item.books.seller_id}:${item.books.cabinet_id ?? ''}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  }
+  // 二手書一筆即一本：舊資料的購物車數量可能大於 1，一律以 1 本計價與計入每單上限。
+  const oversized = [...groups.values()].find((items) => items.length > policy.ORDER_MAX_BOOKS);
+  if (oversized) {
+    throw badRequest(
+      `同一賣家於同一書櫃之書籍，每筆訂單最多 ${policy.ORDER_MAX_BOOKS} 本，請分次結帳`,
+      'ORDER_BOOK_LIMIT',
+      { max_books: policy.ORDER_MAX_BOOKS, book_ids: oversized.map((i) => i.book_id) }
+    );
   }
 
-  const lineTotal = (i) => Number(i.books.price) * itemQuantity(i);
+  const lineTotal = (i) => Number(i.books.price);
   const grandTotal = cartItems.reduce((sum, i) => sum + lineTotal(i), 0);
 
   const buyerWallet = await prisma.wallets.findUnique({ where: { user_id: buyerId } });
@@ -122,7 +120,8 @@ const placeOrders = async (buyerId, cartItems, { paymentMethod, alsoRemoveBookId
   return prisma.$transaction(async (tx) => {
     const results = [];
 
-    for (const [sellerId, items] of bySeller) {
+    for (const items of groups.values()) {
+      const sellerId = items[0].books.seller_id;
       const bookIds = items.map((i) => i.book_id);
 
       // 先把書鎖成保留中，兩個買家同時結帳時只有一人的 count 對得上。
@@ -138,7 +137,7 @@ const placeOrders = async (buyerId, cartItems, { paymentMethod, alsoRemoveBookId
       const cabinetId = items[0].books.cabinet_id ?? null;
 
       const released = await releaseDeposits(tx, bookIds, cabinetId);
-      const inCabinet = released.missing === 0 && released.elsewhere === 0
+      const inCabinet = released.missing === 0
         && (await tx.smart_cabinets.count({ where: { cabinet_id: cabinetId, is_active: true } })) > 0;
       const now = new Date();
 
@@ -156,10 +155,10 @@ const placeOrders = async (buyerId, cartItems, { paymentMethod, alsoRemoveBookId
           order_items: {
             create: items.map((i) => ({
               book_id: i.book_id,
-              quantity: itemQuantity(i),
+              quantity: 1,
               unit_price: i.books.price,
               subtotal: lineTotal(i),
-              pre_deposited: released.placement.has(i.book_id)
+              pre_deposited: released.stored.has(i.book_id)
             }))
           }
         },
@@ -178,7 +177,7 @@ const placeOrders = async (buyerId, cartItems, { paymentMethod, alsoRemoveBookId
         userId: sellerId,
         type: 'order',
         title: '書籍已售出',
-        content: sellerContent(order.order_no, { inCabinet, ...released, cabinet: order.smart_cabinets?.cabinet_name }),
+        content: sellerContent(order.order_no, { inCabinet, stored: released.stored.size }),
         relatedId: order.order_id,
         relatedType: 'order'
       });

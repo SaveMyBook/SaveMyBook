@@ -93,15 +93,21 @@ class _BookManageScreenState extends State<BookManageScreen> {
     if (book.isPendingReview) {
       return (label: S.reportReviewing, color: c.warning, detail: S.bookUnderReviewGoSaleOnce);
     }
+    final sold = book.status == 'reserved' || book.status == 'sold';
     if (book.isReviewRejected) {
-      return (label: S.notApproved, color: c.danger, detail: S.bookDidNotPassListingReview);
+      return (label: S.notApproved, color: c.danger, detail: sold ? S.afterReviewBookNoLongerShown : S.bookDidNotPassListingReview);
     }
     switch (book.isApproved ? _reportStatus[book.bookId] : 'resolved') {
       case 'pending':
       case 'reviewing':
         return (label: S.reportReviewing, color: c.warning, detail: S.bookBeenReportedUnderReviewStays);
       case 'resolved':
-        return (label: S.violationConfirmed, color: c.danger, detail: S.violationWasConfirmedBookPleaseCheck);
+        final detail = !sold
+            ? S.violationWasConfirmedBookPleaseCheck
+            : book.isApproved
+                ? S.bookWasConfirmedViolateRulesAfter
+                : S.afterReviewBookNoLongerShown;
+        return (label: S.violationConfirmed, color: c.danger, detail: detail);
       default:
         return null;
     }
@@ -339,7 +345,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
   Widget _buildSwipeable(Book book, AppColors c, {bool fill = false}) {
     final status = _statusOf(book);
     final busy = _busyIds.contains(book.bookId);
-    final canEdit = status == 'on_sale' || status == 'removed';
+    final canEdit = (status == 'on_sale' || status == 'removed') && !book.isDeposited;
 
     SwipeAction? statusAction;
     if (!busy && status == 'removed' && !_violationLocked(book) && !book.isDeposited && !book.canRetrieve) {

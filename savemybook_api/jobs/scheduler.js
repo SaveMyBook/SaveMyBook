@@ -99,9 +99,9 @@ const runReservationExpiry = async () => {
 const runOrderAutomation = async () => {
   if (maintenance.current().active) return;
   try {
-    const { completed, undeposited, uncollected } = await orders.runAutomation();
-    if (completed + undeposited + uncollected > 0) {
-      console.log(`📦 訂單自動處理：完成 ${completed} 筆、逾期未存書取消 ${undeposited} 筆、逾期未取書取消 ${uncollected} 筆`);
+    const { delisted, completed, undeposited, uncollected } = await orders.runAutomation();
+    if (delisted + completed + undeposited + uncollected > 0) {
+      console.log(`📦 訂單自動處理：書籍下架取消 ${delisted} 筆、完成 ${completed} 筆、逾期未存書取消 ${undeposited} 筆、逾期未取書取消 ${uncollected} 筆`);
     }
   } catch (err) {
     console.error('[訂單自動處理失敗]:', err.message);

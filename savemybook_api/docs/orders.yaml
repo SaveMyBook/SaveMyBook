@@ -12,8 +12,19 @@ tags:
       | 條件 | 處理 |
       | --- | --- |
       | 已取書（`picked_up_at` 有值）滿 24 小時，且狀態仍為 `deposited`／`pending_pickup` | 自動完成並撥款，通知買賣雙方 |
-      | `pending_payment`／`pending_deposit` 且訂單成立滿 7 天 | 自動取消、全額退款，書籍改為下架（`removed`），通知雙方；下單前已存書的書恢復存書登記，通知賣家至書櫃以 App 掃描 QR Code 取回（書櫃無法掃碼時改以手動回報，經客服確認後生效） |
+      | `pending_payment`／`pending_deposit` 且訂單成立滿 7 天 | 自動取消、全額退款，書籍改為下架（`removed`），通知雙方；已在櫃中（`pre_deposited`）的書恢復存書登記，通知賣家至書櫃以 App 掃描 QR Code 取回（書櫃無法掃碼時改以手動回報，經客服確認後生效）。`cancel_reason` 與通知為「賣家逾 7 天未存書」，已部分存入（有 `pre_deposited` 的書）者為「賣家逾 7 天未存齊書籍」 |
       | `deposited`／`pending_pickup` 未取書且存書滿 7 天 | 自動取消、全額退款，書籍改為下架，通知賣家至書櫃取回書籍；訂單的每本書都恢復存書登記，須至書櫃以 App 掃描 QR Code 取回（書櫃無法掃碼時改以手動回報，經客服確認後生效） |
+      | 尚未取書（`pending_payment`、`pending_deposit`，或未取書的 `deposited`／`pending_pickup`），且訂單內有書籍為 `removed` | 視為書籍經審核下架，自動取消（`cancel_reason` 為「書籍經審核下架」）、全額退款並通知雙方；其餘書籍依一般取消流程處理，下架的書維持 `removed` |
+
+      上述自動取消前會檢查書櫃紀錄：訂單正於書櫃作業中（含開門中）時留待下次排程；開門後未完成取書、曾有無法辦理的紀錄、
+      櫃門故障或待確認、有待確認的手動回報時不取消也不退款，通知具硬體維護權限的管理員一次（書櫃事件 `overdue_review`，
+      書籍下架者為 `delist_review`），待紀錄排除後由排程再處理，或由管理員調整訂單狀態。
+
+      書籍經檢舉成立並下架、管理員強制下架（`PATCH /api/admin/books/{id}`，或管理員以 `PUT`／`DELETE /api/books/{id}` 下架）、
+      背景上架審核判定拒絕或管理員拒絕上架審核時，即時執行上述下架取消，未能取消者由排程接續。
+      買家已取書的訂單（`deposited`／`pending_pickup` 且 `picked_up_at` 有值，或已取書而爭議處理中）不自動取消，有問題請申請交易爭議；
+      這類訂單的書比照已完成交易（`sold`）的書不改狀態，只設為不公開顯示（`is_approved` 為 false），訂單照常進行，完成時轉為 `sold`；
+      訂單改為退款或取消時書籍改為下架（`removed`），不恢復販售。書籍下架時若買家正於書櫃取書而未能取消訂單，取書後訂單完成時書籍同樣轉為 `sold` 並維持不公開。
 
       爭議處理中（`refunding`）的訂單不受排程影響。
 
@@ -21,13 +32,16 @@ tags:
       手動回報，經客服確認後生效）。訂單中每本書都已存於該訂單的書櫃時，
       訂單直接成立為 `deposited`，`deposited_at` 為下單時間，買家取書期限自下單起算 7 天，且買賣雙方即無法自行取消，
       如有問題須申請交易爭議；其餘訂單照常以 `pending_deposit` 成立，由賣家依書櫃作業存書。
-      訂單項目的 `pre_deposited` 標示下單時已在櫃中的書。訂單在買家取書前取消或退款時，仍在櫃中的書恢復存書登記
+      訂單項目的 `pre_deposited` 標示已在訂單書櫃中的書：下單時已先行存書，或訂單部分存書時已存入者。
+      依訂單存書時空門不足，賣家可先存入部分書籍（每本一扇櫃門），訂單在全部書籍存入前維持 `pending_deposit`，
+      全部存入後才轉為 `deposited` 並通知買家取書；訂單成立滿 7 天仍未存齊時依排程自動取消並全額退款（見「書櫃作業」）。
+      訂單在買家取書前取消或退款時，仍在櫃中的書恢復存書登記
       （存書時間自取消時重新起算），逾期提醒與後台存書列表照常追蹤：訂單已存書（`deposited`、`pending_pickup`，
       爭議處理中則為已有 `deposited_at`）時訂單的每本書都恢復登記於訂單書櫃，書籍的書櫃一併改為訂單書櫃；
       尚未存書時僅 `pre_deposited` 的書恢復登記。訂單原為爭議處理中（`refunding`）時，因無法確認書是否仍在櫃中，
       恢復登記的書改為下架，待賣家至書櫃以 App 掃描 QR Code 取回後自行重新上架。已取消或已退款的訂單再調整狀態時不再恢復存書登記。
 
-      購物車涵蓋多位賣家時，結帳會依賣家拆分為多筆訂單，
+      結帳依「賣家＋書籍指定的書櫃」拆分為多筆訂單，每筆訂單在書籍原本指定的書櫃取書，每筆訂單最多 2 本，
       因此 `POST /api/orders/checkout` 的回應為陣列。
 
 paths:
@@ -110,13 +124,20 @@ paths:
         1. 取出購物車項目；帶入 `cart_ids` 時僅取指定項目
         2. 確認每本書籍狀態為 `on_sale` 且售價大於 0
         3. 確認買家代幣餘額足夠；交易內會再次檢查，以防併發請求重複扣款
-        4. 依賣家分組，將書籍狀態更新為 `reserved`
+        4. 依「賣家＋書籍指定的書櫃」分組，訂單書櫃為該組書籍的書櫃；任一組超過 2 本時回 400 `ORDER_BOOK_LIMIT`，不扣款；否則將書籍狀態更新為 `reserved`
         5. 移除這些書的存書登記並以 `pre_deposited` 標示；該組每本書都已存於訂單書櫃時，訂單直接成立為 `deposited`（`deposited_at` 為下單時間），否則為 `pending_deposit`
         6. 建立訂單並產生訂單編號，自買家錢包扣款並寫入一筆 `purchase` 交易紀錄
-        7. 通知賣家訂單成立：`pending_deposit` 請賣家於七天內存書（部分書已在櫃中時請存入其餘書籍，存於其他書櫃時請移至訂單書櫃）；`deposited` 不需再存書，並通知買家即可前往書櫃取書
+        7. 通知賣家訂單成立：`pending_deposit` 請賣家於七天內存書（部分書已在櫃中時請存入其餘書籍）；`deposited` 不需再存書，並通知買家即可前往書櫃取書
         8. 移除已結帳的購物車項目
 
-        因跨賣家會拆分訂單，回應為訂單陣列。
+        因跨賣家或跨書櫃會拆分訂單，回應為訂單陣列。存書登記的書櫃與書籍指定的書櫃不一致（資料異常）時，
+        該書不視為已在訂單書櫃，仍移除存書登記，訂單以 `pending_deposit` 成立。
+
+        同一賣家於同一書櫃的書籍超過 2 本時回 400 `ORDER_BOOK_LIMIT`（附 `max_books` 與該組的 `book_ids`），
+        請使用者分次結帳；直接購買（`POST /api/orders/buy-now`）為單本，不受影響。
+
+        二手書一筆商品即一本實體書，每個購物車項目一律以 1 本計價並計入每筆訂單的本數上限，訂單明細的 `quantity` 為 1；
+        舊資料的購物車數量大於 1 時同樣以 1 本成立訂單。
 
         成立即為 `deposited` 的訂單（書已先行存書）買家無法自行取消，App 應於結帳前提示；如有問題須申請交易爭議。
 
@@ -170,6 +191,8 @@ paths:
                   value: { success: false, message: 《挪威的森林》的售價異常，請聯絡賣家或先移除 }
                 代幣不足:
                   value: { success: false, code: INSUFFICIENT_BALANCE, message: 代幣不足，此訂單需 540 代幣，目前餘額 200 }
+                同一賣家同一書櫃超過本數上限:
+                  value: { success: false, code: ORDER_BOOK_LIMIT, message: 同一賣家於同一書櫃之書籍，每筆訂單最多 2 本，請分次結帳, max_books: 2, book_ids: [101, 102, 103] }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/VerificationRequired' }
         '409': { $ref: '#/components/responses/BookReserved' }
@@ -189,6 +212,8 @@ paths:
         不經購物車直接購買一本書，檢查項目、扣款、書籍狀態、訂單初始狀態（書已存入書櫃時為 `deposited`，買家即無法自行取消）與通知皆與 `POST /api/orders/checkout` 相同；
         該書若也在請求者的購物車中會一併移除。需 `payment` 範圍的身分驗證（方式同結帳）。
 
+        `quantity` 可省略（視為 1），帶入其他值回傳 400 `QUANTITY_FIXED`。
+
         書籍不存在或未公開回傳 404；已被買走、為自己上架的書或售價異常回傳 400；
         代幣不足回傳 400 `INSUFFICIENT_BALANCE`；由其他買家預約保留中回傳 409 `BOOK_RESERVED`；
         同時有人結帳同一本書時，其中一方回傳 409。
@@ -204,6 +229,7 @@ paths:
               required: [book_id]
               properties:
                 book_id: { type: integer, example: 101 }
+                quantity: { type: integer, enum: [1], default: 1, description: 固定為 1，可省略。 }
       responses:
         '201':
           description: 購買成功，回傳建立的訂單。
@@ -225,6 +251,8 @@ paths:
                   value: { success: false, message: 《挪威的森林》已無法購買 }
                 代幣不足:
                   value: { success: false, code: INSUFFICIENT_BALANCE, message: 代幣不足，此訂單需 180 代幣，目前餘額 50 }
+                數量不是 1:
+                  value: { success: false, code: QUANTITY_FIXED, message: 每筆書籍僅有一本，數量僅能為 1 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/VerificationRequired' }
         '404': { $ref: '#/components/responses/NotFound' }

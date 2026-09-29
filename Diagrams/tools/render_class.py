@@ -11,7 +11,7 @@ LINK = re.compile(r'<g class="link"[^>]*>.*?</g>', re.S)
 TEXT = re.compile(r'<text\b[^>]*>[^<]*</text>')
 CLEAR = 7.0
 TEXT_GAP = 5.0
-OFFSETS = sorted(((dx, dy) for dx in range(-40, 41, 2) for dy in range(-30, 31, 2)), key=lambda d: d[0] ** 2 + d[1] ** 2)
+OFFSETS = sorted(((dx, dy) for dx in range(-200, 201, 4) for dy in range(-30, 31, 2)), key=lambda d: d[0] ** 2 + d[1] ** 2)
 
 
 def _num(tag, name):

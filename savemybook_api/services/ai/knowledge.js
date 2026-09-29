@@ -35,21 +35,23 @@ const PLATFORM_TOPICS = [
     title: '上架販售',
     keywords: '上架 賣書 刊登 販售 賣東西 新增書籍 ISBN 條碼 照片 書況 售價 定價 價格 多少錢 編輯 修改 下架 取消上架 刪除 重新上架',
     en: 'list listing listings sell selling post upload barcode photo photos picture pictures condition price pricing edit delist unlist relist',
-    text: `賣家在 App 填寫書名、售價（大於 0 且不超過 ${policy.LISTING_MAX_PRICE} 代幣）、書況並上傳照片（每本最多 ${policy.LISTING_MAX_IMAGES} 張）即可上架，輸入或掃描 ISBN 可自動帶入書目資料。賣家可編輯或取消上架自己的書籍（狀態改為已下架），但預約保留期間或已有訂單的書籍無法編輯或取消上架；存書期間無法變更書櫃，存放於書櫃的書籍取消上架後，須先至書櫃以 App 掃描 QR Code 取回，才能重新上架。因違規遭管理員下架的書籍無法自行重新上架，須聯絡客服。`
+    text: `賣家在 App 填寫書名、售價（大於 0 且不超過 ${policy.LISTING_MAX_PRICE} 代幣）、書況並上傳照片（每本最多 ${policy.LISTING_MAX_IMAGES} 張）即可上架，輸入或掃描 ISBN 可自動帶入書目資料。賣家可編輯或取消上架自己的書籍（狀態改為已下架），已下架的書籍仍可編輯；但預約保留期間或已有訂單的書籍無法編輯或取消上架。書籍存放於書櫃期間無法編輯（含售價、照片與書櫃），存放於書櫃的書籍取消上架後，須先至書櫃以 App 掃描 QR Code 取回，才能編輯或重新上架。因違規遭管理員下架的書籍無法自行重新上架，須聯絡客服。`
   },
   {
     id: 'review',
     title: '上架審核',
     keywords: '審核 審核中 送審 待審核 沒有上架 看不到 搜尋不到 被下架 未通過 駁回 違規 多久 為什麼',
     en: 'review reviewing moderation approval approve approved rejected rejection hidden invisible visible search violation',
-    text: `上架後系統會自動檢查內容。售價明顯高於同書行情或一般二手書價格（例如 ${policy.LISTING_REVIEW_PRICE} 代幣以上）、疑似圖書館館藏或非賣品、非書籍商品、留下站外聯絡方式等情況，書籍會先送交人工審核，審核期間不會公開販售，賣家會收到「書籍已送交審核」通知。管理員核准後自動公開；未通過會下架並通知原因。審核時間依管理員處理進度而定，平台沒有承諾固定時限。`
+    text: `上架後系統會自動檢查內容。售價明顯高於同書行情或一般二手書價格（例如 ${policy.LISTING_REVIEW_PRICE} 代幣以上）、疑似圖書館館藏或非賣品、非書籍商品、留下站外聯絡方式等情況，書籍會先送交人工審核，審核期間不會公開販售，賣家會收到「書籍已送交審核」通知。管理員核准後自動公開；未通過會下架並通知原因，已成立但買家尚未取書的訂單自動取消並全額退款；已取書的訂單照常進行，書籍停止公開顯示。審核時間依管理員處理進度而定，平台沒有承諾固定時限。`
   },
   {
     id: 'buying',
     title: '購買與付款',
-    keywords: '購買 買書 結帳 付款 購物車 扣款 交易密碼 生物辨識 指紋 臉部 多位賣家 拆單',
-    en: 'buy buying purchase purchasing checkout pay payment paying cart pin biometric biometrics fingerprint face sellers split',
-    text: '買家將書加入購物車後結帳，結帳時立即從錢包扣除代幣，並需以交易密碼或生物辨識驗證。購物車包含多位賣家的書籍時，會依賣家拆成多筆訂單。錢包餘額不足時無法結帳。'
+    keywords: '購買 買書 結帳 付款 購物車 扣款 交易密碼 生物辨識 指紋 臉部 多位賣家 拆單 分次結帳 幾本 上限',
+    en: 'buy buying purchase purchasing checkout pay payment paying cart pin biometric biometrics fingerprint face sellers split limit maximum',
+    text: '買家將書加入購物車後結帳，結帳時立即從錢包扣除代幣，並需以交易密碼或生物辨識驗證。'
+      + '結帳時依賣家與書籍指定的書櫃拆成多筆訂單，'
+      + `同一賣家於同一書櫃的書籍，每筆訂單最多 ${policy.ORDER_MAX_BOOKS} 本，超過時請分次結帳。錢包餘額不足時無法結帳。`
   },
   {
     id: 'order-flow',
@@ -58,11 +60,11 @@ const PLATFORM_TOPICS = [
     en: 'order orders status progress payout payouts paid release released earnings income complete completed completion confirm awaiting',
     text: '結帳時即從買家錢包扣除代幣，款項由平台代為保管。訂單狀態依序為：待付款 → 待存書（買家端顯示「待賣家存書」）→ 已存書或待取書（買家端顯示「待取書」）→ 已完成。'
       + '訂單內的書籍皆已先行存入訂單指定的書櫃時，訂單成立即為已存書，買家可直接前往書櫃取書；'
-      + '僅部分書籍先行存書或有書籍存放於其他書櫃時，訂單仍為待存書。'
+      + '僅部分書籍已存入書櫃時，訂單仍為待存書，全部書籍存入後才轉為已存書並通知買家取書。'
       + '買家取書後、訂單完成前，買家端顯示「待完成訂單」，賣家端顯示「待買家確認」。'
       + `買家可在 App 按下「完成訂單」；未按下者，取書滿 ${policy.ORDER_AUTO_COMPLETE_HOURS} 小時且未申請爭議時，訂單自動完成。`
       + '訂單完成時款項才撥入賣家錢包，撥款前列於賣家錢包的「待撥款項」。'
-      + '其他狀態：已取消；審核中（買家的訂單分頁顯示「爭議處理中」），表示訂單有處理中的交易爭議，訂單暫停進行，待管理員裁決；已退款。'
+      + '其他狀態：已取消；爭議處理中（舊版 App 顯示為「審核中」），表示訂單有處理中的交易爭議，訂單暫停進行，待管理員裁決；已退款。'
   },
   {
     id: 'cabinet',
@@ -71,7 +73,7 @@ const PLATFORM_TOPICS = [
     en: 'locker lockers cabinet drop dropoff deposit deposited store stored retrieve location address broken stuck jammed offline manual',
     text: '賣家可在書籍上架後、訂單成立前，先把書存入該書指定的智慧書櫃（先行存書）；'
       + `也可以等訂單成立後，於 ${policy.ORDER_DEPOSIT_DAYS} 天內存入訂單指定的書櫃。`
-      + '訂單內的書籍皆已先行存入訂單指定的書櫃時，買家下單後可直接到書櫃取書；僅部分書籍先行存書或有書籍存放於其他書櫃時，其餘書籍須在期限內存入訂單指定的書櫃。'
+      + '訂單內的書籍皆已先行存入訂單指定的書櫃時，買家下單後可直接到書櫃取書；僅部分書籍先行存書時，其餘書籍須在期限內存入訂單指定的書櫃。'
       + `存書滿 ${policy.DEPOSIT_PAUSE_DAYS} 天仍未售出，書籍會暫停販售，須至書櫃取回，因逾期而暫停販售的書取回後會自動恢復上架；`
       + `之後每 ${policy.DEPOSIT_REMIND_DAYS} 天會再提醒一次，滿 ${policy.DEPOSIT_ESCALATE_DAYS} 天仍未取回者，平台得派員取出並下架，取出後會通知賣家並代為保管 ${policy.DEPOSIT_REMOVED_KEEP_DAYS} 天，需領回請聯絡客服，逾期未領回視為拋棄。`
       + '存書期間無法變更書櫃。存書、取書與取回一律在書櫃旁以 App 掃描書櫃螢幕上的 QR Code 辦理。平台沒有取件碼，請勿向任何人索取或提供取件碼。'
@@ -80,11 +82,13 @@ const PLATFORM_TOPICS = [
   {
     id: 'cabinet-capacity',
     title: '先行存書上限與櫃門分配',
-    keywords: '先行存書 幾本 櫃門 可用櫃門 櫃門不足 分配 保留 放幾本 容量 滿了',
-    en: 'limit limits capacity full compartment compartments quota',
+    keywords: '先行存書 幾本 櫃門 可用櫃門 櫃門不足 分配 保留 放幾本 容量 滿了 部分存入 存不下 其餘書籍',
+    en: 'limit limits capacity full compartment compartments quota partial remaining',
     text: `每位賣家在同一台書櫃最多先行存放 ${policy.CABINET_PREDEPOSIT_MAX_PER_SELLER} 本尚未售出的書，須待售出或取回後才能再先行存放。`
       + `書櫃僅剩 ${policy.CABINET_ORDER_RESERVED_DOORS} 扇可用櫃門時保留給訂單使用，暫停受理先行存放。`
-      + `訂單書籍由系統分配櫃門，每扇櫃門只存放同一筆訂單的書籍，原則上最多 ${policy.CABINET_DOOR_MAX_BOOKS} 本，書籍較多時分配多扇櫃門；可用櫃門不足時，請減少存書項目或稍後再試。`
+      + '每扇櫃門只存放 1 本書，訂單書籍由系統逐本分配櫃門。'
+      + '可用櫃門不足時，可先存入放得下的書籍，其餘書籍待有空櫃門時再存入；'
+      + `訂單內所有書籍存入後才轉為已存書並通知買家取書，訂單成立 ${policy.ORDER_DEPOSIT_DAYS} 天內未全部存入者，訂單自動取消並全額退款。沒有可用櫃門時請稍後再試。`
   },
   {
     id: 'cabinet-steps',
@@ -134,6 +138,7 @@ const PLATFORM_TOPICS = [
       + `賣家 ${policy.RESERVATION_RESPONSE_HOURS} 小時內未回覆，預約會自動失效。`
       + '賣家接受後，書籍在期限內只保留給該買家，其他買家無法購買，賣家也不得編輯或取消上架；買家須在期限內完成購買，逾期自動取消。'
       + `每位買家同時最多 ${policy.RESERVATION_MAX_ACTIVE} 筆進行中的預約。`
+      + '書籍經審核下架時，進行中的預約會自動取消並通知買家。'
   },
   {
     id: 'cancel',
@@ -142,9 +147,9 @@ const PLATFORM_TOPICS = [
     en: 'cancel cancelling canceling cancellation cancelled refund refunds refunded mistake',
     text: `${CANCELLABLE_LABELS}（賣家尚未存書）的訂單，買賣雙方皆可在 App 取消，已付的代幣全額退回買家錢包。`
       + '賣家存書後雙方皆無法自行取消，如有問題請申請爭議；訂單內的書籍皆已先行存入訂單指定的書櫃時，訂單成立即為已存書，因此也無法取消。'
-      + '僅部分書籍先行存書或有書籍存放於其他書櫃的訂單仍為待存書，賣家完成存書前雙方仍可取消。'
-      + '審核中（爭議處理中）的訂單須等候管理員裁決，無法自行取消；已完成、已取消或已退款的訂單無法取消。'
-      + `賣家逾 ${policy.ORDER_DEPOSIT_DAYS} 天未存書或買家逾 ${policy.ORDER_PICKUP_DAYS} 天未取書時，訂單自動取消並全額退款。`
+      + '僅部分書籍已存入書櫃的訂單仍為待存書，賣家存入全部書籍前雙方仍可取消。'
+      + '爭議處理中（舊版 App 顯示為「審核中」）的訂單須等候管理員裁決，無法自行取消；已完成、已取消或已退款的訂單無法取消。'
+      + `賣家逾 ${policy.ORDER_DEPOSIT_DAYS} 天未存書（含未存齊）或買家逾 ${policy.ORDER_PICKUP_DAYS} 天未取書時，訂單自動取消並全額退款。`
   },
   {
     id: 'dispute',
@@ -154,7 +159,7 @@ const PLATFORM_TOPICS = [
     text: '書況與描述有重大落差或未收到書籍時，可在 App 對訂單申請爭議。'
       + `取書前可隨時申請；取書後須在 ${policy.DISPUTE_WINDOW_HOURS} 小時內、且訂單完成前申請。`
       + '訂單狀態變成已完成後不再受理爭議，買家按下「完成訂單」即視為放棄爭議權利。已取消或已退款的訂單無法申請爭議。'
-      + '申請後訂單轉為審核中（買家的訂單分頁顯示「爭議處理中」）並暫停進行，由管理員裁決退款、駁回或協調結案：'
+      + '申請後訂單轉為爭議處理中（舊版 App 顯示為「審核中」）並暫停進行，由管理員裁決退款、駁回或協調結案：'
       + '裁決退款時，代幣退回買家錢包；駁回或協調結案時，已取書的訂單直接完成並撥款給賣家，尚未取書的訂單恢復原本進度。'
       + '同一訂單同時只能有一筆處理中的爭議。'
   },
@@ -172,6 +177,7 @@ const PLATFORM_TOPICS = [
     keywords: '檢舉 舉報 違規 詐騙 騷擾 假貨 不當',
     en: 'report reporting scam scammer fraud fake harassment harass harassing abuse spam inappropriate',
     text: '可檢舉違規的使用者、商品或訊息。審核期間商品照常販售，管理員確認違規成立才會下架或處置。'
+      + '商品經審核下架時，進行中的預約與尚未取書的訂單會一併取消，已付代幣全額退還；已取書的訂單照常進行，商品停止公開顯示。'
   },
   {
     id: 'account',
@@ -193,7 +199,7 @@ const PLATFORM_TOPICS = [
     title: 'AI 功能',
     keywords: 'AI 人工智慧 機器人 客服 推薦 書籍顧問 上架輔助 同意',
     en: 'artificial intelligence bot chatbot assistant recommendation recommendations advisor assist consent',
-    text: 'App 內的 AI 功能包含：AI 客服、上架輔助（依照片或 ISBN 產生書目與描述）、個人化推薦與書籍顧問。使用前須同意 AI 資料處理，每日使用次數有上限。AI 客服無法處理的問題可轉接客服人員。'
+    text: 'App 內的 AI 功能包含：AI 客服、上架輔助（依照片或 ISBN 產生書目與描述）、推薦書籍與 AI 書籍顧問。使用前須同意 AI 資料處理，每日使用次數有上限。AI 客服無法處理的問題可轉接客服人員。'
   },
   {
     id: 'handoff',

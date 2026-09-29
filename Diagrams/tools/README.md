@@ -1,6 +1,6 @@
 # 圖檔產生與重疊檢查工具
 
-循序圖與設計類別圖若直接用 PlantUML 產生 PNG，會出現文字壓線、標記被連線穿過的問題，請改用本資料夾的程式產圖。其他圖照常用 PlantUML 產生即可。
+循序圖、設計類別圖與訂單狀態機若直接用 PlantUML 產生 PNG，會出現文字壓線、標記被連線穿過的問題，請改用本資料夾的程式產圖。其他圖照常用 PlantUML 產生即可。
 
 ## 環境需求
 
@@ -15,7 +15,7 @@
 | 圖 | 指令 |
 |---|---|
 | 循序圖（`Sequence Diagrams/v3/*.puml`） | `python3 render_seq.py 檔案.puml` |
-| 設計類別圖（`Class diagram/v3/design_class.puml`） | `python3 render_class.py 檔案.puml` |
+| 設計類別圖（`Class diagram/v3/design_class.puml`）、訂單狀態機（`State Machine/v3/state_orders.puml`） | `python3 render_class.py 檔案.puml` |
 | 其他圖 | `java -jar plantuml.jar -tpng 檔案.puml` |
 
 PNG 會輸出在 `.puml` 旁邊，並內嵌原始碼，供手冊自動檢查比對。

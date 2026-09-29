@@ -315,9 +315,9 @@ const tests = [
     assert.ok(prisma.rows('reservations').every((r) => r.status === 'expired'));
 
     const titles = notificationsOf(buyer.user_id).map((n) => n.title);
-    assert.ok(titles.includes('預約已到期'));
+    assert.ok(titles.includes('預約已過期'));
     assert.ok(titles.includes('預約未獲回覆'));
-    const overdue = notificationsOf(buyer.user_id).find((n) => n.title === '預約已到期');
+    const overdue = notificationsOf(buyer.user_id).find((n) => n.title === '預約已過期');
     assert.strictEqual(overdue.content, '《小王子》的保留期限已屆滿，其他買家現已可購買。');
   }]
 ];

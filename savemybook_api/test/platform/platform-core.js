@@ -98,7 +98,7 @@ module.exports = {
       const blocked = await request('GET', ME, { token: h.tokenFor(blacklisted) });
       assert.strictEqual(blocked.status, 401);
       assert.strictEqual(blocked.body.code, 'ACCOUNT_BLACKLISTED');
-      assert.strictEqual(blocked.body.message, '此帳號已停用，如有疑問請聯絡客服');
+      assert.strictEqual(blocked.body.message, '此帳號已列入黑名單，如有疑問請聯絡客服');
 
       const inactive = h.addUser({ isActive: false });
       const suspended = await request('GET', ME, { token: h.tokenFor(inactive) });

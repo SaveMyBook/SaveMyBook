@@ -63,7 +63,7 @@ router.post('/', authenticateToken, ...photos.fields(IMAGE_FIELDS.map(({ name, m
       isbn: isbn(body.isbn) ?? null,
       description: v.optionalText(body.description, { label: '書籍描述', max: 5000 }) ?? null,
       price: price(body.price),
-      quantity: 1,
+      quantity: v.bookQuantity(body.quantity),
       condition_level: body.condition_level
         ? v.oneOf(body.condition_level, CONDITION_LEVELS, '不支援的書況')
         : 'good',
@@ -99,7 +99,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     publish_date: publishDate(body.publish_date),
     isbn: isbn(body.isbn),
     price: body.price === undefined ? undefined : price(body.price),
-    quantity: body.quantity === undefined ? undefined : v.int(body.quantity, { label: '數量', min: 1, max: 999 }),
+    quantity: body.quantity === undefined ? undefined : v.bookQuantity(body.quantity),
     condition_level: body.condition_level === undefined
       ? undefined
       : v.oneOf(body.condition_level, CONDITION_LEVELS, '不支援的書況'),
@@ -111,7 +111,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
   };
   if (data.title === '') throw badRequest('書名不可為空');
 
-  const { book, moderation } = await books.update(bookId, req.user, data);
+  const { book, moderation } = await books.update(bookId, req.user, data, { req });
   res.status(200).json({
     success: true,
     message: moderation ? '書籍資料已更新並送交審核，審核通過後將公開販售' : '書籍資料更新成功',
@@ -121,8 +121,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 router.delete('/:id', authenticateToken, async (req, res) => {
-  await books.remove(v.id(req.params.id, '書籍編號'), req.user);
-  res.status(200).json({ success: true, message: '書籍已成功下架' });
+  const result = await books.remove(v.id(req.params.id, '書籍編號'), req.user, { req });
+  res.status(200).json({ success: true, message: result?.hidden ? '已停止公開顯示' : '書籍已取消上架' });
 });
 
 router.post('/:id/deposit', authenticateToken, async (req, res) => {

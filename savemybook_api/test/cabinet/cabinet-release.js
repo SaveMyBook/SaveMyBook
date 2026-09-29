@@ -42,7 +42,7 @@ const reviewNotices = (ctx) => h.adminNotices(ctx, '逾期訂單待人工處理'
 module.exports = {
   name: '書櫃：訂單取消、逾期保留與同門書籍',
   tests: [
-    ['訂單取消後同一扇門有多本書：全部暫停販售並通知賣家取回；一扇門一本書時不受影響', async () => {
+    ['舊資料同一扇門有多本書：訂單取消後全部暫停販售並通知賣家取回；一扇門一本書時不受影響', async () => {
       const ctx = h.scene();
       const a = h.listedBook(ctx, { title: '甲' });
       const b = h.listedBook(ctx, { title: '乙' });

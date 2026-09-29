@@ -25,7 +25,7 @@ loop 每小時檢查
 end
 
 == 下載備份 ==
-管理員 -> UI : 點擊「取得下載連結」，\n以密碼或通行密鑰重新驗證
+管理員 -> UI : 點擊「下載」，\n以密碼或通行密鑰重新驗證
 activate 管理員
 activate UI
 UI -> API : POST /api/admin/backups/:id/download-link
@@ -33,7 +33,7 @@ activate API
 API -> API : 產生下載票證（5 分鐘內\n有效，僅能使用一次）
 API --> UI : 下載連結
 deactivate API
-UI --> 管理員 : 複製連結並提示時效
+UI --> 管理員 : 提示時效並提供「複製網址」
 deactivate UI
 管理員 -> API : GET /api/backup-downloads/:ticket
 activate API
@@ -42,11 +42,11 @@ API --> 管理員 : 下載備份檔\n（連結失效時回應 410）
 deactivate API
 
 == 還原資料庫 ==
-管理員 -> UI : 選擇備份，點擊「還原」\n並輸入登入密碼
+管理員 -> UI : 選擇備份，點擊「還原至此備份」\n並輸入登入密碼
 activate UI
 UI -> API : POST /api/admin/backups/:id/restore
 activate API
-API -> DB : 驗證密碼後，\n建立還原前安全備份
+API -> DB : 驗證密碼後，\n建立還原前自動備份
 API -> API : 進入維護模式，暫停其他服務
 API --> UI : 202 Accepted
 API -> DB : 背景匯入備份檔
@@ -54,7 +54,7 @@ API -> DB : 結束維護模式，寫入操作紀錄
 deactivate API
 loop 每 2 秒，直到完成
   UI -> API : GET /api/status
-  API --> UI : 還原進度
+  API --> UI : 還原狀態
 end
 UI --> 管理員 : 顯示還原結果
 deactivate UI

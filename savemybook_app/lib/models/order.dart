@@ -6,7 +6,6 @@ import 'cabinet.dart';
 
 class OrderItem {
   final int itemId;
-  final int quantity;
   final double unitPrice;
   final double subtotal;
   final Book book;
@@ -14,7 +13,6 @@ class OrderItem {
 
   OrderItem({
     required this.itemId,
-    required this.quantity,
     required this.unitPrice,
     required this.subtotal,
     required this.book,
@@ -24,7 +22,6 @@ class OrderItem {
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
       itemId: parseInt(json['item_id']),
-      quantity: parseInt(json['quantity']),
       unitPrice: parseDouble(json['unit_price']),
       subtotal: parseDouble(json['subtotal']),
       book: Book.fromJson(Map<String, dynamic>.from(json['books'] ?? {})),
@@ -58,6 +55,9 @@ class Order {
 
   /// 服務條款規定取書後 24 小時內可提出爭議，修改時須同步條款與伺服器。
   static const disputeWindow = Duration(hours: 24);
+
+  /// 須與伺服器 ORDER_MAX_BOOKS 一致：同一賣家於同一書櫃的書籍每筆訂單的本數上限。
+  static const maxBooks = 2;
 
   Order({
     required this.orderId,

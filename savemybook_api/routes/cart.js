@@ -16,9 +16,9 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   if (req.body.book_id === undefined) throw badRequest('請指定書籍');
   const bookId = v.id(req.body.book_id, '書籍編號');
-  const quantity = req.body.quantity === undefined ? 1 : v.int(req.body.quantity, { label: '數量', min: 1, max: 99 });
+  v.bookQuantity(req.body.quantity);
 
-  const { alreadyInCart, created, item } = await cart.add(req.user.userId, bookId, quantity);
+  const { alreadyInCart, created, item } = await cart.add(req.user.userId, bookId);
   if (alreadyInCart) {
     return res.status(200).json({
       success: true,
@@ -36,10 +36,9 @@ router.get('/book-ids', async (req, res) => {
 
 router.patch('/:cartId', async (req, res) => {
   const cartId = v.id(req.params.cartId, '購物車項目編號');
-  const quantity = v.toInt(req.body.quantity);
-  if (!Number.isSafeInteger(quantity) || quantity < 1) throw badRequest('數量必須大於 0');
+  v.bookQuantity(req.body.quantity);
 
-  const updated = await cart.setQuantity(req.user.userId, cartId, quantity);
+  const updated = await cart.setQuantity(req.user.userId, cartId);
   res.status(200).json({ success: true, message: '已更新數量', data: updated });
 });
 

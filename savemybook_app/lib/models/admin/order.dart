@@ -179,14 +179,12 @@ class AdminOrderItem {
   final int bookId;
   final String title;
   final double unitPrice;
-  final int quantity;
   final String? imageUrl;
 
   AdminOrderItem({
     required this.bookId,
     required this.title,
     required this.unitPrice,
-    required this.quantity,
     this.imageUrl,
   });
 
@@ -195,7 +193,6 @@ class AdminOrderItem {
       bookId: parseInt(json['book_id']),
       title: json['title'] as String? ?? '',
       unitPrice: parseDouble(json['unit_price']),
-      quantity: parseInt(json['quantity']),
       imageUrl: resolveAssetUrl(json['image_url']),
     );
   }

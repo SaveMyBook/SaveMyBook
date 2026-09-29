@@ -20,7 +20,7 @@ activate 賣家
 activate UI
 
 opt 使用 AI 輔助上架
-  賣家 -> UI : 點擊「AI 輔助」並附書況照片
+  賣家 -> UI : 點擊「AI 帶入」並附書況照片
   UI -> API : POST /api/ai/listing-assist
   activate API
   API -> AI : 依書目與照片判斷書況、\n分類與建議售價
@@ -37,10 +37,10 @@ deactivate UI
 activate API
 API -> DB : 檢查書櫃可用，比對同書行情
 
-alt 售價異常或疑似非正規來源
+alt 售價異常、疑似非正規來源或含站外聯絡資訊
   API -> DB : 建立書籍（暫不公開）與待審紀錄
   API -> 賣家 : 通知「已送交審核」
-  API -> 管理員 : 通知「有書籍待審核」
+  API -> 管理員 : 通知「有書籍需上架審核」
 else 未命中規則
   API -> DB : 建立書籍並立即上架
 end
@@ -58,7 +58,7 @@ opt 背景 AI 審核（未命中規則時）
   else AI 判定需人工確認
     API -> DB : 暫停公開並建立待審紀錄
     API -> 賣家 : 通知「已送交審核」
-    API -> 管理員 : 通知「有書籍待審核」
+    API -> 管理員 : 通知「有書籍需上架審核」
   end
   deactivate API
 end

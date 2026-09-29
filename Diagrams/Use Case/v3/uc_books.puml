@@ -17,7 +17,7 @@ actor "AI 服務" as AI
 
 rectangle "SaveMyBook - 書籍與商品管理" {
   usecase "管理書籍" as manage
-  usecase "我要賣書" as sell
+  usecase "上架書籍" as sell
   usecase "掃描 ISBN" as isbn
   usecase "AI 輔助上架" as assist
   usecase "上架審核" as review
@@ -29,7 +29,7 @@ rectangle "SaveMyBook - 書籍與商品管理" {
   usecase "查看相似書籍" as similar
   usecase "查看個人化推薦" as recommend
   usecase "收藏書籍" as fav
-  usecase "檢舉書籍" as report
+  usecase "檢舉商品" as report
 }
 
 賣家 --> manage

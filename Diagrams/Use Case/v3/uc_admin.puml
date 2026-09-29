@@ -23,7 +23,7 @@ rectangle "SaveMyBook - 後台管理" {
   usecase "處理檢舉" as report
   usecase "處理防詐警示" as risk
   usecase "管理訂單" as orders
-  usecase "仲裁交易爭議" as dispute
+  usecase "裁決交易爭議" as dispute
   usecase "AI 分析爭議" as aianalysis
   usecase "管理智慧書櫃" as cabinets
   usecase "配對書櫃裝置" as pair
@@ -33,11 +33,11 @@ rectangle "SaveMyBook - 後台管理" {
   usecase "登記取出存書" as clear
   usecase "管理公告與文件" as content
   usecase "處理客服工單" as tickets
-  usecase "系統設定" as settings
+  usecase "系統維運" as settings
   usecase "設定 AI 功能" as ai
   usecase "設定登入方式" as signin
   usecase "備份與還原資料庫" as backup
-  usecase "查看操作紀錄與復原" as logs
+  usecase "查看操作紀錄與還原" as logs
 }
 
 管理員 --> overview

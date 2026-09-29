@@ -6,7 +6,7 @@
   "orderPendingPickup": "待取书",
   "orderCompleted": "已完成",
   "orderCancelled": "已取消",
-  "orderRefunding": "审核中",
+  "orderRefunding": "争议处理中",
   "orderRefunded": "已退款",
   "orderBuyerPendingDeposit": "待卖家存书",
   "orderBuyerDeposited": "待取书",
@@ -541,13 +541,6 @@
     }
   },
   "orderNoItemDetails": "无商品明细",
-  "msg4": "单价 {p0} × {p1}",
-  "@msg4": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "orderTotal": "订单金额",
   "pickupDetails": "取书信息",
   "notAssigned": "尚未指定",
@@ -1046,7 +1039,7 @@
   "editQuestion": "编辑问题",
   "question": "问题",
   "answer": "答案",
-  "showHelpCentre": "显示在帮助中心",
+  "showHelpCentre": "显示在客服中心",
   "bothQuestionAnswerRequired": "请填写问题与答案",
   "added": "已新增",
   "updated": "已更新",
@@ -1095,7 +1088,7 @@
       "p1": {}
     }
   },
-  "disputeResolution": "交易仲裁",
+  "disputeResolution": "交易争议",
   "orderP0P1": "订单 {p0}｜${p1}",
   "@orderP0P1": {
     "placeholders": {
@@ -1112,7 +1105,7 @@
   "decisionNoteOptional": "裁决说明（选填）",
   "submitDecision": "提交裁决",
   "decisionRecorded": "已完成裁决",
-  "resolveDispute": "交易仲裁",
+  "resolveDispute": "交易争议",
   "noDisputesKind": "目前没有此类争议案件",
   "orderNumberP0": "订单编号：{p0}",
   "@orderNumberP0": {
@@ -1592,7 +1585,7 @@
   "buyerSPaymentGoesBackTheir": "买家支付的款项将退回钱包；若卖家已收到货款，将先行收回。",
   "orderReturnsWhereWasBeforeDispute": "订单将恢复至申请争议前的状态并继续交易；若先前已完成取书，货款将拨付给卖家。",
   "orderWasAlreadyRefundedBuyerCannot": "此订单款项已退回买家，无法改回进行中或已完成",
-  "completedOrderCanOnlyChangedRefund": "已完成的订单仅能改为“审核中”或“已退款”",
+  "completedOrderCanOnlyChangedRefund": "已完成的订单仅能改为“争议处理中”或“已退款”",
   "confirmingPaysP0TokensSellerMarks": "确认后将拨付 {p0} 代币给卖家，并将书籍标记为已售出。",
   "@confirmingPaysP0TokensSellerMarks": {
     "placeholders": {
@@ -1852,7 +1845,7 @@
     }
   },
   "paymentSuccessful": "付款成功",
-  "p0BooksSplitIntoP1Orders": "共 {p0} 本书，已按卖家拆分为 {p1} 笔订单",
+  "p0BooksSplitIntoP1Orders": "共 {p0} 本书，已按卖家与书柜拆分为 {p1} 笔订单",
   "@p0BooksSplitIntoP1Orders": {
     "placeholders": {
       "p0": {},
@@ -2776,7 +2769,7 @@
   "reject": "拒绝",
   "listingApproved": "已批准上架",
   "listingRejected": "已拒绝上架",
-  "noListingsAwaitingReview": "目前没有待审核的上架",
+  "noListingsAwaitingReview": "目前没有需上架审核的书籍",
   "likelyViolation": "疑似违规",
   "needsReview": "需人工确认",
   "rejected": "已拒绝",
@@ -2913,7 +2906,7 @@
       "p0": {}
     }
   },
-  "p0ListingsAwaitingReview": "{p0} 笔上架待审核",
+  "p0ListingsAwaitingReview": "{p0} 本书籍需上架审核",
   "@p0ListingsAwaitingReview": {
     "placeholders": {
       "p0": {}
@@ -3502,7 +3495,7 @@
   "autoFilled": "自动补齐",
   "similarBooks": "相似书籍",
   "doNotPayTransferMoneyOutside": "请勿私下汇款或转账，站外付款不受平台保障",
-  "pleaseCompleteDealAppWeCannot": "请通过平台交易，站外交易发生纠纷时平台无法协助",
+  "pleaseCompleteDealAppWeCannot": "请通过平台交易，站外交易发生争议时平台无法协助",
   "personSharedOutsideContactDetailsWatch": "对方提供了站外联系方式，请留意诈骗并通过平台完成交易",
   "mostRelevant": "最相关",
   "scamAlerts": "防诈警示",
@@ -3545,7 +3538,7 @@
   "cancelInstallmentsAccountFrozenPaymentVerification": "“解除分期”“账户冻结”“金流认证”“购买游戏点数”皆为常见诈骗话术",
   "ifSeeSuspiciousMessageReportAdministrator": "发现可疑消息请按举报，管理员将协助处理",
   "confirmSending": "确认发送",
-  "messageIncludesContactPaymentDetailsDeals": "消息包含联系方式或付款信息。在平台外交易或付款不受平台保障，发生纠纷时平台无法协助。",
+  "messageIncludesContactPaymentDetailsDeals": "消息包含联系方式或付款信息。在平台外交易或付款不受平台保障，发生争议时平台无法协助。",
   "sendAnyway": "仍要发送",
   "editMessage2": "返回修改",
   "suspectedScamMessage": "疑似诈骗消息",
@@ -3968,6 +3961,7 @@
   "doorFaultyPleaseContactSupport": "柜门故障，请联系客服",
   "doorAwaitingCheckBySupportPlease": "柜门待客服确认，请联系客服",
   "reachedPreSaleDropOffLimit": "您在此书柜的先行存书已达上限，请待售出或取回后再存入",
+  "preSaleDropOffLimitedOne": "每位卖家在此书柜限先行存书一本",
   "itemChanged": "项目状态已变更",
   "doorDidNotOpen": "柜门未能开启",
   "doorOpeningNotConfirmedSupportCheck": "未收到柜门开启回报，待客服确认",
@@ -4127,7 +4121,7 @@
   "listingAssistantAdoptionRate": "上架辅助采用率",
   "listingsUsingAssistant": "使用上架辅助的书籍",
   "createdFromSupportEnquiries": "由客服工单建立",
-  "rejectionReason": "驳回原因类别",
+  "rejectionReason": "拒绝原因类别",
   "sourceInstantRules": "来源：即时规则",
   "sourceAiAssessment": "来源：AI 判定",
   "confidenceP0": "可信度 {p0}",
@@ -4198,6 +4192,7 @@
   "manualReport": "手动回报",
   "manualReportReviewed": "手动回报处理",
   "overdueOrderHeld": "逾期订单待处理",
+  "delistedOrderHeld": "下架书籍订单待处理",
   "doorOpenedAfterTask": "作业结束后开门",
   "lockDidNotRelease": "电磁锁未释放",
   "doorLeftOpen": "柜门未关闭",
@@ -4335,5 +4330,28 @@
       "p0": {}
     }
   },
-  "pushNotificationRegistrationFailedPleaseTry": "推送注册失败，请稍后再试。"
+  "pushNotificationRegistrationFailedPleaseTry": "推送注册失败，请稍后再试。",
+  "evidencePhotos": "佐证照片",
+  "reportedMessage": "被举报消息",
+  "orderBookLimitP0": "同一卖家同一书柜每笔订单最多 {p0} 本，请分次结账",
+  "@orderBookLimitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "depositPartialNotice": "可用柜门不足，本次仅能存入部分书籍，其余书籍待有空柜门时再存入",
+  "depositedP0RemainingLater": "已存入 {p0} 本，其余书籍待有空柜门时再存入",
+  "@depositedP0RemainingLater": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "alreadySelected": "已选择",
+  "notEnoughAvailableDoorsChooseDifferent": "可用柜门不足，无法为每本书选择不同柜门",
+  "noEmptyDoorCurrentlyAvailableRecord": "目前没有可登记的空柜门",
+  "eachDoorCanHoldOnlyOne": "每扇柜门仅能存放一本书",
+  "removedFromPublicView": "已停止公开显示",
+  "hiddenFromPublic": "停止公开显示",
+  "afterReviewBookNoLongerShown": "此书籍经审核后停止公开显示，订单不受影响。",
+  "bookWasConfirmedViolateRulesAfter": "此书籍经审核确认违规，订单不受影响。"
 }

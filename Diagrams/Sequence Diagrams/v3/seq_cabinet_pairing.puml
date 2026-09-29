@@ -32,12 +32,12 @@ opt 配對碼逾時未輸入
 end
 deactivate IoT
 
-管理員 -> UI : 於書櫃裝置管理輸入配對碼
+管理員 -> UI : 於書櫃裝置頁面輸入配對碼
 activate 管理員
 activate UI
 UI -> API : POST /api/admin/cabinets/:id/device/pair
 activate API
-API -> API : 驗證書櫃管理權限與身分
+API -> API : 驗證硬體維護權限與身分
 alt 配對碼有效且未逾時
   API -> DB : 綁定書櫃，建立待啟用裝置
   API -> DB : 寫入操作紀錄
@@ -59,7 +59,7 @@ API -> 管理員 : 通知「書櫃裝置已配對」
 API --> IoT : 200 裝置憑證（僅交付一次）
 deactivate API
 IoT -> IoT : 儲存憑證
-IoT -> API : POST /api/device/v1/events（開機）
+
 IoT -> API : GET /api/device/v1/state
 API --> IoT : 顯示 QR Code，開始服務
 deactivate IoT

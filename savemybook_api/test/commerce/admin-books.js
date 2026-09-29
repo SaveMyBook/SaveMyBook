@@ -41,7 +41,7 @@ const tests = [
     });
     assert.strictEqual(res.status, 403);
     assert.strictEqual(res.body.code, 'ADMIN_PERMISSION_REQUIRED');
-    assert.strictEqual(res.body.message, '您沒有「內容管理」的權限');
+    assert.strictEqual(res.body.message, '您沒有「商品管理」的權限');
   }],
 
   ['強制下架書籍並通知賣家、寫入操作紀錄', async () => {
@@ -53,6 +53,7 @@ const tests = [
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.message, '已下架');
     assert.strictEqual(bookOf(book.book_id).status, 'removed');
+    assert.strictEqual(bookOf(book.book_id).is_approved, false);
 
     const notice = notificationsOf(seller.user_id)[0];
     assert.strictEqual(notice.title, '您的書籍已被下架');
@@ -89,11 +90,11 @@ const tests = [
 
     const one = await request('PATCH', `/api/admin/books/${reserved.book_id}`, { token, body: { status: 'on_sale' } });
     assert.strictEqual(one.status, 409);
-    assert.strictEqual(one.body.message, '此書籍交易中，無法恢復上架');
+    assert.strictEqual(one.body.message, '此書籍已售出（訂單進行中），無法恢復上架');
 
     const two = await request('PATCH', `/api/admin/books/${sold.book_id}`, { token, body: { status: 'on_sale' } });
     assert.strictEqual(two.status, 409);
-    assert.strictEqual(two.body.message, '此書籍已售出，無法恢復上架');
+    assert.strictEqual(two.body.message, '此書籍已完成交易，無法恢復上架');
   }],
 
   ['管理員修改書籍資料會通知賣家並記錄變更', async () => {
@@ -260,7 +261,7 @@ const tests = [
       token, body: { decision: 'reject', note: '販售盜版' }
     });
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.body.message, '已駁回並下架');
+    assert.strictEqual(res.body.message, '已拒絕上架');
     assert.strictEqual(bookOf(book.book_id).status, 'removed');
     assert.strictEqual(bookOf(book.book_id).is_approved, false);
     assert.strictEqual(reviewOf(book.book_id).status, 'rejected');

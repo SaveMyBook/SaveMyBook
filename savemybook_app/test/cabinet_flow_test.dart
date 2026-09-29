@@ -761,16 +761,127 @@ void main() {
         expect(find.text('計算機網路'), findsOneWidget);
 
         final checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
-        expect(checkboxes.map((c) => c.value), [false, true, false, false, false]);
+        expect(checkboxes.map((c) => c.value), [false, true, false, false]);
         expect(checkboxes.first.onChanged, isNull);
+        expect(find.byType(Radio<String>), findsOneWidget, reason: '先行存書以單選呈現');
+        expect(find.text(S.preSaleDropOffLimitedOne), findsOneWidget);
 
         await tester.tap(find.text('編譯器設計'));
         await _settle(tester, 3);
-        expect(tester.widgetList<Checkbox>(find.byType(Checkbox)).map((c) => c.value), [false, true, false, true, true]);
+        expect(tester.widgetList<Checkbox>(find.byType(Checkbox)).map((c) => c.value), [false, true, true, true]);
 
         await tester.tap(find.text(S.openDoor));
         await _settle(tester);
         expect(api.bodies['POST /api/cabinet-sessions/$_sessionNo/start'], {'keys': ['order:129', 'book:61', 'book:62']});
+        await _finish(tester);
+      }, () => api.client);
+    });
+
+    testWidgets('先行存書單選：選另一本時取消前一本，可再點一次取消，其他項目維持勾選', (tester) async {
+      final session = _session(
+        items: [
+          _item('pickup'),
+          _item('pre_deposit', key: 'book:60', books: [_sessionBook(60, '演算法', door: null)], doors: const [], selected: false),
+          _item('pre_deposit', key: 'book:63', books: [_sessionBook(63, '線性代數', door: null)], doors: const [], selected: false),
+          _item('retrieval', key: 'book:61', books: [_sessionBook(61, '編譯器設計', door: 'A03')], doors: const ['A03'], selected: false),
+        ],
+      );
+      final api = _Api()..onStart = ((_) => _ok(_session(status: 'matching', version: 2)));
+      Finder radio(String key) => find.byWidgetPredicate((w) => w is Radio<String> && w.value == key);
+      String? chosen() => tester.widget<RadioGroup<String>>(find.byType(RadioGroup<String>)).groupValue;
+      await http.runWithClient(() async {
+        await _pump(tester, CabinetFlowScreen(resume: CabinetSession.fromJson(session)), size: const Size(390, 1400));
+        expect(find.byType(Radio<String>), findsNWidgets(2));
+        expect(find.byType(Checkbox), findsNWidgets(2));
+        expect(find.text(S.preSaleDropOffLimitedOne), findsOneWidget);
+        expect(find.text(S.reachedPreSaleDropOffLimit), findsNothing);
+        expect(chosen(), isNull);
+
+        await tester.tap(find.text('演算法'));
+        await _settle(tester, 3);
+        expect(chosen(), 'book:60');
+        await tester.tap(find.text('線性代數'));
+        await _settle(tester, 3);
+        expect(chosen(), 'book:63');
+        await tester.tap(radio('book:63'));
+        await _settle(tester, 3);
+        expect(chosen(), isNull, reason: '再點一次已選的先行存書即取消');
+        await tester.tap(radio('book:60'));
+        await tester.tap(find.text('編譯器設計'));
+        await _settle(tester, 3);
+        expect(chosen(), 'book:60');
+        expect(tester.widgetList<Checkbox>(find.byType(Checkbox)).map((c) => c.value), [true, true]);
+
+        await tester.tap(find.text(S.openDoor));
+        await _settle(tester);
+        expect(api.bodies['POST /api/cabinet-sessions/$_sessionNo/start'], {'keys': ['order:128', 'book:60', 'book:61']});
+        await _finish(tester);
+      }, () => api.client);
+    });
+
+    testWidgets('先行存書：伺服器預選多本時只保留第一本', (tester) async {
+      final session = _session(
+        items: [
+          _item('pre_deposit', key: 'book:60', books: [_sessionBook(60, '演算法', door: null)], doors: const []),
+          _item('pre_deposit', key: 'book:63', books: [_sessionBook(63, '線性代數', door: null)], doors: const []),
+        ],
+      );
+      final api = _Api()..onStart = ((_) => _ok(_session(status: 'matching', version: 2)));
+      await http.runWithClient(() async {
+        await _pump(tester, CabinetFlowScreen(resume: CabinetSession.fromJson(session)));
+        expect(tester.widget<RadioGroup<String>>(find.byType(RadioGroup<String>)).groupValue, 'book:60');
+        await tester.tap(find.text(S.openDoor));
+        await _settle(tester);
+        expect(api.bodies['POST /api/cabinet-sessions/$_sessionNo/start'], {'keys': ['book:60']});
+        await _finish(tester);
+      }, () => api.client);
+    });
+
+    testWidgets('先行存書已達上限：群組上方說明一次，各項目停用且不逐筆重複', (tester) async {
+      Map<String, dynamic> pre(int id, String title, {String? blocked}) => _item(
+        'pre_deposit',
+        key: 'book:$id',
+        books: [_sessionBook(id, title, door: null)],
+        doors: const [],
+        selected: false,
+        blocked: blocked == null ? null : {'code': blocked, 'message': '伺服器訊息'},
+      );
+      final api = _Api();
+      await http.runWithClient(() async {
+        await _pump(
+          tester,
+          CabinetFlowScreen(
+            resume: CabinetSession.fromJson(
+              _session(
+                items: [
+                  pre(60, '演算法', blocked: 'PREDEPOSIT_LIMIT'),
+                  pre(63, '線性代數', blocked: 'PREDEPOSIT_LIMIT'),
+                  pre(64, '資料結構', blocked: 'PREDEPOSIT_LIMIT'),
+                ],
+              ),
+            ),
+          ),
+          size: const Size(390, 1200),
+        );
+        expect(find.text(S.reachedPreSaleDropOffLimit), findsOneWidget);
+        expect(find.text(S.preSaleDropOffLimitedOne), findsNothing);
+        expect(find.text('伺服器訊息'), findsNothing);
+        expect(tester.widgetList<Radio<String>>(find.byType(Radio<String>)).map((r) => r.enabled), [false, false, false]);
+        await tester.tap(find.text('演算法'));
+        await _settle(tester, 3);
+        expect(tester.widget<RadioGroup<String>>(find.byType(RadioGroup<String>)).groupValue, isNull);
+        expect(_primary(tester, S.openDoor).onPressed, isNull);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await _pump(
+          tester,
+          CabinetFlowScreen(
+            resume: CabinetSession.fromJson(_session(items: [pre(60, '演算法'), pre(63, '線性代數', blocked: 'PREDEPOSIT_LIMIT')])),
+          ),
+        );
+        expect(find.text(S.preSaleDropOffLimitedOne), findsOneWidget, reason: '本書的待確認回報不佔額度時，仍可選這一本');
+        expect(find.text(S.reachedPreSaleDropOffLimit), findsNothing);
+        expect(tester.widgetList<Radio<String>>(find.byType(Radio<String>)).map((r) => r.enabled), [true, false]);
         await _finish(tester);
       }, () => api.client);
     });

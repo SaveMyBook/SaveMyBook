@@ -30,7 +30,7 @@ rectangle "SaveMyBook - 交易與訂單" {
   usecase "掃描書櫃開啟櫃門" as open
   usecase "手機輸入比對數字" as match
   usecase "改為手動回報" as manual
-  usecase "仲裁爭議" as arbitrate
+  usecase "裁決爭議" as arbitrate
   usecase "確認手動回報" as confirm
 }
 

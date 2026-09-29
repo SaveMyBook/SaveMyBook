@@ -22,6 +22,7 @@ import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/services/locale_provider.dart';
 import 'package:savemybook_app/services/notification_router.dart';
 import 'package:savemybook_app/services/verification_service.dart';
+import 'package:savemybook_app/utils/app_labels.dart';
 import 'package:savemybook_app/utils/app_theme.dart';
 
 const _now = '2026-09-28T10:30:00.000Z';
@@ -167,6 +168,7 @@ class _FakeServer {
   final Map<String, Map<String, dynamic>> bodies = {};
   final Map<String, String?> verifyTokens = {};
   bool a04Checked = false;
+  int reportBooks = 0;
   bool cooldown = false;
   bool rateLimited = false;
   bool pairExpires = false;
@@ -240,13 +242,16 @@ class _FakeServer {
           message: '已送出配對，裝置連線後即完成',
         );
       case 'GET /admin/cabinets/3/manual-reports':
+        final books = [for (var i = 0; i < reportBooks; i++) {'book_id': 57 + i * 2, 'title': ['計算機概論', '離散數學', '線性代數', '微積分'][i]}];
         return _ok([
           {
             'report_no': 'MR4K2Q8ZT', 'kind': 'deposit', 'status': 'pending', 'target_status': 'deposited', 'reason': 'offline',
             'created_at': _now, 'reviewed_at': null, 'review_note': null,
             'user': {'user_no': 'MB3KER74B', 'nickname': '小華'},
             'order': {'order_id': 128, 'order_no': 'SMB20260928143015123456', 'status': 'pending_deposit'},
-            'book': null, 'titles': ['計算機概論'], 'requires_door': true, 'reviewer_nickname': null,
+            'book': null, 'titles': books.isEmpty ? ['計算機概論'] : [for (final b in books) b['title']], 'requires_door': true,
+            if (books.isNotEmpty) 'door_books': books,
+            'reviewer_nickname': null,
           },
         ]);
       case 'GET /admin/cabinets/3/sessions':
@@ -593,6 +598,7 @@ void main() {
 
         await _openDoorMenu(tester, 'A01');
         expect(find.text(S.confirmContents), findsNothing, reason: '非待確認櫃門不提供確認內容');
+        expect(tester.widget<ListTile>(find.widgetWithText(ListTile, S.recordContents)).enabled, isFalse, reason: '每扇櫃門僅能存放一本書');
         await tester.tap(find.text(S.clearContentsRecord));
         await _settle(tester);
         await tester.tap(find.text(S.booksRemoved));
@@ -701,6 +707,47 @@ void main() {
         await _settle(tester);
         expect(server.bodies['POST /admin/cabinet-manual-reports/MR4K2Q8ZT/reject'], {'note': '與實際不符'});
         expect(find.text('此手動回報與您本人相關，須由其他管理員處理'), findsOneWidget);
+        await _finish(tester);
+      }, () => server.client);
+    });
+
+    testWidgets('手動回報：訂單多本書須逐本選擇不同櫃門，已占用或已選的櫃門不可選；可用櫃門不足時不送出', (tester) async {
+      _tallView(tester);
+      server.reportBooks = 2;
+      await http.runWithClient(() async {
+        await tester.pumpWidget(_host(const AdminCabinetDeviceScreen(cabinetId: 3)));
+        await _settle(tester);
+
+        await tester.tap(find.text(S.confirmReport));
+        await _settle(tester);
+        expect(find.text('計算機概論'), findsWidgets);
+        final occupied = find.widgetWithText(ListTile, '${S.doorP0('A01')}・${AppLabels.slot('occupied')}');
+        expect(tester.widget<ListTile>(occupied).enabled, isFalse, reason: '已有書的櫃門不可選');
+        await tester.tap(find.textContaining('${S.doorP0('A02')}・'));
+        await _settle(tester);
+        final chosen = find.widgetWithText(ListTile, '${S.doorP0('A02')}・${S.alreadySelected}');
+        expect(tester.widget<ListTile>(chosen).enabled, isFalse, reason: '已選的櫃門不可重複選');
+        await tester.tap(find.textContaining('${S.doorP0('A04')}・'));
+        await _settle(tester);
+        await tester.tap(find.text(S.confirmReport).last);
+        await _settle(tester);
+        expect(server.bodies['POST /admin/cabinet-manual-reports/MR4K2Q8ZT/confirm'], {
+          'doors': [
+            {'book_id': 57, 'slot_id': 42},
+            {'book_id': 59, 'slot_id': 44},
+          ],
+        });
+        await tester.pump(const Duration(seconds: 3));
+
+        server.reportBooks = 4;
+        server.bodies.clear();
+        await tester.pump(AdminCabinetDeviceScreen.refreshInterval);
+        await _settle(tester);
+        await tester.tap(find.text(S.confirmReport));
+        await _settle(tester);
+        expect(find.text(S.notEnoughAvailableDoorsChooseDifferent), findsOneWidget);
+        expect(find.text(S.selectDoorWhereBooksActuallyStored), findsNothing);
+        expect(server.bodies.keys.where((k) => k.endsWith('/confirm')), isEmpty);
         await _finish(tester);
       }, () => server.client);
     });

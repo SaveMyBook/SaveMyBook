@@ -932,6 +932,9 @@ paths:
 
         保留期間（`confirmed` 且未過 `pickup_deadline`）其他買家無法加入購物車或結帳，賣家也不能編輯、下架或增刪照片
         （回傳 409 `BOOK_HELD`）。保留中的預約被取消或到期時，若書籍仍在販售中，會通知收藏此書的使用者（不含該預約的買賣雙方）。
+
+        書籍經審核下架（檢舉成立並下架、管理員強制下架、上架審核拒絕）時，`pending` 與保留中的 `confirmed` 預約由系統取消
+        （`closed_by` 為 `system`、`closed_action` 為 `delisted`），並通知買家。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path

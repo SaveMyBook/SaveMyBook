@@ -156,7 +156,7 @@ const userProfile = ({ origin, user, token }) => {
       <p class="bio">${escapeHtml(user.bio || '這個人很懶，什麼都沒留下')}</p>
       <p class="meta">上架 ${Number(user._count.books)} 本書 ・ ${escapeHtml(joined)} 加入</p>
       ${openAppButton(`savemybook://u/${encodeURIComponent(token)}`,
-        '若無法開啟，請先安裝「救「舊」我的書」App，<br>或於 App 的「分享個人檔案」中掃描此 QR Code。')}`
+        '若無法開啟，請先安裝「救「舊」我的書」App，<br>或於 App 的「我的 QR Code」中掃描此 QR Code。')}`
   });
 };
 

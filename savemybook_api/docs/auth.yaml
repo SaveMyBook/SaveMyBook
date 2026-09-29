@@ -113,7 +113,7 @@ paths:
                 已停權:
                   value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已停權，請聯絡客服 }
                 列入黑名單:
-                  value: { success: false, code: ACCOUNT_BLACKLISTED, message: 此帳號已被停用，請聯絡客服 }
+                  value: { success: false, code: ACCOUNT_BLACKLISTED, message: 此帳號已列入黑名單，請聯絡客服 }
         '404':
           description: 該電子郵件尚未註冊。
           content:

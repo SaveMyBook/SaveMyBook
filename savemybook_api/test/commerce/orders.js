@@ -138,6 +138,80 @@ const tests = [
     assert.strictEqual(transactionsOf(buyer.user_id).length, 2);
   }],
 
+  ['同一賣家依書籍指定的書櫃拆單，每筆訂單的書櫃為該組書籍的書櫃', async () => {
+    const buyer = addUser({ balance: 1000 });
+    const seller = addUser();
+    const north = addCabinet({ name: '台大書櫃' });
+    const south = addCabinet({ name: '公館書櫃' });
+    const books = [north, north, south].map((c, i) => addBook({ sellerId: seller.user_id, price: 100 + i, cabinet_id: c.cabinet_id }));
+    for (const book of books) addCartItem(buyer.user_id, book.book_id);
+
+    const res = await checkout(tokenFor(buyer));
+    assert.strictEqual(res.status, 201, res.text);
+    const summary = res.body.data
+      .map((o) => [o.cabinet_id, o.order_items.map((i) => i.book_id).sort((a, b) => a - b)])
+      .sort((a, b) => a[0] - b[0]);
+    assert.deepStrictEqual(summary, [
+      [north.cabinet_id, [books[0].book_id, books[1].book_id]],
+      [south.cabinet_id, [books[2].book_id]]
+    ]);
+    assert.strictEqual(balanceOf(buyer.user_id), 1000 - 303);
+    assert.strictEqual(notificationsOf(seller.user_id).filter((n) => n.title === '書籍已售出').length, 2);
+  }],
+
+  ['同一賣家於同一書櫃超過 2 本時回 ORDER_BOOK_LIMIT，不扣款也不鎖定書籍；直接購買不受影響', async () => {
+    const buyer = addUser({ balance: 1000 });
+    const seller = addUser();
+    const other = addUser();
+    const cabinet = addCabinet({ name: '台大書櫃' });
+    const books = [1, 2, 3].map(() => addBook({ sellerId: seller.user_id, price: 100, cabinet_id: cabinet.cabinet_id }));
+    const extra = addBook({ sellerId: other.user_id, price: 100, cabinet_id: cabinet.cabinet_id });
+    const carts = [...books, extra].map((b) => addCartItem(buyer.user_id, b.book_id));
+    const token = tokenFor(buyer);
+
+    const res = await checkout(token);
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.body.code, 'ORDER_BOOK_LIMIT');
+    assert.strictEqual(res.body.message, '同一賣家於同一書櫃之書籍，每筆訂單最多 2 本，請分次結帳');
+    assert.strictEqual(res.body.max_books, 2);
+    assert.deepStrictEqual(res.body.book_ids, books.map((b) => b.book_id));
+    assert.strictEqual(balanceOf(buyer.user_id), 1000);
+    assert.ok(books.every((b) => bookOf(b.book_id).status === 'on_sale'));
+    assert.strictEqual(prisma.rows('orders').length, 0);
+
+    const split = await checkout(token, { cart_ids: [carts[0].cart_id, carts[1].cart_id, carts[3].cart_id] });
+    assert.strictEqual(split.status, 201, split.text);
+    assert.strictEqual(split.body.data.length, 2);
+    const direct = await request('POST', '/api/orders/buy-now', {
+      token, headers: verifyHeaders(token, 'payment'), body: { book_id: books[2].book_id }
+    });
+    assert.strictEqual(direct.status, 201, direct.text);
+  }],
+
+  ['結帳一律以 1 本計價：舊資料的購物車數量大於 1 時仍以 1 本成立訂單；直接購買數量大於 1 時回 400', async () => {
+    const buyer = addUser({ balance: 1000 });
+    const seller = addUser();
+    const [bookA, bookB] = [120, 80].map((price) => addBook({ sellerId: seller.user_id, price, quantity: 3 }));
+    addCartItem(buyer.user_id, bookA.book_id, 3);
+    addCartItem(buyer.user_id, bookB.book_id, 2);
+    const token = tokenFor(buyer);
+
+    const res = await checkout(token);
+    assert.strictEqual(res.status, 201, res.text);
+    const [order] = res.body.data;
+    assert.strictEqual(Number(order.total_amount), 200);
+    assert.deepStrictEqual(prisma.rows('order_items').map((i) => [i.quantity, Number(i.subtotal)]), [[1, 120], [1, 80]]);
+    assert.strictEqual(balanceOf(buyer.user_id), 800);
+
+    const other = addBook({ sellerId: seller.user_id, price: 50 });
+    const direct = await request('POST', '/api/orders/buy-now', {
+      token, headers: verifyHeaders(token, 'payment'), body: { book_id: other.book_id, quantity: 2 }
+    });
+    assert.strictEqual(direct.status, 400);
+    assert.strictEqual(direct.body.code, 'QUANTITY_FIXED');
+    assert.strictEqual(bookOf(other.book_id).status, 'on_sale');
+  }],
+
   ['只結帳指定的購物車項目', async () => {
     const buyer = addUser({ balance: 1000 });
     const seller = addUser();
@@ -436,7 +510,7 @@ const tests = [
 
     const forward = await request('PATCH', `/api/admin/orders/${done.order_id}`, { token, body: { status: 'deposited' } });
     assert.strictEqual(forward.status, 400);
-    assert.strictEqual(forward.body.message, '已完成的訂單僅能改為「審核中」或「已退款」');
+    assert.strictEqual(forward.body.message, '已完成的訂單僅能改為「爭議處理中」或「已退款」');
 
     const restore = await request('PATCH', `/api/admin/orders/${cancelled.order_id}`, { token, body: { status: 'deposited' } });
     assert.strictEqual(restore.status, 400);
